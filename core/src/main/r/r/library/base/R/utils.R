@@ -1,0 +1,50 @@
+#  File src/library/base/R/utils.R
+#  Part of the R package, http://www.R-project.org
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+
+shQuote <- function(string, type = c("sh", "csh", "cmd"))
+{
+    cshquote <- function(x) {
+        xx <- strsplit(x, "'", fixed = TRUE)[[1L]]
+        paste(paste("'", xx, "'", sep = ""), collapse="\"'\"")
+    }
+    if(missing(type) && .Platform$OS.type == "windows") type <- "cmd"
+    type <- match.arg(type)
+    if(type == "cmd") {
+        paste('"', gsub('"', '\\\\"', string), '"', sep = "")
+    } else {
+        if(!length(string)) return("")
+        has_single_quote <- grep("'", string)
+        if(!length(has_single_quote))
+            return(paste("'", string, "'", sep = ""))
+        if(type == "sh")
+            paste('"', gsub('(["$`\\])', "\\\\\\1", string), '"', sep="")
+        else {
+            if(!length(grep("([$`])", string))) {
+                paste('"', gsub('(["!\\])', "\\\\\\1", string), '"', sep="")
+            } else sapply(string, cshquote)
+        }
+    }
+}
+
+.standard_regexps <-
+function()
+{
+    list(valid_package_name = "[[:alpha:]][[:alnum:].]*",
+         valid_package_version = "([[:digit:]]+[.-]){1,}[[:digit:]]+",
+         valid_R_system_version =
+         "[[:digit:]]+\\.[[:digit:]]+\\.[[:digit:]]+",
+         valid_numeric_version = "([[:digit:]]+[.-])*[[:digit:]]+")
+}

@@ -28,12 +28,16 @@ import java.util.Iterator;
 
 public class IntExp extends AbstractVector implements Iterable<Integer> {
 
+  public static final String TYPE_NAME = "integer";
+  public static final int TYPE_CODE = 13;
+
   /**
    * NA_INTEGER:= INT_MIN currently
    */
   public static final int NA = Integer.MIN_VALUE;
 
   private IntArrayList values;
+
 
   public IntExp(int... values) {
     this.values = new IntArrayList(values);
@@ -48,13 +52,18 @@ public class IntExp extends AbstractVector implements Iterable<Integer> {
   }
 
   @Override
-  public int length() {
-    return values.size();
+  public int getTypeCode() {
+    return TYPE_CODE;
   }
 
   @Override
-  public Type getType() {
-    return Type.INTSXP;
+  public String getTypeName() {
+    return TYPE_NAME;
+  }
+
+  @Override
+  public int length() {
+    return values.size();
   }
 
   public int get(int i) {

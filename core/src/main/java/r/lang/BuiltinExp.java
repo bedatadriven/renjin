@@ -21,54 +21,40 @@
 
 package r.lang;
 
-import java.util.ArrayList;
+import r.lang.primitive.FunctionTable;
 
-public class ExpSexp extends AbstractVector {
+public class BuiltinExp extends PrimitiveSexp {
+  public static final int TYPE_CODE = 8;
+  public static final String TYPE_NAME = "builtin";
 
-  private ArrayList<SEXP> list;
-
-  public ExpSexp() {
-    list = new ArrayList<SEXP>();
-  }
-
-  public ExpSexp(Iterable<SEXP> expressions) {
-    list = new ArrayList<SEXP>();
-    for (SEXP sexp : expressions) {
-      list.add(sexp);
-    }
+  public BuiltinExp(FunctionTable.Entry functionEntry) {
+    super(functionEntry);
   }
 
   @Override
-  public Type getType() {
-    return Type.EXPRSXP;
+  public int getTypeCode() {
+    return TYPE_CODE;
   }
 
   @Override
-  public int length() {
-    return list.size();
-  }
-
-  public void add(SEXP result) {
-    list.add(result);
-  }
-
-  public SEXP get(int index) {
-    return list.get(index);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("[");
-    for (SEXP s : list) {
-      sb.append("\t").append(s).append("\n");
-    }
-    sb.append("]");
-    return sb.toString();
+  public String getTypeName() {
+    return TYPE_NAME;
   }
 
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
+  }
+
+  @Override
+  protected ListExp prepareArguments(ListExp args, EnvExp rho) {
+    if (args == null) {
+      return null;
+    }
+    ListExp.Builder builder = new ListExp.Builder();
+    for (SEXP arg : args) {
+      builder.add(arg.evaluate(rho));
+    }
+    return builder.list();
   }
 }

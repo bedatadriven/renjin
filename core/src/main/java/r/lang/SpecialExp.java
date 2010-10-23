@@ -19,14 +19,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive;
+package r.lang;
 
-import r.lang.EnvExp;
-import r.lang.LangExp;
-import r.lang.ListExp;
-import r.lang.SEXP;
+import r.lang.primitive.FunctionTable;
 
-public abstract class BuiltinFunction {
+public class SpecialExp extends PrimitiveSexp {
+  public static final int TYPE_CODE = 7;
+  public static final String TYPE_NAME = "special";
 
-  public abstract SEXP apply(LangExp call, ListExp args, EnvExp rho);
+  public SpecialExp(FunctionTable.Entry functionEntry) {
+    super(functionEntry);
+  }
+
+  @Override
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
+  }
+
+  @Override
+  public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
+    checkArity(args);
+
+    // we do not evaluate the arguments of "special" functions
+    return getFunctionInstance().apply(call, args, rho);
+  }
+
+  @Override
+  protected ListExp prepareArguments(ListExp args, EnvExp rho) {
+    return args; // args to special functions are not evaluated beforehand
+  }
 }

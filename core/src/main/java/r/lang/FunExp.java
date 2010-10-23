@@ -21,7 +21,13 @@
 
 package r.lang;
 
-public interface FunSxp {
+/**
+ * Superinterface for the three function-like {@code SEXP}s:
+ * {@code ClosureExp}, {@code SpecialExp}, and {@code PrimitiveExp}.
+ *
+ * 
+ */
+public interface FunExp {
 
   SEXP apply(LangExp call, ListExp args, EnvExp rho);
 }

@@ -21,15 +21,36 @@
 
 package r.lang;
 
-public final class NilExp extends SEXP {
+import java.util.ArrayList;
 
-  public static final int TYPE_CODE = 0;
-  public static final String TYPE_NAME = "NULL";
+/**
+ * A vector of statements {@code LangExp}.
+ *
+ * <p>
+ * In R one can have objects of type "expression".
+ * An expression contains one or more statements (see {@link r.lang.LangExp}.
+ *
+ * <p>
+ * A statement is a syntactically correct collection of tokens.
+ * Expression objects are special language objects which contain
+ * parsed but unevaluated R statements.
+ *
+ */
+public class ExpExp extends AbstractVector {
+  public static final String TYPE_NAME = "expression";
+  public static final int TYPE_CODE = 20;
 
-  public static final NilExp INSTANCE = new NilExp();
+  private ArrayList<SEXP> list;
 
-  private NilExp() {
+  public ExpExp() {
+    list = new ArrayList<SEXP>();
+  }
 
+  public ExpExp(Iterable<SEXP> expressions) {
+    list = new ArrayList<SEXP>();
+    for (SEXP sexp : expressions) {
+      list.add(sexp);
+    }
   }
 
   @Override
@@ -44,32 +65,30 @@ public final class NilExp extends SEXP {
 
   @Override
   public int length() {
-    return 0;
+    return list.size();
+  }
+
+  public void add(SEXP result) {
+    list.add(result);
+  }
+
+  public SEXP get(int index) {
+    return list.get(index);
   }
 
   @Override
   public String toString() {
-    return "NULL";
-  }
-
-  @Override
-  public SEXP evaluate(EnvExp rho) {
-    return this;
-  }
-
-  @Override
-  public SEXP getAttribute(String name) {
-    return NilExp.INSTANCE;
-  }
-
-  @Override
-  public SEXP subset(int from, int to) {
-    return this;
+    StringBuilder sb = new StringBuilder();
+    sb.append("[");
+    for (SEXP s : list) {
+      sb.append("\t").append(s).append("\n");
+    }
+    sb.append("]");
+    return sb.toString();
   }
 
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
-
   }
 }

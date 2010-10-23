@@ -25,6 +25,9 @@ import r.util.ArgChecker;
 
 public class SymbolExp extends SEXP {
 
+  public static final int TYPE_CODE = 1;
+  public static final String  TYPE_NAME = "symbol";
+
   public static final SymbolExp UNBOUND_VALUE = createUnbound();
   public static final SymbolExp MISSING_ARG = new SymbolExp();
 
@@ -42,8 +45,13 @@ public class SymbolExp extends SEXP {
   }
 
   @Override
-  public Type getType() {
-    return Type.SYMSXP;
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
   }
 
   public String getPrintName() {

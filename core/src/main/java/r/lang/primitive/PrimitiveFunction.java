@@ -19,20 +19,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.eval;
+package r.lang.primitive;
 
-import r.lang.*;
-import r.lang.primitive.PrimitiveFunction;
+import r.lang.EnvExp;
+import r.lang.LangExp;
+import r.lang.ListExp;
+import r.lang.SEXP;
 
-public class Assignment extends PrimitiveFunction {
+public abstract class PrimitiveFunction {
 
-  @Override
-  public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
-    SymbolExp symbol = (SymbolExp) args.getFirst();
-    SEXP newValue = args.getSecond().evaluate(rho);
-
-    rho.setVariable(symbol, newValue);
-
-    return newValue;
-  }
+  public abstract SEXP apply(LangExp call, ListExp args, EnvExp rho);
 }

@@ -24,9 +24,9 @@ package r.lang.primitive.math;
 import com.google.common.base.Preconditions;
 import r.lang.*;
 import r.lang.exception.BuiltinException;
-import r.lang.primitive.BuiltinFunction;
+import r.lang.primitive.PrimitiveFunction;
 
-public abstract class UnaryMath extends BuiltinFunction {
+public abstract class UnaryMath extends PrimitiveFunction {
 
   @Override
   public final SEXP apply(LangExp call, ListExp args, EnvExp rho) {

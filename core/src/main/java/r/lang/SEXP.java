@@ -24,7 +24,7 @@ package r.lang;
 import r.lang.exception.LanguageException;
 
 /**
- * 
+ * Base class for R data types.
  */
 public abstract class SEXP {
 
@@ -67,7 +67,9 @@ public abstract class SEXP {
     this.attributes = attributes;
   }
 
-  public abstract Type getType();
+  public abstract int getTypeCode();
+
+  public abstract String getTypeName();
 
   public int getNamed() {
     return named;
@@ -121,145 +123,8 @@ public abstract class SEXP {
     }
   }
 
-  public static enum Type {
 
-    /**
-     * NULL
-     */
-    NILSXP(0, "NULL"),
-
-    /**
-     * Symbols
-     */
-    SYMSXP(1, ""),
-
-    /**
-     * Pairlists
-     */
-    LISTSXP(2, ""),
-
-    /**
-     * Closures
-     */
-    CLOSXP(3, "closure"),
-
-    /**
-     * Environments
-     */
-    ENVSXP(4, "environment"),
-
-    /**
-     * Promise objects
-     */
-    PROMSXP(5, ""),
-
-    /**
-     * Language objects
-     */
-    LANGSXP(6, ""),
-
-    /**
-     * Special functions
-     */
-    SPECIALSXP(7, ""),
-
-    /**
-     * Built in functions
-     */
-    BUILTINSXP(8, ""),
-
-    /**
-     * Character vectors
-     */
-    CHARSXP(9, ""),
-
-    /**
-     * Logical Vectors
-     */
-    LGLSXP(10, "logical"),
-
-    /**
-     * Integer vectors
-     */
-    INTSXP(13, "integer"),
-
-    /**
-     * Numeric vectors
-     */
-    REALSXP(14, "double"),
-
-    /**
-     * Complex vectors
-     */
-    CPLXSXP(15, ""),
-
-    /**
-     * VEctors of string
-     */
-    STRSXP(16, "character"),
-
-    /**
-     * Dot-dot-dot object
-     */
-    DOTSXP(17, ""),
-
-    /**
-     * make any args work
-     */
-    ANYSXP(18, ""),
-
-    /**
-     * list (generic vector)
-     */
-    VECSXP(19, ""),
-
-    /**
-     * expression vector
-     */
-    EXPRSXP(20, "expression"),
-
-    /**
-     * byte code
-     */
-    BCODESXP(21, ""),
-
-    /**
-     * EXternal pointer
-     */
-    EXTPTRSXP(22, ""),
-
-    /**
-     * Weak reference
-     */
-    WEAKREFSXP(23, ""),
-
-    /**
-     * raw vector
-     */
-    RAWSXP(24, "raw"),
-
-    /**
-     * S4SXP
-     */
-    S4SXP(25, "");
-
-
-    private int code;
-    private String name;
-
-    private Type(int code, String name) {
-      this.code = code;
-      this.name = name;
-    }
-
-    public int getCode() {
-      return code;
-    }
-
-    public String getName() {
-      return name;
-    }
-  }
+  public abstract void accept(SexpVisitor visitor);
 
   /**
    * Evaluates this expression in the environment rho
@@ -331,7 +196,7 @@ public abstract class SEXP {
    * @return
    */
   public SEXP subset(int from, int to) {
-    throw new LanguageException(String.format("object of type '%s' is not subsettable", getType().getName()));
+    throw new LanguageException(String.format("object of type '%s' is not subsettable", getTypeName()));
   }
 
   /**
@@ -342,7 +207,4 @@ public abstract class SEXP {
   public SEXP subset(int index) {
     return subset(index, index);
   }
-
-  public abstract void accept(SexpVisitor visitor);
-
 }

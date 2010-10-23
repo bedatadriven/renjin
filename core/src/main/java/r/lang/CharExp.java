@@ -26,19 +26,26 @@ import r.lang.exception.LanguageException;
 public class CharExp extends AbstractVector {
 
   private String value;
+  public static final int TYPE_CODE = 9;
+  public static final String TYPE_NAME = "char";
 
   public CharExp(String value) {
     this.value = value;
   }
 
   @Override
-  public int length() {
-    return value.length();
+  public int getTypeCode() {
+    return TYPE_CODE;
   }
 
   @Override
-  public Type getType() {
-    return Type.CHARSXP;
+  public String getTypeName() {
+    return TYPE_NAME;
+  }
+
+  @Override
+  public int length() {
+    return value.length();
   }
 
   public String getValue() {

@@ -325,10 +325,6 @@ public class RInternals {
     return s.length();
   }
 
-  public static SEXP.Type TYPEOF(SEXP s) {
-    return s.getType();
-  }
-
   public static SEXP ATTRIB(SEXP s) {
     return s.getAttributes();
   }
@@ -372,35 +368,35 @@ public class RInternals {
   }
 
   public static boolean isNull(SEXP s) {
-    return s.getType() == SEXP.Type.NILSXP;
+    return s == NilExp.INSTANCE;
   }
 
   public static boolean isSymbol(SEXP s) {
-    return s.getType() == SEXP.Type.SYMSXP;
+    return s instanceof SymbolExp;
   }
 
   public static boolean isLogical(SEXP s) {
-    return s.getType() == SEXP.Type.LGLSXP;
+    return  s instanceof LogicalExp;
   }
 
   public static boolean isReal(SEXP s) {
-    return s.getType() == SEXP.Type.REALSXP;
+    return s instanceof RealExp;
   }
 
   public static boolean isComplex(SEXP s) {
-    return s.getType() == SEXP.Type.REALSXP;
+    return s instanceof ComplexExp;
   }
 
   public static boolean isExpression(SEXP s) {
-    return s.getType() == SEXP.Type.EXPRSXP;
+    return s instanceof ExpExp;
   }
 
   public static boolean isEnvironment(SEXP s) {
-    return s.getType() == SEXP.Type.ENVSXP;
+    return s instanceof EnvExp;
   }
 
   public static boolean isString(SEXP s) {
-    return s.getType() == SEXP.Type.STRSXP;
+    return s instanceof StringExp;
   }
 
 

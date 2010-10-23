@@ -25,7 +25,6 @@ package r.lang.primitive;
 import r.lang.primitive.eval.*;
 import r.lang.primitive.math.*;
 
-import static r.lang.SEXP.Type.*;
 import static r.lang.internal.c.fn.arith.ArithOpType.*;
 import static r.lang.internal.c.fn.relop.RelOpType.*;
 import static r.lang.primitive.PPkind.*;
@@ -524,19 +523,19 @@ public class FunctionTable {
 
 /* Type Checking (typically implemented in ./coerce.c ) */
 
-      f("is.null", /*is*/ null, NILSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.logical", /*is*/ null, LGLSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.integer", /*is*/ null, INTSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.real", /*is*/ null, REALSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.double", /*is*/ null, REALSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.complex", /*is*/ null, CPLXSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.character", /*is*/ null, STRSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.symbol", /*is*/ null, SYMSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.environment", /*is*/ null, ENVSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.list", /*is*/ null, VECSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.pairlist", /*is*/ null, LISTSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.expression", /*is*/ null, EXPRSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.raw", /*is*/ null, RAWSXP, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.null", /*is*/ null, 0 /*NILSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.logical", /*is*/ null,0 /*LGLSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.integer", /*is*/ null,0 /*INTSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.real", /*is*/ null, 0/*REALSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.double", /*is*/ null,0 /*REALSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.complex", /*is*/ null, 0/*CPLXSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.character", /*is*/ null,0 /*STRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.symbol", /*is*/ null, 0 /*SYMSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.environment", /*is*/ null, 0/* ENVSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.list", /*is*/ null, 0/* VECSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.pairlist", /*is*/ null, 0 /*LISTSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.expression", /*is*/ null, 0 /* EXPRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.raw", /*is*/ null, 0 /* RAWSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
       f("is.object", /*is*/ null, 50, 1, 1, PP_FUNCALL, PREC_FN, 0),
 

@@ -23,7 +23,10 @@ package r.lang;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.UnmodifiableIterator;
 import r.util.ArgChecker;
 
 import java.util.Arrays;
@@ -35,6 +38,8 @@ import java.util.List;
  */
 public class ListExp extends SEXP implements Iterable<SEXP> {
 
+  public static final int TYPE_CODE = 2;
+  public static final String TYPE_NAME = "pairlist";
 
   /**
    * The actual data for this node, .e.g {@code CAR} in
@@ -47,7 +52,7 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
    * C implementation.
    * <p/>
    * Contrary to the C impl, {@code nextNode} is either a subclass
-   * of [@code AbstractListExp} or {@code null}
+   * of {@code ListExp} or {@code null}
    */
   protected ListExp nextNode = null;
 
@@ -55,6 +60,16 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
   public ListExp(SEXP value, ListExp nextNode) {
     this.value = value;
     this.nextNode = nextNode;
+  }
+
+  @Override
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
   }
 
   /**
@@ -147,11 +162,6 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
   }
 
   @Override
-  public Type getType() {
-    return Type.LISTSXP;
-  }
-
-  @Override
   public final int length() {
     return Iterators.size(iterator());
   }
@@ -161,7 +171,7 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
     throw new UnsupportedOperationException("not yet implemented");
   }
 
-  public static SEXP ofLength(Type type, int length) {
+  public static SEXP ofLength(int length) {
     return ListExp.fromIterable(Iterables.limit(Iterables.cycle(NilExp.INSTANCE), length));
   }
 
@@ -287,11 +297,7 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
 
     @Override
     public boolean apply(ListExp listExp) {
-      if(listExp.getTag() instanceof SymbolExp) {
-        return ((SymbolExp) listExp.getTag()).getPrintName().equals(symbolToMatch.getPrintName());
-      } else {
-        return false;
-      }
+      return symbolToMatch.equals(listExp.getTag());
     }
   }
 

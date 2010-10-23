@@ -29,14 +29,21 @@ import java.util.Arrays;
 public class ComplexExp extends AbstractVector {
 
   public ArrayList<Complex> values;
+  public static final int TYPE_CODE = 15;
+  public static final String TYPE_NAME = "complex";
 
   public ComplexExp(Complex... values) {
     this.values = new ArrayList<Complex>(Arrays.asList(values));
   }
 
   @Override
-  public Type getType() {
-    return Type.CPLXSXP;
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
   }
 
   @Override
@@ -51,6 +58,5 @@ public class ComplexExp extends AbstractVector {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
-
   }
 }

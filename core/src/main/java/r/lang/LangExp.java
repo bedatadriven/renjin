@@ -21,21 +21,31 @@
 
 package r.lang;
 
+/**
+ * A specialized {@code ListExp} used for storing 
+ */
 public class LangExp extends ListExp {
+  public static final int TYPE_CODE = 6;
+  public static final String TYPE_NAME = "language";
 
   public LangExp(SEXP value, ListExp nextNode) {
     super(value, nextNode);
   }
 
   @Override
-  public Type getType() {
-    return Type.LANGSXP;
+  public String getTypeName() {
+    return TYPE_NAME;
+  }
+
+  @Override
+  public int getTypeCode() {
+    return TYPE_CODE;
   }
 
   @Override
   public SEXP evaluate(EnvExp rho) {
 
-    FunSxp functionExpr = (FunSxp) getFunction().evaluate(rho);
+    FunExp functionExpr = (FunExp) getFunction().evaluate(rho);
 
     return functionExpr.apply(this, getArguments(), rho);
 

@@ -22,7 +22,7 @@
 package r.parser;
 
 import org.junit.Test;
-import r.lang.ExpSexp;
+import r.lang.ExpExp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +50,7 @@ public class BaseTest {
 
   private void parsesWithoutError(String script) throws IOException {
     Reader reader = openReader("/r/library/base/R/" + script);
-    ExpSexp s = RParser.parseAll(reader);
+    ExpExp s = RParser.parseAll(reader);
 
     System.out.println(s);
   }

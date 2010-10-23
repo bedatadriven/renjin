@@ -26,7 +26,11 @@ import cern.colt.list.IntArrayList;
 import java.util.Iterator;
 
 public class LogicalExp extends AbstractVector implements Iterable<Logical> {
+  public static final String TYPE_NAME = "logical";
+  public static final int TYPE_CODE = 10;
+
   private IntArrayList values;
+
 
   /**
    * Constructs a Logical vector from a list of boolean values
@@ -51,13 +55,18 @@ public class LogicalExp extends AbstractVector implements Iterable<Logical> {
   }
 
   @Override
-  public int length() {
-    return values.size();
+  public int getTypeCode() {
+    return TYPE_CODE;
   }
 
   @Override
-  public Type getType() {
-    return Type.LGLSXP;
+  public String getTypeName() {
+    return TYPE_NAME;
+  }
+
+  @Override
+  public int length() {
+    return values.size();
   }
 
   public int get(int index) {

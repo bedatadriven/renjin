@@ -25,9 +25,9 @@ import r.lang.EnvExp;
 import r.lang.LangExp;
 import r.lang.ListExp;
 import r.lang.SEXP;
-import r.lang.primitive.BuiltinFunction;
+import r.lang.primitive.PrimitiveFunction;
 
-public class NextStatement extends BuiltinFunction {
+public class NextStatement extends PrimitiveFunction {
 
   @Override
   public SEXP apply(LangExp call, ListExp args, EnvExp rho) {

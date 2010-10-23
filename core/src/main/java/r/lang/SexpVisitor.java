@@ -35,7 +35,7 @@ public class SexpVisitor {
     unhandled(charExp);
   }
 
-  public void visit(BuiltinSexp builtinSexp) {
+  public void visit(BuiltinExp builtinSexp) {
     unhandled(builtinSexp);
   }
 
@@ -47,7 +47,7 @@ public class SexpVisitor {
     unhandled(envExp);
   }
 
-  public void visit(ExpSexp expSexp) {
+  public void visit(ExpExp expSexp) {
     unhandled(expSexp);
   }
 

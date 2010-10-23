@@ -59,7 +59,7 @@ import static r.lang.internal.c.RInternals.*;
  * @author LALR (1) parser skeleton written by Paolo Bonzini.
  */
 public class RParser {
-  static ExpSexp parseAll(Reader reader) throws IOException {
+  static ExpExp parseAll(Reader reader) throws IOException {
     GlobalContext context = new GlobalContext();
 
     ParseState state = new ParseState();
@@ -68,7 +68,7 @@ public class RParser {
     RParser parser = new RParser(options, state, context, lexer);
     parser.setDebugLevel(Integer.MAX_VALUE);
 
-    ExpSexp exprList = new ExpSexp();
+    ExpExp exprList = new ExpExp();
 
     while (parser.parse()) {
       switch (parser.getResultStatus()) {
@@ -2855,13 +2855,14 @@ public class RParser {
 /*--------------------------------------------------------------------------*/
 
   private SEXP TagArg(SEXP arg, SEXP tag, Location lloc) {
-    switch (TYPEOF(tag)) {
-      case STRSXP:
-        tag = context.getSymbolTable().install(translateChar(STRING_ELT(tag, 0)));
-      case NILSXP:
-      case SYMSXP:
+
+    if(tag instanceof StringExp) {
+      tag = context.getSymbolTable().install(translateChar(STRING_ELT(tag, 0)));
+    }
+
+    if(tag instanceof SymbolExp || tag instanceof NilExp) {
         return lang2(arg, tag);
-      default:
+    } else {
         error(_("incorrect tag type at line %d"), lloc.begin.line);
         return R_NilValue/* -Wall */;
     }

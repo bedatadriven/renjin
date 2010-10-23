@@ -23,9 +23,9 @@ package r.lang.primitive.eval;
 
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.BuiltinFunction;
+import r.lang.primitive.PrimitiveFunction;
 
-public class Missing extends BuiltinFunction {
+public class Missing extends PrimitiveFunction {
 
   @Override
   public SEXP apply(LangExp call, ListExp args, EnvExp rho) {

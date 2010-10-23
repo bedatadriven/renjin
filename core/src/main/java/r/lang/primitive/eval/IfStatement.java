@@ -22,9 +22,9 @@
 package r.lang.primitive.eval;
 
 import r.lang.*;
-import r.lang.primitive.BuiltinFunction;
+import r.lang.primitive.PrimitiveFunction;
 
-public class IfStatement extends BuiltinFunction {
+public class IfStatement extends PrimitiveFunction {
 
 
   @Override

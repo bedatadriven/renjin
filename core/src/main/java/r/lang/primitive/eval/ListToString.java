@@ -31,7 +31,7 @@ public class ListToString extends SexpVisitor {
   @Override
   protected void unhandled(SEXP exp) {
     throw new LanguageException(String.format("cannot coerce type '%s' to vector of type 'character'",
-        exp.getType().getName()));
+        exp.getTypeName()));
   }
 
   @Override

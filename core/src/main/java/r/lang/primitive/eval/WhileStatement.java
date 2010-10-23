@@ -22,9 +22,9 @@
 package r.lang.primitive.eval;
 
 import r.lang.*;
-import r.lang.primitive.BuiltinFunction;
+import r.lang.primitive.PrimitiveFunction;
 
-public class WhileStatement extends BuiltinFunction {
+public class WhileStatement extends PrimitiveFunction {
 
   @Override
   public SEXP apply(LangExp call, ListExp args, EnvExp rho) {

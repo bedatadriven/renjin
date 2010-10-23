@@ -27,12 +27,24 @@ import cern.colt.list.adapter.DoubleListAdapter;
 import java.util.Iterator;
 
 public final class RealExp extends AbstractVector implements Iterable<Double> {
+  public static final String TYPE_NAME = "double";
+  public static final int TYPE_CODE = 14;
+
   private DoubleArrayList values;
 
   public RealExp(double... values) {
     this.values = new DoubleArrayList(values);
   }
 
+  @Override
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
+  }
 
   /**
    * Returns a RealVector with a single double value parsed from the
@@ -43,11 +55,6 @@ public final class RealExp extends AbstractVector implements Iterable<Double> {
    */
   public static SEXP parseDouble(String text) {
     return new RealExp(Double.parseDouble(text));
-  }
-
-  @Override
-  public Type getType() {
-    return Type.REALSXP;
   }
 
   public double get(int i) {

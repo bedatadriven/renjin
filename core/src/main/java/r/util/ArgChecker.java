@@ -21,18 +21,7 @@
 
 package r.util;
 
-import r.lang.SEXP;
-
 public class ArgChecker {
-
-  public static void ofType(SEXP exp, SEXP.Type type) {
-    if (exp == null) {
-      throw new IllegalArgumentException();
-    }
-    if (exp.getType() != type) {
-      throw new IllegalArgumentException();
-    }
-  }
 
   public static <T> T instanceOf(Object arg, Class<T> clazz) {
     if (!clazz.isAssignableFrom(arg.getClass())) {

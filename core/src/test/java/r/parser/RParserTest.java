@@ -21,6 +21,7 @@
 
 package r.parser;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import r.lang.*;
 
@@ -37,7 +38,7 @@ public class RParserTest {
   @Test
   public void one() throws IOException {
     SEXP r = parse("1\n");
-    assertThat(r.getType(), equalTo(SEXP.Type.REALSXP));
+    assertThat(r, CoreMatchers.instanceOf(RealExp.class));
   }
 
   @Test
@@ -81,7 +82,7 @@ public class RParserTest {
 
   @Test
   public void exprVec() throws IOException {
-    ExpSexp exp = parseAll("a<-1\nb<-2\n");
+    ExpExp exp = parseAll("a<-1\nb<-2\n");
 
     System.out.println(exp);
   }
@@ -129,7 +130,7 @@ public class RParserTest {
 
   @Test
   public void commentsAndLeadingNewLines() throws IOException {
-    ExpSexp s = parseAll("# this is a comment\n\n3.145;");
+    ExpExp s = parseAll("# this is a comment\n\n3.145;");
 
     assertThat(s.length(), equalTo(1));
     assertThat(s.get(0), realVectorEqualTo(3.145));
@@ -151,7 +152,7 @@ public class RParserTest {
 
   @Test
   public void precededByNewLine() throws IOException {
-    ExpSexp exprList = parseAll("\n1;");
+    ExpExp exprList = parseAll("\n1;");
 
     assertThat(exprList.length(), equalTo(1));
 
@@ -173,7 +174,7 @@ public class RParserTest {
     return parser.getResult();
   }
 
-  private ExpSexp parseAll(String source) throws IOException {
+  private ExpExp parseAll(String source) throws IOException {
     return RParser.parseAll(new StringReader(source));
   }
 

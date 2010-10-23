@@ -109,9 +109,9 @@ public class SymbolTable {
       PrimitiveSexp primitive;
 
       if (entry.eval % 10 != 0) {
-        primitive = new BuiltinSexp(entry);
+        primitive = new BuiltinExp(entry);
       } else {
-        primitive = new SpecialSexp(entry);
+        primitive = new SpecialExp(entry);
       }
 
       if ((entry.eval % 100) / 10 != 0) {

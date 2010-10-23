@@ -29,21 +29,38 @@ import java.util.List;
 import static com.google.common.collect.Iterators.filter;
 import static r.lang.ListExp.Predicates;
 
-public class ClosureExp extends SEXP implements FunSxp {
+/**
+ * The function closure data type.
+ *
+ * <p>
+ * In R functions are objects and can be manipulated in much the same way as any other object.
+ * Functions (or more precisely, function closures) have three basic components:
+ *  a formal argument list, a body and an environment.
+ *
+ */
+public class ClosureExp extends SEXP implements FunExp {
 
-  private EnvExp enclosingEnvironment;
-  private SEXP statement;
+  private static final String TYPE_NAME = "closure";
+  private static final int TYPE_CODE = 4;
+
+  private EnvExp environment;
+  private SEXP body;
   private ListExp formals;
 
-  public ClosureExp(EnvExp enclosingEnvironment, ListExp formals, SEXP statement) {
-    this.enclosingEnvironment = enclosingEnvironment;
-    this.statement = statement;
+  public ClosureExp(EnvExp environment, ListExp formals, SEXP body) {
+    this.environment = environment;
+    this.body = body;
     this.formals = formals;
   }
 
   @Override
-  public Type getType() {
-    return Type.CLOSXP;
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
   }
 
   @Override
@@ -54,7 +71,7 @@ public class ClosureExp extends SEXP implements FunSxp {
   @Override
   public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
 
-    EnvExp env = new EnvExp(enclosingEnvironment);
+    EnvExp env = new EnvExp(environment);
 
     Iterator<ListExp> formalIt = formals.listNodes().iterator();
     Iterator<SEXP> actualIt = ListExp.iterator(args);
@@ -68,11 +85,51 @@ public class ClosureExp extends SEXP implements FunSxp {
       }
     }
 
-    return statement.evaluate(env);
+    return body.evaluate(env);
   }
 
   /**
-   * This is done by a three-pass process:
+   * A function's <strong> evaluation environment</strong> is the environment
+   * that was active at the time that the
+   * function was created. Any symbols bound in that environment are
+   * captured and available to the function. This combination of the code of the
+   * function and the bindings in its environment is called a `function closure', a
+   * term from functional programming theory.
+   *
+   */
+  public EnvExp getEnvironment() {
+    return environment;
+  }
+
+  /**
+   * The body is a parsed R statement.
+   * It is usually a collection of statements in braces but it
+   * can be a single statement, a symbol or even a constant.
+   */
+  public SEXP getBody() {
+    return body;
+  }
+
+  /**
+   * The formal argument list is a a pair list of arguments.
+   * An argument can be a symbol, or a ‘symbol = default’ construct, or
+   * the special argument ‘...’.
+   *
+   * <p> The second form of argument is
+   *  used to specify a default value for an argument.
+   * This value will be used if the function is called
+   *  without any value specified for that argument.
+   * The ‘...’ argument is special and can contain any number of arguments.
+   * It is generally used if the number of arguments
+   * is unknown or in cases where the arguments will
+   * be passed on to another function.
+   */
+  public ListExp getFormals() {
+    return formals;
+  }
+
+  /**
+   * Argument matching is done by a three-pass process:
    * <ol>
    * <li><strong>Exact matching on tags.</strong> For each named supplied argument the list of formal arguments
    *  is searched for an item whose name matches exactly. It is an error to have the same formal
@@ -108,6 +165,8 @@ public class ClosureExp extends SEXP implements FunSxp {
 
     }
   }
-  
+
+
+
 
 }

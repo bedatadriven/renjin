@@ -22,13 +22,13 @@
 package r.lang;
 
 import r.lang.exception.EvalException;
-import r.lang.primitive.BuiltinFunction;
 import r.lang.primitive.FunctionTable;
+import r.lang.primitive.PrimitiveFunction;
 
-public abstract class PrimitiveSexp extends SEXP implements FunSxp {
+public abstract class PrimitiveSexp extends SEXP implements FunExp {
 
   protected final FunctionTable.Entry functionEntry;
-  protected BuiltinFunction functionInstance;
+  protected PrimitiveFunction functionInstance;
 
   protected PrimitiveSexp(FunctionTable.Entry functionEntry) {
     this.functionEntry = functionEntry;
@@ -45,8 +45,8 @@ public abstract class PrimitiveSexp extends SEXP implements FunSxp {
   @Override
   public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
     checkArity(args);
-    // "builtin" functions have their arguments evaluated before being passed in
-    return getFunctionInstance().apply(call, evaluateArgs(args, rho), rho);
+
+    return getFunctionInstance().apply(call, prepareArguments(args, rho), rho);
   }
 
   public final void checkArity(ListExp args) {
@@ -66,22 +66,14 @@ public abstract class PrimitiveSexp extends SEXP implements FunSxp {
     }
   }
 
-  protected ListExp evaluateArgs(ListExp args, EnvExp rho) {
-    if (args == null) {
-      return null;
-    }
-    ListExp.Builder builder = new ListExp.Builder();
-    for (SEXP arg : args) {
-      builder.add(arg.evaluate(rho));
-    }
-    return builder.list();
-  }
 
-  protected BuiltinFunction getFunctionInstance() {
+  protected abstract ListExp prepareArguments(ListExp args, EnvExp rho);
+
+  protected PrimitiveFunction getFunctionInstance() {
     if (functionInstance == null) {
 
       try {
-        functionInstance = (BuiltinFunction) functionEntry.functionClass.newInstance();
+        functionInstance = (PrimitiveFunction) functionEntry.functionClass.newInstance();
       } catch (Exception e) {
         throw new EvalException(this, e, "Could not create function class for function '" +
             functionEntry.name + "' (" + functionEntry.functionClass + "); it " +
@@ -94,7 +86,6 @@ public abstract class PrimitiveSexp extends SEXP implements FunSxp {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
-
   }
 
   @Override

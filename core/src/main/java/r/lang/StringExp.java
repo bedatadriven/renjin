@@ -27,6 +27,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 public class StringExp extends AbstractVector implements Iterable<String> {
+  public static final String TYPE_NAME = "character";
+  public static final int TYPE_CODE = 16;
+
   String values[];
 
   public StringExp(String... values) {
@@ -38,13 +41,18 @@ public class StringExp extends AbstractVector implements Iterable<String> {
     return values.length;
   }
 
-  @Override
-  public Type getType() {
-    return Type.STRSXP;
-  }
-
   public String get(int i) {
     return values[i];
+  }
+
+  @Override
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
   }
 
   @Override

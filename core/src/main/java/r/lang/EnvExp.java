@@ -29,11 +29,36 @@ import java.util.Map;
 
 import static r.lang.internal.c.RInternals.*;
 
+/**
+ * The Environment data type.
+ *
+ * <p>
+ * Environments can be thought of as consisting of two things.
+ * A frame, consisting of a set of symbol-value pairs, and an enclosure,
+ * a pointer to an enclosing environment.
+ *
+ * <p>
+ * When R looks up the value for a symbol the frame is examined and if a
+ * matching symbol is found its value will be returned. If not, the enclosing environment
+ *  is then accessed and the process repeated.
+ * Environments form a tree structure in which the enclosures play the role of parents.
+ *  The tree of environments is rooted in an empty environment,
+ * available through emptyenv(), which has no parent.
+ * It is the direct parent of the environment of the base package
+ * (available through the baseenv() function). Formerly baseenv() 
+ * had the special value NULL, but as from version 2.4.0, the
+ *  use of NULL as an environment is defunct.
+ *
+ */
 public class EnvExp extends SEXP {
+
+  public static final int TYPE_CODE = 4;
+  public static final String TYPE_NAME = "environment";
 
   private GlobalContext globalContext;
   private EnvExp enclosing;
   private Map<String, SEXP> frame = new HashMap<String, SEXP>();
+
 
 
   public EnvExp(EnvExp enclosing) {
@@ -47,14 +72,18 @@ public class EnvExp extends SEXP {
     this.globalContext = globalContext;
   }
 
-
-  @Override
-  public Type getType() {
-    return SEXP.Type.ENVSXP;
-  }
-
   public GlobalContext getGlobalContext() {
     return globalContext;
+  }
+
+  @Override
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
   }
 
   public void setVariable(SymbolExp symbol, SEXP value) {

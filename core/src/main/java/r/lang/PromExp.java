@@ -25,14 +25,12 @@ import static r.lang.internal.c.RInternals.R_UnboundValue;
 
 public class PromExp extends SEXP {
 
+  public static final int TYPE_CODE = 5;
+  public static final String TYPE_NAME = "promise";
+
   private SEXP value = SymbolExp.UNBOUND_VALUE;
   private SEXP expr;
   private SEXP env;
-
-  @Override
-  public Type getType() {
-    return Type.PROMSXP;
-  }
 
   @Override
   public SEXP evaluate(EnvExp rho) {
@@ -47,9 +45,18 @@ public class PromExp extends SEXP {
   }
 
   @Override
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
+  }
+
+  @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
-
   }
 
   private void forcePromise() {

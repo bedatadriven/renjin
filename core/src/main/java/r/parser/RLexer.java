@@ -40,10 +40,9 @@ public class RLexer implements RParser.Lexer {
 
   private static Logger logger = Logger.getLogger("R.Lexer");
 
-  private final static int CONTEXTSTACK_SIZE = 50;
-  private int SavedToken;
-  private SEXP SavedLval;
-  private char contextstack[] = new char[CONTEXTSTACK_SIZE];
+  private int savedToken;
+  private SEXP savedLVal;
+  private Position savedTokenPos = null;
 
   private SEXP yylval;
 
@@ -51,21 +50,10 @@ public class RLexer implements RParser.Lexer {
 
   private final ParseOptions parseOptions;
 
-  private SrcRefState ParseState = new SrcRefState();
-
-  /**
-   * (index) pointer to contextstack
-   */
-  private int contextp;
-
+  private SrcRefState srcRef = new SrcRefState();
 
   private Position tokenBegin = new Position();
   private Position tokenEnd = new Position();
-  public static final char IF_BLOCK = 'i';
-  private int xxlinesave;
-  private int xxcolsave;
-  private int xxbytesave;
-
 
 /* Private pushback, since file ungetc only guarantees one byte.
    We need up to one MBCS-worth */
@@ -80,17 +68,13 @@ public class RLexer implements RParser.Lexer {
   private int prevbytes[] = new int[PUSHBACK_BUFSIZE];
 
 
-  private final GlobalContext rho;
+  private final GlobalContext context;
   private Reader reader;
   private int xxcharcount;
   private int xxcharsave;
 
 
-  /**
-   * Used as a default for string buffer sizes,
-   * and occasionally as a limit.
-   */
-  private static final int MAXELTSIZE = 8192;
+  private final LexerContextStack contextStack = new LexerContextStack();
 
 
   private static class Keyword {
@@ -127,7 +111,7 @@ public class RLexer implements RParser.Lexer {
 
 
   public RLexer(GlobalContext context, ParseOptions options, ParseState state, Reader reader) {
-    this.rho = context;
+    this.context = context;
     this.reader = reader;
     this.parseOptions = options;
     this.parseState = state;
@@ -148,21 +132,21 @@ public class RLexer implements RParser.Lexer {
 
   public int yylex() {
 
-    int tok;
+    int token;
 
     do {
       // again:
-      tok = token();
+      token = consumeNextToken();
 
       /* Newlines must be handled in a context */
       /* sensitive way.  The following block of */
       /* deals directly with newlines in the */
       /* body of "if" statements. */
 
-      if (tok == '\n') {
+      if (token == '\n') {
 
-        if (parseState.getEatLines() || contextstack[contextp] == '[' ||
-            contextstack[contextp] == '(') {
+        if (parseState.getEatLines() || contextStack.peek() == '[' ||
+            contextStack.peek() == '(') {
           continue;
         }
 
@@ -171,12 +155,12 @@ public class RLexer implements RParser.Lexer {
         /* see if it is followed by an "else". */
         /* such newlines are discarded. */
 
-        if (contextstack[contextp] == IF_BLOCK) {
+        if (contextStack.peek() == LexerContextStack.IF_BLOCK) {
 
           /* Find the next non-newline token */
 
-          while (tok == '\n')
-            tok = token();
+          while (token == '\n')
+            token = consumeNextToken();
 
           /* If we encounter "}", ")" or "]" then */
           /* we know that all immediately preceding */
@@ -184,13 +168,13 @@ public class RLexer implements RParser.Lexer {
           /* The corresponding "i" values are */
           /* popped off the context stack. */
 
-          if (tok == RBRACE || tok == ')' || tok == ']') {
-            while (contextpeek() == IF_BLOCK) {
-              ifpop();
+          if (token == RBRACE || token == ')' || token == ']') {
+            while (contextStack.peek() == LexerContextStack.IF_BLOCK) {
+              contextStack.ifPop();
             }
-            contextpop();
+            contextStack.pop();
             setlastloc();
-            return tok;
+            return token;
           }
 
           /* When a "," is encountered, it terminates */
@@ -198,10 +182,10 @@ public class RLexer implements RParser.Lexer {
           /* so we pop just a single "i" of the */
           /* context stack. */
 
-          if (tok == ',') {
-            ifpop();
+          if (token == ',') {
+            contextStack.ifPop();
             setlastloc();
-            return tok;
+            return token;
           }
 
           /* Tricky! If we find an "else" we must */
@@ -213,18 +197,16 @@ public class RLexer implements RParser.Lexer {
           /* is lost, so we pop the "i" from the context */
           /* stack. */
 
-          if (tok == ELSE) {
+          if (token == ELSE) {
             parseState.setEatLines(true);
-            ifpop();
+            contextStack.ifPop();
             setlastloc();
             return ELSE;
           } else {
-            ifpop();
-            SavedToken = tok;
-            xxlinesave = tokenBegin.line;
-            xxcolsave = tokenBegin.column;
-            xxbytesave = tokenBegin.byteIndex;
-            SavedLval = yylval;
+            contextStack.ifPop();
+            savedToken = token;
+            savedTokenPos = tokenBegin.clone();
+            savedLVal = yylval;
             setlastloc();
             return '\n';
           }
@@ -238,7 +220,7 @@ public class RLexer implements RParser.Lexer {
 
     /* Additional context sensitivities */
 
-    switch (tok) {
+    switch (token) {
 
       /* Any newlines immediately following the */
       /* the following tokens are discarded. The */
@@ -282,7 +264,7 @@ public class RLexer implements RParser.Lexer {
       /* discard any immediately following newlines. */
 
       case IF:
-        IfPush();
+        contextStack.ifPush();
         parseState.setEatLines(false);
         break;
 
@@ -291,7 +273,7 @@ public class RLexer implements RParser.Lexer {
       /* following newlines. */
 
       case ELSE:
-        ifpop();
+        contextStack.ifPop();
         parseState.setEatLines(false);
         break;
 
@@ -300,7 +282,7 @@ public class RLexer implements RParser.Lexer {
 
       case ';':
       case ',':
-        ifpop();
+        contextStack.ifPop();
         break;
 
       /* Any newlines following these tokens can */
@@ -318,96 +300,75 @@ public class RLexer implements RParser.Lexer {
       /* Handle brackets, braces and parentheses */
 
       case LBB:
-        contextpush('[');
-        contextpush('[');
+        contextStack.push('[');
+        contextStack.push('[');
         break;
 
       case '[':
-        contextpush((char) tok);
+        contextStack.push((char) token);
         break;
 
       case LBRACE:
-        contextpush(tok);
+        contextStack.push(token);
         parseState.setEatLines(true);
         break;
 
       case '(':
-        contextpush(tok);
+        contextStack.push(token);
         break;
 
       case ']':
-        while (contextstack[contextp] == IF_BLOCK) {
-          ifpop();
+        while (contextStack.peek() == LexerContextStack.IF_BLOCK) {
+          contextStack.ifPop();
         }
-        contextpop();
+        contextStack.pop();
 
         parseState.setEatLines(false);
         break;
 
       case RBRACE:
-        while (contextpeek() == IF_BLOCK) {
-          ifpop();
+        while (contextStack.peek() == LexerContextStack.IF_BLOCK) {
+          contextStack.ifPop();
         }
-        contextpop();
+        contextStack.pop();
         break;
 
       case ')':
-        while (contextpeek() == IF_BLOCK) {
-          ifpop();
+        while (contextStack.peek() == LexerContextStack.IF_BLOCK) {
+          contextStack.ifPop();
         }
-        contextpop();
+        contextStack.pop();
         parseState.setEatLines(false);
         break;
 
     }
     setlastloc();
-    return tok;
+    return token;
   }
 
-  private void contextpush(int i) {
-    contextpush((char) i);
-  }
-
-  private void contextpush(char c) {
-    if (contextp >= CONTEXTSTACK_SIZE)
-      throw new RLexException(String.format("contextstack overflow at line %d", ParseState.xxlineno));
-    ++contextp;
-    contextstack[contextp] = c;
-  }
-
-  private void contextpop() {
-    contextstack[contextp] = 0;
-    contextp--;
-  }
-
-  private char contextpeek() {
-    return contextstack[contextp];
-  }
 
   /* Split the input stream into tokens. */
 /* This is the lowest of the parsing levels. */
 
-  private int token() {
+  private int consumeNextToken() {
     int c;
 
-    if (SavedToken != 0) {
-      c = SavedToken;
-      yylval = SavedLval;
-      SavedLval = R_NilValue;
-      SavedToken = 0;
-      tokenBegin.line = xxlinesave;
-      tokenBegin.column = xxcolsave;
-      tokenBegin.byteIndex = xxbytesave;
+    if (savedToken != 0) {
+      c = savedToken;
+      yylval = savedLVal;
+      savedLVal = R_NilValue;
+      savedToken = 0;
+      tokenBegin = savedTokenPos;
       return c;
     }
     xxcharsave = xxcharcount; /* want to be able to go back one token */
 
-    c = SkipSpace();
-    if (c == '#') c = SkipComment();
+    c = skipSpace();
+    if (c == '#') c = skipComment();
 
-    tokenBegin.line = ParseState.xxlineno;
-    tokenBegin.column = ParseState.xxcolno;
-    tokenBegin.byteIndex = ParseState.xxbyteno;
+    tokenBegin.line = srcRef.xxlineno;
+    tokenBegin.column = srcRef.xxcolno;
+    tokenBegin.byteIndex = srcRef.xxbyteno;
 
     if (c == R_EOF) return END_OF_INPUT;
 
@@ -416,43 +377,38 @@ public class RLexer implements RParser.Lexer {
     /* the correct spot. */
 
     if (c == '.' && typeofnext() >= 2) {
-      return SymbolValue(c);
+      return consumeSymbolValue(c);
     }
 
     /* literal numbers */
 
     if (c == '.') {
-      return NumericValue(c);
+      return consumeNumericValue(c);
     }
     /* We don't care about other than ASCII digits */
     if (isDigit(c)) {
-      return NumericValue(c);
+      return consumeNumericValue(c);
     }
 
     /* literal strings */
 
     if (c == '\"' || c == '\'') {
-      return StringValue(c, false);
+      return consumeStringValue(c, false);
     }
 
     /* special functions */
 
     if (c == '%')
-      return SpecialValue(c);
+      return consumeSpecialValue(c);
 
     /* functions, constants and variables */
 
     if (c == '`') {
-      return StringValue(c, true);
+      return consumeStringValue(c, true);
     }
-//    symbol:
-//
-//    if (c == '.') {
-//      return SymbolValue(c);
-//    }
 
     if (Character.isLetter(c)) {
-      return SymbolValue(c);
+      return consumeSymbolValue(c);
     }
 
     /* compound tokens */
@@ -624,7 +580,7 @@ an ANSI digit or not */
   }
 
   private SEXP install(String symbolName) {
-    return rho.getSymbolTable().install(symbolName);
+    return context.getSymbolTable().install(symbolName);
   }
 
   /*
@@ -637,27 +593,10 @@ an ANSI digit or not */
  *  stack.
  */
 
-  void IfPush() {
-    if (contextpeek() == LBRACE ||
-        contextpeek() == '[' ||
-        contextpeek() == '(' ||
-        contextpeek() == IF_BLOCK) {
-      contextpush(IF_BLOCK);
-    }
-  }
-
-  void ifpop() {
-    if (contextpeek() == IF_BLOCK) {
-      //*contextp-- = 0;
-      contextstack[contextp] = 0;
-      contextp--;
-    }
-  }
-
   void setlastloc() {
-    tokenEnd.line = ParseState.xxlineno;
-    tokenEnd.column = ParseState.xxcolno;
-    tokenEnd.byteIndex = ParseState.xxbyteno;
+    tokenEnd.line = srcRef.xxlineno;
+    tokenEnd.column = srcRef.xxcolno;
+    tokenEnd.byteIndex = srcRef.xxbyteno;
   }
 
 
@@ -667,9 +606,9 @@ an ANSI digit or not */
 /* special assignment EndOfFile=2 to indicate that this is */
 /* going on.  This is detected and dealt with in Parse1Buffer. */
 
-  private int SkipComment() {
+  private int skipComment() {
     int c = '#', i;
-    boolean maybeLine = (ParseState.xxcolno == 1);
+    boolean maybeLine = (srcRef.xxcolno == 1);
     if (maybeLine) {
       String lineDirective = "#line";
       for (i = 1; i < 5; i++) {
@@ -707,9 +646,9 @@ an ANSI digit or not */
     }
 
     prevpos = (prevpos + 1) % PUSHBACK_BUFSIZE;
-    prevcols[prevpos] = ParseState.xxcolno;
-    prevbytes[prevpos] = ParseState.xxbyteno;
-    prevlines[prevpos] = ParseState.xxlineno;
+    prevcols[prevpos] = srcRef.xxcolno;
+    prevbytes[prevpos] = srcRef.xxbyteno;
+    prevlines[prevpos] = srcRef.xxlineno;
 
     if (c == -1) {
       parseState.setEndOfFile(1);
@@ -719,20 +658,20 @@ an ANSI digit or not */
     // R_ParseContext[R_ParseContextLast] = c;
 
     if (c == '\n') {
-      ParseState.xxlineno += 1;
-      ParseState.xxcolno = 0;
-      ParseState.xxbyteno = 0;
+      srcRef.xxlineno += 1;
+      srcRef.xxcolno = 0;
+      srcRef.xxbyteno = 0;
     } else {
-      ParseState.xxcolno++;
-      ParseState.xxbyteno++;
+      srcRef.xxcolno++;
+      srcRef.xxbyteno++;
     }
     /* only advance column for 1st byte in UTF-8 */
     // if (0x80 <= (char)c && (char)c <= 0xBF && known_to_be_utf8)
     //   ParseState.xxcolno--;
 
-    if (c == '\t') ParseState.xxcolno = ((ParseState.xxcolno + 7) & ~7);
+    if (c == '\t') srcRef.xxcolno = ((srcRef.xxcolno + 7) & ~7);
 
-    R_ParseContextLine = ParseState.xxlineno;
+    R_ParseContextLine = srcRef.xxlineno;
 
     if (parseOptions.isKeepSource() && parseOptions.isGenerateCode()) {
       parseState.getFunctionSource().maybeAppendSourceCodePoint(c);
@@ -744,13 +683,13 @@ an ANSI digit or not */
 
   private int processLineDirective() {
     int c, tok, linenumber;
-    c = SkipSpace();
+    c = skipSpace();
     if (!isDigit(c)) return (c);
-    tok = NumericValue(c);
+    tok = consumeNumericValue(c);
     // linenumber = Integer.parseInt(yytext);   // TODO: who is filling yytext?
-    c = SkipSpace();
+    c = skipSpace();
     if (c == '"')
-      tok = StringValue(c, false);
+      tok = consumeStringValue(c, false);
     if (tok == STR_CONST)
       //  setParseFilename(yylval);
       do {
@@ -763,12 +702,12 @@ an ANSI digit or not */
 
   private int xxungetc(int c) {
     /* this assumes that c was the result of xxgetc; if not, some edits will be needed */
-    ParseState.xxlineno = prevlines[prevpos];
-    ParseState.xxbyteno = prevbytes[prevpos];
-    ParseState.xxcolno = prevcols[prevpos];
+    srcRef.xxlineno = prevlines[prevpos];
+    srcRef.xxbyteno = prevbytes[prevpos];
+    srcRef.xxcolno = prevcols[prevpos];
     prevpos = (prevpos + PUSHBACK_BUFSIZE - 1) % PUSHBACK_BUFSIZE;
 
-    R_ParseContextLine = ParseState.xxlineno;
+    R_ParseContextLine = srcRef.xxlineno;
     // if ( KeepSource && GenerateCode && FunctionLevel > 0 )
     // SourcePtr--;
     xxcharcount--;
@@ -795,9 +734,9 @@ an ANSI digit or not */
 //    UNPROTECT_PTR(newname);
   }
 
-  private int NumericValue(int c) {
-    StringBuilder yytext = new StringBuilder();
-    yytext.appendCodePoint(c);
+  private int consumeNumericValue(int c) {
+    StringBuilder buffer = new StringBuilder();
+    buffer.appendCodePoint(c);
 
     int seendot = c == '.' ? 1 : 0;
     boolean seenexp = false;
@@ -815,27 +754,27 @@ an ANSI digit or not */
         if (last != '0') {
           break;
         }
-        yytext.appendCodePoint(c);
+        buffer.appendCodePoint(c);
         while (isDigit(c = xxgetc()) || ('a' <= c && c <= 'f') ||
             ('A' <= c && c <= 'F') || c == '.') {
-          yytext.appendCodePoint(c);
+          buffer.appendCodePoint(c);
           nd++;
         }
         if (nd == 0) {
           return ERROR;
         }
         if (c == 'p' || c == 'P') {
-          yytext.appendCodePoint(c);
+          buffer.appendCodePoint(c);
           c = xxgetc();
           if (!isDigit(c) && c != '+' && c != '-') {
             return ERROR;
           }
           if (c == '+' || c == '-') {
-            yytext.appendCodePoint(c);
+            buffer.appendCodePoint(c);
             c = xxgetc();
           }
           for (nd = 0; isDigit(c); c = xxgetc(), nd++) {
-            yytext.appendCodePoint(c);
+            buffer.appendCodePoint(c);
           }
           if (nd == 0) {
             return ERROR;
@@ -849,13 +788,13 @@ an ANSI digit or not */
         }
         seenexp = true;
         seendot = seendot == 1 ? seendot : 2;
-        yytext.appendCodePoint(c);
+        buffer.appendCodePoint(c);
         c = xxgetc();
         if (!isDigit(c) && c != '+' && c != '-') {
           return ERROR;
         }
         if (c == '+' || c == '-') {
-          yytext.appendCodePoint(c);
+          buffer.appendCodePoint(c);
           c = xxgetc();
           if (!isDigit(c)) {
             return ERROR;
@@ -868,13 +807,13 @@ an ANSI digit or not */
         }
         seendot = 1;
       }
-      yytext.appendCodePoint(c);
+      buffer.appendCodePoint(c);
       last = c;
     }
 
     /* Make certain that things are okay. */
     if (c == 'L') {
-      double a = RInternals.R_atof(yytext.toString());
+      double a = RInternals.R_atof(buffer.toString());
       int b = (int) a;
       /* We are asked to create an integer via the L, so we check that the
         double and int values are the same. If not, this is a problem and we
@@ -883,9 +822,9 @@ an ANSI digit or not */
       if (a != (double) b) {
         if (parseOptions.isGenerateCode()) {
           if (seendot == 1 && !seenexp) {
-            logger.warning(String.format("integer literal %sL contains decimal; using numeric value", yytext.toString()));
+            logger.warning(String.format("integer literal %sL contains decimal; using numeric value", buffer.toString()));
           } else {
-            logger.warning(String.format("non-integer value %s qualified with L; using numeric value", yytext));
+            logger.warning(String.format("non-integer value %s qualified with L; using numeric value", buffer));
           }
         }
         asNumeric = 1;
@@ -894,32 +833,23 @@ an ANSI digit or not */
     }
 
     if (c == 'i') {
-      yylval = parseOptions.isGenerateCode() ? mkComplex(yytext.toString()) : R_NilValue;
+      yylval = parseOptions.isGenerateCode() ? mkComplex(buffer.toString()) : R_NilValue;
     } else if (c == 'L' && asNumeric == 0) {
       if (parseOptions.isGenerateCode() && seendot == 1 && !seenexp) {
-        logger.warning(String.format("integer literal %sL contains unnecessary decimal point", yytext.toString()));
+        logger.warning(String.format("integer literal %sL contains unnecessary decimal point", buffer.toString()));
       }
-      yylval = parseOptions.isGenerateCode() ? IntExp.parseInt(yytext.toString()) : R_NilValue;
-//        #if 0  /* do this to make 123 integer not double */
-//      } else if(!(seendot || seenexp)) {
-//        if(c != 'L') xxungetc(c);
-//        if (GenerateCode) {
-//          double a = R_atof(yytext);
-//          int b = (int) a;
-//          yylval = (a != (double) b) ? mkFloat(yytext) : mkInt(yytext);
-//        } else yylval = R_NilValue;
-//        #endif
+      yylval = parseOptions.isGenerateCode() ? IntExp.parseInt(buffer.toString()) : R_NilValue;
     } else {
       if (c != 'L') {
         xxungetc(c);
       }
-      yylval = parseOptions.isGenerateCode() ? RealExp.parseDouble(yytext.toString()) : R_NilValue;
+      yylval = parseOptions.isGenerateCode() ? RealExp.parseDouble(buffer.toString()) : R_NilValue;
     }
 
     return NUM_CONST;
   }
 
-  private int SkipSpace() {
+  private int skipSpace() {
     int c;
     do {
       c = xxgetc();
@@ -962,13 +892,12 @@ an ANSI digit or not */
     }
   }
 
-
   /**
    * @param c
    * @param forSymbol true when parsing backticked symbols
    * @return
    */
-  private int StringValue(int c, boolean forSymbol) {
+  private int consumeStringValue(int c, boolean forSymbol) {
     int quote = c;
     int have_warned = 0;
     CTEXT ctext = new CTEXT();
@@ -1039,7 +968,7 @@ an ANSI digit or not */
           boolean delim = false;
 
           if (forSymbol) {
-            throw new RLexException(String.format("\\uxxxx sequences not supported inside backticks (line %d)", ParseState.xxlineno));
+            throw new RLexException(String.format("\\uxxxx sequences not supported inside backticks (line %d)", srcRef.xxlineno));
           }
           if ((c = xxgetc()) == '{') {
             delim = true;
@@ -1073,7 +1002,7 @@ an ANSI digit or not */
           if (delim) {
             if ((c = xxgetc()) != '}') {
               throw new RLexException(String.format("invalid \\u{xxxx} sequence (line %d)",
-                  ParseState.xxlineno));
+                  srcRef.xxlineno));
             } else {
               ctext.push(c);
             }
@@ -1088,7 +1017,7 @@ an ANSI digit or not */
           int ext;
           boolean delim = false;
           if (forSymbol) {
-            throw new RLexException(String.format("\\Uxxxxxxxx sequences not supported inside backticks (line %d)", ParseState.xxlineno));
+            throw new RLexException(String.format("\\Uxxxxxxxx sequences not supported inside backticks (line %d)", srcRef.xxlineno));
           }
           if ((c = xxgetc()) == '{') {
             delim = true;
@@ -1121,7 +1050,7 @@ an ANSI digit or not */
           }
           if (delim) {
             if ((c = xxgetc()) != '}') {
-              logger.severe(String.format("invalid \\U{xxxxxxxx} sequence (line %d)", ParseState.xxlineno));
+              logger.severe(String.format("invalid \\U{xxxxxxxx} sequence (line %d)", srcRef.xxlineno));
             } else {
               ctext.push(c);
             }
@@ -1183,49 +1112,50 @@ an ANSI digit or not */
     return STR_CONST;
   }
 
-  private int SpecialValue(int c) {
-    StringBuffer yytext = new StringBuffer();
-    yytext.appendCodePoint(c);
+  private int consumeSpecialValue(int c) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.appendCodePoint(c);
     while ((c = xxgetc()) != R_EOF && c != '%') {
       if (c == '\n') {
         xxungetc(c);
         return ERROR;
       }
-      yytext.append(c);
+      buffer.append(c);
     }
     if (c == '%') {
-      yytext.appendCodePoint(c);
+      buffer.appendCodePoint(c);
     }
-    yylval = install(yytext.toString());
+    yylval = install(buffer.toString());
     return SPECIAL;
   }
 
 
-  private int SymbolValue(int c) {
-    int kw;
-    StringBuffer yytext = new StringBuffer();
+  private int consumeSymbolValue(int c) {
+
+    StringBuffer buffer = new StringBuffer();
 
     do {
-      yytext.appendCodePoint(c);
+      buffer.appendCodePoint(c);
     } while ((c = xxgetc()) != R_EOF &&
         (Character.isLetterOrDigit(c) || c == '.' || c == '_'));
 
     xxungetc(c);
 
-    if ((kw = KeywordLookup(yytext.toString())) != 0) {
-      if (kw == FUNCTION) {
+    int keyword;
+    if ((keyword = lookupKeyword(buffer.toString())) != 0) {
+      if (keyword == FUNCTION) {
         parseState.getFunctionSource().descend();
       }
-      return kw;
+      return keyword;
     }
-    yylval = install(yytext.toString());
+    yylval = install(buffer.toString());
     return SYMBOL;
   }
 
 
 /* KeywordLookup has side effects, it sets yylval */
 
-  private int KeywordLookup(String s) {
+  private int lookupKeyword(String s) {
     int i;
     for (i = 0; i != keywords.length; i++) {
       if (keywords[i].name.equals(s)) {
@@ -1289,6 +1219,4 @@ an ANSI digit or not */
     }
     return 0;
   }
-
-
 }

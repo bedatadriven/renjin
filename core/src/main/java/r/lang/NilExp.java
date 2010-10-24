@@ -57,8 +57,8 @@ public final class NilExp extends SEXP implements NillOrListExp {
   }
 
   @Override
-  public SEXP evaluate(EnvExp rho) {
-    return this;
+  public EvalResult evaluate(EnvExp rho) {
+    return new EvalResult(this);
   }
 
   @Override

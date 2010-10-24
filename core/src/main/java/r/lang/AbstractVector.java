@@ -31,7 +31,7 @@ abstract class AbstractVector extends SEXP {
   private static Logger logger = Logger.getLogger("R");
 
   @Override
-  public SEXP evaluate(EnvExp rho) {
+  public EvalResult evaluate(EnvExp rho) {
     return super.evaluate(rho);
   }
 

@@ -21,7 +21,7 @@
 
 package r.lang.primitive.math;
 
-public class Floor extends UnaryMath {
+public class Floor extends UnaryMathFunction {
   @Override
   protected double apply(double value) {
     return Math.floor(value);

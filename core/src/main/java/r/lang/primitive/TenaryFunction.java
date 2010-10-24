@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,12 +19,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.math;
+package r.lang.primitive;
 
-public class SqrtFunction extends UnaryMath {
+import r.lang.*;
+
+public abstract class TenaryFunction extends PrimitiveFunction {
 
   @Override
-  protected double apply(double value) {
-    return Math.sqrt(value);
+  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
+    return apply(call, rho, args.get(0), args.get(1), args.get(2));
   }
+
+  protected abstract EvalResult apply(LangExp call, EnvExp rho, SEXP arg0, SEXP arg1, SEXP arg2);
+
 }

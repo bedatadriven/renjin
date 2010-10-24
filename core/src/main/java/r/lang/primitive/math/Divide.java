@@ -21,7 +21,7 @@
 
 package r.lang.primitive.math;
 
-public class Divide extends BinaryMath {
+public class Divide extends BinaryMathFunction {
 
   @Override
   protected double apply(double x, double y) {

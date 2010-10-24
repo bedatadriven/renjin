@@ -28,7 +28,7 @@ import r.lang.primitive.PrimitiveFunction;
 public class Missing extends PrimitiveFunction {
 
   @Override
-  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
+  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
     SymbolExp symbol;
     try {
       symbol = (SymbolExp) args.getFirst();
@@ -40,10 +40,10 @@ public class Missing extends PrimitiveFunction {
       throw new EvalException(call, "'missing' can only be used for arguments");
 
     } else if(value == SymbolExp.MISSING_ARG) {
-      return new LogicalExp(true);
+      return new EvalResult(new LogicalExp(true));
 
     } else {
-      return new LogicalExp(false);
+      return new EvalResult(new LogicalExp(false));
     }
   }
 }

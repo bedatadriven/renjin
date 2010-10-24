@@ -49,109 +49,118 @@ public class EvalTest {
 
   @Test
   public void unaryFunction() throws IOException {
-    SEXP result = eval1("sqrt(4);");
+    SEXP result = evalToExp("sqrt(4);");
 
     assertThat(result, realVectorEqualTo(2));
   }
 
   @Test
   public void ifStatement() throws IOException {
-    assertThat(eval1("if(TRUE) 1;"), realVectorEqualTo(1));
+    assertThat(evalToExp("if(TRUE) 1;"), realVectorEqualTo(1));
   }
 
 
   @Test
   public void ifStatementWithArgsToBeEvaluated() throws IOException {
-    eval1("x<-1;");
-    assertThat(eval1("if(x) 9;"), realVectorEqualTo(9));
+    evalToExp("x<-1;");
+    assertThat(evalToExp("if(x) 9;"), realVectorEqualTo(9));
   }
 
   @Test
   public void ifElseStatement() throws IOException {
-    assertThat(eval1("if(TRUE) 1 else 2;"), realVectorEqualTo(1));
+    assertThat(evalToExp("if(TRUE) 1 else 2;"), realVectorEqualTo(1));
   }
 
   @Test
   public void ifElseFalseStatement() throws IOException {
-    assertThat(eval1("if(FALSE) 1 else 2;"), realVectorEqualTo(2));
+    assertThat(evalToExp("if(FALSE) 1 else 2;"), realVectorEqualTo(2));
   }
 
   @Test(expected = EvalException.class)
   public void ifWithNA() throws IOException {
-    eval1("if(NA) 1;");
+    evalToExp("if(NA) 1;");
   }
 
   @Test
   public void braces() throws IOException {
-    assertThat(eval1("{1; 2};"), realVectorEqualTo(2));
+    assertThat(evalToExp("{1; 2};"), realVectorEqualTo(2));
   }
 
   @Test
   public void emptyBraces() throws IOException {
-    assertThat(eval1("{};"), equalTo((SEXP) NilExp.INSTANCE));
+    assertThat(evalToExp("{};"), equalTo((SEXP) NilExp.INSTANCE));
   }
 
   @Test
   public void assign() throws IOException {
-    assertThat(eval1("x<-2;"), realVectorEqualTo(2));
-    assertThat(eval1("x;"), realVectorEqualTo(2));
+    assertThat(evalToExp("x<-2;"), realVectorEqualTo(2));
+    assertThat(evalToExp("x;"), realVectorEqualTo(2));
+  }
+
+  @Test
+  public void assignIsSilent() throws IOException {
+    assertThat(eval("x<-1;").isVisible(), equalTo(false));
   }
 
   @Test
   public void assignSym() throws IOException {
-    eval1("x<-1;");
-    eval1("y<-x;");
-    assertThat(eval1("y;"), realVectorEqualTo(1));
+    evalToExp("x<-1;");
+    evalToExp("y<-x;");
+    assertThat(evalToExp("y;"), realVectorEqualTo(1));
   }
 
   @Test
   public void whileLoop() throws IOException {
-    eval1("x<-TRUE;");
-    eval1("while(x) { x<-FALSE };");
+    evalToExp("x<-TRUE;");
+    evalToExp("while(x) { x<-FALSE };");
 
-    assertThat(eval1("x;"), logicalVectorOf(Logical.FALSE));
+    assertThat(evalToExp("x;"), logicalVectorOf(Logical.FALSE));
   }
 
   @Test
   public void whileLoopWithBreak() throws IOException {
-    eval1("x<-TRUE;");
-    eval1("while(x) { break; x<-FALSE };");
+    evalToExp("x<-TRUE;");
+    evalToExp("while(x) { break; x<-FALSE };");
 
-    assertThat(eval1("x;"), logicalVectorOf(Logical.TRUE));
+    assertThat(evalToExp("x;"), logicalVectorOf(Logical.TRUE));
   }
 
   @Test
   public void simplestForStatement() throws IOException {
-    eval1("for( x in 99 ) { y <- x}; ");
+    evalToExp("for( x in 99 ) { y <- x}; ");
 
-    assertThat(eval1("x;"), realVectorEqualTo(99));
-    assertThat(eval1("y;"), realVectorEqualTo(99));
+    assertThat(evalToExp("x;"), realVectorEqualTo(99));
+    assertThat(evalToExp("y;"), realVectorEqualTo(99));
   }
 
   @Test
   public void function() throws IOException {
-    eval1("f <- function(x) { x };");
-    assertThat(eval1("f(4);"), realVectorEqualTo(4));
+    evalToExp("f <- function(x) { x };");
+    assertThat(evalToExp("f(4);"), realVectorEqualTo(4));
   }
 
   @Test
   public void functionWithMissing() throws IOException {
-    eval1("f <- function(x) { missing(x) };");
-    assertThat(eval1("f();"), logicalVectorOf(Logical.TRUE));
-    assertThat(eval1("f(1);"), logicalVectorOf(Logical.FALSE));
+    evalToExp("f <- function(x) { missing(x) };");
+    assertThat(evalToExp("f();"), logicalVectorOf(Logical.TRUE));
+    assertThat(evalToExp("f(1);"), logicalVectorOf(Logical.FALSE));
    }
 
   @Test
   public void functionWithZeroArgs() throws IOException {
-    eval1("f <- function() { 1 }; ");
-    assertThat(eval1("f();"), realVectorEqualTo(1));
+    evalToExp("f <- function() { 1 }; ");
+    assertThat(evalToExp("f();"), realVectorEqualTo(1));
   }
 
 
-  private SEXP eval1(String source) throws IOException {
+  private SEXP evalToExp(String source) throws IOException {
     SEXP exp = parse(source);
-    SEXP result = exp.evaluate(context.getGlobalEnvironment());
-    return result;
+    return exp.evalToExp(context.getGlobalEnvironment());
+  }
+
+  private EvalResult eval(String source) throws IOException {
+    SEXP exp = parse(source);
+    return exp.evaluate(context.getGlobalEnvironment());
   }
 
 

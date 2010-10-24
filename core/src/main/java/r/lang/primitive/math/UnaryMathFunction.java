@@ -21,23 +21,20 @@
 
 package r.lang.primitive.math;
 
-import com.google.common.base.Preconditions;
 import r.lang.*;
-import r.lang.exception.BuiltinException;
-import r.lang.primitive.PrimitiveFunction;
+import r.lang.exception.EvalException;
+import r.lang.primitive.UnaryFunction;
 
-public abstract class UnaryMath extends PrimitiveFunction {
+public abstract class UnaryMathFunction extends UnaryFunction {
 
   @Override
-  public final SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
-    Preconditions.checkArgument(args.length() == 1);
+  public final EvalResult apply(LangExp call, EnvExp rho, SEXP argument) {
 
-    SEXP argument = args.getFirst().evaluate(rho);
     if (!argument.isNumeric()) {
-      throw new BuiltinException("Non-numeric argument to mathematical function");
+      throw new EvalException("Non-numeric argument to mathematical function");
     }
 
-    return applyReal(argument);
+    return new EvalResult(applyReal(argument));
   }
 
   private RealExp applyReal(SEXP argument) {

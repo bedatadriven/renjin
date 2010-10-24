@@ -21,27 +21,25 @@
 
 package r.lang.primitive.math;
 
-import com.google.common.base.Preconditions;
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.PrimitiveFunction;
+import r.lang.primitive.BinaryFunction;
 
-public abstract class BinaryMath extends PrimitiveFunction {
+public abstract class BinaryMathFunction extends BinaryFunction {
 
   @Override
-  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
-    Preconditions.checkArgument(args.length() == 2);
-    checkArgumentTypes(call, args.getFirst(), args.getSecond());
+  public EvalResult apply(LangExp call, EnvExp rho, SEXP arg0, SEXP arg1) {
+    checkArgumentTypes(call, arg0, arg1);
 
-    RealExp x = (RealExp) args.getFirst();
-    RealExp y = (RealExp) args.getSecond();
+    RealExp x = (RealExp) arg0;
+    RealExp y = (RealExp) arg1;
     int xlen = x.length();
     int ylen = y.length();
     int maxlen = Math.max(xlen, ylen);
     int minlen = Math.min(xlen, ylen);
 
     if( maxlen % minlen != 0) {
-      throw new EvalException(call, "longer object length is not a multiple of shorter object length");
+      throw new EvalException("longer object length is not a multiple of shorter object length");
     }
 
     RealExp result = RealExp.ofLength(Math.max(xlen, ylen));
@@ -51,23 +49,16 @@ public abstract class BinaryMath extends PrimitiveFunction {
       double yi = y.get( i % ylen );
 
       result.set(i, apply(xi, yi));
-
     }
 
-    return result;
+    return new EvalResult(result);
   }
 
   protected abstract double apply(double x, double y);
 
-
   private void checkArgumentTypes(LangExp call, SEXP x, SEXP y) {
     if(!x.isNumeric() || !y.isNumeric()) {
-      throw new EvalException(call, "non-numeric argument to binary operator");
+      throw new EvalException("non-numeric argument to binary operator");
     }
   }
-
-  private void checkLengths(LangExp call, SEXP x, SEXP y) {
-
-  }
-
 }

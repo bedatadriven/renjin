@@ -344,10 +344,10 @@ public class ListExp extends SEXP implements Iterable<SEXP>, NillOrListExp {
   }
 
   @Override
-  public SEXP evaluate(EnvExp rho) {
+  public EvalResult evaluate(EnvExp rho) {
     Builder builder = new Builder();
 
-    return builder.list();
+    return new EvalResult(builder.list());
   }
 
   @Override

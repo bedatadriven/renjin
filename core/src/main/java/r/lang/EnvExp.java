@@ -206,7 +206,7 @@ public class EnvExp extends SEXP {
     SEXP __b__ = (b);
     SEXP __val__ = (val);
     if (BINDING_IS_LOCKED(__b__))
-      throw new EvalException(b, "cannot change value of locked binding for '%s'", CHAR(PRINTNAME(TAG(__b__))));
+      throw new EvalException("cannot change value of locked binding for '%s'", CHAR(PRINTNAME(TAG(__b__))));
     if (IS_ACTIVE_BINDING(__b__))
       setActiveValue(CAR(__b__), __val__);
     else
@@ -218,7 +218,7 @@ public class EnvExp extends SEXP {
     SEXP __sym__ = (sym);
     SEXP __val__ = (val);
     if (BINDING_IS_LOCKED(__sym__))
-      throw new EvalException(sym, "cannot change value of locked binding for '%s'", CHAR(PRINTNAME(__sym__)));
+      throw new EvalException( "cannot change value of locked binding for '%s'", CHAR(PRINTNAME(__sym__)));
     if (IS_ACTIVE_BINDING(__sym__))
       setActiveValue(SYMVALUE(__sym__), __val__);
     else

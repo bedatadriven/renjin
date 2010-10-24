@@ -27,9 +27,9 @@ import r.lang.primitive.PrimitiveFunction;
 public class ForStatement extends PrimitiveFunction {
 
   @Override
-  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
+  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
     SymbolExp symbol = (SymbolExp) args.getFirst();
-    SEXP elements = args.getSecond().evaluate(rho);
+    SEXP elements = args.getSecond().evalToExp(rho);
     SEXP statement = args.getThird();
 
     for(int i=0; i!=elements.length(); ++i) {
@@ -37,6 +37,6 @@ public class ForStatement extends PrimitiveFunction {
       statement.evaluate(rho);
     }
 
-    return NilExp.INSTANCE;
+    return EvalResult.NON_PRINTING_NULL;
   }
 }

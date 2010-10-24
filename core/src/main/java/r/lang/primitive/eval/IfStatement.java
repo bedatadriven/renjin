@@ -28,17 +28,17 @@ public class IfStatement extends PrimitiveFunction {
 
 
   @Override
-  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
-    SEXP condition = args.get(0).evaluate(rho);
+  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
+    SEXP condition = args.get(0).evalToExp(rho);
 
     if (EvalUtil.asLogicalNoNA(call, condition, rho)) {
-      return args.get(1).evaluate(rho); /* true value */
+      return new EvalResult(args.get(1).evalToExp(rho)); /* true value */
 
     } else {
       if (args.length() == 3) {
-        return args.get(2).evaluate(rho); /* else value */
+        return new EvalResult(args.get(2).evalToExp(rho)); /* else value */
       } else {
-        return NilExp.INSTANCE;   /* no else, evaluates to NULL */
+        return EvalResult.NON_PRINTING_NULL;   /* no else, evaluates to NULL */
       }
     }
   }

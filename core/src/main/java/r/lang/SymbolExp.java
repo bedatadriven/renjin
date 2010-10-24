@@ -21,7 +21,7 @@
 
 package r.lang;
 
-import r.lang.exception.LanguageException;
+import r.lang.exception.EvalException;
 import r.util.ArgChecker;
 
 public class SymbolExp extends SEXP {
@@ -83,12 +83,12 @@ public class SymbolExp extends SEXP {
   }
 
   @Override
-  public SEXP evaluate(EnvExp rho) {
+  public EvalResult evaluate(EnvExp rho) {
     SEXP value = rho.findVariable(this);
     if(value == SymbolExp.UNBOUND_VALUE) {
-      throw new LanguageException(String.format("object '%s' not found", printName));
+      throw new EvalException(String.format("object '%s' not found", printName));
     }
-    return value;
+    return new EvalResult(value);
   }
 
   @Override

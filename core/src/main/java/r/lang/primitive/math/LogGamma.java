@@ -21,8 +21,7 @@
 
 package r.lang.primitive.math;
 
-public class LogGamma extends UnaryMath {
-
+public class LogGamma extends UnaryMathFunction {
   @Override
   protected double apply(double value) {
     return cern.jet.stat.Gamma.logGamma(value);

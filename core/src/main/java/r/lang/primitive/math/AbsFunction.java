@@ -21,7 +21,7 @@
 
 package r.lang.primitive.math;
 
-public class AbsFunction extends UnaryMath {
+public class AbsFunction extends UnaryMathFunction {
 
   @Override
   protected double apply(double value) {

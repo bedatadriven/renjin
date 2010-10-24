@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,21 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.exception;
+package r.lang.primitive.math;
 
-public class BuiltinException extends RuntimeException {
-  public BuiltinException() {
-  }
-
-  public BuiltinException(String message) {
-    super(message);
-  }
-
-  public BuiltinException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public BuiltinException(Throwable cause) {
-    super(cause);
+public class Exp extends UnaryMathFunction {
+  @Override
+  protected double apply(double value) {
+    return Math.exp(value);
   }
 }

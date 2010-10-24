@@ -43,9 +43,9 @@ public class LangExp extends ListExp {
   }
 
   @Override
-  public SEXP evaluate(EnvExp rho) {
+  public EvalResult evaluate(EnvExp rho) {
 
-    FunExp functionExpr = (FunExp) getFunction().evaluate(rho);
+    FunExp functionExpr = (FunExp) getFunction().evalToExp(rho);
 
     return functionExpr.apply(this, getArguments(), rho);
 

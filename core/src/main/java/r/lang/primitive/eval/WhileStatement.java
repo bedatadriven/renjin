@@ -27,11 +27,11 @@ import r.lang.primitive.PrimitiveFunction;
 public class WhileStatement extends PrimitiveFunction {
 
   @Override
-  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
+  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
     SEXP condition = args.getFirst();
     SEXP statement = args.getSecond();
 
-    while(EvalUtil.asLogicalNoNA(call, condition.evaluate(rho), rho)) {
+    while(EvalUtil.asLogicalNoNA(call, condition.evaluate(rho).getExpression(), rho)) {
 
       try {
 
@@ -41,6 +41,6 @@ public class WhileStatement extends PrimitiveFunction {
         break;
       }
     }
-    return NilExp.INSTANCE;
+    return EvalResult.NON_PRINTING_NULL;
   }
 }

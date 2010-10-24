@@ -42,14 +42,6 @@ public class SpecialExp extends PrimitiveSexp {
   }
 
   @Override
-  public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
-    checkArity(args);
-
-    // we do not evaluate the arguments of "special" functions
-    return getFunctionInstance().apply(call, args, rho);
-  }
-
-  @Override
   protected ListExp prepareArguments(ListExp args, EnvExp rho) {
     return args; // args to special functions are not evaluated beforehand
   }

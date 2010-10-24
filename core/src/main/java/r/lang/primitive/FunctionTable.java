@@ -260,7 +260,7 @@ public class FunctionTable {
       f("sign", Sign.class, 4, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("trunc", /*trunc*/ null, 5, 1, -1, PP_FUNCALL, PREC_FN, 0),
 
-      f("exp", Logarithms.Exp.class, 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("exp", Exp.class, 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("expm1", /*math1*/ null, 11, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("log1p", /*math1*/ null, 12, 1, 1, PP_FUNCALL, PREC_FN, 0),
 

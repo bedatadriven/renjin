@@ -22,15 +22,15 @@
 package r.lang.primitive.eval;
 
 import r.lang.EnvExp;
+import r.lang.EvalResult;
 import r.lang.LangExp;
 import r.lang.NillOrListExp;
-import r.lang.SEXP;
 import r.lang.primitive.PrimitiveFunction;
 
 public class NextStatement extends PrimitiveFunction {
 
   @Override
-  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
+  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
     throw new NextException();
   }
 }

@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,13 +19,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.math;
+package r.lang;
 
-public class Logarithms {
-  public static class Exp extends UnaryMath {
-    @Override
-    protected double apply(double value) {
-      return Math.exp(value);
-    }
+/**
+ * The result of an evaluation.
+ */
+public class EvalResult {
+
+  private final SEXP expression;
+  private final boolean visible;
+
+  public static EvalResult NON_PRINTING_NULL = new EvalResult(NilExp.INSTANCE, false);
+
+  public EvalResult(SEXP expression) {
+    this.expression = expression;
+    this.visible = true;
+  }
+
+  public EvalResult(SEXP expression, boolean visible) {
+    this.expression = expression;
+    this.visible = visible;
+  }
+
+  /**
+   * @return  the expression that has resulted from
+   * evaluation of the function
+   */
+  public SEXP getExpression() {
+    return expression;
+  }
+
+  /**
+   * @return whether the result should be printed to a console
+   */
+  public boolean isVisible() {
+    return visible;
   }
 }

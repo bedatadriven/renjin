@@ -22,7 +22,7 @@
 package r.lang.primitive.eval;
 
 import r.lang.*;
-import r.lang.exception.LanguageException;
+import r.lang.exception.EvalException;
 
 public class ListToString extends SexpVisitor {
 
@@ -30,7 +30,7 @@ public class ListToString extends SexpVisitor {
 
   @Override
   protected void unhandled(SEXP exp) {
-    throw new LanguageException(String.format("cannot coerce type '%s' to vector of type 'character'",
+    throw new EvalException(String.format("cannot coerce type '%s' to vector of type 'character'",
         exp.getTypeName()));
   }
 

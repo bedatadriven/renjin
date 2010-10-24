@@ -21,7 +21,7 @@
 
 package r.lang.primitive.math;
 
-public class Minus extends BinaryMath {
+public class Minus extends BinaryMathFunction {
   @Override
   protected double apply(double x, double y) {
     return x - y;

@@ -27,7 +27,7 @@ import r.lang.Logical;
 import r.lang.SEXP;
 import r.lang.exception.EvalException;
 
-public class EvalUtil {
+class EvalUtil {
 
   public static boolean asLogicalNoNA(LangExp call, SEXP s, EnvExp rho) {
 
@@ -37,7 +37,7 @@ public class EvalUtil {
 
     Logical logical = s.asLogical();
     if (logical == Logical.NA) {
-      throw new EvalException(call, "missing value where TRUE/FALSE needed");
+      throw new EvalException("missing value where TRUE/FALSE needed");
     }
 
     return logical == Logical.TRUE;

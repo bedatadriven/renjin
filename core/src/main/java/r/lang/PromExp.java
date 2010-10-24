@@ -33,7 +33,7 @@ public class PromExp extends SEXP {
   private SEXP env;
 
   @Override
-  public SEXP evaluate(EnvExp rho) {
+  public EvalResult evaluate(EnvExp rho) {
     if (value == R_UnboundValue) {
       /* We could just unconditionally use the return value from
         forcePromise; the test avoids the function call if the
@@ -41,7 +41,7 @@ public class PromExp extends SEXP {
       forcePromise();
     }
 
-    return value;
+    return new EvalResult(value);
   }
 
   @Override

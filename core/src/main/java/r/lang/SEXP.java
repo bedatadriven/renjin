@@ -21,7 +21,7 @@
 
 package r.lang;
 
-import r.lang.exception.LanguageException;
+import r.lang.exception.EvalException;
 
 /**
  * Base class for R data types.
@@ -132,11 +132,10 @@ public abstract class SEXP {
    * @param rho the environment in which to evaluate the expression
    * @return the result
    */
-  public SEXP evaluate(EnvExp rho) {
+  public EvalResult evaluate(EnvExp rho) {
 
     // I've ripped out all of the stack-counting stuff,
     // I'm assuming that the JVM will just throw a StackOverflowException, right...?
-
 
     /* Make sure constants in expressions are NAMED before being
   used as values.  Setting NAMED to 2 makes sure weird calls
@@ -145,11 +144,17 @@ public abstract class SEXP {
     if (getNamed() != 2) {
       setNamed(2);
     }
-    return this;
+    return new EvalResult(this);
+  }
 
-
-// TODO: autoprinting?    R_Visible = TRUE;
-
+  /**
+   * Shortcut for evaluate(rho).getExpression()
+   *
+   * @param rho the environment in which this expression should be evaluated
+   * @return
+   */
+  public final SEXP evalToExp(EnvExp rho) {
+    return evaluate(rho).getExpression();
   }
 
   public boolean isNumeric() {
@@ -196,7 +201,7 @@ public abstract class SEXP {
    * @return
    */
   public SEXP subset(int from, int to) {
-    throw new LanguageException(String.format("object of type '%s' is not subsettable", getTypeName()));
+    throw new EvalException(String.format("object of type '%s' is not subsettable", getTypeName()));
   }
 
   /**

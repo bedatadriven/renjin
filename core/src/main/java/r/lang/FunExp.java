@@ -29,5 +29,5 @@ package r.lang;
  */
 public interface FunExp {
 
-  SEXP apply(LangExp call, ListExp args, EnvExp rho);
+  EvalResult apply(LangExp call, ListExp args, EnvExp rho);
 }

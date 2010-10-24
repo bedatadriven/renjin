@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,42 +19,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.exception;
 
-import r.lang.primitive.FunctionTable;
+import r.lang.LangExp;
 
-public class BuiltinExp extends PrimitiveSexp {
-  public static final int TYPE_CODE = 8;
-  public static final String TYPE_NAME = "builtin";
+/**
+ * Wraps an {@link r.lang.exception.EvalException EvalException} and includes
+ * a reference to the function call in which the EvalException was thrown. 
+ */
+public class FunctionCallException extends RuntimeException {
 
-  public BuiltinExp(FunctionTable.Entry functionEntry) {
-    super(functionEntry);
+  private final LangExp call;
+  private final String message;
+
+  public FunctionCallException(LangExp call, EvalException e) {
+    this.call = call;
+    this.message = e.getMessage();
   }
 
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
-
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
-  }
-
-  @Override
-  protected ListExp prepareArguments(ListExp args, EnvExp rho) {
-    if (args == null) {
-      return null;
-    }
-    ListExp.Builder builder = new ListExp.Builder();
-    for (SEXP arg : args) {
-      builder.add(arg.evaluate(rho).getExpression());
-    }
-    return builder.list();
-  }
 }

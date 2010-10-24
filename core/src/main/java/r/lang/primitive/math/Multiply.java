@@ -21,8 +21,7 @@
 
 package r.lang.primitive.math;
 
-public class Multiply extends BinaryMath {
-
+public class Multiply extends BinaryMathFunction {
   @Override
   protected double apply(double x, double y) {
     return x * y;

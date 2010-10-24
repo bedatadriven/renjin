@@ -22,11 +22,11 @@
 package r.lang.primitive;
 
 import r.lang.EnvExp;
+import r.lang.EvalResult;
 import r.lang.LangExp;
 import r.lang.NillOrListExp;
-import r.lang.SEXP;
 
 public abstract class PrimitiveFunction {
 
-  public abstract SEXP apply(LangExp call, NillOrListExp args, EnvExp rho);
+  public abstract EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args);
 }

@@ -21,7 +21,7 @@
 
 package r.lang.primitive.math;
 
-public class Sqrt extends UnaryMath {
+public class Sqrt extends UnaryMathFunction {
   @Override
   protected double apply(double value) {
     return Math.sqrt(value);

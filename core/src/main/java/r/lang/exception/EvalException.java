@@ -26,6 +26,10 @@ import r.lang.SEXP;
 public class EvalException extends RuntimeException {
   private SEXP exp;
 
+  public EvalException(String message, Object... args) {
+    super(String.format(message, args));
+  }
+
   public EvalException(SEXP exp, String message, Object... args) {
     super(String.format(message, args));
     this.exp = exp;

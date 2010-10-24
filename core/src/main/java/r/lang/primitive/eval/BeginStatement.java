@@ -27,9 +27,9 @@ import r.lang.primitive.PrimitiveFunction;
 public class BeginStatement extends PrimitiveFunction {
 
   @Override
-  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
+  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
 
-    SEXP lastResult = NilExp.INSTANCE;
+    EvalResult lastResult = new EvalResult(NilExp.INSTANCE, true);
     if (args != null) {
       for (SEXP sexp : args) {
         lastResult = sexp.evaluate(rho);

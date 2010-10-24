@@ -21,7 +21,7 @@
 
 package r.lang;
 
-import r.lang.exception.LanguageException;
+import r.lang.exception.EvalException;
 
 public class CharExp extends AbstractVector {
 
@@ -54,7 +54,7 @@ public class CharExp extends AbstractVector {
 
   @Override
   public SEXP getAttribute(String name) {
-    throw new LanguageException("cannot have attributes on a CHARSXP");
+    throw new EvalException("cannot have attributes on a CHARSXP");
   }
 
   @Override

@@ -21,7 +21,7 @@
 
 package r.lang.primitive.math;
 
-public class Ceiling extends UnaryMath {
+public class Ceiling extends UnaryMathFunction {
   @Override
   protected double apply(double value) {
     return Math.ceil(value);

@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,16 +19,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.internal.c;
+package r.lang.primitive.types;
 
-import r.lang.IntExp;
+import r.lang.ListExp;
+import r.lang.SEXP;
 
-public class Arithmetic {
+public class RecursiveTypeFinder extends CommonTypeFinder {
 
-  protected Arithmetic() {
+  public RecursiveTypeFinder(ListExp listExp) {
+    super(listExp);
   }
 
-  public static final int NA_LOGICAL = IntExp.NA;
-
-
+  @Override
+  public void visit(ListExp listExp) {
+    for(SEXP exp : listExp) {
+      exp.accept(this);
+    }
+  }
 }

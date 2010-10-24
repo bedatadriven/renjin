@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,16 +19,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.internal.c;
+package r.lang.primitive.types;
 
-import r.lang.IntExp;
+import org.junit.Test;
+import r.lang.ListExp;
+import r.lang.RealExp;
+import r.lang.SEXP;
 
-public class Arithmetic {
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
-  protected Arithmetic() {
+public class CombineFunctionTest {
+
+
+  @Test
+  public void realList() {
+    CombineFunction fn = new CombineFunction();
+    SEXP exp = fn.combine(ListExp.fromArray(new RealExp(1), new RealExp(2), new RealExp(3)));
+
+    assertThat(exp, instanceOf(RealExp.class));
+    assertThat(exp.length(), equalTo(3));
   }
-
-  public static final int NA_LOGICAL = IntExp.NA;
-
 
 }

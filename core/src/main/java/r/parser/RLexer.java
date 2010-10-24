@@ -23,7 +23,6 @@ package r.parser;
 
 import org.apache.commons.math.complex.Complex;
 import r.lang.*;
-import r.lang.internal.c.Arithmetic;
 import r.lang.internal.c.RInternals;
 
 import java.io.IOException;
@@ -1185,13 +1184,13 @@ an ANSI digit or not */
                   yylval = new IntExp(IntExp.NA);
                   break;
                 case 7:
-                  yylval = new RealExp(Arithmetic.NA_REAL);
+                  yylval = new RealExp(RealExp.NA_REAL);
                   break;
                 case 8:
                   yylval = new StringExp(RInternals.NA_STRING);
                   break;
                 case 9:
-                  yylval = new ComplexExp(new Complex(Arithmetic.NA_REAL, Arithmetic.NA_REAL));
+                  yylval = new ComplexExp(new Complex(RealExp.NA_REAL, RealExp.NA_REAL));
                   break;
               }
             } else {

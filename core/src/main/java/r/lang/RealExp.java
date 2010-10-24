@@ -24,17 +24,30 @@ package r.lang;
 import cern.colt.list.DoubleArrayList;
 import cern.colt.list.adapter.DoubleListAdapter;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 public final class RealExp extends AbstractVector implements Iterable<Double> {
   public static final String TYPE_NAME = "double";
   public static final int TYPE_CODE = 14;
 
+  public static final double NA_REAL = R_ValueOfNA();
+
   private DoubleArrayList values;
 
   public RealExp(double... values) {
     this.values = new DoubleArrayList(values);
   }
+
+  public RealExp(Collection<Double> values) {
+    double dv[] = new double[values.size()];
+    int i = 0;
+    for(Double value : values) {
+      dv[i++] = value;
+    }
+    this.values = new DoubleArrayList(dv);
+  }
+
 
   @Override
   public int getTypeCode() {
@@ -109,5 +122,14 @@ public final class RealExp extends AbstractVector implements Iterable<Double> {
     } else {
       return values.toString();
     }
+  }
+
+  public static double R_ValueOfNA() {
+//    volatile ieee_double x;
+//    x.word[hw] = 0x7ff00000;
+//    x.word[lw] = 1954;
+//    return x.value;
+
+    return Double.longBitsToDouble(0x7ff0000000001954L);
   }
 }

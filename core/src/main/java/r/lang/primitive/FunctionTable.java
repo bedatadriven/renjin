@@ -24,6 +24,7 @@ package r.lang.primitive;
 
 import r.lang.primitive.eval.*;
 import r.lang.primitive.math.*;
+import r.lang.primitive.types.CombineFunction;
 import r.lang.primitive.types.Is;
 
 import static r.lang.internal.c.fn.arith.ArithOpType.*;
@@ -196,7 +197,7 @@ public class FunctionTable {
       f("length<-", /*lengthgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
       f("row", /*rowscols*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("col", /*rowscols*/ null, 2, 11, 1, PP_FUNCALL, PREC_FN, 0),
-      f("c",/* bind.c:*/   null, 0, 0, -1, PP_FUNCALL, PREC_FN, 0),
+      f("c", CombineFunction.class, 0, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("unlist", /*unlist*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("cbind", /*bind*/ null, 1, 10, -1, PP_FUNCALL, PREC_FN, 0),
       f("rbind", /*bind*/ null, 2, 10, -1, PP_FUNCALL, PREC_FN, 0),

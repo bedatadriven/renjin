@@ -2770,7 +2770,11 @@ public class RParser {
 //        }
 //        /* PrintValue(source); */
 //      }
-      PROTECT(ans = lang4(fname, CDR(formals), body, source));
+      if(formals == NilExp.INSTANCE) {
+        ans = lang4(fname, NilExp.INSTANCE, body, source);
+      } else {
+         PROTECT(ans = lang4(fname, CDR(formals), body, source));
+      }
       UNPROTECT_PTR(source);
     } else
       PROTECT(ans = R_NilValue);

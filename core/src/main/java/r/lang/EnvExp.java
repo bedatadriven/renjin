@@ -22,9 +22,12 @@
 package r.lang;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.UnmodifiableIterator;
 import r.lang.exception.EvalException;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static r.lang.internal.c.RInternals.*;
@@ -84,6 +87,10 @@ public class EnvExp extends SEXP {
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  public Collection<String> getSymbolNames() {
+    return frame.keySet();
   }
 
   public void setVariable(SymbolExp symbol, SEXP value) {
@@ -225,7 +232,35 @@ public class EnvExp extends SEXP {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
+  }
 
+  public Iterable<EnvExp> selfAndParents() {
+    return new Iterable<EnvExp>() {
+      @Override
+      public Iterator<EnvExp> iterator() {
+        return new EnvIterator(EnvExp.this);
+      }
+    };
+  }
+
+  private static class EnvIterator extends UnmodifiableIterator<EnvExp> {
+    private EnvExp next;
+
+    private EnvIterator(EnvExp next) {
+      this.next = next;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return next != null;
+    }
+
+    @Override
+    public EnvExp next() {
+      EnvExp toReturn = next;
+      next = next.enclosing;
+      return toReturn;
+    }
   }
 }
 

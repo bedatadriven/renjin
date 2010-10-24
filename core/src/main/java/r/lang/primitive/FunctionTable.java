@@ -24,6 +24,7 @@ package r.lang.primitive;
 
 import r.lang.primitive.eval.*;
 import r.lang.primitive.math.*;
+import r.lang.primitive.types.Is;
 
 import static r.lang.internal.c.fn.arith.ArithOpType.*;
 import static r.lang.internal.c.fn.relop.RelOpType.*;
@@ -149,10 +150,10 @@ public class FunctionTable {
 
 /* Binary Operators */
 /* these are group generic and so need to eval args */
-      f("+", /*arith*/ null, PLUSOP, 1, 2, PP_BINARY, PREC_SUM, 0),
-      f("-", /*arith*/ null, MINUSOP, 1, 2, PP_BINARY, PREC_SUM, 0),
-      f("*", /*arith*/ null, TIMESOP, 1, 2, PP_BINARY, PREC_PROD, 0),
-      f("/", /*arith*/ null, DIVOP, 1, 2, PP_BINARY2, PREC_PROD, 0),
+      f("+",  Plus.class, PLUSOP, 1, 2, PP_BINARY, PREC_SUM, 0),
+      f("-", Minus.class, MINUSOP, 1, 2, PP_BINARY, PREC_SUM, 0),
+      f("*", Multiply.class, TIMESOP, 1, 2, PP_BINARY, PREC_PROD, 0),
+      f("/", Divide.class, DIVOP, 1, 2, PP_BINARY2, PREC_PROD, 0),
       f("^", /*arith*/ null, POWOP, 1, 2, PP_BINARY2, PREC_POWER, 1),
       f("%%", /*arith*/ null, MODOP, 1, 2, PP_BINARY2, PREC_PERCENT, 0),
       f("%/%", /*arith*/ null, IDIVOP, 1, 2, PP_BINARY2, PREC_PERCENT, 0),
@@ -253,10 +254,10 @@ public class FunctionTable {
       f("log10", /*log1arg*/ null, 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("log2", /*log1arg*/ null, 2, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("abs", /*AbsFunction*/ null, 6, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("floor", UnaryMath.Floor.class, 1, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("ceiling", UnaryMath.Ceiling.class, 2, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("sqrt", UnaryMath.Sqrt.class, 3, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("sign", UnaryMath.Sign.class, 4, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("floor", Floor.class, 1, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("ceiling", Ceiling.class, 2, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("sqrt", Sqrt.class, 3, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("sign", Sign.class, 4, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("trunc", /*trunc*/ null, 5, 1, -1, PP_FUNCALL, PREC_FN, 0),
 
       f("exp", Logarithms.Exp.class, 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
@@ -523,18 +524,18 @@ public class FunctionTable {
 
 /* Type Checking (typically implemented in ./coerce.c ) */
 
-      f("is.null", /*is*/ null, 0 /*NILSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.logical", /*is*/ null,0 /*LGLSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.integer", /*is*/ null,0 /*INTSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.real", /*is*/ null, 0/*REALSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.double", /*is*/ null,0 /*REALSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.complex", /*is*/ null, 0/*CPLXSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.character", /*is*/ null,0 /*STRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.symbol", /*is*/ null, 0 /*SYMSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.environment", /*is*/ null, 0/* ENVSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.list", /*is*/ null, 0/* VECSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.null",  Is.Null.class, 0 /*NILSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.logical", Is.Logical.class ,0 /*LGLSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.integer", Is.Integer.class,0 /*INTSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.real", Is.Real.class, 0/*REALSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.double", Is.Real.class, 0 /*REALSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.complex", Is.Complex.class, 0/*CPLXSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.character", Is.Character.class,0 /*STRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.symbol", Is.Symbol.class, 0 /*SYMSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.environment", Is.Environment.class, 0/* ENVSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.list", /* is */ null, 0/* VECSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.pairlist", /*is*/ null, 0 /*LISTSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.expression", /*is*/ null, 0 /* EXPRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.expression", Is.Expression.class, 0 /* EXPRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.raw", /*is*/ null, 0 /* RAWSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
       f("is.object", /*is*/ null, 50, 1, 1, PP_FUNCALL, PREC_FN, 0),

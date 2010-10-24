@@ -30,13 +30,14 @@ import com.google.common.collect.UnmodifiableIterator;
 import r.util.ArgChecker;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  * Linked list of SEXP values
  */
-public class ListExp extends SEXP implements Iterable<SEXP> {
+public class ListExp extends SEXP implements Iterable<SEXP>, NillOrListExp {
 
   public static final int TYPE_CODE = 2;
   public static final String TYPE_NAME = "pairlist";
@@ -282,6 +283,21 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
         return nodeIterator();
       }
     };
+  }
+
+  /**
+   * Returns an iterator over the individual ListExp nodes in this list,
+   * or an empty iterator if exp is the NilExp.
+
+   * @param exp  A ListExp or null
+   * @throws IllegalArgumentException if the exp is not of type ListExp or NillExp
+   */
+  public static Iterable<ListExp> listNodes(NillOrListExp exp) {
+    if(exp instanceof ListExp) {
+      return ((ListExp) exp).listNodes();
+    } else {
+      return Collections.emptySet();
+    }
   }
 
   private Iterator<ListExp> nodeIterator() {

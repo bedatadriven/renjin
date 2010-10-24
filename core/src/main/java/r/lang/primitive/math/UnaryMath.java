@@ -29,7 +29,7 @@ import r.lang.primitive.PrimitiveFunction;
 public abstract class UnaryMath extends PrimitiveFunction {
 
   @Override
-  public final SEXP apply(LangExp call, ListExp args, EnvExp rho) {
+  public final SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
     Preconditions.checkArgument(args.length() == 1);
 
     SEXP argument = args.getFirst().evaluate(rho);
@@ -66,34 +66,6 @@ public abstract class UnaryMath extends PrimitiveFunction {
   }
 
   protected abstract double apply(double value);
-
-  public static class Floor extends UnaryMath {
-    @Override
-    protected double apply(double value) {
-      return Math.floor(value);
-    }
-  }
-
-  public static class Ceiling extends UnaryMath {
-    @Override
-    protected double apply(double value) {
-      return Math.ceil(value);
-    }
-  }
-
-  public static class Sqrt extends UnaryMath {
-    @Override
-    protected double apply(double value) {
-      return Math.sqrt(value);
-    }
-  }
-
-  public static class Sign extends UnaryMath {
-    @Override
-    protected double apply(double value) {
-      return Math.signum(value);
-    }
-  }
 
 
 }

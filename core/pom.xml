@@ -34,6 +34,10 @@
 
   <groupId>com.bedatadriven.renjin</groupId>
   <artifactId>renjin-core</artifactId>
+  <name>Renjin Core</name>
+  <description>Java-based implementation of the R language for
+    statistical computing</description>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>

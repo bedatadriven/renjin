@@ -26,8 +26,7 @@ import r.lang.primitive.PrimitiveFunction;
 
 public class Assignment extends PrimitiveFunction {
 
-  @Override
-  public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
+  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
     SymbolExp symbol = (SymbolExp) args.getFirst();
     SEXP newValue = args.getSecond().evaluate(rho);
 

@@ -28,7 +28,7 @@ import r.lang.primitive.PrimitiveFunction;
 public class Missing extends PrimitiveFunction {
 
   @Override
-  public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
+  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
     SymbolExp symbol;
     try {
       symbol = (SymbolExp) args.getFirst();

@@ -57,6 +57,5 @@ class FunctionSourceBuffer {
 
   public void ascend() {
     level--;
-
   }
 }

@@ -28,7 +28,7 @@ public class IfStatement extends PrimitiveFunction {
 
 
   @Override
-  public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
+  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
     SEXP condition = args.get(0).evaluate(rho);
 
     if (EvalUtil.asLogicalNoNA(call, condition, rho)) {

@@ -45,9 +45,9 @@ public class ClosureExp extends SEXP implements FunExp {
 
   private EnvExp environment;
   private SEXP body;
-  private ListExp formals;
+  private NillOrListExp formals;
 
-  public ClosureExp(EnvExp environment, ListExp formals, SEXP body) {
+  public ClosureExp(EnvExp environment, NillOrListExp formals, SEXP body) {
     this.environment = environment;
     this.body = body;
     this.formals = formals;
@@ -73,7 +73,7 @@ public class ClosureExp extends SEXP implements FunExp {
 
     EnvExp env = new EnvExp(environment);
 
-    Iterator<ListExp> formalIt = formals.listNodes().iterator();
+    Iterator<ListExp> formalIt = ListExp.listNodes(formals).iterator();
     Iterator<SEXP> actualIt = ListExp.iterator(args);
 
     while(formalIt.hasNext()) {
@@ -124,7 +124,7 @@ public class ClosureExp extends SEXP implements FunExp {
    * is unknown or in cases where the arguments will
    * be passed on to another function.
    */
-  public ListExp getFormals() {
+  public NillOrListExp getFormals() {
     return formals;
   }
 
@@ -155,7 +155,7 @@ public class ClosureExp extends SEXP implements FunExp {
   private void matchArguments(ListExp actuals, EnvExp env) {
 
     List<ListExp> unmatchedActuals = Lists.newArrayList(actuals.listNodes());
-    List<ListExp> unmatchedFormals = Lists.newArrayList(formals.listNodes());
+    List<ListExp> unmatchedFormals = Lists.newArrayList(ListExp.listNodes(formals));
 
     for(Iterator<ListExp> actualIt = filter(unmatchedActuals.iterator(), Predicates.hasTag());
         actualIt.hasNext(); ) {

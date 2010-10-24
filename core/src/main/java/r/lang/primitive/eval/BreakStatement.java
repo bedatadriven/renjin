@@ -23,14 +23,14 @@ package r.lang.primitive.eval;
 
 import r.lang.EnvExp;
 import r.lang.LangExp;
-import r.lang.ListExp;
+import r.lang.NillOrListExp;
 import r.lang.SEXP;
 import r.lang.primitive.PrimitiveFunction;
 
 public class BreakStatement extends PrimitiveFunction {
 
   @Override
-  public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
+  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
     throw new BreakException();
   }
 }

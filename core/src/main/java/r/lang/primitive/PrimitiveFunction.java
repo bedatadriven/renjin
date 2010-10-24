@@ -23,10 +23,10 @@ package r.lang.primitive;
 
 import r.lang.EnvExp;
 import r.lang.LangExp;
-import r.lang.ListExp;
+import r.lang.NillOrListExp;
 import r.lang.SEXP;
 
 public abstract class PrimitiveFunction {
 
-  public abstract SEXP apply(LangExp call, ListExp args, EnvExp rho);
+  public abstract SEXP apply(LangExp call, NillOrListExp args, EnvExp rho);
 }

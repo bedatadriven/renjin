@@ -23,7 +23,9 @@ package r.lang;
 
 import r.lang.primitive.FunctionTable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SymbolTable {
@@ -100,6 +102,16 @@ public class SymbolTable {
     seedsSymbol = install(".Random.seed");
     sourceSymbol = install("source");
     tspSymbol = install("tsp");
+  }
+
+  public List<String> getBoundSymbolNames() {
+    List<String> names = new ArrayList<String>();
+    for(SymbolExp symbol : table.values()) {
+      if(symbol.getValue() != SymbolExp.UNBOUND_VALUE) {
+        names.add(symbol.getPrintName());
+      }
+    }
+    return names;
   }
 
 

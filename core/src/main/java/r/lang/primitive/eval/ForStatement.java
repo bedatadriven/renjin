@@ -27,7 +27,7 @@ import r.lang.primitive.PrimitiveFunction;
 public class ForStatement extends PrimitiveFunction {
 
   @Override
-  public SEXP apply(LangExp call, ListExp args, EnvExp rho) {
+  public SEXP apply(LangExp call, NillOrListExp args, EnvExp rho) {
     SymbolExp symbol = (SymbolExp) args.getFirst();
     SEXP elements = args.getSecond().evaluate(rho);
     SEXP statement = args.getThird();

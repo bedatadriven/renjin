@@ -21,7 +21,11 @@
 
 package r.lang;
 
-public final class NilExp extends SEXP {
+import com.google.common.collect.Iterators;
+
+import java.util.Iterator;
+
+public final class NilExp extends SEXP implements NillOrListExp {
 
   public static final int TYPE_CODE = 0;
   public static final String TYPE_NAME = "NULL";
@@ -70,6 +74,30 @@ public final class NilExp extends SEXP {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
+  }
 
+  @Override
+  public <S extends SEXP> S get(int i) {
+    throw new IllegalArgumentException("List is NULL");
+  }
+
+  @Override
+  public SEXP getFirst() {
+    throw new IllegalArgumentException("List is NULL");
+  }
+
+  @Override
+  public SEXP getSecond() {
+    throw new IllegalArgumentException("List is NULL");
+  }
+
+  @Override
+  public SEXP getThird() {
+    throw new IllegalArgumentException("List is NULL");
+  }
+
+  @Override
+  public Iterator<SEXP> iterator() {
+    return Iterators.emptyIterator();
   }
 }

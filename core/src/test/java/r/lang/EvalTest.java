@@ -141,6 +141,11 @@ public class EvalTest {
     assertThat(eval1("f(1);"), logicalVectorOf(Logical.FALSE));
    }
 
+  @Test
+  public void functionWithZeroArgs() throws IOException {
+    eval1("f <- function() { 1 }; ");
+    assertThat(eval1("f();"), realVectorEqualTo(1));
+  }
 
 
   private SEXP eval1(String source) throws IOException {

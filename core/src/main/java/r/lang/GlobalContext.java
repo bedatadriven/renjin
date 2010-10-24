@@ -71,6 +71,10 @@ public class GlobalContext {
     return globalEnvironment;
   }
 
+  public Iterable<EnvExp> environments() {
+    return globalEnvironment.selfAndParents();
+  }
+
   public void warningCall(LangExp call, String message) {
     logger.warning(message);
   }

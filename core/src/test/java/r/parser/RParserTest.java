@@ -109,6 +109,13 @@ public class RParserTest {
   }
 
   @Test
+  public void functionWithoutArgs() throws IOException {
+    LangExp r = (LangExp) parse("function () { a + b }\n");
+
+
+  }
+
+  @Test
   public void ifElse() throws IOException {
     LangExp r = (LangExp) parse("if(TRUE) 1 else 2;");
 

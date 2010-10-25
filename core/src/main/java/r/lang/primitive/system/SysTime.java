@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,42 +19,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.system;
 
-import r.lang.primitive.FunctionTable;
+import r.lang.EnvExp;
+import r.lang.EvalResult;
+import r.lang.RealExp;
+import r.lang.primitive.NullaryFunction;
 
-public class BuiltinExp extends PrimitiveSexp {
-  public static final int TYPE_CODE = 8;
-  public static final String TYPE_NAME = "builtin";
+import java.util.Date;
 
-  public BuiltinExp(FunctionTable.Entry functionEntry) {
-    super(functionEntry);
-  }
-
+public class SysTime extends NullaryFunction {
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
-
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
-  }
-
-  @Override
-  protected NillOrListExp prepareArguments(NillOrListExp args, EnvExp rho) {
-    if (args.length() == 0) {
-      return args;
-    }
-    ListExp.Builder builder = new ListExp.Builder();
-    for (SEXP arg : args) {
-      builder.add(arg.evaluate(rho).getExpression());
-    }
-    return builder.list();
+  protected EvalResult apply(EnvExp rho) {
+    return new EvalResult(new RealExp((double)new Date().getTime()));
   }
 }

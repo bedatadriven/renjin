@@ -69,7 +69,7 @@ public class ClosureExp extends SEXP implements FunExp {
   }
 
   @Override
-  public EvalResult apply(LangExp call, ListExp args, EnvExp rho) {
+  public EvalResult apply(LangExp call, NillOrListExp args, EnvExp rho) {
 
     EnvExp env = new EnvExp(environment);
 

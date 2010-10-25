@@ -24,6 +24,7 @@ package r.lang.primitive;
 
 import r.lang.primitive.eval.*;
 import r.lang.primitive.math.*;
+import r.lang.primitive.system.SysTime;
 import r.lang.primitive.types.CombineFunction;
 import r.lang.primitive.types.Is;
 
@@ -140,7 +141,7 @@ public class FunctionTable {
       f("debugonce", /*debug*/ null, 3, 111, 3, PP_FUNCALL, PREC_FN, 0),
       f(".primTrace", /*trace*/ null, 0, 101, 1, PP_FUNCALL, PREC_FN, 0),
       f(".primUntrace", /*trace*/ null, 1, 101, 1, PP_FUNCALL, PREC_FN, 0),
-      f(".Internal", /*internal*/ null, 0, 200, 1, PP_FUNCALL, PREC_FN, 0),
+      f(".Internal", InternalCall.class, 0, 200, 1, PP_FUNCALL, PREC_FN, 0),
       f("on.exit", /*onexit*/ null, 0, 100, 1, PP_FUNCALL, PREC_FN, 0),
       f("Recall", /*recall*/ null, 0, 210, -1, PP_FUNCALL, PREC_FN, 0),
       f("delayedAssign", /*delayed*/ null, 0, 111, 4, PP_FUNCALL, PREC_FN, 0),
@@ -832,7 +833,7 @@ public class FunctionTable {
       f("addhistory", /*addhistory*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
 
 /* date-time manipulations */
-      f("Sys.time", /*systime*/ null, 0, 11, 0, PP_FUNCALL, PREC_FN, 0),
+      f("Sys.time", SysTime.class, 0, 11, 0, PP_FUNCALL, PREC_FN, 0),
       f("as.POSIXct", /*asPOSIXct*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("as.POSIXlt", /*asPOSIXlt*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("format.POSIXlt", /*formatPOSIXlt*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),

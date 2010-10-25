@@ -103,8 +103,8 @@ public class LangExp extends ListExp {
     return value;
   }
 
-  public ListExp getArguments() {
-    return nextNode;
+  public NillOrListExp getArguments() {
+    return nextNode == null ? NilExp.INSTANCE : nextNode;
   }
 
   @Override

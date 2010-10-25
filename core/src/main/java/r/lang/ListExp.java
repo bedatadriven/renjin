@@ -144,8 +144,8 @@ public class ListExp extends SEXP implements Iterable<SEXP>, NillOrListExp {
    * @param exp  a {@code ListExp}, or {@code null}
    * @return  an iterator
    */
-  public static Iterator<SEXP> iterator(ListExp exp) {
-    if(exp == null) {
+  public static Iterator<SEXP> iterator(NillOrListExp exp) {
+    if(exp == null || exp == NilExp.INSTANCE)  {
       return Iterators.emptyIterator();
     } else {
       return exp.iterator();

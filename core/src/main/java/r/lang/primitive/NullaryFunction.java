@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,42 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive;
 
-import r.lang.primitive.FunctionTable;
+import r.lang.EnvExp;
+import r.lang.EvalResult;
+import r.lang.LangExp;
+import r.lang.NillOrListExp;
 
-public class BuiltinExp extends PrimitiveSexp {
-  public static final int TYPE_CODE = 8;
-  public static final String TYPE_NAME = "builtin";
-
-  public BuiltinExp(FunctionTable.Entry functionEntry) {
-    super(functionEntry);
-  }
+public abstract class NullaryFunction extends PrimitiveFunction {
 
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
+  public final EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
+    return apply(rho);
   }
 
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
-  }
-
-  @Override
-  protected NillOrListExp prepareArguments(NillOrListExp args, EnvExp rho) {
-    if (args.length() == 0) {
-      return args;
-    }
-    ListExp.Builder builder = new ListExp.Builder();
-    for (SEXP arg : args) {
-      builder.add(arg.evaluate(rho).getExpression());
-    }
-    return builder.list();
-  }
+  protected abstract EvalResult apply(EnvExp rho) ;
 }

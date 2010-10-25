@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,30 +19,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.eval;
 
-import r.lang.primitive.FunctionTable;
+import org.junit.Test;
+import r.lang.EvalTestCase;
+import r.lang.RealExp;
 
-public class SpecialExp extends PrimitiveSexp {
-  public static final int TYPE_CODE = 7;
-  public static final String TYPE_NAME = "special";
+import java.io.IOException;
 
-  public SpecialExp(FunctionTable.Entry functionEntry) {
-    super(functionEntry);
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
+
+public class InternalCallTest extends EvalTestCase {
+
+
+  @Test
+  public void call() throws IOException {
+    assertThat(evaluateToExpression(".Internal(Sys.time())"), instanceOf(RealExp.class));
   }
 
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
-
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  protected NillOrListExp prepareArguments(NillOrListExp args, EnvExp rho) {
-    return args; // args to special functions are not evaluated beforehand
-  }
 }

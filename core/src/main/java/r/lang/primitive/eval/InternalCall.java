@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,42 +19,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.eval;
 
-import r.lang.primitive.FunctionTable;
+import r.lang.*;
+import r.lang.exception.EvalException;
+import r.lang.primitive.UnaryFunction;
 
-public class BuiltinExp extends PrimitiveSexp {
-  public static final int TYPE_CODE = 8;
-  public static final String TYPE_NAME = "builtin";
-
-  public BuiltinExp(FunctionTable.Entry functionEntry) {
-    super(functionEntry);
-  }
+public class InternalCall extends UnaryFunction {
 
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
-
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
-  }
-
-  @Override
-  protected NillOrListExp prepareArguments(NillOrListExp args, EnvExp rho) {
-    if (args.length() == 0) {
-      return args;
+  protected EvalResult apply(LangExp call, EnvExp rho, SEXP arg) {
+    if(!(arg instanceof LangExp)) {
+      throw new EvalException("invalid .Internal() argument");
     }
-    ListExp.Builder builder = new ListExp.Builder();
-    for (SEXP arg : args) {
-      builder.add(arg.evaluate(rho).getExpression());
+    return apply(rho, (LangExp)arg);
+  }
+
+  private EvalResult apply(EnvExp rho, LangExp langExp) {
+    SymbolExp fnSymbol = (SymbolExp) langExp.getFunction();
+    if(fnSymbol.getInternal() == NilExp.INSTANCE) {
+      throw new EvalException(String.format("no internal function \"%s\"", fnSymbol.getPrintName()));
     }
-    return builder.list();
+    FunExp fn = (FunExp) fnSymbol.getInternal();
+    return fn.apply(langExp, langExp.getArguments(), rho);
   }
 }

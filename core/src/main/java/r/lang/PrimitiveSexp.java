@@ -43,14 +43,14 @@ public abstract class PrimitiveSexp extends SEXP implements FunExp {
   }
 
   @Override
-  public EvalResult apply(LangExp call, ListExp args, EnvExp rho) {
+  public EvalResult apply(LangExp call, NillOrListExp args, EnvExp rho) {
     checkArity(args);
-    ListExp preparedArgs = prepareArguments(args, rho);
+    NillOrListExp preparedArgs = prepareArguments(args, rho);
 
     return getFunctionInstance().apply(call, rho, preparedArgs);
   }
 
-  public final void checkArity(ListExp args) {
+  public final void checkArity(NillOrListExp args) {
 
     if (functionEntry.arity >= 0 && functionEntry.arity != args.length()) {
       if (isInternal()) {
@@ -67,7 +67,7 @@ public abstract class PrimitiveSexp extends SEXP implements FunExp {
     }
   }
 
-  protected abstract ListExp prepareArguments(ListExp args, EnvExp rho);
+  protected abstract NillOrListExp prepareArguments(NillOrListExp args, EnvExp rho);
 
   protected PrimitiveFunction getFunctionInstance() {
     if (functionInstance == null) {

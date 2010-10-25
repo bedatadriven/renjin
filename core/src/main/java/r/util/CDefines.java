@@ -42,14 +42,6 @@ public class CDefines {
   public static final String NA_STRING = null;
 
 
-  public static double R_atof(String text) {
-    if (text.startsWith("0x")) {
-      return Integer.parseInt(text.substring(2), 16);
-    } else {
-      return Double.parseDouble(text);
-    }
-  }
-
   //#define DATAPTR(x)	(((SEXPREC_ALIGN *) (x)) + 1)
 
   public static CharExp STRING_ELT(SEXP x, int i) {

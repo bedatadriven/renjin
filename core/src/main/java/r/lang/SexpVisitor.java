@@ -24,7 +24,7 @@ package r.lang;
 /**
  * A visitor for iterating through an expression tree
  */
-public class SexpVisitor {
+public class SexpVisitor<R> {
 
 
   protected void unhandled(SEXP exp) {
@@ -94,4 +94,9 @@ public class SexpVisitor {
   public void visit(ClosureExp closureExp) {
     unhandled(closureExp);
   }
+
+  public R getResult() {
+    throw new UnsupportedOperationException();
+  }
+
 }

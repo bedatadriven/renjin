@@ -23,26 +23,21 @@ package r.lang.primitive.types;
 
 import com.google.common.collect.Iterables;
 import r.lang.*;
+import r.parser.ParseUtil;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 
-public class CoerceToStringVisitor extends SexpVisitor implements CoercingVisitor {
+public class AbstractCoerceToString extends SexpVisitor implements CoercingVisitor {
 
-  private ArrayList<String> values = new ArrayList<String>();
+  protected final ArrayList<String> values;
 
-  private static final NumberFormat INTEGER_FORMAT = NumberFormat.getIntegerInstance();
-  private static final NumberFormat REAL_FORMAT = createRealFormat();
 
-  private static  NumberFormat createRealFormat() {
-    NumberFormat format = NumberFormat.getNumberInstance();
-    format.setMinimumFractionDigits(0);
-    format.setMaximumFractionDigits(15);
-    return format;
+  public AbstractCoerceToString() {
+    this.values = new ArrayList<String>();
   }
 
-  public CoerceToStringVisitor(SEXP exp) {
-    exp.accept(this);
+  public AbstractCoerceToString(ArrayList<String> values) {
+    this.values = values;
   }
 
   @Override
@@ -54,7 +49,7 @@ public class CoerceToStringVisitor extends SexpVisitor implements CoercingVisito
   public void visit(IntExp intExp) {
     ensureAdditionalCapacityFor(intExp);
     for(int i=0;i!=intExp.length();++i) {
-      values.add(INTEGER_FORMAT.format(intExp.get(i)));
+      values.add(ParseUtil.toString(intExp.get(i)));
     }
   }
 
@@ -62,7 +57,7 @@ public class CoerceToStringVisitor extends SexpVisitor implements CoercingVisito
   public void visit(RealExp realExp) {
     ensureAdditionalCapacityFor(realExp);
     for(int i=0;i!=realExp.length();++i) {
-      values.add(REAL_FORMAT.format(realExp.get(i)));
+      values.add(ParseUtil.toString(realExp.get(i)));
     }
   }
 
@@ -77,13 +72,6 @@ public class CoerceToStringVisitor extends SexpVisitor implements CoercingVisito
     ensureAdditionalCapacityFor(logicalExp);
     for(Logical logical : logicalExp) {
       values.add(logical.toString());
-    }
-  }
-
-  @Override
-  public void visit(ListExp listExp) {
-    for(SEXP exp : listExp) {
-      exp.accept(this);
     }
   }
 

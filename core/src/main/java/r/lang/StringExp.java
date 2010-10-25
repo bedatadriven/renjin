@@ -82,4 +82,21 @@ public class StringExp extends AbstractVector implements Iterable<String> {
   public static SEXP ofLength(int length) {
     return new StringExp(new String[length]);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    StringExp stringExp = (StringExp) o;
+
+    if (!Arrays.equals(values, stringExp.values)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(values);
+  }
 }

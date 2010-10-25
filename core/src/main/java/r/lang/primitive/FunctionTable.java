@@ -25,6 +25,7 @@ package r.lang.primitive;
 import r.lang.primitive.eval.*;
 import r.lang.primitive.math.*;
 import r.lang.primitive.system.SysTime;
+import r.lang.primitive.types.As;
 import r.lang.primitive.types.CombineFunction;
 import r.lang.primitive.types.Is;
 
@@ -471,7 +472,7 @@ public class FunctionTable {
 
 /* Type coercion */
 
-      f("as.character", /*ascharacter*/ null, 0, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("as.character", As.Character.class, 0, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("as.integer", /*ascharacter*/ null, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("as.double", /*ascharacter*/ null, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("as.complex", /*ascharacter*/ null, 3, 1, -1, PP_FUNCALL, PREC_FN, 0),

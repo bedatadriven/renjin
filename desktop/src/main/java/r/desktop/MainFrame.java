@@ -34,7 +34,7 @@ public class MainFrame extends JFrame {
 
   public MainFrame()
   {
-    super("RGui");
+    super("Renjin");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     JDesktopPane desktop = new JDesktopPane();

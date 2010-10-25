@@ -21,39 +21,20 @@
 
 package r.lang.primitive.types;
 
-import com.google.common.annotations.VisibleForTesting;
-import r.lang.*;
-import r.lang.primitive.PrimitiveFunction;
+import r.lang.ListExp;
+import r.lang.SEXP;
 
-public class CombineFunction extends PrimitiveFunction {
+public class CombineToString extends AbstractCoerceToString {
+
+  public CombineToString(SEXP s) {
+    s.accept(this);
+  }
 
   @Override
-  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
-    if(args.length() == 0) {
-      return new EvalResult(NilExp.INSTANCE);
-    } else {
-      return new EvalResult(combine((ListExp)args));
+  public void visit(ListExp listExp) {
+    for(SEXP s : listExp) {
+      s.accept(this);
     }
   }
 
-  @VisibleForTesting
-  SEXP combine(ListExp argList) {
-
-    // TODO: recursive??
-
-    Class<? extends SEXP> commonType = new CommonTypeFinder(argList).get();
-
-    if(commonType == ListExp.class) {
-      return new CombineToList(argList).coerce();
-
-    } else if(commonType == StringExp.class) {
-      return new CombineToString(argList).coerce();
-
-    } else if(commonType == RealExp.class) {
-      return new CoerceToRealVisitor(argList).coerce();
-    } else {
-      // TODO: handle other atomic vector cases
-      throw new IllegalArgumentException();
-    }
-  }
 }

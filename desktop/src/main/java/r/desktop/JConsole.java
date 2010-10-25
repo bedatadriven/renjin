@@ -156,6 +156,11 @@ public class JConsole extends JScrollPane
     requestFocus();
   }
 
+  @Override
+  public int getCharactersPerLine() {
+    return getWidth() /  text.getFontMetrics(text.getFont()).charWidth('M');
+  }
+
   public void requestFocus()
   {
     super.requestFocus();

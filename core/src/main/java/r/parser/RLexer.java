@@ -812,7 +812,7 @@ an ANSI digit or not */
 
     /* Make certain that things are okay. */
     if (c == 'L') {
-      double a = CDefines.R_atof(buffer.toString());
+      double a = ParseUtil.parseDouble(buffer.toString());
       int b = (int) a;
       /* We are asked to create an integer via the L, so we check that the
         double and int values are the same. If not, this is a problem and we

@@ -22,10 +22,9 @@
 package r.lang.primitive.types;
 
 import r.lang.*;
+import r.parser.ParseUtil;
 
 import java.util.ArrayList;
-
-import static r.util.CDefines.R_atof;
 
 public class CoerceToRealVisitor extends SexpVisitor implements CoercingVisitor {
 
@@ -50,7 +49,7 @@ public class CoerceToRealVisitor extends SexpVisitor implements CoercingVisitor 
   @Override
   public void visit(StringExp stringExp) {
     for(String s : stringExp) {
-      values.add(R_atof(s));
+      values.add(ParseUtil.parseDouble(s));
     }
   }
 

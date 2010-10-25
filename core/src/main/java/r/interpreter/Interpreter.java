@@ -72,7 +72,8 @@ public class Interpreter implements Runnable {
         EvalResult result = exp.evaluate(global.getGlobalEnvironment());
 
         if(result.isVisible()) {
-          console.println(result.getExpression());
+          console.print(new PrintingVisitor(result.getExpression(),
+              console.getCharactersPerLine()).getResult());
         }
 
       } catch (ParseException e) {

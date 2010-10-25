@@ -51,4 +51,5 @@ public interface Console {
 	public void println( Object o );
 	public void print( Object o );
 	public void error( Object o );
+  public int getCharactersPerLine();
 }

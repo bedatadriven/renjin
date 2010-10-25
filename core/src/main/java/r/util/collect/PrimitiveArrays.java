@@ -39,6 +39,14 @@ public class PrimitiveArrays {
     return new DoubleArrayList(values);
   }
 
+  public static double[] asDoubleArray(int[] values) {
+    double d[] = new double[values.length];
+    for(int i=0; i!= values.length;++i) {
+      d[i] = values[i];
+    }
+    return d;
+  }
+
 
   private static class DoubleArrayIterator extends UnmodifiableIterator<Double> {
     private int i = 0;

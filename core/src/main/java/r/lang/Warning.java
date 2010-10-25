@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -21,13 +21,13 @@
 
 package r.lang;
 
-/**
- * Superinterface for the three function-like {@code SEXP}s:
- * {@code ClosureExp}, {@code SpecialExp}, and {@code PrimitiveExp}.
- *
- * 
- */
-public interface FunExp extends RecursiveExp {
+import java.util.logging.Logger;
 
-  EvalResult apply(LangExp call, NillOrListExp args, EnvExp rho);
+public class Warning {
+
+  private static Logger logger = Logger.getLogger("R.warnings");
+
+  public static void warning(String message, Object... args) {
+    logger.warning(String.format(message, args));
+  }
 }

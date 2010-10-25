@@ -29,15 +29,13 @@ public abstract class BinaryMathFunction extends BinaryFunction {
 
   @Override
   public EvalResult apply(LangExp call, EnvExp rho, SEXP arg0, SEXP arg1) {
-    checkArgumentTypes(call, arg0, arg1);
-
-    RealExp x = (RealExp) arg0;
-    RealExp y = (RealExp) arg1;
-    int xlen = x.length();
-    int ylen = y.length();
+    double x[] = checkedCastToNumeric(arg0);
+    double y[] = checkedCastToNumeric(arg1);
+    int xlen = x.length;
+    int ylen = y.length;
     int maxlen = Math.max(xlen, ylen);
     int minlen = Math.min(xlen, ylen);
-
+    
     if( maxlen % minlen != 0) {
       throw new EvalException("longer object length is not a multiple of shorter object length");
     }
@@ -45,8 +43,8 @@ public abstract class BinaryMathFunction extends BinaryFunction {
     RealExp result = RealExp.ofLength(Math.max(xlen, ylen));
     for(int i=0; i!=result.length(); i++) {
 
-      double xi = x.get( i % xlen );
-      double yi = y.get( i % ylen );
+      double xi = x[ i % xlen ];
+      double yi = y[ i % ylen ];
 
       result.set(i, apply(xi, yi));
     }
@@ -56,9 +54,10 @@ public abstract class BinaryMathFunction extends BinaryFunction {
 
   protected abstract double apply(double x, double y);
 
-  private void checkArgumentTypes(LangExp call, SEXP x, SEXP y) {
-    if(!x.isNumeric() || !y.isNumeric()) {
+  private double[] checkedCastToNumeric(SEXP x) {
+    if(! (x instanceof NumericExp)) {
       throw new EvalException("non-numeric argument to binary operator");
     }
+    return ((NumericExp)x).asDoubleArray();
   }
 }

@@ -21,37 +21,37 @@
 
 package r.lang;
 
-import cern.colt.list.IntArrayList;
+import r.util.collect.PrimitiveArrays;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
-public class LogicalExp extends AbstractVector implements Iterable<Logical> {
+public class LogicalExp extends AbstractVector implements AtomicExp, NumericExp, Iterable<Logical> {
   public static final String TYPE_NAME = "logical";
   public static final int TYPE_CODE = 10;
 
-  private IntArrayList values;
+  private int[] values;
 
 
   /**
    * Constructs a Logical vector from a list of boolean values
    */
   public LogicalExp(boolean... values) {
-    this.values = new IntArrayList(new int[values.length]);
+    this.values = new int[values.length];
     for (int i = 0; i != values.length; ++i) {
-      this.values.set(i, values[i] ? 1 : 0);
+      this.values[i] = values[i] ? 1 : 0;
     }
   }
 
   public LogicalExp(int... values) {
-    this.values = new IntArrayList(values);
+    this.values = Arrays.copyOf(values, values.length);
   }
 
   public LogicalExp(Logical... values) {
-    int[] ints = new int[values.length];
+    this.values = new int[values.length];
     for (int i = 0; i != values.length; ++i) {
-      ints[i] = values[i].getInternalValue();
+      this.values[i] = values[i].getInternalValue();
     }
-    this.values = new IntArrayList(ints);
   }
 
   @Override
@@ -66,11 +66,11 @@ public class LogicalExp extends AbstractVector implements Iterable<Logical> {
 
   @Override
   public int length() {
-    return values.size();
+    return values.length;
   }
 
   public int get(int index) {
-    return values.get(index);
+    return values[index];
   }
 
   /**
@@ -90,15 +90,18 @@ public class LogicalExp extends AbstractVector implements Iterable<Logical> {
   }
 
   @Override
-  public Logical asLogical() {
-    if (values.get(0) == IntExp.NA) {
-      return Logical.NA;
-    } else {
-      return values.get(0) == 0 ? Logical.FALSE : Logical.TRUE;
-    }
+  public double[] asDoubleArray() {
+    return PrimitiveArrays.asDoubleArray(values);  
   }
 
-
+  @Override
+  public Logical asLogical() {
+    if (values[0] == IntExp.NA) {
+      return Logical.NA;
+    } else {
+      return values[0] == 0 ? Logical.FALSE : Logical.TRUE;
+    }
+  }
 
   @Override
   public void accept(SexpVisitor visitor) {
@@ -112,12 +115,12 @@ public class LogicalExp extends AbstractVector implements Iterable<Logical> {
 
       @Override
       public boolean hasNext() {
-        return i<values.size();
+        return i<values.length;
       }
 
       @Override
       public Logical next() {
-        return Logical.valueOf(values.get(i++));
+        return Logical.valueOf(values[i++]);
       }
 
       @Override
@@ -130,12 +133,12 @@ public class LogicalExp extends AbstractVector implements Iterable<Logical> {
   @Override
   public String toString() {
     if (length() == 1) {
-      return toString(values.get(0));
+      return toString(values[0]);
     } else {
       StringBuilder sb = new StringBuilder();
       sb.append("[");
-      for (int i = 0; i != values.size(); ++i) {
-        sb.append(toString(values.get(i)));
+      for (int i = 0; i != values.length; ++i) {
+        sb.append(toString(values[i]));
       }
       sb.append("]");
       return sb.toString();

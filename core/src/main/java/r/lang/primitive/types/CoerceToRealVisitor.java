@@ -79,7 +79,7 @@ public class CoerceToRealVisitor extends SexpVisitor implements CoercingVisitor 
       case FALSE:
         return 0d;
       case NA:
-        return RealExp.NA_REAL;
+        return RealExp.NA;
     }
     throw new IllegalArgumentException();
   }

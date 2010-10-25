@@ -165,8 +165,19 @@ public abstract class SEXP {
     return obj != 0;
   }
 
+  /**
+   * Coerces this {@code SEXP} to a single logical value
+   * @return
+   */
   public Logical asLogical() {
     return Logical.NA;
+  }
+
+  /**
+   * Coerces this {@code SEXP} to a single double value.
+   */
+  public double asReal() {
+    return RealExp.NA;
   }
 
   public SEXP getAttribute(String name) {

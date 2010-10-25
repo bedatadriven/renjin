@@ -26,7 +26,7 @@ import org.apache.commons.math.complex.Complex;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class ComplexExp extends AbstractVector {
+public class ComplexExp extends AbstractVector implements AtomicExp{
 
   public ArrayList<Complex> values;
   public static final int TYPE_CODE = 15;
@@ -59,4 +59,6 @@ public class ComplexExp extends AbstractVector {
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
+
+  
 }

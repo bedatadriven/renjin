@@ -22,11 +22,12 @@
 package r.lang;
 
 import com.google.common.collect.UnmodifiableIterator;
+import r.util.collect.PrimitiveArrays;
 
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class IntExp extends AbstractVector implements Iterable<Integer> {
+public class IntExp extends AbstractVector implements AtomicExp, NumericExp, Iterable<Integer> {
 
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
@@ -38,6 +39,8 @@ public class IntExp extends AbstractVector implements Iterable<Integer> {
 
   private int[] values;
 
+  private IntExp() {
+  }
 
   public IntExp(int... values) {
     this.values = Arrays.copyOf(values, values.length);
@@ -74,9 +77,6 @@ public class IntExp extends AbstractVector implements Iterable<Integer> {
     values[i] = value;
   }
 
-  private IntExp() {
-  }
-
   public static SEXP ofLength(int length) {
     return new IntExp(new int[length]);
   }
@@ -86,31 +86,53 @@ public class IntExp extends AbstractVector implements Iterable<Integer> {
     return !inherits("factor");
   }
 
+  public double[] asDoubleArray() {
+    return PrimitiveArrays.asDoubleArray(values);
+  }
+
   @Override
-  public String toString() {
-    if (values.length == 1) {
-      return Integer.toString(values[0]);
+  public double asReal() {
+    if(length() == 0 || values[0] == NA) {
+      return RealExp.NA;
     } else {
-      return values.toString();
+      return values[0];
     }
   }
 
-  public double[] asArrayOfDoubles() {
-    double d[] = new double[values.length];
-    for(int i=0; i!=values.length;++i) {
-      d[i] = values[i];
-    }
-    return d;
-  }
-  
   @Override
   public void accept(SexpVisitor visitor) {
-    visitor.visit(this); 
+    visitor.visit(this);
   }
 
   @Override
   public Iterator<Integer> iterator() {
     return new ValueIterator();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    IntExp intExp = (IntExp) o;
+
+    if (!Arrays.equals(values, intExp.values)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(values);
+  }
+
+  @Override
+  public String toString() {
+    if (values.length == 1) {
+      return Integer.toString(values[0]);
+    } else {
+      return Arrays.toString(values);
+    }
   }
 
   private class ValueIterator extends UnmodifiableIterator<Integer> {

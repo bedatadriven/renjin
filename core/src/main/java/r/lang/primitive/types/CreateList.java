@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,15 +19,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.types;
 
-/**
- * Superinterface for the three function-like {@code SEXP}s:
- * {@code ClosureExp}, {@code SpecialExp}, and {@code PrimitiveExp}.
- *
- * 
- */
-public interface FunExp extends RecursiveExp {
+import r.lang.*;
+import r.lang.exception.EvalException;
+import r.lang.primitive.PrimitiveFunction;
 
-  EvalResult apply(LangExp call, NillOrListExp args, EnvExp rho);
+public class CreateList extends PrimitiveFunction {
+
+  @Override
+  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
+
+    if(args.length() == 0) {
+      throw new EvalException("Help me! How can a pair list have zero length?");
+    }
+
+    return new EvalResult( ((ListExp)args).clone() );
+  }
 }

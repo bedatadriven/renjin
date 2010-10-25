@@ -1184,13 +1184,13 @@ an ANSI digit or not */
                   yylval = new IntExp(IntExp.NA);
                   break;
                 case 7:
-                  yylval = new RealExp(RealExp.NA_REAL);
+                  yylval = new RealExp(RealExp.NA);
                   break;
                 case 8:
                   yylval = new StringExp(CDefines.NA_STRING);
                   break;
                 case 9:
-                  yylval = new ComplexExp(new Complex(RealExp.NA_REAL, RealExp.NA_REAL));
+                  yylval = new ComplexExp(new Complex(RealExp.NA, RealExp.NA));
                   break;
               }
             } else {

@@ -36,7 +36,7 @@ import java.util.ArrayList;
  * parsed but unevaluated R statements.
  *
  */
-public class ExpExp extends AbstractVector {
+public class ExpExp extends AbstractVector implements RecursiveExp {
   public static final String TYPE_NAME = "expression";
   public static final int TYPE_CODE = 20;
 

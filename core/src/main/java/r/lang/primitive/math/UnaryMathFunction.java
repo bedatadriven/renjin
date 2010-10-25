@@ -30,25 +30,26 @@ public abstract class UnaryMathFunction extends UnaryFunction {
   @Override
   public final EvalResult apply(LangExp call, EnvExp rho, SEXP argument) {
 
-    if (!argument.isNumeric()) {
+    if (!(argument instanceof NumericExp)) {
       throw new EvalException("Non-numeric argument to mathematical function");
     }
 
-    return new EvalResult(applyReal(argument));
+    double x[] = ((NumericExp)argument).asDoubleArray();
+
+    return new EvalResult(applyReal(x));
   }
 
-  private RealExp applyReal(SEXP argument) {
-    RealExp sa = (RealExp) argument;
-    RealExp sy = RealExp.ofLength(sa.length());
+  private RealExp applyReal(double sa[]) {
+    RealExp sy = RealExp.ofLength(sa.length);
 
     boolean naflag = false;
     int i;
 
-    for (i = 0; i < sa.length(); i++) {
-      if (Double.isNaN(sa.get(i))) {
-        sy.set(i, sa.get(i));
+    for (i = 0; i < sa.length; i++) {
+      if (Double.isNaN(sa[i])) {
+        sy.set(i, sa[i]);
       } else {
-        sy.set(i, apply(sa.get(i)));
+        sy.set(i, apply(sa[i]));
         if (Double.isNaN(sy.get(i))) {
           naflag = true;
         }

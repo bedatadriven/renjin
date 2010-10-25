@@ -132,7 +132,7 @@ class PrintingVisitor extends SexpVisitor<String> {
     }
 
     private void printRow(int startIndex) {
-      for(int i=0;i!=elementsPerLine && i<elements.size();++i) {
+      for(int i=0;i!=elementsPerLine && (startIndex+i)<elements.size();++i) {
         out.append(' ');
         appendAligned(elements.get(startIndex+i), maxElementWidth, elementAlign);
       }

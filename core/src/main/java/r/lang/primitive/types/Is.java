@@ -22,11 +22,23 @@
 package r.lang.primitive.types;
 
 import r.lang.*;
+import r.lang.exception.EvalException;
 import r.lang.primitive.UnaryFunction;
 
 public class Is {
 
-  private static abstract class ClassTest extends UnaryFunction {
+  private static abstract class UnaryTest extends UnaryFunction {
+
+    @Override
+    public EvalResult apply(LangExp call, EnvExp rho, SEXP exp) {
+      return new EvalResult(new LogicalExp(apply(exp)));
+    }
+
+    protected abstract boolean apply(SEXP exp);
+
+  }
+
+  private static abstract class ClassTest extends UnaryTest {
 
     private final Class<? extends SEXP> expectedClass;
 
@@ -34,12 +46,11 @@ public class Is {
       this.expectedClass = expectedClass;
     }
 
-    @Override
-    public EvalResult apply(LangExp call, EnvExp rho, SEXP exp) {
-      return new EvalResult(new LogicalExp(exp.getClass().equals(expectedClass)));
+    protected boolean apply(SEXP exp) {
+      return exp.getClass().equals(expectedClass);
     }
-
   }
+
 
   public static class Null extends ClassTest {
     public Null() {
@@ -100,4 +111,119 @@ public class Is {
       super(ExpExp.class);
     }
   }
-}
+
+  public class List extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+      return exp.getClass() == ListExp.class;
+    }
+  }
+
+  public class PairList extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+      return exp.getClass() == ListExp.class;
+    }
+  }
+
+  public class Atomic extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+      return exp instanceof AtomicExp;
+    }
+  }
+
+  public class Recursive extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+      return exp instanceof RecursiveExp;
+    }
+  }
+
+  public class Numeric extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+
+      return (exp instanceof IntExp && !exp.inherits("factor")) ||
+          exp instanceof LogicalExp ||
+          exp instanceof RealExp;
+
+    }
+  }
+
+  public class Call extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+      return exp instanceof LangExp;
+    }
+  }
+
+  public class Language extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+      return exp instanceof SymbolExp ||
+          exp instanceof LangExp ||
+          exp instanceof ExpExp;
+    }
+  }
+
+  public class Function extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+      return exp instanceof FunExp;
+    }
+  }
+
+  public class Single extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+      throw new EvalException("type \"single\" unimplemented in R");
+    }
+  }
+
+ /* What should is.vector do ?
+  * In S, if an object has no attributes it is a vector, otherwise it isn't.
+  * It seems to make more sense to check for a dim attribute.
+  */
+  public class Vector extends UnaryTest {
+    @Override
+    protected boolean apply(SEXP exp) {
+
+//
+//        if (!isString(CADR(args)) || LENGTH(CADR(args)) <= 0)
+//          errorcall_return(call, R_MSG_mode);
+//
+//        PROTECT(ans = allocVector(LGLSXP, 1));
+//        if (streql(CHAR(STRING_ELT(CADR(args), 0)), "any")) { /* ASCII */
+//          LOGICAL(ans)[0] = isVector(CAR(args));/* from ./util.c */
+//        }
+//        else if (streql(CHAR(STRING_ELT(CADR(args), 0)), "numeric")) { /* ASCII */
+//          LOGICAL(ans)[0] = (isNumeric(CAR(args)) &&
+//              !isLogical(CAR(args)));
+//        }
+//        else if (streql(CHAR(STRING_ELT(CADR(args), 0)), /* ASCII */
+//            type2char(TYPEOF(CAR(args))))) {
+//          LOGICAL(ans)[0] = 1;
+//        }
+//        else
+//          LOGICAL(ans)[0] = 0;
+//
+//        /* We allow a "names" attribute on any vector. */
+//        if (LOGICAL(ans)[0] && ATTRIB(CAR(args)) != R_NilValue) {
+//          a = ATTRIB(CAR(args));
+//          while(a != R_NilValue) {
+//            if (TAG(a) != R_NamesSymbol) {
+//              LOGICAL(ans)[0] = 0;
+//              break;
+//            }
+//            a = CDR(a);
+//          }
+//        }
+//        UNPROTECT(1);
+//        return (ans);
+//        */
+        throw new UnsupportedOperationException();
+      }
+    }
+
+  }

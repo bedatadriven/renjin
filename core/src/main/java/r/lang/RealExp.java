@@ -29,11 +29,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-public final class RealExp extends AbstractVector implements Iterable<Double> {
+public final class RealExp extends AbstractVector implements NumericExp, Iterable<Double> {
   public static final String TYPE_NAME = "double";
   public static final int TYPE_CODE = 14;
 
-  public static final double NA_REAL = createNA();
+  public static final double NA = createNA();
+  public static final double EPSILON =  0.00001;
 
   private double[] values;
 
@@ -121,6 +122,19 @@ public final class RealExp extends AbstractVector implements Iterable<Double> {
   }
 
   @Override
+  public double[] asDoubleArray() {
+    return Arrays.copyOf(values, values.length);
+  }
+
+  public double asReal() {
+    if(values.length == 0) {
+      return NA;
+    } else {
+      return values[0];
+    }
+  }
+
+  @Override
   public String toString() {
     if (values.length == 1) {
       return Double.toString(values[0]);
@@ -136,6 +150,10 @@ public final class RealExp extends AbstractVector implements Iterable<Double> {
 //    return x.value;
 
     return Double.longBitsToDouble(0x7ff0000000001954L);
+  }
+
+  public static boolean isNaN(double x) {
+    return Double.isNaN(x) || x == NA;
   }
 
 

@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive;
+package r.lang.primitive.parse;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;

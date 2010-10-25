@@ -22,7 +22,7 @@
 package r.lang.primitive.types;
 
 import r.lang.SEXP;
-import r.lang.primitive.DeparsingVisitor;
+import r.lang.primitive.parse.DeparsingVisitor;
 
 import java.util.ArrayList;
 

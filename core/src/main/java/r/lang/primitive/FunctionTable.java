@@ -27,6 +27,7 @@ import r.lang.primitive.math.*;
 import r.lang.primitive.system.SysTime;
 import r.lang.primitive.types.As;
 import r.lang.primitive.types.CombineFunction;
+import r.lang.primitive.types.CreateList;
 import r.lang.primitive.types.Is;
 
 import static r.lang.primitive.PPkind.*;
@@ -178,7 +179,7 @@ public class FunctionTable {
 
       f("&&", /*logic2*/ null, 1, 0, 2, PP_BINARY, PREC_AND, 0),
       f("||", /*logic2*/ null, 2, 0, 2, PP_BINARY, PREC_OR, 0),
-      f(":", /*colon*/ null, 0, 1, 2, PP_BINARY2, PREC_COLON, 0),
+      f(":", ColonFunction.class, 0, 1, 2, PP_BINARY2, PREC_COLON, 0),
       f("~", /*tilde*/ null, 0, 0, 2, PP_BINARY, PREC_TILDE, 0),
 
 
@@ -536,27 +537,27 @@ public class FunctionTable {
       f("is.character", Is.Character.class,0 /*STRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.symbol", Is.Symbol.class, 0 /*SYMSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.environment", Is.Environment.class, 0/* ENVSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.list", /* is */ null, 0/* VECSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.pairlist", /*is*/ null, 0 /*LISTSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.list", Is.List.class, 0/* VECSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.pairlist", Is.PairList.class, 0 /*LISTSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.expression", Is.Expression.class, 0 /* EXPRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.raw", /*is*/ null, 0 /* RAWSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
       f("is.object", /*is*/ null, 50, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.numeric", /*is*/ null, 100, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.numeric", Is.Numeric.class, 100, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.matrix", /*is*/ null, 101, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.array", /*is*/ null, 102, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.atomic", /*is*/ null, 200, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.recursive", /*is*/ null, 201, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.atomic", Is.Atomic.class, 200, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.recursive", Is.Recursive.class, 201, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.call", /*is*/ null, 300, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.language", /*is*/ null, 301, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.function", /*is*/ null, 302, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.call",  Is.Call.class, 300, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.language", Is.Language.class, 301, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.function", Is.Function.class, 302, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.single", /*is*/ null, 999, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.single", Is.Single.class, 999, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.vector", /*isvector*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
+      f("is.vector", Is.Vector.class, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("is.na", /*isna*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.nan", /*isnan*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.finite", /*isfinite*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
@@ -602,7 +603,7 @@ public class FunctionTable {
       f("seq.int", /*seq*/ null, 0, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("seq_len", /*seq_len*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("seq_along", /*seq_along*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("list", /*makelist*/ null, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("list", CreateList.class, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("split", /*split*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("is.loaded", /*isloaded*/ null, 0, 11, -1, PP_FOREIGN, PREC_FN, 0),
       f(".C", /*dotCode*/ null, 0, 1, -1, PP_FOREIGN, PREC_FN, 0),

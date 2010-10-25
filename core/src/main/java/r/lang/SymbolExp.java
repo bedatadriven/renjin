@@ -25,7 +25,7 @@ import r.lang.exception.EvalException;
 import r.util.ArgChecker;
 
 public class SymbolExp extends SEXP {
-
+                            
   public static final int TYPE_CODE = 1;
   public static final String  TYPE_NAME = "symbol";
 

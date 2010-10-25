@@ -22,12 +22,13 @@
 package r.lang;
 
 import com.google.common.collect.Iterators;
+import r.parser.ParseUtil;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class StringExp extends AbstractVector implements Iterable<String> {
+public class StringExp extends AbstractVector implements AtomicExp, Iterable<String> {
   public static final String TYPE_NAME = "character";
   public static final int TYPE_CODE = 16;
 
@@ -58,6 +59,19 @@ public class StringExp extends AbstractVector implements Iterable<String> {
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public double asReal() {
+    if(values.length > 0 &&
+        values[0] != null &&
+        values[0].length() > 0)
+    {
+      return ParseUtil.parseDouble(values[0]);
+    } else {
+
+      return RealExp.NA;
+    }
   }
 
   @Override

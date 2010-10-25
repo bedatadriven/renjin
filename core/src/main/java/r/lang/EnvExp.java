@@ -53,7 +53,7 @@ import static r.util.CDefines.*;
  *  use of NULL as an environment is defunct.
  *
  */
-public class EnvExp extends SEXP {
+public class EnvExp extends SEXP implements RecursiveExp {
 
   public static final int TYPE_CODE = 4;
   public static final String TYPE_NAME = "environment";

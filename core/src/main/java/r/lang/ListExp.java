@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Linked list of SEXP values
  */
-public class ListExp extends SEXP implements Iterable<SEXP>, NillOrListExp {
+public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, NillOrListExp {
 
   public static final int TYPE_CODE = 2;
   public static final String TYPE_NAME = "pairlist";
@@ -184,6 +184,21 @@ public class ListExp extends SEXP implements Iterable<SEXP>, NillOrListExp {
     return Iterators.get(nodeIterator(), i);
   }
 
+  /**
+   * @return a shallow clone of the ListExp from this point on
+   */
+  @Override
+  public ListExp clone() {
+    Builder builder = new Builder();
+    for(ListExp node : listNodes()) {
+      Builder.Tail tail = builder.add(node.getValue());
+      if(node.hasTag()) {
+        tail.withTag((SymbolExp) node.getTag());
+      }
+    }
+    return builder.list();
+  }
+
   public String toString() {
     if (value == this) {
       return "[ CAR=this, CDR=" + nextNode + "]";
@@ -325,7 +340,7 @@ public class ListExp extends SEXP implements Iterable<SEXP>, NillOrListExp {
     public Builder() {
     }
 
-    public void add(SEXP s) {
+    public Tail add(SEXP s) {
       if (head == null) {
         head = new ListExp(s, null);
         tail = head;
@@ -334,12 +349,25 @@ public class ListExp extends SEXP implements Iterable<SEXP>, NillOrListExp {
         tail.nextNode = next;
         tail = next;
       }
+      return new Tail(tail);
     }
 
     public ListExp list() {
       Preconditions.checkState(head != null, "ListExp cannot be empty");
 
       return head;
+    }
+
+    public class Tail {
+      private final ListExp node;
+
+      public Tail(ListExp node) {
+        this.node = node;
+      }
+
+      public void withTag(SymbolExp tag) {
+        this.node.setTag(tag);
+      }
     }
   }
 

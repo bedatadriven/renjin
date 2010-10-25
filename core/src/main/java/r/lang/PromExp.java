@@ -23,7 +23,7 @@ package r.lang;
 
 import static r.util.CDefines.R_UnboundValue;
 
-public class PromExp extends SEXP {
+public class PromExp extends SEXP implements RecursiveExp {
 
   public static final int TYPE_CODE = 5;
   public static final String TYPE_NAME = "promise";

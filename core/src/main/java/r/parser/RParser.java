@@ -27,9 +27,7 @@ import r.lang.exception.ParseException;
 import java.io.IOException;
 import java.io.Reader;
 
-import static r.lang.internal.c.Error._;
-import static r.lang.internal.c.Error.error;
-import static r.lang.internal.c.RInternals.*;
+import static r.util.CDefines.*;
 
 
 /* A Bison parser, made by GNU Bison 2.4.2.  */

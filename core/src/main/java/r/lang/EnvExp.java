@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import static r.lang.internal.c.RInternals.*;
+import static r.util.CDefines.*;
 
 /**
  * The Environment data type.

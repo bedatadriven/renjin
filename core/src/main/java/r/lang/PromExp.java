@@ -21,7 +21,7 @@
 
 package r.lang;
 
-import static r.lang.internal.c.RInternals.R_UnboundValue;
+import static r.util.CDefines.R_UnboundValue;
 
 public class PromExp extends SEXP {
 

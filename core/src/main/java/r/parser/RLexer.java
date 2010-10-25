@@ -23,17 +23,17 @@ package r.parser;
 
 import org.apache.commons.math.complex.Complex;
 import r.lang.*;
-import r.lang.internal.c.RInternals;
+import r.util.CDefines;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.logging.Logger;
 
 import static java.lang.Character.isDigit;
-import static r.lang.internal.c.RInternals.R_NilValue;
 import static r.parser.Def.R_ParseContextLine;
 import static r.parser.RParser.*;
 import static r.parser.Tokens.*;
+import static r.util.CDefines.R_NilValue;
 
 public class RLexer implements RParser.Lexer {
 
@@ -812,7 +812,7 @@ an ANSI digit or not */
 
     /* Make certain that things are okay. */
     if (c == 'L') {
-      double a = RInternals.R_atof(buffer.toString());
+      double a = CDefines.R_atof(buffer.toString());
       int b = (int) a;
       /* We are asked to create an integer via the L, so we check that the
         double and int values are the same. If not, this is a problem and we
@@ -1187,7 +1187,7 @@ an ANSI digit or not */
                   yylval = new RealExp(RealExp.NA_REAL);
                   break;
                 case 8:
-                  yylval = new StringExp(RInternals.NA_STRING);
+                  yylval = new StringExp(CDefines.NA_STRING);
                   break;
                 case 9:
                   yylval = new ComplexExp(new Complex(RealExp.NA_REAL, RealExp.NA_REAL));

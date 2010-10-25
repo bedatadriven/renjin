@@ -19,21 +19,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.internal.c;
+package r.util;
 
 import com.google.common.base.Preconditions;
 import r.lang.*;
-import r.util.ArgChecker;
-
-import static r.lang.internal.c.Error._;
-import static r.lang.internal.c.Error.error;
 
 /**
- * Macros and static methods defined originally in {@code RInternals.h}
+ * Macros and static methods defined in the original C implementation
+ * and provided to facilitate the porting of C code.
  */
-public class RInternals {
+public class CDefines {
 
-  protected RInternals() {
+  protected CDefines() {
   }
 
   public static final NilExp R_NilValue = NilExp.INSTANCE;
@@ -400,5 +397,31 @@ public class RInternals {
   }
 
 
+  public static void error(String message, Object... args) {
+    throw new RuntimeException(String.format(message, args));
+  }
+
+  public static String _(String s) {
+    return s;
+  }
+
+  public enum ArithOpType {
+    PLUSOP,
+    MINUSOP,
+    TIMESOP,
+    DIVOP,
+    POWOP,
+    MODOP,
+    IDIVOP
+  }
+
+  public enum RelOpType {
+    EQOP,
+    NEOP,
+    LTOP,
+    LEOP,
+    GEOP,
+    GTOP
+  }
 }
 

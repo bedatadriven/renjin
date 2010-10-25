@@ -25,7 +25,7 @@ import r.lang.*;
 
 import java.util.ArrayList;
 
-import static r.lang.internal.c.RInternals.R_atof;
+import static r.util.CDefines.R_atof;
 
 public class CoerceToRealVisitor extends SexpVisitor implements CoercingVisitor {
 

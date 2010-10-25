@@ -27,10 +27,10 @@ import r.lang.primitive.math.*;
 import r.lang.primitive.types.CombineFunction;
 import r.lang.primitive.types.Is;
 
-import static r.lang.internal.c.fn.arith.ArithOpType.*;
-import static r.lang.internal.c.fn.relop.RelOpType.*;
 import static r.lang.primitive.PPkind.*;
 import static r.lang.primitive.PPprec.*;
+import static r.util.CDefines.ArithOpType.*;
+import static r.util.CDefines.RelOpType.*;
 
 public class FunctionTable {
 

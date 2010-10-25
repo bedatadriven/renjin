@@ -21,25 +21,37 @@
 
 package r.lang.primitive.types;
 
+import org.junit.Before;
 import org.junit.Test;
-import r.lang.ListExp;
-import r.lang.RealExp;
-import r.lang.SEXP;
+import r.lang.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class CombineFunctionTest {
+  private CombineFunction fn;
 
 
   @Test
   public void realList() {
-    CombineFunction fn = new CombineFunction();
     SEXP exp = fn.combine(ListExp.fromArray(new RealExp(1), new RealExp(2), new RealExp(3)));
 
     assertThat(exp, instanceOf(RealExp.class));
     assertThat(exp.length(), equalTo(3));
   }
 
+  @Test
+  public void realsAndLogicalsMixed() {
+    SEXP exp = fn.combine(ListExp.fromArray(new RealExp(1), new RealExp(2), NilExp.INSTANCE, new LogicalExp(false)));
+
+    assertThat(exp, instanceOf(RealExp.class));
+    assertThat(exp.length(), equalTo(3));
+    assertThat(((RealExp)exp).get(2), equalTo(0d));
+  }
+
+  @Before
+  public void setUp() throws Exception {
+    fn = new CombineFunction();
+  }
 }

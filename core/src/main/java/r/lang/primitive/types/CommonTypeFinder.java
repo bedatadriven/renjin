@@ -58,6 +58,11 @@ class CommonTypeFinder extends SexpVisitor {
   }
 
   @Override
+  public void visit(NilExp nilExp) {
+    // ignore
+  }
+
+  @Override
   public void visit(StringExp stringExp) {
     canBeInt = false;
     canBeReal = false;

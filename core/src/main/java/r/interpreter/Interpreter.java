@@ -79,7 +79,7 @@ public class Interpreter implements Runnable {
         console.println(String.format("Error: %s", e.getMessage()));
 
       } catch (FunctionCallException e) {
-        console.println(String.format("Error: %s", e.getMessage()));
+        console.println(String.format("Error in '<fixme>': %s", e.getMessage()));
 
       } catch (EvalException e) {
         console.println(String.format("Error: %s", e.getMessage()));
@@ -92,7 +92,9 @@ public class Interpreter implements Runnable {
   }
 
   private void printGreeting() {
-    console.print("\nCopyright (C) 2010 The R Foundation for Statistical Computing\n");
+    console.print("Renjin 0.0.1-SNAPSHOT\n");
+    console.print("Copyright (C) 2010 The R Foundation for Statistical Computing\n");
+    console.print("Copyright (C) 2010 bedatadriven\n");
     console.print("ISBN 3-900051-07-0\n\n");
 
     console.print("R is free software and comes with ABSOLUTELY NO WARRANTY. " +

@@ -117,7 +117,7 @@ public class LogicalExp extends AbstractVector implements Iterable<Logical> {
 
       @Override
       public Logical next() {
-        return Logical.valueOf(values.get(i));
+        return Logical.valueOf(values.get(i++));
       }
 
       @Override

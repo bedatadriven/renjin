@@ -24,6 +24,7 @@ package r.lang;
 import com.google.common.collect.Iterators;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 
 public class StringExp extends AbstractVector implements Iterable<String> {
@@ -34,6 +35,10 @@ public class StringExp extends AbstractVector implements Iterable<String> {
 
   public StringExp(String... values) {
     this.values = Arrays.copyOf(values, values.length, String[].class);
+  }
+
+  public StringExp(Collection<String> values) {
+    this.values = values.toArray(new String[values.size()]);
   }
 
   @Override

@@ -21,27 +21,59 @@
 
 package r.lang.primitive.types;
 
-import r.lang.Logical;
-import r.lang.RealExp;
-import r.lang.SEXP;
+import r.lang.*;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static r.lang.internal.c.RInternals.R_atof;
 
-public class CoerceToRealVisitor extends AbstractCoerceVisitor<Double> {
+public class CoerceToRealVisitor extends SexpVisitor implements CoercingVisitor {
 
-  // TODO: wildy inefficient, work with arrays...
-
-  private List<Double> values = new ArrayList<Double>();
+  private ArrayList<Double> values = new ArrayList<Double>();
 
   public CoerceToRealVisitor(SEXP exp) {
     exp.accept(this);
   }
 
   @Override
-  protected Double coerce(Logical logical) {
+  public void visit(RealExp realExp) {
+    values.addAll(realExp.asListOfDoubles());
+  }
+
+  @Override
+  public void visit(IntExp intExp) {
+    for(Integer i : intExp) {
+      values.add(i.doubleValue());
+    }
+  }
+
+  @Override
+  public void visit(StringExp stringExp) {
+    for(String s : stringExp) {
+      values.add(R_atof(s));
+    }
+  }
+
+  @Override
+  public void visit(LogicalExp logicalExp) {
+    for(Logical logical : logicalExp) {
+      values.add(toDouble(logical));
+    }
+  }
+
+  @Override
+  public void visit(ListExp listExp) {
+    for(SEXP s : listExp) {
+      s.accept(this);
+    }
+  }
+
+  @Override
+  public void visit(NilExp nilExp) {
+    // Ignore
+  }
+
+  private Double toDouble(Logical logical) {
     switch (logical) {
       case TRUE:
         return 1d;
@@ -51,26 +83,6 @@ public class CoerceToRealVisitor extends AbstractCoerceVisitor<Double> {
         return RealExp.NA_REAL;
     }
     throw new IllegalArgumentException();
-  }
-
-  @Override
-  protected Double coerce(Double d) {
-    return d;
-  }
-
-  @Override
-  protected Double coerce(String s) {
-    return R_atof(s);
-  }
-
-  @Override
-  protected Double coerce(Integer i) {
-    return (double)i;
-  }
-
-  @Override
-  protected void collect(Double value) {
-    values.add(value);
   }
 
   @Override

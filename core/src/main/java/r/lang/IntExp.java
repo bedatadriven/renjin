@@ -21,9 +21,9 @@
 
 package r.lang;
 
-import cern.colt.list.IntArrayList;
-import cern.colt.list.adapter.IntListAdapter;
+import com.google.common.collect.UnmodifiableIterator;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 public class IntExp extends AbstractVector implements Iterable<Integer> {
@@ -36,11 +36,11 @@ public class IntExp extends AbstractVector implements Iterable<Integer> {
    */
   public static final int NA = Integer.MIN_VALUE;
 
-  private IntArrayList values;
+  private int[] values;
 
 
   public IntExp(int... values) {
-    this.values = new IntArrayList(values);
+    this.values = Arrays.copyOf(values, values.length);
   }
 
   public static SEXP parseInt(String s) {
@@ -63,15 +63,15 @@ public class IntExp extends AbstractVector implements Iterable<Integer> {
 
   @Override
   public int length() {
-    return values.size();
+    return values.length;
   }
 
   public int get(int i) {
-    return values.get(i);
+    return values[i];
   }
 
   public void set(int i, int value) {
-    values.set(i, value);
+    values[i] = value;
   }
 
   private IntExp() {
@@ -88,13 +88,21 @@ public class IntExp extends AbstractVector implements Iterable<Integer> {
 
   @Override
   public String toString() {
-    if (values.size() == 1) {
-      return Integer.toString(values.get(0));
+    if (values.length == 1) {
+      return Integer.toString(values[0]);
     } else {
       return values.toString();
     }
   }
 
+  public double[] asArrayOfDoubles() {
+    double d[] = new double[values.length];
+    for(int i=0; i!=values.length;++i) {
+      d[i] = values[i];
+    }
+    return d;
+  }
+  
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this); 
@@ -102,6 +110,20 @@ public class IntExp extends AbstractVector implements Iterable<Integer> {
 
   @Override
   public Iterator<Integer> iterator() {
-    return new IntListAdapter(values).iterator();
+    return new ValueIterator();
+  }
+
+  private class ValueIterator extends UnmodifiableIterator<Integer> {
+    private int i = 0;
+
+    @Override
+    public boolean hasNext() {
+      return i < values.length;
+    }
+
+    @Override
+    public Integer next() {
+      return values[i++];
+    }
   }
 }

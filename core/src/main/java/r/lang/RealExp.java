@@ -21,31 +21,32 @@
 
 package r.lang;
 
-import cern.colt.list.DoubleArrayList;
-import cern.colt.list.adapter.DoubleListAdapter;
+import com.google.common.collect.ImmutableList;
+import r.util.collect.PrimitiveArrays;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public final class RealExp extends AbstractVector implements Iterable<Double> {
   public static final String TYPE_NAME = "double";
   public static final int TYPE_CODE = 14;
 
-  public static final double NA_REAL = R_ValueOfNA();
+  public static final double NA_REAL = createNA();
 
-  private DoubleArrayList values;
+  private double[] values;
 
   public RealExp(double... values) {
-    this.values = new DoubleArrayList(values);
+    this.values = Arrays.copyOf(values, values.length);
   }
 
   public RealExp(Collection<Double> values) {
-    double dv[] = new double[values.size()];
+    this.values = new double[values.size()];
     int i = 0;
     for(Double value : values) {
-      dv[i++] = value;
+      this.values[i++] = value;
     }
-    this.values = new DoubleArrayList(dv);
   }
 
 
@@ -71,16 +72,16 @@ public final class RealExp extends AbstractVector implements Iterable<Double> {
   }
 
   public double get(int i) {
-    return values.get(i);
+    return values[i];
   }
 
   public void set(int i, double value) {
-    values.set(i, value);
+    values[i] = value;
   }
 
   @Override
   public int length() {
-    return values.size();
+    return values.length;
   }
 
   public static RealExp ofLength(int length) {
@@ -94,7 +95,7 @@ public final class RealExp extends AbstractVector implements Iterable<Double> {
 
   @Override
   public Logical asLogical() {
-    double x = values.get(0);
+    double x = values[0];
 
     if (Double.isNaN(x)) {
       return Logical.NA;
@@ -112,19 +113,23 @@ public final class RealExp extends AbstractVector implements Iterable<Double> {
 
   @Override
   public Iterator<Double> iterator() {
-    return new DoubleListAdapter(values).iterator();
+    return PrimitiveArrays.asUnmodifiableIterator(values);
+  }
+
+  public List<Double> asListOfDoubles() {
+    return ImmutableList.copyOf(iterator());
   }
 
   @Override
   public String toString() {
-    if (values.size() == 1) {
-      return Double.toString(values.get(0));
+    if (values.length == 1) {
+      return Double.toString(values[0]);
     } else {
-      return values.toString();
+      return Arrays.toString(values);
     }
   }
 
-  public static double R_ValueOfNA() {
+  private static double createNA() {
 //    volatile ieee_double x;
 //    x.word[hw] = 0x7ff00000;
 //    x.word[lw] = 1954;
@@ -132,4 +137,6 @@ public final class RealExp extends AbstractVector implements Iterable<Double> {
 
     return Double.longBitsToDouble(0x7ff0000000001954L);
   }
+
+
 }

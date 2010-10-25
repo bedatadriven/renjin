@@ -21,17 +21,15 @@
 
 package r.lang.primitive.types;
 
-import r.lang.Logical;
-import r.lang.SEXP;
-import r.lang.StringExp;
+import com.google.common.collect.Iterables;
+import r.lang.*;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.List;
 
-public class CoerceToStringVisitor extends AbstractCoerceVisitor<String> {
+public class CoerceToStringVisitor extends SexpVisitor implements CoercingVisitor {
 
-  private List<String> values = new ArrayList<String>();
+  private ArrayList<String> values = new ArrayList<String>();
 
   private static final NumberFormat INTEGER_FORMAT = NumberFormat.getIntegerInstance();
   private static final NumberFormat REAL_FORMAT = createRealFormat();
@@ -48,32 +46,53 @@ public class CoerceToStringVisitor extends AbstractCoerceVisitor<String> {
   }
 
   @Override
-  protected String coerce(String s) {
-    return s;
+  public void visit(CharExp charExp) {
+    values.add(charExp.getValue());
   }
 
   @Override
-  protected String coerce(Integer i) {
-    return INTEGER_FORMAT.format(i);
+  public void visit(IntExp intExp) {
+    ensureAdditionalCapacityFor(intExp);
+    for(int i=0;i!=intExp.length();++i) {
+      values.add(INTEGER_FORMAT.format(intExp.get(i)));
+    }
   }
 
   @Override
-  protected String coerce(Double d) {
-    return REAL_FORMAT.format(d);
+  public void visit(RealExp realExp) {
+    ensureAdditionalCapacityFor(realExp);
+    for(int i=0;i!=realExp.length();++i) {
+      values.add(REAL_FORMAT.format(realExp.get(i)));
+    }
   }
 
   @Override
-  protected String coerce(Logical logical) {
-    return logical.toString();
+  public void visit(StringExp stringExp) {
+    ensureAdditionalCapacityFor(stringExp);
+    Iterables.addAll(values, stringExp);
   }
 
   @Override
-  protected void collect(String value) {
-    values.add(value);
+  public void visit(LogicalExp logicalExp) {
+    ensureAdditionalCapacityFor(logicalExp);
+    for(Logical logical : logicalExp) {
+      values.add(logical.toString());
+    }
+  }
+
+  @Override
+  public void visit(ListExp listExp) {
+    for(SEXP exp : listExp) {
+      exp.accept(this);
+    }
+  }
+
+  private void ensureAdditionalCapacityFor(SEXP exp) {
+    values.ensureCapacity(values.size() + exp.length());
   }
 
   @Override
   public SEXP coerce() {
-    return new StringExp((String[]) values.toArray());
+    return new StringExp(values);
   }
 }

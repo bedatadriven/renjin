@@ -23,7 +23,7 @@ package r.lang.primitive.math;
 
 public class Ceiling extends UnaryMathFunction {
   @Override
-  protected double apply(double value) {
+  public double apply(double value) {
     return Math.ceil(value);
   }
 }

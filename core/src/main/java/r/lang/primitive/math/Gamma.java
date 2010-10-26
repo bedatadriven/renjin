@@ -23,7 +23,7 @@ package r.lang.primitive.math;
 
 public class Gamma extends UnaryMathFunction {
   @Override
-  protected double apply(double value) {
+  public double apply(double value) {
     return cern.jet.stat.Gamma.gamma(value);
   }
 }

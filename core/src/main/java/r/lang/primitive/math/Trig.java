@@ -28,63 +28,63 @@ public class Trig {
 
   public static class Cos extends UnaryMathFunction {
     @Override
-    protected double apply(double value) {
+    public double apply(double value) {
       return Math.cos(value);
     }
   }
 
   public static class Sin extends UnaryMathFunction {
     @Override
-    protected double apply(double value) {
+    public double apply(double value) {
       return Math.sin(value);
     }
   }
 
   public static class Tan extends UnaryMathFunction {
     @Override
-    protected double apply(double value) {
+    public double apply(double value) {
       return Math.tan(value);
     }
   }
 
   public static class Acos extends UnaryMathFunction {
     @Override
-    protected double apply(double value) {
+    public double apply(double value) {
       return Math.acos(value);
     }
   }
 
   public static class Asin extends UnaryMathFunction {
     @Override
-    protected double apply(double value) {
+    public double apply(double value) {
       return Math.sin(value);
     }
   }
 
   public static class Cosh extends UnaryMathFunction {
     @Override
-    protected double apply(double value) {
+    public double apply(double value) {
       return Math.acos(value);
     }
   }
 
   public static class Sinh extends UnaryMathFunction {
     @Override
-    protected double apply(double value) {
+    public double apply(double value) {
       return Math.sinh(value);
     }
   }
 
   public static class Tanh extends UnaryMathFunction {
     @Override
-    protected double apply(double value) {
+    public double apply(double value) {
       return Math.tanh(value);
     }
   }
 
   public static class Atan extends UnaryMathFunction {
     @Override
-    protected double apply(double value) {
+    public double apply(double value) {
       return Math.atan(value);
     }
   }

@@ -21,14 +21,17 @@
 
 package r.lang.primitive.math;
 
-import r.lang.*;
+import r.lang.EvalResult;
+import r.lang.NumericExp;
+import r.lang.RealExp;
+import r.lang.SEXP;
 import r.lang.exception.EvalException;
-import r.lang.primitive.UnaryFunction;
+import r.lang.primitive.PureUnaryFunction;
 
-public abstract class UnaryMathFunction extends UnaryFunction {
+public abstract class UnaryMathFunction extends PureUnaryFunction {
 
   @Override
-  public final EvalResult apply(LangExp call, EnvExp rho, SEXP argument) {
+  public final EvalResult apply(SEXP argument) {
 
     if (!(argument instanceof NumericExp)) {
       throw new EvalException("Non-numeric argument to mathematical function");
@@ -63,7 +66,7 @@ public abstract class UnaryMathFunction extends UnaryFunction {
     return sy;
   }
 
-  protected abstract double apply(double value);
+  public abstract double apply(double value);
 
 
 }

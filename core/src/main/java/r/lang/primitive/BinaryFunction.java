@@ -30,5 +30,5 @@ public abstract class BinaryFunction extends PrimitiveFunction {
     return apply(call, rho, args.get(0), args.get(1));
   }
 
-  protected abstract EvalResult apply(LangExp call, EnvExp rho, SEXP arg0, SEXP arg1);
+  public abstract EvalResult apply(LangExp call, EnvExp rho, SEXP arg0, SEXP arg1);
 }

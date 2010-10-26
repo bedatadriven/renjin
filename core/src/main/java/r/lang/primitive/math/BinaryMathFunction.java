@@ -21,14 +21,17 @@
 
 package r.lang.primitive.math;
 
-import r.lang.*;
+import r.lang.EvalResult;
+import r.lang.NumericExp;
+import r.lang.RealExp;
+import r.lang.SEXP;
 import r.lang.exception.EvalException;
-import r.lang.primitive.BinaryFunction;
+import r.lang.primitive.PureBinaryFunction;
 
-public abstract class BinaryMathFunction extends BinaryFunction {
+public abstract class BinaryMathFunction extends PureBinaryFunction {
 
   @Override
-  public EvalResult apply(LangExp call, EnvExp rho, SEXP arg0, SEXP arg1) {
+  public EvalResult apply(SEXP arg0, SEXP arg1) {
     double x[] = checkedCastToNumeric(arg0);
     double y[] = checkedCastToNumeric(arg1);
     int xlen = x.length;
@@ -52,7 +55,7 @@ public abstract class BinaryMathFunction extends BinaryFunction {
     return new EvalResult(result);
   }
 
-  protected abstract double apply(double x, double y);
+  public abstract double apply(double x, double y);
 
   private double[] checkedCastToNumeric(SEXP x) {
     if(! (x instanceof NumericExp)) {

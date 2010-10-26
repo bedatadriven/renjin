@@ -33,7 +33,7 @@ import r.lang.primitive.BinaryFunction;
 public class ColonFunction extends BinaryFunction {
 
   @Override
-  protected EvalResult apply(LangExp call, EnvExp rho, SEXP n1, SEXP n2) {
+  public EvalResult apply(LangExp call, EnvExp rho, SEXP n1, SEXP n2) {
     if( n1.inherits("factor") && n2.inherits("factor")) {
       return new EvalResult( crossColon(n1, n2) );
 

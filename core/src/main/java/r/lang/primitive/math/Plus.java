@@ -23,7 +23,7 @@ package r.lang.primitive.math;
 
 public class Plus extends BinaryMathFunction {
   @Override
-  protected double apply(double x, double y) {
+  public double apply(double x, double y) {
     return x + y;
   }
 }

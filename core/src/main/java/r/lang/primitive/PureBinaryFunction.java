@@ -19,11 +19,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.math;
+package r.lang.primitive;
 
-public class Exp extends UnaryMathFunction {
+import r.lang.EnvExp;
+import r.lang.EvalResult;
+import r.lang.LangExp;
+import r.lang.SEXP;
+
+/**
+ * A binary function without side-effects,
+ * e.g. the environment is guaranted not be used.
+ */
+public abstract class PureBinaryFunction extends BinaryFunction {
+
   @Override
-  public double apply(double value) {
-    return Math.exp(value);
+  public final EvalResult apply(LangExp call, EnvExp rho, SEXP arg0, SEXP arg1) {
+    return apply(arg0, arg1);
   }
+
+  public abstract EvalResult apply(SEXP arg0, SEXP arg1);
 }

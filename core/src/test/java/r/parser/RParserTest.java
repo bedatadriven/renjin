@@ -22,17 +22,26 @@
 package r.parser;
 
 import org.hamcrest.CoreMatchers;
+import org.junit.Before;
 import org.junit.Test;
 import r.lang.*;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static r.ExpMatchers.*;
 
 public class RParserTest {
-  private RParser parser;
+  private GlobalContext globalContext;
+
+  @Before
+  public void setUp() {
+    globalContext = new GlobalContext();
+  }
 
   @Test
   public void one() throws IOException {
@@ -183,34 +192,18 @@ public class RParserTest {
     assertThat(result.length(), equalTo(1));
   }
 
-  private void createParser(Reader reader) {
-    GlobalContext context = new GlobalContext();
-
-    ParseState state = new ParseState();
-    ParseOptions options = ParseOptions.defaults();
-    RLexer lexer = new RLexer(context, options, state, reader);
-    parser = new RParser(options, state, context, lexer);
-    parser.setDebugLevel(Integer.MAX_VALUE);
-  }
-
   private ExpExp parseAll(String source) throws IOException {
-    return RParser.parseAll(new StringReader(source));
+    return RParser.parseSource(globalContext, new StringReader(source));
   }
 
   private SEXP parseSingle(String source) throws IOException {
-
-    createParser(new StringReader(source));
-    assertThat("parser.parse succeeds", parser.parse(), equalTo(true));
-
-    RParser.StatusResult status = parser.getResultStatus();
-    return parser.getResult();
+    ExpExp exp = RParser.parseSource(globalContext, source);
+    return exp.get(0);
   }
 
   private SEXP parseResource(String source) throws IOException {
     InputStream stream = getClass().getResourceAsStream(source);
-    createParser(new InputStreamReader(stream));
-
-    return parser.parseAll();
+    return RParser.parseSource(globalContext, new InputStreamReader(stream));
   }
 
 }

@@ -34,7 +34,6 @@
   <modules>
     <module>core</module>
     <module>desktop</module>
-    <module>test-server</module>
   </modules>
 
   <properties>

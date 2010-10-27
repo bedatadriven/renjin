@@ -26,6 +26,7 @@ import r.lang.exception.ParseException;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 
 import static r.util.CDefines.*;
 
@@ -57,19 +58,25 @@ import static r.util.CDefines.*;
  * @author LALR (1) parser skeleton written by Paolo Bonzini.
  */
 public class RParser {
-  static ExpExp parseAll(Reader reader) throws IOException {
-    GlobalContext context = new GlobalContext();
 
-    ParseState state = new ParseState();
-    ParseOptions options = ParseOptions.defaults();
-    RLexer lexer = new RLexer(context, options, state, reader);
-    RParser parser = new RParser(options, state, context, lexer);
-    parser.setDebugLevel(Integer.MAX_VALUE);
+  public static ExpExp parseSource(GlobalContext context, Reader reader) throws IOException {
+    ParseState parseState = new ParseState();
+    ParseOptions parseOptions = ParseOptions.defaults();
+    Lexer lexer = new RLexer(context, parseOptions, parseState, reader);
+    RParser parser = new RParser(parseOptions, parseState, context, lexer);
 
     return parser.parseAll();
   }
 
-  public ExpExp parseAll() throws IOException {
+  public static ExpExp parseSource(GlobalContext globalContext, String source) {
+    try {
+      return parseSource(globalContext, new StringReader(source));
+    } catch (IOException e) {
+      throw new RuntimeException(e); // shouldn't happen when reading from a string.
+    }
+  }
+
+  private ExpExp parseAll() throws IOException {
     ExpExp exprList = new ExpExp();
 
     while (parse()) {
@@ -88,15 +95,6 @@ public class RParser {
       }
     }
     return exprList;
-  }
-
-  public static ExpExp parseSource(GlobalContext context, Reader reader) throws IOException {
-    ParseState parseState = new ParseState();
-    ParseOptions parseOptions = ParseOptions.defaults();
-    Lexer lexer = new RLexer(context, parseOptions, parseState, reader);
-    RParser parser = new RParser(parseOptions, parseState, context, lexer);
-
-    return parser.parseAll();
   }
 
   public enum StatusResult {

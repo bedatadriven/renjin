@@ -23,19 +23,12 @@ package r.compiler;
 
 import org.junit.Before;
 import org.junit.Test;
-import r.lang.*;
-import r.parser.ParseOptions;
-import r.parser.ParseState;
-import r.parser.RLexer;
-import r.parser.RParser;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import r.lang.ListExp;
+import r.lang.RealExp;
+import r.lang.StringExp;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class JavaSourceWritingVisitorTest {
   private JavaSourceWritingVisitor visitor;
@@ -46,27 +39,6 @@ public class JavaSourceWritingVisitorTest {
     expr.accept(visitor);
 
     assertThat(visitor.getBody(), equalTo("list(c(1, 2, 3), c(\"a\", \"b\"))"));
-  }
-
-  @Test
-  public void basicScript() throws IOException {
-
-    InputStream stream = getClass().getResourceAsStream("/testScript.R");
-    assertTrue(stream != null);
-
-    InputStreamReader reader = new InputStreamReader(stream);
-
-    GlobalContext context = new GlobalContext();
-    ParseState state = new ParseState();
-    RLexer lexer = new RLexer(context, ParseOptions.defaults(), state, reader);
-    RParser parser = new RParser(ParseOptions.defaults(), state, context, lexer);
-
-    ExpExp exp = parser.parseAll();
-
-    exp.accept(visitor);
-
-    visitor.writeTo("r.packages", "Base", System.out);
-
   }
 
   @Before

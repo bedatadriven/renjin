@@ -25,7 +25,7 @@ import com.google.common.collect.Iterators;
 
 import java.util.Iterator;
 
-public final class NilExp extends SEXP implements NillOrListExp, AtomicExp {
+public final class NilExp extends SEXP implements PairList, AtomicExp {
 
   public static final int TYPE_CODE = 0;
   public static final String TYPE_NAME = "NULL";

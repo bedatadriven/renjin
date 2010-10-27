@@ -31,7 +31,7 @@ public abstract class AbstractProgram implements Program {
   protected AbstractProgram() {
   }
 
-  protected LangExp call(SEXP function, NillOrListExp arguments) {
+  protected LangExp call(SEXP function, PairList arguments) {
     return new LangExp(function, arguments);
   }
 

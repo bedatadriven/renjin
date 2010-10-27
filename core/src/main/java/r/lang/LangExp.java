@@ -28,7 +28,7 @@ public class LangExp extends ListExp {
   public static final int TYPE_CODE = 6;
   public static final String TYPE_NAME = "language";
 
-  public LangExp(SEXP value, NillOrListExp nextNode) {
+  public LangExp(SEXP value, PairList nextNode) {
     super(value, nextNode);
   }
 
@@ -107,7 +107,7 @@ public class LangExp extends ListExp {
     return value;
   }
 
-  public NillOrListExp getArguments() {
+  public PairList getArguments() {
     return nextNode == null ? NilExp.INSTANCE : nextNode;
   }
 

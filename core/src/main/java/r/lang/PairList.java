@@ -23,14 +23,11 @@ package r.lang;
 
 /**
  * Marker interface that restricts the type of a parameter or member to
- * either a ListExp or NilExp.
+ * either a ListExp (one or more elements) or NilExp (empty list).
  *
- * Renjin copies faithfully the structure of ListExp which means that we
- * can't have an empty ListExp. In the C-implementation of R, the NilExp serves
- * as an empty list. We keep this convention (for now), but use this supertype
- * for NilExp and ListExp to enforce types.
+ * This aligns to the primitive function "is.pairlist"
  */
-public interface NillOrListExp extends Iterable<SEXP> {
+public interface PairList extends Iterable<SEXP> {
 
   int length();
   SEXP getFirst();

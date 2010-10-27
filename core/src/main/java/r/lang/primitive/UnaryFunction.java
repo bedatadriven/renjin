@@ -26,7 +26,7 @@ import r.lang.*;
 public abstract class UnaryFunction extends PrimitiveFunction {
 
   @Override
-  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
+  public EvalResult apply(LangExp call, EnvExp rho, PairList args) {
     return apply(call, rho, args.get(0));
   }
 

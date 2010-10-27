@@ -122,7 +122,7 @@ public class Is {
   public class PairList extends UnaryTest {
     @Override
     protected boolean apply(SEXP exp) {
-      return exp.getClass() == ListExp.class;
+      return exp instanceof r.lang.PairList;
     }
   }
 

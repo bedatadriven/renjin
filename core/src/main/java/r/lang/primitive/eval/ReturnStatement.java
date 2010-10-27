@@ -19,19 +19,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive;
+package r.lang.primitive.eval;
 
 import r.lang.EnvExp;
 import r.lang.EvalResult;
 import r.lang.LangExp;
 import r.lang.PairList;
+import r.lang.primitive.PrimitiveFunction;
 
-public abstract class NullaryFunction extends PrimitiveFunction {
+public class ReturnStatement extends PrimitiveFunction {
 
   @Override
-  public final EvalResult apply(LangExp call, EnvExp rho, PairList args) {
-    return apply(rho);
+  public EvalResult apply(LangExp call, EnvExp rho, PairList args) {
+    return null;
   }
-
-  protected abstract EvalResult apply(EnvExp rho) ;
 }

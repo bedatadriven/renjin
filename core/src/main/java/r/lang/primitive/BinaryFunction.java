@@ -26,7 +26,7 @@ import r.lang.*;
 public abstract class BinaryFunction extends PrimitiveFunction {
 
   @Override
-  public final EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
+  public final EvalResult apply(LangExp call, EnvExp rho, PairList args) {
     return apply(call, rho, args.get(0), args.get(1));
   }
 

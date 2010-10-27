@@ -45,9 +45,9 @@ public class ClosureExp extends SEXP implements FunExp {
 
   private EnvExp environment;
   private SEXP body;
-  private NillOrListExp formals;
+  private PairList formals;
 
-  public ClosureExp(EnvExp environment, NillOrListExp formals, SEXP body) {
+  public ClosureExp(EnvExp environment, PairList formals, SEXP body) {
     this.environment = environment;
     this.body = body;
     this.formals = formals;
@@ -69,7 +69,7 @@ public class ClosureExp extends SEXP implements FunExp {
   }
 
   @Override
-  public EvalResult apply(LangExp call, NillOrListExp args, EnvExp rho) {
+  public EvalResult apply(LangExp call, PairList args, EnvExp rho) {
 
     EnvExp env = new EnvExp(environment);
 
@@ -124,7 +124,7 @@ public class ClosureExp extends SEXP implements FunExp {
    * is unknown or in cases where the arguments will
    * be passed on to another function.
    */
-  public NillOrListExp getFormals() {
+  public PairList getFormals() {
     return formals;
   }
 

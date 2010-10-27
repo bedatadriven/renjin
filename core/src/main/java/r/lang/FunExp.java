@@ -29,5 +29,5 @@ package r.lang;
  */
 public interface FunExp extends RecursiveExp {
 
-  EvalResult apply(LangExp call, NillOrListExp args, EnvExp rho);
+  EvalResult apply(LangExp call, PairList args, EnvExp rho);
 }

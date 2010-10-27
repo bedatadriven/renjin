@@ -24,13 +24,13 @@ package r.lang.primitive.eval;
 import r.lang.EnvExp;
 import r.lang.EvalResult;
 import r.lang.LangExp;
-import r.lang.NillOrListExp;
+import r.lang.PairList;
 import r.lang.primitive.PrimitiveFunction;
 
 public class BreakStatement extends PrimitiveFunction {
 
   @Override
-  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
+  public EvalResult apply(LangExp call, EnvExp rho, PairList args) {
     throw new BreakException();
   }
 }

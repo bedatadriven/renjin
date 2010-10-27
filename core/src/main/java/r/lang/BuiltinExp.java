@@ -47,7 +47,7 @@ public class BuiltinExp extends PrimitiveSexp {
   }
 
   @Override
-  protected NillOrListExp prepareArguments(NillOrListExp args, EnvExp rho) {
+  protected PairList prepareArguments(PairList args, EnvExp rho) {
     if (args.length() == 0) {
       return args;
     }

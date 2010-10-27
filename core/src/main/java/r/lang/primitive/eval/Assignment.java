@@ -26,7 +26,7 @@ import r.lang.primitive.PrimitiveFunction;
 
 public class Assignment extends PrimitiveFunction {
 
-  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
+  public EvalResult apply(LangExp call, EnvExp rho, PairList args) {
     SymbolExp symbol = (SymbolExp) args.getFirst();
     SEXP newValue = args.getSecond().evalToExp(rho);
 

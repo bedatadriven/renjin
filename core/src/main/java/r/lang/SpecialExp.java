@@ -42,7 +42,7 @@ public class SpecialExp extends PrimitiveSexp {
   }
 
   @Override
-  protected NillOrListExp prepareArguments(NillOrListExp args, EnvExp rho) {
+  protected PairList prepareArguments(PairList args, EnvExp rho) {
     return args; // args to special functions are not evaluated beforehand
   }
 }

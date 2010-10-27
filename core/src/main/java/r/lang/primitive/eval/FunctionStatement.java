@@ -27,7 +27,7 @@ import r.lang.primitive.PrimitiveFunction;
 public class FunctionStatement extends PrimitiveFunction {
 
   @Override
-  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
-    return new EvalResult(new ClosureExp(rho, (NillOrListExp) args.getFirst(), args.getSecond()));
+  public EvalResult apply(LangExp call, EnvExp rho, PairList args) {
+    return new EvalResult(new ClosureExp(rho, (PairList) args.getFirst(), args.getSecond()));
   }
 }

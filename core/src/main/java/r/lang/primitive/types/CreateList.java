@@ -28,7 +28,7 @@ import r.lang.primitive.PrimitiveFunction;
 public class CreateList extends PrimitiveFunction {
 
   @Override
-  public EvalResult apply(LangExp call, EnvExp rho, NillOrListExp args) {
+  public EvalResult apply(LangExp call, EnvExp rho, PairList args) {
 
     if(args.length() == 0) {
       throw new EvalException("Help me! How can a pair list have zero length?");

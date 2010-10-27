@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Linked list of SEXP values
  */
-public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, NillOrListExp {
+public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairList {
 
   public static final int TYPE_CODE = 2;
   public static final String TYPE_NAME = "pairlist";
@@ -58,7 +58,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, NillO
   protected ListExp nextNode = null;
 
 
-  public ListExp(SEXP value, NillOrListExp nextNode) {
+  public ListExp(SEXP value, PairList nextNode) {
     this.value = value;
     if(nextNode instanceof ListExp) {
      this.nextNode = (ListExp) nextNode;
@@ -146,7 +146,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, NillO
    * @param exp  a {@code ListExp}, or {@code null}
    * @return  an iterator
    */
-  public static Iterator<SEXP> iterator(NillOrListExp exp) {
+  public static Iterator<SEXP> iterator(PairList exp) {
     if(exp == null || exp == NilExp.INSTANCE)  {
       return Iterators.emptyIterator();
     } else {
@@ -309,7 +309,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, NillO
    * @param exp  A ListExp or null
    * @throws IllegalArgumentException if the exp is not of type ListExp or NillExp
    */
-  public static Iterable<ListExp> listNodes(NillOrListExp exp) {
+  public static Iterable<ListExp> listNodes(PairList exp) {
     if(exp instanceof ListExp) {
       return ((ListExp) exp).listNodes();
     } else {

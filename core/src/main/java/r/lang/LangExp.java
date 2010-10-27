@@ -28,7 +28,7 @@ public class LangExp extends ListExp {
   public static final int TYPE_CODE = 6;
   public static final String TYPE_NAME = "language";
 
-  public LangExp(SEXP value, ListExp nextNode) {
+  public LangExp(SEXP value, NillOrListExp nextNode) {
     super(value, nextNode);
   }
 
@@ -45,7 +45,7 @@ public class LangExp extends ListExp {
   @Override
   public EvalResult evaluate(EnvExp rho) {
 
-    FunExp functionExpr = (FunExp) getFunction().evalToExp(rho);
+    FunExp functionExpr = evaluateFunction(rho);
 
     return functionExpr.apply(this, getArguments(), rho);
 
@@ -93,6 +93,10 @@ public class LangExp extends ListExp {
 //    else
 //      throw new EvalException(this, "attempt to apply non-function");
 
+  }
+
+  private FunExp evaluateFunction(EnvExp rho) {
+    return (FunExp) getFunction().evalToExp(rho);
   }
 
   public static SEXP fromListExp(ListExp listExp) {

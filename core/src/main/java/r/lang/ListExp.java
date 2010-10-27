@@ -58,9 +58,11 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, NillO
   protected ListExp nextNode = null;
 
 
-  public ListExp(SEXP value, ListExp nextNode) {
+  public ListExp(SEXP value, NillOrListExp nextNode) {
     this.value = value;
-    this.nextNode = nextNode;
+    if(nextNode instanceof ListExp) {
+     this.nextNode = (ListExp) nextNode;
+    }
   }
 
   @Override

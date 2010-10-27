@@ -19,25 +19,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.compiler.runtime;
 
-/**
- * Marker interface that restricts the type of a parameter or member to
- * either a ListExp or NilExp.
- *
- * Renjin copies faithfully the structure of ListExp which means that we
- * can't have an empty ListExp. In the C-implementation of R, the NilExp serves
- * as an empty list. We keep this convention (for now), but use this supertype
- * for NilExp and ListExp to enforce types.
- */
-public interface NillOrListExp extends Iterable<SEXP> {
+import r.lang.*;
 
-  int length();
-  SEXP getFirst();
-  SEXP getSecond();
-  SEXP getThird();
-  <S extends SEXP> S get(int i);
-  void accept(SexpVisitor visitor);
+public abstract class AbstractProgram implements Program {
 
+  protected static NilExp NULL = NilExp.INSTANCE;
+  protected static SymbolExp MISSING = SymbolExp.MISSING_ARG;
 
+  protected AbstractProgram() {
+  }
+
+  protected LangExp call(SEXP function, NillOrListExp arguments) {
+    return new LangExp(function, arguments);
+  }
+
+  protected RealExp c(double... d) {
+    return new RealExp(d);
+  }
+
+  protected IntExp ci(int... i) {
+    return new IntExp(i);
+  }
+
+  protected StringExp c(String... s) {
+    return new StringExp();
+  }
+
+  protected ListExp list(SEXP... items ) {
+    return ListExp.fromArray(items);
+  }
+  
 }

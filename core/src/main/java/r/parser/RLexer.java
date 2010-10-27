@@ -363,6 +363,13 @@ public class RLexer implements RParser.Lexer {
     xxcharsave = xxcharcount; /* want to be able to go back one token */
 
     c = skipSpace();
+    if (c == '\r') {
+      c = xxgetc();
+      if(c != '\n') {
+        xxungetc(c);
+        c = '\r';
+      }
+    }
     if (c == '#') c = skipComment();
 
     tokenBegin.line = srcRef.xxlineno;

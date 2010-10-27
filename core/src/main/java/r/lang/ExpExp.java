@@ -22,6 +22,7 @@
 package r.lang;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * A vector of statements {@code LangExp}.
@@ -36,7 +37,7 @@ import java.util.ArrayList;
  * parsed but unevaluated R statements.
  *
  */
-public class ExpExp extends AbstractVector implements RecursiveExp {
+public class ExpExp extends AbstractVector implements RecursiveExp, Iterable<SEXP> {
   public static final String TYPE_NAME = "expression";
   public static final int TYPE_CODE = 20;
 
@@ -90,5 +91,10 @@ public class ExpExp extends AbstractVector implements RecursiveExp {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
+  }
+
+  @Override
+  public Iterator<SEXP> iterator() {
+    return list.iterator();
   }
 }

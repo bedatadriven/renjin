@@ -39,26 +39,43 @@
     statistical computing</description>
 
   <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.7</version>
-      <scope>test</scope>
-    </dependency>
+
+    <!-- Currently we are using both Colt and Apache Commons Math
+         for the mathematical heavy lifting.
+         It may be possible to eliminate one or the other
+         -->
     <dependency>
       <groupId>colt</groupId>
       <artifactId>colt</artifactId>
       <version>1.2.0</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math</artifactId>
+      <version>2.1</version>
+    </dependency>
+
+
+    <!-- Provides command line argument parsing -->
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <version>1.2</version>
+    </dependency>
+
+    <!-- Collections framework -->
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>r07</version>
     </dependency>
+
+    <!-- unit test framework -->
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math</artifactId>
-      <version>2.1</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.7</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

@@ -25,8 +25,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import r.lang.*;
 
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -37,13 +36,13 @@ public class RParserTest {
 
   @Test
   public void one() throws IOException {
-    SEXP r = parse("1\n");
+    SEXP r = parseSingle("1\n");
     assertThat(r, CoreMatchers.instanceOf(RealExp.class));
   }
 
   @Test
   public void onePlusOne() throws IOException {
-    LangExp r = (LangExp) parse("1 + 1;");
+    LangExp r = (LangExp) parseSingle("1 + 1;");
     assertThat(r.length(), equalTo(3));
     assertThat(r.get(0), symbolNamed("+"));
     assertThat(r.get(1), realVectorEqualTo(1));
@@ -52,21 +51,21 @@ public class RParserTest {
 
   @Test
   public void symbol() throws IOException {
-    SEXP s = parse("a;");
+    SEXP s = parseSingle("a;");
 
     assertThat(s, symbolNamed("a"));
   }
 
   @Test
   public void na() throws IOException {
-    SEXP s = parse("NA;");
+    SEXP s = parseSingle("NA;");
 
     assertThat(s, logicalVectorOf(Logical.NA));
   }
 
   @Test
   public void assignment() throws IOException {
-    LangExp r = (LangExp) parse("a <- 3;");
+    LangExp r = (LangExp) parseSingle("a <- 3;");
     assertThat(r.length(), equalTo(3));
     assertThat(r.get(0), symbolNamed("<-"));
     assertThat(r.get(1), symbolNamed("a"));
@@ -75,28 +74,21 @@ public class RParserTest {
 
   @Test
   public void exprList() throws IOException {
-    SEXP r = parse(" { a<-1; b<-2; a*b } \n");
+    SEXP r = parseSingle(" { a<-1; b<-2; a*b } \n");
 
     System.out.println(r);
   }
 
   @Test
-  public void exprVec() throws IOException {
-    ExpExp exp = parseAll("a<-1\nb<-2\n");
-
-    System.out.println(exp);
-  }
-
-  @Test
   public void logical() throws IOException {
-    LogicalExp x = (LogicalExp) parse("TRUE\n");
+    LogicalExp x = (LogicalExp) parseSingle("TRUE\n");
     assertThat(x.length(), equalTo(1));
     assertThat(x.get(0), equalTo(1));
   }
 
   @Test
   public void functionDef() throws IOException {
-    LangExp r = (LangExp) parse("function (a, b) { a + b }\n");
+    LangExp r = (LangExp) parseSingle("function (a, b) { a + b }\n");
 
     assertThat("result length", r.length(), equalTo(4));
 
@@ -110,26 +102,26 @@ public class RParserTest {
 
   @Test
   public void functionWithoutArgs() throws IOException {
-    LangExp r = (LangExp) parse("function () { a + b }\n");
+    LangExp r = (LangExp) parseSingle("function () { a + b }\n");
 
 
   }
 
   @Test
   public void ifElse() throws IOException {
-    LangExp r = (LangExp) parse("if(TRUE) 1 else 2;");
+    LangExp r = (LangExp) parseSingle("if(TRUE) 1 else 2;");
 
     System.out.println(r);
   }
 
   @Test
   public void functionDefWithBodyLength2() throws IOException {
-    LangExp r = (LangExp) parse("function (a, b) { a * b\na + b; }\n");
+    LangExp r = (LangExp) parseSingle("function (a, b) { a * b\na + b; }\n");
   }
 
   @Test
   public void functionDefWithNewlines() throws IOException {
-    parse("function (a, b) {  \n " +
+    parseSingle("function (a, b) {  \n " +
         "a + b\n" +
         "}\n");
 
@@ -152,7 +144,7 @@ public class RParserTest {
 
     System.out.println(source);
 
-    LangExp r = (LangExp) parse(source);
+    LangExp r = (LangExp) parseSingle(source);
 
     System.out.println(r);
   }
@@ -165,24 +157,60 @@ public class RParserTest {
 
   }
 
+  @Test
+  public void parseMultiline() throws IOException {
+    ExpExp result = parseAll("1\n2\n3\n");
 
-  private SEXP parse(String source) throws IOException {
+    assertThat(result.length(), equalTo(3));
+  }
 
+  @Test
+  public void parseWithCommentsPreceding() throws IOException {
+    ExpExp result = parseAll(
+        "# file header\r\n" +
+        "\r\n" +
+        "x<-function (y) {\r\n" +
+        "   y * 2\n" +
+        "}\r\n");
+
+    assertThat(result.length(), equalTo(1));
+  }
+
+  @Test
+  public void parseRealScript() throws IOException {
+    ExpExp result = (ExpExp) parseResource("/testScript.R");
+
+    assertThat(result.length(), equalTo(1));
+  }
+
+  private void createParser(Reader reader) {
     GlobalContext context = new GlobalContext();
 
     ParseState state = new ParseState();
     ParseOptions options = ParseOptions.defaults();
-    RLexer lexer = new RLexer(context, options, state, new StringReader(source));
+    RLexer lexer = new RLexer(context, options, state, reader);
     parser = new RParser(options, state, context, lexer);
     parser.setDebugLevel(Integer.MAX_VALUE);
-
-    assertThat("parser.parse succeeds", parser.parse(), equalTo(true));
-    RParser.StatusResult status = parser.getResultStatus();
-    return parser.getResult();
   }
 
   private ExpExp parseAll(String source) throws IOException {
     return RParser.parseAll(new StringReader(source));
+  }
+
+  private SEXP parseSingle(String source) throws IOException {
+
+    createParser(new StringReader(source));
+    assertThat("parser.parse succeeds", parser.parse(), equalTo(true));
+
+    RParser.StatusResult status = parser.getResultStatus();
+    return parser.getResult();
+  }
+
+  private SEXP parseResource(String source) throws IOException {
+    InputStream stream = getClass().getResourceAsStream(source);
+    createParser(new InputStreamReader(stream));
+
+    return parser.parseAll();
   }
 
 }

@@ -96,7 +96,7 @@ public class FunctionTable {
       f("repeat", /*repeat*/ null, 0, 100, -1, PP_REPEAT, PREC_FN, 0),
       f("break", BreakStatement.class, 0, 0, -1, PP_BREAK, PREC_FN, 0),
       f("next", NextStatement.class, 0, 0, -1, PP_NEXT, PREC_FN, 0),
-      f("return", /*return*/ null, 0, 0, -1, PP_RETURN, PREC_FN, 0),
+      f("return", ReturnStatement.class, 0, 0, -1, PP_RETURN, PREC_FN, 0),
       f("stop", null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("warning", /*warning*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
 

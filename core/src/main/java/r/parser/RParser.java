@@ -66,24 +66,37 @@ public class RParser {
     RParser parser = new RParser(options, state, context, lexer);
     parser.setDebugLevel(Integer.MAX_VALUE);
 
+    return parser.parseAll();
+  }
+
+  public ExpExp parseAll() throws IOException {
     ExpExp exprList = new ExpExp();
 
-    while (parser.parse()) {
-      switch (parser.getResultStatus()) {
+    while (parse()) {
+      StatusResult status = getResultStatus();
+      switch (status) {
         case EMPTY:
           break;
         case INCOMPLETE:
         case OK:
-          exprList.add(parser.getResult());
+          exprList.add(getResult());
           break;
         case ERROR:
-          throw new ParseException(parser.getResultStatus().toString());
+          throw new ParseException(getResultStatus().toString());
         case EOF:
           return exprList;
       }
     }
-
     return exprList;
+  }
+
+  public static ExpExp parseSource(GlobalContext context, Reader reader) throws IOException {
+    ParseState parseState = new ParseState();
+    ParseOptions parseOptions = ParseOptions.defaults();
+    Lexer lexer = new RLexer(context, parseOptions, parseState, reader);
+    RParser parser = new RParser(parseOptions, parseState, context, lexer);
+
+    return parser.parseAll();
   }
 
   public enum StatusResult {

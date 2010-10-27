@@ -135,6 +135,23 @@ public final class RealExp extends AbstractVector implements NumericExp, Iterabl
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RealExp realExp = (RealExp) o;
+
+    if (!Arrays.equals(values, realExp.values)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(values);
+  }
+
+  @Override
   public String toString() {
     if (values.length == 1) {
       return Double.toString(values[0]);

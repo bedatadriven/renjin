@@ -79,6 +79,10 @@ public class RLexerTest {
     assertTokenSequence("\"\\n\"", strVector("\n"));
   }
 
+  @Test
+  public void crlfNewLine() {
+    assertTokenSequence("1\r\n3", realVector(1), t(10), realVector(3));
+  }
 
   @Ignore("Cited as a valid example in R language manual but returns error on R.2.10")
   @Test

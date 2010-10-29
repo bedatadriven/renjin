@@ -33,6 +33,11 @@ public class BaseEnvExp extends EnvExp {
 
   @Override
   public SEXP findVariable(SymbolExp symbol) {
-    return symbol.getValue();
+    SEXP value = super.findVariable(symbol);
+    if(value != SymbolExp.UNBOUND_VALUE) {
+      return value;
+    } else {
+      return symbol.getValue();
+    }
   }
 }

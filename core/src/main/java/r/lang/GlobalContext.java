@@ -21,6 +21,9 @@
 
 package r.lang;
 
+import r.compiler.runtime.Program;
+import r.parser.RParser;
+
 import java.util.logging.Logger;
 
 /**
@@ -55,6 +58,29 @@ public class GlobalContext {
     globalEnvironment = new EnvExp(baseEnvironment);
   }
 
+  /**
+   * Loads the base package in to the base environment.
+   *
+   * Note that this not required if your just compiling.
+   */
+  public void loadBasePackage() {
+    // we have to use reflection to load the base library because it's
+    // not actually compiled until after we're compiled.
+
+    Program program;
+    try {
+      Class programClass = Class.forName("r.base.Base");
+      program = (Program) programClass.newInstance();
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException("The Base package (r.base.Base) could not be found on the classpath.", e);
+    } catch (InstantiationException e) {
+      throw new RuntimeException("Could not create the Base package", e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Exception thrown while instantiating the base package", e);
+    }
+    program.evaluate(baseEnvironment);
+  }
+
   public SymbolTable getSymbolTable() {
     return symbolTable;
   }
@@ -77,5 +103,25 @@ public class GlobalContext {
 
   public void warningCall(LangExp call, String message) {
     logger.warning(message);
+  }
+
+  /**
+   * Convenience method for parsing and evaluating
+   * R language statements
+   *
+   * @param source R language statements
+   * @return
+   */
+  public SEXP evaluate(String source) {
+    return RParser.parseSource(this, source).evalToExp(globalEnvironment);
+  }
+
+  /**
+   * Convenience method for {@code getSymbolTable().install() }
+   * @param name symbol name to retrieve/install in symbol table
+   * @return
+   */
+  public SymbolExp symbol(String name) {
+    return getSymbolTable().install(name);
   }
 }

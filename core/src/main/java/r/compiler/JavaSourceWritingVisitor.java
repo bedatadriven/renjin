@@ -22,11 +22,15 @@
 package r.compiler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import org.apache.commons.math.complex.Complex;
 import r.lang.*;
 import r.parser.ParseUtil;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.collect.Iterables.transform;
 
@@ -38,7 +42,15 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
   private StringBuilder body = new StringBuilder();
 
   private int indent = 0;
-  private final SymbolMap symbolMap = new SymbolMap();
+  //private final SymbolMap symbolMap = new SymbolMap();
+
+  // we put each complete expression in a seperate method
+  // to avoid hitting the 64kb limit per method
+  private List<String> methods = new ArrayList<String>();
+
+  public void markSourceFile(String absolutePath) {
+    body.append("\n\n    /** Source: ").append(absolutePath).append("*/");
+  }
 
   /**
    * Writes out the source for a list
@@ -48,8 +60,14 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
   @Override
   public void visit(ExpExp expressionVector) {
     for(SEXP exp : expressionVector) {
+      String methodName = "eval" + methods.size();
+      methods.add(methodName);
+      body.append("\n\n  private void ").append(methodName).append("(SymbolTable symbols, EnvExp rho) {");
+
       exp.accept(this);
       body.append(".evaluate(rho);\n");
+
+      body.append("  }\n");
     }
   }
 
@@ -103,7 +121,9 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
       body.append("SymbolExp.UNBOUND_VALUE");
 
     } else {
-      body.append(symbolMap.getSymbolName(symbolExp));
+      body.append("symbols.install(").append(
+          ParseUtil.formatStringLiteral(symbolExp.getPrintName(), "NA"))
+          .append(")");
     }
   }
 
@@ -120,9 +140,44 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
     body.append(")");
   }
 
+  @Override
+  public void visit(LogicalExp logicalExp) {
+    body.append("c(");
+    Joiner.on(",").appendTo(body, transform(logicalExp, new ParseUtil.LogicalDeparser()));
+    body.append(")");
+  }
+
+  @Override
+  public void visit(IntExp intExp) {
+    body.append("c_int(");
+    Joiner.on(",").appendTo(body, transform(intExp, new ParseUtil.IntDeparser()));
+    body.append(")");
+  }
+
+  @Override
+  public void visit(ComplexExp complexExp) {
+    body.append("c(");
+    Joiner.on(",").appendTo(body, transform(complexExp, new ComplexWriter()));
+    body.append(")");
+  }
+
+  @Override
+  protected void unhandled(SEXP exp) {
+    throw new UnsupportedOperationException("Unexpected SEXP of type " + exp.getClass() + " with value " +
+    exp.toString() + "; the JavaSourceWritingVisitor can only generate code for the results of parse(), " +
+        "code generation for evaled expressions is not supported.");
+  }
+
   @VisibleForTesting
   String getBody() {
     return body.toString();
+  }
+
+  private class ComplexWriter implements Function<Complex, String> {
+    @Override
+    public String apply(Complex input) {
+      return "new Complex(" + input.getReal() + ", " + input.getImaginary() + ")";
+    }
   }
 
   public void writeTo(String packageName, String className, PrintStream writer) {
@@ -131,15 +186,25 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
     writer.println("import r.lang.*;");
     writer.println("import r.compiler.runtime.AbstractProgram;");
     writer.println();
+    writer.println("import static r.lang.Logical.TRUE;");
+    writer.println("import static r.lang.Logical.FALSE;");
+    writer.println("import static r.lang.Logical.NA;");
+
+    writer.println("import org.apache.commons.math.complex.Complex;");
+    
+    writer.println();
     writer.println("public class " + className + " extends AbstractProgram {");
     writer.println();
     writer.println("  @Override");
     writer.println("  public void evaluate(EnvExp rho) {");
-    writer.println();
-    writer.println(symbolMap.getSymbolDefinitions());
+    writer.println("    SymbolTable symbolTable = rho.getGlobalContext().getSymbolTable();");
 
-    writer.print(body.toString());
+    for(String method : methods) {
+      writer.println("    " + method + "(symbolTable, rho);");
+    }
     writer.println("  }");
+    writer.println();
+    writer.println(body.toString());
     writer.println("}");
   }
 }

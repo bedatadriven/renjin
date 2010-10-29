@@ -34,6 +34,7 @@ public final class RealExp extends AbstractVector implements NumericExp, Iterabl
   public static final int TYPE_CODE = 14;
 
   public static final double NA = createNA();
+  public static final double NaN = Double.NaN;
   public static final double EPSILON =  0.00001;
 
   private double[] values;
@@ -170,8 +171,14 @@ public final class RealExp extends AbstractVector implements NumericExp, Iterabl
   }
 
   public static boolean isNaN(double x) {
-    return Double.isNaN(x) || x == NA;
+    return Double.isNaN(x);
   }
 
+  public static boolean isNA(double input) {
+    return Double.doubleToRawLongBits(input) == Double.doubleToRawLongBits(NA);
+  }
 
+  public static RealExp c(double... values) {
+    return new RealExp(values);
+  }
 }

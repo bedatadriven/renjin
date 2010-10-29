@@ -19,38 +19,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.compiler;
+package r.lang.primitive.types;
 
 import org.junit.Before;
 import org.junit.Test;
+import r.lang.EvalResult;
+import r.lang.GlobalContext;
 import r.lang.ListExp;
-import r.lang.RealExp;
-import r.lang.StringExp;
+import r.lang.SEXP;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static r.lang.RealExp.c;
 
-public class JavaSourceWritingVisitorTest {
-  private JavaSourceWritingVisitor visitor;
+public class Subset$Test {
 
-  @Test
-  public void list() {
-    ListExp expr = ListExp.fromArray(new RealExp(1, 2, 3), new StringExp("a", "b"));
-    expr.accept(visitor);
-
-    assertThat(visitor.getBody(), equalTo("list(c(1, 2, 3), c(\"a\", \"b\"))"));
-  }
-
-  @Test
-  public void naReal() {
-    RealExp na = new RealExp(RealExp.NA);
-    na.accept(visitor);
-
-    assertThat(visitor.getBody(), equalTo("c(NA_real_)"));
-  }
+  private GlobalContext context;
+  private Subset$ fn;
 
   @Before
-  public void setUp() throws Exception {
-    visitor = new JavaSourceWritingVisitor();
+  public void setUp() {
+    context = new GlobalContext();
+    fn = new Subset$();
   }
+
+
+  @Test
+  public void pairListExact() {
+
+    ListExp list = ListExp.buildList().add(c(1)).taggedWith(context.symbol("alligator"))
+                                     .add(c(3)).taggedWith(context.symbol("aardvark")).list();
+
+    EvalResult result = fn.apply(null, context.getGlobalEnvironment(), list, context.symbol("all"));
+    assertThat(result.getExpression(), equalTo((SEXP)c(1)));
+
+  }
+
 }

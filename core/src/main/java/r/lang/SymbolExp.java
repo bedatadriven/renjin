@@ -104,14 +104,7 @@ public class SymbolExp extends SEXP {
     } else if (this == MISSING_ARG) {
       return "<missing_arg>";
     } else {
-      StringBuilder sb = new StringBuilder();
-      sb.append("<");
-      sb.append(printName);
-      if (value != UNBOUND_VALUE) {
-        sb.append(":=").append(value.toString());
-      }
-      sb.append(">");
-      return sb.toString();
+      return "<" + getPrintName() + ">";
     }
   }
 }

@@ -48,10 +48,10 @@ public class Compiler {
   private final GlobalContext globalContext;
   private final JavaSourceWritingVisitor sourceWritingVisitor;
 
-  private String packageName = "r.packages";
-  private String className;
+  private String packageName;
   private String classOutputDir;
   private String sourceOutputDir;
+  private int sourceFileCount;
 
   public Compiler() {
     globalContext = new GlobalContext();
@@ -70,7 +70,12 @@ public class Compiler {
     }
   }
 
-
+  /**
+   * Adds an individual source file to the output class
+   *
+   * @param path
+   * @throws IOException
+   */
   public void addSource(String path) throws IOException {
     FileInputStream stream = new FileInputStream(path);
     Reader reader = new InputStreamReader(stream);
@@ -78,10 +83,47 @@ public class Compiler {
     addSource(reader);
   }
 
+  public void addSource(File sourceFile) throws IOException {
+    FileInputStream stream = new FileInputStream(sourceFile);
+    Reader reader = new InputStreamReader(stream);
+
+    addSource(reader);
+  }
+
+  /**
+   * Adds an individual source file to the output class
+   * @param reader a {@code Reader} for the source file
+   * @throws IOException
+   */
   public void addSource(Reader reader) throws IOException {
+    sourceFileCount++;
     ExpExp expList = RParser.parseSource(globalContext, reader);
     expList.accept(sourceWritingVisitor);
   }
+
+  public int getSourceFileCount() {
+    return sourceFileCount;
+  }
+
+  /**
+   * Adds all *.R source files in the given directory to the
+   * output class
+   *
+   * @param dir a directory containing *.R source files
+   */
+  private void addSourceDirectory(File dir) throws IOException {
+    Preconditions.checkArgument(dir.exists(),
+        String.format("Source directory %s does not exist", dir.getAbsolutePath()));
+    Preconditions.checkArgument(dir.isDirectory(),
+        String.format("Source directory %s is not a directory", dir.getAbsolutePath()));
+
+    for(File source : dir.listFiles()) {
+      if(source.getName().endsWith(".R")) {
+        addSource(source);
+      }
+    }
+  }
+
 
   public String getPackageName() {
     return packageName;
@@ -91,12 +133,16 @@ public class Compiler {
     this.packageName = packageName;
   }
 
-  public String getClassName() {
-    return className;
+  public String className() {
+    Preconditions.checkNotNull(packageName, "packageName must be set");
+
+    int dot = packageName.lastIndexOf('.');
+    return packageName.substring(dot+1,dot+2).toUpperCase() +
+        packageName.substring(dot+2);
   }
 
-  public void setClassName(String className) {
-    this.className = className;
+  public File packageDir(File relativeTo) {
+    return new File(relativeTo, packageName.replace('.', File.separatorChar));
   }
 
   public String getClassOutputDir() {
@@ -127,7 +173,7 @@ public class Compiler {
     try {
       loader = new URLClassLoader(new URL[] { new File(classOutputDir).toURI().toURL() } );
 
-      Class<Program> context = (Class<Program>) loader.loadClass(packageName + "." + className);
+      Class<Program> context = (Class<Program>) loader.loadClass(packageName + "." + className());
       return context.newInstance();
 
     } catch (MalformedURLException e) {
@@ -143,12 +189,14 @@ public class Compiler {
 
 
   public File writeSource() throws FileNotFoundException {
+    Preconditions.checkNotNull(packageName, "packageName must be set");
+
     File sourceDir = sourceOutputDir == null ? new File(".") : new File(sourceOutputDir);
-    if(sourceDir.exists()) {
-      sourceDir.mkdirs();
-    }
-    File sourceFile = new File(sourceDir, className + ".java");
-    sourceWritingVisitor.writeTo(packageName, className, new PrintStream(sourceFile));
+    sourceDir = packageDir(sourceDir);
+    sourceDir.mkdirs();
+
+    File sourceFile = new File(sourceDir, className() + ".java");
+    sourceWritingVisitor.writeTo(packageName, className(), new PrintStream(sourceFile));
 
     return sourceFile;
   }
@@ -172,9 +220,23 @@ public class Compiler {
 
     jfm.close();
 
-    for (Diagnostic diagnostic : diagnostics.getDiagnostics()) {
-      System.out.println("[" + diagnostic.getKind() + "] " +
-          cleanupMessage(diagnostic.getMessage(null)));
+    if(!success) {
+      StringBuilder message = new StringBuilder();
+      message.append("Compilation of the translated R sources failed. This is probably\n")
+          .append("an issue with the compiler, not your R sources.\n")
+          .append("Please consider filing an issue at: \n\n")
+          .append("http://code.google.com/p/renjin/issues/entry?template=CompilerError")
+          .append("\n\n")
+          .append("Here are the errors from javac:\n");
+
+      for (Diagnostic diagnostic : diagnostics.getDiagnostics()) {
+        message.append("[").append(diagnostic.getKind()).append("] ")
+            .append(cleanupMessage(diagnostic.getMessage(null)))
+            .append("\n");
+    
+      }
+
+      throw new RuntimeException(message.toString());
     }
   }
 
@@ -203,29 +265,57 @@ public class Compiler {
 
   public static void main(String[] arguments) {
     Options options = new Options();
-    options.addOption( OptionBuilder.withArgName("className")
+    options.addOption( OptionBuilder.withArgName("package")
         .hasArg()
-        .withDescription("Specify the name of the generated class")
-        .create());
-    options.addOption( OptionBuilder.withArgName("s")
+        .withDescription("Name of the (JVM) output package (e.g. r.packages.base")
+        .create("package"));
+
+    options.addOption( OptionBuilder.withArgName("path")
+        .hasArg()
+        .withDescription("Specify where to find input source files")
+        .create("sourcepath"));
+
+    options.addOption( OptionBuilder.withArgName("directory")
         .hasArg()
         .withDescription("Specify where to place generated source files")
-        .create());
-    options.addOption( OptionBuilder.withArgName("d")
+        .create("s"));
+    options.addOption( OptionBuilder.withArgName("directory")
         .hasArg()
         .withDescription("Specify where to place generated class files")
-        .create());
+        .create("d"));
+
+
 
     CommandLineParser parser = new PosixParser();
     try {
+      System.out.println("r.compiler.Compiler starting...");
       CommandLine commandLine = parser.parse(options, arguments);
+
+      if( commandLine.getArgList().size() == 0 && ! commandLine.hasOption("sourcepath")) {
+        throw new ParseException("Either a -sourcepath or a list of input files must be provided");
+      }
+      if( ! commandLine.hasOption("package") ) {
+        throw new ParseException("You must specify the package");
+      }
+
       Compiler compiler = new Compiler();
       compiler.setClassOutputDir( commandLine.getOptionValue("d") );
-      compiler.setClassName( commandLine.getOptionValue("className"));
+      compiler.setPackageName( commandLine.getOptionValue("package") );
+      compiler.setSourceOutputDir( commandLine.getOptionValue("s") );
+      if( commandLine.getArgList().isEmpty() ) {
+        compiler.addSourceDirectory( new File(commandLine.getOptionValue("sourcepath")) );
+      }
+
       compiler.addSources( commandLine.getArgList() );
+      compiler.compile();
+      System.out.println("Compiled " + compiler.getSourceFileCount() + " R sources.");
+
 
     } catch (ParseException e) {
-      System.out.println( "Unexpected exception: " + e.getMessage() );
+      System.out.println( e.getMessage() );
+      HelpFormatter formatter = new HelpFormatter();
+      formatter.printHelp("Compiler", options );
+
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -239,6 +329,4 @@ public class Compiler {
     return message.substring(pathStart + 1);
 
   }
-
-
 }

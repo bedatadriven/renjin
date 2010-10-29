@@ -31,6 +31,7 @@ import java.util.Iterator;
 public class StringExp extends AbstractVector implements AtomicExp, Iterable<String> {
   public static final String TYPE_NAME = "character";
   public static final int TYPE_CODE = 16;
+  public static final String NA = null;
 
   String values[];
 
@@ -112,5 +113,10 @@ public class StringExp extends AbstractVector implements AtomicExp, Iterable<Str
   @Override
   public int hashCode() {
     return Arrays.hashCode(values);
+  }
+
+  public static boolean isNA(String s) {
+    // yes this is an identity comparison because NA_character_ is null
+    return s == NA;
   }
 }

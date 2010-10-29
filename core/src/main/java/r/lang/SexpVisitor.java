@@ -99,4 +99,7 @@ public class SexpVisitor<R> {
     throw new UnsupportedOperationException();
   }
 
+  public void visitSpecial(SpecialExp specialExp) {
+    unhandled(specialExp);
+  }
 }

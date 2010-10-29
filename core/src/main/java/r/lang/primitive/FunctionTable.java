@@ -25,10 +25,7 @@ package r.lang.primitive;
 import r.lang.primitive.eval.*;
 import r.lang.primitive.math.*;
 import r.lang.primitive.system.SysTime;
-import r.lang.primitive.types.As;
-import r.lang.primitive.types.CombineFunction;
-import r.lang.primitive.types.CreateList;
-import r.lang.primitive.types.Is;
+import r.lang.primitive.types.*;
 
 import static r.lang.primitive.PPkind.*;
 import static r.lang.primitive.PPprec.*;
@@ -130,7 +127,7 @@ public class FunctionTable {
       f(".subset2", /*subset2_dflt*/ null, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("[", /*subset*/ null, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0),
       f("[[", /*subset2*/ null, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0),
-      f("$", /*subset3*/ null, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
+      f("$", Subset$.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
       f("@", /*AT*/ null, 0, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
       f("[<-", /*subassign*/ null, 0, 0, 3, PP_SUBASS, PREC_LEFT, 1),
       f("[[<-", /*subassign2*/ null, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1),

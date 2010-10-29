@@ -21,12 +21,21 @@
 
 package r.compiler.runtime;
 
+import org.apache.commons.math.complex.Complex;
 import r.lang.*;
 
 public abstract class AbstractProgram implements Program {
 
   protected static NilExp NULL = NilExp.INSTANCE;
   protected static SymbolExp MISSING = SymbolExp.MISSING_ARG;
+
+
+  // these constants are defined here for the convenience of the 
+  // code generation
+  protected static String NA_character_ = StringExp.NA;
+  protected static double NA_real_ = RealExp.NA;
+  protected static double NaN = Double.NaN;
+  protected static double Inf = Double.POSITIVE_INFINITY;
 
   protected AbstractProgram() {
   }
@@ -39,16 +48,23 @@ public abstract class AbstractProgram implements Program {
     return new RealExp(d);
   }
 
-  protected IntExp ci(int... i) {
+  protected IntExp c_int(int... i) {
     return new IntExp(i);
   }
 
   protected StringExp c(String... s) {
-    return new StringExp();
+    return new StringExp(s);
+  }
+
+  protected LogicalExp c(Logical... v) {
+    return new LogicalExp(v);
   }
 
   protected ListExp list(SEXP... items ) {
     return ListExp.fromArray(items);
   }
   
+  protected ComplexExp c(Complex... complex) {
+    return new ComplexExp(complex);
+  }
 }

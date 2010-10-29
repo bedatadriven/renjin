@@ -49,6 +49,10 @@ public abstract class PrimitiveSexp extends SEXP implements FunExp {
     return functionEntry.functionClass;
   }
 
+  public String getName() {
+    return functionEntry.name;
+  }
+
   @Override
   public EvalResult apply(LangExp call, PairList args, EnvExp rho) {
     checkArity(args);

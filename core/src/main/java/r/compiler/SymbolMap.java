@@ -26,7 +26,9 @@ import r.lang.SEXP;
 import r.lang.SymbolExp;
 import r.parser.ParseUtil;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -35,6 +37,9 @@ import java.util.Map;
  */
 class SymbolMap {
   private Map<SymbolExp, String> symbolNames = new HashMap<SymbolExp, String>();
+  private HashSet<String> reservedWords = createReservedWordSet();
+
+
 
   public SymbolMap() {
   }
@@ -96,24 +101,29 @@ class SymbolMap {
   }
 
   private String javaNameFromRName(SymbolExp symbol) {
-    StringBuilder javaName = new StringBuilder();
+    StringBuilder javaNameBuilder = new StringBuilder();
     String rName = symbol.getPrintName();
 
     int firstChar = rName.codePointAt(0);
     if (!Character.isJavaIdentifierStart(firstChar)) {
-      javaName.append('_');
+      javaNameBuilder.append('_');
     }
     if (Character.isJavaIdentifierPart(firstChar)) {
-      javaName.appendCodePoint(Character.toLowerCase(firstChar));
+      javaNameBuilder.appendCodePoint(Character.toLowerCase(firstChar));
     }
     for (int i = 1; i < rName.length(); ++i) {
       if (Character.isJavaIdentifierPart(rName.codePointAt(i))) {
-        javaName.appendCodePoint(rName.codePointAt(i));
+        javaNameBuilder.appendCodePoint(rName.codePointAt(i));
       } else {
-        javaName.append('_');
+        javaNameBuilder.append('_');
       }
     }
-    return javaName.toString();
+    String javaName = javaNameBuilder.toString();
+    if(reservedWords.contains(javaName)) {
+      return "_" + javaName;
+    } else {
+      return javaName;
+    }
   }
 
   public String getSymbolDefinitions() {
@@ -127,5 +137,84 @@ class SymbolMap {
       defs.append("\");\n");
     }
     return defs.toString();
+  }
+
+  private HashSet<String> createReservedWordSet() {
+    return new HashSet<String>(Arrays.asList(
+
+      /* java reserved words */
+      "abstract",
+      "continue",
+      "for",
+      "new",
+      "switch",
+      "assert",
+      "default",
+      "goto",
+      "package",
+      "synchronized",
+      "boolean",
+      "do",
+      "if",
+      "private",
+      "this",
+      "break",
+      "double",
+      "implements",
+      "protected",
+      "throw",
+      "byte",
+      "else",
+      "import",
+      "public",
+      "throws",
+      "case",
+      "enum",
+      "instanceof",
+      "return",
+      "transient",
+      "catch",
+      "extends",
+      "int",
+      "short",
+      "try",
+      "char",
+      "final",
+      "interface",
+      "return",
+      "transient",
+      "catch",
+      "extends",
+      "int",
+      "short",
+      "try",
+      "char",
+      "final",
+      "interface",
+      "static",
+      "void",
+      "class",
+      "finally",
+      "long",
+      "strictfp",
+      "volatile",
+      "const",
+      "float",
+      "native",
+      "super",
+      "while",
+
+      /* Literals that can't be used as identifiers */
+      "true",
+      "false",
+      "null",
+
+      /* Identifiers that we define ourselves */
+      "symbolTable",
+      "rho",
+      "c",
+      "c_int"
+
+    ));
   }
 }

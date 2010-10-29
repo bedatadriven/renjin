@@ -54,8 +54,6 @@ public abstract class EvalTestCase {
     return exp.evaluate(context.getGlobalEnvironment());
   }
 
-
-
   private SEXP parse(String source) throws IOException {
     ParseState state = new ParseState();
     ParseOptions options = ParseOptions.defaults();

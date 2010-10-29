@@ -864,21 +864,14 @@ an ANSI digit or not */
   }
 
   private SEXP mkComplex(String s) {
-      throw new UnsupportedOperationException("not quite implemented yet.");
-    //return new ComplexExp(ComplexNumber.parseComplex(s));
-//    SEXP t = context.getSymbolTable().getNilValue();
-//    double f;
-//    f = R_atof(s); /* FIXME: make certain the value is legitimate. */
-//
-//    if(GenerateCode) {
-////      t = allocVector(CPLXSXP, 1);
-////      COMPLEX(t)[0].r = 0;
-////      COMPLEX(t)[0].i = f;
-//    }
-//
-//    return t;
+    SEXP t = NilExp.INSTANCE;
+    double f = ParseUtil.parseDouble(s);
 
-    //   return R_NilValue;
+    if(parseOptions.isGenerateCode()) {
+      t = new ComplexExp(new Complex(0, f));
+    }
+
+    return t;
   }
 
 

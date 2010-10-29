@@ -77,10 +77,16 @@ class PrintingVisitor extends SexpVisitor<String> {
     out.append("NULL");
   }
 
+  @Override
+  public void visitSpecial(SpecialExp specialExp) {
+    out.append(".Primitive(").append(ParseUtil.formatStringLiteral(specialExp.getName(), "NA"));
+  }
+
   private <T> void printVector(Iterable<T> intExp, Alignment align, Function<T, String> printer) {
     List<String> elements = Lists.newArrayList(Iterables.transform(intExp, printer));
     new VectorPrinter(elements, align);
   }
+
 
   private enum Alignment {
     LEFT, RIGHT

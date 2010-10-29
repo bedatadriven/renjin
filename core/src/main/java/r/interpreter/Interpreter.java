@@ -44,6 +44,8 @@ public class Interpreter implements Runnable {
 
   public Interpreter(Console console) {
     this.global = new GlobalContext();
+  /// not yet ready:  this.global.loadBasePackage();
+
     this.console = console;
     if(console instanceof RichConsole) {
       ((RichConsole) console).setNameCompletion(new SymbolCompletion(global));

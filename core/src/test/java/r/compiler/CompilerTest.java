@@ -41,7 +41,7 @@ public class CompilerTest {
     // Set up the compiler
     Compiler compiler = new Compiler();
     compiler.setClassOutputDir(new File(".").getCanonicalPath());
-    compiler.setClassName("SimpleTest");
+    compiler.setPackageName("r.simple");
     compiler.addSource(sourceReader);
 
     // Generate the source file

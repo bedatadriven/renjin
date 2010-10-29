@@ -22,16 +22,32 @@
 package r.lang.primitive.eval;
 
 import r.lang.*;
-import r.lang.primitive.PrimitiveFunction;
+import r.lang.exception.EvalException;
+import r.lang.primitive.BinaryFunction;
 
-public class Assignment extends PrimitiveFunction {
+public class Assignment extends BinaryFunction {
 
-  public EvalResult apply(LangExp call, EnvExp rho, PairList args) {
-    SymbolExp symbol = (SymbolExp) args.getFirst();
-    SEXP newValue = args.getSecond().evalToExp(rho);
+  @Override
+  public EvalResult apply(LangExp call, EnvExp rho, SEXP leftHand, SEXP rightHand) {
 
-    rho.setVariable(symbol, newValue);
+    SymbolExp target = toSymbol(rho, leftHand);
+    SEXP newValue = rightHand.evalToExp(rho);
+
+    rho.setVariable(target, newValue);
 
     return new EvalResult(newValue, false);
+  }
+
+  private SymbolExp toSymbol(EnvExp rho, SEXP lhs) {
+    if(lhs instanceof SymbolExp) {
+      return (SymbolExp) lhs;
+
+    } else if(lhs instanceof StringExp) {
+      String name = ((StringExp) lhs).get(0);
+      return rho.getGlobalContext().getSymbolTable().install(name);
+
+    } else {
+      throw new EvalException("invalid (do_set) left-hand side to assignment");
+    }
   }
 }

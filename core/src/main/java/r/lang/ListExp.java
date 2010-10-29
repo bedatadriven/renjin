@@ -193,10 +193,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
   public ListExp clone() {
     Builder builder = new Builder();
     for(ListExp node : listNodes()) {
-      Builder.Tail tail = builder.add(node.getValue());
-      if(node.hasTag()) {
-        tail.withTag((SymbolExp) node.getTag());
-      }
+      builder.add(node.getValue()).taggedWith(node.getTag());
     }
     return builder.list();
   }
@@ -334,6 +331,9 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
     }
   }
 
+  public static Builder buildList() {
+    return new Builder();
+  }
 
   public static class Builder {
     private ListExp head = null;
@@ -342,7 +342,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
     public Builder() {
     }
 
-    public Tail add(SEXP s) {
+    public Builder add(SEXP s) {
       if (head == null) {
         head = new ListExp(s, null);
         tail = head;
@@ -351,26 +351,19 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
         tail.nextNode = next;
         tail = next;
       }
-      return new Tail(tail);
+      return this;
+    }
+
+    public Builder taggedWith(SEXP tag) {
+      tail.setTag(tag);
+      return this;
     }
 
     public ListExp list() {
       Preconditions.checkState(head != null, "ListExp cannot be empty");
-
       return head;
     }
 
-    public class Tail {
-      private final ListExp node;
-
-      public Tail(ListExp node) {
-        this.node = node;
-      }
-
-      public void withTag(SymbolExp tag) {
-        this.node.setTag(tag);
-      }
-    }
   }
 
   @Override

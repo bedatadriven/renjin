@@ -25,8 +25,9 @@ import org.apache.commons.math.complex.Complex;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
-public class ComplexExp extends AbstractVector implements AtomicExp{
+public class ComplexExp extends AbstractVector implements AtomicExp, Iterable<Complex> {
 
   public ArrayList<Complex> values;
   public static final int TYPE_CODE = 15;
@@ -60,5 +61,8 @@ public class ComplexExp extends AbstractVector implements AtomicExp{
     visitor.visit(this);
   }
 
-  
+  @Override
+  public Iterator<Complex> iterator() {
+    return values.iterator();
+  }
 }

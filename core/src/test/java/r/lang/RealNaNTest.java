@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -21,33 +21,22 @@
 
 package r.lang;
 
-import r.lang.primitive.FunctionTable;
+import org.junit.Test;
 
-public class SpecialExp extends PrimitiveSexp {
-  public static final int TYPE_CODE = 7;
-  public static final String TYPE_NAME = "special";
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-  public SpecialExp(FunctionTable.Entry functionEntry) {
-    super(functionEntry);
+public class RealNaNTest {
+
+  @Test
+  public void test() {
+
+    assertTrue("isNaN(NaN)", RealExp.isNaN(RealExp.NaN));
+    assertTrue("isNaN(NA)", RealExp.isNaN(RealExp.NA));
+    assertTrue("isNA(NA)", RealExp.isNA(RealExp.NA));
+    assertFalse("isNA(NaN)", RealExp.isNA(RealExp.NaN));
+
   }
 
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
 
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  protected PairList prepareArguments(PairList args, EnvExp rho) {
-    return args; // args to special functions are not evaluated beforehand
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visitSpecial(this);
-  }
 }

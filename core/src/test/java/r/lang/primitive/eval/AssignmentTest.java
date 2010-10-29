@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,35 +19,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.eval;
 
-import r.lang.primitive.FunctionTable;
+import org.junit.Before;
+import org.junit.Test;
+import r.lang.GlobalContext;
+import r.lang.ListExp;
+import r.lang.RealExp;
+import r.lang.StringExp;
 
-public class SpecialExp extends PrimitiveSexp {
-  public static final int TYPE_CODE = 7;
-  public static final String TYPE_NAME = "special";
+public class AssignmentTest {
+  private GlobalContext context;
+  private Assignment fn;
 
-  public SpecialExp(FunctionTable.Entry functionEntry) {
-    super(functionEntry);
+  @Test
+  public void stringTarget() throws Exception {
+
+    fn.apply(null, context.getGlobalEnvironment(),
+        ListExp.fromArray(new StringExp("a"), new RealExp(1)));
   }
 
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
+  @Test
+  public void symbolTarget() throws Exception {
+    fn.apply(null, context.getGlobalEnvironment(),
+        ListExp.fromArray(context.getSymbolTable().install("x"), new RealExp(1) ));
   }
 
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  protected PairList prepareArguments(PairList args, EnvExp rho) {
-    return args; // args to special functions are not evaluated beforehand
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visitSpecial(this);
+  @Before
+  public void setUp() throws Exception {
+    context = new GlobalContext();
+    fn = new Assignment();
   }
 }

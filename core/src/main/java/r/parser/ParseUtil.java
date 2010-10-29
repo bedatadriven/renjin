@@ -24,43 +24,13 @@ package r.parser;
 import com.google.common.base.Function;
 import r.lang.Logical;
 import r.lang.RealExp;
+import r.lang.StringExp;
 
 import java.text.NumberFormat;
 
 public class ParseUtil {
   public static final NumberFormat INTEGER_FORMAT = NumberFormat.getIntegerInstance();
   public static final NumberFormat REAL_FORMAT = createRealFormat();
-
-
-  public static void appendEscaped(StringBuilder buf, String s) {
-    for(int i=0;i!=s.length(); ++i) {
-
-      int codePoint = s.codePointAt(i);
-      if(codePoint == '\n') {
-        buf.append("\\n");
-      } else if(codePoint == '\r') {
-        buf.append("\\r");
-      } else if(codePoint == '\t') {
-        buf.append("\\t");
-      } else if(codePoint == 7) {
-        buf.append("\\a");
-      } else if(codePoint == '\b') {
-        buf.append("\\b");
-      } else if(codePoint == '\f') {
-        buf.append("\\f");
-      } else if(codePoint == 11) {
-        buf.append("\\v");
-      } else if(codePoint == '\"') {
-        buf.append("\\\"");
-      } else if(codePoint == '\\') {
-        buf.append("\\\\");
-      } else if(codePoint < 32 || codePoint > 126) {
-        buf.append("\\u");
-        buf.append(Integer.toHexString(codePoint));
-      } else
-        buf.appendCodePoint(codePoint);
-    }
-  }
 
 
   public static NumberFormat createRealFormat() {
@@ -169,7 +139,7 @@ public class ParseUtil {
           for (n = -expn, fac = 1.0; n!=0; n >>= 1, p2 *= p2)
             if ((n & 1)!=0) fac *= p2;
           ans /= fac;
-        } else {                        
+        } else {
           for (n = expn, fac = 1.0; n!=0; n >>= 1, p2 *= p2)
             if ((n & 1)!=0) fac *= p2;
           ans *= fac;
@@ -181,7 +151,7 @@ public class ParseUtil {
     for ( ; p < s.length() && s.charAt(p) >= '0' && s.charAt(p) <= '9'; p++, ndigits++)
       ans = 10*ans + (s.charAt(p) - '0');
     if ( p < s.length() && s.charAt(p) == dec)
-      for (p++; s.charAt(p) >= '0' && s.charAt(p) <= '9'; p++, ndigits++, expn--)
+      for (p++; p < s.length() && s.charAt(p) >= '0' && s.charAt(p) <= '9'; p++, ndigits++, expn--)
         ans = 10*ans + (s.charAt(p) - '0');
     if (ndigits == 0) {
       ans = RealExp.NA;
@@ -231,13 +201,16 @@ public class ParseUtil {
 
   public static class RealPrinter implements Function<Double, String> {
     @Override
-    public String apply(Double aDouble) {
-      return ParseUtil.toString(aDouble);
+    public String apply(Double input) {
+      return formatRealLiteral(input, "NA");
     }
   }
 
-  public static class RealDeparser extends RealPrinter {
-
+  public static class RealDeparser implements Function<Double, String> {
+    @Override
+    public String apply(Double input) {
+      return formatRealLiteral(input, "NA_real_");
+    }
   }
 
   public static class IntPrinter implements Function<Integer, String> {
@@ -265,14 +238,94 @@ public class ParseUtil {
   public static class StringPrinter implements Function<String, String> {
     @Override
     public String apply(String s) {
+      return formatStringLiteral(s, "NA");
+    }
+  }
+
+  public static class StringDeparser implements Function<String, String> {
+    @Override
+    public String apply(String input) {
+      return formatStringLiteral(input, "NA_character_");
+    }
+  }
+
+
+  /**
+   * Formats a {@code String} as a literal
+   *
+   * @param value the {@code String} to format
+   * @param naString the text to use for "NA" {@code String}s
+   *
+   * @return the value formatted as a literal
+   */
+  public static String formatStringLiteral(String value, String naString) {
+    if(StringExp.isNA(value)) {
+      return naString;
+    } else {
       StringBuilder sb = new StringBuilder("\"");
-      appendEscaped(sb, s);
+      appendEscaped(sb, value);
       sb.append('"');
       return sb.toString();
     }
   }
 
-  public static class StringDeparser extends StringPrinter {
-
+  /**
+   * Formats a {@code double} as a literal
+   * @param value the value to be formatted
+   * @param naString the string to use when {@code RealExp.isNA(value) } is {@code true}
+   * @return
+   */
+  public static String formatRealLiteral(double value, String naString) {
+    if(RealExp.isNA(value)) {
+      return naString;
+    } else if(Double.isNaN(value)) {
+      return "NaN";
+    } else if(Double.isInfinite(value)) {
+      return "Inf";
+    } else {
+      return ParseUtil.toString(value);
+    }
   }
+
+  public static void appendEscaped(StringBuilder buf, String s) {
+    for(int i=0;i!=s.length(); ++i) {
+
+      int codePoint = s.codePointAt(i);
+      if(codePoint == '\n') {
+        buf.append("\\n");
+      } else if(codePoint == '\r') {
+        buf.append("\\r");
+      } else if(codePoint == '\t') {
+        buf.append("\\t");
+      } else if(codePoint == 7) {
+        buf.append("\\a");
+      } else if(codePoint == '\b') {
+        buf.append("\\b");
+      } else if(codePoint == '\f') {
+        buf.append("\\f");
+      } else if(codePoint == 11) {
+        buf.append("\\v");
+      } else if(codePoint == '\"') {
+        buf.append("\\\"");
+      } else if(codePoint == '\\') {
+        buf.append("\\\\");
+      } else if(codePoint < 32 || codePoint > 126) {
+        appendUnicodeEscape(buf, codePoint);
+      } else
+        buf.appendCodePoint(codePoint);
+    }
+  }
+
+  private static void appendUnicodeEscape(StringBuilder buf, int codePoint) {
+    buf.append("\\u");
+    if(codePoint < 0xF) {
+      buf.append("000");
+    } else if(codePoint < 0xFF) {
+      buf.append("00");
+    } else if(codePoint < 0xFFF) {
+      buf.append("0");
+    }
+    buf.append(Integer.toHexString(codePoint));
+  }
+
 }

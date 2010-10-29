@@ -19,38 +19,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.compiler;
+package r.parser;
 
-import org.junit.Before;
 import org.junit.Test;
-import r.lang.ListExp;
-import r.lang.RealExp;
 import r.lang.StringExp;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class JavaSourceWritingVisitorTest {
-  private JavaSourceWritingVisitor visitor;
+public class ParseUtilTest {
 
   @Test
-  public void list() {
-    ListExp expr = ListExp.fromArray(new RealExp(1, 2, 3), new StringExp("a", "b"));
-    expr.accept(visitor);
+  public void deparseCharacterNA() {
 
-    assertThat(visitor.getBody(), equalTo("list(c(1, 2, 3), c(\"a\", \"b\"))"));
+    StringExp exp = new StringExp(StringExp.NA);
+
+    assertThat(new ParseUtil.StringDeparser().apply(StringExp.NA), equalTo("NA_character_"));
   }
 
   @Test
-  public void naReal() {
-    RealExp na = new RealExp(RealExp.NA);
-    na.accept(visitor);
-
-    assertThat(visitor.getBody(), equalTo("c(NA_real_)"));
+  public void parseZeroPointZero() {
+    assertThat(ParseUtil.parseDouble("0.0"), equalTo(0d));
   }
 
-  @Before
-  public void setUp() throws Exception {
-    visitor = new JavaSourceWritingVisitor();
+  @Test
+  public void unicodeEscapes() {
+    assertThat(ParseUtil.formatStringLiteral("\u0001", "NA"), equalTo("\"\\u0001\""));
+    assertThat(ParseUtil.formatStringLiteral("\u00a1", "NA"), equalTo("\"\\u00a1\""));
+    assertThat(ParseUtil.formatStringLiteral("\u01a1", "NA"), equalTo("\"\\u01a1\""));
+    assertThat(ParseUtil.formatStringLiteral("\u1fa1", "NA"), equalTo("\"\\u1fa1\""));
   }
 }

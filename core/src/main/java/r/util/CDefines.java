@@ -39,7 +39,7 @@ public class CDefines {
 
   public static final Object NULL = null;
 
-  public static final String NA_STRING = null;
+  public static final String NA_STRING = StringExp.NA;
 
 
   //#define DATAPTR(x)	(((SEXPREC_ALIGN *) (x)) + 1)
@@ -108,6 +108,9 @@ public class CDefines {
     return CDR(CAR(e));
   }
 
+  /**
+   * Returns the second value in the list
+   */
   public static SEXP CADR(SEXP e) {
     return CAR(CDR(e));
   }

@@ -21,21 +21,32 @@
 
 package r.lang.primitive;
 
-import r.lang.EnvExp;
-import r.lang.EvalResult;
-import r.lang.LangExp;
-import r.lang.SEXP;
+import org.junit.Before;
+import org.junit.Test;
+import r.lang.GlobalContext;
+import r.lang.RealExp;
+import r.lang.StringExp;
 
-/**
- * Unary function with no side effects.
- */
-public abstract class PureUnaryFunction extends UnaryFunction {
+public class AssignmentTest {
+  private GlobalContext context;
 
-  @Override
-  public final EvalResult apply(LangExp call, EnvExp rho, SEXP argument) {
-    return apply(argument);
+  @Test
+  public void stringTarget() throws Exception {
+
+    Evaluation.assign(context.getGlobalEnvironment(), 
+        new StringExp("a"), new RealExp(1));
   }
 
-  public abstract EvalResult apply(SEXP argument);
+  @Test
+  public void symbolTarget() throws Exception {
 
+    Evaluation.assign(context.getGlobalEnvironment(),
+        context.getSymbolTable().install("x"), new RealExp(1) );
+
+  }
+
+  @Before
+  public void setUp() throws Exception {
+    context = new GlobalContext();
+  }
 }

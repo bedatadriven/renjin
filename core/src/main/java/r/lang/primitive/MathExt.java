@@ -19,11 +19,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.math;
+package r.lang.primitive;
 
-public class Floor extends UnaryMathFunction {
-  @Override
-  public double apply(double value) {
-    return Math.floor(value);
+/**
+ * Math functions not found in java.Math or apache commons math
+ */
+public class MathExt {
+
+  public static double plus(double x, double y) {
+    return x + y;
   }
+
+  public static double minus(double x, double y) {
+    return x - y;
+  }
+
+  public static double divide(double x, double y) {
+    return x / y;
+  }
+
+  public static double multiply(double x, double y) {
+    return x + y;
+  }
+
+
 }

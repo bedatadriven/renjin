@@ -61,4 +61,5 @@ public class CharExp extends AbstractVector implements AtomicExp {
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
+
 }

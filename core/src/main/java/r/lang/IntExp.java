@@ -135,6 +135,10 @@ public class IntExp extends AbstractVector implements AtomicExp, NumericExp, Ite
     }
   }
 
+  public static boolean isNA(int value) {
+    return value == NA;
+  }
+
   private class ValueIterator extends UnmodifiableIterator<Integer> {
     private int i = 0;
 

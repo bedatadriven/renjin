@@ -26,4 +26,5 @@ package r.lang;
  * 
  */
 public interface AtomicExp {
+  int length();
 }

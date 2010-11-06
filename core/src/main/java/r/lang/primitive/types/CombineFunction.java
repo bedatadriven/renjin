@@ -23,12 +23,11 @@ package r.lang.primitive.types;
 
 import com.google.common.annotations.VisibleForTesting;
 import r.lang.*;
-import r.lang.primitive.PrimitiveFunction;
 
-public class CombineFunction extends PrimitiveFunction {
+public class CombineFunction {
 
-  @Override
-  public EvalResult apply(LangExp call, EnvExp rho, PairList args) {
+  public static EvalResult combine(EnvExp rho, LangExp call) {
+    PairList args = call.getArguments();
     if(args.length() == 0) {
       return new EvalResult(NilExp.INSTANCE);
     } else {
@@ -37,7 +36,7 @@ public class CombineFunction extends PrimitiveFunction {
   }
 
   @VisibleForTesting
-  SEXP combine(ListExp argList) {
+  static SEXP combine(ListExp argList) {
 
     // TODO: recursive??
 

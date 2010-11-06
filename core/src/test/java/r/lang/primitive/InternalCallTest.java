@@ -19,11 +19,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.math;
+package r.lang.primitive;
 
-public class Sign extends UnaryMathFunction {
-  @Override
-  public double apply(double value) {
-    return Math.signum(value);
+import org.junit.Test;
+import r.lang.EvalTestCase;
+import r.lang.RealExp;
+
+import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
+
+public class InternalCallTest extends EvalTestCase {
+
+
+  @Test
+  public void call() throws IOException {
+    assertThat(evaluateToExpression(".Internal(Sys.time())"), instanceOf(RealExp.class));
   }
+
 }

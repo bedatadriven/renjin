@@ -19,35 +19,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.eval;
+package r.lang.primitive;
 
 import com.google.common.annotations.VisibleForTesting;
-import r.lang.*;
+import r.lang.IntExp;
+import r.lang.RealExp;
+import r.lang.SEXP;
+import r.lang.Warning;
 import r.lang.exception.EvalException;
-import r.lang.primitive.BinaryFunction;
 
 
 /**
  * Creates a sequential vector from an expression like "1:99"
  */
-public class ColonFunction extends BinaryFunction {
+public class Colon {
 
-  @Override
-  public EvalResult apply(LangExp call, EnvExp rho, SEXP n1, SEXP n2) {
+  public static SEXP apply(SEXP n1, SEXP n2) {
     if( n1.inherits("factor") && n2.inherits("factor")) {
-      return new EvalResult( crossColon(n1, n2) );
+      return crossColon(n1, n2);
 
     } else {
-      return new EvalResult( colonSequence(n1, n2) );
+      return colonSequence(n1, n2);
     }
   }
 
-  private SEXP crossColon(SEXP n1, SEXP n2) {
+  private static SEXP crossColon(SEXP n1, SEXP n2) {
     throw new UnsupportedOperationException("crossColon not yet implemented");
   }
 
-  @VisibleForTesting
-  SEXP colonSequence(SEXP s1, SEXP s2 ) {
+  public static SEXP colonSequence(SEXP s1, SEXP s2 ) {
     checkArg(s1);
     checkArg(s2);
 
@@ -61,13 +61,13 @@ public class ColonFunction extends BinaryFunction {
   }
 
 
-  private void checkValue(double r1) {
+  private static void checkValue(double r1) {
     if(RealExp.isNaN(r1)) {
       throw new EvalException("NA/NaN argument");
     }
   }
 
-  private void checkArg(SEXP exp) {
+  private static void checkArg(SEXP exp) {
     if(exp.length() == 0) {
       throw new EvalException("argument of length 0");
     } else if(exp.length() > 1) {

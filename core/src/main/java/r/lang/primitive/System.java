@@ -19,11 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.math;
+package r.lang.primitive;
 
-public class Exp extends UnaryMathFunction {
-  @Override
-  public double apply(double value) {
-    return Math.exp(value);
+import java.util.Date;
+
+public class System {
+
+  public static long sysTime() {
+    return new Date().getTime();
   }
 }

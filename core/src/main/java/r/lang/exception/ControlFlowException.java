@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997--2008  The R Development Core Team
+ * Copyright (C) 1997-2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,19 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive;
+package r.lang.exception;
 
-import r.lang.EnvExp;
-import r.lang.EvalResult;
-import r.lang.LangExp;
-import r.lang.PairList;
-
-public abstract class NullaryFunction extends PrimitiveFunction {
-
-  @Override
-  public final EvalResult apply(LangExp call, EnvExp rho, PairList args) {
-    return apply(rho);
-  }
-
-  protected abstract EvalResult apply(EnvExp rho) ;
+public class ControlFlowException extends RuntimeException {
 }

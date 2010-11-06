@@ -116,4 +116,8 @@ public class LangExp extends ListExp {
     visitor.visit(this);
 
   }
+
+  public <X extends SEXP> X getArgument(int index) {
+    return getArguments().<X>get(index);
+  }
 }

@@ -23,12 +23,16 @@ package r.lang;
 
 import r.lang.exception.EvalException;
 import r.lang.primitive.FunctionTable;
-import r.lang.primitive.PrimitiveFunction;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class PrimitiveSexp extends SEXP implements FunExp {
 
   protected final FunctionTable.Entry functionEntry;
-  protected PrimitiveFunction functionInstance;
+  protected List<Method> methodOverloads;
 
   protected PrimitiveSexp(FunctionTable.Entry functionEntry) {
     this.functionEntry = functionEntry;
@@ -36,10 +40,6 @@ public abstract class PrimitiveSexp extends SEXP implements FunExp {
 
   public boolean isInternal() {
     return (functionEntry.eval % 100) / 10 != 0;
-  }
-
-  public int getArity() {
-    return functionEntry.arity;
   }
 
   /**
@@ -54,24 +54,36 @@ public abstract class PrimitiveSexp extends SEXP implements FunExp {
   }
 
   @Override
-  public EvalResult apply(LangExp call, PairList args, EnvExp rho) {
-    checkArity(args);
-    PairList preparedArgs = prepareArguments(args, rho);
+  public EvalResult apply(LangExp call, PairList arguments, EnvExp rho) {
+    checkArity(arguments);
+    // PairList preparedArgs = prepareArguments(arguments, rho);
 
-    return getFunctionInstance().apply(call, rho, preparedArgs);
+    List<Method> overloads = getMethodOverloads();
+    if(overloads.isEmpty()) {
+      StringBuilder message = new StringBuilder();
+      message.append("'" + functionEntry.name + "' is not yet implemented");
+      if(functionEntry.functionClass != null) {
+        message.append(" (").append(functionEntry.functionClass.getName())
+            .append(".").append(functionEntry.methodName);
+      }
+      throw new EvalException(message.toString());
+    }
+
+    return RuntimeOverloadResolver.INSTANCE.invoke(rho, call,
+        overloads);
   }
 
-  public final void checkArity(PairList args) {
+  public final void checkArity(PairList arguments) {
 
-    if (functionEntry.arity >= 0 && functionEntry.arity != args.length()) {
+    if (functionEntry.arity >= 0 && functionEntry.arity != arguments.length()) {
       if (isInternal()) {
         throw new EvalException(this, "%d arguments passed to .Internal(%s) which requires %d",
-            args.length(),
+            arguments.length(),
             functionEntry.name,
             functionEntry.arity);
       } else {
         throw new EvalException(this, "%d argument passed to '%s' which requires %d",
-            args.length(),
+            arguments.length(),
             functionEntry.name,
             functionEntry.arity);
       }
@@ -80,18 +92,21 @@ public abstract class PrimitiveSexp extends SEXP implements FunExp {
 
   protected abstract PairList prepareArguments(PairList args, EnvExp rho);
 
-  protected PrimitiveFunction getFunctionInstance() {
-    if (functionInstance == null) {
+  protected List<Method> getMethodOverloads() {
+    if (methodOverloads == null) {
+      methodOverloads = new ArrayList<Method>();
+      if(functionEntry.functionClass != null) {
+        for(Method method : functionEntry.functionClass.getMethods()) {
+          if(Modifier.isPublic(method.getModifiers()) &&
+              Modifier.isStatic(method.getModifiers()) &&
+              method.getName().equals(functionEntry.methodName)) {
 
-      try {
-        functionInstance = (PrimitiveFunction) functionEntry.functionClass.newInstance();
-      } catch (Exception e) {
-        throw new EvalException(this, e, "Could not create function class for function '" +
-            functionEntry.name + "' (" + functionEntry.functionClass + "); it " +
-            "may not yet be implemented.");
+            methodOverloads.add(method);
+          }
+        }
       }
     }
-    return functionInstance;
+    return methodOverloads;
   }
 
   @Override
@@ -103,4 +118,6 @@ public abstract class PrimitiveSexp extends SEXP implements FunExp {
   public String toString() {
     return functionEntry.name + "()";
   }
+
+
 }

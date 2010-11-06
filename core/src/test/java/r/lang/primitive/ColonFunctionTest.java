@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.eval;
+package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.IntExp;
@@ -34,18 +34,18 @@ public class ColonFunctionTest {
 
   @Test
   public void integerRange() {
-    ColonFunction.Range range = new ColonFunction.Range(1, 9999);
+    Colon.Range range = new Colon.Range(1, 9999);
     assertThat(range.useInteger, equalTo(true));
   }
   @Test
   public void fpRange() {
-    ColonFunction.Range range = new ColonFunction.Range(1.2, 4.2);
+    Colon.Range range = new Colon.Range(1.2, 4.2);
     assertThat(range.useInteger, equalTo(false));
   }
 
   @Test
   public void count() {
-    ColonFunction.Range range = new ColonFunction.Range(11, 13);
+    Colon.Range range = new Colon.Range(11, 13);
     assertTrue(range.count > 3d && range.count < 4d );
   }
 
@@ -75,7 +75,7 @@ public class ColonFunctionTest {
 
 
   private SEXP colon(double n1, double n2) {
-    ColonFunction fn = new ColonFunction();
+    Colon fn = new Colon();
     return fn.colonSequence(new RealExp(n1), new RealExp(n2));
   }
 }

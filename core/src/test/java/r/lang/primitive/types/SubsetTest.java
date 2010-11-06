@@ -19,16 +19,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive;
+package r.lang.primitive.types;
 
-import r.lang.*;
+import org.junit.Before;
+import org.junit.Test;
+import r.lang.GlobalContext;
+import r.lang.ListExp;
+import r.lang.SEXP;
 
-public abstract class BinaryFunction extends PrimitiveFunction {
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static r.lang.RealExp.c;
 
-  @Override
-  public final EvalResult apply(LangExp call, EnvExp rho, PairList args) {
-    return apply(call, rho, args.get(0), args.get(1));
+public class SubsetTest {
+
+  private GlobalContext context;
+
+  @Before
+  public void setUp() {
+    context = new GlobalContext();
   }
 
-  public abstract EvalResult apply(LangExp call, EnvExp rho, SEXP arg0, SEXP arg1);
+
+  @Test
+  public void pairListExact() {
+
+    ListExp list = ListExp.buildList().add(c(1)).taggedWith(context.symbol("alligator"))
+                                     .add(c(3)).taggedWith(context.symbol("aardvark")).list();
+
+    SEXP result = Subset.index(list, "all");
+    assertThat(result, equalTo((SEXP)c(1)));
+
+  }
+
 }

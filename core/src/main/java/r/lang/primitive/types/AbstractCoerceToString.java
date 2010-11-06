@@ -80,7 +80,7 @@ public class AbstractCoerceToString extends SexpVisitor implements CoercingVisit
   }
 
   @Override
-  public SEXP coerce() {
+  public StringExp coerce() {
     return new StringExp(values);
   }
 }

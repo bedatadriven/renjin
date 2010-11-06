@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-public final class RealExp extends AbstractVector implements NumericExp, Iterable<Double> {
+public final class RealExp extends AbstractVector implements AtomicExp, NumericExp, Iterable<Double> {
   public static final String TYPE_NAME = "double";
   public static final int TYPE_CODE = 14;
 

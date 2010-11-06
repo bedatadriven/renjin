@@ -22,10 +22,8 @@
 package r.lang.primitive;
 
 
-import r.lang.primitive.eval.*;
-import r.lang.primitive.math.*;
-import r.lang.primitive.system.SysTime;
-import r.lang.primitive.types.*;
+import r.lang.primitive.types.CombineFunction;
+import r.lang.primitive.types.Subset;
 
 import static r.lang.primitive.PPkind.*;
 import static r.lang.primitive.PPprec.*;
@@ -60,9 +58,10 @@ public class FunctionTable {
 
   public static class Entry {
 
-    private Entry(String name, Class functionClass, Object code, int eval, int arity, PPinfo gram) {
+    private Entry(String name, Class functionClass, String methodName, Object code, int eval, int arity, PPinfo gram) {
       this.name = name;
       this.functionClass = functionClass;
+      this.methodName = methodName;
       this.code = code;
       this.eval = eval;
       this.arity = arity;
@@ -76,6 +75,7 @@ public class FunctionTable {
 
     /* c-code address */
     public Class functionClass;
+    public String methodName;
     public Object code;     /* offset within c-code */
     public int eval;     /* evaluate args? */
     public int arity;    /* function arity */
@@ -83,18 +83,23 @@ public class FunctionTable {
   }
 
   private static Entry f(String name, Class cfun, Object offset, int eval, int arity, PPkind kind, PPprec prec, int rightassoc) {
-    return new Entry(name, cfun, offset, eval, arity, new PPinfo(kind, prec, rightassoc));
+    return new Entry(name, cfun, null, offset, eval, arity, new PPinfo(kind, prec, rightassoc));
   }
 
+    private static Entry f(String name, Class cfun, String methodName, Object offset, int eval, int arity, PPkind kind, PPprec prec, int rightassoc) {
+    return new Entry(name, cfun,methodName, offset, eval, arity, new PPinfo(kind, prec, rightassoc));
+  }
+
+
   public static final Entry[] ENTRIES = new Entry[]{
-      f("if", IfStatement.class, 0, 200, -1, PP_IF, PREC_FN, 1),
-      f("while", WhileStatement.class, 0, 100, -1, PP_WHILE, PREC_FN, 0),
-      f("for", ForStatement.class, 0, 100, -1, PP_FOR, PREC_FN, 0),
-      f("repeat", /*repeat*/ null, 0, 100, -1, PP_REPEAT, PREC_FN, 0),
-      f("break", BreakStatement.class, 0, 0, -1, PP_BREAK, PREC_FN, 0),
-      f("next", NextStatement.class, 0, 0, -1, PP_NEXT, PREC_FN, 0),
-      f("return", ReturnStatement.class, 0, 0, -1, PP_RETURN, PREC_FN, 0),
-      f("stop", null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
+      f("if", Evaluation.class, "doIf", 0, 200, -1, PP_IF, PREC_FN, 1),
+      f("while", Evaluation.class, "whileLoop", 0, 100, -1, PP_WHILE, PREC_FN, 0),
+      f("for", Evaluation.class, "forLoop", 0, 100, -1, PP_FOR, PREC_FN, 0),
+      f("repeat", Evaluation.class, "repeatLoop", 100, -1, PP_REPEAT, PREC_FN, 0),
+      f("break", Evaluation.class, "doBreak", 0, 0, -1, PP_BREAK, PREC_FN, 0),
+      f("next", Evaluation.class, "next", 0, -1, PP_NEXT, PREC_FN, 0),
+      f("return", Evaluation.class, "doReturn", 0, 0, -1, PP_RETURN, PREC_FN, 0),
+      f("stop", Evaluation.class, "stop", 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("warning", /*warning*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
 
       f("gettext", /*gettext*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
@@ -116,18 +121,18 @@ public class FunctionTable {
       f("printDeferredWarnings", /*printDeferredWarnings*/ null, 0, 111, 0, PP_FUNCALL, PREC_FN, 0),
       f("interruptsSuspended", /*interruptsSuspended*/ null, 0, 11, -1, PP_FUNCALL, PREC_FN, 0),
       f("restart", /*restart*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
-      f("function", FunctionStatement.class, 0, 0, -1, PP_FUNCTION, PREC_FN, 0),
+      f("function", Evaluation.class, "function", 0, 0, -1, PP_FUNCTION, PREC_FN, 0),
       f("as.function.default", /*asfunction*/ null, 0, 11, 2, PP_FUNCTION, PREC_FN, 0),
-      f("<-", Assignment.class, 1, 100, -1, PP_ASSIGN, PREC_LEFT, 1),
+      f("<-", Evaluation.class, "assign", 1, 100, -1, PP_ASSIGN, PREC_LEFT, 1),
       f("=", /*set*/ null, 3, 100, -1, PP_ASSIGN, PREC_EQ, 1),
       f("<<-", /*set*/ null, 2, 100, -1, PP_ASSIGN2, PREC_LEFT, 1),
-      f("{", BeginStatement.class, 0, 200, -1, PP_CURLY, PREC_FN, 0),
+      f("{", Evaluation.class, "begin", 0, 200, -1, PP_CURLY, PREC_FN, 0),
       f("(", /*paren*/ null, 0, 1, 1, PP_PAREN, PREC_FN, 0),
       f(".subset", /*subset_dflt*/ null, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f(".subset2", /*subset2_dflt*/ null, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("[", /*subset*/ null, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0),
       f("[[", /*subset2*/ null, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0),
-      f("$", Subset$.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
+      f("$", Subset.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
       f("@", /*AT*/ null, 0, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
       f("[<-", /*subassign*/ null, 0, 0, 3, PP_SUBASS, PREC_LEFT, 1),
       f("[[<-", /*subassign2*/ null, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1),
@@ -140,7 +145,7 @@ public class FunctionTable {
       f("debugonce", /*debug*/ null, 3, 111, 3, PP_FUNCALL, PREC_FN, 0),
       f(".primTrace", /*trace*/ null, 0, 101, 1, PP_FUNCALL, PREC_FN, 0),
       f(".primUntrace", /*trace*/ null, 1, 101, 1, PP_FUNCALL, PREC_FN, 0),
-      f(".Internal", InternalCall.class, 0, 200, 1, PP_FUNCALL, PREC_FN, 0),
+      f(".Internal", Evaluation.class, "internal", 0, 200, 1, PP_FUNCALL, PREC_FN, 0),
       f("on.exit", /*onexit*/ null, 0, 100, 1, PP_FUNCALL, PREC_FN, 0),
       f("Recall", /*recall*/ null, 0, 210, -1, PP_FUNCALL, PREC_FN, 0),
       f("delayedAssign", /*delayed*/ null, 0, 111, 4, PP_FUNCALL, PREC_FN, 0),
@@ -151,11 +156,11 @@ public class FunctionTable {
 
 /* Binary Operators */
 /* these are group generic and so need to eval args */
-      f("+",  Plus.class, PLUSOP, 1, 2, PP_BINARY, PREC_SUM, 0),
-      f("-", Minus.class, MINUSOP, 1, 2, PP_BINARY, PREC_SUM, 0),
-      f("*", Multiply.class, TIMESOP, 1, 2, PP_BINARY, PREC_PROD, 0),
-      f("/", Divide.class, DIVOP, 1, 2, PP_BINARY2, PREC_PROD, 0),
-      f("^", /*arith*/ null, POWOP, 1, 2, PP_BINARY2, PREC_POWER, 1),
+      f("+",  MathExt.class,"plus", PLUSOP, 1, 2, PP_BINARY, PREC_SUM, 0),
+      f("-", MathExt.class, "minus", MINUSOP, 1, 2, PP_BINARY, PREC_SUM, 0),
+      f("*", MathExt.class,  "multiply", TIMESOP, 1, 2, PP_BINARY, PREC_PROD, 0),
+      f("/", MathExt.class, "divide", DIVOP, 1, 2, PP_BINARY2, PREC_PROD, 0),
+      f("^", Math.class, "pow", POWOP, 1, 2, PP_BINARY2, PREC_POWER, 1),
       f("%%", /*arith*/ null, MODOP, 1, 2, PP_BINARY2, PREC_PERCENT, 0),
       f("%/%", /*arith*/ null, IDIVOP, 1, 2, PP_BINARY2, PREC_PERCENT, 0),
 
@@ -176,7 +181,7 @@ public class FunctionTable {
 
       f("&&", /*logic2*/ null, 1, 0, 2, PP_BINARY, PREC_AND, 0),
       f("||", /*logic2*/ null, 2, 0, 2, PP_BINARY, PREC_OR, 0),
-      f(":", ColonFunction.class, 0, 1, 2, PP_BINARY2, PREC_COLON, 0),
+      f(":", Colon.class, 0, 1, 2, PP_BINARY2, PREC_COLON, 0),
       f("~", /*tilde*/ null, 0, 0, 2, PP_BINARY, PREC_TILDE, 0),
 
 
@@ -197,7 +202,7 @@ public class FunctionTable {
       f("length<-", /*lengthgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
       f("row", /*rowscols*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("col", /*rowscols*/ null, 2, 11, 1, PP_FUNCALL, PREC_FN, 0),
-      f("c", CombineFunction.class, 0, 0, -1, PP_FUNCALL, PREC_FN, 0),
+      f("c", CombineFunction.class, "combine",  0, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("unlist", /*unlist*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("cbind", /*bind*/ null, 1, 10, -1, PP_FUNCALL, PREC_FN, 0),
       f("rbind", /*bind*/ null, 2, 10, -1, PP_FUNCALL, PREC_FN, 0),
@@ -250,39 +255,39 @@ public class FunctionTable {
    only applies to the default method. */
       f("round", /*Math2*/ null, 10001, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("signif", /*Math2*/ null, 10004, 0, -1, PP_FUNCALL, PREC_FN, 0),
-      f("atan", Trig.Atan.class, 10002, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("atan",Math.class, "atan", 10002, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("log", /*log*/ null, 10003, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("log10", /*log1arg*/ null, 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("log2", /*log1arg*/ null, 2, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("abs", /*AbsFunction*/ null, 6, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("floor", Floor.class, 1, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("ceiling", Ceiling.class, 2, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("sqrt", Sqrt.class, 3, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("sign", Sign.class, 4, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("abs", Math.class, "abs", 6, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("floor", Math.class, "floor", 1, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("ceiling", Math.class, "ceil", 2, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("sqrt", Math.class, "sqrt", 3, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("sign", Math.class, "signnum", 4, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("trunc", /*trunc*/ null, 5, 1, -1, PP_FUNCALL, PREC_FN, 0),
 
-      f("exp", Exp.class, 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("exp", Math.class, "exp", 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("expm1", /*math1*/ null, 11, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("log1p", /*math1*/ null, 12, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("cos", Trig.Cos.class, 20, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("sin", Trig.Sin.class, 21, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("tan", Trig.Tan.class, 22, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("acos", Trig.Acos.class, 23, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("asin", Trig.Asin.class, 24, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("cos", Math.class, "cos", 20, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("sin", Math.class, "sin", 21, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("tan", Math.class, "tan", 22, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("acos", Math.class, "acos", 23, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("asin", Math.class, "asin", 24, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("cosh", Trig.Cosh.class, 30, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("sinh", Trig.Sinh.class, 31, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("tanh", Trig.Tanh.class, 32, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("cosh", Math.class, "cosh", 30, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("sinh", Math.class, "sinh", 31, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("tanh", Math.class, "tanh", 32, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("acosh", /*math1*/ null, 33, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("asinh", /*math1*/ null, 34, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("atanh", /*math1*/ null, 35, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("lgamma", LogGamma.class, 40, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("gamma", Gamma.class, 41, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("lgamma", org.apache.commons.math.special.Gamma.class, "logGamma", 40, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("gamma", cern.jet.stat.Gamma.class,"gamma", 41, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("digamma", /*math1*/ null, 42, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("trigamma", /*math1*/ null, 43, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("digamma", org.apache.commons.math.special.Gamma.class, "digamma", 42, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("trigamma",org.apache.commons.math.special.Gamma.class, "trigamma", 43, 1, 1, PP_FUNCALL, PREC_FN, 0),
 /* see "psigamma" below !*/
 
 /* Mathematical Functions of Two Numeric (+ 1-2 int) Variables */
@@ -470,7 +475,7 @@ public class FunctionTable {
 
 /* Type coercion */
 
-      f("as.character", As.Character.class, 0, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("as.character", Types.class, "character", 0, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("as.integer", /*ascharacter*/ null, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("as.double", /*ascharacter*/ null, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("as.complex", /*ascharacter*/ null, 3, 1, -1, PP_FUNCALL, PREC_FN, 0),
@@ -525,36 +530,36 @@ public class FunctionTable {
 
 /* Type Checking (typically implemented in ./coerce.c ) */
 
-      f("is.null",  Is.Null.class, 0 /*NILSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.logical", Is.Logical.class ,0 /*LGLSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.integer", Is.Integer.class,0 /*INTSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.real", Is.Real.class, 0/*REALSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.double", Is.Real.class, 0 /*REALSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.complex", Is.Complex.class, 0/*CPLXSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.character", Is.Character.class,0 /*STRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.symbol", Is.Symbol.class, 0 /*SYMSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.environment", Is.Environment.class, 0/* ENVSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.list", Is.List.class, 0/* VECSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.pairlist", Is.PairList.class, 0 /*LISTSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.expression", Is.Expression.class, 0 /* EXPRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.raw", /*is*/ null, 0 /* RAWSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.null", Types.class, "isNull", 0 /*NILSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.logical", Types.class, "isLogical" ,0 /*LGLSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.integer", Types.class, "isInteger", 0 /*INTSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.real", Types.class, "isReal", 0/*REALSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.double", Types.class, "isDouble", 0 /*REALSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.complex", Types.class, "isComplex", 0/*CPLXSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.character", Types.class,"isCharacter", 0 /*STRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.symbol", Types.class, "isSymbol", 0 /*SYMSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.environment", Types.class, "isEnvironment", 0/* ENVSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.list", Types.class,"isList", 0/* VECSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.pairlist", Types.class, "isPairList", 0 /*LISTSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.expression", Types.class, "isExpression",  0 /* EXPRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.raw", /*is*/ null,0 /* RAWSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
       f("is.object", /*is*/ null, 50, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.numeric", Is.Numeric.class, 100, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.numeric", Types.class, "isNumeric", 100, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.matrix", /*is*/ null, 101, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.array", /*is*/ null, 102, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.atomic", Is.Atomic.class, 200, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.recursive", Is.Recursive.class, 201, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.atomic", Types.class, "isAtomic", 200, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.recursive", Types.class, "isRecursive",201, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.call",  Is.Call.class, 300, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.language", Is.Language.class, 301, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.function", Is.Function.class, 302, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.call",  Types.class, "isCall", 300, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.language", Types.class, "isLanguage",  301, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.function", Types.class, "isFunction", 302, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.single", Is.Single.class, 999, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.single", Types.class,"isSingle", 999, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.vector", Is.Vector.class, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
+      f("is.vector", null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("is.na", /*isna*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.nan", /*isnan*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.finite", /*isfinite*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
@@ -600,7 +605,7 @@ public class FunctionTable {
       f("seq.int", /*seq*/ null, 0, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("seq_len", /*seq_len*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("seq_along", /*seq_along*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("list", CreateList.class, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("list", Types.class, "list", 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("split", /*split*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("is.loaded", /*isloaded*/ null, 0, 11, -1, PP_FOREIGN, PREC_FN, 0),
       f(".C", /*dotCode*/ null, 0, 1, -1, PP_FOREIGN, PREC_FN, 0),
@@ -638,7 +643,7 @@ public class FunctionTable {
       f("radixsort", /*radixsort*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("order", /*order*/ null, 0, 11, -1, PP_FUNCALL, PREC_FN, 0),
       f("rank", /*rank*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
-      f("missing", Missing.class, 1, 0, 1, PP_FUNCALL, PREC_FN, 0),
+      f("missing", Evaluation.class, "missing", 1, 0, 1, PP_FUNCALL, PREC_FN, 0),
       f("nargs", /*nargs*/ null, 1, 0, 0, PP_FUNCALL, PREC_FN, 0),
       f("scan", /*scan*/ null, 0, 11, 18, PP_FUNCALL, PREC_FN, 0),
       f("count.fields", /*countfields*/ null, 0, 11, 6, PP_FUNCALL, PREC_FN, 0),
@@ -832,7 +837,7 @@ public class FunctionTable {
       f("addhistory", /*addhistory*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
 
 /* date-time manipulations */
-      f("Sys.time", SysTime.class, 0, 11, 0, PP_FUNCALL, PREC_FN, 0),
+      f("Sys.time", System.class, "sysTime", 0, 11, 0, PP_FUNCALL, PREC_FN, 0),
       f("as.POSIXct", /*asPOSIXct*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("as.POSIXlt", /*asPOSIXlt*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("format.POSIXlt", /*formatPOSIXlt*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),

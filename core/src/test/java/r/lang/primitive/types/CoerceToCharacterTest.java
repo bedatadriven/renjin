@@ -21,52 +21,45 @@
 
 package r.lang.primitive.types;
 
-import org.junit.Before;
 import org.junit.Test;
 import r.lang.*;
+import r.lang.primitive.Types;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static r.ExpMatchers.stringVectorOf;
 
-public class AsTest {
-  private As.Character fn;
+public class CoerceToCharacterTest {
 
   @Test
   public void asCharacterFromReal() {
-    assertThat(fn.apply(new RealExp(1)), equalTo((SEXP)new StringExp("1")));
+    assertThat(Types.character(new RealExp(1)), equalTo((SEXP)new StringExp("1")));
   }
 
   @Test
   public void asCharacterFromManyReals() {
-    assertThat(fn.apply(new RealExp(1, 3, 5, 9, 25)), equalTo((SEXP)new StringExp("1", "3", "5", "9", "25")));
+    assertThat(Types.character(new RealExp(1, 3, 5, 9, 25)), equalTo((SEXP)new StringExp("1", "3", "5", "9", "25")));
   }
 
   @Test
   public void asCharacterFromInt() {
-    assertThat(fn.apply(new IntExp(41)), equalTo((SEXP)new StringExp("41")));
+    assertThat(Types.character(new IntExp(41)), equalTo((SEXP)new StringExp("41")));
   }
 
   @Test
   public void asCharacterFromLogical() {
-    assertThat(fn.apply(new LogicalExp(true)), stringVectorOf("TRUE"));
+    assertThat(Types.character(new LogicalExp(true)), stringVectorOf("TRUE"));
   }
 
   @Test
   public void asCharacterFromListOfReals() {
-    assertThat(fn.apply(ListExp.fromArray(new RealExp(1.5), new RealExp(1.6), new RealExp(1.7))),
+    assertThat(Types.character(ListExp.fromArray(new RealExp(1.5), new RealExp(1.6), new RealExp(1.7))),
         equalTo((SEXP)new StringExp("1.5", "1.6", "1.7")));
   }
 
   @Test
   public void asCharacterFromListOfList() {
-    assertThat(fn.apply(ListExp.fromArray(new RealExp(1), ListExp.fromArray(new RealExp(2), new RealExp(3)))),
+    assertThat(Types.character(ListExp.fromArray(new RealExp(1), ListExp.fromArray(new RealExp(2), new RealExp(3)))),
         equalTo((SEXP)new StringExp("1", "list(2, 3)")));
-  }
-
-
-  @Before
-  public void setUp() throws Exception {
-    fn = new As.Character();
   }
 }

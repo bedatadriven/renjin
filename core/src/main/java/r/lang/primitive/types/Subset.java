@@ -23,37 +23,38 @@ package r.lang.primitive.types;
 
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.BinaryFunction;
 
 /**
  *  The $ indexing operator
  *
  */
-public class Subset$ extends BinaryFunction {
+public class Subset {
 
   /** The $ subset operator.
    * We need to be sure to only evaluate the first argument.
    * The second will be a symbol that needs to be matched, not evaluated.
    */
-  @Override
-  public EvalResult apply(LangExp call, EnvExp rho, SEXP list, SEXP index) {
+  public static SEXP subset$(EnvExp rho, LangExp call) {
+
+    SEXP list = call.getArgument(1);
+    SEXP index = call.getArgument(2);
 
     if(list instanceof PairList) {
-      return new EvalResult( matchPartial((PairList)list, toString(index)) );
+      return index((PairList)list, toString(index));
 
     } else if(list instanceof EnvExp) {
-      return new EvalResult( ((EnvExp) list).findVariable(
-          rho.getGlobalContext().symbol( toString(index) ) ) );
+      return  ((EnvExp) list).findVariable(
+          rho.getGlobalContext().symbol( toString(index) ) );
 
     } else if(list instanceof AtomicExp) {
       throw new EvalException("$ operator is invalid for atomic vectors");
 
     } else {
-      return new EvalResult(  NilExp.INSTANCE );
+      return NilExp.INSTANCE ;
     }
   }
 
-  private SEXP matchPartial(PairList list, String indexName)  {
+  public static SEXP index(PairList list, String indexName)  {
     SEXP partialMatch = null;
     int partialMatchCount = 0;
 
@@ -62,7 +63,7 @@ public class Subset$ extends BinaryFunction {
       if(tag != null) {
         if(indexName.equals(tag)) {
           return node.getValue();
-        } else if(indexName.startsWith(tag)) {
+        } else if(tag.startsWith(indexName)) {
           partialMatch = node.getValue();
           partialMatchCount++;
         }
@@ -74,7 +75,7 @@ public class Subset$ extends BinaryFunction {
     return NilExp.INSTANCE;
   }
 
-  private String tagName(SEXP tag) {
+  private static String tagName(SEXP tag) {
     if(tag instanceof SymbolExp) {
       return ((SymbolExp) tag).getPrintName();
     } else {
@@ -82,7 +83,7 @@ public class Subset$ extends BinaryFunction {
     }
   }
 
-  private String toString(SEXP index) {
+  private static String toString(SEXP index) {
     if(index instanceof SymbolExp) {
       return ((SymbolExp) index).getPrintName();
     } else if(index instanceof StringExp) {

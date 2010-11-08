@@ -22,8 +22,8 @@
 package r.lang.primitive;
 
 import com.google.common.annotations.VisibleForTesting;
+import r.lang.DoubleExp;
 import r.lang.IntExp;
-import r.lang.RealExp;
 import r.lang.SEXP;
 import r.lang.Warning;
 import r.lang.exception.EvalException;
@@ -62,7 +62,7 @@ public class Colon {
 
 
   private static void checkValue(double r1) {
-    if(RealExp.isNaN(r1)) {
+    if(DoubleExp.isNaN(r1)) {
       throw new EvalException("NA/NaN argument");
     }
   }
@@ -87,7 +87,7 @@ public class Colon {
       this.n1 = n1;
       this.n2 = n2;
       range = Math.abs(n2 - n1);
-      count = range + 1 + RealExp.EPSILON;
+      count = range + 1 + DoubleExp.EPSILON;
 
       determineType();
     }
@@ -140,7 +140,7 @@ public class Colon {
           values[index++] = n;
         }
       }
-      return new RealExp(values);
+      return new DoubleExp(values);
     }
   }
 }

@@ -22,9 +22,9 @@
 package r.interpreter;
 
 import org.junit.Test;
+import r.lang.DoubleExp;
 import r.lang.IntExp;
 import r.lang.ListExp;
-import r.lang.RealExp;
 import r.lang.StringExp;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -34,7 +34,7 @@ public class PrintingVisitorTest {
 
   @Test
   public void realVector() {
-    assertThat(new PrintingVisitor(new RealExp(1,99,3), 80).getResult(),
+    assertThat(new PrintingVisitor(new DoubleExp(1,99,3), 80).getResult(),
         equalTo("[1]  1 99  3\n"));                                                
   }
 
@@ -47,7 +47,7 @@ public class PrintingVisitorTest {
   @Test
   public void listOfVectors() {
     assertThat(new PrintingVisitor(
-        ListExp.fromArray(new RealExp(1), new IntExp(999, 1), new StringExp("hello world")), 80)
+        ListExp.fromArray(new DoubleExp(1), new IntExp(999, 1), new StringExp("hello world")), 80)
           .getResult(),
         equalTo("[[1]]\n" +
                 "[1] 1\n" +

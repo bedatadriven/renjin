@@ -73,7 +73,7 @@ public class ControlFlowTest extends EvalTestCase {
 
   @Test
   public void emptyBraces() throws IOException {
-    assertThat(evaluateToExpression("{}"), equalTo((SEXP) NilExp.INSTANCE));
+    assertThat(evaluateToExpression("{}"), equalTo((SEXP) NullExp.INSTANCE));
   }
 
   @Test

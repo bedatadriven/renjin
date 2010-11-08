@@ -63,7 +63,7 @@ class PrintingVisitor extends SexpVisitor<String> {
   }
 
   @Override
-  public void visit(RealExp realExp) {
+  public void visit(DoubleExp realExp) {
     printVector(realExp, Alignment.RIGHT, new ParseUtil.RealPrinter());
   }
 
@@ -73,7 +73,7 @@ class PrintingVisitor extends SexpVisitor<String> {
   }
 
   @Override
-  public void visit(NilExp nilExp) {
+  public void visit(NullExp nilExp) {
     out.append("NULL");
   }
 

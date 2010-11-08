@@ -28,8 +28,8 @@ import r.lang.exception.EvalException;
  */
 public abstract class SEXP {
 
-  private SEXP attributes = NilExp.INSTANCE;
-  private SEXP tag = NilExp.INSTANCE;
+  private SEXP attributes = NullExp.INSTANCE;
+  private SEXP tag = NullExp.INSTANCE;
   private int named = 0;
 
 
@@ -84,7 +84,7 @@ public abstract class SEXP {
   }
 
   public boolean hasTag() {
-    return tag != NilExp.INSTANCE;
+    return tag != NullExp.INSTANCE;
   }
 
   public void setTag(SEXP tag) {
@@ -177,7 +177,7 @@ public abstract class SEXP {
    * Coerces this {@code SEXP} to a single double value.
    */
   public double asReal() {
-    return RealExp.NA;
+    return DoubleExp.NA;
   }
 
   public SEXP getAttribute(String name) {

@@ -29,12 +29,12 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class PrimitiveSexp extends SEXP implements FunExp {
+public abstract class PrimitiveExp extends SEXP implements FunExp {
 
   protected final FunctionTable.Entry functionEntry;
   protected List<Method> methodOverloads;
 
-  protected PrimitiveSexp(FunctionTable.Entry functionEntry) {
+  protected PrimitiveExp(FunctionTable.Entry functionEntry) {
     this.functionEntry = functionEntry;
   }
 
@@ -69,7 +69,7 @@ public abstract class PrimitiveSexp extends SEXP implements FunExp {
       throw new EvalException(message.toString());
     }
 
-    return RuntimeOverloadResolver.INSTANCE.invoke(rho, call,
+    return RuntimeInvoker.INSTANCE.invoke(rho, call,
         overloads);
   }
 

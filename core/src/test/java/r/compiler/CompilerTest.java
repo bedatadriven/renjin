@@ -59,7 +59,7 @@ public class CompilerTest {
     SymbolExp a = context.getSymbolTable().install("a");
     SymbolExp myfunc = context.getSymbolTable().install("myfunc");
 
-    assertThat(env.findVariable(a), equalTo((SEXP)new RealExp(42)));
+    assertThat(env.findVariable(a), equalTo((SEXP)new DoubleExp(42)));
 
     ClosureExp myfuncClosureExp = (ClosureExp) env.findVariable(myfunc);
     assertThat(myfuncClosureExp, is(not(nullValue())));

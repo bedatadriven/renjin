@@ -22,8 +22,8 @@
 package r.lang.primitive;
 
 import org.junit.Test;
+import r.lang.DoubleExp;
 import r.lang.EvalTestCase;
-import r.lang.RealExp;
 
 import java.io.IOException;
 
@@ -35,7 +35,7 @@ public class InternalCallTest extends EvalTestCase {
 
   @Test
   public void call() throws IOException {
-    assertThat(evaluateToExpression(".Internal(Sys.time())"), instanceOf(RealExp.class));
+    assertThat(evaluateToExpression(".Internal(Sys.time())"), instanceOf(DoubleExp.class));
   }
 
 }

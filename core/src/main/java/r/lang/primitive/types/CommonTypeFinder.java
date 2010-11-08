@@ -43,7 +43,7 @@ class CommonTypeFinder extends SexpVisitor {
   }
 
   @Override
-  public void visit(RealExp realExp) {
+  public void visit(DoubleExp realExp) {
     canBeInt = false;
     canBeLogical = false;
   }
@@ -58,7 +58,7 @@ class CommonTypeFinder extends SexpVisitor {
   }
 
   @Override
-  public void visit(NilExp nilExp) {
+  public void visit(NullExp nilExp) {
     // ignore
   }
 
@@ -88,7 +88,7 @@ class CommonTypeFinder extends SexpVisitor {
       return IntExp.class;
 
     } else if(canBeReal) {
-      return RealExp.class;
+      return DoubleExp.class;
 
     } else if(canBeString) {
       return StringExp.class;

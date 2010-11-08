@@ -42,7 +42,7 @@ public class TypesTest extends EvalTestCase {
   @Test
   public void asDoubleFromDouble() {
     assertThat( evaluateToExpression("as.double(3.14)"), equalTo( c(3.14) ) );
-    assertThat( evaluateToExpression("as.double(NA_real_)"), equalTo( c(RealExp.NA) ) );
+    assertThat( evaluateToExpression("as.double(NA_real_)"), equalTo( c(DoubleExp.NA) ) );
   }
 
   @Test
@@ -59,7 +59,7 @@ public class TypesTest extends EvalTestCase {
   @Test
   public void asDoubleFromString() {
     assertThat( evaluateToExpression("as.double(\"42\")"), equalTo( c(42d) ));
-    assertThat( evaluateToExpression("as.double(\"not an integer\")"), equalTo( c(RealExp.NA) ));
+    assertThat( evaluateToExpression("as.double(\"not an integer\")"), equalTo( c(DoubleExp.NA) ));
   }
 
   @Test

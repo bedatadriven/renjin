@@ -23,15 +23,16 @@ package r.lang.primitive.types;
 
 import org.junit.Before;
 import org.junit.Test;
+import r.lang.EvalTestCase;
 import r.lang.GlobalContext;
 import r.lang.ListExp;
 import r.lang.SEXP;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static r.lang.RealExp.c;
 
-public class SubsetTest {
+
+public class SubsetTest extends EvalTestCase {
 
   private GlobalContext context;
 

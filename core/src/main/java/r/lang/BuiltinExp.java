@@ -23,7 +23,7 @@ package r.lang;
 
 import r.lang.primitive.FunctionTable;
 
-public class BuiltinExp extends PrimitiveSexp {
+public class BuiltinExp extends PrimitiveExp {
   public static final int TYPE_CODE = 8;
   public static final String TYPE_NAME = "builtin";
 

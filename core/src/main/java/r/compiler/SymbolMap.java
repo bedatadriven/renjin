@@ -21,7 +21,7 @@
 
 package r.compiler;
 
-import r.lang.PrimitiveSexp;
+import r.lang.PrimitiveExp;
 import r.lang.SEXP;
 import r.lang.SymbolExp;
 import r.parser.ParseUtil;
@@ -70,10 +70,10 @@ class SymbolMap {
   }
 
   private String makeSymbolName(SymbolExp symbol) {
-    if (symbol.getValue() instanceof PrimitiveSexp) {
+    if (symbol.getValue() instanceof PrimitiveExp) {
       return javaNameFromPrimitive(symbol, symbol.getValue());
 
-    } else if (symbol.getInternal() instanceof PrimitiveSexp) {
+    } else if (symbol.getInternal() instanceof PrimitiveExp) {
       return javaNameFromPrimitive(symbol, symbol.getInternal());
 
     } else {
@@ -82,7 +82,7 @@ class SymbolMap {
   }
 
   private String javaNameFromPrimitive(SymbolExp symbol, SEXP value) {
-    Class fnClass = ((PrimitiveSexp) value).getFunctionClass();
+    Class fnClass = ((PrimitiveExp) value).getFunctionClass();
     // unimplemented functions have a null class
     if (fnClass == null) {
       return javaNameFromRName(symbol);

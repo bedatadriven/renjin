@@ -108,7 +108,7 @@ public class LangExp extends ListExp {
   }
  
   public PairList getArguments() {
-    return nextNode == null ? NilExp.INSTANCE : nextNode;
+    return nextNode == null ? NullExp.INSTANCE : nextNode;
   }
 
   @Override

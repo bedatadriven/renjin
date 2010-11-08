@@ -22,8 +22,8 @@
 package r.parser;
 
 import com.google.common.base.Function;
+import r.lang.DoubleExp;
 import r.lang.Logical;
-import r.lang.RealExp;
 import r.lang.StringExp;
 
 import java.text.NumberFormat;
@@ -85,7 +85,7 @@ public class ParseUtil {
     while (Character.isWhitespace(s.charAt(p))) p++;
 
     if (NA && s.substring(p, p+2).equals("NA")) {
-      ans = RealExp.NA;
+      ans = DoubleExp.NA;
       p += 2;
       return new DoubleResult(ans, p);
     }
@@ -154,7 +154,7 @@ public class ParseUtil {
       for (p++; p < s.length() && s.charAt(p) >= '0' && s.charAt(p) <= '9'; p++, ndigits++, expn--)
         ans = 10*ans + (s.charAt(p) - '0');
     if (ndigits == 0) {
-      ans = RealExp.NA;
+      ans = DoubleExp.NA;
       p = 0; /* back out */
       return new DoubleResult(sign * ans, p);
     }
@@ -276,7 +276,7 @@ public class ParseUtil {
    * @return
    */
   public static String formatRealLiteral(double value, String naString) {
-    if(RealExp.isNA(value)) {
+    if(DoubleExp.isNA(value)) {
       return naString;
     } else if(Double.isNaN(value)) {
       return "NaN";

@@ -108,7 +108,7 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
   }
 
   @Override
-  public void visit(NilExp nilExp) {
+  public void visit(NullExp nilExp) {
     body.append("NULL");
   }
 
@@ -128,7 +128,7 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
   }
 
   @Override
-  public void visit(RealExp realExp) {
+  public void visit(DoubleExp realExp) {
     body.append("c(");
     Joiner.on(", ").appendTo(body, transform(realExp, new ParseUtil.RealDeparser()));
     body.append(")");

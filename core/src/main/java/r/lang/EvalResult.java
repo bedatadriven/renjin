@@ -22,14 +22,16 @@
 package r.lang;
 
 /**
- * The result of an evaluation.
+ * The result of an evaluation, which includes both the resulting {@code SEXP}
+ * and a visibility flag which controls whether the result is printed in the context
+ * of a REPL.
  */
 public class EvalResult {
 
   private final SEXP expression;
   private final boolean visible;
 
-  public static EvalResult NON_PRINTING_NULL = new EvalResult(NilExp.INSTANCE, false);
+  public static EvalResult NON_PRINTING_NULL = new EvalResult(NullExp.INSTANCE, false);
 
   public EvalResult(SEXP expression) {
     this.expression = expression;

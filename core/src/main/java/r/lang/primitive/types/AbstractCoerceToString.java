@@ -54,7 +54,7 @@ public class AbstractCoerceToString extends SexpVisitor implements CoercingVisit
   }
 
   @Override
-  public void visit(RealExp realExp) {
+  public void visit(DoubleExp realExp) {
     ensureAdditionalCapacityFor(realExp);
     for(int i=0;i!=realExp.length();++i) {
       values.add(ParseUtil.toString(realExp.get(i)));

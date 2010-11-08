@@ -23,7 +23,7 @@ package r.lang;
 
 import r.lang.primitive.FunctionTable;
 
-public class SpecialExp extends PrimitiveSexp {
+public class SpecialExp extends PrimitiveExp {
   public static final int TYPE_CODE = 7;
   public static final String TYPE_NAME = "special";
 

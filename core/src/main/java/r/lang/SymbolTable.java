@@ -118,7 +118,7 @@ public class SymbolTable {
   private void installFunctionTable() {
     for (FunctionTable.Entry entry : FunctionTable.ENTRIES) {
       SymbolExp symbol = install(entry.name);
-      PrimitiveSexp primitive;
+      PrimitiveExp primitive;
 
       if (entry.eval % 10 != 0) {
         primitive = new BuiltinExp(entry);

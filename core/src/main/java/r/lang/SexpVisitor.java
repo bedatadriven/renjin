@@ -67,19 +67,19 @@ public class SexpVisitor<R> {
     unhandled(logicalExp);
   }
 
-  public void visit(NilExp nilExp) {
+  public void visit(NullExp nilExp) {
     unhandled(nilExp);
   }
 
-  public void visit(PrimitiveSexp primitiveSexp) {
+  public void visit(PrimitiveExp primitiveSexp) {
     unhandled(primitiveSexp);
   }
 
-  public void visit(PromExp promExp) {
+  public void visit(PromiseExp promExp) {
     unhandled(promExp);
   }
 
-  public void visit(RealExp realExp) {
+  public void visit(DoubleExp realExp) {
     unhandled(realExp);
   }
 

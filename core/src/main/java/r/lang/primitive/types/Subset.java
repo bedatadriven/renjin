@@ -50,7 +50,7 @@ public class Subset {
       throw new EvalException("$ operator is invalid for atomic vectors");
 
     } else {
-      return NilExp.INSTANCE ;
+      return NullExp.INSTANCE ;
     }
   }
 
@@ -72,7 +72,7 @@ public class Subset {
     if(partialMatchCount == 1) {
       return partialMatch;
     }
-    return NilExp.INSTANCE;
+    return NullExp.INSTANCE;
   }
 
   private static String tagName(SEXP tag) {

@@ -25,10 +25,13 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 import r.parser.ParseUtil;
 
+/**
+ * Primitive type inspection and coercion functions
+ */
 public class Types {
 
   public static boolean isNull(SEXP exp) {
-    return exp == NilExp.INSTANCE;
+    return exp == NullExp.INSTANCE;
   }
 
   public static boolean isLogical(SEXP exp) {
@@ -40,11 +43,11 @@ public class Types {
   }
 
   public static boolean isReal(SEXP exp) {
-    return exp instanceof RealExp;
+    return exp instanceof DoubleExp;
   }
 
   public static boolean isDouble(SEXP exp) {
-    return exp instanceof RealExp;
+    return exp instanceof DoubleExp;
   }
 
   public static boolean isComplex(SEXP exp) {
@@ -86,7 +89,7 @@ public class Types {
   public static boolean isNumeric(SEXP exp) {
     return (exp instanceof IntExp && !exp.inherits("factor")) ||
             exp instanceof LogicalExp ||
-            exp instanceof RealExp;
+            exp instanceof DoubleExp;
 
 
   }
@@ -111,11 +114,11 @@ public class Types {
   }
 
   public static boolean isNA(double value) {
-    return RealExp.isNA(value);
+    return DoubleExp.isNA(value);
   }
 
   public static boolean isNaN(double value) {
-    return RealExp.isNaN(value);
+    return DoubleExp.isNaN(value);
   }
 
   public static boolean isFinite(double value) {
@@ -130,7 +133,7 @@ public class Types {
     return value;
   }
 
-  public static RealExp asDouble(RealExp exp) {
+  public static DoubleExp asDouble(DoubleExp exp) {
     return exp;
   }
 

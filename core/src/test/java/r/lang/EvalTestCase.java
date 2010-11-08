@@ -82,7 +82,7 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP c(double... values) {
-    return new RealExp(values);
+    return new DoubleExp(values);
   }
 
   protected SEXP c_i(int... values) {

@@ -31,14 +31,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class RuntimeOverloadResolver {
+/**
+ * Invokes a JVM method from the R language.
+ *
+ * This class handles all the details of mapping an R call to a static method in the JVM,
+ * applying implicit type conversions, evaluating arguments, etc.
+ *
+ * This implementation relies heavily on reflection, so it will probably be several orders
+ * of magnitude too slow, but it does succeed in extracting all the messy details of type conversion
+ * away from the primitive implementations.
+ *
+ * In the future, this could be replaced by a code generator that generates wrappers for each overload,
+ * or, more ambitiously, just-in-time wrapper generation.
+ */
+public class RuntimeInvoker {
 
-  public static final RuntimeOverloadResolver INSTANCE = new RuntimeOverloadResolver();
+  public static final RuntimeInvoker INSTANCE = new RuntimeInvoker();
 
   private List<CallStrategy> strategies;
   private List<AtomicAccessor> accessors;
 
-  private RuntimeOverloadResolver() {
+  private RuntimeInvoker() {
     strategies = new ArrayList<CallStrategy>();
     strategies.add(new FixedArity());
     strategies.add(new UnaryPrimitive(Integer.TYPE));
@@ -47,18 +60,18 @@ public class RuntimeOverloadResolver {
     strategies.add(new BinaryPrimitive());
     strategies.add(new VarArgs());
 
+    accessors = new ArrayList<AtomicAccessor>();
+    accessors.add(new RealExpAccessor());
+    accessors.add(new StringExpAccessor());
+
     // These are essentially the implicit type conversions
     // supported by the R language
-    accessors = new ArrayList<AtomicAccessor>();
     accessors.add(new LogicalExpToInt());
-    accessors.add(new RealExpToDouble());
     accessors.add(new LogicalExpToDouble());
     accessors.add(new IntExpToDouble());
-    accessors.add(new StringExpToString());
     accessors.add(new RealExpToString());
     accessors.add(new IntExpToString());
     accessors.add(new LogicalExpToString());
-
   }
 
   public EvalResult invoke(EnvExp rho, LangExp call, List<Method> overloads) {
@@ -273,10 +286,10 @@ public class RuntimeOverloadResolver {
       return new EvalResult((SEXP) result);
 
     } else if(result instanceof Long) {
-      return new EvalResult( new RealExp(((Long)result).doubleValue()) );
+      return new EvalResult( new DoubleExp(((Long)result).doubleValue()) );
 
     } else if(result instanceof double[]) {
-      return new EvalResult( new RealExp((double[]) result) );
+      return new EvalResult( new DoubleExp((double[]) result) );
 
     } else if(result instanceof boolean[]) {
       return new EvalResult( new LogicalExp((boolean[]) result));
@@ -353,12 +366,12 @@ public class RuntimeOverloadResolver {
 
     @Override
     public void setNA(int index) {
-      values[index] = RealExp.NA;
+      values[index] = DoubleExp.NA;
     }
 
     @Override
     public SEXP build() {
-      return new RealExp( values );
+      return new DoubleExp( values );
     }
   }
 
@@ -468,19 +481,19 @@ public class RuntimeOverloadResolver {
     }
   }
 
-  private static class RealExpToDouble implements AtomicAccessor<RealExp, Double> {
+  private static class RealExpAccessor implements AtomicAccessor<DoubleExp, Double> {
     @Override
     public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == RealExp.class && destinationType == Double.TYPE;
+      return expType == DoubleExp.class && destinationType == Double.TYPE;
     }
 
     @Override
-    public boolean isNA(RealExp exp, int index) {
-      return RealExp.isNA( exp.get(index) );
+    public boolean isNA(DoubleExp exp, int index) {
+      return DoubleExp.isNA( exp.get(index) );
     }
 
     @Override
-    public Double get(RealExp exp, int index) {
+    public Double get(DoubleExp exp, int index) {
       return exp.get(index);
     }
   }
@@ -519,7 +532,7 @@ public class RuntimeOverloadResolver {
     }
   }
 
-  private static class StringExpToString implements AtomicAccessor<StringExp, String> {
+  private static class StringExpAccessor implements AtomicAccessor<StringExp, String> {
     @Override
     public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
       return expType == StringExp.class && destinationType == String.class;
@@ -536,19 +549,19 @@ public class RuntimeOverloadResolver {
     }
   }
 
-  private static class RealExpToString implements AtomicAccessor<RealExp, String> {
+  private static class RealExpToString implements AtomicAccessor<DoubleExp, String> {
     @Override
     public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == RealExp.class && destinationType == String.class;
+      return expType == DoubleExp.class && destinationType == String.class;
     }
 
     @Override
-    public boolean isNA(RealExp exp, int index) {
-      return RealExp.isNA(exp.get(index));
+    public boolean isNA(DoubleExp exp, int index) {
+      return DoubleExp.isNA(exp.get(index));
     }
 
     @Override
-    public String get(RealExp exp, int index) {
+    public String get(DoubleExp exp, int index) {
       return ParseUtil.toString(exp.get(index));
     }
   }

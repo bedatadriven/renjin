@@ -33,7 +33,7 @@ public class CDefines {
   protected CDefines() {
   }
 
-  public static final NilExp R_NilValue = NilExp.INSTANCE;
+  public static final NullExp R_NilValue = NullExp.INSTANCE;
   public static final SymbolExp R_MissingArg = SymbolExp.MISSING_ARG;
   public static final SymbolExp R_UnboundValue = SymbolExp.UNBOUND_VALUE;
 
@@ -360,7 +360,7 @@ public class CDefines {
   }
 
   public static boolean isNull(SEXP s) {
-    return s == NilExp.INSTANCE;
+    return s == NullExp.INSTANCE;
   }
 
   public static boolean isSymbol(SEXP s) {
@@ -372,7 +372,7 @@ public class CDefines {
   }
 
   public static boolean isReal(SEXP s) {
-    return s instanceof RealExp;
+    return s instanceof DoubleExp;
   }
 
   public static boolean isComplex(SEXP s) {

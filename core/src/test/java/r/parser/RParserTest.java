@@ -46,7 +46,7 @@ public class RParserTest {
   @Test
   public void one() throws IOException {
     SEXP r = parseSingle("1\n");
-    assertThat(r, CoreMatchers.instanceOf(RealExp.class));
+    assertThat(r, CoreMatchers.instanceOf(DoubleExp.class));
   }
 
   @Test

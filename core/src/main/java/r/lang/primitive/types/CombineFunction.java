@@ -29,7 +29,7 @@ public class CombineFunction {
   public static EvalResult combine(EnvExp rho, LangExp call) {
     PairList args = call.getArguments();
     if(args.length() == 0) {
-      return new EvalResult(NilExp.INSTANCE);
+      return new EvalResult(NullExp.INSTANCE);
     } else {
       return new EvalResult(combine((ListExp)args));
     }
@@ -48,7 +48,7 @@ public class CombineFunction {
     } else if(commonType == StringExp.class) {
       return new CombineToString(argList).coerce();
 
-    } else if(commonType == RealExp.class) {
+    } else if(commonType == DoubleExp.class) {
       return new CoerceToRealVisitor(argList).coerce();
     } else {
       // TODO: handle other atomic vector cases

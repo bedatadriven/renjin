@@ -71,7 +71,7 @@ public class StringExp extends AbstractVector implements AtomicExp, Iterable<Str
       return ParseUtil.parseDouble(values[0]);
     } else {
 
-      return RealExp.NA;
+      return DoubleExp.NA;
     }
   }
 

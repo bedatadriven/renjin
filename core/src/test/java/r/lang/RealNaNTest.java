@@ -31,10 +31,10 @@ public class RealNaNTest {
   @Test
   public void test() {
 
-    assertTrue("isNaN(NaN)", RealExp.isNaN(RealExp.NaN));
-    assertTrue("isNaN(NA)", RealExp.isNaN(RealExp.NA));
-    assertTrue("isNA(NA)", RealExp.isNA(RealExp.NA));
-    assertFalse("isNA(NaN)", RealExp.isNA(RealExp.NaN));
+    assertTrue("isNaN(NaN)", DoubleExp.isNaN(DoubleExp.NaN));
+    assertTrue("isNaN(NA)", DoubleExp.isNaN(DoubleExp.NA));
+    assertTrue("isNA(NA)", DoubleExp.isNA(DoubleExp.NA));
+    assertFalse("isNA(NaN)", DoubleExp.isNA(DoubleExp.NaN));
 
   }
 

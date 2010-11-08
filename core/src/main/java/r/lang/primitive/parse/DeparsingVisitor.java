@@ -84,22 +84,22 @@ public class DeparsingVisitor extends SexpVisitor<String> {
   }
 
   @Override
-  public void visit(NilExp nilExp) {
+  public void visit(NullExp nilExp) {
     deparsed.append("NULL");
   }
 
   @Override
-  public void visit(PrimitiveSexp primitiveSexp) {
+  public void visit(PrimitiveExp primitiveSexp) {
     super.visit(primitiveSexp);
   }
 
   @Override
-  public void visit(PromExp promExp) {
+  public void visit(PromiseExp promExp) {
     super.visit(promExp);
   }
 
   @Override
-  public void visit(RealExp realExp) {
+  public void visit(DoubleExp realExp) {
     appendVector(realExp, new ParseUtil.RealDeparser());
   }
 

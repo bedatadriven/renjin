@@ -93,7 +93,7 @@ public class IntExp extends AbstractVector implements AtomicExp, NumericExp, Ite
   @Override
   public double asReal() {
     if(length() == 0 || values[0] == NA) {
-      return RealExp.NA;
+      return DoubleExp.NA;
     } else {
       return values[0];
     }

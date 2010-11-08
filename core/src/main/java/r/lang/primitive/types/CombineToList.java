@@ -39,9 +39,9 @@ class CombineToList extends SexpVisitor implements CoercingVisitor {
   }
 
   @Override
-  public void visit(RealExp realExp) {
+  public void visit(DoubleExp realExp) {
     for(Double d : realExp) {
-      addElement(new RealExp(d));
+      addElement(new DoubleExp(d));
     }
   }
 
@@ -60,7 +60,7 @@ class CombineToList extends SexpVisitor implements CoercingVisitor {
   }
 
   @Override
-  public void visit(NilExp nilExp) {
+  public void visit(NullExp nilExp) {
     // Ignore
   }
 

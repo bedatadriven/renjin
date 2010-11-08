@@ -25,14 +25,14 @@ import com.google.common.collect.Iterators;
 
 import java.util.Iterator;
 
-public final class NilExp extends SEXP implements PairList, AtomicExp {
+public final class NullExp extends SEXP implements PairList, AtomicExp {
 
   public static final int TYPE_CODE = 0;
   public static final String TYPE_NAME = "NULL";
 
-  public static final NilExp INSTANCE = new NilExp();
+  public static final NullExp INSTANCE = new NullExp();
 
-  private NilExp() {
+  private NullExp() {
 
   }
 
@@ -63,7 +63,7 @@ public final class NilExp extends SEXP implements PairList, AtomicExp {
 
   @Override
   public SEXP getAttribute(String name) {
-    return NilExp.INSTANCE;
+    return NullExp.INSTANCE;
   }
 
   @Override

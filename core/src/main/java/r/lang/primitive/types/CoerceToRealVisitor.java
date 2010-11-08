@@ -35,7 +35,7 @@ public class CoerceToRealVisitor extends SexpVisitor implements CoercingVisitor 
   }
 
   @Override
-  public void visit(RealExp realExp) {
+  public void visit(DoubleExp realExp) {
     values.addAll(realExp.asListOfDoubles());
   }
 
@@ -68,7 +68,7 @@ public class CoerceToRealVisitor extends SexpVisitor implements CoercingVisitor 
   }
 
   @Override
-  public void visit(NilExp nilExp) {
+  public void visit(NullExp nilExp) {
     // Ignore
   }
 
@@ -79,13 +79,13 @@ public class CoerceToRealVisitor extends SexpVisitor implements CoercingVisitor 
       case FALSE:
         return 0d;
       case NA:
-        return RealExp.NA;
+        return DoubleExp.NA;
     }
     throw new IllegalArgumentException();
   }
 
   @Override
   public SEXP coerce() {
-    return new RealExp(values);
+    return new DoubleExp(values);
   }
 }

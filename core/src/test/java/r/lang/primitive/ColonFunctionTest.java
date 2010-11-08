@@ -22,8 +22,8 @@
 package r.lang.primitive;
 
 import org.junit.Test;
+import r.lang.DoubleExp;
 import r.lang.IntExp;
-import r.lang.RealExp;
 import r.lang.SEXP;
 
 import static junit.framework.Assert.assertTrue;
@@ -64,18 +64,18 @@ public class ColonFunctionTest {
   @Test
   public void ascendingReals() {
     assertThat(colon(1.2, 5).toString(),
-        equalTo(new RealExp(1.2, 2.2, 3.2, 4.2).toString()));
+        equalTo(new DoubleExp(1.2, 2.2, 3.2, 4.2).toString()));
   }
 
   @Test
   public void descendingReals() {
     assertThat(colon(9.1, 5.1).toString(),
-        equalTo(new RealExp(9.1, 8.1, 7.1, 6.1, 5.1).toString()));
+        equalTo(new DoubleExp(9.1, 8.1, 7.1, 6.1, 5.1).toString()));
   }
 
 
   private SEXP colon(double n1, double n2) {
     Colon fn = new Colon();
-    return fn.colonSequence(new RealExp(n1), new RealExp(n2));
+    return fn.colonSequence(new DoubleExp(n1), new DoubleExp(n2));
   }
 }

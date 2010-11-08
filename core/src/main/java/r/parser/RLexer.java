@@ -849,7 +849,7 @@ an ANSI digit or not */
       if (c != 'L') {
         xxungetc(c);
       }
-      yylval = parseOptions.isGenerateCode() ? RealExp.parseDouble(buffer.toString()) : R_NilValue;
+      yylval = parseOptions.isGenerateCode() ? DoubleExp.parseDouble(buffer.toString()) : R_NilValue;
     }
 
     return NUM_CONST;
@@ -864,7 +864,7 @@ an ANSI digit or not */
   }
 
   private SEXP mkComplex(String s) {
-    SEXP t = NilExp.INSTANCE;
+    SEXP t = NullExp.INSTANCE;
     double f = ParseUtil.parseDouble(s);
 
     if(parseOptions.isGenerateCode()) {
@@ -1175,22 +1175,22 @@ an ANSI digit or not */
                   yylval = new LogicalExp(false);
                   break;
                 case 4:
-                  yylval = new RealExp(Double.POSITIVE_INFINITY);
+                  yylval = new DoubleExp(Double.POSITIVE_INFINITY);
                   break;
                 case 5:
-                  yylval = new RealExp(Double.NaN);
+                  yylval = new DoubleExp(Double.NaN);
                   break;
                 case 6:
                   yylval = new IntExp(IntExp.NA);
                   break;
                 case 7:
-                  yylval = new RealExp(RealExp.NA);
+                  yylval = new DoubleExp(DoubleExp.NA);
                   break;
                 case 8:
                   yylval = new StringExp(CDefines.NA_STRING);
                   break;
                 case 9:
-                  yylval = new ComplexExp(new Complex(RealExp.NA, RealExp.NA));
+                  yylval = new ComplexExp(new Complex(DoubleExp.NA, DoubleExp.NA));
                   break;
               }
             } else {

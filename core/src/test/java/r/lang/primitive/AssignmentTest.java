@@ -23,8 +23,8 @@ package r.lang.primitive;
 
 import org.junit.Before;
 import org.junit.Test;
+import r.lang.DoubleExp;
 import r.lang.GlobalContext;
-import r.lang.RealExp;
 import r.lang.StringExp;
 
 public class AssignmentTest {
@@ -34,14 +34,14 @@ public class AssignmentTest {
   public void stringTarget() throws Exception {
 
     Evaluation.assign(context.getGlobalEnvironment(), 
-        new StringExp("a"), new RealExp(1));
+        new StringExp("a"), new DoubleExp(1));
   }
 
   @Test
   public void symbolTarget() throws Exception {
 
     Evaluation.assign(context.getGlobalEnvironment(),
-        context.getSymbolTable().install("x"), new RealExp(1) );
+        context.getSymbolTable().install("x"), new DoubleExp(1) );
 
   }
 

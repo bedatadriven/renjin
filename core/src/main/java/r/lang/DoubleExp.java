@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-public final class RealExp extends AbstractVector implements AtomicExp, NumericExp, Iterable<Double> {
+public final class DoubleExp extends AbstractVector implements AtomicExp, NumericExp, Iterable<Double> {
   public static final String TYPE_NAME = "double";
   public static final int TYPE_CODE = 14;
 
@@ -39,11 +39,11 @@ public final class RealExp extends AbstractVector implements AtomicExp, NumericE
 
   private double[] values;
 
-  public RealExp(double... values) {
+  public DoubleExp(double... values) {
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  public RealExp(Collection<Double> values) {
+  public DoubleExp(Collection<Double> values) {
     this.values = new double[values.size()];
     int i = 0;
     for(Double value : values) {
@@ -70,7 +70,7 @@ public final class RealExp extends AbstractVector implements AtomicExp, NumericE
    * @return a RealVector of length one
    */
   public static SEXP parseDouble(String text) {
-    return new RealExp(Double.parseDouble(text));
+    return new DoubleExp(Double.parseDouble(text));
   }
 
   public double get(int i) {
@@ -86,8 +86,8 @@ public final class RealExp extends AbstractVector implements AtomicExp, NumericE
     return values.length;
   }
 
-  public static RealExp ofLength(int length) {
-    return new RealExp(new double[length]);
+  public static DoubleExp ofLength(int length) {
+    return new DoubleExp(new double[length]);
   }
 
   @Override
@@ -140,7 +140,7 @@ public final class RealExp extends AbstractVector implements AtomicExp, NumericE
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    RealExp realExp = (RealExp) o;
+    DoubleExp realExp = (DoubleExp) o;
 
     if (!Arrays.equals(values, realExp.values)) return false;
 
@@ -178,7 +178,4 @@ public final class RealExp extends AbstractVector implements AtomicExp, NumericE
     return Double.doubleToRawLongBits(input) == Double.doubleToRawLongBits(NA);
   }
 
-  public static RealExp c(double... values) {
-    return new RealExp(values);
-  }
 }

@@ -34,7 +34,7 @@ public class Evaluation {
    */
   public static EvalResult begin(EnvExp rho, LangExp call) {
 
-    EvalResult lastResult = new EvalResult(NilExp.INSTANCE, true);
+    EvalResult lastResult = new EvalResult(NullExp.INSTANCE, true);
     for (SEXP sexp : call.getArguments()) {
       lastResult = sexp.evaluate(rho);
     }
@@ -139,7 +139,7 @@ public class Evaluation {
     }
     LangExp internalCall = (LangExp) arg;
     SymbolExp fnSymbol = (SymbolExp)internalCall.getFunction();
-    if(fnSymbol.getInternal() == NilExp.INSTANCE) {
+    if(fnSymbol.getInternal() == NullExp.INSTANCE) {
       throw new EvalException(String.format("no internal function \"%s\"", fnSymbol.getPrintName()));
     }
     FunExp fn = (FunExp) fnSymbol.getInternal();

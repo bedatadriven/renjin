@@ -60,7 +60,7 @@ public class ExpMatchers {
     return new BaseMatcher<SEXP>() {
       @Override
       public boolean matches(Object o) {
-        return o instanceof RealExp && ((RealExp) o).get(0) == value;
+        return o instanceof DoubleExp && ((DoubleExp) o).get(0) == value;
       }
 
       @Override

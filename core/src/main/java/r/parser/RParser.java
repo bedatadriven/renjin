@@ -2779,8 +2779,8 @@ public class RParser {
 //        }
 //        /* PrintValue(source); */
 //      }
-      if(formals == NilExp.INSTANCE) {
-        ans = lang4(fname, NilExp.INSTANCE, body, source);
+      if(formals == NullExp.INSTANCE) {
+        ans = lang4(fname, NullExp.INSTANCE, body, source);
       } else {
          PROTECT(ans = lang4(fname, CDR(formals), body, source));
       }
@@ -2873,7 +2873,7 @@ public class RParser {
       tag = context.getSymbolTable().install(translateChar(STRING_ELT(tag, 0)));
     }
 
-    if(tag instanceof SymbolExp || tag instanceof NilExp) {
+    if(tag instanceof SymbolExp || tag instanceof NullExp) {
         return lang2(arg, tag);
     } else {
         error(_("incorrect tag type at line %d"), lloc.begin.line);

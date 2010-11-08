@@ -46,7 +46,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
    * The actual data for this node, .e.g {@code CAR} in
    * the C implementation
    */
-  protected SEXP value = NilExp.INSTANCE;
+  protected SEXP value = NullExp.INSTANCE;
 
   /**
    * The next node in the linked list, i.e. {@code CDR} in the
@@ -126,7 +126,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
   public SEXP getAttribute(String name) {
     /* pre-test to avoid expensive operations if clearly not needed -- LT */
 
-    return NilExp.INSTANCE;
+    return NullExp.INSTANCE;
   }
 
   public void setNextNode(ListExp nextNode) {
@@ -147,7 +147,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
    * @return  an iterator
    */
   public static Iterator<SEXP> iterator(PairList exp) {
-    if(exp == null || exp == NilExp.INSTANCE)  {
+    if(exp == null || exp == NullExp.INSTANCE)  {
       return Iterators.emptyIterator();
     } else {
       return exp.iterator();
@@ -175,7 +175,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
   }
 
   public static SEXP ofLength(int length) {
-    return ListExp.fromIterable(Iterables.limit(Iterables.cycle(NilExp.INSTANCE), length));
+    return ListExp.fromIterable(Iterables.limit(Iterables.cycle(NullExp.INSTANCE), length));
   }
 
   public <X extends SEXP> X get(int i) {

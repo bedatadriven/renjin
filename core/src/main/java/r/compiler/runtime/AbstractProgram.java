@@ -26,14 +26,14 @@ import r.lang.*;
 
 public abstract class AbstractProgram implements Program {
 
-  protected static NilExp NULL = NilExp.INSTANCE;
+  protected static NullExp NULL = NullExp.INSTANCE;
   protected static SymbolExp MISSING = SymbolExp.MISSING_ARG;
 
 
   // these constants are defined here for the convenience of the 
   // code generation
   protected static String NA_character_ = StringExp.NA;
-  protected static double NA_real_ = RealExp.NA;
+  protected static double NA_real_ = DoubleExp.NA;
   protected static double NaN = Double.NaN;
   protected static double Inf = Double.POSITIVE_INFINITY;
 
@@ -44,8 +44,8 @@ public abstract class AbstractProgram implements Program {
     return new LangExp(function, arguments);
   }
 
-  protected RealExp c(double... d) {
-    return new RealExp(d);
+  protected DoubleExp c(double... d) {
+    return new DoubleExp(d);
   }
 
   protected IntExp c_int(int... i) {

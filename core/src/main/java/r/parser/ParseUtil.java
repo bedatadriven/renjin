@@ -36,7 +36,7 @@ public class ParseUtil {
   public static NumberFormat createRealFormat() {
     NumberFormat format = NumberFormat.getNumberInstance();
     format.setMinimumFractionDigits(0);
-    format.setMaximumFractionDigits(15);
+    format.setMaximumFractionDigits(14);
     return format;
   }
 

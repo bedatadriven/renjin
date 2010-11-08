@@ -36,8 +36,8 @@ public class Subset {
    */
   public static SEXP subset$(EnvExp rho, LangExp call) {
 
-    SEXP list = call.getArgument(1);
-    SEXP index = call.getArgument(2);
+    SEXP list = call.getArgument(0);
+    SEXP index = call.getArgument(1);
 
     if(list instanceof PairList) {
       return index((PairList)list, toString(index));

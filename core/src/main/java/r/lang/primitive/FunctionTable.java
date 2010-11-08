@@ -83,7 +83,7 @@ public class FunctionTable {
   }
 
   private static Entry f(String name, Class cfun, Object offset, int eval, int arity, PPkind kind, PPprec prec, int rightassoc) {
-    return new Entry(name, cfun, null, offset, eval, arity, new PPinfo(kind, prec, rightassoc));
+    return new Entry(name, cfun, name, offset, eval, arity, new PPinfo(kind, prec, rightassoc));
   }
 
     private static Entry f(String name, Class cfun, String methodName, Object offset, int eval, int arity, PPkind kind, PPprec prec, int rightassoc) {
@@ -97,9 +97,9 @@ public class FunctionTable {
       f("for", Evaluation.class, "forLoop", 0, 100, -1, PP_FOR, PREC_FN, 0),
       f("repeat", Evaluation.class, "repeatLoop", 100, -1, PP_REPEAT, PREC_FN, 0),
       f("break", Evaluation.class, "doBreak", 0, 0, -1, PP_BREAK, PREC_FN, 0),
-      f("next", Evaluation.class, "next", 0, -1, PP_NEXT, PREC_FN, 0),
+      f("next", Evaluation.class, 0,0, -1, PP_NEXT, PREC_FN, 0),
       f("return", Evaluation.class, "doReturn", 0, 0, -1, PP_RETURN, PREC_FN, 0),
-      f("stop", Evaluation.class, "stop", 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
+      f("stop", Evaluation.class, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("warning", /*warning*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
 
       f("gettext", /*gettext*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
@@ -132,7 +132,7 @@ public class FunctionTable {
       f(".subset2", /*subset2_dflt*/ null, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("[", /*subset*/ null, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0),
       f("[[", /*subset2*/ null, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0),
-      f("$", Subset.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
+      f("$", Subset.class, "subset$", 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
       f("@", /*AT*/ null, 0, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
       f("[<-", /*subassign*/ null, 0, 0, 3, PP_SUBASS, PREC_LEFT, 1),
       f("[[<-", /*subassign2*/ null, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1),
@@ -169,12 +169,12 @@ public class FunctionTable {
       f("tcrossprod", /*matprod*/ null, 2, 11, 2, PP_FUNCALL, PREC_FN, 0),
 
 /* these are group generic and so need to eval args */
-      f("==", /*relop*/ null, EQOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
-      f("!=", /*relop*/ null, NEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
-      f("<", /*relop*/ null, LTOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
-      f("<=", /*relop*/ null, LEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
-      f(">=", /*relop*/ null, GEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
-      f(">", /*relop*/ null, GTOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
+      f("==", Comparison.class, "equalTo", EQOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
+      f("!=", Comparison.class, "notEqualTo", NEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
+      f("<", Comparison.class, "lessThan", LTOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
+      f("<=", Comparison.class, "lessThanOrEqualTo", LEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
+      f(">=", Comparison.class, "greaterThanOrEqualTo", 1, 2, PP_BINARY, PREC_COMPARE, 0),
+      f(">", Comparison.class, "greaterThan", GTOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
       f("&", /*logic*/ null, 1, 1, 2, PP_BINARY, PREC_AND, 0),
       f("|", /*logic*/ null, 2, 1, 2, PP_BINARY, PREC_OR, 0),
       f("!", /*logic*/ null, 3, 1, 1, PP_UNARY, PREC_NOT, 0),
@@ -253,41 +253,41 @@ public class FunctionTable {
 /* these are group generic and so need to eval args */
 /* Note that the number of arguments for the primitives in the Math group
    only applies to the default method. */
-      f("round", /*Math2*/ null, 10001, 0, -1, PP_FUNCALL, PREC_FN, 0),
+      f("round", Math.class, 10001, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("signif", /*Math2*/ null, 10004, 0, -1, PP_FUNCALL, PREC_FN, 0),
-      f("atan",Math.class, "atan", 10002, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("atan",Math.class, 10002, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("log", /*log*/ null, 10003, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("log10", /*log1arg*/ null, 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("log2", /*log1arg*/ null, 2, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("abs", Math.class, "abs", 6, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("floor", Math.class, "floor", 1, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("abs", Math.class, 6, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("floor", Math.class, 1, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("ceiling", Math.class, "ceil", 2, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("sqrt", Math.class, "sqrt", 3, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("sqrt", Math.class, 3, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("sign", Math.class, "signnum", 4, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("trunc", /*trunc*/ null, 5, 1, -1, PP_FUNCALL, PREC_FN, 0),
 
-      f("exp", Math.class, "exp", 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("exp", Math.class, 10, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("expm1", /*math1*/ null, 11, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("log1p", /*math1*/ null, 12, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("cos", Math.class, "cos", 20, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("sin", Math.class, "sin", 21, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("tan", Math.class, "tan", 22, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("acos", Math.class, "acos", 23, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("asin", Math.class, "asin", 24, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("cos", Math.class, 20, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("sin", Math.class, 21, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("tan", Math.class, 22, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("acos", Math.class, 23, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("asin", Math.class, 24, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("cosh", Math.class, "cosh", 30, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("sinh", Math.class, "sinh", 31, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("tanh", Math.class, "tanh", 32, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("cosh", Math.class, 30, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("sinh", Math.class, 31, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("tanh", Math.class, 32, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("acosh", /*math1*/ null, 33, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("asinh", /*math1*/ null, 34, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("atanh", /*math1*/ null, 35, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
       f("lgamma", org.apache.commons.math.special.Gamma.class, "logGamma", 40, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("gamma", cern.jet.stat.Gamma.class,"gamma", 41, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("gamma", cern.jet.stat.Gamma.class, 41, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("digamma", org.apache.commons.math.special.Gamma.class, "digamma", 42, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("trigamma",org.apache.commons.math.special.Gamma.class, "trigamma", 43, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("digamma", org.apache.commons.math.special.Gamma.class, 42, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("trigamma",org.apache.commons.math.special.Gamma.class, 43, 1, 1, PP_FUNCALL, PREC_FN, 0),
 /* see "psigamma" below !*/
 
 /* Mathematical Functions of Two Numeric (+ 1-2 int) Variables */
@@ -475,11 +475,11 @@ public class FunctionTable {
 
 /* Type coercion */
 
-      f("as.character", Types.class, "character", 0, 1, -1, PP_FUNCALL, PREC_FN, 0),
-      f("as.integer", /*ascharacter*/ null, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
-      f("as.double", /*ascharacter*/ null, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("as.character", Types.class, "asCharacter", 0, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("as.integer", Types.class, "asInteger", 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("as.double", Types.class, "asDouble",  2, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("as.complex", /*ascharacter*/ null, 3, 1, -1, PP_FUNCALL, PREC_FN, 0),
-      f("as.logical", /*ascharacter*/ null, 4, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("as.logical", Types.class, "asLogical", 4, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("as.raw", /*ascharacter*/ null, 5, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("as.vector", /*asvector*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("paste", /*paste*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
@@ -560,10 +560,10 @@ public class FunctionTable {
       f("is.single", Types.class,"isSingle", 999, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
       f("is.vector", null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
-      f("is.na", /*isna*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.nan", /*isnan*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.finite", /*isfinite*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("is.infinite", /*isinfinite*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.na", Types.class, "isNA", 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.nan", Types.class, "isNaN", 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.finite", Types.class, "isFinite", 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.infinite", Types.class, "isInfinite",  0, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
 
 /* Miscellaneous */

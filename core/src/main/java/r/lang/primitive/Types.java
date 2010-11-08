@@ -23,7 +23,7 @@ package r.lang.primitive;
 
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.types.CoerceArgToString;
+import r.parser.ParseUtil;
 
 public class Types {
 
@@ -110,16 +110,56 @@ public class Types {
     throw new EvalException("type \"single\" unimplemented in R");
   }
 
-  public static StringExp character(SEXP arg) {
-    return new CoerceArgToString(arg).coerce();
+  public static boolean isNA(double value) {
+    return RealExp.isNA(value);
   }
+
+  public static boolean isNaN(double value) {
+    return RealExp.isNaN(value);
+  }
+
+  public static boolean isFinite(double value) {
+    return !Double.isInfinite(value);
+  }
+
+  public static boolean isInfinite(double value) {
+    return Double.isInfinite(value);
+  }
+
+  public static String asCharacter(String value) {
+    return value;
+  }
+
+  public static RealExp asDouble(RealExp exp) {
+    return exp;
+  }
+
+  public static double asDouble(int value) {
+    return (double)value;
+  }
+
+  public static double asDouble(String value) {
+    return ParseUtil.parseDouble(value);
+  }
+
+  public static int asInteger(double x) {
+    return (int) x;
+  }
+
+  public static IntExp asInteger(IntExp exp) {
+    return exp;
+  }
+
+  public static int asInteger(String x) {
+    return (int)ParseUtil.parseDouble(x);
+  }
+
 
   public static ListExp list(SEXP... values) {
 
     if(values.length == 0) {
       throw new EvalException("Help me! How can a pair list have zero length?");
     }
-
 
     ListExp.Builder builder = new ListExp.Builder();
     for(SEXP value : values) {

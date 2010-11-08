@@ -46,6 +46,16 @@ public enum Logical {
     }
   }
 
+  public static String toString(int value) {
+    if( value == 1 ) {
+      return "TRUE";
+    } else if( value == 0) {
+      return "FALSE";
+    } else {
+      return "NA";
+    }
+  }
+
   public int getInternalValue() {
     return internalValue;
   }

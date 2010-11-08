@@ -131,6 +131,23 @@ public class LogicalExp extends AbstractVector implements AtomicExp, NumericExp,
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    LogicalExp that = (LogicalExp) o;
+
+    if (!Arrays.equals(values, that.values)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(values);
+  }
+
+  @Override
   public String toString() {
     if (length() == 1) {
       return toString(values[0]);
@@ -138,6 +155,9 @@ public class LogicalExp extends AbstractVector implements AtomicExp, NumericExp,
       StringBuilder sb = new StringBuilder();
       sb.append("[");
       for (int i = 0; i != values.length; ++i) {
+        if(i > 0) {
+          sb.append(", ");
+        }
         sb.append(toString(values[i]));
       }
       sb.append("]");

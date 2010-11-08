@@ -42,11 +42,11 @@ public abstract class EvalTestCase {
     context = new GlobalContext();
   }
 
-  protected SEXP evaluateToExpression(String source) throws IOException {
+  protected SEXP evaluateToExpression(String source) {
     return evaluate(source).getExpression();
   }
 
-  protected EvalResult evaluate(String source) throws IOException {
+  protected EvalResult evaluate(String source)  {
     if(!source.endsWith(";") && !source.endsWith("\n")) {
       source = source + "\n";
     }
@@ -54,15 +54,39 @@ public abstract class EvalTestCase {
     return exp.evaluate(context.getGlobalEnvironment());
   }
 
-  private SEXP parse(String source) throws IOException {
-    ParseState state = new ParseState();
-    ParseOptions options = ParseOptions.defaults();
-    RLexer lexer = new RLexer(context, options, state, new StringReader(source));
-    RParser parser = new RParser(options, state, context, lexer);
+  private SEXP parse(String source)  {
+    try {
+      ParseState state = new ParseState();
+      ParseOptions options = ParseOptions.defaults();
+      RLexer lexer = new RLexer(context, options, state, new StringReader(source));
+      RParser parser = new RParser(options, state, context, lexer);
 
-    assertThat("parser.parse succeeds", parser.parse(), equalTo(true));
-    RParser.StatusResult status = parser.getResultStatus();
-    return parser.getResult();
+      assertThat("parser.parse succeeds", parser.parse(), equalTo(true));
+      RParser.StatusResult status = parser.getResultStatus();
+      return parser.getResult();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected SEXP c(boolean... values) {
+    return new LogicalExp(values);
+  }
+
+  protected SEXP c(Logical... values) {
+    return new LogicalExp(values);
+  }
+
+  protected SEXP c(String... values) {
+    return new StringExp(values);
+  }
+
+  protected SEXP c(double... values) {
+    return new RealExp(values);
+  }
+
+  protected SEXP c_i(int... values) {
+    return new IntExp(values);
   }
 
 }

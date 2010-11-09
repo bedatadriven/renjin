@@ -56,9 +56,6 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
 
   @Override
   public EvalResult apply(LangExp call, PairList arguments, EnvExp rho) {
-//    checkArity(arguments);
-    // PairList preparedArgs = prepareArguments(arguments, rho);
-
     List<Method> overloads = getMethodOverloads();
     if(overloads.isEmpty()) {
       StringBuilder message = new StringBuilder();
@@ -73,25 +70,6 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
     return RuntimeInvoker.INSTANCE.invoke(rho, call,
         overloads);
   }
-
-  public final void checkArity(PairList arguments) {
-
-    if (functionEntry.arity >= 0 && functionEntry.arity != arguments.length()) {
-      if (isInternal()) {
-        throw new EvalException(this, "%d arguments passed to .Internal(%s) which requires %d",
-            arguments.length(),
-            functionEntry.name,
-            functionEntry.arity);
-      } else {
-        throw new EvalException(this, "%d argument passed to '%s' which requires %d",
-            arguments.length(),
-            functionEntry.name,
-            functionEntry.arity);
-      }
-    }
-  }
-
-  protected abstract PairList prepareArguments(PairList args, EnvExp rho);
 
   protected List<Method> getMethodOverloads() {
     if (methodOverloads == null) {

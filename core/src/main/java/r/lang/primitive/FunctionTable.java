@@ -635,7 +635,7 @@ public class FunctionTable {
       f("browserText", /*sysbrowser*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("browserCondition", /*sysbrowser*/ null, 2, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("browserSetDebug", /*sysbrowser*/ null, 3, 111, 1, PP_FUNCALL, PREC_FN, 0),
-      f("parent.frame", /*parentframe*/ null, 0, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("parent.frame", Types.class, "parentFrame", 0, 11, -1, PP_FUNCALL, PREC_FN, 0),
       f("sort", /*sort*/ null, 1, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("is.unsorted", /*isunsorted*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("psort", /*psort*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),

@@ -139,7 +139,11 @@ public class RuntimeInvoker {
     SEXP evaluatedArguments[] = new SEXP[arguments.length()];
     int i=0;
     for(SEXP arg : arguments) {
-      evaluatedArguments[i++] = arg.evaluate(rho).getExpression();
+      evaluatedArguments[i] = arg.evaluate(rho).getExpression();
+      if(evaluatedArguments[i] instanceof PromiseExp) {
+        evaluatedArguments[i] = evaluatedArguments[i].evalToExp(rho);
+      }
+      i++;    
     }
     return evaluatedArguments;
   }

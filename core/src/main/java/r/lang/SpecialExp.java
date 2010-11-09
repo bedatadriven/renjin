@@ -42,11 +42,6 @@ public class SpecialExp extends PrimitiveExp {
   }
 
   @Override
-  protected PairList prepareArguments(PairList args, EnvExp rho) {
-    return args; // args to special functions are not evaluated beforehand
-  }
-
-  @Override
   public void accept(SexpVisitor visitor) {
     visitor.visitSpecial(this);
   }

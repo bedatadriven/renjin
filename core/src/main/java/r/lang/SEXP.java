@@ -141,17 +141,6 @@ public abstract class SEXP {
    * @return the result
    */
   public EvalResult evaluate(EnvExp rho) {
-
-    // I've ripped out all of the stack-counting stuff,
-    // I'm assuming that the JVM will just throw a StackOverflowException, right...?
-
-    /* Make sure constants in expressions are NAMED before being
-  used as values.  Setting NAMED to 2 makes sure weird calls
-  to assignment functions won't modify constants in
-  expressions.  */
-    if (getNamed() != 2) {
-      setNamed(2);
-    }
     return new EvalResult(this);
   }
 

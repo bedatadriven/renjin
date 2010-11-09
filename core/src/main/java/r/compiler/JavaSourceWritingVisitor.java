@@ -170,6 +170,11 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
   }
 
   @Override
+  public void visit(EnvExp envExp) {
+    body.append("null /* EnvExp */");
+  }
+
+  @Override
   protected void unhandled(SEXP exp) {
     throw new UnsupportedOperationException("Unexpected SEXP of type " + exp.getClass() + " with value " +
     exp.toString() + "; the JavaSourceWritingVisitor can only generate code for the results of parse(), " +

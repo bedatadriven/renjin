@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -21,29 +21,32 @@
 
 package r.lang;
 
-import r.lang.primitive.FunctionTable;
+import java.util.List;
 
-public class BuiltinExp extends PrimitiveExp {
-  public static final int TYPE_CODE = 8;
-  public static final String TYPE_NAME = "builtin";
+/**
+ *  a pairlist of promises (as used for matched arguments) but distinguished by the SEXPTYPE.
+ *
+ */
+public class DotExp extends SEXP {
 
-  public BuiltinExp(FunctionTable.Entry functionEntry) {
-    super(functionEntry);
+  private List<PromiseExp> promises;
+
+  public DotExp(List<PromiseExp> promises) {
+    this.promises = promises;
   }
 
   @Override
   public int getTypeCode() {
-    return TYPE_CODE;
+    return 0;
   }
 
   @Override
   public String getTypeName() {
-    return TYPE_NAME;
+    return null;
   }
 
   @Override
   public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
-  }
 
+  }
 }

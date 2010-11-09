@@ -19,12 +19,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive;
 
+import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.Environment;
 import r.parser.ParseUtil;
 
+import java.lang.Boolean;
+import java.lang.Class;
+import java.lang.Double;
+import java.lang.IllegalAccessException;
+import java.lang.IllegalArgumentException;
+import java.lang.Integer;
+import java.lang.Long;
+import java.lang.Object;
+import java.lang.Override;
+import java.lang.RuntimeException;
+import java.lang.String;
+import java.lang.StringBuilder;
+import java.lang.UnsupportedOperationException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -338,7 +352,7 @@ public class RuntimeInvoker {
   private static Object[] concat(Object first, Object... elements) {
     Object newArray[] = new Object[elements.length+1];
     newArray[0] = first;
-    System.arraycopy(elements, 0, newArray, 1, elements.length);
+    java.lang.System.arraycopy(elements, 0, newArray, 1, elements.length);
     return newArray;
   }
 

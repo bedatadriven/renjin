@@ -102,4 +102,8 @@ public class SexpVisitor<R> {
   public void visitSpecial(SpecialExp specialExp) {
     unhandled(specialExp);
   }
+
+  public void visit(ListExp listExp) {
+    unhandled(listExp);
+  }
 }

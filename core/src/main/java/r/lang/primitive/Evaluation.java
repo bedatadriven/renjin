@@ -81,8 +81,8 @@ public class Evaluation {
     SEXP elements = args.getSecond().evalToExp(rho);
     SEXP statement = args.getThird();
 
-    for(int i=0; i!=elements.length(); ++i) {
-      rho.setVariable(symbol, elements.subset(1));
+    for(int i=1; i<=elements.length(); ++i) {
+      rho.setVariable(symbol, elements.subset(i));
       statement.evaluate(rho);
     }
   }

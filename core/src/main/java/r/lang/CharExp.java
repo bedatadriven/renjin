@@ -23,7 +23,7 @@ package r.lang;
 
 import r.lang.exception.EvalException;
 
-public class CharExp extends AbstractVector implements AtomicExp {
+public class CharExp extends SEXP implements AtomicExp {
 
   private String value;
   public static final int TYPE_CODE = 9;

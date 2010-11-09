@@ -335,7 +335,6 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
       Preconditions.checkState(head != null, "ListExp cannot be empty");
       return head;
     }
-
   }
 
   @Override

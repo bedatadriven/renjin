@@ -24,6 +24,7 @@ package r.lang;
 import r.compiler.runtime.Program;
 import r.parser.RParser;
 
+import java.io.PrintStream;
 import java.util.logging.Logger;
 
 /**
@@ -38,6 +39,7 @@ public class GlobalContext {
   private SymbolTable symbolTable = new SymbolTable();
   private BaseEnvExp baseEnvironment;
   private EnvExp globalEnvironment;
+  private PrintStream printStream;
 
   public GlobalContext() {
 
@@ -121,5 +123,13 @@ public class GlobalContext {
    */
   public SymbolExp symbol(String name) {
     return getSymbolTable().install(name);
+  }
+
+  public PrintStream getPrintStream() {
+    return printStream;
+  }
+
+  public void setPrintStream(PrintStream printStream) {
+    this.printStream = printStream;
   }
 }

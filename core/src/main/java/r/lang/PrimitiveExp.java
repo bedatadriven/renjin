@@ -23,6 +23,7 @@ package r.lang;
 
 import r.lang.exception.EvalException;
 import r.lang.primitive.FunctionTable;
+import r.lang.primitive.RuntimeInvoker;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

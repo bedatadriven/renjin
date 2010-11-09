@@ -19,12 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.interpreter;
+package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.DoubleExp;
 import r.lang.IntExp;
-import r.lang.PairListExp;
+import r.lang.ListExp;
 import r.lang.StringExp;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -34,20 +34,20 @@ public class PrintingVisitorTest {
 
   @Test
   public void realVector() {
-    assertThat(new PrintingVisitor(new DoubleExp(1,99,3), 80).getResult(),
+    assertThat(new Print.PrintingVisitor(new DoubleExp(1,99,3), 80).getResult(),
         equalTo("[1]  1 99  3\n"));                                                
   }
 
   @Test
   public void stringVector() {
-    assertThat(new PrintingVisitor(new StringExp("abcdef", "a", "b"), 80).getResult(),
+    assertThat(new Print.PrintingVisitor(new StringExp("abcdef", "a", "b"), 80).getResult(),
         equalTo("[1] \"abcdef\" \"a\"      \"b\"     \n"));
   }
 
   @Test
   public void listOfVectors() {
-    assertThat(new PrintingVisitor(
-        PairListExp.fromArray(new DoubleExp(1), new IntExp(999, 1), new StringExp("hello world")), 80)
+    assertThat(new Print.PrintingVisitor(
+        new ListExp(new DoubleExp(1), new IntExp(999, 1), new StringExp("hello world")), 80)
           .getResult(),
         equalTo("[[1]]\n" +
                 "[1] 1\n" +

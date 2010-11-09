@@ -21,12 +21,10 @@
 
 package r.lang;
 
-import r.util.collect.PrimitiveArrays;
-
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class LogicalExp extends AbstractVector implements AtomicExp, NumericExp, Iterable<Logical> {
+public class LogicalExp extends SEXP implements AtomicExp, Iterable<Logical> {
   public static final String TYPE_NAME = "logical";
   public static final int TYPE_CODE = 10;
 
@@ -87,11 +85,6 @@ public class LogicalExp extends AbstractVector implements AtomicExp, NumericExp,
   @Override
   public boolean isNumeric() {
     return true;
-  }
-
-  @Override
-  public double[] asDoubleArray() {
-    return PrimitiveArrays.asDoubleArray(values);  
   }
 
   @Override

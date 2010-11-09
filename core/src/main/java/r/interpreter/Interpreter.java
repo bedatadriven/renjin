@@ -27,6 +27,7 @@ import r.lang.SEXP;
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;
 import r.lang.exception.ParseException;
+import r.lang.primitive.Print;
 import r.parser.ParseOptions;
 import r.parser.ParseState;
 import r.parser.RLexer;
@@ -43,10 +44,13 @@ public class Interpreter implements Runnable {
   private GlobalContext global;
 
   public Interpreter(Console console) {
-    this.global = new GlobalContext();
   /// not yet ready:  this.global.loadBasePackage();
 
     this.console = console;
+
+    this.global = new GlobalContext();
+    this.global.setPrintStream(console.getOut());
+
     if(console instanceof RichConsole) {
       ((RichConsole) console).setNameCompletion(new SymbolCompletion(global));
     }
@@ -74,9 +78,8 @@ public class Interpreter implements Runnable {
         EvalResult result = exp.evaluate(global.getGlobalEnvironment());
 
         if(result.isVisible()) {
-          console.print(new PrintingVisitor(result.getExpression(),
-              console.getCharactersPerLine()).getResult());
-        }
+          console.println( Print.print(result.getExpression(), console.getCharactersPerLine()) );
+        }        
 
       } catch (ParseException e) {
         console.println(String.format("Error: %s", e.getMessage()));

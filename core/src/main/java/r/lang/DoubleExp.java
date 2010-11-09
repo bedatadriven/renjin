@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-public final class DoubleExp extends AbstractVector implements AtomicExp, NumericExp, Iterable<Double> {
+public final class DoubleExp extends SEXP implements AtomicExp, Iterable<Double> {
   public static final String TYPE_NAME = "double";
   public static final int TYPE_CODE = 14;
 
@@ -122,17 +122,17 @@ public final class DoubleExp extends AbstractVector implements AtomicExp, Numeri
     return ImmutableList.copyOf(iterator());
   }
 
-  @Override
-  public double[] asDoubleArray() {
-    return Arrays.copyOf(values, values.length);
-  }
-
   public double asReal() {
     if(values.length == 0) {
       return NA;
     } else {
       return values[0];
     }
+  }
+
+  @Override
+  public SEXP subset(int index) {
+    return new DoubleExp(values[index-1]);
   }
 
   @Override

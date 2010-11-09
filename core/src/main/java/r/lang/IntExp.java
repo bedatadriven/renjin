@@ -22,12 +22,11 @@
 package r.lang;
 
 import com.google.common.collect.UnmodifiableIterator;
-import r.util.collect.PrimitiveArrays;
 
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class IntExp extends AbstractVector implements AtomicExp, NumericExp, Iterable<Integer> {
+public class IntExp extends SEXP implements AtomicExp, Iterable<Integer> {
 
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
@@ -84,10 +83,6 @@ public class IntExp extends AbstractVector implements AtomicExp, NumericExp, Ite
   @Override
   public boolean isNumeric() {
     return !inherits("factor");
-  }
-
-  public double[] asDoubleArray() {
-    return PrimitiveArrays.asDoubleArray(values);
   }
 
   @Override

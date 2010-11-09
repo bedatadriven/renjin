@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -21,20 +21,30 @@
 
 package r.lang;
 
-import org.apache.commons.math.complex.Complex;
+import com.google.common.collect.Iterables;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 
-public class ComplexExp extends SEXP implements AtomicExp, Iterable<Complex> {
+/**
+ * Generic vector of {@code SEXP}s
+ */
+public class ListExp extends SEXP implements Iterable<SEXP> {
 
-  public ArrayList<Complex> values;
-  public static final int TYPE_CODE = 15;
-  public static final String TYPE_NAME = "complex";
+  private static final int TYPE_CODE = 19;
+  private static final String TYPE_NAME = "list";
 
-  public ComplexExp(Complex... values) {
-    this.values = new ArrayList<Complex>(Arrays.asList(values));
+  private ArrayList<SEXP> values;
+
+  public ListExp(Iterable<SEXP> values) {
+    this.values = new ArrayList<SEXP>();
+    Iterables.addAll(this.values, values);
+  }
+
+  public ListExp(SEXP... values) {
+    this.values = new ArrayList<SEXP>();
+    Collections.addAll(this.values, values);
   }
 
   @Override
@@ -48,21 +58,17 @@ public class ComplexExp extends SEXP implements AtomicExp, Iterable<Complex> {
   }
 
   @Override
-  public int length() {
-    return values.size();
-  }
-
-  public static ComplexExp ofLength(int length) {
-    throw new UnsupportedOperationException("not yet implemented");
-  }
-
-  @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
 
   @Override
-  public Iterator<Complex> iterator() {
+  public Iterator<SEXP> iterator() {
     return values.iterator();
+  }
+
+  @Override
+  public int length() {
+    return values.size();
   }
 }

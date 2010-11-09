@@ -61,7 +61,7 @@ public class CoerceToRealVisitor extends SexpVisitor implements CoercingVisitor 
   }
 
   @Override
-  public void visit(ListExp listExp) {
+  public void visit(PairListExp listExp) {
     for(SEXP s : listExp) {
       s.accept(this);
     }

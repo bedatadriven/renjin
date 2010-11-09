@@ -36,7 +36,7 @@ class CommonTypeFinder extends SexpVisitor {
   /**
    * Visits each element of {@code ListExp}
    */
-  CommonTypeFinder(ListExp listExp) {
+  CommonTypeFinder(PairListExp listExp) {
      for(SEXP exp : listExp) {
       exp.accept(this);
     }
@@ -94,7 +94,7 @@ class CommonTypeFinder extends SexpVisitor {
       return StringExp.class;
 
     } else {
-      return ListExp.class;
+      return PairListExp.class;
     }
   }
 }

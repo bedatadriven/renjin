@@ -137,7 +137,7 @@ public class SymbolTable {
 
   private void installPlatform() {
     SymbolExp platform = install(".Platform");
-    platform.setValue( ListExp.buildList()
+    platform.setValue( PairListExp.buildList()
         .add(new StringExp(resolveOsName())).taggedWith(install("OS.type"))
         .add(new StringExp("/")).taggedWith(install("file.sep"))
         .add(new StringExp("unknown")).taggedWith(install("GUI"))

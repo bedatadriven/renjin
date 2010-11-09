@@ -21,15 +21,15 @@
 
 package r.lang.primitive;
 
-import r.lang.ListExp;
 import r.lang.NullExp;
+import r.lang.PairListExp;
 import r.lang.SEXP;
 
 public class Text {
 
   private Text() {}
 
-  public static SEXP paste(ListExp args, String seperator, SEXP collapse) {
+  public static SEXP paste(PairListExp args, String seperator, SEXP collapse) {
     // TODO!
     return NullExp.INSTANCE;
   }

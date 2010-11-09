@@ -2436,7 +2436,6 @@ public class RParser {
 ////        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
 //      UNPROTECT_PTR(v);
 //    }
-    context.R_CurrentExpr = v;
     this.result = v;
     this.extendedParseResult = result;
     return YYACCEPT;
@@ -2846,7 +2845,7 @@ public class RParser {
 
     state.setEatLines(false);
     if (options.isGenerateCode()) {
-      a2 = LangExp.fromListExp((ListExp) a2);
+      a2 = LangExp.fromListExp((PairListExp) a2);
       SETCAR(a2, a1);
 //      if (SrcRefState.keepSrcRefs) {
 //        PROTECT(prevSrcrefs = getAttrib(a2, R_SrcrefSymbol));

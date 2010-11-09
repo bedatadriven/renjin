@@ -63,8 +63,8 @@ public abstract class AbstractPackage extends EnvExp {
     return new LogicalExp(v);
   }
 
-  protected ListExp list(SEXP... items ) {
-    return ListExp.fromArray(items);
+  protected PairListExp list(SEXP... items ) {
+    return PairListExp.fromArray(items);
   }
   
   protected ComplexExp c(Complex... complex) {

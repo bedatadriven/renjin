@@ -24,7 +24,7 @@ package r.lang;
 /**
  * A specialized {@code ListExp} used for storing 
  */
-public class LangExp extends ListExp {
+public class LangExp extends PairListExp {
   public static final int TYPE_CODE = 6;
   public static final String TYPE_NAME = "language";
 
@@ -44,62 +44,15 @@ public class LangExp extends ListExp {
 
   @Override
   public EvalResult evaluate(EnvExp rho) {
-
     FunExp functionExpr = evaluateFunction(rho);
-
     return functionExpr.apply(this, getArguments(), rho);
-
-//    SEXP op;
-//    if (TYPEOF(CAR(this)) == Type.SYMSXP)
-//      /* This will throw an error if the function is not found */
-//      PROTECT(op = rho.findFun(CAR(this)));
-//    else
-//      PROTECT(op = CAR(this).evaluate(rho));
-//
-////    if(RTRACE(op) && R_current_trace_state()) {
-////      Rprintf("trace: ");
-////      PrintValue(e);
-////    }
-//    if (TYPEOF(op) == Type.SPECIALSXP) {
-//      int save = R_PPStackTop, flag = PRIMPRINT(op);
-//      PROTECT(CDR(e));
-//      //R_Visible = flag != 1;
-//      tmp = PRIMFUN(op) (e, op, CDR(e), rho);
-//
-//      if (flag < 2)
-//        R_Visible = flag != 1;
-//    }
-//    else if (TYPEOF(op) == Type.BUILTINSXP) {
-//      int save = R_PPStackTop, flag = PRIMPRINT(op);
-//      RCNTXT cntxt;
-//      PROTECT(tmp = evalList(CDR(e), rho, op));
-//      if (flag < 2) R_Visible = flag != 1;
-//      /* We used to insert a context only if profiling,
-//            but helps for tracebacks on .C etc. */
-//      if (R_Profiling || (PPINFO(op).kind == PP_FOREIGN)) {
-//        begincontext(&cntxt, CTXT_BUILTIN, e,
-//            R_BaseEnv, R_BaseEnv, R_NilValue, R_NilValue);
-//        tmp = PRIMFUN(op) (e, op, tmp, rho);
-//        endcontext(&cntxt);
-//      } else {
-//        tmp = PRIMFUN(op) (e, op, tmp, rho);
-//      }
-//      if (flag < 2) R_Visible = flag != 1;
-//    }
-//    else if (TYPEOF(op) == Type.CLOSXP) {
-//      PROTECT(tmp = promiseArgs(CDR(e), rho));
-//      tmp = applyClosure(e, op, tmp, rho, R_BaseEnv);
-//    }
-//    else
-//      throw new EvalException(this, "attempt to apply non-function");
-
   }
 
   private FunExp evaluateFunction(EnvExp rho) {
     return (FunExp) getFunction().evalToExp(rho);
   }
 
-  public static SEXP fromListExp(ListExp listExp) {
+  public static SEXP fromListExp(PairListExp listExp) {
     return new LangExp(listExp.value, listExp.nextNode);
   }
 

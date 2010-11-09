@@ -83,7 +83,7 @@ public class CDefines {
    * @return the value of this list node
    */
   public static SEXP CAR(SEXP listExp) {
-    ListExp typedList = ArgChecker.instanceOf(listExp, ListExp.class);
+    PairListExp typedList = ArgChecker.instanceOf(listExp, PairListExp.class);
 
     return typedList.getValue();
   }
@@ -95,7 +95,7 @@ public class CDefines {
    * @return the next node in the list, or R_NilValue
    */
   public static SEXP CDR(SEXP listExp) {
-    ListExp list = ArgChecker.instanceOf(listExp, ListExp.class);
+    PairListExp list = ArgChecker.instanceOf(listExp, PairListExp.class);
 
     return list.hasNextNode() ? list.getNextNode() : R_NilValue;
   }
@@ -144,7 +144,7 @@ public class CDefines {
     if (x == NULL || x == R_NilValue)
       error(_("bad value"));
     CHECK_OLD_TO_NEW(x, y);
-    ((ListExp) x).setValue(y);
+    ((PairListExp) x).setValue(y);
     return y;
   }
 
@@ -152,7 +152,7 @@ public class CDefines {
     if (x == NULL || x == R_NilValue)
       error(_("bad value"));
     CHECK_OLD_TO_NEW(x, y);
-    ((ListExp) x).setNextNode((ListExp) y);
+    ((PairListExp) x).setNextNode((PairListExp) y);
     return y;
   }
 
@@ -163,7 +163,7 @@ public class CDefines {
       error(_("bad value"));
     cell = CDR(x);
     CHECK_OLD_TO_NEW(cell, y);
-    ((ListExp) cell).setNextNode((ListExp) y);
+    ((PairListExp) cell).setNextNode((PairListExp) y);
     return y;
   }
 
@@ -175,7 +175,7 @@ public class CDefines {
       error(_("bad value"));
     cell = CDDR(x);
     CHECK_OLD_TO_NEW(cell, y);
-    ((ListExp) cell).setValue(y);
+    ((PairListExp) cell).setValue(y);
     return y;
   }
 
@@ -192,7 +192,7 @@ public class CDefines {
       error(_("bad value"));
     cell = CDDDR(x);
     CHECK_OLD_TO_NEW(cell, y);
-    ((ListExp) cell).setValue(y);
+    ((PairListExp) cell).setValue(y);
     return y;
   }
 
@@ -210,7 +210,7 @@ public class CDefines {
       error(_("bad value"));
     cell = CD4R(x);
     CHECK_OLD_TO_NEW(cell, y);
-    ((ListExp) cell).setValue(y);
+    ((PairListExp) cell).setValue(y);
     return y;
   }
 
@@ -243,30 +243,30 @@ public class CDefines {
    * @param cdr the next node in the linked list. Either a ListExp or NilExp.INSTANCE
    * @return
    */
-  public static ListExp CONS(SEXP car, SEXP cdr) {
+  public static PairListExp CONS(SEXP car, SEXP cdr) {
     ArgChecker.notNull(car);
     ArgChecker.notNull(cdr);
 
     if (cdr == R_NilValue) {
-      return new ListExp(car, null);
+      return new PairListExp(car, null);
     } else {
-      return new ListExp(car, (ListExp) cdr);
+      return new PairListExp(car, (PairListExp) cdr);
     }
   }
 
-  public static ListExp list1(SEXP s) {
+  public static PairListExp list1(SEXP s) {
     return CONS(s, R_NilValue);
   }
 
-  public static ListExp list2(SEXP s, SEXP t) {
+  public static PairListExp list2(SEXP s, SEXP t) {
     return CONS(s, list1(t));
   }
 
-  public static ListExp list3(SEXP s, SEXP t, SEXP u) {
+  public static PairListExp list3(SEXP s, SEXP t, SEXP u) {
     return CONS(s, list2(t, u));
   }
 
-  public static ListExp list4(SEXP s, SEXP t, SEXP u, SEXP v) {
+  public static PairListExp list4(SEXP s, SEXP t, SEXP u, SEXP v) {
     return CONS(s, list3(t, u, v));
   }
 
@@ -284,7 +284,7 @@ public class CDefines {
     if (cdr == R_NilValue) {
       return new LangExp(car, null);
     } else {
-      return new LangExp(car, (ListExp) cdr);
+      return new LangExp(car, (PairListExp) cdr);
     }
   }
 
@@ -292,7 +292,7 @@ public class CDefines {
     /** NO OP -- JVM is handling memory alloc **/
   }
 
-  public static ListExp lang1(SEXP s) {
+  public static PairListExp lang1(SEXP s) {
     return LCONS(s, R_NilValue);
   }
 

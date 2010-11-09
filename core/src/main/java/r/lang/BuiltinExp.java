@@ -51,7 +51,7 @@ public class BuiltinExp extends PrimitiveExp {
     if (args.length() == 0) {
       return args;
     }
-    ListExp.Builder builder = new ListExp.Builder();
+    PairListExp.Builder builder = new PairListExp.Builder();
     for (SEXP arg : args) {
       builder.add(arg.evaluate(rho).getExpression());
     }

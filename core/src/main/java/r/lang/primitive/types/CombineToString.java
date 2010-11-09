@@ -21,7 +21,7 @@
 
 package r.lang.primitive.types;
 
-import r.lang.ListExp;
+import r.lang.PairListExp;
 import r.lang.SEXP;
 
 public class CombineToString extends AbstractCoerceToString {
@@ -31,7 +31,7 @@ public class CombineToString extends AbstractCoerceToString {
   }
 
   @Override
-  public void visit(ListExp listExp) {
+  public void visit(PairListExp listExp) {
     for(SEXP s : listExp) {
       s.accept(this);
     }

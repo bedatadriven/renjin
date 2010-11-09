@@ -31,7 +31,7 @@ public class ListExpTest {
   @Test
   public void lang() {
 
-    ListExp list = ListExp.fromArray(new IntExp(1), new IntExp(2), new IntExp(3));
+    PairListExp list = PairListExp.fromArray(new IntExp(1), new IntExp(2), new IntExp(3));
 
     assertThat(list.length(), equalTo(3));
 

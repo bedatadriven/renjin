@@ -21,17 +21,17 @@
 
 package r.lang.primitive.types;
 
-import r.lang.ListExp;
+import r.lang.PairListExp;
 import r.lang.SEXP;
 
 public class RecursiveTypeFinder extends CommonTypeFinder {
 
-  public RecursiveTypeFinder(ListExp listExp) {
+  public RecursiveTypeFinder(PairListExp listExp) {
     super(listExp);
   }
 
   @Override
-  public void visit(ListExp listExp) {
+  public void visit(PairListExp listExp) {
     for(SEXP exp : listExp) {
       exp.accept(this);
     }

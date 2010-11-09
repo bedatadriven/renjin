@@ -24,7 +24,7 @@ package r.interpreter;
 import org.junit.Test;
 import r.lang.DoubleExp;
 import r.lang.IntExp;
-import r.lang.ListExp;
+import r.lang.PairListExp;
 import r.lang.StringExp;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -47,7 +47,7 @@ public class PrintingVisitorTest {
   @Test
   public void listOfVectors() {
     assertThat(new PrintingVisitor(
-        ListExp.fromArray(new DoubleExp(1), new IntExp(999, 1), new StringExp("hello world")), 80)
+        PairListExp.fromArray(new DoubleExp(1), new IntExp(999, 1), new StringExp("hello world")), 80)
           .getResult(),
         equalTo("[[1]]\n" +
                 "[1] 1\n" +

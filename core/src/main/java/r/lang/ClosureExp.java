@@ -36,7 +36,7 @@ import java.util.ListIterator;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
-import static r.lang.ListExp.Predicates;
+import static r.lang.PairListExp.Predicates;
 
 /**
  * The function closure data type.
@@ -152,18 +152,18 @@ public class ClosureExp extends SEXP implements FunExp {
    */
   private void matchArgumentsInto(PairList actuals, EnvExp innerEnv) {
 
-    List<ListExp> unmatchedActuals = Lists.newArrayList(actuals.listNodes());
-    List<ListExp> unmatchedFormals = Lists.newArrayList(formals.listNodes());
+    List<PairListExp> unmatchedActuals = Lists.newArrayList(actuals.listNodes());
+    List<PairListExp> unmatchedFormals = Lists.newArrayList(formals.listNodes());
 
     // do exact matching
-    for(ListIterator<ListExp> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
-      ListExp formal = formalIt.next();
+    for(ListIterator<PairListExp> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
+      PairListExp formal = formalIt.next();
       if(formal.hasTag()) {
         SymbolExp name = (SymbolExp) formal.getTag();
-        Collection<ListExp> matches = Collections2.filter(unmatchedActuals, Predicates.matches(name));
+        Collection<PairListExp> matches = Collections2.filter(unmatchedActuals, Predicates.matches(name));
 
         if(matches.size() == 1) {
-          ListExp match = first(matches);
+          PairListExp match = first(matches);
           innerEnv.setVariable(name, new PromiseExp( match.getValue(), innerEnv ));
           formalIt.remove();
           unmatchedActuals.remove(match);
@@ -175,14 +175,14 @@ public class ClosureExp extends SEXP implements FunExp {
     }
 
     // do partial matching
-    Collection<ListExp> remainingNamedFormals = filter(unmatchedFormals, Predicates.hasTag());
-    for(Iterator<ListExp> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
-      ListExp actual = actualIt.next();
+    Collection<PairListExp> remainingNamedFormals = filter(unmatchedFormals, Predicates.hasTag());
+    for(Iterator<PairListExp> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
+      PairListExp actual = actualIt.next();
       if(actual.hasTag()) {
-        Collection<ListExp> matches = Collections2.filter(remainingNamedFormals, Predicates.startsWith(actual.getTag()));
+        Collection<PairListExp> matches = Collections2.filter(remainingNamedFormals, Predicates.startsWith(actual.getTag()));
 
         if(matches.size() == 1) {
-          ListExp match = first(matches);
+          PairListExp match = first(matches);
           innerEnv.setVariable(match.getTag(), new PromiseExp( actual.getValue(), innerEnv ));
           actualIt.remove();
           unmatchedFormals.remove(match);
@@ -196,12 +196,12 @@ public class ClosureExp extends SEXP implements FunExp {
 
     // match any unnamed args positionally
 
-    Iterator<ListExp> formalIt = unmatchedFormals.iterator();
-    PeekingIterator<ListExp> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
+    Iterator<PairListExp> formalIt = unmatchedFormals.iterator();
+    PeekingIterator<PairListExp> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
     while( formalIt.hasNext()) {
-      ListExp formal = formalIt.next();
+      PairListExp formal = formalIt.next();
       if(formal.getTag().getPrintName().equals("...")) {
-        ListExp.Builder builder = new ListExp.Builder();
+        PairListExp.Builder builder = new PairListExp.Builder();
         while(actualIt.hasNext()) {
           builder.add( new PromiseExp( actualIt.next().getValue(), innerEnv ) );
         }
@@ -222,25 +222,25 @@ public class ClosureExp extends SEXP implements FunExp {
     }
   }
 
-  private boolean hasNextUnTagged(PeekingIterator<ListExp> it) {
+  private boolean hasNextUnTagged(PeekingIterator<PairListExp> it) {
     return it.hasNext() && !it.peek().hasTag();
   }
 
-  private ListExp nextUnTagged(Iterator<ListExp> it) {
-    ListExp arg = it.next() ;
+  private PairListExp nextUnTagged(Iterator<PairListExp> it) {
+    PairListExp arg = it.next() ;
     while( arg.hasTag() ) {
       arg = it.next();
     }
     return arg;
   }
 
-  private String argumentTagList(Collection<ListExp> matches) {
+  private String argumentTagList(Collection<PairListExp> matches) {
     return Joiner.on(", ").join(transform(matches, new TagName()));
   }
 
-  private static class TagName implements Function<ListExp, String> {
+  private static class TagName implements Function<PairListExp, String> {
     @Override
-    public String apply(ListExp input) {
+    public String apply(PairListExp input) {
       return ((SymbolExp)input.getTag()).getPrintName();
     }
   }

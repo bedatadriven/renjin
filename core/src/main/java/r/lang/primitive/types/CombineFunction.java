@@ -31,18 +31,18 @@ public class CombineFunction {
     if(args.length() == 0) {
       return new EvalResult(NullExp.INSTANCE);
     } else {
-      return new EvalResult(combine((ListExp)args));
+      return new EvalResult(combine((PairListExp)args));
     }
   }
 
   @VisibleForTesting
-  static SEXP combine(ListExp argList) {
+  static SEXP combine(PairListExp argList) {
 
     // TODO: recursive??
 
     Class<? extends SEXP> commonType = new CommonTypeFinder(argList).get();
 
-    if(commonType == ListExp.class) {
+    if(commonType == PairListExp.class) {
       return new CombineToList(argList).coerce();
 
     } else if(commonType == StringExp.class) {

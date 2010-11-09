@@ -21,7 +21,7 @@
 
 package r.lang.primitive.types;
 
-import r.lang.ListExp;
+import r.lang.PairListExp;
 import r.lang.SEXP;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class CoerceArgToString extends AbstractCoerceToString {
   }
 
   @Override
-  public void visit(ListExp listExp) {
+  public void visit(PairListExp listExp) {
     // as.character does to recurse infinitely
     // if there are nested lists or other items, we add them as deparsed strings
     CoerceNestedListToString subVisitor = new CoerceNestedListToString(values);

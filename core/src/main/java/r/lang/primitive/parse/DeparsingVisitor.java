@@ -69,7 +69,7 @@ public class DeparsingVisitor extends SexpVisitor<String> {
   }
 
   @Override
-  public void visit(ListExp listExp) {
+  public void visit(PairListExp listExp) {
     deparsed.append("list(");
     boolean needsComma = false;
     for(SEXP sexp : listExp) {

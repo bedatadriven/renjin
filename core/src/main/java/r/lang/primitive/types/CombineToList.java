@@ -25,14 +25,14 @@ import r.lang.*;
 
 class CombineToList extends SexpVisitor implements CoercingVisitor {
 
-  ListExp.Builder builder = new ListExp.Builder();
+  PairListExp.Builder builder = new PairListExp.Builder();
 
   CombineToList(SEXP exp) {
     exp.accept(this);
   }
 
   @Override
-  public void visit(ListExp listExp) {
+  public void visit(PairListExp listExp) {
     for(SEXP exp : listExp) {
       exp.accept(this);
     }

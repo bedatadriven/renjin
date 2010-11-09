@@ -39,8 +39,6 @@ public class GlobalContext {
   private BaseEnvExp baseEnvironment;
   private EnvExp globalEnvironment;
 
-  public SEXP R_CurrentExpr;
-
   public GlobalContext() {
 
     /*

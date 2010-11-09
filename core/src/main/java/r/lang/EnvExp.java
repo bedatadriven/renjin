@@ -36,9 +36,11 @@ import static r.util.CDefines.*;
  * The Environment data type.
  *
  * <p>
- * Environments can be thought of as consisting of two things.
- * A frame, consisting of a set of symbol-value pairs, and an enclosure,
- * a pointer to an enclosing environment.
+ * Environments can be thought of as consisting of two things:
+ * <ul>
+ * <li>A <strong>frame</strong>, consisting of a set of symbol-value pairs, and
+ * <li>an enclosure, a pointer to an enclosing environment.</li>
+ * </ul>
  *
  * <p>
  * When R looks up the value for a symbol the frame is examined and if a
@@ -49,8 +51,8 @@ import static r.util.CDefines.*;
  * available through emptyenv(), which has no parent.
  * It is the direct parent of the environment of the base package
  * (available through the baseenv() function). Formerly baseenv() 
- * had the special value NULL, but as from version 2.4.0, the
- *  use of NULL as an environment is defunct.
+ * had the special value {@code NULL}, but as from version 2.4.0, the
+ *  use of {@code NULL} as an environment is defunct.
  *
  */
 public class EnvExp extends SEXP implements RecursiveExp {

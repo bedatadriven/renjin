@@ -23,7 +23,6 @@ package r.lang;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
@@ -32,12 +31,13 @@ import r.util.ArgChecker;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
 /**
- * Linked list of SEXP values
+ * Pairlists (LISTSXP, the name going back to the origins of R as a Scheme-like language) are
+ *  rarely seen at R level, but are for example used for argument lists.
+ *
  */
-public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairList {
+public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairList {
 
   public static final int TYPE_CODE = 2;
   public static final String TYPE_NAME = "pairlist";
@@ -55,13 +55,13 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
    * Contrary to the C impl, {@code nextNode} is either a subclass
    * of {@code ListExp} or {@code null}
    */
-  protected ListExp nextNode = null;
+  protected PairListExp nextNode = null;
 
 
-  public ListExp(SEXP value, PairList nextNode) {
+  public PairListExp(SEXP value, PairList nextNode) {
     this.value = value;
-    if(nextNode instanceof ListExp) {
-     this.nextNode = (ListExp) nextNode;
+    if(nextNode instanceof PairListExp) {
+     this.nextNode = (PairListExp) nextNode;
     }
   }
 
@@ -79,7 +79,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
    * @return the next node in this linked list
    * @throws IllegalStateException if there is no next node
    */
-  public final ListExp getNextNode() {
+  public final PairListExp getNextNode() {
     if (nextNode == null) {
       throw new IllegalStateException("this list has no nextNode. Call hasNextNode() to check first.");
     }
@@ -90,27 +90,22 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
     return nextNode != null;
   }
 
-  public void removeNextNode() {
-    nextNode = null;
-  }
-
-
-  public static ListExp fromIterable(Iterable<? extends SEXP> values) {
+  public static PairListExp fromIterable(Iterable<? extends SEXP> values) {
     Iterator<? extends SEXP> it = values.iterator();
 
     if (!it.hasNext()) {
       throw new IllegalArgumentException("Cannot create a zero-length list");
     }
-    ListExp head = new ListExp(it.next(), null);
-    ListExp node = head;
+    PairListExp head = new PairListExp(it.next(), null);
+    PairListExp node = head;
     while (it.hasNext()) {
-      node.nextNode = new ListExp(it.next(), null);
-      node = (ListExp) node.nextNode;
+      node.nextNode = new PairListExp(it.next(), null);
+      node = (PairListExp) node.nextNode;
     }
     return head;
   }
 
-  public static ListExp fromArray(SEXP... values) {
+  public static PairListExp fromArray(SEXP... values) {
     return fromIterable(Arrays.asList(values));
   }
 
@@ -129,7 +124,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
     return NullExp.INSTANCE;
   }
 
-  public void setNextNode(ListExp nextNode) {
+  public void setNextNode(PairListExp nextNode) {
     ArgChecker.notNull(nextNode);
     this.nextNode = nextNode;
   }
@@ -154,16 +149,6 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
     }
   }
 
-  /**
-   * Returns an (immutable) list of all {@code ListExp} nodes tagged
-   * with the given {@code SymbolExp}
-   */
-  public List<ListExp> findAllNodesTaggedWith(SymbolExp symbol) {
-    return new ImmutableList.Builder<ListExp>()
-        .addAll(Iterators.filter(nodeIterator(), new Tagged(symbol)))
-        .build();
-  }
-
   @Override
   public final int length() {
     return Iterators.size(iterator());
@@ -175,14 +160,14 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
   }
 
   public static SEXP ofLength(int length) {
-    return ListExp.fromIterable(Iterables.limit(Iterables.cycle(NullExp.INSTANCE), length));
+    return PairListExp.fromIterable(Iterables.limit(Iterables.cycle(NullExp.INSTANCE), length));
   }
 
   public <X extends SEXP> X get(int i) {
     return (X) Iterators.get(iterator(), i);
   }
 
-  public ListExp getNode(int i) {
+  public PairListExp getNode(int i) {
     return Iterators.get(nodeIterator(), i);
   }
 
@@ -190,9 +175,9 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
    * @return a shallow clone of the ListExp from this point on
    */
   @Override
-  public ListExp clone() {
+  public PairListExp clone() {
     Builder builder = new Builder();
-    for(ListExp node : listNodes()) {
+    for(PairListExp node : listNodes()) {
       builder.add(node.getValue()).taggedWith(node.getRawTag());
     }
     return builder.list();
@@ -203,8 +188,8 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
       return "[ CAR=this, CDR=" + nextNode + "]";
     } else {
       StringBuilder sb = new StringBuilder("[");
-      for (ListExp node : listNodes()) {
-        if (node != ListExp.this) {
+      for (PairListExp node : listNodes()) {
+        if (node != PairListExp.this) {
           sb.append(", ");
         }
         if (node.hasTag()) {
@@ -233,9 +218,9 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
    */
   private static class ValueIterator extends UnmodifiableIterator<SEXP> {
 
-    private ListExp next;
+    private PairListExp next;
 
-    private ValueIterator(ListExp next) {
+    private ValueIterator(PairListExp next) {
       this.next = next;
     }
 
@@ -256,15 +241,15 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
     return new Iterable<SEXP>() {
       @Override
       public Iterator<SEXP> iterator() {
-        return new ValueIterator(ListExp.this);
+        return new ValueIterator(PairListExp.this);
       }
     };
   }
 
-  private static class NodeIterator extends UnmodifiableIterator<ListExp> {
-    private ListExp next;
+  private static class NodeIterator extends UnmodifiableIterator<PairListExp> {
+    private PairListExp next;
 
-    private NodeIterator(ListExp next) {
+    private NodeIterator(PairListExp next) {
       this.next = next;
     }
 
@@ -274,8 +259,8 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
     }
 
     @Override
-    public ListExp next() {
-      ListExp value = next;
+    public PairListExp next() {
+      PairListExp value = next;
       next = next.nextNode;
       return value;
     }
@@ -290,10 +275,10 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
    *
    * @return an {@code Iterable} of the succession of {@code ListExp}s.
    */
-  public Iterable<ListExp> listNodes() {
-    return new Iterable<ListExp>() {
+  public Iterable<PairListExp> listNodes() {
+    return new Iterable<PairListExp>() {
       @Override
-      public Iterator<ListExp> iterator() {
+      public Iterator<PairListExp> iterator() {
         return nodeIterator();
       }
     };
@@ -306,29 +291,16 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
    * @param exp  A ListExp or null
    * @throws IllegalArgumentException if the exp is not of type ListExp or NillExp
    */
-  public static Iterable<ListExp> listNodes(PairList exp) {
-    if(exp instanceof ListExp) {
-      return ((ListExp) exp).listNodes();
+  public static Iterable<PairListExp> listNodes(PairList exp) {
+    if(exp instanceof PairListExp) {
+      return ((PairListExp) exp).listNodes();
     } else {
       return Collections.emptySet();
     }
   }
 
-  private Iterator<ListExp> nodeIterator() {
+  private Iterator<PairListExp> nodeIterator() {
     return new NodeIterator(this);
-  }
-
-  private class Tagged implements Predicate<ListExp> {
-    private SymbolExp symbolToMatch;
-
-    private Tagged(SymbolExp symbolToMatch) {
-      this.symbolToMatch = symbolToMatch;
-    }
-
-    @Override
-    public boolean apply(ListExp listExp) {
-      return symbolToMatch.equals(listExp.getRawTag());
-    }
   }
 
   public static Builder buildList() {
@@ -336,18 +308,18 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
   }
 
   public static class Builder {
-    private ListExp head = null;
-    private ListExp tail;
+    private PairListExp head = null;
+    private PairListExp tail;
 
     public Builder() {
     }
 
     public Builder add(SEXP s) {
       if (head == null) {
-        head = new ListExp(s, null);
+        head = new PairListExp(s, null);
         tail = head;
       } else {
-        ListExp next = new ListExp(s, null);
+        PairListExp next = new PairListExp(s, null);
         tail.nextNode = next;
         tail = next;
       }
@@ -359,7 +331,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
       return this;
     }
 
-    public ListExp list() {
+    public PairListExp list() {
       Preconditions.checkState(head != null, "ListExp cannot be empty");
       return head;
     }
@@ -378,19 +350,19 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
 
   public abstract static class Predicates {
     
-    public static Predicate<ListExp> hasTag() {
-      return new Predicate<ListExp>() {
+    public static Predicate<PairListExp> hasTag() {
+      return new Predicate<PairListExp>() {
         @Override
-        public boolean apply(ListExp listExp) {
+        public boolean apply(PairListExp listExp) {
           return listExp.hasTag();
         }
       };
     }
 
-    public static Predicate<ListExp> matches(final String name) {
-      return new Predicate<ListExp>() {
+    public static Predicate<PairListExp> matches(final String name) {
+      return new Predicate<PairListExp>() {
         @Override
-        public boolean apply(ListExp input) {
+        public boolean apply(PairListExp input) {
           if(input.getRawTag() instanceof SymbolExp) {
             return ((SymbolExp) input.getRawTag()).getPrintName().equals(name);
           } else {
@@ -400,15 +372,15 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
       };
     }
 
-    public static Predicate<ListExp> matches(SEXP tag) {
+    public static Predicate<PairListExp> matches(SEXP tag) {
       assert tag instanceof SymbolExp;
       return matches( ((SymbolExp) tag).getPrintName() );
     }
 
-    public static Predicate<ListExp> startsWith(final SymbolExp name) {
-      return new Predicate<ListExp>() {
+    public static Predicate<PairListExp> startsWith(final SymbolExp name) {
+      return new Predicate<PairListExp>() {
         @Override
-        public boolean apply(ListExp input) {
+        public boolean apply(PairListExp input) {
           return input.hasTag() && input.getTag().getPrintName().startsWith(name.getPrintName());
         }
       };

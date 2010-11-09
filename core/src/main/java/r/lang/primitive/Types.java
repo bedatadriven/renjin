@@ -72,7 +72,7 @@ public class Types {
   }
 
   public static boolean isList(SEXP exp) {
-    return exp.getClass() == ListExp.class;
+    return exp.getClass() == PairListExp.class;
   }
 
   public static boolean isPairList(SEXP exp) {
@@ -159,13 +159,13 @@ public class Types {
   }
 
 
-  public static ListExp list(SEXP... values) {
+  public static PairListExp list(SEXP... values) {
 
     if(values.length == 0) {
       throw new EvalException("Help me! How can a pair list have zero length?");
     }
 
-    ListExp.Builder builder = new ListExp.Builder();
+    PairListExp.Builder builder = new PairListExp.Builder();
     for(SEXP value : values) {
       builder.add(value);
     }

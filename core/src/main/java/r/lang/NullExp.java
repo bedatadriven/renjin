@@ -83,7 +83,7 @@ public final class NullExp extends SEXP implements PairList, AtomicExp {
   }
 
   @Override
-  public Iterable<ListExp> listNodes() {
+  public Iterable<PairListExp> listNodes() {
     return Collections.emptySet();
   }
 

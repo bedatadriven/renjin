@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import r.lang.EvalTestCase;
 import r.lang.GlobalContext;
-import r.lang.ListExp;
+import r.lang.PairListExp;
 import r.lang.SEXP;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -45,7 +45,7 @@ public class SubsetTest extends EvalTestCase {
   @Test
   public void pairListExact() {
 
-    ListExp list = ListExp.buildList().add(c(1)).taggedWith(context.symbol("alligator"))
+    PairListExp list = PairListExp.buildList().add(c(1)).taggedWith(context.symbol("alligator"))
                                      .add(c(3)).taggedWith(context.symbol("aardvark")).list();
 
     SEXP result = Subset.index(list, "all");

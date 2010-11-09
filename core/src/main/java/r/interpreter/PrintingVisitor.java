@@ -42,7 +42,7 @@ class PrintingVisitor extends SexpVisitor<String> {
   }
 
   @Override
-  public void visit(ListExp listExp) {
+  public void visit(PairListExp listExp) {
     int index = 1;
     for(SEXP exp : listExp) {
       out.append("[[").append(index).append("]]\n");

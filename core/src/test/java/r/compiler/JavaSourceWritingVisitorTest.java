@@ -24,7 +24,7 @@ package r.compiler;
 import org.junit.Before;
 import org.junit.Test;
 import r.lang.DoubleExp;
-import r.lang.ListExp;
+import r.lang.PairListExp;
 import r.lang.StringExp;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -35,7 +35,7 @@ public class JavaSourceWritingVisitorTest {
 
   @Test
   public void list() {
-    ListExp expr = ListExp.fromArray(new DoubleExp(1, 2, 3), new StringExp("a", "b"));
+    PairListExp expr = PairListExp.fromArray(new DoubleExp(1, 2, 3), new StringExp("a", "b"));
     expr.accept(visitor);
 
     assertThat(visitor.getBody(), equalTo("list(c(1, 2, 3), c(\"a\", \"b\"))"));

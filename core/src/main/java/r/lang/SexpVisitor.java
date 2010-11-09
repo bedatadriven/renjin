@@ -59,7 +59,7 @@ public class SexpVisitor<R> {
     unhandled(langExp);
   }
 
-  public void visit(ListExp listExp) {
+  public void visit(PairListExp listExp) {
     unhandled(listExp);
   }
 

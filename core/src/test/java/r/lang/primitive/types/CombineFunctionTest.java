@@ -35,7 +35,7 @@ public class CombineFunctionTest {
 
   @Test
   public void realList() {
-    SEXP exp = fn.combine(ListExp.fromArray(new DoubleExp(1), new DoubleExp(2), new DoubleExp(3)));
+    SEXP exp = fn.combine(PairListExp.fromArray(new DoubleExp(1), new DoubleExp(2), new DoubleExp(3)));
 
     assertThat(exp, instanceOf(DoubleExp.class));
     assertThat(exp.length(), equalTo(3));
@@ -43,7 +43,7 @@ public class CombineFunctionTest {
 
   @Test
   public void realsAndLogicalsMixed() {
-    SEXP exp = fn.combine(ListExp.fromArray(new DoubleExp(1), new DoubleExp(2), NullExp.INSTANCE, new LogicalExp(false)));
+    SEXP exp = fn.combine(PairListExp.fromArray(new DoubleExp(1), new DoubleExp(2), NullExp.INSTANCE, new LogicalExp(false)));
 
     assertThat(exp, instanceOf(DoubleExp.class));
     assertThat(exp.length(), equalTo(3));

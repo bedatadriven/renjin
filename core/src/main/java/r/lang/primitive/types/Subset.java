@@ -58,7 +58,7 @@ public class Subset {
     SEXP partialMatch = null;
     int partialMatchCount = 0;
 
-    for(ListExp node : ListExp.listNodes(list)) {
+    for(PairListExp node : PairListExp.listNodes(list)) {
       String tag = tagName(node.getRawTag());
       if(tag != null) {
         if(indexName.equals(tag)) {

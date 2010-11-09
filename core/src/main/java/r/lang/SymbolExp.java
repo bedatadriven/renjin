@@ -88,7 +88,7 @@ public class SymbolExp extends SEXP {
     if(value == SymbolExp.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", printName));
     }
-    return new EvalResult(value);
+    return value.evaluate(rho);
   }
 
   @Override

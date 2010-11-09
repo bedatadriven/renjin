@@ -24,7 +24,9 @@ package r.lang;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.collect.PeekingIterator;
 import r.lang.exception.EvalException;
 
 import java.util.Collection;
@@ -32,11 +34,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterators.filter;
 import static r.lang.ListExp.Predicates;
 
 /**
@@ -53,12 +52,12 @@ public class ClosureExp extends SEXP implements FunExp {
   private static final String TYPE_NAME = "closure";
   private static final int TYPE_CODE = 4;
 
-  private EnvExp environment;
+  private EnvExp enclosingEnvironment;
   private SEXP body;
   private PairList formals;
 
   public ClosureExp(EnvExp environment, PairList formals, SEXP body) {
-    this.environment = environment;
+    this.enclosingEnvironment = environment;
     this.body = body;
     this.formals = formals;
   }
@@ -81,11 +80,10 @@ public class ClosureExp extends SEXP implements FunExp {
   @Override
   public EvalResult apply(LangExp call, PairList args, EnvExp rho) {
 
-    EnvExp env = new EnvExp(environment);
+    EnvExp functionEnvironment = new EnvExp(enclosingEnvironment);
+    matchArgumentsInto(args, functionEnvironment);
 
-    matchArguments(rho, args, environment);
-
-    return body.evaluate(env);
+    return body.evaluate(functionEnvironment);
   }
 
   /**
@@ -97,8 +95,8 @@ public class ClosureExp extends SEXP implements FunExp {
    * term from functional programming theory.
    *
    */
-  public EnvExp getEnvironment() {
-    return environment;
+  public EnvExp getEnclosingEnvironment() {
+    return enclosingEnvironment;
   }
 
   /**
@@ -150,25 +148,25 @@ public class ClosureExp extends SEXP implements FunExp {
    * If any arguments remain unmatched an error is declared.
    *
    * @param actuals the actual arguments supplied to the list
-   * @param env the environment in which to resolve the arguments
+   * @param innerEnv the environment in which to resolve the arguments
    */
-  private void matchArguments(EnvExp rho, PairList actuals, EnvExp env) {
+  private void matchArgumentsInto(PairList actuals, EnvExp innerEnv) {
 
-    List<ListExp> namedActuals = Lists.newArrayList(filter(actuals.listNodes(),Predicates.hasTag()));
-    List<ListExp> unmatchedFormals = Lists.newArrayList(ListExp.listNodes(formals));
+    List<ListExp> unmatchedActuals = Lists.newArrayList(actuals.listNodes());
+    List<ListExp> unmatchedFormals = Lists.newArrayList(formals.listNodes());
 
     // do exact matching
     for(ListIterator<ListExp> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
       ListExp formal = formalIt.next();
       if(formal.hasTag()) {
         SymbolExp name = (SymbolExp) formal.getTag();
-        Collection<ListExp> matches = Collections2.filter(namedActuals, Predicates.matches(name));
+        Collection<ListExp> matches = Collections2.filter(unmatchedActuals, Predicates.matches(name));
 
         if(matches.size() == 1) {
           ListExp match = first(matches);
-          env.setVariable(name, match.getValue().evalToExp(rho));
+          innerEnv.setVariable(name, new PromiseExp( match.getValue(), innerEnv ));
           formalIt.remove();
-          namedActuals.remove(match);
+          unmatchedActuals.remove(match);
 
         } else if(matches.size() > 1) {
           throw new EvalException(String.format("Multiple named values provided for argument '%s'", name.getPrintName()));
@@ -178,42 +176,62 @@ public class ClosureExp extends SEXP implements FunExp {
 
     // do partial matching
     Collection<ListExp> remainingNamedFormals = filter(unmatchedFormals, Predicates.hasTag());
-    for(Iterator<ListExp> actualIt = namedActuals.iterator(); actualIt.hasNext(); ) {
+    for(Iterator<ListExp> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
       ListExp actual = actualIt.next();
-      SymbolExp name = (SymbolExp)actual.getTag();
-      Collection<ListExp> matches = Collections2.filter(remainingNamedFormals, Predicates.startsWith(name));
+      if(actual.hasTag()) {
+        Collection<ListExp> matches = Collections2.filter(remainingNamedFormals, Predicates.startsWith(actual.getTag()));
 
-      if(matches.size() == 1) {
-        ListExp match = first(matches);
-        env.setVariable((SymbolExp) match.getTag(), actual.getValue().evalToExp(rho));
-        actualIt.remove();
-        unmatchedFormals.remove(match);
+        if(matches.size() == 1) {
+          ListExp match = first(matches);
+          innerEnv.setVariable(match.getTag(), new PromiseExp( actual.getValue(), innerEnv ));
+          actualIt.remove();
+          unmatchedFormals.remove(match);
 
-      } else if(matches.size() > 1) {
-        throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments: %s",
-            name.getPrintName(), argumentTagList(matches)));
+        } else if(matches.size() > 1) {
+          throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments: %s",
+              actual.getTag().getPrintName(), argumentTagList(matches)));
+        }
       }
-    }
-    if(!namedActuals.isEmpty()) {
-      throw new EvalException(String.format("Unmatched named arguments: %s", argumentTagList(namedActuals)));
     }
 
     // match any unnamed args positionally
 
     Iterator<ListExp> formalIt = unmatchedFormals.iterator();
-    Iterator<ListExp> actualIt = filter(actuals.listNodes().iterator(), not(Predicates.hasTag()));
+    PeekingIterator<ListExp> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
     while( formalIt.hasNext()) {
       ListExp formal = formalIt.next();
-      SymbolExp name = (SymbolExp) formal.getTag();
-      if(actualIt.hasNext()) {
-        env.setVariable(name, actualIt.next().getValue().evalToExp(rho));
+      if(formal.getTag().getPrintName().equals("...")) {
+        ListExp.Builder builder = new ListExp.Builder();
+        while(actualIt.hasNext()) {
+          builder.add( new PromiseExp( actualIt.next().getValue(), innerEnv ) );
+        }
+        innerEnv.setVariable(formal.getTag(), builder.list());
+
+      } else if( hasNextUnTagged(actualIt) ) {
+        innerEnv.setVariable(formal.getTag(), new PromiseExp( nextUnTagged(actualIt).getValue(), innerEnv ) );
+
+      } else if( formal.getValue() == SymbolExp.MISSING_ARG ) {
+        innerEnv.setVariable(formal.getTag(), SymbolExp.MISSING_ARG);
+
       } else {
-        env.setVariable(name, formal.getValue()); // default
+        innerEnv.setVariable(formal.getTag(), new PromiseExp( formal.getValue(), innerEnv )); // default
       }
     }
     if(actualIt.hasNext()) {
       throw new EvalException(String.format("Unmatched positional arguments"));
     }
+  }
+
+  private boolean hasNextUnTagged(PeekingIterator<ListExp> it) {
+    return it.hasNext() && !it.peek().hasTag();
+  }
+
+  private ListExp nextUnTagged(Iterator<ListExp> it) {
+    ListExp arg = it.next() ;
+    while( arg.hasTag() ) {
+      arg = it.next();
+    }
+    return arg;
   }
 
   private String argumentTagList(Collection<ListExp> matches) {
@@ -230,6 +248,4 @@ public class ClosureExp extends SEXP implements FunExp {
   private <X> X first(Iterable<X> values) {
     return values.iterator().next();
   }
-
-
 }

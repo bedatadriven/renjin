@@ -193,7 +193,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
   public ListExp clone() {
     Builder builder = new Builder();
     for(ListExp node : listNodes()) {
-      builder.add(node.getValue()).taggedWith(node.getTag());
+      builder.add(node.getValue()).taggedWith(node.getRawTag());
     }
     return builder.list();
   }
@@ -208,7 +208,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
           sb.append(", ");
         }
         if (node.hasTag()) {
-          sb.append(node.getTag()).append("=");
+          sb.append(node.getRawTag()).append("=");
         }
         sb.append(node.getValue());
       }
@@ -327,7 +327,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
 
     @Override
     public boolean apply(ListExp listExp) {
-      return symbolToMatch.equals(listExp.getTag());
+      return symbolToMatch.equals(listExp.getRawTag());
     }
   }
 
@@ -368,9 +368,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
 
   @Override
   public EvalResult evaluate(EnvExp rho) {
-    Builder builder = new Builder();
-
-    return new EvalResult(builder.list());
+    return new EvalResult(this);
   }
 
   @Override
@@ -393,8 +391,8 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
       return new Predicate<ListExp>() {
         @Override
         public boolean apply(ListExp input) {
-          if(input.getTag() instanceof SymbolExp) {
-            return ((SymbolExp) input.getTag()).getPrintName().equals(name);
+          if(input.getRawTag() instanceof SymbolExp) {
+            return ((SymbolExp) input.getRawTag()).getPrintName().equals(name);
           } else {
             return false;
           }
@@ -411,10 +409,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
       return new Predicate<ListExp>() {
         @Override
         public boolean apply(ListExp input) {
-          if(input.getTag() instanceof SymbolExp) {
-            return ((SymbolExp) input.getTag()).getPrintName().startsWith(name.getPrintName());
-          }
-          return false;
+          return input.hasTag() && input.getTag().getPrintName().startsWith(name.getPrintName());
         }
       };
     }

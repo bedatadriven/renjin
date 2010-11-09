@@ -73,7 +73,7 @@ public class CDefines {
 
   public static SEXP TAG(SEXP e) {
     ArgChecker.notNull(e);
-    return e.getTag();
+    return e.getRawTag();
   }
 
   /**

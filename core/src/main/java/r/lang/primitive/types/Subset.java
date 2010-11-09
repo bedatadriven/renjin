@@ -59,7 +59,7 @@ public class Subset {
     int partialMatchCount = 0;
 
     for(ListExp node : ListExp.listNodes(list)) {
-      String tag = tagName(node.getTag());
+      String tag = tagName(node.getRawTag());
       if(tag != null) {
         if(indexName.equals(tag)) {
           return node.getValue();

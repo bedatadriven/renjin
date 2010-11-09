@@ -21,27 +21,36 @@
 
 package r.lang;
 
-import static r.util.CDefines.R_UnboundValue;
-
+/**
+ * Promises are an internal structures that arise only in the context of a
+ * call to a ClosureExp.
+ *
+ * PromiseExp enable delayed evaluation in such a way that an expression
+ * provided as an argument is evaluated only once, but only if it is
+ * referenced.
+ *
+ */
 public class PromiseExp extends SEXP implements RecursiveExp {
 
   public static final int TYPE_CODE = 5;
   public static final String TYPE_NAME = "promise";
 
-  private SEXP value = SymbolExp.UNBOUND_VALUE;
-  private SEXP expr;
-  private SEXP env;
+  private SEXP expression;
+  private EnvExp environment;
+  private EvalResult result;
+
+  public PromiseExp(SEXP expression, EnvExp environment) {
+    this.expression = expression;
+    this.environment = environment;
+  }
 
   @Override
   public EvalResult evaluate(EnvExp rho) {
-    if (value == R_UnboundValue) {
-      /* We could just unconditionally use the return value from
-        forcePromise; the test avoids the function call if the
-        promise is already evaluated. */
-      forcePromise();
+    if (result == null) {
+      this.result = expression.evaluate(environment);
+      this.environment = null;
     }
-
-    return new EvalResult(value);
+    return result;
   }
 
   @Override
@@ -57,9 +66,5 @@ public class PromiseExp extends SEXP implements RecursiveExp {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
-  }
-
-  private void forcePromise() {
-    throw new UnsupportedOperationException("forcePromise not impl");
   }
 }

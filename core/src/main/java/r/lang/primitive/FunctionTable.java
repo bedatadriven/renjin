@@ -198,7 +198,7 @@ public class FunctionTable {
       f("vector", /*makevector*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("complex", /*complex*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("matrix", /*matrix*/ null, 0, 11, -1, PP_FUNCALL, PREC_FN, 0),
-      f("length", /*length*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("length", Types.class, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("length<-", /*lengthgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
       f("row", /*rowscols*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("col", /*rowscols*/ null, 2, 11, 1, PP_FUNCALL, PREC_FN, 0),

@@ -79,8 +79,16 @@ public abstract class SEXP {
     this.named = named;
   }
 
-  public SEXP getTag() {
+  /**
+   * @return this expression's tag
+   * @throws ClassCastException if this expression's tag is NullExp
+   */
+  public SEXP getRawTag() {
     return tag;
+  }
+
+  public SymbolExp getTag() {
+    return (SymbolExp)tag;
   }
 
   public boolean hasTag() {

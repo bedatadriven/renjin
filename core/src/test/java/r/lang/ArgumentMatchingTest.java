@@ -76,6 +76,56 @@ public class ArgumentMatchingTest extends EvalTestCase {
     eval( "f(1,2,3) ");
   }
 
+  @Test
+  public void varArgs() {
+    eval( "f <- function(...) { length(...) }");
+    assertThat( eval( "f(1,2,3) "), equalTo( c_i(3) ));
+  }
+
+  @Test
+  public void varArgWithNamed() {
+    eval( "f <- function(..., x) { length(...) }");
+    assertThat( eval(" f(x=99, 1, 2, 3) "), equalTo( c_i(3) ));
+  }
+
+  @Test
+  public void varArgWithExtraNamed() {
+    eval( "f <- function(...) { length(...) } ");
+    assertThat( eval(" f(x=32, y=42, z=99) "), equalTo( c_i(3) ));
+  }
+
+  @Test
+  public void evaluatedPromise() {
+    eval( "x <- 1 " );
+    eval( "f <- function(a = x) { a } ");
+    assertThat( eval(" f()" ), equalTo( c(1))) ;
+  }
+
+  @Test
+  public void promiseEvaluatedInFunctionEnv() {
+    eval( "f <- function( a = sqrt(y) ) { y<-4; a } ");
+    assertThat( eval("f()"), equalTo( c(2) ));
+  }
+
+
+  @Test
+  public void autoPrintingFun1() {
+
+    eval( "f <- function( a = if(FALSE) {1 } ) { a }" );
+
+    assertThat(evaluate( "f()").isVisible(), equalTo(false)) ;
+    assertThat(evaluate( "f()").getExpression(), equalTo( (SEXP)NullExp.INSTANCE )) ;
+  }
+
+  @Test
+  public void autoPrintingFun2() {
+
+    // this fails in R-2.1.0 but I think this behavior is more consistent!
+    eval( "f <- function( a = if(FALSE) {1 } ) { a; a}" );
+
+    assertThat(evaluate( "f()").isVisible(), equalTo(false)) ;
+  }
+
 
   @Test
   public void methodTable() {

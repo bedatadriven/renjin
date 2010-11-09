@@ -178,7 +178,7 @@ public class Types {
   }
 
   public static EnvExp environment(ClosureExp arg) {
-    return arg.getEnvironment();
+    return arg.getEnclosingEnvironment();
   }
 
   public static NullExp environment(SEXP exp) {
@@ -200,5 +200,9 @@ public class Types {
 
   public static EnvExp baseEnv(@Environment EnvExp rho) {
     return rho.getGlobalContext().getBaseEnvironment();
+  }
+
+  public static int length(SEXP exp) {
+    return exp.length();
   }
 }

@@ -19,24 +19,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Marker interface that restricts the type of a parameter or member to
- * either a ListExp (one or more elements) or NilExp (empty list).
- *
- * This aligns to the primitive function "is.pairlist"
+ * Indicates that the parameter should be mapped to the current environment
  */
-public interface PairList extends Iterable<SEXP> {
-
-  int length();
-  SEXP getFirst();
-  SEXP getSecond();
-  SEXP getThird();
-  <S extends SEXP> S get(int i);
-  Iterable<ListExp> listNodes();
-
-  void accept(SexpVisitor visitor);
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+public @interface Environment {
 
 }

@@ -288,7 +288,7 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
    * {@code L}, {@code L.nextNode}, and {@code L.nextNode.nextNode}.
    * 
    *
-   * @return an {@code Iterable} of the sucession of {@code ListExp}s.
+   * @return an {@code Iterable} of the succession of {@code ListExp}s.
    */
   public Iterable<ListExp> listNodes() {
     return new Iterable<ListExp>() {
@@ -389,6 +389,36 @@ public class ListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairL
       };
     }
 
+    public static Predicate<ListExp> matches(final String name) {
+      return new Predicate<ListExp>() {
+        @Override
+        public boolean apply(ListExp input) {
+          if(input.getTag() instanceof SymbolExp) {
+            return ((SymbolExp) input.getTag()).getPrintName().equals(name);
+          } else {
+            return false;
+          }
+        }
+      };
+    }
+
+    public static Predicate<ListExp> matches(SEXP tag) {
+      assert tag instanceof SymbolExp;
+      return matches( ((SymbolExp) tag).getPrintName() );
+    }
+
+    public static Predicate<ListExp> startsWith(final SymbolExp name) {
+      return new Predicate<ListExp>() {
+        @Override
+        public boolean apply(ListExp input) {
+          if(input.getTag() instanceof SymbolExp) {
+            return ((SymbolExp) input.getTag()).getPrintName().startsWith(name.getPrintName());
+          }
+          return false;
+        }
+      };
+    }
   }
+
 
 }

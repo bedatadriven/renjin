@@ -55,7 +55,7 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
 
   @Override
   public EvalResult apply(LangExp call, PairList arguments, EnvExp rho) {
-    checkArity(arguments);
+//    checkArity(arguments);
     // PairList preparedArgs = prepareArguments(arguments, rho);
 
     List<Method> overloads = getMethodOverloads();

@@ -73,6 +73,11 @@ public class EnvExp extends SEXP implements RecursiveExp {
 
   protected EnvExp(GlobalContext globalContext) {
     this.globalContext = globalContext;
+    this.enclosing = null;
+  }
+
+  public EnvExp getParent() {
+    return enclosing;
   }
 
   public GlobalContext getGlobalContext() {

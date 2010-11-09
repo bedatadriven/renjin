@@ -61,8 +61,8 @@ public class SymbolTable {
   public SymbolTable() {
     setupShortcuts();
     installFunctionTable();
+    installPlatform();
   }
-
 
   /**
    * install - probe the symbol table
@@ -104,6 +104,7 @@ public class SymbolTable {
     tspSymbol = install("tsp");
   }
 
+
   public List<String> getBoundSymbolNames() {
     List<String> names = new ArrayList<String>();
     for(SymbolExp symbol : table.values()) {
@@ -133,6 +134,22 @@ public class SymbolTable {
       }
     }
   }
+
+  private void installPlatform() {
+    SymbolExp platform = install(".Platform");
+    platform.setValue( ListExp.buildList()
+        .add(new StringExp(resolveOsName())).taggedWith(install("OS.type"))
+        .add(new StringExp("/")).taggedWith(install("file.sep"))
+        .add(new StringExp("unknown")).taggedWith(install("GUI"))
+        .add(new StringExp("big")).taggedWith(install("endian"))
+        .add(new StringExp("source")).taggedWith(install("pkgType"))
+        .add(new StringExp("")).taggedWith(install("r_arch")).list() );
+  }
+
+  private String resolveOsName() {
+    return System.getProperty("os.name").contains("windows") ? "windows" : "unix";
+  }
+
 
   /**
    * "[["

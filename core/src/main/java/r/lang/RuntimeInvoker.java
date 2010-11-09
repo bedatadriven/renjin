@@ -22,14 +22,13 @@
 package r.lang;
 
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.Environment;
 import r.parser.ParseUtil;
 
-import java.lang.reflect.Array;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Invokes a JVM method from the R language.
@@ -50,17 +49,23 @@ public class RuntimeInvoker {
 
   private List<CallStrategy> strategies;
   private List<AtomicAccessor> accessors;
+  private Map<Class, String> rTypeNames;
 
   private RuntimeInvoker() {
     strategies = new ArrayList<CallStrategy>();
-    strategies.add(new FixedArity());
     strategies.add(new UnaryPrimitive(Integer.TYPE));
     strategies.add(new UnaryPrimitive(Double.TYPE));
     strategies.add(new UnaryPrimitive(String.class));
-    strategies.add(new BinaryPrimitive());
+    strategies.add(new BinaryPrimitive(Integer.TYPE));
+    strategies.add(new BinaryPrimitive(Double.TYPE));
+    strategies.add(new BinaryPrimitive(String.class));
+    strategies.add(new FixedArity());
+    strategies.add(new FixedArityWithEnvironment());
     strategies.add(new VarArgs());
 
     accessors = new ArrayList<AtomicAccessor>();
+    accessors.add(new LogicalExpToBoolean());
+    accessors.add(new IntExpAccessor());
     accessors.add(new RealExpAccessor());
     accessors.add(new StringExpAccessor());
 
@@ -72,6 +77,22 @@ public class RuntimeInvoker {
     accessors.add(new RealExpToString());
     accessors.add(new IntExpToString());
     accessors.add(new LogicalExpToString());
+
+    // friendly names for printing JVM types
+    rTypeNames = new HashMap<Class, String>();
+    rTypeNames.put(SEXP[].class, "...");
+    rTypeNames.put(SEXP.class, "any");
+    rTypeNames.put(LogicalExp.class, LogicalExp.TYPE_NAME);
+    rTypeNames.put(Logical.class, LogicalExp.TYPE_NAME);
+    rTypeNames.put(Boolean.class, LogicalExp.TYPE_NAME);
+    rTypeNames.put(Boolean.TYPE, LogicalExp.TYPE_NAME);
+    rTypeNames.put(IntExp.class, IntExp.TYPE_NAME);
+    rTypeNames.put(Integer.class, IntExp.TYPE_NAME);
+    rTypeNames.put(Integer.TYPE, IntExp.TYPE_NAME);
+    rTypeNames.put(DoubleExp.class, DoubleExp.TYPE_NAME);
+    rTypeNames.put(Double.class, DoubleExp.TYPE_NAME);
+    rTypeNames.put(Double.TYPE, DoubleExp.TYPE_NAME);
+    rTypeNames.put(String.class, StringExp.TYPE_NAME);
   }
 
   public EvalResult invoke(EnvExp rho, LangExp call, List<Method> overloads) {
@@ -86,11 +107,11 @@ public class RuntimeInvoker {
     for(CallStrategy strategy : strategies) {
       for(Method method : overloads) {
         if(strategy.accept(method, args)) {
-          return strategy.apply(method, args);
+          return strategy.apply(method, rho, args);
         }
       }
     }
-    throw new EvalException(formatErrorMessage(call, overloads));
+    throw new EvalException(formatErrorMessage(call, args, overloads));
   }
 
   public static boolean isLangMethod(Method method) {
@@ -112,7 +133,7 @@ public class RuntimeInvoker {
 
   private interface CallStrategy {
     boolean accept(Method method, SEXP arguments[]);
-    EvalResult apply(Method method, SEXP arguments[]);
+    EvalResult apply(Method method, EnvExp rho, SEXP arguments[]);
   }
 
 
@@ -131,21 +152,25 @@ public class RuntimeInvoker {
 
     @Override
     public boolean accept(Method method, SEXP providedArgs[]) {
-      Class<?>[] expected = method.getParameterTypes();
-      if(providedArgs.length != expected.length) {
-        return false;
-      }
-      for(int i=0; i!=expected.length; ++i) {
-        if(!expected[i].isAssignableFrom(providedArgs[i].getClass())) {
-          return false;
-        }
-      }
-      return true;
+      return acceptArguments(providedArgs, method.getParameterTypes());
     }
 
     @Override
-    public EvalResult apply(Method method, SEXP arguments[]) {
-      return invokeAndWrap(method, arguments);
+    public EvalResult apply(Method method, EnvExp rho, SEXP arguments[]) {
+      return invokeAndWrap(method, convertArgs(method, arguments, 0));
+    }
+  }
+
+  private class FixedArityWithEnvironment implements CallStrategy {
+    @Override
+    public boolean accept(Method method, SEXP[] arguments) {
+      return isArgAnnotated(method, 0, Environment.class) &&
+          acceptArguments(arguments, skip(method.getParameterTypes(), 1));
+    }
+
+    @Override
+    public EvalResult apply(Method method, EnvExp rho, SEXP[] arguments) {
+      return invokeAndWrap(method, concat(rho, convertArgs(method, arguments, 1)));
     }
   }
 
@@ -158,12 +183,12 @@ public class RuntimeInvoker {
     public boolean accept(Method method, SEXP[] arguments) {
       return method.isVarArgs() &&
           method.getParameterTypes().length == 1 &&
-          method.getParameterTypes()[0] == Array.class;
+          method.getParameterTypes()[0] == SEXP[].class;
     }
 
     @Override
-    public EvalResult apply(Method method, SEXP[] arguments) {
-      return invokeAndWrap(method, arguments);
+    public EvalResult apply(Method method, EnvExp rho, SEXP[] arguments) {
+      return invokeAndWrap(method, new Object[] { arguments });
     }
   }
 
@@ -186,7 +211,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(Method method, SEXP arguments[]) {
+    public EvalResult apply(Method method, EnvExp rho, SEXP arguments[]) {
       SEXP domain = arguments[0];
       int length = domain.length();
 
@@ -205,22 +230,41 @@ public class RuntimeInvoker {
     }
   }
 
+  private Object[] convertArgs(Method method, SEXP[] args, int skip) {
+    Object newArray[] = new Object[args.length];
+    for(int i=skip;i<args.length;++i) {
+      Class type = method.getParameterTypes()[i-skip];
+      if(type.isAssignableFrom(args[i].getClass())) {
+        newArray[i] = args[i];
+      } else {
+        newArray[i] = getAccessor(args[i], type).get(args[i], 0);
+      }
+    }
+    return newArray;
+  }
+
   /**
    * Maps a binary primitive function over two vectors.
    *
    */
   private class BinaryPrimitive implements CallStrategy {
-    @Override
-    public boolean accept(Method method, SEXP arguments[]) {
-      return hasArgs(method, Double.TYPE, Double.TYPE) &&
-          haveResultBuilderFor(method) &&
-          arguments.length == 2 &&
-          haveAccessor(arguments[0], Double.TYPE) &&
-          haveAccessor(arguments[1], Double.TYPE);
+    private Class<Double> primitiveType;
+
+    public BinaryPrimitive(Class type) {
+      primitiveType = type;
     }
 
     @Override
-    public EvalResult apply(Method method, SEXP arguments[]) {
+    public boolean accept(Method method, SEXP arguments[]) {
+      return hasArgs(method, primitiveType, primitiveType) &&
+          haveResultBuilderFor(method) &&
+          arguments.length == 2 &&
+          haveAccessor(arguments[0], primitiveType) &&
+          haveAccessor(arguments[1], primitiveType);
+    }
+
+    @Override
+    public EvalResult apply(Method method, EnvExp rho, SEXP arguments[]) {
       SEXP x = arguments[0];
       SEXP y = arguments[1];
       int xLen = x.length();
@@ -232,8 +276,8 @@ public class RuntimeInvoker {
         throw new EvalException("longer object length is not a multiple of shorter object length");
       }
 
-      AtomicAccessor cx = getAccessor(x, Double.TYPE);
-      AtomicAccessor cy = getAccessor(y, Double.TYPE);
+      AtomicAccessor cx = getAccessor(x, primitiveType);
+      AtomicAccessor cy = getAccessor(y, primitiveType);
       AtomicResultBuilder result = resultBuilderFor(method.getReturnType(), maxLen);
 
       for(int i=0; i!=maxLen; i++) {
@@ -250,6 +294,54 @@ public class RuntimeInvoker {
       return new EvalResult( result.build() );
     }
   }
+
+  private static boolean isArgAnnotated(Method method, int index, Class<? extends Annotation> expectedAnnotation) {
+    if( index >= method.getParameterAnnotations().length) {
+      return false;
+    }
+    Annotation[] annotations = method.getParameterAnnotations()[index];
+    for(Annotation annotation : annotations) {
+      if(annotation.annotationType() == expectedAnnotation) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean acceptArguments(SEXP[] provided, Class<?>[] expected) {
+    if(provided.length != expected.length) {
+      return false;
+    }
+    for(int i=0; i!= expected.length; ++i) {
+      if(!acceptArgument(provided[i], expected[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean acceptArgument(SEXP provided, Class expected) {
+    if(expected.isAssignableFrom(provided.getClass())) {
+      return true;
+    }
+    if(haveAccessor(provided, expected) && provided.length() == 1) {
+      return true;
+    }
+    return false;
+  }
+
+
+  private static <T> T[] skip(T[] array, int index) {
+    return Arrays.copyOfRange(array, index, array.length);
+  }
+
+  private static Object[] concat(Object first, Object... elements) {
+    Object newArray[] = new Object[elements.length+1];
+    newArray[0] = first;
+    System.arraycopy(elements, 0, newArray, 1, elements.length);
+    return newArray;
+  }
+
 
   private static boolean hasArgs(Method method, Class... expectedArguments) {
     return Arrays.equals(method.getParameterTypes(), expectedArguments);
@@ -272,6 +364,8 @@ public class RuntimeInvoker {
         // wrap checked exceptions
         throw new RuntimeException("Exception while invoking method from R:\n" + overload.toString(), e);
       }
+    } catch(IllegalArgumentException e) {
+      throw new RuntimeException("IllegalArgumentException while invoking " + overload.toString());
     }
   }
 
@@ -288,6 +382,18 @@ public class RuntimeInvoker {
     } else if(result instanceof Long) {
       return new EvalResult( new DoubleExp(((Long)result).doubleValue()) );
 
+    } else if(result instanceof Double) {
+      return new EvalResult( new DoubleExp( (Double) result ));
+
+    } else if(result instanceof Boolean) {
+      return new EvalResult( new LogicalExp( (Boolean) result ));
+
+    } else if(result instanceof Integer) {
+      return new EvalResult( new IntExp( (Integer) result));
+      
+    } else if(result instanceof String) {
+      return new EvalResult( new StringExp( (String) result ));
+
     } else if(result instanceof double[]) {
       return new EvalResult( new DoubleExp((double[]) result) );
 
@@ -295,15 +401,15 @@ public class RuntimeInvoker {
       return new EvalResult( new LogicalExp((boolean[]) result));
 
     } else {
-      throw new EvalException("Java function returned incovertable type: " + result.getClass().getName());
+      throw new EvalException("JVM method returned incovertable type: " + result.getClass().getName());
     }
   }
 
-  private String formatErrorMessage(LangExp call, List<Method> methods) {
+  private String formatErrorMessage(LangExp call, SEXP[] args, List<Method> methods) {
     StringBuilder sb = new StringBuilder();
     sb.append("Cannot execute the function with the arguments supplied.\n");
     sb.append("Arguments: \n\t");
-    for(SEXP arg : call.getArguments()) {
+    for(SEXP arg : args) {
       sb.append(arg.getTypeName()).append(" ");
     }
 
@@ -312,16 +418,26 @@ public class RuntimeInvoker {
     for(Method method : methods) {
       sb.append("\t").append(method.getName()).append("(");
       Class<?>[] params = method.getParameterTypes();
+      boolean needsComma=false;
       for(int i=0;i!=params.length;++i) {
-        if(i>0) {
-          sb.append(", ");
+        if(!isArgAnnotated(method,0,Environment.class)) {
+          if(needsComma) {
+            sb.append(", ");
+          } else {
+            needsComma=true;
+          }
+          if(rTypeNames.containsKey(params[i])) {
+            sb.append(rTypeNames.get(params[i]));
+          } else { 
+            sb.append(params[i].getSimpleName());
+          }
         }
-        sb.append(params[i].getSimpleName());
       }
       sb.append(")\n");
     }
     return sb.toString();
   }
+
 
   private interface AtomicResultBuilder<T> {
     void set(int index, T value);
@@ -481,6 +597,23 @@ public class RuntimeInvoker {
     }
   }
 
+  private class IntExpAccessor implements AtomicAccessor<IntExp, Integer> {
+    @Override
+    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
+      return expType == IntExp.class && destinationType == Integer.TYPE;
+    }
+
+    @Override
+    public boolean isNA(IntExp exp, int index) {
+      return exp.get(index) == IntExp.NA;
+    }
+
+    @Override
+    public Integer get(IntExp exp, int index) {
+      return exp.get(index);
+    }
+  }
+
   private static class RealExpAccessor implements AtomicAccessor<DoubleExp, Double> {
     @Override
     public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
@@ -529,6 +662,23 @@ public class RuntimeInvoker {
     @Override
     public Double get(LogicalExp exp, int index) {
       return (double) exp.get( index );
+    }
+  }
+
+  private static class LogicalExpToBoolean implements AtomicAccessor<LogicalExp, Boolean> {
+    @Override
+    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
+      return expType == LogicalExp.class && destinationType == Boolean.TYPE;
+    }
+
+    @Override
+    public boolean isNA(LogicalExp exp, int index) {
+      return exp.get(index) == IntExp.NA;
+    }
+
+    @Override
+    public Boolean get(LogicalExp exp, int index) {
+      return exp.get(index) == 1;
     }
   }
 

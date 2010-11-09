@@ -22,7 +22,6 @@
 package r.compiler;
 
 import org.junit.Test;
-import r.compiler.runtime.Program;
 import r.lang.*;
 
 import java.io.*;
@@ -49,19 +48,17 @@ public class CompilerTest {
     printSource(source);
 
     compiler.compile();
-    compiler.load();
-    Program program = compiler.load();
 
     GlobalContext context = new GlobalContext();
     EnvExp env = context.getGlobalEnvironment();
-    program.evaluate(env);
+    EnvExp simplePackage = compiler.load(context.getBaseEnvironment());
 
     SymbolExp a = context.getSymbolTable().install("a");
     SymbolExp myfunc = context.getSymbolTable().install("myfunc");
 
-    assertThat(env.findVariable(a), equalTo((SEXP)new DoubleExp(42)));
+    assertThat(simplePackage.findVariable(a), equalTo((SEXP)new DoubleExp(42)));
 
-    ClosureExp myfuncClosureExp = (ClosureExp) env.findVariable(myfunc);
+    ClosureExp myfuncClosureExp = (ClosureExp) simplePackage.findVariable(myfunc);
     assertThat(myfuncClosureExp, is(not(nullValue())));
 
   }

@@ -28,7 +28,6 @@ import org.apache.commons.math.complex.Complex;
 import r.lang.*;
 import r.parser.ParseUtil;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -108,7 +107,7 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
   }
 
   @Override
-  public void visit(NullExp nilExp) {
+  public void visit(NullExp nullExp) {
     body.append("NULL");
   }
 
@@ -162,6 +161,15 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
   }
 
   @Override
+  public void visit(ClosureExp closureExp) {
+    body.append("new ClosureExp(this, ");
+    closureExp.getFormals().accept(this);
+    body.append(",");
+    closureExp.getBody().accept(this);
+    body.append(")");
+  }
+
+  @Override
   protected void unhandled(SEXP exp) {
     throw new UnsupportedOperationException("Unexpected SEXP of type " + exp.getClass() + " with value " +
     exp.toString() + "; the JavaSourceWritingVisitor can only generate code for the results of parse(), " +
@@ -180,31 +188,4 @@ public class JavaSourceWritingVisitor extends SexpVisitor<String> {
     }
   }
 
-  public void writeTo(String packageName, String className, PrintStream writer) {
-    writer.println(String.format("package %s;", packageName));
-    writer.println();
-    writer.println("import r.lang.*;");
-    writer.println("import r.compiler.runtime.AbstractProgram;");
-    writer.println();
-    writer.println("import static r.lang.Logical.TRUE;");
-    writer.println("import static r.lang.Logical.FALSE;");
-    writer.println("import static r.lang.Logical.NA;");
-
-    writer.println("import org.apache.commons.math.complex.Complex;");
-    
-    writer.println();
-    writer.println("public class " + className + " extends AbstractProgram {");
-    writer.println();
-    writer.println("  @Override");
-    writer.println("  public void evaluate(EnvExp rho) {");
-    writer.println("    SymbolTable symbolTable = rho.getGlobalContext().getSymbolTable();");
-
-    for(String method : methods) {
-      writer.println("    " + method + "(symbolTable, rho);");
-    }
-    writer.println("  }");
-    writer.println();
-    writer.println(body.toString());
-    writer.println("}");
-  }
 }

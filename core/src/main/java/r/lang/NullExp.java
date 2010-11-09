@@ -23,6 +23,7 @@ package r.lang;
 
 import com.google.common.collect.Iterators;
 
+import java.util.Collections;
 import java.util.Iterator;
 
 public final class NullExp extends SEXP implements PairList, AtomicExp {
@@ -79,6 +80,11 @@ public final class NullExp extends SEXP implements PairList, AtomicExp {
   @Override
   public <S extends SEXP> S get(int i) {
     throw new IllegalArgumentException("List is NULL");
+  }
+
+  @Override
+  public Iterable<ListExp> listNodes() {
+    return Collections.emptySet();
   }
 
   @Override

@@ -35,7 +35,7 @@ public class InternalCallTest extends EvalTestCase {
 
   @Test
   public void call() throws IOException {
-    assertThat(evaluateToExpression(".Internal(Sys.time())"), instanceOf(DoubleExp.class));
+    assertThat(eval(".Internal(Sys.time())"), instanceOf(DoubleExp.class));
   }
 
 }

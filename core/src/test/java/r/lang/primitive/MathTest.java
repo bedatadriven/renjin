@@ -19,24 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive;
 
-/**
- * Marker interface that restricts the type of a parameter or member to
- * either a ListExp (one or more elements) or NilExp (empty list).
- *
- * This aligns to the primitive function "is.pairlist"
- */
-public interface PairList extends Iterable<SEXP> {
+import org.junit.Test;
+import r.lang.EvalTestCase;
 
-  int length();
-  SEXP getFirst();
-  SEXP getSecond();
-  SEXP getThird();
-  <S extends SEXP> S get(int i);
-  Iterable<ListExp> listNodes();
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
-  void accept(SexpVisitor visitor);
+public class MathTest extends EvalTestCase {
 
+  @Test
+  public void unaryCall() {
+    assertThat( eval("atan(1)"), equalTo( c(Math.atan(1)) ) );
+  }
 
 }

@@ -19,9 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive;
 
 import org.junit.Test;
+import r.lang.EvalTestCase;
+import r.lang.Logical;
+import r.lang.NullExp;
+import r.lang.SEXP;
 import r.lang.exception.EvalException;
 
 import java.io.IOException;
@@ -35,51 +39,51 @@ public class ControlFlowTest extends EvalTestCase {
 
   @Test
   public void unaryFunction() throws IOException {
-    SEXP result = evaluateToExpression("sqrt(4)");
+    SEXP result = eval("sqrt(4)");
 
     assertThat(result, realVectorEqualTo(2));
   }
 
   @Test
   public void ifStatement() throws IOException {
-    assertThat(evaluateToExpression("if(TRUE) 1"), realVectorEqualTo(1));
+    assertThat(eval("if(TRUE) 1"), realVectorEqualTo(1));
   }
 
   @Test
   public void ifStatementWithArgsToBeEvaluated() throws IOException {
     evaluate("x<-1");
-    assertThat(evaluateToExpression("if(x) 9"), realVectorEqualTo(9));
+    assertThat(eval("if(x) 9"), realVectorEqualTo(9));
   }
 
   @Test
   public void ifElseStatement() throws IOException {
-    assertThat(evaluateToExpression("if(TRUE) 1 else 2"), realVectorEqualTo(1));
+    assertThat(eval("if(TRUE) 1 else 2"), realVectorEqualTo(1));
   }
 
   @Test
   public void ifElseFalseStatement() throws IOException {
-    assertThat(evaluateToExpression("if(FALSE) 1 else 2"), realVectorEqualTo(2));
+    assertThat(eval("if(FALSE) 1 else 2"), realVectorEqualTo(2));
   }
 
   @Test(expected = EvalException.class)
   public void ifWithNA() throws IOException {
-    evaluateToExpression("if(NA) 1");
+    eval("if(NA) 1");
   }
 
   @Test
   public void braces() throws IOException {
-    assertThat(evaluateToExpression("{1; 2}"), realVectorEqualTo(2));
+    assertThat(eval("{1; 2}"), realVectorEqualTo(2));
   }
 
   @Test
   public void emptyBraces() throws IOException {
-    assertThat(evaluateToExpression("{}"), equalTo((SEXP) NullExp.INSTANCE));
+    assertThat(eval("{}"), equalTo((SEXP) NullExp.INSTANCE));
   }
 
   @Test
   public void assign() throws IOException {
-    assertThat(evaluateToExpression("x<-2"), realVectorEqualTo(2));
-    assertThat(evaluateToExpression("x"), realVectorEqualTo(2));
+    assertThat(eval("x<-2"), realVectorEqualTo(2));
+    assertThat(eval("x"), realVectorEqualTo(2));
   }
 
   @Test
@@ -89,52 +93,52 @@ public class ControlFlowTest extends EvalTestCase {
 
   @Test
   public void assignSym() throws IOException {
-    evaluateToExpression("x<-1");
-    evaluateToExpression("y<-x");
-    assertThat(evaluateToExpression("y"), realVectorEqualTo(1));
+    eval("x<-1");
+    eval("y<-x");
+    assertThat(eval("y"), realVectorEqualTo(1));
   }
 
   @Test
   public void whileLoop() throws IOException {
-    evaluateToExpression("x<-TRUE");
-    evaluateToExpression("while(x) { x<-FALSE }");
+    eval("x<-TRUE");
+    eval("while(x) { x<-FALSE }");
 
-    assertThat(evaluateToExpression("x"), logicalVectorOf(Logical.FALSE));
+    assertThat(eval("x"), logicalVectorOf(Logical.FALSE));
   }
 
   @Test
   public void whileLoopWithBreak() throws IOException {
-    evaluateToExpression("x<-TRUE");
-    evaluateToExpression("while(x) { break; x<-FALSE }");
+    eval("x<-TRUE");
+    eval("while(x) { break; x<-FALSE }");
 
-    assertThat(evaluateToExpression("x"), logicalVectorOf(Logical.TRUE));
+    assertThat(eval("x"), logicalVectorOf(Logical.TRUE));
   }
 
   @Test
   public void simplestForStatement() throws IOException {
-    evaluateToExpression("for( x in 99 ) { y <- x} ");
+    eval("for( x in 99 ) { y <- x} ");
 
-    assertThat(evaluateToExpression("x"), realVectorEqualTo(99));
-    assertThat(evaluateToExpression("y"), realVectorEqualTo(99));
+    assertThat(eval("x"), realVectorEqualTo(99));
+    assertThat(eval("y"), realVectorEqualTo(99));
   }
 
   @Test
   public void function() throws IOException {
-    evaluateToExpression("f <- function(x) { x }");
-    assertThat(evaluateToExpression("f(4)"), realVectorEqualTo(4));
+    eval("f <- function(x) { x }");
+    assertThat(eval("f(4)"), realVectorEqualTo(4));
   }
 
   @Test
   public void functionWithMissing() throws IOException {
-    evaluateToExpression("f <- function(x) { missing(x) }");
-    assertThat(evaluateToExpression("f()"), logicalVectorOf(Logical.TRUE));
-    assertThat(evaluateToExpression("f(1)"), logicalVectorOf(Logical.FALSE));
+    eval("f <- function(x) { missing(x) }");
+    assertThat(eval("f()"), logicalVectorOf(Logical.TRUE));
+    assertThat(eval("f(1)"), logicalVectorOf(Logical.FALSE));
    }
 
   @Test
   public void functionWithZeroArgs() throws IOException {
-    evaluateToExpression("f <- function() { 1 } ");
-    assertThat(evaluateToExpression("f()"), realVectorEqualTo(1));
+    eval("f <- function() { 1 } ");
+    assertThat(eval("f()"), realVectorEqualTo(1));
   }
 
 }

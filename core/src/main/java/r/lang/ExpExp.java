@@ -37,7 +37,7 @@ import java.util.Iterator;
  * parsed but unevaluated R statements.
  *
  */
-public class ExpExp extends AbstractVector implements RecursiveExp, Iterable<SEXP> {
+public class ExpExp extends SEXP implements RecursiveExp, Iterable<SEXP> {
   public static final String TYPE_NAME = "expression";
   public static final int TYPE_CODE = 20;
 
@@ -47,11 +47,20 @@ public class ExpExp extends AbstractVector implements RecursiveExp, Iterable<SEX
     list = new ArrayList<SEXP>();
   }
 
-  public ExpExp(Iterable<SEXP> expressions) {
+  public ExpExp(Iterable<? extends SEXP> expressions) {
     list = new ArrayList<SEXP>();
     for (SEXP sexp : expressions) {
       list.add(sexp);
     }
+  }
+
+  @Override
+  public EvalResult evaluate(EnvExp rho) {
+    EvalResult result = EvalResult.NON_PRINTING_NULL;
+    for(SEXP sexp : list) {
+      result = sexp.evaluate(rho);
+    }
+    return result;
   }
 
   @Override

@@ -23,13 +23,16 @@ package r.compiler;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.*;
-import r.compiler.runtime.Program;
+import r.lang.EnvExp;
 import r.lang.ExpExp;
 import r.lang.GlobalContext;
+import r.lang.SymbolTable;
+import r.lang.exception.EvalException;
 import r.parser.RParser;
 
 import javax.tools.*;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -46,16 +49,19 @@ import java.util.Collections;
 public class Compiler {
 
   private final GlobalContext globalContext;
-  private final JavaSourceWritingVisitor sourceWritingVisitor;
+  private final EnvExp targetEnvironment;
+  private final PackageSource source;
 
   private String packageName;
   private String classOutputDir;
   private String sourceOutputDir;
   private int sourceFileCount;
 
+
   public Compiler() {
     globalContext = new GlobalContext();
-    sourceWritingVisitor = new JavaSourceWritingVisitor();
+    targetEnvironment = new EnvExp(globalContext.getBaseEnvironment());
+    source = new PackageSource();
   }
 
   /**
@@ -77,17 +83,24 @@ public class Compiler {
    * @throws IOException
    */
   public void addSource(String path) throws IOException {
-    FileInputStream stream = new FileInputStream(path);
-    Reader reader = new InputStreamReader(stream);
-
-    addSource(reader);
+    addSource(new File(path));
   }
 
   public void addSource(File sourceFile) throws IOException {
-    FileInputStream stream = new FileInputStream(sourceFile);
-    Reader reader = new InputStreamReader(stream);
+    try {
+      FileInputStream stream = new FileInputStream(sourceFile);
+      Reader reader = new InputStreamReader(stream);
 
-    addSource(reader);
+      addSource(reader);
+    } catch (EvalException e) {
+      System.err.println(String.format("Evaluation error in %s:\n\t%s", sourceFile.getName(), 
+          e.getMessage()));
+      throw e;
+    } catch (RuntimeException e) {
+      System.err.println(String.format("RuntimeException in %s", sourceFile.getName()));
+      e.printStackTrace(System.err);
+      throw e;
+    }
   }
 
   /**
@@ -98,11 +111,15 @@ public class Compiler {
   public void addSource(Reader reader) throws IOException {
     sourceFileCount++;
     ExpExp expList = RParser.parseSource(globalContext, reader);
-    expList.accept(sourceWritingVisitor);
+    expList.evaluate(targetEnvironment);
   }
 
   public int getSourceFileCount() {
     return sourceFileCount;
+  }
+
+  public EnvExp getTargetEnvironment() {
+    return targetEnvironment;
   }
 
   /**
@@ -168,13 +185,13 @@ public class Compiler {
     compileSource(sourceFile);
   }
 
-  public Program load() {
+  public EnvExp load(EnvExp rho) {
     URLClassLoader loader = null;
     try {
       loader = new URLClassLoader(new URL[] { new File(classOutputDir).toURI().toURL() } );
 
-      Class<Program> context = (Class<Program>) loader.loadClass(packageName + "." + className());
-      return context.newInstance();
+      Class<EnvExp> context = (Class<EnvExp>) loader.loadClass(packageName + "." + className());
+      return context.getConstructor(EnvExp.class).newInstance(rho);
 
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
@@ -183,6 +200,10 @@ public class Compiler {
     } catch (InstantiationException e) {
       throw new RuntimeException(e);
     } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    } catch (InvocationTargetException e) {
       throw new RuntimeException(e);
     }
   }
@@ -195,8 +216,13 @@ public class Compiler {
     sourceDir = packageDir(sourceDir);
     sourceDir.mkdirs();
 
+    SymbolTable symbolTable = globalContext.getSymbolTable();
+    for(String symbolName : targetEnvironment.getSymbolNames()) {
+      source.addSymbol(symbolName, targetEnvironment.findVariable(symbolTable.install(symbolName)));
+    }
+
     File sourceFile = new File(sourceDir, className() + ".java");
-    sourceWritingVisitor.writeTo(packageName, className(), new PrintStream(sourceFile));
+    source.writeTo(packageName, className(), new PrintStream(sourceFile));
 
     return sourceFile;
   }

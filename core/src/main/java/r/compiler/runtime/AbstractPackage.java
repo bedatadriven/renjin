@@ -24,11 +24,10 @@ package r.compiler.runtime;
 import org.apache.commons.math.complex.Complex;
 import r.lang.*;
 
-public abstract class AbstractProgram implements Program {
+public abstract class AbstractPackage extends EnvExp {
 
   protected static NullExp NULL = NullExp.INSTANCE;
   protected static SymbolExp MISSING = SymbolExp.MISSING_ARG;
-
 
   // these constants are defined here for the convenience of the 
   // code generation
@@ -37,7 +36,11 @@ public abstract class AbstractProgram implements Program {
   protected static double NaN = Double.NaN;
   protected static double Inf = Double.POSITIVE_INFINITY;
 
-  protected AbstractProgram() {
+  protected SymbolTable symbols;
+
+  protected AbstractPackage(EnvExp enclosing) {
+    super(enclosing);
+    this.symbols = enclosing.getGlobalContext().getSymbolTable();
   }
 
   protected LangExp call(SEXP function, PairList arguments) {

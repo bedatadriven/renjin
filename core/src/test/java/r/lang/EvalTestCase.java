@@ -42,7 +42,7 @@ public abstract class EvalTestCase {
     context = new GlobalContext();
   }
 
-  protected SEXP evaluateToExpression(String source) {
+  protected SEXP eval(String source) {
     return evaluate(source).getExpression();
   }
 

@@ -88,29 +88,29 @@
         <executions>
 
           <!-- Compile the base package -->
-          <execution>
-            <id>compile-base-package</id>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <phase>process-classes</phase>
-            <configuration>
-              <executable>java</executable>
-              <arguments>
-                <argument>-classpath</argument>
-                <classpath/>
-                <argument>r.compiler.Compiler</argument>
-                <argument>-package</argument>
-                <argument>r.base</argument>
-                <argument>-sourcepath</argument>
-                <argument>${project.basedir}/src/main/r/base</argument>
-                <argument>-d</argument>
-                <argument>${build.outputDirectory}</argument>
-                <argument>-s</argument>
-                <argument>${build.directory}/generated-sources/R</argument>
-              </arguments>
-            </configuration>
-          </execution>
+          <!--<execution>-->
+            <!--<id>compile-base-package</id>-->
+            <!--<goals>-->
+              <!--<goal>exec</goal>-->
+            <!--</goals>-->
+            <!--<phase>process-classes</phase>-->
+            <!--<configuration>-->
+              <!--<executable>java</executable>-->
+              <!--<arguments>-->
+                <!--<argument>-classpath</argument>-->
+                <!--<classpath/>-->
+                <!--<argument>r.compiler.Compiler</argument>-->
+                <!--<argument>-package</argument>-->
+                <!--<argument>r.base</argument>-->
+                <!--<argument>-sourcepath</argument>-->
+                <!--<argument>${project.basedir}/src/main/r/base</argument>-->
+                <!--<argument>-d</argument>-->
+                <!--<argument>${build.outputDirectory}</argument>-->
+                <!--<argument>-s</argument>-->
+                <!--<argument>${build.directory}/generated-sources/R</argument>-->
+              <!--</arguments>-->
+            <!--</configuration>-->
+          <!--</execution>-->
         </executions>
       </plugin>
     </plugins>

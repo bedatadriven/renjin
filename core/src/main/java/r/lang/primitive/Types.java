@@ -23,6 +23,7 @@ package r.lang.primitive;
 
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.Environment;
 import r.parser.ParseUtil;
 
 /**
@@ -168,7 +169,36 @@ public class Types {
     for(SEXP value : values) {
       builder.add(value);
     }
+  
     return builder.list();
   }
 
+  public static EnvExp environment(@Environment EnvExp rho) {
+    return rho.getGlobalContext().getGlobalEnvironment();
+  }
+
+  public static EnvExp environment(ClosureExp arg) {
+    return arg.getEnvironment();
+  }
+
+  public static NullExp environment(SEXP exp) {
+    return NullExp.INSTANCE;
+  }
+
+  public static EnvExp parentFrame(@Environment EnvExp rho, int n) {
+    EnvExp parent = rho;
+    while(n > 0 && rho != rho.getGlobalContext().getGlobalEnvironment()) {
+      parent = rho.getParent();
+      --n;
+    }
+    return parent;
+  }
+
+  public static EnvExp newEnv(boolean hash, EnvExp parent, int size) {
+    return new EnvExp(parent);      
+  }
+
+  public static EnvExp baseEnv(@Environment EnvExp rho) {
+    return rho.getGlobalContext().getBaseEnvironment();
+  }
 }

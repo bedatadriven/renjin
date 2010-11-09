@@ -19,9 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive;
 
 import org.junit.Test;
+import r.lang.EvalTestCase;
+import r.lang.Logical;
 
 import java.io.IOException;
 
@@ -32,11 +34,11 @@ public class ComparisonTest extends EvalTestCase {
 
   @Test
   public void scalarRealEquality() throws IOException {
-    assertThat( evaluateToExpression("1 == 1"), equalTo(c(Logical.TRUE)) );
-    assertThat( evaluateToExpression("1 > 2"), equalTo(c(Logical.FALSE)) );
-    assertThat( evaluateToExpression("2 > 1"), equalTo(c(Logical.TRUE)) );
-    assertThat( evaluateToExpression("NA_real_ > 1"), equalTo(c(Logical.NA)) );
-    assertThat( evaluateToExpression("1 < 999"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("1 == 1"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("1 > 2"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("2 > 1"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("NA_real_ > 1"), equalTo(c(Logical.NA)) );
+    assertThat( eval("1 < 999"), equalTo(c(Logical.TRUE)) );
   }
 
   /**
@@ -45,26 +47,32 @@ public class ComparisonTest extends EvalTestCase {
   @Test
   public void integersImplicitlyCastToDoubles() throws IOException {
 
-    assertThat( evaluateToExpression("1L == 1"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("1L == 1"), equalTo(c(Logical.TRUE)) );
 
   }
 
   @Test
   public void logicalsImplicitlyCastToDoubles() throws IOException {
-    assertThat( evaluateToExpression("3 == NA"), equalTo(c(Logical.NA)) );
-    assertThat( evaluateToExpression("0 < TRUE"), equalTo(c(Logical.TRUE)) );
-    assertThat( evaluateToExpression("TRUE > FALSE"), equalTo(c(Logical.TRUE)) );
-    assertThat( evaluateToExpression("TRUE <= TRUE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("3 == NA"), equalTo(c(Logical.NA)) );
+    assertThat( eval("0 < TRUE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("TRUE > FALSE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("TRUE <= TRUE"), equalTo(c(Logical.TRUE)) );
   }
 
   @Test
   public void realLists() throws IOException {
-    assertThat( evaluateToExpression("c(1,2,3) < c(0, 99, 3)"), equalTo(c(false, true, false)));
+    assertThat( eval("c(1,2,3) < c(0, 99, 3)"), equalTo(c(false, true, false)));
   }
 
   @Test
   public void unequalSizeLists() throws IOException {
-    assertThat( evaluateToExpression("c(1,2,3) <= 2"), equalTo(c(true, true, false)));
-    assertThat( evaluateToExpression("2 != c(1,2,3)"), equalTo(c(true, false, true)));
+    assertThat( eval("c(1,2,3) <= 2"), equalTo(c(true, true, false)));
+    assertThat( eval("2 != c(1,2,3)"), equalTo(c(true, false, true)));
+  }
+
+  @Test
+  public void platform() throws IOException {
+    // this was failing in dynaload.R
+    assertThat( eval("if(.Platform$OS.type == \"windows\") { 1 } else { 42 }"), equalTo(c(42)) );
   }
 }

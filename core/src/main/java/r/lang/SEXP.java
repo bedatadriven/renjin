@@ -28,10 +28,17 @@ import r.lang.exception.EvalException;
  */
 public abstract class SEXP {
 
-  private SEXP attributes = NullExp.INSTANCE;
+  protected final PairList attributes;
   private SEXP tag = NullExp.INSTANCE;
   private int named = 0;
 
+  protected SEXP(PairList attributes) {
+    this.attributes = attributes;
+  }
+
+  protected SEXP() {
+    this(NullExp.INSTANCE);
+  }
 
   /**
    * So-called General Purpose bit flags
@@ -59,12 +66,12 @@ public abstract class SEXP {
     return 1;
   }
 
-  public SEXP getAttributes() {
-    return attributes;
+  public boolean hasAttributes() {
+    return attributes.length() != 0;
   }
 
-  public void setAttributes(SEXP attributes) {
-    this.attributes = attributes;
+  public PairListExp getAttributes() {
+    return (PairListExp)attributes;
   }
 
   public abstract int getTypeCode();

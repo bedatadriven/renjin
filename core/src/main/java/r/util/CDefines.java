@@ -317,10 +317,6 @@ public class CDefines {
     return s.length();
   }
 
-  public static SEXP ATTRIB(SEXP s) {
-    return s.getAttributes();
-  }
-
   public static int NAMED(SEXP s) {
     return s.getNamed();
   }

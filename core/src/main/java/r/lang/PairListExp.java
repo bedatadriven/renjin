@@ -119,8 +119,6 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
 
   @Override
   public SEXP getAttribute(String name) {
-    /* pre-test to avoid expensive operations if clearly not needed -- LT */
-
     return NullExp.INSTANCE;
   }
 
@@ -307,6 +305,14 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
     return new Builder();
   }
 
+  public static Builder buildList(SymbolExp tag, SEXP value) {
+    return new Builder().add(value).taggedWith(tag);  
+  }
+
+  public static Builder buildList(SEXP value) {
+    return new Builder().add(value);
+  }
+
   public static class Builder {
     private PairListExp head = null;
     private PairListExp tail;
@@ -345,6 +351,17 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
+  }
+
+  @Override
+  public SEXP findByTag(SymbolExp symbol) {
+    for(PairListExp node : listNodes()) {
+      if(node.hasTag() && node.getTag().equals(symbol)) {
+        return node.getValue();
+      }
+    }
+    return NullExp.INSTANCE;
+
   }
 
   public abstract static class Predicates {

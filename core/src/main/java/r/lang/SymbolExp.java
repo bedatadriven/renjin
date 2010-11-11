@@ -31,6 +31,7 @@ public class SymbolExp extends SEXP {
 
   public static final SymbolExp UNBOUND_VALUE = createUnbound();
   public static final SymbolExp MISSING_ARG = new SymbolExp();
+  public static final SymbolExp NAMES = new SymbolExp("names");
 
   private String printName;
   private SEXP value = UNBOUND_VALUE;

@@ -42,9 +42,15 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
     Iterables.addAll(this.values, values);
   }
 
-  public ListExp(SEXP... values) {
+  public ListExp(SEXP[] values, PairList attributes) {
+    super(attributes);
     this.values = new ArrayList<SEXP>();
     Collections.addAll(this.values, values);
+
+  }
+
+  public ListExp(SEXP... values) {
+    this(values, NullExp.INSTANCE);
   }
 
   @Override
@@ -70,5 +76,25 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
   @Override
   public int length() {
     return values.size();
+  }
+
+  public int indexOfName(String name) {
+    SEXP names = attributes.findByTag(SymbolExp.NAMES);
+    if(names instanceof StringExp) {
+      for(int i=0;i!=names.length();++i) {
+         if(((StringExp) names).get(i).equals(name)) {
+           return i;
+         }
+      }
+    }
+    return -1;
+  }
+
+  public SEXP get(String name) {
+    int index = indexOfName(name);
+    if(index == -1) {
+      return NullExp.INSTANCE;
+    }
+    return values.get(index);
   }
 }

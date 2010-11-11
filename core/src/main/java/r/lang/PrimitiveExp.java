@@ -21,19 +21,20 @@
 
 package r.lang;
 
+import com.google.common.collect.Lists;
 import r.lang.exception.EvalException;
 import r.lang.primitive.FunctionTable;
-import r.lang.primitive.RuntimeInvoker;
+import r.lang.primitive.binding.PrimitiveMethod;
+import r.lang.primitive.binding.RuntimeInvoker;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class PrimitiveExp extends SEXP implements FunExp {
 
   protected final FunctionTable.Entry functionEntry;
-  protected List<Method> methodOverloads;
+  protected List<PrimitiveMethod> methodOverloads;
 
   protected PrimitiveExp(FunctionTable.Entry functionEntry) {
     this.functionEntry = functionEntry;
@@ -56,7 +57,7 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
 
   @Override
   public EvalResult apply(LangExp call, PairList arguments, EnvExp rho) {
-    List<Method> overloads = getMethodOverloads();
+    List<PrimitiveMethod> overloads = getMethodOverloads();
     if(overloads.isEmpty()) {
       StringBuilder message = new StringBuilder();
       message.append("'" + functionEntry.name + "' is not yet implemented");
@@ -71,16 +72,16 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
         overloads);
   }
 
-  protected List<Method> getMethodOverloads() {
+  protected List<PrimitiveMethod> getMethodOverloads() {
     if (methodOverloads == null) {
-      methodOverloads = new ArrayList<Method>();
+      methodOverloads = Lists.newArrayList();
       if(functionEntry.functionClass != null) {
         for(Method method : functionEntry.functionClass.getMethods()) {
           if(Modifier.isPublic(method.getModifiers()) &&
               Modifier.isStatic(method.getModifiers()) &&
               method.getName().equals(functionEntry.methodName)) {
 
-            methodOverloads.add(method);
+            methodOverloads.add(new PrimitiveMethod(method));
           }
         }
       }

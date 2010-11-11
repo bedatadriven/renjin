@@ -250,6 +250,14 @@ public class EnvExp extends SEXP implements RecursiveExp {
     };
   }
 
+  public SEXP getVariable(SymbolExp symbol) {
+    SEXP value = frame.get(symbol);
+    if(value == null) {
+      value = NullExp.INSTANCE;
+    }
+    return value;
+  }
+
   private static class EnvIterator extends UnmodifiableIterator<EnvExp> {
     private EnvExp next;
 

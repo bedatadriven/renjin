@@ -78,6 +78,11 @@ public final class NullExp extends SEXP implements PairList, AtomicExp {
   }
 
   @Override
+  public SEXP findByTag(SymbolExp symbol) {
+    return this;
+  }
+
+  @Override
   public <S extends SEXP> S get(int i) {
     throw new IllegalArgumentException("List is NULL");
   }

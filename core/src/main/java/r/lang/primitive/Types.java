@@ -23,6 +23,7 @@ package r.lang.primitive;
 
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.AlwaysNull;
 import r.lang.primitive.annotations.Environment;
 import r.parser.ParseUtil;
 
@@ -160,9 +161,46 @@ public class Types {
   }
 
 
-  public static ListExp list(SEXP... values) {
-    return new ListExp(values);
+  public static ListExp list(PairList arguments) {
+
+    int n = arguments.length();
+    SEXP values[] = new SEXP[n];
+    String names[] = new String[n];
+
+    int index=0;
+    boolean haveNames = false;
+
+    for(PairListExp arg : arguments.listNodes()) {
+      values[index] = arg.getValue();
+      if(arg.hasTag()) {
+        names[index] = arg.getTag().getPrintName();
+        haveNames = true;
+      } else {
+        names[index] = "";
+      }
+      index++;
+    }
+
+    if(haveNames) {
+      return new ListExp(values, PairListExp.buildList(SymbolExp.NAMES, new StringExp(names)).list());
+    } else {
+      return new ListExp(values);
+    }
   }
+
+  public static SEXP subset$(ListExp list, SymbolExp symbol) {
+      return list.get(symbol.getPrintName());
+  }
+
+  public static SEXP subset$(EnvExp environment, SymbolExp symbol) {
+      return environment.getVariable(symbol);
+  }
+
+  @AlwaysNull
+  public static SEXP subset$(NullExp nil) {
+    return NullExp.INSTANCE;
+  }
+
 
   public static EnvExp environment(@Environment EnvExp rho) {
     return rho.getGlobalContext().getGlobalEnvironment();

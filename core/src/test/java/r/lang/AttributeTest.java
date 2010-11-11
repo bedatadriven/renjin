@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -26,14 +26,14 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class ListExpTest {
+public class AttributeTest extends EvalTestCase {
 
   @Test
-  public void lang() {
+  public void listWithAttributes() {
 
-    PairListExp list = PairListExp.fromArray(new IntExp(1), new IntExp(2), new IntExp(3));
+    eval( "p <- list(x=1,y=3) ");
 
-    assertThat(list.length(), equalTo(3));
+    assertThat( eval("p$x"), equalTo(c(1)));
 
   }
 }

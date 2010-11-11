@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997--2008  The R Development Core Team
+ * Copyright (C) 1997-2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -21,21 +21,19 @@
 
 package r.lang;
 
-/**
- * Marker interface that restricts the type of a parameter or member to
- * either a {@code PairList} (one or more elements) or {@code NullExp} (empty list).
- *
- * This aligns to the primitive function "is.pairlist"
- */
-public interface PairList extends Iterable<SEXP> {
+import org.junit.Test;
 
-  int length();
-  SEXP getFirst();
-  SEXP getSecond();
-  SEXP getThird();
-  <S extends SEXP> S get(int i);
-  Iterable<PairListExp> listNodes();
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
-  void accept(SexpVisitor visitor);
-  SEXP findByTag(SymbolExp symbol);
+public class PairListExpTest {
+
+  @Test
+  public void lang() {
+
+    PairListExp list = PairListExp.fromArray(new IntExp(1), new IntExp(2), new IntExp(3));
+
+    assertThat(list.length(), equalTo(3));
+
+  }
 }

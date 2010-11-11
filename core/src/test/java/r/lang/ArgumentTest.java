@@ -27,7 +27,7 @@ import r.lang.exception.EvalException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class ArgumentMatchingTest extends EvalTestCase {
+public class ArgumentTest extends EvalTestCase {
 
   @Test
   public void singlePosArg() {

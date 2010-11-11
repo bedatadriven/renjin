@@ -21,7 +21,10 @@
 
 package r.lang;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import r.parser.ParseUtil;
 import r.util.collect.PrimitiveArrays;
 
 import java.util.Arrays;
@@ -29,7 +32,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-public final class DoubleExp extends SEXP implements AtomicExp, Iterable<Double> {
+public final class DoubleExp extends AtomicExp implements Iterable<Double> {
   public static final String TYPE_NAME = "double";
   public static final int TYPE_CODE = 14;
 
@@ -157,7 +160,9 @@ public final class DoubleExp extends SEXP implements AtomicExp, Iterable<Double>
     if (values.length == 1) {
       return Double.toString(values[0]);
     } else {
-      return Arrays.toString(values);
+      StringBuilder sb = new StringBuilder("c(");
+      Joiner.on(", ").appendTo(sb, Iterables.transform(this, new ParseUtil.RealPrinter()));
+      return sb.append(")").toString();
     }
   }
 
@@ -178,4 +183,8 @@ public final class DoubleExp extends SEXP implements AtomicExp, Iterable<Double>
     return Double.doubleToRawLongBits(input) == Double.doubleToRawLongBits(NA);
   }
 
+  @Override
+  public Class getElementClass() {
+    return Double.TYPE;
+  }
 }

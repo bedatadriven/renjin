@@ -23,6 +23,7 @@ package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.DoubleExp;
+import r.lang.EvalTestCase;
 import r.lang.IntExp;
 import r.lang.SEXP;
 
@@ -30,22 +31,22 @@ import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class ColonFunctionTest {
+public class SequenceTest extends EvalTestCase {
 
   @Test
   public void integerRange() {
-    Colon.Range range = new Colon.Range(1, 9999);
+    Sequences.Range range = new Sequences.Range(1, 9999);
     assertThat(range.useInteger, equalTo(true));
   }
   @Test
   public void fpRange() {
-    Colon.Range range = new Colon.Range(1.2, 4.2);
+    Sequences.Range range = new Sequences.Range(1.2, 4.2);
     assertThat(range.useInteger, equalTo(false));
   }
 
   @Test
   public void count() {
-    Colon.Range range = new Colon.Range(11, 13);
+    Sequences.Range range = new Sequences.Range(11, 13);
     assertTrue(range.count > 3d && range.count < 4d );
   }
 
@@ -75,7 +76,18 @@ public class ColonFunctionTest {
 
 
   private SEXP colon(double n1, double n2) {
-    Colon fn = new Colon();
+    Sequences fn = new Sequences();                 
     return fn.colonSequence(new DoubleExp(n1), new DoubleExp(n2));
   }
+
+  @Test
+  public void assignment() {
+    assertThat( eval( "x <- 1:3 "), equalTo( c_i(1,2,3)));
+  }
+
+  @Test
+  public void combine() {
+    assertThat( eval( "c(1:3) "), equalTo( c_i(1,2,3)));
+  }
+
 }

@@ -63,9 +63,16 @@ public class Print {
     @Override
     public void visit(ListExp listExp) {
       int index = 1;
-      for(SEXP exp : listExp) {
-        out.append("[[").append(index).append("]]\n");
-        exp.accept(this);
+      for(int i=0; i!= listExp.length(); ++i) {
+        SEXP value = listExp.get(i);
+        String name = listExp.getName(i);
+
+        if(name.length() == 0) {
+          out.append("[[").append(index).append("]]\n");
+        } else {
+          out.append("$").append(name).append("\n");
+        }
+        value.accept(this);
         out.append("\n");
         index++;
       }
@@ -93,7 +100,7 @@ public class Print {
 
     @Override
     public void visit(NullExp nilExp) {
-      out.append("NULL");
+      out.append("NULL\n");
     }
 
     @Override

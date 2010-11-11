@@ -19,30 +19,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.types;
+package r.lang.primitive.annotations;
 
-import r.lang.PairListExp;
-import r.lang.SEXP;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.ArrayList;
-
-/**
- * Coerces a list of arguments to a {@code StringExp}
- */
-public class CoerceArgToString extends AbstractCoerceToString {
-
-  public CoerceArgToString(SEXP exp) {
-    super(new ArrayList<String>());
-    exp.accept(this);
-  }
-
-  @Override
-  public void visit(PairListExp listExp) {
-    // as.character does to recurse infinitely
-    // if there are nested lists or other items, we add them as deparsed strings
-    CoerceNestedListToString subVisitor = new CoerceNestedListToString(values);
-    for(SEXP exp : listExp) {
-      exp.accept(subVisitor);
-    }
-  }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+public @interface Call {
 }

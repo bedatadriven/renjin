@@ -25,12 +25,15 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import r.lang.*;
+import r.lang.primitive.annotations.ArgumentList;
 import r.lang.primitive.annotations.Environment;
 import r.lang.primitive.annotations.Evaluate;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
@@ -58,11 +61,16 @@ public class PrimitiveMethod {
    * @return  true if this overload will handle the call itself, that is, it
    * has a signature of (EnvExp, LangExp)
    */
-  public boolean isLanguage() {
-    Class<?>[] classes = method.getParameterTypes();
-    return classes.length == 2 &&
-        classes[0] == EnvExp.class &&
-        classes[1] == LangExp.class;
+  public boolean acceptsCall() {
+    return arguments.size() == 2 &&
+           arguments.get(0).getClazz().equals(EnvExp.class) &&
+           arguments.get(1).getClazz().equals(LangExp.class);
+  }
+
+  public boolean acceptsArgumentList() {
+    return arguments.size() == 1 &&
+           arguments.get(0).getClazz() == PairList.class &&
+           arguments.get(0).isAnnotatedWith(ArgumentList.class);
   }
 
   public List<Argument> getArguments() {
@@ -153,6 +161,7 @@ public class PrimitiveMethod {
 
 
   public class Argument {
+    private int index;
     private Class clazz;
     private boolean environment = false;
     private boolean evaluated = true;
@@ -160,6 +169,7 @@ public class PrimitiveMethod {
 
     public Argument(Method method, int index) {
       clazz = method.getParameterTypes()[index];
+      this.index = index;
 
       for(Annotation annotation : method.getParameterAnnotations()[index]) {
         if(annotation instanceof Environment) {
@@ -178,6 +188,23 @@ public class PrimitiveMethod {
 
     public boolean isAssignableFrom(Object value) {
       return clazz.isAssignableFrom(value.getClass());
+    }
+
+    public Type getTypeArgument(int typeArgumentIndex) {
+      Type argType = method.getGenericParameterTypes()[index];
+      if(argType instanceof ParameterizedType) {
+        return (Class) ((ParameterizedType) argType).getActualTypeArguments()[typeArgumentIndex];
+      }
+      return null;
+    }
+
+    public boolean isAnnotatedWith(Class<? extends Annotation> annotationClass) {
+      for(Annotation annotation : method.getParameterAnnotations()[index]) {
+        if(annotation.annotationType() == annotationClass) {
+          return true;
+        }
+      }
+      return false;
     }
 
     public Class getClazz() {

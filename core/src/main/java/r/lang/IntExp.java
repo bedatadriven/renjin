@@ -26,7 +26,7 @@ import com.google.common.collect.UnmodifiableIterator;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class IntExp extends SEXP implements AtomicExp, Iterable<Integer> {
+public class IntExp extends AtomicExp implements Iterable<Integer> {
 
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
@@ -132,6 +132,11 @@ public class IntExp extends SEXP implements AtomicExp, Iterable<Integer> {
 
   public static boolean isNA(int value) {
     return value == NA;
+  }
+
+  @Override
+  public Class getElementClass() {
+    return Integer.TYPE;
   }
 
   private class ValueIterator extends UnmodifiableIterator<Integer> {

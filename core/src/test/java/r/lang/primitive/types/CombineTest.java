@@ -21,37 +21,50 @@
 
 package r.lang.primitive.types;
 
-import org.junit.Before;
 import org.junit.Test;
-import r.lang.*;
+import r.lang.EvalTestCase;
+import r.lang.Logical;
+import r.lang.SEXP;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
-public class CombineFunctionTest {
-  private CombineFunction fn;
-
+public class CombineTest extends EvalTestCase {
 
   @Test
   public void realList() {
-    SEXP exp = fn.combine(PairListExp.fromArray(new DoubleExp(1), new DoubleExp(2), new DoubleExp(3)));
-
-    assertThat(exp, instanceOf(DoubleExp.class));
-    assertThat(exp.length(), equalTo(3));
+    assertThat( eval("c(1,2,3)"), equalTo( c(1,2,3) ));
   }
 
   @Test
-  public void realsAndLogicalsMixed() {
-    SEXP exp = fn.combine(PairListExp.fromArray(new DoubleExp(1), new DoubleExp(2), NullExp.INSTANCE, new LogicalExp(false)));
-
-    assertThat(exp, instanceOf(DoubleExp.class));
-    assertThat(exp.length(), equalTo(3));
-    assertThat(((DoubleExp)exp).get(2), equalTo(0d));
+  public void logicals() {
+    assertThat( eval("c(TRUE, FALSE, NA)"), equalTo( c(Logical.TRUE, Logical.FALSE, Logical.NA)) );
   }
 
-  @Before
-  public void setUp() throws Exception {
-    fn = new CombineFunction();
+  @Test
+  public void ints() {
+    assertThat( eval("c(1L,2L, 3L) "), equalTo( c_i(1,2,3)));
   }
+
+  @Test
+  public void nullValues() {
+    assertThat( eval("c(NULL, NULL)"), equalTo( (SEXP) NULL) );
+  }
+
+  @Test
+  public void realAndLogicalsMixed() {
+    assertThat( eval("c(1,2,NULL,FALSE)"), equalTo( c(1,2,0) ));
+  }
+
+  @Test
+  public void twoLists() {
+    assertThat( eval("c( list(1,2), list(3,4) ) "), equalTo( list(1d,2d,3d,4d)));
+  }
+
+  @Test
+  public void nullsInList() {
+    assertThat( eval("c( list(NULL), NULL, list(NULL,1) ) "),
+        equalTo( list(NULL, NULL, 1d)));
+  }
+
 }

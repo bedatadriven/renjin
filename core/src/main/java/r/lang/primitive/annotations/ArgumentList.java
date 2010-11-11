@@ -19,22 +19,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.types;
+package r.lang.primitive.annotations;
 
-import r.lang.PairListExp;
-import r.lang.SEXP;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public class CombineToString extends AbstractCoerceToString {
-
-  public CombineToString(SEXP s) {
-    s.accept(this);
-  }
-
-  @Override
-  public void visit(PairListExp listExp) {
-    for(SEXP s : listExp) {
-      s.accept(this);
-    }
-  }
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+public @interface ArgumentList {
 }

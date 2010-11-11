@@ -76,13 +76,54 @@ public class TypesTest extends EvalTestCase {
   @Test
   public void environment() {
     assertThat( eval(".Internal(environment())"), CoreMatchers.is((SEXP)context.getGlobalEnvironment()));
+
+  }
+
+  @Test
+  public void environmentOfRandomExp() {
     assertThat( eval(".Internal(environment(1))"), is((SEXP)NullExp.INSTANCE));
-    assertThat( eval(".Internal(environment( function() { 1 } ))"), is((SEXP)context.getGlobalEnvironment()));
+  }
+
+  @Test
+  public void environmentOfClosure() {
+    eval("f <- function() { 1 } ");
+    assertThat( eval(".Internal(environment( f ))"), is((SEXP)context.getGlobalEnvironment()));
+
+  }
+
+  @Test
+  public void subset() {
+    eval("x<-c(81,82,83,84,85,86) ");
+
+    assertThat( eval( "x[4]" ), equalTo( c(84) ));
+  }
+
+  @Test
+  public void subsetOfMultipleIndicies() {
+    eval("  x<-c(91, 92, 93, 94, 95) ");
+
+    assertThat( eval("x[1:3]"), equalTo((SEXP) new DoubleExp(91,92,93)));
+  }
+  @Test
+  public void subsetOfPosAndZeroIndicies() {
+    eval("  x<-c(91, 92, 93, 94, 95) ");
+
+    assertThat( eval("x[c(1,0,1)]"), equalTo((SEXP) new DoubleExp(91, 91)));
   }
 
   @Test
   public void list() {
-    eval("list(\"a\")");
+    assertThat( eval("list(\"a\")"), equalTo( list("a") ));
+  }
+
+  @Test
+  public void listOfNulls() {
+    assertThat( eval("list(NULL, NULL)"), equalTo( list(NULL, NULL) ));
+  }
+
+  @Test
+  public void listOfNull() {
+    assertThat( eval("list(NULL)"), equalTo( list(NULL) ));
   }
 
 

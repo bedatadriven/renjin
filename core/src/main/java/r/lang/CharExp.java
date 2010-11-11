@@ -23,7 +23,7 @@ package r.lang;
 
 import r.lang.exception.EvalException;
 
-public class CharExp extends SEXP implements AtomicExp {
+public class CharExp extends AtomicExp {
 
   private String value;
   public static final int TYPE_CODE = 9;
@@ -62,4 +62,8 @@ public class CharExp extends SEXP implements AtomicExp {
     visitor.visit(this);
   }
 
+  @Override
+  public Class getElementClass() {
+    return Character.TYPE;
+  }
 }

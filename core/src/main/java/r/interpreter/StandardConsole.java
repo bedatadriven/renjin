@@ -19,63 +19,61 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.types;
+package r.interpreter;
 
-import r.lang.*;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.Reader;
 
-class CombineToList extends SexpVisitor implements CoercingVisitor {
+public class StandardConsole implements Console{
 
-  PairListExp.Builder builder = new PairListExp.Builder();
+  private final Reader in;
+  private final PrintStream out;
+  private final PrintStream err;
 
-  CombineToList(SEXP exp) {
-    exp.accept(this);
+  public StandardConsole() {
+    in = new InputStreamReader(System.in);
+    out = new PrintStream(System.out);
+    err = new PrintStream(System.err);
   }
 
   @Override
-  public void visit(PairListExp listExp) {
-    for(SEXP exp : listExp) {
-      exp.accept(this);
-    }
+  public Reader getIn() {
+    return in;
   }
 
   @Override
-  public void visit(DoubleExp realExp) {
-    for(Double d : realExp) {
-      addElement(new DoubleExp(d));
-    }
+  public PrintStream getOut() {
+    return out;
   }
 
   @Override
-  public void visit(StringExp stringExp) {
-    for(String s : stringExp) {
-      addElement(new StringExp(s));
-    }
+  public PrintStream getErr() {
+    return err;
   }
 
   @Override
-  public void visit(IntExp intExp) {
-    for(Integer i : intExp) {
-      addElement(new IntExp(i));
-    }
+  public void println(Object o) {
+    out.println(o);
   }
 
   @Override
-  public void visit(NullExp nilExp) {
-    // Ignore
+  public void print(Object o) {
+    out.print(o);
   }
 
   @Override
-  protected void unhandled(SEXP exp) {
-    addElement(exp);
-  }
-
-  private void addElement(SEXP exp) {
-    builder.add(exp);
+  public void error(Object o) {
+    err.println(o);
   }
 
   @Override
-  public SEXP coerce() {
-    return builder.list();
+  public int getCharactersPerLine() {
+    return 80;
   }
 
+  public static void main(String[] args) {
+      Interpreter interpreter = new Interpreter( new StandardConsole() );
+      new Thread ( interpreter ).start();
+  }
 }

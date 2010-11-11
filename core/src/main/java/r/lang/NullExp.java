@@ -26,7 +26,7 @@ import com.google.common.collect.Iterators;
 import java.util.Collections;
 import java.util.Iterator;
 
-public final class NullExp extends SEXP implements PairList, AtomicExp {
+public final class NullExp extends AtomicExp implements PairList {
 
   public static final int TYPE_CODE = 0;
   public static final String TYPE_NAME = "NULL";
@@ -110,5 +110,9 @@ public final class NullExp extends SEXP implements PairList, AtomicExp {
   @Override
   public Iterator<SEXP> iterator() {
     return Iterators.emptyIterator();
+  }
+
+  public Class getElementClass() {
+    return NullExp.class;
   }
 }

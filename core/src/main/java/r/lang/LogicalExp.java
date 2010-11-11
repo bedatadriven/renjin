@@ -24,7 +24,7 @@ package r.lang;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class LogicalExp extends SEXP implements AtomicExp, Iterable<Logical> {
+public class LogicalExp extends AtomicExp implements Iterable<Logical> {
   public static final String TYPE_NAME = "logical";
   public static final int TYPE_CODE = 10;
 
@@ -166,5 +166,10 @@ public class LogicalExp extends SEXP implements AtomicExp, Iterable<Logical> {
     } else {
       return "NA";
     }
+  }
+
+  @Override
+  public Class getElementClass() {
+    return Integer.TYPE;
   }
 }

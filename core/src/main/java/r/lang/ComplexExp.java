@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class ComplexExp extends SEXP implements AtomicExp, Iterable<Complex> {
+public class ComplexExp extends AtomicExp implements Iterable<Complex> {
 
   public ArrayList<Complex> values;
   public static final int TYPE_CODE = 15;
@@ -64,5 +64,10 @@ public class ComplexExp extends SEXP implements AtomicExp, Iterable<Complex> {
   @Override
   public Iterator<Complex> iterator() {
     return values.iterator();
+  }
+
+  @Override
+  public Class getElementClass() {
+    return Complex.class;
   }
 }

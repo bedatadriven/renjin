@@ -24,17 +24,12 @@ package r.lang.primitive.binding;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.parser.ParseUtil;
 
-import java.lang.Boolean;
 import java.lang.Class;
-import java.lang.Double;
-import java.lang.Integer;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.StringBuilder;
-import java.lang.UnsupportedOperationException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -59,8 +54,7 @@ public class RuntimeInvoker {
   public static final RuntimeInvoker INSTANCE = new RuntimeInvoker();
 
   private List<CallStrategy> strategies;
-  private List<AtomicAccessor> accessors;
-  private List<ExpConverter> converters;
+  private List<ArgConverter> converters;
 
   private RuntimeInvoker() {
     strategies = new ArrayList<CallStrategy>();
@@ -73,35 +67,20 @@ public class RuntimeInvoker {
     strategies.add(new FixedArity());
     strategies.add(new FixedArityWithEnvironment());
     strategies.add(new VarArgs());
-    strategies.add(new PairListArgs());
-
-    accessors = new ArrayList<AtomicAccessor>();
-    accessors.add(new LogicalExpToBoolean());
-    accessors.add(new IntExpAccessor());
-    accessors.add(new RealExpAccessor());
-    accessors.add(new StringExpAccessor());
-
-    // These are essentially the implicit type conversions
-    // between primitive functions supported by the R language
-    accessors.add(new LogicalExpToInt());
-    accessors.add(new LogicalExpToDouble());
-    accessors.add(new IntExpToDouble());
-    accessors.add(new RealExpToString());
-    accessors.add(new IntExpToString());
-    accessors.add(new LogicalExpToString());
 
     // converters between whole expressions and
     // argument types
-    converters = new ArrayList<ExpConverter>();
+    converters = new ArrayList<ArgConverter>();
     converters.add(new ToPrimitive());
     converters.add(new StringToSymbol());
+    converters.add(new ToAccessor());
 
   }
 
   public EvalResult invoke(EnvExp rho, LangExp call, List<PrimitiveMethod> overloads) {
 
     // first check for a method which can handle the call in its entirety
-    if(overloads.size() == 1 && overloads.get(0).isLanguage()) {
+    if(overloads.size() == 1 && overloads.get(0).acceptsCall()) {
       return overloads.get(0).invokeAndWrap(rho, call);
     }
 
@@ -109,6 +88,11 @@ public class RuntimeInvoker {
     List<ProvidedArgument> provided = Lists.newArrayList();
     for(PairListExp arg : call.getArguments().listNodes()) {
       provided.add(new ProvidedArgument(rho, arg));
+    }
+
+    // do we have a single method that accepts the whole argument list?
+    if(overloads.size() == 1 && overloads.get(0).acceptsArgumentList()) {
+      return overloads.get(0).invokeAndWrap(toEvaluatedPairList(provided));
     }
 
     for(CallStrategy strategy : strategies) {
@@ -181,21 +165,12 @@ public class RuntimeInvoker {
       return method.invokeAndWrap(new Object[] { arguments });
     }
   }
-
-  private class PairListArgs implements CallStrategy {
-    @Override
-    public boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments) {
-      return method.argumentListEquals(PairList.class);
+  private PairList toEvaluatedPairList(List<ProvidedArgument> arguments) {
+    PairListExp.Builder builder = PairListExp.buildList();
+    for(ProvidedArgument arg : arguments) {
+      builder.add(arg.evaluated()).taggedWith(arg.getTag());
     }
-
-    @Override
-    public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
-      PairListExp.Builder builder = PairListExp.buildList();
-      for(ProvidedArgument arg : arguments) {
-        builder.add(arg.evaluated()).taggedWith(arg.getTag());
-      }
-      return method.invokeAndWrap(builder.list());
-    }
+    return builder.list();
   }
 
   /**
@@ -212,23 +187,20 @@ public class RuntimeInvoker {
     public boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments) {
       return method.argumentListEquals(primitive) &&
           arguments.size() == 1 &&
-          haveAccessor(arguments.get(0).evaluated(), primitive) &&
-          haveResultBuilderFor(method);
+          AtomicAccessors.haveAccessor(arguments.get(0).evaluated(), primitive) &&
+          AtomicBuilders.haveFor(method);
     }
 
     @Override
     public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
-      SEXP domain = arguments.get(0).evaluated();
-      int length = domain.length();
+      AtomicAccessor domain =  AtomicAccessors.create( arguments.get(0).evaluated(), primitive );
+      AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), domain.length() );
 
-      AtomicAccessor domainAccessor = getAccessor(domain, primitive);
-      AtomicResultBuilder result = resultBuilderFor(method.getReturnType(), length);
-
-      for (int i = 0; i <length; i++) {
-        if ( domainAccessor.isNA( domain, i ) ) {
+      for (int i = 0; i < domain.length(); i++) {
+        if ( domain.isNA(i) ) {
           result.setNA(i);
         } else {
-          result.set(i, method.invoke( domainAccessor.get( domain, i )));
+          result.set(i, method.invoke( domain.get( i )));
         }
       }
 
@@ -262,16 +234,16 @@ public class RuntimeInvoker {
     public boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments) {
       return
           method.argumentListEquals(primitiveType, primitiveType) &&
-              haveResultBuilderFor(method) &&
+              AtomicBuilders.haveFor(method) &&
               arguments.size() == 2 &&
-              haveAccessor(arguments.get(0).evaluated(), primitiveType) &&
-              haveAccessor(arguments.get(1).evaluated(), primitiveType);
+              AtomicAccessors.haveAccessor(arguments.get(0).evaluated(), primitiveType) &&
+              AtomicAccessors.haveAccessor(arguments.get(1).evaluated(), primitiveType);
     }
 
     @Override
     public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
-      SEXP x = arguments.get(0).evaluated();
-      SEXP y = arguments.get(1).evaluated();
+      AtomicAccessor<Double> x = AtomicAccessors.create( arguments.get(0).evaluated(), primitiveType );
+      AtomicAccessor<Double> y = AtomicAccessors.create( arguments.get(1).evaluated(), primitiveType );
       int xLen = x.length();
       int yLen = y.length();
       int maxLen = Math.max(xLen, yLen);
@@ -281,18 +253,16 @@ public class RuntimeInvoker {
         throw new EvalException("longer object length is not a multiple of shorter object length");
       }
 
-      AtomicAccessor cx = getAccessor(x, primitiveType);
-      AtomicAccessor cy = getAccessor(y, primitiveType);
-      AtomicResultBuilder result = resultBuilderFor(method.getReturnType(), maxLen);
+      AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), maxLen);
 
       for(int i=0; i!=maxLen; i++) {
         int xi = i % xLen;
         int yi = i % yLen;
 
-        if( cx.isNA(x, xi) || cy.isNA(y, yi)) {
+        if( x.isNA(xi) || y.isNA(yi)) {
           result.setNA(i);
         } else {
-          result.set(i, method.invoke(cx.get(x, xi), cy.get(y, yi)));
+          result.set(i, method.invoke(x.get(xi), y.get(yi)));
         }
       }
 
@@ -329,9 +299,6 @@ public class RuntimeInvoker {
     return true;
   }
 
-
-
-
   private static <T> T[] skip(T[] array, int index) {
     return Arrays.copyOfRange(array, index, array.length);
   }
@@ -364,329 +331,6 @@ public class RuntimeInvoker {
   }
 
 
-  private interface AtomicResultBuilder<T> {
-    void set(int index, T value);
-    void setNA(int index);
-    SEXP build();
-  }
-
-  private class IntResultBuilder implements AtomicResultBuilder<Integer> {
-    private int values[];
-
-    private IntResultBuilder(int length) {
-      values = new int[length];
-    }
-
-    @Override
-    public void set(int index, Integer value) {
-      values[index] = value;
-    }
-
-    @Override
-    public void setNA(int index) {
-      values[index] = IntExp.NA;
-    }
-
-    @Override
-    public SEXP build() {
-      return new IntExp(values);
-    }
-  }
-
-  private class RealResultBuilder implements AtomicResultBuilder<Double> {
-    private double values[];
-
-    private RealResultBuilder(int length) {
-      values = new double[length];
-    }
-
-    @Override
-    public void set(int index, Double value) {
-      values[index] = value;
-    }
-
-    @Override
-    public void setNA(int index) {
-      values[index] = DoubleExp.NA;
-    }
-
-    @Override
-    public SEXP build() {
-      return new DoubleExp( values );
-    }
-  }
-
-  private static class BooleanResultBuilder implements AtomicResultBuilder<Boolean> {
-    private int values[];
-
-    private BooleanResultBuilder(int length) {
-      values = new int[length];
-    }
-
-    @Override
-    public void set(int index, Boolean value) {
-      values[index] = value ? 1 : 0;
-    }
-
-    @Override
-    public void setNA(int index) {
-      values[index] = Logical.NA.getInternalValue();
-    }
-
-    @Override
-    public SEXP build() {
-      return new LogicalExp( values );
-    }
-  }
-
-  private static class StringResultBuilder implements AtomicResultBuilder<String> {
-
-    private String values[];
-
-    public StringResultBuilder(int length) {
-      values = new String[length];
-    }
-
-    @Override
-    public void set(int index, String value) {
-      values[index] = value;
-    }
-
-    @Override
-    public void setNA(int index) {
-      values[index] = StringExp.NA;
-    }
-
-    @Override
-    public SEXP build() {
-      return new StringExp(values);
-    }
-  }
-
-
-  private boolean haveResultBuilderFor(PrimitiveMethod method) {
-    Class type = method.getReturnType();
-    return
-        type == Double.TYPE ||
-            type == Integer.TYPE ||
-            type == Logical.class ||
-            type == Boolean.TYPE ||
-            type == String.class;
-  }
-
-  private AtomicResultBuilder resultBuilderFor(Class type, int length) {
-    if(type == Integer.TYPE) {
-      return new IntResultBuilder(length);
-
-    } else if(type == Double.TYPE) {
-      return new RealResultBuilder(length);
-
-    } else if(type == Boolean.TYPE) {
-      return new BooleanResultBuilder(length);
-
-    } else if(type == String.class) {
-      return new StringResultBuilder(length);
-
-    } else {
-      throw new UnsupportedOperationException("No AtomicResultBuilder for " + type.getName() );
-    }
-  }
-
-
-  /**
-   * Interface for objects which converts individual elements
-   * to destination types.
-   * @param <S>
-   * @param <D>
-   */
-  private interface AtomicAccessor<S extends SEXP, D> {
-    boolean accept(Class<? extends SEXP> expType, Class destinationType);
-    boolean isNA(S exp, int index);
-    D get(S exp, int index);
-  }
-
-  private static class LogicalExpToInt implements AtomicAccessor<LogicalExp, Integer> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == LogicalExp.class && destinationType == Integer.TYPE;
-    }
-
-    @Override
-    public boolean isNA(LogicalExp exp, int index) {
-      return IntExp.isNA( exp.get(index) );
-    }
-
-    @Override
-    public Integer get(LogicalExp exp, int index) {
-      return exp.get(index);
-    }
-  }
-
-  private class IntExpAccessor implements AtomicAccessor<IntExp, Integer> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == IntExp.class && destinationType == Integer.TYPE;
-    }
-
-    @Override
-    public boolean isNA(IntExp exp, int index) {
-      return exp.get(index) == IntExp.NA;
-    }
-
-    @Override
-    public Integer get(IntExp exp, int index) {
-      return exp.get(index);
-    }
-  }
-
-  private static class RealExpAccessor implements AtomicAccessor<DoubleExp, Double> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == DoubleExp.class && destinationType == Double.TYPE;
-    }
-
-    @Override
-    public boolean isNA(DoubleExp exp, int index) {
-      return DoubleExp.isNA( exp.get(index) );
-    }
-
-    @Override
-    public Double get(DoubleExp exp, int index) {
-      return exp.get(index);
-    }
-  }
-
-  private static class IntExpToDouble implements AtomicAccessor<IntExp, Double> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == IntExp.class && destinationType == Double.TYPE;
-    }
-
-    @Override
-    public boolean isNA(IntExp exp, int index) {
-      return IntExp.isNA( exp.get( index ) );
-    }
-
-    @Override
-    public Double get(IntExp exp, int index) {
-      return (double) exp.get( index );
-    }
-  }
-
-  private static class LogicalExpToDouble implements AtomicAccessor<LogicalExp, Double> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == LogicalExp.class && destinationType == Double.TYPE;
-    }
-
-    @Override
-    public boolean isNA(LogicalExp exp, int index) {
-      return exp.get( index ) == IntExp.NA;
-    }
-
-    @Override
-    public Double get(LogicalExp exp, int index) {
-      return (double) exp.get( index );
-    }
-  }
-
-  private static class LogicalExpToBoolean implements AtomicAccessor<LogicalExp, Boolean> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == LogicalExp.class && destinationType == Boolean.TYPE;
-    }
-
-    @Override
-    public boolean isNA(LogicalExp exp, int index) {
-      return exp.get(index) == IntExp.NA;
-    }
-
-    @Override
-    public Boolean get(LogicalExp exp, int index) {
-      return exp.get(index) == 1;
-    }
-  }
-
-  private static class StringExpAccessor implements AtomicAccessor<StringExp, String> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == StringExp.class && destinationType == String.class;
-    }
-
-    @Override
-    public boolean isNA(StringExp exp, int index) {
-      return StringExp.isNA( exp.get(index) );
-    }
-
-    @Override
-    public String get(StringExp exp, int index) {
-      return exp.get(index);
-    }
-  }
-
-  private static class RealExpToString implements AtomicAccessor<DoubleExp, String> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == DoubleExp.class && destinationType == String.class;
-    }
-
-    @Override
-    public boolean isNA(DoubleExp exp, int index) {
-      return DoubleExp.isNA(exp.get(index));
-    }
-
-    @Override
-    public String get(DoubleExp exp, int index) {
-      return ParseUtil.toString(exp.get(index));
-    }
-  }
-
-  private static class IntExpToString implements AtomicAccessor<IntExp, String> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == IntExp.class && destinationType == String.class;
-    }
-
-    @Override
-    public boolean isNA(IntExp exp, int index) {
-      return IntExp.isNA( exp.get( index ) );
-    }
-
-    @Override
-    public String get(IntExp exp, int index) {
-      return ParseUtil.toString( exp.get( index ) );
-    }
-  }
-
-  private static class LogicalExpToString implements AtomicAccessor<LogicalExp, String> {
-    @Override
-    public boolean accept(Class<? extends SEXP> expType, Class destinationType) {
-      return expType == LogicalExp.class && destinationType == String.class ;
-    }
-
-    @Override
-    public boolean isNA(LogicalExp exp, int index) {
-      return IntExp.isNA( exp.get( index ) );
-    }
-
-    @Override
-    public String get(LogicalExp exp, int index) {
-      return exp.get( index ) == 1 ? "TRUE" : "FALSE";
-    }
-  }
-
-  private AtomicAccessor getAccessor(SEXP provided, Class primitiveType) {
-    for(AtomicAccessor converter : accessors) {
-      if(converter.accept(provided.getClass(), primitiveType)) {
-        return converter;
-      }
-    }
-    return null;
-  }
-
-  private boolean haveAccessor(SEXP provided, Class primitiveType) {
-    return getAccessor(provided, primitiveType) != null;
-  }
 
   private class ProvidedArgument {
     private EnvExp rho;
@@ -754,25 +398,25 @@ public class RuntimeInvoker {
     }
   }
 
-  private interface ExpConverter<S extends SEXP, T> {
+  private interface ArgConverter<S extends SEXP, T> {
     boolean accept(SEXP source, PrimitiveMethod.Argument formal);
     T convert(EnvExp rho, S source, PrimitiveMethod.Argument formal);
   }
 
-  private class ToPrimitive implements ExpConverter {
+  private class ToPrimitive implements ArgConverter {
 
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
-      return source.length() == 1 && haveAccessor(source, formal.getClazz());
+      return source.length() == 1 && AtomicAccessors.haveAccessor(source, formal.getClazz());
     }
 
     @Override
     public Object convert(EnvExp rho, SEXP source, PrimitiveMethod.Argument formal) {
-      return getAccessor(source, formal.getClazz()).get(source, 0);
+      return AtomicAccessors.create(source, formal.getClazz()).get(0);
     }
   }
 
-  private class StringToSymbol implements ExpConverter<StringExp, SymbolExp> {
+  private class StringToSymbol implements ArgConverter<StringExp, SymbolExp> {
 
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
@@ -787,12 +431,26 @@ public class RuntimeInvoker {
     }
   }
 
+  private class ToAccessor implements ArgConverter<SEXP, AtomicAccessor> {
+    @Override
+    public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
+      return formal.getClazz() == AtomicAccessor.class &&
+          formal.getTypeArgument(0) instanceof Class &&
+          AtomicAccessors.haveAccessor(source, (Class) formal.getTypeArgument(0));
+    }
+
+    @Override
+    public AtomicAccessor convert(EnvExp rho, SEXP source, PrimitiveMethod.Argument formal) {
+      return AtomicAccessors.create(source, (Class) formal.getTypeArgument(0));
+    }
+  }
+
   private boolean haveConverter(SEXP source, PrimitiveMethod.Argument formal) {
     return getConverter(source,formal) != null;
   }
 
-  private ExpConverter getConverter(SEXP source, PrimitiveMethod.Argument formal) {
-    for(ExpConverter converter : converters) {
+  private ArgConverter getConverter(SEXP source, PrimitiveMethod.Argument formal) {
+    for(ArgConverter converter : converters) {
       if(converter.accept(source, formal)) {
         return converter;
       }

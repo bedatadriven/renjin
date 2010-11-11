@@ -25,6 +25,14 @@ package r.lang;
  * Marker interface for R types defined as "atomic"
  * 
  */
-public interface AtomicExp {
-  int length();
+public abstract class AtomicExp extends SEXP {
+
+  public abstract Class getElementClass();
+
+
+  public static boolean isAtomic(Class<? extends SEXP> expClass) {
+    return AtomicExp.class.isAssignableFrom(expClass);
+  }
+
+
 }

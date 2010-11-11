@@ -27,6 +27,7 @@ import r.lang.EvalTestCase;
 import r.lang.GlobalContext;
 import r.lang.PairListExp;
 import r.lang.SEXP;
+import r.lang.primitive.Subset;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

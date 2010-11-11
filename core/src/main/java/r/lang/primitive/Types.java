@@ -24,7 +24,12 @@ package r.lang.primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.AlwaysNull;
+import r.lang.primitive.annotations.ArgumentList;
 import r.lang.primitive.annotations.Environment;
+import r.lang.primitive.binding.AtomicAccessor;
+import r.lang.primitive.binding.AtomicAccessors;
+import r.lang.primitive.binding.AtomicBuilder;
+import r.lang.primitive.binding.AtomicBuilders;
 import r.parser.ParseUtil;
 
 /**
@@ -160,8 +165,7 @@ public class Types {
     return (int)ParseUtil.parseDouble(x);
   }
 
-
-  public static ListExp list(PairList arguments) {
+  public static ListExp list(@ArgumentList PairList arguments) {
 
     int n = arguments.length();
     SEXP values[] = new SEXP[n];
@@ -196,11 +200,35 @@ public class Types {
       return environment.getVariable(symbol);
   }
 
+  public static SEXP subset$(PairListExp pairList, SymbolExp symbol) {
+    return pairList.findByTag(symbol);
+  }
+
   @AlwaysNull
   public static SEXP subset$(NullExp nil) {
     return NullExp.INSTANCE;
   }
 
+  public static AtomicExp subset(AtomicExp vector, AtomicAccessor<Double> indices) {
+
+    AtomicAccessor<Object> values =
+        AtomicAccessors.create(vector, vector.getElementClass());
+    AtomicBuilder builder = AtomicBuilders.createFor(vector.getElementClass(), indices.length());
+
+    int resultLen = 0;
+
+    for(int i=0; i!=indices.length();++i) {
+      int index = indices.get(i).intValue();
+      if(index == 0) {
+        // do nothing
+      } else if(index > vector.length()) {
+        builder.setNA(resultLen++);
+      } else {
+        builder.set(resultLen++, values.get(index-1));
+      }
+    }
+    return builder.build(resultLen);
+  }
 
   public static EnvExp environment(@Environment EnvExp rho) {
     return rho.getGlobalContext().getGlobalEnvironment();
@@ -210,7 +238,13 @@ public class Types {
     return arg.getEnclosingEnvironment();
   }
 
-  public static NullExp environment(SEXP exp) {
+  @AlwaysNull
+  public static NullExp environment(AtomicExp exp) {
+    return NullExp.INSTANCE;
+  }
+
+  @AlwaysNull
+  public static NullExp environment(ListExp listExp) {
     return NullExp.INSTANCE;
   }
 
@@ -234,4 +268,13 @@ public class Types {
   public static int length(SEXP exp) {
     return exp.length();
   }
+
+  public static String typeof(SEXP exp) {
+    return exp.getTypeName();
+  }
+
+  public static SEXP names(SEXP exp) {
+    return exp.getNames();
+  }
+
 }

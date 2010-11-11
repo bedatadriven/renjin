@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class StringExp extends SEXP implements AtomicExp, Iterable<String> {
+public class StringExp extends AtomicExp implements Iterable<String> {
   public static final String TYPE_NAME = "character";
   public static final int TYPE_CODE = 16;
   public static final String NA = null;
@@ -118,5 +118,10 @@ public class StringExp extends SEXP implements AtomicExp, Iterable<String> {
   public static boolean isNA(String s) {
     // yes this is an identity comparison because NA_character_ is null
     return s == NA;
+  }
+
+  @Override
+  public Class getElementClass() {
+    return String.class;
   }
 }

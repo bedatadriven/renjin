@@ -361,7 +361,6 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
       }
     }
     return NullExp.INSTANCE;
-
   }
 
   public abstract static class Predicates {

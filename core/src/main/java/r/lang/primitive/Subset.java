@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.types;
+package r.lang.primitive;
 
 import r.lang.*;
 import r.lang.exception.EvalException;

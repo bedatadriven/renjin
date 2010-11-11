@@ -19,25 +19,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.types;
+package r.lang.primitive.binding;
 
-import r.lang.SEXP;
-import r.lang.primitive.parse.DeparsingVisitor;
-
-import java.util.ArrayList;
-
-public class CoerceNestedListToString extends AbstractCoerceToString {
-
-  public CoerceNestedListToString(ArrayList<String> values) {
-    super(values);
-  }
-
-  public CoerceNestedListToString() {
-    super(new ArrayList<String>());
-  }
-
-  @Override
-  protected void unhandled(SEXP exp) {
-    values.add(new DeparsingVisitor(exp).getResult());
-  }
+/**
+ * Interface for objects which converts individual elements
+ * to destination types.
+ *
+ * @param <D>
+ */
+public interface AtomicAccessor<D> {
+  int length();
+  boolean isNA(int index);
+  D get(int index);
 }

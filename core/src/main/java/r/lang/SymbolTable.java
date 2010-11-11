@@ -137,13 +137,14 @@ public class SymbolTable {
 
   private void installPlatform() {
     SymbolExp platform = install(".Platform");
-    platform.setValue( PairListExp.buildList()
-        .add(new StringExp(resolveOsName())).taggedWith(install("OS.type"))
-        .add(new StringExp("/")).taggedWith(install("file.sep"))
-        .add(new StringExp("unknown")).taggedWith(install("GUI"))
-        .add(new StringExp("big")).taggedWith(install("endian"))
-        .add(new StringExp("source")).taggedWith(install("pkgType"))
-        .add(new StringExp("")).taggedWith(install("r_arch")).list() );
+    platform.setValue(ListExp.build()
+        .add("OS.type", new StringExp(resolveOsName()))
+        .add("file.sep", new StringExp("/"))
+        .add("GUI", new StringExp("unknown"))
+        .add("endian", new StringExp("big"))
+        .add("pkgType", new StringExp("source"))
+        .add("r_arch", new StringExp(""))
+        .build());
   }
 
   private String resolveOsName() {

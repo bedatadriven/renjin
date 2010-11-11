@@ -32,9 +32,9 @@ import r.lang.exception.EvalException;
 /**
  * Creates a sequential vector from an expression like "1:99"
  */
-public class Colon {
+public class Sequences {
 
-  public static SEXP apply(SEXP n1, SEXP n2) {
+  public static SEXP colon(SEXP n1, SEXP n2) {
     if( n1.inherits("factor") && n2.inherits("factor")) {
       return crossColon(n1, n2);
 

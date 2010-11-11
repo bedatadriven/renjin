@@ -21,11 +21,13 @@
 
 package r.lang;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Generic vector of {@code SEXP}s
@@ -37,9 +39,15 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
 
   private ArrayList<SEXP> values;
 
-  public ListExp(Iterable<SEXP> values) {
+
+  public ListExp(Iterable<SEXP> values,  PairList attributes) {
+    super(attributes);
     this.values = new ArrayList<SEXP>();
     Iterables.addAll(this.values, values);
+  }
+
+  public ListExp(Iterable<SEXP> values) {
+    this(values, NullExp.INSTANCE);
   }
 
   public ListExp(SEXP[] values, PairList attributes) {
@@ -52,6 +60,7 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
   public ListExp(SEXP... values) {
     this(values, NullExp.INSTANCE);
   }
+
 
   @Override
   public int getTypeCode() {
@@ -90,6 +99,10 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
     return -1;
   }
 
+  public SEXP get(int index) {
+    return values.get(index);
+  }
+
   public SEXP get(String name) {
     int index = indexOfName(name);
     if(index == -1) {
@@ -97,4 +110,65 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
     }
     return values.get(index);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ListExp listExp = (ListExp) o;
+
+    if (!values.equals(listExp.values)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return values.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("list(");
+    Joiner.on(", ").appendTo(sb, values);
+    return sb.append(")").toString();
+  }
+
+  public static Builder build() {
+    return new Builder();
+  }
+
+
+
+  public static class Builder {
+    private boolean haveNames = false;
+    private List<SEXP> values = new ArrayList<SEXP>();
+    private List<String> names = new ArrayList<String>();
+
+
+    public Builder add(String name, SEXP value) {
+      values.add(value);
+      names.add(name);
+      haveNames = true;
+      return this;
+    }
+
+    public Builder add(SEXP value) {
+      values.add(value);
+      names.add("");
+      return this;
+    }
+
+    public ListExp build() {
+      if(haveNames) {
+        return new ListExp(values,  PairListExp.buildList(SymbolExp.NAMES, new StringExp(names)).list());
+      } else {
+        return new ListExp(values);
+      }
+    }
+  }
+
+
+
 }

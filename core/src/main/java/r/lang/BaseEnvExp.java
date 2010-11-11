@@ -23,12 +23,11 @@ package r.lang;
 
 
 public class BaseEnvExp extends EnvExp {
-  private final SymbolTable symbolTable;
 
 
   public BaseEnvExp(GlobalContext context, SymbolTable symbolTable) {
     super(context);
-    this.symbolTable = symbolTable;
+    SymbolTable symbolTable1 = symbolTable;
   }
 
   @Override

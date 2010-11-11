@@ -22,8 +22,6 @@
 package r.lang.primitive;
 
 
-import r.lang.primitive.types.CombineFunction;
-
 import static r.lang.primitive.PPkind.*;
 import static r.lang.primitive.PPprec.*;
 import static r.util.CDefines.ArithOpType.*;
@@ -127,9 +125,9 @@ public class FunctionTable {
       f("<<-", /*set*/ null, 2, 100, -1, PP_ASSIGN2, PREC_LEFT, 1),
       f("{", Evaluation.class, "begin", 0, 200, -1, PP_CURLY, PREC_FN, 0),
       f("(", /*paren*/ null, 0, 1, 1, PP_PAREN, PREC_FN, 0),
-      f(".subset", /*subset_dflt*/ null, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("subset", /*subset_dflt*/ null, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f(".subset2", /*subset2_dflt*/ null, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
-      f("[", /*subset*/ null, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0),
+      f("[",Types.class, "subset", 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0),
       f("[[", /*subset2*/ null, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0),
       f("$", Types.class, "subset$", 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
       f("@", /*AT*/ null, 0, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
@@ -180,7 +178,7 @@ public class FunctionTable {
 
       f("&&", /*logic2*/ null, 1, 0, 2, PP_BINARY, PREC_AND, 0),
       f("||", /*logic2*/ null, 2, 0, 2, PP_BINARY, PREC_OR, 0),
-      f(":", Colon.class, 0, 1, 2, PP_BINARY2, PREC_COLON, 0),
+      f(":", Sequences.class, "colon", 0, 1, 2, PP_BINARY2, PREC_COLON, 0),
       f("~", /*tilde*/ null, 0, 0, 2, PP_BINARY, PREC_TILDE, 0),
 
 
@@ -201,17 +199,17 @@ public class FunctionTable {
       f("length<-", /*lengthgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
       f("row", /*rowscols*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("col", /*rowscols*/ null, 2, 11, 1, PP_FUNCALL, PREC_FN, 0),
-      f("c", CombineFunction.class, "combine",  0, 0, -1, PP_FUNCALL, PREC_FN, 0),
+      f("c", Combine.class, "combine",  0, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("unlist", /*unlist*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("cbind", /*bind*/ null, 1, 10, -1, PP_FUNCALL, PREC_FN, 0),
       f("rbind", /*bind*/ null, 2, 10, -1, PP_FUNCALL, PREC_FN, 0),
       f("drop", /*drop*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("oldClass", /*class*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("oldClass<-", /*classgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
-      f("class", /*R_data_class*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("class", Types.class, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("class<-", /*R_set_class*/ null, 0, 1, 2, PP_FUNCALL, PREC_FN, 0),
       f("unclass", /*unclass*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("names", /*names*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("names", Types.class, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("names<-", /*namesgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
       f("dimnames", /*dimnames*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("dimnames<-", /*dimnamesgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
@@ -617,7 +615,7 @@ public class FunctionTable {
       f("dyn.load", /*dynload*/ null, 0, 111, 4, PP_FUNCALL, PREC_FN, 0),
       f("dyn.unload", /*dynunload*/ null, 0, 111, 1, PP_FUNCALL, PREC_FN, 0),
       f("ls", /*ls*/ null, 1, 11, 2, PP_FUNCALL, PREC_FN, 0),
-      f("typeof", /*typeof*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
+      f("typeof", Types.class, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("eval", /*eval*/ null, 0, 211, 3, PP_FUNCALL, PREC_FN, 0),
       f("eval.with.vis", /*eval*/ null, 1, 211, 3, PP_FUNCALL, PREC_FN, 0),
       f("withVisible", /*withVisible*/ null, 1, 10, 1, PP_FUNCALL, PREC_FN, 0),

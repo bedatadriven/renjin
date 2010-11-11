@@ -85,10 +85,6 @@ public class GlobalContext {
     return symbolTable;
   }
 
-  public void setSymbolTable(SymbolTable symbolTable) {
-    this.symbolTable = symbolTable;
-  }
-
   public EnvExp getBaseEnvironment() {
     return baseEnvironment;
   }

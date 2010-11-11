@@ -36,6 +36,7 @@ import static org.junit.Assert.assertThat;
 public abstract class EvalTestCase {
 
   protected GlobalContext context;
+  public static final NullExp NULL = NullExp.INSTANCE;
 
   @Before
   public void setUp() {
@@ -89,4 +90,11 @@ public abstract class EvalTestCase {
     return new IntExp(values);
   }
 
+  protected SEXP list(Object... values) {
+    ListExp.Builder builder = ListExp.build();
+    for(Object obj : values) {
+      builder.add(SEXPFactory.fromJava(obj));
+    }
+    return builder.build();
+  }
 }

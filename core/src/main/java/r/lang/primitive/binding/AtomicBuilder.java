@@ -19,21 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.types;
+package r.lang.primitive.binding;
 
-import r.lang.PairListExp;
-import r.lang.SEXP;
+import r.lang.AtomicExp;
 
-public class RecursiveTypeFinder extends CommonTypeFinder {
-
-  public RecursiveTypeFinder(PairListExp listExp) {
-    super(listExp);
-  }
-
-  @Override
-  public void visit(PairListExp listExp) {
-    for(SEXP exp : listExp) {
-      exp.accept(this);
-    }
-  }
+public interface AtomicBuilder<T> {
+  void set(int index, T value);
+  void setNA(int index);
+  AtomicExp build();
+  AtomicExp build(int length);
 }

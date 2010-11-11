@@ -227,4 +227,16 @@ public abstract class SEXP {
   public SEXP subset(int index) {
     return subset(index, index);
   }
+
+  public final SEXP getNames() {
+    return attributes.findByTag(SymbolExp.NAMES);
+  }
+
+  public String getName(int index) {
+    SEXP names = attributes.findByTag(SymbolExp.NAMES);
+    if(names instanceof StringExp) {
+      return ((StringExp) names).get(index);
+    }
+    return "";
+  }
 }

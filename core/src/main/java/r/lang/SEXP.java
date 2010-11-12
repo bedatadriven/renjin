@@ -32,12 +32,13 @@ public abstract class SEXP {
   private SEXP tag = NullExp.INSTANCE;
   private int named = 0;
 
-  protected SEXP(PairList attributes) {
+  protected SEXP(SEXP tag, PairList attributes) {
+    this.tag = tag;
     this.attributes = attributes;
   }
 
   protected SEXP() {
-    this(NullExp.INSTANCE);
+    this(NullExp.INSTANCE, NullExp.INSTANCE);
   }
 
   /**
@@ -66,11 +67,11 @@ public abstract class SEXP {
     return 1;
   }
 
-  public boolean hasAttributes() {
+  public final boolean hasAttributes() {
     return attributes.length() != 0;
   }
 
-  public PairListExp getAttributes() {
+  public final PairListExp getAttributes() {
     return (PairListExp)attributes;
   }
 
@@ -90,15 +91,15 @@ public abstract class SEXP {
    * @return this expression's tag
    * @throws ClassCastException if this expression's tag is NullExp
    */
-  public SEXP getRawTag() {
+  public final SEXP getRawTag() {
     return tag;
   }
 
-  public SymbolExp getTag() {
+  public final SymbolExp getTag() {
     return (SymbolExp)tag;
   }
 
-  public boolean hasTag() {
+  public final boolean hasTag() {
     return tag != NullExp.INSTANCE;
   }
 
@@ -184,9 +185,23 @@ public abstract class SEXP {
     return DoubleExp.NA;
   }
 
-  public SEXP getAttribute(String name) {
-    // TODO: attribs
-    return null;
+  /**
+   * @return the R language class of this expression
+   */
+  public StringExp getClassAttribute() {
+    SEXP classAttribute = attributes.findByTag(SymbolExp.CLASS);
+    if(classAttribute instanceof StringExp) {
+      return (StringExp) classAttribute;
+    }
+    return new StringExp( getImplicitClass() );
+  }
+
+  /**
+   * @return  the default class name, to be used if no
+   * class attribute is found
+   */
+  protected String getImplicitClass() {
+    return getTypeName();
   }
 
   public boolean inherits(String sClassName) {
@@ -239,4 +254,42 @@ public abstract class SEXP {
     }
     return "";
   }
+
+  public SEXP getAttribute(SymbolExp name) {
+    if(!hasAttributes()) {
+      return attributes.findByTag(name);
+    }
+    return NullExp.INSTANCE;
+  }
+
+  public final SEXP setClass(StringExp classNames) {
+    if(classNames.length() == 0) {
+      throw new EvalException("class attribute cannot be null");
+    }
+    return cloneWithNewAttributes(replaceAttribute(SymbolExp.CLASS, classNames));
+  }
+
+  public final SEXP setNames(StringExp names) {
+    if(names.length() > length()) {
+      throw new EvalException("'names' attribute [%d] must be the same length as the vector [%d]",
+          names.length(), length());
+    }
+    return cloneWithNewAttributes(replaceAttribute(SymbolExp.NAMES, names.setLength(length())));
+  }
+
+  private PairList replaceAttribute(SymbolExp attributeName, SEXP newValue) {
+    PairListExp.Builder builder = PairListExp.buildList(attributeName, newValue);
+    for(PairListExp node : attributes.listNodes()) {
+      if(!node.getTag().equals(attributeName)) {
+        builder.add(node.getTag(), node.getValue());
+      }
+    }
+    return builder.list();
+  }
+
+
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    throw new UnsupportedOperationException("cannot change/set attributes on " + getClass().getSimpleName());
+  }
+
 }

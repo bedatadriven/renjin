@@ -30,6 +30,7 @@ public class IntExp extends AtomicExp implements Iterable<Integer> {
 
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
+  public static final String IMPLICIT_CLASS = "integer";
 
   /**
    * NA_INTEGER:= INT_MIN currently
@@ -37,9 +38,6 @@ public class IntExp extends AtomicExp implements Iterable<Integer> {
   public static final int NA = Integer.MIN_VALUE;
 
   private int[] values;
-
-  private IntExp() {
-  }
 
   public IntExp(int... values) {
     this.values = Arrays.copyOf(values, values.length);
@@ -72,17 +70,14 @@ public class IntExp extends AtomicExp implements Iterable<Integer> {
     return values[i];
   }
 
-  public void set(int i, int value) {
-    values[i] = value;
-  }
-
-  public static SEXP ofLength(int length) {
-    return new IntExp(new int[length]);
-  }
-
   @Override
   public boolean isNumeric() {
     return !inherits("factor");
+  }
+
+  @Override
+  protected String getImplicitClass() {
+    return IMPLICIT_CLASS;
   }
 
   @Override

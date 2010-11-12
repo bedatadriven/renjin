@@ -65,7 +65,6 @@ public class RuntimeInvoker {
     strategies.add(new BinaryPrimitive(Double.TYPE));
     strategies.add(new BinaryPrimitive(String.class));
     strategies.add(new FixedArity());
-    strategies.add(new FixedArityWithEnvironment());
     strategies.add(new VarArgs());
 
     // converters between whole expressions and
@@ -128,25 +127,12 @@ public class RuntimeInvoker {
 
     @Override
     public boolean accept(PrimitiveMethod method, List<ProvidedArgument> providedArgs) {
-      return acceptArguments(providedArgs, method.getArguments());
+      return acceptArguments(providedArgs, method.getFormals());
     }
 
     @Override
     public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
-      return method.invokeAndWrap(convertArgs(method, arguments, 0));
-    }
-  }
-
-  private class FixedArityWithEnvironment implements CallStrategy {
-    @Override
-    public boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments) {
-      return method.getArguments().get(0).isEnvironment() &&
-          acceptArguments(arguments,method.getFormals());
-    }
-
-    @Override
-    public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
-      return method.invokeAndWrap(concat(rho, convertArgs(method, arguments, 1)));
+      return method.invokeWithContextAndWrap(rho, convertArgs(method, arguments));
     }
   }
 
@@ -168,7 +154,7 @@ public class RuntimeInvoker {
   private PairList toEvaluatedPairList(List<ProvidedArgument> arguments) {
     PairListExp.Builder builder = PairListExp.buildList();
     for(ProvidedArgument arg : arguments) {
-      builder.add(arg.evaluated()).taggedWith(arg.getTag());
+      builder.add(arg.getTag(), arg.evaluated());
     }
     return builder.list();
   }
@@ -208,10 +194,10 @@ public class RuntimeInvoker {
     }
   }
 
-  private Object[] convertArgs(PrimitiveMethod method, List<ProvidedArgument> providedArgs, int skip) {
+  private Object[] convertArgs(PrimitiveMethod method, List<ProvidedArgument> providedArgs) {
     Object newArray[] = new Object[providedArgs.size()];
-    for(int i=skip;i<providedArgs.size();++i) {
-      PrimitiveMethod.Argument formal = method.getArguments().get(i-skip);
+    for(int i=0;i!=providedArgs.size();++i) {
+      PrimitiveMethod.Argument formal = method.getFormals().get(i);
       ProvidedArgument provided = providedArgs.get(i);
 
       newArray[i] = provided.convertTo(formal);

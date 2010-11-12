@@ -60,7 +60,6 @@ public class CompilerTest {
 
     ClosureExp myfuncClosureExp = (ClosureExp) simplePackage.findVariable(myfunc);
     assertThat(myfuncClosureExp, is(not(nullValue())));
-
   }
 
   private void printSource(File source) throws IOException {

@@ -46,8 +46,10 @@ public class SubsetTest extends EvalTestCase {
   @Test
   public void pairListExact() {
 
-    PairListExp list = PairListExp.buildList().add(c(1)).taggedWith(context.symbol("alligator"))
-                                     .add(c(3)).taggedWith(context.symbol("aardvark")).list();
+    PairListExp list = PairListExp.buildList()
+        .add(context.symbol("alligator"), c(1))
+        .add(context.symbol("aardvark"), c(3))
+        .list();
 
     SEXP result = Subset.index(list, "all");
     assertThat(result, equalTo((SEXP)c(1)));

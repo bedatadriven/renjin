@@ -21,10 +21,11 @@
 
 package r.lang.primitive;
 
-import com.google.common.annotations.VisibleForTesting;
 import r.lang.*;
 import r.lang.exception.ControlFlowException;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.Environment;
+import r.lang.primitive.annotations.Evaluate;
 
 public class Evaluation {
 
@@ -41,35 +42,36 @@ public class Evaluation {
     return lastResult;
   }
 
-  public static EvalResult assign(EnvExp rho, LangExp call) {
-    return new EvalResult( assign(rho, call.getArgument(0), call.getArgument(1)), false);
+  public static EvalResult assign(@Environment EnvExp rho, SymbolExp symbol, SEXP value) {
+    rho.setVariable(symbol, value);
+    return new EvalResult(value, false);
   }
 
   /**
-   * Executes an assignment. (The '<-' function)
+   * This is the so-called complex assignment, such as:
+   *  class(x) <- "foo" or
+   *  length(x) <- 3
+   *
+   *
    */
-  @VisibleForTesting
-  static SEXP assign(EnvExp rho, SEXP leftHand, SEXP rightHand) {
+  public static EvalResult assign(@Environment EnvExp rho, @Evaluate(false) LangExp call, SEXP value) {
+    PrimitiveExp fn = (PrimitiveExp) call.getFunction().evalToExp(rho);
+    SymbolExp newFn = rho.getGlobalContext().symbol(fn.getName() + "<-");
 
-    SymbolExp target = toSymbol(rho, leftHand);
-    SEXP newValue = rightHand.evalToExp(rho);
+    // This is the symbol to which we're ultimately assigning
+    SymbolExp target = call.getArgument(0);
 
-    rho.setVariable(target, newValue);
+    PairList newArgs = PairListExp.buildList()
+        .add(target)
+        .add(value)
+        .list();
+    LangExp newCall = new LangExp(newFn, newArgs);
 
-    return newValue;
-  }
+    SEXP result = newCall.evaluate(rho).getExpression();
 
-  private static SymbolExp toSymbol(EnvExp rho, SEXP lhs) {
-    if(lhs instanceof SymbolExp) {
-      return (SymbolExp) lhs;
+    rho.setVariable(target, result);
 
-    } else if(lhs instanceof StringExp) {
-      String name = ((StringExp) lhs).get(0);
-      return rho.getGlobalContext().getSymbolTable().install(name);
-
-    } else {
-      throw new EvalException("invalid (do_set) left-hand side to assignment");
-    }
+    return EvalResult.nonVisible(target);
   }
 
   /**
@@ -120,17 +122,16 @@ public class Evaluation {
     SEXP condition = call.getArguments().get(0).evalToExp(rho);
 
     if (asLogicalNoNA(call, condition, rho)) {
-      return new EvalResult(call.getArguments().get(1).evalToExp(rho)); /* true value */
+      return call.getArguments().get(1).evaluate(rho); /* true value */
 
     } else {
       if (call.getArguments().length() == 3) {
-        return new EvalResult(call.getArguments().get(2).evalToExp(rho)); /* else value */
+        return call.getArguments().get(2).evaluate(rho); /* else value */
       } else {
         return EvalResult.NON_PRINTING_NULL;   /* no else, evaluates to NULL */
       }
     }
   }
-
 
   public static EvalResult internal(EnvExp rho, LangExp call) {
     SEXP arg = call.getArguments().get(0);

@@ -21,32 +21,23 @@
 
 package r.lang.primitive;
 
-import org.junit.Before;
 import org.junit.Test;
-import r.lang.DoubleExp;
-import r.lang.GlobalContext;
-import r.lang.StringExp;
+import r.lang.EvalTestCase;
 
-public class AssignmentTest {
-  private GlobalContext context;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+public class AssignmentTest extends EvalTestCase {
 
   @Test
   public void stringTarget() throws Exception {
-
-    Evaluation.assign(context.getGlobalEnvironment(), 
-        new StringExp("a"), new DoubleExp(1));
+    eval( " \"a\" <- 1 ");
+    assertThat( eval("a"), equalTo( c(1) ));
   }
 
   @Test
   public void symbolTarget() throws Exception {
-
-    Evaluation.assign(context.getGlobalEnvironment(),
-        context.getSymbolTable().install("x"), new DoubleExp(1) );
-
-  }
-
-  @Before
-  public void setUp() throws Exception {
-    context = new GlobalContext();
+    eval(" x <- 1");
+    assertThat( eval("x"), equalTo( c(1) ));
   }
 }

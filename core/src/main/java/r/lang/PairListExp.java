@@ -58,11 +58,16 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
   protected PairListExp nextNode = null;
 
 
-  public PairListExp(SEXP value, PairList nextNode) {
+  public PairListExp(SEXP tag, SEXP value, PairList nextNode) {
+    super(tag, NullExp.INSTANCE);
     this.value = value;
     if(nextNode instanceof PairListExp) {
      this.nextNode = (PairListExp) nextNode;
     }
+  }
+
+  public PairListExp(SEXP value, PairList nextNode) {
+    this(NullExp.INSTANCE, value, nextNode);
   }
 
   @Override
@@ -115,11 +120,6 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
 
   public final void setValue(SEXP value) {
     this.value = value;
-  }
-
-  @Override
-  public SEXP getAttribute(String name) {
-    return NullExp.INSTANCE;
   }
 
   public void setNextNode(PairListExp nextNode) {
@@ -176,7 +176,7 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
   public PairListExp clone() {
     Builder builder = new Builder();
     for(PairListExp node : listNodes()) {
-      builder.add(node.getValue()).taggedWith(node.getRawTag());
+      builder.add(node.getRawTag(), node.getValue());
     }
     return builder.list();
   }
@@ -306,7 +306,7 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
   }
 
   public static Builder buildList(SymbolExp tag, SEXP value) {
-    return new Builder().add(value).taggedWith(tag);  
+    return new Builder().add(tag, value);
   }
 
   public static Builder buildList(SEXP value) {
@@ -320,9 +320,10 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
     public Builder() {
     }
 
-    public Builder add(SEXP s) {
+
+    public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
-        head = new PairListExp(s, null);
+        head = new PairListExp(tag, s, null);
         tail = head;
       } else {
         PairListExp next = new PairListExp(s, null);
@@ -332,10 +333,17 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
       return this;
     }
 
-    public Builder taggedWith(SEXP tag) {
-      tail.setTag(tag);
+    public Builder addAll(PairList list) {
+      for(PairListExp node : list.listNodes()) {
+        add(node.getRawTag(), node.getValue());
+      }
       return this;
     }
+
+    public Builder add(SEXP s) {
+      return add(NullExp.INSTANCE, s);
+    }
+
 
     public PairListExp list() {
       Preconditions.checkState(head != null, "ListExp cannot be empty");

@@ -102,6 +102,23 @@ public class ArgumentTest extends EvalTestCase {
   }
 
   @Test
+  public void argsArePromisedInCorrectEnv() {
+    eval( "f <- function(x) { x } ");
+    eval( "x <- 1 ");
+    assertThat( eval(" f(x) "), equalTo( c(1) ));
+  }
+
+  @Test
+  public void argsArePromisedInCorrectEnv2() {
+    eval( "f <- function(x, y = x) { y } ");
+    eval( "x <- 2 ");
+    eval( "y <- 3 ");
+    assertThat( eval(" f(y) "), equalTo( c(3) ));
+
+  }
+
+
+  @Test
   public void promiseEvaluatedInFunctionEnv() {
     eval( "f <- function( a = sqrt(y) ) { y<-4; a } ");
     assertThat( eval("f()"), equalTo( c(2) ));

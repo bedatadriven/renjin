@@ -34,6 +34,6 @@ public class AttributeTest extends EvalTestCase {
     eval( "p <- list(x=1,y=3) ");
 
     assertThat( eval("p$x"), equalTo(c(1)));
-
   }
+
 }

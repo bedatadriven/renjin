@@ -33,6 +33,8 @@ import java.util.List;
 
 public abstract class PrimitiveExp extends SEXP implements FunExp {
 
+  public static final String IMPLICIT_CLASS = "function";
+
   protected final FunctionTable.Entry functionEntry;
   protected List<PrimitiveMethod> methodOverloads;
 
@@ -42,6 +44,11 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
 
   public boolean isInternal() {
     return (functionEntry.eval % 100) / 10 != 0;
+  }
+
+  @Override
+  protected final String getImplicitClass() {
+    return IMPLICIT_CLASS;
   }
 
   /**
@@ -63,7 +70,7 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
       message.append("'" + functionEntry.name + "' is not yet implemented");
       if(functionEntry.functionClass != null) {
         message.append(" (").append(functionEntry.functionClass.getName())
-            .append(".").append(functionEntry.methodName);
+            .append(".").append(functionEntry.methodName).append(")");
       }
       throw new EvalException(message.toString());
     }

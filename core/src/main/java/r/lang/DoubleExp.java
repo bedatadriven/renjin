@@ -42,6 +42,10 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
 
   private double[] values;
 
+  private DoubleExp(PairList attributes) {
+    super(NullExp.INSTANCE, attributes);
+  }
+
   public DoubleExp(double... values) {
     this.values = Arrays.copyOf(values, values.length);
   }
@@ -76,6 +80,13 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
     return new DoubleExp(Double.parseDouble(text));
   }
 
+  @Override
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    DoubleExp clone = new DoubleExp(attributes);
+    clone.values = values;
+    return clone;
+  }
+
   public double get(int i) {
     return values[i];
   }
@@ -87,10 +98,6 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
   @Override
   public int length() {
     return values.length;
-  }
-
-  public static DoubleExp ofLength(int length) {
-    return new DoubleExp(new double[length]);
   }
 
   @Override
@@ -109,6 +116,11 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
     } else {
       return Logical.TRUE;
     }
+  }
+
+  @Override
+  protected String getImplicitClass() {
+    return "numeric";
   }
 
   @Override

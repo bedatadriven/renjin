@@ -28,10 +28,12 @@ public class SymbolExp extends SEXP {
                             
   public static final int TYPE_CODE = 1;
   public static final String  TYPE_NAME = "symbol";
+  public static final String IMPLICIT_CLASS = "name";
 
   public static final SymbolExp UNBOUND_VALUE = createUnbound();
   public static final SymbolExp MISSING_ARG = new SymbolExp();
   public static final SymbolExp NAMES = new SymbolExp("names");
+  public static final SymbolExp CLASS = new SymbolExp("class") ;
 
   private String printName;
   private SEXP value = UNBOUND_VALUE;
@@ -54,6 +56,11 @@ public class SymbolExp extends SEXP {
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  protected final String getImplicitClass() {
+    return IMPLICIT_CLASS;
   }
 
   public String getPrintName() {

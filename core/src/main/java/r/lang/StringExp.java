@@ -48,6 +48,21 @@ public class StringExp extends AtomicExp implements Iterable<String> {
     return values.length;
   }
 
+  public StringExp setLength(int newLength) {
+    if(newLength == values.length) {
+      return this;
+    }
+    String newValues[] = new String[newLength];
+    for(int i=0;i!=newValues.length;++i){
+      if(i < this.values.length) {
+        newValues[i] = values[i];
+      } else {
+        newValues[i] = StringExp.NA;
+      }
+    }
+    return new StringExp(values);
+  }
+
   public String get(int i) {
     return values[i];
   }

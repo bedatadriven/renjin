@@ -57,4 +57,12 @@ public class EvalResult {
   public boolean isVisible() {
     return visible;
   }
+
+  public static EvalResult visible(SEXP exp) {
+    return new EvalResult(exp);
+  }
+
+  public static EvalResult nonVisible(SEXP exp) {
+    return new EvalResult(exp, false);
+  }
 }

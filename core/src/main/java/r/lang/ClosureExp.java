@@ -49,8 +49,9 @@ import static r.lang.PairListExp.Predicates;
  */
 public class ClosureExp extends SEXP implements FunExp {
 
-  private static final String TYPE_NAME = "closure";
-  private static final int TYPE_CODE = 4;
+  public static final String TYPE_NAME = "closure";
+  public static final int TYPE_CODE = 4;
+  public static final String IMPLICIT_CLASS = "function";
 
   private EnvExp enclosingEnvironment;
   private SEXP body;
@@ -73,6 +74,11 @@ public class ClosureExp extends SEXP implements FunExp {
   }
 
   @Override
+  protected String getImplicitClass() {
+    return IMPLICIT_CLASS;
+  }
+
+  @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
@@ -81,7 +87,7 @@ public class ClosureExp extends SEXP implements FunExp {
   public EvalResult apply(LangExp call, PairList args, EnvExp rho) {
 
     EnvExp functionEnvironment = new EnvExp(enclosingEnvironment);
-    matchArgumentsInto(args, functionEnvironment);
+    matchArgumentsInto(args, enclosingEnvironment, functionEnvironment);
 
     return body.evaluate(functionEnvironment);
   }
@@ -150,7 +156,7 @@ public class ClosureExp extends SEXP implements FunExp {
    * @param actuals the actual arguments supplied to the list
    * @param innerEnv the environment in which to resolve the arguments
    */
-  private void matchArgumentsInto(PairList actuals, EnvExp innerEnv) {
+  private void matchArgumentsInto(PairList actuals, EnvExp outerEnv, EnvExp innerEnv) {
 
     List<PairListExp> unmatchedActuals = Lists.newArrayList(actuals.listNodes());
     List<PairListExp> unmatchedFormals = Lists.newArrayList(formals.listNodes());
@@ -164,7 +170,7 @@ public class ClosureExp extends SEXP implements FunExp {
 
         if(matches.size() == 1) {
           PairListExp match = first(matches);
-          innerEnv.setVariable(name, new PromiseExp( match.getValue(), innerEnv ));
+          innerEnv.setVariable(name, new PromiseExp( match.getValue(), outerEnv ));
           formalIt.remove();
           unmatchedActuals.remove(match);
 
@@ -183,7 +189,7 @@ public class ClosureExp extends SEXP implements FunExp {
 
         if(matches.size() == 1) {
           PairListExp match = first(matches);
-          innerEnv.setVariable(match.getTag(), new PromiseExp( actual.getValue(), innerEnv ));
+          innerEnv.setVariable(match.getTag(), new PromiseExp( actual.getValue(), outerEnv ));
           actualIt.remove();
           unmatchedFormals.remove(match);
 
@@ -203,12 +209,12 @@ public class ClosureExp extends SEXP implements FunExp {
       if(formal.getTag().getPrintName().equals("...")) {
         PairListExp.Builder builder = new PairListExp.Builder();
         while(actualIt.hasNext()) {
-          builder.add( new PromiseExp( actualIt.next().getValue(), innerEnv ) );
+          builder.add( new PromiseExp( actualIt.next().getValue(), outerEnv ) );
         }
         innerEnv.setVariable(formal.getTag(), builder.list());
 
       } else if( hasNextUnTagged(actualIt) ) {
-        innerEnv.setVariable(formal.getTag(), new PromiseExp( nextUnTagged(actualIt).getValue(), innerEnv ) );
+        innerEnv.setVariable(formal.getTag(), new PromiseExp( nextUnTagged(actualIt).getValue(), outerEnv ) );
 
       } else if( formal.getValue() == SymbolExp.MISSING_ARG ) {
         innerEnv.setVariable(formal.getTag(), SymbolExp.MISSING_ARG);

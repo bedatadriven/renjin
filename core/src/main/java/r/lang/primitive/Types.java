@@ -21,6 +21,8 @@
 
 package r.lang.primitive;
 
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.AlwaysNull;
@@ -273,8 +275,50 @@ public class Types {
     return exp.getTypeName();
   }
 
-  public static SEXP names(SEXP exp) {
+  public static SEXP getNames(SEXP exp) {
     return exp.getNames();
+  }
+
+  public static SEXP setNames(SEXP exp, StringExp names) {
+    return exp.setNames(names);
+  }
+
+  public static StringExp getClass(SEXP exp) {
+    return exp.getClassAttribute();
+  }
+
+  public static SEXP setClass(SEXP exp, StringExp classes) {
+    return exp.setClass(classes);
+  }
+
+  public static SEXP oldClass(SEXP exp) {
+    if(!exp.hasAttributes()) {
+      return NullExp.INSTANCE;
+    }
+    return exp.getAttribute(SymbolExp.CLASS);
+  }
+
+  public static boolean inherits(SEXP exp, StringExp what) {
+    StringExp classes = getClass(exp);
+    for(String whatClass : what) {
+      if(Iterables.contains(classes, whatClass)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static SEXP inherits(SEXP exp, StringExp what, boolean which) {
+    if(!which) {
+      return new LogicalExp( inherits(exp, what) );
+    }
+    StringExp classes = getClass(exp);
+    int result[] = new int[what.length()];
+
+    for(int i=0; i!=what.length();++i) {
+      result[i] = Iterables.indexOf(classes, Predicates.equalTo( what.get(i)) ) + 1;
+    }
+    return new IntExp( result );
   }
 
 }

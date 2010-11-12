@@ -62,10 +62,6 @@ public final class NullExp extends AtomicExp implements PairList {
     return new EvalResult(this);
   }
 
-  @Override
-  public SEXP getAttribute(String name) {
-    return NullExp.INSTANCE;
-  }
 
   @Override
   public SEXP subset(int from, int to) {

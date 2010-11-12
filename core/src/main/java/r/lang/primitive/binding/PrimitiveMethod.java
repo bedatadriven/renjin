@@ -131,6 +131,21 @@ public class PrimitiveMethod {
     }
   }
 
+  public EvalResult invokeWithContextAndWrap(EnvExp rho, Object[] formals) {
+    Object params[] = new Object[arguments.size()];
+    int formalIndex = 0;
+
+    for(int i=0;i!=arguments.size();i++) {
+      if(arguments.get(i).isEnvironment()) {
+        params[i] = rho;
+      } else {
+        params[i] = formals[formalIndex++];
+      }
+    }
+    return invokeAndWrap(params);
+  }
+
+
   public Class getReturnType() {
     return method.getReturnType();
   }
@@ -158,6 +173,7 @@ public class PrimitiveMethod {
   public List<Argument> getFormals() {
     return formals;
   }
+
 
 
   public class Argument {

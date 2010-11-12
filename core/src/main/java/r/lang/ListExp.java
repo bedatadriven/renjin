@@ -41,7 +41,7 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
 
 
   public ListExp(Iterable<SEXP> values,  PairList attributes) {
-    super(attributes);
+    super(NullExp.INSTANCE, attributes);
     this.values = new ArrayList<SEXP>();
     Iterables.addAll(this.values, values);
   }
@@ -51,10 +51,9 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
   }
 
   public ListExp(SEXP[] values, PairList attributes) {
-    super(attributes);
+    super(NullExp.INSTANCE, attributes);
     this.values = new ArrayList<SEXP>();
     Collections.addAll(this.values, values);
-
   }
 
   public ListExp(SEXP... values) {
@@ -160,6 +159,8 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
       return this;
     }
 
+  
+
     public ListExp build() {
       if(haveNames) {
         return new ListExp(values,  PairListExp.buildList(SymbolExp.NAMES, new StringExp(names)).list());
@@ -167,6 +168,7 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
         return new ListExp(values);
       }
     }
+
   }
 
 

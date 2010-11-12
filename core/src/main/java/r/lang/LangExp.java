@@ -28,8 +28,8 @@ public class LangExp extends PairListExp {
   public static final int TYPE_CODE = 6;
   public static final String TYPE_NAME = "language";
 
-  public LangExp(SEXP value, PairList nextNode) {
-    super(value, nextNode);
+  public LangExp(SEXP function, PairList arguments) {
+    super(function, arguments);
   }
 
   @Override

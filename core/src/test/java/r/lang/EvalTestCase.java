@@ -36,7 +36,7 @@ import static org.junit.Assert.assertThat;
 public abstract class EvalTestCase {
 
   protected GlobalContext context;
-  public static final NullExp NULL = NullExp.INSTANCE;
+  public static final SEXP NULL = NullExp.INSTANCE;
 
   @Before
   public void setUp() {

@@ -21,25 +21,38 @@
 
 package r.lang;
 
-/**
- * Marker interface for R types defined as "atomic"
- * 
- */
-public abstract class AtomicExp extends SEXP {
+import org.junit.Before;
+import org.junit.Test;
 
-  protected AtomicExp() {
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+public class S3Test extends EvalTestCase {
+
+  @Before
+  public void declareWrappers() {
+    eval( "inherits <- function(x, what, which=FALSE) { .Internal(inherits(x,what,which)) } ");
   }
 
-  protected AtomicExp(SEXP tag, PairList attributes) {
-    super(tag, attributes);
+  @Test
+  public void implicitClasses() {
+
+    eval(  "x <- 10" );
+    assertThat( eval( "class(x)" ), equalTo( c( "numeric" )));
+    assertThat( eval( "oldClass(x) "), equalTo( NULL ));
+    assertThat( eval( "inherits(x, \"a\") "), equalTo( c(false) ));
   }
 
-  public abstract Class getElementClass();
 
+  @Test
+  public void declaredClasses() {
 
-  public static boolean isAtomic(Class<? extends SEXP> expClass) {
-    return AtomicExp.class.isAssignableFrom(expClass);
+    eval( "x<-1 ");
+    eval( "class(x) <- c(\"a\", \"b\") ");
+    assertThat( eval( "inherits(x, \"a\")"), equalTo( c(true) ));
+    assertThat( eval( "inherits(x, \"a\", TRUE)"), equalTo( c_i(1) ));
+    assertThat( eval( "inherits(x, c(\"a\", \"b\", \"c\"), TRUE) "), equalTo( c_i(1, 2, 0) ));
+
   }
-
 
 }

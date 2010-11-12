@@ -21,8 +21,6 @@
 
 package r.lang;
 
-import r.lang.exception.EvalException;
-
 public class CharExp extends AtomicExp {
 
   private String value;
@@ -50,11 +48,6 @@ public class CharExp extends AtomicExp {
 
   public String getValue() {
     return value;
-  }
-
-  @Override
-  public SEXP getAttribute(String name) {
-    throw new EvalException("cannot have attributes on a CHARSXP");
   }
 
   @Override

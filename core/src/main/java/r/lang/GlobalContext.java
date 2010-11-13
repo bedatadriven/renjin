@@ -54,7 +54,7 @@ public class GlobalContext {
      * and are inserted between the global and base environments.
      */
 
-    baseEnvironment = new BaseEnvExp(this, symbolTable);
+    baseEnvironment = new BaseEnvExp(this);
     globalEnvironment = new EnvExp(baseEnvironment);
   }
 

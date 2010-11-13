@@ -23,10 +23,7 @@ package r.compiler;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.*;
-import r.lang.EnvExp;
-import r.lang.ExpExp;
-import r.lang.GlobalContext;
-import r.lang.SymbolTable;
+import r.lang.*;
 import r.lang.exception.EvalException;
 import r.parser.RParser;
 
@@ -217,8 +214,8 @@ public class Compiler {
     sourceDir.mkdirs();
 
     SymbolTable symbolTable = globalContext.getSymbolTable();
-    for(String symbolName : targetEnvironment.getSymbolNames()) {
-      source.addSymbol(symbolName, targetEnvironment.findVariable(symbolTable.install(symbolName)));
+    for(SymbolExp symbol : targetEnvironment.getSymbolNames()) {
+      source.addSymbol(symbol.getPrintName(), targetEnvironment.findVariable(symbol));
     }
 
     File sourceFile = new File(sourceDir, className() + ".java");

@@ -21,25 +21,30 @@
 
 package r.lang;
 
-/**
- * Marker interface for R types defined as "atomic"
- * 
- */
-public abstract class AtomicExp extends SEXP {
+public class EmptyEnv extends EnvExp {
 
-  protected AtomicExp() {
+  public static final EmptyEnv INSTANCE = new EmptyEnv();
+
+  private EmptyEnv() {
   }
 
-  protected AtomicExp(PairList attributes) {
-    super(attributes);
+  @Override
+  public SEXP findVariable(SymbolExp symbol) {
+    return SymbolExp.UNBOUND_VALUE;
   }
 
-  public abstract Class getElementClass();
-
-
-  public static boolean isAtomic(Class<? extends SEXP> expClass) {
-    return AtomicExp.class.isAssignableFrom(expClass);
+  @Override
+  public SEXP getVariable(SymbolExp symbol) {
+    return SymbolExp.UNBOUND_VALUE;
   }
 
+  @Override
+  public EnvExp getParent() {
+    throw new UnsupportedOperationException("The empty environment does not have a parent.");
+  }
 
+  @Override
+  public void setParent(EnvExp parent) {
+    throw new UnsupportedOperationException("The empty environment does not have a parent.");
+  }
 }

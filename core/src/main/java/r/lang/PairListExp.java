@@ -61,7 +61,7 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
     super(tag, attributes);
     this.value = value;
     if(nextNode instanceof PairListExp) {
-      nextNode = nextNode;
+      this.nextNode = (PairListExp) nextNode;
     }
   }
 

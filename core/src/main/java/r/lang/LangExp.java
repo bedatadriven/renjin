@@ -32,6 +32,10 @@ public class LangExp extends PairListExp {
     super(function, arguments);
   }
 
+  public LangExp(SEXP function, PairList arguments, PairList attributes, SEXP tag) {
+    super(tag, function, attributes, arguments);
+  }
+
   @Override
   public String getTypeName() {
     return TYPE_NAME;

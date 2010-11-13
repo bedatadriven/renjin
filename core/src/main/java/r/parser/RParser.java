@@ -27,6 +27,8 @@ import r.lang.exception.ParseException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import static r.util.CDefines.*;
 
@@ -77,7 +79,7 @@ public class RParser {
   }
 
   private ExpExp parseAll() throws IOException {
-    ExpExp exprList = new ExpExp();
+    List<SEXP> exprList = new ArrayList();
 
     while (parse()) {
       StatusResult status = getResultStatus();
@@ -91,10 +93,10 @@ public class RParser {
         case ERROR:
           throw new ParseException(getResultStatus().toString());
         case EOF:
-          return exprList;
+          return new ExpExp( exprList );
       }
     }
-    return exprList;
+    return new ExpExp( exprList );
   }
 
   public enum StatusResult {

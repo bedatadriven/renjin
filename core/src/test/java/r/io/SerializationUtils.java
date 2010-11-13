@@ -19,27 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.io;
 
-/**
- * Marker interface for R types defined as "atomic"
- * 
- */
-public abstract class AtomicExp extends SEXP {
+public class SerializationUtils {
 
-  protected AtomicExp() {
-  }
-
-  protected AtomicExp(PairList attributes) {
-    super(attributes);
-  }
-
-  public abstract Class getElementClass();
-
-
-  public static boolean isAtomic(Class<? extends SEXP> expClass) {
-    return AtomicExp.class.isAssignableFrom(expClass);
-  }
-
-
+  
 }

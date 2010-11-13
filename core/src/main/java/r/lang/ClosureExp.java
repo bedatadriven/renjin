@@ -57,10 +57,15 @@ public class ClosureExp extends SEXP implements FunExp {
   private SEXP body;
   private PairList formals;
 
-  public ClosureExp(EnvExp environment, PairList formals, SEXP body) {
-    this.enclosingEnvironment = environment;
+  public ClosureExp(EnvExp enclosingEnvironment, PairList formals, SEXP body, PairList attributes) {
+    super(attributes);
+    this.enclosingEnvironment = enclosingEnvironment;
     this.body = body;
     this.formals = formals;
+  }
+
+  public ClosureExp(EnvExp environment, PairList formals, SEXP body) {
+    this(environment, formals, body, NullExp.INSTANCE);
   }
 
   @Override

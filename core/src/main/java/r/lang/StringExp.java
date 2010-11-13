@@ -43,6 +43,11 @@ public class StringExp extends AtomicExp implements Iterable<String> {
     this.values = values.toArray(new String[values.size()]);
   }
 
+  public StringExp(String[] values, PairList attributes) {
+    super(attributes);
+    this.values = Arrays.copyOf(values, values.length, String[].class);
+  }
+
   @Override
   public int length() {
     return values.length;

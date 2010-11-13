@@ -41,9 +41,15 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical> {
     }
   }
 
-  public LogicalExp(int... values) {
-    this.values = Arrays.copyOf(values, values.length);
+  public LogicalExp(int[] values, PairList attributes) {
+     super(attributes);
+     this.values = Arrays.copyOf(values, values.length);
   }
+
+  public LogicalExp(int... values) {
+    this(values, NullExp.INSTANCE);
+  }
+
 
   public LogicalExp(Logical... values) {
     this.values = new int[values.length];
@@ -51,6 +57,8 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical> {
       this.values[i] = values[i].getInternalValue();
     }
   }
+
+
 
   @Override
   public int getTypeCode() {

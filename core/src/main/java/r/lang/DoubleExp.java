@@ -43,7 +43,7 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
   private double[] values;
 
   private DoubleExp(PairList attributes) {
-    super(NullExp.INSTANCE, attributes);
+    super(attributes);
   }
 
   public DoubleExp(double... values) {

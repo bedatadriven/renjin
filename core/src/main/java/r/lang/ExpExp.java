@@ -21,7 +21,10 @@
 
 package r.lang;
 
-import java.util.ArrayList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
+
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -41,23 +44,27 @@ public class ExpExp extends SEXP implements RecursiveExp, Iterable<SEXP> {
   public static final String TYPE_NAME = "expression";
   public static final int TYPE_CODE = 20;
 
-  private ArrayList<SEXP> list;
+  private SEXP[] values;
 
-  public ExpExp() {
-    list = new ArrayList<SEXP>();
+  public ExpExp(SEXP[] expressions, PairList attributes) {
+    super(attributes);
+    this.values = Arrays.copyOf(expressions, expressions.length);
   }
 
-  public ExpExp(Iterable<? extends SEXP> expressions) {
-    list = new ArrayList<SEXP>();
-    for (SEXP sexp : expressions) {
-      list.add(sexp);
-    }
+
+  public ExpExp(Iterable<? extends SEXP> expressions, PairList attributes) {
+    super(attributes);
+    this.values = Iterables.toArray(expressions, SEXP.class);
+  }
+
+  public ExpExp(Iterable<? extends SEXP> expressions){
+    this(expressions, NullExp.INSTANCE);
   }
 
   @Override
   public EvalResult evaluate(EnvExp rho) {
     EvalResult result = EvalResult.NON_PRINTING_NULL;
-    for(SEXP sexp : list) {
+    for(SEXP sexp : values) {
       result = sexp.evaluate(rho);
     }
     return result;
@@ -75,22 +82,18 @@ public class ExpExp extends SEXP implements RecursiveExp, Iterable<SEXP> {
 
   @Override
   public int length() {
-    return list.size();
-  }
-
-  public void add(SEXP result) {
-    list.add(result);
+    return values.length;
   }
 
   public SEXP get(int index) {
-    return list.get(index);
+    return values[index];
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("[");
-    for (SEXP s : list) {
+    for (SEXP s : values) {
       sb.append("\t").append(s).append("\n");
     }
     sb.append("]");
@@ -104,6 +107,6 @@ public class ExpExp extends SEXP implements RecursiveExp, Iterable<SEXP> {
 
   @Override
   public Iterator<SEXP> iterator() {
-    return list.iterator();
+    return Iterators.forArray(values);
   }
 }

@@ -22,10 +22,7 @@
 package r.io;
 
 import org.junit.Test;
-import r.lang.EvalTestCase;
-import r.lang.GlobalContext;
-import r.lang.PairListExp;
-import r.lang.SEXP;
+import r.lang.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,8 +43,6 @@ public class DatafileReaderTest extends EvalTestCase {
    */
   @Test
   public void loadVerySimple() throws IOException {
-    GlobalContext context = new GlobalContext();
-
     InputStream in = getClass().getResourceAsStream("/simple.RData");
     GZIPInputStream gzipIn = new GZIPInputStream(in);
     DatafileReader reader = new DatafileReader(context.getGlobalEnvironment(), gzipIn);
@@ -58,6 +53,27 @@ public class DatafileReaderTest extends EvalTestCase {
     PairListExp pairList = (PairListExp) exp;
     assertThat(pairList.length(), equalTo(1));
     assertThat(pairList.getValue(), equalTo( c(1,2,3,4) ));
+  }
+
+  @Test
+  public void loadComplete() throws IOException {
+    InputStream in = getClass().getResourceAsStream("/complete.RData");
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    DatafileReader reader = new DatafileReader(context.getGlobalEnvironment(), gzipIn);
+
+    SEXP exp = reader.readFile();
+    assertThat(exp, instanceOf(PairListExp.class));
+
+    PairListExp pairList = (PairListExp) exp;
+    assertThat(pairList.findByTag(symbol("a")), equalTo( eval("1:99") ));
+    assertThat(pairList.findByTag(symbol("b")), equalTo( eval("sqrt(1:25) ") ));
+    assertThat(pairList.findByTag(symbol("c")), equalTo( c(Logical.NA )));
+    assertThat(pairList.findByTag(symbol("d")), equalTo( list(Logical.NA, DoubleExp.NA, IntExp.NA, NULL )));
+
+  }
+
+  private SymbolExp symbol(String name) {
+    return context.symbol(name);
   }
 
 }

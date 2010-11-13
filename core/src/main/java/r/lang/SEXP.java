@@ -37,6 +37,10 @@ public abstract class SEXP {
     this.attributes = attributes;
   }
 
+  protected SEXP(PairList attributes) {
+    this.attributes = attributes;
+  }
+
   protected SEXP() {
     this(NullExp.INSTANCE, NullExp.INSTANCE);
   }

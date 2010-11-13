@@ -25,14 +25,14 @@ package r.lang;
 public class BaseEnvExp extends EnvExp {
 
 
-  public BaseEnvExp(GlobalContext context, SymbolTable symbolTable) {
+  public BaseEnvExp(GlobalContext context) {
     super(context);
-    SymbolTable symbolTable1 = symbolTable;
+    setParent(EmptyEnv.INSTANCE);
   }
 
   @Override
   public SEXP findVariable(SymbolExp symbol) {
-    SEXP value = super.findVariable(symbol);
+    SEXP value = frame.getVariable(symbol);
     if(value != SymbolExp.UNBOUND_VALUE) {
       return value;
     } else {

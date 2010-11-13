@@ -27,6 +27,8 @@ import r.lang.exception.EvalException;
 import r.parser.ParseUtil;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatafileReader {
 
@@ -99,10 +101,12 @@ public class DatafileReader {
   private Version writerVersion;
   private Version releaseVersion;
 
+  private List<SEXP> referenceTable;
 
   public DatafileReader(EnvExp rho, InputStream conn) {
     this.rho = rho;
     this.conn = conn;
+    this.referenceTable = new ArrayList<SEXP>();
   }
 
   public SEXP readFile() throws IOException {
@@ -160,7 +164,7 @@ public class DatafileReader {
       case NILVALUE_SXP:
         return NullExp.INSTANCE;
       case EMPTYENV_SXP:
-        return EnvExp.EMPTY;
+        return EmptyEnv.INSTANCE;
       case BASEENV_SXP:
         return rho.getGlobalContext().getBaseEnvironment();
       case GLOBALENV_SXP:
@@ -213,8 +217,9 @@ public class DatafileReader {
       case STRSXP:
         return readStringExp(flags);
       case VECSXP:
-      case EXPRSXP:
         return readListExp(flags);
+      case EXPRSXP:
+        return readExpExp(flags);
       case BCODESXP:
         throw new IOException("Byte code expressions are not supported.");
       case CLASSREFSXP:
@@ -230,16 +235,27 @@ public class DatafileReader {
     }
   }
 
+
+
   private SEXP readPromise(Flags flags) throws IOException {
     throw new IOException("readPromise");
   }
 
   private SEXP readClosure(Flags flags) throws IOException {
-    throw new IOException("closure n y i ");
+    PairList attributes = readAttributes(flags);
+    EnvExp env = (EnvExp) readTag(flags);
+    PairList formals = (PairList) readExp();
+    SEXP body =  readExp();
+
+    return new ClosureExp(env, formals, body, attributes);
   }
 
   private SEXP readLangExp(Flags flags) throws IOException {
-    throw new IOException("readLngExp");
+    PairList attributes = readAttributes(flags);
+    SEXP tag = readTag(flags);
+    SEXP function = readExp();
+    PairList arguments = (PairList) readExp();
+    return new LangExp(function, arguments, attributes, tag);
   }
 
   private SEXP readDotExp(Flags flags) throws IOException {
@@ -268,7 +284,16 @@ public class DatafileReader {
   }
 
   private SEXP readReference(Flags flags) throws IOException {
-    throw new IOException("read ref");
+    int i = readReferenceIndex(flags);
+    return referenceTable.get(i);
+  }
+
+  private int readReferenceIndex(Flags flags) throws IOException {
+    int i = flags.unpackRefIndex();
+    if (i == 0)
+      return in.readInt() - 1;
+    else
+      return i - 1;
   }
 
   private SEXP readSymbol() throws IOException {
@@ -278,8 +303,8 @@ public class DatafileReader {
     return symbol;
   }
 
-  private void addReadRef(SymbolExp symbol) {
-    //??
+  private void addReadRef(SEXP value) {
+    referenceTable.add(value);
   }
 
   private SEXP readNamespace() throws IOException {
@@ -287,7 +312,20 @@ public class DatafileReader {
   }
 
   private SEXP readEnv() throws IOException {
-    throw new IOException("not yet impl");
+    int locked = in.readInt();
+
+    EnvExp env = new EnvExp();
+    addReadRef(env);
+                                            
+    SEXP parent = readExp();
+    SEXP frame = readExp();
+    SEXP hashtab = readExp();
+    SEXP attributes = readExp();
+
+    env.setParent( parent == NullExp.INSTANCE ? EmptyEnv.INSTANCE : (EmptyEnv)parent);
+
+    return env;
+
   }
 
   private SEXP readS4XP() throws IOException {
@@ -295,12 +333,29 @@ public class DatafileReader {
   }
 
   private SEXP readListExp(Flags flags) throws IOException {
-    throw new IOException("list exp not yet impl");
+    return new ListExp(readExpArray(), readAttributes(flags));
   }
 
+  private SEXP readExpExp(Flags flags) throws IOException {
+    return new ExpExp(readExpArray(), readAttributes(flags));
+  }
+
+  private SEXP[] readExpArray() throws IOException {
+    int length = in.readInt();
+    SEXP values[] = new SEXP[length];
+    for(int i=0;i!=length;++i) {
+      values[i] = readExp();
+    }
+    return values;
+  }
 
   private SEXP readStringExp(Flags flags) throws IOException {
-    throw new IOException("string not yet impl");
+    int length = in.readInt();
+    String[] values = new String[length];
+    for(int i=0;i!=length;++i) {
+      values[i] = ((CharExp)readExp()).getValue();
+    }
+    return new StringExp(values, readAttributes(flags));
   }
 
   private SEXP readComplexExp(Flags flags) throws IOException {
@@ -317,12 +372,22 @@ public class DatafileReader {
   }
 
   private SEXP readIntegerExp(Flags flags) throws IOException {
-    throw new IOException("readInt");
+    int length = in.readInt();
+    int[] values = new int[length];
+    for(int i=0;i!=length;++i) {
+      values[i] = in.readInt();
+    }
+    return new IntExp(values, readAttributes(flags));
   }
 
 
   private SEXP readLogical(Flags flags) throws IOException {
-    throw new IOException("readLogical");
+    int length = in.readInt();
+    int values[] = new int[length];
+    for(int i=0;i!=length;++i) {
+      values[i] = in.readInt();
+    }
+    return new LogicalExp(values, readAttributes(flags));
   }
 
   private SEXP readCharExp(Flags flags) throws IOException {
@@ -341,6 +406,7 @@ public class DatafileReader {
       }
     }
   }
+
 
   private SEXP readPrimitive(Flags flags) throws IOException {
     throw new IOException("readPrim ");
@@ -562,8 +628,10 @@ public class DatafileReader {
     public final boolean isObject;
     public final boolean hasAttributes;
     public final boolean hasTag;
+    private final int flags;
 
     public Flags(int flags) {
+      this.flags = flags;
       type = decodeType(flags);
       levels = decodeLevels(flags);
       isObject = (flags & IS_OBJECT_BIT_MASK) != 0;
@@ -586,6 +654,11 @@ public class DatafileReader {
     public boolean isLatin1Encoded() {
       return (levels & LATIN1_MASK) != 0;
     }
+
+    public int unpackRefIndex() {
+      return   ((flags) >> 8);
+    }
+
   }
 
 

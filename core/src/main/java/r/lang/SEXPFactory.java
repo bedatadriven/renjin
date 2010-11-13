@@ -42,6 +42,9 @@ public class SEXPFactory {
     } else if(result instanceof Boolean) {
       return new LogicalExp( (Boolean) result );
 
+    } else if(result instanceof Logical) {
+      return new LogicalExp( (Logical) result );
+
     } else if(result instanceof Integer) {
       return new IntExp( (Integer) result);
 

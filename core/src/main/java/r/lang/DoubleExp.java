@@ -50,6 +50,11 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
     this.values = Arrays.copyOf(values, values.length);
   }
 
+  public DoubleExp(double[] values, PairList attributes) {
+    this(attributes);
+    this.values = Arrays.copyOf(values, values.length);
+  }
+
   public DoubleExp(Collection<Double> values) {
     this.values = new double[values.size()];
     int i = 0;

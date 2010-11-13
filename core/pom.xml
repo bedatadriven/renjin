@@ -55,6 +55,12 @@
       <version>2.1</version>
     </dependency>
 
+    <!-- XDR format -->
+    <dependency>
+      <groupId>org.freehep</groupId>
+      <artifactId>freehep-xdr</artifactId>
+      <version>2.0.4</version>
+    </dependency>
 
     <!-- Provides command line argument parsing -->
     <dependency>
@@ -79,6 +85,14 @@
     </dependency>
   </dependencies>
 
+  <repositories>
+    <repository>
+      <name>FreeHEP</name>
+      <id>FreeHEP</id>
+      <url>http://java.freehep.org/maven2</url>
+    </repository>
+  </repositories>
+
   <build>
     <plugins>
       <plugin>
@@ -87,30 +101,30 @@
         <version>1.2</version>
         <!--<executions>-->
 
-          <!--&lt;!&ndash; Compile the base package &ndash;&gt;-->
-          <!--<execution>-->
-            <!--<id>compile-base-package</id>-->
-            <!--<goals>-->
-              <!--<goal>exec</goal>-->
-            <!--</goals>-->
-            <!--<phase>process-classes</phase>-->
-            <!--<configuration>-->
-              <!--<executable>java</executable>-->
-              <!--<arguments>-->
-                <!--<argument>-classpath</argument>-->
-                <!--<classpath/>-->
-                <!--<argument>r.compiler.Compiler</argument>-->
-                <!--<argument>-package</argument>-->
-                <!--<argument>r.base</argument>-->
-                <!--<argument>-sourcepath</argument>-->
-                <!--<argument>${project.basedir}/src/main/r/base</argument>-->
-                <!--<argument>-d</argument>-->
-                <!--<argument>${build.outputDirectory}</argument>-->
-                <!--<argument>-s</argument>-->
-                <!--<argument>${build.directory}/generated-sources/R</argument>-->
-              <!--</arguments>-->
-            <!--</configuration>-->
-          <!--</execution>-->
+        <!--&lt;!&ndash; Compile the base package &ndash;&gt;-->
+        <!--<execution>-->
+        <!--<id>compile-base-package</id>-->
+        <!--<goals>-->
+        <!--<goal>exec</goal>-->
+        <!--</goals>-->
+        <!--<phase>process-classes</phase>-->
+        <!--<configuration>-->
+        <!--<executable>java</executable>-->
+        <!--<arguments>-->
+        <!--<argument>-classpath</argument>-->
+        <!--<classpath/>-->
+        <!--<argument>r.compiler.Compiler</argument>-->
+        <!--<argument>-package</argument>-->
+        <!--<argument>r.base</argument>-->
+        <!--<argument>-sourcepath</argument>-->
+        <!--<argument>${project.basedir}/src/main/r/base</argument>-->
+        <!--<argument>-d</argument>-->
+        <!--<argument>${build.outputDirectory}</argument>-->
+        <!--<argument>-s</argument>-->
+        <!--<argument>${build.directory}/generated-sources/R</argument>-->
+        <!--</arguments>-->
+        <!--</configuration>-->
+        <!--</execution>-->
         <!--</executions>-->
       </plugin>
     </plugins>

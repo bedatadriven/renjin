@@ -50,10 +50,14 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
     this(values, NullExp.INSTANCE);
   }
 
-  public ListExp(SEXP[] values, PairList attributes) {
-    super(NullExp.INSTANCE, attributes);
+  public ListExp(SEXP[] values, SEXP tag, PairList attributes) {
+    super(tag, attributes);
     this.values = new ArrayList<SEXP>();
     Collections.addAll(this.values, values);
+  }
+
+  public ListExp(SEXP[] values, PairList attributes) {
+    this(values, NullExp.INSTANCE, attributes);
   }
 
   public ListExp(SEXP... values) {

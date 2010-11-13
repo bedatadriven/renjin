@@ -57,6 +57,8 @@ import static r.util.CDefines.*;
  */
 public class EnvExp extends SEXP implements RecursiveExp {
 
+  public static final EnvExp EMPTY = new EnvExp();
+
   public static final int TYPE_CODE = 4;
   public static final String TYPE_NAME = "environment";
 
@@ -65,6 +67,9 @@ public class EnvExp extends SEXP implements RecursiveExp {
   private Map<String, SEXP> frame = new HashMap<String, SEXP>();
 
 
+  private EnvExp() {
+
+  }
 
   public EnvExp(EnvExp enclosing) {
     Preconditions.checkNotNull(enclosing);

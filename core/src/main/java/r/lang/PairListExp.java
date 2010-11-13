@@ -57,6 +57,13 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
    */
   protected PairListExp nextNode = null;
 
+  public PairListExp(SEXP tag, SEXP value, PairList attributes, PairList nextNode) {
+    super(tag, attributes);
+    this.value = value;
+    if(nextNode instanceof PairListExp) {
+      nextNode = nextNode;
+    }
+  }
 
   public PairListExp(SEXP tag, SEXP value, PairList nextNode) {
     super(tag, NullExp.INSTANCE);
@@ -319,8 +326,7 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
 
     public Builder() {
     }
-
-
+    
     public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
         head = new PairListExp(tag, s, null);

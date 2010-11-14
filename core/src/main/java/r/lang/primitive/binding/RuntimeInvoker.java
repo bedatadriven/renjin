@@ -413,7 +413,7 @@ public class RuntimeInvoker {
 
     @Override
     public SymbolExp convert(EnvExp rho, StringExp source, PrimitiveMethod.Argument formal) {
-      return rho.getGlobalContext().getSymbolTable().install(source.get(0));
+      return new SymbolExp(source.get(0));
     }
   }
 

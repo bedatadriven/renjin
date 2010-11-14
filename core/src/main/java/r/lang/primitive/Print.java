@@ -25,6 +25,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.lang.*;
+import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.Environment;
 import r.parser.ParseUtil;
 
@@ -36,7 +37,18 @@ public class Print {
   private Print() {}
 
   public static SEXP print(@Environment EnvExp rho, SEXP value) {
-    print(rho.getGlobalContext().getPrintStream(), value, 80);
+    SEXP stdout = rho.findVariable(SymbolExp.STDOUT);
+    if( stdout == SymbolExp.UNBOUND_VALUE ) {
+      throw new EvalException("no stdout found in the current environment");
+    }
+    if(! (stdout instanceof ExternalExp) ) {
+      throw new EvalException("stdout is not a PrintStream");
+    }
+    ExternalExp<PrintStream> ptr = (ExternalExp<PrintStream>)stdout;
+    if(! (ptr.getValue() instanceof PrintStream)) {
+      throw new EvalException("stdout is not a PrintStream"); 
+    }
+    print(ptr.getValue(), value, 80);
     return value;
   }
 

@@ -61,18 +61,18 @@ import static r.util.CDefines.*;
  */
 public class RParser {
 
-  public static ExpExp parseSource(GlobalContext context, Reader reader) throws IOException {
+  public static ExpExp parseSource(Reader reader) throws IOException {
     ParseState parseState = new ParseState();
     ParseOptions parseOptions = ParseOptions.defaults();
-    Lexer lexer = new RLexer(context, parseOptions, parseState, reader);
-    RParser parser = new RParser(parseOptions, parseState, context, lexer);
+    Lexer lexer = new RLexer(parseOptions, parseState, reader);
+    RParser parser = new RParser(parseOptions, parseState, lexer);
 
     return parser.parseAll();
   }
 
-  public static ExpExp parseSource(GlobalContext globalContext, String source) {
+  public static ExpExp parseSource(String source) {
     try {
-      return parseSource(globalContext, new StringReader(source));
+      return parseSource(new StringReader(source));
     } catch (IOException e) {
       throw new RuntimeException(e); // shouldn't happen when reading from a string.
     }
@@ -108,7 +108,6 @@ public class RParser {
   }
 
   private ParseState state;
-  private GlobalContext context;
   private ParseOptions options;
 
   /**
@@ -413,8 +412,7 @@ public class RParser {
    *
    * @param yylexer The scanner that will supply tokens to the parser.
    */
-  public RParser(ParseOptions options, ParseState state, GlobalContext context, Lexer yylexer) {
-    this.context = context;
+  public RParser(ParseOptions options, ParseState state, Lexer yylexer) {
     this.yylexer = yylexer;
     this.options = options;
     this.state = state;
@@ -2583,14 +2581,14 @@ public class RParser {
     SEXP ans;
     UNPROTECT_PTR(R_NilValue);
     if (options.isGenerateCode())
-      PROTECT(ans = TagArg(R_MissingArg, context.getSymbolTable().install("NULL"), lloc));
+      PROTECT(ans = TagArg(R_MissingArg, new SymbolExp("NULL"), lloc));
     else
       PROTECT(ans = R_NilValue);
     return ans;
   }
 
   private SEXP xxnullsub1(SEXP expr, Location lloc) {
-    SEXP ans = context.getSymbolTable().install("NULL");
+    SEXP ans = new SymbolExp("NULL");
     UNPROTECT_PTR(R_NilValue);
     if (options.isGenerateCode())
       PROTECT(ans = TagArg(expr, ans, lloc));
@@ -2711,7 +2709,7 @@ public class RParser {
     SEXP ans, sav_expr = expr;
     if (options.isGenerateCode()) {
       if (isString(expr))
-        expr = context.getSymbolTable().install(CHAR(STRING_ELT(expr, 0)));
+        expr = new SymbolExp(CHAR(STRING_ELT(expr, 0)));
       PROTECT(expr);
       if (length(CDR(args)) == 1 && CADR(args) == R_MissingArg && TAG(CDR(args)) == R_NilValue)
         ans = lang1(expr);
@@ -2871,7 +2869,7 @@ public class RParser {
   private SEXP TagArg(SEXP arg, SEXP tag, Location lloc) {
 
     if(tag instanceof StringExp) {
-      tag = context.getSymbolTable().install(translateChar(STRING_ELT(tag, 0)));
+      tag = new SymbolExp(translateChar(STRING_ELT(tag, 0)));
     }
 
     if(tag instanceof SymbolExp || tag instanceof NullExp) {

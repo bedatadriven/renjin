@@ -26,9 +26,9 @@ package r.lang;
  */
 public final class ExternalExp<T> extends SEXP {
 
-  private final Object value;
+  private final T value;
 
-  public ExternalExp(Object value, SEXP tag, PairList attributes) {
+  public ExternalExp(T value, SEXP tag, PairList attributes) {
     super(tag, attributes);
     this.value = value;
   }
@@ -41,6 +41,10 @@ public final class ExternalExp<T> extends SEXP {
   @Override
   public String getTypeName() {
     return "external";
+  }
+
+  public T getValue() {
+    return value;
   }
 
   @Override

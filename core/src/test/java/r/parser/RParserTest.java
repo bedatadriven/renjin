@@ -36,11 +36,9 @@ import static org.junit.Assert.assertThat;
 import static r.ExpMatchers.*;
 
 public class RParserTest {
-  private GlobalContext globalContext;
 
   @Before
   public void setUp() {
-    globalContext = new GlobalContext();
   }
 
   @Test
@@ -193,17 +191,17 @@ public class RParserTest {
   }
 
   private ExpExp parseAll(String source) throws IOException {
-    return RParser.parseSource(globalContext, new StringReader(source));
+    return RParser.parseSource(new StringReader(source));
   }
 
   private SEXP parseSingle(String source) throws IOException {
-    ExpExp exp = RParser.parseSource(globalContext, source);
+    ExpExp exp = RParser.parseSource(source);
     return exp.get(0);
   }
 
   private SEXP parseResource(String source) throws IOException {
     InputStream stream = getClass().getResourceAsStream(source);
-    return RParser.parseSource(globalContext, new InputStreamReader(stream));
+    return RParser.parseSource(new InputStreamReader(stream));
   }
 
 }

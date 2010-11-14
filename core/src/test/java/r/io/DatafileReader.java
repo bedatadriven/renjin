@@ -166,9 +166,9 @@ public class DatafileReader {
       case EMPTYENV_SXP:
         return EmptyEnv.INSTANCE;
       case BASEENV_SXP:
-        return rho.getGlobalContext().getBaseEnvironment();
+        return rho.getBaseEnvironment();
       case GLOBALENV_SXP:
-        return rho.getGlobalContext().getGlobalEnvironment();
+        return rho.getGlobalEnvironment();
       case UNBOUNDVALUE_SXP:
         return SymbolExp.UNBOUND_VALUE;
       case MISSINGARG_SXP:
@@ -298,7 +298,7 @@ public class DatafileReader {
 
   private SEXP readSymbol() throws IOException {
     CharExp printName = (CharExp) readExp();
-    SymbolExp symbol = rho.getGlobalContext().symbol(printName.getValue());
+    SymbolExp symbol = new SymbolExp(printName.getValue());
     addReadRef(symbol);
     return symbol;
   }
@@ -314,7 +314,7 @@ public class DatafileReader {
   private SEXP readEnv() throws IOException {
     int locked = in.readInt();
 
-    EnvExp env = new EnvExp();
+    EnvExp env = EnvExp.createChildEnvironment(rho); // temporarily assign parent to rho
     addReadRef(env);
                                             
     SEXP parent = readExp();

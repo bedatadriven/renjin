@@ -21,8 +21,8 @@
 
 package r.lang;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.UnmodifiableIterator;
+import r.lang.primitive.BaseFrame;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,7 +40,7 @@ import java.util.Set;
  * </ul>
  *
  * <p>
- * When R looks up the value for a symbol the frame is examined and if a
+ * When R looks up the vbalue for a symbol the frame is examined and if a
  * matching symbol is found its value will be returned. If not, the enclosing environment
  *  is then accessed and the process repeated.
  * Environments form a tree structure in which the enclosures play the role of parents.
@@ -54,17 +54,49 @@ import java.util.Set;
  */
 public class EnvExp extends SEXP implements RecursiveExp {
 
-  public static final EnvExp EMPTY = new EnvExp();
-
   public static final int TYPE_CODE = 4;
   public static final String TYPE_NAME = "environment";
 
-  private GlobalContext globalContext;
+  private String name;
   private EnvExp parent;
+  private EnvExp globalEnvironment;
+  private EnvExp baseEnvironment;
+
+  public static EnvExp createGlobalEnvironment() {
+    EnvExp global = new EnvExp();
+    global.name = "R_GlobalEnv";
+    global.baseEnvironment = createBaseEnvironment(global);
+    global.globalEnvironment = global;
+    global.parent = global.baseEnvironment;
+    global.frame = new HashFrame();
+
+    return global;
+  }
+
+  private static EnvExp createBaseEnvironment(EnvExp global) {
+    EnvExp base = new EnvExp();
+    base.name = "base";
+    base.baseEnvironment = base;
+    base.globalEnvironment = global;
+    base.parent = EmptyEnv.INSTANCE;
+    base.frame = BaseFrame.INSTANCE;
+    return base;
+  }
+
+  public static EnvExp createChildEnvironment(EnvExp parent) {
+    EnvExp child = new EnvExp();
+    child.name = Integer.toString(child.hashCode());
+    child.baseEnvironment = parent.baseEnvironment;
+    child.globalEnvironment = parent.globalEnvironment;
+    child.parent = parent;
+    child.frame = new HashFrame();
+    return child;
+  }
 
   public interface Frame {
     Set<SymbolExp> getSymbols();
     SEXP getVariable(SymbolExp name);
+    SEXP getInternal(SymbolExp name);
     void setVariable(SymbolExp name, SEXP value);
   }
 
@@ -83,40 +115,20 @@ public class EnvExp extends SEXP implements RecursiveExp {
     }
 
     @Override
+    public SEXP getInternal(SymbolExp name) {
+      return SymbolExp.UNBOUND_VALUE;
+    }
+
+    @Override
     public void setVariable(SymbolExp name, SEXP value) {
       values.put(name, value);
     }
   }
 
-
   protected Frame frame;
 
-  /**
-   * Creates a new environment, with no enclosing environment,
-   * initialized with an empty HashFrame.
-   */
-  public EnvExp() {
-    this.frame = new HashFrame();
-  }
-
-  /**
-   * Creates a new environment with the given parent
-   * and an empty HashFrame
-   *
-   * @param parent
-   */
-  public EnvExp(EnvExp parent) {
-    Preconditions.checkNotNull(parent);
-
-    this.parent = parent;
-    this.globalContext = parent.getGlobalContext();
-    this.frame = new HashFrame();
-  }
-
-  protected EnvExp(GlobalContext globalContext) {
-    this.globalContext = globalContext;
-    this.parent = null;
-    this.frame = new HashFrame();
+  public String getName() {
+    return name;
   }
 
   public EnvExp getParent() {
@@ -127,8 +139,12 @@ public class EnvExp extends SEXP implements RecursiveExp {
     this.parent = parent;
   }
 
-  public GlobalContext getGlobalContext() {
-    return globalContext;
+  public EnvExp getGlobalEnvironment() {
+    return globalEnvironment;
+  }
+
+  public EnvExp getBaseEnvironment() {
+    return baseEnvironment;
   }
 
   @Override
@@ -155,6 +171,14 @@ public class EnvExp extends SEXP implements RecursiveExp {
       return value;
     }
     return parent.findVariable(symbol);
+  }
+
+  public SEXP findInternal(SymbolExp symbol) {
+    SEXP value = frame.getInternal(symbol);
+    if(value != SymbolExp.UNBOUND_VALUE) {
+      return value;
+    }
+    return parent.findInternal(symbol);
   }
 
   @Override
@@ -184,7 +208,7 @@ public class EnvExp extends SEXP implements RecursiveExp {
 
     @Override
     public boolean hasNext() {
-      return next != null;
+      return next != EmptyEnv.INSTANCE;
     }
 
     @Override
@@ -195,4 +219,3 @@ public class EnvExp extends SEXP implements RecursiveExp {
     }
   }
 }
-

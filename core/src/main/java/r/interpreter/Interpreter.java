@@ -21,8 +21,8 @@
 
 package r.interpreter;
 
+import r.lang.EnvExp;
 import r.lang.EvalResult;
-import r.lang.GlobalContext;
 import r.lang.SEXP;
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;
@@ -41,15 +41,15 @@ import java.io.Reader;
 public class Interpreter implements Runnable {
 
   private final Console console;
-  private GlobalContext global;
+  private EnvExp global;
 
   public Interpreter(Console console) {
   /// not yet ready:  this.global.loadBasePackage();
 
     this.console = console;
 
-    this.global = new GlobalContext();
-    this.global.setPrintStream(console.getOut());
+    this.global = EnvExp.createGlobalEnvironment();
+   // this.global.setPrintStream(console.getOut());
 
     if(console instanceof RichConsole) {
       ((RichConsole) console).setNameCompletion(new SymbolCompletion(global));
@@ -62,8 +62,8 @@ public class Interpreter implements Runnable {
     ParseOptions options = ParseOptions.defaults();
     ParseState state = new ParseState();
     Reader reader = console.getIn();
-    RLexer lexer = new RLexer(global, options, state, reader);
-    RParser parser = new RParser(options, state, global, lexer);
+    RLexer lexer = new RLexer(options, state, reader);
+    RParser parser = new RParser(options, state, lexer);
 
     printGreeting();
 
@@ -75,7 +75,7 @@ public class Interpreter implements Runnable {
         parser.parse();
 
         SEXP exp = parser.getResult();
-        EvalResult result = exp.evaluate(global.getGlobalEnvironment());
+        EvalResult result = exp.evaluate(global);
 
         if(result.isVisible()) {
           console.println( Print.print(result.getExpression(), console.getCharactersPerLine()) );

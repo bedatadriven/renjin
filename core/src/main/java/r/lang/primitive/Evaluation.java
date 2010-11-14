@@ -56,7 +56,7 @@ public class Evaluation {
    */
   public static EvalResult assign(@Environment EnvExp rho, @Evaluate(false) LangExp call, SEXP value) {
     PrimitiveExp fn = (PrimitiveExp) call.getFunction().evalToExp(rho);
-    SymbolExp newFn = rho.getGlobalContext().symbol(fn.getName() + "<-");
+    SymbolExp newFn = new SymbolExp(fn.getName() + "<-");
 
     // This is the symbol to which we're ultimately assigning
     SymbolExp target = call.getArgument(0);
@@ -139,12 +139,13 @@ public class Evaluation {
       throw new EvalException("invalid .Internal() argument");
     }
     LangExp internalCall = (LangExp) arg;
-    SymbolExp fnSymbol = (SymbolExp)internalCall.getFunction();
-    if(fnSymbol.getInternal() == NullExp.INSTANCE) {
-      throw new EvalException(String.format("no internal function \"%s\"", fnSymbol.getPrintName()));
+    SymbolExp internalName = (SymbolExp)internalCall.getFunction();
+    SEXP function = rho.findInternal(internalName);
+
+    if(function == NullExp.INSTANCE) {
+      throw new EvalException(String.format("no internal function \"%s\"", internalName.getPrintName()));
     }
-    FunExp fn = (FunExp) fnSymbol.getInternal();
-    return fn.apply(internalCall, internalCall.getArguments(), rho);
+    return ((FunExp)function).apply(internalCall, internalCall.getArguments(), rho);
   }
 
 
@@ -165,7 +166,7 @@ public class Evaluation {
   public static boolean asLogicalNoNA(LangExp call, SEXP s, EnvExp rho) {
 
     if (s.length() > 1) {
-      rho.getGlobalContext().warningCall(call, "the condition has length > 1 and only the first element will be used");
+      Warning.warning(call, "the condition has length > 1 and only the first element will be used");
     }
 
     Logical logical = s.asLogical();

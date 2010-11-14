@@ -35,12 +35,12 @@ import static org.junit.Assert.assertThat;
 
 public abstract class EvalTestCase {
 
-  protected GlobalContext context;
+  protected EnvExp global;
   public static final SEXP NULL = NullExp.INSTANCE;
 
   @Before
   public void setUp() {
-    context = new GlobalContext();
+    global = EnvExp.createGlobalEnvironment();
   }
 
   protected SEXP eval(String source) {
@@ -52,15 +52,15 @@ public abstract class EvalTestCase {
       source = source + "\n";
     }
     SEXP exp = parse(source);
-    return exp.evaluate(context.getGlobalEnvironment());
+    return exp.evaluate(global);
   }
 
   private SEXP parse(String source)  {
     try {
       ParseState state = new ParseState();
       ParseOptions options = ParseOptions.defaults();
-      RLexer lexer = new RLexer(context, options, state, new StringReader(source));
-      RParser parser = new RParser(options, state, context, lexer);
+      RLexer lexer = new RLexer(options, state, new StringReader(source));
+      RParser parser = new RParser(options, state, lexer);
 
       assertThat("parser.parse succeeds", parser.parse(), equalTo(true));
       RParser.StatusResult status = parser.getResultStatus();
@@ -96,5 +96,9 @@ public abstract class EvalTestCase {
       builder.add(SEXPFactory.fromJava(obj));
     }
     return builder.build();
+  }
+
+  protected SEXP symbol(String name) {
+    return new SymbolExp(name);
   }
 }

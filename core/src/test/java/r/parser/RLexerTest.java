@@ -25,7 +25,6 @@ import org.hamcrest.Matcher;
 import org.junit.Ignore;
 import org.junit.Test;
 import r.ExpMatchers;
-import r.lang.GlobalContext;
 import r.lang.Logical;
 import r.lang.SEXP;
 
@@ -266,8 +265,7 @@ public class RLexerTest {
 
   private void assertTokenSequence(String source, LexExpectation... expects) {
     Reader reader = new StringReader(source);
-    GlobalContext context = new GlobalContext();
-    RLexer lexer = new RLexer(context, ParseOptions.defaults(), new ParseState(), reader);
+    RLexer lexer = new RLexer(ParseOptions.defaults(), new ParseState(), reader);
 
     for (int i = 0; i != expects.length; ++i) {
       assertThat("token " + (i + 1), lexer.yylex(), equalTo(expects[i].expectedToken));

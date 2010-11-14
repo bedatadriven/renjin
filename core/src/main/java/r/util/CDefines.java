@@ -270,14 +270,6 @@ public class CDefines {
     return CONS(s, list3(t, u, v));
   }
 
-  public static SEXP SYMVALUE(SEXP s) {
-    return ((SymbolExp) s).getValue();
-  }
-
-  public static void SET_SYMVALUE(SEXP s, SEXP v) {
-    ((SymbolExp) s).setValue(v);
-  }
-
   public static LangExp LCONS(SEXP car, SEXP cdr) {
     Preconditions.checkNotNull(car);
 

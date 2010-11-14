@@ -24,7 +24,6 @@ package r.lang.primitive.types;
 import org.junit.Before;
 import org.junit.Test;
 import r.lang.EvalTestCase;
-import r.lang.GlobalContext;
 import r.lang.PairListExp;
 import r.lang.SEXP;
 import r.lang.primitive.Subset;
@@ -35,11 +34,8 @@ import static org.junit.Assert.assertThat;
 
 public class SubsetTest extends EvalTestCase {
 
-  private GlobalContext context;
-
   @Before
   public void setUp() {
-    context = new GlobalContext();
   }
 
 
@@ -47,8 +43,8 @@ public class SubsetTest extends EvalTestCase {
   public void pairListExact() {
 
     PairListExp list = PairListExp.buildList()
-        .add(context.symbol("alligator"), c(1))
-        .add(context.symbol("aardvark"), c(3))
+        .add(symbol("alligator"), c(1))
+        .add(symbol("aardvark"), c(3))
         .list();
 
     SEXP result = Subset.index(list, "all");

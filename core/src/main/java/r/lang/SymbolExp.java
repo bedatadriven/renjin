@@ -34,10 +34,9 @@ public class SymbolExp extends SEXP {
   public static final SymbolExp MISSING_ARG = new SymbolExp();
   public static final SymbolExp NAMES = new SymbolExp("names");
   public static final SymbolExp CLASS = new SymbolExp("class") ;
+  public static final SymbolExp STDOUT = new SymbolExp("stdout");
 
   private String printName;
-  private SEXP value = UNBOUND_VALUE;
-  private SEXP internal = UNBOUND_VALUE;
 
   private SymbolExp() {
   }
@@ -67,26 +66,9 @@ public class SymbolExp extends SEXP {
     return printName;
   }
 
-  public SEXP getInternal() {
-    return internal;
-  }
-
-  public void setInternal(SEXP internal) {
-    this.internal = internal;
-  }
-
-  public SEXP getValue() {
-    return value;
-  }
-
-  public void setValue(SEXP value) {
-    this.value = value;
-  }
-
   private static SymbolExp createUnbound() {
     /* R_UnboundValue */
     SymbolExp instance = new SymbolExp();
-    instance.value = instance;
     return instance;
   }
 
@@ -106,7 +88,23 @@ public class SymbolExp extends SEXP {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
+  }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    SymbolExp symbolExp = (SymbolExp) o;
+
+    if (!printName.equals(symbolExp.printName)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return printName.hashCode();
   }
 
   @Override
@@ -116,7 +114,7 @@ public class SymbolExp extends SEXP {
     } else if (this == MISSING_ARG) {
       return "<missing_arg>";
     } else {
-      return "<" + getPrintName() + ">";
+      return getPrintName();
     }
   }
 }

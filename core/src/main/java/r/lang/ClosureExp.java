@@ -91,7 +91,7 @@ public class ClosureExp extends SEXP implements FunExp {
   @Override
   public EvalResult apply(LangExp call, PairList args, EnvExp rho) {
 
-    EnvExp functionEnvironment = new EnvExp(enclosingEnvironment);
+    EnvExp functionEnvironment = EnvExp.createChildEnvironment(enclosingEnvironment);
     matchArgumentsInto(args, enclosingEnvironment, functionEnvironment);
 
     return body.evaluate(functionEnvironment);

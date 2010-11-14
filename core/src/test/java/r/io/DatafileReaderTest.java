@@ -45,7 +45,7 @@ public class DatafileReaderTest extends EvalTestCase {
   public void loadVerySimple() throws IOException {
     InputStream in = getClass().getResourceAsStream("/simple.RData");
     GZIPInputStream gzipIn = new GZIPInputStream(in);
-    DatafileReader reader = new DatafileReader(context.getGlobalEnvironment(), gzipIn);
+    DatafileReader reader = new DatafileReader(global.getGlobalEnvironment(), gzipIn);
 
     SEXP exp = reader.readFile();
     assertThat(exp, instanceOf(PairListExp.class));
@@ -59,7 +59,7 @@ public class DatafileReaderTest extends EvalTestCase {
   public void loadComplete() throws IOException {
     InputStream in = getClass().getResourceAsStream("/complete.RData");
     GZIPInputStream gzipIn = new GZIPInputStream(in);
-    DatafileReader reader = new DatafileReader(context.getGlobalEnvironment(), gzipIn);
+    DatafileReader reader = new DatafileReader(global.getGlobalEnvironment(), gzipIn);
 
     SEXP exp = reader.readFile();
     assertThat(exp, instanceOf(PairListExp.class));
@@ -69,11 +69,9 @@ public class DatafileReaderTest extends EvalTestCase {
     assertThat(pairList.findByTag(symbol("b")), equalTo( eval("sqrt(1:25) ") ));
     assertThat(pairList.findByTag(symbol("c")), equalTo( c(Logical.NA )));
     assertThat(pairList.findByTag(symbol("d")), equalTo( list(Logical.NA, DoubleExp.NA, IntExp.NA, NULL )));
-
   }
 
-  private SymbolExp symbol(String name) {
-    return context.symbol(name);
+  protected SymbolExp symbol(String name){
+    return new SymbolExp(name);
   }
-
 }

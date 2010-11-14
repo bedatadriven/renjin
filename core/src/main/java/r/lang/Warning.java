@@ -30,4 +30,8 @@ public class Warning {
   public static void warning(String message, Object... args) {
     logger.warning(String.format(message, args));
   }
+
+  public static void warning(LangExp call, String s) {
+    warning(s);
+  }
 }

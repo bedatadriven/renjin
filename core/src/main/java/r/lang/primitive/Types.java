@@ -233,7 +233,7 @@ public class Types {
   }
 
   public static EnvExp environment(@Environment EnvExp rho) {
-    return rho.getGlobalContext().getGlobalEnvironment();
+    return rho.getGlobalEnvironment();
   }
 
   public static EnvExp environment(ClosureExp arg) {
@@ -252,7 +252,7 @@ public class Types {
 
   public static EnvExp parentFrame(@Environment EnvExp rho, int n) {
     EnvExp parent = rho;
-    while(n > 0 && rho != rho.getGlobalContext().getGlobalEnvironment()) {
+    while(n > 0 && rho != rho.getGlobalEnvironment()) {
       parent = rho.getParent();
       --n;
     }
@@ -260,11 +260,11 @@ public class Types {
   }
 
   public static EnvExp newEnv(boolean hash, EnvExp parent, int size) {
-    return new EnvExp(parent);      
+    return EnvExp.createChildEnvironment(parent);   
   }
 
   public static EnvExp baseEnv(@Environment EnvExp rho) {
-    return rho.getGlobalContext().getBaseEnvironment();
+    return rho.getBaseEnvironment();
   }
 
   public static int length(SEXP exp) {

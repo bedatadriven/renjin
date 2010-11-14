@@ -44,7 +44,7 @@ public class Subset {
 
     } else if(list instanceof EnvExp) {
       return  ((EnvExp) list).findVariable(
-          rho.getGlobalContext().symbol( toString(index) ) );
+          new SymbolExp( toString(index) ) );
 
     } else if(list instanceof AtomicExp) {
       throw new EvalException("$ operator is invalid for atomic vectors");

@@ -67,7 +67,6 @@ public class RLexer implements RParser.Lexer {
   private int prevbytes[] = new int[PUSHBACK_BUFSIZE];
 
 
-  private final GlobalContext context;
   private Reader reader;
   private int xxcharcount;
   private int xxcharsave;
@@ -109,8 +108,7 @@ public class RLexer implements RParser.Lexer {
       new Keyword("...", SYMBOL)};
 
 
-  public RLexer(GlobalContext context, ParseOptions options, ParseState state, Reader reader) {
-    this.context = context;
+  public RLexer(ParseOptions options, ParseState state, Reader reader) {
     this.reader = reader;
     this.parseOptions = options;
     this.parseState = state;
@@ -586,7 +584,7 @@ an ANSI digit or not */
   }
 
   private SEXP install(String symbolName) {
-    return context.getSymbolTable().install(symbolName);
+    return new SymbolExp(symbolName);
   }
 
   /*

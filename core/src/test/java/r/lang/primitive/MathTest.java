@@ -30,6 +30,17 @@ import static org.junit.Assert.assertThat;
 public class MathTest extends EvalTestCase {
 
   @Test
+  public void negativeNumbers() {
+    assertThat( eval( "-1" ), equalTo( c( -1 )));
+  }
+
+
+  @Test
+  public void positiveNumbers() {
+    assertThat( eval( "+1" ), equalTo( c( 1 )));
+  }
+
+  @Test
   public void unaryCall() {
     assertThat( eval("atan(1)"), equalTo( c(Math.atan(1)) ) );
   }

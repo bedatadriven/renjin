@@ -30,8 +30,16 @@ public class MathExt {
     return x + y;
   }
 
+  public static double plus(double x) {
+    return x;
+  }
+
   public static double minus(double x, double y) {
     return x - y;
+  }
+
+  public static double minus(double x) {
+    return -x;
   }
 
   public static double divide(double x, double y) {

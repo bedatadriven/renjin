@@ -23,12 +23,13 @@ package r.lang.primitive;
 
 import r.io.DatafileReader;
 import r.lang.*;
+import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.Environment;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
 
 public class Connections {
 
@@ -52,7 +53,15 @@ public class Connections {
     conn.close();
   }
 
-  public static void makeLazy(StringExp names, ListExp values, LangExp expr, EnvExp eenv, EnvExp aenv) {
+  /**
+   * Populates a target Environment with  
+   * @param names
+   * @param values
+   * @param expr
+   * @param eenv
+   * @param targetEnvironment
+   */
+  public static void makeLazy(StringExp names, ListExp values, LangExp expr, EnvExp eenv, EnvExp targetEnvironment) {
 
     for(int i = 0; i < names.length(); i++) {
       // the name of the symbol
@@ -69,14 +78,64 @@ public class Connections {
         newArgs.add(expr.<SEXP>getArgument(j));
       }
       LangExp newCall = new LangExp(expr.getFunction(), newArgs.build());
-      aenv.setVariable(name, new PromiseExp(newCall, eenv));
-
-
-      
-//      PROTECT(expr0 = duplicate(expr));
-//      SETCAR(CDR(expr0), val);
-//      defineVar(name, mkPROMISE(expr0, eenv), aenv);
+      targetEnvironment.setVariable(name, new PromiseExp(newCall, eenv));
     }
+  }
+
+  /**
+   *  Retrieves a sequence of bytes as specified by a position/length key
+   *  from a file, optionally decompresses, and unserializes the bytes.
+   *  If the result is a promise, then the promise is forced.
+   */
+  public static SEXP lazyLoadDBfetch(@Environment EnvExp rho, IntExp key, String file, int compressed, SEXP envhook) throws IOException, DataFormatException {
+    byte buffer[] = readRawFromFile(file, key);
+
+    if(compressed == 1) {
+      buffer = decompress1(buffer);
+    } else if(compressed > 1) {
+      throw new UnsupportedOperationException("compressed==" + compressed + " in lazyLoadDBfetch not yet implemented");
+    }
+
+    DatafileReader reader = new DatafileReader(rho, new ByteArrayInputStream(buffer));
+    return reader.readFile();
+  }
+
+  public static byte[] decompress1(byte buffer[]) throws IOException, DataFormatException {
+    DataInputStream in = new DataInputStream(new ByteArrayInputStream(buffer));
+    int outLength = in.readInt();
+
+    Inflater inflater = new Inflater();
+    inflater.setInput(buffer, 4, buffer.length-4);
+
+    byte[] result = new byte[outLength];
+    int resultLength = inflater.inflate(result);
+    inflater.end();
+
+//    outlen = (uLong) uiSwap(*((unsigned int *) p));
+//    buf = (Bytef *) R_alloc(outlen, sizeof(Bytef));
+//    res = uncompress(buf, &outlen, (Bytef *)(p + 4), inlen - 4);
+//    if(res != Z_OK) error("internal error %d in R_decompress1", res);
+//    ans = allocVector(RAWSXP, outlen);
+//    memcpy(RAW(ans), buf, outlen);
+//    return ans;
+
+    return result;
+  }
+
+  public static byte[] readRawFromFile(String file, IntExp key) throws IOException {
+    if(key.length() != 2) {
+      throw new EvalException("bad offset/length argument");
+    }
+    int offset = key.get(0);
+    int length = key.get(1);
+
+    byte buffer[] = new byte[length];
+
+    DataInputStream in = new DataInputStream(openInput(file));
+    in.skipBytes(offset);
+    in.readFully(buffer);
+
+    return buffer;
   }
 
   private static InputStream openInput(String description) throws FileNotFoundException {

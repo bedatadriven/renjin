@@ -22,23 +22,30 @@
 package r;
 
 import org.junit.Test;
-import r.lang.EnvExp;
+import r.lang.EvalTestCase;
 import r.lang.SEXP;
+import r.lang.StringExp;
 import r.parser.RParser;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-public class BasePackageTest {
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+public class BasePackageTest extends EvalTestCase {
 
 
   @Test
   public void loadBase() throws IOException {
 
-    EnvExp global = EnvExp.createGlobalEnvironment();
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadMethod = RParser.parseSource(reader).evaluate(global).getExpression();
-    loadMethod.evaluate(global);
+    SEXP loadingScript = RParser.parseSource(reader).evaluate(global).getExpression();
+    loadingScript.evaluate(global);
+
+    StringExp letters = (StringExp) eval("letters");
+    assertThat( letters.get(0),  equalTo( "a" ));
+    assertThat( letters.get(25), equalTo( "z" ));
   }
 }

@@ -184,7 +184,7 @@ public class DatafileReader {
     return reader;
   }
 
-  private SEXP readExp() throws IOException {
+  public SEXP readExp() throws IOException {
 
     Flags flags = new Flags(in.readInt());
 
@@ -202,7 +202,8 @@ public class DatafileReader {
       case MISSINGARG_SXP:
         return SymbolExp.MISSING_ARG;
       case BASENAMESPACE_SXP:
-        throw new IOException("name spaces not supported");
+        // TODO: this is probably not quite correct
+        return rho.getBaseEnvironment();
       case REFSXP:
         return readReference(flags);
       case PERSISTSXP:

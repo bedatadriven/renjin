@@ -915,7 +915,7 @@ public class FunctionTable {
       f("write.table", /*writetable*/ null, 0, 111, 11, PP_FUNCALL, PREC_FN, 0),
       f("Encoding", /*encoding*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("setEncoding", /*setencoding*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
-      f("lazyLoadDBfetch", /*lazyLoadDBfetch*/ null, 0, 1, 4, PP_FUNCALL, PREC_FN, 0),
+      f("lazyLoadDBfetch", Connections.class, 0, 1, 4, PP_FUNCALL, PREC_FN, 0),
       f("setTimeLimit", /*setTimeLimit*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
       f("setSessionTimeLimit", /*setSessionTimeLimit*/ null, 0, 111, 2, PP_FUNCALL, PREC_FN, 0),
       f("icuSetCollate", /*ICUset*/ null, 0, 111, -1, PP_FUNCALL, PREC_FN, 0)

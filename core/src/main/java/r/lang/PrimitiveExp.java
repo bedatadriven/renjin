@@ -92,9 +92,11 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
           }
         }
       }
+      PrimitiveMethod.validate(methodOverloads);
     }
     return methodOverloads;
   }
+
 
   @Override
   public void accept(SexpVisitor visitor) {

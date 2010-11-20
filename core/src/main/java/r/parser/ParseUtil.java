@@ -29,7 +29,7 @@ import r.lang.StringExp;
 import java.text.NumberFormat;
 
 public class ParseUtil {
-  public static final NumberFormat INTEGER_FORMAT = NumberFormat.getIntegerInstance();
+  public static final NumberFormat INTEGER_FORMAT = createIntegerFormat();
   public static final NumberFormat REAL_FORMAT = createRealFormat();
 
 
@@ -37,6 +37,12 @@ public class ParseUtil {
     NumberFormat format = NumberFormat.getNumberInstance();
     format.setMinimumFractionDigits(0);
     format.setMaximumFractionDigits(14);
+    return format;
+  }
+
+  private static NumberFormat createIntegerFormat() {
+    NumberFormat format = NumberFormat.getIntegerInstance();
+    format.setGroupingUsed(false);
     return format;
   }
 

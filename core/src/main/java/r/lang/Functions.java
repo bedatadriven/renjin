@@ -19,38 +19,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.types;
+package r.lang;
 
-import org.junit.Before;
-import org.junit.Test;
-import r.lang.EvalTestCase;
-import r.lang.PairList;
-import r.lang.PairListExp;
-import r.lang.SEXP;
-import r.lang.primitive.Subset;
+import com.google.common.base.Function;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+public class Functions {
+  private Functions() {}
 
 
-public class SubsetTest extends EvalTestCase {
-
-  @Before
-  public void setUp() {
+  public static Function<SEXP, Integer> length() {
+    return new Function<SEXP, Integer>() {
+      @Override
+      public Integer apply(SEXP input) {
+        return input.length();
+      }
+    };
   }
 
-
-  @Test
-  public void pairListExact() {
-
-    PairList list = PairListExp.newBuilder()
-        .add(symbol("alligator"), c(1))
-        .add(symbol("aardvark"), c(3))
-        .build();
-
-    SEXP result = Subset.index(list, "all");
-    assertThat(result, equalTo((SEXP)c(1)));
-
+  public static Function<StringExp, String> elementAt(final int index) {
+    return new Function<StringExp, String>() {
+      @Override
+      public String apply(StringExp input) {
+        return input.get( index % input.length() );
+      }
+    };
   }
 
 }

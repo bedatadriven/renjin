@@ -71,4 +71,8 @@ public class Comparison {
   public static boolean greaterThanOrEqual(String x, String y) {
     return x.compareTo(y) >= 0;
   }
+
+  public static boolean not(boolean value) {
+    return !value;
+  }
 }

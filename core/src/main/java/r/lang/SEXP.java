@@ -288,7 +288,7 @@ public abstract class SEXP {
         builder.add(node.getTag(), node.getValue());
       }
     }
-    return builder.list();
+    return builder.build();
   }
 
 

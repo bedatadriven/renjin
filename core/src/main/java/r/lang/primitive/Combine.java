@@ -32,7 +32,7 @@ import r.lang.primitive.binding.AtomicBuilders;
 import java.util.ArrayList;
 import java.util.List;
 
-import static r.lang.primitive.binding.AtomicAccessors.elementClassOf;
+import static r.lang.primitive.binding.AtomicExps.elementClassOf;
 
 public class Combine {
 

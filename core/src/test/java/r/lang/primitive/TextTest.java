@@ -19,32 +19,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive;
 
-public class EmptyEnv extends EnvExp {
+import org.junit.Test;
+import r.lang.EvalTestCase;
 
-  public static final EmptyEnv INSTANCE = new EmptyEnv();
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
-  private EmptyEnv() {
+public class TextTest extends EvalTestCase {
+
+  @Test
+  public void simplePaste() {
+      assertThat( eval( ".Internal(paste(list(1, 'a', 'b'), '-', NULL)) "), equalTo(  c("1-a-b") )) ;
   }
 
-  @Override
-  public SEXP findVariable(SymbolExp symbol) {
-    return SymbolExp.UNBOUND_VALUE;
+  @Test
+  public void pasteVectors() {
+      assertThat( eval( ".Internal(paste(list(c('x', 'y'), 'a', 'b'), '-', NULL)) "),
+          equalTo(  c("x-a-b", "y-a-b") )) ;
   }
 
-  @Override
-  public SEXP getVariable(SymbolExp symbol) {
-    return SymbolExp.UNBOUND_VALUE;
-  }
+  @Test
+  public void pasteCollapse() {
+      assertThat( eval( ".Internal(paste(list(c('x', 'y'), 'a', 'b'), '-', '+')) "),
+          equalTo(  c("x-a-b+y-a-b") )) ;  }
 
-  @Override
-  public EnvExp getParent() {
-    throw new UnsupportedOperationException("The empty environment does not have a parent.");
-  }
-
-  @Override
-  public void setParent(EnvExp parent) {
-    throw new UnsupportedOperationException("The empty environment does not have a parent.");
-  }
 }

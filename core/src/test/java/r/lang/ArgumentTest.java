@@ -78,20 +78,47 @@ public class ArgumentTest extends EvalTestCase {
 
   @Test
   public void varArgs() {
-    eval( "f <- function(...) { length(...) }");
-    assertThat( eval( "f(1,2,3) "), equalTo( c_i(3) ));
+    eval( "f <- function(...) { list(...) }");
+    assertThat( eval( "f(1,2,3) "), equalTo( list(1d,2d,3d) ));
+  }
+
+  @Test
+  public void taggedVarArgs() {
+    eval( "f <- function(...) { list(...) }");
+    ListExp exp = (ListExp) eval( "f(x=1,y=2,z=3)");
+    assertThat(exp.getName(0), equalTo("x"));
+    assertThat(exp.getName(1), equalTo("y"));
+    assertThat(exp.getName(2), equalTo("z"));
+
   }
 
   @Test
   public void varArgWithNamed() {
-    eval( "f <- function(..., x) { length(...) }");
+    eval( "f <- function(..., x) length(list(...))");
     assertThat( eval(" f(x=99, 1, 2, 3) "), equalTo( c_i(3) ));
   }
 
   @Test
   public void varArgWithExtraNamed() {
-    eval( "f <- function(...) { length(...) } ");
+    eval( "f <- function(...) { length(list(...)) } ");
     assertThat( eval(" f(x=32, y=42, z=99) "), equalTo( c_i(3) ));
+  }
+
+  @Test
+  public void ellipsesPassedToClosure() {
+    eval( "g<- function(a,b,c) { list(a,b,c) } ");
+    eval( "f<- function(...) { g(...) }");
+    assertThat( eval(" f(1,2,3) "), equalTo(list(1d,2d,3d)));
+  }
+
+@Test
+  public void ellipsesPassedToClosureWithTags() {
+    eval( "g<- function(...) { list(...) } ");
+    eval( "f<- function(...) { g(...) }");
+    ListExp exp = (ListExp) eval(" f(x=1,y=2,z=3) ");
+    assertThat(exp.getName(0), equalTo("x"));
+    assertThat(exp.getName(1), equalTo("y"));
+    assertThat(exp.getName(2), equalTo("z"));
   }
 
   @Test
@@ -124,6 +151,13 @@ public class ArgumentTest extends EvalTestCase {
     assertThat( eval("f()"), equalTo( c(2) ));
   }
 
+  @Test
+  public void argsPromisedInCallingEnv() {
+    eval( "g <- function(z) { z } ");
+    eval( "f <- function() { q<-3; g(q) }");
+
+    assertThat( eval("f()"), equalTo( c(3) ));
+  }
 
   @Test
   public void autoPrintingFun1() {
@@ -146,8 +180,19 @@ public class ArgumentTest extends EvalTestCase {
 
   @Test
   public void methodTable() {
+    // from base
     eval("new.env <- function (hash=FALSE, parent=parent.frame(), size=29L)\n" +
         "    .Internal(new.env(hash, parent, size))");
     eval("\".__S3MethodsTable__.\" <- new.env(hash = TRUE, parent = baseenv())");
   }
+
+  @Test
+  public void dotDotDot() {
+      eval(" f <- function(...) { c(...) } ");
+    
+      assertThat( eval( "f(1,2,3)"), equalTo( c(1,2,3 )));
+  }
+
+
+
 }

@@ -77,4 +77,24 @@ public class LangExp extends PairListExp {
   public <X extends SEXP> X getArgument(int index) {
     return getArguments().<X>get(index);
   }
+
+  @Override
+  public String toString() {
+    StringBuilder sb= new StringBuilder();
+    sb.append(getFunction()).append("(");
+    boolean needsComma=false;
+    for(PairListExp node : getNextNode().listNodes()) {
+      if(needsComma) {
+        sb.append(", ");
+      } else {
+        needsComma = true;
+      }
+      if(node.hasTag()) {
+        sb.append(node.getTag().getPrintName())
+            .append("=");
+      }
+      sb.append(node.getValue());
+    }
+    return sb.append(")").toString();
+  }
 }

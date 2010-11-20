@@ -21,7 +21,7 @@
 
 package r.lang;
 
-import java.util.List;
+import r.lang.exception.EvalException;
 
 /**
  *  a pairlist of promises (as used for matched arguments) but distinguished by the SEXPTYPE.
@@ -29,9 +29,9 @@ import java.util.List;
  */
 public class DotExp extends SEXP {
 
-  private List<PromiseExp> promises;
+  private PairList promises;
 
-  public DotExp(List<PromiseExp> promises) {
+  public DotExp(PairList promises) {
     this.promises = promises;
   }
 
@@ -42,11 +42,25 @@ public class DotExp extends SEXP {
 
   @Override
   public String getTypeName() {
-    return null;
+    return "...";
+  }
+
+  @Override
+  public EvalResult evaluate(EnvExp rho) {
+    throw new EvalException("'...' used in an incorrect context");
+  }
+
+  @Override
+  public int length() {
+    return promises.length();
+  }
+
+  public PairList getPromises() {
+    return promises;
   }
 
   @Override
   public void accept(SexpVisitor visitor) {
-
+    throw new UnsupportedOperationException();
   }
 }

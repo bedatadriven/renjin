@@ -25,6 +25,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import r.lang.*;
+import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.ArgumentList;
 import r.lang.primitive.annotations.Environment;
 import r.lang.primitive.annotations.Evaluate;
@@ -41,7 +42,7 @@ import java.util.List;
  * Wraps a {@code java.lang.reflect.Method} and provides
  * useful introspection methods.
  */
-public class PrimitiveMethod {
+public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   private Method method;
   private List<Argument> arguments;
   private List<Argument> formals;
@@ -174,7 +175,35 @@ public class PrimitiveMethod {
     return formals;
   }
 
+  public boolean isHiddenBy(PrimitiveMethod other) {
+    if(formals.size() != other.getFormals().size()) {
+      return false;
+    }
+    for(int i=0;i!=formals.size();++i) {
+      if(!formals.get(i).getClazz().isAssignableFrom( other.getFormals().get(i).getClazz() )) {
+        return false;
+      }
+    }
+    return true;
+  }
 
+  @Override
+  public int compareTo(PrimitiveMethod o) {
+    if(formals.size() != o.getFormals().size()) {
+      return formals.size() - o.getFormals().size();
+    }
+    if(isHiddenBy(o)) {
+      return -1;
+    } else if(o.isHiddenBy(this)){
+      return +1;
+    }
+    return 0;
+  }
+
+  @Override
+  public String toString() {
+    return method.toString();
+  }
 
   public class Argument {
     private int index;
@@ -247,4 +276,28 @@ public class PrimitiveMethod {
     }
   }
 
+
+  public static void validate(List<PrimitiveMethod> methods) {
+    for(int i=0;i!=methods.size(); ++i) {
+      for(int j=0;j!=methods.size(); ++j) {
+        if(i!=j) {
+          PrimitiveMethod x = methods.get(i);
+          PrimitiveMethod y = methods.get(j);
+
+          if(x.isHiddenBy(y)) {
+            throw new EvalException(formatHiddenMethod(x,y));
+          }
+        }
+      }
+    }
+  }
+
+  private static String formatHiddenMethod(PrimitiveMethod x, PrimitiveMethod y) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Primitive method\n\t");
+    x.appendFriendlySignatureTo(sb);
+    sb.append("\nis hidden by\n\t");
+    y.appendFriendlySignatureTo(sb);
+    return sb.append("\n").toString();
+  }
 }

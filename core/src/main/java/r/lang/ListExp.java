@@ -90,6 +90,11 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
     return values.size();
   }
 
+  @Override
+  public SEXP subset(int index) {
+    return values.get(index-1);
+  }
+
   public int indexOfName(String name) {
     SEXP names = attributes.findByTag(SymbolExp.NAMES);
     if(names instanceof StringExp) {
@@ -138,7 +143,7 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
     return sb.append(")").toString();
   }
 
-  public static Builder build() {
+  public static Builder newBuilder() {
     return new Builder();
   }
 
@@ -167,7 +172,7 @@ public class ListExp extends SEXP implements Iterable<SEXP> {
 
     public ListExp build() {
       if(haveNames) {
-        return new ListExp(values,  PairListExp.buildList(SymbolExp.NAMES, new StringExp(names)).list());
+        return new ListExp(values,  PairListExp.buildList(SymbolExp.NAMES, new StringExp(names)).build());
       } else {
         return new ListExp(values);
       }

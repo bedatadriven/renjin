@@ -74,6 +74,6 @@ public class StandardConsole implements Console{
 
   public static void main(String[] args) {
       Interpreter interpreter = new Interpreter( new StandardConsole() );
-      new Thread ( interpreter ).start();
+      new Thread ( interpreter ).start();     
   }
 }

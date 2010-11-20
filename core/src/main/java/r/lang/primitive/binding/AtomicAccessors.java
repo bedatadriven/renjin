@@ -74,6 +74,8 @@ public class AtomicAccessors {
         return new IntExpToDouble((IntExp) exp);
       } else if(elementType == String.class) {
         return new IntExpToString((IntExp) exp);
+      } else if(elementType == Boolean.TYPE || elementType == Boolean.class) {
+        return new IntExpToLogical((IntExp)exp);
       } else {
         return null;
       }
@@ -82,6 +84,8 @@ public class AtomicAccessors {
     } else if(exp instanceof DoubleExp) {
       if(elementType == Double.TYPE || elementType == Double.class) {
         return new DoubleExpAccessor((DoubleExp) exp);
+      } else if(elementType == Boolean.TYPE || elementType == Boolean.class) {
+        return new DoubleExpAsLogical((DoubleExp)exp);
       } else if(elementType == String.class) {
         return new DoubleExpToString((DoubleExp) exp);
       }
@@ -99,20 +103,6 @@ public class AtomicAccessors {
     return null;
   }
 
-
-  public static Class elementClassOf(Class<? extends AtomicExp> atomicClass) {
-    if(atomicClass == LogicalExp.class) {
-      return Logical.class;
-    } else if(atomicClass == IntExp.class) {
-      return Integer.TYPE;
-    } else if(atomicClass == DoubleExp.class) {
-      return Double.TYPE;
-    } else if(atomicClass == StringExp.class) {
-      return String.class;
-    } else {
-      throw new IllegalArgumentException();
-    }
-  }
 
   private static class NullAccessor implements AtomicAccessor<Void> {
 
@@ -202,6 +192,29 @@ public class AtomicAccessors {
     }
   }
 
+  private static class DoubleExpAsLogical implements AtomicAccessor<Boolean> {
+    private DoubleExp exp;
+
+    private DoubleExpAsLogical(DoubleExp exp) {
+      this.exp = exp;
+    }
+
+    @Override
+    public int length() {
+      return exp.length();
+    }
+
+    @Override
+    public boolean isNA(int index) {
+      return DoubleExp.isNA( exp.get(index) );
+    }
+
+    @Override
+    public Boolean get(int index) {
+      return exp.get(index) != 0;
+    }
+  }
+
   private static class IntExpToDouble implements AtomicAccessor<Double> {
     private IntExp exp;
 
@@ -225,6 +238,28 @@ public class AtomicAccessors {
     }
   }
 
+  private static class IntExpToLogical implements AtomicAccessor<Boolean> {
+    private IntExp exp;
+
+    private IntExpToLogical(IntExp exp) {
+      this.exp = exp;
+    }
+
+    @Override
+    public int length() {
+      return exp.length();
+    }
+
+    @Override
+    public boolean isNA(int index) {
+      return IntExp.isNA( exp.get(index) );
+    }
+
+    @Override
+    public Boolean get(int index) {
+      return exp.get( index) != 0;
+    }
+  }
 
 
   private static class LogicalExpToDouble implements AtomicAccessor<Double> {

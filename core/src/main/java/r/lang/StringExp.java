@@ -21,6 +21,8 @@
 
 package r.lang;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import r.parser.ParseUtil;
 
@@ -108,9 +110,9 @@ public class StringExp extends AtomicExp implements Iterable<String> {
   @Override
   public String toString() {
     if (values.length == 1) {
-      return values[0];
+      return ParseUtil.formatStringLiteral(values[0], "NA_character_");
     } else {
-      return Arrays.toString(values);
+      return "c(" + Joiner.on(", ").join(Iterables.transform(this, new ParseUtil.StringDeparser())) + ")";
     }
   }
 

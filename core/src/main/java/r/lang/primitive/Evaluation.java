@@ -42,10 +42,50 @@ public class Evaluation {
     return lastResult;
   }
 
-  public static EvalResult assign(@Environment EnvExp rho, SymbolExp symbol, SEXP value) {
+  public static SEXP paren(SEXP value) {
+    return value;
+  }
+
+
+  public static EvalResult assignLeft(@Environment EnvExp rho, SymbolExp symbol, SEXP value) {
     rho.setVariable(symbol, value);
     return new EvalResult(value, false);
   }
+
+  /**
+   * There are no restrictions on name: it can be a non-syntactic name (see make.names).
+   *
+   * The pos argument can specify the environment in which to assign the object in any
+   * of several ways: as an integer (the position in the search list); as the character
+   * string name of an element in the search list; or as an environment (including using
+   * sys.frame to access the currently active function calls). The envir argument is an
+   *  alternative way to specify an environment, but is primarily there for back compatibility.
+   *
+   * assign does not dispatch assignment methods, so it cannot be used to
+   *  set elements of vectors, names, attributes, etc.
+   *
+   * Note that assignment to an attached list or data frame changes the attached copy
+   *  and not the original object: see attach and with.
+   */
+  public static EvalResult assign(String symbolName, SEXP value, EnvExp environ, boolean inherits) {
+
+    SymbolExp symbol = new SymbolExp(symbolName);
+
+    if(!inherits) {
+      environ.setVariable(symbol, value);
+    } else {
+      while(environ != EnvExp.EMPTY && !environ.hasVariable(symbol)) {
+        environ = environ.getParent();
+      }
+      if(environ == EnvExp.EMPTY) {
+        environ.getGlobalEnvironment().setVariable(symbol, value);
+      } else {
+        environ.setVariable(symbol, value);
+      }
+    }
+    return EvalResult.nonVisible(value);
+  }
+
 
   /**
    * This is the so-called complex assignment, such as:
@@ -54,17 +94,17 @@ public class Evaluation {
    *
    *
    */
-  public static EvalResult assign(@Environment EnvExp rho, @Evaluate(false) LangExp call, SEXP value) {
+  public static EvalResult assignLeft(@Environment EnvExp rho, @Evaluate(false) LangExp call, SEXP value) {
     PrimitiveExp fn = (PrimitiveExp) call.getFunction().evalToExp(rho);
     SymbolExp newFn = new SymbolExp(fn.getName() + "<-");
 
     // This is the symbol to which we're ultimately assigning
     SymbolExp target = call.getArgument(0);
 
-    PairList newArgs = PairListExp.buildList()
+    PairList newArgs = PairListExp.newBuilder()
         .add(target)
         .add(value)
-        .list();
+        .build();
     LangExp newCall = new LangExp(newFn, newArgs);
 
     SEXP result = newCall.evaluate(rho).getExpression();
@@ -72,6 +112,18 @@ public class Evaluation {
     rho.setVariable(target, result);
 
     return EvalResult.nonVisible(target);
+  }
+
+  public static void onExit( @Environment EnvExp rho, @Evaluate(false) SEXP exp, boolean add ) {
+    if(add) {
+      rho.addOnExit(exp);
+    } else {
+      rho.setOnExit(exp);
+    }
+  }
+
+  public static void onExit( @Environment EnvExp rho, @Evaluate(false) SEXP exp) {
+    rho.setOnExit(exp);
   }
 
   /**
@@ -163,6 +215,15 @@ public class Evaluation {
     throw new ReturnException(value);
   }
 
+  public static EvalResult eval(SEXP expression, EnvExp environment,
+                                SEXP enclosing /* ignored */) {
+    return expression.evaluate(environment);
+  }
+
+  public static SEXP quote(@Evaluate(false) SEXP exp) {
+    return exp;
+  }
+
   public static boolean asLogicalNoNA(LangExp call, SEXP s, EnvExp rho) {
 
     if (s.length() > 1) {
@@ -175,8 +236,8 @@ public class Evaluation {
     }
 
     return logical == Logical.TRUE;
-
   }
+
 
   public static SEXP missing(EnvExp rho, LangExp call) {
     PairList args = call.getArguments();

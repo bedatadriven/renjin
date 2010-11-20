@@ -53,6 +53,7 @@ public class RuntimeInvoker {
 
   public static final RuntimeInvoker INSTANCE = new RuntimeInvoker();
 
+
   private List<CallStrategy> strategies;
   private List<ArgConverter> converters;
 
@@ -61,6 +62,7 @@ public class RuntimeInvoker {
     strategies.add(new UnaryPrimitive(Integer.TYPE));
     strategies.add(new UnaryPrimitive(Double.TYPE));
     strategies.add(new UnaryPrimitive(String.class));
+    strategies.add(new UnaryPrimitive(Boolean.TYPE));
     strategies.add(new BinaryPrimitive(Integer.TYPE));
     strategies.add(new BinaryPrimitive(Double.TYPE));
     strategies.add(new BinaryPrimitive(String.class));
@@ -73,6 +75,7 @@ public class RuntimeInvoker {
     converters.add(new ToPrimitive());
     converters.add(new StringToSymbol());
     converters.add(new ToAccessor());
+    converters.add(new FromExternalPtr());
 
   }
 
@@ -86,7 +89,15 @@ public class RuntimeInvoker {
     // make a list of the provided arguments
     List<ProvidedArgument> provided = Lists.newArrayList();
     for(PairListExp arg : call.getArguments().listNodes()) {
-      provided.add(new ProvidedArgument(rho, arg));
+      if(SymbolExp.ELLIPSES.equals(arg.getValue())) {
+        // the values of the '...' are just merged into the argument list
+        DotExp ellipses = (DotExp) arg.getValue().evalToExp(rho);
+        for(PairListExp dotArg : ellipses.getPromises().listNodes()) {
+          provided.add(new ProvidedArgument(rho, dotArg));
+        }
+      } else {
+        provided.add(new ProvidedArgument(rho, arg));
+      }
     }
 
     // do we have a single method that accepts the whole argument list?
@@ -101,7 +112,8 @@ public class RuntimeInvoker {
         }
       }
     }
-    throw new EvalException(formatErrorMessage(call, provided, overloads));
+
+    throw new EvalException(formatNoMatchingOverloadMessage(call, provided, overloads));
   }
 
 
@@ -152,11 +164,11 @@ public class RuntimeInvoker {
     }
   }
   private PairList toEvaluatedPairList(List<ProvidedArgument> arguments) {
-    PairListExp.Builder builder = PairListExp.buildList();
+    PairListExp.Builder builder = PairListExp.newBuilder();
     for(ProvidedArgument arg : arguments) {
       builder.add(arg.getTag(), arg.evaluated());
     }
-    return builder.list();
+    return builder.build();
   }
 
   /**
@@ -298,26 +310,45 @@ public class RuntimeInvoker {
 
 
 
-  private String formatErrorMessage(LangExp call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
+  private String formatNoMatchingOverloadMessage(LangExp call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
     StringBuilder sb = new StringBuilder();
     sb.append("Cannot execute the function with the arguments supplied.\n");
+    appendProvidedArguments(sb, provided);
+
+    sb.append("\nAvailable overloads (in ").append(methods.get(0).getDeclaringClass().getName()).append(") :\n");
+
+    appendOverloadsTo(methods, sb);
+
+    return sb.toString();
+  }
+
+  private String formatMultipleMatchingOverloadMessage(LangExp call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Multiple overloads match the supplied arguments.\n");
+    appendProvidedArguments(sb, provided);
+
+    sb.append("\nMatching overloads (in ").append(methods.get(0).getDeclaringClass().getName()).append(") :\n");
+
+    appendOverloadsTo(methods, sb);
+
+    return sb.toString();
+  }
+
+
+  private void appendProvidedArguments(StringBuilder sb, List<ProvidedArgument> provided) {
     sb.append("Arguments: \n\t");
     for(ProvidedArgument arg : provided) {
       sb.append(arg.getTypeName()).append(" ");
     }
+  }
 
-    sb.append("\nAvailable overloads (in ").append(methods.get(0).getDeclaringClass().getName()).append(") :\n");
-
+  private void appendOverloadsTo(List<PrimitiveMethod> methods, StringBuilder sb) {
     for(PrimitiveMethod method : methods) {
       sb.append("\t");
       method.appendFriendlySignatureTo(sb);
       sb.append("\n");
     }
-    return sb.toString();
   }
-
-
-
   private class ProvidedArgument {
     private EnvExp rho;
     private SEXP provided;
@@ -416,7 +447,7 @@ public class RuntimeInvoker {
       return new SymbolExp(source.get(0));
     }
   }
-
+  
   private class ToAccessor implements ArgConverter<SEXP, AtomicAccessor> {
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
@@ -445,4 +476,17 @@ public class RuntimeInvoker {
   }
 
 
+  private class FromExternalPtr implements ArgConverter {
+
+    @Override
+    public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
+      return source instanceof ExternalExp && formal.getClazz().isAssignableFrom(
+          ((ExternalExp) source).getValue().getClass());
+    }
+
+    @Override
+    public Object convert(EnvExp rho, SEXP source, PrimitiveMethod.Argument formal) {
+      return ((ExternalExp)source).getValue();
+    }
+  }
 }

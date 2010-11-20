@@ -35,6 +35,7 @@ public class SymbolExp extends SEXP {
   public static final SymbolExp NAMES = new SymbolExp("names");
   public static final SymbolExp CLASS = new SymbolExp("class") ;
   public static final SymbolExp STDOUT = new SymbolExp("stdout");
+  public static final SymbolExp ELLIPSES = new SymbolExp("...");
 
   private String printName;
 

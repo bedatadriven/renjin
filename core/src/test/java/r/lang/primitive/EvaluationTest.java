@@ -35,7 +35,7 @@ import static org.junit.Assert.assertThat;
 import static r.ExpMatchers.logicalVectorOf;
 import static r.ExpMatchers.realVectorEqualTo;
 
-public class ControlFlowTest extends EvalTestCase {
+public class EvaluationTest extends EvalTestCase {
 
   @Test
   public void unaryFunction() throws IOException {
@@ -141,4 +141,27 @@ public class ControlFlowTest extends EvalTestCase {
     assertThat(eval("f()"), realVectorEqualTo(1));
   }
 
+  @Test
+  public void onExit() {
+
+    eval(" f<-function() { on.exit( .Internal(eval(quote(launchMissiles<-42), globalenv(), NULL))) }");
+    eval(" f() ");
+
+    assertThat( eval(" launchMissiles "), equalTo( c(42) ) );
+  }
+
+  @Test
+  public void globalAssign() {
+
+    eval("myf <- function(x) { " +
+        " innerf <- function(x) .Internal(assign(\"Global.res\", x^2, globalenv(), FALSE)); " +
+        " innerf(x+1) " +
+        "}");
+    eval("myf(3)");
+
+    assertThat( eval("Global.res"), equalTo( c(16) ));
+
+  }
+
+  
 }

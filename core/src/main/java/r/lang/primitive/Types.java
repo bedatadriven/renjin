@@ -188,7 +188,7 @@ public class Types {
     }
 
     if(haveNames) {
-      return new ListExp(values, PairListExp.buildList(SymbolExp.NAMES, new StringExp(names)).list());
+      return new ListExp(values, PairListExp.buildList(SymbolExp.NAMES, new StringExp(names)).build());
     } else {
       return new ListExp(values);
     }
@@ -209,6 +209,14 @@ public class Types {
   @AlwaysNull
   public static SEXP subset$(NullExp nil) {
     return NullExp.INSTANCE;
+  }
+
+  public static SEXP subset2(SEXP exp, int index) {
+    return exp.subset(index);
+  }
+
+  public static SEXP subset2(SEXP exp, double index) {
+    return exp.subset((int)index);
   }
 
   public static AtomicExp subset(AtomicExp vector, AtomicAccessor<Double> indices) {
@@ -236,18 +244,15 @@ public class Types {
     return rho.getGlobalEnvironment();
   }
 
-  public static EnvExp environment(ClosureExp arg) {
-    return arg.getEnclosingEnvironment();
-  }
-
-  @AlwaysNull
-  public static NullExp environment(AtomicExp exp) {
-    return NullExp.INSTANCE;
-  }
-
-  @AlwaysNull
-  public static NullExp environment(ListExp listExp) {
-    return NullExp.INSTANCE;
+  public static SEXP environment(@Environment EnvExp rho, SEXP exp) {
+    if(exp == NullExp.INSTANCE) {
+      // if the user passes null, we return the current exp
+      return rho;
+    } else if(exp instanceof ClosureExp)  {
+      return ((ClosureExp) exp).getEnclosingEnvironment();
+    } else {
+      return NullExp.INSTANCE;
+    }
   }
 
   public static EnvExp parentFrame(@Environment EnvExp rho, int n) {
@@ -265,6 +270,10 @@ public class Types {
 
   public static EnvExp baseEnv(@Environment EnvExp rho) {
     return rho.getBaseEnvironment();
+  }
+
+  public static EnvExp globalEnv(@Environment EnvExp rho) {
+    return rho.getGlobalEnvironment();
   }
 
   public static int length(SEXP exp) {

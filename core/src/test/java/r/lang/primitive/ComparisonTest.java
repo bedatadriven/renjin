@@ -23,22 +23,22 @@ package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.EvalTestCase;
-import r.lang.Logical;
 
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static r.lang.Logical.*;
 
 public class ComparisonTest extends EvalTestCase {
 
   @Test
   public void scalarRealEquality() throws IOException {
-    assertThat( eval("1 == 1"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("1 > 2"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("2 > 1"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("NA_real_ > 1"), equalTo(c(Logical.NA)) );
-    assertThat( eval("1 < 999"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("1 == 1"), equalTo(c(TRUE)) );
+    assertThat( eval("1 > 2"), equalTo(c(FALSE)) );
+    assertThat( eval("2 > 1"), equalTo(c(TRUE)) );
+    assertThat( eval("NA_real_ > 1"), equalTo(c(NA)) );
+    assertThat( eval("1 < 999"), equalTo(c(TRUE)) );
   }
 
   /**
@@ -47,16 +47,16 @@ public class ComparisonTest extends EvalTestCase {
   @Test
   public void integersImplicitlyCastToDoubles() throws IOException {
 
-    assertThat( eval("1L == 1"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("1L == 1"), equalTo(c(TRUE)) );
 
   }
 
   @Test
   public void logicalsImplicitlyCastToDoubles() throws IOException {
-    assertThat( eval("3 == NA"), equalTo(c(Logical.NA)) );
-    assertThat( eval("0 < TRUE"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("TRUE > FALSE"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("TRUE <= TRUE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("3 == NA"), equalTo(c(NA)) );
+    assertThat( eval("0 < TRUE"), equalTo(c(TRUE)) );
+    assertThat( eval("TRUE > FALSE"), equalTo(c(TRUE)) );
+    assertThat( eval("TRUE <= TRUE"), equalTo(c(TRUE)) );
   }
 
   @Test
@@ -74,5 +74,13 @@ public class ComparisonTest extends EvalTestCase {
   public void platform() throws IOException {
     // this was failing in dynaload.R
     assertThat( eval("if(.Platform$OS.type == \"windows\") { 1 } else { 42 }"), equalTo(c(42)) );
+  }
+
+  @Test
+  public void not() {
+    assertThat( eval(" !TRUE"), equalTo( c(false)));
+    assertThat( eval(" !c(TRUE, FALSE, NA) "), equalTo(c(FALSE, TRUE, NA)));
+    assertThat( eval(" !c(1,0,1) "), equalTo( c(FALSE,TRUE,FALSE) ));
+    assertThat( eval(" !c(1L,0L,4L) "), equalTo( c(FALSE,TRUE,FALSE) ));
   }
 }

@@ -19,38 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.types;
+package r.lang;
 
-import org.junit.Before;
-import org.junit.Test;
-import r.lang.EvalTestCase;
-import r.lang.PairList;
-import r.lang.PairListExp;
-import r.lang.SEXP;
-import r.lang.primitive.Subset;
+import java.io.IOException;
+import java.io.InputStream;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+public interface Connection {
+  InputStream getInputStream() throws IOException;
 
-
-public class SubsetTest extends EvalTestCase {
-
-  @Before
-  public void setUp() {
-  }
-
-
-  @Test
-  public void pairListExact() {
-
-    PairList list = PairListExp.newBuilder()
-        .add(symbol("alligator"), c(1))
-        .add(symbol("aardvark"), c(3))
-        .build();
-
-    SEXP result = Subset.index(list, "all");
-    assertThat(result, equalTo((SEXP)c(1)));
-
-  }
-
+  void close() throws IOException;
 }

@@ -21,7 +21,6 @@
 
 package r.lang;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
@@ -185,14 +184,16 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
     for(PairListExp node : listNodes()) {
       builder.add(node.getRawTag(), node.getValue());
     }
-    return builder.list();
+    return builder.buildNonEmpty();
   }
 
   public String toString() {
     if (value == this) {
+      // so-called "stretchy lists" used by the parser
       return "[ CAR=this, CDR=" + nextNode + "]";
     } else {
-      StringBuilder sb = new StringBuilder("[");
+
+      StringBuilder sb = new StringBuilder("pairlist(");
       for (PairListExp node : listNodes()) {
         if (node != PairListExp.this) {
           sb.append(", ");
@@ -202,7 +203,7 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
         }
         sb.append(node.getValue());
       }
-      return sb.append("]").toString();
+      return sb.append(")").toString();
     }
   }
 
@@ -308,7 +309,7 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
     return new NodeIterator(this);
   }
 
-  public static Builder buildList() {
+  public static Builder newBuilder() {
     return new Builder();
   }
 
@@ -332,7 +333,7 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
         head = new PairListExp(tag, s, null);
         tail = head;
       } else {
-        PairListExp next = new PairListExp(s, null);
+        PairListExp next = new PairListExp(tag, s, null);
         tail.nextNode = next;
         tail = next;
       }
@@ -351,8 +352,18 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
     }
 
 
-    public PairListExp list() {
-      Preconditions.checkState(head != null, "ListExp cannot be empty");
+    public PairList build() {
+      if(head == null) {
+        return NullExp.INSTANCE;
+      } else {
+        return head;
+      }
+    }
+
+    public PairListExp buildNonEmpty() {
+      if(head == null) {
+        throw new IllegalStateException("no SEXPs have been added");
+      }
       return head;
     }
   }
@@ -375,6 +386,10 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
       }
     }
     return NullExp.INSTANCE;
+  }
+
+  public <S extends SEXP> S findByTag(String name) {
+    return (S) findByTag(new SymbolExp(name));
   }
 
   public abstract static class Predicates {

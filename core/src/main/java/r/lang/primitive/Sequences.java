@@ -143,4 +143,12 @@ public class Sequences {
       return new DoubleExp(values);
     }
   }
+
+  public static int[] seqAlong(SEXP exp) {
+    int indexes[] = new int[exp.length()];
+    for(int i=0;i!=indexes.length;++i) {
+      indexes[i] = i+1;
+    }
+    return indexes;
+  }
 }

@@ -21,18 +21,48 @@
 
 package r.lang.primitive;
 
-import r.lang.NullExp;
-import r.lang.PairListExp;
-import r.lang.SEXP;
+import com.google.common.base.Joiner;
+import r.lang.*;
+import r.lang.primitive.binding.TypeConverter;
+
+import java.util.List;
+
+import static com.google.common.collect.Collections2.transform;
+import static java.util.Collections.max;
 
 public class Text {
 
   private Text() {}
 
-  public static SEXP paste(PairListExp args, String seperator, SEXP collapse) {
-    // TODO!
-    return NullExp.INSTANCE;
+  public static SEXP paste(ListExp args, String seperator, NullExp collapse) {
+    List<StringExp> strings = TypeConverter.convertElements(args, StringExp.class);
+
+    int resultLength = max(transform(strings, Functions.length()));
+    String results[] = new String[resultLength];
+    
+    for(int i=0;i!=resultLength;++i) {
+      results[i] = Joiner.on(seperator).join(transform(strings, Functions.elementAt(i)));
+    }
+    
+    return new StringExp( results );
   }
+
+  public static String paste(ListExp args, String seperator, String collapse) {
+    List<StringExp> strings = TypeConverter.convertElements(args, StringExp.class);
+
+    int resultLength = max(transform(strings, Functions.length()));
+    StringBuilder result = new StringBuilder();
+
+    for(int i=0;i!=resultLength;++i) {
+      if(i != 0) {
+        result.append(collapse);
+      }
+      Joiner.on(seperator).appendTo(result, transform(strings, Functions.elementAt(i)));
+    }
+
+    return result.toString() ;
+  }
+
 
   public static SEXP substitute(SEXP... values) {
     // TODO!

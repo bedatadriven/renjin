@@ -91,7 +91,7 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP list(Object... values) {
-    ListExp.Builder builder = ListExp.build();
+    ListExp.Builder builder = ListExp.newBuilder();
     for(Object obj : values) {
       builder.add(SEXPFactory.fromJava(obj));
     }

@@ -32,9 +32,9 @@ import java.util.List;
 
 public class DatafileReader {
 
-  public static final String ASCII_FORMAT = "RDA2\n";
-  public static final String BINARY_FORMAT = "RDB2\n";
-  public static final String XDR_FORMAT = "RDX2\n";
+  public static final String ASCII_FORMAT = "RDA2\nA\n";
+  public static final String BINARY_FORMAT = "RDB2\nB\n";
+  public static final String XDR_FORMAT = "RDX2\nX\n";
 
   public static final int  NILSXP	  =   0;  /* nil = NULL */
   public static final int  SYMSXP	  =   1;	  /* symbols */
@@ -111,8 +111,7 @@ public class DatafileReader {
 
   public SEXP readFile() throws IOException {
 
-    String format = readHeader(conn);
-    in = createStreamReader(format);
+    in = readHeader(conn);
     version = in.readInt();
     writerVersion = new Version(in.readInt());
     releaseVersion = new Version(in.readInt());
@@ -130,16 +129,45 @@ public class DatafileReader {
     return readExp();
   }
 
+  public SEXP readIndex() throws IOException {
+    in = new XdrReader(conn);
+    return readExp();
+  }
 
-  private static String readHeader(InputStream conn) throws IOException {
-    byte bytes[] = new byte[5];
-    for(int i=0;i!= bytes.length;++i) {
-      bytes[i] = (byte) conn.read();
-      if(bytes[i] == -1) {
-        throw new EOFException();
+
+  private static StreamReader readHeader(InputStream conn) throws IOException {
+    byte bytes[] = new byte[7];
+    bytes[0] = (byte) conn.read();
+    bytes[1] = (byte) conn.read();
+
+    if(bytes[1] == '\n') {
+      switch(bytes[0]) {
+        case 'X':
+          return new XdrReader(conn);
+        case 'A':
+          return new AsciiReader(conn);
+        case 'B':
+          return new BinaryReader(conn);
+        default:
+          throw new IOException("Malformed header: " + Integer.toHexString(bytes[0]) + " " +
+              Integer.toHexString(bytes[1]));
       }
     }
-    return new String(bytes);
+
+    for(int i=2;i!=7;++i) {
+      bytes[i] = (byte) conn.read();
+    }
+
+    String header = new String(bytes);
+    if(header.equals(ASCII_FORMAT)) {
+      return new AsciiReader(conn);
+    } else if(header.equals(BINARY_FORMAT)) {
+      return new BinaryReader(conn);
+    } else if(header.equals(XDR_FORMAT)) {
+      return new XdrReader(conn);
+    }
+
+    throw new IOException("could not read header");
   }
 
   private StreamReader createStreamReader(String format) throws IOException {
@@ -164,7 +192,7 @@ public class DatafileReader {
       case NILVALUE_SXP:
         return NullExp.INSTANCE;
       case EMPTYENV_SXP:
-        return EmptyEnv.INSTANCE;
+        return EnvExp.EMPTY;
       case BASEENV_SXP:
         return rho.getBaseEnvironment();
       case GLOBALENV_SXP:
@@ -316,16 +344,16 @@ public class DatafileReader {
 
     EnvExp env = EnvExp.createChildEnvironment(rho); // temporarily assign parent to rho
     addReadRef(env);
-                                            
+
     SEXP parent = readExp();
     SEXP frame = readExp();
-    SEXP hashtab = readExp();
+    SEXP hashtab = readExp(); // unused
     SEXP attributes = readExp();
 
-    env.setParent( parent == NullExp.INSTANCE ? EmptyEnv.INSTANCE : (EmptyEnv)parent);
+    env.setParent( parent == NullExp.INSTANCE ? EnvExp.EMPTY : (EnvExp)parent );
+    env.setVariables( (PairList) frame );
 
     return env;
-
   }
 
   private SEXP readS4XP() throws IOException {
@@ -407,7 +435,6 @@ public class DatafileReader {
     }
   }
 
-
   private SEXP readPrimitive(Flags flags) throws IOException {
     throw new IOException("readPrim ");
   }
@@ -437,13 +464,6 @@ public class DatafileReader {
 
     private BinaryReader(DataInputStream in) throws IOException {
       this.in = in;
-      if(in.readByte() != 'B') {
-        throw new IOException("format does not match binary");
-      }
-      if(in.readByte() == -1) {
-        throw new EOFException();
-      }
-
     }
     private BinaryReader(InputStream in) throws IOException {
       this(new DataInputStream(in));
@@ -525,7 +545,7 @@ public class DatafileReader {
 //	    int c, d, i, j;
 //	    struct R_instring_stream_st iss;
 //
-//	    InitInStringStream(&iss, stream);
+//	    InitInStringStream  (&iss, stream);
 //	    while(isspace(c = GetChar(&iss)))
 //		;
 //	    UngetChar(&iss, c);
@@ -567,13 +587,6 @@ public class DatafileReader {
 
     private XdrReader(XDRInputStream in) throws IOException {
       this.in = in;
-
-      if(in.readByte() != 'X') {
-        throw new IOException("input format does not match XDR");
-      }
-      if(in.readByte() == -1) {
-        throw new EOFException();
-      }
     }
 
     public XdrReader(InputStream conn) throws IOException {

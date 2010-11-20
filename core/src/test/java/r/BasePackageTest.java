@@ -19,38 +19,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive.types;
+package r;
 
-import org.junit.Before;
 import org.junit.Test;
-import r.lang.EvalTestCase;
-import r.lang.PairList;
-import r.lang.PairListExp;
+import r.lang.EnvExp;
 import r.lang.SEXP;
-import r.lang.primitive.Subset;
+import r.parser.RParser;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
-
-public class SubsetTest extends EvalTestCase {
-
-  @Before
-  public void setUp() {
-  }
+public class BasePackageTest {
 
 
   @Test
-  public void pairListExact() {
+  public void loadBase() throws IOException {
 
-    PairList list = PairListExp.newBuilder()
-        .add(symbol("alligator"), c(1))
-        .add(symbol("aardvark"), c(3))
-        .build();
-
-    SEXP result = Subset.index(list, "all");
-    assertThat(result, equalTo((SEXP)c(1)));
-
+    EnvExp global = EnvExp.createGlobalEnvironment();
+    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
+    SEXP loadMethod = RParser.parseSource(reader).evaluate(global).getExpression();
+    loadMethod.evaluate(global);
   }
-
 }

@@ -40,6 +40,7 @@ public class BaseFrame implements EnvExp.Frame {
 
   private Map<SymbolExp, SEXP> builtins = new HashMap<SymbolExp, SEXP>();
   private Map<SymbolExp, SEXP> internals = new HashMap<SymbolExp, SEXP>();
+  private Map<SymbolExp, SEXP> loaded = new HashMap<SymbolExp, SEXP>();
 
   @Override
   public Set<SymbolExp> getSymbols() {
@@ -50,6 +51,10 @@ public class BaseFrame implements EnvExp.Frame {
   public SEXP getVariable(SymbolExp name) {
     SEXP value = builtins.get(name);
     if(value != null) {
+      return value;
+    }
+    value = loaded.get(name);
+    if(value != null ) {
       return value;
     }
     return SymbolExp.UNBOUND_VALUE;
@@ -66,7 +71,7 @@ public class BaseFrame implements EnvExp.Frame {
 
   @Override
   public void setVariable(SymbolExp name, SEXP value) {
-    throw new UnsupportedOperationException();
+    loaded.put(name,value);
   }
 
   private BaseFrame() {
@@ -94,7 +99,7 @@ public class BaseFrame implements EnvExp.Frame {
   }
 
   private void installPlatform() {
-      builtins.put(new SymbolExp(".Platform"), ListExp.build()
+      builtins.put(new SymbolExp(".Platform"), ListExp.newBuilder()
         .add("OS.type", new StringExp(resolveOsName()))
         .add("file.sep", new StringExp("/"))
         .add("GUI", new StringExp("unknown"))

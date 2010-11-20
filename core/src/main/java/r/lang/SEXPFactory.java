@@ -21,8 +21,6 @@
 
 package r.lang;
 
-import r.lang.exception.EvalException;
-
 /**
  * Creates a {@code SEXP} from a Java object
  */
@@ -51,6 +49,9 @@ public class SEXPFactory {
     } else if(result instanceof String) {
       return new StringExp( (String) result );
 
+    } else if(result instanceof int[]) {
+      return new IntExp((int[]) result);
+
     } else if(result instanceof double[]) {
       return new DoubleExp((double[]) result);
 
@@ -58,7 +59,7 @@ public class SEXPFactory {
       return new LogicalExp((boolean[]) result);
 
     } else {
-      throw new EvalException("JVM method returned incovertable type: " + result.getClass().getName());
+      return new ExternalExp(result, NullExp.INSTANCE, NullExp.INSTANCE);
     }
   }
 

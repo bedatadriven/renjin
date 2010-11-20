@@ -50,6 +50,7 @@ class FriendlyTypesNames {
     names.put(Double.class, DoubleExp.TYPE_NAME);
     names.put(Double.TYPE, DoubleExp.TYPE_NAME);
     names.put(String.class, StringExp.TYPE_NAME);
+    names.put(PairListExp.class, PairListExp.TYPE_NAME);
   }
 
   public static FriendlyTypesNames get() {

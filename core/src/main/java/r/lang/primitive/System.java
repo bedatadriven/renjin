@@ -28,4 +28,9 @@ public class System {
   public static long sysTime() {
     return new Date().getTime();
   }
+
+  public static String getRHome() {
+    return "classpath:/R";
+  }
+
 }

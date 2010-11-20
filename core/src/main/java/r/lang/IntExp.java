@@ -21,6 +21,7 @@
 
 package r.lang;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.UnmodifiableIterator;
 
 import java.util.Arrays;
@@ -105,6 +106,11 @@ public class IntExp extends AtomicExp implements Iterable<Integer> {
   }
 
   @Override
+  public SEXP subset(int index) {
+    return new IntExp( values[index-1] );
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -126,7 +132,10 @@ public class IntExp extends AtomicExp implements Iterable<Integer> {
     if (values.length == 1) {
       return Integer.toString(values[0]);
     } else {
-      return Arrays.toString(values);
+      StringBuilder sb = new StringBuilder();
+      sb.append("c(");
+      Joiner.on(", ").appendTo(sb, this);
+      return sb.append(")").toString();
     }
   }
 

@@ -36,7 +36,6 @@ import java.util.ListIterator;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
-import static r.lang.PairListExp.Predicates;
 
 /**
  * The function closure data type.
@@ -92,9 +91,13 @@ public class ClosureExp extends SEXP implements FunExp {
   public EvalResult apply(LangExp call, PairList args, EnvExp rho) {
 
     EnvExp functionEnvironment = EnvExp.createChildEnvironment(enclosingEnvironment);
-    matchArgumentsInto(args, enclosingEnvironment, functionEnvironment);
+    matchArgumentsInto(args, enclosingEnvironment, functionEnvironment, rho);
 
-    return body.evaluate(functionEnvironment);
+    EvalResult result = body.evaluate(functionEnvironment);
+
+    functionEnvironment.exit();
+
+    return result;
   }
 
   /**
@@ -159,11 +162,25 @@ public class ClosureExp extends SEXP implements FunExp {
    * If any arguments remain unmatched an error is declared.
    *
    * @param actuals the actual arguments supplied to the list
-   * @param innerEnv the environment in which to resolve the arguments
+   * @param innerEnv the environment in which to resolve the arguments;
+   * @param rho  the environment from which the function is called
    */
-  private void matchArgumentsInto(PairList actuals, EnvExp outerEnv, EnvExp innerEnv) {
+  private void matchArgumentsInto(PairList actuals, EnvExp enclosure, EnvExp innerEnv, EnvExp rho) {
 
-    List<PairListExp> unmatchedActuals = Lists.newArrayList(actuals.listNodes());
+
+
+    List<PairListExp> unmatchedActuals = Lists.newArrayList();
+    for(PairListExp argNode : actuals.listNodes()) {
+      if(SymbolExp.ELLIPSES.equals(argNode.getValue())) {
+        DotExp dotExp = (DotExp) argNode.getValue().evalToExp(rho);
+        for(PairListExp dotArg : dotExp.getPromises().listNodes()) {
+          unmatchedActuals.add(dotArg);
+        }
+      }  else {
+        unmatchedActuals.add(argNode);
+      }
+    }
+
     List<PairListExp> unmatchedFormals = Lists.newArrayList(formals.listNodes());
 
     // do exact matching
@@ -171,11 +188,11 @@ public class ClosureExp extends SEXP implements FunExp {
       PairListExp formal = formalIt.next();
       if(formal.hasTag()) {
         SymbolExp name = (SymbolExp) formal.getTag();
-        Collection<PairListExp> matches = Collections2.filter(unmatchedActuals, Predicates.matches(name));
+        Collection<PairListExp> matches = Collections2.filter(unmatchedActuals, PairListExp.Predicates.matches(name));
 
         if(matches.size() == 1) {
           PairListExp match = first(matches);
-          innerEnv.setVariable(name, new PromiseExp( match.getValue(), outerEnv ));
+          innerEnv.setVariable(name, new PromiseExp( match.getValue(), rho ));
           formalIt.remove();
           unmatchedActuals.remove(match);
 
@@ -186,15 +203,16 @@ public class ClosureExp extends SEXP implements FunExp {
     }
 
     // do partial matching
-    Collection<PairListExp> remainingNamedFormals = filter(unmatchedFormals, Predicates.hasTag());
+    Collection<PairListExp> remainingNamedFormals = filter(unmatchedFormals, PairListExp.Predicates.hasTag());
     for(Iterator<PairListExp> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
       PairListExp actual = actualIt.next();
       if(actual.hasTag()) {
-        Collection<PairListExp> matches = Collections2.filter(remainingNamedFormals, Predicates.startsWith(actual.getTag()));
+        Collection<PairListExp> matches = Collections2.filter(remainingNamedFormals,
+            PairListExp.Predicates.startsWith(actual.getTag()));
 
         if(matches.size() == 1) {
           PairListExp match = first(matches);
-          innerEnv.setVariable(match.getTag(), new PromiseExp( actual.getValue(), outerEnv ));
+          innerEnv.setVariable(match.getTag(), new PromiseExp( actual.getValue(), rho ));
           actualIt.remove();
           unmatchedFormals.remove(match);
 
@@ -211,15 +229,16 @@ public class ClosureExp extends SEXP implements FunExp {
     PeekingIterator<PairListExp> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
     while( formalIt.hasNext()) {
       PairListExp formal = formalIt.next();
-      if(formal.getTag().getPrintName().equals("...")) {
-        PairListExp.Builder builder = new PairListExp.Builder();
+      if(SymbolExp.ELLIPSES.equals(formal.getTag())) {
+        PairListExp.Builder promises = PairListExp.newBuilder();
         while(actualIt.hasNext()) {
-          builder.add( new PromiseExp( actualIt.next().getValue(), outerEnv ) );
+          PairListExp actual = actualIt.next();
+          promises.add( actual.getRawTag(),  new PromiseExp( actual.getValue(), rho ) );
         }
-        innerEnv.setVariable(formal.getTag(), builder.list());
+        innerEnv.setVariable(formal.getTag(), new DotExp( promises.build() ));
 
       } else if( hasNextUnTagged(actualIt) ) {
-        innerEnv.setVariable(formal.getTag(), new PromiseExp( nextUnTagged(actualIt).getValue(), outerEnv ) );
+        innerEnv.setVariable(formal.getTag(), new PromiseExp( nextUnTagged(actualIt).getValue(), rho ) );
 
       } else if( formal.getValue() == SymbolExp.MISSING_ARG ) {
         innerEnv.setVariable(formal.getTag(), SymbolExp.MISSING_ARG);

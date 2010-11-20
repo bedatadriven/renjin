@@ -37,7 +37,7 @@ public abstract class AtomicExp extends SEXP {
   public abstract Class getElementClass();
 
 
-  public static boolean isAtomic(Class<? extends SEXP> expClass) {
+  public static boolean isAtomic(Class<?> expClass) {
     return AtomicExp.class.isAssignableFrom(expClass);
   }
 

@@ -21,13 +21,11 @@
 
 package r.lang;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 import r.lang.primitive.BaseFrame;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The Environment data type.
@@ -62,6 +60,14 @@ public class EnvExp extends SEXP implements RecursiveExp {
   private EnvExp globalEnvironment;
   private EnvExp baseEnvironment;
 
+  private List<SEXP> onExit = Lists.newArrayList();
+
+
+  /**
+   * The root of the environment hierarchy.
+   */
+  public static final EmptyEnv EMPTY = new EmptyEnv();
+
   public static EnvExp createGlobalEnvironment() {
     EnvExp global = new EnvExp();
     global.name = "R_GlobalEnv";
@@ -78,7 +84,7 @@ public class EnvExp extends SEXP implements RecursiveExp {
     base.name = "base";
     base.baseEnvironment = base;
     base.globalEnvironment = global;
-    base.parent = EmptyEnv.INSTANCE;
+    base.parent = EMPTY;
     base.frame = BaseFrame.INSTANCE;
     return base;
   }
@@ -92,6 +98,17 @@ public class EnvExp extends SEXP implements RecursiveExp {
     child.frame = new HashFrame();
     return child;
   }
+
+  public void setVariables(PairList pairList) {
+    for(PairListExp node : pairList.listNodes()) {
+      if(!node.hasTag()) {
+        throw new IllegalArgumentException("All elements of pairList must be tagged");
+      }
+      setVariable(node.getTag(), node.getValue());
+    }
+  }
+
+
 
   public interface Frame {
     Set<SymbolExp> getSymbols();
@@ -199,6 +216,10 @@ public class EnvExp extends SEXP implements RecursiveExp {
     return frame.getVariable(symbol);
   }
 
+  public boolean hasVariable(SymbolExp symbol) {
+    return frame.getVariable(symbol) != SymbolExp.UNBOUND_VALUE;
+  }
+
   private static class EnvIterator extends UnmodifiableIterator<EnvExp> {
     private EnvExp next;
 
@@ -208,7 +229,7 @@ public class EnvExp extends SEXP implements RecursiveExp {
 
     @Override
     public boolean hasNext() {
-      return next != EmptyEnv.INSTANCE;
+      return next != EMPTY;
     }
 
     @Override
@@ -216,6 +237,52 @@ public class EnvExp extends SEXP implements RecursiveExp {
       EnvExp toReturn = next;
       next = next.parent;
       return toReturn;
+    }
+  }
+
+  public void setOnExit(SEXP exp) {
+    onExit = Lists.newArrayList(exp);
+  }
+
+  public void addOnExit(SEXP exp) {
+    onExit.add(exp);
+  }
+
+  public void exit() {
+    for(SEXP exp : onExit) {
+      exp.evaluate(this);
+    }
+  }
+
+
+  private static class EmptyEnv extends EnvExp {
+
+    private EmptyEnv() {
+    }
+
+    @Override
+    public SEXP findVariable(SymbolExp symbol) {
+      return SymbolExp.UNBOUND_VALUE;
+    }
+
+    @Override
+    public SEXP getVariable(SymbolExp symbol) {
+      return SymbolExp.UNBOUND_VALUE;
+    }
+
+    @Override
+    public SEXP findInternal(SymbolExp symbol) {
+      return SymbolExp.UNBOUND_VALUE;
+    }
+
+    @Override
+    public EnvExp getParent() {
+      throw new UnsupportedOperationException("The empty environment does not have a parent.");
+    }
+
+    @Override
+    public void setParent(EnvExp parent) {
+      throw new UnsupportedOperationException("The empty environment does not have a parent.");
     }
   }
 }

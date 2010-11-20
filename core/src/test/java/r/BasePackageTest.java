@@ -47,5 +47,9 @@ public class BasePackageTest extends EvalTestCase {
     StringExp letters = (StringExp) eval("letters");
     assertThat( letters.get(0),  equalTo( "a" ));
     assertThat( letters.get(25), equalTo( "z" ));
+
+    eval( "assign('x', 42) ");
+
+    assertThat( eval( "x" ) , equalTo( c(42) ));
   }
 }

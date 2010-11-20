@@ -23,6 +23,7 @@ package r.lang.primitive;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.AlwaysNull;
@@ -33,6 +34,8 @@ import r.lang.primitive.binding.AtomicAccessors;
 import r.lang.primitive.binding.AtomicBuilder;
 import r.lang.primitive.binding.AtomicBuilders;
 import r.parser.ParseUtil;
+
+import java.util.List;
 
 /**
  * Primitive type inspection and coercion functions
@@ -165,6 +168,21 @@ public class Types {
 
   public static int asInteger(String x) {
     return (int)ParseUtil.parseDouble(x);
+  }
+
+  public static EnvExp asEnvironment(EnvExp arg) {
+    return arg;
+  }
+
+  public static EnvExp asEnvironment(@Environment EnvExp rho, double index) {
+    EnvExp result = rho.getGlobalEnvironment();
+    for(int i=2;i<index;++i) {
+      if(result == EnvExp.EMPTY) {
+        throw new EvalException("invalid 'pos' argument");
+      }
+      result = result.getParent();
+    }
+    return result;
   }
 
   public static ListExp list(@ArgumentList PairList arguments) {
@@ -328,6 +346,16 @@ public class Types {
       result[i] = Iterables.indexOf(classes, Predicates.equalTo( what.get(i)) ) + 1;
     }
     return new IntExp( result );
+  }
+
+  public static StringExp search(@Environment EnvExp rho) {
+    List<String> names = Lists.newArrayList();
+    EnvExp env = rho.getGlobalEnvironment();
+    while(env != EnvExp.EMPTY) {
+      names.add(env.getName());
+      env = env.getParent();
+    }
+    return new StringExp(names);
   }
 
 }

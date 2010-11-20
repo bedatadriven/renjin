@@ -33,6 +33,8 @@ import r.parser.ParseState;
 import r.parser.RLexer;
 import r.parser.RParser;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 
 /**
@@ -44,7 +46,6 @@ public class Interpreter implements Runnable {
   private EnvExp global;
 
   public Interpreter(Console console) {
-  /// not yet ready:  this.global.loadBasePackage();
 
     this.console = console;
 
@@ -66,6 +67,13 @@ public class Interpreter implements Runnable {
     RParser parser = new RParser(options, state, lexer);
 
     printGreeting();
+
+    try {
+      loadBasePackage();
+    } catch (IOException e) {
+      console.println("Error loading base package");
+    }
+
 
     while(true) {
 
@@ -111,8 +119,14 @@ public class Interpreter implements Runnable {
       "Type 'contributors()' for more information and " +
       "'citation()' on how to cite R or R packages in publications.\n\n");
 
-    console.print("Type 'demo()' for some demos, 'help()' for on-line help, or " +
-      "'help.start()' for an HTML browser interface to help. " +
-      "Type 'q()' to quit R.\n\n");
+//    console.print("Type 'demo()' for some demos, 'help()' for on-line help, or " +
+//      "'help.start()' for an HTML browser interface to help. " +
+//      "Type 'q()' to quit R.\n\n");
+  }
+
+  private void loadBasePackage() throws IOException {
+    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
+    SEXP loadingScript = RParser.parseSource(reader).evaluate(global).getExpression();
+    loadingScript.evaluate(global);
   }
 }

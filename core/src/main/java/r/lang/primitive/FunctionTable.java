@@ -243,7 +243,7 @@ public class FunctionTable {
 
       f("attach", /*attach*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
       f("detach", /*detach*/ null, 0, 111, 1, PP_FUNCALL, PREC_FN, 0),
-      f("search", /*search*/ null, 0, 11, 0, PP_FUNCALL, PREC_FN, 0),
+      f("search", Types.class, 0, 11, 0, PP_FUNCALL, PREC_FN, 0),
 
 
 /* Mathematical Functions */
@@ -488,7 +488,7 @@ public class FunctionTable {
       f("do.call", /*docall*/ null, 0, 211, 3, PP_FUNCALL, PREC_FN, 0),
       f("as.call", /*ascall*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("type.convert", /*typecvt*/ null, 1, 11, 4, PP_FUNCALL, PREC_FN, 0),
-      f("as.environment", /*as_environment*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("as.environment", Types.class, "asEnvironment", 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("storage.mode<-", /*storage_mode*/ null, 0, 1, 2, PP_FUNCALL, PREC_FN, 0),
 
 

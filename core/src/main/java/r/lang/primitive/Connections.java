@@ -86,18 +86,39 @@ public class Connections {
    *  Retrieves a sequence of bytes as specified by a position/length key
    *  from a file, optionally decompresses, and unserializes the bytes.
    *  If the result is a promise, then the promise is forced.
+   * @param key c(offset, length)
+   * @param file the path to the file from which to load the value
+   * @param compression 0=not compressed, 1=deflate, ...
+   * @param restoreFunction a function called to load persisted objects from the serialized stream
    */
-  public static SEXP lazyLoadDBfetch(@Environment EnvExp rho, IntExp key, String file, int compressed, SEXP envhook) throws IOException, DataFormatException {
+  public static SEXP lazyLoadDBfetch(@Environment final EnvExp rho,
+                                     IntExp key,
+                                     String file,
+                                     int compression,
+                                     final SEXP restoreFunction) throws IOException, DataFormatException
+  {
     byte buffer[] = readRawFromFile(file, key);
 
-    if(compressed == 1) {
+    if(compression == 1) {
       buffer = decompress1(buffer);
-    } else if(compressed > 1) {
-      throw new UnsupportedOperationException("compressed==" + compressed + " in lazyLoadDBfetch not yet implemented");
+    } else if(compression > 1) {
+      throw new UnsupportedOperationException("compressed==" + compression + " in lazyLoadDBfetch not yet implemented");
     }
 
-    DatafileReader reader = new DatafileReader(rho, new ByteArrayInputStream(buffer));
-    return reader.readFile();
+    DatafileReader reader = new DatafileReader(rho, new ByteArrayInputStream(buffer), new DatafileReader.PersistentRestorer() {
+      @Override
+      public SEXP restore(SEXP values) {
+        LangExp call = LangExp.newCall(restoreFunction);
+        SEXP result = call.evalToExp(rho.getGlobalEnvironment());
+        return result;
+      }
+    });
+
+    SEXP exp = reader.readFile();
+    if(exp instanceof PromiseExp) {
+      exp = ((PromiseExp) exp).force().getExpression();
+    }
+    return exp;
   }
 
   public static byte[] decompress1(byte buffer[]) throws IOException, DataFormatException {

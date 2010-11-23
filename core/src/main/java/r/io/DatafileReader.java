@@ -103,14 +103,20 @@ public class DatafileReader {
 
   private List<SEXP> referenceTable;
 
+  private PersistentRestorer restorer;
+
   public DatafileReader(EnvExp rho, InputStream conn) {
     this.rho = rho;
     this.conn = conn;
     this.referenceTable = new ArrayList<SEXP>();
   }
 
-  public SEXP readFile() throws IOException {
+  public DatafileReader(EnvExp rho, InputStream conn, PersistentRestorer restorer) {
+    this(rho, conn);
+    this.restorer = restorer;
+  }
 
+  public SEXP readFile() throws IOException {
     in = readHeader(conn);
     version = in.readInt();
     writerVersion = new Version(in.readInt());
@@ -207,7 +213,7 @@ public class DatafileReader {
       case REFSXP:
         return readReference(flags);
       case PERSISTSXP:
-        return readPersistExp();
+        return readPersistentExp();
       case SYMSXP:
         return readSymbol();
       case PACKAGESXP:
@@ -327,13 +333,12 @@ public class DatafileReader {
 
   private SEXP readSymbol() throws IOException {
     CharExp printName = (CharExp) readExp();
-    SymbolExp symbol = new SymbolExp(printName.getValue());
-    addReadRef(symbol);
-    return symbol;
+    return addReadRef( new SymbolExp( printName.getValue()) );
   }
 
-  private void addReadRef(SEXP value) {
+  private SEXP addReadRef(SEXP value) {
     referenceTable.add(value);
+    return value;
   }
 
   private SEXP readNamespace() throws IOException {
@@ -448,10 +453,24 @@ public class DatafileReader {
     throw new IOException("readExternalPointer not yet implemented");
   }
 
-  private SEXP readPersistExp() throws IOException {
-    throw new IOException("readPersistExp not yet implemented");
+  private SEXP readPersistentExp() throws IOException {
+    if(restorer == null) {
+      throw new IOException("no restore method available");
+    }
+    return addReadRef( restorer.restore(readStringVector()) );
   }
 
+  private StringExp readStringVector() throws IOException {
+    if(in.readInt() != 0) {
+      throw new IOException("names in persistent strings are not supported yet");
+    }
+    int len = in.readInt();
+    String values[] = new String[len];
+    for(int i=0;i!=len;++i) {
+      values[i] = ((CharExp)readExp()).getValue();
+    }
+    return new StringExp(values);
+  }
 
   private interface StreamReader {
     int readInt() throws IOException;
@@ -675,5 +694,8 @@ public class DatafileReader {
 
   }
 
+  public interface PersistentRestorer {
+    SEXP restore(SEXP values);
+  }
 
 }

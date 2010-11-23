@@ -37,6 +37,8 @@ import r.parser.ParseUtil;
 
 import java.util.List;
 
+import static r.lang.Functions.modePredicate;
+
 /**
  * Primitive type inspection and coercion functions
  */
@@ -185,6 +187,15 @@ public class Types {
     return result;
   }
 
+  public static EnvExp getParentEnv(EnvExp environment) {
+    return environment.getParent();
+  }
+
+  public static EnvExp setParentEnv(EnvExp environment, EnvExp newParent) {
+    environment.setParent(newParent);
+    return environment;
+  }
+
   public static ListExp list(@ArgumentList PairList arguments) {
 
     int n = arguments.length();
@@ -292,6 +303,15 @@ public class Types {
 
   public static EnvExp globalEnv(@Environment EnvExp rho) {
     return rho.getGlobalEnvironment();
+  }
+
+  public static boolean exists(SymbolExp x, EnvExp environment, String mode, boolean inherits) {
+    return environment.findVariable(x, modePredicate(mode), inherits)
+        != SymbolExp.UNBOUND_VALUE;
+  }
+
+  public static SEXP get(SymbolExp x, EnvExp environment, String mode, boolean inherits) {
+    return environment.findVariable(x, modePredicate(mode), inherits);
   }
 
   public static int length(SEXP exp) {

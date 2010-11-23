@@ -23,13 +23,16 @@ package r.lang;
 
 import com.google.common.collect.Lists;
 import r.lang.exception.EvalException;
+import r.lang.exception.FunctionCallException;
 import r.lang.primitive.FunctionTable;
 import r.lang.primitive.binding.PrimitiveMethod;
 import r.lang.primitive.binding.RuntimeInvoker;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.List;
+
+import static java.lang.reflect.Modifier.isPublic;
+import static java.lang.reflect.Modifier.isStatic;
 
 public abstract class PrimitiveExp extends SEXP implements FunExp {
 
@@ -75,8 +78,11 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
       throw new EvalException(message.toString());
     }
 
-    return RuntimeInvoker.INSTANCE.invoke(rho, call,
-        overloads);
+    try {
+      return RuntimeInvoker.INSTANCE.invoke(rho, call, overloads);
+    } catch (EvalException e) {
+      throw new FunctionCallException(call, e);
+    }
   }
 
   protected List<PrimitiveMethod> getMethodOverloads() {
@@ -84,8 +90,8 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
       methodOverloads = Lists.newArrayList();
       if(functionEntry.functionClass != null) {
         for(Method method : functionEntry.functionClass.getMethods()) {
-          if(Modifier.isPublic(method.getModifiers()) &&
-              Modifier.isStatic(method.getModifiers()) &&
+          if(isPublic(method.getModifiers()) &&
+             isStatic(method.getModifiers()) &&
               method.getName().equals(functionEntry.methodName)) {
 
             methodOverloads.add(new PrimitiveMethod(method));
@@ -97,7 +103,6 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
     return methodOverloads;
   }
 
-
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
@@ -107,6 +112,4 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
   public String toString() {
     return functionEntry.name + "()";
   }
-
-
 }

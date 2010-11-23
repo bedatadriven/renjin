@@ -97,4 +97,13 @@ public class LangExp extends PairListExp {
     }
     return sb.append(")").toString();
   }
+
+  public static LangExp newCall(SEXP function, SEXP... arguments) {
+    if(arguments.length == 0) {
+      return new LangExp(function, NullExp.INSTANCE);
+    } else {
+      return new LangExp(function, PairListExp.fromArray(arguments));
+    }
+  }
+
 }

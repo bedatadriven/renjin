@@ -21,8 +21,8 @@
 
 package r.lang;
 
+import com.google.common.base.Preconditions;
 import r.lang.exception.EvalException;
-import r.util.ArgChecker;
 
 public class SymbolExp extends SEXP {
                             
@@ -36,6 +36,8 @@ public class SymbolExp extends SEXP {
   public static final SymbolExp CLASS = new SymbolExp("class") ;
   public static final SymbolExp STDOUT = new SymbolExp("stdout");
   public static final SymbolExp ELLIPSES = new SymbolExp("...");
+  public static final SymbolExp SRC_REF = new SymbolExp("srcref");
+  public static final SymbolExp SRC_FILE = new SymbolExp("srcfile");
 
   private String printName;
 
@@ -43,7 +45,7 @@ public class SymbolExp extends SEXP {
   }
 
   public SymbolExp(String printName) {
-    ArgChecker.notNull(printName);
+    Preconditions.checkNotNull(printName);
 
     this.printName = printName;
   }

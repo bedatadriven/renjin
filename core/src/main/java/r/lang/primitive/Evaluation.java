@@ -67,9 +67,7 @@ public class Evaluation {
    * Note that assignment to an attached list or data frame changes the attached copy
    *  and not the original object: see attach and with.
    */
-  public static EvalResult assign(String symbolName, SEXP value, EnvExp environ, boolean inherits) {
-
-    SymbolExp symbol = new SymbolExp(symbolName);
+  public static EvalResult assign(SymbolExp symbol, SEXP value, EnvExp environ, boolean inherits) {
 
     if(!inherits) {
       environ.setVariable(symbol, value);
@@ -95,23 +93,19 @@ public class Evaluation {
    *
    */
   public static EvalResult assignLeft(@Environment EnvExp rho, @Evaluate(false) LangExp call, SEXP value) {
-    PrimitiveExp fn = (PrimitiveExp) call.getFunction().evalToExp(rho);
-    SymbolExp newFn = new SymbolExp(fn.getName() + "<-");
-
+    SymbolExp functionName = (SymbolExp) call.getFunction();
+    SymbolExp newFn = new SymbolExp(functionName.getPrintName() + "<-");
+                          
     // This is the symbol to which we're ultimately assigning
     SymbolExp target = call.getArgument(0);
 
-    PairList newArgs = PairListExp.newBuilder()
-        .add(target)
-        .add(value)
-        .build();
-    LangExp newCall = new LangExp(newFn, newArgs);
-
-    SEXP result = newCall.evaluate(rho).getExpression();
+    SEXP result = LangExp.newCall(newFn, target, value)
+                         .evaluate(rho)
+                         .getExpression();
 
     rho.setVariable(target, result);
 
-    return EvalResult.nonVisible(target);
+    return EvalResult.nonVisible(result);
   }
 
   public static void onExit( @Environment EnvExp rho, @Evaluate(false) SEXP exp, boolean add ) {
@@ -239,23 +233,13 @@ public class Evaluation {
   }
 
 
-  public static SEXP missing(EnvExp rho, LangExp call) {
-    PairList args = call.getArguments();
-    SymbolExp symbol;
-    try {
-      symbol = (SymbolExp) args.getFirst();
-    } catch (ClassCastException e) {
-      throw new EvalException(call, "invalid use of 'missing'");
-    }
+  public static boolean missing(@Environment EnvExp rho, SymbolExp symbol) {
     SEXP value = rho.findVariable(symbol);
     if(value == SymbolExp.UNBOUND_VALUE) {
-      throw new EvalException(call, "'missing' can only be used for arguments");
-
-    } else if(value == SymbolExp.MISSING_ARG) {
-      return new LogicalExp(true);
+      throw new EvalException("'missing' can only be used for arguments");
 
     } else {
-      return new LogicalExp(false);
+      return value == SymbolExp.MISSING_ARG;
     }
   }
 

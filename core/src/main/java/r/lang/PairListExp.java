@@ -21,11 +21,11 @@
 
 package r.lang;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
-import r.util.ArgChecker;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -129,7 +129,7 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
   }
 
   public void setNextNode(PairListExp nextNode) {
-    ArgChecker.notNull(nextNode);
+    Preconditions.checkNotNull(nextNode);
     this.nextNode = nextNode;
   }
 
@@ -192,18 +192,22 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
       // so-called "stretchy lists" used by the parser
       return "[ CAR=this, CDR=" + nextNode + "]";
     } else {
-
       StringBuilder sb = new StringBuilder("pairlist(");
-      for (PairListExp node : listNodes()) {
-        if (node != PairListExp.this) {
-          sb.append(", ");
-        }
-        if (node.hasTag()) {
-          sb.append(node.getRawTag()).append("=");
-        }
-        sb.append(node.getValue());
+      appendValuesTo(sb);
+      sb.append(")");
+      return sb.toString();
+    }
+  }
+
+  public void appendValuesTo(StringBuilder sb) {
+    for (PairListExp node : listNodes()) {
+      if (node != PairListExp.this) {
+        sb.append(", ");
       }
-      return sb.append(")").toString();
+      if (node.hasTag()) {
+        sb.append(node.getRawTag()).append("=");
+      }
+      sb.append(node.getValue());
     }
   }
 

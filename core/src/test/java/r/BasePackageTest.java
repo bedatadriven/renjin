@@ -40,16 +40,31 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void loadBase() throws IOException {
 
-    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadingScript = RParser.parseSource(reader).evaluate(global).getExpression();
-    loadingScript.evaluate(global);
+    loadBasePackage();
 
     StringExp letters = (StringExp) eval("letters");
     assertThat( letters.get(0),  equalTo( "a" ));
     assertThat( letters.get(25), equalTo( "z" ));
 
     eval( "assign('x', 42) ");
-
     assertThat( eval( "x" ) , equalTo( c(42) ));
+  }
+
+
+  @Test
+  public void surveyPackage() throws Exception {
+
+    loadBasePackage();
+
+    System.out.println( eval( ".libPaths() "));
+
+   // eval(" library(survey) ");
+
+  }
+
+  private void loadBasePackage() throws IOException {
+    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
+    SEXP loadingScript = RParser.parseSource(reader).evaluate(global).getExpression();
+    loadingScript.evaluate(global);
   }
 }

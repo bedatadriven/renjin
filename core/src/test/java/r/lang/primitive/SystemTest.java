@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,26 +19,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.util;
+package r.lang.primitive;
 
-public class ArgChecker {
+import org.junit.Test;
+import r.lang.StringExp;
 
-  public static <T> T instanceOf(Object arg, Class<T> clazz) {
-    if (!clazz.isAssignableFrom(arg.getClass())) {
-      throw new IllegalArgumentException("Expected argument of class " + clazz.getName());
-    }
-    return (T) arg;
+public class SystemTest {
+
+  @Test
+  public void glob() {
+    java.lang.System.out.println( System.glob( c( "c:\\P*\\A*" ) , false) );
+    java.lang.System.out.println( System.glob( c( "c:\\*" ) , true) );
+    java.lang.System.out.println( System.glob( c( "c:\\.*" ) , true) );
   }
 
-  public static void notNull(Object o) {
-    if (o == null) {
-      throw new IllegalArgumentException("Argument cannot be null");
-    }
+  private StringExp c(String... values) {
+    return new StringExp(values);
   }
 
-  public static void nonNegative(int i, String message) {
-    if (i < 0) {
-      throw new IllegalArgumentException("Argument cannot be negative");
-    }
-  }
 }

@@ -21,7 +21,10 @@
 
 package r.lang.exception;
 
+import r.lang.IntExp;
 import r.lang.LangExp;
+import r.lang.SEXP;
+import r.lang.SymbolExp;
 
 /**
  * Wraps an {@link r.lang.exception.EvalException EvalException} and includes
@@ -30,11 +33,19 @@ import r.lang.LangExp;
 public class FunctionCallException extends RuntimeException {
 
   private final LangExp call;
-  private final String message;
 
-  public FunctionCallException(LangExp call, EvalException e) {
+  public FunctionCallException(LangExp call, Exception e) {
+    super(formatMessage(call, e), e);
     this.call = call;
-    this.message = e.getMessage();
   }
 
+  private static String formatMessage(LangExp call, Exception e) {
+    String message = e.getMessage();
+    SEXP sexp = call.getAttribute(SymbolExp.SRC_REF);
+    if(sexp instanceof IntExp) {
+      SEXP srcfile = sexp.getAttribute(SymbolExp.SRC_FILE);
+      message += " (" + srcfile + ": " + ((IntExp) sexp).get(0) + ")";
+    }
+    return message;
+  }
 }

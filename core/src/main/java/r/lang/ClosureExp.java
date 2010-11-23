@@ -89,7 +89,10 @@ public class ClosureExp extends SEXP implements FunExp {
 
   @Override
   public EvalResult apply(LangExp call, PairList args, EnvExp rho) {
+    return apply(rho, args);
+  }
 
+  public EvalResult apply(EnvExp rho, PairList args) {
     EnvExp functionEnvironment = EnvExp.createChildEnvironment(enclosingEnvironment);
     matchArgumentsInto(args, enclosingEnvironment, functionEnvironment, rho);
 
@@ -277,5 +280,15 @@ public class ClosureExp extends SEXP implements FunExp {
 
   private <X> X first(Iterable<X> values) {
     return values.iterator().next();
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("function(");
+    if(getFormals() instanceof PairListExp) {
+      ((PairListExp) getFormals()).appendValuesTo(sb);
+    }
+    return sb.append(")").toString();
   }
 }

@@ -21,7 +21,15 @@
 
 package r.lang.primitive;
 
+import com.google.common.collect.Lists;
+import r.lang.SEXP;
+import r.lang.StringExp;
+
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.Date;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class System {
 
@@ -33,4 +41,115 @@ public class System {
     return "classpath:/R";
   }
 
+  /**
+   * Function to do wildcard expansion (also known as ‘globbing’) on file paths.
+   *
+   * @param paths character vector of patterns for relative or absolute filepaths.
+   *  Missing values will be ignored.
+   * @param markDirectories  should matches to directories from patterns that do not
+   * already end in / or \ have a slash appended?
+   * May not be supported on all platforms.
+   * @return
+   */
+  public static StringExp glob(StringExp paths, boolean markDirectories) {
+    List<String> matching = Lists.newArrayList();
+    for(String path : paths) {
+      if(path != null) {
+        matching.addAll(FileScanner.scan(path, markDirectories));
+      }
+    }
+    return new StringExp(matching);
+  }
+
+  public static String pathExpand(SEXP pathExp) {
+    String path = "a";
+    if(path.startsWith("~/")) {
+      return java.lang.System.getProperty("user.home") + path.substring(2);
+    } else {
+      return path;
+    }
+  }
+
+  private static class FileScanner {
+    private List<String> matches = Lists.newArrayList();
+    private String[] parts;
+    private boolean markDirectories;
+
+    public static List<String> scan(String path, boolean markDirectories) {
+      FileScanner scanner=  new FileScanner(path, markDirectories);
+      scanner.matchRoots();
+      return scanner.matches;
+    }
+
+    private FileScanner(String path, boolean markDirectories) {
+      this.parts = path.split("[\\\\//]");
+      this.markDirectories = markDirectories;
+    }
+
+    private void matchRoots() {
+      for(File root : File.listRoots()) {
+        String rootName = root.getPath();
+        rootName = rootName.substring(0, rootName.length()-1);
+
+        if(rootName.equalsIgnoreCase(parts[0])) {
+          match(root, 1);
+        }
+      }
+    }
+
+    private void match(File dir, int partIndex) {
+      File[] matchingFiles = dir.listFiles(new WildcardFilter(parts[partIndex]));
+      if(matchingFiles != null) {
+        for(File match : matchingFiles) {
+          if(partIndex == parts.length-1) {
+            if( match.isDirectory() && markDirectories) {
+              matches.add(match.getAbsolutePath() + File.separator);
+            } else {
+              matches.add(match.getAbsolutePath());
+            }
+          } else if(match.isDirectory()) {
+            match(match, partIndex+1);
+          }
+        }
+      }
+    }
+
+    private static String wildcardPattern(String pattern) {
+      StringBuilder sb = new StringBuilder();
+      for(int i=0;i!=pattern.length();++i) {
+        switch(pattern.charAt(i)) {
+          case '.':
+            sb.append("\\.");
+            break;
+          case '?':
+            sb.append(".?");
+            break;
+          case '*':
+            sb.append(".*");
+            break;
+          default:
+            sb.appendCodePoint(pattern.codePointAt(i));
+        }
+      }
+      return sb.toString();
+    }
+
+    private static class WildcardFilter implements FilenameFilter {
+      private final boolean explicitDot;
+      private final Pattern regex;
+
+      private WildcardFilter(String wildcard) {
+        this.regex = Pattern.compile(wildcardPattern(wildcard));
+        this.explicitDot = wildcard.startsWith(".");
+      }
+
+      @Override
+      public boolean accept(File dir, String name) {
+        if(name.startsWith(".") && !explicitDot) {
+          return false;
+        }
+        return regex.matcher(name).matches();
+      }
+    }
+  }
 }

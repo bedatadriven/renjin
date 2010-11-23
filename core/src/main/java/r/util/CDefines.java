@@ -45,7 +45,7 @@ public class CDefines {
   //#define DATAPTR(x)	(((SEXPREC_ALIGN *) (x)) + 1)
 
   public static CharExp STRING_ELT(SEXP x, int i) {
-    StringExp vector = ArgChecker.instanceOf(x, StringExp.class);
+    StringExp vector = (StringExp)x;
     return new CharExp(vector.get(i));
   }
 
@@ -72,7 +72,7 @@ public class CDefines {
   //#define LISTVAL(x)	((x)->u.listsxp)
 
   public static SEXP TAG(SEXP e) {
-    ArgChecker.notNull(e);
+    Preconditions.checkNotNull(e);
     return e.getRawTag();
   }
 
@@ -83,8 +83,7 @@ public class CDefines {
    * @return the value of this list node
    */
   public static SEXP CAR(SEXP listExp) {
-    PairListExp typedList = ArgChecker.instanceOf(listExp, PairListExp.class);
-
+    PairListExp typedList = (PairListExp) listExp;
     return typedList.getValue();
   }
 
@@ -95,7 +94,7 @@ public class CDefines {
    * @return the next node in the list, or R_NilValue
    */
   public static SEXP CDR(SEXP listExp) {
-    PairListExp list = ArgChecker.instanceOf(listExp, PairListExp.class);
+    PairListExp list = (PairListExp)listExp;
 
     return list.hasNextNode() ? list.getNextNode() : R_NilValue;
   }
@@ -244,8 +243,8 @@ public class CDefines {
    * @return
    */
   public static PairListExp CONS(SEXP car, SEXP cdr) {
-    ArgChecker.notNull(car);
-    ArgChecker.notNull(cdr);
+    Preconditions.checkNotNull(car);
+    Preconditions.checkNotNull(cdr);
 
     if (cdr == R_NilValue) {
       return new PairListExp(car, null);
@@ -343,7 +342,7 @@ public class CDefines {
   }
 
   public static String translateChar(SEXP s) {
-    CharExp charVec = ArgChecker.instanceOf(s, CharExp.class);
+    CharExp charVec = (CharExp)s;
     return charVec.toString();
   }
 

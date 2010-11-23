@@ -46,6 +46,10 @@ public class PromiseExp extends SEXP implements RecursiveExp {
 
   @Override
   public EvalResult evaluate(EnvExp rho) {
+    return force();
+  }
+
+  public EvalResult force() {
     if (result == null) {
       this.result = expression.evaluate(environment);
       this.environment = null;

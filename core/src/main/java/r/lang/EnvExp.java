@@ -21,6 +21,8 @@
 
 package r.lang;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 import r.lang.primitive.BaseFrame;
@@ -182,12 +184,24 @@ public class EnvExp extends SEXP implements RecursiveExp {
     frame.setVariable(symbol, value);
   }
 
-  public SEXP findVariable(SymbolExp symbol) {
+  /**
+   * Searches the environment for a value that matches the given predicate.
+   *
+   * @param symbol The symbol for which to search
+   * @param predicate a predicate that tests possible return values
+   * @param inherits if {@code true}, enclosing frames are searched
+   * @return
+   */
+  public SEXP findVariable(SymbolExp symbol, Predicate<SEXP> predicate, boolean inherits) {
     SEXP value = frame.getVariable(symbol);
-    if(value != SymbolExp.UNBOUND_VALUE) {
+    if(value != SymbolExp.UNBOUND_VALUE && predicate.apply(value)) {
       return value;
     }
-    return parent.findVariable(symbol);
+    return parent.findVariable(symbol, predicate, inherits);
+  }
+
+  public final SEXP findVariable(SymbolExp symbol) {
+    return findVariable(symbol, Predicates.<SEXP>alwaysTrue(), true);
   }
 
   public SEXP findInternal(SymbolExp symbol) {
@@ -219,7 +233,7 @@ public class EnvExp extends SEXP implements RecursiveExp {
   public boolean hasVariable(SymbolExp symbol) {
     return frame.getVariable(symbol) != SymbolExp.UNBOUND_VALUE;
   }
-
+  
   private static class EnvIterator extends UnmodifiableIterator<EnvExp> {
     private EnvExp next;
 
@@ -261,7 +275,7 @@ public class EnvExp extends SEXP implements RecursiveExp {
     }
 
     @Override
-    public SEXP findVariable(SymbolExp symbol) {
+    public SEXP findVariable(SymbolExp symbol, Predicate<SEXP> predicate, boolean inherits) {
       return SymbolExp.UNBOUND_VALUE;
     }
 

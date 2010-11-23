@@ -2397,20 +2397,21 @@ public class RParser {
   }
 
   static SEXP makeSrcref(Location lloc, SEXP srcfile) {
-    IntExp val;
 
-    val = new IntExp(
-        lloc.begin.line,
-        lloc.begin.byteIndex,
-        lloc.end.line,
-        lloc.end.byteIndex,
-        lloc.begin.column,
-        lloc.end.column);
+    int values[] = new int[6];
+    values[0] = lloc.begin.line;
+    values[1] = lloc.begin.byteIndex;
+    values[2] = lloc.end.line;
+    values[3] = lloc.end.byteIndex;
+    values[4] = lloc.begin.column;
+    values[6] = lloc.end.column;
 
-    // TODO
-//        setAttrib(val, R_SrcfileSymbol, srcfile);
-//       setAttrib(val, R_ClassSymbol, mkString("srcref"));
-    return val;
+    PairList attributes = PairListExp.newBuilder()
+        .add(SymbolExp.SRC_FILE, srcfile)
+        .add(SymbolExp.CLASS, new StringExp("srcref"))
+        .build();
+
+    return new IntExp(values, attributes);
   }
 
   static SEXP attachSrcrefs(SEXP val, SEXP srcfile) {
@@ -2948,6 +2949,7 @@ public class RParser {
       formlist = CDR(formlist);
     }
   }
+
 }
 
 

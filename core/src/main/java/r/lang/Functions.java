@@ -22,10 +22,11 @@
 package r.lang;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 
 public class Functions {
   private Functions() {}
-
 
   public static Function<SEXP, Integer> length() {
     return new Function<SEXP, Integer>() {
@@ -45,4 +46,11 @@ public class Functions {
     };
   }
 
+  public static Predicate<SEXP> modePredicate(String mode) {
+    if(mode.equals("any")) {
+      return Predicates.alwaysTrue();
+    } else {
+      throw new UnsupportedOperationException("only mode 'any' as a predicate is implemented.");
+    }
+  }
 }

@@ -108,7 +108,7 @@ public class Connections {
     DatafileReader reader = new DatafileReader(rho, new ByteArrayInputStream(buffer), new DatafileReader.PersistentRestorer() {
       @Override
       public SEXP restore(SEXP values) {
-        LangExp call = LangExp.newCall(restoreFunction);
+        LangExp call = LangExp.newCall(restoreFunction, values);
         SEXP result = call.evalToExp(rho.getGlobalEnvironment());
         return result;
       }

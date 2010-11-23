@@ -305,13 +305,13 @@ public class Types {
     return rho.getGlobalEnvironment();
   }
 
-  public static boolean exists(SymbolExp x, EnvExp environment, String mode, boolean inherits) {
-    return environment.findVariable(x, modePredicate(mode), inherits)
+  public static boolean exists(String x, EnvExp environment, String mode, boolean inherits) {
+    return environment.findVariable(new SymbolExp(x), modePredicate(mode), inherits)
         != SymbolExp.UNBOUND_VALUE;
   }
 
-  public static SEXP get(SymbolExp x, EnvExp environment, String mode, boolean inherits) {
-    return environment.findVariable(x, modePredicate(mode), inherits);
+  public static SEXP get(String x, EnvExp environment, String mode, boolean inherits) {
+    return environment.findVariable(new SymbolExp(x), modePredicate(mode), inherits);
   }
 
   public static int length(SEXP exp) {

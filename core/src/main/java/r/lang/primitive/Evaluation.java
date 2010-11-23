@@ -67,8 +67,9 @@ public class Evaluation {
    * Note that assignment to an attached list or data frame changes the attached copy
    *  and not the original object: see attach and with.
    */
-  public static EvalResult assign(SymbolExp symbol, SEXP value, EnvExp environ, boolean inherits) {
+  public static EvalResult assign(String name, SEXP value, EnvExp environ, boolean inherits) {
 
+    SymbolExp symbol = new SymbolExp(name);
     if(!inherits) {
       environ.setVariable(symbol, value);
     } else {

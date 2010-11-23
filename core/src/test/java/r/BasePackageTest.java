@@ -52,14 +52,14 @@ public class BasePackageTest extends EvalTestCase {
 
 
   @Test
-  public void surveyPackage() throws Exception {
+  public void libPaths() throws Exception {
 
     loadBasePackage();
 
+    // This is a pretty complicated evaluation here that involves recursive
+    // lazy loading, persisted environments, local environments, etc.
+    // So a good test that everything integrates together!
     System.out.println( eval( ".libPaths() "));
-
-   // eval(" library(survey) ");
-
   }
 
   private void loadBasePackage() throws IOException {

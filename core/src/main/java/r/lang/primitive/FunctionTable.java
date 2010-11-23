@@ -235,7 +235,7 @@ public class FunctionTable {
       f("pmin", /*pmin*/ null, 0, 11, -1, PP_FUNCALL, PREC_FN, 0),
       f("pmax", /*pmin*/ null, 1, 11, -1, PP_FUNCALL, PREC_FN, 0),
       f("which.max", /*first_min*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
-      f("match", /*match*/ null, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
+      f("match", Match.class, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("pmatch", /*pmatch*/ null, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("charmatch", /*charmatch*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("match.call", /*matchcall*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),

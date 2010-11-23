@@ -28,6 +28,11 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical> {
   public static final String TYPE_NAME = "logical";
   public static final int TYPE_CODE = 10;
 
+  public static LogicalExp TRUE = new LogicalExp(1);
+  public static LogicalExp FALSE = new LogicalExp(0);
+
+
+
   private int[] values;
 
 

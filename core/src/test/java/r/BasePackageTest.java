@@ -62,6 +62,13 @@ public class BasePackageTest extends EvalTestCase {
     System.out.println( eval( ".libPaths() "));
   }
 
+  @Test
+  public void library() throws Exception {
+    loadBasePackage();
+
+    eval(" library(survey) ");
+  }
+
   private void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
     SEXP loadingScript = RParser.parseSource(reader).evaluate(global).getExpression();

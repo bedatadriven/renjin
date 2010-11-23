@@ -21,8 +21,7 @@
 
 package r.lang.primitive.binding;
 
-import r.lang.AtomicExp;
-import r.lang.SEXP;
+import r.lang.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,5 +57,55 @@ public class TypeConverter {
       items.add(convert(exp, expType));
     }
     return items;
+  }
+
+  public static boolean allAreAtomic(SEXP... values) {
+    for(SEXP value : values) {
+      if(!(value instanceof AtomicExp)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Returns the lowest common atomic type among the given values, using the order
+   * logical &lt; integer &lt; numeric &lt; complex &lt; character.
+   *
+   * @param values
+   * @return the lowest common type
+   */
+  public static Class<? extends AtomicExp> commonAtomicType(SEXP... values) {
+    boolean canBeLogical = true;
+    boolean canBeInteger = true;
+    boolean canBeDouble = true;
+
+    for(SEXP value : values) {
+      if(value instanceof IntExp) {
+        canBeLogical = false;
+      } else if(value instanceof DoubleExp) {
+        canBeLogical = false;
+        canBeInteger = false;
+      } else if(value instanceof StringExp) {
+        canBeLogical = false;
+        canBeInteger = false;
+        canBeDouble = false;
+      } else {
+        throw new IllegalArgumentException("SEXP '" + value.toString() + "' is not Atomic");
+      }
+    }
+    if(canBeLogical) {
+      return LogicalExp.class;
+    } else if(canBeInteger) {
+      return IntExp.class;
+    } else if(canBeDouble) {
+      return DoubleExp.class;
+    } else {
+      return StringExp.class;
+    }
+  }
+
+  public static Class commonAtomicElementType(AtomicExp... values) {
+    return AtomicExps.elementClassOf( commonAtomicType(values) );
   }
 }

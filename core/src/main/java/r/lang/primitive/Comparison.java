@@ -82,12 +82,8 @@ public class Comparison {
    *
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
-   *
-   * @param rho
-   * @param call
-   * @return TRUE or FALSE
    */
-  public static boolean evalOr(EnvExp rho, LangExp call) {
+  public static boolean or(EnvExp rho, LangExp call) {
       SEXP left = call.getArgument(0);
       SEXP right = call.getArgument(1);
 

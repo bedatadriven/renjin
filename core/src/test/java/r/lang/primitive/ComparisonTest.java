@@ -114,6 +114,42 @@ public class ComparisonTest extends EvalTestCase {
   }
 
   @Test
+  public void and() {
+    assertThat( eval("0 && 0"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("0 && 1"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("1 && 0"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("1 && 1"), equalTo(c(Logical.TRUE)) );
+
+    assertThat( eval("FALSE && FALSE"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("FALSE && TRUE"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("TRUE && FALSE"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("TRUE && TRUE"), equalTo(c(Logical.TRUE)) );
+
+    assertThat( eval("c(0) && c(0)"), equalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0) && c(1)"), equalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1) && c(0)"), equalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1) && c(1)"), equalTo(c(Logical.TRUE)));
+
+    assertThat( eval("c(0,2,3) && c(0, 99, 3)"), equalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0,2,3) && c(1, 99, 3)"), equalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1,2,3) && c(0, 99, 3)"), equalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1,2,3) && c(1, 99, 3)"), equalTo(c(Logical.TRUE)));
+
+    assertThat( eval("c(FALSE) && c(FALSE)"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) && c(TRUE)"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) && c(FALSE)"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) && c(TRUE)"), equalTo(c(Logical.TRUE)) );
+
+    assertThat( eval("c(FALSE) && c(0)"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) && c(1)"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) && c(0)"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) && c(1)"), equalTo(c(Logical.TRUE)) );
+
+    assertThat( eval("c(FALSE) && list()"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) && 'a'"), equalTo(c(Logical.FALSE)) );
+  }
+
+  @Test
   public void not() {
     assertThat( eval(" !TRUE"), equalTo( c(false)));
     assertThat( eval(" !c(TRUE, FALSE, NA) "), equalTo(c(FALSE, TRUE, NA)));

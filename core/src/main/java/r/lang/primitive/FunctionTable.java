@@ -176,7 +176,7 @@ public class FunctionTable {
       f("|", /*logic*/ null, 2, 1, 2, PP_BINARY, PREC_OR, 0),
       f("!", Comparison.class, "not", 3, 1, 1, PP_UNARY, PREC_NOT, 0),
 
-      f("&&", /*logic2*/ null, 1, 0, 2, PP_BINARY, PREC_AND, 0),
+      f("&&", Comparison.class, "and", 1, 0, 2, PP_BINARY, PREC_AND, 0),
       f("||", Comparison.class, "evalOr", 2, 0, 2, PP_BINARY, PREC_OR, 0),
       f(":", Sequences.class, "colon", 0, 1, 2, PP_BINARY2, PREC_COLON, 0),
       f("~", /*tilde*/ null, 0, 0, 2, PP_BINARY, PREC_TILDE, 0),

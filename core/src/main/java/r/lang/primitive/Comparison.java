@@ -95,6 +95,21 @@ public class Comparison {
              right.evalToExp(rho).asReal() != 0;
   }
 
+  /**
+   * The logical && operator reqires the implementation use minimal evaluation,
+   * therefore we cannot use the overloaded function calls as is standard.
+   *
+   * Comparing doubles or booleans works as generally expected. Comparing two vectors
+   * will only compare the first element in each vector.
+   */
+  public static boolean and(EnvExp rho, LangExp call) {
+      SEXP left = call.getArgument(0);
+      SEXP right = call.getArgument(1);
+
+      return left.evalToExp(rho).asReal() != 0 &&
+             right.evalToExp(rho).asReal() != 0;
+  }
+
   public static boolean not(boolean value) {
     return !value;
   }

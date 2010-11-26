@@ -91,6 +91,10 @@ public class Comparison {
              right.evalToExp(rho).asReal() != 0;
   }
 
+  public static boolean bitwiseOr(double x, double y) {
+    return (x != 0) | (y != 0);
+  }
+
   /**
    * The logical && operator reqires the implementation use minimal evaluation,
    * therefore we cannot use the overloaded function calls as is standard.

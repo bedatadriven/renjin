@@ -173,7 +173,7 @@ public class FunctionTable {
       f(">=", Comparison.class, "greaterThanOrEqualTo", 1, 2, PP_BINARY, PREC_COMPARE, 0),
       f(">", Comparison.class, "greaterThan", GTOP, 1, 2, PP_BINARY, PREC_COMPARE, 0),
       f("&", Comparison.class, "bitwiseAnd", 1, 1, 2, PP_BINARY, PREC_AND, 0),
-      f("|", /*logic*/ null, 2, 1, 2, PP_BINARY, PREC_OR, 0),
+      f("|", Comparison.class, "bitwiseOr", 2, 1, 2, PP_BINARY, PREC_OR, 0),
       f("!", Comparison.class, "not", 3, 1, 1, PP_UNARY, PREC_NOT, 0),
 
       f("&&", Comparison.class, "and", 1, 0, 2, PP_BINARY, PREC_AND, 0),

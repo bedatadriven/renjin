@@ -25,6 +25,7 @@ import org.junit.Test;
 import r.lang.EvalTestCase;
 
 import java.io.IOException;
+import r.lang.Logical;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -74,6 +75,42 @@ public class ComparisonTest extends EvalTestCase {
   public void platform() throws IOException {
     // this was failing in dynaload.R
     assertThat( eval("if(.Platform$OS.type == \"windows\") { 1 } else { 42 }"), equalTo(c(42)) );
+  }
+
+  @Test
+  public void or() {
+    assertThat( eval("0 || 0"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("0 || 1"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("1 || 0"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("1 || 1"), equalTo(c(Logical.TRUE)) );
+
+    assertThat( eval("FALSE || FALSE"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("FALSE || TRUE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("TRUE || FALSE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("TRUE || TRUE"), equalTo(c(Logical.TRUE)) );
+
+    assertThat( eval("c(0) || c(0)"), equalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0) || c(1)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1) || c(0)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1) || c(1)"), equalTo(c(Logical.TRUE)));
+    
+    assertThat( eval("c(0,2,3) || c(0, 99, 3)"), equalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0,2,3) || c(1, 99, 3)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1,2,3) || c(0, 99, 3)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1,2,3) || c(1, 99, 3)"), equalTo(c(Logical.TRUE)));
+
+    assertThat( eval("c(FALSE) || c(FALSE)"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) || c(TRUE)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || c(FALSE)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || c(TRUE)"), equalTo(c(Logical.TRUE)) );
+
+    assertThat( eval("c(FALSE) || c(0)"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) || c(1)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || c(0)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || c(1)"), equalTo(c(Logical.TRUE)) );
+
+    assertThat( eval("c(TRUE) || list()"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || 'a'"), equalTo(c(Logical.TRUE)) );
   }
 
   @Test

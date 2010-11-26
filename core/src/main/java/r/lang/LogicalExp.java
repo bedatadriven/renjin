@@ -110,6 +110,15 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical> {
   }
 
   @Override
+  public double asReal() {
+    if(values.length == 0) {
+      return DoubleExp.NA;
+    } else {
+      return values[0];
+    }
+  }
+
+  @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }

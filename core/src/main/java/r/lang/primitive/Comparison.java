@@ -106,6 +106,10 @@ public class Comparison {
              right.evalToExp(rho).asReal() != 0;
   }
 
+  public static boolean bitwiseAnd(double x, double y) {
+    return (x != 0) & (y != 0);
+  }
+
   public static boolean not(boolean value) {
     return !value;
   }

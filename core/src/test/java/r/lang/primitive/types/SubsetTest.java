@@ -122,6 +122,16 @@ public class SubsetTest extends EvalTestCase {
   }
 
   @Test
+  public void logicalIndices() {
+    eval("x <- c(21,22,23) ");
+
+    assertThat( eval(" x[TRUE] "), equalTo( c(21,22,23)));
+    assertThat( eval(" x[FALSE] "), equalTo( DOUBLE_0 ));
+    assertThat( eval(" x[NA] "), equalTo( c(DoubleExp.NA, DoubleExp.NA, DoubleExp.NA) ));
+    assertThat( eval(" x[c(TRUE,FALSE,TRUE)] "), equalTo( c(21, 23) ));
+  }
+
+  @Test
   public void setDoubleRange() {
     eval(" x <- c(91, 92, 93) ");
     eval(" x[1:2] <- c(81,82) ");

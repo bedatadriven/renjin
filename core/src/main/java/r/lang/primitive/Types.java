@@ -306,8 +306,13 @@ public class Types {
     return exp.setClass(classes);
   }
 
-   public static SEXP setClass(SEXP exp, ListExp list) {
+  public static SEXP setClass(SEXP exp, ListExp list) {
     return exp.setClass(Types.asCharacter(list));
+  }
+
+  @Primitive("attr<-")
+  public static SEXP setAttribute(SEXP exp, String which, SEXP value) {
+    return exp.setAttribute(which, value);
   }
 
   public static SEXP oldClass(SEXP exp) {

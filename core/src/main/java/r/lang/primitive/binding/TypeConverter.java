@@ -81,7 +81,8 @@ public class TypeConverter {
     boolean canBeDouble = true;
 
     for(SEXP value : values) {
-      if(value instanceof IntExp) {
+      if(value instanceof LogicalExp) {
+      } else if(value instanceof IntExp) {
         canBeLogical = false;
       } else if(value instanceof DoubleExp) {
         canBeLogical = false;

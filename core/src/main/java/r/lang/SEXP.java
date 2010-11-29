@@ -123,27 +123,6 @@ public abstract class SEXP {
     }
   }
 
-  public boolean isActiveBinding() {
-    return (gp & ACTIVE_BINDING_MASK) != 0;
-  }
-
-  public boolean isBindingLocked() {
-    return (gp & BINDING_LOCK_MASK) != 0;
-  }
-
-  public void setActiveBindingBit() {
-    gp |= ACTIVE_BINDING_MASK;
-  }
-
-  public void setBindingLocked(boolean locked) {
-    if (locked) {
-      gp |= BINDING_LOCK_MASK;
-    } else {
-      gp &= (~BINDING_LOCK_MASK);
-    }
-  }
-
-
   public abstract void accept(SexpVisitor visitor);
 
   /**
@@ -267,6 +246,19 @@ public abstract class SEXP {
       return attributes.findByTag(name);
     }
     return NullExp.INSTANCE;
+  }
+
+  public final SEXP setAttribute(String attributeName, SEXP value) {
+    // we enforce semantics on a few special attributes
+    if(attributeName.equals("class")) {
+      return setClass((StringExp) value);
+
+    } else if(attributeName.equals("names")) {
+      return setClass((StringExp) value);
+
+    } else {
+      return cloneWithNewAttributes(replaceAttribute(new SymbolExp(attributeName), value));
+    }
   }
 
   public final SEXP setClass(StringExp classNames) {

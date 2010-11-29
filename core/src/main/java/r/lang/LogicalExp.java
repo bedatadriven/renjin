@@ -208,6 +208,11 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
     return new Builder(this);
   }
 
+  @Override
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    return new LogicalExp(values, attributes);
+  }
+
   private String toString(int x) {
     if (x == 1) {
       return "TRUE";

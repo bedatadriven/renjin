@@ -115,4 +115,12 @@ public class TypesTest extends EvalTestCase {
   public void listOfNull() {
     assertThat( eval("list(NULL)"), equalTo( list(NULL) ));
   }
+
+  @Test
+  public void setAttributes() {
+    eval(" x<-c(1,2,3) ");
+    eval(" attr(x, 'class') <- 'foo' ");
+
+    assertThat( eval(" class(x) "), equalTo( c("foo")));
+  }
 }

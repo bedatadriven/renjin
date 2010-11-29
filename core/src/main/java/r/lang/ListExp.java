@@ -166,6 +166,11 @@ public class ListExp extends SEXP implements Iterable<SEXP>, HasElements {
     return new Builder();
   }
 
+  @Override
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    return new ListExp(values, attributes);
+  }
+
   public static class Builder implements HasElements.Builder<ListExp,HasElements> {
     private PairList attributes = NullExp.INSTANCE;
     private boolean haveNames = false;
@@ -185,6 +190,11 @@ public class ListExp extends SEXP implements Iterable<SEXP>, HasElements {
         for(SEXP value : values) { this.names.add(""); }
       }
       this.attributes = toClone.getAttributes();
+    }
+
+    public Builder setAttributes(PairList attributes) {
+      this.attributes = attributes;
+      return this;
     }
 
     public Builder add(String name, SEXP value) {

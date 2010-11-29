@@ -74,6 +74,21 @@ public class Subset {
   }
 
   @Primitive("[")
+  public static SEXP getSubset(HasElements vector, LogicalExp include) {
+    HasElements.Builder result = vector.newBuilder(0);
+    int resultLen = 0;
+    for(int i=0;i!=vector.length();++i) {
+      int b = include.getInt(i % include.length());
+      if( b == LogicalExp.NA ) {
+        result.setNA(i);
+      } else if( b != 0) {
+        result.setFrom(resultLen++, vector, i);
+      }
+    }
+    return result.build();
+  }
+
+  @Primitive("[")
   public static SEXP getSubset(HasElements vector, @Indices int indices[]) {
     HasElements.Builder builder = vector.newBuilder(0);
     int resultLen = 0;

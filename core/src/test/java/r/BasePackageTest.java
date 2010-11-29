@@ -22,10 +22,7 @@
 package r;
 
 import org.junit.Test;
-import r.lang.EvalTestCase;
-import r.lang.LangExp;
-import r.lang.SEXP;
-import r.lang.StringExp;
+import r.lang.*;
 import r.parser.RParser;
 
 import java.io.IOException;
@@ -70,7 +67,10 @@ public class BasePackageTest extends EvalTestCase {
 
     String path = getClass().getResource("/simpleTest.R").getFile();
 
-    SEXP result = LangExp.newCall(symbol("file.info"), c(path)).evalToExp(global);
+    ListExp result = (ListExp) LangExp.newCall(symbol("file.info"), c(path)).evalToExp(global);
+
+    assertThat( result.get("isdir"), equalTo( c(Logical.FALSE) ));
+    assertThat( result.get("mode"), equalTo( c("777") ));
 
   }
 

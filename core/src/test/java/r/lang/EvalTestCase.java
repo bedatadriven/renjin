@@ -38,6 +38,7 @@ public abstract class EvalTestCase {
   protected EnvExp global;
   public static final SEXP NULL = NullExp.INSTANCE;
   public static final SEXP CHARACTER_0 = new StringExp();
+  public static final SEXP DOUBLE_0 = new DoubleExp();
 
   @Before
   public void setUp() {

@@ -21,6 +21,6 @@
 
 package r.lang;
 
-public interface WidensToInt extends WidensToDouble {
-  int getInt(int index);
+public interface WidensToLogical extends WidensToInt {
+  int getLogical(int index);
 }

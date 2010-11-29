@@ -294,7 +294,6 @@ public abstract class SEXP {
     return builder.build();
   }
 
-
   protected SEXP cloneWithNewAttributes(PairList attributes) {
     throw new UnsupportedOperationException("cannot change/set attributes on " + getClass().getSimpleName());
   }

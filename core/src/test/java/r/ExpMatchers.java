@@ -102,7 +102,7 @@ public class ExpMatchers {
     return new BaseMatcher<SEXP>() {
       @Override
       public boolean matches(Object o) {
-        return o instanceof LogicalExp && ((LogicalExp) o).get(0) == value.getInternalValue();
+        return o instanceof LogicalExp && ((LogicalExp) o).getInt(0) == value.getInternalValue();
       }
 
       @Override

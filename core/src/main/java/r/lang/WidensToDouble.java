@@ -25,6 +25,6 @@ package r.lang;
  * Interface to a vector whose elements can be widened to doubles.
  * 
  */
-public interface WidensToDouble extends HasElements {
+public interface WidensToDouble extends WidensToString {
   double getDouble(int index);
 }

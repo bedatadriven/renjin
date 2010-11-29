@@ -24,17 +24,17 @@ package r.lang;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class LogicalExp extends AtomicExp implements Iterable<Logical> {
+public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasElements,
+    WidensToInt, WidensToDouble, WidensToString {
   public static final String TYPE_NAME = "logical";
   public static final int TYPE_CODE = 10;
+
+  public static int NA = IntExp.NA;
 
   public static LogicalExp TRUE = new LogicalExp(1);
   public static LogicalExp FALSE = new LogicalExp(0);
 
-
-
   private int[] values;
-
 
   /**
    * Constructs a Logical vector from a list of boolean values
@@ -55,14 +55,12 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical> {
     this(values, NullExp.INSTANCE);
   }
 
-
   public LogicalExp(Logical... values) {
     this.values = new int[values.length];
     for (int i = 0; i != values.length; ++i) {
       this.values[i] = values[i].getInternalValue();
     }
   }
-
 
 
   @Override
@@ -80,19 +78,34 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical> {
     return values.length;
   }
 
-  public int get(int index) {
+  @Override
+  public int getInt(int index) {
     return values[index];
   }
 
-  /**
-   * Creates a new LogicalVector with the given length. Values are initialized
-   * to false.
-   *
-   * @param length
-   * @return
-   */
-  public static LogicalExp ofLength(int length) {
-    return new LogicalExp(new int[length]);
+  @Override
+  public double getDouble(int index) {
+    int value = values[index];
+    return value == IntExp.NA ? DoubleExp.NA : (double) value;
+  }
+
+  @Override
+  public SEXP getExp(int index) {
+    return new LogicalExp(values[index]);
+  }
+
+
+
+  @Override
+  public String getString(int index) {
+    int value = values[index];
+    if(value == IntExp.NA) {
+      return StringExp.NA;
+    } else if(value == 0) {
+      return "FALSE";
+    } else {
+      return "TRUE";
+    }
   }
 
   @Override
@@ -180,6 +193,21 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical> {
     }
   }
 
+  @Override
+  public boolean isWiderThan(Object vector) {
+    return vector instanceof LogicalExp;
+  }
+
+  @Override
+  public Builder newCopyBuilder() {
+    return null;
+  }
+
+  @Override
+  public Builder newBuilder(int initialSize) {
+    return new Builder(this);
+  }
+
   private String toString(int x) {
     if (x == 1) {
       return "TRUE";
@@ -193,5 +221,45 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical> {
   @Override
   public Class getElementClass() {
     return Integer.TYPE;
+  }
+
+  private static class Builder implements HasElements.Builder<IntExp, WidensToInt> {
+    private PairList attributes;
+    private int values[];
+
+    private Builder(int initialSize) {
+      values = new int[initialSize];
+      Arrays.fill(values, NA);
+    }
+
+    private Builder(LogicalExp exp) {
+      this.values = Arrays.copyOf(exp.values, exp.values.length);
+      this.attributes = exp.attributes;
+    }
+
+    public Builder set(int index, int value) {
+      if(values.length <= index) {
+        int copy[] = Arrays.copyOf(values, index+1);
+        Arrays.fill(copy, values.length, copy.length, NA);
+        values = copy;
+      }
+      values[index] = value;
+      return this;
+    }
+
+    @Override
+    public Builder setNA(int index) {
+      return set(index, NA);
+    }
+
+    @Override
+    public Builder setFrom(int destinationIndex, WidensToInt source, int sourceIndex) {
+      return set(destinationIndex, source.getInt(sourceIndex));
+    }
+
+    @Override
+    public IntExp build() {
+      return new IntExp(values, attributes);
+    }
   }
 }

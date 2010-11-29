@@ -43,6 +43,13 @@ public class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void asCharacterFromList() {
+    assertThat( eval("as.character(list(3, 'a', TRUE)) "), equalTo( c("3", "a", "TRUE" )));
+    assertThat( eval("as.character(list(c(1,3), 'a', TRUE)) "), equalTo( c("c(1, 3)", "a", "TRUE" )));
+
+  }
+
+  @Test
   public void asDoubleFromDouble() {
     assertThat( eval("as.double(3.14)"), equalTo( c(3.14) ) );
     assertThat( eval("as.double(NA_real_)"), equalTo( c(DoubleExp.NA) ) );
@@ -88,7 +95,6 @@ public class TypesTest extends EvalTestCase {
   public void environmentOfClosure() {
     eval("f <- function() { 1 } ");
     assertThat( eval(".Internal(environment( f ))"), is((SEXP) global.getGlobalEnvironment()));
-
   }
 
   @Test
@@ -105,6 +111,4 @@ public class TypesTest extends EvalTestCase {
   public void listOfNull() {
     assertThat( eval("list(NULL)"), equalTo( list(NULL) ));
   }
-
-
 }

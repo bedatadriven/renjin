@@ -28,8 +28,7 @@ import r.parser.ParseUtil;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class IntExp extends AtomicExp implements Iterable<Integer>, HasElements,
-    WidensToDouble, WidensToString, WidensToInt {
+public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt {
 
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
@@ -101,7 +100,7 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, HasElements,
 
   @Override
   public boolean isWiderThan(Object vector) {
-    return vector instanceof WidensToInt;
+    return vector instanceof WidensToLogical;
   }
 
   @Override
@@ -199,7 +198,7 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, HasElements,
     }
   }
 
-  private static class Builder implements HasElements.Builder<IntExp, WidensToInt> {
+  private static class Builder implements HasElements.Builder<LogicalExp, WidensToLogical> {
     private PairList attributes;
     private int values[];
 
@@ -229,13 +228,13 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, HasElements,
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, WidensToInt source, int sourceIndex) {
+    public Builder setFrom(int destinationIndex, WidensToLogical source, int sourceIndex) {
       return set(destinationIndex, source.getInt(sourceIndex));
     }
 
     @Override
-    public IntExp build() {
-      return new IntExp(values, attributes);
+    public LogicalExp build() {
+      return new LogicalExp(values, attributes);
     }
   }
 }

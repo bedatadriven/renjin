@@ -187,6 +187,11 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
       return this;
     }
 
+    public void add(String value) {
+      values.add(value);
+      names.add(StringExp.NA);
+    }
+
     @Override
     public Builder setNA(int index) {
       return set(index, NA);

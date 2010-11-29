@@ -160,8 +160,29 @@ public class EvaluationTest extends EvalTestCase {
     eval("myf(3)");
 
     assertThat( eval("Global.res"), equalTo( c(16) ));
-
   }
 
+  @Test
+  public void complexAssignment() {
+    eval( " x <- list(a = 1)");
+    eval( " x$a <- 3");
+
+    assertThat( eval("x$a"), equalTo( c(3)));
+  }
+
+  @Test
+  public void complexAssignmentWithClass() {
+    eval( " x<- list(a = 1)");
+    eval( " class(x$a) <- 'foo' ");
+
+    assertThat( eval(" x$a "), equalTo( c(1) ));
+    assertThat( eval(" class(x$a) "), equalTo( c("foo")));
+  }
+
+  @Test
+  public void complexAssignmentWithSubset() {
+    eval( " x <- list( a = c(91,92,93) ) ");
+    eval( " x$a[3] <- 42");
+  }
   
 }

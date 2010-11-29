@@ -24,18 +24,20 @@ package r.lang;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import r.parser.ParseUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class StringExp extends AtomicExp implements Iterable<String> {
+public class StringExp extends AtomicExp implements Iterable<String>, WidensToString {
   public static final String TYPE_NAME = "character";
   public static final int TYPE_CODE = 16;
   public static final String NA = null;
 
-  String values[];
+  private final String values[];
 
   public StringExp(String... values) {
     this.values = Arrays.copyOf(values, values.length, String[].class);
@@ -70,8 +72,17 @@ public class StringExp extends AtomicExp implements Iterable<String> {
     return new StringExp(values);
   }
 
-  public String get(int i) {
-    return values[i];
+  @Override
+  public boolean isWiderThan(Object vector) {
+    return vector instanceof WidensToString;
+  }
+
+  public String get(int index) {
+    return values[index];
+  }
+
+  public String getString(int index) {
+    return values[index];
   }
 
   @Override
@@ -116,10 +127,6 @@ public class StringExp extends AtomicExp implements Iterable<String> {
     }
   }
 
-  public static SEXP ofLength(int length) {
-    return new StringExp(new String[length]);
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -145,5 +152,59 @@ public class StringExp extends AtomicExp implements Iterable<String> {
   @Override
   public Class getElementClass() {
     return String.class;
+  }
+
+  @Override
+  public SEXP getExp(int index) {
+    return new StringExp(values[index]);
+  }
+
+  @Override
+  public Builder newCopyBuilder() {
+    Builder builder = new Builder();
+    builder.addAll(this);
+
+    return builder;
+  }
+
+  @Override
+  public Builder newBuilder(int initialSize) {
+    return new Builder();
+  }
+
+  public static class Builder implements HasElements.Builder<StringExp, WidensToString> {
+    private ArrayList<String> values = Lists.newArrayList();
+    private ArrayList<String> names = Lists.newArrayList();
+
+    public Builder() {
+    }
+
+    public Builder set(int index, String value) {
+      while(values.size() <= index) {
+        values.add(NA);
+      }
+      values.set(index, value);
+      return this;
+    }
+
+    @Override
+    public Builder setNA(int index) {
+      return set(index, NA);
+    }
+
+    @Override
+    public Builder setFrom(int destinationIndex, WidensToString source, int sourceIndex) {
+      return set(destinationIndex, source.getString(sourceIndex) );
+    }
+
+    public Builder addAll(Iterable<String> strings) {
+      Iterables.addAll(values, strings);
+      return this;
+    }
+
+    @Override
+    public StringExp build() {
+      return new StringExp(values);
+    }
   }
 }

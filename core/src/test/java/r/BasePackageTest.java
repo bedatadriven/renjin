@@ -23,6 +23,7 @@ package r;
 
 import org.junit.Test;
 import r.lang.EvalTestCase;
+import r.lang.LangExp;
 import r.lang.SEXP;
 import r.lang.StringExp;
 import r.parser.RParser;
@@ -60,6 +61,17 @@ public class BasePackageTest extends EvalTestCase {
     // lazy loading, persisted environments, local environments, etc.
     // So a good test that everything integrates together!
     System.out.println( eval( ".libPaths() "));
+  }
+
+  @Test
+  public void fileInfo() throws IOException {
+
+    loadBasePackage();
+
+    String path = getClass().getResource("/simpleTest.R").getFile();
+
+    SEXP result = LangExp.newCall(symbol("file.info"), c(path)).evalToExp(global);
+
   }
 
   @Test

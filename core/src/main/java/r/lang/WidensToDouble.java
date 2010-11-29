@@ -22,18 +22,9 @@
 package r.lang;
 
 /**
- * Marker interface that restricts the type of a parameter or member to
- * either a {@code PairList} (one or more elements) or {@code NullExp} (empty list).
- *
- * This aligns to the primitive function "is.pairlist"
+ * Interface to a vector whose elements can be widened to doubles.
+ * 
  */
-public interface PairList extends Iterable<SEXP> {
-
-  int length();
-
-  <S extends SEXP> S get(int i);
-  Iterable<PairListExp> listNodes();
-
-  void accept(SexpVisitor visitor);
-  SEXP findByTag(SymbolExp symbol);
+public interface WidensToDouble extends HasElements {
+  double getDouble(int index);
 }

@@ -26,13 +26,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.annotations.AlwaysNull;
 import r.lang.primitive.annotations.ArgumentList;
 import r.lang.primitive.annotations.Environment;
-import r.lang.primitive.binding.AtomicAccessor;
-import r.lang.primitive.binding.AtomicAccessors;
-import r.lang.primitive.binding.AtomicBuilder;
-import r.lang.primitive.binding.AtomicBuilders;
+import r.lang.primitive.annotations.Primitive;
 import r.parser.ParseUtil;
 
 import java.util.List;
@@ -223,52 +219,6 @@ public class Types {
     }
   }
 
-  public static SEXP subset$(ListExp list, SymbolExp symbol) {
-      return list.get(symbol.getPrintName());
-  }
-
-  public static SEXP subset$(EnvExp environment, SymbolExp symbol) {
-      return environment.getVariable(symbol);
-  }
-
-  public static SEXP subset$(PairListExp pairList, SymbolExp symbol) {
-    return pairList.findByTag(symbol);
-  }
-
-  @AlwaysNull
-  public static SEXP subset$(NullExp nil) {
-    return NullExp.INSTANCE;
-  }
-
-  public static SEXP subset2(SEXP exp, int index) {
-    return exp.subset(index);
-  }
-
-  public static SEXP subset2(SEXP exp, double index) {
-    return exp.subset((int)index);
-  }
-
-  public static AtomicExp subset(AtomicExp vector, AtomicAccessor<Double> indices) {
-
-    AtomicAccessor<Object> values =
-        AtomicAccessors.create(vector, vector.getElementClass());
-    AtomicBuilder builder = AtomicBuilders.createFor(vector.getElementClass(), indices.length());
-
-    int resultLen = 0;
-
-    for(int i=0; i!=indices.length();++i) {
-      int index = indices.get(i).intValue();
-      if(index == 0) {
-        // do nothing
-      } else if(index > vector.length()) {
-        builder.setNA(resultLen++);
-      } else {
-        builder.set(resultLen++, values.get(index-1));
-      }
-    }
-    return builder.build(resultLen);
-  }
-
   public static EnvExp environment(@Environment EnvExp rho) {
     return rho.getGlobalEnvironment();
   }
@@ -330,10 +280,12 @@ public class Types {
     return exp.setNames(names);
   }
 
+  @Primitive("class")
   public static StringExp getClass(SEXP exp) {
     return exp.getClassAttribute();
   }
 
+  @Primitive("class<-")
   public static SEXP setClass(SEXP exp, StringExp classes) {
     return exp.setClass(classes);
   }

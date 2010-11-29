@@ -21,19 +21,9 @@
 
 package r.lang;
 
-/**
- * Marker interface that restricts the type of a parameter or member to
- * either a {@code PairList} (one or more elements) or {@code NullExp} (empty list).
- *
- * This aligns to the primitive function "is.pairlist"
- */
-public interface PairList extends Iterable<SEXP> {
+public interface HasIntElements extends HasElements {
 
-  int length();
+  int[] toIntArray();
 
-  <S extends SEXP> S get(int i);
-  Iterable<PairListExp> listNodes();
 
-  void accept(SexpVisitor visitor);
-  SEXP findByTag(SymbolExp symbol);
 }

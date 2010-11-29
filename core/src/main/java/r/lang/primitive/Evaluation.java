@@ -26,6 +26,7 @@ import r.lang.exception.ControlFlowException;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.Environment;
 import r.lang.primitive.annotations.Evaluate;
+import r.lang.primitive.annotations.Primitive;
 
 public class Evaluation {
 
@@ -33,6 +34,7 @@ public class Evaluation {
   /**
    * Evaluates a list of statements. (The '{' function)
    */
+  @Primitive("{")
   public static EvalResult begin(EnvExp rho, LangExp call) {
 
     EvalResult lastResult = new EvalResult(NullExp.INSTANCE, true);
@@ -42,14 +44,9 @@ public class Evaluation {
     return lastResult;
   }
 
+  @Primitive("(")
   public static SEXP paren(SEXP value) {
     return value;
-  }
-
-
-  public static EvalResult assignLeft(@Environment EnvExp rho, SymbolExp symbol, SEXP value) {
-    rho.setVariable(symbol, value);
-    return new EvalResult(value, false);
   }
 
   /**
@@ -93,22 +90,49 @@ public class Evaluation {
    *
    *
    */
-  public static EvalResult assignLeft(@Environment EnvExp rho, @Evaluate(false) LangExp call, SEXP value) {
-    SymbolExp functionName = (SymbolExp) call.getFunction();
-    SymbolExp newFn = new SymbolExp(functionName.getPrintName() + "<-");
-                          
-    // This is the symbol to which we're ultimately assigning
-    SymbolExp target = call.getArgument(0);
 
-    SEXP result = LangExp.newCall(newFn, target, value)
-                         .evaluate(rho)
-                         .getExpression();
+  /*  It's important that the rhs get evaluated first because
+   assignment is right associative i.e.  a <- b <- c is parsed as
+   a <- (b <- c).  */
+  @Primitive("<-")
+  public static EvalResult assignLeft(@Environment EnvExp rho, @Evaluate(false) SEXP lhs, SEXP rhs) {
 
-    rho.setVariable(target, result);
+    // this loop handles nested, complex assignments, such as:
+    // class(x) <- "foo"
+    // x$a[3] <- 4
+    // class(x$a[3]) <- "foo"
 
-    return EvalResult.nonVisible(result);
+    while(lhs instanceof LangExp) {
+      LangExp call = (LangExp) lhs;
+      SymbolExp getter = (SymbolExp) call.getFunction();
+      SymbolExp setter = new SymbolExp(getter.getPrintName() + "<-");
+
+      rhs = new LangExp(setter,
+          PairListExp.newBuilder()
+            .addAll(call.getArguments())
+            .add(rhs)
+            .build()).evalToExp(rho);
+
+      lhs = call.getArgument(0);
+    }
+
+    SymbolExp target;
+    if( lhs instanceof SymbolExp ) {
+      target = (SymbolExp) lhs;
+    } else if(lhs instanceof StringExp) {
+      target = new SymbolExp(((StringExp) lhs).get(0));
+    } else {
+      throw new EvalException("cannot assign to value of type " + lhs.getTypeName());
+    }
+
+    // make the final assignment to the target symbol
+    rho.setVariable(target, rhs);
+
+    return EvalResult.nonVisible(rhs);
   }
 
+
+  @Primitive("on.exit")
   public static void onExit( @Environment EnvExp rho, @Evaluate(false) SEXP exp, boolean add ) {
     if(add) {
       rho.addOnExit(exp);
@@ -117,6 +141,7 @@ public class Evaluation {
     }
   }
 
+  @Primitive("on.exit")
   public static void onExit( @Environment EnvExp rho, @Evaluate(false) SEXP exp) {
     rho.setOnExit(exp);
   }
@@ -124,22 +149,24 @@ public class Evaluation {
   /**
    * for ( x in elements ) { statement }
    */
+  @Primitive("for")
   public static void forLoop(EnvExp rho, LangExp call) {
     PairList args = call.getArguments();
-    SymbolExp symbol = (SymbolExp) args.getFirst();
-    SEXP elements = args.getSecond().evalToExp(rho);
-    SEXP statement = args.getThird();
+    SymbolExp symbol = (SymbolExp) args.get(0);
+    HasElements elements = (HasElements) args.get(1).evalToExp(rho);
+    SEXP statement = args.get(2);
 
-    for(int i=1; i<=elements.length(); ++i) {
-      rho.setVariable(symbol, elements.subset(i));
+    for(int i=0; i!=elements.length(); ++i) {
+      rho.setVariable(symbol, elements.getExp(i));
       statement.evaluate(rho);
     }
   }
 
+  @Primitive("while")
   public static void whileLoop(EnvExp rho, LangExp call) {
     PairList args = call.getArguments();
-    SEXP condition = args.getFirst();
-    SEXP statement = args.getSecond();
+    SEXP condition = args.get(0);
+    SEXP statement = args.get(1);
 
     while(asLogicalNoNA(call, condition.evaluate(rho).getExpression(), rho)) {
 
@@ -153,18 +180,12 @@ public class Evaluation {
     }
   }
 
-
-  /**
-   * function()
-   */
   public static ClosureExp function( EnvExp rho, LangExp call ) {
     PairList args = call.getArguments();
-    return new ClosureExp(rho, (PairList) args.getFirst(), args.getSecond());
+    return new ClosureExp(rho, (PairList) args.get(0), args.get(1));
   }
 
-  /**
-   * if()
-   */
+  @Primitive("if")
   public static EvalResult doIf(EnvExp rho, LangExp call) {
     SEXP condition = call.getArguments().get(0).evalToExp(rho);
 
@@ -180,6 +201,7 @@ public class Evaluation {
     }
   }
 
+  @Primitive(".Internal")
   public static EvalResult internal(EnvExp rho, LangExp call) {
     SEXP arg = call.getArguments().get(0);
     if(!(arg instanceof LangExp)) {
@@ -195,23 +217,25 @@ public class Evaluation {
     return ((FunExp)function).apply(internalCall, internalCall.getArguments(), rho);
   }
 
-
   public EvalResult next() {
     throw new NextException();
   }
   /**
    * break;
    */
+  @Primitive("break")
   public static void doBreak() {
     throw new BreakException();
   }
 
+  @Primitive("return")
   public static EvalResult doReturn(SEXP value) {
     throw new ReturnException(value);
   }
 
   public static EvalResult eval(SEXP expression, EnvExp environment,
                                 SEXP enclosing /* ignored */) {
+
     return expression.evaluate(environment);
   }
 
@@ -232,7 +256,6 @@ public class Evaluation {
 
     return logical == Logical.TRUE;
   }
-
 
   public static boolean missing(@Environment EnvExp rho, SymbolExp symbol) {
     SEXP value = rho.findVariable(symbol);

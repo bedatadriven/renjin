@@ -22,8 +22,11 @@
 package r.lang.primitive;
 
 import com.google.common.collect.Lists;
+import r.lang.ListExp;
+import r.lang.Logical;
 import r.lang.SEXP;
 import r.lang.StringExp;
+import r.lang.primitive.annotations.Primitive;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -51,6 +54,7 @@ public class System {
    * May not be supported on all platforms.
    * @return
    */
+  @Primitive("Sys.glob")
   public static StringExp glob(StringExp paths, boolean markDirectories) {
     List<String> matching = Lists.newArrayList();
     for(String path : paths) {
@@ -61,6 +65,7 @@ public class System {
     return new StringExp(matching);
   }
 
+  @Primitive("path.expand")
   public static String pathExpand(SEXP pathExp) {
     String path = "a";
     if(path.startsWith("~/")) {
@@ -152,4 +157,48 @@ public class System {
       }
     }
   }
+
+  @Primitive("file.info")
+  public static ListExp fileInfo(String path) {
+    File file = new File(path);
+
+    ListExp.Builder info = ListExp.newBuilder();
+    if(file.exists()) {
+      info.add("size", (int)file.length());
+      info.add("isdir", file.isDirectory());
+      info.add("mode", mode(file));
+      info.add("mtime", (int)file.lastModified());
+      info.add("ctime", (int)file.lastModified());
+      info.add("atime", (int)file.lastModified());
+      info.add("exe", file.canExecute() || file.getName().endsWith(".exe") );
+    } else {
+      info.add("size", Logical.NA);
+      info.add("isdir", Logical.NA);
+      info.add("mode",  Logical.NA);
+      info.add("mtime", Logical.NA);
+      info.add("ctime", Logical.NA);
+      info.add("atime", Logical.NA);
+      info.add("exe", Logical.NA );
+    }
+
+    return info.build();
+  }
+
+  private static String mode(File file) {
+    int access = 0;
+    if(file.canRead()) {
+      access += 4;
+    }
+    if(file.canWrite()) {
+      access += 2;
+    }
+    if(file.canExecute() || file.isDirectory()) {
+      access += 1;
+    }
+    String digit = Integer.toString(access);
+
+    return digit + digit + digit;
+  }
+  
+
 }

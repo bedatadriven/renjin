@@ -155,12 +155,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return exp.get(index) == IntExp.NA;
+      return exp.getInt(index) == IntExp.NA;
     }
 
     @Override
     public Integer get(int index) {
-      return exp.get(index);
+      return exp.getInt(index);
     }
 
     @Override
@@ -224,12 +224,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.get(index));
+      return IntExp.isNA(exp.getInt(index));
     }
 
     @Override
     public Double get(int index) {
-      return (double) exp.get(index);
+      return (double) exp.getInt(index);
     }
 
     @Override
@@ -252,12 +252,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA( exp.get(index) );
+      return IntExp.isNA( exp.getInt(index) );
     }
 
     @Override
     public Boolean get(int index) {
-      return exp.get( index) != 0;
+      return exp.getInt( index) != 0;
     }
   }
 
@@ -361,12 +361,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.get(index));
+      return IntExp.isNA(exp.getInt(index));
     }
 
     @Override
     public String get(int index) {
-      return ParseUtil.toString(exp.get(index));
+      return ParseUtil.toString(exp.getInt(index));
     }
 
     @Override

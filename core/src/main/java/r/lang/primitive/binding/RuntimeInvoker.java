@@ -24,6 +24,7 @@ package r.lang.primitive.binding;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.Indices;
 
 import java.lang.Class;
 import java.lang.Object;
@@ -76,6 +77,8 @@ public class RuntimeInvoker {
     converters.add(new StringToSymbol());
     converters.add(new ToAccessor());
     converters.add(new FromExternalPtr());
+    converters.add(new DoubleToIndices());
+    converters.add(new IntToIndices());
 
   }
 
@@ -447,7 +450,36 @@ public class RuntimeInvoker {
       return new SymbolExp(source.get(0));
     }
   }
-  
+
+  private class DoubleToIndices implements ArgConverter<DoubleExp, int[]> {
+    @Override
+    public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
+      return
+          source instanceof DoubleExp &&
+          formal.isAnnotatedWith(Indices.class) &&
+          formal.getClazz().equals(int[].class);
+    }
+
+    @Override
+    public int[] convert(EnvExp rho, DoubleExp source, PrimitiveMethod.Argument formal) {
+      return source.coerceToIntArray();
+    }
+  }
+
+  private class IntToIndices implements ArgConverter<IntExp,  int[]> {
+    @Override
+    public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
+      return
+          source instanceof IntExp &&
+          formal.isAnnotatedWith(Indices.class) &&
+          formal.getClazz().equals(int[].class);
+    }
+
+    @Override
+    public int[] convert(EnvExp rho, IntExp source, PrimitiveMethod.Argument formal) {
+      return source.toIntArray();
+    }  }
+
   private class ToAccessor implements ArgConverter<SEXP, AtomicAccessor> {
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {

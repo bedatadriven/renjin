@@ -64,11 +64,6 @@ public final class NullExp extends AtomicExp implements PairList {
 
 
   @Override
-  public SEXP subset(int from, int to) {
-    return this;
-  }
-
-  @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
@@ -86,21 +81,6 @@ public final class NullExp extends AtomicExp implements PairList {
   @Override
   public Iterable<PairListExp> listNodes() {
     return Collections.emptySet();
-  }
-
-  @Override
-  public SEXP getFirst() {
-    throw new IllegalArgumentException("List is NULL");
-  }
-
-  @Override
-  public SEXP getSecond() {
-    throw new IllegalArgumentException("List is NULL");
-  }
-
-  @Override
-  public SEXP getThird() {
-    throw new IllegalArgumentException("List is NULL");
   }
 
   @Override

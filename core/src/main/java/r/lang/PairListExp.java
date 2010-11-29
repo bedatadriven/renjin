@@ -158,11 +158,6 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
     return Iterators.size(iterator());
   }
 
-  @Override
-  public SEXP subset(int from, int to) {
-    throw new UnsupportedOperationException("not yet implemented");
-  }
-
   public static SEXP ofLength(int length) {
     return PairListExp.fromIterable(Iterables.limit(Iterables.cycle(NullExp.INSTANCE), length));
   }
@@ -209,18 +204,6 @@ public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, P
       }
       sb.append(node.getValue());
     }
-  }
-
-  public SEXP getFirst() {
-    return value;
-  }
-
-  public SEXP getSecond() {
-    return nextNode.value;
-  }
-
-  public SEXP getThird() {
-    return nextNode.nextNode.value;
   }
 
   /**

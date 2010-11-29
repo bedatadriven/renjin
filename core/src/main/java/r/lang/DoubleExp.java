@@ -22,7 +22,6 @@
 package r.lang;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import r.parser.ParseUtil;
 import r.util.collect.PrimitiveArrays;
@@ -30,9 +29,10 @@ import r.util.collect.PrimitiveArrays;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
-public final class DoubleExp extends AtomicExp implements Iterable<Double> {
+public final class DoubleExp extends AtomicExp implements Iterable<Double>,
+    WidensToString, WidensToDouble {
+
   public static final String TYPE_NAME = "double";
   public static final int TYPE_CODE = 14;
 
@@ -63,7 +63,6 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
     }
   }
 
-
   @Override
   public int getTypeCode() {
     return TYPE_CODE;
@@ -92,8 +91,35 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
     return clone;
   }
 
+  @Override
+  public boolean isWiderThan(Object vector) {
+    return vector instanceof WidensToDouble;
+  }
+
   public double get(int i) {
     return values[i];
+  }
+
+  public DoubleExp getExp(int index) {
+    return new DoubleExp(values[index]);
+  }
+
+  @Override
+  public double getDouble(int index) {
+    return values[index];
+  }
+
+  public String getString(int index) {
+    return isNA(values[index]) ? StringExp.NA :
+        ParseUtil.toString(values[index]);
+  }
+
+  public int[] coerceToIntArray() {
+    int integers[] = new int[values.length];
+    for(int i=0; i!=values.length; ++i) {
+      integers[i] = isNaN(values[i]) ? IntExp.NA : (int)values[i];
+    }
+    return integers;
   }
 
   public void set(int i, double value) {
@@ -138,21 +164,12 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
     return PrimitiveArrays.asUnmodifiableIterator(values);
   }
 
-  public List<Double> asListOfDoubles() {
-    return ImmutableList.copyOf(iterator());
-  }
-
   public double asReal() {
     if(values.length == 0) {
       return NA;
     } else {
       return values[0];
     }
-  }
-
-  @Override
-  public SEXP subset(int index) {
-    return new DoubleExp(values[index-1]);
   }
 
   @Override
@@ -203,5 +220,55 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double> {
   @Override
   public Class getElementClass() {
     return Double.TYPE;
+  }
+
+  @Override
+  public Builder newCopyBuilder() {
+    return new Builder(this);
+  }
+
+  @Override
+  public Builder newBuilder(int initialSize) {
+    return new Builder(initialSize);
+  }
+
+  public static class Builder implements HasElements.Builder<DoubleExp, WidensToDouble> {
+    private PairList attributes;
+    private double values[];
+
+    private Builder(int initialSize) {
+      values = new double[initialSize];
+      Arrays.fill(values, NA);
+    }
+
+    private Builder(DoubleExp exp) {
+      this.values = Arrays.copyOf(exp.values, exp.values.length);
+      this.attributes = exp.attributes;
+    }
+
+    public Builder set(int index, double value) {
+      if(values.length <= index) {
+        double copy[] = Arrays.copyOf(values, index+1);
+        Arrays.fill(copy, values.length, copy.length, NA);
+        values = copy;
+      }
+      values[index] = value;
+      return this;
+    }
+
+    @Override
+    public Builder setNA(int index) {
+      return set(index, NA);
+    }
+
+    @Override
+    public Builder setFrom(int destinationIndex, WidensToDouble source, int sourceIndex) {
+      return set(destinationIndex, source.getDouble(sourceIndex));
+    }
+
+    @Override
+    public DoubleExp build() {
+      return new DoubleExp(values, attributes);
+    }
   }
 }

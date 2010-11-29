@@ -23,11 +23,13 @@ package r.lang;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.UnmodifiableIterator;
+import r.parser.ParseUtil;
 
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class IntExp extends AtomicExp implements Iterable<Integer> {
+public class IntExp extends AtomicExp implements Iterable<Integer>, HasElements,
+    WidensToDouble, WidensToString, WidensToInt {
 
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
@@ -72,8 +74,39 @@ public class IntExp extends AtomicExp implements Iterable<Integer> {
     return values.length;
   }
 
-  public int get(int i) {
+  @Override
+  public int getInt(int i) {
     return values[i];
+  }
+
+  @Override
+  public double getDouble(int index) {
+    return values[index];
+  }
+
+  @Override
+  public String getString(int index) {
+    return ParseUtil.toString(index);
+  }
+
+  @Override
+  public SEXP getExp(int index) {
+    return new IntExp(values[index]);
+  }
+
+  @Override
+  public Builder newBuilder(int initialSize) {
+    return new Builder(initialSize);
+  }
+
+  @Override
+  public boolean isWiderThan(Object vector) {
+    return vector instanceof WidensToInt;
+  }
+
+  @Override
+  public Builder newCopyBuilder() {
+    return new Builder(this);
   }
 
   @Override
@@ -95,19 +128,23 @@ public class IntExp extends AtomicExp implements Iterable<Integer> {
     }
   }
 
+  public int[] toIntArray() {
+    return Arrays.copyOf(values, values.length);
+  }
+
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
 
   @Override
-  public Iterator<Integer> iterator() {
-    return new ValueIterator();
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    return new IntExp(values, attributes);
   }
 
   @Override
-  public SEXP subset(int index) {
-    return new IntExp( values[index-1] );
+  public Iterator<Integer> iterator() {
+    return new ValueIterator();
   }
 
   @Override
@@ -159,6 +196,46 @@ public class IntExp extends AtomicExp implements Iterable<Integer> {
     @Override
     public Integer next() {
       return values[i++];
+    }
+  }
+
+  private static class Builder implements HasElements.Builder<IntExp, WidensToInt> {
+    private PairList attributes;
+    private int values[];
+
+    private Builder(int initialSize) {
+      values = new int[initialSize];
+      Arrays.fill(values, NA);
+    }
+
+    private Builder(IntExp exp) {
+      this.values = Arrays.copyOf(exp.values, exp.values.length);
+      this.attributes = exp.attributes;
+    }
+
+    public Builder set(int index, int value) {
+      if(values.length <= index) {
+        int copy[] = Arrays.copyOf(values, index+1);
+        Arrays.fill(copy, values.length, copy.length, NA);
+        values = copy;
+      }
+      values[index] = value;
+      return this;
+    }
+
+    @Override
+    public Builder setNA(int index) {
+      return set(index, NA);
+    }
+
+    @Override
+    public Builder setFrom(int destinationIndex, WidensToInt source, int sourceIndex) {
+      return set(destinationIndex, source.getInt(sourceIndex));
+    }
+
+    @Override
+    public IntExp build() {
+      return new IntExp(values, attributes);
     }
   }
 }

@@ -23,75 +23,180 @@ package r.lang.primitive;
 
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.Indices;
+import r.lang.primitive.annotations.Primitive;
 
-/**
- *  The $ indexing operator
- *
- */
+
 public class Subset {
 
-  /** The $ subset operator.
-   * We need to be sure to only evaluate the first argument.
-   * The second will be a symbol that needs to be matched, not evaluated.
-   */
-  public static SEXP subset$(EnvExp rho, LangExp call) {
+  @Primitive("$")
+  public static SEXP getElementByName(PairList list, SymbolExp symbol) {
+    SEXP match = null;
+    int matchCount = 0;
 
-    SEXP list = call.getArgument(0).evalToExp(rho);
-    SEXP index = call.getArgument(1);
-
-    if(list instanceof PairList) {
-      return index((PairList)list, toString(index));
-
-    } else if(list instanceof EnvExp) {
-      return  ((EnvExp) list).findVariable(
-          new SymbolExp( toString(index) ) );
-
-    } else if(list instanceof AtomicExp) {
-      throw new EvalException("$ operator is invalid for atomic vectors");
-
-    } else {
-      return NullExp.INSTANCE ;
-    }
-  }
-
-  public static SEXP index(PairList list, String indexName)  {
-    SEXP partialMatch = null;
-    int partialMatchCount = 0;
-
-    for(PairListExp node : PairListExp.listNodes(list)) {
-      String tag = tagName(node.getRawTag());
-      if(tag != null) {
-        if(indexName.equals(tag)) {
-          return node.getValue();
-        } else if(tag.startsWith(indexName)) {
-          partialMatch = node.getValue();
-          partialMatchCount++;
+    for(PairListExp node : list.listNodes()) {
+      if(node.hasTag()) {
+        if(node.getTag().getPrintName().startsWith(symbol.getPrintName())) {
+          match = node.getValue();
+          matchCount++;
         }
       }
     }
-    if(partialMatchCount == 1) {
-      return partialMatch;
-    }
-    return NullExp.INSTANCE;
+    return matchCount == 1 ? match : NullExp.INSTANCE;
   }
 
-  private static String tagName(SEXP tag) {
-    if(tag instanceof SymbolExp) {
-      return ((SymbolExp) tag).getPrintName();
+  @Primitive("$")
+  public static SEXP getElementByName(ListExp list, SymbolExp name) {
+    SEXP match = null;
+    int matchCount = 0;
+
+    for(int i=0;i!=list.length(); ++i) {
+      if(list.getName(i).startsWith(name.getPrintName())) {
+        match = list.get(i);
+        matchCount++;
+      }
+    }
+    return matchCount == 1 ? match : NullExp.INSTANCE;
+  }
+
+  @Primitive("$<-")
+  public static SEXP setElementByName(ListExp list, SymbolExp name, SEXP value) {
+    ListExp.Builder result = ListExp.buildFromClone(list);
+
+    int index = list.getIndexByName(name);
+    if(index == -1) {
+      result.add(name, value);
     } else {
-      return null;
+      result.set(index, value);
     }
+    return result.build();
   }
 
-  private static String toString(SEXP index) {
-    if(index instanceof SymbolExp) {
-      return ((SymbolExp) index).getPrintName();
-    } else if(index instanceof StringExp) {
-      return ((StringExp) index).get(0);
+  @Primitive("[")
+  public static SEXP getSubset(HasElements vector, @Indices int indices[]) {
+    HasElements.Builder builder = vector.newBuilder(0);
+    int resultLen = 0;
+
+    if(arePositions(indices)) {
+
+      for(int index : indices) {
+        if(index > vector.length()) {
+          builder.setNA(resultLen++);
+        } else if(index > 0) {
+          builder.setFrom(resultLen++, vector, index-1);
+        }
+      }
+      return builder.build();
+
     } else {
-      throw new EvalException("invalid subscript type '%s'", index.getTypeName());
+
+      /* Negative indices indicate elements that should not be
+         returned.
+
+         For example, -1, means don't include the first element.
+       */
+
+      boolean excluded[] = toMask(indices, vector.length());
+      for(int i=0;i!=vector.length();++i) {
+        if(!excluded[i]) {
+          builder.setFrom(resultLen++, vector, i);
+        }
+      }
+    }
+
+    return builder.build();
+  }
+
+  @Primitive("[[")
+  public static SEXP getSingleElement(HasElements vector, @Indices int index) {
+    if(index < 0) {
+      throw new EvalException("attempt to select more than one element");
+    } else if(index == 0) {
+      throw new EvalException("attempt to select less than one element");
+    }
+
+    if(index <= vector.length()) {
+      return vector.getExp(index-1);
+    } else {
+      return vector.newBuilder(1).setNA(0).build();
     }
   }
 
+  @Primitive("[<-")
+  public static SEXP setSubset(HasElements target, @Indices int indices[], HasElements values) {
+    if(indices.length % values.length() != 0) {
+      throw new EvalException("number of items to replace is not a multiple of replacement length");
+    }
 
+    HasElements.Builder result = copyWideningIfNecessary(target, values);
+
+    for(int i=0;i!=indices.length;++i) {
+      int index = indices[i];
+      if(index > 0) {
+        result.setFrom(index-1, values, i % values.length());
+      }
+    }
+    return result.build();
+  }
+
+  private static HasElements.Builder copyWideningIfNecessary(HasElements toCopy, HasElements otherElements) {
+    HasElements.Builder result;
+
+    if(toCopy.isWiderThan(otherElements)) {
+      result = toCopy.newCopyBuilder();
+    } else {
+      result = otherElements.newBuilder(0);
+      for(int i=0;i!= toCopy.length();++i) {
+        result.setFrom(i, toCopy, i);
+      }
+    }
+    return result;
+  }
+
+  @Primitive("[")
+  public static SEXP getSubset(HasElements vector, StringExp names) {
+    HasElements.Builder builder = vector.newBuilder(names.length());
+
+    int resultLen = 0;
+    for(String name : names) {
+      int index = vector.getIndexByName(name);
+      if(index == -1) {
+        builder.setNA(resultLen++);
+      } else {
+        builder.setFrom(resultLen++, vector, index);
+      }
+    }
+    return builder.build();
+  }
+
+  /**
+   * @return  true if the indices are all zero or positive
+   */
+  private static boolean arePositions(int indices[]) {
+    boolean hasNeg = false;
+    boolean hasPos = false;
+
+    for(int i=0;i!=indices.length;++i) {
+      if(indices[i] < 0) {
+        hasNeg = true;
+      } else if(indices[i] > 0) {
+        hasPos = true;
+      }
+    }
+    if(hasNeg && hasPos) {
+      throw new EvalException("only 0's may be mixed with negative subscripts");
+    }
+    return !hasNeg;
+  }
+
+  private static boolean[] toMask(int indices[], int vectorLength) {
+    boolean mask[] = new boolean[vectorLength];
+    for(int i=0;i!=indices.length;++i) {
+      int index = (-indices[i]) - 1;
+      if( index < vectorLength ) {
+        mask[ index ] = true;
+      }
+    }
+    return mask;
+  }
 }

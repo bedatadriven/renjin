@@ -30,6 +30,7 @@ public class SymbolExp extends SEXP {
   public static final String  TYPE_NAME = "symbol";
   public static final String IMPLICIT_CLASS = "name";
 
+
   public static final SymbolExp UNBOUND_VALUE = createUnbound();
   public static final SymbolExp MISSING_ARG = new SymbolExp();
   public static final SymbolExp NAMES = new SymbolExp("names");
@@ -38,6 +39,7 @@ public class SymbolExp extends SEXP {
   public static final SymbolExp ELLIPSES = new SymbolExp("...");
   public static final SymbolExp SRC_REF = new SymbolExp("srcref");
   public static final SymbolExp SRC_FILE = new SymbolExp("srcfile");
+  public static final SymbolExp TEMP_VAL = new SymbolExp("*tmp*");
 
   private String printName;
 

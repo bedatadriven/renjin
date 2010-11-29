@@ -147,8 +147,8 @@ public class Connections {
     if(key.length() != 2) {
       throw new EvalException("bad offset/length argument");
     }
-    int offset = key.get(0);
-    int length = key.get(1);
+    int offset = key.getInt(0);
+    int length = key.getInt(1);
 
     byte buffer[] = new byte[length];
 

@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;
 import r.lang.primitive.FunctionTable;
+import r.lang.primitive.annotations.Primitive;
 import r.lang.primitive.binding.PrimitiveMethod;
 import r.lang.primitive.binding.RuntimeInvoker;
 
@@ -90,10 +91,12 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
       methodOverloads = Lists.newArrayList();
       if(functionEntry.functionClass != null) {
         for(Method method : functionEntry.functionClass.getMethods()) {
+
           if(isPublic(method.getModifiers()) &&
              isStatic(method.getModifiers()) &&
-              method.getName().equals(functionEntry.methodName)) {
-
+              method.getName().equals(functionEntry.methodName) ||
+              alias(method).equals(functionEntry.name) )
+          {
             methodOverloads.add(new PrimitiveMethod(method));
           }
         }
@@ -102,6 +105,12 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
     }
     return methodOverloads;
   }
+
+  private String alias(Method method) {
+    Primitive alias = method.getAnnotation(Primitive.class);
+    return alias == null ? "" : alias.value();
+  }
+
 
   @Override
   public void accept(SexpVisitor visitor) {

@@ -224,29 +224,6 @@ public abstract class SEXP {
     return false;
   }
 
-
-
-  /**
-   * Returns a subset from index {@code from} to index {@code to}. Indices are
-   * 1-based
-   *
-   * @param from
-   * @param to
-   * @return
-   */
-  public SEXP subset(int from, int to) {
-    throw new EvalException(String.format("object of type '%s' is not subsettable", getTypeName()));
-  }
-
-  /**
-   * Return a subset of a single element at index {@code index}.
-   * @param index
-   * @return
-   */
-  public SEXP subset(int index) {
-    return subset(index, index);
-  }
-
   public final SEXP getNames() {
     return attributes.findByTag(SymbolExp.NAMES);
   }
@@ -259,8 +236,34 @@ public abstract class SEXP {
     return "";
   }
 
+  /**
+   * Searches the list of this vector's names for
+   * a symbol that matches {@code name}.
+   *
+   *
+   * @param name the name for which to search
+   * @return  the index of the matching name, or -1 if
+   * no match is found.
+   */
+  public final int getIndexByName(String name) {
+    SEXP namesExp = attributes.findByTag(SymbolExp.NAMES);
+    if(namesExp instanceof StringExp) {
+      StringExp names = (StringExp) namesExp;
+      for(int i=0;i!=names.length();++i) {
+        if(names.get(i).equals(name)) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  public final int getIndexByName(SymbolExp name) {
+    return getIndexByName(name.getPrintName());
+  }
+
   public SEXP getAttribute(SymbolExp name) {
-    if(!hasAttributes()) {
+    if(hasAttributes()) {
       return attributes.findByTag(name);
     }
     return NullExp.INSTANCE;
@@ -295,5 +298,4 @@ public abstract class SEXP {
   protected SEXP cloneWithNewAttributes(PairList attributes) {
     throw new UnsupportedOperationException("cannot change/set attributes on " + getClass().getSimpleName());
   }
-
 }

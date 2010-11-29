@@ -21,12 +21,10 @@
 
 package r.lang.primitive.types;
 
-import org.junit.Before;
+import org.hamcrest.Matchers;
 import org.junit.Test;
-import r.lang.EvalTestCase;
-import r.lang.PairList;
-import r.lang.PairListExp;
-import r.lang.SEXP;
+import r.lang.*;
+import r.lang.exception.FunctionCallException;
 import r.lang.primitive.Subset;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -35,22 +33,168 @@ import static org.junit.Assert.assertThat;
 
 public class SubsetTest extends EvalTestCase {
 
-  @Before
-  public void setUp() {
+  @Test
+  public void subsetDouble() {
+    eval( " x <- c(91,92,93) ");
+    assertThat( eval(" x[1] "), equalTo( c(91) ));
+    assertThat( eval(" x[2] "), equalTo( c(92) ));
+    assertThat( eval(" x[3] "), equalTo( c(93) ));
+    assertThat( eval(" x[4] "), equalTo( c(DoubleExp.NA)) );
+    assertThat( eval(" x[0] "), equalTo( (SEXP) new DoubleExp() ));
+    assertThat( eval(" x[3L] "), equalTo( c(93) ));
   }
 
+  @Test
+  public void listIndices() {
+    eval(" x <- list('a', 3, NULL) ");
+
+    assertThat( eval("x[0] "), equalTo( list() ));
+    assertThat( eval("x[1] "), equalTo( list( c("a") )));
+    assertThat( eval("x[99] "), equalTo( list( NULL )));
+    assertThat( eval("x[1:2] "), equalTo( list( c("a"), c(3) )));
+    assertThat( eval("x[2:5] "), equalTo( list( c(3), NULL, NULL, NULL ) ));
+    assertThat( eval("x[-3] "), equalTo( list( c("a"), c(3) )));
+  }
 
   @Test
-  public void pairListExact() {
+  public void subsetDoubleMultipleIndices() {
+    eval( " x <- c(91,92,93) ");
+    assertThat( eval(" x[2:3] "), equalTo( c(92,93) ));
+    assertThat( eval(" x[3:5] "), equalTo( c(93,DoubleExp.NA,DoubleExp.NA) ));
+  }
 
-    PairList list = PairListExp.newBuilder()
+  @Test
+  public void stringSubset() {
+    eval(" x <- c('a','b','c') ");
+
+    assertThat( eval("x[0] "), equalTo( CHARACTER_0 ));
+    assertThat( eval("x[1] "), equalTo( c("a") ));
+    assertThat( eval("x[99] "), equalTo( c( StringExp.NA )));
+    assertThat( eval("x[1:2] "), equalTo( c("a", "b") ));
+    assertThat( eval("x[2:5] "), equalTo( c("b", "c", StringExp.NA, StringExp.NA )));
+    assertThat( eval("x[-3] "), equalTo( c("a", "b")));
+  }
+
+  @Test
+  public void stringSubsetAssign() {
+    eval(" x <- c('a', 'b', 'c') ");
+    eval(" x[1] <- 'z' ");
+
+    assertThat( eval(" x "), equalTo( c("z", "b", "c")));
+  }
+
+  @Test
+  public void assignNarrower() {
+    eval(" x <- c('a', 'b', 'c') ");
+    eval(" x[4] <- 36 ");
+
+    assertThat( eval(" x "), equalTo( c("a", "b", "c", "36")));
+  }
+
+  @Test
+  public void assignWider() {
+    eval(" x <- c(1,2,3) ");
+    eval(" x[2] <- c('foo') ");
+
+    assertThat( eval(" x "), equalTo( c("1", "foo", "3")));
+  }
+
+  @Test
+  public void negativeIndices() {
+    eval(" x <- c(91,92,93)  ");
+    assertThat( eval(" x[-1] "), equalTo( c(92,93)));
+    assertThat( eval(" x[-1:-2] "), equalTo( c(93)));
+    assertThat( eval(" x[c(-2,-241)] "), equalTo( c(91,93)));
+  }
+
+  @Test(expected = FunctionCallException.class)
+  public void mixedNegativeAndPos() {
+    eval(" x <- c(91,92) ");
+    eval(" x[-1,4] ");
+  }
+
+  @Test
+  public void setDoubleSubset() {
+    eval(" x <- c(91, 92, 93) ");
+    eval(" x[1] <- 44 ");
+
+    assertThat( eval("x"), equalTo( c(44,92,93 )));
+  }
+
+  @Test
+  public void setDoubleRange() {
+    eval(" x <- c(91, 92, 93) ");
+    eval(" x[1:2] <- c(81,82) ");
+
+    assertThat( eval("x"), equalTo( c( 81, 82, 93 )));
+  }
+
+  @Test
+  public void setDoubleRangeMultiple() {
+    eval(" x <- c(91, 92, 93) ");
+    eval(" x[2:3] <- 63 ");
+
+    assertThat( eval("x"), equalTo( c( 91, 63, 63 )));
+  }
+
+  @Test
+  public void setDoubleRangeMultipleNewLength() {
+    eval(" x <- c(91, 92, 93) ");
+    eval(" x[2:5] <- 63 ");
+
+    assertThat( eval("x"), equalTo( c( 91, 63, 63, 63, 63 )));
+  }
+
+  @Test
+  public void subsetOfPosAndZeroIndices() {
+    eval("  x<-c(91, 92, 93, 94, 95) ");
+
+    assertThat( eval("x[c(1,0,1)]"), Matchers.equalTo((SEXP) new DoubleExp(91, 91)));
+  }
+
+  @Test
+  public void listElementByName() {
+    eval(" p <- list(x=33, y=44) ");
+
+    assertThat( eval("p$x"), equalTo( c(33) ));
+  }
+
+  @Test
+  public void setListElementByName() {
+    eval(" p <- list( x = 44 ) ");
+    eval(" p$x <- 88 ");
+
+    assertThat( eval(" p$x "), equalTo( c(88) ));
+  }
+
+  @Test
+  public void setNewListElementByName() {
+    eval(" p <- list( x = 22, y = 33 ) ");
+    eval(" p$z <- 44 ");
+
+    assertThat( eval(" p$x "), equalTo( c(22) ));
+    assertThat( eval(" p$y "), equalTo( c(33) ));
+    assertThat( eval(" p$z "), equalTo( c(44) ));
+  }
+
+  @Test
+  public void partialListMatch() {
+    eval(" x <- list(alligator=33, aardvark=44) ");
+
+    assertThat( eval("x$a"), equalTo( NULL ));
+    assertThat( eval("x$all"), equalTo( c(33) ));
+  }
+
+  @Test
+  public void pairListPartial() {
+
+    PairListExp list = PairListExp.newBuilder()
         .add(symbol("alligator"), c(1))
         .add(symbol("aardvark"), c(3))
-        .build();
+        .buildNonEmpty();
 
-    SEXP result = Subset.index(list, "all");
+    SEXP result = Subset.getElementByName(list, new SymbolExp("all"));
     assertThat(result, equalTo((SEXP)c(1)));
-
   }
 
 }

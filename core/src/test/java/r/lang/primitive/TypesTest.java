@@ -46,7 +46,11 @@ public class TypesTest extends EvalTestCase {
   public void asCharacterFromList() {
     assertThat( eval("as.character(list(3, 'a', TRUE)) "), equalTo( c("3", "a", "TRUE" )));
     assertThat( eval("as.character(list(c(1,3), 'a', TRUE)) "), equalTo( c("c(1, 3)", "a", "TRUE" )));
+  }
 
+  @Test
+  public void asCharacterFromSymbol() {
+    assertThat( eval(" as.character(quote(x)) "), equalTo( c("x") ));
   }
 
   @Test

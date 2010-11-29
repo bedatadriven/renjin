@@ -226,9 +226,6 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
       }
 
       symbol = (clazz == SymbolExp.class);
-      if(symbol) {
-        evaluated = false;
-      }
     }
 
     public boolean isAssignableFrom(Object value) {

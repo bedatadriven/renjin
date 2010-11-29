@@ -23,6 +23,7 @@ package r.lang.primitive;
 
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.Evaluate;
 import r.lang.primitive.annotations.Indices;
 import r.lang.primitive.annotations.Primitive;
 
@@ -30,7 +31,7 @@ import r.lang.primitive.annotations.Primitive;
 public class Subset {
 
   @Primitive("$")
-  public static SEXP getElementByName(PairList list, SymbolExp symbol) {
+  public static SEXP getElementByName(PairList list, @Evaluate(false) SymbolExp symbol) {
     SEXP match = null;
     int matchCount = 0;
 
@@ -46,7 +47,7 @@ public class Subset {
   }
 
   @Primitive("$")
-  public static SEXP getElementByName(ListExp list, SymbolExp name) {
+  public static SEXP getElementByName(ListExp list, @Evaluate(false) SymbolExp name) {
     SEXP match = null;
     int matchCount = 0;
 
@@ -60,7 +61,7 @@ public class Subset {
   }
 
   @Primitive("$<-")
-  public static SEXP setElementByName(ListExp list, SymbolExp name, SEXP value) {
+  public static SEXP setElementByName(ListExp list, @Evaluate(false) SymbolExp name, SEXP value) {
     ListExp.Builder result = ListExp.buildFromClone(list);
 
     int index = list.getIndexByName(name);

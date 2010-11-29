@@ -257,7 +257,7 @@ public class Evaluation {
     return logical == Logical.TRUE;
   }
 
-  public static boolean missing(@Environment EnvExp rho, SymbolExp symbol) {
+  public static boolean missing(@Environment EnvExp rho, @Evaluate(false) SymbolExp symbol) {
     SEXP value = rho.findVariable(symbol);
     if(value == SymbolExp.UNBOUND_VALUE) {
       throw new EvalException("'missing' can only be used for arguments");

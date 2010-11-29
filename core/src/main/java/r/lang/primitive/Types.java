@@ -148,12 +148,16 @@ public class Types {
     StringExp.Builder result = new StringExp.Builder();
     for(SEXP element : list) {
       if(element.length() == 1 && element instanceof WidensToString) {
-        result.add(((WidensToString) element).getString(0));
+        result.add( ((WidensToString) element).getString(0) );
       } else {
         result.add( Parse.deparse(element) );
       }
     }
     return result.build();
+  }
+  
+  public static StringExp asCharacter(SymbolExp symbol) {
+    return new StringExp( symbol.getPrintName() );
   }
 
   public static DoubleExp asDouble(DoubleExp exp) {
@@ -300,6 +304,10 @@ public class Types {
   @Primitive("class<-")
   public static SEXP setClass(SEXP exp, StringExp classes) {
     return exp.setClass(classes);
+  }
+
+   public static SEXP setClass(SEXP exp, ListExp list) {
+    return exp.setClass(Types.asCharacter(list));
   }
 
   public static SEXP oldClass(SEXP exp) {

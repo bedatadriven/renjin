@@ -144,6 +144,18 @@ public class Types {
     return value;
   }
 
+  public static StringExp asCharacter(ListExp list) {
+    StringExp.Builder result = new StringExp.Builder();
+    for(SEXP element : list) {
+      if(element.length() == 1 && element instanceof WidensToString) {
+        result.add(((WidensToString) element).getString(0));
+      } else {
+        result.add( Parse.deparse(element) );
+      }
+    }
+    return result.build();
+  }
+
   public static DoubleExp asDouble(DoubleExp exp) {
     return exp;
   }

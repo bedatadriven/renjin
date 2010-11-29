@@ -131,12 +131,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.get(index));
+      return IntExp.isNA(exp.getInt(index));
     }
 
     @Override
     public Integer get(int index) {
-      return exp.get(index);
+      return exp.getInt(index);
     }
 
     @Override
@@ -271,12 +271,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return exp.get(index) == IntExp.NA;
+      return exp.getInt(index) == IntExp.NA;
     }
 
     @Override
     public Double get(int index) {
-      return (double)exp.get(index);
+      return (double)exp.getInt(index);
     }
 
     @Override
@@ -294,12 +294,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return exp.get(index) == IntExp.NA;
+      return exp.getInt(index) == IntExp.NA;
     }
 
     @Override
     public Boolean get(int index) {
-      return exp.get(index) == 1;
+      return exp.getInt(index) == 1;
     }
 
     @Override
@@ -384,12 +384,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.get(index));
+      return IntExp.isNA(exp.getInt(index));
     }
 
     @Override
     public String get(int index) {
-      return exp.get(index) == 1 ? "TRUE" : "FALSE";
+      return exp.getInt(index) == 1 ? "TRUE" : "FALSE";
     }
 
     @Override
@@ -412,12 +412,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.get(index));
+      return IntExp.isNA(exp.getInt(index));
     }
 
     @Override
     public Logical get(int index) {
-      return Logical.valueOf(exp.get(index));
+      return Logical.valueOf(exp.getInt(index));
     }
   }
 }

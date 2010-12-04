@@ -184,5 +184,16 @@ public class EvaluationTest extends EvalTestCase {
     eval( " x <- list( a = c(91,92,93) ) ");
     eval( " x$a[3] <- 42");
   }
-  
+
+  @Test
+  public void substitute() {
+    eval(" f1 <- function(x, y = x)             { x <- x + 1; y }   ");
+    eval(" s1 <- function(x, y = substitute(x)) { x <- x + 1; y }   ");
+    eval(" s2 <- function(x, y) { if(missing(y)) y <- substitute(x); x <- x + 1; y } ");
+    eval(" a <- 10  ");
+
+    assertThat( eval(" f1(a) "), equalTo( c(11) ) );
+    assertThat( eval(" s1(a) "), equalTo( c(11) ) );
+    assertThat( eval(" s2(a) "), equalTo( symbol("a") ));
+  }
 }

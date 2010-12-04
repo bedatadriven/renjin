@@ -21,12 +21,15 @@
 
 package r.lang.primitive;
 
+import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.ControlFlowException;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.Environment;
 import r.lang.primitive.annotations.Evaluate;
 import r.lang.primitive.annotations.Primitive;
+
+import java.util.List;
 
 public class Evaluation {
 
@@ -243,6 +246,94 @@ public class Evaluation {
     return exp;
   }
 
+  public static SEXP substitute(@Environment EnvExp rho, @Evaluate(false) SEXP exp) {
+    // this seems pretty arbitrary but its documented!
+//    if(rho == rho.getGlobalEnvironment()) {
+//      return exp;
+//    }
+    return substitute(exp, rho);
+  }
+
+  public static SEXP substitute(@Evaluate(false) SEXP exp, EnvExp environment) {
+    SubstitutingVisitor visitor = new SubstitutingVisitor(environment);
+    exp.accept(visitor);
+    return visitor.getResult();
+  }
+
+  private static class SubstitutingVisitor extends SexpVisitor<SEXP> {
+    private final EnvExp environment;
+    private SEXP result;
+
+    public SubstitutingVisitor(EnvExp environment) {
+      this.environment = environment;
+    }
+
+    @Override
+    public void visit(LangExp langExp) {
+      result = new LangExp(
+          substitute(langExp.getFunction()),
+          (PairList) substitute((SEXP) langExp.getArguments()),
+          langExp.getAttributes(),
+          langExp.getTag());
+    }
+
+    @Override
+    public void visit(PairListExp listExp) {
+      PairListExp.Builder builder = PairListExp.newBuilder();
+      for(PairListExp node : listExp.listNodes()) {
+        builder.add(node.getRawTag(), substitute(node.getValue()));
+      }
+      result = builder.buildNonEmpty();
+    }
+
+    @Override
+    public void visit(ListExp listExp) {
+      ListExp.Builder builder = ListExp.newBuilder();
+      for(SEXP exp : listExp) {
+        builder.add(substitute(exp));
+      }
+      builder.setAttributes(listExp.getAttributes());
+      result = builder.build();
+    }
+
+    @Override
+    public void visit(ExpExp expSexp) {
+      List<SEXP> list = Lists.newArrayList();
+      for(SEXP exp : expSexp) {
+        list.add( substitute(exp ));
+      }
+      result = new ExpExp(list, expSexp.getAttributes());
+    }
+
+    @Override
+    public void visit(SymbolExp symbolExp) {
+      if(environment.hasVariable(symbolExp)) {
+        result = environment.getVariable(symbolExp);
+        if(result instanceof PromiseExp) {
+          result = ((PromiseExp) result).getExpression();
+        }
+      } else {
+        result = symbolExp;
+      }
+    }
+
+    @Override
+    protected void unhandled(SEXP exp) {
+      result = exp;
+    }
+
+    @Override
+    public SEXP getResult() {
+      return result;
+    }
+
+    private SEXP substitute(SEXP exp) {
+      return Evaluation.substitute(exp, environment);
+    }
+  }
+
+
+
   public static boolean asLogicalNoNA(LangExp call, SEXP s, EnvExp rho) {
 
     if (s.length() > 1) {
@@ -267,13 +358,9 @@ public class Evaluation {
     }
   }
 
-  public static class BreakException extends ControlFlowException {
+  public static class BreakException extends ControlFlowException {   }
 
-
-  }
-
-  public static class NextException extends ControlFlowException {
-  }
+  public static class NextException extends ControlFlowException {   }
 
   public static class ReturnException extends ControlFlowException {
 

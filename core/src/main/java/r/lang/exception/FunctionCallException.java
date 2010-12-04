@@ -21,10 +21,7 @@
 
 package r.lang.exception;
 
-import r.lang.IntExp;
-import r.lang.LangExp;
-import r.lang.SEXP;
-import r.lang.SymbolExp;
+import r.lang.*;
 
 /**
  * Wraps an {@link r.lang.exception.EvalException EvalException} and includes
@@ -32,20 +29,34 @@ import r.lang.SymbolExp;
  */
 public class FunctionCallException extends RuntimeException {
 
-  private final LangExp call;
-
-  public FunctionCallException(LangExp call, Exception e) {
-    super(formatMessage(call, e), e);
-    this.call = call;
+  public FunctionCallException(LangExp call, PairList arguments, Exception e) {
+    super(formatMessage(call, arguments, e), e);
   }
 
-  private static String formatMessage(LangExp call, Exception e) {
-    String message = e.getMessage();
+  private static String formatMessage(LangExp call, PairList arguments, Exception e) {
+    StringBuilder message = new StringBuilder();
+    message.append("Error in ").append(call.getFunction());
+    appendArgumentList(arguments, message);
+    message.append(" : ")
+           .append(e.getMessage());
+
     SEXP sexp = call.getAttribute(SymbolExp.SRC_REF);
     if(sexp instanceof IntExp) {
       SEXP srcfile = sexp.getAttribute(SymbolExp.SRC_FILE);
-      message += " (" + srcfile + ": " + ((IntExp) sexp).getInt(0) + ")";
+      message.append(" (").append(srcfile).append(": ").append(((IntExp) sexp).getInt(0)).append(")");
     }
-    return message;
+    return message.toString();
+  }
+
+  private static void appendArgumentList(PairList arguments, StringBuilder sb) {
+    sb.append("(");
+    for(PairListExp node : arguments.listNodes()) {
+      if(node.hasTag()) {
+        sb.append(node.getTag().getPrintName());
+        sb.append(" = ");
+      }
+      sb.append(node.getValue());
+    }
+    sb.append(")");
   }
 }

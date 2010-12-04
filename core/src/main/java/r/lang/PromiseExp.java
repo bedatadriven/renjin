@@ -71,4 +71,11 @@ public class PromiseExp extends SEXP implements RecursiveExp {
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
+
+  /**
+   * @return this Promise's original expression.
+   */
+  public SEXP getExpression() {
+    return expression;
+  }
 }

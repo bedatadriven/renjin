@@ -55,13 +55,6 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
     return IMPLICIT_CLASS;
   }
 
-  /**
-   * @return a name for the function as a valid Java identifier
-   */
-  public Class getFunctionClass() {
-    return functionEntry.functionClass;
-  }
-
   public String getName() {
     return functionEntry.name;
   }
@@ -71,10 +64,15 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
     List<PrimitiveMethod> overloads = getMethodOverloads();
     if(overloads.isEmpty()) {
       StringBuilder message = new StringBuilder();
-      message.append("'" + functionEntry.name + "' is not yet implemented");
+      message.append("'")
+             .append(functionEntry.name)
+             .append("' is not yet implemented");
       if(functionEntry.functionClass != null) {
-        message.append(" (").append(functionEntry.functionClass.getName())
-            .append(".").append(functionEntry.methodName).append(")");
+        message.append(" (")
+             .append(functionEntry.functionClass.getName())
+             .append(".")
+             .append(functionEntry.methodName)
+             .append(")");
       }
       throw new EvalException(message.toString());
     }
@@ -82,7 +80,7 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
     try {
       return RuntimeInvoker.INSTANCE.invoke(rho, call, overloads);
     } catch (EvalException e) {
-      throw new FunctionCallException(call, e);
+      throw new FunctionCallException(call, arguments, e);
     }
   }
 
@@ -110,7 +108,6 @@ public abstract class PrimitiveExp extends SEXP implements FunExp {
     Primitive alias = method.getAnnotation(Primitive.class);
     return alias == null ? "" : alias.value();
   }
-
 
   @Override
   public void accept(SexpVisitor visitor) {

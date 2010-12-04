@@ -583,7 +583,7 @@ public class FunctionTable {
       f("deparseRd", /*deparseRd*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("dput", /*dput*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
       f("dump", /*dump*/ null, 0, 111, 5, PP_FUNCALL, PREC_FN, 0),
-      f("substitute", Text.class, 0, 0, -1, PP_FUNCALL, PREC_FN, 0),
+      f("substitute", Evaluation.class, 0, 0, -1, PP_FUNCALL, PREC_FN, 0),
       f("quote", Evaluation.class, 0, 0, 1, PP_FUNCALL, PREC_FN, 0),
       f("quit", /*quit*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
       f("interactive", /*interactive*/ null, 0, 0, 0, PP_FUNCALL, PREC_FN, 0),

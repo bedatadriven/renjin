@@ -63,10 +63,4 @@ public class Text {
     return result.toString() ;
   }
 
-
-  public static SEXP substitute(SEXP... values) {
-    // TODO!
-    return NullExp.INSTANCE;
-  }
-
 }

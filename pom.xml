@@ -46,10 +46,15 @@
 
   <distributionManagement>
     <repository>
-      <id>bedatadriven-stat</id>
+      <id>bedatadriven-stat-releases</id>
       <name>bedatadriven Stats Repo</name>
-      <url>http://nexus.bedatadriven.com/content/repositories/stat</url>
+      <url>http://nexus.bedatadriven.com/content/repositories/stat-releases</url>
     </repository>
+    <snapshotRepository>
+      <id>bedatadriven-stat-snapshots</id>
+      <name>bedatadriven Stats Repo</name>
+      <url>http://nexus.bedatadriven.com/content/repositories/stat-snapshots</url>
+    </snapshotRepository>
   </distributionManagement>
 
   <repositories>

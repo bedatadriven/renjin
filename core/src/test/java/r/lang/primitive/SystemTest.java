@@ -22,7 +22,7 @@
 package r.lang.primitive;
 
 import org.junit.Test;
-import r.lang.StringExp;
+import r.lang.StringVector;
 
 public class SystemTest {
 
@@ -33,8 +33,8 @@ public class SystemTest {
     java.lang.System.out.println( System.glob( c( "c:\\.*" ) , true) );
   }
 
-  private StringExp c(String... values) {
-    return new StringExp(values);
+  private StringVector c(String... values) {
+    return new StringVector(values);
   }
 
 }

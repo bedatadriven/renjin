@@ -28,6 +28,7 @@ import r.lang.primitive.annotations.AllowNA;
 import r.lang.primitive.annotations.Indices;
 
 import java.lang.Class;
+import java.lang.Integer;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
@@ -37,7 +38,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.lang.Integer;
 
 /**
  * Invokes a JVM method from the R language.
@@ -82,6 +82,7 @@ public class RuntimeInvoker {
     converters.add(new DoubleToIndices());
     converters.add(new DoubleToInt());
     converters.add(new IntToIndices());
+    converters.add(new NullToObject());
   }
 
   public EvalResult invoke(EnvExp rho, LangExp call, List<PrimitiveMethod> overloads) {
@@ -440,62 +441,62 @@ public class RuntimeInvoker {
     }
   }
 
-  private class StringToSymbol implements ArgConverter<StringExp, SymbolExp> {
+  private class StringToSymbol implements ArgConverter<StringVector, SymbolExp> {
 
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
-      return source instanceof StringExp &&
+      return source instanceof StringVector &&
           source.length() == 1 &&
           formal.isSymbol();
     }
 
     @Override
-    public SymbolExp convert(EnvExp rho, StringExp source, PrimitiveMethod.Argument formal) {
-      return new SymbolExp(source.get(0));
+    public SymbolExp convert(EnvExp rho, StringVector source, PrimitiveMethod.Argument formal) {
+      return new SymbolExp(source.getElement(0));
     }
   }
 
-  private class DoubleToIndices implements ArgConverter<DoubleExp, int[]> {
+  private class DoubleToIndices implements ArgConverter<DoubleVector, int[]> {
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
       return
-          source instanceof DoubleExp &&
+          source instanceof DoubleVector &&
           formal.isAnnotatedWith(Indices.class) &&
           formal.getClazz().equals(int[].class);
     }
 
     @Override
-    public int[] convert(EnvExp rho, DoubleExp source, PrimitiveMethod.Argument formal) {
+    public int[] convert(EnvExp rho, DoubleVector source, PrimitiveMethod.Argument formal) {
       return source.coerceToIntArray();
     }
   }
 
-  private class IntToIndices implements ArgConverter<IntExp,  int[]> {
+  private class IntToIndices implements ArgConverter<IntVector,  int[]> {
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
       return
-          source instanceof IntExp &&
+          source instanceof IntVector &&
           formal.isAnnotatedWith(Indices.class) &&
           formal.getClazz().equals(int[].class);
     }
 
     @Override
-    public int[] convert(EnvExp rho, IntExp source, PrimitiveMethod.Argument formal) {
+    public int[] convert(EnvExp rho, IntVector source, PrimitiveMethod.Argument formal) {
       return source.toIntArray();
     }
   }
 
-  private class DoubleToInt implements ArgConverter<DoubleExp, Integer> {
+  private class DoubleToInt implements ArgConverter<DoubleVector, Integer> {
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
-      return source instanceof DoubleExp &&
+      return source instanceof DoubleVector &&
           source.length() == 1 &&
           formal.isAnnotatedWith(Indices.class) &&
           formal.getClazz().equals(Integer.TYPE);
     }
 
     @Override
-    public Integer convert(EnvExp rho, DoubleExp source, PrimitiveMethod.Argument formal) {
+    public Integer convert(EnvExp rho, DoubleVector source, PrimitiveMethod.Argument formal) {
       return (int)source.get(0);
     }
   }
@@ -539,6 +540,18 @@ public class RuntimeInvoker {
     @Override
     public Object convert(EnvExp rho, SEXP source, PrimitiveMethod.Argument formal) {
       return ((ExternalExp)source).getValue();
+    }
+  }
+
+  private class NullToObject implements ArgConverter {
+    @Override
+    public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
+      return source == NullExp.INSTANCE && !formal.getClazz().isPrimitive();
+    }
+
+    @Override
+    public Object convert(EnvExp rho, SEXP source, PrimitiveMethod.Argument formal) {
+      return null;
     }
   }
 }

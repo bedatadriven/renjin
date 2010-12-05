@@ -33,34 +33,34 @@ import java.util.List;
 /**
  * Generic vector of {@code SEXP}s
  */
-public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements {
+public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
 
   private static final int TYPE_CODE = 19;
   private static final String TYPE_NAME = "list";
 
   private final ArrayList<SEXP> values;
 
-  public ListExp(Iterable<SEXP> values,  PairList attributes) {
+  public ListVector(Iterable<SEXP> values,  PairList attributes) {
     super(NullExp.INSTANCE, attributes);
     this.values = new ArrayList<SEXP>();
     Iterables.addAll(this.values, values);
   }
 
-  public ListExp(Iterable<SEXP> values) {
+  public ListVector(Iterable<SEXP> values) {
     this(values, NullExp.INSTANCE);
   }
 
-  public ListExp(SEXP[] values, SEXP tag, PairList attributes) {
+  public ListVector(SEXP[] values, SEXP tag, PairList attributes) {
     super(tag, attributes);
     this.values = new ArrayList<SEXP>();
     Collections.addAll(this.values, values);
   }
 
-  public ListExp(SEXP[] values, PairList attributes) {
+  public ListVector(SEXP[] values, PairList attributes) {
     this(values, NullExp.INSTANCE, attributes);
   }
 
-  public ListExp(SEXP... values) {
+  public ListVector(SEXP... values) {
     this(values, NullExp.INSTANCE);
   }
 
@@ -77,7 +77,7 @@ public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements
 
   @Override
   public boolean isWiderThan(Object vector) {
-    return vector instanceof HasElements;
+    return vector instanceof Vector;
   }
 
   @Override
@@ -97,9 +97,9 @@ public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements
 
   public int indexOfName(String name) {
     SEXP names = attributes.findByTag(SymbolExp.NAMES);
-    if(names instanceof StringExp) {
+    if(names instanceof StringVector) {
       for(int i=0;i!=names.length();++i) {
-        if(((StringExp) names).get(i).equals(name)) {
+        if(((StringVector) names).getElement(i).equals(name)) {
           return i;
         }
       }
@@ -120,8 +120,13 @@ public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements
   }
 
   @Override
-  public SEXP getExp(int index) {
+  public SEXP getElementAsSEXP(int index) {
     return values.get(index);
+  }
+
+  @Override
+  public Iterable<SEXP> elements() {
+    return this;
   }
 
   @Override
@@ -129,7 +134,7 @@ public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    ListExp listExp = (ListExp) o;
+    ListVector listExp = (ListVector) o;
 
     if (!values.equals(listExp.values)) return false;
 
@@ -152,7 +157,7 @@ public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements
     return new Builder();
   }
 
-  public static Builder buildFromClone(ListExp toClone) {
+  public static Builder buildFromClone(ListVector toClone) {
     return new Builder(toClone);
   }
 
@@ -162,29 +167,29 @@ public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements
   }
 
   @Override
-  public HasElements.Builder newBuilder(int initialSize) {
+  public Vector.Builder newBuilder(int initialSize) {
     return new Builder();
   }
 
   @Override
   protected SEXP cloneWithNewAttributes(PairList attributes) {
-    return new ListExp(values, attributes);
+    return new ListVector(values, attributes);
   }
 
-  public static class Builder implements HasElements.Builder<ListExp,HasElements> {
+  public static class Builder implements Vector.Builder<ListVector, Vector> {
     private PairList attributes = NullExp.INSTANCE;
     private boolean haveNames = false;
     private List<SEXP> values = Lists.newArrayList();
     private List<String> names = Lists.newArrayList();
 
-    private Builder() {
+    public Builder() {
     }
 
-    private Builder(ListExp toClone) {
+    private Builder(ListVector toClone) {
       Iterables.addAll(values, toClone);
       SEXP names = toClone.getAttribute(SymbolExp.NAMES);
-      if(names instanceof StringExp) {
-        Iterables.addAll(this.names, (StringExp)names);
+      if(names instanceof StringVector) {
+        Iterables.addAll(this.names, (StringVector)names);
         haveNames = true;
       } else {
         for(SEXP value : values) { this.names.add(""); }
@@ -211,22 +216,22 @@ public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements
     }
 
     public Builder add(String name, int value) {
-      return add(name, new IntExp(value));
+      return add(name, new IntVector(value));
     }
 
     public Builder add(String name, String value) {
-      return add(name, new StringExp(value));
+      return add(name, new StringVector(value));
     }
 
     public Builder add(String name, boolean value) {
-      return add(name, new LogicalExp(value));
+      return add(name, new LogicalVector(value));
     }
 
     public Builder add(String name, Logical value) {
-      return add(name, new LogicalExp(value));
+      return add(name, new LogicalVector(value));
     }
 
-    public Builder addAll(ListExp list) {
+    public Builder addAll(ListVector list) {
       for(int i=0;i!=list.length();++i) {
         add(list.getName(i),  list.get(i));
       }
@@ -253,8 +258,8 @@ public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, HasElements source, int sourceIndex) {
-      return set(destinationIndex, source.getExp(sourceIndex));
+    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
+      return set(destinationIndex, source.getElementAsSEXP(sourceIndex));
     }
 
     public SEXP build(int length) {
@@ -266,11 +271,11 @@ public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements
       return this;
     }
 
-    public ListExp build() {
+    public ListVector build() {
       if(haveNames) {
-        return new ListExp(values,  PairListExp.buildList(SymbolExp.NAMES, new StringExp(names)).build());
+        return new ListVector(values,  PairListExp.buildList(SymbolExp.NAMES, new StringVector(names)).build());
       } else {
-        return new ListExp(values);
+        return new ListVector(values);
       }
     }
   }

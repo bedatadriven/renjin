@@ -47,7 +47,7 @@ public class Subset {
   }
 
   @Primitive("$")
-  public static SEXP getElementByName(ListExp list, @Evaluate(false) SymbolExp name) {
+  public static SEXP getElementByName(ListVector list, @Evaluate(false) SymbolExp name) {
     SEXP match = null;
     int matchCount = 0;
 
@@ -61,8 +61,8 @@ public class Subset {
   }
 
   @Primitive("$<-")
-  public static SEXP setElementByName(ListExp list, @Evaluate(false) SymbolExp name, SEXP value) {
-    ListExp.Builder result = ListExp.buildFromClone(list);
+  public static SEXP setElementByName(ListVector list, @Evaluate(false) SymbolExp name, SEXP value) {
+    ListVector.Builder result = ListVector.buildFromClone(list);
 
     int index = list.getIndexByName(name);
     if(index == -1) {
@@ -74,12 +74,12 @@ public class Subset {
   }
 
   @Primitive("[")
-  public static SEXP getSubset(HasElements vector, LogicalExp include) {
-    HasElements.Builder result = vector.newBuilder(0);
+  public static SEXP getSubset(Vector vector, LogicalVector include) {
+    Vector.Builder result = vector.newBuilder(0);
     int resultLen = 0;
     for(int i=0;i!=vector.length();++i) {
       int b = include.getInt(i % include.length());
-      if( b == LogicalExp.NA ) {
+      if( b == LogicalVector.NA ) {
         result.setNA(i);
       } else if( b != 0) {
         result.setFrom(resultLen++, vector, i);
@@ -89,8 +89,8 @@ public class Subset {
   }
 
   @Primitive("[")
-  public static SEXP getSubset(HasElements vector, @Indices int indices[]) {
-    HasElements.Builder builder = vector.newBuilder(0);
+  public static SEXP getSubset(Vector vector, @Indices int indices[]) {
+    Vector.Builder builder = vector.newBuilder(0);
     int resultLen = 0;
 
     if(arePositions(indices)) {
@@ -124,7 +124,7 @@ public class Subset {
   }
 
   @Primitive("[[")
-  public static SEXP getSingleElement(HasElements vector, @Indices int index) {
+  public static SEXP getSingleElement(Vector vector, @Indices int index) {
     if(index < 0) {
       throw new EvalException("attempt to select more than one element");
     } else if(index == 0) {
@@ -132,19 +132,19 @@ public class Subset {
     }
 
     if(index <= vector.length()) {
-      return vector.getExp(index-1);
+      return vector.getElementAsSEXP(index-1);
     } else {
       return vector.newBuilder(1).setNA(0).build();
     }
   }
 
   @Primitive("[<-")
-  public static SEXP setSubset(HasElements target, @Indices int indices[], HasElements values) {
+  public static SEXP setSubset(Vector target, @Indices int indices[], Vector values) {
     if(indices.length % values.length() != 0) {
       throw new EvalException("number of items to replace is not a multiple of replacement length");
     }
 
-    HasElements.Builder result = copyWideningIfNecessary(target, values);
+    Vector.Builder result = copyWideningIfNecessary(target, values);
 
     for(int i=0;i!=indices.length;++i) {
       int index = indices[i];
@@ -155,8 +155,8 @@ public class Subset {
     return result.build();
   }
 
-  private static HasElements.Builder copyWideningIfNecessary(HasElements toCopy, HasElements otherElements) {
-    HasElements.Builder result;
+  private static Vector.Builder copyWideningIfNecessary(Vector toCopy, Vector otherElements) {
+    Vector.Builder result;
 
     if(toCopy.isWiderThan(otherElements)) {
       result = toCopy.newCopyBuilder();
@@ -170,8 +170,8 @@ public class Subset {
   }
 
   @Primitive("[")
-  public static SEXP getSubset(HasElements vector, StringExp names) {
-    HasElements.Builder builder = vector.newBuilder(names.length());
+  public static SEXP getSubset(Vector vector, StringVector names) {
+    Vector.Builder builder = vector.newBuilder(names.length());
 
     int resultLen = 0;
     for(String name : names) {

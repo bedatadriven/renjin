@@ -51,7 +51,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(ComplexExp complexExp) {
+    public void visit(ComplexVector complexExp) {
       throw new UnsupportedOperationException();
     }
 
@@ -62,7 +62,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(ExpExp expSexp) {
+    public void visit(ExpressionVector expSexp) {
       throw new UnsupportedOperationException();
     }
 
@@ -72,7 +72,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(IntExp intExp) {
+    public void visit(IntVector intExp) {
       appendVector(intExp, new ParseUtil.IntDeparser());
     }
 
@@ -107,17 +107,17 @@ public class Parse {
     }
 
     @Override
-    public void visit(DoubleExp realExp) {
+    public void visit(DoubleVector realExp) {
       appendVector(realExp, new ParseUtil.RealDeparser());
     }
 
     @Override
-    public void visit(StringExp stringExp) {
+    public void visit(StringVector stringExp) {
       appendVector(stringExp, new ParseUtil.StringDeparser());
     }
 
     @Override
-    public void visit(LogicalExp logicalExp) {
+    public void visit(LogicalVector logicalExp) {
      appendVector(logicalExp, new ParseUtil.LogicalDeparser());
     }
 

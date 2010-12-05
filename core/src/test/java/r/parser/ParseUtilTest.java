@@ -22,7 +22,7 @@
 package r.parser;
 
 import org.junit.Test;
-import r.lang.StringExp;
+import r.lang.StringVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -32,9 +32,9 @@ public class ParseUtilTest {
   @Test
   public void deparseCharacterNA() {
 
-    StringExp exp = new StringExp(StringExp.NA);
+    StringVector exp = new StringVector(StringVector.NA);
 
-    assertThat(new ParseUtil.StringDeparser().apply(StringExp.NA), equalTo("NA_character_"));
+    assertThat(new ParseUtil.StringDeparser().apply(StringVector.NA), equalTo("NA_character_"));
   }
 
   @Test

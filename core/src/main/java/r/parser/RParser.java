@@ -61,7 +61,7 @@ import static r.util.CDefines.*;
  */
 public class RParser {
 
-  public static ExpExp parseSource(Reader reader) throws IOException {
+  public static ExpressionVector parseSource(Reader reader) throws IOException {
     ParseState parseState = new ParseState();
     ParseOptions parseOptions = ParseOptions.defaults();
     Lexer lexer = new RLexer(parseOptions, parseState, reader);
@@ -70,7 +70,7 @@ public class RParser {
     return parser.parseAll();
   }
 
-  public static ExpExp parseSource(String source) {
+  public static ExpressionVector parseSource(String source) {
     try {
       return parseSource(new StringReader(source));
     } catch (IOException e) {
@@ -78,7 +78,7 @@ public class RParser {
     }
   }
 
-  private ExpExp parseAll() throws IOException {
+  private ExpressionVector parseAll() throws IOException {
     List<SEXP> exprList = new ArrayList();
 
     while (parse()) {
@@ -93,10 +93,10 @@ public class RParser {
         case ERROR:
           throw new ParseException(getResultStatus().toString());
         case EOF:
-          return new ExpExp( exprList );
+          return new ExpressionVector( exprList );
       }
     }
-    return new ExpExp( exprList );
+    return new ExpressionVector( exprList );
   }
 
   public enum StatusResult {
@@ -2408,10 +2408,10 @@ public class RParser {
 
     PairList attributes = PairListExp.newBuilder()
         .add(SymbolExp.SRC_FILE, srcfile)
-        .add(SymbolExp.CLASS, new StringExp("srcref"))
+        .add(SymbolExp.CLASS, new StringVector("srcref"))
         .build();
 
-    return new IntExp(values, attributes);
+    return new IntVector(values, attributes);
   }
 
   static SEXP attachSrcrefs(SEXP val, SEXP srcfile) {
@@ -2869,7 +2869,7 @@ public class RParser {
 
   private SEXP TagArg(SEXP arg, SEXP tag, Location lloc) {
 
-    if(tag instanceof StringExp) {
+    if(tag instanceof StringVector) {
       tag = new SymbolExp(translateChar(STRING_ELT(tag, 0)));
     }
 

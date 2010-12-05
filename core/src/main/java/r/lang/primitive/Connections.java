@@ -61,11 +61,11 @@ public class Connections {
    * @param eenv
    * @param targetEnvironment
    */
-  public static void makeLazy(StringExp names, ListExp values, LangExp expr, EnvExp eenv, EnvExp targetEnvironment) {
+  public static void makeLazy(StringVector names, ListVector values, LangExp expr, EnvExp eenv, EnvExp targetEnvironment) {
 
     for(int i = 0; i < names.length(); i++) {
       // the name of the symbol
-      SymbolExp name = new SymbolExp(names.get(i));
+      SymbolExp name = new SymbolExp(names.getElement(i));
 
       // c(pos, length) of the serialized object
       SEXP value = values.get(i).evalToExp((EnvExp) eenv);
@@ -92,7 +92,7 @@ public class Connections {
    * @param restoreFunction a function called to load persisted objects from the serialized stream
    */
   public static SEXP lazyLoadDBfetch(@Environment final EnvExp rho,
-                                     IntExp key,
+                                     IntVector key,
                                      String file,
                                      int compression,
                                      final SEXP restoreFunction) throws IOException, DataFormatException
@@ -143,7 +143,7 @@ public class Connections {
     return result;
   }
 
-  public static byte[] readRawFromFile(String file, IntExp key) throws IOException {
+  public static byte[] readRawFromFile(String file, IntVector key) throws IOException {
     if(key.length() != 2) {
       throw new EvalException("bad offset/length argument");
     }

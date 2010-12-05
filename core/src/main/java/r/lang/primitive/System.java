@@ -22,10 +22,10 @@
 package r.lang.primitive;
 
 import com.google.common.collect.Lists;
-import r.lang.ListExp;
+import r.lang.ListVector;
 import r.lang.Logical;
 import r.lang.SEXP;
-import r.lang.StringExp;
+import r.lang.StringVector;
 import r.lang.primitive.annotations.Primitive;
 
 import java.io.File;
@@ -55,14 +55,14 @@ public class System {
    * @return
    */
   @Primitive("Sys.glob")
-  public static StringExp glob(StringExp paths, boolean markDirectories) {
+  public static StringVector glob(StringVector paths, boolean markDirectories) {
     List<String> matching = Lists.newArrayList();
     for(String path : paths) {
       if(path != null) {
         matching.addAll(FileScanner.scan(path, markDirectories));
       }
     }
-    return new StringExp(matching);
+    return new StringVector(matching);
   }
 
   @Primitive("path.expand")
@@ -159,10 +159,10 @@ public class System {
   }
 
   @Primitive("file.info")
-  public static ListExp fileInfo(String path) {
+  public static ListVector fileInfo(String path) {
     File file = new File(path);
 
-    ListExp.Builder info = ListExp.newBuilder();
+    ListVector.Builder info = ListVector.newBuilder();
     if(file.exists()) {
       info.add("size", (int)file.length());
       info.add("isdir", file.isDirectory());

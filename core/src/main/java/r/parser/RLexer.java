@@ -842,12 +842,12 @@ an ANSI digit or not */
       if (parseOptions.isGenerateCode() && seendot == 1 && !seenexp) {
         logger.warning(String.format("integer literal %sL contains unnecessary decimal point", buffer.toString()));
       }
-      yylval = parseOptions.isGenerateCode() ? IntExp.parseInt(buffer.toString()) : R_NilValue;
+      yylval = parseOptions.isGenerateCode() ? IntVector.parseInt(buffer.toString()) : R_NilValue;
     } else {
       if (c != 'L') {
         xxungetc(c);
       }
-      yylval = parseOptions.isGenerateCode() ? DoubleExp.parseDouble(buffer.toString()) : R_NilValue;
+      yylval = parseOptions.isGenerateCode() ? DoubleVector.parseDouble(buffer.toString()) : R_NilValue;
     }
 
     return NUM_CONST;
@@ -866,7 +866,7 @@ an ANSI digit or not */
     double f = ParseUtil.parseDouble(s);
 
     if(parseOptions.isGenerateCode()) {
-      t = new ComplexExp(new Complex(0, f));
+      t = new ComplexVector(new Complex(0, f));
     }
 
     return t;
@@ -1101,7 +1101,7 @@ an ANSI digit or not */
       yylval = install(stext.toString());
       return SYMBOL;
     } else {
-      yylval = new StringExp(stext.toString());
+      yylval = new StringVector(stext.toString());
     }
     if (have_warned != 0) {
       logger.warning(String.format("unrecognized escape(s) removed from \"%s\"", ctext));
@@ -1164,31 +1164,31 @@ an ANSI digit or not */
             if (parseOptions.isGenerateCode()) {
               switch (i) {
                 case 1:
-                  yylval = new LogicalExp(Logical.NA);
+                  yylval = new LogicalVector(Logical.NA);
                   break;
                 case 2:
-                  yylval = new LogicalExp(true);
+                  yylval = new LogicalVector(true);
                   break;
                 case 3:
-                  yylval = new LogicalExp(false);
+                  yylval = new LogicalVector(false);
                   break;
                 case 4:
-                  yylval = new DoubleExp(Double.POSITIVE_INFINITY);
+                  yylval = new DoubleVector(Double.POSITIVE_INFINITY);
                   break;
                 case 5:
-                  yylval = new DoubleExp(Double.NaN);
+                  yylval = new DoubleVector(Double.NaN);
                   break;
                 case 6:
-                  yylval = new IntExp(IntExp.NA);
+                  yylval = new IntVector(IntVector.NA);
                   break;
                 case 7:
-                  yylval = new DoubleExp(DoubleExp.NA);
+                  yylval = new DoubleVector(DoubleVector.NA);
                   break;
                 case 8:
-                  yylval = new StringExp(CDefines.NA_STRING);
+                  yylval = new StringVector(CDefines.NA_STRING);
                   break;
                 case 9:
-                  yylval = new ComplexExp(new Complex(DoubleExp.NA, DoubleExp.NA));
+                  yylval = new ComplexVector(new Complex(DoubleVector.NA, DoubleVector.NA));
                   break;
               }
             } else {

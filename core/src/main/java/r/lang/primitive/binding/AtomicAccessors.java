@@ -36,14 +36,14 @@ public class AtomicAccessors {
   }
 
   public static AtomicAccessor<?> create(SEXP exp) {
-    if(exp instanceof LogicalExp) {
-      return new LogicalExpToBoolean((LogicalExp) exp);
-    } else if(exp instanceof IntExp) {
-      return new IntExpAccessor((IntExp) exp);
-    } else if(exp instanceof DoubleExp) {
-      return new DoubleExpAccessor((DoubleExp) exp);
-    } else if(exp instanceof StringExp) {
-      return new StringExpAccessor((StringExp)exp);
+    if(exp instanceof LogicalVector) {
+      return new LogicalExpToBoolean((LogicalVector) exp);
+    } else if(exp instanceof IntVector) {
+      return new IntExpAccessor((IntVector) exp);
+    } else if(exp instanceof DoubleVector) {
+      return new DoubleExpAccessor((DoubleVector) exp);
+    } else if(exp instanceof StringVector) {
+      return new StringExpAccessor((StringVector)exp);
     } else if(exp instanceof NullExp) {
       return NULL_ACCESSOR;
     }
@@ -52,48 +52,48 @@ public class AtomicAccessors {
 
   public static AtomicAccessor create(SEXP exp, Class elementType) {
 
-    if(exp instanceof LogicalExp) {
+    if(exp instanceof LogicalVector) {
       if(elementType == Logical.class) {
-        return new LogicalExpToLogical((LogicalExp) exp);
+        return new LogicalExpToLogical((LogicalVector) exp);
       } else if(elementType == Boolean.TYPE) {
-        return new LogicalExpToBoolean((LogicalExp) exp);
+        return new LogicalExpToBoolean((LogicalVector) exp);
       } else if(elementType == Integer.TYPE || elementType == Integer.class) {
-        return new LogicalExpToInt((LogicalExp) exp);
+        return new LogicalExpToInt((LogicalVector) exp);
       } else if(elementType == Double.TYPE || elementType == Double.class) {
-        return new LogicalExpToDouble((LogicalExp) exp);
+        return new LogicalExpToDouble((LogicalVector) exp);
       } else if(elementType == String.class) {
-        return new LogicalExpToString((LogicalExp) exp);
+        return new LogicalExpToString((LogicalVector) exp);
       } else {
         return null;
       }
 
-    } else if(exp instanceof IntExp) {
+    } else if(exp instanceof IntVector) {
       if(elementType == Integer.TYPE || elementType == Integer.class) {
-        return new IntExpAccessor((IntExp) exp);
+        return new IntExpAccessor((IntVector) exp);
       } else if(elementType == Double.TYPE || elementType == Double.class) {
-        return new IntExpToDouble((IntExp) exp);
+        return new IntExpToDouble((IntVector) exp);
       } else if(elementType == String.class) {
-        return new IntExpToString((IntExp) exp);
+        return new IntExpToString((IntVector) exp);
       } else if(elementType == Boolean.TYPE || elementType == Boolean.class) {
-        return new IntExpToLogical((IntExp)exp);
+        return new IntExpToLogical((IntVector)exp);
       } else {
         return null;
       }
 
 
-    } else if(exp instanceof DoubleExp) {
+    } else if(exp instanceof DoubleVector) {
       if(elementType == Double.TYPE || elementType == Double.class) {
-        return new DoubleExpAccessor((DoubleExp) exp);
+        return new DoubleExpAccessor((DoubleVector) exp);
       } else if(elementType == Boolean.TYPE || elementType == Boolean.class) {
-        return new DoubleExpAsLogical((DoubleExp)exp);
+        return new DoubleExpAsLogical((DoubleVector)exp);
       } else if(elementType == String.class) {
-        return new DoubleExpToString((DoubleExp) exp);
+        return new DoubleExpToString((DoubleVector) exp);
       }
 
 
-    } else if(exp instanceof StringExp) {
+    } else if(exp instanceof StringVector) {
       if(elementType == String.class) {
-        return new StringExpAccessor((StringExp) exp);
+        return new StringExpAccessor((StringVector) exp);
       }
 
     } else if(exp instanceof NullExp) {
@@ -123,15 +123,15 @@ public class AtomicAccessors {
   }
 
   private static class LogicalExpToInt implements AtomicAccessor<Integer> {
-    private LogicalExp exp;
+    private LogicalVector exp;
 
-    private LogicalExpToInt(LogicalExp vector) {
+    private LogicalExpToInt(LogicalVector vector) {
       this.exp = vector;
     }
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getInt(index));
     }
 
     @Override
@@ -147,15 +147,15 @@ public class AtomicAccessors {
   }
 
   private static class IntExpAccessor implements AtomicAccessor<Integer> {
-    private IntExp exp;
+    private IntVector exp;
 
-    private IntExpAccessor(IntExp exp) {
+    private IntExpAccessor(IntVector exp) {
       this.exp = exp;
     }
 
     @Override
     public boolean isNA(int index) {
-      return exp.getInt(index) == IntExp.NA;
+      return exp.getInt(index) == IntVector.NA;
     }
 
     @Override
@@ -170,15 +170,15 @@ public class AtomicAccessors {
   }
 
   private static class DoubleExpAccessor implements AtomicAccessor<Double> {
-    private DoubleExp exp;
+    private DoubleVector exp;
 
-    private DoubleExpAccessor(DoubleExp exp) {
+    private DoubleExpAccessor(DoubleVector exp) {
       this.exp = exp;
     }
 
     @Override
     public boolean isNA(int index) {
-      return DoubleExp.isNA(exp.get(index));
+      return DoubleVector.isNA(exp.get(index));
     }
 
     @Override
@@ -193,9 +193,9 @@ public class AtomicAccessors {
   }
 
   private static class DoubleExpAsLogical implements AtomicAccessor<Boolean> {
-    private DoubleExp exp;
+    private DoubleVector exp;
 
-    private DoubleExpAsLogical(DoubleExp exp) {
+    private DoubleExpAsLogical(DoubleVector exp) {
       this.exp = exp;
     }
 
@@ -206,7 +206,7 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return DoubleExp.isNA( exp.get(index) );
+      return DoubleVector.isNA( exp.get(index) );
     }
 
     @Override
@@ -216,15 +216,15 @@ public class AtomicAccessors {
   }
 
   private static class IntExpToDouble implements AtomicAccessor<Double> {
-    private IntExp exp;
+    private IntVector exp;
 
-    private IntExpToDouble(IntExp exp) {
+    private IntExpToDouble(IntVector exp) {
       this.exp = exp;
     }
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getInt(index));
     }
 
     @Override
@@ -239,9 +239,9 @@ public class AtomicAccessors {
   }
 
   private static class IntExpToLogical implements AtomicAccessor<Boolean> {
-    private IntExp exp;
+    private IntVector exp;
 
-    private IntExpToLogical(IntExp exp) {
+    private IntExpToLogical(IntVector exp) {
       this.exp = exp;
     }
 
@@ -252,7 +252,7 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA( exp.getInt(index) );
+      return IntVector.isNA( exp.getInt(index) );
     }
 
     @Override
@@ -263,15 +263,15 @@ public class AtomicAccessors {
 
 
   private static class LogicalExpToDouble implements AtomicAccessor<Double> {
-    private LogicalExp exp;
+    private LogicalVector exp;
 
-    private LogicalExpToDouble(LogicalExp exp) {
+    private LogicalExpToDouble(LogicalVector exp) {
       this.exp = exp;
     }
 
     @Override
     public boolean isNA(int index) {
-      return exp.getInt(index) == IntExp.NA;
+      return exp.getInt(index) == IntVector.NA;
     }
 
     @Override
@@ -286,15 +286,15 @@ public class AtomicAccessors {
   }
 
   private static class LogicalExpToBoolean implements AtomicAccessor<Boolean> {
-    private LogicalExp exp;
+    private LogicalVector exp;
 
-    private LogicalExpToBoolean(LogicalExp exp) {
+    private LogicalExpToBoolean(LogicalVector exp) {
       this.exp = exp;
     }
 
     @Override
     public boolean isNA(int index) {
-      return exp.getInt(index) == IntExp.NA;
+      return exp.getInt(index) == IntVector.NA;
     }
 
     @Override
@@ -309,20 +309,20 @@ public class AtomicAccessors {
   }
 
   private static class StringExpAccessor implements AtomicAccessor<String> {
-    private StringExp exp;
+    private StringVector exp;
 
-    private StringExpAccessor(StringExp exp) {
+    private StringExpAccessor(StringVector exp) {
       this.exp = exp;
     }
 
     @Override
     public boolean isNA(int index) {
-      return StringExp.isNA(exp.get(index));
+      return StringVector.isNA(exp.getElement(index));
     }
 
     @Override
     public String get(int index) {
-      return exp.get(index);
+      return exp.getElement(index);
     }
 
     @Override
@@ -332,14 +332,14 @@ public class AtomicAccessors {
   }
 
   private static class DoubleExpToString implements AtomicAccessor<String> {
-    private DoubleExp exp;
+    private DoubleVector exp;
 
-    private DoubleExpToString(DoubleExp exp) {
+    private DoubleExpToString(DoubleVector exp) {
       this.exp = exp;
     }
 
     public boolean isNA(int index) {
-      return DoubleExp.isNA(exp.get(index));
+      return DoubleVector.isNA(exp.get(index));
     }
 
     public String get(int index) {
@@ -353,15 +353,15 @@ public class AtomicAccessors {
   }
 
   private static class IntExpToString implements AtomicAccessor<String> {
-    private IntExp exp;
+    private IntVector exp;
 
-    private IntExpToString(IntExp exp) {
+    private IntExpToString(IntVector exp) {
       this.exp = exp;
     }
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getInt(index));
     }
 
     @Override
@@ -376,15 +376,15 @@ public class AtomicAccessors {
   }
 
   private static class LogicalExpToString implements AtomicAccessor<String> {
-    private LogicalExp exp;
+    private LogicalVector exp;
 
-    private LogicalExpToString(LogicalExp exp) {
+    private LogicalExpToString(LogicalVector exp) {
       this.exp = exp;
     }
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getInt(index));
     }
 
     @Override
@@ -399,9 +399,9 @@ public class AtomicAccessors {
   }
 
   private static class LogicalExpToLogical implements AtomicAccessor<Logical> {
-    private final LogicalExp exp;
+    private final LogicalVector exp;
 
-    public LogicalExpToLogical(LogicalExp exp) {
+    public LogicalExpToLogical(LogicalVector exp) {
       this.exp = exp;
     }
 
@@ -412,7 +412,7 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntExp.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getInt(index));
     }
 
     @Override

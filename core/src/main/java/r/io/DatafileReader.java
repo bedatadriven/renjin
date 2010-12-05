@@ -367,11 +367,11 @@ public class DatafileReader {
   }
 
   private SEXP readListExp(Flags flags) throws IOException {
-    return new ListExp(readExpArray(), readAttributes(flags));
+    return new ListVector(readExpArray(), readAttributes(flags));
   }
 
   private SEXP readExpExp(Flags flags) throws IOException {
-    return new ExpExp(readExpArray(), readAttributes(flags));
+    return new ExpressionVector(readExpArray(), readAttributes(flags));
   }
 
   private SEXP[] readExpArray() throws IOException {
@@ -389,7 +389,7 @@ public class DatafileReader {
     for(int i=0;i!=length;++i) {
       values[i] = ((CharExp)readExp()).getValue();
     }
-    return new StringExp(values, readAttributes(flags));
+    return new StringVector(values, readAttributes(flags));
   }
 
   private SEXP readComplexExp(Flags flags) throws IOException {
@@ -402,7 +402,7 @@ public class DatafileReader {
     for(int i=0;i!=length;++i) {
       values[i] = in.readDouble();
     }
-    return new DoubleExp(values, readAttributes(flags));
+    return new DoubleVector(values, readAttributes(flags));
   }
 
   private SEXP readIntegerExp(Flags flags) throws IOException {
@@ -411,7 +411,7 @@ public class DatafileReader {
     for(int i=0;i!=length;++i) {
       values[i] = in.readInt();
     }
-    return new IntExp(values, readAttributes(flags));
+    return new IntVector(values, readAttributes(flags));
   }
 
 
@@ -421,14 +421,14 @@ public class DatafileReader {
     for(int i=0;i!=length;++i) {
       values[i] = in.readInt();
     }
-    return new LogicalExp(values, readAttributes(flags));
+    return new LogicalVector(values, readAttributes(flags));
   }
 
   private SEXP readCharExp(Flags flags) throws IOException {
     int length = in.readInt();
 
     if (length == -1) {
-      return new CharExp(StringExp.NA );
+      return new CharExp(StringVector.NA );
     } else  {
       byte buf[] = in.readString(length);
       if(flags.isUTF8Encoded()) {
@@ -460,7 +460,7 @@ public class DatafileReader {
     return addReadRef( restorer.restore(readStringVector()) );
   }
 
-  private StringExp readStringVector() throws IOException {
+  private StringVector readStringVector() throws IOException {
     if(in.readInt() != 0) {
       throw new IOException("names in persistent strings are not supported yet");
     }
@@ -469,7 +469,7 @@ public class DatafileReader {
     for(int i=0;i!=len;++i) {
       values[i] = ((CharExp)readExp()).getValue();
     }
-    return new StringExp(values);
+    return new StringVector(values);
   }
 
   private interface StreamReader {
@@ -539,7 +539,7 @@ public class DatafileReader {
     public int readInt() throws IOException {
       String word = readWord();
       if("NA".equals(word)) {
-        return IntExp.NA;
+        return IntVector.NA;
       } else {
         return Integer.parseInt(word);
       }
@@ -549,7 +549,7 @@ public class DatafileReader {
     public double readDouble() throws IOException {
       String word = readWord();
       if("NA".equals(word)){
-        return DoubleExp.NA;
+        return DoubleVector.NA;
       } else if("Inf".equals(word)) {
         return Double.POSITIVE_INFINITY;
       } else if("-Inf".equals(word)){

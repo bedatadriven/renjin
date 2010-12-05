@@ -21,7 +21,6 @@
 
 package r.lang.primitive;
 
-import com.google.common.collect.Iterables;
 import r.lang.*;
 import r.lang.primitive.annotations.ArgumentList;
 import r.lang.primitive.binding.AtomicAccessor;
@@ -46,7 +45,7 @@ public class Combine {
     Inspector inspector = new Inspector((PairListExp) argList);
 
     Class<? extends SEXP> lowestCommonType = inspector.getLowestCommonType();
-    if(AtomicExp.class.isAssignableFrom(lowestCommonType)) {
+    if(AtomicVector.class.isAssignableFrom(lowestCommonType)) {
       if(inspector.getTotalLength() == 0) {
         return NullExp.INSTANCE;
       } else {
@@ -59,13 +58,13 @@ public class Combine {
 
   private static SEXP combineToAtomic(Inspector inspector) {
     AtomicBuilder builder = AtomicBuilders.createFor(
-        elementClassOf((Class<? extends AtomicExp>) inspector.getLowestCommonType()),
+        elementClassOf((Class<? extends AtomicVector>) inspector.getLowestCommonType()),
         inspector.getTotalLength());
     int resultLength = 0;
 
     for(SEXP exp : inspector.getAllExpressions()) {
       AtomicAccessor accessor = AtomicAccessors.create(exp,
-          elementClassOf((Class<AtomicExp>) inspector.getLowestCommonType()));
+          elementClassOf((Class<AtomicVector>) inspector.getLowestCommonType()));
       for(int i=0;i!=accessor.length();++i) {
         if(accessor.isNA(i)) {
           builder.setNA(resultLength++);
@@ -78,25 +77,13 @@ public class Combine {
   }
 
   private static SEXP combineToList(Inspector inspector) {
-    List<SEXP> items = new ArrayList<SEXP>();
-
-    for(SEXP sexp : inspector.getAllExpressions()) {
-      if(sexp instanceof NullExp) {
-        items.add(sexp);
-      } else if(sexp instanceof AtomicExp) {
-        AtomicAccessor accessor = AtomicAccessors.create(sexp);
-        for(int i=0; i!=accessor.length();++i) {
-          items.add( SEXPFactory.fromJava(accessor.get(i)) );
-        }                        
-
-      } else if(sexp instanceof ListExp) {
-        Iterables.addAll(items, (ListExp) sexp);
-
-      } else {
-        items.add(sexp);
+    ListVector.Builder list = new ListVector.Builder();
+    for(SEXP exp : inspector.getAllExpressions()) {
+      for(SEXP element : exp.elements()) {
+        list.add(element);
       }
     }
-    return new ListExp(items);
+    return list.build();
   }
 
   /**
@@ -106,7 +93,7 @@ public class Combine {
 
     private int totalLength;
     private List<SEXP> allExpressions = new ArrayList<SEXP>();
-    private Class resultClass = LogicalExp.class;
+    private Class resultClass = LogicalVector.class;
 
     /**
      * Visits each element of {@code ListExp}
@@ -118,19 +105,19 @@ public class Combine {
     }
 
     @Override
-    public void visit(DoubleExp realExp) {
+    public void visit(DoubleVector realExp) {
       maybeWidenType(realExp);
       add(realExp);
     }
 
     @Override
-    public void visit(IntExp intExp) {
+    public void visit(IntVector intExp) {
       maybeWidenType(intExp);
       add(intExp);
     }
 
     @Override
-    public void visit(LogicalExp logicalExp) {
+    public void visit(LogicalVector logicalExp) {
       add(logicalExp);
     }
 
@@ -140,13 +127,13 @@ public class Combine {
     }
 
     @Override
-    public void visit(StringExp stringExp) {
+    public void visit(StringVector stringExp) {
       maybeWidenType(stringExp);
       add(stringExp);
     }
 
     @Override
-    public void visit(ListExp listExp) {
+    public void visit(ListVector listExp) {
       maybeWidenType(listExp);
       for(SEXP exp : listExp) {
         add(exp);
@@ -165,25 +152,25 @@ public class Combine {
     }
 
     private void maybeWidenType(SEXP y) {
-      if(resultClass == ListExp.class) {
+      if(resultClass == ListVector.class) {
         // already as wide as we're going to get
         return;
       }
 
-      if(!(y instanceof AtomicExp)) {
-        resultClass = ListExp.class;
+      if(!(y instanceof AtomicVector)) {
+        resultClass = ListVector.class;
 
-      } else if(resultClass == LogicalExp.class) {
+      } else if(resultClass == LogicalVector.class) {
         // everything is wider than logical
         resultClass = y.getClass();
 
-      } else if(resultClass == IntExp.class) {
-        if( !(y instanceof IntExp)) {
+      } else if(resultClass == IntVector.class) {
+        if( !(y instanceof IntVector)) {
           resultClass = y.getClass();
         }
 
       } else if(resultClass == Double.class) {
-        if( y instanceof StringExp ) {
+        if( y instanceof StringVector) {
           resultClass = y.getClass();
         }
       }
@@ -194,10 +181,6 @@ public class Combine {
      */
     public Class<? extends SEXP> getLowestCommonType() {
       return resultClass;
-    }
-
-    public boolean isLowestCommonTypeAtomic() {
-      return AtomicExp.isAtomic(resultClass);
     }
 
     public int getTotalLength() {

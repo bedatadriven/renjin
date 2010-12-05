@@ -30,9 +30,9 @@ public class Match {
 
   
 
-  public static int[] match(AtomicExp searchExp, AtomicExp tableExp, int noMatch, AtomicExp incomparablesExp) {
+  public static int[] match(AtomicVector searchExp, AtomicVector tableExp, int noMatch, AtomicVector incomparablesExp) {
     //For historical reasons, FALSE is equivalent to NULL.
-    if(incomparablesExp.equals( LogicalExp.FALSE ) ) {
+    if(incomparablesExp.equals( LogicalVector.FALSE ) ) {
       incomparablesExp = NullExp.INSTANCE;
     }
 
@@ -80,7 +80,7 @@ public class Match {
     if(TypeConverter.allAreAtomic(x, table)) {
       commonType = TypeConverter.commonAtomicType(x, table);
     }  else {
-      commonType = StringExp.class;
+      commonType = StringVector.class;
     }
     return commonType;
   }

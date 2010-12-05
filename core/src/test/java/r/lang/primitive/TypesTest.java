@@ -39,7 +39,7 @@ public class TypesTest extends EvalTestCase {
     assertThat( eval("as.character(1.3333333333333333333333333333333333)"),
         equalTo(c("1.33333333333333")));
     assertThat( eval("as.character(TRUE)"), equalTo( c("TRUE") ));
-    assertThat( eval("as.character(NA)"), equalTo( c( StringExp.NA )) );
+    assertThat( eval("as.character(NA)"), equalTo( c( StringVector.NA )) );
   }
 
   @Test
@@ -56,7 +56,7 @@ public class TypesTest extends EvalTestCase {
   @Test
   public void asDoubleFromDouble() {
     assertThat( eval("as.double(3.14)"), equalTo( c(3.14) ) );
-    assertThat( eval("as.double(NA_real_)"), equalTo( c(DoubleExp.NA) ) );
+    assertThat( eval("as.double(NA_real_)"), equalTo( c(DoubleVector.NA) ) );
   }
 
   @Test
@@ -73,14 +73,14 @@ public class TypesTest extends EvalTestCase {
   @Test
   public void asDoubleFromString() {
     assertThat( eval("as.double(\"42\")"), equalTo( c(42d) ));
-    assertThat( eval("as.double(\"not an integer\")"), equalTo( c(DoubleExp.NA) ));
+    assertThat( eval("as.double(\"not an integer\")"), equalTo( c(DoubleVector.NA) ));
   }
 
   @Test
   public void asIntFromDouble() {
     assertThat( eval("as.integer(3.1)"), equalTo( c_i( 3 )));
     assertThat( eval("as.integer(3.9)"), equalTo( c_i( 3 )));
-    assertThat( eval("as.integer(NA_real_)"), equalTo( c_i( IntExp.NA )));
+    assertThat( eval("as.integer(NA_real_)"), equalTo( c_i( IntVector.NA )));
     assertThat( eval("as.integer(c(1, 9.32, 9.9, 5.0))"), equalTo( c_i(1, 9, 9, 5 )));
   }
 

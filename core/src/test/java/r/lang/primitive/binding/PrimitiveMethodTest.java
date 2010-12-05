@@ -22,7 +22,7 @@
 package r.lang.primitive.binding;
 
 import org.junit.Test;
-import r.lang.AtomicExp;
+import r.lang.AtomicVector;
 import r.lang.NullExp;
 import r.lang.exception.EvalException;
 
@@ -36,7 +36,7 @@ public class PrimitiveMethodTest {
     PrimitiveMethod m0 = new PrimitiveMethod(getClass().getMethod("doStuff", Boolean.TYPE, Boolean.TYPE, Boolean.TYPE));
     PrimitiveMethod m1 = new PrimitiveMethod(getClass().getMethod("doStuff", NullExp.class));
     PrimitiveMethod m2 = new PrimitiveMethod(getClass().getMethod("doStuff", Integer.TYPE));
-    PrimitiveMethod m3 = new PrimitiveMethod(getClass().getMethod("doStuff", AtomicExp.class));
+    PrimitiveMethod m3 = new PrimitiveMethod(getClass().getMethod("doStuff", AtomicVector.class));
     PrimitiveMethod m4 = new PrimitiveMethod(getClass().getMethod("doStuff"));
 
     // make sure that we get an error because doStuff(AtomicExp) hides doStuff(NullExp)
@@ -46,7 +46,7 @@ public class PrimitiveMethodTest {
 
 
 
-  public static void doStuff(AtomicExp x) {
+  public static void doStuff(AtomicVector x) {
 
   }
 

@@ -32,22 +32,22 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class StringExp extends AtomicExp implements Iterable<String>, WidensToString {
+public class StringVector extends AbstractSEXP implements AtomicVector, Iterable<String>, WidensToString {
   public static final String TYPE_NAME = "character";
   public static final int TYPE_CODE = 16;
   public static final String NA = null;
 
   private final String values[];
 
-  public StringExp(String... values) {
+  public StringVector(String... values) {
     this.values = Arrays.copyOf(values, values.length, String[].class);
   }
 
-  public StringExp(Collection<String> values) {
+  public StringVector(Collection<String> values) {
     this.values = values.toArray(new String[values.size()]);
   }
 
-  public StringExp(String[] values, PairList attributes) {
+  public StringVector(String[] values, PairList attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, values.length, String[].class);
   }
@@ -57,7 +57,7 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
     return values.length;
   }
 
-  public StringExp setLength(int newLength) {
+  public StringVector setLength(int newLength) {
     if(newLength == values.length) {
       return this;
     }
@@ -66,10 +66,10 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
       if(i < this.values.length) {
         newValues[i] = values[i];
       } else {
-        newValues[i] = StringExp.NA;
+        newValues[i] = StringVector.NA;
       }
     }
-    return new StringExp(values);
+    return new StringVector(values);
   }
 
   @Override
@@ -77,7 +77,7 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
     return vector instanceof WidensToString;
   }
 
-  public String get(int index) {
+  public String getElement(int index) {
     return values[index];
   }
 
@@ -104,7 +104,7 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
       return ParseUtil.parseDouble(values[0]);
     } else {
 
-      return DoubleExp.NA;
+      return DoubleVector.NA;
     }
   }
 
@@ -132,7 +132,7 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    StringExp stringExp = (StringExp) o;
+    StringVector stringExp = (StringVector) o;
 
     if (!Arrays.equals(values, stringExp.values)) return false;
 
@@ -150,13 +150,8 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
   }
 
   @Override
-  public Class getElementClass() {
-    return String.class;
-  }
-
-  @Override
-  public SEXP getExp(int index) {
-    return new StringExp(values[index]);
+  public SEXP getElementAsSEXP(int index) {
+    return new StringVector(values[index]);
   }
 
   @Override
@@ -172,7 +167,7 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
     return new Builder();
   }
 
-  public static class Builder implements HasElements.Builder<StringExp, WidensToString> {
+  public static class Builder implements Vector.Builder<StringVector, WidensToString> {
     private ArrayList<String> values = Lists.newArrayList();
     private ArrayList<String> names = Lists.newArrayList();
 
@@ -189,7 +184,7 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
 
     public void add(String value) {
       values.add(value);
-      names.add(StringExp.NA);
+      names.add(StringVector.NA);
     }
 
     @Override
@@ -208,8 +203,8 @@ public class StringExp extends AtomicExp implements Iterable<String>, WidensToSt
     }
 
     @Override
-    public StringExp build() {
-      return new StringExp(values);
+    public StringVector build() {
+      return new StringVector(values);
     }
   }
 }

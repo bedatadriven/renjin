@@ -22,8 +22,8 @@
 package r.lang.primitive;
 
 import com.google.common.annotations.VisibleForTesting;
-import r.lang.DoubleExp;
-import r.lang.IntExp;
+import r.lang.DoubleVector;
+import r.lang.IntVector;
 import r.lang.SEXP;
 import r.lang.Warning;
 import r.lang.exception.EvalException;
@@ -62,7 +62,7 @@ public class Sequences {
 
 
   private static void checkValue(double r1) {
-    if(DoubleExp.isNaN(r1)) {
+    if(DoubleVector.isNaN(r1)) {
       throw new EvalException("NA/NaN argument");
     }
   }
@@ -87,7 +87,7 @@ public class Sequences {
       this.n1 = n1;
       this.n2 = n2;
       range = Math.abs(n2 - n1);
-      count = range + 1 + DoubleExp.EPSILON;
+      count = range + 1 + DoubleVector.EPSILON;
 
       determineType();
     }
@@ -124,7 +124,7 @@ public class Sequences {
           values[index++] = n;
         }
       }
-      return new IntExp(values);
+      return new IntVector(values);
     }
 
     private SEXP realVector() {
@@ -140,7 +140,7 @@ public class Sequences {
           values[index++] = n;
         }
       }
-      return new DoubleExp(values);
+      return new DoubleVector(values);
     }
   }
 

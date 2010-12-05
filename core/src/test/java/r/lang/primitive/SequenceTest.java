@@ -22,9 +22,9 @@
 package r.lang.primitive;
 
 import org.junit.Test;
-import r.lang.DoubleExp;
+import r.lang.DoubleVector;
 import r.lang.EvalTestCase;
-import r.lang.IntExp;
+import r.lang.IntVector;
 import r.lang.SEXP;
 
 import static junit.framework.Assert.assertTrue;
@@ -53,31 +53,31 @@ public class SequenceTest extends EvalTestCase {
   @Test
   public void ascendingInts() {
     assertThat(colon(199,201),
-        equalTo((SEXP)new IntExp(199, 200, 201)));
+        equalTo((SEXP)new IntVector(199, 200, 201)));
   }
 
   @Test
   public void descendingInts() {
     assertThat(colon(9, 5),
-        equalTo((SEXP)new IntExp(9, 8, 7, 6, 5)));
+        equalTo((SEXP)new IntVector(9, 8, 7, 6, 5)));
   }
 
   @Test
   public void ascendingReals() {
     assertThat(colon(1.2, 5).toString(),
-        equalTo(new DoubleExp(1.2, 2.2, 3.2, 4.2).toString()));
+        equalTo(new DoubleVector(1.2, 2.2, 3.2, 4.2).toString()));
   }
 
   @Test
   public void descendingReals() {
     assertThat(colon(9.1, 5.1).toString(),
-        equalTo(new DoubleExp(9.1, 8.1, 7.1, 6.1, 5.1).toString()));
+        equalTo(new DoubleVector(9.1, 8.1, 7.1, 6.1, 5.1).toString()));
   }
 
 
   private SEXP colon(double n1, double n2) {
     Sequences fn = new Sequences();                 
-    return fn.colonSequence(new DoubleExp(n1), new DoubleExp(n2));
+    return fn.colonSequence(new DoubleVector(n1), new DoubleVector(n2));
   }
 
   @Test

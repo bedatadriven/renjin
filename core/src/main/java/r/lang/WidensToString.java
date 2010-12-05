@@ -21,6 +21,6 @@
 
 package r.lang;
 
-public interface WidensToString extends HasElements {
+public interface WidensToString extends Vector {
   String getString(int index);
 }

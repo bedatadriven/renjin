@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-public final class DoubleExp extends AtomicExp implements Iterable<Double>,
+public final class DoubleVector extends AbstractSEXP implements AtomicVector, Iterable<Double>,
     WidensToString, WidensToDouble {
 
   public static final String TYPE_NAME = "double";
@@ -42,20 +42,20 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double>,
 
   private double[] values;
 
-  private DoubleExp(PairList attributes) {
+  private DoubleVector(PairList attributes) {
     super(attributes);
   }
 
-  public DoubleExp(double... values) {
+  public DoubleVector(double... values) {
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  public DoubleExp(double[] values, PairList attributes) {
+  public DoubleVector(double[] values, PairList attributes) {
     this(attributes);
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  public DoubleExp(Collection<Double> values) {
+  public DoubleVector(Collection<Double> values) {
     this.values = new double[values.size()];
     int i = 0;
     for(Double value : values) {
@@ -81,12 +81,12 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double>,
    * @return a RealVector of length one
    */
   public static SEXP parseDouble(String text) {
-    return new DoubleExp(Double.parseDouble(text));
+    return new DoubleVector(Double.parseDouble(text));
   }
 
   @Override
   protected SEXP cloneWithNewAttributes(PairList attributes) {
-    DoubleExp clone = new DoubleExp(attributes);
+    DoubleVector clone = new DoubleVector(attributes);
     clone.values = values;
     return clone;
   }
@@ -100,8 +100,8 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double>,
     return values[i];
   }
 
-  public DoubleExp getExp(int index) {
-    return new DoubleExp(values[index]);
+  public DoubleVector getElementAsSEXP(int index) {
+    return new DoubleVector(values[index]);
   }
 
   @Override
@@ -110,14 +110,14 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double>,
   }
 
   public String getString(int index) {
-    return isNA(values[index]) ? StringExp.NA :
+    return isNA(values[index]) ? StringVector.NA :
         ParseUtil.toString(values[index]);
   }
 
   public int[] coerceToIntArray() {
     int integers[] = new int[values.length];
     for(int i=0; i!=values.length; ++i) {
-      integers[i] = isNaN(values[i]) ? IntExp.NA : (int)values[i];
+      integers[i] = isNaN(values[i]) ? IntVector.NA : (int)values[i];
     }
     return integers;
   }
@@ -177,7 +177,7 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double>,
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    DoubleExp realExp = (DoubleExp) o;
+    DoubleVector realExp = (DoubleVector) o;
 
     if (!Arrays.equals(values, realExp.values)) return false;
 
@@ -218,11 +218,6 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double>,
   }
 
   @Override
-  public Class getElementClass() {
-    return Double.TYPE;
-  }
-
-  @Override
   public Builder newCopyBuilder() {
     return new Builder(this);
   }
@@ -232,7 +227,7 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double>,
     return new Builder(initialSize);
   }
 
-  public static class Builder implements HasElements.Builder<DoubleExp, WidensToDouble> {
+  public static class Builder implements Vector.Builder<DoubleVector, WidensToDouble> {
     private PairList attributes;
     private double values[];
 
@@ -241,7 +236,7 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double>,
       Arrays.fill(values, NA);
     }
 
-    private Builder(DoubleExp exp) {
+    private Builder(DoubleVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
       this.attributes = exp.attributes;
     }
@@ -267,8 +262,8 @@ public final class DoubleExp extends AtomicExp implements Iterable<Double>,
     }
 
     @Override
-    public DoubleExp build() {
-      return new DoubleExp(values, attributes);
+    public DoubleVector build() {
+      return new DoubleVector(values, attributes);
     }
   }
 }

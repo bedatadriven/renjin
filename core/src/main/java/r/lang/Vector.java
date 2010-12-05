@@ -25,14 +25,15 @@ package r.lang;
  * Provides a common interface to {@code ListExp}, all {@code AtomicExp}s, and
  * {@code PairList}s
  */
-public interface HasElements {
+public interface Vector extends SEXP {
 
   int getIndexByName(String name);
 
   /**
+   * @param index zero-based index of the element
    * @return the element at {@code index} as a new {@code SEXP}
    */
-  SEXP getExp(int index);
+  SEXP getElementAsSEXP(int index);
 
   /**
    * Returns a builder for this type, initially empty.
@@ -55,13 +56,7 @@ public interface HasElements {
    */
   Builder newCopyBuilder();
 
-  /**
-   *
-   * @return the number of
-   */
-  int length();
-
-  public static interface Builder<S extends SEXP, E extends HasElements> {
+  public static interface Builder<S extends SEXP, E extends Vector> {
 
     /**
      * Sets the element at index {@code index} to NA

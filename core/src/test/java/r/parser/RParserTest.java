@@ -44,7 +44,7 @@ public class RParserTest {
   @Test
   public void one() throws IOException {
     SEXP r = parseSingle("1\n");
-    assertThat(r, CoreMatchers.instanceOf(DoubleExp.class));
+    assertThat(r, CoreMatchers.instanceOf(DoubleVector.class));
   }
 
   @Test
@@ -88,7 +88,7 @@ public class RParserTest {
 
   @Test
   public void logical() throws IOException {
-    LogicalExp x = (LogicalExp) parseSingle("TRUE\n");
+    LogicalVector x = (LogicalVector) parseSingle("TRUE\n");
     assertThat(x.length(), equalTo(1));
     assertThat(x.getInt(0), equalTo(1));
   }
@@ -136,7 +136,7 @@ public class RParserTest {
 
   @Test
   public void commentsAndLeadingNewLines() throws IOException {
-    ExpExp s = parseAll("# this is a comment\n\n3.145;");
+    ExpressionVector s = parseAll("# this is a comment\n\n3.145;");
 
     assertThat(s.length(), equalTo(1));
     assertThat(s.get(0), realVectorEqualTo(3.145));
@@ -158,7 +158,7 @@ public class RParserTest {
 
   @Test
   public void precededByNewLine() throws IOException {
-    ExpExp exprList = parseAll("\n1;");
+    ExpressionVector exprList = parseAll("\n1;");
 
     assertThat(exprList.length(), equalTo(1));
 
@@ -166,14 +166,14 @@ public class RParserTest {
 
   @Test
   public void parseMultiline() throws IOException {
-    ExpExp result = parseAll("1\n2\n3\n");
+    ExpressionVector result = parseAll("1\n2\n3\n");
 
     assertThat(result.length(), equalTo(3));
   }
 
   @Test
   public void parseWithCommentsPreceding() throws IOException {
-    ExpExp result = parseAll(
+    ExpressionVector result = parseAll(
         "# file header\r\n" +
         "\r\n" +
         "x<-function (y) {\r\n" +
@@ -185,17 +185,17 @@ public class RParserTest {
 
   @Test
   public void parseRealScript() throws IOException {
-    ExpExp result = (ExpExp) parseResource("/testScript.R");
+    ExpressionVector result = (ExpressionVector) parseResource("/testScript.R");
 
     assertThat(result.length(), equalTo(1));
   }
 
-  private ExpExp parseAll(String source) throws IOException {
+  private ExpressionVector parseAll(String source) throws IOException {
     return RParser.parseSource(new StringReader(source));
   }
 
   private SEXP parseSingle(String source) throws IOException {
-    ExpExp exp = RParser.parseSource(source);
+    ExpressionVector exp = RParser.parseSource(source);
     return exp.get(0);
   }
 

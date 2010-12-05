@@ -37,11 +37,11 @@ public class Functions {
     };
   }
 
-  public static Function<StringExp, String> elementAt(final int index) {
-    return new Function<StringExp, String>() {
+  public static Function<StringVector, String> elementAt(final int index) {
+    return new Function<StringVector, String>() {
       @Override
-      public String apply(StringExp input) {
-        return input.get( index % input.length() );
+      public String apply(StringVector input) {
+        return input.getElement( index % input.length() );
       }
     };
   }

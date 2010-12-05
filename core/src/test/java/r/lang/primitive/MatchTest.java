@@ -23,7 +23,7 @@ package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.EvalTestCase;
-import r.lang.IntExp;
+import r.lang.IntVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -33,12 +33,12 @@ public class MatchTest extends EvalTestCase {
   @Test
   public void matchDoubles() {
     assertThat( eval( ".Internal(match(92, c(91,92,93), NA_integer_, NULL ))"), equalTo( c_i(2) ));
-    assertThat( eval( ".Internal(match(44, c(91,92,93), NA_integer_, NULL ))"), equalTo( c_i(IntExp.NA) ));
+    assertThat( eval( ".Internal(match(44, c(91,92,93), NA_integer_, NULL ))"), equalTo( c_i(IntVector.NA) ));
   }
 
   @Test
   public void dontMatchIncomparables() {
-    assertThat( eval( ".Internal(match(92, c(91,92,93), NA_integer_, c(92L) ))"), equalTo( c_i(IntExp.NA) ));
+    assertThat( eval( ".Internal(match(92, c(91,92,93), NA_integer_, c(92L) ))"), equalTo( c_i(IntVector.NA) ));
   }
 
   @Test

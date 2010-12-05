@@ -26,7 +26,7 @@ import com.google.common.collect.Iterators;
 import java.util.Collections;
 import java.util.Iterator;
 
-public final class NullExp extends AtomicExp implements PairList {
+public final class NullExp extends AbstractSEXP implements AtomicVector, PairList {
 
   public static final int TYPE_CODE = 0;
   public static final String TYPE_NAME = "NULL";
@@ -79,6 +79,26 @@ public final class NullExp extends AtomicExp implements PairList {
   }
 
   @Override
+  public SEXP getElementAsSEXP(int index) {
+    throw new ArrayIndexOutOfBoundsException(index);
+  }
+
+  @Override
+  public Builder newBuilder(int initialSize) {
+    return null;
+  }
+
+  @Override
+  public boolean isWiderThan(Object vector) {
+    return false;
+  }
+
+  @Override
+  public Builder newCopyBuilder() {
+    return null;
+  }
+
+  @Override
   public Iterable<PairListExp> listNodes() {
     return Collections.emptySet();
   }
@@ -86,9 +106,5 @@ public final class NullExp extends AtomicExp implements PairList {
   @Override
   public Iterator<SEXP> iterator() {
     return Iterators.emptyIterator();
-  }
-
-  public Class getElementClass() {
-    return NullExp.class;
   }
 }

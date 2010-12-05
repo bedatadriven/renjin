@@ -34,8 +34,8 @@ public class Text {
 
   private Text() {}
 
-  public static SEXP paste(ListExp args, String seperator, NullExp collapse) {
-    List<StringExp> strings = TypeConverter.convertElements(args, StringExp.class);
+  public static SEXP paste(ListVector args, String seperator, NullExp collapse) {
+    List<StringVector> strings = TypeConverter.convertElements(args, StringVector.class);
 
     int resultLength = max(transform(strings, Functions.length()));
     String results[] = new String[resultLength];
@@ -44,11 +44,11 @@ public class Text {
       results[i] = Joiner.on(seperator).join(transform(strings, Functions.elementAt(i)));
     }
     
-    return new StringExp( results );
+    return new StringVector( results );
   }
 
-  public static String paste(ListExp args, String seperator, String collapse) {
-    List<StringExp> strings = TypeConverter.convertElements(args, StringExp.class);
+  public static String paste(ListVector args, String seperator, String collapse) {
+    List<StringVector> strings = TypeConverter.convertElements(args, StringVector.class);
 
     int resultLength = max(transform(strings, Functions.length()));
     StringBuilder result = new StringBuilder();
@@ -63,4 +63,12 @@ public class Text {
     return result.toString() ;
   }
 
+  public static StringVector gettext(String domain, StringVector messages) {
+    return messages;
+  }
+
+  public static String ngettext(double n, String singularMessage, String pluralMessage,
+                                String domain) {
+    return n == 1 ? singularMessage : pluralMessage;
+  }
 }

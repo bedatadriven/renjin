@@ -99,8 +99,8 @@ public class FunctionTable {
       f("stop", Evaluation.class, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("warning", /*warning*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
 
-      f("gettext", /*gettext*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
-      f("ngettext", /*ngettext*/ null, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
+      f("gettext", Text.class, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
+      f("ngettext", Text.class, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("bindtextdomain", /*sbindtextdomain*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
 
       f(".addCondHands", /*addCondHands*/ null, 0, 111, 5, PP_FUNCALL, PREC_FN, 0),

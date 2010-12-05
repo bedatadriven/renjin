@@ -84,7 +84,7 @@ public interface SEXP {
   /**
    * @return the R language class of this expression
    */
-  StringExp getClassAttribute();
+  StringVector getClassAttribute();
 
   boolean inherits(String sClassName);
 
@@ -109,8 +109,15 @@ public interface SEXP {
 
   SEXP setAttribute(String attributeName, SEXP value);
 
-  SEXP setClass(StringExp classNames);
+  SEXP setClass(StringVector classNames);
 
-  SEXP setNames(StringExp names);
+  SEXP setNames(StringVector names);
+
+  /**
+   *
+   * @return an {@code Iterable} over elements within this
+   * expression.
+   */
+  Iterable<SEXP> elements();
 
 }

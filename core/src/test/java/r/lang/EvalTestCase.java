@@ -37,8 +37,8 @@ public abstract class EvalTestCase {
 
   protected EnvExp global;
   public static final SEXP NULL = NullExp.INSTANCE;
-  public static final SEXP CHARACTER_0 = new StringExp();
-  public static final SEXP DOUBLE_0 = new DoubleExp();
+  public static final SEXP CHARACTER_0 = new StringVector();
+  public static final SEXP DOUBLE_0 = new DoubleVector();
 
   @Before
   public void setUp() {
@@ -73,27 +73,27 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP c(boolean... values) {
-    return new LogicalExp(values);
+    return new LogicalVector(values);
   }
 
   protected SEXP c(Logical... values) {
-    return new LogicalExp(values);
+    return new LogicalVector(values);
   }
 
   protected SEXP c(String... values) {
-    return new StringExp(values);
+    return new StringVector(values);
   }
 
   protected SEXP c(double... values) {
-    return new DoubleExp(values);
+    return new DoubleVector(values);
   }
 
   protected SEXP c_i(int... values) {
-    return new IntExp(values);
+    return new IntVector(values);
   }
 
   protected SEXP list(Object... values) {
-    ListExp.Builder builder = ListExp.newBuilder();
+    ListVector.Builder builder = ListVector.newBuilder();
     for(Object obj : values) {
       builder.add(SEXPFactory.fromJava(obj));
     }

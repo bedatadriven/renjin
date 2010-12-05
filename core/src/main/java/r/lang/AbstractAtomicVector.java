@@ -21,25 +21,35 @@
 
 package r.lang;
 
-/**
- * Marker interface for R types defined as "atomic"
- * 
- */
-public abstract class AtomicExp extends AbstractSEXP {
+import com.google.common.collect.UnmodifiableIterator;
 
-  protected AtomicExp() {
+import java.util.Iterator;
+
+public abstract class AbstractAtomicVector extends AbstractSEXP implements AtomicVector{
+
+  @Override
+  public Iterable<SEXP> elements() {
+    return new Elements();
   }
 
-  protected AtomicExp(PairList attributes) {
-    super(attributes);
+  private class Elements implements Iterable<SEXP> {
+    @Override
+    public Iterator<SEXP> iterator() {
+      return new ElementIterator();
+    }
   }
 
-  public abstract Class getElementClass();
+  private class ElementIterator extends UnmodifiableIterator<SEXP> {
+    private int index = 0;
 
+    @Override
+    public boolean hasNext() {
+      return index < length();
+    }
 
-  public static boolean isAtomic(Class<?> expClass) {
-    return AtomicExp.class.isAssignableFrom(expClass);
+    @Override
+    public SEXP next() {
+      return getElementAsSEXP(index++);
+    }
   }
-
-
 }

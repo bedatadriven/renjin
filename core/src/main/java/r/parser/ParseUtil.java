@@ -22,9 +22,9 @@
 package r.parser;
 
 import com.google.common.base.Function;
-import r.lang.DoubleExp;
+import r.lang.DoubleVector;
 import r.lang.Logical;
-import r.lang.StringExp;
+import r.lang.StringVector;
 
 import java.text.NumberFormat;
 
@@ -91,7 +91,7 @@ public class ParseUtil {
     while (Character.isWhitespace(s.charAt(p))) p++;
 
     if (NA && s.substring(p, p+2).equals("NA")) {
-      ans = DoubleExp.NA;
+      ans = DoubleVector.NA;
       p += 2;
       return new DoubleResult(ans, p);
     }
@@ -160,7 +160,7 @@ public class ParseUtil {
       for (p++; p < s.length() && s.charAt(p) >= '0' && s.charAt(p) <= '9'; p++, ndigits++, expn--)
         ans = 10*ans + (s.charAt(p) - '0');
     if (ndigits == 0) {
-      ans = DoubleExp.NA;
+      ans = DoubleVector.NA;
       p = 0; /* back out */
       return new DoubleResult(sign * ans, p);
     }
@@ -265,7 +265,7 @@ public class ParseUtil {
    * @return the value formatted as a literal
    */
   public static String formatStringLiteral(String value, String naString) {
-    if(StringExp.isNA(value)) {
+    if(StringVector.isNA(value)) {
       return naString;
     } else {
       StringBuilder sb = new StringBuilder("\"");
@@ -282,7 +282,7 @@ public class ParseUtil {
    * @return
    */
   public static String formatRealLiteral(double value, String naString) {
-    if(DoubleExp.isNA(value)) {
+    if(DoubleVector.isNA(value)) {
       return naString;
     } else if(Double.isNaN(value)) {
       return "NaN";

@@ -21,9 +21,14 @@
 
 package r.lang;
 
-public interface HasIntElements extends HasElements {
-
-  int[] toIntArray();
+/**
+ * Root interface for "atomic" R vectors.
+ *
+ * {@code AtomicVector}s, in contrast to the {@code ListVector},
+ * are collections of primitive elements of the same type.
+ * 
+ */
+public interface AtomicVector extends Vector {
 
 
 }

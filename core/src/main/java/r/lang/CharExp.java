@@ -21,7 +21,7 @@
 
 package r.lang;
 
-public class CharExp extends AtomicExp {
+public class CharExp extends AbstractSEXP implements AtomicVector {
 
   private String value;
   public static final int TYPE_CODE = 9;
@@ -56,7 +56,22 @@ public class CharExp extends AtomicExp {
   }
 
   @Override
-  public Class getElementClass() {
-    return Character.TYPE;
+  public SEXP getElementAsSEXP(int index) {
+    return new CharExp(value.substring(index, index+1));
+  }
+
+  @Override
+  public Builder newBuilder(int initialSize) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isWiderThan(Object vector) {
+    return false;
+  }
+
+  @Override
+  public Builder newCopyBuilder() {
+    throw new UnsupportedOperationException();
   }
 }

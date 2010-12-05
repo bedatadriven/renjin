@@ -99,13 +99,13 @@ public class BaseFrame implements EnvExp.Frame {
   }
 
   private void installPlatform() {
-      builtins.put(new SymbolExp(".Platform"), ListExp.newBuilder()
-        .add("OS.type", new StringExp(resolveOsName()))
-        .add("file.sep", new StringExp("/"))
-        .add("GUI", new StringExp("unknown"))
-        .add("endian", new StringExp("big"))
-        .add("pkgType", new StringExp("source"))
-        .add("r_arch", new StringExp(""))
+      builtins.put(new SymbolExp(".Platform"), ListVector.newBuilder()
+        .add("OS.type", new StringVector(resolveOsName()))
+        .add("file.sep", new StringVector("/"))
+        .add("GUI", new StringVector("unknown"))
+        .add("endian", new StringVector("big"))
+        .add("pkgType", new StringVector("source"))
+        .add("r_arch", new StringVector(""))
         .build());
   }
   

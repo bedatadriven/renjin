@@ -85,7 +85,7 @@ public class ArgumentTest extends EvalTestCase {
   @Test
   public void taggedVarArgs() {
     eval( "f <- function(...) { list(...) }");
-    ListExp exp = (ListExp) eval( "f(x=1,y=2,z=3)");
+    ListVector exp = (ListVector) eval( "f(x=1,y=2,z=3)");
     assertThat(exp.getName(0), equalTo("x"));
     assertThat(exp.getName(1), equalTo("y"));
     assertThat(exp.getName(2), equalTo("z"));
@@ -115,7 +115,7 @@ public class ArgumentTest extends EvalTestCase {
   public void ellipsesPassedToClosureWithTags() {
     eval( "g<- function(...) { list(...) } ");
     eval( "f<- function(...) { g(...) }");
-    ListExp exp = (ListExp) eval(" f(x=1,y=2,z=3) ");
+    ListVector exp = (ListVector) eval(" f(x=1,y=2,z=3) ");
     assertThat(exp.getName(0), equalTo("x"));
     assertThat(exp.getName(1), equalTo("y"));
     assertThat(exp.getName(2), equalTo("z"));

@@ -73,7 +73,7 @@ public class Print {
     }
 
     @Override
-    public void visit(ListExp listExp) {
+    public void visit(ListVector listExp) {
       int index = 1;
       for(int i=0; i!= listExp.length(); ++i) {
         SEXP value = listExp.get(i);
@@ -91,22 +91,22 @@ public class Print {
     }
 
     @Override
-    public void visit(IntExp intExp) {
+    public void visit(IntVector intExp) {
       printVector(intExp, Alignment.RIGHT, new ParseUtil.IntPrinter());
     }
 
     @Override
-    public void visit(LogicalExp logicalExp) {
+    public void visit(LogicalVector logicalExp) {
       printVector(logicalExp, Alignment.RIGHT, new ParseUtil.LogicalPrinter());
     }
 
     @Override
-    public void visit(DoubleExp realExp) {
+    public void visit(DoubleVector realExp) {
       printVector(realExp, Alignment.RIGHT, new ParseUtil.RealPrinter());
     }
 
     @Override
-    public void visit(StringExp stringExp) {
+    public void visit(StringVector stringExp) {
       printVector(stringExp, Alignment.LEFT, new ParseUtil.StringPrinter());
     }
 

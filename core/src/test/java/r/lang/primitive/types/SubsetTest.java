@@ -39,8 +39,8 @@ public class SubsetTest extends EvalTestCase {
     assertThat( eval(" x[1] "), equalTo( c(91) ));
     assertThat( eval(" x[2] "), equalTo( c(92) ));
     assertThat( eval(" x[3] "), equalTo( c(93) ));
-    assertThat( eval(" x[4] "), equalTo( c(DoubleExp.NA)) );
-    assertThat( eval(" x[0] "), equalTo( (SEXP) new DoubleExp() ));
+    assertThat( eval(" x[4] "), equalTo( c(DoubleVector.NA)) );
+    assertThat( eval(" x[0] "), equalTo( (SEXP) new DoubleVector() ));
     assertThat( eval(" x[3L] "), equalTo( c(93) ));
   }
 
@@ -60,7 +60,7 @@ public class SubsetTest extends EvalTestCase {
   public void subsetDoubleMultipleIndices() {
     eval( " x <- c(91,92,93) ");
     assertThat( eval(" x[2:3] "), equalTo( c(92,93) ));
-    assertThat( eval(" x[3:5] "), equalTo( c(93,DoubleExp.NA,DoubleExp.NA) ));
+    assertThat( eval(" x[3:5] "), equalTo( c(93, DoubleVector.NA, DoubleVector.NA) ));
   }
 
   @Test
@@ -69,9 +69,9 @@ public class SubsetTest extends EvalTestCase {
 
     assertThat( eval("x[0] "), equalTo( CHARACTER_0 ));
     assertThat( eval("x[1] "), equalTo( c("a") ));
-    assertThat( eval("x[99] "), equalTo( c( StringExp.NA )));
+    assertThat( eval("x[99] "), equalTo( c( StringVector.NA )));
     assertThat( eval("x[1:2] "), equalTo( c("a", "b") ));
-    assertThat( eval("x[2:5] "), equalTo( c("b", "c", StringExp.NA, StringExp.NA )));
+    assertThat( eval("x[2:5] "), equalTo( c("b", "c", StringVector.NA, StringVector.NA )));
     assertThat( eval("x[-3] "), equalTo( c("a", "b")));
   }
 
@@ -127,7 +127,7 @@ public class SubsetTest extends EvalTestCase {
 
     assertThat( eval(" x[TRUE] "), equalTo( c(21,22,23)));
     assertThat( eval(" x[FALSE] "), equalTo( DOUBLE_0 ));
-    assertThat( eval(" x[NA] "), equalTo( c(DoubleExp.NA, DoubleExp.NA, DoubleExp.NA) ));
+    assertThat( eval(" x[NA] "), equalTo( c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA) ));
     assertThat( eval(" x[c(TRUE,FALSE,TRUE)] "), equalTo( c(21, 23) ));
   }
 
@@ -159,7 +159,7 @@ public class SubsetTest extends EvalTestCase {
   public void subsetOfPosAndZeroIndices() {
     eval("  x<-c(91, 92, 93, 94, 95) ");
 
-    assertThat( eval("x[c(1,0,1)]"), Matchers.equalTo((SEXP) new DoubleExp(91, 91)));
+    assertThat( eval("x[c(1,0,1)]"), Matchers.equalTo((SEXP) new DoubleVector(91, 91)));
   }
 
   @Test

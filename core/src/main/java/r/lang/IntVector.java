@@ -28,7 +28,7 @@ import r.parser.ParseUtil;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt {
+public class IntVector extends AbstractSEXP implements AtomicVector, Iterable<Integer>, WidensToInt {
 
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
@@ -41,20 +41,20 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
 
   private int[] values;
 
-  public IntExp(int... values) {
+  public IntVector(int... values) {
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  public IntExp(int[] values, PairList attributes) {
+  public IntVector(int[] values, PairList attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, values.length);
   }
 
   public static SEXP parseInt(String s) {
     if (s.startsWith("0x")) {
-      return new IntExp(Integer.parseInt(s.substring(2), 16));
+      return new IntVector(Integer.parseInt(s.substring(2), 16));
     } else {
-      return new IntExp(Integer.parseInt(s));
+      return new IntVector(Integer.parseInt(s));
     }
   }
 
@@ -97,8 +97,8 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
   }
 
   @Override
-  public SEXP getExp(int index) {
-    return new IntExp(values[index]);
+  public SEXP getElementAsSEXP(int index) {
+    return new IntVector(values[index]);
   }
 
   @Override
@@ -129,7 +129,7 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
   @Override
   public double asReal() {
     if(length() == 0 || values[0] == NA) {
-      return DoubleExp.NA;
+      return DoubleVector.NA;
     } else {
       return values[0];
     }
@@ -146,7 +146,7 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
 
   @Override
   protected SEXP cloneWithNewAttributes(PairList attributes) {
-    return new IntExp(values, attributes);
+    return new IntVector(values, attributes);
   }
 
   @Override
@@ -159,7 +159,7 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    IntExp intExp = (IntExp) o;
+    IntVector intExp = (IntVector) o;
 
     if (!Arrays.equals(values, intExp.values)) return false;
 
@@ -187,11 +187,6 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
     return value == NA;
   }
 
-  @Override
-  public Class getElementClass() {
-    return Integer.TYPE;
-  }
-
   private class ValueIterator extends UnmodifiableIterator<Integer> {
     private int i = 0;
 
@@ -206,7 +201,7 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
     }
   }
 
-  private static class Builder implements HasElements.Builder<LogicalExp, WidensToLogical> {
+  private static class Builder implements Vector.Builder<LogicalVector, WidensToLogical> {
     private PairList attributes;
     private int values[];
 
@@ -215,7 +210,7 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
       Arrays.fill(values, NA);
     }
 
-    private Builder(IntExp exp) {
+    private Builder(IntVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
       this.attributes = exp.attributes;
     }
@@ -241,8 +236,8 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
     }
 
     @Override
-    public LogicalExp build() {
-      return new LogicalExp(values, attributes);
+    public LogicalVector build() {
+      return new LogicalVector(values, attributes);
     }
   }
 }

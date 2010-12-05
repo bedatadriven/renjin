@@ -22,10 +22,10 @@
 package r.lang.primitive;
 
 import org.junit.Test;
-import r.lang.DoubleExp;
-import r.lang.IntExp;
-import r.lang.ListExp;
-import r.lang.StringExp;
+import r.lang.DoubleVector;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.StringVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -34,20 +34,20 @@ public class PrintingVisitorTest {
 
   @Test
   public void realVector() {
-    assertThat(new Print.PrintingVisitor(new DoubleExp(1,99,3), 80).getResult(),
+    assertThat(new Print.PrintingVisitor(new DoubleVector(1,99,3), 80).getResult(),
         equalTo("[1]  1 99  3\n"));                                                
   }
 
   @Test
   public void stringVector() {
-    assertThat(new Print.PrintingVisitor(new StringExp("abcdef", "a", "b"), 80).getResult(),
+    assertThat(new Print.PrintingVisitor(new StringVector("abcdef", "a", "b"), 80).getResult(),
         equalTo("[1] \"abcdef\" \"a\"      \"b\"     \n"));
   }
 
   @Test
   public void listOfVectors() {
     assertThat(new Print.PrintingVisitor(
-        new ListExp(new DoubleExp(1), new IntExp(999, 1), new StringExp("hello world")), 80)
+        new ListVector(new DoubleVector(1), new IntVector(999, 1), new StringVector("hello world")), 80)
           .getResult(),
         equalTo("[[1]]\n" +
                 "[1] 1\n" +

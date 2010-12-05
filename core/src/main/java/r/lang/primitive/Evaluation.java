@@ -122,8 +122,8 @@ public class Evaluation {
     SymbolExp target;
     if( lhs instanceof SymbolExp ) {
       target = (SymbolExp) lhs;
-    } else if(lhs instanceof StringExp) {
-      target = new SymbolExp(((StringExp) lhs).get(0));
+    } else if(lhs instanceof StringVector) {
+      target = new SymbolExp(((StringVector) lhs).getElement(0));
     } else {
       throw new EvalException("cannot assign to value of type " + lhs.getTypeName());
     }
@@ -156,12 +156,12 @@ public class Evaluation {
   public static void forLoop(EnvExp rho, LangExp call) {
     PairList args = call.getArguments();
     SymbolExp symbol = (SymbolExp) args.get(0);
-    HasElements elements = (HasElements) args.get(1).evalToExp(rho);
+    Vector elements = (Vector) args.get(1).evalToExp(rho);
     SEXP statement = args.get(2);
 
     for(int i=0; i!=elements.length(); ++i) {
       try {
-        rho.setVariable(symbol, elements.getExp(i));
+        rho.setVariable(symbol, elements.getElementAsSEXP(i));
         statement.evaluate(rho);
       } catch (BreakException e) {
         break;
@@ -171,18 +171,18 @@ public class Evaluation {
     }
   }
 
-  public static ListExp lapply(@Environment EnvExp rho, LangExp call) {
-    HasElements vector = (HasElements) call.evalArgument(0, rho);
+  public static ListVector lapply(@Environment EnvExp rho, LangExp call) {
+    Vector vector = (Vector) call.evalArgument(0, rho);
     FunExp function = (FunExp) call.evalArgument(1, rho);
 
     PairList remainingArguments =  call.getArguments().length() > 2 ?
         call.getNextNode().getNextNode().getNextNode() : NullExp.INSTANCE;
 
-    ListExp.Builder builder = ListExp.newBuilder();
+    ListVector.Builder builder = ListVector.newBuilder();
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
-      LangExp getElementCall = LangExp.newCall(new SymbolExp("[["), (SEXP)vector, new IntExp(i+1));
+      LangExp getElementCall = LangExp.newCall(new SymbolExp("[["), (SEXP)vector, new IntVector(i+1));
       LangExp applyFunctionCall = new LangExp((SEXP)function, new PairListExp(getElementCall, remainingArguments));
       builder.add( applyFunctionCall.evalToExp(rho) );
     }
@@ -313,8 +313,8 @@ public class Evaluation {
     }
 
     @Override
-    public void visit(ListExp listExp) {
-      ListExp.Builder builder = ListExp.newBuilder();
+    public void visit(ListVector listExp) {
+      ListVector.Builder builder = ListVector.newBuilder();
       for(SEXP exp : listExp) {
         builder.add(substitute(exp));
       }
@@ -323,12 +323,12 @@ public class Evaluation {
     }
 
     @Override
-    public void visit(ExpExp expSexp) {
+    public void visit(ExpressionVector expSexp) {
       List<SEXP> list = Lists.newArrayList();
       for(SEXP exp : expSexp) {
         list.add( substitute(exp ));
       }
-      result = new ExpExp(list, expSexp.getAttributes());
+      result = new ExpressionVector(list, expSexp.getAttributes());
     }
 
     @Override

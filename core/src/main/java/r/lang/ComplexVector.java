@@ -21,20 +21,20 @@
 
 package r.lang;
 
+import com.google.common.collect.Iterators;
 import org.apache.commons.math.complex.Complex;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class ComplexExp extends AtomicExp implements Iterable<Complex> {
+public class ComplexVector extends AbstractSEXP implements AtomicVector, Iterable<Complex> {
 
-  public ArrayList<Complex> values;
+  private final Complex[] values;
   public static final int TYPE_CODE = 15;
   public static final String TYPE_NAME = "complex";
 
-  public ComplexExp(Complex... values) {
-    this.values = new ArrayList<Complex>(Arrays.asList(values));
+  public ComplexVector(Complex... values) {
+    this.values = Arrays.copyOf(values, values.length);
   }
 
   @Override
@@ -49,11 +49,7 @@ public class ComplexExp extends AtomicExp implements Iterable<Complex> {
 
   @Override
   public int length() {
-    return values.size();
-  }
-
-  public static ComplexExp ofLength(int length) {
-    throw new UnsupportedOperationException("not yet implemented");
+    return values.length;
   }
 
   @Override
@@ -62,12 +58,27 @@ public class ComplexExp extends AtomicExp implements Iterable<Complex> {
   }
 
   @Override
-  public Iterator<Complex> iterator() {
-    return values.iterator();
+  public SEXP getElementAsSEXP(int index) {
+    return new ComplexVector(values[index]);
   }
 
   @Override
-  public Class getElementClass() {
-    return Complex.class;
+  public Builder newBuilder(int initialSize) {
+    return null;
+  }
+
+  @Override
+  public boolean isWiderThan(Object vector) {
+    return false;
+  }
+
+  @Override
+  public Builder newCopyBuilder() {
+    return null;
+  }
+
+  @Override
+  public Iterator<Complex> iterator() {
+    return Iterators.forArray(values);
   }
 }

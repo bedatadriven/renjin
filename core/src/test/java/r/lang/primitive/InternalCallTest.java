@@ -22,7 +22,7 @@
 package r.lang.primitive;
 
 import org.junit.Test;
-import r.lang.DoubleExp;
+import r.lang.DoubleVector;
 import r.lang.EvalTestCase;
 
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class InternalCallTest extends EvalTestCase {
 
   @Test
   public void call() throws IOException {
-    assertThat(eval(".Internal(Sys.time())"), instanceOf(DoubleExp.class));
+    assertThat(eval(".Internal(Sys.time())"), instanceOf(DoubleVector.class));
   }
 
 }

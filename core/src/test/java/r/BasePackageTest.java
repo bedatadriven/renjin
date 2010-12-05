@@ -40,9 +40,9 @@ public class BasePackageTest extends EvalTestCase {
 
     loadBasePackage();
 
-    StringExp letters = (StringExp) eval("letters");
-    assertThat( letters.get(0),  equalTo( "a" ));
-    assertThat( letters.get(25), equalTo( "z" ));
+    StringVector letters = (StringVector) eval("letters");
+    assertThat( letters.getElement(0),  equalTo( "a" ));
+    assertThat( letters.getElement(25), equalTo( "z" ));
 
     eval( "assign('x', 42) ");
     assertThat( eval( "x" ) , equalTo( c(42) ));
@@ -67,7 +67,7 @@ public class BasePackageTest extends EvalTestCase {
 
     String path = getClass().getResource("/simpleTest.R").getFile();
 
-    ListExp result = (ListExp) LangExp.newCall(symbol("file.info"), c(path)).evalToExp(global);
+    ListVector result = (ListVector) LangExp.newCall(symbol("file.info"), c(path)).evalToExp(global);
 
     assertThat( result.get("isdir"), equalTo( c(Logical.FALSE) ));
     assertThat( result.get("mode"), equalTo( c("777") ));

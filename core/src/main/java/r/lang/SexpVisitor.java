@@ -39,7 +39,7 @@ public class SexpVisitor<R> {
     unhandled(builtinSexp);
   }
 
-  public void visit(ComplexExp complexExp) {
+  public void visit(ComplexVector complexExp) {
     unhandled(complexExp);
   }
 
@@ -47,11 +47,11 @@ public class SexpVisitor<R> {
     unhandled(envExp);
   }
 
-  public void visit(ExpExp expSexp) {
+  public void visit(ExpressionVector expSexp) {
     unhandled(expSexp);
   }
 
-  public void visit(IntExp intExp) {
+  public void visit(IntVector intExp) {
     unhandled(intExp);
   }
 
@@ -63,7 +63,7 @@ public class SexpVisitor<R> {
     unhandled(listExp);
   }
 
-  public void visit(LogicalExp logicalExp) {
+  public void visit(LogicalVector logicalExp) {
     unhandled(logicalExp);
   }
 
@@ -79,11 +79,11 @@ public class SexpVisitor<R> {
     unhandled(promExp);
   }
 
-  public void visit(DoubleExp realExp) {
+  public void visit(DoubleVector realExp) {
     unhandled(realExp);
   }
 
-  public void visit(StringExp stringExp) {
+  public void visit(StringVector stringExp) {
     unhandled(stringExp);
   }
 
@@ -103,7 +103,7 @@ public class SexpVisitor<R> {
     unhandled(specialExp);
   }
 
-  public void visit(ListExp listExp) {
+  public void visit(ListVector listExp) {
     unhandled(listExp);
   }
 }

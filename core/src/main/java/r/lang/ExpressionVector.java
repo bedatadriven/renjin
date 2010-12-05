@@ -40,24 +40,29 @@ import java.util.Iterator;
  * parsed but unevaluated R statements.
  *
  */
-public class ExpExp extends AbstractSEXP implements RecursiveExp, Iterable<SEXP> {
+public class ExpressionVector extends AbstractSEXP implements RecursiveExp, Vector, Iterable<SEXP> {
   public static final String TYPE_NAME = "expression";
   public static final int TYPE_CODE = 20;
 
   private SEXP[] values;
 
-  public ExpExp(SEXP[] expressions, PairList attributes) {
+  public ExpressionVector(SEXP[] expressions, PairList attributes) {
     super(attributes);
     this.values = Arrays.copyOf(expressions, expressions.length);
   }
 
+  public ExpressionVector(SEXP... expressions) {
+    super();
+    this.values = Arrays.copyOf(expressions, expressions.length);
+  }
 
-  public ExpExp(Iterable<? extends SEXP> expressions, PairList attributes) {
+
+  public ExpressionVector(Iterable<? extends SEXP> expressions, PairList attributes) {
     super(attributes);
     this.values = Iterables.toArray(expressions, SEXP.class);
   }
 
-  public ExpExp(Iterable<? extends SEXP> expressions){
+  public ExpressionVector(Iterable<? extends SEXP> expressions){
     this(expressions, NullExp.INSTANCE);
   }
 
@@ -68,6 +73,26 @@ public class ExpExp extends AbstractSEXP implements RecursiveExp, Iterable<SEXP>
       result = sexp.evaluate(rho);
     }
     return result;
+  }
+
+  @Override
+  public SEXP getElementAsSEXP(int index) {
+    return new ExpressionVector(values[index]);
+  }
+
+  @Override
+  public Builder newBuilder(int initialSize) {
+    throw new UnsupportedOperationException("implement me");
+  }
+
+  @Override
+  public boolean isWiderThan(Object vector) {
+    throw new UnsupportedOperationException("implement me");
+  }
+
+  @Override
+  public Builder newCopyBuilder() {
+    throw new UnsupportedOperationException("implement me");
   }
 
   @Override

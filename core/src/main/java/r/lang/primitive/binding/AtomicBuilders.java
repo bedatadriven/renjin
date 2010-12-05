@@ -82,19 +82,19 @@ public class AtomicBuilders {
 
     @Override
     public void setNA(int index) {
-      values[index] = IntExp.NA;
+      values[index] = IntVector.NA;
     }
 
     @Override
-    public IntExp build() {
-      return new IntExp(values);
+    public IntVector build() {
+      return new IntVector(values);
     }
 
     @Override
-    public IntExp build(int length) {
+    public IntVector build(int length) {
       Preconditions.checkArgument(length <= values.length, LENGTH_ERROR);
 
-      return new IntExp(Arrays.copyOf(values, length));
+      return new IntVector(Arrays.copyOf(values, length));
     }
   }
 
@@ -112,19 +112,19 @@ public class AtomicBuilders {
 
     @Override
     public void setNA(int index) {
-      values[index] = DoubleExp.NA;
+      values[index] = DoubleVector.NA;
     }
 
     @Override
-    public DoubleExp build() {
-      return new DoubleExp( values );
+    public DoubleVector build() {
+      return new DoubleVector( values );
     }
 
     @Override
-    public DoubleExp build(int length) {
+    public DoubleVector build(int length) {
       Preconditions.checkArgument(length <= values.length, LENGTH_ERROR);
 
-      return new DoubleExp( Arrays.copyOf(values, length));
+      return new DoubleVector( Arrays.copyOf(values, length));
     }
   }
 
@@ -146,14 +146,14 @@ public class AtomicBuilders {
     }
 
     @Override
-    public LogicalExp build() {
-      return new LogicalExp( values );
+    public LogicalVector build() {
+      return new LogicalVector( values );
     }
 
     @Override
-    public LogicalExp build(int length) {
+    public LogicalVector build(int length) {
       Preconditions.checkArgument(length <= values.length, LENGTH_ERROR);
-      return new LogicalExp( Arrays.copyOf(values, length ));
+      return new LogicalVector( Arrays.copyOf(values, length ));
     }
   }
 
@@ -176,14 +176,14 @@ public class AtomicBuilders {
     }
 
     @Override
-    public AtomicExp build() {
-      return new LogicalExp(values);
+    public AtomicVector build() {
+      return new LogicalVector(values);
     }
 
     @Override
-    public AtomicExp build(int length) {
+    public AtomicVector build(int length) {
       Preconditions.checkArgument(length <= values.length, LENGTH_ERROR);
-      return new LogicalExp( Arrays.copyOf(values, length ));
+      return new LogicalVector( Arrays.copyOf(values, length ));
     }
   }
 
@@ -202,19 +202,19 @@ public class AtomicBuilders {
 
     @Override
     public void setNA(int index) {
-      values[index] = StringExp.NA;
+      values[index] = StringVector.NA;
     }
 
     @Override
-    public StringExp build() {
-      return new StringExp(values);
+    public StringVector build() {
+      return new StringVector(values);
     }
 
     @Override
-    public StringExp build(int length) {
+    public StringVector build(int length) {
       Preconditions.checkArgument(length <= values.length, LENGTH_ERROR);
 
-      return new StringExp( Arrays.copyOf(values, length));
+      return new StringVector( Arrays.copyOf(values, length));
     }
   }
 

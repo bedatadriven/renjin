@@ -24,7 +24,7 @@ package r.lang;
 public enum Logical {
   TRUE(1),
   FALSE(0),
-  NA(IntExp.NA);
+  NA(IntVector.NA);
 
   Logical(int internalValue) {
     this.internalValue = internalValue;

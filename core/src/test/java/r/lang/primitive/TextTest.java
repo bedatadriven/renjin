@@ -43,6 +43,19 @@ public class TextTest extends EvalTestCase {
   @Test
   public void pasteCollapse() {
       assertThat( eval( ".Internal(paste(list(c('x', 'y'), 'a', 'b'), '-', '+')) "),
-          equalTo(  c("x-a-b+y-a-b") )) ;  }
+          equalTo(  c("x-a-b+y-a-b") )) ;
+  }
+
+  @Test
+  public void gettext() {
+     assertThat( eval( ".Internal(gettext('hungarian', 'hello world'))"), equalTo( c("hello world")));
+     assertThat( eval( ".Internal(gettext(NULL, 'hello world'))"), equalTo( c("hello world")));
+  }
+
+  @Test
+  public void ngettext() {
+      assertThat( eval( ".Internal(ngettext(1, 'baby', 'babies', 'hungarian'))"), equalTo( c("baby")));
+      assertThat( eval( ".Internal(ngettext(1, 'baby', 'babies', NULL))"), equalTo( c("baby")));
+  }
 
 }

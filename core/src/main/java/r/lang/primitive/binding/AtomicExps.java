@@ -3,14 +3,14 @@ package r.lang.primitive.binding;
 import r.lang.*;
 
 public class AtomicExps {
-  public static Class elementClassOf(Class<? extends AtomicExp> atomicClass) {
-    if(atomicClass == LogicalExp.class) {
+  public static Class elementClassOf(Class<? extends AtomicVector> atomicClass) {
+    if(atomicClass == LogicalVector.class) {
       return Logical.class;
-    } else if(atomicClass == IntExp.class) {
+    } else if(atomicClass == IntVector.class) {
       return Integer.TYPE;
-    } else if(atomicClass == DoubleExp.class) {
+    } else if(atomicClass == DoubleVector.class) {
       return Double.TYPE;
-    } else if(atomicClass == StringExp.class) {
+    } else if(atomicClass == StringVector.class) {
       return String.class;
     } else {
       throw new IllegalArgumentException();

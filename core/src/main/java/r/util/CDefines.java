@@ -39,14 +39,14 @@ public class CDefines {
 
   public static final Object NULL = null;
 
-  public static final String NA_STRING = StringExp.NA;
+  public static final String NA_STRING = StringVector.NA;
 
 
   //#define DATAPTR(x)	(((SEXPREC_ALIGN *) (x)) + 1)
 
   public static CharExp STRING_ELT(SEXP x, int i) {
-    StringExp vector = (StringExp)x;
-    return new CharExp(vector.get(i));
+    StringVector vector = (StringVector)x;
+    return new CharExp(vector.getElement(i));
   }
 
   public static String CHAR(CharExp s) {
@@ -334,19 +334,19 @@ public class CDefines {
   }
 
   public static boolean isLogical(SEXP s) {
-    return  s instanceof LogicalExp;
+    return  s instanceof LogicalVector;
   }
 
   public static boolean isReal(SEXP s) {
-    return s instanceof DoubleExp;
+    return s instanceof DoubleVector;
   }
 
   public static boolean isComplex(SEXP s) {
-    return s instanceof ComplexExp;
+    return s instanceof ComplexVector;
   }
 
   public static boolean isExpression(SEXP s) {
-    return s instanceof ExpExp;
+    return s instanceof ExpressionVector;
   }
 
   public static boolean isEnvironment(SEXP s) {
@@ -354,7 +354,7 @@ public class CDefines {
   }
 
   public static boolean isString(SEXP s) {
-    return s instanceof StringExp;
+    return s instanceof StringVector;
   }
 
 

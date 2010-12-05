@@ -39,18 +39,18 @@ class FriendlyTypesNames {
     names = new HashMap<Class, String>();
     names.put(SEXP[].class, "...");
     names.put(SEXP.class, "any");
-    names.put(LogicalExp.class, LogicalExp.TYPE_NAME);
-    names.put(Logical.class, LogicalExp.TYPE_NAME);
-    names.put(Boolean.class, LogicalExp.TYPE_NAME);
-    names.put(Boolean.TYPE, LogicalExp.TYPE_NAME);
-    names.put(IntExp.class, IntExp.TYPE_NAME);
-    names.put(Integer.class, IntExp.TYPE_NAME);
-    names.put(Integer.TYPE, IntExp.TYPE_NAME);
-    names.put(DoubleExp.class, DoubleExp.TYPE_NAME);
-    names.put(Double.class, DoubleExp.TYPE_NAME);
-    names.put(Double.TYPE, DoubleExp.TYPE_NAME);
-    names.put(String.class, StringExp.TYPE_NAME);
-    names.put(StringExp.class, StringExp.TYPE_NAME);
+    names.put(LogicalVector.class, LogicalVector.TYPE_NAME);
+    names.put(Logical.class, LogicalVector.TYPE_NAME);
+    names.put(Boolean.class, LogicalVector.TYPE_NAME);
+    names.put(Boolean.TYPE, LogicalVector.TYPE_NAME);
+    names.put(IntVector.class, IntVector.TYPE_NAME);
+    names.put(Integer.class, IntVector.TYPE_NAME);
+    names.put(Integer.TYPE, IntVector.TYPE_NAME);
+    names.put(DoubleVector.class, DoubleVector.TYPE_NAME);
+    names.put(Double.class, DoubleVector.TYPE_NAME);
+    names.put(Double.TYPE, DoubleVector.TYPE_NAME);
+    names.put(String.class, StringVector.TYPE_NAME);
+    names.put(StringVector.class, StringVector.TYPE_NAME);
     names.put(PairListExp.class, PairListExp.TYPE_NAME);
   }
 

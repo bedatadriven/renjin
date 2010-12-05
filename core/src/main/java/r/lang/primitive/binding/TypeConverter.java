@@ -31,8 +31,8 @@ public class TypeConverter {
   public static <T> T convert(SEXP value, Class<T> expType) {
     if(expType.isAssignableFrom(value.getClass())) {
       return (T) value;
-    } else if(value instanceof AtomicExp && AtomicExp.isAtomic(expType)) {
-      Class<AtomicExp> atomicClass = (Class<AtomicExp>)expType;
+    } else if(value instanceof AtomicVector &&  AtomicVector.class.isAssignableFrom(expType)) {
+      Class<AtomicVector> atomicClass = (Class<AtomicVector>)expType;
       Class elementClass = AtomicExps.elementClassOf(atomicClass);
       AtomicBuilder builder = AtomicBuilders.createFor(elementClass, value.length());
       AtomicAccessor accessor = AtomicAccessors.create(value, elementClass);
@@ -61,7 +61,7 @@ public class TypeConverter {
 
   public static boolean allAreAtomic(SEXP... values) {
     for(SEXP value : values) {
-      if(!(value instanceof AtomicExp)) {
+      if(!(value instanceof AtomicVector)) {
         return false;
       }
     }
@@ -75,19 +75,19 @@ public class TypeConverter {
    * @param values
    * @return the lowest common type
    */
-  public static Class<? extends AtomicExp> commonAtomicType(SEXP... values) {
+  public static Class<? extends AtomicVector> commonAtomicType(SEXP... values) {
     boolean canBeLogical = true;
     boolean canBeInteger = true;
     boolean canBeDouble = true;
 
     for(SEXP value : values) {
-      if(value instanceof LogicalExp) {
-      } else if(value instanceof IntExp) {
+      if(value instanceof LogicalVector) {
+      } else if(value instanceof IntVector) {
         canBeLogical = false;
-      } else if(value instanceof DoubleExp) {
+      } else if(value instanceof DoubleVector) {
         canBeLogical = false;
         canBeInteger = false;
-      } else if(value instanceof StringExp) {
+      } else if(value instanceof StringVector) {
         canBeLogical = false;
         canBeInteger = false;
         canBeDouble = false;
@@ -96,17 +96,17 @@ public class TypeConverter {
       }
     }
     if(canBeLogical) {
-      return LogicalExp.class;
+      return LogicalVector.class;
     } else if(canBeInteger) {
-      return IntExp.class;
+      return IntVector.class;
     } else if(canBeDouble) {
-      return DoubleExp.class;
+      return DoubleVector.class;
     } else {
-      return StringExp.class;
+      return StringVector.class;
     }
   }
 
-  public static Class commonAtomicElementType(AtomicExp... values) {
+  public static Class commonAtomicElementType(AtomicVector... values) {
     return AtomicExps.elementClassOf( commonAtomicType(values) );
   }
 }

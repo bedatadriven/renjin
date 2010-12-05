@@ -46,7 +46,7 @@ public class ExpMatchers {
     return new BaseMatcher<SEXP>() {
       @Override
       public boolean matches(Object o) {
-        return o instanceof IntExp && ((IntExp) o).getInt(0) == value;
+        return o instanceof IntVector && ((IntVector) o).getInt(0) == value;
       }
 
       @Override
@@ -60,7 +60,7 @@ public class ExpMatchers {
     return new BaseMatcher<SEXP>() {
       @Override
       public boolean matches(Object o) {
-        return o instanceof DoubleExp && ((DoubleExp) o).get(0) == value;
+        return o instanceof DoubleVector && ((DoubleVector) o).get(0) == value;
       }
 
       @Override
@@ -74,7 +74,7 @@ public class ExpMatchers {
     return new BaseMatcher<SEXP>() {
       @Override
       public boolean matches(Object o) {
-        return o instanceof StringExp && ((StringExp) o).get(0).equals(string);
+        return o instanceof StringVector && ((StringVector) o).getElement(0).equals(string);
       }
 
       @Override
@@ -102,7 +102,7 @@ public class ExpMatchers {
     return new BaseMatcher<SEXP>() {
       @Override
       public boolean matches(Object o) {
-        return o instanceof LogicalExp && ((LogicalExp) o).getInt(0) == value.getInternalValue();
+        return o instanceof LogicalVector && ((LogicalVector) o).getInt(0) == value.getInternalValue();
       }
 
       @Override

@@ -24,38 +24,38 @@ package r.lang;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasElements,
+public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterable<Logical>,
     WidensToInt, WidensToDouble, WidensToString {
   public static final String TYPE_NAME = "logical";
   public static final int TYPE_CODE = 10;
 
-  public static int NA = IntExp.NA;
+  public static int NA = IntVector.NA;
 
-  public static LogicalExp TRUE = new LogicalExp(1);
-  public static LogicalExp FALSE = new LogicalExp(0);
+  public static LogicalVector TRUE = new LogicalVector(1);
+  public static LogicalVector FALSE = new LogicalVector(0);
 
   private int[] values;
 
   /**
    * Constructs a Logical vector from a list of boolean values
    */
-  public LogicalExp(boolean... values) {
+  public LogicalVector(boolean... values) {
     this.values = new int[values.length];
     for (int i = 0; i != values.length; ++i) {
       this.values[i] = values[i] ? 1 : 0;
     }
   }
 
-  public LogicalExp(int[] values, PairList attributes) {
+  public LogicalVector(int[] values, PairList attributes) {
      super(attributes);
      this.values = Arrays.copyOf(values, values.length);
   }
 
-  public LogicalExp(int... values) {
+  public LogicalVector(int... values) {
     this(values, NullExp.INSTANCE);
   }
 
-  public LogicalExp(Logical... values) {
+  public LogicalVector(Logical... values) {
     this.values = new int[values.length];
     for (int i = 0; i != values.length; ++i) {
       this.values[i] = values[i].getInternalValue();
@@ -86,12 +86,12 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
   @Override
   public double getDouble(int index) {
     int value = values[index];
-    return value == IntExp.NA ? DoubleExp.NA : (double) value;
+    return value == IntVector.NA ? DoubleVector.NA : (double) value;
   }
 
   @Override
-  public SEXP getExp(int index) {
-    return new LogicalExp(values[index]);
+  public SEXP getElementAsSEXP(int index) {
+    return new LogicalVector(values[index]);
   }
 
 
@@ -99,8 +99,8 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
   @Override
   public String getString(int index) {
     int value = values[index];
-    if(value == IntExp.NA) {
-      return StringExp.NA;
+    if(value == IntVector.NA) {
+      return StringVector.NA;
     } else if(value == 0) {
       return "FALSE";
     } else {
@@ -115,7 +115,7 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
 
   @Override
   public Logical asLogical() {
-    if (values[0] == IntExp.NA) {
+    if (values[0] == IntVector.NA) {
       return Logical.NA;
     } else {
       return values[0] == 0 ? Logical.FALSE : Logical.TRUE;
@@ -125,7 +125,7 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
   @Override
   public double asReal() {
     if(values.length == 0) {
-      return DoubleExp.NA;
+      return DoubleVector.NA;
     } else {
       return values[0];
     }
@@ -163,7 +163,7 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    LogicalExp that = (LogicalExp) o;
+    LogicalVector that = (LogicalVector) o;
 
     if (!Arrays.equals(values, that.values)) return false;
 
@@ -195,7 +195,7 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
 
   @Override
   public boolean isWiderThan(Object vector) {
-    return vector instanceof LogicalExp;
+    return vector instanceof LogicalVector;
   }
 
   @Override
@@ -210,7 +210,7 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
 
   @Override
   protected SEXP cloneWithNewAttributes(PairList attributes) {
-    return new LogicalExp(values, attributes);
+    return new LogicalVector(values, attributes);
   }
 
   private String toString(int x) {
@@ -223,12 +223,7 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
     }
   }
 
-  @Override
-  public Class getElementClass() {
-    return Integer.TYPE;
-  }
-
-  private static class Builder implements HasElements.Builder<IntExp, WidensToInt> {
+  private static class Builder implements Vector.Builder<IntVector, WidensToInt> {
     private PairList attributes;
     private int values[];
 
@@ -237,7 +232,7 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
       Arrays.fill(values, NA);
     }
 
-    private Builder(LogicalExp exp) {
+    private Builder(LogicalVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
       this.attributes = exp.attributes;
     }
@@ -263,8 +258,8 @@ public class LogicalExp extends AtomicExp implements Iterable<Logical>, HasEleme
     }
 
     @Override
-    public IntExp build() {
-      return new IntExp(values, attributes);
+    public IntVector build() {
+      return new IntVector(values, attributes);
     }
   }
 }

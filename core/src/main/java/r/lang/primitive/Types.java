@@ -44,27 +44,27 @@ public class Types {
   }
 
   public static boolean isLogical(SEXP exp) {
-    return exp instanceof LogicalExp;
+    return exp instanceof LogicalVector;
   }
 
   public static boolean isInteger(SEXP exp) {
-    return exp instanceof IntExp;
+    return exp instanceof IntVector;
   }
 
   public static boolean isReal(SEXP exp) {
-    return exp instanceof DoubleExp;
+    return exp instanceof DoubleVector;
   }
 
   public static boolean isDouble(SEXP exp) {
-    return exp instanceof DoubleExp;
+    return exp instanceof DoubleVector;
   }
 
   public static boolean isComplex(SEXP exp) {
-    return exp instanceof ComplexExp;
+    return exp instanceof ComplexVector;
   }
 
   public static boolean isCharacter(SEXP exp) {
-    return exp instanceof StringExp;
+    return exp instanceof StringVector;
   }
 
   public static boolean isSymbol(SEXP exp) {
@@ -80,7 +80,7 @@ public class Types {
   }
 
   public static boolean isList(SEXP exp) {
-    return exp instanceof ListExp ||
+    return exp instanceof ListVector ||
            exp.getClass() == PairListExp.class;
   }
 
@@ -89,7 +89,7 @@ public class Types {
   }
 
   public static boolean isAtomic(SEXP exp) {
-    return exp instanceof AtomicExp;
+    return exp instanceof AtomicVector;
   }
 
   public static boolean isRecursive(SEXP exp) {
@@ -97,9 +97,9 @@ public class Types {
   }
 
   public static boolean isNumeric(SEXP exp) {
-    return (exp instanceof IntExp && !exp.inherits("factor")) ||
-            exp instanceof LogicalExp ||
-            exp instanceof DoubleExp;
+    return (exp instanceof IntVector && !exp.inherits("factor")) ||
+            exp instanceof LogicalVector ||
+            exp instanceof DoubleVector;
   }
 
   @Primitive("is.vector")
@@ -113,19 +113,19 @@ public class Types {
 
     // otherwise check
     if("logical".equals(mode)) {
-      return exp instanceof LogicalExp;
+      return exp instanceof LogicalVector;
     } else if("integer".equals(mode)) {
-      return exp instanceof IntExp;
+      return exp instanceof IntVector;
     } else if("numeric".equals(mode)) {
-      return exp instanceof DoubleExp;
+      return exp instanceof DoubleVector;
     } else if("complex".equals(mode)) {
-      return exp instanceof ComplexExp;
+      return exp instanceof ComplexVector;
     } else if("character".equals(mode)) {
-      return exp instanceof StringExp;
+      return exp instanceof StringVector;
     } else if("any".equals(mode)) {
-      return exp instanceof AtomicExp || exp instanceof ListExp;
+      return exp instanceof AtomicVector || exp instanceof ListVector;
     } else if("list".equals(mode)) {
-      return exp instanceof ListExp;
+      return exp instanceof ListVector;
     } else {
       return false;
     }
@@ -143,7 +143,7 @@ public class Types {
   public static boolean isLanguage(SEXP exp) {
     return exp instanceof SymbolExp ||
             exp instanceof LangExp ||
-            exp instanceof ExpExp;
+            exp instanceof ExpressionVector;
 
   }
 
@@ -156,20 +156,20 @@ public class Types {
   }
                                               
   public static boolean isNA(@AllowNA double value) {
-    return DoubleExp.isNA(value);
+    return DoubleVector.isNA(value);
   }
 
   public static boolean isNA(@AllowNA String value) {
-    return StringExp.isNA(value);
+    return StringVector.isNA(value);
   }
 
   public static boolean isNA(@AllowNA int value) {
-    return IntExp.isNA(value);
+    return IntVector.isNA(value);
   }
 
 
   public static boolean isNaN(double value) {
-    return DoubleExp.isNaN(value);
+    return DoubleVector.isNaN(value);
   }
 
   public static boolean isFinite(double value) {
@@ -184,8 +184,8 @@ public class Types {
     return value;
   }
 
-  public static StringExp asCharacter(ListExp list) {
-    StringExp.Builder result = new StringExp.Builder();
+  public static StringVector asCharacter(ListVector list) {
+    StringVector.Builder result = new StringVector.Builder();
     for(SEXP element : list) {
       if(element.length() == 1 && element instanceof WidensToString) {
         result.add( ((WidensToString) element).getString(0) );
@@ -196,11 +196,11 @@ public class Types {
     return result.build();
   }
   
-  public static StringExp asCharacter(SymbolExp symbol) {
-    return new StringExp( symbol.getPrintName() );
+  public static StringVector asCharacter(SymbolExp symbol) {
+    return new StringVector( symbol.getPrintName() );
   }
 
-  public static DoubleExp asDouble(DoubleExp exp) {
+  public static DoubleVector asDouble(DoubleVector exp) {
     return exp;
   }
 
@@ -216,7 +216,7 @@ public class Types {
     return (int) x;
   }
 
-  public static IntExp asInteger(IntExp exp) {
+  public static IntVector asInteger(IntVector exp) {
     return exp;
   }
 
@@ -248,7 +248,7 @@ public class Types {
     return environment;
   }
 
-  public static ListExp list(@ArgumentList PairList arguments) {
+  public static ListVector list(@ArgumentList PairList arguments) {
 
     int n = arguments.length();
     SEXP values[] = new SEXP[n];
@@ -269,9 +269,9 @@ public class Types {
     }
 
     if(haveNames) {
-      return new ListExp(values, PairListExp.buildList(SymbolExp.NAMES, new StringExp(names)).build());
+      return new ListVector(values, PairListExp.buildList(SymbolExp.NAMES, new StringVector(names)).build());
     } else {
-      return new ListExp(values);
+      return new ListVector(values);
     }
   }
 
@@ -326,13 +326,13 @@ public class Types {
 
   public static SEXP vector(String mode, @Indices int length) {
     if("logical".equals(mode)) {
-      return new LogicalExp(new int[length]);
+      return new LogicalVector(new int[length]);
 
     } else if("integer".equals(mode)) {
-      return new IntExp(new int[length]);
+      return new IntVector(new int[length]);
 
     } else if("numeric".equals(mode)) {
-      return new DoubleExp(new double[length]);
+      return new DoubleVector(new double[length]);
 
     } else if("complex".equals(mode)) {
       throw new UnsupportedOperationException("implement me!");
@@ -340,12 +340,12 @@ public class Types {
     } else if("character".equals(mode)) {
       String values[] = new String[length];
       Arrays.fill(values, "");
-      return new StringExp(values);
+      return new StringVector(values);
 
     } else if("list".equals(mode)) {
       SEXP values[] = new SEXP[length];
       Arrays.fill(values, NullExp.INSTANCE);
-      return new ListExp(values);
+      return new ListVector(values);
 
     } else if("pairlist".equals(mode)) {
       SEXP values[] = new SEXP[length];
@@ -365,21 +365,21 @@ public class Types {
     return exp.getNames();
   }
 
-  public static SEXP setNames(SEXP exp, StringExp names) {
+  public static SEXP setNames(SEXP exp, StringVector names) {
     return exp.setNames(names);
   }
 
   @Primitive("class")
-  public static StringExp getClass(SEXP exp) {
+  public static StringVector getClass(SEXP exp) {
     return exp.getClassAttribute();
   }
 
   @Primitive("class<-")
-  public static SEXP setClass(SEXP exp, StringExp classes) {
+  public static SEXP setClass(SEXP exp, StringVector classes) {
     return exp.setClass(classes);
   }
 
-  public static SEXP setClass(SEXP exp, ListExp list) {
+  public static SEXP setClass(SEXP exp, ListVector list) {
     return exp.setClass(Types.asCharacter(list));
   }
 
@@ -395,8 +395,8 @@ public class Types {
     return exp.getAttribute(SymbolExp.CLASS);
   }
 
-  public static boolean inherits(SEXP exp, StringExp what) {
-    StringExp classes = getClass(exp);
+  public static boolean inherits(SEXP exp, StringVector what) {
+    StringVector classes = getClass(exp);
     for(String whatClass : what) {
       if(Iterables.contains(classes, whatClass)) {
         return true;
@@ -405,27 +405,27 @@ public class Types {
     return false;
   }
 
-  public static SEXP inherits(SEXP exp, StringExp what, boolean which) {
+  public static SEXP inherits(SEXP exp, StringVector what, boolean which) {
     if(!which) {
-      return new LogicalExp( inherits(exp, what) );
+      return new LogicalVector( inherits(exp, what) );
     }
-    StringExp classes = getClass(exp);
+    StringVector classes = getClass(exp);
     int result[] = new int[what.length()];
 
     for(int i=0; i!=what.length();++i) {
-      result[i] = Iterables.indexOf(classes, Predicates.equalTo( what.get(i)) ) + 1;
+      result[i] = Iterables.indexOf(classes, Predicates.equalTo( what.getElement(i)) ) + 1;
     }
-    return new IntExp( result );
+    return new IntVector( result );
   }
 
-  public static StringExp search(@Environment EnvExp rho) {
+  public static StringVector search(@Environment EnvExp rho) {
     List<String> names = Lists.newArrayList();
     EnvExp env = rho.getGlobalEnvironment();
     while(env != EnvExp.EMPTY) {
       names.add(env.getName());
       env = env.getParent();
     }
-    return new StringExp(names);
+    return new StringVector(names);
   }
 
 }

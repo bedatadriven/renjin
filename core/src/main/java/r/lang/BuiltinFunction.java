@@ -21,13 +21,28 @@
 
 package r.lang;
 
-/**
- * Superinterface for the three function-like {@code SEXP}s:
- * {@code ClosureExp}, {@code SpecialExp}, and {@code PrimitiveExp}.
- *
- * 
- */
-public interface FunExp extends RecursiveExp {
+import r.lang.primitive.FunctionTable;
 
-  EvalResult apply(LangExp call, PairList args, EnvExp rho);
+public class BuiltinFunction extends PrimitiveFunction {
+  public static final int TYPE_CODE = 8;
+  public static final String TYPE_NAME = "builtin";
+
+  public BuiltinFunction(FunctionTable.Entry functionEntry) {
+    super(functionEntry);
+  }
+
+  @Override
+  public int getTypeCode() {
+    return TYPE_CODE;
+  }
+
+  @Override
+  public String getTypeName() {
+    return TYPE_NAME;
+  }
+
+  @Override
+  public void accept(SexpVisitor visitor) {
+    visitor.visit(this);
+  }
 }

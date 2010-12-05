@@ -173,7 +173,7 @@ public class Evaluation {
 
   public static ListVector lapply(@Environment EnvExp rho, LangExp call) {
     Vector vector = (Vector) call.evalArgument(0, rho);
-    FunExp function = (FunExp) call.evalArgument(1, rho);
+    Function function = (Function) call.evalArgument(1, rho);
 
     PairList remainingArguments =  call.getArguments().length() > 2 ?
         call.getNextNode().getNextNode().getNextNode() : NullExp.INSTANCE;
@@ -209,9 +209,9 @@ public class Evaluation {
     }
   }
 
-  public static ClosureExp function( EnvExp rho, LangExp call ) {
+  public static Closure function( EnvExp rho, LangExp call ) {
     PairList args = call.getArguments();
-    return new ClosureExp(rho, (PairList) args.get(0), args.get(1));
+    return new Closure(rho, (PairList) args.get(0), args.get(1));
   }
 
   @Primitive("if")
@@ -243,7 +243,7 @@ public class Evaluation {
     if(function == NullExp.INSTANCE) {
       throw new EvalException(String.format("no internal function \"%s\"", internalName.getPrintName()));
     }
-    return ((FunExp)function).apply(internalCall, internalCall.getArguments(), rho);
+    return ((Function)function).apply(internalCall, internalCall.getArguments(), rho);
   }
 
   public static EvalResult next() {

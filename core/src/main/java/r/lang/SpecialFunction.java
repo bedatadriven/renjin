@@ -23,11 +23,11 @@ package r.lang;
 
 import r.lang.primitive.FunctionTable;
 
-public class SpecialExp extends PrimitiveExp {
+public class SpecialFunction extends PrimitiveFunction {
   public static final int TYPE_CODE = 7;
   public static final String TYPE_NAME = "special";
 
-  public SpecialExp(FunctionTable.Entry functionEntry) {
+  public SpecialFunction(FunctionTable.Entry functionEntry) {
     super(functionEntry);
   }
 

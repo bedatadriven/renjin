@@ -282,7 +282,7 @@ public class DatafileReader {
     PairList formals = (PairList) readExp();
     SEXP body =  readExp();
 
-    return new ClosureExp(env, formals, body, attributes);
+    return new Closure(env, formals, body, attributes);
   }
 
   private SEXP readLangExp(Flags flags) throws IOException {

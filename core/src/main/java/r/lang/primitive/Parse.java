@@ -67,7 +67,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(BuiltinExp builtinSexp) {
+    public void visit(BuiltinFunction builtinSexp) {
       throw new UnsupportedOperationException();
     }
 
@@ -97,7 +97,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(PrimitiveExp primitiveSexp) {
+    public void visit(PrimitiveFunction primitiveSexp) {
       super.visit(primitiveSexp);
     }
 
@@ -132,7 +132,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(ClosureExp closureExp) {
+    public void visit(Closure closureExp) {
       throw new UnsupportedOperationException("deparsing of closures not yet implemented");
     }
 

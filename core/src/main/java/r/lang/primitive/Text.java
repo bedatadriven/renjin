@@ -37,11 +37,11 @@ public class Text {
   public static SEXP paste(ListVector args, String seperator, NullExp collapse) {
     List<StringVector> strings = TypeConverter.convertElements(args, StringVector.class);
 
-    int resultLength = max(transform(strings, Functions.length()));
+    int resultLength = max(transform(strings, CollectionUtils.length()));
     String results[] = new String[resultLength];
     
     for(int i=0;i!=resultLength;++i) {
-      results[i] = Joiner.on(seperator).join(transform(strings, Functions.elementAt(i)));
+      results[i] = Joiner.on(seperator).join(transform(strings, CollectionUtils.elementAt(i)));
     }
     
     return new StringVector( results );
@@ -50,14 +50,14 @@ public class Text {
   public static String paste(ListVector args, String seperator, String collapse) {
     List<StringVector> strings = TypeConverter.convertElements(args, StringVector.class);
 
-    int resultLength = max(transform(strings, Functions.length()));
+    int resultLength = max(transform(strings, CollectionUtils.length()));
     StringBuilder result = new StringBuilder();
 
     for(int i=0;i!=resultLength;++i) {
       if(i != 0) {
         result.append(collapse);
       }
-      Joiner.on(seperator).appendTo(result, transform(strings, Functions.elementAt(i)));
+      Joiner.on(seperator).appendTo(result, transform(strings, CollectionUtils.elementAt(i)));
     }
 
     return result.toString() ;

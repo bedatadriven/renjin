@@ -48,12 +48,12 @@ public class LangExp extends PairListExp {
 
   @Override
   public EvalResult evaluate(EnvExp rho) {
-    FunExp functionExpr = evaluateFunction(rho);
+    Function functionExpr = evaluateFunction(rho);
     return functionExpr.apply(this, getArguments(), rho);
   }
 
-  private FunExp evaluateFunction(EnvExp rho) {
-    return (FunExp) getFunction().evalToExp(rho);
+  private Function evaluateFunction(EnvExp rho) {
+    return (Function) getFunction().evalToExp(rho);
   }
 
   public static SEXP fromListExp(PairListExp listExp) {

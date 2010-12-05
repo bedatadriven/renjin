@@ -21,7 +21,6 @@
 
 package r.lang;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterators;
@@ -47,7 +46,7 @@ import static com.google.common.collect.Collections2.transform;
  *  a formal argument list, a body and an environment.
  *
  */
-public class ClosureExp extends AbstractSEXP implements FunExp {
+public class Closure extends AbstractSEXP implements Function {
 
   public static final String TYPE_NAME = "closure";
   public static final int TYPE_CODE = 4;
@@ -57,14 +56,14 @@ public class ClosureExp extends AbstractSEXP implements FunExp {
   private SEXP body;
   private PairList formals;
 
-  public ClosureExp(EnvExp enclosingEnvironment, PairList formals, SEXP body, PairList attributes) {
+  public Closure(EnvExp enclosingEnvironment, PairList formals, SEXP body, PairList attributes) {
     super(attributes);
     this.enclosingEnvironment = enclosingEnvironment;
     this.body = body;
     this.formals = formals;
   }
 
-  public ClosureExp(EnvExp environment, PairList formals, SEXP body) {
+  public Closure(EnvExp environment, PairList formals, SEXP body) {
     this(environment, formals, body, NullExp.INSTANCE);
   }
 
@@ -273,14 +272,7 @@ public class ClosureExp extends AbstractSEXP implements FunExp {
   }
 
   private String argumentTagList(Collection<PairListExp> matches) {
-    return Joiner.on(", ").join(transform(matches, new TagName()));
-  }
-
-  private static class TagName implements Function<PairListExp, String> {
-    @Override
-    public String apply(PairListExp input) {
-      return ((SymbolExp)input.getTag()).getPrintName();
-    }
+    return Joiner.on(", ").join(transform(matches, new CollectionUtils.TagName()));
   }
 
   private <X> X first(Iterable<X> values) {

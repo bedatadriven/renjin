@@ -25,8 +25,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
-public class Functions {
-  private Functions() {}
+public class CollectionUtils {
+  private CollectionUtils() {}
 
   public static Function<SEXP, Integer> length() {
     return new Function<SEXP, Integer>() {
@@ -51,6 +51,13 @@ public class Functions {
       return Predicates.alwaysTrue();
     } else {
       throw new UnsupportedOperationException("only mode 'any' as a predicate is implemented.");
+    }
+  }
+
+  static class TagName implements Function<PairListExp, String> {
+    @Override
+    public String apply(PairListExp input) {
+      return ((SymbolExp)input.getTag()).getPrintName();
     }
   }
 }

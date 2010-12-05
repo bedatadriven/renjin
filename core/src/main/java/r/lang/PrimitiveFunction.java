@@ -35,14 +35,14 @@ import java.util.List;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 
-public abstract class PrimitiveExp extends AbstractSEXP implements FunExp {
+public abstract class PrimitiveFunction extends AbstractSEXP implements Function {
 
   public static final String IMPLICIT_CLASS = "function";
 
   protected final FunctionTable.Entry functionEntry;
   protected List<PrimitiveMethod> methodOverloads;
 
-  protected PrimitiveExp(FunctionTable.Entry functionEntry) {
+  protected PrimitiveFunction(FunctionTable.Entry functionEntry) {
     this.functionEntry = functionEntry;
   }
 

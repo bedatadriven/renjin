@@ -35,7 +35,7 @@ public class SexpVisitor<R> {
     unhandled(charExp);
   }
 
-  public void visit(BuiltinExp builtinSexp) {
+  public void visit(BuiltinFunction builtinSexp) {
     unhandled(builtinSexp);
   }
 
@@ -71,7 +71,7 @@ public class SexpVisitor<R> {
     unhandled(nilExp);
   }
 
-  public void visit(PrimitiveExp primitiveSexp) {
+  public void visit(PrimitiveFunction primitiveSexp) {
     unhandled(primitiveSexp);
   }
 
@@ -91,7 +91,7 @@ public class SexpVisitor<R> {
     unhandled(symbolExp);
   }
 
-  public void visit(ClosureExp closureExp) {
+  public void visit(Closure closureExp) {
     unhandled(closureExp);
   }
 
@@ -99,7 +99,7 @@ public class SexpVisitor<R> {
     throw new UnsupportedOperationException();
   }
 
-  public void visitSpecial(SpecialExp specialExp) {
+  public void visitSpecial(SpecialFunction specialExp) {
     unhandled(specialExp);
   }
 

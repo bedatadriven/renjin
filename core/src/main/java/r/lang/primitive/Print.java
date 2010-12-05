@@ -116,7 +116,7 @@ public class Print {
     }
 
     @Override
-    public void visitSpecial(SpecialExp specialExp) {
+    public void visitSpecial(SpecialFunction specialExp) {
       out.append(".Primitive(").append(ParseUtil.formatStringLiteral(specialExp.getName(), "NA"));
     }
 

@@ -32,7 +32,7 @@ import r.parser.ParseUtil;
 import java.util.Arrays;
 import java.util.List;
 
-import static r.lang.Functions.modePredicate;
+import static r.lang.CollectionUtils.modePredicate;
 
 /**
  * Primitive type inspection and coercion functions
@@ -148,7 +148,7 @@ public class Types {
   }
 
   public static boolean isFunction(SEXP exp) {
-    return exp instanceof FunExp;
+    return exp instanceof Function;
   }
 
   public static boolean isSingle(SEXP exp) {
@@ -283,8 +283,8 @@ public class Types {
     if(exp == NullExp.INSTANCE) {
       // if the user passes null, we return the current exp
       return rho;
-    } else if(exp instanceof ClosureExp)  {
-      return ((ClosureExp) exp).getEnclosingEnvironment();
+    } else if(exp instanceof Closure)  {
+      return ((Closure) exp).getEnclosingEnvironment();
     } else {
       return NullExp.INSTANCE;
     }

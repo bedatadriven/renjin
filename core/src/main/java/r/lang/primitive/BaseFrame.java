@@ -82,12 +82,12 @@ public class BaseFrame implements EnvExp.Frame {
   private void installPrimitives() {
     for (FunctionTable.Entry entry : FunctionTable.ENTRIES) {
       SymbolExp symbol = new SymbolExp(entry.name);
-      PrimitiveExp primitive;
+      PrimitiveFunction primitive;
 
       if (entry.eval % 10 != 0) {
-        primitive = new BuiltinExp(entry);
+        primitive = new BuiltinFunction(entry);
       } else {
-        primitive = new SpecialExp(entry);
+        primitive = new SpecialFunction(entry);
       }
 
       if ((entry.eval % 100) / 10 != 0) {

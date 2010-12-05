@@ -192,7 +192,7 @@ public class FunctionTable {
 
 /* printname	c-entry		offset	eval	arity	pp-kind	     precedence	rightassoc
  * ---------	-------		------	----	-----	-------      ----------	----------*/
-      f("vector", /*makevector*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
+      f("vector", Types.class, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("complex", /*complex*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("matrix", /*matrix*/ null, 0, 11, -1, PP_FUNCALL, PREC_FN, 0),
       f("length", Types.class, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),

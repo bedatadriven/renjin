@@ -26,12 +26,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.annotations.AllowNA;
-import r.lang.primitive.annotations.ArgumentList;
-import r.lang.primitive.annotations.Environment;
-import r.lang.primitive.annotations.Primitive;
+import r.lang.primitive.annotations.*;
 import r.parser.ParseUtil;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static r.lang.Functions.modePredicate;
@@ -292,6 +290,39 @@ public class Types {
 
   public static int length(SEXP exp) {
     return exp.length();
+  }
+
+  public static SEXP vector(String mode, @Indices int length) {
+    if("logical".equals(mode)) {
+      return new LogicalExp(new int[length]);
+
+    } else if("integer".equals(mode)) {
+      return new IntExp(new int[length]);
+
+    } else if("numeric".equals(mode)) {
+      return new DoubleExp(new double[length]);
+
+    } else if("complex".equals(mode)) {
+      throw new UnsupportedOperationException("implement me!");
+
+    } else if("character".equals(mode)) {
+      String values[] = new String[length];
+      Arrays.fill(values, "");
+      return new StringExp(values);
+
+    } else if("list".equals(mode)) {
+      SEXP values[] = new SEXP[length];
+      Arrays.fill(values, NullExp.INSTANCE);
+      return new ListExp(values);
+
+    } else if("pairlist".equals(mode)) {
+      SEXP values[] = new SEXP[length];
+      Arrays.fill(values, NullExp.INSTANCE);
+      return PairListExp.fromArray(values);
+      
+    } else {
+      throw new EvalException(String.format("vector: cannot make a vector of mode '%s'.", mode));
+    }
   }
 
   public static String typeof(SEXP exp) {

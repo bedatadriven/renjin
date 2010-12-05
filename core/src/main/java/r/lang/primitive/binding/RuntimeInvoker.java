@@ -37,6 +37,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.lang.Integer;
 
 /**
  * Invokes a JVM method from the R language.
@@ -79,8 +80,8 @@ public class RuntimeInvoker {
     converters.add(new ToAccessor());
     converters.add(new FromExternalPtr());
     converters.add(new DoubleToIndices());
+    converters.add(new DoubleToInt());
     converters.add(new IntToIndices());
-
   }
 
   public EvalResult invoke(EnvExp rho, LangExp call, List<PrimitiveMethod> overloads) {
@@ -481,7 +482,23 @@ public class RuntimeInvoker {
     @Override
     public int[] convert(EnvExp rho, IntExp source, PrimitiveMethod.Argument formal) {
       return source.toIntArray();
-    }  }
+    }
+  }
+
+  private class DoubleToInt implements ArgConverter<DoubleExp, Integer> {
+    @Override
+    public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
+      return source instanceof DoubleExp &&
+          source.length() == 1 &&
+          formal.isAnnotatedWith(Indices.class) &&
+          formal.getClazz().equals(Integer.TYPE);
+    }
+
+    @Override
+    public Integer convert(EnvExp rho, DoubleExp source, PrimitiveMethod.Argument formal) {
+      return (int)source.get(0);
+    }
+  }
 
   private class ToAccessor implements ArgConverter<SEXP, AtomicAccessor> {
     @Override

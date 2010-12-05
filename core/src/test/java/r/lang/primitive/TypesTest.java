@@ -93,6 +93,14 @@ public class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void vector() {
+    assertThat( eval(" .Internal(vector('list', 3)) "), equalTo( list(NULL, NULL, NULL)));
+    assertThat( eval(" .Internal(vector('numeric', 2)) "), equalTo( c(0, 0)));
+    assertThat( eval(" .Internal(vector('character', 3)) "), equalTo( c("","","")) );
+    assertThat( eval(" .Internal(vector('logical', 2)) "), equalTo( c(Logical.FALSE, Logical.FALSE)) );
+  }
+
+  @Test
   public void environment() {
     assertThat( eval(".Internal(environment())"), CoreMatchers.is((SEXP) global.getGlobalEnvironment()));
   }

@@ -28,6 +28,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
 import r.lang.exception.EvalException;
+import r.lang.primitive.Evaluation;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -93,14 +94,18 @@ public class ClosureExp extends SEXP implements FunExp {
   }
 
   public EvalResult apply(EnvExp rho, PairList args) {
-    EnvExp functionEnvironment = EnvExp.createChildEnvironment(enclosingEnvironment);
-    matchArgumentsInto(args, enclosingEnvironment, functionEnvironment, rho);
+    try {
+      EnvExp functionEnvironment = EnvExp.createChildEnvironment(enclosingEnvironment);
+      matchArgumentsInto(args, enclosingEnvironment, functionEnvironment, rho);
 
-    EvalResult result = body.evaluate(functionEnvironment);
+      EvalResult result = body.evaluate(functionEnvironment);
 
-    functionEnvironment.exit();
+      functionEnvironment.exit();
 
-    return result;
+      return result;
+    } catch(Evaluation.ReturnException e) {
+      return EvalResult.visible(e.getValue());
+    }
   }
 
   /**

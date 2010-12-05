@@ -75,8 +75,8 @@ public abstract class SEXP {
     return attributes.length() != 0;
   }
 
-  public final PairListExp getAttributes() {
-    return (PairListExp)attributes;
+  public final PairList getAttributes() {
+    return (PairList)attributes;
   }
 
   public abstract int getTypeCode();

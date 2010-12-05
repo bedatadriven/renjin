@@ -160,8 +160,14 @@ public class Evaluation {
     SEXP statement = args.get(2);
 
     for(int i=0; i!=elements.length(); ++i) {
-      rho.setVariable(symbol, elements.getExp(i));
-      statement.evaluate(rho);
+      try {
+        rho.setVariable(symbol, elements.getExp(i));
+        statement.evaluate(rho);
+      } catch (BreakException e) {
+        break;
+      } catch (NextException e) {
+        // next iteration
+      }
     }
   }
 
@@ -179,6 +185,8 @@ public class Evaluation {
 
       } catch(BreakException e) {
         break;
+      } catch(NextException e) {
+        // next loop iteration
       }
     }
   }
@@ -220,7 +228,7 @@ public class Evaluation {
     return ((FunExp)function).apply(internalCall, internalCall.getArguments(), rho);
   }
 
-  public EvalResult next() {
+  public static EvalResult next() {
     throw new NextException();
   }
   /**

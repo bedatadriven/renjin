@@ -541,7 +541,7 @@ public class FunctionTable {
       f("is.expression", Types.class, "isExpression",  0 /* EXPRSXP*/, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.raw", /*is*/ null,0 /* RAWSXP */, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.object", /*is*/ null, 50, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("is.object", Types.class, 50, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
       f("is.numeric", Types.class, "isNumeric", 100, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.matrix", /*is*/ null, 101, 1, 1, PP_FUNCALL, PREC_FN, 0),
@@ -556,7 +556,7 @@ public class FunctionTable {
 
       f("is.single", Types.class,"isSingle", 999, 1, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("is.vector", null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
+      f("is.vector", Types.class, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("is.na", Types.class, "isNA", 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.nan", Types.class, "isNaN", 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("is.finite", Types.class, "isFinite", 0, 1, 1, PP_FUNCALL, PREC_FN, 0),

@@ -79,6 +79,14 @@ public class IntExp extends AtomicExp implements Iterable<Integer>, WidensToInt 
   }
 
   @Override
+  public Logical asLogical() {
+    if(values.length == 0) {
+      return Logical.NA;
+    }
+    return Logical.valueOf(values[0]);
+  }
+
+  @Override
   public double getDouble(int index) {
     return values[index];
   }

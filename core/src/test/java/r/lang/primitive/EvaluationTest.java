@@ -115,6 +115,16 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void whileLoopWithNext() throws IOException {
+    eval("x<-1");
+    eval("y<-0");
+    eval("while(x<5) {  x<-x+1; if(x==3) next; y<-y+1 }");
+
+    assertThat(eval("y"), equalTo( c(3) ));
+  }
+
+
+  @Test
   public void simplestForStatement() throws IOException {
     eval("for( x in 99 ) { y <- x} ");
 

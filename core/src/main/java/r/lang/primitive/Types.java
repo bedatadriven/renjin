@@ -100,8 +100,40 @@ public class Types {
     return (exp instanceof IntExp && !exp.inherits("factor")) ||
             exp instanceof LogicalExp ||
             exp instanceof DoubleExp;
+  }
 
+  @Primitive("is.vector")
+  public static boolean isVector(SEXP exp, String mode) {
+    // first check for any attribute besides names
+    for(PairListExp node : exp.getAttributes().listNodes()) {
+      if(!node.getTag().equals(SymbolExp.NAMES)) {
+        return false;
+      }
+    }
 
+    // otherwise check
+    if("logical".equals(mode)) {
+      return exp instanceof LogicalExp;
+    } else if("integer".equals(mode)) {
+      return exp instanceof IntExp;
+    } else if("numeric".equals(mode)) {
+      return exp instanceof DoubleExp;
+    } else if("complex".equals(mode)) {
+      return exp instanceof ComplexExp;
+    } else if("character".equals(mode)) {
+      return exp instanceof StringExp;
+    } else if("any".equals(mode)) {
+      return exp instanceof AtomicExp || exp instanceof ListExp;
+    } else if("list".equals(mode)) {
+      return exp instanceof ListExp;
+    } else {
+      return false;
+    }
+  }
+
+  @Primitive("is.object")
+  public static boolean isObject(SEXP exp) {
+    return exp.getAttribute(SymbolExp.CLASS) != NullExp.INSTANCE;   
   }
 
   public static boolean isCall(SEXP exp) {

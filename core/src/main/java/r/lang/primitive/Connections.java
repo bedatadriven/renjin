@@ -24,7 +24,7 @@ package r.lang.primitive;
 import r.io.DatafileReader;
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.annotations.Environment;
+import r.lang.primitive.annotations.Current;
 
 import java.io.*;
 import java.util.zip.DataFormatException;
@@ -44,7 +44,7 @@ public class Connections {
     });
   }
 
-  public static SEXP unserializeFromConn(Connection conn, EnvExp rho) throws IOException {
+  public static SEXP unserializeFromConn(Connection conn, Environment rho) throws IOException {
     DatafileReader reader = new DatafileReader(rho, conn.getInputStream());
     return reader.readFile();
   }
@@ -61,14 +61,14 @@ public class Connections {
    * @param eenv
    * @param targetEnvironment
    */
-  public static void makeLazy(StringVector names, ListVector values, LangExp expr, EnvExp eenv, EnvExp targetEnvironment) {
+  public static void makeLazy(StringVector names, ListVector values, LangExp expr, Environment eenv, Environment targetEnvironment) {
 
     for(int i = 0; i < names.length(); i++) {
       // the name of the symbol
       SymbolExp name = new SymbolExp(names.getElement(i));
 
       // c(pos, length) of the serialized object
-      SEXP value = values.get(i).evalToExp((EnvExp) eenv);
+      SEXP value = values.get(i).evalToExp((Environment) eenv);
 
       // create a new call, replacing the first argument with the
       // provided arg
@@ -91,7 +91,7 @@ public class Connections {
    * @param compression 0=not compressed, 1=deflate, ...
    * @param restoreFunction a function called to load persisted objects from the serialized stream
    */
-  public static SEXP lazyLoadDBfetch(@Environment final EnvExp rho,
+  public static SEXP lazyLoadDBfetch(@Current final Environment rho,
                                      IntVector key,
                                      String file,
                                      int compression,

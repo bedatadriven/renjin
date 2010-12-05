@@ -21,7 +21,7 @@
 
 package r.interpreter;
 
-import r.lang.EnvExp;
+import r.lang.Environment;
 import r.lang.EvalResult;
 import r.lang.SEXP;
 import r.lang.exception.EvalException;
@@ -43,13 +43,13 @@ import java.io.Reader;
 public class Interpreter implements Runnable {
 
   private final Console console;
-  private EnvExp global;
+  private Environment global;
 
   public Interpreter(Console console) {
 
     this.console = console;
 
-    this.global = EnvExp.createGlobalEnvironment();
+    this.global = Environment.createGlobalEnvironment();
    // this.global.setPrintStream(console.getOut());
 
     if(console instanceof RichConsole) {

@@ -25,7 +25,7 @@ import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.ControlFlowException;
 import r.lang.exception.EvalException;
-import r.lang.primitive.annotations.Environment;
+import r.lang.primitive.annotations.Current;
 import r.lang.primitive.annotations.Evaluate;
 import r.lang.primitive.annotations.Primitive;
 
@@ -38,7 +38,7 @@ public class Evaluation {
    * Evaluates a list of statements. (The '{' function)
    */
   @Primitive("{")
-  public static EvalResult begin(EnvExp rho, LangExp call) {
+  public static EvalResult begin(Environment rho, LangExp call) {
 
     EvalResult lastResult = new EvalResult(NullExp.INSTANCE, true);
     for (SEXP sexp : call.getArguments()) {
@@ -67,16 +67,16 @@ public class Evaluation {
    * Note that assignment to an attached list or data frame changes the attached copy
    *  and not the original object: see attach and with.
    */
-  public static EvalResult assign(String name, SEXP value, EnvExp environ, boolean inherits) {
+  public static EvalResult assign(String name, SEXP value, Environment environ, boolean inherits) {
 
     SymbolExp symbol = new SymbolExp(name);
     if(!inherits) {
       environ.setVariable(symbol, value);
     } else {
-      while(environ != EnvExp.EMPTY && !environ.hasVariable(symbol)) {
+      while(environ != Environment.EMPTY && !environ.hasVariable(symbol)) {
         environ = environ.getParent();
       }
-      if(environ == EnvExp.EMPTY) {
+      if(environ == Environment.EMPTY) {
         environ.getGlobalEnvironment().setVariable(symbol, value);
       } else {
         environ.setVariable(symbol, value);
@@ -98,7 +98,7 @@ public class Evaluation {
    assignment is right associative i.e.  a <- b <- c is parsed as
    a <- (b <- c).  */
   @Primitive("<-")
-  public static EvalResult assignLeft(@Environment EnvExp rho, @Evaluate(false) SEXP lhs, SEXP rhs) {
+  public static EvalResult assignLeft(@Current Environment rho, @Evaluate(false) SEXP lhs, SEXP rhs) {
 
     // this loop handles nested, complex assignments, such as:
     // class(x) <- "foo"
@@ -136,7 +136,7 @@ public class Evaluation {
 
 
   @Primitive("on.exit")
-  public static void onExit( @Environment EnvExp rho, @Evaluate(false) SEXP exp, boolean add ) {
+  public static void onExit( @Current Environment rho, @Evaluate(false) SEXP exp, boolean add ) {
     if(add) {
       rho.addOnExit(exp);
     } else {
@@ -145,7 +145,7 @@ public class Evaluation {
   }
 
   @Primitive("on.exit")
-  public static void onExit( @Environment EnvExp rho, @Evaluate(false) SEXP exp) {
+  public static void onExit( @Current Environment rho, @Evaluate(false) SEXP exp) {
     rho.setOnExit(exp);
   }
 
@@ -153,7 +153,7 @@ public class Evaluation {
    * for ( x in elements ) { statement }
    */
   @Primitive("for")
-  public static void forLoop(EnvExp rho, LangExp call) {
+  public static void forLoop(Environment rho, LangExp call) {
     PairList args = call.getArguments();
     SymbolExp symbol = (SymbolExp) args.get(0);
     Vector elements = (Vector) args.get(1).evalToExp(rho);
@@ -171,7 +171,7 @@ public class Evaluation {
     }
   }
 
-  public static ListVector lapply(@Environment EnvExp rho, LangExp call) {
+  public static ListVector lapply(@Current Environment rho, LangExp call) {
     Vector vector = (Vector) call.evalArgument(0, rho);
     Function function = (Function) call.evalArgument(1, rho);
 
@@ -190,7 +190,7 @@ public class Evaluation {
   }
 
   @Primitive("while")
-  public static void whileLoop(EnvExp rho, LangExp call) {
+  public static void whileLoop(Environment rho, LangExp call) {
     PairList args = call.getArguments();
     SEXP condition = args.get(0);
     SEXP statement = args.get(1);
@@ -209,13 +209,13 @@ public class Evaluation {
     }
   }
 
-  public static Closure function( EnvExp rho, LangExp call ) {
+  public static Closure function( Environment rho, LangExp call ) {
     PairList args = call.getArguments();
     return new Closure(rho, (PairList) args.get(0), args.get(1));
   }
 
   @Primitive("if")
-  public static EvalResult doIf(EnvExp rho, LangExp call) {
+  public static EvalResult doIf(Environment rho, LangExp call) {
     SEXP condition = call.getArguments().get(0).evalToExp(rho);
 
     if (asLogicalNoNA(call, condition, rho)) {
@@ -231,7 +231,7 @@ public class Evaluation {
   }
 
   @Primitive(".Internal")
-  public static EvalResult internal(EnvExp rho, LangExp call) {
+  public static EvalResult internal(Environment rho, LangExp call) {
     SEXP arg = call.getArguments().get(0);
     if(!(arg instanceof LangExp)) {
       throw new EvalException("invalid .Internal() argument");
@@ -262,7 +262,7 @@ public class Evaluation {
     throw new ReturnException(value);
   }
 
-  public static EvalResult eval(SEXP expression, EnvExp environment,
+  public static EvalResult eval(SEXP expression, Environment environment,
                                 SEXP enclosing /* ignored */) {
 
     return expression.evaluate(environment);
@@ -272,7 +272,7 @@ public class Evaluation {
     return exp;
   }
 
-  public static SEXP substitute(@Environment EnvExp rho, @Evaluate(false) SEXP exp) {
+  public static SEXP substitute(@Current Environment rho, @Evaluate(false) SEXP exp) {
     // this seems pretty arbitrary but its documented!
 //    if(rho == rho.getGlobalEnvironment()) {
 //      return exp;
@@ -280,17 +280,17 @@ public class Evaluation {
     return substitute(exp, rho);
   }
 
-  public static SEXP substitute(@Evaluate(false) SEXP exp, EnvExp environment) {
+  public static SEXP substitute(@Evaluate(false) SEXP exp, Environment environment) {
     SubstitutingVisitor visitor = new SubstitutingVisitor(environment);
     exp.accept(visitor);
     return visitor.getResult();
   }
 
   private static class SubstitutingVisitor extends SexpVisitor<SEXP> {
-    private final EnvExp environment;
+    private final Environment environment;
     private SEXP result;
 
-    public SubstitutingVisitor(EnvExp environment) {
+    public SubstitutingVisitor(Environment environment) {
       this.environment = environment;
     }
 
@@ -360,7 +360,7 @@ public class Evaluation {
 
 
 
-  public static boolean asLogicalNoNA(LangExp call, SEXP s, EnvExp rho) {
+  public static boolean asLogicalNoNA(LangExp call, SEXP s, Environment rho) {
 
     if (s.length() > 1) {
       Warning.warning(call, "the condition has length > 1 and only the first element will be used");
@@ -374,7 +374,7 @@ public class Evaluation {
     return logical == Logical.TRUE;
   }
 
-  public static boolean missing(@Environment EnvExp rho, @Evaluate(false) SymbolExp symbol) {
+  public static boolean missing(@Current Environment rho, @Evaluate(false) SymbolExp symbol) {
     SEXP value = rho.findVariable(symbol);
     if(value == SymbolExp.UNBOUND_VALUE) {
       throw new EvalException("'missing' can only be used for arguments");

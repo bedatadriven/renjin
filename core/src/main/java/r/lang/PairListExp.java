@@ -356,7 +356,7 @@ public class PairListExp extends AbstractSEXP implements RecursiveExp, Iterable<
   }
 
   @Override
-  public EvalResult evaluate(EnvExp rho) {
+  public EvalResult evaluate(Environment rho) {
     return new EvalResult(this);
   }
 

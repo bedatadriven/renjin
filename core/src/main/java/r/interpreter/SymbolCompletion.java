@@ -21,23 +21,23 @@
 
 package r.interpreter;
 
-import r.lang.EnvExp;
+import r.lang.Environment;
 import r.lang.SymbolExp;
 
 import java.util.ArrayList;
 
 public class SymbolCompletion implements NameCompletion {
 
-  private final EnvExp global;
+  private final Environment global;
 
-  public SymbolCompletion(EnvExp global) {
+  public SymbolCompletion(Environment global) {
     this.global = global;
   }
 
   @Override
   public String[] completeName(String part) {
     ArrayList<String> list = new ArrayList<String>();
-    for(EnvExp env : global.selfAndParents()) {
+    for(Environment env : global.selfAndParents()) {
       for(SymbolExp name : env.getSymbolNames()) {
         if(name.getPrintName().startsWith(part)) {
           list.add(name.getPrintName());

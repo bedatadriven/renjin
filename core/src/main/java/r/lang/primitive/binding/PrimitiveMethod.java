@@ -27,7 +27,7 @@ import com.google.common.collect.Iterables;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.ArgumentList;
-import r.lang.primitive.annotations.Environment;
+import r.lang.primitive.annotations.Current;
 import r.lang.primitive.annotations.Evaluate;
 
 import java.lang.annotation.Annotation;
@@ -64,7 +64,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
    */
   public boolean acceptsCall() {
     return arguments.size() == 2 &&
-           arguments.get(0).getClazz().equals(EnvExp.class) &&
+           arguments.get(0).getClazz().equals(Environment.class) &&
            arguments.get(1).getClazz().equals(LangExp.class);
   }
 
@@ -143,7 +143,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     }
   }
 
-  public EvalResult invokeWithContextAndWrap(EnvExp rho, Object[] formals) {
+  public EvalResult invokeWithContextAndWrap(Environment rho, Object[] formals) {
     Object params[] = new Object[arguments.size()];
     int formalIndex = 0;
 
@@ -228,7 +228,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
       this.index = index;
 
       for(Annotation annotation : method.getParameterAnnotations()[index]) {
-        if(annotation instanceof Environment) {
+        if(annotation instanceof Current) {
           environment = true;
 
         } else if(annotation instanceof Evaluate) {

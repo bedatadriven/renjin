@@ -34,7 +34,7 @@ import java.util.Set;
  *  The singleton instance is immutable and so can be safely shared between
  * multiple threads / contexts.
  */
-public class BaseFrame implements EnvExp.Frame {
+public class BaseFrame implements Environment.Frame {
 
   public static final BaseFrame INSTANCE = new BaseFrame();
 

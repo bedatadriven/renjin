@@ -72,11 +72,11 @@ public class Types {
   }
 
   public static boolean isEnvironment(SEXP exp) {
-    return exp instanceof EnvExp;
+    return exp instanceof Environment;
   }
 
   public static boolean isExpression(SEXP exp) {
-    return exp instanceof EnvExp;
+    return exp instanceof Environment;
   }
 
   public static boolean isList(SEXP exp) {
@@ -224,14 +224,14 @@ public class Types {
     return (int)ParseUtil.parseDouble(x);
   }
 
-  public static EnvExp asEnvironment(EnvExp arg) {
+  public static Environment asEnvironment(Environment arg) {
     return arg;
   }
 
-  public static EnvExp asEnvironment(@Environment EnvExp rho, double index) {
-    EnvExp result = rho.getGlobalEnvironment();
+  public static Environment asEnvironment(@Current Environment rho, double index) {
+    Environment result = rho.getGlobalEnvironment();
     for(int i=2;i<index;++i) {
-      if(result == EnvExp.EMPTY) {
+      if(result == Environment.EMPTY) {
         throw new EvalException("invalid 'pos' argument");
       }
       result = result.getParent();
@@ -239,11 +239,11 @@ public class Types {
     return result;
   }
 
-  public static EnvExp getParentEnv(EnvExp environment) {
+  public static Environment getParentEnv(Environment environment) {
     return environment.getParent();
   }
 
-  public static EnvExp setParentEnv(EnvExp environment, EnvExp newParent) {
+  public static Environment setParentEnv(Environment environment, Environment newParent) {
     environment.setParent(newParent);
     return environment;
   }
@@ -275,11 +275,11 @@ public class Types {
     }
   }
 
-  public static EnvExp environment(@Environment EnvExp rho) {
+  public static Environment environment(@Current Environment rho) {
     return rho.getGlobalEnvironment();
   }
 
-  public static SEXP environment(@Environment EnvExp rho, SEXP exp) {
+  public static SEXP environment(@Current Environment rho, SEXP exp) {
     if(exp == NullExp.INSTANCE) {
       // if the user passes null, we return the current exp
       return rho;
@@ -290,8 +290,8 @@ public class Types {
     }
   }
 
-  public static EnvExp parentFrame(@Environment EnvExp rho, int n) {
-    EnvExp parent = rho;
+  public static Environment parentFrame(@Current Environment rho, int n) {
+    Environment parent = rho;
     while(n > 0 && rho != rho.getGlobalEnvironment()) {
       parent = rho.getParent();
       --n;
@@ -299,24 +299,24 @@ public class Types {
     return parent;
   }
 
-  public static EnvExp newEnv(boolean hash, EnvExp parent, int size) {
-    return EnvExp.createChildEnvironment(parent);   
+  public static Environment newEnv(boolean hash, Environment parent, int size) {
+    return Environment.createChildEnvironment(parent);
   }
 
-  public static EnvExp baseEnv(@Environment EnvExp rho) {
+  public static Environment baseEnv(@Current Environment rho) {
     return rho.getBaseEnvironment();
   }
 
-  public static EnvExp globalEnv(@Environment EnvExp rho) {
+  public static Environment globalEnv(@Current Environment rho) {
     return rho.getGlobalEnvironment();
   }
 
-  public static boolean exists(String x, EnvExp environment, String mode, boolean inherits) {
+  public static boolean exists(String x, Environment environment, String mode, boolean inherits) {
     return environment.findVariable(new SymbolExp(x), modePredicate(mode), inherits)
         != SymbolExp.UNBOUND_VALUE;
   }
 
-  public static SEXP get(String x, EnvExp environment, String mode, boolean inherits) {
+  public static SEXP get(String x, Environment environment, String mode, boolean inherits) {
     return environment.findVariable(new SymbolExp(x), modePredicate(mode), inherits);
   }
 
@@ -418,10 +418,10 @@ public class Types {
     return new IntVector( result );
   }
 
-  public static StringVector search(@Environment EnvExp rho) {
+  public static StringVector search(@Current Environment rho) {
     List<String> names = Lists.newArrayList();
-    EnvExp env = rho.getGlobalEnvironment();
-    while(env != EnvExp.EMPTY) {
+    Environment env = rho.getGlobalEnvironment();
+    while(env != Environment.EMPTY) {
       names.add(env.getName());
       env = env.getParent();
     }

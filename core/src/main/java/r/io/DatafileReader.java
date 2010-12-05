@@ -93,7 +93,7 @@ public class DatafileReader {
   private static final int CACHED_MASK = (1<<5);
   private static final int  HASHASH_MASK =  1;
 
-  private final EnvExp rho;
+  private final Environment rho;
   private InputStream conn;
   private StreamReader in;
 
@@ -105,13 +105,13 @@ public class DatafileReader {
 
   private PersistentRestorer restorer;
 
-  public DatafileReader(EnvExp rho, InputStream conn) {
+  public DatafileReader(Environment rho, InputStream conn) {
     this.rho = rho;
     this.conn = conn;
     this.referenceTable = new ArrayList<SEXP>();
   }
 
-  public DatafileReader(EnvExp rho, InputStream conn, PersistentRestorer restorer) {
+  public DatafileReader(Environment rho, InputStream conn, PersistentRestorer restorer) {
     this(rho, conn);
     this.restorer = restorer;
   }
@@ -198,7 +198,7 @@ public class DatafileReader {
       case NILVALUE_SXP:
         return NullExp.INSTANCE;
       case EMPTYENV_SXP:
-        return EnvExp.EMPTY;
+        return Environment.EMPTY;
       case BASEENV_SXP:
         return rho.getBaseEnvironment();
       case GLOBALENV_SXP:
@@ -278,7 +278,7 @@ public class DatafileReader {
 
   private SEXP readClosure(Flags flags) throws IOException {
     PairList attributes = readAttributes(flags);
-    EnvExp env = (EnvExp) readTag(flags);
+    Environment env = (Environment) readTag(flags);
     PairList formals = (PairList) readExp();
     SEXP body =  readExp();
 
@@ -348,7 +348,7 @@ public class DatafileReader {
   private SEXP readEnv() throws IOException {
     int locked = in.readInt();
 
-    EnvExp env = EnvExp.createChildEnvironment(rho); // temporarily assign parent to rho
+    Environment env = Environment.createChildEnvironment(rho); // temporarily assign parent to rho
     addReadRef(env);
 
     SEXP parent = readExp();
@@ -356,7 +356,7 @@ public class DatafileReader {
     SEXP hashtab = readExp(); // unused
     SEXP attributes = readExp();
 
-    env.setParent( parent == NullExp.INSTANCE ? EnvExp.EMPTY : (EnvExp)parent );
+    env.setParent( parent == NullExp.INSTANCE ? Environment.EMPTY : (Environment)parent );
     env.setVariables( (PairList) frame );
 
     return env;

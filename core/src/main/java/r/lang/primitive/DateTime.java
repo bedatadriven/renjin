@@ -21,14 +21,14 @@
 
 package r.lang.primitive;
 
-import r.lang.EnvExp;
+import r.lang.Environment;
 import r.lang.LangExp;
 import r.lang.NullExp;
 import r.lang.SEXP;
 
 public class DateTime {
 
-  public static SEXP strptime(EnvExp rho, LangExp call) {
+  public static SEXP strptime(Environment rho, LangExp call) {
     // TODO
     return NullExp.INSTANCE;
   }

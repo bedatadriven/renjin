@@ -52,18 +52,18 @@ public class Closure extends AbstractSEXP implements Function {
   public static final int TYPE_CODE = 4;
   public static final String IMPLICIT_CLASS = "function";
 
-  private EnvExp enclosingEnvironment;
+  private Environment enclosingEnvironment;
   private SEXP body;
   private PairList formals;
 
-  public Closure(EnvExp enclosingEnvironment, PairList formals, SEXP body, PairList attributes) {
+  public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, PairList attributes) {
     super(attributes);
     this.enclosingEnvironment = enclosingEnvironment;
     this.body = body;
     this.formals = formals;
   }
 
-  public Closure(EnvExp environment, PairList formals, SEXP body) {
+  public Closure(Environment environment, PairList formals, SEXP body) {
     this(environment, formals, body, NullExp.INSTANCE);
   }
 
@@ -88,13 +88,13 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   @Override
-  public EvalResult apply(LangExp call, PairList args, EnvExp rho) {
+  public EvalResult apply(LangExp call, PairList args, Environment rho) {
     return apply(rho, args);
   }
 
-  public EvalResult apply(EnvExp rho, PairList args) {
+  public EvalResult apply(Environment rho, PairList args) {
     try {
-      EnvExp functionEnvironment = EnvExp.createChildEnvironment(enclosingEnvironment);
+      Environment functionEnvironment = Environment.createChildEnvironment(enclosingEnvironment);
       matchArgumentsInto(args, enclosingEnvironment, functionEnvironment, rho);
 
       EvalResult result = body.evaluate(functionEnvironment);
@@ -116,7 +116,7 @@ public class Closure extends AbstractSEXP implements Function {
    * term from functional programming theory.
    *
    */
-  public EnvExp getEnclosingEnvironment() {
+  public Environment getEnclosingEnvironment() {
     return enclosingEnvironment;
   }
 
@@ -172,7 +172,7 @@ public class Closure extends AbstractSEXP implements Function {
    * @param innerEnv the environment in which to resolve the arguments;
    * @param rho  the environment from which the function is called
    */
-  private void matchArgumentsInto(PairList actuals, EnvExp enclosure, EnvExp innerEnv, EnvExp rho) {
+  private void matchArgumentsInto(PairList actuals, Environment enclosure, Environment innerEnv, Environment rho) {
 
 
 

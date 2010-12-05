@@ -43,7 +43,7 @@ public class SexpVisitor<R> {
     unhandled(complexExp);
   }
 
-  public void visit(EnvExp envExp) {
+  public void visit(Environment envExp) {
     unhandled(envExp);
   }
 

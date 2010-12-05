@@ -60,7 +60,7 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
   }
 
   @Override
-  public EvalResult apply(LangExp call, PairList arguments, EnvExp rho) {
+  public EvalResult apply(LangExp call, PairList arguments, Environment rho) {
     List<PrimitiveMethod> overloads = getMethodOverloads();
     if(overloads.isEmpty()) {
       StringBuilder message = new StringBuilder();

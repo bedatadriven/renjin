@@ -21,7 +21,7 @@
 
 package r.lang.primitive;
 
-import r.lang.EnvExp;
+import r.lang.Environment;
 import r.lang.LangExp;
 import r.lang.SEXP;
 
@@ -83,7 +83,7 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
-  public static boolean or(EnvExp rho, LangExp call) {
+  public static boolean or(Environment rho, LangExp call) {
       SEXP left = call.getArgument(0);
       SEXP right = call.getArgument(1);
 
@@ -102,7 +102,7 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
-  public static boolean and(EnvExp rho, LangExp call) {
+  public static boolean and(Environment rho, LangExp call) {
       SEXP left = call.getArgument(0);
       SEXP right = call.getArgument(1);
 

@@ -78,7 +78,7 @@ public class SymbolExp extends AbstractSEXP {
   }
 
   @Override
-  public EvalResult evaluate(EnvExp rho) {
+  public EvalResult evaluate(Environment rho) {
     SEXP value = rho.findVariable(this);
     if(value == SymbolExp.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", printName));

@@ -36,16 +36,16 @@ public class PromiseExp extends AbstractSEXP implements RecursiveExp {
   public static final String TYPE_NAME = "promise";
 
   private SEXP expression;
-  private EnvExp environment;
+  private Environment environment;
   private EvalResult result;
 
-  public PromiseExp(SEXP expression, EnvExp environment) {
+  public PromiseExp(SEXP expression, Environment environment) {
     this.expression = expression;
     this.environment = environment;
   }
 
   @Override
-  public EvalResult evaluate(EnvExp rho) {
+  public EvalResult evaluate(Environment rho) {
     return force();
   }
 

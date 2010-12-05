@@ -35,14 +35,14 @@ import static org.junit.Assert.assertThat;
 
 public abstract class EvalTestCase {
 
-  protected EnvExp global;
+  protected Environment global;
   public static final SEXP NULL = NullExp.INSTANCE;
   public static final SEXP CHARACTER_0 = new StringVector();
   public static final SEXP DOUBLE_0 = new DoubleVector();
 
   @Before
   public void setUp() {
-    global = EnvExp.createGlobalEnvironment();
+    global = Environment.createGlobalEnvironment();
   }
 
   protected SEXP eval(String source) {

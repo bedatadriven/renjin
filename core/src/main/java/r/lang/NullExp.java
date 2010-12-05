@@ -58,7 +58,7 @@ public final class NullExp extends AbstractSEXP implements AtomicVector, PairLis
   }
 
   @Override
-  public EvalResult evaluate(EnvExp rho) {
+  public EvalResult evaluate(Environment rho) {
     return new EvalResult(this);
   }
 

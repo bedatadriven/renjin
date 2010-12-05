@@ -93,7 +93,7 @@ abstract class AbstractSEXP implements SEXP {
    * @return the result
    */
   @Override
-  public EvalResult evaluate(EnvExp rho) {
+  public EvalResult evaluate(Environment rho) {
     return new EvalResult(this);
   }
 
@@ -109,7 +109,7 @@ abstract class AbstractSEXP implements SEXP {
    * @return
    */
   @Override
-  public final SEXP evalToExp(EnvExp rho) {
+  public final SEXP evalToExp(Environment rho) {
     return evaluate(rho).getExpression();
   }
 

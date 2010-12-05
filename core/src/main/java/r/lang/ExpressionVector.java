@@ -67,7 +67,7 @@ public class ExpressionVector extends AbstractSEXP implements RecursiveExp, Vect
   }
 
   @Override
-  public EvalResult evaluate(EnvExp rho) {
+  public EvalResult evaluate(Environment rho) {
     EvalResult result = EvalResult.NON_PRINTING_NULL;
     for(SEXP sexp : values) {
       result = sexp.evaluate(rho);

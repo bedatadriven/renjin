@@ -26,7 +26,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.annotations.Environment;
+import r.lang.primitive.annotations.Current;
 import r.parser.ParseUtil;
 
 import java.io.PrintStream;
@@ -36,7 +36,7 @@ public class Print {
 
   private Print() {}
 
-  public static SEXP print(@Environment EnvExp rho, SEXP value) {
+  public static SEXP print(@Current Environment rho, SEXP value) {
     SEXP stdout = rho.findVariable(SymbolExp.STDOUT);
     if( stdout == SymbolExp.UNBOUND_VALUE ) {
       throw new EvalException("no stdout found in the current environment");

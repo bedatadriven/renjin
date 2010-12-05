@@ -56,7 +56,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(EnvExp envExp) {
+    public void visit(Environment envExp) {
       // this is somewhat random; it's isn't parsable in any case
       deparsed.append("<environment>");
     }

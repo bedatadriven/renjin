@@ -85,7 +85,7 @@ public class RuntimeInvoker {
     converters.add(new NullToObject());
   }
 
-  public EvalResult invoke(EnvExp rho, LangExp call, List<PrimitiveMethod> overloads) {
+  public EvalResult invoke(Environment rho, LangExp call, List<PrimitiveMethod> overloads) {
 
     // first check for a method which can handle the call in its entirety
     if(overloads.size() == 1 && overloads.get(0).acceptsCall()) {
@@ -126,7 +126,7 @@ public class RuntimeInvoker {
 
   private interface CallStrategy {
     boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments);
-    EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments);
+    EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments);
   }
 
 
@@ -149,7 +149,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
+    public EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments) {
       return method.invokeWithContextAndWrap(rho, convertArgs(method, arguments));
     }
   }
@@ -165,7 +165,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
+    public EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments) {
       return method.invokeAndWrap(new Object[] { arguments });
     }
   }
@@ -196,7 +196,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
+    public EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments) {
       AtomicAccessor domain =  AtomicAccessors.create( arguments.get(0).evaluated(), primitive );
       AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), domain.length() );
       boolean allowNA = method.getArguments().get(0).isAnnotatedWith(AllowNA.class);
@@ -247,7 +247,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
+    public EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments) {
       AtomicAccessor<Double> x = AtomicAccessors.create( arguments.get(0).evaluated(), primitiveType );
       AtomicAccessor<Double> y = AtomicAccessors.create( arguments.get(1).evaluated(), primitiveType );
       int xLen = x.length();
@@ -358,12 +358,12 @@ public class RuntimeInvoker {
     }
   }
   private class ProvidedArgument {
-    private EnvExp rho;
+    private Environment rho;
     private SEXP provided;
     private SEXP evaluated;
     private SEXP tag;
 
-    public ProvidedArgument(EnvExp rho, PairListExp arg) {
+    public ProvidedArgument(Environment rho, PairListExp arg) {
       this.rho = rho;
       this.provided = arg.getValue();
       this.tag = arg.getRawTag();
@@ -425,7 +425,7 @@ public class RuntimeInvoker {
 
   private interface ArgConverter<S extends SEXP, T> {
     boolean accept(SEXP source, PrimitiveMethod.Argument formal);
-    T convert(EnvExp rho, S source, PrimitiveMethod.Argument formal);
+    T convert(Environment rho, S source, PrimitiveMethod.Argument formal);
   }
 
   private class ToPrimitive implements ArgConverter {
@@ -436,7 +436,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public Object convert(EnvExp rho, SEXP source, PrimitiveMethod.Argument formal) {
+    public Object convert(Environment rho, SEXP source, PrimitiveMethod.Argument formal) {
       return AtomicAccessors.create(source, formal.getClazz()).get(0);
     }
   }
@@ -451,7 +451,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public SymbolExp convert(EnvExp rho, StringVector source, PrimitiveMethod.Argument formal) {
+    public SymbolExp convert(Environment rho, StringVector source, PrimitiveMethod.Argument formal) {
       return new SymbolExp(source.getElement(0));
     }
   }
@@ -466,7 +466,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public int[] convert(EnvExp rho, DoubleVector source, PrimitiveMethod.Argument formal) {
+    public int[] convert(Environment rho, DoubleVector source, PrimitiveMethod.Argument formal) {
       return source.coerceToIntArray();
     }
   }
@@ -481,7 +481,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public int[] convert(EnvExp rho, IntVector source, PrimitiveMethod.Argument formal) {
+    public int[] convert(Environment rho, IntVector source, PrimitiveMethod.Argument formal) {
       return source.toIntArray();
     }
   }
@@ -496,7 +496,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public Integer convert(EnvExp rho, DoubleVector source, PrimitiveMethod.Argument formal) {
+    public Integer convert(Environment rho, DoubleVector source, PrimitiveMethod.Argument formal) {
       return (int)source.get(0);
     }
   }
@@ -510,7 +510,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public AtomicAccessor convert(EnvExp rho, SEXP source, PrimitiveMethod.Argument formal) {
+    public AtomicAccessor convert(Environment rho, SEXP source, PrimitiveMethod.Argument formal) {
       return AtomicAccessors.create(source, (Class) formal.getTypeArgument(0));
     }
   }
@@ -538,7 +538,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public Object convert(EnvExp rho, SEXP source, PrimitiveMethod.Argument formal) {
+    public Object convert(Environment rho, SEXP source, PrimitiveMethod.Argument formal) {
       return ((ExternalExp)source).getValue();
     }
   }
@@ -550,7 +550,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public Object convert(EnvExp rho, SEXP source, PrimitiveMethod.Argument formal) {
+    public Object convert(Environment rho, SEXP source, PrimitiveMethod.Argument formal) {
       return null;
     }
   }

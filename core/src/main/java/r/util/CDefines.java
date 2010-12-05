@@ -350,7 +350,7 @@ public class CDefines {
   }
 
   public static boolean isEnvironment(SEXP s) {
-    return s instanceof EnvExp;
+    return s instanceof Environment;
   }
 
   public static boolean isString(SEXP s) {

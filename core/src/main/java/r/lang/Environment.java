@@ -52,15 +52,15 @@ import java.util.*;
  *  use of {@code NULL} as an environment is defunct.
  *
  */
-public class EnvExp extends AbstractSEXP implements RecursiveExp {
+public class Environment extends AbstractSEXP implements RecursiveExp {
 
   public static final int TYPE_CODE = 4;
   public static final String TYPE_NAME = "environment";
 
   private String name;
-  private EnvExp parent;
-  private EnvExp globalEnvironment;
-  private EnvExp baseEnvironment;
+  private Environment parent;
+  private Environment globalEnvironment;
+  private Environment baseEnvironment;
 
   private List<SEXP> onExit = Lists.newArrayList();
 
@@ -70,8 +70,8 @@ public class EnvExp extends AbstractSEXP implements RecursiveExp {
    */
   public static final EmptyEnv EMPTY = new EmptyEnv();
 
-  public static EnvExp createGlobalEnvironment() {
-    EnvExp global = new EnvExp();
+  public static Environment createGlobalEnvironment() {
+    Environment global = new Environment();
     global.name = "R_GlobalEnv";
     global.baseEnvironment = createBaseEnvironment(global);
     global.globalEnvironment = global;
@@ -81,8 +81,8 @@ public class EnvExp extends AbstractSEXP implements RecursiveExp {
     return global;
   }
 
-  private static EnvExp createBaseEnvironment(EnvExp global) {
-    EnvExp base = new EnvExp();
+  private static Environment createBaseEnvironment(Environment global) {
+    Environment base = new Environment();
     base.name = "base";
     base.baseEnvironment = base;
     base.globalEnvironment = global;
@@ -91,8 +91,8 @@ public class EnvExp extends AbstractSEXP implements RecursiveExp {
     return base;
   }
 
-  public static EnvExp createChildEnvironment(EnvExp parent) {
-    EnvExp child = new EnvExp();
+  public static Environment createChildEnvironment(Environment parent) {
+    Environment child = new Environment();
     child.name = Integer.toString(child.hashCode());
     child.baseEnvironment = parent.baseEnvironment;
     child.globalEnvironment = parent.globalEnvironment;
@@ -150,19 +150,19 @@ public class EnvExp extends AbstractSEXP implements RecursiveExp {
     return name;
   }
 
-  public EnvExp getParent() {
+  public Environment getParent() {
     return parent;
   }
 
-  public void setParent(EnvExp parent) {
+  public void setParent(Environment parent) {
     this.parent = parent;
   }
 
-  public EnvExp getGlobalEnvironment() {
+  public Environment getGlobalEnvironment() {
     return globalEnvironment;
   }
 
-  public EnvExp getBaseEnvironment() {
+  public Environment getBaseEnvironment() {
     return baseEnvironment;
   }
 
@@ -217,11 +217,11 @@ public class EnvExp extends AbstractSEXP implements RecursiveExp {
     visitor.visit(this);
   }
 
-  public Iterable<EnvExp> selfAndParents() {
-    return new Iterable<EnvExp>() {
+  public Iterable<Environment> selfAndParents() {
+    return new Iterable<Environment>() {
       @Override
-      public Iterator<EnvExp> iterator() {
-        return new EnvIterator(EnvExp.this);
+      public Iterator<Environment> iterator() {
+        return new EnvIterator(Environment.this);
       }
     };
   }
@@ -234,10 +234,10 @@ public class EnvExp extends AbstractSEXP implements RecursiveExp {
     return frame.getVariable(symbol) != SymbolExp.UNBOUND_VALUE;
   }
   
-  private static class EnvIterator extends UnmodifiableIterator<EnvExp> {
-    private EnvExp next;
+  private static class EnvIterator extends UnmodifiableIterator<Environment> {
+    private Environment next;
 
-    private EnvIterator(EnvExp next) {
+    private EnvIterator(Environment next) {
       this.next = next;
     }
 
@@ -247,8 +247,8 @@ public class EnvExp extends AbstractSEXP implements RecursiveExp {
     }
 
     @Override
-    public EnvExp next() {
-      EnvExp toReturn = next;
+    public Environment next() {
+      Environment toReturn = next;
       next = next.parent;
       return toReturn;
     }
@@ -269,7 +269,7 @@ public class EnvExp extends AbstractSEXP implements RecursiveExp {
   }
 
 
-  private static class EmptyEnv extends EnvExp {
+  private static class EmptyEnv extends Environment {
 
     private EmptyEnv() {
     }
@@ -290,12 +290,12 @@ public class EnvExp extends AbstractSEXP implements RecursiveExp {
     }
 
     @Override
-    public EnvExp getParent() {
+    public Environment getParent() {
       throw new UnsupportedOperationException("The empty environment does not have a parent.");
     }
 
     @Override
-    public void setParent(EnvExp parent) {
+    public void setParent(Environment parent) {
       throw new UnsupportedOperationException("The empty environment does not have a parent.");
     }
   }

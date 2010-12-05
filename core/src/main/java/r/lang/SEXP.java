@@ -57,7 +57,7 @@ public interface SEXP {
    * @param rho the environment in which to evaluate the expression
    * @return the result
    */
-  EvalResult evaluate(EnvExp rho);
+  EvalResult evaluate(Environment rho);
 
   /**
    * Shortcut for evaluate(rho).getExpression()
@@ -65,7 +65,7 @@ public interface SEXP {
    * @param rho the environment in which this expression should be evaluated
    * @return
    */
-  SEXP evalToExp(EnvExp rho);
+  SEXP evalToExp(Environment rho);
 
   boolean isNumeric();
 

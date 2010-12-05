@@ -47,12 +47,12 @@ public class LangExp extends PairListExp {
   }
 
   @Override
-  public EvalResult evaluate(EnvExp rho) {
+  public EvalResult evaluate(Environment rho) {
     Function functionExpr = evaluateFunction(rho);
     return functionExpr.apply(this, getArguments(), rho);
   }
 
-  private Function evaluateFunction(EnvExp rho) {
+  private Function evaluateFunction(Environment rho) {
     return (Function) getFunction().evalToExp(rho);
   }
 
@@ -78,7 +78,7 @@ public class LangExp extends PairListExp {
     return getArguments().<X>get(index);
   }
 
-  public SEXP evalArgument(int index, EnvExp rho) {
+  public SEXP evalArgument(int index, Environment rho) {
     return getArgument(index).evalToExp(rho);
   }
 

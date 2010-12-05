@@ -78,6 +78,10 @@ public class LangExp extends PairListExp {
     return getArguments().<X>get(index);
   }
 
+  public SEXP evalArgument(int index, EnvExp rho) {
+    return getArgument(index).evalToExp(rho);
+  }
+
   @Override
   public String toString() {
     StringBuilder sb= new StringBuilder();

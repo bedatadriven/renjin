@@ -669,7 +669,7 @@ public class FunctionTable {
       f("lib.fixup", /*libfixup*/ null, 0, 111, 2, PP_FUNCALL, PREC_FN, 0),
       f("pos.to.env", /*pos2env*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("eapply", /*eapply*/ null, 0, 10, 4, PP_FUNCALL, PREC_FN, 0),
-      f("lapply", /*lapply*/ null, 0, 10, 2, PP_FUNCALL, PREC_FN, 0),
+      f("lapply", Evaluation.class, 0, 10, 2, PP_FUNCALL, PREC_FN, 0),
       f("rapply", /*rapply*/ null, 0, 11, 5, PP_FUNCALL, PREC_FN, 0),
       f("islistfactor", /*islistfactor*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("colSums", /*colsum*/ null, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),

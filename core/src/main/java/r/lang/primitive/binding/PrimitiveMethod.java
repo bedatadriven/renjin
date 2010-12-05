@@ -74,6 +74,17 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
            arguments.get(0).isAnnotatedWith(ArgumentList.class);
   }
 
+  public boolean isVarArgs() {
+    return method.isVarArgs();
+  }
+
+  public Argument getVarArg() {
+    if(!isVarArgs()) {
+      throw new IllegalStateException();
+    }
+    return arguments.get( arguments.size() - 1);
+  }
+
   public List<Argument> getArguments() {
     return arguments;
   }

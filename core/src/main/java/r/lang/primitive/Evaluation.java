@@ -171,6 +171,24 @@ public class Evaluation {
     }
   }
 
+  public static ListExp lapply(@Environment EnvExp rho, LangExp call) {
+    HasElements vector = (HasElements) call.evalArgument(0, rho);
+    FunExp function = (FunExp) call.evalArgument(1, rho);
+
+    PairList remainingArguments =  call.getArguments().length() > 2 ?
+        call.getNextNode().getNextNode().getNextNode() : NullExp.INSTANCE;
+
+    ListExp.Builder builder = ListExp.newBuilder();
+    for(int i=0;i!=vector.length();++i) {
+      // For historical reasons, the calls created by lapply are unevaluated, and code has
+      // been written (e.g. bquote) that relies on this.
+      LangExp getElementCall = LangExp.newCall(new SymbolExp("[["), (SEXP)vector, new IntExp(i+1));
+      LangExp applyFunctionCall = new LangExp((SEXP)function, new PairListExp(getElementCall, remainingArguments));
+      builder.add( applyFunctionCall.evalToExp(rho) );
+    }
+    return builder.build();
+  }
+
   @Primitive("while")
   public static void whileLoop(EnvExp rho, LangExp call) {
     PairList args = call.getArguments();

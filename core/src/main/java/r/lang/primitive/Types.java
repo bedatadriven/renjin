@@ -26,6 +26,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.AllowNA;
 import r.lang.primitive.annotations.ArgumentList;
 import r.lang.primitive.annotations.Environment;
 import r.lang.primitive.annotations.Primitive;
@@ -123,10 +124,19 @@ public class Types {
   public static boolean isSingle(SEXP exp) {
     throw new EvalException("type \"single\" unimplemented in R");
   }
-
-  public static boolean isNA(double value) {
+                                              
+  public static boolean isNA(@AllowNA double value) {
     return DoubleExp.isNA(value);
   }
+
+  public static boolean isNA(@AllowNA String value) {
+    return StringExp.isNA(value);
+  }
+
+  public static boolean isNA(@AllowNA int value) {
+    return IntExp.isNA(value);
+  }
+
 
   public static boolean isNaN(double value) {
     return DoubleExp.isNaN(value);

@@ -24,6 +24,7 @@ package r.lang.primitive.binding;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.AllowNA;
 import r.lang.primitive.annotations.Indices;
 
 import java.lang.Class;
@@ -196,9 +197,11 @@ public class RuntimeInvoker {
     public EvalResult apply(PrimitiveMethod method, EnvExp rho, List<ProvidedArgument> arguments) {
       AtomicAccessor domain =  AtomicAccessors.create( arguments.get(0).evaluated(), primitive );
       AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), domain.length() );
+      boolean allowNA = method.getArguments().get(0).isAnnotatedWith(AllowNA.class);
+
 
       for (int i = 0; i < domain.length(); i++) {
-        if ( domain.isNA(i) ) {
+        if ( !allowNA && domain.isNA(i) ) {
           result.setNA(i);
         } else {
           result.set(i, method.invoke( domain.get( i )));

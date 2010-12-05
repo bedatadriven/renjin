@@ -83,7 +83,7 @@ public class LangExp extends PairListExp {
     StringBuilder sb= new StringBuilder();
     sb.append(getFunction()).append("(");
     boolean needsComma=false;
-    for(PairListExp node : getNextNode().listNodes()) {
+    for(PairListExp node : getArguments().listNodes()) {
       if(needsComma) {
         sb.append(", ");
       } else {

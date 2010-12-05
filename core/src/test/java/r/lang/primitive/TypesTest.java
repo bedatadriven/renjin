@@ -85,9 +85,16 @@ public class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void na() {
+    assertThat( eval(" is.na(TRUE) "), equalTo( c(Logical.FALSE)));
+    assertThat( eval(" is.na(NA) "), equalTo( c(Logical.TRUE)));
+    assertThat( eval(" is.na(c(1L, NA_integer_)) "), equalTo( c(Logical.FALSE, Logical.TRUE)));
+    assertThat( eval(" is.na(c(NA_character_, '', 'foo')) "), equalTo( c(Logical.TRUE, Logical.FALSE, Logical.FALSE)));
+  }
+
+  @Test
   public void environment() {
     assertThat( eval(".Internal(environment())"), CoreMatchers.is((SEXP) global.getGlobalEnvironment()));
-
   }
 
   @Test

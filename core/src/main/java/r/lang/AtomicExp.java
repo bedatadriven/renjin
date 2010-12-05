@@ -25,7 +25,7 @@ package r.lang;
  * Marker interface for R types defined as "atomic"
  * 
  */
-public abstract class AtomicExp extends SEXP {
+public abstract class AtomicExp extends AbstractSEXP {
 
   protected AtomicExp() {
   }

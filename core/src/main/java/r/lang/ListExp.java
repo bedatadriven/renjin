@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Generic vector of {@code SEXP}s
  */
-public class ListExp extends SEXP implements Iterable<SEXP>, HasElements {
+public class ListExp extends AbstractSEXP implements Iterable<SEXP>, HasElements {
 
   private static final int TYPE_CODE = 19;
   private static final String TYPE_NAME = "list";

@@ -24,7 +24,7 @@ package r.lang;
 import com.google.common.base.Preconditions;
 import r.lang.exception.EvalException;
 
-public class SymbolExp extends SEXP {
+public class SymbolExp extends AbstractSEXP {
                             
   public static final int TYPE_CODE = 1;
   public static final String  TYPE_NAME = "symbol";

@@ -47,7 +47,7 @@ import static com.google.common.collect.Collections2.transform;
  *  a formal argument list, a body and an environment.
  *
  */
-public class ClosureExp extends SEXP implements FunExp {
+public class ClosureExp extends AbstractSEXP implements FunExp {
 
   public static final String TYPE_NAME = "closure";
   public static final int TYPE_CODE = 4;

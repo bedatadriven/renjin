@@ -52,7 +52,7 @@ import java.util.*;
  *  use of {@code NULL} as an environment is defunct.
  *
  */
-public class EnvExp extends SEXP implements RecursiveExp {
+public class EnvExp extends AbstractSEXP implements RecursiveExp {
 
   public static final int TYPE_CODE = 4;
   public static final String TYPE_NAME = "environment";

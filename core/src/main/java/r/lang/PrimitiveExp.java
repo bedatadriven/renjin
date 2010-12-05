@@ -35,7 +35,7 @@ import java.util.List;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 
-public abstract class PrimitiveExp extends SEXP implements FunExp {
+public abstract class PrimitiveExp extends AbstractSEXP implements FunExp {
 
   public static final String IMPLICIT_CLASS = "function";
 

@@ -36,7 +36,7 @@ import java.util.Iterator;
  *  rarely seen at R level, but are for example used for argument lists.
  *
  */
-public class PairListExp extends SEXP implements RecursiveExp, Iterable<SEXP>, PairList {
+public class PairListExp extends AbstractSEXP implements RecursiveExp, Iterable<SEXP>, PairList {
 
   public static final int TYPE_CODE = 2;
   public static final String TYPE_NAME = "pairlist";

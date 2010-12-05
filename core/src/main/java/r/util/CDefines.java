@@ -308,14 +308,7 @@ public class CDefines {
     return s.length();
   }
 
-  public static int NAMED(SEXP s) {
-    return s.getNamed();
-  }
-
-  public static void SET_NAMED(SEXP s, int flag) {
-    s.setNamed(flag);
-  }
-//
+  //
 //  define ATTRIB(x)	((x)->attrib)
 //#define OBJECT(x)	((x)->sxpinfo.obj)
 //#define MARK(x)		((x)->sxpinfo.mark)
@@ -329,25 +322,11 @@ public class CDefines {
 //#define SET_RTRACE(x,v)	(((x)->sxpinfo.trace)=(v))
 //#define SETLEVELS(x,v)	(((x)->sxpinfo.gp)=(v))
 
-  public static boolean DDVAL(SEXP x) {
-    return x.isDotDotValue();
-  }
 
-  public static void SET_DDVAL_BIT(SEXP x) {
-    x.setDotDotValue(true);
-  }
-
-  public static void UNSET_DDVAL_BIT(SEXP x) {
-    x.setDotDotValue(false);
-  }
 
   public static String translateChar(SEXP s) {
     CharExp charVec = (CharExp)s;
     return charVec.toString();
-  }
-
-  public static boolean isNull(SEXP s) {
-    return s == NullExp.INSTANCE;
   }
 
   public static boolean isSymbol(SEXP s) {

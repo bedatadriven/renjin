@@ -27,7 +27,7 @@ import r.lang.exception.EvalException;
  *  a pairlist of promises (as used for matched arguments) but distinguished by the SEXPTYPE.
  *
  */
-public class DotExp extends SEXP {
+public class DotExp extends AbstractSEXP {
 
   private PairList promises;
 

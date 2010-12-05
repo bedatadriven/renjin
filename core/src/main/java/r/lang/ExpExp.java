@@ -40,7 +40,7 @@ import java.util.Iterator;
  * parsed but unevaluated R statements.
  *
  */
-public class ExpExp extends SEXP implements RecursiveExp, Iterable<SEXP> {
+public class ExpExp extends AbstractSEXP implements RecursiveExp, Iterable<SEXP> {
   public static final String TYPE_NAME = "expression";
   public static final int TYPE_CODE = 20;
 

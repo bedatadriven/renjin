@@ -24,7 +24,7 @@ package r.lang;
 /**
  * Data type that wraps an external (JVM) pointer
  */
-public final class ExternalExp<T> extends SEXP {
+public final class ExternalExp<T> extends AbstractSEXP {
 
   private final T value;
 

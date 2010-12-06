@@ -380,7 +380,7 @@ public class RuntimeInvoker {
     private SEXP evaluated() {
       if(evaluated == null ) {
         evaluated = provided.evaluate(rho).getExpression();
-        if(evaluated instanceof PromiseExp) {
+        if(evaluated instanceof Promise) {
           evaluated = evaluated.evalToExp(rho);
         }
       }

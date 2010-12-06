@@ -75,7 +75,7 @@ public class SexpVisitor<R> {
     unhandled(primitiveSexp);
   }
 
-  public void visit(PromiseExp promExp) {
+  public void visit(Promise promExp) {
     unhandled(promExp);
   }
 

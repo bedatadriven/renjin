@@ -335,8 +335,8 @@ public class Evaluation {
     public void visit(SymbolExp symbolExp) {
       if(environment.hasVariable(symbolExp)) {
         result = environment.getVariable(symbolExp);
-        if(result instanceof PromiseExp) {
-          result = ((PromiseExp) result).getExpression();
+        if(result instanceof Promise) {
+          result = ((Promise) result).getExpression();
         }
       } else {
         result = symbolExp;

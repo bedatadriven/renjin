@@ -102,7 +102,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(PromiseExp promExp) {
+    public void visit(Promise promExp) {
       super.visit(promExp);
     }
 

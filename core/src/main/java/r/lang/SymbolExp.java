@@ -82,7 +82,7 @@ public class SymbolExp extends AbstractSEXP {
     if(value == SymbolExp.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", printName));
     }
-    if(value instanceof PromiseExp) {
+    if(value instanceof Promise) {
       return value.evaluate(rho);
     } else {
       return new EvalResult(value);

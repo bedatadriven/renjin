@@ -78,7 +78,7 @@ public class Connections {
         newArgs.add(expr.<SEXP>getArgument(j));
       }
       LangExp newCall = new LangExp(expr.getFunction(), newArgs.build());
-      targetEnvironment.setVariable(name, new PromiseExp(newCall, eenv));
+      targetEnvironment.setVariable(name, new Promise(newCall, eenv));
     }
   }
 
@@ -115,8 +115,8 @@ public class Connections {
     });
 
     SEXP exp = reader.readFile();
-    if(exp instanceof PromiseExp) {
-      exp = ((PromiseExp) exp).force().getExpression();
+    if(exp instanceof Promise) {
+      exp = ((Promise) exp).force().getExpression();
     }
     return exp;
   }

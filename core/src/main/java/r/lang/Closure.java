@@ -199,7 +199,7 @@ public class Closure extends AbstractSEXP implements Function {
 
         if(matches.size() == 1) {
           PairList.Node match = first(matches);
-          innerEnv.setVariable(name, new PromiseExp( match.getValue(), rho ));
+          innerEnv.setVariable(name, new Promise( match.getValue(), rho ));
           formalIt.remove();
           unmatchedActuals.remove(match);
 
@@ -219,7 +219,7 @@ public class Closure extends AbstractSEXP implements Function {
 
         if(matches.size() == 1) {
           PairList.Node match = first(matches);
-          innerEnv.setVariable(match.getTag(), new PromiseExp( actual.getValue(), rho ));
+          innerEnv.setVariable(match.getTag(), new Promise( actual.getValue(), rho ));
           actualIt.remove();
           unmatchedFormals.remove(match);
 
@@ -240,18 +240,18 @@ public class Closure extends AbstractSEXP implements Function {
         PairList.Node.Builder promises = PairList.Node.newBuilder();
         while(actualIt.hasNext()) {
           PairList.Node actual = actualIt.next();
-          promises.add( actual.getRawTag(),  new PromiseExp( actual.getValue(), rho ) );
+          promises.add( actual.getRawTag(),  new Promise( actual.getValue(), rho ) );
         }
         innerEnv.setVariable(formal.getTag(), new DotExp( promises.build() ));
 
       } else if( hasNextUnTagged(actualIt) ) {
-        innerEnv.setVariable(formal.getTag(), new PromiseExp( nextUnTagged(actualIt).getValue(), rho ) );
+        innerEnv.setVariable(formal.getTag(), new Promise( nextUnTagged(actualIt).getValue(), rho ) );
 
       } else if( formal.getValue() == SymbolExp.MISSING_ARG ) {
         innerEnv.setVariable(formal.getTag(), SymbolExp.MISSING_ARG);
 
       } else {
-        innerEnv.setVariable(formal.getTag(), new PromiseExp( formal.getValue(), innerEnv )); // default
+        innerEnv.setVariable(formal.getTag(), new Promise( formal.getValue(), innerEnv )); // default
       }
     }
     if(actualIt.hasNext()) {

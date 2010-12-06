@@ -74,4 +74,9 @@ public class CharExp extends AbstractSEXP implements AtomicVector {
   public Builder newCopyBuilder() {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public boolean isElementNA(int index) {
+    return false;
+  }
 }

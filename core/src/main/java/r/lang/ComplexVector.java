@@ -81,4 +81,9 @@ public class ComplexVector extends AbstractSEXP implements AtomicVector, Iterabl
   public Iterator<Complex> iterator() {
     return Iterators.forArray(values);
   }
+
+  @Override
+  public boolean isElementNA(int index) {
+    throw new UnsupportedOperationException("implement me!");
+  }
 }

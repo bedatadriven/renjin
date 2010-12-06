@@ -187,6 +187,11 @@ public class IntVector extends AbstractSEXP implements AtomicVector, Iterable<In
     return value == NA;
   }
 
+  @Override
+  public boolean isElementNA(int index) {
+    return isNA(values[index]);
+  }
+
   private class ValueIterator extends UnmodifiableIterator<Integer> {
     private int i = 0;
 

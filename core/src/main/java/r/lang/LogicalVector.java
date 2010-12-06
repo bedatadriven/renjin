@@ -223,6 +223,11 @@ public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterabl
     }
   }
 
+  @Override
+  public boolean isElementNA(int index) {
+    return IntVector.isNA(values[index]);
+  }
+
   private static class Builder implements Vector.Builder<IntVector, WidensToInt> {
     private PairList attributes;
     private int values[];

@@ -167,6 +167,11 @@ public class StringVector extends AbstractSEXP implements AtomicVector, Iterable
     return new Builder();
   }
 
+  @Override
+  public boolean isElementNA(int index) {
+    return isNA(values[index]);
+  }
+
   public static class Builder implements Vector.Builder<StringVector, WidensToString> {
     private ArrayList<String> values = Lists.newArrayList();
     private ArrayList<String> names = Lists.newArrayList();

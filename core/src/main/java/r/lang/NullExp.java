@@ -107,4 +107,9 @@ public final class NullExp extends AbstractSEXP implements AtomicVector, PairLis
   public Iterator<SEXP> iterator() {
     return Iterators.emptyIterator();
   }
+
+  @Override
+  public boolean isElementNA(int index) {
+    throw new ArrayIndexOutOfBoundsException(index);
+  }
 }

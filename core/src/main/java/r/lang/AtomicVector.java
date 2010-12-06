@@ -30,5 +30,11 @@ package r.lang;
  */
 public interface AtomicVector extends Vector {
 
+  /**
+   *
+   * @param index zero-based index
+   * @return  true if the element at {@code index} is NA (statistically missing)
+   */
+  boolean isElementNA(int index);
 
 }

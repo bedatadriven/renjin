@@ -167,6 +167,16 @@ public class Types {
     return IntVector.isNA(value);
   }
 
+  public static boolean[] isNA(ListVector list) {
+    boolean[] result = new boolean[list.length()];
+    int i = 0;
+    for(SEXP element : list) {
+      result[i++] = element instanceof AtomicVector &&
+                    element.length() == 1 &&
+                    ((AtomicVector) element).isElementNA(0);
+    }
+    return result;
+  }
 
   public static boolean isNaN(double value) {
     return DoubleVector.isNaN(value);

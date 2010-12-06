@@ -227,6 +227,11 @@ public final class DoubleVector extends AbstractSEXP implements AtomicVector, It
     return new Builder(initialSize);
   }
 
+  @Override
+  public boolean isElementNA(int index) {
+    return isNA(values[index]);
+  }
+
   public static class Builder implements Vector.Builder<DoubleVector, WidensToDouble> {
     private PairList attributes;
     private double values[];

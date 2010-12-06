@@ -28,6 +28,8 @@ import r.lang.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static r.lang.Logical.FALSE;
+import static r.lang.Logical.TRUE;
 
 public class TypesTest extends EvalTestCase {
 
@@ -86,10 +88,16 @@ public class TypesTest extends EvalTestCase {
 
   @Test
   public void na() {
-    assertThat( eval(" is.na(TRUE) "), equalTo( c(Logical.FALSE)));
-    assertThat( eval(" is.na(NA) "), equalTo( c(Logical.TRUE)));
-    assertThat( eval(" is.na(c(1L, NA_integer_)) "), equalTo( c(Logical.FALSE, Logical.TRUE)));
-    assertThat( eval(" is.na(c(NA_character_, '', 'foo')) "), equalTo( c(Logical.TRUE, Logical.FALSE, Logical.FALSE)));
+    assertThat( eval(" is.na(TRUE) "), equalTo( c(FALSE)));
+    assertThat( eval(" is.na(NA) "), equalTo( c(TRUE)));
+    assertThat( eval(" is.na(c(1L, NA_integer_)) "), equalTo( c(FALSE, TRUE)));
+    assertThat( eval(" is.na(c(NA_character_, '', 'foo')) "), equalTo( c(TRUE, FALSE, FALSE)));
+  }
+
+  @Test
+  public void naList() {
+    assertThat( eval(" is.na(list(NULL,  1,     FALSE, c(NA,4), NA_integer_, NA_real_)) "),
+                       equalTo( c(FALSE, FALSE, FALSE, FALSE,   TRUE,        TRUE)) );
   }
 
   @Test
@@ -97,7 +105,7 @@ public class TypesTest extends EvalTestCase {
     assertThat( eval(" .Internal(vector('list', 3)) "), equalTo( list(NULL, NULL, NULL)));
     assertThat( eval(" .Internal(vector('numeric', 2)) "), equalTo( c(0, 0)));
     assertThat( eval(" .Internal(vector('character', 3)) "), equalTo( c("","","")) );
-    assertThat( eval(" .Internal(vector('logical', 2)) "), equalTo( c(Logical.FALSE, Logical.FALSE)) );
+    assertThat( eval(" .Internal(vector('logical', 2)) "), equalTo( c(FALSE, FALSE)) );
   }
 
   @Test

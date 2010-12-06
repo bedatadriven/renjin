@@ -115,7 +115,7 @@ public class TypesTest extends EvalTestCase {
 
   @Test
   public void environmentOfRandomExp() {
-    assertThat( eval(".Internal(environment(1))"), is((SEXP)NullExp.INSTANCE));
+    assertThat( eval(".Internal(environment(1))"), is((SEXP) Null.INSTANCE));
   }
 
   @Test

@@ -36,7 +36,7 @@ import static org.junit.Assert.assertThat;
 public abstract class EvalTestCase {
 
   protected Environment global;
-  public static final SEXP NULL = NullExp.INSTANCE;
+  public static final SEXP NULL = Null.INSTANCE;
   public static final SEXP CHARACTER_0 = new StringVector();
   public static final SEXP DOUBLE_0 = new DoubleVector();
 

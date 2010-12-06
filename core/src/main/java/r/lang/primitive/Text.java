@@ -34,7 +34,7 @@ public class Text {
 
   private Text() {}
 
-  public static SEXP paste(ListVector args, String seperator, NullExp collapse) {
+  public static SEXP paste(ListVector args, String seperator, Null collapse) {
     List<StringVector> strings = TypeConverter.convertElements(args, StringVector.class);
 
     int resultLength = max(transform(strings, CollectionUtils.length()));

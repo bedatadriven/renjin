@@ -39,15 +39,15 @@ public class Combine {
   public static SEXP combine(@ArgumentList PairList argList) {
 
     if(argList.length() == 0) {
-      return NullExp.INSTANCE;
+      return Null.INSTANCE;
     }
 
-    Inspector inspector = new Inspector((PairListExp) argList);
+    Inspector inspector = new Inspector((PairList.Node) argList);
 
     Class<? extends SEXP> lowestCommonType = inspector.getLowestCommonType();
     if(AtomicVector.class.isAssignableFrom(lowestCommonType)) {
       if(inspector.getTotalLength() == 0) {
-        return NullExp.INSTANCE;
+        return Null.INSTANCE;
       } else {
         return combineToAtomic(inspector);
       }
@@ -99,7 +99,7 @@ public class Combine {
      * Visits each element of {@code ListExp}
      */
     Inspector(PairList listExp) {
-      for(SEXP exp : listExp) {
+      for(SEXP exp : listExp.values()) {
         exp.accept(this);
       }
     }
@@ -122,7 +122,7 @@ public class Combine {
     }
 
     @Override
-    public void visit(NullExp nilExp) {
+    public void visit(Null nilExp) {
       // ignore
     }
 

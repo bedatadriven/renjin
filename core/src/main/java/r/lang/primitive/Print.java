@@ -111,7 +111,7 @@ public class Print {
     }
 
     @Override
-    public void visit(NullExp nilExp) {
+    public void visit(Null nilExp) {
       out.append("NULL\n");
     }
 

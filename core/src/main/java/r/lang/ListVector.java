@@ -41,13 +41,13 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
   private final ArrayList<SEXP> values;
 
   public ListVector(Iterable<SEXP> values,  PairList attributes) {
-    super(NullExp.INSTANCE, attributes);
+    super(Null.INSTANCE, attributes);
     this.values = new ArrayList<SEXP>();
     Iterables.addAll(this.values, values);
   }
 
   public ListVector(Iterable<SEXP> values) {
-    this(values, NullExp.INSTANCE);
+    this(values, Null.INSTANCE);
   }
 
   public ListVector(SEXP[] values, SEXP tag, PairList attributes) {
@@ -57,11 +57,11 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
   }
 
   public ListVector(SEXP[] values, PairList attributes) {
-    this(values, NullExp.INSTANCE, attributes);
+    this(values, Null.INSTANCE, attributes);
   }
 
   public ListVector(SEXP... values) {
-    this(values, NullExp.INSTANCE);
+    this(values, Null.INSTANCE);
   }
 
 
@@ -114,7 +114,7 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
   public SEXP get(String name) {
     int index = indexOfName(name);
     if(index == -1) {
-      return NullExp.INSTANCE;
+      return Null.INSTANCE;
     }
     return values.get(index);
   }
@@ -177,7 +177,7 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
   }
 
   public static class Builder implements Vector.Builder<ListVector, Vector> {
-    private PairList attributes = NullExp.INSTANCE;
+    private PairList attributes = Null.INSTANCE;
     private boolean haveNames = false;
     private List<SEXP> values = Lists.newArrayList();
     private List<String> names = Lists.newArrayList();
@@ -246,7 +246,7 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
 
     public Builder set(int index, SEXP value) {
       while(values.size() <= index) {
-        add(NullExp.INSTANCE);
+        add(Null.INSTANCE);
       }
       values.set(index, value);
       return this;
@@ -254,7 +254,7 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
 
     @Override
     public Builder setNA(int index) {
-      return set(index, NullExp.INSTANCE);
+      return set(index, Null.INSTANCE);
     }
 
     @Override
@@ -273,7 +273,7 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
 
     public ListVector build() {
       if(haveNames) {
-        return new ListVector(values,  PairListExp.buildList(SymbolExp.NAMES, new StringVector(names)).build());
+        return new ListVector(values,  PairList.Node.buildList(SymbolExp.NAMES, new StringVector(names)).build());
       } else {
         return new ListVector(values);
       }

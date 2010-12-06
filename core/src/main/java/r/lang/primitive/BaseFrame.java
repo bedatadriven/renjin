@@ -66,7 +66,7 @@ public class BaseFrame implements Environment.Frame {
     if(value != null) {
       return value;
     }
-    return NullExp.INSTANCE;
+    return Null.INSTANCE;
   }
 
   @Override

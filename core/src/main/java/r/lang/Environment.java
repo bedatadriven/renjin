@@ -52,7 +52,7 @@ import java.util.*;
  *  use of {@code NULL} as an environment is defunct.
  *
  */
-public class Environment extends AbstractSEXP implements RecursiveExp {
+public class Environment extends AbstractSEXP implements Recursive {
 
   public static final int TYPE_CODE = 4;
   public static final String TYPE_NAME = "environment";
@@ -102,7 +102,7 @@ public class Environment extends AbstractSEXP implements RecursiveExp {
   }
 
   public void setVariables(PairList pairList) {
-    for(PairListExp node : pairList.listNodes()) {
+    for(PairList.Node node : pairList.nodes()) {
       if(!node.hasTag()) {
         throw new IllegalArgumentException("All elements of pairList must be tagged");
       }

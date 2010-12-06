@@ -72,7 +72,7 @@ public class Connections {
 
       // create a new call, replacing the first argument with the
       // provided arg
-      PairListExp.Builder newArgs = PairListExp.newBuilder();
+      PairList.Node.Builder newArgs = PairList.Node.newBuilder();
       newArgs.add(value);
       for(int j=1;j<expr.getArguments().length();++j) {
         newArgs.add(expr.<SEXP>getArgument(j));

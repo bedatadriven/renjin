@@ -30,7 +30,6 @@ public class SymbolExp extends AbstractSEXP {
   public static final String  TYPE_NAME = "symbol";
   public static final String IMPLICIT_CLASS = "name";
 
-
   public static final SymbolExp UNBOUND_VALUE = createUnbound();
   public static final SymbolExp MISSING_ARG = new SymbolExp();
   public static final SymbolExp NAMES = new SymbolExp("names");

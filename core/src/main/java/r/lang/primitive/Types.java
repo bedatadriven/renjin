@@ -40,7 +40,7 @@ import static r.lang.CollectionUtils.modePredicate;
 public class Types {
 
   public static boolean isNull(SEXP exp) {
-    return exp == NullExp.INSTANCE;
+    return exp == Null.INSTANCE;
   }
 
   public static boolean isLogical(SEXP exp) {
@@ -81,7 +81,7 @@ public class Types {
 
   public static boolean isList(SEXP exp) {
     return exp instanceof ListVector ||
-           exp.getClass() == PairListExp.class;
+           exp.getClass() == PairList.Node.class;
   }
 
   public static boolean isPairList(SEXP exp) {
@@ -93,7 +93,7 @@ public class Types {
   }
 
   public static boolean isRecursive(SEXP exp) {
-    return exp instanceof RecursiveExp;
+    return exp instanceof Recursive;
   }
 
   public static boolean isNumeric(SEXP exp) {
@@ -105,7 +105,7 @@ public class Types {
   @Primitive("is.vector")
   public static boolean isVector(SEXP exp, String mode) {
     // first check for any attribute besides names
-    for(PairListExp node : exp.getAttributes().listNodes()) {
+    for(PairList.Node node : exp.getAttributes().nodes()) {
       if(!node.getTag().equals(SymbolExp.NAMES)) {
         return false;
       }
@@ -133,7 +133,7 @@ public class Types {
 
   @Primitive("is.object")
   public static boolean isObject(SEXP exp) {
-    return exp.getAttribute(SymbolExp.CLASS) != NullExp.INSTANCE;   
+    return exp.getAttribute(SymbolExp.CLASS) != Null.INSTANCE;
   }
 
   public static boolean isCall(SEXP exp) {
@@ -267,7 +267,7 @@ public class Types {
     int index=0;
     boolean haveNames = false;
 
-    for(PairListExp arg : arguments.listNodes()) {
+    for(PairList.Node arg : arguments.nodes()) {
       values[index] = arg.getValue();
       if(arg.hasTag()) {
         names[index] = arg.getTag().getPrintName();
@@ -279,7 +279,7 @@ public class Types {
     }
 
     if(haveNames) {
-      return new ListVector(values, PairListExp.buildList(SymbolExp.NAMES, new StringVector(names)).build());
+      return new ListVector(values, PairList.Node.buildList(SymbolExp.NAMES, new StringVector(names)).build());
     } else {
       return new ListVector(values);
     }
@@ -290,13 +290,13 @@ public class Types {
   }
 
   public static SEXP environment(@Current Environment rho, SEXP exp) {
-    if(exp == NullExp.INSTANCE) {
+    if(exp == Null.INSTANCE) {
       // if the user passes null, we return the current exp
       return rho;
     } else if(exp instanceof Closure)  {
       return ((Closure) exp).getEnclosingEnvironment();
     } else {
-      return NullExp.INSTANCE;
+      return Null.INSTANCE;
     }
   }
 
@@ -354,13 +354,13 @@ public class Types {
 
     } else if("list".equals(mode)) {
       SEXP values[] = new SEXP[length];
-      Arrays.fill(values, NullExp.INSTANCE);
+      Arrays.fill(values, Null.INSTANCE);
       return new ListVector(values);
 
     } else if("pairlist".equals(mode)) {
       SEXP values[] = new SEXP[length];
-      Arrays.fill(values, NullExp.INSTANCE);
-      return PairListExp.fromArray(values);
+      Arrays.fill(values, Null.INSTANCE);
+      return PairList.Node.fromArray(values);
       
     } else {
       throw new EvalException(String.format("vector: cannot make a vector of mode '%s'.", mode));
@@ -400,7 +400,7 @@ public class Types {
 
   public static SEXP oldClass(SEXP exp) {
     if(!exp.hasAttributes()) {
-      return NullExp.INSTANCE;
+      return Null.INSTANCE;
     }
     return exp.getAttribute(SymbolExp.CLASS);
   }

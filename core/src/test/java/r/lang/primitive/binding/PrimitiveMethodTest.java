@@ -23,7 +23,7 @@ package r.lang.primitive.binding;
 
 import org.junit.Test;
 import r.lang.AtomicVector;
-import r.lang.NullExp;
+import r.lang.Null;
 import r.lang.exception.EvalException;
 
 import static java.util.Arrays.asList;
@@ -34,7 +34,7 @@ public class PrimitiveMethodTest {
   @Test(expected = EvalException.class)
   public void validation() throws NoSuchMethodException {
     PrimitiveMethod m0 = new PrimitiveMethod(getClass().getMethod("doStuff", Boolean.TYPE, Boolean.TYPE, Boolean.TYPE));
-    PrimitiveMethod m1 = new PrimitiveMethod(getClass().getMethod("doStuff", NullExp.class));
+    PrimitiveMethod m1 = new PrimitiveMethod(getClass().getMethod("doStuff", Null.class));
     PrimitiveMethod m2 = new PrimitiveMethod(getClass().getMethod("doStuff", Integer.TYPE));
     PrimitiveMethod m3 = new PrimitiveMethod(getClass().getMethod("doStuff", AtomicVector.class));
     PrimitiveMethod m4 = new PrimitiveMethod(getClass().getMethod("doStuff"));
@@ -50,7 +50,7 @@ public class PrimitiveMethodTest {
 
   }
 
-  public static void doStuff(NullExp x) {
+  public static void doStuff(Null x) {
 
   }
 

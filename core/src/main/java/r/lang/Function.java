@@ -23,11 +23,11 @@ package r.lang;
 
 /**
  * Superinterface for the three function-like {@code SEXP}s:
- * {@code ClosureExp}, {@code SpecialExp}, and {@code PrimitiveExp}.
+ * {@code Closure}, {@code SpecialFunction}, and {@code PrimitiveFunction}.
  *
  * 
  */
-public interface Function extends SEXP, RecursiveExp {
+public interface Function extends SEXP, Recursive {
 
   EvalResult apply(LangExp call, PairList args, Environment rho);
 }

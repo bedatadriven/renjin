@@ -44,7 +44,7 @@ public class AtomicAccessors {
       return new DoubleExpAccessor((DoubleVector) exp);
     } else if(exp instanceof StringVector) {
       return new StringExpAccessor((StringVector)exp);
-    } else if(exp instanceof NullExp) {
+    } else if(exp instanceof Null) {
       return NULL_ACCESSOR;
     }
     return null;
@@ -96,7 +96,7 @@ public class AtomicAccessors {
         return new StringExpAccessor((StringVector) exp);
       }
 
-    } else if(exp instanceof NullExp) {
+    } else if(exp instanceof Null) {
       return NULL_ACCESSOR;
     }
 

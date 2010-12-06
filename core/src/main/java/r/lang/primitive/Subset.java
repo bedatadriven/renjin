@@ -35,7 +35,7 @@ public class Subset {
     SEXP match = null;
     int matchCount = 0;
 
-    for(PairListExp node : list.listNodes()) {
+    for(PairList.Node node : list.nodes()) {
       if(node.hasTag()) {
         if(node.getTag().getPrintName().startsWith(symbol.getPrintName())) {
           match = node.getValue();
@@ -43,7 +43,7 @@ public class Subset {
         }
       }
     }
-    return matchCount == 1 ? match : NullExp.INSTANCE;
+    return matchCount == 1 ? match : Null.INSTANCE;
   }
 
   @Primitive("$")
@@ -57,7 +57,7 @@ public class Subset {
         matchCount++;
       }
     }
-    return matchCount == 1 ? match : NullExp.INSTANCE;
+    return matchCount == 1 ? match : Null.INSTANCE;
   }
 
   @Primitive("$<-")

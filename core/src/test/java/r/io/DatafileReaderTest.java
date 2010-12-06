@@ -48,9 +48,9 @@ public class DatafileReaderTest extends EvalTestCase {
     DatafileReader reader = new DatafileReader(global.getGlobalEnvironment(), gzipIn);
 
     SEXP exp = reader.readFile();
-    assertThat(exp, instanceOf(PairListExp.class));
+    assertThat(exp, instanceOf(PairList.Node.class));
 
-    PairListExp pairList = (PairListExp) exp;
+    PairList.Node pairList = (PairList.Node) exp;
     assertThat(pairList.length(), equalTo(1));
     assertThat(pairList.getValue(), equalTo( c(1,2,3,4) ));
   }
@@ -62,9 +62,9 @@ public class DatafileReaderTest extends EvalTestCase {
     DatafileReader reader = new DatafileReader(global.getGlobalEnvironment(), gzipIn);
 
     SEXP exp = reader.readFile();
-    assertThat(exp, instanceOf(PairListExp.class));
+    assertThat(exp, instanceOf(PairList.Node.class));
 
-    PairListExp pairList = (PairListExp) exp;
+    PairList.Node pairList = (PairList.Node) exp;
     assertThat(pairList.findByTag(symbol("a")), equalTo( eval("1:99") ));
     assertThat(pairList.findByTag(symbol("b")), equalTo( eval("sqrt(1:25) ") ));
     assertThat(pairList.findByTag(symbol("c")), equalTo( c(Logical.NA )));

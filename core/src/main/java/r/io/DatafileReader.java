@@ -196,7 +196,7 @@ public class DatafileReader {
 
     switch(flags.type) {
       case NILVALUE_SXP:
-        return NullExp.INSTANCE;
+        return Null.INSTANCE;
       case EMPTYENV_SXP:
         return Environment.EMPTY;
       case BASEENV_SXP:
@@ -303,15 +303,15 @@ public class DatafileReader {
     SEXP value = readExp();
     PairList nextNode = (PairList) readExp();
 
-    return new PairListExp(tag, value, attributes, nextNode);
+    return new PairList.Node(tag, value, attributes, nextNode);
   }
 
   private SEXP readTag(Flags flags) throws IOException {
-    return flags.hasTag ? readExp() : NullExp.INSTANCE;
+    return flags.hasTag ? readExp() : Null.INSTANCE;
   }
 
   private PairList readAttributes(Flags flags) throws IOException {
-    return flags.hasAttributes ? (PairList)readExp() : NullExp.INSTANCE;
+    return flags.hasAttributes ? (PairList)readExp() : Null.INSTANCE;
   }
 
   private SEXP readPackage() throws IOException {
@@ -356,7 +356,7 @@ public class DatafileReader {
     SEXP hashtab = readExp(); // unused
     SEXP attributes = readExp();
 
-    env.setParent( parent == NullExp.INSTANCE ? Environment.EMPTY : (Environment)parent );
+    env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
     env.setVariables( (PairList) frame );
 
     return env;

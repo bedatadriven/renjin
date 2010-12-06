@@ -33,7 +33,7 @@ public class Match {
   public static int[] match(AtomicVector searchExp, AtomicVector tableExp, int noMatch, AtomicVector incomparablesExp) {
     //For historical reasons, FALSE is equivalent to NULL.
     if(incomparablesExp.equals( LogicalVector.FALSE ) ) {
-      incomparablesExp = NullExp.INSTANCE;
+      incomparablesExp = Null.INSTANCE;
     }
 
     // I'm not entirely comfortable with using AtomicAccessors inside primitive definitions as

@@ -23,13 +23,13 @@ package r.lang.primitive;
 
 import r.lang.Environment;
 import r.lang.LangExp;
-import r.lang.NullExp;
+import r.lang.Null;
 import r.lang.SEXP;
 
 public class DateTime {
 
   public static SEXP strptime(Environment rho, LangExp call) {
     // TODO
-    return NullExp.INSTANCE;
+    return Null.INSTANCE;
   }
 }

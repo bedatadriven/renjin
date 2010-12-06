@@ -52,7 +52,7 @@ public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterabl
   }
 
   public LogicalVector(int... values) {
-    this(values, NullExp.INSTANCE);
+    this(values, Null.INSTANCE);
   }
 
   public LogicalVector(Logical... values) {

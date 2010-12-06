@@ -40,7 +40,7 @@ import java.util.Iterator;
  * parsed but unevaluated R statements.
  *
  */
-public class ExpressionVector extends AbstractSEXP implements RecursiveExp, Vector, Iterable<SEXP> {
+public class ExpressionVector extends AbstractSEXP implements Recursive, Vector, Iterable<SEXP> {
   public static final String TYPE_NAME = "expression";
   public static final int TYPE_CODE = 20;
 
@@ -63,7 +63,7 @@ public class ExpressionVector extends AbstractSEXP implements RecursiveExp, Vect
   }
 
   public ExpressionVector(Iterable<? extends SEXP> expressions){
-    this(expressions, NullExp.INSTANCE);
+    this(expressions, Null.INSTANCE);
   }
 
   @Override

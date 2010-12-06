@@ -31,7 +31,7 @@ import java.util.Collections;
 abstract class AbstractSEXP implements SEXP {
 
   protected final PairList attributes;
-  private SEXP tag = NullExp.INSTANCE;
+  private SEXP tag = Null.INSTANCE;
 
   protected AbstractSEXP(SEXP tag, PairList attributes) {
     this.tag = tag;
@@ -43,7 +43,7 @@ abstract class AbstractSEXP implements SEXP {
   }
 
   protected AbstractSEXP() {
-    this(NullExp.INSTANCE, NullExp.INSTANCE);
+    this(Null.INSTANCE, Null.INSTANCE);
   }
 
   @Override
@@ -78,7 +78,7 @@ abstract class AbstractSEXP implements SEXP {
 
   @Override
   public final boolean hasTag() {
-    return tag != NullExp.INSTANCE;
+    return tag != Null.INSTANCE;
   }
 
   @Override
@@ -214,7 +214,7 @@ abstract class AbstractSEXP implements SEXP {
     if(hasAttributes()) {
       return attributes.findByTag(name);
     }
-    return NullExp.INSTANCE;
+    return Null.INSTANCE;
   }
 
   @Override
@@ -249,8 +249,8 @@ abstract class AbstractSEXP implements SEXP {
   }
 
   private PairList replaceAttribute(SymbolExp attributeName, SEXP newValue) {
-    PairListExp.Builder builder = PairListExp.buildList(attributeName, newValue);
-    for(PairListExp node : attributes.listNodes()) {
+    PairList.Node.Builder builder = PairList.Node.buildList(attributeName, newValue);
+    for(PairList.Node node : attributes.nodes()) {
       if(!node.getTag().equals(attributeName)) {
         builder.add(node.getTag(), node.getValue());
       }

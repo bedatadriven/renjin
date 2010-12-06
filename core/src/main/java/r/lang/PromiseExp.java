@@ -30,7 +30,7 @@ package r.lang;
  * referenced.
  *
  */
-public class PromiseExp extends AbstractSEXP implements RecursiveExp {
+public class PromiseExp extends AbstractSEXP implements Recursive {
 
   public static final int TYPE_CODE = 5;
   public static final String TYPE_NAME = "promise";

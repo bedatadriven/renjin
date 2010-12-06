@@ -77,10 +77,10 @@ public class Parse {
     }
 
     @Override
-    public void visit(PairListExp listExp) {
+    public void visit(PairList.Node listExp) {
       deparsed.append("list(");
       boolean needsComma = false;
-      for(SEXP sexp : listExp) {
+      for(SEXP sexp : listExp.values()) {
         if(needsComma) {
           deparsed.append(", ");
         } else {
@@ -92,7 +92,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(NullExp nilExp) {
+    public void visit(Null nilExp) {
       deparsed.append("NULL");
     }
 

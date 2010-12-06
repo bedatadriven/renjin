@@ -21,19 +21,16 @@
 
 package r.lang;
 
-import com.google.common.collect.Iterators;
-
 import java.util.Collections;
-import java.util.Iterator;
 
-public final class NullExp extends AbstractSEXP implements AtomicVector, PairList {
+public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
   public static final int TYPE_CODE = 0;
   public static final String TYPE_NAME = "NULL";
 
-  public static final NullExp INSTANCE = new NullExp();
+  public static final Null INSTANCE = new Null();
 
-  private NullExp() {
+  private Null() {
 
   }
 
@@ -79,13 +76,18 @@ public final class NullExp extends AbstractSEXP implements AtomicVector, PairLis
   }
 
   @Override
+  public Iterable<SEXP> values() {
+    return Collections.emptySet();
+  }
+
+  @Override
   public SEXP getElementAsSEXP(int index) {
     throw new ArrayIndexOutOfBoundsException(index);
   }
 
   @Override
-  public Builder newBuilder(int initialSize) {
-    return null;
+  public Vector.Builder newBuilder(int initialSize) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -94,22 +96,18 @@ public final class NullExp extends AbstractSEXP implements AtomicVector, PairLis
   }
 
   @Override
-  public Builder newCopyBuilder() {
-    return null;
+  public Vector.Builder newCopyBuilder() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public Iterable<PairListExp> listNodes() {
+  public Iterable<Node> nodes() {
     return Collections.emptySet();
-  }
-
-  @Override
-  public Iterator<SEXP> iterator() {
-    return Iterators.emptyIterator();
   }
 
   @Override
   public boolean isElementNA(int index) {
     throw new ArrayIndexOutOfBoundsException(index);
   }
+
 }

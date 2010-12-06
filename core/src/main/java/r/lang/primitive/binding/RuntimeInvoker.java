@@ -94,11 +94,11 @@ public class RuntimeInvoker {
 
     // make a list of the provided arguments
     List<ProvidedArgument> provided = Lists.newArrayList();
-    for(PairListExp arg : call.getArguments().listNodes()) {
+    for(PairList.Node arg : call.getArguments().nodes()) {
       if(SymbolExp.ELLIPSES.equals(arg.getValue())) {
         // the values of the '...' are just merged into the argument list
         DotExp ellipses = (DotExp) arg.getValue().evalToExp(rho);
-        for(PairListExp dotArg : ellipses.getPromises().listNodes()) {
+        for(PairList.Node dotArg : ellipses.getPromises().nodes()) {
           provided.add(new ProvidedArgument(rho, dotArg));
         }
       } else {
@@ -170,7 +170,7 @@ public class RuntimeInvoker {
     }
   }
   private PairList toEvaluatedPairList(List<ProvidedArgument> arguments) {
-    PairListExp.Builder builder = PairListExp.newBuilder();
+    PairList.Node.Builder builder = PairList.Node.newBuilder();
     for(ProvidedArgument arg : arguments) {
       builder.add(arg.getTag(), arg.evaluated());
     }
@@ -363,7 +363,7 @@ public class RuntimeInvoker {
     private SEXP evaluated;
     private SEXP tag;
 
-    public ProvidedArgument(Environment rho, PairListExp arg) {
+    public ProvidedArgument(Environment rho, PairList.Node arg) {
       this.rho = rho;
       this.provided = arg.getValue();
       this.tag = arg.getRawTag();
@@ -546,7 +546,7 @@ public class RuntimeInvoker {
   private class NullToObject implements ArgConverter {
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
-      return source == NullExp.INSTANCE && !formal.getClazz().isPrimitive();
+      return source == Null.INSTANCE && !formal.getClazz().isPrimitive();
     }
 
     @Override

@@ -862,7 +862,7 @@ an ANSI digit or not */
   }
 
   private SEXP mkComplex(String s) {
-    SEXP t = NullExp.INSTANCE;
+    SEXP t = Null.INSTANCE;
     double f = ParseUtil.parseDouble(s);
 
     if(parseOptions.isGenerateCode()) {

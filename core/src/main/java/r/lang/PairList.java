@@ -21,19 +21,380 @@
 
 package r.lang;
 
-/**
- * Marker interface that restricts the type of a parameter or member to
- * either a {@code PairList} (one or more elements) or {@code NullExp} (empty list).
- *
- * This aligns to the primitive function "is.pairlist"
- */
-public interface PairList extends Iterable<SEXP> {
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.UnmodifiableIterator;
 
-  int length();
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+
+/**
+ * Pairlists (LISTSXP, the name going back to the origins of R as a Scheme-like language) are
+ *  rarely seen at R level, but are for example used for argument lists.
+ *
+ */
+public interface PairList extends SEXP {
+  public int TYPE_CODE = 2;
+  public String TYPE_NAME = "pairlist";
 
   <S extends SEXP> S get(int i);
-  Iterable<PairListExp> listNodes();
+  Iterable<Node> nodes();
+  Iterable<SEXP> values();
 
-  void accept(SexpVisitor visitor);
   SEXP findByTag(SymbolExp symbol);
+
+  public class Node extends AbstractSEXP implements Recursive, PairList {
+
+
+    /**
+     * The actual data for this node, .e.g {@code CAR} in
+     * the C implementation
+     */
+    protected SEXP value = Null.INSTANCE;
+
+    /**
+     * The next node in the linked list, i.e. {@code CDR} in the
+     * C implementation.
+     * <p/>
+     * Contrary to the C impl, {@code nextNode} is either a subclass
+     * of {@code ListExp} or {@code null}
+     */
+    protected Node nextNode = null;
+
+    public Node(SEXP tag, SEXP value, PairList attributes, PairList nextNode) {
+      super(tag, attributes);
+      this.value = value;
+      if(nextNode instanceof Node) {
+        this.nextNode = (Node) nextNode;
+      }
+    }
+
+    public Node(SEXP tag, SEXP value, PairList nextNode) {
+      super(tag, Null.INSTANCE);
+      this.value = value;
+      if(nextNode instanceof Node) {
+       this.nextNode = (Node) nextNode;
+      }
+    }
+
+    public Node(SEXP value, PairList nextNode) {
+      this(Null.INSTANCE, value, nextNode);
+    }
+
+    @Override
+    public int getTypeCode() {
+      return TYPE_CODE;
+    }
+
+    @Override
+    public String getTypeName() {
+      return TYPE_NAME;
+    }
+
+    /**
+     * @return the next node in this linked list
+     * @throws IllegalStateException if there is no next node
+     */
+    public Node getNextNode() {
+      if (nextNode == null) {
+        throw new IllegalStateException("this list has no nextNode. Call hasNextNode() to check first.");
+      }
+      return nextNode;
+    }
+
+    public boolean hasNextNode() {
+      return nextNode != null;
+    }
+
+    public static Node fromIterable(Iterable<? extends SEXP> values) {
+      Iterator<? extends SEXP> it = values.iterator();
+
+      if (!it.hasNext()) {
+        throw new IllegalArgumentException("Cannot create a zero-length list");
+      }
+      Node head = new Node(it.next(), null);
+      Node node = head;
+      while (it.hasNext()) {
+        node.nextNode = new Node(it.next(), null);
+        node = (Node) node.nextNode;
+      }
+      return head;
+    }
+
+    public static Node fromArray(SEXP... values) {
+      return fromIterable(Arrays.asList(values));
+    }
+
+    public final SEXP getValue() {
+      return value;
+    }
+
+    public final void setValue(SEXP value) {
+      this.value = value;
+    }
+
+    public void setNextNode(Node nextNode) {
+      this.nextNode = nextNode;
+    }
+
+    public Iterator<SEXP> valueIterator() {
+      return new ValueIterator(this);
+    }
+
+    public Iterable<SEXP> values() {
+      return new Iterable<SEXP>() {
+        @Override
+        public Iterator<SEXP> iterator() {
+          return new ValueIterator(Node.this);
+        }
+      };
+    }
+
+
+    @Override
+    public final int length() {
+      return Iterators.size(valueIterator());
+    }
+
+    public <X extends SEXP> X get(int i) {
+      return (X) Iterators.get(valueIterator(), i);
+    }
+
+    public Node getNode(int i) {
+      return Iterators.get(nodeIterator(), i);
+    }
+
+    /**
+     * @return a shallow clone of the ListExp from this point on
+     */
+    @Override
+    public Node clone() {
+      Builder builder = new Builder();
+      for(Node node : nodes()) {
+        builder.add(node.getRawTag(), node.getValue());
+      }
+      return builder.buildNode();
+    }
+
+    public String toString() {
+      if (value == this) {
+        // so-called "stretchy lists" used by the parser
+        return "[ CAR=this, CDR=" + nextNode + "]";
+      } else {
+        StringBuilder sb = new StringBuilder("pairlist(");
+        appendValuesTo(sb);
+        sb.append(")");
+        return sb.toString();
+      }
+    }
+
+    public void appendValuesTo(StringBuilder sb) {
+      for (Node node : nodes()) {
+        if (node != Node.this) {
+          sb.append(", ");
+        }
+        if (node.hasTag()) {
+          sb.append(node.getRawTag()).append("=");
+        }
+        sb.append(node.getValue());
+      }
+    }
+
+    /**
+     * Iterator that iterators over the {@code ListExp}'s values
+     */
+    private static class ValueIterator extends UnmodifiableIterator<SEXP> {
+
+      private Node next;
+
+      private ValueIterator(Node next) {
+        this.next = next;
+      }
+
+      @Override
+      public boolean hasNext() {
+        return next != null;
+      }
+
+      @Override
+      public SEXP next() {
+        SEXP value = next.value;
+        next = next.nextNode;
+        return value;
+      }
+    }
+
+    private static class NodeIterator extends UnmodifiableIterator<Node> {
+      private Node next;
+
+      private NodeIterator(Node next) {
+        this.next = next;
+      }
+
+      @Override
+      public boolean hasNext() {
+        return next != null;
+      }
+
+      @Override
+      public Node next() {
+        Node value = next;
+        next = next.nextNode;
+        return value;
+      }
+    }
+
+    /**
+     * Creates an {@code Iterable} of the succession of {@code ListExp}s.
+     *
+     * For a {@code ListExp} {@code L} with three nodes, the sequence will include
+     * {@code L}, {@code L.nextNode}, and {@code L.nextNode.nextNode}.
+     *
+     *
+     * @return an {@code Iterable} of the succession of {@code ListExp}s.
+     */
+    public Iterable<Node> nodes() {
+      return new Iterable<Node>() {
+        @Override
+        public Iterator<Node> iterator() {
+          return nodeIterator();
+        }
+      };
+    }
+
+    /**
+     * Returns an iterator over the individual ListExp nodes in this list,
+     * or an empty iterator if exp is the NilExp.
+
+     * @param exp  A ListExp or null
+     * @throws IllegalArgumentException if the exp is not of type ListExp or NillExp
+     */
+    public static Iterable<Node> listNodes(PairList exp) {
+      if(exp instanceof Node) {
+        return ((Node) exp).nodes();
+      } else {
+        return Collections.emptySet();
+      }
+    }
+
+    private Iterator<Node> nodeIterator() {
+      return new NodeIterator(this);
+    }
+
+    public static Builder newBuilder() {
+      return new Builder();
+    }
+
+    public static Builder buildList(SymbolExp tag, SEXP value) {
+      return new Builder().add(tag, value);
+    }
+
+    @Override
+    public EvalResult evaluate(Environment rho) {
+      return new EvalResult(this);
+    }
+
+    @Override
+    public void accept(SexpVisitor visitor) {
+      visitor.visit(this);
+    }
+
+    @Override
+    public SEXP findByTag(SymbolExp symbol) {
+      for(Node node : nodes()) {
+        if(node.hasTag() && node.getTag().equals(symbol)) {
+          return node.getValue();
+        }
+      }
+      return Null.INSTANCE;
+    }
+
+  }
+
+  public class Builder {
+    private Node head = null;
+    private Node tail;
+
+    public Builder() {
+    }
+
+    public Builder add(SEXP tag, SEXP s) {
+      if (head == null) {
+        head = new Node(tag, s, null);
+        tail = head;
+      } else {
+        Node next = new Node(tag, s, null);
+        tail.nextNode = next;
+        tail = next;
+      }
+      return this;
+    }
+
+    public Builder addAll(PairList list) {
+      for(Node node : list.nodes()) {
+        add(node.getRawTag(), node.getValue());
+      }
+      return this;
+    }
+
+    public Builder add(SEXP s) {
+      return add(Null.INSTANCE, s);
+    }
+
+
+    public PairList build() {
+      if(head == null) {
+        return Null.INSTANCE;
+      } else {
+        return head;
+      }
+    }
+
+    Node buildNode() {
+      if(head == null) {
+        throw new IllegalStateException("no SEXPs have been added");
+      }
+      return head;
+    }
+  }
+
+  abstract class Predicates {
+
+    public static Predicate<Node> hasTag() {
+      return new Predicate<Node>() {
+        @Override
+        public boolean apply(Node listExp) {
+          return listExp.hasTag();
+        }
+      };
+    }
+
+    public static Predicate<Node> matches(final String name) {
+      return new Predicate<Node>() {
+        @Override
+        public boolean apply(Node input) {
+          if(input.getRawTag() instanceof SymbolExp) {
+            return ((SymbolExp) input.getRawTag()).getPrintName().equals(name);
+          } else {
+            return false;
+          }
+        }
+      };
+    }
+
+    public static Predicate<Node> matches(SEXP tag) {
+      assert tag instanceof SymbolExp;
+      return matches( ((SymbolExp) tag).getPrintName() );
+    }
+
+    public static Predicate<Node> startsWith(final SymbolExp name) {
+      return new Predicate<Node>() {
+        @Override
+        public boolean apply(Node input) {
+          return input.hasTag() && input.getTag().getPrintName().startsWith(name.getPrintName());
+        }
+      };
+    }
+  }
 }

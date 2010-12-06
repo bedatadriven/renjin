@@ -31,7 +31,7 @@ public class EvalResult {
   private final SEXP expression;
   private final boolean visible;
 
-  public static EvalResult NON_PRINTING_NULL = new EvalResult(NullExp.INSTANCE, false);
+  public static EvalResult NON_PRINTING_NULL = new EvalResult(Null.INSTANCE, false);
 
   public EvalResult(SEXP expression) {
     this.expression = expression;

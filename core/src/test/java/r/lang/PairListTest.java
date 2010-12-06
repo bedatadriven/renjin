@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997--2008  The R Development Core Team
+ * Copyright (C) 1997-2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -23,20 +23,17 @@ package r.lang;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
-public class RealNaNTest {
+public class PairListTest {
 
   @Test
-  public void test() {
+  public void lang() {
 
-    assertTrue("isNaN(NaN)", DoubleVector.isNaN(DoubleVector.NaN));
-    assertTrue("isNaN(NA)", DoubleVector.isNaN(DoubleVector.NA));
-    assertTrue("isNA(NA)", DoubleVector.isNA(DoubleVector.NA));
-    assertFalse("isNA(NaN)", DoubleVector.isNA(DoubleVector.NaN));
+    PairList.Node list = PairList.Node.fromArray(new IntVector(1), new IntVector(2), new IntVector(3));
+
+    assertThat(list.length(), equalTo(3));
 
   }
-
-
 }

@@ -99,7 +99,7 @@ public class RParserTest {
 
     assertThat("result length", r.length(), equalTo(4));
 
-    PairListExp formals = r.get(1);
+    PairList.Node formals = r.get(1);
     assertThat(formals.length(), equalTo(2));
     assertThat(formals.getNode(0).getRawTag(), symbolNamed("a"));
     assertThat(formals.getNode(1).getRawTag(), symbolNamed("b"));

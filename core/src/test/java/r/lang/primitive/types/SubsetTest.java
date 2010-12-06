@@ -198,10 +198,10 @@ public class SubsetTest extends EvalTestCase {
   @Test
   public void pairListPartial() {
 
-    PairListExp list = PairListExp.newBuilder()
+    PairList list = PairList.Node.newBuilder()
         .add(symbol("alligator"), c(1))
         .add(symbol("aardvark"), c(3))
-        .buildNonEmpty();
+        .build();
 
     SEXP result = Subset.getElementByName(list, new SymbolExp("all"));
     assertThat(result, equalTo((SEXP)c(1)));

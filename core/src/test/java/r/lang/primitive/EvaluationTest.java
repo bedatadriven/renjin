@@ -24,7 +24,7 @@ package r.lang.primitive;
 import org.junit.Test;
 import r.lang.EvalTestCase;
 import r.lang.Logical;
-import r.lang.NullExp;
+import r.lang.Null;
 import r.lang.SEXP;
 import r.lang.exception.FunctionCallException;
 
@@ -77,7 +77,7 @@ public class EvaluationTest extends EvalTestCase {
 
   @Test
   public void emptyBraces() throws IOException {
-    assertThat(eval("{}"), equalTo((SEXP) NullExp.INSTANCE));
+    assertThat(eval("{}"), equalTo((SEXP) Null.INSTANCE));
   }
 
   @Test

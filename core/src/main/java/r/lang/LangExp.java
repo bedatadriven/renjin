@@ -24,7 +24,7 @@ package r.lang;
 /**
  * A specialized {@code ListExp} used for storing 
  */
-public class LangExp extends PairListExp {
+public class LangExp extends PairList.Node {
   public static final int TYPE_CODE = 6;
   public static final String TYPE_NAME = "language";
 
@@ -56,7 +56,7 @@ public class LangExp extends PairListExp {
     return (Function) getFunction().evalToExp(rho);
   }
 
-  public static SEXP fromListExp(PairListExp listExp) {
+  public static SEXP fromListExp(PairList.Node listExp) {
     return new LangExp(listExp.value, listExp.nextNode);
   }
 
@@ -65,7 +65,7 @@ public class LangExp extends PairListExp {
   }
  
   public PairList getArguments() {
-    return nextNode == null ? NullExp.INSTANCE : nextNode;
+    return nextNode == null ? Null.INSTANCE : nextNode;
   }
 
   @Override
@@ -87,7 +87,7 @@ public class LangExp extends PairListExp {
     StringBuilder sb= new StringBuilder();
     sb.append(getFunction()).append("(");
     boolean needsComma=false;
-    for(PairListExp node : getArguments().listNodes()) {
+    for(PairList.Node node : getArguments().nodes()) {
       if(needsComma) {
         sb.append(", ");
       } else {
@@ -104,10 +104,9 @@ public class LangExp extends PairListExp {
 
   public static LangExp newCall(SEXP function, SEXP... arguments) {
     if(arguments.length == 0) {
-      return new LangExp(function, NullExp.INSTANCE);
+      return new LangExp(function, Null.INSTANCE);
     } else {
-      return new LangExp(function, PairListExp.fromArray(arguments));
+      return new LangExp(function, PairList.Node.fromArray(arguments));
     }
   }
-
 }

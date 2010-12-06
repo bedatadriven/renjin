@@ -33,7 +33,7 @@ public class CDefines {
   protected CDefines() {
   }
 
-  public static final NullExp R_NilValue = NullExp.INSTANCE;
+  public static final Null R_NilValue = Null.INSTANCE;
   public static final SymbolExp R_MissingArg = SymbolExp.MISSING_ARG;
   public static final SymbolExp R_UnboundValue = SymbolExp.UNBOUND_VALUE;
 
@@ -83,7 +83,7 @@ public class CDefines {
    * @return the value of this list node
    */
   public static SEXP CAR(SEXP listExp) {
-    PairListExp typedList = (PairListExp) listExp;
+    PairList.Node typedList = (PairList.Node) listExp;
     return typedList.getValue();
   }
 
@@ -94,7 +94,7 @@ public class CDefines {
    * @return the next node in the list, or R_NilValue
    */
   public static SEXP CDR(SEXP listExp) {
-    PairListExp list = (PairListExp)listExp;
+    PairList.Node list = (PairList.Node)listExp;
 
     return list.hasNextNode() ? list.getNextNode() : R_NilValue;
   }
@@ -143,7 +143,7 @@ public class CDefines {
     if (x == NULL || x == R_NilValue)
       error(_("bad value"));
     CHECK_OLD_TO_NEW(x, y);
-    ((PairListExp) x).setValue(y);
+    ((PairList.Node) x).setValue(y);
     return y;
   }
 
@@ -151,7 +151,7 @@ public class CDefines {
     if (x == NULL || x == R_NilValue)
       error(_("bad value"));
     CHECK_OLD_TO_NEW(x, y);
-    ((PairListExp) x).setNextNode((PairListExp) y);
+    ((PairList.Node) x).setNextNode((PairList.Node) y);
     return y;
   }
 
@@ -162,7 +162,7 @@ public class CDefines {
       error(_("bad value"));
     cell = CDR(x);
     CHECK_OLD_TO_NEW(cell, y);
-    ((PairListExp) cell).setNextNode((PairListExp) y);
+    ((PairList.Node) cell).setNextNode((PairList.Node) y);
     return y;
   }
 
@@ -174,7 +174,7 @@ public class CDefines {
       error(_("bad value"));
     cell = CDDR(x);
     CHECK_OLD_TO_NEW(cell, y);
-    ((PairListExp) cell).setValue(y);
+    ((PairList.Node) cell).setValue(y);
     return y;
   }
 
@@ -191,7 +191,7 @@ public class CDefines {
       error(_("bad value"));
     cell = CDDDR(x);
     CHECK_OLD_TO_NEW(cell, y);
-    ((PairListExp) cell).setValue(y);
+    ((PairList.Node) cell).setValue(y);
     return y;
   }
 
@@ -209,7 +209,7 @@ public class CDefines {
       error(_("bad value"));
     cell = CD4R(x);
     CHECK_OLD_TO_NEW(cell, y);
-    ((PairListExp) cell).setValue(y);
+    ((PairList.Node) cell).setValue(y);
     return y;
   }
 
@@ -242,30 +242,30 @@ public class CDefines {
    * @param cdr the next node in the linked list. Either a ListExp or NilExp.INSTANCE
    * @return
    */
-  public static PairListExp CONS(SEXP car, SEXP cdr) {
+  public static PairList.Node CONS(SEXP car, SEXP cdr) {
     Preconditions.checkNotNull(car);
     Preconditions.checkNotNull(cdr);
 
     if (cdr == R_NilValue) {
-      return new PairListExp(car, null);
+      return new PairList.Node(car, null);
     } else {
-      return new PairListExp(car, (PairListExp) cdr);
+      return new PairList.Node(car, (PairList.Node) cdr);
     }
   }
 
-  public static PairListExp list1(SEXP s) {
+  public static PairList.Node list1(SEXP s) {
     return CONS(s, R_NilValue);
   }
 
-  public static PairListExp list2(SEXP s, SEXP t) {
+  public static PairList.Node list2(SEXP s, SEXP t) {
     return CONS(s, list1(t));
   }
 
-  public static PairListExp list3(SEXP s, SEXP t, SEXP u) {
+  public static PairList.Node list3(SEXP s, SEXP t, SEXP u) {
     return CONS(s, list2(t, u));
   }
 
-  public static PairListExp list4(SEXP s, SEXP t, SEXP u, SEXP v) {
+  public static PairList.Node list4(SEXP s, SEXP t, SEXP u, SEXP v) {
     return CONS(s, list3(t, u, v));
   }
 
@@ -275,7 +275,7 @@ public class CDefines {
     if (cdr == R_NilValue) {
       return new LangExp(car, null);
     } else {
-      return new LangExp(car, (PairListExp) cdr);
+      return new LangExp(car, (PairList.Node) cdr);
     }
   }
 
@@ -283,7 +283,7 @@ public class CDefines {
     /** NO OP -- JVM is handling memory alloc **/
   }
 
-  public static PairListExp lang1(SEXP s) {
+  public static PairList.Node lang1(SEXP s) {
     return LCONS(s, R_NilValue);
   }
 

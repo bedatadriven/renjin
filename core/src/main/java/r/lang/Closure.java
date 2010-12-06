@@ -64,7 +64,7 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   public Closure(Environment environment, PairList formals, SEXP body) {
-    this(environment, formals, body, NullExp.INSTANCE);
+    this(environment, formals, body, Null.INSTANCE);
   }
 
   @Override
@@ -176,11 +176,11 @@ public class Closure extends AbstractSEXP implements Function {
 
 
 
-    List<PairListExp> unmatchedActuals = Lists.newArrayList();
-    for(PairListExp argNode : actuals.listNodes()) {
+    List<PairList.Node> unmatchedActuals = Lists.newArrayList();
+    for(PairList.Node argNode : actuals.nodes()) {
       if(SymbolExp.ELLIPSES.equals(argNode.getValue())) {
         DotExp dotExp = (DotExp) argNode.getValue().evalToExp(rho);
-        for(PairListExp dotArg : dotExp.getPromises().listNodes()) {
+        for(PairList.Node dotArg : dotExp.getPromises().nodes()) {
           unmatchedActuals.add(dotArg);
         }
       }  else {
@@ -188,17 +188,17 @@ public class Closure extends AbstractSEXP implements Function {
       }
     }
 
-    List<PairListExp> unmatchedFormals = Lists.newArrayList(formals.listNodes());
+    List<PairList.Node> unmatchedFormals = Lists.newArrayList(formals.nodes());
 
     // do exact matching
-    for(ListIterator<PairListExp> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
-      PairListExp formal = formalIt.next();
+    for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
+      PairList.Node formal = formalIt.next();
       if(formal.hasTag()) {
         SymbolExp name = (SymbolExp) formal.getTag();
-        Collection<PairListExp> matches = Collections2.filter(unmatchedActuals, PairListExp.Predicates.matches(name));
+        Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
 
         if(matches.size() == 1) {
-          PairListExp match = first(matches);
+          PairList.Node match = first(matches);
           innerEnv.setVariable(name, new PromiseExp( match.getValue(), rho ));
           formalIt.remove();
           unmatchedActuals.remove(match);
@@ -210,15 +210,15 @@ public class Closure extends AbstractSEXP implements Function {
     }
 
     // do partial matching
-    Collection<PairListExp> remainingNamedFormals = filter(unmatchedFormals, PairListExp.Predicates.hasTag());
-    for(Iterator<PairListExp> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
-      PairListExp actual = actualIt.next();
+    Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
+    for(Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
+      PairList.Node actual = actualIt.next();
       if(actual.hasTag()) {
-        Collection<PairListExp> matches = Collections2.filter(remainingNamedFormals,
-            PairListExp.Predicates.startsWith(actual.getTag()));
+        Collection<PairList.Node> matches = Collections2.filter(remainingNamedFormals,
+            PairList.Predicates.startsWith(actual.getTag()));
 
         if(matches.size() == 1) {
-          PairListExp match = first(matches);
+          PairList.Node match = first(matches);
           innerEnv.setVariable(match.getTag(), new PromiseExp( actual.getValue(), rho ));
           actualIt.remove();
           unmatchedFormals.remove(match);
@@ -232,14 +232,14 @@ public class Closure extends AbstractSEXP implements Function {
 
     // match any unnamed args positionally
 
-    Iterator<PairListExp> formalIt = unmatchedFormals.iterator();
-    PeekingIterator<PairListExp> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
+    Iterator<PairList.Node> formalIt = unmatchedFormals.iterator();
+    PeekingIterator<PairList.Node> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
     while( formalIt.hasNext()) {
-      PairListExp formal = formalIt.next();
+      PairList.Node formal = formalIt.next();
       if(SymbolExp.ELLIPSES.equals(formal.getTag())) {
-        PairListExp.Builder promises = PairListExp.newBuilder();
+        PairList.Node.Builder promises = PairList.Node.newBuilder();
         while(actualIt.hasNext()) {
-          PairListExp actual = actualIt.next();
+          PairList.Node actual = actualIt.next();
           promises.add( actual.getRawTag(),  new PromiseExp( actual.getValue(), rho ) );
         }
         innerEnv.setVariable(formal.getTag(), new DotExp( promises.build() ));
@@ -259,19 +259,19 @@ public class Closure extends AbstractSEXP implements Function {
     }
   }
 
-  private boolean hasNextUnTagged(PeekingIterator<PairListExp> it) {
+  private boolean hasNextUnTagged(PeekingIterator<PairList.Node> it) {
     return it.hasNext() && !it.peek().hasTag();
   }
 
-  private PairListExp nextUnTagged(Iterator<PairListExp> it) {
-    PairListExp arg = it.next() ;
+  private PairList.Node nextUnTagged(Iterator<PairList.Node> it) {
+    PairList.Node arg = it.next() ;
     while( arg.hasTag() ) {
       arg = it.next();
     }
     return arg;
   }
 
-  private String argumentTagList(Collection<PairListExp> matches) {
+  private String argumentTagList(Collection<PairList.Node> matches) {
     return Joiner.on(", ").join(transform(matches, new CollectionUtils.TagName()));
   }
 
@@ -283,8 +283,8 @@ public class Closure extends AbstractSEXP implements Function {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("function(");
-    if(getFormals() instanceof PairListExp) {
-      ((PairListExp) getFormals()).appendValuesTo(sb);
+    if(getFormals() instanceof PairList.Node) {
+      ((PairList.Node) getFormals()).appendValuesTo(sb);
     }
     return sb.append(")").toString();
   }

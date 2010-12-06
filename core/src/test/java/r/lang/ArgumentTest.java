@@ -165,7 +165,7 @@ public class ArgumentTest extends EvalTestCase {
     eval( "f <- function( a = if(FALSE) {1 } ) { a }" );
 
     assertThat(evaluate( "f()").isVisible(), equalTo(false)) ;
-    assertThat(evaluate( "f()").getExpression(), equalTo( (SEXP)NullExp.INSTANCE )) ;
+    assertThat(evaluate( "f()").getExpression(), equalTo( (SEXP) Null.INSTANCE )) ;
   }
 
   @Test

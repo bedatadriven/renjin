@@ -59,7 +59,7 @@ public class SexpVisitor<R> {
     unhandled(langExp);
   }
 
-  public void visit(PairListExp listExp) {
+  public void visit(PairList.Node listExp) {
     unhandled(listExp);
   }
 
@@ -67,7 +67,7 @@ public class SexpVisitor<R> {
     unhandled(logicalExp);
   }
 
-  public void visit(NullExp nilExp) {
+  public void visit(Null nilExp) {
     unhandled(nilExp);
   }
 

@@ -2406,7 +2406,7 @@ public class RParser {
     values[4] = lloc.begin.column;
     values[6] = lloc.end.column;
 
-    PairList attributes = PairListExp.newBuilder()
+    PairList attributes = PairList.Node.newBuilder()
         .add(SymbolExp.SRC_FILE, srcfile)
         .add(SymbolExp.CLASS, new StringVector("srcref"))
         .build();
@@ -2779,8 +2779,8 @@ public class RParser {
 //        }
 //        /* PrintValue(source); */
 //      }
-      if(formals == NullExp.INSTANCE) {
-        ans = lang4(fname, NullExp.INSTANCE, body, source);
+      if(formals == Null.INSTANCE) {
+        ans = lang4(fname, Null.INSTANCE, body, source);
       } else {
          PROTECT(ans = lang4(fname, CDR(formals), body, source));
       }
@@ -2846,7 +2846,7 @@ public class RParser {
 
     state.setEatLines(false);
     if (options.isGenerateCode()) {
-      a2 = LangExp.fromListExp((PairListExp) a2);
+      a2 = LangExp.fromListExp((PairList.Node) a2);
       SETCAR(a2, a1);
 //      if (SrcRefState.keepSrcRefs) {
 //        PROTECT(prevSrcrefs = getAttrib(a2, R_SrcrefSymbol));
@@ -2873,7 +2873,7 @@ public class RParser {
       tag = new SymbolExp(translateChar(STRING_ELT(tag, 0)));
     }
 
-    if(tag instanceof SymbolExp || tag instanceof NullExp) {
+    if(tag instanceof SymbolExp || tag instanceof Null) {
         return lang2(arg, tag);
     } else {
         error(_("incorrect tag type at line %d"), lloc.begin.line);

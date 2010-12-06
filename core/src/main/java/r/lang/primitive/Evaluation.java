@@ -40,8 +40,8 @@ public class Evaluation {
   @Primitive("{")
   public static EvalResult begin(Environment rho, LangExp call) {
 
-    EvalResult lastResult = new EvalResult(NullExp.INSTANCE, true);
-    for (SEXP sexp : call.getArguments()) {
+    EvalResult lastResult = new EvalResult(Null.INSTANCE, true);
+    for (SEXP sexp : call.getArguments().values()) {
       lastResult = sexp.evaluate(rho);
     }
     return lastResult;
@@ -111,7 +111,7 @@ public class Evaluation {
       SymbolExp setter = new SymbolExp(getter.getPrintName() + "<-");
 
       rhs = new LangExp(setter,
-          PairListExp.newBuilder()
+          PairList.Node.newBuilder()
             .addAll(call.getArguments())
             .add(rhs)
             .build()).evalToExp(rho);
@@ -176,14 +176,14 @@ public class Evaluation {
     Function function = (Function) call.evalArgument(1, rho);
 
     PairList remainingArguments =  call.getArguments().length() > 2 ?
-        call.getNextNode().getNextNode().getNextNode() : NullExp.INSTANCE;
+        call.getNextNode().getNextNode().getNextNode() : Null.INSTANCE;
 
     ListVector.Builder builder = ListVector.newBuilder();
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
       LangExp getElementCall = LangExp.newCall(new SymbolExp("[["), (SEXP)vector, new IntVector(i+1));
-      LangExp applyFunctionCall = new LangExp((SEXP)function, new PairListExp(getElementCall, remainingArguments));
+      LangExp applyFunctionCall = new LangExp((SEXP)function, new PairList.Node(getElementCall, remainingArguments));
       builder.add( applyFunctionCall.evalToExp(rho) );
     }
     return builder.build();
@@ -240,7 +240,7 @@ public class Evaluation {
     SymbolExp internalName = (SymbolExp)internalCall.getFunction();
     SEXP function = rho.findInternal(internalName);
 
-    if(function == NullExp.INSTANCE) {
+    if(function == Null.INSTANCE) {
       throw new EvalException(String.format("no internal function \"%s\"", internalName.getPrintName()));
     }
     return ((Function)function).apply(internalCall, internalCall.getArguments(), rho);
@@ -304,12 +304,12 @@ public class Evaluation {
     }
 
     @Override
-    public void visit(PairListExp listExp) {
-      PairListExp.Builder builder = PairListExp.newBuilder();
-      for(PairListExp node : listExp.listNodes()) {
+    public void visit(PairList.Node listExp) {
+      PairList.Node.Builder builder = PairList.Node.newBuilder();
+      for(PairList.Node node : listExp.nodes()) {
         builder.add(node.getRawTag(), substitute(node.getValue()));
       }
-      result = builder.buildNonEmpty();
+      result = builder.build();
     }
 
     @Override
@@ -357,8 +357,6 @@ public class Evaluation {
       return Evaluation.substitute(exp, environment);
     }
   }
-
-
 
   public static boolean asLogicalNoNA(LangExp call, SEXP s, Environment rho) {
 

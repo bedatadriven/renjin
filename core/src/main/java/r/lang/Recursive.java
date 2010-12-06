@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -21,19 +21,8 @@
 
 package r.lang;
 
-import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-public class PairListExpTest {
-
-  @Test
-  public void lang() {
-
-    PairListExp list = PairListExp.fromArray(new IntVector(1), new IntVector(2), new IntVector(3));
-
-    assertThat(list.length(), equalTo(3));
-
-  }
+/**
+ * Marker interface for R types defined as "recursive"
+ */
+public interface Recursive {
 }

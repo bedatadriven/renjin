@@ -21,8 +21,22 @@
 
 package r.lang;
 
-/**
- * Marker interface for R types defined as "recursive"
- */
-public interface RecursiveExp  {
+import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class DoubleNaNTest {
+
+  @Test
+  public void test() {
+
+    assertTrue("isNaN(NaN)", DoubleVector.isNaN(DoubleVector.NaN));
+    assertTrue("isNaN(NA)", DoubleVector.isNaN(DoubleVector.NA));
+    assertTrue("isNA(NA)", DoubleVector.isNA(DoubleVector.NA));
+    assertFalse("isNA(NaN)", DoubleVector.isNA(DoubleVector.NaN));
+
+  }
+
+
 }

@@ -49,7 +49,7 @@ public class RParserTest {
 
   @Test
   public void onePlusOne() throws IOException {
-    LangExp r = (LangExp) parseSingle("1 + 1;");
+    FunctionCall r = (FunctionCall) parseSingle("1 + 1;");
     assertThat(r.length(), equalTo(3));
     assertThat(r.get(0), symbolNamed("+"));
     assertThat(r.get(1), realVectorEqualTo(1));
@@ -72,7 +72,7 @@ public class RParserTest {
 
   @Test
   public void assignment() throws IOException {
-    LangExp r = (LangExp) parseSingle("a <- 3;");
+    FunctionCall r = (FunctionCall) parseSingle("a <- 3;");
     assertThat(r.length(), equalTo(3));
     assertThat(r.get(0), symbolNamed("<-"));
     assertThat(r.get(1), symbolNamed("a"));
@@ -95,7 +95,7 @@ public class RParserTest {
 
   @Test
   public void functionDef() throws IOException {
-    LangExp r = (LangExp) parseSingle("function (a, b) { a + b }\n");
+    FunctionCall r = (FunctionCall) parseSingle("function (a, b) { a + b }\n");
 
     assertThat("result length", r.length(), equalTo(4));
 
@@ -109,21 +109,21 @@ public class RParserTest {
 
   @Test
   public void functionWithoutArgs() throws IOException {
-    LangExp r = (LangExp) parseSingle("function () { a + b }\n");
+    FunctionCall r = (FunctionCall) parseSingle("function () { a + b }\n");
 
 
   }
 
   @Test
   public void ifElse() throws IOException {
-    LangExp r = (LangExp) parseSingle("if(TRUE) 1 else 2;");
+    FunctionCall r = (FunctionCall) parseSingle("if(TRUE) 1 else 2;");
 
     System.out.println(r);
   }
 
   @Test
   public void functionDefWithBodyLength2() throws IOException {
-    LangExp r = (LangExp) parseSingle("function (a, b) { a * b\na + b; }\n");
+    FunctionCall r = (FunctionCall) parseSingle("function (a, b) { a * b\na + b; }\n");
   }
 
   @Test
@@ -151,7 +151,7 @@ public class RParserTest {
 
     System.out.println(source);
 
-    LangExp r = (LangExp) parseSingle(source);
+    FunctionCall r = (FunctionCall) parseSingle(source);
 
     System.out.println(r);
   }

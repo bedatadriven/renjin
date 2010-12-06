@@ -290,7 +290,7 @@ public class DatafileReader {
     SEXP tag = readTag(flags);
     SEXP function = readExp();
     PairList arguments = (PairList) readExp();
-    return new LangExp(function, arguments, attributes, tag);
+    return new FunctionCall(function, arguments, attributes, tag);
   }
 
   private SEXP readDotExp(Flags flags) throws IOException {

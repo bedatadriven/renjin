@@ -38,7 +38,7 @@ public class Evaluation {
    * Evaluates a list of statements. (The '{' function)
    */
   @Primitive("{")
-  public static EvalResult begin(Environment rho, LangExp call) {
+  public static EvalResult begin(Environment rho, FunctionCall call) {
 
     EvalResult lastResult = new EvalResult(Null.INSTANCE, true);
     for (SEXP sexp : call.getArguments().values()) {
@@ -105,12 +105,12 @@ public class Evaluation {
     // x$a[3] <- 4
     // class(x$a[3]) <- "foo"
 
-    while(lhs instanceof LangExp) {
-      LangExp call = (LangExp) lhs;
+    while(lhs instanceof FunctionCall) {
+      FunctionCall call = (FunctionCall) lhs;
       SymbolExp getter = (SymbolExp) call.getFunction();
       SymbolExp setter = new SymbolExp(getter.getPrintName() + "<-");
 
-      rhs = new LangExp(setter,
+      rhs = new FunctionCall(setter,
           PairList.Node.newBuilder()
             .addAll(call.getArguments())
             .add(rhs)
@@ -153,7 +153,7 @@ public class Evaluation {
    * for ( x in elements ) { statement }
    */
   @Primitive("for")
-  public static void forLoop(Environment rho, LangExp call) {
+  public static void forLoop(Environment rho, FunctionCall call) {
     PairList args = call.getArguments();
     SymbolExp symbol = (SymbolExp) args.get(0);
     Vector elements = (Vector) args.get(1).evalToExp(rho);
@@ -171,7 +171,7 @@ public class Evaluation {
     }
   }
 
-  public static ListVector lapply(@Current Environment rho, LangExp call) {
+  public static ListVector lapply(@Current Environment rho, FunctionCall call) {
     Vector vector = (Vector) call.evalArgument(0, rho);
     Function function = (Function) call.evalArgument(1, rho);
 
@@ -182,15 +182,15 @@ public class Evaluation {
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
-      LangExp getElementCall = LangExp.newCall(new SymbolExp("[["), (SEXP)vector, new IntVector(i+1));
-      LangExp applyFunctionCall = new LangExp((SEXP)function, new PairList.Node(getElementCall, remainingArguments));
+      FunctionCall getElementCall = FunctionCall.newCall(new SymbolExp("[["), (SEXP)vector, new IntVector(i+1));
+      FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall, remainingArguments));
       builder.add( applyFunctionCall.evalToExp(rho) );
     }
     return builder.build();
   }
 
   @Primitive("while")
-  public static void whileLoop(Environment rho, LangExp call) {
+  public static void whileLoop(Environment rho, FunctionCall call) {
     PairList args = call.getArguments();
     SEXP condition = args.get(0);
     SEXP statement = args.get(1);
@@ -209,13 +209,13 @@ public class Evaluation {
     }
   }
 
-  public static Closure function( Environment rho, LangExp call ) {
+  public static Closure function( Environment rho, FunctionCall call ) {
     PairList args = call.getArguments();
     return new Closure(rho, (PairList) args.get(0), args.get(1));
   }
 
   @Primitive("if")
-  public static EvalResult doIf(Environment rho, LangExp call) {
+  public static EvalResult doIf(Environment rho, FunctionCall call) {
     SEXP condition = call.getArguments().get(0).evalToExp(rho);
 
     if (asLogicalNoNA(call, condition, rho)) {
@@ -231,12 +231,12 @@ public class Evaluation {
   }
 
   @Primitive(".Internal")
-  public static EvalResult internal(Environment rho, LangExp call) {
+  public static EvalResult internal(Environment rho, FunctionCall call) {
     SEXP arg = call.getArguments().get(0);
-    if(!(arg instanceof LangExp)) {
+    if(!(arg instanceof FunctionCall)) {
       throw new EvalException("invalid .Internal() argument");
     }
-    LangExp internalCall = (LangExp) arg;
+    FunctionCall internalCall = (FunctionCall) arg;
     SymbolExp internalName = (SymbolExp)internalCall.getFunction();
     SEXP function = rho.findInternal(internalName);
 
@@ -295,8 +295,8 @@ public class Evaluation {
     }
 
     @Override
-    public void visit(LangExp langExp) {
-      result = new LangExp(
+    public void visit(FunctionCall langExp) {
+      result = new FunctionCall(
           substitute(langExp.getFunction()),
           (PairList) substitute((SEXP) langExp.getArguments()),
           langExp.getAttributes(),
@@ -358,7 +358,7 @@ public class Evaluation {
     }
   }
 
-  public static boolean asLogicalNoNA(LangExp call, SEXP s, Environment rho) {
+  public static boolean asLogicalNoNA(FunctionCall call, SEXP s, Environment rho) {
 
     if (s.length() > 1) {
       Warning.warning(call, "the condition has length > 1 and only the first element will be used");

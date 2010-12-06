@@ -31,7 +31,7 @@ public class Warning {
     logger.warning(String.format(message, args));
   }
 
-  public static void warning(LangExp call, String s) {
+  public static void warning(FunctionCall call, String s) {
     warning(s);
   }
 }

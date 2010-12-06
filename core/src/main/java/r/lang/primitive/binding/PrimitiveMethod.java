@@ -65,7 +65,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   public boolean acceptsCall() {
     return arguments.size() == 2 &&
            arguments.get(0).getClazz().equals(Environment.class) &&
-           arguments.get(1).getClazz().equals(LangExp.class);
+           arguments.get(1).getClazz().equals(FunctionCall.class);
   }
 
   public boolean acceptsArgumentList() {

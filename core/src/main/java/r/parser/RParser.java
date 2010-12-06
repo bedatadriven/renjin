@@ -2846,7 +2846,7 @@ public class RParser {
 
     state.setEatLines(false);
     if (options.isGenerateCode()) {
-      a2 = LangExp.fromListExp((PairList.Node) a2);
+      a2 = FunctionCall.fromListExp((PairList.Node) a2);
       SETCAR(a2, a1);
 //      if (SrcRefState.keepSrcRefs) {
 //        PROTECT(prevSrcrefs = getAttrib(a2, R_SrcrefSymbol));

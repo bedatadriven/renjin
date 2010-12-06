@@ -269,13 +269,13 @@ public class CDefines {
     return CONS(s, list3(t, u, v));
   }
 
-  public static LangExp LCONS(SEXP car, SEXP cdr) {
+  public static FunctionCall LCONS(SEXP car, SEXP cdr) {
     Preconditions.checkNotNull(car);
 
     if (cdr == R_NilValue) {
-      return new LangExp(car, null);
+      return new FunctionCall(car, null);
     } else {
-      return new LangExp(car, (PairList.Node) cdr);
+      return new FunctionCall(car, (PairList.Node) cdr);
     }
   }
 
@@ -287,15 +287,15 @@ public class CDefines {
     return LCONS(s, R_NilValue);
   }
 
-  public static LangExp lang2(SEXP s, SEXP t) {
+  public static FunctionCall lang2(SEXP s, SEXP t) {
     return LCONS(s, list1(t));
   }
 
-  public static LangExp lang3(SEXP s, SEXP t, SEXP u) {
+  public static FunctionCall lang3(SEXP s, SEXP t, SEXP u) {
     return LCONS(s, list2(t, u));
   }
 
-  public static LangExp lang4(SEXP s, SEXP t, SEXP u, SEXP v) {
+  public static FunctionCall lang4(SEXP s, SEXP t, SEXP u, SEXP v) {
     return LCONS(s, list3(t, u, v));
   }
 

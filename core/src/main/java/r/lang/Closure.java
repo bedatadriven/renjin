@@ -88,7 +88,7 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   @Override
-  public EvalResult apply(LangExp call, PairList args, Environment rho) {
+  public EvalResult apply(FunctionCall call, PairList args, Environment rho) {
     return apply(rho, args);
   }
 

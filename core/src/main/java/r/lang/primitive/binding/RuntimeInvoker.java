@@ -85,7 +85,7 @@ public class RuntimeInvoker {
     converters.add(new NullToObject());
   }
 
-  public EvalResult invoke(Environment rho, LangExp call, List<PrimitiveMethod> overloads) {
+  public EvalResult invoke(Environment rho, FunctionCall call, List<PrimitiveMethod> overloads) {
 
     // first check for a method which can handle the call in its entirety
     if(overloads.size() == 1 && overloads.get(0).acceptsCall()) {
@@ -318,7 +318,7 @@ public class RuntimeInvoker {
 
 
 
-  private String formatNoMatchingOverloadMessage(LangExp call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
+  private String formatNoMatchingOverloadMessage(FunctionCall call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
     StringBuilder sb = new StringBuilder();
     sb.append("Cannot execute the function with the arguments supplied.\n");
     appendProvidedArguments(sb, provided);
@@ -330,7 +330,7 @@ public class RuntimeInvoker {
     return sb.toString();
   }
 
-  private String formatMultipleMatchingOverloadMessage(LangExp call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
+  private String formatMultipleMatchingOverloadMessage(FunctionCall call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
     StringBuilder sb = new StringBuilder();
     sb.append("Multiple overloads match the supplied arguments.\n");
     appendProvidedArguments(sb, provided);

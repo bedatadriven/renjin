@@ -137,12 +137,12 @@ public class Types {
   }
 
   public static boolean isCall(SEXP exp) {
-    return exp instanceof LangExp;
+    return exp instanceof FunctionCall;
   }
 
   public static boolean isLanguage(SEXP exp) {
     return exp instanceof SymbolExp ||
-            exp instanceof LangExp ||
+            exp instanceof FunctionCall ||
             exp instanceof ExpressionVector;
 
   }

@@ -22,17 +22,21 @@
 package r.lang;
 
 /**
- * A specialized {@code ListExp} used for storing 
+ * Expression representing a call to an R function, consisting of
+ * a function reference and a list of arguments.
+ *
+ * Note that this type is called "language" in the R vocabulary.
+ *
  */
-public class LangExp extends PairList.Node {
+public class FunctionCall extends PairList.Node {
   public static final int TYPE_CODE = 6;
   public static final String TYPE_NAME = "language";
 
-  public LangExp(SEXP function, PairList arguments) {
+  public FunctionCall(SEXP function, PairList arguments) {
     super(function, arguments);
   }
 
-  public LangExp(SEXP function, PairList arguments, PairList attributes, SEXP tag) {
+  public FunctionCall(SEXP function, PairList arguments, PairList attributes, SEXP tag) {
     super(tag, function, attributes, arguments);
   }
 
@@ -57,7 +61,7 @@ public class LangExp extends PairList.Node {
   }
 
   public static SEXP fromListExp(PairList.Node listExp) {
-    return new LangExp(listExp.value, listExp.nextNode);
+    return new FunctionCall(listExp.value, listExp.nextNode);
   }
 
   public SEXP getFunction() {
@@ -68,18 +72,18 @@ public class LangExp extends PairList.Node {
     return nextNode == null ? Null.INSTANCE : nextNode;
   }
 
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
-
-  }
-
   public <X extends SEXP> X getArgument(int index) {
     return getArguments().<X>get(index);
   }
 
   public SEXP evalArgument(int index, Environment rho) {
     return getArgument(index).evalToExp(rho);
+  }
+
+  @Override
+  public void accept(SexpVisitor visitor) {
+    visitor.visit(this);
+
   }
 
   @Override
@@ -102,11 +106,11 @@ public class LangExp extends PairList.Node {
     return sb.append(")").toString();
   }
 
-  public static LangExp newCall(SEXP function, SEXP... arguments) {
+  public static FunctionCall newCall(SEXP function, SEXP... arguments) {
     if(arguments.length == 0) {
-      return new LangExp(function, Null.INSTANCE);
+      return new FunctionCall(function, Null.INSTANCE);
     } else {
-      return new LangExp(function, PairList.Node.fromArray(arguments));
+      return new FunctionCall(function, PairList.Node.fromArray(arguments));
     }
   }
 }

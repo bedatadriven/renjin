@@ -29,5 +29,5 @@ package r.lang;
  */
 public interface Function extends SEXP, Recursive {
 
-  EvalResult apply(LangExp call, PairList args, Environment rho);
+  EvalResult apply(FunctionCall call, PairList args, Environment rho);
 }

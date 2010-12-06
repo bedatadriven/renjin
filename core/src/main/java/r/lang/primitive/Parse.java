@@ -122,7 +122,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(LangExp langExp) {
+    public void visit(FunctionCall langExp) {
       super.visit(langExp);
     }
 

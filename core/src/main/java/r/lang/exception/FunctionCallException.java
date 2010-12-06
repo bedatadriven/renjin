@@ -29,11 +29,11 @@ import r.lang.*;
  */
 public class FunctionCallException extends RuntimeException {
 
-  public FunctionCallException(LangExp call, PairList arguments, Exception e) {
+  public FunctionCallException(FunctionCall call, PairList arguments, Exception e) {
     super(formatMessage(call, arguments, e), e);
   }
 
-  private static String formatMessage(LangExp call, PairList arguments, Exception e) {
+  private static String formatMessage(FunctionCall call, PairList arguments, Exception e) {
     StringBuilder message = new StringBuilder();
     message.append("Error in ").append(call.getFunction());
     appendArgumentList(arguments, message);

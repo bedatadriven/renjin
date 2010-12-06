@@ -67,7 +67,7 @@ public class BasePackageTest extends EvalTestCase {
 
     String path = getClass().getResource("/simpleTest.R").getFile();
 
-    ListVector result = (ListVector) LangExp.newCall(symbol("file.info"), c(path)).evalToExp(global);
+    ListVector result = (ListVector) FunctionCall.newCall(symbol("file.info"), c(path)).evalToExp(global);
 
     assertThat( result.get("isdir"), equalTo( c(Logical.FALSE) ));
     assertThat( result.get("mode"), equalTo( c("777") ));

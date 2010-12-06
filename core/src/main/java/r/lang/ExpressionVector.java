@@ -21,63 +21,38 @@
 
 package r.lang;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
-
-import java.util.Arrays;
-import java.util.Iterator;
-
 /**
- * A vector of statements {@code LangExp}.
- *
- * <p>
- * In R one can have objects of type "expression".
- * An expression contains one or more statements (see {@link r.lang.LangExp}.
- *
- * <p>
- * A statement is a syntactically correct collection of tokens.
- * Expression objects are special language objects which contain
- * parsed but unevaluated R statements.
+ * A vector of {@link FunctionCall}s
  *
  */
-public class ExpressionVector extends AbstractSEXP implements Recursive, Vector, Iterable<SEXP> {
+public class ExpressionVector extends ListVector {
   public static final String TYPE_NAME = "expression";
   public static final int TYPE_CODE = 20;
 
-  private SEXP[] values;
 
-  public ExpressionVector(SEXP[] expressions, PairList attributes) {
-    super(attributes);
-    this.values = Arrays.copyOf(expressions, expressions.length);
+  public ExpressionVector(SEXP[] functionCalls, PairList attributes) {
+    super(functionCalls, attributes);
   }
 
-  public ExpressionVector(SEXP... expressions) {
-    super();
-    this.values = Arrays.copyOf(expressions, expressions.length);
+  public ExpressionVector(SEXP... functionCalls) {
+    super(functionCalls);
   }
 
-
-  public ExpressionVector(Iterable<? extends SEXP> expressions, PairList attributes) {
-    super(attributes);
-    this.values = Iterables.toArray(expressions, SEXP.class);
+  public ExpressionVector(Iterable<SEXP> expressions, PairList attributes) {
+    super(expressions, attributes);
   }
 
-  public ExpressionVector(Iterable<? extends SEXP> expressions){
-    this(expressions, Null.INSTANCE);
+  public ExpressionVector(Iterable<SEXP> expressions){
+    super(expressions);
   }
 
   @Override
   public EvalResult evaluate(Environment rho) {
     EvalResult result = EvalResult.NON_PRINTING_NULL;
-    for(SEXP sexp : values) {
+    for(SEXP sexp : this) {
       result = sexp.evaluate(rho);
     }
     return result;
-  }
-
-  @Override
-  public SEXP getElementAsSEXP(int index) {
-    return new ExpressionVector(values[index]);
   }
 
   @Override
@@ -106,19 +81,10 @@ public class ExpressionVector extends AbstractSEXP implements Recursive, Vector,
   }
 
   @Override
-  public int length() {
-    return values.length;
-  }
-
-  public SEXP get(int index) {
-    return values[index];
-  }
-
-  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("[");
-    for (SEXP s : values) {
+    for (SEXP s : this) {
       sb.append("\t").append(s).append("\n");
     }
     sb.append("]");
@@ -128,10 +94,5 @@ public class ExpressionVector extends AbstractSEXP implements Recursive, Vector,
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
-  }
-
-  @Override
-  public Iterator<SEXP> iterator() {
-    return Iterators.forArray(values);
   }
 }

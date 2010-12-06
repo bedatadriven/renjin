@@ -61,7 +61,7 @@ public class Connections {
    * @param eenv
    * @param targetEnvironment
    */
-  public static void makeLazy(StringVector names, ListVector values, LangExp expr, Environment eenv, Environment targetEnvironment) {
+  public static void makeLazy(StringVector names, ListVector values, FunctionCall expr, Environment eenv, Environment targetEnvironment) {
 
     for(int i = 0; i < names.length(); i++) {
       // the name of the symbol
@@ -77,7 +77,7 @@ public class Connections {
       for(int j=1;j<expr.getArguments().length();++j) {
         newArgs.add(expr.<SEXP>getArgument(j));
       }
-      LangExp newCall = new LangExp(expr.getFunction(), newArgs.build());
+      FunctionCall newCall = new FunctionCall(expr.getFunction(), newArgs.build());
       targetEnvironment.setVariable(name, new Promise(newCall, eenv));
     }
   }
@@ -108,7 +108,7 @@ public class Connections {
     DatafileReader reader = new DatafileReader(rho, new ByteArrayInputStream(buffer), new DatafileReader.PersistentRestorer() {
       @Override
       public SEXP restore(SEXP values) {
-        LangExp call = LangExp.newCall(restoreFunction, values);
+        FunctionCall call = FunctionCall.newCall(restoreFunction, values);
         SEXP result = call.evalToExp(rho.getGlobalEnvironment());
         return result;
       }

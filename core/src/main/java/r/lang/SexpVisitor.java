@@ -55,7 +55,7 @@ public class SexpVisitor<R> {
     unhandled(intExp);
   }
 
-  public void visit(LangExp langExp) {
+  public void visit(FunctionCall langExp) {
     unhandled(langExp);
   }
 

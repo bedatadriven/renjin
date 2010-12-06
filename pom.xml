@@ -34,6 +34,7 @@
   <modules>
     <module>core</module>
     <module>desktop</module>
+    <module>scala</module>
   </modules>
 
   <properties>

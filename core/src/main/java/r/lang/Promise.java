@@ -25,12 +25,12 @@ package r.lang;
  * Promises are an internal structures that arise only in the context of a
  * call to a ClosureExp.
  *
- * PromiseExp enable delayed evaluation in such a way that an expression
+ * Promises enable delayed evaluation in such a way that an expression
  * provided as an argument is evaluated only once, but only if it is
  * referenced.
  *
  */
-public class PromiseExp extends AbstractSEXP implements Recursive {
+public class Promise extends AbstractSEXP implements Recursive {
 
   public static final int TYPE_CODE = 5;
   public static final String TYPE_NAME = "promise";
@@ -39,7 +39,7 @@ public class PromiseExp extends AbstractSEXP implements Recursive {
   private Environment environment;
   private EvalResult result;
 
-  public PromiseExp(SEXP expression, Environment environment) {
+  public Promise(SEXP expression, Environment environment) {
     this.expression = expression;
     this.environment = environment;
   }
@@ -49,6 +49,12 @@ public class PromiseExp extends AbstractSEXP implements Recursive {
     return force();
   }
 
+  /**
+   * Forces the evaluation of this Promise, if it has not already
+   * been evaluated.
+   *
+   * @return the result of the evaluation
+   */
   public EvalResult force() {
     if (result == null) {
       this.result = expression.evaluate(environment);

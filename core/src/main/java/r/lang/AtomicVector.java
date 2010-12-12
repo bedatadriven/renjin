@@ -33,8 +33,45 @@ public interface AtomicVector extends Vector {
   /**
    *
    * @param index zero-based index
+   * @return the element at {@code index} as an {@code Object},
+   * boxing Java-language primitives if necessary.
+   */
+  Object getElementAsObject(int index);
+
+  /**
+   *
+   * @param index zero-based index
    * @return  true if the element at {@code index} is NA (statistically missing)
    */
   boolean isElementNA(int index);
+
+  /**
+   *
+   * @return true if the vector contains any {@code NA} values
+   */
+  boolean containsNA();
+
+
+  /**
+   * @param vector an {@code AtomicVector}
+   * @param vectorIndex an index of {@code vector}
+   * @return the index of the first element in this vector that equals
+   * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
+   * can be found
+   */
+  int indexOf(AtomicVector vector, int vectorIndex);
+
+  /**
+   * @param vector an {@code AtomicVector }
+   * @param vectorIndex an index of {@code vector}
+   * @return true if this vector contains an element equal to the
+   * the element at {@code vectorIndex} in {@code vector}
+   */
+  boolean contains(AtomicVector vector, int vectorIndex);
+
+  /***
+   * @return the index of the first NA element.
+   */
+  int indexOfNA();
 
 }

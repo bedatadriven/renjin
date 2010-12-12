@@ -67,4 +67,12 @@ public class CombineTest extends EvalTestCase {
         equalTo( list(NULL, NULL, 1d)));
   }
 
+  @Test
+  public void unlistAtomic() {
+    assertThat( eval(".Internal(unlist( list(1,4,5), TRUE, TRUE )) "), equalTo( c(1,4,5)) );
+    assertThat( eval(".Internal(unlist( list(1,'a',TRUE), TRUE, TRUE )) "), equalTo( c("1","a","TRUE")) );
+    assertThat( eval(".Internal(unlist( list(1,globalenv()), TRUE, TRUE )) "),
+        equalTo( list(1d,global)) );
+  }
+
 }

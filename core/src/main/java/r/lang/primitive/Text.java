@@ -21,46 +21,74 @@
 
 package r.lang.primitive;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import r.lang.*;
-import r.lang.primitive.binding.TypeConverter;
+import r.lang.AtomicVector;
+import r.lang.ListVector;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.exception.EvalException;
 
-import java.util.List;
-
-import static com.google.common.collect.Collections2.transform;
-import static java.util.Collections.max;
+import static com.google.common.collect.Iterables.transform;
 
 public class Text {
 
   private Text() {}
 
-  public static SEXP paste(ListVector args, String seperator, Null collapse) {
-    List<StringVector> strings = TypeConverter.convertElements(args, StringVector.class);
+  public static StringVector paste(ListVector arguments, String separator, String collapse) {
 
-    int resultLength = max(transform(strings, CollectionUtils.length()));
-    String results[] = new String[resultLength];
-    
-    for(int i=0;i!=resultLength;++i) {
-      results[i] = Joiner.on(seperator).join(transform(strings, CollectionUtils.elementAt(i)));
+    int resultLength = arguments.longestElementLength();
+
+    if(collapse == null) {
+      String results[] = new String[resultLength];
+      for(int index=0; index!=resultLength; ++index) {
+        results[index] = Joiner.on(separator).join(
+            transform(arguments, new StringElementAt(index)));
+      }
+      return new StringVector( results );
+
+    } else {
+      StringBuilder result = new StringBuilder();
+      for(int index=0; index!=resultLength; ++index) {
+        if(index != 0) {
+          result.append(collapse);
+        }
+        Joiner.on(separator).appendTo(result,
+            transform(arguments, new StringElementAt(index)));
+      }
+      return new StringVector( result.toString() );
     }
-    
-    return new StringVector( results );
   }
 
-  public static String paste(ListVector args, String seperator, String collapse) {
-    List<StringVector> strings = TypeConverter.convertElements(args, StringVector.class);
+  private static class StringElementAt implements Function<SEXP, String> {
+    private int index;
 
-    int resultLength = max(transform(strings, CollectionUtils.length()));
-    StringBuilder result = new StringBuilder();
-
-    for(int i=0;i!=resultLength;++i) {
-      if(i != 0) {
-        result.append(collapse);
-      }
-      Joiner.on(seperator).appendTo(result, transform(strings, CollectionUtils.elementAt(i)));
+    private StringElementAt(int index) {
+      this.index = index;
     }
 
-    return result.toString() ;
+    @Override
+    public String apply(SEXP input) {
+      if(input instanceof AtomicVector) {
+        return ((AtomicVector) input).getElementAsString(index % input.length());
+
+      } else if(input instanceof ListVector) {
+        SEXP element = ((ListVector) input).getElementAsSEXP(index % input.length());
+        return listElementToString(element);
+
+      } else {
+        throw new EvalException(String.format("Cannot coerce argument of type '%s' to character.",
+            input.getTypeName()));
+      }
+    }
+
+    private String listElementToString(SEXP element) {
+      if(element.length() == 1 && element instanceof AtomicVector) {
+        return ((AtomicVector) element).getElementAsString(0);
+      } else {
+        return Parse.deparse(element);
+      }
+    }
   }
 
   public static StringVector gettext(String domain, StringVector messages) {

@@ -21,69 +21,27 @@
 
 package r.lang.primitive;
 
-import r.lang.*;
-import r.lang.primitive.binding.AtomicAccessor;
-import r.lang.primitive.binding.AtomicAccessors;
-import r.lang.primitive.binding.TypeConverter;
+import r.lang.AtomicVector;
+import r.lang.LogicalVector;
+import r.lang.Null;
 
 public class Match {
 
-  
-
-  public static int[] match(AtomicVector searchExp, AtomicVector tableExp, int noMatch, AtomicVector incomparablesExp) {
+  public static int[] match(AtomicVector search, AtomicVector table, int noMatch, AtomicVector incomparables) {
     //For historical reasons, FALSE is equivalent to NULL.
-    if(incomparablesExp.equals( LogicalVector.FALSE ) ) {
-      incomparablesExp = Null.INSTANCE;
+    if(incomparables.equals( LogicalVector.FALSE ) ) {
+      incomparables = Null.INSTANCE;
     }
-
-    // I'm not entirely comfortable with using AtomicAccessors inside primitive definitions as
-    // I imagine the boxing-unboxing plus virtual function call overhead is considerable,
-    // but at this stage I think the performance gain is worth trading for simpler code..
-    // (The alternative is 5 separate implementations for int, double, complex, String, etc)
-
-    Class commonType = TypeConverter.commonAtomicElementType(searchExp, tableExp);
-    AtomicAccessor search = AtomicAccessors.create(searchExp, commonType);
-    AtomicAccessor table = AtomicAccessors.create(tableExp, commonType);
-    AtomicAccessor incomparables = AtomicAccessors.create(incomparablesExp, commonType);
 
     int[] matches = new int[search.length()];
     for(int i=0;i!=search.length();++i) {
-      if( find(incomparables, search.get(i), search.isNA(i)) != -1 ) {
+      if( incomparables.contains(search, i)) {
         matches[i] = noMatch;
       } else {
-        int pos = find(table, search.get(i), search.isNA(i));
+        int pos = table.indexOf(search, i);
         matches[i] = pos >= 0 ? pos+1 : noMatch;
       }
     }
     return matches;
   }
-
-
-  private static int find(AtomicAccessor values, Object value, boolean valueIsNA) {
-    for(int i=0;i!=values.length();++i) {
-      if(valueIsNA) {
-        if(values.isNA(i)) {
-          return i;
-        }
-      } else {
-        if(values.get(i).equals(value)) {
-          return i;
-        }
-      }
-    }
-    return -1;
-  }
-
-
-  private static Class commonAtomicTypeOrStringExp(SEXP x, SEXP table) {
-    Class commonType;
-    if(TypeConverter.allAreAtomic(x, table)) {
-      commonType = TypeConverter.commonAtomicType(x, table);
-    }  else {
-      commonType = StringVector.class;
-    }
-    return commonType;
-  }
-
-
 }

@@ -31,7 +31,7 @@ public class SexpVisitor<R> {
 
   }
 
-  public void visit(CharExp charExp) {
+  public void visit(CHARSEXP charExp) {
     unhandled(charExp);
   }
 
@@ -105,5 +105,11 @@ public class SexpVisitor<R> {
 
   public void visit(ListVector listExp) {
     unhandled(listExp);
+  }
+
+  public final void acceptAll(Iterable<SEXP> elements) {
+    for(SEXP element : elements) {
+      element.accept(this);
+    }
   }
 }

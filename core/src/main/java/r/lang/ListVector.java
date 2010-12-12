@@ -24,6 +24,9 @@ package r.lang;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.apache.commons.math.complex.Complex;
+import r.lang.exception.EvalException;
+import r.lang.primitive.Parse;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +39,9 @@ import java.util.List;
 public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
 
   private static final int TYPE_CODE = 19;
-  private static final String TYPE_NAME = "list";
+  public static final String TYPE_NAME = "list";
+
+  public static final Vector.Type VECTOR_TYPE = new ListType();
 
   private final ArrayList<SEXP> values;
 
@@ -76,8 +81,8 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
   }
 
   @Override
-  public boolean isWiderThan(Object vector) {
-    return vector instanceof Vector;
+  public final boolean isWiderThan(Vector vector) {
+    return getVectorType().isWiderThan(vector);
   }
 
   @Override
@@ -120,13 +125,76 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
   }
 
   @Override
+  public Type getVectorType() {
+    return VECTOR_TYPE;
+  }
+
+  @Override
   public SEXP getElementAsSEXP(int index) {
     return values.get(index);
   }
 
   @Override
+  public double getElementAsDouble(int index) {
+    SEXP value = values.get(index);
+    if(value.length() == 1 && value instanceof AtomicVector) {
+      return ((AtomicVector) value).getElementAsDouble(0);
+    }
+    throw new EvalException("(list) object cannot be coerced to type 'double'");
+  }
+
+  @Override
+  public int getElementAsInt(int index) {
+    SEXP value = values.get(index);
+    if(value.length() == 1 && value instanceof AtomicVector) {
+      return ((AtomicVector) value).getElementAsInt(0);
+    }
+    throw new EvalException("(list) object cannot be coerced to type 'int'");
+  }
+
+  @Override
+  public String getElementAsString(int index) {
+    SEXP value = values.get(index);
+    if(value.length() == 1 && value instanceof AtomicVector) {
+      return ((AtomicVector) value).getElementAsString(0);
+    }
+    return Parse.deparse(value);
+  }
+
+  @Override
+  public Logical getElementAsLogical(int index) {
+    SEXP value = values.get(index);
+    if(value.length() == 1 && value instanceof AtomicVector) {
+      return ((AtomicVector) value).getElementAsLogical(0);
+    }
+    throw new EvalException("(list) object cannot be coerced to type 'logical'");
+  }
+
+  @Override
+  public Complex getElementAsComplex(int index) {
+    SEXP value = values.get(index);
+    if(value.length() == 1 && value instanceof AtomicVector) {
+      return ((AtomicVector) value).getElementAsComplex(0);
+    }
+    throw new EvalException("(list) object cannot be coerced to type 'complex'");
+  }
+
+  @Override
   public Iterable<SEXP> elements() {
     return this;
+  }
+
+  /**
+   * @return the length of the longest element
+   */
+  public int longestElementLength() {
+    int max = 0;
+    for(SEXP element : this) {
+      if(element.length() > max) {
+        max = element.length();
+      }
+    }
+    return max;
   }
 
   @Override
@@ -176,7 +244,7 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
     return new ListVector(values, attributes);
   }
 
-  public static class Builder implements Vector.Builder<ListVector, Vector> {
+  public static class Builder implements Vector.Builder<SEXP> {
     private PairList attributes = Null.INSTANCE;
     private boolean haveNames = false;
     private List<SEXP> values = Lists.newArrayList();
@@ -258,12 +326,12 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      return set(destinationIndex, source.getElementAsSEXP(sourceIndex));
-    }
-
-    public SEXP build(int length) {
-      return null;
+    public Vector.Builder setFrom(int destinationIndex, SEXP source, int sourceIndex) {
+      if(source instanceof Vector) {
+        return this.set(destinationIndex, ((Vector)source).getElementAsSEXP(sourceIndex));
+      } else {
+        return this.set(destinationIndex, source);
+      }
     }
 
     public Builder replace(int i, SEXP value) {
@@ -277,6 +345,16 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
       } else {
         return new ListVector(values);
       }
+    }
+  }
+
+  private static class ListType extends Vector.Type {
+    public ListType() {
+      super(Order.LIST);
+    }
+
+    public Builder newBuilder() {
+      return new Builder();
     }
   }
 }

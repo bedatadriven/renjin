@@ -61,11 +61,6 @@ public class ExpressionVector extends ListVector {
   }
 
   @Override
-  public boolean isWiderThan(Object vector) {
-    throw new UnsupportedOperationException("implement me");
-  }
-
-  @Override
   public Builder newCopyBuilder() {
     throw new UnsupportedOperationException("implement me");
   }

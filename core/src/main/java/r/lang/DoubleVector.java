@@ -23,6 +23,7 @@ package r.lang;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import org.apache.commons.math.complex.Complex;
 import r.parser.ParseUtil;
 import r.util.collect.PrimitiveArrays;
 
@@ -30,11 +31,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-public final class DoubleVector extends AbstractSEXP implements AtomicVector, Iterable<Double>,
-    WidensToString, WidensToDouble {
+public final class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
 
   public static final String TYPE_NAME = "double";
   public static final int TYPE_CODE = 14;
+
+  public static final Vector.Type VECTOR_TYPE = new DoubleType();
 
   public static final double NA = createNA();
   public static final double NaN = Double.NaN;
@@ -73,6 +75,11 @@ public final class DoubleVector extends AbstractSEXP implements AtomicVector, It
     return TYPE_NAME;
   }
 
+  @Override
+  public Type getVectorType() {
+    return VECTOR_TYPE;
+  }
+
   /**
    * Returns a RealVector with a single double value parsed from the
    * supplied string.
@@ -91,13 +98,43 @@ public final class DoubleVector extends AbstractSEXP implements AtomicVector, It
     return clone;
   }
 
-  @Override
-  public boolean isWiderThan(Object vector) {
-    return vector instanceof WidensToDouble;
-  }
-
   public double get(int i) {
     return values[i];
+  }
+
+  @Override
+  public Logical getElementAsLogical(int index) {
+    double value = values[index];
+    if(isNA(value)) {
+      return Logical.NA;
+    } else if(value == 0) {
+      return Logical.FALSE;
+    } else {
+      return Logical.TRUE;
+    }
+  }
+
+  @Override
+  public String getElementAsString(int index) {
+    double value = values[index];
+    return isNA(value) ? StringVector.NA :
+        ParseUtil.toString(values[index]);
+  }
+
+  @Override
+  public int getElementAsInt(int index) {
+    double value = values[index];
+    return isNA(value) ? IntVector.NA : (int) value;
+  }
+
+  @Override
+  public Complex getElementAsComplex(int index) {
+    return new Complex(index, 0);
+  }
+
+  @Override
+  public double getElementAsDouble(int index) {
+    return values[index];
   }
 
   public DoubleVector getElementAsSEXP(int index) {
@@ -105,13 +142,19 @@ public final class DoubleVector extends AbstractSEXP implements AtomicVector, It
   }
 
   @Override
-  public double getDouble(int index) {
+  public Double getElementAsObject(int index) {
     return values[index];
   }
 
-  public String getString(int index) {
-    return isNA(values[index]) ? StringVector.NA :
-        ParseUtil.toString(values[index]);
+  @Override
+  public int indexOf(AtomicVector vector, int vectorIndex) {
+    double value = vector.getElementAsDouble(vectorIndex);
+    for(int i=0;i!=values.length;++i) {
+      if(value == values[i]) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   public int[] coerceToIntArray() {
@@ -120,10 +163,6 @@ public final class DoubleVector extends AbstractSEXP implements AtomicVector, It
       integers[i] = isNaN(values[i]) ? IntVector.NA : (int)values[i];
     }
     return integers;
-  }
-
-  public void set(int i, double value) {
-    values[i] = value;
   }
 
   @Override
@@ -232,8 +271,8 @@ public final class DoubleVector extends AbstractSEXP implements AtomicVector, It
     return isNA(values[index]);
   }
 
-  public static class Builder implements Vector.Builder<DoubleVector, WidensToDouble> {
-    private PairList attributes;
+  public static class Builder implements Vector.Builder<AtomicVector> {
+    private PairList attributes = Null.INSTANCE;
     private double values[];
 
     private Builder(int initialSize) {
@@ -262,13 +301,24 @@ public final class DoubleVector extends AbstractSEXP implements AtomicVector, It
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, WidensToDouble source, int sourceIndex) {
-      return set(destinationIndex, source.getDouble(sourceIndex));
+    public Builder setFrom(int destinationIndex, AtomicVector source, int sourceIndex) {
+      return set(destinationIndex, source.getElementAsDouble(sourceIndex));
     }
 
     @Override
     public DoubleVector build() {
       return new DoubleVector(values, attributes);
+    }
+  }
+
+  private static class DoubleType extends Vector.Type {
+    public DoubleType() {
+      super(Order.DOUBLE);
+    }
+
+    @Override
+    public Vector.Builder newBuilder() {
+      return new Builder(0);
     }
   }
 }

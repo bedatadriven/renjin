@@ -67,6 +67,18 @@ public class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void asLogicalFromList() {
+    assertThat( eval("as.logical(list(1, 99.4, 0, 0L, FALSE, 'TRUE', 'FOO', 'T', 'F', 'FALSE')) "),
+        equalTo( c(TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, Logical.NA, TRUE, FALSE, FALSE) ));
+  }
+
+  @Test
+  public void asLogical() {
+    assertThat( eval("as.logical(c(1, 99.4, 0, NA_real_)) "),
+        equalTo( c(TRUE, TRUE, FALSE, Logical.NA) ));
+  }
+
+  @Test
   public void asDoubleFromLogical() {
     assertThat( eval("as.double(TRUE)"), equalTo( c(1d) ));
     assertThat( eval("as.double(FALSE)"), equalTo( c(0d) ));

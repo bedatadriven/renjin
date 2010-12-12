@@ -21,13 +21,15 @@
 
 package r.lang;
 
+import org.apache.commons.math.complex.Complex;
+
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterable<Logical>,
-    WidensToInt, WidensToDouble, WidensToString {
+public class LogicalVector extends AbstractAtomicVector implements Iterable<Logical> {
   public static final String TYPE_NAME = "logical";
   public static final int TYPE_CODE = 10;
+  public static final Vector.Type VECTOR_TYPE = new LogicalType();
 
   public static int NA = IntVector.NA;
 
@@ -62,7 +64,6 @@ public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterabl
     }
   }
 
-
   @Override
   public int getTypeCode() {
     return TYPE_CODE;
@@ -79,12 +80,12 @@ public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterabl
   }
 
   @Override
-  public int getInt(int index) {
+  public int getElementAsInt(int index) {
     return values[index];
   }
 
   @Override
-  public double getDouble(int index) {
+  public double getElementAsDouble(int index) {
     int value = values[index];
     return value == IntVector.NA ? DoubleVector.NA : (double) value;
   }
@@ -94,10 +95,48 @@ public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterabl
     return new LogicalVector(values[index]);
   }
 
-
+  @Override
+  public int indexOf(AtomicVector vector, int vectorIndex) {
+    int value = vector.getElementAsLogical(vectorIndex).getInternalValue();
+    for(int i=0;i!=values.length;++i) {
+      if(value == values[i]) {
+        return i;
+      }
+    }
+    return -1;
+  }
 
   @Override
-  public String getString(int index) {
+  public Boolean getElementAsObject(int index) {
+    int value = values[index];
+    if(IntVector.isNA(value)) {
+      throw new IllegalStateException(String.format("The element at index %d is NA," +
+          " and cannot be represented as a Boolean. Make sure you are calling isElementNA() first.", index));
+    } else {
+      return value != 0;
+    }
+  }
+
+  @Override
+  public Logical getElementAsLogical(int index) {
+    return Logical.valueOf(values[index]);
+  }
+
+  @Override
+  public Complex getElementAsComplex(int index) {
+    if(IntVector.isNA(values[index])) {
+      return ComplexVector.NA;  
+    }
+    return new Complex(values[index], 0);
+  }
+
+  @Override
+  public Type getVectorType() {
+    return VECTOR_TYPE;
+  }
+
+  @Override
+  public String getElementAsString(int index) {
     int value = values[index];
     if(value == IntVector.NA) {
       return StringVector.NA;
@@ -194,11 +233,6 @@ public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterabl
   }
 
   @Override
-  public boolean isWiderThan(Object vector) {
-    return vector instanceof LogicalVector;
-  }
-
-  @Override
   public Builder newCopyBuilder() {
     return null;
   }
@@ -228,8 +262,8 @@ public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterabl
     return IntVector.isNA(values[index]);
   }
 
-  private static class Builder implements Vector.Builder<IntVector, WidensToInt> {
-    private PairList attributes;
+  private static class Builder implements Vector.Builder<AtomicVector> {
+    private PairList attributes = Null.INSTANCE;
     private int values[];
 
     private Builder(int initialSize) {
@@ -258,13 +292,24 @@ public class LogicalVector extends AbstractSEXP implements AtomicVector, Iterabl
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, WidensToInt source, int sourceIndex) {
-      return set(destinationIndex, source.getInt(sourceIndex));
+    public Builder setFrom(int destinationIndex, AtomicVector source, int sourceIndex) {
+      return set(destinationIndex, source.getElementAsInt(sourceIndex));
     }
 
     @Override
-    public IntVector build() {
-      return new IntVector(values, attributes);
+    public LogicalVector build() {
+      return new LogicalVector(values, attributes);
+    }
+  }
+
+  private static class LogicalType extends Vector.Type {
+    public LogicalType() {
+      super(Order.LOGICAL);
+    }
+
+    @Override
+    public Vector.Builder newBuilder() {
+      return new Builder(0);
     }
   }
 }

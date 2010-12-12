@@ -154,7 +154,7 @@ public class Types {
   public static boolean isSingle(SEXP exp) {
     throw new EvalException("type \"single\" unimplemented in R");
   }
-                                              
+
   public static boolean isNA(@AllowNA double value) {
     return DoubleVector.isNA(value);
   }
@@ -197,15 +197,23 @@ public class Types {
   public static StringVector asCharacter(ListVector list) {
     StringVector.Builder result = new StringVector.Builder();
     for(SEXP element : list) {
-      if(element.length() == 1 && element instanceof WidensToString) {
-        result.add( ((WidensToString) element).getString(0) );
+      if(element.length() == 1 && element instanceof AtomicVector) {
+        result.add( ((AtomicVector) element).getElementAsString(0) );
       } else {
         result.add( Parse.deparse(element) );
       }
     }
     return result.build();
   }
-  
+
+  public static LogicalVector asLogical(Vector vector) {
+    int result[] = new int[vector.length()];
+    for(int i=0;i!=result.length; ++i) {
+      result[i] = vector.getElementAsLogical(i).getInternalValue();
+    }
+    return new LogicalVector(result);
+  }
+
   public static StringVector asCharacter(SymbolExp symbol) {
     return new StringVector( symbol.getPrintName() );
   }
@@ -361,7 +369,7 @@ public class Types {
       SEXP values[] = new SEXP[length];
       Arrays.fill(values, Null.INSTANCE);
       return PairList.Node.fromArray(values);
-      
+
     } else {
       throw new EvalException(String.format("vector: cannot make a vector of mode '%s'.", mode));
     }
@@ -436,6 +444,41 @@ public class Types {
       env = env.getParent();
     }
     return new StringVector(names);
+  }
+
+  public static boolean isFactor(SEXP exp) {
+    return exp instanceof IntVector && exp.inherits("factor");
+  }
+
+  private static boolean isListFactor(ListVector list) {
+    for(SEXP element : list) {
+      if(element instanceof ListVector && !isListFactor((ListVector) element)) {
+        return false;
+      } else if(!isFactor(element)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Primitive("islistfactor")
+  public static boolean isListFactor(SEXP exp, boolean recursive) {
+
+    if(!(exp instanceof ListVector)) {
+      return false;    
+    }
+
+    ListVector vector = (ListVector) exp;
+    for(SEXP element : vector) {
+      if(element instanceof ListVector ) {
+        if(!recursive || !isListFactor((ListVector) element)) {
+          return false;
+        }
+      } else if(!isFactor(exp)) {
+        return false;
+      }
+    }
+    return true;
   }
 
 }

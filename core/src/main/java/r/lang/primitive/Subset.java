@@ -78,7 +78,7 @@ public class Subset {
     Vector.Builder result = vector.newBuilder(0);
     int resultLen = 0;
     for(int i=0;i!=vector.length();++i) {
-      int b = include.getInt(i % include.length());
+      int b = include.getElementAsInt(i % include.length());
       if( b == LogicalVector.NA ) {
         result.setNA(i);
       } else if( b != 0) {

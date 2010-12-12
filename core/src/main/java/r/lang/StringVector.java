@@ -32,10 +32,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class StringVector extends AbstractSEXP implements AtomicVector, Iterable<String>, WidensToString {
+public class StringVector extends AbstractAtomicVector implements Iterable<String> {
   public static final String TYPE_NAME = "character";
   public static final int TYPE_CODE = 16;
   public static final String NA = null;
+
+  public static final Vector.Type VECTOR_TYPE = new StringType();
 
   private final String values[];
 
@@ -72,17 +74,44 @@ public class StringVector extends AbstractSEXP implements AtomicVector, Iterable
     return new StringVector(values);
   }
 
-  @Override
-  public boolean isWiderThan(Object vector) {
-    return vector instanceof WidensToString;
-  }
-
   public String getElement(int index) {
     return values[index];
   }
 
-  public String getString(int index) {
+  public String getElementAsString(int index) {
     return values[index];
+  }
+
+  @Override
+  public Logical getElementAsLogical(int index) {
+    String value = values[index];
+    if(isNA(value)) {
+      return Logical.NA;
+    } else if(value.equals("T") || value.equals("TRUE")) {
+      return Logical.TRUE;
+    } else if(value.equals("F") || value.equals("FALSE")) {
+      return Logical.FALSE;
+    } else {
+      return Logical.NA;
+    }
+  }
+
+  @Override
+  public int getElementAsInt(int index) {
+    if(isElementNA(index)) {
+      return IntVector.NA;
+    } else {
+      return (int)ParseUtil.parseDouble(values[index]);
+    }
+  }
+
+  @Override
+  public double getElementAsDouble(int index) {
+    if(isElementNA(index)) {
+      return DoubleVector.NA;
+    } else {
+      return ParseUtil.parseDouble(values[index]);
+    }
   }
 
   @Override
@@ -103,7 +132,6 @@ public class StringVector extends AbstractSEXP implements AtomicVector, Iterable
     {
       return ParseUtil.parseDouble(values[0]);
     } else {
-
       return DoubleVector.NA;
     }
   }
@@ -155,6 +183,11 @@ public class StringVector extends AbstractSEXP implements AtomicVector, Iterable
   }
 
   @Override
+  public String getElementAsObject(int index) {
+    return values[index];
+  }
+
+  @Override
   public Builder newCopyBuilder() {
     Builder builder = new Builder();
     builder.addAll(this);
@@ -168,11 +201,31 @@ public class StringVector extends AbstractSEXP implements AtomicVector, Iterable
   }
 
   @Override
+  public Type getVectorType() {
+    return VECTOR_TYPE;
+  }
+
+  @Override
   public boolean isElementNA(int index) {
     return isNA(values[index]);
   }
 
-  public static class Builder implements Vector.Builder<StringVector, WidensToString> {
+  @Override
+  public int indexOf(AtomicVector vector, int vectorIndex) {
+    if(vector.isElementNA(vectorIndex)) {
+      return indexOfNA();
+    } else {
+      String value = vector.getElementAsString(vectorIndex);
+      for(int i=0;i!=values.length;++i) {
+        if(values[i].equals(value)) {
+          return i;
+        }
+      }
+      return -1;
+    }
+  }
+
+  public static class Builder implements Vector.Builder<AtomicVector> {
     private ArrayList<String> values = Lists.newArrayList();
     private ArrayList<String> names = Lists.newArrayList();
 
@@ -198,8 +251,8 @@ public class StringVector extends AbstractSEXP implements AtomicVector, Iterable
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, WidensToString source, int sourceIndex) {
-      return set(destinationIndex, source.getString(sourceIndex) );
+    public Builder setFrom(int destinationIndex, AtomicVector source, int sourceIndex) {
+      return set(destinationIndex, source.getElementAsString(sourceIndex) );
     }
 
     public Builder addAll(Iterable<String> strings) {
@@ -210,6 +263,17 @@ public class StringVector extends AbstractSEXP implements AtomicVector, Iterable
     @Override
     public StringVector build() {
       return new StringVector(values);
+    }
+  }
+
+  private static class StringType extends Vector.Type {
+    public StringType() {
+      super(Order.CHARACTER);
+    }
+
+    @Override
+    public Vector.Builder newBuilder() {
+      return new Builder();
     }
   }
 }

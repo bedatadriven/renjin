@@ -79,7 +79,7 @@ public class BasePackageTest extends EvalTestCase {
     loadBasePackage();
 
     eval(" library(survey) ");
-  }
+  }                               
 
   private void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));

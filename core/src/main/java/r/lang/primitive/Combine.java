@@ -21,174 +21,153 @@
 
 package r.lang.primitive;
 
+import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.primitive.annotations.ArgumentList;
-import r.lang.primitive.binding.AtomicAccessor;
-import r.lang.primitive.binding.AtomicAccessors;
-import r.lang.primitive.binding.AtomicBuilder;
-import r.lang.primitive.binding.AtomicBuilders;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static r.lang.primitive.binding.AtomicExps.elementClassOf;
 
 public class Combine {
 
+  private static final SymbolExp RECURSIVE = new SymbolExp("recursive");
 
-  public static SEXP combine(@ArgumentList PairList argList) {
 
-    if(argList.length() == 0) {
-      return Null.INSTANCE;
-    }
+  public static SEXP combine(@ArgumentList PairList arguments) {
 
-    Inspector inspector = new Inspector((PairList.Node) argList);
+    // parse arguments
+    // we need to look for
+    boolean recursive = false;
+    List<SEXP> expressions = Lists.newArrayList();
 
-    Class<? extends SEXP> lowestCommonType = inspector.getLowestCommonType();
-    if(AtomicVector.class.isAssignableFrom(lowestCommonType)) {
-      if(inspector.getTotalLength() == 0) {
-        return Null.INSTANCE;
-      } else {
-        return combineToAtomic(inspector);
-      }
-    } else {
-      return combineToList(inspector);
-    }
-  }
-
-  private static SEXP combineToAtomic(Inspector inspector) {
-    AtomicBuilder builder = AtomicBuilders.createFor(
-        elementClassOf((Class<? extends AtomicVector>) inspector.getLowestCommonType()),
-        inspector.getTotalLength());
-    int resultLength = 0;
-
-    for(SEXP exp : inspector.getAllExpressions()) {
-      AtomicAccessor accessor = AtomicAccessors.create(exp,
-          elementClassOf((Class<AtomicVector>) inspector.getLowestCommonType()));
-      for(int i=0;i!=accessor.length();++i) {
-        if(accessor.isNA(i)) {
-          builder.setNA(resultLength++);
-        } else {
-          builder.set(resultLength++, accessor.get(i));
-        }
+    for(PairList.Node node : arguments.nodes()) {
+      if(node.getRawTag().equals(RECURSIVE)) {
+        recursive = true;
+      } else if(node.getValue() != Null.INSTANCE) {
+        expressions.add(node.getValue());
       }
     }
-    return builder.build();
+
+    // Iterate over all the vectors in the argument
+    // list to determine which vector type to use
+    Inspector inspector = new Inspector(recursive);
+    inspector.acceptAll(expressions);
+
+    // Build a new vector with all the elements
+    return inspector.buildResult();
   }
 
-  private static SEXP combineToList(Inspector inspector) {
-    ListVector.Builder list = new ListVector.Builder();
-    for(SEXP exp : inspector.getAllExpressions()) {
-      for(SEXP element : exp.elements()) {
-        list.add(element);
-      }
-    }
-    return list.build();
+  public static AtomicVector unlist(AtomicVector vector, boolean recursive, boolean useNames) {
+    return vector;
   }
+
+  public static Vector unlist(ListVector vector, boolean recursive, boolean useNames) {
+    // Iterate over all the vectors in the argument
+    // list to determine which vector type to use
+    Inspector inspector = new Inspector(recursive);
+    inspector.acceptAll(vector);
+
+    return inspector.buildResult();
+  }
+
 
   /**
    * Finds the common type of an expression
    */
   static class Inspector extends SexpVisitor {
 
-    private int totalLength;
-    private List<SEXP> allExpressions = new ArrayList<SEXP>();
-    private Class resultClass = LogicalVector.class;
+    private boolean recursive = false;
+
+    private int resultLength;
+    private Vector.Type resultType = Null.VECTOR_TYPE;
+    private List<SEXP> results = Lists.newArrayList();
 
     /**
      * Visits each element of {@code ListExp}
      */
-    Inspector(PairList listExp) {
-      for(SEXP exp : listExp.values()) {
-        exp.accept(this);
-      }
+    Inspector(boolean recursive) {
+      this.recursive = recursive;
     }
 
     @Override
-    public void visit(DoubleVector realExp) {
-      maybeWidenType(realExp);
-      add(realExp);
+    public void visit(DoubleVector vector) {
+      resultType = Vector.Type.widest(resultType, vector);
+      add(vector);
     }
 
     @Override
-    public void visit(IntVector intExp) {
-      maybeWidenType(intExp);
-      add(intExp);
+    public void visit(IntVector vector) {
+      resultType = Vector.Type.widest(resultType, vector);
+      add(vector);
     }
 
     @Override
-    public void visit(LogicalVector logicalExp) {
-      add(logicalExp);
+    public void visit(LogicalVector vector) {
+      resultType = Vector.Type.widest(resultType, vector);
+      add(vector);
     }
 
     @Override
-    public void visit(Null nilExp) {
+    public void visit(Null nullInstance) {
       // ignore
     }
 
     @Override
-    public void visit(StringVector stringExp) {
-      maybeWidenType(stringExp);
-      add(stringExp);
+    public void visit(StringVector vector) {
+      resultType = Vector.Type.widest(resultType, vector);
+      add(vector);
     }
 
     @Override
-    public void visit(ListVector listExp) {
-      maybeWidenType(listExp);
-      for(SEXP exp : listExp) {
-        add(exp);
+    public void visit(ListVector vector) {
+      if(recursive) {
+        acceptAll(vector);
+      } else {
+        resultType = Vector.Type.widest(resultType, vector);
+        add(vector);
       }
+    }
+
+    @Override
+    public void visit(ExpressionVector vector) {
+      visit((ListVector)vector);
     }
 
     @Override
     protected void unhandled(SEXP exp) {
-      maybeWidenType(exp);
+      resultType = Vector.Type.widest(resultType, ListVector.VECTOR_TYPE);
       add(exp);
     }
 
     private void add(SEXP exp) {
-      allExpressions.add(exp);
-      totalLength += exp.length();
-    }
-
-    private void maybeWidenType(SEXP y) {
-      if(resultClass == ListVector.class) {
-        // already as wide as we're going to get
-        return;
-      }
-
-      if(!(y instanceof AtomicVector)) {
-        resultClass = ListVector.class;
-
-      } else if(resultClass == LogicalVector.class) {
-        // everything is wider than logical
-        resultClass = y.getClass();
-
-      } else if(resultClass == IntVector.class) {
-        if( !(y instanceof IntVector)) {
-          resultClass = y.getClass();
-        }
-
-      } else if(resultClass == Double.class) {
-        if( y instanceof StringVector) {
-          resultClass = y.getClass();
-        }
-      }
+      results.add(exp);
+      resultLength += exp.length();
     }
 
     /**
      * @return the common type of the visited expressions
      */
-    public Class<? extends SEXP> getLowestCommonType() {
-      return resultClass;
+    public Vector.Type getResultType() {
+      return resultType;
     }
 
-    public int getTotalLength() {
-      return totalLength;
+    public int getResultLength() {
+      return resultLength;
     }
 
-    public List<SEXP> getAllExpressions() {
-      return allExpressions;
+    public List<SEXP> getResults() {
+      return results;
+    }
+
+    public Vector buildResult() {
+      Vector.Builder vector = resultType.newBuilder();
+      int vectorLength = 0;
+
+      for(SEXP exp : results) {
+        for(int i=0;i!=exp.length();++i) {
+          vector.setFrom(vectorLength++, exp, i);
+        }
+      }
+      return vector.build();
     }
   }
 }

@@ -36,7 +36,6 @@ import java.lang.StringBuilder;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -77,7 +76,6 @@ public class RuntimeInvoker {
     converters = new ArrayList<ArgConverter>();
     converters.add(new ToPrimitive());
     converters.add(new StringToSymbol());
-    converters.add(new ToAccessor());
     converters.add(new FromExternalPtr());
     converters.add(new DoubleToIndices());
     converters.add(new DoubleToInt());
@@ -129,7 +127,6 @@ public class RuntimeInvoker {
     EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments);
   }
 
-
   /**
    * Evaluates and passes a fixed number of {@code SEXP}s
    * to the given method.
@@ -138,7 +135,7 @@ public class RuntimeInvoker {
    * () ->  method()
    * (SEXP) ->  method(SEXP)
    * (SEXP, SEXP) ->  method (SEXP, SEXP)
-   * (RealExp, RealExp) -> method (RealExp, RealExp)
+   * (DoubleVector, DoubleVector) -> method (DoubleVector, DoubleVector)
    * </code>
    */
   private class FixedArity implements CallStrategy {
@@ -305,19 +302,6 @@ public class RuntimeInvoker {
     return true;
   }
 
-  private static <T> T[] skip(T[] array, int index) {
-    return Arrays.copyOfRange(array, index, array.length);
-  }
-
-  private static Object[] concat(Object first, Object... elements) {
-    Object newArray[] = new Object[elements.length+1];
-    newArray[0] = first;
-    java.lang.System.arraycopy(elements, 0, newArray, 1, elements.length);
-    return newArray;
-  }
-
-
-
   private String formatNoMatchingOverloadMessage(FunctionCall call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
     StringBuilder sb = new StringBuilder();
     sb.append("Cannot execute the function with the arguments supplied.\n");
@@ -329,19 +313,6 @@ public class RuntimeInvoker {
 
     return sb.toString();
   }
-
-  private String formatMultipleMatchingOverloadMessage(FunctionCall call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("Multiple overloads match the supplied arguments.\n");
-    appendProvidedArguments(sb, provided);
-
-    sb.append("\nMatching overloads (in ").append(methods.get(0).getDeclaringClass().getName()).append(") :\n");
-
-    appendOverloadsTo(methods, sb);
-
-    return sb.toString();
-  }
-
 
   private void appendProvidedArguments(StringBuilder sb, List<ProvidedArgument> provided) {
     sb.append("Arguments: \n\t");
@@ -412,10 +383,6 @@ public class RuntimeInvoker {
 
     public String getTypeName() {
       return evaluated().getTypeName();
-    }
-
-    public Class getEvaledClass() {
-      return evaluated().getClass();
     }
 
     public SEXP getTag() {
@@ -498,20 +465,6 @@ public class RuntimeInvoker {
     @Override
     public Integer convert(Environment rho, DoubleVector source, PrimitiveMethod.Argument formal) {
       return (int)source.get(0);
-    }
-  }
-
-  private class ToAccessor implements ArgConverter<SEXP, AtomicAccessor> {
-    @Override
-    public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
-      return formal.getClazz() == AtomicAccessor.class &&
-          formal.getTypeArgument(0) instanceof Class &&
-          AtomicAccessors.haveAccessor(source, (Class) formal.getTypeArgument(0));
-    }
-
-    @Override
-    public AtomicAccessor convert(Environment rho, SEXP source, PrimitiveMethod.Argument formal) {
-      return AtomicAccessors.create(source, (Class) formal.getTypeArgument(0));
     }
   }
 

@@ -23,15 +23,18 @@ package r.lang;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.UnmodifiableIterator;
+import org.apache.commons.math.complex.Complex;
 import r.parser.ParseUtil;
 
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class IntVector extends AbstractSEXP implements AtomicVector, Iterable<Integer>, WidensToInt {
+public class IntVector extends AbstractAtomicVector implements Iterable<Integer> {
 
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
+  public static final Vector.Type VECTOR_TYPE = new IntType();
+
   public static final String IMPLICIT_CLASS = "integer";
 
   /**
@@ -69,12 +72,17 @@ public class IntVector extends AbstractSEXP implements AtomicVector, Iterable<In
   }
 
   @Override
+  public Type getVectorType() {
+    return VECTOR_TYPE;
+  }
+
+  @Override
   public int length() {
     return values.length;
   }
 
   @Override
-  public int getInt(int i) {
+  public int getElementAsInt(int i) {
     return values[i];
   }
 
@@ -87,12 +95,12 @@ public class IntVector extends AbstractSEXP implements AtomicVector, Iterable<In
   }
 
   @Override
-  public double getDouble(int index) {
+  public double getElementAsDouble(int index) {
     return values[index];
   }
 
   @Override
-  public String getString(int index) {
+  public String getElementAsString(int index) {
     return ParseUtil.toString(index);
   }
 
@@ -102,13 +110,34 @@ public class IntVector extends AbstractSEXP implements AtomicVector, Iterable<In
   }
 
   @Override
-  public Builder newBuilder(int initialSize) {
-    return new Builder(initialSize);
+  public Complex getElementAsComplex(int index) {
+    return new Complex(values[index], 0);
   }
 
   @Override
-  public boolean isWiderThan(Object vector) {
-    return vector instanceof WidensToLogical;
+  public Logical getElementAsLogical(int index) {
+    return Logical.valueOf(values[index]);
+  }
+
+  @Override
+  public Integer getElementAsObject(int index) {
+    return values[index];
+  }
+
+  @Override
+  public int indexOf(AtomicVector vector, int vectorIndex) {
+    int value = vector.getElementAsInt(vectorIndex);
+    for(int i=0;i!=values.length;++i) {
+      if(value == values[i]) {
+        return value;
+      }
+    }
+    return value;
+  }
+
+  @Override
+  public Builder newBuilder(int initialSize) {
+    return new Builder(initialSize);
   }
 
   @Override
@@ -206,8 +235,8 @@ public class IntVector extends AbstractSEXP implements AtomicVector, Iterable<In
     }
   }
 
-  private static class Builder implements Vector.Builder<LogicalVector, WidensToLogical> {
-    private PairList attributes;
+  private static class Builder implements Vector.Builder<AtomicVector> {
+    private PairList attributes = Null.INSTANCE;
     private int values[];
 
     private Builder(int initialSize) {
@@ -236,13 +265,24 @@ public class IntVector extends AbstractSEXP implements AtomicVector, Iterable<In
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, WidensToLogical source, int sourceIndex) {
-      return set(destinationIndex, source.getInt(sourceIndex));
+    public Builder setFrom(int destinationIndex, AtomicVector source, int sourceIndex) {
+      return set(destinationIndex, source.getElementAsInt(sourceIndex));
     }
 
     @Override
-    public LogicalVector build() {
-      return new LogicalVector(values, attributes);
+    public IntVector build() {
+      return new IntVector(values, attributes);
+    }
+  }
+
+  private static class IntType extends Vector.Type {
+    private IntType() {
+      super(Order.INTEGER);
+    }
+
+    @Override
+    public Vector.Builder newBuilder() {
+      return new Builder(0);
     }
   }
 }

@@ -249,6 +249,11 @@ public class Evaluation {
   public static EvalResult next() {
     throw new NextException();
   }
+
+  public static void stop(boolean call, String message) {
+    throw new EvalException(message);
+  }
+
   /**
    * break;
    */

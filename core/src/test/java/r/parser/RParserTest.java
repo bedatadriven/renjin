@@ -90,7 +90,7 @@ public class RParserTest {
   public void logical() throws IOException {
     LogicalVector x = (LogicalVector) parseSingle("TRUE\n");
     assertThat(x.length(), equalTo(1));
-    assertThat(x.getInt(0), equalTo(1));
+    assertThat(x.getElementAsInt(0), equalTo(1));
   }
 
   @Test

@@ -51,6 +51,7 @@ class FriendlyTypesNames {
     names.put(Double.TYPE, DoubleVector.TYPE_NAME);
     names.put(String.class, StringVector.TYPE_NAME);
     names.put(StringVector.class, StringVector.TYPE_NAME);
+    names.put(ListVector.class, ListVector.TYPE_NAME);
     names.put(PairList.Node.class, PairList.TYPE_NAME);
   }
 
@@ -60,7 +61,6 @@ class FriendlyTypesNames {
     }
     return INSTANCE;
   }
-
 
   public String format(Class clazz) {
     if(names.containsKey(clazz)) {

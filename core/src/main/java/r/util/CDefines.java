@@ -44,17 +44,17 @@ public class CDefines {
 
   //#define DATAPTR(x)	(((SEXPREC_ALIGN *) (x)) + 1)
 
-  public static CharExp STRING_ELT(SEXP x, int i) {
+  public static CHARSEXP STRING_ELT(SEXP x, int i) {
     StringVector vector = (StringVector)x;
-    return new CharExp(vector.getElement(i));
+    return new CHARSEXP(vector.getElement(i));
   }
 
-  public static String CHAR(CharExp s) {
+  public static String CHAR(CHARSEXP s) {
     return s.getValue();
   }
 
-  public static CharExp PRINTNAME(SEXP s) {
-    return new CharExp(((SymbolExp) s).getPrintName());
+  public static CHARSEXP PRINTNAME(SEXP s) {
+    return new CHARSEXP(((SymbolExp) s).getPrintName());
   }
 
 
@@ -325,7 +325,7 @@ public class CDefines {
 
 
   public static String translateChar(SEXP s) {
-    CharExp charVec = (CharExp)s;
+    CHARSEXP charVec = (CHARSEXP)s;
     return charVec.toString();
   }
 

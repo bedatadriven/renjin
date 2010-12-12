@@ -131,12 +131,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntVector.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getElementAsInt(index));
     }
 
     @Override
     public Integer get(int index) {
-      return exp.getInt(index);
+      return exp.getElementAsInt(index);
     }
 
     @Override
@@ -155,12 +155,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return exp.getInt(index) == IntVector.NA;
+      return exp.getElementAsInt(index) == IntVector.NA;
     }
 
     @Override
     public Integer get(int index) {
-      return exp.getInt(index);
+      return exp.getElementAsInt(index);
     }
 
     @Override
@@ -224,12 +224,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntVector.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getElementAsInt(index));
     }
 
     @Override
     public Double get(int index) {
-      return (double) exp.getInt(index);
+      return (double) exp.getElementAsInt(index);
     }
 
     @Override
@@ -252,12 +252,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntVector.isNA( exp.getInt(index) );
+      return IntVector.isNA( exp.getElementAsInt(index) );
     }
 
     @Override
     public Boolean get(int index) {
-      return exp.getInt( index) != 0;
+      return exp.getElementAsInt( index) != 0;
     }
   }
 
@@ -271,12 +271,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return exp.getInt(index) == IntVector.NA;
+      return exp.getElementAsInt(index) == IntVector.NA;
     }
 
     @Override
     public Double get(int index) {
-      return (double)exp.getInt(index);
+      return (double)exp.getElementAsInt(index);
     }
 
     @Override
@@ -294,12 +294,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return exp.getInt(index) == IntVector.NA;
+      return exp.getElementAsInt(index) == IntVector.NA;
     }
 
     @Override
     public Boolean get(int index) {
-      return exp.getInt(index) == 1;
+      return exp.getElementAsInt(index) == 1;
     }
 
     @Override
@@ -361,12 +361,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntVector.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getElementAsInt(index));
     }
 
     @Override
     public String get(int index) {
-      return ParseUtil.toString(exp.getInt(index));
+      return ParseUtil.toString(exp.getElementAsInt(index));
     }
 
     @Override
@@ -384,12 +384,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntVector.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getElementAsInt(index));
     }
 
     @Override
     public String get(int index) {
-      return exp.getInt(index) == 1 ? "TRUE" : "FALSE";
+      return exp.getElementAsInt(index) == 1 ? "TRUE" : "FALSE";
     }
 
     @Override
@@ -412,12 +412,12 @@ public class AtomicAccessors {
 
     @Override
     public boolean isNA(int index) {
-      return IntVector.isNA(exp.getInt(index));
+      return IntVector.isNA(exp.getElementAsInt(index));
     }
 
     @Override
     public Logical get(int index) {
-      return Logical.valueOf(exp.getInt(index));
+      return Logical.valueOf(exp.getElementAsInt(index));
     }
   }
 }

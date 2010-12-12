@@ -22,14 +22,52 @@
 package r.lang;
 
 import com.google.common.collect.UnmodifiableIterator;
+import org.apache.commons.math.complex.Complex;
 
 import java.util.Iterator;
 
 public abstract class AbstractAtomicVector extends AbstractSEXP implements AtomicVector{
 
+  protected AbstractAtomicVector(PairList attributes) {
+    super(attributes);
+  }
+
+  protected AbstractAtomicVector() {
+  }
+
   @Override
   public Iterable<SEXP> elements() {
     return new Elements();
+  }
+
+  @Override
+  public boolean containsNA() {
+    return indexOfNA() != -1;
+  }
+
+  @Override
+  public Complex getElementAsComplex(int index) {
+    return new Complex(getElementAsDouble(index), 0);
+  }
+
+  @Override
+  public int indexOfNA() {
+    for(int i=0;i!=length();++i) {
+      if(isElementNA(i)) {
+        return i;
+      }
+    }
+    return -1;        
+  }
+
+  @Override
+  public boolean contains(AtomicVector vector, int vectorIndex) {
+    return indexOf(vector, vectorIndex) != -1;
+  }
+
+  @Override
+  public final boolean isWiderThan(Vector vector) {
+    return getVectorType().isWiderThan(vector.getVectorType());
   }
 
   private class Elements implements Iterable<SEXP> {

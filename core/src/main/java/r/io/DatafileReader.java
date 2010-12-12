@@ -332,7 +332,7 @@ public class DatafileReader {
   }
 
   private SEXP readSymbol() throws IOException {
-    CharExp printName = (CharExp) readExp();
+    CHARSEXP printName = (CHARSEXP) readExp();
     return addReadRef( new SymbolExp( printName.getValue()) );
   }
 
@@ -387,7 +387,7 @@ public class DatafileReader {
     int length = in.readInt();
     String[] values = new String[length];
     for(int i=0;i!=length;++i) {
-      values[i] = ((CharExp)readExp()).getValue();
+      values[i] = ((CHARSEXP)readExp()).getValue();
     }
     return new StringVector(values, readAttributes(flags));
   }
@@ -428,15 +428,15 @@ public class DatafileReader {
     int length = in.readInt();
 
     if (length == -1) {
-      return new CharExp(StringVector.NA );
+      return new CHARSEXP(StringVector.NA );
     } else  {
       byte buf[] = in.readString(length);
       if(flags.isUTF8Encoded()) {
-        return new CharExp(new String(buf, "UTF8"));
+        return new CHARSEXP(new String(buf, "UTF8"));
       } else if(flags.isLatin1Encoded()) {
-        return new CharExp(new String(buf, "Latin1"));
+        return new CHARSEXP(new String(buf, "Latin1"));
       } else {
-        return new CharExp(new String(buf));
+        return new CHARSEXP(new String(buf));
       }
     }
   }
@@ -467,7 +467,7 @@ public class DatafileReader {
     int len = in.readInt();
     String values[] = new String[len];
     for(int i=0;i!=len;++i) {
-      values[i] = ((CharExp)readExp()).getValue();
+      values[i] = ((CHARSEXP)readExp()).getValue();
     }
     return new StringVector(values);
   }

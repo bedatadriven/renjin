@@ -21,6 +21,8 @@
 
 package r.lang;
 
+import org.apache.commons.math.complex.Complex;
+
 /**
  * Provides a common interface to {@code ListExp}, all {@code AtomicExp}s, and
  * {@code PairList}s
@@ -31,9 +33,21 @@ public interface Vector extends SEXP {
 
   /**
    * @param index zero-based index of the element
-   * @return the element at {@code index} as a new {@code SEXP}
+   * @return the element at {@code index} as a {@link SEXP},
+   * wrapping the element if necessary in a new {@link AtomicVector} if necessary
    */
   SEXP getElementAsSEXP(int index);
+
+  double getElementAsDouble(int index);
+
+  int getElementAsInt(int index);
+
+  String getElementAsString(int index);
+
+  Logical getElementAsLogical(int index);
+
+  Complex getElementAsComplex(int index);
+
 
   /**
    * Returns a builder for this type, initially empty.
@@ -42,13 +56,16 @@ public interface Vector extends SEXP {
    */
   Builder newBuilder(int initialSize);
 
+  Type getVectorType();
+
+
   /**
    *
    * @param vector
    * @return true if this vector can be widened to the given
    * vector
    */
-  boolean isWiderThan(Object vector);
+  boolean isWiderThan(Vector vector);
 
   /**
    *         
@@ -56,15 +73,68 @@ public interface Vector extends SEXP {
    */
   Builder newCopyBuilder();
 
-  public static interface Builder<S extends SEXP, E extends Vector> {
+  public static interface Builder<S extends SEXP> {
 
     /**
      * Sets the element at index {@code index} to NA
      */
     Builder setNA(int index);
 
-    public Builder setFrom(int destinationIndex, E source, int sourceIndex );
+    public Builder setFrom(int destinationIndex, S source, int sourceIndex );
 
-    public S build();
+    public Vector build();
+  }
+
+  static class Order {
+    // NULL < raw < logical < integer < double < complex < character < list < expression
+    // these
+    public static final int NULL = 0;
+    public static final int RAW = 1;
+    public static final int LOGICAL = 2;
+    public static final int INTEGER = 3;
+    public static final int DOUBLE = 4;
+    public static final int COMPLEX = 5;
+    public static final int CHARACTER = 6;
+    public static final int LIST = 7;
+    public static final int EXPRESSION = 8;
+  }
+
+  public static abstract class Type implements Comparable<Type> {
+    private final int size;
+
+    protected Type(int size) {
+      this.size = size;
+    }
+
+    @Override
+    public int compareTo(Type o) {
+      return size - o.size;
+    }
+
+    public abstract Builder newBuilder();
+
+    public final boolean isAtomic() {
+      return size < Order.LIST;
+    }
+
+    public final boolean isWiderThan(Type type) {
+      return size > type.size;
+    }
+
+    public final boolean isWiderThan(Vector vector) {
+      return isWiderThan(vector.getVectorType());
+    }
+
+    public static Type widest(Type a, Type b) {
+      if(b.isWiderThan(a)) {
+        return b;
+      } else {
+        return a;
+      }
+    }
+
+    public static Type widest(Type a, Vector b) {
+      return widest(a, b.getVectorType());
+    }
   }
 }

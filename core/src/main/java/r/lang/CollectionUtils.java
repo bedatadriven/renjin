@@ -37,11 +37,11 @@ public class CollectionUtils {
     };
   }
 
-  public static Function<StringVector, String> elementAt(final int index) {
-    return new Function<StringVector, String>() {
+  public static Function<AtomicVector, String> stringElementAt(final int index) {
+    return new Function<AtomicVector, String>() {
       @Override
-      public String apply(StringVector input) {
-        return input.getElement( index % input.length() );
+      public String apply(AtomicVector input) {
+        return input.getElementAsString( index % input.length() );
       }
     };
   }

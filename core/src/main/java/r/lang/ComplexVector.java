@@ -27,11 +27,15 @@ import org.apache.commons.math.complex.Complex;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class ComplexVector extends AbstractSEXP implements AtomicVector, Iterable<Complex> {
+public class ComplexVector extends AbstractAtomicVector implements Iterable<Complex> {
 
   private final Complex[] values;
   public static final int TYPE_CODE = 15;
   public static final String TYPE_NAME = "complex";
+
+  public static Vector.Type VECTOR_TYPE = new ComplexType();
+
+  public static final Complex NA = new Complex(DoubleVector.NA, 0);
 
   public ComplexVector(Complex... values) {
     this.values = Arrays.copyOf(values, values.length);
@@ -57,24 +61,71 @@ public class ComplexVector extends AbstractSEXP implements AtomicVector, Iterabl
     visitor.visit(this);
   }
 
+  public static boolean isNA(Complex value) {
+    return DoubleVector.isNA(value.getReal());
+  }
+
   @Override
   public SEXP getElementAsSEXP(int index) {
     return new ComplexVector(values[index]);
   }
 
   @Override
-  public Builder newBuilder(int initialSize) {
-    return null;
+  public Complex getElementAsObject(int index) {
+    return values[index];
   }
 
   @Override
-  public boolean isWiderThan(Object vector) {
-    return false;
+  public double getElementAsDouble(int index) {
+    return values[index].getReal();
+  }
+
+  @Override
+  public int getElementAsInt(int index) {
+    double value = values[index].getReal();
+    return DoubleVector.isNA(value) ? IntVector.NA : (int)value;
+  }
+
+  @Override
+  public String getElementAsString(int index) {
+    throw new UnsupportedOperationException("implement me");
+  }
+
+  @Override
+  public Logical getElementAsLogical(int index) {
+    double value = values[index].getReal();
+    return DoubleVector.isNA(value) ? Logical.NA : Logical.valueOf(value != 0);
+  }
+
+  @Override
+  public Complex getElementAsComplex(int index) {
+    return values[index];
+  }
+
+  @Override
+  public int indexOf(AtomicVector vector, int vectorIndex) {
+    Complex value = vector.getElementAsComplex(vectorIndex);
+    for(int i=0;i!=values.length;++i) {
+      if(values[i].equals(value)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  @Override
+  public Builder newBuilder(int initialSize) {
+    throw new UnsupportedOperationException("implement me");
+  }
+
+  @Override
+  public Type getVectorType() {
+    return VECTOR_TYPE;
   }
 
   @Override
   public Builder newCopyBuilder() {
-    return null;
+    throw new UnsupportedOperationException("implement me");
   }
 
   @Override
@@ -85,5 +136,16 @@ public class ComplexVector extends AbstractSEXP implements AtomicVector, Iterabl
   @Override
   public boolean isElementNA(int index) {
     throw new UnsupportedOperationException("implement me!");
+  }
+
+  private static class ComplexType extends Vector.Type {
+    public ComplexType() {
+      super(Order.COMPLEX);
+    }
+
+    @Override
+    public Builder newBuilder() {
+      throw new UnsupportedOperationException("implement me!");
+    }
   }
 }

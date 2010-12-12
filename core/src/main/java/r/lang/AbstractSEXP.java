@@ -21,6 +21,7 @@
 
 package r.lang;
 
+import com.google.common.base.Preconditions;
 import r.lang.exception.EvalException;
 
 import java.util.Collections;
@@ -34,16 +35,19 @@ abstract class AbstractSEXP implements SEXP {
   private SEXP tag = Null.INSTANCE;
 
   protected AbstractSEXP(SEXP tag, PairList attributes) {
+    Preconditions.checkNotNull(attributes);
     this.tag = tag;
     this.attributes = attributes;
   }
 
   protected AbstractSEXP(PairList attributes) {
+    Preconditions.checkNotNull(attributes);
     this.attributes = attributes;
   }
 
   protected AbstractSEXP() {
-    this(Null.INSTANCE, Null.INSTANCE);
+    this.tag = Null.INSTANCE;
+    this.attributes = Null.INSTANCE;
   }
 
   @Override

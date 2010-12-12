@@ -46,7 +46,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(CharExp charExp) {
+    public void visit(CHARSEXP charExp) {
       throw new UnsupportedOperationException();
     }
 

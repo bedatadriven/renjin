@@ -85,5 +85,9 @@ public class BasePackageTest extends EvalTestCase {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
     SEXP loadingScript = RParser.parseSource(reader).evaluate(topLevelContext, global).getExpression();
     loadingScript.evaluate(topLevelContext, global);
+
+    reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/Rprofile"));
+    SEXP profileScript = RParser.parseSource(reader).evalToExp(topLevelContext, global);
+    profileScript.evaluate(topLevelContext, global);
   }
 }

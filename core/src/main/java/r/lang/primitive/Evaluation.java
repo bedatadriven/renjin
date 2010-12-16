@@ -391,6 +391,12 @@ public class Evaluation {
     }
   }
 
+  @Primitive(".Call")
+  public static SEXP doCall(Context context, Environment rho, FunctionCall call) {
+    throw new EvalException(String.format("Call to native function '%s'",
+        call.evalArgument(context, rho, 0)));
+  }
+
   public static class BreakException extends ControlFlowException {   }
 
   public static class NextException extends ControlFlowException {   }

@@ -266,6 +266,16 @@ public class Types {
     return environment;
   }
 
+  public static StringVector ls(Environment environment, boolean allNames) {
+    StringVector.Builder names = new StringVector.Builder();
+    for(SymbolExp name : environment.getSymbolNames()) {
+      if(allNames || ! name.getPrintName().startsWith(".")) {
+        names.add(name.getPrintName());
+      }
+    }
+    return names.build();
+  }
+
   public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual, boolean singleNA, boolean attributesAsSet) {
     if(!numericallyEqual || !singleNA || !attributesAsSet) {
       throw new EvalException("identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");

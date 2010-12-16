@@ -88,18 +88,20 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   @Override
-  public EvalResult apply(FunctionCall call, PairList args, Environment rho) {
-    return apply(rho, args);
+  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    return apply(context, rho, args);
   }
 
-  public EvalResult apply(Environment rho, PairList args) {
+  public EvalResult apply(Context context, Environment rho, PairList args) {
     try {
-      Environment functionEnvironment = Environment.createChildEnvironment(enclosingEnvironment);
-      matchArgumentsInto(args, enclosingEnvironment, functionEnvironment, rho);
+      Context functionContext = context.beginFunction(enclosingEnvironment);
+      Environment functionEnvironment = functionContext.getEnvironment();
 
-      EvalResult result = body.evaluate(functionEnvironment);
+      matchArgumentsInto(args, enclosingEnvironment, functionEnvironment, rho, context);
 
-      functionEnvironment.exit();
+      EvalResult result = body.evaluate(functionContext, functionEnvironment);
+
+      functionEnvironment.exit(context);
 
       return result;
     } catch(Evaluation.ReturnException e) {
@@ -171,15 +173,16 @@ public class Closure extends AbstractSEXP implements Function {
    * @param actuals the actual arguments supplied to the list
    * @param innerEnv the environment in which to resolve the arguments;
    * @param rho  the environment from which the function is called
+   * @param context
    */
-  private void matchArgumentsInto(PairList actuals, Environment enclosure, Environment innerEnv, Environment rho) {
+  private void matchArgumentsInto(PairList actuals, Environment enclosure, Environment innerEnv, Environment rho, Context context) {
 
 
 
     List<PairList.Node> unmatchedActuals = Lists.newArrayList();
     for(PairList.Node argNode : actuals.nodes()) {
       if(SymbolExp.ELLIPSES.equals(argNode.getValue())) {
-        DotExp dotExp = (DotExp) argNode.getValue().evalToExp(rho);
+        DotExp dotExp = (DotExp) argNode.getValue().evalToExp(context, rho);
         for(PairList.Node dotArg : dotExp.getPromises().nodes()) {
           unmatchedActuals.add(dotArg);
         }
@@ -199,7 +202,7 @@ public class Closure extends AbstractSEXP implements Function {
 
         if(matches.size() == 1) {
           PairList.Node match = first(matches);
-          innerEnv.setVariable(name, new Promise( match.getValue(), rho ));
+          innerEnv.setVariable(name, new Promise(rho, match.getValue()));
           formalIt.remove();
           unmatchedActuals.remove(match);
 
@@ -219,7 +222,7 @@ public class Closure extends AbstractSEXP implements Function {
 
         if(matches.size() == 1) {
           PairList.Node match = first(matches);
-          innerEnv.setVariable(match.getTag(), new Promise( actual.getValue(), rho ));
+          innerEnv.setVariable(match.getTag(), new Promise(rho, actual.getValue()));
           actualIt.remove();
           unmatchedFormals.remove(match);
 
@@ -240,18 +243,18 @@ public class Closure extends AbstractSEXP implements Function {
         PairList.Node.Builder promises = PairList.Node.newBuilder();
         while(actualIt.hasNext()) {
           PairList.Node actual = actualIt.next();
-          promises.add( actual.getRawTag(),  new Promise( actual.getValue(), rho ) );
+          promises.add( actual.getRawTag(),  new Promise(rho, actual.getValue()) );
         }
         innerEnv.setVariable(formal.getTag(), new DotExp( promises.build() ));
 
       } else if( hasNextUnTagged(actualIt) ) {
-        innerEnv.setVariable(formal.getTag(), new Promise( nextUnTagged(actualIt).getValue(), rho ) );
+        innerEnv.setVariable(formal.getTag(), new Promise(rho, nextUnTagged(actualIt).getValue()) );
 
       } else if( formal.getValue() == SymbolExp.MISSING_ARG ) {
         innerEnv.setVariable(formal.getTag(), SymbolExp.MISSING_ARG);
 
       } else {
-        innerEnv.setVariable(formal.getTag(), new Promise( formal.getValue(), innerEnv )); // default
+        innerEnv.setVariable(formal.getTag(), new Promise(innerEnv, formal.getValue())); // default
       }
     }
     if(actualIt.hasNext()) {

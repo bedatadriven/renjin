@@ -36,13 +36,15 @@ import static org.junit.Assert.assertThat;
 public abstract class EvalTestCase {
 
   protected Environment global;
+  protected Context topLevelContext;
   public static final SEXP NULL = Null.INSTANCE;
   public static final SEXP CHARACTER_0 = new StringVector();
   public static final SEXP DOUBLE_0 = new DoubleVector();
 
   @Before
   public void setUp() {
-    global = Environment.createGlobalEnvironment();
+    topLevelContext = Context.newTopLevelContext();
+    global = topLevelContext.getEnvironment();
   }
 
   protected SEXP eval(String source) {
@@ -54,7 +56,7 @@ public abstract class EvalTestCase {
       source = source + "\n";
     }
     SEXP exp = parse(source);
-    return exp.evaluate(global);
+    return exp.evaluate(topLevelContext, global);
   }
 
   private SEXP parse(String source)  {

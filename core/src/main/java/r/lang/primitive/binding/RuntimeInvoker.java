@@ -83,11 +83,11 @@ public class RuntimeInvoker {
     converters.add(new NullToObject());
   }
 
-  public EvalResult invoke(Environment rho, FunctionCall call, List<PrimitiveMethod> overloads) {
+  public EvalResult invoke(Context context, Environment rho, FunctionCall call, List<PrimitiveMethod> overloads) {
 
     // first check for a method which can handle the call in its entirety
     if(overloads.size() == 1 && overloads.get(0).acceptsCall()) {
-      return overloads.get(0).invokeAndWrap(rho, call);
+      return overloads.get(0).invokeAndWrap(context, rho, call);
     }
 
     // make a list of the provided arguments
@@ -95,12 +95,12 @@ public class RuntimeInvoker {
     for(PairList.Node arg : call.getArguments().nodes()) {
       if(SymbolExp.ELLIPSES.equals(arg.getValue())) {
         // the values of the '...' are just merged into the argument list
-        DotExp ellipses = (DotExp) arg.getValue().evalToExp(rho);
+        DotExp ellipses = (DotExp) arg.getValue().evalToExp(context, rho);
         for(PairList.Node dotArg : ellipses.getPromises().nodes()) {
-          provided.add(new ProvidedArgument(rho, dotArg));
+          provided.add(new ProvidedArgument(context, rho, dotArg));
         }
       } else {
-        provided.add(new ProvidedArgument(rho, arg));
+        provided.add(new ProvidedArgument(context, rho, arg));
       }
     }
 
@@ -112,7 +112,7 @@ public class RuntimeInvoker {
     for(CallStrategy strategy : strategies) {
       for(PrimitiveMethod method : overloads) {
         if(strategy.accept(method, provided)) {
-          return strategy.apply(method, rho, provided);
+          return strategy.apply(method, context, rho, provided);
         }
       }
     }
@@ -124,7 +124,7 @@ public class RuntimeInvoker {
 
   private interface CallStrategy {
     boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments);
-    EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments);
+    EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments);
   }
 
   /**
@@ -146,8 +146,8 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments) {
-      return method.invokeWithContextAndWrap(rho, convertArgs(method, arguments));
+    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
+      return method.invokeWithContextAndWrap(context, rho, convertArgs(method, arguments));
     }
   }
 
@@ -162,7 +162,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments) {
+    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
       return method.invokeAndWrap(new Object[] { arguments });
     }
   }
@@ -193,7 +193,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments) {
+    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
       AtomicAccessor domain =  AtomicAccessors.create( arguments.get(0).evaluated(), primitive );
       AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), domain.length() );
       boolean allowNA = method.getArguments().get(0).isAnnotatedWith(AllowNA.class);
@@ -244,7 +244,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(PrimitiveMethod method, Environment rho, List<ProvidedArgument> arguments) {
+    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
       AtomicAccessor<Double> x = AtomicAccessors.create( arguments.get(0).evaluated(), primitiveType );
       AtomicAccessor<Double> y = AtomicAccessors.create( arguments.get(1).evaluated(), primitiveType );
       int xLen = x.length();
@@ -333,8 +333,10 @@ public class RuntimeInvoker {
     private SEXP provided;
     private SEXP evaluated;
     private SEXP tag;
+    private Context context;
 
-    public ProvidedArgument(Environment rho, PairList.Node arg) {
+    public ProvidedArgument(Context context, Environment rho, PairList.Node arg) {
+      this.context = context;
       this.rho = rho;
       this.provided = arg.getValue();
       this.tag = arg.getRawTag();
@@ -350,9 +352,9 @@ public class RuntimeInvoker {
 
     private SEXP evaluated() {
       if(evaluated == null ) {
-        evaluated = provided.evaluate(rho).getExpression();
+        evaluated = provided.evaluate(context, rho).getExpression();
         if(evaluated instanceof Promise) {
-          evaluated = evaluated.evalToExp(rho);
+          evaluated = evaluated.evalToExp(context, rho);
         }
       }
       return evaluated;

@@ -63,9 +63,10 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
    * has a signature of (EnvExp, LangExp)
    */
   public boolean acceptsCall() {
-    return arguments.size() == 2 &&
-           arguments.get(0).getClazz().equals(Environment.class) &&
-           arguments.get(1).getClazz().equals(FunctionCall.class);
+    return arguments.size() == 3 &&
+           arguments.get(0).getClazz().equals(Context.class) &&
+           arguments.get(1).getClazz().equals(Environment.class) &&
+           arguments.get(2).getClazz().equals(FunctionCall.class);
   }
 
   public boolean acceptsArgumentList() {
@@ -143,13 +144,22 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     }
   }
 
-  public EvalResult invokeWithContextAndWrap(Environment rho, Object[] formals) {
+  public EvalResult invokeWithContextAndWrap(Context context, Environment rho, Object[] formals) {
     Object params[] = new Object[arguments.size()];
     int formalIndex = 0;
 
     for(int i=0;i!=arguments.size();i++) {
-      if(arguments.get(i).isEnvironment()) {
-        params[i] = rho;
+      if(arguments.get(i).isContextual()) {
+        Class clazz = arguments.get(i).getClazz();
+        if(clazz.equals(Environment.class)) {
+          params[i] = rho;
+        } else if(clazz.equals(Context.class)) {
+          params[i] = context;
+        } else {
+          throw new UnsupportedOperationException(
+              String.format("Cannot inject argument of type '%s' into method %s",
+                clazz.getName(), this.toString()));
+        }
       } else {
         params[i] = formals[formalIndex++];
       }
@@ -170,7 +180,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
       sb.append(method.getName()).append("(");
       boolean needsComma=false;
       for(Argument argument : arguments) {
-        if(!argument.isEnvironment()) {
+        if(!argument.isContextual()) {
           if(needsComma) {
             sb.append(", ");
           } else {
@@ -219,7 +229,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   public class Argument {
     private int index;
     private Class clazz;
-    private boolean environment = false;
+    private boolean contextual = false;
     private boolean evaluated = true;
     private boolean symbol;
 
@@ -229,7 +239,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
 
       for(Annotation annotation : method.getParameterAnnotations()[index]) {
         if(annotation instanceof Current) {
-          environment = true;
+          contextual = true;
 
         } else if(annotation instanceof Evaluate) {
           evaluated = ((Evaluate) annotation).value();
@@ -264,8 +274,8 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
       return clazz;
     }
 
-    public boolean isEnvironment() {
-      return environment;
+    public boolean isContextual() {
+      return contextual;
     }
 
     public boolean isEvaluated() {
@@ -280,7 +290,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   private static class IsFormal implements Predicate<Argument> {
     @Override
     public boolean apply(Argument input) {
-      return !input.isEnvironment();
+      return !input.isContextual();
     }
   }
 

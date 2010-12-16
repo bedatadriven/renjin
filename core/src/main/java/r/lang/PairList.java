@@ -291,7 +291,7 @@ public interface PairList extends SEXP {
     }
 
     @Override
-    public EvalResult evaluate(Environment rho) {
+    public EvalResult evaluate(Context context, Environment rho) {
       return new EvalResult(this);
     }
 

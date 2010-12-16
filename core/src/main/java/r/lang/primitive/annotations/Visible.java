@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,15 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.annotations;
 
-/**
- * Superinterface for the three function-like {@code SEXP}s:
- * {@code Closure}, {@code SpecialFunction}, and {@code PrimitiveFunction}.
- *
- * 
- */
-public interface Function extends SEXP, Recursive {
-
-  EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args);
+public @interface Visible {
+  boolean value() default true;
 }

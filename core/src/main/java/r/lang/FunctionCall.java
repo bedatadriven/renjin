@@ -51,13 +51,13 @@ public class FunctionCall extends PairList.Node {
   }
 
   @Override
-  public EvalResult evaluate(Environment rho) {
-    Function functionExpr = evaluateFunction(rho);
-    return functionExpr.apply(this, getArguments(), rho);
+  public EvalResult evaluate(Context context, Environment rho) {
+    Function functionExpr = evaluateFunction(context, rho);
+    return functionExpr.apply(context, rho, this, getArguments());
   }
 
-  private Function evaluateFunction(Environment rho) {
-    return (Function) getFunction().evalToExp(rho);
+  private Function evaluateFunction(Context context, Environment rho) {
+    return (Function) getFunction().evalToExp(context, rho);
   }
 
   public static SEXP fromListExp(PairList.Node listExp) {
@@ -76,8 +76,8 @@ public class FunctionCall extends PairList.Node {
     return getArguments().<X>get(index);
   }
 
-  public SEXP evalArgument(int index, Environment rho) {
-    return getArgument(index).evalToExp(rho);
+  public SEXP evalArgument(Context context, Environment rho, int index) {
+    return getArgument(index).evalToExp(context, rho);
   }
 
   @Override

@@ -216,4 +216,5 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval(" s1(a) "), equalTo( c(11) ) );
     assertThat( eval(" s2(a) "), equalTo( symbol("a") ));
   }
+
 }

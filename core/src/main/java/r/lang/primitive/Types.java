@@ -266,6 +266,13 @@ public class Types {
     return environment;
   }
 
+  public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual, boolean singleNA, boolean attributesAsSet) {
+    if(!numericallyEqual || !singleNA || !attributesAsSet) {
+      throw new EvalException("identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");
+    }
+    return x.equals(y);
+  }
+
   public static ListVector list(@ArgumentList PairList arguments) {
 
     int n = arguments.length();
@@ -444,6 +451,38 @@ public class Types {
       env = env.getParent();
     }
     return new StringVector(names);
+  }
+
+  @Visible(false)
+  public static Environment attach(@Current Environment rho, SEXP what, @Indices int pos, String name) {
+
+    //By default the database is attached in position 2 in the search path,
+    // immediately after the user's workspace and before all previously loaded packages and
+    // previously attached databases. This can be altered to attach later in the search
+    // path with the pos option, but you cannot attach at pos=1.
+
+    if(pos < 2) {
+      throw new EvalException("Attachment position must be 2 or greater");
+    }
+
+    Environment child = rho.getGlobalEnvironment();
+    for(int i=2;i!=pos;++i) {
+      child = child.getParent();
+    }
+
+    Environment newEnv = Environment.createChildEnvironment(child.getParent());
+    child.setParent(newEnv);
+
+    // copy all values from the provided environment into the
+    // new environment
+    if(what instanceof Environment) {
+      Environment source = (Environment) what;
+      for(SymbolExp symbol : source.getSymbolNames()) {
+        newEnv.setVariable(symbol, source.getVariable(symbol));
+      }
+    }
+
+    return newEnv;
   }
 
   public static boolean isFactor(SEXP exp) {

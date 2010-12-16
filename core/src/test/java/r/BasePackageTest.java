@@ -67,7 +67,7 @@ public class BasePackageTest extends EvalTestCase {
 
     String path = getClass().getResource("/simpleTest.R").getFile();
 
-    ListVector result = (ListVector) FunctionCall.newCall(symbol("file.info"), c(path)).evalToExp(global);
+    ListVector result = (ListVector) FunctionCall.newCall(symbol("file.info"), c(path)).evalToExp(topLevelContext, global);
 
     assertThat( result.get("isdir"), equalTo( c(Logical.FALSE) ));
     assertThat( result.get("mode"), equalTo( c("777") ));
@@ -83,7 +83,7 @@ public class BasePackageTest extends EvalTestCase {
 
   private void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadingScript = RParser.parseSource(reader).evaluate(global).getExpression();
-    loadingScript.evaluate(global);
+    SEXP loadingScript = RParser.parseSource(reader).evaluate(topLevelContext, global).getExpression();
+    loadingScript.evaluate(topLevelContext, global);
   }
 }

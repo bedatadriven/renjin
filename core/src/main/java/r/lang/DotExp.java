@@ -46,7 +46,7 @@ public class DotExp extends AbstractSEXP {
   }
 
   @Override
-  public EvalResult evaluate(Environment rho) {
+  public EvalResult evaluate(Context context, Environment rho) {
     throw new EvalException("'...' used in an incorrect context");
   }
 

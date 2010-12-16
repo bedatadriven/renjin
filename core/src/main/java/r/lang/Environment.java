@@ -110,8 +110,6 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
   }
 
-
-
   public interface Frame {
     Set<SymbolExp> getSymbols();
     SEXP getVariable(SymbolExp name);
@@ -262,9 +260,9 @@ public class Environment extends AbstractSEXP implements Recursive {
     onExit.add(exp);
   }
 
-  public void exit() {
+  public void exit(Context context) {
     for(SEXP exp : onExit) {
-      exp.evaluate(this);
+      exp.evaluate(context, this);
     }
   }
 

@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,15 +19,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive;
 
-/**
- * Superinterface for the three function-like {@code SEXP}s:
- * {@code Closure}, {@code SpecialFunction}, and {@code PrimitiveFunction}.
- *
- * 
- */
-public interface Function extends SEXP, Recursive {
+import org.junit.Test;
+import r.lang.EvalTestCase;
 
-  EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args);
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+public class ContextTest extends EvalTestCase {
+
+  @Test
+  public void nframesGlobal() {
+    assertThat( eval(".Internal(sys.nframe())"), equalTo( c_i(0)));
+  }
+
+  @Test
+  public void nframesInClosure() {
+    eval( "sys.nframe <- function() .Internal(sys.nframe()) ");
+    eval( "f <- function() { sys.nframe() }");
+    eval( "g <- function() f() ");
+    eval( "h <- function() g() ");
+
+    assertThat( eval(" h() "), equalTo( c_i(3) ));
+  }
+
 }

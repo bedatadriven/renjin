@@ -148,7 +148,7 @@ public class FunctionTable {
       f("delayedAssign", /*delayed*/ null, 0, 111, 4, PP_FUNCALL, PREC_FN, 0),
       f("makeLazy", Connections.class, 0, 111, 5, PP_FUNCALL, PREC_FN, 0),
       f(".Primitive", /*primitive*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("identical", /*identical*/ null, 0, 11, 5, PP_FUNCALL, PREC_FN, 0),
+      f("identical",  Types.class, 0, 11, 5, PP_FUNCALL, PREC_FN, 0),
 
 
 /* Binary Operators */
@@ -241,8 +241,8 @@ public class FunctionTable {
       f("match.call", /*matchcall*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("complete.cases", /*compcases*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
 
-      f("attach", /*attach*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
-      f("detach", /*detach*/ null, 0, 111, 1, PP_FUNCALL, PREC_FN, 0),
+      f("attach", Types.class, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
+      f("detach", Types.class, 0, 111, 1, PP_FUNCALL, PREC_FN, 0),
       f("search", Types.class, 0, 11, 0, PP_FUNCALL, PREC_FN, 0),
 
 
@@ -620,15 +620,15 @@ public class FunctionTable {
       f("eval.with.vis", /*eval*/ null, 1, 211, 3, PP_FUNCALL, PREC_FN, 0),
       f("withVisible", /*withVisible*/ null, 1, 10, 1, PP_FUNCALL, PREC_FN, 0),
       f("expression", /*expression*/ null, 1, 0, -1, PP_FUNCALL, PREC_FN, 0),
-      f("sys.parent", /*sys*/ null, 1, 11, -1, PP_FUNCALL, PREC_FN, 0),
-      f("sys.call", /*sys*/ null, 2, 11, -1, PP_FUNCALL, PREC_FN, 0),
-      f("sys.frame", /*sys*/ null, 3, 11, -1, PP_FUNCALL, PREC_FN, 0),
-      f("sys.nframe", /*sys*/ null, 4, 11, -1, PP_FUNCALL, PREC_FN, 0),
-      f("sys.calls", /*sys*/ null, 5, 11, -1, PP_FUNCALL, PREC_FN, 0),
-      f("sys.frames", /*sys*/ null, 6, 11, -1, PP_FUNCALL, PREC_FN, 0),
-      f("sys.on.exit", /*sys*/ null, 7, 11, -1, PP_FUNCALL, PREC_FN, 0),
-      f("sys.parents", /*sys*/ null, 8, 11, -1, PP_FUNCALL, PREC_FN, 0),
-      f("sys.function", /*sys*/ null, 9, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("sys.parent", Contexts.class, 1, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("sys.call", Contexts.class, 2, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("sys.frame", Contexts.class, 3, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("sys.nframe", Contexts.class, 4, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("sys.calls", Contexts.class, 5, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("sys.frames", Contexts.class, 6, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("sys.on.exit", Contexts.class, 7, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("sys.parents", Contexts.class, 8, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("sys.function", Contexts.class, 9, 11, -1, PP_FUNCALL, PREC_FN, 0),
       f("browserText", /*sysbrowser*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("browserCondition", /*sysbrowser*/ null, 2, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("browserSetDebug", /*sysbrowser*/ null, 3, 111, 1, PP_FUNCALL, PREC_FN, 0),

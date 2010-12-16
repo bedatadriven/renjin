@@ -21,6 +21,7 @@
 
 package r.lang.primitive;
 
+import r.lang.Context;
 import r.lang.Environment;
 import r.lang.FunctionCall;
 import r.lang.SEXP;
@@ -83,12 +84,12 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
-  public static boolean or(Environment rho, FunctionCall call) {
+  public static boolean or(Context context, Environment rho, FunctionCall call) {
       SEXP left = call.getArgument(0);
       SEXP right = call.getArgument(1);
 
-      return left.evalToExp(rho).asReal() != 0 ||
-             right.evalToExp(rho).asReal() != 0;
+      return left.evalToExp(context, rho).asReal() != 0 ||
+             right.evalToExp(context, rho).asReal() != 0;
   }
 
   public static boolean bitwiseOr(double x, double y) {
@@ -96,18 +97,18 @@ public class Comparison {
   }
 
   /**
-   * The logical && operator reqires the implementation use minimal evaluation,
+   * The logical && operator requires the implementation use minimal evaluation,
    * therefore we cannot use the overloaded function calls as is standard.
    *
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
-  public static boolean and(Environment rho, FunctionCall call) {
+  public static boolean and(Context context, Environment rho, FunctionCall call) {
       SEXP left = call.getArgument(0);
       SEXP right = call.getArgument(1);
 
-      return left.evalToExp(rho).asReal() != 0 &&
-             right.evalToExp(rho).asReal() != 0;
+      return left.evalToExp(context, rho).asReal() != 0 &&
+             right.evalToExp(context, rho).asReal() != 0;
   }
 
   public static boolean bitwiseAnd(double x, double y) {

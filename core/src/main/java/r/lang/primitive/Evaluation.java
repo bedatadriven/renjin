@@ -38,11 +38,11 @@ public class Evaluation {
    * Evaluates a list of statements. (The '{' function)
    */
   @Primitive("{")
-  public static EvalResult begin(Environment rho, FunctionCall call) {
+  public static EvalResult begin(Context context, Environment rho, FunctionCall call) {
 
     EvalResult lastResult = new EvalResult(Null.INSTANCE, true);
     for (SEXP sexp : call.getArguments().values()) {
-      lastResult = sexp.evaluate(rho);
+      lastResult = sexp.evaluate(context, rho);
     }
     return lastResult;
   }
@@ -98,7 +98,7 @@ public class Evaluation {
    assignment is right associative i.e.  a <- b <- c is parsed as
    a <- (b <- c).  */
   @Primitive("<-")
-  public static EvalResult assignLeft(@Current Environment rho, @Evaluate(false) SEXP lhs, SEXP rhs) {
+  public static EvalResult assignLeft(@Current Context context, @Current Environment rho, @Evaluate(false) SEXP lhs, SEXP rhs) {
 
     // this loop handles nested, complex assignments, such as:
     // class(x) <- "foo"
@@ -114,7 +114,7 @@ public class Evaluation {
           PairList.Node.newBuilder()
             .addAll(call.getArguments())
             .add(rhs)
-            .build()).evalToExp(rho);
+            .build()).evalToExp(context, rho);
 
       lhs = call.getArgument(0);
     }
@@ -153,16 +153,16 @@ public class Evaluation {
    * for ( x in elements ) { statement }
    */
   @Primitive("for")
-  public static void forLoop(Environment rho, FunctionCall call) {
+  public static void forLoop(Context context, Environment rho, FunctionCall call) {
     PairList args = call.getArguments();
     SymbolExp symbol = (SymbolExp) args.get(0);
-    Vector elements = (Vector) args.get(1).evalToExp(rho);
+    Vector elements = (Vector) args.get(1).evalToExp(context, rho);
     SEXP statement = args.get(2);
 
     for(int i=0; i!=elements.length(); ++i) {
       try {
         rho.setVariable(symbol, elements.getElementAsSEXP(i));
-        statement.evaluate(rho);
+        statement.evaluate(context, rho);
       } catch (BreakException e) {
         break;
       } catch (NextException e) {
@@ -171,9 +171,9 @@ public class Evaluation {
     }
   }
 
-  public static ListVector lapply(@Current Environment rho, FunctionCall call) {
-    Vector vector = (Vector) call.evalArgument(0, rho);
-    Function function = (Function) call.evalArgument(1, rho);
+  public static ListVector lapply(@Current Context context, @Current Environment rho, FunctionCall call) {
+    Vector vector = (Vector) call.evalArgument(context, rho, 0);
+    Function function = (Function) call.evalArgument(context, rho, 1);
 
     PairList remainingArguments =  call.getArguments().length() > 2 ?
         call.getNextNode().getNextNode().getNextNode() : Null.INSTANCE;
@@ -184,22 +184,22 @@ public class Evaluation {
       // been written (e.g. bquote) that relies on this.
       FunctionCall getElementCall = FunctionCall.newCall(new SymbolExp("[["), (SEXP)vector, new IntVector(i+1));
       FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall, remainingArguments));
-      builder.add( applyFunctionCall.evalToExp(rho) );
+      builder.add( applyFunctionCall.evalToExp(context, rho) );
     }
     return builder.build();
   }
 
   @Primitive("while")
-  public static void whileLoop(Environment rho, FunctionCall call) {
+  public static void whileLoop(Context context, Environment rho, FunctionCall call) {
     PairList args = call.getArguments();
     SEXP condition = args.get(0);
     SEXP statement = args.get(1);
 
-    while(asLogicalNoNA(call, condition.evaluate(rho).getExpression(), rho)) {
+    while(asLogicalNoNA(call, condition.evaluate(context, rho).getExpression(), rho)) {
 
       try {
 
-        statement.evaluate(rho);
+        statement.evaluate(context, rho);
 
       } catch(BreakException e) {
         break;
@@ -209,21 +209,24 @@ public class Evaluation {
     }
   }
 
-  public static Closure function( Environment rho, FunctionCall call ) {
-    PairList args = call.getArguments();
-    return new Closure(rho, (PairList) args.get(0), args.get(1));
+  public static Closure function( @Current Environment rho,
+                                  @Evaluate(false) PairList formals,
+                                  @Evaluate(false) SEXP body,
+                                  SEXP source)
+  {
+    return new Closure(rho,formals, body);
   }
 
   @Primitive("if")
-  public static EvalResult doIf(Environment rho, FunctionCall call) {
-    SEXP condition = call.getArguments().get(0).evalToExp(rho);
+  public static EvalResult doIf(Context context, Environment rho, FunctionCall call) {
+    SEXP condition = call.getArguments().get(0).evalToExp(context, rho);
 
     if (asLogicalNoNA(call, condition, rho)) {
-      return call.getArguments().get(1).evaluate(rho); /* true value */
+      return call.getArguments().get(1).evaluate(context, rho); /* true value */
 
     } else {
       if (call.getArguments().length() == 3) {
-        return call.getArguments().get(2).evaluate(rho); /* else value */
+        return call.getArguments().get(2).evaluate(context, rho); /* else value */
       } else {
         return EvalResult.NON_PRINTING_NULL;   /* no else, evaluates to NULL */
       }
@@ -231,7 +234,7 @@ public class Evaluation {
   }
 
   @Primitive(".Internal")
-  public static EvalResult internal(Environment rho, FunctionCall call) {
+  public static EvalResult internal(Context context, Environment rho, FunctionCall call) {
     SEXP arg = call.getArguments().get(0);
     if(!(arg instanceof FunctionCall)) {
       throw new EvalException("invalid .Internal() argument");
@@ -243,7 +246,7 @@ public class Evaluation {
     if(function == Null.INSTANCE) {
       throw new EvalException(String.format("no internal function \"%s\"", internalName.getPrintName()));
     }
-    return ((Function)function).apply(internalCall, internalCall.getArguments(), rho);
+    return ((Function)function).apply(context, rho, internalCall, internalCall.getArguments());
   }
 
   public static EvalResult next() {
@@ -267,10 +270,11 @@ public class Evaluation {
     throw new ReturnException(value);
   }
 
-  public static EvalResult eval(SEXP expression, Environment environment,
+  public static EvalResult eval(@Current Context context,
+                                SEXP expression, Environment environment,
                                 SEXP enclosing /* ignored */) {
 
-    return expression.evaluate(environment);
+    return expression.evaluate(context, environment);
   }
 
   public static SEXP quote(@Evaluate(false) SEXP exp) {

@@ -61,14 +61,14 @@ public class Connections {
    * @param eenv
    * @param targetEnvironment
    */
-  public static void makeLazy(StringVector names, ListVector values, FunctionCall expr, Environment eenv, Environment targetEnvironment) {
+  public static void makeLazy(@Current Context context, StringVector names, ListVector values, FunctionCall expr, Environment eenv, Environment targetEnvironment) {
 
     for(int i = 0; i < names.length(); i++) {
       // the name of the symbol
       SymbolExp name = new SymbolExp(names.getElement(i));
 
       // c(pos, length) of the serialized object
-      SEXP value = values.get(i).evalToExp((Environment) eenv);
+      SEXP value = values.get(i).evalToExp(context, (Environment) eenv);
 
       // create a new call, replacing the first argument with the
       // provided arg
@@ -78,7 +78,7 @@ public class Connections {
         newArgs.add(expr.<SEXP>getArgument(j));
       }
       FunctionCall newCall = new FunctionCall(expr.getFunction(), newArgs.build());
-      targetEnvironment.setVariable(name, new Promise(newCall, eenv));
+      targetEnvironment.setVariable(name, new Promise(eenv, newCall));
     }
   }
 
@@ -91,7 +91,8 @@ public class Connections {
    * @param compression 0=not compressed, 1=deflate, ...
    * @param restoreFunction a function called to load persisted objects from the serialized stream
    */
-  public static SEXP lazyLoadDBfetch(@Current final Environment rho,
+  public static SEXP lazyLoadDBfetch(@Current final Context context,
+                                     @Current final Environment rho,
                                      IntVector key,
                                      String file,
                                      int compression,
@@ -109,14 +110,14 @@ public class Connections {
       @Override
       public SEXP restore(SEXP values) {
         FunctionCall call = FunctionCall.newCall(restoreFunction, values);
-        SEXP result = call.evalToExp(rho.getGlobalEnvironment());
+        SEXP result = call.evalToExp(context, rho.getGlobalEnvironment());
         return result;
       }
     });
 
     SEXP exp = reader.readFile();
     if(exp instanceof Promise) {
-      exp = ((Promise) exp).force().getExpression();
+      exp = ((Promise) exp).force(context).getExpression();
     }
     return exp;
   }

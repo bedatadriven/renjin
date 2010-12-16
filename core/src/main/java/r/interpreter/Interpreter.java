@@ -21,6 +21,7 @@
 
 package r.interpreter;
 
+import r.lang.Context;
 import r.lang.Environment;
 import r.lang.EvalResult;
 import r.lang.SEXP;
@@ -44,12 +45,14 @@ public class Interpreter implements Runnable {
 
   private final Console console;
   private Environment global;
+  private Context topLevelContext;
 
   public Interpreter(Console console) {
 
     this.console = console;
 
-    this.global = Environment.createGlobalEnvironment();
+    this.topLevelContext = Context.newTopLevelContext();
+    this.global = topLevelContext.getEnvironment();
    // this.global.setPrintStream(console.getOut());
 
     if(console instanceof RichConsole) {
@@ -83,7 +86,7 @@ public class Interpreter implements Runnable {
         parser.parse();
 
         SEXP exp = parser.getResult();
-        EvalResult result = exp.evaluate(global);
+        EvalResult result = exp.evaluate(topLevelContext, global);
 
         if(result.isVisible()) {
           console.println( Print.print(result.getExpression(), console.getCharactersPerLine()) );
@@ -126,7 +129,7 @@ public class Interpreter implements Runnable {
 
   private void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadingScript = RParser.parseSource(reader).evaluate(global).getExpression();
-    loadingScript.evaluate(global);
+    SEXP loadingScript = RParser.parseSource(reader).evaluate(topLevelContext, global).getExpression();
+    loadingScript.evaluate(topLevelContext, global);
   }
 }

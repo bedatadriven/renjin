@@ -207,4 +207,10 @@ public class SubsetTest extends EvalTestCase {
     assertThat(result, equalTo((SEXP)c(1)));
   }
 
+  @Test(expected = FunctionCallException.class)
+  public void listIndexOutOfBounds() {
+    eval(" x <- list(1,2) ");
+    eval(" x[[3]] ");
+
+  }
 }

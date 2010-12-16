@@ -21,6 +21,8 @@
 
 package r.lang;
 
+import r.lang.exception.EvalException;
+
 /**
  * Expression representing a call to an R function, consisting of
  * a function reference and a list of arguments.
@@ -57,7 +59,11 @@ public class FunctionCall extends PairList.Node {
   }
 
   private Function evaluateFunction(Context context, Environment rho) {
-    return (Function) getFunction().evalToExp(context, rho);
+    SEXP result = getFunction().evalToExp(context, rho);
+    if(!(result instanceof Function)) {
+      throw new EvalException("attempt to apply non-function");
+    }
+    return (Function) result;
   }
 
   public static SEXP fromListExp(PairList.Node listExp) {

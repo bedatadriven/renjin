@@ -47,6 +47,15 @@ public class Subset {
   }
 
   @Primitive("$")
+  public static SEXP getElementByName(Environment env, @Evaluate(false) SymbolExp symbol) {
+    SEXP value = env.getVariable(symbol);
+    if(value == SymbolExp.UNBOUND_VALUE) {
+      return Null.INSTANCE;
+    }
+    return value;
+  }
+
+  @Primitive("$")
   public static SEXP getElementByName(ListVector list, @Evaluate(false) SymbolExp name) {
     SEXP match = null;
     int matchCount = 0;
@@ -134,7 +143,7 @@ public class Subset {
     if(index <= vector.length()) {
       return vector.getElementAsSEXP(index-1);
     } else {
-      return vector.newBuilder(1).setNA(0).build();
+      throw new EvalException("subscript out of bounds");
     }
   }
 

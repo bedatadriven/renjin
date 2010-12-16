@@ -66,10 +66,21 @@ public class Context {
     BUILTIN
   }
 
+  public static class Globals {
+
+    private Globals() {
+
+    }
+
+    public PairList conditionHandlerStack = Null.INSTANCE;
+
+  }
+
   private Context parent;
   private int evaluationDepth;
   private Type type;
   private Environment environment;
+  private Globals globals;
 
   private Context() {
   }
@@ -78,6 +89,7 @@ public class Context {
     Context context = new Context();
     context.type = Type.TOP_LEVEL;
     context.environment = Environment.createGlobalEnvironment();
+    context.globals = new Globals();
     return context;
   }
 
@@ -87,7 +99,7 @@ public class Context {
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
     context.environment = Environment.createChildEnvironment(enclosingEnvironment);
-
+    context.globals = globals;
     return context;
   }
 
@@ -101,6 +113,10 @@ public class Context {
 
   public Context getParent() {
     return parent;
+  }
+
+  public Globals getGlobals() {
+    return globals;
   }
 
   public Type getType() {

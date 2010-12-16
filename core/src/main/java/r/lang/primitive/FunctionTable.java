@@ -103,7 +103,7 @@ public class FunctionTable {
       f("ngettext", Text.class, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("bindtextdomain", /*sbindtextdomain*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
 
-      f(".addCondHands", Evaluation.class, 0, 111, 5, PP_FUNCALL, PREC_FN, 0),
+      f(".addCondHands", Errors.class, 0, 111, 5, PP_FUNCALL, PREC_FN, 0),
       f(".resetCondHands", /*resetCondHands*/ null, 0, 111, 1, PP_FUNCALL, PREC_FN, 0),
       f(".signalCondition", /*ignalCondition*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f(".dfltStop", /*dfltStop*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),

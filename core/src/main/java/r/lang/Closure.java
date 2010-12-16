@@ -93,10 +93,10 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   public EvalResult apply(Context context, Environment rho, PairList args) {
-    try {
-      Context functionContext = context.beginFunction(enclosingEnvironment);
-      Environment functionEnvironment = functionContext.getEnvironment();
+    Context functionContext = context.beginFunction(enclosingEnvironment);
+    Environment functionEnvironment = functionContext.getEnvironment();
 
+    try {
       matchArgumentsInto(args, enclosingEnvironment, functionEnvironment, rho, context);
 
       EvalResult result = body.evaluate(functionContext, functionEnvironment);
@@ -105,6 +105,9 @@ public class Closure extends AbstractSEXP implements Function {
 
       return result;
     } catch(Evaluation.ReturnException e) {
+      if(e.getEnvironment() != functionEnvironment) {
+        throw e;
+      }
       return EvalResult.visible(e.getValue());
     }
   }

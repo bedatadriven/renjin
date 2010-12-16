@@ -50,7 +50,13 @@ public class FunctionCallException extends RuntimeException {
 
   private static void appendArgumentList(PairList arguments, StringBuilder sb) {
     sb.append("(");
+    boolean needsComma = false;
     for(PairList.Node node : arguments.nodes()) {
+      if(needsComma) {
+        sb.append(", ");
+      } else {
+        needsComma = true;
+      }
       if(node.hasTag()) {
         sb.append(node.getTag().getPrintName());
         sb.append(" = ");

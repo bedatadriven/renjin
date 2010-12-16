@@ -217,4 +217,16 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval(" s2(a) "), equalTo( symbol("a") ));
   }
 
+  @Test
+  public void returnInPromises() {
+
+    eval(" f <- function() { " +
+              "g <- function(expr) expr ; " +
+              "g(return(42)) ; " +
+              "return(-1) " +
+        "}");
+
+
+    assertThat( eval("f()"), equalTo(c(42)));
+  }
 }

@@ -266,8 +266,8 @@ public class Evaluation {
   }
 
   @Primitive("return")
-  public static EvalResult doReturn(SEXP value) {
-    throw new ReturnException(value);
+  public static EvalResult doReturn(@Current Environment rho, SEXP value) {
+    throw new ReturnException(rho, value);
   }
 
   public static EvalResult eval(@Current Context context,
@@ -397,14 +397,20 @@ public class Evaluation {
 
   public static class ReturnException extends ControlFlowException {
 
+    private final Environment environment;
     private final SEXP value;
 
-    public ReturnException(SEXP value) {
+    public ReturnException(Environment environment, SEXP value) {
+      this.environment = environment;
       this.value = value;
     }
 
     public SEXP getValue() {
       return value;
+    }
+
+    public Environment getEnvironment() {
+      return environment;
     }
   }
 }

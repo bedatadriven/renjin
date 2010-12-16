@@ -23,8 +23,10 @@ package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.EvalTestCase;
+import r.lang.exception.FunctionCallException;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class ContextTest extends EvalTestCase {
@@ -44,4 +46,35 @@ public class ContextTest extends EvalTestCase {
     assertThat( eval(" h() "), equalTo( c_i(3) ));
   }
 
+  @Test
+  public void parentFrameInGlobal() {
+    eval( "parent.frame <- function(n = 1) .Internal(parent.frame(n)) ");
+
+    assertThat(eval("parent.frame()"), is(GlobalEnv));
+    assertThat(eval("parent.frame(1)"), is(GlobalEnv));
+    assertThat(eval("parent.frame(99)"), is(GlobalEnv));
+  }
+
+  @Test(expected = FunctionCallException.class)
+  public void parentFrameInvalidArg() {
+    eval(" .Internal(parent.frame(-1)) ");
+  }
+
+  @Test
+  public void parentFrameClosure() {
+    eval(" parent.frame <- function(n=1) .Internal(parent.frame(n)) ");
+    eval(" g <- function() { parent.frame()$zz + 1 } ");
+    eval(" f <- function() { zz<-41; g() } ");
+
+    assertThat( eval("f()"), equalTo( c(42) ));
+  }
+
+  @Test
+  public void parentFrameInFormals() {
+    eval(" parent.frame <- function(n=1) .Internal(parent.frame(n)) ");
+    eval(" g<- function(env = parent.frame()) env$zzz * 2");
+    eval(" f<- function() { zzz<-21; g() } ");
+
+    assertThat( eval("f()"), equalTo( c(42)));
+  }
 }

@@ -315,15 +315,6 @@ public class Types {
     }
   }
 
-  public static Environment parentFrame(@Current Environment rho, int n) {
-    Environment parent = rho;
-    while(n > 0 && rho != rho.getGlobalEnvironment()) {
-      parent = rho.getParent();
-      --n;
-    }
-    return parent;
-  }
-
   public static Environment newEnv(boolean hash, Environment parent, int size) {
     return Environment.createChildEnvironment(parent);
   }

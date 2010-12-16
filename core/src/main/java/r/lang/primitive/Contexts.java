@@ -22,7 +22,10 @@
 package r.lang.primitive;
 
 import r.lang.Context;
+import r.lang.Environment;
+import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.Current;
+import r.lang.primitive.annotations.Indices;
 import r.lang.primitive.annotations.Primitive;
 
 public class Contexts {
@@ -39,4 +42,28 @@ public class Contexts {
     }
   }
 
+  /**
+   * @param context the current call context
+   * @param n generations to ascend the call tree (1=parent, 2=grandparent, etc)
+   * @return the Environment of the parent environment
+   *
+   */
+  @Primitive("parent.frame")
+  public static Environment parentFrame(@Current Context context, @Indices int n) {
+    if(n < 1) {
+      throw new EvalException("invalid 'n' value");
+    }
+
+    // note that we actually climb n+1 parents in order to
+    // skip the closure that makes the .Internal(parent.frame()) call
+
+    Context parent = context;
+    while(n>=0 && !parent.isTopLevel()) {
+      if(parent.getType() == Context.Type.FUNCTION) {
+        --n;
+      }
+      parent = parent.getParent();
+    }
+    return parent.getEnvironment();
+  }
 }

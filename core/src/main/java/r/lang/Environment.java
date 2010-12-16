@@ -266,6 +266,10 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
   }
 
+  @Override
+  public String toString() {
+    return "<environment: " + name + ">";
+  }
 
   private static class EmptyEnv extends Environment {
 

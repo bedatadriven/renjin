@@ -66,7 +66,7 @@ public class Context {
     BUILTIN
   }
 
-  private Context nextContext;
+  private Context parent;
   private int evaluationDepth;
   private Type type;
   private Environment environment;
@@ -81,6 +81,16 @@ public class Context {
     return context;
   }
 
+  public Context beginFunction(Environment enclosingEnvironment) {
+    Context context = new Context();
+    context.type = Type.FUNCTION;
+    context.parent = this;
+    context.evaluationDepth = evaluationDepth+1;
+    context.environment = Environment.createChildEnvironment(enclosingEnvironment);
+
+    return context;
+  }
+
   public Environment getEnvironment() {
     return environment;
   }
@@ -89,14 +99,15 @@ public class Context {
     return evaluationDepth;
   }
 
-  public Context beginFunction(Environment enclosingEnvironment) {
-    Context context = new Context();
-    context.type = Type.FUNCTION;
-    context.nextContext = this;
-    context.evaluationDepth = evaluationDepth+1;
-    context.environment = Environment.createChildEnvironment(enclosingEnvironment);
-
-    return context;
+  public Context getParent() {
+    return parent;
   }
-  
+
+  public Type getType() {
+    return type;
+  }
+
+  public boolean isTopLevel() {
+    return parent == null;
+  }
 }

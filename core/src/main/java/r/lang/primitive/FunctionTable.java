@@ -103,7 +103,7 @@ public class FunctionTable {
       f("ngettext", Text.class, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("bindtextdomain", /*sbindtextdomain*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
 
-      f(".addCondHands", /*addCondHands*/ null, 0, 111, 5, PP_FUNCALL, PREC_FN, 0),
+      f(".addCondHands", Evaluation.class, 0, 111, 5, PP_FUNCALL, PREC_FN, 0),
       f(".resetCondHands", /*resetCondHands*/ null, 0, 111, 1, PP_FUNCALL, PREC_FN, 0),
       f(".signalCondition", /*ignalCondition*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f(".dfltStop", /*dfltStop*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
@@ -632,7 +632,7 @@ public class FunctionTable {
       f("browserText", /*sysbrowser*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("browserCondition", /*sysbrowser*/ null, 2, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("browserSetDebug", /*sysbrowser*/ null, 3, 111, 1, PP_FUNCALL, PREC_FN, 0),
-      f("parent.frame", Types.class, "parentFrame", 0, 11, -1, PP_FUNCALL, PREC_FN, 0),
+      f("parent.frame", Contexts.class, "parentFrame", 0, 11, -1, PP_FUNCALL, PREC_FN, 0),
       f("sort", /*sort*/ null, 1, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("is.unsorted", /*isunsorted*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("psort", /*psort*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),

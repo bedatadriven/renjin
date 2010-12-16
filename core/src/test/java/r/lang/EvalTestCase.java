@@ -41,10 +41,13 @@ public abstract class EvalTestCase {
   public static final SEXP CHARACTER_0 = new StringVector();
   public static final SEXP DOUBLE_0 = new DoubleVector();
 
+  public SEXP GlobalEnv;
+
   @Before
   public void setUp() {
     topLevelContext = Context.newTopLevelContext();
     global = topLevelContext.getEnvironment();
+    GlobalEnv = global;
   }
 
   protected SEXP eval(String source) {

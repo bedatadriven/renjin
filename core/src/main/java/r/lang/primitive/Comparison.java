@@ -21,10 +21,12 @@
 
 package r.lang.primitive;
 
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.FunctionCall;
-import r.lang.SEXP;
+import com.google.common.collect.Lists;
+import r.lang.*;
+import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.ArgumentList;
+
+import java.util.List;
 
 public class Comparison {
 
@@ -84,12 +86,24 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
-  public static boolean or(Context context, Environment rho, FunctionCall call) {
-      SEXP left = call.getArgument(0);
-      SEXP right = call.getArgument(1);
+  public static Logical or(Context context, Environment rho, FunctionCall call) {
 
-      return left.evalToExp(context, rho).asReal() != 0 ||
-             right.evalToExp(context, rho).asReal() != 0;
+    Logical x = checkedToLogical(call.evalArgument(context, rho, 0), "invalid 'x' type in 'x || y'");
+
+    if(x == Logical.TRUE) {
+      return x;
+    }
+
+    Logical y = checkedToLogical(call.evalArgument(context, rho, 1), "invalid 'y' type in 'x || y'");
+    if(y == Logical.TRUE) {
+      return y;
+    }
+
+    if(x == Logical.NA || y == Logical.NA) {
+      return Logical.NA;
+    } else {
+      return Logical.FALSE;
+    }
   }
 
   public static boolean bitwiseOr(double x, double y) {
@@ -103,12 +117,23 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
-  public static boolean and(Context context, Environment rho, FunctionCall call) {
-      SEXP left = call.getArgument(0);
-      SEXP right = call.getArgument(1);
+  public static Logical and(Context context, Environment rho, FunctionCall call) {
 
-      return left.evalToExp(context, rho).asReal() != 0 &&
-             right.evalToExp(context, rho).asReal() != 0;
+    Logical x = checkedToLogical(call.evalArgument(context, rho, 0), "invalid 'x' type in 'x && y'");
+
+    if(x == Logical.FALSE) {
+      return Logical.FALSE;
+    }
+
+    Logical y = checkedToLogical(call.evalArgument(context, rho, 1), "invalid 'y' type in 'x && y'");
+
+    if(y == Logical.FALSE) {
+      return Logical.FALSE;
+    } else if(x == Logical.TRUE && y == Logical.TRUE) {
+      return Logical.TRUE;
+    } else {
+      return Logical.NA;
+    }
   }
 
   public static boolean bitwiseAnd(double x, double y) {
@@ -117,5 +142,55 @@ public class Comparison {
 
   public static boolean not(boolean value) {
     return !value;
+  }
+
+  public static Logical any(@ArgumentList PairList arguments) {
+    List<Vector> vectors = Lists.newArrayList();
+    boolean removeNA = false;
+
+    for(PairList.Node node : arguments.nodes()) {
+      if(node.tagEquals("na.rm")) {
+        removeNA = !isFalse(node.getValue());
+      } else if(node.getValue() instanceof Vector) {
+        vectors.add((Vector) node.getValue());
+      } else {
+        throw new EvalException("object cannot be coerced to type logical");
+      }
+    }
+
+    boolean nasFound = false;
+
+    for(Vector vector : vectors) {
+      for(int i=0;i!=vector.length();++i) {
+        if(vector.isElementNA(i)) {
+          nasFound = true;
+        } else if(vector.getElementAsDouble(i) != 0) {
+          return Logical.TRUE;
+        }
+      }
+    }
+
+    if(!removeNA && nasFound) {
+      return Logical.NA;
+    } else {
+      return Logical.FALSE;
+    }
+  }
+
+  private static Logical checkedToLogical(SEXP exp, String errorMessage) {
+    if(exp instanceof AtomicVector) {
+      AtomicVector vector = (AtomicVector) exp;
+      if(vector.length() > 0) {
+        return vector.getElementAsLogical(0);
+      }
+    }
+    throw new EvalException(errorMessage);
+  }
+
+  private static boolean isFalse(SEXP exp) {
+    if(exp instanceof AtomicVector && exp.length() > 0) {
+     return ((AtomicVector) exp).getElementAsDouble(0) == 0;
+    }
+    return false;
   }
 }

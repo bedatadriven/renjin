@@ -23,9 +23,10 @@ package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.EvalTestCase;
+import r.lang.Logical;
+import r.lang.exception.FunctionCallException;
 
 import java.io.IOException;
-import r.lang.Logical;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -113,6 +114,17 @@ public class ComparisonTest extends EvalTestCase {
     assertThat( eval("c(TRUE) || 'a'"), equalTo(c(Logical.TRUE)) );
   }
 
+  @Test(expected = FunctionCallException.class)
+  public void orInvalid() {
+    eval(" FALSE || quote(x) ");
+  }
+
+  @Test
+  public void orWithNA() {
+    assertThat(eval(" TRUE || NA "), equalTo(c(TRUE)));
+    assertThat( eval(" FALSE || NA "), equalTo(c(NA)));
+  }
+
   @Test
   public void bitwiseOr() {
     assertThat( eval("0 | 0"), equalTo(c(Logical.FALSE)) );
@@ -192,6 +204,15 @@ public class ComparisonTest extends EvalTestCase {
   }
 
   @Test
+  public void andWithNAs() {
+    assertThat( eval("NA && NA"), equalTo( c(Logical.NA)));
+    assertThat( eval("TRUE && NA"), equalTo( c(Logical.NA)));
+    assertThat( eval("NA && TRUE"), equalTo( c(Logical.NA)));
+    assertThat( eval("FALSE && NA"), equalTo( c(Logical.FALSE)));
+    assertThat( eval("NA && FALSE"), equalTo( c(Logical.FALSE)));
+  }
+
+  @Test
   public void bitwiseAnd() {
     assertThat( eval("0 & 0"), equalTo(c(Logical.FALSE)) );
     assertThat( eval("0 & 1"), equalTo(c(Logical.FALSE)) );
@@ -239,5 +260,13 @@ public class ComparisonTest extends EvalTestCase {
     assertThat( eval(" !c(TRUE, FALSE, NA) "), equalTo(c(FALSE, TRUE, NA)));
     assertThat( eval(" !c(1,0,1) "), equalTo( c(FALSE,TRUE,FALSE) ));
     assertThat( eval(" !c(1L,0L,4L) "), equalTo( c(FALSE,TRUE,FALSE) ));
+  }
+
+  @Test
+  public void any() {
+    assertThat( eval(" any(FALSE, NA) "), equalTo( c(NA)) );
+    assertThat( eval(" any(FALSE, NA, na.rm=TRUE) "), equalTo( c(FALSE)) );
+    assertThat( eval(" any(TRUE, NA) "), equalTo( c(TRUE)) );
+    assertThat( eval(" any(c(0,0,0,1), list())"), equalTo( c(TRUE)));
   }
 }

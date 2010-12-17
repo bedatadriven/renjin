@@ -142,6 +142,24 @@ public class SubsetTest extends EvalTestCase {
   }
 
   @Test
+  public void setWithLogicalSubscripts() {
+    eval(" x <- 1:3 ");
+    eval(" x[c(FALSE,TRUE,FALSE)] <- 99");
+
+    assertThat( eval("x"), equalTo( c(1,99,3)));
+  }
+
+
+  @Test
+  public void setWithLogicalSubscripts2() {
+    eval(" x <- 1:4 ");
+    eval(" x[c(FALSE,TRUE)] <- c(91,92)");
+
+    assertThat( eval("x"), equalTo( c(1,91,3,92)));
+  }
+
+
+  @Test
   public void setDoubleRangeMultiple() {
     eval(" x <- c(91, 92, 93) ");
     eval(" x[2:3] <- 63 ");
@@ -215,4 +233,5 @@ public class SubsetTest extends EvalTestCase {
     eval(" x[[3]] ");
 
   }
+
 }

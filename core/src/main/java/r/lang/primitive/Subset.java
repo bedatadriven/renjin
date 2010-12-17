@@ -164,6 +164,37 @@ public class Subset {
     return result.build();
   }
 
+  @Primitive("[<-")
+  public static SEXP setSubset(Vector target, LogicalVector subscripts, Vector values) {
+    int replaceCount = 0;
+    for(int i=0;i!=target.length();++i) {
+      int subscriptIndex = i % subscripts.length();
+      if(subscripts.isElementNA(subscriptIndex)) {
+        throw new EvalException("NAs are not allowed in subscripted assignments");
+      }
+      if(subscripts.getElementAsInt(subscriptIndex) != 0) {
+        replaceCount++;
+      }
+    }
+
+    if(replaceCount % values.length() != 0) {
+      throw new EvalException("number of items to replace is not a multiple of replacement length");
+    }
+
+    Vector.Builder result = copyWideningIfNecessary(target, values);
+    int replacedCount = 0;
+    for(int i=0;i!=target.length();++i) {
+      int subscriptIndex = i % subscripts.length();
+      if(subscripts.getElementAsInt(subscriptIndex) != 0) {
+        int valueIndex = replacedCount % values.length();
+        result.setFrom(i, values, valueIndex);
+        replacedCount++;
+      }
+    }
+
+    return result.build();
+  }
+
   private static Vector.Builder copyWideningIfNecessary(Vector toCopy, Vector otherElements) {
     Vector.Builder result;
 

@@ -24,7 +24,7 @@ structure <- function (.Data, ...)
         replace <- c("dim", "dimnames", "names", "tsp", "levels")
 	m <- match(names(attrib), specials)
 	ok <- (!is.na(m) & m)
-	names(attrib)[ok] <- replace[m[ok]]
+	 names(attrib)[ok] <- replace[m[ok]]
         ## prior to 2.5.0 factors would deparse to double codes
 	if("factor" %in% attrib[["class", exact = TRUE]]
            && typeof(.Data) == "double")

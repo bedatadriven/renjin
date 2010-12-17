@@ -444,7 +444,7 @@ public class Types {
     return new IntVector( result );
   }
 
-  public EvalResult invisible(SEXP value) {
+  public static EvalResult invisible(SEXP value) {
     return EvalResult.invisible(value);
   }
 

@@ -22,12 +22,15 @@
 package r.lang.primitive;
 
 import com.google.common.collect.Lists;
+import r.base.Base;
 import r.lang.*;
 import r.lang.exception.ControlFlowException;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.Current;
 import r.lang.primitive.annotations.Evaluate;
 import r.lang.primitive.annotations.Primitive;
+import r.lang.primitive.binding.PrimitiveMethod;
+import r.lang.primitive.binding.RuntimeInvoker;
 
 import java.util.List;
 
@@ -82,7 +85,7 @@ public class Evaluation {
         environ.setVariable(symbol, value);
       }
     }
-    return EvalResult.nonVisible(value);
+    return EvalResult.invisible(value);
   }
 
 
@@ -131,7 +134,7 @@ public class Evaluation {
     // make the final assignment to the target symbol
     rho.setVariable(target, rhs);
 
-    return EvalResult.nonVisible(rhs);
+    return EvalResult.invisible(rhs);
   }
 
 
@@ -392,9 +395,20 @@ public class Evaluation {
   }
 
   @Primitive(".Call")
-  public static SEXP doCall(Context context, Environment rho, FunctionCall call) {
-    throw new EvalException(String.format("Call to native function '%s'",
-        call.evalArgument(context, rho, 0)));
+  public static EvalResult call(@Current Context context,
+                            @Current Environment rho,
+                            String methodName,
+                            PairList arguments,
+                            String packageName) {
+
+    if(packageName.equals("base")) {
+      List<PrimitiveMethod> overloads = PrimitiveMethod.findOverloads(Base.class, methodName, methodName);
+      return RuntimeInvoker.INSTANCE.invoke(context, rho, arguments.values(), overloads);
+    }
+
+    throw new EvalException(
+        String.format("Call to native function '%s' in package '%s'",
+            methodName, packageName));
   }
 
   public static class BreakException extends ControlFlowException {   }

@@ -62,7 +62,7 @@ public class EvalResult {
     return new EvalResult(exp);
   }
 
-  public static EvalResult nonVisible(SEXP exp) {
+  public static EvalResult invisible(SEXP exp) {
     return new EvalResult(exp, false);
   }
 }

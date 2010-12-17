@@ -180,6 +180,11 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
   }
 
   @Override
+  public boolean isElementNA(int index) {
+    return false;
+  }
+
+  @Override
   public Iterable<SEXP> elements() {
     return this;
   }

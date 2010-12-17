@@ -24,11 +24,13 @@ package r.lang.primitive.binding;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.ArgumentList;
 import r.lang.primitive.annotations.Current;
 import r.lang.primitive.annotations.Evaluate;
+import r.lang.primitive.annotations.Primitive;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -37,6 +39,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
+
+import static java.lang.reflect.Modifier.isPublic;
+import static java.lang.reflect.Modifier.isStatic;
 
 /**
  * Wraps a {@code java.lang.reflect.Method} and provides
@@ -56,6 +61,33 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     }
     this.arguments = argumentsBuilder.build();
     this.formals = ImmutableList.copyOf(Iterables.filter(arguments, new IsFormal()));
+  }
+
+  public static List<PrimitiveMethod> findOverloads(Class clazz, String name) {
+    return findOverloads(clazz, name, name);
+  }
+
+  public static List<PrimitiveMethod> findOverloads(Class clazz, String name, String alias) {
+    List<PrimitiveMethod> methods = Lists.newArrayList();
+    if(clazz != null) {
+      for(Method method : clazz.getMethods()) {
+
+        if(isPublic(method.getModifiers()) &&
+           isStatic(method.getModifiers()) &&
+            method.getName().equals(alias) ||
+            alias(method).equals(name) )
+        {
+          methods.add(new PrimitiveMethod(method));
+        }
+      }
+    }
+    validate(methods);
+    return methods;
+  }
+
+  public static String alias(Method method) {
+    Primitive alias = method.getAnnotation(Primitive.class);
+    return alias == null ? "" : alias.value();
   }
 
   /**

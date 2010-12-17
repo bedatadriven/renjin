@@ -21,19 +21,13 @@
 
 package r.lang;
 
-import com.google.common.collect.Lists;
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;
 import r.lang.primitive.FunctionTable;
-import r.lang.primitive.annotations.Primitive;
 import r.lang.primitive.binding.PrimitiveMethod;
 import r.lang.primitive.binding.RuntimeInvoker;
 
-import java.lang.reflect.Method;
 import java.util.List;
-
-import static java.lang.reflect.Modifier.isPublic;
-import static java.lang.reflect.Modifier.isStatic;
 
 public abstract class PrimitiveFunction extends AbstractSEXP implements Function {
 
@@ -61,7 +55,7 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
 
   @Override
   public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
-    List<PrimitiveMethod> overloads = getMethodOverloads();
+    List<PrimitiveMethod> overloads = getMethodOverloads(functionEntry.functionClass, functionEntry.name, functionEntry.methodName);
     if(overloads.isEmpty()) {
       StringBuilder message = new StringBuilder();
       message.append("'")
@@ -84,29 +78,11 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
     }
   }
 
-  protected List<PrimitiveMethod> getMethodOverloads() {
+  protected List<PrimitiveMethod> getMethodOverloads(Class clazz, String name, String alias) {
     if (methodOverloads == null) {
-      methodOverloads = Lists.newArrayList();
-      if(functionEntry.functionClass != null) {
-        for(Method method : functionEntry.functionClass.getMethods()) {
-
-          if(isPublic(method.getModifiers()) &&
-             isStatic(method.getModifiers()) &&
-              method.getName().equals(functionEntry.methodName) ||
-              alias(method).equals(functionEntry.name) )
-          {
-            methodOverloads.add(new PrimitiveMethod(method));
-          }
-        }
-      }
-      PrimitiveMethod.validate(methodOverloads);
+      methodOverloads = PrimitiveMethod.findOverloads(clazz, name, alias);
     }
     return methodOverloads;
-  }
-
-  private String alias(Method method) {
-    Primitive alias = method.getAnnotation(Primitive.class);
-    return alias == null ? "" : alias.value();
   }
 
   @Override

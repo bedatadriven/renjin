@@ -444,6 +444,10 @@ public class Types {
     return new IntVector( result );
   }
 
+  public EvalResult invisible(SEXP value) {
+    return EvalResult.invisible(value);
+  }
+
   public static StringVector search(@Current Environment rho) {
     List<String> names = Lists.newArrayList();
     Environment env = rho.getGlobalEnvironment();

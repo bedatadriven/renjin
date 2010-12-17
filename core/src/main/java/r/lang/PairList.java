@@ -107,6 +107,10 @@ public interface PairList extends SEXP {
       return nextNode != null;
     }
 
+    public boolean tagEquals(String name) {
+      return hasTag() && getTag().getPrintName().equals(name);
+    }
+
     public static Node fromIterable(Iterable<? extends SEXP> values) {
       Iterator<? extends SEXP> it = values.iterator();
 
@@ -200,6 +204,7 @@ public interface PairList extends SEXP {
         sb.append(node.getValue());
       }
     }
+
 
     /**
      * Iterator that iterators over the {@code ListExp}'s values

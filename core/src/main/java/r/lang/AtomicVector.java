@@ -40,13 +40,6 @@ public interface AtomicVector extends Vector {
 
   /**
    *
-   * @param index zero-based index
-   * @return  true if the element at {@code index} is NA (statistically missing)
-   */
-  boolean isElementNA(int index);
-
-  /**
-   *
    * @return true if the vector contains any {@code NA} values
    */
   boolean containsNA();

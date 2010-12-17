@@ -185,7 +185,7 @@ public class FunctionTable {
 /* Logic Related Functions */
 /* these are group generic and so need to eval args */
       f("all", /*logic3*/ null, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
-      f("any", /*logic3*/ null, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("any", Comparison.class, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
 
 
 /* Vectors, Matrices and Arrays */
@@ -592,7 +592,7 @@ public class FunctionTable {
       f("print.default", /*printdefault*/ null, 0, 111, 9, PP_FUNCALL, PREC_FN, 0),
       f("print.function", /*printfunction*/ null, 0, 111, 3, PP_FUNCALL, PREC_FN, 0),
       f("prmatrix", /*prmatrix*/ null, 0, 111, 6, PP_FUNCALL, PREC_FN, 0),
-      f("invisible", /*invisible*/ null, 0, 101, 1, PP_FUNCALL, PREC_FN, 0),
+      f("invisible", Types.class, 0, 101, 1, PP_FUNCALL, PREC_FN, 0),
       f("gc", /*gc*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("gcinfo", /*gcinfo*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("gctorture", /*gctorture*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),

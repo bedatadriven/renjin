@@ -37,6 +37,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.Iterable;
 
 /**
  * Invokes a JVM method from the R language.
@@ -83,6 +84,17 @@ public class RuntimeInvoker {
     converters.add(new NullToObject());
   }
 
+  public EvalResult invoke(Context context, Environment rho, Iterable<SEXP> arguments, List<PrimitiveMethod> overloads) {
+
+    List<ProvidedArgument> provided = Lists.newArrayList();
+    for(SEXP argument : arguments) {
+      provided.add(new ProvidedArgument(context, rho, argument));
+    }
+
+    return matchAndInvoke(context, rho, overloads, provided);
+
+  }
+
   public EvalResult invoke(Context context, Environment rho, FunctionCall call, List<PrimitiveMethod> overloads) {
 
     // first check for a method which can handle the call in its entirety
@@ -109,6 +121,10 @@ public class RuntimeInvoker {
       return overloads.get(0).invokeAndWrap(toEvaluatedPairList(provided));
     }
 
+    return matchAndInvoke(context, rho, overloads, provided);
+  }
+
+  private EvalResult matchAndInvoke(Context context, Environment rho, List<PrimitiveMethod> overloads, List<ProvidedArgument> provided) {
     for(CallStrategy strategy : strategies) {
       for(PrimitiveMethod method : overloads) {
         if(strategy.accept(method, provided)) {
@@ -117,9 +133,8 @@ public class RuntimeInvoker {
       }
     }
 
-    throw new EvalException(formatNoMatchingOverloadMessage(call, provided, overloads));
+    throw new EvalException(formatNoMatchingOverloadMessage(provided, overloads));
   }
-
 
 
   private interface CallStrategy {
@@ -302,7 +317,7 @@ public class RuntimeInvoker {
     return true;
   }
 
-  private String formatNoMatchingOverloadMessage(FunctionCall call, List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
+  private String formatNoMatchingOverloadMessage(List<ProvidedArgument> provided, List<PrimitiveMethod> methods) {
     StringBuilder sb = new StringBuilder();
     sb.append("Cannot execute the function with the arguments supplied.\n");
     appendProvidedArguments(sb, provided);
@@ -340,6 +355,13 @@ public class RuntimeInvoker {
       this.rho = rho;
       this.provided = arg.getValue();
       this.tag = arg.getRawTag();
+    }
+
+    public ProvidedArgument(Context context, Environment rho, SEXP argument) {
+      this.context = context;
+      this.rho = rho;
+      this.provided = argument;
+      this.tag = Null.INSTANCE;
     }
 
     public boolean canBePassedTo(PrimitiveMethod.Argument formal) {
@@ -430,8 +452,8 @@ public class RuntimeInvoker {
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
       return
           source instanceof DoubleVector &&
-          formal.isAnnotatedWith(Indices.class) &&
-          formal.getClazz().equals(int[].class);
+              formal.isAnnotatedWith(Indices.class) &&
+              formal.getClazz().equals(int[].class);
     }
 
     @Override
@@ -445,8 +467,8 @@ public class RuntimeInvoker {
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
       return
           source instanceof IntVector &&
-          formal.isAnnotatedWith(Indices.class) &&
-          formal.getClazz().equals(int[].class);
+              formal.isAnnotatedWith(Indices.class) &&
+              formal.getClazz().equals(int[].class);
     }
 
     @Override

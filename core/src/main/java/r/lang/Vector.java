@@ -73,6 +73,13 @@ public interface Vector extends SEXP {
    */
   Builder newCopyBuilder();
 
+  /**
+   *
+   * @param index zero-based index
+   * @return  true if the element at {@code index} is NA (statistically missing)
+   */
+  boolean isElementNA(int index);
+
   public static interface Builder<S extends SEXP> {
 
     /**

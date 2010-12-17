@@ -105,6 +105,8 @@ public class SubsetTest extends EvalTestCase {
     assertThat( eval(" x[-1] "), equalTo( c(92,93)));
     assertThat( eval(" x[-1:-2] "), equalTo( c(93)));
     assertThat( eval(" x[c(-2,-241)] "), equalTo( c(91,93)));
+    assertThat( eval(" x[c(-1,0,0)] "), equalTo( c(92,93)));
+
   }
 
   @Test(expected = FunctionCallException.class)

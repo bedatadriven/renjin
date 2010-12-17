@@ -217,9 +217,11 @@ public class Subset {
   private static boolean[] toMask(int indices[], int vectorLength) {
     boolean mask[] = new boolean[vectorLength];
     for(int i=0;i!=indices.length;++i) {
-      int index = (-indices[i]) - 1;
-      if( index < vectorLength ) {
-        mask[ index ] = true;
+      if(indices[i] != 0) {
+        int index = (-indices[i]) - 1;
+        if( index < vectorLength ) {
+          mask[ index ] = true;
+        }
       }
     }
     return mask;

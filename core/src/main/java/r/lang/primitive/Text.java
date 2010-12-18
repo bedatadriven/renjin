@@ -29,6 +29,7 @@ import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.ArgumentList;
+import r.lang.primitive.annotations.Primitive;
 import r.lang.primitive.regex.RE;
 
 import static com.google.common.collect.Iterables.transform;
@@ -62,6 +63,10 @@ public class Text {
     }
   }
 
+  @Primitive("file.path")
+  public static StringVector filePath(ListVector components, String fileSeparator) {
+    return paste(components, fileSeparator, null);
+  }
 
   public static StringVector sprintf(@ArgumentList ListVector arguments) {
     StringVector.Builder result = StringVector.newBuilder();

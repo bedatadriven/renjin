@@ -22,16 +22,14 @@
 package r.lang.primitive;
 
 import com.google.common.collect.Lists;
-import r.lang.ListVector;
-import r.lang.Logical;
-import r.lang.SEXP;
-import r.lang.StringVector;
+import r.lang.*;
 import r.lang.primitive.annotations.Primitive;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class System {
@@ -222,4 +220,35 @@ public class System {
 
   }
 
+  @Primitive("Sys.getenv")
+  public static StringVector getEnvironment(StringVector names, String unset) {
+    StringVector.Builder result = new StringVector.Builder();
+    Map<String,String> map = java.lang.System.getenv();
+
+    if(names.length() == 0) {
+      for(Map.Entry<String,String> entry : map.entrySet()) {
+        result.add(entry.getKey() + "=" + entry.getValue());
+      }
+    } else {
+      for(String name : names) {
+        String value = map.get(name);
+        result.add(value == null ? unset : value);
+      }
+    }
+    return result.build();
+  }
+
+  @Primitive("Sys.setenv")
+  public static LogicalVector setEnvironment(StringVector names, StringVector values) {
+
+    // note that this implementation doesn't do anything
+    // Java doesn't let us mess with the environment unless we're starting a new process,
+    // so we would need to implement our own map here.
+
+    LogicalVector.Builder result = new LogicalVector.Builder();
+    for(String name : names) {
+      result.add(false);
+    }
+    return result.build();
+  }
 }

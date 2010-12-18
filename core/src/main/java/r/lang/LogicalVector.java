@@ -276,9 +276,21 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
       Arrays.fill(values, NA);
     }
 
+    public Builder() {
+      this(0);
+    }
+
     private Builder(LogicalVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
       this.attributes = exp.attributes;
+    }
+
+    public Builder add(int value) {
+      return set(values.length, value);
+    }
+
+    public Builder add(boolean value) {
+      return add(value ? 1 : 0);
     }
 
     public Builder set(int index, int value) {

@@ -240,4 +240,20 @@ public class EvaluationTest extends EvalTestCase {
   public void symbolToCharacter() {
     assertThat( eval(" as.character(quote(x)) "), equalTo( c("x")));
   }
+
+  @Test
+  public void doSwitch() {
+    eval("switch <- function (EXPR, ...) .Internal(switch(EXPR, ...))");
+
+    assertThat( eval("switch('z', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
+    assertThat( eval("switch('a', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
+    assertThat( eval("switch('a', alligator=4,aardvark=2)"), equalTo( NULL ));
+    assertThat( eval("switch('all', alligator=4,aardvark=2)"), equalTo( c(4) ));
+    assertThat( eval("switch('all')"), equalTo( NULL ));
+
+    assertThat( eval("switch(1, 'first', 'second')"), equalTo( c("first") ));
+    assertThat( eval("switch(2, 'first', 'second')"), equalTo( c("second") ));
+    assertThat( eval("switch(99, 'first', 'second')"), equalTo( NULL ));
+    assertThat( eval("switch(4)"), equalTo( NULL ));
+  }
 }

@@ -21,6 +21,7 @@
 
 package r.lang.primitive;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.base.Base;
 import r.lang.*;
@@ -234,6 +235,50 @@ public class Evaluation {
         return EvalResult.NON_PRINTING_NULL;   /* no else, evaluates to NULL */
       }
     }
+  }
+
+  @Primitive("switch")
+  public static EvalResult doSwitch(Context context, Environment rho, FunctionCall call) {
+    EvalException.check(call.length() > 1, "argument \"EXPR\" is missing");
+
+    SEXP expr = call.evalArgument(context, rho, 0);
+    EvalException.check(expr.length() == 1, "EXPR must return a length 1 vector");
+
+    DotExp branchPromises  = (DotExp) call.getArgument(1).evalToExp(context, rho);
+    Iterable<PairList.Node> branches = branchPromises.getPromises().nodes();
+
+    if(expr instanceof StringVector) {
+      String name = ((StringVector) expr).getElementAsString(0);
+      SEXP partialMatch = null;
+      int partialMatchCount = 0;
+      for(PairList.Node node : branches) {
+        if(node.hasTag()) {
+          String branchName = node.getTag().getPrintName();
+          if(branchName.equals(name)) {
+            return node.getValue().evaluate(context, rho);
+          } else if(branchName.startsWith(name)) {
+            partialMatch = node.getValue();
+            partialMatchCount ++;
+          }
+        }
+      }
+      if(partialMatchCount == 1) {
+        return partialMatch.evaluate(context, rho);
+      } else if(Iterables.size(branches) > 0) {
+        PairList.Node last = Iterables.getLast(branches);
+        if(!last.hasTag()) {
+          return last.getValue().evaluate(context, rho);
+        }
+      }
+
+    } else if(expr instanceof AtomicVector) {
+      int branchIndex = ((AtomicVector) expr).getElementAsInt(0);
+      if(branchIndex >= 1 && branchIndex <= Iterables.size(branches)) {
+        return Iterables.get(branches, branchIndex-1).getValue().evaluate(context, rho);
+      }
+    }
+
+    return EvalResult.visible( Null.INSTANCE );
   }
 
   @Primitive(".Internal")

@@ -216,6 +216,11 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
   }
 
   @Override
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    return new StringVector(values, attributes);
+  }
+
+  @Override
   public int indexOf(AtomicVector vector, int vectorIndex) {
     if(vector.isElementNA(vectorIndex)) {
       return indexOfNA();

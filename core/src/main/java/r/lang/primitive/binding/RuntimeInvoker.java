@@ -118,8 +118,14 @@ public class RuntimeInvoker {
 
     // do we have a single method that accepts the whole argument list?
     if(overloads.size() == 1 && overloads.get(0).acceptsArgumentList()) {
+      return overloads.get(0).invokeWithContextAndWrap(context, rho, new Object[]{toEvaluatedList(provided)});
+    }
+
+    // TODO: eliminate this. use ListVector instead
+    if(overloads.size() == 1 && overloads.get(0).acceptsArgumentPairList()) {
       return overloads.get(0).invokeWithContextAndWrap(context, rho, new Object[]{toEvaluatedPairList(provided)});
     }
+
 
     return matchAndInvoke(context, rho, overloads, provided);
   }
@@ -187,6 +193,18 @@ public class RuntimeInvoker {
       builder.add(arg.getTag(), arg.evaluated());
     }
     return builder.build();
+  }
+
+  private ListVector toEvaluatedList(List<ProvidedArgument> arguments) {
+    ListVector.Builder result = ListVector.newBuilder();
+    for(ProvidedArgument arg : arguments) {
+      if(arg.getTag() == Null.INSTANCE) {
+        result.add(arg.evaluated());
+      } else {
+        result.add(arg.getTagName(), arg.evaluated);
+      }
+    }
+    return result.build();
   }
 
   /**
@@ -413,6 +431,10 @@ public class RuntimeInvoker {
 
     public SEXP getTag() {
       return tag;
+    }
+
+    public String getTagName() {
+      return ((SymbolExp)tag).getPrintName();
     }
   }
 

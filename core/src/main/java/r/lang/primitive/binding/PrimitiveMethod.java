@@ -101,9 +101,15 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
            arguments.get(2).getClazz().equals(FunctionCall.class);
   }
 
-  public boolean acceptsArgumentList() {
+  public boolean acceptsArgumentPairList() {
     return formals.size() == 1 &&
            formals.get(0).getClazz() == PairList.class &&
+           formals.get(0).isAnnotatedWith(ArgumentList.class);
+  }
+
+  public boolean acceptsArgumentList() {
+    return formals.size() == 1 &&
+           formals.get(0).getClazz() == ListVector.class &&
            formals.get(0).isAnnotatedWith(ArgumentList.class);
   }
 

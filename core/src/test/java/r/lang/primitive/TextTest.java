@@ -58,4 +58,32 @@ public class TextTest extends EvalTestCase {
       assertThat( eval( ".Internal(ngettext(1, 'baby', 'babies', NULL))"), equalTo( c("baby")));
   }
 
+  @Test
+  public void sub() {
+    assertThat( eval(".Internal(sub('[[:blank:]]*([[:alnum:]]+)', '\\\\1', " +
+        "c('datasets', 'utils', 'grDevices', 'graphics', 'stats', 'methods'), FALSE, TRUE, FALSE, FALSE, FALSE))"),
+        equalTo( c("datasets", "utils", "grDevices", "graphics", "stats", "methods")) );
+  }
+
+  @Test
+  public void sprintf() {
+    eval("sprintf <- function (fmt, ...) .Internal(sprintf(fmt, ...))");
+    eval("pi <- 3.14159265358979");
+
+    assertThat( eval("sprintf('%f', pi)"), equalTo( c("3.141593")));
+    assertThat( eval("sprintf('%.3f', pi)"), equalTo( c("3.142")));
+    assertThat( eval("sprintf('%1.0f', pi)"), equalTo( c("3")));
+    assertThat( eval("sprintf('%5.1f', pi)"), equalTo(  c("  3.1")));
+    assertThat( eval("sprintf('%05.1f', pi)"), equalTo( c("003.1")));
+    assertThat( eval("sprintf('% f', pi)"), equalTo( c(" 3.141593")));
+    assertThat( eval("sprintf('%e', pi)"), equalTo( c("3.141593e+00")));
+    assertThat( eval("sprintf('%E', pi)"), equalTo( c("3.141593E+00")));
+   // assertThat( eval("sprintf('%g', pi)"), equalTo( c("3.14159")));
+
+     // Argument Recyling
+    assertThat( eval("sprintf(c('a%d', 'b%d'), c(1,2,3,4))"), equalTo( c("a1", "b2", "a3", "b4")));
+
+
+  }
+
 }

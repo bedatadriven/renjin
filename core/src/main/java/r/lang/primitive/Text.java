@@ -28,6 +28,8 @@ import r.lang.ListVector;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.ArgumentList;
+import r.lang.primitive.regex.RE;
 
 import static com.google.common.collect.Iterables.transform;
 
@@ -57,6 +59,48 @@ public class Text {
             transform(arguments, new StringElementAt(index)));
       }
       return new StringVector( result.toString() );
+    }
+  }
+
+
+  public static StringVector sprintf(@ArgumentList ListVector arguments) {
+    StringVector.Builder result = StringVector.newBuilder();
+    int resultLen = arguments.longestElementLength();
+
+    StringVector formatVector = toStringVector( arguments.getElementAsSEXP(0), "fmt" );
+    Object formatArgs[] = new Object[ arguments.length() -1 ];
+
+    for(int resultIndex=0; resultIndex != resultLen; ++resultIndex) {
+
+      PrintfFormat format = new PrintfFormat(
+          formatVector.getElementAsString( resultIndex % formatVector.length() ));
+
+      for(int i=1;i!=arguments.length();++i) {
+        AtomicVector formatArg = toAtomicVector(arguments.getElementAsSEXP(i));
+        int formatArgIndex = resultIndex % formatArg.length();
+
+        formatArgs[i-1] = formatArg.getElementAsObject(formatArgIndex);
+      }
+
+      result.add( format.sprintf(formatArgs) );
+    }
+
+    return result.build();
+  }
+
+  private static StringVector toStringVector(SEXP argument, String argName) {
+    if(argument instanceof StringVector) {
+      return (StringVector) argument;
+    } else {
+      throw new EvalException("'%s' is not a character vector", argName);
+    }
+  }
+
+  private static AtomicVector toAtomicVector(SEXP argument) {
+    if(argument instanceof AtomicVector) {
+      return (AtomicVector) argument;
+    } else {
+      throw new EvalException("unsupported type");
     }
   }
 
@@ -99,4 +143,39 @@ public class Text {
                                 String domain) {
     return n == 1 ? singularMessage : pluralMessage;
   }
+
+  public static StringVector sub(String pattern, String replacement,
+                           StringVector x,
+                           boolean ignoreCase,
+                           boolean extended,
+                           boolean perl,
+                           boolean fixed,
+                           boolean useBytes) {
+
+    RE re = new RE(pattern, ignoreCase, extended, perl, fixed, useBytes);
+
+    StringVector.Builder result = new StringVector.Builder();
+    for(String input : x) {
+      result.add(  re.subst(input, replacement, RE.REPLACE_FIRSTONLY | RE.REPLACE_BACKREFERENCES ) );
+    }
+    return result.build();
+  }
+
+  public static StringVector gsub(String pattern, String replacement,
+                           StringVector x,
+                           boolean ignoreCase,
+                           boolean extended,
+                           boolean perl,
+                           boolean fixed,
+                           boolean useBytes) {
+
+    RE re = new RE(pattern, ignoreCase, extended, perl, fixed, useBytes);
+
+    StringVector.Builder result = StringVector.newBuilder();
+    for(String input : x) {
+      result.add(  re.subst(input, replacement, RE.REPLACE_FIRSTONLY | RE.REPLACE_BACKREFERENCES ) );
+    }
+    return result.build();
+  }
+
 }

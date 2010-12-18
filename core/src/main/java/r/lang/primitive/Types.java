@@ -336,8 +336,6 @@ public class Types {
     return exp.setAttributes(attributes);
   }
 
-
-
   public static ListVector list(@ArgumentList PairList arguments) {
 
     int n = arguments.length();

@@ -46,6 +46,8 @@ public interface Vector extends SEXP {
 
   Logical getElementAsLogical(int index);
 
+  int getElementAsRawLogical(int index);
+
   Complex getElementAsComplex(int index);
 
 

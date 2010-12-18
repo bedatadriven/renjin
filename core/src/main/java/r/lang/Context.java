@@ -21,6 +21,10 @@
 
 package r.lang;
 
+import com.google.common.collect.Maps;
+
+import java.util.Map;
+
 /**
  * Contexts are the internal mechanism used to keep track of where a
  * computation has got to (and from where),
@@ -66,6 +70,27 @@ public class Context {
     BUILTIN
   }
 
+  public static class Options {
+    private Map<String, SEXP> map = Maps.newHashMap();
+
+    public Options() {
+    }
+
+    public SEXP get(String name) {
+      SEXP value = map.get(name);
+      return value == null ? Null.INSTANCE : value;
+    }
+
+    public SEXP set(String name, SEXP value) {
+      SEXP old = map.put(name, value);
+      return old == null ? Null.INSTANCE : value;
+    }
+  }
+
+  /**
+   * Parking lot for random global variables from the C-implementation of R
+   *  that we need to do something with.
+   */
   public static class Globals {
 
     private Globals() {
@@ -73,7 +98,7 @@ public class Context {
     }
 
     public PairList conditionHandlerStack = Null.INSTANCE;
-
+    public final Options options = new Options();
   }
 
   private Context parent;

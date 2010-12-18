@@ -227,33 +227,56 @@ abstract class AbstractSEXP implements SEXP {
 
   @Override
   public final SEXP setAttribute(String attributeName, SEXP value) {
-    // we enforce semantics on a few special attributes
-    if(attributeName.equals("class")) {
-      return setClass((StringVector) value);
+    return cloneWithNewAttributes(
+        replaceAttribute(new SymbolExp(attributeName),
+            checkAttribute(attributeName, value)));
+  }
 
-    } else if(attributeName.equals("names")) {
-      return setClass((StringVector) value);
+  @Override
+  public SEXP setAttributes(ListVector attributes) {
+    PairList.Builder list = new PairList.Builder();
+    for(int i=0;i!=attributes.length();++i) {
+      String name = attributes.getName(i);
+      SEXP value = checkAttribute(name, attributes.getElementAsSEXP(i));
 
-    } else {
-      return cloneWithNewAttributes(replaceAttribute(new SymbolExp(attributeName), value));
+      list.add(new SymbolExp(name), value);
     }
+    return cloneWithNewAttributes(list.build());
   }
 
   @Override
   public final SEXP setClass(StringVector classNames) {
-    if(classNames.length() == 0) {
-      throw new EvalException("class attribute cannot be null");
-    }
-    return cloneWithNewAttributes(replaceAttribute(SymbolExp.CLASS, classNames));
+    return cloneWithNewAttributes(replaceAttribute(SymbolExp.CLASS,
+        checkClassAttributes(classNames)));
   }
 
   @Override
   public final SEXP setNames(StringVector names) {
+    return cloneWithNewAttributes(replaceAttribute(SymbolExp.NAMES,
+        checkNamesAttributes(names)));
+  }
+
+  private SEXP checkAttribute(String name, SEXP value) {
+    if(name.equals("class")) {
+      return checkClassAttributes(value);
+    } else if(name.equals("names")) {
+      return checkNamesAttributes(value);
+    } else {
+      return value;
+    }
+  }
+
+  private StringVector checkNamesAttributes(SEXP names) {
     if(names.length() > length()) {
       throw new EvalException("'names' attribute [%d] must be the same length as the vector [%d]",
           names.length(), length());
     }
-    return cloneWithNewAttributes(replaceAttribute(SymbolExp.NAMES, names.setLength(length())));
+    return StringVector.coerceFrom(names).setLength(length());
+  }
+
+  private StringVector checkClassAttributes(SEXP classNames) {
+    EvalException.check(classNames.length() != 0, "class attribute cannot be null");
+    return StringVector.coerceFrom(classNames);
   }
 
   private PairList replaceAttribute(SymbolExp attributeName, SEXP newValue) {

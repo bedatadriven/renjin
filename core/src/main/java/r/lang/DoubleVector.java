@@ -115,6 +115,18 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   }
 
   @Override
+  public int getElementAsRawLogical(int index) {
+    double value = values[index];
+    if(isNA(value)) {
+      return IntVector.NA;
+    } else if(value == 0) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+
+  @Override
   public String getElementAsString(int index) {
     double value = values[index];
     return isNA(value) ? StringVector.NA :
@@ -275,7 +287,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     private PairList attributes = Null.INSTANCE;
     private double values[];
 
-    private Builder(int initialSize) {
+    public Builder(int initialSize) {
       values = new double[initialSize];
       Arrays.fill(values, NA);
     }

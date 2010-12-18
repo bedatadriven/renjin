@@ -25,6 +25,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import r.lang.exception.EvalException;
 import r.parser.ParseUtil;
 
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
         newValues[i] = StringVector.NA;
       }
     }
-    return new StringVector(values);
+    return new StringVector(newValues);
   }
 
   public String getElement(int index) {
@@ -83,16 +84,16 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
   }
 
   @Override
-  public Logical getElementAsLogical(int index) {
+  public int getElementAsRawLogical(int index) {
     String value = values[index];
     if(isNA(value)) {
-      return Logical.NA;
+      return IntVector.NA;
     } else if(value.equals("T") || value.equals("TRUE")) {
-      return Logical.TRUE;
+      return 1;
     } else if(value.equals("F") || value.equals("FALSE")) {
-      return Logical.FALSE;
+      return 0;
     } else {
-      return Logical.NA;
+      return IntVector.NA;
     }
   }
 
@@ -200,6 +201,10 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     return new Builder();
   }
 
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
   @Override
   public Type getVectorType() {
     return VECTOR_TYPE;
@@ -275,5 +280,23 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     public Vector.Builder newBuilder() {
       return new Builder();
     }
+  }
+
+  public static StringVector coerceFrom(SEXP exp) {
+
+    if(exp instanceof Vector) {
+      return fromVector((Vector) exp);
+    } else if(exp instanceof SymbolExp) {
+      return new StringVector( ((SymbolExp)exp).getPrintName() );
+    }
+    throw new EvalException("cannot coerce type '%s' to vector of type 'character'", exp.getTypeName());
+  }
+
+  public static StringVector fromVector(Vector vector) {
+    StringVector.Builder result = new Builder();
+    for(int i=0;i!=vector.length();++i) {
+      result.add(vector.getElementAsString(i));
+    }
+    return result.build();
   }
 }

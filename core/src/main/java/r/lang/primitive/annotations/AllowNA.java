@@ -30,6 +30,6 @@ import java.lang.annotation.Target;
  * Indicates that the argument can be passed {@code NA}.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
+@Target(ElementType.METHOD)
 public @interface AllowNA {
 }

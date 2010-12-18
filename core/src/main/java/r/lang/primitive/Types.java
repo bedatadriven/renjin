@@ -155,15 +155,18 @@ public class Types {
     throw new EvalException("type \"single\" unimplemented in R");
   }
 
-  public static boolean isNA(@AllowNA double value) {
+  @AllowNA
+  public static boolean isNA(double value) {
     return DoubleVector.isNA(value);
   }
 
-  public static boolean isNA(@AllowNA String value) {
+  @AllowNA
+  public static boolean isNA(String value) {
     return StringVector.isNA(value);
   }
 
-  public static boolean isNA(@AllowNA int value) {
+  @AllowNA
+  public static boolean isNA(int value) {
     return IntVector.isNA(value);
   }
 
@@ -213,6 +216,30 @@ public class Types {
     }
     return new LogicalVector(result);
   }
+
+  @Primitive("as.vector")
+  public static Vector asVector(Vector x, String mode) {
+    Vector.Builder result;
+    if("any".equals(mode)) {
+      result = x.getVectorType().newBuilder();
+    } else if("character".equals(mode)) {
+      result = new StringVector.Builder();
+    } else if("logical".equals(mode)) {
+      result = new LogicalVector.Builder(x.length());
+    } else if("numeric".equals(mode)) {
+      result = new DoubleVector.Builder(x.length());
+    } else if("list".equals(mode)) {
+      result = new ListVector.Builder();
+    } else {
+      throw new EvalException("invalid 'mode' argument");
+    }
+
+    for(int i=0;i!=x.length();++i) {
+      result.setFrom(i, x, i);
+    }
+    return result.build();
+  }
+
 
   public static StringVector asCharacter(SymbolExp symbol) {
     return new StringVector( symbol.getPrintName() );
@@ -282,6 +309,34 @@ public class Types {
     }
     return x.equals(y);
   }
+
+  public static PairList attributes(SEXP sexp) {
+    return sexp.getAttributes();
+  }
+
+  @Primitive("attr")
+  public static SEXP getAttribute(SEXP exp, String which) {
+    SEXP partialMatch = Null.INSTANCE;
+    int partialMatchCount = 0;
+
+    for(PairList.Node node : exp.getAttributes().nodes()) {
+      String name = node.getTag().getPrintName();
+      if(name.equals(which)) {
+        return node.getValue();
+      } else if(name.startsWith(which)) {
+        partialMatch = node.getValue();
+        partialMatchCount ++;
+      }
+    }
+    return partialMatchCount == 1 ? partialMatch : Null.INSTANCE;
+  }
+
+  @Primitive("attributes<-")
+  public static SEXP setAttributes(SEXP exp, ListVector attributes) {
+    return exp.setAttributes(attributes);
+  }
+
+
 
   public static ListVector list(@ArgumentList PairList arguments) {
 
@@ -391,8 +446,8 @@ public class Types {
     return exp.getNames();
   }
 
-  public static SEXP setNames(SEXP exp, StringVector names) {
-    return exp.setNames(names);
+  public static SEXP setNames(SEXP exp, SEXP names) {
+    return exp.setAttribute("names", names);
   }
 
   @Primitive("class")
@@ -401,12 +456,8 @@ public class Types {
   }
 
   @Primitive("class<-")
-  public static SEXP setClass(SEXP exp, StringVector classes) {
-    return exp.setClass(classes);
-  }
-
-  public static SEXP setClass(SEXP exp, ListVector list) {
-    return exp.setClass(Types.asCharacter(list));
+  public static SEXP setClass(SEXP exp, Vector classes) {
+    return exp.setAttribute("class", classes);
   }
 
   @Primitive("attr<-")
@@ -523,6 +574,27 @@ public class Types {
       }
     }
     return true;
+  }
+
+  public static ListVector options(@Current Context context, @ArgumentList PairList arguments) {
+    Context.Options options = context.getGlobals().options;
+    ListVector.Builder results = ListVector.newBuilder();
+
+    for(PairList.Node node : arguments.nodes()) {
+      if(node.hasTag()) {
+        String name = node.getTag().getPrintName();
+        results.add(name, options.set(name, node.getValue()));
+
+      } else if(node.getValue() instanceof StringVector) {
+        String name = ((StringVector) node.getValue()).getElementAsString(0);
+        results.add(name, options.get(name));
+
+      } else {
+        throw new EvalException("invalid argument");
+      }
+    }
+
+    return results.build();
   }
 
 }

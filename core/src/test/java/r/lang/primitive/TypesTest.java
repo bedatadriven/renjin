@@ -152,10 +152,50 @@ public class TypesTest extends EvalTestCase {
   }
 
   @Test
-  public void setAttributes() {
+  public void setClassWithAttrFunction() {
     eval(" x<-c(1,2,3) ");
     eval(" attr(x, 'class') <- 'foo' ");
 
     assertThat( eval(" class(x) "), equalTo( c("foo")));
   }
+
+  @Test
+  public void setNamesWithNonStrVector() {
+    eval(" x<-c(1,2,3) ");
+    eval(" names(x) <- c(4,5,6) ");
+
+    assertThat( eval("names(x)"), equalTo( c("4", "5","6")));
+  }
+
+  @Test
+  public void setNamesWithNonVector() {
+    eval(" x<-c(1,2,3) ");
+    eval(" names(x) <- quote(quote(z)) ");
+
+    assertThat( eval("names(x)"), equalTo( c("z", StringVector.NA, StringVector.NA)));
+  }
+
+  @Test
+  public void setAttributes() {
+    eval(" x <- 1:5");
+    eval(" attributes(x) <- list(names=c('a','b', 'c'), foo='bar') ");
+
+    assertThat( eval(" names(x) "), equalTo(c("a","b","c",StringVector.NA,StringVector.NA)));
+    assertThat( eval(" attr(x, 'foo') "), equalTo( c("bar")));
+
+  }
+
+  @Test
+  public void asVector() {
+    eval(" as.vector <- function (x, mode = 'any') .Internal(as.vector(x, mode)) ");
+
+    assertThat( eval("as.vector(1, 'character')"), equalTo( c("1" )));
+    assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo( c(true, true, false)));
+  }
+
+  @Test
+  public void options() {
+    eval(" .Internal(options(foo=TRUE)) ");
+  }
+
 }

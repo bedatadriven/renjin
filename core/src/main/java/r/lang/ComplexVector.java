@@ -92,9 +92,15 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
   }
 
   @Override
-  public Logical getElementAsLogical(int index) {
+  public int getElementAsRawLogical(int index) {
     double value = values[index].getReal();
-    return DoubleVector.isNA(value) ? Logical.NA : Logical.valueOf(value != 0);
+    if(value == 0) {
+      return 0;
+    } else if(DoubleVector.isNA(value)) {
+      return IntVector.NA;
+    } else {
+      return 1;
+    }
   }
 
   @Override

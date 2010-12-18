@@ -134,24 +134,43 @@ public class Subset {
 
   @Primitive("[[")
   public static SEXP getSingleElement(Vector vector, @Indices int index) {
-    if(index < 0) {
-      throw new EvalException("attempt to select more than one element");
-    } else if(index == 0) {
-      throw new EvalException("attempt to select less than one element");
-    }
+    EvalException.check(index >= 0, "attempt to select more than one element");
+    EvalException.check(index != 0, "attempt to select less than one element");
+    EvalException.check(index <= vector.length(), "subscript out of bounds" );
 
-    if(index <= vector.length()) {
-      return vector.getElementAsSEXP(index-1);
+    return vector.getElementAsSEXP(index-1);
+  }
+
+  @Primitive("[[")
+  public static SEXP getSingleElementByExactName(Vector vector, String subscript) {
+    int index = vector.getIndexByName(subscript);
+    return index == -1 ? Null.INSTANCE : vector.getElementAsSEXP(index);
+  }
+
+  @Primitive("[[")
+  public static SEXP getSingleElementByName(Vector vector, String subscript, boolean exact) {
+    if(exact) {
+      return getSingleElementByExactName(vector, subscript);
     } else {
-      throw new EvalException("subscript out of bounds");
+      int matchCount = 0;
+      SEXP match = Null.INSTANCE;
+
+      for(int i=0;i!=vector.length();++i) {
+        if(vector.getName(i).startsWith(subscript)) {
+          match = vector.getElementAsSEXP(i);
+          matchCount ++;
+        }
+      }
+
+      return matchCount == 1 ? match : Null.INSTANCE;
     }
   }
 
+
   @Primitive("[<-")
   public static SEXP setSubset(Vector target, @Indices int indices[], Vector values) {
-    if(indices.length % values.length() != 0) {
-      throw new EvalException("number of items to replace is not a multiple of replacement length");
-    }
+    EvalException.check(indices.length % values.length() == 0,
+      "number of items to replace is not a multiple of replacement length");
 
     Vector.Builder result = copyWideningIfNecessary(target, values);
 
@@ -169,17 +188,21 @@ public class Subset {
     int replaceCount = 0;
     for(int i=0;i!=target.length();++i) {
       int subscriptIndex = i % subscripts.length();
-      if(subscripts.isElementNA(subscriptIndex)) {
-        throw new EvalException("NAs are not allowed in subscripted assignments");
-      }
+      EvalException.check(!subscripts.isElementNA(subscriptIndex),
+          "NAs are not allowed in subscripted assignments");
+
       if(subscripts.getElementAsInt(subscriptIndex) != 0) {
         replaceCount++;
       }
     }
 
-    if(replaceCount % values.length() != 0) {
-      throw new EvalException("number of items to replace is not a multiple of replacement length");
+    if(replaceCount == 0 && values.length() == 0) {
+      return target;
     }
+
+    EvalException.check(values.length() != 0, "replacement has zero length");
+    EvalException.check(replaceCount % values.length() == 0,
+        "number of items to replace is not a multiple of replacement length");
 
     Vector.Builder result = copyWideningIfNecessary(target, values);
     int replacedCount = 0;

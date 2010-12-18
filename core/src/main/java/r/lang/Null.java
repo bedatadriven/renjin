@@ -48,7 +48,8 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   private static final IndexOutOfBoundsException INDEX_OUT_OF_BOUNDS_EXCEPTION =
       new IndexOutOfBoundsException("The NULL object is zero-length.");
 
-  private Null() {  }
+  private Null() {
+  }
 
   @Override
   public int getTypeCode() {
@@ -121,6 +122,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
+  public StringVector getClassAttribute() {
+    return new StringVector("NULL");
+  }
+
+  @Override
   public Vector.Builder newBuilder(int initialSize) {
     throw new UnsupportedOperationException();
   }
@@ -152,6 +158,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
   @Override
   public Logical getElementAsLogical(int index) {
+    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+  }
+
+  @Override
+  public int getElementAsRawLogical(int index) {
     throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
   }
 

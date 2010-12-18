@@ -24,7 +24,9 @@ package r.lang.primitive;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.AllowNA;
 import r.lang.primitive.annotations.ArgumentList;
+import r.lang.primitive.annotations.Primitive;
 
 import java.util.List;
 
@@ -106,8 +108,17 @@ public class Comparison {
     }
   }
 
-  public static boolean bitwiseOr(double x, double y) {
-    return (x != 0) | (y != 0);
+  @Primitive("|")
+  @AllowNA
+  public static Logical bitwiseOr(double x, double y) {
+    if( (x != 0 && !DoubleVector.isNA(x)) ||
+        (y != 0 && !DoubleVector.isNA(y))) {
+      return Logical.TRUE;
+    } else if(x == 0 && y == 0) {
+      return Logical.FALSE;
+    } else {
+      return Logical.NA;
+    }
   }
 
   /**
@@ -117,6 +128,7 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
+  @Primitive("&&")
   public static Logical and(Context context, Environment rho, FunctionCall call) {
 
     Logical x = checkedToLogical(call.evalArgument(context, rho, 0), "invalid 'x' type in 'x && y'");
@@ -136,10 +148,19 @@ public class Comparison {
     }
   }
 
-  public static boolean bitwiseAnd(double x, double y) {
-    return (x != 0) & (y != 0);
+  @Primitive("&")
+  @AllowNA
+  public static Logical bitwiseAnd(double x, double y) {
+    if(x == 0 || y == 0) {
+      return Logical.FALSE;
+    } else if(DoubleVector.isNA(x) || DoubleVector.isNA(y)) {
+      return Logical.NA;
+    } else {
+      return Logical.TRUE;
+    }
   }
 
+  @Primitive("!")
   public static boolean not(boolean value) {
     return !value;
   }
@@ -187,7 +208,7 @@ public class Comparison {
     throw new EvalException(errorMessage);
   }
 
-  private static boolean isFalse(SEXP exp) {
+  public static boolean isFalse(SEXP exp) {
     if(exp instanceof AtomicVector && exp.length() > 0) {
      return ((AtomicVector) exp).getElementAsDouble(0) == 0;
     }

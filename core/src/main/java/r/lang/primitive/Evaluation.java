@@ -312,7 +312,7 @@ public class Evaluation {
           substitute(langExp.getFunction()),
           (PairList) substitute((SEXP) langExp.getArguments()),
           langExp.getAttributes(),
-          langExp.getTag());
+          langExp.getRawTag());
     }
 
     @Override
@@ -409,6 +409,13 @@ public class Evaluation {
     throw new EvalException(
         String.format("Call to native function '%s' in package '%s'",
             methodName, packageName));
+  }
+
+  /**
+   * @return  TRUE when R is being used interactively and FALSE otherwise.
+   */
+  public static boolean interactive() {
+    return false;
   }
 
   public static class BreakException extends ControlFlowException {   }

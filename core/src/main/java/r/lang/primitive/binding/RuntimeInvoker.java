@@ -29,6 +29,7 @@ import r.lang.primitive.annotations.Indices;
 
 import java.lang.Class;
 import java.lang.Integer;
+import java.lang.Iterable;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
@@ -37,7 +38,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.Iterable;
 
 /**
  * Invokes a JVM method from the R language.
@@ -118,7 +118,7 @@ public class RuntimeInvoker {
 
     // do we have a single method that accepts the whole argument list?
     if(overloads.size() == 1 && overloads.get(0).acceptsArgumentList()) {
-      return overloads.get(0).invokeAndWrap(toEvaluatedPairList(provided));
+      return overloads.get(0).invokeWithContextAndWrap(context, rho, new Object[]{toEvaluatedPairList(provided)});
     }
 
     return matchAndInvoke(context, rho, overloads, provided);
@@ -211,7 +211,7 @@ public class RuntimeInvoker {
     public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
       AtomicAccessor domain =  AtomicAccessors.create( arguments.get(0).evaluated(), primitive );
       AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), domain.length() );
-      boolean allowNA = method.getArguments().get(0).isAnnotatedWith(AllowNA.class);
+      boolean allowNA = method.isAnnotatedWith(AllowNA.class);
 
 
       for (int i = 0; i < domain.length(); i++) {
@@ -262,6 +262,8 @@ public class RuntimeInvoker {
     public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
       AtomicAccessor<Double> x = AtomicAccessors.create( arguments.get(0).evaluated(), primitiveType );
       AtomicAccessor<Double> y = AtomicAccessors.create( arguments.get(1).evaluated(), primitiveType );
+      boolean allowNA = method.isAnnotatedWith(AllowNA.class);
+
       int xLen = x.length();
       int yLen = y.length();
       int maxLen = Math.max(xLen, yLen);
@@ -277,7 +279,7 @@ public class RuntimeInvoker {
         int xi = i % xLen;
         int yi = i % yLen;
 
-        if( x.isNA(xi) || y.isNA(yi)) {
+        if( !allowNA && (x.isNA(xi) || y.isNA(yi))) {
           result.setNA(i);
         } else {
           result.set(i, method.invoke(x.get(xi), y.get(yi)));

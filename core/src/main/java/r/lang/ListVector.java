@@ -171,6 +171,15 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
   }
 
   @Override
+  public int getElementAsRawLogical(int index) {
+  SEXP value = values.get(index);
+    if(value.length() == 1 && value instanceof AtomicVector) {
+      return ((AtomicVector) value).getElementAsRawLogical(0);
+    }
+    throw new EvalException("(list) object cannot be coerced to type 'logical'");
+  }
+
+  @Override
   public Complex getElementAsComplex(int index) {
     SEXP value = values.get(index);
     if(value.length() == 1 && value instanceof AtomicVector) {

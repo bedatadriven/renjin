@@ -168,6 +168,15 @@ public class ComparisonTest extends EvalTestCase {
   }
 
   @Test
+  public void elementWiseOrWithNA() {
+    assertThat( eval("FALSE | NA"), equalTo( c(NA)));
+    assertThat( eval("NA | FALSE"), equalTo( c(NA)));
+    assertThat( eval("TRUE | NA"), equalTo(c(TRUE)));
+    assertThat( eval("NA | TRUE"), equalTo(c(TRUE)));
+    assertThat( eval("NA | NA"), equalTo(c(NA)));
+  }
+
+  @Test
   public void and() {
     assertThat( eval("0 && 0"), equalTo(c(Logical.FALSE)) );
     assertThat( eval("0 && 1"), equalTo(c(Logical.FALSE)) );
@@ -252,6 +261,15 @@ public class ComparisonTest extends EvalTestCase {
     assertThat( eval("c(FALSE) & c(1)"), equalTo(c(Logical.FALSE)) );
     assertThat( eval("c(TRUE) & c(0)"), equalTo(c(Logical.FALSE)) );
     assertThat( eval("c(TRUE) & c(1)"), equalTo(c(Logical.TRUE)) );
+  }
+
+  @Test
+  public void elementWiseAndWithNA() {
+    assertThat( eval("FALSE & NA"), equalTo( c(FALSE)));
+    assertThat( eval("NA & FALSE"), equalTo( c(FALSE)));
+    assertThat( eval("TRUE & NA"), equalTo(c(NA)));
+    assertThat( eval("NA & TRUE"), equalTo(c(NA)));
+    assertThat( eval("NA & NA"), equalTo(c(NA)));
   }
 
   @Test

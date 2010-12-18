@@ -123,6 +123,11 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
   }
 
   @Override
+  public int getElementAsRawLogical(int index) {
+    return values[index];
+  }
+
+  @Override
   public Complex getElementAsComplex(int index) {
     if(IntVector.isNA(values[index])) {
       return ComplexVector.NA;  
@@ -262,11 +267,11 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     return IntVector.isNA(values[index]);
   }
 
-  private static class Builder implements Vector.Builder<AtomicVector> {
+  public static class Builder implements Vector.Builder<AtomicVector> {
     private PairList attributes = Null.INSTANCE;
     private int values[];
 
-    private Builder(int initialSize) {
+    public Builder(int initialSize) {
       values = new int[initialSize];
       Arrays.fill(values, NA);
     }
@@ -293,7 +298,7 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
     @Override
     public Builder setFrom(int destinationIndex, AtomicVector source, int sourceIndex) {
-      return set(destinationIndex, source.getElementAsInt(sourceIndex));
+      return set(destinationIndex, source.getElementAsRawLogical(sourceIndex));
     }
 
     @Override

@@ -102,9 +102,9 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   }
 
   public boolean acceptsArgumentList() {
-    return arguments.size() == 1 &&
-           arguments.get(0).getClazz() == PairList.class &&
-           arguments.get(0).isAnnotatedWith(ArgumentList.class);
+    return formals.size() == 1 &&
+           formals.get(0).getClazz() == PairList.class &&
+           formals.get(0).isAnnotatedWith(ArgumentList.class);
   }
 
   public boolean isVarArgs() {
@@ -256,6 +256,10 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   @Override
   public String toString() {
     return method.toString();
+  }
+
+  public boolean isAnnotatedWith(Class<? extends Annotation> annotationClass) {
+    return method.isAnnotationPresent(annotationClass);
   }
 
   public class Argument {

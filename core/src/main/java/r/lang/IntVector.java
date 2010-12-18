@@ -115,8 +115,13 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   }
 
   @Override
-  public Logical getElementAsLogical(int index) {
-    return Logical.valueOf(values[index]);
+  public int getElementAsRawLogical(int index) {
+    int value = values[index];
+    if(value == 0 || isNA(value)) {
+      return value;
+    } else {
+      return 1;
+    }
   }
 
   @Override

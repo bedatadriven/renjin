@@ -199,6 +199,27 @@ public class System {
 
     return digit + digit + digit;
   }
-  
+
+  @Primitive("Version")
+  public static ListVector version() {
+    // this is just copied from my local R installation
+    // we'll have to see later what makes the most sense to put here,
+    // whether we need to pretend to be some version of R
+    return ListVector.newBuilder()
+        .add("platform", "i386-pc-mingw32")
+        .add("arch", "i386")
+        .add("os", "mingw32")
+        .add("system", "i386, mingw32")
+        .add("status", "")
+        .add("major", "2")
+        .add("minor", "10.1")
+        .add("year", "2009")
+        .add("month", "12")
+        .add("day", "14")
+        .add("svn rev", "50720")
+        .add("version.string", "R version 2.10.1 (2009-12-14)")
+        .build();
+
+  }
 
 }

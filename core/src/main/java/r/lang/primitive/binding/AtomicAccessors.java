@@ -276,7 +276,7 @@ public class AtomicAccessors {
 
     @Override
     public Double get(int index) {
-      return (double)exp.getElementAsInt(index);
+      return (double)exp.getElementAsDouble(index);
     }
 
     @Override

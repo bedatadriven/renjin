@@ -113,6 +113,8 @@ public interface SEXP {
 
   SEXP setAttribute(String attributeName, SEXP value);
 
+  SEXP setAttributes(ListVector attributes);
+
   SEXP setClass(StringVector classNames);
 
   SEXP setNames(StringVector names);

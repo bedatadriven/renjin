@@ -229,4 +229,15 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat( eval("f()"), equalTo(c(42)));
   }
+
+  @Test
+  public void quoteSymbol() {
+    eval("x <- quote(y)");
+    assertThat( eval("x"), equalTo(symbol("y")));
+  }
+
+  @Test
+  public void symbolToCharacter() {
+    assertThat( eval(" as.character(quote(x)) "), equalTo( c("x")));
+  }
 }

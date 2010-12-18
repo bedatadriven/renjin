@@ -70,6 +70,11 @@ public abstract class AbstractAtomicVector extends AbstractSEXP implements Atomi
     return getVectorType().isWiderThan(vector.getVectorType());
   }
 
+  @Override
+  public Logical getElementAsLogical(int index) {
+    return Logical.valueOf(getElementAsRawLogical(index));
+  }
+
   private class Elements implements Iterable<SEXP> {
     @Override
     public Iterator<SEXP> iterator() {

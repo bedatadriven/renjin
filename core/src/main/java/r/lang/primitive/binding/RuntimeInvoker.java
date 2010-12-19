@@ -26,6 +26,7 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.AllowNA;
 import r.lang.primitive.annotations.Indices;
+import r.lang.primitive.annotations.Recycle;
 
 import java.lang.Class;
 import java.lang.Integer;
@@ -34,8 +35,6 @@ import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.StringBuilder;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,6 +74,7 @@ public class RuntimeInvoker {
     // converters between whole expressions and
     // argument types
     converters = new ArrayList<ArgConverter>();
+    converters.add(new IdentityConverter());
     converters.add(new ToPrimitive());
     converters.add(new StringToSymbol());
     converters.add(new FromExternalPtr());
@@ -167,8 +167,45 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
-      return method.invokeWithContextAndWrap(context, rho, convertArgs(method, arguments));
+    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> providedArgs) {
+      SEXP[] preparedArguments = prepareArguments(method, providedArgs);
+      Object[] arguments = new Object[providedArgs.size()];
+
+      int cycles = countCycles(method, preparedArguments);
+      if(cycles == 1) {
+        convertArguments(method, preparedArguments, arguments, 0);
+        return method.invokeWithContextAndWrap(context, rho, arguments);
+      } else {
+        AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), cycles);
+        for(int i=0;i!=cycles;++i) {
+          convertArguments(method, preparedArguments, arguments, i);
+          result.set( i , method.invokeWithContext(context, rho, arguments) );
+        }
+        return new EvalResult( result.build() );
+      }
+    }
+  }
+
+  private int countCycles(PrimitiveMethod method, SEXP[] arguments) {
+    int maxLength = 1;
+    for(int i=0;i!=arguments.length;++i) {
+      if(method.getFormals().get(i).isAnnotatedWith(Recycle.class)) {
+        maxLength = Math.max(maxLength, arguments[i].length());
+      }
+    }
+    return maxLength;
+  }
+
+  private void convertArguments(PrimitiveMethod method, SEXP[] preparedArgs, Object[] args, int cycle) {
+    for(int i=0;i!=preparedArgs.length;++i) {
+      PrimitiveMethod.Argument formal = method.getFormals().get(i);
+      if(formal.isAnnotatedWith(Recycle.class)) {
+        AtomicAccessor vector = AtomicAccessors.create(preparedArgs[i], formal.getClazz());
+        int vectorIndex = cycle % vector.length();
+        args[i] = vector.get(vectorIndex);
+      }  else {
+        args[i] = getConverter(preparedArgs[i], formal).convert(preparedArgs[i], formal);
+      }
     }
   }
 
@@ -244,13 +281,13 @@ public class RuntimeInvoker {
     }
   }
 
-  private Object[] convertArgs(PrimitiveMethod method, List<ProvidedArgument> providedArgs) {
-    Object newArray[] = new Object[providedArgs.size()];
+  private SEXP[] prepareArguments(PrimitiveMethod method, List<ProvidedArgument> providedArgs) {
+    SEXP newArray[] = new SEXP[providedArgs.size()];
     for(int i=0;i!=providedArgs.size();++i) {
       PrimitiveMethod.Argument formal = method.getFormals().get(i);
       ProvidedArgument provided = providedArgs.get(i);
 
-      newArray[i] = provided.convertTo(formal);
+      newArray[i] = provided.prepare(formal);
     }
     return newArray;
   }
@@ -306,23 +343,6 @@ public class RuntimeInvoker {
 
       return new EvalResult( result.build() );
     }
-  }
-
-  private static boolean isArgAnnotated(Method method, int index, Class<? extends Annotation> expectedAnnotation) {
-    if( index >= method.getParameterAnnotations().length) {
-      return false;
-    }
-    Annotation[] annotations = method.getParameterAnnotations()[index];
-    return has(annotations, expectedAnnotation);
-  }
-
-  private static boolean has(Annotation[] annotations, Class<? extends Annotation> expectedAnnotation) {
-    for(Annotation annotation : annotations) {
-      if(annotation.annotationType() == expectedAnnotation) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private boolean acceptArguments(List<ProvidedArgument> provided, List<PrimitiveMethod.Argument> formals) {
@@ -410,19 +430,14 @@ public class RuntimeInvoker {
       }
     }
 
-    public Object convertTo(PrimitiveMethod.Argument formal) {
+    public SEXP prepare(PrimitiveMethod.Argument formal) {
       SEXP value;
       if(formal.isEvaluated()) {
         value = evaluated();
       } else {
         value = provided;
       }
-
-      if(formal.isAssignableFrom(value)) {
-        return value;
-      }
-
-      return getConverter(value, formal).convert(rho, value, formal);
+      return value;
     }
 
     public String getTypeName() {
@@ -440,18 +455,19 @@ public class RuntimeInvoker {
 
   private interface ArgConverter<S extends SEXP, T> {
     boolean accept(SEXP source, PrimitiveMethod.Argument formal);
-    T convert(Environment rho, S source, PrimitiveMethod.Argument formal);
+    T convert(S source, PrimitiveMethod.Argument formal);
   }
 
   private class ToPrimitive implements ArgConverter {
 
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
-      return source.length() == 1 && AtomicAccessors.haveAccessor(source, formal.getClazz());
+      return AtomicAccessors.haveAccessor(source, formal.getClazz()) && (
+          (source.length() == 1 || formal.isAnnotatedWith(Recycle.class)));
     }
 
     @Override
-    public Object convert(Environment rho, SEXP source, PrimitiveMethod.Argument formal) {
+    public Object convert(SEXP source, PrimitiveMethod.Argument formal) {
       return AtomicAccessors.create(source, formal.getClazz()).get(0);
     }
   }
@@ -466,7 +482,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public SymbolExp convert(Environment rho, StringVector source, PrimitiveMethod.Argument formal) {
+    public SymbolExp convert(StringVector source, PrimitiveMethod.Argument formal) {
       return new SymbolExp(source.getElement(0));
     }
   }
@@ -481,7 +497,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public int[] convert(Environment rho, DoubleVector source, PrimitiveMethod.Argument formal) {
+    public int[] convert(DoubleVector source, PrimitiveMethod.Argument formal) {
       return source.coerceToIntArray();
     }
   }
@@ -496,7 +512,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public int[] convert(Environment rho, IntVector source, PrimitiveMethod.Argument formal) {
+    public int[] convert(IntVector source, PrimitiveMethod.Argument formal) {
       return source.toIntArray();
     }
   }
@@ -511,7 +527,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public Integer convert(Environment rho, DoubleVector source, PrimitiveMethod.Argument formal) {
+    public Integer convert(DoubleVector source, PrimitiveMethod.Argument formal) {
       return (int)source.get(0);
     }
   }
@@ -539,7 +555,7 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public Object convert(Environment rho, SEXP source, PrimitiveMethod.Argument formal) {
+    public Object convert(SEXP source, PrimitiveMethod.Argument formal) {
       return ((ExternalExp)source).getValue();
     }
   }
@@ -551,8 +567,20 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public Object convert(Environment rho, SEXP source, PrimitiveMethod.Argument formal) {
+    public Object convert(SEXP source, PrimitiveMethod.Argument formal) {
       return null;
+    }
+  }
+
+  private class IdentityConverter implements ArgConverter {
+    @Override
+    public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
+      return formal.isAssignableFrom(source);
+    }
+
+    @Override
+    public Object convert(SEXP source, PrimitiveMethod.Argument formal) {
+      return source;
     }
   }
 }

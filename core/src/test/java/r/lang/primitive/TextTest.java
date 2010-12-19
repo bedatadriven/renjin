@@ -82,8 +82,24 @@ public class TextTest extends EvalTestCase {
 
      // Argument Recyling
     assertThat( eval("sprintf(c('a%d', 'b%d'), c(1,2,3,4))"), equalTo( c("a1", "b2", "a3", "b4")));
+  }
 
+  @Test
+  public void translateChars() {
+    assertThat( eval(".Internal(chartr('abc', 'xyz', 'abcdefabc'))"), equalTo( c("xyzdefxyz")));
+    assertThat( eval(".Internal(chartr('abc', 'xyz', c('abc', 'cba', 'ccc')))"),
+        equalTo( c("xyz", "zyx", "zzz")));
+
+    assertThat( eval(".Internal(tolower('ABCdeFG 123'))"), equalTo( c("abcdefg 123")));
+    assertThat( eval(".Internal(toupper('ABCdeFG 123'))"), equalTo( c("ABCDEFG 123")));
 
   }
 
+  @Test
+  public void nchar() {
+    eval("nchar <- function (x, type = 'chars', allowNA = FALSE) .Internal(nchar(x, type, allowNA))");
+
+    assertThat( eval("nchar('xyz')"), equalTo( c_i(3) ));
+    assertThat( eval("nchar(c('xyz', NA, 'a', '', 'abcde'))"), equalTo( c_i(3, 2, 1, 0, 5) ));
+  }
 }

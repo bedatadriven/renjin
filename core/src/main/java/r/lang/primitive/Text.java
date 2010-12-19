@@ -28,8 +28,10 @@ import r.lang.ListVector;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.AllowNA;
 import r.lang.primitive.annotations.ArgumentList;
 import r.lang.primitive.annotations.Primitive;
+import r.lang.primitive.annotations.Recycle;
 import r.lang.primitive.regex.RE;
 
 import static com.google.common.collect.Iterables.transform;
@@ -147,6 +149,50 @@ public class Text {
   public static String ngettext(double n, String singularMessage, String pluralMessage,
                                 String domain) {
     return n == 1 ? singularMessage : pluralMessage;
+  }
+
+  @Primitive("chartr")
+  public static StringVector translateCharacters(String oldChars, String newChars, StringVector x) {
+    StringVector.Builder result = new StringVector.Builder();
+    for(String input : x) {
+      StringBuilder translation = new StringBuilder(input.length());
+      for(int i=0;i!=input.length();++i) {
+        int codePoint = input.codePointAt(i);
+        int charIndex = oldChars.indexOf(codePoint);
+        if(charIndex == -1) {
+          translation.appendCodePoint(codePoint);
+        } else {
+          translation.appendCodePoint(newChars.codePointAt(charIndex));
+        }
+      }
+      result.add(translation.toString());
+    }
+
+    return result.build();
+  }
+
+  @Primitive("tolower")
+  public static String toLower(String x) {
+    return x.toLowerCase();
+  }
+
+  @Primitive("toupper")
+  public static String toUpper(String x) {
+    return x.toUpperCase();
+  }
+
+  @AllowNA
+  public static int nchar(@Recycle String x, String type, boolean allowNA) {
+    if(StringVector.isNA(x)) {
+      return 2;
+    } else {
+      return x.length();
+    }
+  }
+
+  @AllowNA
+  public static boolean nzchar(String x) {
+    return StringVector.isNA(x) || x.length() != 0;
   }
 
   public static StringVector sub(String pattern, String replacement,

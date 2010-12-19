@@ -182,7 +182,16 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     }
   }
 
+
   public EvalResult invokeWithContextAndWrap(Context context, Environment rho, Object[] formals) {
+    return invokeAndWrap( assembleArgumentListWithContext(context, rho, formals) );
+  }
+
+  public Object invokeWithContext(Context context, Environment rho, Object[] formals) {
+    return invoke( assembleArgumentListWithContext(context, rho, formals ));
+  }
+
+  private Object[] assembleArgumentListWithContext(Context context, Environment rho, Object[] formals) {
     Object params[] = new Object[arguments.size()];
     int formalIndex = 0;
 
@@ -202,7 +211,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
         params[i] = formals[formalIndex++];
       }
     }
-    return invokeAndWrap(params);
+    return params;
   }
 
 

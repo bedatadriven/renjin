@@ -494,8 +494,8 @@ public class FunctionTable {
 
 /* String Manipulation */
 
-      f("nchar", /*nchar*/ null, 1, 11, 3, PP_FUNCALL, PREC_FN, 0),
-      f("nzchar", /*nzchar*/ null, 1, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("nchar", Text.class, 1, 11, 3, PP_FUNCALL, PREC_FN, 0),
+      f("nzchar", Text.class, 1, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("substr", /*substr*/ null, 1, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("substr<-", /*substrgets*/ null, 1, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("strsplit", /*strsplit*/ null, 1, 11, 6, PP_FUNCALL, PREC_FN, 0),
@@ -508,9 +508,9 @@ public class FunctionTable {
       f("regexpr", /*regexpr*/ null, 1, 11, 7, PP_FUNCALL, PREC_FN, 0),
       f("gregexpr", /*gregexpr*/ null, 1, 11, 7, PP_FUNCALL, PREC_FN, 0),
       f("agrep", /*agrep*/ null, 1, 11, 9, PP_FUNCALL, PREC_FN, 0),
-      f("tolower", /*tolower*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
-      f("toupper", /*tolower*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
-      f("chartr", /*chartr*/ null, 1, 11, 3, PP_FUNCALL, PREC_FN, 0),
+      f("tolower", Text.class, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
+      f("toupper", Text.class, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
+      f("chartr", Text.class, 1, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("sprintf", Text.class, 1, 11, -1, PP_FUNCALL, PREC_FN, 0),
       f("make.unique", /*makeunique*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("charToRaw", /*charToRaw*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),

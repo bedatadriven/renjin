@@ -120,7 +120,9 @@ public class Text {
 
     @Override
     public String apply(SEXP input) {
-      if(input instanceof AtomicVector) {
+      if(input.length() == 0) {
+        return "";
+      } else if(input instanceof AtomicVector) {
         return ((AtomicVector) input).getElementAsString(index % input.length());
 
       } else if(input instanceof ListVector) {

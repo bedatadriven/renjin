@@ -182,6 +182,11 @@ public class System {
     return info.build();
   }
 
+  @Primitive("file.exists")
+  public static boolean fileExists(String path) {
+    return new File(path).exists();
+  }
+
   private static String mode(File file) {
     int access = 0;
     if(file.canRead()) {

@@ -35,6 +35,11 @@ public class TextTest extends EvalTestCase {
   }
 
   @Test
+  public void pasteWithEmptyVector() {
+      assertThat( eval( ".Internal(paste(list('a', c()), '-', NULL)) "), equalTo(  c("a-") )) ;
+  }
+
+  @Test
   public void pasteVectors() {
       assertThat( eval( ".Internal(paste(list(c('x', 'y'), 'a', 'b'), '-', NULL)) "),
           equalTo(  c("x-a-b", "y-a-b") )) ;

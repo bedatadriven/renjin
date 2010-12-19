@@ -171,23 +171,24 @@ public class RuntimeInvoker {
       SEXP[] preparedArguments = prepareArguments(method, providedArgs);
       Object[] arguments = new Object[providedArgs.size()];
 
-      int cycles = countCycles(method, preparedArguments);
-      if(cycles == 1) {
-        convertArguments(method, preparedArguments, arguments, 0);
-        return method.invokeWithContextAndWrap(context, rho, arguments);
-      } else {
+      if(method.isRecyclable()) {
+        int cycles = countCycles(method, preparedArguments);
         AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), cycles);
         for(int i=0;i!=cycles;++i) {
           convertArguments(method, preparedArguments, arguments, i);
           result.set( i , method.invokeWithContext(context, rho, arguments) );
         }
         return new EvalResult( result.build() );
+
+      } else {
+        convertArguments(method, preparedArguments, arguments, 0);
+        return method.invokeWithContextAndWrap(context, rho, arguments);
       }
     }
   }
 
   private int countCycles(PrimitiveMethod method, SEXP[] arguments) {
-    int maxLength = 1;
+    int maxLength = 0;
     for(int i=0;i!=arguments.length;++i) {
       if(method.getFormals().get(i).isAnnotatedWith(Recycle.class)) {
         maxLength = Math.max(maxLength, arguments[i].length());

@@ -79,7 +79,7 @@ public class Text {
 
     for(int resultIndex=0; resultIndex != resultLen; ++resultIndex) {
 
-      PrintfFormat format = new PrintfFormat(
+      Formatter format = new Formatter(
           formatVector.getElementAsString( resultIndex % formatVector.length() ));
 
       for(int i=1;i!=arguments.length();++i) {
@@ -144,45 +144,63 @@ public class Text {
     }
   }
 
+  /**
+   * Retrieve the translation for a natural language message
+   * @param domain
+   * @param messages
+   * @return
+   */
   public static StringVector gettext(String domain, StringVector messages) {
+    // stub implementation; no translation
     return messages;
   }
 
-  public static String ngettext(double n, String singularMessage, String pluralMessage,
+  public static String ngettext(double n,
+                                String singularMessage,
+                                String pluralMessage,
                                 String domain) {
+    // stub implementation; no translation
     return n == 1 ? singularMessage : pluralMessage;
   }
 
+  /**
+   * Translate characters
+   *
+   * @param oldChars a set of characters for which to search
+   * @param newChars  a set of characters with which to replace matching characters
+   * @param x the string in which to search
+   * @return the translated string
+   */
   @Primitive("chartr")
-  public static StringVector translateCharacters(String oldChars, String newChars, StringVector x) {
-    StringVector.Builder result = new StringVector.Builder();
-    for(String input : x) {
-      StringBuilder translation = new StringBuilder(input.length());
-      for(int i=0;i!=input.length();++i) {
-        int codePoint = input.codePointAt(i);
-        int charIndex = oldChars.indexOf(codePoint);
-        if(charIndex == -1) {
-          translation.appendCodePoint(codePoint);
-        } else {
-          translation.appendCodePoint(newChars.codePointAt(charIndex));
-        }
+  public static String chartr(String oldChars, String newChars, @Recycle String x) {
+    StringBuilder translation = new StringBuilder(x.length());
+    for(int i=0;i!=x.length();++i) {
+      int codePoint = x.codePointAt(i);
+      int charIndex = oldChars.indexOf(codePoint);
+      if(charIndex == -1) {
+        translation.appendCodePoint(codePoint);
+      } else {
+        translation.appendCodePoint(newChars.codePointAt(charIndex));
       }
-      result.add(translation.toString());
     }
-
-    return result.build();
+    return translation.toString();
   }
 
-  @Primitive("tolower")
-  public static String toLower(String x) {
+  public static String tolower(String x) {
     return x.toLowerCase();
   }
 
-  @Primitive("toupper")
-  public static String toUpper(String x) {
+  public static String toupper(String x) {
     return x.toUpperCase();
   }
 
+  /**
+   * String length
+   * @param x
+   * @param type
+   * @param allowNA
+   * @return
+   */
   @AllowNA
   public static int nchar(@Recycle String x, String type, boolean allowNA) {
     if(StringVector.isNA(x)) {
@@ -192,13 +210,32 @@ public class Text {
     }
   }
 
+  /**
+   * Check for non-zero length string
+   * @param x the string to check
+   * @return true if the string of non-zero length, false if the string is empty
+   */
   @AllowNA
   public static boolean nzchar(String x) {
     return StringVector.isNA(x) || x.length() != 0;
   }
 
-  public static StringVector sub(String pattern, String replacement,
-                           StringVector x,
+  /**
+   * Substitute the first pattern in a string
+   * @param pattern a regular expression pattern to look for
+   * @param replacement the string with which to replace matches. Can contain backreferences
+   * denoted by \1, \2, ...\n
+   * @param x The string in which to replace
+   * @param ignoreCase  true to ignore case
+   * @param extended true to use extended regexps
+   * @param perl true to use perl-compatible regexps
+   * @param fixed true to use normal string replacement
+   * @param useBytes true to perform matching on byte-level rather than character-level.
+   * Not supported
+   * @return  the string with replacements made
+   */
+  public static String sub(String pattern, String replacement,
+                           @Recycle String x,
                            boolean ignoreCase,
                            boolean extended,
                            boolean perl,
@@ -206,29 +243,54 @@ public class Text {
                            boolean useBytes) {
 
     RE re = new RE(pattern, ignoreCase, extended, perl, fixed, useBytes);
-
-    StringVector.Builder result = new StringVector.Builder();
-    for(String input : x) {
-      result.add(  re.subst(input, replacement, RE.REPLACE_FIRSTONLY | RE.REPLACE_BACKREFERENCES ) );
-    }
-    return result.build();
+    return  re.subst(x, replacement, RE.REPLACE_FIRSTONLY | RE.REPLACE_BACKREFERENCES );
   }
 
-  public static StringVector gsub(String pattern, String replacement,
-                           StringVector x,
-                           boolean ignoreCase,
-                           boolean extended,
-                           boolean perl,
-                           boolean fixed,
-                           boolean useBytes) {
+
+  /**
+   * Substitute the all patterns in a string
+   * @param pattern a regular expression pattern to look for
+   * @param replacement the string with which to replace matches. Can contain backreferences
+   * denoted by \1, \2, ...\n
+   * @param x The string in which to replace
+   * @param ignoreCase  true to ignore case
+   * @param extended true to use extended regexps
+   * @param perl true to use perl-compatible regexps
+   * @param fixed true to use normal string replacement
+   * @param useBytes true to perform matching on byte-level rather than character-level.
+   * Not supported
+   * @return  the string with replacements made
+   */
+  public static String gsub(String pattern, String replacement,
+                            @Recycle String x,
+                            boolean ignoreCase,
+                            boolean extended,
+                            boolean perl,
+                            boolean fixed,
+                            boolean useBytes) {
 
     RE re = new RE(pattern, ignoreCase, extended, perl, fixed, useBytes);
-
-    StringVector.Builder result = StringVector.newBuilder();
-    for(String input : x) {
-      result.add(  re.subst(input, replacement, RE.REPLACE_FIRSTONLY | RE.REPLACE_BACKREFERENCES ) );
-    }
-    return result.build();
+    return re.subst(x, replacement, RE.REPLACE_ALL | RE.REPLACE_BACKREFERENCES );
   }
 
+  /**
+   * Substitute the all patterns in a string
+   * @param split a regular expression pattern to look for
+   * @param x The string in which to replace
+   * @param extended true to use extended regexps
+   * @param perl true to use perl-compatible regexps
+   * @param fixed true to use normal string replacement
+   * @param useBytes true to perform matching on byte-level rather than character-level.
+   * Not supported
+   * @return  a {@code StringVector} containing the splits
+   */
+  public static StringVector strsplit(@Recycle String x, @Recycle String split,
+                                      boolean extended,
+                                      boolean fixed,
+                                      boolean perl,
+                                      boolean useBytes) {
+
+    RE re = new RE(split, false, extended, perl, fixed, useBytes);
+    return new StringVector( re.split(x) );
+  }
 }

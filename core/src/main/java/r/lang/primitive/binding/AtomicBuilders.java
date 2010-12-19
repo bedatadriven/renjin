@@ -61,6 +61,9 @@ public class AtomicBuilders {
     } else if(type == String.class) {
       return new StringResultBuilder(length);
 
+    } else if(SEXP.class.isAssignableFrom(type)) {
+      return new ListResultBuilder(length);
+
     } else {
       throw new UnsupportedOperationException("No AtomicBuilder for " + type.getName() );
     }
@@ -218,4 +221,31 @@ public class AtomicBuilders {
     }
   }
 
+  private static class ListResultBuilder implements AtomicBuilder {
+    private SEXP[] values;
+
+    public ListResultBuilder(int length) {
+      values = new SEXP[length];
+    }
+
+    @Override
+    public void set(int index, Object value) {
+      values[index] = (SEXP) value;
+    }
+
+    @Override
+    public void setNA(int index) {
+      values[index] = Null.INSTANCE;
+    }
+
+    @Override
+    public Vector build() {
+      return new ListVector(values);
+    }
+
+    @Override
+    public Vector build(int length) {
+      return new ListVector(Arrays.copyOf(values, length));
+    }
+  }
 }

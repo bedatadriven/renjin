@@ -21,11 +21,11 @@
 
 package r.lang.primitive.binding;
 
-import r.lang.AtomicVector;
+import r.lang.Vector;
 
 public interface AtomicBuilder<T> {
   void set(int index, T value);
   void setNA(int index);
-  AtomicVector build();
-  AtomicVector build(int length);
+  Vector build();
+  Vector build(int length);
 }

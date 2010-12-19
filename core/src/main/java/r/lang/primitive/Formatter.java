@@ -444,7 +444,7 @@ import java.util.Vector;
  *              formatting of -0.0f
  *              round up/down when last digits are 50000...
  */
-class PrintfFormat {
+class Formatter {
   /**
    * Constructs an array of control specifications
    * possibly preceded, separated, or followed by
@@ -457,7 +457,7 @@ class PrintfFormat {
    * string is null, zero length, or otherwise
    * malformed.
    */
-  public PrintfFormat(String fmtArg)
+  public Formatter(String fmtArg)
       throws IllegalArgumentException {
     this(Locale.getDefault(),fmtArg);
   }
@@ -473,7 +473,7 @@ class PrintfFormat {
    * string is null, zero length, or otherwise
    * malformed.
    */
-  public PrintfFormat(Locale locale,String fmtArg)
+  public Formatter(Locale locale, String fmtArg)
       throws IllegalArgumentException {
     dfs = new DecimalFormatSymbols(locale);
     int ePos=0;

@@ -498,7 +498,7 @@ public class FunctionTable {
       f("nzchar", Text.class, 1, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("substr", /*substr*/ null, 1, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("substr<-", /*substrgets*/ null, 1, 11, 4, PP_FUNCALL, PREC_FN, 0),
-      f("strsplit", /*strsplit*/ null, 1, 11, 6, PP_FUNCALL, PREC_FN, 0),
+      f("strsplit", Text.class, 1, 11, 6, PP_FUNCALL, PREC_FN, 0),
       f("abbreviate", /*abbrev*/ null, 1, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("make.names", /*makenames*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("grep", Text.class, 0, 11, 9, PP_FUNCALL, PREC_FN, 0),

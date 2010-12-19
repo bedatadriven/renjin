@@ -107,4 +107,19 @@ public class TextTest extends EvalTestCase {
     assertThat( eval("nchar('xyz')"), equalTo( c_i(3) ));
     assertThat( eval("nchar(c('xyz', NA, 'a', '', 'abcde'))"), equalTo( c_i(3, 2, 1, 0, 5) ));
   }
+
+  @Test
+  public void split() {
+    eval("strsplit <- function (x, split, extended = TRUE, fixed = FALSE, perl = FALSE, useBytes = FALSE) " +
+            ".Internal(strsplit(x, as.character(split), as.logical(extended),  as.logical(fixed), " +
+                      "as.logical(perl), as.logical(useBytes)))");
+
+    assertThat( eval("strsplit('a,b', ',')"), equalTo( list( c("a","b") )));
+    assertThat( eval("strsplit('the   slow lazy  dog etc', '\\\\s+')"),
+        equalTo( list( c("the","slow", "lazy", "dog", "etc") )));
+    assertThat( eval("strsplit(c('a b c d e', '1 2 3 4'), '\\\\s+')"),
+        equalTo( list( c("a", "b", "c", "d", "e"), c("1","2", "3","4"))));
+
+    assertThat( eval("strsplit('abc','')"), equalTo( list( c("a","b","c") )));
+  }
 }

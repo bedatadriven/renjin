@@ -27,10 +27,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.annotations.ArgumentList;
-import r.lang.primitive.annotations.Current;
-import r.lang.primitive.annotations.Evaluate;
-import r.lang.primitive.annotations.Primitive;
+import r.lang.primitive.annotations.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -51,6 +48,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   private Method method;
   private List<Argument> arguments;
   private List<Argument> formals;
+  private boolean recyclable;
 
   public PrimitiveMethod(Method method) {
     this.method = method;
@@ -61,6 +59,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     }
     this.arguments = argumentsBuilder.build();
     this.formals = ImmutableList.copyOf(Iterables.filter(arguments, new IsFormal()));
+    this.recyclable = Iterables.any(formals, new IsRecycled());
   }
 
   public static List<PrimitiveMethod> findOverloads(Class clazz, String name) {
@@ -122,6 +121,10 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
       throw new IllegalStateException();
     }
     return arguments.get( arguments.size() - 1);
+  }
+
+  public boolean isRecyclable() {
+    return recyclable;
   }
 
   public List<Argument> getArguments() {
@@ -338,10 +341,17 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     }
   }
 
-  private static class IsFormal implements Predicate<Argument> {
+  private class IsFormal implements Predicate<Argument> {
     @Override
     public boolean apply(Argument input) {
       return !input.isContextual();
+    }
+  }
+
+  private class IsRecycled implements Predicate<Argument> {
+    @Override
+    public boolean apply(Argument input) {
+      return input.isAnnotatedWith(Recycle.class);
     }
   }
 

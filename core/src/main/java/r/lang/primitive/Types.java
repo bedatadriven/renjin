@@ -218,7 +218,7 @@ public class Types {
   }
 
   @Primitive("as.vector")
-  public static Vector asVector(Vector x, String mode) {
+  public static SEXP asVector(Vector x, String mode) {
     Vector.Builder result;
     if("any".equals(mode)) {
       result = x.getVectorType().newBuilder();
@@ -230,6 +230,10 @@ public class Types {
       result = new DoubleVector.Builder(x.length());
     } else if("list".equals(mode)) {
       result = new ListVector.Builder();
+    } else if("pairlist".equals(mode)) {
+      // a pairlist is actually not a vector, so bail from here
+      // as a special case
+      return asPairList(x);
     } else {
       throw new EvalException("invalid 'mode' argument");
     }
@@ -237,7 +241,19 @@ public class Types {
     for(int i=0;i!=x.length();++i) {
       result.setFrom(i, x, i);
     }
+    SEXP names = x.getNames();
+    if(names.length() > 0) {
+      result.setAttribute(Attributes.NAMES, names);
+    }
     return result.build();
+  }
+
+  private static PairList asPairList(Vector x) {
+    PairList.Builder builder = new PairList.Builder();
+    for(int i=0;i!=x.length();++i) {
+      builder.add(x.getName(i), x.getElementAsSEXP(i));
+    }
+    return builder.build();
   }
 
 
@@ -559,6 +575,9 @@ public class Types {
 
     if(!(exp instanceof ListVector)) {
       return false;    
+    }
+    if(exp.length() == 0) {
+      return false;
     }
 
     ListVector vector = (ListVector) exp;

@@ -92,12 +92,12 @@ public class Closure extends AbstractSEXP implements Function {
     return apply(context, rho, args);
   }
 
-  public EvalResult apply(Context context, Environment rho, PairList args) {
-    Context functionContext = context.beginFunction(enclosingEnvironment);
+  public EvalResult apply(Context context, Environment rho, PairList arguments) {
+    Context functionContext = context.beginFunction(enclosingEnvironment, arguments);
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {
-      matchArgumentsInto(args, enclosingEnvironment, functionEnvironment, rho, context);
+      matchArgumentsInto(arguments, enclosingEnvironment, functionEnvironment, rho, context);
 
       EvalResult result = body.evaluate(functionContext, functionEnvironment);
 

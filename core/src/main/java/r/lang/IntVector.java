@@ -130,9 +130,9 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   }
 
   @Override
-  public int indexOf(AtomicVector vector, int vectorIndex) {
+  public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     int value = vector.getElementAsInt(vectorIndex);
-    for(int i=0;i!=values.length;++i) {
+    for(int i=startIndex;i<values.length;++i) {
       if(value == values[i]) {
         return value;
       }
@@ -240,18 +240,21 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     }
   }
 
-  private static class Builder implements Vector.Builder<AtomicVector> {
-    private PairList attributes = Null.INSTANCE;
+  public static class Builder extends AbstractAtomicBuilder {
     private int values[];
 
-    private Builder(int initialSize) {
+    public Builder(int initialSize) {
       values = new int[initialSize];
       Arrays.fill(values, NA);
     }
 
     private Builder(IntVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
-      this.attributes = exp.attributes;
+      copyAttributesFrom(exp);
+    }
+
+    public Builder() {
+      this.values = new int[0];
     }
 
     public Builder set(int index, int value) {
@@ -262,6 +265,10 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
       }
       values[index] = value;
       return this;
+    }
+
+    public Builder add(int value) {
+      return set(values.length, value);
     }
 
     @Override
@@ -275,8 +282,13 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     }
 
     @Override
+    public int length() {
+      return values.length;
+    }
+
+    @Override
     public IntVector build() {
-      return new IntVector(values, attributes);
+      return new IntVector(values, buildAttributes());
     }
   }
 

@@ -93,15 +93,6 @@ if(Sys.getenv("R_BATCH") != "") {
 .Library.site <- if(!nchar(.Library.site)) file.path(R.home(), "site-library") else unlist(strsplit(.Library.site, ";"))
 .Library.site <- .Library.site[file.exists(.Library.site)]
 
-if(!nzchar(Sys.getenv("R_LIBS_USER")))
-    Sys.setenv(R_LIBS_USER=
-               file.path(Sys.getenv("R_USER"), "R",
-                         "win-library",
-                         paste(R.version$major,
-                               sub("\\..*$", "", R.version$minor),
-                               sep=".")
-                         ))
-
 invisible(.libPaths(c(unlist(strsplit(Sys.getenv("R_LIBS"), ";")),
                       unlist(strsplit(Sys.getenv("R_LIBS_USER"), ";"))
                       )))

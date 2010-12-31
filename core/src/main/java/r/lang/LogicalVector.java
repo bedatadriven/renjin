@@ -96,9 +96,9 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
   }
 
   @Override
-  public int indexOf(AtomicVector vector, int vectorIndex) {
-    int value = vector.getElementAsLogical(vectorIndex).getInternalValue();
-    for(int i=0;i!=values.length;++i) {
+  public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
+    int value = vector.getElementAsRawLogical(startIndex);
+    for(int i=0;i<values.length;++i) {
       if(value == values[i]) {
         return i;
       }
@@ -267,8 +267,7 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     return IntVector.isNA(values[index]);
   }
 
-  public static class Builder implements Vector.Builder<AtomicVector> {
-    private PairList attributes = Null.INSTANCE;
+  public static class Builder extends AbstractAtomicBuilder {
     private int values[];
 
     public Builder(int initialSize) {
@@ -280,9 +279,9 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
       this(0);
     }
 
-    private Builder(LogicalVector exp) {
-      this.values = Arrays.copyOf(exp.values, exp.values.length);
-      this.attributes = exp.attributes;
+    private Builder(LogicalVector toClone) {
+      this.values = Arrays.copyOf(toClone.values, toClone.values.length);
+      copyAttributesFrom(toClone);
     }
 
     public Builder add(int value) {
@@ -314,8 +313,13 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     }
 
     @Override
+    public int length() {
+      return values.length;
+    }
+
+    @Override
     public LogicalVector build() {
-      return new LogicalVector(values, attributes);
+      return new LogicalVector(values, buildAttributes());
     }
   }
 

@@ -92,8 +92,18 @@ public interface SEXP {
 
   boolean inherits(String sClassName);
 
+  /**
+   *
+   * @return the {@link StringVector} containing the element's names, or {@code NULL} if
+   * this expression has no explicit {@code names} attribute.
+   */
   SEXP getNames();
 
+  /**
+   * @param index zero-based index
+   * @return the name of the element at index {@code index}, or the empty string
+   * if the element has no name
+   */
   String getName(int index);
 
   /**
@@ -126,4 +136,10 @@ public interface SEXP {
    */
   Iterable<SEXP> elements();
 
+  /**
+   * @param index zero-based index of the element
+   * @return the element at {@code index} as a {@link r.lang.SEXP},
+   * wrapping the element if necessary in a new {@link r.lang.AtomicVector} if necessary
+   */
+  <S extends SEXP> S getElementAsSEXP(int index);
 }

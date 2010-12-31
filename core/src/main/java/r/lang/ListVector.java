@@ -22,8 +22,10 @@
 package r.lang;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import r.lang.exception.EvalException;
 import r.lang.primitive.Parse;
@@ -36,7 +38,7 @@ import java.util.List;
 /**
  * Generic vector of {@code SEXP}s
  */
-public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
+public class ListVector extends AbstractVector implements Iterable<SEXP> {
 
   private static final int TYPE_CODE = 19;
   public static final String TYPE_NAME = "list";
@@ -201,7 +203,7 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
   /**
    * @return the length of the longest element
    */
-  public int longestElementLength() {
+  public int maxElementLength() {
     int max = 0;
     for(SEXP element : this) {
       if(element.length() > max) {
@@ -209,6 +211,40 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
       }
     }
     return max;
+  }
+
+
+  public int minElementLength() {
+    int min = Integer.MAX_VALUE;
+    for(SEXP element : this) {
+      if(element.length() < min) {
+        min = element.length();
+      }
+    }
+    return min;
+  }
+
+  public Iterable<NamedValue> namedValues() {
+    return new Iterable<NamedValue>() {
+      @Override
+      public Iterator<NamedValue> iterator() {
+        return new UnmodifiableIterator<NamedValue>() {
+          private int index = 0;
+
+          @Override
+          public boolean hasNext() {
+            return index < length();
+          }
+
+          @Override
+          public NamedValue next() {
+            NamedValue pair = new NameValuePair(getName(index), getElementAsSEXP(index));
+            index++;
+            return pair;
+          }
+        };
+      }
+    };
   }
 
   @Override
@@ -258,8 +294,8 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
     return new ListVector(values, attributes);
   }
 
-  public static class Builder implements Vector.Builder<SEXP> {
-    private PairList attributes = Null.INSTANCE;
+
+  public static class Builder extends AbstractVector.AbstractBuilder<SEXP> {
     private boolean haveNames = false;
     private List<SEXP> values = Lists.newArrayList();
     private List<String> names = Lists.newArrayList();
@@ -269,6 +305,7 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
 
     private Builder(ListVector toClone) {
       Iterables.addAll(values, toClone);
+      copyAttributesFrom(toClone);
       SEXP names = toClone.getAttribute(SymbolExp.NAMES);
       if(names instanceof StringVector) {
         Iterables.addAll(this.names, (StringVector)names);
@@ -276,21 +313,22 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
       } else {
         for(SEXP value : values) { this.names.add(""); }
       }
-      this.attributes = toClone.getAttributes();
-    }
-
-    public Builder setAttributes(PairList attributes) {
-      this.attributes = attributes;
-      return this;
     }
 
     public Builder add(String name, SEXP value) {
+      Preconditions.checkNotNull(name);
+      Preconditions.checkNotNull(value);
+
       values.add(value);
       names.add(name);
       if(!name.isEmpty()) {
         haveNames = true;
       }
       return this;
+    }
+
+    public Builder add(String name, Vector.Builder builder) {
+      return add(name, builder.build());
     }
 
     public Builder add(SymbolExp name, SEXP value) {
@@ -341,11 +379,12 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
 
     @Override
     public Vector.Builder setFrom(int destinationIndex, SEXP source, int sourceIndex) {
-      if(source instanceof Vector) {
-        return this.set(destinationIndex, ((Vector)source).getElementAsSEXP(sourceIndex));
-      } else {
-        return this.set(destinationIndex, source);
-      }
+      return this.set(destinationIndex, source.getElementAsSEXP(sourceIndex));
+    }
+
+    @Override
+    public int length() {
+      return values.size();
     }
 
     public Builder replace(int i, SEXP value) {
@@ -355,10 +394,10 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
 
     public ListVector build() {
       if(haveNames) {
-        return new ListVector(values,  PairList.Node.buildList(SymbolExp.NAMES, new StringVector(names)).build());
-      } else {
-        return new ListVector(values);
+        setAttribute(SymbolExp.NAMES, new StringVector(names));
       }
+
+      return new ListVector(values, buildAttributes());
     }
   }
 
@@ -369,6 +408,26 @@ public class ListVector extends AbstractSEXP implements Vector, Iterable<SEXP> {
 
     public Builder newBuilder() {
       return new Builder();
+    }
+  }
+
+  private static class NameValuePair implements NamedValue {
+    private final String name;
+    private final SEXP value;
+
+    public NameValuePair(String name, SEXP value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    @Override
+    public String getName() {
+      return name;
+    }
+
+    @Override
+    public SEXP getValue() {
+      return value;
     }
   }
 }

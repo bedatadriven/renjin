@@ -223,7 +223,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   }
 
   public Object getName() {
-    return method.getName();    
+    return method.getName();
   }
 
   public void appendFriendlySignatureTo(StringBuilder sb) {

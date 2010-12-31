@@ -68,11 +68,53 @@ public class CombineTest extends EvalTestCase {
   }
 
   @Test
+  public void combineWithExplicitNames() {
+    eval("p <- c(x=41,y=42)" );
+
+    assertThat( eval("p['x']"), equalTo( c(41) ));
+  }
+
+  @Test
+  public void combineWithExistingNames() {
+    eval("x <- c(a=1, b=2, 3)");
+    eval("y <- c(x, zz=x, 4)");
+
+    assertThat( eval("names(y)"), equalTo( c("a","b", "", "zz.a", "zz.b", "zz3", "")) );
+  }
+
+  @Test
   public void unlistAtomic() {
     assertThat( eval(".Internal(unlist( list(1,4,5), TRUE, TRUE )) "), equalTo( c(1,4,5)) );
     assertThat( eval(".Internal(unlist( list(1,'a',TRUE), TRUE, TRUE )) "), equalTo( c("1","a","TRUE")) );
     assertThat( eval(".Internal(unlist( list(1,globalenv()), TRUE, TRUE )) "),
         equalTo( list(1d,global)) );
+  }
+
+  @Test
+  public void combineRecursively() {
+    assertThat( eval("c( list(91,92,c(93,94,95)), 96, c(97,98), recursive=TRUE)"),
+        equalTo( c(91,92,93,94,95,96,97,98)));
+  }
+
+  @Test
+  public void combineRecursivelyWithNames() {
+    eval(" x <- c(a=91,92,c=93)");
+      eval(" y <- c(recursive=TRUE, A=list(p=x,q=x,list(r=3,s=c(1,2,3,4))),B=4,C=x)");
+
+    assertThat( eval(" names(y) "), equalTo( c("A.p.a", "A.p2", "A.p.c", "A.q.a", "A.q2", "A.q.c", "A.r",
+        "A.s1", "A.s2", "A.s3", "A.s4", "B", "C.a", "C2", "C.c")));
+  }
+
+  @Test
+  public void pairList() {
+    eval(" pairlist <- function(...) .Internal(as.vector(list(...), 'pairlist')) ");
+    eval(" x <- c(pairlist(x=91,y=92))");
+
+    assertThat( eval("length(x)"), equalTo( c_i(2) ));
+    assertThat( eval(".Internal(typeof(x))"), equalTo( c("list") ));
+    assertThat( eval("x[[1]]"), equalTo( c(91)));
+    assertThat( eval("x[[2]]"), equalTo( c(92)));
+    assertThat( eval("names(x)"), equalTo( c("x", "y")));
   }
 
 }

@@ -23,10 +23,7 @@ package r.lang.primitive;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import r.lang.AtomicVector;
-import r.lang.ListVector;
-import r.lang.SEXP;
-import r.lang.StringVector;
+import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.AllowNA;
 import r.lang.primitive.annotations.ArgumentList;
@@ -42,7 +39,7 @@ public class Text {
 
   public static StringVector paste(ListVector arguments, String separator, String collapse) {
 
-    int resultLength = arguments.longestElementLength();
+    int resultLength = arguments.maxElementLength();
 
     if(collapse == null) {
       String results[] = new String[resultLength];
@@ -71,25 +68,28 @@ public class Text {
   }
 
   public static StringVector sprintf(@ArgumentList ListVector arguments) {
-    StringVector.Builder result = StringVector.newBuilder();
-    int resultLen = arguments.longestElementLength();
-
     StringVector formatVector = toStringVector( arguments.getElementAsSEXP(0), "fmt" );
-    Object formatArgs[] = new Object[ arguments.length() -1 ];
+    StringVector.Builder result = StringVector.newBuilder();
 
-    for(int resultIndex=0; resultIndex != resultLen; ++resultIndex) {
+    if( arguments.minElementLength() > 0) {
 
-      Formatter format = new Formatter(
-          formatVector.getElementAsString( resultIndex % formatVector.length() ));
+      int maxLen = arguments.maxElementLength();
+      Object formatArgs[] = new Object[ arguments.length() -1 ];
 
-      for(int i=1;i!=arguments.length();++i) {
-        AtomicVector formatArg = toAtomicVector(arguments.getElementAsSEXP(i));
-        int formatArgIndex = resultIndex % formatArg.length();
+      for(int resultIndex=0; resultIndex != maxLen; ++resultIndex) {
 
-        formatArgs[i-1] = formatArg.getElementAsObject(formatArgIndex);
+        Formatter format = new Formatter(
+            formatVector.getElementAsString( resultIndex % formatVector.length() ));
+
+        for(int i=1;i!=arguments.length();++i) {
+          AtomicVector formatArg = toAtomicVector(arguments.getElementAsSEXP(i));
+          int formatArgIndex = resultIndex % formatArg.length();
+
+          formatArgs[i-1] = formatArg.getElementAsObject(formatArgIndex);
+        }
+
+        result.add( format.sprintf(formatArgs) );
       }
-
-      result.add( format.sprintf(formatArgs) );
     }
 
     return result.build();
@@ -292,5 +292,37 @@ public class Text {
 
     RE re = new RE(split, false, extended, perl, fixed, useBytes);
     return new StringVector( re.split(x) );
+  }
+
+  public static Vector grep(
+      String pattern,
+      StringVector x,
+      boolean ignoreCase,
+      boolean extended,
+      boolean value,
+      boolean perl,
+      boolean fixed,
+      boolean useBytes,
+      boolean invert) {
+
+    RE re = new RE(pattern,ignoreCase,extended, perl,fixed,useBytes);
+    if(value) {
+      StringVector.Builder result = new StringVector.Builder();
+      for(String string : x) {
+        if(re.match(string)) {
+          result.add(string);
+        }
+      }
+      return result.build();
+    } else {
+
+      IntVector.Builder result = new IntVector.Builder(0);
+      for(int i=0;i!=x.length();++i) {
+        if(re.match(x.getElementAsString(i))) {
+          result.add(i);
+        }
+      }
+      return result.build();
+    }
   }
 }

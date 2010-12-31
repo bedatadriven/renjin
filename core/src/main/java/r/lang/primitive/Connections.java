@@ -21,12 +21,16 @@
 
 package r.lang.primitive;
 
+import org.apache.commons.vfs.FileObject;
 import r.io.DatafileReader;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.Current;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
@@ -35,11 +39,15 @@ public class Connections {
 
   public static final String CLASSPATH_PREFIX = "classpath:";
 
-  public static Connection gzfile(final String description, String open, String encoding, double compressionLevel) {
+  public static Connection gzfile(@Current final Context context,
+                                  final String description,
+                                  String open,
+                                  String encoding,
+                                  double compressionLevel) {
     return new ConnectionImpl(new InputStreamFactory() {
       @Override
       public InputStream openInputStream() throws IOException {
-        return new GZIPInputStream(openInput(description));
+        return new GZIPInputStream(openInput(context, description));
       }
     });
   }
@@ -98,7 +106,7 @@ public class Connections {
                                      int compression,
                                      final SEXP restoreFunction) throws IOException, DataFormatException
   {
-    byte buffer[] = readRawFromFile(file, key);
+    byte buffer[] = readRawFromFile(context, file, key);
 
     if(compression == 1) {
       buffer = decompress1(buffer);
@@ -110,8 +118,7 @@ public class Connections {
       @Override
       public SEXP restore(SEXP values) {
         FunctionCall call = FunctionCall.newCall(restoreFunction, values);
-        SEXP result = call.evalToExp(context, rho.getGlobalEnvironment());
-        return result;
+        return call.evalToExp(context, rho.getGlobalEnvironment());
       }
     });
 
@@ -144,7 +151,7 @@ public class Connections {
     return result;
   }
 
-  public static byte[] readRawFromFile(String file, IntVector key) throws IOException {
+  public static byte[] readRawFromFile(@Current Context context, String file, IntVector key) throws IOException {
     if(key.length() != 2) {
       throw new EvalException("bad offset/length argument");
     }
@@ -153,20 +160,19 @@ public class Connections {
 
     byte buffer[] = new byte[length];
 
-    DataInputStream in = new DataInputStream(openInput(file));
+    DataInputStream in = new DataInputStream(openInput(context, file));
     in.skipBytes(offset);
     in.readFully(buffer);
 
     return buffer;
   }
 
-  private static InputStream openInput(String description) throws FileNotFoundException {
+  private static InputStream openInput(Context context, String description) throws IOException {
     if(description.equals("stdin")) {
       return java.lang.System.in;
-    } else if(description.startsWith(CLASSPATH_PREFIX)) {
-      return Connections.class.getResourceAsStream(description.substring(CLASSPATH_PREFIX.length()));
     } else {
-      return new FileInputStream(description);
+      FileObject file = context.resolveFile(description);
+      return file.getContent().getInputStream();
     }
   }
 

@@ -21,6 +21,7 @@
 
 package r.lang.primitive;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.base.Base;
@@ -33,6 +34,7 @@ import r.lang.primitive.annotations.Primitive;
 import r.lang.primitive.binding.PrimitiveMethod;
 import r.lang.primitive.binding.RuntimeInvoker;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class Evaluation {
@@ -102,12 +104,15 @@ public class Evaluation {
    assignment is right associative i.e.  a <- b <- c is parsed as
    a <- (b <- c).  */
   @Primitive("<-")
-  public static EvalResult assignLeft(@Current Context context, @Current Environment rho, @Evaluate(false) SEXP lhs, SEXP rhs) {
+  public static EvalResult assignLeft(@Current Context context, @Current Environment rho,
+                                      @Evaluate(false) SEXP lhs, SEXP value) {
 
     // this loop handles nested, complex assignments, such as:
     // class(x) <- "foo"
     // x$a[3] <- 4
     // class(x$a[3]) <- "foo"
+
+    SEXP rhs = value;
 
     while(lhs instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) lhs;
@@ -135,9 +140,25 @@ public class Evaluation {
     // make the final assignment to the target symbol
     rho.setVariable(target, rhs);
 
-    return EvalResult.invisible(rhs);
+    return EvalResult.invisible(value);
   }
 
+  @Primitive("<<-")
+  public static EvalResult reassignLeft(@Current Context context, @Current Environment rho,
+                                        @Evaluate(false) SymbolExp lhs, SEXP rhs)  {
+
+    for(Environment env : rho.selfAndParents()) {
+      if(env.hasVariable(lhs))  {
+        env.setVariable(lhs, rhs);
+        return EvalResult.invisible(rhs);
+      }
+    }
+
+    // not defined anywhere we can see, define it anew in the current env
+    rho.setVariable(lhs, rhs);
+
+    return EvalResult.invisible(rhs);
+  }
 
   @Primitive("on.exit")
   public static void onExit( @Current Environment rho, @Evaluate(false) SEXP exp, boolean add ) {
@@ -159,9 +180,9 @@ public class Evaluation {
   @Primitive("for")
   public static void forLoop(Context context, Environment rho, FunctionCall call) {
     PairList args = call.getArguments();
-    SymbolExp symbol = (SymbolExp) args.get(0);
-    Vector elements = (Vector) args.get(1).evalToExp(context, rho);
-    SEXP statement = args.get(2);
+    SymbolExp symbol = (SymbolExp) args.getElementAsSEXP(0);
+    Vector elements = (Vector) args.getElementAsSEXP(1).evalToExp(context, rho);
+    SEXP statement = args.getElementAsSEXP(2);
 
     for(int i=0; i!=elements.length(); ++i) {
       try {
@@ -196,8 +217,8 @@ public class Evaluation {
   @Primitive("while")
   public static void whileLoop(Context context, Environment rho, FunctionCall call) {
     PairList args = call.getArguments();
-    SEXP condition = args.get(0);
-    SEXP statement = args.get(1);
+    SEXP condition = args.getElementAsSEXP(0);
+    SEXP statement = args.getElementAsSEXP(1);
 
     while(asLogicalNoNA(call, condition.evaluate(context, rho).getExpression(), rho)) {
 
@@ -223,14 +244,14 @@ public class Evaluation {
 
   @Primitive("if")
   public static EvalResult doIf(Context context, Environment rho, FunctionCall call) {
-    SEXP condition = call.getArguments().get(0).evalToExp(context, rho);
+    SEXP condition = call.getArguments().getElementAsSEXP(0).evalToExp(context, rho);
 
     if (asLogicalNoNA(call, condition, rho)) {
-      return call.getArguments().get(1).evaluate(context, rho); /* true value */
+      return call.getArguments().getElementAsSEXP(1).evaluate(context, rho); /* true value */
 
     } else {
       if (call.getArguments().length() == 3) {
-        return call.getArguments().get(2).evaluate(context, rho); /* else value */
+        return call.getArguments().getElementAsSEXP(2).evaluate(context, rho); /* else value */
       } else {
         return EvalResult.NON_PRINTING_NULL;   /* no else, evaluates to NULL */
       }
@@ -283,7 +304,7 @@ public class Evaluation {
 
   @Primitive(".Internal")
   public static EvalResult internal(Context context, Environment rho, FunctionCall call) {
-    SEXP arg = call.getArguments().get(0);
+    SEXP arg = call.getArgument(0);
     if(!(arg instanceof FunctionCall)) {
       throw new EvalException("invalid .Internal() argument");
     }
@@ -375,7 +396,7 @@ public class Evaluation {
       for(SEXP exp : listExp) {
         builder.add(substitute(exp));
       }
-      builder.setAttributes(listExp.getAttributes());
+      builder.copyAttributesFrom(listExp.getAttributes());
       result = builder.build();
     }
 
@@ -454,6 +475,35 @@ public class Evaluation {
     throw new EvalException(
         String.format("Call to native function '%s' in package '%s'",
             methodName, packageName));
+  }
+
+  public static EvalResult UseMethod(Context context, Environment rho, FunctionCall call) {
+    SEXP generic = call.evalArgument(context, rho, 0);
+    EvalException.check(generic.length() == 1 && generic instanceof StringVector,
+        "first argument must be a character string");
+
+    String genericName = ((StringVector)generic).getElementAsString(0);
+
+    Preconditions.checkArgument(context.getType() == Context.Type.FUNCTION);
+    SEXP object;
+    if(call.getArguments().length() >= 2) {
+      object = call.evalArgument(context, rho, 1);
+    } else {
+      object = context.getArguments().getElementAsSEXP(0).evalToExp(context,
+          context.getParent().getEnvironment());
+    }
+
+    StringVector classes = object.getClassAttribute();
+    for(String className : Iterables.concat(classes, Arrays.asList("default"))) {
+      SEXP function = rho.findVariable(new SymbolExp(genericName + "." + className));
+      if(function != SymbolExp.UNBOUND_VALUE) {
+        FunctionCall newCall = new FunctionCall(function, context.getArguments());
+        EvalResult result = newCall.evaluate(context.getParent(), context.getParent().getEnvironment());
+        throw new ReturnException(context.getEnvironment(), result.getExpression());
+      }
+    }
+
+    throw new UnsupportedOperationException();
   }
 
   /**

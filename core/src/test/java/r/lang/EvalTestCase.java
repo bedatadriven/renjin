@@ -36,6 +36,7 @@ import static org.junit.Assert.assertThat;
 public abstract class EvalTestCase {
 
   protected Environment global;
+  protected Environment base;
   protected Context topLevelContext;
   public static final SEXP NULL = Null.INSTANCE;
   public static final SEXP CHARACTER_0 = new StringVector();
@@ -47,6 +48,7 @@ public abstract class EvalTestCase {
   public void setUp() {
     topLevelContext = Context.newTopLevelContext();
     global = topLevelContext.getEnvironment();
+    base = global.getBaseEnvironment();
     GlobalEnv = global;
   }
 

@@ -46,13 +46,15 @@ public interface AtomicVector extends Vector {
 
 
   /**
+   *
    * @param vector an {@code AtomicVector}
    * @param vectorIndex an index of {@code vector}
+   * @param startIndex
    * @return the index of the first element in this vector that equals
    * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
    * can be found
    */
-  int indexOf(AtomicVector vector, int vectorIndex);
+  int indexOf(AtomicVector vector, int vectorIndex, int startIndex);
 
   /**
    * @param vector an {@code AtomicVector }
@@ -66,5 +68,13 @@ public interface AtomicVector extends Vector {
    * @return the index of the first NA element.
    */
   int indexOfNA();
+
+  @Override
+  Builder newBuilder(int initialSize);
+
+  interface AtomicVectorBuilder {
+
+
+  }
 
 }

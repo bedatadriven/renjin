@@ -38,13 +38,13 @@ public interface PairList extends SEXP {
   public int TYPE_CODE = 2;
   public String TYPE_NAME = "pairlist";
 
-  <S extends SEXP> S get(int i);
+  <S extends SEXP> S getElementAsSEXP(int i);
   Iterable<Node> nodes();
   Iterable<SEXP> values();
 
   SEXP findByTag(SymbolExp symbol);
 
-  public class Node extends AbstractSEXP implements Recursive, PairList {
+  public class Node extends AbstractSEXP implements Recursive, PairList, NamedValue {
 
 
     /**
@@ -134,6 +134,11 @@ public interface PairList extends SEXP {
       return value;
     }
 
+    @Override
+    public String getName() {
+      return hasTag() ? getTag().getPrintName() : "";
+    }
+
     public final void setValue(SEXP value) {
       this.value = value;
     }
@@ -155,18 +160,28 @@ public interface PairList extends SEXP {
       };
     }
 
-
     @Override
     public final int length() {
       return Iterators.size(valueIterator());
     }
 
-    public <X extends SEXP> X get(int i) {
+    @Override
+    public <X extends SEXP> X getElementAsSEXP(int i) {
       return (X) Iterators.get(valueIterator(), i);
     }
 
     public Node getNode(int i) {
       return Iterators.get(nodeIterator(), i);
+    }
+
+    @Override
+    public String getName(int index) {
+      Node node = getNode(index);
+      if(node.hasTag()) {
+        return node.getTag().getPrintName();
+      } else {
+        return "";
+      }
     }
 
     /**
@@ -347,6 +362,13 @@ public interface PairList extends SEXP {
       return add(Null.INSTANCE, s);
     }
 
+    public Builder add(String name, SEXP value) {
+      SEXP tag = Null.INSTANCE;
+      if(!name.isEmpty()) {
+        tag = new SymbolExp(name);
+      }
+      return add(tag, value);
+    }
 
     public PairList build() {
       if(head == null) {

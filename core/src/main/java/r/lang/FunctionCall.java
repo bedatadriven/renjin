@@ -79,7 +79,7 @@ public class FunctionCall extends PairList.Node {
   }
 
   public <X extends SEXP> X getArgument(int index) {
-    return getArguments().<X>get(index);
+    return getArguments().<X>getElementAsSEXP(index);
   }
 
   public SEXP evalArgument(Context context, Environment rho, int index) {

@@ -109,9 +109,9 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
   }
 
   @Override
-  public int indexOf(AtomicVector vector, int vectorIndex) {
+  public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     Complex value = vector.getElementAsComplex(vectorIndex);
-    for(int i=0;i!=values.length;++i) {
+    for(int i=startIndex;i<values.length;++i) {
       if(values[i].equals(value)) {
         return i;
       }

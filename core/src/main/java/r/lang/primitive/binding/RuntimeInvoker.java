@@ -239,7 +239,7 @@ public class RuntimeInvoker {
       if(arg.getTag() == Null.INSTANCE) {
         result.add(arg.evaluated());
       } else {
-        result.add(arg.getTagName(), arg.evaluated);
+        result.add(arg.getTagName(), arg.evaluated());
       }
     }
     return result.build();
@@ -325,20 +325,23 @@ public class RuntimeInvoker {
       int maxLen = Math.max(xLen, yLen);
       int minLen = Math.min(xLen, yLen);
 
-      if( maxLen % minLen != 0) {
-        throw new EvalException("longer object length is not a multiple of shorter object length");
-      }
-
       AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), maxLen);
 
-      for(int i=0; i!=maxLen; i++) {
-        int xi = i % xLen;
-        int yi = i % yLen;
+      if( minLen > 0 ) {
 
-        if( !allowNA && (x.isNA(xi) || y.isNA(yi))) {
-          result.setNA(i);
-        } else {
-          result.set(i, method.invoke(x.get(xi), y.get(yi)));
+        if( maxLen % minLen != 0) {
+          throw new EvalException("longer object length is not a multiple of shorter object length");
+        }
+
+        for(int i=0; i!=maxLen; i++) {
+          int xi = i % xLen;
+          int yi = i % yLen;
+
+          if( !allowNA && (x.isNA(xi) || y.isNA(yi))) {
+            result.setNA(i);
+          } else {
+            result.set(i, method.invoke(x.get(xi), y.get(yi)));
+          }
         }
       }
 

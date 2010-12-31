@@ -22,7 +22,9 @@
 package r;
 
 import org.junit.Test;
-import r.lang.*;
+import r.lang.EvalTestCase;
+import r.lang.SEXP;
+import r.lang.StringVector;
 import r.parser.RParser;
 
 import java.io.IOException;
@@ -48,16 +50,16 @@ public class BasePackageTest extends EvalTestCase {
     assertThat( eval( "x" ) , equalTo( c(42) ));
   }
 
-
   @Test
   public void libPaths() throws Exception {
 
     loadBasePackage();
+    executeStartupProfile();
 
     // This is a pretty complicated evaluation here that involves recursive
     // lazy loading, persisted environments, local environments, etc.
     // So a good test that everything integrates together!
-    System.out.println( eval( ".libPaths() "));
+    assertThat(eval(".libPaths() "), equalTo(c("res:r/library")));
   }
 
   @Test
@@ -65,29 +67,29 @@ public class BasePackageTest extends EvalTestCase {
 
     loadBasePackage();
 
-    String path = getClass().getResource("/simpleTest.R").getFile();
+    eval("info <- file.info('res:r/library')");
 
-    ListVector result = (ListVector) FunctionCall.newCall(symbol("file.info"), c(path)).evalToExp(topLevelContext, global);
-
-    assertThat( result.get("isdir"), equalTo( c(Logical.FALSE) ));
-    assertThat( result.get("mode"), equalTo( c("777") ));
-
+    assertThat( eval("info$isdir"), equalTo( c(true) ));
+    assertThat( eval("info$mode"), equalTo( c_i(Integer.parseInt("777", 8)) ));
   }
 
   @Test
   public void library() throws Exception {
     loadBasePackage();
+    executeStartupProfile();
 
     eval(" library(survey) ");
   }                               
 
   private void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadingScript = RParser.parseSource(reader).evaluate(topLevelContext, global).getExpression();
-    loadingScript.evaluate(topLevelContext, global);
+    SEXP loadingScript = RParser.parseSource(reader).evaluate(topLevelContext, base).getExpression();
+    loadingScript.evaluate(topLevelContext, base);
+  }
 
-    reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/Rprofile"));
-    SEXP profileScript = RParser.parseSource(reader).evalToExp(topLevelContext, global);
-    profileScript.evaluate(topLevelContext, global);
+  private void executeStartupProfile() throws IOException {
+    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/Rprofile"));
+    SEXP profileScript = RParser.parseSource(reader).evalToExp(topLevelContext, base);
+    profileScript.evaluate(topLevelContext, base);
   }
 }

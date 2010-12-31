@@ -22,15 +22,18 @@
 package r.lang.primitive;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.vfs.FileContent;
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileType;
 import r.lang.*;
+import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.Current;
 import r.lang.primitive.annotations.Primitive;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class System {
 
@@ -39,7 +42,8 @@ public class System {
   }
 
   public static String getRHome() {
-    return "classpath:/R";
+    // hardcode to the R home location to a classpath location
+    return "res:r";
   }
 
   /**
@@ -53,19 +57,23 @@ public class System {
    * @return
    */
   @Primitive("Sys.glob")
-  public static StringVector glob(StringVector paths, boolean markDirectories) {
+  public static StringVector glob(@Current Context context, StringVector paths, boolean markDirectories) {
+
     List<String> matching = Lists.newArrayList();
     for(String path : paths) {
       if(path != null) {
-        matching.addAll(FileScanner.scan(path, markDirectories));
+        if(path.indexOf('*')==-1) {
+          matching.add(path);
+        } else {
+          matching.addAll(FileScanner.scan(context, path, markDirectories));
+        }
       }
     }
     return new StringVector(matching);
   }
 
   @Primitive("path.expand")
-  public static String pathExpand(SEXP pathExp) {
-    String path = "a";
+  public static String pathExpand(String path) {
     if(path.startsWith("~/")) {
       return java.lang.System.getProperty("user.home") + path.substring(2);
     } else {
@@ -73,134 +81,82 @@ public class System {
     }
   }
 
-  private static class FileScanner {
-    private List<String> matches = Lists.newArrayList();
-    private String[] parts;
-    private boolean markDirectories;
-
-    public static List<String> scan(String path, boolean markDirectories) {
-      FileScanner scanner=  new FileScanner(path, markDirectories);
-      scanner.matchRoots();
-      return scanner.matches;
-    }
-
-    private FileScanner(String path, boolean markDirectories) {
-      this.parts = path.split("[\\\\//]");
-      this.markDirectories = markDirectories;
-    }
-
-    private void matchRoots() {
-      for(File root : File.listRoots()) {
-        String rootName = root.getPath();
-        rootName = rootName.substring(0, rootName.length()-1);
-
-        if(rootName.equalsIgnoreCase(parts[0])) {
-          match(root, 1);
-        }
-      }
-    }
-
-    private void match(File dir, int partIndex) {
-      File[] matchingFiles = dir.listFiles(new WildcardFilter(parts[partIndex]));
-      if(matchingFiles != null) {
-        for(File match : matchingFiles) {
-          if(partIndex == parts.length-1) {
-            if( match.isDirectory() && markDirectories) {
-              matches.add(match.getAbsolutePath() + File.separator);
-            } else {
-              matches.add(match.getAbsolutePath());
-            }
-          } else if(match.isDirectory()) {
-            match(match, partIndex+1);
-          }
-        }
-      }
-    }
-
-    private static String wildcardPattern(String pattern) {
-      StringBuilder sb = new StringBuilder();
-      for(int i=0;i!=pattern.length();++i) {
-        switch(pattern.charAt(i)) {
-          case '.':
-            sb.append("\\.");
-            break;
-          case '?':
-            sb.append(".?");
-            break;
-          case '*':
-            sb.append(".*");
-            break;
-          default:
-            sb.appendCodePoint(pattern.codePointAt(i));
-        }
-      }
-      return sb.toString();
-    }
-
-    private static class WildcardFilter implements FilenameFilter {
-      private final boolean explicitDot;
-      private final Pattern regex;
-
-      private WildcardFilter(String wildcard) {
-        this.regex = Pattern.compile(wildcardPattern(wildcard));
-        this.explicitDot = wildcard.startsWith(".");
-      }
-
-      @Override
-      public boolean accept(File dir, String name) {
-        if(name.startsWith(".") && !explicitDot) {
-          return false;
-        }
-        return regex.matcher(name).matches();
-      }
-    }
-  }
-
   @Primitive("file.info")
-  public static ListVector fileInfo(String path) {
-    File file = new File(path);
+  public static ListVector fileInfo(@Current Context context, StringVector paths) throws FileSystemException {
+    EvalException.check(paths.length() > 0, "invalid filename argument");
+
+    DoubleVector.Builder size = new DoubleVector.Builder();
+    LogicalVector.Builder isdir = new LogicalVector.Builder();
+    IntVector.Builder mode = (IntVector.Builder) new IntVector.Builder()
+        .setAttribute(Attributes.CLASS, new StringVector("octmode"));
+    DoubleVector.Builder mtime = new DoubleVector.Builder();
+    StringVector.Builder exe = new StringVector.Builder();
+
+    for(String path : paths) {
+      FileObject file = context.resolveFile(path);
+      if(file.exists()) {
+        FileContent content = file.getContent();
+        if(file.getType() == FileType.FILE) {
+          size.add((int) content.getSize());
+        } else {
+          size.add(0);
+        }
+        isdir.add(file.getType() == FileType.FOLDER);
+        mode.add(mode(file));
+        mtime.add(content.getLastModifiedTime());
+        exe.add(file.getName().getPath().endsWith(".exe") ? "yes" : "no");
+      } else {
+        size.add(IntVector.NA);
+        isdir.add(IntVector.NA);
+        mode.add(IntVector.NA);
+        mtime.add(DoubleVector.NA);
+        exe.add(StringVector.NA);
+      }
+
+      ListVector list = ListVector.newBuilder()
+          .add("size", size)
+          .add("isdir", isdir)
+          .add("mode", mode)
+          .add("mtime", mtime)
+          .add("ctime", mtime)
+          .add("atime", mtime)
+          .add("exe", exe)
+          .build();
+      return list;
+    }
+
 
     ListVector.Builder info = ListVector.newBuilder();
-    if(file.exists()) {
-      info.add("size", (int)file.length());
-      info.add("isdir", file.isDirectory());
-      info.add("mode", mode(file));
-      info.add("mtime", (int)file.lastModified());
-      info.add("ctime", (int)file.lastModified());
-      info.add("atime", (int)file.lastModified());
-      info.add("exe", file.canExecute() || file.getName().endsWith(".exe") );
-    } else {
-      info.add("size", Logical.NA);
-      info.add("isdir", Logical.NA);
-      info.add("mode",  Logical.NA);
-      info.add("mtime", Logical.NA);
-      info.add("ctime", Logical.NA);
-      info.add("atime", Logical.NA);
-      info.add("exe", Logical.NA );
-    }
 
     return info.build();
   }
 
   @Primitive("file.exists")
-  public static boolean fileExists(String path) {
-    return new File(path).exists();
+  public static boolean fileExists(@Current Context context, String path) {
+    try {
+      return context.resolveFile(path).exists();
+    } catch (FileSystemException e) {
+      return false;
+    }
   }
 
-  private static String mode(File file) {
+  private static int mode(FileObject file) throws FileSystemException {
     int access = 0;
-    if(file.canRead()) {
+    if(file.isReadable()) {
       access += 4;
     }
-    if(file.canWrite()) {
+    if(file.isWriteable()) {
       access += 2;
     }
-    if(file.canExecute() || file.isDirectory()) {
+    if(file.getType() == FileType.FOLDER) {
       access += 1;
     }
+    // i know this is braindead but i can't be bothered
+    // to do octal math at the moment
     String digit = Integer.toString(access);
+    String octalString = digit + digit + digit;
 
-    return digit + digit + digit;
+    return Integer.parseInt(octalString, 8);
   }
 
   @Primitive("Version")
@@ -226,10 +182,10 @@ public class System {
   }
 
   @Primitive("Sys.getenv")
-  public static StringVector getEnvironment(StringVector names, String unset) {
+  public static StringVector getEnvironment(@Current Context context, StringVector names, String unset) {
     StringVector.Builder result = new StringVector.Builder();
-    Map<String,String> map = java.lang.System.getenv();
 
+    Map<String, String> map = context.getGlobals().systemEnvironment;
     if(names.length() == 0) {
       for(Map.Entry<String,String> entry : map.entrySet()) {
         result.add(entry.getKey() + "=" + entry.getValue());
@@ -244,16 +200,56 @@ public class System {
   }
 
   @Primitive("Sys.setenv")
-  public static LogicalVector setEnvironment(StringVector names, StringVector values) {
+  public static LogicalVector setEnvironment(@Current Context context, StringVector names, StringVector values) {
 
-    // note that this implementation doesn't do anything
-    // Java doesn't let us mess with the environment unless we're starting a new process,
-    // so we would need to implement our own map here.
+    Map<String, String> map = context.getGlobals().systemEnvironment;
 
     LogicalVector.Builder result = new LogicalVector.Builder();
-    for(String name : names) {
-      result.add(false);
+    for(int i=0;i!=names.length();++i) {
+      map.put(names.getElementAsString(i), values.getElementAsString(i));
+      result.add(true);
     }
     return result.build();
   }
+
+  private enum LocaleCategory {
+    LC_COLLATE,
+    LC_MONETARY,
+    LC_NUMERIC,
+    LC_TIME,
+    LC_MESSAGES,
+    LC_PAPER,
+    LC_MEASUREMENT;
+
+    String value() {
+      return "English_United States.1252";
+    }
+  }
+
+  private static final int LC_ALL = 1;
+
+  @Primitive("Sys.getlocale")
+  public static String getLocale(int categoryIndex) {
+    if(categoryIndex == LC_ALL) {
+      StringBuilder info = new StringBuilder();
+      boolean needsSemi = false;
+      for(LocaleCategory category : LocaleCategory.values()) {
+        if(needsSemi) {
+          info.append(';');
+        } else {
+          needsSemi = true;
+        }
+        info.append(category.name()).append('=').append(category.value());
+      }
+      return info.toString();
+    } else {
+      return LocaleCategory.values()[categoryIndex-2].value();
+    }
+  }
+
+  public static StringVector commandArgs() {
+    // TODO: something reasonable
+    return new StringVector("C:\\Program Files\\R\\R-2.10.1\\bin\\Rgui.exe");
+  }
+
 }

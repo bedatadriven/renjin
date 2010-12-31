@@ -50,7 +50,7 @@ public class ExpressionVector extends ListVector {
   public EvalResult evaluate(Context context, Environment rho) {
     EvalResult result = EvalResult.NON_PRINTING_NULL;
     for(SEXP sexp : this) {
-      result = sexp.evaluate(context, context.getEnvironment());
+      result = sexp.evaluate(context, rho);
     }
     return result;
   }

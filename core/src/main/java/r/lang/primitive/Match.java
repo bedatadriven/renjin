@@ -24,6 +24,7 @@ package r.lang.primitive;
 import r.lang.AtomicVector;
 import r.lang.LogicalVector;
 import r.lang.Null;
+import r.lang.Vector;
 
 public class Match {
 
@@ -38,10 +39,29 @@ public class Match {
       if( incomparables.contains(search, i)) {
         matches[i] = noMatch;
       } else {
-        int pos = table.indexOf(search, i);
+        int pos = table.indexOf(search, i, 0);
         matches[i] = pos >= 0 ? pos+1 : noMatch;
       }
     }
     return matches;
   }
+
+  public static Vector unique(AtomicVector vector, AtomicVector incomparables, boolean fromLast) {
+    Vector.Builder result = vector.newBuilder(0);
+    int resultIndex=0;
+    for(int i=0;i!=vector.length();++i) {
+      if(   incomparables.contains(vector, i) ||
+           (fromLast && vector.indexOf(vector, i, i+1) == -1) ||
+          (!fromLast && vector.indexOf(vector, i, 0) == i)) {
+
+        result.setFrom(resultIndex++, vector, i);
+
+      }
+    }
+    return result.build();
+  }
+
+
+
+
 }

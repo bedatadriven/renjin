@@ -226,7 +226,7 @@ abstract class AbstractSEXP implements SEXP {
   }
 
   @Override
-  public final SEXP setAttribute(String attributeName, SEXP value) {
+  public SEXP setAttribute(String attributeName, SEXP value) {
     return cloneWithNewAttributes(
         replaceAttribute(new SymbolExp(attributeName),
             checkAttribute(attributeName, value)));
@@ -296,5 +296,14 @@ abstract class AbstractSEXP implements SEXP {
   @Override
   public Iterable<SEXP> elements() {
     return Collections.<SEXP>singleton(this);
+  }
+
+  @Override
+  public <S extends SEXP> S getElementAsSEXP(int index) {
+    if(index == 0) {
+      return (S)this;
+    } else {
+      throw new IllegalArgumentException();
+    }
   }
 }

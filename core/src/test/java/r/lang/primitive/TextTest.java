@@ -23,6 +23,8 @@ package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.EvalTestCase;
+import r.lang.SEXP;
+import r.lang.StringVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -87,6 +89,9 @@ public class TextTest extends EvalTestCase {
 
      // Argument Recyling
     assertThat( eval("sprintf(c('a%d', 'b%d'), c(1,2,3,4))"), equalTo( c("a1", "b2", "a3", "b4")));
+
+    // empty list
+    assertThat( eval("sprintf('%s', c())"), equalTo( (SEXP)new StringVector()));
   }
 
   @Test

@@ -228,6 +228,10 @@ public class Environment extends AbstractSEXP implements Recursive {
     return frame.getVariable(symbol);
   }
 
+  public SEXP getVariable(String symbolName) {
+    return getVariable(new SymbolExp(symbolName));
+  }
+
   public boolean hasVariable(SymbolExp symbol) {
     return frame.getVariable(symbol) != SymbolExp.UNBOUND_VALUE;
   }

@@ -206,6 +206,23 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void chainedComplexAssignment() {
+    eval( "x <- y <- z <- 1");
+
+    assertThat( eval("x"), equalTo(c(1)));
+    assertThat( eval("y"), equalTo(c(1)));
+    assertThat( eval("z"), equalTo(c(1)));
+
+    eval(" class(x) <- class(y) <- class(z) <- 'foo'");
+
+    assertThat( eval("class(x)"), equalTo(c("foo")));
+    assertThat( eval("class(y)"), equalTo(c("foo")));
+    assertThat( eval("class(z)"), equalTo(c("foo")));
+
+
+  }
+
+  @Test
   public void substitute() {
     eval(" f1 <- function(x, y = x)             { x <- x + 1; y }   ");
     eval(" s1 <- function(x, y = substitute(x)) { x <- x + 1; y }   ");
@@ -255,5 +272,23 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval("switch(2, 'first', 'second')"), equalTo( c("second") ));
     assertThat( eval("switch(99, 'first', 'second')"), equalTo( NULL ));
     assertThat( eval("switch(4)"), equalTo( NULL ));
+  }
+
+  @Test
+  public void useMethod() {
+    eval("fry <- function(what, howlong) UseMethod('fry') ");
+    eval("fry.default <- function(what, howlong) list(desc='fried stuff',what=what,howlong=howlong) ");
+    eval("fry.numeric <- function(what, howlong) list(desc='fried numbers',number=what,howlong=howlong)" );
+
+    eval("x<-33");
+    eval("class(x) <- 'foo'");
+
+    assertThat( eval("fry(1,5)"), equalTo( eval("list(desc='fried numbers', what=1, howlong=5)") ) );
+    assertThat( eval("fry(x,15)"), equalTo( eval("list(desc='fried stuff', what=33, howlong=15)") ) );
+
+    eval("cook <- function() { eggs<-6; fry(eggs, 5) }");
+
+    assertThat( eval("cook()"), equalTo( eval("list(desc='fried numbers', what=6, howlong=5) ")));
+
   }
 }

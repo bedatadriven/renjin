@@ -22,6 +22,7 @@
 package r.lang;
 
 import org.apache.commons.math.complex.Complex;
+import r.lang.exception.EvalException;
 
 import java.util.Collections;
 
@@ -82,7 +83,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
-  public <S extends SEXP> S get(int i) {
+  public <S extends SEXP> S getElementAsSEXP(int i) {
     throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
   }
 
@@ -117,11 +118,6 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
-  public SEXP getElementAsSEXP(int index) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
-  }
-
-  @Override
   public StringVector getClassAttribute() {
     return new StringVector("NULL");
   }
@@ -134,6 +130,16 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   @Override
   public boolean isWiderThan(Vector vector) {
     return getVectorType().isWiderThan(vector);
+  }
+
+  @Override
+  public SEXP setAttributes(ListVector attributes) {
+    throw new EvalException("Attributes cannot be set on NULL");
+  }
+
+  @Override
+  public SEXP setAttribute(String attributeName, SEXP value) {
+    throw new EvalException("Attributes cannot be set on NULL");
   }
 
   @Override
@@ -187,7 +193,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
-  public int indexOf(AtomicVector vector, int vectorIndex) {
+  public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     return -1;
   }
 
@@ -210,14 +216,36 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
     public static final NullBuilder INSTANCE = new NullBuilder();
 
+    public static final String NULL_IS_IMMUTABLE = "The NULL object is immutable";
+
     @Override
     public Vector.Builder setNA(int index) {
-      throw new UnsupportedOperationException("values cannot be added to the NULL value");
+      throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
     }
 
     @Override
     public Vector.Builder setFrom(int destinationIndex, SEXP source, int sourceIndex) {
-      throw new UnsupportedOperationException("values cannot be added to the NULL value");
+      throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
+
+    @Override
+    public Vector.Builder addNA() {
+      throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
+
+    @Override
+    public Vector.Builder addFrom(SEXP source, int sourceIndex) {
+      throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
+
+    @Override
+    public Vector.Builder setAttribute(String name, SEXP value) {
+      throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
+
+    @Override
+    public int length() {
+      return 0;
     }
 
     @Override

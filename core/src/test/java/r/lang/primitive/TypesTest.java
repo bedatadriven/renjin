@@ -26,6 +26,7 @@ import org.junit.Test;
 import r.lang.*;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static r.lang.Logical.FALSE;
@@ -97,6 +98,15 @@ public class TypesTest extends EvalTestCase {
     assertThat( eval("as.integer(NA_real_)"), equalTo( c_i( IntVector.NA )));
     assertThat( eval("as.integer(c(1, 9.32, 9.9, 5.0))"), equalTo( c_i(1, 9, 9, 5 )));
   }
+
+  @Test
+  public void attributesSetting() {
+    eval( " v <- .Internal(Version())");
+    eval( " attributes(v) <- c( class='simpleList', attributes(v)) ");
+
+    assertThat( eval("v$minor"), not(CoreMatchers.equalTo(NULL)));
+  }
+
 
   @Test
   public void na() {
@@ -191,6 +201,19 @@ public class TypesTest extends EvalTestCase {
 
     assertThat( eval("as.vector(1, 'character')"), equalTo( c("1" )));
     assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo( c(true, true, false)));
+  }
+
+  @Test
+  public void asPairList() {
+    eval(" as.vector <- function (x, mode = 'any') .Internal(as.vector(x, mode)) ");
+    eval(" x <- as.vector( c(a=1,b=2), mode = 'pairlist') ");
+
+    PairList.Node head = (PairList.Node) global.getVariable("x");
+    assertThat( head.length(), equalTo(2));
+    assertThat( head.getNode(0).getTag(), equalTo( symbol("a")));
+    assertThat( head.getElementAsSEXP(0), equalTo( c(1) ));
+    assertThat(head.getNode(1).getTag(), equalTo( symbol("b") ));
+    assertThat( head.getElementAsSEXP(1), equalTo( c(2) ));
   }
 
   @Test

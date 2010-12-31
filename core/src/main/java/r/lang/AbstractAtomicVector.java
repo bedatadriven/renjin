@@ -26,7 +26,7 @@ import org.apache.commons.math.complex.Complex;
 
 import java.util.Iterator;
 
-public abstract class AbstractAtomicVector extends AbstractSEXP implements AtomicVector{
+public abstract class AbstractAtomicVector extends AbstractVector implements AtomicVector{
 
   protected AbstractAtomicVector(PairList attributes) {
     super(attributes);
@@ -62,7 +62,7 @@ public abstract class AbstractAtomicVector extends AbstractSEXP implements Atomi
 
   @Override
   public boolean contains(AtomicVector vector, int vectorIndex) {
-    return indexOf(vector, vectorIndex) != -1;
+    return indexOf(vector, vectorIndex, 0) != -1;
   }
 
   @Override
@@ -94,5 +94,11 @@ public abstract class AbstractAtomicVector extends AbstractSEXP implements Atomi
     public SEXP next() {
       return getElementAsSEXP(index++);
     }
+  }
+
+  protected abstract static class AbstractAtomicBuilder extends AbstractBuilder<AtomicVector> {
+
+
+
   }
 }

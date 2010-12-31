@@ -31,13 +31,6 @@ public interface Vector extends SEXP {
 
   int getIndexByName(String name);
 
-  /**
-   * @param index zero-based index of the element
-   * @return the element at {@code index} as a {@link SEXP},
-   * wrapping the element if necessary in a new {@link AtomicVector} if necessary
-   */
-  SEXP getElementAsSEXP(int index);
-
   double getElementAsDouble(int index);
 
   int getElementAsInt(int index);
@@ -56,7 +49,7 @@ public interface Vector extends SEXP {
    * @param initialSize
    * @return
    */
-  Builder newBuilder(int initialSize);
+  AtomicVector.Builder newBuilder(int initialSize);
 
   Type getVectorType();
 
@@ -88,10 +81,14 @@ public interface Vector extends SEXP {
      * Sets the element at index {@code index} to NA
      */
     Builder setNA(int index);
+    Builder addNA();
+    Builder addFrom(S source, int sourceIndex);
+    Builder setFrom(int destinationIndex, S source, int sourceIndex );
 
-    public Builder setFrom(int destinationIndex, S source, int sourceIndex );
+    Builder setAttribute(String name, SEXP value);
 
-    public Vector build();
+    int length();
+    Vector build();
   }
 
   static class Order {

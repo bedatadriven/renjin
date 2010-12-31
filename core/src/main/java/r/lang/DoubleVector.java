@@ -159,9 +159,9 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   }
 
   @Override
-  public int indexOf(AtomicVector vector, int vectorIndex) {
+  public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     double value = vector.getElementAsDouble(vectorIndex);
-    for(int i=0;i!=values.length;++i) {
+    for(int i=startIndex;i<values.length;++i) {
       if(value == values[i]) {
         return i;
       }
@@ -283,8 +283,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     return isNA(values[index]);
   }
 
-  public static class Builder implements Vector.Builder<AtomicVector> {
-    private PairList attributes = Null.INSTANCE;
+  public static class Builder extends AbstractAtomicBuilder {
     private double values[];
 
     public Builder(int initialSize) {
@@ -292,9 +291,13 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
       Arrays.fill(values, NA);
     }
 
+    public Builder() {
+      values = new double[0];
+    }
+
     private Builder(DoubleVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
-      this.attributes = exp.attributes;
+      copyAttributesFrom(exp.getAttributes());
     }
 
     public Builder set(int index, double value) {
@@ -305,6 +308,10 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
       }
       values[index] = value;
       return this;
+    }
+
+    public Builder add(double value) {
+      return set(values.length, value);
     }
 
     @Override
@@ -318,8 +325,13 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     }
 
     @Override
+    public int length() {
+      return values.length;
+    }
+
+    @Override
     public DoubleVector build() {
-      return new DoubleVector(values, attributes);
+      return new DoubleVector(values, buildAttributes());
     }
   }
 

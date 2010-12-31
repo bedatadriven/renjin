@@ -23,19 +23,16 @@ package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.EvalTestCase;
-import r.lang.StringVector;
 
-public class SystemTest extends EvalTestCase {
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+public class UniqueTest extends EvalTestCase {
 
   @Test
-  public void glob() {
-    java.lang.System.out.println( System.glob( topLevelContext, c( "res:r" ) , false) );
-    java.lang.System.out.println( System.glob( topLevelContext, c( "c:\\*" ) , true) );
-    java.lang.System.out.println( System.glob( topLevelContext, c( "c:\\.*" ) , true) );
-  }
+  public void atomicVectors() {
+    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, FALSE))"), equalTo( c(1,3,4)) );
+    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, TRUE))"), equalTo( c(3,1,4)) );
 
-  protected StringVector c(String... values) {
-    return new StringVector(values);
   }
-
 }

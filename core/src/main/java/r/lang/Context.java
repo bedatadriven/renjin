@@ -22,6 +22,10 @@
 package r.lang;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs.VFS;
 
 import java.util.Map;
 
@@ -33,6 +37,7 @@ import java.util.Map;
  * (such as via traceback) and otherwise (the sys.xxx functions).
  */
 public class Context {
+
 
 
   public enum Type {
@@ -93,12 +98,19 @@ public class Context {
    */
   public static class Globals {
 
-    private Globals() {
-
-    }
-
     public PairList conditionHandlerStack = Null.INSTANCE;
     public final Options options = new Options();
+
+    /**
+     * This is the environment
+     */
+    public final Map<String, String> systemEnvironment = Maps.newHashMap();
+
+
+    private Globals() {
+      systemEnvironment.put("R_LIBS", "res:r/library");
+    }
+
   }
 
   private Context parent;
@@ -106,6 +118,7 @@ public class Context {
   private Type type;
   private Environment environment;
   private Globals globals;
+  private PairList arguments = Null.INSTANCE;
 
   private Context() {
   }
@@ -118,18 +131,26 @@ public class Context {
     return context;
   }
 
-  public Context beginFunction(Environment enclosingEnvironment) {
+  public Context beginFunction(Environment enclosingEnvironment, PairList arguments) {
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
     context.environment = Environment.createChildEnvironment(enclosingEnvironment);
     context.globals = globals;
+    context.arguments = arguments;
     return context;
   }
 
   public Environment getEnvironment() {
     return environment;
+  }
+
+  public PairList getArguments() {
+    if(type != Type.FUNCTION) {
+      throw new IllegalStateException("Only Contexts of type FUNCTION contain a FunctionCall");
+    }
+    return arguments;
   }
 
   public int getEvaluationDepth() {
@@ -150,5 +171,10 @@ public class Context {
 
   public boolean isTopLevel() {
     return parent == null;
+  }
+
+  public FileObject resolveFile(String path) throws FileSystemException {
+    FileSystemManager fsManager = VFS.getManager();
+    return fsManager.resolveFile(path);
   }
 }

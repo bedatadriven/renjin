@@ -19,23 +19,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang.primitive;
+package r.lang;
 
-import org.junit.Test;
-import r.lang.EvalTestCase;
-import r.lang.StringVector;
+public class Attributes {
 
-public class SystemTest extends EvalTestCase {
 
-  @Test
-  public void glob() {
-    java.lang.System.out.println( System.glob( topLevelContext, c( "res:r" ) , false) );
-    java.lang.System.out.println( System.glob( topLevelContext, c( "c:\\*" ) , true) );
-    java.lang.System.out.println( System.glob( topLevelContext, c( "c:\\.*" ) , true) );
-  }
+  private Attributes() {}
 
-  protected StringVector c(String... values) {
-    return new StringVector(values);
-  }
+  public static final String NAMES = "names";
+  public static final String CLASS = "class";
+
 
 }

@@ -485,7 +485,7 @@ public class FunctionTable {
       f("format.info", /*formatinfo*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("cat", /*cat*/ null, 0, 111, 6, PP_FUNCALL, PREC_FN, 0),
       f("call", /*call*/ null, 0, 0, -1, PP_FUNCALL, PREC_FN, 0),
-      f("do.call", /*docall*/ null, 0, 211, 3, PP_FUNCALL, PREC_FN, 0),
+      f("do.call", Evaluation.class, 0, 211, 3, PP_FUNCALL, PREC_FN, 0),
       f("as.call", /*ascall*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("type.convert", /*typecvt*/ null, 1, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("as.environment", Types.class, "asEnvironment", 0, 1, 1, PP_FUNCALL, PREC_FN, 0),

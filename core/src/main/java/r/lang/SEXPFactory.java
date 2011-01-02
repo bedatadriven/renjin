@@ -59,7 +59,7 @@ public class SEXPFactory {
       return new LogicalVector((boolean[]) result);
 
     } else {
-      return new ExternalExp(result, Null.INSTANCE, Null.INSTANCE);
+      return new ExternalExp(result, Null.INSTANCE);
     }
   }
 

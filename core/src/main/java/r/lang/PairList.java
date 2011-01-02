@@ -358,6 +358,13 @@ public interface PairList extends SEXP {
       return this;
     }
 
+    public Builder addAll(ListVector list) {
+      for(NamedValue namedValue : list.namedValues()) {
+        add(namedValue.getName(), namedValue.getValue());
+      }
+      return this;
+    }
+
     public Builder add(SEXP s) {
       return add(Null.INSTANCE, s);
     }

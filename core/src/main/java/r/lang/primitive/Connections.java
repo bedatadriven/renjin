@@ -39,17 +39,19 @@ public class Connections {
 
   public static final String CLASSPATH_PREFIX = "classpath:";
 
-  public static Connection gzfile(@Current final Context context,
+  public static ExternalExp<Connection> gzfile(@Current final Context context,
                                   final String description,
                                   String open,
                                   String encoding,
                                   double compressionLevel) {
-    return new ConnectionImpl(new InputStreamFactory() {
+    Connection connection = new ConnectionImpl(new InputStreamFactory() {
       @Override
       public InputStream openInputStream() throws IOException {
         return new GZIPInputStream(openInput(context, description));
       }
     });
+
+    return new ExternalExp(connection, "connection");
   }
 
   public static SEXP unserializeFromConn(Connection conn, Environment rho) throws IOException {

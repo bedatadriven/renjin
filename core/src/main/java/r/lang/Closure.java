@@ -101,7 +101,7 @@ public class Closure extends AbstractSEXP implements Function {
 
       EvalResult result = body.evaluate(functionContext, functionEnvironment);
 
-      functionEnvironment.exit(context);
+      functionContext.exit();
 
       return result;
     } catch(Evaluation.ReturnException e) {

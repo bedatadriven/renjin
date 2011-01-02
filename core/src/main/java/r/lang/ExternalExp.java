@@ -28,8 +28,19 @@ public final class ExternalExp<T> extends AbstractSEXP {
 
   private final T value;
 
-  public ExternalExp(T value, SEXP tag, PairList attributes) {
-    super(tag, attributes);
+  public ExternalExp(T value, PairList attributes) {
+    super(attributes);
+    this.value = value;
+  }
+
+  public ExternalExp(T value) {
+    this.value = value;
+  }
+
+  public ExternalExp(T value, String... className) {
+    super(new PairList.Builder().add(SymbolExp.CLASS,
+        new StringVector(className)).build());
+
     this.value = value;
   }
 
@@ -50,5 +61,10 @@ public final class ExternalExp<T> extends AbstractSEXP {
   @Override
   public void accept(SexpVisitor visitor) {
 
+  }
+
+  @Override
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    return new ExternalExp<T>(value, attributes);
   }
 }

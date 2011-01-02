@@ -26,6 +26,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
 public class CollectionUtils {
+
   private CollectionUtils() {}
 
   public static Function<SEXP, Integer> length() {
@@ -60,4 +61,11 @@ public class CollectionUtils {
       return ((SymbolExp)input.getTag()).getPrintName();
     }
   }
+
+  public static final Predicate<SEXP> IS_FUNCTION = new Predicate<SEXP>() {
+    @Override
+    public boolean apply(SEXP input) {
+      return input instanceof r.lang.Function;
+    }
+  };
 }

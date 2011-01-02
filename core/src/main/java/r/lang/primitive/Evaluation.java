@@ -161,17 +161,17 @@ public class Evaluation {
   }
 
   @Primitive("on.exit")
-  public static void onExit( @Current Environment rho, @Evaluate(false) SEXP exp, boolean add ) {
+  public static void onExit( @Current Context context, @Evaluate(false) SEXP exp, boolean add ) {
     if(add) {
-      rho.addOnExit(exp);
+      context.addOnExit(exp);
     } else {
-      rho.setOnExit(exp);
+      context.setOnExit(exp);
     }
   }
 
   @Primitive("on.exit")
-  public static void onExit( @Current Environment rho, @Evaluate(false) SEXP exp) {
-    rho.setOnExit(exp);
+  public static void onExit( @Current Context context, @Evaluate(false) SEXP exp) {
+    context.setOnExit(exp);
   }
 
   /**
@@ -337,6 +337,22 @@ public class Evaluation {
   @Primitive("return")
   public static EvalResult doReturn(@Current Environment rho, SEXP value) {
     throw new ReturnException(rho, value);
+  }
+
+  @Primitive("do.call")
+  public static EvalResult doCall(@Current Context context, Function what, ListVector arguments, Environment environment) {
+    PairList argumentPairList = new PairList.Builder().addAll(arguments).build();
+    FunctionCall call = new FunctionCall(what, argumentPairList);
+    return call.evaluate(context, environment);
+  }
+
+  @Primitive("do.call")
+  public static EvalResult doCall(@Current Context context, @Current Environment rho, String what, ListVector arguments, Environment environment) {
+    SEXP function = environment.findVariable(new SymbolExp(what));
+    if(function instanceof Promise) {
+      function = ((Promise) function).force(context).getExpression();
+    }
+    return doCall(context, (Function) function, arguments, environment);
   }
 
   public static EvalResult eval(@Current Context context,

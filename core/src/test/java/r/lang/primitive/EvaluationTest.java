@@ -171,6 +171,13 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void onExitCorrectEnvironment() {
+    eval(" f<- function() { tutty.fruity <- 3; on.exit(tutty.fruity+1) }");
+    eval(" f() ");
+
+  }
+
+  @Test
   public void globalAssign() {
 
     eval("myf <- function(x) { " +

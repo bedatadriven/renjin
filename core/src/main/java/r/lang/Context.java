@@ -21,12 +21,14 @@
 
 package r.lang;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -74,6 +76,9 @@ public class Context {
     /** builtin internal function */
     BUILTIN
   }
+
+  private List<SEXP> onExit = Lists.newArrayList();
+
 
   public static class Options {
     private Map<String, SEXP> map = Maps.newHashMap();
@@ -171,6 +176,21 @@ public class Context {
 
   public boolean isTopLevel() {
     return parent == null;
+  }
+
+
+  public void setOnExit(SEXP exp) {
+    onExit = Lists.newArrayList(exp);
+  }
+
+  public void addOnExit(SEXP exp) {
+    onExit.add(exp);
+  }
+
+  public void exit() {
+    for(SEXP exp : onExit) {
+      exp.evaluate(this, environment);
+    }
   }
 
   public FileObject resolveFile(String path) throws FileSystemException {

@@ -23,11 +23,13 @@ package r.lang;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 import r.lang.primitive.BaseFrame;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * The Environment data type.
@@ -61,8 +63,6 @@ public class Environment extends AbstractSEXP implements Recursive {
   private Environment parent;
   private Environment globalEnvironment;
   private Environment baseEnvironment;
-
-  private List<SEXP> onExit = Lists.newArrayList();
 
 
   /**
@@ -253,20 +253,6 @@ public class Environment extends AbstractSEXP implements Recursive {
       Environment toReturn = next;
       next = next.parent;
       return toReturn;
-    }
-  }
-
-  public void setOnExit(SEXP exp) {
-    onExit = Lists.newArrayList(exp);
-  }
-
-  public void addOnExit(SEXP exp) {
-    onExit.add(exp);
-  }
-
-  public void exit(Context context) {
-    for(SEXP exp : onExit) {
-      exp.evaluate(context, this);
     }
   }
 

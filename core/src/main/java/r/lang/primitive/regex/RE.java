@@ -447,6 +447,13 @@ public class RE implements Serializable
       }
     }
 
+    public RE ignoreCase(boolean ignore) {
+      if(ignore) {
+        setMatchFlags(MATCH_CASEINDEPENDENT);
+      }
+      return this;
+    }
+
     /**
      * Constructs a regular expression matcher from a String by compiling it
      * using a new instance of RECompiler.  If you will be compiling many

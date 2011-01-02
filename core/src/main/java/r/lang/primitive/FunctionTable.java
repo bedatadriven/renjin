@@ -707,7 +707,7 @@ public class FunctionTable {
       f("codeFiles.append", /*fileappend*/ null, 1, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("file.symlink", /*filesymlink*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),
       f("file.copy", /*filecopy*/ null, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
-      f("list.files", /*listfiles*/ null, 0, 11, 6, PP_FUNCALL, PREC_FN, 0),
+      f("list.files", System.class, 0, 11, 6, PP_FUNCALL, PREC_FN, 0),
       f("file.exists", System.class, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("file.choose", /*filechoose*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("file.info", System.class, "fileInfo", 0, 11, 1, PP_FUNCALL, PREC_FN, 0),

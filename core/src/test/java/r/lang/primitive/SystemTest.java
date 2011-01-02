@@ -23,19 +23,41 @@ package r.lang.primitive;
 
 import org.junit.Test;
 import r.lang.EvalTestCase;
-import r.lang.StringVector;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class SystemTest extends EvalTestCase {
 
   @Test
   public void glob() {
-    java.lang.System.out.println( System.glob( topLevelContext, c( "res:r" ) , false) );
-    java.lang.System.out.println( System.glob( topLevelContext, c( "c:\\*" ) , true) );
-    java.lang.System.out.println( System.glob( topLevelContext, c( "c:\\.*" ) , true) );
+//    java.lang.System.out.println(System.glob(topLevelContext, c("res:r"), false));
+//    java.lang.System.out.println( System.glob( topLevelContext, c("c:\\*") , true) );
+//    java.lang.System.out.println( System.glob( topLevelContext, c("c:\\.*") , true) );
   }
 
-  protected StringVector c(String... values) {
-    return new StringVector(values);
+  @Test
+  public void listFiles() {
+    eval(" list.files <- function (path = '.'," +
+        "pattern = NULL, all.files = FALSE, full.names = FALSE, " +
+        "recursive = FALSE, ignore.case = FALSE) " +
+          ".Internal(list.files(path, pattern, all.files, full.names, recursive, ignore.case))");
+
+    assertThat( eval("list.files('res:afolder')"), equalTo( c("file1.ext", "second.file")));
+    assertThat( eval("list.files('res:afolder', all.files=TRUE)"), equalTo( c(".", "..", ".secret", "file1.ext", "second.file")));
+    assertThat( eval("list.files('res:afolder', all.files=TRUE, full.names=TRUE)"),
+        equalTo( c(fullPathPlus("."), fullPathPlus(".."), fullPath(".secret"), fullPath("file1.ext"), fullPath("second.file"))));
+
+    assertThat( eval("list.files('res:r/library', pattern='^survey$')"), equalTo( c("survey")) );
+  }
+
+  private String fullPath(String name) {
+    return getClass().getResource("/afolder/" + name).toString()
+        .replace("file:/", "file:///");
+  }
+
+  private String fullPathPlus(String name) {
+    return fullPath("") + name;
   }
 
 }

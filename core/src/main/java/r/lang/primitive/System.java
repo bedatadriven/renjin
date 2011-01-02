@@ -30,6 +30,7 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.Current;
 import r.lang.primitive.annotations.Primitive;
+import r.lang.primitive.regex.RE;
 
 import java.util.Date;
 import java.util.List;
@@ -139,6 +140,85 @@ public class System {
       return false;
     }
   }
+
+  /**
+   *
+   * @param path  a character vector of full path names; the default corresponds to the working directory getwd(). Missing values will be ignored.
+   * @param pattern an optional regular expression. Only file names which match the regular expression will be returned.
+   * @param allFiles  If FALSE, only the names of visible files are returned. If TRUE, all file names will be returned.
+   * @param fullNames If TRUE, the directory path is prepended to the file names. If FALSE, only the file names are returned.
+   * @param recursive Should the listing recurse into directories?
+   * @param ignoreCase Should pattern-matching be case-insensitive?
+   *
+   * If a path does not exist or is not a directory or is unreadable it is skipped, with a warning.
+   * The files are sorted in alphabetical order, on the full path if full.names = TRUE. Directories are included only if recursive = FALSE.
+   *
+   * @return
+   */
+  @Primitive("list.files")
+  public static StringVector listFiles(@Current final Context context,
+                                       final StringVector paths,
+                                       final String pattern,
+                                       final boolean allFiles,
+                                       final boolean fullNames,
+                                       boolean recursive,
+                                       final boolean ignoreCase) throws FileSystemException {
+
+    return new Object() {
+
+      private final StringVector.Builder result = new StringVector.Builder();
+      private final RE filter = pattern == null ? null : new RE(pattern).ignoreCase(ignoreCase);
+
+      public StringVector list() throws FileSystemException {
+        for(String path : paths) {
+          FileObject folder = context.resolveFile(path);
+          if(folder.getType() == FileType.FOLDER) {
+            if(allFiles) {
+              add(folder, ".");
+              add(folder, "..");
+            }
+            for(FileObject child : folder.getChildren()) {
+              if(filter(child)) {
+                add(child);
+              }
+            }
+          }
+        }
+        return result.build();
+      }
+
+      void add(FileObject file) {
+        if(fullNames) {
+          result.add(file.getName().getURI());
+        } else {
+          result.add(file.getName().getBaseName());
+        }
+      }
+
+      void add(FileObject folder, String name) throws FileSystemException {
+        if(fullNames) {
+          result.add(folder.getURL() + "/" + name);
+        } else {
+          result.add(name);
+        }
+      }
+
+      boolean filter(FileObject child) throws FileSystemException {
+        if(!allFiles && isHidden(child)) {
+          return false;
+        }
+        if(filter!=null && !filter.match(child.getName().getBaseName())) {
+          return false;
+        }
+        return true;
+      }
+
+      private boolean isHidden(FileObject file) throws FileSystemException {
+        return file.isHidden() || file.getName().getBaseName().startsWith(".");
+      }
+    }.list();
+  }
+
 
   private static int mode(FileObject file) throws FileSystemException {
     int access = 0;

@@ -40,9 +40,9 @@ public class EvalException extends RuntimeException {
     this.exp = exp;
   }
 
-  public static void check(boolean condition, String errorMessage) {
+  public static void check(boolean condition, String errorMessage, Object... args) {
     if(!condition) {
-      throw new EvalException(errorMessage);
+      throw new EvalException(errorMessage, args);
     }
   }
 }

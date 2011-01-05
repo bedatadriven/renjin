@@ -26,11 +26,13 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.ArgumentList;
 
 import java.util.Iterator;
+import java.util.List;
 
 import static com.google.common.base.Predicates.not;
 
@@ -251,4 +253,136 @@ public class Combine {
   private static final ValueOf VALUE_OF = new ValueOf();
 
 
+//  private static SEXP dispatchBindCall(@ArgumentList ListVector arguments) {
+//    /*   The dispatch algorithm is described in the source file (‘.../src/main/bind.c’) as
+//     * For each argument we get the list of possible class memberships from the class attribute.
+//     * We inspect each class in turn to see if there is an applicable method.
+//     * If we find an applicable method we make sure that it is identical to any method
+//      *  determined for prior arguments. If it is identical, we proceed, otherwise we immediately drop through to the default code.
+//     */
+//
+//    for(SEXP argument : arguments) {
+//
+//    }
+//
+//  }
+
+  public static SEXP rbind(@ArgumentList ListVector arguments) {
+
+
+
+    List<BindArgument> bindArguments = Lists.newArrayList();
+    for(SEXP argument : arguments) {
+      EvalException.check(argument instanceof Vector, "invalid argument of type '%s'", argument.getTypeName());
+      bindArguments.add(new BindArgument((Vector) argument, true));
+    }
+
+    // establish the number of columns
+    // 1. check actual matrices
+    int columns = -1;
+    int rows = 0;
+    for(BindArgument argument : bindArguments) {
+      if(argument.matrix) {
+        rows += argument.rows;
+        if(columns == -1) {
+          columns = argument.cols;
+        } else if(columns != argument.cols) {
+          throw new EvalException("number of columns of matrices must match");
+        }
+      } else {
+        rows ++;
+      }
+    }
+
+    // if there are no actual matrices, then use the longest vector length as the number of columns
+    if(columns == -1) {
+      for(BindArgument argument : bindArguments) {
+        if(argument.vector.length() > columns) {
+          columns = argument.vector.length();
+        }
+      }
+    }
+
+
+    // now check that all vectors lengths are multiples of the column length
+    for(BindArgument argument : bindArguments) {
+      if(!argument.matrix) {
+        if( (columns % argument.vector.length()) != 0) {
+          throw new EvalException("number of columns of result is not a multiple of vector length");
+        }
+      }
+    }
+
+    // get the common type and a new builder
+    Inspector inspector = new Inspector(false);
+    inspector.acceptAll(arguments);
+    Vector.Builder vectorBuilder = inspector.getResult().newBuilder();
+
+    // wrap the builder
+    Matrix2dBuilder builder = new Matrix2dBuilder(vectorBuilder, rows, columns);
+    for(int j=0;j!=columns;++j) {
+      for(BindArgument argument : bindArguments) {
+        for(int i=0;i!=argument.rows;++i) {
+          builder.addFrom(argument, i, j);
+        }
+      }
+    }
+
+    return builder.build();
+  }
+
+  private static class BindArgument {
+    private final Vector vector;
+    private final int rows;
+    private final int cols;
+    /**
+     * True if the argument is an actual matrix
+     */
+    private final boolean matrix;
+
+    public BindArgument(Vector vector, boolean defaultToRows) {
+      SEXP dim = vector.getAttribute(SymbolExp.DIM);
+      this.vector = vector;
+      if(dim == Null.INSTANCE || dim.length() != 2) {
+        if(defaultToRows) {
+          rows = 1;
+          cols = vector.length();
+        } else {
+          cols = 1;
+          rows = vector.length();
+        }
+        matrix = false;
+
+      } else {
+        AtomicVector dimVector = (AtomicVector) dim;
+        rows = ((AtomicVector) dim).getElementAsInt(0);
+        cols = ((AtomicVector) dim).getElementAsInt(1);
+        matrix = true;
+      }
+    }
+  }
+
+  private static class Matrix2dBuilder {
+    private final Vector.Builder builder;
+    private final int rows;
+    private final int cols;
+    private int count = 0;
+
+    private Matrix2dBuilder(Vector.Builder builder, int rows, int cols) {
+      this.builder = builder;
+      this.rows = rows;
+      this.cols = cols;
+    }
+
+    public void addFrom(BindArgument argument, int rowIndex, int colIndex) {
+      int recycledColIndex = colIndex % argument.cols;
+      builder.setFrom(count, argument.vector, recycledColIndex * argument.rows + rowIndex);
+      count++;
+    }
+
+    public Vector build() {
+      return builder.setAttribute(Attributes.DIM, new IntVector(rows,cols))
+          .build();
+    }
+  }
 }

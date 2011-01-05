@@ -326,6 +326,11 @@ public class Types {
     return x.equals(y);
   }
 
+  @Primitive("dim")
+  public static SEXP getDimensions(SEXP sexp) {
+    return sexp.getAttribute(SymbolExp.DIM);
+  }
+
   public static PairList attributes(SEXP sexp) {
     return sexp.getAttributes();
   }

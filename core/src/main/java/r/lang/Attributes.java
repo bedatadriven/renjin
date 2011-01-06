@@ -23,10 +23,12 @@ package r.lang;
 
 public class Attributes {
 
+
   private Attributes() {}
 
   public static final String NAMES = "names";
   public static final String CLASS = "class";
   public static final String DIM = "dim";
+  public static final String DIMNAMES = "dimnames";
 
 }

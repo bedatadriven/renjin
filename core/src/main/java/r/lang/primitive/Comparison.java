@@ -165,15 +165,15 @@ public class Comparison {
     return !value;
   }
 
-  public static Logical any(@ArgumentList PairList arguments) {
+  public static Logical any(@ArgumentList ListVector arguments) {
     List<Vector> vectors = Lists.newArrayList();
     boolean removeNA = false;
 
-    for(PairList.Node node : arguments.nodes()) {
-      if(node.tagEquals("na.rm")) {
-        removeNA = !isFalse(node.getValue());
-      } else if(node.getValue() instanceof Vector) {
-        vectors.add((Vector) node.getValue());
+    for(NamedValue argument : arguments.namedValues()) {
+      if(argument.getName().equals("na.rm")) {
+        removeNA = !isFalse(argument.getValue());
+      } else if(argument.getValue() instanceof Vector) {
+        vectors.add((Vector) argument.getValue());
       } else {
         throw new EvalException("object cannot be coerced to type logical");
       }

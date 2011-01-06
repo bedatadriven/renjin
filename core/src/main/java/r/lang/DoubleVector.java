@@ -38,6 +38,13 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
   public static final Vector.Type VECTOR_TYPE = new DoubleType();
 
+  /**
+   * The double constant used to designate elements or values that are
+   * missing in the statistical sense, or literally "Not Available".
+   *
+   * Note that this value is distinct from the IEEE {@code NaN} value,
+   * which results from mathematical calculations, such as sqrt(-1)
+   */
   public static final double NA = createNA();
   public static final double NaN = Double.NaN;
   public static final double EPSILON =  0.00001;
@@ -283,7 +290,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     return isNA(values[index]);
   }
 
-  public static class Builder extends AbstractAtomicBuilder {
+  public static class Builder extends AbstractAtomicBuilder<Double> {
     private double values[];
 
     public Builder(int initialSize) {
@@ -320,8 +327,12 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, AtomicVector source, int sourceIndex) {
+    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
       return set(destinationIndex, source.getElementAsDouble(sourceIndex));
+    }
+
+    public Builder set(int index, Double value) {
+      return set(index, (double)value);
     }
 
     @Override

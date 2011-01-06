@@ -155,6 +155,7 @@ public class Text {
     return messages;
   }
 
+  @Recycle(false)
   public static String ngettext(double n,
                                 String singularMessage,
                                 String pluralMessage,

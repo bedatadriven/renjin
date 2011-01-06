@@ -42,6 +42,10 @@ public class TypesTest extends EvalTestCase {
     assertThat( eval("as.character(1.3333333333333333333333333333333333)"),
         equalTo(c("1.33333333333333")));
     assertThat( eval("as.character(TRUE)"), equalTo( c("TRUE") ));
+  }
+
+  @Test
+  public void asCharacterWithNA() {
     assertThat( eval("as.character(NA)"), equalTo( c( StringVector.NA )) );
   }
 
@@ -96,6 +100,10 @@ public class TypesTest extends EvalTestCase {
     assertThat( eval("as.integer(3.1)"), equalTo( c_i( 3 )));
     assertThat( eval("as.integer(3.9)"), equalTo( c_i( 3 )));
     assertThat( eval("as.integer(NA_real_)"), equalTo( c_i( IntVector.NA )));
+  }
+
+  @Test
+  public void asIntFromRecycledDouble() {
     assertThat( eval("as.integer(c(1, 9.32, 9.9, 5.0))"), equalTo( c_i(1, 9, 9, 5 )));
   }
 
@@ -120,6 +128,16 @@ public class TypesTest extends EvalTestCase {
   public void naList() {
     assertThat( eval(" is.na(list(NULL,  1,     FALSE, c(NA,4), NA_integer_, NA_real_)) "),
                        equalTo( c(FALSE, FALSE, FALSE, FALSE,   TRUE,        TRUE)) );
+  }
+
+  @Test
+  public void naPreservesNames() {
+    assertThat( eval(" names(is.na(c(x=1,y=2))) "), equalTo( c("x", "y")));
+  }
+
+  @Test
+  public void unaryPreservesNames() {
+    assertThat( eval(" names(!is.na(c(x=1,y=2)))"), equalTo( c("x", "y")));
   }
 
   @Test

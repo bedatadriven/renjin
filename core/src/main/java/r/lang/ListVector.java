@@ -192,7 +192,12 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
 
   @Override
   public boolean isElementNA(int index) {
-    return false;
+    SEXP value = values.get(index);
+    if(value.length() == 1 && value instanceof AtomicVector) {
+      return ((AtomicVector) value).isElementNA(0);
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -295,7 +300,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
   }
 
 
-  public static class Builder extends AbstractVector.AbstractBuilder<SEXP> {
+  public static class Builder extends AbstractVector.AbstractBuilder<SEXP, SEXP> {
     private boolean haveNames = false;
     private List<SEXP> values = Lists.newArrayList();
     private List<String> names = Lists.newArrayList();
@@ -312,6 +317,12 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
         haveNames = true;
       } else {
         for(SEXP value : values) { this.names.add(""); }
+      }
+    }
+
+    public Builder(int initialLength) {
+      for(int i=0;i!=initialLength;++i) {
+        add(Null.INSTANCE);
       }
     }
 
@@ -418,6 +429,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
     public NameValuePair(String name, SEXP value) {
       this.name = name;
       this.value = value;
+    }
+
+    @Override
+    public boolean hasName() {
+      return !name.isEmpty();
     }
 
     @Override

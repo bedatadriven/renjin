@@ -25,6 +25,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.apache.commons.math.complex.Complex;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.*;
@@ -48,7 +49,18 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   private Method method;
   private List<Argument> arguments;
   private List<Argument> formals;
-  private boolean recyclable;
+  private boolean recycle;
+
+  private static final Class[] ATOMIC_TYPES = {
+      Boolean.TYPE,
+      Boolean.class,
+      Logical.class,
+      Integer.TYPE,
+      Integer.class,
+      Double.TYPE,
+      Double.class,
+      Complex.class,
+      String.class  };
 
   public PrimitiveMethod(Method method) {
     this.method = method;
@@ -59,11 +71,42 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     }
     this.arguments = argumentsBuilder.build();
     this.formals = ImmutableList.copyOf(Iterables.filter(arguments, new IsFormal()));
-    this.recyclable = Iterables.any(formals, new IsRecycled());
+
+    computeRecycling();
   }
 
-  public static List<PrimitiveMethod> findOverloads(Class clazz, String name) {
-    return findOverloads(clazz, name, name);
+  private void computeRecycling() {
+
+    // is recycling disabled for the whole method?
+    Recycle methodRecycle = method.getAnnotation(Recycle.class);
+    if(methodRecycle != null && !methodRecycle.value()) {
+      this.recycle = false;
+      return;
+    }
+
+    // determine whether Recycling is explicitly defined
+    boolean implicitRecycling = true;
+    for(Argument formal : formals) {
+      if(formal.isAnnotatedWith(Recycle.class)) {
+        implicitRecycling = false;
+        break;
+      }
+    }
+
+    // check whether a method with this return type is eligible at all for recycling
+    if(! (isAtomic(method.getReturnType()) ||
+            (SEXP.class.isAssignableFrom(method.getReturnType()) && !implicitRecycling) )) {
+      this.recycle = false;
+      return;
+    }
+
+    for(Argument formal : formals) {
+      formal.recycle = formal.isAnnotatedWith(Recycle.class) ||
+          (implicitRecycling && formal.isAtomicElementType());
+      if(formal.recycle) {
+        this.recycle = true;
+      }
+    }
   }
 
   public static List<PrimitiveMethod> findOverloads(Class clazz, String name, String alias) {
@@ -100,35 +143,14 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
            arguments.get(2).getClazz().equals(FunctionCall.class);
   }
 
-  public boolean acceptsArgumentPairList() {
-    return formals.size() == 1 &&
-           formals.get(0).getClazz() == PairList.class &&
-           formals.get(0).isAnnotatedWith(ArgumentList.class);
-  }
-
   public boolean acceptsArgumentList() {
     return formals.size() == 1 &&
            formals.get(0).getClazz() == ListVector.class &&
            formals.get(0).isAnnotatedWith(ArgumentList.class);
   }
 
-  public boolean isVarArgs() {
-    return method.isVarArgs();
-  }
-
-  public Argument getVarArg() {
-    if(!isVarArgs()) {
-      throw new IllegalStateException();
-    }
-    return arguments.get( arguments.size() - 1);
-  }
-
-  public boolean isRecyclable() {
-    return recyclable;
-  }
-
-  public List<Argument> getArguments() {
-    return arguments;
+  public boolean isRecycle() {
+    return recycle;
   }
 
   /**
@@ -280,12 +302,18 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     return method.isAnnotationPresent(annotationClass);
   }
 
+  public boolean acceptsNA() {
+    return method.isAnnotationPresent(AllowNA.class);
+  }
+
   public class Argument {
     private int index;
     private Class clazz;
     private boolean contextual = false;
     private boolean evaluated = true;
     private boolean symbol;
+    public boolean recycle;
+    public boolean atomicType;
 
     public Argument(Method method, int index) {
       clazz = method.getParameterTypes()[index];
@@ -301,6 +329,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
       }
 
       symbol = (clazz == SymbolExp.class);
+      atomicType = isAtomic(clazz);
     }
 
     public boolean isAssignableFrom(Object value) {
@@ -339,6 +368,14 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     public boolean isSymbol() {
       return symbol;
     }
+
+    public boolean isAtomicElementType() {
+      return atomicType;
+    }
+
+    public boolean isRecycle() {
+      return recycle;
+    }
   }
 
   private class IsFormal implements Predicate<Argument> {
@@ -347,14 +384,6 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
       return !input.isContextual();
     }
   }
-
-  private class IsRecycled implements Predicate<Argument> {
-    @Override
-    public boolean apply(Argument input) {
-      return input.isAnnotatedWith(Recycle.class);
-    }
-  }
-
 
   public static void validate(List<PrimitiveMethod> methods) {
     for(int i=0;i!=methods.size(); ++i) {
@@ -378,5 +407,14 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     sb.append("\nis hidden by\n\t");
     y.appendFriendlySignatureTo(sb);
     return sb.append("\n").toString();
+  }
+
+  private boolean isAtomic(Class clazz) {
+    for(int i=0;i!=ATOMIC_TYPES.length;++i) {
+      if(clazz.equals(ATOMIC_TYPES[i])) {
+        return true;
+      }
+    }
+    return false;
   }
 }

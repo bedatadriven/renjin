@@ -73,7 +73,7 @@ public class Subset {
   public static SEXP setElementByName(ListVector list, @Evaluate(false) SymbolExp name, SEXP value) {
     ListVector.Builder result = ListVector.buildFromClone(list);
 
-    int index = list.getIndexByName(name);
+    int index = list.getIndexByName(name.getPrintName());
     if(index == -1) {
       result.add(name, value);
     } else {

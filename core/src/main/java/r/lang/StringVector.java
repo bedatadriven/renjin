@@ -239,15 +239,24 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     }
   }
 
-  public static class Builder extends AbstractAtomicBuilder {
-    private ArrayList<String> values = Lists.newArrayList();
+  public static class Builder extends AbstractAtomicBuilder<String> {
+    private ArrayList<String> values;
 
     public Builder() {
+      values = Lists.newArrayList();
     }
 
     public Builder(StringVector toClone) {
+      values = Lists.newArrayList();
       Iterables.addAll(values, toClone);
       copyAttributesFrom(toClone);
+    }
+
+    public Builder(int initialSize) {
+      values = new ArrayList<String>(initialSize);
+      for(int i=0;i!=initialSize;++i) {
+        values.add(NA);
+      }
     }
 
     public Builder set(int index, String value) {
@@ -268,7 +277,7 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, AtomicVector source, int sourceIndex) {
+    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
       return set(destinationIndex, source.getElementAsString(sourceIndex) );
     }
 

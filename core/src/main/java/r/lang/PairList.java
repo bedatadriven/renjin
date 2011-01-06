@@ -135,6 +135,11 @@ public interface PairList extends SEXP {
     }
 
     @Override
+    public boolean hasName() {
+      return hasTag();
+    }
+
+    @Override
     public String getName() {
       return hasTag() ? getTag().getPrintName() : "";
     }

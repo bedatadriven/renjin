@@ -27,5 +27,4 @@ public interface AtomicBuilder<T> {
   void set(int index, T value);
   void setNA(int index);
   Vector build();
-  Vector build(int length);
 }

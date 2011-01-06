@@ -62,7 +62,7 @@ public class TextTest extends EvalTestCase {
   @Test
   public void ngettext() {
       assertThat( eval( ".Internal(ngettext(1, 'baby', 'babies', 'hungarian'))"), equalTo( c("baby")));
-      assertThat( eval( ".Internal(ngettext(1, 'baby', 'babies', NULL))"), equalTo( c("baby")));
+      assertThat( eval( ".Internal(ngettext(2, 'baby', 'babies', NULL))"), equalTo( c("babies")));
   }
 
   @Test

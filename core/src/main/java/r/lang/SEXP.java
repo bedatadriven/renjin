@@ -22,10 +22,16 @@
 package r.lang;
 
 /**
- * Base class for R data types.
+ * Base interface for all R data types.
  */
 public interface SEXP {
 
+  /**
+   * Returns the number of elements in this expression. All R objects are considered
+   * to have length,
+   *
+   * @return the number of elements in this expression.
+   */
   public int length();
 
   boolean hasAttributes();
@@ -36,10 +42,9 @@ public interface SEXP {
 
   String getTypeName();
 
-
   /**
    * @return this expression's tag
-   * @throws ClassCastException if this expression's tag is NullExp
+   * @throws ClassCastException if this expression's tag is {@link Null#INSTANCE}
    */
   SEXP getRawTag();
 
@@ -107,17 +112,14 @@ public interface SEXP {
   String getName(int index);
 
   /**
-   * Searches the list of this vector's names for
-   * a symbol that matches {@code name}.
-   *
+   * Searches the list of this expression's {@link Attributes#NAMES} attribute for the
+   * provided {@code name}.
    *
    * @param name the name for which to search
    * @return  the index of the matching name, or -1 if
    * no match is found.
    */
   int getIndexByName(String name);
-
-  int getIndexByName(SymbolExp name);
 
   SEXP getAttribute(SymbolExp name);
 

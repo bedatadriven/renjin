@@ -267,7 +267,8 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     return IntVector.isNA(values[index]);
   }
 
-  public static class Builder extends AbstractAtomicBuilder {
+  public static class Builder<T extends AbstractBuilder, E>
+      extends AbstractAtomicBuilder<E> {
     private int values[];
 
     public Builder(int initialSize) {
@@ -302,13 +303,21 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
       return this;
     }
 
+    public Builder set(int index, boolean value) {
+      return set(index, value ? 1 : 0);
+    }
+
+    public Builder set(int index, Logical value) {
+      return set(index, value.getInternalValue());
+    }
+
     @Override
     public Builder setNA(int index) {
       return set(index, NA);
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, AtomicVector source, int sourceIndex) {
+    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
       return set(destinationIndex, source.getElementAsRawLogical(sourceIndex));
     }
 
@@ -321,6 +330,7 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     public LogicalVector build() {
       return new LogicalVector(values, buildAttributes());
     }
+
   }
 
   private static class LogicalType extends Vector.Type {

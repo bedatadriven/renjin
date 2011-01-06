@@ -38,7 +38,8 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   public static final String IMPLICIT_CLASS = "integer";
 
   /**
-   * NA_INTEGER:= INT_MIN currently
+   * The integer constant used to designate elements or values that are
+   * missing in the statistical sense, or literally "Not Available".
    */
   public static final int NA = Integer.MIN_VALUE;
 
@@ -101,7 +102,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
   @Override
   public String getElementAsString(int index) {
-    return ParseUtil.toString(index);
+    return ParseUtil.toString(values[index]);
   }
 
   @Override
@@ -240,7 +241,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     }
   }
 
-  public static class Builder extends AbstractAtomicBuilder {
+  public static class Builder extends AbstractAtomicBuilder<Integer> {
     private int values[];
 
     public Builder(int initialSize) {
@@ -277,7 +278,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     }
 
     @Override
-    public Builder setFrom(int destinationIndex, AtomicVector source, int sourceIndex) {
+    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
       return set(destinationIndex, source.getElementAsInt(sourceIndex));
     }
 

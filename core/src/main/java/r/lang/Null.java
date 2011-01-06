@@ -212,7 +212,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     return VECTOR_TYPE;
   }
 
-  private static class NullBuilder implements Vector.Builder {
+  private static class NullBuilder implements Vector.Builder<SEXP> {
 
     public static final NullBuilder INSTANCE = new NullBuilder();
 
@@ -237,6 +237,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     public Vector.Builder addFrom(SEXP source, int sourceIndex) {
       throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
     }
+
 
     @Override
     public Vector.Builder setAttribute(String name, SEXP value) {

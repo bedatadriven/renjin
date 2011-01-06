@@ -213,11 +213,6 @@ abstract class AbstractSEXP implements SEXP {
   }
 
   @Override
-  public final int getIndexByName(SymbolExp name) {
-    return getIndexByName(name.getPrintName());
-  }
-
-  @Override
   public SEXP getAttribute(SymbolExp name) {
     if(hasAttributes()) {
       return attributes.findByTag(name);

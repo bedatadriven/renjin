@@ -29,20 +29,47 @@ import org.apache.commons.math.complex.Complex;
  */
 public interface Vector extends SEXP {
 
-  int getIndexByName(String name);
-
+  /**
+   *
+   * @param index zero-based index
+   * @return the element at {@code index} as a double value, converting if necessary. If no conversion is
+   * possible,
+   */
   double getElementAsDouble(int index);
 
+  /**
+   *
+   * @param index zero-based index
+   * @return the element at {@code index} as an {@code int} value, converting if neccessary. If no conversion
+   * is possible, {@link IntVector#NA}
+   */
   int getElementAsInt(int index);
 
+  /**
+   *
+   * @param index zero-based index
+   * @return the element at {@code index} as a {@code String} value
+   */
   String getElementAsString(int index);
 
+  /**
+   * @param index  zero-based index
+   * @return the element at {@code index} as a {@link Logical} value
+   */
   Logical getElementAsLogical(int index);
 
+  /**
+   * @param index zero-based index
+   * @return the element at {@code index} as logical value, encoded as an integer. See {@link Logical#internalValue}
+   */
   int getElementAsRawLogical(int index);
 
+  /**
+   *
+   * @param index zero-based index
+   * @return  the element at {@code index} as a {@link Complex} value
+   */
   Complex getElementAsComplex(int index);
-
 
   /**
    * Returns a builder for this type, initially empty.
@@ -75,19 +102,61 @@ public interface Vector extends SEXP {
    */
   boolean isElementNA(int index);
 
+  /**
+   * An interface to
+   * @param <S>
+   */
   public static interface Builder<S extends SEXP> {
 
     /**
-     * Sets the element at index {@code index} to NA
+     * Sets the element at index {@code index} to {@code NA}.
+     * If the vector under construction is not long enough, it is lengthened.
      */
     Builder setNA(int index);
+
+    /**
+     * Adds a new {@code NA} element to the end of the vector under construction
+     * @return this Builder, for method chaining
+     */
     Builder addNA();
+
+    /**
+     * Reads the element at {@code sourceIndex} from the {@code source} expression and
+     * adds a new {@code NA} element to the end of the vector under construction.
+     *
+     * @param source
+     * @param sourceIndex
+     * @return this Builder, for method chaining
+     */
     Builder addFrom(S source, int sourceIndex);
+
+    /**
+     * Reads the element at {@code sourceIndex} from the {@code source} expression and
+     * replaces the element at {@code destinationIndex} in the vector under construction.
+     * If the vector under construction is not long enough, it is lengthened.
+     * @param destinationIndex the index
+     * @param source
+     * @param sourceIndex
+     * @return
+     */
     Builder setFrom(int destinationIndex, S source, int sourceIndex );
 
+    /**
+     *
+     * @param name  the name of the attribute
+     * @param value  the value of the attribute
+     * @return this Builder, for method chaining
+     */
     Builder setAttribute(String name, SEXP value);
 
+    /**
+     * @return the current length of the vector under construction.
+     */
     int length();
+
+    /**
+     * @return a new Vector.
+     */
     Vector build();
   }
 

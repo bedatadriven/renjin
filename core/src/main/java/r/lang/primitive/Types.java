@@ -27,7 +27,6 @@ import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.*;
-import r.parser.ParseUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -155,30 +154,15 @@ public class Types {
     throw new EvalException("type \"single\" unimplemented in R");
   }
 
-  @AllowNA
-  public static boolean isNA(double value) {
-    return DoubleVector.isNA(value);
-  }
-
-  @AllowNA
-  public static boolean isNA(String value) {
-    return StringVector.isNA(value);
-  }
-
-  @AllowNA
-  public static boolean isNA(int value) {
-    return IntVector.isNA(value);
-  }
-
-  public static boolean[] isNA(ListVector list) {
-    boolean[] result = new boolean[list.length()];
-    int i = 0;
-    for(SEXP element : list) {
-      result[i++] = element instanceof AtomicVector &&
-                    element.length() == 1 &&
-                    ((AtomicVector) element).isElementNA(0);
+  public static LogicalVector isNA(Vector list) {
+    LogicalVector.Builder result = new LogicalVector.Builder(list.length());
+    for(int i=0;i!=list.length();++i) {
+      result.set(i, list.isElementNA(i));
     }
-    return result;
+    result.setAttribute(SymbolExp.DIM, list.getAttribute(SymbolExp.DIM));
+    result.setAttribute(SymbolExp.NAMES, list.getAttribute(SymbolExp.NAMES));
+
+    return result.build();
   }
 
   public static boolean isNaN(double value) {
@@ -193,28 +177,31 @@ public class Types {
     return Double.isInfinite(value);
   }
 
-  public static String asCharacter(String value) {
-    return value;
+  public static StringVector asCharacter(Vector source) {
+    return (StringVector) convertVector(new StringVector.Builder(), source);
   }
 
-  public static StringVector asCharacter(ListVector list) {
-    StringVector.Builder result = new StringVector.Builder();
-    for(SEXP element : list) {
-      if(element.length() == 1 && element instanceof AtomicVector) {
-        result.add( ((AtomicVector) element).getElementAsString(0) );
-      } else {
-        result.add( Parse.deparse(element) );
-      }
-    }
-    return result.build();
+  public static StringVector asCharacter(SymbolExp symbol) {
+    return new StringVector( symbol.getPrintName() );
   }
 
   public static LogicalVector asLogical(Vector vector) {
-    int result[] = new int[vector.length()];
-    for(int i=0;i!=result.length; ++i) {
-      result[i] = vector.getElementAsLogical(i).getInternalValue();
+    return (LogicalVector) convertVector(new LogicalVector.Builder(), vector);
+  }
+
+  public static IntVector asInteger(Vector source) {
+      return (IntVector) convertVector(new IntVector.Builder(), source);
+  }
+
+  public static DoubleVector asDouble(Vector source) {
+    return (DoubleVector) convertVector(new DoubleVector.Builder(), source);
+  }
+
+  private static Vector convertVector(Vector.Builder builder, Vector source) {
+    for(int i=0;i!=source.length();++i) {
+      builder.addFrom(source, i);
     }
-    return new LogicalVector(result);
+    return builder.build();
   }
 
   @Primitive("as.vector")
@@ -254,35 +241,6 @@ public class Types {
       builder.add(x.getName(i), x.getElementAsSEXP(i));
     }
     return builder.build();
-  }
-
-
-  public static StringVector asCharacter(SymbolExp symbol) {
-    return new StringVector( symbol.getPrintName() );
-  }
-
-  public static DoubleVector asDouble(DoubleVector exp) {
-    return exp;
-  }
-
-  public static double asDouble(int value) {
-    return (double)value;
-  }
-
-  public static double asDouble(String value) {
-    return ParseUtil.parseDouble(value);
-  }
-
-  public static int asInteger(double x) {
-    return (int) x;
-  }
-
-  public static IntVector asInteger(IntVector exp) {
-    return exp;
-  }
-
-  public static int asInteger(String x) {
-    return (int)ParseUtil.parseDouble(x);
   }
 
   public static Environment asEnvironment(Environment arg) {
@@ -357,31 +315,8 @@ public class Types {
     return exp.setAttributes(attributes);
   }
 
-  public static ListVector list(@ArgumentList PairList arguments) {
-
-    int n = arguments.length();
-    SEXP values[] = new SEXP[n];
-    String names[] = new String[n];
-
-    int index=0;
-    boolean haveNames = false;
-
-    for(PairList.Node arg : arguments.nodes()) {
-      values[index] = arg.getValue();
-      if(arg.hasTag()) {
-        names[index] = arg.getTag().getPrintName();
-        haveNames = true;
-      } else {
-        names[index] = "";
-      }
-      index++;
-    }
-
-    if(haveNames) {
-      return new ListVector(values, PairList.Node.buildList(SymbolExp.NAMES, new StringVector(names)).build());
-    } else {
-      return new ListVector(values);
-    }
+  public static ListVector list(@ArgumentList ListVector arguments) {
+    return arguments;
   }
 
   public static Environment environment(@Current Environment rho) {
@@ -598,17 +533,17 @@ public class Types {
     return true;
   }
 
-  public static ListVector options(@Current Context context, @ArgumentList PairList arguments) {
+  public static ListVector options(@Current Context context, @ArgumentList ListVector arguments) {
     Context.Options options = context.getGlobals().options;
     ListVector.Builder results = ListVector.newBuilder();
 
-    for(PairList.Node node : arguments.nodes()) {
-      if(node.hasTag()) {
-        String name = node.getTag().getPrintName();
-        results.add(name, options.set(name, node.getValue()));
+    for(NamedValue argument : arguments.namedValues()) {
+      if(argument.hasName()) {
+        String name = argument.getName();
+        results.add(name, options.set(name, argument.getValue()));
 
-      } else if(node.getValue() instanceof StringVector) {
-        String name = ((StringVector) node.getValue()).getElementAsString(0);
+      } else if(argument.getValue() instanceof StringVector) {
+        String name = ((StringVector) argument.getValue()).getElementAsString(0);
         results.add(name, options.get(name));
 
       } else {

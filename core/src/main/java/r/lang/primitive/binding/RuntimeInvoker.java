@@ -24,17 +24,18 @@ package r.lang.primitive.binding;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.primitive.annotations.AllowNA;
 import r.lang.primitive.annotations.Indices;
-import r.lang.primitive.annotations.Recycle;
 
+import java.lang.Boolean;
 import java.lang.Class;
+import java.lang.Double;
 import java.lang.Integer;
 import java.lang.Iterable;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.StringBuilder;
+import java.lang.UnsupportedOperationException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,20 +57,9 @@ public class RuntimeInvoker {
   public static final RuntimeInvoker INSTANCE = new RuntimeInvoker();
 
 
-  private List<CallStrategy> strategies;
   private List<ArgConverter> converters;
 
   private RuntimeInvoker() {
-    strategies = new ArrayList<CallStrategy>();
-    strategies.add(new UnaryPrimitive(Integer.TYPE));
-    strategies.add(new UnaryPrimitive(Double.TYPE));
-    strategies.add(new UnaryPrimitive(String.class));
-    strategies.add(new UnaryPrimitive(Boolean.TYPE));
-    strategies.add(new BinaryPrimitive(Integer.TYPE));
-    strategies.add(new BinaryPrimitive(Double.TYPE));
-    strategies.add(new BinaryPrimitive(String.class));
-    strategies.add(new FixedArity());
-    strategies.add(new VarArgs());
 
     // converters between whole expressions and
     // argument types
@@ -121,116 +111,92 @@ public class RuntimeInvoker {
       return overloads.get(0).invokeWithContextAndWrap(context, rho, new Object[]{toEvaluatedList(provided)});
     }
 
-    // TODO: eliminate this. use ListVector instead
-    if(overloads.size() == 1 && overloads.get(0).acceptsArgumentPairList()) {
-      return overloads.get(0).invokeWithContextAndWrap(context, rho, new Object[]{toEvaluatedPairList(provided)});
-    }
-
-
     return matchAndInvoke(context, rho, overloads, provided);
   }
 
   private EvalResult matchAndInvoke(Context context, Environment rho, List<PrimitiveMethod> overloads, List<ProvidedArgument> provided) {
-    for(CallStrategy strategy : strategies) {
-      for(PrimitiveMethod method : overloads) {
-        if(strategy.accept(method, provided)) {
-          return strategy.apply(method, context, rho, provided);
-        }
+    for(PrimitiveMethod method : overloads) {
+      if(acceptArguments(provided, method.getFormals())) {
+        return invokeOverload(method, context, rho, provided);
       }
     }
 
     throw new EvalException(formatNoMatchingOverloadMessage(provided, overloads));
   }
 
+  private EvalResult invokeOverload(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> providedArgs) {
+    SEXP[] preparedArguments = prepareArguments(method, providedArgs);
+    Object[] arguments = new Object[providedArgs.size()];
 
-  private interface CallStrategy {
-    boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments);
-    EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments);
+    if(method.isRecycle()) {
+      int cycles = countCycles(method, preparedArguments);
+      BuilderAdapter result = builderFor(method.getReturnType(), cycles);
+      for(int i=0;i!=cycles;++i) {
+        if(convertArguments(method, preparedArguments, arguments, i)) {
+          result.set( i , method.invokeWithContext(context, rho, arguments) );
+        } else {
+          result.setNA( i );
+        }
+      }
+
+      // for unary and binary primitives with recycling, we copy some attributes from the longest element
+      if(method.getFormals().size() <= 2)  {
+        SEXP attributeSource = longestRecycledElement(method, providedArgs);
+        result.copyAttribute(attributeSource, Attributes.DIM);
+        result.copyAttribute(attributeSource, Attributes.DIMNAMES);
+        result.copyAttribute(attributeSource, Attributes.NAMES);
+      }
+
+      return new EvalResult( result.build() );
+
+    } else {
+      convertArguments(method, preparedArguments, arguments, 0);
+      return method.invokeWithContextAndWrap(context, rho, arguments);
+    }
   }
 
-  /**
-   * Evaluates and passes a fixed number of {@code SEXP}s
-   * to the given method.
-   *
-   * <code>
-   * () ->  method()
-   * (SEXP) ->  method(SEXP)
-   * (SEXP, SEXP) ->  method (SEXP, SEXP)
-   * (DoubleVector, DoubleVector) -> method (DoubleVector, DoubleVector)
-   * </code>
-   */
-  private class FixedArity implements CallStrategy {
-
-    @Override
-    public boolean accept(PrimitiveMethod method, List<ProvidedArgument> providedArgs) {
-      return acceptArguments(providedArgs, method.getFormals());
-    }
-
-    @Override
-    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> providedArgs) {
-      SEXP[] preparedArguments = prepareArguments(method, providedArgs);
-      Object[] arguments = new Object[providedArgs.size()];
-
-      if(method.isRecyclable()) {
-        int cycles = countCycles(method, preparedArguments);
-        AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), cycles);
-        for(int i=0;i!=cycles;++i) {
-          convertArguments(method, preparedArguments, arguments, i);
-          result.set( i , method.invokeWithContext(context, rho, arguments) );
+  private SEXP longestRecycledElement(PrimitiveMethod method, List<ProvidedArgument> arguments) {
+    SEXP longest = Null.INSTANCE;
+    for(int i=0;i!=arguments.size();++i) {
+      if(method.getFormals().get(i).isRecycle()) {
+        SEXP argument = arguments.get(i).evaluated();
+        if(argument.length() > longest.length()) {
+          longest = argument;
         }
-        return new EvalResult( result.build() );
-
-      } else {
-        convertArguments(method, preparedArguments, arguments, 0);
-        return method.invokeWithContextAndWrap(context, rho, arguments);
       }
     }
+    return longest;
   }
 
   private int countCycles(PrimitiveMethod method, SEXP[] arguments) {
     int maxLength = 0;
     for(int i=0;i!=arguments.length;++i) {
-      if(method.getFormals().get(i).isAnnotatedWith(Recycle.class)) {
+      if(method.getFormals().get(i).isRecycle()) {
+        if(arguments[i].length() == 0) {
+          return 0;
+        }
         maxLength = Math.max(maxLength, arguments[i].length());
       }
     }
     return maxLength;
   }
 
-  private void convertArguments(PrimitiveMethod method, SEXP[] preparedArgs, Object[] args, int cycle) {
+  private boolean convertArguments(PrimitiveMethod method, SEXP[] preparedArgs, Object[] args, int cycle) {
     for(int i=0;i!=preparedArgs.length;++i) {
       PrimitiveMethod.Argument formal = method.getFormals().get(i);
-      if(formal.isAnnotatedWith(Recycle.class)) {
+      if(formal.isRecycle()) {
         AtomicAccessor vector = AtomicAccessors.create(preparedArgs[i], formal.getClazz());
         int vectorIndex = cycle % vector.length();
+        if(vector.isNA(vectorIndex) && !method.acceptsNA()) {
+          return false;
+        }
         args[i] = vector.get(vectorIndex);
-      }  else {
+
+      } else {
         args[i] = getConverter(preparedArgs[i], formal).convert(preparedArgs[i], formal);
       }
     }
-  }
-
-  /**
-   * (SEXP...) -> SEXP method(SEXP...)
-   */
-  private class VarArgs implements CallStrategy {
-
-    @Override
-    public boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments) {
-      return method.argumentListEquals(SEXP[].class);
-    }
-
-    @Override
-    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
-      return method.invokeAndWrap(new Object[] { arguments });
-    }
-  }
-  private PairList toEvaluatedPairList(List<ProvidedArgument> arguments) {
-    PairList.Node.Builder builder = PairList.Node.newBuilder();
-    for(ProvidedArgument arg : arguments) {
-      builder.add(arg.getTag(), arg.evaluated());
-    }
-    return builder.build();
+    return true;
   }
 
   private ListVector toEvaluatedList(List<ProvidedArgument> arguments) {
@@ -245,42 +211,25 @@ public class RuntimeInvoker {
     return result.build();
   }
 
-  /**
-   * (RealExp) -> double method(double, double)
-   */
-  private class UnaryPrimitive implements CallStrategy {
-    private Class primitive;
 
-    private UnaryPrimitive(Class primitive) {
-      this.primitive = primitive;
-    }
-
-    @Override
-    public boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments) {
-      return method.argumentListEquals(primitive) &&
-          arguments.size() == 1 &&
-          AtomicAccessors.haveAccessor(arguments.get(0).evaluated(), primitive) &&
-          AtomicBuilders.haveFor(method);
-    }
-
-    @Override
-    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
-      AtomicAccessor domain =  AtomicAccessors.create( arguments.get(0).evaluated(), primitive );
-      AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), domain.length() );
-      boolean allowNA = method.isAnnotatedWith(AllowNA.class);
-
-
-      for (int i = 0; i < domain.length(); i++) {
-        if ( !allowNA && domain.isNA(i) ) {
-          result.setNA(i);
-        } else {
-          result.set(i, method.invoke( domain.get( i )));
-        }
-      }
-
-      return new EvalResult( result.build() );
+  private static BuilderAdapter builderFor(Class type, int length) {
+    if(type == Boolean.TYPE) {
+      return new BooleanBuilder(length);
+    } else if(type == Logical.class) {
+      return new LogicalBuilder(length);
+    } else if(type == Integer.TYPE) {
+      return new IntegerBuilder(length);
+    } else if(type == Double.TYPE) {
+      return new DoubleBuilder(length);
+    } else if(type == String.class) {
+      return new StringAdapter(length);
+    } else if(SEXP.class.isAssignableFrom(type)) {
+      return new ListBuilder(length);
+    } else {
+      throw new UnsupportedOperationException("No Vector.Builder for " + type.getName() );
     }
   }
+
 
   private SEXP[] prepareArguments(PrimitiveMethod method, List<ProvidedArgument> providedArgs) {
     SEXP newArray[] = new SEXP[providedArgs.size()];
@@ -291,62 +240,6 @@ public class RuntimeInvoker {
       newArray[i] = provided.prepare(formal);
     }
     return newArray;
-  }
-
-  /**
-   * Maps a binary primitive function over two vectors.
-   *
-   */
-  private class BinaryPrimitive implements CallStrategy {
-    private Class<Double> primitiveType;
-
-    public BinaryPrimitive(Class type) {
-      primitiveType = type;
-    }
-
-    @Override
-    public boolean accept(PrimitiveMethod method, List<ProvidedArgument> arguments) {
-      return
-          method.argumentListEquals(primitiveType, primitiveType) &&
-              AtomicBuilders.haveFor(method) &&
-              arguments.size() == 2 &&
-              AtomicAccessors.haveAccessor(arguments.get(0).evaluated(), primitiveType) &&
-              AtomicAccessors.haveAccessor(arguments.get(1).evaluated(), primitiveType);
-    }
-
-    @Override
-    public EvalResult apply(PrimitiveMethod method, Context context, Environment rho, List<ProvidedArgument> arguments) {
-      AtomicAccessor<Double> x = AtomicAccessors.create( arguments.get(0).evaluated(), primitiveType );
-      AtomicAccessor<Double> y = AtomicAccessors.create( arguments.get(1).evaluated(), primitiveType );
-      boolean allowNA = method.isAnnotatedWith(AllowNA.class);
-
-      int xLen = x.length();
-      int yLen = y.length();
-      int maxLen = Math.max(xLen, yLen);
-      int minLen = Math.min(xLen, yLen);
-
-      AtomicBuilder result = AtomicBuilders.createFor(method.getReturnType(), maxLen);
-
-      if( minLen > 0 ) {
-
-        if( maxLen % minLen != 0) {
-          throw new EvalException("longer object length is not a multiple of shorter object length");
-        }
-
-        for(int i=0; i!=maxLen; i++) {
-          int xi = i % xLen;
-          int yi = i % yLen;
-
-          if( !allowNA && (x.isNA(xi) || y.isNA(yi))) {
-            result.setNA(i);
-          } else {
-            result.set(i, method.invoke(x.get(xi), y.get(yi)));
-          }
-        }
-      }
-
-      return new EvalResult( result.build() );
-    }
   }
 
   private boolean acceptArguments(List<ProvidedArgument> provided, List<PrimitiveMethod.Argument> formals) {
@@ -467,7 +360,7 @@ public class RuntimeInvoker {
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
       return AtomicAccessors.haveAccessor(source, formal.getClazz()) && (
-          (source.length() == 1 || formal.isAnnotatedWith(Recycle.class)));
+          (source.length() == 1 || formal.isRecycle()));
     }
 
     @Override
@@ -587,4 +480,94 @@ public class RuntimeInvoker {
       return source;
     }
   }
+
+  private static abstract class BuilderAdapter<B extends Vector.Builder, E> {
+    protected final B builder;
+
+    protected BuilderAdapter(B builder) {
+      this.builder = builder;
+    }
+
+    public void setNA(int index) {
+      builder.setNA(index);
+    }
+
+    public abstract void set(int index, E value);
+
+    public SEXP build() {
+      return builder.build();
+    }
+
+    public void copyAttribute(SEXP attributeSource, String name) {
+      builder.setAttribute(name, attributeSource.getAttribute(new SymbolExp(name)));
+    }
+  }
+
+  private static class BooleanBuilder extends BuilderAdapter<LogicalVector.Builder, Boolean> {
+    private BooleanBuilder(int length) {
+      super(new LogicalVector.Builder(length));
+    }
+
+    @Override
+    public void set(int index, Boolean value) {
+      builder.set(index, value);
+    }
+  }
+
+  private static class LogicalBuilder extends BuilderAdapter<LogicalVector.Builder, Logical> {
+    private LogicalBuilder(int length) {
+      super(new LogicalVector.Builder(length));
+    }
+
+    @Override
+    public void set(int index, Logical value) {
+      builder.set(index, value);
+    }
+  }
+
+
+  private static class IntegerBuilder extends BuilderAdapter<IntVector.Builder, Integer> {
+
+    public IntegerBuilder(int length) {
+      super(new IntVector.Builder(length));
+    }
+    @Override
+    public void set(int index, Integer value) {
+      builder.set(index, value);
+    }
+  }
+
+  private static class DoubleBuilder extends BuilderAdapter<DoubleVector.Builder, Double> {
+    public DoubleBuilder(int length) {
+      super(new DoubleVector.Builder(length));
+    }
+
+    @Override
+    public void set(int index, Double value) {
+      builder.set(index, value);
+    }
+  }
+
+  private static class StringAdapter extends BuilderAdapter<StringVector.Builder, String> {
+    public StringAdapter(int length) {
+      super(new StringVector.Builder(length));
+    }
+
+    @Override
+    public void set(int index, String value) {
+      builder.set(index, value);
+    }
+  }
+
+  private static class ListBuilder extends BuilderAdapter<ListVector.Builder, SEXP> {
+    public ListBuilder(int length) {
+      super(new ListVector.Builder(length));
+    }
+
+    @Override
+    public void set(int index, SEXP value) {
+      builder.set(index, value);
+    }
+  }
+
 }

@@ -22,6 +22,7 @@
 package r.lang;
 
 public interface NamedValue {
+  boolean hasName();
   String getName();
   SEXP getValue();
 }

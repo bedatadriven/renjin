@@ -21,14 +21,12 @@
 
 package r.lang.primitive;
 
-import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.AllowNA;
 import r.lang.primitive.annotations.ArgumentList;
+import r.lang.primitive.annotations.NamedFlag;
 import r.lang.primitive.annotations.Primitive;
-
-import java.util.List;
 
 public class Comparison {
 
@@ -165,37 +163,41 @@ public class Comparison {
     return !value;
   }
 
-  public static Logical any(@ArgumentList ListVector arguments) {
-    List<Vector> vectors = Lists.newArrayList();
-    boolean removeNA = false;
+  public static Logical any(@ArgumentList ListVector arguments,
+                            @NamedFlag("na.rm") boolean removeNA) {
 
-    for(NamedValue argument : arguments.namedValues()) {
-      if(argument.getName().equals("na.rm")) {
-        removeNA = !isFalse(argument.getValue());
-      } else if(argument.getValue() instanceof Vector) {
-        vectors.add((Vector) argument.getValue());
-      } else {
-        throw new EvalException("object cannot be coerced to type logical");
-      }
-    }
-
-    boolean nasFound = false;
-
-    for(Vector vector : vectors) {
+    for(SEXP argument : arguments) {
+      Vector vector = (Vector) argument;
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {
-          nasFound = true;
+          if(!removeNA) {
+            return Logical.NA;
+          }
         } else if(vector.getElementAsDouble(i) != 0) {
           return Logical.TRUE;
         }
       }
     }
+    return Logical.FALSE;
+  }
 
-    if(!removeNA && nasFound) {
-      return Logical.NA;
-    } else {
-      return Logical.FALSE;
+
+  public static Logical all(@ArgumentList ListVector arguments,
+                            @NamedFlag("na.rm") boolean removeNA) {
+
+    for(SEXP argument : arguments) {
+      Vector vector = (Vector) argument;
+      for(int i=0;i!=vector.length();++i) {
+        if(vector.isElementNA(i)) {
+          if(!removeNA) {
+            return Logical.NA;
+          }
+        } else if(vector.getElementAsDouble(i) == 0) {
+          return Logical.FALSE;
+        }
+      }
     }
+    return Logical.TRUE;
   }
 
   private static Logical checkedToLogical(SEXP exp, String errorMessage) {
@@ -206,12 +208,5 @@ public class Comparison {
       }
     }
     throw new EvalException(errorMessage);
-  }
-
-  public static boolean isFalse(SEXP exp) {
-    if(exp instanceof AtomicVector && exp.length() > 0) {
-     return ((AtomicVector) exp).getElementAsDouble(0) == 0;
-    }
-    return false;
   }
 }

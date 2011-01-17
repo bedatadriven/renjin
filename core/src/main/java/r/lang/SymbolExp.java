@@ -30,8 +30,8 @@ public class SymbolExp extends AbstractSEXP {
   public static final String  TYPE_NAME = "symbol";
   public static final String IMPLICIT_CLASS = "name";
 
-  public static final SymbolExp UNBOUND_VALUE = createUnbound();
-  public static final SymbolExp MISSING_ARG = new SymbolExp();
+  public static final SymbolExp UNBOUND_VALUE = createSpecial();
+  public static final SymbolExp MISSING_ARG = createSpecial();
   public static final SymbolExp NAMES = new SymbolExp("names");
   public static final SymbolExp DIM = new SymbolExp("dim");
   public static final SymbolExp CLASS = new SymbolExp("class") ;
@@ -40,6 +40,7 @@ public class SymbolExp extends AbstractSEXP {
   public static final SymbolExp SRC_REF = new SymbolExp("srcref");
   public static final SymbolExp SRC_FILE = new SymbolExp("srcfile");
   public static final SymbolExp TEMP_VAL = new SymbolExp("*tmp*");
+  public static final SymbolExp DIMNAMES = new SymbolExp("dimnames");
 
   private String printName;
 
@@ -71,10 +72,19 @@ public class SymbolExp extends AbstractSEXP {
     return printName;
   }
 
-  private static SymbolExp createUnbound() {
+  private static SymbolExp createSpecial() {
     /* R_UnboundValue */
-    SymbolExp instance = new SymbolExp();
-    return instance;
+    return new SymbolExp() {
+      @Override
+      public int hashCode() {
+        return 0;
+      }
+
+      @Override
+      public boolean equals(Object o) {
+        return this == o;
+      }
+    };
   }
 
   @Override

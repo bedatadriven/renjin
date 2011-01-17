@@ -21,6 +21,7 @@
 
 package r.lang.primitive.binding;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -144,7 +145,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
   }
 
   public boolean acceptsArgumentList() {
-    return formals.size() == 1 &&
+    return formals.size() >= 1 &&
            formals.get(0).getClazz() == ListVector.class &&
            formals.get(0).isAnnotatedWith(ArgumentList.class);
   }
@@ -209,7 +210,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
 
 
   public EvalResult invokeWithContextAndWrap(Context context, Environment rho, Object[] formals) {
-    return invokeAndWrap( assembleArgumentListWithContext(context, rho, formals) );
+    return invokeAndWrap(assembleArgumentListWithContext(context, rho, formals));
   }
 
   public Object invokeWithContext(Context context, Environment rho, Object[] formals) {
@@ -306,14 +307,26 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     return method.isAnnotationPresent(AllowNA.class);
   }
 
+  public int getFormalIndexByName(String name) {
+    Preconditions.checkNotNull(name);
+    for(int i=0;i!=formals.size();++i) {
+      if(name.equals(formals.get(i).getName())) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   public class Argument {
     private int index;
     private Class clazz;
     private boolean contextual = false;
     private boolean evaluated = true;
     private boolean symbol;
+    private String name;
     public boolean recycle;
     public boolean atomicType;
+
 
     public Argument(Method method, int index) {
       clazz = method.getParameterTypes()[index];
@@ -325,6 +338,9 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
 
         } else if(annotation instanceof Evaluate) {
           evaluated = ((Evaluate) annotation).value();
+
+        } else if(annotation instanceof NamedFlag) {
+          name = ((NamedFlag) annotation).value();
         }
       }
 
@@ -375,6 +391,14 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
 
     public boolean isRecycle() {
       return recycle;
+    }
+
+    public boolean hasName() {
+      return name != null;
+    }
+
+    public String getName() {
+      return name;
     }
   }
 

@@ -21,48 +21,33 @@
 
 package r.lang.primitive;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.ArgumentList;
+import r.lang.primitive.annotations.NamedFlag;
 
-import java.util.Iterator;
 import java.util.List;
-
-import static com.google.common.base.Predicates.not;
 
 public class Combine {
 
   private static final String RECURSIVE = "recursive";
 
 
-  public static SEXP combine(@ArgumentList ListVector arguments) {
-
-    // parse arguments
-    // we need to look for
-    boolean recursive = false;
-
-    Iterator<NamedValue> recursiveOption = Iterators.filter(arguments.namedValues().iterator(), IS_RECURSIVE);
-    if(recursiveOption.hasNext()) {
-      recursive = recursiveOption.next().getValue().asReal() != 0;
-      if(recursiveOption.hasNext()) {
-        throw new EvalException("repeated formal argument 'recursive'");
-      }
-    }
+  public static SEXP combine(@ArgumentList ListVector arguments,
+                             @NamedFlag("recursive") boolean recursive) {
 
     // Iterate over all the vectors in the argument
     // list to determine which vector type to use
     Inspector inspector = new Inspector(recursive);
-    inspector.acceptAll(Iterables.transform(Iterables.filter(arguments.namedValues(), not(IS_RECURSIVE)), VALUE_OF));
+    inspector.acceptAll(Iterables.transform(arguments.namedValues(), VALUE_OF));
 
     // Build a new vector with all the elements
     return new Combiner(recursive, inspector.getResult())
-        .add(Iterables.filter(arguments.namedValues(), Predicates.not(IS_RECURSIVE)))
+        .add(arguments.namedValues())
         .combine();
   }
 
@@ -233,25 +218,105 @@ public class Combine {
     }
   }
 
-  private static class IsRecursiveArgument implements Predicate<NamedValue> {
-
-    @Override
-    public boolean apply(NamedValue input) {
-      return input.getName().equals(RECURSIVE);
-    }
-  }
-
-  private static final IsRecursiveArgument IS_RECURSIVE = new IsRecursiveArgument();
-
-  private static class ValueOf implements Function<NamedValue, SEXP> {
+  private static final Function<NamedValue,SEXP> VALUE_OF =
+      new Function<NamedValue, SEXP>() {
     @Override
     public SEXP apply(NamedValue input) {
       return input.getValue();
     }
+  };
+
+
+  /**
+   * Transpose an array by permuting its dimensions and optionally resizing it.
+   * @param source the array to be transposed.
+   * @param permutationVector the subscript permutation vector, which must be a permutation of the
+   *      integers 1:n, where {@code n} is the number of dimensions of {@code source}.
+   * @param a flag indicating whether the vector should be resized as well as having its elements reordered
+   */
+  public static SEXP aperm(Vector source, AtomicVector permutationVector, boolean resize) {
+    if(!resize) throw new UnsupportedOperationException("resize=TRUE not yet implemented");
+
+    SEXP dimExp = source.getAttribute(SymbolExp.DIM);
+    EvalException.check(dimExp instanceof IntVector, "invalid first argument, must be an array");
+    int dim[] = toIntArray((IntVector) dimExp);
+
+    int permutation[] = toIntArray(permutationVector);
+    int permutedDims[] = permute(dim, permutation);
+
+    Vector.Builder newVector = source.newBuilder(source.length());
+    int index[] = new int[dim.length];
+    for(int i=0;i!=newVector.length();++i) {
+      vectorIndexToArrayIndex(i, index, dim);
+      index = permute(index, permutation);
+      int newIndex = arrayIndexToVectorIndex(index, permutedDims);
+      newVector.setFrom(newIndex, source, i);
+    }
+
+    newVector.setAttribute(Attributes.DIM, new IntVector(permutedDims));
+
+    for(PairList.Node node : source.getAttributes().nodes()) {
+      if(node.getTag().equals(SymbolExp.DIM)) {
+
+      } else if(node.getTag().equals(SymbolExp.DIMNAMES)) {
+        newVector.setAttribute(node.getName(), permute((Vector)node.getValue(), permutation));
+      } else {
+        newVector.setAttribute(node.getName(), node.getValue());
+      }
+    }
+
+    return newVector.build();
   }
 
-  private static final ValueOf VALUE_OF = new ValueOf();
+  private static Vector permute(Vector vector, int[] permutation) {
+    Vector.Builder permuted = vector.newBuilder(vector.length());
+    for(int i=0;i!=vector.length();++i) {
+      permuted.setFrom(i, vector, permutation[i] - 1);
+    }
+    return permuted.build();
+  }
 
+  private static int[] toIntArray(Vector vector) {
+    int values[] = new int[vector.length()];
+    for(int i=0;i!=values.length;++i) {
+      values[i] = vector.getElementAsInt(i);
+    }
+    return values;
+  }
+
+  private static int[] permute(int values[], int permutation[]) {
+    int copy[] = new int[values.length];
+    for(int i=0;i!=values.length;++i) {
+      copy[i] = values[ permutation[ i ] - 1 ];
+    }
+    return copy;
+  }
+
+
+  @VisibleForTesting
+  static int arrayIndexToVectorIndex(int arrayIndex[], int dim[]) {
+    int vectorIndex = 0;
+    int offset = 1;
+    for(int i=0;i!=dim.length;++i) {
+      vectorIndex += arrayIndex[i] * offset;
+      offset *= dim[i];
+    }
+    return vectorIndex;
+  }
+
+
+  static void vectorIndexToArrayIndex(int vectorIndex, int arrayIndex[], int dim[]) {
+    for(int i=0;i!=dim.length;++i) {
+      arrayIndex[i] = vectorIndex % dim[i];
+      vectorIndex = (vectorIndex - arrayIndex[i]) / dim[i];
+    }
+  }
+
+  static int[] vectorIndexToArrayIndex(int vectorIndex, int dim[]) {
+    int index[] = new int[dim.length];
+    vectorIndexToArrayIndex(vectorIndex, index, dim);
+    return index;
+  }
 
 //  private static SEXP dispatchBindCall(@ArgumentList ListVector arguments) {
 //    /*   The dispatch algorithm is described in the source file (‘.../src/main/bind.c’) as
@@ -385,4 +450,5 @@ public class Combine {
           .build();
     }
   }
+
 }

@@ -21,6 +21,7 @@
 
 package r.lang.primitive.binding;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
@@ -108,7 +109,7 @@ public class RuntimeInvoker {
 
     // do we have a single method that accepts the whole argument list?
     if(overloads.size() == 1 && overloads.get(0).acceptsArgumentList()) {
-      return overloads.get(0).invokeWithContextAndWrap(context, rho, new Object[]{toEvaluatedList(provided)});
+      return overloads.get(0).invokeWithContextAndWrap(context, rho, toEvaluatedList(overloads.get(0), provided));
     }
 
     return matchAndInvoke(context, rho, overloads, provided);
@@ -199,17 +200,37 @@ public class RuntimeInvoker {
     return true;
   }
 
-  private ListVector toEvaluatedList(List<ProvidedArgument> arguments) {
+  private Object[] toEvaluatedList(PrimitiveMethod method, List<ProvidedArgument> arguments) {
+    Object params[] = new Object[method.getFormals().size()];
+    String names[] = new String[method.getFormals().size() - 1];
+
+    // set default values for the NamedFlags
+    for(int i=0;i<names.length;++i) {
+      names[i] = method.getFormals().get(i+1).getName();
+      params[i+1] = false;
+      Preconditions.checkNotNull(names[i], "any formal argument following @ArgumentList must be annotated with @NamedFlag:\n"+ method.toString());
+    }
+
     ListVector.Builder result = ListVector.newBuilder();
     for(ProvidedArgument arg : arguments) {
       if(arg.getTag() == Null.INSTANCE) {
         result.add(arg.evaluated());
       } else {
-        result.add(arg.getTagName(), arg.evaluated());
+        String name = arg.getTagName();
+        // is this a named flag?
+        int index = method.getFormalIndexByName(name);
+        if(index == -1) {
+          result.add(name, arg.evaluated());
+        } else {
+          params[index] = (arg.evaluated().asReal() != 0);
+        }
       }
     }
-    return result.build();
+    params[0] = result.build();
+
+    return params;
   }
+
 
 
   private static BuilderAdapter builderFor(Class type, int length) {
@@ -414,6 +435,10 @@ public class RuntimeInvoker {
     }
   }
 
+  /**
+   * As a special case, double scalars can be passed with as an integer implicitly
+   * when the argument has the meaning of an index
+   */
   private class DoubleToInt implements ArgConverter<DoubleVector, Integer> {
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {

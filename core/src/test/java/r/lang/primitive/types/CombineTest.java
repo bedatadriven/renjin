@@ -127,4 +127,14 @@ public class CombineTest extends EvalTestCase {
 
   }
 
+  @Test
+  public void aperm() {
+    // from docs
+    eval( "x <- 1:24");
+    eval( "dim(x) <- 2:4 ");
+    eval( "xt <- .Internal(aperm(x, c(2,1,3), TRUE)) ");
+
+    assertThat( eval("xt") , equalTo( c_i(1,3,5,2,4,6,7,9,11,8,10,12,13,15,17,14,16,18,19,21,23,20,22,24)));
+  }
+
 }

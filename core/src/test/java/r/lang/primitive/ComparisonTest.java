@@ -285,6 +285,7 @@ public class ComparisonTest extends EvalTestCase {
     assertThat( eval(" any(FALSE, NA) "), equalTo( c(NA)) );
     assertThat( eval(" any(FALSE, NA, na.rm=TRUE) "), equalTo( c(FALSE)) );
     assertThat( eval(" any(TRUE, NA) "), equalTo( c(TRUE)) );
+    assertThat( eval(" any('TRUE') "), equalTo( c(TRUE)));
     assertThat( eval(" any(c(0,0,0,1), list())"), equalTo( c(TRUE)));
   }
 }

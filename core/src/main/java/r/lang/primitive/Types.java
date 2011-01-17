@@ -289,6 +289,27 @@ public class Types {
     return sexp.getAttribute(SymbolExp.DIM);
   }
 
+  @Primitive("dim<-")
+  public static SEXP setDimensions(SEXP exp, AtomicVector vector) {
+    int dim[] = new int[vector.length()];
+    int prod = 1;
+    for(int i=0;i!=vector.length();++i) {
+      dim[i] = vector.getElementAsInt(i);
+      prod *= dim[i];
+    }
+
+    if(prod != exp.length()) {
+      throw new EvalException("dims [product %d] do not match the length of object [%d]", prod, exp.length());
+    }
+
+    return exp.setAttribute(Attributes.DIM, new IntVector(dim));
+  }
+
+  @Primitive("dimnames")
+  public static SEXP getDimensionNames(SEXP exp) {
+    return exp.getAttribute(SymbolExp.DIMNAMES);
+  }
+
   public static PairList attributes(SEXP sexp) {
     return sexp.getAttributes();
   }

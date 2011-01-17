@@ -184,7 +184,7 @@ public class FunctionTable {
 
 /* Logic Related Functions */
 /* these are group generic and so need to eval args */
-      f("all", /*logic3*/ null, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("all", Comparison.class, 1, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("any", Comparison.class, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
 
 
@@ -211,8 +211,8 @@ public class FunctionTable {
       f("unclass", /*unclass*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("names", Types.class,  "getNames", 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("names<-", Types.class, "setNames", 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
-      f("dimnames", /*dimnames*/ null, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
-      f("dimnames<-", /*dimnamesgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
+      f("dimnames", Types.class, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
+      f("dimnames<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
       f("all.names", /*allnames*/ null, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("dim", Types.class, 0, 1, 1, PP_FUNCALL, PREC_FN, 0),
       f("dim<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1),
@@ -458,7 +458,7 @@ public class FunctionTable {
       f("mean", /*summary*/ null, 1, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("min", /*summary*/ null, 2, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("max", /*summary*/ null, 3, 1, -1, PP_FUNCALL, PREC_FN, 0),
-      f("prod", /*summary*/ null, 4, 1, -1, PP_FUNCALL, PREC_FN, 0),
+      f("prod", MathExt.class, 4, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("range", /*range*/ null, 0, 1, -1, PP_FUNCALL, PREC_FN, 0),
       f("cov", /*cov*/ null, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("cor", /*cov*/ null, 1, 11, 4, PP_FUNCALL, PREC_FN, 0),
@@ -646,7 +646,7 @@ public class FunctionTable {
       f("count.fields", /*countfields*/ null, 0, 11, 6, PP_FUNCALL, PREC_FN, 0),
       f("readTableHead", /*readtablehead*/ null, 0, 11, 6, PP_FUNCALL, PREC_FN, 0),
       f("t.default", /*transpose*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
-      f("aperm", /*aperm*/ null, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
+      f("aperm", Combine.class, 0, 11, 3, PP_FUNCALL, PREC_FN, 0),
       f("builtins", /*builtins*/ null, 0, 11, 1, PP_FUNCALL, PREC_FN, 0),
       f("edit", /*edit*/ null, 0, 11, 4, PP_FUNCALL, PREC_FN, 0),
       f("dataentry", /*dataentry*/ null, 0, 11, 2, PP_FUNCALL, PREC_FN, 0),

@@ -45,4 +45,12 @@ public class EvalException extends RuntimeException {
       throw new EvalException(errorMessage, args);
     }
   }
+
+  public static <S extends SEXP> S checkedCast(SEXP argument) {
+    try {
+      return (S)argument;
+    } catch (ClassCastException e) {
+      throw new EvalException("invalid 'type' (%s) of argument", argument.getTypeName());
+    }
+  }
 }

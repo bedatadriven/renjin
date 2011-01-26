@@ -501,10 +501,7 @@ public class Subset {
     private boolean sourceIsArray = false;
 
     private Subscript subscripts[];
-    private int subscriptCount;
 
-
-    private int dimensionCount;
     private int[] resultDim;
     private int resultLength;
 
@@ -532,13 +529,18 @@ public class Subset {
         if(sourceDim.length == 1) {
           sourceIsArray = true;
         }
+        if(arguments.getSubscriptCount() == 1) {
+          sourceDim = new int[] { source.length() };
+        }
       } else {
         throw new AssertionError("DIM attribute must be NULL or an IntVector");
       }
 
-      if( arguments.getSubscriptCount() != dimensionCount) {
+
+      if( arguments.getSubscriptCount()!=1 && arguments.getSubscriptCount() != sourceDim.length) {
         throw new EvalException("incorrect number of dimensions");
       }
+
     }
 
     private void buildSubscripts() {
@@ -595,9 +597,9 @@ public class Subset {
         names = new StringVector.Builder();
       }
 
-      this.resultDim = new int[dimensionCount];
+      this.resultDim = new int[sourceDim.length];
       resultLength = 1;
-      for(int d=0;d!=dimensionCount;++d) {
+      for(int d=0;d!=sourceDim.length;++d) {
         int count = subscripts[d].getCount();
         resultDim[d] = count;
         resultLength *= count;
@@ -608,7 +610,7 @@ public class Subset {
 
       if(resultLength > 0) {
         int count = 0;
-        int[] subscriptIndex = new int[dimensionCount];
+        int[] subscriptIndex = new int[sourceDim.length];
         do {
           int index = computeSourceIndex(subscriptIndex);
           if(!IntVector.isNA(index)) {
@@ -635,8 +637,8 @@ public class Subset {
     }
 
     private int computeSourceIndex(int subscriptIndex[]) {
-      int sourceIndices[] = new int[dimensionCount];
-      for(int i=0;i!=dimensionCount;++i) {
+      int sourceIndices[] = new int[sourceDim.length];
+      for(int i=0;i!=sourceDim.length;++i) {
         sourceIndices[i] = subscripts[i].getAt(subscriptIndex[i]);
       }
 

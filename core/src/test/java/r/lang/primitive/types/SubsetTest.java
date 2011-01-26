@@ -45,6 +45,13 @@ public class SubsetTest extends EvalTestCase {
   }
 
   @Test
+  public void subsetWithLogicals() {
+    eval( " x <- c(91,92,93) ") ;
+    assertThat( eval("x[c(TRUE,FALSE,TRUE)]"),equalTo( c(91,93)));
+  }
+
+
+  @Test
   public void listIndices() {
     eval(" x <- list('a', 3, NULL) ");
 
@@ -131,6 +138,29 @@ public class SubsetTest extends EvalTestCase {
     assertThat( eval(" x[FALSE] "), equalTo( DOUBLE_0 ));
     assertThat( eval(" x[NA] "), equalTo( c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA) ));
     assertThat( eval(" x[c(TRUE,FALSE,TRUE)] "), equalTo( c(21, 23) ));
+    assertThat( eval(" x[c(TRUE,FALSE)] "), equalTo( c(21, 23) ));
+  }
+
+  @Test
+  public void missingSubscript() {
+    eval("x <- 41:43");
+
+    assertThat( eval(" x[] "), equalTo( c_i(41,42,43)));
+  }
+
+  @Test
+  public void namedSubscripts() {
+    eval("x <- c(a=3, b=4) ");
+
+    assertThat( eval(" x['a'] "),equalTo( c(3) ));
+    assertThat( eval(" names(x['a']) "), equalTo( c( "a" )));
+  }
+
+  @Test
+  public void namesPreservedCorrectly() {
+    eval("x <- c(a=3, 99, b=4) ");
+
+    assertThat( eval(" names(x[c(1,2,NA)]) "), equalTo( c( "a", "", StringVector.NA)));
   }
 
   @Test
@@ -232,6 +262,53 @@ public class SubsetTest extends EvalTestCase {
     eval(" x <- list(1,2) ");
     eval(" x[[3]] ");
 
+  }
+
+  @Test
+  public void columnIndex() {
+    eval(" x <- 1:8 ");
+    eval(" dim(x) <- c(4,2) ");
+
+    assertThat( eval("x[,2]"), equalTo( c_i(5,6,7, 8) ));
+    assertThat( eval("dim(x[,2])"), equalTo( NULL ));
+    assertThat( eval("dim(x[,2,drop=TRUE])"), equalTo( NULL ));
+    assertThat( eval("dim(x[,2,drop=FALSE])"), equalTo( c_i(4, 1) ));
+  }
+
+  @Test
+  public void rows() {
+    eval(" x <- 1:8 ");
+    eval(" dim(x) <- c(4,2) ");
+
+    assertThat( eval("x[3:4,]"), equalTo( c_i(3,4,7,8) ));
+    assertThat( eval("dim(x[3:4,])"), equalTo( c_i(2,2) ));
+  }
+
+  @Test
+  public void arrayDimsCorrectlyPreserved() {
+    eval(" x<- 1:8 ");
+    eval(" dim(x) <- 8");
+
+    assertThat( eval(" dim(x[1:4]) "), equalTo( c_i(4) ));
+    assertThat( eval(" dim(x[1]) "), equalTo( NULL ));
+    assertThat( eval(" dim(x[1,drop=FALSE]) "), equalTo( c_i(1) ));
+  }
+
+  @Test
+  public void subscriptsOnNull() {
+    eval(" x <- NULL ");
+
+    assertThat( eval(" x[1] "), equalTo( NULL ));
+    assertThat( eval(" x[c(TRUE,FALSE)] "), equalTo( NULL ));
+    assertThat( eval(" x[c(1,2,3)] "), equalTo( NULL ));
+    assertThat( eval(" x[-1] "), equalTo( NULL ));
+    assertThat( eval(" x[] "), equalTo( NULL ));
+  }
+
+  @Test
+  public void integerIndex() {
+    eval(" x<- FALSE ");
+    assertThat( eval(" x[1L] "), equalTo( c(false)));
   }
 
 }

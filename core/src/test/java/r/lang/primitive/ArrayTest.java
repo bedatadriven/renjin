@@ -22,6 +22,7 @@
 package r.lang.primitive;
 
 import org.junit.Test;
+import r.lang.IndexUtils;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -32,15 +33,15 @@ public class ArrayTest {
   @Test
   public void arrayToVector() {
 
-    assertThat( Combine.arrayIndexToVectorIndex(index(0,1,0), dim(2,3,4)), equalTo(2) );
-    assertThat( Combine.arrayIndexToVectorIndex(index(1,2,2), dim(2,3,4)), equalTo(17) );
-    assertThat( Combine.arrayIndexToVectorIndex(index(6,1), dim(8,2)), equalTo(14) );
+    assertThat( IndexUtils.arrayIndexToVectorIndex(index(0, 1, 0), dim(2, 3, 4)), equalTo(2) );
+    assertThat( IndexUtils.arrayIndexToVectorIndex(index(1, 2, 2), dim(2, 3, 4)), equalTo(17) );
+    assertThat( IndexUtils.arrayIndexToVectorIndex(index(6, 1), dim(8, 2)), equalTo(14) );
 
   }
 
   @Test
   public void vectorToArray() {
-    assertThat( Combine.vectorIndexToArrayIndex(17, dim(2,3,4)), equalTo(index(1,2,2)));
+    assertThat( IndexUtils.vectorIndexToArrayIndex(17, dim(2, 3, 4)), equalTo(index(1,2,2)));
   }
 
   private int[] dim(int... values) {

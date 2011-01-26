@@ -21,7 +21,6 @@
 
 package r.lang.primitive;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -247,9 +246,9 @@ public class Combine {
     Vector.Builder newVector = source.newBuilder(source.length());
     int index[] = new int[dim.length];
     for(int i=0;i!=newVector.length();++i) {
-      vectorIndexToArrayIndex(i, index, dim);
+      IndexUtils.vectorIndexToArrayIndex(i, index, dim);
       index = permute(index, permutation);
-      int newIndex = arrayIndexToVectorIndex(index, permutedDims);
+      int newIndex = IndexUtils.arrayIndexToVectorIndex(index, permutedDims);
       newVector.setFrom(newIndex, source, i);
     }
 
@@ -293,32 +292,7 @@ public class Combine {
   }
 
 
-  @VisibleForTesting
-  static int arrayIndexToVectorIndex(int arrayIndex[], int dim[]) {
-    int vectorIndex = 0;
-    int offset = 1;
-    for(int i=0;i!=dim.length;++i) {
-      vectorIndex += arrayIndex[i] * offset;
-      offset *= dim[i];
-    }
-    return vectorIndex;
-  }
-
-
-  static void vectorIndexToArrayIndex(int vectorIndex, int arrayIndex[], int dim[]) {
-    for(int i=0;i!=dim.length;++i) {
-      arrayIndex[i] = vectorIndex % dim[i];
-      vectorIndex = (vectorIndex - arrayIndex[i]) / dim[i];
-    }
-  }
-
-  static int[] vectorIndexToArrayIndex(int vectorIndex, int dim[]) {
-    int index[] = new int[dim.length];
-    vectorIndexToArrayIndex(vectorIndex, index, dim);
-    return index;
-  }
-
-//  private static SEXP dispatchBindCall(@ArgumentList ListVector arguments) {
+  //  private static SEXP dispatchBindCall(@ArgumentList ListVector arguments) {
 //    /*   The dispatch algorithm is described in the source file (‘.../src/main/bind.c’) as
 //     * For each argument we get the list of possible class memberships from the class attribute.
 //     * We inspect each class in turn to see if there is an applicable method.

@@ -123,11 +123,6 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
-  public Vector.Builder newBuilder(int initialSize) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public boolean isWiderThan(Vector vector) {
     return getVectorType().isWiderThan(vector);
   }
@@ -143,8 +138,22 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
+  public SEXP getAttribute(SymbolExp name) {
+    return Null.INSTANCE;
+  }
+
+  @Override
   public Vector.Builder newCopyBuilder() {
-    throw new UnsupportedOperationException();
+    return NullBuilder.INSTANCE;
+  }
+
+  @Override
+  public Vector.Builder newBuilder(int initialSize) {
+    if(initialSize == 0) {
+      return NullBuilder.INSTANCE;
+    } else {
+      throw new UnsupportedOperationException("Cannot build NULL with non-zero length!");
+    }
   }
 
   @Override

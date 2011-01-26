@@ -326,6 +326,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
     private String name;
     public boolean recycle;
     public boolean atomicType;
+    public boolean defaultValue;
 
 
     public Argument(Method method, int index) {
@@ -341,6 +342,9 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
 
         } else if(annotation instanceof NamedFlag) {
           name = ((NamedFlag) annotation).value();
+
+        } else if(annotation instanceof DefaultValue) {
+          defaultValue = ((DefaultValue) annotation).value();
         }
       }
 
@@ -399,6 +403,10 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
 
     public String getName() {
       return name;
+    }
+
+    public boolean getDefaultValue() {
+      return defaultValue;
     }
   }
 

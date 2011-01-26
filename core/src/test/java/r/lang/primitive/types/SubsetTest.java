@@ -261,7 +261,12 @@ public class SubsetTest extends EvalTestCase {
   public void listIndexOutOfBounds() {
     eval(" x <- list(1,2) ");
     eval(" x[[3]] ");
+  }
 
+  @Test
+  public void indexOnNull() {
+    eval(" x<- NULL ");
+    assertThat( eval("x[[1]]"), equalTo(NULL));
   }
 
   @Test
@@ -309,6 +314,22 @@ public class SubsetTest extends EvalTestCase {
   public void integerIndex() {
     eval(" x<- FALSE ");
     assertThat( eval(" x[1L] "), equalTo( c(false)));
+  }
+
+  @Test
+  public void replaceListItem() {
+    eval(" x<- list(91, 'foo', NULL) ");
+    eval(" x[[3]] <- 41 ");
+
+    assertThat( eval("x"), equalTo( list(91d, "foo", 41d)) );
+  }
+
+  @Test
+  public void replaceVectorItemWithWidening() {
+    eval(" x<- c(91,92) ");
+    eval(" x[[2]] <- 'foo' ");
+
+    assertThat( eval("x"), equalTo( c("91", "foo")) );
   }
 
 }

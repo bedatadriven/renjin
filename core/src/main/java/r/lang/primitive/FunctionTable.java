@@ -132,7 +132,7 @@ public class FunctionTable {
       f("$", Subset.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
       f("@", /*AT*/ null, 0, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0),
       f("[<-", Subset.class, 0, 0, 3, PP_SUBASS, PREC_LEFT, 1),
-      f("[[<-", /*subassign2*/ null, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1),
+      f("[[<-", Subset.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1),
       f("$<-", Subset.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1),
       f("switch", Evaluation.class, 0, 210, -1, PP_FUNCALL, PREC_FN, 0),
       f("browser", /*browser*/ null, 0, 101, 3, PP_FUNCALL, PREC_FN, 0),

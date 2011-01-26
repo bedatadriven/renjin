@@ -206,8 +206,9 @@ public class RuntimeInvoker {
 
     // set default values for the NamedFlags
     for(int i=0;i<names.length;++i) {
-      names[i] = method.getFormals().get(i+1).getName();
-      params[i+1] = false;
+      PrimitiveMethod.Argument formal = method.getFormals().get(i + 1);
+      names[i] = formal.getName();
+      params[i+1] = formal.getDefaultValue();
       Preconditions.checkNotNull(names[i], "any formal argument following @ArgumentList must be annotated with @NamedFlag:\n"+ method.toString());
     }
 
@@ -332,9 +333,13 @@ public class RuntimeInvoker {
 
     private SEXP evaluated() {
       if(evaluated == null ) {
-        evaluated = provided.evaluate(context, rho).getExpression();
-        if(evaluated instanceof Promise) {
-          evaluated = evaluated.evalToExp(context, rho);
+        if(provided == Symbol.MISSING_ARG) {
+          evaluated = Symbol.MISSING_ARG;
+        } else {
+          evaluated = provided.evaluate(context, rho).getExpression();
+          if(evaluated instanceof Promise) {
+            evaluated = evaluated.evalToExp(context, rho);
+          }
         }
       }
       return evaluated;

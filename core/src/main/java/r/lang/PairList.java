@@ -42,7 +42,7 @@ public interface PairList extends SEXP {
   Iterable<Node> nodes();
   Iterable<SEXP> values();
 
-  SEXP findByTag(SymbolExp symbol);
+  SEXP findByTag(Symbol symbol);
 
   public class Node extends AbstractSEXP implements Recursive, PairList, NamedValue {
 
@@ -311,7 +311,7 @@ public interface PairList extends SEXP {
       return new Builder();
     }
 
-    public static Builder buildList(SymbolExp tag, SEXP value) {
+    public static Builder buildList(Symbol tag, SEXP value) {
       return new Builder().add(tag, value);
     }
 
@@ -326,7 +326,7 @@ public interface PairList extends SEXP {
     }
 
     @Override
-    public SEXP findByTag(SymbolExp symbol) {
+    public SEXP findByTag(Symbol symbol) {
       for(Node node : nodes()) {
         if(node.hasTag() && node.getTag().equals(symbol)) {
           return node.getValue();
@@ -377,7 +377,7 @@ public interface PairList extends SEXP {
     public Builder add(String name, SEXP value) {
       SEXP tag = Null.INSTANCE;
       if(!name.isEmpty()) {
-        tag = new SymbolExp(name);
+        tag = new Symbol(name);
       }
       return add(tag, value);
     }
@@ -413,8 +413,8 @@ public interface PairList extends SEXP {
       return new Predicate<Node>() {
         @Override
         public boolean apply(Node input) {
-          if(input.getRawTag() instanceof SymbolExp) {
-            return ((SymbolExp) input.getRawTag()).getPrintName().equals(name);
+          if(input.getRawTag() instanceof Symbol) {
+            return ((Symbol) input.getRawTag()).getPrintName().equals(name);
           } else {
             return false;
           }
@@ -423,11 +423,11 @@ public interface PairList extends SEXP {
     }
 
     public static Predicate<Node> matches(SEXP tag) {
-      assert tag instanceof SymbolExp;
-      return matches( ((SymbolExp) tag).getPrintName() );
+      assert tag instanceof Symbol;
+      return matches( ((Symbol) tag).getPrintName() );
     }
 
-    public static Predicate<Node> startsWith(final SymbolExp name) {
+    public static Predicate<Node> startsWith(final Symbol name) {
       return new Predicate<Node>() {
         @Override
         public boolean apply(Node input) {

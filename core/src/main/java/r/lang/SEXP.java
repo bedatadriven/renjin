@@ -48,7 +48,7 @@ public interface SEXP {
    */
   SEXP getRawTag();
 
-  SymbolExp getTag();
+  Symbol getTag();
 
   boolean hasTag();
 
@@ -121,7 +121,7 @@ public interface SEXP {
    */
   int getIndexByName(String name);
 
-  SEXP getAttribute(SymbolExp name);
+  SEXP getAttribute(Symbol name);
 
   SEXP setAttribute(String attributeName, SEXP value);
 

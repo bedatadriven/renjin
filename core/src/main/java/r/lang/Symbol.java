@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -24,30 +24,30 @@ package r.lang;
 import com.google.common.base.Preconditions;
 import r.lang.exception.EvalException;
 
-public class SymbolExp extends AbstractSEXP {
+public class Symbol extends AbstractSEXP {
                             
   public static final int TYPE_CODE = 1;
   public static final String  TYPE_NAME = "symbol";
   public static final String IMPLICIT_CLASS = "name";
 
-  public static final SymbolExp UNBOUND_VALUE = createSpecial();
-  public static final SymbolExp MISSING_ARG = createSpecial();
-  public static final SymbolExp NAMES = new SymbolExp("names");
-  public static final SymbolExp DIM = new SymbolExp("dim");
-  public static final SymbolExp CLASS = new SymbolExp("class") ;
-  public static final SymbolExp STDOUT = new SymbolExp("stdout");
-  public static final SymbolExp ELLIPSES = new SymbolExp("...");
-  public static final SymbolExp SRC_REF = new SymbolExp("srcref");
-  public static final SymbolExp SRC_FILE = new SymbolExp("srcfile");
-  public static final SymbolExp TEMP_VAL = new SymbolExp("*tmp*");
-  public static final SymbolExp DIMNAMES = new SymbolExp("dimnames");
+  public static final Symbol UNBOUND_VALUE = createSpecial();
+  public static final Symbol MISSING_ARG = createSpecial();
+  public static final Symbol NAMES = new Symbol("names");
+  public static final Symbol DIM = new Symbol("dim");
+  public static final Symbol CLASS = new Symbol("class") ;
+  public static final Symbol STDOUT = new Symbol("stdout");
+  public static final Symbol ELLIPSES = new Symbol("...");
+  public static final Symbol SRC_REF = new Symbol("srcref");
+  public static final Symbol SRC_FILE = new Symbol("srcfile");
+  public static final Symbol TEMP_VAL = new Symbol("*tmp*");
+  public static final Symbol DIMNAMES = new Symbol("dimnames");
 
   private String printName;
 
-  private SymbolExp() {
+  private Symbol() {
   }
 
-  public SymbolExp(String printName) {
+  public Symbol(String printName) {
     Preconditions.checkNotNull(printName);
 
     this.printName = printName;
@@ -72,9 +72,9 @@ public class SymbolExp extends AbstractSEXP {
     return printName;
   }
 
-  private static SymbolExp createSpecial() {
+  private static Symbol createSpecial() {
     /* R_UnboundValue */
-    return new SymbolExp() {
+    return new Symbol() {
       @Override
       public int hashCode() {
         return 0;
@@ -90,7 +90,7 @@ public class SymbolExp extends AbstractSEXP {
   @Override
   public EvalResult evaluate(Context context, Environment rho) {
     SEXP value = rho.findVariable(this);
-    if(value == SymbolExp.UNBOUND_VALUE) {
+    if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", printName));
     }
     if(value instanceof Promise) {
@@ -110,7 +110,7 @@ public class SymbolExp extends AbstractSEXP {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    SymbolExp symbolExp = (SymbolExp) o;
+    Symbol symbolExp = (Symbol) o;
 
     if (!printName.equals(symbolExp.printName)) return false;
 

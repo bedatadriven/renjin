@@ -184,7 +184,7 @@ public class Closure extends AbstractSEXP implements Function {
 
     List<PairList.Node> unmatchedActuals = Lists.newArrayList();
     for(PairList.Node argNode : actuals.nodes()) {
-      if(SymbolExp.ELLIPSES.equals(argNode.getValue())) {
+      if(Symbol.ELLIPSES.equals(argNode.getValue())) {
         DotExp dotExp = (DotExp) argNode.getValue().evalToExp(context, rho);
         for(PairList.Node dotArg : dotExp.getPromises().nodes()) {
           unmatchedActuals.add(dotArg);
@@ -200,7 +200,7 @@ public class Closure extends AbstractSEXP implements Function {
     for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
       PairList.Node formal = formalIt.next();
       if(formal.hasTag()) {
-        SymbolExp name = (SymbolExp) formal.getTag();
+        Symbol name = (Symbol) formal.getTag();
         Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
 
         if(matches.size() == 1) {
@@ -242,7 +242,7 @@ public class Closure extends AbstractSEXP implements Function {
     PeekingIterator<PairList.Node> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
     while( formalIt.hasNext()) {
       PairList.Node formal = formalIt.next();
-      if(SymbolExp.ELLIPSES.equals(formal.getTag())) {
+      if(Symbol.ELLIPSES.equals(formal.getTag())) {
         PairList.Node.Builder promises = PairList.Node.newBuilder();
         while(actualIt.hasNext()) {
           PairList.Node actual = actualIt.next();
@@ -253,8 +253,8 @@ public class Closure extends AbstractSEXP implements Function {
       } else if( hasNextUnTagged(actualIt) ) {
         innerEnv.setVariable(formal.getTag(), new Promise(rho, nextUnTagged(actualIt).getValue()) );
 
-      } else if( formal.getValue() == SymbolExp.MISSING_ARG ) {
-        innerEnv.setVariable(formal.getTag(), SymbolExp.MISSING_ARG);
+      } else if( formal.getValue() == Symbol.MISSING_ARG ) {
+        innerEnv.setVariable(formal.getTag(), Symbol.MISSING_ARG);
 
       } else {
         innerEnv.setVariable(formal.getTag(), new Promise(innerEnv, formal.getValue())); // default

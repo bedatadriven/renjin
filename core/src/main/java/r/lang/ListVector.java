@@ -103,7 +103,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
   }
 
   public int indexOfName(String name) {
-    SEXP names = attributes.findByTag(SymbolExp.NAMES);
+    SEXP names = attributes.findByTag(Symbol.NAMES);
     if(names instanceof StringVector) {
       for(int i=0;i!=names.length();++i) {
         if(((StringVector) names).getElement(i).equals(name)) {
@@ -311,7 +311,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
     private Builder(ListVector toClone) {
       Iterables.addAll(values, toClone);
       copyAttributesFrom(toClone);
-      SEXP names = toClone.getAttribute(SymbolExp.NAMES);
+      SEXP names = toClone.getAttribute(Symbol.NAMES);
       if(names instanceof StringVector) {
         Iterables.addAll(this.names, (StringVector)names);
         haveNames = true;
@@ -342,7 +342,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
       return add(name, builder.build());
     }
 
-    public Builder add(SymbolExp name, SEXP value) {
+    public Builder add(Symbol name, SEXP value) {
       return add(name.getPrintName(), value);
     }
 
@@ -405,7 +405,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
 
     public ListVector build() {
       if(haveNames) {
-        setAttribute(SymbolExp.NAMES, new StringVector(names));
+        setAttribute(Symbol.NAMES, new StringVector(names));
       }
 
       return new ListVector(values, buildAttributes());

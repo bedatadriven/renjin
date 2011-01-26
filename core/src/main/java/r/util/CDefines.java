@@ -34,8 +34,8 @@ public class CDefines {
   }
 
   public static final Null R_NilValue = Null.INSTANCE;
-  public static final SymbolExp R_MissingArg = SymbolExp.MISSING_ARG;
-  public static final SymbolExp R_UnboundValue = SymbolExp.UNBOUND_VALUE;
+  public static final Symbol R_MissingArg = Symbol.MISSING_ARG;
+  public static final Symbol R_UnboundValue = Symbol.UNBOUND_VALUE;
 
   public static final Object NULL = null;
 
@@ -54,7 +54,7 @@ public class CDefines {
   }
 
   public static CHARSEXP PRINTNAME(SEXP s) {
-    return new CHARSEXP(((SymbolExp) s).getPrintName());
+    return new CHARSEXP(((Symbol) s).getPrintName());
   }
 
 
@@ -330,7 +330,7 @@ public class CDefines {
   }
 
   public static boolean isSymbol(SEXP s) {
-    return s instanceof SymbolExp;
+    return s instanceof Symbol;
   }
 
   public static boolean isLogical(SEXP s) {

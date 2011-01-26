@@ -253,7 +253,7 @@ public class SubsetTest extends EvalTestCase {
         .add(symbol("aardvark"), c(3))
         .build();
 
-    SEXP result = Subset.getElementByName(list, new SymbolExp("all"));
+    SEXP result = Subset.getElementByName(list, new Symbol("all"));
     assertThat(result, equalTo((SEXP)c(1)));
   }
 

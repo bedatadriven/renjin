@@ -67,7 +67,7 @@ public class Types {
   }
 
   public static boolean isSymbol(SEXP exp) {
-    return exp instanceof SymbolExp;
+    return exp instanceof Symbol;
   }
 
   public static boolean isEnvironment(SEXP exp) {
@@ -105,7 +105,7 @@ public class Types {
   public static boolean isVector(SEXP exp, String mode) {
     // first check for any attribute besides names
     for(PairList.Node node : exp.getAttributes().nodes()) {
-      if(!node.getTag().equals(SymbolExp.NAMES)) {
+      if(!node.getTag().equals(Symbol.NAMES)) {
         return false;
       }
     }
@@ -132,7 +132,7 @@ public class Types {
 
   @Primitive("is.object")
   public static boolean isObject(SEXP exp) {
-    return exp.getAttribute(SymbolExp.CLASS) != Null.INSTANCE;
+    return exp.getAttribute(Symbol.CLASS) != Null.INSTANCE;
   }
 
   public static boolean isCall(SEXP exp) {
@@ -140,7 +140,7 @@ public class Types {
   }
 
   public static boolean isLanguage(SEXP exp) {
-    return exp instanceof SymbolExp ||
+    return exp instanceof Symbol ||
             exp instanceof FunctionCall ||
             exp instanceof ExpressionVector;
 
@@ -159,8 +159,8 @@ public class Types {
     for(int i=0;i!=list.length();++i) {
       result.set(i, list.isElementNA(i));
     }
-    result.setAttribute(SymbolExp.DIM, list.getAttribute(SymbolExp.DIM));
-    result.setAttribute(SymbolExp.NAMES, list.getAttribute(SymbolExp.NAMES));
+    result.setAttribute(Symbol.DIM, list.getAttribute(Symbol.DIM));
+    result.setAttribute(Symbol.NAMES, list.getAttribute(Symbol.NAMES));
 
     return result.build();
   }
@@ -181,7 +181,7 @@ public class Types {
     return (StringVector) convertVector(new StringVector.Builder(), source);
   }
 
-  public static StringVector asCharacter(SymbolExp symbol) {
+  public static StringVector asCharacter(Symbol symbol) {
     return new StringVector( symbol.getPrintName() );
   }
 
@@ -269,7 +269,7 @@ public class Types {
 
   public static StringVector ls(Environment environment, boolean allNames) {
     StringVector.Builder names = new StringVector.Builder();
-    for(SymbolExp name : environment.getSymbolNames()) {
+    for(Symbol name : environment.getSymbolNames()) {
       if(allNames || ! name.getPrintName().startsWith(".")) {
         names.add(name.getPrintName());
       }
@@ -286,7 +286,7 @@ public class Types {
 
   @Primitive("dim")
   public static SEXP getDimensions(SEXP sexp) {
-    return sexp.getAttribute(SymbolExp.DIM);
+    return sexp.getAttribute(Symbol.DIM);
   }
 
   @Primitive("dim<-")
@@ -307,7 +307,7 @@ public class Types {
 
   @Primitive("dimnames")
   public static SEXP getDimensionNames(SEXP exp) {
-    return exp.getAttribute(SymbolExp.DIMNAMES);
+    return exp.getAttribute(Symbol.DIMNAMES);
   }
 
   public static PairList attributes(SEXP sexp) {
@@ -368,12 +368,12 @@ public class Types {
   }
 
   public static boolean exists(String x, Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(new SymbolExp(x), modePredicate(mode), inherits)
-        != SymbolExp.UNBOUND_VALUE;
+    return environment.findVariable(new Symbol(x), modePredicate(mode), inherits)
+        != Symbol.UNBOUND_VALUE;
   }
 
   public static SEXP get(String x, Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(new SymbolExp(x), modePredicate(mode), inherits);
+    return environment.findVariable(new Symbol(x), modePredicate(mode), inherits);
   }
 
   public static int length(SEXP exp) {
@@ -444,7 +444,7 @@ public class Types {
     if(!exp.hasAttributes()) {
       return Null.INSTANCE;
     }
-    return exp.getAttribute(SymbolExp.CLASS);
+    return exp.getAttribute(Symbol.CLASS);
   }
 
   public static boolean inherits(SEXP exp, StringVector what) {
@@ -508,7 +508,7 @@ public class Types {
     // new environment
     if(what instanceof Environment) {
       Environment source = (Environment) what;
-      for(SymbolExp symbol : source.getSymbolNames()) {
+      for(Symbol symbol : source.getSymbolNames()) {
         newEnv.setVariable(symbol, source.getVariable(symbol));
       }
     }

@@ -76,8 +76,8 @@ abstract class AbstractSEXP implements SEXP {
   }
 
   @Override
-  public final SymbolExp getTag() {
-    return (SymbolExp)tag;
+  public final Symbol getTag() {
+    return (Symbol)tag;
   }
 
   @Override
@@ -143,7 +143,7 @@ abstract class AbstractSEXP implements SEXP {
    */
   @Override
   public StringVector getClassAttribute() {
-    SEXP classAttribute = attributes.findByTag(SymbolExp.CLASS);
+    SEXP classAttribute = attributes.findByTag(Symbol.CLASS);
     if(classAttribute instanceof StringVector) {
       return (StringVector) classAttribute;
     }
@@ -177,12 +177,12 @@ abstract class AbstractSEXP implements SEXP {
 
   @Override
   public final SEXP getNames() {
-    return attributes.findByTag(SymbolExp.NAMES);
+    return attributes.findByTag(Symbol.NAMES);
   }
 
   @Override
   public String getName(int index) {
-    SEXP names = attributes.findByTag(SymbolExp.NAMES);
+    SEXP names = attributes.findByTag(Symbol.NAMES);
     if(names instanceof StringVector) {
       return ((StringVector) names).getElement(index);
     }
@@ -200,7 +200,7 @@ abstract class AbstractSEXP implements SEXP {
    */
   @Override
   public final int getIndexByName(String name) {
-    SEXP namesExp = attributes.findByTag(SymbolExp.NAMES);
+    SEXP namesExp = attributes.findByTag(Symbol.NAMES);
     if(namesExp instanceof StringVector) {
       StringVector names = (StringVector) namesExp;
       for(int i=0;i!=names.length();++i) {
@@ -213,7 +213,7 @@ abstract class AbstractSEXP implements SEXP {
   }
 
   @Override
-  public SEXP getAttribute(SymbolExp name) {
+  public SEXP getAttribute(Symbol name) {
     if(hasAttributes()) {
       return attributes.findByTag(name);
     }
@@ -223,7 +223,7 @@ abstract class AbstractSEXP implements SEXP {
   @Override
   public SEXP setAttribute(String attributeName, SEXP value) {
     return cloneWithNewAttributes(
-        replaceAttribute(new SymbolExp(attributeName),
+        replaceAttribute(new Symbol(attributeName),
             checkAttribute(attributeName, value)));
   }
 
@@ -234,20 +234,20 @@ abstract class AbstractSEXP implements SEXP {
       String name = attributes.getName(i);
       SEXP value = checkAttribute(name, attributes.getElementAsSEXP(i));
 
-      list.add(new SymbolExp(name), value);
+      list.add(new Symbol(name), value);
     }
     return cloneWithNewAttributes(list.build());
   }
 
   @Override
   public final SEXP setClass(StringVector classNames) {
-    return cloneWithNewAttributes(replaceAttribute(SymbolExp.CLASS,
+    return cloneWithNewAttributes(replaceAttribute(Symbol.CLASS,
         checkClassAttributes(classNames)));
   }
 
   @Override
   public final SEXP setNames(StringVector names) {
-    return cloneWithNewAttributes(replaceAttribute(SymbolExp.NAMES,
+    return cloneWithNewAttributes(replaceAttribute(Symbol.NAMES,
         checkNamesAttributes(names)));
   }
 
@@ -274,7 +274,7 @@ abstract class AbstractSEXP implements SEXP {
     return StringVector.coerceFrom(classNames);
   }
 
-  private PairList replaceAttribute(SymbolExp attributeName, SEXP newValue) {
+  private PairList replaceAttribute(Symbol attributeName, SEXP newValue) {
     PairList.Node.Builder builder = PairList.Node.buildList(attributeName, newValue);
     for(PairList.Node node : attributes.nodes()) {
       if(!node.getTag().equals(attributeName)) {

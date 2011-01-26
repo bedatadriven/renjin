@@ -111,33 +111,33 @@ public class Environment extends AbstractSEXP implements Recursive {
   }
 
   public interface Frame {
-    Set<SymbolExp> getSymbols();
-    SEXP getVariable(SymbolExp name);
-    SEXP getInternal(SymbolExp name);
-    void setVariable(SymbolExp name, SEXP value);
+    Set<Symbol> getSymbols();
+    SEXP getVariable(Symbol name);
+    SEXP getInternal(Symbol name);
+    void setVariable(Symbol name, SEXP value);
   }
 
   public static class HashFrame implements Frame{
-    private HashMap<SymbolExp, SEXP> values = new HashMap<SymbolExp, SEXP>();
+    private HashMap<Symbol, SEXP> values = new HashMap<Symbol, SEXP>();
 
     @Override
-    public Set<SymbolExp> getSymbols() {
+    public Set<Symbol> getSymbols() {
       return values.keySet();
     }
 
     @Override
-    public SEXP getVariable(SymbolExp name) {
+    public SEXP getVariable(Symbol name) {
       SEXP value = values.get(name);
-      return value == null ? SymbolExp.UNBOUND_VALUE : value;
+      return value == null ? Symbol.UNBOUND_VALUE : value;
     }
 
     @Override
-    public SEXP getInternal(SymbolExp name) {
-      return SymbolExp.UNBOUND_VALUE;
+    public SEXP getInternal(Symbol name) {
+      return Symbol.UNBOUND_VALUE;
     }
 
     @Override
-    public void setVariable(SymbolExp name, SEXP value) {
+    public void setVariable(Symbol name, SEXP value) {
       values.put(name, value);
     }
   }
@@ -174,11 +174,11 @@ public class Environment extends AbstractSEXP implements Recursive {
     return TYPE_NAME;
   }
 
-  public Collection<SymbolExp> getSymbolNames() {
+  public Collection<Symbol> getSymbolNames() {
     return frame.getSymbols();
   }
 
-  public void setVariable(SymbolExp symbol, SEXP value) {
+  public void setVariable(Symbol symbol, SEXP value) {
     frame.setVariable(symbol, value);
   }
 
@@ -190,21 +190,21 @@ public class Environment extends AbstractSEXP implements Recursive {
    * @param inherits if {@code true}, enclosing frames are searched
    * @return
    */
-  public SEXP findVariable(SymbolExp symbol, Predicate<SEXP> predicate, boolean inherits) {
+  public SEXP findVariable(Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
     SEXP value = frame.getVariable(symbol);
-    if(value != SymbolExp.UNBOUND_VALUE && predicate.apply(value)) {
+    if(value != Symbol.UNBOUND_VALUE && predicate.apply(value)) {
       return value;
     }
     return parent.findVariable(symbol, predicate, inherits);
   }
 
-  public final SEXP findVariable(SymbolExp symbol) {
+  public final SEXP findVariable(Symbol symbol) {
     return findVariable(symbol, Predicates.<SEXP>alwaysTrue(), true);
   }
 
-  public SEXP findInternal(SymbolExp symbol) {
+  public SEXP findInternal(Symbol symbol) {
     SEXP value = frame.getInternal(symbol);
-    if(value != SymbolExp.UNBOUND_VALUE) {
+    if(value != Symbol.UNBOUND_VALUE) {
       return value;
     }
     return parent.findInternal(symbol);
@@ -224,16 +224,16 @@ public class Environment extends AbstractSEXP implements Recursive {
     };
   }
 
-  public SEXP getVariable(SymbolExp symbol) {
+  public SEXP getVariable(Symbol symbol) {
     return frame.getVariable(symbol);
   }
 
   public SEXP getVariable(String symbolName) {
-    return getVariable(new SymbolExp(symbolName));
+    return getVariable(new Symbol(symbolName));
   }
 
-  public boolean hasVariable(SymbolExp symbol) {
-    return frame.getVariable(symbol) != SymbolExp.UNBOUND_VALUE;
+  public boolean hasVariable(Symbol symbol) {
+    return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE;
   }
   
   private static class EnvIterator extends UnmodifiableIterator<Environment> {
@@ -267,18 +267,18 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
 
     @Override
-    public SEXP findVariable(SymbolExp symbol, Predicate<SEXP> predicate, boolean inherits) {
-      return SymbolExp.UNBOUND_VALUE;
+    public SEXP findVariable(Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
+      return Symbol.UNBOUND_VALUE;
     }
 
     @Override
-    public SEXP getVariable(SymbolExp symbol) {
-      return SymbolExp.UNBOUND_VALUE;
+    public SEXP getVariable(Symbol symbol) {
+      return Symbol.UNBOUND_VALUE;
     }
 
     @Override
-    public SEXP findInternal(SymbolExp symbol) {
-      return SymbolExp.UNBOUND_VALUE;
+    public SEXP findInternal(Symbol symbol) {
+      return Symbol.UNBOUND_VALUE;
     }
 
     @Override

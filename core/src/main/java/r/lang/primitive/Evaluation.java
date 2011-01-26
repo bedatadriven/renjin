@@ -75,7 +75,7 @@ public class Evaluation {
    */
   public static EvalResult assign(String name, SEXP value, Environment environ, boolean inherits) {
 
-    SymbolExp symbol = new SymbolExp(name);
+    Symbol symbol = new Symbol(name);
     if(!inherits) {
       environ.setVariable(symbol, value);
     } else {
@@ -116,8 +116,8 @@ public class Evaluation {
 
     while(lhs instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) lhs;
-      SymbolExp getter = (SymbolExp) call.getFunction();
-      SymbolExp setter = new SymbolExp(getter.getPrintName() + "<-");
+      Symbol getter = (Symbol) call.getFunction();
+      Symbol setter = new Symbol(getter.getPrintName() + "<-");
 
       rhs = new FunctionCall(setter,
           PairList.Node.newBuilder()
@@ -128,11 +128,11 @@ public class Evaluation {
       lhs = call.getArgument(0);
     }
 
-    SymbolExp target;
-    if( lhs instanceof SymbolExp ) {
-      target = (SymbolExp) lhs;
+    Symbol target;
+    if( lhs instanceof Symbol) {
+      target = (Symbol) lhs;
     } else if(lhs instanceof StringVector) {
-      target = new SymbolExp(((StringVector) lhs).getElement(0));
+      target = new Symbol(((StringVector) lhs).getElement(0));
     } else {
       throw new EvalException("cannot assign to value of type " + lhs.getTypeName());
     }
@@ -145,7 +145,7 @@ public class Evaluation {
 
   @Primitive("<<-")
   public static EvalResult reassignLeft(@Current Context context, @Current Environment rho,
-                                        @Evaluate(false) SymbolExp lhs, SEXP rhs)  {
+                                        @Evaluate(false) Symbol lhs, SEXP rhs)  {
 
     for(Environment env : rho.selfAndParents()) {
       if(env.hasVariable(lhs))  {
@@ -180,7 +180,7 @@ public class Evaluation {
   @Primitive("for")
   public static void forLoop(Context context, Environment rho, FunctionCall call) {
     PairList args = call.getArguments();
-    SymbolExp symbol = (SymbolExp) args.getElementAsSEXP(0);
+    Symbol symbol = (Symbol) args.getElementAsSEXP(0);
     Vector elements = (Vector) args.getElementAsSEXP(1).evalToExp(context, rho);
     SEXP statement = args.getElementAsSEXP(2);
 
@@ -207,7 +207,7 @@ public class Evaluation {
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
-      FunctionCall getElementCall = FunctionCall.newCall(new SymbolExp("[["), (SEXP)vector, new IntVector(i+1));
+      FunctionCall getElementCall = FunctionCall.newCall(new Symbol("[["), (SEXP)vector, new IntVector(i+1));
       FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall, remainingArguments));
       builder.add( applyFunctionCall.evalToExp(context, rho) );
     }
@@ -309,7 +309,7 @@ public class Evaluation {
       throw new EvalException("invalid .Internal() argument");
     }
     FunctionCall internalCall = (FunctionCall) arg;
-    SymbolExp internalName = (SymbolExp)internalCall.getFunction();
+    Symbol internalName = (Symbol)internalCall.getFunction();
     SEXP function = rho.findInternal(internalName);
 
     if(function == Null.INSTANCE) {
@@ -348,7 +348,7 @@ public class Evaluation {
 
   @Primitive("do.call")
   public static EvalResult doCall(@Current Context context, @Current Environment rho, String what, ListVector arguments, Environment environment) {
-    SEXP function = environment.findVariable(new SymbolExp(what));
+    SEXP function = environment.findVariable(new Symbol(what));
     if(function instanceof Promise) {
       function = ((Promise) function).force(context).getExpression();
     }
@@ -426,7 +426,7 @@ public class Evaluation {
     }
 
     @Override
-    public void visit(SymbolExp symbolExp) {
+    public void visit(Symbol symbolExp) {
       if(environment.hasVariable(symbolExp)) {
         result = environment.getVariable(symbolExp);
         if(result instanceof Promise) {
@@ -466,13 +466,13 @@ public class Evaluation {
     return logical == Logical.TRUE;
   }
 
-  public static boolean missing(@Current Environment rho, @Evaluate(false) SymbolExp symbol) {
+  public static boolean missing(@Current Environment rho, @Evaluate(false) Symbol symbol) {
     SEXP value = rho.findVariable(symbol);
-    if(value == SymbolExp.UNBOUND_VALUE) {
+    if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("'missing' can only be used for arguments");
 
     } else {
-      return value == SymbolExp.MISSING_ARG;
+      return value == Symbol.MISSING_ARG;
     }
   }
 
@@ -511,8 +511,8 @@ public class Evaluation {
 
     StringVector classes = object.getClassAttribute();
     for(String className : Iterables.concat(classes, Arrays.asList("default"))) {
-      SEXP function = rho.findVariable(new SymbolExp(genericName + "." + className));
-      if(function != SymbolExp.UNBOUND_VALUE) {
+      SEXP function = rho.findVariable(new Symbol(genericName + "." + className));
+      if(function != Symbol.UNBOUND_VALUE) {
         FunctionCall newCall = new FunctionCall(function, context.getArguments());
         EvalResult result = newCall.evaluate(context.getParent(), context.getParent().getEnvironment());
         throw new ReturnException(context.getEnvironment(), result.getExpression());

@@ -307,8 +307,8 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
 
     if(exp instanceof Vector) {
       return fromVector((Vector) exp);
-    } else if(exp instanceof SymbolExp) {
-      return new StringVector( ((SymbolExp)exp).getPrintName() );
+    } else if(exp instanceof Symbol) {
+      return new StringVector( ((Symbol)exp).getPrintName() );
     }
     throw new EvalException("cannot coerce type '%s' to vector of type 'character'", exp.getTypeName());
   }

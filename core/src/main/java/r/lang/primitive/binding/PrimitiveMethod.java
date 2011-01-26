@@ -344,7 +344,7 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
         }
       }
 
-      symbol = (clazz == SymbolExp.class);
+      symbol = (clazz == Symbol.class);
       atomicType = isAtomic(clazz);
     }
 

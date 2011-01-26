@@ -40,9 +40,9 @@ public class FunctionCallException extends RuntimeException {
     message.append(" : ")
            .append(e.getMessage());
 
-    SEXP sexp = call.getAttribute(SymbolExp.SRC_REF);
+    SEXP sexp = call.getAttribute(Symbol.SRC_REF);
     if(sexp instanceof IntVector) {
-      SEXP srcfile = sexp.getAttribute(SymbolExp.SRC_FILE);
+      SEXP srcfile = sexp.getAttribute(Symbol.SRC_FILE);
       message.append(" (").append(srcfile).append(": ").append(((IntVector) sexp).getElementAsInt(0)).append(")");
     }
     return message.toString();

@@ -35,7 +35,7 @@ import java.util.List;
 public class Subset {
 
   @Primitive("$")
-  public static SEXP getElementByName(PairList list, @Evaluate(false) SymbolExp symbol) {
+  public static SEXP getElementByName(PairList list, @Evaluate(false) Symbol symbol) {
     SEXP match = null;
     int matchCount = 0;
 
@@ -51,16 +51,16 @@ public class Subset {
   }
 
   @Primitive("$")
-  public static SEXP getElementByName(Environment env, @Evaluate(false) SymbolExp symbol) {
+  public static SEXP getElementByName(Environment env, @Evaluate(false) Symbol symbol) {
     SEXP value = env.getVariable(symbol);
-    if(value == SymbolExp.UNBOUND_VALUE) {
+    if(value == Symbol.UNBOUND_VALUE) {
       return Null.INSTANCE;
     }
     return value;
   }
 
   @Primitive("$")
-  public static SEXP getElementByName(ListVector list, @Evaluate(false) SymbolExp name) {
+  public static SEXP getElementByName(ListVector list, @Evaluate(false) Symbol name) {
     SEXP match = null;
     int matchCount = 0;
 
@@ -74,7 +74,7 @@ public class Subset {
   }
 
   @Primitive("$<-")
-  public static SEXP setElementByName(ListVector list, @Evaluate(false) SymbolExp name, SEXP value) {
+  public static SEXP setElementByName(ListVector list, @Evaluate(false) Symbol name, SEXP value) {
     ListVector.Builder result = ListVector.buildFromClone(list);
 
     int index = list.getIndexByName(name.getPrintName());
@@ -460,7 +460,7 @@ public class Subset {
           drop = evaluateToBoolean(context, rho, node);
 
         } else {
-          if(node.getValue() == SymbolExp.MISSING_ARG) {
+          if(node.getValue() == Symbol.MISSING_ARG) {
             subscripts.add(node.getValue());
           } else {
             subscripts.add(node.getValue().evalToExp(context, rho));
@@ -521,7 +521,7 @@ public class Subset {
 
     private void computeSourceDimensions() {
 
-      SEXP sourceDimExp = source.getAttribute(SymbolExp.DIM);
+      SEXP sourceDimExp = source.getAttribute(Symbol.DIM);
       if(sourceDimExp == Null.INSTANCE) {
         sourceDim = new int[] { source.length() };
       } else if(sourceDimExp instanceof IntVector) {
@@ -549,7 +549,7 @@ public class Subset {
       for(int i=0; i!=subscripts.length;++i) {
         SEXP argument = arguments.getSubscript(i);
 
-        if(argument == SymbolExp.MISSING_ARG) {
+        if(argument == Symbol.MISSING_ARG) {
           subscripts[i] = new MissingSubscript(sourceDim[i]);
 
         } else if(argument instanceof LogicalVector) {
@@ -593,7 +593,7 @@ public class Subset {
     public void computeResult() {
 
       StringVector.Builder names = null;
-      if(source.getAttribute(SymbolExp.NAMES) != Null.INSTANCE) {
+      if(source.getAttribute(Symbol.NAMES) != Null.INSTANCE) {
         names = new StringVector.Builder();
       }
 

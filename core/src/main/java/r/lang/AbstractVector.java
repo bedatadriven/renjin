@@ -39,14 +39,14 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
   }
 
   abstract static class AbstractBuilder<S extends SEXP, E> implements Builder<S> {
-    private final Map<SymbolExp,SEXP> attributes = Maps.newHashMap();
+    private final Map<Symbol,SEXP> attributes = Maps.newHashMap();
 
     @Override
     public Builder setAttribute(String name, SEXP value) {
-      return setAttribute(new SymbolExp(name), value);
+      return setAttribute(new Symbol(name), value);
     }
 
-    public Builder setAttribute(SymbolExp name, SEXP value) {
+    public Builder setAttribute(Symbol name, SEXP value) {
       if(value != Null.INSTANCE) {
         attributes.put(name, value);
       }
@@ -72,7 +72,7 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
 
     protected PairList buildAttributes() {
       PairList.Node.Builder pairList = PairList.Node.newBuilder();
-      for(Map.Entry<SymbolExp, SEXP> pair : attributes.entrySet()) {
+      for(Map.Entry<Symbol, SEXP> pair : attributes.entrySet()) {
         if(pair.getValue() != Null.INSTANCE) {
           pairList.add(pair.getKey(), pair.getValue());
         }

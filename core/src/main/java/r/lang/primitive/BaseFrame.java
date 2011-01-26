@@ -38,17 +38,17 @@ public class BaseFrame implements Environment.Frame {
 
   public static final BaseFrame INSTANCE = new BaseFrame();
 
-  private Map<SymbolExp, SEXP> builtins = new HashMap<SymbolExp, SEXP>();
-  private Map<SymbolExp, SEXP> internals = new HashMap<SymbolExp, SEXP>();
-  private Map<SymbolExp, SEXP> loaded = new HashMap<SymbolExp, SEXP>();
+  private Map<Symbol, SEXP> builtins = new HashMap<Symbol, SEXP>();
+  private Map<Symbol, SEXP> internals = new HashMap<Symbol, SEXP>();
+  private Map<Symbol, SEXP> loaded = new HashMap<Symbol, SEXP>();
 
   @Override
-  public Set<SymbolExp> getSymbols() {
+  public Set<Symbol> getSymbols() {
     return builtins.keySet();
   }
 
   @Override
-  public SEXP getVariable(SymbolExp name) {
+  public SEXP getVariable(Symbol name) {
     SEXP value = builtins.get(name);
     if(value != null) {
       return value;
@@ -57,11 +57,11 @@ public class BaseFrame implements Environment.Frame {
     if(value != null ) {
       return value;
     }
-    return SymbolExp.UNBOUND_VALUE;
+    return Symbol.UNBOUND_VALUE;
   }
 
   @Override
-  public SEXP getInternal(SymbolExp name) {
+  public SEXP getInternal(Symbol name) {
     SEXP value = internals.get(name);
     if(value != null) {
       return value;
@@ -70,7 +70,7 @@ public class BaseFrame implements Environment.Frame {
   }
 
   @Override
-  public void setVariable(SymbolExp name, SEXP value) {
+  public void setVariable(Symbol name, SEXP value) {
     loaded.put(name,value);
   }
 
@@ -81,7 +81,7 @@ public class BaseFrame implements Environment.Frame {
 
   private void installPrimitives() {
     for (FunctionTable.Entry entry : FunctionTable.ENTRIES) {
-      SymbolExp symbol = new SymbolExp(entry.name);
+      Symbol symbol = new Symbol(entry.name);
       PrimitiveFunction primitive;
 
       if (entry.eval % 10 != 0) {
@@ -99,7 +99,7 @@ public class BaseFrame implements Environment.Frame {
   }
 
   private void installPlatform() {
-      builtins.put(new SymbolExp(".Platform"), ListVector.newBuilder()
+      builtins.put(new Symbol(".Platform"), ListVector.newBuilder()
         .add("OS.type", new StringVector(resolveOsName()))
         .add("file.sep", new StringVector("/"))
         .add("GUI", new StringVector("unknown"))

@@ -37,8 +37,8 @@ public class Print {
   private Print() {}
 
   public static SEXP print(@Current Environment rho, SEXP value) {
-    SEXP stdout = rho.findVariable(SymbolExp.STDOUT);
-    if( stdout == SymbolExp.UNBOUND_VALUE ) {
+    SEXP stdout = rho.findVariable(Symbol.STDOUT);
+    if( stdout == Symbol.UNBOUND_VALUE ) {
       throw new EvalException("no stdout found in the current environment");
     }
     if(! (stdout instanceof ExternalExp) ) {

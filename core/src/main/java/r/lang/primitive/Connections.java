@@ -75,7 +75,7 @@ public class Connections {
 
     for(int i = 0; i < names.length(); i++) {
       // the name of the symbol
-      SymbolExp name = new SymbolExp(names.getElement(i));
+      Symbol name = new Symbol(names.getElement(i));
 
       // c(pos, length) of the serialized object
       SEXP value = values.get(i).evalToExp(context, (Environment) eenv);

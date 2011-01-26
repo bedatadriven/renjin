@@ -108,6 +108,6 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP symbol(String name) {
-    return new SymbolExp(name);
+    return new Symbol(name);
   }
 }

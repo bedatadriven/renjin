@@ -87,7 +87,7 @@ public class SexpVisitor<R> {
     unhandled(stringExp);
   }
 
-  public void visit(SymbolExp symbolExp) {
+  public void visit(Symbol symbolExp) {
     unhandled(symbolExp);
   }
 

@@ -71,7 +71,7 @@ public class DatafileReaderTest extends EvalTestCase {
     assertThat(pairList.findByTag(symbol("d")), equalTo( list(Logical.NA, DoubleVector.NA, IntVector.NA, NULL )));
   }
 
-  protected SymbolExp symbol(String name){
-    return new SymbolExp(name);
+  protected Symbol symbol(String name){
+    return new Symbol(name);
   }
 }

@@ -108,12 +108,12 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   /**
-   * Null implementation of {@link r.lang.PairList#findByTag(SymbolExp)}
+   * Null implementation of {@link r.lang.PairList#findByTag(Symbol)}
    * @param symbol the tag for which to search
    * @return {@code Null.INSTANCE}
    */
   @Override
-  public SEXP findByTag(SymbolExp symbol) {
+  public SEXP findByTag(Symbol symbol) {
     return Null.INSTANCE;
   }
 
@@ -138,7 +138,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
-  public SEXP getAttribute(SymbolExp name) {
+  public SEXP getAttribute(Symbol name) {
     return Null.INSTANCE;
   }
 

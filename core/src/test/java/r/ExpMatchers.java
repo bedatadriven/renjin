@@ -32,7 +32,7 @@ public class ExpMatchers {
     return new BaseMatcher<SEXP>() {
       @Override
       public boolean matches(Object o) {
-        return o instanceof SymbolExp && ((SymbolExp) o).getPrintName().equals(name);
+        return o instanceof Symbol && ((Symbol) o).getPrintName().equals(name);
       }
 
       @Override

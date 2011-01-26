@@ -127,7 +127,7 @@ public class Parse {
     }
 
     @Override
-    public void visit(SymbolExp symbolExp) {
+    public void visit(Symbol symbolExp) {
       deparsed.append(symbolExp.getPrintName());
     }
 

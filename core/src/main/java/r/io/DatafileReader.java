@@ -204,9 +204,9 @@ public class DatafileReader {
       case GLOBALENV_SXP:
         return rho.getGlobalEnvironment();
       case UNBOUNDVALUE_SXP:
-        return SymbolExp.UNBOUND_VALUE;
+        return Symbol.UNBOUND_VALUE;
       case MISSINGARG_SXP:
-        return SymbolExp.MISSING_ARG;
+        return Symbol.MISSING_ARG;
       case BASENAMESPACE_SXP:
         // TODO: this is probably not quite correct
         return rho.getBaseEnvironment();
@@ -333,7 +333,7 @@ public class DatafileReader {
 
   private SEXP readSymbol() throws IOException {
     CHARSEXP printName = (CHARSEXP) readExp();
-    return addReadRef( new SymbolExp( printName.getValue()) );
+    return addReadRef( new Symbol( printName.getValue()) );
   }
 
   private SEXP addReadRef(SEXP value) {

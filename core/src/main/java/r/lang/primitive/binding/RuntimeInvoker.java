@@ -96,7 +96,7 @@ public class RuntimeInvoker {
     // make a list of the provided arguments
     List<ProvidedArgument> provided = Lists.newArrayList();
     for(PairList.Node arg : call.getArguments().nodes()) {
-      if(SymbolExp.ELLIPSES.equals(arg.getValue())) {
+      if(Symbol.ELLIPSES.equals(arg.getValue())) {
         // the values of the '...' are just merged into the argument list
         DotExp ellipses = (DotExp) arg.getValue().evalToExp(context, rho);
         for(PairList.Node dotArg : ellipses.getPromises().nodes()) {
@@ -367,7 +367,7 @@ public class RuntimeInvoker {
     }
 
     public String getTagName() {
-      return ((SymbolExp)tag).getPrintName();
+      return ((Symbol)tag).getPrintName();
     }
   }
 
@@ -390,7 +390,7 @@ public class RuntimeInvoker {
     }
   }
 
-  private class StringToSymbol implements ArgConverter<StringVector, SymbolExp> {
+  private class StringToSymbol implements ArgConverter<StringVector, Symbol> {
 
     @Override
     public boolean accept(SEXP source, PrimitiveMethod.Argument formal) {
@@ -400,8 +400,8 @@ public class RuntimeInvoker {
     }
 
     @Override
-    public SymbolExp convert(StringVector source, PrimitiveMethod.Argument formal) {
-      return new SymbolExp(source.getElement(0));
+    public Symbol convert(StringVector source, PrimitiveMethod.Argument formal) {
+      return new Symbol(source.getElement(0));
     }
   }
 
@@ -524,7 +524,7 @@ public class RuntimeInvoker {
     }
 
     public void copyAttribute(SEXP attributeSource, String name) {
-      builder.setAttribute(name, attributeSource.getAttribute(new SymbolExp(name)));
+      builder.setAttribute(name, attributeSource.getAttribute(new Symbol(name)));
     }
   }
 

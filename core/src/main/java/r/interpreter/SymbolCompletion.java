@@ -22,7 +22,7 @@
 package r.interpreter;
 
 import r.lang.Environment;
-import r.lang.SymbolExp;
+import r.lang.Symbol;
 
 import java.util.ArrayList;
 
@@ -38,7 +38,7 @@ public class SymbolCompletion implements NameCompletion {
   public String[] completeName(String part) {
     ArrayList<String> list = new ArrayList<String>();
     for(Environment env : global.selfAndParents()) {
-      for(SymbolExp name : env.getSymbolNames()) {
+      for(Symbol name : env.getSymbolNames()) {
         if(name.getPrintName().startsWith(part)) {
           list.add(name.getPrintName());
         }

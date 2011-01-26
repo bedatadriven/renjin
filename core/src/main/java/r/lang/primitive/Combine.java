@@ -236,7 +236,7 @@ public class Combine {
   public static SEXP aperm(Vector source, AtomicVector permutationVector, boolean resize) {
     if(!resize) throw new UnsupportedOperationException("resize=TRUE not yet implemented");
 
-    SEXP dimExp = source.getAttribute(SymbolExp.DIM);
+    SEXP dimExp = source.getAttribute(Symbol.DIM);
     EvalException.check(dimExp instanceof IntVector, "invalid first argument, must be an array");
     int dim[] = toIntArray((IntVector) dimExp);
 
@@ -255,9 +255,9 @@ public class Combine {
     newVector.setAttribute(Attributes.DIM, new IntVector(permutedDims));
 
     for(PairList.Node node : source.getAttributes().nodes()) {
-      if(node.getTag().equals(SymbolExp.DIM)) {
+      if(node.getTag().equals(Symbol.DIM)) {
 
-      } else if(node.getTag().equals(SymbolExp.DIMNAMES)) {
+      } else if(node.getTag().equals(Symbol.DIMNAMES)) {
         newVector.setAttribute(node.getName(), permute((Vector)node.getValue(), permutation));
       } else {
         newVector.setAttribute(node.getName(), node.getValue());
@@ -380,7 +380,7 @@ public class Combine {
     private final boolean matrix;
 
     public BindArgument(Vector vector, boolean defaultToRows) {
-      SEXP dim = vector.getAttribute(SymbolExp.DIM);
+      SEXP dim = vector.getAttribute(Symbol.DIM);
       this.vector = vector;
       if(dim == Null.INSTANCE || dim.length() != 2) {
         if(defaultToRows) {

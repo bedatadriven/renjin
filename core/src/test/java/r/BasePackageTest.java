@@ -78,7 +78,8 @@ public class BasePackageTest extends EvalTestCase {
     loadBasePackage();
     executeStartupProfile();
 
-    eval(" library(survey) ");
+    System.out.println( eval( ".find.package('survey') "));
+    //eval(" library(survey) ");
   }                               
 
   private void loadBasePackage() throws IOException {

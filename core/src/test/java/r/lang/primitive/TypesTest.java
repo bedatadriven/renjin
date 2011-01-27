@@ -135,6 +135,18 @@ public class TypesTest extends EvalTestCase {
     assertThat( eval(" names(is.na(c(x=1,y=2))) "), equalTo( c("x", "y")));
   }
 
+
+  @Test
+  public void naPreservesDimNames() {
+    eval( " x <- .Internal(rbind(1, c(a=1,b=2))) ");
+    eval( " x <- is.na(x) ");
+    assertThat( eval(" dimnames(x)[[2]] "), equalTo( c("a", "b")));
+
+    eval(" x <- !x ");
+    assertThat( eval(" dimnames(x)[[2]] "), equalTo( c("a", "b")));
+
+  }
+
   @Test
   public void unaryPreservesNames() {
     assertThat( eval(" names(!is.na(c(x=1,y=2)))"), equalTo( c("x", "y")));

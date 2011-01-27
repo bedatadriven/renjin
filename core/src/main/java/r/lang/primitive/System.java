@@ -143,6 +143,36 @@ public class System {
 
   /**
    *
+   * @param path
+   * @return  the part of the path up to but excluding the last path separator, or "." if there is no path separator.
+   */
+  public static String dirname(String path) {
+    for(int i=path.length()-1;i>=0;--i) {
+      if(path.charAt(i) == '\\' || path.charAt(i) == '/') {
+        return path.substring(0, i);
+      }
+    }
+    return ".";
+  }
+
+  /**
+   *
+   * @param path
+   * @return  removes all of the path up to and including the last path separator (if any).
+   */
+  public static String basename(String path) {
+    for(int i=path.length()-1;i>=0;--i) {
+      if(path.charAt(i) == '\\' || path.charAt(i) == '/') {
+        return path.substring(i+1);
+      }
+    }
+    return path;
+  }
+
+
+
+  /**
+   *
    * @param path  a character vector of full path names; the default corresponds to the working directory getwd(). Missing values will be ignored.
    * @param pattern an optional regular expression. Only file names which match the regular expression will be returned.
    * @param allFiles  If FALSE, only the names of visible files are returned. If TRUE, all file names will be returned.

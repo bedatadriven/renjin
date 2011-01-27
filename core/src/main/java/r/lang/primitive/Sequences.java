@@ -22,11 +22,10 @@
 package r.lang.primitive;
 
 import com.google.common.annotations.VisibleForTesting;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.SEXP;
-import r.lang.Warning;
+import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.primitive.annotations.Indices;
+import r.lang.primitive.annotations.Primitive;
 
 
 /**
@@ -73,6 +72,21 @@ public class Sequences {
     } else if(exp.length() > 1) {
       Warning.warning("numerical expression has %d elements: only the first used", exp.length());
     }
+  }
+
+  @Primitive("rep.int")
+  public static Vector repeatInt(Vector x, @Indices int times) {
+    EvalException.check(times >= 0, "invalid 'times' value");
+
+    Vector.Builder result = x.newBuilder(x.length() * times);
+    int count = 0;
+    while(times > 0) {
+      for(int i =0; i!=x.length();++i) {
+        result.setFrom(count++, x, i);
+      }
+      times--;
+    }
+    return result.build();
   }
 
   @VisibleForTesting

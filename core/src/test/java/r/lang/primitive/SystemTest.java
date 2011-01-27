@@ -60,4 +60,16 @@ public class SystemTest extends EvalTestCase {
     return fullPath("") + name;
   }
 
+  @Test
+  public void dirname() {
+    assertThat( eval(" .Internal(dirname(c('c:\\\\anyfolder\\\\file.txt', '/bin/bash', 'myfile'))) "),
+        equalTo( c("c:\\anyfolder", "/bin", ".") ));
+  }
+
+  @Test
+  public void basename() {
+    assertThat( eval(" .Internal(basename(c('c:\\\\anyfolder\\\\file.txt', '/bin/bash', 'myfile'))) "),
+        equalTo( c("file.txt", "bash", "myfile") ));
+  }
+
 }

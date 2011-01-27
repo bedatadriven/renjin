@@ -296,6 +296,15 @@ public class EvaluationTest extends EvalTestCase {
     eval("cook <- function() { eggs<-6; fry(eggs, 5) }");
 
     assertThat( eval("cook()"), equalTo( eval("list(desc='fried numbers', what=6, howlong=5) ")));
-
   }
+
+  @Test
+  public void nargs() {
+    eval("test <- function(a, b = 3, ...) {nargs()}");
+
+    assertThat( eval("test()"), equalTo( c_i(0)) );
+    assertThat( eval("test(clicketyclack)"), equalTo( c_i(1)));
+    assertThat( eval("test(c1, a2, rr3)"), equalTo( c_i(3)));
+  }
+
 }

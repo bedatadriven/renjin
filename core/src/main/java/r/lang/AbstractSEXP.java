@@ -176,8 +176,9 @@ abstract class AbstractSEXP implements SEXP {
   }
 
   @Override
-  public final SEXP getNames() {
-    return attributes.findByTag(Symbol.NAMES);
+  public final AtomicVector getNames() {
+    // either Null.INSTANCE or StringVector, enforced below
+    return (AtomicVector) attributes.findByTag(Symbol.NAMES);
   }
 
   @Override

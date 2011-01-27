@@ -102,7 +102,7 @@ public interface SEXP {
    * @return the {@link StringVector} containing the element's names, or {@code NULL} if
    * this expression has no explicit {@code names} attribute.
    */
-  SEXP getNames();
+  AtomicVector getNames();
 
   /**
    * @param index zero-based index

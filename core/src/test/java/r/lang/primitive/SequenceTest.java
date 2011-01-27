@@ -90,4 +90,10 @@ public class SequenceTest extends EvalTestCase {
     assertThat( eval( "c(1:3) "), equalTo( c_i(1,2,3)));
   }
 
+  @Test
+  public void repInt() {
+    assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 2))"), equalTo(c("a","b","c","a","b","c")));
+    assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 0))"), equalTo( CHARACTER_0 ));
+  }
+
 }

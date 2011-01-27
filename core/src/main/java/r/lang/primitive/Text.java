@@ -326,4 +326,36 @@ public class Text {
       return result.build();
     }
   }
+
+  /**
+   *
+   * @param pattern
+   * @param x
+   * @param ignoreCase
+   * @param extended
+   * @param value
+   * @param perl
+   * @param fixed
+   * @param useBytes
+   * @param invert
+   * @return a logical vector (match or not for each element of x).
+   */
+  public static Vector grepl(
+      String pattern,
+      StringVector x,
+      boolean ignoreCase,
+      boolean extended,
+      boolean value,
+      boolean perl,
+      boolean fixed,
+      boolean useBytes,
+      boolean invert) {
+
+    RE re = new RE(pattern,ignoreCase,extended, perl,fixed,useBytes);
+    LogicalVector.Builder result = new LogicalVector.Builder();
+    for(String string : x) {
+      result.add( ! StringVector.isNA(string) && re.match(string ));
+    }
+    return result.build();
+  }
 }

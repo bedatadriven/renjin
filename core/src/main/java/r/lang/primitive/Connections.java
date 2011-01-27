@@ -56,7 +56,8 @@ public class Connections {
 
   public static SEXP unserializeFromConn(Connection conn, Environment rho) throws IOException {
     DatafileReader reader = new DatafileReader(rho, conn.getInputStream());
-    return reader.readFile();
+    SEXP result =  reader.readFile();
+    return result;
   }
 
   public static void close(Connection conn, String type /* Unused */ ) throws IOException {

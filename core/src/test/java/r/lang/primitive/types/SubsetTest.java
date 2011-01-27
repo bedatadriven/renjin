@@ -290,6 +290,13 @@ public class SubsetTest extends EvalTestCase {
   }
 
   @Test
+  public void byNamedCol() {
+    eval( " x <- .Internal(rbind(1, c(a=1,b=2))) ");
+
+    assertThat( eval(" x[,'b'] "), equalTo( c(2) ));
+  }
+
+  @Test
   public void arrayDimsCorrectlyPreserved() {
     eval(" x<- 1:8 ");
     eval(" dim(x) <- 8");

@@ -88,12 +88,16 @@ public class ParseUtil {
     int p = 0;
 
     /* optional whitespace */
-    while (Character.isWhitespace(s.charAt(p))) p++;
+    while ( p < s.length() && Character.isWhitespace(s.charAt(p))) p++;
 
     if (NA && s.substring(p, p+2).equals("NA")) {
       ans = DoubleVector.NA;
       p += 2;
       return new DoubleResult(ans, p);
+    }
+
+    if( p == s.length()) {
+      return new DoubleResult(DoubleVector.NA, p);
     }
 
     /* optional sign */

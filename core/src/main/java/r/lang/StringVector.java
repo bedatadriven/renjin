@@ -230,13 +230,21 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
       return indexOfNA();
     } else {
       String value = vector.getElementAsString(vectorIndex);
-      for(int i=0;i<values.length;++i) {
-        if(values[i].equals(value)) {
-          return i;
-        }
-      }
-      return -1;
+      return indexOf(value, startIndex);
     }
+  }
+
+  private int indexOf(String value, int startIndex) {
+    for(int i=startIndex;i<values.length;++i) {
+      if(values[i].equals(value)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  public int indexOf(String value) {
+    return indexOf(value, 0);
   }
 
   public static class Builder extends AbstractAtomicBuilder<String> {

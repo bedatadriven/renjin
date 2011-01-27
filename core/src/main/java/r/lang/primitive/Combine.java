@@ -308,12 +308,12 @@ public class Combine {
 
   public static SEXP rbind(@ArgumentList ListVector arguments) {
 
-
+    int deparseLevel = arguments.getElementAsInt(0);
 
     List<BindArgument> bindArguments = Lists.newArrayList();
-    for(SEXP argument : arguments) {
-      EvalException.check(argument instanceof Vector, "invalid argument of type '%s'", argument.getTypeName());
-      bindArguments.add(new BindArgument((Vector) argument, true));
+    for(int i=1;i!=arguments.length();++i) {
+      Vector argument = EvalException.checkedCast(arguments.getElementAsSEXP(i));
+      bindArguments.add(new BindArgument(argument, true));
     }
 
     // establish the number of columns
@@ -367,6 +367,20 @@ public class Combine {
       }
     }
 
+    AtomicVector rowNames = Null.INSTANCE;
+    AtomicVector colNames = Null.INSTANCE;
+
+    for(BindArgument argument : bindArguments) {
+      if(argument.colNames.length() == columns) {
+        colNames = argument.colNames;
+        break;
+      }
+    }
+
+    builder.setDimNames(rowNames, colNames);
+
+
+
     return builder.build();
   }
 
@@ -374,6 +388,10 @@ public class Combine {
     private final Vector vector;
     private final int rows;
     private final int cols;
+
+    private AtomicVector rowNames = Null.INSTANCE;
+    private AtomicVector colNames = Null.INSTANCE;
+
     /**
      * True if the argument is an actual matrix
      */
@@ -386,19 +404,25 @@ public class Combine {
         if(defaultToRows) {
           rows = 1;
           cols = vector.length();
+          colNames = vector.getNames();
         } else {
           cols = 1;
           rows = vector.length();
+          rowNames = vector.getNames();
         }
         matrix = false;
 
       } else {
         AtomicVector dimVector = (AtomicVector) dim;
-        rows = ((AtomicVector) dim).getElementAsInt(0);
-        cols = ((AtomicVector) dim).getElementAsInt(1);
+        rows = dimVector.getElementAsInt(0);
+        cols = dimVector.getElementAsInt(1);
         matrix = true;
       }
     }
+
+
+
+
   }
 
   private static class Matrix2dBuilder {
@@ -417,6 +441,12 @@ public class Combine {
       int recycledColIndex = colIndex % argument.cols;
       builder.setFrom(count, argument.vector, recycledColIndex * argument.rows + rowIndex);
       count++;
+    }
+
+    public void setDimNames(AtomicVector rowNames, AtomicVector colNames) {
+      if(rowNames.length() != 0 || colNames.length() != 0) {
+        builder.setAttribute(Attributes.DIMNAMES, new ListVector(rowNames, colNames));
+      }
     }
 
     public Vector build() {

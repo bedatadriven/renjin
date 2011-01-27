@@ -161,6 +161,7 @@ public class Types {
     }
     result.setAttribute(Symbol.DIM, list.getAttribute(Symbol.DIM));
     result.setAttribute(Symbol.NAMES, list.getAttribute(Symbol.NAMES));
+    result.setAttribute(Symbol.DIMNAMES, list.getAttribute(Symbol.DIMNAMES));
 
     return result.build();
   }
@@ -308,6 +309,11 @@ public class Types {
   @Primitive("dimnames")
   public static SEXP getDimensionNames(SEXP exp) {
     return exp.getAttribute(Symbol.DIMNAMES);
+  }
+
+  @Primitive("dimnames<-")
+  public static SEXP setDimensionNames(SEXP exp, ListVector vector) {
+    return exp.setAttribute(Attributes.DIMNAMES, vector);
   }
 
   public static PairList attributes(SEXP sexp) {

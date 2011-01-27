@@ -120,10 +120,11 @@ public class CombineTest extends EvalTestCase {
   @Test
   public void rbindSimple() {
 
-    eval(" x<-.Internal(rbind(1, c('survey', '3.22-3'))) ");
+    eval(" x<-.Internal(rbind(1, c(Package='survey', Version='3.22-3'))) ");
 
-    assertThat( eval("dim(x)"), equalTo(c_i(2,2) ));
-    assertThat( eval("x"), equalTo(c("1", "survey", "1", "3.22-3")));
+    assertThat( eval("dim(x)"), equalTo(c_i(1,2) ));
+    assertThat( eval("dimnames(x)"), equalTo(list( NULL, c("Package", "Version")) ));
+    assertThat( eval("x"), equalTo(c("survey", "3.22-3")));
 
   }
 

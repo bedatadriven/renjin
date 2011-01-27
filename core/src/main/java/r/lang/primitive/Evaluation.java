@@ -529,6 +529,10 @@ public class Evaluation {
     return false;
   }
 
+  public static int nargs(@Current Context context) {
+    return context.getArguments().length();
+  }
+
   public static class BreakException extends ControlFlowException {   }
 
   public static class NextException extends ControlFlowException {   }

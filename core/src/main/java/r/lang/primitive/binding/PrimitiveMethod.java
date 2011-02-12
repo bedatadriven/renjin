@@ -117,8 +117,9 @@ public class PrimitiveMethod implements Comparable<PrimitiveMethod> {
 
         if(isPublic(method.getModifiers()) &&
            isStatic(method.getModifiers()) &&
-            method.getName().equals(alias) ||
-            alias(method).equals(name) )
+           ( method.getName().equals(alias) ||
+             method.getName().equals(name) ||
+             alias(method).equals(name) ) )
         {
           methods.add(new PrimitiveMethod(method));
         }

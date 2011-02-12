@@ -40,10 +40,10 @@ public class Connections {
   public static final String CLASSPATH_PREFIX = "classpath:";
 
   public static ExternalExp<Connection> gzfile(@Current final Context context,
-                                  final String description,
-                                  String open,
-                                  String encoding,
-                                  double compressionLevel) {
+                                               final String description,
+                                               String open,
+                                               String encoding,
+                                               double compressionLevel) {
     Connection connection = new ConnectionImpl(new InputStreamFactory() {
       @Override
       public InputStream openInputStream() throws IOException {
@@ -52,6 +52,10 @@ public class Connections {
     });
 
     return new ExternalExp(connection, "connection");
+  }
+
+  public static ExternalExp<Connection> stdin(@Current final Context context) {
+    return new ExternalExp(new StandardConnection(), "connection");
   }
 
   public static SEXP unserializeFromConn(Connection conn, Environment rho) throws IOException {
@@ -205,6 +209,18 @@ public class Connections {
         inputStream.close();
       }
 
+    }
+  }
+
+  private static class StandardConnection implements Connection {
+    @Override
+    public InputStream getInputStream() throws IOException {
+      return null; // TODO
+    }
+
+    @Override
+    public void close() throws IOException {
+      /* NOOP */
     }
   }
 

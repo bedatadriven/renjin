@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,43 +19,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.special;
 
+import r.lang.*;
 import r.lang.exception.EvalException;
 
-public abstract class SpecialFunction extends AbstractSEXP implements Function {
-  public static final int TYPE_CODE = 7;
-  public static final String TYPE_NAME = "special";
+public class ReassignLeftFunction extends SpecialFunction {
 
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
+  public String getName() {
+    return "<<-";
   }
 
   @Override
-  public String getTypeName() {
-    return TYPE_NAME;
+  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    Symbol lhs = EvalException.checkedCast(call.getArgument(0));
+    SEXP rhs = call.evalArgument(context, rho, 1);
+
+    return reassignLeft(context, rho, lhs, rhs);
   }
 
-  public abstract String getName();
+  public static EvalResult reassignLeft(Context context, Environment rho, Symbol lhs, SEXP rhs)  {
 
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visitSpecial(this);
-  }
-
-  public static boolean asLogicalNoNA(FunctionCall call, SEXP s, Environment rho) {
-
-    if (s.length() > 1) {
-      Warning.warning(call, "the condition has length > 1 and only the first element will be used");
+    for(Environment env : rho.selfAndParents()) {
+      if(env.hasVariable(lhs))  {
+        env.setVariable(lhs, rhs);
+        return EvalResult.invisible(rhs);
+      }
     }
 
-    Logical logical = s.asLogical();
-    if (logical == Logical.NA) {
-      throw new EvalException("missing value where TRUE/FALSE needed");
-    }
+    // not defined anywhere we can see, define it anew in the current env
+    rho.setVariable(lhs, rhs);
 
-    return logical == Logical.TRUE;
+    return EvalResult.invisible(rhs);
   }
-
 }

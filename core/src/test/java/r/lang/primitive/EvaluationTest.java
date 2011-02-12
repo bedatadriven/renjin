@@ -26,7 +26,6 @@ import r.lang.EvalTestCase;
 import r.lang.Logical;
 import r.lang.Null;
 import r.lang.SEXP;
-import r.lang.exception.FunctionCallException;
 
 import java.io.IOException;
 
@@ -65,7 +64,7 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("if(FALSE) 1 else 2"), realVectorEqualTo(2));
   }
 
-  @Test(expected = FunctionCallException.class)
+  @Test(expected = Exception.class)
   public void ifWithNA() throws IOException {
     eval("if(NA) 1");
   }

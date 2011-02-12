@@ -40,7 +40,7 @@
     function(new) {
         if(!missing(new)) {
             new <- Sys.glob(path.expand(new))
-            paths <- unique(path.expand(c(new, .Library.site, .Library)))
+            paths <- unique(path.expand(cnew, .Library.site, .Library)))
             .lib.loc <<- paths[file.info(paths)$isdir %in% TRUE]
         }
         else

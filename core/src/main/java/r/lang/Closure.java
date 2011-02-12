@@ -27,7 +27,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
 import r.lang.exception.EvalException;
-import r.lang.primitive.Evaluation;
+import r.lang.primitive.special.ReturnException;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -104,7 +104,7 @@ public class Closure extends AbstractSEXP implements Function {
       functionContext.exit();
 
       return result;
-    } catch(Evaluation.ReturnException e) {
+    } catch(ReturnException e) {
       if(e.getEnvironment() != functionEnvironment) {
         throw e;
       }

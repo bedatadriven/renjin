@@ -92,7 +92,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     if(values.length == 0) {
       return Logical.NA;
     }
-    return Logical.valueOf(values[0]);
+    return getElementAsLogical(0);
   }
 
   @Override

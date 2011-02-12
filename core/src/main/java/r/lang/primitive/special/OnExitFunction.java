@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,43 +19,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.special;
 
+import r.lang.*;
 import r.lang.exception.EvalException;
 
-public abstract class SpecialFunction extends AbstractSEXP implements Function {
-  public static final int TYPE_CODE = 7;
-  public static final String TYPE_NAME = "special";
+public class OnExitFunction extends SpecialFunction {
 
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
+  public String getName() {
+    return "on.exit";
   }
 
   @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
+  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    EvalException.check(call.getArguments().length() == 1 || call.getArguments().length() == 2,
+        "invalid number of arguments");
 
-  public abstract String getName();
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visitSpecial(this);
-  }
-
-  public static boolean asLogicalNoNA(FunctionCall call, SEXP s, Environment rho) {
-
-    if (s.length() > 1) {
-      Warning.warning(call, "the condition has length > 1 and only the first element will be used");
+    SEXP value = call.getArgument(0);
+    boolean add = false;
+    if(call.getArguments().length() == 2) {
+      add = call.evalArgument(context, rho, 1).asReal() != 0;
     }
 
-    Logical logical = s.asLogical();
-    if (logical == Logical.NA) {
-      throw new EvalException("missing value where TRUE/FALSE needed");
+    if(add) {
+      context.addOnExit(value);
+    } else {
+      context.setOnExit(value);
     }
-
-    return logical == Logical.TRUE;
+    return EvalResult.NON_PRINTING_NULL;
   }
-
 }

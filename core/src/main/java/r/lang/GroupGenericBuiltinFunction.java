@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -23,26 +23,15 @@ package r.lang;
 
 import r.lang.primitive.BaseFrame;
 
-public class BuiltinFunction extends PrimitiveFunction {
-  public static final int TYPE_CODE = 8;
-  public static final String TYPE_NAME = "builtin";
+public class GroupGenericBuiltinFunction extends BuiltinFunction {
 
-  public BuiltinFunction(BaseFrame.Entry functionEntry) {
+  public GroupGenericBuiltinFunction(BaseFrame.Entry functionEntry) {
     super(functionEntry);
   }
 
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
+  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
 
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
+    return super.apply(context, rho, call, arguments);
   }
 }

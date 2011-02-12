@@ -62,6 +62,32 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval(".libPaths() "), equalTo(c("res:r/library")));
   }
 
+
+  @Test
+  public void packageVersion() throws IOException {
+    loadBasePackage();
+    executeStartupProfile();
+
+    eval(" x <- package_version('1.2-4') ");
+
+
+  }
+
+
+
+  @Test
+  public void groupGeneric() throws IOException {
+    loadBasePackage();
+    executeStartupProfile();
+
+    eval(" x <- as.numeric_version('1.2.3') ");
+    eval(" y <- as.numeric_version('1.0.9') ");
+
+    assertThat( eval(" x >= y"), equalTo( c(true)));
+
+
+  }
+
   @Test
   public void fileInfo() throws IOException {
 
@@ -78,9 +104,18 @@ public class BasePackageTest extends EvalTestCase {
     loadBasePackage();
     executeStartupProfile();
 
-    System.out.println( eval( ".find.package('survey') "));
-    //eval(" library(survey) ");
-  }                               
+    System.out.println(eval(".find.package('survey') "));
+    eval(" library(survey) ");
+  }
+
+  @Test
+  public void parse() throws IOException {
+    loadBasePackage();
+    executeStartupProfile();
+
+    assertThat( eval(" parse(text='1') "), equalTo(expression(1d)));
+
+  }
 
   private void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));

@@ -23,7 +23,7 @@ package r.lang;
 
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;
-import r.lang.primitive.FunctionTable;
+import r.lang.primitive.BaseFrame;
 import r.lang.primitive.binding.PrimitiveMethod;
 import r.lang.primitive.binding.RuntimeInvoker;
 
@@ -33,15 +33,13 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
 
   public static final String IMPLICIT_CLASS = "function";
 
-  protected final FunctionTable.Entry functionEntry;
+  protected final BaseFrame.Entry functionEntry;
   protected List<PrimitiveMethod> methodOverloads;
+  private String name;
 
-  protected PrimitiveFunction(FunctionTable.Entry functionEntry) {
+  protected PrimitiveFunction(BaseFrame.Entry functionEntry) {
     this.functionEntry = functionEntry;
-  }
-
-  public boolean isInternal() {
-    return (functionEntry.eval % 100) / 10 != 0;
+    name = this.functionEntry.name;
   }
 
   @Override
@@ -55,11 +53,11 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
 
   @Override
   public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
-    List<PrimitiveMethod> overloads = getMethodOverloads(functionEntry.functionClass, functionEntry.name, functionEntry.methodName);
+    List<PrimitiveMethod> overloads = getMethodOverloads(functionEntry.functionClass, name, functionEntry.methodName);
     if(overloads.isEmpty()) {
       StringBuilder message = new StringBuilder();
       message.append("'")
-             .append(functionEntry.name)
+             .append(name)
              .append("' is not yet implemented");
       if(functionEntry.functionClass != null) {
         message.append(" (")
@@ -92,6 +90,6 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
 
   @Override
   public String toString() {
-    return functionEntry.name + "()";
+    return name + "()";
   }
 }

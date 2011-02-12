@@ -26,37 +26,23 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.base.Base;
 import r.lang.*;
-import r.lang.exception.ControlFlowException;
 import r.lang.exception.EvalException;
 import r.lang.primitive.annotations.Current;
 import r.lang.primitive.annotations.Evaluate;
 import r.lang.primitive.annotations.Primitive;
 import r.lang.primitive.binding.PrimitiveMethod;
 import r.lang.primitive.binding.RuntimeInvoker;
+import r.lang.primitive.special.ReturnException;
+import r.parser.RParser;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 
 public class Evaluation {
 
 
-  /**
-   * Evaluates a list of statements. (The '{' function)
-   */
-  @Primitive("{")
-  public static EvalResult begin(Context context, Environment rho, FunctionCall call) {
-
-    EvalResult lastResult = new EvalResult(Null.INSTANCE, true);
-    for (SEXP sexp : call.getArguments().values()) {
-      lastResult = sexp.evaluate(context, rho);
-    }
-    return lastResult;
-  }
-
-  @Primitive("(")
-  public static SEXP paren(SEXP value) {
-    return value;
-  }
 
   /**
    * There are no restrictions on name: it can be a non-syntactic name (see make.names).
@@ -100,66 +86,6 @@ public class Evaluation {
    *
    */
 
-  /*  It's important that the rhs get evaluated first because
-   assignment is right associative i.e.  a <- b <- c is parsed as
-   a <- (b <- c).  */
-  @Primitive("<-")
-  public static EvalResult assignLeft(@Current Context context, @Current Environment rho,
-                                      @Evaluate(false) SEXP lhs, SEXP value) {
-
-    // this loop handles nested, complex assignments, such as:
-    // class(x) <- "foo"
-    // x$a[3] <- 4
-    // class(x$a[3]) <- "foo"
-
-    SEXP rhs = value;
-
-    while(lhs instanceof FunctionCall) {
-      FunctionCall call = (FunctionCall) lhs;
-      Symbol getter = (Symbol) call.getFunction();
-      Symbol setter = new Symbol(getter.getPrintName() + "<-");
-
-      rhs = new FunctionCall(setter,
-          PairList.Node.newBuilder()
-            .addAll(call.getArguments())
-            .add(rhs)
-            .build()).evalToExp(context, rho);
-
-      lhs = call.getArgument(0);
-    }
-
-    Symbol target;
-    if( lhs instanceof Symbol) {
-      target = (Symbol) lhs;
-    } else if(lhs instanceof StringVector) {
-      target = new Symbol(((StringVector) lhs).getElement(0));
-    } else {
-      throw new EvalException("cannot assign to value of type " + lhs.getTypeName());
-    }
-
-    // make the final assignment to the target symbol
-    rho.setVariable(target, rhs);
-
-    return EvalResult.invisible(value);
-  }
-
-  @Primitive("<<-")
-  public static EvalResult reassignLeft(@Current Context context, @Current Environment rho,
-                                        @Evaluate(false) Symbol lhs, SEXP rhs)  {
-
-    for(Environment env : rho.selfAndParents()) {
-      if(env.hasVariable(lhs))  {
-        env.setVariable(lhs, rhs);
-        return EvalResult.invisible(rhs);
-      }
-    }
-
-    // not defined anywhere we can see, define it anew in the current env
-    rho.setVariable(lhs, rhs);
-
-    return EvalResult.invisible(rhs);
-  }
-
   @Primitive("on.exit")
   public static void onExit( @Current Context context, @Evaluate(false) SEXP exp, boolean add ) {
     if(add) {
@@ -174,27 +100,6 @@ public class Evaluation {
     context.setOnExit(exp);
   }
 
-  /**
-   * for ( x in elements ) { statement }
-   */
-  @Primitive("for")
-  public static void forLoop(Context context, Environment rho, FunctionCall call) {
-    PairList args = call.getArguments();
-    Symbol symbol = (Symbol) args.getElementAsSEXP(0);
-    Vector elements = (Vector) args.getElementAsSEXP(1).evalToExp(context, rho);
-    SEXP statement = args.getElementAsSEXP(2);
-
-    for(int i=0; i!=elements.length(); ++i) {
-      try {
-        rho.setVariable(symbol, elements.getElementAsSEXP(i));
-        statement.evaluate(context, rho);
-      } catch (BreakException e) {
-        break;
-      } catch (NextException e) {
-        // next iteration
-      }
-    }
-  }
 
   public static ListVector lapply(@Current Context context, @Current Environment rho, FunctionCall call) {
     Vector vector = (Vector) call.evalArgument(context, rho, 0);
@@ -214,124 +119,9 @@ public class Evaluation {
     return builder.build();
   }
 
-  @Primitive("while")
-  public static void whileLoop(Context context, Environment rho, FunctionCall call) {
-    PairList args = call.getArguments();
-    SEXP condition = args.getElementAsSEXP(0);
-    SEXP statement = args.getElementAsSEXP(1);
-
-    while(asLogicalNoNA(call, condition.evaluate(context, rho).getExpression(), rho)) {
-
-      try {
-
-        statement.evaluate(context, rho);
-
-      } catch(BreakException e) {
-        break;
-      } catch(NextException e) {
-        // next loop iteration
-      }
-    }
-  }
-
-  public static Closure function( @Current Environment rho,
-                                  @Evaluate(false) PairList formals,
-                                  @Evaluate(false) SEXP body,
-                                  SEXP source)
-  {
-    return new Closure(rho,formals, body);
-  }
-
-  @Primitive("if")
-  public static EvalResult doIf(Context context, Environment rho, FunctionCall call) {
-    SEXP condition = call.getArguments().getElementAsSEXP(0).evalToExp(context, rho);
-
-    if (asLogicalNoNA(call, condition, rho)) {
-      return call.getArguments().getElementAsSEXP(1).evaluate(context, rho); /* true value */
-
-    } else {
-      if (call.getArguments().length() == 3) {
-        return call.getArguments().getElementAsSEXP(2).evaluate(context, rho); /* else value */
-      } else {
-        return EvalResult.NON_PRINTING_NULL;   /* no else, evaluates to NULL */
-      }
-    }
-  }
-
-  @Primitive("switch")
-  public static EvalResult doSwitch(Context context, Environment rho, FunctionCall call) {
-    EvalException.check(call.length() > 1, "argument \"EXPR\" is missing");
-
-    SEXP expr = call.evalArgument(context, rho, 0);
-    EvalException.check(expr.length() == 1, "EXPR must return a length 1 vector");
-
-    DotExp branchPromises  = (DotExp) call.getArgument(1).evalToExp(context, rho);
-    Iterable<PairList.Node> branches = branchPromises.getPromises().nodes();
-
-    if(expr instanceof StringVector) {
-      String name = ((StringVector) expr).getElementAsString(0);
-      SEXP partialMatch = null;
-      int partialMatchCount = 0;
-      for(PairList.Node node : branches) {
-        if(node.hasTag()) {
-          String branchName = node.getTag().getPrintName();
-          if(branchName.equals(name)) {
-            return node.getValue().evaluate(context, rho);
-          } else if(branchName.startsWith(name)) {
-            partialMatch = node.getValue();
-            partialMatchCount ++;
-          }
-        }
-      }
-      if(partialMatchCount == 1) {
-        return partialMatch.evaluate(context, rho);
-      } else if(Iterables.size(branches) > 0) {
-        PairList.Node last = Iterables.getLast(branches);
-        if(!last.hasTag()) {
-          return last.getValue().evaluate(context, rho);
-        }
-      }
-
-    } else if(expr instanceof AtomicVector) {
-      int branchIndex = ((AtomicVector) expr).getElementAsInt(0);
-      if(branchIndex >= 1 && branchIndex <= Iterables.size(branches)) {
-        return Iterables.get(branches, branchIndex-1).getValue().evaluate(context, rho);
-      }
-    }
-
-    return EvalResult.visible( Null.INSTANCE );
-  }
-
-  @Primitive(".Internal")
-  public static EvalResult internal(Context context, Environment rho, FunctionCall call) {
-    SEXP arg = call.getArgument(0);
-    if(!(arg instanceof FunctionCall)) {
-      throw new EvalException("invalid .Internal() argument");
-    }
-    FunctionCall internalCall = (FunctionCall) arg;
-    Symbol internalName = (Symbol)internalCall.getFunction();
-    SEXP function = rho.findInternal(internalName);
-
-    if(function == Null.INSTANCE) {
-      throw new EvalException(String.format("no internal function \"%s\"", internalName.getPrintName()));
-    }
-    return ((Function)function).apply(context, rho, internalCall, internalCall.getArguments());
-  }
-
-  public static EvalResult next() {
-    throw new NextException();
-  }
 
   public static void stop(boolean call, String message) {
     throw new EvalException(message);
-  }
-
-  /**
-   * break;
-   */
-  @Primitive("break")
-  public static void doBreak() {
-    throw new BreakException();
   }
 
   @Primitive("return")
@@ -451,21 +241,6 @@ public class Evaluation {
       return Evaluation.substitute(exp, environment);
     }
   }
-
-  public static boolean asLogicalNoNA(FunctionCall call, SEXP s, Environment rho) {
-
-    if (s.length() > 1) {
-      Warning.warning(call, "the condition has length > 1 and only the first element will be used");
-    }
-
-    Logical logical = s.asLogical();
-    if (logical == Logical.NA) {
-      throw new EvalException("missing value where TRUE/FALSE needed");
-    }
-
-    return logical == Logical.TRUE;
-  }
-
   public static boolean missing(@Current Environment rho, @Evaluate(false) Symbol symbol) {
     SEXP value = rho.findVariable(symbol);
     if(value == Symbol.UNBOUND_VALUE) {
@@ -529,30 +304,22 @@ public class Evaluation {
     return false;
   }
 
+  public static ExpressionVector parse(SEXP file, SEXP maxExpressions, StringVector text, String prompt, String sourceFile, String encoding) {
+    List<SEXP> expressions = Lists.newArrayList();
+    for(String line : text) {
+      try {
+        ExpressionVector result = RParser.parseSource(new StringReader(line + "\n"));
+        Iterables.addAll(expressions, result);
+      } catch (IOException e) {
+        throw new EvalException("I/O Exception occurred during parse: " + e.getMessage());
+      }
+    }
+
+    return new ExpressionVector(expressions);
+  }
+
   public static int nargs(@Current Context context) {
     return context.getArguments().length();
   }
 
-  public static class BreakException extends ControlFlowException {   }
-
-  public static class NextException extends ControlFlowException {   }
-
-  public static class ReturnException extends ControlFlowException {
-
-    private final Environment environment;
-    private final SEXP value;
-
-    public ReturnException(Environment environment, SEXP value) {
-      this.environment = environment;
-      this.value = value;
-    }
-
-    public SEXP getValue() {
-      return value;
-    }
-
-    public Environment getEnvironment() {
-      return environment;
-    }
-  }
 }

@@ -21,6 +21,8 @@
 
 package r.lang;
 
+import com.google.common.base.Joiner;
+
 /**
  * A vector of {@link FunctionCall}s
  *
@@ -77,13 +79,9 @@ public class ExpressionVector extends ListVector {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("[");
-    for (SEXP s : this) {
-      sb.append("\t").append(s).append("\n");
-    }
-    sb.append("]");
-    return sb.toString();
+    StringBuilder sb = new StringBuilder("expression(");
+    Joiner.on(", ").appendTo(sb, this);
+    return sb.append(")").toString();
   }
 
   @Override

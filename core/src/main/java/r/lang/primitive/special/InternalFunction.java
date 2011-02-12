@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,43 +19,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.special;
 
+import r.lang.*;
 import r.lang.exception.EvalException;
 
-public abstract class SpecialFunction extends AbstractSEXP implements Function {
-  public static final int TYPE_CODE = 7;
-  public static final String TYPE_NAME = "special";
+public class InternalFunction extends SpecialFunction {
 
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
+  public String getName() {
+    return ".Internal";
   }
 
   @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  public abstract String getName();
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visitSpecial(this);
-  }
-
-  public static boolean asLogicalNoNA(FunctionCall call, SEXP s, Environment rho) {
-
-    if (s.length() > 1) {
-      Warning.warning(call, "the condition has length > 1 and only the first element will be used");
+  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    SEXP arg = call.getArgument(0);
+    if(!(arg instanceof FunctionCall)) {
+      throw new EvalException("invalid .Internal() argument");
     }
+    FunctionCall internalCall = (FunctionCall) arg;
+    Symbol internalName = (Symbol)internalCall.getFunction();
+    SEXP function = rho.findInternal(internalName);
 
-    Logical logical = s.asLogical();
-    if (logical == Logical.NA) {
-      throw new EvalException("missing value where TRUE/FALSE needed");
+    if(function == Null.INSTANCE) {
+      throw new EvalException(String.format("no internal function \"%s\"", internalName.getPrintName()));
     }
-
-    return logical == Logical.TRUE;
+    return ((Function)function).apply(context, rho, internalCall, internalCall.getArguments());
   }
-
 }

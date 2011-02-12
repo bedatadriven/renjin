@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,30 +19,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.special;
 
-import r.lang.primitive.BaseFrame;
+import r.lang.*;
 
-public class BuiltinFunction extends PrimitiveFunction {
-  public static final int TYPE_CODE = 8;
-  public static final String TYPE_NAME = "builtin";
+public class IfFunction extends SpecialFunction {
 
-  public BuiltinFunction(BaseFrame.Entry functionEntry) {
-    super(functionEntry);
+  @Override
+  public String getName() {
+    return "if";
   }
 
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
+  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    SEXP condition = call.getArguments().getElementAsSEXP(0).evalToExp(context, rho);
 
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
+    if (asLogicalNoNA(call, condition, rho)) {
+      return call.getArguments().getElementAsSEXP(1).evaluate(context, rho); /* true value */
 
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
+    } else {
+      if (call.getArguments().length() == 3) {
+        return call.getArguments().getElementAsSEXP(2).evaluate(context, rho); /* else value */
+      } else {
+        return EvalResult.NON_PRINTING_NULL;   /* no else, evaluates to NULL */
+      }
+    }
   }
 }

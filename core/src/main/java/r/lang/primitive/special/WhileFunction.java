@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,30 +19,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.lang.primitive.special;
 
-import r.lang.primitive.BaseFrame;
+import r.lang.*;
 
-public class BuiltinFunction extends PrimitiveFunction {
-  public static final int TYPE_CODE = 8;
-  public static final String TYPE_NAME = "builtin";
+public class WhileFunction extends SpecialFunction {
 
-  public BuiltinFunction(BaseFrame.Entry functionEntry) {
-    super(functionEntry);
+  @Override
+  public String getName() {
+    return "while";
   }
 
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
+  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    SEXP condition = args.getElementAsSEXP(0);
+    SEXP statement = args.getElementAsSEXP(1);
 
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
+    while(asLogicalNoNA(call, condition.evaluate(context, rho).getExpression(), rho)) {
 
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
+      try {
+
+        statement.evaluate(context, rho);
+
+      } catch(BreakException e) {
+        break;
+      } catch(NextException e) {
+        // next loop iteration
+      }
+    }
+    return EvalResult.NON_PRINTING_NULL;
   }
 }

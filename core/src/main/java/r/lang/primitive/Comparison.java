@@ -31,50 +31,62 @@ import r.lang.primitive.annotations.Primitive;
 public class Comparison {
 
 
+  @Primitive("==")
   public static boolean equalTo(double x, double y) {
     return x == y;
   }
 
+  @Primitive("==")
   public static boolean equalTo(String x, String y) {
     return x.equals(y);
   }
 
+  @Primitive("!=")
   public static boolean notEqualTo(double x, double y) {
     return x != y;
   }
 
+  @Primitive("!=")
   public static boolean notEqualTo(String x, String y) {
     return !x.equals(y);
   }
 
+  @Primitive("<")
   public static boolean lessThan(double x, double y) {
     return x < y;
   }
 
+  @Primitive("<")
   public static boolean lessThan(String x, String y) {
     return x.compareTo(y) < 0;
   }
 
+  @Primitive("<=")
   public static boolean lessThanOrEqualTo(double x, double y) {
     return x <= y;
   }
 
+  @Primitive("<=")
   public static boolean lessThanOrEqualTo(String x, String y) {
     return x.compareTo(y) <= 0;
   }
 
+  @Primitive(">")
   public static boolean greaterThan(double x, double y) {
     return x > y;
   }
 
+  @Primitive(">")
   public static boolean greaterThan(String x, String y) {
     return x.compareTo(y) > 0;
   }
 
+  @Primitive(">=")
   public static boolean greaterThanOrEqual(double x, double y) {
     return x >= y;
   }
 
+  @Primitive(">=")
   public static boolean greaterThanOrEqual(String x, String y) {
     return x.compareTo(y) >= 0;
   }

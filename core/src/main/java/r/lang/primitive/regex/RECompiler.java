@@ -623,22 +623,30 @@ public class RECompiler
 
                 case '-':
 
+                    // Premature end of range. treat this as a literal '-'
+                    // note that this is a change from the jakarta impl
+                    // to match the R syntax
+                    if ((idx + 1) < len && pattern.charAt(++idx) == ']') {
+                      simpleChar = '-';
+                      break;
+                    }
+
+                    // if this is the first character in the range, then
+                    // we also consider it a literal [R specific]
+                    if(last == CHAR_INVALID) {
+                      simpleChar = '-';
+                      break;
+                    }
+
                     // Start a range if one isn't already started
                     if (definingRange)
                     {
                         syntaxError("Bad class range");
                     }
+
                     definingRange = true;
+                    rangeStart = last;
 
-                    // If no last character, start of range is 0
-                    rangeStart = (last == CHAR_INVALID ? 0 : last);
-
-                    // Premature end of range. define up to Character.MAX_VALUE
-                    if ((idx + 1) < len && pattern.charAt(++idx) == ']')
-                    {
-                        simpleChar = Character.MAX_VALUE;
-                        break;
-                    }
                     continue;
 
                 default:
@@ -666,7 +674,7 @@ public class RECompiler
             else
             {
                 // If simple character and not start of range, include it
-                if (idx >= len || pattern.charAt(idx) != '-')
+                if (idx >= len || !(pattern.charAt(idx) == '-' && idx+1 < len && pattern.charAt(idx+1) != ']' ) )
                 {
                     range.include(simpleChar, include);
                 }

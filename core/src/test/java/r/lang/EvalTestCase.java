@@ -21,6 +21,7 @@
 
 package r.lang;
 
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import r.parser.ParseOptions;
 import r.parser.ParseState;
@@ -29,6 +30,7 @@ import r.parser.RParser;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -105,6 +107,14 @@ public abstract class EvalTestCase {
       builder.add(SEXPFactory.fromJava(obj));
     }
     return builder.build();
+  }
+
+  protected SEXP expression(Object... values) {
+    List<SEXP> builder = Lists.newArrayList();
+    for(Object obj : values) {
+      builder.add(SEXPFactory.fromJava(obj));
+    }
+    return new ExpressionVector(builder);
   }
 
   protected SEXP symbol(String name) {

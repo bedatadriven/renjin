@@ -22,6 +22,7 @@
 package r.lang;
 
 import org.junit.Test;
+import r.EvalTestCase;
 import r.lang.exception.EvalException;
 
 import static org.hamcrest.CoreMatchers.equalTo;

@@ -21,8 +21,8 @@
 
 package r.base;
 
+import r.jvmi.annotations.Current;
 import r.lang.Context;
-import r.lang.primitive.annotations.Current;
 
 public class Base {
 

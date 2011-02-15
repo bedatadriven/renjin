@@ -21,7 +21,7 @@
 
 package r.lang;
 
-import r.lang.primitive.BaseFrame;
+import r.base.BaseFrame;
 
 public class BuiltinFunction extends PrimitiveFunction {
   public static final int TYPE_CODE = 8;
@@ -29,6 +29,14 @@ public class BuiltinFunction extends PrimitiveFunction {
 
   public BuiltinFunction(BaseFrame.Entry functionEntry) {
     super(functionEntry);
+  }
+
+  public BuiltinFunction(String name, Class methodClass, String methodName) {
+    super(name, methodClass, methodName);
+  }
+
+  public BuiltinFunction(String name, Class methodClass) {
+    super(name, methodClass);
   }
 
   @Override

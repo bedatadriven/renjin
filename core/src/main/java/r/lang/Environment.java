@@ -24,7 +24,7 @@ package r.lang;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.UnmodifiableIterator;
-import r.lang.primitive.BaseFrame;
+import r.base.BaseFrame;
 
 import java.util.Collection;
 import java.util.HashMap;

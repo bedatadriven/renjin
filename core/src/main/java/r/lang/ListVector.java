@@ -27,8 +27,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
+import r.base.Parse;
 import r.lang.exception.EvalException;
-import r.lang.primitive.Parse;
 
 import java.util.ArrayList;
 import java.util.Collections;

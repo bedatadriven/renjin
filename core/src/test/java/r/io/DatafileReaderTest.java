@@ -22,6 +22,7 @@
 package r.io;
 
 import org.junit.Test;
+import r.EvalTestCase;
 import r.lang.*;
 
 import java.io.IOException;

@@ -23,6 +23,7 @@ package r.lang;
 
 import org.junit.Before;
 import org.junit.Test;
+import r.EvalTestCase;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

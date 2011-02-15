@@ -58,4 +58,14 @@ public abstract class SpecialFunction extends AbstractSEXP implements Function {
     return logical == Logical.TRUE;
   }
 
+  protected void checkArity(FunctionCall call, int expectedArguments) {
+    checkArity(call, 0);
+  }
+
+    protected void checkArity(FunctionCall call, int expectedArguments, int optional) {
+      int count = call.getArguments().length();
+      EvalException.check(count <= expectedArguments &&
+          count >= (expectedArguments-optional),
+          "invalid number of arguments");
+  }
 }

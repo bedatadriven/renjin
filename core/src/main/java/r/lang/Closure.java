@@ -26,8 +26,8 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
+import r.base.special.ReturnException;
 import r.lang.exception.EvalException;
-import r.lang.primitive.special.ReturnException;
 
 import java.util.Collection;
 import java.util.Iterator;

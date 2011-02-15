@@ -21,7 +21,7 @@
 
 package r.lang;
 
-import r.lang.primitive.BaseFrame;
+import r.base.BaseFrame;
 
 public class GroupGenericBuiltinFunction extends BuiltinFunction {
 

@@ -21,6 +21,7 @@
 
 package r.interpreter;
 
+import r.base.Print;
 import r.lang.Context;
 import r.lang.Environment;
 import r.lang.EvalResult;
@@ -28,7 +29,6 @@ import r.lang.SEXP;
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;
 import r.lang.exception.ParseException;
-import r.lang.primitive.Print;
 import r.parser.ParseOptions;
 import r.parser.ParseState;
 import r.parser.RLexer;

@@ -21,11 +21,11 @@
 
 package r.lang;
 
+import r.base.BaseFrame;
+import r.jvmi.binding.JvmMethod;
+import r.jvmi.binding.RuntimeInvoker;
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;
-import r.lang.primitive.BaseFrame;
-import r.lang.primitive.binding.PrimitiveMethod;
-import r.lang.primitive.binding.RuntimeInvoker;
 
 import java.util.List;
 
@@ -33,13 +33,26 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
 
   public static final String IMPLICIT_CLASS = "function";
 
-  protected final BaseFrame.Entry functionEntry;
-  protected List<PrimitiveMethod> methodOverloads;
+  protected List<JvmMethod> methodOverloads;
   private String name;
+  private Class methodClass;
+  private String methodName;
 
   protected PrimitiveFunction(BaseFrame.Entry functionEntry) {
-    this.functionEntry = functionEntry;
-    name = this.functionEntry.name;
+    name = functionEntry.name;
+    methodClass = functionEntry.functionClass;
+    methodName = functionEntry.methodName;
+  }
+
+  protected PrimitiveFunction(String name, Class methodClass, String methodName) {
+    this.name = name;
+    this.methodClass = methodClass;
+    this.methodName = methodName;
+  }
+
+  protected PrimitiveFunction(String name, Class methodClass) {
+    this.name = name;
+    this.methodClass = methodClass;
   }
 
   @Override
@@ -48,22 +61,23 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
   }
 
   public String getName() {
-    return functionEntry.name;
+    return name;
   }
 
   @Override
   public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
-    List<PrimitiveMethod> overloads = getMethodOverloads(functionEntry.functionClass, name, functionEntry.methodName);
+
+    List<JvmMethod> overloads = getMethodOverloads(methodClass, name, methodName);
     if(overloads.isEmpty()) {
       StringBuilder message = new StringBuilder();
       message.append("'")
              .append(name)
              .append("' is not yet implemented");
-      if(functionEntry.functionClass != null) {
+      if(methodClass != null) {
         message.append(" (")
-             .append(functionEntry.functionClass.getName())
+             .append(methodClass.getName())
              .append(".")
-             .append(functionEntry.methodName)
+             .append(methodName)
              .append(")");
       }
       throw new EvalException(message.toString());
@@ -76,9 +90,9 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
     }
   }
 
-  protected List<PrimitiveMethod> getMethodOverloads(Class clazz, String name, String alias) {
+  protected List<JvmMethod> getMethodOverloads(Class clazz, String name, String alias) {
     if (methodOverloads == null) {
-      methodOverloads = PrimitiveMethod.findOverloads(clazz, name, alias);
+      methodOverloads = JvmMethod.findOverloads(clazz, name, alias);
     }
     return methodOverloads;
   }

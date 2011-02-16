@@ -92,15 +92,19 @@ public class Environment extends AbstractSEXP implements Recursive {
   }
 
   public static Environment createChildEnvironment(Environment parent) {
+    return createChildEnvironment(parent, new HashFrame());
+  }
+
+  public static Environment createChildEnvironment(Environment parent, Frame frame) {
     Environment child = new Environment();
     child.name = Integer.toString(child.hashCode());
     child.baseEnvironment = parent.baseEnvironment;
     child.globalEnvironment = parent.globalEnvironment;
     child.parent = parent;
-    child.frame = new HashFrame();
+    child.frame = frame;
     return child;
   }
-
+  
   public void setVariables(PairList pairList) {
     for(PairList.Node node : pairList.nodes()) {
       if(!node.hasTag()) {
@@ -259,6 +263,12 @@ public class Environment extends AbstractSEXP implements Recursive {
   @Override
   public String toString() {
     return "<environment: " + name + ">";
+  }
+  
+  public Environment insertAbove(Frame frame) {	
+	Environment newEnv = Environment.createChildEnvironment(parent, frame);
+	setParent(newEnv);
+	return newEnv; 
   }
 
   private static class EmptyEnv extends Environment {

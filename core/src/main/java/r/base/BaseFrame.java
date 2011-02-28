@@ -40,8 +40,6 @@ import static r.base.PPprec.*;
  */
 public class BaseFrame implements Environment.Frame {
 
-  public static final BaseFrame INSTANCE = new BaseFrame();
-
   private Map<Symbol, SEXP> builtins = new HashMap<Symbol, SEXP>();
   private Map<Symbol, SEXP> internals = new HashMap<Symbol, SEXP>();
   private Map<Symbol, SEXP> loaded = new HashMap<Symbol, SEXP>();
@@ -78,7 +76,7 @@ public class BaseFrame implements Environment.Frame {
     loaded.put(name, value);
   }
 
-  private BaseFrame() {
+  public BaseFrame() {
     installBuiltins();
     installPlatform();
   }

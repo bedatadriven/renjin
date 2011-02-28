@@ -87,7 +87,7 @@ public class Environment extends AbstractSEXP implements Recursive {
     base.baseEnvironment = base;
     base.globalEnvironment = global;
     base.parent = EMPTY;
-    base.frame = BaseFrame.INSTANCE;
+    base.frame = new BaseFrame();
     return base;
   }
 

@@ -106,6 +106,8 @@ public class Context {
     public PairList conditionHandlerStack = Null.INSTANCE;
     public final Options options = new Options();
 
+    public FileSystemManager fileSystem;
+
     /**
      * This is the environment
      */
@@ -178,7 +180,6 @@ public class Context {
     return parent == null;
   }
 
-
   public void setOnExit(SEXP exp) {
     onExit = Lists.newArrayList(exp);
   }
@@ -192,9 +193,16 @@ public class Context {
       exp.evaluate(this, environment);
     }
   }
-
+  
   public FileObject resolveFile(String path) throws FileSystemException {
-    FileSystemManager fsManager = VFS.getManager();
-    return fsManager.resolveFile(path);
+    if(globals.fileSystem==null) {
+      return VFS.getManager().resolveFile(path);
+    } else {
+      return globals.fileSystem.resolveFile(path);
+    }
+  }
+
+  public void setFileSystemManager(FileSystemManager fs) {
+    globals.fileSystem = fs;
   }
 }

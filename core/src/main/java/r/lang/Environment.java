@@ -113,12 +113,17 @@ public class Environment extends AbstractSEXP implements Recursive {
       setVariable(node.getTag(), node.getValue());
     }
   }
+  
+  public void clear() {
+    frame.clear();
+  }
 
   public interface Frame {
     Set<Symbol> getSymbols();
     SEXP getVariable(Symbol name);
     SEXP getInternal(Symbol name);
     void setVariable(Symbol name, SEXP value);
+    void clear();
   }
 
   public static class HashFrame implements Frame{
@@ -143,6 +148,12 @@ public class Environment extends AbstractSEXP implements Recursive {
     @Override
     public void setVariable(Symbol name, SEXP value) {
       values.put(name, value);
+    }
+
+    @Override
+    public void clear() {
+      values.clear();
+      
     }
   }
 

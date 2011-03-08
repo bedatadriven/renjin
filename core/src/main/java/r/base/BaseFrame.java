@@ -1088,4 +1088,10 @@ public class BaseFrame implements Environment.Frame {
       return group != null;
     }
   }
+
+  @Override
+  public void clear() {
+    throw new UnsupportedOperationException("The base frame cannot be cleared");
+    
+  }
 }

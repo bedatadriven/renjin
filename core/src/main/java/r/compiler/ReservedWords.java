@@ -19,15 +19,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler;
 
-import r.lang.Null;
-import r.lang.SEXP;
+import r.compiler.ir.tree.Exp;
+import r.compiler.ir.tree.IRFactory;
+import r.compiler.ir.tree.Statement;
+import r.lang.FunctionCall;
 
-public class DateTime {
+public class ReservedWords {
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+
+  public interface IRBuilder {
+    Statement buildStm(IRFactory factory, FunctionCall call);
+    Exp buildExp(IRFactory factory, FunctionCall call);
   }
+
+
+
+
 }

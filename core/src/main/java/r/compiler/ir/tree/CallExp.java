@@ -19,15 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.tree;
 
-import r.lang.Null;
-import r.lang.SEXP;
+public class CallExp extends Exp {
 
-public class DateTime {
+  public CallExp(Exp function, ExpList arguments) {
+    this.function = function;
+    this.arguments = arguments;
+  }
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  public Exp function;
+  public ExpList arguments;
+
+  public String toString() {
+    return "CALL(" + function.toString() + ", " + arguments.toString() + ")";
   }
 }

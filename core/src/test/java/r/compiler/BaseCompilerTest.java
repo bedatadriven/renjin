@@ -19,15 +19,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler;
 
-import r.lang.Null;
-import r.lang.SEXP;
+import org.junit.Ignore;
+import org.junit.Test;
 
-public class DateTime {
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+@Ignore("work in progress")
+public class BaseCompilerTest {
+
+  @Test
+  public void test() throws IOException {
+    Logger logger = Logger.getLogger(BaseCompiler.class.getName());
+    logger.addHandler(new ConsoleHandler());
+    logger.setLevel(Level.ALL);
+
+    BaseCompiler compiler = new BaseCompiler();
+    compiler.compile(new File("core/src/main/r/base"), "core/target/classes");
   }
+
 }

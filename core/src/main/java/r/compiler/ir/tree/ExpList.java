@@ -19,15 +19,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.tree;
 
-import r.lang.Null;
-import r.lang.SEXP;
+import java.util.ArrayList;
 
-public class DateTime {
+public class ExpList extends ArrayList<Exp> {
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("[");
+    for(Exp exp : this) {
+      if(sb.length() > 1) {
+        sb.append(", ");
+      }
+      sb.append(exp);
+    }
+    sb.append("]");
+    return sb.toString();
   }
 }

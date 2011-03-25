@@ -21,16 +21,12 @@
 
 package r.base;
 
-import org.apache.commons.vfs.FileObject;
 import r.io.DatafileReader;
 import r.jvmi.annotations.Current;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
@@ -177,9 +173,14 @@ public class Connections {
   private static InputStream openInput(Context context, String description) throws IOException {
     if(description.equals("stdin")) {
       return java.lang.System.in;
+    } else if (description.startsWith("classpath:")){
+      InputStream is = Connections.class.getResourceAsStream(description.substring(10));
+      if(is == null) {
+        throw new FileNotFoundException(description);
+      }
+      return is;
     } else {
-      FileObject file = context.resolveFile(description);
-      return file.getContent().getInputStream();
+      return new FileInputStream(description);
     }
   }
 

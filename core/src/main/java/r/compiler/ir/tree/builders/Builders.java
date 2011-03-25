@@ -19,15 +19,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.tree.builders;
 
-import r.lang.Null;
-import r.lang.SEXP;
+import com.google.common.collect.Maps;
+import r.compiler.ReservedWords;
+import r.lang.Symbol;
 
-public class DateTime {
+import java.util.Map;
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+public class Builders {
+
+  private Map<Symbol, ReservedWords.IRBuilder> map = Maps.newHashMap();
+
+  public Builders() {
+    map.put(new Symbol("if"), new IfStatement());
+  }
+
+  public boolean hasBuilder(Symbol symbol) {
+    return map.containsKey(symbol);
+  }
+
+  public ReservedWords.IRBuilder getBuilder(Symbol symbol) {
+    return map.get(symbol);
   }
 }

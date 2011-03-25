@@ -23,10 +23,6 @@ package r.lang;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
 
 import java.util.List;
 import java.util.Map;
@@ -106,8 +102,6 @@ public class Context {
     public PairList conditionHandlerStack = Null.INSTANCE;
     public final Options options = new Options();
 
-    public FileSystemManager fileSystem;
-
     /**
      * This is the environment
      */
@@ -115,10 +109,11 @@ public class Context {
 
 
     private Globals() {
-      systemEnvironment.put("R_LIBS", "res:r/library");
+      systemEnvironment.put("R_LIBS", "classpath:/r/library");
     }
 
   }
+
 
   private Context parent;
   private int evaluationDepth;
@@ -193,16 +188,6 @@ public class Context {
       exp.evaluate(this, environment);
     }
   }
-  
-  public FileObject resolveFile(String path) throws FileSystemException {
-    if(globals.fileSystem==null) {
-      return VFS.getManager().resolveFile(path);
-    } else {
-      return globals.fileSystem.resolveFile(path);
-    }
-  }
 
-  public void setFileSystemManager(FileSystemManager fs) {
-    globals.fileSystem = fs;
-  }
+
 }

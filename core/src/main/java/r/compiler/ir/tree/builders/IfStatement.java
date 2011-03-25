@@ -19,15 +19,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.tree.builders;
 
-import r.lang.Null;
+import r.compiler.ReservedWords;
+import r.compiler.ir.temp.Label;
+import r.compiler.ir.tree.*;
+import r.lang.FunctionCall;
 import r.lang.SEXP;
 
-public class DateTime {
+public class IfStatement implements ReservedWords.IRBuilder {
+  @Override
+  public Statement buildStm(IRFactory factory, FunctionCall call) {
+    Label trueLabel = factory.newLabel();
+    Label doneLabel = factory.newLabel();
+    return
+        new SeqStm(
+            new CJumpStm(factory.buildExp(call.<SEXP>getArgument(0)), trueLabel, doneLabel),
+               new SeqStm(new LabelStm(trueLabel),
+                   new SeqStm(factory.buildStm(call.getArgument(1)),
+                     new LabelStm(doneLabel))));
+  }
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  @Override
+  public Exp buildExp(IRFactory factory, FunctionCall call) {
+    throw new UnsupportedOperationException();
   }
 }

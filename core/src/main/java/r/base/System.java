@@ -22,21 +22,21 @@
 package r.base;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.vfs.FileContent;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileType;
 import r.base.regex.RE;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
+import java.io.File;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 public class System {
+
+  public static final String CLASSPATH_PREFIX = "classpath:";
 
   public static long sysTime() {
     return new Date().getTime();
@@ -44,7 +44,7 @@ public class System {
 
   public static String getRHome() {
     // hardcode to the R home location to a classpath location
-    return "res:r";
+    return CLASSPATH_PREFIX + "/r";
   }
 
   /**
@@ -83,7 +83,7 @@ public class System {
   }
 
   @Primitive("file.info")
-  public static ListVector fileInfo(@Current Context context, StringVector paths) throws FileSystemException {
+  public static ListVector fileInfo(@Current Context context, StringVector paths)  {
     EvalException.check(paths.length() > 0, "invalid filename argument");
 
     DoubleVector.Builder size = new DoubleVector.Builder();
@@ -94,18 +94,17 @@ public class System {
     StringVector.Builder exe = new StringVector.Builder();
 
     for(String path : paths) {
-      FileObject file = context.resolveFile(path);
+      File file = getFile(path);
       if(file.exists()) {
-        FileContent content = file.getContent();
-        if(file.getType() == FileType.FILE) {
-          size.add((int) content.getSize());
+        if(file.isFile()) {
+          size.add((int) file.length());
         } else {
           size.add(0);
         }
-        isdir.add(file.getType() == FileType.FOLDER);
+        isdir.add(file.isDirectory());
         mode.add(mode(file));
-        mtime.add(content.getLastModifiedTime());
-        exe.add(file.getName().getPath().endsWith(".exe") ? "yes" : "no");
+        mtime.add(file.lastModified());
+        exe.add(file.getName().endsWith(".exe") ? "yes" : "no");
       } else {
         size.add(IntVector.NA);
         isdir.add(IntVector.NA);
@@ -126,18 +125,29 @@ public class System {
       return list;
     }
 
-
     ListVector.Builder info = ListVector.newBuilder();
 
     return info.build();
   }
 
+  private static File getFile(String path) {
+    if(path.startsWith(CLASSPATH_PREFIX)) {
+      URL resource = System.class.getResource(path.substring(CLASSPATH_PREFIX.length()));
+      if(resource != null) {
+        return new File(resource.getFile());
+      } else {
+        return new File(path.substring(CLASSPATH_PREFIX.length()));
+      }
+    }
+    return new File(path);
+  }
+
   @Primitive("file.exists")
   public static boolean fileExists(@Current Context context, String path) {
-    try {
-      return context.resolveFile(path).exists();
-    } catch (FileSystemException e) {
-      return false;
+    if(path.startsWith(CLASSPATH_PREFIX)) {
+      return System.class.getResource(path.substring(CLASSPATH_PREFIX.length())) != null;
+    } else {
+      return new File(path).exists();
     }
   }
 
@@ -192,22 +202,22 @@ public class System {
                                        final boolean allFiles,
                                        final boolean fullNames,
                                        boolean recursive,
-                                       final boolean ignoreCase) throws FileSystemException {
+                                       final boolean ignoreCase)  {
 
     return new Object() {
 
       private final StringVector.Builder result = new StringVector.Builder();
       private final RE filter = pattern == null ? null : new RE(pattern).ignoreCase(ignoreCase);
 
-      public StringVector list() throws FileSystemException {
+      public StringVector list()  {
         for(String path : paths) {
-          FileObject folder = context.resolveFile(path);
-          if(folder.getType() == FileType.FOLDER) {
+          File folder = getFile(path);
+          if(folder.isDirectory()) {
             if(allFiles) {
               add(folder, ".");
               add(folder, "..");
             }
-            for(FileObject child : folder.getChildren()) {
+            for(File child : folder.listFiles()) {
               if(filter(child)) {
                 add(child);
               }
@@ -217,48 +227,48 @@ public class System {
         return result.build();
       }
 
-      void add(FileObject file) {
+      void add(File file) {
         if(fullNames) {
-          result.add(file.getName().getURI());
+          result.add(file.getPath());
         } else {
-          result.add(file.getName().getBaseName());
+          result.add(file.getName());
         }
       }
 
-      void add(FileObject folder, String name) throws FileSystemException {
+      void add(File folder, String name)  {
         if(fullNames) {
-          result.add(folder.getURL() + "/" + name);
+          result.add(new File(folder, name).getPath());
         } else {
           result.add(name);
         }
       }
 
-      boolean filter(FileObject child) throws FileSystemException {
+      boolean filter(File child)  {
         if(!allFiles && isHidden(child)) {
           return false;
         }
-        if(filter!=null && !filter.match(child.getName().getBaseName())) {
+        if(filter!=null && !filter.match(child.getName())) {
           return false;
         }
         return true;
       }
 
-      private boolean isHidden(FileObject file) throws FileSystemException {
-        return file.isHidden() || file.getName().getBaseName().startsWith(".");
+      private boolean isHidden(File file)  {
+        return file.isHidden() || file.getName().startsWith(".");
       }
     }.list();
   }
 
 
-  private static int mode(FileObject file) throws FileSystemException {
+  private static int mode(File file)  {
     int access = 0;
-    if(file.isReadable()) {
+    if(file.canRead()) {
       access += 4;
     }
-    if(file.isWriteable()) {
+    if(file.canWrite()) {
       access += 2;
     }
-    if(file.getType() == FileType.FOLDER) {
+    if(file.isDirectory()) {
       access += 1;
     }
     // i know this is braindead but i can't be bothered

@@ -19,15 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.tree;
 
-import r.lang.Null;
 import r.lang.SEXP;
 
-public class DateTime {
+public class ConstantExp extends Exp {
+  public SEXP value;
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  public ConstantExp(SEXP exp) {
+    value = exp;
+  }
+
+  @Override
+  public String toString() {
+    return "CONSTANT(" + value.toString() + ")";
   }
 }

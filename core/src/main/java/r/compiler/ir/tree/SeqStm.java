@@ -19,15 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.tree;
 
-import r.lang.Null;
-import r.lang.SEXP;
+public class SeqStm extends Statement {
+  public Statement left;
+  public Statement right;
 
-public class DateTime {
+  public SeqStm(Statement left, Statement right) {
+    this.left = left;
+    this.right = right;
+  }
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  @Override
+  public String toString() {
+    return "SEQ(" + left + ", " + right + ")";
   }
 }

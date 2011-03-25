@@ -19,15 +19,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler;
 
-import r.lang.Null;
-import r.lang.SEXP;
+import r.lang.Closure;
 
-public class DateTime {
+public class ClosureCompiler {
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+
+  public ClosureCompiler() {
+
+
+
   }
+
+  public void compile(Closure closure) {
+
+
+  }
+
+
+
 }

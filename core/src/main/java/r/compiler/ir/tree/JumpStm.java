@@ -19,15 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.tree;
 
-import r.lang.Null;
-import r.lang.SEXP;
+import r.compiler.ir.temp.Label;
 
-public class DateTime {
+public class JumpStm extends Statement {
+  public Label label;
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  public JumpStm(Label label) {
+    this.label = label;
+  }
+
+  @Override
+  public String toString() {
+    return "JUMP(" + label.toString() + ")";
   }
 }

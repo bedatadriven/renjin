@@ -19,15 +19,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.temp;
 
-import r.lang.Null;
-import r.lang.SEXP;
+public class Label {
 
-public class DateTime {
+  private final int index;
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  public Label(int index) {
+    this.index = index;
+  }
+
+  @Override
+  public String toString() {
+    return Integer.toString(index);
   }
 }

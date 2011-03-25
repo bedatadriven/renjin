@@ -19,15 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.tree;
 
-import r.lang.Null;
-import r.lang.SEXP;
+import r.lang.Symbol;
 
-public class DateTime {
+public class NameExp extends Exp {
+  public Symbol symbol;
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  public NameExp(Symbol symbol) {
+    this.symbol = symbol;
+  }
+
+  @Override
+  public String toString() {
+    return "NAME(" + symbol.getPrintName() + ")";
   }
 }

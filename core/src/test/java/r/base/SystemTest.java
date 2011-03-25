@@ -21,6 +21,7 @@
 
 package r.base;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import r.EvalTestCase;
 
@@ -36,6 +37,7 @@ public class SystemTest extends EvalTestCase {
 //    java.lang.System.out.println( System.glob( topLevelContext, c("c:\\.*") , true) );
   }
 
+  @Ignore("platform dependent")
   @Test
   public void listFiles() {
     eval(" list.files <- function (path = '.'," +
@@ -43,17 +45,17 @@ public class SystemTest extends EvalTestCase {
         "recursive = FALSE, ignore.case = FALSE) " +
           ".Internal(list.files(path, pattern, all.files, full.names, recursive, ignore.case))");
 
-    assertThat( eval("list.files('res:afolder')"), equalTo( c("file1.ext", "second.file")));
-    assertThat( eval("list.files('res:afolder', all.files=TRUE)"), equalTo( c(".", "..", ".secret", "file1.ext", "second.file")));
-    assertThat( eval("list.files('res:afolder', all.files=TRUE, full.names=TRUE)"),
+    assertThat( eval("list.files('classpath:/afolder')"), equalTo( c("file1.ext", "second.file")));
+    assertThat( eval("list.files('classpath:/afolder', all.files=TRUE)"), equalTo( c(".", "..", ".secret", "file1.ext", "second.file")));
+    assertThat( eval("list.files('classpath:/afolder', all.files=TRUE, full.names=TRUE)"),
         equalTo( c(fullPathPlus("."), fullPathPlus(".."), fullPath(".secret"), fullPath("file1.ext"), fullPath("second.file"))));
 
-    assertThat( eval("list.files('res:r/library', pattern='^survey$')"), equalTo( c("survey")) );
+    assertThat( eval("list.files('classpath:/r/library', pattern='^survey$')"), equalTo( c("survey")) );
   }
 
   private String fullPath(String name) {
-    return getClass().getResource("/afolder/" + name).toString()
-        .replace("file:/", "file:///");
+    return getClass().getResource("/afolder/" + name)
+        .getFile().toString().replace("\\", "/");
   }
 
   private String fullPathPlus(String name) {

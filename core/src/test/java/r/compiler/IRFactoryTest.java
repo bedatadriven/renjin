@@ -19,15 +19,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler;
 
-import r.lang.Null;
-import r.lang.SEXP;
+import org.junit.Test;
+import r.EvalTestCase;
+import r.compiler.ir.tree.IRFactory;
+import r.lang.Closure;
 
-public class DateTime {
+public class IRFactoryTest extends EvalTestCase {
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  @Test
+  public void testSimple() {
+
+    eval("f <- function(x) x + 2 ");
+
+    Closure f = (Closure) global.getVariable("f");
+
+    IRFactory factory = new IRFactory();
+    System.out.println(factory.build(f.getBody()));
   }
+
+  @Test
+  public void testIf() {
+
+    eval("f <- function(x) if(x) 1 ");
+
+    Closure f = (Closure) global.getVariable("f");
+
+    IRFactory factory = new IRFactory();
+    System.out.println(factory.build(f.getBody()));
+  }
+
+
 }

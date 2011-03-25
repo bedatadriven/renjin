@@ -19,19 +19,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.compiler.ir.tree.builders;
 
-import r.base.BaseFrame;
+import r.compiler.ReservedWords;
+import r.compiler.ir.tree.*;
+import r.lang.SEXP;
+import r.lang.Symbol;
 
-public class GroupGenericBuiltinFunction extends BuiltinFunction {
-
-  public GroupGenericBuiltinFunction(BaseFrame.Entry functionEntry) {
-    super(functionEntry);
+public class DefaultCallBuilder implements ReservedWords.IRBuilder {
+  @Override
+  public Statement buildStm(IRFactory factory, r.lang.FunctionCall call) {
+    return new ExpStm( buildExp(factory, call));
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
-
-    return super.apply(context, rho, call, arguments);
+  public Exp buildExp(IRFactory factory, r.lang.FunctionCall call) {
+    ExpList expList = new ExpList();
+    for(SEXP node : call.getArguments().values()) {
+      expList.add( factory.buildExp( node) );
+    }
+    if(call.getFunction() instanceof Symbol) {
+      return new CallExp(new NameExp((Symbol) call.getFunction()), expList);
+    } else {
+      throw new UnsupportedOperationException("Cannot build IR for function call with function of type " +
+          call.getFunction().getClass().getName());
+    }
   }
 }

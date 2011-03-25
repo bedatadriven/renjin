@@ -19,15 +19,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.compiler.ir.tree;
 
-import r.lang.Null;
-import r.lang.SEXP;
+import java.util.ArrayList;
 
-public class DateTime {
+public class StmList extends ArrayList<Statement> {
 
-  public static SEXP strptime(String x, String format, String tz) {
-    // TODO
-    return Null.INSTANCE;
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for(int i=0;i!=this.size();++i) {
+      sb.append("S" + i + ": " + this.get(i).toString());
+    }
+    return sb.toString();
   }
 }

@@ -21,6 +21,7 @@
 
 package r.base;
 
+import com.google.common.collect.Sets;
 import r.base.special.*;
 import r.lang.*;
 
@@ -46,7 +47,7 @@ public class BaseFrame implements Environment.Frame {
 
   @Override
   public Set<Symbol> getSymbols() {
-    return builtins.keySet();
+    return Sets.union(builtins.keySet(), loaded.keySet());
   }
 
   @Override
@@ -79,6 +80,10 @@ public class BaseFrame implements Environment.Frame {
   public BaseFrame() {
     installBuiltins();
     installPlatform();
+    installLoaded();
+  }
+
+  protected void installLoaded() {
   }
 
   private void add(String name, Function fn) {

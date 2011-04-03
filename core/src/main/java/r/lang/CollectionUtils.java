@@ -55,7 +55,7 @@ public class CollectionUtils {
     }
   }
 
-  static class TagName implements Function<PairList.Node, String> {
+  public static class TagName implements Function<PairList.Node, String> {
     @Override
     public String apply(PairList.Node input) {
       return ((Symbol)input.getTag()).getPrintName();

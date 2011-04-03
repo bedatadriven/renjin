@@ -66,7 +66,14 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
 
   @Override
   public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
+    try {
+      return RuntimeInvoker.INSTANCE.invoke(context, rho, call, getOverloads());
+    } catch (EvalException e) {
+      throw new FunctionCallException(call, arguments, e);
+    }
+  }
 
+  protected List<JvmMethod> getOverloads() {
     List<JvmMethod> overloads = getMethodOverloads(methodClass, name, methodName);
     if(overloads.isEmpty()) {
       StringBuilder message = new StringBuilder();
@@ -82,12 +89,7 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
       }
       throw new EvalException(message.toString());
     }
-
-    try {
-      return RuntimeInvoker.INSTANCE.invoke(context, rho, call, overloads);
-    } catch (EvalException e) {
-      throw new FunctionCallException(call, arguments, e);
-    }
+    return overloads;
   }
 
   protected List<JvmMethod> getMethodOverloads(Class clazz, String name, String alias) {

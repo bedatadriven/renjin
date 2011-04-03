@@ -246,9 +246,9 @@ public class Combine {
     Vector.Builder newVector = source.newBuilder(source.length());
     int index[] = new int[dim.length];
     for(int i=0;i!=newVector.length();++i) {
-      IndexUtils.vectorIndexToArrayIndex(i, index, dim);
+      Indexes.vectorIndexToArrayIndex(i, index, dim);
       index = permute(index, permutation);
-      int newIndex = IndexUtils.arrayIndexToVectorIndex(index, permutedDims);
+      int newIndex = Indexes.arrayIndexToVectorIndex(index, permutedDims);
       newVector.setFrom(newIndex, source, i);
     }
 

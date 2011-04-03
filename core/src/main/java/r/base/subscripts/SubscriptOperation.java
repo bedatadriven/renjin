@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class SubscriptOperation {
@@ -126,7 +125,7 @@ public class SubscriptOperation {
           }
         }
 
-      } while(IndexUtils.incrementArrayIndex(subscriptIndex, this.subscriptDim));
+      } while(Indexes.incrementArrayIndex(subscriptIndex, this.subscriptDim));
 
       result.setAttribute(Attributes.DIM, computeResultDimensionAttribute());
       if(names != null) {
@@ -153,7 +152,7 @@ public class SubscriptOperation {
       sourceIndices[i] = subscripts[i].getAt(subscriptIndex[i]);
     }
 
-    return IndexUtils.arrayIndexToVectorIndex(sourceIndices, sourceDim);
+    return Indexes.arrayIndexToVectorIndex(sourceIndices, sourceDim);
   }
 
   private SEXP computeResultDimensionAttribute() {
@@ -180,7 +179,7 @@ public class SubscriptOperation {
         dim[count++] = subscriptDim[i];
       }
     }
-    return Arrays.copyOf(dim, count);
+    return java.util.Arrays.copyOf(dim, count);
   }
 
 
@@ -202,7 +201,7 @@ public class SubscriptOperation {
         result.setNA(index);
       }
 
-    } while(IndexUtils.incrementArrayIndex(subscriptIndex, this.subscriptDim));
+    } while(Indexes.incrementArrayIndex(subscriptIndex, this.subscriptDim));
 
 
     return result.build();
@@ -286,7 +285,7 @@ public class SubscriptOperation {
     private int subscriptIndex[];
 
     public boolean next() {
-      return IndexUtils.incrementArrayIndex(subscriptIndex, subscriptDim);
+      return Indexes.incrementArrayIndex(subscriptIndex, subscriptDim);
     }
 
   }

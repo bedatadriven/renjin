@@ -22,12 +22,15 @@
 package r.lang;
 
 /**
- * Promises are an internal structures that arise only in the context of a
- * call to a ClosureExp.
+ * Promises are the mechanism by which R implements lazy "call-by-need"
+ * semantics for closures.
  *
  * Promises enable delayed evaluation in such a way that an expression
  * provided as an argument is evaluated only once, but only if it is
- * referenced.
+ * used.
+ *
+ * In Haskell and other lazy functional languages, a "Promise" would be called
+ * a "thunk."
  *
  */
 public class Promise extends AbstractSEXP implements Recursive {
@@ -42,6 +45,18 @@ public class Promise extends AbstractSEXP implements Recursive {
   public Promise(Environment environment, SEXP expression) {
     this.expression = expression;
     this.environment = environment;
+  }
+
+  /**
+   * Creates a promise with it's expression and its already-evaluated
+   * result.
+   * @param environment
+   * @param expression
+   * @param result
+   */
+  public Promise(Environment environment, SEXP expression, SEXP result) {
+    this.environment = environment;
+    this.expression = expression;
   }
 
   @Override
@@ -61,6 +76,10 @@ public class Promise extends AbstractSEXP implements Recursive {
       this.environment = null;
     }
     return result;
+  }
+
+  public void setResult(SEXP exp) {
+    this.result = new EvalResult(exp);
   }
 
   @Override

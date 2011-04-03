@@ -115,6 +115,23 @@ public class RuntimeInvoker {
     return matchAndInvoke(context, rho, overloads, provided);
   }
 
+
+  public EvalResult invoke(Context context, Environment rho, FunctionCall call, PairList evaluatedArgs, List<JvmMethod> overloads) {
+
+    // make a list of the provided arguments
+    List<ProvidedArgument> provided = Lists.newArrayList();
+    for(PairList.Node arg : evaluatedArgs.nodes()) {
+      provided.add(new ProvidedArgument(arg));
+    }
+
+    // do we have a single method that accepts the whole argument list?
+    if(overloads.size() == 1 && overloads.get(0).acceptsArgumentList()) {
+      return overloads.get(0).invokeWithContextAndWrap(context, rho, toEvaluatedList(overloads.get(0), provided));
+    }
+
+    return matchAndInvoke(context, rho, overloads, provided);
+  }
+
   private EvalResult matchAndInvoke(Context context, Environment rho, List<JvmMethod> overloads, List<ProvidedArgument> provided) {
     for(JvmMethod method : overloads) {
       if(acceptArguments(provided, method.getFormals())) {
@@ -309,6 +326,12 @@ public class RuntimeInvoker {
     private SEXP tag;
     private Context context;
 
+    private ProvidedArgument(PairList.Node evaluatedArg) {
+      this.tag = evaluatedArg.getRawTag();
+      this.provided = this.evaluated = evaluatedArg.getValue();
+    }
+
+
     public ProvidedArgument(Context context, Environment rho, PairList.Node arg) {
       this.context = context;
       this.rho = rho;
@@ -322,6 +345,7 @@ public class RuntimeInvoker {
       this.provided = argument;
       this.tag = Null.INSTANCE;
     }
+
 
     public boolean canBePassedTo(JvmMethod.Argument formal) {
       if(formal.isEvaluated()) {

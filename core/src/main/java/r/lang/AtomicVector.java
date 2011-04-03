@@ -32,14 +32,6 @@ public interface AtomicVector extends Vector {
 
   /**
    *
-   * @param index zero-based index
-   * @return the element at {@code index} as an {@code Object},
-   * boxing Java-language primitives if necessary.
-   */
-  Object getElementAsObject(int index);
-
-  /**
-   *
    * @return true if the vector contains any {@code NA} values
    */
   boolean containsNA();

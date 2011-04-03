@@ -266,7 +266,7 @@ public class BaseFrame implements Environment.Frame {
     f("oldClass<-", /*classgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("class", Types.class, "getClass", 0, 1, 1);
     f("class<-", Types.class, "setClass", 0, 1, 2);
-    f("unclass", /*unclass*/ null, 0, 1, 1);
+    f("unclass", Types.class, 0, 1, 1);
     f("names", Types.class,  "getNames", 0, 1, 1);
     f("names<-", Types.class, "setNames", 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("dimnames", Types.class, 0, 1, 1);
@@ -512,14 +512,14 @@ public class BaseFrame implements Environment.Frame {
 
 /* Data Summaries */
 /* sum, min, max, prod, range are group generic and so need to eval args */
-    f("sum", /*summary*/ null, 0, 1, -1);
-    f("mean", /*summary*/ null, 1, 11, 1);
-    f("min", /*summary*/ null, 2, 1, -1);
-    f("max", /*summary*/ null, 3, 1, -1);
-    f("prod", MathExt.class, 4, 1, -1);
-    f("range", /*range*/ null, 0, 1, -1);
-    f("cov", /*cov*/ null, 0, 11, 4);
-    f("cor", /*cov*/ null, 1, 11, 4);
+    f("sum", Summary.class, 0, 1, -1);
+    f("mean", Summary.class, 1, 11, 1);
+    f("min", Summary.class, 2, 1, -1);
+    f("max", Summary.class, 3, 1, -1);
+    f("prod", Summary.class, 4, 1, -1);
+    f("range", Summary.class, 0, 1, -1);
+    f("cov", Summary.class, 0, 11, 4);
+    f("cor", Summary.class, 1, 11, 4);
 
 /* Note that the number of arguments in this group only applies
    to the default method */

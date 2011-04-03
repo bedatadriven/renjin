@@ -21,22 +21,9 @@
 
 package r.base;
 
-import org.junit.Test;
 import r.EvalTestCase;
-import r.lang.DoubleVector;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 public class MathExtTest extends EvalTestCase {
 
-  @Test
-  public void testProd() throws Exception {
-    assertThat( eval("prod() "), equalTo(c(1))) ;
-    assertThat( eval("prod(NULL) "), equalTo(c(1))) ;
-    assertThat( eval("prod(2,4) "), equalTo(c(8))) ;
-    assertThat( eval("prod(1, NA) "), equalTo(c(DoubleVector.NA)));
-    assertThat( eval("prod(1, NA, na.rm=TRUE) "), equalTo(c(1)));
-  }
 
 }

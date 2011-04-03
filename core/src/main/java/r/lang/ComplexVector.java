@@ -71,8 +71,8 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
   }
 
   @Override
-  public Complex getElementAsObject(int index) {
-    return values[index];
+  public Comparable getElementAsObject(int index) {
+    throw new UnsupportedOperationException("how can Complex not implement Comparable!!!");
   }
 
   @Override
@@ -152,6 +152,16 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
     @Override
     public Builder newBuilder() {
       throw new UnsupportedOperationException("implement me!");
+    }
+
+    @Override
+    public Vector getElementAsVector(Vector vector, int index) {
+      return new ComplexVector(vector.getElementAsComplex(index));
+    }
+
+    @Override
+    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
+      throw new UnsupportedOperationException();
     }
   }
 }

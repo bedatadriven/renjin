@@ -201,6 +201,14 @@ public class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void unclass() {
+    eval("x<-1");
+    eval("class(x) <- 'foo'");
+    eval("x <- unclass(x)");
+    assertThat(eval("class(x)"), equalTo(c("numeric")));
+  }
+
+  @Test
   public void setNamesWithNonStrVector() {
     eval(" x<-c(1,2,3) ");
     eval(" names(x) <- c(4,5,6) ");

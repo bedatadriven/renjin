@@ -21,7 +21,7 @@
 
 package r.lang;
 
-public class IndexUtils {
+public class Indexes {
 
   public static int arrayIndexToVectorIndex(int arrayIndex[], int dim[]) {
     int vectorIndex = 0;

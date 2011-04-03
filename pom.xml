@@ -47,14 +47,14 @@
 
   <distributionManagement>
     <repository>
-      <id>bedatadriven-stat-releases</id>
-      <name>bedatadriven Stats Repo</name>
-      <url>http://nexus.bedatadriven.com/content/repositories/stat-releases</url>
+      <id>bedatadriven-oss</id>
+      <name>bedatadriven Open-Source releases</name>
+      <url>http://nexus.bedatadriven.com/content/repositories/oss-releases</url>
     </repository>
     <snapshotRepository>
-      <id>bedatadriven-stat-snapshots</id>
-      <name>bedatadriven Stats Repo</name>
-      <url>http://nexus.bedatadriven.com/content/repositories/stat-snapshots</url>
+      <id>bedatadriven-oss</id>
+      <name>bedatadriven Open-Source snapshots</name>
+      <url>http://nexus.bedatadriven.com/content/repositories/oss-snapshots</url>
     </snapshotRepository>
   </distributionManagement>
 

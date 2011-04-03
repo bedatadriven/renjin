@@ -63,4 +63,11 @@ public class DotExp extends AbstractSEXP {
   public void accept(SexpVisitor visitor) {
     throw new UnsupportedOperationException();
   }
+
+  public static DotExp cast(SEXP sexp) {
+    if(!(sexp instanceof DotExp)) {
+      throw new EvalException("'...' used in an incorrect context");
+    }
+    return (DotExp)sexp;
+  }
 }

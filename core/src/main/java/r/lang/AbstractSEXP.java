@@ -240,18 +240,6 @@ abstract class AbstractSEXP implements SEXP {
     return cloneWithNewAttributes(list.build());
   }
 
-  @Override
-  public final SEXP setClass(StringVector classNames) {
-    return cloneWithNewAttributes(replaceAttribute(Symbol.CLASS,
-        checkClassAttributes(classNames)));
-  }
-
-  @Override
-  public final SEXP setNames(StringVector names) {
-    return cloneWithNewAttributes(replaceAttribute(Symbol.NAMES,
-        checkNamesAttributes(names)));
-  }
-
   private SEXP checkAttribute(String name, SEXP value) {
     if(name.equals("class")) {
       return checkClassAttributes(value);
@@ -270,16 +258,17 @@ abstract class AbstractSEXP implements SEXP {
     return StringVector.coerceFrom(names).setLength(length());
   }
 
-  private StringVector checkClassAttributes(SEXP classNames) {
-    EvalException.check(classNames.length() != 0, "class attribute cannot be null");
-    return StringVector.coerceFrom(classNames);
+  private SEXP checkClassAttributes(SEXP classNames) {
+    return classNames.length() == 0 ? Null.INSTANCE : StringVector.coerceFrom(classNames);
   }
 
   private PairList replaceAttribute(Symbol attributeName, SEXP newValue) {
     PairList.Node.Builder builder = PairList.Node.buildList(attributeName, newValue);
     for(PairList.Node node : attributes.nodes()) {
       if(!node.getTag().equals(attributeName)) {
-        builder.add(node.getTag(), node.getValue());
+        if(newValue != Null.INSTANCE) {
+          builder.add(node.getTag(), node.getValue());
+        }
       }
     }
     return builder.build();

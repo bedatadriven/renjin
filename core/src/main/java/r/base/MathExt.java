@@ -21,33 +21,9 @@
 
 package r.base;
 
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.NamedFlag;
-import r.lang.AtomicVector;
-import r.lang.DoubleVector;
-import r.lang.ListVector;
-import r.lang.SEXP;
-import r.lang.exception.EvalException;
-
 /**
  * Math functions not found in java.Math or apache commons math
  */
 public class MathExt {
 
-  public static double prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
-    double product = 1;
-    for(SEXP argument : arguments) {
-      AtomicVector vector = EvalException.checkedCast(argument);
-      for(int i=0;i!=vector.length();++i) {
-        if(vector.isElementNA(i)) {
-          if(!removeNA) {
-            return DoubleVector.NA;
-          }
-        } else {
-          product = product * vector.getElementAsDouble(i);
-        }
-      }
-    }
-    return product;
-  }
 }

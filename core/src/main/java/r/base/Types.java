@@ -373,13 +373,13 @@ public class Types {
     return rho.getGlobalEnvironment();
   }
 
-  public static boolean exists(String x, Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(new Symbol(x), modePredicate(mode), inherits)
+  public static boolean exists(@Current Context context, String x, Environment environment, String mode, boolean inherits) {
+    return environment.findVariable(context, new Symbol(x), modePredicate(mode), inherits)
         != Symbol.UNBOUND_VALUE;
   }
 
-  public static SEXP get(String x, Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(new Symbol(x), modePredicate(mode), inherits);
+  public static SEXP get(@Current Context context, String x, Environment environment, String mode, boolean inherits) {
+    return environment.findVariable(context, new Symbol(x), modePredicate(mode), inherits);
   }
 
   public static int length(SEXP exp) {
@@ -439,6 +439,10 @@ public class Types {
   @Primitive("class<-")
   public static SEXP setClass(SEXP exp, Vector classes) {
     return exp.setAttribute("class", classes);
+  }
+
+  public static SEXP unclass(SEXP exp) {
+    return exp.setAttribute("class", Null.INSTANCE);
   }
 
   @Primitive("attr<-")

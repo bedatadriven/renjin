@@ -309,6 +309,16 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     public Vector.Builder newBuilder() {
       return new Builder();
     }
+
+    @Override
+    public Vector getElementAsVector(Vector vector, int index) {
+      return new StringVector(vector.getElementAsString(index));
+    }
+
+    @Override
+    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
+      return vector1.getElementAsString(index1).compareTo(vector2.getElementAsString(index2));
+    }
   }
 
   public static StringVector coerceFrom(SEXP exp) {

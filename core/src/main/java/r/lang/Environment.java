@@ -22,14 +22,10 @@
 package r.lang;
 
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.UnmodifiableIterator;
 import r.base.BaseFrame;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The Environment data type.
@@ -63,12 +59,21 @@ public class Environment extends AbstractSEXP implements Recursive {
   private Environment parent;
   private Environment globalEnvironment;
   private Environment baseEnvironment;
+  protected Frame frame;
 
 
   /**
    * The root of the environment hierarchy.
    */
   public static final EmptyEnv EMPTY = new EmptyEnv();
+
+  public static Environment createOrphanEnvironment() {
+    Environment orphan = new Environment();
+    orphan.frame = new HashFrame();
+    orphan.parent = EMPTY;
+    return orphan;
+  }
+
 
   public static Environment createGlobalEnvironment() {
     Environment global = new Environment();
@@ -157,7 +162,6 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
   }
 
-  protected Frame frame;
 
   public String getName() {
     return name;
@@ -200,21 +204,31 @@ public class Environment extends AbstractSEXP implements Recursive {
   /**
    * Searches the environment for a value that matches the given predicate.
    *
+   * @param context the current execution context (need for testing predicate against {@code Promise}s)
    * @param symbol The symbol for which to search
    * @param predicate a predicate that tests possible return values
    * @param inherits if {@code true}, enclosing frames are searched
    * @return
    */
-  public SEXP findVariable(Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
+  public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
     SEXP value = frame.getVariable(symbol);
-    if(value != Symbol.UNBOUND_VALUE && predicate.apply(value)) {
-      return value;
+    if(value != Symbol.UNBOUND_VALUE) {
+      if(value instanceof Promise) {
+        value = ((Promise) value).force(context).getExpression();
+      }
+      if(predicate.apply(value)) {
+        return value;
+      }
     }
-    return parent.findVariable(symbol, predicate, inherits);
+    return parent.findVariable(context, symbol, predicate, inherits);
   }
 
-  public final SEXP findVariable(Symbol symbol) {
-    return findVariable(symbol, Predicates.<SEXP>alwaysTrue(), true);
+  public SEXP findVariable(Symbol symbol) {
+    SEXP value = frame.getVariable(symbol);
+    if(value != Symbol.UNBOUND_VALUE) {
+        return value;
+    }
+    return parent.findVariable(symbol);
   }
 
   public SEXP findInternal(Symbol symbol) {
@@ -288,7 +302,17 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
 
     @Override
-    public SEXP findVariable(Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
+    public Collection<Symbol> getSymbolNames() {
+      return Collections.emptySet();
+    }
+
+    @Override
+    public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
+      return Symbol.UNBOUND_VALUE;
+    }
+
+    @Override
+    public SEXP findVariable(Symbol symbol) {
       return Symbol.UNBOUND_VALUE;
     }
 

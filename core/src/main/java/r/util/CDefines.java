@@ -213,6 +213,10 @@ public class CDefines {
     return y;
   }
 
+  public static String PRIMNAME(SEXP x) {
+    return ((PrimitiveFunction)x).getName();
+  }
+
   public static void CHECK_OLD_TO_NEW(SEXP x, SEXP y) {
     /** Do nothing, JVM is handling GC */
   }

@@ -355,5 +355,16 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     public Vector.Builder newBuilder() {
       return new Builder(0);
     }
+
+    @Override
+    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
+      return Double.compare(vector1.getElementAsDouble(index1), vector2.getElementAsDouble(index2));
+    }
+
+    @Override
+    public Vector getElementAsVector(Vector vector, int index) {
+      return new DoubleVector(vector.getElementAsDouble(index));
+    }
+
   }
 }

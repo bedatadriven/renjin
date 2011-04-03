@@ -121,15 +121,36 @@ public interface SEXP {
    */
   int getIndexByName(String name);
 
+  /**
+   * Returns the value of the attribute named {@code name} for this
+   * SEXP. Attributes are like metadata and can be associated with
+   * most types of {@code SEXP}s.
+   *
+   * @param name the name of the attribute
+   * @return  the value of the attribute, or {@code Null.INSTANCE} if the
+   * attribute is not set.
+   */
   SEXP getAttribute(Symbol name);
 
+  /**
+   * Copies this {@code SEXP}, sets the value of the attribute indicated
+   * by {@code name}, and returns the copied object.
+   *
+   * @param attributeName
+   * @param value  the new value, or {@code Null.INSTANCE} if the attribute should be removed (if present)
+   * @return a copy of this {@code SEXP}
+   */
   SEXP setAttribute(String attributeName, SEXP value);
 
+  /**
+   * Replaces all of this {@code SEXP}'s attributes with the attributes
+   * specified by {@code attributes} {@code ListVector}.
+   *
+   * @param attributes a list of attributes. All elements must be named.
+   * @return a copy of this {@code SEXP} with the new attributes
+   */
   SEXP setAttributes(ListVector attributes);
 
-  SEXP setClass(StringVector classNames);
-
-  SEXP setNames(StringVector names);
 
   /**
    *

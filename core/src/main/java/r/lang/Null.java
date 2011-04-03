@@ -134,7 +134,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
   @Override
   public SEXP setAttribute(String attributeName, SEXP value) {
-    throw new EvalException("Attributes cannot be set on NULL");
+    if(value == Null.INSTANCE) {
+      return this;
+    } else {
+      throw new EvalException("Attributes cannot be set on NULL");
+    }
   }
 
   @Override
@@ -157,7 +161,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
-  public Object getElementAsObject(int index) {
+  public Comparable getElementAsObject(int index) {
     throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
   }
 
@@ -274,5 +278,16 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     public Vector.Builder newBuilder() {
       return NullBuilder.INSTANCE;
     }
+
+    @Override
+    public Vector getElementAsVector(Vector vector, int index) {
+      throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
+
+    @Override
+    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
+      throw new UnsupportedOperationException();
+    }
+
   }
 }

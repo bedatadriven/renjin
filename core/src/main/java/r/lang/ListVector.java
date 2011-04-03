@@ -164,6 +164,15 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
   }
 
   @Override
+  public Object getElementAsObject(int index) {
+    SEXP value = values.get(index);
+    if(value.length() == 1 && value instanceof AtomicVector) {
+      return ((AtomicVector) value).getElementAsObject(0);
+    }
+    return Parse.deparse(value);
+  }
+
+  @Override
   public Logical getElementAsLogical(int index) {
     SEXP value = values.get(index);
     if(value.length() == 1 && value instanceof AtomicVector) {
@@ -419,6 +428,17 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
 
     public Builder newBuilder() {
       return new Builder();
+    }
+
+    @Override
+    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
+      // TODO: should compareElements be a method on some AtomicVectorType class??
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Vector getElementAsVector(Vector vector, int index) {
+      return new ListVector(vector.getElementAsSEXP(index));
     }
   }
 

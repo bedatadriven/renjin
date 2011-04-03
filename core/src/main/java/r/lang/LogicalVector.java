@@ -342,5 +342,15 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     public Vector.Builder newBuilder() {
       return new Builder(0);
     }
+
+    @Override
+    public Vector getElementAsVector(Vector vector, int index) {
+      return new LogicalVector(vector.getElementAsRawLogical(index));
+    }
+
+    @Override
+    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
+      return vector1.getElementAsRawLogical(index1) - vector2.getElementAsRawLogical(index2);
+    }
   }
 }

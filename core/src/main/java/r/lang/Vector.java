@@ -90,7 +90,7 @@ public interface Vector extends SEXP {
   boolean isWiderThan(Vector vector);
 
   /**
-   *         
+   *
    * @return a builder initialized with a copy of this set of elements.
    */
   Builder newCopyBuilder();
@@ -101,6 +101,25 @@ public interface Vector extends SEXP {
    * @return  true if the element at {@code index} is NA (statistically missing)
    */
   boolean isElementNA(int index);
+
+  /**
+   * Returns the element at index {@code index} of the vector as a native
+   * JVM object, depending on the underlying R type:
+   *
+   * <ul>
+   * <li>logical: java.lang.Boolean</li>
+   * <li>integer: java.lang.Integer</li>
+   * <li>double: java.lang.Double</li>
+   * <li>complex: org.apache.commons.math.complex.Complex</li>
+   * <li>character: java.lang.String</li>
+   * </ul>
+   *
+   * @param index
+   * @return
+   * @throws IllegalArgumentException if the index is out of bounds or
+   * the element at {@code index} is NA.
+   */
+  Object getElementAsObject(int index);
 
   /**
    * An interface to
@@ -200,6 +219,26 @@ public interface Vector extends SEXP {
       return isWiderThan(vector.getVectorType());
     }
 
+    /**
+     * Creates a new {@code Vector} of this {@code Type} from the element at
+     * {@code index} in vector.
+     * @param vector
+     * @param index
+     * @return
+     */
+    public abstract Vector getElementAsVector(Vector vector, int index);
+
+    /**
+     * Compares the two elements, coercing types to this {@code Type}.
+     * @param vector1
+     * @param index1
+     * @param vector2
+     * @param index2
+     * @return
+     */
+    public abstract int compareElements(Vector vector1, int index1, Vector vector2, int index2);
+
+
     public static Type widest(Type a, Type b) {
       if(b.isWiderThan(a)) {
         return b;
@@ -212,4 +251,6 @@ public interface Vector extends SEXP {
       return widest(a, b.getVectorType());
     }
   }
+
+
 }

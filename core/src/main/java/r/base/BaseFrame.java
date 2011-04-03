@@ -657,7 +657,7 @@ public class BaseFrame implements Environment.Frame {
     f("memory.profile", /*memoryprofile*/ null, 0, 11, 0);
     f("rep", /*rep*/ null, 0, 0, -1);
     f("rep.int", Sequences.class, 0, 11, 2);
-    f("seq.int", /*seq*/ null, 0, 0, -1);
+    f("seq.int", Sequences.class, 0, 0, -1);
     f("seq_len", /*seq_len*/ null, 0, 1, 1);
     f("seq_along", Sequences.class, "seqAlong", 0, 1, 1);
     f("list", Types.class, "list", 1, 1, -1);

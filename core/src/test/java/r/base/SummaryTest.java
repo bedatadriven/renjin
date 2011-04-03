@@ -61,7 +61,7 @@ public class SummaryTest extends EvalTestCase {
 
   @Test
   public void maxTestWithNAsRemoved() {
-    assertThat(eval("max(4,99,2,3,NA,na.rm=TRUE)"), equalTo(c(DoubleVector.NA)));
+    assertThat(eval("max(4,99,2,3,NA,na.rm=TRUE)"), equalTo(c(99)));
   }
 
   @Test
@@ -69,7 +69,6 @@ public class SummaryTest extends EvalTestCase {
     assertThat(eval("max('a', 'aaa', 'b', 'cc', 999)"), equalTo(c("cc")));
     assertThat(eval("max('a', 'aaa', 'b', 'cc', 999)"), equalTo(c("cc")));
   }
-
 
   @Test
   public void testProd() throws Exception {

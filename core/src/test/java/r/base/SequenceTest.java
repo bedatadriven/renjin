@@ -96,4 +96,14 @@ public class SequenceTest extends EvalTestCase {
     assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 0))"), equalTo( CHARACTER_0 ));
   }
 
+  @Test
+  public void seqInt() {
+    assertThat( eval(" seq.int(to=6, from=3)" ), equalTo(c_i(3,4,5,6)));
+    assertThat( eval(" seq.int(3,6)" ), equalTo(c_i(3,4,5,6)));
+    assertThat( eval(" seq.int(from=10, length=4)" ), equalTo(c(10,11,12,13))); // this seems like it should be double
+                                                                                // but R.2.10.1 returns double
+    assertThat( eval(" seq.int(to=10, by=2)"), equalTo(c(1,3,5,7,9)));
+    assertThat( eval(" seq.int(length=4)" ), equalTo(c_i(1,2,3,4)));
+  }
+
 }

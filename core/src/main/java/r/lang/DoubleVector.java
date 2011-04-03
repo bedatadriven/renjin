@@ -275,6 +275,10 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     return Double.doubleToRawLongBits(input) == Double.doubleToRawLongBits(NA);
   }
 
+  public static boolean isFinite(double d) {
+    return !Double.isInfinite(d) && !Double.isNaN(d);
+  }
+
   @Override
   public Builder newCopyBuilder() {
     return new Builder(this);

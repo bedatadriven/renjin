@@ -22,6 +22,7 @@
 package r.base;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.math.linear.RealVector;
 import r.jvmi.annotations.Indices;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
@@ -33,6 +34,7 @@ import r.lang.exception.EvalException;
  */
 public class Sequences {
 
+  @Primitive(":")
   public static SEXP colon(SEXP n1, SEXP n2) {
     if( n1.inherits("factor") && n2.inherits("factor")) {
       return crossColon(n1, n2);
@@ -158,6 +160,231 @@ public class Sequences {
     }
   }
 
+  @Primitive("seq.int")
+  public static SEXP seqInt(Context context, Environment rho, FunctionCall call) {
+
+    // TODO: move this argument matching somewhere else,
+    // and this is super inefficient...
+
+    // match arguments
+    PairList.Builder formals = new PairList.Builder();
+    formals.add("from", Symbol.MISSING_ARG);
+    formals.add("to", Symbol.MISSING_ARG);
+    formals.add("by", Symbol.MISSING_ARG);
+    formals.add("length.out", Symbol.MISSING_ARG);
+    formals.add("along.with", Symbol.MISSING_ARG);
+
+    boolean One = (call.getArguments().length() == 1);
+    PairList matched = Calls.matchArguments(formals.build(), call.getArguments());
+    SEXP from = matched.findByTag(new Symbol("from"));
+    SEXP to = matched.findByTag(new Symbol("to"));
+    SEXP by = matched.findByTag(new Symbol("by"));
+    SEXP len = matched.findByTag(new Symbol("length.out"));
+    SEXP along = matched.findByTag(new Symbol("along.with"));
+
+    if(from!=Symbol.MISSING_ARG) {
+      from = from.evalToExp(context, rho);
+    }
+    if(to!=Symbol.MISSING_ARG) {
+      to = to.evalToExp(context, rho);
+    }
+    if(by!=Symbol.MISSING_ARG) {
+      by = by.evalToExp(context, rho);
+    }
+    if(len!=Symbol.MISSING_ARG) {
+      len = len.evalToExp(context, rho);
+    }
+
+    return doSeq(from, to, by, len, along, One);
+  }
+
+  private static SEXP doSeq(SEXP from, SEXP to, SEXP by, SEXP len, SEXP along, boolean one) {
+    if(one && from != Symbol.MISSING_ARG) {
+      int lf = from.length();
+      if(lf == 1 && ( from instanceof IntVector ||  from instanceof RealVector)) {
+        return new Range(1.0, ((AtomicVector) from).getElementAsDouble(0)).vector();
+      } else if (lf != 0) {
+        return new Range(1.0, lf).vector();
+      } else {
+        return new IntVector();
+      }
+    }
+
+    int lout = IntVector.NA;
+    if(along != Symbol.MISSING_ARG) {
+      //int lout = INTEGER(along)[0];
+      if(one) {
+        // ans = lout ? seq_colon(1.0, (double)lout, call) : allocVector(INTSXP, 0);
+        throw new UnsupportedOperationException("implement me!");
+      }
+    } else if(len != Symbol.MISSING_ARG && len != Symbol.MISSING_ARG) {
+      double rout = len.asReal();
+      if(Double.isNaN(rout) || rout <= -0.5) {
+        throw new EvalException("'length.out' must be a non-negative number");
+      }
+      lout = (int) Math.ceil(rout);
+    }
+
+    if(IntVector.isNA(lout)) {
+      double rfrom = (from == Symbol.MISSING_ARG) ? 1.0 : from.asReal();
+      double rto = (to == Symbol.MISSING_ARG) ? 1.0 : to.asReal();
+      double rby = by.asReal();
+
+      if(by == Symbol.MISSING_ARG) {
+        return new Range(rfrom, rto).vector();
+      } else {
+        return sequenceBy(from, to, rfrom, rto, rby);
+      }
+    } else if (lout == 0) {
+      return new IntVector();
+
+    } else if (one) {
+      return new Range(1.0, lout).vector();
+
+    } else if (by == Symbol.MISSING_ARG) {
+      double rfrom = from.asReal();
+      double rto = to.asReal();
+      if(to == Symbol.MISSING_ARG) {
+        rto = rfrom + lout - 1;
+      }
+      if(from == Symbol.MISSING_ARG) {
+        rfrom = rto - lout + 1;
+      }
+      return sequenceFromTo(rfrom, rto, lout);
+
+    } else if (to == Symbol.MISSING_ARG) {
+      double rfrom = (from == Symbol.MISSING_ARG) ? 1.0 : from.asReal();
+      return sequenceFrom(lout, rfrom, by.asReal());
+
+    } else if (from == Symbol.MISSING_ARG) {
+      return sequenceTo(lout, to.asReal(), by.asReal());
+
+    } else {
+      throw new EvalException("too many arguments");
+    }
+  }
+
+  private static SEXP sequenceBy(SEXP from, SEXP to, double rfrom, double rto, double by) {
+    double del = rto - rfrom, n, dd;
+    int nn;
+    if(!DoubleVector.isFinite(rfrom)) {
+      throw new EvalException("'from' must be finite");
+    }
+    if(!DoubleVector.isFinite(rto)) {
+      throw new EvalException("'to' must be finite");
+    }
+    if(del == 0.0 && rto == 0.0) {
+      return to;
+    }
+    n = del/by;
+    if(!DoubleVector.isFinite(n)) {
+      if(del == 0.0 && by == 0.0) {
+        return from;
+      } else {
+        throw new EvalException("invalid '(to - from)/by' in 'seq'");
+      }
+    }
+    dd = Math.abs(del)/Math.max(Math.abs(rto), Math.abs(rfrom));
+    if(dd < 100 * DoubleVector.EPSILON) {
+      return from;
+    }
+    if(n > (double) Integer.MAX_VALUE) {
+      throw new EvalException("'by' argument is much too small");
+    }
+    if(n < -DoubleVector.EPSILON) {
+      throw new EvalException("wrong sign in 'by' argument");
+    }
+    nn = (int)(n + DoubleVector.EPSILON);
+    double ra[] = new double[nn+1];
+    for(int i = 0; i <= nn; i++) {
+      ra[i] = rfrom + (i * by);
+    }
+    /* Added in 2.9.0 */
+    if (nn > 0) {
+      if((by > 0 && ra[nn] > rto) || (by < 0 && ra[nn] < rto)) {
+        ra[nn] = rto;
+      }
+    }
+    return new DoubleVector(ra);
+  }
+
+  private static SEXP sequenceFromTo(double from, double to, int length) {
+    if(!DoubleVector.isFinite(from)) {
+      throw new EvalException("'from' must be finite");
+    }
+    if(!DoubleVector.isFinite(to)) {
+      throw new EvalException("'to' must be finite");
+    }
+    double sequence[] = new double[length];
+    if(length > 0) sequence[0] = from;
+    if(length > 1) sequence[length - 1] = to;
+    if(length > 2) {
+      double by = (to - from)/(double)(length - 1);
+      for(int i = 1; i < length-1; i++) {
+        sequence[i] = from + i*by;
+      }
+    }
+    return new DoubleVector(sequence);
+  }
+
+  private static SEXP sequenceTo(int length, double to, double by) {
+    if(!DoubleVector.isFinite(to)) {
+      throw new EvalException("'to' must be finite");
+    }
+    if(!DoubleVector.isFinite(by)) {
+      throw new EvalException("'by' must be finite") ;
+    }
+
+    double from = to - (length-1)*by;
+
+    if(isIntegerRange(from, to, by)) {
+      int sequence[] = new int[length];
+      for(int i = 0; i < length; i++) {
+        sequence[i] = (int) (to - (length - 1 - i)*by);
+      }
+      return new IntVector(sequence);
+
+    } else {
+      double sequence[] = new double[length];
+      for(int i = 0; i < length; i++){
+        sequence[i] = to - (length - 1 - i)*by;
+      }
+      return new DoubleVector(sequence);
+    }
+  }
+
+  private static SEXP sequenceFrom(int length, double from, double by) {
+    if(!DoubleVector.isFinite(from)) {
+      throw new EvalException("'from' must be finite");
+    }
+    if(!DoubleVector.isFinite(by)) {
+      throw new EvalException("'by' must be finite");
+    }
+
+    double to = from +(length-1)*by;
+
+    if(isIntegerRange(from, to, by)) {
+      int sequence[] = new int[length];
+      for(int i = 0; i < length; i++) {
+        sequence[i] = (int) (from + i*by);
+      }
+      return new IntVector(sequence);
+
+    } else {
+      double sequence[] = new double[length];
+      for(int i = 0; i < length; i++) {
+        sequence[i] = from + i*by;
+      }
+      return new DoubleVector(sequence);
+    }
+  }
+
+  private static boolean isIntegerRange(double from, double to, double by) {
+    return by == (int)by && from <= Integer.MAX_VALUE && from >= Integer.MIN_VALUE
+        && to <= Integer.MAX_VALUE && to >= Integer.MIN_VALUE;
+  }
+
+  @Primitive("seq_along")
   public static int[] seqAlong(SEXP exp) {
     int indexes[] = new int[exp.length()];
     for(int i=0;i!=indexes.length;++i) {

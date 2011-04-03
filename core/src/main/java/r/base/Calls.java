@@ -430,6 +430,22 @@ public class Calls {
   }
 
 
+
+  public static void matchArgumentsInto(PairList formals, PairList actuals, Environment innerEnv) {
+
+    PairList matched = matchArguments(formals, actuals);
+    for(PairList.Node node : matched.nodes()) {
+      SEXP value = node.getValue();
+      if(value == Symbol.MISSING_ARG) {
+        SEXP defaultValue = formals.findByTag(node.getTag());
+        if(defaultValue != Symbol.MISSING_ARG) {
+          value =  new Promise(innerEnv, defaultValue);
+        }
+      }
+      innerEnv.setVariable(node.getTag(), value);
+    }
+  }
+
   /**
    * Argument matching is done by a three-pass process:
    * <ol>
@@ -454,7 +470,9 @@ public class Calls {
    * @param actuals the actual arguments supplied to the list
    * @param innerEnv the environment in which to resolve the arguments;
    */
-  public static void matchArgumentsInto(PairList formals, PairList actuals, Environment innerEnv) {
+  public static PairList matchArguments(PairList formals, PairList actuals) {
+
+    PairList.Builder result = new PairList.Builder();
 
     List<PairList.Node> unmatchedActuals = Lists.newArrayList();
     for(PairList.Node argNode : actuals.nodes()) {
@@ -472,7 +490,7 @@ public class Calls {
 
         if(matches.size() == 1) {
           PairList.Node match = first(matches);
-          innerEnv.setVariable(name, match.getValue());
+          result.add(name, match.getValue());
           formalIt.remove();
           unmatchedActuals.remove(match);
 
@@ -492,7 +510,7 @@ public class Calls {
 
         if(matches.size() == 1) {
           PairList.Node match = first(matches);
-          innerEnv.setVariable(match.getTag(), actual.getValue());
+          result.add(match.getTag(), actual.getValue());
           actualIt.remove();
           unmatchedFormals.remove(match);
 
@@ -515,22 +533,22 @@ public class Calls {
           PairList.Node actual = actualIt.next();
           promises.add( actual.getRawTag(),  actual.getValue() );
         }
-        innerEnv.setVariable(formal.getTag(), new DotExp( promises.build() ));
+        result.add(formal.getTag(), new DotExp( promises.build() ));
 
       } else if( hasNextUnTagged(actualIt) ) {
-        innerEnv.setVariable(formal.getTag(), nextUnTagged(actualIt).getValue() );
-
-      } else if( formal.getValue() == Symbol.MISSING_ARG ) {
-        innerEnv.setVariable(formal.getTag(), Symbol.MISSING_ARG);
+        result.add(formal.getTag(), nextUnTagged(actualIt).getValue() );
 
       } else {
-        innerEnv.setVariable(formal.getTag(), new Promise(innerEnv, formal.getValue())); // default
+        result.add(formal.getTag(), Symbol.MISSING_ARG);
       }
     }
     if(actualIt.hasNext()) {
       throw new EvalException(String.format("Unmatched positional arguments"));
     }
+
+    return result.build();
   }
+
 
   private static boolean hasNextUnTagged(PeekingIterator<PairList.Node> it) {
     return it.hasNext() && !it.peek().hasTag();

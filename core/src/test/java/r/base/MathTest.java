@@ -25,6 +25,7 @@ import org.junit.Test;
 import r.EvalTestCase;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.closeTo;
 import static org.junit.Assert.assertThat;
 
 public class MathTest extends EvalTestCase {
@@ -43,6 +44,11 @@ public class MathTest extends EvalTestCase {
   @Test
   public void unaryCall() {
     assertThat( eval("atan(1)"), equalTo( c(Math.atan(1)) ) );
+  }
+
+  @Test
+  public void gamma() {
+    assertThat( MathExt.gamma(3), closeTo(2, 0.0001));
   }
 
 }

@@ -22,6 +22,7 @@
 package r.base;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.math.distribution.Distribution;
 import r.base.special.*;
 import r.lang.*;
 
@@ -339,7 +340,7 @@ public class BaseFrame implements Environment.Frame {
     f("atanh", /*math1*/ null, 35, 1, 1);
 
     f("lgamma", org.apache.commons.math.special.Gamma.class, "logGamma", 40, 1, 1);
-    f("gamma", cern.jet.stat.Gamma.class, 41, 1, 1);
+    f("gamma", MathExt.class, 41, 1, 1);
 
     f("digamma", org.apache.commons.math.special.Gamma.class, 42, 1, 1);
     f("trigamma",org.apache.commons.math.special.Gamma.class, 43, 1, 1);
@@ -354,25 +355,25 @@ public class BaseFrame implements Environment.Frame {
     f("lchoose", /*math2*/ null, 4, 11, 2);
     f("choose", /*math2*/ null, 5, 11, 2);
 
-    f("dchisq", /*math2*/ null, 6, 11, 2 + 1);
-    f("pchisq", /*math2*/ null, 7, 11, 2 + 2);
-    f("qchisq", /*math2*/ null, 8, 11, 2 + 2);
+    f("dchisq", Distributions.class, 6, 11, 2 + 1);
+    f("pchisq", Distributions.class, 7, 11, 2 + 2);
+    f("qchisq", Distributions.class, 8, 11, 2 + 2);
 
-    f("dexp", /*math2*/ null, 9, 11, 2 + 1);
-    f("pexp", /*math2*/ null, 10, 11, 2 + 2);
-    f("qexp", /*math2*/ null, 11, 11, 2 + 2);
+    f("dexp", Distributions.class, 9, 11, 2 + 1);
+    f("pexp", Distributions.class, 10, 11, 2 + 2);
+    f("qexp", Distributions.class, 11, 11, 2 + 2);
 
     f("dgeom", /*math2*/ null, 12, 11, 2 + 1);
     f("pgeom", /*math2*/ null, 13, 11, 2 + 2);
     f("qgeom", /*math2*/ null, 14, 11, 2 + 2);
 
-    f("dpois", /*math2*/ null, 15, 11, 2 + 1);
-    f("ppois", /*math2*/ null, 16, 11, 2 + 2);
-    f("qpois", /*math2*/ null, 17, 11, 2 + 2);
+    f("dpois", Distributions.class, 15, 11, 2 + 1);
+    f("ppois", Distributions.class, 16, 11, 2 + 2);
+    f("qpois", Distributions.class, 17, 11, 2 + 2);
 
-    f("dt", /*math2*/ null, 18, 11, 2 + 1);
-    f("pt", /*math2*/ null, 19, 11, 2 + 2);
-    f("qt", /*math2*/ null, 20, 11, 2 + 2);
+    f("dt", Distributions.class, 18, 11, 2 + 1);
+    f("pt", Distributions.class, 19, 11, 2 + 2);
+    f("qt", Distributions.class, 20, 11, 2 + 2);
 
     f("dsignrank", /*math2*/ null, 21, 11, 2 + 1);
     f("psignrank", /*math2*/ null, 22, 11, 2 + 2);
@@ -396,25 +397,25 @@ public class BaseFrame implements Environment.Frame {
 
 /* Mathematical Functions of Three Numeric (+ 1-2 int) Variables */
 
-    f("dbeta", /*math3*/ null, 1, 11, 3 + 1);
-    f("pbeta", /*math3*/ null, 2, 11, 3 + 2);
-    f("qbeta", /*math3*/ null, 3, 11, 3 + 2);
+    f("dbeta", Distribution.class, 1, 11, 3 + 1);
+    f("pbeta", Distributions.class, 2, 11, 3 + 2);
+    f("qbeta", Distributions.class, 3, 11, 3 + 2);
 
-    f("dbinom", /*math3*/ null, 4, 11, 3 + 1);
-    f("pbinom", /*math3*/ null, 5, 11, 3 + 2);
-    f("qbinom", /*math3*/ null, 6, 11, 3 + 2);
+    f("dbinom", Distributions.class, 4, 11, 3 + 1);
+    f("pbinom", Distributions.class, 5, 11, 3 + 2);
+    f("qbinom", Distributions.class, 6, 11, 3 + 2);
 
-    f("dcauchy", /*math3*/ null, 7, 11, 3 + 1);
-    f("pcauchy", /*math3*/ null, 8, 11, 3 + 2);
-    f("qcauchy", /*math3*/ null, 9, 11, 3 + 2);
+    f("dcauchy", Distributions.class, 7, 11, 3 + 1);
+    f("pcauchy", Distributions.class, 8, 11, 3 + 2);
+    f("qcauchy", Distributions.class, 9, 11, 3 + 2);
 
-    f("df", /*math3*/ null, 10, 11, 3 + 1);
-    f("pf", /*math3*/ null, 11, 11, 3 + 2);
-    f("qf", /*math3*/ null, 12, 11, 3 + 2);
+    f("df", Distributions.class, 10, 11, 3 + 1);
+    f("pf", Distributions.class, 11, 11, 3 + 2);
+    f("qf", Distributions.class, 12, 11, 3 + 2);
 
-    f("dgamma", /*math3*/ null, 13, 11, 3 + 1);
-    f("pgamma", /*math3*/ null, 14, 11, 3 + 2);
-    f("qgamma", /*math3*/ null, 15, 11, 3 + 2);
+    f("dgamma", Distributions.class, 13, 11, 3 + 1);
+    f("pgamma", Distributions.class, 14, 11, 3 + 2);
+    f("qgamma", Distributions.class, 15, 11, 3 + 2);
 
     f("dlnorm", /*math3*/ null, 16, 11, 3 + 1);
     f("plnorm", /*math3*/ null, 17, 11, 3 + 2);
@@ -428,17 +429,17 @@ public class BaseFrame implements Environment.Frame {
     f("pnbinom", /*math3*/ null, 23, 11, 3 + 2);
     f("qnbinom", /*math3*/ null, 24, 11, 3 + 2);
 
-    f("dnorm", /*math3*/ null, 25, 11, 3 + 1);
-    f("pnorm", /*math3*/ null, 26, 11, 3 + 2);
-    f("qnorm", /*math3*/ null, 27, 11, 3 + 2);
+    f("dnorm", Distributions.class, 25, 11, 3 + 1);
+    f("pnorm", Distributions.class, 26, 11, 3 + 2);
+    f("qnorm", Distributions.class, 27, 11, 3 + 2);
 
-    f("dunif", /*math3*/ null, 28, 11, 3 + 1);
-    f("punif", /*math3*/ null, 29, 11, 3 + 2);
-    f("qunif", /*math3*/ null, 30, 11, 3 + 2);
+    f("dunif", Distributions.class, 28, 11, 3 + 1);
+    f("punif", Distributions.class, 29, 11, 3 + 2);
+    f("qunif", Distributions.class, 30, 11, 3 + 2);
 
-    f("dweibull", /*math3*/ null, 31, 11, 3 + 1);
-    f("pweibull", /*math3*/ null, 32, 11, 3 + 2);
-    f("qweibull", /*math3*/ null, 33, 11, 3 + 2);
+    f("dweibull", Distributions.class, 31, 11, 3 + 1);
+    f("pweibull", Distributions.class, 32, 11, 3 + 2);
+    f("qweibull", Distributions.class, 33, 11, 3 + 2);
 
     f("dnchisq", /*math3*/ null, 34, 11, 3 + 1);
     f("pnchisq", /*math3*/ null, 35, 11, 3 + 2);
@@ -462,9 +463,9 @@ public class BaseFrame implements Environment.Frame {
 
 /* Mathematical Functions of Four Numeric (+ 1-2 int) Variables */
 
-    f("dhyper", /*math4*/ null, 1, 11, 4 + 1);
-    f("phyper", /*math4*/ null, 2, 11, 4 + 2);
-    f("qhyper", /*math4*/ null, 3, 11, 4 + 2);
+    f("dhyper", Distribution.class, 1, 11, 4 + 1);
+    f("phyper", Distribution.class, 2, 11, 4 + 2);
+    f("qhyper", Distribution.class, 3, 11, 4 + 2);
 
     f("dnbeta", /*math4*/ null, 4, 11, 4 + 1);
     f("pnbeta", /*math4*/ null, 5, 11, 4 + 2);

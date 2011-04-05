@@ -21,9 +21,15 @@
 
 package r.base;
 
+import org.apache.commons.math.special.Gamma;
+
 /**
  * Math functions not found in java.Math or apache commons math
  */
 public class MathExt {
+
+  public static double gamma(double x) {
+    return Math.exp(Gamma.logGamma(x));
+  }
 
 }

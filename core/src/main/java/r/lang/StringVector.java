@@ -273,7 +273,7 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
         values.add(NA);
       }
       values.set(index, value);
-      if(!value.isEmpty()) {
+      if(value != null && !value.isEmpty()) {
         haveNonEmpty = true;
       }
       return this;
@@ -281,7 +281,7 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
 
     public void add(String value) {
       values.add(value);
-      if(!value.isEmpty()) {
+      if(value != null && !value.isEmpty()) {
         haveNonEmpty = true;
       }
     }

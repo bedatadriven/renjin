@@ -419,6 +419,21 @@ public class Types {
     }
   }
 
+  @Primitive("storage.mode<-")
+  public static SEXP setStorageMode(Vector source, String newMode) {
+    Vector.Builder builder;
+    if(newMode.equals("logical")) {
+      builder = new LogicalVector.Builder();
+    } else {
+      throw new UnsupportedOperationException("storage.mode with new mode '" + newMode + "' invalid or not implemented");
+    }
+
+    for(int i=0;i!=source.length();++i) {
+      builder.setFrom(i, source, i);
+    }
+    return builder.copyAttributesFrom(source).build();
+  }
+
   public static String typeof(SEXP exp) {
     return exp.getTypeName();
   }

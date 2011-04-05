@@ -177,6 +177,8 @@ public interface Vector extends SEXP {
      * @return a new Vector.
      */
     Vector build();
+
+    Builder copyAttributesFrom(SEXP exp);
   }
 
   static class Order {

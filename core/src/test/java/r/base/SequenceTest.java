@@ -106,4 +106,19 @@ public class SequenceTest extends EvalTestCase {
     assertThat( eval(" seq.int(length=4)" ), equalTo(c_i(1,2,3,4)));
   }
 
+  @Test
+  public void rep() {
+    assertThat( eval(" rep() "), equalTo(NULL));
+    assertThat( eval(" rep(c(1,2,3)) "), equalTo(c(1,2,3)));
+    assertThat( eval(" rep(1, length.out=5) "), equalTo(c(1,1,1,1,1)));
+    assertThat( eval(" rep(c(1,2,3), length.out=5) "), equalTo(c(1,2,3,1,2)));
+
+    assertThat( eval(" rep(1, times=5) "), equalTo(c(1,1,1,1,1)));
+    assertThat( eval(" rep(c(1,2,3), times=2) "), equalTo(c(1,2,3,1,2,3)));
+
+    assertThat( eval(" rep(1, each=4)" ), equalTo(c(1,1,1,1)));
+    assertThat( eval(" rep(c(1,2), each=4)" ), equalTo(c(1,1,1,1,2,2,2,2)));
+    assertThat( eval(" rep(c(1,2), each=4,l=6)" ), equalTo(c(1,1,1,1,2,2)));
+  }
+
 }

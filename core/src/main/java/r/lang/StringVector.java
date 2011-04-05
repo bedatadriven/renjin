@@ -249,6 +249,7 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
 
   public static class Builder extends AbstractAtomicBuilder<String> {
     private ArrayList<String> values;
+    private boolean haveNonEmpty = false;
 
     public Builder() {
       values = Lists.newArrayList();
@@ -272,11 +273,17 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
         values.add(NA);
       }
       values.set(index, value);
+      if(!value.isEmpty()) {
+        haveNonEmpty = true;
+      }
       return this;
     }
 
     public void add(String value) {
       values.add(value);
+      if(!value.isEmpty()) {
+        haveNonEmpty = true;
+      }
     }
 
     @Override
@@ -287,6 +294,10 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     @Override
     public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
       return set(destinationIndex, source.getElementAsString(sourceIndex) );
+    }
+
+    public boolean haveNonEmpty() {
+      return haveNonEmpty;
     }
 
     @Override

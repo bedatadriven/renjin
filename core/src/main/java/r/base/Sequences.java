@@ -23,6 +23,7 @@ package r.base;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.math.linear.RealVector;
+import r.jvmi.annotations.ArgumentList;
 import r.jvmi.annotations.Indices;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
@@ -89,6 +90,58 @@ public class Sequences {
       times--;
     }
     return result.build();
+  }
+
+  @Primitive("rep")
+  public static Vector repeat(@ArgumentList ListVector arguments) {
+    if(arguments.length() < 1) {
+      return Null.INSTANCE;
+    }
+    Vector x = EvalException.checkedCast(arguments.getElementAsSEXP(0));
+    Vector.Builder result = x.newBuilder(0);
+
+    int times = findRepArgument(arguments, 1, "times");
+    int lengthOut = findRepArgument(arguments, 1, "length.out");
+    int each = findRepArgument(arguments, 1, "each");
+
+    int resultLength = x.length();
+
+    if(!IntVector.isNA(times)) {
+      resultLength = x.length() * times;
+    }
+    if(!IntVector.isNA(each)) {
+      resultLength = x.length() * each;
+    } else {
+      each = 1;
+    }
+    if(!IntVector.isNA(lengthOut)) {
+      resultLength = lengthOut;
+    }
+
+    StringVector.Builder names = StringVector.newBuilder();
+    int result_i = 0;
+    for(int i=0;i!=resultLength;++i) {
+      int x_i = (i / each) % x.length();
+      result.setFrom(result_i++, x, x_i);
+      names.add(x.getName(x_i));
+    }
+    if(names.haveNonEmpty()) {
+      result.setAttribute(Attributes.NAMES, names.build());
+    }
+
+    return result.build();
+  }
+
+  private static int findRepArgument(ListVector arguments, int position, String name) {
+    for(int i=1;i!=arguments.length();++i) {
+      if(name.startsWith(arguments.getName(i))) {
+        return arguments.getElementAsInt(i);
+      }
+    }
+    if(position < arguments.length() && arguments.getName(position).isEmpty()) {
+      return arguments.getElementAsInt(position);
+    }
+    return IntVector.NA;
   }
 
   @VisibleForTesting

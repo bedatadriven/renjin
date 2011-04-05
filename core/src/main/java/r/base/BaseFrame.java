@@ -547,7 +547,7 @@ public class BaseFrame implements Environment.Frame {
     f("as.call", /*ascall*/ null, 0, 1, 1);
     f("type.convert", /*typecvt*/ null, 1, 11, 4);
     f("as.environment", Types.class, "asEnvironment", 0, 1, 1);
-    f("storage.mode<-", /*storage_mode*/ null, 0, 1, 2);
+    f("storage.mode<-", Types.class, 0, 1, 2);
 
 
 /* String Manipulation */
@@ -655,7 +655,7 @@ public class BaseFrame implements Environment.Frame {
     f("gcinfo", /*gcinfo*/ null, 0, 11, 1);
     f("gctorture", /*gctorture*/ null, 0, 11, 1);
     f("memory.profile", /*memoryprofile*/ null, 0, 11, 0);
-    f("rep", /*rep*/ null, 0, 0, -1);
+    f("rep", Sequences.class, 0, 0, -1);
     f("rep.int", Sequences.class, 0, 11, 2);
     f("seq.int", Sequences.class, 0, 0, -1);
     f("seq_len", /*seq_len*/ null, 0, 1, 1);

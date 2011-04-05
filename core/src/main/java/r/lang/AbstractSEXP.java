@@ -61,7 +61,7 @@ abstract class AbstractSEXP implements SEXP {
   }
 
   @Override
-  public final PairList getAttributes() {
+  public PairList getAttributes() {
     return (PairList)attributes;
   }
 

@@ -133,6 +133,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
+  public PairList getAttributes() {
+    return Null.INSTANCE;
+  }
+
+  @Override
   public SEXP setAttribute(String attributeName, SEXP value) {
     if(value == Null.INSTANCE) {
       return this;
@@ -239,6 +244,14 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     @Override
     public Vector.Builder setFrom(int destinationIndex, SEXP source, int sourceIndex) {
       throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
+
+    @Override
+    public Vector.Builder copyAttributesFrom(SEXP exp) {
+      if(exp.getAttributes() != Null.INSTANCE) {
+        throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+      }
+      return this;
     }
 
     @Override

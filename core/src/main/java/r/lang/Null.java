@@ -46,8 +46,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   public static final Null INSTANCE = new Null();
   public static final Vector.Type VECTOR_TYPE = new NullType();
 
-  private static final IndexOutOfBoundsException INDEX_OUT_OF_BOUNDS_EXCEPTION =
-      new IndexOutOfBoundsException("The NULL object is zero-length.");
+  private static final String INDEX_OUT_OF_BOUNDS = "The NULL object is zero-length.";
 
   private Null() {
   }
@@ -84,7 +83,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
   @Override
   public <S extends SEXP> S getElementAsSEXP(int i) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
   /**
@@ -167,42 +166,42 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
   @Override
   public Comparable getElementAsObject(int index) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
   @Override
   public boolean isElementNA(int index) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
   @Override
   public Complex getElementAsComplex(int index) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
   @Override
   public Logical getElementAsLogical(int index) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
   @Override
   public int getElementAsRawLogical(int index) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
   @Override
   public String getElementAsString(int index) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
   @Override
   public int getElementAsInt(int index) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
   @Override
   public double getElementAsDouble(int index) {
-    throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
   @Override
@@ -294,7 +293,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {
-      throw INDEX_OUT_OF_BOUNDS_EXCEPTION;
+      throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
     }
 
     @Override

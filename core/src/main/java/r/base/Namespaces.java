@@ -19,23 +19,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.special;
+package r.base;
 
-import r.lang.*;
+import r.jvmi.annotations.Current;
+import r.lang.Context;
+import r.lang.Null;
+import r.lang.SEXP;
+import r.lang.Symbol;
 
-public class ReturnFunction extends SpecialFunction {
+public class Namespaces {
 
-  @Override
-  public String getName() {
-    return "return";
+  public static SEXP getRegisteredNamespace(@Current Context context, String name) {
+    return getRegisteredNamespace(context, new Symbol(name));
+
   }
 
-  @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    if(call.getArguments().length() > 0) {
-      throw new ReturnException(rho, call.evalArgument(context, rho, 0));
+  public static SEXP getRegisteredNamespace(@Current Context context, Symbol name) {
+    SEXP value = context.getGlobals().namespaceRegistry.getVariable(name);
+    if(value == Symbol.UNBOUND_VALUE) {
+      return Null.INSTANCE;
     } else {
-      throw new ReturnException(rho, Null.INSTANCE);
+      return value;
     }
   }
+
 }

@@ -35,6 +35,8 @@ import r.lang.exception.EvalException;
 import r.parser.RParser;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
@@ -192,18 +194,79 @@ public class Evaluation {
           context.getParent().getEnvironment());
     }
 
+
     StringVector classes = object.getClassAttribute();
-    for(String className : Iterables.concat(classes, Arrays.asList("default"))) {
-      SEXP function = rho.findVariable(new Symbol(genericName + "." + className));
-      if(function != Symbol.UNBOUND_VALUE) {
-        FunctionCall newCall = new FunctionCall(function, context.getArguments());
-        EvalResult result = newCall.evaluate(context.getParent(), context.getParent().getEnvironment());
-        throw new ReturnException(context.getEnvironment(), result.getExpression());
-      }
-    }
+    DispatchGeneric(context, rho, call, genericName, object, classes);
 
     throw new UnsupportedOperationException();
   }
+
+  public static EvalResult NextMethod(Context context, Environment rho, FunctionCall call) {
+
+    if(call.getArguments().length() < 2) {
+      throw new UnsupportedOperationException(".Internal(NextMethod()) must be called with at least 2 arguments");
+    }
+
+    SEXP generic = call.evalArgument(context, rho, 0);
+    if(generic == Null.INSTANCE) {
+      generic = rho.getVariable(".Generic");
+    }
+    String genericName = ((StringVector)generic).getElementAsString(0);
+
+    SEXP object = call.evalArgument(context, rho, 1);
+
+    Context callingContext = context.getParent();
+    Environment callingEnvironment = callingContext.getEnvironment();
+
+    StringVector classes = (StringVector) callingEnvironment.getVariable(".Class");
+
+    String groupName = null;
+    SEXP group = callingEnvironment.getVariable(".Group");
+    if(group != Symbol.UNBOUND_VALUE) {
+      groupName = ((StringVector)group).getElementAsString(0);
+    }
+
+    // Build new list of arguments
+    PairList.Builder newArgs = new PairList.Builder();
+    for(PairList.Node node : callingContext.getClosure().getFormals().nodes()) {
+      // check to see if the arg has been updated
+      SEXP newValue = callingEnvironment.getVariable(node.getTag());
+      if(newValue == Symbol.UNBOUND_VALUE) {
+        newArgs.add(node.getTag(), node.getValue());
+      } else {
+        newArgs.add(node.getTag(), newValue);
+      }
+    }
+
+    EvalResult result = new FunctionCall(new Symbol(genericName), newArgs.build()).evaluate(context, rho);
+    throw new ReturnException(rho, result.getExpression());
+  }
+
+
+  private static void DispatchGeneric(Context context, Environment rho, FunctionCall call, String genericName, SEXP object, StringVector classes) {
+    for(String className : Iterables.concat(classes, Arrays.asList("default"))) {
+      Symbol method = new Symbol(genericName + "." + className);
+      SEXP function = rho.findVariable(method);
+      if(function != Symbol.UNBOUND_VALUE) {
+
+        function = function.evalToExp(context, rho);
+
+        Frame extra = new HashFrame();
+        extra.setVariable(new Symbol(".Class"), object.getClassAttribute());
+        extra.setVariable(new Symbol(".Method"), method);
+        extra.setVariable(new Symbol(".Generic"), new StringVector(genericName));
+
+        if(function instanceof Closure) {
+          EvalResult result = Calls.applyClosure((Closure) function, context, Calls.promiseArgs(context.getArguments(), rho), rho, extra);
+          throw new ReturnException(context.getEnvironment(), result.getExpression());
+        } else {
+          throw new UnsupportedOperationException("target of UseMethod is not a closure, it is a " +
+              function.getClass().getName() );
+        }
+      }
+    }
+  }
+
 
   /**
    * @return  TRUE when R is being used interactively and FALSE otherwise.
@@ -212,15 +275,22 @@ public class Evaluation {
     return false;
   }
 
-  public static ExpressionVector parse(SEXP file, SEXP maxExpressions, StringVector text, String prompt, String sourceFile, String encoding) {
+  public static ExpressionVector parse(SEXP file, SEXP maxExpressions, StringVector text, String prompt, String sourceFile, String encoding) throws IOException {
     List<SEXP> expressions = Lists.newArrayList();
-    for(String line : text) {
-      try {
-        ExpressionVector result = RParser.parseSource(new StringReader(line + "\n"));
-        Iterables.addAll(expressions, result);
-      } catch (IOException e) {
-        throw new EvalException("I/O Exception occurred during parse: " + e.getMessage());
+    if(text != null) {
+      for(String line : text) {
+        try {
+          ExpressionVector result = RParser.parseSource(new StringReader(line + "\n"));
+          Iterables.addAll(expressions, result);
+        } catch (IOException e) {
+          throw new EvalException("I/O Exception occurred during parse: " + e.getMessage());
+        }
       }
+    } else if(file instanceof ExternalExp) {
+      ExternalExp<Connection> conn = EvalException.checkedCast(file);
+      Reader reader = new InputStreamReader(conn.getValue().getInputStream());
+      ExpressionVector result = RParser.parseSource(reader);
+      Iterables.addAll(expressions, result);
     }
 
     return new ExpressionVector(expressions);

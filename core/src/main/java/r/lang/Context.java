@@ -23,7 +23,11 @@ package r.lang;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import r.parser.RParser;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 
@@ -107,9 +111,20 @@ public class Context {
      */
     public final Map<String, String> systemEnvironment = Maps.newHashMap();
 
+    public final Frame namespaceRegistry;
+
+    public final Environment baseEnvironment;
+    public final Environment globalEnvironment;
+    public final Environment baseNamespaceEnv;
 
     private Globals() {
       systemEnvironment.put("R_LIBS", "classpath:/r/library");
+      globalEnvironment = Environment.createGlobalEnvironment();
+      baseEnvironment = globalEnvironment.getBaseEnvironment();
+      namespaceRegistry = new HashFrame();
+      baseNamespaceEnv = Environment.createNamespaceEnvironment(globalEnvironment, "base");
+      namespaceRegistry.setVariable(new Symbol("base"), baseNamespaceEnv);
+      globalEnvironment.setVariable(new Symbol(".BaseNamespaceEnv"), baseNamespaceEnv);
     }
 
   }
@@ -120,25 +135,29 @@ public class Context {
   private Type type;
   private Environment environment;
   private Globals globals;
+  private Closure closure;
   private PairList arguments = Null.INSTANCE;
 
   private Context() {
   }
 
   public static Context newTopLevelContext() {
+    Globals globals = new Globals();
+
     Context context = new Context();
+    context.globals = globals;
     context.type = Type.TOP_LEVEL;
-    context.environment = Environment.createGlobalEnvironment();
-    context.globals = new Globals();
+    context.environment = globals.globalEnvironment;
     return context;
   }
 
-  public Context beginFunction(Environment enclosingEnvironment, PairList arguments) {
+  public Context beginFunction(Closure closure, PairList arguments) {
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
-    context.environment = Environment.createChildEnvironment(enclosingEnvironment);
+    context.closure = closure;
+    context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
     context.globals = globals;
     context.arguments = arguments;
     return context;
@@ -146,6 +165,10 @@ public class Context {
 
   public Environment getEnvironment() {
     return environment;
+  }
+
+  public Closure getClosure() {
+    return closure;
   }
 
   public PairList getArguments() {
@@ -189,5 +212,16 @@ public class Context {
     }
   }
 
+  public void loadBasePackage() throws IOException {
+    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
+    SEXP loadingScript = RParser.parseSource(reader).evaluate(this, globals.baseNamespaceEnv).getExpression();
+    loadingScript.evaluate(this, globals.baseNamespaceEnv);
+  }
+
+  public void executeStartupProfile() throws IOException {
+    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/Rprofile"));
+    SEXP profileScript = RParser.parseSource(reader).evalToExp(this, globals.baseNamespaceEnv);
+    profileScript.evaluate(this, globals.baseNamespaceEnv);
+  }
 
 }

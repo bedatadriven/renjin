@@ -19,23 +19,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.special;
+package r.lang;
 
-import r.lang.*;
+import java.util.Collections;
+import java.util.Set;
 
-public class ReturnFunction extends SpecialFunction {
+public interface Frame {
+  Set<Symbol> getSymbols();
+  SEXP getVariable(Symbol name);
+  SEXP getInternal(Symbol name);
+  void setVariable(Symbol name, SEXP value);
+  void clear();
 
-  @Override
-  public String getName() {
-    return "return";
-  }
-
-  @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    if(call.getArguments().length() > 0) {
-      throw new ReturnException(rho, call.evalArgument(context, rho, 0));
-    } else {
-      throw new ReturnException(rho, Null.INSTANCE);
+  public static Frame EMPTY = new Frame() {
+    @Override
+    public Set<Symbol> getSymbols() {
+      return Collections.emptySet();
     }
-  }
+
+    @Override
+    public SEXP getVariable(Symbol name) {
+      return Symbol.UNBOUND_VALUE;
+    }
+
+    @Override
+    public SEXP getInternal(Symbol name) {
+      return Symbol.UNBOUND_VALUE;
+    }
+
+    @Override
+    public void setVariable(Symbol name, SEXP value) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+
+    }
+  };
 }

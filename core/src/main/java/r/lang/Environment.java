@@ -25,7 +25,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.UnmodifiableIterator;
 import r.base.BaseFrame;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * The Environment data type.
@@ -67,13 +69,6 @@ public class Environment extends AbstractSEXP implements Recursive {
    */
   public static final EmptyEnv EMPTY = new EmptyEnv();
 
-  public static Environment createOrphanEnvironment() {
-    Environment orphan = new Environment();
-    orphan.frame = new HashFrame();
-    orphan.parent = EMPTY;
-    return orphan;
-  }
-
 
   public static Environment createGlobalEnvironment() {
     Environment global = new Environment();
@@ -100,6 +95,12 @@ public class Environment extends AbstractSEXP implements Recursive {
     return createChildEnvironment(parent, new HashFrame());
   }
 
+  public static Environment createNamespaceEnvironment(Environment parent, String namespaceName) {
+    Environment ns = createChildEnvironment(parent);
+    ns.name = "namespace:" + namespaceName;
+    return ns;
+  }
+
   public static Environment createChildEnvironment(Environment parent, Frame frame) {
     Environment child = new Environment();
     child.name = Integer.toString(child.hashCode());
@@ -121,45 +122,6 @@ public class Environment extends AbstractSEXP implements Recursive {
   
   public void clear() {
     frame.clear();
-  }
-
-  public interface Frame {
-    Set<Symbol> getSymbols();
-    SEXP getVariable(Symbol name);
-    SEXP getInternal(Symbol name);
-    void setVariable(Symbol name, SEXP value);
-    void clear();
-  }
-
-  public static class HashFrame implements Frame{
-    private HashMap<Symbol, SEXP> values = new HashMap<Symbol, SEXP>();
-
-    @Override
-    public Set<Symbol> getSymbols() {
-      return values.keySet();
-    }
-
-    @Override
-    public SEXP getVariable(Symbol name) {
-      SEXP value = values.get(name);
-      return value == null ? Symbol.UNBOUND_VALUE : value;
-    }
-
-    @Override
-    public SEXP getInternal(Symbol name) {
-      return Symbol.UNBOUND_VALUE;
-    }
-
-    @Override
-    public void setVariable(Symbol name, SEXP value) {
-      values.put(name, value);
-    }
-
-    @Override
-    public void clear() {
-      values.clear();
-      
-    }
   }
 
 

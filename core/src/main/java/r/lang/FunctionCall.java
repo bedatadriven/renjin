@@ -59,11 +59,28 @@ public class FunctionCall extends PairList.Node {
   }
 
   private Function evaluateFunction(Context context, Environment rho) {
-    SEXP result = getFunction().evalToExp(context, rho);
-    if(!(result instanceof Function)) {
-      throw new EvalException("attempt to apply non-function");
+    SEXP fn = getFunction();
+    if(fn instanceof Function) {
+      return (Function) fn;
+    } else if(fn instanceof Symbol) {
+      return findFunction(context, rho, (Symbol) fn);
+    } else {
+      throw new EvalException("'function' of lang expression is of unsupported type '%s'", fn.getTypeName());
     }
-    return (Function) result;
+  }
+
+  private Function findFunction(Context context, Environment rho, Symbol symbol) {
+    while(rho != Environment.EMPTY) {
+      SEXP value = rho.getVariable(symbol);
+      if(value instanceof Promise) {
+        value = ((Promise) value).force(context).getExpression();
+      }
+      if(value instanceof Function) {
+        return (Function) value;
+      }
+      rho = rho.getParent();
+    }
+    throw new EvalException("could not find function '%s'", symbol.getPrintName());
   }
 
   public static SEXP fromListExp(PairList.Node listExp) {

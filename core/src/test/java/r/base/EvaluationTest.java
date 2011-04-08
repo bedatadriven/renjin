@@ -224,7 +224,15 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval("class(x)"), equalTo(c("foo")));
     assertThat( eval("class(y)"), equalTo(c("foo")));
     assertThat( eval("class(z)"), equalTo(c("foo")));
+  }
 
+  @Test
+  public void functionLookup() {
+
+    eval("f<-function(x) x");
+    eval("g<-function() { f<-3; f(f); }");
+
+    assertThat( eval(" g() "), equalTo(c(3)));
 
   }
 
@@ -278,6 +286,8 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval("switch(2, 'first', 'second')"), equalTo( c("second") ));
     assertThat( eval("switch(99, 'first', 'second')"), equalTo( NULL ));
     assertThat( eval("switch(4)"), equalTo( NULL ));
+
+    assertThat( eval("switch('a', a=,b=,c=3) "), equalTo( c(3)));
   }
 
   @Test

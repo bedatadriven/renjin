@@ -79,7 +79,7 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   public EvalResult apply(Context context, Environment rho, PairList arguments) {
-    return Calls.applyClosure(this, context, Calls.promiseArgs(arguments, rho), rho, Environment.EMPTY);
+    return Calls.applyClosure(this, context, Calls.promiseArgs(arguments, rho), rho, Frame.EMPTY);
   }
 
   /**

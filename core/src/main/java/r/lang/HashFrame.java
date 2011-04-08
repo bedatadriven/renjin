@@ -19,23 +19,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.special;
+package r.lang;
 
-import r.lang.*;
+import java.util.HashMap;
+import java.util.Set;
 
-public class ReturnFunction extends SpecialFunction {
+public class HashFrame implements Frame{
+  private HashMap<Symbol, SEXP> values = new HashMap<Symbol, SEXP>();
 
   @Override
-  public String getName() {
-    return "return";
+  public Set<Symbol> getSymbols() {
+    return values.keySet();
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    if(call.getArguments().length() > 0) {
-      throw new ReturnException(rho, call.evalArgument(context, rho, 0));
-    } else {
-      throw new ReturnException(rho, Null.INSTANCE);
-    }
+  public SEXP getVariable(Symbol name) {
+    SEXP value = values.get(name);
+    return value == null ? Symbol.UNBOUND_VALUE : value;
+  }
+
+  @Override
+  public SEXP getInternal(Symbol name) {
+    return Symbol.UNBOUND_VALUE;
+  }
+
+  @Override
+  public void setVariable(Symbol name, SEXP value) {
+    values.put(name, value);
+  }
+
+  @Override
+  public void clear() {
+    values.clear();
   }
 }

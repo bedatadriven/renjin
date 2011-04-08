@@ -66,4 +66,23 @@ public class Contexts {
     }
     return parent.getEnvironment();
   }
+
+  @Primitive("sys.frame")
+  public static Environment sysFrame(@Current Context context, @Indices int which) {
+    if(which < 0) {
+      which = context.getEvaluationDepth() + which - 1;
+    }
+
+    if(which < 0 || which > context.getEvaluationDepth()) {
+      throw new EvalException("not that many frames on the stack");
+    }
+
+    Context frame = context;
+    while(frame.getEvaluationDepth() != which) {
+      frame = frame.getParent();
+    }
+
+    return frame.getEnvironment();
+  }
+
 }

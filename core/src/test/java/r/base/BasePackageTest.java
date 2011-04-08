@@ -24,13 +24,9 @@ package r.base;
 import org.junit.Ignore;
 import org.junit.Test;
 import r.EvalTestCase;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.parser.RParser;
+import r.lang.*;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -42,6 +38,7 @@ public class BasePackageTest extends EvalTestCase {
   public void loadBase() throws IOException {
 
     loadBasePackage();
+    executeStartupProfile();
 
     StringVector letters = (StringVector) eval("letters");
     assertThat( letters.getElement(0),  equalTo( "a" ));
@@ -49,6 +46,24 @@ public class BasePackageTest extends EvalTestCase {
 
     eval( "assign('x', 42) ");
     assertThat( eval( "x" ) , equalTo( c(42) ));
+
+    // make sure that closures are enclosed by the base namspace
+    Closure closure = (Closure)getValue( topLevelContext.getGlobals().baseEnvironment, "backsolve" );
+    assertThat( closure.getEnclosingEnvironment(), equalTo(topLevelContext.getGlobals().baseNamespaceEnv ));
+
+
+    // make sure that base scripts are populated in both the base environment and the base namespace
+    assertThat( getValue( topLevelContext.getGlobals().baseEnvironment, "letters" ).length(), equalTo( 26 ));
+  //  assertThat( getValue( topLevelContext.getGlobals().baseNamespaceEnv, "letters" ).length(), equalTo( 26 ));
+
+  }
+
+  private SEXP getValue(Environment env, String name) {
+    SEXP value = env.getVariable(name);
+    if(value instanceof Promise) {
+      value = ((Promise) value).force(topLevelContext).getExpression();
+    }
+    return value;
   }
 
   @Test
@@ -64,6 +79,7 @@ public class BasePackageTest extends EvalTestCase {
   }
 
 
+
   @Test
   public void packageVersion() throws IOException {
     loadBasePackage();
@@ -74,7 +90,6 @@ public class BasePackageTest extends EvalTestCase {
 
   }
 
-  @Ignore("Not working yet")
   @Test
   public void groupGeneric() throws IOException {
     loadBasePackage();
@@ -83,9 +98,7 @@ public class BasePackageTest extends EvalTestCase {
     eval(" x <- as.numeric_version('1.2.3') ");
     eval(" y <- as.numeric_version('1.0.9') ");
 
-    assertThat( eval(" x >= y"), equalTo( c(true)));
-
-
+    assertThat(eval(" x >= y"), equalTo(c(true)));
   }
 
   @Test
@@ -95,8 +108,8 @@ public class BasePackageTest extends EvalTestCase {
 
     eval("info <- file.info('classpath:/r/library')");
 
-    assertThat( eval("info$isdir"), equalTo( c(true) ));
-    assertThat( eval("info$mode"), equalTo( c_i(Integer.parseInt("777", 8)) ));
+    assertThat(eval("info$isdir"), equalTo(c(true)));
+    assertThat(eval("info$mode"), equalTo(c_i(Integer.parseInt("777", 8))));
   }
 
   @Ignore("in progress")
@@ -114,19 +127,16 @@ public class BasePackageTest extends EvalTestCase {
     loadBasePackage();
     executeStartupProfile();
 
-    assertThat( eval(" parse(text='1') "), equalTo(expression(1d)));
+    assertThat(eval(" parse(text='1') "), equalTo(expression(1d)));
 
   }
 
   private void loadBasePackage() throws IOException {
-    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadingScript = RParser.parseSource(reader).evaluate(topLevelContext, base).getExpression();
-    loadingScript.evaluate(topLevelContext, base);
+    topLevelContext.loadBasePackage();
   }
 
   private void executeStartupProfile() throws IOException {
-    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/Rprofile"));
-    SEXP profileScript = RParser.parseSource(reader).evalToExp(topLevelContext, base);
-    profileScript.evaluate(topLevelContext, base);
+    topLevelContext.executeStartupProfile();
   }
+
 }

@@ -208,7 +208,7 @@ public class Calls {
     /* we either have a group method or a class method */
 
 //    PROTECT(newrho = allocSExp(ENVSXP));
-    Environment newrho = Environment.createOrphanEnvironment();
+    Frame newrho = new HashFrame();
     String[] m = new String[nargs];
     PairList.Node s = (PairList.Node)args;
     for (i = 0; i < nargs; i++) {
@@ -271,21 +271,16 @@ public class Calls {
   }
 
   public static EvalResult applyClosure(Closure closure, Context context, PairList promisedArgs, Environment rho,
-                                        Environment suppliedEnvironment) {
+                                        Frame suppliedEnvironment) {
 
-    PairList formals = closure.getFormals();
-    SEXP body = closure.getBody();
-    Environment savedrho = closure.getEnclosingEnvironment();
-
-
-    Context functionContext = context.beginFunction(closure.getEnclosingEnvironment(), promisedArgs);
+    Context functionContext = context.beginFunction(closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {
       matchArgumentsInto(closure.getFormals(), promisedArgs, functionEnvironment);
 
       // copy supplied environment values into the function environment
-      for(Symbol name : suppliedEnvironment.getSymbolNames()) {
+      for(Symbol name : suppliedEnvironment.getSymbols()) {
         functionEnvironment.setVariable(name, suppliedEnvironment.getVariable(name));
       }
 

@@ -93,7 +93,8 @@ public class DatafileReader {
   private static final int CACHED_MASK = (1<<5);
   private static final int  HASHASH_MASK =  1;
 
-  private final Environment rho;
+  private final Context context;
+  private Environment rho;
   private InputStream conn;
   private StreamReader in;
 
@@ -105,14 +106,15 @@ public class DatafileReader {
 
   private PersistentRestorer restorer;
 
-  public DatafileReader(Environment rho, InputStream conn) {
-    this.rho = rho;
+  public DatafileReader(Context context, Environment rho, InputStream conn) {
+    this.context = context;
     this.conn = conn;
+    this.rho = rho;
     this.referenceTable = new ArrayList<SEXP>();
   }
 
-  public DatafileReader(Environment rho, InputStream conn, PersistentRestorer restorer) {
-    this(rho, conn);
+  public DatafileReader(Context context, Environment rho, InputStream conn, PersistentRestorer restorer) {
+    this(context, rho, conn);
     this.restorer = restorer;
   }
 
@@ -200,16 +202,15 @@ public class DatafileReader {
       case EMPTYENV_SXP:
         return Environment.EMPTY;
       case BASEENV_SXP:
-        return rho.getBaseEnvironment();
+        return context.getGlobals().baseEnvironment;
       case GLOBALENV_SXP:
-        return rho.getGlobalEnvironment();
+        return context.getGlobals().globalEnvironment;
       case UNBOUNDVALUE_SXP:
         return Symbol.UNBOUND_VALUE;
       case MISSINGARG_SXP:
         return Symbol.MISSING_ARG;
       case BASENAMESPACE_SXP:
-        // TODO: this is probably not quite correct
-        return rho.getBaseEnvironment();
+        return context.getGlobals().baseNamespaceEnv;
       case REFSXP:
         return readReference(flags);
       case PERSISTSXP:

@@ -23,6 +23,7 @@ package r.base;
 
 import org.junit.Test;
 import r.EvalTestCase;
+import r.lang.SEXP;
 import r.lang.exception.FunctionCallException;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -44,6 +45,18 @@ public class ContextTest extends EvalTestCase {
     eval( "h <- function() g() ");
 
     assertThat( eval(" h() "), equalTo( c_i(3) ));
+  }
+
+  @Test
+  public void sysFrames() {
+    eval(" sys.frame <- function (which = 0) .Internal(sys.frame(which))");
+    eval(" f <- function() sys.frame(-1)");
+    eval(" g <- function() sys.frame(-1)$z ");
+    eval(" h <- function() { z<-99; g() } ");
+
+    assertThat( eval("sys.frame(0)"), is((SEXP)global));
+    assertThat( eval("f()"), is((SEXP)global));
+    assertThat( eval("h()"), equalTo(c(99)));
   }
 
   @Test

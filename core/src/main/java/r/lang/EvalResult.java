@@ -65,4 +65,9 @@ public class EvalResult {
   public static EvalResult invisible(SEXP exp) {
     return new EvalResult(exp, false);
   }
+
+  @Override
+  public String toString() {
+    return visible ? expression.toString() : "invisible(" + expression.toString() + ")";
+  }
 }

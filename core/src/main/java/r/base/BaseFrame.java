@@ -40,7 +40,7 @@ import static r.base.PPprec.*;
  *  The singleton instance is immutable and so can be safely shared between
  * multiple threads / contexts.
  */
-public class BaseFrame implements Environment.Frame {
+public class BaseFrame implements Frame {
 
   private Map<Symbol, SEXP> builtins = new HashMap<Symbol, SEXP>();
   private Map<Symbol, SEXP> internals = new HashMap<Symbol, SEXP>();
@@ -747,8 +747,8 @@ public class BaseFrame implements Environment.Frame {
     f("capabilities", /*capabilities*/ null, 0, 11, 0);
     f("capabilitiesX11", /*capabilitiesX11*/ null, 0, 11, 0);
     f("new.env", Types.class, "newEnv", 0, 11, 3);
-    f("parent.env", Types.class, "getParentEnv", 0, 11, 1);
-    f("parent.env<-", Types.class, "setParentEnv", 0, 11, 2, PP_FUNCALL, PREC_LEFT, 1);
+    f("parent.env", Types.class, 0, 11, 1);
+    f("parent.env<-", Types.class, 0, 11, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("visibleflag", /*visibleflag*/ null, 0, 1, 0);
     f("l10n_info", /*l10n_info*/ null, 0, 11, 0);
     f("Cstack_info", /*Cstack_info*/ null, 0, 11, 0);
@@ -868,7 +868,7 @@ public class BaseFrame implements Environment.Frame {
 /* Objects */
     f("inherits", Types.class, 0, 11, 3);
     f("UseMethod", Evaluation.class, 0, 200, -1);
-    f("NextMethod", /*nextmethod*/ null, 0, 210, -1);
+    f("NextMethod", Evaluation.class, 0, 210, -1);
     f("standardGeneric", /*standardGeneric*/ null, 0, 201, -1);
 
 /* Modelling Functionality */
@@ -918,7 +918,7 @@ public class BaseFrame implements Environment.Frame {
     f("isSeekable", /*isseekable*/ null, 0, 11, 1);
     f("close", Connections.class, 0, 11, 2);
     f("flush", /*flush*/ null, 0, 11, 1);
-    f("file", /*url*/ null, 1, 11, 4);
+    f("file", Connections.class, 1, 11, 4);
     f("url", /*url*/ null, 0, 11, 4);
     f("pipe", /*pipe*/ null, 0, 11, 3);
     f("fifo", /*fifo*/ null, 0, 11, 4);
@@ -963,12 +963,12 @@ public class BaseFrame implements Environment.Frame {
     f("bindingIsActive", /*bndIsActive*/ null, 0, 11, 2);
 /* looks like mkUnbound is unused in base R */
     f("mkUnbound", /*mkUnbound*/ null, 0, 111, 1);
-    f("isNamespaceEnv", /*isNSEnv*/ null, 0, 11, 1);
-    f("registerNamespace", /*regNS*/ null, 0, 11, 2);
-    f("unregisterNamespace", /*unregNS*/ null, 0, 11, 1);
-    f("getRegisteredNamespace", /*getRegNS*/ null, 0, 11, 1);
-    f("getNamespaceRegistry", /*getNSRegistry*/ null, 0, 11, 0);
-    f("importIntoEnv", /*importIntoEnv*/ null, 0, 11, 4);
+    f("isNamespaceEnv", Namespaces.class, 0, 11, 1);
+    f("registerNamespace", Namespaces.class, 0, 11, 2);
+    f("unregisterNamespace", Namespaces.class, 0, 11, 1);
+    f("getRegisteredNamespace", Namespaces.class, 0, 11, 1);
+    f("getNamespaceRegistry", Namespaces.class, 0, 11, 0);
+    f("importIntoEnv", Namespaces.class, 0, 11, 4);
     f("env.profile", /*envprofile*/ null, 0, 211, 1);
 
     f("write.table", /*writetable*/ null, 0, 111, 11);

@@ -222,6 +222,12 @@ public class Types {
       // a pairlist is actually not a vector, so bail from here
       // as a special case
       return asPairList(x);
+    } else if("symbol".equals(mode)) {
+      // weird but seen in the base package
+      if(x.length() == 0) {
+        throw new EvalException("invalid type/length (symbol/0) in vector allocation");
+      }
+      return new Symbol(x.getElementAsString(0));
     } else {
       throw new EvalException("invalid 'mode' argument");
     }
@@ -259,10 +265,12 @@ public class Types {
     return result;
   }
 
+  @Primitive("parent.env")
   public static Environment getParentEnv(Environment environment) {
     return environment.getParent();
   }
 
+  @Primitive("parent.env<-")
   public static Environment setParentEnv(Environment environment, Environment newParent) {
     environment.setParent(newParent);
     return environment;
@@ -377,6 +385,7 @@ public class Types {
     return environment.findVariable(context, new Symbol(x), modePredicate(mode), inherits)
         != Symbol.UNBOUND_VALUE;
   }
+
 
   public static SEXP get(@Current Context context, String x, Environment environment, String mode, boolean inherits) {
     return environment.findVariable(context, new Symbol(x), modePredicate(mode), inherits);

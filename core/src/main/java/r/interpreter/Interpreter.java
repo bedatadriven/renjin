@@ -35,7 +35,6 @@ import r.parser.RLexer;
 import r.parser.RParser;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 
 /**
@@ -72,7 +71,9 @@ public class Interpreter implements Runnable {
     printGreeting();
 
     try {
-      loadBasePackage();
+      topLevelContext.loadBasePackage();
+      topLevelContext.executeStartupProfile();
+
     } catch (IOException e) {
       console.println("Error loading base package");
     }
@@ -127,9 +128,4 @@ public class Interpreter implements Runnable {
 //      "Type 'q()' to quit R.\n\n");
   }
 
-  private void loadBasePackage() throws IOException {
-    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadingScript = RParser.parseSource(reader).evaluate(topLevelContext, global).getExpression();
-    loadingScript.evaluate(topLevelContext, global);
-  }
 }

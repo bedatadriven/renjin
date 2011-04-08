@@ -50,12 +50,27 @@ public class Connections {
     return new ExternalExp(connection, "connection");
   }
 
+    public static ExternalExp<Connection> file(@Current final Context context,
+                                               final String description,
+                                               String open,
+                                               boolean blocking,
+                                               String encoding) {
+    Connection connection = new ConnectionImpl(new InputStreamFactory() {
+      @Override
+      public InputStream openInputStream() throws IOException {
+        return openInput(context, description);
+      }
+    });
+
+    return new ExternalExp(connection, "connection");
+  }
+
   public static ExternalExp<Connection> stdin(@Current final Context context) {
     return new ExternalExp(new StandardConnection(), "connection");
   }
 
-  public static SEXP unserializeFromConn(Connection conn, Environment rho) throws IOException {
-    DatafileReader reader = new DatafileReader(rho, conn.getInputStream());
+  public static SEXP unserializeFromConn(@Current Context context, Connection conn, Environment rho) throws IOException {
+    DatafileReader reader = new DatafileReader(context, rho, conn.getInputStream());
     SEXP result =  reader.readFile();
     return result;
   }
@@ -117,7 +132,7 @@ public class Connections {
       throw new UnsupportedOperationException("compressed==" + compression + " in lazyLoadDBfetch not yet implemented");
     }
 
-    DatafileReader reader = new DatafileReader(rho, new ByteArrayInputStream(buffer), new DatafileReader.PersistentRestorer() {
+    DatafileReader reader = new DatafileReader(context, rho, new ByteArrayInputStream(buffer), new DatafileReader.PersistentRestorer() {
       @Override
       public SEXP restore(SEXP values) {
         FunctionCall call = FunctionCall.newCall(restoreFunction, values);

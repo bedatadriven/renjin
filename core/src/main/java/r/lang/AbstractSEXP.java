@@ -32,13 +32,6 @@ import java.util.Collections;
 abstract class AbstractSEXP implements SEXP {
 
   protected final PairList attributes;
-  private SEXP tag = Null.INSTANCE;
-
-  protected AbstractSEXP(SEXP tag, PairList attributes) {
-    Preconditions.checkNotNull(attributes);
-    this.tag = tag;
-    this.attributes = attributes;
-  }
 
   protected AbstractSEXP(PairList attributes) {
     Preconditions.checkNotNull(attributes);
@@ -46,7 +39,6 @@ abstract class AbstractSEXP implements SEXP {
   }
 
   protected AbstractSEXP() {
-    this.tag = Null.INSTANCE;
     this.attributes = Null.INSTANCE;
   }
 
@@ -65,30 +57,6 @@ abstract class AbstractSEXP implements SEXP {
     return (PairList)attributes;
   }
 
-
-  /**
-   * @return this expression's tag
-   * @throws ClassCastException if this expression's tag is NullExp
-   */
-  @Override
-  public final SEXP getRawTag() {
-    return tag;
-  }
-
-  @Override
-  public final Symbol getTag() {
-    return (Symbol)tag;
-  }
-
-  @Override
-  public final boolean hasTag() {
-    return tag != Null.INSTANCE;
-  }
-
-  @Override
-  public void setTag(SEXP tag) {
-    this.tag = tag;
-  }
 
   /**
    * Evaluates this expression in the environment rho

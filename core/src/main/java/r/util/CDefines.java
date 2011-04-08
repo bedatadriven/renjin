@@ -73,7 +73,7 @@ public class CDefines {
 
   public static SEXP TAG(SEXP e) {
     Preconditions.checkNotNull(e);
-    return e.getRawTag();
+    return ((PairList)e).getRawTag();
   }
 
   /**
@@ -305,7 +305,7 @@ public class CDefines {
 
   public static void SET_TAG(SEXP x, SEXP v) {
     // CHECK_OLD_TO_NEW(x, v);    I think this to do with GC so drop
-    x.setTag(v);
+    ((PairList)x).setTag(v);
   }
 
   public static int length(SEXP s) {

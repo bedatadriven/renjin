@@ -42,18 +42,6 @@ public interface SEXP {
 
   String getTypeName();
 
-  /**
-   * @return this expression's tag
-   * @throws ClassCastException if this expression's tag is {@link Null#INSTANCE}
-   */
-  SEXP getRawTag();
-
-  Symbol getTag();
-
-  boolean hasTag();
-
-  void setTag(SEXP tag);
-
   void accept(SexpVisitor visitor);
 
   /**

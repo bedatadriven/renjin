@@ -42,6 +42,19 @@ public interface PairList extends SEXP {
   Iterable<Node> nodes();
   Iterable<SEXP> values();
 
+
+  /**
+   * @return this expression's tag
+   * @throws ClassCastException if this expression's tag is {@link Null#INSTANCE}
+   */
+  SEXP getRawTag();
+
+  Symbol getTag();
+
+  boolean hasTag();
+
+  void setTag(SEXP tag);
+
   SEXP findByTag(Symbol symbol);
 
   public class Node extends AbstractSEXP implements Recursive, PairList, NamedValue {
@@ -51,6 +64,7 @@ public interface PairList extends SEXP {
      * The actual data for this node, .e.g {@code CAR} in
      * the C implementation
      */
+    private SEXP tag = Null.INSTANCE;
     protected SEXP value = Null.INSTANCE;
 
     /**
@@ -63,7 +77,8 @@ public interface PairList extends SEXP {
     protected Node nextNode = null;
 
     public Node(SEXP tag, SEXP value, PairList attributes, PairList nextNode) {
-      super(tag, attributes);
+      super(attributes);
+      this.tag = tag;
       this.value = value;
       if(nextNode instanceof Node) {
         this.nextNode = (Node) nextNode;
@@ -71,7 +86,8 @@ public interface PairList extends SEXP {
     }
 
     public Node(SEXP tag, SEXP value, PairList nextNode) {
-      super(tag, Null.INSTANCE);
+      super(Null.INSTANCE);
+      this.tag = tag;
       this.value = value;
       if(nextNode instanceof Node) {
        this.nextNode = (Node) nextNode;
@@ -146,6 +162,30 @@ public interface PairList extends SEXP {
 
     public final void setValue(SEXP value) {
       this.value = value;
+    }
+
+    /**
+     * @return this expression's tag
+     * @throws ClassCastException if this expression's tag is NullExp
+     */
+    @Override
+    public final SEXP getRawTag() {
+      return tag;
+    }
+
+    @Override
+    public final Symbol getTag() {
+      return (Symbol)tag;
+    }
+
+    @Override
+    public final boolean hasTag() {
+      return tag != Null.INSTANCE;
+    }
+
+    @Override
+    public void setTag(SEXP tag) {
+      this.tag = tag;
     }
 
     public void setNextNode(Node nextNode) {

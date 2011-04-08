@@ -28,7 +28,7 @@ import java.util.Map;
 abstract class AbstractVector extends AbstractSEXP implements Vector {
 
   protected AbstractVector(SEXP tag, PairList attributes) {
-    super(tag, attributes);
+    super(attributes);
   }
 
   protected AbstractVector(PairList attributes) {

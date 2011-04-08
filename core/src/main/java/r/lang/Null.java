@@ -220,6 +220,28 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
+  public SEXP getRawTag() {
+    return Null.INSTANCE;
+  }
+
+  @Override
+  public Symbol getTag() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean hasTag() {
+    return false;
+  }
+
+  @Override
+  public void setTag(SEXP tag) {
+    if(tag != Null.INSTANCE) {
+      throw new IllegalArgumentException("Null object is immutable");
+    }
+  }
+
+  @Override
   public int indexOfNA() {
     return -1;
   }

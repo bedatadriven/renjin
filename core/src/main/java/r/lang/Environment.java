@@ -226,7 +226,13 @@ public class Environment extends AbstractSEXP implements Recursive {
   public boolean hasVariable(Symbol symbol) {
     return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE;
   }
-  
+
+  @Override
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    this.attributes = attributes;
+    return this;
+  }
+
   private static class EnvIterator extends UnmodifiableIterator<Environment> {
     private Environment next;
 

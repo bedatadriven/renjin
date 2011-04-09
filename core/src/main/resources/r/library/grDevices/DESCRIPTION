@@ -1,0 +1,9 @@
+Package: grDevices
+Version: 2.10.1
+Priority: base
+Title: The R Graphics Devices and Support for Colours and Fonts
+Author: R Development Core Team and contributors worldwide
+Maintainer: R Core Team <R-core@r-project.org>
+Description: Graphics devices and support for base and grid graphics
+License: Part of R 2.10.1
+Built: R 2.10.1; i386-pc-mingw32; 2009-12-14 20:34:14 UTC; windows

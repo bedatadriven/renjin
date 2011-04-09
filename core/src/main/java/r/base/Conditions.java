@@ -26,9 +26,9 @@ import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
-public class Errors {
+public class Conditions {
 
-  private Errors() {}
+  private Conditions() {}
 
 
   @Primitive(".addCondHands")
@@ -82,5 +82,10 @@ public class Errors {
     context.getGlobals().conditionHandlerStack = newStack;
 
     return oldStack;
+  }
+
+  @Primitive(".signalCondition")
+  public static void signalCondition(SEXP condition, String message, FunctionCall call) {
+    throw new EvalException("condition signaled. message = '%s'", message);
   }
 }

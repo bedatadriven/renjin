@@ -136,11 +136,11 @@ public class BaseFrame implements Frame {
 
     f("gettext", Text.class, 0, 11, 2);
     f("ngettext", Text.class, 0, 11, 4);
-    f("bindtextdomain", /*sbindtextdomain*/ null, 0, 11, 2);
+    f("bindtextdomain", Text.class, 0, 11, 2);
 
-    f(".addCondHands", Errors.class, 0, 111, 5);
+    f(".addCondHands", Conditions.class, 0, 111, 5);
     f(".resetCondHands", /*resetCondHands*/ null, 0, 111, 1);
-    f(".signalCondition", /*ignalCondition*/ null, 0, 11, 3);
+    f(".signalCondition", Conditions.class, 0, 11, 3);
     f(".dfltStop", /*dfltStop*/ null, 0, 11, 2);
     f(".dfltWarn", /*dfltWarn*/ null, 0, 11, 2);
     f(".addRestart", /*addRestart*/ null, 0, 11, 1);
@@ -253,7 +253,7 @@ public class BaseFrame implements Frame {
  * ---------	-------		------	----	-----	-------      ----------	----------*/
     f("vector", Types.class, 0, 11, 2);
     f("complex", /*complex*/ null, 0, 11, 3);
-    f("matrix", /*matrix*/ null, 0, 11, -1);
+    f("matrix", Combine.class, 0, 11, -1);
     f("length", Types.class, 0, 1, 1);
     f("length<-", /*lengthgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("row", /*rowscols*/ null, 1, 11, 1);

@@ -31,7 +31,7 @@ import java.util.Collections;
  */
 abstract class AbstractSEXP implements SEXP {
 
-  protected final PairList attributes;
+  protected PairList attributes;
 
   protected AbstractSEXP(PairList attributes) {
     Preconditions.checkNotNull(attributes);

@@ -25,6 +25,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.jvmi.annotations.ArgumentList;
+import r.jvmi.annotations.Indices;
 import r.jvmi.annotations.NamedFlag;
 import r.lang.*;
 import r.lang.exception.EvalException;
@@ -453,6 +454,23 @@ public class Combine {
       return builder.setAttribute(Attributes.DIM, new IntVector(rows,cols))
           .build();
     }
+  }
+
+  public static SEXP matrix(Vector data, @Indices int nrow, @Indices int ncol, boolean byRow, Vector dimnames) {
+    if(byRow) {
+      throw new UnsupportedOperationException("matrix by row not implemented");
+    }
+
+    Vector.Builder result = data.newBuilder(0);
+    int i = 0;
+    for(int col=0;col<ncol;++col) {
+      for(int row=0;row<nrow;++row) {
+        int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol) % data.length();
+        result.setFrom(i++, data, sourceIndex);
+      }
+    }
+    result.setAttribute(Attributes.DIM, new IntVector(nrow, ncol));
+    return result.build();
   }
 
 }

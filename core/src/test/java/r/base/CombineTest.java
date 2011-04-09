@@ -138,4 +138,11 @@ public class CombineTest extends EvalTestCase {
     assertThat( eval("xt") , equalTo( c_i(1,3,5,2,4,6,7,9,11,8,10,12,13,15,17,14,16,18,19,21,23,20,22,24)));
   }
 
+  @Test
+  public void matrix() {
+    assertThat(eval( ".Internal(matrix(c(1,2,3,4),2,2,FALSE,NULL))"), equalTo(c(1,2,3,4)));
+    assertThat(eval( ".Internal(matrix(c(1,2,3,4),2,4,FALSE,NULL))"), equalTo(c(1,2,3,4,1,2,3,4)));
+
+  }
+
 }

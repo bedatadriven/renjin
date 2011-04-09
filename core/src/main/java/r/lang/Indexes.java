@@ -33,6 +33,10 @@ public class Indexes {
     return vectorIndex;
   }
 
+  public static int matrixIndexToVectorIndex(int row, int col, int nrows, int ncols) {
+    return row + (col * nrows);
+  }
+
   public static void vectorIndexToArrayIndex(int vectorIndex, int arrayIndex[], int dim[]) {
     for(int i=0;i!=dim.length;++i) {
       arrayIndex[i] = vectorIndex % dim[i];

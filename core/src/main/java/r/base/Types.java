@@ -508,6 +508,10 @@ public class Types {
     return EvalResult.invisible(value);
   }
 
+  public static EvalResult invisible() {
+    return EvalResult.NON_PRINTING_NULL;
+  }
+
   public static StringVector search(@Current Environment rho) {
     List<String> names = Lists.newArrayList();
     Environment env = rho.getGlobalEnvironment();

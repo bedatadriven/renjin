@@ -22,10 +22,8 @@
 package r.base;
 
 import r.jvmi.annotations.Current;
-import r.lang.Context;
-import r.lang.Null;
-import r.lang.SEXP;
-import r.lang.Symbol;
+import r.lang.*;
+import r.lang.exception.EvalException;
 
 public class Namespaces {
 
@@ -43,4 +41,30 @@ public class Namespaces {
     }
   }
 
+  public static void registerNamespace(@Current Context context, String name, Environment env) {
+    Frame registry = context.getGlobals().namespaceRegistry;
+    Symbol symbol = new Symbol(name);
+    if(registry.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
+      throw new EvalException("name space already registered");
+    }
+    registry.setVariable(symbol, env);
+  }
+
+  public static boolean isNamespaceEnv(@Current Context context, SEXP envExp) {
+    if(envExp == context.getGlobals().baseNamespaceEnv) {
+      return true;
+    } else if(envExp instanceof Environment) {
+      Environment env = (Environment)envExp;
+      SEXP info = env.getVariable(new Symbol(".__NAMESPACE__."));
+      if(info instanceof Environment) {
+        SEXP spec = ((Environment)info).getVariable(new Symbol("spec"));
+        if(spec instanceof StringVector && spec.length() > 0) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+    return false;
+  }
 }

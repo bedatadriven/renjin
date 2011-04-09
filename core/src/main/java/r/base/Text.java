@@ -164,6 +164,10 @@ public class Text {
     return n == 1 ? singularMessage : pluralMessage;
   }
 
+  public static void bindtextdomain(String domain, String dirname) {
+    // translation not yet supported.
+  }
+
   /**
    * Translate characters
    *

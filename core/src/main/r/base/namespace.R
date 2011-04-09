@@ -184,7 +184,7 @@ loadNamespace <- function (package, lib.loc = NULL,
             setNamespaceInfo(env, "dynlibs", NULL)
             setNamespaceInfo(env, "S3methods", matrix(NA_character_, 0L, 3L))
             assign(".__S3MethodsTable__.",
-                   new.env(hash = TRUE, parent = baseenv()),
+                   new.env(hash = TRUE, parent =  baseenv()),
                    envir = env)
             .Internal(registerNamespace(name, env))
             env

@@ -75,11 +75,7 @@ public class Closure extends AbstractSEXP implements Function {
 
   @Override
   public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    return apply(context, rho, args);
-  }
-
-  public EvalResult apply(Context context, Environment rho, PairList arguments) {
-    return Calls.applyClosure(this, context, Calls.promiseArgs(arguments, rho), rho, Frame.EMPTY);
+    return Calls.applyClosure(this, context, call.getFunction(), Calls.promiseArgs(args, rho), rho, Frame.EMPTY);
   }
 
   /**

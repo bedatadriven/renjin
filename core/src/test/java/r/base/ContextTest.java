@@ -24,7 +24,7 @@ package r.base;
 import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.SEXP;
-import r.lang.exception.FunctionCallException;
+import r.lang.exception.EvalException;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -68,7 +68,7 @@ public class ContextTest extends EvalTestCase {
     assertThat(eval("parent.frame(99)"), is(GlobalEnv));
   }
 
-  @Test(expected = FunctionCallException.class)
+  @Test(expected = EvalException.class)
   public void parentFrameInvalidArg() {
     eval(" .Internal(parent.frame(-1)) ");
   }

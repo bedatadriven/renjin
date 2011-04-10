@@ -566,7 +566,7 @@ public class BaseFrame implements Frame {
     f("gsub", Text.class, 1, 11, 8);
     f("regexpr", /*regexpr*/ null, 1, 11, 7);
     f("gregexpr", /*gregexpr*/ null, 1, 11, 7);
-    f("agrep", /*agrep*/ null, 1, 11, 9);
+    f("agrep", Text.class, 1, 11, 9);
     f("tolower", Text.class, 0, 11, 1);
     f("toupper", Text.class, 1, 11, 1);
     f("chartr", Text.class, 1, 11, 3);
@@ -603,8 +603,8 @@ public class BaseFrame implements Frame {
     f("is.object", Types.class, 50, 1, 1);
 
     f("is.numeric", Types.class, "isNumeric", 100, 1, 1);
-    f("is.matrix", /*is*/ null, 101, 1, 1);
-    f("is.array", /*is*/ null, 102, 1, 1);
+    f("is.matrix", Types.class, 101, 1, 1);
+    f("is.array", Types.class, 102, 1, 1);
 
     f("is.atomic", Types.class, "isAtomic", 200, 1, 1);
     f("is.recursive", Types.class, "isRecursive",201, 1, 1);

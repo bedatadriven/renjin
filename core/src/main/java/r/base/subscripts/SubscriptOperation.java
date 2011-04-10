@@ -113,7 +113,7 @@ public class SubscriptOperation {
       int[] subscriptIndex = new int[sourceDim.length];
       do {
         int index = computeSourceIndex(subscriptIndex);
-        if(!IntVector.isNA(index)) {
+        if(!IntVector.isNA(index) && index < source.length()) {
           result.setFrom(count++, source, index);
           if(names != null) {
             names.add(source.getName(index));
@@ -191,18 +191,22 @@ public class SubscriptOperation {
     buildSubscripts();
     computeSubscriptDim();
 
-    int sourceIndex = 0;
-    int[] subscriptIndex = new int[sourceDim.length];
-    do {
-      int index = computeSourceIndex(subscriptIndex);
-      if(!IntVector.isNA(index)) {
-        result.setFrom(index, elements, sourceIndex++);
-      } else {
-        result.setNA(index);
+    if(subscriptLength > 0) {
+      if(elements.length() == 0) {
+        throw new EvalException("replacement has zero length");
       }
-
-    } while(Indexes.incrementArrayIndex(subscriptIndex, this.subscriptDim));
-
+      int sourceIndex = 0;
+      int[] subscriptIndex = new int[sourceDim.length];
+      do {
+        int index = computeSourceIndex(subscriptIndex);
+        if(!IntVector.isNA(index)) {
+          result.setFrom(index, elements, sourceIndex++);
+          if(sourceIndex >= elements.length()) {
+            sourceIndex = 0;
+          }
+        }
+      } while(Indexes.incrementArrayIndex(subscriptIndex, this.subscriptDim));
+    }
 
     return result.build();
   }

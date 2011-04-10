@@ -25,7 +25,6 @@ import r.base.BaseFrame;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.binding.RuntimeInvoker;
 import r.lang.exception.EvalException;
-import r.lang.exception.FunctionCallException;
 
 import java.util.List;
 
@@ -69,7 +68,10 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
     try {
       return RuntimeInvoker.INSTANCE.invoke(context, rho, call, getOverloads());
     } catch (EvalException e) {
-      throw new FunctionCallException(call, arguments, e);
+      if(e.getContext() == null) {
+        e.initContext(context);
+      }
+      throw e;
     }
   }
 

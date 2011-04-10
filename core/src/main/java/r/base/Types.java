@@ -80,7 +80,7 @@ public class Types {
 
   public static boolean isList(SEXP exp) {
     return exp instanceof ListVector ||
-           exp.getClass() == PairList.Node.class;
+        exp.getClass() == PairList.Node.class;
   }
 
   public static boolean isPairList(SEXP exp) {
@@ -97,8 +97,18 @@ public class Types {
 
   public static boolean isNumeric(SEXP exp) {
     return (exp instanceof IntVector && !exp.inherits("factor")) ||
-            exp instanceof LogicalVector ||
-            exp instanceof DoubleVector;
+        exp instanceof LogicalVector ||
+        exp instanceof DoubleVector;
+  }
+
+  @Primitive("is.matrix")
+  public static boolean isMatrix(SEXP exp) {
+    return exp.getAttribute(Symbol.DIM).length() == 2;
+  }
+
+  @Primitive("is.array")
+  public static boolean isArray(SEXP exp) {
+    return exp.getAttribute(Symbol.DIM).length() > 0;
   }
 
   @Primitive("is.vector")
@@ -141,8 +151,8 @@ public class Types {
 
   public static boolean isLanguage(SEXP exp) {
     return exp instanceof Symbol ||
-            exp instanceof FunctionCall ||
-            exp instanceof ExpressionVector;
+        exp instanceof FunctionCall ||
+        exp instanceof ExpressionVector;
 
   }
 
@@ -191,7 +201,7 @@ public class Types {
   }
 
   public static IntVector asInteger(Vector source) {
-      return (IntVector) convertVector(new IntVector.Builder(), source);
+    return (IntVector) convertVector(new IntVector.Builder(), source);
   }
 
   public static DoubleVector asDouble(Vector source) {
@@ -573,7 +583,7 @@ public class Types {
   public static boolean isListFactor(SEXP exp, boolean recursive) {
 
     if(!(exp instanceof ListVector)) {
-      return false;    
+      return false;
     }
     if(exp.length() == 0) {
       return false;
@@ -596,20 +606,41 @@ public class Types {
     Context.Options options = context.getGlobals().options;
     ListVector.Builder results = ListVector.newBuilder();
 
-    for(NamedValue argument : arguments.namedValues()) {
-      if(argument.hasName()) {
+    if(arguments.length() == 0) {
+      // return all options as a list
+      for(String name : options.names()) {
+        results.add(name, options.get(name));
+      }
+
+    } else if(arguments.length() == 1 && arguments.getElementAsSEXP(0) instanceof ListVector &&
+        arguments.getName(0).isEmpty()) {
+      ListVector list = (ListVector)arguments.getElementAsSEXP(0);
+      if(list.getAttribute(Symbol.NAMES) == Null.INSTANCE) {
+        throw new EvalException("list argument has no valid names");
+      }
+      for(NamedValue argument : list.namedValues()) {
+        if(!argument.hasName()) {
+          throw new EvalException("invalid argument");
+        }
         String name = argument.getName();
         results.add(name, options.set(name, argument.getValue()));
+      }
 
-      } else if(argument.getValue() instanceof StringVector) {
-        String name = ((StringVector) argument.getValue()).getElementAsString(0);
-        results.add(name, options.get(name));
+    } else {
+      for(NamedValue argument : arguments.namedValues()) {
+        if(argument.hasName()) {
+          String name = argument.getName();
+          results.add(name, options.set(name, argument.getValue()));
 
-      } else {
-        throw new EvalException("invalid argument");
+        } else if(argument.getValue() instanceof StringVector) {
+          String name = ((StringVector) argument.getValue()).getElementAsString(0);
+          results.add(name, options.get(name));
+
+        } else {
+          throw new EvalException("invalid argument");
+        }
       }
     }
-
     return results.build();
   }
 

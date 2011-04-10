@@ -21,10 +21,13 @@
 
 package r.lang.exception;
 
+import r.lang.Context;
+import r.lang.PairList;
 import r.lang.SEXP;
 
 public class EvalException extends RuntimeException {
   private SEXP exp;
+  private Context context;
 
   public EvalException(String message, Object... args) {
     super(String.format(message, args));
@@ -39,6 +42,47 @@ public class EvalException extends RuntimeException {
     super(String.format(message, args));
     this.exp = exp;
   }
+
+  public Context getContext() {
+    return context;
+  }
+
+  public void initContext(Context context) {
+    this.context = context;
+  }
+
+  @Override
+  public String getMessage() {
+    if(context == null) {
+      return super.getMessage();
+    }
+    StringBuilder sb = new StringBuilder(super.getMessage());
+    Context context = this.context;
+    while(!context.isTopLevel()) {
+      sb.append("\n  at ").append(context.getFunctionName());
+      appendArguments(sb, context);
+      context = context.getParent();
+    }
+    return sb.toString();
+  }
+
+  private void appendArguments(StringBuilder sb, Context context) {
+    boolean needsComma=false;
+    sb.append("(");
+    for(PairList.Node node : context.getArguments().nodes()) {
+      if(needsComma) {
+        sb.append(",");
+      } else {
+        needsComma=true;
+      }
+      if(node.hasTag()) {
+        sb.append(node.getTag()).append("=");
+      }
+      sb.append(node.getValue());
+    }
+    sb.append(")");
+  }
+
 
   public static void check(boolean condition, String errorMessage, Object... args) {
     if(!condition) {

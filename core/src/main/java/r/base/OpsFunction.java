@@ -24,7 +24,6 @@ package r.base;
 import r.jvmi.binding.RuntimeInvoker;
 import r.lang.*;
 import r.lang.exception.EvalException;
-import r.lang.exception.FunctionCallException;
 
 public class OpsFunction extends BuiltinFunction {
 
@@ -46,7 +45,10 @@ public class OpsFunction extends BuiltinFunction {
     try {
       return RuntimeInvoker.INSTANCE.invoke(context, rho, call, evaluated, getOverloads());
     } catch (EvalException e) {
-      throw new FunctionCallException(call, args, e);
+      if(e.getContext() == null) {
+        e.initContext(context);
+      }
+      throw e;
     }
   }
 }

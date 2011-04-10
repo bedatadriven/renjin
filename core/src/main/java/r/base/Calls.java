@@ -267,13 +267,13 @@ public class Calls {
       }
     }
 
-    return applyClosure((Closure)left.sxp, context, promisedArgs, rho, newrho);
+    return applyClosure((Closure)left.sxp, context, call.getFunction(), promisedArgs, rho, newrho);
   }
 
-  public static EvalResult applyClosure(Closure closure, Context context, PairList promisedArgs, Environment rho,
+  public static EvalResult applyClosure(Closure closure, Context context, SEXP function, PairList promisedArgs, Environment rho,
                                         Frame suppliedEnvironment) {
 
-    Context functionContext = context.beginFunction(closure, promisedArgs);
+    Context functionContext = context.beginFunction(function, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {
@@ -463,7 +463,6 @@ public class Calls {
    * If any arguments remain unmatched an error is declared.
    *
    * @param actuals the actual arguments supplied to the list
-   * @param innerEnv the environment in which to resolve the arguments;
    */
   public static PairList matchArguments(PairList formals, PairList actuals) {
 

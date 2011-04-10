@@ -21,7 +21,6 @@
 
 package r.base;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.*;
@@ -112,7 +111,6 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("info$mode"), equalTo(c_i(Integer.parseInt("777", 8))));
   }
 
-  @Ignore("in progress")
   @Test
   public void library() throws Exception {
     loadBasePackage();

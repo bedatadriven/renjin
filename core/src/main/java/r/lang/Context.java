@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Contexts are the internal mechanism used to keep track of where a
@@ -95,6 +96,11 @@ public class Context {
       SEXP old = map.put(name, value);
       return old == null ? Null.INSTANCE : value;
     }
+
+    public Set<String> names() {
+      return map.keySet();
+    }
+
   }
 
   /**
@@ -135,6 +141,7 @@ public class Context {
   private Type type;
   private Environment environment;
   private Globals globals;
+  private Symbol functionName;
   private Closure closure;
   private PairList arguments = Null.INSTANCE;
 
@@ -151,7 +158,7 @@ public class Context {
     return context;
   }
 
-  public Context beginFunction(Closure closure, PairList arguments) {
+  public Context beginFunction(SEXP function, Closure closure, PairList arguments) {
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;
@@ -160,6 +167,9 @@ public class Context {
     context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
     context.globals = globals;
     context.arguments = arguments;
+    if(function instanceof Symbol) {
+      context.functionName = (Symbol)function;
+    }
     return context;
   }
 
@@ -176,6 +186,11 @@ public class Context {
       throw new IllegalStateException("Only Contexts of type FUNCTION contain a FunctionCall");
     }
     return arguments;
+  }
+
+
+  public Symbol getFunctionName() {
+    return functionName;
   }
 
   public int getEvaluationDepth() {

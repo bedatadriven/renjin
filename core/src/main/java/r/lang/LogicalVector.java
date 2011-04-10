@@ -225,14 +225,14 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
       return toString(values[0]);
     } else {
       StringBuilder sb = new StringBuilder();
-      sb.append("[");
+      sb.append("c(");
       for (int i = 0; i != values.length; ++i) {
         if(i > 0) {
           sb.append(", ");
         }
         sb.append(toString(values[i]));
       }
-      sb.append("]");
+      sb.append(")");
       return sb.toString();
     }
   }

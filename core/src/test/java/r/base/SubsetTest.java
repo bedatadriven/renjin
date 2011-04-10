@@ -25,7 +25,7 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.*;
-import r.lang.exception.FunctionCallException;
+import r.lang.exception.EvalException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -116,7 +116,7 @@ public class SubsetTest extends EvalTestCase {
 
   }
 
-  @Test(expected = FunctionCallException.class)
+  @Test(expected = EvalException.class)
   public void mixedNegativeAndPos() {
     eval(" x <- c(91,92) ");
     eval(" x[-1,4] ");
@@ -213,6 +213,14 @@ public class SubsetTest extends EvalTestCase {
   }
 
   @Test
+  public void setNoElements() {
+    eval(" x<- c(1,2,3) ");
+    eval("x[FALSE]<-c()");
+
+    assertThat( eval("x") , equalTo(c(1,2,3)));
+  }
+
+  @Test
   public void listElementByName() {
     eval(" p <- list(x=33, y=44) ");
 
@@ -257,7 +265,7 @@ public class SubsetTest extends EvalTestCase {
     assertThat(result, equalTo((SEXP)c(1)));
   }
 
-  @Test(expected = FunctionCallException.class)
+  @Test(expected = EvalException.class)
   public void listIndexOutOfBounds() {
     eval(" x <- list(1,2) ");
     eval(" x[[3]] ");

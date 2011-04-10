@@ -91,6 +91,14 @@ public class Subset {
         .extract();
   }
 
+    @Primitive("[<-")
+  public static SEXP setSubset(@ArgumentList ListVector arguments) {
+    return new SubscriptOperation()
+        .setSource(arguments.getElementAsSEXP(0))
+        .setSubscripts(arguments, 1, 1)
+        .replace((Vector) arguments.getElementAsSEXP(arguments.length()-1));
+  }
+
   @Primitive("[[<-")
   public static SEXP setSingleElement(@ArgumentList ListVector arguments) {
     return new SubscriptOperation()
@@ -136,58 +144,6 @@ public class Subset {
 
       return matchCount == 1 ? match : Null.INSTANCE;
     }
-  }
-
-
-  @Primitive("[<-")
-  public static SEXP setSubset(Vector target, @Indices int indices[], Vector values) {
-    EvalException.check(indices.length % values.length() == 0,
-        "number of items to replace is not a multiple of replacement length");
-
-    Vector.Builder result = copyWideningIfNecessary(target, values);
-
-    for(int i=0;i!=indices.length;++i) {
-      int index = indices[i];
-      if(index > 0) {
-        result.setFrom(index-1, values, i % values.length());
-      }
-    }
-    return result.build();
-  }
-
-  @Primitive("[<-")
-  public static SEXP setSubset(Vector target, LogicalVector subscripts, Vector values) {
-    int replaceCount = 0;
-    for(int i=0;i!=target.length();++i) {
-      int subscriptIndex = i % subscripts.length();
-      EvalException.check(!subscripts.isElementNA(subscriptIndex),
-          "NAs are not allowed in subscripted assignments");
-
-      if(subscripts.getElementAsInt(subscriptIndex) != 0) {
-        replaceCount++;
-      }
-    }
-
-    if(replaceCount == 0 && values.length() == 0) {
-      return target;
-    }
-
-    EvalException.check(values.length() != 0, "replacement has zero length");
-    EvalException.check(replaceCount % values.length() == 0,
-        "number of items to replace is not a multiple of replacement length");
-
-    Vector.Builder result = copyWideningIfNecessary(target, values);
-    int replacedCount = 0;
-    for(int i=0;i!=target.length();++i) {
-      int subscriptIndex = i % subscripts.length();
-      if(subscripts.getElementAsInt(subscriptIndex) != 0) {
-        int valueIndex = replacedCount % values.length();
-        result.setFrom(i, values, valueIndex);
-        replacedCount++;
-      }
-    }
-
-    return result.build();
   }
 
   private static Vector.Builder copyWideningIfNecessary(Vector toCopy, Vector otherElements) {

@@ -24,7 +24,7 @@ package r.base;
 import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.Logical;
-import r.lang.exception.FunctionCallException;
+import r.lang.exception.EvalException;
 
 import java.io.IOException;
 
@@ -115,7 +115,7 @@ public class ComparisonTest extends EvalTestCase {
     assertThat( eval("c(TRUE) || 'a'"), equalTo(c(Logical.TRUE)) );
   }
 
-  @Test(expected = FunctionCallException.class)
+  @Test(expected = EvalException.class)
   public void orInvalid() {
     eval(" FALSE || quote(x) ");
   }

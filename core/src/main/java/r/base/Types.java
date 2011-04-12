@@ -24,7 +24,10 @@ package r.base;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import r.jvmi.annotations.*;
+import r.jvmi.annotations.ArgumentList;
+import r.jvmi.annotations.Current;
+import r.jvmi.annotations.Primitive;
+import r.jvmi.annotations.Visible;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -405,7 +408,7 @@ public class Types {
     return exp.length();
   }
 
-  public static SEXP vector(String mode, @Indices int length) {
+  public static SEXP vector(String mode, int length) {
     if("logical".equals(mode)) {
       return new LogicalVector(new int[length]);
 
@@ -533,7 +536,7 @@ public class Types {
   }
 
   @Visible(false)
-  public static Environment attach(@Current Environment rho, SEXP what, @Indices int pos, String name) {
+  public static Environment attach(@Current Environment rho, SEXP what, int pos, String name) {
 
     //By default the database is attached in position 2 in the search path,
     // immediately after the user's workspace and before all previously loaded packages and

@@ -22,7 +22,6 @@
 package r.base;
 
 import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Indices;
 import r.jvmi.annotations.Primitive;
 import r.lang.Context;
 import r.lang.Environment;
@@ -49,7 +48,7 @@ public class Contexts {
    *
    */
   @Primitive("parent.frame")
-  public static Environment parentFrame(@Current Context context, @Indices int n) {
+  public static Environment parentFrame(@Current Context context,  int n) {
     if(n < 1) {
       throw new EvalException("invalid 'n' value");
     }
@@ -68,7 +67,7 @@ public class Contexts {
   }
 
   @Primitive("sys.frame")
-  public static Environment sysFrame(@Current Context context, @Indices int which) {
+  public static Environment sysFrame(@Current Context context, int which) {
     if(which < 0) {
       which = context.getEvaluationDepth() + which - 1;
     }

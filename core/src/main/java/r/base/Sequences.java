@@ -24,7 +24,6 @@ package r.base;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.math.linear.RealVector;
 import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Indices;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
@@ -78,7 +77,7 @@ public class Sequences {
   }
 
   @Primitive("rep.int")
-  public static Vector repeatInt(Vector x, @Indices int times) {
+  public static Vector repeatInt(Vector x, int times) {
     EvalException.check(times >= 0, "invalid 'times' value");
 
     Vector.Builder result = x.newBuilder(x.length() * times);

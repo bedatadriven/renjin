@@ -315,6 +315,16 @@ public class SubsetTest extends EvalTestCase {
   }
 
   @Test
+  public void matrixDimsPreserved() {
+    eval(" x<-1:4 ");
+    eval(" dim(x) <- c(2,2) ");
+    eval(" x[1,1] <- 9");
+
+    assertThat( eval("dim(x)"), equalTo( c_i(2,2)));
+
+  }
+
+  @Test
   public void subscriptsOnNull() {
     eval(" x <- NULL ");
 

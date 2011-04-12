@@ -21,6 +21,7 @@
 
 package r.base;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.*;
@@ -112,6 +113,7 @@ public class BasePackageTest extends EvalTestCase {
   }
 
   @Test
+  @Ignore("in progress")
   public void library() throws Exception {
     loadBasePackage();
     executeStartupProfile();

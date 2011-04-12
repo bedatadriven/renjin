@@ -219,6 +219,7 @@ public class SubscriptOperation {
       result = toCopy.newCopyBuilder();
     } else {
       result = otherElements.newBuilder(0);
+      result.copyAttributesFrom(toCopy);
       for(int i=0;i!= toCopy.length();++i) {
         result.setFrom(i, toCopy, i);
       }

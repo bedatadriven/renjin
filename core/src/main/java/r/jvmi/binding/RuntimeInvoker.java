@@ -23,7 +23,6 @@ package r.jvmi.binding;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import r.jvmi.annotations.Indices;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -439,7 +438,6 @@ public class RuntimeInvoker {
     public boolean accept(SEXP source, JvmMethod.Argument formal) {
       return
           source instanceof DoubleVector &&
-              formal.isAnnotatedWith(Indices.class) &&
               formal.getClazz().equals(int[].class);
     }
 
@@ -454,7 +452,6 @@ public class RuntimeInvoker {
     public boolean accept(SEXP source, JvmMethod.Argument formal) {
       return
           source instanceof IntVector &&
-              formal.isAnnotatedWith(Indices.class) &&
               formal.getClazz().equals(int[].class);
     }
 
@@ -473,7 +470,6 @@ public class RuntimeInvoker {
     public boolean accept(SEXP source, JvmMethod.Argument formal) {
       return source instanceof DoubleVector &&
           source.length() == 1 &&
-          formal.isAnnotatedWith(Indices.class) &&
           formal.getClazz().equals(Integer.TYPE);
     }
 

@@ -109,7 +109,7 @@ public class Subset {
 
 
   @Primitive("[[")
-  public static SEXP getSingleElement(Vector vector, @Indices int index) {
+  public static SEXP getSingleElement(Vector vector, int index) {
     if(vector.length() == 0) {
       return Null.INSTANCE;
     }

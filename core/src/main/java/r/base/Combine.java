@@ -25,7 +25,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Indices;
 import r.jvmi.annotations.NamedFlag;
 import r.lang.*;
 import r.lang.exception.EvalException;
@@ -232,7 +231,7 @@ public class Combine {
    * @param source the array to be transposed.
    * @param permutationVector the subscript permutation vector, which must be a permutation of the
    *      integers 1:n, where {@code n} is the number of dimensions of {@code source}.
-   * @param a flag indicating whether the vector should be resized as well as having its elements reordered
+   * @param resize flag indicating whether the vector should be resized as well as having its elements reordered
    */
   public static SEXP aperm(Vector source, AtomicVector permutationVector, boolean resize) {
     if(!resize) throw new UnsupportedOperationException("resize=TRUE not yet implemented");
@@ -309,8 +308,6 @@ public class Combine {
 
   public static SEXP rbind(@ArgumentList ListVector arguments) {
 
-    int deparseLevel = arguments.getElementAsInt(0);
-
     List<BindArgument> bindArguments = Lists.newArrayList();
     for(int i=1;i!=arguments.length();++i) {
       Vector argument = EvalException.checkedCast(arguments.getElementAsSEXP(i));
@@ -385,6 +382,86 @@ public class Combine {
     return builder.build();
   }
 
+
+  public static SEXP cbind(@ArgumentList ListVector arguments) {
+
+    int deparseLevel = arguments.getElementAsInt(0);
+
+    if(arguments.length() == 1) {
+      return Null.INSTANCE;
+    }
+
+    List<BindArgument> bindArguments = Lists.newArrayList();
+    for(int i=1;i!=arguments.length();++i) {
+      Vector argument = EvalException.checkedCast(arguments.getElementAsSEXP(i));
+      bindArguments.add(new BindArgument(argument, false));
+    }
+
+    // establish the number of rows
+    // 1. check actual matrices
+    int rows = -1;
+    int columns = 0;
+    for(BindArgument argument : bindArguments) {
+      if(argument.matrix) {
+        columns += argument.cols;
+        if(rows == -1) {
+          rows = argument.rows;
+        } else if(rows != argument.rows) {
+          throw new EvalException("number of rows of matrices must match");
+        }
+      } else {
+        columns ++;
+      }
+    }
+
+    // if there are no actual matrices, then use the longest vector length as the number of rows
+    if(rows == -1) {
+      for(BindArgument argument : bindArguments) {
+        if(argument.vector.length() > rows) {
+          rows = argument.vector.length();
+        }
+      }
+    }
+
+    // now check that all vectors lengths are multiples of the column length
+    for(BindArgument argument : bindArguments) {
+      if(!argument.matrix) {
+        if( (rows % argument.vector.length()) != 0) {
+          throw new EvalException("number of rows of result is not a multiple of vector length");
+        }
+      }
+    }
+
+    // get the common type and a new builder
+    Inspector inspector = new Inspector(false);
+    inspector.acceptAll(arguments);
+    Vector.Builder vectorBuilder = inspector.getResult().newBuilder();
+
+    // wrap the builder
+    Matrix2dBuilder builder = new Matrix2dBuilder(vectorBuilder, rows, columns);
+    for(BindArgument argument : bindArguments) {
+      for(int j=0;j!=argument.cols;++j) {
+        for(int i=0;i!=rows;++i) {
+          builder.addFrom(argument, i, j);
+        }
+      }
+    }
+
+    AtomicVector rowNames = Null.INSTANCE;
+    AtomicVector colNames = Null.INSTANCE;
+
+    for(BindArgument argument : bindArguments) {
+      if(argument.rowNames.length() == rows) {
+        rowNames = argument.rowNames;
+        break;
+      }
+    }
+
+    builder.setDimNames(rowNames, colNames);
+
+    return builder.build();
+  }
+
   private static class BindArgument {
     private final Vector vector;
     private final int rows;
@@ -440,7 +517,8 @@ public class Combine {
 
     public void addFrom(BindArgument argument, int rowIndex, int colIndex) {
       int recycledColIndex = colIndex % argument.cols;
-      builder.setFrom(count, argument.vector, recycledColIndex * argument.rows + rowIndex);
+      int recycledRowIndex = rowIndex % argument.rows;
+      builder.setFrom(count, argument.vector, recycledColIndex * argument.rows + recycledRowIndex);
       count++;
     }
 
@@ -456,7 +534,7 @@ public class Combine {
     }
   }
 
-  public static SEXP matrix(Vector data, @Indices int nrow, @Indices int ncol, boolean byRow, Vector dimnames) {
+  public static SEXP matrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
     if(byRow) {
       throw new UnsupportedOperationException("matrix by row not implemented");
     }

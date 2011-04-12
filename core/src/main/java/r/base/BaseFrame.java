@@ -260,7 +260,7 @@ public class BaseFrame implements Frame {
     f("col", /*rowscols*/ null, 2, 11, 1);
     f("c", Combine.class, "combine",  0, 0, -1);
     f("unlist", Combine.class, 0, 11, 3);
-    f("cbind", /*bind*/ null, 1, 10, -1);
+    f("cbind", Combine.class, 1, 10, -1);
     f("rbind", Combine.class, 2, 10, -1);
     f("drop", /*drop*/ null, 0, 11, 1);
     f("oldClass", Types.class, 0, 1, 1);

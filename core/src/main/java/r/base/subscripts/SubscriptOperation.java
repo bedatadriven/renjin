@@ -112,7 +112,7 @@ public class SubscriptOperation {
       int count = 0;
       int[] subscriptIndex = new int[sourceDim.length];
       do {
-        int index = computeSourceIndex(subscriptIndex);
+        int index = subscriptIndexToSource(subscriptIndex);
         if(!IntVector.isNA(index) && index < source.length()) {
           result.setFrom(count++, source, index);
           if(names != null) {
@@ -146,7 +146,7 @@ public class SubscriptOperation {
     }
   }
 
-  private int computeSourceIndex(int subscriptIndex[]) {
+  private int subscriptIndexToSource(int subscriptIndex[]) {
     int sourceIndices[] = new int[sourceDim.length];
     for(int i=0;i!=sourceDim.length;++i) {
       sourceIndices[i] = subscripts[i].getAt(subscriptIndex[i]);
@@ -195,14 +195,15 @@ public class SubscriptOperation {
       if(elements.length() == 0) {
         throw new EvalException("replacement has zero length");
       }
-      int sourceIndex = 0;
+      int replacement = 0;
       int[] subscriptIndex = new int[sourceDim.length];
       do {
-        int index = computeSourceIndex(subscriptIndex);
+        int index = subscriptIndexToSource(subscriptIndex);
+        assert !sourceIsArray ||  index < source.length();
         if(!IntVector.isNA(index)) {
-          result.setFrom(index, elements, sourceIndex++);
-          if(sourceIndex >= elements.length()) {
-            sourceIndex = 0;
+          result.setFrom(index, elements, replacement++);
+          if(replacement >= elements.length()) {
+            replacement = 0;
           }
         }
       } while(Indexes.incrementArrayIndex(subscriptIndex, this.subscriptDim));
@@ -239,7 +240,7 @@ public class SubscriptOperation {
         subscripts[i] = new MissingSubscript(sourceDim[i]);
 
       } else if(argument instanceof LogicalVector) {
-        subscripts[i] = new LogicalSubscript(source, (LogicalVector)argument);
+        subscripts[i] = new LogicalSubscript(sourceDim[i], (LogicalVector)argument);
 
       } else if(argument instanceof StringVector) {
         subscripts[i] = new NamedSubscript(names(i), (StringVector)argument);

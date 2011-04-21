@@ -456,6 +456,9 @@ public class Text {
       return d[n][m];
   }
 
+  public static String substr(String value, int start, int stop) {
+    return value.substring(start+1, stop);
+  }
 
 
 }

@@ -38,6 +38,18 @@ abstract class AbstractSEXP implements SEXP {
     this.attributes = attributes;
   }
 
+  protected boolean checkDims() {
+    Vector dimVector = (Vector)attributes.findByTag(Symbol.DIM);
+    if(dimVector.length() == 0) {
+      return true;
+    }
+    int length = 1;
+    for(int i=0;i!=dimVector.length();++i) {
+      length = length * dimVector.getElementAsInt(i);
+    }
+    return length == length();
+  }
+
   protected AbstractSEXP() {
     this.attributes = Null.INSTANCE;
   }

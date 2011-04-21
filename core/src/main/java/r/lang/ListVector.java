@@ -61,10 +61,14 @@ public class ListVector extends AbstractVector implements Iterable<SEXP> {
     super(tag, attributes);
     this.values = new ArrayList<SEXP>();
     Collections.addAll(this.values, values);
+
+    assert checkDims() : "dim do not match length of object";
   }
 
   public ListVector(SEXP[] values, PairList attributes) {
     this(values, Null.INSTANCE, attributes);
+
+    assert checkDims() : "dim do not match length of object";
   }
 
   public ListVector(SEXP... values) {

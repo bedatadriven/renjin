@@ -27,7 +27,7 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 
 
-public class Subset {
+public class Subscript {
 
   @Primitive("$")
   public static SEXP getElementByName(PairList list, @Evaluate(false) Symbol symbol) {
@@ -91,7 +91,7 @@ public class Subset {
         .extract();
   }
 
-    @Primitive("[<-")
+  @Primitive("[<-")
   public static SEXP setSubset(@ArgumentList ListVector arguments) {
     return new SubscriptOperation()
         .setSource(arguments.getElementAsSEXP(0))

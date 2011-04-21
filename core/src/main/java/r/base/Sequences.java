@@ -444,4 +444,13 @@ public class Sequences {
     }
     return indexes;
   }
+
+  @Primitive("seq_len")
+  public static IntVector seqLength(int length) {
+    IntVector.Builder result = new IntVector.Builder();
+    for(int i=1;i<=length;++i) {
+      result.add(i);
+    }
+    return result.build();
+  }
 }

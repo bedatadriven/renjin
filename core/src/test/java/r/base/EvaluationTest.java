@@ -316,4 +316,19 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval("test(c1, a2, rr3)"), equalTo( c_i(3)));
   }
 
+  @Test
+  public void delayedAssign() {
+
+    eval("parent.frame <- function (n = 1) " +
+        ".Internal(parent.frame(n))");
+    eval(" delayedAssign <- function (x, value, eval.env = parent.frame(1), assign.env = parent.frame(1)) " +
+             ".Internal(delayedAssign(x, substitute(value), eval.env, assign.env)) ");
+
+    eval(" delayedAssign('x', f(y)) ");
+    eval(" y<-3");
+    eval(" f<-function(x) x^2 ");
+
+    assertThat( eval("x"), equalTo(c(9)));
+
+  }
 }

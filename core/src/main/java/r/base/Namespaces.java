@@ -67,6 +67,34 @@ public class Namespaces {
     }
     return false;
   }
+
+  public static void importIntoEnv(Environment impenv, StringVector impnames, Environment expenv, StringVector expnames) {
+
+    /* This function copies values of variables from one environment
+       to another environment, possibly with different names.
+       Promises are not forced and active bindings are preserved. */
+
+    SEXP binding, env, val;
+    int  n;
+
+    if(impnames.length() != expnames.length()) {
+      throw new EvalException("length of import and export names must match");
+    }
+
+    for(int i=0;i!=impnames.length();++i) {
+      if(impnames.isElementNA(i) || expnames.isElementNA(i)) {
+        throw new EvalException("Import/export name cannot be NA");
+      }
+      Symbol impsym = new Symbol(impnames.getElementAsString(i));
+      Symbol expsym = new Symbol(expnames.getElementAsString(i));
+
+      SEXP value = expenv.findVariable(impsym);
+      expenv.setVariable(expsym, value);
+    }
+
+  }
+
+
 //
 //  public static boolean importIntoEnv() {
 //    SEXP attribute_hidden do_importIntoEnv(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -137,5 +165,4 @@ public class Namespaces {
 //    return R_NilValue;
 //
 //  }
-
 }

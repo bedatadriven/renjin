@@ -31,7 +31,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
-public class SubsetTest extends EvalTestCase {
+public class SubscriptTest extends EvalTestCase {
 
   @Test
   public void subsetDouble() {
@@ -261,7 +261,7 @@ public class SubsetTest extends EvalTestCase {
         .add(symbol("aardvark"), c(3))
         .build();
 
-    SEXP result = Subset.getElementByName(list, new Symbol("all"));
+    SEXP result = Subscript.getElementByName(list, new Symbol("all"));
     assertThat(result, equalTo((SEXP)c(1)));
   }
 
@@ -355,6 +355,17 @@ public class SubsetTest extends EvalTestCase {
     eval(" x[[2]] <- 'foo' ");
 
     assertThat( eval("x"), equalTo( c("91", "foo")) );
+  }
+
+  @Test
+  public void replaceColumn() {
+    eval("     a<-1:30");
+    eval(" dim(a) <- c(10,3) ");
+    eval(" T<-TRUE");
+    eval(" a[ c(T,T,T,T,T,T,T,T,T,T), 3] <- 51:60 ");
+
+    assertThat( eval("a").length(), equalTo(30));
+
   }
 
 }

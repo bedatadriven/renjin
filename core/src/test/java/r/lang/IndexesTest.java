@@ -19,36 +19,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.subscripts;
+package r.lang;
 
-import r.lang.IntVector;
-import r.lang.LogicalVector;
+import org.junit.Test;
 
-public class LogicalSubscript extends Subscript {
-  private int count;
-  private int[] indices;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
-  public LogicalSubscript(int dimLength, LogicalVector subscript) {
-    indices = new int[dimLength];
-    count = 0;
-    for(int i=0;i!=indices.length;++i) {
-      int subscriptIndex = i % subscript.length();
-      int value = subscript.getElementAsRawLogical(subscriptIndex);
-      if(value == 1) {
-        indices[count++] = i;
-      } else if(IntVector.isNA(value)) {
-        indices[count++] = IntVector.NA;
-      }
-    }
+public class IndexesTest {
+
+  @Test
+  public void arrayToVectorIndex() {
+
+    assertThat( Indexes.arrayIndexToVectorIndex(new int[] {0,2}, new int[] {10,3} ), equalTo(20) );
+
   }
 
-  @Override
-  public int getCount() {
-    return count;
-  }
+  @Test
+  public void increment() {
+    assertThat( Indexes.incrementArrayIndex(new int[] {9,0}, new int[] {10,1} ), equalTo(false) );
 
-  @Override
-  public int getAt(int i) {
-    return indices[i];
   }
 }

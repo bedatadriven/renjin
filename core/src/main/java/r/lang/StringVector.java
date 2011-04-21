@@ -49,6 +49,8 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
   public StringVector(Collection<String> values, PairList attributes) {
     super(attributes);
     this.values = values.toArray(new String[values.size()]);
+
+    assert checkDims() : "dim do not match length of object";
   }
 
   public StringVector(Collection<String> values) {
@@ -58,6 +60,8 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
   public StringVector(String[] values, PairList attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, values.length, String[].class);
+
+    assert checkDims() : "dim do not match length of object";
   }
 
 

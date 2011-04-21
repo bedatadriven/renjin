@@ -78,6 +78,10 @@ public class Evaluation {
     return EvalResult.invisible(value);
   }
 
+  public static void delayedAssign(String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
+    assignEnv.setVariable( new Symbol(x), new Promise(evalEnv, expr));
+  }
+
 
   /**
    * This is the so-called complex assignment, such as:

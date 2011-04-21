@@ -167,13 +167,13 @@ public class BaseFrame implements Frame {
 
     f("subset", /*subset_dflt*/ null, 1, 1, -1);
     f(".subset2", /*subset2_dflt*/ null, 2, 1, -1);
-    f("[",Subset.class, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
-    f("[[", Subset.class, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
-    f("$", Subset.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
+    f("[",Subscript.class, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
+    f("[[", Subscript.class, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
+    f("$", Subscript.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
     f("@", /*AT*/ null, 0, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
-    f("[<-", Subset.class, 0, 0, 3, PP_SUBASS, PREC_LEFT, 1);
-    f("[[<-", Subset.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
-    f("$<-", Subset.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
+    f("[<-", Subscript.class, 0, 0, 3, PP_SUBASS, PREC_LEFT, 1);
+    f("[[<-", Subscript.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
+    f("$<-", Subscript.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
 
     addInternal("switch", new SwitchFunction());
 
@@ -189,7 +189,7 @@ public class BaseFrame implements Frame {
     add(new OnExitFunction());
 
     f("Recall", /*recall*/ null, 0, 210, -1);
-    f("delayedAssign", /*delayed*/ null, 0, 111, 4);
+    f("delayedAssign", Evaluation.class, 0, 111, 4);
     f("makeLazy", Connections.class, 0, 111, 5);
     f(".Primitive", /*primitive*/ null, 0, 1, 1);
     f("identical",  Types.class, 0, 11, 5);
@@ -555,7 +555,7 @@ public class BaseFrame implements Frame {
 
     f("nchar", Text.class, 1, 11, 3);
     f("nzchar", Text.class, 1, 1, 1);
-    f("substr", /*substr*/ null, 1, 11, 3);
+    f("substr", Text.class, 1, 11, 3);
     f("substr<-", /*substrgets*/ null, 1, 11, 4);
     f("strsplit", Text.class, 1, 11, 6);
     f("abbreviate", /*abbrev*/ null, 1, 11, 3);
@@ -659,7 +659,7 @@ public class BaseFrame implements Frame {
     f("rep", Sequences.class, 0, 0, -1);
     f("rep.int", Sequences.class, 0, 11, 2);
     f("seq.int", Sequences.class, 0, 0, -1);
-    f("seq_len", /*seq_len*/ null, 0, 1, 1);
+    f("seq_len", Sequences.class, 0, 1, 1);
     f("seq_along", Sequences.class, "seqAlong", 0, 1, 1);
     f("list", Types.class, "list", 1, 1, -1);
     f("split", /*split*/ null, 0, 11, 2);

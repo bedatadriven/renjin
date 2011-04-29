@@ -104,7 +104,7 @@ public class Subscript {
     return new SubscriptOperation()
         .setSource(arguments.getElementAsSEXP(0))
         .setSubscripts(arguments, 1, 1)
-        .replace((Vector) arguments.getElementAsSEXP(arguments.length()-1));
+        .replaceSingle((Vector) arguments.getElementAsSEXP(arguments.length()-1));
   }
 
 

@@ -25,6 +25,7 @@ import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.Context;
 import r.lang.Environment;
+import r.lang.FunctionCall;
 import r.lang.exception.EvalException;
 
 public class Contexts {
@@ -68,7 +69,16 @@ public class Contexts {
 
   @Primitive("sys.frame")
   public static Environment sysFrame(@Current Context context, int which) {
-    if(which < 0) {
+    return walkUpFrame(context, which).getEnvironment();
+  }
+
+  @Primitive("sys.call")
+  public static FunctionCall sysCall(@Current Context context, int which) {
+    return walkUpFrame(context, which).getCall();
+  }
+
+  private static Context walkUpFrame(Context context, int which) {
+    if(which <= 0) {
       which = context.getEvaluationDepth() + which - 1;
     }
 
@@ -80,8 +90,8 @@ public class Contexts {
     while(frame.getEvaluationDepth() != which) {
       frame = frame.getParent();
     }
-
-    return frame.getEnvironment();
+    return frame;
   }
+
 
 }

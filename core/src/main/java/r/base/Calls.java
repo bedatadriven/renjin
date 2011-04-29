@@ -267,13 +267,13 @@ public class Calls {
       }
     }
 
-    return applyClosure((Closure)left.sxp, context, call.getFunction(), promisedArgs, rho, newrho);
+    return applyClosure((Closure)left.sxp, context, newCall, promisedArgs, rho, newrho);
   }
 
-  public static EvalResult applyClosure(Closure closure, Context context, SEXP function, PairList promisedArgs, Environment rho,
+  public static EvalResult applyClosure(Closure closure, Context context, FunctionCall call, PairList promisedArgs, Environment rho,
                                         Frame suppliedEnvironment) {
 
-    Context functionContext = context.beginFunction(function, closure, promisedArgs);
+    Context functionContext = context.beginFunction(call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {

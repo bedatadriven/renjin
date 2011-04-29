@@ -98,7 +98,13 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
 
   protected abstract static class AbstractAtomicBuilder<E> extends AbstractBuilder<Vector, E> {
 
-
-
+    @Override
+    public Builder set(int destinationIndex, SEXP exp) {
+      if(!(exp instanceof AtomicVector) || exp.length() != 1) {
+        throw new IllegalArgumentException("the argument must be an atomic vector of length 1");
+      }
+      setFrom(destinationIndex, (AtomicVector) exp, 0);
+      return this;
+    }
   }
 }

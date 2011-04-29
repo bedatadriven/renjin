@@ -44,8 +44,11 @@ public abstract class SpecialFunction extends AbstractSEXP implements Function {
     visitor.visitSpecial(this);
   }
 
-  public static boolean asLogicalNoNA(FunctionCall call, SEXP s, Environment rho) {
+  public static boolean asLogicalNoNA(FunctionCall call, SEXP s) {
 
+    if (s.length() == 0) {
+      throw new EvalException("argument is of length zero");
+    }
     if (s.length() > 1) {
       Warning.warning(call, "the condition has length > 1 and only the first element will be used");
     }

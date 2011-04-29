@@ -85,6 +85,17 @@ public class Context {
     private Map<String, SEXP> map = Maps.newHashMap();
 
     public Options() {
+      map.put("prompt", new StringVector("> "));
+      map.put("continue", new StringVector("+ "));
+      map.put("expressions" , new IntVector(5000));
+      map.put("width", new IntVector(80));
+      map.put("digits", new IntVector(7));
+      map.put("echo", new LogicalVector(false));
+      map.put("verbose", new LogicalVector(true));
+      map.put("check.bounds", new LogicalVector(false));
+      map.put("keep.source", new LogicalVector(true));
+      map.put("warnings.length", new IntVector(1000));
+      map.put("OutDec", new StringVector("."));
     }
 
     public SEXP get(String name) {
@@ -141,7 +152,7 @@ public class Context {
   private Type type;
   private Environment environment;
   private Globals globals;
-  private Symbol functionName;
+  private FunctionCall call;
   private Closure closure;
   private PairList arguments = Null.INSTANCE;
 
@@ -158,7 +169,7 @@ public class Context {
     return context;
   }
 
-  public Context beginFunction(SEXP function, Closure closure, PairList arguments) {
+  public Context beginFunction(FunctionCall call, Closure closure, PairList arguments) {
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;
@@ -167,9 +178,7 @@ public class Context {
     context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
     context.globals = globals;
     context.arguments = arguments;
-    if(function instanceof Symbol) {
-      context.functionName = (Symbol)function;
-    }
+    context.call= call;
     return context;
   }
 
@@ -189,8 +198,12 @@ public class Context {
   }
 
 
-  public Symbol getFunctionName() {
-    return functionName;
+  public SEXP getFunctionName() {
+    return call.getFunction();
+  }
+
+  public FunctionCall getCall() {
+    return call;
   }
 
   public int getEvaluationDepth() {

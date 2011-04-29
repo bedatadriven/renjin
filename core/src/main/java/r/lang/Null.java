@@ -285,6 +285,10 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
       throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
     }
 
+    @Override
+    public Vector.Builder set(int destinationIndex, SEXP exp) {
+      throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
 
     @Override
     public Vector.Builder setAttribute(String name, SEXP value) {

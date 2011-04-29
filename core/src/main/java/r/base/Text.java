@@ -456,8 +456,12 @@ public class Text {
       return d[n][m];
   }
 
-  public static String substr(String value, int start, int stop) {
-    return value.substring(start+1, stop);
+  public static StringVector substr(StringVector x, int start, int stop) {
+    StringVector.Builder result = new StringVector.Builder();
+    for(String s : x) {
+      result.add(s.substring(start-1, stop));
+    }
+    return result.build();
   }
 
 

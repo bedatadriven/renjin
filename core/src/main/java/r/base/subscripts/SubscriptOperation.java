@@ -88,9 +88,6 @@ public class SubscriptOperation {
 
   }
 
-
-
-
   public SEXP extract() {
 
     if(source.length() == 0) {
@@ -184,9 +181,16 @@ public class SubscriptOperation {
 
 
 
-  public SEXP replace(Vector elements) {
+  public SEXP replace(SEXP elements) {
 
-    Vector.Builder result = copyWideningIfNecessary(source, elements);
+    Vector.Type replacementType;
+    if(elements instanceof AtomicVector) {
+      replacementType = ((AtomicVector) elements).getVectorType();
+    } else {
+      replacementType = ListVector.VECTOR_TYPE;
+    }
+
+    Vector.Builder result = copyWideningIfNecessary(source, replacementType);
     computeSourceDimensions();
     buildSubscripts();
     computeSubscriptDim();
@@ -213,13 +217,14 @@ public class SubscriptOperation {
   }
 
 
-  private Vector.Builder copyWideningIfNecessary(Vector toCopy, Vector otherElements) {
+
+  private Vector.Builder copyWideningIfNecessary(Vector toCopy, Vector.Type replacementType) {
     Vector.Builder result;
 
-    if(toCopy.isWiderThan(otherElements)) {
+    if(toCopy.getVectorType().isWiderThan(replacementType)) {
       result = toCopy.newCopyBuilder();
     } else {
-      result = otherElements.newBuilder(0);
+      result = replacementType.newBuilder();
       result.copyAttributesFrom(toCopy);
       for(int i=0;i!= toCopy.length();++i) {
         result.setFrom(i, toCopy, i);
@@ -285,17 +290,27 @@ public class SubscriptOperation {
     return !hasNeg;
   }
 
-
-  private class SubsetIterator {
-
-    private int subscriptIndex[];
-
-    public boolean next() {
-      return Indexes.incrementArrayIndex(subscriptIndex, subscriptDim);
+  public SEXP replaceSingle(SEXP exp) {
+              Vector.Type replacementType;
+    if(exp instanceof AtomicVector) {
+      replacementType = ((AtomicVector) exp).getVectorType();
+    } else {
+      replacementType = ListVector.VECTOR_TYPE;
     }
 
-  }
+    Vector.Builder result = copyWideningIfNecessary(source, replacementType);
+    computeSourceDimensions();
+    buildSubscripts();
+    computeSubscriptDim();
 
+    if(subscriptLength != 1) {
+      throw new EvalException("must replace exactly one element");
+    }
+    int index = subscriptIndexToSource(new int[sourceDim.length]);
+    result.set(index, exp);
+
+    return result.build();
+  }
 
 
 }

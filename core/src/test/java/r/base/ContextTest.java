@@ -23,6 +23,7 @@ package r.base;
 
 import org.junit.Test;
 import r.EvalTestCase;
+import r.lang.FunctionCall;
 import r.lang.SEXP;
 import r.lang.exception.EvalException;
 
@@ -89,5 +90,17 @@ public class ContextTest extends EvalTestCase {
     eval(" f<- function() { zzz<-21; g() } ");
 
     assertThat( eval("f()"), equalTo( c(42)));
+  }
+
+  @Test
+  public void sysCall() {
+    eval(" sys.call <- function (which = 0) .Internal(sys.call(which))");
+
+    eval(" g <- function(x) sys.call(0) ");
+
+    FunctionCall call = (FunctionCall)eval("g(1)");
+    assertThat(call.getFunction(), equalTo(symbol("g")));
+
+
   }
 }

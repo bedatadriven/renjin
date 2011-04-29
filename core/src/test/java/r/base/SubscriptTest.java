@@ -236,6 +236,20 @@ public class SubscriptTest extends EvalTestCase {
   }
 
   @Test
+  public void setElementWeirdCase() {
+    eval(" restarts <- list( list(name='foo'), list(name='zig'), list(name='zag') ) ");
+
+    assertThat( eval("restarts[[2]]$name "), equalTo(c("zig")));
+
+    eval(" name <- 'bar' ");
+    eval(" i <- 2 ");
+    eval(" restarts[[i]]$name <- name ");
+
+    assertThat( eval("restarts[[2]]$name "), equalTo(c("bar")));
+
+  }
+
+  @Test
   public void setNewListElementByName() {
     eval(" p <- list( x = 22, y = 33 ) ");
     eval(" p$z <- 44 ");

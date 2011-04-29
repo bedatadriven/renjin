@@ -261,7 +261,7 @@ public class Evaluation {
         extra.setVariable(new Symbol(".Generic"), new StringVector(genericName));
 
         if(function instanceof Closure) {
-          EvalResult result = Calls.applyClosure((Closure) function, context, call.getFunction(), Calls.promiseArgs(context.getArguments(), rho), rho, extra);
+          EvalResult result = Calls.applyClosure((Closure) function, context, call, Calls.promiseArgs(context.getArguments(), rho), rho, extra);
           throw new ReturnException(context.getEnvironment(), result.getExpression());
         } else {
           throw new UnsupportedOperationException("target of UseMethod is not a closure, it is a " +

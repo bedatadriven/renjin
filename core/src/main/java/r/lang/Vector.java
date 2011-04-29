@@ -161,6 +161,19 @@ public interface Vector extends SEXP {
     Builder setFrom(int destinationIndex, S source, int sourceIndex );
 
     /**
+     * Sets the element at {@code destinationIndex} to the expression {@code exp}.
+     * if
+     *
+     * @param destinationIndex the index of the element to set
+     * @param exp the value with which to replace the element
+     * @throws IllegalArgumentException if this is an {@link AtomicVector.Builder} and {@code exp} is not
+     * an {@link AtomicVector} of length 1.
+     * @return
+     */
+    Builder set(int destinationIndex, SEXP exp);
+
+
+    /**
      *
      * @param name  the name of the attribute
      * @param value  the value of the attribute

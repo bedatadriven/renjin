@@ -115,6 +115,7 @@ public class BaseFrame implements Frame {
         .add("endian", new StringVector("big"))
         .add("pkgType", new StringVector("source"))
         .add("r_arch", new StringVector(""))
+        .add("dynlib.ext", new StringVector(".dll"))
         .build());
   }
 

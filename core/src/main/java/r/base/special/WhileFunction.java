@@ -35,7 +35,7 @@ public class WhileFunction extends SpecialFunction {
     SEXP condition = args.getElementAsSEXP(0);
     SEXP statement = args.getElementAsSEXP(1);
 
-    while(asLogicalNoNA(call, condition.evaluate(context, rho).getExpression(), rho)) {
+    while(asLogicalNoNA(call, condition.evaluate(context, rho).getExpression())) {
 
       try {
 

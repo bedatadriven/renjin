@@ -313,7 +313,7 @@ public class BaseFrame implements Frame {
     f("round", Math.class, 10001, 0, -1);
     f("signif", /*Math2*/ null, 10004, 0, -1);
     f("atan",Math.class, 10002, 1, 1);
-    f("log", /*log*/ null, 10003, 0, -1);
+    f("log", MathExt.class, 10003, 0, -1);
     f("log10", /*log1arg*/ null, 10, 1, 1);
     f("log2", /*log1arg*/ null, 2, 1, 1);
     f("abs", Math.class, 6, 1, 1);

@@ -51,4 +51,12 @@ public class MathTest extends EvalTestCase {
     assertThat( MathExt.gamma(3), closeTo(2, 0.0001));
   }
 
+  @Test
+  public void log() {
+      assertThat( eval("log(2,16)"), equalTo( c(0.25) ) );
+      assertThat( eval("log(16, 2)"), equalTo( c(4) ) );
+      assertThat( eval("log(2,-1)"), equalTo( c(Double.NaN) ) );
+      assertThat( eval("log(2,0.5)"), equalTo( c(-1) ) );
+  }
+
 }

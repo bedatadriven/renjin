@@ -22,20 +22,21 @@
 package r.base.subscripts;
 
 import r.lang.AtomicVector;
-import r.lang.IntVector;
 import r.lang.StringVector;
 
 public class NamedSubscript extends Subscript {
   private int count;
   private int[] indices;
 
-  public NamedSubscript(AtomicVector names, StringVector subscript) {
+  public NamedSubscript(int length, AtomicVector names, StringVector subscript) {
     indices = new int[subscript.length()];
     count = subscript.length();
 
+    int nextNewIndex = length;
+
     for(int i=0;i!=subscript.length();++i) {
       int index = names.indexOf(subscript, i, 0);
-      indices[i] = (index == -1) ? IntVector.NA : index;
+      indices[i] = (index == -1) ? nextNewIndex++ : index;
     }
   }
 

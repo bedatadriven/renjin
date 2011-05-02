@@ -558,7 +558,7 @@ function(chname, package = NULL, lib.loc = NULL,
         ## (without having to bypass the default package dynload
         ## mechanism).  Note that this only works under Windows, and a
         ## more general solution will have to be found eventually.
-        ##
+        ##                                                                dll
         ## 2.7.0: there's a more general mechanism in DLLpath=,
         ## so not clear if this is still needed.
         PATH <- Sys.getenv("PATH")

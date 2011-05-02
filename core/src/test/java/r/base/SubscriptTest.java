@@ -113,7 +113,14 @@ public class SubscriptTest extends EvalTestCase {
     assertThat( eval(" x[-1:-2] "), equalTo( c(93)));
     assertThat( eval(" x[c(-2,-241)] "), equalTo( c(91,93)));
     assertThat( eval(" x[c(-1,0,0)] "), equalTo( c(92,93)));
+  }
 
+  @Test
+  public void negativeIndicesOnMatrix() {
+    eval(" x<-1:8 ");
+    eval(" dim(x) <- c(2,4)");
+
+    assertThat( eval("x[,-4]"), equalTo( c_i(1,2,3,4,5,6)));
   }
 
   @Test(expected = EvalException.class)
@@ -236,7 +243,7 @@ public class SubscriptTest extends EvalTestCase {
   }
 
   @Test
-  public void setElementWeirdCase() {
+  public void replaceListElementWithList() {
     eval(" restarts <- list( list(name='foo'), list(name='zig'), list(name='zag') ) ");
 
     assertThat( eval("restarts[[2]]$name "), equalTo(c("zig")));
@@ -247,6 +254,48 @@ public class SubscriptTest extends EvalTestCase {
 
     assertThat( eval("restarts[[2]]$name "), equalTo(c("bar")));
 
+  }
+
+  @Test(expected = EvalException.class)
+  public void replaceElementInAtomicVectorWithNullFails() {
+    eval(" x <- c(1,2,3) ");
+    eval(" x[[1]] <- NULL ");
+  }
+
+      // x[1] <- NULL and x[1] <- c() both remove the first element
+    // x[1] <- list() sets the first element to an empty list
+    // x[[1]] <- list() throws an error
+
+  @Test(expected = EvalException.class)
+  public void replaceSingleElementInListWithEmptyListThrows() {
+    eval(" x<- c(1,2,3) ");
+    eval(" x[[1]] <- list() ");
+  }
+
+  @Test
+  public void replaceSingleElementInListWithNullRemovesElement() {
+    eval(" x <- list(1,2,3) ");
+    eval(" x[[1]] <- NULL ");
+
+    assertThat( eval("x"), equalTo(list(2d,3d)));
+  }
+
+
+  @Test
+  public void replaceElementsInListWithNullRemovesElement() {
+    eval(" x <- list(1,2,3) ");
+    eval(" x[1:2] <- NULL ");
+
+    assertThat( eval("x"), equalTo(list(3d)));
+  }
+
+
+  @Test
+  public void replaceElementInListWithNullRemovesElement() {
+    eval(" x <- list(1,2,3) ");
+    eval(" x[1] <- NULL ");
+
+    assertThat( eval("x"), equalTo(list(2d,3d)));
   }
 
   @Test
@@ -370,6 +419,24 @@ public class SubscriptTest extends EvalTestCase {
 
     assertThat( eval("x"), equalTo( c("91", "foo")) );
   }
+
+  @Test
+  public void addNewListItemViaReplaceSingleItem() {
+    eval(" x<-list() ");
+    eval(" x[[1]] <- 'foo' ");
+
+    assertThat( eval("x"), equalTo( list("foo" ))) ;
+  }
+
+  @Test
+   public void addNewListItemByNameViaReplaceSingleItem() {
+     eval(" x<- list() ");
+     eval(" x[['foo']] <- 'bar'");
+
+     assertThat( eval("x"), equalTo( list("bar")));
+     assertThat( eval("names(x)"), equalTo( c("foo")));
+   }
+
 
   @Test
   public void replaceColumn() {

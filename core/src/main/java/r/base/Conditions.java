@@ -84,6 +84,12 @@ public class Conditions {
     return oldStack;
   }
 
+  @Primitive(".addRestart")
+  public static void addRestart(SEXP restart) {
+    // TODO : implement
+  }
+
+
   @Primitive(".signalCondition")
   public static void signalCondition(SEXP condition, String message, FunctionCall call) {
     throw new EvalException("condition signaled. message = '%s'", message);

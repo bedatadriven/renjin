@@ -21,29 +21,27 @@
 
 package r.base.subscripts;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.collect.UnmodifiableIterator;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public class SubscriptOperation {
 
-
   private Vector source;
   private int sourceDim[];
-  private boolean sourceIsArray = false;
 
   private boolean drop = true;
 
   private List<SEXP> subscriptArguments;
-  private Subscript subscripts[];
-
-  private int[] subscriptDim;
-  private int subscriptLength;
 
   public SubscriptOperation() {
-
   }
 
   public SubscriptOperation setSource(SEXP source) {
@@ -64,16 +62,23 @@ public class SubscriptOperation {
     return this;
   }
 
-  private void computeSourceDimensions() {
+  /**
+   *
+   * @return true if the source vector was an array
+   * (had an explicit DIM attribute with length 1)
+   */
+  private boolean sourceIsArray() {
+    return source.getAttribute(Symbol.DIM).length() == 1;
+  }
 
-    SEXP sourceDimExp = source.getAttribute(Symbol.DIM);
-    if(sourceDimExp == Null.INSTANCE) {
+  private int[] computeSourceDimensions() {
+
+    SEXP dim = source.getAttribute(Symbol.DIM);
+    if(dim == Null.INSTANCE) {
       sourceDim = new int[] { source.length() };
-    } else if(sourceDimExp instanceof IntVector) {
-      sourceDim = ((IntVector) sourceDimExp).toIntArray();
-      if(sourceDim.length == 1) {
-        sourceIsArray = true;
-      }
+    } else if(dim instanceof IntVector) {
+      sourceDim = ((IntVector) dim).toIntArray();
+
       if(subscriptArguments.size() == 1) {
         sourceDim = new int[] { source.length() };
       }
@@ -81,35 +86,29 @@ public class SubscriptOperation {
       throw new AssertionError("DIM attribute must be NULL or an IntVector");
     }
 
-
     if( subscriptArguments.size()!=1 && subscriptArguments.size() != sourceDim.length) {
       throw new EvalException("incorrect number of dimensions");
     }
-
+    return sourceDim;
   }
 
   public SEXP extract() {
 
     if(source.length() == 0) {
       return Null.INSTANCE;
-    }
 
-    computeSourceDimensions();
-    buildSubscripts();
+    } else {
+      computeSourceDimensions();
+      Subscripts subscripts = new Subscripts();
 
-    StringVector.Builder names = null;
-    if(source.getAttribute(Symbol.NAMES) != Null.INSTANCE) {
-      names = new StringVector.Builder();
-    }
-
-    computeSubscriptDim();
-    Vector.Builder result = source.newBuilder(subscriptLength);
-
-    if(subscriptLength > 0) {
+      StringVector.Builder names = null;
+      if(source.getAttribute(Symbol.NAMES) != Null.INSTANCE) {
+        names = new StringVector.Builder();
+      }
+      Vector.Builder result = source.newBuilder(subscripts.getLength());
       int count = 0;
-      int[] subscriptIndex = new int[sourceDim.length];
-      do {
-        int index = subscriptIndexToSource(subscriptIndex);
+
+      for(Integer index : subscripts) {
         if(!IntVector.isNA(index) && index < source.length()) {
           result.setFrom(count++, source, index);
           if(names != null) {
@@ -121,67 +120,95 @@ public class SubscriptOperation {
             names.addNA();
           }
         }
-
-      } while(Indexes.incrementArrayIndex(subscriptIndex, this.subscriptDim));
-
-      result.setAttribute(Attributes.DIM, computeResultDimensionAttribute());
+      }
+      result.setAttribute(Attributes.DIM, subscripts.dimensionAttribute());
       if(names != null) {
         result.setAttribute(Attributes.NAMES, names.build());
       }
+      return result.build();
+    }
+  }
+
+  public SEXP replace(SEXP elements, boolean single) {
+
+    // [[<- and [<- seem to have a special meaning when
+    // the replacement value is NULL and the vector is a list
+    if(source instanceof ListVector && elements == Null.INSTANCE) {
+      return remove();
+
+    } else if(subscriptArguments.size() == 1 && subscriptArguments.get(0) instanceof StringVector) {
+      return replaceByName(elements);
     }
 
+    Vector.Builder result = createReplacementBuilder(elements);
+    computeSourceDimensions();
+    Subscripts subscripts = new Subscripts();
+    if(!subscripts.isEmpty() && elements.length() == 0) {
+      throw new EvalException("replacement has zero length");
+    }
+
+    int replacement = 0;
+    for(int index : subscripts) {
+      assert index < source.length() || sourceDim.length == 1;
+      if(!IntVector.isNA(index)) {
+        if(single) {
+          result.set(index, elements);
+        } else {
+          result.setFrom(index, elements, replacement++);
+          if(replacement >= elements.length()) {
+            replacement = 0;
+          }
+        }
+      }
+    }
     return result.build();
   }
 
-  private void computeSubscriptDim() {
-    this.subscriptDim = new int[sourceDim.length];
-    subscriptLength = 1;
-    for(int d=0;d!=sourceDim.length;++d) {
-      int count = subscripts[d].getCount();
-      subscriptDim[d] = count;
-      subscriptLength *= count;
+  private Vector replaceByName(SEXP elements) {
+    StringVector namesToReplace = (StringVector) subscriptArguments.get(0);
+    Vector.Builder result = createReplacementBuilder(elements);
+    StringVector.Builder names = source.getNames() == Null.INSTANCE ? StringVector.newBuilder() :
+        (StringVector.Builder) source.getNames().newCopyBuilder();
+
+    int replacementIndex = 0;
+
+    for(String nameToReplace : namesToReplace) {
+      int index = source.getIndexByName(nameToReplace);
+      if(index == -1) {
+        index = result.length();
+        names.set(index, nameToReplace);
+      }
+      result.setFrom(index, elements, replacementIndex++);
     }
+
+    result.setAttribute(Attributes.NAMES, names.build());
+    return result.build();
   }
 
-  private int subscriptIndexToSource(int subscriptIndex[]) {
-    int sourceIndices[] = new int[sourceDim.length];
-    for(int i=0;i!=sourceDim.length;++i) {
-      sourceIndices[i] = subscripts[i].getAt(subscriptIndex[i]);
-    }
+  public Vector remove() {
+    computeSourceDimensions();
+    Subscripts subscripts = new Subscripts();
+    Set<Integer> indicesToRemove = Sets.newHashSet();
 
-    return Indexes.arrayIndexToVectorIndex(sourceIndices, sourceDim);
-  }
-
-  private SEXP computeResultDimensionAttribute() {
-    int dim[];
-    if(drop) {
-      dim = dropUnitDimensions();
-    } else {
-      dim = subscriptDim;
-    }
-    if(dim.length == 0) {
-      return Null.INSTANCE;
-    } else if(dim.length == 1 && !sourceIsArray) {
-      return Null.INSTANCE;
-    } else {
-      return new IntVector(dim);
-    }
-  }
-
-  private int[] dropUnitDimensions() {
-    int dim[] = new int[subscriptDim.length];
-    int count = 0;
-    for(int i=0;i!= subscriptDim.length;++i) {
-      if(subscriptDim[i] > 1) {
-        dim[count++] = subscriptDim[i];
+    for(int index : subscripts) {
+      if(!IntVector.isNA(index)) {
+        indicesToRemove.add(index);
       }
     }
-    return java.util.Arrays.copyOf(dim, count);
+
+    Vector.Builder result = source.newBuilder(0);
+    result.copyAttributesFrom(source);
+    for(int i=0;i!=source.length();++i) {
+      if(!indicesToRemove.contains(i)) {
+        result.addFrom(source, i);
+      }
+    }
+    return result.build();
   }
 
 
-
-  public SEXP replace(SEXP elements) {
+  private Vector.Builder createReplacementBuilder(SEXP elements) {
+    Vector.Builder result;
 
     Vector.Type replacementType;
     if(elements instanceof AtomicVector) {
@@ -190,127 +217,143 @@ public class SubscriptOperation {
       replacementType = ListVector.VECTOR_TYPE;
     }
 
-    Vector.Builder result = copyWideningIfNecessary(source, replacementType);
-    computeSourceDimensions();
-    buildSubscripts();
-    computeSubscriptDim();
-
-    if(subscriptLength > 0) {
-      if(elements.length() == 0) {
-        throw new EvalException("replacement has zero length");
-      }
-      int replacement = 0;
-      int[] subscriptIndex = new int[sourceDim.length];
-      do {
-        int index = subscriptIndexToSource(subscriptIndex);
-        assert !sourceIsArray ||  index < source.length();
-        if(!IntVector.isNA(index)) {
-          result.setFrom(index, elements, replacement++);
-          if(replacement >= elements.length()) {
-            replacement = 0;
-          }
-        }
-      } while(Indexes.incrementArrayIndex(subscriptIndex, this.subscriptDim));
-    }
-
-    return result.build();
-  }
-
-
-
-  private Vector.Builder copyWideningIfNecessary(Vector toCopy, Vector.Type replacementType) {
-    Vector.Builder result;
-
-    if(toCopy.getVectorType().isWiderThan(replacementType)) {
-      result = toCopy.newCopyBuilder();
+    if(source.getVectorType().isWiderThan(replacementType)) {
+      result = source.newCopyBuilder();
     } else {
       result = replacementType.newBuilder();
-      result.copyAttributesFrom(toCopy);
-      for(int i=0;i!= toCopy.length();++i) {
-        result.setFrom(i, toCopy, i);
+      result.copyAttributesFrom(source);
+      for(int i=0;i!= source.length();++i) {
+        result.setFrom(i, source, i);
       }
     }
     return result;
   }
 
 
+  private class Subscripts implements Iterable<Integer> {
 
-  private void buildSubscripts() {
-    subscripts = new Subscript[subscriptArguments.size()];
+    private Subscript subscripts[];
+    private int[] dim;
+    private int length;
 
-    for(int i=0; i!=subscripts.length;++i) {
-      SEXP argument = subscriptArguments.get(i);
+    public Subscripts() {
+      subscripts = new Subscript[subscriptArguments.size()];
 
-      if(argument == Symbol.MISSING_ARG) {
-        subscripts[i] = new MissingSubscript(sourceDim[i]);
+      for(int i=0; i!=subscripts.length;++i) {
+        SEXP argument = subscriptArguments.get(i);
 
-      } else if(argument instanceof LogicalVector) {
-        subscripts[i] = new LogicalSubscript(sourceDim[i], (LogicalVector)argument);
+        if(argument == Symbol.MISSING_ARG) {
+          subscripts[i] = new MissingSubscript(sourceDim[i]);
 
-      } else if(argument instanceof StringVector) {
-        subscripts[i] = new NamedSubscript(names(i), (StringVector)argument);
+        } else if(argument instanceof LogicalVector) {
+          subscripts[i] = new LogicalSubscript(sourceDim[i], (LogicalVector)argument);
 
-      } else if(argument instanceof DoubleVector || argument instanceof IntVector) {
-        AtomicVector vector = (AtomicVector)argument;
-        if(arePositions(vector)) {
-          subscripts[i] = new PositionalSubscript(source, (AtomicVector)argument);
+        } else if(argument instanceof StringVector) {
+          subscripts[i] = new NamedSubscript(sourceDim[i], names(i), (StringVector)argument);
+
+        } else if(argument instanceof DoubleVector || argument instanceof IntVector) {
+          AtomicVector vector = (AtomicVector)argument;
+          if(PositionalSubscript.arePositions(vector)) {
+            subscripts[i] = new PositionalSubscript(vector);
+          } else {
+            subscripts[i] = new NegativeSubscript(sourceDim[i], vector);
+          }
         } else {
-          subscripts[i] = new NegativeSubscript(source, (AtomicVector)argument);
+          throw new EvalException("invalid subscript type '%s'", argument.getTypeName());
         }
+      }
+
+      this.dim = new int[sourceDim.length];
+      length = 1;
+      for(int d=0;d!=sourceDim.length;++d) {
+        int count = subscripts[d].getCount();
+        dim[d] = count;
+        length *= count;
+      }
+    }
+
+    private AtomicVector names(int dimensionIndex) {
+      if(subscripts.length == 1 && !sourceIsArray()) {
+        return source.getNames();
       } else {
-        throw new EvalException("invalid subscript type '%s'", argument.getTypeName());
+        Vector dimNames = (Vector) source.getAttribute(Symbol.DIMNAMES);
+        return dimNames.getElementAsSEXP(dimensionIndex);
+      }
+    }
+
+    public int getLength() {
+      return length;
+    }
+
+    public boolean isEmpty() {
+      return length == 0;
+    }
+
+    private int[] dropUnitDimensions() {
+      int newDim[] = new int[dim.length];
+      int count = 0;
+      for(int i=0;i!= dim.length;++i) {
+        if(dim[i] > 1) {
+          newDim[count++] = dim[i];
+        }
+      }
+      return java.util.Arrays.copyOf(newDim, count);
+    }
+
+    public SEXP dimensionAttribute() {
+      int attribute[];
+      if(drop) {
+        attribute = dropUnitDimensions();
+      } else {
+        attribute = dim;
+      }
+      if(attribute.length == 0) {
+        return Null.INSTANCE;
+      } else if(attribute.length == 1 && !sourceIsArray()) {
+        return Null.INSTANCE;
+      } else {
+        return new IntVector(attribute);
+      }
+    }
+
+    @Override
+    public Iterator<Integer> iterator() {
+      if(isEmpty()) {
+        return Iterators.emptyIterator();
+      } else {
+        return new IndexIterator();
+      }
+    }
+
+    /**
+     * Iterators over the indices indicated by the subscripts
+     */
+    private class IndexIterator extends UnmodifiableIterator<Integer> {
+
+      private int subscriptIndex[];
+      private boolean hasNext = true;
+
+      private IndexIterator() {
+        subscriptIndex = new int[dim.length];
+      }
+
+      @Override
+      public boolean hasNext() {
+        return hasNext;
+      }
+
+      @Override
+      public Integer next() {
+        int sourceIndices[] = new int[sourceDim.length];
+        for(int i=0;i!=sourceDim.length;++i) {
+          sourceIndices[i] = subscripts[i].getAt(subscriptIndex[i]);
+        }
+
+        int index = Indexes.arrayIndexToVectorIndex(sourceIndices, sourceDim);
+        hasNext = Indexes.incrementArrayIndex(subscriptIndex, dim);
+
+        return index;
       }
     }
   }
-
-  private AtomicVector names(int i) {
-    if(subscripts.length == 1 && !sourceIsArray) {
-      return source.getNames();
-    } else {
-      Vector dimNames = (Vector) source.getAttribute(Symbol.DIMNAMES);
-      return dimNames.getElementAsSEXP(i);
-    }
-  }
-
-  private static boolean arePositions(AtomicVector indices) {
-    boolean hasNeg = false;
-    boolean hasPos = false;
-
-    for(int i=0;i!=indices.length();++i) {
-      int index = indices.getElementAsInt(i);
-      if(index > 0 || IntVector.isNA(index)) {
-        hasPos = true;
-      } else if(index < 0) {
-        hasNeg = true;
-      }
-    }
-    if(hasNeg && hasPos) {
-      throw new EvalException("only 0's may be mixed with negative subscripts");
-    }
-    return !hasNeg;
-  }
-
-  public SEXP replaceSingle(SEXP exp) {
-              Vector.Type replacementType;
-    if(exp instanceof AtomicVector) {
-      replacementType = ((AtomicVector) exp).getVectorType();
-    } else {
-      replacementType = ListVector.VECTOR_TYPE;
-    }
-
-    Vector.Builder result = copyWideningIfNecessary(source, replacementType);
-    computeSourceDimensions();
-    buildSubscripts();
-    computeSubscriptDim();
-
-    if(subscriptLength != 1) {
-      throw new EvalException("must replace exactly one element");
-    }
-    int index = subscriptIndexToSource(new int[sourceDim.length]);
-    result.set(index, exp);
-
-    return result.build();
-  }
-
-
 }

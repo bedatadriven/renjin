@@ -106,5 +106,14 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
       setFrom(destinationIndex, (AtomicVector) exp, 0);
       return this;
     }
+
+    @Override
+    public Builder add(SEXP exp) {
+      if(!(exp instanceof AtomicVector) || exp.length() != 1) {
+        throw new IllegalArgumentException("the argument must be an atomic vector of length 1");
+      }
+      addFrom((AtomicVector) exp, 0);
+      return this;
+    }
   }
 }

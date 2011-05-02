@@ -23,13 +23,13 @@ package r.base.subscripts;
 
 import r.lang.AtomicVector;
 import r.lang.IntVector;
-import r.lang.Vector;
+import r.lang.exception.EvalException;
 
 public class PositionalSubscript extends Subscript {
   private final int indices[];
   private int count;
 
-  public PositionalSubscript(Vector source, AtomicVector vector) {
+  public PositionalSubscript(AtomicVector vector) {
     indices = new int[vector.length()];
     for(int i=0;i!=indices.length;++i) {
       int index = vector.getElementAsInt(i);
@@ -42,6 +42,24 @@ public class PositionalSubscript extends Subscript {
         }
       }
     }
+  }
+
+  static boolean arePositions(AtomicVector indices) {
+    boolean hasNeg = false;
+    boolean hasPos = false;
+
+    for(int i=0;i!=indices.length();++i) {
+      int index = indices.getElementAsInt(i);
+      if(index > 0 || IntVector.isNA(index)) {
+        hasPos = true;
+      } else if(index < 0) {
+        hasNeg = true;
+      }
+    }
+    if(hasNeg && hasPos) {
+      throw new EvalException("only 0's may be mixed with negative subscripts");
+    }
+    return !hasNeg;
   }
 
 

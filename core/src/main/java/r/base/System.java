@@ -372,4 +372,19 @@ public class System {
     return new StringVector("C:\\Program Files\\R\\R-2.10.1\\bin\\Rgui.exe");
   }
 
+  @Primitive("dyn.load")
+  public static ListVector dynLoad(String libraryPath, SEXP local, SEXP now, SEXP dllPath) {
+    ListVector.Builder result = new ListVector.Builder();
+    result.add("name", "dummyName");
+    result.add("path", libraryPath);
+    result.add("dynamicLookup", LogicalVector.TRUE);
+    result.add("handle", Null.INSTANCE);
+    result.add("info", "something here");
+
+    return result.build();
+    // TODO: maybe warn or something?
+  }
+
+
+
 }

@@ -144,7 +144,7 @@ public class BaseFrame implements Frame {
     f(".signalCondition", Conditions.class, 0, 11, 3);
     f(".dfltStop", /*dfltStop*/ null, 0, 11, 2);
     f(".dfltWarn", /*dfltWarn*/ null, 0, 11, 2);
-    f(".addRestart", /*addRestart*/ null, 0, 11, 1);
+    f(".addRestart", Conditions.class, 0, 11, 1);
     f(".getRestart", /*getRestart*/ null, 0, 11, 1);
     f(".invokeRestart", /*invokeRestart*/ null, 0, 11, 2);
     f(".addTryHandlers", /*addTryHandlers*/ null, 0, 111, 0);
@@ -672,8 +672,8 @@ public class BaseFrame implements Frame {
     f(".External.graphics", /*Externalgr*/ null, 0, 1, -1, PP_FOREIGN, PREC_FN, 0);
     f(".Call.graphics", /*dotcallgr*/ null, 0, 1, -1, PP_FOREIGN, PREC_FN, 0);
     f("recordGraphics", /*recordGraphics*/ null, 0, 211, 3, PP_FOREIGN, PREC_FN, 0);
-    f("dyn.load", /*dynload*/ null, 0, 111, 4);
-    f("dyn.unload", /*dynunload*/ null, 0, 111, 1);
+    f("dyn.load", System.class, 0, 111, 4);
+    f("dyn.unload", System.class, 0, 111, 1);
     f("ls", Types.class, 1, 11, 2);
     f("typeof", Types.class, 1, 11, 1);
     f("eval", Evaluation.class, 0, 211, 3);

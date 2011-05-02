@@ -172,6 +172,7 @@ public interface Vector extends SEXP {
      */
     Builder set(int destinationIndex, SEXP exp);
 
+    Builder add(SEXP exp);
 
     /**
      *
@@ -226,6 +227,23 @@ public interface Vector extends SEXP {
       return size < Order.LIST;
     }
 
+    /**
+     * Returns the narrowest {@code Vector.Type} that can contain {@code element}.
+     * For example, for a {@code DoubleVector}, this will be {@code DoubleVector.VECTOR_TYPE}, but
+     * for an {@code Environment}, this will be {@code ListVector.VECTOR_TYPE}
+     *
+     * @param element an {@code SEXP} to be added to a {@code Vector}
+     * @return the narrowest {@code Vector.Type} that can contain {@code element}.
+     */
+    public static Type forElement(SEXP element) {
+      if(element instanceof AtomicVector) {
+        return ((AtomicVector) element).getVectorType();
+      } else {
+        return ListVector.VECTOR_TYPE;
+      }
+
+    }
+
     public final boolean isWiderThan(Type type) {
       return size > type.size;
     }
@@ -264,6 +282,10 @@ public interface Vector extends SEXP {
 
     public static Type widest(Type a, Vector b) {
       return widest(a, b.getVectorType());
+    }
+
+    public static Type widest(Vector vector, SEXP element) {
+      return widest(vector.getVectorType(), forElement(element));
     }
   }
 

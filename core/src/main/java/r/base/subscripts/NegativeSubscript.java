@@ -22,14 +22,13 @@
 package r.base.subscripts;
 
 import r.lang.AtomicVector;
-import r.lang.Vector;
 
 public class NegativeSubscript extends Subscript {
   private int[] indices;
   private int count;
 
-  public NegativeSubscript(Vector source, AtomicVector subscript) {
-    int mask[] = new int[source.length()];
+  public NegativeSubscript(int dimensionLength, AtomicVector subscript) {
+    int mask[] = new int[dimensionLength];
     for(int i=0;i!=subscript.length();++i) {
       int index = -subscript.getElementAsInt(i);
       if(index != 0 && index <= mask.length) {

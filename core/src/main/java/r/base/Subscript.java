@@ -96,7 +96,7 @@ public class Subscript {
     return new SubscriptOperation()
         .setSource(arguments.getElementAsSEXP(0))
         .setSubscripts(arguments, 1, 1)
-        .replace((Vector) arguments.getElementAsSEXP(arguments.length()-1));
+        .replace((Vector) arguments.getElementAsSEXP(arguments.length()-1), false);
   }
 
   @Primitive("[[<-")
@@ -104,7 +104,7 @@ public class Subscript {
     return new SubscriptOperation()
         .setSource(arguments.getElementAsSEXP(0))
         .setSubscripts(arguments, 1, 1)
-        .replaceSingle((Vector) arguments.getElementAsSEXP(arguments.length()-1));
+        .replace((Vector) arguments.getElementAsSEXP(arguments.length()-1), true);
   }
 
 
@@ -144,20 +144,6 @@ public class Subscript {
 
       return matchCount == 1 ? match : Null.INSTANCE;
     }
-  }
-
-  private static Vector.Builder copyWideningIfNecessary(Vector toCopy, Vector otherElements) {
-    Vector.Builder result;
-
-    if(toCopy.isWiderThan(otherElements)) {
-      result = toCopy.newCopyBuilder();
-    } else {
-      result = otherElements.newBuilder(0);
-      for(int i=0;i!= toCopy.length();++i) {
-        result.setFrom(i, toCopy, i);
-      }
-    }
-    return result;
   }
 
 

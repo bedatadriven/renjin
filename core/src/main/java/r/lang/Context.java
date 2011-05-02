@@ -91,7 +91,7 @@ public class Context {
       map.put("width", new IntVector(80));
       map.put("digits", new IntVector(7));
       map.put("echo", new LogicalVector(false));
-      map.put("verbose", new LogicalVector(true));
+      map.put("verbose", new LogicalVector(false));
       map.put("check.bounds", new LogicalVector(false));
       map.put("keep.source", new LogicalVector(true));
       map.put("warnings.length", new IntVector(1000));

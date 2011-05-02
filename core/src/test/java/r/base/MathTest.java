@@ -57,6 +57,8 @@ public class MathTest extends EvalTestCase {
       assertThat( eval("log(16, 2)"), equalTo( c(4) ) );
       assertThat( eval("log(2,-1)"), equalTo( c(Double.NaN) ) );
       assertThat( eval("log(2,0.5)"), equalTo( c(-1) ) );
+
+      assertThat( eval("log(2)").asReal(),  closeTo(0.6931472, 0.0000001) );//R rounds to 7th decimal place
   }
 
 }

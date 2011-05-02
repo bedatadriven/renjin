@@ -42,4 +42,8 @@ public class MathExt {
       return MathUtils.log(base, x);
   }
 
+  public static double log(double d) {
+      return Math.log(d);
+  }
+
 }

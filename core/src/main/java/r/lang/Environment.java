@@ -24,6 +24,7 @@ package r.lang;
 import com.google.common.base.Predicate;
 import com.google.common.collect.UnmodifiableIterator;
 import r.base.BaseFrame;
+import r.lang.exception.EvalException;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -62,6 +63,9 @@ public class Environment extends AbstractSEXP implements Recursive {
   private Environment globalEnvironment;
   private Environment baseEnvironment;
   protected Frame frame;
+
+  private boolean locked;
+  private boolean bindingsLocked;
 
 
   /**
@@ -160,6 +164,11 @@ public class Environment extends AbstractSEXP implements Recursive {
   }
 
   public void setVariable(Symbol symbol, SEXP value) {
+    if(bindingsLocked) {
+      throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
+    } else if(locked && frame.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
+      throw new EvalException("cannot add bindings to a locked environment");
+    }
     frame.setVariable(symbol, value);
   }
 
@@ -199,6 +208,27 @@ public class Environment extends AbstractSEXP implements Recursive {
       return value;
     }
     return parent.findInternal(symbol);
+  }
+
+  /**
+   *
+   * @return
+   */
+  public boolean isLocked() {
+    return locked;
+  }
+
+  /**
+   * Locking the environment prevents adding or removing variable bindings from the environment.
+   * Changing the value of a variable is still possible unless the binding has been locked
+   *
+   * @param lockBindings true if the bindings are to be locked as well
+   */
+  public void lock(boolean lockBindings) {
+    this.locked = true;
+    if(lockBindings) {
+      this.bindingsLocked = true;
+    }
   }
 
   @Override

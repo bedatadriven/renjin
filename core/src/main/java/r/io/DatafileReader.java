@@ -343,7 +343,8 @@ public class DatafileReader {
   }
 
   private SEXP readNamespace() throws IOException {
-    throw new IOException("naemspace nto tyimpl");
+    StringVector name = readStringVector();
+    return addReadRef( context.findNamespace(new Symbol(name.getElementAsString(0))) );
   }
 
   private SEXP readEnv() throws IOException {

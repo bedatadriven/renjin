@@ -329,6 +329,17 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f<-function(x) x^2 ");
 
     assertThat( eval("x"), equalTo(c(9)));
+  }
+
+  @Test
+  public void call() {
+
+    eval(" x <- 0 ");
+    eval(" f <- function(value) x<<-value ");
+    eval(" call('f', 3) ");
+
+    assertThat( eval("x"), equalTo(c(3)));
 
   }
+
 }

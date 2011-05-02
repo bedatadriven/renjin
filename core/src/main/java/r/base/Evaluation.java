@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.base.special.ReturnException;
+import r.jvmi.annotations.ArgumentList;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Evaluate;
 import r.jvmi.annotations.Primitive;
@@ -144,6 +145,21 @@ public class Evaluation {
     return doCall(context, (Function) function, arguments, environment);
   }
 
+  @Primitive("call")
+  public static EvalResult call(@Current Context context, @Current Environment rho, FunctionCall call) {
+    if(call.length() < 1) {
+      throw new EvalException("first argument must be character string");
+    }
+    SEXP name = call.evalArgument(context, rho, 0);
+    if(!(name instanceof StringVector) || name.length() != 1) {
+      throw new EvalException("first argument must be character string");
+    }
+
+    FunctionCall newCall = new FunctionCall(new Symbol(((StringVector) name).getElementAsString(0)),
+        ((PairList.Node)call.getArguments()).getNextNode());
+    return newCall.evaluate(context, rho);
+  }
+
   public static EvalResult eval(@Current Context context,
                                 SEXP expression, Environment environment,
                                 SEXP enclosing /* ignored */) {
@@ -166,15 +182,27 @@ public class Evaluation {
   }
 
   @Primitive(".Call")
-  public static EvalResult call(@Current Context context,
-                            @Current Environment rho,
-                            String methodName,
-                            PairList arguments,
-                            String packageName) {
+  public static EvalResult dotCall(@Current Context context,
+                                   @Current Environment rho,
+                                   @ArgumentList ListVector arguments) {
+
+    String methodName = arguments.getElementAsString(0);
+    String packageName = null;
+    ListVector.Builder callArguments = ListVector.newBuilder();
+    for(int i=1;i<arguments.length();++i) {
+      if(arguments.getName(i).equals("PACKAGE")) {
+        packageName = arguments.getElementAsString(i);
+      } else if(arguments.getElementAsSEXP(i) != Null.INSTANCE) {
+        callArguments.add(arguments.getElementAsSEXP(i));
+      }
+    }
 
     if(packageName.equals("base")) {
       List<JvmMethod> overloads = JvmMethod.findOverloads(Base.class, methodName, methodName);
-      return RuntimeInvoker.INSTANCE.invoke(context, rho, arguments.values(), overloads);
+      if(overloads.isEmpty()) {
+        throw new EvalException("No C method '%s' defined in package %s", methodName, packageName);
+      }
+      return RuntimeInvoker.INSTANCE.invoke(context, rho, callArguments.build(), overloads);
     }
 
     throw new EvalException(

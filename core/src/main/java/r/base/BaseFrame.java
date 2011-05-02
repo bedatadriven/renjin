@@ -544,7 +544,7 @@ public class BaseFrame implements Frame {
     f("format", /*format*/ null, 0, 11, 8);
     f("format.info", /*formatinfo*/ null, 0, 11, 3);
     f("cat", /*cat*/ null, 0, 111, 6);
-    f("call", /*call*/ null, 0, 0, -1);
+    f("call", Evaluation.class, 0, 0, -1);
     f("do.call", Evaluation.class, 0, 211, 3);
     f("as.call", /*ascall*/ null, 0, 1, 1);
     f("type.convert", /*typecvt*/ null, 1, 11, 4);
@@ -712,7 +712,7 @@ public class BaseFrame implements Frame {
     f("dataentry", /*dataentry*/ null, 0, 11, 2);
     f("dataviewer", /*dataviewer*/ null, 0, 111, 2);
     f("args", /*args*/ null, 0, 11, 1);
-    f("formals", /*formals*/ null, 0, 11, 1);
+    f("formals", Types.class, 0, 11, 1);
     f("body", /*body*/ null, 0, 11, 1);
     f("bodyCode", /*bodyCode*/ null, 0, 11, 1);
     f("emptyenv", /*emptyenv*/ null, 0, 1, 0);
@@ -745,7 +745,7 @@ public class BaseFrame implements Frame {
     f("inspect", /*inspect*/ null, 0, 111, 1);
     f("mem.limits", /*memlimits*/ null, 0, 11, 2);
     f("merge", /*merge*/ null, 0, 11, 4);
-    f("capabilities", /*capabilities*/ null, 0, 11, 0);
+    f("capabilities", System.class, 0, 11, 0);
     f("capabilitiesX11", /*capabilitiesX11*/ null, 0, 11, 0);
     f("new.env", Types.class, "newEnv", 0, 11, 3);
     f("parent.env", Types.class, 0, 11, 1);
@@ -955,8 +955,8 @@ public class BaseFrame implements Frame {
     f("setToCConverterActiveStatus", /*setToCConverterActiveStatus*/ null, 0, 11, 2);
     f("removeToCConverterActiveStatus", /*setToCConverterActiveStatus*/ null, 1, 11, 1);
 
-    f("lockEnvironment", /*lockEnv*/ null, 0, 111, 2);
-    f("environmentIsLocked", /*envIsLocked*/ null, 0, 11, 1);
+    f("lockEnvironment", Types.class, 0, 111, 2);
+    f("environmentIsLocked", Types.class, 0, 11, 1);
     f("lockBinding", /*lockBnd*/ null, 0, 111, 2);
     f("unlockBinding", /*lockBnd*/ null, 1, 111, 2);
     f("bindingIsLocked", /*bndIsLocked*/ null, 0, 11, 2);

@@ -100,7 +100,16 @@ public class ContextTest extends EvalTestCase {
 
     FunctionCall call = (FunctionCall)eval("g(1)");
     assertThat(call.getFunction(), equalTo(symbol("g")));
+  }
 
+  @Test
+  public void sysParent() {
+    eval(" sys.parent <- function (n = 1) .Internal(sys.parent(n))");
+    eval(" f <- function() sys.parent() ");
+    eval(" g <- function() f() ");
+
+    assertThat( eval("f()"), equalTo( c_i(0) ));
+    assertThat( eval("g()"), equalTo( c_i(1) ));
 
   }
 }

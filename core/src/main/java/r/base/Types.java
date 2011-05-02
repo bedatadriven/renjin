@@ -299,6 +299,14 @@ public class Types {
     return names.build();
   }
 
+  public static void lockEnvironment(Environment env, boolean bindings) {
+    env.lock(bindings);
+  }
+
+  public static boolean environmentIsLocked(Environment env) {
+    return env.isLocked();
+  }
+
   public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual, boolean singleNA, boolean attributesAsSet) {
     if(!numericallyEqual || !singleNA || !attributesAsSet) {
       throw new EvalException("identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");
@@ -380,6 +388,10 @@ public class Types {
     } else {
       return Null.INSTANCE;
     }
+  }
+
+  public static PairList formals(Closure closure) {
+    return closure.getFormals();
   }
 
   public static Environment newEnv(boolean hash, Environment parent, int size) {

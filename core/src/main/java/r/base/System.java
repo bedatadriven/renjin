@@ -385,6 +385,38 @@ public class System {
     // TODO: maybe warn or something?
   }
 
+  /**
+   * Report on the optional features which have been compiled into this build of R.
+   *
+   * @param what
+   * @return
+   */
+  public static LogicalVector capabilities(StringVector what) {
+    LogicalVector.Builder result = new LogicalVector.Builder();
+    StringVector.Builder names = new StringVector.Builder();
+
+    for(String capability : what) {
+      if(Capabilities.NAMES.contains(capability)) {
+        names.add(capability);
+        result.add(false);
+      }
+    }
+    result.setAttribute(Symbol.NAMES, names.build());
+    return result.build();
+  }
+
+  public static LogicalVector capabilities() {
+
+    LogicalVector.Builder result = new LogicalVector.Builder();
+    StringVector.Builder names = new StringVector.Builder();
+
+    for(String capability : Capabilities.NAMES) {
+      names.add(capability);
+      result.add(false);
+    }
+    result.setAttribute(Symbol.NAMES, names.build());
+    return result.build();
+  }
 
 
 }

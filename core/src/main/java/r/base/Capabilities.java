@@ -21,24 +21,26 @@
 
 package r.base;
 
-import r.jvmi.annotations.Current;
-import r.lang.*;
+import com.google.common.collect.Sets;
 
-public class Base {
+import java.util.Set;
 
+public class Capabilities {
 
-  public static boolean R_isMethodsDispatchOn(@Current Context context) {
-    return false;
-  }
-
-  public static ListVector R_getSymbolInfo(String sname, SEXP spackage, boolean withRegistrationInfo) {
-
-    ListVector.Builder result = new ListVector.Builder();
-    result.setAttribute(Symbol.CLASS, new StringVector("CRoutine"));
-
-    return result.build();
-
-  }
-
-  
+  public static Set<String> NAMES = Sets.newHashSet(
+      "jpeg",
+      "png",
+      "tiff",
+      "tcltk",
+      "X11",
+      "aqua",
+      "http/ftp",
+      "sockets",
+      "libxml",
+      "fifo",
+      "cledit",
+      "iconv",
+      "NLS",
+      "profmem",
+      "cairo");
 }

@@ -240,6 +240,15 @@ public class Context {
     }
   }
 
+  public SEXP findNamespace(Symbol name) {
+    SEXP value =  globals.namespaceRegistry.getVariable(name);
+    if(value == Symbol.UNBOUND_VALUE) {
+      return Null.INSTANCE;
+    } else {
+      return value;
+    }
+  }
+
   public void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
     SEXP loadingScript = RParser.parseSource(reader).evaluate(this, globals.baseNamespaceEnv).getExpression();

@@ -71,6 +71,8 @@ public class AtomicAccessors {
         return new DoubleExpAccessor((DoubleVector) exp);
       } else if(elementType == Boolean.TYPE || elementType == Boolean.class) {
         return new DoubleExpAsLogical((DoubleVector)exp);
+      } else if(elementType == Integer.TYPE || elementType == Integer.class) {
+        return new DoubleExpAsInteger((DoubleVector)exp);
       } else if(elementType == String.class) {
         return new DoubleExpToString((DoubleVector) exp);
       }
@@ -197,6 +199,29 @@ public class AtomicAccessors {
     @Override
     public Boolean get(int index) {
       return exp.get(index) != 0;
+    }
+  }
+
+  private static class DoubleExpAsInteger implements AtomicAccessor<Integer> {
+    private DoubleVector exp;
+
+    private DoubleExpAsInteger(DoubleVector exp) {
+      this.exp = exp;
+    }
+
+    @Override
+    public int length() {
+      return exp.length();
+    }
+
+    @Override
+    public boolean isNA(int index) {
+      return DoubleVector.isNA( exp.get(index) );
+    }
+
+    @Override
+    public Integer get(int index) {
+      return exp.getElementAsInt(index);
     }
   }
 

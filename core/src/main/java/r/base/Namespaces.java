@@ -33,12 +33,7 @@ public class Namespaces {
   }
 
   public static SEXP getRegisteredNamespace(@Current Context context, Symbol name) {
-    SEXP value = context.getGlobals().namespaceRegistry.getVariable(name);
-    if(value == Symbol.UNBOUND_VALUE) {
-      return Null.INSTANCE;
-    } else {
-      return value;
-    }
+    return context.findNamespace(name);
   }
 
   public static void registerNamespace(@Current Context context, String name, Environment env) {

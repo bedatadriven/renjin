@@ -24,6 +24,8 @@ package r.base;
 import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.Logical;
+import r.lang.LogicalVector;
+import r.lang.SEXP;
 import r.lang.exception.EvalException;
 
 import java.io.IOException;
@@ -288,5 +290,10 @@ public class ComparisonTest extends EvalTestCase {
     assertThat( eval(" any(TRUE, NA) "), equalTo( c(TRUE)) );
     assertThat( eval(" any('TRUE') "), equalTo( c(TRUE)));
     assertThat( eval(" any(c(0,0,0,1), list())"), equalTo( c(TRUE)));
+  }
+
+  @Test
+  public void notEmptyList() {
+    assertThat( eval( "!list()"), equalTo( (SEXP)new LogicalVector()));
   }
 }

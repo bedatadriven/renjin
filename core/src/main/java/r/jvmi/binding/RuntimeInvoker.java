@@ -72,6 +72,7 @@ public class RuntimeInvoker {
     converters.add(new DoubleToInt());
     converters.add(new IntToIndices());
     converters.add(new NullToObject());
+    converters.add(new EmptyVectorToRecycleablePrimitive());
   }
 
   public EvalResult invoke(Context context, Environment rho, Iterable<SEXP> arguments, List<JvmMethod> overloads) {
@@ -415,6 +416,19 @@ public class RuntimeInvoker {
     @Override
     public Object convert(SEXP source, JvmMethod.Argument formal) {
       return AtomicAccessors.create(source, formal.getClazz()).get(0);
+    }
+  }
+
+  private class EmptyVectorToRecycleablePrimitive implements ArgConverter {
+
+    @Override
+    public boolean accept(SEXP source, JvmMethod.Argument formal) {
+      return source instanceof Vector && source.length() == 0 && formal.isRecycle();
+    }
+
+    @Override
+    public Object convert(SEXP source, JvmMethod.Argument formal) {
+      throw new UnsupportedOperationException("should not be called");
     }
   }
 

@@ -25,6 +25,7 @@ import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.Context;
 import r.lang.Environment;
+import r.lang.Function;
 import r.lang.FunctionCall;
 import r.lang.exception.EvalException;
 
@@ -67,6 +68,26 @@ public class Contexts {
     return parent.getEnvironment();
   }
 
+  @Primitive("sys.parent")
+  public static int sysParent(@Current Context context, int n) {
+    if(n < 1) {
+      throw new EvalException("invalid 'n' value");
+    }
+
+    // note that we actually climb n+1 parents in order to
+    // skip the closure that makes the .Internal(parent.frame()) call
+
+    Context parent = context;
+    while(n>=0 && !parent.isTopLevel()) {
+      if(parent.getType() == Context.Type.FUNCTION) {
+        --n;
+      }
+      parent = parent.getParent();
+    }
+    return parent.getEvaluationDepth();
+  }
+
+
   @Primitive("sys.frame")
   public static Environment sysFrame(@Current Context context, int which) {
     return walkUpFrame(context, which).getEnvironment();
@@ -76,6 +97,12 @@ public class Contexts {
   public static FunctionCall sysCall(@Current Context context, int which) {
     return walkUpFrame(context, which).getCall();
   }
+
+  @Primitive("sys.function")
+  public static Function sysFunction(@Current Context context, int which) {
+    return walkUpFrame(context, which).getClosure();
+  }
+
 
   private static Context walkUpFrame(Context context, int which) {
     if(which <= 0) {

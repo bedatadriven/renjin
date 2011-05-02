@@ -315,7 +315,7 @@ public class BaseFrame implements Frame {
     f("atan",Math.class, 10002, 1, 1);
     f("log", MathExt.class, 10003, 0, -1);
     f("log10", Math.class, 10, 1, 1);
-    f("log2", /*log1arg*/ null, 2, 1, 1);
+    f("log2", MathExt.class, 2, 1, 1);
     f("abs", Math.class, 6, 1, 1);
     f("floor", Math.class, 1, 1, 1);
     f("ceiling", Math.class, "ceil", 2, 1, 1);

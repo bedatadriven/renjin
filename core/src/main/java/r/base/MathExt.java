@@ -46,4 +46,8 @@ public class MathExt {
       return Math.log(d);
   }
 
+  public static double log2(double d) {
+      return MathUtils.log(2, d);
+  }
+
 }

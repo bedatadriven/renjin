@@ -68,4 +68,11 @@ public class MathTest extends EvalTestCase {
       assertThat( eval("log10(-4)"), equalTo( c(Double.NaN) ) );
   }
 
+  @Test
+  public void log2() {
+      assertThat( eval("log2(9)").asReal(),  closeTo(3.169925, 0.00000001) );
+      assertThat( eval("log2(8)"), equalTo( c(3) ) );
+      assertThat( eval("log2(-4)"), equalTo( c(Double.NaN) ) );
+  }
+
 }

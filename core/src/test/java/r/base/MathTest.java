@@ -61,4 +61,11 @@ public class MathTest extends EvalTestCase {
       assertThat( eval("log(2)").asReal(),  closeTo(0.6931472, 0.0000001) );//R rounds to 7th decimal place
   }
 
+  @Test
+  public void log10() {
+      assertThat( eval("log10(4)").asReal(),  closeTo(0.60206, 0.00000001) );
+      assertThat( eval("log10(100)"), equalTo( c(2) ) );
+      assertThat( eval("log10(-4)"), equalTo( c(Double.NaN) ) );
+  }
+
 }

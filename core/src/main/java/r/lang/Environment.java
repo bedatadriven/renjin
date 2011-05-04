@@ -175,23 +175,22 @@ public class Environment extends AbstractSEXP implements Recursive {
   /**
    * Searches the environment for a value that matches the given predicate.
    *
-   * @param context the current execution context (need for testing predicate against {@code Promise}s)
    * @param symbol The symbol for which to search
    * @param predicate a predicate that tests possible return values
    * @param inherits if {@code true}, enclosing frames are searched
    * @return
    */
-  public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
+  public SEXP findVariable(Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
     SEXP value = frame.getVariable(symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       if(value instanceof Promise) {
-        value = ((Promise) value).force(context).getExpression();
+        value = ((Promise) value).force().getExpression();
       }
       if(predicate.apply(value)) {
         return value;
       }
     }
-    return parent.findVariable(context, symbol, predicate, inherits);
+    return parent.findVariable(symbol, predicate, inherits);
   }
 
   public SEXP findVariable(Symbol symbol) {
@@ -305,7 +304,7 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
 
     @Override
-    public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
+    public SEXP findVariable(Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
       return Symbol.UNBOUND_VALUE;
     }
 

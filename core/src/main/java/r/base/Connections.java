@@ -75,6 +75,12 @@ public class Connections {
     return result;
   }
 
+  public static SEXP unserializeFromConn(@Current Context context, @Current Environment rho, Connection conn, Null nz) throws IOException {
+    DatafileReader reader = new DatafileReader(context, rho, conn.getInputStream());
+    SEXP result =  reader.readFile();
+    return result;
+  }
+
   public static void close(Connection conn, String type /* Unused */ ) throws IOException {
     conn.close();
   }
@@ -104,7 +110,7 @@ public class Connections {
         newArgs.add(expr.<SEXP>getArgument(j));
       }
       FunctionCall newCall = new FunctionCall(expr.getFunction(), newArgs.build());
-      targetEnvironment.setVariable(name, new Promise(eenv, newCall));
+      targetEnvironment.setVariable(name, new Promise(context, eenv, newCall));
     }
   }
 
@@ -142,7 +148,7 @@ public class Connections {
 
     SEXP exp = reader.readFile();
     if(exp instanceof Promise) {
-      exp = ((Promise) exp).force(context).getExpression();
+      exp = ((Promise) exp).force().getExpression();
     }
     return exp;
   }

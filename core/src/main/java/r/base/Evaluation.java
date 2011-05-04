@@ -79,8 +79,8 @@ public class Evaluation {
     return EvalResult.invisible(value);
   }
 
-  public static void delayedAssign(String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
-    assignEnv.setVariable( new Symbol(x), new Promise(evalEnv, expr));
+  public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
+    assignEnv.setVariable( new Symbol(x), new Promise(context, evalEnv, expr));
   }
 
 
@@ -140,7 +140,7 @@ public class Evaluation {
   public static EvalResult doCall(@Current Context context, @Current Environment rho, String what, ListVector arguments, Environment environment) {
     SEXP function = environment.findVariable(new Symbol(what));
     if(function instanceof Promise) {
-      function = ((Promise) function).force(context).getExpression();
+      function = ((Promise) function).force().getExpression();
     }
     return doCall(context, (Function) function, arguments, environment);
   }
@@ -289,7 +289,8 @@ public class Evaluation {
         extra.setVariable(new Symbol(".Generic"), new StringVector(genericName));
 
         if(function instanceof Closure) {
-          EvalResult result = Calls.applyClosure((Closure) function, context, call, Calls.promiseArgs(context.getArguments(), rho), rho, extra);
+          EvalResult result = Calls.applyClosure((Closure) function, context, call,
+              Calls.promiseArgs(context.getArguments(), context, rho), rho, extra);
           throw new ReturnException(context.getEnvironment(), result.getExpression());
         } else {
           throw new UnsupportedOperationException("target of UseMethod is not a closure, it is a " +
@@ -307,10 +308,11 @@ public class Evaluation {
     return false;
   }
 
-  public static ExpressionVector parse(SEXP file, SEXP maxExpressions, StringVector text, String prompt, String sourceFile, String encoding) throws IOException {
+  public static ExpressionVector parse(SEXP file, SEXP maxExpressions, Vector text, String prompt, String sourceFile, String encoding) throws IOException {
     List<SEXP> expressions = Lists.newArrayList();
-    if(text != null) {
-      for(String line : text) {
+    if(text != Null.INSTANCE) {
+      for(int i=0;i!=text.length();++i) {
+        String line = text.getElementAsString(i);
         try {
           ExpressionVector result = RParser.parseSource(new StringReader(line + "\n"));
           Iterables.addAll(expressions, result);

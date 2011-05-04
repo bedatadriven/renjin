@@ -407,13 +407,13 @@ public class Types {
   }
 
   public static boolean exists(@Current Context context, String x, Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(context, new Symbol(x), modePredicate(mode), inherits)
+    return environment.findVariable(new Symbol(x), modePredicate(mode), inherits)
         != Symbol.UNBOUND_VALUE;
   }
 
 
   public static SEXP get(@Current Context context, String x, Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(context, new Symbol(x), modePredicate(mode), inherits);
+    return environment.findVariable(new Symbol(x), modePredicate(mode), inherits);
   }
 
   public static int length(SEXP exp) {

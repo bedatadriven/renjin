@@ -21,6 +21,7 @@
 
 package r.base;
 
+import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import r.EvalTestCase;
@@ -61,7 +62,7 @@ public class BasePackageTest extends EvalTestCase {
   private SEXP getValue(Environment env, String name) {
     SEXP value = env.getVariable(name);
     if(value instanceof Promise) {
-      value = ((Promise) value).force(topLevelContext).getExpression();
+      value = ((Promise) value).force().getExpression();
     }
     return value;
   }
@@ -110,6 +111,34 @@ public class BasePackageTest extends EvalTestCase {
 
     assertThat(eval("info$isdir"), equalTo(c(true)));
     assertThat(eval("info$mode"), equalTo(c_i(Integer.parseInt("777", 8))));
+  }
+
+  @Test
+  public void dquote() throws IOException {
+
+    loadBasePackage();
+    executeStartupProfile();
+
+    assertThat( eval(" dQuote('a') "), equalTo( c("\"a\"")) );
+  }
+
+
+  @Test
+  public void formals() throws IOException {
+
+    loadBasePackage();
+    executeStartupProfile();
+
+    eval("g <- function() sys.parent() ");
+    eval("f <- function() g() ");
+
+    assertThat( eval("f()"), equalTo(c_i(1)));
+
+    eval("g<-function() eval(formals(sys.function(sys.parent()))[['event']]) ");
+    eval("f<-function(event=c('a','b','c')) g() ");
+
+    SEXP result = eval("f(1) ");
+    assertThat(result, Matchers.equalTo(c("a", "b", "c")));
   }
 
   @Test

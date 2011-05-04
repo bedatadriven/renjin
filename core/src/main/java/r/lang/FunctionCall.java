@@ -73,7 +73,7 @@ public class FunctionCall extends PairList.Node {
     while(rho != Environment.EMPTY) {
       SEXP value = rho.getVariable(symbol);
       if(value instanceof Promise) {
-        value = ((Promise) value).force(context).getExpression();
+        value = ((Promise) value).force().getExpression();
       }
       if(value instanceof Function) {
         return (Function) value;

@@ -250,7 +250,7 @@ public class Calls {
     /* they get duplicated and things like missing/substitute work. */
 
 
-    PairList promisedArgs = promiseArgs(call.getArguments(), rho);
+    PairList promisedArgs = promiseArgs(call.getArguments(), context, rho);
     if (promisedArgs.length() != args.length())
       throw new EvalException("dispatch error in group dispatch");
 
@@ -277,7 +277,7 @@ public class Calls {
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {
-      matchArgumentsInto(closure.getFormals(), promisedArgs, functionEnvironment);
+      matchArgumentsInto(closure.getFormals(), promisedArgs, functionContext, functionEnvironment);
 
       // copy supplied environment values into the function environment
       for(Symbol name : suppliedEnvironment.getSymbols()) {
@@ -310,7 +310,7 @@ public class Calls {
 /* form below because it is does not cause growth of the pointer */
 /* protection stack, and because it is a little more efficient. */
 
-  public static PairList promiseArgs(PairList el, Environment rho)
+  public static PairList promiseArgs(PairList el, Context context, Environment rho)
   {
     PairList.Builder list = new PairList.Builder();
 
@@ -335,7 +335,7 @@ public class Calls {
       } else if (node.getValue() == Symbol.MISSING_ARG) {
         list.add(node.getRawTag(), node.getValue());
       } else {
-        list.add(node.getRawTag(), new Promise(rho, node.getValue()));
+        list.add(node.getRawTag(), new Promise(context, rho, node.getValue()));
       }
     }
     return list.build();
@@ -357,14 +357,14 @@ public class Calls {
       result.buf = generic + "." + ss;
 
       result.meth = new Symbol(result.buf);
-      result.sxp = R_LookupMethod(context, result.meth, rho, rho, rho.getBaseEnvironment());
+      result.sxp = R_LookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
       if (result.sxp instanceof Function) {
         result.gr = new StringVector("");
         break;
       }
       result.buf = group + "." + ss;
       result.meth = new Symbol(result.buf);
-      result.sxp = R_LookupMethod(context, result.meth, rho, rho, rho.getBaseEnvironment());
+      result.sxp = R_LookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
       if (result.sxp instanceof Function) {
         result.gr = new StringVector(group);
         break;
@@ -389,7 +389,7 @@ public class Calls {
  *    3. fix up the argument list; it should be the arguments to the
  *       generic matched to the formals of the method to be invoked */
 
-  private static SEXP R_LookupMethod(Context context, Symbol method, SEXP rho, Environment callrho, Environment defrho)
+  private static SEXP R_LookupMethod(Symbol method, SEXP rho, Environment callrho, Environment defrho)
   {
 //
 //    if (callrho == Null.INSTANCE) {
@@ -406,7 +406,7 @@ public class Calls {
 //      defrho = R_BaseNamespace;
 
     /* This evaluates promises */
-    SEXP val = callrho.findVariable(context, method, CollectionUtils.IS_FUNCTION, true);
+    SEXP val = callrho.findVariable(method, CollectionUtils.IS_FUNCTION, true);
     if (val instanceof Function) {
       return val;
     } else {
@@ -426,7 +426,7 @@ public class Calls {
 
 
 
-  public static void matchArgumentsInto(PairList formals, PairList actuals, Environment innerEnv) {
+  public static void matchArgumentsInto(PairList formals, PairList actuals, Context innerContext, Environment innerEnv) {
 
     PairList matched = matchArguments(formals, actuals);
     for(PairList.Node node : matched.nodes()) {
@@ -434,7 +434,7 @@ public class Calls {
       if(value == Symbol.MISSING_ARG) {
         SEXP defaultValue = formals.findByTag(node.getTag());
         if(defaultValue != Symbol.MISSING_ARG) {
-          value =  new Promise(innerEnv, defaultValue);
+          value =  new Promise(innerContext, innerEnv, defaultValue);
         }
       }
       innerEnv.setVariable(node.getTag(), value);

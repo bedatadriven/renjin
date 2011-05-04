@@ -233,6 +233,11 @@ public class Context {
   public void addOnExit(SEXP exp) {
     onExit.add(exp);
   }
+  public void clearOnExits() {
+    onExit = Lists.newArrayList();
+  }
+
+
 
   public void exit() {
     for(SEXP exp : onExit) {

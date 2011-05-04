@@ -33,20 +33,29 @@ public class OnExitFunction extends SpecialFunction {
 
   @Override
   public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    EvalException.check(call.getArguments().length() == 1 || call.getArguments().length() == 2,
+    EvalException.check(call.getArguments().length() <= 2,
         "invalid number of arguments");
 
-    SEXP value = call.getArgument(0);
-    boolean add = false;
-    if(call.getArguments().length() == 2) {
-      add = call.evalArgument(context, rho, 1).asReal() != 0;
-    }
+    if(call.getArguments().length() == 0) {
+      // remove existing on exit functions
+      context.clearOnExits();
 
-    if(add) {
-      context.addOnExit(value);
+      return EvalResult.NON_PRINTING_NULL;
+
     } else {
-      context.setOnExit(value);
+
+      SEXP value = call.getArgument(0);
+      boolean add = false;
+      if(call.getArguments().length() == 2) {
+        add = call.evalArgument(context, rho, 1).asReal() != 0;
+      }
+
+      if(add) {
+        context.addOnExit(value);
+      } else {
+        context.setOnExit(value);
+      }
+      return EvalResult.NON_PRINTING_NULL;
     }
-    return EvalResult.NON_PRINTING_NULL;
   }
 }

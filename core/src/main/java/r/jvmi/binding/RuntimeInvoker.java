@@ -521,10 +521,13 @@ public class RuntimeInvoker {
     }
   }
 
+  // allow R's NULL to be converted to a null java argument for
+  // non-R classes
   private class NullToObject implements ArgConverter {
     @Override
     public boolean accept(SEXP source, JvmMethod.Argument formal) {
-      return source == Null.INSTANCE && !formal.getClazz().isPrimitive();
+      return source == Null.INSTANCE && !formal.getClazz().isPrimitive() &&
+          !SEXP.class.isAssignableFrom(formal.getClazz());
     }
 
     @Override

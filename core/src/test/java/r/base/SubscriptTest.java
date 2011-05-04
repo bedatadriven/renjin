@@ -449,4 +449,20 @@ public class SubscriptTest extends EvalTestCase {
 
   }
 
+  @Test
+  public void pairListConverted() {
+    eval(" p <- .Internal(as.vector(list(a=1, b=2, 3, 4), 'pairlist'))");
+    assertThat( eval("p[1:2]"), equalTo(list(1d,2d)));
+    assertThat( eval("names(p[TRUE])"), equalTo(c("a", "b", "", "")));
+    assertThat( eval("p[['b']]"), equalTo(c(2)));
+  }
+
+  @Test
+  public void pairListSingleByName() {
+    eval(" p <- .Internal(as.vector(list(hello=1, b=2, 3, 4), 'pairlist'))");
+
+    assertThat( eval("p[['h']]"), equalTo(NULL));
+    assertThat( eval("p[['hello']]"), equalTo(c(1)));
+    assertThat( eval("p[['h', exact=FALSE]]"), equalTo(c(1)));
+  }
 }

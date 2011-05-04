@@ -45,7 +45,11 @@ public class SubscriptOperation {
   }
 
   public SubscriptOperation setSource(SEXP source) {
-    this.source = EvalException.checkedCast(source);
+    if(source instanceof PairList.Node) {
+      this.source = ((PairList.Node) source).toVector();
+    } else {
+      this.source = EvalException.checkedCast(source);
+    }
     return this;
   }
 

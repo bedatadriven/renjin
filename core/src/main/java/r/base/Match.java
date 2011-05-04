@@ -21,12 +21,11 @@
 
 package r.base;
 
-import r.lang.AtomicVector;
-import r.lang.LogicalVector;
-import r.lang.Null;
-import r.lang.Vector;
+import r.lang.*;
 
 public class Match {
+
+  private static final int UNMATCHED = -1;
 
   public static int[] match(AtomicVector search, AtomicVector table, int noMatch, AtomicVector incomparables) {
     //For historical reasons, FALSE is equivalent to NULL.
@@ -46,12 +45,74 @@ public class Match {
     return matches;
   }
 
+  public static IntVector pmatch(StringVector search, StringVector table, int noMatch, boolean duplicatesOk) {
+    IntVector.Builder result = new IntVector.Builder(search.length());
+    boolean matchedTable[] = new boolean[table.length()];
+    boolean matchedSearch[] = new boolean[search.length()];
+
+    // first pass : exact matches
+    for(int i=0;i!=search.length();++i) {
+      String toMatch = pmatchElementAt(search, i);
+      int match = exactMatch(toMatch, table);
+      if(match != UNMATCHED && (duplicatesOk || !matchedTable[match])) {
+        result.set(i, match+1);
+        matchedTable[match] = true;
+        matchedSearch[i] = true;
+      }
+    }
+
+    // second pass : partial matches
+    for(int i=0;i!=search.length();++i) {
+      if(!matchedSearch[i]) {
+        String toMatch = pmatchElementAt(search, i);
+        int match = uniquePartialMatch(toMatch, table);
+        if(match != UNMATCHED && (duplicatesOk || !matchedTable[match])) {
+          result.set(i, match+1);
+          matchedTable[match] = true;
+        } else {
+          result.set(i, noMatch);
+        }
+      }
+    }
+    return result.build();
+  }
+
+  private static int exactMatch(String toMatch, StringVector table) {
+    for(int i=0;i!=table.length();++i) {
+         String t = pmatchElementAt(table, i);
+         if(toMatch.equals(t)) {
+           return i;
+         }
+    }
+    return -1;
+  }
+
+  private static int uniquePartialMatch(String toMatch, StringVector table) {
+    int partialMatch = UNMATCHED;
+    for(int i=0;i!=table.length();++i) {
+      String t = pmatchElementAt(table, i);
+      if(t.startsWith(toMatch)) {
+        // if we've previously found a partial match, abort
+        if(partialMatch != UNMATCHED) {
+          return UNMATCHED;
+        }
+        partialMatch = i;
+      }
+    }
+    return partialMatch;
+  }
+
+  // NA values are treated as if they were the string constant "NA".
+  private static String pmatchElementAt(StringVector vector, int i) {
+    return vector.isElementNA(i) ? "NA" : vector.getElementAsString(i);
+  }
+
   public static Vector unique(AtomicVector vector, AtomicVector incomparables, boolean fromLast) {
     Vector.Builder result = vector.newBuilder(0);
     int resultIndex=0;
     for(int i=0;i!=vector.length();++i) {
       if(   incomparables.contains(vector, i) ||
-           (fromLast && vector.indexOf(vector, i, i+1) == -1) ||
+          (fromLast && vector.indexOf(vector, i, i+1) == -1) ||
           (!fromLast && vector.indexOf(vector, i, 0) == i)) {
 
         result.setFrom(resultIndex++, vector, i);

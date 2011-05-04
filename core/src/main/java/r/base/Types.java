@@ -579,6 +579,18 @@ public class Types {
     return newEnv;
   }
 
+  public static String Encoding(StringVector vector) {
+    return "UTF-8";
+  }
+
+  public static StringVector setEncoding(StringVector vector, String encodingName) {
+    if(encodingName.equals("UTF-8") || encodingName.equals("unknown")) {
+      return vector;
+    } else {
+      throw new EvalException("Only UTF-8 and unknown encoding are supported at this point");
+    }
+  }
+
   public static boolean isFactor(SEXP exp) {
     return exp instanceof IntVector && exp.inherits("factor");
   }

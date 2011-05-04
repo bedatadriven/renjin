@@ -107,6 +107,15 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   /**
+   * Null implementation of {@link PairList#toVector()}
+   * @return {@code Null.INSTANCE}
+   */
+  @Override
+  public Null toVector() {
+    return this;
+  }
+
+  /**
    * Null implementation of {@link r.lang.PairList#findByTag(Symbol)}
    * @param symbol the tag for which to search
    * @return {@code Null.INSTANCE}

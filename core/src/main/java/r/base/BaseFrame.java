@@ -296,7 +296,7 @@ public class BaseFrame implements Frame {
     f("pmax", /*pmin*/ null, 1, 11, -1);
     f("which.max", /*first_min*/ null, 1, 11, 1);
     f("match", Match.class, 0, 11, 4);
-    f("pmatch", /*pmatch*/ null, 0, 11, 4);
+    f("pmatch", Match.class, 0, 11, 4);
     f("charmatch", /*charmatch*/ null, 0, 11, 3);
     f("match.call", /*matchcall*/ null, 0, 11, 3);
     f("complete.cases", /*compcases*/ null, 0, 11, 1);
@@ -639,7 +639,7 @@ public class BaseFrame implements Frame {
     f("loadFromConn2", /*loadFromConn2*/ null, 0, 111, 2);
     f("serializeToConn", /*serializeToConn*/ null, 0, 111, 5);
     f("unserializeFromConn", Connections.class, 0, 111, 2);
-    f("deparse", /*deparse*/ null, 0, 11, 5);
+    f("deparse", Deparse.class, 0, 11, 5);
     f("deparseRd", /*deparseRd*/ null, 0, 11, 2);
     f("dput", /*dput*/ null, 0, 111, 3);
     f("dump", /*dump*/ null, 0, 111, 5);
@@ -973,8 +973,8 @@ public class BaseFrame implements Frame {
     f("env.profile", /*envprofile*/ null, 0, 211, 1);
 
     f("write.table", /*writetable*/ null, 0, 111, 11);
-    f("Encoding", /*encoding*/ null, 0, 11, 1);
-    f("setEncoding", /*setencoding*/ null, 0, 11, 2);
+    f("Encoding", Types.class, 0, 11, 1);
+    f("setEncoding", Types.class, 0, 11, 2);
     f("lazyLoadDBfetch", Connections.class, 0, 1, 4);
     f("setTimeLimit", /*setTimeLimit*/ null, 0, 111, 3);
     f("setSessionTimeLimit", /*setSessionTimeLimit*/ null, 0, 111, 2);

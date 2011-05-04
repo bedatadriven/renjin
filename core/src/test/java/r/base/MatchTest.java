@@ -45,4 +45,18 @@ public class MatchTest extends EvalTestCase {
   public void matchStrings() {
     assertThat( eval( ".Internal(match( c(1,2), c('z', 'y', '1', '2'), NA_integer_, FALSE)) "), equalTo( c_i(3, 4)));
   }
+
+  @Test
+  public void pmatch() {
+    eval(" pmatch <- function (x, table, nomatch = NA_integer_, duplicates.ok = FALSE) \n" +
+        ".Internal(pmatch(as.character(x), as.character(table), nomatch, \n" +
+        "    duplicates.ok))");
+
+    assertThat( eval("pmatch(c('he', 'hello', 'foo'), c('hello world')) "), equalTo(c_i(1, IntVector.NA, IntVector.NA)));
+    assertThat( eval("pmatch(c('he', 'hello', 'foo'), c('hello world'),duplicates.ok=TRUE) "),
+        equalTo(c_i(1, 1, IntVector.NA)));
+
+    assertThat( eval("pmatch('hello', NULL) "), equalTo(c_i(IntVector.NA)));
+
+  }
 }

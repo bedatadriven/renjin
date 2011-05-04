@@ -62,6 +62,14 @@ public class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void asCharacterFromNull() {
+    eval( " x<- NULL");
+    eval( " g<-function(b) b");
+    eval( " f<-function(a) g(as.character(a)) ");
+    assertThat( eval("f(x)"), equalTo((SEXP)new StringVector()));
+  }
+
+  @Test
   public void asDoubleFromDouble() {
     assertThat( eval("as.double(3.14)"), equalTo( c(3.14) ) );
     assertThat( eval("as.double(NA_real_)"), equalTo( c(DoubleVector.NA) ) );

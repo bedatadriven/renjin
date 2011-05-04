@@ -42,6 +42,11 @@ public interface PairList extends SEXP {
   Iterable<Node> nodes();
   Iterable<SEXP> values();
 
+  /**
+   * @return this {@code PairList} as a {@code Vector}, either {@code Null.INSTANCE} for an empty pairlist
+   * or a {@code ListVector}
+   */
+  Vector toVector();
 
   /**
    * @return this expression's tag
@@ -192,6 +197,20 @@ public interface PairList extends SEXP {
       this.nextNode = nextNode;
     }
 
+    @Override
+    public ListVector toVector() {
+      ListVector.Builder builder = new ListVector.Builder();
+      builder.copyAttributesFrom(this);
+      for(Node node : nodes()) {
+        if(node.hasTag()) {
+          builder.add(node.getTag().getPrintName(), node.getValue());
+        } else {
+          builder.add(node.getValue());
+        }
+      }
+      return builder.build();
+    }
+
     public Iterator<SEXP> valueIterator() {
       return new ValueIterator(this);
     }
@@ -228,6 +247,7 @@ public interface PairList extends SEXP {
         return "";
       }
     }
+
 
     /**
      * @return a shallow clone of the ListExp from this point on

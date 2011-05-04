@@ -128,6 +128,11 @@ public class Subscript {
   }
 
   @Primitive("[[")
+  public static SEXP getSingleElementByExactName(PairList pairlist, String subscript) {
+    return getSingleElementByExactName(pairlist.toVector(), subscript);
+  }
+
+  @Primitive("[[")
   public static SEXP getSingleElementByName(Vector vector, String subscript, boolean exact) {
     if(exact) {
       return getSingleElementByExactName(vector, subscript);
@@ -146,5 +151,9 @@ public class Subscript {
     }
   }
 
+  @Primitive("[[")
+  public static SEXP getSingleElementByName(PairList pairlist, String subscript, boolean exact) {
+    return getSingleElementByName(pairlist.toVector(), subscript, exact);
+  }
 
 }

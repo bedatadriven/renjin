@@ -91,7 +91,8 @@ public class Conditions {
 
 
   @Primitive(".signalCondition")
-  public static void signalCondition(SEXP condition, String message, FunctionCall call) {
+  public static void signalCondition(SEXP condition, String message, SEXP call) {
     throw new EvalException("condition signaled. message = '%s'", message);
   }
+
 }

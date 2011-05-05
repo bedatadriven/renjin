@@ -25,7 +25,7 @@ import java.io.Serializable;
  * REProgram objects). You should not otherwise need to work directly with
  * this class.
  *
- * @see RE
+ * @see ExtendedRE
  * @see RECompiler
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
@@ -114,18 +114,18 @@ public class REProgram implements Serializable
         // Try various compile-time optimizations if there's a program
         if (instruction != null && lenInstruction > 0)
         {
-            final char firstOp = instruction[RE.offsetOpcode];
+            final char firstOp = instruction[ExtendedRE.offsetOpcode];
 
             // If the first node is an atom
-            if (firstOp == RE.OP_ATOM)
+            if (firstOp == ExtendedRE.OP_ATOM)
             {
                 // then get that atom as an prefix because there's no other choice
-                int lenAtom = instruction[RE.offsetOpdata];
+                int lenAtom = instruction[ExtendedRE.offsetOpdata];
                 this.prefix = new char[lenAtom];
-                System.arraycopy(instruction, RE.nodeSize, prefix, 0, lenAtom);
+                System.arraycopy(instruction, ExtendedRE.nodeSize, prefix, 0, lenAtom);
 
             // If the first node is a BOL
-            } else if (firstOp == RE.OP_BOL) {
+            } else if (firstOp == ExtendedRE.OP_BOL) {
                 // then set the flag indicating that BOL is present
                 this.flags |= OPT_HASBOL;
             }
@@ -133,19 +133,19 @@ public class REProgram implements Serializable
             BackrefScanLoop:
 
             // Check for backreferences
-            for (int i = 0; i < lenInstruction; i += RE.nodeSize)
+            for (int i = 0; i < lenInstruction; i += ExtendedRE.nodeSize)
             {
-                switch (instruction[i + RE.offsetOpcode])
+                switch (instruction[i + ExtendedRE.offsetOpcode])
                 {
-                    case RE.OP_ANYOF:
-                        i += (instruction[i + RE.offsetOpdata] * 2);
+                    case ExtendedRE.OP_ANYOF:
+                        i += (instruction[i + ExtendedRE.offsetOpdata] * 2);
                         break;
 
-                    case RE.OP_ATOM:
-                        i += instruction[i + RE.offsetOpdata];
+                    case ExtendedRE.OP_ATOM:
+                        i += instruction[i + ExtendedRE.offsetOpdata];
                         break;
 
-                    case RE.OP_BACKREF:
+                    case ExtendedRE.OP_BACKREF:
                         flags |= OPT_HASBACKREFS;
                         break BackrefScanLoop;
                 }

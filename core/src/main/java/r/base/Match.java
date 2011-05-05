@@ -21,7 +21,11 @@
 
 package r.base;
 
+import com.google.common.collect.Sets;
 import r.lang.*;
+import r.lang.exception.EvalException;
+
+import java.util.Set;
 
 public class Match {
 
@@ -120,5 +124,39 @@ public class Match {
       }
     }
     return result.build();
+  }
+
+  public static int anyDuplicated(Vector x, AtomicVector incomparables, boolean fromLast) {
+
+    if(incomparables instanceof LogicalVector && incomparables.length() == 1 &&
+        incomparables.getElementAsLogical(0).equals(Logical.FALSE)) {
+      incomparables = Null.INSTANCE;
+    }
+
+    if(incomparables != Null.INSTANCE) {
+      throw new EvalException("incomparables in anyDuplicated not yet supported!");
+    }
+
+    Set<Object> seen = Sets.newHashSet();
+    if(fromLast) {
+      for(int i=x.length()-1;i>=0;--i) {
+        Object element = x.getElementAsObject(i);
+        if(seen.contains(element)) {
+          return i+1;
+        } else {
+          seen.add(element);
+        }
+      }
+    } else {
+      for(int i=0;i!=x.length();++i) {
+        Object element = x.getElementAsObject(i);
+        if(seen.contains(element)) {
+          return i+1;
+        } else {
+          seen.add(element);
+        }
+      }
+    }
+    return 0;
   }
 }

@@ -105,15 +105,13 @@ public class Evaluation {
     Vector vector = (Vector) call.evalArgument(context, rho, 0);
     Function function = (Function) call.evalArgument(context, rho, 1);
 
-    PairList remainingArguments =  call.getArguments().length() > 2 ?
-        call.getNextNode().getNextNode().getNextNode() : Null.INSTANCE;
-
     ListVector.Builder builder = ListVector.newBuilder();
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
       FunctionCall getElementCall = FunctionCall.newCall(new Symbol("[["), (SEXP)vector, new IntVector(i+1));
-      FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall, remainingArguments));
+      FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall,
+          new PairList.Node(Symbol.ELLIPSES, Null.INSTANCE)));
       builder.add( applyFunctionCall.evalToExp(context, rho) );
     }
     return builder.build();

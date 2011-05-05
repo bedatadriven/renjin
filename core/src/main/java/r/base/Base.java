@@ -40,5 +40,10 @@ public class Base {
 
   }
 
+  public static ListVector R_getRegisteredRoutines(String dll) {
+    ListVector.Builder builder = new ListVector.Builder();
+    return builder.build();
+  }
+
   
 }

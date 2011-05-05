@@ -335,6 +335,17 @@ public class SubscriptTest extends EvalTestCase {
   }
 
   @Test
+  public void assignListToListElement() {
+    eval(" x<- list() ");
+    eval(" x[['foo']] <- list(a=1,b=2,c=3)");
+
+    assertThat( eval(" x[['foo']] "), equalTo(list(1d,2d,3d)));
+    assertThat( eval(" names(x[['foo']]) "), equalTo(c("a","b","c")));
+
+  }
+
+
+  @Test
   public void indexOnNull() {
     eval(" x<- NULL ");
     assertThat( eval("x[[1]]"), equalTo(NULL));

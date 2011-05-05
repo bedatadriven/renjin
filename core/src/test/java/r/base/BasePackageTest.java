@@ -22,7 +22,6 @@
 package r.base;
 
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.*;
@@ -142,13 +141,25 @@ public class BasePackageTest extends EvalTestCase {
   }
 
   @Test
-  @Ignore("in progress")
+  public void lapply() throws Exception {
+    loadBasePackage();
+    executeStartupProfile();
+
+    eval("f<-function(a,b) a+b ");
+    eval("x<-c(1)");
+    assertThat( eval("lapply(x,f,2) "), equalTo(list(3d)));
+  }
+
+  @Test
   public void library() throws Exception {
     loadBasePackage();
     executeStartupProfile();
 
     java.lang.System.out.println(eval(".find.package('survey') "));
     eval(" library(survey) ");
+
+    Environment survey = (Environment) topLevelContext.findNamespace(new Symbol("survey"));
+    java.lang.System.out.println(survey.getSymbolNames());
   }
 
   @Test

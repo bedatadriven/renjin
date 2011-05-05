@@ -63,14 +63,11 @@ public class Namespaces {
     return false;
   }
 
-  public static void importIntoEnv(Environment impenv, StringVector impnames, Environment expenv, StringVector expnames) {
+  public static void importIntoEnv(Environment impenv, Vector impnames, Environment expenv, Vector expnames) {
 
     /* This function copies values of variables from one environment
        to another environment, possibly with different names.
        Promises are not forced and active bindings are preserved. */
-
-    SEXP binding, env, val;
-    int  n;
 
     if(impnames.length() != expnames.length()) {
       throw new EvalException("length of import and export names must match");
@@ -84,9 +81,8 @@ public class Namespaces {
       Symbol expsym = new Symbol(expnames.getElementAsString(i));
 
       SEXP value = expenv.findVariable(impsym);
-      expenv.setVariable(expsym, value);
+      impenv.setVariable(expsym, value);
     }
-
   }
 
 

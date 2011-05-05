@@ -59,4 +59,13 @@ public class MatchTest extends EvalTestCase {
     assertThat( eval("pmatch('hello', NULL) "), equalTo(c_i(IntVector.NA)));
 
   }
+
+  @Test
+  public void anyDuplicated() {
+    assertThat( eval(" .Internal(anyDuplicated(1, FALSE, FALSE)) "), equalTo( c_i(0) ));
+    assertThat( eval(" .Internal(anyDuplicated(c(1,1,3), FALSE, FALSE)) "), equalTo( c_i(2) ));
+    assertThat( eval(" .Internal(anyDuplicated(c(1,2,3,3), FALSE, FALSE)) "), equalTo( c_i(4) ));
+    assertThat( eval(" .Internal(anyDuplicated(c(2,2,3,3), FALSE, TRUE)) "), equalTo( c_i(3) ));
+  }
+
 }

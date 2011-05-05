@@ -22,6 +22,7 @@
 package r.base;
 
 import com.google.common.collect.Lists;
+import r.base.regex.ExtendedRE;
 import r.base.regex.RE;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
@@ -33,6 +34,8 @@ import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class System {
 
@@ -207,7 +210,7 @@ public class System {
     return new Object() {
 
       private final StringVector.Builder result = new StringVector.Builder();
-      private final RE filter = pattern == null ? null : new RE(pattern).ignoreCase(ignoreCase);
+      private final RE filter = pattern == null ? null : new ExtendedRE(pattern).ignoreCase(ignoreCase);
 
       public StringVector list()  {
         for(String path : paths) {
@@ -375,12 +378,18 @@ public class System {
   @Primitive("dyn.load")
   public static ListVector dynLoad(String libraryPath, SEXP local, SEXP now, SEXP dllPath) {
     ListVector.Builder result = new ListVector.Builder();
-    result.add("name", "dummyName");
+
+    Matcher matcher = Pattern.compile("[/\\\\](\\w+)\\.dll$").matcher(libraryPath);
+    if(!matcher.find()) {
+      throw new EvalException("libary path not in expected format");
+    }
+
+    result.add("name", matcher.group(1));
     result.add("path", libraryPath);
     result.add("dynamicLookup", LogicalVector.TRUE);
     result.add("handle", Null.INSTANCE);
     result.add("info", "something here");
-
+    result.setAttribute(Symbol.CLASS, new StringVector("DLLInfo"));
     return result.build();
     // TODO: maybe warn or something?
   }

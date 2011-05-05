@@ -24,6 +24,7 @@ package r.lang;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import r.lang.exception.EvalException;
 
 public class CollectionUtils {
 
@@ -50,8 +51,10 @@ public class CollectionUtils {
   public static Predicate<SEXP> modePredicate(String mode) {
     if(mode.equals("any")) {
       return Predicates.alwaysTrue();
+    } else if(mode.equals("function")){
+      return IS_FUNCTION;
     } else {
-      throw new UnsupportedOperationException("only mode 'any' as a predicate is implemented.");
+      throw new EvalException(" mode '%s' as a predicate is implemented.", mode);
     }
   }
 

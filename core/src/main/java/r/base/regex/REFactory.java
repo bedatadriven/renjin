@@ -21,27 +21,18 @@
 
 package r.base.regex;
 
-public interface RE {
-  /**
-   * Flag bit that indicates that subst should replace all occurrences of this
-   * regular expression.
-   */
-  int REPLACE_ALL            = 0x0000;
-  /**
-     * Flag bit that indicates that subst should only replace the first occurrence
-     * of this regular expression.
-     */
-  int REPLACE_FIRSTONLY      = 0x0001;
-  /**
-     * Flag bit that indicates that subst should replace backreferences
-     */
-  int REPLACE_BACKREFERENCES = 0x0002;
+import r.lang.exception.EvalException;
 
-  boolean match(String search);
+public class REFactory {
 
-  String subst(String substituteIn, String substitution);
-
-  String subst(String substituteIn, String substitution, int flags);
-
-  String[] split(String s);
+  public static RE compile(String pattern, boolean ignoreCase, boolean extended, boolean perl, boolean fixed,
+                           boolean useBytes) {
+    if(fixed) {
+      return new FixedRE(pattern);
+    } else if(extended) {
+      return new ExtendedRE(pattern, ignoreCase);
+    } else {
+      throw new EvalException("Unsupported combination of regex flags");
+    }
+  }
 }

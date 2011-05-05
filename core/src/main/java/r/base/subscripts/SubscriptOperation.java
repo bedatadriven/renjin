@@ -141,7 +141,7 @@ public class SubscriptOperation {
       return remove();
 
     } else if(subscriptArguments.size() == 1 && subscriptArguments.get(0) instanceof StringVector) {
-      return replaceByName(elements);
+      return replaceByName(elements, single);
     }
 
     Vector.Builder result = createReplacementBuilder(elements);
@@ -168,7 +168,7 @@ public class SubscriptOperation {
     return result.build();
   }
 
-  private Vector replaceByName(SEXP elements) {
+  private Vector replaceByName(SEXP elements, boolean single) {
     StringVector namesToReplace = (StringVector) subscriptArguments.get(0);
     Vector.Builder result = createReplacementBuilder(elements);
     StringVector.Builder names = source.getNames() == Null.INSTANCE ? StringVector.newBuilder() :
@@ -182,7 +182,11 @@ public class SubscriptOperation {
         index = result.length();
         names.set(index, nameToReplace);
       }
-      result.setFrom(index, elements, replacementIndex++);
+      if(single) {
+        result.set(index, elements);
+      } else {
+        result.setFrom(index, elements, replacementIndex++);
+      }
     }
 
     result.setAttribute(Attributes.NAMES, names.build());

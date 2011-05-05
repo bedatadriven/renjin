@@ -17,6 +17,8 @@
 
 package r.base.regex;
 
+import r.lang.exception.EvalException;
+
 /**
  * Exception thrown to indicate a syntax error in a regular expression.
  * This is a non-checked exception because you should only have problems compiling
@@ -28,7 +30,7 @@ package r.base.regex;
  * @author <a href="mailto:gholam@xtra.co.nz>Michael McCallum</a>
  * @version $Id$
  */
-public class RESyntaxException extends RuntimeException
+public class RESyntaxException extends EvalException
 {
     /**
      * Constructor.

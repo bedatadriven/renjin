@@ -122,17 +122,6 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("y"), equalTo( c(3) ));
   }
 
-
-  @Test
-  public void lapply() {
-    assertThat( eval(".Internal(lapply(list(4,16,36), sqrt))"), equalTo(list(2d,4d,6d)) );
-  }
-
-  @Test
-  public void lapplyWithExtraArgs() {
-    assertThat( eval(".Internal(lapply(c(1,2,3), `^`, 2))"), equalTo( list(1d, 4d, 9d)));
-  }
-
   @Test
   public void simplestForStatement() throws IOException {
     eval("for( x in 99 ) { y <- x} ");

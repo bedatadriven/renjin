@@ -23,7 +23,9 @@ package r.base;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import r.base.regex.ExtendedRE;
 import r.base.regex.RE;
+import r.base.regex.REFactory;
 import r.jvmi.annotations.AllowNA;
 import r.jvmi.annotations.ArgumentList;
 import r.jvmi.annotations.Primitive;
@@ -247,8 +249,8 @@ public class Text {
                            boolean fixed,
                            boolean useBytes) {
 
-    RE re = new RE(pattern, ignoreCase, extended, perl, fixed, useBytes);
-    return  re.subst(x, replacement, RE.REPLACE_FIRSTONLY | RE.REPLACE_BACKREFERENCES );
+    RE re = REFactory.compile(pattern, ignoreCase, extended, perl, fixed, useBytes);
+    return  re.subst(x, replacement, ExtendedRE.REPLACE_FIRSTONLY | ExtendedRE.REPLACE_BACKREFERENCES );
   }
 
 
@@ -274,8 +276,8 @@ public class Text {
                             boolean fixed,
                             boolean useBytes) {
 
-    RE re = new RE(pattern, ignoreCase, extended, perl, fixed, useBytes);
-    return re.subst(x, replacement, RE.REPLACE_ALL | RE.REPLACE_BACKREFERENCES );
+    RE re = REFactory.compile(pattern, ignoreCase, extended, perl, fixed, useBytes);
+    return re.subst(x, replacement, ExtendedRE.REPLACE_ALL | ExtendedRE.REPLACE_BACKREFERENCES );
   }
 
   /**
@@ -295,7 +297,7 @@ public class Text {
                                       boolean perl,
                                       boolean useBytes) {
 
-    RE re = new RE(split, false, extended, perl, fixed, useBytes);
+    RE re = REFactory.compile(split, false, extended, perl, fixed, useBytes);
     return new StringVector( re.split(x) );
   }
 
@@ -310,7 +312,7 @@ public class Text {
       boolean useBytes,
       boolean invert) {
 
-    RE re = new RE(pattern,ignoreCase,extended, perl,fixed,useBytes);
+    RE re = REFactory.compile(pattern,ignoreCase,extended, perl, fixed, useBytes);
     if(value) {
       StringVector.Builder result = new StringVector.Builder();
       for(String string : x) {
@@ -324,7 +326,7 @@ public class Text {
       IntVector.Builder result = new IntVector.Builder(0);
       for(int i=0;i!=x.length();++i) {
         if(re.match(x.getElementAsString(i))) {
-          result.add(i);
+          result.add(i+1);
         }
       }
       return result.build();
@@ -355,7 +357,7 @@ public class Text {
       boolean useBytes,
       boolean invert) {
 
-    RE re = new RE(pattern,ignoreCase,extended, perl,fixed,useBytes);
+    RE re = REFactory.compile(pattern, ignoreCase, extended, perl, fixed, useBytes);
     LogicalVector.Builder result = new LogicalVector.Builder();
     for(String string : x) {
       result.add( ! StringVector.isNA(string) && re.match(string ));
@@ -459,7 +461,13 @@ public class Text {
   public static StringVector substr(StringVector x, int start, int stop) {
     StringVector.Builder result = new StringVector.Builder();
     for(String s : x) {
-      result.add(s.substring(start-1, stop));
+      if(start > s.length()) {
+        result.add("");
+      } else if(stop >= s.length()) {
+        result.add(s.substring(start-1));
+      } else {
+        result.add(s.substring(start-1, stop));
+      }
     }
     return result.build();
   }

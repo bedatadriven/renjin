@@ -430,6 +430,9 @@ public class Types {
     } else if("numeric".equals(mode)) {
       return new DoubleVector(new double[length]);
 
+    } else if("double".equals(mode)) {
+      return new DoubleVector(new double[length]);
+
     } else if("complex".equals(mode)) {
       throw new UnsupportedOperationException("implement me!");
 

@@ -106,6 +106,15 @@ public class TextTest extends EvalTestCase {
   }
 
   @Test
+  public void substr() {
+
+    assertThat( eval(" .Internal(substr('lazy cat', 2, 4))" ), equalTo(c("azy")));
+    assertThat( eval(" .Internal(substr('foo', 1, 99))" ), equalTo(c("foo")));
+
+  }
+
+
+  @Test
   public void nchar() {
     eval("nchar <- function (x, type = 'chars', allowNA = FALSE) .Internal(nchar(x, type, allowNA))");
 
@@ -128,5 +137,20 @@ public class TextTest extends EvalTestCase {
         equalTo( list( c("a", "b", "c", "d", "e"), c("1","2", "3","4"))));
 
     assertThat( eval("strsplit('abc','')"), equalTo( list( c("a","b","c") )));
+
+    assertThat( eval("strsplit('|ab|cf|q||','|',fixed=TRUE)"), equalTo( list( c("", "ab","cf","q", "", "") )));
+
+  }
+
+  @Test
+  public void grepFixed() {
+    eval(" grep <- function (pattern, x, ignore.case = FALSE, extended = TRUE, perl = FALSE, " +
+        "    value = FALSE, fixed = FALSE, useBytes = FALSE, invert = FALSE)  " +
+        " .Internal(grep(as.character(pattern), x, ignore.case, extended, " +
+        "        value, perl, fixed, useBytes, invert))");
+
+
+    assertThat( eval(" grep('[', '[[', fixed=TRUE) "), equalTo(c_i(1)));
+
   }
 }

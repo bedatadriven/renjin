@@ -31,20 +31,20 @@ public class RETest {
   @Test
   public void posixClasses() {
     // R regexps use double brackets for posix character classes
-    assertTrue( new RE("^[[:digit:]]+$").match("1249234") );
+    assertTrue( new ExtendedRE("^[[:digit:]]+$").match("1249234") );
   }
 
   @Test
   public void dashInCharacterClass() {
 
     // in these cases, R treats the hyphen as a literal
-    assertTrue( new RE("^[a-]+$").match("a-a--aa---a-aaa") );
-    assertTrue( new RE("^[-a]+$").match("a-a--aa---a-aaa") );
-    assertTrue( new RE("^[-3]+$").match("3-3-333---3") );
-    assertFalse(new RE("^[-3]+$").match("23"));
+    assertTrue( new ExtendedRE("^[a-]+$").match("a-a--aa---a-aaa") );
+    assertTrue( new ExtendedRE("^[-a]+$").match("a-a--aa---a-aaa") );
+    assertTrue( new ExtendedRE("^[-3]+$").match("3-3-333---3") );
+    assertFalse(new ExtendedRE("^[-3]+$").match("23"));
 
     // make sure that normal character ranges still work
-    assertTrue(new RE("^[a-z4]+$").match("qf444ee"));
+    assertTrue(new ExtendedRE("^[a-z4]+$").match("qf444ee"));
   }
 
 

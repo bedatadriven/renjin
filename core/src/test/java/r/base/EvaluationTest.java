@@ -23,9 +23,7 @@ package r.base;
 
 import org.junit.Test;
 import r.EvalTestCase;
-import r.lang.Logical;
-import r.lang.Null;
-import r.lang.SEXP;
+import r.lang.*;
 
 import java.io.IOException;
 
@@ -235,6 +233,14 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval(" f1(a) "), equalTo( c(11) ) );
     assertThat( eval(" s1(a) "), equalTo( c(11) ) );
     assertThat( eval(" s2(a) "), equalTo( symbol("a") ));
+  }
+
+  @Test
+  public void substituteDotDot() {
+    eval(" f<- function(...) substitute(list(...)) ");
+
+    assertThat( eval("f(a,b)"), equalTo( (SEXP) new FunctionCall(new Symbol("list"),
+        PairList.Node.fromArray(new Symbol("a"), new Symbol("b"))) ));
   }
 
   @Test

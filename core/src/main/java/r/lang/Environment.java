@@ -22,6 +22,7 @@
 package r.lang;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
 import com.google.common.collect.UnmodifiableIterator;
 import r.base.BaseFrame;
 import r.lang.exception.EvalException;
@@ -29,6 +30,7 @@ import r.lang.exception.EvalException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * The Environment data type.
@@ -65,7 +67,7 @@ public class Environment extends AbstractSEXP implements Recursive {
   protected Frame frame;
 
   private boolean locked;
-  private boolean bindingsLocked;
+  private Set<Symbol> lockedBindings;
 
 
   /**
@@ -163,8 +165,12 @@ public class Environment extends AbstractSEXP implements Recursive {
     return frame.getSymbols();
   }
 
+  public boolean bindingIsLocked(Symbol symbol) {
+    return lockedBindings != null && lockedBindings.contains(symbol);
+  }
+
   public void setVariable(Symbol symbol, SEXP value) {
-    if(bindingsLocked) {
+    if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
     } else if(locked && frame.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
       throw new EvalException("cannot add bindings to a locked environment");
@@ -226,7 +232,26 @@ public class Environment extends AbstractSEXP implements Recursive {
   public void lock(boolean lockBindings) {
     this.locked = true;
     if(lockBindings) {
-      this.bindingsLocked = true;
+      lockedBindings = Sets.newHashSet(frame.getSymbols());
+    }
+  }
+
+  public void lockBinding(Symbol symbol) {
+    if(frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("no binding for '%s'", symbol);
+    }
+    if(lockedBindings == null) {
+      lockedBindings = Sets.newHashSet();
+    }
+    lockedBindings.add(symbol);
+  }
+
+  public void unlockBinding(Symbol symbol) {
+    if(frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("no binding for '%s'", symbol);
+    }
+    if(lockedBindings != null) {
+      lockedBindings.remove(symbol);
     }
   }
 

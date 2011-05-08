@@ -31,7 +31,11 @@ import java.io.IOException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class BasePackageTest extends EvalTestCase {
+/**
+ * Collection of largish tests to make sure everything is playing
+ * correctly together.
+ */
+public class IntegrationTest extends EvalTestCase {
 
 
   @Test
@@ -151,15 +155,23 @@ public class BasePackageTest extends EvalTestCase {
   }
 
   @Test
+  public void packages() throws Exception {
+    topLevelContext.init();
+
+    java.lang.System.out.println(eval(".packages()"));
+  }
+
+  @Test
   public void library() throws Exception {
-    loadBasePackage();
-    executeStartupProfile();
+    topLevelContext.init();
 
     java.lang.System.out.println(eval(".find.package('survey') "));
     eval(" library(survey) ");
 
-    Environment survey = (Environment) topLevelContext.findNamespace(new Symbol("survey"));
-    java.lang.System.out.println(survey.getSymbolNames());
+//    eval(" data(hospital) ");
+//    eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
+//    eval("svymean(~births, dstr)");
+
   }
 
   @Test

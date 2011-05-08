@@ -254,6 +254,25 @@ public class Context {
     }
   }
 
+  /**
+   * Executes the default the standard R initialization sequence:
+   * <ol>
+   *  <li>Load the base package (/r/library/base/R/base)</li>
+   *  <li>Execute the system profile (/r/library/base/R/Rprofile)</li>
+   *  <li>Evaluate .OptRequireMethods()</li>
+   *  <li>Evaluate .First.Sys()</li>
+   * </ol>
+   *
+   */
+  public void init() throws IOException {
+    loadBasePackage();
+    executeStartupProfile();
+
+   // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
+    FunctionCall.newCall(new Symbol(".First.sys")).evaluate(this, environment);
+
+  }
+
   public void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
     SEXP loadingScript = RParser.parseSource(reader).evaluate(this, globals.baseNamespaceEnv).getExpression();

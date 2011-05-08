@@ -97,6 +97,7 @@ public class System {
     StringVector.Builder exe = new StringVector.Builder();
 
     for(String path : paths) {
+
       File file = getFile(path);
       if(file.exists()) {
         if(file.isFile()) {
@@ -109,28 +110,36 @@ public class System {
         mtime.add(file.lastModified());
         exe.add(file.getName().endsWith(".exe") ? "yes" : "no");
       } else {
-        size.add(IntVector.NA);
-        isdir.add(IntVector.NA);
-        mode.add(IntVector.NA);
-        mtime.add(DoubleVector.NA);
-        exe.add(StringVector.NA);
-      }
+        // if the file can be found in the classpath, then return its info
+        // as if it's a real file.
+        // if we can't find a matching file on the class path, treat it like an empty directory
 
-      ListVector list = ListVector.newBuilder()
-          .add("size", size)
-          .add("isdir", isdir)
-          .add("mode", mode)
-          .add("mtime", mtime)
-          .add("ctime", mtime)
-          .add("atime", mtime)
-          .add("exe", exe)
-          .build();
-      return list;
+        if(path.startsWith(CLASSPATH_PREFIX)) {
+          size.add(0);
+          isdir.add(true);
+          mode.add(0755);
+          mtime.add(new Date().getTime());
+          exe.add("no");
+        } else {
+          size.add(IntVector.NA);
+          isdir.add(IntVector.NA);
+          mode.add(IntVector.NA);
+          mtime.add(DoubleVector.NA);
+          exe.add(StringVector.NA);
+        }
+      }
     }
 
-    ListVector.Builder info = ListVector.newBuilder();
-
-    return info.build();
+    ListVector list = ListVector.newBuilder()
+        .add("size", size)
+        .add("isdir", isdir)
+        .add("mode", mode)
+        .add("mtime", mtime)
+        .add("ctime", mtime)
+        .add("atime", mtime)
+        .add("exe", exe)
+        .build();
+    return list;
   }
 
   private static File getFile(String path) {
@@ -425,6 +434,10 @@ public class System {
     }
     result.setAttribute(Symbol.NAMES, names.build());
     return result.build();
+  }
+
+  public static String getwd(@Current Context context) {
+    return new File(".").getAbsolutePath();
   }
 
 

@@ -1,0 +1,21 @@
+citHeader("To cite the survey package in publications use:")
+
+citEntry(entry="misc",
+   author="Thomas Lumley",
+   year=2010,
+   title="survey: analysis of complex survey samples",
+   note="R package version 3.22-1",
+   textVersion="T. Lumley (2010) \"survey: analysis of complex survey samples\". R package version 3.22-1." )
+
+
+
+citEntry(entry="article",
+  year=2004,
+  author="Thomas Lumley",
+  title = "Analysis of Complex Survey Samples",
+  journal="Journal of Statistical Software",
+  volume="9",number=1,pages="1-19",
+  note="R package verson 2.2",
+  textVersion="T. Lumley (2004) Analysis of complex survey samples. Journal of Statistical Software 9(1): 1-19"
+)
+   

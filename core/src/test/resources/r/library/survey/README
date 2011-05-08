@@ -1,0 +1,23 @@
+inst/NEWS               Change log
+
+porting.to.S            Notes on porting to S-PLUS
+
+ucla-examples.pdf       R versions of examples from the UCLA Academic 
+                        Technology Services web site on survey analysis
+
+twostage.pdf            Analysis examples for two-stage sampling, 
+			showing agreement with SUDAAN. The comparisons with
+                        Stata are with version 8; version 9 can do multistage
+                        without-replacement analyses.
+
+inst/epi.{Rnw,pdf}      Vignette on two-phase epidemiologic designs
+
+inst/phase1.{Rnw,pdf}   Vignette on two-phase variance computations
+
+inst/survey.{Rnw,pdf}   Vignette: how to analyse a survey.
+
+
+More documentation is on the package homepage at
+    http://faculty.washington.edu/tlumley/survey/
+
+

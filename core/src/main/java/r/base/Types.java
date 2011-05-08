@@ -303,6 +303,14 @@ public class Types {
     env.lock(bindings);
   }
 
+  public static void lockBinding(Symbol name, Environment env) {
+    env.lockBinding(name);
+  }
+
+  public static void unlockBinding(Symbol name, Environment env) {
+    env.unlockBinding(name);
+  }
+
   public static boolean environmentIsLocked(Environment env) {
     return env.isLocked();
   }
@@ -312,6 +320,36 @@ public class Types {
       throw new EvalException("identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");
     }
     return x.equals(y);
+  }
+
+/*----------------------------------------------------------------------
+
+  do_libfixup
+
+  This function copies the bindings in the loading environment to the
+  library environment frame (the one that gets put in the search path)
+  and removes the bindings from the loading environment.  Values that
+  contain promises (created by delayedAssign, for example) are not forced.
+  Values that are closures with environments equal to the loading
+  environment are reparented to .GlobalEnv.  Finally, all bindings are
+  removed from the loading environment.
+
+  This routine can die if we automatically create a name space when
+  loading a package.
+*/
+  @Primitive("lib.fixup")
+  public static Environment libfixup(Environment loadEnv, Environment libEnv) {
+    for(Symbol name : loadEnv.getSymbolNames()) {
+      SEXP value = loadEnv.getVariable(name);
+      if(value instanceof Closure) {
+        Closure closure = (Closure)value;
+        if(closure.getEnclosingEnvironment() == loadEnv) {
+          value = closure.setEnclosingEnvironment(libEnv);
+        }
+      }
+      loadEnv.setVariable(name, value);
+    }
+    return libEnv;
   }
 
   @Primitive("dim")

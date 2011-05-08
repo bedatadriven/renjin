@@ -274,7 +274,17 @@ public class DatafileReader {
 
 
   private SEXP readPromise(Flags flags) throws IOException {
-    throw new IOException("readPromise");
+    SEXP attributes = readTag(flags);
+    SEXP env = readTag(flags);
+    SEXP value = readExp();
+    SEXP expr = readExp();
+
+    if(value != Null.INSTANCE) {
+      return new Promise(expr, value);
+    }
+
+    throw new IOException();
+
   }
 
   private SEXP readClosure(Flags flags) throws IOException {
@@ -298,7 +308,7 @@ public class DatafileReader {
     throw new IOException("readDotExp not impl");
   }
 
-  private SEXP readPairList(Flags flags) throws IOException {
+  private PairList readPairList(Flags flags) throws IOException {
     PairList attributes = (PairList) readAttributes(flags);
     SEXP tag = readTag(flags);
     SEXP value = readExp();

@@ -1,0 +1,10 @@
+Package: tools
+Version: 2.10.1
+Priority: base
+Title: Tools for Package Development
+Author: Kurt Hornik and Friedrich Leisch
+Maintainer: R Core Team <R-core@r-project.org>
+Description: Tools for package development, administration and
+        documentation
+License: Part of R 2.10.1
+Built: R 2.10.1; i386-pc-mingw32; 2009-12-14 20:34:09 UTC; windows

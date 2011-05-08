@@ -249,6 +249,28 @@ public interface PairList extends SEXP {
     }
 
 
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Node node = (Node) o;
+
+      if (nextNode != null ? !nextNode.equals(node.nextNode) : node.nextNode != null) return false;
+      if (tag != null ? !tag.equals(node.tag) : node.tag != null) return false;
+      if (value != null ? !value.equals(node.value) : node.value != null) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = tag != null ? tag.hashCode() : 0;
+      result = 31 * result + (value != null ? value.hashCode() : 0);
+      result = 31 * result + (nextNode != null ? nextNode.hashCode() : 0);
+      return result;
+    }
+
     /**
      * @return a shallow clone of the ListExp from this point on
      */
@@ -308,6 +330,9 @@ public interface PairList extends SEXP {
         next = next.nextNode;
         return value;
       }
+
+
+
     }
 
     private static class NodeIterator extends UnmodifiableIterator<Node> {

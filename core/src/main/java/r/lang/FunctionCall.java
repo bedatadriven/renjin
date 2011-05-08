@@ -59,13 +59,15 @@ public class FunctionCall extends PairList.Node {
   }
 
   private Function evaluateFunction(Context context, Environment rho) {
-    SEXP fn = getFunction();
-    if(fn instanceof Function) {
-      return (Function) fn;
-    } else if(fn instanceof Symbol) {
-      return findFunction(context, rho, (Symbol) fn);
+    SEXP functionExp = getFunction();
+    if(functionExp instanceof Symbol) {
+      return findFunction(context, rho, (Symbol) functionExp);
     } else {
-      throw new EvalException("'function' of lang expression is of unsupported type '%s'", fn.getTypeName());
+      SEXP evaluated = functionExp.evalToExp(context, rho);
+      if(!(evaluated instanceof Function)) {
+        throw new EvalException("'function' of lang expression is of unsupported type '%s'", functionExp.getTypeName());
+      }
+      return (Function)evaluated;
     }
   }
 

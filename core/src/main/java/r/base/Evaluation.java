@@ -122,6 +122,10 @@ public class Evaluation {
     throw new EvalException(message);
   }
 
+  public static void warning(boolean call, boolean immediate, String message) {
+    Warning.warning(message);
+  }
+
   @Primitive("return")
   public static EvalResult doReturn(@Current Environment rho, SEXP value) {
     throw new ReturnException(rho, value);
@@ -195,17 +199,30 @@ public class Evaluation {
       }
     }
 
+    Class packageClass;
     if(packageName.equals("base")) {
-      List<JvmMethod> overloads = JvmMethod.findOverloads(Base.class, methodName, methodName);
-      if(overloads.isEmpty()) {
-        throw new EvalException("No C method '%s' defined in package %s", methodName, packageName);
+      packageClass = Base.class;
+    } else {
+      String packageClassName = "r.library." + packageName + "." +
+        packageName.substring(0, 1).toUpperCase() + packageName.substring(1);
+      try {
+        packageClass = Class.forName(packageClassName);
+      } catch (ClassNotFoundException e) {
+        throw new EvalException("Could not find class for 'native' methods for package '%s' (className='%s')",
+            packageName, packageClassName);
       }
-      return RuntimeInvoker.INSTANCE.invoke(context, rho, callArguments.build(), overloads);
     }
 
-    throw new EvalException(
-        String.format("Call to native function '%s' in package '%s'",
-            methodName, packageName));
+    List<JvmMethod> overloads = JvmMethod.findOverloads(packageClass, methodName, methodName);
+    if(overloads.isEmpty()) {
+      throw new EvalException("No C method '%s' defined in package %s", methodName, packageName);
+    }
+    return RuntimeInvoker.INSTANCE.invoke(context, rho, callArguments.build(), overloads);
+
+
+//    throw new EvalException(
+//        String.format("Call to native function '%s' in package '%s'",
+//            methodName, packageName));
   }
 
   public static EvalResult UseMethod(Context context, Environment rho, FunctionCall call) {

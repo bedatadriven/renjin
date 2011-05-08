@@ -1,0 +1,41 @@
+Adobe_glyphs            Conversion Tables between Character Sets
+QC                      QC Checks for R Code and/or Documentation
+Rd2HTML                 Rd Converters
+RdTextFilter            Select text in an Rd file.
+Rd_db                   Rd Utilities
+Rdiff                   Difference R Output Files
+Rdindex                 Generate Index from Rd Files
+SweaveTeXFilter         Strip R code out of Sweave file
+buildVignettes          List and Build Package Vignettes
+checkFF                 Check Foreign Function Calls
+checkMD5sums            Check and Create MD5 Checksum Files
+checkRd                 Check an Rd Object
+checkRdaFiles           Report on Details of Saved Images or Re-saves
+                        them
+checkTnF                Check R Packages or Code for T/F
+checkVignettes          Check Package Vignettes
+codoc                   Check Code/Documentation Consistency
+delimMatch              Delimited Pattern Matching
+dependsOnPkgs           Find Reverse Dependencies
+encoded_text_to_latex   Translate non-ASCII Text to LaTeX Escapes
+file_path_as_absolute   File Utilities
+findHTMLlinks           Collect HTML Links from Package Documentation
+getDepList              Functions to Retrieve Dependency Information
+installFoundDepends     A function to install unresolved dependencies
+makeLazyLoading         Lazy Loading of Packages
+md5sum                  Compute MD5 Checksums
+package.dependencies    Check Package Dependencies
+parse_Rd                Parse an Rd file
+read.00Index            Read 00Index-style Files
+readNEWS                Read R's NEWS file or a similar one
+showNonASCII            Highlight non-ASCII characters
+startDynamicHelp        Start the Dynamic HTML Help System
+testInstalledPackage    Test Installed Packages
+texi2dvi                Compile LaTeX Files
+tools-deprecated        Deprecated Objects in Package tools
+tools-package           Tools for Package Development
+undoc                   Find Undocumented Objects
+vignetteDepends         Retrieve Dependency Information for a Vignette
+write_PACKAGES          Generate PACKAGES files
+xgettext                Extract Translatable Messages from R Files in a
+                        Package

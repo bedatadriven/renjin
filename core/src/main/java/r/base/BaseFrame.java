@@ -133,7 +133,7 @@ public class BaseFrame implements Frame {
     add(new ReturnFunction());
 
     f("stop", Evaluation.class, 0, 11, 2);
-    f("warning", /*warning*/ null, 0, 111, 3);
+    f("warning", Evaluation.class, 0, 111, 3);
 
     f("gettext", Text.class, 0, 11, 2);
     f("ngettext", Text.class, 0, 11, 4);
@@ -726,7 +726,7 @@ public class BaseFrame implements Frame {
     f("options", Types.class, 0, 211, 1);
     f("sink", /*sink*/ null, 0, 111, 4);
     f("sink.number", /*sinknumber*/ null, 0, 11, 1);
-    f("lib.fixup", /*libfixup*/ null, 0, 111, 2);
+    f("lib.fixup", Types.class, 0, 111, 2);
     f("pos.to.env", /*pos2env*/ null, 0, 1, 1);
     f("eapply", /*eapply*/ null, 0, 10, 4);
     f("lapply", Evaluation.class, 0, 10, 2);
@@ -781,7 +781,7 @@ public class BaseFrame implements Frame {
     f("Sys.getenv", System.class, 0, 11, 2);
     f("Sys.setenv", System.class, 0, 111, 2);
     f("Sys.unsetenv", /*unsetenv*/ null, 0, 111, 1);
-    f("getwd", /*getwd*/ null, 0, 11, 0);
+    f("getwd", System.class, 0, 11, 0);
     f("setwd", /*setwd*/ null, 0, 111, 1);
     f("basename", System.class, 0, 11, 1);
     f("dirname", System.class, 0, 11, 1);
@@ -957,9 +957,9 @@ public class BaseFrame implements Frame {
 
     f("lockEnvironment", Types.class, 0, 111, 2);
     f("environmentIsLocked", Types.class, 0, 11, 1);
-    f("lockBinding", /*lockBnd*/ null, 0, 111, 2);
-    f("unlockBinding", /*lockBnd*/ null, 1, 111, 2);
-    f("bindingIsLocked", /*bndIsLocked*/ null, 0, 11, 2);
+    f("lockBinding", Types.class, 0, 111, 2);
+    f("unlockBinding", Types.class, 1, 111, 2);
+    f("bindingIsLocked", Types.class, 0, 11, 2);
     f("makeActiveBinding", /*mkActiveBnd*/ null, 0, 111, 3);
     f("bindingIsActive", /*bndIsActive*/ null, 0, 11, 2);
 /* looks like mkUnbound is unused in base R */

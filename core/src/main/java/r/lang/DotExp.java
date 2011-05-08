@@ -61,7 +61,7 @@ public class DotExp extends AbstractSEXP {
 
   @Override
   public void accept(SexpVisitor visitor) {
-    throw new UnsupportedOperationException();
+    visitor.visit(this);
   }
 
   public static DotExp cast(SEXP sexp) {

@@ -71,8 +71,7 @@ public class Interpreter implements Runnable {
     printGreeting();
 
     try {
-      topLevelContext.loadBasePackage();
-      topLevelContext.executeStartupProfile();
+      topLevelContext.init();
 
     } catch (IOException e) {
       console.println("Error loading base package");

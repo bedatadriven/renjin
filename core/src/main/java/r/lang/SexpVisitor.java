@@ -83,6 +83,10 @@ public class SexpVisitor<R> {
     unhandled(realExp);
   }
 
+  public void visit(DotExp dotExp) {
+    unhandled(dotExp);
+  }
+
   public void visit(StringVector stringExp) {
     unhandled(stringExp);
   }
@@ -112,4 +116,5 @@ public class SexpVisitor<R> {
       element.accept(this);
     }
   }
+
 }

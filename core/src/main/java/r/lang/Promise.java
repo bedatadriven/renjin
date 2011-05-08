@@ -52,13 +52,14 @@ public class Promise extends AbstractSEXP implements Recursive {
   /**
    * Creates a promise with it's expression and its already-evaluated
    * result.
-   * @param environment
    * @param expression
    * @param result
    */
-  public Promise(Environment environment, SEXP expression, SEXP result) {
-    this.environment = environment;
+  public Promise(SEXP expression, SEXP result) {
+    this.environment = null;
+    this.context = null;
     this.expression = expression;
+    this.result = new EvalResult(result, true);
   }
 
   @Override
@@ -76,12 +77,15 @@ public class Promise extends AbstractSEXP implements Recursive {
     if (result == null) {
       this.result = expression.evaluate(this.context, environment);
       this.environment = null;
+      this.context = null;
     }
     return result;
   }
 
   public void setResult(SEXP exp) {
     this.result = new EvalResult(exp);
+    this.environment = null;
+    this.context = null;
   }
 
   @Override

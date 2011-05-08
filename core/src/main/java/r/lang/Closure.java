@@ -92,6 +92,15 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   /**
+   * Creates a copy of this Closure with the new enclosing environment.
+   * @param env the new enclosing environment.
+   * @return
+   */
+  public Closure setEnclosingEnvironment(Environment env) {
+    return new Closure(env, formals, body, attributes);
+  }
+
+  /**
    * The body is a parsed R statement.
    * It is usually a collection of statements in braces but it
    * can be a single statement, a symbol or even a constant.

@@ -41,6 +41,7 @@ public class Symbol extends AbstractSEXP {
   public static final Symbol SRC_FILE = new Symbol("srcfile");
   public static final Symbol TEMP_VAL = new Symbol("*tmp*");
   public static final Symbol DIMNAMES = new Symbol("dimnames");
+  public static final Symbol NAME = new Symbol("name");
 
   private String printName;
 

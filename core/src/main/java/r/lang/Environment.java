@@ -132,6 +132,10 @@ public class Environment extends AbstractSEXP implements Recursive {
 
 
   public String getName() {
+    SEXP nameAttribute = this.attributes.findByTag(Symbol.NAME);
+    if(nameAttribute instanceof StringVector) {
+      return ((StringVector) nameAttribute).getElementAsString(0);
+    }
     return name;
   }
 

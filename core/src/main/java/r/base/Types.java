@@ -608,6 +608,8 @@ public class Types {
     Environment newEnv = Environment.createChildEnvironment(child.getParent());
     child.setParent(newEnv);
 
+    newEnv.setAttribute(Symbol.NAME.getPrintName(), new StringVector(name));
+
     // copy all values from the provided environment into the
     // new environment
     if(what instanceof Environment) {
@@ -616,6 +618,9 @@ public class Types {
         newEnv.setVariable(symbol, source.getVariable(symbol));
       }
     }
+
+
+
 
     return newEnv;
   }

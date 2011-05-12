@@ -21,16 +21,20 @@
 
 package r.lang;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import r.parser.RParser;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * Contexts are the internal mechanism used to keep track of where a
@@ -135,13 +139,63 @@ public class Context {
     public final Environment baseNamespaceEnv;
 
     private Globals() {
-      systemEnvironment.put("R_LIBS", "classpath:/r/library");
+      systemEnvironment.put("R_LIBS", getLibraryPaths());
       globalEnvironment = Environment.createGlobalEnvironment();
       baseEnvironment = globalEnvironment.getBaseEnvironment();
       namespaceRegistry = new HashFrame();
       baseNamespaceEnv = Environment.createNamespaceEnvironment(globalEnvironment, "base");
       namespaceRegistry.setVariable(new Symbol("base"), baseNamespaceEnv);
       globalEnvironment.setVariable(new Symbol(".BaseNamespaceEnv"), baseNamespaceEnv);
+    }
+
+    private String getLibraryPaths() {
+      return libraryPathsFromClassPath(System.getProperty("java.class.path"));
+    }
+
+    @VisibleForTesting
+    static String libraryPathsFromClassPath(String classPathString) {
+      String classPaths[] = classPathString.split(";");
+      StringBuilder path = new StringBuilder();
+      for(String classPath : classPaths) {
+        String libraryPath = libraryPathFromClassPathEntry(classPath);
+        if(libraryPath != null) {
+          if(path.length() != 0) {
+            path.append(";");
+          }
+          path.append(libraryPath);
+        }
+      }
+      return path.toString();
+    }
+
+    static String libraryPathFromClassPathEntry(String classPath) {
+      if(classPath.endsWith(".jar")) {
+        return libraryPathFromJarFile(classPath);
+      } else {
+        return libraryPathFromFolder(classPath);
+      }
+    }
+
+    private static String libraryPathFromFolder(String classPath) {
+      File file = new File(new File(classPath, "r"), "library");
+      if(file.exists() && file.isDirectory()) {
+        return file.getAbsolutePath();
+      } else {
+        return null;
+      }
+    }
+
+    @VisibleForTesting
+    static String libraryPathFromJarFile(String classPath)  {
+      try {
+        JarFile jarFile = new JarFile(classPath);
+        JarEntry entry = jarFile.getJarEntry("r/library");
+        if(entry != null) {
+          return "jar:file:" + classPath + "!/r/library";
+        }
+      } catch (IOException e) {
+      }
+      return null;
     }
 
   }
@@ -268,7 +322,7 @@ public class Context {
     loadBasePackage();
     executeStartupProfile();
 
-   // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
+    // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
     FunctionCall.newCall(new Symbol(".First.sys")).evaluate(this, environment);
 
   }

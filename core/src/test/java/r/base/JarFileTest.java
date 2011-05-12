@@ -21,25 +21,34 @@
 
 package r.base;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
-import r.EvalTestCase;
 
-import static org.hamcrest.Matchers.equalTo;
+import java.net.MalformedURLException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class UniqueTest extends EvalTestCase {
+/**
+ * Assure that files can be read from jars.
+ * (The most common scenario will be that files and data will be bundled
+ * into jars on the classpath)
+ */
+public class JarFileTest {
 
   @Test
-  public void atomicVectors() {
-    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, FALSE))"), equalTo( c(1,3,4)) );
-    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, TRUE))"), equalTo( c(3,1,4)) );
+  public void RHomeInJar() throws MalformedURLException {
+    String url = "jar:file:/C:/Users/Owner/.m2/repository/com/bedatadriven/renjin/renjin-core/0.1.0-SNAPSHOT/renjin-core-0.1.0-SNAPSHOT.jar!/r/lang/SEXP.class";
+
+    assertThat( System.RHomeFromSEXPClassURL(url), equalTo(
+        "jar:file:/C:/Users/Owner/.m2/repository/com/bedatadriven/renjin/renjin-core/0.1.0-SNAPSHOT/renjin-core-0.1.0-SNAPSHOT.jar!/r"));
 
   }
 
   @Test
-   public void uniqueInt() {
-     assertThat( eval(" .Internal(unique(1L, FALSE, FALSE)) "), CoreMatchers.equalTo(c_i(1)));
-   }
-
+  public void RHomeInDir() {
+    String expected = getClass().getResource("/r/lang/SEXP.class").getFile();
+    expected = expected.substring(1, expected.length()-16);
+    assertThat(System.RHomeFromSEXPClassURL(getClass().getResource("/r/lang/SEXP.class").toString()),
+        equalTo(expected));
+  }
 }

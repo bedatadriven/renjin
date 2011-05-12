@@ -19,15 +19,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.base;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
+import r.lang.Null;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
+import r.lang.exception.EvalException;
 
-public interface Connection {
-  InputStream getInputStream() throws IOException;
-  PrintWriter getPrintWriter() throws IOException;
+import java.util.Arrays;
 
-  void close() throws IOException;
+public class Sort {
+
+  public static Vector sort(StringVector x, boolean decreasing) {
+
+    if(x.getAttribute(Symbol.NAMES)!= Null.INSTANCE) {
+      throw new EvalException("sorting of vectors with names not yet implemented!");
+    }
+    if(decreasing) {
+      throw new EvalException("decreasing not impl");
+    }
+
+    String sorted[] = x.toArray();
+    Arrays.sort(sorted);
+
+    return new StringVector(sorted, x.getAttributes());
+
+  }
+
 }

@@ -23,6 +23,7 @@ package r.base;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
+import r.base.file.Files;
 import r.base.special.*;
 import r.lang.*;
 
@@ -543,7 +544,7 @@ public class BaseFrame implements Frame {
     f("file.path", Text.class, 0, 11, 2);
     f("format", /*format*/ null, 0, 11, 8);
     f("format.info", /*formatinfo*/ null, 0, 11, 3);
-    f("cat", /*cat*/ null, 0, 111, 6);
+    f("cat", Connections.class, 0, 111, 6);
     f("call", Evaluation.class, 0, 0, -1);
     f("do.call", Evaluation.class, 0, 211, 3);
     f("as.call", /*ascall*/ null, 0, 1, 1);
@@ -693,7 +694,7 @@ public class BaseFrame implements Frame {
     f("browserCondition", /*sysbrowser*/ null, 2, 11, 1);
     f("browserSetDebug", /*sysbrowser*/ null, 3, 111, 1);
     f("parent.frame", Contexts.class, "parentFrame", 0, 11, -1);
-    f("sort", /*sort*/ null, 1, 11, 2);
+    f("sort", Sort.class, 1, 11, 2);
     f("is.unsorted", /*isunsorted*/ null, 0, 11, 2);
     f("psort", /*psort*/ null, 0, 11, 2);
     f("qsort", /*qsort*/ null, 0, 11, 2);
@@ -702,7 +703,7 @@ public class BaseFrame implements Frame {
     f("rank", /*rank*/ null, 0, 11, 2);
     f("missing", Evaluation.class, "missing", 1, 0, 1);
     f("nargs", Evaluation.class, 1, 0, 0);
-    f("scan", /*scan*/ null, 0, 11, 18);
+    f("scan", Scan.class, 0, 11, 18);
     f("count.fields", /*countfields*/ null, 0, 11, 6);
     f("readTableHead", /*readtablehead*/ null, 0, 11, 6);
     f("t.default", /*transpose*/ null, 0, 11, 1);
@@ -767,10 +768,10 @@ public class BaseFrame implements Frame {
     f("codeFiles.append", /*fileappend*/ null, 1, 11, 2);
     f("file.symlink", /*filesymlink*/ null, 0, 11, 2);
     f("file.copy", /*filecopy*/ null, 0, 11, 4);
-    f("list.files", System.class, 0, 11, 6);
-    f("file.exists", System.class, 0, 11, 1);
+    f("list.files", Files.class, 0, 11, 6);
+    f("file.exists", Files.class, 0, 11, 1);
     f("file.choose", /*filechoose*/ null, 0, 11, 1);
-    f("file.info", System.class, "fileInfo", 0, 11, 1);
+    f("file.info", Files.class, "fileInfo", 0, 11, 1);
     f("file.access", /*fileaccess*/ null, 0, 11, 2);
     f("dir.create", /*dircreate*/ null, 0, 11, 4);
     f("tempfile", /*tempfile*/ null, 0, 11, 2);
@@ -783,8 +784,8 @@ public class BaseFrame implements Frame {
     f("Sys.unsetenv", /*unsetenv*/ null, 0, 111, 1);
     f("getwd", System.class, 0, 11, 0);
     f("setwd", /*setwd*/ null, 0, 111, 1);
-    f("basename", System.class, 0, 11, 1);
-    f("dirname", System.class, 0, 11, 1);
+    f("basename", Files.class, 0, 11, 1);
+    f("dirname", Files.class, 0, 11, 1);
     f("dirchmod", /*dirchmod*/ null, 0, 111, 1);
     f("Sys.chmod", /*syschmod*/ null, 0, 111, 2);
     f("Sys.umask", /*sysumask*/ null, 0, 111, 1);
@@ -794,10 +795,10 @@ public class BaseFrame implements Frame {
     f("Sys.getlocale", System.class, 0, 11, 1);
     f("Sys.setlocale", /*setlocale*/ null, 0, 11, 2);
     f("Sys.localeconv", /*localeconv*/ null, 0, 11, 0);
-    f("path.expand", System.class, "pathExpand", 0, 11, 1);
+    f("path.expand", Files.class, "pathExpand", 0, 11, 1);
     f("Sys.getpid", /*sysgetpid*/ null, 0, 11, 0);
     f("normalizePath", /*normalizepath*/ null, 0, 11, 1);
-    f("Sys.glob", System.class, "glob", 0, 11, 2);
+    f("Sys.glob", Files.class, "glob", 0, 11, 2);
     f("unlink", /*unlink*/ null, 0, 111, 2);
 
 /* Complex Valued Functions */
@@ -905,7 +906,7 @@ public class BaseFrame implements Frame {
 
 /* Connections */
     f("stdin", Connections.class, 0, 11, 0);
-    f("stdout", /*stdout*/ null, 0, 11, 0);
+    f("stdout", Connections.class, 0, 11, 0);
     f("stderr", /*stderr*/ null, 0, 11, 0);
     f("readLines", /*readLines*/ null, 0, 11, 5);
     f("writeLines", /*writelines*/ null, 0, 11, 4);

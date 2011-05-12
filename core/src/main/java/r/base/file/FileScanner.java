@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.base.file;
 
 import com.google.common.collect.Lists;
 import r.lang.Context;
@@ -29,28 +29,24 @@ import java.io.FilenameFilter;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Implements "globbing" on files, like "c:\test\*\*.jar"
+ * TODO: update to support the FileInfo abstraction
+ */
 class FileScanner {
   private List<String> matches = Lists.newArrayList();
   private String[] parts;
   private boolean markDirectories;
-  private String schema;
 
   public static List<String> scan( Context context, String path, boolean markDirectories) {
-    FileScanner scanner =  new FileScanner(context, path, markDirectories);
+    FileScanner scanner =  new FileScanner(path, markDirectories);
     scanner.matchRoots();
     return scanner.matches;
   }
 
-  FileScanner(Context context, String path, boolean markDirectories) {
+  FileScanner(String path, boolean markDirectories) {
     this.parts = path.split("[\\\\//]");
     this.markDirectories = markDirectories;
-
-    // at this point, the schema cannot be a wildcard
-    int colonPos = parts[0].indexOf(':');
-    if(colonPos != -1 && colonPos > 1) {
-      schema = parts[0].substring(0, colonPos);
-      parts[0] = parts[0].substring(colonPos+1);
-    }
   }
 
   private void matchRoots() {

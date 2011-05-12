@@ -21,6 +21,7 @@
 
 package r.base;
 
+import r.base.file.FileSystem;
 import r.io.DatafileReader;
 import r.jvmi.annotations.Current;
 import r.lang.*;
@@ -67,6 +68,17 @@ public class Connections {
 
   public static ExternalExp<Connection> stdin(@Current final Context context) {
     return new ExternalExp(new StandardConnection(), "connection");
+  }
+
+  public static ExternalExp<Connection> stdout(@Current final Context context) {
+    return new ExternalExp(new StdOutConnection(java.lang.System.out), "connection");
+  }
+
+  public static void cat(ListVector list, Connection connection, String sep, boolean fill, SEXP labels, boolean append) throws IOException {
+    PrintWriter pw = connection.getPrintWriter();
+    for(SEXP element : list) {
+      pw.print(element.toString());
+    }
   }
 
   public static SEXP unserializeFromConn(@Current Context context, Connection conn, Environment rho) throws IOException {
@@ -194,14 +206,8 @@ public class Connections {
   private static InputStream openInput(Context context, String description) throws IOException {
     if(description.equals("stdin")) {
       return java.lang.System.in;
-    } else if (description.startsWith("classpath:")){
-      InputStream is = Connections.class.getResourceAsStream(description.substring(10));
-      if(is == null) {
-        throw new FileNotFoundException(description);
-      }
-      return is;
     } else {
-      return new FileInputStream(description);
+      return FileSystem.getFileInfo(description).openInputStream();
     }
   }
 
@@ -226,23 +232,57 @@ public class Connections {
     }
 
     @Override
+    public PrintWriter getPrintWriter() throws IOException {
+      throw new EvalException("cannot write to this connection");
+    }
+
+    @Override
     public void close() throws IOException {
       if(inputStream != null) {
         inputStream.close();
       }
-
     }
   }
 
   private static class StandardConnection implements Connection {
+
     @Override
     public InputStream getInputStream() throws IOException {
       return null; // TODO
     }
 
     @Override
+    public PrintWriter getPrintWriter() throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void close() throws IOException {
       /* NOOP */
+    }
+  }
+
+  private static class StdOutConnection implements Connection {
+    private PrintWriter pw;
+
+
+    public StdOutConnection(PrintStream out) {
+      pw = new PrintWriter(out);
+    }
+
+    @Override
+    public InputStream getInputStream() throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PrintWriter getPrintWriter() throws IOException {
+      return pw;
+    }
+
+    @Override
+    public void close() throws IOException {
+
     }
   }
 

@@ -21,275 +21,42 @@
 
 package r.base;
 
-import com.google.common.collect.Lists;
-import r.base.regex.ExtendedRE;
-import r.base.regex.RE;
+import com.google.common.annotations.VisibleForTesting;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
 import java.io.File;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class System {
 
-  public static final String CLASSPATH_PREFIX = "classpath:";
-
   public static long sysTime() {
     return new Date().getTime();
   }
 
-  public static String getRHome() {
-    // hardcode to the R home location to a classpath location
-    return CLASSPATH_PREFIX + "/r";
+  public static String getRHome() throws URISyntaxException {
+    // hardcode to the R home location to the classpath location
+    // where this class is found.
+    // R_LIBS will contain ALL the /r/library paths found on the classpath
+
+    return RHomeFromSEXPClassURL(System.class.getResource("/r/lang/SEXP.class").toString());
   }
 
-  /**
-   * Function to do wildcard expansion (also known as ‘globbing’) on file paths.
-   *
-   * @param paths character vector of patterns for relative or absolute filepaths.
-   *  Missing values will be ignored.
-   * @param markDirectories  should matches to directories from patterns that do not
-   * already end in / or \ have a slash appended?
-   * May not be supported on all platforms.
-   * @return
-   */
-  @Primitive("Sys.glob")
-  public static StringVector glob(@Current Context context, StringVector paths, boolean markDirectories) {
-
-    List<String> matching = Lists.newArrayList();
-    for(String path : paths) {
-      if(path != null) {
-        if(path.indexOf('*')==-1) {
-          matching.add(path);
-        } else {
-          matching.addAll(FileScanner.scan(context, path, markDirectories));
-        }
-      }
+  @VisibleForTesting
+  static String RHomeFromSEXPClassURL(String url) {
+    String homeUrl = url.substring(0, url.length() - "/r/lang/SEXP.class".length()) + "/r";
+    if(homeUrl.startsWith("file:/")) {
+      homeUrl = homeUrl.substring("file:/".length());
     }
-    return new StringVector(matching);
+    return homeUrl;
   }
 
-  @Primitive("path.expand")
-  public static String pathExpand(String path) {
-    if(path.startsWith("~/")) {
-      return java.lang.System.getProperty("user.home") + path.substring(2);
-    } else {
-      return path;
-    }
-  }
-
-  @Primitive("file.info")
-  public static ListVector fileInfo(@Current Context context, StringVector paths)  {
-    EvalException.check(paths.length() > 0, "invalid filename argument");
-
-    DoubleVector.Builder size = new DoubleVector.Builder();
-    LogicalVector.Builder isdir = new LogicalVector.Builder();
-    IntVector.Builder mode = (IntVector.Builder) new IntVector.Builder()
-        .setAttribute(Attributes.CLASS, new StringVector("octmode"));
-    DoubleVector.Builder mtime = new DoubleVector.Builder();
-    StringVector.Builder exe = new StringVector.Builder();
-
-    for(String path : paths) {
-
-      File file = getFile(path);
-      if(file.exists()) {
-        if(file.isFile()) {
-          size.add((int) file.length());
-        } else {
-          size.add(0);
-        }
-        isdir.add(file.isDirectory());
-        mode.add(mode(file));
-        mtime.add(file.lastModified());
-        exe.add(file.getName().endsWith(".exe") ? "yes" : "no");
-      } else {
-        // if the file can be found in the classpath, then return its info
-        // as if it's a real file.
-        // if we can't find a matching file on the class path, treat it like an empty directory
-
-        if(path.startsWith(CLASSPATH_PREFIX)) {
-          size.add(0);
-          isdir.add(true);
-          mode.add(0755);
-          mtime.add(new Date().getTime());
-          exe.add("no");
-        } else {
-          size.add(IntVector.NA);
-          isdir.add(IntVector.NA);
-          mode.add(IntVector.NA);
-          mtime.add(DoubleVector.NA);
-          exe.add(StringVector.NA);
-        }
-      }
-    }
-
-    ListVector list = ListVector.newBuilder()
-        .add("size", size)
-        .add("isdir", isdir)
-        .add("mode", mode)
-        .add("mtime", mtime)
-        .add("ctime", mtime)
-        .add("atime", mtime)
-        .add("exe", exe)
-        .build();
-    return list;
-  }
-
-  private static File getFile(String path) {
-    if(path.startsWith(CLASSPATH_PREFIX)) {
-      URL resource = System.class.getResource(path.substring(CLASSPATH_PREFIX.length()));
-      if(resource != null) {
-        return new File(resource.getFile());
-      } else {
-        return new File(path.substring(CLASSPATH_PREFIX.length()));
-      }
-    }
-    return new File(path);
-  }
-
-  @Primitive("file.exists")
-  public static boolean fileExists(@Current Context context, String path) {
-    if(path.startsWith(CLASSPATH_PREFIX)) {
-      return System.class.getResource(path.substring(CLASSPATH_PREFIX.length())) != null;
-    } else {
-      return new File(path).exists();
-    }
-  }
-
-  /**
-   *
-   * @param path
-   * @return  the part of the path up to but excluding the last path separator, or "." if there is no path separator.
-   */
-  public static String dirname(String path) {
-    for(int i=path.length()-1;i>=0;--i) {
-      if(path.charAt(i) == '\\' || path.charAt(i) == '/') {
-        return path.substring(0, i);
-      }
-    }
-    return ".";
-  }
-
-  /**
-   *
-   * @param path
-   * @return  removes all of the path up to and including the last path separator (if any).
-   */
-  public static String basename(String path) {
-    for(int i=path.length()-1;i>=0;--i) {
-      if(path.charAt(i) == '\\' || path.charAt(i) == '/') {
-        return path.substring(i+1);
-      }
-    }
-    return path;
-  }
-
-
-
-  /**
-   *
-   * @param path  a character vector of full path names; the default corresponds to the working directory getwd(). Missing values will be ignored.
-   * @param pattern an optional regular expression. Only file names which match the regular expression will be returned.
-   * @param allFiles  If FALSE, only the names of visible files are returned. If TRUE, all file names will be returned.
-   * @param fullNames If TRUE, the directory path is prepended to the file names. If FALSE, only the file names are returned.
-   * @param recursive Should the listing recurse into directories?
-   * @param ignoreCase Should pattern-matching be case-insensitive?
-   *
-   * If a path does not exist or is not a directory or is unreadable it is skipped, with a warning.
-   * The files are sorted in alphabetical order, on the full path if full.names = TRUE. Directories are included only if recursive = FALSE.
-   *
-   * @return
-   */
-  @Primitive("list.files")
-  public static StringVector listFiles(@Current final Context context,
-                                       final StringVector paths,
-                                       final String pattern,
-                                       final boolean allFiles,
-                                       final boolean fullNames,
-                                       boolean recursive,
-                                       final boolean ignoreCase)  {
-
-    return new Object() {
-
-      private final StringVector.Builder result = new StringVector.Builder();
-      private final RE filter = pattern == null ? null : new ExtendedRE(pattern).ignoreCase(ignoreCase);
-
-      public StringVector list()  {
-        for(String path : paths) {
-          File folder = getFile(path);
-          if(folder.isDirectory()) {
-            if(allFiles) {
-              add(folder, ".");
-              add(folder, "..");
-            }
-            for(File child : folder.listFiles()) {
-              if(filter(child)) {
-                add(child);
-              }
-            }
-          }
-        }
-        return result.build();
-      }
-
-      void add(File file) {
-        if(fullNames) {
-          result.add(file.getPath());
-        } else {
-          result.add(file.getName());
-        }
-      }
-
-      void add(File folder, String name)  {
-        if(fullNames) {
-          result.add(new File(folder, name).getPath());
-        } else {
-          result.add(name);
-        }
-      }
-
-      boolean filter(File child)  {
-        if(!allFiles && isHidden(child)) {
-          return false;
-        }
-        if(filter!=null && !filter.match(child.getName())) {
-          return false;
-        }
-        return true;
-      }
-
-      private boolean isHidden(File file)  {
-        return file.isHidden() || file.getName().startsWith(".");
-      }
-    }.list();
-  }
-
-
-  private static int mode(File file)  {
-    int access = 0;
-    if(file.canRead()) {
-      access += 4;
-    }
-    if(file.canWrite()) {
-      access += 2;
-    }
-    if(file.isDirectory()) {
-      access += 1;
-    }
-    // i know this is braindead but i can't be bothered
-    // to do octal math at the moment
-    String digit = Integer.toString(access);
-    String octalString = digit + digit + digit;
-
-    return Integer.parseInt(octalString, 8);
-  }
 
   @Primitive("Version")
   public static ListVector version() {

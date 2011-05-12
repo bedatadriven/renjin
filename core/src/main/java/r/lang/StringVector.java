@@ -251,6 +251,11 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     return indexOf(value, 0);
   }
 
+  public String[] toArray() {
+    return values.clone();
+
+  }
+
   public static class Builder extends AbstractAtomicBuilder<String> {
     private ArrayList<String> values;
     private boolean haveNonEmpty = false;

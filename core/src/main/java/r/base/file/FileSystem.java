@@ -19,15 +19,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.base.file;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
+public class FileSystem {
 
-public interface Connection {
-  InputStream getInputStream() throws IOException;
-  PrintWriter getPrintWriter() throws IOException;
-
-  void close() throws IOException;
+  public static FileInfo getFileInfo(String path) {
+    if(path.startsWith("jar:file:")) {
+      return new JarFileInfo(path);
+    } else {
+      return new StandardFileInfo(path);
+    }
+  }
 }

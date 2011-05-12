@@ -135,7 +135,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     int value = vector.getElementAsInt(vectorIndex);
     for(int i=startIndex;i<values.length;++i) {
       if(value == values[i]) {
-        return value;
+        return i;
       }
     }
     return value;

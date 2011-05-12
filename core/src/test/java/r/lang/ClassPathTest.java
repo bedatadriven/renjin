@@ -21,13 +21,22 @@
 
 package r.lang;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
+import org.junit.Test;
 
-public interface Connection {
-  InputStream getInputStream() throws IOException;
-  PrintWriter getPrintWriter() throws IOException;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
-  void close() throws IOException;
+public class ClassPathTest {
+
+
+  @Test
+  public void libraryPathsFromClassPath() {
+
+    String jarFile = getClass().getResource("/jarfiletest.jar").getFile();
+    String libraryPath = Context.Globals.libraryPathFromJarFile(jarFile);
+
+    assertThat( libraryPath, equalTo("jar:file:" + jarFile + "!/r/library"));
+
+  }
+
 }

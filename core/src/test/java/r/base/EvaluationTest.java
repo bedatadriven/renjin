@@ -142,6 +142,21 @@ public class EvaluationTest extends EvalTestCase {
    }
 
   @Test
+  public void missingWithDefaultArg() {
+    eval("f<-function(x=1) missing(x) ");
+
+    assertThat( eval("f()"), equalTo( c(true)));
+  }
+
+  @Test
+  public void missingWithDefaultArgPart2() {
+    eval("y <- 4");
+    eval("f<-function(x=1){  if(!missing(x)) 41 else 42 } ");
+
+    assertThat( eval("f(y)"), equalTo( c(41)));
+  }
+
+  @Test
   public void functionWithZeroArgs() throws IOException {
     eval("f <- function() { 1 } ");
     assertThat(eval("f()"), realVectorEqualTo(1));

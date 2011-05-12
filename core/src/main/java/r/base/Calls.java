@@ -424,6 +424,13 @@ public class Calls {
     }
   }
 
+  public static PairList stripDefaultValues(PairList formals) {
+    PairList.Builder result = new PairList.Builder();
+    for(PairList.Node node : formals.nodes()) {
+      result.add(node.getRawTag(), Symbol.MISSING_ARG);
+    }
+    return result.build();
+  }
 
 
   public static void matchArgumentsInto(PairList formals, PairList actuals, Context innerContext, Environment innerEnv) {

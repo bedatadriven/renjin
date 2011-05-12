@@ -173,13 +173,25 @@ public class Evaluation {
     return exp;
   }
 
-  public static boolean missing(@Current Environment rho, @Evaluate(false) Symbol symbol) {
+  public static boolean missing(@Current Context context, @Current Environment rho, @Evaluate(false) Symbol symbol) {
     SEXP value = rho.findVariable(symbol);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("'missing' can only be used for arguments");
 
+    } else if(value == Symbol.MISSING_ARG) {
+      return true;
     } else {
-      return value == Symbol.MISSING_ARG;
+      // we need to rematch the arguments to determine whether the value was actually provided
+      // or whether 'value' contains the default value
+      //
+      // this seems quite expensive, perhaps there's a faster way?
+      PairList rematched = Calls.matchArguments(
+            Calls.stripDefaultValues(context.getClosure().getFormals()),
+        context.getCall().getArguments());
+      SEXP providedValue = rematched.findByTag(symbol);
+
+      return providedValue == Symbol.MISSING_ARG;
+      //return false;
     }
   }
 

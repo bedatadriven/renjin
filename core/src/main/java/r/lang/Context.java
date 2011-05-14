@@ -124,7 +124,6 @@ public class Context {
    */
   public static class Globals {
 
-    public PairList conditionHandlerStack = Null.INSTANCE;
     public final Options options = new Options();
 
     /**
@@ -210,6 +209,13 @@ public class Context {
   private Closure closure;
   private PairList arguments = Null.INSTANCE;
 
+  /**
+   * Conditions are analogous to Exceptions.
+   * Handlers are R functions that are called immediately when
+   * conditions are signaled.
+   */
+  private Map<String, SEXP> conditionHandlers = Maps.newHashMap();
+
   private Context() {
   }
 
@@ -280,19 +286,39 @@ public class Context {
     return parent == null;
   }
 
+  /**
+   * Sets an expression to evaluate upon exiting this context,
+   * removing any previously added exit expressions.
+   * "on.exit" expressions generally do things like close file connections
+   * or delete temporary files, often what might be found in a Java {@code finally} clause.
+   *
+   * @param exp the expression to evaluate upon exiting this context.
+   */
   public void setOnExit(SEXP exp) {
     onExit = Lists.newArrayList(exp);
   }
 
+  /**
+   * Adds an expression to evaluate upon exiting this context.
+   *  "on.exit" expressions generally do things like close file connections
+   * or delete temporary files, often what might be found in a Java {@code finally} clause.
+   *
+   * @param exp the expression to evaluate upon exiting this context.
+   */
   public void addOnExit(SEXP exp) {
     onExit.add(exp);
   }
+
+  /**
+   * Removes all previously added expressions to evaluate upon exiting this context.
+   */
   public void clearOnExits() {
     onExit = Lists.newArrayList();
   }
 
-
-
+  /**
+   * Invokes any on.exit expressions that have been set.
+   */
   public void exit() {
     for(SEXP exp : onExit) {
       exp.evaluate(this, environment);
@@ -307,6 +333,23 @@ public class Context {
       return value;
     }
   }
+
+  /**
+   * Sets a function to handle a specific class of condition.
+   * @see r.base.Conditions
+   *
+   * @param conditionClass  the (S3) condition class to be handled by this handler.
+   * @param function an expression that evaluates to a function that accepts a signaled
+   * condition as an argument.
+   */
+  public void setConditionHandler(String conditionClass, SEXP function) {
+    conditionHandlers.put(conditionClass, function);
+  }
+
+  public SEXP getConditionHandler(String conditionClass) {
+    return conditionHandlers.get(conditionClass);
+  }
+
 
   /**
    * Executes the default the standard R initialization sequence:
@@ -338,5 +381,4 @@ public class Context {
     SEXP profileScript = RParser.parseSource(reader).evalToExp(this, globals.baseNamespaceEnv);
     profileScript.evaluate(this, globals.baseNamespaceEnv);
   }
-
 }

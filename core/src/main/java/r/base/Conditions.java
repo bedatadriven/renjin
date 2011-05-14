@@ -26,63 +26,129 @@ import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
+/**
+ * These functions provide a mechanism for handling unusual conditions,
+ * including errors and warnings.
+ *
+ * <p>The tryCatch mechanism is similar to Java error handling.
+ * Calling handlers are based on Common Lisp and Dylan.
+ * Restarts are based on the Common Lisp restart mechanism.</p>
+ *
+ * <p>The condition system provides a mechanism for signaling and handling unusual conditions, including errors and
+ * warnings. Conditions are represented as objects that contain information about the condition that occurred,
+ * such as a message and the call in which the condition occurred. Currently conditions are S3-style objects,
+ * though this may eventually change.</p>
+ *
+ * <p>Conditions are objects inheriting from the abstract class condition. Errors and warnings are objects inheriting
+ * from the abstract subclasses error and warning. The class simpleError is the class used by stop and all internal
+ * error signals. Similarly, simpleWarning is used by warning, and simpleMessage is used by message. The constructors
+ * by the same names take a string describing the condition as argument and an optional call. The functions
+ * conditionMessage and conditionCall are generic functions that return the message and call of a condition.</p>
+ *
+ * <p>Conditions are signaled by signalCondition. In addition, the stop and warning functions have been modified
+ * to also accept condition arguments.</p>
+ *
+ * <p>The function tryCatch evaluates its expression argument in a context where the handlers provided in the ...
+ * argument are available. The finally expression is then evaluated in the context in which tryCatch was called;
+ * that is, the handlers supplied to the current tryCatch call are not active when the finally expression is evaluated.
+ *
+ * <p>Handlers provided in the ... argument to tryCatch are established for the duration of the evaluation of expr.
+ * If no condition is signaled when evaluating expr then tryCatch returns the value of the expression.
+ *
+ * <p>If a condition is signaled while evaluating expr then established handlers are checked, starting with
+ * the most recently established ones, for one matching the class of the condition. When several handlers are
+ * supplied in a single tryCatch then the first one is considered more recent than the second. If a handler is
+ * found then control is transferred to the tryCatch call that established the handler, the handler found and all
+ *  more recent handlers are disestablished, the handler is called with the condition as its argument, and the
+ *  result returned by the handler is returned as the value of the tryCatch call.
+ *
+ * <p>Calling handlers are established by withCallingHandlers. If a condition is signaled and the applicable
+ * handler is a calling handler, then the handler is called by signalCondition in the context where the
+ *  condition was signaled but with the available handlers restricted to those below the handler called
+ * in the handler stack. If the handler returns, then the next handler is tried; once the last handler
+ * has been tried, signalCondition returns NULL.
+ *
+ * <p>User interrupts signal a condition of class interrupt that inherits directly from class condition
+ * before executing the default interrupt action.
+ *
+ * <p>Restarts are used for establishing recovery protocols. They can be established using withRestarts.
+ * One pre-established restart is an abort restart that represents a jump to top level.
+ *
+ * <p>findRestart and computeRestarts find the available restarts. findRestart returns the most recently
+ * established restart of the specified name. computeRestarts returns a list of all restarts. Both can
+ * be given a condition argument and will then ignore restarts that do not apply to the condition.
+ *
+ * <p>invokeRestart transfers control to the point where the specified restart was established and calls
+ * the restart's handler with the arguments, if any, given as additional arguments to invokeRestart.
+ * The restart argument to invokeRestart can be a character string, in which case findRestart is used to
+ * find the restart.
+ *
+ * <p>New restarts for withRestarts can be specified in several ways. The simplest is in name=function form where
+ * the function is the handler to call when the restart is invoked. Another simple variant is as name=string
+ * where the string is stored in the description field of the restart object returned by findRestart; in this
+ * case the handler ignores its arguments and returns NULL. The most flexible form of a restart specification is
+ * as a list that can include several fields, including handler, description, and test. The test field should
+ * contain a function of one argument, a condition, that returns TRUE if the restart applies to the condition
+ * and FALSE if it does not; the default function returns TRUE for all conditions.
+ *
+ * <p>One additional field that can be specified for a restart is interactive. This should be a function of no
+ * arguments that returns a list of arguments to pass to the restart handler. The list could be obtained by
+ *  interacting with the user if necessary. The function invokeRestartInteractively calls this function to
+ * obtain the arguments to use when invoking the restart. The default interactive method queries the user
+ * for values for the formal arguments of the handler function.
+ *
+ */
 public class Conditions {
 
   private Conditions() {}
 
 
+  /**
+   * Conditions are somewhat analogous to exceptions in the JVM, while handlers
+   * are like catch clauses.
+   *
+   * Conditions, like exceptions, have a class, n
+   *
+   * @param context
+   * @param classes the S3 conditions classes to be handled
+   * @param handlers the functions which
+   * @param parentEnv
+   * @param target
+   * @param calling
+   * @return
+   */
   @Primitive(".addCondHands")
-  public static SEXP addConditionHandlers(@Current Context context,
-                                          SEXP classesExp,
-                                          SEXP handlersExp,
+  public static void addConditionHandlers(@Current Context context,
+                                          StringVector classes,
+                                          ListVector handlers,
                                           Environment parentEnv,
                                           Environment target,
                                           LogicalVector calling) {
 
-    // this is quite literally translated from errors.c
-    // I don't quite know what it does :-)
-
-    if(classesExp == Null.INSTANCE || handlersExp == Null.INSTANCE) {
-      return context.getGlobals().conditionHandlerStack;
-    }
-
-    if( !(classesExp instanceof StringVector) ||
-        !(handlersExp instanceof ListVector)  ||
-        classesExp.length() != handlersExp.length() ) {
+    if(classes.length() != handlers.length()) {
       throw new EvalException("bad handler data");
     }
 
-    StringVector classes = (StringVector) classesExp;
-    ListVector handlers = (ListVector) handlersExp;
-
-    int n = handlersExp.length();
-    PairList oldStack = context.getGlobals().conditionHandlerStack;
-
-    ListVector result = ListVector.newBuilder()
-        .add(Null.INSTANCE)
-        .add(Null.INSTANCE)
-        .add(Null.INSTANCE)
-        .build();
-
-    PairList newStack = oldStack;
+    int n = handlers.length();
 
     for (int i = n - 1; i >= 0; i--) {
-      ListVector entry = ListVector.newBuilder()
-          .add(classes.getElementAsSEXP(i))
-          .add(parentEnv)
-          .add(handlers.getElementAsSEXP(i))
-          .add(target)
-          .add(result)
-          .build();
-      // SETLEVELS(entry, calling);
-
-      newStack = new PairList.Node(entry, newStack);
+      context.setConditionHandler(classes.getElementAsString(i),
+          new Promise(context, parentEnv, handlers.getElementAsSEXP(i)));
     }
-
-    context.getGlobals().conditionHandlerStack = newStack;
-
-    return oldStack;
   }
+
+//
+//  @Primitive(".addCondHands")
+//  public static SEXP addConditionHandlers(@Current Context context,
+//                                          Null classesExp,
+//                                          Null handlersExp,
+//                                          Environment parentEnv,
+//                                          Environment target,
+//                                          LogicalVector calling) {
+//
+//    return context.getGlobals().conditionHandlerStack;
+//
+//  }
 
   @Primitive(".addRestart")
   public static void addRestart(SEXP restart) {
@@ -91,8 +157,21 @@ public class Conditions {
 
 
   @Primitive(".signalCondition")
-  public static void signalCondition(SEXP condition, String message, SEXP call) {
-    throw new EvalException("condition signaled. message = '%s'", message);
-  }
+  public static void signalCondition(@Current Context context, SEXP condition, String message, SEXP call) {
 
+    StringVector conditionClasses = condition.getClassAttribute();
+
+    while(!context.isTopLevel()) {
+      for(String conditionClass : conditionClasses) {
+        SEXP handler = context.getConditionHandler(conditionClass);
+        if(handler != null) {
+          FunctionCall handlerCall = FunctionCall.newCall(handler, condition);
+          handlerCall.evaluate(context, context.getEnvironment());
+          return;
+        }
+      }
+
+      context = context.getParent();
+    }
+  }
 }

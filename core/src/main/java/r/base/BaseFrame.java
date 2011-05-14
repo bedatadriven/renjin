@@ -23,7 +23,6 @@ package r.base;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
-import r.base.file.Files;
 import r.base.special.*;
 import r.lang.*;
 
@@ -771,11 +770,11 @@ public class BaseFrame implements Frame {
     f("list.files", Files.class, 0, 11, 6);
     f("file.exists", Files.class, 0, 11, 1);
     f("file.choose", /*filechoose*/ null, 0, 11, 1);
-    f("file.info", Files.class, "fileInfo", 0, 11, 1);
+    f("file.info", Files.class, 0, 11, 1);
     f("file.access", /*fileaccess*/ null, 0, 11, 2);
     f("dir.create", /*dircreate*/ null, 0, 11, 4);
-    f("tempfile", /*tempfile*/ null, 0, 11, 2);
-    f("tempdir", /*tempdir*/ null, 0, 11, 0);
+    f("tempfile", Files.class, 0, 11, 2);
+    f("tempdir", Files.class, 0, 11, 0);
     f("R.home", System.class, "getRHome", 0, 11, 0);
     f("date", /*date*/ null, 0, 11, 0);
     f("index.search", /*indexsearch*/ null, 0, 11, 5);
@@ -907,7 +906,7 @@ public class BaseFrame implements Frame {
 /* Connections */
     f("stdin", Connections.class, 0, 11, 0);
     f("stdout", Connections.class, 0, 11, 0);
-    f("stderr", /*stderr*/ null, 0, 11, 0);
+    f("stderr", Connections.class, 0, 11, 0);
     f("readLines", /*readLines*/ null, 0, 11, 5);
     f("writeLines", /*writelines*/ null, 0, 11, 4);
     f("readBin", /*readbin*/ null, 0, 11, 6);

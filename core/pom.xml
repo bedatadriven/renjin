@@ -65,6 +65,13 @@
       <version>1.2</version>
     </dependency>
 
+    <!-- Abstraction on file system -->
+    <dependency>
+      <groupId>commons-vfs</groupId>
+      <artifactId>commons-vfs</artifactId>
+      <version>1.0</version>
+    </dependency>
+
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm</artifactId>

@@ -164,13 +164,14 @@ public class IntegrationTest extends EvalTestCase {
   }
 
   @Test
+  @Ignore
   public void library() throws Exception {
     topLevelContext.init();
 
     java.lang.System.out.println(eval(".find.package('survey') "));
     eval(" library(survey) ");
 
-//    eval(" data(hospital, verbose=TRUE) ");
+    eval(" data(hospital, verbose=TRUE) ");
 //    eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
 //    eval("svymean(~births, dstr)");
 

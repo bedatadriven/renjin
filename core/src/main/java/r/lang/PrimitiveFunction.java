@@ -89,6 +89,7 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
              .append(methodName)
              .append(")");
       }
+
       throw new EvalException(message.toString());
     }
     return overloads;

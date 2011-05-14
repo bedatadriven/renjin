@@ -24,6 +24,9 @@ package r.lang;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs.VFS;
 import r.parser.RParser;
 
 import java.io.File;
@@ -240,6 +243,10 @@ public class Context {
     context.arguments = arguments;
     context.call= call;
     return context;
+  }
+
+  public FileSystemManager getFileSystemManager() throws FileSystemException {
+    return VFS.getManager();
   }
 
   public Environment getEnvironment() {

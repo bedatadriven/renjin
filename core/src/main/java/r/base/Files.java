@@ -19,9 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.file;
+package r.base;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileType;
+import r.base.file.FileScanner;
 import r.base.regex.ExtendedRE;
 import r.base.regex.RE;
 import r.jvmi.annotations.Current;
@@ -44,7 +48,7 @@ public class Files {
   }
 
   @Primitive("file.info")
-  public static ListVector fileInfo(@Current Context context, StringVector paths)  {
+  public static ListVector fileInfo(@Current Context context, StringVector paths) throws FileSystemException {
 
     DoubleVector.Builder size = new DoubleVector.Builder();
     LogicalVector.Builder isdir = new LogicalVector.Builder();
@@ -54,17 +58,17 @@ public class Files {
     StringVector.Builder exe = new StringVector.Builder();
 
     for(String path : paths) {
-      FileInfo file = FileSystem.getFileInfo(path);
+      FileObject file =  context.getFileSystemManager().resolveFile(path);
       if(file.exists()) {
-        if(file.isFile()) {
-          size.add((int) file.length());
+        if(file.getType() == FileType.FILE) {
+          size.add((int) file.getContent().getSize());
         } else {
           size.add(0);
         }
-        isdir.add(file.isDirectory());
-        mode.add(file.getMode());
-        mtime.add(file.lastModified());
-        exe.add(file.getName().endsWith(".exe") ? "yes" : "no");
+        isdir.add(file.getType() == FileType.FOLDER);
+        mode.add(mode(file));
+        mtime.add(file.getContent().getLastModifiedTime());
+        exe.add(file.getName().getBaseName().endsWith(".exe") ? "yes" : "no");
       } else {
         size.add(IntVector.NA);
         isdir.add(IntVector.NA);
@@ -86,11 +90,33 @@ public class Files {
         .build();
     return list;
   }
+  /**
+    *
+    * @return  unix-style file mode integer
+    */
+   private static int mode(FileObject file) throws FileSystemException {
+     int access = 0;
+     if(file.isReadable()) {
+       access += 4;
+     }
+     if(file.isWriteable()) {
+       access += 2;
+     }
+     if(file.getType()==FileType.FOLDER) {
+       access += 1;
+     }
+     // i know this is braindead but i can't be bothered
+     // to do octal math at the moment
+     String digit = Integer.toString(access);
+     String octalString = digit + digit + digit;
+
+     return Integer.parseInt(octalString, 8);
+   }
 
 
   @Primitive("file.exists")
-  public static boolean fileExists(@Current Context context, String path) {
-    return FileSystem.getFileInfo(path).exists();
+  public static boolean fileExists(@Current Context context, String path) throws FileSystemException {
+    return context.getFileSystemManager().resolveFile(path).exists();
   }
 
   /**
@@ -177,13 +203,13 @@ public class Files {
 
       public StringVector list() throws IOException {
         for(String path : paths) {
-          FileInfo folder = FileSystem.getFileInfo(path);
-          if(folder.isDirectory()) {
+          FileObject folder = context.getFileSystemManager().resolveFile(path);
+          if(folder.getType() == FileType.FOLDER) {
             if(allFiles) {
               add(folder, ".");
               add(folder, "..");
             }
-            for(FileInfo child : folder.listFiles()) {
+            for(FileObject child : folder.getChildren()) {
               if(filter(child)) {
                 add(child);
               }
@@ -193,35 +219,43 @@ public class Files {
         return result.build();
       }
 
-      void add(FileInfo file) {
+      void add(FileObject file) {
         if(fullNames) {
-          result.add(file.getPath());
+          result.add(file.getName().getPath());
         } else {
-          result.add(file.getName());
+          result.add(file.getName().getBaseName());
         }
       }
 
-      void add(FileInfo folder, String name)  {
+      void add(FileObject folder, String name) throws FileSystemException {
         if(fullNames) {
-          result.add(folder.getChild(name).getPath());
+          result.add(folder.resolveFile(name).getName().getPath());
         } else {
           result.add(name);
         }
       }
 
-      boolean filter(FileInfo child)  {
+      boolean filter(FileObject child) throws FileSystemException {
         if(!allFiles && isHidden(child)) {
           return false;
         }
-        if(filter!=null && !filter.match(child.getName())) {
+        if(filter!=null && !filter.match(child.getName().getBaseName())) {
           return false;
         }
         return true;
       }
 
-      private boolean isHidden(FileInfo file)  {
-        return file.isHidden() || file.getName().startsWith(".");
+      private boolean isHidden(FileObject file) throws FileSystemException {
+        return file.isHidden() || file.getName().getBaseName().startsWith(".");
       }
     }.list();
+  }
+
+  public static String tempdir() {
+    return java.lang.System.getProperty("java.io.tmpdir");
+  }
+
+  public static String tempfile(String pattern, String tempdir) {
+    return tempdir + "/" + pattern;
   }
 }

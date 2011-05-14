@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * Implements "globbing" on files, like "c:\test\*\*.jar"
  * TODO: update to support the FileInfo abstraction
  */
-class FileScanner {
+public class FileScanner {
   private List<String> matches = Lists.newArrayList();
   private String[] parts;
   private boolean markDirectories;

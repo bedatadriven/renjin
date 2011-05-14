@@ -21,7 +21,6 @@
 
 package r.base;
 
-import r.base.file.FileSystem;
 import r.io.DatafileReader;
 import r.jvmi.annotations.Current;
 import r.lang.*;
@@ -72,6 +71,10 @@ public class Connections {
 
   public static ExternalExp<Connection> stdout(@Current final Context context) {
     return new ExternalExp(new StdOutConnection(java.lang.System.out), "connection");
+  }
+
+  public static ExternalExp<Connection> stderr() {
+    return new ExternalExp<Connection>(new StdOutConnection(java.lang.System.err), "connection");
   }
 
   public static void cat(ListVector list, Connection connection, String sep, boolean fill, SEXP labels, boolean append) throws IOException {
@@ -207,7 +210,7 @@ public class Connections {
     if(description.equals("stdin")) {
       return java.lang.System.in;
     } else {
-      return FileSystem.getFileInfo(description).openInputStream();
+      return context.getFileSystemManager().resolveFile(description).getContent().getInputStream();
     }
   }
 

@@ -33,7 +33,7 @@ import java.io.InputStreamReader;
 public class Scan {
 
 
-  public static void scan(@Current Context context, SEXP file, Vector what, int nmax, String sep, String dec, String quote, int skip, int nlines,
+  public static Vector scan(@Current Context context, SEXP file, Vector what, int nmax, String sep, String dec, String quote, int skip, int nlines,
         StringVector naStrings, boolean flush, boolean fill, boolean stripWhite, boolean quiet, boolean blankLinesSkip,
         boolean multiLine, String commentChar, boolean allowEscapes, String encoding) throws IOException {
     InputStream in;
@@ -50,16 +50,40 @@ public class Scan {
       throw new EvalException("illegal file argument");
     }
 
-    BufferedReader reader = new BufferedReader( new InputStreamReader(in) );
-    String line;
+    BufferedReader lineReader = new BufferedReader( new InputStreamReader( in, toJavaEncoding(encoding)));
 
-    while( (line=reader.readLine())!=null) {
-      java.lang.System.out.println(line);
-
+    if(!(what instanceof StringVector)) {
+      throw new EvalException("only strings are supported for scan");
     }
 
-    throw new EvalException("scan not finished");
+    StringReader fieldReader = new StringReader();
+    String line;
 
+    while( (line=lineReader.readLine())!=null) {
+      fieldReader.read(line);
+    }
+    return fieldReader.build();
   }
+
+  private static String toJavaEncoding(String encoding) {
+    return "UTF-8";
+  }
+
+  private static class StringReader {
+    private final StringVector.Builder builder;
+
+    private StringReader() {
+      this.builder = new StringVector.Builder();
+    }
+
+    public void read(String value) {
+      this.builder.add(value);
+    }
+
+    public StringVector build() {
+      return builder.build();
+    }
+  }
+
 
 }

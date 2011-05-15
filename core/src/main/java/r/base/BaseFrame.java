@@ -630,13 +630,13 @@ public class BaseFrame implements Frame {
     f("Version", System.class, 0, 11, 0);
     f("machine", /*machine*/ null, 0, 11, 0);
     f("commandArgs", System.class, 0, 11, 0);
-    f("unzip", /*unzip*/ null, 0, 111, 6);
+    f("unzip", Files.class, 0, 111, 6);
     f("parse", Evaluation.class, 0, 11, 6);
     f("parse_Rd", /*parseRd*/ null, 0, 11, 7);
     f("save", /*save*/ null, 0, 111, 6);
     f("saveToConn", /*saveToConn*/ null, 0, 111, 6);
     f("load", /*load*/ null, 0, 111, 2);
-    f("loadFromConn2", /*loadFromConn2*/ null, 0, 111, 2);
+    f("loadFromConn2", Connections.class, 0, 111, 2);
     f("serializeToConn", /*serializeToConn*/ null, 0, 111, 5);
     f("unserializeFromConn", Connections.class, 0, 111, 2);
     f("deparse", Deparse.class, 0, 11, 5);
@@ -772,7 +772,7 @@ public class BaseFrame implements Frame {
     f("file.choose", /*filechoose*/ null, 0, 11, 1);
     f("file.info", Files.class, 0, 11, 1);
     f("file.access", /*fileaccess*/ null, 0, 11, 2);
-    f("dir.create", /*dircreate*/ null, 0, 11, 4);
+    f("dir.create", Files.class, 0, 11, 4);
     f("tempfile", Files.class, 0, 11, 2);
     f("tempdir", Files.class, 0, 11, 0);
     f("R.home", System.class, "getRHome", 0, 11, 0);
@@ -781,8 +781,8 @@ public class BaseFrame implements Frame {
     f("Sys.getenv", System.class, 0, 11, 2);
     f("Sys.setenv", System.class, 0, 111, 2);
     f("Sys.unsetenv", /*unsetenv*/ null, 0, 111, 1);
-    f("getwd", System.class, 0, 11, 0);
-    f("setwd", /*setwd*/ null, 0, 111, 1);
+    f("getwd", Files.class, 0, 11, 0);
+    f("setwd", Files.class, 0, 111, 1);
     f("basename", Files.class, 0, 11, 1);
     f("dirname", Files.class, 0, 11, 1);
     f("dirchmod", /*dirchmod*/ null, 0, 111, 1);
@@ -798,7 +798,7 @@ public class BaseFrame implements Frame {
     f("Sys.getpid", /*sysgetpid*/ null, 0, 11, 0);
     f("normalizePath", /*normalizepath*/ null, 0, 11, 1);
     f("Sys.glob", Files.class, "glob", 0, 11, 2);
-    f("unlink", /*unlink*/ null, 0, 111, 2);
+    f("unlink", Files.class, 0, 111, 2);
 
 /* Complex Valued Functions */
     f("fft", /*fft*/ null, 0, 11, 2);
@@ -911,7 +911,7 @@ public class BaseFrame implements Frame {
     f("writeLines", /*writelines*/ null, 0, 11, 4);
     f("readBin", /*readbin*/ null, 0, 11, 6);
     f("writeBin", /*writebin*/ null, 0, 211, 5);
-    f("readChar", /*readchar*/ null, 0, 11, 3);
+    f("readChar", Connections.class, 0, 11, 3);
     f("writeChar", /*writechar*/ null, 0, 211, 5);
     f("open", /*open*/ null, 0, 11, 3);
     f("isOpen", /*isopen*/ null, 0, 11, 2);

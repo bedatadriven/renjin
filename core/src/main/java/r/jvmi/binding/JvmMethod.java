@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.math.complex.Complex;
 import r.jvmi.annotations.*;
 import r.lang.*;
+import r.lang.exception.ControlFlowException;
 import r.lang.exception.EvalException;
 
 import java.lang.annotation.Annotation;
@@ -177,17 +178,19 @@ public class JvmMethod implements Comparable<JvmMethod> {
     try {
       return (X) method.invoke(null, arguments);
     } catch (IllegalAccessException e) {
-      throw new RuntimeException("Access exception while invoking method:\n" + method.toString(), e);
+      throw new EvalException("Access exception while invoking method:\n" + method.toString(), e);
     } catch (InvocationTargetException e) {
-      if(e.getCause() instanceof RuntimeException) {
-        // Rethrow Runtime Exceptions
-        throw (RuntimeException)e.getCause();
+      if(e.getCause() instanceof ControlFlowException) {
+        throw (ControlFlowException)e.getCause();
+      } else  if(e.getCause() instanceof EvalException) {
+        // Rethrow eval Exceptions
+        throw (EvalException)e.getCause();
       } else {
         // wrap checked exceptions
-        throw new RuntimeException("Exception while invoking method from R:\n" + method.toString(), e);
+        throw new EvalException(e.getCause());
       }
     } catch(IllegalArgumentException e) {
-      throw new RuntimeException("IllegalArgumentException while invoking " + method.toString());
+      throw new EvalException("IllegalArgumentException while invoking " + method.toString());
     }
   }
 

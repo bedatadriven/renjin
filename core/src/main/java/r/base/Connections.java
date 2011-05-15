@@ -21,14 +21,16 @@
 
 package r.base;
 
+import org.apache.commons.vfs.FileSystemException;
+import r.base.connections.GzFileConnection;
 import r.io.DatafileReader;
 import r.jvmi.annotations.Current;
+import r.jvmi.annotations.Recycle;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
 import java.io.*;
 import java.util.zip.DataFormatException;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 
 public class Connections {
@@ -36,17 +38,12 @@ public class Connections {
   public static final String CLASSPATH_PREFIX = "classpath:";
 
   public static ExternalExp<Connection> gzfile(@Current final Context context,
-                                               final String description,
+                                               final String path,
                                                String open,
                                                String encoding,
-                                               double compressionLevel) {
-    Connection connection = new ConnectionImpl(new InputStreamFactory() {
-      @Override
-      public InputStream openInputStream() throws IOException {
-        return new GZIPInputStream(openInput(context, description));
-      }
-    });
+                                               double compressionLevel) throws FileSystemException {
 
+    Connection connection = new GzFileConnection(context.resolveFile(path));
     return new ExternalExp(connection, "connection");
   }
 
@@ -66,15 +63,15 @@ public class Connections {
   }
 
   public static ExternalExp<Connection> stdin(@Current final Context context) {
-    return new ExternalExp(new StandardConnection(), "connection");
+    return new ExternalExp(new StdInConnection(), "connection");
   }
 
   public static ExternalExp<Connection> stdout(@Current final Context context) {
-    return new ExternalExp(new StdOutConnection(java.lang.System.out), "connection");
+    return new ExternalExp(new OutputStreamConnection(java.lang.System.out), "connection");
   }
 
   public static ExternalExp<Connection> stderr() {
-    return new ExternalExp<Connection>(new StdOutConnection(java.lang.System.err), "connection");
+    return new ExternalExp<Connection>(new OutputStreamConnection(java.lang.System.err), "connection");
   }
 
   public static void cat(ListVector list, Connection connection, String sep, boolean fill, SEXP labels, boolean append) throws IOException {
@@ -96,8 +93,50 @@ public class Connections {
     return result;
   }
 
+  /**
+   * Reload datasets written with the function save.
+   *
+   * @param context
+   * @param conn a (readable binary) connection or a character string giving the name of the file to load.
+   * @param env the environment where the data should be loaded.
+   * @return  A character vector of the names of objects created, invisibly.
+   * @throws IOException
+   */
+  public static SEXP loadFromConn2(@Current Context context, Connection conn, Environment env) throws IOException {
+    DatafileReader reader = new DatafileReader(context, env, conn.getInputStream());
+    HasNamedValues data = EvalException.checkedCast(reader.readFile());
+
+    StringVector.Builder names = new StringVector.Builder();
+
+    for(NamedValue pair : data.namedValues()) {
+      env.setVariable(new Symbol(pair.getName()), pair.getValue());
+      names.add(pair.getName());
+    }
+
+    return names.build();
+  }
+
   public static void close(Connection conn, String type /* Unused */ ) throws IOException {
     conn.close();
+  }
+
+  public static String readChar(Connection conn, int nchars, @Recycle(false) boolean useBytes) throws IOException {
+   // at the moment, we assume the encoding is ASCII.
+   // We can't easily use an InputStreamReader here because it uses a buffer
+   // which messes up subsequent calls to read() on the underlying input stream
+
+   InputStream in = conn.getInputStream();
+
+    byte buffer[] = new byte[nchars];
+    int bytesRead;
+    int totalBytesRead =0;
+    while(totalBytesRead < nchars &&
+        (bytesRead=in.read(buffer, totalBytesRead, nchars-totalBytesRead))!=-1) {
+
+      totalBytesRead += bytesRead;
+    }
+
+    return new String(buffer, "ASCII");
   }
 
   /**
@@ -210,7 +249,7 @@ public class Connections {
     if(description.equals("stdin")) {
       return java.lang.System.in;
     } else {
-      return context.getFileSystemManager().resolveFile(description).getContent().getInputStream();
+      return context.resolveFile(description).getContent().getInputStream();
     }
   }
 
@@ -247,7 +286,7 @@ public class Connections {
     }
   }
 
-  private static class StandardConnection implements Connection {
+  private static class StdInConnection implements Connection {
 
     @Override
     public InputStream getInputStream() throws IOException {
@@ -265,11 +304,11 @@ public class Connections {
     }
   }
 
-  private static class StdOutConnection implements Connection {
+  private static class OutputStreamConnection implements Connection {
     private PrintWriter pw;
 
 
-    public StdOutConnection(PrintStream out) {
+    public OutputStreamConnection(PrintStream out) {
       pw = new PrintWriter(out);
     }
 

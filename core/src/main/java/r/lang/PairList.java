@@ -62,7 +62,7 @@ public interface PairList extends SEXP {
 
   SEXP findByTag(Symbol symbol);
 
-  public class Node extends AbstractSEXP implements Recursive, PairList, NamedValue {
+  public class Node extends AbstractSEXP implements Recursive, PairList, NamedValue, HasNamedValues {
 
 
     /**
@@ -371,6 +371,11 @@ public interface PairList extends SEXP {
           return nodeIterator();
         }
       };
+    }
+
+    @Override
+    public Iterable<NamedValue> namedValues() {
+      return (Iterable)nodes();
     }
 
     /**

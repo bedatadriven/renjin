@@ -24,6 +24,7 @@ package r.lang;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
@@ -140,6 +141,9 @@ public class Context {
     public final Environment globalEnvironment;
     public final Environment baseNamespaceEnv;
 
+    // can this be moved down to context so it's not global?
+    public FileObject workingDirectory;
+
     private Globals() {
       systemEnvironment.put("R_LIBS", getLibraryPaths());
       globalEnvironment = Environment.createGlobalEnvironment();
@@ -148,6 +152,11 @@ public class Context {
       baseNamespaceEnv = Environment.createNamespaceEnvironment(globalEnvironment, "base");
       namespaceRegistry.setVariable(new Symbol("base"), baseNamespaceEnv);
       globalEnvironment.setVariable(new Symbol(".BaseNamespaceEnv"), baseNamespaceEnv);
+      try {
+        workingDirectory = VFS.getManager().resolveFile(new File(".").getAbsolutePath());
+      } catch (FileSystemException e) {
+        throw new RuntimeException("Could not resolve current working directory");
+      }
     }
 
     private String getLibraryPaths() {
@@ -247,6 +256,10 @@ public class Context {
 
   public FileSystemManager getFileSystemManager() throws FileSystemException {
     return VFS.getManager();
+  }
+
+  public FileObject resolveFile(String uri) throws FileSystemException {
+    return getFileSystemManager().resolveFile(globals.workingDirectory, uri);
   }
 
   public Environment getEnvironment() {

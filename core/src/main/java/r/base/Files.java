@@ -31,9 +31,13 @@ import r.base.regex.RE;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
+import r.lang.exception.EvalException;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class Files {
 
@@ -58,7 +62,7 @@ public class Files {
     StringVector.Builder exe = new StringVector.Builder();
 
     for(String path : paths) {
-      FileObject file =  context.getFileSystemManager().resolveFile(path);
+      FileObject file =  context.resolveFile(path);
       if(file.exists()) {
         if(file.getType() == FileType.FILE) {
           size.add((int) file.getContent().getSize());
@@ -116,7 +120,7 @@ public class Files {
 
   @Primitive("file.exists")
   public static boolean fileExists(@Current Context context, String path) throws FileSystemException {
-    return context.getFileSystemManager().resolveFile(path).exists();
+    return context.resolveFile(path).exists();
   }
 
   /**
@@ -173,6 +177,14 @@ public class Files {
     return ".";
   }
 
+  @Primitive("dir.create")
+  public static EvalResult dirCreate(@Current Context context, String path, boolean showWarnings, boolean recursive, int mode) throws FileSystemException {
+    FileObject dir = context.resolveFile(path);
+    dir.createFolder();
+
+    return EvalResult.invisible(new LogicalVector(true));
+  }
+
   /**
    *
    * @param paths  a character vector of full path names; the default corresponds to the working directory getwd(). Missing values will be ignored.
@@ -203,7 +215,7 @@ public class Files {
 
       public StringVector list() throws IOException {
         for(String path : paths) {
-          FileObject folder = context.getFileSystemManager().resolveFile(path);
+          FileObject folder = context.resolveFile(path);
           if(folder.getType() == FileType.FOLDER) {
             if(allFiles) {
               add(folder, ".");
@@ -229,7 +241,7 @@ public class Files {
 
       void add(FileObject folder, String name) throws FileSystemException {
         if(fullNames) {
-          result.add(folder.resolveFile(name).getName().getPath());
+          result.add(folder.resolveFile(name).getName().getURI());
         } else {
           result.add(name);
         }
@@ -257,5 +269,102 @@ public class Files {
 
   public static String tempfile(String pattern, String tempdir) {
     return tempdir + "/" + pattern;
+  }
+
+  public static String getwd(@Current Context context) {
+    return context.getGlobals().workingDirectory.getName().getURI();
+  }
+
+  /**
+   * Unlink deletes the file(s) or directories specified by {@code paths}.
+   * @param context
+   * @param paths list of paths to delete
+   * @param recursive  Should directories be deleted recursively?
+   * @return  0 for success, 1 for failure. Not deleting a non-existent file is not a failure,
+   * nor is being unable to delete a directory if recursive = FALSE. However, missing values in x are
+   * regarded as failures.
+   * @throws FileSystemException
+   */
+  public static IntVector unlink(@Current Context context, StringVector paths, boolean recursive) throws FileSystemException {
+    IntVector.Builder result = new IntVector.Builder();
+    for(String path : paths) {
+      if(StringVector.isNA(path)) {
+        result.add(0);
+      } else {
+        FileObject file = context.resolveFile(path);
+        delete(file, recursive);
+        result.add(1);
+      }
+    }
+    return result.build();
+  }
+
+  private static void delete(FileObject file, boolean recursive) throws FileSystemException {
+    if(file.exists()) {
+      if(file.getType() == FileType.FILE) {
+        file.delete();
+      } else if(file.getType() == FileType.FOLDER) {
+          if(file.getChildren().length == 0) {
+            file.delete();
+          } else if(recursive) {
+            file.delete();
+          }
+      }
+    }
+  }
+
+  public static EvalResult unzip(@Current Context context, String zipFile, Vector files, String exdirUri,
+                                 boolean list, boolean overwrite, boolean junkpaths) throws IOException {
+
+    ZipInputStream zin = new ZipInputStream(context.resolveFile(pathExpand(zipFile)).getContent().getInputStream());
+    FileObject exdir = context.resolveFile(exdirUri);
+
+    if(list) {
+      throw new EvalException("unzip(list=true) not yet implemented");
+    }
+
+    ZipEntry entry;
+    while ( (entry=zin.getNextEntry()) != null ) {
+      if( unzipMatches(entry, files))  {
+         unzipExtract(zin, entry, exdir, junkpaths, overwrite);
+      }
+    }
+
+    return EvalResult.invisible(new IntVector(0));
+  }
+
+  private static void unzipExtract(ZipInputStream zin, ZipEntry entry, FileObject exdir, boolean junkpaths, boolean overwrite) throws IOException {
+    if(junkpaths) {
+      throw new EvalException("unzip(junpaths=false) not yet implemented");
+    }
+
+    FileObject exfile = exdir.resolveFile(entry.getName());
+    if(exfile.exists() && !overwrite) {
+      throw new EvalException("file to be extracted '%s' already exists", exfile.getName().getURI());
+    }
+    OutputStream out = exfile.getContent().getOutputStream();
+    try {
+
+      byte buffer[] = new byte[64 * 1024];
+      int bytesRead;
+      while( (bytesRead=zin.read(buffer)) != -1 ) {
+        out.write(buffer, 0, bytesRead);
+      }
+    } finally {
+      out.close();
+    }
+  }
+
+  private static boolean unzipMatches(ZipEntry entry, Vector files) {
+    if(files == Null.INSTANCE) {
+      return true;
+    } else {
+      for(int i=0;i!=files.length();++i) {
+        if(entry.getName().equals(files.getElementAsString(i))) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 }

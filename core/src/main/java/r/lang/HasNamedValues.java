@@ -21,14 +21,10 @@
 
 package r.lang;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-
-public interface Connection {
-  InputStream getInputStream() throws IOException;
-
-  PrintWriter getPrintWriter() throws IOException;
-
-  void close() throws IOException;
+/**
+ * Common interface to ListVector and PairList.
+ *
+ */
+public interface HasNamedValues extends SEXP {
+  Iterable<NamedValue> namedValues();
 }

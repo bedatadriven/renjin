@@ -27,7 +27,6 @@ import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
-import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Map;
@@ -201,10 +200,6 @@ public class System {
     }
     result.setAttribute(Symbol.NAMES, names.build());
     return result.build();
-  }
-
-  public static String getwd(@Current Context context) {
-    return new File(".").getAbsolutePath();
   }
 
 

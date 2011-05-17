@@ -50,8 +50,17 @@ public class Promise extends AbstractSEXP implements Recursive {
   }
 
   /**
-   * Creates a promise with it's expression and its already-evaluated
+   * Creates a Promise with it's expression and its already-evaluated
    * result.
+   * 
+   * This may seem unnecesary, but in fact this is required because closures
+   * expect to be able to access both the values and the "source" of their arguments
+   * for labeling plots etc.
+   * 
+   * For example, when plot(sin(x)) is called, the interpreter needs to evaluate
+   * sin(x) to determine its class and choose the correct plot function, but that plot 
+   * function needs to be able to access the expression sin(x) to correctly label the y axis. 
+   *
    * @param expression
    * @param result
    */

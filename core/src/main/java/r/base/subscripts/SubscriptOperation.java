@@ -98,7 +98,7 @@ public class SubscriptOperation {
 
   public SEXP extract() {
 
-    if(source.length() == 0) {
+    if(source instanceof AtomicVector && source.length() == 0) {
       return Null.INSTANCE;
 
     } else {

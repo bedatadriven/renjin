@@ -35,8 +35,6 @@ import java.util.zip.Inflater;
 
 public class Connections {
 
-  public static final String CLASSPATH_PREFIX = "classpath:";
-
   public static ExternalExp<Connection> gzfile(@Current final Context context,
                                                final String path,
                                                String open,
@@ -217,14 +215,6 @@ public class Connections {
     byte[] result = new byte[outLength];
     int resultLength = inflater.inflate(result);
     inflater.end();
-
-//    outlen = (uLong) uiSwap(*((unsigned int *) p));
-//    buf = (Bytef *) R_alloc(outlen, sizeof(Bytef));
-//    res = uncompress(buf, &outlen, (Bytef *)(p + 4), inlen - 4);
-//    if(res != Z_OK) error("internal error %d in R_decompress1", res);
-//    ans = allocVector(RAWSXP, outlen);
-//    memcpy(RAW(ans), buf, outlen);
-//    return ans;
 
     return result;
   }

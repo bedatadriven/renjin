@@ -48,6 +48,19 @@ public class ContextTest extends EvalTestCase {
     assertThat( eval(" h() "), equalTo( c_i(3) ));
   }
 
+
+  @Test
+  public void nframesInClosureWithS3() {
+    eval( "sys.nframe <- function() .Internal(sys.nframe()) ");
+
+    eval( "g.default <- function(x) sys.nframe()  ");
+    eval( "g <- function(x) UseMethod('g')" );
+    eval( "h <- function(x) g(x) ");
+
+    assertThat( eval(" h(0) "), equalTo( c_i(3) ));
+  }
+
+
   @Test
   public void sysFrames() {
     eval(" sys.frame <- function (which = 0) .Internal(sys.frame(which))");

@@ -62,6 +62,8 @@ public interface PairList extends SEXP {
 
   SEXP findByTag(Symbol symbol);
 
+  PairList clone();
+
   public class Node extends AbstractSEXP implements Recursive, PairList, NamedValue, HasNamedValues {
 
 

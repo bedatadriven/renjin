@@ -64,6 +64,14 @@ public class SubscriptTest extends EvalTestCase {
   }
 
   @Test
+  public void emptyListNegativeIndices() {
+    eval(" x <- list() ");
+
+    assertThat( eval("x[4]"), equalTo(list(Null.INSTANCE)));
+    assertThat( eval("x[-1L]"), equalTo(list()));
+  }
+
+  @Test
   public void subsetDoubleMultipleIndices() {
     eval( " x <- c(91,92,93) ");
     assertThat( eval(" x[2:3] "), equalTo( c(92,93) ));

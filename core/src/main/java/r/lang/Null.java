@@ -260,6 +260,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     return VECTOR_TYPE;
   }
 
+  @Override
+  public PairList clone() {
+    return this;
+  }
+
   private static class NullBuilder implements Vector.Builder<SEXP> {
 
     public static final NullBuilder INSTANCE = new NullBuilder();

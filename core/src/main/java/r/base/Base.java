@@ -23,6 +23,7 @@ package r.base;
 
 import r.jvmi.annotations.Current;
 import r.lang.*;
+import r.lang.exception.EvalException;
 
 public class Base {
 
@@ -45,5 +46,39 @@ public class Base {
     return builder.build();
   }
 
-  
+  /** @return  n if the data frame 'vec' has c(NA, n) rownames;
+   *         nrow(.) otherwise;  note that data frames with nrow(.) == 0
+   *          have no row.names.
+   * ==> is also used in dim.data.frame()
+   *
+   * AB Note: I have no idea what this function really does but it is
+   * so opaque that it is first against the wall when the revolution comes.
+   */
+  public static SEXP R_shortRowNames(SEXP vector, int type) {
+    SEXP s =  vector.getAttribute(Symbol.ROW_NAMES);
+    SEXP ans = s;
+
+    if( type < 0 || type > 2) {
+      throw new EvalException("invalid 'type' argument");
+    }
+
+    if(type >= 1) {
+      int n;
+      if (s instanceof IntVector && s.length() == 2 && ((IntVector) s).isElementNA(0)) {
+        n = ((IntVector) s).getElementAsInt(1);
+      } else {
+        if (s == Null.INSTANCE) {
+          n = 0;
+        } else {
+          n = s.length();
+        }
+      }
+      if (type == 1) {
+        ans = new IntVector(n);
+      } else {
+        ans = new IntVector(Math.abs(n));
+      }
+    }
+    return ans;
+  }
 }

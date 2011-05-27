@@ -361,6 +361,10 @@ public class CDefines {
     return s instanceof StringVector;
   }
 
+  public static double asReal(SEXP s) {
+    return s.asReal();
+  }
+
 
   public static void error(String message, Object... args) {
     throw new RuntimeException(String.format(message, args));

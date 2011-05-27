@@ -163,10 +163,35 @@ public class Evaluation {
   }
 
   public static EvalResult eval(@Current Context context,
-                                SEXP expression, Environment environment,
-                                SEXP enclosing /* ignored */) {
+                                SEXP expression, SEXP environment,
+                                SEXP enclosing) {
 
-    return expression.evaluate(context, environment);
+    Environment rho;
+    if(environment instanceof Environment) {
+      rho = (Environment) environment;
+    } else {
+
+      /* If envir is a list (such as a data frame) or pairlist, it is copied into a temporary environment
+       * (with enclosure enclos), and the temporary environment is used for evaluation. So if expr
+       * changes any of the components named in the (pair)list, the changes are lost.
+       */
+      Environment parent = enclosing == Null.INSTANCE ? context.getEnvironment().getBaseEnvironment() :
+          EvalException.<Environment>checkedCast(enclosing);
+
+      rho = Environment.createChildEnvironment(parent);
+
+      if(environment instanceof ListVector) {
+        for(NamedValue namedValue : ((ListVector) environment).namedValues()) {
+          if(!StringVector.isNA(namedValue.getName())) {
+            rho.setVariable(new Symbol(namedValue.getName()), namedValue.getValue());
+          }
+        }
+      } else {
+        throw new EvalException("invalid 'environ' argument");
+      }
+    }
+
+    return expression.evaluate(context, rho);
   }
 
   public static SEXP quote(@Evaluate(false) SEXP exp) {
@@ -307,7 +332,6 @@ public class Evaluation {
       Symbol method = new Symbol(genericName + "." + className);
       SEXP function = rho.findVariable(method);
       if(function != Symbol.UNBOUND_VALUE) {
-
         function = function.evalToExp(context, rho);
 
         Frame extra = new HashFrame();
@@ -315,9 +339,13 @@ public class Evaluation {
         extra.setVariable(new Symbol(".Method"), method);
         extra.setVariable(new Symbol(".Generic"), new StringVector(genericName));
 
+        PairList repromisedArgs = Calls.promiseArgs(context.getArguments(), context, rho);
+        FunctionCall newCall = new FunctionCall(method,repromisedArgs);
+
+
         if(function instanceof Closure) {
-          EvalResult result = Calls.applyClosure((Closure) function, context, call,
-              Calls.promiseArgs(context.getArguments(), context, rho), rho, extra);
+          EvalResult result = Calls.applyClosure((Closure) function, context, newCall,
+              repromisedArgs, rho, extra);
           throw new ReturnException(context.getEnvironment(), result.getExpression());
         } else {
           throw new UnsupportedOperationException("target of UseMethod is not a closure, it is a " +

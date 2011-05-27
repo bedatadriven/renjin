@@ -424,9 +424,20 @@ public class Types {
     } else if(exp instanceof Closure)  {
       return ((Closure) exp).getEnclosingEnvironment();
     } else {
-      return Null.INSTANCE;
+      return exp.getAttribute(Symbol.DOT_ENVIRONMENT);
     }
   }
+
+  @Primitive("environment<-")
+  public static SEXP setEnvironment(SEXP exp, Environment newRho) {
+    if(exp instanceof Closure) {
+      return ((Closure) exp).setEnclosingEnvironment(newRho);
+    } else {
+      return exp.setAttribute(Symbol.DOT_ENVIRONMENT.getPrintName(), newRho);
+    }
+  }
+
+
 
   public static PairList formals(Closure closure) {
     return closure.getFormals();
@@ -557,6 +568,10 @@ public class Types {
     return false;
   }
 
+  public static boolean inherits(SEXP exp, String what) {
+    return Iterables.contains(getClass(exp), what);
+  }
+
   public static SEXP inherits(SEXP exp, StringVector what, boolean which) {
     if(!which) {
       return new LogicalVector( inherits(exp, what) );
@@ -618,10 +633,6 @@ public class Types {
         newEnv.setVariable(symbol, source.getVariable(symbol));
       }
     }
-
-
-
-
     return newEnv;
   }
 

@@ -174,6 +174,7 @@ public class IntegrationTest extends EvalTestCase {
 
     java.lang.System.out.println( eval("ls() "));
 
+    assertThat(eval("typeof(hospital)"), equalTo(c("list")));
     assertThat(eval("sum(hospital$births)"), equalTo(c(25667)));
 
 //    eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
@@ -187,6 +188,18 @@ public class IntegrationTest extends EvalTestCase {
     executeStartupProfile();
 
     assertThat(eval(" parse(text='1') "), equalTo(expression(1d)));
+
+  }
+
+  @Test
+  public void sapply() throws IOException {
+    loadBasePackage();
+    executeStartupProfile();
+
+    eval(" x<-list() ");
+    assertThat(eval("sapply(attr(~1,'vars'), deparse, width.cutoff = 500)[-1L]"), equalTo(list()));
+
+
 
   }
 

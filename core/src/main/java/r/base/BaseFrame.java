@@ -239,7 +239,7 @@ public class BaseFrame implements Frame {
     f("&&", Comparison.class, "and", 1, 0, 2, PP_BINARY, PREC_AND, 0);
     f("||", Comparison.class, "or", 2, 0, 2, PP_BINARY, PREC_OR, 0);
     f(":", Sequences.class, "colon", 0, 1, 2, PP_BINARY2, PREC_COLON, 0);
-    f("~", /*tilde*/ null, 0, 0, 2, PP_BINARY, PREC_TILDE, 0);
+    f("~", Models.class, 0, 0, 2, PP_BINARY, PREC_TILDE, 0);
 
 
 /* Logic Related Functions */
@@ -719,7 +719,7 @@ public class BaseFrame implements Frame {
     f("baseenv", Types.class, "baseEnv", 0, 1, 0);
     f("globalenv", Types.class, "globalEnv", 0, 1, 0);
     f("environment", Types.class, 0, 11, 1);
-    f("environment<-", /*envirgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
+    f("environment<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("environmentName", /*envirName*/ null, 0, 11, 1);
     f("env2list", /*env2list*/ null, 0, 11, 2);
     f("reg.finalizer", /*regFinaliz*/ null, 0, 11, 3);
@@ -880,9 +880,9 @@ public class BaseFrame implements Frame {
     f("zeroin2", /*zeroin2*/ null, 0, 11, 7);
     f("optim", /*optim*/ null, 0, 11, 7);
     f("optimhess", /*optimhess*/ null, 0, 11, 4);
-    f("terms.formula", /*termsform*/ null, 0, 11, 5);
+    f("terms.formula", Models.class, 0, 11, 5);
     f("update.formula", /*updateform*/ null, 0, 11, 2);
-    f("model.frame", /*modelframe*/ null, 0, 11, 8);
+    f("model.frame", Models.class, 0, 11, 8);
     f("model.matrix", /*modelmatrix*/ null, 0, 11, 2);
 
     f("D", /*D*/ null, 0, 11, 2);

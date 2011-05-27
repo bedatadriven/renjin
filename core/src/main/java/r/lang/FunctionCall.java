@@ -38,8 +38,8 @@ public class FunctionCall extends PairList.Node {
     super(function, arguments);
   }
 
-  public FunctionCall(SEXP function, PairList arguments, PairList attributes, SEXP tag) {
-    super(tag, function, attributes, arguments);
+  public FunctionCall(SEXP function, PairList arguments, PairList attributes) {
+    super(Null.INSTANCE, function, attributes, arguments);
   }
 
   @Override
@@ -137,5 +137,15 @@ public class FunctionCall extends PairList.Node {
     } else {
       return new FunctionCall(function, PairList.Node.fromArray(arguments));
     }
+  }
+
+  @Override
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    return new FunctionCall(getFunction(), getArguments(), attributes);
+  }
+
+  @Override
+  public FunctionCall clone() {
+    return FunctionCall.newCall(getFunction(), getArguments().clone());
   }
 }

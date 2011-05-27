@@ -65,8 +65,8 @@ public class SubstituteFunction extends SpecialFunction {
       result = new FunctionCall(
           substitute(langExp.getFunction()),
           substituteArgumentList(langExp.getArguments()),
-          langExp.getAttributes(),
-          langExp.getRawTag());
+          langExp.getAttributes()
+      );
     }
 
     private PairList substituteArgumentList(PairList arguments) {

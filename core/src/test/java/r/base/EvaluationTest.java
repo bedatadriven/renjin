@@ -149,6 +149,15 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void missingWithNullDefaultAndGenerics() {
+    eval("f.default<-function(formula, data=NULL) missing(data) ");
+    eval("f <- function(formula, ...) UseMethod('f'); ");
+
+    eval("data <-88");
+    assertThat( eval("f(1, data=data)"), equalTo( c(false)));
+  }
+
+  @Test
   public void missingWithDefaultArgPart2() {
     eval("y <- 4");
     eval("f<-function(x=1){  if(!missing(x)) 41 else 42 } ");
@@ -349,7 +358,13 @@ public class EvaluationTest extends EvalTestCase {
     eval(" call('f', 3) ");
 
     assertThat( eval("x"), equalTo(c(3)));
+  }
 
+  @Test
+  public void evalWithPairList() {
+    eval(" params <- list(a=1,b=99)");
+    eval(" c<-25");
+    assertThat( eval( ".Internal(eval(quote((a+b)/c), params, globalenv()))") , equalTo(c(4)));
   }
 
 }

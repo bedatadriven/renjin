@@ -19,35 +19,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.base.connections;
 
-import org.apache.commons.math.special.Gamma;
-import org.apache.commons.math.util.MathUtils;
+import r.lang.Connection;
 
-/**
- * Math functions not found in java.Math or apache commons math
- */
-public class MathExt {
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 
-  private MathExt() {}
+public class OutputStreamConnection implements Connection {
+  private PrintWriter pw;
 
-  public static double gamma(double x) {
-    return Math.exp(Gamma.logGamma(x));
+
+  public OutputStreamConnection(PrintStream out) {
+    pw = new PrintWriter(out);
   }
 
-  public static double log(double x, double base) {
-
-      //Method cannot be called directly as R and Apache Commons Math argument order
-      // are reversed
-      return MathUtils.log(base, x);
+  @Override
+  public InputStream getInputStream() throws IOException {
+    throw new UnsupportedOperationException();
   }
 
-  public static double log(double d) {
-      return Math.log(d);
+  @Override
+  public PrintWriter getPrintWriter() throws IOException {
+    return pw;
   }
 
-  public static double log2(double d) {
-      return MathUtils.log(2, d);
-  }
+  @Override
+  public void close() throws IOException {
 
+  }
 }

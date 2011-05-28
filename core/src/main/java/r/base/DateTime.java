@@ -24,8 +24,18 @@ package r.base;
 import r.lang.Null;
 import r.lang.SEXP;
 
+/**
+ * Implementation of date time-related functions.
+ */
 public class DateTime {
 
+  /**
+   * Parses a string value into a date time value. (not implemented)
+   * @param x
+   * @param format
+   * @param tz
+   * @return
+   */
   public static SEXP strptime(String x, String format, String tz) {
     // TODO
     return Null.INSTANCE;

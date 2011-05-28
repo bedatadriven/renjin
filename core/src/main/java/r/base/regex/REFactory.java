@@ -23,8 +23,22 @@ package r.base.regex;
 
 import r.lang.exception.EvalException;
 
+/**
+ * Compiles a regular expression based on the supplied options.
+ */
 public class REFactory {
 
+  /**
+   * Compiles the pattern based on the supplied arguments.
+   *
+   * @param pattern  the matching pattern
+   * @param ignoreCase whether case should be ignored
+   * @param extended true to use "extended" regular expression
+   * @param perl true to use "perl-style" regular expressions (not yet implemented)
+   * @param fixed true to treat the pattern as
+   * @param useBytes true to match on bytes (not implemented)
+   * @return the compiled regular expression
+   */
   public static RE compile(String pattern, boolean ignoreCase, boolean extended, boolean perl, boolean fixed,
                            boolean useBytes) {
     if(fixed) {

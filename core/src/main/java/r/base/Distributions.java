@@ -24,9 +24,32 @@ package r.base;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.MathRuntimeException;
 import org.apache.commons.math.distribution.*;
+import r.base.distributions.UniformDistribution;
 
+/**
+ * Density, mass, cumulative and inverse cumulative distribution functions.
+ *
+ * <p>The methods defined here serve as an adapter between the R function conventions and the
+ * Apache Commons Math Library. (See {@link Distribution}
+ */
 public class Distributions {
 
+  private Distributions() {}
+
+  // TODO: there are several distributions for which the inverse is not provided
+  // by commons math, and most non-central distributions are not present.
+  // these should be implemented in the distributions package but using the Commons Math API
+
+  /**
+   * Calculates the value of the density function at {@code x}
+   * for the given continuous distribution
+   *
+   * @param dist the distribution of the random variable
+   * @param x the value
+   * @param log whether to return the natural logarithm of the function's value
+   * @return the (natural logarithm) of the relative likelihood for the random
+   * variable to take the value {@code x}
+   */
   private static double d(AbstractContinuousDistribution dist, double x, boolean log) {
     double d = dist.density(x);
     if(log) {
@@ -35,6 +58,16 @@ public class Distributions {
     return d;
   }
 
+  /**
+   * Calculates the value of the probability mass function at {@code x}
+   * for the given discrete distribution
+   *
+   * @param dist the discrete distribution
+   * @param x the value
+   * @param log whether to return the natural logarithm of the probability
+   * @return  the (natural logarithm) of the probability for the  random variable
+   *  to take the value {@code x}
+   */
   private static double d(IntegerDistribution dist, double x, boolean log)  {
     double d = dist.probability(x);
     if(log) {
@@ -42,8 +75,20 @@ public class Distributions {
     }
     return d;
   }
+
+  /**
+   *
+   * Calculates the value of the cumulative distribution function
+   *
+   * @param dist the distribution
+   * @param q the value
+   * @param lowerTail if true, return the value P(x < q), otherwise P(x > q)
+   * @param logP  if true, return the natural logarithm of the probability
+   * @return  the probability that the random variable will take the value less than (greater than)
+   * {@code q}
+   */
   private static double p(Distribution dist, double q, boolean lowerTail, boolean logP) {
-    double p = 0;
+    double p;
     try {
       p = dist.cumulativeProbability(q);
     } catch (MathException e) {
@@ -61,6 +106,15 @@ public class Distributions {
     return p;
   }
 
+  /**
+   * Calculates the value of the inverse cumulative probability function according to standard R arguments.
+   *
+   * @param dist the continuous distribution
+   * @param p the probability
+   * @param lowerTail
+   * @param logP if true, interpret {@code p} as the natural logarithm of the probability
+   * @return the value fo
+   */
   private static double q(ContinuousDistribution dist, double p, boolean lowerTail, boolean logP)  {
     if(logP) {
       p = Math.exp(p);
@@ -216,59 +270,6 @@ public class Distributions {
 
   public static double qunif(double p, double min, double max, boolean lowerTail, boolean logP)  {
     return q(new UniformDistribution(min, max), p, lowerTail, logP);
-  }
-
-
-
-
-  private static class UniformDistribution implements ContinuousDistribution {
-    private double min;
-    private double max;
-    private double range;
-
-    private UniformDistribution(double min, double max) {
-      this.min = min;
-      this.max = max;
-      this.range = max - min;
-    }
-
-    @Override
-    public double cumulativeProbability(double x)  {
-      if(x < min || x > max) {
-        return 0;
-      }
-      return (x-min)/ range;
-    }
-
-    public double density(double x) {
-      if(x < min || x > max) {
-        return 0;
-      } else {
-        return 1.0/range;
-      }
-    }
-
-    @Override
-    public double inverseCumulativeProbability(double p)  {
-      return min + (p * range);
-    }
-
-    @Override
-    public double cumulativeProbability(double x0, double x1)  {
-      if(x0 < min) {
-        x0 = min;
-      }
-      if(x0 > max) {
-        x0 = max;
-      }
-      if(x1 < min) {
-        x1 = min;
-      }
-      if(x1 > max) {
-        x1 = max;
-      }
-      return (x1-x0)/range;
-    }
   }
 
   public static double dweibull(double x, double shape, double scale, boolean log)  {

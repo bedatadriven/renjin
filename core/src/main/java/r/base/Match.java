@@ -27,10 +27,24 @@ import r.lang.exception.EvalException;
 
 import java.util.Set;
 
+/**
+ * Default implementations of match() related functions.
+ */
 public class Match {
 
   private static final int UNMATCHED = -1;
 
+  private Match() { }
+
+  /**
+   * match returns a vector of the positions of (first) matches of its first argument in its second.
+   * @param search vector or NULL: the values to be matched.
+   * @param table vector or NULL: the values to be matched against.
+   * @param noMatch the value to be returned in the case when no match is found. Note that it is coerced to integer.
+   * @param incomparables a vector of values that cannot be matched. Any value in x matching a value in this vector is assigned the nomatch value.
+   *        For historical reasons, FALSE is equivalent to NULL.
+   * @return
+   */
   public static int[] match(AtomicVector search, AtomicVector table, int noMatch, AtomicVector incomparables) {
     //For historical reasons, FALSE is equivalent to NULL.
     if(incomparables.equals( LogicalVector.FALSE ) ) {
@@ -49,14 +63,38 @@ public class Match {
     return matches;
   }
 
-  public static IntVector pmatch(StringVector search, StringVector table, int noMatch, boolean duplicatesOk) {
-    IntVector.Builder result = new IntVector.Builder(search.length());
+  /**
+   * pmatch seeks matches for the elements of its first argument among those of its second.
+   *
+   * The behaviour differs by the value of duplicates.ok. Consider first the case
+   * if this is true. First exact matches are considered, and the positions of the
+   * first exact matches are recorded. Then unique partial matches are considered,
+   * and if found recorded. (A partial match occurs if the whole of the element of x
+   * matches the beginning of the element of table.) Finally, all remaining elements of
+   * x are regarded as unmatched. In addition, an empty string can match nothing, not even an
+   * exact match to an empty string. This is the appropriate behaviour for partial matching
+   * of character indices, for example.
+   *
+   * <p>If duplicates.ok is FALSE, values of table once matched are excluded from the
+   * search for subsequent matches. This behaviour is equivalent to the R algorithm
+   * for argument matching, except for the consideration of empty strings (which in
+   * argument matching are matched after exact and partial matching to any remaining arguments).
+   *
+   * @param x the values to be matched
+   * @param table the values to be matched against: converted to a character vector.
+   * @param noMatch the value to be returned at non-matching or multiply partially matching positions.
+   * @param duplicatesOk should elements be in table be used more than once?
+   * @return An integer vector (possibly including NA if nomatch = NA) of the same length as x,
+   * giving the indices of the elements in table which matched, or {@code nomatch}.
+   */
+  public static IntVector pmatch(StringVector x, StringVector table, int noMatch, boolean duplicatesOk) {
+    IntVector.Builder result = new IntVector.Builder(x.length());
     boolean matchedTable[] = new boolean[table.length()];
-    boolean matchedSearch[] = new boolean[search.length()];
+    boolean matchedSearch[] = new boolean[x.length()];
 
     // first pass : exact matches
-    for(int i=0;i!=search.length();++i) {
-      String toMatch = pmatchElementAt(search, i);
+    for(int i=0;i!= x.length();++i) {
+      String toMatch = pmatchElementAt(x, i);
       int match = exactMatch(toMatch, table);
       if(match != UNMATCHED && (duplicatesOk || !matchedTable[match])) {
         result.set(i, match+1);
@@ -66,9 +104,9 @@ public class Match {
     }
 
     // second pass : partial matches
-    for(int i=0;i!=search.length();++i) {
+    for(int i=0;i!= x.length();++i) {
       if(!matchedSearch[i]) {
-        String toMatch = pmatchElementAt(search, i);
+        String toMatch = pmatchElementAt(x, i);
         int match = uniquePartialMatch(toMatch, table);
         if(match != UNMATCHED && (duplicatesOk || !matchedTable[match])) {
           result.set(i, match+1);
@@ -111,21 +149,43 @@ public class Match {
     return vector.isElementNA(i) ? "NA" : vector.getElementAsString(i);
   }
 
-  public static Vector unique(AtomicVector vector, AtomicVector incomparables, boolean fromLast) {
-    Vector.Builder result = vector.newBuilder(0);
+  /**
+   * unique returns a vector, data frame or array like x but with duplicate elements/rows removed.
+   *
+   * @param x a vector
+   * @param incomparables a vector of values that cannot be compared. FALSE is a special value,
+   *          meaning that all values can be compared, and may be the only value accepted for methods
+   *        other than the default. It will be coerced internally to the same type as x.
+   * @param fromLast
+   * @return logical indicating if duplication should be considered from the last, i.e., the last
+   *       (or rightmost) of identical elements will be kept. This only matters for names or dimnames.
+   */
+  public static Vector unique(AtomicVector x, AtomicVector incomparables, boolean fromLast) {
+    Vector.Builder result = x.newBuilder(0);
     int resultIndex=0;
-    for(int i=0;i!=vector.length();++i) {
-      if(   incomparables.contains(vector, i) ||
-          (fromLast && vector.indexOf(vector, i, i+1) == -1) ||
-          (!fromLast && vector.indexOf(vector, i, 0) == i)) {
+    for(int i=0;i!= x.length();++i) {
+      if(   incomparables.contains(x, i) ||
+          (fromLast && x.indexOf(x, i, i+1) == -1) ||
+          (!fromLast && x.indexOf(x, i, 0) == i)) {
 
-        result.setFrom(resultIndex++, vector, i);
+        result.setFrom(resultIndex++, x, i);
 
       }
     }
     return result.build();
   }
 
+  /**
+   * Determines which elements of a vector or data frame are duplicates of elements with smaller
+   * subscripts, and returns a logical vector indicating which elements (rows) are duplicates.
+   * @param x a vector
+   * @param incomparables a vector of values that cannot be compared. FALSE is a special value, meaning
+   *        that all values can be compared, and may be the only value accepted for methods
+   *      other than the default. It will be coerced internally to the same type as x.
+   * @param fromLast logical indicating if duplication should be considered from the reverse side, i.e.,
+   *      the last (or rightmost) of identical elements would correspond to duplicated=FALSE.
+   * @return a non-negative integer (of length one).
+   */
   public static int anyDuplicated(Vector x, AtomicVector incomparables, boolean fromLast) {
 
     if(incomparables instanceof LogicalVector && incomparables.length() == 1 &&

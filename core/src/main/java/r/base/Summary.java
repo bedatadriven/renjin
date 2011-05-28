@@ -26,26 +26,34 @@ import r.jvmi.annotations.NamedFlag;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
+/**
+ * Summary group functions of vectors such as min, max, sum, etc.
+ */
 public class Summary {
 
-
+  private Summary() {}
 
   public static SEXP min(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
     return range(arguments, removeNA).getElementAsSEXP(0);
-
   }
 
   public static SEXP max(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
     return range(arguments, removeNA).getElementAsSEXP(1);
-
   }
 
 
-  public static SEXP range(@ArgumentList ListVector arguments,
+  /**
+   * range returns a vector containing the minimum and maximum of all the given arguments.
+   *
+   * @param arguments  any numeric or character objects.
+   * @param removeNA indicating if NA's should be omitted.
+   * @return a vector containing the minimum and maximum of all the given arguments.
+   */
+  public static Vector range(@ArgumentList ListVector arguments,
                            @NamedFlag("na.rm") boolean removeNA) {
 
     Vector minValue = null;
@@ -89,6 +97,13 @@ public class Summary {
     }
   }
 
+  /**
+   *  returns the product of all the values present in its arguments.
+   *
+   * @param arguments
+   * @param removeNA
+   * @return
+   */
   public static double prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
     double product = 1;
     for(SEXP argument : arguments) {
@@ -142,4 +157,66 @@ public class Summary {
     return haveDouble ? new DoubleVector(doubleSum + intSum) : new IntVector(intSum);
   }
 
+  /**
+   * Given a set of logical vectors, is at least one of the values true?
+   *
+   * Coercion of types other than integer (raw, double, complex, character, list) gives a warning
+   * as this is often unintentional
+   *
+   * @param arguments zero or more logical vectors. Other objects of zero length are ignored,
+   *    and the rest are coerced to logical ignoring any class
+   * @param removeNA   If true NA values are removed before the result is computed.
+   * @return  Let x denote the concatenation of all the logical vectors in ...
+   *   (after coercion), after removing NAs if requested by na.rm = TRUE.
+   * <p>TRUE if at least one of the values in x is TRUE, and FALSE if all of the values in x are FALSE
+   * (including if there are no values). Otherwise the value is NA (which can only occur if na.rm = FALSE
+   * and ... contains no TRUE values and at least one NA value).
+   */
+  public static Logical any(@ArgumentList ListVector arguments,
+                            @NamedFlag("na.rm") boolean removeNA) {
+
+    for(SEXP argument : arguments) {
+      Vector vector = (Vector) argument;
+      for(int i=0;i!=vector.length();++i) {
+        if(vector.isElementNA(i)) {
+          if(!removeNA) {
+            return Logical.NA;
+          }
+        } else if(vector.getElementAsDouble(i) != 0) {
+          return Logical.TRUE;
+        }
+      }
+    }
+    return Logical.FALSE;
+  }
+
+  /**
+   * Given a set of logical vectors, are all of the values true?
+   *
+   * @param arguments zero or more logical vectors. Other objects of zero length are ignored, and the rest
+   *  are coerced to logical ignoring any class.
+   * @param removeNA  If true NA values are removed before the result is computed.
+   * @return Let x denote the concatenation of all the logical vectors in ... (after coercion), after removing NAs if
+   *  requested by na.rm = TRUE.
+   * <p>The value returned is TRUE if all of the values in x are TRUE (including if there are no values), and
+   * FALSE if at least one of the values in x is FALSE. Otherwise the value is NA (which can only occur if
+   *  na.rm = FALSE and ... contains no FALSE values and at least one NA value).
+   */
+  public static Logical all(@ArgumentList ListVector arguments,
+                            @NamedFlag("na.rm") boolean removeNA) {
+
+    for(SEXP argument : arguments) {
+      Vector vector = (Vector) argument;
+      for(int i=0;i!=vector.length();++i) {
+        if(vector.isElementNA(i)) {
+          if(!removeNA) {
+            return Logical.NA;
+          }
+        } else if(vector.getElementAsDouble(i) == 0) {
+          return Logical.FALSE;
+        }
+      }
+    }
+    return Logical.TRUE;
+  }
 }

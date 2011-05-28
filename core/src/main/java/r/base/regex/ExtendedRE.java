@@ -21,6 +21,15 @@ import java.io.Serializable;
 import java.util.Vector;
 
 /**
+ * An "extended" regular expression.
+ *
+ * <h2>Implementation</h2>
+ *
+ * <p>The implementation is imported from
+ * http://jakarta.apache.org/regexp/index.html with minor modifications
+ * for R syntax.
+ *
+ * <p>
  * RE is an efficient, lightweight regular expression evaluator/matcher
  * class. Regular expressions are pattern descriptions which enable
  * sophisticated matching of strings.  In addition to being able to
@@ -1419,14 +1428,7 @@ public class ExtendedRE implements Serializable, RE {
         return false;
     }
 
-    /**
-     * Matches the current regular expression program against a character array,
-     * starting at a given index.
-     *
-     * @param search String to match against
-     * @param i Index to start searching at
-     * @return True if string matched
-     */
+
     public boolean match(String search, int i)
     {
         return match(new StringCharacterIterator(search), i);
@@ -1607,54 +1609,13 @@ public class ExtendedRE implements Serializable, RE {
         return ret;
     }
 
-  /**
-     * Substitutes a string for this regular expression in another string.
-     * This method works like the Perl function of the same name.
-     * Given a regular expression of "a*b", a String to substituteIn of
-     * "aaaabfooaaabgarplyaaabwackyb" and the substitution String "-", the
-     * resulting String returned by subst would be "-foo-garply-wacky-".
-     *
-     * @param substituteIn String to substitute within
-     * @param substitution String to substitute for all matches of this regular expression.
-     * @return The string substituteIn with zero or more occurrences of the current
-     * regular expression replaced with the substitution String (if this regular
-     * expression object doesn't match at any position, the original String is returned
-     * unchanged).
-     */
+
     @Override
     public String subst(String substituteIn, String substitution)
     {
         return subst(substituteIn, substitution, REPLACE_ALL);
     }
 
-    /**
-     * Substitutes a string for this regular expression in another string.
-     * This method works like the Perl function of the same name.
-     * Given a regular expression of "a*b", a String to substituteIn of
-     * "aaaabfooaaabgarplyaaabwackyb" and the substitution String "-", the
-     * resulting String returned by subst would be "-foo-garply-wacky-".
-     * <p>
-     * It is also possible to reference the contents of a parenthesized expression
-     * with $0, $1, ... $9. A regular expression of "http://[\\.\\w\\-\\?/~_@&=%]+",
-     * a String to substituteIn of "visit us: http://www.apache.org!" and the
-     * substitution String "&lt;a href=\"$0\"&gt;$0&lt;/a&gt;", the resulting String
-     * returned by subst would be
-     * "visit us: &lt;a href=\"http://www.apache.org\"&gt;http://www.apache.org&lt;/a&gt;!".
-     * <p>
-     * <i>Note:</i> $0 represents the whole match.
-     *
-     * @param substituteIn String to substitute within
-     * @param substitution String to substitute for matches of this regular expression
-     * @param flags One or more bitwise flags from REPLACE_*.  If the REPLACE_FIRSTONLY
-     * flag bit is set, only the first occurrence of this regular expression is replaced.
-     * If the bit is not set (REPLACE_ALL), all occurrences of this pattern will be
-     * replaced. If the flag REPLACE_BACKREFERENCES is set, all backreferences will
-     * be processed.
-     * @return The string substituteIn with zero or more occurrences of the current
-     * regular expression replaced with the substitution String (if this regular
-     * expression object doesn't match at any position, the original String is returned
-     * unchanged).
-     */
     @Override
     public String subst(String substituteIn, String substitution, int flags)
     {

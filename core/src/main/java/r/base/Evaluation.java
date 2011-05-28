@@ -355,7 +355,6 @@ public class Evaluation {
     }
   }
 
-
   /**
    * @return  TRUE when R is being used interactively and FALSE otherwise.
    */
@@ -388,5 +387,4 @@ public class Evaluation {
   public static int nargs(@Current Context context) {
     return context.getArguments().length();
   }
-
 }

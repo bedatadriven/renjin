@@ -33,9 +33,25 @@ import java.io.InputStreamReader;
 public class Scan {
 
 
-  public static Vector scan(@Current Context context, SEXP file, Vector what, int nmax, String sep, String dec, String quote, int skip, int nlines,
-        StringVector naStrings, boolean flush, boolean fill, boolean stripWhite, boolean quiet, boolean blankLinesSkip,
-        boolean multiLine, String commentChar, boolean allowEscapes, String encoding) throws IOException {
+  public static Vector scan(@Current Context context,
+                            SEXP file,
+                            Vector what,
+                            int nmax,
+                            String sep,
+                            String dec,
+                            String quote,
+                            int skip,
+                            int nlines,
+                            StringVector naStrings,
+                            boolean flush,
+                            boolean fill,
+                            boolean stripWhite,
+                            boolean quiet,
+                            boolean blankLinesSkip,
+                            boolean multiLine,
+                            String commentChar,
+                            boolean allowEscapes,
+                            String encoding) throws IOException {
     InputStream in;
     if(file instanceof StringVector) {
       String fileName = ((StringVector) file).getElementAsString(0);
@@ -84,6 +100,4 @@ public class Scan {
       return builder.build();
     }
   }
-
-
 }

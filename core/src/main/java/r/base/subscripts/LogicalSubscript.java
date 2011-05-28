@@ -24,6 +24,13 @@ package r.base.subscripts;
 import r.lang.IntVector;
 import r.lang.LogicalVector;
 
+/**
+ * Logical subscripts, i.e: x[TRUE, FALSE]
+ *
+ * <p>
+ * Logical subscripts act as filters. So x[TRUE,FALSE] selects
+ * the first element but not the second.
+ */
 public class LogicalSubscript extends Subscript {
   private int count;
   private int[] indices;

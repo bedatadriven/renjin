@@ -244,8 +244,8 @@ public class BaseFrame implements Frame {
 
 /* Logic Related Functions */
 /* these are group generic and so need to eval args */
-    f("all", Comparison.class, 1, 1, -1);
-    f("any", Comparison.class, 2, 1, -1);
+    f("all", Summary.class, 1, 1, -1);
+    f("any", Summary.class, 2, 1, -1);
 
 
 /* Vectors, Matrices and Arrays */
@@ -259,7 +259,7 @@ public class BaseFrame implements Frame {
     f("length<-", /*lengthgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("row", /*rowscols*/ null, 1, 11, 1);
     f("col", /*rowscols*/ null, 2, 11, 1);
-    f("c", Combine.class, "combine",  0, 0, -1);
+    f("c", Combine.class,  0, 0, -1);
     f("unlist", Combine.class, 0, 11, 3);
     f("cbind", Combine.class, 1, 10, -1);
     f("rbind", Combine.class, 2, 10, -1);

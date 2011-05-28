@@ -24,6 +24,10 @@ package r.base.subscripts;
 import r.lang.AtomicVector;
 import r.lang.StringVector;
 
+/**
+ * Named subscripts select element by name, for example
+ * x["foo"]
+ */
 public class NamedSubscript extends Subscript {
   private int count;
   private int[] indices;

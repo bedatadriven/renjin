@@ -25,6 +25,11 @@ import r.lang.AtomicVector;
 import r.lang.IntVector;
 import r.lang.exception.EvalException;
 
+/**
+ * Positive numbers are interpreted as positional subscripts,
+ * indicating which elements should be selected by index:
+ * x[1:5] selects the first five elements.
+ */
 public class PositionalSubscript extends Subscript {
   private final int indices[];
   private int count;

@@ -21,12 +21,26 @@
 
 package r.base.subscripts;
 
+/**
+ * Base classes for R's rich set of different type subscripts.
+ */
 public abstract class Subscript {
 
+  /**
+   *
+   * @return  the number of elements selected by this subscript
+   */
   public int getCount() {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Looks up the source index of the {@code i}-th element
+   * selected by this {@code Subscript}
+   *
+   * @param i the index of the selected element
+   * @return the source index
+   */
   public int getAt(int i) {
     throw new UnsupportedOperationException();
   }

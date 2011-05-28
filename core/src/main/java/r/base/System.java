@@ -57,8 +57,7 @@ public class System {
   }
 
 
-  @Primitive("Version")
-  public static ListVector version() {
+  public static ListVector Version() {
     // this is just copied from my local R installation
     // we'll have to see later what makes the most sense to put here,
     // whether we need to pretend to be some version of R

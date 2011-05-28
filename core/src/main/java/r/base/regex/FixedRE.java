@@ -25,6 +25,9 @@ import com.google.common.collect.Lists;
 
 import java.util.List;
 
+/**
+ * A "Fixed" regular expression that matches the pattern literally.
+ */
 public class FixedRE implements RE {
 
   private String pattern;

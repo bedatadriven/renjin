@@ -26,6 +26,9 @@ import r.jvmi.annotations.Primitive;
 import r.lang.DoubleVector;
 import r.lang.Logical;
 
+/**
+ * Default implementations of the Ops group of functions.
+ */
 public class Ops  {
 
   private Ops() {}

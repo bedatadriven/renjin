@@ -25,6 +25,14 @@ import r.jvmi.binding.RuntimeInvoker;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
+/**
+ * Function class for the Ops group of builtin functions.
+ *
+ * Ops functions are group generic, which means that the evaluation environment ({@code rho})
+ * is checked for +.{class name 1}, Ops.{class name 1}, +.{class name 2}, Ops.{class name 2}
+ * before the default implementation is invoked.
+ *
+ */
 public class OpsFunction extends BuiltinFunction {
 
   public OpsFunction(String name) {
@@ -32,7 +40,7 @@ public class OpsFunction extends BuiltinFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public final EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
 
     PairList evaluated = Calls.evaluateList(context, rho, args);
 
@@ -43,12 +51,20 @@ public class OpsFunction extends BuiltinFunction {
 
     // otherwise execute with builtin functions
     try {
-      return RuntimeInvoker.INSTANCE.invoke(context, rho, call, evaluated, getOverloads());
+      return applyDefault(context, rho, call, evaluated);
     } catch (EvalException e) {
       if(e.getContext() == null) {
         e.initContext(context);
       }
       throw e;
     }
+  }
+
+  /**
+   * Applies the default builtin function using reflection after no matching overrides are found.
+   * Generated subclasses can override this method to provide a more efficient implementation.
+   */
+  protected EvalResult applyDefault(Context context, Environment rho, FunctionCall call, PairList evaluated) {
+    return RuntimeInvoker.INSTANCE.invoke(context, rho, call, evaluated, getOverloads());
   }
 }

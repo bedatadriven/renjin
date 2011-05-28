@@ -39,9 +39,19 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/**
+ * Function for manipulating files and paths.
+ */
 public class Files {
 
+  private Files() {}
 
+  /**
+   * Expand a path name, for example by replacing a leading tilde
+   *  by the user's home directory (if defined on that platform).
+   * @param path
+   * @return the expanded path
+   */
   @Primitive("path.expand")
   public static String pathExpand(String path) {
     if(path.startsWith("~/")) {
@@ -51,6 +61,14 @@ public class Files {
     }
   }
 
+  /**
+   * Utility function to extract information about files on the user's file systems.
+   *
+   * @param context  current call Context
+   * @param paths the list of files for which to return information
+   * @return list column-oriented table of file information
+   * @throws FileSystemException
+   */
   @Primitive("file.info")
   public static ListVector fileInfo(@Current Context context, StringVector paths) throws FileSystemException {
 
@@ -79,11 +97,10 @@ public class Files {
         mode.add(IntVector.NA);
         mtime.add(DoubleVector.NA);
         exe.add(StringVector.NA);
-
       }
     }
 
-    ListVector list = ListVector.newBuilder()
+    return ListVector.newBuilder()
         .add("size", size)
         .add("isdir", isdir)
         .add("mode", mode)
@@ -92,10 +109,10 @@ public class Files {
         .add("atime", mtime)
         .add("exe", exe)
         .build();
-    return list;
   }
   /**
-    *
+    * Gets the type or storage mode of an object.
+
     * @return  unix-style file mode integer
     */
    private static int mode(FileObject file) throws FileSystemException {
@@ -117,15 +134,28 @@ public class Files {
      return Integer.parseInt(octalString, 8);
    }
 
-
+  /**
+   * Returns true if the file exists.
+   *
+   * @param context the current call Context
+   * @param path the path
+   * @return true if the file exists
+   * @throws FileSystemException
+   */
   @Primitive("file.exists")
   public static boolean fileExists(@Current Context context, String path) throws FileSystemException {
     return context.resolveFile(path).exists();
   }
 
   /**
+   * basename removes all of the path up to and including the last path separator (if any).
    *
-   * @param path
+   * Trailing path separators are removed before dissecting the path.
+   *
+   * On Windows this will accept either \ or / as the path separator.
+   * Only expect these to be able to handle complete paths, and not for example just a share or a drive.
+   *
+   * @param path the file path
    * @return  removes all of the path up to and including the last path separator (if any).
    */
   public static String basename(String path) {
@@ -139,6 +169,8 @@ public class Files {
 
   /**
    * Function to do wildcard expansion (also known as ‘globbing’) on file paths.
+   *
+   * Globbing is implemented by {@link FileScanner}
    *
    * @param paths character vector of patterns for relative or absolute filepaths.
    *  Missing values will be ignored.
@@ -164,9 +196,12 @@ public class Files {
   }
 
   /**
+   * Returns the part of the path up to but excluding the last path separator,
+   * or "." if there is no path separator.
    *
-   * @param path
-   * @return  the part of the path up to but excluding the last path separator, or "." if there is no path separator.
+   * @param path the path
+   * @return  the part of the path up to but excluding the last path separator, or "."
+   * if there is no path separator.
    */
   public static String dirname(String path) {
     for(int i=path.length()-1;i>=0;--i) {
@@ -177,20 +212,42 @@ public class Files {
     return ".";
   }
 
+  /**
+   * Creates the last element of the path, unless recursive = TRUE. Trailing path separators are
+   * removed.
+
+   * @param context the current call Context
+   * @param path the path
+   * @param showWarnings should the warnings on failure be shown?
+   * @param recursive Should elements of the path other than the last be created? If true, like Unix's mkdir -p
+   * @param mode the file mode to be used on Unix-alikes: it will be coerced by as.octmode.
+   * (currently ignored by renjin)
+   * @return true if the operation succeeded for each of the files attempted.
+   *  Using a missing value for a path name will always be regarded as a failure.
+   *  returns false if the directory already exists
+   * @throws FileSystemException
+   */
   @Primitive("dir.create")
   public static EvalResult dirCreate(@Current Context context, String path, boolean showWarnings, boolean recursive, int mode) throws FileSystemException {
     FileObject dir = context.resolveFile(path);
     dir.createFolder();
 
+    // TODO: return correct value and implement warnings documented above
+
     return EvalResult.invisible(new LogicalVector(true));
   }
 
   /**
+   * {@code list.files} produce a character vector of the names of files in the named directory.
    *
-   * @param paths  a character vector of full path names; the default corresponds to the working directory getwd(). Missing values will be ignored.
-   * @param pattern an optional regular expression. Only file names which match the regular expression will be returned.
-   * @param allFiles  If FALSE, only the names of visible files are returned. If TRUE, all file names will be returned.
-   * @param fullNames If TRUE, the directory path is prepended to the file names. If FALSE, only the file names are returned.
+   * @param paths  a character vector of full path names; the default corresponds to the working
+   *  directory getwd(). Missing values will be ignored.
+   * @param pattern an optional regular expression. Only file names which match the regular
+   * expression will be returned.
+   * @param allFiles  If FALSE, only the names of visible files are returned. If TRUE, all
+   * file names will be returned.
+   * @param fullNames If TRUE, the directory path is prepended to the file names. If FALSE,
+   * only the file names are returned.
    * @param recursive Should the listing recurse into directories?
    * @param ignoreCase Should pattern-matching be case-insensitive?
    *
@@ -263,21 +320,53 @@ public class Files {
     }.list();
   }
 
+  /**
+   * <strong>According to the R docs:</strong>
+   * a subdirectory of the temporary directory found by the following rule.
+   * The environment variables TMPDIR, TMP and TEMP are checked in turn and the first
+   * found which points to a writable directory is used: if none succeeds the value of
+   * R_USER (see Rconsole) is used. If the path to the directory contains a space
+   * in any of the components, the path returned will use the shortnames version of the path.
+   *
+   * <p>This implementation also returns the value of {@code System.getProperty(java.io.tmpdir) }
+   *
+   * @return temporary sub directory
+   */
   public static String tempdir() {
     return java.lang.System.getProperty("java.io.tmpdir");
   }
 
+  /**
+   *
+   * Returns a path that can be used as names for temporary files
+   *
+   * @param pattern a non-empty character vector giving the initial part of the name
+   * @param tempdir a non-empty character vector giving the directory name
+   *
+   * @return path that can be used as names for temporary files
+   */
   public static String tempfile(String pattern, String tempdir) {
     return tempdir + "/" + pattern;
   }
 
+  /**
+   * Returns an absolute filename representing the current working directory of the R process;
+   * setwd(dir) is used to set the working directory to dir.
+   *
+   * <p>
+   * Renjin maintains its own internal pointer to the working directory which lives in
+   * {@link r.lang.Context.Globals}
+   *
+   * @param context the current call Context
+   * @return an absolute filename representing the current working directory
+   */
   public static String getwd(@Current Context context) {
     return context.getGlobals().workingDirectory.getName().getURI();
   }
 
   /**
    * Unlink deletes the file(s) or directories specified by {@code paths}.
-   * @param context
+   * @param context the current call Context
    * @param paths list of paths to delete
    * @param recursive  Should directories be deleted recursively?
    * @return  0 for success, 1 for failure. Not deleting a non-existent file is not a failure,
@@ -313,6 +402,20 @@ public class Files {
     }
   }
 
+  /**
+   * Extract files from or list a zip archive.
+   *
+   * @param context the current call Context
+   * @param zipFile  The pathname of the zip file: tilde expansion (see path.expand) will be performed.
+   * @param files A character vector of recorded filepaths to be extracted: the default is to extract all files.
+   * @param exdirUri  The directory to extract files to (the equivalent of unzip -d). It will be created if necessary.
+   * @param list If TRUE, list the files and extract none. The equivalent of unzip -l.
+   * @param overwrite If TRUE, overwrite existing files, otherwise ignore such files. The equivalent of unzip -o.
+   * @param junkpaths If TRUE, use only the basename of the stored filepath when extracting. The equivalent of unzip -j.
+   * @return  If list = TRUE, a data frame with columns Name, Length (the size of the uncompressed file) and Date (of class "POSIXct").
+      Otherwise, a character vector of the filepaths extracted to, invisibly.
+   * @throws IOException
+   */
   public static EvalResult unzip(@Current Context context, String zipFile, Vector files, String exdirUri,
                                  boolean list, boolean overwrite, boolean junkpaths) throws IOException {
 
@@ -333,7 +436,11 @@ public class Files {
     return EvalResult.invisible(new IntVector(0));
   }
 
-  private static void unzipExtract(ZipInputStream zin, ZipEntry entry, FileObject exdir, boolean junkpaths, boolean overwrite) throws IOException {
+  /**
+   * Helper function to extract a zip entry to the given folder.
+   */
+  private static void unzipExtract(ZipInputStream zin, ZipEntry entry, FileObject exdir,
+                                   boolean junkpaths, boolean overwrite) throws IOException {
     if(junkpaths) {
       throw new EvalException("unzip(junpaths=false) not yet implemented");
     }

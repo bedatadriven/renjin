@@ -21,6 +21,11 @@
 
 package r.base.subscripts;
 
+/**
+ * A missing subscript -- x[] -- selects all elements.
+ * When used for an array/matrix, it can select the whole
+ * row or column. For example, x[,1] or x[1,]
+ */
 public class MissingSubscript extends Subscript {
 
   private final int sourceDimensionLength;

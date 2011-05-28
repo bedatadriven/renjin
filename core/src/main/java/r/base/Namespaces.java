@@ -29,7 +29,6 @@ public class Namespaces {
 
   public static SEXP getRegisteredNamespace(@Current Context context, String name) {
     return getRegisteredNamespace(context, new Symbol(name));
-
   }
 
   public static SEXP getRegisteredNamespace(@Current Context context, Symbol name) {
@@ -85,75 +84,4 @@ public class Namespaces {
     }
   }
 
-
-//
-//  public static boolean importIntoEnv() {
-//    SEXP attribute_hidden do_importIntoEnv(SEXP call, SEXP op, SEXP args, SEXP rho)
-//{
-//    /* This function copies values of variables from one environment
-//       to another environment, possibly with different names.
-//       Promises are not forced and active bindings are preserved. */
-//    SEXP impenv, impnames, expenv, expnames;
-//    SEXP impsym, expsym, binding, env, val;
-//    int i, n;
-//
-//    checkArity(op, args);
-//
-//    impenv = CAR(args); args = CDR(args);
-//    impnames = CAR(args); args = CDR(args);
-//    expenv = CAR(args); args = CDR(args);
-//    expnames = CAR(args); args = CDR(args);
-//
-//    if (TYPEOF(impenv) == NILSXP)
-//        error(_("use of NULL environment is defunct"));
-//    if (TYPEOF(impenv) != ENVSXP)
-//        error(_("bad import environment argument"));
-//    if (TYPEOF(expenv) == NILSXP)
-//        error(_("use of NULL environment is defunct"));
-//    if (TYPEOF(expenv) != ENVSXP)
-//        error(_("bad export environment argument"));
-//    if (TYPEOF(impnames) != STRSXP || TYPEOF(expnames) != STRSXP)
-//        error(_("invalid '%s' argument"), "names");
-//    if (LENGTH(impnames) != LENGTH(expnames))
-//        error(_("length of import and export names must match"));
-//
-//    n = LENGTH(impnames);
-//    for (i = 0; i < n; i++) {
-//        impsym = install(translateChar(STRING_ELT(impnames, i)));
-//        expsym = install(translateChar(STRING_ELT(expnames, i)));
-//
-//        /* find the binding--may be a CONS cell or a symbol */
-//        for (env = expenv, binding = R_NilValue;
-//             env != R_EmptyEnv && binding == R_NilValue;
-//             env = ENCLOS(env))
-//            if (env == R_BaseNamespace) {
-//                if (SYMVALUE(expsym) != R_UnboundValue)
-//                    binding = expsym;
-//            }
-//            else
-//                binding = findVarLocInFrame(env, expsym, NULL);
-//        if (binding == R_NilValue)
-//            binding = expsym;
-//
-//        /* get value of the binding; do not force promises */
-//        if (TYPEOF(binding) == SYMSXP) {
-//            if (SYMVALUE(expsym) == R_UnboundValue)
-//                error(_("exported symbol '%s' has no value"),
-//                      CHAR(PRINTNAME(expsym)));
-//            val = SYMVALUE(expsym);
-//        }
-//        else val = CAR(binding);
-//
-//        /* import the binding */
-//        if (IS_ACTIVE_BINDING(binding))
-//            R_MakeActiveBinding(impsym, val, impenv);
-//        /* This is just a tiny optimization */
-//        else if (impenv == R_BaseNamespace || impenv == R_BaseEnv)
-//            gsetVar(impsym, val, impenv);
-//        else
-//            defineVar(impsym, val, impenv);
-//    }
-//    return R_NilValue;
-//
-//  }
 }

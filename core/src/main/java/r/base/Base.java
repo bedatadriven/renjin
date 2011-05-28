@@ -25,8 +25,12 @@ import r.jvmi.annotations.Current;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
+/**
+ * Implementation of routines from the base dll.
+ */
 public class Base {
 
+  private Base() { }
 
   public static boolean R_isMethodsDispatchOn(@Current Context context) {
     return false;

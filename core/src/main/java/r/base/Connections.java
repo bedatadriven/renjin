@@ -23,6 +23,8 @@ package r.base;
 
 import org.apache.commons.vfs.FileSystemException;
 import r.base.connections.GzFileConnection;
+import r.base.connections.OutputStreamConnection;
+import r.base.connections.StdInConnection;
 import r.io.DatafileReader;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Recycle;
@@ -33,27 +35,62 @@ import java.io.*;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
+/**
+ *
+ *  Functions which create and manipulates connection objects.
+ *
+ * <p>
+ * Connection objects are {@link ExternalExp}s that hold a reference to a
+ * class implementing the {@link Connection} interface.
+ *
+ */
 public class Connections {
 
+
+  /**
+   * Opens a connection to a gzipped file.
+   *
+   * @param context the current call Context
+   * @param path path to the gzipped file
+   * @param open the mode flag
+   * @param encoding the character encoding if the file is to be opened for text reading
+   * @param compressionLevel  integer 0-9
+   * @return an external reference object which inherits from the (S3) class "connection"
+   * @throws FileSystemException
+   */
   public static ExternalExp<Connection> gzfile(@Current final Context context,
                                                final String path,
                                                String open,
                                                String encoding,
                                                double compressionLevel) throws FileSystemException {
 
-    Connection connection = new GzFileConnection(context.resolveFile(path));
-    return new ExternalExp(connection, "connection");
+    return new ExternalExp(new GzFileConnection(context.resolveFile(path)), "connection");
   }
 
-    public static ExternalExp<Connection> file(@Current final Context context,
-                                               final String description,
-                                               String open,
-                                               boolean blocking,
-                                               String encoding) {
+
+  /**
+   * Opens a connection to a file.
+
+   * @param context the current Context
+   * @param path path to the file
+   * @param open the mode flag that determines how the file
+   * @param blocking In blocking mode, functions using the connection do not return to the R evaluator
+   *  until the read/write is complete. In non-blocking mode, operations return as soon as possible,
+   * so on input they will return with whatever input is available (possibly none) and for output
+   * they will return whether or not the write succeeded.
+   *
+   * @param encoding the character to encoding, if the file is to be opened as text
+   * @return  an external reference object which inherits from the (S3) class "connection"
+   */
+  public static ExternalExp<Connection> file(@Current final Context context,
+                                             final String path,
+                                             String open,
+                                             boolean blocking,
+                                             String encoding) {
     Connection connection = new ConnectionImpl(new InputStreamFactory() {
       @Override
       public InputStream openInputStream() throws IOException {
-        return openInput(context, description);
+        return openInput(context, path);
       }
     });
 
@@ -119,11 +156,11 @@ public class Connections {
   }
 
   public static String readChar(Connection conn, int nchars, @Recycle(false) boolean useBytes) throws IOException {
-   // at the moment, we assume the encoding is ASCII.
-   // We can't easily use an InputStreamReader here because it uses a buffer
-   // which messes up subsequent calls to read() on the underlying input stream
+    // at the moment, we assume the encoding is ASCII.
+    // We can't easily use an InputStreamReader here because it uses a buffer
+    // which messes up subsequent calls to read() on the underlying input stream
 
-   InputStream in = conn.getInputStream();
+    InputStream in = conn.getInputStream();
 
     byte buffer[] = new byte[nchars];
     int bytesRead;
@@ -138,8 +175,9 @@ public class Connections {
   }
 
   /**
-   * Populates a target Environment with  
-   * @param names
+   * Populates a target {@code Environment} with promises to serialized expressions.
+   *
+   * @param names the names of the symbols to be populated
    * @param values
    * @param expr
    * @param eenv
@@ -204,6 +242,7 @@ public class Connections {
     }
     return exp;
   }
+
 
   public static byte[] decompress1(byte buffer[]) throws IOException, DataFormatException {
     DataInputStream in = new DataInputStream(new ByteArrayInputStream(buffer));
@@ -273,48 +312,6 @@ public class Connections {
       if(inputStream != null) {
         inputStream.close();
       }
-    }
-  }
-
-  private static class StdInConnection implements Connection {
-
-    @Override
-    public InputStream getInputStream() throws IOException {
-      return null; // TODO
-    }
-
-    @Override
-    public PrintWriter getPrintWriter() throws IOException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void close() throws IOException {
-      /* NOOP */
-    }
-  }
-
-  private static class OutputStreamConnection implements Connection {
-    private PrintWriter pw;
-
-
-    public OutputStreamConnection(PrintStream out) {
-      pw = new PrintWriter(out);
-    }
-
-    @Override
-    public InputStream getInputStream() throws IOException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PrintWriter getPrintWriter() throws IOException {
-      return pw;
-    }
-
-    @Override
-    public void close() throws IOException {
-
     }
   }
 

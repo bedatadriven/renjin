@@ -29,10 +29,22 @@ import r.lang.Function;
 import r.lang.FunctionCall;
 import r.lang.exception.EvalException;
 
+/**
+ * Functions that provide access to the call Context stack.
+ */
 public class Contexts {
 
   private Contexts() {}
 
+  /**
+   * Returns the index of the current frame.
+   *
+   * .GlobalEnv is given number 0 in the list of frames.
+   * Each subsequent function evaluation increases the frame stack by 1.
+   *
+   * @param context the current {@code Context}
+   * @return the index of the current frame.
+   */
   @Primitive("sys.nframe")
   public static int sysFrameCount(@Current Context context) {
     if(context.getEvaluationDepth() == 0) {
@@ -119,6 +131,4 @@ public class Contexts {
     }
     return frame;
   }
-
-
 }

@@ -21,13 +21,14 @@
 
 package r.base;
 
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.NamedFlag;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
+
 public class Comparison {
+
+  private Comparison() { }
 
 
   /**
@@ -84,42 +85,6 @@ public class Comparison {
     }
   }
 
-  public static Logical any(@ArgumentList ListVector arguments,
-                            @NamedFlag("na.rm") boolean removeNA) {
-
-    for(SEXP argument : arguments) {
-      Vector vector = (Vector) argument;
-      for(int i=0;i!=vector.length();++i) {
-        if(vector.isElementNA(i)) {
-          if(!removeNA) {
-            return Logical.NA;
-          }
-        } else if(vector.getElementAsDouble(i) != 0) {
-          return Logical.TRUE;
-        }
-      }
-    }
-    return Logical.FALSE;
-  }
-
-
-  public static Logical all(@ArgumentList ListVector arguments,
-                            @NamedFlag("na.rm") boolean removeNA) {
-
-    for(SEXP argument : arguments) {
-      Vector vector = (Vector) argument;
-      for(int i=0;i!=vector.length();++i) {
-        if(vector.isElementNA(i)) {
-          if(!removeNA) {
-            return Logical.NA;
-          }
-        } else if(vector.getElementAsDouble(i) == 0) {
-          return Logical.FALSE;
-        }
-      }
-    }
-    return Logical.TRUE;
-  }
 
   private static Logical checkedToLogical(SEXP exp, String errorMessage) {
     if(exp instanceof AtomicVector) {

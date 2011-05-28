@@ -137,19 +137,6 @@ public class Conditions {
     }
   }
 
-//
-//  @Primitive(".addCondHands")
-//  public static SEXP addConditionHandlers(@Current Context context,
-//                                          Null classesExp,
-//                                          Null handlersExp,
-//                                          Environment parentEnv,
-//                                          Environment target,
-//                                          LogicalVector calling) {
-//
-//    return context.getGlobals().conditionHandlerStack;
-//
-//  }
-
   @Primitive(".addRestart")
   public static void addRestart(SEXP restart) {
     // TODO : implement

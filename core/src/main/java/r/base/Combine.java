@@ -31,13 +31,22 @@ import r.lang.exception.EvalException;
 
 import java.util.List;
 
+/**
+ * Implementation of the combine-related functions, including c(), list(), unlist(),
+ *  cbind(), rbind(), matrix(), and aperm()
+ */
 public class Combine {
 
-  private static final String RECURSIVE = "recursive";
-
-
-  public static SEXP combine(@ArgumentList ListVector arguments,
-                             @NamedFlag("recursive") boolean recursive) {
+  /**
+   * combines its arguments to form a vector. All arguments are coerced to a common type which is the
+   * type of the returned value, and all attributes except names are removed.
+   *
+   * @param arguments
+   * @param recursive
+   * @return
+   */
+  public static SEXP c(@ArgumentList ListVector arguments,
+                       @NamedFlag("recursive") boolean recursive) {
 
     // Iterate over all the vectors in the argument
     // list to determine which vector type to use
@@ -67,7 +76,7 @@ public class Combine {
 
 
   /**
-   * Finds the common type of an expression
+   * Finds the narrowest common type of an expression
    */
   static class Inspector extends SexpVisitor<Vector.Type> {
 
@@ -232,6 +241,11 @@ public class Combine {
    * @param permutationVector the subscript permutation vector, which must be a permutation of the
    *      integers 1:n, where {@code n} is the number of dimensions of {@code source}.
    * @param resize flag indicating whether the vector should be resized as well as having its elements reordered
+   * @return A transposed version of array a, with subscripts permuted as indicated by the array perm.
+   * If resize is TRUE, the array is reshaped as well as having
+   *  its elements permuted, the dimnames are also permuted; if resize = FALSE then the returned
+   * object has the same dimensions as a, and the dimnames are dropped. In each case other attributes
+   * are copied from a.
    */
   public static SEXP aperm(Vector source, AtomicVector permutationVector, boolean resize) {
     if(!resize) throw new UnsupportedOperationException("resize=TRUE not yet implemented");
@@ -263,7 +277,6 @@ public class Combine {
         newVector.setAttribute(node.getName(), node.getValue());
       }
     }
-
     return newVector.build();
   }
 
@@ -306,6 +319,34 @@ public class Combine {
 //
 //  }
 
+  /**
+   * {@code cbind} and {@code rbind} take a sequence of vector, matrix or data frames arguments and
+   * combine by columns or rows, respectively.
+   *
+   * <p>This is the default method of cbind (rbind), and all the vectors/matrices must be atomic
+   * or lists. Expressions are not allowed. Language objects (such as formulae and calls) and
+   * pairlists will be coerced to lists: other objects (such as names and external pointers) will be
+   * included as elements in a list result. Any classes the inputs might have are discarded
+   * (in particular, factors are replaced by their internal codes).
+   *
+   * <p>If there are several matrix arguments, they must all have the same number of columns (rows)
+   * and this will be the number of columns (or rows) of the result. If all the arguments
+   * are vectors, the number of columns (rows) in the result is equal to the length of the
+   * longest vector. Values in shorter arguments are recycled to achieve this length
+   * (with a warning if they are recycled only fractionally).
+   *
+   * <p>When the arguments consist of a mix of matrices and vectors the number of rows of the result
+   *  is determined by the number of columns (rows) of the matrix arguments. Any vectors have their
+   * values recycled or subsetted to achieve this length.
+   *
+   * <p>For cbind (rbind), vectors of zero length (including NULL) are ignored unless the result would have
+   * zero rows (columns), for S compatibility. (Zero-extent matrices do not occur in S3 and are not
+   * ignored in R.)
+   *
+   * @param arguments vectors to combine into rows
+   * @return  a matrix combining the ... arguments column-wise or row-wise.
+   * (Exception: if there are no inputs or all the inputs are NULL, the value is NULL.)
+   */
   public static SEXP rbind(@ArgumentList ListVector arguments) {
 
     List<BindArgument> bindArguments = Lists.newArrayList();
@@ -377,12 +418,15 @@ public class Combine {
 
     builder.setDimNames(rowNames, colNames);
 
-
-
     return builder.build();
   }
 
-
+  /**
+   * Takes a sequence of vector, matrix or data frames arguments and
+   * combine by columns. See {@link #rbind(r.lang.ListVector)}
+   * @param arguments  the expressions to combined
+   * @return  a matrix combining the ... arguments column-wise or row-wise.
+   */
   public static SEXP cbind(@ArgumentList ListVector arguments) {
 
     int deparseLevel = arguments.getElementAsInt(0);
@@ -497,12 +541,11 @@ public class Combine {
         matrix = true;
       }
     }
-
-
-
-
   }
 
+  /**
+   * Builds a two-dimensional matrix using an underlying {@link Vector.Builder}
+   */
   private static class Matrix2dBuilder {
     private final Vector.Builder builder;
     private final int rows;
@@ -534,6 +577,18 @@ public class Combine {
     }
   }
 
+  /**
+   * Creates a matrix from the given set of values.
+   *
+   * @param data an optional data vector.
+   * @param nrow the desired number of rows.
+   * @param ncol the desired number of columns.
+   * @param byRow If FALSE (the default) the matrix is filled by columns, otherwise the matrix is filled by rows.
+   * @param dimnames A dimnames attribute for the matrix: NULL or a list of length 2 giving the row and column names
+   * respectively. An empty list is treated as NULL, and a list of length one as row names.
+   * The list can be named, and the list names will be used as names for the dimensions.
+   * @return
+   */
   public static SEXP matrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
     if(byRow) {
       throw new UnsupportedOperationException("matrix by row not implemented");

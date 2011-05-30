@@ -24,10 +24,7 @@ package r.base;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Visible;
+import r.jvmi.annotations.*;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -255,6 +252,30 @@ public class Types {
     return result.build();
   }
 
+  @Primitive("as.vector")
+  public static SEXP asVector(PairList x, String mode) {
+    Vector.Builder result;
+    if("character".equals(mode)) {
+      result = new StringVector.Builder();
+    } else if("logical".equals(mode)) {
+      result = new LogicalVector.Builder(x.length());
+    } else if("numeric".equals(mode)) {
+      result = new DoubleVector.Builder(x.length());
+    } else if("list".equals(mode)) {
+      result = new ListVector.Builder();
+    } else {
+      throw new EvalException("invalid 'mode' argument");
+    }
+
+    StringVector.Builder names = new StringVector.Builder();
+    for(PairList.Node node : x.nodes()) {
+      names.add( node.hasTag() ? node.getTag().getPrintName() : "");
+      result.addFrom( node.getValue(), 0 );
+    }
+    result.setAttribute(Symbol.NAMES.getPrintName(), names.build());
+    return result.build();
+  }
+
   private static PairList asPairList(Vector x) {
     PairList.Builder builder = new PairList.Builder();
     for(int i=0;i!=x.length();++i) {
@@ -352,7 +373,7 @@ public class Types {
     return libEnv;
   }
 
-  @Primitive("dim")
+  @Primitive("dim") @Generic
   public static SEXP getDimensions(SEXP sexp) {
     return sexp.getAttribute(Symbol.DIM);
   }
@@ -459,7 +480,6 @@ public class Types {
     return environment.findVariable(new Symbol(x), modePredicate(mode), inherits)
         != Symbol.UNBOUND_VALUE;
   }
-
 
   public static SEXP get(@Current Context context, String x, Environment environment, String mode, boolean inherits) {
     return environment.findVariable(new Symbol(x), modePredicate(mode), inherits);
@@ -727,5 +747,4 @@ public class Types {
     }
     return results.build();
   }
-
 }

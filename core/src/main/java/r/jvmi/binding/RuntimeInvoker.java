@@ -112,7 +112,58 @@ public class RuntimeInvoker {
       return overloads.get(0).invokeWithContextAndWrap(context, rho, toEvaluatedList(overloads.get(0), provided));
     }
 
+    // if generic, try to dispatch it to a closure in scope
+    // e.g. a vector with class 'flarb' would be dispatched to 'dim.flarb' if it exists.
+    EvalResult result = tryDispatchGeneric(context, rho, call, overloads, provided);
+    if(result != null) {
+      return result;
+    }
+
     return matchAndInvoke(context, rho, overloads, provided);
+  }
+
+  private EvalResult tryDispatchGeneric(Context context, Environment rho, FunctionCall call,
+                                        List<JvmMethod> overloads, List<ProvidedArgument> provided) {
+    // check first to see if this method should be executed generically.
+    if(!isGeneric(overloads)) {
+      return null;
+    }
+    if(provided.isEmpty()) {
+      throw new EvalException("hmm generic primitive with zero args: " + overloads.toString());
+    }
+
+    Vector classes = (Vector)provided.get(0).evaluated().getAttribute(Symbol.CLASS);
+    if(classes.length() == 0) {
+      return null;
+    }
+
+    for(int i = 0; i!=classes.length();++i) {
+      Symbol method = new Symbol(overloads.get(0).getGenericName() + "." + classes.getElementAsString(i));
+      SEXP function = rho.findVariable(method, CollectionUtils.IS_FUNCTION, true);
+      if(function != Symbol.UNBOUND_VALUE) {
+        FunctionCall genericCall = new FunctionCall(function, toEvaluatedPairList(provided));
+        return genericCall.evaluate(context, rho);
+      }
+    }
+
+    return null;
+  }
+
+  private boolean isGeneric(List<JvmMethod> overloads) {
+    boolean isGeneric = false;
+    boolean isNotGeneric = false;
+    for(JvmMethod overload : overloads) {
+      if(overload.isGeneric()) {
+        isGeneric = true;
+      } else {
+        isNotGeneric = true;
+      }
+    }
+    if(isGeneric && isNotGeneric) {
+      throw new EvalException("all overloads must be marked with @Generic or none: " + overloads.toString());
+    }
+
+    return isGeneric;
   }
 
 
@@ -215,6 +266,14 @@ public class RuntimeInvoker {
       }
     }
     return true;
+  }
+
+  private PairList toEvaluatedPairList(List<ProvidedArgument> arguments) {
+    PairList.Builder pairlist = new PairList.Builder();
+    for(ProvidedArgument arg : arguments) {
+      pairlist.add(arg.getTag(), arg.evaluated());
+    }
+    return pairlist.build();
   }
 
   private Object[] toEvaluatedList(JvmMethod method, List<ProvidedArgument> arguments) {

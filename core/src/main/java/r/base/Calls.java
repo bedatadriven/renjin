@@ -570,5 +570,4 @@ public class Calls {
   private static <X> X first(Iterable<X> values) {
     return values.iterator().next();
   }
-
 }

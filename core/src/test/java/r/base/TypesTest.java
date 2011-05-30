@@ -268,5 +268,18 @@ public class TypesTest extends EvalTestCase {
     eval(" .Internal(options(foo=TRUE)) ");
   }
 
+  @Test
+  public void pairListToList() {
+
+    eval(" x <- .Internal(as.vector(list(a=41, b=42), 'pairlist')) ");
+    eval(" y <- .Internal(as.vector(x, 'list')) ");
+
+    assertThat( eval("y"), equalTo( list(41d,42d)));
+    assertThat( eval("names(x)"), equalTo( c("a", "b")));
+    assertThat( eval(".Internal(typeof(x))"), equalTo( c("pairlist")));
+    assertThat( eval("names(y)"), equalTo( c("a", "b")));
+
+  }
+
 
 }

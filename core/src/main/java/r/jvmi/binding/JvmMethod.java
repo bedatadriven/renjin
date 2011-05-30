@@ -156,6 +156,21 @@ public class JvmMethod implements Comparable<JvmMethod> {
     return recycle;
   }
 
+  public boolean isGeneric() {
+    return method.getAnnotation(Generic.class) != null;
+  }
+
+  /**
+   * @return the name to use for generic dispatch
+   */
+  public String getGenericName() {
+    Primitive primitive = method.getAnnotation(Primitive.class);
+    if(primitive != null && primitive.value() != null) {
+      return primitive.value();
+    }
+    return method.getName();
+  }
+
   /**
    * @return true if this method's arguments exactly match the {@code expectedArgumentTypes}
    */

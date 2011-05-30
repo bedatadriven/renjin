@@ -167,6 +167,21 @@ public interface PairList extends SEXP {
       return hasTag() ? getTag().getPrintName() : "";
     }
 
+    @Override
+    public AtomicVector getNames() {
+      StringVector.Builder names = new StringVector.Builder();
+      boolean hasNames = false;
+      for(PairList.Node node : nodes()) {
+        if (node.hasTag()) {
+          names.add(node.getTag().getPrintName());
+          hasNames = true;
+        } else {
+          names.add("");
+        }
+      }
+      return hasNames ? names.build() : Null.INSTANCE;
+    }
+
     public final void setValue(SEXP value) {
       this.value = value;
     }

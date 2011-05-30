@@ -296,7 +296,4 @@ public class Distributions {
 //  public static double qhyper(double p,double m, double n, double k, boolean lowerTail, boolean logP)  {
 //    return q(new HypergeometricDistributionImpl((int)m, (int)n, (int)k), p, lowerTail, logP);
 //  }
-
-
-
 }

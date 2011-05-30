@@ -472,5 +472,58 @@ public class Text {
     return result.build();
   }
 
+  /**
+   * Make syntactically valid names out of character vectors.
+   *
+   * A syntactically valid name consists of letters, numbers and the dot or underline
+   * characters and starts with a letter or the dot not followed by a number. Names such as
+   * ".2way" are not valid, and neither are the reserved words.
+   *
+   * The character "X" is prepended if necessary. All invalid characters are translated to ".".
+   * A missing value is translated to "NA". Names which match R keywords have a dot appended to them.
+   *
+   * @param names
+   * @param allow
+   * @return
+   */
+  @Primitive("make.names")
+  @AllowNA
+  public static String makeNames(@Recycle String name, @Recycle(false) boolean allow) {
+    if(allow) {
+      throw new EvalException("make.names(allow=TRUE) not implemented");
+    }
+    if(StringVector.isNA(name)) {
+      return "NA.";
+    } else if(name.isEmpty() || !legalFirstCharacter(name)) {
+      return "X" + replaceIllegalCharacters(name);
+    } else if(ReservedWords.isReserved(name)) {
+      return name + ".";
+    } else {
+      return replaceIllegalCharacters(name);
+    }
+  }
+
+  private static boolean legalFirstCharacter(String name) {
+    char first = name.charAt(0);
+    return Character.isLetter(first) ||
+        (first == '.' && !secondCharacterIsDigit(name));
+  }
+
+  private static boolean secondCharacterIsDigit(String name) {
+    return name.length() >= 2 && Character.isDigit(name.codePointAt(1));
+  }
+
+  private static String replaceIllegalCharacters(String name) {
+    StringBuilder sb = new StringBuilder(name.length());
+    for(int i=0;i!=name.length();++i) {
+      int cp = name.codePointAt(i);
+      if(cp == '_' || Character.isDigit(cp) || Character.isLetter(cp)) {
+        sb.appendCodePoint(cp);
+      } else {
+        sb.append('.');
+      }
+    }
+    return sb.toString();
+  }
 
 }

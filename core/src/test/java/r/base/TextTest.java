@@ -151,6 +151,12 @@ public class TextTest extends EvalTestCase {
 
 
     assertThat( eval(" grep('[', '[[', fixed=TRUE) "), equalTo(c_i(1)));
+  }
 
+  @Test
+  public void makeNames() {
+    assertThat(
+        eval(".Internal(make.names(c('a', '1', 'if', 'a', '.', NA_character_, '_a', '.2way', '.legal', '$#@foo_bar!'), FALSE))"),
+        equalTo( c("a", "X1", "if.", "a", ".",  "NA.", "X_a", "X.2way", ".legal", "X...foo_bar.") ));
   }
 }

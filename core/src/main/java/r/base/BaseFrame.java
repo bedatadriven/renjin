@@ -560,7 +560,7 @@ public class BaseFrame implements Frame {
     f("substr<-", /*substrgets*/ null, 1, 11, 4);
     f("strsplit", Text.class, 1, 11, 6);
     f("abbreviate", /*abbrev*/ null, 1, 11, 3);
-    f("make.names", /*makenames*/ null, 0, 11, 2);
+    f("make.names", Text.class, 0, 11, 2);
     f("grep", Text.class, 0, 11, 9);
     f("grepl", Text.class, 1, 11, 9);
     f("sub", Text.class, 0, 11, 8);

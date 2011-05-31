@@ -325,6 +325,13 @@ public class SubscriptTest extends EvalTestCase {
   }
 
   @Test
+  public void exactMatch() {
+    eval(" x <- list(a=1, aa=2) ");
+
+    assertThat( eval(" x$a "), equalTo( c(1)));
+  }
+
+  @Test
   public void pairListPartial() {
 
     PairList list = PairList.Node.newBuilder()

@@ -192,6 +192,7 @@ public class Print {
         }
         if(alignment == Alignment.RIGHT) {
           out.append(s);
+
         }
       }
     }

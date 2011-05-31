@@ -81,6 +81,7 @@ public class BaseFrame implements Frame {
   public BaseFrame() {
     installBuiltins();
     installPlatform();
+    installMachine();
     installLoaded();
   }
 
@@ -117,6 +118,37 @@ public class BaseFrame implements Frame {
         .add("r_arch", new StringVector(""))
         .add("dynlib.ext", new StringVector(".dll"))
         .build());
+  }
+
+  /**
+   * Adds the .Machine list to the base frame,
+   * a variable holding information on the numerical characteristics of the machine R is
+   * running on, such as the largest double or integer and the machine's precision.
+   */
+  private void installMachine() {
+    builtins.put(new Symbol(".Machine"), ListVector.newBuilder()
+        .add("double.eps", new DoubleVector(DoubleVector.EPSILON))
+        .add("double.neg.eps", new DoubleVector(1.110223e-16))
+        .add("double.min", new DoubleVector(Double.MIN_VALUE))
+        .add("double.max", new DoubleVector(Double.MAX_VALUE))
+        .add("double.xmin",new DoubleVector(2 ^ Double.MIN_EXPONENT))
+        .add("double.xmax", new DoubleVector(2 ^ Double.MAX_EXPONENT))
+        .add("double.base", new IntVector(2))
+        .add("double.digits", new IntVector(53))
+        .add("double.rounding", new IntVector(5))
+        .add("double.guard", new IntVector(0))
+        .add("double.ulp.digits", new IntVector(-52))
+        .add("double.neg.ulp.digits", new IntVector(-53))
+        .add("double.exponent", new IntVector(11))
+        .add("double.min.exp", new IntVector(Double.MIN_EXPONENT))
+        .add("double.max.exp", new IntVector(Double.MAX_EXPONENT))
+        .add("integer.max", new IntVector(Integer.MAX_VALUE))
+        .add("sizeof.long", new IntVector(4))
+        .add("sizeof.longlong", new IntVector(0))
+        .add("sizeof.longdouble", new IntVector(12))
+        .add("sizeof.pointer", new IntVector(4))
+       .build());
+
   }
 
   private String resolveOsName() {

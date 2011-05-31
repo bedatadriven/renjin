@@ -60,7 +60,10 @@ public class Subscript {
     int matchCount = 0;
 
     for(int i=0;i!=list.length(); ++i) {
-      if(list.getName(i).startsWith(name.getPrintName())) {
+      String elementName = list.getName(i);
+      if(elementName.equals(name.getPrintName())) {
+        return list.getElementAsSEXP(i);
+      } else if(elementName.startsWith(name.getPrintName())) {
         match = list.get(i);
         matchCount++;
       }

@@ -33,6 +33,9 @@ import r.jvmi.annotations.Recycle;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static com.google.common.collect.Iterables.transform;
 
 public class Text {
@@ -489,9 +492,6 @@ public class Text {
   @Primitive("make.names")
   @AllowNA
   public static String makeNames(@Recycle String name, @Recycle(false) boolean allow) {
-    if(allow) {
-      throw new EvalException("make.names(allow=TRUE) not implemented");
-    }
     if(StringVector.isNA(name)) {
       return "NA.";
     } else if(name.isEmpty() || !legalFirstCharacter(name)) {
@@ -524,6 +524,40 @@ public class Text {
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * Makes the elements of a character vector unique by appending sequence numbers to duplicates.
+   *
+   * @param names  a character vector
+   * @param sep a character string used to separate a duplicate name from its sequence number.
+   * @return  A character vector of same length as names with duplicates changed,
+   *         in the current locale's encoding.
+   */
+  @Primitive("make.unique")
+  public static StringVector makeUnique(StringVector names, String sep) {
+    Set<String> set = new HashSet<String>();
+    StringVector.Builder result = new StringVector.Builder();
+
+    for(String name : names) {
+      String uniqueName = makeUnique(sep, set, name);
+      result.add(uniqueName);
+      set.add(uniqueName);
+    }
+    return result.build();
+  }
+
+  private static String makeUnique(String sep, Set<String> set, String name) {
+    if(set.contains(name)) {
+      int i=1;
+      String newName;
+      while(set.contains(newName=name+sep+i)) {
+        i++;
+      }
+      return newName;
+    } else {
+      return name;
+    }
   }
 
 }

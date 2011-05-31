@@ -159,4 +159,12 @@ public class TextTest extends EvalTestCase {
         eval(".Internal(make.names(c('a', '1', 'if', 'a', '.', NA_character_, '_a', '.2way', '.legal', '$#@foo_bar!'), FALSE))"),
         equalTo( c("a", "X1", "if.", "a", ".",  "NA.", "X_a", "X.2way", ".legal", "X...foo_bar.") ));
   }
+
+  @Test
+  public void makeUnique() {
+
+    assertThat( eval(".Internal(make.unique(c('a', 'b', 'a'), '.'))"), equalTo(c("a", "b", "a.1")));
+
+
+  }
 }

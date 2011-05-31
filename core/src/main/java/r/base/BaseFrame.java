@@ -126,13 +126,13 @@ public class BaseFrame implements Frame {
    * running on, such as the largest double or integer and the machine's precision.
    */
   private void installMachine() {
+    // TODO: I'm not sure how these values are used, but
+    // I have mostly just copied them from my local R installation
     builtins.put(new Symbol(".Machine"), ListVector.newBuilder()
         .add("double.eps", new DoubleVector(DoubleVector.EPSILON))
         .add("double.neg.eps", new DoubleVector(1.110223e-16))
-        .add("double.min", new DoubleVector(Double.MIN_VALUE))
-        .add("double.max", new DoubleVector(Double.MAX_VALUE))
-        .add("double.xmin",new DoubleVector(2 ^ Double.MIN_EXPONENT))
-        .add("double.xmax", new DoubleVector(2 ^ Double.MAX_EXPONENT))
+        .add("double.xmin",new DoubleVector(2.225074e-308))
+        .add("double.xmax", new DoubleVector(1.797693e+308))
         .add("double.base", new IntVector(2))
         .add("double.digits", new IntVector(53))
         .add("double.rounding", new IntVector(5))
@@ -144,7 +144,7 @@ public class BaseFrame implements Frame {
         .add("double.max.exp", new IntVector(Double.MAX_EXPONENT))
         .add("integer.max", new IntVector(Integer.MAX_VALUE))
         .add("sizeof.long", new IntVector(4))
-        .add("sizeof.longlong", new IntVector(0))
+        .add("sizeof.longlong", new IntVector(8))
         .add("sizeof.longdouble", new IntVector(12))
         .add("sizeof.pointer", new IntVector(4))
        .build());

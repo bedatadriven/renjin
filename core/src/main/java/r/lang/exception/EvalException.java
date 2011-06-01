@@ -52,11 +52,13 @@ public class EvalException extends RuntimeException {
     }
     StringBuilder sb = new StringBuilder(super.getMessage());
     Context context = this.context;
+    sb.append("\nR Stack Trace:");
     while(!context.isTopLevel()) {
       sb.append("\n  at ").append(context.getFunctionName());
       appendArguments(sb, context);
       context = context.getParent();
     }
+    sb.append("\nJava Stack Trace:\n");
     return sb.toString();
   }
 

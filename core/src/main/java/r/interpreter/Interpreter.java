@@ -86,6 +86,9 @@ public class Interpreter implements Runnable {
         parser.parse();
 
         SEXP exp = parser.getResult();
+        if(exp == null) {
+          continue;
+        }
         EvalResult result = exp.evaluate(topLevelContext, global);
 
         if(result.isVisible()) {

@@ -51,6 +51,11 @@ public class ParseUtil {
   }
 
   public static String toString(double value) {
+    // TODO: the original R implementation formats numbers based on options,
+    // this is just a quick hack
+    if(value > 100000) {
+      return Double.toString(value);
+    }
     return REAL_FORMAT.format(value);
   }
 

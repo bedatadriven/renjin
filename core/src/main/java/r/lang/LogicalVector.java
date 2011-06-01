@@ -245,12 +245,12 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
   @Override
   public Builder newCopyBuilder() {
-    return null;
+    return new Builder(this);
   }
 
   @Override
   public Builder newBuilder(int initialSize) {
-    return new Builder(this);
+    return new Builder(initialSize);
   }
 
   @Override

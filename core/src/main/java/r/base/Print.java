@@ -160,6 +160,9 @@ public class Print {
 
       private void calcElementsPerLine() {
         elementsPerLine = (charactersPerLine - (maxIndexWidth+2)) / (maxElementWidth+1);
+        if(elementsPerLine < 1) {
+          elementsPerLine = 1;
+        }
       }
 
       private void print() {

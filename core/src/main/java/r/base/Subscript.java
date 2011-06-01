@@ -29,7 +29,7 @@ import r.lang.exception.EvalException;
 
 public class Subscript {
 
-  @Primitive("$")
+  @Generic @Primitive("$")
   public static SEXP getElementByName(PairList list, @Evaluate(false) Symbol symbol) {
     SEXP match = null;
     int matchCount = 0;
@@ -45,7 +45,7 @@ public class Subscript {
     return matchCount == 1 ? match : Null.INSTANCE;
   }
 
-  @Primitive("$")
+  @Generic @Primitive("$")
   public static SEXP getElementByName(Environment env, @Evaluate(false) Symbol symbol) {
     SEXP value = env.getVariable(symbol);
     if(value == Symbol.UNBOUND_VALUE) {
@@ -54,7 +54,7 @@ public class Subscript {
     return value;
   }
 
-  @Primitive("$")
+  @Generic @Primitive("$")
   public static SEXP getElementByName(ListVector list, @Evaluate(false) Symbol name) {
     SEXP match = null;
     int matchCount = 0;
@@ -71,7 +71,7 @@ public class Subscript {
     return matchCount == 1 ? match : Null.INSTANCE;
   }
 
-  @Primitive("$<-")
+  @Generic @Primitive("$<-")
   public static SEXP setElementByName(ListVector list, @Evaluate(false) Symbol name, SEXP value) {
     ListVector.Builder result = ListVector.buildFromClone(list);
 
@@ -84,7 +84,7 @@ public class Subscript {
     return result.build();
   }
 
-  @Primitive("[")
+  @Generic @Primitive("[")
   public static SEXP getSubset(@ArgumentList ListVector arguments,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     return new SubscriptOperation()
@@ -94,7 +94,7 @@ public class Subscript {
         .extract();
   }
 
-  @Primitive("[<-")
+  @Generic @Primitive("[<-")
   public static SEXP setSubset(@ArgumentList ListVector arguments) {
     return new SubscriptOperation()
         .setSource(arguments.getElementAsSEXP(0))
@@ -102,7 +102,7 @@ public class Subscript {
         .replace((Vector) arguments.getElementAsSEXP(arguments.length()-1), false);
   }
 
-  @Primitive("[[<-")
+  @Generic @Primitive("[[<-")
   public static SEXP setSingleElement(@ArgumentList ListVector arguments) {
     return new SubscriptOperation()
         .setSource(arguments.getElementAsSEXP(0))
@@ -111,7 +111,7 @@ public class Subscript {
   }
 
 
-  @Primitive("[[")
+  @Generic @Primitive("[[")
   public static SEXP getSingleElement(Vector vector, int index) {
     if(vector.length() == 0) {
       return Null.INSTANCE;
@@ -124,18 +124,18 @@ public class Subscript {
     return vector.getElementAsSEXP(index-1);
   }
 
-  @Primitive("[[")
+  @Generic @Primitive("[[")
   public static SEXP getSingleElementByExactName(Vector vector, String subscript) {
     int index = vector.getIndexByName(subscript);
     return index == -1 ? Null.INSTANCE : vector.getElementAsSEXP(index);
   }
 
-  @Primitive("[[")
+  @Generic @Primitive("[[")
   public static SEXP getSingleElementByExactName(PairList pairlist, String subscript) {
     return getSingleElementByExactName(pairlist.toVector(), subscript);
   }
 
-  @Primitive("[[")
+  @Generic @Primitive("[[")
   public static SEXP getSingleElementByName(Vector vector, String subscript, boolean exact) {
     if(exact) {
       return getSingleElementByExactName(vector, subscript);
@@ -154,7 +154,7 @@ public class Subscript {
     }
   }
 
-  @Primitive("[[")
+  @Generic @Primitive("[[")
   public static SEXP getSingleElementByName(PairList pairlist, String subscript, boolean exact) {
     return getSingleElementByName(pairlist.toVector(), subscript, exact);
   }

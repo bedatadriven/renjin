@@ -22,6 +22,7 @@
 package r.io;
 
 import hep.io.xdr.XDRInputStream;
+import org.apache.commons.math.complex.Complex;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.parser.ParseUtil;
@@ -405,7 +406,12 @@ public class DatafileReader {
   }
 
   private SEXP readComplexExp(Flags flags) throws IOException {
-    throw new IOException("complex not y i ");
+    int length = in.readInt();
+    Complex[] values = new Complex[length];
+    for(int i=0;i!=length;++i) {
+      values[i] = new Complex(in.readDouble(), in.readDouble());
+    }
+    return new ComplexVector(values);
   }
 
   private SEXP readDoubleExp(Flags flags) throws IOException {

@@ -109,6 +109,7 @@ public class RuntimeInvoker {
 
     // do we have a single method that accepts the whole argument list?
     if(overloads.size() == 1 && overloads.get(0).acceptsArgumentList()) {
+
       return overloads.get(0).invokeWithContextAndWrap(context, rho, toEvaluatedList(overloads.get(0), provided));
     }
 

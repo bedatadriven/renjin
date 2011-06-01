@@ -25,6 +25,7 @@ import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
+import r.lang.LogicalVector;
 import r.lang.SEXP;
 
 import static junit.framework.Assert.assertTrue;
@@ -120,5 +121,11 @@ public class SequenceTest extends EvalTestCase {
     assertThat( eval(" rep(c(1,2), each=4)" ), equalTo(c(1,1,1,1,2,2,2,2)));
     assertThat( eval(" rep(c(1,2), each=4,l=6)" ), equalTo(c(1,1,1,1,2,2)));
   }
+
+  @Test
+  public void repWithZeroLengthOut() {
+    assertThat( eval(" rep(NA, length.out=0) "), equalTo( (SEXP)new LogicalVector()));
+  }
+
 
 }

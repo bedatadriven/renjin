@@ -23,6 +23,8 @@ package r.jvmi.binding;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import r.base.ClosureDispatcher;
+import r.base.dispatch.DispatchChain;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -107,17 +109,17 @@ public class RuntimeInvoker {
       }
     }
 
-    // do we have a single method that accepts the whole argument list?
-    if(overloads.size() == 1 && overloads.get(0).acceptsArgumentList()) {
-
-      return overloads.get(0).invokeWithContextAndWrap(context, rho, toEvaluatedList(overloads.get(0), provided));
-    }
-
     // if generic, try to dispatch it to a closure in scope
     // e.g. a vector with class 'flarb' would be dispatched to 'dim.flarb' if it exists.
     EvalResult result = tryDispatchGeneric(context, rho, call, overloads, provided);
     if(result != null) {
       return result;
+    }
+
+    // do we have a single method that accepts the whole argument list?
+    if(overloads.size() == 1 && overloads.get(0).acceptsArgumentList()) {
+
+      return overloads.get(0).invokeWithContextAndWrap(context, rho, toEvaluatedList(overloads.get(0), provided));
     }
 
     return matchAndInvoke(context, rho, overloads, provided);
@@ -129,6 +131,11 @@ public class RuntimeInvoker {
     if(!isGeneric(overloads)) {
       return null;
     }
+    if(call.getFunction() instanceof Symbol) {
+      if(((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
+        return null;
+      }
+    }
     if(provided.isEmpty()) {
       throw new EvalException("hmm generic primitive with zero args: " + overloads.toString());
     }
@@ -138,16 +145,20 @@ public class RuntimeInvoker {
       return null;
     }
 
-    for(int i = 0; i!=classes.length();++i) {
-      Symbol method = new Symbol(overloads.get(0).getGenericName() + "." + classes.getElementAsString(i));
-      SEXP function = rho.findVariable(method, CollectionUtils.IS_FUNCTION, true);
-      if(function != Symbol.UNBOUND_VALUE) {
-        FunctionCall genericCall = new FunctionCall(function, toEvaluatedPairList(provided));
-        return genericCall.evaluate(context, rho);
-      }
+    DispatchChain chain = DispatchChain.newChain(rho, overloads.get(0).getGenericName(), classes);
+    if(chain == null) {
+      return null;
     }
 
-    return null;
+    // Repromise ?
+    PairList.Node restOfArguments = (PairList.Node) call.getArguments();
+    PairList newArgs = new PairList.Node(new Promise(provided.get(0).provided, provided.get(0).evaluated()),
+        restOfArguments.hasNextNode() ? restOfArguments.getNextNode() : Null.INSTANCE);
+
+    FunctionCall newCall = FunctionCall.newCall(chain.getMethodSymbol(), newArgs);
+
+    ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, newCall);
+    return dispatcher.apply(chain, newArgs);
   }
 
   private boolean isGeneric(List<JvmMethod> overloads) {
@@ -379,6 +390,8 @@ public class RuntimeInvoker {
       sb.append("\n");
     }
   }
+
+
   private class ProvidedArgument {
     private Environment rho;
     private SEXP provided;

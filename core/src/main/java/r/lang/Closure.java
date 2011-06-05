@@ -21,7 +21,7 @@
 
 package r.lang;
 
-import r.base.Calls;
+import r.base.ClosureDispatcher;
 
 /**
  * The function closure data type.
@@ -75,7 +75,8 @@ public class Closure extends AbstractSEXP implements Function {
 
   @Override
   public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    return Calls.applyClosure(this, context, call, Calls.promiseArgs(args, context, rho), rho, Frame.EMPTY);
+    ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, call);
+    return dispatcher.applyClosure(this, args);
   }
 
   /**

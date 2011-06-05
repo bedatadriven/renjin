@@ -48,7 +48,7 @@ public abstract class EvalTestCase {
   public SEXP GlobalEnv;
 
   @Before
-  public void setUp() {
+  public final void setUp() {
     topLevelContext = Context.newTopLevelContext();
     global = topLevelContext.getEnvironment();
     base = global.getBaseEnvironment();

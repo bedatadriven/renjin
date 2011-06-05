@@ -164,6 +164,16 @@ public class IntegrationTest extends EvalTestCase {
   }
 
   @Test
+  public void genericSubscript() throws IOException {
+    topLevelContext.init();
+
+    eval("  d<-as.data.frame(list(ids=1:5)) ");
+    assertThat( eval(" d[,1] "), equalTo( c_i(1,2,3,4,5)));
+
+  }
+
+
+  @Test
   public void surveyPackage() throws Exception {
     topLevelContext.init();
 

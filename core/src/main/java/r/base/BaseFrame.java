@@ -198,8 +198,8 @@ public class BaseFrame implements Frame {
     add(new BeginFunction());
     add(new ParenFunction());
 
-    f("subset", /*subset_dflt*/ null, 1, 1, -1);
-    f(".subset2", /*subset2_dflt*/ null, 2, 1, -1);
+    f("subset", Subscript.class, 1, 1, -1);
+    f(".subset2", Subscript.class, 2, 1, -1);
     f("[",Subscript.class, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
     f("[[", Subscript.class, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
     f("$", Subscript.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
@@ -578,7 +578,7 @@ public class BaseFrame implements Frame {
     f("cat", Connections.class, 0, 111, 6);
     f("call", Evaluation.class, 0, 0, -1);
     f("do.call", Evaluation.class, 0, 211, 3);
-    f("as.call", /*ascall*/ null, 0, 1, 1);
+    f("as.call", Types.class, 0, 1, 1);
     f("type.convert", /*typecvt*/ null, 1, 11, 4);
     f("as.environment", Types.class, "asEnvironment", 0, 1, 1);
     f("storage.mode<-", Types.class, 0, 1, 2);
@@ -711,7 +711,7 @@ public class BaseFrame implements Frame {
     f("eval", Evaluation.class, 0, 211, 3);
     f("eval.with.vis", /*eval*/ null, 1, 211, 3);
     f("withVisible", /*withVisible*/ null, 1, 10, 1);
-    f("expression", /*expression*/ null, 1, 0, -1);
+    f("expression", Types.class, 1, 0, -1);
     f("sys.parent", Contexts.class, 1, 11, -1);
     f("sys.call", Contexts.class, 2, 11, -1);
     f("sys.frame", Contexts.class, 3, 11, -1);

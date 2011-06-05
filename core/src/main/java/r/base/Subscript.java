@@ -124,6 +124,16 @@ public class Subscript {
     return vector.getElementAsSEXP(index-1);
   }
 
+
+  /**
+   * Same as [[ but not marked as @Generic
+   */
+  @Primitive(".subset2")
+  public static SEXP getSingleElementDefault(Vector vector, int index) {
+    return getSingleElement(vector, index);
+  }
+
+
   @Generic @Primitive("[[")
   public static SEXP getSingleElementByExactName(Vector vector, String subscript) {
     int index = vector.getIndexByName(subscript);

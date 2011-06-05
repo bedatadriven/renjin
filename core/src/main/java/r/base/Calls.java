@@ -58,6 +58,9 @@ public class Calls {
   public static EvalResult DispatchGroup(String group, FunctionCall call, PrimitiveFunction op, PairList args, Context context, Environment rho) {
     int i, j, nargs;
 
+    if(call.getFunction() instanceof Symbol && ((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
+      return null;
+    }
 
     boolean useS4 = true, isOps = false;
 
@@ -357,14 +360,14 @@ public class Calls {
       result.buf = generic + "." + ss;
 
       result.meth = new Symbol(result.buf);
-      result.sxp = R_LookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
+      result.sxp = lookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
       if (result.sxp instanceof Function) {
         result.gr = new StringVector("");
         break;
       }
       result.buf = group + "." + ss;
       result.meth = new Symbol(result.buf);
-      result.sxp = R_LookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
+      result.sxp = lookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
       if (result.sxp instanceof Function) {
         result.gr = new StringVector(group);
         break;
@@ -389,7 +392,7 @@ public class Calls {
  *    3. fix up the argument list; it should be the arguments to the
  *       generic matched to the formals of the method to be invoked */
 
-  private static SEXP R_LookupMethod(Symbol method, SEXP rho, Environment callrho, Environment defrho)
+  public static SEXP lookupMethod(Symbol method, SEXP rho, Environment callrho, Environment defrho)
   {
 //
 //    if (callrho == Null.INSTANCE) {

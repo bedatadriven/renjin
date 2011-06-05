@@ -284,6 +284,23 @@ public class Types {
     return builder.build();
   }
 
+  /**
+   * Creates a new, unevaluated FunctionCall expression from a list vector.
+   * @param list a list containing the function as the first element, followed
+   *  by arguments
+   * @return  an unevaluated FunctionCall expression
+   */
+  @Primitive("as.call")
+  public static FunctionCall asCall(ListVector list) {
+    EvalException.check(list.length() > 0, "invalid length 0 argument");
+
+    PairList.Builder arguments = new PairList.Builder();
+    for(int i=1;i!=list.length();++i) {
+      arguments.add(list.getName(i), list.getElementAsSEXP(i));
+    }
+    return new FunctionCall(list.getElementAsSEXP(0), arguments.build());
+  }
+
   public static Environment asEnvironment(Environment arg) {
     return arg;
   }
@@ -746,5 +763,12 @@ public class Types {
       }
     }
     return results.build();
+  }
+
+  /**
+   * returns a vector of type "expression" containing its arguments (unevaluated).
+   */
+  public static ExpressionVector expression(@ArgumentList ListVector arguments) {
+    return new ExpressionVector(arguments);
   }
 }

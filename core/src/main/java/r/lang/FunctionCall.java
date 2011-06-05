@@ -61,7 +61,7 @@ public class FunctionCall extends PairList.Node {
   private Function evaluateFunction(Context context, Environment rho) {
     SEXP functionExp = getFunction();
     if(functionExp instanceof Symbol) {
-      return findFunction(context, rho, (Symbol) functionExp);
+      return findFunction(rho, (Symbol) functionExp);
     } else {
       SEXP evaluated = functionExp.evalToExp(context, rho);
       if(!(evaluated instanceof Function)) {
@@ -71,7 +71,7 @@ public class FunctionCall extends PairList.Node {
     }
   }
 
-  private Function findFunction(Context context, Environment rho, Symbol symbol) {
+  private Function findFunction(Environment rho, Symbol symbol) {
     while(rho != Environment.EMPTY) {
       SEXP value = rho.getVariable(symbol);
       if(value instanceof Promise) {
@@ -147,5 +147,9 @@ public class FunctionCall extends PairList.Node {
   @Override
   public FunctionCall clone() {
     return FunctionCall.newCall(getFunction(), getArguments().clone());
+  }
+
+  public FunctionCall duplicate() {
+    return new FunctionCall(getFunction(), getArguments());
   }
 }

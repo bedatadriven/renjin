@@ -35,7 +35,6 @@ import java.util.Iterator;
  *
  */
 public interface PairList extends SEXP {
-  public int TYPE_CODE = 2;
   public String TYPE_NAME = "pairlist";
 
   <S extends SEXP> S getElementAsSEXP(int i);
@@ -103,11 +102,6 @@ public interface PairList extends SEXP {
 
     public Node(SEXP value, PairList nextNode) {
       this(Null.INSTANCE, value, nextNode);
-    }
-
-    @Override
-    public int getTypeCode() {
-      return TYPE_CODE;
     }
 
     @Override

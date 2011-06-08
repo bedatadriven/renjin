@@ -34,7 +34,6 @@ import java.util.Iterator;
 public final class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
 
   public static final String TYPE_NAME = "double";
-  public static final int TYPE_CODE = 14;
 
   public static final Vector.Type VECTOR_TYPE = new DoubleType();
 
@@ -70,11 +69,6 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     for(Double value : values) {
       this.values[i++] = value;
     }
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

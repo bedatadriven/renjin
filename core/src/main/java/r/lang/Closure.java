@@ -35,7 +35,6 @@ import r.base.ClosureDispatcher;
 public class Closure extends AbstractSEXP implements Function {
 
   public static final String TYPE_NAME = "closure";
-  public static final int TYPE_CODE = 4;
   public static final String IMPLICIT_CLASS = "function";
 
   private Environment enclosingEnvironment;
@@ -51,11 +50,6 @@ public class Closure extends AbstractSEXP implements Function {
 
   public Closure(Environment environment, PairList formals, SEXP body) {
     this(environment, formals, body, Null.INSTANCE);
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

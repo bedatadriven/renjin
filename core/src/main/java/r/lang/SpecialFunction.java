@@ -24,13 +24,7 @@ package r.lang;
 import r.lang.exception.EvalException;
 
 public abstract class SpecialFunction extends AbstractSEXP implements Function {
-  public static final int TYPE_CODE = 7;
   public static final String TYPE_NAME = "special";
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
 
   @Override
   public String getTypeName() {

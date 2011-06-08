@@ -57,7 +57,6 @@ import java.util.Set;
  */
 public class Environment extends AbstractSEXP implements Recursive {
 
-  public static final int TYPE_CODE = 4;
   public static final String TYPE_NAME = "environment";
 
   private String name;
@@ -153,11 +152,6 @@ public class Environment extends AbstractSEXP implements Recursive {
 
   public Environment getBaseEnvironment() {
     return baseEnvironment;
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

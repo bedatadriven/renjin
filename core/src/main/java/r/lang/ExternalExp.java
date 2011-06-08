@@ -45,11 +45,6 @@ public final class ExternalExp<T> extends AbstractSEXP {
   }
 
   @Override
-  public int getTypeCode() {
-    return 0;
-  }
-
-  @Override
   public String getTypeName() {
     return "external";
   }

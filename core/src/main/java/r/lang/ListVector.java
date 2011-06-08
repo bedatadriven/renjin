@@ -40,7 +40,6 @@ import java.util.List;
  */
 public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNamedValues {
 
-  private static final int TYPE_CODE = 19;
   public static final String TYPE_NAME = "list";
 
   public static final Vector.Type VECTOR_TYPE = new ListType();
@@ -75,11 +74,6 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     this(values, Null.INSTANCE);
   }
 
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
 
   @Override
   public String getTypeName() {

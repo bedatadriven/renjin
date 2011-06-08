@@ -24,75 +24,16 @@ package r.io;
 import hep.io.xdr.XDRInputStream;
 import org.apache.commons.math.complex.Complex;
 import r.lang.*;
-import r.lang.exception.EvalException;
 import r.parser.ParseUtil;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static r.io.SerializationFormat.*;
+
 public class DatafileReader {
 
-  public static final String ASCII_FORMAT = "RDA2\nA\n";
-  public static final String BINARY_FORMAT = "RDB2\nB\n";
-  public static final String XDR_FORMAT = "RDX2\nX\n";
-
-  public static final int  NILSXP	  =   0;  /* nil = NULL */
-  public static final int  SYMSXP	  =   1;	  /* symbols */
-  public static final int  LISTSXP	 =    2;	  /* lists of dotted pairs */
-  public static final int  CLOSXP	   =  3;	  /* closures */
-  public static final int  ENVSXP	   =  4	;  /* environments */
-  public static final int  PROMSXP	  =   5	;  /* promises: [un]evaluated closure arguments */
-  public static final int  LANGSXP	  =   6;	  /* language constructs (special lists) */
-  public static final int  SPECIALSXP =  7;	  /* special forms */
-  public static final int  BUILTINSXP =  8;	  /* builtin non-special forms */
-  public static final int  CHARSXP	  =   9;	  /* "scalar" string type (internal only)*/
-  public static final int  LGLSXP	   = 10	;  /* logical vectors */
-  public static final int  INTSXP	   = 13;	  /* integer vectors */
-  public static final int  REALSXP	 =   14	;  /* real variables */
-  public static final int  CPLXSXP	 =   15;	  /* complex variables */
-  public static final int  STRSXP	   = 16	;  /* string vectors */
-  public static final int  DOTSXP	   = 17	;  /* dot-dot-dot object */
-  public static final int  ANYSXP	   = 18;	  /* make "any" args work.
-			     Used in specifying types for symbol
-			     registration to mean anything is okay  */
-  public static final int  VECSXP	  =  19;	  /* generic vectors */
-  public static final int  EXPRSXP	=    20;	  /* expressions vectors */
-  public static final int  BCODESXP  =  21;    /* byte code */
-  public static final int  EXTPTRSXP  = 22;    /* external pointer */
-  public static final int  WEAKREFSXP = 23;    /* weak reference */
-  public static final int  RAWSXP     = 24;    /* raw bytes */
-  public static final int  S4SXP      = 25;    /* S4, non-vector */
-
-  public static final int  FUNSXP    =  99;    /* Closure or Builtin or Special */
-
-
-
-  public static final int REFSXP =           255 ;
-  public static final int  NILVALUE_SXP  =    254 ;
-  public static final int  GLOBALENV_SXP  =   253 ;
-  public static final int  UNBOUNDVALUE_SXP =  252;
-  public static final int  MISSINGARG_SXP =   251;
-  public static final int  BASENAMESPACE_SXP= 250;
-  public static final int  NAMESPACESXP=      249;
-  public static final int  PACKAGESXP  =      248;
-  public static final int  PERSISTSXP   =     247;
-  /* the following are speculative--we may or may not need them soon */
-  public static final int  CLASSREFSXP  =     246;
-  public static final int  GENERICREFSXP  =   245;
-  public static final int  EMPTYENV_SXP	= 242;
-  public static final int  BASEENV_SXP	=  241;
-
-  private static final int CE_NATIVE = 0;
-  private static final int CE_UTF8   = 1;
-  private static final int CE_LATIN1 = 2;
-  private static final int CE_SYMBOL = 5;
-  private static final int CE_ANY    =99;
-
-  private static final int LATIN1_MASK  = (1<<2);
-  private static final int UTF8_MASK = (1<<3);
-  private static final int CACHED_MASK = (1<<5);
-  private static final int  HASHASH_MASK =  1;
 
   private final Context context;
   private Environment rho;
@@ -125,7 +66,7 @@ public class DatafileReader {
     writerVersion = new Version(in.readInt());
     releaseVersion = new Version(in.readInt());
 
-    if(version != 2) {
+    if(version != VERSION2) {
       if(releaseVersion.isExperimental()) {
         throw new IOException(String.format("cannot read unreleased workspace version %d written by experimental R %s",
             version, writerVersion));
@@ -135,11 +76,6 @@ public class DatafileReader {
       }
     }
 
-    return readExp();
-  }
-
-  public SEXP readIndex() throws IOException {
-    in = new XdrReader(conn);
     return readExp();
   }
 
@@ -163,34 +99,20 @@ public class DatafileReader {
       }
     }
 
-    for(int i=2;i!=7;++i) {
+    for(int i= VERSION2;i!=7;++i) {
       bytes[i] = (byte) conn.read();
     }
 
     String header = new String(bytes);
-    if(header.equals(ASCII_FORMAT)) {
+    if(header.equals(SerializationFormat.ASCII_FORMAT)) {
       return new AsciiReader(conn);
-    } else if(header.equals(BINARY_FORMAT)) {
+    } else if(header.equals(SerializationFormat.BINARY_FORMAT)) {
       return new BinaryReader(conn);
-    } else if(header.equals(XDR_FORMAT)) {
+    } else if(header.equals(SerializationFormat.XDR_FORMAT)) {
       return new XdrReader(conn);
     }
 
     throw new IOException("could not read header");
-  }
-
-  private StreamReader createStreamReader(String format) throws IOException {
-    StreamReader reader;
-    if(format.equals(ASCII_FORMAT)) {
-      reader = new AsciiReader(conn);
-    } else if(format.equals(BINARY_FORMAT)) {
-      reader = new BinaryReader(conn);
-    } else if(format.equals(XDR_FORMAT)) {
-      reader = new XdrReader(conn);
-    } else {
-      throw new EvalException("Invalid Format: '%s", format);
-    }
-    return reader;
   }
 
   public SEXP readExp() throws IOException {
@@ -246,13 +168,13 @@ public class DatafileReader {
       case LGLSXP:
         return readLogical(flags);
       case INTSXP:
-        return readIntegerExp(flags);
+        return readIntVector(flags);
       case REALSXP:
         return readDoubleExp(flags);
       case CPLXSXP:
         return readComplexExp(flags);
       case STRSXP:
-        return readStringExp(flags);
+        return readStringVector(flags);
       case VECSXP:
         return readListExp(flags);
       case EXPRSXP:
@@ -396,7 +318,7 @@ public class DatafileReader {
     return values;
   }
 
-  private SEXP readStringExp(Flags flags) throws IOException {
+  private SEXP readStringVector(Flags flags) throws IOException {
     int length = in.readInt();
     String[] values = new String[length];
     for(int i=0;i!=length;++i) {
@@ -411,7 +333,7 @@ public class DatafileReader {
     for(int i=0;i!=length;++i) {
       values[i] = new Complex(in.readDouble(), in.readDouble());
     }
-    return new ComplexVector(values);
+    return new ComplexVector(values, readAttributes(flags));
   }
 
   private SEXP readDoubleExp(Flags flags) throws IOException {
@@ -423,7 +345,7 @@ public class DatafileReader {
     return new DoubleVector(values, readAttributes(flags));
   }
 
-  private SEXP readIntegerExp(Flags flags) throws IOException {
+  private SEXP readIntVector(Flags flags) throws IOException {
     int length = in.readInt();
     int[] values = new int[length];
     for(int i=0;i!=length;++i) {
@@ -647,69 +569,6 @@ public class DatafileReader {
     public double readDouble() throws IOException {
       return in.readDouble();
     }
-  }
-  public static class Version {
-    private int v, p, s;
-    private int packed;
-
-    private Version(int packed) {
-      this.packed = packed;
-      v = this.packed / 65536; packed = packed % 65536;
-      p = packed / 256; packed = packed % 256;
-      s = packed;
-    }
-
-    public boolean isExperimental() {
-      return packed < 0;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("%d.%d.%d", v, p, s);
-    }
-  }
-
-  private static class Flags {
-    private final static int IS_OBJECT_BIT_MASK = (1 << 8);
-    private final static int HAS_ATTR_BIT_MASK = (1 << 9);
-    private final static int HAS_TAG_BIT_MASK = (1 << 10);
-
-    public final int type;
-    public final int levels;
-    public final boolean isObject;
-    public final boolean hasAttributes;
-    public final boolean hasTag;
-    private final int flags;
-
-    public Flags(int flags) {
-      this.flags = flags;
-      type = decodeType(flags);
-      levels = decodeLevels(flags);
-      isObject = (flags & IS_OBJECT_BIT_MASK) != 0;
-      hasAttributes = (flags & HAS_ATTR_BIT_MASK) != 0;
-      hasTag = (flags & HAS_TAG_BIT_MASK) != 0;
-    }
-
-    private int decodeType(int v) {
-      return ((v) & 255);
-    }
-
-    private int decodeLevels(int v) {
-      return ((v) >> 12);
-    }
-
-    public boolean isUTF8Encoded() {
-      return (levels & UTF8_MASK) != 0;
-    }
-
-    public boolean isLatin1Encoded() {
-      return (levels & LATIN1_MASK) != 0;
-    }
-
-    public int unpackRefIndex() {
-      return   ((flags) >> 8);
-    }
-
   }
 
   public interface PersistentRestorer {

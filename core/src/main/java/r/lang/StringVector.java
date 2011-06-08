@@ -35,7 +35,6 @@ import java.util.Iterator;
 
 public class StringVector extends AbstractAtomicVector implements Iterable<String> {
   public static final String TYPE_NAME = "character";
-  public static final int TYPE_CODE = 16;
   public static final String NA = null;
 
   public static final Vector.Type VECTOR_TYPE = new StringType();
@@ -124,11 +123,6 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     } else {
       return ParseUtil.parseDouble(values[index]);
     }
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

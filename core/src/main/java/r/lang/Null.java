@@ -40,7 +40,6 @@ import java.util.Collections;
  */
 public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
-  public static final int TYPE_CODE = 0;
   public static final String TYPE_NAME = "NULL";
 
   public static final Null INSTANCE = new Null();
@@ -49,11 +48,6 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   private static final String INDEX_OUT_OF_BOUNDS = "The NULL object is zero-length.";
 
   private Null() {
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

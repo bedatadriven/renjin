@@ -31,7 +31,6 @@ import r.lang.exception.EvalException;
  *
  */
 public class FunctionCall extends PairList.Node {
-  public static final int TYPE_CODE = 6;
   public static final String TYPE_NAME = "language";
 
   public FunctionCall(SEXP function, PairList arguments) {
@@ -45,11 +44,6 @@ public class FunctionCall extends PairList.Node {
   @Override
   public String getTypeName() {
     return TYPE_NAME;
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

@@ -36,11 +36,6 @@ public class DotExp extends AbstractSEXP {
   }
 
   @Override
-  public int getTypeCode() {
-    return 0;
-  }
-
-  @Override
   public String getTypeName() {
     return "...";
   }

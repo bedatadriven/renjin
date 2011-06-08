@@ -38,8 +38,6 @@ public interface SEXP {
 
   PairList getAttributes();
 
-  int getTypeCode();
-
   String getTypeName();
 
   void accept(SexpVisitor visitor);

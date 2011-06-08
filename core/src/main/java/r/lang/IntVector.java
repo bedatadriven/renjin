@@ -63,11 +63,6 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   }
 
   @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
-  }
-
-  @Override
   public String getTypeName() {
     return TYPE_NAME;
   }

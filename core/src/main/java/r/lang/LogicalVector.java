@@ -28,7 +28,6 @@ import java.util.Iterator;
 
 public class LogicalVector extends AbstractAtomicVector implements Iterable<Logical> {
   public static final String TYPE_NAME = "logical";
-  public static final int TYPE_CODE = 10;
   public static final Vector.Type VECTOR_TYPE = new LogicalType();
 
   public static int NA = IntVector.NA;
@@ -68,11 +67,6 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     for (int i = 0; i != values.length; ++i) {
       this.values[i] = values[i].getInternalValue();
     }
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

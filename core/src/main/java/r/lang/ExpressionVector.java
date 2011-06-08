@@ -29,7 +29,6 @@ import com.google.common.base.Joiner;
  */
 public class ExpressionVector extends ListVector {
   public static final String TYPE_NAME = "expression";
-  public static final int TYPE_CODE = 20;
 
 
   public ExpressionVector(SEXP[] functionCalls, PairList attributes) {
@@ -65,11 +64,6 @@ public class ExpressionVector extends ListVector {
   @Override
   public Builder newCopyBuilder() {
     throw new UnsupportedOperationException("implement me");
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

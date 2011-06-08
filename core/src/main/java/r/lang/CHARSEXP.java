@@ -30,16 +30,10 @@ package r.lang;
 public class CHARSEXP extends AbstractSEXP {
 
   private String value;
-  public static final int TYPE_CODE = 9;
   public static final String TYPE_NAME = "char";
 
   public CHARSEXP(String value) {
     this.value = value;
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

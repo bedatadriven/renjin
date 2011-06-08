@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,32 +19,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package r.io;
 
-import r.base.BaseFrame;
+class Version {
+  private int v, p, s;
+  private int packed;
 
-public class BuiltinFunction extends PrimitiveFunction {
-  public static final String TYPE_NAME = "builtin";
-
-  public BuiltinFunction(BaseFrame.Entry functionEntry) {
-    super(functionEntry);
+  Version(int packed) {
+    this.packed = packed;
+    v = this.packed / 65536; packed = packed % 65536;
+    p = packed / 256; packed = packed % 256;
+    s = packed;
   }
 
-  public BuiltinFunction(String name, Class methodClass, String methodName) {
-    super(name, methodClass, methodName);
+  Version(int v, int p, int s) {
+    this.v = v;
+    this.p = p;
+    this.s = s;
+    this.packed = s + (p * 256) + (v * 65536);
   }
 
-  public BuiltinFunction(String name, Class methodClass) {
-    super(name, methodClass);
+  public boolean isExperimental() {
+    return packed < 0;
+  }
+
+  public int asPacked() {
+    return packed;
   }
 
   @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
+  public String toString() {
+    return String.format("%d.%d.%d", v, p, s);
   }
 }

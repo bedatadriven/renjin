@@ -30,7 +30,6 @@ import java.util.Iterator;
 public class ComplexVector extends AbstractAtomicVector implements Iterable<Complex> {
 
   private final Complex[] values;
-  public static final int TYPE_CODE = 15;
   public static final String TYPE_NAME = "complex";
 
   public static Vector.Type VECTOR_TYPE = new ComplexType();
@@ -41,9 +40,9 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
+  public ComplexVector(Complex[] values, PairList attributes) {
+    super(attributes);
+    this.values = Arrays.copyOf(values, values.length);
   }
 
   @Override

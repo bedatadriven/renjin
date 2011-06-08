@@ -25,8 +25,7 @@ import com.google.common.base.Preconditions;
 import r.lang.exception.EvalException;
 
 public class Symbol extends AbstractSEXP {
-                            
-  public static final int TYPE_CODE = 1;
+
   public static final String  TYPE_NAME = "symbol";
   public static final String IMPLICIT_CLASS = "name";
 
@@ -54,11 +53,6 @@ public class Symbol extends AbstractSEXP {
     Preconditions.checkNotNull(printName);
 
     this.printName = printName;
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

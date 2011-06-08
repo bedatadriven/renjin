@@ -35,7 +35,6 @@ package r.lang;
  */
 public class Promise extends AbstractSEXP implements Recursive {
 
-  public static final int TYPE_CODE = 5;
   public static final String TYPE_NAME = "promise";
 
   private Context context;
@@ -95,11 +94,6 @@ public class Promise extends AbstractSEXP implements Recursive {
     this.result = new EvalResult(exp);
     this.environment = null;
     this.context = null;
-  }
-
-  @Override
-  public int getTypeCode() {
-    return TYPE_CODE;
   }
 
   @Override

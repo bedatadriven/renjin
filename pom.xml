@@ -33,9 +33,10 @@
 
   <modules>
     <module>core</module>
-    <module>desktop</module>
     <module>scala</module>
     <module>tests</module>
+    <module>samples/swing-repl</module>
+    <module>samples/appengine-repl</module>
   </modules>
 
   <properties>

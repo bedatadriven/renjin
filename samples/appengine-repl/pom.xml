@@ -31,7 +31,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.bedatadriven.renjin</groupId>
-  <artifactId>appengine-repl</artifactId>
+  <artifactId>renjin-appengine-sample</artifactId>
   <name>AppEngine REPL</name>
   <packaging>war</packaging>
 

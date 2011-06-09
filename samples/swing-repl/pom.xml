@@ -31,7 +31,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.bedatadriven.renjin</groupId>
-  <artifactId>renjin-desktop</artifactId>
+  <artifactId>renjin-swing-sample</artifactId>
   <packaging>jar</packaging>
   <name>Renjin Desktop Interpreter</name>
   <description>Standalone desktop environment for the R Language for Statistical Computing</description>

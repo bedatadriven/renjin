@@ -61,7 +61,7 @@ public class Evaluation {
    * Note that assignment to an attached list or data frame changes the attached copy
    *  and not the original object: see attach and with.
    */
-  public static EvalResult assign(String name, SEXP value, Environment environ, boolean inherits) {
+  public static EvalResult assign(@Current Context context, String name, SEXP value, Environment environ, boolean inherits) {
 
     Symbol symbol = new Symbol(name);
     if(!inherits) {
@@ -71,7 +71,7 @@ public class Evaluation {
         environ = environ.getParent();
       }
       if(environ == Environment.EMPTY) {
-        environ.getGlobalEnvironment().setVariable(symbol, value);
+        context.getGlobalEnvironment().setVariable(symbol, value);
       } else {
         environ.setVariable(symbol, value);
       }
@@ -336,7 +336,7 @@ public class Evaluation {
     /*if (TYPEOF(defenv) == PROMSXP) defenv = eval(defenv, R_BaseEnv);
     else */
     if (defenv == Symbol.UNBOUND_VALUE) {
-      defenv = env.getGlobalEnvironment();
+      defenv = context.getGlobalEnvironment();
     }
 
     /* set up the arglist */

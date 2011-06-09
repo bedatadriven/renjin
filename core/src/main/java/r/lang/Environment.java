@@ -58,10 +58,10 @@ import java.util.Set;
 public class Environment extends AbstractSEXP implements Recursive {
 
   public static final String TYPE_NAME = "environment";
+  private static final String GLOBAL_ENVIRONMENT_NAME = "R_GlobalEnv";
 
   private String name;
   private Environment parent;
-  private Environment globalEnvironment;
   private Environment baseEnvironment;
   protected Frame frame;
 
@@ -75,22 +75,68 @@ public class Environment extends AbstractSEXP implements Recursive {
   public static final EmptyEnv EMPTY = new EmptyEnv();
 
 
+  /**
+   * Creates a new tree of environments, initialized with
+   * the empty, base, and global environments:
+   *
+   * <pre>
+   * &lt;EmptyEnvironment&gt;
+   *        |
+   *  &lt;package:base&gt;
+   *        |
+   *   &lt;GlobalEnv&gt;
+   * </pre>
+   *
+   * @return the Global environment
+   */
   public static Environment createGlobalEnvironment() {
     Environment global = new Environment();
-    global.name = "R_GlobalEnv";
+    global.name = GLOBAL_ENVIRONMENT_NAME;
     global.baseEnvironment = createBaseEnvironment(global);
-    global.globalEnvironment = global;
     global.parent = global.baseEnvironment;
     global.frame = new HashFrame();
 
     return global;
   }
 
+  /**
+   * Creates a new, empty global environment that shares the provided
+   * {@code globalEnvironments} parents.
+   *
+   */
+  public static Environment forkGlobalEnvironment(Environment toFork) {
+    if(!GLOBAL_ENVIRONMENT_NAME.equals(toFork.getName())){
+      throw new IllegalArgumentException("forkGlobalEnvironment requires an existing global environment");
+    }
+    Environment global = new Environment();
+    global.name = GLOBAL_ENVIRONMENT_NAME;
+    global.baseEnvironment = toFork.baseEnvironment;
+    global.parent = toFork.parent;
+    global.frame = new HashFrame();
+
+    return global;
+  }
+
+//  /**
+//   * Creates a copy of the environment tree, replacing
+//   * the global environment with a new, empty global environment.
+//   *
+//   * <p>Parents of the global environment are preserved and
+//   * shared between this tree and the forked tree.</p>
+//   *
+//   * @return the Global Environment
+//   */
+//  public Environment fork() {
+//    Environment forkedGlobal = new Environment();
+//    forkedGlobal.name = this.name;
+//    forked.baseEnvironment =
+//
+//  }
+
   private static Environment createBaseEnvironment(Environment global) {
     Environment base = new Environment();
     base.name = "base";
     base.baseEnvironment = base;
-    base.globalEnvironment = global;
     base.parent = EMPTY;
     base.frame = new BaseFrame();
     return base;
@@ -110,7 +156,6 @@ public class Environment extends AbstractSEXP implements Recursive {
     Environment child = new Environment();
     child.name = Integer.toString(child.hashCode());
     child.baseEnvironment = parent.baseEnvironment;
-    child.globalEnvironment = parent.globalEnvironment;
     child.parent = parent;
     child.frame = frame;
     return child;
@@ -144,10 +189,6 @@ public class Environment extends AbstractSEXP implements Recursive {
 
   public void setParent(Environment parent) {
     this.parent = parent;
-  }
-
-  public Environment getGlobalEnvironment() {
-    return globalEnvironment;
   }
 
   public Environment getBaseEnvironment() {

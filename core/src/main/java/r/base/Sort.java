@@ -44,7 +44,5 @@ public class Sort {
     Arrays.sort(sorted);
 
     return new StringVector(sorted, x.getAttributes());
-
   }
-
 }

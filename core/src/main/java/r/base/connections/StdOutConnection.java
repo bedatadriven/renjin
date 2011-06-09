@@ -19,61 +19,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.interpreter;
+package r.base.connections;
 
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.Reader;
+import r.lang.Connection;
+import r.lang.exception.EvalException;
 
-public class StandardConsole implements Console{
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 
-  private final Reader in;
-  private final PrintStream out;
-  private final PrintStream err;
+public class StdOutConnection implements Connection {
 
-  public StandardConsole() {
-    in = new InputStreamReader(System.in);
-    out = System.out;
-    err = System.err;
+  private final PrintWriter writer;
+
+  public StdOutConnection(PrintWriter writer) {
+    this.writer = writer;
   }
 
   @Override
-  public Reader getIn() {
-    return in;
+  public InputStream getInputStream() throws IOException {
+    throw new EvalException("cannot read from stdout");
   }
 
   @Override
-  public PrintStream getOut() {
-    return out;
+  public PrintWriter getPrintWriter() throws IOException {
+    return writer;
   }
 
   @Override
-  public PrintStream getErr() {
-    return err;
-  }
+  public void close() throws IOException {
 
-  @Override
-  public void println(Object o) {
-    out.println(o);
-  }
-
-  @Override
-  public void print(Object o) {
-    out.print(o);
-  }
-
-  @Override
-  public void error(Object o) {
-    err.println(o);
-  }
-
-  @Override
-  public int getCharactersPerLine() {
-    return 80;
-  }
-
-  public static void main(String[] args) {
-      Interpreter interpreter = new Interpreter( new StandardConsole() );
-      new Thread ( interpreter ).start();     
   }
 }

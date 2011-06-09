@@ -30,10 +30,7 @@ import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
 import r.parser.RParser;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +45,6 @@ import java.util.jar.JarFile;
  * (such as via traceback) and otherwise (the sys.xxx functions).
  */
 public class Context {
-
 
 
   public enum Type {
@@ -90,9 +86,10 @@ public class Context {
 
 
   public static class Options {
-    private Map<String, SEXP> map = Maps.newHashMap();
+    private Map<String, SEXP> map;
 
     public Options() {
+      map = Maps.newHashMap();
       map.put("prompt", new StringVector("> "));
       map.put("continue", new StringVector("+ "));
       map.put("expressions" , new IntVector(5000));
@@ -104,6 +101,10 @@ public class Context {
       map.put("keep.source", new LogicalVector(true));
       map.put("warnings.length", new IntVector(1000));
       map.put("OutDec", new StringVector("."));
+    }
+
+    private Options(Options toCopy) {
+      map = Maps.newHashMap(toCopy.map);
     }
 
     public SEXP get(String name) {
@@ -120,6 +121,9 @@ public class Context {
       return map.keySet();
     }
 
+    public Options clone() {
+      return new Options(this);
+    }
   }
 
   /**
@@ -128,12 +132,12 @@ public class Context {
    */
   public static class Globals {
 
-    public final Options options = new Options();
+    public final Options options;
 
     /**
      * This is the environment
      */
-    public final Map<String, String> systemEnvironment = Maps.newHashMap();
+    public final Map<String, String> systemEnvironment;
 
     public final Frame namespaceRegistry;
 
@@ -141,11 +145,19 @@ public class Context {
     public final Environment globalEnvironment;
     public final Environment baseNamespaceEnv;
 
+    public final FileSystemManager fileSystemManager;
+
+    public PrintWriter stdout;
+
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
 
-    private Globals() {
+    private Globals(FileSystemManager fileSystemManager) {
+      this.stdout = new PrintWriter(java.lang.System.out);
+      this.fileSystemManager = fileSystemManager;
+      systemEnvironment = Maps.newHashMap();
       systemEnvironment.put("R_LIBS", getLibraryPaths());
+      options = new Options();
       globalEnvironment = Environment.createGlobalEnvironment();
       baseEnvironment = globalEnvironment.getBaseEnvironment();
       namespaceRegistry = new HashFrame();
@@ -153,10 +165,28 @@ public class Context {
       namespaceRegistry.setVariable(new Symbol("base"), baseNamespaceEnv);
       globalEnvironment.setVariable(new Symbol(".BaseNamespaceEnv"), baseNamespaceEnv);
       try {
-        workingDirectory = VFS.getManager().resolveFile(new File(".").getAbsolutePath());
+        workingDirectory = fileSystemManager.resolveFile(new File(".").getAbsolutePath());
       } catch (FileSystemException e) {
         throw new RuntimeException("Could not resolve current working directory");
       }
+    }
+
+    private Globals(Globals toShare) {
+      this.stdout = toShare.stdout;
+      this.fileSystemManager = toShare.fileSystemManager;
+      this.systemEnvironment = Maps.newHashMap(toShare.systemEnvironment);
+      this.globalEnvironment = Environment.forkGlobalEnvironment(toShare.globalEnvironment);
+      this.baseEnvironment = toShare.baseEnvironment;
+      this.namespaceRegistry = toShare.namespaceRegistry;
+      this.baseNamespaceEnv = toShare.baseNamespaceEnv;
+      namespaceRegistry.setVariable(new Symbol("base"), baseNamespaceEnv);
+      globalEnvironment.setVariable(new Symbol(".BaseNamespaceEnv"), baseNamespaceEnv);
+      workingDirectory = toShare.workingDirectory;
+      options = toShare.options.clone();
+    }
+
+    public void setStdOut(PrintWriter writer) {
+      this.stdout = writer;
     }
 
     private String getLibraryPaths() {
@@ -188,10 +218,15 @@ public class Context {
     }
 
     private static String libraryPathFromFolder(String classPath) {
-      File file = new File(new File(classPath, "r"), "library");
-      if(file.exists() && file.isDirectory()) {
-        return file.getAbsolutePath();
-      } else {
+      try {
+        File file = new File(new File(classPath, "r"), "library");
+        if(file.exists() && file.isDirectory()) {
+          return file.getAbsolutePath();
+        } else {
+          return null;
+        }
+      } catch(Exception e) {
+        // we can get security exceptions for some jars
         return null;
       }
     }
@@ -204,8 +239,9 @@ public class Context {
         if(entry != null) {
           return "jar:file:" + classPath + "!/r/library";
         }
-      } catch (IOException e) {
+      } catch (Exception e) {
       }
+
       return null;
     }
 
@@ -232,13 +268,40 @@ public class Context {
   }
 
   public static Context newTopLevelContext() {
-    Globals globals = new Globals();
+    try {
+      return newTopLevelContext(VFS.getManager()
+      );
+    } catch (FileSystemException e) {
+      throw new RuntimeException("Could not init FileSystemManger", e);
+    }
+  }
+
+  public static Context newTopLevelContext(FileSystemManager fileSystemManager) {
+    Globals globals = new Globals(fileSystemManager);
 
     Context context = new Context();
     context.globals = globals;
     context.type = Type.TOP_LEVEL;
     context.environment = globals.globalEnvironment;
     return context;
+  }
+
+  /**
+   *
+   * @return a new Context that can be used independently of the current context,
+   * but shares everything except the
+   */
+  public Context fork() {
+    // TODO: extract TopLevelContext class
+    if(this.type != Context.Type.TOP_LEVEL) {
+      throw new UnsupportedOperationException("fork() can only be called on a top level context");
+    }
+    Context context = new Context();
+    context.globals = new Globals(this.globals);
+    context.type = Context.Type.TOP_LEVEL;
+    context.environment = context.globals.globalEnvironment;
+    return context;
+
   }
 
   public Context beginFunction(FunctionCall call, Closure closure, PairList arguments) {
@@ -255,7 +318,7 @@ public class Context {
   }
 
   public FileSystemManager getFileSystemManager() throws FileSystemException {
-    return VFS.getManager();
+    return globals.fileSystemManager;
   }
 
   public FileObject resolveFile(String uri) throws FileSystemException {
@@ -265,6 +328,12 @@ public class Context {
   public Environment getEnvironment() {
     return environment;
   }
+
+
+  public Environment getGlobalEnvironment() {
+    return globals.globalEnvironment;
+  }
+
 
   public Closure getClosure() {
     return closure;
@@ -387,7 +456,6 @@ public class Context {
 
     // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
     FunctionCall.newCall(new Symbol(".First.sys")).evaluate(this, environment);
-
   }
 
   public void loadBasePackage() throws IOException {
@@ -401,4 +469,5 @@ public class Context {
     SEXP profileScript = RParser.parseSource(reader).evalToExp(this, globals.baseNamespaceEnv);
     profileScript.evaluate(this, globals.baseNamespaceEnv);
   }
+
 }

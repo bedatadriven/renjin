@@ -25,6 +25,7 @@ import org.apache.commons.vfs.FileSystemException;
 import r.base.connections.GzFileConnection;
 import r.base.connections.OutputStreamConnection;
 import r.base.connections.StdInConnection;
+import r.base.connections.StdOutConnection;
 import r.io.DatafileReader;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Recycle;
@@ -102,17 +103,83 @@ public class Connections {
   }
 
   public static ExternalExp<Connection> stdout(@Current final Context context) {
-    return new ExternalExp(new OutputStreamConnection(java.lang.System.out), "connection");
+    return new ExternalExp(new StdOutConnection(context.getGlobals().stdout), "connection");
   }
 
   public static ExternalExp<Connection> stderr() {
     return new ExternalExp<Connection>(new OutputStreamConnection(java.lang.System.err), "connection");
   }
 
-  public static void cat(ListVector list, Connection connection, String sep, boolean fill, SEXP labels, boolean append) throws IOException {
-    PrintWriter pw = connection.getPrintWriter();
+  public static void cat(ListVector list, Connection connection, String sep, SEXP fill, SEXP labels, boolean append) throws IOException {
+    PrintWriter printWriter = connection.getPrintWriter();
+    CatVisitor visitor = new CatVisitor(printWriter, sep, 0);
     for(SEXP element : list) {
-      pw.print(element.toString());
+      element.accept(visitor);
+    }
+    printWriter.flush();
+  }
+
+  private static class CatVisitor extends SexpVisitor {
+
+    private final PrintWriter writer;
+    private String separator;
+    private boolean needsSeparator = false;
+    private int fill;
+
+    private CatVisitor(PrintWriter writer, String separator, int fill) {
+      this.writer = writer;
+      this.separator = separator;
+      this.fill = fill;
+    }
+
+    @Override
+    public void visit(StringVector stringExp) {
+      catVector(stringExp);
+    }
+
+    @Override
+    public void visit(IntVector intExp) {
+      catVector(intExp);
+    }
+
+    @Override
+    public void visit(LogicalVector logicalExp) {
+      catVector(logicalExp);
+    }
+
+    @Override
+    public void visit(Null nilExp) {
+      // do nothing
+    }
+
+    @Override
+    public void visit(DoubleVector realExp) {
+      catVector(realExp);
+    }
+
+    private void catVector(AtomicVector vector) {
+      for(int i=0;i!=vector.length();++i) {
+        catElement(vector.getElementAsString(i));
+      }
+    }
+
+    @Override
+    public void visit(Symbol symbolExp) {
+      catElement(symbolExp.getPrintName());
+    }
+
+    private void catElement(String element) {
+      if(needsSeparator) {
+        writer.print(separator);
+      } else {
+        needsSeparator = true;
+      }
+      writer.print(element);
+    }
+
+    @Override
+    protected void unhandled(SEXP exp) {
+      throw new EvalException("argument of type '%s' cannot be handled by 'cat'", exp.getTypeName());
     }
   }
 
@@ -232,7 +299,7 @@ public class Connections {
       @Override
       public SEXP restore(SEXP values) {
         FunctionCall call = FunctionCall.newCall(restoreFunction, values);
-        return call.evalToExp(context, rho.getGlobalEnvironment());
+        return call.evalToExp(context, context.getGlobalEnvironment());
       }
     });
 

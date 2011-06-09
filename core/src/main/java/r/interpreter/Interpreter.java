@@ -21,11 +21,7 @@
 
 package r.interpreter;
 
-import r.base.Print;
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.EvalResult;
-import r.lang.SEXP;
+import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;
 import r.lang.exception.ParseException;
@@ -35,6 +31,8 @@ import r.parser.RLexer;
 import r.parser.RParser;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Reader;
 
 /**
@@ -51,8 +49,8 @@ public class Interpreter implements Runnable {
     this.console = console;
 
     this.topLevelContext = Context.newTopLevelContext();
+    this.topLevelContext.getGlobals().setStdOut(new PrintWriter(console.getOut()));
     this.global = topLevelContext.getEnvironment();
-   // this.global.setPrintStream(console.getOut());
 
     if(console instanceof RichConsole) {
       ((RichConsole) console).setNameCompletion(new SymbolCompletion(global));
@@ -74,13 +72,13 @@ public class Interpreter implements Runnable {
       topLevelContext.init();
 
     } catch (IOException e) {
-      console.println("Error loading base package");
+      console.getOut().println("Error loading base package");
     }
 
 
     while(true) {
 
-      console.print("> ");
+      console.getOut().print("> ");
 
       try {
         parser.parse();
@@ -92,36 +90,38 @@ public class Interpreter implements Runnable {
         EvalResult result = exp.evaluate(topLevelContext, global);
 
         if(result.isVisible()) {
-          console.println( Print.print(result.getExpression(), console.getCharactersPerLine()) );
-        }        
+          FunctionCall.newCall(new Symbol("print"), result.getExpression())
+            .evaluate(topLevelContext, topLevelContext.getEnvironment());
+        }
 
       } catch (ParseException e) {
-        console.println(String.format("Error: %s", e.getMessage()));
+        console.getErr().println(String.format("Error: %s", e.getMessage()));
 
       } catch (FunctionCallException e) {
-        console.println(String.format("Error in '<fixme>': %s", e.getMessage()));
+        console.getErr().println(String.format("Error in '<fixme>': %s", e.getMessage()));
 
       } catch (EvalException e) {
-        console.println(String.format("Error: %s", e.getMessage()));
+        console.getErr().println(String.format("Error: %s", e.getMessage()));
 
       } catch (Exception e) {
-        console.println(String.format("Java exception thrown: " + e.getMessage()));
+        console.getErr().println(String.format("Java exception thrown: " + e.getMessage()));
         e.printStackTrace();
       }
     }
   }
 
   private void printGreeting() {
-    console.print("Renjin 0.0.1-SNAPSHOT\n");
-    console.print("Copyright (C) 2010 The R Foundation for Statistical Computing\n");
-    console.print("Copyright (C) 2010 bedatadriven\n");
-    console.print("ISBN 3-900051-07-0\n\n");
+    PrintStream out = console.getOut();
+    out.print("Renjin 0.0.1-SNAPSHOT\n");
+    out.print("Copyright (C) 2010 The R Foundation for Statistical Computing\n");
+    out.print("Copyright (C) 2010 bedatadriven\n");
+    out.print("ISBN 3-900051-07-0\n\n");
 
-    console.print("R is free software and comes with ABSOLUTELY NO WARRANTY. " +
+    out.print("R is free software and comes with ABSOLUTELY NO WARRANTY. " +
       "You are welcome to redistribute it under certain conditions. " +
       "Type 'license()' or 'licence()' for distribution details.\n\n");
 
-    console.print("R is a collaborative project with many contributors. " +
+    out.print("R is a collaborative project with many contributors. " +
       "Type 'contributors()' for more information and " +
       "'citation()' on how to cite R or R packages in publications.\n\n");
 

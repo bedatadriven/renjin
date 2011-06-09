@@ -171,7 +171,7 @@ public class TypesTest extends EvalTestCase {
 
   @Test
   public void environment() {
-    assertThat( eval(".Internal(environment())"), CoreMatchers.is((SEXP) global.getGlobalEnvironment()));
+    assertThat( eval(".Internal(environment())"), CoreMatchers.is((SEXP) topLevelContext.getGlobalEnvironment()));
   }
 
   @Test
@@ -182,7 +182,7 @@ public class TypesTest extends EvalTestCase {
   @Test
   public void environmentOfClosure() {
     eval("f <- function() { 1 } ");
-    assertThat( eval(".Internal(environment( f ))"), is((SEXP) global.getGlobalEnvironment()));
+    assertThat( eval(".Internal(environment( f ))"), is((SEXP) topLevelContext.getGlobalEnvironment()));
   }
 
   @Test

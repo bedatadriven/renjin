@@ -681,8 +681,8 @@ public class BaseFrame implements Frame {
     f("interactive", Evaluation.class, 0, 0, 0);
     f("readline", /*readln*/ null, 0, 11, 1);
     f("menu", /*menu*/ null, 0, 11, 1);
-    f("print.default", /*printdefault*/ null, 0, 111, 9);
-    f("print.function", /*printfunction*/ null, 0, 111, 3);
+    f("print.default", Print.class, 0, 111, 9);
+    f("print.function", Print.class, 0, 111, 3);
     f("prmatrix", /*prmatrix*/ null, 0, 111, 6);
     f("invisible", Types.class, 0, 101, 1);
     f("gc", /*gc*/ null, 0, 11, 2);

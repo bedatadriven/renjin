@@ -25,8 +25,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.jvmi.annotations.Current;
+import r.jvmi.annotations.Primitive;
 import r.lang.*;
-import r.lang.exception.EvalException;
 import r.parser.ParseUtil;
 
 import java.io.PrintStream;
@@ -36,21 +36,6 @@ public class Print {
 
   private Print() {}
 
-  public static SEXP print(@Current Environment rho, SEXP value) {
-    SEXP stdout = rho.findVariable(Symbol.STDOUT);
-    if( stdout == Symbol.UNBOUND_VALUE ) {
-      throw new EvalException("no stdout found in the current environment");
-    }
-    if(! (stdout instanceof ExternalExp) ) {
-      throw new EvalException("stdout is not a PrintStream");
-    }
-    ExternalExp<PrintStream> ptr = (ExternalExp<PrintStream>)stdout;
-    if(! (ptr.getValue() instanceof PrintStream)) {
-      throw new EvalException("stdout is not a PrintStream"); 
-    }
-    print(ptr.getValue(), value, 80);
-    return value;
-  }
 
   public static void print(PrintStream printStream, SEXP value, int charactersPerLine) {
     printStream.println(new PrintingVisitor(value,charactersPerLine).getResult());
@@ -58,6 +43,21 @@ public class Print {
 
   public static String print(SEXP expression, int charactersPerLine) {
     return new PrintingVisitor(expression,charactersPerLine).getResult();
+  }
+
+  @Primitive("print.default")
+  public static void printDefault(@Current Context context, SEXP expression, SEXP digits, SEXP quote, SEXP naPrint,
+                                    SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) {
+
+    String printed = new PrintingVisitor(expression,80).getResult();
+    context.getGlobals().stdout.print(printed);
+    context.getGlobals().stdout.flush();
+  }
+
+  @Primitive("print.function")
+  public static void printFunction(@Current Context context, SEXP x, boolean useSource) {
+    context.getGlobals().stdout.println(x.toString());
+    context.getGlobals().stdout.flush();
   }
 
   static class PrintingVisitor extends SexpVisitor<String> {

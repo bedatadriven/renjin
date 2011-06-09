@@ -39,7 +39,7 @@ public class ModelsTest extends EvalTestCase {
 
     assertThat( eval(" attr(t, 'variables')"), equalTo(list()));
     assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector()));
-    assertThat( eval(" .Internal(environment(t)) "), sameInstance((SEXP)topLevelContext.getEnvironment().getGlobalEnvironment()));
+    assertThat( eval(" .Internal(environment(t)) "), sameInstance((SEXP)topLevelContext.getGlobalEnvironment()));
 
   }
 }

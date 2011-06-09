@@ -213,6 +213,18 @@ public class IntegrationTest extends EvalTestCase {
 
   }
 
+  @Test
+  public void fork() throws IOException {
+    topLevelContext.init();
+
+    Context context1 = topLevelContext.fork();
+    FunctionCall.newCall(new Symbol("search")).evaluate(context1, context1.getEnvironment());
+
+    Context context2 = topLevelContext.fork();
+
+
+  }
+
   private void loadBasePackage() throws IOException {
     topLevelContext.loadBasePackage();
   }

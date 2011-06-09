@@ -56,7 +56,7 @@ public class Models {
     attributes.add("order", new IntVector());
     attributes.add("intercept", new IntVector(1));
     attributes.add("response", new IntVector(0));
-    attributes.add(".Environment", context.getEnvironment().getGlobalEnvironment() );
+    attributes.add(".Environment", context.getGlobalEnvironment() );
 
     // create an new Function Call
     FunctionCall copy = x.clone();

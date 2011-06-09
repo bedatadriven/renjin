@@ -161,7 +161,13 @@ public class RParserTest {
     ExpressionVector exprList = parseAll("\n1;");
 
     assertThat(exprList.length(), equalTo(1));
+  }
 
+  @Test
+  public void stringWithEscapes() throws IOException {
+    StringVector s = (StringVector) parseSingle("\"a\\n\"\n");
+
+    assertThat(s.getElementAsString(0), equalTo("a\n"));
   }
 
   @Test

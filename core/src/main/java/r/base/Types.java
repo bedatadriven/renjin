@@ -305,8 +305,8 @@ public class Types {
     return arg;
   }
 
-  public static Environment asEnvironment(@Current Environment rho, double index) {
-    Environment result = rho.getGlobalEnvironment();
+  public static Environment asEnvironment(@Current Context context, double index) {
+    Environment result = context.getGlobalEnvironment();
     for(int i=2;i<index;++i) {
       if(result == Environment.EMPTY) {
         throw new EvalException("invalid 'pos' argument");
@@ -451,8 +451,8 @@ public class Types {
     return arguments;
   }
 
-  public static Environment environment(@Current Environment rho) {
-    return rho.getGlobalEnvironment();
+  public static Environment environment(@Current Context context) {
+    return context.getGlobalEnvironment();
   }
 
   public static SEXP environment(@Current Environment rho, SEXP exp) {
@@ -489,8 +489,8 @@ public class Types {
     return rho.getBaseEnvironment();
   }
 
-  public static Environment globalEnv(@Current Environment rho) {
-    return rho.getGlobalEnvironment();
+  public static Environment globalEnv(@Current Context context) {
+    return context.getGlobalEnvironment();
   }
 
   public static boolean exists(@Current Context context, String x, Environment environment, String mode, boolean inherits) {
@@ -630,9 +630,9 @@ public class Types {
     return EvalResult.NON_PRINTING_NULL;
   }
 
-  public static StringVector search(@Current Environment rho) {
+  public static StringVector search(@Current Context context) {
     List<String> names = Lists.newArrayList();
-    Environment env = rho.getGlobalEnvironment();
+    Environment env = context.getGlobalEnvironment();
     while(env != Environment.EMPTY) {
       names.add(env.getName());
       env = env.getParent();
@@ -641,7 +641,7 @@ public class Types {
   }
 
   @Visible(false)
-  public static Environment attach(@Current Environment rho, SEXP what, int pos, String name) {
+  public static Environment attach(@Current Context context, SEXP what, int pos, String name) {
 
     //By default the database is attached in position 2 in the search path,
     // immediately after the user's workspace and before all previously loaded packages and
@@ -652,7 +652,7 @@ public class Types {
       throw new EvalException("Attachment position must be 2 or greater");
     }
 
-    Environment child = rho.getGlobalEnvironment();
+    Environment child = context.getGlobalEnvironment();
     for(int i=2;i!=pos;++i) {
       child = child.getParent();
     }

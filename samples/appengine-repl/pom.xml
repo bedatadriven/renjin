@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ R : A Computer Language for Statistical Data Analysis
+  ~ Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+  ~ Copyright (C) 1997-2008  The R Development Core Team
+  ~ Copyright (C) 2003, 2004  The R Foundation
+  ~ Copyright (C) 2010 bedatadriven
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>parent</artifactId>
+    <groupId>com.bedatadriven.renjin</groupId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.bedatadriven.renjin</groupId>
+  <artifactId>appengine-repl</artifactId>
+  <name>AppEngine REPL</name>
+  <packaging>war</packaging>
+
+  <properties>
+    <gae.version>1.4.3</gae.version>
+    <gwt.version>2.2.0</gwt.version>
+    <gae.port>8888</gae.port>
+    <gae.sdk.root>${settings.localRepository}/com/google/appengine/appengine-java-sdk/${gae.version}/appengine-java-sdk-${gae.version}</gae.sdk.root>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-servlet_2.5_spec</artifactId>
+      <version>1.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-api-1.0-sdk</artifactId>
+      <version>${gae.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-servlet</artifactId>
+      <version>${gwt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+      <version>${gwt.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.bedatadriven.renjin</groupId>
+      <artifactId>renjin-core</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>net.kindleit</groupId>
+        <artifactId>maven-gae-plugin</artifactId>
+        <version>0.7.2</version>
+        <configuration>
+          <port>${gae.port}</port>
+          <unpackVersion>${gae.version}</unpackVersion>
+          <jvmFlags>
+            <jvmFlag>-Xmx256m</jvmFlag>
+          </jvmFlags>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <version>2.2.0</version>
+        <configuration>
+          <port>${gae.port}</port>
+          <runTarget>LotREPLs.html</runTarget>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <module>com.bedatadriven.renjin.appengine.LotREPLs</module>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

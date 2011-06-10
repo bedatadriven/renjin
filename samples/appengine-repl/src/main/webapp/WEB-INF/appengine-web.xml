@@ -20,8 +20,15 @@
   -->
 
 <appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
-	<application>renjin</application>
-	<version>2</version>
+	<application>renjindemo</application>
+	<version>1</version>
+
+  <system-properties>
+    <property name="os.name" value="appengine"/>
+    <property name="os.arch" value="x86"/>
+    <property name="os.version" value="1"/>
+    <property name="path.separator" value="/"/>
+  </system-properties>
 
   <sessions-enabled>
     true

@@ -307,7 +307,7 @@ public class Types {
 
   public static Environment asEnvironment(@Current Context context, double index) {
     Environment result = context.getGlobalEnvironment();
-    for(int i=2;i<index;++i) {
+    for(int i=1;i<index;++i) {
       if(result == Environment.EMPTY) {
         throw new EvalException("invalid 'pos' argument");
       }
@@ -637,6 +637,10 @@ public class Types {
       names.add(env.getName());
       env = env.getParent();
     }
+    // special cased:
+    names.set(0, ".GlobalEnv");
+    names.set(names.size()-1, "package:base");
+
     return new StringVector(names);
   }
 

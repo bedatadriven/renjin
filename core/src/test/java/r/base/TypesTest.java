@@ -29,6 +29,7 @@ import r.lang.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static r.lang.Logical.FALSE;
 import static r.lang.Logical.TRUE;
@@ -240,6 +241,12 @@ public class TypesTest extends EvalTestCase {
     assertThat( eval(" names(x) "), equalTo(c("a","b","c",StringVector.NA,StringVector.NA)));
     assertThat( eval(" attr(x, 'foo') "), equalTo( c("bar")));
 
+  }
+
+  @Test
+  public void asEnvironment() {
+    assertThat( eval("as.environment(1)"), sameInstance((SEXP)topLevelContext.getGlobalEnvironment()));
+    assertThat( eval("as.environment(2)"), sameInstance((SEXP)topLevelContext.getGlobalEnvironment().getParent()));
   }
 
   @Test

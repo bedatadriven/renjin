@@ -24,5 +24,5 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
  */
 @RemoteServiceRelativePath("api")
 public interface LotREPLsApi extends RemoteService {
-  String eval(InterpreterType type, String script) throws InterpreterException;
+  String eval(String script) throws InterpreterException;
 }

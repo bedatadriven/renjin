@@ -17,7 +17,6 @@
 package com.bedatadriven.renjin.appengine.server;
 
 import com.bedatadriven.renjin.appengine.shared.InterpreterException;
-import com.bedatadriven.renjin.appengine.shared.InterpreterType;
 import com.bedatadriven.renjin.appengine.shared.LotREPLsApi;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import org.apache.commons.vfs.FileSystemException;
@@ -71,7 +70,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
 
   }
 
-  public String eval(InterpreterType type, String script)
+  public String eval(String script)
       throws InterpreterException {
 
     ExpressionVector expression = RParser.parseSource(script + "\n");

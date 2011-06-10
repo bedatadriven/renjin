@@ -55,11 +55,10 @@ public class LotREPLs implements EntryPoint {
    * This is the entry point method.
    */
   public void onModuleLoad() {
+    doWarmUpRequest();
     showMotd();
 
-    String language = Location.getParameter("language");
-
-    commandPrompt = new CommandPrompt(language, new CommandPrompt.CommandEnteredCallback() {
+    commandPrompt = new CommandPrompt(new CommandPrompt.CommandEnteredCallback() {
       /**
        * The command entered handler does a little switch-a-roo. It removes the
        * input area and prompt, replacing them with immutable copies, and then
@@ -76,11 +75,7 @@ public class LotREPLs implements EntryPoint {
 
         Window.scrollTo(0, 100000);
 
-        try {
-          api.eval(type, script, new ScriptCallback());
-        } catch (InterpreterException e) {
-          setResult(e.getMessage(), false);
-        }
+        api.eval(script, new ScriptCallback());
       }
     });
 
@@ -94,6 +89,20 @@ public class LotREPLs implements EntryPoint {
     content.setWidth("100%");
     RootPanel.get().add(content);
     commandPrompt.claimFocus();
+  }
+
+  private void doWarmUpRequest() {
+    api.eval("1", new AsyncCallback<String>() {
+      @Override
+      public void onFailure(Throwable throwable) {
+
+      }
+
+      @Override
+      public void onSuccess(String s) {
+
+      }
+    });
   }
 
   private class ScriptCallback implements AsyncCallback<String> {

@@ -19,7 +19,9 @@ package com.bedatadriven.renjin.appengine.client;
 import com.bedatadriven.renjin.appengine.shared.InterpreterType;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.SpanElement;
-import com.google.gwt.event.dom.client.*;
+import com.google.gwt.event.dom.client.KeyCodes;
+import com.google.gwt.event.dom.client.KeyDownEvent;
+import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.*;
 
@@ -50,7 +52,7 @@ public class CommandPrompt {
   private CommandHistory history;
   private int currentHistoryIdx = 0;
 
-  public CommandPrompt(String language, CommandEnteredCallback callback) {
+  public CommandPrompt(CommandEnteredCallback callback) {
     panel = new HorizontalPanel();
     prompt = new Label();
     prompt.setStyleName("prompt");
@@ -74,7 +76,6 @@ public class CommandPrompt {
     });
 
     history = new CommandHistory();
-    setLanguage(language);
     commandEnteredCallback = callback;
   }
 
@@ -84,10 +85,6 @@ public class CommandPrompt {
 
   public void claimFocus() {
     inputArea.setFocus(true);
-  }
-
-  public void setLanguage(String lang) {
-    languageSelected(lang);
   }
 
   public void setScript(String script) {
@@ -148,14 +145,6 @@ public class CommandPrompt {
     return scriptText;
   }
 
-  private void languageSelected(String newLanguage) {
-    panel.remove(0);
-    switchType(newLanguage);
-    updatePromptText();
-    panel.insert(prompt, 0);
-    claimFocus();
-  }
-  
   /*
    * This is a hacky way to see how many pixels wide a string of text would be
    * if it was added to the document.  This works in our case because a string

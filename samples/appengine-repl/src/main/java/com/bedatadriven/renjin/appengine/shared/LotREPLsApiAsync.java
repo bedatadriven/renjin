@@ -22,6 +22,5 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  * This is the asynchronous version of the API provided by the backend.
  */
 public interface LotREPLsApiAsync {
-  void eval(InterpreterType type, String script, AsyncCallback<String> result)
-      throws InterpreterException;
+  void eval(String script, AsyncCallback<String> result);
 }

@@ -195,18 +195,22 @@ public class Context {
 
     @VisibleForTesting
     static String libraryPathsFromClassPath(String classPathString) {
-      String classPaths[] = classPathString.split(";");
-      StringBuilder path = new StringBuilder();
-      for(String classPath : classPaths) {
-        String libraryPath = libraryPathFromClassPathEntry(classPath);
-        if(libraryPath != null) {
-          if(path.length() != 0) {
-            path.append(";");
+      if(classPathString == null) {
+        return "";
+      } else {
+        String classPaths[] = classPathString.split(";");
+        StringBuilder path = new StringBuilder();
+        for(String classPath : classPaths) {
+          String libraryPath = libraryPathFromClassPathEntry(classPath);
+          if(libraryPath != null) {
+            if(path.length() != 0) {
+              path.append(";");
+            }
+            path.append(libraryPath);
           }
-          path.append(libraryPath);
         }
+        return path.toString();
       }
-      return path.toString();
     }
 
     static String libraryPathFromClassPathEntry(String classPath) {

@@ -21,7 +21,6 @@
 
 package r.lang;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.vfs.FileObject;
@@ -29,13 +28,15 @@ import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
 import r.parser.RParser;
+import r.util.FileSystemUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 /**
  * Contexts are the internal mechanism used to keep track of where a
@@ -141,6 +142,11 @@ public class Context {
 
     public final Frame namespaceRegistry;
 
+    /**
+     * The R_HOME path. This is the path from which the base package is loaded.
+     */
+    public final String homeDirectory;
+
     public final Environment baseEnvironment;
     public final Environment globalEnvironment;
     public final Environment baseNamespaceEnv;
@@ -152,11 +158,16 @@ public class Context {
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
 
-    private Globals(FileSystemManager fileSystemManager) {
-      this.stdout = new PrintWriter(java.lang.System.out);
+    private Globals(FileSystemManager fileSystemManager, String homeDirectory,
+                    FileObject workingDirectory) {
       this.fileSystemManager = fileSystemManager;
+      this.homeDirectory = homeDirectory;
+      this.workingDirectory = workingDirectory;
+
+      this.stdout = new PrintWriter(java.lang.System.out);
+
       systemEnvironment = Maps.newHashMap();
-      systemEnvironment.put("R_LIBS", getLibraryPaths());
+      systemEnvironment.put("R_LIBS", FileSystemUtils.defaultLibraryPaths());
       options = new Options();
       globalEnvironment = Environment.createGlobalEnvironment();
       baseEnvironment = globalEnvironment.getBaseEnvironment();
@@ -164,15 +175,21 @@ public class Context {
       baseNamespaceEnv = Environment.createNamespaceEnvironment(globalEnvironment, "base");
       namespaceRegistry.setVariable(new Symbol("base"), baseNamespaceEnv);
       globalEnvironment.setVariable(new Symbol(".BaseNamespaceEnv"), baseNamespaceEnv);
-      try {
-        workingDirectory = fileSystemManager.resolveFile(new File(".").getAbsolutePath());
-      } catch (FileSystemException e) {
-        throw new RuntimeException("Could not resolve current working directory");
-      }
+    }
+
+    /**
+     * Sets the paths in which to search for libraries. This is by default based
+     * on the java classpath. (See {@link r.util.FileSystemUtils#defaultLibraryPaths()} )
+     *
+     * @param paths a semi-colon delimited list of paths
+     */
+    public void setLibraryPaths(String paths) {
+      systemEnvironment.put("R_LIBS", paths);
     }
 
     private Globals(Globals toShare) {
       this.stdout = toShare.stdout;
+      this.homeDirectory = toShare.homeDirectory;
       this.fileSystemManager = toShare.fileSystemManager;
       this.systemEnvironment = Maps.newHashMap(toShare.systemEnvironment);
       this.globalEnvironment = Environment.forkGlobalEnvironment(toShare.globalEnvironment);
@@ -188,67 +205,6 @@ public class Context {
     public void setStdOut(PrintWriter writer) {
       this.stdout = writer;
     }
-
-    private String getLibraryPaths() {
-      return libraryPathsFromClassPath(System.getProperty("java.class.path"));
-    }
-
-    @VisibleForTesting
-    static String libraryPathsFromClassPath(String classPathString) {
-      if(classPathString == null) {
-        return "";
-      } else {
-        String classPaths[] = classPathString.split(";");
-        StringBuilder path = new StringBuilder();
-        for(String classPath : classPaths) {
-          String libraryPath = libraryPathFromClassPathEntry(classPath);
-          if(libraryPath != null) {
-            if(path.length() != 0) {
-              path.append(";");
-            }
-            path.append(libraryPath);
-          }
-        }
-        return path.toString();
-      }
-    }
-
-    static String libraryPathFromClassPathEntry(String classPath) {
-      if(classPath.endsWith(".jar")) {
-        return libraryPathFromJarFile(classPath);
-      } else {
-        return libraryPathFromFolder(classPath);
-      }
-    }
-
-    private static String libraryPathFromFolder(String classPath) {
-      try {
-        File file = new File(new File(classPath, "r"), "library");
-        if(file.exists() && file.isDirectory()) {
-          return file.getAbsolutePath();
-        } else {
-          return null;
-        }
-      } catch(Exception e) {
-        // we can get security exceptions for some jars
-        return null;
-      }
-    }
-
-    @VisibleForTesting
-    static String libraryPathFromJarFile(String classPath)  {
-      try {
-        JarFile jarFile = new JarFile(classPath);
-        JarEntry entry = jarFile.getJarEntry("r/library");
-        if(entry != null) {
-          return "jar:file:" + classPath + "!/r/library";
-        }
-      } catch (Exception e) {
-      }
-
-      return null;
-    }
-
   }
 
 
@@ -271,18 +227,34 @@ public class Context {
   private Context() {
   }
 
+  /**
+   *
+   * @return a new top level context using the default VFS FileSystemManager and the
+   * renjin-core jar as the R_HOME directory.
+   *
+   * @see org.apache.commons.vfs.VFS#getManager()
+   * @see r.util.FileSystemUtils#homeDirectoryInCoreJar()
+   */
   public static Context newTopLevelContext() {
     try {
-      return newTopLevelContext(VFS.getManager()
-      );
+      return newTopLevelContext(VFS.getManager(),
+            FileSystemUtils.homeDirectoryInCoreJar(),
+            FileSystemUtils.workingDirectory(VFS.getManager()));
     } catch (FileSystemException e) {
       throw new RuntimeException("Could not init FileSystemManger", e);
     }
   }
 
-  public static Context newTopLevelContext(FileSystemManager fileSystemManager) {
-    Globals globals = new Globals(fileSystemManager);
-
+  /**
+   *
+   * @param fileSystemManager the VFS file system manager which regulates access to the underlying
+   * filesystem
+   * @param homeDirectory  the R_HOME directory
+   * @return a new top level context that can be used to evaluate R expressions
+   */
+  public static Context newTopLevelContext(FileSystemManager fileSystemManager, String homeDirectory,
+                                           FileObject workingDirectory) {
+    Globals globals = new Globals(fileSystemManager, homeDirectory, workingDirectory);
     Context context = new Context();
     context.globals = globals;
     context.type = Type.TOP_LEVEL;
@@ -321,23 +293,43 @@ public class Context {
     return context;
   }
 
-  public FileSystemManager getFileSystemManager() throws FileSystemException {
+  /**
+   *
+   * @return the {@link FileSystemManager} associated with this Context. All R primitives that
+   * interact with the file system defer to this manager.
+   */
+  public FileSystemManager getFileSystemManager() {
     return globals.fileSystemManager;
   }
 
+  /**
+   * Translates a uri/path into a VFS {@code FileObject}.
+   *
+   * @param uri uniform resource indicator. This could be, for example:
+   * <ul>
+   * <li>jar:file:///path/to/my/libray.jar!/r/library/survey</li>
+   * <li>/usr/lib</li>
+   * <li>c:&#92;users&#92;owner&#92;data.txt</li>
+   * </ul>
+   *
+   * @return
+   * @throws FileSystemException
+   */
   public FileObject resolveFile(String uri) throws FileSystemException {
     return getFileSystemManager().resolveFile(globals.workingDirectory, uri);
   }
 
+  /**
+   * @return the environment associated with this {@code Context}. This will be
+   * either the global environment for top-level contexts
+   */
   public Environment getEnvironment() {
     return environment;
   }
 
-
   public Environment getGlobalEnvironment() {
     return globals.globalEnvironment;
   }
-
 
   public Closure getClosure() {
     return closure;

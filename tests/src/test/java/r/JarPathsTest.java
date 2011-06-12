@@ -36,5 +36,7 @@ public class JarPathsTest {
     Context context = Context.newTopLevelContext();
     context.init();
 
+    System.out.println(getClass().getResource("/r/lang/SEXP.class").getFile());
+
   }
 }

@@ -28,6 +28,7 @@
     <property name="os.arch" value="x86"/>
     <property name="os.version" value="1"/>
     <property name="path.separator" value="/"/>
+    <property name="java.util.logging.config.file" value="WEB-INF/logging.properties" />
   </system-properties>
 
   <sessions-enabled>

@@ -22,6 +22,7 @@
 package r.lang;
 
 import org.junit.Test;
+import r.util.FileSystemUtils;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -33,9 +34,10 @@ public class ClassPathTest {
   public void libraryPathsFromClassPath() {
 
     String jarFile = getClass().getResource("/jarfiletest.jar").getFile();
-    String libraryPath = Context.Globals.libraryPathFromJarFile(jarFile);
+    String libraryPath = FileSystemUtils.libraryPathFromJarFile(jarFile)
+        .replace('\\','/');
 
-    assertThat( libraryPath, equalTo("jar:file:" + jarFile + "!/r/library"));
+    assertThat( libraryPath, equalTo("jar:file:/" + jarFile + "!/r/library"));
 
   }
 

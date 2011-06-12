@@ -21,7 +21,6 @@
 
 package r.base;
 
-import com.google.common.annotations.VisibleForTesting;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
@@ -39,21 +38,8 @@ public class System {
     return new Date().getTime();
   }
 
-  public static String getRHome() throws URISyntaxException {
-    // hardcode to the R home location to the classpath location
-    // where this class is found.
-    // R_LIBS will contain ALL the /r/library paths found on the classpath
-
-    return RHomeFromSEXPClassURL(System.class.getResource("/r/lang/SEXP.class").toString());
-  }
-
-  @VisibleForTesting
-  static String RHomeFromSEXPClassURL(String url) {
-    String homeUrl = url.substring(0, url.length() - "/r/lang/SEXP.class".length()) + "/r";
-    if(homeUrl.startsWith("file:/")) {
-      homeUrl = homeUrl.substring("file:/".length());
-    }
-    return homeUrl;
+  public static String getRHome(@Current Context context) throws URISyntaxException {
+    return context.getGlobals().homeDirectory;
   }
 
 

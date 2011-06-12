@@ -19,17 +19,20 @@ package com.bedatadriven.renjin.appengine.server;
 import com.bedatadriven.renjin.appengine.shared.InterpreterException;
 import com.bedatadriven.renjin.appengine.shared.LotREPLsApi;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
 import r.io.DatafileReader;
 import r.io.DatafileWriter;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.parser.RParser;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,30 +46,15 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
   private static final String GLOBALS = "GLOBALS";
   private final Logger log = Logger.getLogger(LotREPLsApiImpl.class.getName());
 
-  private FileSystemManager fileSystemManager;
   private Context masterTopLevelContext;
 
-
   @Override
-  public void init() {
+  public void init(ServletConfig config) throws ServletException {
+    super.init(config);
 
     // The default VFS manager uses a Softref file cache that
     // is not allowed on AppEngine
-    try {
-      fileSystemManager = AppEngineContextFactory.createFileSystemManager();
-    } catch (FileSystemException e) {
-      log.log(Level.SEVERE, "Failed to initialize VFS file system manager", e);
-      throw new RuntimeException(e);
-    }
-
-    // intialize our master context here; a fresh but shallow copy will
-    // be forked on each incoming request
-    masterTopLevelContext = Context.newTopLevelContext(fileSystemManager);
-    try {
-      masterTopLevelContext.init();
-    } catch (IOException e) {
-      log.log(Level.SEVERE, "Failed to initialize master context");
-    }
+    masterTopLevelContext = AppEngineContextFactory.createTopLevelContext(config.getServletContext());
 
   }
 
@@ -86,6 +74,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
     try {
       result = expression.evaluate(context, context.getEnvironment());
     } catch(EvalException e) {
+      log.log(Level.WARNING, "Evaluation failed", e);
       throw new InterpreterException(e.getMessage());
     }
     saveGlobals(context);

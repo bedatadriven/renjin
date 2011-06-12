@@ -22,6 +22,7 @@
 package r.base;
 
 import org.junit.Test;
+import r.util.FileSystemUtils;
 
 import java.net.MalformedURLException;
 
@@ -39,7 +40,7 @@ public class JarFileTest {
   public void RHomeInJar() throws MalformedURLException {
     String url = "jar:file:/C:/Users/Owner/.m2/repository/com/bedatadriven/renjin/renjin-core/0.1.0-SNAPSHOT/renjin-core-0.1.0-SNAPSHOT.jar!/r/lang/SEXP.class";
 
-    assertThat( System.RHomeFromSEXPClassURL(url), equalTo(
+    assertThat( FileSystemUtils.RHomeFromSEXPClassURL(url), equalTo(
         "jar:file:/C:/Users/Owner/.m2/repository/com/bedatadriven/renjin/renjin-core/0.1.0-SNAPSHOT/renjin-core-0.1.0-SNAPSHOT.jar!/r"));
 
   }
@@ -48,7 +49,7 @@ public class JarFileTest {
   public void RHomeInDir() {
     String expected = getClass().getResource("/r/lang/SEXP.class").getFile();
     expected = expected.substring(1, expected.length()-16);
-    assertThat(System.RHomeFromSEXPClassURL(getClass().getResource("/r/lang/SEXP.class").toString()),
+    assertThat(FileSystemUtils.RHomeFromSEXPClassURL(getClass().getResource("/r/lang/SEXP.class").toString()),
         equalTo(expected));
   }
 }

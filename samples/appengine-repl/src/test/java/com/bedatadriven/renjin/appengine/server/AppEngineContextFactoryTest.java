@@ -19,25 +19,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.bedatadriven.renjin.appengine;
+package com.bedatadriven.renjin.appengine.server;
 
-import com.bedatadriven.renjin.appengine.server.AppEngineContextFactory;
 import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs.provider.local.DefaultLocalFileProvider;
 import org.junit.Test;
 import r.lang.Context;
 import r.lang.Symbol;
+import r.util.FileSystemUtils;
 
+import java.io.File;
 import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class AppEngineContextFactoryTest {
 
   @Test
   public void rootFile() throws IOException {
-    FileSystemManager fsm = AppEngineContextFactory.createFileSystemManager();
+    DefaultLocalFileProvider localFileProvider = new DefaultLocalFileProvider();
+    FileSystemManager fsm = AppEngineContextFactory.createFileSystemManager(localFileProvider);
 
-    Context context = Context.newTopLevelContext(fsm);
+    Context context = Context.newTopLevelContext(fsm, FileSystemUtils.homeDirectoryInCoreJar(),
+        FileSystemUtils.workingDirectory(fsm));
     context.init();
 
     new Symbol("search").evaluate(context, context.getEnvironment());
   }
+
+  @Test
+  public void homeDirectory() throws IOException {
+    String resourcePath = "file:/base/app/1.234234/WEB-INF/lib/renjin-core-0.1.0-SNAPSHOT.jar!/r/lang/SEXP.class";
+    String home = AppEngineContextFactory.findHomeDirectory(
+        new File("\\base\\app\\1.234234"), resourcePath);
+
+    assertThat( home, equalTo("jar:file:///WEB-INF/lib/renjin-core-0.1.0-SNAPSHOT.jar!/r"));
+  }
+
 }

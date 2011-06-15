@@ -55,7 +55,7 @@ public class FileSystemUtils {
 
     }
     if(homeUrl.startsWith("file:/")) {
-      homeUrl = homeUrl.substring("file:/".length());
+      homeUrl = homeUrl.substring("file:".length());
     }
     return homeUrl;
   }
@@ -74,7 +74,7 @@ public class FileSystemUtils {
   public static String libraryPathsFromClassPath(String classPathString) {
     StringBuilder path = new StringBuilder();
     if(classPathString != null) {
-      String classPaths[] = classPathString.split(";");
+      String classPaths[] = classPathString.split(File.pathSeparator);
       for(String classPath : classPaths) {
         String libraryPath = libraryPathFromClassPathEntry(classPath);
         if(libraryPath != null) {

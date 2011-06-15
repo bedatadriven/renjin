@@ -71,6 +71,7 @@ public class GzFileConnection implements Connection {
     if(isCompressed) {
       in = new GZIPInputStream(in);
     }
+    open = true;
   }
 
   @Override

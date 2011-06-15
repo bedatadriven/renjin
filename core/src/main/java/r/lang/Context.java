@@ -457,12 +457,14 @@ public class Context {
   public void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
     SEXP loadingScript = RParser.parseSource(reader).evaluate(this, globals.baseNamespaceEnv).getExpression();
+    reader.close();
     loadingScript.evaluate(this, globals.baseNamespaceEnv);
   }
 
   public void executeStartupProfile() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/Rprofile"));
     SEXP profileScript = RParser.parseSource(reader).evalToExp(this, globals.baseNamespaceEnv);
+    reader.close();
     profileScript.evaluate(this, globals.baseNamespaceEnv);
   }
 

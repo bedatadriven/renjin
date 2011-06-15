@@ -207,7 +207,9 @@ public class RParserTest {
 
   private SEXP parseResource(String source) throws IOException {
     InputStream stream = getClass().getResourceAsStream(source);
-    return RParser.parseSource(new InputStreamReader(stream));
+    ExpressionVector result = RParser.parseSource(new InputStreamReader(stream));
+    stream.close();
+    return result;
   }
 
 }

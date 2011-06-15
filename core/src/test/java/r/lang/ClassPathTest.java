@@ -37,7 +37,7 @@ public class ClassPathTest {
     String libraryPath = FileSystemUtils.libraryPathFromJarFile(jarFile)
         .replace('\\','/');
 
-    assertThat( libraryPath, equalTo("jar:file:/" + jarFile + "!/r/library"));
+    assertThat( libraryPath, equalTo("jar:file://" + jarFile + "!/r/library"));
 
   }
 

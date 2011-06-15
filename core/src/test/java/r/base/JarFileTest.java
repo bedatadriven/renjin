@@ -48,7 +48,7 @@ public class JarFileTest {
   @Test
   public void RHomeInDir() {
     String expected = getClass().getResource("/r/lang/SEXP.class").getFile();
-    expected = expected.substring(1, expected.length()-16);
+    expected = expected.substring(0, expected.length()-16);
     assertThat(FileSystemUtils.RHomeFromSEXPClassURL(getClass().getResource("/r/lang/SEXP.class").toString()),
         equalTo(expected));
   }

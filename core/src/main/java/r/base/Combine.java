@@ -106,7 +106,7 @@ public class Combine {
     }
 
     @Override
-    public void visit(Null nullInstance) {
+    public void visit(Null nullExpression) {
       // ignore
     }
 
@@ -116,11 +116,11 @@ public class Combine {
     }
 
     @Override
-    public void visit(ListVector vector) {
+    public void visit(ListVector list) {
       if(recursive) {
-        acceptAll(vector);
+        acceptAll(list);
       } else {
-        resultType = Vector.Type.widest(resultType, vector);
+        resultType = Vector.Type.widest(resultType, list);
       }
     }
 

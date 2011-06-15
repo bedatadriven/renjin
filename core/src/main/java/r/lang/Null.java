@@ -250,6 +250,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
+  public int compare(int index1, int index2) {
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
+  }
+
+  @Override
   public Type getVectorType() {
     return VECTOR_TYPE;
   }

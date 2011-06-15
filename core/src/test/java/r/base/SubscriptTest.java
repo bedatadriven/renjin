@@ -491,4 +491,16 @@ public class SubscriptTest extends EvalTestCase {
     assertThat( eval("p[['hello']]"), equalTo(c(1)));
     assertThat( eval("p[['h', exact=FALSE]]"), equalTo(c(1)));
   }
+
+  @Test
+  public void indexingCharacter() {
+    eval("vars <- quote(list(weighta))");
+    assertThat( eval("vars[[2]]"), Matchers.equalTo(symbol("weighta")));
+  }
+
+  @Test
+  public void assignSymbol() {
+    eval("k<-list(1,2,3)");
+    eval("k[[2]]<-quote(foo)");
+  }
 }

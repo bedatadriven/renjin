@@ -187,7 +187,7 @@ public class IntegrationTest extends EvalTestCase {
     assertThat(eval("typeof(hospital)"), equalTo(c("list")));
     assertThat(eval("sum(hospital$births)"), equalTo(c(25667)));
 
-//    eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
+    eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
 //    eval("svymean(~births, dstr)");
 
   }
@@ -222,7 +222,13 @@ public class IntegrationTest extends EvalTestCase {
 
     Context context2 = topLevelContext.fork();
 
+  }
 
+  @Test
+  public void lzmaDecompression() throws IOException {
+    topLevelContext.init();
+    eval("data(USArrests)");
+    eval("names(USArrests)");
   }
 
   private void loadBasePackage() throws IOException {

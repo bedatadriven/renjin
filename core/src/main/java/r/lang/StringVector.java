@@ -232,6 +232,11 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     }
   }
 
+  @Override
+  public int compare(int index1, int index2) {
+    return values[index1].compareTo(values[index2]);
+  }
+
   private int indexOf(String value, int startIndex) {
     for(int i=startIndex;i<values.length;++i) {
       if(values[i].equals(value)) {

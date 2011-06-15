@@ -31,7 +31,7 @@ public class PairListTest {
   @Test
   public void lang() {
 
-    PairList.Node list = PairList.Node.fromArray(new IntVector(1), new IntVector(2), new IntVector(3));
+    PairList list = PairList.Node.fromArray(new IntVector(1), new IntVector(2), new IntVector(3));
 
     assertThat(list.length(), equalTo(3));
 

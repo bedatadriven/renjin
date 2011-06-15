@@ -107,6 +107,11 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
   }
 
   @Override
+  public int compare(int index1, int index2) {
+    return values[index1] - values[index2];
+  }
+
+  @Override
   public Boolean getElementAsObject(int index) {
     int value = values[index];
     if(IntVector.isNA(value)) {

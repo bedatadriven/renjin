@@ -73,11 +73,11 @@ public class Print {
     }
 
     @Override
-    public void visit(ListVector listExp) {
+    public void visit(ListVector list) {
       int index = 1;
-      for(int i=0; i!= listExp.length(); ++i) {
-        SEXP value = listExp.get(i);
-        String name = listExp.getName(i);
+      for(int i=0; i!= list.length(); ++i) {
+        SEXP value = list.get(i);
+        String name = list.getName(i);
 
         if(name.length() == 0) {
           out.append("[[").append(index).append("]]\n");
@@ -91,33 +91,33 @@ public class Print {
     }
 
     @Override
-    public void visit(IntVector intExp) {
-      printVector(intExp, Alignment.RIGHT, new ParseUtil.IntPrinter());
+    public void visit(IntVector vector) {
+      printVector(vector, Alignment.RIGHT, new ParseUtil.IntPrinter());
     }
 
     @Override
-    public void visit(LogicalVector logicalExp) {
-      printVector(logicalExp, Alignment.RIGHT, new ParseUtil.LogicalPrinter());
+    public void visit(LogicalVector vector) {
+      printVector(vector, Alignment.RIGHT, new ParseUtil.LogicalPrinter());
     }
 
     @Override
-    public void visit(DoubleVector realExp) {
-      printVector(realExp, Alignment.RIGHT, new ParseUtil.RealPrinter());
+    public void visit(DoubleVector vector) {
+      printVector(vector, Alignment.RIGHT, new ParseUtil.RealPrinter());
     }
 
     @Override
-    public void visit(StringVector stringExp) {
-      printVector(stringExp, Alignment.LEFT, new ParseUtil.StringPrinter());
+    public void visit(StringVector vector) {
+      printVector(vector, Alignment.LEFT, new ParseUtil.StringPrinter());
     }
 
     @Override
-    public void visit(Null nilExp) {
+    public void visit(Null nullExpression) {
       out.append("NULL\n");
     }
 
     @Override
-    public void visitSpecial(SpecialFunction specialExp) {
-      out.append(".Primitive(").append(ParseUtil.formatStringLiteral(specialExp.getName(), "NA"));
+    public void visitSpecial(SpecialFunction special) {
+      out.append(".Primitive(").append(ParseUtil.formatStringLiteral(special.getName(), "NA"));
     }
 
     private <T> void printVector(Iterable<T> intExp, Alignment align, Function<T, String> printer) {

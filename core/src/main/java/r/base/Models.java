@@ -21,10 +21,13 @@
 
 package r.base;
 
+import com.google.common.collect.Sets;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
+
+import java.util.Set;
 
 public class Models {
 
@@ -48,9 +51,12 @@ public class Models {
       throw new EvalException("specials != NULL is not supported");
     }
 
+    ModelInspector inspector = new ModelInspector();
+    x.accept(inspector);
+
     // define attibutes
     ListVector.Builder attributes = new ListVector.Builder();
-    attributes.add("variables", new ListVector());
+    attributes.add("variables", inspector.getVariables());
     attributes.add("factors", new IntVector());
     attributes.add("term.labels", new StringVector());
     attributes.add("order", new IntVector());
@@ -63,13 +69,33 @@ public class Models {
     return copy.setAttributes(attributes.build());
   }
 
+  private static class ModelInspector extends SexpVisitor {
+    private Set<Symbol> variables = Sets.newHashSet();
+
+    @Override
+    public void visit(FunctionCall call) {
+      for(SEXP argument : call.getArguments().values()) {
+        if(argument instanceof Symbol) {
+          variables.add((Symbol) argument);
+        } else {
+          argument.accept(this);
+        }
+      }
+    }
+
+    public FunctionCall getVariables() {
+      return new FunctionCall(new Symbol("list"),
+            PairList.Node.fromIterable(variables));
+    }
+  }
+
   @Primitive("model.frame")
   public static SEXP modelFrame(
       @Current Context context,
       @Current Environment rho,
       SEXP terms,
       StringVector row_names,
-      ListVector variables,
+      Vector variables,
       Vector varnames,
       Vector dots,
       Vector dotnames,

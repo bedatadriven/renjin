@@ -61,11 +61,11 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public void visit(FunctionCall langExp) {
+    public void visit(FunctionCall call) {
       result = new FunctionCall(
-          substitute(langExp.getFunction()),
-          substituteArgumentList(langExp.getArguments()),
-          langExp.getAttributes()
+          substitute(call.getFunction()),
+          substituteArgumentList(call.getArguments()),
+          call.getAttributes()
       );
     }
 
@@ -82,42 +82,42 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public void visit(PairList.Node listExp) {
+    public void visit(PairList.Node pairList) {
       PairList.Builder builder = PairList.Node.newBuilder();
-      for(PairList.Node node : listExp.nodes()) {
+      for(PairList.Node node : pairList.nodes()) {
         builder.add(node.getRawTag(), substitute(node.getValue()));
       }
       result = builder.build();
     }
 
     @Override
-    public void visit(ListVector listExp) {
+    public void visit(ListVector list) {
       ListVector.Builder builder = ListVector.newBuilder();
-      for(SEXP exp : listExp) {
+      for(SEXP exp : list) {
         builder.add(substitute(exp));
       }
-      builder.copyAttributesFrom(listExp.getAttributes());
+      builder.copyAttributesFrom(list.getAttributes());
       result = builder.build();
     }
 
     @Override
-    public void visit(ExpressionVector expSexp) {
+    public void visit(ExpressionVector vector) {
       List<SEXP> list = Lists.newArrayList();
-      for(SEXP exp : expSexp) {
+      for(SEXP exp : vector) {
         list.add( substitute(exp ));
       }
-      result = new ExpressionVector(list, expSexp.getAttributes());
+      result = new ExpressionVector(list, vector.getAttributes());
     }
 
     @Override
-    public void visit(Symbol symbolExp) {
-      if(environment.hasVariable(symbolExp)) {
-        result = environment.getVariable(symbolExp);
+    public void visit(Symbol symbol) {
+      if(environment.hasVariable(symbol)) {
+        result = environment.getVariable(symbol);
         if(result instanceof Promise) {
           result = ((Promise) result).getExpression();
         }
       } else {
-        result = symbolExp;
+        result = symbol;
       }
     }
 

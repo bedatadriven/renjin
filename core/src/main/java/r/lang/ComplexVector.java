@@ -119,6 +119,11 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
   }
 
   @Override
+  public int compare(int index1, int index2) {
+    throw new UnsupportedOperationException("implement me");
+  }
+
+  @Override
   public Builder newBuilder(int initialSize) {
     throw new UnsupportedOperationException("implement me");
   }

@@ -314,7 +314,7 @@ public class BaseFrame implements Frame {
     f("attr<-", Types.class, 0, 1, 3, PP_FUNCALL, PREC_LEFT, 1);
     f("comment", /*comment*/ null, 0, 11, 1);
     f("comment<-", /*commentgets*/ null, 0, 11, 2, PP_FUNCALL, PREC_LEFT, 1);
-    f("levels<-", /*levelsgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
+    f("levels<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("get", Types.class, 1, 11, 4);
     f("mget", /*mget*/ null, 1, 11, 5);
     f("exists", Types.class, 0, 11, 4);
@@ -730,7 +730,7 @@ public class BaseFrame implements Frame {
     f("psort", /*psort*/ null, 0, 11, 2);
     f("qsort", /*qsort*/ null, 0, 11, 2);
     f("radixsort", /*radixsort*/ null, 0, 11, 3);
-    f("order", /*order*/ null, 0, 11, -1);
+    f("order", Sort.class, 0, 11, -1);
     f("rank", /*rank*/ null, 0, 11, 2);
     f("missing", Evaluation.class, "missing", 1, 0, 1);
     f("nargs", Evaluation.class, 1, 0, 0);

@@ -22,6 +22,7 @@
 package r.base;
 
 import org.apache.commons.vfs.FileSystemException;
+import r.base.compression.lzma.LzmaDecoder;
 import r.base.connections.GzFileConnection;
 import r.base.connections.OutputStreamConnection;
 import r.base.connections.StdInConnection;
@@ -33,6 +34,7 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -133,28 +135,28 @@ public class Connections {
     }
 
     @Override
-    public void visit(StringVector stringExp) {
-      catVector(stringExp);
+    public void visit(StringVector vector) {
+      catVector(vector);
     }
 
     @Override
-    public void visit(IntVector intExp) {
-      catVector(intExp);
+    public void visit(IntVector vector) {
+      catVector(vector);
     }
 
     @Override
-    public void visit(LogicalVector logicalExp) {
-      catVector(logicalExp);
+    public void visit(LogicalVector vector) {
+      catVector(vector);
     }
 
     @Override
-    public void visit(Null nilExp) {
+    public void visit(Null nullExpression) {
       // do nothing
     }
 
     @Override
-    public void visit(DoubleVector realExp) {
-      catVector(realExp);
+    public void visit(DoubleVector vector) {
+      catVector(vector);
     }
 
     private void catVector(AtomicVector vector) {
@@ -164,8 +166,8 @@ public class Connections {
     }
 
     @Override
-    public void visit(Symbol symbolExp) {
-      catElement(symbolExp.getPrintName());
+    public void visit(Symbol symbol) {
+      catElement(symbol.getPrintName());
     }
 
     private void catElement(String element) {
@@ -289,10 +291,15 @@ public class Connections {
   {
     byte buffer[] = readRawFromFile(context, file, key);
 
-    if(compression == 1) {
-      buffer = decompress1(buffer);
-    } else if(compression > 1) {
-      throw new UnsupportedOperationException("compressed==" + compression + " in lazyLoadDBfetch not yet implemented");
+    switch(compression) {
+      case 1:
+        buffer = decompress1(buffer);
+        break;
+      case 3:
+        buffer = decompress3(buffer);
+        break;
+      default:
+        throw new UnsupportedOperationException("compressed==" + compression + " in lazyLoadDBfetch not yet implemented");
     }
 
     DatafileReader reader = new DatafileReader(context, rho, new ByteArrayInputStream(buffer), new DatafileReader.PersistentRestorer() {
@@ -319,10 +326,63 @@ public class Connections {
     inflater.setInput(buffer, 4, buffer.length-4);
 
     byte[] result = new byte[outLength];
-    int resultLength = inflater.inflate(result);
+    inflater.inflate(result);
     inflater.end();
 
     return result;
+  }
+
+  public static byte[] decompress3(byte buffer[]) throws IOException, DataFormatException {
+    DataInputStream in = new DataInputStream(new ByteArrayInputStream(buffer));
+    int outlen = in.readInt();
+    byte type = in.readByte();
+
+    if(type == 'Z') {
+      byte[] properties = Arrays.copyOfRange(buffer, 5, 10);
+      ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 10, buffer.length-5);
+      ByteArrayOutputStream baos = new ByteArrayOutputStream(outlen);
+      LzmaDecoder decoder = new LzmaDecoder();
+
+      decoder.SetDecoderProperties(properties);
+      if(!decoder.Code(bais, baos, outlen)) {
+        throw new IOException("LZMA decompression error");
+      }
+
+      return baos.toByteArray();
+    }
+
+    throw new EvalException("decompres3: type = " + (char)type);
+//
+//       if (type == 'Z') {
+//           lzma_stream strm = LZMA_STREAM_INIT;
+//           lzma_ret ret;
+//           init_filters();
+//           ret = lzma_raw_decoder(&strm, filters);
+//           if (ret != LZMA_OK) error("internal error %d in R_decompress3", ret);
+//           strm.next_in = p + 5;
+//           strm.avail_in = inlen - 5;
+//           strm.next_out = buf;
+//           strm.avail_out = outlen;
+//           ret = lzma_code(&strm, LZMA_RUN);
+//           if (ret != LZMA_OK && (strm.avail_in > 0))
+//               error("internal error %d in R_decompress3 %d",
+//                     ret, strm.avail_in);
+//           lzma_end(&strm);
+//       } else if (type == '2') {
+//           int res;
+//           res = BZ2_bzBuffToBuffDecompress((char *)buf, &outlen,
+//                                            (char *)(p + 5), inlen - 5, 0, 0);
+//           if(res != BZ_OK) error("internal error %d in R_decompress2", res);
+//       } else if (type == '1') {
+//           uLong outl; int res;
+//           res = uncompress(buf, &outl, (Bytef *)(p + 5), inlen - 5);
+//           if(res != Z_OK) error("internal error %d in R_decompress1");
+//       } else if (type == '0') {
+//           buf = p + 5;
+//       } else error("unknown type in R_decompress3");
+//
+
+
   }
 
   public static byte[] readRawFromFile(@Current Context context, String file, IntVector key) throws IOException {

@@ -224,6 +224,8 @@ public class Types {
       result = new StringVector.Builder();
     } else if("logical".equals(mode)) {
       result = new LogicalVector.Builder(x.length());
+    } else if("integer".equals(mode)) {
+      result = new IntVector.Builder(x.length());
     } else if("numeric".equals(mode)) {
       result = new DoubleVector.Builder(x.length());
     } else if("list".equals(mode)) {
@@ -239,7 +241,7 @@ public class Types {
       }
       return new Symbol(x.getElementAsString(0));
     } else {
-      throw new EvalException("invalid 'mode' argument");
+      throw new EvalException("invalid 'mode' argument: "  + mode);
     }
 
     for(int i=0;i!=x.length();++i) {
@@ -567,6 +569,11 @@ public class Types {
 
   public static SEXP setNames(SEXP exp, SEXP names) {
     return exp.setAttribute("names", names);
+  }
+
+  @Generic @Primitive("levels<-")
+  public static SEXP setLabels(SEXP exp, SEXP levels) {
+    return exp.setAttribute(Symbol.LEVELS.getPrintName(), levels);
   }
 
   @Primitive("class")

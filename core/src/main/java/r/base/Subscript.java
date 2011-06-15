@@ -107,7 +107,7 @@ public class Subscript {
     return new SubscriptOperation()
         .setSource(arguments.getElementAsSEXP(0))
         .setSubscripts(arguments, 1, 1)
-        .replace((Vector) arguments.getElementAsSEXP(arguments.length()-1), true);
+        .replace(arguments.getElementAsSEXP(arguments.length()-1), true);
   }
 
 
@@ -124,6 +124,14 @@ public class Subscript {
     return vector.getElementAsSEXP(index-1);
   }
 
+  @Generic @Primitive("[[")
+  public static SEXP getSingleElement(PairList.Node pairlist, int index) {
+    if(index > pairlist.length()) {
+      throw new EvalException("subscript out of bounds");
+    } else {
+      return pairlist.getElementAsSEXP(index-1);
+    }
+  }
 
   /**
    * Same as [[ but not marked as @Generic

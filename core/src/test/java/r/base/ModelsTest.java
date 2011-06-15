@@ -23,8 +23,10 @@ package r.base;
 
 import org.junit.Test;
 import r.EvalTestCase;
+import r.lang.FunctionCall;
 import r.lang.IntVector;
 import r.lang.SEXP;
+import r.lang.Symbol;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.sameInstance;
@@ -37,9 +39,23 @@ public class ModelsTest extends EvalTestCase {
     eval(" formula <- ~1 ");
     eval(" t <- .Internal(terms.formula(formula,NULL,NULL, FALSE,FALSE))");
 
-    assertThat( eval(" attr(t, 'variables')"), equalTo(list()));
+    assertThat( eval(" attr(t, 'variables')"), equalTo(call("list")));
     assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector()));
     assertThat( eval(" .Internal(environment(t)) "), sameInstance((SEXP)topLevelContext.getGlobalEnvironment()));
+  }
+
+  @Test
+  public void testWithOneDepVar() {
+    eval(" formula <- ~weighta ");
+    eval(" t <- .Internal(terms.formula(formula,NULL,NULL,FALSE,FALSE))");
+
+    assertThat( eval(" attr(t, 'variables') "), equalTo(call("list", new Symbol("weighta"))));
+    assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector()));
 
   }
+
+  private SEXP call(String function, SEXP... arguments) {
+    return FunctionCall.newCall(new Symbol(function), arguments);
+  }
+
 }

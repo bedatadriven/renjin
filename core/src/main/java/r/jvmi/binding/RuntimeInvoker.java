@@ -461,7 +461,11 @@ public class RuntimeInvoker {
     }
 
     public String getTypeName() {
-      return evaluated().getTypeName();
+      try {
+        return evaluated().getTypeName();
+      } catch(EvalException e) {
+        return provided.getTypeName();
+      }
     }
 
     public SEXP getTag() {

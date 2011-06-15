@@ -34,7 +34,7 @@ public class AssignLeftFunction extends SpecialFunction {
   @Override
   public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP lhs = call.getArgument(0);
-    SEXP rhs = call.evalArgument(context, rho, 1);
+    SEXP rhs = call.getArgument(1);
 
     return assignLeft(context, rho, lhs, rhs);
   }
@@ -52,7 +52,8 @@ public class AssignLeftFunction extends SpecialFunction {
     // x$a[3] <- 4
     // class(x$a[3]) <- "foo"
 
-    SEXP rhs = value;
+    SEXP evaluatedValue = value.evalToExp(context, rho);
+    SEXP rhs = new Promise(value, evaluatedValue);
 
     while(lhs instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) lhs;
@@ -78,8 +79,8 @@ public class AssignLeftFunction extends SpecialFunction {
     }
 
     // make the final assignment to the target symbol
-    rho.setVariable(target, rhs);
+    rho.setVariable(target, rhs.evalToExp(context, rho));
 
-    return EvalResult.invisible(value);
+    return EvalResult.invisible(evaluatedValue);
   }
 }

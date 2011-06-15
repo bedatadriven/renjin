@@ -33,7 +33,8 @@ public class Symbol extends AbstractSEXP {
   public static final Symbol MISSING_ARG = createSpecial();
   public static final Symbol NAMES = new Symbol("names");
   public static final Symbol DIM = new Symbol("dim");
-  public static final Symbol CLASS = new Symbol("class") ;
+  public static final Symbol CLASS = new Symbol("class");
+  public static final Symbol LEVELS = new Symbol("levels");
   public static final Symbol STDOUT = new Symbol("stdout");
   public static final Symbol ELLIPSES = new Symbol("...");
   public static final Symbol SRC_REF = new Symbol("srcref");
@@ -43,6 +44,7 @@ public class Symbol extends AbstractSEXP {
   public static final Symbol NAME = new Symbol("name");
   public static final Symbol DOT_ENVIRONMENT = new Symbol(".Environment");
   public static final Symbol ROW_NAMES =  new Symbol("row.names");
+  public static final Symbol TEMP = new Symbol("*tmp*");
 
   private String printName;
 

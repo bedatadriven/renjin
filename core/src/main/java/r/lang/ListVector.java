@@ -46,13 +46,13 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   private final ArrayList<SEXP> values;
 
-  public ListVector(Iterable<SEXP> values,  PairList attributes) {
+  public ListVector(Iterable<? extends SEXP> values,  PairList attributes) {
     super(Null.INSTANCE, attributes);
     this.values = new ArrayList<SEXP>();
     Iterables.addAll(this.values, values);
   }
 
-  public ListVector(Iterable<SEXP> values) {
+  public ListVector(Iterable<? extends SEXP> values) {
     this(values, Null.INSTANCE);
   }
 
@@ -73,7 +73,6 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   public ListVector(SEXP... values) {
     this(values, Null.INSTANCE);
   }
-
 
   @Override
   public String getTypeName() {

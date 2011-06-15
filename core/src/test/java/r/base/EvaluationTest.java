@@ -84,6 +84,13 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void assignPrecedence() {
+    eval("x<-1");
+    eval("f<-function(z) { if(z!=1) stop('expected z==1'); 42 } ");
+    eval("x<-f(x)");
+  }
+
+  @Test
   public void assignIsSilent() throws IOException {
     assertThat(evaluate("x<-1").isVisible(), equalTo(false));
   }
@@ -365,6 +372,16 @@ public class EvaluationTest extends EvalTestCase {
     eval(" params <- list(a=1,b=99)");
     eval(" c<-25");
     assertThat( eval( ".Internal(eval(quote((a+b)/c), params, globalenv()))") , equalTo(c(4)));
+  }
+
+  @Test
+  public void rhsIsEvaledOnlyOnce() {
+    eval(" onlyonce <- function() { if(!is.null(globalenv()$once)) stop(); globalenv()$once <- 1; 16 }");
+    eval(" k <- list(1,2,3) ");
+    eval(" k[[2]] <- onlyonce()");
+
+    assertThat( eval("k"), equalTo(list(1,16,3)));
+
   }
 
 }

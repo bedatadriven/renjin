@@ -170,6 +170,11 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     return -1;
   }
 
+  @Override
+  public int compare(int index1, int index2) {
+    return Double.compare(values[index1], values[index2]);
+  }
+
   public int[] coerceToIntArray() {
     int integers[] = new int[values.length];
     for(int i=0; i!=values.length; ++i) {

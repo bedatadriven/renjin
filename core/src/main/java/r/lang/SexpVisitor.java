@@ -35,80 +35,80 @@ public class SexpVisitor<R> {
     unhandled(charExp);
   }
 
-  public void visit(BuiltinFunction builtinSexp) {
-    unhandled(builtinSexp);
+  public void visit(BuiltinFunction builtin) {
+    unhandled(builtin);
   }
 
   public void visit(ComplexVector complexExp) {
     unhandled(complexExp);
   }
 
-  public void visit(Environment envExp) {
-    unhandled(envExp);
+  public void visit(Environment environment) {
+    unhandled(environment);
   }
 
-  public void visit(ExpressionVector expSexp) {
-    unhandled(expSexp);
+  public void visit(ExpressionVector vector) {
+    unhandled(vector);
   }
 
-  public void visit(IntVector intExp) {
-    unhandled(intExp);
+  public void visit(IntVector vector) {
+    unhandled(vector);
   }
 
-  public void visit(FunctionCall langExp) {
-    unhandled(langExp);
+  public void visit(FunctionCall call) {
+    unhandled(call);
   }
 
-  public void visit(PairList.Node listExp) {
-    unhandled(listExp);
+  public void visit(PairList.Node pairList) {
+    unhandled(pairList);
   }
 
-  public void visit(LogicalVector logicalExp) {
-    unhandled(logicalExp);
+  public void visit(LogicalVector vector) {
+    unhandled(vector);
   }
 
-  public void visit(Null nilExp) {
-    unhandled(nilExp);
+  public void visit(Null nullExpression) {
+    unhandled(nullExpression);
   }
 
-  public void visit(PrimitiveFunction primitiveSexp) {
-    unhandled(primitiveSexp);
+  public void visit(PrimitiveFunction primitive) {
+    unhandled(primitive);
   }
 
-  public void visit(Promise promExp) {
-    unhandled(promExp);
+  public void visit(Promise promise) {
+    unhandled(promise);
   }
 
-  public void visit(DoubleVector realExp) {
-    unhandled(realExp);
+  public void visit(DoubleVector vector) {
+    unhandled(vector);
   }
 
   public void visit(DotExp dotExp) {
     unhandled(dotExp);
   }
 
-  public void visit(StringVector stringExp) {
-    unhandled(stringExp);
+  public void visit(StringVector vector) {
+    unhandled(vector);
   }
 
-  public void visit(Symbol symbolExp) {
-    unhandled(symbolExp);
+  public void visit(Symbol symbol) {
+    unhandled(symbol);
   }
 
-  public void visit(Closure closureExp) {
-    unhandled(closureExp);
+  public void visit(Closure closure) {
+    unhandled(closure);
   }
 
   public R getResult() {
     throw new UnsupportedOperationException();
   }
 
-  public void visitSpecial(SpecialFunction specialExp) {
-    unhandled(specialExp);
+  public void visitSpecial(SpecialFunction special) {
+    unhandled(special);
   }
 
-  public void visit(ListVector listExp) {
-    unhandled(listExp);
+  public void visit(ListVector list) {
+    unhandled(list);
   }
 
   public final void acceptAll(Iterable<SEXP> elements) {

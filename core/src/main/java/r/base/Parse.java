@@ -56,31 +56,31 @@ public class Parse {
     }
 
     @Override
-    public void visit(Environment envExp) {
+    public void visit(Environment environment) {
       // this is somewhat random; it's isn't parsable in any case
       deparsed.append("<environment>");
     }
 
     @Override
-    public void visit(ExpressionVector expSexp) {
+    public void visit(ExpressionVector vector) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public void visit(BuiltinFunction builtinSexp) {
+    public void visit(BuiltinFunction builtin) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public void visit(IntVector intExp) {
-      appendVector(intExp, new ParseUtil.IntDeparser());
+    public void visit(IntVector vector) {
+      appendVector(vector, new ParseUtil.IntDeparser());
     }
 
     @Override
-    public void visit(PairList.Node listExp) {
+    public void visit(PairList.Node pairList) {
       deparsed.append("list(");
       boolean needsComma = false;
-      for(SEXP sexp : listExp.values()) {
+      for(SEXP sexp : pairList.values()) {
         if(needsComma) {
           deparsed.append(", ");
         } else {
@@ -92,47 +92,47 @@ public class Parse {
     }
 
     @Override
-    public void visit(Null nilExp) {
+    public void visit(Null nullExpression) {
       deparsed.append("NULL");
     }
 
     @Override
-    public void visit(PrimitiveFunction primitiveSexp) {
-      super.visit(primitiveSexp);
+    public void visit(PrimitiveFunction primitive) {
+      super.visit(primitive);
     }
 
     @Override
-    public void visit(Promise promExp) {
-      super.visit(promExp);
+    public void visit(Promise promise) {
+      super.visit(promise);
     }
 
     @Override
-    public void visit(DoubleVector realExp) {
-      appendVector(realExp, new ParseUtil.RealDeparser());
+    public void visit(DoubleVector vector) {
+      appendVector(vector, new ParseUtil.RealDeparser());
     }
 
     @Override
-    public void visit(StringVector stringExp) {
-      appendVector(stringExp, new ParseUtil.StringDeparser());
+    public void visit(StringVector vector) {
+      appendVector(vector, new ParseUtil.StringDeparser());
     }
 
     @Override
-    public void visit(LogicalVector logicalExp) {
-     appendVector(logicalExp, new ParseUtil.LogicalDeparser());
+    public void visit(LogicalVector vector) {
+     appendVector(vector, new ParseUtil.LogicalDeparser());
     }
 
     @Override
-    public void visit(FunctionCall langExp) {
-      super.visit(langExp);
+    public void visit(FunctionCall call) {
+      super.visit(call);
     }
 
     @Override
-    public void visit(Symbol symbolExp) {
-      deparsed.append(symbolExp.getPrintName());
+    public void visit(Symbol symbol) {
+      deparsed.append(symbol.getPrintName());
     }
 
     @Override
-    public void visit(Closure closureExp) {
+    public void visit(Closure closure) {
       throw new UnsupportedOperationException("deparsing of closures not yet implemented");
     }
 

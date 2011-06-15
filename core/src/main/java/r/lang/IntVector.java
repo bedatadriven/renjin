@@ -137,6 +137,11 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   }
 
   @Override
+  public int compare(int index1, int index2) {
+    return values[index1] - values[index2];
+  }
+
+  @Override
   public Builder newBuilder(int initialSize) {
     return new Builder(initialSize);
   }

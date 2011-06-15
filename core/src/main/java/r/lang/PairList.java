@@ -128,22 +128,23 @@ public interface PairList extends SEXP {
       return hasTag() && getTag().getPrintName().equals(name);
     }
 
-    public static Node fromIterable(Iterable<? extends SEXP> values) {
+    public static PairList fromIterable(Iterable<? extends SEXP> values) {
       Iterator<? extends SEXP> it = values.iterator();
 
       if (!it.hasNext()) {
-        throw new IllegalArgumentException("Cannot create a zero-length list");
+        return Null.INSTANCE;
+      } else {
+        Node head = new Node(it.next(), null);
+        Node node = head;
+        while (it.hasNext()) {
+          node.nextNode = new Node(it.next(), null);
+          node = (Node) node.nextNode;
+        }
+        return head;
       }
-      Node head = new Node(it.next(), null);
-      Node node = head;
-      while (it.hasNext()) {
-        node.nextNode = new Node(it.next(), null);
-        node = (Node) node.nextNode;
-      }
-      return head;
     }
 
-    public static Node fromArray(SEXP... values) {
+    public static PairList fromArray(SEXP... values) {
       return fromIterable(Arrays.asList(values));
     }
 

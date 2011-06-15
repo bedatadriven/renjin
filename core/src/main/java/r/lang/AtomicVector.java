@@ -61,6 +61,17 @@ public interface AtomicVector extends Vector {
    */
   int indexOfNA();
 
+  /**
+   * Compares two of the vector's elements.
+   * @param index1 the index of the first element
+   * @param index2 the index of the second element
+   * @return a negative value if element at index1 < element at index 2;
+   * a positive value if element at index1 > element at index2;
+   * zero if the element at index1 == the element at index 2
+   *
+   */
+  int compare(int index1, int index2);
+
   @Override
   Builder newBuilder(int initialSize);
 

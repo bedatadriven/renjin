@@ -21,23 +21,30 @@
 
 package r.lang;
 
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.VFS;
 import org.junit.Test;
 import r.util.FileSystemUtils;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ClassPathTest {
 
 
   @Test
-  public void libraryPathsFromClassPath() {
+  public void libraryPathsFromClassPath() throws FileSystemException {
 
     String jarFile = getClass().getResource("/jarfiletest.jar").getFile();
-    String libraryPath = FileSystemUtils.libraryPathFromJarFile(jarFile)
-        .replace('\\','/');
+    String libraryPath = FileSystemUtils.libraryPathFromJarFile(jarFile);
 
-    assertThat( libraryPath, equalTo("jar:file://" + jarFile + "!/r/library"));
+    FileObject folder = VFS.getManager().resolveFile(libraryPath);
+
+    assertTrue(folder.exists());
+    assertThat(folder.getChildren().length, equalTo(1));
+    assertThat(folder.getChildren()[0].getName().getBaseName(), equalTo("survey"));
 
   }
 

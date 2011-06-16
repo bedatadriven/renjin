@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.math.complex.Complex;
 import r.jvmi.annotations.*;
 import r.lang.*;
+import r.lang.PairList.Node;
 import r.lang.exception.ControlFlowException;
 import r.lang.exception.EvalException;
 
@@ -346,7 +347,8 @@ public class JvmMethod implements Comparable<JvmMethod> {
     public boolean recycle;
     public boolean atomicType;
     public boolean defaultValue;
-
+    
+    public ExplicitConverter explicitConverter;
 
     public Argument(Method method, int index) {
       clazz = method.getParameterTypes()[index];
@@ -364,6 +366,10 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
         } else if(annotation instanceof DefaultValue) {
           defaultValue = ((DefaultValue) annotation).value();
+        
+        } else if(annotation instanceof InvokeAsCharacter) {
+          evaluated = false;
+          explicitConverter = new AsCharacterConverter();
         }
       }
 
@@ -427,6 +433,25 @@ public class JvmMethod implements Comparable<JvmMethod> {
     public boolean getDefaultValue() {
       return defaultValue;
     }
+    
+    /**
+     * 
+     * @return then name of the R-language converter function
+     * that will first convert provided arguments.
+     */
+    public ExplicitConverter getExplicitConverter() {
+      return explicitConverter;
+    }
+
+    /**
+     * 
+     * @return true if this argument has it's own R-language converter
+     * function (like "as.character")
+     */
+    public boolean hasExplicitConverter() {
+      return explicitConverter != null;
+    }
+ 
   }
 
   private class IsFormal implements Predicate<Argument> {
@@ -467,5 +492,26 @@ public class JvmMethod implements Comparable<JvmMethod> {
       }
     }
     return false;
+  }
+  
+  public interface ExplicitConverter {
+    SEXP convert(Context context, Environment rho, SEXP provided);
+  }
+  
+  public class AsCharacterConverter implements ExplicitConverter {
+
+    @Override
+    public SEXP convert(Context context, Environment rho, SEXP provided) {
+      if(provided == Null.INSTANCE) {
+        return Null.INSTANCE;
+      } else {
+        if(provided instanceof Promise) {
+          provided = ((Promise) provided).force().getExpression();
+        }
+        return FunctionCall
+          .newCall(Symbol.AS_CHARACTER, provided)
+            .evalToExp(context, rho);
+      }
+    }
   }
 }

@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import r.base.ClosureDispatcher;
 import r.base.dispatch.DispatchChain;
+import r.jvmi.binding.JvmMethod.Argument;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -272,7 +273,6 @@ public class RuntimeInvoker {
           return false;
         }
         args[i] = vector.get(vectorIndex);
-
       } else {
         args[i] = getConverter(preparedArgs[i], formal).convert(preparedArgs[i], formal);
       }
@@ -421,7 +421,11 @@ public class RuntimeInvoker {
 
 
     public boolean canBePassedTo(JvmMethod.Argument formal) {
-      if(formal.isEvaluated()) {
+      if(formal.hasExplicitConverter()) {
+        // we have to assume that the R converter function (ex: as.character)
+        // will convert the argument appropriately or throw its own error.
+        return true;
+      } else if(formal.isEvaluated()) {
         return canBePassedTo(evaluated(), formal);
       } else {
         return canBePassedTo(provided, formal);
@@ -432,7 +436,7 @@ public class RuntimeInvoker {
       if(evaluated == null ) {
         if(provided == Symbol.MISSING_ARG) {
           evaluated = Symbol.MISSING_ARG;
-        } else {
+        } else {         
           evaluated = provided.evaluate(context, rho).getExpression();
           if(evaluated instanceof Promise) {
             evaluated = evaluated.evalToExp(context, rho);
@@ -452,7 +456,10 @@ public class RuntimeInvoker {
 
     public SEXP prepare(JvmMethod.Argument formal) {
       SEXP value;
-      if(formal.isEvaluated()) {
+      if(formal.hasExplicitConverter()) {
+        // call into the R function responsable for convertering this argument
+        value = formal.getExplicitConverter().convert(context, rho, provided);
+      } else if(formal.isEvaluated()) {
         value = evaluated();
       } else {
         value = provided;

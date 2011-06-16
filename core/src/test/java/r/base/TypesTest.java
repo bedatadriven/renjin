@@ -34,7 +34,7 @@ import static org.junit.Assert.assertThat;
 import static r.lang.Logical.FALSE;
 import static r.lang.Logical.TRUE;
 
-public class TypesTest extends EvalTestCase {
+public strictfp class TypesTest extends EvalTestCase {
 
   @Test
   public void asCharacter() {

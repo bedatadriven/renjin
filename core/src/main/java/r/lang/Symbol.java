@@ -45,6 +45,7 @@ public class Symbol extends AbstractSEXP {
   public static final Symbol DOT_ENVIRONMENT = new Symbol(".Environment");
   public static final Symbol ROW_NAMES =  new Symbol("row.names");
   public static final Symbol TEMP = new Symbol("*tmp*");
+  public static final Symbol AS_CHARACTER = new Symbol("as.character");
 
   private String printName;
 

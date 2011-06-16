@@ -188,10 +188,12 @@ public class Types {
     return Double.isInfinite(value);
   }
 
+  @Generic
   public static StringVector asCharacter(Vector source) {
     return (StringVector) convertVector(new StringVector.Builder(), source);
   }
 
+  @Generic
   public static StringVector asCharacter(Symbol symbol) {
     return new StringVector( symbol.getPrintName() );
   }
@@ -567,7 +569,7 @@ public class Types {
     return exp.getNames();
   }
 
-  public static SEXP setNames(SEXP exp, SEXP names) {
+  public static SEXP setNames(SEXP exp, @InvokeAsCharacter Vector names) {
     return exp.setAttribute("names", names);
   }
 

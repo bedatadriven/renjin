@@ -50,13 +50,13 @@ public class SummaryTest extends EvalTestCase {
 
   @Test
   public void rangeWithNAs() {
-    assertThat(eval("range(1,99, NA)"), equalTo(c(DoubleVector.NA(), DoubleVector.NA())));
+    assertThat(eval("range(1,99, NA)"), equalTo(c(DoubleVector.NA, DoubleVector.NA)));
     assertThat(eval("range(1L,99L, NA)"), equalTo(c_i(IntVector.NA, IntVector.NA)));
   }
 
   @Test
   public void maxTestWithNA() {
-    assertThat(eval("max(4,NA)"), equalTo(c(DoubleVector.NA())));
+    assertThat(eval("max(4,NA)"), equalTo(c(DoubleVector.NA)));
   }
 
   @Test
@@ -75,7 +75,7 @@ public class SummaryTest extends EvalTestCase {
     assertThat( eval("prod() "), equalTo(c(1))) ;
     assertThat( eval("prod(NULL) "), equalTo(c(1))) ;
     assertThat( eval("prod(2,4) "), equalTo(c(8))) ;
-    assertThat( eval("prod(1, NA) "), equalTo(c(DoubleVector.NA())));
+    assertThat( eval("prod(1, NA) "), equalTo(c(DoubleVector.NA)));
     assertThat( eval("prod(1, NA, na.rm=TRUE) "), equalTo(c(1)));
   }
 

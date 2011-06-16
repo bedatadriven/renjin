@@ -489,7 +489,7 @@ public class DatafileReader {
     public double readDouble() throws IOException {
       String word = readWord();
       if("NA".equals(word)){
-        return DoubleVector.NA();
+        return DoubleVector.NA;
       } else if("Inf".equals(word)) {
         return Double.POSITIVE_INFINITY;
       } else if("-Inf".equals(word)){
@@ -567,7 +567,12 @@ public class DatafileReader {
 
     @Override
     public double readDouble() throws IOException {
-      return in.readDouble();
+      long bits = in.readLong();
+      if(bits == XDR_NA_BITS) {
+        return DoubleVector.NA;
+      } else {
+        return Double.longBitsToDouble(bits);
+      }
     }
   }
 

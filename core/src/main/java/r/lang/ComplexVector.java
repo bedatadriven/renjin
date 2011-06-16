@@ -34,7 +34,7 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
 
   public static Vector.Type VECTOR_TYPE = new ComplexType();
 
-  public static final Complex NA = new Complex(DoubleVector.NA(), 0);
+  public static final Complex NA = new Complex(DoubleVector.NA, 0);
 
   public ComplexVector(Complex... values) {
     this.values = Arrays.copyOf(values, values.length);

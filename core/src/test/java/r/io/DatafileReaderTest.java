@@ -69,8 +69,31 @@ public class DatafileReaderTest extends EvalTestCase {
     assertThat(pairList.findByTag(symbol("a")), equalTo( eval("1:99") ));
     assertThat(pairList.findByTag(symbol("b")), equalTo( eval("sqrt(1:25) ") ));
     assertThat(pairList.findByTag(symbol("c")), equalTo( c(Logical.NA )));
-    assertThat(pairList.findByTag(symbol("d")), equalTo( list(Logical.NA, DoubleVector.NA(), IntVector.NA, NULL )));
+    assertThat(pairList.findByTag(symbol("d")), equalTo( list(Logical.NA, DoubleVector.NA, IntVector.NA, NULL )));
+
+    ListVector d = (ListVector) pairList.findByTag(symbol("d"));
+    DoubleVector d_2 = (DoubleVector) d.getElementAsSEXP(1);
+
+    System.out.println(Long.toHexString(Double.doubleToRawLongBits(d_2.getElementAsDouble(0))));
+    assertThat(DoubleVector.isNA(d_2.getElementAsDouble(0)), equalTo(true));
   }
+
+  @Test
+  public void loadNA() throws IOException {
+    InputStream in = getClass().getResourceAsStream("/na.RData");
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    DatafileReader reader = new DatafileReader(topLevelContext, topLevelContext.getGlobalEnvironment(), gzipIn);
+
+    SEXP exp = reader.readFile();
+
+    assertThat(exp, instanceOf(PairList.Node.class));
+
+    PairList.Node pairList = (PairList.Node) exp;
+    DoubleVector x = (DoubleVector) pairList.findByTag(symbol("x"));
+
+    assertThat(DoubleVector.isNA(x.getElementAsDouble(0)), equalTo(true));
+  }
+
 
   protected Symbol symbol(String name){
     return new Symbol(name);

@@ -115,7 +115,7 @@ abstract class AbstractSEXP implements SEXP {
    */
   @Override
   public double asReal() {
-    return DoubleVector.NA();
+    return DoubleVector.NA;
   }
 
   /**

@@ -1182,13 +1182,13 @@ an ANSI digit or not */
                   yylval = new IntVector(IntVector.NA);
                   break;
                 case 7:
-                  yylval = new DoubleVector(DoubleVector.NA());
+                  yylval = new DoubleVector(DoubleVector.NA);
                   break;
                 case 8:
                   yylval = new StringVector(CDefines.NA_STRING);
                   break;
                 case 9:
-                  yylval = new ComplexVector(new Complex(DoubleVector.NA(), DoubleVector.NA()));
+                  yylval = new ComplexVector(new Complex(DoubleVector.NA, DoubleVector.NA));
                   break;
               }
             } else {

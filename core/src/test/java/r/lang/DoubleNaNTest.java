@@ -23,40 +23,61 @@ package r.lang;
 
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class DoubleNaNTest {
 
-  private double x = DoubleVector.NA();
+
+  @Test
+  public strictfp void quietNAsWithPayloadArePreserved() {
+    System.out.println("                 SIGNALED_NA_BITS  : " + bits(DoubleVector.SIGNALED_NA_BITS));
+    System.out.println("longBitsToDouble(SIGNALED_NA_BITS) : " + bits(Double.longBitsToDouble(DoubleVector.SIGNALED_NA_BITS)));
+    System.out.println("                    QUIET_NA_BITS  : " + bits(DoubleVector.QUIET_NA_BITS));
+    System.out.println("longBitsToDouble(   QUIET_NA_BITS) : " + bits(Double.longBitsToDouble(DoubleVector.QUIET_NA_BITS)));
+    System.out.println("                            NaN    : " + bits(Double.NaN));
+
+    assertThat(bits(DoubleVector.QUIET_NA_BITS),
+        equalTo(bits(Double.longBitsToDouble(DoubleVector.QUIET_NA_BITS))));
+  }
 
   @Test
   public void test() {
 
-    System.out.println("DoubleVector.NA = " + bits(DoubleVector.NA()));
-
-    assertFalse("isNA(NaN) #1", DoubleVector.isNA(DoubleVector.NaN));
+    assertTrue("isNA(NA) #1", DoubleVector.isNA(DoubleVector.NA));
     assertTrue("isNaN(NaN)", Double.isNaN(DoubleVector.NaN));
-    assertTrue("isNaN(NA)", Double.isNaN(DoubleVector.NA()));
-    assertTrue("isNA(NA) #2", DoubleVector.isNA(DoubleVector.NA()));
+    assertTrue("isNaN(NA)", Double.isNaN(DoubleVector.NA));
+    assertTrue("isNA(NA) #2", DoubleVector.isNA(DoubleVector.NA));
     assertFalse("isNA(NaN)", DoubleVector.isNA(DoubleVector.NaN));
+
   }
   
   @Test
   public void test2() {
-    int j=0;
-    for(int i = 0; i < 1000000; ++i) {
-      assertTrue("isNA(x = NA) #1", DoubleVector.isNA(x));
-      assertTrue("isNaN(x = NA)", Double.isNaN(x));
-      assertTrue("isNA(x = NA) #2", DoubleVector.isNA(x));
-      j++;
-    }
-    System.out.println(j);
+    double x = DoubleVector.NA;
+
+    assertTrue("isNA(x = NA) #1", DoubleVector.isNA(x));
+    assertTrue("isNaN(x = NA)", Double.isNaN(x));
+    assertTrue("isNA(x = NA) #2", DoubleVector.isNA(x));
   }
     
-  private String bits(double d) {
-    return Long.toHexString(Double.doubleToRawLongBits(d));
+  private String bits(long x) {
+    String bits = Long.toBinaryString(x);
+    while(bits.length() < 64) {
+      bits = "0" + bits;
+    }
+    StringBuilder formatted = new StringBuilder();
+    for(int i=0;i<bits.length();++i) {
+      if(i%4==0) {
+        formatted.append(" ");
+      }
+      formatted.append(bits.charAt(i));
+    }
+    return formatted.toString();
+  }
+
+  private String bits(double x) {
+    return bits(Double.doubleToRawLongBits(x));
   }
 
 }

@@ -31,24 +31,52 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-public final strictfp class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
-
-  private static final long NA_BITS = 0x7ff0000000001954L;
+public final class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
 
   public static final String TYPE_NAME = "double";
 
   public static final Vector.Type VECTOR_TYPE = new DoubleType();
 
   /**
-   * The double constant used to designate elements or values that are
-   * missing in the statistical sense, or literally "Not Available".
+   * This is the internal representation that the original R uses to
+   * represent NAs: a "signaled NaN" with a payload of 0x1954.
    *
-   * Note that this value is distinct from the IEEE {@code NaN} value,
-   * which results from mathematical calculations, such as sqrt(-1)
+   * <p>The Java Language Spec is somewhat ambiguous regarding the extent to which
+   * non-canonical NaNs will be preserved. What is clear though, is that signaled bit
+   * (bit 12) is dropped by {@link Double#longBitsToDouble(long)}, at least on the few
+   * platforms on which I have tested the Sun JDK 1.6.
+   *
+   * <p>The payload, however, does appear to be preserved by the JVM.
    */
+  public static final long SIGNALED_NA_BITS = 0x7ff0000000001954L;
+
+  /**
+   * This is an alternate representation of the {@code NA} value in which the signaled
+   * bit has been set to zero.
+   */
+  public static final long QUIET_NA_BITS = 0x7ff8000000001954L;
+
+  /**
+   * The double constant used to designate elements or values that are
+   * missing in the statistical sense, or literally "Not Available". The following
+   * has the relationships hold true:
+   *
+   * <ul>
+   * <li>isNaN(NA) is <i>true</i>
+   * <li>isNA(Double.NaN) is <i>false</i>
+   * </ul>
+   *
+   * <p>The canonical representation of the NA value is a <i>signaling</i> IEEE {@code NaN} value, that
+   * is within the NaN range but has a distinct bit pattern. JVM implementation do not always preserve
+   * the signalling bit so {@link #isNA(double)} should be used to check for variations rather than
+   * comparing bits directly.
+   *
+   */
+  public static final double NA = Double.longBitsToDouble(QUIET_NA_BITS);
+
   public static final double NaN = Double.NaN;
-  
   public static final double EPSILON =  0.00001;
+
 
   private double[] values;
 
@@ -225,7 +253,7 @@ public final strictfp class DoubleVector extends AbstractAtomicVector implements
 
   public double asReal() {
     if(values.length == 0) {
-      return NA();
+      return NA;
     } else {
       return values[0];
     }
@@ -264,7 +292,8 @@ public final strictfp class DoubleVector extends AbstractAtomicVector implements
   }
 
   public static boolean isNA(double input) {
-    return Double.doubleToRawLongBits(input) == NA_BITS;
+    long bits = Double.doubleToRawLongBits(input);
+    return bits == SIGNALED_NA_BITS || bits == QUIET_NA_BITS;
   }
 
   public static boolean isFinite(double d) {
@@ -286,42 +315,12 @@ public final strictfp class DoubleVector extends AbstractAtomicVector implements
     return isNA(values[index]);
   }
 
-  /**
-   * The double constant used to designate elements or values that are
-   * missing in the statistical sense, or literally "Not Available". The following
-   * has the relationships hold true:
-   * 
-   * <ul>
-   * <li>isNaN(NA()) is <i>true</i>
-   * <li>isNA(Double.NaN) is <i>false</i>
-   * </ul>
-   *
-   * <p>The internal representation of the NA value is a <i>signaling</i> IEEE {@code NaN} value, that
-   * is within the NaN range but has a distinct bit pattern. It is implemented here as a method rather than
-   * a constant to try to prevent the JVM from change the value to the canonical NaN value.
-   * 
-   * <p> 
-   */
-  public static double NA() {
-    // original C code:
-    //  volatile ieee_double x;
-    //  x.word[hw] = 0x7ff00000;
-    //  x.word[lw] = 1954;
-    //  return x.value;
-        
-    // potentially problematic in Java:
-    // http://stackoverflow.com/questions/6371965/final-non-canonical-nan-double-value-changes-during-runtime
-    
-
-    return Double.longBitsToDouble(NA_BITS); 
-  }
-
   public static class Builder extends AbstractAtomicBuilder<Double> {
     private double values[];
 
     public Builder(int initialSize) {
       values = new double[initialSize];
-      Arrays.fill(values, NA());
+      Arrays.fill(values, NA);
     }
 
     public Builder() {
@@ -336,7 +335,7 @@ public final strictfp class DoubleVector extends AbstractAtomicVector implements
     public Builder set(int index, double value) {
       if(values.length <= index) {
         double copy[] = Arrays.copyOf(values, index+1);
-        Arrays.fill(copy, values.length, copy.length, NA());
+        Arrays.fill(copy, values.length, copy.length, NA);
         values = copy;
       }
       values[index] = value;
@@ -349,7 +348,7 @@ public final strictfp class DoubleVector extends AbstractAtomicVector implements
 
     @Override
     public Builder setNA(int index) {
-      return set(index, NA());
+      return set(index, NA);
     }
 
     @Override

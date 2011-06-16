@@ -42,7 +42,7 @@ public class ComparisonTest extends EvalTestCase {
     assertThat( eval("1 > 2"), equalTo(c(FALSE)) );
     assertThat( eval("2 > 1"), equalTo(c(TRUE)) );
     assertThat( eval("2 >= 2"), equalTo(c(TRUE)) );
-    assertThat( eval("NA_real_ > 1"), equalTo(c(NA)) );
+    assertThat( eval("is.na(NA_real_ > 1)"), equalTo(c(TRUE)) );
     assertThat( eval("1 < 999"), equalTo(c(TRUE)) );
   }
 

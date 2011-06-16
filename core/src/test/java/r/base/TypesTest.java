@@ -73,7 +73,7 @@ public strictfp class TypesTest extends EvalTestCase {
   @Test
   public void asDoubleFromDouble() {
     assertThat( eval("as.double(3.14)"), equalTo( c(3.14) ) );
-    assertThat( eval("as.double(NA_real_)"), equalTo( c(DoubleVector.NA()) ) );
+    assertThat( eval("as.double(NA_real_)"), equalTo( c(DoubleVector.NA) ) );
   }
 
   @Test
@@ -102,7 +102,7 @@ public strictfp class TypesTest extends EvalTestCase {
   @Test
   public void asDoubleFromString() {
     assertThat( eval("as.double(\"42\")"), equalTo( c(42d) ));
-    assertThat( eval("as.double(\"not an integer\")"), equalTo( c(DoubleVector.NA()) ));
+    assertThat( eval("as.double(\"not an integer\")"), equalTo( c(DoubleVector.NA) ));
   }
 
   @Test

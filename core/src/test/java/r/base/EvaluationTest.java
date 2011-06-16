@@ -376,11 +376,14 @@ public class EvaluationTest extends EvalTestCase {
 
   @Test
   public void rhsIsEvaledOnlyOnce() {
-    eval(" onlyonce <- function() { if(!is.null(globalenv()$once)) stop(); globalenv()$once <- 1; 16 }");
+    eval(" onlyonce <- function() { " +
+          		"if(!is.null(globalenv()$once)) stop(); " +
+          		" .Internal(assign('once', 1, globalenv(), FALSE));" +
+          		" 16 }");
     eval(" k <- list(1,2,3) ");
     eval(" k[[2]] <- onlyonce()");
 
-    assertThat( eval("k"), equalTo(list(1,16,3)));
+    assertThat( eval("k"), equalTo(list(1d,16d,3d)));
 
   }
 

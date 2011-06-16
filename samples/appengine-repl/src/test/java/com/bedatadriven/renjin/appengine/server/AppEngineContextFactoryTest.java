@@ -52,7 +52,7 @@ public class AppEngineContextFactoryTest {
   public void homeDirectory() throws IOException {
     String resourcePath = "file:/base/app/1.234234/WEB-INF/lib/renjin-core-0.1.0-SNAPSHOT.jar!/r/lang/SEXP.class";
     String home = AppEngineContextFactory.findHomeDirectory(
-        new File("\\base\\app\\1.234234"), resourcePath);
+        new File("/base/app/1.234234"), resourcePath);
 
     assertThat( home, equalTo("jar:file:///WEB-INF/lib/renjin-core-0.1.0-SNAPSHOT.jar!/r"));
   }

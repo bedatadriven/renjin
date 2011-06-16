@@ -164,7 +164,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   @Override
   public double asReal() {
     if(length() == 0 || values[0] == NA) {
-      return DoubleVector.NA;
+      return DoubleVector.NA();
     } else {
       return values[0];
     }

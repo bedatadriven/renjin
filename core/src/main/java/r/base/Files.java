@@ -95,7 +95,7 @@ public class Files {
         size.add(IntVector.NA);
         isdir.add(IntVector.NA);
         mode.add(IntVector.NA);
-        mtime.add(DoubleVector.NA);
+        mtime.add(DoubleVector.NA());
         exe.add(StringVector.NA);
       }
     }

@@ -96,13 +96,13 @@ public class ParseUtil {
     while ( p < s.length() && Character.isWhitespace(s.charAt(p))) p++;
 
     if (NA && s.substring(p, p+2).equals("NA")) {
-      ans = DoubleVector.NA;
+      ans = DoubleVector.NA();
       p += 2;
       return new DoubleResult(ans, p);
     }
 
     if( p == s.length()) {
-      return new DoubleResult(DoubleVector.NA, p);
+      return new DoubleResult(DoubleVector.NA(), p);
     }
 
     /* optional sign */
@@ -169,7 +169,7 @@ public class ParseUtil {
       for (p++; p < s.length() && s.charAt(p) >= '0' && s.charAt(p) <= '9'; p++, ndigits++, expn--)
         ans = 10*ans + (s.charAt(p) - '0');
     if (ndigits == 0) {
-      ans = DoubleVector.NA;
+      ans = DoubleVector.NA();
       p = 0; /* back out */
       return new DoubleResult(sign * ans, p);
     }

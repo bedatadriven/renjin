@@ -119,7 +119,7 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
   @Override
   public double getElementAsDouble(int index) {
     if(isElementNA(index)) {
-      return DoubleVector.NA;
+      return DoubleVector.NA();
     } else {
       return ParseUtil.parseDouble(values[index]);
     }
@@ -138,7 +138,7 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     {
       return ParseUtil.parseDouble(values[0]);
     } else {
-      return DoubleVector.NA;
+      return DoubleVector.NA();
     }
   }
 

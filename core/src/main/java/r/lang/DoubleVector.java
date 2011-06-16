@@ -31,7 +31,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-public final class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
+public final strictfp class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
+
+  private static final long NA_BITS = 0x7ff0000000001954L;
 
   public static final String TYPE_NAME = "double";
 
@@ -44,8 +46,8 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
    * Note that this value is distinct from the IEEE {@code NaN} value,
    * which results from mathematical calculations, such as sqrt(-1)
    */
-  public static final double NA = createNA();
   public static final double NaN = Double.NaN;
+  
   public static final double EPSILON =  0.00001;
 
   private double[] values;
@@ -223,7 +225,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
   public double asReal() {
     if(values.length == 0) {
-      return NA;
+      return NA();
     } else {
       return values[0];
     }
@@ -257,21 +259,12 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     }
   }
 
-  private static double createNA() {
-//    volatile ieee_double x;
-//    x.word[hw] = 0x7ff00000;
-//    x.word[lw] = 1954;
-//    return x.value;
-
-    return Double.longBitsToDouble(0x7ff0000000001954L);
-  }
-
   public static boolean isNaN(double x) {
     return Double.isNaN(x);
   }
 
   public static boolean isNA(double input) {
-    return Double.doubleToRawLongBits(input) == Double.doubleToRawLongBits(NA);
+    return Double.doubleToRawLongBits(input) == NA_BITS;
   }
 
   public static boolean isFinite(double d) {
@@ -293,12 +286,42 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     return isNA(values[index]);
   }
 
+  /**
+   * The double constant used to designate elements or values that are
+   * missing in the statistical sense, or literally "Not Available". The following
+   * has the relationships hold true:
+   * 
+   * <ul>
+   * <li>isNaN(NA()) is <i>true</i>
+   * <li>isNA(Double.NaN) is <i>false</i>
+   * </ul>
+   *
+   * <p>The internal representation of the NA value is a <i>signaling</i> IEEE {@code NaN} value, that
+   * is within the NaN range but has a distinct bit pattern. It is implemented here as a method rather than
+   * a constant to try to prevent the JVM from change the value to the canonical NaN value.
+   * 
+   * <p> 
+   */
+  public static double NA() {
+    // original C code:
+    //  volatile ieee_double x;
+    //  x.word[hw] = 0x7ff00000;
+    //  x.word[lw] = 1954;
+    //  return x.value;
+        
+    // potentially problematic in Java:
+    // http://stackoverflow.com/questions/6371965/final-non-canonical-nan-double-value-changes-during-runtime
+    
+
+    return Double.longBitsToDouble(NA_BITS); 
+  }
+
   public static class Builder extends AbstractAtomicBuilder<Double> {
     private double values[];
 
     public Builder(int initialSize) {
       values = new double[initialSize];
-      Arrays.fill(values, NA);
+      Arrays.fill(values, NA());
     }
 
     public Builder() {
@@ -313,7 +336,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     public Builder set(int index, double value) {
       if(values.length <= index) {
         double copy[] = Arrays.copyOf(values, index+1);
-        Arrays.fill(copy, values.length, copy.length, NA);
+        Arrays.fill(copy, values.length, copy.length, NA());
         values = copy;
       }
       values[index] = value;
@@ -326,7 +349,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
     @Override
     public Builder setNA(int index) {
-      return set(index, NA);
+      return set(index, NA());
     }
 
     @Override

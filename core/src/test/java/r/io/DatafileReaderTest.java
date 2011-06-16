@@ -69,7 +69,7 @@ public class DatafileReaderTest extends EvalTestCase {
     assertThat(pairList.findByTag(symbol("a")), equalTo( eval("1:99") ));
     assertThat(pairList.findByTag(symbol("b")), equalTo( eval("sqrt(1:25) ") ));
     assertThat(pairList.findByTag(symbol("c")), equalTo( c(Logical.NA )));
-    assertThat(pairList.findByTag(symbol("d")), equalTo( list(Logical.NA, DoubleVector.NA, IntVector.NA, NULL )));
+    assertThat(pairList.findByTag(symbol("d")), equalTo( list(Logical.NA, DoubleVector.NA(), IntVector.NA, NULL )));
   }
 
   protected Symbol symbol(String name){

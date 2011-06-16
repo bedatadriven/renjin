@@ -87,7 +87,7 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
   @Override
   public double getElementAsDouble(int index) {
     int value = values[index];
-    return value == IntVector.NA ? DoubleVector.NA : (double) value;
+    return value == IntVector.NA ? DoubleVector.NA() : (double) value;
   }
 
   @Override
@@ -174,7 +174,7 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
   @Override
   public double asReal() {
     if(values.length == 0) {
-      return DoubleVector.NA;
+      return DoubleVector.NA();
     } else {
       return values[0];
     }

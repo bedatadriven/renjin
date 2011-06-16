@@ -111,7 +111,7 @@ public class Summary {
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {
           if(!removeNA) {
-            return DoubleVector.NA;
+            return DoubleVector.NA();
           }
         } else {
           product = product * vector.getElementAsDouble(i);
@@ -132,7 +132,7 @@ public class Summary {
         for(int i=0;i!=argument.length();++i) {
           if(vector.isElementNA(i)) {
             if(!removeNA) {
-              return haveDouble ? new DoubleVector(DoubleVector.NA) : new IntVector(IntVector.NA);
+              return haveDouble ? new DoubleVector(DoubleVector.NA()) : new IntVector(IntVector.NA);
             }
           } else {
             intSum += vector.getElementAsInt(i);
@@ -144,7 +144,7 @@ public class Summary {
         for(int i=0;i!=vector.length();++i) {
           if(vector.isElementNA(i)) {
             if(!removeNA) {
-              return new DoubleVector(DoubleVector.NA);
+              return new DoubleVector(DoubleVector.NA());
             }
           } else {
             doubleSum += vector.getElementAsDouble(i);

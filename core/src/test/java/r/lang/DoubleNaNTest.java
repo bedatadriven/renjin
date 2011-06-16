@@ -23,20 +23,40 @@ package r.lang;
 
 import org.junit.Test;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class DoubleNaNTest {
 
+  private double x = DoubleVector.NA();
+
   @Test
   public void test() {
 
-    assertTrue("isNaN(NaN)", DoubleVector.isNaN(DoubleVector.NaN));
-    assertTrue("isNaN(NA)", DoubleVector.isNaN(DoubleVector.NA));
-    assertTrue("isNA(NA)", DoubleVector.isNA(DoubleVector.NA));
+    System.out.println("DoubleVector.NA = " + bits(DoubleVector.NA()));
+
+    assertFalse("isNA(NaN) #1", DoubleVector.isNA(DoubleVector.NaN));
+    assertTrue("isNaN(NaN)", Double.isNaN(DoubleVector.NaN));
+    assertTrue("isNaN(NA)", Double.isNaN(DoubleVector.NA()));
+    assertTrue("isNA(NA) #2", DoubleVector.isNA(DoubleVector.NA()));
     assertFalse("isNA(NaN)", DoubleVector.isNA(DoubleVector.NaN));
-
   }
-
+  
+  @Test
+  public void test2() {
+    int j=0;
+    for(int i = 0; i < 1000000; ++i) {
+      assertTrue("isNA(x = NA) #1", DoubleVector.isNA(x));
+      assertTrue("isNaN(x = NA)", Double.isNaN(x));
+      assertTrue("isNA(x = NA) #2", DoubleVector.isNA(x));
+      j++;
+    }
+    System.out.println(j);
+  }
+    
+  private String bits(double d) {
+    return Long.toHexString(Double.doubleToRawLongBits(d));
+  }
 
 }

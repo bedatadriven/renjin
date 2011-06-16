@@ -115,10 +115,13 @@ public class FileSystemUtils {
     try {
       JarFile jarFile = new JarFile(classPath);
       JarEntry entry = jarFile.getJarEntry("r/library");
+      jarFile.close();
       if(entry != null) {
         return "jar:file://" + absolutePath(classPath) + "!/r/library";
       }
     } catch (Exception e) {
+    } finally {
+      
     }
     return null;
   }

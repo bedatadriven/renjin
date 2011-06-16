@@ -397,6 +397,7 @@ public class Connections {
     DataInputStream in = new DataInputStream(openInput(context, file));
     in.skipBytes(offset);
     in.readFully(buffer);
+    in.close();
 
     return buffer;
   }

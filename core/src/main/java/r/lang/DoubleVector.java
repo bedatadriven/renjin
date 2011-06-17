@@ -38,9 +38,13 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   public static final Vector.Type VECTOR_TYPE = new DoubleType();
 
   /**
-   * This is the internal representation that the original R uses to
-   * represent NAs: a "signaled NaN" with a payload of 0x1954.
-   *
+   * This is the internal representation R uses to
+   * represent NAs: a "quiet NaN" with a payload of 0x1954.
+   * 
+   * <p>Note that this is slightly different than the C implementation of R,
+   * which uses a "signaled" NaN with the same payload. The serialized XDR form of NA is 
+   * different still: see {@link r.io.SerializationFormat#XDR_NA_BITS}.
+   * 
    * <p>The Java Language Spec is somewhat ambiguous regarding the extent to which
    * non-canonical NaNs will be preserved. What is clear though, is that signaled bit
    * (bit 12) is dropped by {@link Double#longBitsToDouble(long)}, at least on the few
@@ -48,13 +52,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
    *
    * <p>The payload, however, does appear to be preserved by the JVM.
    */
-  public static final long SIGNALED_NA_BITS = 0x7ff0000000001954L;
-
-  /**
-   * This is an alternate representation of the {@code NA} value in which the signaled
-   * bit has been set to zero.
-   */
-  public static final long QUIET_NA_BITS = 0x7ff8000000001954L;
+  private static final long NA_BITS = 0x7ff8000000001954L;
 
   /**
    * The double constant used to designate elements or values that are
@@ -66,13 +64,8 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
    * <li>isNA(Double.NaN) is <i>false</i>
    * </ul>
    *
-   * <p>The canonical representation of the NA value is a <i>signaling</i> IEEE {@code NaN} value, that
-   * is within the NaN range but has a distinct bit pattern. JVM implementation do not always preserve
-   * the signalling bit so {@link #isNA(double)} should be used to check for variations rather than
-   * comparing bits directly.
-   *
    */
-  public static final double NA = Double.longBitsToDouble(QUIET_NA_BITS);
+  public static final double NA = Double.longBitsToDouble(NA_BITS);
 
   public static final double NaN = Double.NaN;
   public static final double EPSILON =  0.00001;
@@ -264,10 +257,26 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    DoubleVector realExp = (DoubleVector) o;
-
-    if (!Arrays.equals(values, realExp.values)) return false;
-
+    DoubleVector vector = (DoubleVector) o;
+    
+    if(this.length() != vector.length()) {
+      return false;
+    }
+    for(int i=0;i!=values.length;++i) {
+      double this_i = values[i];
+      double that_i = vector.values[i];
+      
+      if( isNA(this_i)  != isNA(that_i) ) {
+        return false;
+      }
+      if( isNaN(this_i) != isNaN(that_i) ) {
+        return false;
+      }
+      if( !isNaN(this_i) && !isNaN(that_i) && this_i != that_i) {
+        return false;
+      }
+    }
+    
     return true;
   }
 
@@ -293,7 +302,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
   public static boolean isNA(double input) {
     long bits = Double.doubleToRawLongBits(input);
-    return bits == SIGNALED_NA_BITS || bits == QUIET_NA_BITS;
+    return bits == NA_BITS;
   }
 
   public static boolean isFinite(double d) {

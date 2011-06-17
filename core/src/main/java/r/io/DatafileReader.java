@@ -21,16 +21,74 @@
 
 package r.io;
 
-import hep.io.xdr.XDRInputStream;
-import org.apache.commons.math.complex.Complex;
-import r.lang.*;
-import r.parser.ParseUtil;
+import static r.io.SerializationFormat.BASEENV_SXP;
+import static r.io.SerializationFormat.BASENAMESPACE_SXP;
+import static r.io.SerializationFormat.BCODESXP;
+import static r.io.SerializationFormat.BUILTINSXP;
+import static r.io.SerializationFormat.CHARSXP;
+import static r.io.SerializationFormat.CLASSREFSXP;
+import static r.io.SerializationFormat.CLOSXP;
+import static r.io.SerializationFormat.CPLXSXP;
+import static r.io.SerializationFormat.DOTSXP;
+import static r.io.SerializationFormat.EMPTYENV_SXP;
+import static r.io.SerializationFormat.ENVSXP;
+import static r.io.SerializationFormat.EXPRSXP;
+import static r.io.SerializationFormat.EXTPTRSXP;
+import static r.io.SerializationFormat.GENERICREFSXP;
+import static r.io.SerializationFormat.GLOBALENV_SXP;
+import static r.io.SerializationFormat.INTSXP;
+import static r.io.SerializationFormat.LANGSXP;
+import static r.io.SerializationFormat.LGLSXP;
+import static r.io.SerializationFormat.LISTSXP;
+import static r.io.SerializationFormat.MISSINGARG_SXP;
+import static r.io.SerializationFormat.NAMESPACESXP;
+import static r.io.SerializationFormat.NILVALUE_SXP;
+import static r.io.SerializationFormat.PACKAGESXP;
+import static r.io.SerializationFormat.PERSISTSXP;
+import static r.io.SerializationFormat.PROMSXP;
+import static r.io.SerializationFormat.RAWSXP;
+import static r.io.SerializationFormat.REALSXP;
+import static r.io.SerializationFormat.REFSXP;
+import static r.io.SerializationFormat.S4SXP;
+import static r.io.SerializationFormat.SPECIALSXP;
+import static r.io.SerializationFormat.STRSXP;
+import static r.io.SerializationFormat.SYMSXP;
+import static r.io.SerializationFormat.UNBOUNDVALUE_SXP;
+import static r.io.SerializationFormat.VECSXP;
+import static r.io.SerializationFormat.VERSION2;
+import static r.io.SerializationFormat.WEAKREFSXP;
+import static r.io.SerializationFormat.XDR_NA_BITS;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import static r.io.SerializationFormat.*;
+import org.apache.commons.math.complex.Complex;
+
+import r.lang.CHARSEXP;
+import r.lang.Closure;
+import r.lang.ComplexVector;
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.ExpressionVector;
+import r.lang.FunctionCall;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.Promise;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.parser.ParseUtil;
 
 public class DatafileReader {
 
@@ -543,14 +601,14 @@ public class DatafileReader {
   }
 
   private static class XdrReader implements StreamReader {
-    private final XDRInputStream in;
+    private final DataInputStream in;
 
-    private XdrReader(XDRInputStream in) throws IOException {
+    private XdrReader(DataInputStream in) throws IOException {
       this.in = in;
     }
 
     public XdrReader(InputStream conn) throws IOException {
-      this(new XDRInputStream(conn));
+      this(new DataInputStream(conn));
     }
 
     @Override

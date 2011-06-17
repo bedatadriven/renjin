@@ -27,18 +27,20 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
 public class DoubleNaNTest {
-
+  
+  private static final long SIGNALED_NA_BITS = 0x7ff0000000001954L;
+  private static final long QUIET_NA_BITS = 0x7ff8000000001954L;
 
   @Test
   public strictfp void quietNAsWithPayloadArePreserved() {
-    System.out.println("                 SIGNALED_NA_BITS  : " + bits(DoubleVector.SIGNALED_NA_BITS));
-    System.out.println("longBitsToDouble(SIGNALED_NA_BITS) : " + bits(Double.longBitsToDouble(DoubleVector.SIGNALED_NA_BITS)));
-    System.out.println("                    QUIET_NA_BITS  : " + bits(DoubleVector.QUIET_NA_BITS));
-    System.out.println("longBitsToDouble(   QUIET_NA_BITS) : " + bits(Double.longBitsToDouble(DoubleVector.QUIET_NA_BITS)));
+    System.out.println("                 SIGNALED_NA_BITS  : " + bits(SIGNALED_NA_BITS));
+    System.out.println("longBitsToDouble(SIGNALED_NA_BITS) : " + bits(Double.longBitsToDouble(SIGNALED_NA_BITS)));
+    System.out.println("                    QUIET_NA_BITS  : " + bits(QUIET_NA_BITS));
+    System.out.println("longBitsToDouble(   QUIET_NA_BITS) : " + bits(Double.longBitsToDouble(QUIET_NA_BITS)));
     System.out.println("                            NaN    : " + bits(Double.NaN));
 
-    assertThat(bits(DoubleVector.QUIET_NA_BITS),
-        equalTo(bits(Double.longBitsToDouble(DoubleVector.QUIET_NA_BITS))));
+    assertThat(bits(QUIET_NA_BITS),
+        equalTo(bits(Double.longBitsToDouble(QUIET_NA_BITS))));
   }
 
   @Test

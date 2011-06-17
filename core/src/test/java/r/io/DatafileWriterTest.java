@@ -47,7 +47,7 @@ public class DatafileWriterTest {
     file.add("a", new StringVector("who", "am", "i", StringVector.NA));
     file.add("b", new IntVector(1, 2, 3, IntVector.NA, 4));
     file.add("c", new LogicalVector(Logical.NA, Logical.FALSE, Logical.TRUE));
-    file.add("d", new DoubleVector(3.14, 6.02));
+    file.add("d", new DoubleVector(3.14, 6.02, DoubleVector.NA));
     file.add("l", list.build());
 
 

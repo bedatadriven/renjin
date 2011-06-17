@@ -21,20 +21,39 @@
 
 package r.io;
 
-import hep.io.xdr.XDROutputStream;
-import r.lang.*;
+import static r.io.SerializationFormat.CHARSXP;
+import static r.io.SerializationFormat.INTSXP;
+import static r.io.SerializationFormat.LGLSXP;
+import static r.io.SerializationFormat.LISTSXP;
+import static r.io.SerializationFormat.NILVALUE_SXP;
+import static r.io.SerializationFormat.REALSXP;
+import static r.io.SerializationFormat.STRSXP;
+import static r.io.SerializationFormat.SYMSXP;
+import static r.io.SerializationFormat.UTF8_MASK;
+import static r.io.SerializationFormat.VECSXP;
+import static r.io.SerializationFormat.VERSION2;
+import static r.io.SerializationFormat.XDR_FORMAT;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static r.io.SerializationFormat.*;
+import r.lang.DoubleVector;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
 
 public class DatafileWriter {
 
-  private XDROutputStream out;
+  private DataOutputStream out;
 
   public DatafileWriter(OutputStream out) throws IOException {
-    this.out = new XDROutputStream(out);
+    this.out = new DataOutputStream(out);
     writeHeader();
   }
 
@@ -94,7 +113,11 @@ public class DatafileWriter {
     writeFlags(REALSXP, vector);
     out.writeInt(vector.length());
     for(int i=0;i!=vector.length();++i) {
-      out.writeDouble(vector.getElementAsDouble(i));
+      if(vector.isElementNA(i)) {
+        out.writeLong(SerializationFormat.XDR_NA_BITS);
+      } else {
+        out.writeDouble(vector.getElementAsDouble(i));
+      }
     }
     writeAttributes(vector);
   }

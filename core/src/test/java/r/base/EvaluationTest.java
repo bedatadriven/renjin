@@ -387,4 +387,13 @@ public class EvaluationTest extends EvalTestCase {
 
   }
 
+  @Test
+  public void intermediateAssignmentTargetsAreNotEvaled() {
+    eval(" x<- quote(shouldNotBeEvaled()) ");
+    eval(" attr(x, 'foo') <- 'bar' ");
+    eval(" environment(x) <- globalenv() ");
+    eval(" class(x) <- 'foo' ");
+    
+  }
+  
 }

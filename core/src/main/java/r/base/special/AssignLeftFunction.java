@@ -79,7 +79,10 @@ public class AssignLeftFunction extends SpecialFunction {
     }
 
     // make the final assignment to the target symbol
-    rho.setVariable(target, rhs.evalToExp(context, rho));
+    if(rhs instanceof Promise) {
+      rhs = ((Promise) rhs).force().getExpression();
+    }
+    rho.setVariable(target, rhs);
 
     return EvalResult.invisible(evaluatedValue);
   }

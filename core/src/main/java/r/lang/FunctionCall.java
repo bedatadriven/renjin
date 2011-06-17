@@ -140,10 +140,7 @@ public class FunctionCall extends PairList.Node {
 
   @Override
   public FunctionCall clone() {
-    return FunctionCall.newCall(getFunction(), getArguments().clone());
-  }
-
-  public FunctionCall duplicate() {
     return new FunctionCall(getFunction(), getArguments());
   }
+
 }

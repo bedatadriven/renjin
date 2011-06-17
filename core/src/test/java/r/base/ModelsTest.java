@@ -23,6 +23,7 @@ package r.base;
 
 import org.junit.Test;
 import r.EvalTestCase;
+import r.lang.DoubleVector;
 import r.lang.FunctionCall;
 import r.lang.IntVector;
 import r.lang.SEXP;
@@ -39,6 +40,7 @@ public class ModelsTest extends EvalTestCase {
     eval(" formula <- ~1 ");
     eval(" t <- .Internal(terms.formula(formula,NULL,NULL, FALSE,FALSE))");
 
+    assertThat( eval(" t "), equalTo((SEXP)FunctionCall.newCall(new Symbol("~"), new DoubleVector(1))));
     assertThat( eval(" attr(t, 'variables')"), equalTo(call("list")));
     assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector()));
     assertThat( eval(" .Internal(environment(t)) "), sameInstance((SEXP)topLevelContext.getGlobalEnvironment()));

@@ -21,13 +21,28 @@
 
 package r.base;
 
-import com.google.common.collect.Sets;
+import java.util.List;
+import java.util.Set;
+
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
-import r.lang.*;
+import r.lang.AtomicVector;
+import r.lang.Context;
+import r.lang.Environment;
+import r.lang.FunctionCall;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.SEXP;
+import r.lang.SexpVisitor;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
 import r.lang.exception.EvalException;
 
-import java.util.Set;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class Models {
 
@@ -89,6 +104,42 @@ public class Models {
     }
   }
 
+  /**
+   * 
+   * Default implementation of model.frame, called from the model.frame.default closure.
+   *  
+   * <p>All the variables in formula, subset and in ... are looked for first in data and then in the 
+   * environment of formula (see the help for formula() for further details) and collected into a data 
+   * frame. Then the subset expression is evaluated, and it is used as a row index to the data frame.
+   * Then the na.action function is applied to the data frame (and may well add attributes).
+   * The levels of any factors in the data frame are adjusted according to the drop.unused.levels and 
+   * xlev arguments: if xlev specifies a factor and a character variable is found, it is
+   * converted to a factor (as from R 2.10.0).
+   *   
+   * <p>Unless na.action = NULL, time-series attributes will be removed from the variables found 
+   * (since they will be wrong if NAs are removed).
+   * 
+   * <p>Note that all the variables in the formula are included in the data frame, even those preceded by -.
+   * 
+   * <p>Only variables whose type is raw, logical, integer, real, complex or character can be included
+   * in a model frame: this includes classed variables such as factors (whose underlying type is integer),
+   * but excludes lists.    if(Types.inherits(terms, "terms") )
+
+   * 
+   * get_all_vars returns a data.frame containing the variables used in formula plus those specified .... Unlike model.frame.default, it returns the input variables and not those resulting from function calls in formula.
+   * 
+   * @param context
+   * @param rho
+   * @param terms a model formula or terms object 
+   * @param row_names
+   * @param variables
+   * @param varnames
+   * @param dots
+   * @param dotnames
+   * @param subset
+   * @param naAction
+   * @return
+   */
   @Primitive("model.frame")
   public static SEXP modelFrame(
       @Current Context context,
@@ -102,9 +153,9 @@ public class Models {
       SEXP subset,
       SEXP naAction) {
 
-    int i, j, nr, nc;
+    int nr, nc;
     int nvars, ndots, nactualdots;
-
+    
     /* Argument Sanity Checks */
     nvars = variables.length();
     if (variables.length() != varnames.length()) {
@@ -123,59 +174,51 @@ public class Models {
     /*  check for NULL extra arguments -- moved from interpreted code */
 
     nactualdots = 0;
-    for (i = 0; i < ndots; i++) {
+    for (int i = 0; i < ndots; i++) {
         if (dots.getElementAsSEXP(i) != Null.INSTANCE) {
           nactualdots++;
         }
     }
 
     /* Assemble the base data frame. */
-    ListVector.Builder data = new ListVector.Builder();
-    StringVector.Builder names = new StringVector.Builder();
-
-    for (i = 0; i < nvars; i++) {
-        data.addFrom(variables, i);
-        names.addFrom(varnames, i);
+    List<SEXP> data = Lists.newArrayList(); 
+    List<String> names = Lists.newArrayList();
+    
+    PairList.Node.Builder attributes = new PairList.Node.Builder();
+    
+    for (int i = 0; i < nvars; i++) {
+        data.add(variables.getElementAsSEXP(i));
+        names.add(varnames.getElementAsString(i));
     }
-    for (i = 0,j = 0; i < ndots; i++) {
+    for (int i = 0, j = 0; i < ndots; i++) {
         String ss;
         if (dots.getElementAsSEXP(i) == Null.INSTANCE) {
           continue;
         }
         ss = "(" + ((StringVector)dotnames).getElementAsString(i) + ")";
-        data.setFrom(nvars+j, dots, i);
-        names.set(nvars+j, new StringVector(ss));
+        data.add(dots.getElementAsSEXP(i));
+        names.add(ss);
         j++;
     }
-    data.setAttribute(Symbol.NAMES, names.build());
+    attributes.add(Symbol.NAMES, new StringVector(names));
 
     /* Sanity checks to ensure that the the answer can become */
     /* a data frame.  Be deeply suspicious here! */
 
-    nc = data.length();
+    nc = data.size();
     nr = 0;                     /* -Wall */
     if (nc > 0) {
-      throw new UnsupportedOperationException("todo");
-//        nr = nrows(  _ELT(data, 0));
-//        for (i = 0; i < nc; i++) {
-//            ans = VECTOR_ELT(data, i);
-//            switch(TYPEOF(ans)) {
-//            case LGLSXP:
-//            case INTSXP:
-//            case REALSXP:
-//            case CPLXSXP:
-//            case STRSXP:
-//            case RAWSXP:
-//                break;
-//            default:
-//                error(_("invalid type (%s) for variable '%s'"),
-//                      type2char(TYPEOF(ans)),
-//                      translateChar(STRING_ELT(names, i)));
-//            }
-//            if (nrows(ans) != nr)
-//                error(_("variable lengths differ (found for '%s')"),
-//                      translateChar(STRING_ELT(names, i)));
-//        }
+      nr = data.get(0).length();
+      for(int i=0;i<nc;++i) {
+        SEXP element = data.get(i);
+        if(element instanceof AtomicVector) {
+          if(nrows(element) != nr) {
+            throw new EvalException("variable lengths differ (found for '%s')", names.get(i));
+          }
+        } else {
+          throw new EvalException("invalid type (%s) for variable '%s'", element.getTypeName(), names.get(i));
+        }
+      }
     } else {
       nr = row_names.length();
     }
@@ -185,9 +228,9 @@ public class Models {
     /* To do this we must attach "class"  and */
     /* "row.names" attributes */
 
-    data.setAttribute(Symbol.CLASS, new StringVector("data.frame"));
+    attributes.add(Symbol.CLASS, new StringVector("data.frame"));
     if (row_names.length() == nr) {
-        data.setAttribute(Symbol.ROW_NAMES, row_names);
+        attributes.add(Symbol.ROW_NAMES, row_names);
     } else {
         throw new UnsupportedOperationException("todo");
         /*
@@ -241,11 +284,32 @@ public class Models {
 ////                copyMostAttribNoTs(VECTOR_ELT(data, i),VECTOR_ELT(ans, i));
 //
 //    } else {
-      return data.build();
+    
+      return new ListVector(data, attributes.build());
  //   }
+      
+      
   }
 
   private static boolean isNewList(SEXP sexp) {
     return sexp == Null.INSTANCE || sexp instanceof ListVector;
   }
+  
+  private static int nrows(SEXP s) {
+    SEXP t;
+    if (s instanceof Vector) {
+        SEXP dim = s.getAttribute(Symbol.DIM);
+        if(dim == Null.INSTANCE) {
+          return s.length();
+        } else {
+          return ((IntVector)s).getElementAsInt(0);
+        }
+    } else if(Types.inherits(s, "data.frame")) {
+      return nrows(s.getElementAsSEXP(0));
+      
+    } else {
+      throw new EvalException("object is not a matrix");
+    }
+  }
+  
 }

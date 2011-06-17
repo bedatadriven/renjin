@@ -50,7 +50,10 @@ public class EvalException extends RuntimeException {
     if(context == null) {
       return super.getMessage();
     }
-    StringBuilder sb = new StringBuilder(super.getMessage());
+    StringBuilder sb = new StringBuilder();
+    if(super.getMessage() != null) {
+      sb.append(super.getMessage());
+    }
     Context context = this.context;
     sb.append("\nR Stack Trace:");
     while(!context.isTopLevel()) {

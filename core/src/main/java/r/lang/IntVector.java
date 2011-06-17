@@ -92,12 +92,12 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
   @Override
   public double getElementAsDouble(int index) {
-    return values[index];
+    return isElementNA(index) ? DoubleVector.NA : values[index];
   }
 
   @Override
   public String getElementAsString(int index) {
-    return ParseUtil.toString(values[index]);
+    return isElementNA(index) ? StringVector.NA : ParseUtil.toString(values[index]);
   }
 
   @Override
@@ -133,7 +133,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
         return i;
       }
     }
-    return value;
+    return -1;
   }
 
   @Override

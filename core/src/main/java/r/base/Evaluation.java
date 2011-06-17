@@ -220,6 +220,34 @@ public class Evaluation {
     }
   }
 
+  @Primitive(".C")
+  public static EvalResult dotC(@Current Context context,
+                                @Current Environment rho,
+                                @ArgumentList ListVector arguments) {
+    
+    String methodName = arguments.getElementAsString(0);
+    String packageName = null;
+    boolean naOK = false;
+    
+    ListVector.Builder callArguments = ListVector.newBuilder();
+    for(int i=1;i<arguments.length();++i) {
+      if(arguments.getName(i).equals("PACKAGE")) {
+        packageName = arguments.getElementAsString(i);
+      } else if(arguments.getName(i).equals("NAOK")) {
+        naOK = (arguments.asLogical() == Logical.TRUE);
+      } else if(arguments.getName(i).equals("DUP")) {
+        // ignore
+      } else if(arguments.getName(i).equals("ENCODING")) {
+        // ignore
+      } else if(arguments.getElementAsSEXP(i) != Null.INSTANCE) {
+        callArguments.add(arguments.getElementAsSEXP(i));
+      }
+    }
+    
+    return doNativeCall(context, rho, methodName, packageName, callArguments);
+    
+  }
+  
   @Primitive(".Call")
   public static EvalResult dotCall(@Current Context context,
                                    @Current Environment rho,
@@ -230,12 +258,17 @@ public class Evaluation {
     ListVector.Builder callArguments = ListVector.newBuilder();
     for(int i=1;i<arguments.length();++i) {
       if(arguments.getName(i).equals("PACKAGE")) {
-        packageName = arguments.getElementAsString(i);
+        packageName = arguments.getElementAsString(i);  
       } else if(arguments.getElementAsSEXP(i) != Null.INSTANCE) {
         callArguments.add(arguments.getElementAsSEXP(i));
       }
     }
 
+    return doNativeCall(context, rho, methodName, packageName, callArguments);
+  }
+
+  private static EvalResult doNativeCall(Context context, Environment rho,
+      String methodName, String packageName, ListVector.Builder callArguments) {
     Class packageClass;
     if(packageName.equals("base")) {
       packageClass = Base.class;

@@ -318,7 +318,14 @@ public interface PairList extends SEXP {
         sb.append(node.getValue());
       }
     }
+    
+    public static Node singleton(Symbol tag, SEXP value) {
+      return new Node(tag, value, Null.INSTANCE);
+    }
 
+    public static Node singleton(String tag, SEXP value) {
+      return singleton(new Symbol(tag), value);
+    }
 
     /**
      * Iterator that iterators over the {@code ListExp}'s values

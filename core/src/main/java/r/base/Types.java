@@ -228,7 +228,7 @@ public class Types {
       result = new LogicalVector.Builder(x.length());
     } else if("integer".equals(mode)) {
       result = new IntVector.Builder(x.length());
-    } else if("numeric".equals(mode)) {
+    } else if("numeric".equals(mode) || "double".equals(mode)) {
       result = new DoubleVector.Builder(x.length());
     } else if("list".equals(mode)) {
       result = new ListVector.Builder();

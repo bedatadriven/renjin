@@ -85,4 +85,31 @@ public class Base {
     }
     return ans;
   }
+  
+  /**
+   * 
+   * "native" implementation called by tabulate(), which 
+   * takes the integer-valued vector bin and counts the number of times each integer occurs in it.
+   * 
+   * <p>There is a bin for each of the values 1, ..., nbins; values outside that range 
+   * and NAs are (silently) ignored.
+   * 
+   * @param bin the integer vector to bin
+   * @param length the length of bin
+   * @param nbins the number of bins
+   * @param ans not used
+   * @return 
+   */
+  public static PairList R_tabulate(IntVector bin, int length, int nbins, SEXP ans) {
+    int counts[] = new int[nbins];
+    for(int i=0;i!=length;++i) {
+      if(!bin.isElementNA(i)) {
+        int value = bin.getElementAsInt(i);
+        if(value >= 1 && value <= nbins) {
+          counts[value-1]++;
+        }
+      }
+    }
+    return PairList.Node.singleton("ans", new IntVector(counts));
+  }
 }

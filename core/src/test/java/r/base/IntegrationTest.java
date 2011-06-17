@@ -80,7 +80,7 @@ public class IntegrationTest extends EvalTestCase {
 
     // This is a pretty complicated evaluation here that involves recursive
     // lazy loading, persisted environments, local environments, etc.
-    // So a good test that everything integrates together!
+    // So a good test that everythingsin integrates together!
     assertThat(eval(".libPaths() "), equalTo(c("classpath:/r/library")));
   }
 
@@ -172,6 +172,49 @@ public class IntegrationTest extends EvalTestCase {
 
   }
 
+  @Test
+  public void factor() throws IOException {
+    topLevelContext.init();
+    
+    eval(" cat <- factor(c(1:15), exclude= c(NA, NaN)) ");
+    eval(" addNA(cat, ifany=TRUE) ");
+    assertThat( eval("levels(cat)"), equalTo(c("1", "2", "3")));
+    
+    eval("nl <- length(ll <- levels(cat))");
+    
+    assertThat( eval("nl"), equalTo(c_i(3)));
+  }
+  
+
+  @Test
+  public void factorInteger() throws IOException {
+    topLevelContext.init();
+    eval("x <- 1:5");
+    eval("exclude <- c(NA, NaN)");
+    
+    eval("y <- unique(x)");
+    
+    assertThat( eval("y"), equalTo(c_i(1,2,3,4,5)));
+    
+    eval("ind <- sort.list(y)");
+    eval("y <- as.character(y)");
+    eval("levels <- unique(y[ind])");
+    
+    assertThat( eval("levels"), equalTo(c("1","2","3","4", "5")));
+    
+    eval("force(ordered)");
+    eval("exclude <- as.vector(exclude, typeof(x))");
+    
+    assertThat( eval("exclude"), equalTo( c_i(IntVector.NA, IntVector.NA)));
+    
+    eval("x <- as.character(x)");
+    eval("levels <- levels[is.na(match(levels, exclude))]");
+    
+    assertThat( eval("levels"), equalTo(c("1","2","3","4","5")));
+  }
+  
+  
+  
 
   @Test
   public void surveyPackage() throws Exception {
@@ -187,7 +230,7 @@ public class IntegrationTest extends EvalTestCase {
     assertThat(eval("typeof(hospital)"), equalTo(c("list")));
     assertThat(eval("sum(hospital$births)"), equalTo(c(25667)));
 
-    eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
+ // eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
 //    eval("svymean(~births, dstr)");
 
   }
@@ -208,9 +251,6 @@ public class IntegrationTest extends EvalTestCase {
 
     eval(" x<-list() ");
     assertThat(eval("sapply(attr(~1,'vars'), deparse, width.cutoff = 500)[-1L]"), equalTo(list()));
-
-
-
   }
 
   @Test

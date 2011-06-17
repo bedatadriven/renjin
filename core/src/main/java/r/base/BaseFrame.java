@@ -697,7 +697,7 @@ public class BaseFrame implements Frame {
     f("list", Types.class, "list", 1, 1, -1);
     f("split", /*split*/ null, 0, 11, 2);
     f("is.loaded", /*isloaded*/ null, 0, 11, -1, PP_FOREIGN, PREC_FN, 0);
-    f(".C", /*dotCode*/ null, 0, 1, -1, PP_FOREIGN, PREC_FN, 0);
+    f(".C", Evaluation.class, 0, 1, -1, PP_FOREIGN, PREC_FN, 0);
     f(".Fortran", /*dotCode*/ null, 1, 1, -1, PP_FOREIGN, PREC_FN, 0);
     f(".External", /*External*/ null, 0, 1, -1, PP_FOREIGN, PREC_FN, 0);
     f(".Call", Evaluation.class, 0, 1, -1, PP_FOREIGN, PREC_FN, 0);

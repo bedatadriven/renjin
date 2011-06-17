@@ -255,7 +255,9 @@ public strictfp class TypesTest extends EvalTestCase {
 
     assertThat( eval("as.vector(1, 'character')"), equalTo( c("1" )));
     assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo( c(true, true, false)));
-  }
+    assertThat( eval("as.vector(c(TRUE,FALSE,NA), mode='double')"), equalTo( c(1.0,0,DoubleVector.NA)));
+}
+
 
   @Test
   public void asPairList() {

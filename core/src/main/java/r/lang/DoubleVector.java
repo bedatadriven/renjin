@@ -63,6 +63,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
    * <li>isNaN(NA) is <i>true</i>
    * <li>isNA(Double.NaN) is <i>false</i>
    * </ul>
+   
    *
    */
   public static final double NA = Double.longBitsToDouble(NA_BITS);
@@ -141,7 +142,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   @Override
   public int getElementAsRawLogical(int index) {
     double value = values[index];
-    if(isNA(value)) {
+    if(isNaN(value)) {
       return IntVector.NA;
     } else if(value == 0) {
       return 0;
@@ -153,14 +154,14 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   @Override
   public String getElementAsString(int index) {
     double value = values[index];
-    return isNA(value) ? StringVector.NA :
+    return isNaN(value) ? StringVector.NA :
         ParseUtil.toString(values[index]);
   }
 
   @Override
   public int getElementAsInt(int index) {
     double value = values[index];
-    return isNA(value) ? IntVector.NA : (int) value;
+    return isNaN(value) ? IntVector.NA : (int) value;
   }
 
   @Override

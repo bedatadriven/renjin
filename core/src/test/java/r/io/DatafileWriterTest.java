@@ -52,7 +52,7 @@ public class DatafileWriterTest {
 
 
     assertReRead(file.build());
-    write("test.rdata", file.build());
+   // write("test.rdata", file.build());
   }
 
   @Test
@@ -63,7 +63,7 @@ public class DatafileWriterTest {
     PairList list = pl.build();
 
     assertReRead(list);
-    write("testsimple.rdata", list);
+ //   write("testsimple.rdata", list);
   }
 
   private void write(String fileName, SEXP exp) throws IOException {

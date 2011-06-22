@@ -69,6 +69,11 @@
       <artifactId>renjin-core</artifactId>
       <version>${version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.bedatadriven.renjin</groupId>
+      <artifactId>renjin-appengine</artifactId>
+      <version>${version}</version>
+    </dependency>
   </dependencies>
 
   <build>

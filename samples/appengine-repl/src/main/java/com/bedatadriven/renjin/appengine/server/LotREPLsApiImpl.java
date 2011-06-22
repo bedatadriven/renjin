@@ -16,6 +16,7 @@
 
 package com.bedatadriven.renjin.appengine.server;
 
+import com.bedatadriven.renjin.appengine.AppEngineContextFactory;
 import com.bedatadriven.renjin.appengine.shared.InterpreterException;
 import com.bedatadriven.renjin.appengine.shared.LotREPLsApi;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;

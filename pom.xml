@@ -44,7 +44,7 @@
   </properties>
 
   <scm>
-    <developerConnection>scm:svn:https://free1.projectlocker.com/bedatadriven/stats/svn/trunk</developerConnection>
+    <developerConnection>scm:svn:https://renjin.googlecode.com/svn/trunk</developerConnection>
   </scm>
 
   <distributionManagement>

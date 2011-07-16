@@ -183,6 +183,14 @@ public interface Vector extends SEXP {
     Builder setAttribute(String name, SEXP value);
 
     /**
+    *
+    * @param name  the name of the attribute
+    * @param value  the value of the attribute
+    * @return this Builder, for method chaining
+    */
+    Builder setAttribute(Symbol name, SEXP value);
+    
+    /**
      * @return the current length of the vector under construction.
      */
     int length();

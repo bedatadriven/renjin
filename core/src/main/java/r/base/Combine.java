@@ -220,7 +220,7 @@ public class Combine {
 
     public Vector combine() {
       if(haveNames) {
-        vector.setAttribute(Attributes.NAMES, names.build());
+        vector.setAttribute(Symbol.NAMES, names.build());
       }
       return vector.build();
     }
@@ -266,7 +266,7 @@ public class Combine {
       newVector.setFrom(newIndex, source, i);
     }
 
-    newVector.setAttribute(Attributes.DIM, new IntVector(permutedDims));
+    newVector.setAttribute(Symbol.DIM, new IntVector(permutedDims));
 
     for(PairList.Node node : source.getAttributes().nodes()) {
       if(node.getTag().equals(Symbol.DIM)) {
@@ -567,12 +567,12 @@ public class Combine {
 
     public void setDimNames(AtomicVector rowNames, AtomicVector colNames) {
       if(rowNames.length() != 0 || colNames.length() != 0) {
-        builder.setAttribute(Attributes.DIMNAMES, new ListVector(rowNames, colNames));
+        builder.setAttribute(Symbol.DIMNAMES, new ListVector(rowNames, colNames));
       }
     }
 
     public Vector build() {
-      return builder.setAttribute(Attributes.DIM, new IntVector(rows,cols))
+      return builder.setAttribute(Symbol.DIM, new IntVector(rows,cols))
           .build();
     }
   }
@@ -602,7 +602,7 @@ public class Combine {
         result.setFrom(i++, data, sourceIndex);
       }
     }
-    result.setAttribute(Attributes.DIM, new IntVector(nrow, ncol));
+    result.setAttribute(Symbol.DIM, new IntVector(nrow, ncol));
     return result.build();
   }
 

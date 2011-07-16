@@ -224,9 +224,9 @@ public class RuntimeInvoker {
       // for unary and binary primitives with recycling, we copy some attributes from the longest element
       if(method.getFormals().size() <= 2)  {
         SEXP attributeSource = longestRecycledElement(method, providedArgs);
-        result.copyAttribute(attributeSource, Attributes.DIM);
-        result.copyAttribute(attributeSource, Attributes.DIMNAMES);
-        result.copyAttribute(attributeSource, Attributes.NAMES);
+        result.copyAttribute(attributeSource, Symbol.DIM);
+        result.copyAttribute(attributeSource, Symbol.DIMNAMES);
+        result.copyAttribute(attributeSource, Symbol.NAMES);
       }
 
       return new EvalResult( result.build() );
@@ -651,6 +651,10 @@ public class RuntimeInvoker {
 
     public void copyAttribute(SEXP attributeSource, String name) {
       builder.setAttribute(name, attributeSource.getAttribute(new Symbol(name)));
+    }
+    
+    public void copyAttribute(SEXP attributeSource, Symbol name) {
+      builder.setAttribute(name, attributeSource.getAttribute(name));      
     }
   }
 

@@ -129,6 +129,16 @@ public interface SEXP {
   SEXP setAttribute(String attributeName, SEXP value);
 
   /**
+   * Copies this {@code SEXP}, sets the value of the attribute indicated
+   * by {@code name}, and returns the copied object.
+   *
+   * @param attributeName
+   * @param value  the new value, or {@code Null.INSTANCE} if the attribute should be removed (if present)
+   * @return a copy of this {@code SEXP}
+   */  
+  SEXP setAttribute(Symbol attributeName, SEXP value);
+  
+  /**
    * Replaces all of this {@code SEXP}'s attributes with the attributes
    * specified by {@code attributes} {@code ListVector}.
    *

@@ -125,7 +125,7 @@ public class Sequences {
       names.add(x.getName(x_i));
     }
     if(names.haveNonEmpty()) {
-      result.setAttribute(Attributes.NAMES, names.build());
+      result.setAttribute(Symbol.NAMES, names.build());
     }
 
     return result.build();

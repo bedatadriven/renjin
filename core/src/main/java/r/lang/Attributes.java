@@ -21,14 +21,22 @@
 
 package r.lang;
 
+/**
+ * 
+ * Attributes are an R language feature that allow metadata to be attached to 
+ * R-language expressions.
+ * 
+ * Certain attributes have special meaning and their content is needs to be consistently enforced.
+ * 
+ * 
+ * @author alex
+ *
+ */
 public class Attributes {
 
 
   private Attributes() {}
 
-  public static final String NAMES = "names";
-  public static final String CLASS = "class";
-  public static final String DIM = "dim";
-  public static final String DIMNAMES = "dimnames";
+  
 
 }

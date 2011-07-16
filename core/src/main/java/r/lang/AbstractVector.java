@@ -46,6 +46,7 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
       return setAttribute(new Symbol(name), value);
     }
 
+    @Override
     public Builder setAttribute(Symbol name, SEXP value) {
       if(value != Null.INSTANCE) {
         attributes.put(name, value);

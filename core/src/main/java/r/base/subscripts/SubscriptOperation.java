@@ -125,9 +125,9 @@ public class SubscriptOperation {
           }
         }
       }
-      result.setAttribute(Attributes.DIM, subscripts.dimensionAttribute());
+      result.setAttribute(Symbol.DIM, subscripts.dimensionAttribute());
       if(names != null) {
-        result.setAttribute(Attributes.NAMES, names.build());
+        result.setAttribute(Symbol.NAMES, names.build());
       }
       return result.build();
     }
@@ -189,7 +189,7 @@ public class SubscriptOperation {
       }
     }
 
-    result.setAttribute(Attributes.NAMES, names.build());
+    result.setAttribute(Symbol.NAMES, names.build());
     return result.build();
   }
 

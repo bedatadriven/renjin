@@ -251,7 +251,7 @@ public class Types {
     }
     SEXP names = x.getNames();
     if(names.length() > 0) {
-      result.setAttribute(Attributes.NAMES, names);
+      result.setAttribute(Symbol.NAMES, names);
     }
     return result.build();
   }
@@ -412,7 +412,7 @@ public class Types {
       throw new EvalException("dims [product %d] do not match the length of object [%d]", prod, exp.length());
     }
 
-    return exp.setAttribute(Attributes.DIM, new IntVector(dim));
+    return exp.setAttribute(Symbol.DIM, new IntVector(dim));
   }
 
   @Primitive("dimnames")
@@ -422,7 +422,7 @@ public class Types {
 
   @Primitive("dimnames<-")
   public static SEXP setDimensionNames(SEXP exp, ListVector vector) {
-    return exp.setAttribute(Attributes.DIMNAMES, vector);
+    return exp.setAttribute(Symbol.DIMNAMES, vector);
   }
 
   public static PairList attributes(SEXP sexp) {

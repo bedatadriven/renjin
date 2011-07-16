@@ -205,8 +205,14 @@ abstract class AbstractSEXP implements SEXP {
 
   @Override
   public SEXP setAttribute(String attributeName, SEXP value) {
+     return setAttribute(new Symbol(attributeName), value);
+  }
+  
+
+  @Override
+  public SEXP setAttribute(Symbol attributeName, SEXP value) {
     return cloneWithNewAttributes(
-        replaceAttribute(new Symbol(attributeName),
+        replaceAttribute(attributeName,
             checkAttribute(attributeName, value)));
   }
 
@@ -215,20 +221,23 @@ abstract class AbstractSEXP implements SEXP {
     PairList.Builder list = new PairList.Builder();
     for(int i=0;i!=attributes.length();++i) {
       String name = attributes.getName(i);
-      SEXP value = checkAttribute(name, attributes.getElementAsSEXP(i));
+      SEXP value = checkAttribute(new Symbol(name), attributes.getElementAsSEXP(i));
 
       list.add(new Symbol(name), value);
     }
     return cloneWithNewAttributes(list.build());
   }
 
-  private SEXP checkAttribute(String name, SEXP value) {
-    if(name.equals("class")) {
+  private SEXP checkAttribute(Symbol name, SEXP value) {
+    if(name.equals(Symbol.CLASS)) {
       return checkClassAttributes(value);
-    } else if(name.equals("names")) {
+      
+    } else if(name.equals(Symbol.NAMES)) {
       return checkNamesAttributes(value);
-    } else if(name.equals("row.names")) {
+   
+    } else if(name.equals(Symbol.ROW_NAMES)) {
       return checkRowNames(value);
+    
     } else {
       return value;
     }

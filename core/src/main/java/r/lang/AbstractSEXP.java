@@ -108,7 +108,7 @@ abstract class AbstractSEXP implements SEXP {
   public Logical asLogical() {
     return Logical.NA;
   }
-
+  
   /**
    * Coerces this {@code SEXP} to a single double value.
    */

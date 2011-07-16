@@ -112,4 +112,10 @@ public class Base {
     }
     return PairList.Node.singleton("ans", new IntVector(counts));
   }
+  
+  public static SEXP Rrowsum_df(ListVector x, int ncol, Vector group, SEXP ugroup, boolean naRm) {
+    throw new EvalException("nyi");
+  }
+
+  
 }

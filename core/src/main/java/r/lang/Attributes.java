@@ -98,10 +98,15 @@ public class Attributes {
    * @throws EvalException if {@code rowNames} is not a {@link StringVector} or a {@link IntVector}
    */
   public static Vector validateRowNames(SEXP rowNames) {
+    
+    if(rowNames == Null.INSTANCE) {
+      return Null.INSTANCE;
+    
+    
     // R uses a special "compact format" for row.names that are an integer sequence 1..n
     // in the format c(NA, -n)
     
-    if(rowNames instanceof DoubleVector && rowNames.length() == 2 && ((DoubleVector) rowNames).isElementNaN(0)) {
+    } else if(rowNames instanceof DoubleVector && rowNames.length() == 2 && ((DoubleVector) rowNames).isElementNaN(0)) {
       // this is the correct compact format, but we need to store as integer, not double
       int n = -((DoubleVector)rowNames).getElementAsInt(1);
       return Attributes.compactRowNames(n);

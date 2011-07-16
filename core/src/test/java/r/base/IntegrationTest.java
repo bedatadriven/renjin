@@ -116,6 +116,7 @@ public class IntegrationTest extends EvalTestCase {
     eval(" class(xi) <- 'data.frame' ");
     
     assertThat( eval("attr(xi, 'row.names')"), equalTo(c_i(1,2,3,4,5)));
+    assertThat( eval("attributes(xi)$row.names"), equalTo(c_i(1,2,3,4,5)));
     assertThat( eval("row.names(xi) "), equalTo(c("1", "2", "3", "4", "5")));
     
   }

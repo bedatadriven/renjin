@@ -22,7 +22,6 @@
 package r.lang;
 
 import com.google.common.base.Preconditions;
-import r.lang.exception.EvalException;
 
 import java.util.Collections;
 
@@ -66,7 +65,7 @@ abstract class AbstractSEXP implements SEXP {
 
   @Override
   public PairList getAttributes() {
-    return (PairList)attributes;
+    return Attributes.expandAttributes((PairList)attributes);
   }
 
 
@@ -147,7 +146,7 @@ abstract class AbstractSEXP implements SEXP {
 //    if (isObject()) {
 //      klass = getAttrib(s, R_ClassSymbol);
 //      nclass = length(klass);
-//      for (i = 0; i < nclass; i++) {
+//      for (i = 0; i < nclass; i++) {  
 //        if (!strcmp(CHAR(STRING_ELT(klass, i)), name))
 //          return TRUE;
 //      }
@@ -213,7 +212,7 @@ abstract class AbstractSEXP implements SEXP {
   public SEXP setAttribute(Symbol attributeName, SEXP value) {
     return cloneWithNewAttributes(
         replaceAttribute(attributeName,
-            checkAttribute(attributeName, value)));
+            Attributes.validateAttribute(this, attributeName, value)));
   }
 
   @Override
@@ -221,81 +220,11 @@ abstract class AbstractSEXP implements SEXP {
     PairList.Builder list = new PairList.Builder();
     for(int i=0;i!=attributes.length();++i) {
       String name = attributes.getName(i);
-      SEXP value = checkAttribute(new Symbol(name), attributes.getElementAsSEXP(i));
+      SEXP value = Attributes.validateAttribute(this, new Symbol(name), attributes.getElementAsSEXP(i));
 
       list.add(new Symbol(name), value);
     }
     return cloneWithNewAttributes(list.build());
-  }
-
-  private SEXP checkAttribute(Symbol name, SEXP value) {
-    if(name.equals(Symbol.CLASS)) {
-      return checkClassAttributes(value);
-      
-    } else if(name.equals(Symbol.NAMES)) {
-      return checkNamesAttributes(value);
-   
-    } else if(name.equals(Symbol.ROW_NAMES)) {
-      return checkRowNames(value);
-    
-    } else {
-      return value;
-    }
-  }
-
-  private SEXP checkRowNames(SEXP value) {
-    // R uses a special "compact format" for row.names that are an integer sequence 1..n
-    // in the format c(NA, -n)
-    
-    if(value instanceof DoubleVector && value.length() == 2 && ((DoubleVector) value).isElementNaN(0)) {
-      // this is the correct compact format, but we need to store as integer, not double
-      return compactRowNames(-((DoubleVector)value).getElementAsInt(1));
-    
-    } else if(value instanceof IntVector) {
-      IntVector vector = (IntVector)value;
-      
-      if(vector.length() == 2 && vector.isElementNA(0)) {
-        // this is the compact format, return as OK
-        return vector;
-      } else if(isSequence(vector)){
-        // compact 
-        return compactRowNames(vector.length());
-        
-      } else {
-        // integer vector is ok
-        return vector;
-      }
-      
-    } else if(value instanceof StringVector) {
-      return value;
-    }
-    
-    throw new EvalException("row names must be 'character' or 'integer', not '%s'", value.getTypeName());
-  }
- 
-  private boolean isSequence(IntVector vector) {
-    for(int i=0;i!=vector.length();++i) {
-      if(vector.getElementAsInt(i) != i+1) {
-        return false;
-      }
-    }
-    return true;
-  }
-  
-  private IntVector compactRowNames(int n) {
-    return new IntVector(IntVector.NA, -n);
-  }
-
-  private StringVector checkNamesAttributes(SEXP names) {
-    if(names.length() > length()) {
-      throw new EvalException("'names' attribute [%d] must be the same length as the vector [%d]",
-          names.length(), length());
-    }
-    return StringVector.coerceFrom(names).setLength(length());
-  }
-
-  private SEXP checkClassAttributes(SEXP classNames) {
-    return classNames.length() == 0 ? Null.INSTANCE : StringVector.coerceFrom(classNames);
   }
 
   private PairList replaceAttribute(Symbol attributeName, SEXP newValue) {

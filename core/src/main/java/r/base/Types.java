@@ -437,30 +437,15 @@ public class Types {
     for(PairList.Node node : exp.getAttributes().nodes()) {
       String name = node.getTag().getPrintName();
       if(name.equals(which)) {
-        return postProcessAttributeValue(node);
+        return Attributes.postProcessAttributeValue(node);
       } else if(name.startsWith(which)) {
         partialMatch = node;
         partialMatchCount ++;
       }
     }
-    return partialMatchCount == 1 ? postProcessAttributeValue(partialMatch) : Null.INSTANCE;
+    return partialMatchCount == 1 ? Attributes.postProcessAttributeValue(partialMatch) : Null.INSTANCE;
   }
   
-  private static SEXP postProcessAttributeValue(PairList.Node node) {
-    if(node.getTag().equals(Symbol.ROW_NAMES)) {
-      Vector names = (Vector)node.getValue();
-      if(names.length() == 2 && names.isElementNA(0)) {
-        int n = -names.getElementAsInt(1);
-        int result[] = new int[n];
-        for(int i=0;i!=n;++i) {
-          result[i] = i+1;
-        }
-        return new IntVector(result);
-      }
-    }
-    return node.getValue();
-  }
-
   @Primitive("attributes<-")
   public static SEXP setAttributes(SEXP exp, ListVector attributes) {
     return exp.setAttributes(attributes);
@@ -493,8 +478,6 @@ public class Types {
       return exp.setAttribute(Symbol.DOT_ENVIRONMENT.getPrintName(), newRho);
     }
   }
-
-
 
   public static PairList formals(Closure closure) {
     return closure.getFormals();

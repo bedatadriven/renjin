@@ -163,7 +163,7 @@ public class IntegrationTest extends EvalTestCase {
     java.lang.System.out.println(eval(".packages()"));
   }
 
-  @Test @Ignore("need to fix -- related to special row.names impl ")
+  @Test
   public void genericSubscript() throws IOException {
     topLevelContext.init();
 

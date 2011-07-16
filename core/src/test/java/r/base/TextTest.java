@@ -121,7 +121,11 @@ public class TextTest extends EvalTestCase {
     assertThat( eval("nchar('xyz')"), equalTo( c_i(3) ));
     assertThat( eval("nchar(c('xyz', NA, 'a', '', 'abcde'))"), equalTo( c_i(3, 2, 1, 0, 5) ));
     assertThat( eval("nchar(NULL)"), equalTo( c_i() ));
-
+  }
+  
+  @Test
+  public void ncharWithNas() {
+	  assertThat( eval(".Internal(nchar(c(NA,-5),'chars', FALSE))"), equalTo( c_i(2,2) ));
   }
 
   @Test

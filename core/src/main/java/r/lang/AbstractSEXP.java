@@ -227,9 +227,54 @@ abstract class AbstractSEXP implements SEXP {
       return checkClassAttributes(value);
     } else if(name.equals("names")) {
       return checkNamesAttributes(value);
+    } else if(name.equals("row.names")) {
+      return checkRowNames(value);
     } else {
       return value;
     }
+  }
+
+  private SEXP checkRowNames(SEXP value) {
+    // R uses a special "compact format" for row.names that are an integer sequence 1..n
+    // in the format c(NA, -n)
+    
+    if(value instanceof DoubleVector && value.length() == 2 && ((DoubleVector) value).isElementNaN(0)) {
+      // this is the correct compact format, but we need to store as integer, not double
+      return compactRowNames(-((DoubleVector)value).getElementAsInt(1));
+    
+    } else if(value instanceof IntVector) {
+      IntVector vector = (IntVector)value;
+      
+      if(vector.length() == 2 && vector.isElementNA(0)) {
+        // this is the compact format, return as OK
+        return vector;
+      } else if(isSequence(vector)){
+        // compact 
+        return compactRowNames(vector.length());
+        
+      } else {
+        // integer vector is ok
+        return vector;
+      }
+      
+    } else if(value instanceof StringVector) {
+      return value;
+    }
+    
+    throw new EvalException("row names must be 'character' or 'integer', not '%s'", value.getTypeName());
+  }
+ 
+  private boolean isSequence(IntVector vector) {
+    for(int i=0;i!=vector.length();++i) {
+      if(vector.getElementAsInt(i) != i+1) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  private IntVector compactRowNames(int n) {
+    return new IntVector(IntVector.NA, -n);
   }
 
   private StringVector checkNamesAttributes(SEXP names) {

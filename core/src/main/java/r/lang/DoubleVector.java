@@ -324,6 +324,10 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   public boolean isElementNA(int index) {
     return isNA(values[index]);
   }
+  
+  public boolean isElementNaN(int i) {
+    return Double.isNaN(values[i]);
+  }
 
   public static class Builder extends AbstractAtomicBuilder<Double> {
     private double values[];

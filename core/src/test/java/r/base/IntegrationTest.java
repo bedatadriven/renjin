@@ -106,6 +106,19 @@ public class IntegrationTest extends EvalTestCase {
 
     assertThat(eval(" x >= y"), equalTo(c(true)));
   }
+  
+  @Test
+  public void rowNames() throws IOException {
+    topLevelContext.init();
+    
+    eval(" xi <- list(c(55, 60, 30, 40, 11)) ");
+    eval(" attr(xi, 'row.names') <- c(NA, -5) ");
+    eval(" class(xi) <- 'data.frame' ");
+    
+    assertThat( eval("attr(xi, 'row.names')"), equalTo(c_i(1,2,3,4,5)));
+    assertThat( eval("row.names(xi) "), equalTo(c("1", "2", "3", "4", "5")));
+    
+  }
 
   @Test
   public void fileInfo() throws IOException {
@@ -163,7 +176,7 @@ public class IntegrationTest extends EvalTestCase {
     java.lang.System.out.println(eval(".packages()"));
   }
 
-  @Test
+  @Test 
   public void genericSubscript() throws IOException {
     topLevelContext.init();
 
@@ -213,6 +226,16 @@ public class IntegrationTest extends EvalTestCase {
     assertThat( eval("levels"), equalTo(c("1","2","3","4","5")));
   }
   
+  @Test
+  public void setRowNames() throws IOException {
+    topLevelContext.init();
+    
+    eval(" xi <- list(c(1:5))");
+    eval(" class(xi) <- 'data.frame'");
+    eval(" attr(xi, 'row.names') <- c(NA,-5)");
+   
+    assertThat( eval(" .row_names_info(xi) "), equalTo( c_i(-5)));
+  }
   
   
 

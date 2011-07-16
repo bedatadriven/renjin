@@ -431,19 +431,34 @@ public class Types {
 
   @Primitive("attr")
   public static SEXP getAttribute(SEXP exp, String which) {
-    SEXP partialMatch = Null.INSTANCE;
+    PairList.Node partialMatch = null;
     int partialMatchCount = 0;
 
     for(PairList.Node node : exp.getAttributes().nodes()) {
       String name = node.getTag().getPrintName();
       if(name.equals(which)) {
-        return node.getValue();
+        return postProcessAttributeValue(node);
       } else if(name.startsWith(which)) {
-        partialMatch = node.getValue();
+        partialMatch = node;
         partialMatchCount ++;
       }
     }
-    return partialMatchCount == 1 ? partialMatch : Null.INSTANCE;
+    return partialMatchCount == 1 ? postProcessAttributeValue(partialMatch) : Null.INSTANCE;
+  }
+  
+  private static SEXP postProcessAttributeValue(PairList.Node node) {
+    if(node.getTag().equals(Symbol.ROW_NAMES)) {
+      Vector names = (Vector)node.getValue();
+      if(names.length() == 2 && names.isElementNA(0)) {
+        int n = -names.getElementAsInt(1);
+        int result[] = new int[n];
+        for(int i=0;i!=n;++i) {
+          result[i] = i+1;
+        }
+        return new IntVector(result);
+      }
+    }
+    return node.getValue();
   }
 
   @Primitive("attributes<-")

@@ -21,94 +21,17 @@
 
 package r.lang;
 
-import r.base.BaseFrame;
-import r.jvmi.binding.JvmMethod;
-import r.jvmi.binding.RuntimeInvoker;
-import r.lang.exception.EvalException;
-
-import java.util.List;
 
 public abstract class PrimitiveFunction extends AbstractSEXP implements Function {
 
-  public static final String IMPLICIT_CLASS = "function";
-
-  protected List<JvmMethod> methodOverloads;
   private String name;
-  private Class methodClass;
-  private String methodName;
-
-  protected PrimitiveFunction(BaseFrame.Entry functionEntry) {
-    name = functionEntry.name;
-    methodClass = functionEntry.functionClass;
-    methodName = functionEntry.methodName;
-  }
-
-  protected PrimitiveFunction(String name, Class methodClass, String methodName) {
+  
+  public PrimitiveFunction(String name) {
     this.name = name;
-    this.methodClass = methodClass;
-    this.methodName = methodName;
   }
-
-  protected PrimitiveFunction(String name, Class methodClass) {
-    this.name = name;
-    this.methodClass = methodClass;
-  }
-
-  @Override
-  protected final String getImplicitClass() {
-    return IMPLICIT_CLASS;
-  }
-
-  public String getName() {
+  
+  public final String getName() {
     return name;
   }
-
-  @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
-    try {
-      return RuntimeInvoker.INSTANCE.invoke(context, rho, call, getOverloads());
-    } catch (EvalException e) {
-      if(e.getContext() == null) {
-        e.initContext(context);
-      }
-      throw e;
-    }
-  }
-
-  protected List<JvmMethod> getOverloads() {
-    List<JvmMethod> overloads = getMethodOverloads(methodClass, name, methodName);
-    if(overloads.isEmpty()) {
-      StringBuilder message = new StringBuilder();
-      message.append("'")
-             .append(name)
-             .append("' is not yet implemented");
-      if(methodClass != null) {
-        message.append(" (")
-             .append(methodClass.getName())
-             .append(".")
-             .append(methodName)
-             .append(")");
-      }
-
-      throw new EvalException(message.toString());
-    }
-    return overloads;
-  }
-
-  protected List<JvmMethod> getMethodOverloads(Class clazz, String name, String alias) {
-    if (methodOverloads == null) {
-      methodOverloads = JvmMethod.findOverloads(clazz, name, alias);
-    }
-    return methodOverloads;
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
-  }
-
-  @Override
-  public String toString() {
-    return name + "()";
-  }
+  
 }

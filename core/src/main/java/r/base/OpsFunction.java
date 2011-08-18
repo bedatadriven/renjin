@@ -22,7 +22,12 @@
 package r.base;
 
 import r.jvmi.binding.RuntimeInvoker;
-import r.lang.*;
+import r.lang.Context;
+import r.lang.Environment;
+import r.lang.EvalResult;
+import r.lang.FunctionCall;
+import r.lang.PairList;
+import r.lang.RuntimeBuiltinFunction;
 import r.lang.exception.EvalException;
 
 /**
@@ -33,7 +38,7 @@ import r.lang.exception.EvalException;
  * before the default implementation is invoked.
  *
  */
-public class OpsFunction extends BuiltinFunction {
+public class OpsFunction extends RuntimeBuiltinFunction {
 
   public OpsFunction(String name) {
     super(name, Ops.class);

@@ -309,6 +309,7 @@ public class Types {
     return arg;
   }
 
+  @Primitive("as.environment")
   public static Environment asEnvironment(@Current Context context, double index) {
     Environment result = context.getGlobalEnvironment();
     for(int i=1;i<index;++i) {

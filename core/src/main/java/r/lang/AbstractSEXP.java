@@ -28,7 +28,7 @@ import java.util.Collections;
 /**
  * Base class for R data types.
  */
-abstract class AbstractSEXP implements SEXP {
+public abstract class AbstractSEXP implements SEXP {
 
   protected PairList attributes;
 

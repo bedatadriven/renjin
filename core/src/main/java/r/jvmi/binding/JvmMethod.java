@@ -28,6 +28,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.math.complex.Complex;
 import r.jvmi.annotations.*;
+import r.jvmi.wrapper.WrapperRuntime;
 import r.lang.*;
 import r.lang.PairList.Node;
 import r.lang.exception.ControlFlowException;
@@ -171,6 +172,10 @@ public class JvmMethod implements Comparable<JvmMethod> {
     }
     return method.getName();
   }
+  
+  public List<Argument> getAllArguments() {
+    return arguments;
+  }
 
   /**
    * @return true if this method's arguments exactly match the {@code expectedArgumentTypes}
@@ -263,6 +268,10 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
   public Class getReturnType() {
     return method.getReturnType();
+  }
+  
+  public boolean returnsVoid() {
+    return method.getReturnType() == Void.class || method.getReturnType() == Void.TYPE;
   }
 
   public Object getName() {
@@ -434,6 +443,10 @@ public class JvmMethod implements Comparable<JvmMethod> {
       return defaultValue;
     }
     
+    public int getIndex() {
+      return index;
+    }
+    
     /**
      * 
      * @return then name of the R-language converter function
@@ -502,16 +515,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
     @Override
     public SEXP convert(Context context, Environment rho, SEXP provided) {
-      if(provided == Null.INSTANCE) {
-        return Null.INSTANCE;
-      } else {
-        if(provided instanceof Promise) {
-          provided = ((Promise) provided).force().getExpression();
-        }
-        return FunctionCall
-          .newCall(Symbol.AS_CHARACTER, provided)
-            .evalToExp(context, rho);
-      }
+      return WrapperRuntime.invokeAsCharacter(context, rho, provided);
     }
   }
 }

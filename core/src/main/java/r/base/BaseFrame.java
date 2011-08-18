@@ -21,17 +21,67 @@
 
 package r.base;
 
-import com.google.common.collect.Sets;
-import org.apache.commons.math.distribution.Distribution;
-import r.base.special.*;
-import r.lang.*;
+import static r.base.PPkind.PP_ASSIGN;
+import static r.base.PPkind.PP_BINARY;
+import static r.base.PPkind.PP_BINARY2;
+import static r.base.PPkind.PP_DOLLAR;
+import static r.base.PPkind.PP_FOREIGN;
+import static r.base.PPkind.PP_FUNCALL;
+import static r.base.PPkind.PP_FUNCTION;
+import static r.base.PPkind.PP_SUBASS;
+import static r.base.PPkind.PP_SUBSET;
+import static r.base.PPprec.PREC_AND;
+import static r.base.PPprec.PREC_COLON;
+import static r.base.PPprec.PREC_DOLLAR;
+import static r.base.PPprec.PREC_EQ;
+import static r.base.PPprec.PREC_FN;
+import static r.base.PPprec.PREC_LEFT;
+import static r.base.PPprec.PREC_OR;
+import static r.base.PPprec.PREC_PERCENT;
+import static r.base.PPprec.PREC_SUBSET;
+import static r.base.PPprec.PREC_TILDE;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static r.base.PPkind.*;
-import static r.base.PPprec.*;
+import org.apache.commons.math.distribution.Distribution;
+
+import r.base.special.AssignLeftFunction;
+import r.base.special.BeginFunction;
+import r.base.special.BreakFunction;
+import r.base.special.ClosureFunction;
+import r.base.special.ForFunction;
+import r.base.special.IfFunction;
+import r.base.special.InternalFunction;
+import r.base.special.NextFunction;
+import r.base.special.OnExitFunction;
+import r.base.special.ParenFunction;
+import r.base.special.ReassignLeftFunction;
+import r.base.special.RepeatFunction;
+import r.base.special.RestartFunction;
+import r.base.special.ReturnFunction;
+import r.base.special.SubstituteFunction;
+import r.base.special.SwitchFunction;
+import r.base.special.WhileFunction;
+import r.jvmi.wrapper.WrapperGenerator;
+import r.lang.BuiltinFunction;
+import r.lang.DoubleVector;
+import r.lang.Frame;
+import r.lang.Function;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.Null;
+import r.lang.PrimitiveFunction;
+import r.lang.RuntimeBuiltinFunction;
+import r.lang.SEXP;
+import r.lang.SpecialFunction;
+import r.lang.StringVector;
+import r.lang.Symbol;
+
+import com.google.common.collect.Sets;
 
 /**
  *  The {@code Frame} that provides the primitive functions for the
@@ -45,6 +95,7 @@ public class BaseFrame implements Frame {
   private Map<Symbol, SEXP> builtins = new HashMap<Symbol, SEXP>();
   private Map<Symbol, SEXP> internals = new HashMap<Symbol, SEXP>();
   private Map<Symbol, SEXP> loaded = new HashMap<Symbol, SEXP>();
+  private List<Entry> entries = new ArrayList<Entry>();
 
   @Override
   public Set<Symbol> getSymbols() {
@@ -73,6 +124,10 @@ public class BaseFrame implements Frame {
     return Null.INSTANCE;
   }
 
+  public List<Entry> getEntries() {
+    return entries;
+  }
+  
   @Override
   public void setVariable(Symbol name, SEXP value) {
     loaded.put(name, value);
@@ -97,9 +152,19 @@ public class BaseFrame implements Frame {
   }
 
   private void add(Entry entry) {
+    
+    entries.add(entry);
+    
     Symbol symbol = new Symbol(entry.name);
     PrimitiveFunction primitive;
-    primitive = new BuiltinFunction(entry);
+    
+    try {
+      primitive = (PrimitiveFunction) Class.forName(WrapperGenerator.toFullJavaName(entry.name)).newInstance();
+     // java.lang.System.out.println("Loaded generated wrapper for " + entry.name);
+    } catch(Exception e) {
+      // compile-time generate class not yet availble, use reflection for the time being.
+      primitive = new RuntimeBuiltinFunction(entry);
+    }
 
     if ((entry.eval % 100) / 10 != 0) {
       internals.put(symbol, primitive);
@@ -108,6 +173,18 @@ public class BaseFrame implements Frame {
     }
   }
 
+  /**
+   * Returns a list of function entries that need to be bound
+   * to implementations of Function, basically for use by the {@link WrapperGenerator}
+   * 
+   * This a bit inelegant, but it will do for now.
+   * 
+   * @return list of function entries
+   */
+  public List<Entry> getPrimitives() {
+    return entries;
+  }
+  
   private void installPlatform() {
     builtins.put(new Symbol(".Platform"), ListVector.newBuilder()
         .add("OS.type", new StringVector(resolveOsName()))

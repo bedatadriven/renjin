@@ -21,30 +21,28 @@
 
 package r.lang;
 
-import r.base.BaseFrame;
 
-public class BuiltinFunction extends PrimitiveFunction {
+public abstract class BuiltinFunction extends PrimitiveFunction {
+
   public static final String TYPE_NAME = "builtin";
-
-  public BuiltinFunction(BaseFrame.Entry functionEntry) {
-    super(functionEntry);
+  public static final String IMPLICIT_CLASS = "function";
+  
+  public BuiltinFunction(String name) {
+    super(name);
   }
-
-  public BuiltinFunction(String name, Class methodClass, String methodName) {
-    super(name, methodClass, methodName);
-  }
-
-  public BuiltinFunction(String name, Class methodClass) {
-    super(name, methodClass);
-  }
-
+  
   @Override
-  public String getTypeName() {
+  public final String getTypeName() {
     return TYPE_NAME;
   }
 
   @Override
-  public void accept(SexpVisitor visitor) {
+  protected final String getImplicitClass() {
+    return IMPLICIT_CLASS;
+  }
+
+  @Override
+  public final void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
 }

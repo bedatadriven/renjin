@@ -88,36 +88,28 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2</version>
-        <!--<executions>-->
-
-        <!--&lt;!&ndash; Compile the base package &ndash;&gt;-->
-        <!--<execution>-->
-        <!--<id>compile-base-package</id>-->
-        <!--<goals>-->
-        <!--<goal>exec</goal>-->
-        <!--</goals>-->
-        <!--<phase>process-classes</phase>-->
-        <!--<configuration>-->
-        <!--<executable>java</executable>-->
-        <!--<arguments>-->
-        <!--<argument>-classpath</argument>-->
-        <!--<classpath />-->
-        <!--<argument>r.compiler.Compiler</argument>-->
-        <!--<argument>-package</argument>-->
-        <!--<argument>r.base</argument>-->
-        <!--<argument>-sourcepath</argument>-->
-        <!--<argument>${project.basedir}/src/main/r/base</argument>-->
-        <!--<argument>-d</argument>-->
-        <!--<argument>${build.outputDirectory}</argument>-->
-        <!--<argument>-s</argument>-->
-        <!--<argument>${build.directory}/generated-sources/R</argument>-->
-        <!--</arguments>-->
-        <!--</configuration>-->
-        <!--</execution>-->
-        <!--</executions>-->
+		<groupId>org.codehaus.mojo</groupId>
+		<artifactId>exec-maven-plugin</artifactId>
+		<version>1.2</version>
+		<executions>
+	
+			<!-- Generate wrapper for the primitives in the base package -->
+			<execution>
+				<id>compile-base-package</id>
+				<goals>
+					<goal>exec</goal>
+				</goals>
+				<phase>process-classes</phase>
+				<configuration>
+					<executable>java</executable>
+					<arguments>
+						<argument>-classpath</argument>
+						<classpath />
+						<argument>r.jvmi.wrapper.WrapperGenerator</argument>
+					</arguments>
+				</configuration>
+			</execution>
+		</executions>
       </plugin>
     </plugins>
   </build>

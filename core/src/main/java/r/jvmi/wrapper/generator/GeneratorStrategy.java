@@ -110,7 +110,7 @@ public abstract class GeneratorStrategy {
     }
   }
   
-  protected final String argExpression(JvmMethod.Argument formal) {
+  protected final String argConversionStatement(JvmMethod.Argument formal, String tempLocal) {
     String exp;
     if(formal.isEvaluated()) {
       exp = "((PairList.Node)args).getValue().evalToExp(context, rho)";
@@ -119,9 +119,9 @@ public abstract class GeneratorStrategy {
     }
     
     if(formal.getClazz().equals(SEXP.class)) {
-      return exp; 
+      return tempLocal + " = " + exp + ";"; 
     } else {
-      return findArgConverterStrategy(formal).convert(formal, exp);
+      return findArgConverterStrategy(formal).conversionStatement(formal, tempLocal, exp);
     }
   }
   

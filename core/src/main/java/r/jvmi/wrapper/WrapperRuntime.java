@@ -80,19 +80,15 @@ public class WrapperRuntime {
     return vector.getElementAsDouble(0);
   }
   
-  public static <S extends SEXP> S checkedSubClass(SEXP exp) {
-    try {
-      return (S)exp;
-    } catch(ClassCastException e) {
-      throw new ArgumentException();
-    }
-  }
   
-  private static <S extends SEXP> S checkedSubClassAndAssertScalar(SEXP exp) {
+  private static Vector checkedSubClassAndAssertScalar(SEXP exp) {
     if(exp.length() != 1) {
       throw new ArgumentException();
     }
-    return checkedSubClass(exp);
+    if(!(exp instanceof Vector)) {
+      throw new ArgumentException();
+    }
+    return (Vector)exp;
   }
   
   public static <T> T unwrapExternal(SEXP exp) {

@@ -25,7 +25,7 @@ public class ToScalar extends ArgConverterStrategy {
   }
 
   @Override
-  public String convert(Argument formal, String argumentExpression) {
+  public String conversionExpression(Argument formal, String argumentExpression) {
     return methods.get(formal.getClazz()) + "(" + argumentExpression + ")";
   }
 

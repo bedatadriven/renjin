@@ -25,6 +25,10 @@ public abstract class ArgConverterStrategy {
    * @param argumentExpression the java (source) expression that results in an argument of type {@code SEXP}
    * @return java source expression that results in the converted value
    */
-  public abstract String convert(JvmMethod.Argument formal, String argumentExpression);
+  public abstract String conversionExpression(JvmMethod.Argument formal, String argumentExpression);
   
+  
+  public String conversionStatement(JvmMethod.Argument formal, String tempLocal, String argumentExpression) {
+    return tempLocal + " = " + conversionExpression(formal, argumentExpression) + ";";
+  }
 }

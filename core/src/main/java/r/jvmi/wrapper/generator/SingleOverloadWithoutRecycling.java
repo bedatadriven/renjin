@@ -2,15 +2,9 @@ package r.jvmi.wrapper.generator;
 
 import java.util.List;
 
-import r.base.BaseFrame.Entry;
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.wrapper.WrapperSourceWriter;
 import r.jvmi.wrapper.generator.args.ArgConverterStrategy;
-import r.lang.Context;
-import r.lang.Environment;
 
 /**
  * Strategy for generating a wrapper for the simplest case: a single, non-recycling java method.
@@ -61,8 +55,10 @@ public class SingleOverloadWithoutRecycling extends GeneratorStrategy {
         if(argIndex!=0) {
           s.writeStatement("args = ((PairList.Node)args).getNextNode();");
         }
-        s.writeStatementF("%s arg%d = %s;", argument.getClazz().getName(), argIndex, argExpression(argument));
-        argumentList.add("arg" + argIndex);
+        String tempLocal = "arg" + argIndex;
+        s.writeStatementF("%s %s;", argument.getClazz().getName(), tempLocal);
+        s.writeStatement(argConversionStatement(argument, tempLocal));
+        argumentList.add(tempLocal);
         argIndex++;
       }
     }

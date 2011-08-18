@@ -11,7 +11,7 @@ public class UsingAsCharacter extends ArgConverterStrategy {
   }
 
   @Override
-  public String convert(Argument formal, String argumentExpression) {
+  public String conversionExpression(Argument formal, String argumentExpression) {
     return "invokeAsCharacter(context, rho, " + argumentExpression + ")";
   }
 

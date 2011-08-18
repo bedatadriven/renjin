@@ -52,6 +52,7 @@ public abstract class GeneratorStrategy {
     s.writePackage("r.base.primitives");   
     s.writeImport("r.lang.*");
     s.writeImport("r.jvmi.wrapper.WrapperRuntime");
+    s.writeImport("r.jvmi.wrapper.ArgumentException");
 
     s.writeStaticImport("r.jvmi.wrapper.WrapperRuntime.*");
 

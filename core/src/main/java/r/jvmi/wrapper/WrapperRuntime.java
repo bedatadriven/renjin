@@ -128,4 +128,8 @@ public class WrapperRuntime {
   public static EvalResult wrapResult(int [] result) {
     return EvalResult.visible(new IntVector(result));
   }
+  
+  public static EvalResult wrapResult(Logical result) {
+    return EvalResult.visible(new LogicalVector(result));
+  }
 }

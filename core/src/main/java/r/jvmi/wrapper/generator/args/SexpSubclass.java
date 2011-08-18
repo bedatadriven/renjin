@@ -4,7 +4,7 @@ import r.jvmi.binding.JvmMethod.Argument;
 import r.lang.SEXP;
 
 /**
- * Handles checked narrowing of types to 
+ * Handles checked narrowing of types to declared subclass of SEXP
  * @author alex
  *
  */

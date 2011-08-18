@@ -49,12 +49,15 @@ public class WrapperGenerator {
       generator.setSingleFunction(args[0]);
     }
     generator.generate();
-    generator.compile();
+   
+    System.exit(generator.isSuccessfull() ? 0 : 1);
   }
   
   private File sourcesDir;
   private File outputDir;
   private String singleFunction;
+  
+  private boolean encounteredError = false;
   
   private List<JavaFileObject> compilationUnits = new ArrayList<JavaFileObject>();
   
@@ -72,7 +75,16 @@ public class WrapperGenerator {
     this.singleFunction = name;
   }
   
-  private void generate()
+  public void generate() throws IOException {
+    generateSources();
+    compile();
+  }
+
+  public boolean isSuccessfull() {
+    return !encounteredError;
+  }
+  
+  private void generateSources()
       throws IOException {
     
     List<GeneratorStrategy> strategies = Lists.newArrayList();
@@ -94,6 +106,7 @@ public class WrapperGenerator {
         }
       }
     }
+
   }
 
 
@@ -112,6 +125,7 @@ public class WrapperGenerator {
       for(JvmMethod method : overloads) {
         System.err.println("  " + method.toString());
       }
+      encounteredError = true;
     }
   }
     
@@ -165,6 +179,7 @@ public class WrapperGenerator {
       for(Diagnostic<? extends JavaFileObject> d : diagnostics.getDiagnostics()) {
         System.err.println(d.toString());
       }
+      encounteredError = true;
     }
     
     jfm.close();

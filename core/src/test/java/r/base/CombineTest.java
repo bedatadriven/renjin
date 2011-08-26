@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package r.base;
 
 import org.junit.Test;
@@ -31,126 +30,131 @@ import static org.junit.Assert.assertThat;
 
 public class CombineTest extends EvalTestCase {
 
-  @Test
-  public void realList() {
-    assertThat( eval("c(1,2,3)"), equalTo( c(1,2,3) ));
-  }
+    @Test
+    public void realList() {
+        assertThat(eval("c(1,2,3)"), equalTo(c(1, 2, 3)));
+    }
 
-  @Test
-  public void logicals() {
-    assertThat( eval("c(TRUE, FALSE, NA)"), equalTo( c(Logical.TRUE, Logical.FALSE, Logical.NA)) );
-  }
+    @Test
+    public void logicals() {
+        assertThat(eval("c(TRUE, FALSE, NA)"), equalTo(c(Logical.TRUE, Logical.FALSE, Logical.NA)));
+    }
 
-  @Test
-  public void ints() {
-    assertThat( eval("c(1L,2L, 3L) "), equalTo( c_i(1,2,3)));
-  }
+    @Test
+    public void ints() {
+        assertThat(eval("c(1L,2L, 3L) "), equalTo(c_i(1, 2, 3)));
+    }
 
-  @Test
-  public void nullValues() {
-    assertThat( eval("c(NULL, NULL)"), equalTo( (SEXP) NULL) );
-  }
+    @Test
+    public void nullValues() {
+        assertThat(eval("c(NULL, NULL)"), equalTo((SEXP) NULL));
+    }
 
-  @Test
-  public void realAndLogicalsMixed() {
-    assertThat( eval("c(1,2,NULL,FALSE)"), equalTo( c(1,2,0) ));
-  }
+    @Test
+    public void realAndLogicalsMixed() {
+        assertThat(eval("c(1,2,NULL,FALSE)"), equalTo(c(1, 2, 0)));
+    }
 
-  @Test
-  public void twoLists() {
-    assertThat( eval("c( list(1,2), list(3,4) ) "), equalTo( list(1d,2d,3d,4d)));
-  }
+    @Test
+    public void twoLists() {
+        assertThat(eval("c( list(1,2), list(3,4) ) "), equalTo(list(1d, 2d, 3d, 4d)));
+    }
 
-  @Test
-  public void nullsInList() {
-    assertThat( eval("c( list(NULL), NULL, list(NULL,1) ) "),
-        equalTo( list(NULL, NULL, 1d)));
-  }
+    @Test
+    public void nullsInList() {
+        assertThat(eval("c( list(NULL), NULL, list(NULL,1) ) "),
+                equalTo(list(NULL, NULL, 1d)));
+    }
 
-  @Test
-  public void combineWithExplicitNames() {
-    eval("p <- c(x=41,y=42)" );
+    @Test
+    public void combineWithExplicitNames() {
+        eval("p <- c(x=41,y=42)");
 
-    assertThat( eval("p['x']"), equalTo( c(41) ));
-  }
+        assertThat(eval("p['x']"), equalTo(c(41)));
+    }
 
-  @Test
-  public void combineWithExistingNames() {
-    eval("x <- c(a=1, b=2, 3)");
-    eval("y <- c(x, zz=x, 4)");
+    @Test
+    public void combineWithExistingNames() {
+        eval("x <- c(a=1, b=2, 3)");
+        eval("y <- c(x, zz=x, 4)");
 
-    assertThat( eval("names(y)"), equalTo( c("a","b", "", "zz.a", "zz.b", "zz3", "")) );
-  }
+        assertThat(eval("names(y)"), equalTo(c("a", "b", "", "zz.a", "zz.b", "zz3", "")));
+    }
 
-  @Test
-  public void unlistAtomic() {
-    assertThat( eval(".Internal(unlist( list(1,4,5), TRUE, TRUE )) "), equalTo( c(1,4,5)) );
-    assertThat( eval(".Internal(unlist( list(1,'a',TRUE), TRUE, TRUE )) "), equalTo( c("1","a","TRUE")) );
-    assertThat( eval(".Internal(unlist( list(1,globalenv()), TRUE, TRUE )) "),
-        equalTo( list(1d,global)) );
-  }
+    @Test
+    public void unlistAtomic() {
+        assertThat(eval(".Internal(unlist( list(1,4,5), TRUE, TRUE )) "), equalTo(c(1, 4, 5)));
+        assertThat(eval(".Internal(unlist( list(1,'a',TRUE), TRUE, TRUE )) "), equalTo(c("1", "a", "TRUE")));
+        assertThat(eval(".Internal(unlist( list(1,globalenv()), TRUE, TRUE )) "),
+                equalTo(list(1d, global)));
+    }
 
-  @Test
-  public void combineRecursively() {
-    assertThat( eval("c( list(91,92,c(93,94,95)), 96, c(97,98), recursive=TRUE)"),
-        equalTo( c(91,92,93,94,95,96,97,98)));
-  }
+    @Test
+    public void combineRecursively() {
+        assertThat(eval("c( list(91,92,c(93,94,95)), 96, c(97,98), recursive=TRUE)"),
+                equalTo(c(91, 92, 93, 94, 95, 96, 97, 98)));
+    }
 
-  @Test
-  public void combineRecursivelyWithNames() {
-    eval(" x <- c(a=91,92,c=93)");
-      eval(" y <- c(recursive=TRUE, A=list(p=x,q=x,list(r=3,s=c(1,2,3,4))),B=4,C=x)");
+    @Test
+    public void combineRecursivelyWithNames() {
+        eval(" x <- c(a=91,92,c=93)");
+        eval(" y <- c(recursive=TRUE, A=list(p=x,q=x,list(r=3,s=c(1,2,3,4))),B=4,C=x)");
 
-    assertThat( eval(" names(y) "), equalTo( c("A.p.a", "A.p2", "A.p.c", "A.q.a", "A.q2", "A.q.c", "A.r",
-        "A.s1", "A.s2", "A.s3", "A.s4", "B", "C.a", "C2", "C.c")));
-  }
+        assertThat(eval(" names(y) "), equalTo(c("A.p.a", "A.p2", "A.p.c", "A.q.a", "A.q2", "A.q.c", "A.r",
+                "A.s1", "A.s2", "A.s3", "A.s4", "B", "C.a", "C2", "C.c")));
+    }
 
-  @Test
-  public void pairList() {
-    eval(" pairlist <- function(...) .Internal(as.vector(list(...), 'pairlist')) ");
-    eval(" x <- c(pairlist(x=91,y=92))");
+    @Test
+    public void pairList() {
+        eval(" pairlist <- function(...) .Internal(as.vector(list(...), 'pairlist')) ");
+        eval(" x <- c(pairlist(x=91,y=92))");
 
-    assertThat( eval("length(x)"), equalTo( c_i(2) ));
-    assertThat( eval(".Internal(typeof(x))"), equalTo( c("list") ));
-    assertThat( eval("x[[1]]"), equalTo( c(91)));
-    assertThat( eval("x[[2]]"), equalTo( c(92)));
-    assertThat( eval("names(x)"), equalTo( c("x", "y")));
-  }
+        assertThat(eval("length(x)"), equalTo(c_i(2)));
+        assertThat(eval(".Internal(typeof(x))"), equalTo(c("list")));
+        assertThat(eval("x[[1]]"), equalTo(c(91)));
+        assertThat(eval("x[[2]]"), equalTo(c(92)));
+        assertThat(eval("names(x)"), equalTo(c("x", "y")));
+    }
 
-  @Test
-  public void rbindSimple() {
+    @Test
+    public void rbindSimple() {
 
-    eval(" x<-.Internal(rbind(1, c(Package='survey', Version='3.22-3'))) ");
+        eval(" x<-.Internal(rbind(1, c(Package='survey', Version='3.22-3'))) ");
 
-    assertThat( eval("dim(x)"), equalTo(c_i(1,2) ));
-    assertThat( eval("dimnames(x)"), equalTo(list( NULL, c("Package", "Version")) ));
-    assertThat( eval("x"), equalTo(c("survey", "3.22-3")));
-  }
+        assertThat(eval("dim(x)"), equalTo(c_i(1, 2)));
+        assertThat(eval("dimnames(x)"), equalTo(list(NULL, c("Package", "Version"))));
+        assertThat(eval("x"), equalTo(c("survey", "3.22-3")));
+    }
 
-  @Test
-  public void cbind() {
+    @Test
+    public void cbind() {
 
-    assertThat( eval(".Internal(cbind(1))"), equalTo(NULL));
-    assertThat( eval(".Internal(cbind(1, 5, 6, 7))"), equalTo(c(5, 6, 7)));
-    assertThat( eval("dim(.Internal(cbind(1, 5,6, 7)))"), equalTo(c_i(1,3)));
-    assertThat( eval(".Internal(cbind(1, c(5,6), c(9)))"), equalTo(c(5,6,9,9)));
-  }
+        assertThat(eval(".Internal(cbind(1))"), equalTo(NULL));
+        assertThat(eval(".Internal(cbind(1, 5, 6, 7))"), equalTo(c(5, 6, 7)));
+        assertThat(eval("dim(.Internal(cbind(1, 5,6, 7)))"), equalTo(c_i(1, 3)));
+        assertThat(eval(".Internal(cbind(1, c(5,6), c(9)))"), equalTo(c(5, 6, 9, 9)));
+    }
 
-  @Test
-  public void aperm() {
-    // from docs
-    eval( "x <- 1:24");
-    eval( "dim(x) <- 2:4 ");
-    eval( "xt <- .Internal(aperm(x, c(2,1,3), TRUE)) ");
+    @Test
+    public void aperm() {
+        // from docs
+        eval("x <- 1:24");
+        eval("dim(x) <- 2:4 ");
+        eval("xt <- .Internal(aperm(x, c(2,1,3), TRUE)) ");
 
-    assertThat( eval("xt") , equalTo( c_i(1,3,5,2,4,6,7,9,11,8,10,12,13,15,17,14,16,18,19,21,23,20,22,24)));
-  }
+        assertThat(eval("xt"), equalTo(c_i(1, 3, 5, 2, 4, 6, 7, 9, 11, 8, 10, 12, 13, 15, 17, 14, 16, 18, 19, 21, 23, 20, 22, 24)));
+    }
 
-  @Test
-  public void matrix() {
-    assertThat(eval( ".Internal(matrix(c(1,2,3,4),2,2,FALSE,NULL))"), equalTo(c(1,2,3,4)));
-    assertThat(eval( ".Internal(matrix(c(1,2,3,4),2,4,FALSE,NULL))"), equalTo(c(1,2,3,4,1,2,3,4)));
+    @Test
+    public void matrix() {
+        assertThat(eval(".Internal(matrix(c(1,2,3,4),2,2,FALSE,NULL))"), equalTo(c(1, 2, 3, 4)));
+        assertThat(eval(".Internal(matrix(c(1,2,3,4),2,4,FALSE,NULL))"), equalTo(c(1, 2, 3, 4, 1, 2, 3, 4)));
 
-  }
+    }
 
+    @Test
+    public void matrixByRow() {
+        assertThat(eval(".Internal(matrix(c(1,2,3,4),2,2,TRUE,NULL))"), equalTo(c(1, 3, 2, 4)));
+        assertThat(eval(".Internal(matrix(c(1,2,3,4),2,4,TRUE,NULL))"), equalTo(c(1, 1, 2, 2, 3, 3, 4, 4)));
+    }
 }

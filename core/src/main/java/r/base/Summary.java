@@ -23,6 +23,7 @@ package r.base;
 
 import r.jvmi.annotations.ArgumentList;
 import r.jvmi.annotations.NamedFlag;
+import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -218,5 +219,20 @@ public class Summary {
       }
     }
     return Logical.TRUE;
+  }
+  
+  @Primitive("mean")
+  public static SEXP mean(Vector x, @NamedFlag("na.rm") boolean removeNA) {
+    double mean = 0.0;
+    int len = 0;
+    for (int i=0;i<x.length();i++){
+      if(removeNA && !x.isElementNA(i)){
+        len++;
+        mean+=x.getElementAsDouble(i);
+      }else if (!removeNA && x.isElementNA(i)){
+        return(new DoubleVector(new double[]{DoubleVector.NA}));
+      }
+    }
+    return(new DoubleVector(new double[]{mean / len}));
   }
 }

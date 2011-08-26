@@ -92,4 +92,11 @@ public class SummaryTest extends EvalTestCase {
   public void testSumWithNAs() {
     assertThat( eval("sum(TRUE, TRUE, NA, na.rm=TRUE)"), equalTo(c_i(2)));
   }
+  
+  @Test
+  public void testMean() {
+    assertThat( eval(".Internal(mean(c(1,2,3,4,NA,NA), na.rm=TRUE))"), equalTo(c(2.5)));
+    //This fails!
+    assertThat( eval(".Internal(mean(c(1,2,3,4,NA,NA), FALSE))"), equalTo(c(DoubleVector.NA)));
+  }
 }

@@ -166,9 +166,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void makeUnique() {
-
     assertThat( eval(".Internal(make.unique(c('a', 'b', 'a'), '.'))"), equalTo(c("a", "b", "a.1")));
-
-
   }
+  
 }

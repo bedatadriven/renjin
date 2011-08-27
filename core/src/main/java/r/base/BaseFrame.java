@@ -814,7 +814,7 @@ public class BaseFrame implements Frame {
     f("scan", Scan.class, 0, 11, 18);
     f("count.fields", /*countfields*/ null, 0, 11, 6);
     f("readTableHead", /*readtablehead*/ null, 0, 11, 6);
-    f("t.default", /*transpose*/ null, 0, 11, 1);
+    f("t.default", MathExt.class, 0, 11, 1);
     f("aperm", Combine.class, 0, 11, 3);
     f("builtins", /*builtins*/ null, 0, 11, 1);
     f("edit", /*edit*/ null, 0, 11, 4);

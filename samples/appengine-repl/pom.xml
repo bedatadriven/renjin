@@ -75,13 +75,6 @@
         <groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
         <artifactId>maven-svn-revision-number-plugin</artifactId>
         <version>1.6</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>revision</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>net.kindleit</groupId>
@@ -96,6 +89,13 @@
           <serverId>appengine.google.com</serverId>
         </configuration>
         <executions>
+          <execution>
+            <id>unpack</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+          </execution>
           <execution>
             <id>deploy</id>
             <goals>

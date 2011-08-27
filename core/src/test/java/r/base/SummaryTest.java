@@ -95,8 +95,11 @@ public class SummaryTest extends EvalTestCase {
   
   @Test
   public void testMean() {
-    assertThat( eval(".Internal(mean(c(1,2,3,4,NA,NA), na.rm=TRUE))"), equalTo(c(2.5)));
-    //This fails!
-    assertThat( eval(".Internal(mean(c(1,2,3,4,NA,NA), FALSE))"), equalTo(c(DoubleVector.NA)));
+    assertThat(eval(".Internal(mean(c(1,2,3,4)))"), equalTo(c(2.5)));
+  }
+  
+  @Test
+  public void testCov(){
+    assertThat(eval(".Internal(cov(c(1,2,3,4,5), c(5,4,3,2,1), 1, FALSE))"), equalTo(c(-2.5)));
   }
 }

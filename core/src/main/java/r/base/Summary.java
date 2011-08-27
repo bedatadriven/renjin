@@ -26,6 +26,7 @@ import r.jvmi.annotations.NamedFlag;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.lang.exception.IncompatibleDimensionsException;
 
 /**
  * Summary group functions of vectors such as min, max, sum, etc.
@@ -221,18 +222,46 @@ public class Summary {
     return Logical.TRUE;
   }
   
+  
   @Primitive("mean")
-  public static SEXP mean(Vector x, @NamedFlag("na.rm") boolean removeNA) {
+  public static Vector mean(Vector x) {
     double mean = 0.0;
-    int len = 0;
+    Print.print(x, 80);
     for (int i=0;i<x.length();i++){
-      if(removeNA && !x.isElementNA(i)){
-        len++;
-        mean+=x.getElementAsDouble(i);
-      }else if (!removeNA && x.isElementNA(i)){
-        return(new DoubleVector(new double[]{DoubleVector.NA}));
-      }
+      mean+=x.getElementAsSEXP(i).asReal();
     }
-    return(new DoubleVector(new double[]{mean / len}));
+    return(new DoubleVector(new double[]{mean / x.length()}));
   }
+  
+  
+  /* co[vr](x, y, use =
+    { 1,        2,      3,         4,       5  }
+  "all.obs", "complete.obs", "pairwise.complete", "everything", "na.or.complete"
+      kendall = TRUE/FALSE)
+  */
+  @Primitive("cov")
+  public static Vector cov(Vector x, Vector y, int naMethod, boolean useKendall){
+    if(y == null) {
+      throw new UnsupportedOperationException("Covariance with x matrix only is not implemented yet");
+    }
+    
+    if(useKendall){
+      throw new UnsupportedOperationException("Kendall method is not implemented yet");
+    }
+    
+    if(x.getAttribute(Symbol.DIM).asReal() > 1 && y.getAttribute(Symbol.DIM).asReal()>1){
+      throw new UnsupportedOperationException("Covariance with matrices is not implemented yet");
+    }
+    if(x.length()!=y.length()){
+      throw new IncompatibleDimensionsException("Incompatible dimensions: ");
+    }
+    double meanx=mean(x).asReal();
+    double meany=mean(y).asReal();
+    double sum2 = 0.0;
+    for (int i=0;i<x.length();i++){
+      sum2 += (x.getElementAsDouble(i) -meanx) * (y.getElementAsDouble(i) -meany);
+    }
+    return(new DoubleVector(new double[]{sum2 /(x.length()-1)}));
+  }
+
 }

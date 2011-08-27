@@ -75,6 +75,15 @@
         <groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
         <artifactId>maven-svn-revision-number-plugin</artifactId>
         <version>1.6</version>
+        <executions>
+          <execution>
+            <id>init</id>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+            <phase>initialize</phase>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>net.kindleit</groupId>

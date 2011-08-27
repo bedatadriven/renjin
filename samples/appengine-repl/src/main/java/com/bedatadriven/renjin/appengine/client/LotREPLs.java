@@ -29,7 +29,6 @@ import com.google.gwt.user.client.Window.Location;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
@@ -44,19 +43,11 @@ public class LotREPLs implements EntryPoint {
 
   private CommandPrompt commandPrompt;
 
-  private void showMotd() {
-    SimplePanel motd = new SimplePanel();
-    motd.setStyleName("motd");
-    motd.getElement().setInnerHTML(LotREPLsResources.INSTANCE.motd().getText());
-    content.add(motd);
-  }
-
   /**
    * This is the entry point method.
    */
   public void onModuleLoad() {
     doWarmUpRequest();
-    showMotd();
 
     commandPrompt = new CommandPrompt(new CommandPrompt.CommandEnteredCallback() {
       /**
@@ -87,7 +78,7 @@ public class LotREPLs implements EntryPoint {
     content.add(commandPrompt.panel());
 
     content.setWidth("100%");
-    RootPanel.get().add(content);
+    RootPanel.get("root").add(content);
     commandPrompt.claimFocus();
   }
 

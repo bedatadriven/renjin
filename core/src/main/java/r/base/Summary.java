@@ -252,9 +252,12 @@ public class Summary {
     if(x.getAttribute(Symbol.DIM).asReal() > 1 && y.getAttribute(Symbol.DIM).asReal()>1){
       throw new UnsupportedOperationException("Covariance with matrices is not implemented yet");
     }
-    if(x.length()!=y.length()){
-      throw new IncompatibleDimensionsException("Incompatible dimensions: ");
-    }
+       
+    /*
+     * That means, covariance is now variance
+     */
+    if(y.length() == 0) y = x;
+    
     double meanx=mean(x).asReal();
     double meany=mean(y).asReal();
     double sum2 = 0.0;

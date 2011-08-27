@@ -26,6 +26,7 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 
 import java.util.Set;
+import r.jvmi.annotations.Primitive;
 
 /**
  * Default implementations of match() related functions.
@@ -218,5 +219,17 @@ public class Match {
       }
     }
     return 0;
+  }
+  
+  
+  /*
+   * Attentation:
+   * This method is not implemented correctly.
+   * Just registered for cov, cor, var to work, it must be implemented.
+   * More work needed to find the caller of match.call
+   */
+  @Primitive("match.call")
+  public static SEXP matchCall (SEXP definition, SEXP call, boolean expandDots){
+    return(null);
   }
 }

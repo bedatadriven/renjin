@@ -102,4 +102,5 @@ public class SummaryTest extends EvalTestCase {
   public void testCov(){
     assertThat(eval(".Internal(cov(c(1,2,3,4,5), c(5,4,3,2,1), 1, FALSE))"), equalTo(c(-2.5)));
   }
+  
 }

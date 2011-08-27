@@ -407,7 +407,7 @@ public class BaseFrame implements Frame {
     f("match", Match.class, 0, 11, 4);
     f("pmatch", Match.class, 0, 11, 4);
     f("charmatch", /*charmatch*/ null, 0, 11, 3);
-    f("match.call", /*matchcall*/ null, 0, 11, 3);
+    f("match.call", Match.class, 0, 11, 3);
     f("complete.cases", /*compcases*/ null, 0, 11, 1);
 
     f("attach", Types.class, 0, 111, 3);

@@ -74,5 +74,14 @@ public class MathTest extends EvalTestCase {
       assertThat( eval("log2(8)"), equalTo( c(3) ) );
       assertThat( eval("log2(-4)"), equalTo( c(Double.NaN) ) );
   }
-
+ 
+  @Test
+  public void transpose() {
+    try{
+      topLevelContext.init();
+    }catch(Exception e){
+      
+    }
+    assertThat( eval("t(matrix(c(1,2,3,4,5,6),3,2))"), equalTo(c(1,3,5,2,4,6) ));
+  }
 }

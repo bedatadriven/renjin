@@ -23,6 +23,11 @@ package r.base;
 
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
+import r.jvmi.annotations.Primitive;
+import r.lang.IntVector;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
 
 /**
  * Math functions not found in java.Math or apache commons math
@@ -48,6 +53,29 @@ public class MathExt {
 
   public static double log2(double d) {
       return MathUtils.log(2, d);
+  }
+  
+  /*
+   * Attention:
+   * Colnames and rownames do not copied into the new vector.
+   * This must be corrected. Empty or Null vector control is not implemented.
+   */
+  @Primitive("t.default")
+  public static Vector transpose (Vector x){
+    Vector.Builder builder = x.newBuilder(x.length());
+    Vector result = builder.build();
+    int nrows = (int)x.getAttribute(Symbol.DIM).getElementAsSEXP(0).asReal();
+    int ncols = (int)x.getAttribute(Symbol.DIM).getElementAsSEXP(1).asReal();
+    for (int i=0;i<nrows;i++){
+      for (int j=0;j<ncols;j++){
+        builder.setFrom(j * nrows + i, x, i * ncols + j );
+      }
+    }
+    builder.setAttribute(Symbol.ROW_NAMES, x.getAttribute(Symbol.DIMNAMES));
+    builder.setAttribute(Symbol.DIMNAMES, x.getAttribute(Symbol.ROW_NAMES));
+    builder.setAttribute(Symbol.DIM, new IntVector(ncols, nrows));
+    result = builder.build();
+    return(result);
   }
 
 }

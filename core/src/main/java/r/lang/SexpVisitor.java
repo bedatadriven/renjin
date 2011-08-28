@@ -98,6 +98,10 @@ public class SexpVisitor<R> {
   public void visit(Closure closure) {
     unhandled(closure);
   }
+  
+  public void visit(RawVector closure){
+    unhandled(closure);
+  }
 
   public R getResult() {
     throw new UnsupportedOperationException();

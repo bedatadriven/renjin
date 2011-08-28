@@ -75,6 +75,10 @@ public class MathTest extends EvalTestCase {
       assertThat( eval("log2(-4)"), equalTo( c(Double.NaN) ) );
   }
  
+  /*
+   * It may need to be corrected. I put a topLevelContext.init() to
+   * be able to call r-lang function. I am not sure whether it is required.
+   */
   @Test
   public void transpose() {
     try{

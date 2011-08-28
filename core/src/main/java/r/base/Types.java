@@ -187,6 +187,20 @@ public class Types {
   public static boolean isInfinite(double value) {
     return Double.isInfinite(value);
   }
+  
+  @Primitive("as.raw")
+  public static SEXP asRaw(int value){
+    if(value<0 || value>255){
+      throw new RuntimeException("out-of-range values treated as 0 in coercion to raw");
+    }
+    Raw raw = new Raw(value);
+    return(new RawVector(raw));
+  }
+  
+  @Primitive("is.raw")
+  public static SEXP isRaw(Vector v){
+    return(new LogicalVector(v.getVectorType() == RawVector.VECTOR_TYPE));
+  }
 
   @Generic
   public static StringVector asCharacter(Vector source) {

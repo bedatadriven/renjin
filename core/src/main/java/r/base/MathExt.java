@@ -18,13 +18,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package r.base;
 
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
 import r.jvmi.annotations.Primitive;
 import r.lang.IntVector;
+import r.lang.ListVector;
 import r.lang.StringVector;
 import r.lang.Symbol;
 import r.lang.Vector;
@@ -34,7 +34,8 @@ import r.lang.Vector;
  */
 public class MathExt {
 
-  private MathExt() {}
+  private MathExt() {
+  }
 
   public static double gamma(double x) {
     return Math.exp(Gamma.logGamma(x));
@@ -42,40 +43,38 @@ public class MathExt {
 
   public static double log(double x, double base) {
 
-      //Method cannot be called directly as R and Apache Commons Math argument order
-      // are reversed
-      return MathUtils.log(base, x);
+    //Method cannot be called directly as R and Apache Commons Math argument order
+    // are reversed
+    return MathUtils.log(base, x);
   }
 
   public static double log(double d) {
-      return Math.log(d);
+    return Math.log(d);
   }
 
   public static double log2(double d) {
-      return MathUtils.log(2, d);
-  }
-  
-  /*
-   * Attention:
-   * Colnames and rownames do not copied into the new vector.
-   * This must be corrected. Empty or Null vector control is not implemented.
-   */
-  @Primitive("t.default")
-  public static Vector transpose (Vector x){
-    Vector.Builder builder = x.newBuilder(x.length());
-    Vector result = builder.build();
-    int nrows = (int)x.getAttribute(Symbol.DIM).getElementAsSEXP(0).asReal();
-    int ncols = (int)x.getAttribute(Symbol.DIM).getElementAsSEXP(1).asReal();
-    for (int i=0;i<nrows;i++){
-      for (int j=0;j<ncols;j++){
-        builder.setFrom(j * nrows + i, x, i * ncols + j );
-      }
-    }
-    builder.setAttribute(Symbol.ROW_NAMES, x.getAttribute(Symbol.DIMNAMES));
-    builder.setAttribute(Symbol.DIMNAMES, x.getAttribute(Symbol.ROW_NAMES));
-    builder.setAttribute(Symbol.DIM, new IntVector(ncols, nrows));
-    result = builder.build();
-    return(result);
+    return MathUtils.log(2, d);
   }
 
+  @Primitive("t.default")
+  public static Vector transpose(Vector x) {
+    Vector.Builder builder = x.newBuilder(x.length());
+    Vector result = builder.build();
+    IntVector dimensions = (IntVector) x.getAttribute(Symbol.DIM);
+    int nrows = dimensions.getElementAsInt(0);
+    int ncols = dimensions.getElementAsInt(1);
+    for (int i = 0; i < nrows; i++) {
+      for (int j = 0; j < ncols; j++) {
+        builder.setFrom(j * nrows + i, x, i * ncols + j);
+      }
+    }
+    if (!(x.getAttribute(Symbol.DIMNAMES) instanceof r.lang.Null)) {
+      ListVector dimNames = (ListVector) x.getAttribute(Symbol.DIMNAMES);
+      ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
+      builder.setAttribute(Symbol.DIMNAMES, newDimNames);
+    }
+    builder.setAttribute(Symbol.DIM, new IntVector(ncols, nrows));
+    result = builder.build();
+    return (result);
+  }
 }

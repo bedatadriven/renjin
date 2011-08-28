@@ -646,7 +646,7 @@ public class BaseFrame implements Frame {
     f("as.double", Types.class, "asDouble",  2, 1, -1);
     f("as.complex", /*ascharacter*/ null, 3, 1, -1);
     f("as.logical", Types.class, "asLogical", 4, 1, -1);
-    f("as.raw", /*ascharacter*/ null, 5, 1, 1);
+    f("as.raw", Types.class, 5, 1, 1);
     f("as.vector", Types.class, 0, 11, 2);
     f("paste", Text.class, 0, 11, 3);
     f("file.path", Text.class, 0, 11, 2);
@@ -708,7 +708,7 @@ public class BaseFrame implements Frame {
     f("is.list", Types.class,"isList", 0/* VECSXP */, 1, 1);
     f("is.pairlist", Types.class, "isPairList", 0 /*LISTSXP */, 1, 1);
     f("is.expression", Types.class, "isExpression",  0 /* EXPRSXP*/, 1, 1);
-    f("is.raw", /*is*/ null,0 /* RAWSXP */, 1, 1);
+    f("is.raw", Types.class ,0 /* RAWSXP */, 1, 1);
 
     f("is.object", Types.class, 50, 1, 1);
 

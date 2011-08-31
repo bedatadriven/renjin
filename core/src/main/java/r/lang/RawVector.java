@@ -1,21 +1,15 @@
-
 package r.lang;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.UnmodifiableIterator;
 import java.util.Arrays;
 import java.util.Iterator;
-import r.parser.ParseUtil;
-
 
 public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
   public static final String TYPE_NAME = "raw";
   public static final Vector.Type VECTOR_TYPE = new RawType();
-  
-
   public static int NA = IntVector.NA;
-
   private Raw[] values;
 
   public RawVector(Raw... values) {
@@ -29,10 +23,9 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  
   @Override
   public String getTypeName() {
-    return("raw");
+    return ("raw");
   }
 
   @Override
@@ -42,22 +35,22 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
   @Override
   public double getElementAsDouble(int index) {
-    return((double)this.values[index].getValue());
+    return ((double) this.values[index].getValue());
   }
 
   @Override
   public int getElementAsInt(int index) {
-    return(this.values[index].getValue());
+    return (this.values[index].getValue());
   }
 
   @Override
   public String getElementAsString(int index) {
-    return(String.valueOf(getElementAsInt(index)));
+    return (this.values[index].toString());
   }
 
   @Override
   public int getElementAsRawLogical(int index) {
-    return(Logical.valueOf(this.values[index].getValue()).getInternalValue());
+    return (Logical.valueOf(this.values[index].getValue()).getInternalValue());
   }
 
   @Override
@@ -67,22 +60,22 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
   @Override
   public Type getVectorType() {
-    return(VECTOR_TYPE);
+    return (VECTOR_TYPE);
   }
 
   @Override
   public Builder newCopyBuilder() {
-    return(new RawVector.Builder(this));
+    return (new RawVector.Builder(this));
   }
 
   @Override
   public boolean isElementNA(int index) {
-    return(values[index].getValue() == RawVector.NA);
+    return (values[index].getValue() == RawVector.NA);
   }
 
   @Override
   public Object getElementAsObject(int index) {
-    return(String.valueOf(values[index].getValue()));
+    return (String.valueOf(values[index].getValue()));
   }
 
   @Override
@@ -92,23 +85,24 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
   @Override
   public int compare(int index1, int index2) {
-    return( values[index1].getValue() - values[index2].getValue());
+    return (values[index1].getValue() - values[index2].getValue());
   }
 
   @Override
   public Iterator<Raw> iterator() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return new ValueIterator();
   }
-  
+
   /*
    * Builder private class
    */
   public static class Builder extends AbstractAtomicBuilder<Integer> {
+
     private Raw[] values;
 
     public Builder(int initialSize) {
       values = new Raw[initialSize];
-      for (int i=0;i<initialSize;i++){
+      for (int i = 0; i < initialSize; i++) {
         values[i] = new Raw();
       }
     }
@@ -127,9 +121,9 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
      * as well as using the Java core library
      */
     public Builder set(int index, Raw raw) {
-      if(values.length <= index) {
-        Raw copy[] = Arrays.copyOf(values, index+1);
-        Arrays.fill(copy, values.length, copy.length, NA);
+      if (values.length <= index) {
+        Raw copy[] = Arrays.copyOf(values, index + 1);
+        Arrays.fill(copy, values.length, copy.length, new Raw(0));
         values = copy;
       }
       values[index].setValue(raw.getValue());
@@ -141,7 +135,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     }
 
     @Override
-    public Builder setNA(int index){
+    public Builder setNA(int index) {
       return set(index, new Raw(RawVector.NA));
     }
 
@@ -160,11 +154,12 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
       return new RawVector(values, buildAttributes());
     }
   }
-  
+
   /*
    * RawType private class
    */
   private static class RawType extends Vector.Type {
+
     private RawType() {
       super(Order.RAW);
     }
@@ -176,7 +171,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {
-      return(new RawVector(new Raw(vector.getElementAsInt(index))));
+      return (new RawVector(new Raw(vector.getElementAsInt(index))));
     }
 
     @Override
@@ -184,17 +179,31 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
       return vector1.getElementAsInt(index1) - vector2.getElementAsInt(index2);
     }
   }
-  
-  
-    public String toString() {
+
+  @Override
+  public String toString() {
     if (values.length == 1) {
-      return (values[0].toString());
+      return values[0].toString();
     } else {
-      StringBuilder sb = new StringBuilder("c(");
-      //Joiner.on(", ").appendTo(sb, Iterables.transform(this, new ParseUtil.RealPrinter()));
+      StringBuilder sb = new StringBuilder();
+      sb.append("c(");
       Joiner.on(", ").appendTo(sb, this);
       return sb.append(")").toString();
     }
   }
-  
+
+  private class ValueIterator extends UnmodifiableIterator<Raw> {
+
+    private int i = 0;
+
+    @Override
+    public boolean hasNext() {
+      return i < values.length;
+    }
+
+    @Override
+    public Raw next() {
+      return values[i++];
+    }
+  }
 }

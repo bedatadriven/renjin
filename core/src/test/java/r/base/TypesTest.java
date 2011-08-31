@@ -292,7 +292,9 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void isRawAndAsRaw(){
-    assertThat( eval("is.raw(as.raw(123))"), equalTo(c(Logical.TRUE)));
+    Raw r = new Raw(123);
+    assertThat( eval("is.raw(as.raw(c(123,124)))"), equalTo(c(Logical.TRUE)));
+    //assertThat( eval("as.raw(78:80)"), equalTo(c("c(4e, 4f, 50)")));
   }
 
 }

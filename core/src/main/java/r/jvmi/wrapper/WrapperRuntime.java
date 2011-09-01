@@ -10,6 +10,7 @@ import r.lang.IntVector;
 import r.lang.Logical;
 import r.lang.LogicalVector;
 import r.lang.Null;
+import r.lang.PairList;
 import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.StringVector;
@@ -37,8 +38,35 @@ public class WrapperRuntime {
     Vector vector = checkedSubClassAndAssertScalar(exp);
     return vector.getElementAsInt(0);
   }
+  
+  /**
+   * 
+   * @param args
+   * @return the next argument in the argument pair list.
+   * @throws ArgumentException if there is no next argument
+   */
+  public static PairList.Node nextArgument(PairList args) {
+    if(args == Null.INSTANCE) {
+      throw new ArgumentException();
+    }
+    return ((PairList.Node)args).getNextNode();
+  }
+  
+  /**
+   * 
+   * @param args
+   * @return the value of the argument 
+   * @throws ArgumentException if there is no current argument
+   */
+  public static SEXP argumentValue(PairList args) {
+    if(!(args instanceof PairList.Node)) {
+      throw new ArgumentException();
+    }
+    return ((PairList.Node)args).getValue();
+  }
 
   private Integer convertToInteger(SEXP exp) {
+    
     if(exp == Null.INSTANCE) {
       return null;
     }

@@ -96,7 +96,7 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
     }
   }
 
-  protected abstract static class AbstractAtomicBuilder<E> extends AbstractBuilder<Vector, E> {
+  protected abstract static class AbstractAtomicBuilder extends AbstractBuilder<Vector> {
 
     @Override
     public Builder set(int destinationIndex, SEXP exp) {

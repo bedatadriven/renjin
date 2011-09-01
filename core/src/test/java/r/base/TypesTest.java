@@ -144,6 +144,13 @@ public strictfp class TypesTest extends EvalTestCase {
   public void naPreservesNames() {
     assertThat( eval(" names(is.na(c(x=1,y=2))) "), equalTo( c("x", "y")));
   }
+  
+//  @Test
+//  public void unaryOpPreservesAllAttributes() {
+//    eval("x <- 1:9");
+//    eval("attr(x,'foo') <- 'bar' ");
+//    assertThat( eval("attr(x, 'foo')"), equalTo()
+//  }
 
 
   @Test

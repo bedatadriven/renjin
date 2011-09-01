@@ -329,7 +329,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     return Double.isNaN(values[i]);
   }
 
-  public static class Builder extends AbstractAtomicBuilder<Double> {
+  public static class Builder extends AbstractAtomicBuilder {
     private double values[];
 
     public Builder(int initialSize) {

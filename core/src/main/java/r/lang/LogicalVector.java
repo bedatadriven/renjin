@@ -272,8 +272,8 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     return IntVector.isNA(values[index]);
   }
 
-  public static class Builder<T extends AbstractBuilder, E>
-      extends AbstractAtomicBuilder<E> {
+  public static class Builder
+      extends AbstractAtomicBuilder {
     private int values[];
 
     public Builder(int initialSize) {

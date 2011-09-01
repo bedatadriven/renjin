@@ -20,6 +20,7 @@ import r.base.BaseFrame.Entry;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.wrapper.generator.GeneratorStrategy;
 import r.jvmi.wrapper.generator.PassThrough;
+import r.jvmi.wrapper.generator.UnaryRecyclingStrategy;
 import r.jvmi.wrapper.generator.SingleOverloadWithoutRecycling;
 
 import com.google.common.base.Charsets;
@@ -90,19 +91,25 @@ public class WrapperGenerator {
     List<GeneratorStrategy> strategies = Lists.newArrayList();
     strategies.add(new PassThrough());
     strategies.add(new SingleOverloadWithoutRecycling());
+    strategies.add(new UnaryRecyclingStrategy());
   
     List<Entry> entries = new BaseFrame().getEntries();
     for(Entry entry : entries) {
       if(singleFunction == null || singleFunction.equals(entry.name)) {
         List<JvmMethod> overloads = JvmMethod.findOverloads(entry.functionClass, entry.name, entry.methodName);
         
-        GeneratorStrategy strategy = findStrategy(strategies, overloads);
-        if(strategy != null) {
-          System.out.println(entry.name + ": using " + strategy.getClass().getSimpleName() + " strategy" );
-  
-          generate(sourcesDir, entry, overloads, strategy);
+        if(overloads.isEmpty()) {
+          System.out.println(entry.name + ": not implemented.");
         } else {
-          System.out.println(entry.name + ": no generation strategy available");
+          
+          GeneratorStrategy strategy = findStrategy(strategies, overloads);
+          if(strategy != null) {
+            System.out.println(entry.name + ": using " + strategy.getClass().getSimpleName() + " strategy" );
+    
+            generate(sourcesDir, entry, overloads, strategy);
+          } else {
+            System.out.println(entry.name + ": no generation strategy available");
+          }
         }
       }
     }

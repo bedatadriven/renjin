@@ -38,7 +38,13 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
   protected AbstractVector() {
   }
 
-  abstract static class AbstractBuilder<S extends SEXP, E> implements Builder<S> {
+  @Override
+  public boolean isElementTrue(int index) {
+    return getElementAsRawLogical(index) == 1;
+  }
+
+
+  abstract static class AbstractBuilder<S extends SEXP> implements Builder<S> {
     private final Map<Symbol,SEXP> attributes = Maps.newHashMap();
 
     @Override
@@ -61,6 +67,27 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
       }
       return this;
     }
+    
+    /**
+     * Copies "special" attributes: 
+     * @param exp
+     * @return
+     */
+    @Override
+    public Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
+      for(PairList.Node node : exp.getAttributes().nodes()) {
+        if(node.getTag().equals(Symbol.NAMES) ||
+           node.getTag().equals(Symbol.DIM) ||
+           node.getTag().equals(Symbol.DIMNAMES)) {
+
+          attributes.put(node.getTag(), node.getValue());
+          
+        }
+      }
+      return this;
+    }
+    
+    
 
     @Override
     public Builder addNA() {

@@ -255,7 +255,7 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
 
   }
 
-  public static class Builder extends AbstractAtomicBuilder<String> {
+  public static class Builder extends AbstractAtomicBuilder {
     private ArrayList<String> values;
     private boolean haveNonEmpty = false;
 

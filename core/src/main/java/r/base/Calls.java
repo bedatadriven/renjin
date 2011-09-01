@@ -55,7 +55,7 @@ public class Calls {
   }
 
 
-  public static EvalResult DispatchGroup(String group, FunctionCall call, PrimitiveFunction op, PairList args, Context context, Environment rho) {
+  public static EvalResult DispatchGroup(String group, FunctionCall call, String opName, PairList args, Context context, Environment rho) {
     int i, j, nargs;
 
     if(call.getFunction() instanceof Symbol && ((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
@@ -122,7 +122,7 @@ public class Calls {
 //    if (!isObject(CAR(args)) && !isObject(CADR(args)))
 //      return 0;
 
-    String generic = PRIMNAME(op);
+    String generic = opName;
 
 //    lclass = IS_S4_OBJECT(CAR(args)) ? R_data_class2(CAR(args)) : getAttrib(
 //        CAR(args), R_ClassSymbol);

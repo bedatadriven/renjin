@@ -306,7 +306,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
 
 
-  public static class Builder extends AbstractVector.AbstractBuilder<SEXP, SEXP> {
+  public static class Builder extends AbstractVector.AbstractBuilder<SEXP> {
     private boolean haveNames = false;
     private List<SEXP> values = Lists.newArrayList();
     private List<String> names = Lists.newArrayList();

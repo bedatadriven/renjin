@@ -241,7 +241,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     }
   }
 
-  public static class Builder extends AbstractAtomicBuilder<Integer> {
+  public static class Builder extends AbstractAtomicBuilder {
     private int values[];
 
     public Builder(int initialSize) {

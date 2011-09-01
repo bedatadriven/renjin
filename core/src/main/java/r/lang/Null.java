@@ -183,6 +183,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
+  public boolean isElementTrue(int index) {
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
+  }
+  
+  @Override
   public Complex getElementAsComplex(int index) {
     throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
@@ -287,6 +292,14 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
     @Override
     public Vector.Builder copyAttributesFrom(SEXP exp) {
+      if(exp.getAttributes() != Null.INSTANCE) {
+        throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+      }
+      return this;
+    }
+    
+    @Override
+    public Vector.Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
       if(exp.getAttributes() != Null.INSTANCE) {
         throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
       }

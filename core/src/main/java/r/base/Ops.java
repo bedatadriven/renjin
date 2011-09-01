@@ -22,6 +22,9 @@
 package r.base;
 
 import r.jvmi.annotations.AllowNA;
+import r.jvmi.annotations.GroupGeneric;
+import r.jvmi.annotations.PreserveAttributeStyle;
+import r.jvmi.annotations.PreserveAttributes;
 import r.jvmi.annotations.Primitive;
 import r.lang.DoubleVector;
 import r.lang.Logical;
@@ -29,36 +32,43 @@ import r.lang.Logical;
 /**
  * Default implementations of the Ops group of functions.
  */
+@GroupGeneric
 public class Ops  {
 
   private Ops() {}
 
   @Primitive("+")
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double plus(double x, double y) {
     return x + y;
   }
 
   @Primitive("+")
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double plus(double x) {
     return x;
   }
 
   @Primitive("-")
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double minus(double x, double y) {
     return x - y;
   }
 
   @Primitive("-")
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double minus(double x) {
     return -x;
   }
 
   @Primitive("/")
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double divide(double x, double y) {
     return x / y;
   }
 
   @Primitive("*")
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double multiply(double x, double y) {
     return x * y;
   }
@@ -124,6 +134,7 @@ public class Ops  {
   }
 
   @Primitive("^")
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double power(double x, double y) {
     return Math.pow(x, y);
   }

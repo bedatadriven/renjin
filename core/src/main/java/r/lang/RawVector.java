@@ -96,7 +96,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
   /*
    * Builder private class
    */
-  public static class Builder extends AbstractAtomicBuilder<Integer> {
+  public static class Builder extends AbstractAtomicBuilder {
 
     private Raw[] values;
 

@@ -21,26 +21,9 @@
 
 package r.base;
 
-import static r.base.PPkind.PP_ASSIGN;
-import static r.base.PPkind.PP_BINARY;
-import static r.base.PPkind.PP_BINARY2;
-import static r.base.PPkind.PP_DOLLAR;
-import static r.base.PPkind.PP_FOREIGN;
-import static r.base.PPkind.PP_FUNCALL;
-import static r.base.PPkind.PP_FUNCTION;
-import static r.base.PPkind.PP_SUBASS;
-import static r.base.PPkind.PP_SUBSET;
-import static r.base.PPprec.PREC_AND;
-import static r.base.PPprec.PREC_COLON;
-import static r.base.PPprec.PREC_DOLLAR;
-import static r.base.PPprec.PREC_EQ;
-import static r.base.PPprec.PREC_FN;
-import static r.base.PPprec.PREC_LEFT;
-import static r.base.PPprec.PREC_OR;
-import static r.base.PPprec.PREC_PERCENT;
-import static r.base.PPprec.PREC_SUBSET;
-import static r.base.PPprec.PREC_TILDE;
-
+import static r.base.PPkind.*;
+import static r.base.PPprec.*;
+import static r.util.CDefines.RelOpType.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -160,7 +143,7 @@ public class BaseFrame implements Frame {
     
     try {
       primitive = (PrimitiveFunction) Class.forName(WrapperGenerator.toFullJavaName(entry.name)).newInstance();
-     // java.lang.System.out.println("Loaded generated wrapper for " + entry.name);
+      //java.lang.System.out.println("Loaded generated wrapper for " + entry.name);
     } catch(Exception e) {
       // compile-time generate class not yet availble, use reflection for the time being.
       primitive = new RuntimeBuiltinFunction(entry);
@@ -307,16 +290,16 @@ public class BaseFrame implements Frame {
 
 /* Binary Operators */
 /* these are group generic and so need to eval args */
-//    f("+",  Ops.class,"plus", PLUSOP, 1, 2, PP_BINARY, PREC_SUM, 0);
-//    f("-", Ops.class, "minus", MINUSOP, 1, 2, PP_BINARY, PREC_SUM, 0);
-//    f("*", Ops.class, "multiply", TIMESOP, 1, 2, PP_BINARY, PREC_PROD, 0);
-//    f("/", Ops.class, "divide", DIVOP, 1, 2, PP_BINARY2, PREC_PROD, 0);
-//    f("^", Ops.class, "pow", POWOP, 1, 2, PP_BINARY2, PREC_POWER, 1);
-    add(new OpsFunction("+"));
-    add(new OpsFunction("-"));
-    add(new OpsFunction("*"));
-    add(new OpsFunction("/"));
-    add(new OpsFunction("^"));
+    f("+",  Ops.class, 0, /* PLUSOP, */ 1, 2, PP_BINARY, PREC_SUM, 0);
+    f("-", Ops.class,  0, /* MINUSOP, */ 1, 2, PP_BINARY, PREC_SUM, 0);
+    f("*", Ops.class,  0,/*TIMESOP ,*/ 1, 2, PP_BINARY, PREC_PROD, 0);
+    f("/", Ops.class,  0,/*DIVOP,*/ 1, 2, PP_BINARY2, PREC_PROD, 0);
+    f("^", Ops.class,  0, /*POWOP,*/ 1, 2, PP_BINARY2, PREC_POWER, 1);
+//    add(new OpsFunction("+"));
+//    add(new OpsFunction("-"));
+//    add(new OpsFunction("*"));
+//    add(new OpsFunction("/"));
+//    add(new OpsFunction("^"));
 
     f("%%", Ops.class, 0 /* MODOP */, 1, 2, PP_BINARY2, PREC_PERCENT, 0);
     f("%/%", Ops.class, 0 /* IDIVOP */, 1, 2, PP_BINARY2, PREC_PERCENT, 0);
@@ -326,24 +309,24 @@ public class BaseFrame implements Frame {
 
 
 /* these are group generic and so need to eval args */
-//    f("==", Ops.class, EQOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
-//    f("!=", Ops.class, NEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
-//    f("<", Ops.class, LTOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
-//    f("<=", Ops.class, LEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
-//    f(">=", Ops.class, GEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
-//    f(">", Ops.class, GTOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
-//    f("&", Ops.class,  1, 1, 2, PP_BINARY, PREC_AND, 0);
-//    f("|", Ops.class, 2, 1, 2, PP_BINARY, PREC_OR, 0);
-//    f("!", Ops.class, 3, 1, 1, PP_UNARY, PREC_NOT, 0);
-    add(new OpsFunction("=="));
-    add(new OpsFunction("!="));
-    add(new OpsFunction("<"));
-    add(new OpsFunction("<="));
-    add(new OpsFunction(">"));
-    add(new OpsFunction(">="));
-    add(new OpsFunction("&"));
-    add(new OpsFunction("|"));
-    add(new OpsFunction("!"));
+    f("==", Ops.class, EQOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
+    f("!=", Ops.class, NEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
+    f("<", Ops.class, LTOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
+    f("<=", Ops.class, LEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
+    f(">=", Ops.class, GEOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
+    f(">", Ops.class, GTOP, 1, 2, PP_BINARY, PREC_COMPARE, 0);
+    f("&", Ops.class,  1, 1, 2, PP_BINARY, PREC_AND, 0);
+    f("|", Ops.class, 2, 1, 2, PP_BINARY, PREC_OR, 0);
+    f("!", Ops.class, 3, 1, 1, PP_UNARY, PREC_NOT, 0);
+//    add(new OpsFunction("=="));
+//    add(new OpsFunction("!="));
+//    add(new OpsFunction("<"));
+//    add(new OpsFunction("<="));
+//    add(new OpsFunction(">"));
+//    add(new OpsFunction(">="));
+//    add(new OpsFunction("&"));
+//    add(new OpsFunction("|"));
+//    add(new OpsFunction("!"));
 
     f("&&", Comparison.class, "and", 1, 0, 2, PP_BINARY, PREC_AND, 0);
     f("||", Comparison.class, "or", 2, 0, 2, PP_BINARY, PREC_OR, 0);

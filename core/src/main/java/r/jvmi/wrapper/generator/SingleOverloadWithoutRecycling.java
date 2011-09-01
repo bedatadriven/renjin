@@ -43,8 +43,8 @@ public class SingleOverloadWithoutRecycling extends GeneratorStrategy {
     JvmMethod method = overloads.get(0);
 
     s.writeComment("process arguments");
-    
-    ArgumentList argumentList = new ArgumentList();
+            
+    ArgumentList argumentList = new ArgumentList(); 
     
     int argIndex = 0;
     for(JvmMethod.Argument argument : method.getAllArguments()) {
@@ -53,10 +53,10 @@ public class SingleOverloadWithoutRecycling extends GeneratorStrategy {
       } else {
         s.writeBlankLine();
         if(argIndex!=0) {
-          s.writeStatement("args = ((PairList.Node)args).getNextNode();");
+          s.writeStatement("args = nextArgument(args);");
         }
         String tempLocal = "arg" + argIndex;
-        s.writeStatementF("%s %s;", argument.getClazz().getName(), tempLocal);
+        s.writeTempLocalDeclaration(argument.getClazz(), tempLocal);
         s.writeStatement(argConversionStatement(argument, tempLocal));
         argumentList.add(tempLocal);
         argIndex++;

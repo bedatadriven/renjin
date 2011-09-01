@@ -159,9 +159,39 @@ public class JvmMethod implements Comparable<JvmMethod> {
   }
 
   public boolean isGeneric() {
-    return method.getAnnotation(Generic.class) != null;
+    return method.getAnnotation(Generic.class) != null ||
+        method.getDeclaringClass().getAnnotation(GroupGeneric.class) != null;
+  }
+  
+  public boolean isGroupGeneric() {
+    return method.getDeclaringClass().getAnnotation(GroupGeneric.class) != null;
+  }
+  
+  public String getGenericGroup(String name) {
+    return method.getDeclaringClass().getSimpleName();
   }
 
+  /**
+   * Determines whether all attributes should be preserved from the arguments in the return type. 
+   * <p>For example:
+   * <ul>
+   * <li>class(x) == class(-x)</li>
+   * <li>attr(x,'foo') == attr(-x, 'foo')</li>
+   * 
+   * 
+   * 
+   * @return
+   */
+  public boolean shouldPreserveAllAttributes() {
+    
+    return getReturnType().equals(getFormals().get(0).getClass());
+  }
+  
+  public PreserveAttributeStyle getPreserveAttributesStyle() {
+    PreserveAttributes annotation = method.getAnnotation(PreserveAttributes.class);
+    return annotation == null ? PreserveAttributeStyle.SPECIAL : annotation.value();
+  }
+  
   /**
    * @return the name to use for generic dispatch
    */
@@ -279,7 +309,12 @@ public class JvmMethod implements Comparable<JvmMethod> {
   }
 
   public void appendFriendlySignatureTo(StringBuilder sb) {
-      sb.append(method.getName()).append("(");
+    appendFriendlySignatureTo(method.getName(), sb);
+  }
+    
+  
+  public void appendFriendlySignatureTo(String name, StringBuilder sb) {
+      sb.append(name).append("(");
       boolean needsComma=false;
       for(Argument argument : arguments) {
         if(!argument.isContextual()) {

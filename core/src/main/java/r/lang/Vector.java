@@ -23,6 +23,8 @@ package r.lang;
 
 import org.apache.commons.math.complex.Complex;
 
+import r.lang.Vector.Builder;
+
 /**
  * Provides a common interface to {@code ListExp}, all {@code AtomicExp}s, and
  * {@code PairList}s
@@ -64,6 +66,12 @@ public interface Vector extends SEXP {
    */
   int getElementAsRawLogical(int index);
 
+  /**
+   * @param index zero-based index
+   * @return true if the element at {@code index} is true.
+   */
+  boolean isElementTrue(int index);
+  
   /**
    *
    * @param index zero-based index
@@ -201,6 +209,8 @@ public interface Vector extends SEXP {
     Vector build();
 
     Builder copyAttributesFrom(SEXP exp);
+
+    Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy);
   }
 
   static class Order {

@@ -31,6 +31,10 @@ public class WrapperSourceWriter {
     println("import " + className + ";");
   }
   
+  public void writeImport(Class clazz) {
+    writeImport(clazz.getName());
+  }
+  
   public void writeStaticImport(String spec) {
     println("import static " + spec + ";");
   }
@@ -55,12 +59,19 @@ public class WrapperSourceWriter {
   }
   
   public void writeStatement(String statement) {
+    if(!statement.endsWith(";")) {
+      statement += ";";
+    }
     println(statement);
   }
   
 
   public void writeStatementF(String statement, Object... args) {
     writeStatement(String.format(statement, args));
+  }
+  
+  public void writeTempLocalDeclaration(Class clazz, String name) {
+    writeStatementF("%s %s;", clazz.getName(), name);
   }
   
   public void writeCloseBlock() {

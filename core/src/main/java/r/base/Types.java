@@ -20,17 +20,46 @@
  */
 package r.base;
 
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import r.jvmi.annotations.*;
-import r.lang.*;
-import r.lang.exception.EvalException;
+import static r.lang.CollectionUtils.modePredicate;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static r.lang.CollectionUtils.modePredicate;
+import r.jvmi.annotations.ArgumentList;
+import r.jvmi.annotations.Current;
+import r.jvmi.annotations.Generic;
+import r.jvmi.annotations.InvokeAsCharacter;
+import r.jvmi.annotations.Primitive;
+import r.jvmi.annotations.Visible;
+import r.lang.AtomicVector;
+import r.lang.Attributes;
+import r.lang.Closure;
+import r.lang.ComplexVector;
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.EvalResult;
+import r.lang.ExpressionVector;
+import r.lang.Function;
+import r.lang.FunctionCall;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.LogicalVector;
+import r.lang.NamedValue;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.Raw;
+import r.lang.RawVector;
+import r.lang.Recursive;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
+import r.lang.exception.EvalException;
+
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 /**
  * Primitive type inspection and coercion functions

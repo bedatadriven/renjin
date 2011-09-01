@@ -23,6 +23,8 @@ package r.jvmi.binding;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+
+import r.base.Calls;
 import r.base.ClosureDispatcher;
 import r.base.dispatch.DispatchChain;
 import r.jvmi.binding.JvmMethod.Argument;
@@ -89,7 +91,7 @@ public class RuntimeInvoker {
 
   }
 
-  public EvalResult invoke(Context context, Environment rho, FunctionCall call, List<JvmMethod> overloads) {
+  public EvalResult invoke(Context context, Environment rho, String name, FunctionCall call, List<JvmMethod> overloads) {
 
     // first check for a method which can handle the call in its entirety
     if(overloads.size() == 1 && overloads.get(0).acceptsCall()) {
@@ -112,7 +114,7 @@ public class RuntimeInvoker {
 
     // if generic, try to dispatch it to a closure in scope
     // e.g. a vector with class 'flarb' would be dispatched to 'dim.flarb' if it exists.
-    EvalResult result = tryDispatchGeneric(context, rho, call, overloads, provided);
+    EvalResult result = tryDispatchGeneric(context, rho, name, call, overloads, provided);
     if(result != null) {
       return result;
     }
@@ -126,12 +128,24 @@ public class RuntimeInvoker {
     return matchAndInvoke(context, rho, overloads, provided);
   }
 
-  private EvalResult tryDispatchGeneric(Context context, Environment rho, FunctionCall call,
+  private EvalResult tryDispatchGeneric(Context context, Environment rho, String name, FunctionCall call,
                                         List<JvmMethod> overloads, List<ProvidedArgument> provided) {
     // check first to see if this method should be executed generically.
     if(!isGeneric(overloads)) {
       return null;
     }
+    
+    if(overloads.get(0).isGroupGeneric()) {
+      
+      PairList evaluated = Calls.evaluateList(context, rho, call.getArguments());
+
+      EvalResult dispatched = Calls.DispatchGroup("Ops",call, name, evaluated, context, rho);
+      if(dispatched != null) {
+        return dispatched;
+      }
+
+    }
+    
     if(call.getFunction() instanceof Symbol) {
       if(((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
         return null;
@@ -173,7 +187,7 @@ public class RuntimeInvoker {
       }
     }
     if(isGeneric && isNotGeneric) {
-      throw new EvalException("all overloads must be marked with @Generic or none: " + overloads.toString());
+      throw new EvalException("all overloads must be marked with @Generic / @GroupGeneric or none: " + overloads.toString());
     }
 
     return isGeneric;
@@ -364,7 +378,7 @@ public class RuntimeInvoker {
     return true;
   }
 
-  private String formatNoMatchingOverloadMessage(List<ProvidedArgument> provided, List<JvmMethod> methods) {
+  private static String formatNoMatchingOverloadMessage(List<ProvidedArgument> provided, List<JvmMethod> methods) {
     StringBuilder sb = new StringBuilder();
     sb.append("Cannot execute the function with the arguments supplied.\n");
     appendProvidedArguments(sb, provided);
@@ -376,14 +390,14 @@ public class RuntimeInvoker {
     return sb.toString();
   }
 
-  private void appendProvidedArguments(StringBuilder sb, List<ProvidedArgument> provided) {
+  private static void appendProvidedArguments(StringBuilder sb, List<ProvidedArgument> provided) {
     sb.append("Arguments: \n\t");
     for(ProvidedArgument arg : provided) {
       sb.append(arg.getTypeName()).append(" ");
     }
   }
 
-  private void appendOverloadsTo(List<JvmMethod> methods, StringBuilder sb) {
+  private static void appendOverloadsTo(List<JvmMethod> methods, StringBuilder sb) {
     for(JvmMethod method : methods) {
       sb.append("\t");
       method.appendFriendlySignatureTo(sb);

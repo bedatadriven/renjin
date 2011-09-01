@@ -43,6 +43,12 @@ public class Symbol extends AbstractSEXP {
   public static final Symbol DIMNAMES = new Symbol("dimnames");
   public static final Symbol NAME = new Symbol("name");
   public static final Symbol DOT_ENVIRONMENT = new Symbol(".Environment");
+  
+  /**
+   * Identifies the {@code row.names} attribute, which contains an {@code AtomicVector} with the
+   * names of the rows of a {@code data.frame} object. Note: This attribute is different than the 
+   * names of matrix rows: those are stored as an element in the {@code dimnames} attribute.
+   */
   public static final Symbol ROW_NAMES =  new Symbol("row.names");
   public static final Symbol TEMP = new Symbol("*tmp*");
   public static final Symbol AS_CHARACTER = new Symbol("as.character");

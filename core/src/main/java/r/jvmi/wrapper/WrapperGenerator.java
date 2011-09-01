@@ -18,11 +18,9 @@ import javax.tools.ToolProvider;
 import r.base.BaseFrame;
 import r.base.BaseFrame.Entry;
 import r.jvmi.binding.JvmMethod;
+import r.jvmi.wrapper.generator.AnnotationBasedStrategy;
 import r.jvmi.wrapper.generator.GeneratorStrategy;
 import r.jvmi.wrapper.generator.PassThrough;
-import r.jvmi.wrapper.generator.UnaryRecyclingStrategy;
-import r.jvmi.wrapper.generator.SingleOverloadWithoutRecycling;
-import r.jvmi.wrapper.generator.AnnotationBasedStrategy;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;

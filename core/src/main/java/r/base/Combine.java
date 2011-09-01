@@ -427,17 +427,15 @@ public class Combine {
    * @param arguments  the expressions to combined
    * @return  a matrix combining the ... arguments column-wise or row-wise.
    */
-  public static SEXP cbind(@ArgumentList ListVector arguments) {
+  public static SEXP cbind(int deparseLevel, @ArgumentList ListVector arguments) {
 
-    int deparseLevel = arguments.getElementAsInt(0);
-
-    if(arguments.length() == 1) {
+    if(arguments.length() == 0) {
       return Null.INSTANCE;
     }
 
     List<BindArgument> bindArguments = Lists.newArrayList();
-    for(int i=1;i!=arguments.length();++i) {
-      Vector argument = EvalException.checkedCast(arguments.getElementAsSEXP(i));
+    for(SEXP arg : arguments) {
+      Vector argument = EvalException.checkedCast(arg);
       bindArguments.add(new BindArgument(argument, false));
     }
 

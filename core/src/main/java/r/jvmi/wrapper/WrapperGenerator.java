@@ -22,7 +22,7 @@ import r.jvmi.wrapper.generator.GeneratorStrategy;
 import r.jvmi.wrapper.generator.PassThrough;
 import r.jvmi.wrapper.generator.UnaryRecyclingStrategy;
 import r.jvmi.wrapper.generator.SingleOverloadWithoutRecycling;
-import r.jvmi.wrapper.generator.VarArgsStrategy;
+import r.jvmi.wrapper.generator.AnnotationBasedStrategy;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
@@ -91,9 +91,9 @@ public class WrapperGenerator {
     
     List<GeneratorStrategy> strategies = Lists.newArrayList();
     strategies.add(new PassThrough());
-    strategies.add(new SingleOverloadWithoutRecycling());
-    strategies.add(new UnaryRecyclingStrategy());
-    strategies.add(new VarArgsStrategy());
+  //  strategies.add(new SingleOverloadWithoutRecycling());
+   // strategies.add(new UnaryRecyclingStrategy());
+    strategies.add(new AnnotationBasedStrategy());
 
   
     List<Entry> entries = new BaseFrame().getEntries();

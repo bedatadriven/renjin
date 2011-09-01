@@ -8,10 +8,12 @@ import r.base.BaseFrame.Entry;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.binding.JvmMethod.Argument;
 import r.jvmi.wrapper.ArgumentException;
+import r.jvmi.wrapper.ArgumentIterator;
 import r.jvmi.wrapper.GeneratorDefinitionException;
 import r.jvmi.wrapper.WrapperRuntime;
 import r.jvmi.wrapper.WrapperSourceWriter;
 import r.jvmi.wrapper.generator.args.ArgConverterStrategy;
+import r.jvmi.wrapper.generator.args.Recyclable;
 import r.jvmi.wrapper.generator.args.SexpSubclass;
 import r.jvmi.wrapper.generator.args.ToScalar;
 import r.jvmi.wrapper.generator.args.UnwrapExternalObject;
@@ -38,6 +40,7 @@ public abstract class GeneratorStrategy {
   
   public GeneratorStrategy() {
     argumentConverters = Lists.newArrayList();
+    argumentConverters.add(new Recyclable());
     argumentConverters.add(new UsingAsCharacter());
     argumentConverters.add(new SexpSubclass());
     argumentConverters.add(new ToScalar());
@@ -55,6 +58,7 @@ public abstract class GeneratorStrategy {
     s.writeImport("r.lang.*");
     s.writeImport(WrapperRuntime.class);
     s.writeImport(ArgumentException.class);
+    s.writeImport(ArgumentIterator.class);
     s.writeImport(EvalException.class);
 
     s.writeStaticImport("r.jvmi.wrapper.WrapperRuntime.*");
@@ -131,9 +135,9 @@ public abstract class GeneratorStrategy {
   protected final String argConversionStatement(JvmMethod.Argument formal, String tempLocal) {
     String exp;
     if(formal.isEvaluated()) {
-      exp = "argumentValue(args).evalToExp(context, rho)";
+      exp = "argIt.next().evalToExp(context, rho)";
     } else {
-      exp = "argumentValue(args)";
+      exp = "argIt.next()";
     }
     
     if(formal.getClazz().equals(SEXP.class)) {
@@ -143,7 +147,7 @@ public abstract class GeneratorStrategy {
     }
   }
   
-  private ArgConverterStrategy findArgConverterStrategy(JvmMethod.Argument formal) {
+  protected ArgConverterStrategy findArgConverterStrategy(JvmMethod.Argument formal) {
     for(ArgConverterStrategy strategy : argumentConverters) {
       if(strategy.accept(formal)) {
         return strategy;

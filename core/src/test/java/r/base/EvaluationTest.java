@@ -146,7 +146,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("f <- function(x) { missing(x) }");
     assertThat(eval("f()"), logicalVectorOf(Logical.TRUE));
     assertThat(eval("f(1)"), logicalVectorOf(Logical.FALSE));
-   }
+  }
 
   @Test
   public void missingWithDefaultArg() {
@@ -252,6 +252,12 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat( eval(" g() "), equalTo(c(3)));
 
+  }
+  
+  @Test
+  public void dotDotDotToPrimitive() {
+    eval("f<-function(...) sqrt(...) ");
+    assertThat( eval("f(4)"), equalTo(c(2)));
   }
 
   @Test

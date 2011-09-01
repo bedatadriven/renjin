@@ -100,6 +100,14 @@ public class WrapperRuntime {
     return vector.getElementAsLogical(0) == Logical.TRUE;  
   }
   
+  public static Vector convertToVector(SEXP exp) {
+    try {
+      return (Vector)exp;
+    } catch(ClassCastException e) {
+      throw new ArgumentException();
+    }
+  }
+  
   public static double convertToDoublePrimitive(SEXP exp) {
     Vector vector = checkedSubClassAndAssertScalar(exp);
     if(vector.isElementNA(0)) {
@@ -148,6 +156,10 @@ public class WrapperRuntime {
   public static EvalResult wrapResult(boolean b) {
     return EvalResult.visible(new LogicalVector(b));
   }
+  
+  public static EvalResult wrapResult(double d) {
+    return EvalResult.visible(new DoubleVector(d));
+  }
  
   public static EvalResult wrapResult(long result) {
     return EvalResult.visible(new DoubleVector((double)result));
@@ -160,4 +172,39 @@ public class WrapperRuntime {
   public static EvalResult wrapResult(Logical result) {
     return EvalResult.visible(new LogicalVector(result));
   }
+  
+
+//  public static EvalResult tryDispatchGeneric(Context context, Environment rho, String name, FunctionCall call,
+//                                        ListVector evaledArguments) {
+//
+//    if(evaledArguments.length() == 0) {
+//      return null;
+//    }
+//        
+//    if(call.getFunction() instanceof Symbol) {
+//      if(((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
+//        return null;
+//      }
+//    }
+//
+//    Vector classes = (Vector)provided.get(0).evaluated().getAttribute(Symbol.CLASS);
+//    if(classes.length() == 0) {
+//      return null;
+//    }
+//
+//    DispatchChain chain = DispatchChain.newChain(rho, overloads.get(0).getGenericName(), classes);
+//    if(chain == null) {
+//      return null;
+//    }
+//
+//    // Repromise ?
+//    PairList.Node restOfArguments = (PairList.Node) call.getArguments();
+//    PairList newArgs = new PairList.Node(new Promise(provided.get(0).provided, provided.get(0).evaluated()),
+//        restOfArguments.hasNextNode() ? restOfArguments.getNextNode() : Null.INSTANCE);
+//
+//    FunctionCall newCall = FunctionCall.newCall(chain.getMethodSymbol(), newArgs);
+//
+//    ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, newCall);
+//    return dispatcher.apply(chain, newArgs);
+//  }
 }

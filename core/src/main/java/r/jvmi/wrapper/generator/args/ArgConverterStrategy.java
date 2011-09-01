@@ -18,6 +18,10 @@ public abstract class ArgConverterStrategy {
    */
   public abstract boolean accept(JvmMethod.Argument formal);
   
+  public Class getTempLocalType(JvmMethod.Argument formal) {
+    return formal.getClazz();
+  }
+  
   /**
    * 
    * 

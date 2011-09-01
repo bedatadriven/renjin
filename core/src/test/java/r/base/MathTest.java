@@ -42,6 +42,11 @@ public class MathTest extends EvalTestCase {
   }
 
   @Test
+  public void simpleOp() {
+    assertThat( eval(" 1050 - 50"), equalTo( c(1000) ) );
+  }
+  
+  @Test
   public void unaryCall() {
     assertThat( eval("atan(1)"), equalTo( c(Math.atan(1)) ) );
   }
@@ -51,6 +56,7 @@ public class MathTest extends EvalTestCase {
     assertThat( MathExt.gamma(3), closeTo(2, 0.0001));
   }
 
+  
   @Test
   public void log() {
       assertThat( eval("log(2,16)"), equalTo( c(0.25) ) );

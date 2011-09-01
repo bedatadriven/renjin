@@ -30,6 +30,7 @@ import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Generic;
 import r.jvmi.annotations.InvokeAsCharacter;
 import r.jvmi.annotations.Primitive;
+import r.jvmi.annotations.Recycle;
 import r.jvmi.annotations.Visible;
 import r.lang.AtomicVector;
 import r.lang.Attributes;
@@ -408,6 +409,7 @@ public class Types {
     return env.isLocked();
   }
 
+  @Recycle(false)
   public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual, boolean singleNA, boolean attributesAsSet) {
     if (!numericallyEqual || !singleNA || !attributesAsSet) {
       throw new EvalException("identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");

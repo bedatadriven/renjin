@@ -82,7 +82,7 @@ public class ArgumentTest extends EvalTestCase {
     eval( "f <- function(...) { list(...) }");
     assertThat( eval( "f(1,2,3) "), equalTo( list(1d,2d,3d) ));
   }
-
+  
   @Test
   public void taggedVarArgs() {
     eval( "f <- function(...) { list(...) }");

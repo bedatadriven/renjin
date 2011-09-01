@@ -21,13 +21,13 @@
 
 package r.lang;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.UnmodifiableIterator;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.UnmodifiableIterator;
 
 /**
  * Pairlists (LISTSXP, the name going back to the origins of R as a Scheme-like language) are
@@ -76,11 +76,8 @@ public interface PairList extends SEXP {
     /**
      * The next node in the linked list, i.e. {@code CDR} in the
      * C implementation.
-     * <p/>
-     * Contrary to the C impl, {@code nextNode} is either a subclass
-     * of {@code ListExp} or {@code null}
      */
-    protected Node nextNode = null;
+    protected PairList nextNode = Null.INSTANCE;
 
     public Node(SEXP tag, SEXP value, PairList attributes, PairList nextNode) {
       super(attributes);
@@ -114,14 +111,18 @@ public interface PairList extends SEXP {
      * @throws IllegalStateException if there is no next node
      */
     public Node getNextNode() {
-      if (nextNode == null) {
-        throw new IllegalStateException("this list has no nextNode. Call hasNextNode() to check first.");
+      if(!(nextNode instanceof PairList.Node)) {
+        throw new IllegalStateException("no next node. call hasNextNode() first or use getNext()");
       }
+      return (PairList.Node)nextNode;
+    }
+    
+    public PairList getNext() {
       return nextNode;
     }
 
     public boolean hasNextNode() {
-      return nextNode != null;
+      return nextNode != Null.INSTANCE;
     }
 
     public boolean tagEquals(String name) {
@@ -134,10 +135,10 @@ public interface PairList extends SEXP {
       if (!it.hasNext()) {
         return Null.INSTANCE;
       } else {
-        Node head = new Node(it.next(), null);
+        Node head = new Node(it.next(), Null.INSTANCE);
         Node node = head;
         while (it.hasNext()) {
-          node.nextNode = new Node(it.next(), null);
+          node.nextNode = new Node(it.next(), Null.INSTANCE);
           node = (Node) node.nextNode;
         }
         return head;
@@ -332,7 +333,7 @@ public interface PairList extends SEXP {
      */
     private static class ValueIterator extends UnmodifiableIterator<SEXP> {
 
-      private Node next;
+      private PairList next = Null.INSTANCE;
 
       private ValueIterator(Node next) {
         this.next = next;
@@ -340,13 +341,13 @@ public interface PairList extends SEXP {
 
       @Override
       public boolean hasNext() {
-        return next != null;
+        return next != Null.INSTANCE;
       }
 
       @Override
       public SEXP next() {
-        SEXP value = next.value;
-        next = next.nextNode;
+        SEXP value = ((PairList.Node)next).value;
+        next = ((PairList.Node)next).nextNode;
         return value;
       }
 
@@ -355,7 +356,7 @@ public interface PairList extends SEXP {
     }
 
     private static class NodeIterator extends UnmodifiableIterator<Node> {
-      private Node next;
+      private PairList next;
 
       private NodeIterator(Node next) {
         this.next = next;
@@ -363,13 +364,13 @@ public interface PairList extends SEXP {
 
       @Override
       public boolean hasNext() {
-        return next != null;
+        return next != Null.INSTANCE;
       }
 
       @Override
       public Node next() {
-        Node value = next;
-        next = next.nextNode;
+        Node value = (PairList.Node)next;
+        next = value.getNext();
         return value;
       }
     }
@@ -455,10 +456,10 @@ public interface PairList extends SEXP {
 
     public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
-        head = new Node(tag, s, null);
+        head = new Node(tag, s, Null.INSTANCE);
         tail = head;
       } else {
-        Node next = new Node(tag, s, null);
+        Node next = new Node(tag, s, Null.INSTANCE);
         tail.nextNode = next;
         tail = next;
       }

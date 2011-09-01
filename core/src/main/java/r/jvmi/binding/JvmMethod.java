@@ -106,7 +106,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
     for(Argument formal : formals) {
       formal.recycle = formal.isAnnotatedWith(Recycle.class) ||
-          (implicitRecycling && formal.isAtomicElementType());
+          (implicitRecycling && formal.isAtomicElementType() && !formal.hasName());
       if(formal.recycle) {
         this.recycle = true;
       }
@@ -323,7 +323,14 @@ public class JvmMethod implements Comparable<JvmMethod> {
           } else {
             needsComma=true;
           }
-          sb.append(FriendlyTypesNames.get().format(argument.getClazz()));
+          if(argument.isAnnotatedWith(ArgumentList.class)) {
+            sb.append("...");
+          } else {
+            sb.append(FriendlyTypesNames.get().format(argument.getClazz()));
+            if(!argument.isRecycle() && argument.isAtomicElementType()) {
+              sb.append("(1)");
+            }
+          }
         }
       }
       sb.append(")");

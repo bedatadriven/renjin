@@ -294,13 +294,6 @@ public class RuntimeInvoker {
     return true;
   }
 
-  private PairList toEvaluatedPairList(List<ProvidedArgument> arguments) {
-    PairList.Builder pairlist = new PairList.Builder();
-    for(ProvidedArgument arg : arguments) {
-      pairlist.add(arg.getTag(), arg.evaluated());
-    }
-    return pairlist.build();
-  }
 
   private Object[] toEvaluatedList(JvmMethod method, List<ProvidedArgument> arguments) {
     Object params[] = new Object[method.getFormals().size()];

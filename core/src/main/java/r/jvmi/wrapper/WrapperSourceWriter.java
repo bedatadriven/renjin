@@ -58,11 +58,24 @@ public class WrapperSourceWriter {
     println("// " + comment);
   }
   
+  public void writeBeginBlock(String statement) {
+    println(statement);
+    indent();
+  }
+  
   public void writeStatement(String statement) {
     if(!statement.endsWith(";")) {
       statement += ";";
     }
     println(statement);
+  }
+  
+  public void indent() {
+    indent++;
+  }
+  
+  public void outdent() {
+    indent--;
   }
   
 

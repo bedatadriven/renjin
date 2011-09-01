@@ -367,7 +367,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     public Builder add(String name, Logical value) {
       return add(name, new LogicalVector(value));
     }
-
+    
     public Builder addAll(ListVector list) {
       for(int i=0;i!=list.length();++i) {
         add(list.getName(i),  list.get(i));

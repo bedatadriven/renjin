@@ -152,7 +152,7 @@ public class Context {
     public final Environment baseNamespaceEnv;
 
     public final FileSystemManager fileSystemManager;
-
+    
     public PrintWriter stdout;
 
     // can this be moved down to context so it's not global?

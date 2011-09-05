@@ -35,7 +35,21 @@ public class Raw {
   
   @Override
   public String toString(){
-    return (Integer.toHexString(this.getValue()));
+    String s = Integer.toHexString(this.getValue());
+    if(s.length()==1) s="0"+s;
+    return(s);
+  }
+  
+  public Raw[] getAsZerosAndOnes(){
+    Raw[] raws = new Raw[8];
+    int val = this.getValue();
+    int k;
+    for (int i=0;i<8;i++){
+      k = val % 2;
+      val = val / 2;
+      raws[8-i-1] = new Raw(k);
+    }
+    return(raws);
   }
   
   

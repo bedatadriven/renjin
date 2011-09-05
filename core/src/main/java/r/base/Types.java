@@ -218,7 +218,8 @@ public class Types {
   }
 
   @Primitive("as.raw")
-  public static RawVector asRaw(SEXP values) {
+  public static RawVector asRaw(Vector source) {
+    /*
     Vector iv = (Vector) values;
     RawVector.Builder b = new RawVector.Builder();
     int value;
@@ -232,11 +233,24 @@ public class Types {
       b.add(raw);
     }
     return (b.build());
+     */
+    return (RawVector) convertVector(new RawVector.Builder(), source);
   }
 
   @Primitive("is.raw")
   public static SEXP isRaw(Vector v) {
     return (new LogicalVector(v.getVectorType() == RawVector.VECTOR_TYPE));
+  }
+  
+  @Primitive("rawToBits")
+  public static RawVector rawToBits(RawVector rv){
+    RawVector.Builder b = new RawVector.Builder();
+    Raw[] raws;
+    for (int i=0;i<rv.length();i++){
+      raws = rv.getElement(i).getAsZerosAndOnes();
+      for (int j=0;j<8;j++) b.add(raws[j]);
+    }
+    return(b.build());
   }
 
   @Generic
@@ -293,7 +307,9 @@ public class Types {
         throw new EvalException("invalid type/length (symbol/0) in vector allocation");
       }
       return new Symbol(x.getElementAsString(0));
-    } else {
+    } else if ("raw".equals(mode)){
+      result = new RawVector.Builder();
+    }else {
       throw new EvalException("invalid 'mode' argument: " + mode);
     }
 
@@ -318,6 +334,8 @@ public class Types {
       result = new DoubleVector.Builder(x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
+    } else if ("raw".equals(mode)){
+      result = new RawVector.Builder();
     } else {
       throw new EvalException("invalid 'mode' argument");
     }
@@ -593,7 +611,11 @@ public class Types {
       Arrays.fill(values, Null.INSTANCE);
       return PairList.Node.fromArray(values);
 
-    } else {
+    } else if ("raw".equals(mode)){
+      Raw values[] = new Raw[length];
+      Arrays.fill(values, Null.INSTANCE);
+      return new RawVector(values);
+    }else {
       throw new EvalException(String.format("vector: cannot make a vector of mode '%s'.", mode));
     }
   }

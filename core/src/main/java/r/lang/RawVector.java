@@ -32,6 +32,10 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
+  
+  public Raw getElement(int index){
+    return(this.values[index]);
+  }
 
   @Override
   public double getElementAsDouble(int index) {
@@ -54,6 +58,16 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
   }
 
   @Override
+  public SEXP getElementAsSEXP(int index) {
+    return new RawVector(this.values[index]);
+  }
+
+  @Override
+  public int length() {
+    return this.values.length;
+  }
+  
+  @Override
   public Builder newBuilder(int initialSize) {
     return (new RawVector.Builder(initialSize));
   }
@@ -75,7 +89,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
   @Override
   public Object getElementAsObject(int index) {
-    return (String.valueOf(values[index].getValue()));
+    return (values[index]);
   }
 
   @Override
@@ -166,7 +180,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
     @Override
     public Vector.Builder newBuilder() {
-      return new Builder(0);
+      return new RawVector.Builder(0);
     }
 
     @Override
@@ -179,6 +193,8 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
       return vector1.getElementAsInt(index1) - vector2.getElementAsInt(index2);
     }
   }
+  
+  
 
   @Override
   public String toString() {

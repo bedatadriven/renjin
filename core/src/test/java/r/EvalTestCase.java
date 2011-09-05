@@ -97,6 +97,10 @@ public abstract class EvalTestCase {
   protected SEXP c(double... values) {
     return new DoubleVector(values);
   }
+  
+  protected SEXP c(Raw... values){
+    return new RawVector(values);
+  }
 
   protected SEXP c_i(int... values) {
     return new IntVector(values);

@@ -299,9 +299,18 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void isRawAndAsRaw(){
-    Raw r = new Raw(123);
+    Raw r1 = new Raw(1);
+    Raw r2 = new Raw(20);
+    Raw r3 = new Raw(30);
     assertThat( eval("is.raw(as.raw(c(123,124)))"), equalTo(c(Logical.TRUE)));
-    //assertThat( eval("as.raw(78:80)"), equalTo(c("c(4e, 4f, 50)")));
+    //assertThat( eval("as.raw(c(1,20,30))"), equalTo(c(r1,r2,r3)));
+  }
+  
+  @Test
+  public void rawToBits(){
+    Raw r0 = new Raw(00);
+    Raw r1 = new Raw(01);
+    //assertThat( eval(".Internal(rawToBits(as.raw(c(1,2))))"), equalTo(c(r0,r0,r0,r0,r0,r0,r0,r1,r0,r0,r0,r0,r0,r0,r1,r0)));
   }
 
 }

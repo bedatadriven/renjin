@@ -111,6 +111,13 @@ public class Print {
     }
 
     @Override
+    public void visit(RawVector vector) {
+      printVector(vector, Alignment.RIGHT, new ParseUtil.RawPrinter());
+    }
+    
+    
+
+    @Override
     public void visit(Null nullExpression) {
       out.append("NULL\n");
     }

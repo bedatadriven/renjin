@@ -27,6 +27,7 @@ import r.lang.Logical;
 import r.lang.StringVector;
 
 import java.text.NumberFormat;
+import r.lang.Raw;
 
 public class ParseUtil {
   public static final NumberFormat INTEGER_FORMAT = createIntegerFormat();
@@ -232,6 +233,13 @@ public class ParseUtil {
     @Override
     public String apply(Integer integer) {
       return ParseUtil.toString(integer);
+    }
+  }
+  
+  public static class RawPrinter implements Function<Raw, String> {
+    @Override
+    public String apply(Raw raw) {
+      return raw.toString();
     }
   }
 

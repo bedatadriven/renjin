@@ -270,12 +270,17 @@ public class Types {
   
   @Primitive("rawShift")
   public static RawVector rawShift(RawVector rv, int n) {
-    if(n>Raw.NUM_BITS){
+    if(n>Raw.NUM_BITS || n<(-1 * Raw.NUM_BITS)){
       throw new EvalException("argument 'shift' must be a small integer");
     }
     RawVector.Builder b = new RawVector.Builder();
+    Raw r;
     for (int i = 0; i < rv.length(); i++) {
-      Raw r = new Raw((byte) (rv.getElement(i).getAsByte() << n));
+      if(n>=0){
+        r = new Raw((byte) (rv.getElement(i).getAsByte() << Math.abs(n)));
+      }else{
+        r = new Raw((byte) (rv.getElement(i).getAsByte() >> Math.abs(n)));
+      }
       b.add(r);
     }
     return (b.build());

@@ -266,6 +266,16 @@ public class Types {
     }
     return (b.build());
   }
+  
+  @Primitive("rawShift")
+  public static RawVector rawShift(RawVector rv, int n) {
+    RawVector.Builder b = new RawVector.Builder();
+    for (int i = 0; i < rv.length(); i++) {
+      Raw r = new Raw((byte) (rv.getElement(i).getAsByte() << n));
+      b.add(r);
+    }
+    return (b.build());
+  }
 
   @Generic
   public static StringVector asCharacter(Vector source) {

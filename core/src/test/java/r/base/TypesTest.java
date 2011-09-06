@@ -320,5 +320,13 @@ public strictfp class TypesTest extends EvalTestCase {
     Raw r3 = new Raw('C');
     assertThat( eval(".Internal(charToRaw(\"ABC\"))"), equalTo(c(r1,r2,r3)));
   }
+  
+  @Test
+  public void rawShift() {
+    Raw r1 = new Raw(0x3a);
+    Raw r2 = new Raw(0x3c);
+    Raw r3 = new Raw(0x3e);
+    assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),1))"), equalTo(c(r1, r2, r3)));
+  }
 
 }

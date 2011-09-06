@@ -667,7 +667,7 @@ public class BaseFrame implements Frame {
     f("make.unique", Text.class, 0, 11, 2);
     f("charToRaw", Types.class, 1, 11, 1);
     f("rawToChar", /*rawToChar*/ null, 1, 11, 2);
-    f("rawShift", /*rawShift*/ null, 1, 11, 2);
+    f("rawShift", Types.class , 1, 11, 2);
     f("intToBits", /*intToBits*/ null, 1, 11, 1);
     f("rawToBits", Types.class , 1, 11, 1);
     f("packBits", /*packBits*/ null, 1, 11, 2);

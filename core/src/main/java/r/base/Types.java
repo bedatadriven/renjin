@@ -61,6 +61,7 @@ import r.lang.exception.EvalException;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import java.util.BitSet;
 
 /**
  * Primitive type inspection and coercion functions
@@ -269,12 +270,46 @@ public class Types {
   
   @Primitive("rawShift")
   public static RawVector rawShift(RawVector rv, int n) {
+    if(n>Raw.NUM_BITS){
+      throw new EvalException("argument 'shift' must be a small integer");
+    }
     RawVector.Builder b = new RawVector.Builder();
     for (int i = 0; i < rv.length(); i++) {
       Raw r = new Raw((byte) (rv.getElement(i).getAsByte() << n));
       b.add(r);
     }
     return (b.build());
+  }
+  
+  /*
+   * !!Weird
+   * It is supposed to be an integer has four bytes!
+   * It is supposed to be integer's byte order is big-endian!
+   */
+  @Primitive("intToBits")
+  public static RawVector intToBits(Vector rv) {
+    RawVector.Builder b = new RawVector.Builder();
+    RawVector.Builder reverseb = new RawVector.Builder();
+    byte[] intbytes = new byte[4];
+    int currvalue;
+    for (int i = 0; i < rv.length(); i++) {
+      currvalue = rv.getElementAsInt(i);
+      intbytes[0] = (byte) (currvalue >> 24);
+      intbytes[1] = (byte) ((currvalue << 8) >> 24);
+      intbytes[2] = (byte) ((currvalue << 16) >> 24);
+      intbytes[3] = (byte) ((currvalue << 24) >> 24);
+      for (int j = 0; j < 4; j++) {
+        Raw[] r = (new Raw(intbytes[j])).getAsZerosAndOnes();
+        for (int h = 0; h < r.length; h++) {
+          b.add(r[h]);
+        }
+      }
+    }
+    RawVector temp = b.build();
+    for (int i = 0; i < temp.length(); i++) {
+      reverseb.addFrom(temp, temp.length() - i - 1);
+    }
+    return (reverseb.build());
   }
 
   @Generic

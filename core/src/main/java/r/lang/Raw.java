@@ -5,6 +5,7 @@ package r.lang;
 public class Raw {
   
   public static int NUM_BITS = 8;
+  public static int BITS_PER_INTEGER = 32;
   private byte internalValue = -128;
   
   

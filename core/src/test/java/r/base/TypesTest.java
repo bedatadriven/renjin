@@ -328,5 +328,16 @@ public strictfp class TypesTest extends EvalTestCase {
     Raw r3 = new Raw(0x3e);
     assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),1))"), equalTo(c(r1, r2, r3)));
   }
+  
+  @Test
+  public void intToBits(){
+    RawVector.Builder b = new RawVector.Builder();
+    b.add(new Raw(01));
+    for (int i=1;i<32;i++) {
+      b.add(new Raw(0));
+    }
+    RawVector rv = b.build();
+    assertThat(eval(".Internal(intToBits(1))"), equalTo(c(rv.getAsRawArray())));
+  }
 
 }

@@ -665,7 +665,7 @@ public class BaseFrame implements Frame {
     f("chartr", Text.class, 1, 11, 3);
     f("sprintf", Text.class, 1, 11, -1);
     f("make.unique", Text.class, 0, 11, 2);
-    f("charToRaw", /*charToRaw*/ null, 1, 11, 1);
+    f("charToRaw", Types.class, 1, 11, 1);
     f("rawToChar", /*rawToChar*/ null, 1, 11, 2);
     f("rawShift", /*rawShift*/ null, 1, 11, 2);
     f("intToBits", /*intToBits*/ null, 1, 11, 1);

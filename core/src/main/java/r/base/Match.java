@@ -230,6 +230,6 @@ public class Match {
    */
   @Primitive("match.call")
   public static SEXP matchCall (SEXP definition, SEXP call, boolean expandDots){
-    return(null);
+    return(Null.INSTANCE);
   }
 }

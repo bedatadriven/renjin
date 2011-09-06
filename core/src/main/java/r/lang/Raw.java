@@ -4,7 +4,9 @@ package r.lang;
 
 public class Raw {
   
+  public static int NUM_BITS = 8;
   private byte internalValue = -128;
+  
   
   /**
    * 
@@ -41,13 +43,13 @@ public class Raw {
   }
   
   public Raw[] getAsZerosAndOnes(){
-    Raw[] raws = new Raw[8];
+    Raw[] raws = new Raw[Raw.NUM_BITS];
     int val = this.getValue();
     int k;
-    for (int i=0;i<8;i++){
+    for (int i=0;i<Raw.NUM_BITS;i++){
       k = val % 2;
       val = val / 2;
-      raws[8-i-1] = new Raw(k);
+      raws[Raw.NUM_BITS-i-1] = new Raw(k);
     }
     return(raws);
   }

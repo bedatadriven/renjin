@@ -243,14 +243,28 @@ public class Types {
   }
   
   @Primitive("rawToBits")
-  public static RawVector rawToBits(RawVector rv){
+  public static RawVector rawToBits(RawVector rv) {
     RawVector.Builder b = new RawVector.Builder();
     Raw[] raws;
-    for (int i=0;i<rv.length();i++){
+    for (int i = 0; i < rv.length(); i++) {
       raws = rv.getElement(i).getAsZerosAndOnes();
-      for (int j=0;j<8;j++) b.add(raws[j]);
+      for (int j = 0; j < Raw.NUM_BITS; j++) {
+        b.add(raws[j]);
+      }
     }
-    return(b.build());
+    return (b.build());
+  }
+  
+  @Primitive("charToRaw")
+  public static RawVector charToRaw(StringVector sv) {
+    RawVector.Builder b = new RawVector.Builder();
+    if (sv.length() != 1) {
+      throw new EvalException("argument should be a character vector of length 1");
+    }
+    for (int i = 0; i < sv.getElement(0).length(); i++) {
+      b.add(new Raw(sv.getElement(0).charAt(i)));
+    }
+    return (b.build());
   }
 
   @Generic

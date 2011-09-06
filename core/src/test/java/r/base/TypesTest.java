@@ -303,14 +303,14 @@ public strictfp class TypesTest extends EvalTestCase {
     Raw r2 = new Raw(20);
     Raw r3 = new Raw(30);
     assertThat( eval("is.raw(as.raw(c(123,124)))"), equalTo(c(Logical.TRUE)));
-    //assertThat( eval("as.raw(c(1,20,30))"), equalTo(c(r1,r2,r3)));
+    assertThat( eval("as.raw(c(1,20,30))"), equalTo(c(r1,r2,r3)));
   }
   
   @Test
   public void rawToBits(){
     Raw r0 = new Raw(00);
     Raw r1 = new Raw(01);
-    //assertThat( eval(".Internal(rawToBits(as.raw(c(1,2))))"), equalTo(c(r0,r0,r0,r0,r0,r0,r0,r1,r0,r0,r0,r0,r0,r0,r1,r0)));
+    assertThat( eval(".Internal(rawToBits(as.raw(c(1,2))))"), equalTo(c(r0,r0,r0,r0,r0,r0,r0,r1,r0,r0,r0,r0,r0,r0,r1,r0)));
   }
   
   @Test
@@ -318,13 +318,7 @@ public strictfp class TypesTest extends EvalTestCase {
     Raw r1 = new Raw('A');
     Raw r2 = new Raw('B');
     Raw r3 = new Raw('C');
-    /*
-     * Also this test case results as
-     * charToRaw FAILED:
-     * Expected:<c(41,42,43)>  got:<c(41,42,43)
-     * I am totally confused with this. Function runs as expected in interpreter. Help needed.
-     */
-    //assertThat( eval(".Internal(charToRaw(\"ABC\"))"), equalTo(c(r1,r2,r3)));
+    assertThat( eval(".Internal(charToRaw(\"ABC\"))"), equalTo(c(r1,r2,r3)));
   }
 
 }

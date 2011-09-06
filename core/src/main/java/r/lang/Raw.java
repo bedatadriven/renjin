@@ -54,5 +54,23 @@ public class Raw {
     return(raws);
   }
   
+  public byte getAsByte(){
+    return(this.internalValue);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof Raw)) {
+      return (false);
+    }
+    Raw r = (Raw) o;
+    if (r.internalValue == this.internalValue) {
+      return (true);
+    }
+    return (false);
+  }
+  
+  
+  
   
 }

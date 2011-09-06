@@ -22,6 +22,14 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     this.values = new Raw[values.length];
     this.values = Arrays.copyOf(values, values.length);
   }
+  
+  public byte[] getAsByteArray(){
+    byte[] bytes = new byte[this.values.length];
+    for (int i=0;i<this.values.length;i++){
+      bytes[i] = this.values[i].getAsByte();
+    }
+    return(bytes);
+  }
 
   @Override
   public String getTypeName() {
@@ -66,6 +74,20 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
   public int length() {
     return this.values.length;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof RawVector)) return (false);
+    RawVector rv = (RawVector)o;
+    return (rv.hashCode() == this.hashCode());
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(this.getAsByteArray());
+  }
+  
+  
   
   @Override
   public Builder newBuilder(int initialSize) {

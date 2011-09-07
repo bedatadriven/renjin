@@ -93,4 +93,9 @@ public class MathExt {
     return (0.5 * Math.log((1 + val) / (1 - val)));
   }
   
+  @Primitive("atan2")
+  public static double atan2(double y, double x){
+    return(Math.atan2(y, x));
+  }
+  
 }

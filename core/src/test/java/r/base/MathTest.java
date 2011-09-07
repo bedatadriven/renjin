@@ -96,4 +96,10 @@ public class MathTest extends EvalTestCase {
     assertThat(eval("acosh(3.14)").asReal(), closeTo(1.810991, 0.000001));
     assertThat(eval("atanh(0.25)").asReal(), closeTo(0.2554128, 0.000001));
   }
+  
+  @Test
+  public void atan2(){
+    assertThat(eval(".Internal(atan2(-0.5, -0.5))").asReal(), closeTo(-2.356194, 0.000001));
+    assertThat(eval(".Internal(atan2(0.5, 0))").asReal(), closeTo(1.570796, 0.000001));
+  }
 }

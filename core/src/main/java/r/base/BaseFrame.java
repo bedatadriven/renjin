@@ -441,7 +441,7 @@ public class BaseFrame implements Frame {
 
 /* Mathematical Functions of Two Numeric (+ 1-2 int) Variables */
 
-    f("atan2", /*math2*/ null, 0, 11, 2);
+    f("atan2", MathExt.class, 0, 11, 2);
 
     f("lbeta", /*math2*/ null, 2, 11, 2);
     f("beta", /*math2*/ null, 3, 11, 2);
@@ -675,7 +675,7 @@ public class BaseFrame implements Frame {
     f("intToUtf8", /*intToUtf8*/ null, 1, 11, 2);
     f("encodeString", /*encodeString*/ null, 1, 11, 5);
     f("iconv", /*iconv*/ null, 0, 11, 5);
-    f("strtrim", /*strtrim*/ null, 0, 11, 2);
+    f("strtrim", Text.class, 0, 11, 2);
 
 /* Type Checking (typically implemented in ./coerce.c ) */
 

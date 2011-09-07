@@ -561,4 +561,15 @@ public class Text {
   }
 
 
+  @Primitive("strtrim")
+  public static String strtrim(@Recycle String source, @Recycle int n) {
+    int index;
+    if (n > source.length()) {
+      index = source.length();
+    } else {
+      index = n;
+    }
+    return (source.substring(0, index));
+  }
+
 }

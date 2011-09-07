@@ -169,4 +169,10 @@ public class TextTest extends EvalTestCase {
     assertThat( eval(".Internal(make.unique(c('a', 'b', 'a'), '.'))"), equalTo(c("a", "b", "a.1")));
   }
   
+  @Test
+  public void strtrim(){
+    assertThat( eval(".Internal(strtrim(c('abcdef', 'abcdef', 'abcdef'), c(1,5,10)))"), equalTo(c("a", "abcde", "abcdef")));
+    assertThat( eval(".Internal(strtrim(\"abcdef\", 3))"), equalTo(c("abc")));
+  }
+  
 }

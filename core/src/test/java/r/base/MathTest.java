@@ -81,17 +81,19 @@ public class MathTest extends EvalTestCase {
       assertThat( eval("log2(-4)"), equalTo( c(Double.NaN) ) );
   }
  
-  /*
-   * It may need to be corrected. I put a topLevelContext.init() to
-   * be able to call r-lang function. I am not sure whether it is required.
-   */
   @Test
   public void transpose() {
-    try{
+    try {
       topLevelContext.init();
-    }catch(Exception e){
-      
+    } catch (Exception e) {
     }
-    assertThat( eval("t(matrix(c(1,2,3,4,5,6),3,2))"), equalTo(c(1,3,5,2,4,6) ));
+    assertThat(eval("t(matrix(c(1,2,3,4,5,6),3,2))"), equalTo(c(1, 3, 5, 2, 4, 6)));
+  }
+  
+  @Test
+  public void hyperbolicInverse(){
+    assertThat(eval("asinh(3.14)").asReal(), closeTo(1.861813, 0.000001));
+    assertThat(eval("acosh(3.14)").asReal(), closeTo(1.810991, 0.000001));
+    assertThat(eval("atanh(0.25)").asReal(), closeTo(0.2554128, 0.000001));
   }
 }

@@ -428,9 +428,9 @@ public class BaseFrame implements Frame {
     f("cosh", Math.class, 30, 1, 1);
     f("sinh", Math.class, 31, 1, 1);
     f("tanh", Math.class, 32, 1, 1);
-    f("acosh", /*math1*/ null, 33, 1, 1);
-    f("asinh", /*math1*/ null, 34, 1, 1);
-    f("atanh", /*math1*/ null, 35, 1, 1);
+    f("acosh", MathExt.class, 33, 1, 1);
+    f("asinh", MathExt.class, 34, 1, 1);
+    f("atanh", MathExt.class, 35, 1, 1);
 
     f("lgamma", org.apache.commons.math.special.Gamma.class, "logGamma", 40, 1, 1);
     f("gamma", MathExt.class, 41, 1, 1);

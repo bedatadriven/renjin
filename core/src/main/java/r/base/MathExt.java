@@ -77,4 +77,20 @@ public class MathExt {
     result = builder.build();
     return (result);
   }
+  
+  @Primitive("asinh")
+  public static double asinh(double val) {
+    return (Math.log(val + Math.sqrt(val * val + 1)));
+  }
+  
+  @Primitive("acosh")
+  public static double acosh(double val) {
+    return (Math.log(val + Math.sqrt(val + 1) * Math.sqrt(val - 1)));
+  }
+  
+  @Primitive("atanh")
+  public static double atanh(double val) {
+    return (0.5 * Math.log((1 + val) / (1 - val)));
+  }
+  
 }

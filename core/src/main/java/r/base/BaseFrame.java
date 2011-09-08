@@ -868,7 +868,7 @@ public class BaseFrame implements Frame {
     f("tempfile", Files.class, 0, 11, 2);
     f("tempdir", Files.class, 0, 11, 0);
     f("R.home", System.class, "getRHome", 0, 11, 0);
-    f("date", /*date*/ null, 0, 11, 0);
+    f("date", System.class, 0, 11, 0);
     f("index.search", /*indexsearch*/ null, 0, 11, 5);
     f("Sys.getenv", System.class, 0, 11, 2);
     f("Sys.setenv", System.class, 0, 111, 2);

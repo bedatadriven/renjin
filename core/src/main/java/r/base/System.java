@@ -27,6 +27,8 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -185,6 +187,21 @@ public class System {
     }
     result.setAttribute(Symbol.NAMES, names.build());
     return result.build();
+  }
+  
+  @Primitive("date")
+  public static StringVector date() {
+    SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
+    StringVector.Builder b = new StringVector.Builder();
+    Date d = new Date();
+    String parsed = null;
+    try {
+      parsed = sdf.format(d);
+    } catch (Exception e) {
+      //Probably nobody will see this exception. But it is possible :)
+    }
+    b.add(parsed);
+    return (b.build());
   }
 
 

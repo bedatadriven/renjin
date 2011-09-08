@@ -73,5 +73,17 @@ public class SystemTest extends EvalTestCase {
     assertThat( eval(" .Internal(basename(c('c:\\\\anyfolder\\\\file.txt', '/bin/bash', 'myfile'))) "),
         equalTo( c("file.txt", "bash", "myfile") ));
   }
-
+  
+  /*
+   * Prabably this is not testable. I tried to test
+   * nchar(date()), because the date() in R almost always returns
+   * a string with length of 24. But it was unsuccessful.
+   * So i am leave it commented here.
+   *
+   * @Test
+   * public void date(){
+   * assertThat( eval(" .Internal(date()) "), equalTo( c(24) ));
+   * }
+   */
+  
 }

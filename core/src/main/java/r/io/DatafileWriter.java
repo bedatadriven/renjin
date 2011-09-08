@@ -130,13 +130,7 @@ public class DatafileWriter {
   private void writeRawVector(RawVector vector) throws IOException {
     writeFlags(RAWSXP, vector);
     out.writeInt(vector.length());
-    for(int i=0;i!=vector.length();++i) {
-      if(vector.isElementNA(i)) {
-        out.writeLong(SerializationFormat.XDR_NA_BITS);
-      } else {
-        out.write(vector.getElement(i).getAsByte());
-      }
-    }
+    out.write(vector.getAsByteArray());    
     writeAttributes(vector);
   }
   

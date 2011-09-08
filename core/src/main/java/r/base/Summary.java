@@ -266,5 +266,58 @@ public class Summary {
     }
     return(new DoubleVector(new double[]{sum2 /(x.length()-1)}));
   }
+  
+  
+  @Primitive("cumsum")
+  public static DoubleVector cumsum(Vector source) {
+    DoubleVector.Builder result = new DoubleVector.Builder();
+    double sum = source.getElementAsDouble(0);
+    result.add(sum);
+    for (int i = 1; i < source.length(); i++) {
+      sum += source.getElementAsDouble(i);
+      result.add(sum);
+    }
+    return (result.build());
+  }
+  
+  @Primitive("cumprod")
+  public static DoubleVector cumprod(Vector source) {
+    DoubleVector.Builder result = new DoubleVector.Builder();
+    double sum = source.getElementAsDouble(0);
+    result.add(sum);
+    for (int i = 1; i < source.length(); i++) {
+      sum *= source.getElementAsDouble(i);
+      result.add(sum);
+    }
+    return (result.build());
+  }
+  
+  @Primitive("cummax")
+  public static DoubleVector cummax(Vector source) {
+    DoubleVector.Builder result = new DoubleVector.Builder();
+    double max = source.getElementAsDouble(0);
+    result.add(max);
+    for (int i = 1; i < source.length(); i++) {
+      if (source.getElementAsDouble(i) > max || source.isElementNA(i)) {
+        max = source.getElementAsDouble(i);
+      }
+      result.add(max);
+    }
+    return (result.build());
+  }
+  
+  @Primitive("cummin")
+  public static DoubleVector cummin(Vector source) {
+    DoubleVector.Builder result = new DoubleVector.Builder();
+    double min = source.getElementAsDouble(0);
+    result.add(min);
+    for (int i = 1; i < source.length(); i++) {
+      if (source.getElementAsDouble(i) < min || source.isElementNA(i)) {
+        min = source.getElementAsDouble(i);
+      }
+      result.add(min);
+    }
+    return (result.build());
+  }
 
 }

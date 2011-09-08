@@ -103,4 +103,28 @@ public class SummaryTest extends EvalTestCase {
     assertThat(eval(".Internal(cov(c(1,2,3,4,5), c(5,4,3,2,1), 1, FALSE))"), equalTo(c(-2.5)));
   }
   
+  @Test
+  public void testCumsum() {
+    assertThat(eval("cumsum(1:10)"), equalTo(c(1, 3, 6, 10, 15, 21, 28, 36, 45, 55)));
+    assertThat(eval("cumsum(c(1,2,NA,4))"), equalTo(c(1, 3, DoubleVector.NA, DoubleVector.NA)));
+  }
+
+  @Test
+  public void testCumprod() {
+    assertThat(eval("cumprod(1:10)"), equalTo(c(1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800)));
+    assertThat(eval("cumprod(c(4,7,NA,10))"), equalTo(c(4, 28, DoubleVector.NA, DoubleVector.NA)));
+  }
+
+  @Test
+  public void testCummax() {
+    assertThat(eval("cummax(c(5,4,6,7,4,2,10))"), equalTo(c(5, 5, 6, 7, 7, 7, 10)));
+    assertThat(eval("cummax(c(5,4,6,NA,4,2,10))"), equalTo(c(5, 5, 6, DoubleVector.NA, DoubleVector.NA, DoubleVector.NA, DoubleVector.NA)));
+  }
+  
+  @Test
+  public void testCummin() {
+    assertThat(eval("cummin(c(5,4,6,7,4,2,10))"), equalTo(c(5, 4, 4, 4, 4, 2, 2)));
+    assertThat(eval("cummin(c(5,4,6,NA,4,2,10))"), equalTo(c(5, 4, 4, DoubleVector.NA, DoubleVector.NA, DoubleVector.NA, DoubleVector.NA)));
+  }
+  
 }

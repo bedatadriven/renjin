@@ -617,10 +617,10 @@ public class BaseFrame implements Frame {
 
 /* Note that the number of arguments in this group only applies
    to the default method */
-    f("cumsum", /*cum*/ null, 1, 1, 1);
-    f("cumprod", /*cum*/ null, 2, 1, 1);
-    f("cummax", /*cum*/ null, 3, 1, 1);
-    f("cummin", /*cum*/ null, 4, 1, 1);
+    f("cumsum", Summary.class, 1, 1, 1);
+    f("cumprod", Summary.class, 2, 1, 1);
+    f("cummax", Summary.class, 3, 1, 1);
+    f("cummin", Summary.class, 4, 1, 1);
 
 /* Type coercion */
 

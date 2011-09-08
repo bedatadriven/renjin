@@ -32,6 +32,7 @@ import static r.io.SerializationFormat.SYMSXP;
 import static r.io.SerializationFormat.UTF8_MASK;
 import static r.io.SerializationFormat.VECSXP;
 import static r.io.SerializationFormat.VERSION2;
+import static r.io.SerializationFormat.RAWSXP;
 import static r.io.SerializationFormat.XDR_FORMAT;
 
 import java.io.DataOutputStream;
@@ -47,6 +48,7 @@ import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.Symbol;
+import r.lang.RawVector;
 
 public class DatafileWriter {
 
@@ -81,6 +83,8 @@ public class DatafileWriter {
       writePairList((PairList.Node) exp);
     } else if(exp instanceof Symbol) {
       writeSymbol((Symbol) exp);
+    } else if(exp instanceof RawVector) {
+      writeRawVector((RawVector) exp);
     } else {
       throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented");
     }
@@ -121,6 +125,21 @@ public class DatafileWriter {
     }
     writeAttributes(vector);
   }
+  
+  
+  private void writeRawVector(RawVector vector) throws IOException {
+    writeFlags(RAWSXP, vector);
+    out.writeInt(vector.length());
+    for(int i=0;i!=vector.length();++i) {
+      if(vector.isElementNA(i)) {
+        out.writeLong(SerializationFormat.XDR_NA_BITS);
+      } else {
+        out.write(vector.getElement(i).getAsByte());
+      }
+    }
+    writeAttributes(vector);
+  }
+  
 
   private void writeStringVector(StringVector vector) throws IOException {
     writeFlags(STRSXP, vector);

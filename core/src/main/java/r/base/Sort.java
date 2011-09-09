@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import r.jvmi.annotations.Primitive;
 
 public class Sort {
 
@@ -110,4 +111,39 @@ public class Sort {
 
         return result.build();
     }   
+    
+  @Primitive("which.min")
+  public static IntVector whichMin(Vector v) {
+    if (v.length() == 0) {
+      IntVector.Builder b = new IntVector.Builder();
+      return (b.build());
+    }
+    int minIndex = 0;
+    double globalMin = v.getElementAsDouble(0);
+    //this loop would be started from 1 but it needs more code. I think this is fine.
+    for (int i = 0; i < v.length(); i++) {
+      if (v.getElementAsDouble(i) < globalMin) {
+        globalMin = v.getElementAsDouble(i);
+        minIndex = i;
+      }
+    }
+    return (new IntVector(minIndex + 1));
+  }
+
+  @Primitive("which.max")
+  public static IntVector whichMax(Vector v) {
+    if (v.length() == 0) {
+      IntVector.Builder b = new IntVector.Builder();
+      return (b.build());
+    }
+    int maxIndex = 0;
+    double globalMax = v.getElementAsDouble(0);
+    for (int i = 0; i < v.length(); i++) {
+      if (v.getElementAsDouble(i) > globalMax) {
+        globalMax = v.getElementAsDouble(i);
+        maxIndex = i;
+      }
+    }
+    return (new IntVector(maxIndex + 1));
+  }
 }

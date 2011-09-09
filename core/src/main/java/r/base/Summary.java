@@ -274,12 +274,12 @@ public class Summary {
     double sum = source.getElementAsDouble(0);
     result.add(sum);
     for (int i = 1; i < source.length(); i++) {
-      if (DoubleVector.isNA(sum) || source.isElementNA(i) || DoubleVector.isNaN(source.getElementAsDouble(i))) {
-        sum = DoubleVector.NA;
+      sum += source.getElementAsDouble(i);
+      if (Double.isNaN(sum)) {
+        result.addNA();
       } else {
-        sum += source.getElementAsDouble(i);
+        result.add(sum);
       }
-      result.add(sum);
     }
     return (result.build());
   }
@@ -290,12 +290,12 @@ public class Summary {
     double sum = source.getElementAsDouble(0);
     result.add(sum);
     for (int i = 1; i < source.length(); i++) {
-      if (DoubleVector.isNA(sum) || source.isElementNA(i) || DoubleVector.isNaN(source.getElementAsDouble(i))) {
-        sum = DoubleVector.NA;
+      sum *= source.getElementAsDouble(i);
+      if (Double.isNaN(sum)) {
+        result.addNA();
       } else {
-        sum *= source.getElementAsDouble(i);
+        result.add(sum);
       }
-      result.add(sum);
     }
     return (result.build());
   }

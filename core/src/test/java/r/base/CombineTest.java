@@ -22,6 +22,7 @@ package r.base;
 
 import org.junit.Test;
 import r.EvalTestCase;
+import r.lang.IntVector;
 import r.lang.Logical;
 import r.lang.SEXP;
 
@@ -157,4 +158,14 @@ public class CombineTest extends EvalTestCase {
         assertThat(eval(".Internal(matrix(c(1,2,3,4),2,2,TRUE,NULL))"), equalTo(c(1, 3, 2, 4)));
         assertThat(eval(".Internal(matrix(c(1,2,3,4),2,4,TRUE,NULL))"), equalTo(c(1, 1, 2, 2, 3, 3, 4, 4)));
     }
+    
+  @Test
+  public void rowTest() {
+    assertThat(eval(".Internal(row(dim(.Internal(matrix(1:12,3,4, FALSE,NULL)))))"), equalTo(c_i(1,2,3,1,2,3,1,2,3,1,2,3)));
+  }
+  
+  @Test
+  public void colTest() {
+    assertThat(eval(".Internal(col(dim(.Internal(matrix(1:12,3,4, FALSE,NULL)))))"), equalTo(c_i(1,1,1,2,2,2,3,3,3,4,4,4)));
+  }
 }

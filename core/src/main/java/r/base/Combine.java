@@ -30,6 +30,7 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 
 import java.util.List;
+import r.jvmi.annotations.Primitive;
 
 /**
  * Implementation of the combine-related functions, including c(), list(), unlist(),
@@ -610,5 +611,39 @@ public class Combine {
         return result.build();
     }
 
+  
+  @Primitive("row")
+  public static IntVector row(IntVector dims){
+    IntVector.Builder data = new IntVector.Builder();
+    if(dims.length()!=2){
+      throw new EvalException("a matrix-like object is required as argument to 'row/col'");
+    }
+    int n = dims.getElementAsInt(0);
+    int m = dims.getElementAsInt(1);
+    for (int i=0;i<n;i++){
+      for (int j=0;j<m;j++){
+        data.add(i+1);
+      }
+    }
+    IntVector result = (IntVector)matrix(data.build(),n,m,true,null);
+    return(result);
+  }
+  
+  @Primitive("col")
+  public static IntVector col(IntVector dims){
+    IntVector.Builder data = new IntVector.Builder();
+    if(dims.length()!=2){
+      throw new EvalException("a matrix-like object is required as argument to 'row/col'");
+    }
+    int n = dims.getElementAsInt(0);
+    int m = dims.getElementAsInt(1);
+    for (int i=0;i<n;i++){
+      for (int j=0;j<m;j++){
+        data.add(j+1);
+      }
+    }
+    IntVector result = (IntVector)matrix(data.build(),n,m,true,null);
+    return(result);
+  }
 
 }

@@ -191,15 +191,14 @@ public class System {
   
   @Primitive("date")
   public static StringVector date() {
+    // R Style Date Format
+    // Example in R: Fri Sep  9 12:20:00 2011 
+    // Example in Renjin: Fri Sep 09 12:20:00 2011 
     SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
     StringVector.Builder b = new StringVector.Builder();
     Date d = new Date();
     String parsed = null;
-    try {
-      parsed = sdf.format(d);
-    } catch (Exception e) {
-      //Probably nobody will see this exception. But it is possible :)
-    }
+    parsed = sdf.format(d);
     b.add(parsed);
     return (b.build());
   }

@@ -274,24 +274,32 @@ public class Summary {
     double sum = source.getElementAsDouble(0);
     result.add(sum);
     for (int i = 1; i < source.length(); i++) {
-      sum += source.getElementAsDouble(i);
+      if (DoubleVector.isNA(sum) || source.isElementNA(i) || DoubleVector.isNaN(source.getElementAsDouble(i))) {
+        sum = DoubleVector.NA;
+      } else {
+        sum += source.getElementAsDouble(i);
+      }
       result.add(sum);
     }
     return (result.build());
   }
-  
+
   @Primitive("cumprod")
   public static DoubleVector cumprod(Vector source) {
     DoubleVector.Builder result = new DoubleVector.Builder();
     double sum = source.getElementAsDouble(0);
     result.add(sum);
     for (int i = 1; i < source.length(); i++) {
-      sum *= source.getElementAsDouble(i);
+      if (DoubleVector.isNA(sum) || source.isElementNA(i) || DoubleVector.isNaN(source.getElementAsDouble(i))) {
+        sum = DoubleVector.NA;
+      } else {
+        sum *= source.getElementAsDouble(i);
+      }
       result.add(sum);
     }
     return (result.build());
   }
-  
+
   @Primitive("cummax")
   public static DoubleVector cummax(Vector source) {
     DoubleVector.Builder result = new DoubleVector.Builder();
@@ -300,12 +308,14 @@ public class Summary {
     for (int i = 1; i < source.length(); i++) {
       if (source.getElementAsDouble(i) > max || source.isElementNA(i)) {
         max = source.getElementAsDouble(i);
+      } else if (DoubleVector.isNaN(source.getElementAsDouble(i))) {
+        max = DoubleVector.NA;
       }
       result.add(max);
     }
     return (result.build());
   }
-  
+
   @Primitive("cummin")
   public static DoubleVector cummin(Vector source) {
     DoubleVector.Builder result = new DoubleVector.Builder();
@@ -314,6 +324,8 @@ public class Summary {
     for (int i = 1; i < source.length(); i++) {
       if (source.getElementAsDouble(i) < min || source.isElementNA(i)) {
         min = source.getElementAsDouble(i);
+      } else if (DoubleVector.isNaN(source.getElementAsDouble(i))) {
+        min = DoubleVector.NA;
       }
       result.add(min);
     }

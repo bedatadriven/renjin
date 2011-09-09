@@ -1117,7 +1117,12 @@ an ANSI digit or not */
         xxungetc(c);
         return ERROR;
       }
-      buffer.append(c);
+      //buffer.append(c);
+      /*
+       * buffer.append(c) causes renjin to interprete the matrix production operator %*%
+       * as %42%. Chaning it to buffer.appendCodePoint(c) seems to fix the error.
+       */
+      buffer.appendCodePoint(c);
     }
     if (c == '%') {
       buffer.appendCodePoint(c);

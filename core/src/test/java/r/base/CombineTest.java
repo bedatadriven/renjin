@@ -150,13 +150,14 @@ public class CombineTest extends EvalTestCase {
     public void matrix() {
         assertThat(eval(".Internal(matrix(c(1,2,3,4),2,2,FALSE,NULL))"), equalTo(c(1, 2, 3, 4)));
         assertThat(eval(".Internal(matrix(c(1,2,3,4),2,4,FALSE,NULL))"), equalTo(c(1, 2, 3, 4, 1, 2, 3, 4)));
-
+        assertThat(eval("as.double(.Internal(matrix(1:10,5,2,FALSE,NULL)))"), equalTo(c(1,2,3,4,5,6,7,8,9,10)));
     }
 
     @Test
     public void matrixByRow() {
         assertThat(eval(".Internal(matrix(c(1,2,3,4),2,2,TRUE,NULL))"), equalTo(c(1, 3, 2, 4)));
         assertThat(eval(".Internal(matrix(c(1,2,3,4),2,4,TRUE,NULL))"), equalTo(c(1, 1, 2, 2, 3, 3, 4, 4)));
+        assertThat(eval("as.double(.Internal(matrix(1:10,5,2,TRUE,NULL)))"), equalTo(c(1,3,5,7,9,2,4,6,8,10)));
     }
     
   @Test

@@ -109,8 +109,7 @@ public class Types {
   }
 
   public static boolean isList(SEXP exp) {
-    return exp instanceof ListVector
-            || exp.getClass() == PairList.Node.class;
+    return exp instanceof ListVector || exp.getClass() == PairList.Node.class;
   }
 
   public static boolean isPairList(SEXP exp) {
@@ -127,8 +126,7 @@ public class Types {
 
   public static boolean isNumeric(SEXP exp) {
     return (exp instanceof IntVector && !exp.inherits("factor"))
-            || exp instanceof LogicalVector
-            || exp instanceof DoubleVector;
+        || exp instanceof LogicalVector || exp instanceof DoubleVector;
   }
 
   @Primitive("is.matrix")
@@ -180,9 +178,8 @@ public class Types {
   }
 
   public static boolean isLanguage(SEXP exp) {
-    return exp instanceof Symbol
-            || exp instanceof FunctionCall
-            || exp instanceof ExpressionVector;
+    return exp instanceof Symbol || exp instanceof FunctionCall
+        || exp instanceof ExpressionVector;
 
   }
 
@@ -222,19 +219,12 @@ public class Types {
   @Primitive("as.raw")
   public static RawVector asRaw(Vector source) {
     /*
-    Vector iv = (Vector) values;
-    RawVector.Builder b = new RawVector.Builder();
-    int value;
-    Raw raw;
-    for (int i = 0; i < values.length(); i++) {
-      value = iv.getElementAsInt(i);
-      if (value < 0 || value > 255) {
-        throw new EvalException("out-of-range values treated as 0 in coercion to raw");
-      }
-      raw = new Raw(iv.getElementAsInt(i));
-      b.add(raw);
-    }
-    return (b.build());
+     * Vector iv = (Vector) values; RawVector.Builder b = new
+     * RawVector.Builder(); int value; Raw raw; for (int i = 0; i <
+     * values.length(); i++) { value = iv.getElementAsInt(i); if (value < 0 ||
+     * value > 255) { throw new
+     * EvalException("out-of-range values treated as 0 in coercion to raw"); }
+     * raw = new Raw(iv.getElementAsInt(i)); b.add(raw); } return (b.build());
      */
     return (RawVector) convertVector(new RawVector.Builder(), source);
   }
@@ -243,7 +233,7 @@ public class Types {
   public static SEXP isRaw(Vector v) {
     return (new LogicalVector(v.getVectorType() == RawVector.VECTOR_TYPE));
   }
-  
+
   @Primitive("rawToBits")
   public static RawVector rawToBits(RawVector rv) {
     RawVector.Builder b = new RawVector.Builder();
@@ -256,41 +246,41 @@ public class Types {
     }
     return (b.build());
   }
-  
+
   @Primitive("charToRaw")
   public static RawVector charToRaw(StringVector sv) {
     RawVector.Builder b = new RawVector.Builder();
     if (sv.length() != 1) {
-      throw new EvalException("argument should be a character vector of length 1");
+      throw new EvalException(
+          "argument should be a character vector of length 1");
     }
     for (int i = 0; i < sv.getElement(0).length(); i++) {
       b.add(new Raw(sv.getElement(0).charAt(i)));
     }
     return (b.build());
   }
-  
+
   @Primitive("rawShift")
   public static RawVector rawShift(RawVector rv, int n) {
-    if(n>Raw.NUM_BITS || n<(-1 * Raw.NUM_BITS)){
+    if (n > Raw.NUM_BITS || n < (-1 * Raw.NUM_BITS)) {
       throw new EvalException("argument 'shift' must be a small integer");
     }
     RawVector.Builder b = new RawVector.Builder();
     Raw r;
     for (int i = 0; i < rv.length(); i++) {
-      if(n>=0){
+      if (n >= 0) {
         r = new Raw((byte) (rv.getElement(i).getAsByte() << Math.abs(n)));
-      }else{
+      } else {
         r = new Raw((byte) (rv.getElement(i).getAsByte() >> Math.abs(n)));
       }
       b.add(r);
     }
     return (b.build());
   }
-  
+
   /*
-   * !!Weird
-   * It is supposed to be an integer has four bytes!
-   * It is supposed to be integer's byte order is big-endian!
+   * !!Weird It is supposed to be an integer has four bytes! It is supposed to
+   * be integer's byte order is big-endian!
    */
   @Primitive("intToBits")
   public static RawVector intToBits(Vector rv) {
@@ -369,12 +359,13 @@ public class Types {
     } else if ("symbol".equals(mode)) {
       // weird but seen in the base package
       if (x.length() == 0) {
-        throw new EvalException("invalid type/length (symbol/0) in vector allocation");
+        throw new EvalException(
+            "invalid type/length (symbol/0) in vector allocation");
       }
       return new Symbol(x.getElementAsString(0));
-    } else if ("raw".equals(mode)){
+    } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
-    }else {
+    } else {
       throw new EvalException("invalid 'mode' argument: " + mode);
     }
 
@@ -399,7 +390,7 @@ public class Types {
       result = new DoubleVector.Builder(x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
-    } else if ("raw".equals(mode)){
+    } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
     } else {
       throw new EvalException("invalid 'mode' argument");
@@ -424,9 +415,11 @@ public class Types {
 
   /**
    * Creates a new, unevaluated FunctionCall expression from a list vector.
-   * @param list a list containing the function as the first element, followed
-   *  by arguments
-   * @return  an unevaluated FunctionCall expression
+   * 
+   * @param list
+   *          a list containing the function as the first element, followed by
+   *          arguments
+   * @return an unevaluated FunctionCall expression
    */
   @Primitive("as.call")
   public static FunctionCall asCall(ListVector list) {
@@ -461,7 +454,8 @@ public class Types {
   }
 
   @Primitive("parent.env<-")
-  public static Environment setParentEnv(Environment environment, Environment newParent) {
+  public static Environment setParentEnv(Environment environment,
+      Environment newParent) {
     environment.setParent(newParent);
     return environment;
   }
@@ -492,9 +486,11 @@ public class Types {
     return env.isLocked();
   }
 
-  public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual, boolean singleNA, boolean attributesAsSet) {
+  public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual,
+      boolean singleNA, boolean attributesAsSet) {
     if (!numericallyEqual || !singleNA || !attributesAsSet) {
-      throw new EvalException("identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");
+      throw new EvalException(
+          "identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");
     }
     return x.equals(y);
   }
@@ -545,7 +541,9 @@ public class Types {
     }
 
     if (prod != exp.length()) {
-      throw new EvalException("dims [product %d] do not match the length of object [%d]", prod, exp.length());
+      throw new EvalException(
+          "dims [product %d] do not match the length of object [%d]", prod,
+          exp.length());
     }
 
     return exp.setAttribute(Symbol.DIM, new IntVector(dim));
@@ -579,7 +577,8 @@ public class Types {
         partialMatchCount++;
       }
     }
-    return partialMatchCount == 1 ? Attributes.postProcessAttributeValue(partialMatch) : Null.INSTANCE;
+    return partialMatchCount == 1 ? Attributes
+        .postProcessAttributeValue(partialMatch) : Null.INSTANCE;
   }
 
   @Primitive("attributes<-")
@@ -631,13 +630,16 @@ public class Types {
     return context.getGlobalEnvironment();
   }
 
-  public static boolean exists(@Current Context context, String x, Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(new Symbol(x), modePredicate(mode), inherits)
-            != Symbol.UNBOUND_VALUE;
+  public static boolean exists(@Current Context context, String x,
+      Environment environment, String mode, boolean inherits) {
+    return environment.findVariable(new Symbol(x), modePredicate(mode),
+        inherits) != Symbol.UNBOUND_VALUE;
   }
 
-  public static SEXP get(@Current Context context, String x, Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(new Symbol(x), modePredicate(mode), inherits);
+  public static SEXP get(@Current Context context, String x,
+      Environment environment, String mode, boolean inherits) {
+    return environment.findVariable(new Symbol(x), modePredicate(mode),
+        inherits);
   }
 
   public static int length(SEXP exp) {
@@ -675,12 +677,13 @@ public class Types {
       Arrays.fill(values, Null.INSTANCE);
       return PairList.Node.fromArray(values);
 
-    } else if ("raw".equals(mode)){
+    } else if ("raw".equals(mode)) {
       Raw values[] = new Raw[length];
       Arrays.fill(values, Null.INSTANCE);
       return new RawVector(values);
-    }else {
-      throw new EvalException(String.format("vector: cannot make a vector of mode '%s'.", mode));
+    } else {
+      throw new EvalException(String.format(
+          "vector: cannot make a vector of mode '%s'.", mode));
     }
   }
 
@@ -689,8 +692,11 @@ public class Types {
     Vector.Builder builder;
     if (newMode.equals("logical")) {
       builder = new LogicalVector.Builder();
+    } else if (newMode.equals("double")) {
+      builder = new DoubleVector.Builder();
     } else {
-      throw new UnsupportedOperationException("storage.mode with new mode '" + newMode + "' invalid or not implemented");
+      throw new UnsupportedOperationException("storage.mode with new mode '"
+          + newMode + "' invalid or not implemented");
     }
 
     for (int i = 0; i != source.length(); ++i) {
@@ -765,7 +771,8 @@ public class Types {
     int result[] = new int[what.length()];
 
     for (int i = 0; i != what.length(); ++i) {
-      result[i] = Iterables.indexOf(classes, Predicates.equalTo(what.getElement(i))) + 1;
+      result[i] = Iterables.indexOf(classes,
+          Predicates.equalTo(what.getElement(i))) + 1;
     }
     return new IntVector(result);
   }
@@ -793,11 +800,14 @@ public class Types {
   }
 
   @Visible(false)
-  public static Environment attach(@Current Context context, SEXP what, int pos, String name) {
+  public static Environment attach(@Current Context context, SEXP what,
+      int pos, String name) {
 
-    //By default the database is attached in position 2 in the search path,
-    // immediately after the user's workspace and before all previously loaded packages and
-    // previously attached databases. This can be altered to attach later in the search
+    // By default the database is attached in position 2 in the search path,
+    // immediately after the user's workspace and before all previously loaded
+    // packages and
+    // previously attached databases. This can be altered to attach later in the
+    // search
     // path with the pos option, but you cannot attach at pos=1.
 
     if (pos < 2) {
@@ -829,11 +839,13 @@ public class Types {
     return "UTF-8";
   }
 
-  public static StringVector setEncoding(StringVector vector, String encodingName) {
+  public static StringVector setEncoding(StringVector vector,
+      String encodingName) {
     if (encodingName.equals("UTF-8") || encodingName.equals("unknown")) {
       return vector;
     } else {
-      throw new EvalException("Only UTF-8 and unknown encoding are supported at this point");
+      throw new EvalException(
+          "Only UTF-8 and unknown encoding are supported at this point");
     }
   }
 
@@ -875,7 +887,8 @@ public class Types {
     return true;
   }
 
-  public static ListVector options(@Current Context context, @ArgumentList ListVector arguments) {
+  public static ListVector options(@Current Context context,
+      @ArgumentList ListVector arguments) {
     Context.Options options = context.getGlobals().options;
     ListVector.Builder results = ListVector.newBuilder();
 
@@ -885,8 +898,9 @@ public class Types {
         results.add(name, options.get(name));
       }
 
-    } else if (arguments.length() == 1 && arguments.getElementAsSEXP(0) instanceof ListVector
-            && arguments.getName(0).isEmpty()) {
+    } else if (arguments.length() == 1
+        && arguments.getElementAsSEXP(0) instanceof ListVector
+        && arguments.getName(0).isEmpty()) {
       ListVector list = (ListVector) arguments.getElementAsSEXP(0);
       if (list.getAttribute(Symbol.NAMES) == Null.INSTANCE) {
         throw new EvalException("list argument has no valid names");
@@ -906,7 +920,8 @@ public class Types {
           results.add(name, options.set(name, argument.getValue()));
 
         } else if (argument.getValue() instanceof StringVector) {
-          String name = ((StringVector) argument.getValue()).getElementAsString(0);
+          String name = ((StringVector) argument.getValue())
+              .getElementAsString(0);
           results.add(name, options.get(name));
 
         } else {
@@ -918,7 +933,8 @@ public class Types {
   }
 
   /**
-   * returns a vector of type "expression" containing its arguments (unevaluated).
+   * returns a vector of type "expression" containing its arguments
+   * (unevaluated).
    */
   public static ExpressionVector expression(@ArgumentList ListVector arguments) {
     return new ExpressionVector(arguments);

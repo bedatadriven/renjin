@@ -27,6 +27,7 @@ import org.apache.commons.math.complex.Complex;
 import r.parser.ParseUtil;
 import r.util.collect.PrimitiveArrays;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -286,6 +287,10 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     return Arrays.hashCode(values);
   }
 
+  public double[] toDoubleArray() {
+    return Arrays.copyOf(values, values.length);
+  }
+  
   @Override
   public String toString() {
     if (values.length == 1) {
@@ -406,4 +411,5 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     }
 
   }
+
 }

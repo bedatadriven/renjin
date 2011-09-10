@@ -21,8 +21,21 @@
 
 package r.base;
 
+import static org.netlib.lapack.Dgesdd.dgesdd;
+
+import org.netlib.util.intW;
+
 import r.jvmi.annotations.Current;
-import r.lang.*;
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
 import r.lang.exception.EvalException;
 
 /**
@@ -117,5 +130,66 @@ public class Base {
     throw new EvalException("nyi");
   }
 
+  /**
+   * Singular Value Decomposition implemented with Jlapack, a mechanical Fortran-to-java translation 
+   * of the same lapack library that R uses.
+   * 
+   */
+  public static SEXP La_svd(String jobu, String jobv, DoubleVector x, DoubleVector  sexp,
+      DoubleVector uexp, DoubleVector vexp, String method ) {
+    
+    IntVector xdims = (IntVector) x.getAttribute(Symbol.DIM);
+    int n = xdims.getElementAsInt(0);
+    int p = xdims.getElementAsInt(1);
+
+    double xvals[] = x.toDoubleArray();
+    
+    int ldu =  ((IntVector)uexp.getAttribute(Symbol.DIM)).getElementAsInt(0);
+    int ldvt = ((IntVector)vexp.getAttribute(Symbol.DIM)).getElementAsInt(0);
+    
+    double s[] = sexp.toDoubleArray();
+    double u[] = uexp.toDoubleArray();
+    double v[] = vexp.toDoubleArray();
+    double tmp[] = new double[1];
+    
+    int iwork[] = new int[8*(n<p ? n : p)];
+
+    /* ask for optimal size of work array */
+    int lwork = -1;
+    intW info = new intW(0);
+    dgesdd(jobu, n, p, xvals, 0, n,  s, 0, u, 0, ldu, v, 0, ldvt, tmp, 0, lwork, iwork, 0, info); 
+    
+    if (info.val != 0) {
+      throw new EvalException("error code %d from Lapack routine '%s'", info.val, "dgesdd");
+    }
+     
+    lwork = (int) tmp[0];
+    double work[] = new double[lwork];
+    
+    dgesdd(jobu, n, p, xvals, 0, n, s, 0, u, 0, ldu, v, 0, ldvt, work, 0, lwork, iwork, 0, info);
+    
+    ListVector.Builder val = new ListVector.Builder();
+    val.add("d", new DoubleVector(s, sexp.getAttributes()));
+    val.add("u", new DoubleVector(u, uexp.getAttributes()));
+    val.add("vt", new DoubleVector(v, vexp.getAttributes()));
+    
+    return val.build();
+  }
+ 
+  // nicer API but output does not match R-2.10's result at all--
+  // do i misunderstand something??
+//  public static SEXP La_svd(String jobu, String jobv, DoubleVector x, DoubleVector  sexp,
+//      DoubleVector uexp, DoubleVector vexp, String method ) {
+//    
+//    SingularValueDecomposition svd = new SingularValueDecompositionImpl(CommonsMath.asRealMatrix(x));
+//        
+//    ListVector.Builder val = new ListVector.Builder();
+//    val.add("d", new DoubleVector(svd.getSingularValues()));
+//    val.add("u", CommonsMath.asDoubleVector(svd.getU()));
+//    val.add("vt", CommonsMath.asDoubleVector(svd.getVT()));
+//    
+//    return val.build();
+//  }
+  
   
 }

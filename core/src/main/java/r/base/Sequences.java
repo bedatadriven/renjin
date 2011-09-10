@@ -24,6 +24,7 @@ package r.base;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.math.linear.RealVector;
 import r.jvmi.annotations.ArgumentList;
+import r.jvmi.annotations.Generic;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
@@ -92,22 +93,40 @@ public class Sequences {
   }
 
   @Primitive("rep")
+  @Generic
   public static Vector repeat(@ArgumentList ListVector arguments) {
+    // this is one of the few primitive functions whose
+    // arguments are matched in the same way arguments to R closures.
+    // the implementation below is still not quite correct: it assumes
+    // that x is the first argument but that is not necessarily so...
+    
     if(arguments.length() < 1) {
       return Null.INSTANCE;
     }
     Vector x = EvalException.checkedCast(arguments.getElementAsSEXP(0));
     Vector.Builder result = x.newBuilder(0);
 
-    int times = findRepArgument(arguments, 1, "times");
-    int lengthOut = findRepArgument(arguments, 1, "length.out");
-    int each = findRepArgument(arguments, 1, "each");
-
-    int resultLength = x.length();
-
-    if(!IntVector.isNA(times)) {
-      resultLength = x.length() * times;
+    Vector times = findRepArgumentAsVector(arguments, 1, "times");
+    if(times == null) {
+      times = new IntVector(1);
     }
+    if(times.length() != 1 && times.length() != x.length()) {
+      throw new EvalException("invalid 'times' argument");
+    }
+    
+    int lengthOut = findRepArgument(arguments, 2, "length.out");
+    int each = findRepArgument(arguments, 3, "each");
+
+    int resultLength;
+
+    if(times.length() == 1) {
+      resultLength = x.length() * times.getElementAsInt(0);
+    } else {
+      resultLength = 0;
+      for(int i=0;i!=x.length();++i) {
+        resultLength += times.getElementAsInt(i);
+      }
+    } 
     if(!IntVector.isNA(each)) {
       resultLength = x.length() * each;
     } else {
@@ -117,12 +136,26 @@ public class Sequences {
       resultLength = lengthOut;
     }
 
+    if(times.length() > 1 && each > 1) {
+      throw new EvalException("invalid 'times' argument");
+    }
+
     StringVector.Builder names = StringVector.newBuilder();
     int result_i = 0;
-    for(int i=0;i!=resultLength;++i) {
-      int x_i = (i / each) % x.length();
-      result.setFrom(result_i++, x, x_i);
-      names.add(x.getName(x_i));
+
+    if(times.length() == 1) {
+      for(int i=0;i!=resultLength;++i) {
+        int x_i = (i / each) % x.length();
+        result.setFrom(result_i++, x, x_i);
+        names.add(x.getName(x_i));
+      }
+    } else {
+      for(int x_i=0;x_i!=x.length();++x_i) {
+        for(int j=0;j<times.getElementAsInt(x_i);++j) {
+          result.setFrom(result_i++, x, x_i);
+          names.add(x.getName(x_i));
+        }
+      }
     }
     if(names.haveNonEmpty()) {
       result.setAttribute(Symbol.NAMES, names.build());
@@ -131,17 +164,28 @@ public class Sequences {
     return result.build();
   }
 
-  private static int findRepArgument(ListVector arguments, int position, String name) {
+  private static Vector findRepArgumentAsVector(ListVector arguments, int position, String name) {
     for(int i=1;i!=arguments.length();++i) {
-      if(name.startsWith(arguments.getName(i))) {
-        return arguments.getElementAsInt(i);
+      String argName = arguments.getName(i);
+      if(!argName.isEmpty() && name.startsWith(argName)) {
+        return (Vector)arguments.getElementAsSEXP(i);
       }
     }
     if(position < arguments.length() && arguments.getName(position).isEmpty()) {
-      return arguments.getElementAsInt(position);
+      return (Vector)arguments.getElementAsSEXP(position);
     }
-    return IntVector.NA;
+    return null;
   }
+  
+  private static int findRepArgument(ListVector arguments, int position, String name) {
+    Vector x = findRepArgumentAsVector(arguments, position, name);
+    if(x == null) {
+      return IntVector.NA;
+    } else {
+      return x.getElementAsInt(0);
+    }
+  }
+  
 
   @VisibleForTesting
   static class Range {

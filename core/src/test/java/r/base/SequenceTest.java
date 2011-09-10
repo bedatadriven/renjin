@@ -96,6 +96,20 @@ public class SequenceTest extends EvalTestCase {
     assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 2))"), equalTo(c("a","b","c","a","b","c")));
     assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 0))"), equalTo( CHARACTER_0 ));
   }
+  
+  @Test
+  public void repRecycling() {
+    assertThat( eval(" rep(c(1, 2, 3, 4, 5, 6, 7, 8, 9), c(9, 9, 9, 9, 9, 9, 9, 9, 9))"), equalTo(
+        c(1, 1, 1, 1, 1, 1, 1, 1, 1, 
+          2, 2, 2, 2, 2, 2, 2, 2, 2,
+          3, 3, 3, 3, 3, 3, 3, 3, 3,
+          4, 4, 4, 4, 4, 4, 4, 4, 4,
+          5, 5, 5, 5, 5, 5, 5, 5, 5, 
+          6, 6, 6, 6, 6, 6, 6, 6, 6,
+          7, 7, 7, 7, 7, 7, 7, 7, 7,
+          8, 8, 8, 8, 8, 8, 8, 8, 8,
+          9, 9, 9, 9, 9, 9, 9, 9, 9)));
+  }
 
   @Test
   public void seqInt() {

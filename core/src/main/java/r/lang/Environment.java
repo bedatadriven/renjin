@@ -223,7 +223,7 @@ public class Environment extends AbstractSEXP implements Recursive {
    * @param symbol The symbol for which to search
    * @param predicate a predicate that tests possible return values
    * @param inherits if {@code true}, enclosing frames are searched
-   * @return
+   * @return the bound value or {@code Symbol.UNBOUND_VALUE} if not found
    */
   public SEXP findVariable(Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
     SEXP value = frame.getVariable(symbol);
@@ -238,6 +238,12 @@ public class Environment extends AbstractSEXP implements Recursive {
     return parent.findVariable(symbol, predicate, inherits);
   }
 
+  /**
+   * Recursively searches this environment and its parent for the symbol {@code symbol}
+   * 
+   * @param symbol the symbol for which to search
+   * @return the bound value, or {@code Symbol.UNBOUND_VALUE} if not found
+   */
   public SEXP findVariable(Symbol symbol) {
     SEXP value = frame.getVariable(symbol);
     if(value != Symbol.UNBOUND_VALUE) {

@@ -1,29 +1,31 @@
 package r.jvmi.wrapper.generator.scalars;
 
+import r.lang.Logical;
 import r.lang.LogicalVector;
 import r.lang.Vector.Builder;
 
-public class BooleanType extends ScalarType {
+public class LogicalType extends ScalarType {
+
 
   @Override
   public Class getScalarType() {
-    return Boolean.TYPE;
+    return Logical.class;
   }
 
   @Override
   public String getConversionMethod() {
-    return "convertToBooleanPrimitive";
+    return "convertToLogical";
   }
 
   @Override
   public String getAccessorMethod() {
-    return "isElementTrue";
+    return "isElementAsLogical";
   }
 
   @Override
   public Class getStorageType() {
     return Integer.TYPE;
-  }  
+  }
   
   @Override
   public String getNALiteral() {
@@ -37,11 +39,13 @@ public class BooleanType extends ScalarType {
 
   @Override
   public String convertToStorageTypeExpression(String valueExpression) {
-    return "(" + valueExpression + " ? 1 : 0)";
+    return valueExpression + ".getInternalValue()";
   }
 
   @Override
   public Class<LogicalVector.Builder> getBuilderClass() {
     return LogicalVector.Builder.class;
   }
+
+
 }

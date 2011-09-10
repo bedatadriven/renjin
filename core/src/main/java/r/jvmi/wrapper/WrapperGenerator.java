@@ -92,8 +92,9 @@ public class WrapperGenerator {
   //  strategies.add(new SingleOverloadWithoutRecycling());
    // strategies.add(new UnaryRecyclingStrategy());
     strategies.add(new AnnotationBasedStrategy());
-
   
+    int implementedCount = 0;
+    
     List<Entry> entries = new BaseFrame().getEntries();
     for(Entry entry : entries) {
       if(singleFunction == null || singleFunction.equals(entry.name)) {
@@ -102,6 +103,7 @@ public class WrapperGenerator {
         if(overloads.isEmpty()) {
           System.out.println(entry.name + ": not implemented.");
         } else {
+          implementedCount ++;
           
           GeneratorStrategy strategy = findStrategy(strategies, overloads);
           if(strategy != null) {
@@ -114,7 +116,10 @@ public class WrapperGenerator {
         }
       }
     }
-
+    
+    System.out.println("Total primitives: " + entries.size());
+    System.out.println("   % Implemented: " + ((double)implementedCount / entries.size() * 100d) + "%");
+     
   }
 
 

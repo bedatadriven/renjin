@@ -22,10 +22,11 @@ package r.base;
 
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
+
 import r.jvmi.annotations.Primitive;
+import r.jvmi.annotations.Recycle;
 import r.lang.IntVector;
 import r.lang.ListVector;
-import r.lang.StringVector;
 import r.lang.Symbol;
 import r.lang.Vector;
 
@@ -37,10 +38,12 @@ public class MathExt {
   private MathExt() {
   }
 
+  @Recycle
   public static double gamma(double x) {
     return Math.exp(Gamma.logGamma(x));
   }
 
+  @Recycle
   public static double log(double x, double base) {
 
     //Method cannot be called directly as R and Apache Commons Math argument order
@@ -48,12 +51,19 @@ public class MathExt {
     return MathUtils.log(base, x);
   }
 
+  @Recycle
   public static double log(double d) {
     return Math.log(d);
   }
 
+  @Recycle
   public static double log2(double d) {
     return MathUtils.log(2, d);
+  }
+  
+  @Recycle
+  public static double abs(double x) {
+    return Math.abs(x);
   }
 
   @Primitive("t.default")

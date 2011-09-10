@@ -12,7 +12,7 @@ public class StringType extends ScalarType {
 
   @Override
   public String getConversionMethod() {
-    return null;
+    return "convertToString";
   }
 
   @Override

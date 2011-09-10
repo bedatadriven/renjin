@@ -60,6 +60,11 @@ public class SubscriptOperation {
     }
     return this;
   }
+  
+  public SubscriptOperation setSubscripts(ListVector arguments) {
+    subscriptArguments = Lists.newArrayList(arguments);
+    return this;
+  }
 
   public SubscriptOperation setDrop(boolean drop) {
     this.drop = drop;

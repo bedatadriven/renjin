@@ -85,28 +85,29 @@ public class Subscript {
   }
 
   @Generic @Primitive("[")
-  public static SEXP getSubset(@ArgumentList ListVector arguments,
+  public static SEXP getSubset(SEXP source, 
+                               @ArgumentList ListVector arguments,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     return new SubscriptOperation()
-        .setSource(arguments.getElementAsSEXP(0))
+        .setSource(source)
         .setDrop(drop)
-        .setSubscripts(arguments, 1, 0)
+        .setSubscripts(arguments)
         .extract();
   }
 
   @Generic @Primitive("[<-")
-  public static SEXP setSubset(@ArgumentList ListVector arguments) {
+  public static SEXP setSubset(SEXP source, @ArgumentList ListVector arguments) {
     return new SubscriptOperation()
-        .setSource(arguments.getElementAsSEXP(0))
-        .setSubscripts(arguments, 1, 1)
+        .setSource(source)
+        .setSubscripts(arguments, 0, 1)
         .replace((Vector) arguments.getElementAsSEXP(arguments.length()-1), false);
   }
 
   @Generic @Primitive("[[<-")
-  public static SEXP setSingleElement(@ArgumentList ListVector arguments) {
+  public static SEXP setSingleElement(SEXP source, @ArgumentList ListVector arguments) {
     return new SubscriptOperation()
-        .setSource(arguments.getElementAsSEXP(0))
-        .setSubscripts(arguments, 1, 1)
+        .setSource(source)
+        .setSubscripts(arguments, 0, 1)
         .replace(arguments.getElementAsSEXP(arguments.length()-1), true);
   }
 
@@ -149,7 +150,7 @@ public class Subscript {
   }
 
   @Generic @Primitive("[[")
-  public static SEXP getSingleElementByExactName(PairList pairlist, String subscript) {
+  public static SEXP getSingleElementByExactName(PairList.Node pairlist, String subscript) {
     return getSingleElementByExactName(pairlist.toVector(), subscript);
   }
 
@@ -173,7 +174,7 @@ public class Subscript {
   }
 
   @Generic @Primitive("[[")
-  public static SEXP getSingleElementByName(PairList pairlist, String subscript, boolean exact) {
+  public static SEXP getSingleElementByName(PairList.Node pairlist, String subscript, boolean exact) {
     return getSingleElementByName(pairlist.toVector(), subscript, exact);
   }
 

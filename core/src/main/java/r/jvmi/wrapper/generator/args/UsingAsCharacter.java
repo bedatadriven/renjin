@@ -5,14 +5,24 @@ import r.jvmi.binding.JvmMethod.Argument;
 
 public class UsingAsCharacter extends ArgConverterStrategy {
 
-  @Override
-  public boolean accept(Argument formal) {
+  public UsingAsCharacter(Argument formal) {
+    super(formal);
+  }
+
+  public static boolean accept(Argument formal) {
     return formal.isAnnotatedWith(InvokeAsCharacter.class);
   }
 
   @Override
-  public String conversionExpression(Argument formal, String argumentExpression) {
+  public String conversionExpression(String argumentExpression) {
     return "invokeAsCharacter(context, rho, " + argumentExpression + ")";
   }
+
+  @Override
+  public String getTestExpr(String argLocal) {
+    return "true";
+  }
+  
+  
 
 }

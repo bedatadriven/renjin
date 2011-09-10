@@ -194,6 +194,7 @@ public class Types {
     throw new EvalException("type \"single\" unimplemented in R");
   }
 
+  @Primitive("is.na")
   public static LogicalVector isNA(Vector list) {
     LogicalVector.Builder result = new LogicalVector.Builder(list.length());
     for (int i = 0; i != list.length(); ++i) {
@@ -206,15 +207,15 @@ public class Types {
     return result.build();
   }
 
-  public static boolean isNaN(double value) {
+  public static boolean isNaN(@Recycle double value) {
     return DoubleVector.isNaN(value);
   }
 
-  public static boolean isFinite(double value) {
+  public static boolean isFinite(@Recycle double value) {
     return !Double.isInfinite(value);
   }
 
-  public static boolean isInfinite(double value) {
+  public static boolean isInfinite(@Recycle double value) {
     return Double.isInfinite(value);
   }
 
@@ -491,7 +492,6 @@ public class Types {
     return env.isLocked();
   }
 
-  @Recycle(false)
   public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual, boolean singleNA, boolean attributesAsSet) {
     if (!numericallyEqual || !singleNA || !attributesAsSet) {
       throw new EvalException("identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");

@@ -59,8 +59,8 @@
     
     <dependency>
       <groupId>org.netlib</groupId>
-      <artifactId>lapack</artifactId>
-      <version>0.8</version>
+      <artifactId>netlib-java</artifactId>
+      <version>0.9.3</version>
     </dependency>
 
     <!-- Abstraction on file system -->

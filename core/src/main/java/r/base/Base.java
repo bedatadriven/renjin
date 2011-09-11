@@ -23,6 +23,7 @@ package r.base;
 
 import static org.netlib.lapack.Dgesdd.dgesdd;
 
+import org.netlib.lapack.LAPACK;
 import org.netlib.util.intW;
 
 import r.jvmi.annotations.Current;
@@ -40,6 +41,16 @@ import r.lang.exception.EvalException;
 
 /**
  * Implementation of routines from the base dll.
+ * 
+ * <p>The functions implemented here are distinct from the collection of
+ * primitives which make up most of the base package; these functions are
+ * called from R code using the .Call("methodname", arg1, arg2, ... argn, PACKAGE="base") syntax.
+ * 
+ * <p>Also note that many methods use a convention whereby the values to be 
+ * returned are allocated by the calling R code to save the C implementors the
+ * trouble of dealing with memory management (I think), so many of these methods 
+ * take what are, in renjin's context, unused arguments. 
+ * 
  */
 public class Base {
 
@@ -154,10 +165,12 @@ public class Base {
     
     int iwork[] = new int[8*(n<p ? n : p)];
 
+    LAPACK lapack = LAPACK.getInstance();
+    
     /* ask for optimal size of work array */
     int lwork = -1;
     intW info = new intW(0);
-    dgesdd(jobu, n, p, xvals, 0, n,  s, 0, u, 0, ldu, v, 0, ldvt, tmp, 0, lwork, iwork, 0, info); 
+    lapack.dgesdd(jobu, n, p, xvals, n,  s, u, ldu, v, ldvt, tmp, lwork, iwork, info); 
     
     if (info.val != 0) {
       throw new EvalException("error code %d from Lapack routine '%s'", info.val, "dgesdd");
@@ -166,7 +179,7 @@ public class Base {
     lwork = (int) tmp[0];
     double work[] = new double[lwork];
     
-    dgesdd(jobu, n, p, xvals, 0, n, s, 0, u, 0, ldu, v, 0, ldvt, work, 0, lwork, iwork, 0, info);
+    lapack.dgesdd(jobu, n, p, xvals, n, s, u, ldu, v, ldvt, work, lwork, iwork, info);
     
     ListVector.Builder val = new ListVector.Builder();
     val.add("d", new DoubleVector(s, sexp.getAttributes()));

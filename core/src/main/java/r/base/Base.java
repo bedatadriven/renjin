@@ -21,9 +21,11 @@
 
 package r.base;
 
+import java.text.ParseException;
 import static org.netlib.lapack.Dgesdd.dgesdd;
 
 import org.netlib.lapack.LAPACK;
+import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 
 import r.jvmi.annotations.Current;
@@ -204,5 +206,104 @@ public class Base {
 //    return val.build();
 //  }
   
+  
+  
+  /*
+   * Converted directly from the C code, src/modules/lapack/Lapack.c
+   */
+  public static SEXP La_dgesv(DoubleVector A, DoubleVector Bin, DoubleVector tolin) {
+    int n, p;
+    IntVector ipiv, Adims, Bdims;
+    IntVector.Builder ipivBuilder;
+    DoubleVector avals;
+    DoubleVector.Builder avalsBuilder;
+    org.netlib.util.intW info;
+
+    double anorm;
+    doubleW rcond = new doubleW(0);
+
+    DoubleVector tol = tolin, work;
+    DoubleVector B;
+    double[] Bcontent;
+
+    if (!(Types.isMatrix(A) && Types.isDouble(A))) {
+      throw new EvalException("'a' must be a numeric matrix");
+    }
+    if (!(Types.isMatrix(Bin) && Types.isDouble(Bin))) {
+      throw new EvalException("'b' must be a numeric matrix");
+    }
+    //PROTECT(B = duplicate(Bin));
+    DoubleVector.Builder bu = new DoubleVector.Builder();
+    for (int i = 0; i < Bin.length(); i++) {
+      bu.add(Bin.get(i));
+    }
+    bu.copyAttributesFrom(Bin);
+    B = bu.build();
+
+
+    //Adims = INTEGER(coerceVector(getAttrib(A, R_DimSymbol), INTSXP));
+    //Bdims = INTEGER(coerceVector(getAttrib(B, R_DimSymbol), INTSXP));
+    Adims = (IntVector) A.getAttribute(Symbol.DIM);
+    Bdims = (IntVector) B.getAttribute(Symbol.DIM);
+
+    n = Adims.getElementAsInt(0);
+    if (n == 0) {
+      throw new EvalException("'a' is 0-diml");
+    }
+    p = Bdims.getElementAsInt(1);
+    if (p == 0) {
+      throw new EvalException("no right-hand side in 'b'");
+    }
+    if (Adims.getElementAsInt(1) != n) {
+      throw new EvalException("'a' (" + n + " x " + Adims.getElementAsInt(1) + ") must be square");
+    }
+    if (Bdims.getElementAsInt(0) != n) {
+      throw new EvalException("'b' (" + Bdims.getElementAsInt(0) + " x " + p + ") must be compatible with 'a' (" + n + " x " + n + ")");
+    }
+
+    //ipiv = new IntVector(); //Will be size of n
+    ipivBuilder = new IntVector.Builder();
+    for (int i = 0; i < n; i++) {
+      ipivBuilder.add(0);
+    }
+    ipiv = ipivBuilder.build();
+
+    //avals = (double *) R_alloc(n * n, sizeof(double));
+    avalsBuilder = new DoubleVector.Builder();
+    //Memcpy(avals, REAL(A), n * n);
+    for (int i = 0; i < A.length(); i++) {
+      avalsBuilder.add(A.get(i));
+    }
+    avalsBuilder.copyAttributesFrom(A);
+    avals = avalsBuilder.build();
+
+    //F77_CALL(dgesv)(&n, &p, avals, &n, ipiv, REAL(B), &n, &info);
+    LAPACK lapack = LAPACK.getInstance();
+    info = new intW(0);
+    Bcontent = B.toDoubleArray();
+    lapack.dgesv(n, p, avals.toDoubleArray(), n, ipiv.toIntArray(), Bcontent, n, info);
+
+    if (info.val < 0) {
+      throw new EvalException("argument -" + info.val + " of Lapack routine 'dgsv' had invalid value");
+    }
+    if (info.val > 0) {
+      throw new EvalException("Lapack routine dgesv: system is exactly singular");
+    }
+
+    //anorm = F77_CALL(dlange)("1", &n, &n, REAL(A), &n, (double*) NULL);
+    anorm = lapack.dlange("1", n, n, A.toDoubleArray(), n, null);
+    //work = (double *) R_alloc(4*n, sizeof(double));
+    double[] arrWork = new double[4 * n];
+    //F77_CALL(dgecon)("1", &n, avals, &n, &anorm, &rcond, work, ipiv, &info);
+
+    lapack.dgecon("1", n, avals.toDoubleArray(), n, anorm, rcond, arrWork, ipiv.toIntArray(), info);
+
+    if (rcond.val < tol.get(0)) {
+      throw new EvalException("system is computationally singular: reciprocal condition number = " + rcond.val);
+    }
+
+    return new DoubleVector(Bcontent);
+  }
+
   
 }

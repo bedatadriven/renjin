@@ -14,6 +14,7 @@ import r.EvalTestCase;
 import r.lang.DoubleVector;
 import r.lang.SEXP;
 import r.lang.Vector;
+import r.lang.exception.EvalException;
 
 public class MatrixTest extends EvalTestCase {
 
@@ -123,13 +124,13 @@ public class MatrixTest extends EvalTestCase {
     assertThat(eval("solve(matrix(c(1,3,7,6),2,2))"), closeTo(matrix(
         row(-0.4,  0.46666667),
         row( 0.2, -0.06666667)), 0.0000001));
-    
-    /*
-     * This test throws a 'singularity' error, so works well :) 
-    assertThat(eval("solve(matrix(c(1,2,2,4),2,2))"), closeTo(matrix(
-        row(0,0),
-        row(0,0)), 0.0000001));
-     * 
-     */
   }
+  
+  @Test(expected = r.lang.exception.EvalException.class)
+  public void testSolveSingularity() {
+    assertThat(eval("solve(matrix(c(1,2,2,4),2,2))"), closeTo(matrix(
+            row(0, 0),
+            row(0, 0)), 0.0000001));
+  }
+  
 }

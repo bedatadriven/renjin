@@ -16,4 +16,11 @@ public class TestRNG extends EvalTestCase {
     assertThat(eval("RNGkind('W','I')"), equalTo(c("Wichmann-Hill", "Inversion")));
     assertThat(eval("RNGkind('Mer','Ahr')"), equalTo(c("Mersenne-Twister", "Ahrens-Dieter")));    
   }
+  
+  @Test
+  public void unif_rand(){
+    RNG.GetRNGstate();
+    RNG.RNG_Init(RNG.RNG_kind, 123456);
+    System.out.println(RNG.unif_rand());
+  }
 }

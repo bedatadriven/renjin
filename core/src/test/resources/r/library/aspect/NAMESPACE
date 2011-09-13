@@ -1,0 +1,13 @@
+import("stats", "graphics")
+export(corAspect)
+export(lineals)
+
+S3method(print, aspect)
+S3method(summary, aspect)
+S3method(plot, aspect)
+
+
+
+
+
+

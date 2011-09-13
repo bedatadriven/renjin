@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.packages;
 
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
@@ -33,10 +33,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /**
- * Collection of largish tests to make sure everything is playing
- * correctly together.
+ * Tests that ensure the primitives integrate nicely with the 
+ * R-language functions of the base package
  */
-public class IntegrationTest extends EvalTestCase {
+public class BasePackageTest extends EvalTestCase {
 
 
   @Test
@@ -239,25 +239,6 @@ public class IntegrationTest extends EvalTestCase {
   }
   
   
-
-  @Test
-  public void surveyPackage() throws Exception {
-    topLevelContext.init();
-
-    java.lang.System.out.println(eval(".find.package('survey') "));
-    eval(" library(survey) ");
-
-    assertThat( eval(" data(hospital, verbose=TRUE) "), equalTo(c("hospital")) );
-
-    java.lang.System.out.println( eval("ls() "));
-
-    assertThat(eval("typeof(hospital)"), equalTo(c("list")));
-    assertThat(eval("sum(hospital$births)"), equalTo(c(25667)));
-
-//    eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
-//    eval("svymean(~births, dstr)");
-
-  }
 
   @Test
   public void parse() throws IOException {

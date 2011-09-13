@@ -1,0 +1,10 @@
+aspect-package	aspect-package
+aspect	aspect-package
+corAspect	corAspect
+duncan	duncan
+galo	galo
+lineals	lineals
+plot.aspect	plot.aspect
+print.aspect	corAspect
+summary.aspect	corAspect
+wurzer	wurzer

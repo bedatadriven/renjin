@@ -622,11 +622,15 @@ public class Types {
     return Environment.createChildEnvironment(parent);
   }
 
-  public static Environment baseEnv(@Current Environment rho) {
+  public static Environment baseenv(@Current Environment rho) {
     return rho.getBaseEnvironment();
   }
 
-  public static Environment globalEnv(@Current Context context) {
+  public static Environment emptyenv(@Current Environment rho) {
+    return rho.getBaseEnvironment().getParent();
+  }
+
+  public static Environment globalenv(@Current Context context) {
     return context.getGlobalEnvironment();
   }
 

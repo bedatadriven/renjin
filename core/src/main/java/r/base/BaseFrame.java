@@ -810,9 +810,9 @@ public class BaseFrame implements Frame {
     f("formals", Types.class, 0, 11, 1);
     f("body", /*body*/ null, 0, 11, 1);
     f("bodyCode", /*bodyCode*/ null, 0, 11, 1);
-    f("emptyenv", /*emptyenv*/ null, 0, 1, 0);
-    f("baseenv", Types.class, "baseEnv", 0, 1, 0);
-    f("globalenv", Types.class, "globalEnv", 0, 1, 0);
+    f("emptyenv", Types.class, 0, 1, 0);
+    f("baseenv", Types.class, 0, 1, 0);
+    f("globalenv", Types.class, 0, 1, 0);
     f("environment", Types.class, 0, 11, 1);
     f("environment<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("environmentName", /*envirName*/ null, 0, 11, 1);

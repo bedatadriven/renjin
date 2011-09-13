@@ -1,0 +1,20 @@
+citHeader("To cite aspect in publications use:")
+
+citEntry(entry = "Article",
+  title        = "A General Framework for Multivariate Analysis with Optimal Scaling: The {R} Package {aspect}",
+  author       = personList(as.person("Patrick Mair"),
+                   as.person("Jan de Leeuw")),
+  journal      = "Journal of Statistical Software",
+  year         = "2010",
+  volume       = "32",
+  number       = "9",
+  pages        = "1--23",
+  url          = "http://www.jstatsoft.org/v32/i09/",
+
+  textVersion  =
+  paste("Patrick Mair, Jan de Leeuw (2010).",
+        "A General Framework for Multivariate Analysis with Optimal Scaling: The R Package aspect.",
+        "Journal of Statistical Software, 32(9), 1-23.",
+        "URL http://www.jstatsoft.org/v32/i09/.")
+)
+

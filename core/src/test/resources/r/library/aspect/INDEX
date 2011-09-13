@@ -1,0 +1,7 @@
+aspect-package          Aspects of Multivariables
+corAspect               Scaling by Maximizing Correlational Aspects
+duncan                  Duncan dataset
+galo                    GALO dataset
+lineals                 Linearizing bivariate regressions
+plot.aspect             Plot method for aspect solutions
+wurzer                  Internet terminals

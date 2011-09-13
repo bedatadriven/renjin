@@ -236,10 +236,10 @@ public class Base {
     DoubleVector.Builder bu = new DoubleVector.Builder();
     for (int i = 0; i < Bin.length(); i++) {
       bu.add(Bin.get(i));
-    }
+    }    
     bu.copyAttributesFrom(Bin);
     B = bu.build();
-
+      
 
     //Adims = INTEGER(coerceVector(getAttrib(A, R_DimSymbol), INTSXP));
     //Bdims = INTEGER(coerceVector(getAttrib(B, R_DimSymbol), INTSXP));
@@ -301,9 +301,7 @@ public class Base {
     if (rcond.val < tol.get(0)) {
       throw new EvalException("system is computationally singular: reciprocal condition number = " + rcond.val);
     }
-
     return new DoubleVector(Bcontent);
   }
-
   
 }

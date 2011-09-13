@@ -65,6 +65,9 @@ import r.lang.StringVector;
 import r.lang.Symbol;
 
 import com.google.common.collect.Sets;
+import r.base.random.N01type;
+import r.base.random.RNG;
+import r.base.random.RNGtype;
 
 /**
  *  The {@code Frame} that provides the primitive functions for the
@@ -601,7 +604,7 @@ public class BaseFrame implements Frame {
     f("rmultinom", /*rmultinom*/ null, 0, 11, 3);
     f("sample", /*sample*/ null, 0, 11, 4);
 
-    f("RNGkind", /*RNGkind*/ null, 0, 11, 2);
+    f("RNGkind", RNG.class, 0, 11, 2);
     f("set.seed", /*setseed*/ null, 0, 11, 3);
 
 /* Data Summaries */

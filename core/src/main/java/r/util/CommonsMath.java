@@ -75,14 +75,13 @@ public class CommonsMath {
     
     
     @Override
-    public RealMatrix createMatrix(int rowDimension, int columnDimension)
-        throws IllegalArgumentException {
-      throw new UnsupportedOperationException();
+    public RealMatrix createMatrix(int rowDimension, int columnDimension){
+       return(new MatrixAdapter(new DoubleVector(new double[rowDimension * columnDimension])));
     }
 
     @Override
     public RealMatrix copy() {
-      throw new UnsupportedOperationException();
+      return(new MatrixAdapter(vector.newCopyBuilder().build()));
     }
 
     @Override
@@ -90,10 +89,13 @@ public class CommonsMath {
       return vector.getElementAsDouble(row * ncols + column);
     }
 
+    /*
+     * I think i did something very Slow...
+     * It would be nice the Vector class has 'set' method.
+     */
     @Override
-    public void setEntry(int row, int column, double value)
-        throws MatrixIndexException {
-      throw new UnsupportedOperationException();    
+    public void setEntry(int row, int column, double value){
+      this.vector = (DoubleVector)this.vector.newCopyBuilder().set(row * this.ncols + column, new DoubleVector(value)).build();      
     }
 
     @Override

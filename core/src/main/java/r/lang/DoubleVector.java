@@ -27,7 +27,6 @@ import org.apache.commons.math.complex.Complex;
 import r.parser.ParseUtil;
 import r.util.collect.PrimitiveArrays;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -37,6 +36,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   public static final String TYPE_NAME = "double";
 
   public static final Vector.Type VECTOR_TYPE = new DoubleType();
+  public static final DoubleVector EMPTY = new DoubleVector();
 
   /**
    * This is the internal representation R uses to
@@ -156,7 +156,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   public String getElementAsString(int index) {
     double value = values[index];
     return isNaN(value) ? StringVector.NA :
-        ParseUtil.toString(values[index]);
+        ParseUtil.toString(value);
   }
 
   @Override

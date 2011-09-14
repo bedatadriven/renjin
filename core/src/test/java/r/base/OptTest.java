@@ -21,13 +21,11 @@
 
 package r.base;
 
-import java.io.IOException;
-import java.io.StringReader;
 import org.junit.Test;
 import r.EvalTestCase;
-import r.lang.ExpressionVector;
-import r.lang.FunctionCall;
-import r.parser.RParser;
+
+import java.io.IOException;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -37,6 +35,16 @@ public class OptTest extends EvalTestCase{
   public void matrixProduct() throws IOException{ 
    assertThat(eval("1:3 %*% c(3,2,1)"), equalTo(c(10)));
   }
+
+  @Test
+  public void overloadingWorks() {
+    // this will fail if they are fed thru the string overload
+    assertThat(eval("10>5"), equalTo(c(true)));
+    assertThat(eval("10L>5L"), equalTo(c(true)));
+    assertThat(eval("TRUE>FALSE"), equalTo(c(true)));
+    assertThat(eval("'one' > 'zed'"), equalTo(c(false)));
+  }
+
 
 
 }

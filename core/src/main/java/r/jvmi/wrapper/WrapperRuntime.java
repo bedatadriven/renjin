@@ -3,24 +3,7 @@ package r.jvmi.wrapper;
 import r.base.Calls;
 import r.base.ClosureDispatcher;
 import r.base.dispatch.DispatchChain;
-import r.lang.Closure;
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.Environment;
-import r.lang.EvalResult;
-import r.lang.ExternalExp;
-import r.lang.FunctionCall;
-import r.lang.IntVector;
-import r.lang.Logical;
-import r.lang.LogicalVector;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.Promise;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
+import r.lang.*;
 
 /**
  * 
@@ -225,33 +208,21 @@ public class WrapperRuntime {
     return newArgs;
   }
 
-  public static EvalResult tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call, 
-      String group, String name, SEXP object, PairList args) {
+  public static EvalResult tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
+      String group, String name, SEXP s0) {
 
-    if(call.getFunction() instanceof Symbol &&
-        ((Symbol)call.getFunction()).getPrintName().endsWith(".default")) {
-      return null;
-    }
-    
-    PairList.Builder newArgs = new PairList.Builder();
-    newArgs.add(args.getRawTag(), object);
-    if(((PairList.Node)args).hasNextNode()) {
-      for(PairList.Node node : ((PairList.Node)args).getNextNode().nodes()) {
-        newArgs.add(node.getRawTag(), node.getValue().evalToExp(context, rho));
-      }
-    }
-    EvalResult dispatched = Calls.DispatchGroup(group, call, name, newArgs.build(), context, rho);
-    
-    return dispatched;
+    PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
 
+    return Calls.DispatchGroup(group, call, name, newArgs, context, rho);
   }
-  
-  public static PairList evaluateList(Context context, Environment rho, PairList args) {
-    PairList.Builder evaled = new PairList.Builder();
-    for(PairList.Node node : args.nodes()) {
-      evaled.add(node.getRawTag(), node.getValue().evalToExp(context, rho));
-    }
-    return evaled.build();
+
+
+  public static EvalResult tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
+      String group, String name, SEXP s0, SEXP s1) {
+
+    PairList newArgs = new PairList.Node(s0, new PairList.Node(s1, Null.INSTANCE));
+
+    return Calls.DispatchGroup(group, call, name, newArgs, context, rho);
   }
 
 

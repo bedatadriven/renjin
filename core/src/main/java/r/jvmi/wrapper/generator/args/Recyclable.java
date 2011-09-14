@@ -30,7 +30,8 @@ public class Recyclable extends ArgConverterStrategy {
 
   @Override
   public String getTestExpr(String argLocal) {
-    return argLocal + " instanceof Vector";
+    //return argLocal + " instanceof Vector";
+    return scalarType.testExpr(argLocal);
   }
 
 }

@@ -13,7 +13,8 @@ public class AspectPackageTest extends PackageTest {
     eval("data('wurzer')");
         
     eval("res.cor <- corAspect(wurzer, apsect='aspectEigen', level=c(rep('nominal',2), rep('ordinal',5), 'nominal'))");
-    
+
+    System.out.println( global.getVariable("res.cor") );
     
   }
 

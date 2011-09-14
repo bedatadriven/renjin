@@ -88,6 +88,11 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     this.values = Arrays.copyOf(values, values.length);
   }
 
+  public DoubleVector(double[] values, int length, PairList attributes) {
+    this(attributes);
+    this.values = Arrays.copyOf(values, length);
+  }
+
   public DoubleVector(Collection<Double> values) {
     this.values = new double[values.size()];
     int i = 0;
@@ -335,34 +340,45 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   }
 
   public static class Builder extends AbstractAtomicBuilder {
+    private static final int MIN_INITIAL_CAPACITY = 50;
     private double values[];
+    private int size;
 
-    public Builder(int initialSize) {
-      values = new double[initialSize];
-      Arrays.fill(values, NA);
-    }
 
     public Builder() {
-      values = new double[0];
+      values = new double[MIN_INITIAL_CAPACITY];
+      Arrays.fill(values, NA);
+      size = 0;
+    }
+
+    public Builder(int initialSize) {
+      int initialCapacity = MIN_INITIAL_CAPACITY;
+      if(initialSize > initialCapacity) {
+        initialCapacity = initialSize;
+      }
+      values = new double[initialCapacity];
+      size = initialSize;
+      Arrays.fill(values, NA);
     }
 
     private Builder(DoubleVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
+      this.size = this.values.length;
+
       copyAttributesFrom(exp.getAttributes());
     }
 
     public Builder set(int index, double value) {
-      if(values.length <= index) {
-        double copy[] = Arrays.copyOf(values, index+1);
-        Arrays.fill(copy, values.length, copy.length, NA);
-        values = copy;
+      ensureCapacity(index+1);
+      if(index+1 > size) {
+        size = index+1;
       }
       values[index] = value;
       return this;
     }
 
     public Builder add(double value) {
-      return set(values.length, value);
+      return set(size, value);
     }
 
     @Override
@@ -381,12 +397,25 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
     @Override
     public int length() {
-      return values.length;
+      return size;
+    }
+
+    public void ensureCapacity(int minCapacity) {
+      int oldCapacity = values.length;
+      if (minCapacity > oldCapacity) {
+        double oldData[] = values;
+        int newCapacity = (oldCapacity * 3)/2 + 1;
+        if (newCapacity < minCapacity)
+          newCapacity = minCapacity;
+        // minCapacity is usually close to size, so this is a win:
+        values = Arrays.copyOf(oldData, newCapacity);
+        Arrays.fill(values, oldCapacity, values.length, NA);
+      }
     }
 
     @Override
     public DoubleVector build() {
-      return new DoubleVector(values, buildAttributes());
+      return new DoubleVector(values, size, buildAttributes());
     }
   }
 

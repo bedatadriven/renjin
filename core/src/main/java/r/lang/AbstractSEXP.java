@@ -31,10 +31,17 @@ import java.util.Collections;
 public abstract class AbstractSEXP implements SEXP {
 
   protected PairList attributes;
+  protected final boolean object;
+
+  protected AbstractSEXP() {
+    this.attributes = Null.INSTANCE;
+    this.object = false;
+  }
 
   protected AbstractSEXP(PairList attributes) {
     Preconditions.checkNotNull(attributes);
     this.attributes = attributes;
+    this.object = attributes.findByTag(Symbol.CLASS).length() > 0;
   }
 
   protected boolean checkDims() {
@@ -49,9 +56,6 @@ public abstract class AbstractSEXP implements SEXP {
     return length == length();
   }
 
-  protected AbstractSEXP() {
-    this.attributes = Null.INSTANCE;
-  }
 
   @Override
   public int length() {
@@ -192,6 +196,11 @@ public abstract class AbstractSEXP implements SEXP {
       }
     }
     return -1;
+  }
+
+  @Override
+  public boolean isObject() {
+    return object;
   }
 
   @Override

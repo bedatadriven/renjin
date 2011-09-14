@@ -77,6 +77,14 @@ public interface SEXP {
   double asReal();
 
   /**
+   *
+   * @return TRUE if the object x has the R internal OBJECT bit set, and FALSE otherwise.
+   * The OBJECT bit is set when a "class" attribute is added and removed when that attribute
+   *  is removed, so this is a very efficient way to check if an object has a class attribute.
+   */
+  boolean isObject();
+
+  /**
    * @return the R language class of this expression
    */
   StringVector getClassAttribute();

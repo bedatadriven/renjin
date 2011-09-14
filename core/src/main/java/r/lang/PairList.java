@@ -21,13 +21,13 @@
 
 package r.lang;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * Pairlists (LISTSXP, the name going back to the origins of R as a Scheme-like language) are
@@ -59,7 +59,15 @@ public interface PairList extends SEXP {
 
   void setTag(SEXP tag);
 
-  SEXP findByTag(Symbol symbol);
+  /**
+   * Finds the first value associated with the given tag, or
+   * {@code Null.INSTANCE} if no such element exists.
+   *
+   * @param tag the tag for which to search
+   * @return  the first value, or {@code Null.INSTANCE} if no
+   * such element exists.
+   */
+  SEXP findByTag(Symbol tag);
 
   PairList clone();
 

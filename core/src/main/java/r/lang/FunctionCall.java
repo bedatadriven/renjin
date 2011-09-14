@@ -48,6 +48,7 @@ public class FunctionCall extends PairList.Node {
 
   @Override
   public EvalResult evaluate(Context context, Environment rho) {
+    //System.out.println(this);
     Function functionExpr = evaluateFunction(context, rho);
     return functionExpr.apply(context, rho, this, getArguments());
   }

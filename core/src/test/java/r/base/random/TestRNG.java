@@ -19,8 +19,24 @@ public class TestRNG extends EvalTestCase {
   
   @Test
   public void unif_rand(){
+    RNG.RNG_kind = RNGtype.SUPER_DUPER;
+    System.out.println(RNG.RNG_kind);
+    
+
+    RNG.RNG_Table[RNG.RNG_kind.ordinal()].i_seed[0] = 102;
+    RNG.RNG_Table[RNG.RNG_kind.ordinal()].i_seed[0] = 10000;
+    RNG.RNG_Table[RNG.RNG_kind.ordinal()].i_seed[1] = 20000;
+    RNG.PutRNGstate();
+    
+    for (int i=0;i<10;i++){
     RNG.GetRNGstate();
-    RNG.RNG_Init(RNG.RNG_kind, 123456);
-    System.out.println(RNG.unif_rand());
+          RNG.FixupSeeds(RNGtype.SUPER_DUPER, false);
+      //System.out.println(RNG.seeds.toString());
+      //RNG.GetRNGstate();
+      System.out.println(RNG.unif_rand());
+      RNG.PutRNGstate();
+    }
+    
+    
   }
 }

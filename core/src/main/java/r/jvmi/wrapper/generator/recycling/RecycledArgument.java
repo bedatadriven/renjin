@@ -54,4 +54,5 @@ public class RecycledArgument {
     return getVectorLocal() + "." + scalarType.getAccessorMethod() + 
         "(" + indexExpression + ")";
   }
+  
 }

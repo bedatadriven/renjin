@@ -12,7 +12,12 @@ import r.jvmi.wrapper.ArgumentIterator;
 import r.jvmi.wrapper.GeneratorDefinitionException;
 import r.jvmi.wrapper.WrapperRuntime;
 import r.jvmi.wrapper.WrapperSourceWriter;
-import r.jvmi.wrapper.generator.args.ArgConverterStrategies;
+import r.jvmi.wrapper.generator.args.ArgConverterStrategy;
+import r.jvmi.wrapper.generator.args.Recyclable;
+import r.jvmi.wrapper.generator.args.SexpSubclass;
+import r.jvmi.wrapper.generator.args.ToScalar;
+import r.jvmi.wrapper.generator.args.UnwrapExternalObject;
+import r.jvmi.wrapper.generator.args.UsingAsCharacter;
 import r.lang.Context;
 import r.lang.Environment;
 import r.lang.EvalResult;
@@ -31,6 +36,16 @@ import com.google.common.collect.Lists;
  */
 public abstract class GeneratorStrategy {
 
+  private List<ArgConverterStrategy> argumentConverters;
+  
+  public GeneratorStrategy() {
+    argumentConverters = Lists.newArrayList();
+    argumentConverters.add(new Recyclable());
+    argumentConverters.add(new UsingAsCharacter());
+    argumentConverters.add(new SexpSubclass());
+    argumentConverters.add(new ToScalar());
+    argumentConverters.add(new UnwrapExternalObject());
+  }
     
   public abstract boolean accept(List<JvmMethod> overloads);
   
@@ -56,7 +71,7 @@ public abstract class GeneratorStrategy {
    
     s.writeBeginTry();
     
-    generateCall(entry, s, overloads);
+    generateCall(s, overloads);
     
     s.writeCatch(ArgumentException.class, "e");
     s.writeStatement("throw new EvalException(" + argumentErrorMessage(entry, overloads) + ");");
@@ -84,7 +99,7 @@ public abstract class GeneratorStrategy {
     return message.toString();
   }
 
-  protected abstract void generateCall(Entry entry, WrapperSourceWriter s, List<JvmMethod> overloads);
+  protected abstract void generateCall(WrapperSourceWriter s, List<JvmMethod> overloads);
 
   protected final String contextualArgumentName(Argument formal) {
     if(formal.getClazz().equals(Context.class)) {
@@ -117,7 +132,30 @@ public abstract class GeneratorStrategy {
     }
   }
     
+  protected final String argConversionStatement(JvmMethod.Argument formal, String tempLocal) {
+    String exp;
+    if(formal.isEvaluated()) {
+      exp = "argIt.next().evalToExp(context, rho)";
+    } else {
+      exp = "argIt.next()";
+    }
     
+    if(formal.getClazz().equals(SEXP.class)) {
+      return tempLocal + " = " + exp + ";"; 
+    } else {
+      return findArgConverterStrategy(formal).conversionStatement(formal, tempLocal, exp);
+    }
+  }
+  
+  protected ArgConverterStrategy findArgConverterStrategy(JvmMethod.Argument formal) {
+    for(ArgConverterStrategy strategy : argumentConverters) {
+      if(strategy.accept(formal)) {
+        return strategy;
+      }
+    }
+    throw new GeneratorDefinitionException("Could not find a strategy for converting to argument " + formal.getIndex() + " of type " + formal.getClazz());
+  }
+  
   protected final String callStatement(JvmMethod method, ArgumentList argumentList) {
     StringBuilder call = new StringBuilder();
     call.append(method.getDeclaringClass().getName()).append(".")
@@ -152,6 +190,18 @@ public abstract class GeneratorStrategy {
       }
     }
     throw new GeneratorDefinitionException("Do not have a wrapper for return type " + method.getReturnType().getName());
+  }
+  
+  protected final String toJava(Class<?> clazz) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(clazz.getPackage().getName());
+    if(clazz.getEnclosingClass() != null) {
+      sb.append(".");
+      sb.append(clazz.getEnclosingClass().getSimpleName());
+    }
+    sb.append(".");
+    sb.append(clazz.getSimpleName());
+    return sb.toString();
   }
   
 }

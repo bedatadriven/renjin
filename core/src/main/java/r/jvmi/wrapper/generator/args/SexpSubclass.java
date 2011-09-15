@@ -1,7 +1,6 @@
 package r.jvmi.wrapper.generator.args;
 
 import r.jvmi.binding.JvmMethod.Argument;
-import r.jvmi.wrapper.WrapperSourceWriter;
 import r.lang.SEXP;
 
 /**
@@ -11,30 +10,21 @@ import r.lang.SEXP;
  */
 public class SexpSubclass extends ArgConverterStrategy {
 
-  public SexpSubclass(Argument formal) {
-    super(formal);
-  }
-
-  public static boolean accept(Argument formal) {
+  @Override
+  public boolean accept(Argument formal) {
     return SEXP.class.isAssignableFrom(formal.getClazz());
   }
 
   @Override
-  public String conversionExpression(String argumentExpression) {
+  public String conversionExpression(Argument formal, String argumentExpression) {
     return "checkedSubClass(" + argumentExpression + ")";
   }
 
   @Override
-  public String conversionStatement(String tempLocal, String argumentExpression) {
-    return "try { " + tempLocal + " = (" + WrapperSourceWriter.toJava(formal.getClazz()) + ")(" + argumentExpression + ");" +
+  public String conversionStatement(Argument formal, String tempLocal,
+      String argumentExpression) {
+    return "try { " + tempLocal + " = (" + formal.getClazz().getName() + ")(" + argumentExpression + ");" +
     		" } catch(ClassCastException cce) { throw new ArgumentException(); }";
   }
-
-  @Override
-  public String getTestExpr(String argLocal) {
-    return argLocal + " instanceof " + WrapperSourceWriter.toJava(formal.getClazz());
-  }
-  
-  
 
 }

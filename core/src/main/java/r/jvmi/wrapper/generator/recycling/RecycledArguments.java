@@ -1,23 +1,18 @@
 package r.jvmi.wrapper.generator.recycling;
 
-import r.jvmi.binding.JvmMethod;
-import r.jvmi.wrapper.WrapperSourceWriter;
-import r.jvmi.wrapper.generator.scalars.ScalarTypes;
-
 import java.util.List;
+
+import r.jvmi.wrapper.WrapperSourceWriter;
 
 public class RecycledArguments {
 
   protected final WrapperSourceWriter s;
-  private final JvmMethod overload;
   private final List<RecycledArgument> args;
   
   public RecycledArguments(WrapperSourceWriter s,
-      JvmMethod overload,
       List<RecycledArgument> recycledArguments) {
     super();
     this.s = s;
-    this.overload = overload;
     this.args = recycledArguments;
   }
 
@@ -26,7 +21,6 @@ public class RecycledArguments {
     computeLongestVector();
     declareAndInitializeCounterLocals();
   }
-
 
   private void storeArgLengths() {
     s.writeComment("component lengths");
@@ -42,12 +36,6 @@ public class RecycledArguments {
     s.writeStatement("Vector longest = Null.INSTANCE");
     s.writeStatement("int cycles = 0");
     for(RecycledArgument arg : args) {
-
-      // if any of the recyclable vectors are of length zero then we bail
-      s.writeBeginBlock("if(" + arg.getVectorLocal() +"_length == 0) {");
-      s.writeStatement("return " + getEmptyResult());
-      s.writeCloseBlock();
-
       s.writeBeginBlock("if(" + arg.getVectorLocal() +"_length > cycles) {");
       s.writeStatementF("cycles = %s_length", arg.getVectorLocal());
       s.writeStatementF("longest = %s", arg.getVectorLocal());
@@ -55,11 +43,6 @@ public class RecycledArguments {
     }
     s.writeBlankLine();
   }
-
-  private String getEmptyResult() {
-    return "new EvalResult(" + ScalarTypes.get(overload.getReturnType()).getVectorType().getName() + ".EMPTY)";
-  }
-
 
   private void declareAndInitializeCounterLocals() {
     s.writeComment("initialize counters");

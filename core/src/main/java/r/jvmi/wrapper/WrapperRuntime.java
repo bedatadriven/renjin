@@ -1,9 +1,21 @@
 package r.jvmi.wrapper;
 
-import r.base.Calls;
-import r.base.ClosureDispatcher;
-import r.base.dispatch.DispatchChain;
-import r.lang.*;
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.EvalResult;
+import r.lang.ExternalExp;
+import r.lang.FunctionCall;
+import r.lang.IntVector;
+import r.lang.Logical;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.Promise;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
 
 /**
  * 
@@ -23,10 +35,8 @@ public class WrapperRuntime {
   }
   
   public static int convertToInt(SEXP exp) {
-    if(exp instanceof DoubleVector || exp instanceof IntVector || exp instanceof LogicalVector) {
-      return ((Vector)exp).getElementAsInt(0);
-    }
-    throw new ArgumentException();
+    Vector vector = checkedSubClassAndAssertScalar(exp);
+    return vector.getElementAsInt(0);
   }
   
   /**
@@ -100,13 +110,12 @@ public class WrapperRuntime {
   
   public static double convertToDoublePrimitive(SEXP exp) {
     Vector vector = checkedSubClassAndAssertScalar(exp);
+    if(vector.isElementNA(0)) {
+      throw new UnsupportedOperationException("an NA value cannot be cast to a Java boolean value");
+    }
     return vector.getElementAsDouble(0);
   }
   
-  public static float convertToFloatPrimitive(SEXP exp) {
-    Vector vector = checkedSubClassAndAssertScalar(exp);
-    return (float)vector.getElementAsDouble(0);
-  }
   
   private static Vector checkedSubClassAndAssertScalar(SEXP exp) {
     if(exp.length() != 1) {
@@ -164,66 +173,38 @@ public class WrapperRuntime {
     return EvalResult.visible(new LogicalVector(result));
   }
   
-  /**
-   * There are a few primitive functions (`[[` among them) which are proper builtins, but attempt
-   * to dispatch on the class of their first argument before going ahead with the default implementation.
-   * 
-   * @param context
-   * @param rho
-   * @param name the name of the function
-   * @param args the original args from the FunctionCall
-   * @param object evaluated first argument
-   * @return
-   */
-  public static EvalResult tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call, 
-      String name, SEXP object, PairList args) {
-    
-    if(call.getFunction() instanceof Symbol &&
-        ((Symbol)call.getFunction()).getPrintName().endsWith(".default")) {
-      return null;
-    }
-    
-    Vector classVector = (Vector)object.getAttribute(Symbol.CLASS);
-    if(classVector.length() == 0) {
-      return null;
-    }
 
-    DispatchChain chain = DispatchChain.newChain(rho, name, classVector);
-    if(chain == null) {
-      return null;
-    }
-
-    PairList newArgs = rebuildArgs(object, args);
-
-    FunctionCall newCall = FunctionCall.newCall(chain.getMethodSymbol(), newArgs);
-
-    ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, newCall);
-    return dispatcher.apply(chain, newArgs);
-  }
-
-  private static PairList rebuildArgs(SEXP object, PairList args) {
-    PairList.Node restOfArguments = (PairList.Node) args;
-    PairList newArgs = new PairList.Node(new Promise(restOfArguments.getValue(), object), 
-        restOfArguments.hasNextNode() ? restOfArguments.getNextNode() : Null.INSTANCE);
-    return newArgs;
-  }
-
-  public static EvalResult tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String group, String name, SEXP s0) {
-
-    PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
-
-    return Calls.DispatchGroup(group, call, name, newArgs, context, rho);
-  }
-
-
-  public static EvalResult tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String group, String name, SEXP s0, SEXP s1) {
-
-    PairList newArgs = new PairList.Node(s0, new PairList.Node(s1, Null.INSTANCE));
-
-    return Calls.DispatchGroup(group, call, name, newArgs, context, rho);
-  }
-
-
+//  public static EvalResult tryDispatchGeneric(Context context, Environment rho, String name, FunctionCall call,
+//                                        ListVector evaledArguments) {
+//
+//    if(evaledArguments.length() == 0) {
+//      return null;
+//    }
+//        
+//    if(call.getFunction() instanceof Symbol) {
+//      if(((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
+//        return null;
+//      }
+//    }
+//
+//    Vector classes = (Vector)provided.get(0).evaluated().getAttribute(Symbol.CLASS);
+//    if(classes.length() == 0) {
+//      return null;
+//    }
+//
+//    DispatchChain chain = DispatchChain.newChain(rho, overloads.get(0).getGenericName(), classes);
+//    if(chain == null) {
+//      return null;
+//    }
+//
+//    // Repromise ?
+//    PairList.Node restOfArguments = (PairList.Node) call.getArguments();
+//    PairList newArgs = new PairList.Node(new Promise(provided.get(0).provided, provided.get(0).evaluated()),
+//        restOfArguments.hasNextNode() ? restOfArguments.getNextNode() : Null.INSTANCE);
+//
+//    FunctionCall newCall = FunctionCall.newCall(chain.getMethodSymbol(), newArgs);
+//
+//    ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, newCall);
+//    return dispatcher.apply(chain, newArgs);
+//  }
 }

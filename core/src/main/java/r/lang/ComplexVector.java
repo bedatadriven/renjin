@@ -31,7 +31,6 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
 
   private final Complex[] values;
   public static final String TYPE_NAME = "complex";
-  public static final ComplexVector EMPTY = new ComplexVector();
 
   public static Vector.Type VECTOR_TYPE = new ComplexType();
 

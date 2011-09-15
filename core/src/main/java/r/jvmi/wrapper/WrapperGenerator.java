@@ -1,8 +1,20 @@
 package r.jvmi.wrapper;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
+import javax.tools.SimpleJavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.StandardLocation;
+import javax.tools.ToolProvider;
+
 import r.base.BaseFrame;
 import r.base.BaseFrame.Entry;
 import r.jvmi.binding.JvmMethod;
@@ -10,20 +22,23 @@ import r.jvmi.wrapper.generator.AnnotationBasedStrategy;
 import r.jvmi.wrapper.generator.GeneratorStrategy;
 import r.jvmi.wrapper.generator.PassThrough;
 
-import javax.tools.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 
 /**
  * 
  * Generates wrapper classes for primitive functions. 
+ * 
+ * 
+ * 
+ * 
+ * @author alex
  *
  */
 public class WrapperGenerator {
-
+  
+  
   public static void main(String[] args) throws IOException {
     
     File baseDir = new File("");
@@ -77,9 +92,8 @@ public class WrapperGenerator {
   //  strategies.add(new SingleOverloadWithoutRecycling());
    // strategies.add(new UnaryRecyclingStrategy());
     strategies.add(new AnnotationBasedStrategy());
+
   
-    int implementedCount = 0;
-    
     List<Entry> entries = new BaseFrame().getEntries();
     for(Entry entry : entries) {
       if(singleFunction == null || singleFunction.equals(entry.name)) {
@@ -88,7 +102,6 @@ public class WrapperGenerator {
         if(overloads.isEmpty()) {
           System.out.println(entry.name + ": not implemented.");
         } else {
-          implementedCount ++;
           
           GeneratorStrategy strategy = findStrategy(strategies, overloads);
           if(strategy != null) {
@@ -101,10 +114,7 @@ public class WrapperGenerator {
         }
       }
     }
-    
-    System.out.println("Total primitives: " + entries.size());
-    System.out.println("   % Implemented: " + ((double)implementedCount / entries.size() * 100d) + "%");
-     
+
   }
 
 

@@ -29,7 +29,6 @@ import java.util.Iterator;
 public class LogicalVector extends AbstractAtomicVector implements Iterable<Logical> {
   public static final String TYPE_NAME = "logical";
   public static final Vector.Type VECTOR_TYPE = new LogicalType();
-  public static final LogicalVector EMPTY = new LogicalVector();
 
   public static int NA = IntVector.NA;
 

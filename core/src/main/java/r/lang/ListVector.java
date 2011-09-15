@@ -41,7 +41,7 @@ import java.util.List;
 public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNamedValues {
 
   public static final String TYPE_NAME = "list";
-  public static final ListVector EMPTY = new ListVector();
+
   public static final Vector.Type VECTOR_TYPE = new ListType();
 
   private final ArrayList<SEXP> values;

@@ -34,10 +34,4 @@ public class IntegerType extends ScalarType {
     return IntVector.Builder.class;
   }
 
-  @Override
-  public String testExpr(String expr) {
-    // R language generally seems to allow implicit conversion of doubles
-    // to ints
-    return "(" + expr + " instanceof IntVector || " + expr + " instanceof DoubleVector)";
-  }
 }

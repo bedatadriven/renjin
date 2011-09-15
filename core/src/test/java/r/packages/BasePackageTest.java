@@ -71,12 +71,29 @@ public class BasePackageTest extends EvalTestCase {
     return value;
   }
 
+  @Ignore
+  @Test
+  public void libPaths() throws Exception {
+
+    loadBasePackage();
+    executeStartupProfile();
+
+    // This is a pretty complicated evaluation here that involves recursive
+    // lazy loading, persisted environments, local environments, etc.
+    // So a good test that everythingsin integrates together!
+    assertThat(eval(".libPaths() "), equalTo(c("classpath:/r/library")));
+  }
+
+
+
   @Test
   public void packageVersion() throws IOException {
     loadBasePackage();
     executeStartupProfile();
 
     eval(" x <- package_version('1.2-4') ");
+
+
   }
 
   @Test
@@ -101,6 +118,7 @@ public class BasePackageTest extends EvalTestCase {
     assertThat( eval("attr(xi, 'row.names')"), equalTo(c_i(1,2,3,4,5)));
     assertThat( eval("attributes(xi)$row.names"), equalTo(c_i(1,2,3,4,5)));
     assertThat( eval("row.names(xi) "), equalTo(c("1", "2", "3", "4", "5")));
+    
   }
 
   @Test

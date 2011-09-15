@@ -3,7 +3,6 @@ package r.jvmi.wrapper.generator.scalars;
 import java.util.Map;
 
 import r.jvmi.wrapper.GeneratorDefinitionException;
-import r.lang.Logical;
 import r.lang.SEXP;
 
 import com.google.common.collect.Maps;
@@ -20,13 +19,7 @@ public class ScalarTypes {
     types.put(Integer.TYPE, new IntegerType());
     types.put(String.class, new StringType());
     types.put(Boolean.TYPE, new BooleanType());
-    types.put(Double.TYPE, new DoubleType()); 
-    types.put(Float.TYPE, new FloatType()); 
-    types.put(Logical.class, new LogicalType());
-  }
-  
-  public static boolean has(Class clazz) {
-    return INSTANCE.types.containsKey(clazz);
+    types.put(Double.TYPE, new DoubleType());  
   }
   
   public static ScalarType get(Class clazz) {

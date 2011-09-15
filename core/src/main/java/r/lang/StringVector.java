@@ -36,7 +36,6 @@ import java.util.Iterator;
 public class StringVector extends AbstractAtomicVector implements Iterable<String> {
   public static final String TYPE_NAME = "character";
   public static final String NA = null;
-  public static final StringVector EMPTY = new StringVector();
 
   public static final Vector.Type VECTOR_TYPE = new StringType();
 

@@ -93,7 +93,6 @@ public class Sequences {
   }
 
   @Primitive("rep")
-  @Generic
   public static Vector repeat(@ArgumentList ListVector arguments) {
     // this is one of the few primitive functions whose
     // arguments are matched in the same way arguments to R closures.

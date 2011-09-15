@@ -37,7 +37,7 @@ public class PassThrough extends GeneratorStrategy {
 
 
   @Override
-  protected void generateCall(Entry entry, WrapperSourceWriter s, List<JvmMethod> overloads) {
+  protected void generateCall(WrapperSourceWriter s, List<JvmMethod> overloads) {
     JvmMethod method = overloads.get(0);
     
     s.writeStatement(callStatement(method, new ArgumentList("context", "rho", "call")));

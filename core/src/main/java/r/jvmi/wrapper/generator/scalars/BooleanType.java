@@ -23,7 +23,9 @@ public class BooleanType extends ScalarType {
   @Override
   public Class getStorageType() {
     return Integer.TYPE;
-  }  
+  }
+
+  
   
   @Override
   public String getNALiteral() {
@@ -44,4 +46,7 @@ public class BooleanType extends ScalarType {
   public Class<LogicalVector.Builder> getBuilderClass() {
     return LogicalVector.Builder.class;
   }
+
+  
+  
 }

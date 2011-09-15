@@ -1,28 +1,32 @@
 package r.jvmi.wrapper.generator.args;
 
+import java.util.Map;
+
 import r.jvmi.binding.JvmMethod.Argument;
-import r.jvmi.wrapper.generator.scalars.ScalarType;
-import r.jvmi.wrapper.generator.scalars.ScalarTypes;
+
+import com.google.common.collect.Maps;
 
 public class ToScalar extends ArgConverterStrategy {
-  private ScalarType scalarType;
+
+  private Map<Class, String> methods = Maps.newHashMap();
   
-  public ToScalar(Argument formal) {
-    super(formal);
-    this.scalarType = ScalarTypes.get(formal.getClazz());
+  public ToScalar() {
+    methods.put(Integer.class, "convertToInteger");
+    methods.put(Integer.TYPE, "convertToInt");
+    methods.put(String.class, "convertToString");
+    methods.put(Boolean.TYPE, "convertToBooleanPrimitive");
+    methods.put(Double.TYPE, "convertToDoublePrimitive");
   }
-
-  public static boolean accept(Argument formal) {
-    return ScalarTypes.has(formal.getClazz());
+  
+  
+  @Override
+  public boolean accept(Argument formal) {
+    return methods.containsKey(formal.getClazz());
   }
 
   @Override
-  public String conversionExpression(String argumentExpression) {
-    return scalarType.getConversionMethod() + "(" + argumentExpression + ")";
+  public String conversionExpression(Argument formal, String argumentExpression) {
+    return methods.get(formal.getClazz()) + "(" + argumentExpression + ")";
   }
 
-  @Override
-  public String getTestExpr(String argLocal) {
-    return scalarType.testExpr(argLocal);
-  }
 }

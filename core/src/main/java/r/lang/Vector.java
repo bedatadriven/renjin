@@ -23,6 +23,8 @@ package r.lang;
 
 import org.apache.commons.math.complex.Complex;
 
+import r.lang.Vector.Builder;
+
 /**
  * Provides a common interface to {@code ListExp}, all {@code AtomicExp}s, and
  * {@code PairList}s
@@ -266,10 +268,6 @@ public interface Vector extends SEXP {
 
     public final boolean isWiderThan(Vector vector) {
       return isWiderThan(vector.getVectorType());
-    }
-
-    public final boolean isWiderThanOrEqualTo(Vector vector) {
-      return compareTo(vector.getVectorType()) <= 0;
     }
 
     /**

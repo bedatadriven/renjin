@@ -26,7 +26,6 @@ import r.jvmi.annotations.GroupGeneric;
 import r.jvmi.annotations.PreserveAttributeStyle;
 import r.jvmi.annotations.PreserveAttributes;
 import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Recycle;
 import r.lang.DoubleVector;
 import r.lang.Logical;
 import r.lang.SEXP;
@@ -43,21 +42,18 @@ public class Ops  {
   private Ops() {}
 
   @Primitive("+")
-  @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double plus(double x, double y) {
     return x + y;
   }
 
   @Primitive("+")
-  @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double plus(double x) {
     return x;
   }
 
   @Primitive("-")
-  @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double minus(double x, double y) {
     return x - y;
@@ -70,21 +66,18 @@ public class Ops  {
   }
 
   @Primitive("/")
-  @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double divide(double x, double y) {
     return x / y;
   }
 
   @Primitive("*")
-  @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double multiply(double x, double y) {
     return x * y;
   }
 
   @Primitive("==")
-  @Recycle
   public static boolean equalTo(double x, double y) {
     return x == y;
   }

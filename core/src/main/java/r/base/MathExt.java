@@ -20,9 +20,13 @@
  */
 package r.base;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
 import r.jvmi.annotations.Primitive;
+import r.jvmi.annotations.Recycle;
 import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.StringVector;
@@ -96,6 +100,11 @@ public class MathExt {
   @Primitive("atan2")
   public static double atan2(double y, double x){
     return(Math.atan2(y, x));
+  }
+  
+  @Primitive("signif")
+  public static double signif(@Recycle double x, @Recycle int digits) {
+    return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
   
 }

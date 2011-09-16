@@ -102,4 +102,20 @@ public class MathTest extends EvalTestCase {
     assertThat(eval(".Internal(atan2(-0.5, -0.5))").asReal(), closeTo(-2.356194, 0.000001));
     assertThat(eval(".Internal(atan2(0.5, 0))").asReal(), closeTo(1.570796, 0.000001));
   }
+  
+  @Test 
+  public void signif(){
+    try{
+      topLevelContext.init();
+    }catch(Exception e){
+      
+    }
+    assertThat(eval("signif(123.006, 1)").asReal(), closeTo(100.0,0.0000001));
+    assertThat(eval("signif(123.006, 2)").asReal(), closeTo(120.0,0.0000001));
+    assertThat(eval("signif(123.006, 3)").asReal(), closeTo(123.0,0.0000001));
+    assertThat(eval("signif(123.006, 4)").asReal(), closeTo(123.0,0.0000001));
+    assertThat(eval("signif(123.006, 5)").asReal(), closeTo(123.01,0.0000001));
+    assertThat(eval("signif(123.006, 6)").asReal(), closeTo(123.006,0.0000001));
+    assertThat(eval("signif(123.456, 4)").asReal(), closeTo(123.5,0.0000001));
+  }
 }

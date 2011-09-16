@@ -65,9 +65,7 @@ import r.lang.StringVector;
 import r.lang.Symbol;
 
 import com.google.common.collect.Sets;
-import r.base.random.N01type;
 import r.base.random.RNG;
-import r.base.random.RNGtype;
 
 /**
  *  The {@code Frame} that provides the primitive functions for the
@@ -406,7 +404,7 @@ public class BaseFrame implements Frame {
 /* Note that the number of arguments for the primitives in the Math group
    only applies to the default method. */
     f("round", Math.class, 10001, 0, -1);
-    f("signif", /*Math2*/ null, 10004, 0, -1);
+    f("signif", MathExt.class, 10004, 0, -1);
     f("atan",Math.class, 10002, 1, 1);
     f("log", MathExt.class, 10003, 0, -1);
     f("log10", Math.class, 10, 1, 1);

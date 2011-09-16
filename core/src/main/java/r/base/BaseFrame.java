@@ -417,8 +417,8 @@ public class BaseFrame implements Frame {
     f("trunc", /*trunc*/ null, 5, 1, -1);
 
     f("exp", Math.class, 10, 1, 1);
-    f("expm1", /*math1*/ null, 11, 1, 1);
-    f("log1p", /*math1*/ null, 12, 1, 1);
+    f("expm1", MathExt.class, 11, 1, 1);
+    f("log1p", MathExt.class, 12, 1, 1);
 
     f("cos", Math.class, 20, 1, 1);
     f("sin", Math.class, 21, 1, 1);

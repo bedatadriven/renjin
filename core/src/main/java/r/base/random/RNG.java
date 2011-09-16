@@ -6,7 +6,6 @@
 package r.base.random;
 
 import r.jvmi.annotations.Primitive;
-import r.lang.Context.Globals;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.exception.EvalException;
@@ -72,7 +71,10 @@ public class RNG {
     } catch (Exception e) {
       throw new EvalException("invalid Normal type in RNGkind");
     }
-
+    
+    RNG.RNG_kind = RNGtype.values()[kind];
+    RNG.N01_kind = N01type.values()[normalkind];
+    System.out.println("Random generator is set to "+RNG.RNG_kind+" and "+RNG.N01_kind);
     return (new IntVector(RNG.RNG_kind.ordinal(), RNG.N01_kind.ordinal()));
   }
 
@@ -107,8 +109,8 @@ public class RNG {
          * modified using __unsigned__  seeds instead of signed ones
          */
         RNG_Table[RNG_kind.ordinal()].i_seed[0] ^= (((RNG_Table[RNG_kind.ordinal()].i_seed[0]) >> 15) & 0377777);
-        RNG_Table[RNG_kind.ordinal()].i_seed[0] ^= RNG_Table[RNG_kind.ordinal()].i_seed[0] << 17;
-        RNG_Table[RNG_kind.ordinal()].i_seed[1] *= 69069;
+        RNG_Table[RNG_kind.ordinal()].i_seed[0] ^= (int)(RNG_Table[RNG_kind.ordinal()].i_seed[0] << 17);
+        RNG_Table[RNG_kind.ordinal()].i_seed[1] = (int)(RNG_Table[RNG_kind.ordinal()].i_seed[1] * 69069);
         /* in [0,1) */
        return fixup( ((RNG_Table[RNG_kind.ordinal()].i_seed[0] ^ RNG_Table[RNG_kind.ordinal()].i_seed[1])) * i2_32m1); /* in [0,1) */
         
@@ -285,7 +287,7 @@ public class RNG {
 
     RNG.mti = (int) dummy[0];
 
-    if (RNG.mti >= RNG.N) {
+    if (RNG.mti >= RNG.N-1) {
       int kk;
       if (RNG.mti == RNG.N + 1) {
         MT_sgenrand(4357);
@@ -316,6 +318,7 @@ public class RNG {
 
   static void MT_sgenrand(int seed) {
     int i;
+    javax.swing.JOptionPane.showMessageDialog(null, "sgenrand");
     for (i = 0; i < N; i++) {
       mt[i] = seed & 0xffff0000;
       seed = 69069 * seed + 1;

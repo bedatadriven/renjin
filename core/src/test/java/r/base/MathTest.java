@@ -118,4 +118,17 @@ public class MathTest extends EvalTestCase {
     assertThat(eval("signif(123.006, 6)").asReal(), closeTo(123.006,0.0000001));
     assertThat(eval("signif(123.456, 4)").asReal(), closeTo(123.5,0.0000001));
   }
+  
+  @Test
+  public void expm1() {
+    assertThat(eval("expm1(1.0001)").asReal(), closeTo(1.718554, 0.000001));
+    assertThat(eval("expm1(1:3)[2]").asReal(), closeTo(6.389056, 0.0000001));
+  }
+
+  @Test
+  public void log1p() {
+    assertThat(eval("log1p(expm1(1))").asReal(), closeTo(1.00, 0.0000001));
+    assertThat(eval("log1p(1:3)[2]").asReal(), closeTo(1.0986123, 0.0000001));
+  }
+  
 }

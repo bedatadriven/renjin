@@ -106,5 +106,16 @@ public class MathExt {
   public static double signif(@Recycle double x, @Recycle int digits) {
     return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
+
+  @Primitive("expm1")
+  public static double expm1(@Recycle double x) {
+    return (Math.exp(x) - 1);
+  }
+
+  @Primitive("log1p")
+  public static double log1p(@Recycle double x) {
+    return (Math.log(1 + x));
+  }
+
   
 }

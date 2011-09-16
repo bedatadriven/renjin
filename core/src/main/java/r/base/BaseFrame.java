@@ -593,7 +593,7 @@ public class BaseFrame implements Frame {
     f("rnbinom_mu", /*random2*/ null, 13, 11, 3);
     f("rnchisq", /*random2*/ null, 12, 11, 3);
     f("rnorm", /*random2*/ null, 8, 11, 3);
-    f("runif", /*random2*/ null, 9, 11, 3);
+    f("runif", RNG.class, 9, 11, 3);
     f("rweibull", /*random2*/ null, 10, 11, 3);
     f("rwilcox", /*random2*/ null, 11, 11, 3);
 
@@ -603,7 +603,7 @@ public class BaseFrame implements Frame {
     f("sample", /*sample*/ null, 0, 11, 4);
 
     f("RNGkind", RNG.class, 0, 11, 2);
-    f("set.seed", /*setseed*/ null, 0, 11, 3);
+    f("set.seed", RNG.class, 0, 11, 3);
 
 /* Data Summaries */
 /* sum, min, max, prod, range are group generic and so need to eval args */

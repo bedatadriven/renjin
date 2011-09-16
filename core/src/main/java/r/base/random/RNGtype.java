@@ -3,11 +3,11 @@ package r.base.random;
 public enum RNGtype {
 
   WICHMANN_HILL,
-  MARSAGLIA_MULTICARRY,
+  MARSAGLIA_MULTICARRY,                   
   SUPER_DUPER,
-  MERSENNE_TWISTER, //This is default
-  KNUTH_TAOCP,
+  MERSENNE_TWISTER, //This is default    
+  KNUTH_TAOCP,                           
   USER_UNIF,
-  KNUTH_TAOCP2
+  KNUTH_TAOCP2                            
   
 }

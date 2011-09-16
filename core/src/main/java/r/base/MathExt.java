@@ -23,6 +23,7 @@ package r.base;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import org.apache.commons.math.special.Beta;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
 import r.jvmi.annotations.Primitive;
@@ -116,6 +117,15 @@ public class MathExt {
   public static double log1p(@Recycle double x) {
     return (Math.log(1 + x));
   }
-
+  
+  @Primitive("beta")
+  public static double beta(@Recycle double a, @Recycle double b){
+    return (Math.exp(Beta.logBeta(a, b)));
+  }
+  
+  @Primitive("lbeta")
+  public static double lbeta(@Recycle double a, @Recycle double b){
+    return (Beta.logBeta(a, b));
+  }
   
 }

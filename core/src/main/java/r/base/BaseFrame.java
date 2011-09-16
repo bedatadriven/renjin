@@ -444,8 +444,8 @@ public class BaseFrame implements Frame {
 
     f("atan2", MathExt.class, 0, 11, 2);
 
-    f("lbeta", /*math2*/ null, 2, 11, 2);
-    f("beta", /*math2*/ null, 3, 11, 2);
+    f("lbeta", MathExt.class, 2, 11, 2);
+    f("beta", MathExt.class, 3, 11, 2);
     f("lchoose", /*math2*/ null, 4, 11, 2);
     f("choose", /*math2*/ null, 5, 11, 2);
 

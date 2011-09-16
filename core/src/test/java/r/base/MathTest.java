@@ -130,5 +130,17 @@ public class MathTest extends EvalTestCase {
     assertThat(eval("log1p(expm1(1))").asReal(), closeTo(1.00, 0.0000001));
     assertThat(eval("log1p(1:3)[2]").asReal(), closeTo(1.0986123, 0.0000001));
   }
+
+  @Test
+  public void beta() {
+    assertThat(eval(".Internal(beta(5,5))").asReal(), closeTo(0.001587302, 0.0000001));
+    assertThat(eval(".Internal(beta(1:5, 1:5))[2]").asReal(), closeTo(0.166666667, 0.0000001));
+  }
+
+  @Test
+  public void lbeta() {
+    assertThat(eval(".Internal(lbeta(5,5))").asReal(), closeTo(-6.44572, 0.00001));
+    assertThat(eval(".Internal(lbeta(1:5, 1:5))[2]").asReal(), closeTo(-1.791759, 0.00001));
+  }
   
 }

@@ -34,4 +34,9 @@ public class TestRNG extends EvalTestCase {
     eval("set.seed(12345, 'Mersenne-Twister','I')");
     assertThat(eval("runif(1,0,2)").asReal(), closeTo(1.7763822156, 0.000001));
   }
+  
+  @Test
+  public void norm_rand(){
+    
+  }
 }

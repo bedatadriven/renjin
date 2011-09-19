@@ -44,7 +44,7 @@ public class RNG {
 
     RNG.RNG_kind = RNGtype.values()[kind];
     RNG.N01_kind = N01type.values()[normalkind];
-    System.out.println("Random generator is set to " + RNG.RNG_kind + " and " + RNG.N01_kind);
+    //System.out.println("Random generator is set to " + RNG.RNG_kind + " and " + RNG.N01_kind);
     return (new IntVector(RNG.RNG_kind.ordinal(), RNG.N01_kind.ordinal()));
   }
 
@@ -55,6 +55,32 @@ public class RNG {
   public static void set_seed(int seed, int kind, int normalkind) {
     RNG.randomseed = seed;
     RNG.RNGkind(kind, normalkind);
+    switch (RNG_kind) {
+      case WICHMANN_HILL:
+        throw new EvalException(RNG_kind + " not implemented yet");
+
+      case MARSAGLIA_MULTICARRY:
+        throw new EvalException(RNG_kind + " not implemented yet");
+
+      case SUPER_DUPER:
+        throw new EvalException(RNG_kind + " not implemented yet");
+
+      case MERSENNE_TWISTER:
+        if (mersenneTwisterAlg == null) {
+          mersenneTwisterAlg = new MersenneTwister(seed);
+        } else {
+          mersenneTwisterAlg.setSeed(seed);
+        }
+        return;
+
+      case KNUTH_TAOCP:
+      case KNUTH_TAOCP2:
+        throw new EvalException(RNG_kind + " not implemented yet");
+      case USER_UNIF:
+        throw new EvalException(RNG_kind + " not implemented yet");
+      default:
+        throw new EvalException(RNG_kind + " not implemented yet");
+    }
   }
 
   @Primitive("runif")
@@ -110,7 +136,7 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rpois")
   public static DoubleVector rpois(int n, double mu) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
@@ -119,7 +145,7 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rgeom")
   public static DoubleVector rgeom(int n, double p) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
@@ -128,7 +154,7 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rt")
   public static DoubleVector rt(int n, double df) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
@@ -138,7 +164,65 @@ public class RNG {
     return (vb.build());
   }
 
+  @Primitive("rccauchy")
+  public static DoubleVector rcauchy(int n, double location, double scale) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(Cauchy.rcauchy(location, scale));
+    }
+    return (vb.build());
+  }
 
+  @Primitive("rlnorm")
+  public static DoubleVector rlnorm(int n, double meanlog, double sdlog) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(LNorm.rlnorm(meanlog, sdlog));
+    }
+    return (vb.build());
+  }
+
+  @Primitive("rlogis")
+  public static DoubleVector rlogis(int n, double location, double scale) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(RLogis.rlogis(location, scale));
+    }
+    return (vb.build());
+  }
+
+  @Primitive("rweibull")
+  public static DoubleVector rweibull(int n, double shape, double scale) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(Weibull.rweibull(shape, scale));
+    }
+    return (vb.build());
+  }
+
+  /*
+   * One of the Most important method in RNG
+   * Before creating a random number from the distribution D,
+   * we generate a uniform distributed random variable. 
+   * 
+   * Generated random numbers depend on the algorithm used.
+   * As in original interpreter, the default algorithm is MERSENNE_TWISTER.
+   * 
+   * MERSENNE_TWISTER algorithm is imported from the apache commons math api.
+   * But there is a small problem with this. The original interpreter and the renjin
+   * produces different pseudo random numbers even the seed is same.
+   * 
+   * I am leaving this as is, I think it is not a real problem for now, somebody can 
+   * correct the mechanism underlying the uniform random number generation for consistency 
+   * with the original interpreter. 
+   * 
+   * Because I have not got the desired outputs, I can not test my generated random numbers. But one can 
+   * see that, for example a sample of 1000 random numbers from a Chisquare(15) distribution has an
+   * average of nearly 15. Similarly, a sample drawn from a Normal (0,1) distribution has a mean and variance
+   * nearly zero and one, respectively.
+   * 
+   * mhsatman
+   */
   public static double unif_rand() {
     double value;
 
@@ -179,5 +263,32 @@ public class RNG {
     int sseed;
     sseed = (int) (new java.util.Date()).getTime();
     RNG.randomseed = sseed;
+    switch (RNG_kind) {
+
+      case WICHMANN_HILL:
+        throw new EvalException(RNG_kind + " not implemented yet");
+
+      case MARSAGLIA_MULTICARRY:
+        throw new EvalException(RNG_kind + " not implemented yet");
+
+      case SUPER_DUPER:
+        throw new EvalException(RNG_kind + " not implemented yet");
+
+      case MERSENNE_TWISTER:
+        if (mersenneTwisterAlg == null) {
+          mersenneTwisterAlg = new MersenneTwister(sseed);
+        } else {
+          mersenneTwisterAlg.setSeed(sseed);
+        }
+        return;
+
+      case KNUTH_TAOCP:
+      case KNUTH_TAOCP2:
+        throw new EvalException(RNG_kind + " not implemented yet");
+      case USER_UNIF:
+        throw new EvalException(RNG_kind + " not implemented yet");
+      default:
+        throw new EvalException(RNG_kind + " not implemented yet");
+    }
   }
 }

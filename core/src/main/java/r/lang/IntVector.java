@@ -34,6 +34,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
   public static final Vector.Type VECTOR_TYPE = new IntType();
+  public static final IntVector EMPTY = new IntVector();
 
   public static final String IMPLICIT_CLASS = "integer";
 

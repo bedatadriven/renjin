@@ -1,18 +1,30 @@
 package r.jvmi.wrapper.generator;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import r.base.BaseFrame.Entry;
 import r.jvmi.annotations.NamedFlag;
+import r.jvmi.annotations.PreserveAttributeStyle;
 import r.jvmi.binding.JvmMethod;
+import r.jvmi.binding.JvmMethod.Argument;
 import r.jvmi.wrapper.GeneratorDefinitionException;
+import r.jvmi.wrapper.IfElseSeries;
 import r.jvmi.wrapper.WrapperSourceWriter;
+import r.jvmi.wrapper.generator.args.ArgConverterStrategies;
+import r.jvmi.wrapper.generator.args.ArgConverterStrategy;
+import r.jvmi.wrapper.generator.generic.GenericDispatchStrategy;
+import r.jvmi.wrapper.generator.generic.OpsGroupGenericDispatchStrategy;
+import r.jvmi.wrapper.generator.generic.SimpleDispatchStrategy;
 import r.jvmi.wrapper.generator.recycling.RecycledArgument;
 import r.jvmi.wrapper.generator.recycling.RecycledArguments;
 import r.jvmi.wrapper.generator.recycling.SingleRecycledArgument;
 import r.jvmi.wrapper.generator.scalars.ScalarType;
 import r.jvmi.wrapper.generator.scalars.ScalarTypes;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -20,23 +32,142 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
 
   @Override
   public boolean accept(List<JvmMethod> overloads) {
-    return overloads.size() == 1 && !overloads.get(0).isGeneric();
+   // return !overloads.get(0).isGroupGeneric();
+    return true;
   }
 
   @Override
-  protected void generateCall(WrapperSourceWriter s, List<JvmMethod> overloads) {
-    JvmMethod method = overloads.get(0);
-
-    
-    ArgumentList argumentList = new ArgumentList(); 
-    Map<JvmMethod.Argument, String> namedFlags = Maps.newHashMap();
-    List<RecycledArgument> recycledArgs = Lists.newArrayList();
-    
+  protected void generateCall(Entry entry, WrapperSourceWriter s, List<JvmMethod> overloads) {
     s.writeStatement("ArgumentIterator argIt = new ArgumentIterator(context, rho, args)");
     s.writeBlankLine();
+   
+    GenericDispatchStrategy genericDispatchStrategy = getGenericDispatchStrategy(entry, overloads);
+   
+    int maxArgumentCount = getMaxPositionalArgs(overloads);
+    for(int i = 0; i!=maxArgumentCount;++i) {
+      Collection<JvmMethod> matchingByCount = Collections2.filter(overloads, havingPositionalArgCountOf(i));
+       
+      if(!matchingByCount.isEmpty()) {
+        s.writeBeginIf("!argIt.hasNext()");
+        genericDispatchStrategy.beforePrimitiveIsCalled(s, i);
+        dispatchArityGroup(s, matchingByCount);
+        s.writeCloseBlock();
+      }
+      
+      if(isEvaluated(overloads, i)) {
+        s.writeStatement("SEXP s" + i + " = argIt.next().evalToExp(context,rho)");
+      } else {
+        s.writeStatement("SEXP s" + i + " = argIt.next()");
+      }
+      genericDispatchStrategy.afterArgIsEvaluated(s, i);
+    }
     
-    s.writeComment("extract (and maybe) evaluate positional arguments");
     
+    Collection<JvmMethod> matchingByCount = Collections2.filter(overloads, havingPositionalArgCountOf(maxArgumentCount));
+    genericDispatchStrategy.beforePrimitiveIsCalled(s, maxArgumentCount);
+    dispatchArityGroup(s, matchingByCount);
+      
+
+//    
+//    
+//    OverloadNode tree = OverloadNode.buildTree(overloads);
+//    testNextArg(s, tree, 0, genericDispatchStrategy);
+  }
+  
+  private boolean isEvaluated(List<JvmMethod> overloads, int argumentIndex) {
+    boolean evaluated = false;
+    boolean unevaluated = false;
+    for(JvmMethod overload : overloads) {
+      if(argumentIndex < overload.getFormals().size()) {
+        if(overload.getFormals().get(argumentIndex).isEvaluated()) {
+          evaluated = true;
+        } else {
+          unevaluated = false;
+        }
+      }
+    }
+    if(evaluated && unevaluated) {
+      throw new GeneratorDefinitionException("Mixing evaluated and unevaluated arguments at the same position is not yet supported");
+    }
+    return evaluated;
+  }
+
+  private int getMaxPositionalArgs(List<JvmMethod> overloads) {
+    int max = 0;
+    for(JvmMethod overload : overloads) {
+      int count = overload.countPositionalFormals();
+      if(count > max) {
+        max = count;
+      }
+    }
+    return max;
+  }
+  
+  private Predicate<JvmMethod> havingPositionalArgCountOf(final int n) {
+    return new Predicate<JvmMethod>() {
+
+      @Override
+      public boolean apply(JvmMethod input) {
+        return input.countPositionalFormals() == n;
+      }
+    };
+  }
+  
+  private GenericDispatchStrategy getGenericDispatchStrategy(Entry entry, List<JvmMethod> overloads) {
+    if(overloads.get(0).isGroupGeneric()) {
+      if (overloads.get(0).getGenericGroup().equals("Ops")) {
+        return new OpsGroupGenericDispatchStrategy(entry.name);
+      } else {
+        throw new GeneratorDefinitionException("Only 'Ops' @GenericGroup functions are supported at the moment");
+      }
+    } else if(overloads.get(0).isGeneric()) {
+      return new SimpleDispatchStrategy(entry.name);
+    } else {
+      return new GenericDispatchStrategy();
+    }
+  }
+
+  
+  private void dispatchArityGroup(WrapperSourceWriter s, Collection<JvmMethod> overloads) {
+    if(overloads.size() == 1) {
+      JvmMethod overload = overloads.iterator().next();
+      if(overload.getPositionalFormals().isEmpty()) {
+        generateCall(s, overload);
+        return;
+      }
+    }
+    
+    IfElseSeries choice = new IfElseSeries(s, overloads.size());
+    for(JvmMethod overload : overloads) {
+      choice.elseIf(testCondition(overload));
+      generateCall(s, overload);
+    }
+    choice.finish();
+    s.writeStatement("throw new ArgumentException()");
+  }
+
+  private String testCondition(JvmMethod overload) {
+    StringBuilder condition = new StringBuilder(); 
+    List<Argument> posFormals = overload.getPositionalFormals();
+    for(int i=0;i!=posFormals.size();++i) {
+      if(condition.length() > 0) {
+        condition.append(" && ");
+      }
+      ArgConverterStrategy strategy = ArgConverterStrategies.findArgConverterStrategy(posFormals.get(i));
+      condition.append("(" + strategy.getTestExpr("s" + i) + ")");
+    }
+    return condition.toString();
+  }
+
+  
+  protected void generateCall(WrapperSourceWriter s, JvmMethod method) {
+  
+    s.writeComment("**** " + method.toString());
+
+    ArgumentList argumentList = new ArgumentList();
+    Map<JvmMethod.Argument, String> namedFlags = Maps.newHashMap();
+    List<RecycledArgument> recycledArgs = Lists.newArrayList();
+
     int argIndex = 0;
     boolean varArgsSeen = false;    
     
@@ -49,26 +180,31 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
         varArgsSeen = true;
         
       } else {
-        String tempLocal = "arg" + (argIndex++);
-        
+
+        String evaledLocal = "s" + argIndex;
+        String convertedLocal = "arg" + argIndex;
+
+        ArgConverterStrategy strategy = ArgConverterStrategies.findArgConverterStrategy(argument);
+        s.writeTempLocalDeclaration(strategy.getTempLocalType(), convertedLocal);
+
         if(argument.isAnnotatedWith(NamedFlag.class)) {
-          s.writeStatement(argument.getClazz().getName() + " " + tempLocal + " = " + (argument.getDefaultValue() ? "true" : "false") );
-          namedFlags.put(argument, tempLocal);
+          s.writeStatement(convertedLocal + " = " + (argument.getDefaultValue() ? "true" : "false") );
+          namedFlags.put(argument, convertedLocal);
         } else {
           if(varArgsSeen) {
             throw new GeneratorDefinitionException("Any argument following a @ArgumentList must be annotated with @NamedFlag");
           }
-          s.writeTempLocalDeclaration(findArgConverterStrategy(argument).getTempLocalType(argument), tempLocal);
-          s.writeStatement(argConversionStatement(argument, tempLocal));
+          s.writeStatement(strategy.argConversionStatement(convertedLocal, evaledLocal));
+        }
 
-        }
-        
         if(argument.isRecycle()) {
-          recycledArgs.add(new RecycledArgument(argument, tempLocal));
-          argumentList.add(tempLocal + "_element");
+          recycledArgs.add(new RecycledArgument(argument, convertedLocal));
+          argumentList.add(convertedLocal + "_element");
         } else {
-          argumentList.add(tempLocal);
+          argumentList.add(convertedLocal);
         }
+
+        argIndex++;
       }
     }
     if(varArgsSeen) {
@@ -88,12 +224,10 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       s.writeComment("make call");
       s.writeStatement(callStatement(method, argumentList));
     }
-      
     if(method.returnsVoid()) {
       s.writeStatement("return EvalResult.NON_PRINTING_NULL;");
     }
     s.writeBlankLine();
-    
   }
 
   private void writeHandleNode(WrapperSourceWriter s, Map<JvmMethod.Argument, String> namedFlags) {
@@ -119,7 +253,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
         }
          
         s.writeBeginBlock( (needElseIf ? "} else " : "") + "if(name.equals(\"" + namedFlag.getName() + "\")) {");
-        s.writeStatement(findArgConverterStrategy(namedFlag).conversionStatement(namedFlag, namedFlags.get(namedFlag), "evaled"));
+        s.writeStatement(ArgConverterStrategies.findArgConverterStrategy(namedFlag).conversionStatement(namedFlags.get(namedFlag), "evaled"));
         needElseIf = true;
       }
       s.outdent();
@@ -143,15 +277,15 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     
     RecycledArguments recycled;
     if(recycledArguments.size() == 1) {
-      recycled = new SingleRecycledArgument(s, recycledArguments);
+      recycled = new SingleRecycledArgument(s, method, recycledArguments);
     } else {
-      recycled = new RecycledArguments(s, recycledArguments);
+      recycled = new RecycledArguments(s, method, recycledArguments);
     }
     
     recycled.writeSetup();
     
-    s.writeStatement(toJava(resultType.getBuilderClass()) + " result = new " +
-        toJava(resultType.getBuilderClass()) + "(cycles);");
+    s.writeStatement(WrapperSourceWriter.toJava(resultType.getBuilderClass()) + " result = new " +
+        WrapperSourceWriter.toJava(resultType.getBuilderClass()) + "(cycles);");
     s.writeStatement("int resultIndex = 0;");
     s.writeBlankLine();
     
@@ -166,7 +300,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     }
     recycled.writeElementExtraction();
     s.writeBlankLine();
-    s.writeStatement("result.set(i, " + method.getDeclaringClass().getName() + "." + method.getName() + "(" + argumentList +"))");
+    s.writeStatement("result.set(i, " + method.getDeclaringClass().getName() + "." + method.getName() + "(" + argumentList + "))");
     
     if(!method.acceptsNA()) {
       s.writeCloseBlock();
@@ -175,20 +309,23 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     recycled.writeIncrementCounters();
     
     s.writeCloseBlock();
-    
-    switch(method.getPreserveAttributesStyle()) {
-    case ALL:
-      s.writeStatement("result.copyAttributesFrom(" + recycled.getLongestLocal() + ")");
-      break;
-    case SPECIAL:
-      s.writeStatement("result.copySomeAttributesFrom(" + recycled.getLongestLocal() + 
-            ", Symbol.DIM, Symbol.DIMNAMES, Symbol.NAMES);");
-      break;
+    if(method.getPreserveAttributesStyle() != PreserveAttributeStyle.NONE) {
+      s.writeBeginBlock("if(cycles > 0) {");
+      switch(method.getPreserveAttributesStyle()) {
+      case ALL:
+        s.writeStatement("result.copyAttributesFrom(" + recycled.getLongestLocal() + ")");
+        break;
+      case SPECIAL:
+        s.writeStatement("result.copySomeAttributesFrom(" + recycled.getLongestLocal() + 
+              ", Symbol.DIM, Symbol.DIMNAMES, Symbol.NAMES);");
+        break;
+      }
+      s.writeCloseBlock();
     }
-
+    
     s.writeStatement("return new EvalResult(result.build());" );
-
   }
-
+  
+  
   
 }

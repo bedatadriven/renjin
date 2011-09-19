@@ -1,18 +1,18 @@
 package r.jvmi.wrapper.generator.recycling;
 
-import java.util.List;
-import java.util.Map;
-
-import r.jvmi.binding.JvmMethod.Argument;
+import r.jvmi.binding.JvmMethod;
 import r.jvmi.wrapper.WrapperSourceWriter;
+
+import java.util.List;
 
 public class SingleRecycledArgument extends RecycledArguments {
 
   private RecycledArgument arg;
   
   public SingleRecycledArgument(WrapperSourceWriter s,
+      JvmMethod overload,
       List<RecycledArgument> recycledArguments) {
-    super(s, recycledArguments);
+    super(s, overload, recycledArguments);
 
     arg = recycledArguments.get(0);
   

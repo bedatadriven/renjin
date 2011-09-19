@@ -21,21 +21,23 @@
 
 package r.lang;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import r.lang.exception.EvalException;
-import r.parser.ParseUtil;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
+import r.lang.exception.EvalException;
+import r.parser.ParseUtil;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+
 public class StringVector extends AbstractAtomicVector implements Iterable<String> {
   public static final String TYPE_NAME = "character";
   public static final String NA = null;
+  public static final StringVector EMPTY = new StringVector();
 
   public static final Vector.Type VECTOR_TYPE = new StringType();
 
@@ -357,4 +359,5 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     }
     return result.build();
   }
+
 }

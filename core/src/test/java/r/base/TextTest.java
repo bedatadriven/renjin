@@ -93,6 +93,17 @@ public class TextTest extends EvalTestCase {
     // empty list
     assertThat( eval("sprintf('%s', c())"), equalTo( (SEXP)new StringVector()));
   }
+  
+  @Test
+  public void sprintfWithAsCharacter() {
+    eval("as.character.foo <- function(x) 'FOO!' ");
+    eval("sprintf <- function (fmt, ...) .Internal(sprintf(fmt, ...))");
+
+    eval("x <- list(1,2,3) ");
+    eval("class(x) <- 'foo' ");
+    
+    assertThat( eval("sprintf('i say %s', x)"), equalTo(c("i say FOO!")));
+  }
 
   @Test
   public void translateChars() {

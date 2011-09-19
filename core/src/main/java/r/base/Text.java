@@ -21,22 +21,35 @@
 
 package r.base;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
+import static com.google.common.collect.Iterables.transform;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import r.base.regex.ExtendedRE;
 import r.base.regex.RE;
 import r.base.regex.REFactory;
 import r.jvmi.annotations.AllowNA;
 import r.jvmi.annotations.ArgumentList;
+import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.jvmi.annotations.Recycle;
-import r.lang.*;
+import r.lang.AtomicVector;
+import r.lang.Context;
+import r.lang.Environment;
+import r.lang.FunctionCall;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.LogicalVector;
+import r.lang.ReservedWords;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
 import r.lang.exception.EvalException;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.google.common.collect.Iterables.transform;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 
 public class Text {
 
@@ -72,49 +85,58 @@ public class Text {
     return paste(components, fileSeparator, null);
   }
 
-  public static StringVector sprintf(@ArgumentList ListVector arguments) {
-    StringVector formatVector = toStringVector( arguments.getElementAsSEXP(0), "fmt" );
+  public static StringVector sprintf(@Current Context context, @Current Environment rho, 
+        StringVector format, @ArgumentList ListVector arguments) {
+    
+    if(format.length() == 0) {
+      return StringVector.EMPTY;
+    }
+    
     StringVector.Builder result = StringVector.newBuilder();
 
-    if( arguments.minElementLength() > 0) {
+    Formatter[] formatters = new Formatter[format.length()];
+    for(int i=0;i!=format.length();++i) {
+      formatters[i] = new Formatter(format.getElementAsString(i));
+    }
 
-      int maxLen = arguments.maxElementLength();
-      Object formatArgs[] = new Object[ arguments.length() -1 ];
-
-      for(int resultIndex=0; resultIndex != maxLen; ++resultIndex) {
-
-        Formatter format = new Formatter(
-            formatVector.getElementAsString( resultIndex % formatVector.length() ));
-
-        for(int i=1;i!=arguments.length();++i) {
-          AtomicVector formatArg = toAtomicVector(arguments.getElementAsSEXP(i));
-          int formatArgIndex = resultIndex % formatArg.length();
-
-          formatArgs[i-1] = formatArg.getElementAsObject(formatArgIndex);
-        }
-
-        result.add( format.sprintf(formatArgs) );
+    // this is very tricky, but following the original R implementation, it seems
+    // that even multiple format strings arguments are coerced only 
+    
+    AtomicVector[] formatArgs = new AtomicVector[arguments.length()];
+    for(int i=0;i!=formatArgs.length;++i) {
+      SEXP argument = arguments.getElementAsSEXP(i);
+      if(formatters[0].isFormattedString(i) && !(argument instanceof StringVector)) {
+        argument = FunctionCall.newCall(new Symbol("as.character"), argument)
+           .evalToExp(context, rho); 
       }
+      if(!(argument instanceof AtomicVector)) {
+        throw new EvalException("Format argument %d is not an atomic vector", i);
+      }
+      formatArgs[i] = (AtomicVector)argument;
+    }
+    
+    // count cycles
+    int cycles = formatters.length;
+    for(int i=0;i!=formatArgs.length;++i) {
+      if(formatArgs[i].length() == 0) {
+        return StringVector.EMPTY;
+      }
+      if(formatArgs[i].length() > cycles) {
+        cycles = formatArgs[i].length();
+      }
+    }
+    
+
+    for(int resultIndex=0; resultIndex != cycles; ++resultIndex) {
+
+      Formatter formatter = formatters[resultIndex % formatters.length];
+      
+      result.add( formatter.sprintf(formatArgs, resultIndex) );
     }
 
     return result.build();
   }
 
-  private static StringVector toStringVector(SEXP argument, String argName) {
-    if(argument instanceof StringVector) {
-      return (StringVector) argument;
-    } else {
-      throw new EvalException("'%s' is not a character vector", argName);
-    }
-  }
-
-  private static AtomicVector toAtomicVector(SEXP argument) {
-    if(argument instanceof AtomicVector) {
-      return (AtomicVector) argument;
-    } else {
-      throw new EvalException("unsupported type");
-    }
-  }
 
   private static class StringElementAt implements Function<SEXP, String> {
     private int index;

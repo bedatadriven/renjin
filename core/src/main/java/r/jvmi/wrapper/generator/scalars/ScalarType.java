@@ -24,5 +24,8 @@ public abstract class ScalarType {
   public abstract String getNALiteral();
 
   public abstract Class<? extends Vector.Builder<?>> getBuilderClass();
-  
+
+  public String testExpr(String expr) {
+    return expr + " instanceof Vector && " + getVectorType().getName() + ".VECTOR_TYPE.isWiderThanOrEqualTo((Vector)" + expr + ")";
+  }
 }

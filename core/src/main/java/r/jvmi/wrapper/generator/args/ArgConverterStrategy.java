@@ -1,6 +1,8 @@
 package r.jvmi.wrapper.generator.args;
 
 import r.jvmi.binding.JvmMethod;
+import r.jvmi.binding.JvmMethod.Argument;
+import r.lang.SEXP;
 
 /**
  * Base class for the different strategies for converting incoming argument (SEXPs) to
@@ -11,14 +13,19 @@ import r.jvmi.binding.JvmMethod;
  */
 public abstract class ArgConverterStrategy {
 
-  /**
-   * 
-   * @param formal the formal argument declared in the JVM method
-   * @return true if this strategy cand handle the conversion
-   */
-  public abstract boolean accept(JvmMethod.Argument formal);
+  protected final JvmMethod.Argument formal;
   
-  public Class getTempLocalType(JvmMethod.Argument formal) {
+  public ArgConverterStrategy(Argument formal) {
+    super();
+    this.formal = formal;
+  }
+
+  
+  public Class getTempLocalType() {
+    return formal.getClazz();
+  }
+  
+  public Class getArgType() {
     return formal.getClazz();
   }
   
@@ -29,10 +36,40 @@ public abstract class ArgConverterStrategy {
    * @param argumentExpression the java (source) expression that results in an argument of type {@code SEXP}
    * @return java source expression that results in the converted value
    */
-  public abstract String conversionExpression(JvmMethod.Argument formal, String argumentExpression);
+  public abstract String conversionExpression(String argumentExpression);
   
   
-  public String conversionStatement(JvmMethod.Argument formal, String tempLocal, String argumentExpression) {
-    return tempLocal + " = " + conversionExpression(formal, argumentExpression) + ";";
+  public String conversionStatement(String tempLocal, String argumentExpression) {
+    return tempLocal + " = " + conversionExpression(argumentExpression) + ";";
   }
+  
+  public final String argConversionStatement(String tempLocal, String sexpExpr) {
+    if(formal.getClazz().equals(SEXP.class)) {
+      return tempLocal + " = " + sexpExpr + ";"; 
+    } else {
+      return conversionStatement(tempLocal, sexpExpr);
+    }
+  }
+  
+  public final String argConversionStatement(String tempLocal) {
+    return argConversionStatement(tempLocal, extractExpression());
+  }
+
+
+  public String extractExpression() {
+    if(formal.isEvaluated()) {
+      return "argIt.next().evalToExp(context, rho)";
+    } else {
+      return "argIt.next()";
+    }
+  }
+
+
+  public boolean isEvaluated() {
+    return formal.isEvaluated();
+  }
+
+
+  public abstract String getTestExpr(String argLocal);
+
 }

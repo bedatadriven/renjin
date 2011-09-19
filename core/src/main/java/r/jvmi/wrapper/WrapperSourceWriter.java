@@ -63,6 +63,22 @@ public class WrapperSourceWriter {
     indent();
   }
   
+  public void writeBeginIf(String condition) {
+    writeBeginBlock("if(" + condition + ") {");
+  }
+  
+  
+  public void writeElse() {
+    outdent();
+    writeBeginBlock("} else {");
+  }
+  
+  public void writeBeginIfElse(String condition) {
+    outdent();
+    writeBeginBlock("} else if(" + condition + ") {");
+  }
+
+  
   public void writeStatement(String statement) {
     if(!statement.endsWith(";")) {
       statement += ";";
@@ -84,7 +100,7 @@ public class WrapperSourceWriter {
   }
   
   public void writeTempLocalDeclaration(Class clazz, String name) {
-    writeStatementF("%s %s;", clazz.getName(), name);
+    writeStatementF("%s %s;", toJava(clazz), name);
   }
   
   public void writeCloseBlock() {
@@ -139,4 +155,22 @@ public class WrapperSourceWriter {
     indent++;
   }
 
+  public static final String toJava(Class<?> clazz) {
+    if(clazz.isPrimitive()) {
+      return clazz.getSimpleName();
+    } else {
+      StringBuilder sb = new StringBuilder();
+      sb.append(clazz.getPackage().getName());
+      if(clazz.getEnclosingClass() != null) {
+        sb.append(".");
+        sb.append(clazz.getEnclosingClass().getSimpleName());
+      }
+      sb.append(".");
+      sb.append(clazz.getSimpleName());
+      return sb.toString();
+    } 
+  }
+
+  
+  
 }

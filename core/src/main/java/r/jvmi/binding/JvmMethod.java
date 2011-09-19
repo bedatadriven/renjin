@@ -167,7 +167,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
     return method.getDeclaringClass().getAnnotation(GroupGeneric.class) != null;
   }
   
-  public String getGenericGroup(String name) {
+  public String getGenericGroup() {
     return method.getDeclaringClass().getSimpleName();
   }
 
@@ -186,6 +186,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
     
     return getReturnType().equals(getFormals().get(0).getClass());
   }
+
   
   public PreserveAttributeStyle getPreserveAttributesStyle() {
     PreserveAttributes annotation = method.getAnnotation(PreserveAttributes.class);
@@ -307,7 +308,24 @@ public class JvmMethod implements Comparable<JvmMethod> {
   public Object getName() {
     return method.getName();
   }
+  
 
+  public int countPositionalFormals() {
+    return getPositionalFormals().size();
+  }
+
+  public List<Argument> getPositionalFormals() {
+    List<Argument> list = Lists.newArrayList();
+    for(Argument formal : getFormals()) {
+      if(formal.isAnnotatedWith(ArgumentList.class) ||
+         formal.isAnnotatedWith(NamedFlag.class)) {
+        break;
+      }
+      list.add(formal);
+    }
+    return list;
+  }
+  
   public void appendFriendlySignatureTo(StringBuilder sb) {
     appendFriendlySignatureTo(method.getName(), sb);
   }
@@ -448,7 +466,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
       }
       return false;
     }
-
+    
     public Class getClazz() {
       return clazz;
     }
@@ -560,4 +578,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
       return WrapperRuntime.invokeAsCharacter(context, rho, provided);
     }
   }
+
+
 }

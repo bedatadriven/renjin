@@ -229,6 +229,21 @@ public class System {
     sb.setAttribute("names", new StringVector(new String[]{"sysname", "release", "version", "nodename", "machine", "login", "user"}));
     return (sb.build());
   }
+  
+  @Primitive("Sys.getpid")
+  public static IntVector SysGetPid(){
+    String name = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+    int atIndex = name.indexOf("@");
+    int result = 0;
+    try{
+      result = Integer.parseInt(name.substring(0,atIndex));
+    }catch (Exception e){
+      //Handled string wrong?
+    }
+    return(new IntVector(result));
+  }
+  
+  
 
 
 }

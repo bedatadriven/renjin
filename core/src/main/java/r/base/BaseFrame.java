@@ -888,7 +888,7 @@ public class BaseFrame implements Frame {
     f("Sys.setlocale", /*setlocale*/ null, 0, 11, 2);
     f("Sys.localeconv", /*localeconv*/ null, 0, 11, 0);
     f("path.expand", Files.class, "pathExpand", 0, 11, 1);
-    f("Sys.getpid", /*sysgetpid*/ null, 0, 11, 0);
+    f("Sys.getpid",System.class, 0, 11, 0);
     f("normalizePath", /*normalizepath*/ null, 0, 11, 1);
     f("Sys.glob", Files.class, "glob", 0, 11, 2);
     f("unlink", Files.class, 0, 111, 2);

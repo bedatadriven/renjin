@@ -25,6 +25,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import r.EvalTestCase;
 
+import r.lang.StringVector;
+import r.lang.exception.EvalException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 

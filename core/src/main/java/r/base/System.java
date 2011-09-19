@@ -21,13 +21,13 @@
 
 package r.base;
 
+import java.net.InetAddress;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
 import java.net.URISyntaxException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -201,6 +201,33 @@ public class System {
     parsed = sdf.format(d);
     b.add(parsed);
     return (b.build());
+  }
+  
+  @Primitive("Sys.info")
+  public static StringVector sysInfo() {
+    StringVector.Builder sb = new StringVector.Builder();
+    sb.add(java.lang.System.getProperty("os.name"));
+    sb.add(java.lang.System.getProperty("os.version"));
+    /*
+     * os.build does not exist! maybe we can put jvm info instead?
+     * 
+     */
+    sb.add(java.lang.System.getProperty("os.build"));
+    try{ 
+      sb.add(InetAddress.getLocalHost().getHostName());
+    }catch(Exception e){
+      sb.add("Can not get hostname");
+    }
+    sb.add(java.lang.System.getProperty("os.arch"));
+    /*
+     * 
+     * login.name does not exist!
+     */
+    sb.add(java.lang.System.getProperty("login.name"));
+    sb.add(java.lang.System.getProperty("user.name"));
+
+    sb.setAttribute("names", new StringVector(new String[]{"sysname", "release", "version", "nodename", "machine", "login", "user"}));
+    return (sb.build());
   }
 
 

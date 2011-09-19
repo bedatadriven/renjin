@@ -882,7 +882,7 @@ public class BaseFrame implements Frame {
     f("Sys.chmod", /*syschmod*/ null, 0, 111, 2);
     f("Sys.umask", /*sysumask*/ null, 0, 111, 1);
     f("Sys.readlink", /*readlink*/ null, 0, 11, 1);
-    f("Sys.info", /*sysinfo*/ null, 0, 11, 0);
+    f("Sys.info", System.class, 0, 11, 0);
     f("Sys.sleep", /*syssleep*/ null, 0, 11, 1);
     f("Sys.getlocale", System.class, 0, 11, 1);
     f("Sys.setlocale", /*setlocale*/ null, 0, 11, 2);

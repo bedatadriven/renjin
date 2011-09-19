@@ -48,7 +48,6 @@ public class RNG {
     return (new IntVector(RNG.RNG_kind.ordinal(), RNG.N01_kind.ordinal()));
   }
 
-  
   /*
    * Primitives.
    */
@@ -75,7 +74,7 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rgamma")
   public static DoubleVector rgamma(int n, double shape, double scale) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
@@ -84,7 +83,7 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rchisq")
   public static DoubleVector rchisq(int n, double df) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
@@ -93,7 +92,7 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rnchisq")
   public static DoubleVector rnchisq(int n, double df, double ncp) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
@@ -102,9 +101,44 @@ public class RNG {
     }
     return (vb.build());
   }
+
+  @Primitive("rexp")
+  public static DoubleVector rexp(int n, double invrate) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(Exponantial.rexp(invrate));
+    }
+    return (vb.build());
+  }
   
+  @Primitive("rpois")
+  public static DoubleVector rpois(int n, double mu) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(Poisson.rpois(mu));
+    }
+    return (vb.build());
+  }
   
+  @Primitive("rgeom")
+  public static DoubleVector rgeom(int n, double p) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(Geometric.rgeom(p));
+    }
+    return (vb.build());
+  }
   
+  @Primitive("rt")
+  public static DoubleVector rt(int n, double df) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(StudentsT.rt(df));
+    }
+    return (vb.build());
+  }
+
+
   public static double unif_rand() {
     double value;
 

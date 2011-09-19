@@ -576,10 +576,10 @@ public class BaseFrame implements Frame {
 /* Random Numbers */
 
     f("rchisq", RNG.class, 0, 11, 2);
-    f("rexp", /*random1*/ null, 1, 11, 2);
-    f("rgeom", /*random1*/ null, 2, 11, 2);
-    f("rpois", /*random1*/ null, 3, 11, 2);
-    f("rt", /*random1*/ null, 4, 11, 2);
+    f("rexp", RNG.class, 1, 11, 2);
+    f("rgeom", RNG.class, 2, 11, 2);
+    f("rpois", RNG.class, 3, 11, 2);
+    f("rt", RNG.class, 4, 11, 2);
     f("rsignrank", /*random1*/ null, 5, 11, 2);
 
     f("rbeta", /*random2*/ null, 0, 11, 3);

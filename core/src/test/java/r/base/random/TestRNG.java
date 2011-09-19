@@ -37,6 +37,10 @@ public class TestRNG extends EvalTestCase {
   
   @Test
   public void norm_rand(){
-    
+    double[] t = new double[100];
+    for (int i=0;i<t.length;i++) {
+      t[i] = Geometric.rgeom(.05);
+      System.out.println(t[i]);
+    }
   }
 }

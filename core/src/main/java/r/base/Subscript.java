@@ -88,6 +88,27 @@ public class Subscript {
   public static SEXP getSubset(SEXP source, 
                                @ArgumentList ListVector arguments,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
+    
+    // handle the most common case first quickly:
+    // x[ i ], where i > 0
+    if(source instanceof Vector && arguments.length() == 1) {
+      SEXP subscript = arguments.getElementAsSEXP(0);
+      if(subscript.length() == 1 && 
+          (subscript instanceof DoubleVector || subscript instanceof IntVector)) {
+        int index = ((AtomicVector)subscript).getElementAsInt(0);
+        if(index > 0) {
+          if(index <= source.length()) {
+            return source.getElementAsSEXP(index-1);
+          } else {
+            Vector.Builder result = ((Vector)source).newBuilder(1);
+            result.setNA(0);
+            return result.build();
+          }
+        }
+      }
+    }
+    
+    // handle the more complicated cases
     return new SubscriptOperation()
         .setSource(source)
         .setDrop(drop)

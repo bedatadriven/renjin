@@ -20,11 +20,15 @@ public class TestRNG extends EvalTestCase {
     } catch (Exception e) {
     }
     eval("set.seed(12345, 'Mersenne-Twister','I')");
+
+    assertThat(eval("mean(runif(100000,0,2))").asReal(), closeTo(1.00, 0.01));
+
     eval("a<-runif(5,0,2)");
     assertThat(eval("a[1]").asReal(), closeTo(1.85923218399747, delta));
     assertThat(eval("a[2]").asReal(), closeTo(0.63275111111126, delta));
     assertThat(eval("a[3]").asReal(), closeTo(0.36783760904549, delta));
     assertThat(eval("a[4]").asReal(), closeTo(0.40912055451978, delta));
     assertThat(eval("a[5]").asReal(), closeTo(1.13545005119079, delta));
+
   }
 }

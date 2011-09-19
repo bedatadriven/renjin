@@ -226,6 +226,15 @@ public class RNG {
     }
     return (vb.build());
   }
+  
+  @Primitive("rbeta")
+  public static DoubleVector rbeta(int n, double shape1, double shape2){
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(Beta.rbeta(shape1, shape2));
+    }
+    return (vb.build());
+  }
 
   /*
    * One of the Most important method in RNG

@@ -582,7 +582,7 @@ public class BaseFrame implements Frame {
     f("rt", RNG.class, 4, 11, 2);
     f("rsignrank", /*random1*/ null, 5, 11, 2);
 
-    f("rbeta", /*random2*/ null, 0, 11, 3);
+    f("rbeta", RNG.class, 0, 11, 3);
     f("rbinom", /*random2*/ null, 1, 11, 3);
     f("rcauchy",RNG.class, 2, 11, 3);
     f("rf", RNG.class, 3, 11, 3);

@@ -88,10 +88,16 @@ public class Subscript {
   public static SEXP getSubset(SEXP source, 
                                @ArgumentList ListVector arguments,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
+ 
+    // handle an exceptional case: if source is NULL,
+    // the result is always null
+    if(source == Null.INSTANCE) {
+      return source;
+    }
     
     // handle the most common case first quickly:
     // x[ i ], where i > 0
-    if(source instanceof Vector && arguments.length() == 1) {
+    if(drop == true && source instanceof AtomicVector && arguments.length() == 1) {
       SEXP subscript = arguments.getElementAsSEXP(0);
       if(subscript.length() == 1 && 
           (subscript instanceof DoubleVector || subscript instanceof IntVector)) {

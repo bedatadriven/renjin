@@ -33,10 +33,6 @@ import r.lang.exception.EvalException;
 
 public class OptTest extends EvalTestCase{
   
-  @Test
-  public void matrixProduct() throws IOException{ 
-   assertThat(eval("1:3 %*% c(3,2,1)"), equalTo(c(10)));
-  }
 
   @Test
   public void overloadingWorks() {

@@ -1,6 +1,7 @@
 package r.util;
 
 import org.apache.commons.math.linear.AbstractRealMatrix;
+import org.apache.commons.math.linear.BlockRealMatrix;
 import org.apache.commons.math.linear.MatrixIndexException;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -30,6 +31,13 @@ public class CommonsMath {
     return new MatrixAdapter(vector);
   }
   
+  public static RealMatrix asRealMatrix(Vector vector, int numRows, int numCols) {
+    if(numRows * numCols != vector.length()) {
+      throw new IllegalArgumentException("numRows * numCols must equal the length of the vector");
+    }
+    return new MatrixAdapter(vector, numRows, numCols);
+  }
+  
   /**
    * Creates a copy of a Commons Math {@code RealMatrix} as an
    * {@code DoubleVector} with an appropriate {@code dim} attribute.
@@ -45,9 +53,9 @@ public class CommonsMath {
     vector.setAttribute(Symbol.DIM, new IntVector(nrows, ncols));
     
     int vector_i = 0;
-    for(int i=0;i!=nrows;++i) {
-      for(int j=0;j!=ncols;++j) {
-        vector.set(vector_i++, matrix.getEntry(i, j));
+    for(int i=0;i!=ncols;++i) {
+      for(int j=0;j!=nrows;++j) {
+        vector.set(vector_i++, matrix.getEntry(j, i));
       }
     }
     return vector.build();
@@ -73,10 +81,16 @@ public class CommonsMath {
       ncols = dim.getElementAsInt(1);
     }
     
+    public MatrixAdapter(Vector vector, int nrows, int ncols) {
+      this.vector = vector;
+      this.nrows = nrows;
+      this.ncols = ncols;
+    }
+    
     
     @Override
     public RealMatrix createMatrix(int rowDimension, int columnDimension){
-       return(new MatrixAdapter(new DoubleVector(new double[rowDimension * columnDimension])));
+       return new BlockRealMatrix(rowDimension, columnDimension);
     }
 
     @Override
@@ -86,7 +100,7 @@ public class CommonsMath {
 
     @Override
     public double getEntry(int row, int column) throws MatrixIndexException {
-      return vector.getElementAsDouble(row * ncols + column);
+      return vector.getElementAsDouble(column * nrows + row);
     }
 
     /*
@@ -95,7 +109,8 @@ public class CommonsMath {
      */
     @Override
     public void setEntry(int row, int column, double value){
-      this.vector = (DoubleVector)this.vector.newCopyBuilder().set(row * this.ncols + column, new DoubleVector(value)).build();      
+      //this.vector = (DoubleVector)this.vector.newCopyBuilder().set(row * this.ncols + column, new DoubleVector(value)).build();
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -120,4 +135,7 @@ public class CommonsMath {
       return ncols;
     }
   }
+
+
+
 }

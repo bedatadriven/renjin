@@ -21,12 +21,12 @@
 
 package r.base;
 
-import org.junit.Test;
-import r.EvalTestCase;
-
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.closeTo;
 import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
+
+import r.EvalTestCase;
 
 public class MathTest extends EvalTestCase {
 

@@ -21,20 +21,42 @@
 
 package r;
 
-import com.google.common.collect.Lists;
-import org.junit.Before;
-import r.lang.*;
-import r.parser.ParseOptions;
-import r.parser.ParseState;
-import r.parser.RLexer;
-import r.parser.RParser;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.Before;
+
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.EvalResult;
+import r.lang.ExpressionVector;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.Logical;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.Raw;
+import r.lang.RawVector;
+import r.lang.SEXP;
+import r.lang.SEXPFactory;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
+import r.parser.ParseOptions;
+import r.parser.ParseState;
+import r.parser.RLexer;
+import r.parser.RParser;
+
+import com.google.common.collect.Lists;
 
 public abstract class EvalTestCase {
 
@@ -124,5 +146,64 @@ public abstract class EvalTestCase {
 
   protected SEXP symbol(String name) {
     return new Symbol(name);
+  }
+
+  protected Matcher<SEXP> closeTo(final SEXP expectedSexp, final double epsilon) {
+    final Vector expected = (Vector)expectedSexp;
+    return new TypeSafeMatcher<SEXP>() {
+  
+      @Override
+      public void describeTo(Description d) {
+          d.appendText(expectedSexp.toString());
+      }
+  
+      @Override
+      public boolean matchesSafely(SEXP item) {
+        if(!(item instanceof Vector)) {
+          return false;
+        }
+        Vector vector = (Vector)item;
+        if(vector.length() != expected.length()) {
+          return false;
+        }
+        for(int i=0;i!=expected.length();++i) {
+          if(expected.isElementNA(i) != vector.isElementNA(i)) {
+            return false;
+          }
+          if(!expected.isElementNA(i)) {
+            if(Math.abs(expected.getElementAsDouble(i)-vector.getElementAsDouble(i)) > epsilon) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+    };
+  }
+
+  // otherwise this won't get resovled
+  protected Matcher<Double> closeTo(double d, double epsilon) {
+    return Matchers.closeTo(d, epsilon);
+  }
+  
+  protected Matcher<Double> closeTo(int d, double epsilon) {
+    return Matchers.closeTo((double)d, epsilon);
+  }
+
+  protected double[] row(double... d) {
+    return d;
+  }
+
+  protected SEXP matrix(double[]... rows) {
+    DoubleVector.Builder matrix = new DoubleVector.Builder();
+    int nrows = rows.length;
+    int ncols = rows[0].length;
+    
+    for(int j=0;j!=ncols;++j) {
+      for(int i=0;i!=nrows;++i) {
+        matrix.add(rows[i][j]);
+      }
+    }
+    return matrix.build();
   }
 }

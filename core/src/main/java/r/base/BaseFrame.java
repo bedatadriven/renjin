@@ -304,7 +304,7 @@ public class BaseFrame implements Frame {
 
     f("%%", Ops.class, 0 /* MODOP */, 1, 2, PP_BINARY2, PREC_PERCENT, 0);
     f("%/%", Ops.class, 0 /* IDIVOP */, 1, 2, PP_BINARY2, PREC_PERCENT, 0);
-    f("%*%", Ops.class, 0, 1, 2, PP_BINARY, PREC_PERCENT, 0);
+    f("%*%", Matrix.class, 0, 1, 2, PP_BINARY, PREC_PERCENT, 0);
     f("crossprod", /*matprod*/ null, 1, 11, 2);
     f("tcrossprod", /*matprod*/ null, 2, 11, 2);
 
@@ -798,7 +798,7 @@ public class BaseFrame implements Frame {
     f("scan", Scan.class, 0, 11, 18);
     f("count.fields", /*countfields*/ null, 0, 11, 6);
     f("readTableHead", /*readtablehead*/ null, 0, 11, 6);
-    f("t.default", MathExt.class, 0, 11, 1);
+    f("t.default", Matrix.class, 0, 11, 1);
     f("aperm", Combine.class, 0, 11, 3);
     f("builtins", /*builtins*/ null, 0, 11, 1);
     f("edit", /*edit*/ null, 0, 11, 4);

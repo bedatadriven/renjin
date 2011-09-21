@@ -1,20 +1,16 @@
 package r.base.matrix;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-import static org.hamcrest.CoreMatchers.equalTo;
+import org.apache.commons.math.linear.RealMatrix;
 import org.junit.Test;
 
 import r.EvalTestCase;
-import r.lang.DoubleVector;
-import r.lang.SEXP;
 import r.lang.Vector;
-import r.lang.exception.EvalException;
+import r.util.CommonsMath;
 
 public class MatrixTest extends EvalTestCase {
 
@@ -62,58 +58,6 @@ public class MatrixTest extends EvalTestCase {
   }
   
   
-  private Matcher<SEXP> closeTo(final SEXP expectedSexp, final double epsilon) {
-    final Vector expected = (Vector)expectedSexp;
-    return new TypeSafeMatcher<SEXP>() {
-
-      @Override
-      public void describeTo(Description d) {
-          d.appendText(expectedSexp.toString());
-      }
-
-      @Override
-      public boolean matchesSafely(SEXP item) {
-        if(!(item instanceof Vector)) {
-          return false;
-        }
-        Vector vector = (Vector)item;
-        if(vector.length() != expected.length()) {
-          return false;
-        }
-        for(int i=0;i!=expected.length();++i) {
-          if(expected.isElementNA(i) != vector.isElementNA(i)) {
-            return false;
-          }
-          if(!expected.isElementNA(i)) {
-            if(Math.abs(expected.getElementAsDouble(i)-vector.getElementAsDouble(i)) > epsilon) {
-              return false;
-            }
-          }
-        }
-        return true;
-      }
-    };
-  }
-
-
-  private double[] row(double... d) {
-    return d;
-  }
-  
-  private SEXP matrix(double[]... rows) {
-    DoubleVector.Builder matrix = new DoubleVector.Builder();
-    int nrows = rows.length;
-    int ncols = rows[0].length;
-    
-    for(int j=0;j!=ncols;++j) {
-      for(int i=0;i!=nrows;++i) {
-        matrix.add(rows[i][j]);
-      }
-    }
-    return matrix.build();
-  }
-  
-  
   @Test
   public void testSolve(){
     try{
@@ -132,5 +76,35 @@ public class MatrixTest extends EvalTestCase {
             row(0, 0),
             row(0, 0)), 0.0000001));
   }
+  
+    
+  @Test
+  public void matrixMultiplication() {
+    
+    eval("y <- c(1,0,0,0,0,2,0,0,0,0,3,0,0,0,0,4)");
+    eval("dim(y) <- c(4,4) ");
+    
+    eval("z <- 1:12 ");
+    eval("dim(z) <- c(4,3)");
+   
+    RealMatrix m = CommonsMath.asRealMatrix((Vector)eval("z"));
+    assertThat(m.getEntry(0, 0), equalTo(1d));
+    assertThat(m.getEntry(1, 0), equalTo(2d));
+    assertThat(m.getEntry(0, 2), equalTo(9d));
+    assertThat(m.getEntry(3-1, 2-1), equalTo(7d));
+    assertThat(m.getEntry(2-1, 3-1), equalTo(10d));
+    
+    eval("q <- y %*% z");
+
+    assertThat( eval("q"), equalTo(c(1,4,9,16,5,12,21,32,9,20,33,48)));
+    assertThat( eval("dim(q)"), equalTo(c_i(4,3)));
+    
+  }
+  
+  @Test
+  public void matrixProduct() throws IOException{ 
+   assertThat(eval("1:3 %*% c(3,2,1)"), equalTo(c(10)));
+  }
+
   
 }

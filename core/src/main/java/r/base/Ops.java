@@ -21,18 +21,22 @@
 
 package r.base;
 
+import org.apache.commons.math.linear.RealMatrix;
+
 import r.jvmi.annotations.AllowNA;
 import r.jvmi.annotations.GroupGeneric;
 import r.jvmi.annotations.PreserveAttributeStyle;
 import r.jvmi.annotations.PreserveAttributes;
 import r.jvmi.annotations.Primitive;
 import r.jvmi.annotations.Recycle;
+import r.lang.AtomicVector;
 import r.lang.DoubleVector;
 import r.lang.Logical;
 import r.lang.SEXP;
 import r.lang.Symbol;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
+import r.util.CommonsMath;
 
 /**
  * Default implementations of the Ops group of functions.
@@ -180,21 +184,5 @@ public class Ops  {
     }
   }
   
-  @Primitive("%*%")
-  public static SEXP matrixproduct(Vector v1, Vector v2) {
-    DoubleVector.Builder b = new DoubleVector.Builder();
-    if(v1.getAttribute(Symbol.DIM) instanceof r.lang.Null){
-      if(v2.getAttribute(Symbol.DIM) instanceof r.lang.Null){
-        double sum = 0.0;
-        for (int i=0;i<v1.length();i++){
-          sum+=v1.getElementAsDouble(i) * v2.getElementAsDouble(i);
-        }
-        b.add(sum);
-        return(b.build());
-      }
-    }
-    
-    throw new EvalException("Only vector dot product implemented.");
-  }
   
 }

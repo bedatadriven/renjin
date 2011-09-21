@@ -69,28 +69,6 @@ public class MathExt {
   public static double abs(double x) {
     return Math.abs(x);
   }
-
-  @Primitive("t.default")
-  public static Vector transpose(Vector x) {
-    Vector.Builder builder = x.newBuilder(x.length());
-    Vector result = builder.build();
-    IntVector dimensions = (IntVector) x.getAttribute(Symbol.DIM);
-    int nrows = dimensions.getElementAsInt(0);
-    int ncols = dimensions.getElementAsInt(1);
-    for (int i = 0; i < nrows; i++) {
-      for (int j = 0; j < ncols; j++) {
-        builder.setFrom(j * nrows + i, x, i * ncols + j);
-      }
-    }
-    if (!(x.getAttribute(Symbol.DIMNAMES) instanceof r.lang.Null)) {
-      ListVector dimNames = (ListVector) x.getAttribute(Symbol.DIMNAMES);
-      ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
-      builder.setAttribute(Symbol.DIMNAMES, newDimNames);
-    }
-    builder.setAttribute(Symbol.DIM, new IntVector(ncols, nrows));
-    result = builder.build();
-    return (result);
-  }
   
   @Primitive("asinh")
   public static double asinh(double val) {

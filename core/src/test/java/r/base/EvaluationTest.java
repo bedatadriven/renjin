@@ -119,6 +119,15 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void repeatLoop() {
+    eval("y<-0");
+    eval("repeat { y <- y + 1; if(y > 5) break }");
+    
+    assertThat( eval("y"), equalTo(c(6)));
+    
+  }
+  
+  @Test
   public void whileLoopWithNext() throws IOException {
     eval("x<-1");
     eval("y<-0");

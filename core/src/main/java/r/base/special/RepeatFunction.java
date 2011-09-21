@@ -33,6 +33,17 @@ public class RepeatFunction extends SpecialFunction {
 
   @Override
   public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    throw new EvalException("not implemented");
+    SEXP statement = args.getElementAsSEXP(0);
+
+    while(true) {
+      try {
+        statement.evaluate(context, rho);
+      } catch(BreakException e) {
+        break;
+      } catch(NextException e) {
+        // next loop iteration
+      }
+    }
+    return EvalResult.NON_PRINTING_NULL;
   }
 }

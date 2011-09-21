@@ -23,95 +23,130 @@ package r.base;
 import com.google.common.collect.Lists;
 import r.jvmi.annotations.ArgumentList;
 import r.lang.*;
+import r.lang.Vector.Builder;
 import r.lang.exception.EvalException;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import org.apache.commons.math.linear.Array2DRowFieldMatrix;
+
 import r.jvmi.annotations.Primitive;
 
 public class Sort {
 
-    public static Vector sort(StringVector x, boolean decreasing) {
+  public static Vector sort(StringVector x, boolean decreasing) {
 
     if(x.getAttribute(Symbol.NAMES)!= Null.INSTANCE) {
       throw new EvalException("sorting of vectors with names not yet implemented!");
     }
-    
+
     String sorted[] = x.toArray();
-    
+
     if(decreasing) {
-        Arrays.sort(sorted, Collections.reverseOrder());
+      Arrays.sort(sorted, Collections.reverseOrder());
     }else{
-        Arrays.sort(sorted);
+      Arrays.sort(sorted);
     }
 
     return new StringVector(sorted, x.getAttributes());
   }
 
+  public static Vector sort(DoubleVector x, boolean decreasing) {
 
-    /**
-     * Returns a permutation which rearranges its first argument into ascending or
-     * descending order, breaking ties by further arguments.
-     *
-     * <p>This function is like a spreadsheet sort function.
-     * Each argument is a column.
-     *
-     * @param arguments
-     * @return
-     */
-    public static Vector order(@ArgumentList ListVector arguments) {
-        if (arguments.length() < 2) {
-            throw new EvalException("expected at least two arguments");
+    if(x.getAttribute(Symbol.NAMES)!= Null.INSTANCE) {
+      throw new EvalException("sorting of vectors with names not yet implemented!");
+    }
+
+    double sorted[] = x.toDoubleArray();
+
+    Arrays.sort(sorted);
+
+    if(decreasing) {
+      reverse(sorted);
+    }
+
+    return new DoubleVector(sorted, x.getAttributes());
+  }
+
+  private static void reverse(double[] b) {
+    int left  = 0;          
+    int right = b.length-1; 
+
+    while (left < right) {
+      double temp = b[left]; 
+      b[left]  = b[right]; 
+      b[right] = temp;
+
+      // move the bounds toward the center
+      left++;
+      right--;
+    }
+  }
+
+  /**
+   * Returns a permutation which rearranges its first argument into ascending or
+   * descending order, breaking ties by further arguments.
+   *
+   * <p>This function is like a spreadsheet sort function.
+   * Each argument is a column.
+   *
+   * @param arguments
+   * @return
+   */
+  public static Vector order(@ArgumentList ListVector arguments) {
+    if (arguments.length() < 2) {
+      throw new EvalException("expected at least two arguments");
+    }
+    if (arguments.length() == 2) {
+      return Null.INSTANCE;
+    }
+    final List<AtomicVector> columns = Lists.newArrayList();
+    int numRows = arguments.getElementAsSEXP(2).length();
+    int numColumns = arguments.length() - 2;
+
+    for (int i = 2; i != arguments.length(); ++i) {
+      if (arguments.getElementAsSEXP(i).length() != numRows) {
+        throw new EvalException("argument lengths differ");
+      }
+      columns.add((AtomicVector) arguments.getElementAsSEXP(i));
+    }
+
+    List<Integer> ordering = Lists.newArrayListWithCapacity(numRows);
+    for (int i = 0; i != numRows; ++i) {
+      ordering.add(i);
+    }
+
+    Collections.sort(ordering, new Comparator<Integer>() {
+
+      @Override
+      public int compare(Integer row1, Integer row2) {
+        int col = 0;
+        int rel;
+        while ((rel = compare(row1, row2, col)) == 0) {
+          col++;
+          if (col == columns.size()) {
+            return 0;
+          }
         }
-        if (arguments.length() == 2) {
-            return Null.INSTANCE;
-        }
-        final List<AtomicVector> columns = Lists.newArrayList();
-        int numRows = arguments.getElementAsSEXP(2).length();
-        int numColumns = arguments.length() - 2;
+        return rel;
+      }
 
-        for (int i = 2; i != arguments.length(); ++i) {
-            if (arguments.getElementAsSEXP(i).length() != numRows) {
-                throw new EvalException("argument lengths differ");
-            }
-            columns.add((AtomicVector) arguments.getElementAsSEXP(i));
-        }
+      private int compare(Integer row1, Integer row2, int col) {
+        return columns.get(col).compare(row1, row2);
+      }
+    });
 
-        List<Integer> ordering = Lists.newArrayListWithCapacity(numRows);
-        for (int i = 0; i != numRows; ++i) {
-            ordering.add(i);
-        }
+    IntVector.Builder result = new IntVector.Builder();
+    for (Integer index : ordering) {
+      result.add(index + 1);
+    }
 
-        Collections.sort(ordering, new Comparator<Integer>() {
+    return result.build();
+  }   
 
-            @Override
-            public int compare(Integer row1, Integer row2) {
-                int col = 0;
-                int rel;
-                while ((rel = compare(row1, row2, col)) == 0) {
-                    col++;
-                    if (col == columns.size()) {
-                        return 0;
-                    }
-                }
-                return rel;
-            }
-
-            private int compare(Integer row1, Integer row2, int col) {
-                return columns.get(col).compare(row1, row2);
-            }
-        });
-
-        IntVector.Builder result = new IntVector.Builder();
-        for (Integer index : ordering) {
-            result.add(index + 1);
-        }
-
-        return result.build();
-    }   
-    
   @Primitive("which.min")
   public static IntVector whichMin(Vector v) {
     if (v.length() == 0) {

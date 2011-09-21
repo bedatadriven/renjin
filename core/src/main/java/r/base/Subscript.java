@@ -83,6 +83,29 @@ public class Subscript {
     }
     return result.build();
   }
+
+  @Generic @Primitive("$<-")
+  public static PairList setElementByName(PairList.Node pairList, @Evaluate(false) Symbol name, SEXP value) {
+    PairList.Builder builder = new PairList.Builder();
+    
+    boolean found = false;
+    
+    for(PairList.Node node : pairList.nodes()) {
+      if(node.getRawTag().equals(name)) {
+        found = true;
+        if(value != Null.INSTANCE) {
+          builder.add(name, value);
+        }
+      } else {
+        builder.add(node.getRawTag(), node.getValue());
+      }
+    }
+    
+    if(!found && value != Null.INSTANCE) {
+      builder.add(name, value);
+    }
+    return builder.build();
+  }
   
   /**
    * Same as "[" but not generic

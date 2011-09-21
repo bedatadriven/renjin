@@ -506,6 +506,19 @@ public class SubscriptTest extends EvalTestCase {
     assertThat( eval("p[['hello']]"), equalTo(c(1)));
     assertThat( eval("p[['h', exact=FALSE]]"), equalTo(c(1)));
   }
+  
+  @Test
+  public void pairListReplaceByName() {
+    eval(" x <- .Internal(as.vector(list(a=1, z=4), 'pairlist'))");
+    eval(" x$b<-2");
+    eval(" x$a<-4");
+    eval(" x$z<-NULL");
+    
+    assertThat( eval("length(x)"), equalTo(c_i(2)));
+    assertThat( eval("x$a"), equalTo(c(4)));
+    assertThat( eval("x$b"), equalTo(c(2)));
+
+  }
 
   @Test
   public void indexingCharacter() {

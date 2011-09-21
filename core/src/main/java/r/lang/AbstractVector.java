@@ -61,7 +61,7 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
 
     @Override
-    public Builder copyAttributesFrom(SEXP exp) {
+    public Builder copyAttributesFrom(Vector exp) {
       for(PairList.Node node : exp.getAttributes().nodes()) {
         attributes.put(node.getTag(), node.getValue());
       }
@@ -74,7 +74,7 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
      * @return
      */
     @Override
-    public Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
+    public Builder copySomeAttributesFrom(Vector exp, Symbol... toCopy) {
       for(PairList.Node node : exp.getAttributes().nodes()) {
         if(node.getTag().equals(Symbol.NAMES) ||
            node.getTag().equals(Symbol.DIM) ||

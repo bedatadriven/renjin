@@ -53,7 +53,28 @@ public class S3DispatchTest extends EvalTestCase {
     eval(" class(o1) <- 'numeric_version'");
 
     assertThat( eval("o1 < o1"), equalTo(c(Logical.FALSE)));
-
+  }
+  
+  @Test
+  public void argsAreEvaluatedWhenDispatchedFromPrimitive() {
+    eval(" `[.foo` <- function(x, i, j) i == 1");
+    eval(" x <- 1:9" );
+    eval(" class(x) <- 'foo'");
+   
+    eval(" z <- 1" );
+    
+    assertThat( eval(" x[z] "), equalTo(c(true))); 
+  }
+  
+  
+  @Test
+  public void missingInS3Generic() {
+    eval("`[.foo` <- function(x, i, j, drop = TRUE) c(missing(i), missing(j), missing(drop)) ");
+    eval("x <- 1:5");
+    eval("class(x) <- 'foo'");
+    
+    assertThat(eval("x[1,2]"), equalTo(c(false,false,true)));
+    assertThat(eval("x[,2]"), equalTo(c(true,false,true)));
   }
 
 }

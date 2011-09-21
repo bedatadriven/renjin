@@ -4,6 +4,7 @@ import r.base.Calls;
 import r.base.ClosureDispatcher;
 import r.base.dispatch.DispatchChain;
 import r.lang.*;
+import r.lang.PairList.Node;
 
 /**
  * 
@@ -193,19 +194,26 @@ public class WrapperRuntime {
       return null;
     }
 
-    PairList newArgs = rebuildArgs(object, args);
+    PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
 
-    FunctionCall newCall = FunctionCall.newCall(chain.getMethodSymbol(), newArgs);
+    FunctionCall newCall = new FunctionCall(chain.getMethodSymbol(), newArgs);
 
     ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, newCall);
     return dispatcher.apply(chain, newArgs);
   }
 
-  private static PairList rebuildArgs(SEXP object, PairList args) {
-    PairList.Node restOfArguments = (PairList.Node) args;
-    PairList newArgs = new PairList.Node(new Promise(restOfArguments.getValue(), object), 
-        restOfArguments.hasNextNode() ? restOfArguments.getNextNode() : Null.INSTANCE);
-    return newArgs;
+  private static PairList reassembleAndEvaluateArgs(SEXP object, PairList args, Context context, Environment rho) {
+    PairList.Builder newArgs = new PairList.Builder();
+    Node firstArg = (PairList.Node)args;
+    newArgs.add(firstArg.getRawTag(), object);
+    
+    args = firstArg.getNext();
+    
+    for(PairList.Node node : args.nodes()) {
+      newArgs.add(node.getRawTag(), node.getValue().evalToExp(context, rho));
+    }
+    
+    return newArgs.build();
   }
 
   public static EvalResult tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,

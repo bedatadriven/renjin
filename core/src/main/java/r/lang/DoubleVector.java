@@ -365,7 +365,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
       this.values = Arrays.copyOf(exp.values, exp.values.length);
       this.size = this.values.length;
 
-      copyAttributesFrom(exp.getAttributes());
+      copyAttributesFrom(exp);
     }
 
     public Builder set(int index, double value) {

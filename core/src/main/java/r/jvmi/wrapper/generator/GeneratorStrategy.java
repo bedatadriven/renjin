@@ -59,8 +59,10 @@ public abstract class GeneratorStrategy {
     generateCall(entry, s, overloads);
     
     s.writeCatch(ArgumentException.class, "e");
-    s.writeStatement("throw new EvalException(" + argumentErrorMessage(entry, overloads) + ");");
-    
+    s.writeStatement("throw new EvalException(context, " + argumentErrorMessage(entry, overloads) + ");");
+    s.writeCatch(EvalException.class, "e");
+    s.writeStatement("e.initContext(context)");
+    s.writeStatement("throw e;");    
     s.writeCatch(RuntimeException.class, "e");
     s.writeStatement("throw e;");
     s.writeCatch(Exception.class, "e");

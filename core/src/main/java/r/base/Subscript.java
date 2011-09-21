@@ -83,7 +83,17 @@ public class Subscript {
     }
     return result.build();
   }
-
+  
+  /**
+   * Same as "[" but not generic
+   */
+  @Primitive(".subset")
+  public static SEXP subset(SEXP source, 
+      @ArgumentList ListVector arguments,
+      @NamedFlag("drop") @DefaultValue(true) boolean drop) {
+    return getSubset(source, arguments, drop);
+  }
+  
   @Generic @Primitive("[")
   public static SEXP getSubset(SEXP source, 
                                @ArgumentList ListVector arguments,

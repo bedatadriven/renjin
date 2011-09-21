@@ -96,7 +96,7 @@ public class SubstituteFunction extends SpecialFunction {
       for(SEXP exp : list) {
         builder.add(substitute(exp));
       }
-      builder.copyAttributesFrom(list.getAttributes());
+      builder.copyAttributesFrom(list);
       result = builder.build();
     }
 

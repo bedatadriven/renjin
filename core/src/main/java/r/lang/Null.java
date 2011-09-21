@@ -306,7 +306,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     }
 
     @Override
-    public Vector.Builder copyAttributesFrom(SEXP exp) {
+    public Vector.Builder copyAttributesFrom(Vector exp) {
       if(exp.getAttributes() != Null.INSTANCE) {
         throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
       }
@@ -314,7 +314,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     }
     
     @Override
-    public Vector.Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
+    public Vector.Builder copySomeAttributesFrom(Vector exp, Symbol... toCopy) {
       if(exp.getAttributes() != Null.INSTANCE) {
         throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
       }

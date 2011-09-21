@@ -32,6 +32,11 @@ public class EvalException extends RuntimeException {
   public EvalException(String message, Object... args) {
     super(String.format(message, args));
   }
+  
+  public EvalException(Context context, String message, Object... args) {
+    super(String.format(message, args));
+    this.context = context;
+  }
 
   public EvalException(Throwable cause) {
     super(cause.getMessage(), cause);

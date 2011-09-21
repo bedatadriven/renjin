@@ -148,6 +148,7 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("f(1)"), logicalVectorOf(Logical.FALSE));
   }
 
+
   @Test
   public void missingWithDefaultArg() {
     eval("f<-function(x=1) missing(x) ");

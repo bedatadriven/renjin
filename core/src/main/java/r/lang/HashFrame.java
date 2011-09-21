@@ -52,4 +52,9 @@ public class HashFrame implements Frame{
   public void clear() {
     values.clear();
   }
+  
+  @Override
+  public String toString() {
+    return values.toString();
+  }
 }

@@ -221,7 +221,9 @@ public interface PairList extends SEXP {
     @Override
     public ListVector toVector() {
       ListVector.Builder builder = new ListVector.Builder();
-      builder.copyAttributesFrom(this);
+      for(PairList.Node node : attributes.nodes()) {
+        builder.setAttribute(node.getTag(), node.getValue());
+      }
       for(Node node : nodes()) {
         if(node.hasTag()) {
           builder.add(node.getTag().getPrintName(), node.getValue());

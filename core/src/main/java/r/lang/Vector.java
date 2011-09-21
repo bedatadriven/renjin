@@ -96,6 +96,9 @@ public interface Vector extends SEXP {
   boolean isWiderThan(Vector vector);
 
   /**
+   * 
+   * Creates a new Builder which is initialized with all of this vector's elements
+   * AND its attributes.
    *
    * @return a builder initialized with a copy of this set of elements.
    */
@@ -206,9 +209,9 @@ public interface Vector extends SEXP {
      */
     Vector build();
 
-    Builder copyAttributesFrom(SEXP exp);
+    Builder copyAttributesFrom(Vector exp);
 
-    Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy);
+    Builder copySomeAttributesFrom(Vector exp, Symbol... toCopy);
   }
 
   static class Order {

@@ -412,6 +412,21 @@ public class SubscriptTest extends EvalTestCase {
     assertThat( eval("dim(x)"), equalTo( c_i(2,2)));
 
   }
+  
+  @Test
+  public void matrixDimsPreserved2() {
+    eval(" x<-.Internal(rep.int(0,29*29)) ");
+    eval(" dim(x) <- c(29,29) ");
+    
+    eval(" y<-c(134L,33L,2L,46L)");
+    eval(" dim(y) <- c(2,2) ");
+    
+    eval(" x[c(1,2), c(3,4)] <- y");
+
+    assertThat( eval("dim(x)"), equalTo( c_i(29, 29)));
+
+  }
+    
 
   @Test
   public void subscriptsOnNull() {

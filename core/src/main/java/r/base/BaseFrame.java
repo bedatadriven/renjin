@@ -259,7 +259,7 @@ public class BaseFrame implements Frame {
     add(new BeginFunction());
     add(new ParenFunction());
 
-    f("subset", Subscript.class, 1, 1, -1);
+    f(".subset", Subscript.class, 1, 1, -1);
     f(".subset2", Subscript.class, 2, 1, -1);
     f("[",Subscript.class, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
     f("[[", Subscript.class, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0);

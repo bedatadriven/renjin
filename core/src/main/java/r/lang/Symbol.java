@@ -95,10 +95,13 @@ public class Symbol extends AbstractSEXP {
 
   @Override
   public EvalResult evaluate(Context context, Environment rho) {
+    if(this == Symbol.MISSING_ARG) {
+      return new EvalResult(this);
+    }
     SEXP value = rho.findVariable(this);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", printName));
-    }
+    } 
     if(value instanceof Promise) {
       return value.evaluate(context, rho);
     } else {

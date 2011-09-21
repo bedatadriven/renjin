@@ -42,4 +42,5 @@ public class SimpleDispatchStrategy extends GenericDispatchStrategy {
       s.writeCloseBlock();
     }
   }
+  
 }

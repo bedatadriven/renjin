@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import r.lang.exception.EvalException;
 import r.parser.ParseUtil;
@@ -296,6 +297,12 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
       }
     }
 
+    public void addAll(Iterable<String> values) {
+      for(String value : values) {
+        add(value);
+      }
+    }
+    
     @Override
     public Builder setNA(int index) {
       return set(index, NA);

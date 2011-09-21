@@ -9,6 +9,7 @@ import org.apache.commons.math.linear.RealMatrix;
 import org.junit.Test;
 
 import r.EvalTestCase;
+import r.lang.DoubleVector;
 import r.lang.Vector;
 import r.util.CommonsMath;
 
@@ -106,5 +107,17 @@ public class MatrixTest extends EvalTestCase {
    assertThat(eval("1:3 %*% c(3,2,1)"), equalTo(c(10)));
   }
 
+  @Test
+  public void rowSums() throws IOException {
+    topLevelContext.init();
+    eval("q <- matrix(c(NA, 4, 3, 5, 9, 20), 3)");
+   
+    assertThat(eval("rowSums(q)"), equalTo(c(DoubleVector.NA, 13, 23)));
+    assertThat(eval("rowSums(q, na.rm=TRUE)"), equalTo(c(5, 13, 23)));
+
+    assertThat(eval("colSums(q)"), equalTo(c(DoubleVector.NA, 34)));
+
+
+  }
   
 }

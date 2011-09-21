@@ -21,6 +21,8 @@
 
 package r.base;
 
+import java.io.IOException;
+
 import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.SEXP;
@@ -184,6 +186,15 @@ public class TextTest extends EvalTestCase {
   public void strtrim(){
     assertThat( eval(".Internal(strtrim(c('abcdef', 'abcdef', 'abcdef'), c(1,5,10)))"), equalTo(c("a", "abcde", "abcdef")));
     assertThat( eval(".Internal(strtrim(\"abcdef\", 3))"), equalTo(c("abc")));
+  }
+  
+  @Test
+  public void format() throws IOException {
+    topLevelContext.init();
+    
+    assertThat( eval("format(c(1,10,1000))"), equalTo(c("   1", "  10", "1000")));
+    assertThat( eval("format(c(1,10,1000),trim=T)"), equalTo(c("1", "10", "1000")));
+
   }
   
 }

@@ -19,7 +19,7 @@ public class AspectPackageTest extends PackageTest {
     System.out.println("wurzer[,1]==========================");
     assertThat(eval("typeof(wurzer[,1])"), equalTo(c("double")));
     
-    //eval("res.cor <- corAspect(wurzer, apsect='aspectEigen', level=c(rep('nominal',2), rep('ordinal',5), 'nominal'))");
+    //eval("res.cor <- corAspect(wurzer, aspect='aspectSum', level=c(rep('nominal',2), rep('ordinal',5), 'nominal'))");
     //System.out.println( global.getVariable("res.cor") );
     
   }

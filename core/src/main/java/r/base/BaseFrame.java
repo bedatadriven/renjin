@@ -634,7 +634,7 @@ public class BaseFrame implements Frame {
     f("as.vector", Types.class, 0, 11, 2);
     f("paste", Text.class, 0, 11, 3);
     f("file.path", Text.class, 0, 11, 2);
-    f("format", /*format*/ null, 0, 11, 8);
+    f("format", Text.class, 0, 11, 8);
     f("format.info", /*formatinfo*/ null, 0, 11, 3);
     f("cat", Connections.class, 0, 111, 6);
     f("call", Evaluation.class, 0, 0, -1);
@@ -825,9 +825,9 @@ public class BaseFrame implements Frame {
     f("lapply", Evaluation.class, 0, 10, 2);
     f("rapply", /*rapply*/ null, 0, 11, 5);
     f("islistfactor",  Types.class, 0, 11, 2);
-    f("colSums", /*colsum*/ null, 0, 11, 4);
+    f("colSums", Matrix.class, 0, 11, 4);
     f("colMeans", /*colsum*/ null, 1, 11, 4);
-    f("rowSums", /*colsum*/ null, 2, 11, 4);
+    f("rowSums", Matrix.class, 2, 11, 4);
     f("rowMeans", /*colsum*/ null, 3, 11, 4);
     f("Rprof", /*Rprof*/ null, 0, 11, 4);
     f("Rprofmem", /*Rprofmem*/ null, 0, 11, 3);

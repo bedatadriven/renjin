@@ -4,6 +4,7 @@ import org.apache.commons.math.linear.RealMatrix;
 
 import r.jvmi.annotations.Primitive;
 import r.lang.AtomicVector;
+import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.Null;
@@ -109,5 +110,47 @@ public class Matrix {
     }
     
     return CommonsMath.asDoubleVector(prod);
+  }
+  
+  public static DoubleVector rowSums(AtomicVector x, int numRows, int rowLength, boolean naRm) {
+    
+    double sums[] = new double[numRows];
+    int sourceIndex = 0;
+    for(int col=0;col < rowLength; col++) {
+      for(int row=0;row<numRows;row++) {
+        double value = x.getElementAsDouble(sourceIndex++);
+        if(!naRm) {
+          sums[row] += value;
+        } else if(!Double.isNaN(value)) {
+          sums[row] += value;
+        }
+      }
+    }
+    
+    return new DoubleVector(sums);
+  }
+  
+  public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
+    
+    double sums[] = new double[numColumns];
+    for(int column=0;column < numColumns; column++) {
+      int sourceIndex = columnLength*column;
+
+      double sum = 0;
+      for(int row=0;row < columnLength; ++row) {
+        double cellValue = x.getElementAsDouble(sourceIndex++);
+        if(Double.isNaN(cellValue)) {
+          if(!naRm) {
+            sum = DoubleVector.NA;
+            break;
+          }
+        } else {
+          sum += cellValue;
+        }
+      }
+      sums[column] = sum;
+    }
+    
+    return new DoubleVector(sums);
   }
 }

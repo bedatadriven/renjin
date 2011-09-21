@@ -23,7 +23,10 @@ package r.base;
 
 import static com.google.common.collect.Iterables.transform;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import r.base.regex.ExtendedRE;
@@ -36,11 +39,13 @@ import r.jvmi.annotations.Primitive;
 import r.jvmi.annotations.Recycle;
 import r.lang.AtomicVector;
 import r.lang.Context;
+import r.lang.DoubleVector;
 import r.lang.Environment;
 import r.lang.FunctionCall;
 import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.LogicalVector;
+import r.lang.Null;
 import r.lang.ReservedWords;
 import r.lang.SEXP;
 import r.lang.StringVector;
@@ -50,6 +55,7 @@ import r.lang.exception.EvalException;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 public class Text {
 
@@ -592,6 +598,187 @@ public class Text {
       index = n;
     }
     return (source.substring(0, index));
+  }
+    
+  /**
+   * 
+   * @param x any R object (conceptually); typically numeric.
+
+   * @param trim f ‘FALSE’, logical, numeric and complex values are
+          right-justified to a common width: if ‘TRUE’ the leading
+          blanks for justification are suppressed.
+   * @param digits how many significant digits are to be used for numeric and
+          complex ‘x’.  The default, ‘NULL’, uses ‘getOption(digits)’.
+          This is a suggestion: enough decimal places will be used so
+          that the smallest (in magnitude) number has this many
+          significant digits, and also to satisfy ‘nsmall’.  (For the
+          interpretation for complex numbers see ‘signif’.)
+
+   * @param nsmall the minimum number of digits to the right of the decimal
+          point in formatting real/complex numbers in non-scientific
+          formats.  Allowed values are ‘0 <= nsmall <= 20’.
+
+   * @param minWidth the _minimum_ field width or ‘NULL’ or ‘0’
+          for no restriction.
+
+   * @param zz
+   * @param naEncode  should ‘NA’ strings be encoded?  Note this only
+          applies to elements of character vectors, not to numerical or
+          logical ‘NA’s, which are always encoded as ‘"NA"’.
+
+   * @param scientific  Either a logical specifying whether elements of a real or
+          complex vector should be encoded in scientific format, or an
+          integer penalty (see ‘options("scipen")’).  Missing values
+          correspond to the current default penalty.
+
+   * @return
+   */
+  public static StringVector format(StringVector x, boolean trim, SEXP digits, SEXP nsmall, 
+      SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
+       
+    List<String> elements = formatCharacterElements(x, naEncode);
+    int width = calculateWidth(elements, minWidth);
+    elements = justify(elements, width, Justification.LEFT);
+    
+    return buildFormatResult(x, elements);
+  }
+
+
+  /**
+   * 
+   * @param x any R object (conceptually); typically numeric.
+
+   * @param trim f ‘FALSE’, logical, numeric and complex values are
+          right-justified to a common width: if ‘TRUE’ the leading
+          blanks for justification are suppressed.
+   * @param digits how many significant digits are to be used for numeric and
+          complex ‘x’.  The default, ‘NULL’, uses ‘getOption(digits)’.
+          This is a suggestion: enough decimal places will be used so
+          that the smallest (in magnitude) number has this many
+          significant digits, and also to satisfy ‘nsmall’.  (For the
+          interpretation for complex numbers see ‘signif’.)
+
+   * @param nsmall the minimum number of digits to the right of the decimal
+          point in formatting real/complex numbers in non-scientific
+          formats.  Allowed values are ‘0 <= nsmall <= 20’.
+
+   * @param minWidth the _minimum_ field width or ‘NULL’ or ‘0’
+          for no restriction.
+
+   * @param zz
+   * @param naEncode  should ‘NA’ strings be encoded?  Note this only
+          applies to elements of character vectors, not to numerical or
+          logical ‘NA’s, which are always encoded as ‘"NA"’.
+
+   * @param scientific  Either a logical specifying whether elements of a real or
+          complex vector should be encoded in scientific format, or an
+          integer penalty (see ‘options("scipen")’).  Missing values
+          correspond to the current default penalty.
+
+   * @return
+   */
+  public static StringVector format(DoubleVector x, boolean trim, SEXP digits, int nsmall, 
+      SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
+       
+    List<String> elements = formatNumericalElements(x);
+    int width = calculateWidth(elements, minWidth);
+    
+    if(!trim) {
+      elements = justify(elements, width, Justification.RIGHT);
+    }
+    
+    return buildFormatResult(x, elements);
+  }
+  
+  private static StringVector buildFormatResult(Vector x,
+      List<String> elements) {
+    StringVector.Builder result = new StringVector.Builder();
+    result.addAll(elements);
+    result.copySomeAttributesFrom(x, Symbol.DIM, Symbol.NAMES);
+    
+    return result.build();
+  }
+  
+  
+
+  private static int calculateWidth(Iterable<String> elements, SEXP minWidth) {
+    int width = 0;
+    if(minWidth != Null.INSTANCE) {
+      width = ((AtomicVector)minWidth).getElementAsInt(0);
+    }
+
+    for(String element : elements) {
+      if(element.length() > width) {
+        width = element.length();
+      }
+    }
+    return width; 
+  }
+  
+  enum Justification {
+    LEFT, RIGHT
+  }
+  
+  private static List<String> justify(Iterable<String> elements, int width, Justification justification) {
+    List<String> justified = Lists.newArrayList();
+    for(String element : elements) {
+      String padding = padding(Math.max(0, width - element.length()));
+      if(justification == Justification.LEFT) {
+        justified.add(element + padding);
+      } else {
+        justified.add(padding + element);
+      }
+    }
+    return justified;
+  }
+  
+  private static String padding(int count) {
+    StringBuilder sb = new StringBuilder();
+    for(int i=0;i!=count;++i) {
+      sb.append(' ');
+    }
+    return sb.toString();
+  }
+
+  private static List<String> formatNumericalElements(AtomicVector x) {
+    DecimalFormat format = new DecimalFormat();
+    format.setMinimumFractionDigits(0);
+    format.setGroupingUsed(false);
+    
+    List<String> strings = Lists.newArrayList();
+    for(int i=0;i!=x.length();++i) {
+      if(x.isElementNA(i)) {
+        strings.add("NA");
+      } else {
+        strings.add(format.format(x.getElementAsDouble(i)));
+      }
+    }
+    return strings;
+  }
+
+  private static List<String> formatLogicalElements(AtomicVector x) {
+    List<String> strings = Lists.newArrayList();     
+    for(int i=0;i!=x.length();++i) {
+      if(x.isElementNA(i)) {
+        strings.add("NA");
+      } else {
+        strings.add(x.isElementTrue(i) ? "TRUE" : "FALSE");
+      }
+    }
+    return strings;
+  }
+
+  private static List<String> formatCharacterElements(AtomicVector x, boolean naEncode) {
+    
+    List<String> strings = Lists.newArrayList();
+    for(int i=0;i!=x.length();++i) {
+      if(x.isElementNA(i) && naEncode) {
+        strings.add("NA");
+      } else {
+        strings.add(x.getElementAsString(i));
+      }
+    }
+    return strings;
   }
 
 }

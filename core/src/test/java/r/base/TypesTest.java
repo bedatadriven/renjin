@@ -21,11 +21,6 @@
 
 package r.base;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.Test;
-import r.EvalTestCase;
-import r.lang.*;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
@@ -33,6 +28,21 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static r.lang.Logical.FALSE;
 import static r.lang.Logical.TRUE;
+
+import org.hamcrest.CoreMatchers;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import r.EvalTestCase;
+import r.lang.DoubleVector;
+import r.lang.IntVector;
+import r.lang.Logical;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.Raw;
+import r.lang.RawVector;
+import r.lang.SEXP;
+import r.lang.StringVector;
 
 public strictfp class TypesTest extends EvalTestCase {
 
@@ -215,7 +225,59 @@ public strictfp class TypesTest extends EvalTestCase {
 
     assertThat( eval(" class(x) "), equalTo( c("foo")));
   }
+  
+  @Test
+  public void atomicVectorsHaveImplicitClasses() {
+    assertThat( eval("class(9)"), equalTo(c("numeric")));
+    assertThat( eval("class(9L)"), equalTo(c("integer")));
+    assertThat( eval("class('foo')"), equalTo(c("character")));
+    assertThat( eval("class(TRUE)"), equalTo(c("logical")));
+    assertThat( eval("class(NULL)"), equalTo(c("NULL")));
+  }
+  
+  @Test
+  @Ignore("to implement")
+  public void someSpecialFunctionsHaveTheirOwnImplicitClass() {
+    assertThat( eval("class(quote({1}))"), equalTo(c("{")));
+    assertThat( eval("class(quote(if(TRUE) 1 else 0))"), equalTo(c("if")));
+    assertThat( eval("class(quote(while(TRUE) 1))"), equalTo(c("while")));
+    assertThat( eval("class(quote(for(x in 1:9) x))"), equalTo(c("for")));
+ //   assertThat( eval("class(quote(x=1)"), equalTo(c("=")));
+    assertThat( eval("class(quote(x<-1)"), equalTo(c("<-")));
+    assertThat( eval("class(quote((1+1))"), equalTo(c("(")));
+  }
+  
+  @Test
+  public void implicitClassesAreOverridenByClassAttribute() {
+    eval("m <- 1:12");
+    eval("dim(m) <- c(3,4)");
+    eval("class(m) <- c('foo','bar')");
+    assertThat( eval("class(m)"), equalTo(c("foo", "bar")));        
+  }
 
+  @Test
+  public void matricesHaveImplicitClass() {
+    eval("m <- 1:12");
+    eval("dim(m) <- c(3,4)");
+    assertThat( eval("class(m)"), equalTo(c("matrix")));    
+  }
+  
+  @Test
+  public void matricesAreNotObjects() {
+    eval("m <- 1:12");
+    eval("dim(m) <- c(3,4)");
+    assertThat( eval("is.object(m)"), equalTo(c(false)));
+  }
+  
+  @Test
+  public void arraysHaveImplicitClass() {
+    eval("a <- 1:12");
+    eval("dim(a) <- 12");
+    assertThat( eval("class(a)"), equalTo(c("array")));
+  }
+  
+  
+  
   @Test
   public void unclass() {
     eval("x<-1");

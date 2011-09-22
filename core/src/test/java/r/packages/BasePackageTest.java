@@ -269,6 +269,15 @@ public class BasePackageTest extends EvalTestCase {
     eval("data(USArrests)");
     eval("names(USArrests)");
   }
+  
+  @Test
+  public void asDataFrameForMatrix() throws IOException {
+    topLevelContext.init();
+    
+    eval("g<-matrix(1:64,8)");
+    eval("df<-as.data.frame(g)");
+    assertThat(eval("length(unclass(df))"), equalTo(c_i(8)));
+  }
 
   private void loadBasePackage() throws IOException {
     topLevelContext.loadBasePackage();

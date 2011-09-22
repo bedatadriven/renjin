@@ -127,12 +127,12 @@ public class Calls {
 //    lclass = IS_S4_OBJECT(CAR(args)) ? R_data_class2(CAR(args)) : getAttrib(
 //        CAR(args), R_ClassSymbol);
 
-    Vector lclass = CAR(args).getClassAttribute();
+    Vector lclass = Calls.computeDataClasses(CAR(args));
     Vector rclass;
     if (nargs == 2) {
 //      rclass = IS_S4_OBJECT(CADR(args)) ? R_data_class2(CADR(args))
 //          : getAttrib(CADR(args), R_ClassSymbol);
-      rclass = args.getElementAsSEXP(1).getClassAttribute();
+      rclass = Calls.computeDataClasses(args.getElementAsSEXP(1));
     } else {
       rclass = Null.INSTANCE;
     }
@@ -215,7 +215,7 @@ public class Calls {
     String[] m = new String[nargs];
     PairList.Node s = (PairList.Node)args;
     for (i = 0; i < nargs; i++) {
-      StringVector t = args.getElementAsSEXP(i).getClassAttribute();
+      StringVector t = computeDataClasses(args.getElementAsSEXP(i));
 
 //      t = IS_S4_OBJECT(CAR(s)) ? R_data_class2(CAR(s)) : getAttrib(CAR(s),
 //          R_ClassSymbol);
@@ -573,4 +573,35 @@ public class Calls {
   private static <X> X first(Iterable<X> values) {
     return values.iterator().next();
   }
+  
+  /**
+   * Computes the class list used for normal S3 Dispatch. Note that this 
+   * is different than the class() function
+   * 
+   * @param exp
+   * @return
+   */
+  public static StringVector computeDataClasses(SEXP exp) {
+    SEXP classAttribute = exp.getAttribute(Symbol.CLASS);
+    if(classAttribute.length() > 0) {
+      return (StringVector)classAttribute;
+    } else {
+      StringVector.Builder dataClass = new StringVector.Builder();
+      
+      SEXP dim = exp.getAttribute(Symbol.DIM);
+      if(dim.length() == 2) {
+        dataClass.add("matrix");
+      } else if(dim.length() == 1) {
+        dataClass.add("array");
+      }
+      if(exp instanceof IntVector || exp instanceof DoubleVector) {
+        dataClass.add(exp.getTypeName());
+        dataClass.add("numeric");
+      } else {
+         dataClass.add(exp.getImplicitClass());
+      }
+      return dataClass.build();
+    }
+  }
+
 }

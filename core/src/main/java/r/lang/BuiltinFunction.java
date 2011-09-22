@@ -37,7 +37,7 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
   }
 
   @Override
-  protected final String getImplicitClass() {
+  public final String getImplicitClass() {
     return IMPLICIT_CLASS;
   }
 

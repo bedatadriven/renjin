@@ -681,10 +681,14 @@ public class Types {
     return exp.getTypeName();
   }
 
+  @Generic 
+  @Primitive("names")
   public static SEXP getNames(SEXP exp) {
     return exp.getNames();
   }
 
+  @Generic
+  @Primitive("names<-")
   public static SEXP setNames(SEXP exp, @InvokeAsCharacter Vector names) {
     return exp.setAttribute("names", names);
   }
@@ -695,9 +699,32 @@ public class Types {
     return exp.setAttribute(Symbol.LEVELS.getPrintName(), levels);
   }
 
+  /**
+   * 
+   * This implements the 'class' builtin. The R docs mention this
+   * function in the context of S3 dispatch, but it appears that the 
+   * logic has diverged: class(9) for example will return 'numeric', but
+   * the class list used for dispatch by UseMethod is actually c('double', 'numeric')
+   * 
+   * @param exp
+   * @return
+   */
   @Primitive("class")
   public static StringVector getClass(SEXP exp) {
-    return exp.getClassAttribute();
+    
+    SEXP classAttribute = exp.getAttribute(Symbol.CLASS);
+    if(classAttribute.length() > 0) {
+      return (StringVector)classAttribute;
+    }
+    
+    SEXP dim = exp.getAttribute(Symbol.DIM);
+    if(dim.length() == 2) {
+      return new StringVector("matrix");
+    } else if(dim.length() > 0) {
+      return new StringVector("array");
+    }
+    
+    return new StringVector(exp.getImplicitClass());
   }
 
   @Primitive("class<-")

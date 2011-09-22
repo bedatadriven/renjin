@@ -125,7 +125,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
   }
 
   @Override
-  public StringVector getClassAttribute() {
+  public StringVector getS3Class() {
     return new StringVector("NULL");
   }
 

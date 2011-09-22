@@ -125,19 +125,20 @@ public abstract class AbstractSEXP implements SEXP {
    * @return the R language class of this expression
    */
   @Override
-  public StringVector getClassAttribute() {
+  public StringVector getS3Class() {
     SEXP classAttribute = attributes.findByTag(Symbol.CLASS);
     if(classAttribute instanceof StringVector) {
       return (StringVector) classAttribute;
     }
     return new StringVector( getImplicitClass() );
   }
+  
 
-  /**
+  /** 
    * @return  the default class name, to be used if no
    * class attribute is found
    */
-  protected String getImplicitClass() {
+  public String getImplicitClass() {
     return getTypeName();
   }
 

@@ -146,7 +146,7 @@ public class Conditions {
   @Primitive(".signalCondition")
   public static void signalCondition(@Current Context context, SEXP condition, String message, SEXP call) {
 
-    StringVector conditionClasses = condition.getClassAttribute();
+    StringVector conditionClasses = condition.getS3Class();
 
     while(!context.isTopLevel()) {
       for(String conditionClass : conditionClasses) {

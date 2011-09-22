@@ -33,5 +33,9 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
   public final String getName() {
     return name;
   }
-  
+
+  @Override
+  public String getImplicitClass() {
+    return Function.IMPLICIT_CLASS;
+  }
 }

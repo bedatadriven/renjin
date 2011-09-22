@@ -158,7 +158,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   }
 
   @Override
-  protected String getImplicitClass() {
+  public String getImplicitClass() {
     return IMPLICIT_CLASS;
   }
 

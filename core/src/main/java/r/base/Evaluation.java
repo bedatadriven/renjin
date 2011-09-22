@@ -294,7 +294,7 @@ public class Evaluation {
 //        String.format("Call to native function '%s' in package '%s'",
 //            methodName, packageName));
   }
-
+  
   public static EvalResult UseMethod(Context context, Environment rho, FunctionCall call) {
     SEXP generic = call.evalArgument(context, rho, 0);
     EvalException.check(generic.length() == 1 && generic instanceof StringVector,
@@ -312,10 +312,11 @@ public class Evaluation {
     }
 
 
-    StringVector classes = object.getClassAttribute();
+    StringVector classes = Calls.computeDataClasses(object);
     DispatchGeneric(context, rho, call, genericName, object, classes);
 
-    throw new UnsupportedOperationException();
+    throw new EvalException("no applicable method for '%s' applied to an object of class \"%s\"",
+        genericName, classes.toString());
   }
 
   public static EvalResult NextMethod(Context context, Environment env, FunctionCall call) {
@@ -686,7 +687,7 @@ public class Evaluation {
         function = function.evalToExp(context, rho);
 
         Frame extra = new HashFrame();
-        extra.setVariable(new Symbol(".Class"), object.getClassAttribute());
+        extra.setVariable(new Symbol(".Class"), Calls.computeDataClasses(object));
         extra.setVariable(new Symbol(".Method"), method);
         extra.setVariable(new Symbol(".Generic"), new StringVector(genericName));
 

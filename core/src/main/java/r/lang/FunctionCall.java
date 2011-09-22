@@ -32,6 +32,9 @@ import r.lang.exception.EvalException;
  */
 public class FunctionCall extends PairList.Node {
   public static final String TYPE_NAME = "language";
+  public static final String IMPLICIT_CLASS = "call";
+  
+  public static boolean DEBUG = false;
 
   public FunctionCall(SEXP function, PairList arguments) {
     super(function, arguments);
@@ -50,7 +53,21 @@ public class FunctionCall extends PairList.Node {
   public EvalResult evaluate(Context context, Environment rho) {
     //System.out.println(this);
     Function functionExpr = evaluateFunction(context, rho);
-    return functionExpr.apply(context, rho, this, getArguments());
+    EvalResult result = functionExpr.apply(context, rho, this, getArguments());
+    
+    if(DEBUG) {
+      System.out.println(this + " => " + toString(result.getExpression()));
+    }
+    
+    return result;
+  }
+
+  private String toString(SEXP expression) {
+    if(expression.length() <= 5) {
+      return expression.toString();
+    } else {
+      return expression.getTypeName() + "(" + expression.length() + ")";
+    }
   }
 
   private Function evaluateFunction(Context context, Environment rho) {
@@ -59,6 +76,9 @@ public class FunctionCall extends PairList.Node {
       return findFunction(rho, (Symbol) functionExp);
     } else {
       SEXP evaluated = functionExp.evalToExp(context, rho);
+      if(evaluated instanceof Promise) {
+        evaluated = ((Promise) evaluated).force().getExpression();
+      }
       if(!(evaluated instanceof Function)) {
         throw new EvalException("'function' of lang expression is of unsupported type '%s'", functionExp.getTypeName());
       }
@@ -143,5 +163,12 @@ public class FunctionCall extends PairList.Node {
   public FunctionCall clone() {
     return new FunctionCall(getFunction(), getArguments());
   }
+
+  @Override
+  public String getImplicitClass() {
+    return IMPLICIT_CLASS;
+  }
+  
+  
 
 }

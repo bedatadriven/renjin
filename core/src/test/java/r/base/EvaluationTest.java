@@ -24,6 +24,7 @@ package r.base;
 import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.*;
+import r.lang.exception.EvalException;
 
 import java.io.IOException;
 
@@ -348,6 +349,36 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat( eval("cook()"), equalTo( eval("list(desc='fried numbers', what=6, howlong=5) ")));
   }
+  
+  @Test(expected=EvalException.class)
+  public void useMethodFailsOnMissingMethod() {
+    eval("f <- function(x) UseMethod('f')");
+    eval("f.foo <- function(x) 'matrix' ");
+    eval("f(9)");
+  }
+  
+  @Test
+  public void useMethodDispatchesToMatrices() {
+    eval("f <- function(x) UseMethod('f')");
+    eval("f.matrix <- function(x) 'matrix' ");
+    
+    eval("m <- 1:12");
+    eval("dim(m) <- c(3,4)");
+   
+    assertThat(eval("f(m)"), equalTo(c("matrix")));
+  }
+  
+  @Test
+  public void useMethodDispatchesToDoubleThenNumeric() {
+    eval("f <- function(x) UseMethod('f')");
+    eval("f.numeric <- function(x) 'numeric' ");
+    eval("f.double <- function(x) 'double' ");
+    
+   
+    assertThat(eval("f(9)"), equalTo(c("double")));
+  }
+  
+  
 
   @Test
   public void nargs() {

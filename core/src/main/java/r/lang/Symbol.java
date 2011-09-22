@@ -70,7 +70,7 @@ public class Symbol extends AbstractSEXP {
   }
 
   @Override
-  protected final String getImplicitClass() {
+  public final String getImplicitClass() {
     return IMPLICIT_CLASS;
   }
 

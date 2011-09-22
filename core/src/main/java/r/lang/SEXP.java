@@ -85,10 +85,21 @@ public interface SEXP {
   boolean isObject();
 
   /**
+   * 
+   * R possesses a simple generic function mechanism which can be used
+   * for an object-oriented style of programming.  Method dispatch
+   * takes place based on the class(es) of the first argument to the
+   * generic function or of the object supplied as an argument to
+   *  ‘UseMethod’ or ‘NextMethod’.
+   *
+   * 
+   *
    * @return the R language class of this expression
    */
-  StringVector getClassAttribute();
+  StringVector getS3Class();
 
+  String getImplicitClass();
+  
   boolean inherits(String sClassName);
 
   /**

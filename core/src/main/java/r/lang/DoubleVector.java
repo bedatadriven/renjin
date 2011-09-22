@@ -237,7 +237,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   }
 
   @Override
-  protected String getImplicitClass() {
+  public String getImplicitClass() {
     return "numeric";
   }
 

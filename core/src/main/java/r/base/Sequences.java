@@ -21,13 +21,28 @@
 
 package r.base;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.math.linear.RealVector;
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Generic;
+
 import r.jvmi.annotations.Primitive;
-import r.lang.*;
+import r.jvmi.wrapper.ArgumentIterator;
+import r.jvmi.wrapper.WrapperRuntime;
+import r.lang.AtomicVector;
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.EvalResult;
+import r.lang.FunctionCall;
+import r.lang.IntVector;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
+import r.lang.Warning;
 import r.lang.exception.EvalException;
+
+import com.google.common.annotations.VisibleForTesting;
 
 
 /**
@@ -77,6 +92,7 @@ public class Sequences {
     }
   }
 
+
   @Primitive("rep.int")
   public static Vector repeatInt(Vector x, int times) {
     EvalException.check(times >= 0, "invalid 'times' value");
@@ -93,29 +109,61 @@ public class Sequences {
   }
 
   @Primitive("rep")
-  public static Vector repeat(@ArgumentList ListVector arguments) {
-    // this is one of the few primitive functions whose
-    // arguments are matched in the same way arguments to R closures.
-    // the implementation below is still not quite correct: it assumes
-    // that x is the first argument but that is not necessarily so...
-    
-    if(arguments.length() < 1) {
-      return Null.INSTANCE;
-    }
-    Vector x = EvalException.checkedCast(arguments.getElementAsSEXP(0));
-    Vector.Builder result = x.newBuilder(0);
+  public static EvalResult repeat(Context context, Environment rho, FunctionCall call) {
 
-    Vector times = findRepArgumentAsVector(arguments, 1, "times");
-    if(times == null) {
-      times = new IntVector(1);
-    }
-    if(times.length() != 1 && times.length() != x.length()) {
-      throw new EvalException("invalid 'times' argument");
+    // rep is one of the very few primitives that uses argument matching
+    // *ALMOST* like that employed for closures.
+    //
+    // the one gotcha is that generic dispatch is done on the FIRST argument,
+    // even if 'x' is provided as named argument elsewhere
+    
+    // check for zero args -- the result should be null
+    PairList arguments = call.getArguments();
+    if(arguments == Null.INSTANCE) {
+      return new EvalResult(Null.INSTANCE);
     }
     
-    int lengthOut = findRepArgument(arguments, 2, "length.out");
-    int each = findRepArgument(arguments, 3, "each");
-
+    // evaluate the first arg
+    ArgumentIterator argIt = new ArgumentIterator(context, rho, arguments);
+    PairList.Node firstArgNode = argIt.nextNode();
+    SEXP firstArg = firstArgNode.getValue().evalToExp(context, rho);
+    if(firstArg.isObject()) {
+      EvalResult result = WrapperRuntime.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
+      if(result != null) {
+        return result;
+      }
+    }
+    
+    // create a new pair list of evaluated arguments
+    PairList.Builder evaled = new PairList.Builder();
+    evaled.add(firstArgNode.getRawTag(), firstArg);
+    while(argIt.hasNext()) {
+      PairList.Node node = argIt.nextNode();
+      evaled.add(node.getRawTag(), node.getValue().evalToExp(context, rho));
+    }
+    
+    // declare formals
+    PairList.Builder formals = new PairList.Builder();
+    formals.add("x", Symbol.MISSING_ARG);
+    formals.add("times", Symbol.MISSING_ARG);
+    formals.add("length.out", Symbol.MISSING_ARG);
+    formals.add("each", Symbol.MISSING_ARG);
+    
+    PairList matched = Calls.matchArguments(formals.build(), evaled.build());
+    
+    SEXP x = matched.findByTag(new Symbol("x"));
+    SEXP times = matched.findByTag(new Symbol("times"));
+    SEXP lengthOut = matched.findByTag(new Symbol("length.out"));
+    SEXP each = matched.findByTag(new Symbol("each"));
+    
+    return new EvalResult(rep(
+        (Vector)x,
+        times == Symbol.MISSING_ARG ? new IntVector(1) : (Vector)times,
+        lengthOut == Symbol.MISSING_ARG ? IntVector.NA : ((Vector)lengthOut).getElementAsInt(0),
+        each == Symbol.MISSING_ARG ? IntVector.NA : ((Vector)each).getElementAsInt(0)));
+  }
+  
+  private static Vector rep(Vector x, Vector times, int lengthOut, int each) {
     int resultLength;
 
     if(times.length() == 1) {
@@ -139,6 +187,7 @@ public class Sequences {
       throw new EvalException("invalid 'times' argument");
     }
 
+    Vector.Builder result = x.newBuilder(0);
     StringVector.Builder names = StringVector.newBuilder();
     int result_i = 0;
 
@@ -162,29 +211,22 @@ public class Sequences {
 
     return result.build();
   }
-
-  private static Vector findRepArgumentAsVector(ListVector arguments, int position, String name) {
-    for(int i=1;i!=arguments.length();++i) {
-      String argName = arguments.getName(i);
-      if(!argName.isEmpty() && name.startsWith(argName)) {
-        return (Vector)arguments.getElementAsSEXP(i);
-      }
-    }
-    if(position < arguments.length() && arguments.getName(position).isEmpty()) {
-      return (Vector)arguments.getElementAsSEXP(position);
-    }
-    return null;
-  }
   
-  private static int findRepArgument(ListVector arguments, int position, String name) {
-    Vector x = findRepArgumentAsVector(arguments, position, name);
-    if(x == null) {
+  private static int toInt(SEXP exp) {
+    if(exp == Symbol.MISSING_ARG) {
       return IntVector.NA;
     } else {
-      return x.getElementAsInt(0);
+      return ((Vector)exp).getElementAsInt(0);
     }
   }
   
+  private static Vector toVector(SEXP exp) {
+    if(exp == Symbol.MISSING_ARG) {
+      return Null.INSTANCE;
+    } else {
+      return (Vector)exp;
+    }
+  }
 
   @VisibleForTesting
   static class Range {

@@ -278,6 +278,32 @@ public class BasePackageTest extends EvalTestCase {
     eval("df<-as.data.frame(g)");
     assertThat(eval("length(unclass(df))"), equalTo(c_i(8)));
   }
+  
+  @Test
+  public void factorEquality() throws IOException {
+    topLevelContext.init();
+
+    eval("y <- as.factor(c(1,0))");
+    assertThat( eval("y == c('1', '0')"), equalTo(c(true,true)));
+  }
+  
+  @Test
+  public void outer() throws IOException {
+    topLevelContext.init();
+    
+    eval("x <- c(1,0,1,0,1,0)");
+    eval("y <- as.factor(c(1,0,1,0,1,0))");
+    eval("h <- levels(y)");
+    
+    assertThat( eval("Y <- rep(h, rep.int(length(y), length(h)))"), equalTo(c("0","0","0","0","0","0","1","1","1","1","1","1")));
+    
+    eval("X <- rep(y, times = ceiling(length(h)/length(y)))");
+    assertThat(eval("class(X)"), equalTo(c("factor")));
+    
+    eval("yp <- ifelse(outer(y,h,'=='),1,0)");
+    assertThat(eval("dim(yp)"), equalTo(c_i(6,2)));
+    assertThat(eval("c(yp)"), equalTo(c(0,1,0,1,0,1,1,0,1,0,1,0)));
+  }
 
   private void loadBasePackage() throws IOException {
     topLevelContext.loadBasePackage();

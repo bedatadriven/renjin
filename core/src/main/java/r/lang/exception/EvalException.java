@@ -30,7 +30,7 @@ public class EvalException extends RuntimeException {
   private Context context;
 
   public EvalException(String message, Object... args) {
-    super(String.format(message, args));
+    super(args.length == 0 ? message : String.format(message, args));
   }
   
   public EvalException(Context context, String message, Object... args) {

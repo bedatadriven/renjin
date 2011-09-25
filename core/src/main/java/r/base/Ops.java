@@ -159,6 +159,18 @@ public class Ops  {
     return !value;
   }
 
+  @Primitive("%%")
+  @Recycle
+  public static double modulus(double x, double y) {
+    return x % y;
+  }
+  
+  @Primitive("%/%")
+  @Recycle
+  public static double integerDivision(double x, double y) {
+    return Math.floor(x / y);
+  }
+  
   @Primitive("&")
   @AllowNA
   public static Logical and(double x, double y) {

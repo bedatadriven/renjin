@@ -114,10 +114,15 @@ public class MatrixTest extends EvalTestCase {
    
     assertThat(eval("rowSums(q)"), equalTo(c(DoubleVector.NA, 13, 23)));
     assertThat(eval("rowSums(q, na.rm=TRUE)"), equalTo(c(5, 13, 23)));
-
-    assertThat(eval("colSums(q)"), equalTo(c(DoubleVector.NA, 34)));
-
-
   }
+
+  @Test
+  public void colSums() throws IOException {
+    topLevelContext.init();
+    eval("q <- matrix(1:32, 4)");
+   
+    assertThat(eval("colSums(q)"), equalTo(c(10,26,42,58,74,90,106,122)));
+  }
+
   
 }

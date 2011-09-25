@@ -47,4 +47,11 @@ public class OptTest extends EvalTestCase{
   public void vectorsAreChecked() {
     eval("sqrt('4')");
   }
+  
+  @Test
+  public void integerDivision() {
+    assertThat( eval("7 %/% 3"), equalTo(c(2)));
+    assertThat( eval("7 %/% 3.9"), equalTo(c(1)));
+    assertThat( eval("-7 %/% 3.9"), equalTo(c(-2)));
+  }
 }

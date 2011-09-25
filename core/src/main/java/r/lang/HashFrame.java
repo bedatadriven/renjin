@@ -22,6 +22,7 @@
 package r.lang;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class HashFrame implements Frame{
@@ -55,6 +56,10 @@ public class HashFrame implements Frame{
   
   @Override
   public String toString() {
-    return values.toString();
+    StringBuilder sb = new StringBuilder();
+    for(Entry<Symbol,SEXP> entry : values.entrySet()) {
+      sb.append(entry.getKey()).append(" = ").append(entry.getValue()).append("\n");
+    }
+    return sb.toString();
   }
 }

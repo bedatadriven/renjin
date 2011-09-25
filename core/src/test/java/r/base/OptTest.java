@@ -54,4 +54,13 @@ public class OptTest extends EvalTestCase{
     assertThat( eval("7 %/% 3.9"), equalTo(c(1)));
     assertThat( eval("-7 %/% 3.9"), equalTo(c(-2)));
   }
+  
+  @Test
+  public void dimAttribIsCopied() {
+    eval(" y <- c(1,2) ");
+    eval(" dj <- c(1,1) ");
+    eval(" dim(dj) <- c(2,1)");
+    
+    assertThat(eval(" dim( y / dj )"), equalTo(c_i(2,1)));
+  }
 }

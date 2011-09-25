@@ -311,14 +311,23 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     s.writeCloseBlock();
     if(method.getPreserveAttributesStyle() != PreserveAttributeStyle.NONE) {
       s.writeBeginBlock("if(cycles > 0) {");
-      switch(method.getPreserveAttributesStyle()) {
-      case ALL:
-        s.writeStatement("result.copyAttributesFrom(" + recycled.getLongestLocal() + ")");
-        break;
-      case SPECIAL:
-        s.writeStatement("result.copySomeAttributesFrom(" + recycled.getLongestLocal() + 
-              ", Symbol.DIM, Symbol.DIMNAMES, Symbol.NAMES);");
-        break;
+      for(int i=recycled.size()-1;i>=0;--i) {
+        if(recycled.size() > 1) {
+          s.writeBeginIf(recycled.getLengthLocal(i) + "  == cycles");
+        }
+        String vectorLocal = recycled.getVectorLocal(i);
+        switch(method.getPreserveAttributesStyle()) {
+        case ALL:
+          s.writeStatement("result.copyAttributesFrom(" + vectorLocal + ")");
+          break;
+        case SPECIAL:
+          s.writeStatement("result.copySomeAttributesFrom(" + vectorLocal + 
+                ", Symbol.DIM, Symbol.DIMNAMES, Symbol.NAMES);");
+          break;
+        }
+        if(recycled.size() > 1) {
+          s.writeCloseBlock();
+        }
       }
       s.writeCloseBlock();
     }

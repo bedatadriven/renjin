@@ -50,7 +50,6 @@ public class RecycledArguments {
 
       s.writeBeginBlock("if(" + arg.getVectorLocal() +"_length > cycles) {");
       s.writeStatementF("cycles = %s_length", arg.getVectorLocal());
-      s.writeStatementF("longest = %s", arg.getVectorLocal());
       s.writeCloseBlock();
     }
     s.writeBlankLine();
@@ -85,17 +84,14 @@ public class RecycledArguments {
   }
   
   public void writeElementExtraction() {
-    
     for(RecycledArgument arg : args) {
-      
       s.writeStatement(new StringBuilder()
         .append(arg.getElementClassName())
         .append(" ")
         .append(arg.getElementLocal())
         .append(" = ")
         .append(arg.getAccessExpression(indexVariable(arg)))
-        .toString());
-           
+        .toString());        
     }
   }
   
@@ -109,7 +105,15 @@ public class RecycledArguments {
     s.writeBlankLine();
   }
   
-  public String getLongestLocal() {
-    return "longest";
+  public int size() {
+    return args.size();
+  }
+  
+  public String getVectorLocal(int index) {
+    return args.get(index).getVectorLocal();
+  }
+  
+  public String getLengthLocal(int index) {
+    return args.get(index).getLengthLocal();
   }
 }

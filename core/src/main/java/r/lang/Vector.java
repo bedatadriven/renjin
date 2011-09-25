@@ -209,7 +209,14 @@ public interface Vector extends SEXP {
      */
     Vector build();
 
-    Builder copyAttributesFrom(Vector exp);
+    /**
+     * Copies attributes from the provided {@code vector} argument, replacing 
+     * an attribute if it is already set, or adding a new one if no previous 
+     * value has been set.
+     * 
+     * @param vector the {@code Vector} from which to copy the attributes
+     */
+    Builder copyAttributesFrom(Vector vector);
 
     Builder copySomeAttributesFrom(Vector exp, Symbol... toCopy);
   }

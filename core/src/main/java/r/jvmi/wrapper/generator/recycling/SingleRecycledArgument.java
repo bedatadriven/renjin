@@ -15,7 +15,6 @@ public class SingleRecycledArgument extends RecycledArguments {
     super(s, overload, recycledArguments);
 
     arg = recycledArguments.get(0);
-  
   }
 
   @Override
@@ -35,11 +34,4 @@ public class SingleRecycledArgument extends RecycledArguments {
     // do nothing, we only need to maintain one index counter
   }
 
-  @Override
-  public String getLongestLocal() {
-    return arg.getVectorLocal();
-  }
-
-  
-  
 }

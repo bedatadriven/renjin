@@ -14,7 +14,9 @@ public enum PreserveAttributeStyle {
   SPECIAL,
   
   /**
-   * All attributes are copied from the longest argument.
+   * All attributes are copied from the longest argument. If there are ties among the 
+   * arguments for the longest vector, attributes are copied from all elements of the tie,
+   * but giving precedence to the earlier arguments.
    */
   ALL
 }

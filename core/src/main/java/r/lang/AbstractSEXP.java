@@ -64,7 +64,7 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public final boolean hasAttributes() {
-    return attributes.length() != 0;
+    return attributes != null && attributes.length() != 0;
   }
 
   @Override

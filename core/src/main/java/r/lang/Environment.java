@@ -57,8 +57,7 @@ import java.util.Set;
  */
 public class Environment extends AbstractSEXP implements Recursive {
 
-  public static boolean DEBUG = false;
-  
+
   public static final String TYPE_NAME = "environment";
   private static final String GLOBAL_ENVIRONMENT_NAME = "R_GlobalEnv";
 
@@ -211,13 +210,6 @@ public class Environment extends AbstractSEXP implements Recursive {
   }
 
   public void setVariable(Symbol symbol, SEXP value) {
-    if(DEBUG && "y".equals(symbol.getPrintName()) && value instanceof ListVector) {
-      System.out.println("y => " + value);
-      if(value instanceof ListVector && value.length() >= 1) {
-        System.out.println("dim(y[[1]]) => " + value.getElementAsSEXP(0).getAttribute(Symbol.DIM));
-      }
-    }
-    
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
     } else if(locked && frame.getVariable(symbol) != Symbol.UNBOUND_VALUE) {

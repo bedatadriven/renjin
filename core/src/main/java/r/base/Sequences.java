@@ -240,7 +240,7 @@ public class Sequences {
       this.n1 = n1;
       this.n2 = n2;
       range = Math.abs(n2 - n1);
-      count = range + 1 + DoubleVector.EPSILON;
+      count = range + 1d + DoubleVector.EPSILON;
 
       determineType();
     }

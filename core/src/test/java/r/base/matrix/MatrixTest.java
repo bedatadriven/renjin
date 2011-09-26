@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 
 import org.apache.commons.math.linear.RealMatrix;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import r.EvalTestCase;
@@ -58,12 +59,49 @@ public class MatrixTest extends EvalTestCase {
    
   }
   
+  @Test
+  public void eigenWithLa_rs() throws IOException {
+    
+    topLevelContext.init();
+    eval("res <- eigen(cbind(c(1,-1),c(-1,1)))");
+    assertThat( eval("res$values"), equalTo(c(2,0)));
+    assertThat( eval("res$vectors"), closeTo(matrix(
+        row(-0.7071068, -0.7071068),
+        row( 0.7071068, -0.7071068)), 0.00001));
+        
+  }
+  
+  @Test
+  @Ignore("not yet working")
+  public void eigenWithImaginaryResults() throws IOException {
+    
+    topLevelContext.init();
+    eval("res <- matrix(c(3, 4, -2, -1),2)");
+    assertThat( eval("res$values"), equalTo(c(complex(1,2), complex(1,-2))));
+    assertThat( eval("res$vectors"), closeTo(matrix(
+        row(-0.7071068, -0.7071068),
+        row( 0.7071068, -0.7071068)), 0.00001));
+  }
+  
+  
+  
+  @Test
+  public void eigenWithLa_rg() throws IOException {
+    topLevelContext.init();
+    
+    eval("res <- eigen(cbind(c(1,-1),c(-1,1)), symmetric=FALSE)");
+    assertThat( eval("res$values"), equalTo(c(2,0)));
+    assertThat( eval("res$vectors"), closeTo(matrix(
+        row( 0.7071068,  0.7071068),
+        row(-0.7071068,  0.7071068)), 0.00001));
+    
+  }
   
   @Test
   public void testSolve(){
     try{
       topLevelContext.init();
-    }catch(Exception e){
+    } catch(Exception e) {
       
     }
     assertThat(eval("solve(matrix(c(1,3,7,6),2,2))"), closeTo(matrix(

@@ -20,20 +20,25 @@
  */
 package r.base;
 
-import com.google.common.collect.Lists;
-import r.jvmi.annotations.ArgumentList;
-import r.lang.*;
-import r.lang.Vector.Builder;
-import r.lang.exception.EvalException;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.math.linear.Array2DRowFieldMatrix;
-
+import r.jvmi.annotations.ArgumentList;
+import r.jvmi.annotations.NamedFlag;
 import r.jvmi.annotations.Primitive;
+import r.lang.AtomicVector;
+import r.lang.DoubleVector;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.Null;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
+import r.lang.exception.EvalException;
+
+import com.google.common.collect.Lists;
 
 public class Sort {
 
@@ -93,25 +98,21 @@ public class Sort {
    * <p>This function is like a spreadsheet sort function.
    * Each argument is a column.
    *
-   * @param arguments
+   * @param columns
    * @return
    */
-  public static Vector order(@ArgumentList ListVector arguments) {
-    if (arguments.length() < 2) {
-      throw new EvalException("expected at least two arguments");
-    }
-    if (arguments.length() == 2) {
+  public static Vector order(boolean naLast, final boolean decreasing, @ArgumentList final ListVector columns) {
+        
+    if (columns.length() == 0) {
       return Null.INSTANCE;
     }
-    final List<AtomicVector> columns = Lists.newArrayList();
-    int numRows = arguments.getElementAsSEXP(2).length();
-    int numColumns = arguments.length() - 2;
+    
+    int numRows = columns.getElementAsSEXP(0).length();
 
-    for (int i = 2; i != arguments.length(); ++i) {
-      if (arguments.getElementAsSEXP(i).length() != numRows) {
+    for (int i = 0; i != columns.length(); ++i) {
+      if (columns.getElementAsSEXP(i).length() != numRows) {
         throw new EvalException("argument lengths differ");
       }
-      columns.add((AtomicVector) arguments.getElementAsSEXP(i));
     }
 
     List<Integer> ordering = Lists.newArrayListWithCapacity(numRows);
@@ -127,15 +128,15 @@ public class Sort {
         int rel;
         while ((rel = compare(row1, row2, col)) == 0) {
           col++;
-          if (col == columns.size()) {
+          if (col == columns.length()) {
             return 0;
           }
         }
-        return rel;
+        return decreasing ? -rel : rel;
       }
 
       private int compare(Integer row1, Integer row2, int col) {
-        return columns.get(col).compare(row1, row2);
+        return ((AtomicVector)columns.get(col)).compare(row1, row2);
       }
     });
 

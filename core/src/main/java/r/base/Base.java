@@ -21,9 +21,6 @@
 
 package r.base;
 
-import java.text.ParseException;
-import static org.netlib.lapack.Dgesdd.dgesdd;
-
 import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
@@ -57,7 +54,7 @@ import r.lang.exception.EvalException;
 public class Base {
 
   private Base() { }
-
+  
   public static boolean R_isMethodsDispatchOn(@Current Context context) {
     return false;
   }
@@ -168,6 +165,7 @@ public class Base {
     int iwork[] = new int[8*(n<p ? n : p)];
 
     LAPACK lapack = LAPACK.getInstance();
+   
     
     /* ask for optimal size of work array */
     int lwork = -1;
@@ -304,4 +302,161 @@ public class Base {
     return new DoubleVector(Bcontent);
   }
   
+  public static SEXP La_rg(SEXP x, boolean ov)
+  {
+      boolean complexValues;
+      int lwork;
+      double work[], tmp[];
+      String jobVL, jobVR;
+
+      int n = getSquareMatrixSize(x);
+
+      /* work on a copy of x */
+      double xvals[] = ((DoubleVector)x).toDoubleArray();
+      
+      boolean vectors = !ov;
+      jobVL = jobVR = "N";
+      // TODO: left = right = (double *) 0;
+      
+      double left[] = null;
+      double right[] = null;
+      
+      if (vectors) {
+          jobVR = "V";
+          right = new double[n*n];
+      }
+      double wR[] = new double[n];
+      double wI[] = new double[n];
+      
+      /* ask for optimal size of work array */
+      lwork = -1;
+
+      LAPACK lapack = LAPACK.getInstance();
+
+      tmp = new double[1];
+      intW info = new intW(0);
+      lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, tmp, lwork, info);
+
+      if (info.val != 0)
+          throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
+      
+      lwork = (int) tmp[0];
+      work =  new double[lwork];
+      
+      lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, work, lwork, info);
+
+      if (info.val != 0)
+          throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
+
+      complexValues = false;
+      for (int i = 0; i < n; i++) {
+        /* This test used to be !=0 for R < 2.3.0.  This is OK for 0+0i */
+        if (Math.abs(wI[i]) >  10 * DoubleVector.EPSILON * Math.abs(wR[i])) {
+          complexValues = true;
+          break;
+        }
+      }
+      ListVector.Builder ret = new ListVector.Builder();
+      
+      if (complexValues) {
+        //throw new EvalException("Complex results not yet implemented");
+//    
+//        val = allocVector(CPLXSXP, n);
+//          for (i = 0; i < n; i++) {
+//              COMPLEX(val)[i].r = wR[i];
+//              COMPLEX(val)[i].i = wI[i];
+//          }
+//          SET_VECTOR_ELT(ret, 0, val);
+
+        ret.add("values", new DoubleVector(new double[n]));
+        
+        if (vectors) {
+          ret.add("vectors", new DoubleVector(new double[n*n]));
+//        SET_VECTOR_ELT(ret, 1, unscramble(wI, n, right));
+        }
+      } else {
+        ret.add("values", new DoubleVector(wR));
+        ret.add("vectors", vectors ? DoubleVector.newMatrix(right, n, n) : Null.INSTANCE);
+      }
+      return ret.build();
+  }
+
+  private static int getSquareMatrixSize(SEXP x) {
+    Vector xdims =  (Vector)x.getAttribute(Symbol.DIM);
+    if(xdims.length() != 2 || xdims.getElementAsInt(0) != xdims.getElementAsInt(1)) {
+      throw new EvalException("'x' must be a square numeric matrix");
+    }
+    int n = xdims.getElementAsInt(0);
+    return n;
+  }  
+  
+  
+  public static SEXP La_rs(DoubleVector x, boolean ov)
+  {
+//      int *xdims, n, lwork, info = 0, ov;
+//      char jobv[1], uplo[1], range[1];
+//      SEXP values, ret, nm, x, z = R_NilValue;
+//      double *work, *rx, *rvalues, tmp, *rz = NULL;
+//      int liwork, *iwork, itmp, m;
+      
+    double vl = 0.0, vu = 0.0, abstol = 0.0;
+      /* valgrind seems to think vu should be set, but it is documented
+         not to be used if range='a' */
+  
+    int il=0, iu=0;
+    
+    String uplo = "L";
+    int n = getSquareMatrixSize(x);
+  
+    double rx[] = x.toDoubleArray();
+    double rvalues[] = new double[n];
+  
+    String range = "A";
+    double rz[] = null;
+    if (!ov) {
+        rz = new double[n*n];
+    }
+    
+    String jobv = ov ? "N" : "V";
+
+    
+    int isuppz[] = new int[2*n];
+      /* ask for optimal size of work arrays */
+
+    int lwork = -1;
+    int liwork = -1;
+    intW m = new intW(0);
+    int itmp[] = new int[1];
+    
+    double tmp[] = new double[1];
+    
+    LAPACK lapack = LAPACK.getInstance();
+    intW info = new intW(0);
+    lapack.dsyevr(jobv, range, uplo, n, rx, n,
+                       vl, vu, il, iu, abstol, m, rvalues,
+                       rz, n, isuppz,
+                       tmp, lwork, itmp, liwork, info);
+      if (info.val != 0)
+        throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
+      
+      lwork = (int) tmp[0];
+      liwork = itmp[0];
+  
+      double work[] =  new double[lwork];
+      int iwork[] = new int[liwork];
+
+      lapack.dsyevr(jobv, range, uplo, n, rx, n,
+                       vl, vu, il, iu, abstol, m, rvalues,
+                       rz, n, isuppz,
+                       work, lwork, iwork, liwork, info);
+      if (info.val != 0)
+        throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
+  
+      ListVector.Builder ret = new ListVector.Builder();
+      ret.add("values", new DoubleVector(rvalues));
+      if (!ov) {
+        ret.add("vectors", DoubleVector.newMatrix(rz, n, n));
+      }
+      return ret.build();
+  }
 }

@@ -48,7 +48,7 @@ public class SequenceTest extends EvalTestCase {
   @Test
   public void count() {
     Sequences.Range range = new Sequences.Range(11, 13);
-    assertTrue(range.count > 3d && range.count < 4d );
+    assertTrue(range.count >= 3d && range.count < 4d );
   }
 
   @Test

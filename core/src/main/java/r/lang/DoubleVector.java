@@ -70,7 +70,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   public static final double NA = Double.longBitsToDouble(NA_BITS);
 
   public static final double NaN = Double.NaN;
-  public static final double EPSILON =  0.00001;
+  public static final double EPSILON = 2.220446e-16;
 
 
   private double[] values;
@@ -329,6 +329,12 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   public Builder newBuilder(int initialSize) {
     return new Builder(initialSize);
   }
+  
+  public static DoubleVector newMatrix(double[] values, int nRows, int nCols) {
+    PairList attributes = new PairList.Node(Symbol.DIM, new IntVector(nRows,nCols), Null.INSTANCE);
+    return new DoubleVector(values, attributes);
+  }
+
 
   @Override
   public boolean isElementNA(int index) {

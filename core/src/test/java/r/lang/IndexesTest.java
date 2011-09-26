@@ -30,14 +30,34 @@ public class IndexesTest {
 
   @Test
   public void arrayToVectorIndex() {
-
     assertThat( Indexes.arrayIndexToVectorIndex(new int[] {0,2}, new int[] {10,3} ), equalTo(20) );
-
   }
 
   @Test
   public void increment() {
     assertThat( Indexes.incrementArrayIndex(new int[] {9,0}, new int[] {10,1} ), equalTo(false) );
-
   }
+  
+  @Test
+  public void vectorToIndex() {
+    assertThat( Indexes.arrayIndexToVectorIndex(new int[] {0,2}, new int[] {10,3} ), equalTo(20) );
+    
+  }
+
+  @Test
+  public void vectorIndexToRow() {
+    assertThat( Indexes.vectorIndexToRow(0, 3), equalTo(0) );
+    assertThat( Indexes.vectorIndexToRow(6, 3), equalTo(0) );
+    assertThat( Indexes.vectorIndexToRow(2, 3), equalTo(2) );
+    assertThat( Indexes.vectorIndexToRow(5, 3), equalTo(2) );
+  }
+  
+  @Test
+  public void vectorIndexToCol() {
+    assertThat( Indexes.vectorIndexToCol(0, 3, 4), equalTo(0) );
+    assertThat( Indexes.vectorIndexToCol(6, 3, 4), equalTo(2) );
+    assertThat( Indexes.vectorIndexToCol(2, 3, 4), equalTo(0) );
+    assertThat( Indexes.vectorIndexToCol(5, 3, 4), equalTo(1) );
+  }
+
 }

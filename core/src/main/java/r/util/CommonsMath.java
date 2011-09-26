@@ -6,6 +6,7 @@ import org.apache.commons.math.linear.MatrixIndexException;
 import org.apache.commons.math.linear.RealMatrix;
 
 import r.lang.DoubleVector;
+import r.lang.Indexes;
 import r.lang.IntVector;
 import r.lang.Null;
 import r.lang.Symbol;
@@ -100,16 +101,11 @@ public class CommonsMath {
 
     @Override
     public double getEntry(int row, int column) throws MatrixIndexException {
-      return vector.getElementAsDouble(column * nrows + row);
+      return vector.getElementAsDouble(Indexes.matrixIndexToVectorIndex(row, column, nrows, ncols));
     }
 
-    /*
-     * I think i did something very Slow...
-     * It would be nice the Vector class has 'set' method.
-     */
     @Override
     public void setEntry(int row, int column, double value){
-      //this.vector = (DoubleVector)this.vector.newCopyBuilder().set(row * this.ncols + column, new DoubleVector(value)).build();
       throw new UnsupportedOperationException();
     }
 
@@ -135,7 +131,4 @@ public class CommonsMath {
       return ncols;
     }
   }
-
-
-
 }

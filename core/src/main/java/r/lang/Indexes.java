@@ -21,8 +21,22 @@
 
 package r.lang;
 
+/**
+ * Utility class for mapping matrix and array indices to vector indices. 
+ * 
+ * <p>All R values, whether "dimensionless" vectors, matrices, or higher order
+ * arrays, are stored internally as a single dimensioned array block. These methods
+ * help translate matrix and array indices to the storage index and back again.
+ */
 public class Indexes {
 
+  /**
+   * Translates an array index of arbitrary dimensionality to a storage vector index.
+   *  
+   * @param arrayIndex zero-based array index, such as {@code new int[] {0,1,3} }
+   * @param dim the dimension lengths, in the same format as the R-language {@code dim} attribute.
+   * @return a zero-based vector index that can be passed to {@code Vector.getElementAsXXX()} calls.
+   */
   public static int arrayIndexToVectorIndex(int arrayIndex[], int dim[]) {
     int vectorIndex = 0;
     int offset = 1;
@@ -33,10 +47,49 @@ public class Indexes {
     return vectorIndex;
   }
 
+  /**
+   * Translates a matrix (row, column) index to a storage vector index.
+   * 
+   * @param row zero-based row index
+   * @param col zero-based column index
+   * @param nrows the number of rows in the matrix
+   * @param ncols the number of columns in the matrix
+   * @return a zero-based vector index that can be passed to {@code Vector.getElementAsXXX()} calls.
+   */
   public static int matrixIndexToVectorIndex(int row, int col, int nrows, int ncols) {
     return row + (col * nrows);
   }
+  
+  /**
+   * Translates a vector index to a matrix row in a matrix with {@code nrows}
+   * @param vectorIndex zero-based storage vector index
+   * @param nrows number of rows in the matrix
+   * @return the corresponding matrix row
+   */
+  public static int vectorIndexToRow(int vectorIndex, int nrows) {
+    return vectorIndex % nrows;
+  }
 
+
+  /**
+   * Translates a vector index to a matrix column in a matrix with {@code nrows}
+   * @param vectorIndex zero-based storage vector index
+   * @param nrows number of rows in the matrix
+   * @return the corresponding matrix row
+   */
+  public static Integer vectorIndexToCol(int vectorIndex, int numRows, int numCols) {
+    int row = vectorIndex % numRows;
+    vectorIndex = (vectorIndex - row) / numRows;
+    return vectorIndex % numCols;
+  }
+  
+  /**
+   * Translates a storage vector index to an array index within an array of arbitrary dimensionality.
+   * 
+   * @param vectorIndex zero-based vector index
+   * @param arrayIndex an array which is updated with the results
+   * @param dim the lengths of the array's dimensions, in the same format as the R-language {@code dim} attribute.
+   */
   public static void vectorIndexToArrayIndex(int vectorIndex, int arrayIndex[], int dim[]) {
     for(int i=0;i!=dim.length;++i) {
       arrayIndex[i] = vectorIndex % dim[i];
@@ -44,6 +97,12 @@ public class Indexes {
     }
   }
 
+  /**
+   * Translates a storage vector index to an array index within an array of arbitrary dimensionality.
+   * @param vectorIndex zero-based vector index
+   * @param dim the lengths of the array's dimensions, in the same format as the R-language {@code dim} attribute.
+   * @return the array index
+   */
   public static int[] vectorIndexToArrayIndex(int vectorIndex, int dim[]) {
     int index[] = new int[dim.length];
     vectorIndexToArrayIndex(vectorIndex, index, dim);
@@ -68,4 +127,5 @@ public class Indexes {
     }
     return false;
   }
+
 }

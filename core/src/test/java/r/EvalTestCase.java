@@ -28,12 +28,14 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 
+import org.apache.commons.math.complex.Complex;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 
+import r.lang.ComplexVector;
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.Environment;
@@ -102,6 +104,14 @@ public abstract class EvalTestCase {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  protected Complex complex(double real, double imaginary) {
+    return new Complex(real, imaginary);
+  }
+  
+  protected SEXP c(Complex... values) {
+    return new ComplexVector(values);
   }
 
   protected SEXP c(boolean... values) {

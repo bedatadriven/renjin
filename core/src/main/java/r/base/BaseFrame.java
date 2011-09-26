@@ -482,11 +482,11 @@ public class BaseFrame implements Frame {
 /* Mathematical Functions of a Complex Argument */
 /* these are group generic and so need to eval args */
 
-    f("Re", /*cmathfuns*/ null, 1, 1, 1);
-    f("Im", /*cmathfuns*/ null, 2, 1, 1);
-    f("Mod", /*cmathfuns*/ null, 3, 1, 1);
-    f("Arg", /*cmathfuns*/ null, 4, 1, 1);
-    f("Conj", /*cmathfuns*/ null, 5, 1, 1);
+    f("Re", ComplexGroup.class, 1, 1, 1);
+    f("Im", ComplexGroup.class, 2, 1, 1);
+    f("Mod", ComplexGroup.class, 3, 1, 1);
+    f("Arg", ComplexGroup.class, 4, 1, 1);
+    f("Conj", ComplexGroup.class, 5, 1, 1);
 
 
 /* Mathematical Functions of Three Numeric (+ 1-2 int) Variables */

@@ -33,7 +33,7 @@ public class SortTest extends EvalTestCase {
     public void sortStringsDescending (){
         assertThat(eval(".Internal(sort(c('5','8','7','50'), decreasing=TRUE))"), equalTo(c("8","7","50","5")));
     }
-    
+        
     @Test
     public void sortNumericsDescending(){
         /* Needs to be implemented */
@@ -49,6 +49,20 @@ public class SortTest extends EvalTestCase {
     public void testWhichMax(){
         assertThat (eval(".Internal(which.max(c(6,5,4,6,5,4,1,6)))"), equalTo(c_i(1)));
         assertThat (eval(".Internal(which.max(c()))"), equalTo(c_i()));
+    }
+    
+    @Test
+    public void orderTest() {
+      
+        /*  1 2 3
+         *  -----
+         *  1 1 3  
+         *  1 2 9
+         *  1 1 1 
+         */
+      
+        assertThat( eval(".Internal(order(TRUE,FALSE,c(1,1,1), c(1,2,1), c(3,9,1)))"), equalTo(c_i(3,1,2)));
+        assertThat( eval(".Internal(order(TRUE,TRUE,c(1,1,1), c(1,2,1), c(3,9,1)))"), equalTo(c_i(2,1,3)));
     }
     
     

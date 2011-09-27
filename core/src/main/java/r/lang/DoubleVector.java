@@ -331,7 +331,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   }
   
   public static DoubleVector newMatrix(double[] values, int nRows, int nCols) {
-    PairList attributes = new PairList.Node(Symbol.DIM, new IntVector(nRows,nCols), Null.INSTANCE);
+    PairList attributes = new PairList.Node(Symbols.DIM, new IntVector(nRows,nCols), Null.INSTANCE);
     return new DoubleVector(values, attributes);
   }
 

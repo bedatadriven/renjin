@@ -2407,8 +2407,8 @@ public class RParser {
     values[6] = lloc.end.column;
 
     PairList attributes = PairList.Node.newBuilder()
-        .add(Symbol.SRC_FILE, srcfile)
-        .add(Symbol.CLASS, new StringVector("srcref"))
+        .add(Symbols.SRC_FILE, srcfile)
+        .add(Symbols.CLASS, new StringVector("srcref"))
         .build();
 
     return new IntVector(values, attributes);
@@ -2582,14 +2582,14 @@ public class RParser {
     SEXP ans;
     UNPROTECT_PTR(R_NilValue);
     if (options.isGenerateCode())
-      PROTECT(ans = TagArg(R_MissingArg, new Symbol("NULL"), lloc));
+      PROTECT(ans = TagArg(R_MissingArg, Symbol.get("NULL"), lloc));
     else
       PROTECT(ans = R_NilValue);
     return ans;
   }
 
   private SEXP xxnullsub1(SEXP expr, Location lloc) {
-    SEXP ans = new Symbol("NULL");
+    SEXP ans = Symbol.get("NULL");
     UNPROTECT_PTR(R_NilValue);
     if (options.isGenerateCode())
       PROTECT(ans = TagArg(expr, ans, lloc));
@@ -2710,7 +2710,7 @@ public class RParser {
     SEXP ans, sav_expr = expr;
     if (options.isGenerateCode()) {
       if (isString(expr))
-        expr = new Symbol(CHAR(STRING_ELT(expr, 0)));
+        expr = Symbol.get(CHAR(STRING_ELT(expr, 0)));
       PROTECT(expr);
       if (length(CDR(args)) == 1 && CADR(args) == R_MissingArg && TAG(CDR(args)) == R_NilValue)
         ans = lang1(expr);
@@ -2870,7 +2870,7 @@ public class RParser {
   private SEXP TagArg(SEXP arg, SEXP tag, Location lloc) {
 
     if(tag instanceof StringVector) {
-      tag = new Symbol(translateChar(STRING_ELT(tag, 0)));
+      tag = Symbol.get(translateChar(STRING_ELT(tag, 0)));
     }
 
     if(tag instanceof Symbol || tag instanceof Null) {

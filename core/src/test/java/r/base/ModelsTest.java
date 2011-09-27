@@ -40,7 +40,7 @@ public class ModelsTest extends EvalTestCase {
     eval(" formula <- ~1 ");
     eval(" t <- .Internal(terms.formula(formula,NULL,NULL, FALSE,FALSE))");
 
-    assertThat( eval(" t "), equalTo((SEXP)FunctionCall.newCall(new Symbol("~"), new DoubleVector(1))));
+    assertThat( eval(" t "), equalTo((SEXP)FunctionCall.newCall(Symbol.get("~"), new DoubleVector(1))));
     assertThat( eval(" attr(t, 'variables')"), equalTo(call("list")));
     assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector()));
     assertThat( eval(" .Internal(environment(t)) "), sameInstance((SEXP)topLevelContext.getGlobalEnvironment()));
@@ -51,13 +51,13 @@ public class ModelsTest extends EvalTestCase {
     eval(" formula <- ~weighta ");
     eval(" t <- .Internal(terms.formula(formula,NULL,NULL,FALSE,FALSE))");
 
-    assertThat( eval(" attr(t, 'variables') "), equalTo(call("list", new Symbol("weighta"))));
+    assertThat( eval(" attr(t, 'variables') "), equalTo(call("list", Symbol.get("weighta"))));
     assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector()));
 
   }
 
   private SEXP call(String function, SEXP... arguments) {
-    return FunctionCall.newCall(new Symbol(function), arguments);
+    return FunctionCall.newCall(Symbol.get(function), arguments);
   }
 
 }

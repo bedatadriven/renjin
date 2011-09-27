@@ -220,7 +220,7 @@ public class Connections {
     StringVector.Builder names = new StringVector.Builder();
 
     for (NamedValue pair : data.namedValues()) {
-      env.setVariable(new Symbol(pair.getName()), pair.getValue());
+      env.setVariable(Symbol.get(pair.getName()), pair.getValue());
       names.add(pair.getName());
     }
 
@@ -263,7 +263,7 @@ public class Connections {
 
     for (int i = 0; i < names.length(); i++) {
       // the name of the symbol
-      Symbol name = new Symbol(names.getElement(i));
+      Symbol name = Symbol.get(names.getElement(i));
 
       // c(pos, length) of the serialized object
       SEXP value = values.get(i).evalToExp(context, (Environment) eenv);

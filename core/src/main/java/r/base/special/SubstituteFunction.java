@@ -72,7 +72,7 @@ public class SubstituteFunction extends SpecialFunction {
     private PairList substituteArgumentList(PairList arguments) {
       PairList.Builder builder = PairList.Node.newBuilder();
       for(PairList.Node node : arguments.nodes()) {
-        if(node.getValue().equals(Symbol.ELLIPSES)) {
+        if(node.getValue().equals(Symbols.ELLIPSES)) {
           builder.addAll(unpackPromiseList((DotExp)environment.getVariable((Symbol)node.getValue())));
         } else {
           builder.add(node.getRawTag(), substitute(node.getValue()));

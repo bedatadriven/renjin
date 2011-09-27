@@ -78,7 +78,7 @@ public class WrapperRuntime {
         provided = ((Promise) provided).force().getExpression();
       }
       return (Vector) FunctionCall
-        .newCall(Symbol.AS_CHARACTER, provided)
+        .newCall(Symbols.AS_CHARACTER, provided)
           .evalToExp(context, rho);
     }
   }
@@ -184,7 +184,7 @@ public class WrapperRuntime {
       return null;
     }
     
-    Vector classVector = (Vector)object.getAttribute(Symbol.CLASS);
+    Vector classVector = (Vector)object.getAttribute(Symbols.CLASS);
     if(classVector.length() == 0) {
       return null;
     }

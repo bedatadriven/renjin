@@ -21,13 +21,20 @@
 
 package r.lang;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 
 public class HashFrame implements Frame{
-  private HashMap<Symbol, SEXP> values = new HashMap<Symbol, SEXP>();
 
+  private IdentityHashMap<Symbol, SEXP> values = new IdentityHashMap<Symbol, SEXP>();
+  
+  /**
+   * Bloom filter keeping track of which functions have 
+   * been (potentially) set into this frame. 
+   */
+  private int functionFilter = 0;
+  
   @Override
   public Set<Symbol> getSymbols() {
     return values.keySet();
@@ -40,13 +47,27 @@ public class HashFrame implements Frame{
   }
 
   @Override
-  public SEXP getInternal(Symbol name) {
-    return Symbol.UNBOUND_VALUE;
+  public Function getFunction(Symbol name) {
+    if(functionFilter != 0 && (functionFilter & name.hashBit()) != 0) {
+      SEXP value = values.get(name);
+      if(value instanceof Promise) {
+        value = ((Promise) value).force().getExpression();
+      } 
+      if(value instanceof Function) {
+        return (Function)value;
+      }
+    }
+    return null;
   }
-
+  
   @Override
   public void setVariable(Symbol name, SEXP value) {
     values.put(name, value);
+    // we add Promises to the function filter because they *could* be 
+    // functions
+    if(value instanceof Function || value instanceof Promise) {
+      functionFilter |= name.hashBit();
+    }
   }
 
   @Override
@@ -62,4 +83,6 @@ public class HashFrame implements Frame{
     }
     return sb.toString();
   }
+
+  
 }

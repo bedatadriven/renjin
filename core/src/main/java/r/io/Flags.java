@@ -24,7 +24,7 @@ package r.io;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
-import r.lang.Symbol;
+import r.lang.Symbols;
 
 class Flags {
   private final static int IS_OBJECT_BIT_MASK = (1 << 8);
@@ -74,7 +74,7 @@ class Flags {
   public static int computeFlags(SEXP exp, int type) {
     int flags = type;
 
-    if(exp.getAttribute(Symbol.CLASS) != Null.INSTANCE) {
+    if(exp.getAttribute(Symbols.CLASS) != Null.INSTANCE) {
       flags |= IS_OBJECT_BIT_MASK;
     }
     if(exp.getAttributes() != Null.INSTANCE) {

@@ -38,6 +38,7 @@ import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.Symbol;
+import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.Warning;
 import r.lang.exception.EvalException;
@@ -151,10 +152,10 @@ public class Sequences {
     
     PairList matched = Calls.matchArguments(formals.build(), evaled.build());
     
-    SEXP x = matched.findByTag(new Symbol("x"));
-    SEXP times = matched.findByTag(new Symbol("times"));
-    SEXP lengthOut = matched.findByTag(new Symbol("length.out"));
-    SEXP each = matched.findByTag(new Symbol("each"));
+    SEXP x = matched.findByTag(Symbol.get("x"));
+    SEXP times = matched.findByTag(Symbol.get("times"));
+    SEXP lengthOut = matched.findByTag(Symbol.get("length.out"));
+    SEXP each = matched.findByTag(Symbol.get("each"));
     
     return new EvalResult(rep(
         (Vector)x,
@@ -206,7 +207,7 @@ public class Sequences {
       }
     }
     if(names.haveNonEmpty()) {
-      result.setAttribute(Symbol.NAMES, names.build());
+      result.setAttribute(Symbols.NAMES, names.build());
     }
 
     return result.build();
@@ -313,11 +314,11 @@ public class Sequences {
 
     boolean One = (call.getArguments().length() == 1);
     PairList matched = Calls.matchArguments(formals.build(), call.getArguments());
-    SEXP from = matched.findByTag(new Symbol("from"));
-    SEXP to = matched.findByTag(new Symbol("to"));
-    SEXP by = matched.findByTag(new Symbol("by"));
-    SEXP len = matched.findByTag(new Symbol("length.out"));
-    SEXP along = matched.findByTag(new Symbol("along.with"));
+    SEXP from = matched.findByTag(Symbol.get("from"));
+    SEXP to = matched.findByTag(Symbol.get("to"));
+    SEXP by = matched.findByTag(Symbol.get("by"));
+    SEXP len = matched.findByTag(Symbol.get("length.out"));
+    SEXP along = matched.findByTag(Symbol.get("along.with"));
 
     if(from!=Symbol.MISSING_ARG) {
       from = from.evalToExp(context, rho);

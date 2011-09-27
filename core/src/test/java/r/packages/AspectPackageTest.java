@@ -12,7 +12,7 @@ public class AspectPackageTest extends PackageTest {
     
     eval("library('aspect')");
     eval("data('wurzer')");
-   
+
     eval("res.cor <- corAspect(wurzer, aspect='aspectSum', level=c(rep('nominal',2), rep('ordinal',5), 'nominal'))");
     eval("print(res.cor$catscores)");
     

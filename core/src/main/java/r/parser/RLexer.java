@@ -584,7 +584,7 @@ an ANSI digit or not */
   }
 
   private SEXP install(String symbolName) {
-    return new Symbol(symbolName);
+    return Symbol.get(symbolName);
   }
 
   /*

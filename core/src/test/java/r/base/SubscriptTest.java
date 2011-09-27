@@ -339,7 +339,7 @@ public class SubscriptTest extends EvalTestCase {
         .add(symbol("aardvark"), c(3))
         .build();
 
-    SEXP result = Subscript.getElementByName(list, new Symbol("all"));
+    SEXP result = Subscript.getElementByName(list, Symbol.get("all"));
     assertThat(result, equalTo((SEXP)c(1)));
   }
 

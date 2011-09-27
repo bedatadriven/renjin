@@ -34,7 +34,7 @@ import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.Null;
 import r.lang.StringVector;
-import r.lang.Symbol;
+import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
 
@@ -44,7 +44,7 @@ public class Sort {
 
   public static Vector sort(StringVector x, boolean decreasing) {
 
-    if(x.getAttribute(Symbol.NAMES)!= Null.INSTANCE) {
+    if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
       throw new EvalException("sorting of vectors with names not yet implemented!");
     }
 
@@ -61,7 +61,7 @@ public class Sort {
 
   public static Vector sort(DoubleVector x, boolean decreasing) {
 
-    if(x.getAttribute(Symbol.NAMES)!= Null.INSTANCE) {
+    if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
       throw new EvalException("sorting of vectors with names not yet implemented!");
     }
 

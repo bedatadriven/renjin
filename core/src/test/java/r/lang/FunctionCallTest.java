@@ -10,7 +10,7 @@ public class FunctionCallTest {
   
   @Test
   public void doClone() {
-    FunctionCall call = FunctionCall.newCall(new Symbol("+"), new DoubleVector(1), new DoubleVector(1));
+    FunctionCall call = FunctionCall.newCall(Symbol.get("+"), new DoubleVector(1), new DoubleVector(1));
     assertThat( call, equalTo( call.clone() ) );
     
   }

@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import r.base.BaseFrame.Entry;
+import r.base.Primitives.Entry;
 import r.jvmi.annotations.NamedFlag;
 import r.jvmi.annotations.PreserveAttributeStyle;
 import r.jvmi.binding.JvmMethod;
@@ -322,7 +322,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
           break;
         case SPECIAL:
           s.writeStatement("result.copySomeAttributesFrom(" + vectorLocal + 
-                ", Symbol.DIM, Symbol.DIMNAMES, Symbol.NAMES);");
+                ", Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES);");
           break;
         }
         if(recycled.size() > 1) {
@@ -333,8 +333,5 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     }
     
     s.writeStatement("return new EvalResult(result.build());" );
-  }
-  
-  
-  
+  } 
 }

@@ -24,7 +24,6 @@ package r.base;
 import static com.google.common.collect.Iterables.transform;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,6 +49,7 @@ import r.lang.ReservedWords;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.Symbol;
+import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
 
@@ -112,7 +112,7 @@ public class Text {
     for(int i=0;i!=formatArgs.length;++i) {
       SEXP argument = arguments.getElementAsSEXP(i);
       if(formatters[0].isFormattedString(i) && !(argument instanceof StringVector)) {
-        argument = FunctionCall.newCall(new Symbol("as.character"), argument)
+        argument = FunctionCall.newCall(Symbol.get("as.character"), argument)
            .evalToExp(context, rho); 
       }
       if(!(argument instanceof AtomicVector)) {
@@ -694,7 +694,7 @@ public class Text {
       List<String> elements) {
     StringVector.Builder result = new StringVector.Builder();
     result.addAll(elements);
-    result.copySomeAttributesFrom(x, Symbol.DIM, Symbol.NAMES);
+    result.copySomeAttributesFrom(x, Symbols.DIM, Symbols.NAMES);
     
     return result.build();
   }

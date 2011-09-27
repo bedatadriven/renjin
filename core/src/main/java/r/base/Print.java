@@ -132,7 +132,7 @@ public class Print {
       SEXP sexp = (SEXP)vector;
       List<String> elements = Lists.newArrayList(Iterables.transform(vector, printer));
       
-      SEXP dim = sexp.getAttribute(Symbol.DIM);
+      SEXP dim = sexp.getAttribute(Symbols.DIM);
       if(dim.length() == 2) {
         new MatrixPrinter(elements, align, sexp.getAttributes());
       } else {
@@ -143,9 +143,9 @@ public class Print {
 
     private void printAttributes(SEXP sexp) {
       for(PairList.Node node : sexp.getAttributes().nodes()) {
-        if(!node.getTag().equals(Symbol.NAMES) &&
-           !node.getTag().equals(Symbol.DIM) &&
-           !node.getTag().equals(Symbol.DIMNAMES)) {
+        if(!node.getTag().equals(Symbols.NAMES) &&
+           !node.getTag().equals(Symbols.DIM) &&
+           !node.getTag().equals(Symbols.DIMNAMES)) {
           out.append("attr(," + new ParseUtil.StringPrinter().apply(node.getName()) + ")\n");
           node.getValue().accept(this);
         }
@@ -168,7 +168,7 @@ public class Print {
       private VectorPrinter(List<String> elements, Alignment elementAlign, PairList attributes) {
         this.elements = elements;
         this.elementAlign = elementAlign;
-        this.names = (AtomicVector)attributes.findByTag(Symbol.NAMES);
+        this.names = (AtomicVector)attributes.findByTag(Symbols.NAMES);
         if(hasNames()) {
           elementAlign = Alignment.RIGHT;
         }
@@ -293,11 +293,11 @@ public class Print {
       private MatrixPrinter(List<String> elements, Alignment elementAlign, PairList attributes) {
         this.elements = elements;
         this.elementAlign = elementAlign;
-        Vector dim = (Vector)attributes.findByTag(Symbol.DIM);
+        Vector dim = (Vector)attributes.findByTag(Symbols.DIM);
         rows = dim.getElementAsInt(0);
         cols = dim.getElementAsInt(1);
         
-        SEXP dimnames = (Vector)attributes.findByTag(Symbol.DIMNAMES);
+        SEXP dimnames = (Vector)attributes.findByTag(Symbols.DIMNAMES);
         if(dimnames.length() == 2) {
           rowNames = dimnames.getElementAsSEXP(0);
           colNames = dimnames.getElementAsSEXP(1);

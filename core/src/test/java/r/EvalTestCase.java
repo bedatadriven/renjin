@@ -155,7 +155,7 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP symbol(String name) {
-    return new Symbol(name);
+    return Symbol.get(name);
   }
 
   protected Matcher<SEXP> closeTo(final SEXP expectedSexp, final double epsilon) {

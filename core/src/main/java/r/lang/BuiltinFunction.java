@@ -27,8 +27,15 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
   public static final String TYPE_NAME = "builtin";
   public static final String IMPLICIT_CLASS = "function";
   
+  private final String name;
+  
   public BuiltinFunction(String name) {
-    super(name);
+    this.name = name;
+  }
+  
+  @Override
+  public String getName() {
+    return name;
   }
   
   @Override

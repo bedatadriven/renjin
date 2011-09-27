@@ -249,7 +249,7 @@ public class Summary {
       throw new UnsupportedOperationException("Kendall method is not implemented yet");
     }
     
-    if(x.getAttribute(Symbol.DIM).asReal() > 1 && y.getAttribute(Symbol.DIM).asReal()>1){
+    if(x.getAttribute(Symbols.DIM).asReal() > 1 && y.getAttribute(Symbols.DIM).asReal()>1){
       throw new UnsupportedOperationException("Covariance with matrices is not implemented yet");
     }
        

@@ -63,7 +63,7 @@ public class Evaluation {
    */
   public static EvalResult assign(@Current Context context, String name, SEXP value, Environment environ, boolean inherits) {
 
-    Symbol symbol = new Symbol(name);
+    Symbol symbol = Symbol.get(name);
     if(!inherits) {
       environ.setVariable(symbol, value);
     } else {
@@ -80,7 +80,7 @@ public class Evaluation {
   }
 
   public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
-    assignEnv.setVariable( new Symbol(x), new Promise(context, evalEnv, expr));
+    assignEnv.setVariable(Symbol.get(x), new Promise(context, evalEnv, expr));
   }
 
 
@@ -109,9 +109,9 @@ public class Evaluation {
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
-      FunctionCall getElementCall = FunctionCall.newCall(new Symbol("[["), (SEXP)vector, new IntVector(i+1));
+      FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), (SEXP)vector, new IntVector(i+1));
       FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall,
-          new PairList.Node(Symbol.ELLIPSES, Null.INSTANCE)));
+          new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
       builder.add( applyFunctionCall.evalToExp(context, rho) );
     }
     return builder.build();
@@ -140,7 +140,7 @@ public class Evaluation {
 
   @Primitive("do.call")
   public static EvalResult doCall(@Current Context context, @Current Environment rho, String what, ListVector arguments, Environment environment) {
-    SEXP function = environment.findVariable(new Symbol(what));
+    SEXP function = environment.findVariable(Symbol.get(what));
     if(function instanceof Promise) {
       function = ((Promise) function).force().getExpression();
     }
@@ -157,7 +157,7 @@ public class Evaluation {
       throw new EvalException("first argument must be character string");
     }
 
-    FunctionCall newCall = new FunctionCall(new Symbol(((StringVector) name).getElementAsString(0)),
+    FunctionCall newCall = new FunctionCall(Symbol.get(((StringVector) name).getElementAsString(0)),
         ((PairList.Node)call.getArguments()).getNextNode());
     return newCall.evaluate(context, rho);
   }
@@ -183,7 +183,7 @@ public class Evaluation {
       if(environment instanceof ListVector) {
         for(NamedValue namedValue : ((ListVector) environment).namedValues()) {
           if(!StringVector.isNA(namedValue.getName())) {
-            rho.setVariable(new Symbol(namedValue.getName()), namedValue.getValue());
+            rho.setVariable(Symbol.get(namedValue.getName()), namedValue.getValue());
           }
         }
       } else {
@@ -572,14 +572,14 @@ public class Evaluation {
     for (i = j ; i < klass.length(); i++) {
       String sk = ((StringVector)klass).getElementAsString(0);
       buf = sg + "." + sk;
-      nextfun = Calls.lookupMethod(new Symbol(buf), env, (Environment)callenv, (Environment)defenv);
+      nextfun = Calls.lookupMethod(Symbol.get(buf), env, (Environment)callenv, (Environment)defenv);
       if (nextfun instanceof Function) {
         break;
       }
       if (groupExp != Symbol.UNBOUND_VALUE) {
         /* if not Generic.foo, look for Group.foo */
         buf = sb + "." + sk;
-        nextfun = Calls.lookupMethod(new Symbol(buf), env, (Environment)callenv, (Environment)defenv);
+        nextfun = Calls.lookupMethod(Symbol.get(buf), env, (Environment)callenv, (Environment)defenv);
         if(nextfun instanceof Function) {
           break;
         }
@@ -590,13 +590,13 @@ public class Evaluation {
     }
     if (!(nextfun instanceof Function)) {
       buf = sg + ".default";
-      nextfun = Calls.lookupMethod(new Symbol(buf), env, (Environment)callenv, (Environment)defenv);
+      nextfun = Calls.lookupMethod(Symbol.get(buf), env, (Environment)callenv, (Environment)defenv);
       /* If there is no default method, try the generic itself,
         provided it is primitive or a wrapper for a .Internal
         function of the same name.
       */
       if (!(nextfun instanceof Function)) {
-        Symbol t = new Symbol(sg);
+        Symbol t = Symbol.get(sg);
         nextfun = env.findVariable(t);
         if ( nextfun instanceof Promise) {
           nextfun = nextfun.evalToExp(context, env);
@@ -605,8 +605,9 @@ public class Evaluation {
           throw new EvalException("no method to invoke");
         }
         if (nextfun instanceof Closure) {
-          if (env.getBaseEnvironment().findInternal(t) != Symbol.UNBOUND_VALUE)
-            nextfun = env.getBaseEnvironment().findInternal(t);
+          PrimitiveFunction internal = Primitives.getInternal(t);
+          if (internal != null)
+            nextfun = internal;
           else {
             throw new EvalException("no method to invoke");
           }
@@ -622,7 +623,7 @@ public class Evaluation {
 
    // PROTECT(m = allocSExp(ENVSXP));
     Frame m = new HashFrame();
-    m.setVariable(new Symbol(".Class"), newklass.build());
+    m.setVariable(Symbol.get(".Class"), newklass.build());
 
 
     /* It is possible that if a method was called directly that
@@ -636,15 +637,15 @@ public class Evaluation {
 //          SET_STRING_ELT(method, j,  mkChar(buf));
 //      }
 //    } else {
-    method = new Symbol(buf);
+    method = Symbol.get(buf);
 //    }
-    m.setVariable(new Symbol(".Method"), method);
+    m.setVariable(Symbol.get(".Method"), method);
 //    defineVar(install(".GenericCallEnv"), callenv, m);
 //    defineVar(install(".GenericDefEnv"), defenv, m);
 
 
-    m.setVariable(new Symbol(".Generic"), generic);
-    m.setVariable(new Symbol(".Group"), groupExp);
+    m.setVariable(Symbol.get(".Generic"), generic);
+    m.setVariable(Symbol.get(".Group"), groupExp);
 
     FunctionCall newcall = new FunctionCall(method, actuals);
 
@@ -681,15 +682,15 @@ public class Evaluation {
 
   private static void DispatchGeneric(Context context, Environment rho, FunctionCall call, String genericName, SEXP object, StringVector classes) {
     for(String className : Iterables.concat(classes, Arrays.asList("default"))) {
-      Symbol method = new Symbol(genericName + "." + className);
+      Symbol method = Symbol.get(genericName + "." + className);
       SEXP function = rho.findVariable(method);
       if(function != Symbol.UNBOUND_VALUE) {
         function = function.evalToExp(context, rho);
 
         Frame extra = new HashFrame();
-        extra.setVariable(new Symbol(".Class"), Calls.computeDataClasses(object));
-        extra.setVariable(new Symbol(".Method"), method);
-        extra.setVariable(new Symbol(".Generic"), new StringVector(genericName));
+        extra.setVariable(Symbol.get(".Class"), Calls.computeDataClasses(object));
+        extra.setVariable(Symbol.get(".Method"), method);
+        extra.setVariable(Symbol.get(".Generic"), new StringVector(genericName));
 
         PairList repromisedArgs = Calls.promiseArgs(context.getArguments(), context, rho);
         FunctionCall newCall = new FunctionCall(method,repromisedArgs);

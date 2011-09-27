@@ -58,7 +58,7 @@ public class AssignLeftFunction extends SpecialFunction {
     while(lhs instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) lhs;
       Symbol getter = (Symbol) call.getFunction();
-      Symbol setter = new Symbol(getter.getPrintName() + "<-");
+      Symbol setter = Symbol.get(getter.getPrintName() + "<-");
 
       rhs = new FunctionCall(setter,
           PairList.Node.newBuilder()
@@ -73,7 +73,7 @@ public class AssignLeftFunction extends SpecialFunction {
     if( lhs instanceof Symbol) {
       target = (Symbol) lhs;
     } else if(lhs instanceof StringVector) {
-      target = new Symbol(((StringVector) lhs).getElement(0));
+      target = Symbol.get(((StringVector) lhs).getElement(0));
     } else {
       throw new EvalException("cannot assign to value of type " + lhs.getTypeName());
     }

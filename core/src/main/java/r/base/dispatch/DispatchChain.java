@@ -25,10 +25,10 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 
 public class DispatchChain {
-  public static final Symbol GENERIC = new Symbol(".Generic");
-  public static final Symbol METHOD = new Symbol(".Method");
-  public static final Symbol CLASS = new Symbol(".Class");
-  public static final Symbol GROUP = new Symbol(".Group");
+  public static final Symbol GENERIC = Symbol.get(".Generic");
+  public static final Symbol METHOD = Symbol.get(".Method");
+  public static final Symbol CLASS = Symbol.get(".Class");
+  public static final Symbol GROUP = Symbol.get(".Group");
 
   private String generic;
   private String group;
@@ -43,7 +43,7 @@ public class DispatchChain {
 
   public static DispatchChain newChain(Environment callingEnvironment, String generic, Vector classes) {
     for(int i = 0; i!=classes.length();++i) {
-      Symbol method = new Symbol(generic + "." + classes.getElementAsString(i));
+      Symbol method = Symbol.get(generic + "." + classes.getElementAsString(i));
       SEXP function = callingEnvironment.findVariable(method, CollectionUtils.IS_FUNCTION, true);
       if(function != Symbol.UNBOUND_VALUE) {
         DispatchChain chain = new DispatchChain();
@@ -111,7 +111,7 @@ public class DispatchChain {
       for(int i=1; i!=previous.length();++i) {
         newClass.add(previous.getElementAsString(i));
       }
-      newClass.setAttribute(new Symbol("previous"), previous);
+      newClass.setAttribute(Symbol.get("previous"), previous);
       this.classes = newClass.build();
 
     }
@@ -119,10 +119,10 @@ public class DispatchChain {
   }
 
   public Symbol getGenericSymbol() {
-    return new Symbol(generic);
+    return Symbol.get(generic);
   }
 
   public Symbol getMethodSymbol() {
-    return new Symbol(method);
+    return Symbol.get(method);
   }
 }

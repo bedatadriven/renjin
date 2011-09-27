@@ -9,7 +9,7 @@ import r.lang.DoubleVector;
 import r.lang.Indexes;
 import r.lang.IntVector;
 import r.lang.Null;
-import r.lang.Symbol;
+import r.lang.Symbols;
 import r.lang.Vector;
 
 /**
@@ -51,7 +51,7 @@ public class CommonsMath {
     int ncols = matrix.getColumnDimension();
     
     DoubleVector.Builder vector = new DoubleVector.Builder(nrows * ncols);
-    vector.setAttribute(Symbol.DIM, new IntVector(nrows, ncols));
+    vector.setAttribute(Symbols.DIM, new IntVector(nrows, ncols));
     
     int vector_i = 0;
     for(int i=0;i!=ncols;++i) {
@@ -71,7 +71,7 @@ public class CommonsMath {
     public MatrixAdapter(Vector vector) {
       this.vector = vector;
       
-      Vector dim = (Vector) vector.getAttribute(Symbol.DIM);
+      Vector dim = (Vector) vector.getAttribute(Symbols.DIM);
       if(dim == Null.INSTANCE) {
         throw new IllegalArgumentException("the vector has no 'dim' attribute");
       }

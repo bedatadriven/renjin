@@ -42,7 +42,7 @@ public class IRFactory {
 
   public IRFactory() {
     reserved = Maps.newHashMap();
-    reserved.put(new Symbol("if"), new IfStatement());
+    reserved.put(Symbol.get("if"), new IfStatement());
   }
 
   public StmList build(SEXP exp) {

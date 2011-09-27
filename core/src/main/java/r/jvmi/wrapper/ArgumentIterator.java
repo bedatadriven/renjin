@@ -6,7 +6,7 @@ import r.lang.Environment;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
-import r.lang.Symbol;
+import r.lang.Symbols;
 
 /**
  * Iterates over an argument list, nesting into ... as necessary.
@@ -53,7 +53,7 @@ public class ArgumentIterator {
   
     SEXP arg = node.getValue();
     
-    if(Symbol.ELLIPSES.equals(arg)) {
+    if(Symbols.ELLIPSES.equals(arg)) {
       DotExp dotdot = (DotExp) arg.evalToExp(context, rho);
       elipses = dotdot.getPromises();
       return next();
@@ -81,7 +81,7 @@ public class ArgumentIterator {
   
     SEXP arg = node.getValue();
     
-    if(Symbol.ELLIPSES.equals(arg)) {
+    if(Symbols.ELLIPSES.equals(arg)) {
       DotExp dotdot = (DotExp) arg.evalToExp(context, rho);
       elipses = dotdot.getPromises();
       return nextNode();
@@ -99,7 +99,7 @@ public class ArgumentIterator {
     
     if(args != Null.INSTANCE) {
       SEXP arg = ((PairList.Node)args).getValue();
-      if(Symbol.ELLIPSES.equals(arg)) {
+      if(Symbols.ELLIPSES.equals(arg)) {
         DotExp dotdot = (DotExp) arg.evalToExp(context, rho);
         elipses = dotdot.getPromises();
         args = ((PairList.Node)args).getNext();

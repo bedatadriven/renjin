@@ -22,48 +22,192 @@
 package r.lang;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+
 import r.lang.exception.EvalException;
 
-public class Symbol extends AbstractSEXP {
+import java.util.HashMap;
 
-  public static final String  TYPE_NAME = "symbol";
+public final class Symbol extends AbstractSEXP {
+
+  public static final String TYPE_NAME = "symbol";
   public static final String IMPLICIT_CLASS = "name";
 
-  public static final Symbol UNBOUND_VALUE = createSpecial();
-  public static final Symbol MISSING_ARG = createSpecial();
-  public static final Symbol NAMES = new Symbol("names");
-  public static final Symbol DIM = new Symbol("dim");
-  public static final Symbol CLASS = new Symbol("class");
-  public static final Symbol LEVELS = new Symbol("levels");
-  public static final Symbol STDOUT = new Symbol("stdout");
-  public static final Symbol ELLIPSES = new Symbol("...");
-  public static final Symbol SRC_REF = new Symbol("srcref");
-  public static final Symbol SRC_FILE = new Symbol("srcfile");
-  public static final Symbol TEMP_VAL = new Symbol("*tmp*");
-  public static final Symbol DIMNAMES = new Symbol("dimnames");
-  public static final Symbol NAME = new Symbol("name");
-  public static final Symbol DOT_ENVIRONMENT = new Symbol(".Environment");
+  /**
+   * The global symbol table. We store symbols here so that
+   * we can compare symbols using reference equality (==) rather than
+   * the equals() method.
+   */
+  private static final HashMap<String, Symbol> TABLE;
+
+  public static final Symbol UNBOUND_VALUE = new Symbol();
+  
+  public static final Symbol MISSING_ARG = new Symbol();
+ 
+  /**
+   * The symbol's name 
+   */
+  private final String printName;
   
   /**
-   * Identifies the {@code row.names} attribute, which contains an {@code AtomicVector} with the
-   * names of the rows of a {@code data.frame} object. Note: This attribute is different than the 
-   * names of matrix rows: those are stored as an element in the {@code dimnames} attribute.
+   * A hash of this symbol's name.
    */
-  public static final Symbol ROW_NAMES =  new Symbol("row.names");
-  public static final Symbol TEMP = new Symbol("*tmp*");
-  public static final Symbol AS_CHARACTER = new Symbol("as.character");
-
-  private String printName;
-
-  private Symbol() {
+  private final int hashBit;
+  
+  /**
+   * Hash bit for very frequently used and very rarely redefined 
+   * primitives. 
+   */
+  private static final int NUM_RESERVED_BITS = 3;
+  
+  static { 
+    TABLE = Maps.newHashMap();
+    addReserved(0x1, 
+        "if", 
+        ".Internal", 
+        "function",
+        "while",
+        "for",
+        "break",
+        "continue",
+        "return",
+        "next",
+        "paste",
+        "identical",
+        "list",
+        "c",
+        "{", "(", 
+        "!",
+        ":",
+        "=", "!=", "==",
+        ">", "<", ">=", "<=", "&", "|", "&&", "||",
+        "+", "-", "*", "/", "^",
+        "<-",
+        "[", "[<-", "[[", "[[<-", "$", "$<-",
+        "%*%", "%/%", "%%", "%in%",
+        "as.character",
+        "is.character",
+        "as.integer",
+        "is.integer",
+        "is.na",
+        "dim",
+        "is.null",
+        "is.expression",
+        "is.call",
+        "is.na",
+        "is.numeric",
+        "is.logical",
+        "as.vector",
+        "is.factor",
+        "is.matrix",
+        "is.pairlist",
+        "is.object",
+        "is.function",
+        "is.vector",
+        "is.complex",
+        "is.double",
+        "is.list",
+        "switch",
+        "typeof",
+        "seq_along",
+        "lapply",
+        "sapply",
+        "Encoding<-",
+        "class<-",
+        "names<-",
+        ".subset",
+        ".subset2",
+        "UseMethod",
+        "NextMethod",
+        "sys.call"); 
+    addReserved(2, 
+        "length",
+        "mode",
+        "length",
+        "any",
+        "attributes",
+        "matrix",
+        "missing",
+        "names",
+        "inherits",
+        "repeat",
+        "attr",
+        "match",
+        "which");
+    addReserved(3, 
+        "factor",
+        "vector",
+        "integer",
+        "assign",
+        "exists",
+        "mean",
+        "abs",
+        "sum",
+        "all",
+        "any",
+        "oldClass",
+        "data.class",
+        "attr.all.equal",
+        "nargs",
+        "unique",
+        "formals");
   }
-
-  public Symbol(String printName) {
+  
+  private static void addReserved(int hashBit, String... names) {
+    for(String name : names) {
+      TABLE.put(name, new Symbol(name, 1<<hashBit));
+    }
+  }
+  
+  /**
+   * Obtains a reference to a Symbol from the global Symbol table.
+   * 
+   * @param printName the symbol's name
+   * @return a global environment
+   */
+  public static Symbol get(String printName) {
     Preconditions.checkNotNull(printName);
 
-    this.printName = printName;
+    synchronized (TABLE) {
+      Symbol symbol = TABLE.get(printName);
+      if(symbol == null) {
+        symbol = new Symbol(printName, calcHashBit(printName));
+        TABLE.put(printName, symbol);
+      }
+      return symbol;
+    }
   }
 
+  private Symbol() {
+    this.printName = null;
+    this.hashBit = NUM_RESERVED_BITS;
+  }
+  
+  private Symbol(String printName, int hashBits) {
+    this.printName = printName;
+    this.hashBit = hashBits;
+  }
+  
+  private static int calcHashBit(String printName) {
+    int firstChar = printName.codePointAt(0);   
+  
+    // hash by the first char 
+    if(firstChar >= 'a' && firstChar <= 'z') {
+      return 1 << ((firstChar-'a')+NUM_RESERVED_BITS+1);
+    } else {
+      return 1 << (NUM_RESERVED_BITS);
+    }
+  }
+
+  /**
+   * Maps this symbol to a single bit in 32-bit hash bitset.
+   * 
+   * @return
+   */
+  public int hashBit() {
+    return hashBit;
+  }
+  
   @Override
   public String getTypeName() {
     return TYPE_NAME;
@@ -76,21 +220,6 @@ public class Symbol extends AbstractSEXP {
 
   public String getPrintName() {
     return printName;
-  }
-
-  private static Symbol createSpecial() {
-    /* R_UnboundValue */
-    return new Symbol() {
-      @Override
-      public int hashCode() {
-        return 0;
-      }
-
-      @Override
-      public boolean equals(Object o) {
-        return this == o;
-      }
-    };
   }
 
   @Override
@@ -112,23 +241,6 @@ public class Symbol extends AbstractSEXP {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    Symbol symbolExp = (Symbol) o;
-
-    if (!printName.equals(symbolExp.printName)) return false;
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    return printName.hashCode();
   }
 
   @Override

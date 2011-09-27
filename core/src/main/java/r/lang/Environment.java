@@ -23,9 +23,7 @@ package r.lang;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import r.base.BaseFrame;
@@ -82,6 +80,9 @@ public class Environment extends AbstractSEXP implements Recursive {
    * The root of the environment hierarchy.
    */
   public static final EmptyEnv EMPTY = new EmptyEnv();
+  
+  
+  private int functionBloomFilter;
 
 
   /**
@@ -184,7 +185,7 @@ public class Environment extends AbstractSEXP implements Recursive {
 
 
   public String getName() {
-    SEXP nameAttribute = this.attributes.findByTag(Symbol.NAME);
+    SEXP nameAttribute = this.attributes.findByTag(Symbols.NAME);
     if(nameAttribute instanceof StringVector) {
       return ((StringVector) nameAttribute).getElementAsString(0);
     } else if(name == null) {
@@ -260,17 +261,19 @@ public class Environment extends AbstractSEXP implements Recursive {
   public SEXP findVariable(Symbol symbol) {
     SEXP value = frame.getVariable(symbol);
     if(value != Symbol.UNBOUND_VALUE) {
-        return value;
-    }
-    return parent.findVariable(symbol);
-  }
-
-  public SEXP findInternal(Symbol symbol) {
-    SEXP value = frame.getInternal(symbol);
-    if(value != Symbol.UNBOUND_VALUE) {
+    //  System.out.println("%%%HIT " + symbol.getPrintName());  
       return value;
     }
-    return parent.findInternal(symbol);
+  //  System.out.println("%%%MISS " + symbol.getPrintName());
+    return parent.findVariable(symbol);
+  }
+  
+  public Function findFunction(Symbol symbol) {
+    Function value = frame.getFunction(symbol);
+    if(value != null) {
+      return value;
+    }
+    return parent.findFunction(symbol);   
   }
 
   /**
@@ -341,7 +344,7 @@ public class Environment extends AbstractSEXP implements Recursive {
   }
 
   public SEXP getVariable(String symbolName) {
-    return getVariable(new Symbol(symbolName));
+    return getVariable(Symbol.get(symbolName));
   }
 
   public boolean hasVariable(Symbol symbol) {
@@ -411,13 +414,13 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
 
     @Override
-    public SEXP findInternal(Symbol symbol) {
-      return Symbol.UNBOUND_VALUE;
-    }
-    
-    @Override
     public int getCumulativeModCount() {
       return 0;
+    }
+
+    @Override
+    public Function findFunction(Symbol symbol) {
+      return null;
     }
 
     @Override

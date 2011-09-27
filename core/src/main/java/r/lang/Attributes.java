@@ -50,13 +50,13 @@ public class Attributes {
    * @throws EvalException if the attribute is special, and does not meet exceptions
    */
   public static SEXP validateAttribute(SEXP expression, Symbol name, SEXP attributeValue) {
-    if(name.equals(Symbol.CLASS)) {
+    if(name.equals(Symbols.CLASS)) {
       return Attributes.validateClassAttributes(attributeValue);
        
-    } else if(name.equals(Symbol.NAMES)) {
+    } else if(name.equals(Symbols.NAMES)) {
       return Attributes.validateNamesAttributes(expression, attributeValue);
   
-    } else if(name.equals(Symbol.ROW_NAMES)) {
+    } else if(name.equals(Symbols.ROW_NAMES)) {
       return Attributes.validateRowNames(attributeValue);
     
     } else {
@@ -201,7 +201,7 @@ public class Attributes {
   }
   
   public static SEXP postProcessAttributeValue(PairList.Node node) {
-    if(node.getTag().equals(Symbol.ROW_NAMES)) {
+    if(node.getTag().equals(Symbols.ROW_NAMES)) {
       return postProcessRowNames((Vector)node.getValue());
     }
     return node.getValue();

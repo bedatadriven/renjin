@@ -221,7 +221,7 @@ public class Combine {
 
     public Vector combine() {
       if(haveNames) {
-        vector.setAttribute(Symbol.NAMES, names.build());
+        vector.setAttribute(Symbols.NAMES, names.build());
       }
       return vector.build();
     }
@@ -251,7 +251,7 @@ public class Combine {
   public static SEXP aperm(Vector source, AtomicVector permutationVector, boolean resize) {
     if(!resize) throw new UnsupportedOperationException("resize=TRUE not yet implemented");
 
-    SEXP dimExp = source.getAttribute(Symbol.DIM);
+    SEXP dimExp = source.getAttribute(Symbols.DIM);
     EvalException.check(dimExp instanceof IntVector, "invalid first argument, must be an array");
     int dim[] = toIntArray((IntVector) dimExp);
 
@@ -267,12 +267,12 @@ public class Combine {
       newVector.setFrom(newIndex, source, i);
     }
 
-    newVector.setAttribute(Symbol.DIM, new IntVector(permutedDims));
+    newVector.setAttribute(Symbols.DIM, new IntVector(permutedDims));
 
     for(PairList.Node node : source.getAttributes().nodes()) {
-      if(node.getTag().equals(Symbol.DIM)) {
+      if(node.getTag().equals(Symbols.DIM)) {
 
-      } else if(node.getTag().equals(Symbol.DIMNAMES)) {
+      } else if(node.getTag().equals(Symbols.DIMNAMES)) {
         newVector.setAttribute(node.getName(), permute((Vector)node.getValue(), permutation));
       } else {
         newVector.setAttribute(node.getName(), node.getValue());
@@ -519,7 +519,7 @@ public class Combine {
     private final boolean matrix;
 
     public BindArgument(Vector vector, boolean defaultToRows) {
-      SEXP dim = vector.getAttribute(Symbol.DIM);
+      SEXP dim = vector.getAttribute(Symbols.DIM);
       this.vector = vector;
       if(dim == Null.INSTANCE || dim.length() != 2) {
         if(defaultToRows) {
@@ -566,12 +566,12 @@ public class Combine {
 
     public void setDimNames(AtomicVector rowNames, AtomicVector colNames) {
       if(rowNames.length() != 0 || colNames.length() != 0) {
-        builder.setAttribute(Symbol.DIMNAMES, new ListVector(rowNames, colNames));
+        builder.setAttribute(Symbols.DIMNAMES, new ListVector(rowNames, colNames));
       }
     }
 
     public Vector build() {
-      return builder.setAttribute(Symbol.DIM, new IntVector(rows,cols))
+      return builder.setAttribute(Symbols.DIM, new IntVector(rows,cols))
           .build();
     }
   }
@@ -607,7 +607,7 @@ public class Combine {
                 }
             }
         }
-        result.setAttribute(Symbol.DIM, new IntVector(nrow, ncol));
+        result.setAttribute(Symbols.DIM, new IntVector(nrow, ncol));
         return result.build();
     }
 

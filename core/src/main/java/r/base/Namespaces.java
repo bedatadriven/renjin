@@ -28,7 +28,7 @@ import r.lang.exception.EvalException;
 public class Namespaces {
 
   public static SEXP getRegisteredNamespace(@Current Context context, String name) {
-    return getRegisteredNamespace(context, new Symbol(name));
+    return getRegisteredNamespace(context, Symbol.get(name));
   }
 
   public static SEXP getRegisteredNamespace(@Current Context context, Symbol name) {
@@ -37,7 +37,7 @@ public class Namespaces {
 
   public static void registerNamespace(@Current Context context, String name, Environment env) {
     Frame registry = context.getGlobals().namespaceRegistry;
-    Symbol symbol = new Symbol(name);
+    Symbol symbol = Symbol.get(name);
     if(registry.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
       throw new EvalException("name space already registered");
     }
@@ -49,9 +49,9 @@ public class Namespaces {
       return true;
     } else if(envExp instanceof Environment) {
       Environment env = (Environment)envExp;
-      SEXP info = env.getVariable(new Symbol(".__NAMESPACE__."));
+      SEXP info = env.getVariable(Symbol.get(".__NAMESPACE__."));
       if(info instanceof Environment) {
-        SEXP spec = ((Environment)info).getVariable(new Symbol("spec"));
+        SEXP spec = ((Environment)info).getVariable(Symbol.get("spec"));
         if(spec instanceof StringVector && spec.length() > 0) {
           return true;
         } else {
@@ -76,8 +76,8 @@ public class Namespaces {
       if(impnames.isElementNA(i) || expnames.isElementNA(i)) {
         throw new EvalException("Import/export name cannot be NA");
       }
-      Symbol impsym = new Symbol(impnames.getElementAsString(i));
-      Symbol expsym = new Symbol(expnames.getElementAsString(i));
+      Symbol impsym = Symbol.get(impnames.getElementAsString(i));
+      Symbol expsym = Symbol.get(expnames.getElementAsString(i));
 
       SEXP value = expenv.findVariable(impsym);
       impenv.setVariable(expsym, value);

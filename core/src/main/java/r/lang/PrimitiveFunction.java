@@ -24,16 +24,9 @@ package r.lang;
 
 public abstract class PrimitiveFunction extends AbstractSEXP implements Function {
 
-  private String name;
+  public abstract String getName();
   
-  public PrimitiveFunction(String name) {
-    this.name = name;
-  }
   
-  public final String getName() {
-    return name;
-  }
-
   @Override
   public String getImplicitClass() {
     return Function.IMPLICIT_CLASS;

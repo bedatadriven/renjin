@@ -173,8 +173,8 @@ public class Context {
       baseEnvironment = globalEnvironment.getBaseEnvironment();
       namespaceRegistry = new HashFrame();
       baseNamespaceEnv = Environment.createNamespaceEnvironment(globalEnvironment, "base");
-      namespaceRegistry.setVariable(new Symbol("base"), baseNamespaceEnv);
-      globalEnvironment.setVariable(new Symbol(".BaseNamespaceEnv"), baseNamespaceEnv);
+      namespaceRegistry.setVariable(Symbol.get("base"), baseNamespaceEnv);
+      globalEnvironment.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     }
 
     /**
@@ -196,8 +196,8 @@ public class Context {
       this.baseEnvironment = toShare.baseEnvironment;
       this.namespaceRegistry = toShare.namespaceRegistry;
       this.baseNamespaceEnv = toShare.baseNamespaceEnv;
-      namespaceRegistry.setVariable(new Symbol("base"), baseNamespaceEnv);
-      globalEnvironment.setVariable(new Symbol(".BaseNamespaceEnv"), baseNamespaceEnv);
+      namespaceRegistry.setVariable(Symbol.get("base"), baseNamespaceEnv);
+      globalEnvironment.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
       workingDirectory = toShare.workingDirectory;
       options = toShare.options.clone();
     }
@@ -451,7 +451,7 @@ public class Context {
     executeStartupProfile();
 
     // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
-    FunctionCall.newCall(new Symbol(".First.sys")).evaluate(this, environment);
+    FunctionCall.newCall(Symbol.get(".First.sys")).evaluate(this, environment);
   }
 
   public void loadBasePackage() throws IOException {

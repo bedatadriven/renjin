@@ -21,6 +21,7 @@
 
 package r.base.special;
 
+import r.base.Primitives;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -39,7 +40,7 @@ public class InternalFunction extends SpecialFunction {
     }
     FunctionCall internalCall = (FunctionCall) arg;
     Symbol internalName = (Symbol)internalCall.getFunction();
-    SEXP function = rho.findInternal(internalName);
+    SEXP function = Primitives.getInternal(internalName);
 
     if(function == Null.INSTANCE) {
       throw new EvalException(String.format("no internal function \"%s\"", internalName.getPrintName()));

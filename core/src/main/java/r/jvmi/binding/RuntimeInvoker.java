@@ -27,7 +27,6 @@ import com.google.common.collect.Lists;
 import r.base.Calls;
 import r.base.ClosureDispatcher;
 import r.base.dispatch.DispatchChain;
-import r.jvmi.binding.JvmMethod.Argument;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -101,7 +100,7 @@ public class RuntimeInvoker {
     // make a list of the provided arguments
     List<ProvidedArgument> provided = Lists.newArrayList();
     for(PairList.Node arg : call.getArguments().nodes()) {
-      if(Symbol.ELLIPSES.equals(arg.getValue())) {
+      if(Symbols.ELLIPSES.equals(arg.getValue())) {
         // the values of the '...' are just merged into the argument list
         DotExp ellipses = (DotExp) arg.getValue().evalToExp(context, rho);
         for(PairList.Node dotArg : ellipses.getPromises().nodes()) {
@@ -155,7 +154,7 @@ public class RuntimeInvoker {
       throw new EvalException("hmm generic primitive with zero args: " + overloads.toString());
     }
 
-    Vector classes = (Vector)provided.get(0).evaluated().getAttribute(Symbol.CLASS);
+    Vector classes = (Vector)provided.get(0).evaluated().getAttribute(Symbols.CLASS);
     if(classes.length() == 0) {
       return null;
     }
@@ -238,9 +237,9 @@ public class RuntimeInvoker {
       // for unary and binary primitives with recycling, we copy some attributes from the longest element
       if(method.getFormals().size() <= 2)  {
         SEXP attributeSource = longestRecycledElement(method, providedArgs);
-        result.copyAttribute(attributeSource, Symbol.DIM);
-        result.copyAttribute(attributeSource, Symbol.DIMNAMES);
-        result.copyAttribute(attributeSource, Symbol.NAMES);
+        result.copyAttribute(attributeSource, Symbols.DIM);
+        result.copyAttribute(attributeSource, Symbols.DIMNAMES);
+        result.copyAttribute(attributeSource, Symbols.NAMES);
       }
 
       return new EvalResult( result.build() );
@@ -534,7 +533,7 @@ public class RuntimeInvoker {
 
     @Override
     public Symbol convert(StringVector source, JvmMethod.Argument formal) {
-      return new Symbol(source.getElement(0));
+      return Symbol.get(source.getElement(0));
     }
   }
 
@@ -657,7 +656,7 @@ public class RuntimeInvoker {
     }
 
     public void copyAttribute(SEXP attributeSource, String name) {
-      builder.setAttribute(name, attributeSource.getAttribute(new Symbol(name)));
+      builder.setAttribute(name, attributeSource.getAttribute(Symbol.get(name)));
     }
     
     public void copyAttribute(SEXP attributeSource, Symbol name) {

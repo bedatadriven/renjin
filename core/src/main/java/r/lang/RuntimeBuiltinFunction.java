@@ -2,7 +2,7 @@ package r.lang;
 
 import java.util.List;
 
-import r.base.BaseFrame;
+import r.base.Primitives;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.binding.RuntimeInvoker;
 import r.lang.exception.EvalException;
@@ -14,7 +14,7 @@ public class RuntimeBuiltinFunction extends BuiltinFunction {
   private Class methodClass;
   private String methodName;
 
-  public RuntimeBuiltinFunction(BaseFrame.Entry functionEntry) {
+  public RuntimeBuiltinFunction(Primitives.Entry functionEntry) {
     super(functionEntry.name);
     name = functionEntry.name;
     methodClass = functionEntry.functionClass;

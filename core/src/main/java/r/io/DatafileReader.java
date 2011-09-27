@@ -325,7 +325,7 @@ public class DatafileReader {
 
   private SEXP readSymbol() throws IOException {
     CHARSEXP printName = (CHARSEXP) readExp();
-    return addReadRef( new Symbol( printName.getValue()) );
+    return addReadRef(Symbol.get(printName.getValue()));
   }
 
   private SEXP addReadRef(SEXP value) {
@@ -335,7 +335,7 @@ public class DatafileReader {
 
   private SEXP readNamespace() throws IOException {
     StringVector name = readStringVector();
-    return addReadRef( context.findNamespace(new Symbol(name.getElementAsString(0))) );
+    return addReadRef( context.findNamespace(Symbol.get(name.getElementAsString(0))) );
   }
 
   private SEXP readEnv() throws IOException {

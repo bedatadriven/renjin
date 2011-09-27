@@ -90,7 +90,7 @@ public class Interpreter implements Runnable {
         EvalResult result = exp.evaluate(topLevelContext, global);
 
         if(result.isVisible()) {
-          FunctionCall.newCall(new Symbol("print"), result.getExpression())
+          FunctionCall.newCall(Symbol.get("print"), result.getExpression())
             .evaluate(topLevelContext, topLevelContext.getEnvironment());
         }
 

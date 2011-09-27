@@ -34,8 +34,6 @@ public class FunctionCall extends PairList.Node {
   public static final String TYPE_NAME = "language";
   public static final String IMPLICIT_CLASS = "call";
   
-  public static boolean DEBUG = false;
-
   public FunctionCall(SEXP function, PairList arguments) {
     super(function, arguments);
   }
@@ -51,29 +49,19 @@ public class FunctionCall extends PairList.Node {
 
   @Override
   public EvalResult evaluate(Context context, Environment rho) {
-    //System.out.println(this);
     Function functionExpr = evaluateFunction(context, rho);
-    EvalResult result = functionExpr.apply(context, rho, this, getArguments());
-    
-    if(DEBUG) {
-      System.out.println(this + " => " + toString(result.getExpression()));
-    }
-    
-    return result;
-  }
-
-  private String toString(SEXP expression) {
-    if(expression.length() <= 5) {
-      return expression.toString();
-    } else {
-      return expression.getTypeName() + "(" + expression.length() + ")";
-    }
+    return  functionExpr.apply(context, rho, this, getArguments());
   }
 
   private Function evaluateFunction(Context context, Environment rho) {
     SEXP functionExp = getFunction();
     if(functionExp instanceof Symbol) {
-      return findFunction(rho, (Symbol) functionExp);
+      Symbol symbol = (Symbol) functionExp;
+      Function fn = rho.findFunction(symbol);
+      if(fn == null) {
+        throw new EvalException("could not find function '%s'", symbol.getPrintName());      
+      }
+      return fn;
     } else {
       SEXP evaluated = functionExp.evalToExp(context, rho);
       if(evaluated instanceof Promise) {
@@ -84,20 +72,6 @@ public class FunctionCall extends PairList.Node {
       }
       return (Function)evaluated;
     }
-  }
-
-  private Function findFunction(Environment rho, Symbol symbol) {
-    while(rho != Environment.EMPTY) {
-      SEXP value = rho.getVariable(symbol);
-      if(value instanceof Promise) {
-        value = ((Promise) value).force().getExpression();
-      }
-      if(value instanceof Function) {
-        return (Function) value;
-      }
-      rho = rho.getParent();
-    }
-    throw new EvalException("could not find function '%s'", symbol.getPrintName());
   }
 
   public static SEXP fromListExp(PairList.Node listExp) {

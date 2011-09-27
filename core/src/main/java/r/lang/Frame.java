@@ -21,40 +21,48 @@
 
 package r.lang;
 
-import java.util.Collections;
 import java.util.Set;
 
+/**
+ * Defines the interface to objects providing the storage for 
+ * {@link Environment}s
+ */
 public interface Frame {
+  /**
+   * 
+   * @return the names of all the objects stored in this frame
+   */
   Set<Symbol> getSymbols();
+  
+  /**
+   * 
+   * @param name the name of the variable to lookup
+   * @return the value of the variable named {@code name}, or {@code Symbol.UNBOUND} if 
+   * no such variable is bound to this frame.
+   */
   SEXP getVariable(Symbol name);
-  SEXP getInternal(Symbol name);
+  
+  /**
+   * Retrieves a function value from the frame. This does basically the same as 
+   * {@code getVariable()} but will only return function values, allowing the implementation
+   * to optimize this frequent case.
+   * 
+   * @param name the name of the variable to lookup
+   * @return the function value of the variable bound to this frame, or {@code Symbol.UNBOUND} if 
+   * no such variable exists
+   */
+  Function getFunction(Symbol name);
+  
+  /**
+   * 
+   * @param name 
+   * @param value
+   */
   void setVariable(Symbol name, SEXP value);
+  
+  /**
+   * Removes all values bound to this variable.
+   */
   void clear();
 
-  public static Frame EMPTY = new Frame() {
-    @Override
-    public Set<Symbol> getSymbols() {
-      return Collections.emptySet();
-    }
-
-    @Override
-    public SEXP getVariable(Symbol name) {
-      return Symbol.UNBOUND_VALUE;
-    }
-
-    @Override
-    public SEXP getInternal(Symbol name) {
-      return Symbol.UNBOUND_VALUE;
-    }
-
-    @Override
-    public void setVariable(Symbol name, SEXP value) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-
-    }
-  };
 }

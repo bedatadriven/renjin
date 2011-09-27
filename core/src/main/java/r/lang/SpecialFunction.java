@@ -23,7 +23,7 @@ package r.lang;
 
 import r.lang.exception.EvalException;
 
-public abstract class SpecialFunction extends AbstractSEXP implements Function {
+public abstract class SpecialFunction extends PrimitiveFunction {
   public static final String TYPE_NAME = "special";
 
   @Override

@@ -100,19 +100,19 @@ public class Types {
 
   @Primitive("is.matrix")
   public static boolean isMatrix(SEXP exp) {
-    return exp.getAttribute(Symbol.DIM).length() == 2;
+    return exp.getAttribute(Symbols.DIM).length() == 2;
   }
 
   @Primitive("is.array")
   public static boolean isArray(SEXP exp) {
-    return exp.getAttribute(Symbol.DIM).length() > 0;
+    return exp.getAttribute(Symbols.DIM).length() > 0;
   }
 
   @Primitive("is.vector")
   public static boolean isVector(SEXP exp, String mode) {
     // first check for any attribute besides names
     for (PairList.Node node : exp.getAttributes().nodes()) {
-      if (!node.getTag().equals(Symbol.NAMES)) {
+      if (!node.getTag().equals(Symbols.NAMES)) {
         return false;
       }
     }
@@ -166,9 +166,9 @@ public class Types {
     for (int i = 0; i != list.length(); ++i) {
       result.set(i, list.isElementNA(i));
     }
-    result.setAttribute(Symbol.DIM, list.getAttribute(Symbol.DIM));
-    result.setAttribute(Symbol.NAMES, list.getAttribute(Symbol.NAMES));
-    result.setAttribute(Symbol.DIMNAMES, list.getAttribute(Symbol.DIMNAMES));
+    result.setAttribute(Symbols.DIM, list.getAttribute(Symbols.DIM));
+    result.setAttribute(Symbols.NAMES, list.getAttribute(Symbols.NAMES));
+    result.setAttribute(Symbols.DIMNAMES, list.getAttribute(Symbols.DIMNAMES));
 
     return result.build();
   }
@@ -331,7 +331,7 @@ public class Types {
         throw new EvalException(
             "invalid type/length (symbol/0) in vector allocation");
       }
-      return new Symbol(x.getElementAsString(0));
+      return Symbol.get(x.getElementAsString(0));
     } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
     } else {
@@ -343,7 +343,7 @@ public class Types {
     }
     SEXP names = x.getNames();
     if (names.length() > 0) {
-      result.setAttribute(Symbol.NAMES, names);
+      result.setAttribute(Symbols.NAMES, names);
     }
     return result.build();
   }
@@ -370,7 +370,7 @@ public class Types {
       names.add(node.hasTag() ? node.getTag().getPrintName() : "");
       result.addFrom(node.getValue(), 0);
     }
-    result.setAttribute(Symbol.NAMES.getPrintName(), names.build());
+    result.setAttribute(Symbols.NAMES.getPrintName(), names.build());
     return result.build();
   }
 
@@ -496,7 +496,7 @@ public class Types {
   @Primitive("dim")
   @Generic
   public static SEXP getDimensions(SEXP sexp) {
-    return sexp.getAttribute(Symbol.DIM);
+    return sexp.getAttribute(Symbols.DIM);
   }
 
   @Primitive("dim<-")
@@ -514,18 +514,18 @@ public class Types {
           exp.length());
     }
 
-    return exp.setAttribute(Symbol.DIM, new IntVector(dim));
+    return exp.setAttribute(Symbols.DIM, new IntVector(dim));
   }
 
   @Generic
   @Primitive("dimnames")
   public static SEXP getDimensionNames(SEXP exp) {
-    return exp.getAttribute(Symbol.DIMNAMES);
+    return exp.getAttribute(Symbols.DIMNAMES);
   }
 
   @Primitive("dimnames<-")
   public static SEXP setDimensionNames(SEXP exp, ListVector vector) {
-    return exp.setAttribute(Symbol.DIMNAMES, vector);
+    return exp.setAttribute(Symbols.DIMNAMES, vector);
   }
 
   public static PairList attributes(SEXP sexp) {
@@ -570,7 +570,7 @@ public class Types {
     } else if (exp instanceof Closure) {
       return ((Closure) exp).getEnclosingEnvironment();
     } else {
-      return exp.getAttribute(Symbol.DOT_ENVIRONMENT);
+      return exp.getAttribute(Symbols.DOT_ENVIRONMENT);
     }
   }
 
@@ -579,7 +579,7 @@ public class Types {
     if (exp instanceof Closure) {
       return ((Closure) exp).setEnclosingEnvironment(newRho);
     } else {
-      return exp.setAttribute(Symbol.DOT_ENVIRONMENT.getPrintName(), newRho);
+      return exp.setAttribute(Symbols.DOT_ENVIRONMENT.getPrintName(), newRho);
     }
   }
 
@@ -605,13 +605,13 @@ public class Types {
 
   public static boolean exists(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(new Symbol(x), modePredicate(mode),
+    return environment.findVariable(Symbol.get(x), modePredicate(mode),
         inherits) != Symbol.UNBOUND_VALUE;
   }
 
   public static SEXP get(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(new Symbol(x), modePredicate(mode),
+    return environment.findVariable(Symbol.get(x), modePredicate(mode),
         inherits);
   }
 
@@ -697,7 +697,7 @@ public class Types {
   @Generic
   @Primitive("levels<-")
   public static SEXP setLabels(SEXP exp, SEXP levels) {
-    return exp.setAttribute(Symbol.LEVELS.getPrintName(), levels);
+    return exp.setAttribute(Symbols.LEVELS.getPrintName(), levels);
   }
 
   /**
@@ -713,12 +713,12 @@ public class Types {
   @Primitive("class")
   public static StringVector getClass(SEXP exp) {
     
-    SEXP classAttribute = exp.getAttribute(Symbol.CLASS);
+    SEXP classAttribute = exp.getAttribute(Symbols.CLASS);
     if(classAttribute.length() > 0) {
       return (StringVector)classAttribute;
     }
     
-    SEXP dim = exp.getAttribute(Symbol.DIM);
+    SEXP dim = exp.getAttribute(Symbols.DIM);
     if(dim.length() == 2) {
       return new StringVector("matrix");
     } else if(dim.length() > 0) {
@@ -746,7 +746,7 @@ public class Types {
     if (!exp.hasAttributes()) {
       return Null.INSTANCE;
     }
-    return exp.getAttribute(Symbol.CLASS);
+    return exp.getAttribute(Symbols.CLASS);
   }
 
   public static boolean inherits(SEXP exp, StringVector what) {
@@ -822,7 +822,7 @@ public class Types {
     Environment newEnv = Environment.createChildEnvironment(child.getParent());
     child.setParent(newEnv);
 
-    newEnv.setAttribute(Symbol.NAME.getPrintName(), new StringVector(name));
+    newEnv.setAttribute(Symbols.NAME.getPrintName(), new StringVector(name));
 
     // copy all values from the provided environment into the
     // new environment
@@ -902,7 +902,7 @@ public class Types {
         && arguments.getElementAsSEXP(0) instanceof ListVector
         && arguments.getName(0).isEmpty()) {
       ListVector list = (ListVector) arguments.getElementAsSEXP(0);
-      if (list.getAttribute(Symbol.NAMES) == Null.INSTANCE) {
+      if (list.getAttribute(Symbols.NAMES) == Null.INSTANCE) {
         throw new EvalException("list argument has no valid names");
       }
       for (NamedValue argument : list.namedValues()) {

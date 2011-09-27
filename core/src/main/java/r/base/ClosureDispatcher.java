@@ -184,7 +184,7 @@ public class ClosureDispatcher {
     PeekingIterator<PairList.Node> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
     while( formalIt.hasNext()) {
       PairList.Node formal = formalIt.next();
-      if(Symbol.ELLIPSES.equals(formal.getTag())) {
+      if(Symbols.ELLIPSES.equals(formal.getTag())) {
         PairList.Node.Builder promises = PairList.Node.newBuilder();
         while(actualIt.hasNext()) {
           PairList.Node actual = actualIt.next();

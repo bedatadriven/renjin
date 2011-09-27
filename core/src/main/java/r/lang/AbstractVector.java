@@ -49,7 +49,7 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
 
     @Override
     public Builder setAttribute(String name, SEXP value) {
-      return setAttribute(new Symbol(name), value);
+      return setAttribute(Symbol.get(name), value);
     }
 
     @Override
@@ -76,9 +76,9 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     @Override
     public Builder copySomeAttributesFrom(Vector exp, Symbol... toCopy) {
       for(PairList.Node node : exp.getAttributes().nodes()) {
-        if(node.getTag().equals(Symbol.NAMES) ||
-           node.getTag().equals(Symbol.DIM) ||
-           node.getTag().equals(Symbol.DIMNAMES)) {
+        if(node.getTag().equals(Symbols.NAMES) ||
+           node.getTag().equals(Symbols.DIM) ||
+           node.getTag().equals(Symbols.DIMNAMES)) {
 
           attributes.put(node.getTag(), node.getValue());
           

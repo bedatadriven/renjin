@@ -10,7 +10,7 @@ import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.Null;
 import r.lang.SEXP;
-import r.lang.Symbol;
+import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
 import r.util.CommonsMath;
@@ -23,7 +23,7 @@ public class Matrix {
   public static Vector transpose(Vector x) {
     Vector.Builder builder = x.newBuilder(x.length());
     Vector result = builder.build();
-    IntVector dimensions = (IntVector) x.getAttribute(Symbol.DIM);
+    IntVector dimensions = (IntVector) x.getAttribute(Symbols.DIM);
     int nrows = dimensions.getElementAsInt(0);
     int ncols = dimensions.getElementAsInt(1);
     for (int i = 0; i < nrows; i++) {
@@ -32,12 +32,12 @@ public class Matrix {
                         Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
       }
     }
-    if (!(x.getAttribute(Symbol.DIMNAMES) instanceof r.lang.Null)) {
-      ListVector dimNames = (ListVector) x.getAttribute(Symbol.DIMNAMES);
+    if (!(x.getAttribute(Symbols.DIMNAMES) instanceof r.lang.Null)) {
+      ListVector dimNames = (ListVector) x.getAttribute(Symbols.DIMNAMES);
       ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
-      builder.setAttribute(Symbol.DIMNAMES, newDimNames);
+      builder.setAttribute(Symbols.DIMNAMES, newDimNames);
     }
-    builder.setAttribute(Symbol.DIM, new IntVector(ncols, nrows));
+    builder.setAttribute(Symbols.DIM, new IntVector(ncols, nrows));
     result = builder.build();
     return (result);
   }
@@ -45,8 +45,8 @@ public class Matrix {
   @Primitive("%*%")
   public static SEXP matrixproduct(Vector x, Vector y) {
     
-    AtomicVector xdims = (AtomicVector)x.getAttribute(Symbol.DIM);
-    AtomicVector ydims = (AtomicVector)y.getAttribute(Symbol.DIM);
+    AtomicVector xdims = (AtomicVector)x.getAttribute(Symbols.DIM);
+    AtomicVector ydims = (AtomicVector)y.getAttribute(Symbols.DIM);
     int ldx = xdims.length();
     int ldy = ydims.length();
 
@@ -91,8 +91,8 @@ public class Matrix {
     RealMatrix prod = CommonsMath.asRealMatrix(x, nrx, ncx)
                           .multiply(CommonsMath.asRealMatrix(y, nry, ncy));
     
-    SEXP xdimnames = x.getAttribute(Symbol.DIMNAMES);
-    SEXP ydimnames = y.getAttribute(Symbol.DIMNAMES);
+    SEXP xdimnames = x.getAttribute(Symbols.DIMNAMES);
+    SEXP ydimnames = y.getAttribute(Symbols.DIMNAMES);
     
     if (xdimnames != Null.INSTANCE || xdimnames != Null.INSTANCE) {
       throw new EvalException("%*% for matricies with dimnnames not yet implemented");

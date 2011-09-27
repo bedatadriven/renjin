@@ -38,6 +38,7 @@ import r.lang.SEXP;
 import r.lang.SexpVisitor;
 import r.lang.StringVector;
 import r.lang.Symbol;
+import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
 
@@ -50,8 +51,8 @@ public class Models {
   @Primitive("~")
   public static SEXP tilde(Context context, Environment rho, FunctionCall call) {
     PairList.Builder attributes = PairList.Node.newBuilder();
-    attributes.add(Symbol.CLASS, new StringVector("formula"));
-    attributes.add(Symbol.DOT_ENVIRONMENT, rho);
+    attributes.add(Symbols.CLASS, new StringVector("formula"));
+    attributes.add(Symbols.DOT_ENVIRONMENT, rho);
 
     return new FunctionCall(call.getFunction(), call.getArguments(),
         attributes.build());
@@ -99,7 +100,7 @@ public class Models {
     }
 
     public FunctionCall getVariables() {
-      return new FunctionCall(new Symbol("list"),
+      return new FunctionCall(Symbol.get("list"),
             PairList.Node.fromIterable(variables));
     }
   }
@@ -200,7 +201,7 @@ public class Models {
         names.add(ss);
         j++;
     }
-    attributes.add(Symbol.NAMES, new StringVector(names));
+    attributes.add(Symbols.NAMES, new StringVector(names));
 
     /* Sanity checks to ensure that the the answer can become */
     /* a data frame.  Be deeply suspicious here! */
@@ -228,9 +229,9 @@ public class Models {
     /* To do this we must attach "class"  and */
     /* "row.names" attributes */
 
-    attributes.add(Symbol.CLASS, new StringVector("data.frame"));
+    attributes.add(Symbols.CLASS, new StringVector("data.frame"));
     if (row_names.length() == nr) {
-        attributes.add(Symbol.ROW_NAMES, row_names);
+        attributes.add(Symbols.ROW_NAMES, row_names);
     } else {
         throw new UnsupportedOperationException("todo");
         /*
@@ -298,7 +299,7 @@ public class Models {
   private static int nrows(SEXP s) {
     SEXP t;
     if (s instanceof Vector) {
-        SEXP dim = s.getAttribute(Symbol.DIM);
+        SEXP dim = s.getAttribute(Symbols.DIM);
         if(dim == Null.INSTANCE) {
           return s.length();
         } else {

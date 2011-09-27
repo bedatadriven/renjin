@@ -77,12 +77,12 @@ public class SubscriptOperation {
    * (had an explicit DIM attribute with length 1)
    */
   private boolean sourceIsArray() {
-    return source.getAttribute(Symbol.DIM).length() == 1;
+    return source.getAttribute(Symbols.DIM).length() == 1;
   }
 
   private int[] computeSourceDimensions() {
 
-    SEXP dim = source.getAttribute(Symbol.DIM);
+    SEXP dim = source.getAttribute(Symbols.DIM);
     if(dim == Null.INSTANCE) {
       sourceDim = new int[] { source.length() };
     } else if(dim instanceof IntVector) {
@@ -111,7 +111,7 @@ public class SubscriptOperation {
       Subscripts subscripts = new Subscripts();
 
       StringVector.Builder names = null;
-      if(source.getAttribute(Symbol.NAMES) != Null.INSTANCE) {
+      if(source.getAttribute(Symbols.NAMES) != Null.INSTANCE) {
         names = new StringVector.Builder();
       }
       Vector.Builder result = source.newBuilder(subscripts.getLength());
@@ -130,9 +130,9 @@ public class SubscriptOperation {
           }
         }
       }
-      result.setAttribute(Symbol.DIM, subscripts.dimensionAttribute());
+      result.setAttribute(Symbols.DIM, subscripts.dimensionAttribute());
       if(names != null) {
-        result.setAttribute(Symbol.NAMES, names.build());
+        result.setAttribute(Symbols.NAMES, names.build());
       }
       return result.build();
     }
@@ -194,7 +194,7 @@ public class SubscriptOperation {
       }
     }
 
-    result.setAttribute(Symbol.NAMES, names.build());
+    result.setAttribute(Symbols.NAMES, names.build());
     return result.build();
   }
 
@@ -289,7 +289,7 @@ public class SubscriptOperation {
       if(subscripts.length == 1 && !sourceIsArray()) {
         return source.getNames();
       } else {
-        Vector dimNames = (Vector) source.getAttribute(Symbol.DIMNAMES);
+        Vector dimNames = (Vector) source.getAttribute(Symbols.DIMNAMES);
         return dimNames.getElementAsSEXP(dimensionIndex);
       }
     }

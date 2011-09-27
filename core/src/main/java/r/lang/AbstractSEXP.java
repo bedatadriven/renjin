@@ -42,11 +42,11 @@ public abstract class AbstractSEXP implements SEXP {
   protected AbstractSEXP(PairList attributes) {
     Preconditions.checkNotNull(attributes);
     this.attributes = attributes;
-    this.object = attributes.findByTag(Symbol.CLASS).length() > 0;
+    this.object = attributes.findByTag(Symbols.CLASS).length() > 0;
   }
 
   protected boolean checkDims() {
-    Vector dimVector = (Vector)attributes.findByTag(Symbol.DIM);
+    Vector dimVector = (Vector)attributes.findByTag(Symbols.DIM);
     if(dimVector.length() == 0) {
       return true;
     }
@@ -127,7 +127,7 @@ public abstract class AbstractSEXP implements SEXP {
    */
   @Override
   public StringVector getS3Class() {
-    SEXP classAttribute = attributes.findByTag(Symbol.CLASS);
+    SEXP classAttribute = attributes.findByTag(Symbols.CLASS);
     if(classAttribute instanceof StringVector) {
       return (StringVector) classAttribute;
     }
@@ -163,12 +163,12 @@ public abstract class AbstractSEXP implements SEXP {
   @Override
   public AtomicVector getNames() {
     // either Null.INSTANCE or StringVector, enforced below
-    return (AtomicVector) attributes.findByTag(Symbol.NAMES);
+    return (AtomicVector) attributes.findByTag(Symbols.NAMES);
   }
 
   @Override
   public String getName(int index) {
-    SEXP names = attributes.findByTag(Symbol.NAMES);
+    SEXP names = attributes.findByTag(Symbols.NAMES);
     if(names instanceof StringVector) {
       return ((StringVector) names).getElement(index);
     }
@@ -187,7 +187,7 @@ public abstract class AbstractSEXP implements SEXP {
   @Override
   public final int getIndexByName(String name) {
     if(attributes != null) {
-      SEXP namesExp = attributes.findByTag(Symbol.NAMES);
+      SEXP namesExp = attributes.findByTag(Symbols.NAMES);
       if(namesExp instanceof StringVector) {
         StringVector names = (StringVector) namesExp;
         for(int i=0;i!=names.length();++i) {
@@ -215,7 +215,7 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public SEXP setAttribute(String attributeName, SEXP value) {
-     return setAttribute(new Symbol(attributeName), value);
+     return setAttribute(Symbol.get(attributeName), value);
   }
   
 
@@ -231,9 +231,9 @@ public abstract class AbstractSEXP implements SEXP {
     PairList.Builder list = new PairList.Builder();
     for(int i=0;i!=attributes.length();++i) {
       String name = attributes.getName(i);
-      SEXP value = Attributes.validateAttribute(this, new Symbol(name), attributes.getElementAsSEXP(i));
+      SEXP value = Attributes.validateAttribute(this, Symbol.get(name), attributes.getElementAsSEXP(i));
 
-      list.add(new Symbol(name), value);
+      list.add(Symbol.get(name), value);
     }
     return cloneWithNewAttributes(list.build());
   }

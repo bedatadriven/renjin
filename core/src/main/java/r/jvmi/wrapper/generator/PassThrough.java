@@ -2,13 +2,9 @@ package r.jvmi.wrapper.generator;
 
 import java.util.List;
 
-import r.base.BaseFrame.Entry;
+import r.base.Primitives.Entry;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.wrapper.WrapperSourceWriter;
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.EvalResult;
-import r.lang.FunctionCall;
 
 /**
  * Strategy for generating a wrapper in the case where the declared JVM method

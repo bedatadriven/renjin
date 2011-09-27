@@ -22,17 +22,25 @@
 package r.base;
 
 import java.net.InetAddress;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
-import r.lang.*;
-import r.lang.exception.EvalException;
-
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import r.jvmi.annotations.Current;
+import r.jvmi.annotations.Primitive;
+import r.lang.Context;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Symbols;
+import r.lang.exception.EvalException;
 
 public class System {
 
@@ -151,7 +159,7 @@ public class System {
     result.add("dynamicLookup", LogicalVector.TRUE);
     result.add("handle", Null.INSTANCE);
     result.add("info", "something here");
-    result.setAttribute(Symbol.CLASS, new StringVector("DLLInfo"));
+    result.setAttribute(Symbols.CLASS, new StringVector("DLLInfo"));
     return result.build();
     // TODO: maybe warn or something?
   }
@@ -172,7 +180,7 @@ public class System {
         result.add(false);
       }
     }
-    result.setAttribute(Symbol.NAMES, names.build());
+    result.setAttribute(Symbols.NAMES, names.build());
     return result.build();
   }
 
@@ -185,7 +193,7 @@ public class System {
       names.add(capability);
       result.add(false);
     }
-    result.setAttribute(Symbol.NAMES, names.build());
+    result.setAttribute(Symbols.NAMES, names.build());
     return result.build();
   }
   

@@ -257,7 +257,7 @@ public class BasePackageTest extends EvalTestCase {
     topLevelContext.init();
 
     Context context1 = topLevelContext.fork();
-    FunctionCall.newCall(new Symbol("search")).evaluate(context1, context1.getEnvironment());
+    FunctionCall.newCall(Symbol.get("search")).evaluate(context1, context1.getEnvironment());
 
     Context context2 = topLevelContext.fork();
 

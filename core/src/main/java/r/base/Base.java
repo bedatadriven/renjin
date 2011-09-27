@@ -34,7 +34,7 @@ import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.StringVector;
-import r.lang.Symbol;
+import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
 
@@ -62,7 +62,7 @@ public class Base {
   public static ListVector R_getSymbolInfo(String sname, SEXP spackage, boolean withRegistrationInfo) {
 
     ListVector.Builder result = new ListVector.Builder();
-    result.setAttribute(Symbol.CLASS, new StringVector("CRoutine"));
+    result.setAttribute(Symbols.CLASS, new StringVector("CRoutine"));
 
     return result.build();
 
@@ -82,7 +82,7 @@ public class Base {
    * so opaque that it is first against the wall when the revolution comes.
    */
   public static SEXP R_shortRowNames(SEXP vector, int type) {
-    SEXP s =  vector.getAttribute(Symbol.ROW_NAMES);
+    SEXP s =  vector.getAttribute(Symbols.ROW_NAMES);
     SEXP ans = s;
 
     if( type < 0 || type > 2) {
@@ -148,14 +148,14 @@ public class Base {
   public static SEXP La_svd(String jobu, String jobv, DoubleVector x, DoubleVector  sexp,
       DoubleVector uexp, DoubleVector vexp, String method ) {
     
-    IntVector xdims = (IntVector) x.getAttribute(Symbol.DIM);
+    IntVector xdims = (IntVector) x.getAttribute(Symbols.DIM);
     int n = xdims.getElementAsInt(0);
     int p = xdims.getElementAsInt(1);
 
     double xvals[] = x.toDoubleArray();
     
-    int ldu =  ((IntVector)uexp.getAttribute(Symbol.DIM)).getElementAsInt(0);
-    int ldvt = ((IntVector)vexp.getAttribute(Symbol.DIM)).getElementAsInt(0);
+    int ldu =  ((IntVector)uexp.getAttribute(Symbols.DIM)).getElementAsInt(0);
+    int ldvt = ((IntVector)vexp.getAttribute(Symbols.DIM)).getElementAsInt(0);
     
     double s[] = sexp.toDoubleArray();
     double u[] = uexp.toDoubleArray();
@@ -241,8 +241,8 @@ public class Base {
 
     //Adims = INTEGER(coerceVector(getAttrib(A, R_DimSymbol), INTSXP));
     //Bdims = INTEGER(coerceVector(getAttrib(B, R_DimSymbol), INTSXP));
-    Adims = (IntVector) A.getAttribute(Symbol.DIM);
-    Bdims = (IntVector) B.getAttribute(Symbol.DIM);
+    Adims = (IntVector) A.getAttribute(Symbols.DIM);
+    Bdims = (IntVector) B.getAttribute(Symbols.DIM);
 
     n = Adims.getElementAsInt(0);
     if (n == 0) {
@@ -381,7 +381,7 @@ public class Base {
   }
 
   private static int getSquareMatrixSize(SEXP x) {
-    Vector xdims =  (Vector)x.getAttribute(Symbol.DIM);
+    Vector xdims =  (Vector)x.getAttribute(Symbols.DIM);
     if(xdims.length() != 2 || xdims.getElementAsInt(0) != xdims.getElementAsInt(1)) {
       throw new EvalException("'x' must be a square numeric matrix");
     }

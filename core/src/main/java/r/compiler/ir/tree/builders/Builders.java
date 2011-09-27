@@ -32,7 +32,7 @@ public class Builders {
   private Map<Symbol, ReservedWords.IRBuilder> map = Maps.newHashMap();
 
   public Builders() {
-    map.put(new Symbol("if"), new IfStatement());
+    map.put(Symbol.get("if"), new IfStatement());
   }
 
   public boolean hasBuilder(Symbol symbol) {

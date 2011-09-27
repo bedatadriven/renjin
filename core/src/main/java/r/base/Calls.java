@@ -233,18 +233,18 @@ public class Calls {
       }
     }
 
-    newrho.setVariable(new Symbol(".Method"), new StringVector(m));
-    newrho.setVariable(new Symbol(".Generic"), new StringVector(generic));
-    newrho.setVariable(new Symbol(".Group"), left.gr);
+    newrho.setVariable(Symbol.get(".Method"), new StringVector(m));
+    newrho.setVariable(Symbol.get(".Generic"), new StringVector(generic));
+    newrho.setVariable(Symbol.get(".Group"), left.gr);
 
     StringVector.Builder dotClass = StringVector.newBuilder();
     for(j=left.which;j<lclass.length();++j) {
       dotClass.add(lclass.getElementAsString(j));
     }
 
-    newrho.setVariable(new Symbol(".Class"), dotClass.build());
-    newrho.setVariable(new Symbol(".GenericCallEnv"), rho);
-    newrho.setVariable(new Symbol(".GenericDefEnv"), rho.getBaseEnvironment());
+    newrho.setVariable(Symbol.get(".Class"), dotClass.build());
+    newrho.setVariable(Symbol.get(".GenericCallEnv"), rho);
+    newrho.setVariable(Symbol.get(".GenericDefEnv"), rho.getBaseEnvironment());
 
     FunctionCall newCall = FunctionCall.newCall(left.meth, call.getArguments());
 
@@ -330,8 +330,8 @@ public class Calls {
 
       /* Is this double promise mechanism really needed? */
 
-      if (node.getValue().equals(Symbol.ELLIPSES)) {
-        DotExp dotExp = DotExp.cast(rho.findVariable(Symbol.ELLIPSES));
+      if (node.getValue().equals(Symbols.ELLIPSES)) {
+        DotExp dotExp = DotExp.cast(rho.findVariable(Symbols.ELLIPSES));
         for(PairList.Node dotNode : dotExp.getPromises().nodes()) {
           list.add(dotNode.getRawTag(), dotNode.getValue());
         }
@@ -359,14 +359,14 @@ public class Calls {
       String ss = Class.getElementAsString(whichclass);
       result.buf = generic + "." + ss;
 
-      result.meth = new Symbol(result.buf);
+      result.meth = Symbol.get(result.buf);
       result.sxp = lookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
       if (result.sxp instanceof Function) {
         result.gr = new StringVector("");
         break;
       }
       result.buf = group + "." + ss;
-      result.meth = new Symbol(result.buf);
+      result.meth = Symbol.get(result.buf);
       result.sxp = lookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
       if (result.sxp instanceof Function) {
         result.gr = new StringVector(group);
@@ -531,7 +531,7 @@ public class Calls {
     PeekingIterator<PairList.Node> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
     while( formalIt.hasNext()) {
       PairList.Node formal = formalIt.next();
-      if(Symbol.ELLIPSES.equals(formal.getTag())) {
+      if(Symbols.ELLIPSES.equals(formal.getTag())) {
         PairList.Node.Builder promises = PairList.Node.newBuilder();
         while(actualIt.hasNext()) {
           PairList.Node actual = actualIt.next();
@@ -582,13 +582,13 @@ public class Calls {
    * @return
    */
   public static StringVector computeDataClasses(SEXP exp) {
-    SEXP classAttribute = exp.getAttribute(Symbol.CLASS);
+    SEXP classAttribute = exp.getAttribute(Symbols.CLASS);
     if(classAttribute.length() > 0) {
       return (StringVector)classAttribute;
     } else {
       StringVector.Builder dataClass = new StringVector.Builder();
       
-      SEXP dim = exp.getAttribute(Symbol.DIM);
+      SEXP dim = exp.getAttribute(Symbols.DIM);
       if(dim.length() == 2) {
         dataClass.add("matrix");
       } else if(dim.length() == 1) {

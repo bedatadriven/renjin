@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-import r.base.BaseFrame.Entry;
+import r.base.Primitives.Entry;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.binding.JvmMethod.Argument;
 import r.jvmi.wrapper.ArgumentException;
@@ -12,14 +12,10 @@ import r.jvmi.wrapper.ArgumentIterator;
 import r.jvmi.wrapper.GeneratorDefinitionException;
 import r.jvmi.wrapper.WrapperRuntime;
 import r.jvmi.wrapper.WrapperSourceWriter;
-import r.jvmi.wrapper.generator.args.ArgConverterStrategies;
 import r.lang.Context;
 import r.lang.Environment;
 import r.lang.EvalResult;
-import r.lang.SEXP;
 import r.lang.exception.EvalException;
-
-import com.google.common.collect.Lists;
 
 /**
  * Base class for all the different strategies for generating 

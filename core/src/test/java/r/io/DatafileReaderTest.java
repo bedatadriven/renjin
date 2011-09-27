@@ -96,6 +96,6 @@ public class DatafileReaderTest extends EvalTestCase {
 
 
   protected Symbol symbol(String name){
-    return new Symbol(name);
+    return Symbol.get(name);
   }
 }

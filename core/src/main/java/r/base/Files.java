@@ -75,7 +75,7 @@ public class Files {
     DoubleVector.Builder size = new DoubleVector.Builder();
     LogicalVector.Builder isdir = new LogicalVector.Builder();
     IntVector.Builder mode = (IntVector.Builder) new IntVector.Builder()
-        .setAttribute(Symbol.CLASS, new StringVector("octmode"));
+        .setAttribute(Symbols.CLASS, new StringVector("octmode"));
     DoubleVector.Builder mtime = new DoubleVector.Builder();
     StringVector.Builder exe = new StringVector.Builder();
 

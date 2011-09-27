@@ -98,19 +98,18 @@ public class MatrixTest extends EvalTestCase {
   }
   
   @Test
-  public void testSolve(){
-    try{
-      topLevelContext.init();
-    } catch(Exception e) {
-      
-    }
+  public void testSolve() throws IOException {
+
+    topLevelContext.init();
+
     assertThat(eval("solve(matrix(c(1,3,7,6),2,2))"), closeTo(matrix(
         row(-0.4,  0.46666667),
         row( 0.2, -0.06666667)), 0.0000001));
   }
   
   @Test(expected = r.lang.exception.EvalException.class)
-  public void testSolveSingularity() {
+  public void testSolveSingularity() throws IOException {
+    topLevelContext.init();
     assertThat(eval("solve(matrix(c(1,2,2,4),2,2))"), closeTo(matrix(
             row(0, 0),
             row(0, 0)), 0.0000001));

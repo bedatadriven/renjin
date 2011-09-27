@@ -335,7 +335,7 @@ public interface PairList extends SEXP {
     }
 
     public static Node singleton(String tag, SEXP value) {
-      return singleton(new Symbol(tag), value);
+      return singleton(Symbol.get(tag), value);
     }
 
     /**
@@ -497,7 +497,7 @@ public interface PairList extends SEXP {
     public Builder add(String name, SEXP value) {
       SEXP tag = Null.INSTANCE;
       if(!name.isEmpty()) {
-        tag = new Symbol(name);
+        tag = Symbol.get(name);
       }
       return add(tag, value);
     }

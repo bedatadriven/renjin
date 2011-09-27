@@ -287,8 +287,8 @@ public class EvaluationTest extends EvalTestCase {
   public void substituteDotDot() {
     eval(" f<- function(...) substitute(list(...)) ");
 
-    assertThat( eval("f(a,b)"), equalTo( (SEXP) new FunctionCall(new Symbol("list"),
-        PairList.Node.fromArray(new Symbol("a"), new Symbol("b"))) ));
+    assertThat( eval("f(a,b)"), equalTo( (SEXP) new FunctionCall(Symbol.get("list"),
+        PairList.Node.fromArray(Symbol.get("a"), Symbol.get("b"))) ));
   }
 
   @Test

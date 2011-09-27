@@ -517,6 +517,7 @@ public class Types {
     return exp.setAttribute(Symbol.DIM, new IntVector(dim));
   }
 
+  @Generic
   @Primitive("dimnames")
   public static SEXP getDimensionNames(SEXP exp) {
     return exp.getAttribute(Symbol.DIMNAMES);

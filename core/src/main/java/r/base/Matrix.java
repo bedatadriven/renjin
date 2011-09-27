@@ -5,6 +5,7 @@ import org.apache.commons.math.linear.RealMatrix;
 import r.jvmi.annotations.Primitive;
 import r.lang.AtomicVector;
 import r.lang.DoubleVector;
+import r.lang.Indexes;
 import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.Null;
@@ -27,7 +28,8 @@ public class Matrix {
     int ncols = dimensions.getElementAsInt(1);
     for (int i = 0; i < nrows; i++) {
       for (int j = 0; j < ncols; j++) {
-        builder.setFrom(j * nrows + i, x, i * ncols + j);
+        builder.setFrom(Indexes.matrixIndexToVectorIndex(j, i, ncols, nrows), x,
+                        Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
       }
     }
     if (!(x.getAttribute(Symbol.DIMNAMES) instanceof r.lang.Null)) {

@@ -181,7 +181,8 @@ public abstract class EvalTestCase {
             return false;
           }
           if(!expected.isElementNA(i)) {
-            if(Math.abs(expected.getElementAsDouble(i)-vector.getElementAsDouble(i)) > epsilon) {
+            double delta = expected.getElementAsDouble(i)-vector.getElementAsDouble(i);
+            if(Math.abs(delta) > epsilon) {
               return false;
             }
           }

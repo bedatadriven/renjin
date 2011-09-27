@@ -87,7 +87,7 @@ public class MathTest extends EvalTestCase {
       topLevelContext.init();
     } catch (Exception e) {
     }
-    assertThat(eval("t(matrix(c(1,2,3,4,5,6),3,2))"), equalTo(c(1, 3, 5, 2, 4, 6)));
+    assertThat(eval("t(matrix(c(1,2,3,4,5,6),3,2))"), equalTo(c(1, 4, 2, 5, 3, 6)));
   }
   
   @Test

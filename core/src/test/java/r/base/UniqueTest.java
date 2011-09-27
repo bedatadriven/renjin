@@ -21,12 +21,13 @@
 
 package r.base;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.Test;
-import r.EvalTestCase;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+
+import org.hamcrest.CoreMatchers;
+import org.junit.Test;
+
+import r.EvalTestCase;
 
 public class UniqueTest extends EvalTestCase {
 
@@ -41,5 +42,10 @@ public class UniqueTest extends EvalTestCase {
    public void uniqueInt() {
      assertThat( eval(" .Internal(unique(1L, FALSE, FALSE)) "), CoreMatchers.equalTo(c_i(1)));
    }
+  
+  @Test
+  public void falseIncomparablesIsTreatedAsNull() {
+    assertThat( eval(" .Internal(unique(c(0, 1, 0, 0, 0, 0, 0, 0), FALSE, FALSE))"), equalTo(c(0,1)));
+  }
 
 }

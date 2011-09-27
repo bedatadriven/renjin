@@ -452,6 +452,21 @@ public class SubscriptTest extends EvalTestCase {
 
     assertThat( eval("x"), equalTo( list(91d, "foo", 41d)) );
   }
+  
+  @Test
+  public void replaceMatrixElements() {
+    
+    eval("x <- c(40, 1, 87, 6, 2, 8, 0, 28, 0, 43)");
+    eval("dim(x) <- c(5,2)");
+    
+    eval("A <- .Internal(rep.int(0,9*9))");
+    eval("dim(A) <- c(9,9)");
+    
+    eval("A[5:9,1:2] <- x");
+
+    assertThat( eval("A[5,1]"), equalTo(c(40)));
+    assertThat( eval("A[5,2]"), equalTo(c(8))); 
+  }
 
   @Test
   public void replaceVectorItemWithWidening() {

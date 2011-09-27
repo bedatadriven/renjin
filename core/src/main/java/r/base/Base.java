@@ -359,7 +359,7 @@ public class Base {
       ListVector.Builder ret = new ListVector.Builder();
       
       if (complexValues) {
-        //throw new EvalException("Complex results not yet implemented");
+        throw new EvalException("Complex results not yet implemented");
 //    
 //        val = allocVector(CPLXSXP, n);
 //          for (i = 0; i < n; i++) {
@@ -368,12 +368,11 @@ public class Base {
 //          }
 //          SET_VECTOR_ELT(ret, 0, val);
 
-        ret.add("values", new DoubleVector(new double[n]));
-        
-        if (vectors) {
-          ret.add("vectors", new DoubleVector(new double[n*n]));
-//        SET_VECTOR_ELT(ret, 1, unscramble(wI, n, right));
-        }
+//        ret.add("values", new DoubleVector(new double[n]));
+//        
+//        if (vectors) {
+////        SET_VECTOR_ELT(ret, 1, unscramble(wI, n, right));
+//        }
       } else {
         ret.add("values", new DoubleVector(wR));
         ret.add("vectors", vectors ? DoubleVector.newMatrix(right, n, n) : Null.INSTANCE);

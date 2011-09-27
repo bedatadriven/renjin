@@ -162,6 +162,14 @@ public class Match {
    *       (or rightmost) of identical elements will be kept. This only matters for names or dimnames.
    */
   public static Vector unique(AtomicVector x, AtomicVector incomparables, boolean fromLast) {
+    
+    // for "historical reasons", incomparables=FALSE is treated
+    // like incomparables=NULL
+    
+    if(incomparables.equals(LogicalVector.FALSE)) {
+      incomparables = Null.INSTANCE;
+    }
+    
     Vector.Builder result = x.newBuilder(0);
     int resultIndex=0;
     for(int i=0;i!= x.length();++i) {

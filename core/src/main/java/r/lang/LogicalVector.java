@@ -59,6 +59,11 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
      this.values = Arrays.copyOf(values, values.length);
   }
 
+  public LogicalVector(int[] values, int size, PairList attributes) {
+    super(attributes);
+    this.values = Arrays.copyOf(values, size);  
+  }
+  
   public LogicalVector(int... values) {
     this(values, Null.INSTANCE);
   }
@@ -69,6 +74,7 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
       this.values[i] = values[i].getInternalValue();
     }
   }
+
 
   @Override
   public String getTypeName() {
@@ -275,10 +281,19 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
   public static class Builder
       extends AbstractAtomicBuilder {
+    
+    private static final int MIN_INITIAL_CAPACITY = 10;
+    
     private int values[];
+    private int size;
 
     public Builder(int initialSize) {
-      values = new int[initialSize];
+      int initialCapacity = MIN_INITIAL_CAPACITY;
+      if(initialSize > initialCapacity) {
+        initialCapacity = initialSize;
+      }
+      values = new int[initialCapacity];
+      size = initialSize;
       Arrays.fill(values, NA);
     }
 
@@ -288,11 +303,12 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
     private Builder(LogicalVector toClone) {
       this.values = Arrays.copyOf(toClone.values, toClone.values.length);
+      this.size = this.values.length;
       copyAttributesFrom(toClone);
     }
 
     public Builder add(int value) {
-      return set(values.length, value);
+      return set(size, value);
     }
 
     public Builder add(boolean value) {
@@ -300,10 +316,9 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     }
 
     public Builder set(int index, int value) {
-      if(values.length <= index) {
-        int copy[] = Arrays.copyOf(values, index+1);
-        Arrays.fill(copy, values.length, copy.length, NA);
-        values = copy;
+      ensureCapacity(index+1);
+      if(index+1 > size) {
+        size = index+1;
       }
       values[index] = value;
       return this;
@@ -329,12 +344,25 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
     @Override
     public int length() {
-      return values.length;
+      return size;
     }
-
+    
+    public void ensureCapacity(int minCapacity) {
+      int oldCapacity = values.length;
+      if (minCapacity > oldCapacity) {
+        int oldData[] = values;
+        int newCapacity = (oldCapacity * 3)/2 + 1;
+        if (newCapacity < minCapacity)
+          newCapacity = minCapacity;
+        // minCapacity is usually close to size, so this is a win:
+        values = Arrays.copyOf(oldData, newCapacity);
+        Arrays.fill(values, oldCapacity, values.length, NA);
+      }
+    }
+    
     @Override
     public LogicalVector build() {
-      return new LogicalVector(values, buildAttributes());
+      return new LogicalVector(values, size, buildAttributes());
     }
 
   }

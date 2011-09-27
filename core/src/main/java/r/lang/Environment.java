@@ -21,16 +21,19 @@
 
 package r.lang;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
-import com.google.common.collect.UnmodifiableIterator;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 import r.base.BaseFrame;
 import r.lang.exception.EvalException;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Set;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
+import com.google.common.collect.UnmodifiableIterator;
 
 /**
  * The Environment data type.
@@ -61,7 +64,7 @@ public class Environment extends AbstractSEXP implements Recursive {
   public static final String TYPE_NAME = "environment";
   private static final String GLOBAL_ENVIRONMENT_NAME = "R_GlobalEnv";
 
-  private String name;
+  private String name = null;
   private Environment parent;
   private Environment baseEnvironment;
   protected Frame frame;
@@ -69,7 +72,12 @@ public class Environment extends AbstractSEXP implements Recursive {
   private boolean locked;
   private Set<Symbol> lockedBindings;
 
-
+  /**
+   * Keeps track of the number of times setVariable() has been called on this 
+   * environment.
+   */
+  private transient int modCount = 0;
+  
   /**
    * The root of the environment hierarchy.
    */
@@ -155,7 +163,6 @@ public class Environment extends AbstractSEXP implements Recursive {
 
   public static Environment createChildEnvironment(Environment parent, Frame frame) {
     Environment child = new Environment();
-    child.name = Integer.toString(child.hashCode());
     child.baseEnvironment = parent.baseEnvironment;
     child.parent = parent;
     child.frame = frame;
@@ -180,8 +187,11 @@ public class Environment extends AbstractSEXP implements Recursive {
     SEXP nameAttribute = this.attributes.findByTag(Symbol.NAME);
     if(nameAttribute instanceof StringVector) {
       return ((StringVector) nameAttribute).getElementAsString(0);
+    } else if(name == null) {
+      return Integer.toString(hashCode());
+    } else {
+      return name;
     }
-    return name;
   }
 
   public Environment getParent() {
@@ -190,6 +200,7 @@ public class Environment extends AbstractSEXP implements Recursive {
 
   public void setParent(Environment parent) {
     this.parent = parent;
+    modCount ++;
   }
 
   public Environment getBaseEnvironment() {
@@ -216,6 +227,7 @@ public class Environment extends AbstractSEXP implements Recursive {
       throw new EvalException("cannot add bindings to a locked environment");
     }
     frame.setVariable(symbol, value);
+    modCount++;
   }
 
   /**
@@ -269,6 +281,15 @@ public class Environment extends AbstractSEXP implements Recursive {
     return locked;
   }
 
+  /**
+   * 
+   * @return the number of modifications to this environment
+   * and all of its parent environments
+   */
+  public int getCumulativeModCount() {
+    return modCount + parent.getCumulativeModCount();
+  }
+  
   /**
    * Locking the environment prevents adding or removing variable bindings from the environment.
    * Changing the value of a variable is still possible unless the binding has been locked
@@ -355,7 +376,7 @@ public class Environment extends AbstractSEXP implements Recursive {
 
   @Override
   public String toString() {
-    return "<environment: " + name + ">";
+    return "<environment: " + getName() + ">";
   }
   
   public Environment insertAbove(Frame frame) {	
@@ -392,6 +413,11 @@ public class Environment extends AbstractSEXP implements Recursive {
     @Override
     public SEXP findInternal(Symbol symbol) {
       return Symbol.UNBOUND_VALUE;
+    }
+    
+    @Override
+    public int getCumulativeModCount() {
+      return 0;
     }
 
     @Override

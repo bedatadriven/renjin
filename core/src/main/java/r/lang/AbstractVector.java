@@ -87,7 +87,6 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
       return this;
     }
     
-    
 
     @Override
     public Builder addNA() {
@@ -100,13 +99,17 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
 
     protected PairList buildAttributes() {
-      PairList.Node.Builder pairList = PairList.Node.newBuilder();
-      for(Map.Entry<Symbol, SEXP> pair : attributes.entrySet()) {
-        if(pair.getValue() != Null.INSTANCE) {
-          pairList.add(pair.getKey(), pair.getValue());
+      if(attributes.isEmpty() ) {
+        return Null.INSTANCE;
+      } else {
+        PairList.Node.Builder pairList = PairList.Node.newBuilder();
+        for(Map.Entry<Symbol, SEXP> pair : attributes.entrySet()) {
+          if(pair.getValue() != Null.INSTANCE) {
+            pairList.add(pair.getKey(), pair.getValue());
+          }
         }
+        return pairList.build();
       }
-      return pairList.build();
     }
   }
 }

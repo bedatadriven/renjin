@@ -109,11 +109,6 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     return this;
   }
 
-  @Override
-  public boolean isObject() {
-    return false;
-  }
-
   /**
    * Null implementation of {@link r.lang.PairList#findByTag(Symbol)}
    * @param symbol the tag for which to search

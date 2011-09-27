@@ -350,13 +350,6 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     private double values[];
     private int size;
 
-
-    public Builder() {
-      values = new double[MIN_INITIAL_CAPACITY];
-      Arrays.fill(values, NA);
-      size = 0;
-    }
-
     public Builder(int initialSize) {
       int initialCapacity = MIN_INITIAL_CAPACITY;
       if(initialSize > initialCapacity) {
@@ -367,6 +360,10 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
       Arrays.fill(values, NA);
     }
 
+    public Builder() {
+      this(0);
+    }
+    
     private Builder(DoubleVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
       this.size = this.values.length;

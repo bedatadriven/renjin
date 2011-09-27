@@ -1,6 +1,5 @@
 package r.jvmi.wrapper.generator.generic;
 
-import r.jvmi.binding.JvmMethod;
 import r.jvmi.wrapper.WrapperSourceWriter;
 
 public class OpsGroupGenericDispatchStrategy extends GenericDispatchStrategy {
@@ -15,9 +14,9 @@ public class OpsGroupGenericDispatchStrategy extends GenericDispatchStrategy {
   public void beforePrimitiveIsCalled(WrapperSourceWriter s, int arity) {
 
     if(arity == 1) {
-      s.writeBeginIf("s0.isObject()");
+      s.writeBeginIf("((AbstractSEXP)s0).isObject()");
     } else {
-      s.writeBeginIf("s0.isObject() || s1.isObject()");
+      s.writeBeginIf("((AbstractSEXP)s0).isObject() || ((AbstractSEXP)s1).isObject()");
     }
     
     StringBuilder argsList = new StringBuilder("context, rho, call, \"Ops\", \"" + name + "\", s0");

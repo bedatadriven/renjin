@@ -31,7 +31,8 @@ import java.util.Collections;
 public abstract class AbstractSEXP implements SEXP {
 
   protected PairList attributes;
-  protected final boolean object;
+
+  private final boolean object;
 
   protected AbstractSEXP() {
     this.attributes = Null.INSTANCE;
@@ -200,7 +201,7 @@ public abstract class AbstractSEXP implements SEXP {
   }
 
   @Override
-  public boolean isObject() {
+  public final boolean isObject() {
     return object;
   }
 

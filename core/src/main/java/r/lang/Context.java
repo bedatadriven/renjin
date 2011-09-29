@@ -153,6 +153,8 @@ public class Context {
 
     public final FileSystemManager fileSystemManager;
     
+    public SecurityManager securityManager;
+    
     public PrintWriter stdout;
 
     // can this be moved down to context so it's not global?
@@ -175,6 +177,7 @@ public class Context {
       baseNamespaceEnv = Environment.createNamespaceEnvironment(globalEnvironment, "base");
       namespaceRegistry.setVariable(Symbol.get("base"), baseNamespaceEnv);
       globalEnvironment.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
+      securityManager = new SecurityManager();
     }
 
     /**

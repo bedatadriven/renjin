@@ -10,7 +10,7 @@ public class AspectPackageTest extends PackageTest {
   @Test
   public void simple() {
     
-    eval("library('aspect')");
+    eval("require('aspect')");
     eval("data('wurzer')");
 
     eval("res.cor <- corAspect(wurzer, aspect='aspectSum', level=c(rep('nominal',2), rep('ordinal',5), 'nominal'))");

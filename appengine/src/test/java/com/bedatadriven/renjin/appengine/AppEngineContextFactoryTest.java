@@ -26,8 +26,6 @@ import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.provider.local.DefaultLocalFileProvider;
 import org.junit.Test;
 
-import com.bedatadriven.renjin.appengine.AppEngineContextFactory;
-
 import r.lang.Context;
 import r.lang.Symbol;
 import r.util.FileSystemUtils;
@@ -49,7 +47,7 @@ public class AppEngineContextFactoryTest {
         FileSystemUtils.workingDirectory(fsm));
     context.init();
 
-    new Symbol("search").evaluate(context, context.getEnvironment());
+    Symbol.get("search").evaluate(context, context.getEnvironment());
   }
 
   @Test

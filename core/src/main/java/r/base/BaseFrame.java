@@ -22,6 +22,7 @@
 package r.base;
 
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,7 +47,7 @@ import com.google.common.collect.Sets;
  */
 public class BaseFrame implements Frame {
 
-  private Map<Symbol, SEXP> loaded = new HashMap<Symbol, SEXP>();
+  private final IdentityHashMap<Symbol, SEXP> loaded = new IdentityHashMap<Symbol, SEXP>(1100);
 
   @Override
   public Set<Symbol> getSymbols() {
@@ -93,10 +94,6 @@ public class BaseFrame implements Frame {
   public BaseFrame() {
     installPlatform();
     installMachine();
-    installLoaded();
-  }
-
-  protected void installLoaded() {
   }
 
   private void installPlatform() {

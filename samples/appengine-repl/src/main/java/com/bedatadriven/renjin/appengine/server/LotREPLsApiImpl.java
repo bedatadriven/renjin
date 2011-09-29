@@ -23,6 +23,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import r.io.DatafileReader;
 import r.io.DatafileWriter;
 import r.lang.*;
+import r.lang.SecurityManager;
 import r.lang.exception.EvalException;
 import r.parser.RParser;
 
@@ -56,6 +57,18 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
     // The default VFS manager uses a Softref file cache that
     // is not allowed on AppEngine
     masterTopLevelContext = AppEngineContextFactory.createTopLevelContext(config.getServletContext());
+    
+    // disable creation of java objects for the moment
+    // (otherwise any would could access the datastore and do something annoying with it)
+    // figure out how to apply more narrow gain permissions later.
+    masterTopLevelContext.getGlobals().securityManager = new SecurityManager() {
+
+		@Override
+		public boolean allowNewInstance(Class clazz) {
+			return false;
+		}
+    	
+    };
 
   }
 
@@ -82,7 +95,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
 
 
     if(result.isVisible()) {
-      FunctionCall.newCall(new Symbol("print"), result.getExpression())
+      FunctionCall.newCall(Symbol.get("print"), result.getExpression())
         .evaluate(context, context.getEnvironment());
     }
 

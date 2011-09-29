@@ -107,6 +107,12 @@ public class Subscript {
     return builder.build();
   }
   
+  @Generic @Primitive("$<-")
+  public static SEXP setElementByName(Environment env, @Evaluate(false) Symbol name, SEXP value) {
+    env.setVariable(name, value);
+    return env;
+  }
+  
   /**
    * Same as "[" but not generic
    */
@@ -237,5 +243,4 @@ public class Subscript {
   public static SEXP getSingleElementByName(PairList.Node pairlist, String subscript, boolean exact) {
     return getSingleElementByName(pairlist.toVector(), subscript, exact);
   }
-
 }

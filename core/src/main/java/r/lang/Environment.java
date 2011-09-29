@@ -80,10 +80,7 @@ public class Environment extends AbstractSEXP implements Recursive {
    * The root of the environment hierarchy.
    */
   public static final EmptyEnv EMPTY = new EmptyEnv();
-  
-  
-  private int functionBloomFilter;
-
+ 
 
   /**
    * Creates a new tree of environments, initialized with

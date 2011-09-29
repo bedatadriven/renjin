@@ -980,7 +980,9 @@ public class Primitives {
     f("setTimeLimit", /*setTimeLimit*/ null, 0, 111, 3);
     f("setSessionTimeLimit", /*setSessionTimeLimit*/ null, 0, 111, 2);
     f("icuSetCollate", /*ICUset*/ null, 0, 111, -1, PP_FUNCALL, PREC_FN, 0) ;
-
+    
+    // jvm specific
+    f("import", Jvmi.class, 0, 0, -1);
   }
 
   private void add(SpecialFunction fn) {

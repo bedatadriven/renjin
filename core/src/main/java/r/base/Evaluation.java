@@ -114,6 +114,7 @@ public class Evaluation {
           new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
       builder.add( applyFunctionCall.evalToExp(context, rho) );
     }
+    builder.copySomeAttributesFrom(vector, Symbols.NAMES);
     return builder.build();
   }
 

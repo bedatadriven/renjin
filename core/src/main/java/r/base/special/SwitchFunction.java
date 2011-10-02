@@ -44,6 +44,9 @@ public class SwitchFunction extends SpecialFunction {
 
     if(expr instanceof StringVector) {
       String name = ((StringVector) expr).getElementAsString(0);
+      if(StringVector.isNA(name)) {
+        return EvalResult.NON_PRINTING_NULL;
+      }
       SEXP partialMatch = null;
       int partialMatchCount = 0;
       for(PairList.Node node : branches) {

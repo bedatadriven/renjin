@@ -156,6 +156,8 @@ public class Context {
     public SecurityManager securityManager;
     
     public PrintWriter stdout;
+    
+    private GraphicsDevice currentDevice;
 
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
@@ -207,6 +209,22 @@ public class Context {
 
     public void setStdOut(PrintWriter writer) {
       this.stdout = writer;
+    }
+    
+    public boolean hasGraphicsDevice() {
+      return currentDevice !=null;
+    }
+    
+    public GraphicsDevice getCurrentDevice() {
+      return currentDevice;
+    }
+    
+    public void setCurrentDevice(GraphicsDevice device) {
+      this.currentDevice = device;
+    }
+
+    public SEXP getOption(String name) {
+      return options.get(name);
     }
   }
 

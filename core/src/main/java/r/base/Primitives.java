@@ -841,7 +841,7 @@ public class Primitives {
     f("rect", /*rect*/ null, 0, 111, 6);
     f("polygon", /*polygon*/ null, 0, 111, 5);
     f("xspline", /*xspline*/ null, 0, 111, -1);
-    f("par", /*par*/ null, 0, 11, 1);
+    f("par", Graphics.class, 0, 11, 1);
     f("segments", /*segments*/ null, 0, 111, -1);
     f("arrows", /*arrows*/ null, 0, 111, -1);
     f("layout", /*layout*/ null, 0, 111, 10);

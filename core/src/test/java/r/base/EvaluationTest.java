@@ -290,6 +290,13 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval("f(a,b)"), equalTo( (SEXP) new FunctionCall(Symbol.get("list"),
         PairList.Node.fromArray(Symbol.get("a"), Symbol.get("b"))) ));
   }
+  
+  @Test
+  public void listFromArgs() {
+    eval(" f<- function(...) list(...) ");
+    
+    assertThat( eval("f(1,2,3)"), equalTo(list(1d,2d,3d)));
+  }
 
   @Test
   public void returnInPromises() {
@@ -331,6 +338,7 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval("switch(4)"), equalTo( NULL ));
 
     assertThat( eval("switch('a', a=,b=,c=3) "), equalTo( c(3)));
+    assertThat( eval("switch(NA_character_, a=1,b=2)"), equalTo( NULL ));
   }
 
   @Test
@@ -378,6 +386,12 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("f(9)"), equalTo(c("double")));
   }
   
+  @Test
+  public void doCall() {
+    eval(" f<- function(...) names(Q <- length(...)) ");
+    eval(" L<- list(a=1,b=2)");
+    assertThat( eval(".Internal(do.call('f', L, globalenv()))"), equalTo(c(a,b)));
+  }
   
 
   @Test

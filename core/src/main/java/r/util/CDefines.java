@@ -21,8 +21,28 @@
 
 package r.util;
 
+import r.lang.CHARSEXP;
+import r.lang.Closure;
+import r.lang.ComplexVector;
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.ExpressionVector;
+import r.lang.Frame;
+import r.lang.FunctionCall;
+import r.lang.ListVector;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.PrimitiveFunction;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Symbols;
+import r.lang.Vector;
+import r.lang.Vector.Builder;
+
 import com.google.common.base.Preconditions;
-import r.lang.*;
 
 /**
  * Macros and static methods defined in the original C implementation
@@ -48,6 +68,11 @@ public class CDefines {
     StringVector vector = (StringVector)x;
     return new CHARSEXP(vector.getElement(i));
   }
+  
+  public static SEXP VECTOR_ELT(SEXP x, int i) {
+    ListVector vector = (ListVector)x;
+    return vector.getElementAsSEXP(i);
+  }
 
   public static String CHAR(CHARSEXP s) {
     return s.getValue();
@@ -56,7 +81,13 @@ public class CDefines {
   public static CHARSEXP PRINTNAME(SEXP s) {
     return new CHARSEXP(((Symbol) s).getPrintName());
   }
+  
+  public static char[] CHAR(SEXP s) {
+    CHARSEXP cs = (CHARSEXP)s;
+    return cs.getValue().toCharArray();
+  }
 
+  
 
 //#define LOGICAL(x)	((int *) DATAPTR(x))
 //#define INTEGER(x)	((int *) DATAPTR(x))
@@ -227,9 +258,10 @@ public class CDefines {
    *
    * @param s
    */
-  public static void PROTECT(SEXP s) {
+  public static void PROTECT(Object s) {
     /** NO OP -- JVM is handling memory alloc **/
   }
+  
 
   public static void UNPROTECT(int c) {
     /** NO OP -- JVM is handling memory alloc **/
@@ -327,6 +359,9 @@ public class CDefines {
 //#define SETLEVELS(x,v)	(((x)->sxpinfo.gp)=(v))
 
 
+  public static Symbol install(String name) {
+    return Symbol.get(name);
+  }
 
   public static String translateChar(SEXP s) {
     CHARSEXP charVec = (CHARSEXP)s;
@@ -373,7 +408,84 @@ public class CDefines {
   public static String _(String s) {
     return s;
   }
+  
+  public static SEXP findVar(SEXP devName, SEXP env) {
+    return ((Environment)env).findVariable((Symbol)devName);
+  }
+  
+  public static SEXP findVarInFrame(Frame frame, SEXP name) {
+    return frame.getVariable((Symbol)name);
+  }
+  
+  public static SEXP eval(SEXP exp, Context context, SEXP rho) {
+    return exp.evalToExp(context, (Environment)rho);
+  }
 
+  public static SexpType TYPEOF(SEXP exp) {
+    if(exp instanceof Closure) {
+      return CLOSXP;
+    } else if(exp instanceof ListVector){
+      return VECSXP;
+    } else {
+      return null;
+    }
+  }
+  
+  public static class SexpType {
+    private SexpType() {
+      
+    }
+  }
+  
+  public static boolean isNewList(SEXP s)
+  {
+      return (s == R_NilValue || TYPEOF(s) == VECSXP);
+  }
+  
+  public static final SexpType CLOSXP = new SexpType();
+  public static final SexpType VECSXP = new SexpType();
+  public static final SexpType STRSXP = new SexpType();
+  public static final SexpType REALSXP = new SexpType();
+
+  public static Vector.Builder allocVector(SexpType type, int size) {
+    if(type == VECSXP) {
+      return new ListVector.Builder(size);
+    } else if(type == STRSXP) {
+      return new StringVector.Builder(size);
+    } else {
+      throw new UnsupportedOperationException();
+    }
+  }
+  
+  public static final Symbol R_NamesSymbol = Symbols.NAMES;
+  
+  public static final CHARSEXP R_BlankString = new CHARSEXP("");
+  
+  public static final SEXP getAttrib(SEXP s, Symbol attribName) {
+    return s.getAttribute(attribName);
+  }
+  
+  public static void SET_STRING_ELT(Builder builder, int i, SEXP tag) {
+    if(tag == R_NilValue) {
+      builder.setNA(i);
+    } else {
+      ((StringVector.Builder)builder).set(i, ((CHARSEXP)tag).toString());
+    }
+  }
+
+  public static void SET_VECTOR_ELT(Builder newnames, int i, SEXP tag) {
+    ((ListVector.Builder)newnames).set(i,  tag);
+  }
+  
+  public static void setAttrib(Builder builder, Symbol name, SEXP value) {
+    builder.setAttribute(name, value);
+  }
+
+  public static void setAttrib(Builder builder, Symbol name, Builder valueBuilder) {
+    builder.setAttribute(name, valueBuilder.build());
+  }
+  
+  
   public enum ArithOpType {
     PLUSOP,
     MINUSOP,

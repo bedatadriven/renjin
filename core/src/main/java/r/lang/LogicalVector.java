@@ -314,6 +314,10 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     public Builder add(boolean value) {
       return add(value ? 1 : 0);
     }
+    
+    public Builder add(Number value) {
+      return add(value.intValue() != 0 ? 1 : 0);
+    }
 
     public Builder set(int index, int value) {
       ensureCapacity(index+1);

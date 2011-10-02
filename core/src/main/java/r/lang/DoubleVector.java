@@ -24,6 +24,8 @@ package r.lang;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.apache.commons.math.complex.Complex;
+
+import r.lang.IntVector.Builder;
 import r.parser.ParseUtil;
 import r.util.collect.PrimitiveArrays;
 
@@ -382,6 +384,11 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
     public Builder add(double value) {
       return set(size, value);
+    }
+
+    @Override
+    public Builder add(Number value) {
+      return add(value.doubleValue());
     }
 
     @Override

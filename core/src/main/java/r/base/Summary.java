@@ -332,4 +332,120 @@ public class Summary {
     return (result.build());
   }
 
+  @Primitive("pmin")
+  public static Vector pmin(boolean naRm, @ArgumentList ListVector vectors) {
+    ParallelProcessor processor = new ParallelProcessor(naRm, vectors) {
+      @Override
+      boolean predicate(Number x, Number y) {
+        return ((Comparable)x).compareTo(y) > 0;
+      }
+    };
+    return processor.compute();
+  }
+  
+  @Primitive("pmax")
+  public static Vector pmax(boolean naRm, @ArgumentList ListVector vectors) {
+    ParallelProcessor processor = new ParallelProcessor(naRm, vectors) {
+      @Override
+      boolean predicate(Number x, Number y) {
+        return ((Comparable)x).compareTo(y) < 0;
+      }
+    };
+    return processor.compute();
+  }  
+  
+  
+  private abstract static class ParallelProcessor {
+    
+    private ListVector arguments;
+    private int resultLength;
+    private boolean realResult;
+    private boolean naRm;
+    
+    public ParallelProcessor(boolean naRm, ListVector arguments) {
+      this.arguments = arguments;
+      this.naRm = naRm;
+      if(arguments.length() == 0) {
+        throw new EvalException("no arguments");
+      }
+      this.resultLength = arguments.maxElementLength();
+    }
+    
+
+    private void validateArguments() {
+      // validate arguments and determine result type
+      for(SEXP argument : arguments) {
+        if(argument.length() == 0) {
+          throw new EvalException("cannot mix 0-length vectors with others");
+        } else if(argument instanceof DoubleVector) {
+          realResult = true;
+        } else if(! (argument instanceof LogicalVector || argument instanceof IntVector) ) {
+          throw new EvalException("cannot handle argument of type '%s'", argument.getTypeName());
+        }
+      }
+    }
+    
+    public Vector compute() {
+      if(resultLength == 0) {
+        return Null.INSTANCE;
+      } else {
+        validateArguments();
+        Vector.Builder builder = createBuilder();
+        for(int i=0;i!=resultLength;++i) {
+          Number result = computeResult(i);
+          if(result == null) {
+            builder.addNA();
+          } else {
+            builder.add(result);
+          }
+        }
+        return builder.build();
+      }
+    }
+
+    private Number computeResult(int resultIndex) {
+      Number result = null;
+      for(int argIndex=0;argIndex<arguments.length();++argIndex) {
+        Number value = getValue(argIndex, resultIndex);
+        if(value == null && !naRm) {
+          return null;
+        } else if(result == null && value != null) {
+          result = value;
+        } else if(result != null && value != null &&
+               predicate(result, value)) {
+          result = value;
+        }
+      }
+      return result;
+    }
+    
+    private Vector.Builder createBuilder() {
+      if(realResult) {
+        return new DoubleVector.Builder();
+      } else {
+        return new IntVector.Builder();
+      }
+    }
+    
+    private Vector getVector(int index) {
+      return (Vector)arguments.getElementAsSEXP(index);
+    }
+    
+    private Number getValue(int argument, int index) {
+      Vector vector = getVector(argument);
+      int vectorIndex = index % vector.length();
+      if(vector.isElementNA(vectorIndex)) {
+        return null;
+      } else {
+        if(realResult) {
+          return vector.getElementAsDouble(vectorIndex);
+        } else {
+          return vector.getElementAsInt(vectorIndex);
+        }
+      }
+    }
+ 
+    abstract boolean predicate(Number x, Number y);
+  }
+
 }

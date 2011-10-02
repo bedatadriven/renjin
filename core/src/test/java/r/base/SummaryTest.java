@@ -136,4 +136,18 @@ public class SummaryTest extends EvalTestCase {
     assertThat(eval("is.na(cummin(c(1, NaN, 3, 4)))"), equalTo( c(Logical.FALSE, Logical.TRUE, Logical.TRUE, Logical.TRUE)));
   }
   
+  @Test
+  public void pmin() {
+    assertThat(eval(".Internal(pmin(FALSE, 5:1, 3))"), equalTo(c(3, 3, 3, 2, 1)));
+    assertThat(eval(".Internal(pmin(FALSE, c(1,2,3), c(0,NA,0)))"), equalTo(c(0, DoubleVector.NA, 0)));
+    assertThat(eval(".Internal(pmin(TRUE, c(1,2,3), c(0,NA,0)))"), equalTo(c(0, 2, 0)));
+  }
+  
+  @Test
+  public void pmax() {
+    assertThat(eval(".Internal(pmax(FALSE, 5:1, 3))"), equalTo(c(5, 4, 3, 3, 3)));
+    assertThat(eval(".Internal(pmax(FALSE, c(1,2,3), c(0,NA,0)))"), equalTo(c(1, DoubleVector.NA, 3)));
+    assertThat(eval(".Internal(pmax(TRUE, c(1,2,3), c(0,NA,0)))"), equalTo(c(1, 2, 3)));
+  }
+  
 }

@@ -24,6 +24,8 @@ package r.lang;
 import com.google.common.base.Joiner;
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
+
+import r.lang.Vector.Builder;
 import r.parser.ParseUtil;
 
 import java.util.Arrays;
@@ -125,7 +127,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   public Integer getElementAsObject(int index) {
     return values[index];
   }
-
+  
   @Override
   public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     int value = vector.getElementAsInt(vectorIndex);
@@ -271,6 +273,11 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
     public Builder add(int value) {
       return set(values.length, value);
+    }
+    
+    @Override
+    public Builder add(Number value) {
+      return add(value.intValue());
     }
 
     @Override

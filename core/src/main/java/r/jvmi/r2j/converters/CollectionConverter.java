@@ -1,12 +1,14 @@
 package r.jvmi.r2j.converters;
 
+import java.util.Collection;
+
 import r.lang.ListVector;
 import r.lang.SEXP;
 
 public class CollectionConverter implements Converter<Iterable> {
 
   public static boolean accept(Class clazz) {
-    return Iterable.class.isAssignableFrom(clazz);
+    return Collection.class.isAssignableFrom(clazz);
   }
 
   private Converter elementConverter = RuntimeConverter.INSTANCE;

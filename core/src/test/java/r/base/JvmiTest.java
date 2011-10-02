@@ -41,13 +41,12 @@ public class JvmiTest extends EvalTestCase {
   }
   
   @Test
-  @Ignore("not yet working")
   public void overloadedMethodCall() {
     eval("import(r.base.MyBean)");
     eval("x <- MyBean$new()");
     
     assertThat( eval("x$sayHello('fred')"), equalTo(c("Hello fred")));
-    assertThat( eval("x$sayHello(3)"), equalTo(c("Hello")));
+    assertThat( eval("x$sayHello(3)"), equalTo(c("HelloHelloHello")));
     
   }
 }

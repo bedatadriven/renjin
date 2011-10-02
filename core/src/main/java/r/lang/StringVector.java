@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import r.lang.Vector.Builder;
 import r.lang.exception.EvalException;
 import r.parser.ParseUtil;
 
@@ -295,6 +296,12 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
       if(value != null && !value.isEmpty()) {
         haveNonEmpty = true;
       }
+    }
+
+    @Override
+    public Builder add(Number value) {
+      add(ParseUtil.toString(value.doubleValue()));
+      return this;
     }
 
     public void addAll(Iterable<String> values) {

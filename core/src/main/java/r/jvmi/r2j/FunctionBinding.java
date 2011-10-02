@@ -31,6 +31,7 @@ public class FunctionBinding {
       }
       this.overloads.add(overload);
     }
+    sortOverloads();
   }
   
   public FunctionBinding(Method[] methods) {
@@ -90,20 +91,29 @@ public class FunctionBinding {
     }
   }
   
+  /**
+   * Orders the list of overloads so that we try the most specific first 
+   * (like boolean) before we try more general overloads (like string)
+   */
   private void sortOverloads() {
-//    Collections.sort(overloads, new Comparator<Overload>() {
-//
-//      @Override
-//      public int compare(Overload o1, Overload o2) {
-//        if(o1.getArgCount() != o2.getArgCount()) {
-//          return o1.getArgCount() - o2.getArgCount();
-//        }
-//        for(int i=0;i!=o1.getArgCount();++i) {
-//          int cmp = o1.argumentConverters[i].getSpecificity() - o2.argumentConverters
-//        }
-//      }
-//      
-//    });
+    Collections.sort(overloads, new Comparator<Overload>() {
+
+      @Override
+      public int compare(Overload o1, Overload o2) {
+        if(o1.getArgCount() != o2.getArgCount()) {
+          return o1.getArgCount() - o2.getArgCount();
+        }
+        for(int i=0;i!=o1.getArgCount();++i) {
+          int cmp = o1.argumentConverters[i].getSpecificity() - 
+              o2.argumentConverters[i].getSpecificity();
+          if(cmp != 0) {
+            return cmp;
+          }
+        }
+        return 0;
+      }
+      
+    });
     
     
   }

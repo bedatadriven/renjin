@@ -179,6 +179,10 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
       return set(values.length, value);
     }
 
+    public Builder add(Number value) {
+      return add(new Raw(value.intValue()));
+    }
+    
     @Override
     public Builder setNA(int index) {
       return set(index, new Raw(RawVector.NA));

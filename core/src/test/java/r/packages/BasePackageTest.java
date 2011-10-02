@@ -304,6 +304,13 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("dim(yp)"), equalTo(c_i(6,2)));
     assertThat(eval("c(yp)"), equalTo(c(0,1,0,1,0,1,1,0,1,0,1,0)));
   }
+  
+  @Test
+  public void issue8() throws IOException {
+    topLevelContext.init();
+    assertThat( eval("rep(seq(1,10,1),2)"), equalTo(c( 1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10)));
+  }
+  
 
   private void loadBasePackage() throws IOException {
     topLevelContext.loadBasePackage();

@@ -40,11 +40,11 @@ public interface Vector extends SEXP {
   /**
    *
    * @param index zero-based index
-   * @return the element at {@code index} as an {@code int} value, converting if neccessary. If no conversion
+   * @return the element at {@code index} as an {@code int} value, converting if necessary. If no conversion
    * is possible, {@link IntVector#NA}
    */
   int getElementAsInt(int index);
-
+  
   /**
    *
    * @param index zero-based index
@@ -183,6 +183,8 @@ public interface Vector extends SEXP {
 
     Builder add(SEXP exp);
 
+    Builder add(Number value);
+    
     /**
      *
      * @param name  the name of the attribute

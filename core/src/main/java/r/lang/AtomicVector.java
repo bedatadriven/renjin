@@ -77,7 +77,6 @@ public interface AtomicVector extends Vector {
 
   interface AtomicVectorBuilder {
 
-
   }
 
 }

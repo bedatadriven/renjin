@@ -22,6 +22,8 @@
 package r.lang;
 
 import org.apache.commons.math.complex.Complex;
+
+import r.lang.Vector.Builder;
 import r.lang.exception.EvalException;
 
 import java.util.Collections;
@@ -337,6 +339,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     public Vector.Builder add(SEXP exp) {
       throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
     }
+    
+    @Override
+    public Vector.Builder add(Number value) {
+      throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
 
     @Override
     public Vector.Builder setAttribute(String name, SEXP value) {
@@ -381,4 +388,5 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
     }
 
   }
+
 }

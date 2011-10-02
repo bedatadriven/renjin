@@ -418,6 +418,17 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
       return new ListVector(values, buildAttributes());
     }
+
+    @Override
+    public Builder add(Number value) {
+      if(value instanceof Integer || value instanceof Byte || value instanceof Byte || 
+          value instanceof Short) {
+        add(new IntVector(value.intValue()));
+      } else {
+        add(new DoubleVector(value.doubleValue()));
+      }
+      return this;
+    }
   }
 
   private static class ListType extends Vector.Type {

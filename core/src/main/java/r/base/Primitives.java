@@ -293,8 +293,8 @@ public class Primitives {
     f("unique", Match.class, 1, 11, 3);
     f("anyDuplicated", Match.class, 2, 11, 3);
     f("which.min", Sort.class, 0, 11, 1);
-    f("pmin", /*pmin*/ null, 0, 11, -1);
-    f("pmax", /*pmin*/ null, 1, 11, -1);
+    f("pmin", Summary.class, 0, 11, -1);
+    f("pmax", Summary.class, 1, 11, -1);
     f("which.max", Sort.class, 1, 11, 1);
     f("match", Match.class, 0, 11, 4);
     f("pmatch", Match.class, 0, 11, 4);

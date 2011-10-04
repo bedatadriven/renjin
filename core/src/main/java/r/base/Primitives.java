@@ -421,7 +421,7 @@ public class Primitives {
 
     f("dlnorm", /*math3*/ null, 16, 11, 3 + 1);
     f("plnorm", /*math3*/ null, 17, 11, 3 + 2);
-    f("qlnorm", /*math3*/ null, 18, 11, 3 + 2);
+    f("qlnorm", Distributions.class, 18, 11, 3 + 2);
 
     f("dlogis", /*math3*/ null, 19, 11, 3 + 1);
     f("plogis", /*math3*/ null, 20, 11, 3 + 2);

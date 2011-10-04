@@ -164,6 +164,10 @@ public class Distributions {
   public static double qnorm(@Recycle double p, @Recycle double mean, @Recycle double sd, boolean lowerTail, boolean logP)  {
     return q(new NormalDistributionImpl(mean, sd), p, lowerTail, logP);
   }
+  
+   public static double qlnorm(@Recycle double p, @Recycle double meanlog, @Recycle double sdlog, boolean lowerTail, boolean logP)  {
+    return Math.exp(q(new NormalDistributionImpl(meanlog, sdlog), p, lowerTail, logP));
+  }
 
   public static double dbeta(@Recycle double x, @Recycle double shape1, @Recycle double shape2, boolean log)  {
     return d(new BetaDistributionImpl(shape1, shape2), x, log);

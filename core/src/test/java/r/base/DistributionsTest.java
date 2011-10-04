@@ -74,4 +74,9 @@ public class DistributionsTest {
   public void hyper() throws MathException {
     assertThat( Distributions.dhyper(3, 5, 2, 3, false), closeTo(0.2857143, ERROR));
   }
+  
+  @Test
+  public void QLogNormal(){
+    assertThat( Distributions.qlnorm(0.95, 0, 1, /* lower.tail */ true, /* log.p */ false), closeTo( 5.180252, ERROR));
+  }
 }

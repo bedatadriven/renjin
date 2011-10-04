@@ -420,7 +420,7 @@ public class Primitives {
     f("qgamma", Distributions.class, 15, 11, 3 + 2);
 
     f("dlnorm", /*math3*/ null, 16, 11, 3 + 1);
-    f("plnorm", /*math3*/ null, 17, 11, 3 + 2);
+    f("plnorm", Distribution.class, 17, 11, 3 + 2);
     f("qlnorm", Distributions.class, 18, 11, 3 + 2);
 
     f("dlogis", /*math3*/ null, 19, 11, 3 + 1);

@@ -160,6 +160,10 @@ public class Distributions {
   public static double pnorm(@Recycle double q, @Recycle double mean, @Recycle double sd, boolean lowerTail, boolean logP)  {
     return p(new NormalDistributionImpl(mean, sd), q, lowerTail, logP);
   }
+  
+  public static double plnorm(@Recycle double q, @Recycle double logmean, @Recycle double logsd, boolean lowerTail, boolean logP)  {
+    return p(new NormalDistributionImpl(logmean, logsd), Math.log(q), lowerTail, logP);
+  }
 
   public static double qnorm(@Recycle double p, @Recycle double mean, @Recycle double sd, boolean lowerTail, boolean logP)  {
     return q(new NormalDistributionImpl(mean, sd), p, lowerTail, logP);

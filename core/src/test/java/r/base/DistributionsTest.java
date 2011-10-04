@@ -78,5 +78,12 @@ public class DistributionsTest {
   @Test
   public void QLogNormal(){
     assertThat( Distributions.qlnorm(0.95, 0, 1, /* lower.tail */ true, /* log.p */ false), closeTo( 5.180252, ERROR));
+    assertThat( Distributions.qlnorm(0.68, 0, 1, /* lower.tail */ false, /* log.p */ false), closeTo( 0.6264422, ERROR));
+  }
+  
+  @Test 
+    public void PLogNormal(){
+    assertThat( Distributions.plnorm(1.96, 0, 1, /* lower.tail */ true, /* log.p */ false), closeTo( 0.7495087, ERROR));
+    assertThat( Distributions.plnorm(2.55, 0, 1, /* lower.tail */ false, /* log.p */ false), closeTo( 0.1746126, ERROR));
   }
 }

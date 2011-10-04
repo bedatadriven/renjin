@@ -15,7 +15,7 @@ public class BooleanConverter extends PrimitiveScalarConverter<Boolean> {
   }
   
   @Override
-  public SEXP convert(Boolean value) {
+  public SEXP convertToR(Boolean value) {
     if(value == null) {
       return new LogicalVector(LogicalVector.NA);
     } else {

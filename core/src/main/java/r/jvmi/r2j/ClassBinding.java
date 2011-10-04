@@ -1,6 +1,5 @@
 package r.jvmi.r2j;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
@@ -12,6 +11,7 @@ import r.lang.SEXP;
 import r.lang.Symbol;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -36,7 +36,6 @@ public class ClassBinding {
   private ConstructorBinding constructorBinding;
   private IdentityHashMap<Symbol, MemberBinding> members = Maps.newIdentityHashMap(); 
   private IdentityHashMap<Symbol, SEXP> staticMembers = Maps.newIdentityHashMap();
-  private boolean instantiable = false;
   
   private ClassBinding(Class clazz) {
     this.clazz = clazz;
@@ -66,7 +65,7 @@ public class ClassBinding {
     }
     
     // any setters without matching getters will be treated as methods
-    for(Symbol name : setters.keySet()) {
+    for(Symbol name : Lists.newArrayList(setters.keySet())) {
       if(!getters.containsKey(name)) {
         for(Method setter : setters.removeAll(name)) {
           methods.put(Symbol.get(setter.getName()), setter);

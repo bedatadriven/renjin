@@ -385,14 +385,6 @@ public class EvaluationTest extends EvalTestCase {
    
     assertThat(eval("f(9)"), equalTo(c("double")));
   }
-  
-  @Test
-  public void doCall() {
-    eval(" f<- function(...) names(Q <- length(...)) ");
-    eval(" L<- list(a=1,b=2)");
-    assertThat( eval(".Internal(do.call('f', L, globalenv()))"), equalTo(c(a,b)));
-  }
-  
 
   @Test
   public void nargs() {

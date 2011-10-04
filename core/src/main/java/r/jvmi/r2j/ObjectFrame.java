@@ -56,4 +56,8 @@ public class ObjectFrame implements Frame {
   public void clear() {
     throw new EvalException("Cannot clear a JVM object frame");
   }  
+  
+  public Object getInstance() {
+    return instance;
+  }
 }

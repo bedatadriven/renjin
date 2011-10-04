@@ -15,6 +15,9 @@ public class Converters  {
     } else if(DoubleConverter.accept(clazz)) {
       return DoubleConverter.INSTANCE;
     
+    } else if(SexpConverter.acceptsJava(clazz)) {
+      return new SexpConverter(clazz);
+      
     } else if(EnumConverter.accept(clazz)) {
       return new EnumConverter(clazz);
       
@@ -23,12 +26,9 @@ public class Converters  {
       
     } else if(CollectionConverter.accept(clazz)) {
       return new CollectionConverter();
-      
-    } else if(clazz.isInterface() || clazz.equals(Object.class)) {
-      return RuntimeConverter.INSTANCE;
-    
+     
     } else {
-      return ObjectConverter.INSTANCE;
+      return new ObjectConverter(clazz);
     }
   }
   

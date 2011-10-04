@@ -14,7 +14,7 @@ public class IntegerConverter extends PrimitiveScalarConverter<Number> {
   }
 
   @Override
-  public SEXP convert(Number value) {
+  public SEXP convertToR(Number value) {
     if(value == null) {
       return new IntVector(IntVector.NA);
     } else {

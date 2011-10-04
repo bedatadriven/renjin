@@ -15,7 +15,7 @@ public class VoidConverter implements Converter<Void> {
   }
   
   @Override
-  public SEXP convert(Void value) {
+  public SEXP convertToR(Void value) {
     return Null.INSTANCE;
   }
 

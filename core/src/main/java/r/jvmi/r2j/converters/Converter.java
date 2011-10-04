@@ -4,7 +4,7 @@ import r.lang.SEXP;
 
 public interface Converter<T>  {
   
-  SEXP convert(T value);
+  SEXP convertToR(T value);
   
   boolean acceptsSEXP(SEXP exp);
   

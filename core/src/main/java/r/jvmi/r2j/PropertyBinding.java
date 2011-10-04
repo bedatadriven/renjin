@@ -35,7 +35,7 @@ public class PropertyBinding implements MemberBinding {
   
   public SEXP getValue(Object instance) {
     try {
-      return getterConverter.convert(getter.invoke(instance));
+      return getterConverter.convertToR(getter.invoke(instance));
     } catch (IllegalArgumentException e) {
       // shouldn't happen, we're not passing arguments to the getter!
       throw new RuntimeException(e);

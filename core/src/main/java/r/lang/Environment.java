@@ -290,6 +290,10 @@ public class Environment extends AbstractSEXP implements Recursive {
     return modCount + parent.getCumulativeModCount();
   }
   
+  public Frame getFrame() {
+    return frame;
+  }
+  
   /**
    * Locking the environment prevents adding or removing variable bindings from the environment.
    * Changing the value of a variable is still possible unless the binding has been locked

@@ -3,6 +3,8 @@ package r.base;
 import java.util.Arrays;
 import java.util.List;
 
+import r.lang.DoubleVector;
+
 import com.google.common.collect.Lists;
 
 public class MyBean {
@@ -65,5 +67,15 @@ public class MyBean {
       sb.append("Hello");
     }
     return sb.toString();
+  }
+  
+  // should be mapped as method, not propery
+  // because there is no getter
+  public void setLocked(boolean locked) {
+    
+  }
+  
+  public DoubleVector compute() {
+    return new DoubleVector(1,2,3);
   }
 }

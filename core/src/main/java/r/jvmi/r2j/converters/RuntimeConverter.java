@@ -11,9 +11,9 @@ public class RuntimeConverter implements Converter<Object> {
   }
   
   @Override
-  public SEXP convert(Object value) {
+  public SEXP convertToR(Object value) {
     Converter converter = Converters.get(value.getClass());
-    return converter.convert(value);
+    return converter.convertToR(value);
   }
 
   @Override

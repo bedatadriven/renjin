@@ -14,12 +14,12 @@ public class MapConverter implements Converter<Map<?,?>> {
   private Converter elementConverter = RuntimeConverter.INSTANCE;
   
   @Override
-  public SEXP convert(Map<?,?> map) {
+  public SEXP convertToR(Map<?,?> map) {
     ListVector.Builder list = new ListVector.Builder();
     for(Map.Entry<?,?> entry : map.entrySet()) {
       list.add(
           entry.getKey().toString(), 
-          elementConverter.convert(entry.getValue()));
+          elementConverter.convertToR(entry.getValue()));
     }
     return list.build();
   }

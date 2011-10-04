@@ -12,7 +12,7 @@ public class NullConverter implements Converter<SEXP> {
   }
   
   @Override
-  public SEXP convert(SEXP value) {
+  public SEXP convertToR(SEXP value) {
     return value;
   }
 

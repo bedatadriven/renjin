@@ -2,28 +2,50 @@ package r.jvmi.r2j.converters;
 
 import r.jvmi.r2j.ObjectFrame;
 import r.lang.Environment;
+import r.lang.Null;
 import r.lang.SEXP;
 
 public class ObjectConverter implements Converter<Object> {
-
-  public static final ObjectConverter INSTANCE = new ObjectConverter();
   
-  private ObjectConverter() { 
+  private Class clazz;
+  
+  public ObjectConverter(Class clazz) {
+    this.clazz = clazz;
   }
   
   @Override
-  public SEXP convert(Object value) {
+  public SEXP convertToR(Object value) {
+    if(value == null) {
+      return Null.INSTANCE;
+    }
     return Environment.createChildEnvironment(Environment.EMPTY, new ObjectFrame(value));
   }
 
   @Override
-  public Object convertToJava(SEXP value) {
-    throw new UnsupportedOperationException();
+  public Object convertToJava(SEXP exp) {
+    
+    // try to simply unwrap 
+    if(exp instanceof Environment) {
+      Environment env = (Environment)exp;
+      if(env.getFrame() instanceof ObjectFrame) {
+        Object instance = ((ObjectFrame)env.getFrame()).getInstance();
+        if(clazz.isAssignableFrom(instance.getClass())) {
+          return instance;
+        }
+      }
+    }
+    throw new ConversionException();
   }
 
   @Override
   public boolean acceptsSEXP(SEXP exp) {
-    throw new UnsupportedOperationException();
+    try {
+      convertToJava(exp);
+      return true;
+      
+    } catch(ConversionException e) {
+      return false;
+    }
   }
 
   @Override

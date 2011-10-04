@@ -3,10 +3,12 @@ package r.base;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import r.EvalTestCase;
+import r.jvmi.r2j.ObjectFrame;
+import r.lang.Environment;
+import r.lang.Symbol;
 
 public class JvmiTest extends EvalTestCase {
 
@@ -26,7 +28,7 @@ public class JvmiTest extends EvalTestCase {
     assertThat(eval("x$name"), equalTo(c("tom")));
     assertThat(eval("x$count"), equalTo(c_i(44)));
     assertThat(eval("x$membershipStatus"), equalTo(c("ACTIVE")));
-   
+    assertThat(eval("x$compute()"), equalTo(c(1,2,3)));
     //eval("x$children[[3]] <- 'Rick'");
     //assertThat(eval("x$children"), equalTo(list("Bob", "Sue", "Rick")));
   }
@@ -49,4 +51,22 @@ public class JvmiTest extends EvalTestCase {
     assertThat( eval("x$sayHello(3)"), equalTo(c("HelloHelloHello")));
     
   }
+  
+  private static class MyPrivateImpl implements MyPublicInterface {
+
+    @Override
+    public void doSomething() {
+    }
+  }
+  
+  @Test
+  public void publicMethodCallOnPrivateObject() {
+    topLevelContext.getGlobalEnvironment().setVariable(
+        Symbol.get("obj"), Environment.createChildEnvironment(
+            Environment.EMPTY, new ObjectFrame(new MyPrivateImpl())));
+    
+    eval("obj$doSomething()");
+    
+  }
+  
 }

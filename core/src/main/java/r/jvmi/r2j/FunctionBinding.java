@@ -51,7 +51,12 @@ public class FunctionBinding {
       for(int i=0;i!=argumentConverters.length;++i) {
         argumentConverters[i] = Converters.get(method.getParameterTypes()[i]);
       }
-      this.returnValueConverter = Converters.get(method.getReturnType());
+      this.returnValueConverter = Converters.get(method.getReturnType());    
+    
+      // workaround reflection problem calling 
+      // public methods on private subclasses
+      // see http://download.oracle.com/javase/tutorial/reflect/member/methodTrouble.html
+      this.method.setAccessible(true);
     }
     
     public int getArgCount() {
@@ -74,14 +79,18 @@ public class FunctionBinding {
       }
       try {
         Object result = method.invoke(instance, converted);
-        return returnValueConverter.convert(result);
+        return returnValueConverter.convertToR(result);
         
       } catch (IllegalArgumentException e) {
         throw new RuntimeException(e);
       } catch (IllegalAccessException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException("Exception invoking " + method, e);
       } catch (InvocationTargetException e) {
-        throw new RuntimeException(e);
+        if(e.getCause() instanceof RuntimeException) {
+          throw (RuntimeException)e.getCause();
+        } else {
+          throw new RuntimeException(e);
+        }
       }
     }
     

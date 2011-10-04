@@ -14,7 +14,7 @@ public class EnumConverter extends PrimitiveScalarConverter<Enum> {
   }
 
   @Override
-  public SEXP convert(Enum value) {
+  public SEXP convertToR(Enum value) {
     return new StringVector(value.name());
   }
 

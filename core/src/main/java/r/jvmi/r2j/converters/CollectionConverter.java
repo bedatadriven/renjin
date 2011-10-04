@@ -14,10 +14,10 @@ public class CollectionConverter implements Converter<Iterable> {
   private Converter elementConverter = RuntimeConverter.INSTANCE;
   
   @Override
-  public SEXP convert(Iterable collection) {
+  public SEXP convertToR(Iterable collection) {
     ListVector.Builder list = new ListVector.Builder();
     for(Object element : collection) {
-      list.add(elementConverter.convert(element));
+      list.add(elementConverter.convertToR(element));
     }
     return list.build();
   }

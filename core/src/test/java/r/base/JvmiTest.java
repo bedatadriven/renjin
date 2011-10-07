@@ -3,6 +3,8 @@ package r.base;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
+
 import org.junit.Test;
 
 import r.EvalTestCase;
@@ -66,6 +68,16 @@ public class JvmiTest extends EvalTestCase {
             Environment.EMPTY, new ObjectFrame(new MyPrivateImpl())));
     
     eval("obj$doSomething()");
+  }
+  
+  @Test
+  public void sapplyOnLists() throws IOException {
+    topLevelContext.init();
+    
+    eval("import(r.base.MyBean)");
+    eval("x <- MyBean$new()");
+    
+    assertThat( eval("sapply(x$childBeans, function(x) x$count)"), equalTo(c_i(42,42)));
     
   }
   

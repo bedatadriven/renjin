@@ -45,5 +45,19 @@
       <version>4.8.1</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.r-project.cran</groupId>
+      <artifactId>aspect</artifactId>
+      <version>1.0-0</version>
+    </dependency>
   </dependencies>
+  
+  <repositories>
+    <repository>
+      <id>renjin</id>
+      <name>Renjin Repo</name>
+      <url>http://repo.renjin.org/m2</url>
+    </repository>
+  </repositories>
+  
 </project>

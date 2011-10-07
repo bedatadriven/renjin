@@ -290,7 +290,7 @@ public class Files {
 
       void add(FileObject file) {
         if(fullNames) {
-          result.add(file.getName().getPath());
+          result.add(file.getName().getURI());
         } else {
           result.add(file.getName().getBaseName());
         }

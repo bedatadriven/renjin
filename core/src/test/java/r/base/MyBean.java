@@ -78,4 +78,17 @@ public class MyBean {
   public DoubleVector compute() {
     return new DoubleVector(1,2,3);
   }
+  
+  public List<MyChildBean> getChildBeans() {
+    return Arrays.asList(new MyChildBean(), new MyChildBean());
+  }
+  
+  public static class MyChildBean {
+    
+    public int getCount() {
+      return 42;
+    }
+    
+  }
+  
 }

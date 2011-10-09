@@ -739,9 +739,9 @@ public class Primitives {
     f("rapply", /*rapply*/ null, 0, 11, 5);
     f("islistfactor",  Types.class, 0, 11, 2);
     f("colSums", Matrix.class, 0, 11, 4);
-    f("colMeans", /*colsum*/ null, 1, 11, 4);
+    f("colMeans", Matrix.class, 1, 11, 4);
     f("rowSums", Matrix.class, 2, 11, 4);
-    f("rowMeans", /*colsum*/ null, 3, 11, 4);
+    f("rowMeans", Matrix.class, 3, 11, 4);
     f("Rprof", /*Rprof*/ null, 0, 11, 4);
     f("Rprofmem", /*Rprofmem*/ null, 0, 11, 3);
     f("tracemem", /*memtrace*/ null, 0, 1, 1);

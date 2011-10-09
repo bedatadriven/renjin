@@ -152,14 +152,27 @@ public class MatrixTest extends EvalTestCase {
     assertThat(eval("rowSums(q)"), equalTo(c(DoubleVector.NA, 13, 23)));
     assertThat(eval("rowSums(q, na.rm=TRUE)"), equalTo(c(5, 13, 23)));
   }
+  
+  @Test
+  public void rowMeans() throws IOException {
+    topLevelContext.init();
+    eval("q <- matrix(1:32, 4)");
+    assertThat(eval("rowMeans(q)"), equalTo(c(15,16,17,18)));
+    
+  }
 
   @Test
   public void colSums() throws IOException {
     topLevelContext.init();
     eval("q <- matrix(1:32, 4)");
-   
     assertThat(eval("colSums(q)"), equalTo(c(10,26,42,58,74,90,106,122)));
   }
 
+  @Test
+  public void colMeans() throws IOException {
+    topLevelContext.init();
+    eval("q <- matrix(1:32, 4)");
+    assertThat(eval("colMeans(q)"), equalTo(c(2.5, 6.5, 10.5, 14.5, 18.5, 22.5, 26.5, 30.5)));
+  }
   
 }

@@ -132,6 +132,15 @@ public class Matrix {
     return new DoubleVector(sums);
   }
   
+  public static DoubleVector rowMeans(AtomicVector x, int numRows, int rowLength, boolean naRm) {
+    DoubleVector sums = rowSums(x, numRows,  rowLength, naRm);
+    DoubleVector.Builder dvb = new DoubleVector.Builder();
+    for (int i = 0; i < numRows; i++) {
+      dvb.add(sums.get(i) / rowLength);
+    }
+    return (dvb.build());
+  }
+  
   public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
     
     double sums[] = new double[numColumns];
@@ -154,5 +163,14 @@ public class Matrix {
     }
     
     return new DoubleVector(sums);
+  }
+  
+  public static DoubleVector colMeans(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
+    DoubleVector sums = colSums(x, columnLength, numColumns, naRm);
+    DoubleVector.Builder dvb = new DoubleVector.Builder();
+    for (int i = 0; i < numColumns; i++) {
+      dvb.add(sums.get(i) / columnLength);
+    }
+    return (dvb.build());
   }
 }

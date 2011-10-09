@@ -321,4 +321,19 @@ public class Distributions {
 //  public static double qhyper(double p,double m, double n, double k, boolean lowerTail, boolean logP)  {
 //    return q(new HypergeometricDistributionImpl((int)m, (int)n, (int)k), p, lowerTail, logP);
 //  }
+  
+  /*
+   * Geometric distribution is not implemented in commons math but I will try to implement
+   * dgeom, pgeom and qgeom family by extending abstract classes of commons math.
+   * Now, I am leaving it as is.
+   */
+  public static double dgeom(@Recycle int x, @Recycle double p, @Recycle boolean log) {
+    if (log) {
+      return (Math.log(p * Math.pow(1 - p, x)));
+    } else {
+      return (p * Math.pow(1 - p, x));
+    }
+  }
+  
+  
 }

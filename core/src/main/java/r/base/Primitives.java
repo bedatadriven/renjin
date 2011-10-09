@@ -370,7 +370,7 @@ public class Primitives {
     f("pexp", Distributions.class, 10, 11, 2 + 2);
     f("qexp", Distributions.class, 11, 11, 2 + 2);
 
-    f("dgeom", /*math2*/ null, 12, 11, 2 + 1);
+    f("dgeom", Distributions.class, 12, 11, 2 + 1);
     f("pgeom", /*math2*/ null, 13, 11, 2 + 2);
     f("qgeom", /*math2*/ null, 14, 11, 2 + 2);
 

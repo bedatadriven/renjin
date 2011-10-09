@@ -86,4 +86,11 @@ public class DistributionsTest {
     assertThat( Distributions.plnorm(1.96, 0, 1, /* lower.tail */ true, /* log.p */ false), closeTo( 0.7495087, ERROR));
     assertThat( Distributions.plnorm(2.55, 0, 1, /* lower.tail */ false, /* log.p */ false), closeTo( 0.1746126, ERROR));
   }
+  
+  @Test 
+  public void dgeom(){
+    assertThat( Distributions.dgeom(5, 0.5, false), closeTo( 0.015625, ERROR));
+    assertThat( Distributions.dgeom(10, 0.2, true), closeTo( -3.840873, ERROR));
+  }
+  
 }

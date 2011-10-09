@@ -1,8 +1,6 @@
 package r.base.random;
 
 import r.EvalTestCase;
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.closeTo;
 import org.junit.Test;
 
 public class TestRNG extends EvalTestCase {

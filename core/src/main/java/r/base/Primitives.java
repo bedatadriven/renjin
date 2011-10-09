@@ -17,6 +17,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 
+import r.base.random.Sampling;
 import static r.base.PPkind.*;
 import static r.base.PPprec.*;
 import static r.util.CDefines.RelOpType.*;
@@ -469,7 +470,7 @@ public class Primitives {
     f("rhyper", /*random3*/ null, 0, 11, 4);
 
     f("rmultinom", /*rmultinom*/ null, 0, 11, 3);
-    f("sample", /*sample*/ null, 0, 11, 4);
+    f("sample", Sampling.class, 0, 11, 4);
 
     f("RNGkind", RNG.class, 0, 11, 2);
     f("set.seed", RNG.class, 0, 11, 3);

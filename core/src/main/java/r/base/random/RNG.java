@@ -199,7 +199,7 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rnbinom")
   public static DoubleVector rnbinom(int n, double size, double prob) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
@@ -217,18 +217,18 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rf")
-  public static DoubleVector rf(int n, double df1, double df2){
+  public static DoubleVector rf(int n, double df1, double df2) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
       vb.add(F.rf(df1, df2));
     }
     return (vb.build());
   }
-  
+
   @Primitive("rbeta")
-  public static DoubleVector rbeta(int n, double shape1, double shape2){
+  public static DoubleVector rbeta(int n, double shape1, double shape2) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
       vb.add(Beta.rbeta(shape1, shape2));

@@ -384,12 +384,12 @@ public class Primitives {
     f("plnorm", Distribution.class, 17, 11, 3 + 2);
     f("qlnorm", Distributions.class, 18, 11, 3 + 2);
 
-    f("dlogis", /*math3*/ null, 19, 11, 3 + 1);
-    f("plogis", /*math3*/ null, 20, 11, 3 + 2);
-    f("qlogis", /*math3*/ null, 21, 11, 3 + 2);
+    f("dlogis", Distributions.class, 19, 11, 3 + 1);
+    f("plogis", Distributions.class, 20, 11, 3 + 2);
+    f("qlogis", Distributions.class, 21, 11, 3 + 2);
 
-    f("dnbinom", /*math3*/ null, 22, 11, 3 + 1);
-    f("pnbinom", /*math3*/ null, 23, 11, 3 + 2);
+    f("dnbinom", Distributions.class, 22, 11, 3 + 1);
+    f("pnbinom", Distributions.class, 23, 11, 3 + 2);
     f("qnbinom", /*math3*/ null, 24, 11, 3 + 2);
 
     f("dnorm", Distributions.class, 25, 11, 3 + 1);

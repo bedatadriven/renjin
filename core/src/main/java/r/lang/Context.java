@@ -27,6 +27,8 @@ import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
+import r.lang.graphics.ColorPalette;
+import r.lang.graphics.GraphicsDevices;
 import r.parser.RParser;
 import r.util.FileSystemUtils;
 
@@ -157,7 +159,8 @@ public class Context {
     
     public PrintWriter stdout;
     
-    private GraphicsDevice currentDevice;
+    private GraphicsDevices graphicsDevices = new GraphicsDevices();
+    private ColorPalette colorPalette = new ColorPalette();
 
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
@@ -211,20 +214,20 @@ public class Context {
       this.stdout = writer;
     }
     
-    public boolean hasGraphicsDevice() {
-      return currentDevice !=null;
-    }
-    
-    public GraphicsDevice getCurrentDevice() {
-      return currentDevice;
-    }
-    
-    public void setCurrentDevice(GraphicsDevice device) {
-      this.currentDevice = device;
+    public GraphicsDevices getGraphicsDevices() {
+      return graphicsDevices;
     }
 
     public SEXP getOption(String name) {
       return options.get(name);
+    }
+
+    public ColorPalette getColorPalette() {
+      return colorPalette;
+    }
+
+    public void setColorPalette(ColorPalette colorPalette) {
+      this.colorPalette = colorPalette;
     }
   }
 

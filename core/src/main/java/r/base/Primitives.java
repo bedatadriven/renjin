@@ -1,69 +1,25 @@
 package r.base;
 
-import static r.base.PPkind.PP_ASSIGN;
-import static r.base.PPkind.PP_BINARY;
-import static r.base.PPkind.PP_BINARY2;
-import static r.base.PPkind.PP_DOLLAR;
-import static r.base.PPkind.PP_FOREIGN;
-import static r.base.PPkind.PP_FUNCALL;
-import static r.base.PPkind.PP_FUNCTION;
-import static r.base.PPkind.PP_SUBASS;
-import static r.base.PPkind.PP_SUBSET;
-import static r.base.PPkind.PP_UNARY;
-import static r.base.PPprec.PREC_AND;
-import static r.base.PPprec.PREC_COLON;
-import static r.base.PPprec.PREC_COMPARE;
-import static r.base.PPprec.PREC_DOLLAR;
-import static r.base.PPprec.PREC_EQ;
-import static r.base.PPprec.PREC_FN;
-import static r.base.PPprec.PREC_LEFT;
-import static r.base.PPprec.PREC_NOT;
-import static r.base.PPprec.PREC_OR;
-import static r.base.PPprec.PREC_PERCENT;
-import static r.base.PPprec.PREC_POWER;
-import static r.base.PPprec.PREC_PROD;
-import static r.base.PPprec.PREC_SUBSET;
-import static r.base.PPprec.PREC_SUM;
-import static r.base.PPprec.PREC_TILDE;
-import static r.util.CDefines.RelOpType.EQOP;
-import static r.util.CDefines.RelOpType.GEOP;
-import static r.util.CDefines.RelOpType.GTOP;
-import static r.util.CDefines.RelOpType.LEOP;
-import static r.util.CDefines.RelOpType.LTOP;
-import static r.util.CDefines.RelOpType.NEOP;
-
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
-
+import r.base.graphics.Par;
+import r.base.graphics.Plot;
 import r.base.random.RNG;
-import r.base.special.AssignLeftFunction;
-import r.base.special.BeginFunction;
-import r.base.special.BreakFunction;
-import r.base.special.ClosureFunction;
-import r.base.special.ForFunction;
-import r.base.special.IfFunction;
-import r.base.special.InternalFunction;
-import r.base.special.NextFunction;
-import r.base.special.OnExitFunction;
-import r.base.special.ParenFunction;
-import r.base.special.ReassignLeftFunction;
-import r.base.special.RepeatFunction;
-import r.base.special.RestartFunction;
-import r.base.special.ReturnFunction;
-import r.base.special.SubstituteFunction;
-import r.base.special.SwitchFunction;
-import r.base.special.WhileFunction;
+import r.base.special.*;
 import r.jvmi.wrapper.WrapperGenerator;
 import r.lang.PrimitiveFunction;
 import r.lang.RuntimeBuiltinFunction;
 import r.lang.SpecialFunction;
 import r.lang.Symbol;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+
+import static r.base.PPkind.*;
+import static r.base.PPprec.*;
+import static r.util.CDefines.RelOpType.*;
 
 public class Primitives {
 
@@ -834,19 +790,19 @@ public class Primitives {
     f("colors", /*colors*/ null, 0, 11, 0);
     f("col2rgb", /*col2RGB*/ null, 0, 11, 1);
     f("palette", /*palette*/ null, 0, 11, 1);
-    f("plot.new", /*plot_new*/ null, 0, 111, 0);
-    f("plot.window", /*plot_window*/ null, 0, 111, 3);
+    f("plot.new", Plot.class, 0, 111, 0);
+    f("plot.window", Plot.class, 0, 111, 3);
     f("axis", /*axis*/ null, 0, 111, 13);
     f("plot.xy", /*plot_xy*/ null, 0, 111, 7);
     f("text", /*text*/ null, 0, 111, -1);
     f("mtext", /*mtext*/ null, 0, 111, 5);
     f("title", /*title*/ null, 0, 111, 4);
     f("abline", /*abline*/ null, 0, 111, 6);
-    f("box", /*box*/ null, 0, 111, 3);
-    f("rect", /*rect*/ null, 0, 111, 6);
-    f("polygon", /*polygon*/ null, 0, 111, 5);
-    f("xspline", /*xspline*/ null, 0, 111, -1);
-    f("par", Graphics.class, 0, 11, 1);
+    f("box", Plot.class, 0, 111, 3);
+    f("rect", Plot.class, 0, 111, 6);
+    f("polygon", Plot.class, 0, 111, 5);
+    f("xspline", Plot.class, 0, 111, -1);
+    f("par", Par.class, 0, 11, 1);
     f("segments", /*segments*/ null, 0, 111, -1);
     f("arrows", /*arrows*/ null, 0, 111, -1);
     f("layout", /*layout*/ null, 0, 111, 10);

@@ -321,9 +321,14 @@ public class Primitives {
     f("floor", Math.class, 1, 1, 1);
     f("ceiling", Math.class, "ceil", 2, 1, 1);
     f("sqrt", Math.class, 3, 1, 1);
+    /*
+     * When compiling, there is a message says that
+     * sign not implemented yet. I think this is current
+     * for many functions.
+     */
     f("sign", Math.class, "signnum", 4, 1, 1);
     f("trunc", /*trunc*/ null, 5, 1, -1);
-
+    
     f("exp", Math.class, 10, 1, 1);
     f("expm1", MathExt.class, 11, 1, 1);
     f("log1p", MathExt.class, 12, 1, 1);
@@ -354,8 +359,8 @@ public class Primitives {
 
     f("lbeta", MathExt.class, 2, 11, 2);
     f("beta", MathExt.class, 3, 11, 2);
-    f("lchoose", /*math2*/ null, 4, 11, 2);
-    f("choose", /*math2*/ null, 5, 11, 2);
+    f("lchoose", MathExt.class, 4, 11, 2);
+    f("choose", MathExt.class, 5, 11, 2);
 
     f("dchisq", Distributions.class, 6, 11, 2 + 1);
     f("pchisq", Distributions.class, 7, 11, 2 + 2);

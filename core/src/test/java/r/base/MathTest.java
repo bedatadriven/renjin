@@ -143,4 +143,16 @@ public class MathTest extends EvalTestCase {
     assertThat(eval(".Internal(lbeta(1:5, 1:5))[2]").asReal(), closeTo(-1.791759, 0.00001));
   }
   
+  @Test
+  public void choose(){
+    assertThat(eval(".Internal(choose(5,2))").asReal(), closeTo(10, 0.00001));
+    assertThat(eval(".Internal(choose(10.2,5))").asReal(), closeTo(286.2495, 0.0001));
+  }
+  
+  @Test
+  public void lchoose(){
+    assertThat(eval(".Internal(lchoose(5,2))").asReal(), closeTo(2.302585, 0.00001));
+    assertThat(eval(".Internal(lchoose(10.2,5))").asReal(), closeTo(5.656864, 0.00001));
+  }
+  
 }

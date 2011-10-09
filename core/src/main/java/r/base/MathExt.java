@@ -64,32 +64,32 @@ public class MathExt {
   public static double log2(double d) {
     return MathUtils.log(2, d);
   }
-  
+
   @Recycle
   public static double abs(double x) {
     return Math.abs(x);
   }
-  
+
   @Primitive("asinh")
   public static double asinh(double val) {
     return (Math.log(val + Math.sqrt(val * val + 1)));
   }
-  
+
   @Primitive("acosh")
   public static double acosh(double val) {
     return (Math.log(val + Math.sqrt(val + 1) * Math.sqrt(val - 1)));
   }
-  
+
   @Primitive("atanh")
   public static double atanh(double val) {
     return (0.5 * Math.log((1 + val) / (1 - val)));
   }
-  
+
   @Primitive("atan2")
-  public static double atan2(double y, double x){
-    return(Math.atan2(y, x));
+  public static double atan2(double y, double x) {
+    return (Math.atan2(y, x));
   }
-  
+
   @Primitive("signif")
   public static double signif(@Recycle double x, @Recycle int digits) {
     return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
@@ -104,15 +104,38 @@ public class MathExt {
   public static double log1p(@Recycle double x) {
     return (Math.log(1 + x));
   }
-  
+
   @Primitive("beta")
-  public static double beta(@Recycle double a, @Recycle double b){
+  public static double beta(@Recycle double a, @Recycle double b) {
     return (Math.exp(Beta.logBeta(a, b)));
   }
-  
+
   @Primitive("lbeta")
-  public static double lbeta(@Recycle double a, @Recycle double b){
+  public static double lbeta(@Recycle double a, @Recycle double b) {
     return (Beta.logBeta(a, b));
   }
-  
+
+  @Primitive("choose")
+  public static double choose(@Recycle double n, @Recycle int k) {
+    /*
+     * Because gamma(a+1) = factorial(a)
+     * we use gamma(n+1) /(gamma(n-k+1) * gamma(k+1)) instead of
+     * Binomial(n,k) = n! / ((n-k)! * k!) for non-integer n values.
+     * 
+     */
+    if (k < 0) {
+      return (0);
+    } else if (k == 0) {
+      return (1);
+    } else if ((int) n == n) {
+      return (MathUtils.binomialCoefficientDouble((int) n, k));
+    } else {
+      return (MathExt.gamma(n + 1) / (MathExt.gamma(n - k + 1) * MathExt.gamma(k + 1)));
+    }
+  }
+
+  @Primitive("lchoose")
+  public static double lchoose(@Recycle double n, @Recycle int k) {
+    return (Math.log(choose(n, k)));
+  }
 }

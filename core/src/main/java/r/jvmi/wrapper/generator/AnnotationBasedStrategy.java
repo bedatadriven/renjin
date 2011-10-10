@@ -50,7 +50,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       if(!matchingByCount.isEmpty()) {
         s.writeBeginIf("!argIt.hasNext()");
         genericDispatchStrategy.beforePrimitiveIsCalled(s, i);
-        dispatchArityGroup(s, matchingByCount);
+        dispatchArityGroup(entry, s, matchingByCount);
         s.writeCloseBlock();
       }
       
@@ -65,7 +65,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     
     Collection<JvmMethod> matchingByCount = Collections2.filter(overloads, havingPositionalArgCountOf(maxArgumentCount));
     genericDispatchStrategy.beforePrimitiveIsCalled(s, maxArgumentCount);
-    dispatchArityGroup(s, matchingByCount);
+    dispatchArityGroup(entry, s, matchingByCount);
       
 
 //    
@@ -128,7 +128,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
   }
 
   
-  private void dispatchArityGroup(WrapperSourceWriter s, Collection<JvmMethod> overloads) {
+  private void dispatchArityGroup(Entry entry, WrapperSourceWriter s, Collection<JvmMethod> overloads) {
     if(overloads.size() == 1) {
       JvmMethod overload = overloads.iterator().next();
       if(overload.getPositionalFormals().isEmpty()) {
@@ -143,7 +143,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       generateCall(s, overload);
     }
     choice.finish();
-    s.writeStatement("throw new ArgumentException()");
+    s.writeStatement(noMatchingOverloadErrorMessage(entry, overloads));
   }
 
   private String testCondition(JvmMethod overload) {

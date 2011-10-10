@@ -169,6 +169,12 @@ public class MatrixTest extends EvalTestCase {
   }
 
   @Test
+  public void transpose() throws IOException {
+    topLevelContext.init();
+    assertThat(eval("t(c(1,2,3,4))"), equalTo(c(1,2,3,4)));
+  }
+
+  @Test
   public void colMeans() throws IOException {
     topLevelContext.init();
     eval("q <- matrix(1:32, 4)");

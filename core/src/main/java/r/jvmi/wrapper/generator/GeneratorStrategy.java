@@ -2,6 +2,7 @@ package r.jvmi.wrapper.generator;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.List;
 
 import r.base.Primitives.Entry;
@@ -79,6 +80,35 @@ public abstract class GeneratorStrategy {
       method.appendFriendlySignatureTo(entry.name, message);
     }
     message.append("\"");
+    return message.toString();
+  }
+  
+  protected String noMatchingOverloadErrorMessage(Entry entry, Collection<JvmMethod> overloads) {
+    
+    int nargs = overloads.iterator().next().countPositionalFormals();
+    
+    StringBuilder message = new StringBuilder();
+    message.append("throw new EvalException(context, ");
+    message.append("\"Invalid argument:\\n");
+    message.append("\\t").append(entry.name).append("(");
+    
+    for(int i=0;i<nargs;++i) {
+      if(i > 0) {
+        message.append(", ");
+      }
+      message.append("%s");
+    }
+    message.append(")\\n");
+    message.append("\\tExpected:");
+    for(JvmMethod method : overloads) {
+      message.append("\\n\\t");
+      method.appendFriendlySignatureTo(entry.name, message);
+    }
+    message.append("\"");
+    for(int i=0;i<nargs;++i) {
+      message.append(", s" + i + ".getTypeName()");
+    }
+    message.append(")");
     return message.toString();
   }
 

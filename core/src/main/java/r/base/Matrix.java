@@ -21,25 +21,33 @@ public class Matrix {
 
   @Primitive("t.default")
   public static Vector transpose(Vector x) {
-    Vector.Builder builder = x.newBuilder(x.length());
-    Vector result = builder.build();
-    IntVector dimensions = (IntVector) x.getAttribute(Symbols.DIM);
-    int nrows = dimensions.getElementAsInt(0);
-    int ncols = dimensions.getElementAsInt(1);
-    for (int i = 0; i < nrows; i++) {
-      for (int j = 0; j < ncols; j++) {
-        builder.setFrom(Indexes.matrixIndexToVectorIndex(j, i, ncols, nrows), x,
-                        Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
+    Vector dimensions = (Vector) x.getAttribute(Symbols.DIM);
+    if(dimensions.length() == 0) {
+      return (Vector)x.setAttribute(Symbols.DIM, new IntVector(1, x.length()));
+      
+    } else if(dimensions.length() == 2){
+      Vector.Builder builder = x.newBuilder(x.length());
+      Vector result = builder.build();
+      int nrows = dimensions.getElementAsInt(0);
+      int ncols = dimensions.getElementAsInt(1);
+      for (int i = 0; i < nrows; i++) {
+        for (int j = 0; j < ncols; j++) {
+          builder.setFrom(Indexes.matrixIndexToVectorIndex(j, i, ncols, nrows), x,
+                          Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
+        }
       }
+      if (!(x.getAttribute(Symbols.DIMNAMES) instanceof r.lang.Null)) {
+        ListVector dimNames = (ListVector) x.getAttribute(Symbols.DIMNAMES);
+        ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
+        builder.setAttribute(Symbols.DIMNAMES, newDimNames);
+      }
+      builder.setAttribute(Symbols.DIM, new IntVector(ncols, nrows));
+      result = builder.build();
+      return (result);
+      
+    } else {
+      throw new EvalException("argument is not a matrix");
     }
-    if (!(x.getAttribute(Symbols.DIMNAMES) instanceof r.lang.Null)) {
-      ListVector dimNames = (ListVector) x.getAttribute(Symbols.DIMNAMES);
-      ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
-      builder.setAttribute(Symbols.DIMNAMES, newDimNames);
-    }
-    builder.setAttribute(Symbols.DIM, new IntVector(ncols, nrows));
-    result = builder.build();
-    return (result);
   }
 
   @Primitive("%*%")

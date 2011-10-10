@@ -145,6 +145,10 @@ public class ClassBinding {
   public SEXP getStaticMember(Symbol name) {
     return staticMembers.get(name);
   }
+  
+  public SEXP getStaticMember(String name) {
+    return getStaticMember(Symbol.get(name));
+  }
 
   public Object newInstance(List<SEXP> constructorArgs) {
     return constructorBinding.newInstance(constructorArgs);

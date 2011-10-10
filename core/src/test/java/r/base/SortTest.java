@@ -28,7 +28,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class SortTest extends EvalTestCase {
-    
+  
+    @Test
+    public void sortInts (){
+      assertThat(eval(".Internal(sort(c(1L,5L,2L,9L,1L), decreasing=TRUE))"), equalTo(c_i(9,5,2,1,1)));
+      assertThat(eval(".Internal(sort(c(1L,5L,2L,9L,1L), decreasing=FALSE))"), equalTo(c_i(1,1,2,5,9)));
+    }
+  
     @Test
     public void sortStringsDescending (){
         assertThat(eval(".Internal(sort(c('5','8','7','50'), decreasing=TRUE))"), equalTo(c("8","7","50","5")));

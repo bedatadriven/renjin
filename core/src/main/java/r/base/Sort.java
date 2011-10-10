@@ -39,6 +39,7 @@ import r.lang.Vector;
 import r.lang.exception.EvalException;
 
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Primitives;
 
 public class Sort {
 
@@ -75,7 +76,7 @@ public class Sort {
 
     return new DoubleVector(sorted, x.getAttributes());
   }
-
+  
   private static void reverse(double[] b) {
     int left  = 0;          
     int right = b.length-1; 
@@ -91,6 +92,38 @@ public class Sort {
     }
   }
 
+  public static Vector sort(IntVector x, boolean decreasing) {
+
+    if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
+      throw new EvalException("sorting of vectors with names not yet implemented!");
+    }
+
+    int sorted[] = x.toIntArray();
+    
+    Arrays.sort(sorted);
+
+    if(decreasing) {
+      reverse(sorted);
+    }
+
+    return new IntVector(sorted, x.getAttributes());
+  }
+
+  private static void reverse(int[] b) {
+    int left  = 0;          
+    int right = b.length-1; 
+
+    while (left < right) {
+      int temp = b[left]; 
+      b[left]  = b[right]; 
+      b[right] = temp;
+
+      // move the bounds toward the center
+      left++;
+      right--;
+    }
+  }
+  
   /**
    * Returns a permutation which rearranges its first argument into ascending or
    * descending order, breaking ties by further arguments.

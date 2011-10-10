@@ -149,6 +149,10 @@ public class WrapperRuntime {
     return EvalResult.visible(new LogicalVector(b));
   }
   
+  public static EvalResult wrapResult(float f) {
+    return EvalResult.visible(new DoubleVector(f));
+  }
+  
   public static EvalResult wrapResult(double d) {
     return EvalResult.visible(new DoubleVector(d));
   }

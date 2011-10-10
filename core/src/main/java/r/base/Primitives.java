@@ -278,12 +278,7 @@ public class Primitives {
     f("floor", Math.class, 1, 1, 1);
     f("ceiling", Math.class, "ceil", 2, 1, 1);
     f("sqrt", Math.class, 3, 1, 1);
-    /*
-     * When compiling, there is a message says that
-     * sign not implemented yet. I think this is current
-     * for many functions.
-     */
-    f("sign", Math.class, "signnum", 4, 1, 1);
+    f("sign", Math.class, "signum", 4, 1, 1);
     f("trunc", /*trunc*/ null, 5, 1, -1);
     
     f("exp", Math.class, 10, 1, 1);

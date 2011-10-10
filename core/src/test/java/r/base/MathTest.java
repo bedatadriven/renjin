@@ -155,4 +155,9 @@ public class MathTest extends EvalTestCase {
     assertThat(eval(".Internal(lchoose(10.2,5))").asReal(), closeTo(5.656864, 0.00001));
   }
   
+  @Test
+  public void sign() {
+    assertThat(eval("sign(c(-33,55,0))"), equalTo(c(-1,1,0)));
+  }
+  
 }

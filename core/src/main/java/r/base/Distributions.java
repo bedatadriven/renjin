@@ -209,14 +209,23 @@ public class Distributions {
     return q(new ExponentialDistributionImpl(mean), p, lowerTail, logP);
   }
 
+  /*
+   * non-centarity parameters is not implemented yet. Correct this.
+   */ 
   public static double dt(@Recycle double x, @Recycle double df, boolean log) {
     return d(new TDistributionImpl(df), x, log);
   }
 
+  /*
+   * non-centarity parameters is not implemented yet. Correct this.
+   */ 
   public static double pt(@Recycle double q, @Recycle double df, boolean lowerTail, boolean logP) {
     return p(new TDistributionImpl(df), q, lowerTail, logP);
   }
 
+  /*
+   * non-centarity parameters is not implemented yet. Correct this.
+   */ 
   public static double qt(@Recycle double p, @Recycle double df, boolean lowerTail, boolean logP) {
     return q(new TDistributionImpl(df), p, lowerTail, logP);
   }

@@ -1,12 +1,16 @@
 package r.base.random;
 
 import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Recycle;
 import r.lang.DoubleVector;
+import r.lang.IntVector;
 import r.lang.exception.EvalException;
 
 public class Sampling {
 
+  /*
+   * Nice function name, hah? :-) 
+   * A big reference goes to Holland and Goldberg
+   */
   public static int RouletteWheel(double[] cumulativeDist, double rand) {
     int result = 0;
     for (int i = 0; i < cumulativeDist.length - 1; i++) {
@@ -17,9 +21,9 @@ public class Sampling {
     return (result);
   }
 
-  public static DoubleVector sampleWithReplacement(DoubleVector x, int size, double[] prob) {
+  public static IntVector sampleWithReplacement(int size, double[] prob) {
     double[] cumProbs = new double[prob.length];
-    DoubleVector.Builder resultb = new DoubleVector.Builder();
+    IntVector.Builder resultb = new IntVector.Builder();
     cumProbs[0] = prob[0];
     for (int i = 1; i < cumProbs.length; i++) {
       cumProbs[i] = prob[i] + cumProbs[i - 1];
@@ -27,7 +31,10 @@ public class Sampling {
     for (int i = 0; i < size; i++) {
       double arand = RNG.unif_rand();
       int index = RouletteWheel(cumProbs, arand);
-      resultb.add(x.get(index));
+      resultb.add(index + 1);
+    }
+    for (int i = 0; i < prob.length; i++) {
+      System.out.println(prob[i]);
     }
     return (resultb.build());
   }
@@ -41,43 +48,41 @@ public class Sampling {
    * Because of the first stage aim, I am leaving it as a running but in-efficient algorithm.
    * Tests were passed :)
    */
-  public static DoubleVector sampleWithoutReplacement(DoubleVector x, int size, double[] prob) {
+  public static IntVector sampleWithoutReplacement(int size, double[] prob) {
     double[] cumProbs = new double[prob.length];
     int[] selectedIndices = new int[prob.length];
     int numItems = 0;
-    DoubleVector.Builder resultb = new DoubleVector.Builder();
+    IntVector.Builder resultb = new IntVector.Builder();
     cumProbs[0] = prob[0];
     for (int i = 1; i < cumProbs.length; i++) {
       cumProbs[i] = prob[i] + cumProbs[i - 1];
     }
+
     while (numItems < size) {
       double arand = RNG.unif_rand();
       int index = RouletteWheel(cumProbs, arand);
-      System.out.print("selected index: " + index);
-      System.out.println(" and is it ok? " + selectedIndices[index]);
       if (selectedIndices[index] == 0) {
         selectedIndices[index] = 1;
-        resultb.add(x.get(index));
+        resultb.add(index + 1);
         numItems++;
       }
     }
     return (resultb.build());
   }
 
-  /*
-   * how to make this primitive run in the renjin interpreter?
-   * It says, expected parameters are double, int(1), logical(1), double. 
-   * calling sample (1:10,2) does not run as expected.
-   */
   @Primitive("sample")
-  public static DoubleVector sample(DoubleVector x, int size, boolean replace, DoubleVector prob) {
-    double[] probs = new double[x.length()];
+  public static IntVector sample(int x, int size, boolean replace, DoubleVector prob) {
+    double[] probs = new double[x];
+    int mysize = size;
+
     if (prob != null) {
-      if (prob.length() != x.length()) {
-        throw new EvalException("Number of elements of x and prob must be equal.");
+      if (prob.length() != x) {
+        throw new EvalException("Length of x and probs are not equal");
       }
     }
-    for (int i = 0; i < x.length(); i++) {
+
+
+    for (int i = 0; i < x; i++) {
       if (prob == null) {
         probs[i] = 1.0 / probs.length;
       } else {
@@ -87,12 +92,11 @@ public class Sampling {
 
 
     if (replace) {
-      return (sampleWithReplacement(x, size, probs));
+      return (sampleWithReplacement(mysize, probs));
     } else {
-      if (size > x.length()) {
-        throw new EvalException("size can not be larger than the size of x when replace = FALSE");
-      }
-      return (sampleWithoutReplacement(x, size, probs));
+      return (sampleWithoutReplacement(mysize, probs));
     }
+
+
   }
 }

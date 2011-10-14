@@ -146,6 +146,15 @@ public class RNG {
     return (vb.build());
   }
 
+  @Primitive("rsignrank")
+  public static DoubleVector rsignrank(int nn, double n) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(SignRank.rsignrank(n));
+    }
+    return (vb.build());
+  }
+  
   @Primitive("rgeom")
   public static DoubleVector rgeom(int n, double p) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
@@ -226,7 +235,8 @@ public class RNG {
     }
     return (vb.build());
   }
-
+  
+  
   @Primitive("rf")
   public static DoubleVector rf(int n, double df1, double df2) {
     DoubleVector.Builder vb = new DoubleVector.Builder();

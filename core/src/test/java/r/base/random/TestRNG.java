@@ -45,4 +45,16 @@ public class TestRNG extends EvalTestCase {
     assertThat(eval("mean(rbinom(1000,200,0.9))").asReal(), closeTo(179.99, delta));
     assertThat(eval("mean(rbinom(1000,250,0.12))").asReal(), closeTo(29.9, delta));
   }
+  
+  
+  @Test
+  public void rsignrank() {
+    double delta = 0.1;
+    try {
+      topLevelContext.init();
+    } catch (Exception e) {
+    }
+    eval("set.seed(12345, 'Mersenne-Twister','I')");
+    assertThat(eval("mean(rsignrank(1000,100))").asReal(), closeTo(2532.18, delta));
+  }
 }

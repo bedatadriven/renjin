@@ -445,7 +445,7 @@ public class Primitives {
     f("rgeom", RNG.class, 2, 11, 2);
     f("rpois", RNG.class, 3, 11, 2);
     f("rt", RNG.class, 4, 11, 2);
-    f("rsignrank", /*random1*/ null, 5, 11, 2);
+    f("rsignrank", RNG.class, 5, 11, 2);
 
     f("rbeta", RNG.class, 0, 11, 3);
     f("rbinom", RNG.class, 1, 11, 3);
@@ -462,7 +462,7 @@ public class Primitives {
     f("rweibull", RNG.class, 10, 11, 3);
     f("rwilcox", /*random2*/ null, 11, 11, 3);
 
-    f("rhyper", /*random3*/ null, 0, 11, 4);
+    f("rhyper", /* random2 */ null, 0, 11, 4);
 
     f("rmultinom", /*rmultinom*/ null, 0, 11, 3);
     f("sample", Sampling.class, 0, 11, 4);

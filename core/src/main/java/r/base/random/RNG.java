@@ -149,7 +149,7 @@ public class RNG {
   @Primitive("rsignrank")
   public static DoubleVector rsignrank(int nn, double n) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < nn; i++) {
       vb.add(SignRank.rsignrank(n));
     }
     return (vb.build());

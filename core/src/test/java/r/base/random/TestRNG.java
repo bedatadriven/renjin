@@ -2,6 +2,9 @@ package r.base.random;
 
 import r.EvalTestCase;
 import org.junit.Test;
+import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class TestRNG extends EvalTestCase {
 
@@ -28,5 +31,18 @@ public class TestRNG extends EvalTestCase {
     assertThat(eval("a[5]").asReal(), closeTo(1.13545005119079, delta));
      */
 
+  }
+
+  @Test
+  public void rbinom() {
+    double delta = 0.1;
+    try {
+      topLevelContext.init();
+    } catch (Exception e) {
+    }
+    eval("set.seed(12345, 'Mersenne-Twister','I')");
+    assertThat(eval("mean(rbinom(1000,100,0.5))").asReal(), closeTo(50.0, delta));
+    assertThat(eval("mean(rbinom(1000,200,0.9))").asReal(), closeTo(179.99, delta));
+    assertThat(eval("mean(rbinom(1000,250,0.12))").asReal(), closeTo(29.9, delta));
   }
 }

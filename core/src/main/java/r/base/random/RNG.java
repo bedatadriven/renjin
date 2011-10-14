@@ -217,6 +217,15 @@ public class RNG {
     }
     return (vb.build());
   }
+  
+  @Primitive("rbinom")
+  public static DoubleVector rbinom(int n, double size, double prob) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(Binom.rbinom(size, prob));
+    }
+    return (vb.build());
+  }
 
   @Primitive("rf")
   public static DoubleVector rf(int n, double df1, double df2) {

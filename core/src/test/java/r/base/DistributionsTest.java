@@ -63,6 +63,12 @@ public class DistributionsTest {
   public void binom() throws MathException {
     assertThat(Distributions.dbinom(3, 5, 0.25, false), closeTo(0.08789063, ERROR));
   }
+  
+  @Test
+  public void qbinom() throws MathException {
+    assertThat(Distributions.qbinom(0.2, 114, 0.55, true, false), closeTo(58, ERROR));
+    assertThat(Distributions.qbinom(0.1, 21, 0.2, true, false), closeTo(2, ERROR));
+  }
 
   @Test
   public void exp() throws MathException {

@@ -153,6 +153,26 @@ public class Distributions {
     return q;
   }
 
+   private static double q(IntegerDistribution dist, double p, boolean lowerTail, boolean logP) {
+    if (logP) {
+      p = Math.exp(p);
+    }
+    double q = 0;
+    try {
+      q = dist.inverseCumulativeProbability(p);
+    } catch (IllegalArgumentException e) {
+      return Double.NaN;
+    } catch (MathException e) {
+      return Double.NaN;
+    } catch (MathRuntimeException e) {
+      return Double.NaN;
+    }
+    if (!lowerTail) {
+      q = -q;
+    }
+    return q;
+  }
+
   public static double dnorm(@Recycle double x, @Recycle double mean, @Recycle double sd, boolean log) {
     return d(new NormalDistributionImpl(mean, sd), x, log);
   }
@@ -257,9 +277,10 @@ public class Distributions {
     return p(new PascalDistributionImpl(size, prob), x, lowerTail, logP);
   }
 
-//  public static double qbinom(double p, int size, double prob, boolean lowerTail, boolean logP)  {
-//    return q(new BinomialDistributionImpl(size, prob), p, lowerTail, logP);
-//  }
+ public static double qbinom(double p, int size, double prob, boolean lowerTail, boolean logP)  {
+    return q(new BinomialDistributionImpl(size, prob), p, lowerTail, logP) + 1;
+  }
+ 
   public static double dcauchy(@Recycle double x, @Recycle double location, @Recycle double scale, boolean log) {
     return d(new CauchyDistributionImpl(location, scale), x, log);
   }

@@ -55,6 +55,6 @@ public class TestRNG extends EvalTestCase {
     } catch (Exception e) {
     }
     eval("set.seed(12345, 'Mersenne-Twister','I')");
-    assertThat(eval("mean(rsignrank(1000,100))").asReal(), closeTo(2532.18, delta));
+    assertThat(eval("mean(rsignrank(1000,100))").asReal(), closeTo(2525.781, delta));
   }
 }

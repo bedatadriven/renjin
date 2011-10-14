@@ -34,6 +34,14 @@ public class TestSampling extends EvalTestCase {
     double delta = 0.00001;
     topLevelContext.init();
     eval("x<-c(1,2,3,4,5,10,9,8,7,6)");
-    assertThat(eval("sort(sample(x, 10L, FALSE, rep(1.0/10,10)))"), equalTo(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));
+    assertThat(eval("sort(sample(x, 10L, FALSE))"), equalTo(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));
+  }
+  
+  @Test
+  public void SamplingMinimumParametersCall() throws IOException {
+    double delta = 0.00001;
+    topLevelContext.init();
+    eval("x<-c(1,2,3,4,5,10,9,8,7,6)");
+    assertThat(eval("sort(sample(x, 10L))"), equalTo(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));
   }
 }

@@ -3,6 +3,8 @@ package r.base.random;
 import r.jvmi.annotations.Primitive;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
+import r.lang.Null;
+import r.lang.SEXP;
 import r.lang.exception.EvalException;
 
 public class Sampling {
@@ -32,9 +34,6 @@ public class Sampling {
       double arand = RNG.unif_rand();
       int index = RouletteWheel(cumProbs, arand);
       resultb.add(index + 1);
-    }
-    for (int i = 0; i < prob.length; i++) {
-      System.out.println(prob[i]);
     }
     return (resultb.build());
   }
@@ -71,11 +70,11 @@ public class Sampling {
   }
 
   @Primitive("sample")
-  public static IntVector sample(int x, int size, boolean replace, DoubleVector prob) {
+  public static IntVector sample(int x, int size, boolean replace, SEXP prob) {
     double[] probs = new double[x];
     int mysize = size;
 
-    if (prob != null) {
+    if (prob != r.lang.Null.INSTANCE) {
       if (prob.length() != x) {
         throw new EvalException("Length of x and probs are not equal");
       }
@@ -83,10 +82,10 @@ public class Sampling {
 
 
     for (int i = 0; i < x; i++) {
-      if (prob == null) {
+      if (prob == r.lang.Null.INSTANCE) {
         probs[i] = 1.0 / probs.length;
       } else {
-        probs[i] = prob.get(i);
+        probs[i] = ((DoubleVector)prob).get(i);
       }
     }
 

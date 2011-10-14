@@ -81,4 +81,19 @@ public class SystemTest extends EvalTestCase {
     //assertThat( eval(" .Internal(date()) "), equalTo( c("Fri Sep 19 12:20:00 2011") ));
    }
    
+   @Test
+   public void SysSleep(){
+     double delta = 100;
+     try{
+       topLevelContext.init();
+     }catch(Exception e){
+       
+     }
+     long start = java.lang.System.currentTimeMillis();
+     eval("Sys.sleep(1)");
+     long stop = java.lang.System.currentTimeMillis();
+     assertThat((double)(stop-start), closeTo(1000.0, delta));
+   }
+   
+   
 }

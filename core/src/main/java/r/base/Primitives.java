@@ -748,7 +748,7 @@ public class Primitives {
     f("Sys.umask", /*sysumask*/ null, 0, 111, 1);
     f("Sys.readlink", /*readlink*/ null, 0, 11, 1);
     f("Sys.info", System.class, 0, 11, 0);
-    f("Sys.sleep", /*syssleep*/ null, 0, 11, 1);
+    f("Sys.sleep", System.class, 0, 11, 1);
     f("Sys.getlocale", System.class, 0, 11, 1);
     f("Sys.setlocale", /*setlocale*/ null, 0, 11, 2);
     f("Sys.localeconv", /*localeconv*/ null, 0, 11, 0);

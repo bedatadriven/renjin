@@ -251,7 +251,14 @@ public class System {
     return(new IntVector(result));
   }
   
-  
+  @Primitive("Sys.sleep")
+  public static void SysSleep(double seconds){
+    try{
+      Thread.currentThread().sleep((long)(seconds * 1000));
+    }catch (InterruptedException ie){
+      throw new EvalException("Sys.sleep interrupted");
+    }
+  }
 
 
 }

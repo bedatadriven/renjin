@@ -42,6 +42,7 @@ import org.apache.commons.math.distribution.WeibullDistributionImpl;
 
 import r.base.distributions.LogisticDistribution;
 import r.base.distributions.UniformDistribution;
+import r.base.random.SignRank;
 import r.jvmi.annotations.Recycle;
 
 /**
@@ -280,6 +281,7 @@ public class Distributions {
  public static double qbinom(double p, int size, double prob, boolean lowerTail, boolean logP)  {
     return q(new BinomialDistributionImpl(size, prob), p, lowerTail, logP) + 1;
   }
+
  
   public static double dcauchy(@Recycle double x, @Recycle double location, @Recycle double scale, boolean log) {
     return d(new CauchyDistributionImpl(location, scale), x, log);
@@ -379,5 +381,17 @@ public class Distributions {
 
   public static double qlogis(@Recycle double p, @Recycle double m, @Recycle double s, boolean lowerTail, boolean logP) {
     return q(new LogisticDistribution(m, s), p, lowerTail, logP);
+  }
+  
+  public static double qsignrank(double p, double n, boolean lowerTail, boolean logP)  {
+    return SignRank.qsignrank(p, n, lowerTail, logP);
+  }
+  
+  public static double psignrank(double p, double n, boolean lowerTail, boolean logP)  {
+    return SignRank.psignrank(p, n, lowerTail, logP);
+  }
+  
+  public static double dsignrank(double x, double n, boolean logP)  {
+    return SignRank.dsignrank(x, n, logP);
   }
 }

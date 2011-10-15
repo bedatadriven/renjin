@@ -122,4 +122,22 @@ public class DistributionsTest {
   public void qlogis() {
     assertThat(Distributions.qlogis(0.7, 0, 1, false, false), closeTo(-0.8472979, ERROR));
   }
+  
+  @Test
+  public void qsignrank(){
+    assertThat(Distributions.qsignrank(0.7, 10, false, false), closeTo(22, ERROR));
+    assertThat(Distributions.qsignrank(0.7, 10, true, false), closeTo(33, ERROR));
+  }
+  
+  @Test
+  public void psignrank(){
+    assertThat(Distributions.psignrank(0.7, 10, false, false), closeTo(0.99902, ERROR));
+    assertThat(Distributions.psignrank(0.7, 10, true, false), closeTo(0.0009765, ERROR));
+  }  
+  
+  @Test
+  public void dsignrank(){
+    assertThat(Distributions.dsignrank(2, 5, false), closeTo(0.03125, ERROR));
+    assertThat(Distributions.dsignrank(2, 5, true), closeTo(-3.465736, ERROR));
+  }
 }

@@ -334,9 +334,9 @@ public class Primitives {
     f("pt", Distributions.class, 19, 11, 2 + 2);
     f("qt", Distributions.class, 20, 11, 2 + 2);
 
-    f("dsignrank", /*math2*/ null, 21, 11, 2 + 1);
-    f("psignrank", /*math2*/ null, 22, 11, 2 + 2);
-    f("qsignrank", /*math2*/ null, 23, 11, 2 + 2);
+    f("dsignrank", Distributions.class, 21, 11, 2 + 1);
+    f("psignrank", Distributions.class, 22, 11, 2 + 2);
+    f("qsignrank", Distributions.class, 23, 11, 2 + 2);
 
     f("besselJ", /*math2*/ null, 24, 11, 2);
     f("besselY", /*math2*/ null, 25, 11, 2);

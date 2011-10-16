@@ -23,6 +23,7 @@ package r.base;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import org.apache.commons.math.MathException;
 import org.apache.commons.math.special.Beta;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
@@ -138,4 +139,5 @@ public class MathExt {
   public static double lchoose(@Recycle double n, @Recycle int k) {
     return (Math.log(choose(n, k)));
   }
+  
 }

@@ -140,4 +140,24 @@ public class DistributionsTest {
     assertThat(Distributions.dsignrank(2, 5, false), closeTo(0.03125, ERROR));
     assertThat(Distributions.dsignrank(2, 5, true), closeTo(-3.465736, ERROR));
   }
+  
+  @Test
+  public void dwilcox(){
+    assertThat(Distributions.dwilcox(10,5,3, false), closeTo(0.08928571, ERROR));
+    assertThat(Distributions.dwilcox(20,6,4, true), closeTo(-3.73767, ERROR));
+  }
+  
+   @Test
+  public void pwilcox(){
+    assertThat(Distributions.pwilcox(2,10,5, false, false), closeTo(0.998668, ERROR));
+    assertThat(Distributions.pwilcox(7,15,7, true, false), closeTo(0.0002638615, ERROR));
+  } 
+   
+   
+  @Test
+  public void qwilcox(){
+    assertThat(Distributions.qwilcox(0.5,10,4, true, false), closeTo(20.0, ERROR));
+    assertThat(Distributions.qwilcox(0.1,4, 10, false, false), closeTo(29.0, ERROR));
+  } 
+   
 }

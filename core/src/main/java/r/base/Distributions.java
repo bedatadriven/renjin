@@ -43,6 +43,7 @@ import org.apache.commons.math.distribution.WeibullDistributionImpl;
 import r.base.distributions.LogisticDistribution;
 import r.base.distributions.UniformDistribution;
 import r.base.random.SignRank;
+import r.base.random.Wilcox;
 import r.jvmi.annotations.Recycle;
 
 /**
@@ -394,4 +395,17 @@ public class Distributions {
   public static double dsignrank(double x, double n, boolean logP)  {
     return SignRank.dsignrank(x, n, logP);
   }
+  
+  public static double dwilcox(double x, double m, double n, boolean logP)  {
+    return Wilcox.dwilcox(x, m, n, logP);
+  }
+  
+  public static double pwilcox(double q, double m, double n, boolean lowerTail, boolean logP)  {
+    return Wilcox.pwilcox(q, m, n, lowerTail, logP);
+  }
+  
+  public static double qwilcox(double p, double m, double n, boolean lowerTail, boolean logP)  {
+    return Wilcox.qwilcox(p, m, n, lowerTail, logP);
+  }
+  
 }

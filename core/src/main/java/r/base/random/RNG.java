@@ -154,7 +154,16 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
+  @Primitive("rwilcox")
+  public static DoubleVector rwilcox(int nn, double m, double n) {
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < nn; i++) {
+      vb.add(Wilcox.rwilcox(m, n));
+    }
+    return (vb.build());
+  }
+
   @Primitive("rgeom")
   public static DoubleVector rgeom(int n, double p) {
     DoubleVector.Builder vb = new DoubleVector.Builder();

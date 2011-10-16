@@ -408,9 +408,9 @@ public class Primitives {
     f("pnt", /*math3*/ null, 38, 11, 3 + 2);
     f("qnt", /*math3*/ null, 39, 11, 3 + 2);
 
-    f("dwilcox", /*math3*/ null, 40, 11, 3 + 1);
-    f("pwilcox", /*math3*/ null, 41, 11, 3 + 2);
-    f("qwilcox", /*math3*/ null, 42, 11, 3 + 2);
+    f("dwilcox", Distributions.class, 40, 11, 3 + 1);
+    f("pwilcox", Distributions.class, 41, 11, 3 + 2);
+    f("qwilcox", Distributions.class, 42, 11, 3 + 2);
 
     f("besselI", /*math3*/ null, 43, 11, 3);
     f("besselK", /*math3*/ null, 44, 11, 3);
@@ -460,7 +460,7 @@ public class Primitives {
     f("rnorm", RNG.class, 8, 11, 3);
     f("runif", RNG.class, 9, 11, 3);
     f("rweibull", RNG.class, 10, 11, 3);
-    f("rwilcox", /*random2*/ null, 11, 11, 3);
+    f("rwilcox", RNG.class, 11, 11, 3);
 
     f("rhyper", /* random3 */ null, 0, 11, 4);
 

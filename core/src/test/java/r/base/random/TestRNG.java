@@ -57,4 +57,16 @@ public class TestRNG extends EvalTestCase {
     eval("set.seed(12345, 'Mersenne-Twister','I')");
     assertThat(eval("mean(rsignrank(1000,100))").asReal(), closeTo(2525.781, delta));
   }
+  
+  @Test
+  public void rwilcox() {
+    double delta = 0.1;
+    try {
+      topLevelContext.init();
+    } catch (Exception e) {
+    }
+    eval("set.seed(12345, 'Mersenne-Twister','I')");
+    assertThat(eval("mean(rwilcox(10000,4,5))").asReal(), closeTo(10, delta));
+  }
+  
 }

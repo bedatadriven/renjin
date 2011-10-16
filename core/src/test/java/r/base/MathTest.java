@@ -21,6 +21,7 @@
 
 package r.base;
 
+import org.apache.commons.math.MathException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -159,5 +160,5 @@ public class MathTest extends EvalTestCase {
   public void sign() {
     assertThat(eval("sign(c(-33,55,0))"), equalTo(c(-1,1,0)));
   }
-  
+   
 }

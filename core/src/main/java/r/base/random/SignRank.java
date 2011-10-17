@@ -38,10 +38,36 @@ public class SignRank {
     return (log_p ? (x) : Math.exp(x));
   }
 
+  public static double R_DT_Clog(double p, boolean lower_tail, boolean log_p) {
+    return (lower_tail ? R_D_LExp(p, lower_tail, log_p) : R_D_log(p, lower_tail, log_p));
+  }
+
+  public static double R_D_log(double p, boolean lower_tail, boolean log_p) {
+    return (log_p ? (p) : Math.log(p));
+  }
+
+  public static double R_D_LExp(double x, boolean lower_tail, boolean log_p) {
+    return (log_p ? R_Log1_Exp(x, lower_tail, log_p) : Math.log1p(-x));
+  }
+
+  public static double R_Log1_Exp(double x, boolean lower_tail, boolean log_p) {
+    return ((x) > -Math.log(2.0) ? Math.log(-Math.expm1(x)) : Math.log1p(-Math.exp(x)));
+  }
+  
+  public static boolean R_D_nonint(double x, boolean lower_tail, boolean log_p){
+    return (Math.abs((x) - Math.floor((x)+0.5)) > 1e-7);
+  }
+  
+  public static double R_D_forceint(double x){
+    return Math.floor((x) + 0.5);
+  }
+  
+ 
   /*
    * Random Number Generator for SignRank
    * 
    */
+
   public static double rsignrank(double n) {
     int i, k;
     double r;

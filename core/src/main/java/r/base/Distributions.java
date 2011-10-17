@@ -42,6 +42,7 @@ import org.apache.commons.math.distribution.WeibullDistributionImpl;
 
 import r.base.distributions.LogisticDistribution;
 import r.base.distributions.UniformDistribution;
+import r.base.random.Geometric;
 import r.base.random.SignRank;
 import r.base.random.Wilcox;
 import r.jvmi.annotations.Recycle;
@@ -279,7 +280,7 @@ public class Distributions {
     return p(new PascalDistributionImpl(size, prob), x, lowerTail, logP);
   }
 
- public static double qbinom(double p, int size, double prob, boolean lowerTail, boolean logP)  {
+ public static double qbinom(@Recycle double p, @Recycle int size, @Recycle double prob, boolean lowerTail, boolean logP)  {
     return q(new BinomialDistributionImpl(size, prob), p, lowerTail, logP) + 1;
   }
 
@@ -359,17 +360,28 @@ public class Distributions {
 //  public static double qhyper(double p,double m, double n, double k, boolean lowerTail, boolean logP)  {
 //    return q(new HypergeometricDistributionImpl((int)m, (int)n, (int)k), p, lowerTail, logP);
 //  }
+  
+  
   /*
-   * Geometric distribution is not implemented in commons math but I will try to implement
-   * dgeom, pgeom and qgeom family by extending abstract classes of commons math.
-   * Now, I am leaving it as is.
-   */
   public static double dgeom(@Recycle int x, @Recycle double p, @Recycle boolean log) {
     if (log) {
       return (Math.log(p * Math.pow(1 - p, x)));
     } else {
       return (p * Math.pow(1 - p, x));
     }
+  }
+   */
+  
+  public static double pgeom(@Recycle double q, @Recycle double prob, boolean lowerTail, boolean log){
+    return (Geometric.pgeom(q, prob, lowerTail, log));
+  }
+  
+  public static double dgeom(@Recycle double x, @Recycle double prob, boolean log){
+    return Geometric.dgeom(x, prob, log);
+  }
+  
+  public static double qgeom(@Recycle double p, @Recycle double prob, boolean lowerTail, boolean log){
+    return Geometric.qgeom(p, prob, lowerTail, log);
   }
 
   public static double plogis(@Recycle double p, @Recycle double m, @Recycle double s, boolean lowerTail, boolean logP) {

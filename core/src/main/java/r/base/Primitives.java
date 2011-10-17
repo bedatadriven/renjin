@@ -323,8 +323,8 @@ public class Primitives {
     f("qexp", Distributions.class, 11, 11, 2 + 2);
 
     f("dgeom", Distributions.class, 12, 11, 2 + 1);
-    f("pgeom", /*math2*/ null, 13, 11, 2 + 2);
-    f("qgeom", /*math2*/ null, 14, 11, 2 + 2);
+    f("pgeom", Distributions.class, 13, 11, 2 + 2);
+    f("qgeom", Distributions.class, 14, 11, 2 + 2);
 
     f("dpois", Distributions.class, 15, 11, 2 + 1);
     f("ppois", Distributions.class, 16, 11, 2 + 2);

@@ -97,6 +97,19 @@ public class DistributionsTest {
     assertThat(Distributions.dgeom(5, 0.5, false), closeTo(0.015625, ERROR));
     assertThat(Distributions.dgeom(10, 0.2, true), closeTo(-3.840873, ERROR));
   }
+  
+  @Test
+  public void pgeom() {
+    assertThat(Distributions.pgeom(3, 0.5, true, false), closeTo( 0.9375, ERROR));
+    assertThat(Distributions.pgeom(10, 0.2, false,false ), closeTo( 0.08589935, ERROR));
+  }
+  
+  @Test
+  public void qgeom() {
+    assertThat(Distributions.qgeom(0.9, 0.6, true, false), closeTo( 2.0, ERROR));
+    assertThat(Distributions.qgeom(0.4, 0.1, false,false ), closeTo( 8.0, ERROR));
+  }
+  
 
   @Test
   public void dnbinom() throws MathException {

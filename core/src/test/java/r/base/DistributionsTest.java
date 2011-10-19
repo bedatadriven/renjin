@@ -23,6 +23,7 @@ package r.base;
 import org.apache.commons.math.MathException;
 import org.junit.Test;
 
+import r.lang.DoubleVector;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -60,6 +61,12 @@ public class DistributionsTest {
   }
 
   @Test
+  public void dnbeta() throws MathException {
+    assertThat(Distributions.dnbeta(0.5, 20.0, 20.0, 1.0,  false), closeTo(5.000253, ERROR));
+    assertThat(Distributions.dnbeta(0.8, 40.0, 20.0, 0.5,  true), closeTo(-0.670098, ERROR));
+  }
+   
+  @Test
   public void binom() throws MathException {
     assertThat(Distributions.dbinom(3, 5, 0.25, false), closeTo(0.08789063, ERROR));
   }
@@ -91,6 +98,12 @@ public class DistributionsTest {
     assertThat(Distributions.plnorm(1.96, 0, 1, /* lower.tail */ true, /* log.p */ false), closeTo(0.7495087, ERROR));
     assertThat(Distributions.plnorm(2.55, 0, 1, /* lower.tail */ false, /* log.p */ false), closeTo(0.1746126, ERROR));
   }
+  
+  @Test
+  public void DLogNormal() {
+    assertThat(Distributions.dlnorm(1.96, 0, 1,  /* log.p */ false), closeTo(0.1622998, ERROR));
+    assertThat(Distributions.dlnorm(2.55, 0, 1,  /* log.p */ true), closeTo(-2.293167, ERROR));
+  }
 
   @Test
   public void dgeom() {
@@ -120,6 +133,13 @@ public class DistributionsTest {
   public void pnbinom() throws MathException {
     assertThat(Distributions.pnbinom(3, 5, 0.5, false, false), closeTo(0.6367187, ERROR));
   }
+  
+  @Test
+  public void qnbinom() throws MathException {
+      assertThat(Distributions.qnbinom(0.4, 900, 0.9, true, false), closeTo(97, ERROR));
+      assertThat(Distributions.qnbinom(0.01, 900, 0.9, true, false), closeTo(76, ERROR));
+      assertThat(Distributions.qnbinom(0.1, 900, 0.3, true, true), equalTo(DoubleVector.NaN));
+  }
 
   @Test
   public void plogis() throws MathException {
@@ -135,7 +155,7 @@ public class DistributionsTest {
   public void qlogis() {
     assertThat(Distributions.qlogis(0.7, 0, 1, false, false), closeTo(-0.8472979, ERROR));
   }
-  
+
   @Test
   public void qsignrank(){
     assertThat(Distributions.qsignrank(0.7, 10, false, false), closeTo(22, ERROR));
@@ -172,5 +192,15 @@ public class DistributionsTest {
     assertThat(Distributions.qwilcox(0.5,10,4, true, false), closeTo(20.0, ERROR));
     assertThat(Distributions.qwilcox(0.1,4, 10, false, false), closeTo(29.0, ERROR));
   } 
-   
+  
+  @Test
+  public void pnchisquare(){
+    assertThat(Distributions.pnchisq(0.75, 4, 1, true, false), closeTo(0.03540971, ERROR));
+  }
+  
+  @Test
+  public void qnchisquare(){
+    assertThat(Distributions.qnchisq(0.75, 4, 1, true, false), closeTo(6.737266, ERROR));
+  }
+
 }

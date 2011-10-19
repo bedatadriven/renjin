@@ -20,6 +20,9 @@
  */
 package r.base.random;
 
+import r.lang.DoubleVector;
+import org.apache.commons.math.special.Gamma;
+
 public class Poisson {
 
   static double a0 = -0.5;
@@ -247,5 +250,27 @@ public class Poisson {
       }/* t > -.67.. */
     }
     return pois;
+  }
+
+  public static double dpois_raw(double x, double lambda, boolean give_log) {
+    /*       x >= 0 ; integer for dpois(), but not e.g. for pgamma()!
+    lambda >= 0
+     */
+    if (lambda == 0) {
+      return ((x == 0) ? SignRank.R_D__1(true, give_log) : SignRank.R_D__0(true, give_log));
+    }
+    if (!DoubleVector.isFinite(lambda)) {
+      return SignRank.R_D__0(true, give_log);
+    }
+    if (x < 0) {
+      return (SignRank.R_D__0(true, give_log));
+    }
+    if (x <= lambda * Double.MIN_VALUE) {
+      return (SignRank.R_D_exp(-lambda, true, give_log));
+    }
+    if (lambda < x * Double.MIN_VALUE) {
+      return (SignRank.R_D_exp(-lambda + x * Math.log(lambda) - Gamma.logGamma(x + 1), true, give_log));
+    }
+    return (SignRank.R_D_fexp(2 * Math.PI * x, -Binom.stirlerr(x) - Binom.bd0(x, lambda), true, give_log));
   }
 }

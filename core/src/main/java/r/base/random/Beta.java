@@ -20,6 +20,10 @@
  */
 package r.base.random;
 
+import r.base.Distributions;
+import r.lang.DoubleVector;
+import org.apache.commons.math.special.Gamma;
+
 public class Beta {
 
   public static double expmax = (Float.MAX_EXPONENT * Math.log(2)); /* = log(DBL_MAX) */
@@ -160,4 +164,83 @@ public class Beta {
       return (aa != a) ? b / (b + w) : w / (b + w);
     }
   }
+
+  public static double dnbeta(double x, double a, double b, double ncp, boolean give_log) {
+    final double eps = 1.e-15;
+
+    int kMax;
+    double k, ncp2, dx2, d, D;
+    double sum, term, p_k, q; /* They were LDOUBLE */
+
+
+    if (DoubleVector.isNaN(x) || DoubleVector.isNaN(a) || DoubleVector.isNaN(b) || DoubleVector.isNaN(ncp)) {
+      return x + a + b + ncp;
+    }
+
+    if (ncp < 0 || a <= 0 || b <= 0) {
+      return DoubleVector.NaN;
+    }
+
+    if (!DoubleVector.isFinite(a) || !DoubleVector.isFinite(b) || !DoubleVector.isFinite(ncp)) {
+      return DoubleVector.NaN;
+    }
+
+    if (x < 0 || x > 1) {
+      return (SignRank.R_D__0(true, give_log));
+    }
+
+    if (ncp == 0) {
+      return Distributions.dbeta(x, a, b, give_log);
+    }
+
+    /* New algorithm, starting with *largest* term : */
+    ncp2 = 0.5 * ncp;
+    dx2 = ncp2 * x;
+    d = (dx2 - a - 1) / 2;
+    D = d * d + dx2 * (a + b) - a;
+    if (D <= 0) {
+      kMax = 0;
+    } else {
+      D = Math.ceil(d + Math.sqrt(D));
+      kMax = (D > 0) ? (int) D : 0;
+    }
+
+    /* The starting "middle term" --- first look at it's log scale: */
+    term = Distributions.dbeta(x, a + kMax, b, /* log = */ true);
+    p_k = Poisson.dpois_raw(kMax, ncp2, true);
+    if (x == 0. || !DoubleVector.isFinite(term) || !DoubleVector.isFinite(p_k)) /* if term = +Inf */ {
+      return SignRank.R_D_exp(p_k + term, true, give_log);
+    }
+
+    /* Now if s_k := p_k * t_k  {here = exp(p_k + term)} would underflow,
+     * we should rather scale everything and re-scale at the end:*/
+
+    p_k += term; /* = log(p_k) + log(t_k) == log(s_k) -- used at end to rescale */
+    /* mid = 1 = the rescaled value, instead of  mid = exp(p_k); */
+
+    /* Now sum from the inside out */
+    sum = term = 1. /* = mid term */;
+    /* middle to the left */
+    k = kMax;
+    while (k > 0 && term > sum * eps) {
+      k--;
+      q = /* 1 / r_k = */ (k + 1) * (k + a) / (k + a + b) / dx2;
+      term *= q;
+      sum += term;
+    }
+    /* middle to the right */
+    term = 1.;
+    k = kMax;
+    do {
+      q = /* r_{old k} = */ dx2 * (k + a + b) / (k + a) / (k + 1);
+      k++;
+      term *= q;
+      sum += term;
+    } while (term > sum * eps);
+
+    return SignRank.R_D_exp(p_k + Math.log(sum), true, give_log);
+  }
+  
+  
+
 }

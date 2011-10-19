@@ -18,8 +18,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package r.base.random;
+
+import r.lang.DoubleVector;
 
 public class LNorm {
 
@@ -29,5 +30,29 @@ public class LNorm {
     }
 
     return Math.exp(Normal.rnorm(meanlog, sdlog));
+  }
+
+  public static double dlnorm(double x, double meanlog, double sdlog, boolean give_log) {
+    double y;
+
+
+    if (DoubleVector.isNaN(x) || DoubleVector.isNaN(meanlog) || DoubleVector.isNaN(sdlog)) {
+      return x + meanlog + sdlog;
+    }
+
+    if (sdlog <= 0) {
+      return DoubleVector.NaN;
+    }
+
+    //if(x <= 0) return R_D__0;
+    if (x <= 0) {
+      return SignRank.R_D__0(true, give_log);
+    }
+
+    y = (Math.log(x) - meanlog) / sdlog;
+    return (give_log ? -(Math.log(Math.sqrt(2 * Math.PI)) + 0.5 * y * y + Math.log(x * sdlog))
+            : (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * y * y) / (x * sdlog));
+    /* M_1_SQRT_2PI = 1 / sqrt(2 * pi) */
+
   }
 }

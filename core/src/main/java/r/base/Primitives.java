@@ -376,7 +376,7 @@ public class Primitives {
     f("pgamma", Distributions.class, 14, 11, 3 + 2);
     f("qgamma", Distributions.class, 15, 11, 3 + 2);
 
-    f("dlnorm", /*math3*/ null, 16, 11, 3 + 1);
+    f("dlnorm", Distributions.class, 16, 11, 3 + 1);
     f("plnorm", Distribution.class, 17, 11, 3 + 2);
     f("qlnorm", Distributions.class, 18, 11, 3 + 2);
 
@@ -386,7 +386,7 @@ public class Primitives {
 
     f("dnbinom", Distributions.class, 22, 11, 3 + 1);
     f("pnbinom", Distributions.class, 23, 11, 3 + 2);
-    f("qnbinom", /*math3*/ null, 24, 11, 3 + 2);
+    f("qnbinom", Distributions.class, 24, 11, 3 + 2);
 
     f("dnorm", Distributions.class, 25, 11, 3 + 1);
     f("pnorm", Distributions.class, 26, 11, 3 + 2);
@@ -401,8 +401,8 @@ public class Primitives {
     f("qweibull", Distributions.class, 33, 11, 3 + 2);
 
     f("dnchisq", /*math3*/ null, 34, 11, 3 + 1);
-    f("pnchisq", /*math3*/ null, 35, 11, 3 + 2);
-    f("qnchisq", /*math3*/ null, 36, 11, 3 + 2);
+    f("pnchisq", Distributions.class, 35, 11, 3 + 2);
+    f("qnchisq", Distributions.class, 36, 11, 3 + 2);
 
     f("dnt", /*math3*/ null, 37, 11, 3 + 1);
     f("pnt", /*math3*/ null, 38, 11, 3 + 2);
@@ -426,7 +426,7 @@ public class Primitives {
     f("phyper", Distribution.class, 2, 11, 4 + 2);
     f("qhyper", Distribution.class, 3, 11, 4 + 2);
 
-    f("dnbeta", /*math4*/ null, 4, 11, 4 + 1);
+    f("dnbeta", Distributions.class, 4, 11, 4 + 1);
     f("pnbeta", /*math4*/ null, 5, 11, 4 + 2);
     f("qnbeta", /*math4*/ null, 6, 11, 4 + 2);
 

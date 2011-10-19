@@ -42,7 +42,11 @@ import org.apache.commons.math.distribution.WeibullDistributionImpl;
 
 import r.base.distributions.LogisticDistribution;
 import r.base.distributions.UniformDistribution;
+import r.base.random.Beta;
+import r.base.random.Binom;
+import r.base.random.ChiSquare;
 import r.base.random.Geometric;
+import r.base.random.LNorm;
 import r.base.random.SignRank;
 import r.base.random.Wilcox;
 import r.jvmi.annotations.Recycle;
@@ -195,10 +199,19 @@ public class Distributions {
   public static double qlnorm(@Recycle double p, @Recycle double meanlog, @Recycle double sdlog, boolean lowerTail, boolean logP) {
     return Math.exp(q(new NormalDistributionImpl(meanlog, sdlog), p, lowerTail, logP));
   }
+  
+  public static double dlnorm(@Recycle double x, @Recycle double meanlog, @Recycle double sdlog, boolean logP) {
+    return LNorm.dlnorm(x, meanlog, sdlog, logP);
+  }
 
   public static double dbeta(@Recycle double x, @Recycle double shape1, @Recycle double shape2, boolean log) {
     return d(new BetaDistributionImpl(shape1, shape2), x, log);
   }
+  
+  public static double dnbeta(@Recycle double x, @Recycle double shape1, @Recycle double shape2, @Recycle double ncp, boolean log) {
+    return Beta.dnbeta(x, shape1, shape2, ncp, log);
+  }
+  
 
   public static double pbeta(@Recycle double q, @Recycle double shape1, @Recycle double shape2, boolean lowerTail, boolean logP) {
     return p(new BetaDistributionImpl(shape1, shape2), q, lowerTail, logP);
@@ -215,9 +228,17 @@ public class Distributions {
   public static double pchisq(@Recycle double q, @Recycle double df, boolean lowerTail, boolean logP) {
     return p(new ChiSquaredDistributionImpl(df), q, lowerTail, logP);
   }
+  
+  public static double pnchisq(@Recycle double q, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {
+    return ChiSquare.pnchisq(q, df, ncp, lowerTail, logP);
+  }
 
   public static double qchisq(@Recycle double p, @Recycle double df, boolean lowerTail, boolean logP) {
     return q(new ChiSquaredDistributionImpl(df), p, lowerTail, logP);
+  }
+  
+  public static double qnchisq(@Recycle double p, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {
+    return ChiSquare.qnchisq(p, df, ncp, lowerTail, logP);
   }
 
   public static double dexp(@Recycle double x, @Recycle double mean, boolean log) {
@@ -283,6 +304,10 @@ public class Distributions {
  public static double qbinom(@Recycle double p, @Recycle int size, @Recycle double prob, boolean lowerTail, boolean logP)  {
     return q(new BinomialDistributionImpl(size, prob), p, lowerTail, logP) + 1;
   }
+ 
+ public static double qnbinom(@Recycle double p, @Recycle double size, @Recycle double prob, boolean lower_tail, boolean log_p){
+   return Binom.qnbinom(p, size, prob, lower_tail, log_p);
+ }
 
  
   public static double dcauchy(@Recycle double x, @Recycle double location, @Recycle double scale, boolean log) {

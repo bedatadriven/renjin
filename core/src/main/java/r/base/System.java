@@ -240,9 +240,14 @@ public class System {
   
   @Primitive("Sys.getpid")
   public static IntVector SysGetPid(){
-    String name = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+    String name = null;
+    try{
+      name = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+    }catch (Exception e){
+      throw new EvalException("Can not catch the pid.");
+    }
     int atIndex = name.indexOf("@");
-    int result = 0;
+    int result =  1;
     try{
       result = Integer.parseInt(name.substring(0,atIndex));
     }catch (Exception e){

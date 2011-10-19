@@ -365,4 +365,121 @@ public class Binom {
 
     return SignRank.R_D_exp(lc - 0.5 * lf, true, give_log);
   }
+
+  private static double do_search(double y, double[] z, double p, double n, double pr, double incr) {
+    if (z[0] >= p) {
+      /* search to the left */
+      for (;;) {
+        if (y == 0
+                || (z[0] = Distributions.pnbinom(y - incr, (int) n, pr, /*l._t.*/ true, /*log_p*/ false)) < p) {
+          return y;
+        }
+        y = Math.max(0, y - incr);
+      }
+    } else {		/* search to the right */
+
+      for (;;) {
+        y = y + incr;
+        if ((z[0] = Distributions.pnbinom(y, (int) n, pr, /*l._t.*/ true, /*log_p*/ false)) >= p) {
+          return y;
+        }
+      }
+    }
+  }
+  
+  
+  
+  public static double qnbinom(double p, double size, double prob, boolean lower_tail, boolean log_p){
+    double P, Q, mu, sigma, gamma, y;
+    double[] z = new double[1];
+
+
+    if (DoubleVector.isNaN(p) || DoubleVector.isNaN(size) || DoubleVector.isNaN(prob)){
+	return p + size + prob;
+    }
+
+    if (prob <= 0 || prob > 1 || size <= 0) {
+      return DoubleVector.NaN;
+    }
+    
+    /* FIXME: size = 0 is well defined ! */
+    if (prob == 1) {
+      return 0;
+    }
+
+    //R_Q_P01_boundaries(p, 0, ML_POSINF);
+    //#define R_Q_P01_boundaries(p, _LEFT_, _RIGHT_)
+    //This macro is defined in /src/nmath/dpq.h
+    if (log_p) {					
+	if(p > 0){					
+	    return DoubleVector.NaN;
+        }
+	if(p == 0) {/* upper bound*/			
+	    return lower_tail ? Double.POSITIVE_INFINITY: 0;	
+        }
+	if(p == Double.NEGATIVE_INFINITY){				
+	    return lower_tail ? 0: Double.POSITIVE_INFINITY;	
+        }
+    }							
+    else { /* !log_p */					
+	if(p < 0 || p > 1){				
+	    return DoubleVector.NaN;
+        }
+	if(p == 0){					
+	    return lower_tail ? 0 : Double.POSITIVE_INFINITY;	
+        }
+	if(p == 1){
+	    return lower_tail ? Double.POSITIVE_INFINITY : 0;	
+        }
+    }
+    
+
+    Q = 1.0 / prob;
+    P = (1.0 - prob) * Q;
+    mu = size * P;
+    sigma = Math.sqrt(size * P * Q);
+    gamma = (Q + P)/sigma;
+
+    /* Note : "same" code in qpois.c, qbinom.c, qnbinom.c --
+     * FIXME: This is far from optimal [cancellation for p ~= 1, etc]: */
+    if(!lower_tail || log_p) {
+	//p = R_DT_qIv(p); /* need check again (cancellation!): */
+        p = Normal.R_DT_qIv(p, lower_tail ? 1.0 : 0.0, log_p ? 1.0 : 0.0);
+	if (p == SignRank.R_DT_0(lower_tail,log_p)){
+          return 0;
+        }
+	if (p == SignRank.R_DT_1(lower_tail, log_p)) {
+          return Double.POSITIVE_INFINITY;
+        }
+    }
+    /* temporary hack --- FIXME --- */
+    if (p + 1.01*SignRank.DBL_EPSILON >= 1.) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    /* y := approx.value (Cornish-Fisher expansion) :  */
+    z[0] = Distributions.qnorm(p, 0., 1., /*lower_tail*/true, /*log_p*/false);
+    y = Math.floor(mu + sigma * (z[0] + gamma * (z[0]*z[0] - 1) / 6) + 0.5);
+
+    z[0] = Distributions.pnbinom(y, (int)size, prob, /*lower_tail*/true, /*log_p*/false);
+
+    /* fuzz to ensure left continuity: */
+    p *= 1 - 64*SignRank.DBL_EPSILON;
+
+    /* If the C-F value is not too large a simple search is OK */
+    if(y < 1e5) {
+      return do_search(y, z, p, size, prob, 1);
+    }
+    /* Otherwise be a bit cleverer in the search */
+    {
+	double incr = Math.floor(y * 0.001), oldincr;
+	do {
+	    oldincr = incr;
+	    y = do_search(y, z, p, size, prob, incr);
+	    incr = Math.max(1, Math.floor(incr/100));
+	} while(oldincr > 1 && incr > y*1e-15);
+	return y;
+    }
+}
+
 }

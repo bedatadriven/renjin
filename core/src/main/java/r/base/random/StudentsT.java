@@ -163,4 +163,128 @@ public class StudentsT {
     }
     return SignRank.R_DT_val(Math.min(tnc, 1.) /* Precaution */, lower_tail, log_p);
   }
+
+  public static double qnt(double p, double df, double ncp, boolean lower_tail, boolean log_p) {
+    final double accu = 1e-13;
+    final double Eps = 1e-11; /* must be > accu */
+
+    double ux, lx, nx, pp;
+
+
+    if (DoubleVector.isNaN(p) || DoubleVector.isNaN(df) || DoubleVector.isNaN(ncp)) {
+      return p + df + ncp;
+    }
+
+    if (!DoubleVector.isFinite(df)) {
+      return DoubleVector.NaN;
+    }
+
+    /* Was
+     * df = floor(df + 0.5);
+     * if (df < 1 || ncp < 0) ML_ERR_return_NAN;
+     */
+    if (df <= 0.0) {
+      return (DoubleVector.NaN);
+    }
+
+    if (ncp == 0.0 && df >= 1.0) {
+      return Distributions.qt(p, df, lower_tail, log_p);
+    }
+
+    //R_Q_P01_boundaries(p, ML_NEGINF, ML_POSINF);
+    //#define R_Q_P01_boundaries(p, _LEFT_, _RIGHT_)
+    if (log_p) {
+      if (p > 0) {
+        return DoubleVector.NaN;
+      }
+      if (p == 0) /* upper bound*/ {
+        return lower_tail ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+      }
+      if (p == Double.NEGATIVE_INFINITY) {
+        return lower_tail ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+      }
+    } else { /* !log_p */
+      if (p < 0 || p > 1) {
+        return DoubleVector.NaN;
+      }
+      if (p == 0) {
+        return lower_tail ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+      }
+      if (p == 1) {
+        return lower_tail ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+      }
+    }
+
+    p = Normal.R_DT_qIv(p, log_p ? 1.0 : 0.0, lower_tail ? 1.0 : 0.0);
+    /* Invert pnt(.) :
+     * 1. finding an upper and lower bound */
+    if (p > 1 - SignRank.DBL_EPSILON) {
+      return Double.POSITIVE_INFINITY;
+    }
+    pp = Math.min(1 - SignRank.DBL_EPSILON, p * (1 + Eps));
+    for (ux = Math.max(1., ncp);
+            ux < Double.MAX_VALUE && pnt(ux, df, ncp, true, false) < pp;
+            ux *= 2);
+    pp = p * (1 - Eps);
+    for (lx = Math.min(-1., -ncp);
+            lx > -Double.MAX_VALUE && pnt(lx, df, ncp, true, false) > pp;
+            lx *= 2);
+
+    /* 2. interval (lx,ux)  halving : */
+    do {
+      nx = 0.5 * (lx + ux);
+      if (pnt(nx, df, ncp, true, false) > p) {
+        ux = nx;
+      } else {
+        lx = nx;
+      }
+    } while ((ux - lx) / Math.abs(nx) > accu);
+
+    return 0.5 * (lx + ux);
+  }
+
+  public static double dnt(double x, double df, double ncp, boolean give_log) {
+    double u;
+
+    if (DoubleVector.isNaN(x) || DoubleVector.isNaN(df)) {
+      return x + df;
+    }
+
+    /* If non-positive df then error */
+    if (df <= 0.0) {
+      return DoubleVector.NaN;
+    }
+
+    if (ncp == 0.0) {
+      return Distributions.dt(x, df, give_log);
+    }
+
+    /* If x is infinite then return 0 */
+    if (!DoubleVector.isFinite(x)) {
+      return SignRank.R_D__0(true, give_log);
+    }
+
+    /* If infinite df then the density is identical to a
+    normal distribution with mean = ncp.  However, the formula
+    loses a lot of accuracy around df=1e9
+     */
+    if (!DoubleVector.isFinite(df) || df > 1e8) {
+      return Distributions.dnorm(x, ncp, 1., give_log);
+    }
+
+    /* Do calculations on log scale to stabilize */
+
+    /* Consider two cases: x ~= 0 or not */
+    if (Math.abs(x) > Math.sqrt(df * SignRank.DBL_EPSILON)) {
+      u = Math.log(df) - Math.log(Math.abs(x))
+              + Math.log(Math.abs(Distributions.pnt(x * Math.sqrt((df + 2) / df), df + 2, ncp, true, false)
+              - Distributions.pnt(x, df, ncp, true, false)));
+      /* FIXME: the above still suffers from cancellation (but not horribly) */
+    } else {  /* x ~= 0 : -> same value as for  x = 0 */
+      u = org.apache.commons.math.special.Gamma.logGamma((df + 1) / 2) - org.apache.commons.math.special.Gamma.logGamma(df / 2)
+              - .5 * (Math.log(Math.PI) + Math.log(df) + ncp * ncp);
+    }
+
+    return (give_log ? u : Math.exp(u));
+  }
 }

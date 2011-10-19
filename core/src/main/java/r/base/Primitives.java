@@ -404,9 +404,9 @@ public class Primitives {
     f("pnchisq", Distributions.class, 35, 11, 3 + 2);
     f("qnchisq", Distributions.class, 36, 11, 3 + 2);
 
-    f("dnt", /*math3*/ null, 37, 11, 3 + 1);
+    f("dnt", Distributions.class, 37, 11, 3 + 1);
     f("pnt", Distributions.class , 38, 11, 3 + 2);
-    f("qnt", /*math3*/ null, 39, 11, 3 + 2);
+    f("qnt", Distributions.class, 39, 11, 3 + 2);
 
     f("dwilcox", Distributions.class, 40, 11, 3 + 1);
     f("pwilcox", Distributions.class, 41, 11, 3 + 2);

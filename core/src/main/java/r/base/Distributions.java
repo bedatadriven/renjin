@@ -259,6 +259,9 @@ public class Distributions {
     return d(new TDistributionImpl(df), x, log);
   }
 
+   public static double dnt(@Recycle double x, @Recycle double df, @Recycle double ncp, boolean log) {
+    return StudentsT.dnt(x, df, ncp, log);
+  }
  
   public static double pt(@Recycle double q, @Recycle double df, boolean lowerTail, boolean logP) {
     return p(new TDistributionImpl(df), q, lowerTail, logP);
@@ -270,6 +273,10 @@ public class Distributions {
 
   public static double qt(@Recycle double p, @Recycle double df, boolean lowerTail, boolean logP) {
     return q(new TDistributionImpl(df), p, lowerTail, logP);
+  }
+  
+  public static double qnt(@Recycle double p, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {
+    return StudentsT.qnt(p, df, ncp, lowerTail, logP);
   }
 
   public static double dpois(@Recycle double x, @Recycle double lambda, boolean log) {

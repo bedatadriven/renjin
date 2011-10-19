@@ -219,4 +219,15 @@ public class DistributionsTest {
     assertThat(Distributions.pnt(1.96, 20, 2, true, false), closeTo(0.4752101, ERROR));
   }
 
+  
+  @Test
+  public void qnt(){
+    assertThat(Distributions.qnt(0.8, 20, 2, true, false), closeTo(2.965995, ERROR));
+  }
+  
+   @Test
+  public void dnt(){
+    assertThat(Distributions.dnt(2, 20 , 3, false), closeTo(0.2435572, ERROR));
+  }
+   
 }

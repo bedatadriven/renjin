@@ -405,7 +405,7 @@ public class Primitives {
     f("qnchisq", Distributions.class, 36, 11, 3 + 2);
 
     f("dnt", /*math3*/ null, 37, 11, 3 + 1);
-    f("pnt", /*math3*/ null, 38, 11, 3 + 2);
+    f("pnt", Distributions.class , 38, 11, 3 + 2);
     f("qnt", /*math3*/ null, 39, 11, 3 + 2);
 
     f("dwilcox", Distributions.class, 40, 11, 3 + 1);
@@ -415,9 +415,9 @@ public class Primitives {
     f("besselI", /*math3*/ null, 43, 11, 3);
     f("besselK", /*math3*/ null, 44, 11, 3);
 
-    f("dnbinom_mu", /*math3*/ null, 45, 11, 3 + 1);
+    f("dnbinom_mu", Distributions.class, 45, 11, 3 + 1);
     f("pnbinom_mu", /*math3*/ null, 46, 11, 3 + 2);
-    f("qnbinom_mu", /*math3*/ null, 47, 11, 3 + 2);
+    f("qnbinom_mu", Distributions.class, 47, 11, 3 + 2);
 
 
 /* Mathematical Functions of Four Numeric (+ 1-2 int) Variables */

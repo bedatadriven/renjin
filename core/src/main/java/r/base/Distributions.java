@@ -48,6 +48,7 @@ import r.base.random.ChiSquare;
 import r.base.random.Geometric;
 import r.base.random.LNorm;
 import r.base.random.SignRank;
+import r.base.random.StudentsT;
 import r.base.random.Wilcox;
 import r.jvmi.annotations.Recycle;
 
@@ -253,23 +254,20 @@ public class Distributions {
     return q(new ExponentialDistributionImpl(mean), p, lowerTail, logP);
   }
 
-  /*
-   * non-centarity parameters is not implemented yet. Correct this.
-   */ 
+
   public static double dt(@Recycle double x, @Recycle double df, boolean log) {
     return d(new TDistributionImpl(df), x, log);
   }
 
-  /*
-   * non-centarity parameters is not implemented yet. Correct this.
-   */ 
+ 
   public static double pt(@Recycle double q, @Recycle double df, boolean lowerTail, boolean logP) {
     return p(new TDistributionImpl(df), q, lowerTail, logP);
   }
 
-  /*
-   * non-centarity parameters is not implemented yet. Correct this.
-   */ 
+  public static double pnt(@Recycle double q, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {
+    return StudentsT.pnt(q, df, ncp, lowerTail, logP);
+  }
+
   public static double qt(@Recycle double p, @Recycle double df, boolean lowerTail, boolean logP) {
     return q(new TDistributionImpl(df), p, lowerTail, logP);
   }
@@ -293,6 +291,10 @@ public class Distributions {
     return d(new PascalDistributionImpl(size, prob), x, log);
   }
 
+  public static double dnbinom_mu(@Recycle double x, @Recycle int size, @Recycle double mu, boolean log) {
+    return Binom.dnbinom_mu(x, size, mu, log);
+  }
+  
   public static double pbinom(@Recycle double x, @Recycle int size, @Recycle double prob, boolean lowerTail, boolean logP) {
     return p(new BinomialDistributionImpl(size, prob), x, lowerTail, logP);
   }
@@ -309,6 +311,9 @@ public class Distributions {
    return Binom.qnbinom(p, size, prob, lower_tail, log_p);
  }
 
+ public static double qnbinom_mu(@Recycle double p, @Recycle double size, @Recycle double mu, boolean lower_tail, boolean log_p){
+   return Binom.qnbinom_mu(p, size, mu, lower_tail, log_p);
+ }
  
   public static double dcauchy(@Recycle double x, @Recycle double location, @Recycle double scale, boolean log) {
     return d(new CauchyDistributionImpl(location, scale), x, log);

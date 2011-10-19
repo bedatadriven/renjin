@@ -128,6 +128,12 @@ public class DistributionsTest {
   public void dnbinom() throws MathException {
     assertThat(Distributions.dnbinom(3, 5, 0.25, false), closeTo(0.01441956, ERROR));
   }
+  
+  @Test
+  public void dnbinom_mu() throws MathException {
+    assertThat(Distributions.dnbinom_mu(4, 10, 10, false), closeTo( 0.04364014, ERROR));
+    assertThat(Distributions.dnbinom_mu(6, 10, 10, true), closeTo(-2.572162, ERROR));
+  }
 
   @Test
   public void pnbinom() throws MathException {
@@ -139,6 +145,11 @@ public class DistributionsTest {
       assertThat(Distributions.qnbinom(0.4, 900, 0.9, true, false), closeTo(97, ERROR));
       assertThat(Distributions.qnbinom(0.01, 900, 0.9, true, false), closeTo(76, ERROR));
       assertThat(Distributions.qnbinom(0.1, 900, 0.3, true, true), equalTo(DoubleVector.NaN));
+  }
+  
+  @Test
+  public void qnbinom_mu() throws MathException {
+      assertThat(Distributions.qnbinom_mu(0.6, 20, 8, true, false), closeTo(9.0, ERROR));
   }
 
   @Test
@@ -201,6 +212,11 @@ public class DistributionsTest {
   @Test
   public void qnchisquare(){
     assertThat(Distributions.qnchisq(0.75, 4, 1, true, false), closeTo(6.737266, ERROR));
+  }
+  
+  @Test
+  public void pnt(){
+    assertThat(Distributions.pnt(1.96, 20, 2, true, false), closeTo(0.4752101, ERROR));
   }
 
 }

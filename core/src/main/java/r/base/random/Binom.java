@@ -386,22 +386,20 @@ public class Binom {
       }
     }
   }
-  
-  
-  
-  public static double qnbinom(double p, double size, double prob, boolean lower_tail, boolean log_p){
+
+  public static double qnbinom(double p, double size, double prob, boolean lower_tail, boolean log_p) {
     double P, Q, mu, sigma, gamma, y;
     double[] z = new double[1];
 
 
-    if (DoubleVector.isNaN(p) || DoubleVector.isNaN(size) || DoubleVector.isNaN(prob)){
-	return p + size + prob;
+    if (DoubleVector.isNaN(p) || DoubleVector.isNaN(size) || DoubleVector.isNaN(prob)) {
+      return p + size + prob;
     }
 
     if (prob <= 0 || prob > 1 || size <= 0) {
       return DoubleVector.NaN;
     }
-    
+
     /* FIXME: size = 0 is well defined ! */
     if (prob == 1) {
       return 0;
@@ -410,76 +408,122 @@ public class Binom {
     //R_Q_P01_boundaries(p, 0, ML_POSINF);
     //#define R_Q_P01_boundaries(p, _LEFT_, _RIGHT_)
     //This macro is defined in /src/nmath/dpq.h
-    if (log_p) {					
-	if(p > 0){					
-	    return DoubleVector.NaN;
-        }
-	if(p == 0) {/* upper bound*/			
-	    return lower_tail ? Double.POSITIVE_INFINITY: 0;	
-        }
-	if(p == Double.NEGATIVE_INFINITY){				
-	    return lower_tail ? 0: Double.POSITIVE_INFINITY;	
-        }
-    }							
-    else { /* !log_p */					
-	if(p < 0 || p > 1){				
-	    return DoubleVector.NaN;
-        }
-	if(p == 0){					
-	    return lower_tail ? 0 : Double.POSITIVE_INFINITY;	
-        }
-	if(p == 1){
-	    return lower_tail ? Double.POSITIVE_INFINITY : 0;	
-        }
+    if (log_p) {
+      if (p > 0) {
+        return DoubleVector.NaN;
+      }
+      if (p == 0) {/* upper bound*/
+        return lower_tail ? Double.POSITIVE_INFINITY : 0;
+      }
+      if (p == Double.NEGATIVE_INFINITY) {
+        return lower_tail ? 0 : Double.POSITIVE_INFINITY;
+      }
+    } else { /* !log_p */
+      if (p < 0 || p > 1) {
+        return DoubleVector.NaN;
+      }
+      if (p == 0) {
+        return lower_tail ? 0 : Double.POSITIVE_INFINITY;
+      }
+      if (p == 1) {
+        return lower_tail ? Double.POSITIVE_INFINITY : 0;
+      }
     }
-    
+
 
     Q = 1.0 / prob;
     P = (1.0 - prob) * Q;
     mu = size * P;
     sigma = Math.sqrt(size * P * Q);
-    gamma = (Q + P)/sigma;
+    gamma = (Q + P) / sigma;
 
     /* Note : "same" code in qpois.c, qbinom.c, qnbinom.c --
      * FIXME: This is far from optimal [cancellation for p ~= 1, etc]: */
-    if(!lower_tail || log_p) {
-	//p = R_DT_qIv(p); /* need check again (cancellation!): */
-        p = Normal.R_DT_qIv(p, lower_tail ? 1.0 : 0.0, log_p ? 1.0 : 0.0);
-	if (p == SignRank.R_DT_0(lower_tail,log_p)){
-          return 0;
-        }
-	if (p == SignRank.R_DT_1(lower_tail, log_p)) {
-          return Double.POSITIVE_INFINITY;
-        }
+    if (!lower_tail || log_p) {
+      //p = R_DT_qIv(p); /* need check again (cancellation!): */
+      p = Normal.R_DT_qIv(p, lower_tail ? 1.0 : 0.0, log_p ? 1.0 : 0.0);
+      if (p == SignRank.R_DT_0(lower_tail, log_p)) {
+        return 0;
+      }
+      if (p == SignRank.R_DT_1(lower_tail, log_p)) {
+        return Double.POSITIVE_INFINITY;
+      }
     }
     /* temporary hack --- FIXME --- */
-    if (p + 1.01*SignRank.DBL_EPSILON >= 1.) {
+    if (p + 1.01 * SignRank.DBL_EPSILON >= 1.) {
       return Double.POSITIVE_INFINITY;
     }
 
     /* y := approx.value (Cornish-Fisher expansion) :  */
-    z[0] = Distributions.qnorm(p, 0., 1., /*lower_tail*/true, /*log_p*/false);
-    y = Math.floor(mu + sigma * (z[0] + gamma * (z[0]*z[0] - 1) / 6) + 0.5);
+    z[0] = Distributions.qnorm(p, 0., 1., /*lower_tail*/ true, /*log_p*/ false);
+    y = Math.floor(mu + sigma * (z[0] + gamma * (z[0] * z[0] - 1) / 6) + 0.5);
 
-    z[0] = Distributions.pnbinom(y, (int)size, prob, /*lower_tail*/true, /*log_p*/false);
+    z[0] = Distributions.pnbinom(y, (int) size, prob, /*lower_tail*/ true, /*log_p*/ false);
 
     /* fuzz to ensure left continuity: */
-    p *= 1 - 64*SignRank.DBL_EPSILON;
+    p *= 1 - 64 * SignRank.DBL_EPSILON;
 
     /* If the C-F value is not too large a simple search is OK */
-    if(y < 1e5) {
+    if (y < 1e5) {
       return do_search(y, z, p, size, prob, 1);
     }
     /* Otherwise be a bit cleverer in the search */
     {
-	double incr = Math.floor(y * 0.001), oldincr;
-	do {
-	    oldincr = incr;
-	    y = do_search(y, z, p, size, prob, incr);
-	    incr = Math.max(1, Math.floor(incr/100));
-	} while(oldincr > 1 && incr > y*1e-15);
-	return y;
+      double incr = Math.floor(y * 0.001), oldincr;
+      do {
+        oldincr = incr;
+        y = do_search(y, z, p, size, prob, incr);
+        incr = Math.max(1, Math.floor(incr / 100));
+      } while (oldincr > 1 && incr > y * 1e-15);
+      return y;
     }
-}
+  }
 
+  public static double dnbinom_mu(double x, double size, double mu, boolean give_log) {
+    /* originally, just set  prob :=  size / (size + mu)  and called dbinom_raw(),
+     * but that suffers from cancellation when   mu << size  */
+    double ans, p;
+
+
+    if (DoubleVector.isNaN(x) || DoubleVector.isNaN(size) || DoubleVector.isNaN(mu)) {
+      return x + size + mu;
+    }
+
+    if (mu < 0 || size < 0) {
+      return DoubleVector.NaN;
+    }
+
+    //R_D_nonint_check(x);
+
+    if (SignRank.R_D_nonint(x, true, give_log)) {
+      //MATHLIB_WARNING("non-integer x = %f", x);	
+      //How to warn??
+      return SignRank.R_D__0(true, give_log);
+    }
+
+    if (x < 0 || !DoubleVector.isFinite(x)) {
+      return SignRank.R_D__0(true, give_log);
+    }
+    x = SignRank.R_D_forceint(x);
+
+    if (x == 0)/* be accerate, both for n << mu, and n >> mu :*/ {
+      return SignRank.R_D_exp(size * (size < mu ? Math.log(size / (size + mu)) : Math.log1p(-mu / (size + mu))), true, give_log);
+    }
+    if (x < 1e-10 * size) { /* don't use dbinom_raw() but MM's formula: */
+      /* FIXME --- 1e-8 shows problem; rather use algdiv() from ./toms708.c */
+      return SignRank.R_D_exp(x * Math.log(size * mu / (size + mu)) - mu - org.apache.commons.math.special.Gamma.logGamma(x + 1)
+              + Math.log1p(x * (x - 1) / (2 * size)), true, give_log);
+    }
+    /* else: no unnecessary cancellation inside dbinom_raw, when
+     * x_ = size and n_ = x+size are so close that n_ - x_ loses accuracy
+     */
+    ans = dbinom_raw(size, x + size, size / (size + mu), mu / (size + mu), give_log);
+    p = ((double) size) / (size + x);
+    return ((give_log) ? Math.log(p) + ans : p * ans);
+  }
+
+  public static double qnbinom_mu(double p, double size, double mu, boolean lower_tail, boolean log_p) {
+    /* FIXME!  Implement properly!! (not losing accuracy for very large size (prob ~= 1)*/
+    return qnbinom(p, size, /* prob = */ size / (size + mu), lower_tail, log_p);
+  }
 }

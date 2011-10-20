@@ -526,4 +526,40 @@ public class Binom {
     /* FIXME!  Implement properly!! (not losing accuracy for very large size (prob ~= 1)*/
     return qnbinom(p, size, /* prob = */ size / (size + mu), lower_tail, log_p);
   }
+
+  public static double pnbinom_mu(double x, double size, double mu, boolean lower_tail, boolean log_p) {
+
+    if (DoubleVector.isNaN(x) || DoubleVector.isNaN(size) || DoubleVector.isNaN(mu)) {
+      return x + size + mu;
+    }
+    if (!DoubleVector.isFinite(size) || !DoubleVector.isFinite(mu)) {
+      return DoubleVector.NaN;
+    }
+
+    if (size <= 0 || mu < 0) {
+      return DoubleVector.NaN;
+    }
+
+    if (x < 0) {
+      SignRank.R_DT_0(lower_tail, log_p);
+    }
+    if (!DoubleVector.isFinite(x)) {
+      return SignRank.R_DT_1(lower_tail, log_p);
+    }
+    x = Math.floor(x + 1e-7);
+    /* return
+     * pbeta(pr, size, x + 1, lower_tail, log_p);  pr = size/(size + mu), 1-pr = mu/(size+mu)
+     *
+     *= pbeta_raw(pr, size, x + 1, lower_tail, log_p)
+     *            x.  pin   qin
+     *=  bratio (pin,  qin, x., 1-x., &w, &wc, &ierr, log_p),  and return w or wc ..
+     *=  bratio (size, x+1, pr, 1-pr, &w, &wc, &ierr, log_p) */
+    {
+      int[] ierr = new int[1];
+      double[] w = new double[1];
+      double[] wc = new double[1];
+      Utils.bratio(size, x + 1, size / (size + mu), mu / (size + mu), w, wc, ierr, log_p);
+      return lower_tail ? w[0] : wc[0];
+    }
+  }
 }

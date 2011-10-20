@@ -384,4 +384,96 @@ public class ChiSquare {
     }
     return 0.5 * (ux + lx);
   }
+
+  public static double dnchisq(double x, double df, double ncp, boolean give_log) {
+    final double eps = 5e-15;
+
+    double i, ncp2, q, mid, dfmid = 0.0, imax;
+    double sum, term;
+
+
+    if (DoubleVector.isNaN(x) || DoubleVector.isNaN(df) || DoubleVector.isNaN(ncp)) {
+      return x + df + ncp;
+    }
+
+    if (ncp < 0 || df <= 0) {
+      return DoubleVector.NaN;
+    }
+
+    if (!DoubleVector.isFinite(df) || !DoubleVector.isFinite(ncp)) {
+      return DoubleVector.NaN;
+    }
+
+    if (x < 0) {
+      return SignRank.R_D__0(true, give_log);
+    }
+    if (x == 0 && df < 2.) {
+      return Double.POSITIVE_INFINITY;
+    }
+    if (ncp == 0) {
+      return Distributions.dchisq(x, df, give_log);
+    }
+    if (x == Double.POSITIVE_INFINITY) {
+      return SignRank.R_D__0(true, give_log);
+    }
+
+    ncp2 = 0.5 * ncp;
+
+    /* find max element of sum */
+    imax = Math.ceil((-(2 + df) + Math.sqrt((2 - df) * (2 - df) + 4 * ncp * x)) / 4);
+    if (imax < 0) {
+      imax = 0;
+    }
+    if (DoubleVector.isFinite(imax)) {
+      dfmid = df + 2 * imax;
+      mid = Poisson.dpois_raw(imax, ncp2, false) * Distributions.dchisq(x, dfmid, false);
+    } else /* imax = Inf */ {
+      mid = 0;
+    }
+
+    if (mid == 0) {
+      /* underflow to 0 -- maybe numerically correct; maybe can be more accurate,
+       * particularly when  give_log = TRUE */
+      /* Use  central-chisq approximation formula when appropriate;
+       * ((FIXME: the optimal cutoff also depends on (x,df);  use always here? )) */
+      if (give_log || ncp > 1000.) {
+        double nl = df + ncp, ic = nl / (nl + ncp);/* = "1/(1+b)" Abramowitz & St.*/
+        return Distributions.dchisq(x * ic, nl * ic, give_log);
+      } else {
+        return SignRank.R_D__0(true, give_log);
+      }
+    }
+
+    sum = mid;
+
+    /* errorbound := term * q / (1-q)  now subsumed in while() / if() below: */
+
+    /* upper tail */
+    term = mid;
+    df = dfmid;
+    i = imax;
+    double x2 = x * ncp2;
+    do {
+      i++;
+      q = x2 / i / df;
+      df += 2;
+      term *= q;
+      sum += term;
+    } while (q >= 1 || term * q > (1 - q) * eps || term > 1e-10 * sum);
+    /* lower tail */
+    term = mid;
+    df = dfmid;
+    i = imax;
+    while (i >= 0) {
+      df -= 2;
+      q = i * df / x2;
+      i--;
+      term *= q;
+      sum += term;
+      if (q < 1 && term * q <= (1 - q) * eps) {
+        break;
+      }
+    }
+    return SignRank.R_D_val(sum, true, give_log);
+  }
 }

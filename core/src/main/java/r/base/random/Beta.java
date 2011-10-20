@@ -240,7 +240,169 @@ public class Beta {
 
     return SignRank.R_D_exp(p_k + Math.log(sum), true, give_log);
   }
-  
-  
 
+  public static double pnbeta_raw(double x, double o_x, double a, double b, double ncp) {
+    /* o_x  == 1 - x  but maybe more accurate */
+
+    /* change errmax and itrmax if desired;
+     * original (AS 226, R84) had  (errmax; itrmax) = (1e-6; 100) */
+    final double errmax = 1.0e-9;
+    final int itrmax = 10000;  /* 100 is not enough for pf(ncp=200)
+    see PR#11277 */
+
+    double[] temp = new double[1];
+    double[] tmp_c = new double[1];
+    int[] ierr = new int[1];
+    double a0, ax, lbeta, c, errbd, x0;
+    int j;
+
+    double ans, gx, q, sumq;
+
+    if (ncp < 0. || a <= 0. || b <= 0.) {
+      return DoubleVector.NaN;
+    }
+
+    if (x < 0. || o_x > 1. || (x == 0. && o_x == 1.)) {
+      return 0.;
+    }
+    if (x > 1. || o_x < 0. || (x == 1. && o_x == 0.)) {
+      return 1.;
+    }
+
+    c = ncp / 2.;
+
+    /* initialize the series */
+
+    x0 = Math.floor(Math.max(c - 7. * Math.sqrt(c), 0.));
+    a0 = a + x0;
+    lbeta = org.apache.commons.math.special.Gamma.logGamma(a0) + org.apache.commons.math.special.Gamma.logGamma(b) - org.apache.commons.math.special.Gamma.logGamma(a0 + b);
+    /* temp = pbeta_raw(x, a0, b, TRUE, FALSE), but using (x, o_x): */
+    Utils.bratio(a0, b, x, o_x, temp, tmp_c, ierr, false);
+
+    gx = Math.exp(a0 * Math.log(x) + b * (x < .5 ? Math.log1p(-x) : Math.log(o_x))
+            - lbeta - Math.log(a0));
+    if (a0 > a) {
+      q = Math.exp(-c + x0 * Math.log(c) - org.apache.commons.math.special.Gamma.logGamma(x0 + 1.));
+    } else {
+      q = Math.exp(-c);
+    }
+
+    sumq = 1. - q;
+    ans = ax = q * temp[0];
+
+    /* recurse over subsequent terms until convergence is achieved */
+    j = (int) x0;
+    do {
+      j++;
+      temp[0] -= gx;
+      gx *= x * (a + b + j - 1.) / (a + j);
+      q *= c / j;
+      sumq -= q;
+      ax = temp[0] * q;
+      ans += ax;
+      errbd = (temp[0] - gx) * sumq;
+    } while (errbd > errmax && j < itrmax + x0);
+
+    if (errbd > errmax) {
+      //ML_ERROR(ME_PRECISION, "pnbeta");
+    }
+    if (j >= itrmax + x0) {
+      //ML_ERROR(ME_NOCONV, "pnbeta");
+    }
+
+    return ans;
+  }
+
+  public static double pnbeta2(double x, double o_x, double a, double b, double ncp, boolean lower_tail, boolean log_p) {
+    double ans = pnbeta_raw(x, o_x, a, b, ncp);
+    /* return R_DT_val(ans), but we want to warn about cancellation here */
+    if (lower_tail) {
+      return log_p ? Math.log(ans) : ans;
+    } else {
+      if (ans > 1 - 1e-10) {
+        return (DoubleVector.NaN);
+      }
+      ans = Math.min(ans, 1.0);  /* Precaution */
+      return log_p ? Math.log1p(-ans) : (1 - ans);
+    }
+  }
+
+  public static double pnbeta(double x, double a, double b, double ncp, boolean lower_tail, boolean log_p) {
+
+    if (DoubleVector.isNaN(x) || DoubleVector.isNaN(a) || DoubleVector.isNaN(b) || DoubleVector.isNaN(ncp)) {
+      return x + a + b + ncp;
+    }
+
+
+    //R_P_bounds_01(x, 0., 1.);
+    if (x <= 0.0) {
+      return SignRank.R_DT_0(lower_tail, log_p);
+    }
+    if (x >= 1.0) {
+      return SignRank.R_DT_1(lower_tail, log_p);
+    }
+
+    return pnbeta2(x, 1 - x, a, b, ncp, lower_tail, log_p);
+  }
+
+  public static double qnbeta(double p, double a, double b, double ncp,
+          boolean lower_tail, boolean log_p) {
+    final double accu = 1e-15;
+    final double Eps = 1e-14; /* must be > accu */
+
+    double ux, lx, nx, pp;
+
+
+    if (DoubleVector.isNaN(p) || DoubleVector.isNaN(a) || DoubleVector.isNaN(b) || DoubleVector.isNaN(ncp)) {
+      return p + a + b + ncp;
+    }
+
+    if (!DoubleVector.isFinite(a)) {
+      return DoubleVector.NaN;
+    }
+
+    if (ncp < 0. || a <= 0. || b <= 0.) {
+      return DoubleVector.NaN;
+    }
+
+    //R_Q_P01_boundaries(p, 0, 1);
+    if ((log_p && p > 0) || (!log_p && (p < 0 || p > 1))) {
+      return DoubleVector.NaN;
+    }
+    if (p == SignRank.R_DT_0(lower_tail, log_p)) {
+      return 0.0;
+    }
+    if (p == SignRank.R_DT_1(lower_tail, log_p)) {
+      return 1.0;
+    }
+    //end of R_Q_P01_boundaries
+
+    p = Normal.R_DT_qIv(p, log_p ? 1.0 : 0.0, lower_tail ? 1.0 : 0.0);
+
+    /* Invert pnbeta(.) :
+     * 1. finding an upper and lower bound */
+    if (p > 1 - SignRank.DBL_EPSILON) {
+      return 1.0;
+    }
+    pp = Math.min(1 - SignRank.DBL_EPSILON, p * (1 + Eps));
+    for (ux = 0.5;
+            ux < 1 - SignRank.DBL_EPSILON && pnbeta(ux, a, b, ncp, true, false) < pp;
+            ux = 0.5 * (1 + ux));
+    pp = p * (1 - Eps);
+    for (lx = 0.5;
+            lx > Double.MIN_VALUE && pnbeta(lx, a, b, ncp, true, false) > pp;
+            lx *= 0.5);
+
+    /* 2. interval (lx,ux)  halving : */
+    do {
+      nx = 0.5 * (lx + ux);
+      if (pnbeta(nx, a, b, ncp, true, false) > p) {
+        ux = nx;
+      } else {
+        lx = nx;
+      }
+    } while ((ux - lx) / nx > accu);
+
+    return 0.5 * (ux + lx);
+  }
 }

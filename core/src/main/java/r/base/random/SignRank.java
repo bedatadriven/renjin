@@ -65,6 +65,7 @@ public class SignRank {
   public static double R_D_fexp(double f, double x, boolean lower_tail, boolean log_p) {
     return (log_p ? -0.5 * Math.log(f) + (x) : Math.exp(x) / Math.sqrt(f));
   }
+  
 
   /*
    * Random Number Generator for SignRank

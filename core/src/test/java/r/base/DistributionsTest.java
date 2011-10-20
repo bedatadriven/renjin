@@ -230,4 +230,52 @@ public class DistributionsTest {
     assertThat(Distributions.dnt(2, 20 , 3, false), closeTo(0.2435572, ERROR));
   }
    
+   @Test
+   public void dnchisq(){
+     assertThat(Distributions.dnchisq(2, 10 , 5, false), closeTo(0.001017647, ERROR));
+     assertThat(Distributions.dnchisq(5, 9 , 10, true), closeTo(-5.125956, ERROR));
+   }
+   
+   @Test
+   public void pnbinom_mu(){
+     assertThat(Distributions.pnbinom_mu(0.25, 10 , 4, true, false), closeTo( 0.03457161, ERROR));
+     assertThat(Distributions.pnbinom_mu(0.25, 10 , 4, true, true), closeTo( -3.364722, ERROR));
+     assertThat(Distributions.pnbinom_mu(0.25, 10 , 4, false, false), closeTo(0.9654284, ERROR));
+   }
+
+   @Test
+   public void pnbeta(){
+     assertThat(Distributions.pnbeta(0.25, 1,6 , 1, true, false), closeTo(0.6935046, ERROR));
+     assertThat(Distributions.pnbeta(0.25, 1,6 , 1, true, true), closeTo(-0.3659974, ERROR));
+   }
+   
+   
+   @Test
+   public void dnf(){
+     assertThat(Distributions.dnf(1, 6,6 , 1, false), closeTo(0.4621278, ERROR));
+     assertThat(Distributions.dnf(1, 6,6 , 1, true), closeTo(-0.7719139, ERROR));
+   }
+   
+    @Test
+   public void pnf(){
+     assertThat(Distributions.dnf(0, 6,6 , 1, false), closeTo(0, ERROR));
+     assertThat(Distributions.dnf(1, 6,6 , 1, false), closeTo(0.4621278, ERROR));
+     assertThat(Distributions.dnf(2, 6,6 , 1, true), closeTo(-1.662094, ERROR));
+   }
+
+    /*
+     * qnbeta() and qnf() functions sometimes return different values when compared to
+     * original interpreter. This is about accuracy and should be corrected at next level.
+     * mhsatman.
+     */
+    @Test
+    public void qnbeta(){
+      double ERROR = 0.001;
+      assertThat(Distributions.qnbeta(0.05, 12,8 , 1, true, false), closeTo(0.428099, ERROR));
+    }
+    
+    @Test
+    public void qnf(){
+      assertThat(Distributions.qnf(0.05, 4,2 , 1, true, false), closeTo( 0.1835066, ERROR));
+    }
 }

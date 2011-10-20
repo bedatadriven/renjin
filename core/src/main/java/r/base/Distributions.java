@@ -45,6 +45,7 @@ import r.base.distributions.UniformDistribution;
 import r.base.random.Beta;
 import r.base.random.Binom;
 import r.base.random.ChiSquare;
+import r.base.random.F;
 import r.base.random.Geometric;
 import r.base.random.LNorm;
 import r.base.random.SignRank;
@@ -218,14 +219,26 @@ public class Distributions {
     return p(new BetaDistributionImpl(shape1, shape2), q, lowerTail, logP);
   }
 
+  public static double pnbeta(@Recycle double q, @Recycle double shape1, @Recycle double shape2, @Recycle double ncp, boolean lowerTail, boolean logP) {
+    return Beta.pnbeta(q, shape1, shape2, ncp, lowerTail, logP);
+  }
+  
   public static double qbeta(@Recycle double p, @Recycle double shape1, @Recycle double shape2, boolean lowerTail, boolean logP) {
     return q(new BetaDistributionImpl(shape1, shape2), p, lowerTail, logP);
+  }
+  
+  public static double qnbeta(@Recycle double p, @Recycle double shape1, @Recycle double shape2, @Recycle double ncp, boolean lowerTail, boolean logP) {
+    return Beta.qnbeta(p, shape1, shape2, ncp, lowerTail, logP);
   }
 
   public static double dchisq(@Recycle double x, @Recycle double df, boolean log) {
     return d(new ChiSquaredDistributionImpl(df), x, log);
   }
 
+  public static double dnchisq(@Recycle double x, @Recycle double df, @Recycle double ncp, boolean log) {
+    return ChiSquare.dnchisq(x, df, ncp, log);
+  }
+  
   public static double pchisq(@Recycle double q, @Recycle double df, boolean lowerTail, boolean logP) {
     return p(new ChiSquaredDistributionImpl(df), q, lowerTail, logP);
   }
@@ -309,6 +322,14 @@ public class Distributions {
   public static double pnbinom(@Recycle double x, @Recycle int size, @Recycle double prob, boolean lowerTail, boolean logP) {
     return p(new PascalDistributionImpl(size, prob), x, lowerTail, logP);
   }
+  
+  public static double pnbinom_mu(@Recycle double x, @Recycle int size, @Recycle double mu, boolean lowerTail, boolean logP) {
+    if(!logP){
+      return  Binom.pnbinom_mu(x, size, mu, lowerTail ? false : true, logP);
+    }else{
+      return  Binom.pnbinom_mu(x, size, mu, lowerTail, logP);
+    }
+  }
 
  public static double qbinom(@Recycle double p, @Recycle int size, @Recycle double prob, boolean lowerTail, boolean logP)  {
     return q(new BinomialDistributionImpl(size, prob), p, lowerTail, logP) + 1;
@@ -338,12 +359,26 @@ public class Distributions {
     return d(new FDistributionImpl(df1, df2), x, log);
   }
 
+  public static double dnf(@Recycle double x, @Recycle double df1, @Recycle double df2, @Recycle double ncp, boolean log) {
+    return F.dnf(x, df1, df2, ncp, log);
+  }
+   
   public static double pf(@Recycle double q, @Recycle double df1, @Recycle double df2, boolean lowerTail, boolean logP) {
     return p(new FDistributionImpl(df1, df2), q, lowerTail, logP);
   }
 
+  
+  public static double pnf(@Recycle double q, @Recycle double df1, @Recycle double df2, @Recycle double ncp, boolean lowerTail, boolean logP) {
+    return F.pnf(q, df1, df2, ncp, lowerTail, logP);
+  }
+
+  
   public static double qf(@Recycle double p, @Recycle double df1, @Recycle double df2, boolean lowerTail, boolean logP) {
     return q(new FDistributionImpl(df1, df2), p, lowerTail, logP);
+  }
+
+  public static double qnf(@Recycle double p, @Recycle double df1, @Recycle double df2, @Recycle double ncp, boolean lowerTail, boolean logP) {
+    return F.qnf(p, df1, df2, ncp, lowerTail, logP);
   }
 
   public static double dgamma(@Recycle double x, @Recycle double shape, @Recycle double scale, boolean log) {

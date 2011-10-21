@@ -23,6 +23,8 @@ package r.base;
 import org.apache.commons.math.MathException;
 import org.junit.Test;
 
+
+import r.EvalTestCase;
 import r.lang.DoubleVector;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.equalTo;
@@ -33,7 +35,7 @@ import static org.junit.Assert.assertThat;
  * Since most of the heavy lifting is done by the Apache Commons library,
  * we just want to make sure that we've lined the dist parameters up correctly.
  */
-public class DistributionsTest {
+public class DistributionsTest extends EvalTestCase{
 
   private static final double ERROR = 0.00001;
 
@@ -277,5 +279,19 @@ public class DistributionsTest {
     @Test
     public void qnf(){
       assertThat(Distributions.qnf(0.05, 4,2 , 1, true, false), closeTo( 0.1835066, ERROR));
+    }
+    
+    @Test 
+    public void tukeys(){
+      //This is confusing. Because location of parameters are replaced in R calls
+      try{
+        topLevelContext.init();
+      }catch(Exception e){
+        
+      }
+      assertThat(eval("ptukey(5.20, 14,12,5 , TRUE, FALSE)").asReal(), closeTo(0.7342322, ERROR));
+      assertThat(eval("ptukey(4.9, 21,9,2,T,T)").asReal(), closeTo(-0.406227, ERROR));
+      assertThat(eval("qtukey(0.90, 6,3, 4,T,F)").asReal(), closeTo(8.001985, ERROR));
+      
     }
 }

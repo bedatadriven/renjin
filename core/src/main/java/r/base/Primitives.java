@@ -435,8 +435,8 @@ public class Primitives {
     f("qnf", Distributions.class, 9, 11, 4 + 2);
 
     f("dtukey", /*math4*/ null, 10, 11, 4 + 1);
-    f("ptukey", /*math4*/ null, 11, 11, 4 + 2);
-    f("qtukey", /*math4*/ null, 12, 11, 4 + 2);
+    f("ptukey", Distributions.class, 11, 11, 4 + 2);
+    f("qtukey", Distributions.class, 12, 11, 4 + 2);
 
 /* Random Numbers */
 

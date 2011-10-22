@@ -69,4 +69,15 @@ public class TestRNG extends EvalTestCase {
     assertThat(eval("mean(rwilcox(10000,4,5))").asReal(), closeTo(10, delta));
   }
   
+   @Test
+  public void rhyper() {
+    double delta = 0.1;
+    try {
+      topLevelContext.init();
+    } catch (Exception e) {
+    }
+    eval("set.seed(12345, 'Mersenne-Twister','I')");
+    assertThat(eval("mean(rhyper(10000,17,16,13))").asReal(), closeTo(6.5, delta));
+  }
+
 }

@@ -263,6 +263,15 @@ public class RNG {
     }
     return (vb.build());
   }
+  
+  @Primitive("rhyper")
+  public static DoubleVector rhyper(int nn, double m, double n, double k){
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    for (int i = 0; i < n; i++) {
+      vb.add(HyperGeometric.Random_hyper_geometric.rhyper(m, n, k));
+    }
+    return (vb.build());
+  }
 
   /*
    * One of the Most important method in RNG

@@ -161,4 +161,9 @@ public class MathTest extends EvalTestCase {
     assertThat(eval("sign(c(-33,55,0))"), equalTo(c(-1,1,0)));
   }
    
+  @Test
+  public void psigamma(){
+    assertThat(PsiGamma.psigamma(4, 1), closeTo(0.283823, 0.00001));
+    assertThat(PsiGamma.psigamma(11, 3), closeTo(0.001719901, 0.00001));
+  }
 }

@@ -341,7 +341,7 @@ public class Primitives {
     f("besselJ", /*math2*/ null, 24, 11, 2);
     f("besselY", /*math2*/ null, 25, 11, 2);
 
-    f("psigamma", /*math2*/ null, 26, 11, 2);
+    f("psigamma", PsiGamma.class, 26, 11, 2);
 
 
 /* Mathematical Functions of a Complex Argument */
@@ -434,6 +434,7 @@ public class Primitives {
     f("pnf", Distributions.class, 8, 11, 4 + 2);
     f("qnf", Distributions.class, 9, 11, 4 + 2);
 
+    /* Where is this primitive? (dtukey) I could'nt find it in C source */
     f("dtukey", /*math4*/ null, 10, 11, 4 + 1);
     f("ptukey", Distributions.class, 11, 11, 4 + 2);
     f("qtukey", Distributions.class, 12, 11, 4 + 2);

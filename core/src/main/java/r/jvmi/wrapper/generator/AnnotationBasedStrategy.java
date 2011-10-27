@@ -66,14 +66,43 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     Collection<JvmMethod> matchingByCount = Collections2.filter(overloads, havingPositionalArgCountOf(maxArgumentCount));
     genericDispatchStrategy.beforePrimitiveIsCalled(s, maxArgumentCount);
     dispatchArityGroup(entry, s, matchingByCount);
-      
-
-//    
-//    
-//    OverloadNode tree = OverloadNode.buildTree(overloads);
-//    testNextArg(s, tree, 0, genericDispatchStrategy);
   }
-  
+    
+  @Override
+  protected void generateOtherCalls(Entry entry, WrapperSourceWriter s,
+      List<JvmMethod> overloads) {
+       
+    int maxArgumentCount = getMaxPositionalArgs(overloads);
+    for(int i = 0; i<=maxArgumentCount;++i) {
+      Collection<JvmMethod> matchingByCount = Collections2.filter(overloads, havingPositionalArgCountOf(i));
+      if(!matchingByCount.isEmpty() && ! hasVarArgs(matchingByCount)) {
+        
+        StringBuilder signature = new StringBuilder("public static EvalResult doApply(Context context, Environment rho");
+        for(int j=0;j!=i;++j) {
+          signature.append(", SEXP s"+ j);
+        }
+        signature.append(") {");
+        
+        s.writeBeginBlock(signature.toString());
+        s.writeBeginTry();
+        dispatchArityGroup(entry, s, matchingByCount);
+        s.writeCatch(Exception.class, "e");
+        s.writeStatement("throw new EvalException(e)");
+        s.writeCloseBlock();
+        s.writeCloseBlock();
+      }
+    }
+  }
+
+  private boolean hasVarArgs(Collection<JvmMethod> overloads) {
+    for(JvmMethod overload : overloads) {
+      if(overload.acceptsArgumentList()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private boolean isEvaluated(List<JvmMethod> overloads, int argumentIndex) {
     boolean evaluated = false;
     boolean unevaluated = false;

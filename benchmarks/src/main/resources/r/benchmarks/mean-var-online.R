@@ -2,7 +2,7 @@ mean.online <- function(x) {
     xbar <- x[1]
 
     for(n in seq(from = 2, to = length(x))) {
-        xbar <- ((n - 1) * x[n - 1] + x[n]) / n
+        xbar <- ((n - 1) * xbar + x[n]) / n
     }
 
     xbar

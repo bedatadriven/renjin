@@ -52,7 +52,7 @@ import com.google.common.annotations.VisibleForTesting;
 public class Sequences {
 
   @Primitive(":")
-  public static SEXP colon(SEXP n1, SEXP n2) {
+  public static Vector colon(SEXP n1, SEXP n2) {
     if( n1.inherits("factor") && n2.inherits("factor")) {
       return crossColon(n1, n2);
 
@@ -61,11 +61,11 @@ public class Sequences {
     }
   }
 
-  private static SEXP crossColon(SEXP n1, SEXP n2) {
+  private static Vector crossColon(SEXP n1, SEXP n2) {
     throw new UnsupportedOperationException("crossColon not yet implemented");
   }
 
-  public static SEXP colonSequence(SEXP s1, SEXP s2 ) {
+  public static Vector colonSequence(SEXP s1, SEXP s2 ) {
     checkArg(s1);
     checkArg(s2);
 
@@ -261,11 +261,11 @@ public class Sequences {
       }
     }
 
-    public SEXP vector() {
+    public Vector vector() {
       return useInteger ? intVector() : realVector();
     }
 
-    private SEXP intVector() {
+    private IntVector intVector() {
       int values[] = new int[(int) count];
       int index = 0;
 
@@ -281,7 +281,7 @@ public class Sequences {
       return new IntVector(values);
     }
 
-    private SEXP realVector() {
+    private DoubleVector realVector() {
       double[] values = new double[(int) count];
       int index = 0;
 

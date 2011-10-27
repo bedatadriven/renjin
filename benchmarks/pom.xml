@@ -29,7 +29,6 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.bedatadriven.renjin</groupId>
   <artifactId>renjin-benchmarks</artifactId>
   <name>Renjin Benchmarks</name>
 

@@ -43,7 +43,7 @@ public class Closure extends AbstractSEXP implements Function {
     super(attributes);
     this.enclosingEnvironment = enclosingEnvironment;
     this.body = body;
-    this.formals = formals;
+    this.formals = formals; 
   }
 
   public Closure(Environment environment, PairList formals, SEXP body) {

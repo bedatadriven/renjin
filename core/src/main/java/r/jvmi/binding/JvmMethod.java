@@ -149,9 +149,12 @@ public class JvmMethod implements Comparable<JvmMethod> {
   }
 
   public boolean acceptsArgumentList() {
-    return formals.size() >= 1 &&
-           formals.get(0).getClazz() == ListVector.class &&
-           formals.get(0).isAnnotatedWith(ArgumentList.class);
+    for(Argument formal : formals) {
+      if(formal.isAnnotatedWith(ArgumentList.class)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public boolean isRecycle() {

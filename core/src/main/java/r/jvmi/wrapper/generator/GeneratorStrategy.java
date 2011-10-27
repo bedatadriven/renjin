@@ -66,12 +66,22 @@ public abstract class GeneratorStrategy {
     s.writeStatement("throw new r.lang.exception.EvalException(e);");
     s.writeCloseBlock();
     
-    
     s.writeCloseBlock();
+
+    
+    generateOtherCalls(entry, s, overloads);
+
+    
     s.writeCloseBlock();
     s.close();    
   }
   
+  protected void generateOtherCalls(Entry entry, WrapperSourceWriter s,
+      List<JvmMethod> overloads) {
+    
+  }
+
+
   private String argumentErrorMessage(Entry entry, List<JvmMethod> overloads) {
     StringBuilder message = new StringBuilder();
     message.append("\"Invalid argument. Expected:");

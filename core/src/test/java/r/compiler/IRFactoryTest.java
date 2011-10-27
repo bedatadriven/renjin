@@ -50,6 +50,10 @@ public class IRFactoryTest extends EvalTestCase {
     System.out.println(factory.build(f.getBody()));
   }
 
-
-
+  @Test
+  public void ssa() {
+    IRFactory factory = new IRFactory();
+    System.out.println(factory.build(eval("quote(1 + (2 * 3))")));
+  }
+  
 }

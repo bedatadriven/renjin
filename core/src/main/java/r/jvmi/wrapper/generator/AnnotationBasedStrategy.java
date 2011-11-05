@@ -22,6 +22,8 @@ import r.jvmi.wrapper.generator.recycling.RecycledArguments;
 import r.jvmi.wrapper.generator.recycling.SingleRecycledArgument;
 import r.jvmi.wrapper.generator.scalars.ScalarType;
 import r.jvmi.wrapper.generator.scalars.ScalarTypes;
+import r.jvmi.wrapper.generator.scalars.SexpType;
+import r.lang.ListVector;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -328,8 +330,23 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       s.writeBeginBlock("} else {");
     }
     recycled.writeElementExtraction();
+    String invocationExpression = method.getDeclaringClass().getName() + "." + method.getName() + "(" + argumentList + ")";
+    
     s.writeBlankLine();
-    s.writeStatement("result.set(i, " + method.getDeclaringClass().getName() + "." + method.getName() + "(" + argumentList + "))");
+    boolean hasListsAsElements = method.getReturnType().isAssignableFrom(ListVector.class);
+    if(hasListsAsElements) {
+      // if we have a recycling function whose result is a list, if there is only 
+      // one result, don't wrap it in a list
+      s.writeBeginIf("cycles==1");
+      s.writeStatement(handleReturn(method, invocationExpression));
+      s.writeElse();
+    }
+    
+    s.writeStatement("result.set(i, " + invocationExpression + ")");
+    
+    if(hasListsAsElements) {
+      s.writeCloseBlock();
+    }
     
     if(!method.acceptsNA()) {
       s.writeCloseBlock();
@@ -360,7 +377,6 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       }
       s.writeCloseBlock();
     }
-    
     s.writeStatement("return new EvalResult(result.build());" );
   } 
 }

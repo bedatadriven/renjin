@@ -854,10 +854,10 @@ public class Primitives {
 
 /* date-time manipulations */
     f("Sys.time", System.class, "sysTime", 0, 11, 0);
-    f("as.POSIXct", /*asPOSIXct*/ null, 0, 11, 2);
+    f("as.POSIXct", Time.class, 0, 11, 2);
     f("as.POSIXlt", /*asPOSIXlt*/ null, 0, 11, 2);
     f("format.POSIXlt", /*formatPOSIXlt*/ null, 0, 11, 3);
-    f("strptime", DateTime.class,/*strptime*/  0, 11, 3);
+    f("strptime", Time.class,/*strptime*/  0, 11, 3);
     f("Date2POSIXlt", /*D2POSIXlt*/ null, 0, 11, 1);
     f("POSIXlt2Date", /*POSIXlt2D*/ null, 0, 11, 1);
 

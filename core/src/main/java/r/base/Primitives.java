@@ -7,6 +7,7 @@ import r.base.graphics.Par;
 import r.base.graphics.Plot;
 import r.base.random.RNG;
 import r.base.special.*;
+import r.base.time.Time;
 import r.jvmi.wrapper.WrapperGenerator;
 import r.lang.PrimitiveFunction;
 import r.lang.RuntimeBuiltinFunction;
@@ -853,11 +854,11 @@ public class Primitives {
     f("addhistory", /*addhistory*/ null, 0, 11, 1);
 
 /* date-time manipulations */
-    f("Sys.time", System.class, "sysTime", 0, 11, 0);
+    f("Sys.time", Time.class, 0, 11, 0);
     f("as.POSIXct", Time.class, 0, 11, 2);
-    f("as.POSIXlt", /*asPOSIXlt*/ null, 0, 11, 2);
-    f("format.POSIXlt", /*formatPOSIXlt*/ null, 0, 11, 3);
-    f("strptime", Time.class,/*strptime*/  0, 11, 3);
+    f("as.POSIXlt", Time.class, 0, 11, 2);
+    f("format.POSIXlt", Time.class, 0, 11, 3);
+    f("strptime", Time.class,  0, 11, 3);
     f("Date2POSIXlt", /*D2POSIXlt*/ null, 0, 11, 1);
     f("POSIXlt2Date", /*POSIXlt2D*/ null, 0, 11, 1);
 

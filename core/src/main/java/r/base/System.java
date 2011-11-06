@@ -44,10 +44,6 @@ import r.lang.exception.EvalException;
 
 public class System {
 
-  public static long sysTime() {
-    return new Date().getTime();
-  }
-
   public static String getRHome(@Current Context context) throws URISyntaxException {
     return context.getGlobals().homeDirectory;
   }

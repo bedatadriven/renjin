@@ -1,22 +1,23 @@
-package r.base;
+package r.base.time;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import r.EvalTestCase;
+import r.base.time.DateTimeFormat;
 
 public class TimeTest extends EvalTestCase {
 
-  @Test
-  public void formatBuilder() {
-    verifyFormat("2009-07-01 00:00:00", "%Y-%m-%d %H:%M:%OS", new DateTime(2009,7,1,0,0,0));
-  }
+
   
   @Test
   public void strptime() {
@@ -34,11 +35,33 @@ public class TimeTest extends EvalTestCase {
   }
   
   @Test
+  public void timeZones() {
+    eval("t <- .Internal(strptime('2011-11-06 09:27', '%Y-%m-%d %H:%M', tz='HST'))");
+    assertThat(eval("t$hour"), equalTo(c_i(9)));
+    assertThat(eval(".Internal(as.POSIXct(t, 'HST'))"), equalTo(c(1320607620d)));
+  }
+  
+  @Test
   public void asPosixLt() throws IOException {
     topLevelContext.init();
     eval("ct <- as.POSIXct('2009-07-01 00:00:00')");
     assertThat(eval("ct"), equalTo(c(1246399200d)));
+    assertThat(eval("format(ct)"), equalTo(c("2009-07-01")));
+    assertThat(eval("names(format(ct))"), equalTo(NULL));
   }
+
+  @Test
+  public void printTime() throws IOException {
+    topLevelContext.init();
+    
+    StringWriter stringWriter = new StringWriter();
+    topLevelContext.getGlobals().setStdOut(new PrintWriter(stringWriter));
+
+    eval("print(as.POSIXct('2009-07-01 00:00:00'))");
+
+    assertThat(stringWriter.toString(), equalTo("[1] \"2009-07-01 CEST\"\n"));
+  }
+
   
   @Test
   public void strptimeBadInput() {
@@ -46,12 +69,6 @@ public class TimeTest extends EvalTestCase {
     
     assertThat(eval("is.na(t$sec)"), equalTo(c(true)));
     assertThat(eval("t$isdst"), equalTo(c_i(-1)));
-  }
-  
-  private void verifyFormat(String x, String format, DateTime dateTime) {
-    DateTimeFormatter formatter = Time.formatterFromRSpecification(format);
-    assertThat(formatter.print(dateTime), equalTo(x));
-    assertThat(formatter.parseDateTime(x), equalTo(dateTime));
   }
   
   

@@ -230,10 +230,12 @@ public abstract class AbstractSEXP implements SEXP {
   public SEXP setAttributes(ListVector attributes) {
     PairList.Builder list = new PairList.Builder();
     for(int i=0;i!=attributes.length();++i) {
-      String name = attributes.getName(i);
-      SEXP value = Attributes.validateAttribute(this, Symbol.get(name), attributes.getElementAsSEXP(i));
-
-      list.add(Symbol.get(name), value);
+      String attributeName = attributes.getName(i);
+      SEXP attributeValue = attributes.getElementAsSEXP(i);
+      if(attributeValue != Null.INSTANCE) {
+        list.add(Symbol.get(attributeName), 
+            Attributes.validateAttribute(this, Symbol.get(attributeName), attributeValue));
+      }
     }
     return cloneWithNewAttributes(list.build());
   }

@@ -224,7 +224,7 @@ public class Primitives {
     f("rbind", Combine.class, 2, 10, -1);
     f("drop", /*drop*/ null, 0, 11, 1);
     f("oldClass", Types.class, 0, 1, 1);
-    f("oldClass<-", /*classgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
+    f("oldClass<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("class", Types.class, "getClass", 0, 1, 1);
     f("class<-", Types.class, "setClass", 0, 1, 2);
     f("unclass", Types.class, 0, 1, 1);
@@ -269,7 +269,7 @@ public class Primitives {
 /* these are group generic and so need to eval args */
 /* Note that the number of arguments for the primitives in the Math group
    only applies to the default method. */
-    f("round", Math.class, 10001, 0, -1);
+    f("round", MathExt.class, 10001, 0, -1);
     f("signif", MathExt.class, 10004, 0, -1);
     f("atan",Math.class, 10002, 1, 1);
     f("log", MathExt.class, 10003, 0, -1);
@@ -623,7 +623,7 @@ public class Primitives {
     f("seq_len", Sequences.class, 0, 1, 1);
     f("seq_along", Sequences.class, "seqAlong", 0, 1, 1);
     f("list", Types.class, "list", 1, 1, -1);
-    f("split", /*split*/ null, 0, 11, 2);
+    f("split",  Split.class, 0, 11, 2);
     f("is.loaded", /*isloaded*/ null, 0, 11, -1, PP_FOREIGN, PREC_FN, 0);
     f(".C", Evaluation.class, 0, 1, -1, PP_FOREIGN, PREC_FN, 0);
     f(".Fortran", /*dotCode*/ null, 1, 1, -1, PP_FOREIGN, PREC_FN, 0);
@@ -637,7 +637,7 @@ public class Primitives {
     f("ls", Types.class, 1, 11, 2);
     f("typeof", Types.class, 1, 11, 1);
     f("eval", Evaluation.class, 0, 211, 3);
-    f("eval.with.vis", /*eval*/ null, 1, 211, 3);
+    f("eval.with.vis",Evaluation.class, 1, 211, 3);
     f("withVisible", /*withVisible*/ null, 1, 10, 1);
     f("expression", Types.class, 1, 0, -1);
     f("sys.parent", Contexts.class, 1, 11, -1);

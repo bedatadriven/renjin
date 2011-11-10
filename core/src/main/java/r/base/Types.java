@@ -668,6 +668,10 @@ public class Types {
       builder = new LogicalVector.Builder();
     } else if (newMode.equals("double")) {
       builder = new DoubleVector.Builder();
+    } else if (newMode.equals("integer")) {
+      builder = new IntVector.Builder();
+    } else if (newMode.equals("character")) {
+      builder = new StringVector.Builder();
     } else {
       throw new UnsupportedOperationException("storage.mode with new mode '"
           + newMode + "' invalid or not implemented");
@@ -732,6 +736,101 @@ public class Types {
   @Primitive("class<-")
   public static SEXP setClass(SEXP exp, Vector classes) {
     return exp.setAttribute("class", classes);
+    
+    //TODO:
+    // this is apparently more complicated then implemented above:
+//    int nProtect = 0;
+//    if(isNull(value)) {
+//        setAttrib(obj, R_ClassSymbol, value);
+//        if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
+//          do_unsetS4(obj, value);
+//        return obj;
+//    }
+//    if(TYPEOF(value) != STRSXP) {
+//        /* Beware: assumes value is protected, which it is
+//           in the only use below */
+//        PROTECT(value = coerceVector(duplicate(value), STRSXP));
+//        nProtect++;
+//    }
+//    if(length(value) > 1) {
+//        setAttrib(obj, R_ClassSymbol, value);
+//        if(IS_S4_OBJECT(obj)) /*  multiple strings only valid for S3 objects */
+//          do_unsetS4(obj, value);
+//    }
+//    else if(length(value) == 0) {
+//        UNPROTECT(nProtect); nProtect = 0;
+//        error(_("invalid replacement object to be a class string"));
+//    }
+//    else {
+//        const char *valueString, *classString; int whichType;
+//        SEXP cur_class; SEXPTYPE valueType;
+//        valueString = CHAR(asChar(value)); /* ASCII */
+//        whichType = class2type(valueString);
+//        valueType = (whichType == -1) ? -1 : classTable[whichType].sexp;
+//        PROTECT(cur_class = R_data_class(obj, FALSE)); nProtect++;
+//        classString = CHAR(asChar(cur_class)); /* ASCII */
+//        /*  assigning type as a class deletes an explicit class attribute. */
+//        if(valueType != -1) {
+//            setAttrib(obj, R_ClassSymbol, R_NilValue);
+//            if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
+//              do_unsetS4(obj, value);
+//            if(classTable[whichType].canChange) {
+//                PROTECT(obj = ascommon(call, obj, valueType));
+//                nProtect++;
+//            }
+//            else if(valueType != TYPEOF(obj))
+//                error(_("\"%s\" can only be set as the class if the object has this type; found \"%s\""),
+//                      valueString, type2char(TYPEOF(obj)));
+//            /* else, leave alone */
+//        }
+//        else if(!strcmp("numeric", valueString)) {
+//            setAttrib(obj, R_ClassSymbol, R_NilValue);
+//            if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
+//              do_unsetS4(obj, value);
+//            switch(TYPEOF(obj)) {
+//            case INTSXP: case REALSXP: break;
+//            default: PROTECT(obj = coerceVector(obj, REALSXP));
+//                nProtect++;
+//            }
+//        }
+//        /* the next 2 special cases mirror the special code in
+//         * R_data_class */
+//        else if(!strcmp("matrix", valueString)) {
+//            if(length(getAttrib(obj, R_DimSymbol)) != 2)
+//                error(_("invalid to set the class to matrix unless the dimension attribute is of length 2 (was %d)"),
+//                 length(getAttrib(obj, R_DimSymbol)));
+//            setAttrib(obj, R_ClassSymbol, R_NilValue);
+//            if(IS_S4_OBJECT(obj))
+//              do_unsetS4(obj, value);
+//        }
+//        else if(!strcmp("array", valueString)) {
+//            if(length(getAttrib(obj, R_DimSymbol))<= 0)
+//                error(_("cannot set class to \"array\" unless the dimension attribute has length > 0"));
+//            setAttrib(obj, R_ClassSymbol, R_NilValue);
+//            if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
+//              UNSET_S4_OBJECT(obj);
+//        }
+//        else { /* set the class but don't do the coercion; that's
+//                  supposed to be done by an as() method */
+//            setAttrib(obj, R_ClassSymbol, value);
+//        }
+//    }
+//    UNPROTECT(nProtect);
+//    return obj;
+
+    
+  }
+  
+  @Primitive("oldClass<-")
+  public static SEXP setOldClass(SEXP exp, Vector classes) {
+    /*  checkArity(op, args);
+    if (NAMED(CAR(args)) == 2) SETCAR(args, duplicate(CAR(args)));
+    if (length(CADR(args)) == 0) SETCADR(args, R_NilValue);
+    if(IS_S4_OBJECT(CAR(args)))
+      UNSET_S4_OBJECT(CAR(args));
+    setAttrib(CAR(args), R_ClassSymbol, CADR(args));
+    return CAR(args);*/
+    return exp.setAttribute(Symbols.CLASS, classes);
   }
 
   public static SEXP unclass(SEXP exp) {

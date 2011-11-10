@@ -314,7 +314,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     public Builder() {
     }
 
-    private Builder(ListVector toClone) {
+    protected Builder(ListVector toClone) {
       Iterables.addAll(values, toClone);
       copyAttributesFrom(toClone);
       SEXP names = toClone.getAttribute(Symbols.NAMES);
@@ -410,12 +410,19 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       values.set(i, value);
       return this;
     }
+    
+    protected List<SEXP> getValues() {
+      return values;
+    }
 
-    public ListVector build() {
+    protected PairList buildAttributes() {
       if(haveNames) {
         setAttribute(Symbols.NAMES, new StringVector(names));
       }
-
+      return super.buildAttributes();
+    }
+    
+    public ListVector build() {
       return new ListVector(values, buildAttributes());
     }
 

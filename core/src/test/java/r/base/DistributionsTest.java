@@ -20,6 +20,8 @@
  */
 package r.base;
 
+import java.io.IOException;
+
 import org.apache.commons.math.MathException;
 import org.junit.Test;
 
@@ -282,16 +284,12 @@ public class DistributionsTest extends EvalTestCase{
     }
     
     @Test 
-    public void tukeys(){
+    public void tukeys() throws IOException{
       //This is confusing. Because location of parameters are replaced in R calls
-      try{
-        topLevelContext.init();
-      }catch(Exception e){
-        
-      }
+      topLevelContext.init();
+
       assertThat(eval("ptukey(5.20, 14,12,5 , TRUE, FALSE)").asReal(), closeTo(0.7342322, ERROR));
       assertThat(eval("ptukey(4.9, 21,9,2,T,T)").asReal(), closeTo(-0.406227, ERROR));
-      assertThat(eval("qtukey(0.90, 6,3, 4,T,F)").asReal(), closeTo(8.001985, ERROR));
-      
+      assertThat(eval("qtukey(0.90, 6,3, 4,T,F)").asReal(), closeTo(8.001985, ERROR));      
     }
 }

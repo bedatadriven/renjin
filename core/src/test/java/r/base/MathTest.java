@@ -166,4 +166,9 @@ public class MathTest extends EvalTestCase {
     assertThat(PsiGamma.psigamma(4, 1), closeTo(0.283823, 0.00001));
     assertThat(PsiGamma.psigamma(11, 3), closeTo(0.001719901, 0.00001));
   }
+  
+  @Test
+  public void roundRecycles() {
+    assertThat(eval("round(c(0.6,1.2,0.3))"), equalTo(c(1,1,0)));
+  }
 }

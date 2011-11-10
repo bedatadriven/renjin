@@ -310,6 +310,27 @@ public class BasePackageTest extends EvalTestCase {
     topLevelContext.init();
     assertThat( eval("rep(seq(1,10,1),2)"), equalTo(c( 1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10)));
   }
+
+  @Test
+  public void source() throws IOException {
+    topLevelContext.init();
+    global.setVariable(Symbol.get("fn"), 
+        new StringVector(BasePackageTest.class.getResource("SourceTest.R").getFile()));
+      eval("source(fn)");
+  }
+  
+  @Test
+  public void splitAssign() throws IOException {
+    topLevelContext.init();
+    eval("n <- 10");
+    eval("nn <- 100");
+    eval("g <- factor(round(n * runif(n * nn)))");
+    eval("x <- rnorm(n * nn) + sqrt(as.double(g))");
+    eval("xg <- split(x, g)");
+    eval("zz <- x");
+    eval("lresult <- lapply(split(x, g), scale)");
+    eval("split(zz, g) <- lresult");
+  }
   
 
   private void loadBasePackage() throws IOException {
@@ -320,4 +341,5 @@ public class BasePackageTest extends EvalTestCase {
     topLevelContext.executeStartupProfile();
   }
 
+  
 }

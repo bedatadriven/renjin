@@ -76,5 +76,14 @@ public class S3DispatchTest extends EvalTestCase {
     assertThat(eval("x[1,2]"), equalTo(c(false,false,true)));
     assertThat(eval("x[,2]"), equalTo(c(true,false,true)));
   }
+  
+  @Test
+  public void argumentsGoneMissing() {
+    eval("g <- function(x, y, drop=FALSE) .Internal(assign('d', drop, globalenv(), FALSE)) ");
+    eval("f.default <- function(x, y, drop=FALSE) g(x,y,drop) ");
+    eval("f <- function(x,y,drop=FALSE) UseMethod('f')");
+    eval("f(4,5)");
+    assertThat(eval("d"), equalTo(c(false)));
+  }
 
 }

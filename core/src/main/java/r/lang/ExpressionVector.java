@@ -58,12 +58,12 @@ public class ExpressionVector extends ListVector {
 
   @Override
   public Builder newBuilder(int initialSize) {
-    throw new UnsupportedOperationException("implement me");
+    return new Builder();
   }
 
   @Override
   public Builder newCopyBuilder() {
-    throw new UnsupportedOperationException("implement me");
+    return new Builder(this);
   }
 
   @Override
@@ -81,5 +81,26 @@ public class ExpressionVector extends ListVector {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
+  }
+
+  
+  public static class Builder extends ListVector.Builder {
+    
+    public Builder() {
+      super();
+    }
+
+    public Builder(int initialLength) {
+      super(initialLength);
+    }
+
+    public Builder(ListVector toClone) {
+      super(toClone);
+    }
+
+    @Override
+    public ExpressionVector build() {
+      return new ExpressionVector(getValues(), buildAttributes());
+    }
   }
 }

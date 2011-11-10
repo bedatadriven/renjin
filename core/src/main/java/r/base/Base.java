@@ -458,4 +458,22 @@ public class Base {
       }
       return ret.build();
   }
+  
+  public static SEXP R_copyDFattr(SEXP in, SEXP out) { 
+    
+    // NOTE: the equivalent C code actuallly modifies 'out' which
+    // is not actually possible in Renjin-- we can only return a modified
+    // copy. Not clear whether this will
+    // have consequences -- this is called from [.data.frame
+    ListVector attributesToCopy;
+    if(in.hasAttributes()) {
+      attributesToCopy = (ListVector)in.getAttributes().toVector();
+    } else {
+      attributesToCopy = new ListVector();
+    }
+    //IS_S4_OBJECT(in) ?  SET_S4_OBJECT(out) : UNSET_S4_OBJECT(out);
+    //SET_OBJECT(out, OBJECT(in));
+
+    return out.setAttributes(attributesToCopy);  
+  }
 }

@@ -140,4 +140,11 @@ public class MathExt {
     return (Math.log(choose(n, k)));
   }
   
+  
+  // our wrapper generator gets confused by the two double & float overloads
+  // of Math.round
+  @Primitive("round")
+  public static double round(@Recycle double x) {
+    return Math.round(x);
+  }
 }

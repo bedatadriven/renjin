@@ -194,7 +194,23 @@ public class Evaluation {
 
     return expression.evaluate(context, rho);
   }
-
+  
+  /**
+   * Evaluates the expression and then packs it into a named ListVector
+   * containing the value and the visibility flag
+   */
+  @Primitive("eval.with.vis")
+  public static SEXP evalWithVis(@Current Context context,
+      SEXP expression, SEXP environment,
+      SEXP enclosing) {
+    
+    EvalResult result = eval(context, expression, environment, enclosing);
+    ListVector.Builder list = new ListVector.Builder();
+    list.add("value", result.getExpression());
+    list.add("visible", result.isVisible());
+    return list.build();
+  }
+  
   public static SEXP quote(@Evaluate(false) SEXP exp) {
     return exp;
   }
@@ -598,7 +614,7 @@ public class Evaluation {
       */
       if (!(nextfun instanceof Function)) {
         Symbol t = Symbol.get(sg);
-        nextfun = env.findVariable(t);
+        nextfun = env.findFunction(t);
         if ( nextfun instanceof Promise) {
           nextfun = nextfun.evalToExp(context, env);
         }

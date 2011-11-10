@@ -10,7 +10,6 @@ import com.google.common.collect.Lists;
 public class RenjinScriptEngineFactory implements ScriptEngineFactory {
 
   public RenjinScriptEngineFactory() {
-    System.out.println("RENJIN SCRIPT FACTORY ********* !!!!!!!!!");
   }
   
   @Override

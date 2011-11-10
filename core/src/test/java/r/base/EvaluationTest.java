@@ -21,17 +21,23 @@
 
 package r.base;
 
-import org.junit.Test;
-import r.EvalTestCase;
-import r.lang.*;
-import r.lang.exception.EvalException;
-
-import java.io.IOException;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static r.ExpMatchers.logicalVectorOf;
 import static r.ExpMatchers.realVectorEqualTo;
+
+import java.io.IOException;
+
+import org.junit.Test;
+
+import r.EvalTestCase;
+import r.lang.FunctionCall;
+import r.lang.Logical;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.SEXP;
+import r.lang.Symbol;
+import r.lang.exception.EvalException;
 
 public class EvaluationTest extends EvalTestCase {
 
@@ -144,7 +150,15 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("x"), realVectorEqualTo(99));
     assertThat(eval("y"), realVectorEqualTo(99));
   }
-
+  
+  @Test
+  public void forOverList() {
+    eval("alist <- c('a','b','c')");
+    eval("for(item in alist) { y<-item } ");
+    
+    assertThat(eval("y"), equalTo(c("c")));
+  }
+  
   @Test
   public void function() throws IOException {
     eval("f <- function(x) { x }");
@@ -238,6 +252,17 @@ public class EvaluationTest extends EvalTestCase {
   public void complexAssignmentWithSubset() {
     eval( " x <- list( a = c(91,92,93) ) ");
     eval( " x$a[3] <- 42");
+  }
+  
+  @Test
+  public void complexAssignmentWithElipses() {
+    eval("  f<-function(x,f,drop=FALSE) x ");
+    eval(" `f<-` <- function(x,f,drop=FALSE,...,value) { .Internal(assign('d', drop, globalenv(), FALSE)); x } ");
+    eval("  y <- 3");
+    
+    eval(" f(y,1:10) <- 4");
+    
+    assertThat(eval("d"), equalTo(c(false)));
   }
 
   @Test

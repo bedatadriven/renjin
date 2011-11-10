@@ -63,4 +63,10 @@ public class OptTest extends EvalTestCase{
     
     assertThat(eval(" dim( y / dj )"), equalTo(c_i(2,1)));
   }
+  
+  @Test
+  public void symbolEquality() {
+    assertThat(eval("quote(x)==quote(y)"), equalTo(c(false)));
+    assertThat(eval("quote(x)==quote(x)"), equalTo(c(true)));
+  }
 }

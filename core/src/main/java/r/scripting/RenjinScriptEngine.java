@@ -85,7 +85,7 @@ public class RenjinScriptEngine implements ScriptEngine {
 
   @Override
   public void setBindings(Bindings bindings, int scope) {
-    throw new UnsupportedOperationException();
+
   }
 
   @Override

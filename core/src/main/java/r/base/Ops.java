@@ -92,6 +92,12 @@ public class Ops  {
   public static boolean equalTo(double x, double y) {
     return x == y;
   }
+  
+  @Primitive("==")
+  @Recycle(false)
+  public static boolean equalTo(Symbol x, Symbol y) {
+    return x == y;
+  }
 
   @Primitive("==")
   public static boolean equalTo(String x, String y) {

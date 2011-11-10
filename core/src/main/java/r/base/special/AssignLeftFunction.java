@@ -63,7 +63,7 @@ public class AssignLeftFunction extends SpecialFunction {
       rhs = new FunctionCall(setter,
           PairList.Node.newBuilder()
             .addAll(call.getArguments())
-            .add(rhs)
+            .add("value", rhs)
             .build()).evalToExp(context, rho);
 
       lhs = call.getArgument(0);

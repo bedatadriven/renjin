@@ -36,7 +36,7 @@ public class ArgumentIterator {
     this.args = args;
   }
   
-  public SEXP next() {  
+  public SEXP evalNext() {  
     PairList.Node node;
     if(elipses != Null.INSTANCE) {
       node = ((PairList.Node)elipses);
@@ -56,12 +56,30 @@ public class ArgumentIterator {
     if(Symbols.ELLIPSES.equals(arg)) {
       DotExp dotdot = (DotExp) arg.evalToExp(context, rho);
       elipses = dotdot.getPromises();
-      return next();
+      return evalNext();
 
     } else {
      
-      return arg;
+      return arg.evalToExp(context, rho);
     } 
+  }
+  
+  public SEXP next() {  
+    PairList.Node node;
+    if(elipses != Null.INSTANCE) {
+      node = ((PairList.Node)elipses);
+      elipses = node.getNext();
+      
+    } else if(args != Null.INSTANCE){
+      node = ((PairList.Node)args);
+      args = node.getNext();
+      
+    } else {
+      // we've run out of arguments!
+      throw new ArgumentException();
+    }
+  
+    return node.getValue(); 
   }
   
   public PairList.Node nextNode() {  

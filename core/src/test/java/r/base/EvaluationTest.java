@@ -28,6 +28,7 @@ import static r.ExpMatchers.realVectorEqualTo;
 
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import r.EvalTestCase;
@@ -471,7 +472,30 @@ public class EvaluationTest extends EvalTestCase {
     eval(" attr(x, 'foo') <- 'bar' ");
     eval(" environment(x) <- globalenv() ");
     eval(" class(x) <- 'foo' ");
-    
   }
   
+  @Test
+  public void matchCall() throws IOException {
+    topLevelContext.init();
+    eval("f<-function(a,b) match.call()");
+    eval("matched <- f(b=1,a=2)");
+    
+    assertThat(eval("matched$a"), equalTo(c(2)));
+    assertThat(eval("matched$b"), equalTo(c(1)));
+  }
+  
+  @Test
+  @Ignore("work in progress")
+  public void matchCallDotsNotExpanded() throws IOException {
+    topLevelContext.init();
+    eval("f<-function(expand.dots,...) match.call(expand.dots=expand.dots)");
+    eval("matched <- f(expand.dots=FALSE, 1,2,3)");
+   // eval(assertThat
+    
+    eval("x <- matched$...");
+    
+    assertThat(eval("x"), equalTo(list(1,2,3)));
+  }
+  
+ 
 }

@@ -21,12 +21,29 @@
 
 package r.base;
 
-import com.google.common.collect.Sets;
-import r.lang.*;
+import java.util.Set;
+
+import r.jvmi.annotations.Current;
+import r.jvmi.annotations.Primitive;
+import r.lang.AtomicVector;
+import r.lang.Closure;
+import r.lang.Context;
+import r.lang.DotExp;
+import r.lang.Function;
+import r.lang.FunctionCall;
+import r.lang.IntVector;
+import r.lang.Logical;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Symbols;
+import r.lang.Vector;
 import r.lang.exception.EvalException;
 
-import java.util.Set;
-import r.jvmi.annotations.Primitive;
+import com.google.common.collect.Sets;
 
 /**
  * Default implementations of match() related functions.
@@ -230,14 +247,53 @@ public class Match {
   }
   
   
-  /*
-   * Attentation:
-   * This method is not implemented correctly.
-   * Just registered for cov, cor, var to work, it must be implemented.
-   * More work needed to find the caller of match.call
-   */
   @Primitive("match.call")
-  public static SEXP matchCall (SEXP definition, SEXP call, boolean expandDots){
-    return(Null.INSTANCE);
+  public static SEXP matchCall (@Current Context context, SEXP definition, FunctionCall call, boolean expandDots){
+    
+    Closure closure;
+    if(definition instanceof Closure) {
+      closure = (Closure)definition;
+    } else if(definition == Null.INSTANCE) {
+      // lookup function ourselves
+      if(call.getFunction() instanceof Closure) {
+        closure = (Closure)call.getFunction();
+      } else if(call.getFunction() instanceof Symbol) {
+        Function function = context.getEnvironment().findFunction((Symbol)call.getFunction());
+        if(function == null) {
+          throw new EvalException("match.call cannot find function named '%s'", call.getFunction());
+        } else if(function instanceof Closure) {
+          closure = (Closure)function;
+        } else {
+          throw new EvalException("match.call cannot be used on functions of type '%s'", function.getTypeName());
+        }
+      } else {
+        throw new EvalException("match.call cannot be used on functions of type '%s'", call.getFunction().getTypeName());
+      }
+    } else {
+      throw new EvalException("match.call cannot use definition of type '%s'", definition.getTypeName());
+    }
+    
+//    PairList.Builder expandedArgs = new PairList.Builder();
+//    for(PairList.Node node : call.getArguments().nodes()) {
+//      if(node.getTag() == Symbols.ELLIPSES) {
+//        if(expandDots) {
+//          for()
+//        }
+//      }
+//    }
+ 
+    PairList matchedArguments = Calls.matchArguments(closure.getFormals(), call.getArguments());
+    
+//    if(expandDots) {
+//      return new FunctionCall(call.getFunction(), matchedArguments);
+//    } else {
+//      PairList.Builder result = new PairList.Builder();
+//      for(PairList.Node node : matchedArguments.nodes()) {
+//        if(node.getValue() instanceof DotExp)
+//      }
+//      
+//    }
+    
+    return matchedArguments;
   }
 }

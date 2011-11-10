@@ -534,6 +534,13 @@ public class SubscriptTest extends EvalTestCase {
     assertThat( eval("x$b"), equalTo(c(2)));
 
   }
+  
+  @Test
+  public void pairListElipses() {
+    eval(" x <- .Internal(as.vector(list(a=1, z=4), 'pairlist'))");
+    eval(" x$... <- 4");
+    assertThat( eval("x$..."), equalTo(c(4)));
+  }
 
   @Test
   public void indexingCharacter() {

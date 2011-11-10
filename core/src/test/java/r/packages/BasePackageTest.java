@@ -332,6 +332,13 @@ public class BasePackageTest extends EvalTestCase {
     eval("split(zz, g) <- lresult");
   }
   
+  @Test
+  @Ignore("not yet working")
+  public void remove() throws IOException {
+    topLevelContext.init();
+    eval("a<-1");
+    eval("remove(a)");
+  }
 
   private void loadBasePackage() throws IOException {
     topLevelContext.loadBasePackage();

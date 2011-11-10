@@ -57,7 +57,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       }
       
       if(isEvaluated(overloads, i)) {
-        s.writeStatement("SEXP s" + i + " = argIt.next().evalToExp(context,rho)");
+        s.writeStatement("SEXP s" + i + " = argIt.evalNext()");
       } else {
         s.writeStatement("SEXP s" + i + " = argIt.next()");
       }

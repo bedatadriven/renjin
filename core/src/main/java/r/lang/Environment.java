@@ -176,6 +176,11 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
   }
   
+
+  public void remove(Symbol symbol) {
+    frame.remove(symbol);
+  }
+  
   public void clear() {
     frame.clear();
   }
@@ -434,4 +439,5 @@ public class Environment extends AbstractSEXP implements Recursive {
       throw new UnsupportedOperationException("The empty environment does not have a parent.");
     }
   }
+
 }

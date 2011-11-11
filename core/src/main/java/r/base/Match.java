@@ -28,7 +28,7 @@ import r.jvmi.annotations.Primitive;
 import r.lang.AtomicVector;
 import r.lang.Closure;
 import r.lang.Context;
-import r.lang.DotExp;
+import r.lang.Environment;
 import r.lang.Function;
 import r.lang.FunctionCall;
 import r.lang.IntVector;
@@ -248,52 +248,38 @@ public class Match {
   
   
   @Primitive("match.call")
-  public static SEXP matchCall (@Current Context context, SEXP definition, FunctionCall call, boolean expandDots){
+  public static SEXP matchCall (@Current Context context, @Current Environment rho, SEXP definition, FunctionCall call, boolean expandDots){
     
     Closure closure;
     if(definition instanceof Closure) {
       closure = (Closure)definition;
     } else if(definition == Null.INSTANCE) {
-      // lookup function ourselves
-      if(call.getFunction() instanceof Closure) {
-        closure = (Closure)call.getFunction();
-      } else if(call.getFunction() instanceof Symbol) {
-        Function function = context.getEnvironment().findFunction((Symbol)call.getFunction());
-        if(function == null) {
-          throw new EvalException("match.call cannot find function named '%s'", call.getFunction());
-        } else if(function instanceof Closure) {
-          closure = (Closure)function;
-        } else {
-          throw new EvalException("match.call cannot be used on functions of type '%s'", function.getTypeName());
-        }
-      } else {
-        throw new EvalException("match.call cannot be used on functions of type '%s'", call.getFunction().getTypeName());
-      }
+      if(context.getParent().getType() != Context.Type.FUNCTION) {
+        throw new EvalException("match.call() was called from outside a function");
+      } 
+      closure = context.getParent().getClosure();
     } else {
       throw new EvalException("match.call cannot use definition of type '%s'", definition.getTypeName());
     }
     
-//    PairList.Builder expandedArgs = new PairList.Builder();
-//    for(PairList.Node node : call.getArguments().nodes()) {
-//      if(node.getTag() == Symbols.ELLIPSES) {
-//        if(expandDots) {
-//          for()
-//        }
-//      }
-//    }
- 
-    PairList matchedArguments = Calls.matchArguments(closure.getFormals(), call.getArguments());
+    PairList matched = Calls.matchArguments(closure.getFormals(), call.getArguments());
     
-//    if(expandDots) {
-//      return new FunctionCall(call.getFunction(), matchedArguments);
-//    } else {
-//      PairList.Builder result = new PairList.Builder();
-//      for(PairList.Node node : matchedArguments.nodes()) {
-//        if(node.getValue() instanceof DotExp)
-//      }
-//      
-//    }
+    if(expandDots) {
+      PairList.Builder expandedArgs = new PairList.Builder();
+      for(PairList.Node node : matched.nodes()) {
+        if(node.getTag() == Symbols.ELLIPSES) {
+          for(PairList.Node elipseNode : ((PairList)node.getValue()).nodes()) {
+            expandedArgs.add(elipseNode.getRawTag(), elipseNode.getValue());
+          }
+        } else {
+          expandedArgs.add(node.getTag(), node.getValue());
+        }
+      }
+      matched = expandedArgs.build();
+    }
     
-    return matchedArguments;
+    return new FunctionCall(call.getFunction(), matched);
   }
+  
 }
+

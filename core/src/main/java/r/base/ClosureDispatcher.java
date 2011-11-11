@@ -185,12 +185,12 @@ public class ClosureDispatcher {
     while( formalIt.hasNext()) {
       PairList.Node formal = formalIt.next();
       if(Symbols.ELLIPSES.equals(formal.getTag())) {
-        PairList.Node.Builder promises = PairList.Node.newBuilder();
+        PromisePairList.Builder promises = new PromisePairList.Builder();
         while(actualIt.hasNext()) {
           PairList.Node actual = actualIt.next();
           promises.add( actual.getRawTag(),  actual.getValue() );
         }
-        result.add(formal.getTag(), new DotExp( promises.build() ));
+        result.add(formal.getTag(), promises.build() );
 
       } else if( hasNextUnTagged(actualIt) ) {
         result.add(formal.getTag(), nextUnTagged(actualIt).getValue() );

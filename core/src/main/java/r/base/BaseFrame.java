@@ -107,6 +107,13 @@ public class BaseFrame implements Frame {
         .add("dynlib.ext", new StringVector(".dll"))
         .build());
   }
+  
+  
+
+  @Override
+  public void remove(Symbol name) {
+    loaded.remove(name);
+  }
 
   /**
    * Adds the .Machine list to the base frame,

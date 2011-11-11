@@ -65,4 +65,6 @@ public interface Frame {
    */
   void clear();
 
+  void remove(Symbol name);
+  
 }

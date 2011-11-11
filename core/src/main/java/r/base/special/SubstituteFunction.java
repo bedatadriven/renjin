@@ -73,7 +73,7 @@ public class SubstituteFunction extends SpecialFunction {
       PairList.Builder builder = PairList.Node.newBuilder();
       for(PairList.Node node : arguments.nodes()) {
         if(node.getValue().equals(Symbols.ELLIPSES)) {
-          builder.addAll(unpackPromiseList((DotExp)environment.getVariable((Symbol)node.getValue())));
+          builder.addAll(unpackPromiseList((PromisePairList)environment.getVariable((Symbol)node.getValue())));
         } else {
           builder.add(node.getRawTag(), substitute(node.getValue()));
         }
@@ -121,16 +121,16 @@ public class SubstituteFunction extends SpecialFunction {
       }
     }
 
-    private PairList unpackPromiseList(DotExp dotExp) {
+    private PairList unpackPromiseList(PromisePairList dotExp) {
       PairList.Builder unpacked = new PairList.Node.Builder();
-      for(PairList.Node node : dotExp.getPromises().nodes()) {
+      for(PairList.Node node : dotExp.nodes()) {
         unpacked.add(node.getRawTag(), ((Promise)node.getValue()).getExpression());
       }
       return unpacked.build();
     }
 
     @Override
-    public void visit(DotExp dotExp) {
+    public void visit(PromisePairList dotExp) {
       super.visit(dotExp);
     }
 

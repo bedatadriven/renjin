@@ -685,8 +685,8 @@ public class Evaluation {
   private static PairList expandDotDotDot(PairList actuals) {
     PairList.Builder result = new PairList.Builder();
     for(PairList.Node node : actuals.nodes()) {
-      if(node.getValue() instanceof DotExp) {
-        for(PairList.Node dotNode : ((DotExp) node.getValue()).getPromises().nodes()) {
+      if(node.getValue() instanceof PromisePairList) {
+        for(PairList.Node dotNode : ((PromisePairList) node.getValue()).nodes()) {
           result.add(dotNode.getRawTag(), dotNode.getValue());
         }
       } else {
@@ -756,5 +756,23 @@ public class Evaluation {
 
   public static int nargs(@Current Context context) {
     return context.getArguments().length();
+  }
+  
+  @Primitive(".Primitive")
+  public static PrimitiveFunction getPrimitive(String name) {
+    PrimitiveFunction fn = Primitives.getBuiltin(Symbol.get(name));
+    if(fn == null) {
+      throw new EvalException("No such primitive function");
+    }
+    return fn;
+  }
+  
+  public static void remove(StringVector names, Environment envir, boolean inherits) {
+    if(inherits) {
+      throw new EvalException("remove(inherits=TRUE) is not yet implemented");
+    }
+    for(String name : names) {
+      envir.remove(Symbol.get(name));
+    }
   }
 }

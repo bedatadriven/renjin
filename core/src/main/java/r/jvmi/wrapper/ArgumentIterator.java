@@ -1,7 +1,7 @@
 package r.jvmi.wrapper;
 
 import r.lang.Context;
-import r.lang.DotExp;
+import r.lang.PromisePairList;
 import r.lang.Environment;
 import r.lang.Null;
 import r.lang.PairList;
@@ -54,8 +54,8 @@ public class ArgumentIterator {
     SEXP arg = node.getValue();
     
     if(Symbols.ELLIPSES.equals(arg)) {
-      DotExp dotdot = (DotExp) arg.evalToExp(context, rho);
-      elipses = dotdot.getPromises();
+      PromisePairList dotdot = (PromisePairList) arg.evalToExp(context, rho);
+      elipses = dotdot;
       return evalNext();
 
     } else {
@@ -100,8 +100,8 @@ public class ArgumentIterator {
     SEXP arg = node.getValue();
     
     if(Symbols.ELLIPSES.equals(arg)) {
-      DotExp dotdot = (DotExp) arg.evalToExp(context, rho);
-      elipses = dotdot.getPromises();
+      PromisePairList dotdot = (PromisePairList) arg.evalToExp(context, rho);
+      elipses = dotdot;
       return nextNode();
 
     } else {
@@ -118,8 +118,8 @@ public class ArgumentIterator {
     if(args != Null.INSTANCE) {
       SEXP arg = ((PairList.Node)args).getValue();
       if(Symbols.ELLIPSES.equals(arg)) {
-        DotExp dotdot = (DotExp) arg.evalToExp(context, rho);
-        elipses = dotdot.getPromises();
+        PromisePairList dotdot = (PromisePairList) arg.evalToExp(context, rho);
+        elipses = dotdot;
         args = ((PairList.Node)args).getNext();
 
         return hasNext();

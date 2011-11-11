@@ -8,7 +8,6 @@ import static org.junit.Assert.*;
 public class SurveyPackageTest extends PackageTest {
 
   @Test
-  @Ignore("not yet working")
   public void surveyPackage() throws Exception {
     topLevelContext.init();
 

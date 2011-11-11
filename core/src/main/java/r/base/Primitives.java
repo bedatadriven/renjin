@@ -151,7 +151,7 @@ public class Primitives {
     f("Recall", /*recall*/ null, 0, 210, -1);
     f("delayedAssign", Evaluation.class, 0, 111, 4);
     f("makeLazy", Connections.class, 0, 111, 5);
-    f(".Primitive", /*primitive*/ null, 0, 1, 1);
+    f(".Primitive", Evaluation.class, 0, 1, 1);
     f("identical",  Types.class, 0, 11, 5);
 
 
@@ -246,7 +246,7 @@ public class Primitives {
     f("mget", /*mget*/ null, 1, 11, 5);
     f("exists", Types.class, 0, 11, 4);
     f("assign", Evaluation.class, 0, 111, 4);
-    f("remove", /*remove*/ null, 0, 111, 3);
+    f("remove", Evaluation.class, 0, 111, 3);
     f("duplicated", /*duplicated*/ null, 0, 11, 3);
     f("unique", Match.class, 1, 11, 3);
     f("anyDuplicated", Match.class, 2, 11, 3);

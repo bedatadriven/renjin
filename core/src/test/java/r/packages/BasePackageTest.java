@@ -333,7 +333,6 @@ public class BasePackageTest extends EvalTestCase {
   }
   
   @Test
-  @Ignore("not yet working")
   public void remove() throws IOException {
     topLevelContext.init();
     eval("a<-1");

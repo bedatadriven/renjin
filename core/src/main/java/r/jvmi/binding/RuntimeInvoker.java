@@ -102,8 +102,8 @@ public class RuntimeInvoker {
     for(PairList.Node arg : call.getArguments().nodes()) {
       if(Symbols.ELLIPSES.equals(arg.getValue())) {
         // the values of the '...' are just merged into the argument list
-        DotExp ellipses = (DotExp) arg.getValue().evalToExp(context, rho);
-        for(PairList.Node dotArg : ellipses.getPromises().nodes()) {
+        PromisePairList ellipses = (PromisePairList) arg.getValue().evalToExp(context, rho);
+        for(PairList.Node dotArg : ellipses.nodes()) {
           provided.add(new ProvidedArgument(context, rho, dotArg));
         }
       } else {

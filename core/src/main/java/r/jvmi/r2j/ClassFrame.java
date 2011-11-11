@@ -49,4 +49,11 @@ public class ClassFrame implements Frame {
   public void clear() {
     throw new EvalException("Cannot clear a JVM class frame");
   }
+
+  @Override
+  public void remove(Symbol name) {
+    throw new EvalException("Cannot remove from a JVM class frame");  
+  }
+  
+  
 }

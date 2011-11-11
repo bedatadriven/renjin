@@ -40,7 +40,7 @@ import java.util.Collections;
  * There is only one immutable instance of {@code Null} that can be referenced at
  * {@code Null.INSTANCE}
  */
-public final class Null extends AbstractSEXP implements AtomicVector, PairList {
+public final class Null extends AbstractSEXP implements AtomicVector, PairList, PromisePairList {
 
   public static final String TYPE_NAME = "NULL";
 
@@ -98,7 +98,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList {
    * @return  an empty set
    */
   @Override
-  public Iterable<Node> nodes() {
+  public Iterable<PairList.Node> nodes() {
     return Collections.emptySet();
   }
 

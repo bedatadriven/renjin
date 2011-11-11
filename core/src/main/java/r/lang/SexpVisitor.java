@@ -83,7 +83,7 @@ public class SexpVisitor<R> {
     unhandled(vector);
   }
 
-  public void visit(DotExp dotExp) {
+  public void visit(PromisePairList dotExp) {
     unhandled(dotExp);
   }
 

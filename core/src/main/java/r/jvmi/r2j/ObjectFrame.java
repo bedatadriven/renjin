@@ -57,6 +57,13 @@ public class ObjectFrame implements Frame {
     throw new EvalException("Cannot clear a JVM object frame");
   }  
   
+  
+  
+  @Override
+  public void remove(Symbol name) {
+    throw new EvalException("Cannot remove from JVM object frame");
+  }
+
   public Object getInstance() {
     return instance;
   }

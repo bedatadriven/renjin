@@ -22,6 +22,7 @@
 package r.base;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static r.ExpMatchers.logicalVectorOf;
 import static r.ExpMatchers.realVectorEqualTo;
@@ -32,6 +33,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import r.EvalTestCase;
+import r.base.special.IfFunction;
 import r.lang.FunctionCall;
 import r.lang.Logical;
 import r.lang.Null;
@@ -485,17 +487,26 @@ public class EvaluationTest extends EvalTestCase {
   }
   
   @Test
-  @Ignore("work in progress")
   public void matchCallDotsNotExpanded() throws IOException {
     topLevelContext.init();
     eval("f<-function(expand.dots,...) match.call(expand.dots=expand.dots)");
+    
+    // try without dots expanded
     eval("matched <- f(expand.dots=FALSE, 1,2,3)");
-   // eval(assertThat
     
-    eval("x <- matched$...");
+    assertThat(eval("as.list(matched$...)"), equalTo(list(1d,2d,3d)));
     
-    assertThat(eval("x"), equalTo(list(1,2,3)));
+    // now with dots expanded
+    eval("matched <- f(expand.dots=TRUE, 44, 55, 90, 50)");
+    
+    assertThat(eval("matched$..."), equalTo(NULL));
+    assertThat(eval("length(matched)"), equalTo(c_i(6)));
   }
-  
+
+  @Test
+  public void primitive() {
+    eval("f <- .Primitive('if')");
+    assertThat(global.getVariable("f"), instanceOf(IfFunction.class));
+  }
  
 }

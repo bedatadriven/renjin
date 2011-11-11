@@ -21,6 +21,8 @@
 
 package r;
 
+import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.Test;
 import r.lang.Logical;
@@ -84,6 +86,19 @@ public class S3DispatchTest extends EvalTestCase {
     eval("f <- function(x,y,drop=FALSE) UseMethod('f')");
     eval("f(4,5)");
     assertThat(eval("d"), equalTo(c(false)));
+  }
+
+   
+  @Test
+  public void matchCallWithinGeneric() throws IOException {
+    topLevelContext.init();
+    
+    eval("g <- { f <- function(a,b,...) { UseMethod('f') } ; " +
+    		        "f.default <- function(a,b,...) { match.call() }; " +
+    		        "f; } ");
+    eval("call <- g(1,2)");
+    
+    assertThat(eval("call[[1]]"), equalTo(symbol("f.default")));
   }
 
 }

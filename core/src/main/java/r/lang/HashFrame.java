@@ -71,6 +71,11 @@ public class HashFrame implements Frame{
   }
 
   @Override
+  public void remove(Symbol name) {
+    values.remove(name);
+  }
+
+  @Override
   public void clear() {
     values.clear();
   }
@@ -83,6 +88,4 @@ public class HashFrame implements Frame{
     }
     return sb.toString();
   }
-
-  
 }

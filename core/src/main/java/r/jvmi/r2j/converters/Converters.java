@@ -26,9 +26,12 @@ public class Converters  {
       
     } else if(CollectionConverter.accept(clazz)) {
       return new CollectionConverter();
-     
+      
+    } else if(ObjectConverter.accept(clazz)) {
+      return ObjectConverter.INSTANCE;
+      
     } else {
-      return new ObjectConverter(clazz);
+      return new ObjectOfASpecificClassConverter(clazz);
     }
   }
   

@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.Context;
+import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.LogicalVector;
@@ -47,7 +48,6 @@ public class System {
   public static String getRHome(@Current Context context) throws URISyntaxException {
     return context.getGlobals().homeDirectory;
   }
-
 
   public static ListVector Version() {
     // this is just copied from my local R installation
@@ -261,5 +261,13 @@ public class System {
     }
   }
 
+  public static DoubleVector gc(boolean verbose, boolean reset) {
+    try {
+      java.lang.System.gc();
+    } catch(Exception e) {
+      
+    }
+    return new DoubleVector();
+  }
 
 }

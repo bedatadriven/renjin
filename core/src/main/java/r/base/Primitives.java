@@ -613,7 +613,7 @@ public class Primitives {
     f("print.function", Print.class, 0, 111, 3);
     f("prmatrix", /*prmatrix*/ null, 0, 111, 6);
     f("invisible", Types.class, 0, 101, 1);
-    f("gc", /*gc*/ null, 0, 11, 2);
+    f("gc", System.class, 0, 11, 2);
     f("gcinfo", /*gcinfo*/ null, 0, 11, 1);
     f("gctorture", /*gctorture*/ null, 0, 11, 1);
     f("memory.profile", /*memoryprofile*/ null, 0, 11, 0);

@@ -181,4 +181,12 @@ public class MatrixTest extends EvalTestCase {
     assertThat(eval("colMeans(q)"), equalTo(c(2.5, 6.5, 10.5, 14.5, 18.5, 22.5, 26.5, 30.5)));
   }
   
+  @Test
+  public void matrixEmptyData() throws IOException {
+    topLevelContext.init();
+    eval("m <- matrix(double(), 2, 3)");
+    assertThat(eval("m"), equalTo(c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA, 
+                                    DoubleVector.NA, DoubleVector.NA, DoubleVector.NA)));
+  }
+  
 }

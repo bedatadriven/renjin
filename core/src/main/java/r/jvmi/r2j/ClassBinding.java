@@ -153,4 +153,8 @@ public class ClassBinding {
   public Object newInstance(List<SEXP> constructorArgs) {
     return constructorBinding.newInstance(constructorArgs);
   }
+
+  public Class getBoundClass() {
+    return clazz;
+  }
 }

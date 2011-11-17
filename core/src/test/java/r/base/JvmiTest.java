@@ -36,6 +36,15 @@ public class JvmiTest extends EvalTestCase {
   }
   
   @Test
+  public void javaUtilMap() {
+    eval("import(java.util.HashMap)");
+    eval("map <- HashMap$new()");
+    eval("map$put(1,'foo')");
+    
+    assertThat(eval("map$get(1)"), equalTo(c("foo")));
+  }
+  
+  @Test
   public void newInstanceWithPropertyInit() {
     eval("import(r.base.MyBean)");
     eval("x <- MyBean$new(count=92)");

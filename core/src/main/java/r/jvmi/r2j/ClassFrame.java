@@ -29,6 +29,10 @@ public class ClassFrame implements Frame {
     }
     return value;
   }
+  
+  public Class getBoundClass() {
+    return binding.getBoundClass();
+  }
 
   @Override
   public Function getFunction(Symbol name) {

@@ -589,23 +589,25 @@ public class Combine {
    * @return
    */
   public static SEXP matrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
-        Vector.Builder result = data.newBuilder(0);
+        Vector.Builder result = data.newBuilder(nrow * ncol);
         int i = 0;
 
-        if (!byRow) {
-            for (int col = 0; col < ncol; ++col) {
-                for (int row = 0; row < nrow; ++row) {
-                    int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol) % data.length();
-                    result.setFrom(i++, data, sourceIndex);
-                }
-            }
-        } else {
-            for (int row = 0; row < nrow; ++row) {
-                for (int col = 0; col < ncol; ++col) {
-                    result.setFrom(row + (col * nrow), data, i % data.length());
-                    i++;
-                }
-            }
+        if(data.length() > 0) {
+          if (!byRow) {
+              for (int col = 0; col < ncol; ++col) {
+                  for (int row = 0; row < nrow; ++row) {
+                      int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol) % data.length();
+                      result.setFrom(i++, data, sourceIndex);
+                  }
+              }
+          } else {
+              for (int row = 0; row < nrow; ++row) {
+                  for (int col = 0; col < ncol; ++col) {
+                      result.setFrom(row + (col * nrow), data, i % data.length());
+                      i++;
+                  }
+              }
+          }
         }
         result.setAttribute(Symbols.DIM, new IntVector(nrow, ncol));
         return result.build();

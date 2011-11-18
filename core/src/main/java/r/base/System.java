@@ -21,6 +21,9 @@
 
 package r.base;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.ThreadMXBean;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -45,6 +48,11 @@ import r.lang.exception.EvalException;
 
 public class System {
 
+  private static final double NANOSECONDS_PER_SECOND = 1000000000d;
+  
+  private static final double MILLISECONDS_PER_SECOND = 1000d;
+  
+  
   public static String getRHome(@Current Context context) throws URISyntaxException {
     return context.getGlobals().homeDirectory;
   }
@@ -261,6 +269,7 @@ public class System {
     }
   }
 
+  @Primitive("gc")
   public static DoubleVector gc(boolean verbose, boolean reset) {
     try {
       java.lang.System.gc();
@@ -269,5 +278,59 @@ public class System {
     }
     return new DoubleVector();
   }
+  
+  /**
+   * Returns object of class ‘"proc_time"’ which is a numeric vector of
+   * length 5, containing the user, system, and total elapsed times for
+   * the currently running R process, and the cumulative sum of user
+   * and system times of any child processes spawned by it on which it
+   * has waited. 
+   *
+   * _The ‘user time’ is the CPU time charged for the execution of user
+   *  instructions of the calling process. The ‘system time’ is the CPU
+   *  time charged for execution by the system on behalf of the calling
+   *  process._
+   */
+  @Primitive("proc.time")
+  public static DoubleVector procTime() {
+     
+    DoubleVector.Builder result = new DoubleVector.Builder();
+    StringVector.Builder names = new StringVector.Builder();
+    
 
+    // There doesn't seem to be any platform-independent way of accessing 
+    // CPU use for the whole JVM process, so we'll have to make do
+    // with the timings for the thread we're running on. 
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    long totalCPUTime = threadMXBean.getCurrentThreadCpuTime();
+    long userCPUTime = threadMXBean.getCurrentThreadUserTime();
+    
+    // user.self
+    names.add("user.self");
+    result.add( userCPUTime / NANOSECONDS_PER_SECOND );
+    
+    // sys.self
+    names.add("sys.self");
+    result.add( (totalCPUTime - userCPUTime) / NANOSECONDS_PER_SECOND );
+    
+    // elapsed
+    // (wall clock time)
+    names.add("elapsed");
+    result.add(ManagementFactory.getRuntimeMXBean().getUptime() / MILLISECONDS_PER_SECOND);
+    
+    // AFAIK, we don't have any platform independent way of accessing
+    // this info.
+    
+    // user.child
+    names.add("user.child");
+    result.add(0);
+    
+    // sys.child
+    names.add("sys.child");
+    result.add(0);
+    
+    result.setAttribute(Symbols.NAMES, names.build());
+    result.setAttribute(Symbols.CLASS, new StringVector("proc_time"));
+    return result.build();
+  } 
 }

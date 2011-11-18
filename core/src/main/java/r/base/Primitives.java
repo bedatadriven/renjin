@@ -585,7 +585,7 @@ public class Primitives {
 
 /* Miscellaneous */
 
-    f("proc.time", /*proctime*/ null, 0, 1, 0);
+    f("proc.time", System.class, 0, 1, 0);
     f("gc.time", /*gctime*/ null, 0, 1, -1);
     f("Version", System.class, 0, 11, 0);
     f("machine", /*machine*/ null, 0, 11, 0);

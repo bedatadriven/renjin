@@ -656,7 +656,7 @@ public class Primitives {
     f("sort", Sort.class, 1, 11, 2);
     f("is.unsorted", /*isunsorted*/ null, 0, 11, 2);
     f("psort", /*psort*/ null, 0, 11, 2);
-    f("qsort", /*qsort*/ null, 0, 11, 2);
+    f("qsort", Sort.class, 0, 11, 2);
     f("radixsort", /*radixsort*/ null, 0, 11, 3);
     f("order", Sort.class, 0, 11, -1);
     f("rank", /*rank*/ null, 0, 11, 2);

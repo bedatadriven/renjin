@@ -109,6 +109,22 @@ public class Sort {
     return new IntVector(sorted, x.getAttributes());
   }
 
+  public static DoubleVector qsort(DoubleVector x, boolean returnIndexes) {
+
+    if(returnIndexes) {
+      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
+    }
+    
+    double[] values = x.toDoubleArray();
+    Arrays.sort(values);
+    
+    DoubleVector sorted = new DoubleVector(values, x.getAttributes());
+    
+    // drop the names attributes if present because it will not be sorted
+    return (DoubleVector)sorted
+            .setAttribute(Symbols.NAMES, Null.INSTANCE);  
+  }
+    
   private static void reverse(int[] b) {
     int left  = 0;          
     int right = b.length-1; 

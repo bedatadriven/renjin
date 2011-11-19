@@ -49,7 +49,7 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
   public Complex getElementAsComplex(int index) {
     return new Complex(getElementAsDouble(index), 0);
   }
-
+  
   @Override
   public int indexOfNA() {
     for(int i=0;i!=length();++i) {
@@ -63,6 +63,15 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
   @Override
   public boolean contains(AtomicVector vector, int vectorIndex) {
     return indexOf(vector, vectorIndex, 0) != -1;
+  }
+  
+  @Override
+  public double[] toDoubleArray() {
+    double [] d = new double[length()];
+    for(int i=0;i!=d.length;++i) {
+      d[i] = getElementAsDouble(i);
+    }
+    return d;
   }
 
   @Override

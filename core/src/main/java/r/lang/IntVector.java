@@ -21,15 +21,15 @@
 
 package r.lang;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.UnmodifiableIterator;
-import org.apache.commons.math.complex.Complex;
-
-import r.lang.Vector.Builder;
-import r.parser.ParseUtil;
-
 import java.util.Arrays;
 import java.util.Iterator;
+
+import org.apache.commons.math.complex.Complex;
+
+import r.parser.ParseUtil;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.UnmodifiableIterator;
 
 public class IntVector extends AbstractAtomicVector implements Iterable<Integer> {
 
@@ -207,6 +207,20 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   @Override
   public int hashCode() {
     return Arrays.hashCode(values);
+  }
+  
+  @Override
+  public double[] toDoubleArray() {
+    double[] d = new double[this.values.length];
+    for(int i=0;i!=d.length;++i) {
+      int x = this.values[i];
+      if(x == NA){
+        d[i] = DoubleVector.NA;
+      } else {
+        d[i] = x;
+      }
+    }
+    return d;
   }
 
   @Override

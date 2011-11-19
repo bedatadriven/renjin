@@ -294,6 +294,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     return Arrays.hashCode(values);
   }
 
+  @Override
   public double[] toDoubleArray() {
     return Arrays.copyOf(values, values.length);
   }

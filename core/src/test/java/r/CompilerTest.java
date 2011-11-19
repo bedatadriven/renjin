@@ -76,8 +76,6 @@ public class CompilerTest {
       }
       System.out.println(s);
     }
-
-
   }
 }
 

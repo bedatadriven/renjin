@@ -171,8 +171,8 @@ public class Primitives {
     f("%%", Ops.class, 0 /* MODOP */, 1, 2, PP_BINARY2, PREC_PERCENT, 0);
     f("%/%", Ops.class, 0 /* IDIVOP */, 1, 2, PP_BINARY2, PREC_PERCENT, 0);
     f("%*%", Matrix.class, 0, 1, 2, PP_BINARY, PREC_PERCENT, 0);
-    f("crossprod", /*matprod*/ null, 1, 11, 2);
-    f("tcrossprod", /*matprod*/ null, 2, 11, 2);
+    f("crossprod", Matrix.class, 1, 11, 2);
+    f("tcrossprod", Matrix.class, 2, 11, 2);
 
 
 /* these are group generic and so need to eval args */

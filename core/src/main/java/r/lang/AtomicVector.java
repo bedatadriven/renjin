@@ -72,6 +72,13 @@ public interface AtomicVector extends Vector {
    */
   int compare(int index1, int index2);
 
+
+  /**
+   * @return a copy of the vector as an array of doubles
+   */
+  public double[] toDoubleArray();
+  
+  
   @Override
   Builder newBuilder(int initialSize);
 

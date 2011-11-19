@@ -279,6 +279,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public double[] toDoubleArray() {
+    return new double[0];
+  }
+
+  @Override
   public boolean equals(Object obj) {
     return obj == this;
   }

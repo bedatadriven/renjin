@@ -37,14 +37,6 @@
   <description>Java-based implementation of the R language for
     statistical computing</description>
 
-  <repositories>
-    <repository>
-      <id>bedatadriven</id>
-      <name>bedatadriven public repo</name>
-      <url>http://nexus.bedatadriven.com/content/groups/public/</url>
-    </repository>
-  </repositories>
-
   <dependencies>
 
     <!-- Currently we are using both Colt and Apache Commons Math

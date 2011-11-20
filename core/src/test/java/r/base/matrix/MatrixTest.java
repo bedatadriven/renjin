@@ -199,13 +199,5 @@ public class MatrixTest extends EvalTestCase {
     topLevelContext.init();
     assertThat(eval("tcrossprod(matrix(1:4,2,2))"), equalTo(c(10,14,14,20)));
   }
-  
-  @Test
-  public void largeCrossprod() {
-    eval("a <- .Internal(rnorm(2800*2800,0,1)); dim(a) <- c(2800, 2800)");
-    assertThat(eval("length(a)"), equalTo(c_i(2800*2800)));
-    eval(".Internal(crossprod(a,NULL))");
 
-  }
-  
 }

@@ -44,7 +44,7 @@ public class AssignLeftFunction extends SpecialFunction {
    * assignment is right associative i.e.  a <- b <- c is parsed as
    * a <- (b <- c).
    */
-  public static EvalResult assignLeft(Context context, Environment rho,
+  public EvalResult assignLeft(Context context, Environment rho,
                                       SEXP lhs, SEXP value) {
 
     // this loop handles nested, complex assignments, such as:
@@ -82,8 +82,12 @@ public class AssignLeftFunction extends SpecialFunction {
     if(rhs instanceof Promise) {
       rhs = ((Promise) rhs).force().getExpression();
     }
-    rho.setVariable(target, rhs);
+    assignResult(rho, target, rhs);
 
     return EvalResult.invisible(evaluatedValue);
+  }
+
+  protected void assignResult(Environment rho, Symbol target, SEXP rhs) {
+    rho.setVariable(target, rhs);
   }
 }

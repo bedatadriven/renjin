@@ -21,9 +21,13 @@
 
 package r.base;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.Arrays;
+import java.util.List;
+
 import r.base.special.ReturnException;
 import r.jvmi.annotations.ArgumentList;
 import r.jvmi.annotations.Current;
@@ -31,16 +35,39 @@ import r.jvmi.annotations.Evaluate;
 import r.jvmi.annotations.Primitive;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.binding.RuntimeInvoker;
-import r.lang.*;
+import r.lang.Closure;
+import r.lang.Connection;
+import r.lang.Context;
+import r.lang.Environment;
+import r.lang.EvalResult;
+import r.lang.ExpressionVector;
+import r.lang.ExternalExp;
+import r.lang.Frame;
+import r.lang.Function;
+import r.lang.FunctionCall;
+import r.lang.HashFrame;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.Logical;
+import r.lang.NamedValue;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.PrimitiveFunction;
+import r.lang.Promise;
+import r.lang.PromisePairList;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Symbols;
+import r.lang.Vector;
+import r.lang.Warning;
 import r.lang.exception.EvalException;
+import r.library.methods.Methods;
 import r.parser.RParser;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.Arrays;
-import java.util.List;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 public class Evaluation {
 
@@ -289,6 +316,8 @@ public class Evaluation {
     Class packageClass;
     if(packageName.equals("base")) {
       packageClass = Base.class;
+    } else if(packageName.equals("methods")) {
+      packageClass = Methods.class;
     } else {
       String packageClassName = "r.library." + packageName + "." +
           packageName.substring(0, 1).toUpperCase() + packageName.substring(1);

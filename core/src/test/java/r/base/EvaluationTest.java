@@ -243,6 +243,15 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void complexReassignment() {
+    eval( " x <- list(a = 1)");
+    eval( " f<- function() x$a <<- 3 ");
+    eval( " f()");
+
+    assertThat( eval("x$a"), equalTo( c(3)));
+  }
+  
+  @Test
   public void complexAssignmentWithClass() {
     eval( " x<- list(a = 1)");
     eval( " class(x$a) <- 'foo' ");

@@ -24,33 +24,25 @@ package r.base.special;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
-public class ReassignLeftFunction extends SpecialFunction {
+public class ReassignLeftFunction extends AssignLeftFunction {
 
   @Override
   public String getName() {
     return "<<-";
   }
-
+  
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    Symbol lhs = EvalException.checkedCast(call.getArgument(0));
-    SEXP rhs = call.evalArgument(context, rho, 1);
-
-    return reassignLeft(context, rho, lhs, rhs);
-  }
-
-  public static EvalResult reassignLeft(Context context, Environment rho, Symbol lhs, SEXP rhs)  {
+  protected void assignResult(Environment rho, Symbol lhs, SEXP rhs) {
 
     for(Environment env : rho.selfAndParents()) {
       if(env.hasVariable(lhs))  {
         env.setVariable(lhs, rhs);
-        return EvalResult.invisible(rhs);
+        return;
       }
     }
 
     // not defined anywhere we can see, define it anew in the current env
     rho.setVariable(lhs, rhs);
 
-    return EvalResult.invisible(rhs);
   }
 }

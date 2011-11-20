@@ -22,6 +22,8 @@
 package r.library.methods;
 
 import r.lang.Environment;
+import r.lang.SEXP;
+import r.lang.StringVector;
 
 public class Methods {
 
@@ -31,5 +33,24 @@ public class Methods {
 
   public static void R_set_method_dispatch(boolean set) {
 
+  }
+  
+  /**
+   * Seems to return true if e1 and e2 are character vectors
+   * both of length 1 with equal string values.
+   * 
+   **/
+  public static boolean R_identC(SEXP e1, SEXP e2) {
+    if(e1 instanceof StringVector && e2 instanceof StringVector &&
+        e1.length() == 1 && e2.length() == 2) {
+
+      StringVector s1 = (StringVector) e1;
+      StringVector s2 = (StringVector) e2;
+      if(!s1.isElementNA(0)) {
+        return s1.getElementAsString(0).equals(s2.getElementAsString(0));
+      }
+
+    }
+    return false;
   }
 }

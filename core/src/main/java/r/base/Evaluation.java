@@ -219,7 +219,16 @@ public class Evaluation {
       }
     }
 
-    return expression.evaluate(context, rho);
+    // we need to create a new context for the evaluated code, otherwise sys.parent 
+    // calls and the like will not be able to access this root environment of the script
+    
+    Context evalContext = context.beginEvalContext(rho);
+    
+    EvalResult result = expression.evaluate(evalContext, rho);
+    
+    evalContext.exit();
+    
+    return result;
   }
   
   /**

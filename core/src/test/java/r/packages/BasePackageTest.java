@@ -231,7 +231,17 @@ public class BasePackageTest extends EvalTestCase {
    
     assertThat( eval(" .row_names_info(xi) "), equalTo( c_i(-5)));
   }
-  
+
+  @Test
+  public void parentFrameFromWithinEval() throws IOException {
+    topLevelContext.init();
+    
+    eval("qq<-99");
+    eval("g<-function(envir=parent.frame()) envir ");
+    eval("env<-eval(parse(text= 'qq<-101;g() '), envir=parent.frame())");
+    
+    assertThat(eval("env$qq"), equalTo(c(101)));
+  }
   
 
   @Test

@@ -316,6 +316,16 @@ public class Context {
     context.call= call;
     return context;
   }
+  
+  public Context beginEvalContext(Environment environment) {
+    Context context = new Context();
+    context.type = Type.RETURN;
+    context.parent = this;
+    context.evaluationDepth = evaluationDepth+1;
+    context.environment = environment;
+    context.globals = globals;
+    return context;
+  }
 
   /**
    *

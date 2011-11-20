@@ -89,6 +89,11 @@
       <url>http://download.java.net/maven/1</url>
       <layout>legacy</layout>
     </repository>
+    <repository>
+      <id>bedatadriven</id>
+      <name>bedatadriven public repo</name>
+      <url>http://nexus.bedatadriven.com/content/groups/public/</url>
+    </repository>
   </repositories>
 
   <pluginRepositories>

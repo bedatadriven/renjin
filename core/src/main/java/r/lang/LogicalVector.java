@@ -23,6 +23,8 @@ package r.lang;
 
 import org.apache.commons.math.complex.Complex;
 
+import r.lang.Vector.Builder;
+
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -255,8 +257,13 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
   }
 
   @Override
-  public Builder newBuilder(int initialSize) {
-    return new Builder(initialSize);
+  public Builder newBuilderWithInitialSize(int initialSize) {
+    return new Builder(initialSize, initialSize);
+  }
+  
+  @Override
+  public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+    return new Builder(0, initialCapacity);
   }
 
   @Override
@@ -287,8 +294,10 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     private int values[];
     private int size;
 
-    public Builder(int initialSize) {
-      int initialCapacity = MIN_INITIAL_CAPACITY;
+    public Builder(int initialSize, int initialCapacity) {
+      if(initialCapacity < MIN_INITIAL_CAPACITY) {
+        initialCapacity = MIN_INITIAL_CAPACITY;
+      }
       if(initialSize > initialCapacity) {
         initialCapacity = initialSize;
       }
@@ -298,7 +307,11 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     }
 
     public Builder() {
-      this(0);
+      this(0, MIN_INITIAL_CAPACITY);
+    }
+    
+    public Builder(int initialSize) {
+      this(initialSize, initialSize);
     }
 
     private Builder(LogicalVector toClone) {
@@ -378,7 +391,7 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
     @Override
     public Vector.Builder newBuilder() {
-      return new Builder(0);
+      return new Builder(0, 0);
     }
 
     @Override

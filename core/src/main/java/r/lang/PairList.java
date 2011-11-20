@@ -22,6 +22,7 @@
 package r.lang;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
 
@@ -267,7 +268,7 @@ public interface PairList extends SEXP {
       if(node.hasTag()) {
         return node.getTag().getPrintName();
       } else {
-        return "";
+        return StringVector.NA;
       }
     }
 
@@ -496,7 +497,7 @@ public interface PairList extends SEXP {
 
     public Builder add(String name, SEXP value) {
       SEXP tag = Null.INSTANCE;
-      if(!name.isEmpty()) {
+      if(!Strings.isNullOrEmpty(name)) {
         tag = Symbol.get(name);
       }
       return add(tag, value);

@@ -42,6 +42,7 @@ import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.Warning;
 import r.lang.exception.EvalException;
+import r.util.NamesBuilder;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -98,7 +99,7 @@ public class Sequences {
   public static Vector repeatInt(Vector x, int times) {
     EvalException.check(times >= 0, "invalid 'times' value");
 
-    Vector.Builder result = x.newBuilder(x.length() * times);
+    Vector.Builder result = x.newBuilderWithInitialSize(x.length() * times);
     int count = 0;
     while(times > 0) {
       for(int i =0; i!=x.length();++i) {
@@ -188,8 +189,8 @@ public class Sequences {
       throw new EvalException("invalid 'times' argument");
     }
 
-    Vector.Builder result = x.newBuilder(0);
-    StringVector.Builder names = StringVector.newBuilder();
+    Vector.Builder result = x.newBuilderWithInitialCapacity(resultLength);
+    NamesBuilder names = NamesBuilder.withInitialCapacity(resultLength);
     int result_i = 0;
 
     if(times.length() == 1) {
@@ -206,8 +207,8 @@ public class Sequences {
         }
       }
     }
-    if(names.haveNonEmpty()) {
-      result.setAttribute(Symbols.NAMES, names.build());
+    if(names.haveNames()) {
+      result.setAttribute(Symbols.NAMES, names.build(resultLength));
     }
 
     return result.build();

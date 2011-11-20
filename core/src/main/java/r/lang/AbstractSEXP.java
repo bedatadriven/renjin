@@ -22,8 +22,11 @@
 package r.lang;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import java.util.Collections;
+
+import r.lang.exception.EvalException;
 
 /**
  * Base class for R data types.
@@ -172,7 +175,7 @@ public abstract class AbstractSEXP implements SEXP {
     if(names instanceof StringVector) {
       return ((StringVector) names).getElement(index);
     }
-    return "";
+    return StringVector.NA;
   }
 
   /**
@@ -231,6 +234,9 @@ public abstract class AbstractSEXP implements SEXP {
     PairList.Builder list = new PairList.Builder();
     for(int i=0;i!=attributes.length();++i) {
       String attributeName = attributes.getName(i);
+      if(Strings.isNullOrEmpty(attributeName)) {
+        throw new EvalException("Attributes must be named");
+      }
       SEXP attributeValue = attributes.getElementAsSEXP(i);
       if(attributeValue != Null.INSTANCE) {
         list.add(Symbol.get(attributeName), 

@@ -245,6 +245,8 @@ public class SubscriptTest extends EvalTestCase {
   @Test
   public void setListElementByName() {
     eval(" p <- list( x = 44 ) ");
+    assertThat( eval(" names(p) "), equalTo( c("x") ));
+
     eval(" p$x <- 88 ");
 
     assertThat( eval(" p$x "), equalTo( c(88) ));

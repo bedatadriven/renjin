@@ -115,7 +115,7 @@ public interface SEXP {
    * if the element has no name
    */
   String getName(int index);
-
+  
   /**
    * Searches the list of this expression's {@link Attributes#NAMES} attribute for the
    * provided {@code name}.

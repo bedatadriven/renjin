@@ -21,6 +21,8 @@
 
 package r.base;
 
+import com.google.common.base.Strings;
+
 import r.base.subscripts.SubscriptOperation;
 import r.jvmi.annotations.*;
 import r.lang.*;
@@ -61,11 +63,13 @@ public class Subscript {
 
     for(int i=0;i!=list.length(); ++i) {
       String elementName = list.getName(i);
-      if(elementName.equals(name.getPrintName())) {
-        return list.getElementAsSEXP(i);
-      } else if(elementName.startsWith(name.getPrintName())) {
-        match = list.get(i);
-        matchCount++;
+      if(!StringVector.isNA(elementName)) {
+        if(elementName.equals(name.getPrintName())) {
+          return list.getElementAsSEXP(i);
+        } else if(elementName.startsWith(name.getPrintName())) {
+          match = list.get(i);
+          matchCount++;
+        }
       }
     }
     return matchCount == 1 ? match : Null.INSTANCE;
@@ -145,7 +149,7 @@ public class Subscript {
           if(index <= source.length()) {
             return source.getElementAsSEXP(index-1);
           } else {
-            Vector.Builder result = ((Vector)source).newBuilder(1);
+            Vector.Builder result = ((Vector)source).newBuilderWithInitialSize(1);
             result.setNA(0);
             return result.build();
           }
@@ -229,7 +233,7 @@ public class Subscript {
       SEXP match = Null.INSTANCE;
 
       for(int i=0;i!=vector.length();++i) {
-        if(vector.getName(i).startsWith(subscript)) {
+        if(Strings.nullToEmpty(vector.getName(i)).startsWith(subscript)) {
           match = vector.getElementAsSEXP(i);
           matchCount ++;
         }

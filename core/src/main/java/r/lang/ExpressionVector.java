@@ -57,7 +57,7 @@ public class ExpressionVector extends ListVector {
   }
 
   @Override
-  public Builder newBuilder(int initialSize) {
+  public Builder newBuilderWithInitialSize(int initialSize) {
     return new Builder();
   }
 

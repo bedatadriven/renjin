@@ -24,6 +24,8 @@ package r.lang;
 import com.google.common.collect.Iterators;
 import org.apache.commons.math.complex.Complex;
 
+import r.lang.Vector.Builder;
+
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -125,7 +127,12 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
   }
 
   @Override
-  public Builder newBuilder(int initialSize) {
+  public Builder newBuilderWithInitialSize(int initialSize) {
+    throw new UnsupportedOperationException("implement me");
+  }
+  
+  @Override
+  public Builder newBuilderWithInitialCapacity(int intialCapacity) {
     throw new UnsupportedOperationException("implement me");
   }
 

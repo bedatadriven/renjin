@@ -50,7 +50,7 @@ public class Split {
     public Vector.Builder getSplitBuilder(int value) {
       Vector.Builder builder = splits.get(value);
       if(builder == null) {
-        builder = sourceVector.newBuilder(0);
+        builder = sourceVector.newBuilderWithInitialSize(0);
         splits.put(value, builder);
       }
       return builder;

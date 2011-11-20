@@ -50,7 +50,7 @@ public class CommonsMath {
     int nrows = matrix.getRowDimension();
     int ncols = matrix.getColumnDimension();
     
-    DoubleVector.Builder vector = new DoubleVector.Builder(nrows * ncols);
+    DoubleVector.Builder vector = DoubleVector.Builder.withInitialSize(nrows * ncols);
     vector.setAttribute(Symbols.DIM, new IntVector(nrows, ncols));
     
     int vector_i = 0;

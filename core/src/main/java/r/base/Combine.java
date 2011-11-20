@@ -22,6 +22,7 @@
 package r.base;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.jvmi.annotations.ArgumentList;
@@ -159,7 +160,7 @@ public class Combine {
 
     public Combiner add(String parentPrefix, Iterable<? extends NamedValue> list) {
       for(NamedValue namedValue : list) {
-        String prefix = combinePrefixes(parentPrefix, namedValue.getName());
+        String prefix = combinePrefixes(parentPrefix, Strings.nullToEmpty(namedValue.getName()));
         SEXP value = namedValue.getValue();
 
         if(recursive && value instanceof ListVector) {
@@ -184,7 +185,7 @@ public class Combine {
       // if this element has itself a name, then append it
       // to the name, delimiting with a '.' if necessary
       String elementName = vector.getName(index);
-      if(!elementName.isEmpty()) {
+      if(!Strings.isNullOrEmpty(elementName)) {
         if(name.length() > 0) {
           name.append('.');
         }
@@ -210,9 +211,12 @@ public class Combine {
     }
 
     private String combinePrefixes(String a, String b) {
+      assert a != null;
+      assert b != null;
+      
       if(!a.isEmpty() && !b.isEmpty()) {
         return a + "." + b;
-      } else if(!a.isEmpty()) {
+      } else if(!Strings.isNullOrEmpty(a)) {
         return a;
       } else {
         return b;
@@ -258,7 +262,7 @@ public class Combine {
     int permutation[] = toIntArray(permutationVector);
     int permutedDims[] = permute(dim, permutation);
 
-    Vector.Builder newVector = source.newBuilder(source.length());
+    Vector.Builder newVector = source.newBuilderWithInitialSize(source.length());
     int index[] = new int[dim.length];
     for(int i=0;i!=newVector.length();++i) {
       Indexes.vectorIndexToArrayIndex(i, index, dim);
@@ -282,7 +286,7 @@ public class Combine {
   }
 
   private static Vector permute(Vector vector, int[] permutation) {
-    Vector.Builder permuted = vector.newBuilder(vector.length());
+    Vector.Builder permuted = vector.newBuilderWithInitialSize(vector.length());
     for(int i=0;i!=vector.length();++i) {
       permuted.setFrom(i, vector, permutation[i] - 1);
     }
@@ -589,7 +593,7 @@ public class Combine {
    * @return
    */
   public static SEXP matrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
-        Vector.Builder result = data.newBuilder(nrow * ncol);
+        Vector.Builder result = data.newBuilderWithInitialSize(nrow * ncol);
         int i = 0;
 
         if(data.length() > 0) {

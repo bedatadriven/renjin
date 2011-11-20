@@ -26,6 +26,7 @@ import java.util.Iterator;
 
 import org.apache.commons.math.complex.Complex;
 
+import r.lang.Vector.Builder;
 import r.parser.ParseUtil;
 
 import com.google.common.base.Joiner;
@@ -52,11 +53,15 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  public IntVector(int[] values, PairList attributes) {
+  public IntVector(int[] values, int length, PairList attributes) {
     super(attributes);
-    this.values = Arrays.copyOf(values, values.length);
+    this.values = Arrays.copyOf(values, length);
   }
 
+  public IntVector(int[] values, PairList attributes) {
+    this(values, values.length, attributes);
+  }
+  
   public static SEXP parseInt(String s) {
     if (s.startsWith("0x")) {
       return new IntVector(Integer.parseInt(s.substring(2), 16));
@@ -145,8 +150,13 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   }
 
   @Override
-  public Builder newBuilder(int initialSize) {
-    return new Builder(initialSize);
+  public Builder newBuilderWithInitialSize(int initialSize) {
+    return new Builder(initialSize, initialSize);
+  }
+  
+  @Override
+  public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+    return new Builder(0, initialCapacity);
   }
 
   @Override
@@ -184,7 +194,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
   @Override
   protected SEXP cloneWithNewAttributes(PairList attributes) {
-    return new IntVector(values, attributes);
+    return new IntVector(values, values.length, attributes);
   }
 
   @Override
@@ -259,34 +269,48 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   }
 
   public static class Builder extends AbstractAtomicBuilder {
+    private static final int MIN_INITIAL_CAPACITY = 50;
     private int values[];
+    private int size;
 
-    public Builder(int initialSize) {
-      values = new int[initialSize];
+    public Builder(int initialSize, int initialCapacity) {
+      if(initialCapacity < MIN_INITIAL_CAPACITY) {
+        initialCapacity = MIN_INITIAL_CAPACITY;
+      }
+      if(initialSize > initialCapacity) {
+        initialCapacity = initialSize;
+      }
+      values = new int[initialCapacity];
+      size = initialSize;
       Arrays.fill(values, NA);
+    }
+    
+    public Builder(int initialSize) {
+      this(initialSize, initialSize);
     }
 
     private Builder(IntVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
+      this.size = this.values.length;
+
       copyAttributesFrom(exp);
     }
 
     public Builder() {
-      this.values = new int[0];
+      this(0, MIN_INITIAL_CAPACITY);
     }
 
     public Builder set(int index, int value) {
-      if(values.length <= index) {
-        int copy[] = Arrays.copyOf(values, index+1);
-        Arrays.fill(copy, values.length, copy.length, NA);
-        values = copy;
+      ensureCapacity(index+1);
+      if(index+1 > size) {
+        size = index+1;
       }
       values[index] = value;
       return this;
     }
 
     public Builder add(int value) {
-      return set(values.length, value);
+      return set(size, value);
     }
     
     @Override
@@ -306,12 +330,25 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
     @Override
     public int length() {
-      return values.length;
+      return size;
+    }
+
+    public void ensureCapacity(int minCapacity) {
+      int oldCapacity = values.length;
+      if (minCapacity > oldCapacity) {
+        int oldData[] = values;
+        int newCapacity = (oldCapacity * 3)/2 + 1;
+        if (newCapacity < minCapacity)
+          newCapacity = minCapacity;
+        // minCapacity is usually close to size, so this is a win:
+        values = Arrays.copyOf(oldData, newCapacity);
+        Arrays.fill(values, oldCapacity, values.length, NA);
+      }
     }
 
     @Override
     public IntVector build() {
-      return new IntVector(values, buildAttributes());
+      return new IntVector(values, size, buildAttributes());
     }
   }
 
@@ -322,7 +359,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
     @Override
     public Vector.Builder newBuilder() {
-      return new Builder(0);
+      return new Builder(0, 0);
     }
 
     @Override

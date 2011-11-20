@@ -292,6 +292,7 @@ public class Types {
     return (LogicalVector) convertVector(new LogicalVector.Builder(), vector);
   }
 
+  @Primitive("as.integer")
   public static IntVector asInteger(Vector source) {
     return (IntVector) convertVector(new IntVector.Builder(), source);
   }
@@ -1000,7 +1001,7 @@ public class Types {
 
     } else if (arguments.length() == 1
         && arguments.getElementAsSEXP(0) instanceof ListVector
-        && arguments.getName(0).isEmpty()) {
+        && StringVector.isNA(arguments.getName(0)) ) {
       ListVector list = (ListVector) arguments.getElementAsSEXP(0);
       if (list.getAttribute(Symbols.NAMES) == Null.INSTANCE) {
         throw new EvalException("list argument has no valid names");

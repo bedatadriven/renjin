@@ -23,12 +23,15 @@ package r.lang;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import r.base.Parse;
+import r.lang.Vector.Builder;
 import r.lang.exception.EvalException;
+import r.util.NamesBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -224,7 +227,6 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     return max;
   }
 
-
   public int minElementLength() {
     int min = Integer.MAX_VALUE;
     for(SEXP element : this) {
@@ -283,7 +285,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
 
   public static Builder newBuilder() {
-    return new Builder();
+    return new Builder(0, 0);
   }
 
   public static Builder buildFromClone(ListVector toClone) {
@@ -296,8 +298,13 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
 
   @Override
-  public Vector.Builder newBuilder(int initialSize) {
-    return new Builder();
+  public Vector.Builder newBuilderWithInitialSize(int initialSize) {
+    return new Builder(initialSize, initialSize);
+  }
+ 
+  @Override
+  public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+    return new Builder(0, initialCapacity);
   }
 
   @Override
@@ -307,40 +314,40 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
 
   public static class Builder extends AbstractVector.AbstractBuilder<SEXP> {
-    private boolean haveNames = false;
-    private List<SEXP> values = Lists.newArrayList();
-    private List<String> names = Lists.newArrayList();
+    private final List<SEXP> values;
+    private final NamesBuilder names;
 
     public Builder() {
+      this(0,0);
+    }
+    
+    public Builder(int initialSize, int initialCapacity) {
+      values = new ArrayList<SEXP>(initialCapacity);
+      for(int i=0;i!=initialSize;++i) {
+        values.add(Null.INSTANCE);
+      }
+      names = NamesBuilder.withInitialCapacity(initialCapacity);
     }
 
     protected Builder(ListVector toClone) {
-      Iterables.addAll(values, toClone);
+      values = Lists.newArrayList(toClone);
+      names = NamesBuilder.clonedFrom(toClone);
       copyAttributesFrom(toClone);
-      SEXP names = toClone.getAttribute(Symbols.NAMES);
-      if(names instanceof StringVector) {
-        Iterables.addAll(this.names, (StringVector)names);
-        haveNames = true;
-      } else {
-        for(SEXP value : values) { this.names.add(""); }
-      }
     }
 
     public Builder(int initialLength) {
+      values = Lists.newArrayListWithCapacity(initialLength);
+      names = NamesBuilder.withInitialLength(initialLength);
       for(int i=0;i!=initialLength;++i) {
         add(Null.INSTANCE);
       }
     }
 
     public Builder add(String name, SEXP value) {
-      Preconditions.checkNotNull(name);
       Preconditions.checkNotNull(value);
 
       values.add(value);
-      names.add(name);
-      if(!name.isEmpty()) {
-        haveNames = true;
-      }
+      names.set(values.size()-1, name);
       return this;
     }
 
@@ -370,7 +377,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     
     public Builder addAll(ListVector list) {
       for(int i=0;i!=list.length();++i) {
-        add(list.getName(i),  list.get(i));
+        add(list.getName(i), list.get(i));
       }
       return this;
     }
@@ -378,7 +385,6 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     @Override
     public Builder add(SEXP value) {
       values.add(value);
-      names.add("");
       return this;
     }
 
@@ -397,7 +403,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
 
     @Override
-    public Vector.Builder setFrom(int destinationIndex, SEXP source, int sourceIndex) {
+    public Builder setFrom(int destinationIndex, SEXP source, int sourceIndex) {
       return this.set(destinationIndex, source.getElementAsSEXP(sourceIndex));
     }
 
@@ -416,8 +422,8 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
 
     protected PairList buildAttributes() {
-      if(haveNames) {
-        setAttribute(Symbols.NAMES, new StringVector(names));
+      if(names.haveNames()) {
+        setAttribute(Symbols.NAMES, names.build(values.size()));
       }
       return super.buildAttributes();
     }
@@ -444,7 +450,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
 
     public Builder newBuilder() {
-      return new Builder();
+      return new Builder(0, 0);
     }
 
     @Override
@@ -470,7 +476,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
     @Override
     public boolean hasName() {
-      return !name.isEmpty();
+      return !Strings.isNullOrEmpty(name);
     }
 
     @Override

@@ -5,6 +5,8 @@ import com.google.common.collect.UnmodifiableIterator;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import r.lang.Vector.Builder;
+
 public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
   public static final String TYPE_NAME = "raw";
@@ -99,9 +101,17 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
   
   
   @Override
-  public Builder newBuilder(int initialSize) {
+  public Builder newBuilderWithInitialSize(int initialSize) {
     return (new RawVector.Builder(initialSize));
   }
+  
+  
+
+  @Override
+  public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+    return new RawVector.Builder(0);
+  }
+
 
   @Override
   public Type getVectorType() {

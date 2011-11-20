@@ -114,7 +114,7 @@ public class SubscriptOperation {
       if(source.getAttribute(Symbols.NAMES) != Null.INSTANCE) {
         names = new StringVector.Builder();
       }
-      Vector.Builder result = source.newBuilder(subscripts.getLength());
+      Vector.Builder result = source.newBuilderWithInitialSize(subscripts.getLength());
       int count = 0;
 
       for(Integer index : subscripts) {
@@ -209,7 +209,7 @@ public class SubscriptOperation {
       }
     }
 
-    Vector.Builder result = source.newBuilder(0);
+    Vector.Builder result = source.newBuilderWithInitialSize(0);
     result.copyAttributesFrom(source);
     for(int i=0;i!=source.length();++i) {
       if(!indicesToRemove.contains(i)) {

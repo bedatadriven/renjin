@@ -203,8 +203,13 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
   }
 
   @Override
-  public Builder newBuilder(int initialSize) {
-    return new Builder();
+  public Builder newBuilderWithInitialSize(int initialSize) {
+    return new Builder(initialSize, 0);
+  }
+  
+  @Override
+  public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+    return new Builder(0, initialCapacity);
   }
 
   public static Builder newBuilder() {
@@ -263,8 +268,15 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     private ArrayList<String> values;
     private boolean haveNonEmpty = false;
 
+    public Builder(int initialSize, int initialCapacity) {
+      values = Lists.newArrayListWithCapacity(initialCapacity);
+      for(int i=0;i!=initialSize;++i) {
+        values.add(NA);
+      }
+    }
+    
     public Builder() {
-      values = Lists.newArrayList();
+      this(0, 15);
     }
 
     public Builder(StringVector toClone) {

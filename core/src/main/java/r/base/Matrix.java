@@ -26,7 +26,7 @@ public class Matrix {
       return (Vector)x.setAttribute(Symbols.DIM, new IntVector(1, x.length()));
       
     } else if(dimensions.length() == 2){
-      Vector.Builder builder = x.newBuilder(x.length());
+      Vector.Builder builder = x.newBuilderWithInitialSize(x.length());
       Vector result = builder.build();
       int nrows = dimensions.getElementAsInt(0);
       int ncols = dimensions.getElementAsInt(1);

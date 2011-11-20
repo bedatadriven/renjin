@@ -24,6 +24,8 @@ package r.lang;
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 
+import r.lang.Vector.Builder;
+
 import java.util.Iterator;
 
 public abstract class AbstractAtomicVector extends AbstractVector implements AtomicVector{

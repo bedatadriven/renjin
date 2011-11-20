@@ -81,7 +81,7 @@ public class Print {
         SEXP value = list.get(i);
         String name = list.getName(i);
 
-        if(name.length() == 0) {
+        if(StringVector.isNA(name)) {
           out.append("[[").append(index).append("]]\n");
         } else {
           out.append("$").append(name).append("\n");

@@ -284,13 +284,13 @@ public class Evaluation {
     
     ListVector.Builder callArguments = ListVector.newBuilder();
     for(int i=1;i<arguments.length();++i) {
-      if(arguments.getName(i).equals("PACKAGE")) {
+      if("PACKAGE".equals(arguments.getName(i))) {
         packageName = arguments.getElementAsString(i);
-      } else if(arguments.getName(i).equals("NAOK")) {
+      } else if("NAOK".equals(arguments.getName(i))) {
         naOK = (arguments.asLogical() == Logical.TRUE);
-      } else if(arguments.getName(i).equals("DUP")) {
+      } else if("DUP".equals(arguments.getName(i))) {
         // ignore
-      } else if(arguments.getName(i).equals("ENCODING")) {
+      } else if("ENCODING".equals(arguments.getName(i))) {
         // ignore
       } else if(arguments.getElementAsSEXP(i) != Null.INSTANCE) {
         callArguments.add(arguments.getElementAsSEXP(i));
@@ -310,7 +310,7 @@ public class Evaluation {
     String packageName = null;
     ListVector.Builder callArguments = ListVector.newBuilder();
     for(int i=1;i<arguments.length();++i) {
-      if(arguments.getName(i).equals("PACKAGE")) {
+      if("PACKAGE".equals(arguments.getName(i))) {
         packageName = arguments.getElementAsString(i);  
       } else if(arguments.getElementAsSEXP(i) != Null.INSTANCE) {
         callArguments.add(arguments.getElementAsSEXP(i));

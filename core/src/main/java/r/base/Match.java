@@ -187,7 +187,7 @@ public class Match {
       incomparables = Null.INSTANCE;
     }
     
-    Vector.Builder result = x.newBuilder(0);
+    Vector.Builder result = x.newBuilderWithInitialSize(0);
     int resultIndex=0;
     for(int i=0;i!= x.length();++i) {
       if(   incomparables.contains(x, i) ||

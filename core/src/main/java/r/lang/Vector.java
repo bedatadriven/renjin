@@ -78,12 +78,25 @@ public interface Vector extends SEXP {
   Complex getElementAsComplex(int index);
 
   /**
-   * Returns a builder for this type, initially empty.
-   * @param initialSize
+   * Returns a builder for this type of vector, with an initial number
+   * of elements with the value {@code NA}.
+   * 
+   * @param initialSize the number of elements with which to initially populate the vector
    * @return
    */
-  AtomicVector.Builder newBuilder(int initialSize);
+  Builder newBuilderWithInitialSize(int initialSize);
 
+  /**
+   * 
+   * Returns a builder for this type of vector, initially allocating enough
+   * capacity for the given number of elements, but setting the initial size
+   * to zero.
+   * 
+   * @param intialCapacity
+   * @return
+   */
+  Builder newBuilderWithInitialCapacity(int initialCapacity);
+  
   Type getVectorType();
 
 

@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
+import javax.naming.InitialContext;
+
 public final class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
 
   public static final String TYPE_NAME = "double";
@@ -329,10 +331,15 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   }
 
   @Override
-  public Builder newBuilder(int initialSize) {
-    return new Builder(initialSize);
+  public Builder newBuilderWithInitialSize(int initialSize) {
+    return new Builder(initialSize, initialSize);
   }
   
+  @Override
+  public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+    return new Builder(0, initialCapacity);
+  }
+
   public static DoubleVector newMatrix(double[] values, int nRows, int nCols) {
     PairList attributes = new PairList.Node(Symbols.DIM, new IntVector(nRows,nCols), Null.INSTANCE);
     return new DoubleVector(values, attributes);
@@ -353,8 +360,10 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     private double values[];
     private int size;
 
-    public Builder(int initialSize) {
-      int initialCapacity = MIN_INITIAL_CAPACITY;
+    public Builder(int initialSize, int initialCapacity) {
+      if(initialCapacity < MIN_INITIAL_CAPACITY) {
+        initialCapacity = MIN_INITIAL_CAPACITY;
+      }
       if(initialSize > initialCapacity) {
         initialCapacity = initialSize;
       }
@@ -362,9 +371,22 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
       size = initialSize;
       Arrays.fill(values, NA);
     }
+    
 
     public Builder() {
-      this(0);
+      this(0, MIN_INITIAL_CAPACITY);
+    }
+
+    public Builder(int initialSize) {
+      this(initialSize, initialSize);
+    }
+    
+    public static Builder withInitialSize(int size) {
+      return new Builder(size, size);
+    }
+    
+    public static Builder withInitialCapacity(int capacity) {
+      return new Builder(0, capacity);
     }
     
     private Builder(DoubleVector exp) {
@@ -437,7 +459,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
     @Override
     public Vector.Builder newBuilder() {
-      return new Builder(0);
+      return new Builder(0, 0);
     }
 
     @Override
@@ -449,6 +471,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     public Vector getElementAsVector(Vector vector, int index) {
       return new DoubleVector(vector.getElementAsDouble(index));
     }
+    
 
   }
 

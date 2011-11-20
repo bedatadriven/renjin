@@ -80,7 +80,7 @@ public interface AtomicVector extends Vector {
   
   
   @Override
-  Builder newBuilder(int initialSize);
+  Builder newBuilderWithInitialSize(int initialSize);
 
   interface AtomicVectorBuilder {
 

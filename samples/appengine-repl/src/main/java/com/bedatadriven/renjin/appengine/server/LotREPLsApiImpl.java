@@ -84,7 +84,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
     StringWriter writer = new StringWriter();
     context.getGlobals().setStdOut(new PrintWriter(writer));
     restoreGlobals(context);
-    EvalResult result;
+    SEXP result;
     try {
       result = expression.evaluate(context, context.getEnvironment());
     } catch(EvalException e) {
@@ -94,8 +94,8 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
     saveGlobals(context);
 
 
-    if(result.isVisible()) {
-      FunctionCall.newCall(Symbol.get("print"), result.getExpression())
+    if(context.getGlobals().isInvisible()) {
+      FunctionCall.newCall(Symbol.get("print"), result)
         .evaluate(context, context.getEnvironment());
     }
 

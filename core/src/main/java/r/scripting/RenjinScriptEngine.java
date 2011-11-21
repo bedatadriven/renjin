@@ -11,7 +11,6 @@ import javax.script.ScriptException;
 
 import r.jvmi.r2j.converters.Converters;
 import r.lang.Context;
-import r.lang.EvalResult;
 import r.lang.HashFrame;
 import r.lang.SEXP;
 import r.lang.Symbol;
@@ -114,8 +113,7 @@ public class RenjinScriptEngine implements ScriptEngine {
   }
   
   private Object eval(Context context, SEXP source) {
-    EvalResult result = source.evaluate(context, context.getEnvironment());
-    return result.getExpression();
+    return source.evaluate(context, context.getEnvironment());
   }
 
   private Context unwrapContext(ScriptContext scriptContext) {

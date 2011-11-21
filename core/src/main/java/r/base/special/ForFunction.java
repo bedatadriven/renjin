@@ -31,10 +31,10 @@ public class ForFunction extends SpecialFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
    PairList args = call.getArguments();
     Symbol symbol = (Symbol) args.getElementAsSEXP(0);
-    Vector elements = (Vector) args.getElementAsSEXP(1).evalToExp(context, rho);
+    Vector elements = (Vector) args.getElementAsSEXP(1).evaluate(context, rho);
     SEXP statement = args.getElementAsSEXP(2);
 
     for(int i=0; i!=elements.length(); ++i) {
@@ -47,6 +47,7 @@ public class ForFunction extends SpecialFunction {
         // next iteration
       }
     }
-    return EvalResult.NON_PRINTING_NULL;
+    context.setInvisibleFlag();
+    return Null.INSTANCE;
   }
 }

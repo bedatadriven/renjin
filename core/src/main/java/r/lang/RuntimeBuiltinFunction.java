@@ -35,7 +35,7 @@ public class RuntimeBuiltinFunction extends BuiltinFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
     try {
       return RuntimeInvoker.INSTANCE.invoke(context, rho, name, call, getOverloads());
     } catch (EvalException e) {

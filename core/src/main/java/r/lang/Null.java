@@ -68,8 +68,8 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
-  public EvalResult evaluate(Context context, Environment rho) {
-    return new EvalResult(this);
+  public SEXP evaluate(Context context, Environment rho) {
+    return this;
   }
 
   @Override

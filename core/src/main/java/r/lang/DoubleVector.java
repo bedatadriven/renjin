@@ -262,6 +262,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
       return values[0];
     }
   }
+  
 
   @Override
   public boolean equals(Object o) {

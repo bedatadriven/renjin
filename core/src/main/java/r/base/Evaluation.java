@@ -39,7 +39,6 @@ import r.lang.Closure;
 import r.lang.Connection;
 import r.lang.Context;
 import r.lang.Environment;
-import r.lang.EvalResult;
 import r.lang.ExpressionVector;
 import r.lang.ExternalExp;
 import r.lang.Frame;
@@ -88,7 +87,7 @@ public class Evaluation {
    * Note that assignment to an attached list or data frame changes the attached copy
    *  and not the original object: see attach and with.
    */
-  public static EvalResult assign(@Current Context context, String name, SEXP value, Environment environ, boolean inherits) {
+  public static SEXP assign(@Current Context context, String name, SEXP value, Environment environ, boolean inherits) {
 
     Symbol symbol = Symbol.get(name);
     if(!inherits) {
@@ -103,7 +102,8 @@ public class Evaluation {
         environ.setVariable(symbol, value);
       }
     }
-    return EvalResult.invisible(value);
+    context.setInvisibleFlag();
+    return value;
   }
 
   public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
@@ -139,7 +139,7 @@ public class Evaluation {
       FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), (SEXP)vector, new IntVector(i+1));
       FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall,
           new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
-      builder.add( applyFunctionCall.evalToExp(context, rho) );
+      builder.add( applyFunctionCall.evaluate(context, rho) );
     }
     builder.copySomeAttributesFrom(vector, Symbols.NAMES);
     return builder.build();
@@ -155,28 +155,28 @@ public class Evaluation {
   }
 
   @Primitive("return")
-  public static EvalResult doReturn(@Current Environment rho, SEXP value) {
+  public static SEXP doReturn(@Current Environment rho, SEXP value) {
     throw new ReturnException(rho, value);
   }
 
   @Primitive("do.call")
-  public static EvalResult doCall(@Current Context context, Function what, ListVector arguments, Environment environment) {
+  public static SEXP doCall(@Current Context context, Function what, ListVector arguments, Environment environment) {
     PairList argumentPairList = new PairList.Builder().addAll(arguments).build();
     FunctionCall call = new FunctionCall(what, argumentPairList);
     return call.evaluate(context, environment);
   }
 
   @Primitive("do.call")
-  public static EvalResult doCall(@Current Context context, @Current Environment rho, String what, ListVector arguments, Environment environment) {
+  public static SEXP doCall(@Current Context context, @Current Environment rho, String what, ListVector arguments, Environment environment) {
     SEXP function = environment.findVariable(Symbol.get(what));
     if(function instanceof Promise) {
-      function = ((Promise) function).force().getExpression();
+      function = ((Promise) function).force();
     }
     return doCall(context, (Function) function, arguments, environment);
   }
 
   @Primitive("call")
-  public static EvalResult call(@Current Context context, @Current Environment rho, FunctionCall call) {
+  public static SEXP call(@Current Context context, @Current Environment rho, FunctionCall call) {
     if(call.length() < 1) {
       throw new EvalException("first argument must be character string");
     }
@@ -190,7 +190,7 @@ public class Evaluation {
     return newCall.evaluate(context, rho);
   }
 
-  public static EvalResult eval(@Current Context context,
+  public static SEXP eval(@Current Context context,
                                 SEXP expression, SEXP environment,
                                 SEXP enclosing) {
 
@@ -224,7 +224,7 @@ public class Evaluation {
     
     Context evalContext = context.beginEvalContext(rho);
     
-    EvalResult result = expression.evaluate(evalContext, rho);
+    SEXP result = expression.evaluate(evalContext, rho);
     
     evalContext.exit();
     
@@ -240,10 +240,10 @@ public class Evaluation {
       SEXP expression, SEXP environment,
       SEXP enclosing) {
     
-    EvalResult result = eval(context, expression, environment, enclosing);
+    SEXP result = eval(context, expression, environment, enclosing);
     ListVector.Builder list = new ListVector.Builder();
-    list.add("value", result.getExpression());
-    list.add("visible", result.isVisible());
+    list.add("value", result);
+    list.add("visible", context.getGlobals().isInvisible());
     return list.build();
   }
   
@@ -274,7 +274,7 @@ public class Evaluation {
   }
 
   @Primitive(".C")
-  public static EvalResult dotC(@Current Context context,
+  public static SEXP dotC(@Current Context context,
                                 @Current Environment rho,
                                 @ArgumentList ListVector arguments) {
     
@@ -302,7 +302,7 @@ public class Evaluation {
   }
   
   @Primitive(".Call")
-  public static EvalResult dotCall(@Current Context context,
+  public static SEXP dotCall(@Current Context context,
                                    @Current Environment rho,
                                    @ArgumentList ListVector arguments) {
 
@@ -320,7 +320,7 @@ public class Evaluation {
     return doNativeCall(context, rho, methodName, packageName, callArguments);
   }
 
-  private static EvalResult doNativeCall(Context context, Environment rho,
+  private static SEXP doNativeCall(Context context, Environment rho,
       String methodName, String packageName, ListVector.Builder callArguments) {
     Class packageClass;
     if(packageName.equals("base")) {
@@ -350,7 +350,7 @@ public class Evaluation {
 //            methodName, packageName));
   }
   
-  public static EvalResult UseMethod(Context context, Environment rho, FunctionCall call) {
+  public static SEXP UseMethod(Context context, Environment rho, FunctionCall call) {
     SEXP generic = call.evalArgument(context, rho, 0);
     EvalException.check(generic.length() == 1 && generic instanceof StringVector,
         "first argument must be a character string");
@@ -362,7 +362,7 @@ public class Evaluation {
     if(call.getArguments().length() >= 2) {
       object = call.evalArgument(context, rho, 1);
     } else {
-      object = context.getArguments().getElementAsSEXP(0).evalToExp(context,
+      object = context.getArguments().getElementAsSEXP(0).evaluate(context,
           context.getParent().getEnvironment());
     }
 
@@ -374,7 +374,7 @@ public class Evaluation {
         genericName, classes.toString());
   }
 
-  public static EvalResult NextMethod(Context context, Environment env, FunctionCall call) {
+  public static SEXP NextMethod(Context context, Environment env, FunctionCall call) {
 
     if(call.getArguments().length() < 2) {
       throw new UnsupportedOperationException(".Internal(NextMethod()) must be called with at least 2 arguments");
@@ -654,7 +654,7 @@ public class Evaluation {
         Symbol t = Symbol.get(sg);
         nextfun = env.findFunction(t);
         if ( nextfun instanceof Promise) {
-          nextfun = nextfun.evalToExp(context, env);
+          nextfun = nextfun.evaluate(context, env);
         }
         if (!(nextfun instanceof Function)) {
           throw new EvalException("no method to invoke");
@@ -740,7 +740,7 @@ public class Evaluation {
       Symbol method = Symbol.get(genericName + "." + className);
       SEXP function = rho.findVariable(method);
       if(function != Symbol.UNBOUND_VALUE) {
-        function = function.evalToExp(context, rho);
+        function = function.evaluate(context, rho);
 
         Frame extra = new HashFrame();
         extra.setVariable(Symbol.get(".Class"), Calls.computeDataClasses(object));
@@ -752,9 +752,9 @@ public class Evaluation {
 
 
         if(function instanceof Closure) {
-          EvalResult result = Calls.applyClosure((Closure) function, context, newCall,
+         SEXP result = Calls.applyClosure((Closure) function, context, newCall,
               repromisedArgs, rho, extra);
-          throw new ReturnException(context.getEnvironment(), result.getExpression());
+          throw new ReturnException(context.getEnvironment(), result);
         } else {
           throw new UnsupportedOperationException("target of UseMethod is not a closure, it is a " +
               function.getClass().getName() );

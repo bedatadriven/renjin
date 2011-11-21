@@ -66,7 +66,7 @@ public class BasePackageTest extends EvalTestCase {
   private SEXP getValue(Environment env, String name) {
     SEXP value = env.getVariable(name);
     if(value instanceof Promise) {
-      value = ((Promise) value).force().getExpression();
+      value = ((Promise) value).force();
     }
     return value;
   }

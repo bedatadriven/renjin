@@ -40,7 +40,7 @@ public class Promise extends AbstractSEXP implements Recursive {
   private Context context;
   private Environment environment;
   private SEXP expression;
-  private EvalResult result;
+  private SEXP result;
 
   public Promise(Context context, Environment environment, SEXP expression) {
     this.expression = expression;
@@ -67,11 +67,11 @@ public class Promise extends AbstractSEXP implements Recursive {
     this.environment = null;
     this.context = null;
     this.expression = expression;
-    this.result = new EvalResult(result, true);
+    this.result = result;
   }
 
   @Override
-  public EvalResult evaluate(Context context, Environment rho) {
+  public SEXP evaluate(Context context, Environment rho) {
     return force();
   }
 
@@ -81,7 +81,7 @@ public class Promise extends AbstractSEXP implements Recursive {
    *
    * @return the result of the evaluation
    */
-  public EvalResult force() {
+  public SEXP force() {
     if (result == null) {
       this.result = expression.evaluate(this.context, environment);
       this.environment = null;
@@ -91,7 +91,7 @@ public class Promise extends AbstractSEXP implements Recursive {
   }
 
   public void setResult(SEXP exp) {
-    this.result = new EvalResult(exp);
+    this.result = exp;
     this.environment = null;
     this.context = null;
   }

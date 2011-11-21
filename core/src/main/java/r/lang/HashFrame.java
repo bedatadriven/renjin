@@ -51,7 +51,7 @@ public class HashFrame implements Frame{
     if(functionFilter != 0 && (functionFilter & name.hashBit()) != 0) {
       SEXP value = values.get(name);
       if(value instanceof Promise) {
-        value = ((Promise) value).force().getExpression();
+        value = ((Promise) value).force();
       } 
       if(value instanceof Function) {
         return (Function)value;

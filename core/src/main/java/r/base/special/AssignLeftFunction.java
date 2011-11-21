@@ -32,7 +32,7 @@ public class AssignLeftFunction extends SpecialFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP lhs = call.getArgument(0);
     SEXP rhs = call.getArgument(1);
 
@@ -44,7 +44,7 @@ public class AssignLeftFunction extends SpecialFunction {
    * assignment is right associative i.e.  a <- b <- c is parsed as
    * a <- (b <- c).
    */
-  public EvalResult assignLeft(Context context, Environment rho,
+  public SEXP assignLeft(Context context, Environment rho,
                                       SEXP lhs, SEXP value) {
 
     // this loop handles nested, complex assignments, such as:
@@ -52,7 +52,7 @@ public class AssignLeftFunction extends SpecialFunction {
     // x$a[3] <- 4
     // class(x$a[3]) <- "foo"
 
-    SEXP evaluatedValue = value.evalToExp(context, rho);
+    SEXP evaluatedValue = value.evaluate(context, rho);
     SEXP rhs = new Promise(value, evaluatedValue);
 
     while(lhs instanceof FunctionCall) {
@@ -64,7 +64,7 @@ public class AssignLeftFunction extends SpecialFunction {
           PairList.Node.newBuilder()
             .addAll(call.getArguments())
             .add("value", rhs)
-            .build()).evalToExp(context, rho);
+            .build()).evaluate(context, rho);
 
       lhs = call.getArgument(0);
     }
@@ -80,11 +80,13 @@ public class AssignLeftFunction extends SpecialFunction {
 
     // make the final assignment to the target symbol
     if(rhs instanceof Promise) {
-      rhs = ((Promise) rhs).force().getExpression();
+      rhs = ((Promise) rhs).force();
     }
     assignResult(rho, target, rhs);
 
-    return EvalResult.invisible(evaluatedValue);
+    context.setInvisibleFlag();
+    
+    return evaluatedValue;
   }
 
   protected void assignResult(Environment rho, Symbol target, SEXP rhs) {

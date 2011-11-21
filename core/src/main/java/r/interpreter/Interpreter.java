@@ -87,10 +87,10 @@ public class Interpreter implements Runnable {
         if(exp == null) {
           continue;
         }
-        EvalResult result = exp.evaluate(topLevelContext, global);
+        SEXP result = exp.evaluate(topLevelContext, global);
 
-        if(result.isVisible()) {
-          FunctionCall.newCall(Symbol.get("print"), result.getExpression())
+        if(!topLevelContext.getGlobals().isInvisible()) {
+          FunctionCall.newCall(Symbol.get("print"), result)
             .evaluate(topLevelContext, topLevelContext.getEnvironment());
         }
 

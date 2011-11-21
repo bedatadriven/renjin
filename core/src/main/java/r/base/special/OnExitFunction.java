@@ -32,15 +32,15 @@ public class OnExitFunction extends SpecialFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     EvalException.check(call.getArguments().length() <= 2,
         "invalid number of arguments");
 
     if(call.getArguments().length() == 0) {
       // remove existing on exit functions
       context.clearOnExits();
-
-      return EvalResult.NON_PRINTING_NULL;
+      context.setInvisibleFlag();
+      return Null.INSTANCE;
 
     } else {
 
@@ -55,7 +55,8 @@ public class OnExitFunction extends SpecialFunction {
       } else {
         context.setOnExit(value);
       }
-      return EvalResult.NON_PRINTING_NULL;
+      context.setInvisibleFlag();
+      return Null.INSTANCE;
     }
   }
 }

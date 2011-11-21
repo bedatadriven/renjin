@@ -75,11 +75,11 @@ public class WrapperRuntime {
       return Null.INSTANCE;
     } else {
       if(provided instanceof Promise) {
-        provided = ((Promise) provided).force().getExpression();
+        provided = ((Promise) provided).force();
       }
       return (Vector) FunctionCall
         .newCall(Symbols.AS_CHARACTER, provided)
-          .evalToExp(context, rho);
+          .evaluate(context, rho);
     }
   }
 
@@ -128,45 +128,40 @@ public class WrapperRuntime {
     }
   }
   
-  
-  public static EvalResult wrapResult(SEXP exp) {
-    return EvalResult.visible(exp);
+  public static SEXP wrapResult(int i) {
+    return new IntVector(i);
   }
   
-  public static EvalResult wrapResult(int i) {
-    return EvalResult.visible(new IntVector(i));
+  public static SEXP wrapResult(Integer i) {
+    return new IntVector(i == null ? IntVector.NA : i);
   }
   
-  public static EvalResult wrapResult(Integer i) {
-    return EvalResult.visible(new IntVector(i == null ? IntVector.NA : i));
-  }
-  
-  public static EvalResult wrapResult(String s) {
-    return EvalResult.visible(new StringVector(s));
+  public static SEXP wrapResult(String s) {
+    return new StringVector(s);
   }    
  
-  public static EvalResult wrapResult(boolean b) {
-    return EvalResult.visible(new LogicalVector(b));
+  public static SEXP wrapResult(boolean b) {
+    return new LogicalVector(b);
   }
   
-  public static EvalResult wrapResult(float f) {
-    return EvalResult.visible(new DoubleVector(f));
+  public static SEXP wrapResult(float f) {
+    return new DoubleVector(f);
   }
   
-  public static EvalResult wrapResult(double d) {
-    return EvalResult.visible(new DoubleVector(d));
+  public static SEXP wrapResult(double d) {
+    return new DoubleVector(d);
   }
  
-  public static EvalResult wrapResult(long result) {
-    return EvalResult.visible(new DoubleVector((double)result));
+  public static SEXP wrapResult(long result) {
+    return new DoubleVector((double)result);
   }
   
-  public static EvalResult wrapResult(int [] result) {
-    return EvalResult.visible(new IntVector(result));
+  public static SEXP wrapResult(int [] result) {
+    return new IntVector(result);
   }
   
-  public static EvalResult wrapResult(Logical result) {
-    return EvalResult.visible(new LogicalVector(result));
+  public static SEXP wrapResult(Logical result) {
+    return new LogicalVector(result);
   }
   
   /**
@@ -180,7 +175,7 @@ public class WrapperRuntime {
    * @param object evaluated first argument
    * @return
    */
-  public static EvalResult tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call, 
+  public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call, 
       String name, SEXP object, PairList args) {
     
     if(call.getFunction() instanceof Symbol &&
@@ -214,13 +209,13 @@ public class WrapperRuntime {
     args = firstArg.getNext();
     
     for(PairList.Node node : args.nodes()) {
-      newArgs.add(node.getRawTag(), node.getValue().evalToExp(context, rho));
+      newArgs.add(node.getRawTag(), node.getValue().evaluate(context, rho));
     }
     
     return newArgs.build();
   }
 
-  public static EvalResult tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
+  public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
       String group, String name, SEXP s0) {
 
     PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
@@ -229,7 +224,7 @@ public class WrapperRuntime {
   }
 
 
-  public static EvalResult tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
+  public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
       String group, String name, SEXP s0, SEXP s1) {
 
     PairList newArgs = new PairList.Node(s0, new PairList.Node(s1, Null.INSTANCE));

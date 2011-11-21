@@ -79,7 +79,7 @@ public class RuntimeInvoker {
     converters.add(new EmptyVectorToRecycleablePrimitive());
   }
 
-  public EvalResult invoke(Context context, Environment rho, Iterable<SEXP> arguments, List<JvmMethod> overloads) {
+  public SEXP invoke(Context context, Environment rho, Iterable<SEXP> arguments, List<JvmMethod> overloads) {
 
     List<ProvidedArgument> provided = Lists.newArrayList();
     for(SEXP argument : arguments) {
@@ -90,7 +90,7 @@ public class RuntimeInvoker {
 
   }
 
-  public EvalResult invoke(Context context, Environment rho, String name, FunctionCall call, List<JvmMethod> overloads) {
+  public SEXP invoke(Context context, Environment rho, String name, FunctionCall call, List<JvmMethod> overloads) {
 
     // first check for a method which can handle the call in its entirety
     if(overloads.size() == 1 && overloads.get(0).acceptsCall()) {
@@ -102,7 +102,7 @@ public class RuntimeInvoker {
     for(PairList.Node arg : call.getArguments().nodes()) {
       if(Symbols.ELLIPSES.equals(arg.getValue())) {
         // the values of the '...' are just merged into the argument list
-        PromisePairList ellipses = (PromisePairList) arg.getValue().evalToExp(context, rho);
+        PromisePairList ellipses = (PromisePairList) arg.getValue().evaluate(context, rho);
         for(PairList.Node dotArg : ellipses.nodes()) {
           provided.add(new ProvidedArgument(context, rho, dotArg));
         }
@@ -113,7 +113,7 @@ public class RuntimeInvoker {
 
     // if generic, try to dispatch it to a closure in scope
     // e.g. a vector with class 'flarb' would be dispatched to 'dim.flarb' if it exists.
-    EvalResult result = tryDispatchGeneric(context, rho, name, call, overloads, provided);
+    SEXP result = tryDispatchGeneric(context, rho, name, call, overloads, provided);
     if(result != null) {
       return result;
     }
@@ -127,7 +127,7 @@ public class RuntimeInvoker {
     return matchAndInvoke(context, rho, overloads, provided);
   }
 
-  private EvalResult tryDispatchGeneric(Context context, Environment rho, String name, FunctionCall call,
+  private SEXP tryDispatchGeneric(Context context, Environment rho, String name, FunctionCall call,
                                         List<JvmMethod> overloads, List<ProvidedArgument> provided) {
     // check first to see if this method should be executed generically.
     if(!isGeneric(overloads)) {
@@ -138,7 +138,7 @@ public class RuntimeInvoker {
       
       PairList evaluated = Calls.evaluateList(context, rho, call.getArguments());
 
-      EvalResult dispatched = Calls.DispatchGroup("Ops",call, name, evaluated, context, rho);
+      SEXP dispatched = Calls.DispatchGroup("Ops",call, name, evaluated, context, rho);
       if(dispatched != null) {
         return dispatched;
       }
@@ -193,7 +193,7 @@ public class RuntimeInvoker {
   }
 
 
-  public EvalResult invoke(Context context, Environment rho, FunctionCall call, PairList evaluatedArgs, List<JvmMethod> overloads) {
+  public SEXP invoke(Context context, Environment rho, FunctionCall call, PairList evaluatedArgs, List<JvmMethod> overloads) {
 
     // make a list of the provided arguments
     List<ProvidedArgument> provided = Lists.newArrayList();
@@ -209,7 +209,7 @@ public class RuntimeInvoker {
     return matchAndInvoke(context, rho, overloads, provided);
   }
 
-  private EvalResult matchAndInvoke(Context context, Environment rho, List<JvmMethod> overloads, List<ProvidedArgument> provided) {
+  private SEXP matchAndInvoke(Context context, Environment rho, List<JvmMethod> overloads, List<ProvidedArgument> provided) {
     for(JvmMethod method : overloads) {
       if(acceptArguments(provided, method.getFormals())) {
         return invokeOverload(method, context, rho, provided);
@@ -219,7 +219,7 @@ public class RuntimeInvoker {
     throw new EvalException(formatNoMatchingOverloadMessage(provided, overloads));
   }
 
-  private EvalResult invokeOverload(JvmMethod method, Context context, Environment rho, List<ProvidedArgument> providedArgs) {
+  private SEXP invokeOverload(JvmMethod method, Context context, Environment rho, List<ProvidedArgument> providedArgs) {
     SEXP[] preparedArguments = prepareArguments(method, providedArgs);
     Object[] arguments = new Object[providedArgs.size()];
 
@@ -242,7 +242,7 @@ public class RuntimeInvoker {
         result.copyAttribute(attributeSource, Symbols.NAMES);
       }
 
-      return new EvalResult( result.build() );
+      return result.build();
 
     } else {
       convertArguments(method, preparedArguments, arguments, 0);
@@ -443,9 +443,9 @@ public class RuntimeInvoker {
         if(provided == Symbol.MISSING_ARG) {
           evaluated = Symbol.MISSING_ARG;
         } else {         
-          evaluated = provided.evaluate(context, rho).getExpression();
+          evaluated = provided.evaluate(context, rho);
           if(evaluated instanceof Promise) {
-            evaluated = evaluated.evalToExp(context, rho);
+            evaluated = evaluated.evaluate(context, rho);
           }
         }
       }

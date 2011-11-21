@@ -77,7 +77,7 @@ public class BaseFrame implements Frame {
       return null;
     }
     if(value instanceof Promise) {
-      value = ((Promise) value).force().getExpression();
+      value = ((Promise) value).force();
     }
     if(value instanceof Function) {
       return (Function)value;

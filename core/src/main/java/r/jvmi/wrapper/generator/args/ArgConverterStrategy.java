@@ -19,7 +19,6 @@ public abstract class ArgConverterStrategy {
     super();
     this.formal = formal;
   }
-
   
   public Class getTempLocalType() {
     return formal.getClazz();
@@ -58,7 +57,7 @@ public abstract class ArgConverterStrategy {
 
   public String extractExpression() {
     if(formal.isEvaluated()) {
-      return "argIt.next().evalToExp(context, rho)";
+      return "argIt.next().evaluate(context, rho)";
     } else {
       return "argIt.next()";
     }

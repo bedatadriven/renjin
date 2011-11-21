@@ -164,6 +164,12 @@ public class Context {
 
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
+    
+    /**
+     * Whether the result of the evaluation should be "invisible" in a
+     * REPL
+     */
+    private boolean invisible;
 
     private Globals(FileSystemManager fileSystemManager, String homeDirectory,
                     FileObject workingDirectory) {
@@ -228,6 +234,10 @@ public class Context {
 
     public void setColorPalette(ColorPalette colorPalette) {
       this.colorPalette = colorPalette;
+    }
+
+    public boolean isInvisible() {
+      return invisible;
     }
   }
 
@@ -490,16 +500,24 @@ public class Context {
 
   public void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadingScript = RParser.parseSource(reader).evaluate(this, globals.baseNamespaceEnv).getExpression();
+    SEXP loadingScript = RParser.parseSource(reader).evaluate(this, globals.baseNamespaceEnv);
     reader.close();
     loadingScript.evaluate(this, globals.baseNamespaceEnv);
   }
 
   public void executeStartupProfile() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/Rprofile"));
-    SEXP profileScript = RParser.parseSource(reader).evalToExp(this, globals.baseNamespaceEnv);
+    SEXP profileScript = RParser.parseSource(reader).evaluate(this, globals.baseNamespaceEnv);
     reader.close();
     profileScript.evaluate(this, globals.baseNamespaceEnv);
+  }
+  
+  public void setInvisibleFlag() {
+    globals.invisible = true;
+  }
+  
+  public void clearInvisibleFlag() {
+    globals.invisible = false;
   }
 
 }

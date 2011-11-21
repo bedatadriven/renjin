@@ -55,17 +55,17 @@ public class ClosureDispatcher {
   }
 
 
-  public EvalResult apply(DispatchChain chain, PairList arguments) {
+  public SEXP apply(DispatchChain chain, PairList arguments) {
     this.dispatchChain = chain;
     return apply(chain.getClosure(), arguments);
   }
 
-  public EvalResult applyClosure(Closure closure, PairList args) {
+  public SEXP applyClosure(Closure closure, PairList args) {
     PairList promisedArgs = Calls.promiseArgs(args, callingContext, callingEnvironment);
     return apply(closure, promisedArgs);
   }
 
-  private EvalResult apply(Closure closure, PairList promisedArgs) {
+  private SEXP apply(Closure closure, PairList promisedArgs) {
 
     Context functionContext = callingContext.beginFunction(call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
@@ -77,7 +77,7 @@ public class ClosureDispatcher {
         dispatchChain.populateEnvironment(functionEnvironment);
       }
 
-      EvalResult result = closure.getBody().evaluate(functionContext, functionEnvironment);
+      SEXP result = closure.getBody().evaluate(functionContext, functionEnvironment);
       functionContext.exit();
 
       return result;
@@ -85,7 +85,7 @@ public class ClosureDispatcher {
       if(e.getEnvironment() != functionEnvironment) {
         throw e;
       }
-      return EvalResult.visible(e.getValue());
+      return e.getValue();
     }
   }
 

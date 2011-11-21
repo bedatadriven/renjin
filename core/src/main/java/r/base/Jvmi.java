@@ -7,8 +7,7 @@ import r.jvmi.r2j.ClassBinding;
 import r.jvmi.r2j.ClassFrame;
 import r.lang.Context;
 import r.lang.Environment;
-import r.lang.EvalResult;
-import r.lang.NamedValue;
+import r.lang.SEXP;
 import r.lang.Symbol;
 import r.lang.exception.EvalException;
 
@@ -24,7 +23,7 @@ public class Jvmi {
   }
   
   @Primitive("import")
-  public static EvalResult importClass(@Current Context context, @Current Environment rho, 
+  public static SEXP importClass(@Current Context context, @Current Environment rho, 
         @Evaluate(false) Symbol className) {
         
     Class clazz;
@@ -44,6 +43,8 @@ public class Jvmi {
     
     rho.setVariable(Symbol.get(clazz.getSimpleName()), env);
     
-    return EvalResult.invisible(env);
+    context.setInvisibleFlag();
+    
+    return env;
   }
 }

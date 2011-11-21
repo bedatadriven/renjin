@@ -228,13 +228,14 @@ public class Files {
    * @throws FileSystemException
    */
   @Primitive("dir.create")
-  public static EvalResult dirCreate(@Current Context context, String path, boolean showWarnings, boolean recursive, int mode) throws FileSystemException {
+  public static SEXP dirCreate(@Current Context context, String path, boolean showWarnings, boolean recursive, int mode) throws FileSystemException {
     FileObject dir = context.resolveFile(path);
     dir.createFolder();
 
     // TODO: return correct value and implement warnings documented above
 
-    return EvalResult.invisible(new LogicalVector(true));
+    context.setInvisibleFlag();
+    return new LogicalVector(true);
   }
 
   /**
@@ -416,7 +417,7 @@ public class Files {
       Otherwise, a character vector of the filepaths extracted to, invisibly.
    * @throws IOException
    */
-  public static EvalResult unzip(@Current Context context, String zipFile, Vector files, String exdirUri,
+  public static SEXP unzip(@Current Context context, String zipFile, Vector files, String exdirUri,
                                  boolean list, boolean overwrite, boolean junkpaths) throws IOException {
 
     ZipInputStream zin = new ZipInputStream(context.resolveFile(pathExpand(zipFile)).getContent().getInputStream());
@@ -432,8 +433,9 @@ public class Files {
          unzipExtract(zin, entry, exdir, junkpaths, overwrite);
       }
     }
+    context.setInvisibleFlag();
 
-    return EvalResult.invisible(new IntVector(0));
+    return new IntVector(0);
   }
 
   /**

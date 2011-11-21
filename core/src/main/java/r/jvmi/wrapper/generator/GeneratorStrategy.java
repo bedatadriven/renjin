@@ -15,7 +15,7 @@ import r.jvmi.wrapper.WrapperRuntime;
 import r.jvmi.wrapper.WrapperSourceWriter;
 import r.lang.Context;
 import r.lang.Environment;
-import r.lang.EvalResult;
+import r.lang.SEXP;
 import r.lang.exception.EvalException;
 
 /**
@@ -171,7 +171,7 @@ public abstract class GeneratorStrategy {
     if(method.returnsVoid()) {
       return execution + ";";
       
-    } else if(method.getReturnType().equals(EvalResult.class)) {
+    } else if(SEXP.class.isAssignableFrom(method.getReturnType())) {
       return "return " + execution + ";";
     
     } else {

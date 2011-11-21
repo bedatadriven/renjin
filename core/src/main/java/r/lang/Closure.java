@@ -66,7 +66,7 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, call);
     return dispatcher.applyClosure(this, args);
   }

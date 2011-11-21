@@ -7,7 +7,6 @@ import r.jvmi.wrapper.ArgumentIterator;
 import r.lang.AbstractSEXP;
 import r.lang.Context;
 import r.lang.Environment;
-import r.lang.EvalResult;
 import r.lang.Function;
 import r.lang.FunctionCall;
 import r.lang.PairList;
@@ -38,7 +37,7 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call,
+  public SEXP apply(Context context, Environment rho, FunctionCall call,
       PairList args) {
     
     List<SEXP> constructorArgs = Lists.newArrayList();
@@ -47,7 +46,7 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
     ArgumentIterator argIt = new ArgumentIterator(context, rho, args);
     while(argIt.hasNext()) {
       PairList.Node node = argIt.nextNode();
-      SEXP evaled = node.getValue().evalToExp(context, rho);
+      SEXP evaled = node.getValue().evaluate(context, rho);
       
       if(node.hasTag()) {
         propertyValues.put(node.getTag(), evaled);
@@ -64,6 +63,6 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
       env.setVariable(property.getKey(), property.getValue());
     }
     
-    return new EvalResult(env);
+    return env;
   }
 }

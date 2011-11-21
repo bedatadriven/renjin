@@ -48,12 +48,17 @@ public class ExpressionVector extends ListVector {
   }
 
   @Override
-  public EvalResult evaluate(Context context, Environment rho) {
-    EvalResult result = EvalResult.NON_PRINTING_NULL;
-    for(SEXP sexp : this) {
-      result = sexp.evaluate(context, rho);
+  public SEXP evaluate(Context context, Environment rho) {
+    if(length() == 0) {
+      context.setInvisibleFlag();
+      return Null.INSTANCE;
+    } else {
+      SEXP result = Null.INSTANCE;
+      for(SEXP sexp : this) {
+        result = sexp.evaluate(context, rho);
+      }
+      return result;
     }
-    return result;
   }
 
   @Override

@@ -39,7 +39,6 @@ import r.lang.ComplexVector;
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.Environment;
-import r.lang.EvalResult;
 import r.lang.ExpressionVector;
 import r.lang.IntVector;
 import r.lang.ListVector;
@@ -80,10 +79,10 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP eval(String source) {
-    return evaluate(source).getExpression();
+    return evaluate(source);
   }
 
-  protected EvalResult evaluate(String source)  {
+  protected SEXP evaluate(String source)  {
     if(!source.endsWith(";") && !source.endsWith("\n")) {
       source = source + "\n";
     }

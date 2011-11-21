@@ -165,8 +165,9 @@ public class ArgumentTest extends EvalTestCase {
 
     eval( "f <- function( a = if(FALSE) {1 } ) { a }" );
 
-    assertThat(evaluate( "f()").isVisible(), equalTo(false)) ;
-    assertThat(evaluate( "f()").getExpression(), equalTo( (SEXP) Null.INSTANCE )) ;
+    assertThat(evaluate( "f()"), equalTo( (SEXP) Null.INSTANCE )) ;
+    assertThat(topLevelContext.getGlobals().isInvisible(), equalTo(true));
+
   }
 
   @Test
@@ -175,7 +176,8 @@ public class ArgumentTest extends EvalTestCase {
     // this fails in R-2.1.0 but I think this behavior is more consistent!
     eval( "f <- function( a = if(FALSE) {1 } ) { a; a}" );
 
-    assertThat(evaluate( "f()").isVisible(), equalTo(false)) ;
+    eval( "f()");
+    assertThat(topLevelContext.getGlobals().isInvisible(), equalTo(false));
   }
 
 

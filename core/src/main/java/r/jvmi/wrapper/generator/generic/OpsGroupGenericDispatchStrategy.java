@@ -24,7 +24,7 @@ public class OpsGroupGenericDispatchStrategy extends GenericDispatchStrategy {
       argsList.append(", s1");
     }
 
-    s.writeStatement("EvalResult genericResult = tryDispatchGroupFromPrimitive(" + argsList.toString() + ")");
+    s.writeStatement("SEXP genericResult = tryDispatchGroupFromPrimitive(" + argsList.toString() + ")");
     s.writeBeginBlock("if(genericResult != null) {");
     s.writeStatement("return genericResult");
     s.writeCloseBlock();

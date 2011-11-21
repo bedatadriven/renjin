@@ -50,7 +50,7 @@ public class WrapperSourceWriter {
   
   public void writeBeginApplyMethod() {
     println("@Override");
-    println("public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {");
+    println("public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {");
     indent++;
   }
   

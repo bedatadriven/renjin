@@ -223,9 +223,11 @@ public final class Symbol extends AbstractSEXP {
   }
 
   @Override
-  public EvalResult evaluate(Context context, Environment rho) {
+  public SEXP evaluate(Context context, Environment rho) {
+    context.clearInvisibleFlag();
+
     if(this == Symbol.MISSING_ARG) {
-      return new EvalResult(this);
+      return this;
     }
     SEXP value = rho.findVariable(this);
     if(value == Symbol.UNBOUND_VALUE) {
@@ -234,7 +236,7 @@ public final class Symbol extends AbstractSEXP {
     if(value instanceof Promise) {
       return value.evaluate(context, rho);
     } else {
-      return new EvalResult(value);
+      return value;
     }
   }
 

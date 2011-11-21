@@ -41,7 +41,7 @@ public interface PromisePairList extends PairList {
     }
 
     @Override
-    public EvalResult evaluate(Context context, Environment rho) {
+    public SEXP evaluate(Context context, Environment rho) {
       throw new EvalException("'...' used in an incorrect context");
     }
   }

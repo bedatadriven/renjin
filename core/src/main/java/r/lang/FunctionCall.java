@@ -48,7 +48,8 @@ public class FunctionCall extends PairList.Node {
   }
 
   @Override
-  public EvalResult evaluate(Context context, Environment rho) {
+  public SEXP evaluate(Context context, Environment rho) {
+    context.clearInvisibleFlag();
     Function functionExpr = evaluateFunction(context, rho);
     return  functionExpr.apply(context, rho, this, getArguments());
   }
@@ -63,9 +64,9 @@ public class FunctionCall extends PairList.Node {
       }
       return fn;
     } else {
-      SEXP evaluated = functionExp.evalToExp(context, rho);
+      SEXP evaluated = functionExp.evaluate(context, rho);
       if(evaluated instanceof Promise) {
-        evaluated = ((Promise) evaluated).force().getExpression();
+        evaluated = ((Promise) evaluated).force();
       }
       if(!(evaluated instanceof Function)) {
         throw new EvalException("'function' of lang expression is of unsupported type '%s'", functionExp.getTypeName());
@@ -91,7 +92,7 @@ public class FunctionCall extends PairList.Node {
   }
 
   public SEXP evalArgument(Context context, Environment rho, int index) {
-    return getArgument(index).evalToExp(context, rho);
+    return getArgument(index).evaluate(context, rho);
   }
 
   @Override

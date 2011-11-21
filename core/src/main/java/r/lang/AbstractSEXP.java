@@ -86,8 +86,9 @@ public abstract class AbstractSEXP implements SEXP {
    * @return the result
    */
   @Override
-  public EvalResult evaluate(Context context, Environment rho) {
-    return new EvalResult(this);
+  public SEXP evaluate(Context context, Environment rho) {
+    context.clearInvisibleFlag();
+    return this;
   }
 
   @Override
@@ -95,18 +96,6 @@ public abstract class AbstractSEXP implements SEXP {
     return false;
   }
 
-  /**
-   * Shortcut for evaluate(rho).getExpression()
-   *
-   *
-   * @param context
-   * @param rho the environment in which this expression should be evaluated
-   * @return
-   */
-  @Override
-  public final SEXP evalToExp(Context context, Environment rho) {
-    return evaluate(context, rho).getExpression();
-  }
 
   /**
    * Coerces this {@code SEXP} to a single logical value

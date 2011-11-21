@@ -31,5 +31,5 @@ public interface Function extends SEXP, Recursive {
 
   public static final String IMPLICIT_CLASS = "function";
 
-  EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args);
+  SEXP apply(Context context, Environment rho, FunctionCall call, PairList args);
 }

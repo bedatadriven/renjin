@@ -79,7 +79,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       Collection<JvmMethod> matchingByCount = Collections2.filter(overloads, havingPositionalArgCountOf(i));
       if(!matchingByCount.isEmpty() && ! hasVarArgs(matchingByCount)) {
         
-        StringBuilder signature = new StringBuilder("public static EvalResult doApply(Context context, Environment rho");
+        StringBuilder signature = new StringBuilder("public static SEXP doApply(Context context, Environment rho");
         for(int j=0;j!=i;++j) {
           signature.append(", SEXP s"+ j);
         }
@@ -256,7 +256,8 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       s.writeStatement(callStatement(method, argumentList));
     }
     if(method.returnsVoid()) {
-      s.writeStatement("return EvalResult.NON_PRINTING_NULL;");
+      s.writeStatement("context.setInvisibleFlag()");
+      s.writeStatement("return r.lang.Null.INSTANCE;");
     }
     s.writeBlankLine();
   }
@@ -269,7 +270,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     s.writeStatement("evaled = value");
     s.outdent();
     s.writeBeginBlock("} else {");
-    s.writeStatement("evaled = value.evalToExp(context, rho)");
+    s.writeStatement("evaled = value.evaluate(context, rho)");
     s.writeCloseBlock();
     s.writeBeginBlock("if(node.hasTag()) {");
   
@@ -377,6 +378,6 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       }
       s.writeCloseBlock();
     }
-    s.writeStatement("return new EvalResult(result.build());" );
+    s.writeStatement("return result.build();" );
   } 
 }

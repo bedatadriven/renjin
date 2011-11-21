@@ -46,14 +46,14 @@ public class Print {
   }
 
   @Primitive("print.default")
-  public static EvalResult printDefault(@Current Context context, SEXP expression, SEXP digits, SEXP quote, SEXP naPrint,
+  public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, SEXP quote, SEXP naPrint,
                                     SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) {
 
     String printed = new PrintingVisitor(expression,80).getResult();
     context.getGlobals().stdout.print(printed);
     context.getGlobals().stdout.flush();
-    
-    return EvalResult.invisible(expression);
+    context.setInvisibleFlag();
+    return expression;
   }
 
   @Primitive("print.function")

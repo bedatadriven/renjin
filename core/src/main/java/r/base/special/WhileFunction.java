@@ -31,11 +31,11 @@ public class WhileFunction extends SpecialFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP condition = args.getElementAsSEXP(0);
     SEXP statement = args.getElementAsSEXP(1);
 
-    while(asLogicalNoNA(call, condition.evaluate(context, rho).getExpression())) {
+    while(asLogicalNoNA(call, condition.evaluate(context, rho))) {
 
       try {
 
@@ -47,6 +47,7 @@ public class WhileFunction extends SpecialFunction {
         // next loop iteration
       }
     }
-    return EvalResult.NON_PRINTING_NULL;
+    context.setInvisibleFlag();
+    return Null.INSTANCE;
   }
 }

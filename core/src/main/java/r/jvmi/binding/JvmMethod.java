@@ -253,23 +253,20 @@ public class JvmMethod implements Comparable<JvmMethod> {
    * Invokes the method with the given arguments and converts the return value to
    * an R {@code SEXP} and wraps the {@code SEXP} in a {@code EvalResult}.
    */
-  public EvalResult invokeAndWrap(Object... arguments) {
+  public SEXP invokeAndWrap(Context context, Object... arguments) {
     Object result = invoke(arguments);
 
     if(method.getReturnType() == Void.TYPE) {
-      return EvalResult.NON_PRINTING_NULL;
-
-    } else if (result instanceof EvalResult ) {
-      return (EvalResult)result;
-
+      context.setInvisibleFlag();
+      return Null.INSTANCE;
     } else {
-      return new EvalResult( SEXPFactory.fromJava(result) );
+      return SEXPFactory.fromJava(result);
     }
   }
 
 
-  public EvalResult invokeWithContextAndWrap(Context context, Environment rho, Object[] formals) {
-    return invokeAndWrap(assembleArgumentListWithContext(context, rho, formals));
+  public SEXP invokeWithContextAndWrap(Context context, Environment rho, Object[] formals) {
+    return invokeAndWrap(context, assembleArgumentListWithContext(context, rho, formals));
   }
 
   public Object invokeWithContext(Context context, Environment rho, Object[] formals) {

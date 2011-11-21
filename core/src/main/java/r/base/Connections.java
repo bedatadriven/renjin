@@ -266,7 +266,7 @@ public class Connections {
       Symbol name = Symbol.get(names.getElement(i));
 
       // c(pos, length) of the serialized object
-      SEXP value = values.get(i).evalToExp(context, (Environment) eenv);
+      SEXP value = values.get(i).evaluate(context, (Environment) eenv);
 
       // create a new call, replacing the first argument with the
       // provided arg
@@ -313,13 +313,13 @@ public class Connections {
       @Override
       public SEXP restore(SEXP values) {
         FunctionCall call = FunctionCall.newCall(restoreFunction, values);
-        return call.evalToExp(context, context.getGlobalEnvironment());
+        return call.evaluate(context, context.getGlobalEnvironment());
       }
     });
 
     SEXP exp = reader.readFile();
     if (exp instanceof Promise) {
-      exp = ((Promise) exp).force().getExpression();
+      exp = ((Promise) exp).force();
     }
     return exp;
   }

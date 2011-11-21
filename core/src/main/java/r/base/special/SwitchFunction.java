@@ -33,19 +33,20 @@ public class SwitchFunction extends SpecialFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     EvalException.check(call.length() > 1, "argument \"EXPR\" is missing");
 
     SEXP expr = call.evalArgument(context, rho, 0);
     EvalException.check(expr.length() == 1, "EXPR must return a length 1 vector");
 
-    PromisePairList branchPromises  = (PromisePairList) call.getArgument(1).evalToExp(context, rho);
+    PromisePairList branchPromises  = (PromisePairList) call.getArgument(1).evaluate(context, rho);
     Iterable<PairList.Node> branches = branchPromises.nodes();
 
     if(expr instanceof StringVector) {
       String name = ((StringVector) expr).getElementAsString(0);
       if(StringVector.isNA(name)) {
-        return EvalResult.NON_PRINTING_NULL;
+        context.setInvisibleFlag();
+        return Null.INSTANCE;
       }
       SEXP partialMatch = null;
       int partialMatchCount = 0;
@@ -76,7 +77,7 @@ public class SwitchFunction extends SpecialFunction {
       }
     }
 
-    return EvalResult.visible( Null.INSTANCE );
+    return Null.INSTANCE;
   }
 
   private SEXP nextNonMissing(PairList.Node node) {

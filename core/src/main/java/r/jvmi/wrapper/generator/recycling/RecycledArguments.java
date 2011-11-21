@@ -56,7 +56,7 @@ public class RecycledArguments {
   }
 
   private String getEmptyResult() {
-    return "new EvalResult(" + ScalarTypes.get(overload.getReturnType()).getVectorType().getName() + ".EMPTY)";
+    return ScalarTypes.get(overload.getReturnType()).getVectorType().getName() + ".EMPTY";
   }
 
 

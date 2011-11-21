@@ -35,7 +35,7 @@ public class SimpleDispatchStrategy extends GenericDispatchStrategy {
   public void afterArgIsEvaluated(WrapperSourceWriter s, int index) {
     if(index == 0) {
       s.writeBeginIf("((AbstractSEXP)s0).isObject()");
-      s.writeStatement("EvalResult genericResult = tryDispatchFromPrimitive(context, rho, call, \"" + name + "\", s0, args);");
+      s.writeStatement("SEXP genericResult = tryDispatchFromPrimitive(context, rho, call, \"" + name + "\", s0, args);");
       s.writeBeginBlock("if(genericResult != null) {");
       s.writeStatement("return genericResult");
       s.writeCloseBlock();

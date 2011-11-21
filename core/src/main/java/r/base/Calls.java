@@ -49,13 +49,13 @@ public class Calls {
   public static PairList evaluateList(Context context, Environment rho, PairList args) {
     PairList.Builder evaled = new PairList.Builder();
     for(PairList.Node node : args.nodes()) {
-      evaled.add(node.getRawTag(), node.getValue().evalToExp(context, rho));
+      evaled.add(node.getRawTag(), node.getValue().evaluate(context, rho));
     }
     return evaled.build();
   }
 
 
-  public static EvalResult DispatchGroup(String group, FunctionCall call, String opName, PairList args, Context context, Environment rho) {
+  public static SEXP DispatchGroup(String group, FunctionCall call, String opName, PairList args, Context context, Environment rho) {
     int i, j, nargs;
 
     if(call.getFunction() instanceof Symbol && ((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
@@ -273,7 +273,7 @@ public class Calls {
     return applyClosure((Closure)left.sxp, context, newCall, promisedArgs, rho, newrho);
   }
 
-  public static EvalResult applyClosure(Closure closure, Context context, FunctionCall call, PairList promisedArgs, Environment rho,
+  public static SEXP applyClosure(Closure closure, Context context, FunctionCall call, PairList promisedArgs, Environment rho,
                                         Frame suppliedEnvironment) {
 
     Context functionContext = context.beginFunction(call, closure, promisedArgs);
@@ -287,7 +287,7 @@ public class Calls {
         functionEnvironment.setVariable(name, suppliedEnvironment.getVariable(name));
       }
 
-      EvalResult result = closure.getBody().evaluate(functionContext, functionEnvironment);
+      SEXP result = closure.getBody().evaluate(functionContext, functionEnvironment);
 
       functionContext.exit();
 
@@ -296,7 +296,7 @@ public class Calls {
       if(e.getEnvironment() != functionEnvironment) {
         throw e;
       }
-      return EvalResult.visible(e.getValue());
+      return e.getValue();
     }
   }
 

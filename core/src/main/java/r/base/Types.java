@@ -878,12 +878,14 @@ public class Types {
     return new IntVector(result);
   }
 
-  public static EvalResult invisible(SEXP value) {
-    return EvalResult.invisible(value);
+  public static SEXP invisible(@Current Context context, SEXP value) {
+    context.setInvisibleFlag();
+    return value;
   }
 
-  public static EvalResult invisible() {
-    return EvalResult.NON_PRINTING_NULL;
+  public static SEXP invisible(@Current Context context) {
+    context.setInvisibleFlag();
+    return Null.INSTANCE;
   }
 
   public static StringVector search(@Current Context context) {

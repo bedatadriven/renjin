@@ -30,13 +30,11 @@ import r.lang.AtomicVector;
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.Environment;
-import r.lang.EvalResult;
 import r.lang.FunctionCall;
 import r.lang.IntVector;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
-import r.lang.StringVector;
 import r.lang.Symbol;
 import r.lang.Symbols;
 import r.lang.Vector;
@@ -111,7 +109,7 @@ public class Sequences {
   }
 
   @Primitive("rep")
-  public static EvalResult repeat(Context context, Environment rho, FunctionCall call) {
+  public static SEXP repeat(Context context, Environment rho, FunctionCall call) {
 
     // rep is one of the very few primitives that uses argument matching
     // *ALMOST* like that employed for closures.
@@ -122,15 +120,16 @@ public class Sequences {
     // check for zero args -- the result should be null
     PairList arguments = call.getArguments();
     if(arguments == Null.INSTANCE) {
-      return new EvalResult(Null.INSTANCE);
+      context.setInvisibleFlag();
+      return Null.INSTANCE;
     }
     
     // evaluate the first arg
     ArgumentIterator argIt = new ArgumentIterator(context, rho, arguments);
     PairList.Node firstArgNode = argIt.nextNode();
-    SEXP firstArg = firstArgNode.getValue().evalToExp(context, rho);
+    SEXP firstArg = firstArgNode.getValue().evaluate(context, rho);
     if(firstArg.isObject()) {
-      EvalResult result = WrapperRuntime.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
+      SEXP result = WrapperRuntime.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
       if(result != null) {
         return result;
       }
@@ -141,7 +140,7 @@ public class Sequences {
     evaled.add(firstArgNode.getRawTag(), firstArg);
     while(argIt.hasNext()) {
       PairList.Node node = argIt.nextNode();
-      evaled.add(node.getRawTag(), node.getValue().evalToExp(context, rho));
+      evaled.add(node.getRawTag(), node.getValue().evaluate(context, rho));
     }
     
     // declare formals
@@ -158,11 +157,11 @@ public class Sequences {
     SEXP lengthOut = matched.findByTag(Symbol.get("length.out"));
     SEXP each = matched.findByTag(Symbol.get("each"));
     
-    return new EvalResult(rep(
+    return rep(
         (Vector)x,
         times == Symbol.MISSING_ARG ? new IntVector(1) : (Vector)times,
         lengthOut == Symbol.MISSING_ARG ? IntVector.NA : ((Vector)lengthOut).getElementAsInt(0),
-        each == Symbol.MISSING_ARG ? IntVector.NA : ((Vector)each).getElementAsInt(0)));
+        each == Symbol.MISSING_ARG ? IntVector.NA : ((Vector)each).getElementAsInt(0));
   }
   
   private static Vector rep(Vector x, Vector times, int lengthOut, int each) {
@@ -322,16 +321,16 @@ public class Sequences {
     SEXP along = matched.findByTag(Symbol.get("along.with"));
 
     if(from!=Symbol.MISSING_ARG) {
-      from = from.evalToExp(context, rho);
+      from = from.evaluate(context, rho);
     }
     if(to!=Symbol.MISSING_ARG) {
-      to = to.evalToExp(context, rho);
+      to = to.evaluate(context, rho);
     }
     if(by!=Symbol.MISSING_ARG) {
-      by = by.evalToExp(context, rho);
+      by = by.evaluate(context, rho);
     }
     if(len!=Symbol.MISSING_ARG) {
-      len = len.evalToExp(context, rho);
+      len = len.evaluate(context, rho);
     }
 
     return doSeq(from, to, by, len, along, One);

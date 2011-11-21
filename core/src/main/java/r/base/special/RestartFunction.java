@@ -32,7 +32,7 @@ public class RestartFunction extends SpecialFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     throw new EvalException("restart is not yet implemented.");
   }
 }

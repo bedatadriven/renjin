@@ -35,7 +35,7 @@ public class SubstituteFunction extends SpecialFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     checkArity(call, 2, 1);
     SEXP exp = call.getArgument(0);
     Environment environment = rho;
@@ -43,7 +43,7 @@ public class SubstituteFunction extends SpecialFunction {
       environment =  EvalException.checkedCast(call.evalArgument(context, rho, 1));
     }
 
-    return EvalResult.visible( substitute(exp, environment) );
+    return substitute(exp, environment);
   }
 
   private static SEXP substitute(SEXP exp, Environment environment) {

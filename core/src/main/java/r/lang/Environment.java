@@ -245,7 +245,7 @@ public class Environment extends AbstractSEXP implements Recursive {
     SEXP value = frame.getVariable(symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       if(value instanceof Promise) {
-        value = ((Promise) value).force().getExpression();
+        value = ((Promise) value).force();
       }
       if(predicate.apply(value)) {
         return value;

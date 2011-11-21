@@ -31,8 +31,8 @@ public class IfFunction extends SpecialFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    SEXP condition = call.getArguments().getElementAsSEXP(0).evalToExp(context, rho);
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    SEXP condition = call.getArguments().getElementAsSEXP(0).evaluate(context, rho);
 
     if (asLogicalNoNA(call, condition)) {
       return call.getArguments().getElementAsSEXP(1).evaluate(context, rho); /* true value */
@@ -41,7 +41,8 @@ public class IfFunction extends SpecialFunction {
       if (call.getArguments().length() == 3) {
         return call.getArguments().getElementAsSEXP(2).evaluate(context, rho); /* else value */
       } else {
-        return EvalResult.NON_PRINTING_NULL;   /* no else, evaluates to NULL */
+        context.setInvisibleFlag();
+        return Null.INSTANCE;   /* no else, evaluates to NULL */
       }
     }
   }

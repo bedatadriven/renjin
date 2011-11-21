@@ -14,7 +14,7 @@ import r.jvmi.wrapper.WrapperSourceWriter;
  * 
  * <br>
  * <code>
- * public static EvalResult UseMethod(Context context, Environment rho, FunctionCall call);
+ * public static SEXP UseMethod(Context context, Environment rho, FunctionCall call);
  * </code>
  * 
  * <br>
@@ -39,7 +39,8 @@ public class PassThrough extends GeneratorStrategy {
     s.writeStatement(callStatement(method, new ArgumentList("context", "rho", "call")));
     
     if(method.returnsVoid()) {
-      s.writeStatement("return EvalResult.NON_PRINTING_NULL;");
+      s.writeStatement("context.setInvisibleFlag()");
+      s.writeStatement("return r.lang.Null.INSTANCE;");
     }
     
   }

@@ -113,7 +113,7 @@ public class Text {
       SEXP argument = arguments.getElementAsSEXP(i);
       if(formatters[0].isFormattedString(i) && !(argument instanceof StringVector)) {
         argument = FunctionCall.newCall(Symbol.get("as.character"), argument)
-           .evalToExp(context, rho); 
+           .evaluate(context, rho); 
       }
       if(!(argument instanceof AtomicVector)) {
         throw new EvalException("Format argument %d is not an atomic vector", i);

@@ -32,7 +32,7 @@ public class RepeatFunction extends SpecialFunction {
   }
 
   @Override
-  public EvalResult apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP statement = args.getElementAsSEXP(0);
 
     while(true) {
@@ -44,6 +44,7 @@ public class RepeatFunction extends SpecialFunction {
         // next loop iteration
       }
     }
-    return EvalResult.NON_PRINTING_NULL;
+    context.setInvisibleFlag();
+    return Null.INSTANCE;
   }
 }

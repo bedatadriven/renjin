@@ -524,6 +524,19 @@ public class EvaluationTest extends EvalTestCase {
   public void primitive() {
     eval("f <- .Primitive('if')");
     assertThat(global.getVariable("f"), instanceOf(IfFunction.class));
+  } 
+  
+
+  @Test
+  public void lapplyWithFunctionCalls() throws IOException {
+    eval("g<-function(x) .Internal(as.vector(x, 'list'))");
+    eval("f<-function(x) g(substitute(x))");
+    eval("z<-f(~(0+births))");
+      
+
+    assertThat(eval(".Internal(typeof(z[[2]]))"), equalTo(c("language")));
+    
+    
   }
- 
 }
+

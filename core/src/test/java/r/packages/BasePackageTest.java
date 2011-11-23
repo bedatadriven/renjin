@@ -357,5 +357,21 @@ public class BasePackageTest extends EvalTestCase {
     topLevelContext.executeStartupProfile();
   }
 
+  @Test
+  public void bquote() throws IOException {
+    topLevelContext.init();
+       
+    eval("x <- bquote(~0 + .(quote(births)))");
+
+    // expected : ~0 + births 
+    
+    FunctionCall tildeCall = (FunctionCall) topLevelContext.getGlobalEnvironment().getVariable("x");
+    assertThat(tildeCall.getFunction(), equalTo((SEXP)symbol("~")));    
+    assertThat(tildeCall.getArguments().length(), equalTo(1));
+    
+    FunctionCall plusCall = (FunctionCall)tildeCall.getArgument(0);
+    assertThat(plusCall.getFunction(), equalTo((SEXP)symbol("+")));
+    
+  }
   
 }

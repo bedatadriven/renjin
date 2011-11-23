@@ -356,7 +356,17 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("names(x)"), equalTo( c("a", "b")));
     assertThat( eval(".Internal(typeof(x))"), equalTo( c("pairlist")));
     assertThat( eval("names(y)"), equalTo( c("a", "b")));
+  }
 
+  @Test
+  public void functionCallToList() {
+
+    eval(" x <- quote(~(0+births)) ");
+    eval(" y <- .Internal(as.vector(x, 'list')) ");
+
+    assertThat( eval("length(y)"), equalTo( c_i(2)));
+    assertThat( eval("names(y)"), equalTo(  NULL ));
+    assertThat( eval(".Internal(typeof(y[[2]]))"), equalTo( c("language")));
   }
   
   @Test

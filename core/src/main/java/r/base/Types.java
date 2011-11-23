@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import r.jvmi.annotations.*;
 import r.lang.*;
 import r.lang.exception.EvalException;
+import r.util.NamesBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -353,6 +354,7 @@ public class Types {
   @Primitive("as.vector")
   public static SEXP asVector(PairList x, String mode) {
     Vector.Builder result;
+    NamesBuilder names = NamesBuilder.withInitialCapacity(x.length());
     if ("character".equals(mode)) {
       result = new StringVector.Builder();
     } else if ("logical".equals(mode)) {
@@ -367,12 +369,15 @@ public class Types {
       throw new EvalException("invalid 'mode' argument");
     }
 
-    StringVector.Builder names = new StringVector.Builder();
     for (PairList.Node node : x.nodes()) {
-      names.add(node.hasTag() ? node.getTag().getPrintName() : "");
-      result.addFrom(node.getValue(), 0);
+      if(node.hasTag()) {
+        names.add(node.getTag().getPrintName());
+      } else {
+        names.addNA();
+      }
+      result.add(node.getValue());
     }
-    result.setAttribute(Symbols.NAMES.getPrintName(), names.build());
+    result.setAttribute(Symbols.NAMES.getPrintName(), names.build(result.length()));
     return result.build();
   }
 

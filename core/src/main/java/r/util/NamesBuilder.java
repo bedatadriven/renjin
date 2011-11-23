@@ -50,7 +50,7 @@ public final class NamesBuilder {
   }
   
   public void addNA() {
-    set(size, "");
+    set(size, StringVector.NA);
   }
   
   public void set(int index, String name) {

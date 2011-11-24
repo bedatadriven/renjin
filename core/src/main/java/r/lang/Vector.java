@@ -264,6 +264,8 @@ public interface Vector extends SEXP {
 
     public abstract Builder newBuilder();
 
+    public abstract Builder newBuilderWithInitialSize(int initialSize);
+    
     public final boolean isAtomic() {
       return size < Order.LIST;
     }
@@ -296,6 +298,11 @@ public interface Vector extends SEXP {
     public final boolean isWiderThanOrEqualTo(Vector vector) {
       return compareTo(vector.getVectorType()) >= 0;
     }
+    
+    public final boolean isWiderThanOrEqualTo(Vector.Type vectorType) {
+      return compareTo(vectorType) >= 0;
+    }
+    
 
     /**
      * Creates a new {@code Vector} of this {@code Type} from the element at
@@ -333,6 +340,4 @@ public interface Vector extends SEXP {
       return widest(vector.getVectorType(), forElement(element));
     }
   }
-
-
 }

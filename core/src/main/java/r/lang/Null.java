@@ -49,6 +49,8 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
 
   private static final String INDEX_OUT_OF_BOUNDS = "The NULL object is zero-length.";
 
+  private static final String NULL_IS_IMMUTABLE = "The NULL object is immutable";
+
   private Null() {
   }
 
@@ -302,8 +304,6 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
 
     public static final NullBuilder INSTANCE = new NullBuilder();
 
-    public static final String NULL_IS_IMMUTABLE = "The NULL object is immutable";
-
     @Override
     public Vector.Builder setNA(int index) {
       throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
@@ -385,6 +385,15 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     @Override
     public Vector.Builder newBuilder() {
       return NullBuilder.INSTANCE;
+    }
+
+    @Override
+    public Vector.Builder newBuilderWithInitialSize(int initialSize) {
+      if(initialSize > 0) {
+        throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);        
+      } else {
+        return NullBuilder.INSTANCE;
+      }
     }
 
     @Override

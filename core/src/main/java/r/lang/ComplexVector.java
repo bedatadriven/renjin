@@ -165,6 +165,13 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
     public Builder newBuilder() {
       throw new UnsupportedOperationException("implement me!");
     }
+    
+    
+
+    @Override
+    public Builder newBuilderWithInitialSize(int length) {
+      throw new UnsupportedOperationException("implement me!");
+    }
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {

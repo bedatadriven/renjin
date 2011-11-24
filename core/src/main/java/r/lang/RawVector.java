@@ -227,6 +227,11 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     public Vector.Builder newBuilder() {
       return new RawVector.Builder(0);
     }
+    
+    @Override
+    public Builder newBuilderWithInitialSize(int initialSize) {
+      return new RawVector.Builder(initialSize);
+    }
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {

@@ -358,8 +358,13 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     }
 
     @Override
-    public Vector.Builder newBuilder() {
+    public Builder newBuilder() {
       return new Builder(0, 0);
+    }
+    
+    @Override
+    public Builder newBuilderWithInitialSize(int initialSize) {
+      return new Builder(initialSize);
     }
 
     @Override

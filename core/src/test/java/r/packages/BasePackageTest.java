@@ -362,6 +362,7 @@ public class BasePackageTest extends EvalTestCase {
     topLevelContext.init();
        
     eval("x <- bquote(~0 + .(quote(births)))");
+    eval("print(x)");
 
     // expected : ~0 + births 
     

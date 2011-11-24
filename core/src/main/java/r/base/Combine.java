@@ -357,9 +357,15 @@ public class Combine {
     List<BindArgument> bindArguments = Lists.newArrayList();
     for(int i=1;i!=arguments.length();++i) {
       Vector argument = EvalException.checkedCast(arguments.getElementAsSEXP(i));
-      bindArguments.add(new BindArgument(argument, true));
+      if(argument.length() != 0) {
+        bindArguments.add(new BindArgument(argument, true));
+      }
     }
 
+    if(bindArguments.isEmpty()) {
+      return Null.INSTANCE;
+    }
+    
     // establish the number of columns
     // 1. check actual matrices
     int columns = -1;
@@ -434,16 +440,18 @@ public class Combine {
    */
   public static SEXP cbind(int deparseLevel, @ArgumentList ListVector arguments) {
 
-    if(arguments.length() == 0) {
-      return Null.INSTANCE;
-    }
-
     List<BindArgument> bindArguments = Lists.newArrayList();
     for(SEXP arg : arguments) {
       Vector argument = EvalException.checkedCast(arg);
-      bindArguments.add(new BindArgument(argument, false));
+      if(argument.length() > 0) {
+        bindArguments.add(new BindArgument(argument, false));
+      }
     }
 
+    if(bindArguments.isEmpty()) {
+      return Null.INSTANCE;
+    }
+    
     // establish the number of rows
     // 1. check actual matrices
     int rows = -1;
@@ -473,7 +481,7 @@ public class Combine {
     // now check that all vectors lengths are multiples of the column length
     for(BindArgument argument : bindArguments) {
       if(!argument.matrix) {
-        if( (rows % argument.vector.length()) != 0) {
+        if((rows % argument.vector.length()) != 0) {
           throw new EvalException("number of rows of result is not a multiple of vector length");
         }
       }

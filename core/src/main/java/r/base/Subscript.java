@@ -211,6 +211,11 @@ public class Subscript {
   public static SEXP getSingleElementDefault(Vector vector, int index) {
     return getSingleElement(vector, index);
   }
+  
+  @Primitive(".subset2")
+  public static SEXP getSingleElementDefaultByExactName(Vector vector, String name) {
+    return getSingleElementByExactName(vector, name);
+  }
 
 
   @Generic @Primitive("[[")

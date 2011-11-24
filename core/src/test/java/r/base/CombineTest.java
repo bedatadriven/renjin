@@ -135,6 +135,19 @@ public class CombineTest extends EvalTestCase {
         assertThat(eval("dim(.Internal(cbind(1, 5,6, 7)))"), equalTo(c_i(1, 3)));
         assertThat(eval(".Internal(cbind(1, c(5,6), c(9)))"), equalTo(c(5, 6, 9, 9)));
     }
+    
+    @Test
+    public void bindWithEmpty() {
+        eval("x<-1:12");
+        eval("dim(x)<-c(3,4)");
+        
+        assertThat(eval("dim(.Internal(cbind(1, x, c())))"), equalTo(c_i(3,4)));
+        assertThat(eval("dim(.Internal(rbind(1, x, c())))"), equalTo(c_i(3,4)));
+
+        assertThat(eval("dim(.Internal(cbind(1, c())))"), equalTo(NULL));
+        assertThat(eval("dim(.Internal(rbind(1, c())))"), equalTo(NULL));
+        
+    }
 
     @Test
     public void aperm() {

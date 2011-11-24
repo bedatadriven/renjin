@@ -452,6 +452,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     public Builder newBuilder() {
       return new Builder(0, 0);
     }
+    
+    @Override
+    public Builder newBuilderWithInitialSize(int initialSize) {
+      return new Builder(initialSize);
+    }
 
     @Override
     public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {

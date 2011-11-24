@@ -80,6 +80,12 @@ public class SubscriptOperation {
     return source.getAttribute(Symbols.DIM).length() == 1;
   }
 
+  /**
+   * Computes the dimensions of the source vector/matrix/array, depending on
+   * the presence of the DIM attribute and the number of subscripts provided. 
+   * 
+   * 
+   */
   private int[] computeSourceDimensions() {
 
     SEXP dim = source.getAttribute(Symbols.DIM);
@@ -114,7 +120,7 @@ public class SubscriptOperation {
       if(source.getAttribute(Symbols.NAMES) != Null.INSTANCE) {
         names = new StringVector.Builder();
       }
-      Vector.Builder result = source.newBuilderWithInitialSize(subscripts.getLength());
+      Vector.Builder result = source.newBuilderWithInitialSize(subscripts.getElementCount());
       int count = 0;
 
       for(Integer index : subscripts) {
@@ -148,14 +154,15 @@ public class SubscriptOperation {
     } else if(subscriptArguments.size() == 1 && subscriptArguments.get(0) instanceof StringVector) {
       return replaceByName(elements, single);
     }
-
-    Vector.Builder result = createReplacementBuilder(elements);
+    
     computeSourceDimensions();
     Subscripts subscripts = new Subscripts();
     if(!subscripts.isEmpty() && elements.length() == 0) {
       throw new EvalException("replacement has zero length");
     }
 
+    Vector.Builder result = createReplacementBuilder(elements);
+    
     int replacement = 0;
     for(int index : subscripts) {
       assert index < source.length() || sourceDim.length == 1;
@@ -230,10 +237,10 @@ public class SubscriptOperation {
       replacementType = ListVector.VECTOR_TYPE;
     }
 
-    if(source.getVectorType().isWiderThan(replacementType)) {
+    if(source.getVectorType().isWiderThanOrEqualTo(replacementType)) {
       result = source.newCopyBuilder();
     } else {
-      result = replacementType.newBuilder();
+      result = replacementType.newBuilderWithInitialSize(source.length());
       result.copyAttributesFrom(source);
       for(int i=0;i!= source.length();++i) {
         result.setFrom(i, source, i);
@@ -245,9 +252,31 @@ public class SubscriptOperation {
 
   private class Subscripts implements Iterable<Integer> {
 
+    /**
+     * Array containing the provided subscripts, for example:
+     * <ul>
+     * <li>[1,2] => [PositionalSubscript(1), PositionalSubscript(2)]</li>
+     * <li>[,1:3] => [MissingSubscript, PositionalSubscript(1,2,3)]</li>
+     * </ul>
+     */
     private Subscript subscripts[];
+    
+    /**
+     * The dimensions of the subscripts, for example:
+     * <ul>
+     * <li>given subscripts x[1,2], the subscript {@code dim}s are (1,1)</li>
+     * <li>given subscripts x[1,1:10], the subscript {@code dim}s are (1,10)</li> 
+     * <li>given a matrix {@code x} with {@code dim}s (3,4) and subscripts {@code x[,1]}, 
+     *    the subscript {@code dim}s are (3,1)</li>
+     * </ul>
+     */
     private int[] dim;
-    private int length;
+    
+    /**
+     * The total number of elements indicated by the given subscripts. This is
+     * equal to the product of {@code dim}.
+     */
+    private int elementCount;
 
     public Subscripts() {
       subscripts = new Subscript[subscriptArguments.size()];
@@ -271,17 +300,19 @@ public class SubscriptOperation {
           } else {
             subscripts[i] = new NegativeSubscript(sourceDim[i], vector);
           }
+        } else if(argument == Null.INSTANCE) {
+            subscripts[i] = NullSubscript.INSTANCE;
         } else {
           throw new EvalException("invalid subscript type '%s'", argument.getTypeName());
         }
       }
 
       this.dim = new int[sourceDim.length];
-      length = 1;
+      elementCount = 1;
       for(int d=0;d!=sourceDim.length;++d) {
         int count = subscripts[d].getCount();
         dim[d] = count;
-        length *= count;
+        elementCount *= count;
       }
     }
 
@@ -294,12 +325,23 @@ public class SubscriptOperation {
       }
     }
 
-    public int getLength() {
-      return length;
+    /**
+     * 
+     * @return the number of elements selected by the subscripts. For example,
+     * given the indices x[1:2,1:2], the total number of elements selected
+     * is 2x2 = 4. 
+     */
+    public int getElementCount() {
+      return elementCount;
     }
 
+    /**
+     * 
+     * @return true if no elements are selected by these subscripts. For example,
+     * {@code x[FALSE]}
+     */
     public boolean isEmpty() {
-      return length == 0;
+      return elementCount == 0;
     }
 
     private int[] dropUnitDimensions() {
@@ -343,6 +385,21 @@ public class SubscriptOperation {
      */
     private class IndexIterator extends UnmodifiableIterator<Integer> {
 
+      /**
+       * Indices within the subscript matrix. 
+       * 
+       * <p>If we are
+       * given subscripts like [1,3:4], then we have a 
+       * subscript matrix that looks like this:
+       * 
+       * <pre>
+       * 1  3
+       * 1  4
+       * </pre>
+       * 
+       * {@code subscriptIndex} is the current position within 
+       * this matrix.
+       */
       private int subscriptIndex[];
       private boolean hasNext = true;
 
@@ -357,11 +414,15 @@ public class SubscriptOperation {
 
       @Override
       public Integer next() {
+        // sourceIndices is the matrix coordinates of the 
+        // the next value indicated by the subscripts
+        
         int sourceIndices[] = new int[sourceDim.length];
         for(int i=0;i!=sourceDim.length;++i) {
           sourceIndices[i] = subscripts[i].getAt(subscriptIndex[i]);
         }
 
+        // index refers to the position within the storage array
         int index = Indexes.arrayIndexToVectorIndex(sourceIndices, sourceDim);
         hasNext = Indexes.incrementArrayIndex(subscriptIndex, dim);
 

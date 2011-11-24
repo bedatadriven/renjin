@@ -459,8 +459,13 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     }
 
     @Override
-    public Vector.Builder newBuilder() {
+    public Builder newBuilder() {
       return new Builder(0, 0);
+    }
+
+    @Override
+    public Builder newBuilderWithInitialSize(int length) {
+      return new Builder(length);
     }
 
     @Override

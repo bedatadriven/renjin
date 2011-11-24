@@ -41,6 +41,7 @@ public class SubscriptTest extends EvalTestCase {
     assertThat( eval(" x[3] "), equalTo( c(93) ));
     assertThat( eval(" x[4] "), equalTo( c(DoubleVector.NA)) );
     assertThat( eval(" x[0] "), equalTo( (SEXP) new DoubleVector() ));
+    assertThat( eval(" x[NULL] "), equalTo( (SEXP) new DoubleVector() ));
     assertThat( eval(" x[3L] "), equalTo( c(93) ));
   }
 
@@ -426,7 +427,16 @@ public class SubscriptTest extends EvalTestCase {
     eval(" x[c(1,2), c(3,4)] <- y");
 
     assertThat( eval("dim(x)"), equalTo( c_i(29, 29)));
-
+  }
+  
+  @Test
+  public void matrices() {
+    eval(" x<-1:12");
+    eval(" dim(x) <- c(3,4)");
+    
+    assertThat( eval("x[2,3]"), equalTo(c_i(8)));
+    assertThat( eval("x[1,NULL]"), equalTo((SEXP)IntVector.EMPTY)); 
+    assertThat( eval("dim(x[1,NULL])"), equalTo(NULL));
   }
     
 

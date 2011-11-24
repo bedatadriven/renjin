@@ -1,3 +1,4 @@
+
 mean.online <- function(x) {
     xbar <- x[1]
 
@@ -29,24 +30,29 @@ t.test.online <- function(x, y) { # 2-sample t-test
     t <- sqrt(n) * sqrt(m) / sqrt(n + m) * (mean.online(x) - mean.online(y)) / sqrt(s2)
     t
 }
-cat("starting...\n")
-start <- Sys.time()
-
-### 
-mean.online(log(seq(10e6)))
 
 
-### 
-var.online(log(seq(10e6)))
+meanBenchmark <- newBenchmark("mean.online of 10e6 value", {
+	mean.online(log(seq(10e6)))
+})
 
+varBenchmark <- newBenchmark("mean.online of 10e6 values", {
+	var.online(log(seq(10e6)))
+})
 
-### 
-x <- log(seq(10e5))
-y <- log(seq(10e5 + 5 * 10e5) - 0.5)
+tTestBenchmark <- newBenchmark("t.test.online of 10e6 values",
+   init = {	 
+	x <- log(seq(10e5))
+	y <- log(seq(10e5 + 5 * 10e5) - 0.5)
+   },
+   run = {
+	t.test.online(x, y)
+   }
+)
 
-cat(paste("t=",t.test.online(x, y),"\n"))
-
-cat("done 2\n");
-end <- Sys.time()
-
-print(end - start) 
+registerBenchmarkSuite(
+   name="Mean Var Online",
+   source="TU Dortmund",
+   description="Good benchmark of tight loops that normally would be extracted and put in a native C library",
+   benchmarks = list(meanBenchmark, varBenchmark, tTestBenchmark))
+   		

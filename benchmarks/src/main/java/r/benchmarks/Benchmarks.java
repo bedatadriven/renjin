@@ -8,6 +8,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import r.lang.StringVector;
+
 public class Benchmarks {
   
   
@@ -16,6 +18,8 @@ public class Benchmarks {
     ScriptEngineManager factory = new ScriptEngineManager();
     ScriptEngine engine = factory.getEngineByName("Renjin");
 
+    engine.put("benchmarkArgs", new StringVector(args));
+    
     engine.eval(new InputStreamReader(new FileInputStream("src/main/R/runner.R")));
   }
   

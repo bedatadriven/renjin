@@ -1,0 +1,32 @@
+
+This is the Renjin benchmarking suite, which should help us compare 
+Renjin preformance to the original interpreter, track improvements in
+performance over time, and prevent performance regressions.
+
+The suite and its harness are written in R, and so can be run either from Renjin or R2.x.
+
+With Renjin:
+===========
+
+Launch the r.benchmarks.Benchmarks class from Eclipse with the working
+directory set to renjin/benchmarks
+
+With R2.X:
+=========
+
+cd renjin/benchmarks
+Rscript src/main/R/runner.R
+
+
+
+Note: The matrix benchmarks involve very large matrices on which the pure-java matrix
+routines fare quite poorly. Visit http://code.google.com/p/netlib-java/ for instructions 
+on building the JNI interface to the native matrix libraries.
+
+
+TODO:
+====
+
+-Save results to database/local disk for tracking over time
+-Associate results with SVN revision number / build number
+-Write analysis script to compare results with original interpreter and to past builds

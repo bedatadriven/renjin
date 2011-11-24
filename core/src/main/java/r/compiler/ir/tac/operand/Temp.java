@@ -1,4 +1,4 @@
-package r.compiler.ir.tac;
+package r.compiler.ir.tac.operand;
 
 public class Temp implements LValue, SimpleExpr {
   private final int index;

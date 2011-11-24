@@ -4,6 +4,15 @@ import java.util.List;
 
 import r.compiler.ir.tac.functions.FunctionCallTranslator;
 import r.compiler.ir.tac.functions.FunctionCallTranslators;
+import r.compiler.ir.tac.instructions.Assignment;
+import r.compiler.ir.tac.instructions.Return;
+import r.compiler.ir.tac.operand.Constant;
+import r.compiler.ir.tac.operand.DynamicCall;
+import r.compiler.ir.tac.operand.Operand;
+import r.compiler.ir.tac.operand.LValue;
+import r.compiler.ir.tac.operand.SimpleExpr;
+import r.compiler.ir.tac.operand.Temp;
+import r.compiler.ir.tac.operand.Variable;
 import r.lang.ExpressionVector;
 import r.lang.FunctionCall;
 import r.lang.Null;
@@ -25,7 +34,7 @@ public class TacFactory {
   public List<Node> build(SEXP exp) {
     
     nodes = Lists.newArrayList();
-    Expr returnValue = translateToRValue(exp);
+    Operand returnValue = translateToRValue(exp);
     
     nodes.add(new Return(simplify(returnValue)));
     
@@ -36,7 +45,7 @@ public class TacFactory {
     System.out.println( toString( build(exp )));
   }
 
-  public Expr translateToRValue(SEXP exp) {
+  public Operand translateToRValue(SEXP exp) {
     if(exp instanceof ExpressionVector) {
       return translateExpressionList((ExpressionVector)exp);
     } else if(exp instanceof Vector) {
@@ -68,26 +77,26 @@ public class TacFactory {
     }
   }
   
-  public Expr translateDynamicCall(FunctionCall call) {
-    List<Expr> arguments = Lists.newArrayList();
+  public Operand translateDynamicCall(FunctionCall call) {
+    List<Operand> arguments = Lists.newArrayList();
     for(SEXP arg : call.getArguments().values()) {
       arguments.add( simplify( translateToRValue(arg) ));
     }
     return new DynamicCall((Symbol)call.getFunction(), arguments);
   }
 
-  public LValue addAssignment(Expr rvalue) {
+  public LValue addAssignment(Operand rvalue) {
     Temp target = newTemp();
     nodes.add(new Assignment(target, rvalue));
     return target;
   }
   
-  public LValue addAssignment(LValue lvalue, Expr rvalue) {
+  public LValue addAssignment(LValue lvalue, Operand rvalue) {
     nodes.add(new Assignment(lvalue, rvalue));
     return lvalue;
   }
   
-  public SimpleExpr simplify(Expr rvalue) {
+  public SimpleExpr simplify(Operand rvalue) {
     if(rvalue instanceof SimpleExpr) {
       return (SimpleExpr) rvalue;
     } else {
@@ -101,7 +110,7 @@ public class TacFactory {
     nodes.add(node);
   }
   
-  private Expr translateExpressionList(ExpressionVector vector) {
+  private Operand translateExpressionList(ExpressionVector vector) {
     if(vector.length() == 0) {
       return new Constant(Null.INSTANCE);
     } else {

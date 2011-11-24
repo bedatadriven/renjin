@@ -3,9 +3,9 @@ package r.compiler.ir.tac.functions;
 
 import java.util.Iterator;
 
-import r.compiler.ir.tac.Constant;
-import r.compiler.ir.tac.Expr;
 import r.compiler.ir.tac.TacFactory;
+import r.compiler.ir.tac.operand.Constant;
+import r.compiler.ir.tac.operand.Operand;
 import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.PairList;
@@ -20,7 +20,7 @@ public class BracketTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expr translateToRValue(TacFactory factory, FunctionCall call) {
+  public Operand translateToRValue(TacFactory factory, FunctionCall call) {
     if(call.getArguments().length() == 0) {
       return new Constant(Null.INSTANCE);
     } else {

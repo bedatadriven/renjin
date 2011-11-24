@@ -1,4 +1,7 @@
-package r.compiler.ir.tac;
+package r.compiler.ir.tac.instructions;
+
+import r.compiler.ir.tac.Label;
+import r.compiler.ir.tac.operand.SimpleExpr;
 
 public class ConditionalJump implements Statement {
   

@@ -1,15 +1,19 @@
 package r.compiler.ir.tac.functions;
 
-import r.compiler.ir.tac.AddOp;
-import r.compiler.ir.tac.ConditionalJump;
-import r.compiler.ir.tac.Constant;
+import com.google.common.collect.Lists;
+
 import r.compiler.ir.tac.ElementAccess;
-import r.compiler.ir.tac.Expr;
-import r.compiler.ir.tac.GotoStatement;
 import r.compiler.ir.tac.Label;
 import r.compiler.ir.tac.TacFactory;
-import r.compiler.ir.tac.Temp;
-import r.compiler.ir.tac.Variable;
+import r.compiler.ir.tac.instructions.ConditionalJump;
+import r.compiler.ir.tac.instructions.GotoStatement;
+import r.compiler.ir.tac.instructions.IncrementCounter;
+import r.compiler.ir.tac.operand.Constant;
+import r.compiler.ir.tac.operand.DynamicCall;
+import r.compiler.ir.tac.operand.Operand;
+import r.compiler.ir.tac.operand.CmpGE;
+import r.compiler.ir.tac.operand.Temp;
+import r.compiler.ir.tac.operand.Variable;
 import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.SEXP;
@@ -23,7 +27,7 @@ public class ForTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expr translateToRValue(TacFactory factory, FunctionCall call) {
+  public Operand translateToRValue(TacFactory factory, FunctionCall call) {
     addForLoop(factory, call);
     
     return new Constant(Null.INSTANCE);
@@ -38,9 +42,11 @@ public class ForTranslator extends FunctionCallTranslator {
   private void addForLoop(TacFactory factory, FunctionCall call) {
     Symbol symbol = call.getArgument(0);
     Temp counter = factory.newTemp();
+    Temp length = factory.newTemp();
+    
     Variable elementVariable = new Variable(symbol);
     
-    Expr vector = 
+    Operand vector = 
         factory.simplify(
             factory.translateToRValue(call.getArgument(1)));
     
@@ -51,6 +57,7 @@ public class ForTranslator extends FunctionCallTranslator {
      
     // initialize the counter
     factory.addAssignment(counter, new Constant(0));
+    factory.addAssignment(length, new DynamicCall(Symbol.get("length"), Lists.newArrayList((Operand)elementVariable)));
     factory.addNode(new GotoStatement(counterLabel));
     
     // start the body here
@@ -59,12 +66,11 @@ public class ForTranslator extends FunctionCallTranslator {
     factory.addStatement(body);
     
     // increment the counter
-    factory.addAssignment(counter, new AddOp(counter, new Constant(1)));
+    factory.addNode(new IncrementCounter(counter));
     
     // check the counter and potentially loop
     factory.addNode(counterLabel);
-    factory.addNode(new GotoStatement(bodyLabel));
-    
+    factory.addNode(new ConditionalJump(new CmpGE(counter, length), bodyLabel));
     
   }
 }

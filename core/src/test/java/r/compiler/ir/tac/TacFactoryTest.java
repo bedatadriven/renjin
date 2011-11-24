@@ -1,15 +1,18 @@
 package r.compiler.ir.tac;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 
 import org.junit.Test;
 
-import r.lang.DoubleVector;
+import r.EvalTestCase;
+import r.lang.Closure;
 import r.lang.ExpressionVector;
 import r.lang.SEXP;
 import r.parser.RParser;
 
-public class TacFactoryTest {
+public class TacFactoryTest extends EvalTestCase {
 
   private TacFactory factory = new TacFactory(); 
   
@@ -44,6 +47,16 @@ public class TacFactoryTest {
   @Test
   public void forLoop() {
     dump("x<-1:4; y<-0; for(n in x) { y <- y + n }");
+  }
+  
+  @Test
+  public void closureBody() throws IOException {
+    topLevelContext.init();
+    RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R")))
+    .evaluate(topLevelContext, topLevelContext.getEnvironment());
+   
+    Closure closure = (Closure) topLevelContext.getGlobalEnvironment().getVariable("mean.online");
+    factory.dump(closure.getBody());
   }
   
   private void dump(String rcode) {

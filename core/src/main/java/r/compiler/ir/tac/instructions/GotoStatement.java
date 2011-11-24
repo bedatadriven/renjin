@@ -1,4 +1,6 @@
-package r.compiler.ir.tac;
+package r.compiler.ir.tac.instructions;
+
+import r.compiler.ir.tac.Label;
 
 public class GotoStatement implements Statement {
 

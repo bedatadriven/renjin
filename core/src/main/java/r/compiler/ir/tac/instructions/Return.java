@@ -1,15 +1,17 @@
-package r.compiler.ir.tac;
+package r.compiler.ir.tac.instructions;
+
+import r.compiler.ir.tac.operand.Operand;
 
 public class Return implements Statement {
 
-  private final Expr value;
+  private final Operand value;
 
-  public Return(Expr value) {
+  public Return(Operand value) {
     super();
     this.value = value;
   }
   
-  public Expr getValue() {
+  public Operand getValue() {
     return value;
   }
   

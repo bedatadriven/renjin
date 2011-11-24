@@ -1,11 +1,14 @@
-package r.compiler.ir.tac;
+package r.compiler.ir.tac.instructions;
+
+import r.compiler.ir.tac.operand.Operand;
+import r.compiler.ir.tac.operand.LValue;
 
 
 public class Assignment implements Statement {
-  private Expr rvalue;
+  private Operand rvalue;
   private LValue target;
  
-  public Assignment(LValue target, Expr rvalue) {
+  public Assignment(LValue target, Operand rvalue) {
     this.target = target;
     this.rvalue = rvalue;
   }
@@ -14,7 +17,7 @@ public class Assignment implements Statement {
     return target;
   }
   
-  public Expr getRValue() {
+  public Operand getRValue() {
     return rvalue;
   }
   

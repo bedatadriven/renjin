@@ -1,21 +1,23 @@
 package r.compiler.ir.tac;
 
+import r.compiler.ir.tac.operand.Operand;
+
 
 /**
  * Extracts a single element from a vector.
  */
-public class ElementAccess implements Expr {
+public class ElementAccess implements Operand {
 
-  private final Expr vector;
-  private final Expr index;
+  private final Operand vector;
+  private final Operand index;
   
-  public ElementAccess(Expr vector, Expr index) {
+  public ElementAccess(Operand vector, Operand index) {
     super();
     this.vector = vector;
     this.index = index;
   }
 
-  public Expr getVector() {
+  public Operand getVector() {
     return vector;
   }
 
@@ -23,7 +25,7 @@ public class ElementAccess implements Expr {
    * @return the value holding the zero-based index of the
    * element to extract
    */
-  public Expr getIndex() {
+  public Operand getIndex() {
     return index;
   }
 

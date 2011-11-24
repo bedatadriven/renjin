@@ -1,14 +1,14 @@
 package r.compiler.ir.tac.functions;
 
 
-import r.compiler.ir.tac.Assignment;
-import r.compiler.ir.tac.ConditionalJump;
-import r.compiler.ir.tac.Constant;
-import r.compiler.ir.tac.GotoStatement;
 import r.compiler.ir.tac.Label;
-import r.compiler.ir.tac.Expr;
 import r.compiler.ir.tac.TacFactory;
-import r.compiler.ir.tac.Temp;
+import r.compiler.ir.tac.instructions.Assignment;
+import r.compiler.ir.tac.instructions.ConditionalJump;
+import r.compiler.ir.tac.instructions.GotoStatement;
+import r.compiler.ir.tac.operand.Constant;
+import r.compiler.ir.tac.operand.Operand;
+import r.compiler.ir.tac.operand.Temp;
 import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.Symbol;
@@ -21,8 +21,8 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expr translateToRValue(TacFactory factory, FunctionCall call) {
-    Expr condition = factory.translateToRValue(call.getArgument(0));
+  public Operand translateToRValue(TacFactory factory, FunctionCall call) {
+    Operand condition = factory.translateToRValue(call.getArgument(0));
     
     // since "if" is being used in the context of an expression, we need
     // to store its final value somewhere
@@ -35,7 +35,7 @@ public class IfTranslator extends FunctionCallTranslator {
     factory.addNode(jump);
     
     // evaluate "if true" expression
-    Expr ifTrueResult = factory.translateToRValue(call.getArgument(1));
+    Operand ifTrueResult = factory.translateToRValue(call.getArgument(1));
     
     // assign this result to our temp value
     factory.addNode(new Assignment(ifResult, ifTrueResult));
@@ -47,7 +47,7 @@ public class IfTranslator extends FunctionCallTranslator {
     // next evaluate "if false" expression
     // if the false clause is absent, it evaluates to 
     // NULL
-    Expr ifFalseResult;
+    Operand ifFalseResult;
     if(hasElse(call)) {
       ifFalseResult = factory.simplify(factory.translateToRValue(
           call.getArgument(2)));
@@ -69,7 +69,7 @@ public class IfTranslator extends FunctionCallTranslator {
   @Override
   public void addStatement(TacFactory factory, FunctionCall call) {
 
-    Expr condition = factory.translateToRValue(call.getArgument(0));
+    Operand condition = factory.translateToRValue(call.getArgument(0));
     Label endLabel = factory.newLabel();
     Label ifFalseLabel;
     if(hasElse(call)) {

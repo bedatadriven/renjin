@@ -371,8 +371,20 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(tildeCall.getArguments().length(), equalTo(1));
     
     FunctionCall plusCall = (FunctionCall)tildeCall.getArgument(0);
-    assertThat(plusCall.getFunction(), equalTo((SEXP)symbol("+")));
+    assertThat(plusCall.getFunction(), equalTo((SEXP)symbol("+")));    
+  }
+  
+  @Test
+  public void rowSums() throws IOException {
+    topLevelContext.init();
     
+    eval("m <- matrix(1:12, 3)");
+    
+    assertThat(eval("rowsum(m, group=c(1,1,1))"), equalTo(c_i(6,15,24,33)));
+    assertThat(eval("row.names(rowsum(m, group=c(1,1,1)))"), equalTo(c("1")));
+
+    assertThat(eval("rowsum(m, group=c(3,3,1), reorder=TRUE)"), equalTo(c_i(3,3,6,9,9,15,12,21)));
+
   }
   
 }

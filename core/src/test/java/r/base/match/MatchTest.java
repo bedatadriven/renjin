@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.base.match;
 
 import org.junit.Test;
 import r.EvalTestCase;
@@ -68,4 +68,13 @@ public class MatchTest extends EvalTestCase {
     assertThat( eval(" .Internal(anyDuplicated(c(2,2,3,3), FALSE, TRUE)) "), equalTo( c_i(3) ));
   }
 
+  @Test
+  public void duplicated() {
+    assertThat( eval(" .Internal(duplicated(1, FALSE, FALSE)) "), equalTo( c(false)) );
+    assertThat( eval(" .Internal(duplicated(c(1,1,3), FALSE, FALSE)) "), equalTo( c(false,true,false) ));
+    assertThat( eval(" .Internal(duplicated(c(1,2,3,3), FALSE, FALSE)) "), equalTo( c(false,false,false,true)) );
+    assertThat( eval(" .Internal(duplicated(c(2,2,3,3), FALSE, TRUE)) "), equalTo( c(true, false,true,false) ));
+  }
+
+  
 }

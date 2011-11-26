@@ -1,6 +1,8 @@
 package r.base.matrix;
 
+import r.lang.DoubleVector;
 import r.lang.Indexes;
+import r.lang.IntVector;
 import r.lang.Null;
 import r.lang.Symbols;
 import r.lang.Vector;
@@ -23,6 +25,12 @@ public class Matrix {
     this.vector = vector;
     this.nrows = dim.getElementAsInt(0);
     this.ncols = dim.getElementAsInt(1);
+  }
+  
+  public Matrix(Vector vector, int ncols) {
+    this.vector = vector;
+    this.ncols = ncols;
+    this.nrows = vector.length() / ncols;
   }
 
   public Vector getVector() {
@@ -56,6 +64,16 @@ public class Matrix {
   
   public double getElementAsDouble(int row, int col) {
     return vector.getElementAsDouble(computeIndex(row, col));
+  }
+  
+  public MatrixBuilder newBuilder(int rows, int cols) {
+    if(vector instanceof IntVector) {
+      return new IntMatrixBuilder(rows, cols);
+    } else if(vector instanceof DoubleVector) {
+      return new DoubleMatrixBuilder(rows, cols);
+    } else {
+      throw new UnsupportedOperationException("unimplemented type " + vector.getTypeName());
+    }
   }
   
 }

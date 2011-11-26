@@ -5,6 +5,8 @@
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
+
+import com.google.common.collect.UnmodifiableIterator;
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,31 +21,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.base.match;
 
-import java.util.Set;
-
+import r.base.Calls;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.AtomicVector;
 import r.lang.Closure;
 import r.lang.Context;
 import r.lang.Environment;
-import r.lang.Function;
 import r.lang.FunctionCall;
 import r.lang.IntVector;
-import r.lang.Logical;
 import r.lang.LogicalVector;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.StringVector;
-import r.lang.Symbol;
 import r.lang.Symbols;
-import r.lang.Vector;
 import r.lang.exception.EvalException;
-
-import com.google.common.collect.Sets;
 
 /**
  * Default implementations of match() related functions.
@@ -165,87 +160,7 @@ public class Match {
   // NA values are treated as if they were the string constant "NA".
   private static String pmatchElementAt(StringVector vector, int i) {
     return vector.isElementNA(i) ? "NA" : vector.getElementAsString(i);
-  }
-
-  /**
-   * unique returns a vector, data frame or array like x but with duplicate elements/rows removed.
-   *
-   * @param x a vector
-   * @param incomparables a vector of values that cannot be compared. FALSE is a special value,
-   *          meaning that all values can be compared, and may be the only value accepted for methods
-   *        other than the default. It will be coerced internally to the same type as x.
-   * @param fromLast
-   * @return logical indicating if duplication should be considered from the last, i.e., the last
-   *       (or rightmost) of identical elements will be kept. This only matters for names or dimnames.
-   */
-  public static Vector unique(AtomicVector x, AtomicVector incomparables, boolean fromLast) {
-    
-    // for "historical reasons", incomparables=FALSE is treated
-    // like incomparables=NULL
-    
-    if(incomparables.equals(LogicalVector.FALSE)) {
-      incomparables = Null.INSTANCE;
-    }
-    
-    Vector.Builder result = x.newBuilderWithInitialSize(0);
-    int resultIndex=0;
-    for(int i=0;i!= x.length();++i) {
-      if(   incomparables.contains(x, i) ||
-          (fromLast && x.indexOf(x, i, i+1) == -1) ||
-          (!fromLast && x.indexOf(x, i, 0) == i)) {
-
-        result.setFrom(resultIndex++, x, i);
-
-      }
-    }
-    return result.build();
-  }
-
-  /**
-   * Determines which elements of a vector or data frame are duplicates of elements with smaller
-   * subscripts, and returns a logical vector indicating which elements (rows) are duplicates.
-   * @param x a vector
-   * @param incomparables a vector of values that cannot be compared. FALSE is a special value, meaning
-   *        that all values can be compared, and may be the only value accepted for methods
-   *      other than the default. It will be coerced internally to the same type as x.
-   * @param fromLast logical indicating if duplication should be considered from the reverse side, i.e.,
-   *      the last (or rightmost) of identical elements would correspond to duplicated=FALSE.
-   * @return a non-negative integer (of length one).
-   */
-  public static int anyDuplicated(Vector x, AtomicVector incomparables, boolean fromLast) {
-
-    if(incomparables instanceof LogicalVector && incomparables.length() == 1 &&
-        incomparables.getElementAsLogical(0).equals(Logical.FALSE)) {
-      incomparables = Null.INSTANCE;
-    }
-
-    if(incomparables != Null.INSTANCE) {
-      throw new EvalException("incomparables in anyDuplicated not yet supported!");
-    }
-
-    Set<Object> seen = Sets.newHashSet();
-    if(fromLast) {
-      for(int i=x.length()-1;i>=0;--i) {
-        Object element = x.getElementAsObject(i);
-        if(seen.contains(element)) {
-          return i+1;
-        } else {
-          seen.add(element);
-        }
-      }
-    } else {
-      for(int i=0;i!=x.length();++i) {
-        Object element = x.getElementAsObject(i);
-        if(seen.contains(element)) {
-          return i+1;
-        } else {
-          seen.add(element);
-        }
-      }
-    }
-    return 0;
-  }
-  
+  }  
   
   @Primitive("match.call")
   public static SEXP matchCall (@Current Context context, @Current Environment rho, SEXP definition, FunctionCall call, boolean expandDots){

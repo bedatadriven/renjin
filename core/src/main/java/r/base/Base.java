@@ -25,7 +25,10 @@ import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 
+import r.base.matrix.Matrix;
+import r.base.matrix.MatrixBuilder;
 import r.jvmi.annotations.Current;
+import r.lang.AtomicVector;
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
@@ -140,6 +143,32 @@ public class Base {
     throw new EvalException("nyi");
   }
 
+  public static Vector Rrowsum_matrix(Vector x, int ncol, AtomicVector groups, AtomicVector ugroup, boolean naRm) {
+    
+    int numGroups = ugroup.length();
+    
+    Matrix source = new Matrix(x, ncol);
+    MatrixBuilder result = source.newBuilder(numGroups, ncol);
+    
+    for(int col=0;col!=ncol;++col) {
+      
+      // sum the rows in this column by group
+      
+      double groupSums[] = new double[numGroups];
+      for(int row=0;row!=source.getNumRows();++row) {
+        int group = ugroup.indexOf(groups, row, 0);
+        groupSums[group] += source.getElementAsDouble(row, col);
+      }
+      
+      // copy sums to matrix
+      for(int group=0;group!=ugroup.length();++group) {
+        result.setValue(group, col, groupSums[group]);
+      }
+      
+    }
+    return result.build();
+  }  
+    
   /**
    * Singular Value Decomposition implemented with Jlapack, a mechanical Fortran-to-java translation 
    * of the same lapack library that R uses.

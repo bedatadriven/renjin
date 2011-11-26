@@ -6,7 +6,6 @@ import java.util.Set;
 import r.jvmi.annotations.Primitive;
 import r.lang.IntVector;
 import r.lang.ListVector;
-import r.lang.SEXP;
 import r.lang.Vector;
 
 import com.google.common.collect.Maps;

@@ -32,6 +32,7 @@ import r.lang.AtomicVector;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.ListVector;
+import r.lang.LogicalVector;
 import r.lang.Null;
 import r.lang.StringVector;
 import r.lang.Symbols;
@@ -109,9 +110,9 @@ public class Sort {
     return new IntVector(sorted, x.getAttributes());
   }
 
-  public static DoubleVector qsort(DoubleVector x, boolean returnIndexes) {
+  public static DoubleVector qsort(DoubleVector x, LogicalVector returnIndexes) {
 
-    if(returnIndexes) {
+    if(returnIndexes.isElementTrue(0)) {
       throw new EvalException("qsort(indexes=TRUE) not yet implemented");
     }
     
@@ -124,7 +125,23 @@ public class Sort {
     return (DoubleVector)sorted
             .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
+
+  public static IntVector qsort(IntVector x, LogicalVector returnIndexes) {
+
+    if(returnIndexes.isElementTrue(0)) {
+      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
+    }
     
+    int[] values = x.toIntArray();
+    Arrays.sort(values);
+    
+    IntVector sorted = new IntVector(values, x.getAttributes());
+    
+    // drop the names attributes if present because it will not be sorted
+    return (IntVector)sorted
+            .setAttribute(Symbols.NAMES, Null.INSTANCE);  
+  }
+  
   private static void reverse(int[] b) {
     int left  = 0;          
     int right = b.length-1; 

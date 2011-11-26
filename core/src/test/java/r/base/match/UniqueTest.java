@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.base.match;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -34,8 +34,11 @@ public class UniqueTest extends EvalTestCase {
   @Test
   public void atomicVectors() {
     assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, FALSE))"), equalTo( c(1,3,4)) );
-    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, TRUE))"), equalTo( c(3,1,4)) );
-
+  }
+  
+  @Test
+  public void fromLast() {
+    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, TRUE))"), equalTo( c(3,1,4)) );    
   }
 
   @Test

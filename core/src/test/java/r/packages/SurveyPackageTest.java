@@ -1,9 +1,9 @@
 package r.packages;
 
-import org.junit.Ignore;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
 
 public class SurveyPackageTest extends PackageTest {
 

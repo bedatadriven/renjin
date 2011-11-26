@@ -17,7 +17,6 @@ class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
   
   private StringVector rowNames;
   private StringVector colNames;
-
   
   public AbstractMatrixBuilder(Vector.Type vectorType, int nrows, int ncols) {
     this.nrows = nrows;
@@ -59,7 +58,5 @@ class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
       builder.setAttribute(Symbols.DIMNAMES, new ListVector(rowNames, colNames));
     }
     return (V)builder.build();
-  }
- 
-  
+  } 
 }

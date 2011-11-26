@@ -19,7 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.base.model;
+
+import java.io.IOException;
 
 import org.junit.Test;
 import r.EvalTestCase;
@@ -37,6 +39,7 @@ public class ModelsTest extends EvalTestCase {
 
   @Test
   public void simplestTest() {
+      
     eval(" formula <- ~1 ");
     eval(" t <- .Internal(terms.formula(formula,NULL,NULL, FALSE,FALSE))");
 
@@ -47,15 +50,52 @@ public class ModelsTest extends EvalTestCase {
   }
 
   @Test
-  public void testWithOneDepVar() {
-    eval(" formula <- ~weighta ");
-    eval(" t <- .Internal(terms.formula(formula,NULL,NULL,FALSE,FALSE))");
+  public void testWithOneDepVar() throws IOException {
+    topLevelContext.init();
 
-    assertThat( eval(" attr(t, 'variables') "), equalTo(call("list", Symbol.get("weighta"))));
-    assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector()));
+    eval(" t <- terms(~births)");
 
+    eval("print(t)");
+    
+    assertThat( eval(" class(t) "), equalTo(c("terms", "formula")));
+    assertThat( eval(" attr(t, 'variables') "), equalTo(call("list", Symbol.get("births"))));
+    assertThat( eval(" attr(t, 'term.labels') "), equalTo(c("births")));
+    assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector(1)));
   }
 
+  @Test
+  public void modelMatrixWithInteractions() throws IOException {
+    topLevelContext.init();
+    
+    eval("data <- data.frame(age=c(18,20,22,25), height=c(110,100,75,120), row.names=c('a','b','c','d'))");
+    eval("m <- model.matrix(~ age * height, data=data)");
+    
+    assertThat(eval("dim(m)"), equalTo(c_i(4,4)));
+    assertThat(eval("m"), equalTo(c(1,1,1,1,18,20,22,25,110,100,75,120,1980,2000,1650,3000)));
+    
+    assertThat(eval("colnames(m)"), equalTo(c("(Intercept)", "age", "height", "age:height")));
+    assertThat(eval("rownames(m)"), equalTo(c("a","b","c","d")));
+    
+    eval("print(m)");
+    
+  }
+
+  @Test
+  public void modelMatrixSimple() throws IOException {
+    topLevelContext.init();
+    
+    eval("data <- data.frame(age=c(18,20,22,25), height=c(110,100,75,120), row.names=c('a','b','c','d'))");
+    eval("m <- model.matrix(~ age + height, data=data)");
+    
+    assertThat(eval("dim(m)"), equalTo(c_i(4,3)));
+    assertThat(eval("m"), equalTo(c(1,1,1,1,18,20,22,25,110,100,75,120)));
+    assertThat(eval("colnames(m)"), equalTo(c("(Intercept)", "age", "height")));
+    assertThat(eval("rownames(m)"), equalTo(c("a","b","c","d")));
+    
+    eval("print(m)");
+    
+  }
+  
   private SEXP call(String function, SEXP... arguments) {
     return FunctionCall.newCall(Symbol.get(function), arguments);
   }

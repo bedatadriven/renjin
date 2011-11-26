@@ -1,4 +1,4 @@
-package r.base;
+package r.base.matrix;
 
 import org.netlib.blas.BLAS;
 
@@ -11,7 +11,7 @@ import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
 
-public class MatrixProduct {
+class MatrixProduct {
 
   // TODO:
   // 1. Code cleanup

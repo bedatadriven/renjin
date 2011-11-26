@@ -22,6 +22,6 @@ public class SurveyPackageTest extends PackageTest {
     assertThat(eval("sum(hospital$births)"), equalTo(c(25667)));
 
     eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
-    //eval("print(svymean(~births, dstr))");
+   // eval("print(svymean(~births, dstr))");
   }
 }

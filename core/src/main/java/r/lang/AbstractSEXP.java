@@ -236,13 +236,20 @@ public abstract class AbstractSEXP implements SEXP {
   }
 
   private PairList replaceAttribute(Symbol attributeName, SEXP newValue) {
-    PairList.Node.Builder builder = PairList.Node.buildList(attributeName, newValue);
+    PairList.Node.Builder builder = new PairList.Builder();
+    boolean replaced = false;
     for(PairList.Node node : attributes.nodes()) {
-      if(!node.getTag().equals(attributeName)) {
+      if(node.getTag() == attributeName) {
         if(newValue != Null.INSTANCE) {
           builder.add(node.getTag(), node.getValue());
         }
+        replaced = true;
+      } else {
+        builder.add(node.getRawTag(), node.getValue());
       }
+    }
+    if(!replaced && newValue != Null.INSTANCE) {
+      builder.add(attributeName, newValue);
     }
     return builder.build();
   }

@@ -21,22 +21,23 @@
 
 package r.lang;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.math.complex.Complex;
+
+import r.base.Parse;
+import r.lang.exception.EvalException;
+import r.util.NamesBuilder;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
-import org.apache.commons.math.complex.Complex;
-import r.base.Parse;
-import r.lang.Vector.Builder;
-import r.lang.exception.EvalException;
-import r.util.NamesBuilder;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Generic vector of {@code SEXP}s

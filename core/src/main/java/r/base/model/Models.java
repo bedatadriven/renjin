@@ -19,11 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.base.model;
 
 import java.util.List;
-import java.util.Set;
 
+import r.base.Types;
+import r.base.matrix.DoubleMatrixBuilder;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.lang.AtomicVector;
@@ -35,15 +36,12 @@ import r.lang.ListVector;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
-import r.lang.SexpVisitor;
 import r.lang.StringVector;
-import r.lang.Symbol;
 import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 public class Models {
 
@@ -66,43 +64,24 @@ public class Models {
     if(specials != Null.INSTANCE) {
       throw new EvalException("specials != NULL is not supported");
     }
-
-    ModelInspector inspector = new ModelInspector();
-    x.accept(inspector);
-
+    
+    Formula formula = new FormulaInterpreter().interpret(x);
+    
+    
     // define attibutes
     ListVector.Builder attributes = new ListVector.Builder();
-    attributes.add("variables", inspector.getVariables());
-    attributes.add("factors", new IntVector());
-    attributes.add("term.labels", new StringVector());
+    attributes.add("variables", formula.buildVariablesAttribute());
+    attributes.add("factors", formula.buildFactorsMatrix());
+    attributes.add("term.labels", formula.buildTermLabels());
     attributes.add("order", new IntVector());
-    attributes.add("intercept", new IntVector(1));
-    attributes.add("response", new IntVector(0));
+    attributes.add("intercept", formula.buildInterceptAttribute());
+    attributes.add("response",  formula.buildResponseAttribute());
     attributes.add(".Environment", context.getGlobalEnvironment() );
-
+    attributes.add("class", new StringVector("terms", "formula"));
+    
     // create an new Function Call
     FunctionCall copy = x.clone();
     return copy.setAttributes(attributes.build());
-  }
-
-  private static class ModelInspector extends SexpVisitor {
-    private Set<Symbol> variables = Sets.newHashSet();
-
-    @Override
-    public void visit(FunctionCall call) {
-      for(SEXP argument : call.getArguments().values()) {
-        if(argument instanceof Symbol) {
-          variables.add((Symbol) argument);
-        } else {
-          argument.accept(this);
-        }
-      }
-    }
-
-    public FunctionCall getVariables() {
-      return new FunctionCall(Symbol.get("list"),
-            PairList.Node.fromIterable(variables));
-    }
   }
 
   /**
@@ -292,6 +271,9 @@ public class Models {
       
   }
 
+  
+  
+  
   private static boolean isNewList(SEXP sexp) {
     return sexp == Null.INSTANCE || sexp instanceof ListVector;
   }
@@ -308,9 +290,16 @@ public class Models {
     } else if(Types.inherits(s, "data.frame")) {
       return nrows(s.getElementAsSEXP(0));
       
-    } else {
+    } else {  
       throw new EvalException("object is not a matrix");
     }
+  }
+  
+  @Primitive("model.matrix")
+  public static Vector modelMatrix(@Current Context context, FunctionCall terms, ListVector modelFrame) {
+   
+    return new ModelMatrixBuilder(context, terms, modelFrame).build();
+    
   }
   
 }

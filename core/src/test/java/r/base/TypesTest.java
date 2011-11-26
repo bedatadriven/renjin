@@ -285,6 +285,17 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("x <- unclass(x)");
     assertThat(eval("class(x)"), equalTo(c("numeric")));
   }
+  
+  @Test
+  public void unclassPreservesOtherAttribs() {
+    eval("x<-1");
+    eval("attr(x,'zing')<-'bat'");
+    eval("class(x) <- 'foo'");
+    eval("x <- unclass(x)");
+    assertThat(eval("class(x)"), equalTo(c("numeric")));
+    assertThat(eval("attr(x,'zing')"), equalTo(c("bat")));
+
+  }
 
   @Test
   public void setNamesWithNonStrVector() {

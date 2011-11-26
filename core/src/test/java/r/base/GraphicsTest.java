@@ -17,7 +17,7 @@ public class GraphicsTest extends EvalTestCase {
   
 
   @Test
-  @Ignore("work in progress")
+  @Ignore("WIP")
   public void simplestPossible() throws IOException {
     topLevelContext.init();
     BufferedImage image = new BufferedImage(300, 300, ColorSpace.TYPE_RGB);

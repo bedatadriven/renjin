@@ -1,6 +1,4 @@
-package r.base;
-
-import org.apache.commons.math.linear.RealMatrix;
+package r.base.matrix;
 
 import r.jvmi.annotations.Primitive;
 import r.lang.AtomicVector;
@@ -8,17 +6,18 @@ import r.lang.DoubleVector;
 import r.lang.Indexes;
 import r.lang.IntVector;
 import r.lang.ListVector;
-import r.lang.Null;
 import r.lang.SEXP;
 import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
-import r.util.CommonsMath;
 
-public class Matrix {
+/**
+ * Implementation of R primitive functions involving matrices.
+ */
+public class Matrices {
 
-
-
+  private Matrices() {}
+  
   @Primitive("t.default")
   public static Vector transpose(Vector x) {
     Vector dimensions = (Vector) x.getAttribute(Symbols.DIM);

@@ -708,7 +708,7 @@ public class Types {
   @Generic
   @Primitive("levels<-")
   public static SEXP setLabels(SEXP exp, SEXP levels) {
-    return exp.setAttribute(Symbols.LEVELS.getPrintName(), levels);
+    return exp.setAttribute(Symbols.LEVELS, levels);
   }
 
   /**

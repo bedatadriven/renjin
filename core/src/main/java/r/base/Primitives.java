@@ -5,6 +5,8 @@ import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
 import r.base.graphics.Par;
 import r.base.graphics.Plot;
+import r.base.matrix.Matrices;
+import r.base.model.Models;
 import r.base.random.RNG;
 import r.base.special.*;
 import r.base.time.Time;
@@ -170,9 +172,9 @@ public class Primitives {
 
     f("%%", Ops.class, 0 /* MODOP */, 1, 2, PP_BINARY2, PREC_PERCENT, 0);
     f("%/%", Ops.class, 0 /* IDIVOP */, 1, 2, PP_BINARY2, PREC_PERCENT, 0);
-    f("%*%", Matrix.class, 0, 1, 2, PP_BINARY, PREC_PERCENT, 0);
-    f("crossprod", Matrix.class, 1, 11, 2);
-    f("tcrossprod", Matrix.class, 2, 11, 2);
+    f("%*%", Matrices.class, 0, 1, 2, PP_BINARY, PREC_PERCENT, 0);
+    f("crossprod", Matrices.class, 1, 11, 2);
+    f("tcrossprod", Matrices.class, 2, 11, 2);
 
 
 /* these are group generic and so need to eval args */
@@ -665,7 +667,7 @@ public class Primitives {
     f("scan", Scan.class, 0, 11, 18);
     f("count.fields", /*countfields*/ null, 0, 11, 6);
     f("readTableHead", /*readtablehead*/ null, 0, 11, 6);
-    f("t.default", Matrix.class, 0, 11, 1);
+    f("t.default", Matrices.class, 0, 11, 1);
     f("aperm", Combine.class, 0, 11, 3);
     f("builtins", /*builtins*/ null, 0, 11, 1);
     f("edit", /*edit*/ null, 0, 11, 4);
@@ -692,10 +694,10 @@ public class Primitives {
     f("lapply", Evaluation.class, 0, 10, 2);
     f("rapply", /*rapply*/ null, 0, 11, 5);
     f("islistfactor",  Types.class, 0, 11, 2);
-    f("colSums", Matrix.class, 0, 11, 4);
-    f("colMeans", Matrix.class, 1, 11, 4);
-    f("rowSums", Matrix.class, 2, 11, 4);
-    f("rowMeans", Matrix.class, 3, 11, 4);
+    f("colSums", Matrices.class, 0, 11, 4);
+    f("colMeans", Matrices.class, 1, 11, 4);
+    f("rowSums", Matrices.class, 2, 11, 4);
+    f("rowMeans", Matrices.class, 3, 11, 4);
     f("Rprof", /*Rprof*/ null, 0, 11, 4);
     f("Rprofmem", /*Rprofmem*/ null, 0, 11, 3);
     f("tracemem", /*memtrace*/ null, 0, 1, 1);
@@ -843,7 +845,7 @@ public class Primitives {
     f("terms.formula", Models.class, 0, 11, 5);
     f("update.formula", /*updateform*/ null, 0, 11, 2);
     f("model.frame", Models.class, 0, 11, 8);
-    f("model.matrix", /*modelmatrix*/ null, 0, 11, 2);
+    f("model.matrix", Models.class, 0, 11, 2);
 
     f("D", /*D*/ null, 0, 11, 2);
     f("deriv.default", /*deriv*/ null, 0, 11, 5);

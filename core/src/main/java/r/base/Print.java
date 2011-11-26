@@ -92,6 +92,18 @@ public class Print {
       }
       printAttributes(list);
     }
+    
+    
+    @Override
+    protected void unhandled(SEXP exp) {
+      out.append(exp.toString()).append('\n');
+      printAttributes(exp);
+    }
+
+    @Override
+    public String getResult() {
+      return out.toString();
+    }
 
     @Override
     public void visit(IntVector vector) {
@@ -145,7 +157,8 @@ public class Print {
       for(PairList.Node node : sexp.getAttributes().nodes()) {
         if(!node.getTag().equals(Symbols.NAMES) &&
            !node.getTag().equals(Symbols.DIM) &&
-           !node.getTag().equals(Symbols.DIMNAMES)) {
+           !node.getTag().equals(Symbols.DIMNAMES) &&
+            node.getValue() != Null.INSTANCE) {
           out.append("attr(," + new ParseUtil.StringPrinter().apply(node.getName()) + ")\n");
           node.getValue().accept(this);
         }
@@ -386,15 +399,6 @@ public class Print {
         }
       }
     }
-    
-    @Override
-    protected void unhandled(SEXP exp) {
-      out.append(exp.toString()).append('\n');
-    }
-
-    @Override
-    public String getResult() {
-      return out.toString();
-    }
+  
   }
 }

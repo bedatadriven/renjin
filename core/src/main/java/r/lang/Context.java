@@ -114,6 +114,14 @@ public class Context {
       SEXP value = map.get(name);
       return value == null ? Null.INSTANCE : value;
     }
+    
+    public int getInt(String name, int defaultValue) {
+      SEXP value = get(name);
+      if(value instanceof AtomicVector && value.length() >= 1) {
+        return ((AtomicVector)value).getElementAsInt(0);
+      }
+      return defaultValue;
+    }
 
     public SEXP set(String name, SEXP value) {
       SEXP old = map.put(name, value);

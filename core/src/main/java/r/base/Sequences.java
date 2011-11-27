@@ -23,6 +23,7 @@ package r.base;
 
 import org.apache.commons.math.linear.RealVector;
 
+import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
 import r.jvmi.wrapper.ArgumentIterator;
 import r.jvmi.wrapper.WrapperRuntime;
@@ -38,7 +39,6 @@ import r.lang.SEXP;
 import r.lang.Symbol;
 import r.lang.Symbols;
 import r.lang.Vector;
-import r.lang.Warning;
 import r.lang.exception.EvalException;
 import r.util.NamesBuilder;
 
@@ -51,12 +51,12 @@ import com.google.common.annotations.VisibleForTesting;
 public class Sequences {
 
   @Primitive(":")
-  public static Vector colon(SEXP n1, SEXP n2) {
+  public static Vector colon(@Current Context context, SEXP n1, SEXP n2) {
     if( n1.inherits("factor") && n2.inherits("factor")) {
       return crossColon(n1, n2);
 
     } else {
-      return colonSequence(n1, n2);
+      return colonSequence(context, n1, n2);
     }
   }
 
@@ -64,9 +64,9 @@ public class Sequences {
     throw new UnsupportedOperationException("crossColon not yet implemented");
   }
 
-  public static Vector colonSequence(SEXP s1, SEXP s2 ) {
-    checkArg(s1);
-    checkArg(s2);
+  public static Vector colonSequence(Context context, SEXP s1, SEXP s2 ) {
+    checkArg(context, s1);
+    checkArg(context, s2);
 
     double n1 = s1.asReal();
     double n2 = s2.asReal();
@@ -84,11 +84,11 @@ public class Sequences {
     }
   }
 
-  private static void checkArg(SEXP exp) {
+  private static void checkArg(Context context, SEXP exp) {
     if(exp.length() == 0) {
       throw new EvalException("argument of length 0");
     } else if(exp.length() > 1) {
-      Warning.warning("numerical expression has %d elements: only the first used", exp.length());
+      Warning.invokeWarning(context, "numerical expression has %d elements: only the first used", exp.length());
     }
   }
 

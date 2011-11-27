@@ -96,7 +96,7 @@ public class Primitives {
     add(new ReturnFunction());
 
     f("stop", Evaluation.class, 0, 11, 2);
-    f("warning", Evaluation.class, 0, 111, 3);
+    f("warning", Warning.class, 0, 111, 3);
 
     f("gettext", Text.class, 0, 11, 2);
     f("ngettext", Text.class, 0, 11, 4);

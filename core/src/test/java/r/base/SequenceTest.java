@@ -78,7 +78,7 @@ public class SequenceTest extends EvalTestCase {
 
   private SEXP colon(double n1, double n2) {
     Sequences fn = new Sequences();                 
-    return fn.colonSequence(new DoubleVector(n1), new DoubleVector(n2));
+    return fn.colonSequence(topLevelContext, new DoubleVector(n1), new DoubleVector(n2));
   }
 
   @Test

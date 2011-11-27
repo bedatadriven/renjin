@@ -59,7 +59,6 @@ import r.lang.StringVector;
 import r.lang.Symbol;
 import r.lang.Symbols;
 import r.lang.Vector;
-import r.lang.Warning;
 import r.lang.exception.EvalException;
 import r.library.methods.Methods;
 import r.parser.RParser;
@@ -148,10 +147,6 @@ public class Evaluation {
 
   public static void stop(boolean call, String message) {
     throw new EvalException(message);
-  }
-
-  public static void warning(boolean call, boolean immediate, String message) {
-    Warning.warning(message);
   }
 
   @Primitive("return")

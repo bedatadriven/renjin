@@ -21,6 +21,7 @@
 
 package r.interpreter;
 
+import r.base.Warning;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;
@@ -81,18 +82,27 @@ public class Interpreter implements Runnable {
       console.getOut().print("> ");
 
       try {
+        
+        
         parser.parse();
 
         SEXP exp = parser.getResult();
         if(exp == null) {
           continue;
         }
+        
+        // clean up last warnings from any previous run
+        clearWarnings();
+        
         SEXP result = exp.evaluate(topLevelContext, global);
 
         if(!topLevelContext.getGlobals().isInvisible()) {
           FunctionCall.newCall(Symbol.get("print"), result)
             .evaluate(topLevelContext, topLevelContext.getEnvironment());
+          
         }
+        
+        printWarnings();
 
       } catch (ParseException e) {
         console.getErr().println(String.format("Error: %s", e.getMessage()));
@@ -108,6 +118,18 @@ public class Interpreter implements Runnable {
         e.printStackTrace();
       }
     }
+  }
+
+  private void printWarnings() {
+    SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    if(warnings != Symbol.UNBOUND_VALUE) {
+      FunctionCall.newCall(Symbol.get("print.warnings"), warnings)
+        .evaluate(topLevelContext, topLevelContext.getEnvironment().getBaseEnvironment());
+    }
+  }
+
+  private void clearWarnings() {
+    topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
 
   private void printGreeting() {

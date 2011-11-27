@@ -21,6 +21,7 @@
 
 package r.lang;
 
+import r.base.Warning;
 import r.lang.exception.EvalException;
 
 public abstract class SpecialFunction extends PrimitiveFunction {
@@ -38,13 +39,13 @@ public abstract class SpecialFunction extends PrimitiveFunction {
     visitor.visitSpecial(this);
   }
 
-  public static boolean asLogicalNoNA(FunctionCall call, SEXP s) {
+  public static boolean asLogicalNoNA(Context context, FunctionCall call, SEXP s) {
 
     if (s.length() == 0) {
       throw new EvalException("argument is of length zero");
     }
     if (s.length() > 1) {
-      Warning.warning(call, "the condition has length > 1 and only the first element will be used");
+      Warning.invokeWarning(context, call, "the condition has length > 1 and only the first element will be used");
     }
 
     Logical logical = s.asLogical();

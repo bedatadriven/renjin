@@ -34,7 +34,7 @@ public class IfFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP condition = call.getArguments().getElementAsSEXP(0).evaluate(context, rho);
 
-    if (asLogicalNoNA(call, condition)) {
+    if (asLogicalNoNA(context, call, condition)) {
       return call.getArguments().getElementAsSEXP(1).evaluate(context, rho); /* true value */
 
     } else {

@@ -241,7 +241,7 @@ public abstract class AbstractSEXP implements SEXP {
     for(PairList.Node node : attributes.nodes()) {
       if(node.getTag() == attributeName) {
         if(newValue != Null.INSTANCE) {
-          builder.add(node.getTag(), node.getValue());
+          builder.add(node.getTag(), newValue);
         }
         replaced = true;
       } else {

@@ -134,6 +134,15 @@ public strictfp class TypesTest extends EvalTestCase {
 
     assertThat( eval("v$minor"), not(CoreMatchers.equalTo(NULL)));
   }
+  
+  @Test
+  public void attributeReplace() {
+    eval( "x <- 1:12");
+    eval( "dim(x) <- c(3,4)");
+    eval( "dim(x) <- c(3,4,1)");
+    
+    assertThat( eval("dim(x)"), equalTo(c_i(3,4,1)));
+  }
 
 
   @Test

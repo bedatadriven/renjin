@@ -1,4 +1,4 @@
-package r.base.subscripts;
+package r.base.subset;
 
 public class NullSubscript extends Subscript {
 

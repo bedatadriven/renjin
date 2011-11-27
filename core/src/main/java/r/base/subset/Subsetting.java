@@ -19,17 +19,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.base.subset;
 
 import com.google.common.base.Strings;
 
-import r.base.subscripts.SubscriptOperation;
 import r.jvmi.annotations.*;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
 
-public class Subscript {
+public class Subsetting {
+  
+  private Subsetting() {}
 
   @Generic @Primitive("$")
   public static SEXP getElementByName(PairList list, @Evaluate(false) Symbol symbol) {

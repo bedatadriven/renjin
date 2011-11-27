@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.subscripts;
+package r.base.subset;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;

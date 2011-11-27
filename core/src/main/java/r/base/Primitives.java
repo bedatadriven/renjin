@@ -11,6 +11,7 @@ import r.base.matrix.Matrices;
 import r.base.model.Models;
 import r.base.random.RNG;
 import r.base.special.*;
+import r.base.subset.Subsetting;
 import r.base.time.Time;
 import r.jvmi.wrapper.WrapperGenerator;
 import r.lang.PrimitiveFunction;
@@ -129,15 +130,15 @@ public class Primitives {
     add(new BeginFunction());
     add(new ParenFunction());
 
-    f(".subset", Subscript.class, 1, 1, -1);
-    f(".subset2", Subscript.class, 2, 1, -1);
-    f("[",Subscript.class, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
-    f("[[", Subscript.class, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
-    f("$", Subscript.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
+    f(".subset", Subsetting.class, 1, 1, -1);
+    f(".subset2", Subsetting.class, 2, 1, -1);
+    f("[",Subsetting.class, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
+    f("[[", Subsetting.class, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
+    f("$", Subsetting.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
     f("@", /*AT*/ null, 0, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
-    f("[<-", Subscript.class, 0, 0, 3, PP_SUBASS, PREC_LEFT, 1);
-    f("[[<-", Subscript.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
-    f("$<-", Subscript.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
+    f("[<-", Subsetting.class, 0, 0, 3, PP_SUBASS, PREC_LEFT, 1);
+    f("[[<-", Subsetting.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
+    f("$<-", Subsetting.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
 
     addInternal("switch", new SwitchFunction());
 
@@ -1065,5 +1066,4 @@ public class Primitives {
       return group != null;
     }
   }
-
 }

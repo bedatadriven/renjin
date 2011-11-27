@@ -19,39 +19,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.subscripts;
+package r.base.subset;
 
-import r.lang.AtomicVector;
+/**
+ * A missing subscript -- x[] -- selects all elements.
+ * When used for an array/matrix, it can select the whole
+ * row or column. For example, x[,1] or x[1,]
+ */
+public class MissingSubscript extends Subscript {
 
-public class NegativeSubscript extends Subscript {
-  private int[] indices;
-  private int count;
+  private final int sourceDimensionLength;
 
-  public NegativeSubscript(int dimensionLength, AtomicVector subscript) {
-    int mask[] = new int[dimensionLength];
-    for(int i=0;i!=subscript.length();++i) {
-      int index = -subscript.getElementAsInt(i);
-      if(index != 0 && index <= mask.length) {
-        mask[index-1] = 1;
-      }
-    }
-
-    count = 0;
-    indices = new int[mask.length];
-    for(int i=0;i!=mask.length;++i) {
-      if(mask[i] == 0) {
-        indices[count++] = i;
-      }
-    }
+  public MissingSubscript(int sourceDimensionLength) {
+    this.sourceDimensionLength = sourceDimensionLength;
   }
 
   @Override
   public int getCount() {
-    return count;
+    return sourceDimensionLength;
   }
 
   @Override
   public int getAt(int i) {
-    return indices[i];
+    return i;
   }
 }

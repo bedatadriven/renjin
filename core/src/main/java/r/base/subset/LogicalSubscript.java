@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.subscripts;
+package r.base.subset;
 
 import r.lang.IntVector;
 import r.lang.LogicalVector;

@@ -19,29 +19,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.subscripts;
+package r.base.subset;
+
+import r.lang.AtomicVector;
+import r.lang.StringVector;
 
 /**
- * Base classes for R's rich set of different type subscripts.
+ * Named subscripts select element by name, for example
+ * x["foo"]
  */
-public abstract class Subscript {
+public class NamedSubscript extends Subscript {
+  private int count;
+  private int[] indices;
 
-  /**
-   *
-   * @return  the number of elements selected by this subscript
-   */
-  public int getCount() {
-    throw new UnsupportedOperationException();
+  public NamedSubscript(int length, AtomicVector names, StringVector subscript) {
+    indices = new int[subscript.length()];
+    count = subscript.length();
+
+    int nextNewIndex = length;
+
+    for(int i=0;i!=subscript.length();++i) {
+      int index = names.indexOf(subscript, i, 0);
+      indices[i] = (index == -1) ? nextNewIndex++ : index;
+    }
   }
 
-  /**
-   * Looks up the source index of the {@code i}-th element
-   * selected by this {@code Subscript}
-   *
-   * @param i the index of the selected element
-   * @return the source index
-   */
+  @Override
+  public int getCount() {
+    return count;
+  }
+
+  @Override
   public int getAt(int i) {
-    throw new UnsupportedOperationException();
+    return indices[i];
   }
 }

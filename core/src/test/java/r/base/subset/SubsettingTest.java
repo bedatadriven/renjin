@@ -19,11 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base;
+package r.base.subset;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import r.EvalTestCase;
+import r.base.subset.Subsetting;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -31,7 +32,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
-public class SubscriptTest extends EvalTestCase {
+public class SubsettingTest extends EvalTestCase {
 
   @Test
   public void subsetDouble() {
@@ -342,7 +343,7 @@ public class SubscriptTest extends EvalTestCase {
         .add(symbol("aardvark"), c(3))
         .build();
 
-    SEXP result = Subscript.getElementByName(list, Symbol.get("all"));
+    SEXP result = Subsetting.getElementByName(list, Symbol.get("all"));
     assertThat(result, equalTo((SEXP)c(1)));
   }
 

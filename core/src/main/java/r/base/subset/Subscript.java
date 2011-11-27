@@ -19,28 +19,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.base.subscripts;
+package r.base.subset;
 
 /**
- * A missing subscript -- x[] -- selects all elements.
- * When used for an array/matrix, it can select the whole
- * row or column. For example, x[,1] or x[1,]
+ * Base classes for R's rich set of different type subscripts.
  */
-public class MissingSubscript extends Subscript {
+public abstract class Subscript {
 
-  private final int sourceDimensionLength;
-
-  public MissingSubscript(int sourceDimensionLength) {
-    this.sourceDimensionLength = sourceDimensionLength;
-  }
-
-  @Override
+  /**
+   *
+   * @return  the number of elements selected by this subscript
+   */
   public int getCount() {
-    return sourceDimensionLength;
+    throw new UnsupportedOperationException();
   }
 
-  @Override
+  /**
+   * Looks up the source index of the {@code i}-th element
+   * selected by this {@code Subscript}
+   *
+   * @param i the index of the selected element
+   * @return the source index
+   */
   public int getAt(int i) {
-    return i;
+    throw new UnsupportedOperationException();
   }
 }

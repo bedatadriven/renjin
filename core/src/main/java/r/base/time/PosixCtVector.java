@@ -2,7 +2,6 @@ package r.base.time;
 
 import org.joda.time.DateTime;
 
-import r.base.time.PosixLtVector.Builder;
 import r.lang.DoubleVector;
 import r.lang.StringVector;
 import r.lang.Symbols;
@@ -57,6 +56,5 @@ public class PosixCtVector extends TimeVector {
       vector.setAttribute(Symbols.CLASS, new StringVector("POSIXct", "POSIXt"));
       return vector.build();
     }
-
   }
 }

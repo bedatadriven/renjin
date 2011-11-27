@@ -24,6 +24,7 @@ package r.lang.exception;
 import r.lang.Context;
 import r.lang.PairList;
 import r.lang.SEXP;
+import r.lang.Context.Type;
 
 public class EvalException extends RuntimeException {
   private SEXP exp;
@@ -62,8 +63,10 @@ public class EvalException extends RuntimeException {
     Context context = this.context;
     sb.append("\nR Stack Trace:");
     while(!context.isTopLevel()) {
-      sb.append("\n  at ").append(context.getFunctionName());
-      appendArguments(sb, context);
+      if(context.getType() == Type.FUNCTION) {
+        sb.append("\n  at ").append(context.getFunctionName());
+        appendArguments(sb, context);
+      }
       context = context.getParent();
     }
     sb.append("\nJava Stack Trace:\n");

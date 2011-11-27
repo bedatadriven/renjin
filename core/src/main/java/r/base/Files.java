@@ -89,7 +89,11 @@ public class Files {
         }
         isdir.add(file.getType() == FileType.FOLDER);
         mode.add(mode(file));
-        mtime.add(file.getContent().getLastModifiedTime());
+        try {
+          mtime.add(file.getContent().getLastModifiedTime());
+        } catch(Exception e) {
+          mtime.add(0);
+        }
         exe.add(file.getName().getBaseName().endsWith(".exe") ? "yes" : "no");
       } else {
         size.add(IntVector.NA);

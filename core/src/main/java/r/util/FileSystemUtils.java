@@ -21,16 +21,18 @@
 
 package r.util;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.util.regex.Pattern;
+
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 
-import java.io.File;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import com.google.common.annotations.VisibleForTesting;
 
 public class FileSystemUtils {
+  
+  private static final Pattern R_PACKAGE_PATTERN = Pattern.compile("[^/]+/Meta/package\\.rds");
 
 
   /**
@@ -42,7 +44,6 @@ public class FileSystemUtils {
   public static String homeDirectoryInCoreJar() {
     // hardcode to the R home location to the classpath location
     // where this class is found.
-    // R_LIBS will contain ALL the /r/library paths found on the classpath
 
     return RHomeFromSEXPClassURL(r.base.System.class.getResource("/r/lang/SEXP.class").toString());
   }
@@ -64,7 +65,6 @@ public class FileSystemUtils {
    *
    * @return a default, semi-colon delimited, set of paths in which to search for libraries
    * that includes all jars and directories on the classpath ({@code System.getProperty(java.class.path)}
-   * that contains an {@code r/library} subdirectory.
    */
   public static String defaultLibraryPaths() {
     return libraryPathsFromClassPath(System.getProperty("java.class.path"));
@@ -98,34 +98,18 @@ public class FileSystemUtils {
 
   public static String libraryPathFromFolder(String classPath) {
     try {
-      File file = new File(new File(classPath, "r"), "library");
-      if(file.exists() && file.isDirectory()) {
-        return file.getAbsolutePath();
-      } else {
-        return null;
-      }
+      return new File(classPath).getAbsolutePath();
     } catch(Exception e) {
       // we can get security exceptions for some jars
       return null;
     }
   }
+  
 
-  @VisibleForTesting
   public static String libraryPathFromJarFile(String classPath)  {
-    try {
-      JarFile jarFile = new JarFile(classPath);
-      JarEntry entry = jarFile.getJarEntry("r/library");
-      jarFile.close();
-      if(entry != null) {
-        return "jar:file://" + absolutePath(classPath) + "!/r/library";
-      }
-    } catch (Exception e) {
-    } finally {
-      
-    }
-    return null;
+    return "jar:file://" + absolutePath(classPath);  
   }
-
+  
   private static String absolutePath(String path) {
     return new File(path).getAbsolutePath();
   }

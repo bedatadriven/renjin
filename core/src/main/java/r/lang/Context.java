@@ -359,7 +359,7 @@ public class Context {
    *
    * @param uri uniform resource indicator. This could be, for example:
    * <ul>
-   * <li>jar:file:///path/to/my/libray.jar!/r/library/survey</li>
+   * <li>jar:file:///path/to/my/libray.jar!/mylib/R/mylib.R</li>
    * <li>/usr/lib</li>
    * <li>c:&#92;users&#92;owner&#92;data.txt</li>
    * </ul>

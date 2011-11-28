@@ -94,7 +94,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
     saveGlobals(context);
 
 
-    if(context.getGlobals().isInvisible()) {
+    if(!context.getGlobals().isInvisible()) {
       FunctionCall.newCall(Symbol.get("print"), result)
         .evaluate(context, context.getEnvironment());
     }

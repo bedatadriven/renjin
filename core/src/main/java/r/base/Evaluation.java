@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,8 +35,7 @@ import r.jvmi.annotations.ArgumentList;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Evaluate;
 import r.jvmi.annotations.Primitive;
-import r.jvmi.binding.JvmMethod;
-import r.jvmi.binding.RuntimeInvoker;
+import r.jvmi.r2j.FunctionBinding;
 import r.lang.Closure;
 import r.lang.Connection;
 import r.lang.Context;
@@ -277,7 +278,7 @@ public class Evaluation {
     String packageName = null;
     boolean naOK = false;
     
-    ListVector.Builder callArguments = ListVector.newBuilder();
+    PairList.Builder callArguments = new PairList.Builder();
     for(int i=1;i<arguments.length();++i) {
       if("PACKAGE".equals(arguments.getName(i))) {
         packageName = arguments.getElementAsString(i);
@@ -292,7 +293,7 @@ public class Evaluation {
       }
     }
     
-    return doNativeCall(context, rho, methodName, packageName, callArguments);
+    return doNativeCall(context, rho, methodName, packageName, callArguments.build());
     
   }
   
@@ -303,7 +304,7 @@ public class Evaluation {
 
     String methodName = arguments.getElementAsString(0);
     String packageName = null;
-    ListVector.Builder callArguments = ListVector.newBuilder();
+    PairList.Builder callArguments = new PairList.Builder();
     for(int i=1;i<arguments.length();++i) {
       if("PACKAGE".equals(arguments.getName(i))) {
         packageName = arguments.getElementAsString(i);  
@@ -312,11 +313,11 @@ public class Evaluation {
       }
     }
 
-    return doNativeCall(context, rho, methodName, packageName, callArguments);
+    return doNativeCall(context, rho, methodName, packageName, callArguments.build());
   }
 
   private static SEXP doNativeCall(Context context, Environment rho,
-      String methodName, String packageName, ListVector.Builder callArguments) {
+      String methodName, String packageName, PairList arguments) {
     Class packageClass;
     if(packageName.equals("base")) {
       packageClass = Base.class;
@@ -332,13 +333,21 @@ public class Evaluation {
             packageName, packageClassName);
       }
     }
-
-    List<JvmMethod> overloads = JvmMethod.findOverloads(packageClass, methodName, methodName);
-    if(overloads.isEmpty()) {
-      throw new EvalException("No C method '%s' defined in package %s", methodName, packageName);
+    
+    List<Method> overloads = Lists.newArrayList();
+    for(Method method : packageClass.getMethods()) {
+      if(method.getName().equals(methodName) && 
+          (method.getModifiers() & (Modifier.STATIC | Modifier.PUBLIC)) != 0) {
+        overloads.add(method);
+      }
     }
-    return RuntimeInvoker.INSTANCE.invoke(context, rho, callArguments.build(), overloads);
+    
+    if(overloads.isEmpty()) {
+      throw new EvalException("Method " + methodName + " not defined in " + packageName);
+    }
 
+    FunctionBinding binding = new FunctionBinding(overloads);
+    return binding.invoke(null, context, rho, arguments);
 
 //    throw new EvalException(
 //        String.format("Call to native function '%s' in package '%s'",

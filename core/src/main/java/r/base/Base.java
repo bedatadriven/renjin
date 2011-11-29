@@ -58,7 +58,7 @@ public class Base {
 
   private Base() { }
   
-  public static boolean R_isMethodsDispatchOn(@Current Context context) {
+  public static boolean R_isMethodsDispatchOn() {
     return false;
   }
 

@@ -25,13 +25,17 @@ public class FunctionBinding {
   
   public FunctionBinding(Iterable<Method> overloads) {
     for(Method method : overloads) {
-      Overload overload = new Overload(method);
-      if(overload.getArgCount() > maxArgCount) {
-        maxArgCount = overload.getArgCount();
-      }
-      this.overloads.add(overload);
+      addOverload(method);
     }
     sortOverloads();
+  }
+
+  private void addOverload(Method method) {
+    Overload overload = new Overload(method);
+    if(overload.getArgCount() > maxArgCount) {
+      maxArgCount = overload.getArgCount();
+    }
+    this.overloads.add(overload);
   }
   
   public FunctionBinding(Method[] methods) {

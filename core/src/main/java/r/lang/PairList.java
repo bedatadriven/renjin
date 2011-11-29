@@ -157,6 +157,20 @@ public interface PairList extends SEXP {
     public static PairList fromArray(SEXP... values) {
       return fromIterable(Arrays.asList(values));
     }
+    
+    public static PairList fromVector(Vector vector) {
+      Builder builder = new Builder();
+      for(int i=0;i!=vector.length();++i) {
+        String name = vector.getName(i);
+        if(Strings.isNullOrEmpty(name)) {
+          builder.add(vector.getElementAsSEXP(i));
+        } else {
+          builder.add(name, vector.getElementAsSEXP(i));
+        }
+      }
+      return builder.build();
+    }
+
 
     public final SEXP getValue() {
       return value;
@@ -456,6 +470,7 @@ public interface PairList extends SEXP {
       return Null.INSTANCE;
     }
 
+ 
   }
 
   public class Builder {

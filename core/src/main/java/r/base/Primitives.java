@@ -3,6 +3,8 @@ package r.base;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
+
+import r.base.graphics.Graphics;
 import r.base.graphics.Par;
 import r.base.graphics.Plot;
 import r.base.match.Duplicates;
@@ -793,11 +795,11 @@ public class Primitives {
     f("palette", /*palette*/ null, 0, 11, 1);
     f("plot.new", Plot.class, 0, 111, 0);
     f("plot.window", Plot.class, 0, 111, 3);
-    f("axis", /*axis*/ null, 0, 111, 13);
+    f("axis", Plot.class, 0, 111, 13);
     f("plot.xy", /*plot_xy*/ null, 0, 111, 7);
     f("text", /*text*/ null, 0, 111, -1);
     f("mtext", /*mtext*/ null, 0, 111, 5);
-    f("title", /*title*/ null, 0, 111, 4);
+    f("title", Plot.class, 0, 111, 4);
     f("abline", /*abline*/ null, 0, 111, 6);
     f("box", Plot.class, 0, 111, 3);
     f("rect", Plot.class, 0, 111, 6);
@@ -826,8 +828,8 @@ public class Primitives {
     f("devAskNewPage", /*devAskNewPage*/ null, 0, 211, 1);
     f("dev.size", /*devsize*/ null, 0, 11, 0);
     f("clip", /*clip*/ null, 0, 111, 4);
-    f("grconvertX", /*convertXY*/ null, 0, 11, 3);
-    f("grconvertY", /*convertXY*/ null, 1, 11, 3);
+    f("grconvertX", Graphics.class, 0, 11, 3);
+    f("grconvertY", Graphics.class, 1, 11, 3);
 
 /* Objects */
     f("inherits", Types.class, 0, 11, 3);

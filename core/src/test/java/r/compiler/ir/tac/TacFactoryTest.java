@@ -65,6 +65,17 @@ public class TacFactoryTest extends EvalTestCase {
   public void interpretFor() {
     assertThat(evalIR("y<-1; for(i in 2:4) {y <- y * i }; y"), equalTo(c(24)));
   }
+
+  @Test
+  public void interpretForNext() {
+    assertThat(evalIR("y<-0; for(i in 1:10) { if(i %% 2 == 0) { next };  y <- y + i }; y"),
+        equalTo(c(25)));
+  }
+  
+  @Test
+  public void interpretRepeat() {
+    assertThat(evalIR("y<-1; repeat {y <- y+1; if(y > 10) break }; y"), equalTo(c(11)));
+  }
   
   private SEXP evalIR(String text) {
     System.out.println("======= " + text + "================");
@@ -89,7 +100,7 @@ public class TacFactoryTest extends EvalTestCase {
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
     IRBlock ir = factory.build(ast);
     
-    factory.dump( ast );
+    System.out.println(ir.toString());
   }
   
   private IRBlock build(String rcode) {

@@ -17,6 +17,9 @@ public class FunctionCallTranslators {
     builders.put(Symbol.get("("), new ParenTranslator());
     builders.put(Symbol.get("<-"), new AssignLeftTranslator());
     builders.put(Symbol.get("for"), new ForTranslator());
+    builders.put(Symbol.get("repeat"), new RepeatTranslator());
+    builders.put(Symbol.get("next"), new NextTranslator());
+    builders.put(Symbol.get("break"), new BreakTranslator());
   }
   
   public FunctionCallTranslator get(SEXP function) {

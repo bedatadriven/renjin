@@ -2,48 +2,41 @@ package r.compiler.ir.tac;
 
 import java.util.Arrays;
 import java.util.List;
-
-import com.google.common.base.Strings;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import r.compiler.ir.tac.instructions.Statement;
 import r.lang.Context;
 import r.lang.SEXP;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+
 public class IRBlock {
   
-  private List<Node> nodes;
   private Object temp[];
   private Statement statements[];
-  private int statementCount;
   private int labels[];
   
-  public IRBlock(List<Node> nodes, int tempCount) {
-    this.nodes = nodes;
-    this.statements = new Statement[nodes.size()];
-    this.labels = new int[nodes.size()];
+  public IRBlock(List<Statement> statements, Map<Label, Integer> labels, int tempCount) {
+    this.statements = statements.toArray(new Statement[statements.size()]);
+    this.labels = new int[labels.size()];
     this.temp = new Object[tempCount];
   
-    Arrays.fill(labels, -1);
+    Arrays.fill(this.labels, -1);
     
-    int stmtIndex=0;
-    for(Node node : nodes) {
-      if(node instanceof Statement) {
-        statements[stmtIndex++] = (Statement)node;
-      } else if(node instanceof Label) {
-        Label label = (Label)node;
-        labels[label.getIndex()] = stmtIndex;
-      }
+    for(Entry<Label,Integer> label : labels.entrySet()) {
+        this.labels[label.getKey().getIndex()] = label.getValue();
     }
-    statementCount = stmtIndex;
   }
 
-  public List<Node> getStatements() {
-    return nodes;
+  public List<Statement> getStatements() {
+    return Lists.newArrayList(statements);
   }
 
   public SEXP evaluate(Context context) {
     int i=0;
-    while(i < statementCount) {
+    while(i < statements.length) {
       Object result = statements[i].interpret(context, temp);
       if(result == null) {
         i++;
@@ -69,7 +62,7 @@ public class IRBlock {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    for(int i=0;i!=statementCount;++i) {
+    for(int i=0;i!=statements.length;++i) {
       sb.append(labelAt(i))
         .append(Strings.padEnd(i + ":", 4, ' '))
         .append(statements[i])

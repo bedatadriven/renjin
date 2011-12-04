@@ -1,6 +1,6 @@
 package r.compiler.ir.tac;
 
-public class Label implements Node {
+public class Label {
   
   private final int index;
   
@@ -15,5 +15,27 @@ public class Label implements Node {
   @Override
   public String toString() {
     return "L" + index;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + index;
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Label other = (Label) obj;
+    if (index != other.index)
+      return false;
+    return true;
   }
 }

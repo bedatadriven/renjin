@@ -1,6 +1,7 @@
 package r.compiler.ir.tac.functions;
 
 import r.compiler.ir.tac.Label;
+import r.compiler.ir.tac.TacFactory;
 import r.compiler.ir.tac.instructions.GotoStatement;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.Operand;
@@ -16,15 +17,22 @@ public class RepeatTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToExpression(TranslationContext context, FunctionCall call) {
+  public Operand translateToExpression(TacFactory builder, TranslationContext context, FunctionCall call) {
     return new Constant(Null.INSTANCE);
   }
 
   @Override
-  public void addStatement(TranslationContext factory, FunctionCall call) {
-    Label beginLabel = factory.newLabel();
-    factory.addLabel(beginLabel);
-    factory.translateStatements(call.getArgument(0));
-    factory.addStatement(new GotoStatement(beginLabel));
+  public void addStatement(TacFactory builder, TranslationContext context, FunctionCall call) {
+    Label beginLabel = builder.newLabel();
+    Label exitLabel = builder.newLabel();
+    
+    builder.addLabel(beginLabel);
+    
+    LoopContext loopContext = new LoopContext(beginLabel, exitLabel);
+    builder.translateStatements(loopContext, call.getArgument(0));
+    
+    builder.addStatement(new GotoStatement(beginLabel));
+    builder.addLabel(exitLabel);
+   
   }
 }

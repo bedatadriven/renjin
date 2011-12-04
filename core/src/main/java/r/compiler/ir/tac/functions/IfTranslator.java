@@ -2,6 +2,7 @@ package r.compiler.ir.tac.functions;
 
 
 import r.compiler.ir.tac.Label;
+import r.compiler.ir.tac.TacFactory;
 import r.compiler.ir.tac.instructions.Assignment;
 import r.compiler.ir.tac.instructions.ConditionalJump;
 import r.compiler.ir.tac.instructions.GotoStatement;
@@ -21,42 +22,42 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToExpression(TranslationContext context, FunctionCall call) {
-    SimpleExpr condition = context.translateSimpleExpression(call.getArgument(0));
+  public Operand translateToExpression(TacFactory builder, TranslationContext context, FunctionCall call) {
+    SimpleExpr condition = builder.translateSimpleExpression(context, call.getArgument(0));
     
     // since "if" is being used in the context of an expression, we need
     // to store its final value somewhere
-    Temp ifResult = context.newTemp(); 
+    Temp ifResult = builder.newTemp(); 
     
-    Label ifFalseLabel = context.newLabel();
-    Label endLabel = context.newLabel();
+    Label ifFalseLabel = builder.newLabel();
+    Label endLabel = builder.newLabel();
     
     ConditionalJump jump = new ConditionalJump(condition, ifFalseLabel);
-    context.addStatement(jump);
+    builder.addStatement(jump);
     
     // evaluate "if true" expression
-    Operand ifTrueResult = context.translateExpression(call.getArgument(1));
+    Operand ifTrueResult = builder.translateExpression(context, call.getArgument(1));
     
     // assign this result to our temp value
-    context.addStatement(new Assignment(ifResult, ifTrueResult));
+    builder.addStatement(new Assignment(ifResult, ifTrueResult));
 
-    context.addStatement(new GotoStatement(endLabel));
+    builder.addStatement(new GotoStatement(endLabel));
     
-    context.addLabel(ifFalseLabel);
+    builder.addLabel(ifFalseLabel);
     
     // next evaluate "if false" expression
     // if the false clause is absent, it evaluates to 
     // NULL
     Operand ifFalseResult;
     if(hasElse(call)) {
-      ifFalseResult = context.translateSimpleExpression(call.getArgument(2));
+      ifFalseResult = builder.translateSimpleExpression(context, call.getArgument(2));
     } else {
       ifFalseResult = new Constant(Null.INSTANCE);
     }
     
-    context.addStatement(new Assignment(ifResult, ifFalseResult));
+    builder.addStatement(new Assignment(ifResult, ifFalseResult));
     
-    context.addLabel(endLabel);
+    builder.addLabel(endLabel);
     
     return ifResult;
   }
@@ -66,29 +67,29 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(TranslationContext factory, FunctionCall call) {
+  public void addStatement(TacFactory builder, TranslationContext context, FunctionCall call) {
 
-    SimpleExpr condition = factory.translateSimpleExpression(call.getArgument(0));
-    Label endLabel = factory.newLabel();
+    SimpleExpr condition = builder.translateSimpleExpression(context, call.getArgument(0));
+    Label endLabel = builder.newLabel();
     Label ifFalseLabel;
     if(hasElse(call)) {
-      ifFalseLabel = factory.newLabel();
+      ifFalseLabel = builder.newLabel();
     } else {
       ifFalseLabel = endLabel;
     }
     
     ConditionalJump jump = new ConditionalJump(condition, ifFalseLabel);
-    factory.addStatement(jump);
+    builder.addStatement(jump);
     
     // evaluate "if true" expression for side effects
-    factory.translateStatements(call.getArgument(1));
+    builder.translateStatements(context, call.getArgument(1));
     
-    factory.addStatement(new GotoStatement(endLabel));
+    builder.addStatement(new GotoStatement(endLabel));
     
     if(hasElse(call)) {
-      factory.addLabel(ifFalseLabel);
-      factory.translateStatements(call.getArgument(2));
+      builder.addLabel(ifFalseLabel);
+      builder.translateStatements(context, call.getArgument(2));
     }    
-    factory.addLabel(endLabel);
+    builder.addLabel(endLabel);
   }
 }

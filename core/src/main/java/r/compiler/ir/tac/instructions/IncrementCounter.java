@@ -1,6 +1,7 @@
 package r.compiler.ir.tac.instructions;
 
 import r.compiler.ir.tac.operand.Temp;
+import r.lang.Context;
 
 /**
  * Increments a counter variable. Only used for the 
@@ -17,6 +18,13 @@ public class IncrementCounter implements Statement {
   
   public Temp getCounter() {
     return counter;
+  }
+  
+  @Override
+  public Object interpret(Context context, Object[] temp) {
+    Integer i = (Integer)temp[counter.getIndex()];
+    temp[counter.getIndex()] = i+1;
+    return null;
   }
 
   @Override

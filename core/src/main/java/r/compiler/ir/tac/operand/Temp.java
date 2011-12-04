@@ -1,5 +1,7 @@
 package r.compiler.ir.tac.operand;
 
+import r.lang.Context;
+
 public class Temp implements LValue, SimpleExpr {
   private final int index;
   
@@ -11,6 +13,16 @@ public class Temp implements LValue, SimpleExpr {
     return index;
   }
   
+  @Override
+  public Object retrieveValue(Context context, Object[] temps) {
+    return temps[index];
+  }
+  
+  @Override
+  public void setValue(Context context, Object[] temp, Object value) {
+    temp[index] = value; 
+  }
+
   @Override 
   public String toString() {
     return "_t" + index;

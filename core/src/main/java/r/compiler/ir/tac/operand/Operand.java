@@ -1,7 +1,9 @@
 package r.compiler.ir.tac.operand;
 
-import r.compiler.ir.tac.instructions.Statement;
+import r.lang.Context;
 
-public interface Operand extends Statement {
+public interface Operand  {
 
+  Object retrieveValue(Context context, Object temps[]);
+  
 }

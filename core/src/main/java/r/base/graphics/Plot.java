@@ -107,10 +107,9 @@ public class Plot {
     GraphicsDevice dd = Devices.GEcurrentDevice(context);
     dd.saveParameters();   
 
-    SEXP string;
-    double adj, adjy, cex, offset, hpos, vpos, where;
-    int i, n, font;
-    Color col;
+    double adj, adjy, offset, hpos, vpos, where;
+    int i, n;
+    
 
     //  GCheckState(dd);
     //TODO:    ProcessInlinePars(args, dd, call);
@@ -126,7 +125,7 @@ public class Plot {
 
     //    GMode(1, dd);
     if (main != Null.INSTANCE) {
-      TextStyle style = dd.getParameters().getMainTitleStyle();
+      dd.getParameters().getMainTitleStyle();
 
       /* GetTextArg may coerce, so protect the result */
       //GetTextArg(call, Main, &Main, &col, &cex, &font);

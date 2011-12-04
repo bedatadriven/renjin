@@ -1,6 +1,8 @@
 package r.compiler.ir.tac;
 
 import r.compiler.ir.tac.operand.Operand;
+import r.lang.Context;
+import r.lang.Vector;
 
 
 /**
@@ -32,6 +34,13 @@ public class ElementAccess implements Operand {
   @Override
   public String toString() {
     return vector + "[" + index + "]";
+  }
+
+  @Override
+  public Object retrieveValue(Context context, Object[] temps) {
+    Vector vectorValue = (Vector) vector.retrieveValue(context, temps);
+    Integer indexValue = (Integer)index.retrieveValue(context, temps);
+    return vectorValue.getElementAsSEXP(indexValue);
   }
  
 }

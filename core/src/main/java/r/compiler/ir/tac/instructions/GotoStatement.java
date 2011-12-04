@@ -1,6 +1,7 @@
 package r.compiler.ir.tac.instructions;
 
 import r.compiler.ir.tac.Label;
+import r.lang.Context;
 
 public class GotoStatement implements Statement {
 
@@ -17,5 +18,10 @@ public class GotoStatement implements Statement {
   @Override
   public String toString() {
     return "goto " + target;
+  }
+
+  @Override
+  public Object interpret(Context context, Object[] temp) {
+    return target;
   } 
 }

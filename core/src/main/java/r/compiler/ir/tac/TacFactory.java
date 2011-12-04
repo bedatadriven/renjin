@@ -4,12 +4,16 @@ import java.util.List;
 
 import r.compiler.ir.tac.functions.FunctionCallTranslator;
 import r.compiler.ir.tac.functions.FunctionCallTranslators;
+import r.compiler.ir.tac.functions.TranslationContext;
 import r.compiler.ir.tac.instructions.Assignment;
+import r.compiler.ir.tac.instructions.ExprStatement;
 import r.compiler.ir.tac.instructions.Return;
+import r.compiler.ir.tac.instructions.Statement;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.DynamicCall;
 import r.compiler.ir.tac.operand.Operand;
 import r.compiler.ir.tac.operand.LValue;
+import r.compiler.ir.tac.operand.PrimitiveCall;
 import r.compiler.ir.tac.operand.SimpleExpr;
 import r.compiler.ir.tac.operand.Temp;
 import r.compiler.ir.tac.operand.Variable;
@@ -23,7 +27,7 @@ import r.lang.Vector;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
-public class TacFactory {
+public class TacFactory implements TranslationContext {
   
   private int nextTemp = 0;
   private int nextLabel = 0;
@@ -31,21 +35,22 @@ public class TacFactory {
   private FunctionCallTranslators builders = new FunctionCallTranslators();
   private List<Node> nodes;
   
-  public List<Node> build(SEXP exp) {
+  public IRBlock build(SEXP exp) {
     
     nodes = Lists.newArrayList();
-    Operand returnValue = translateToRValue(exp);
+    Operand returnValue = translateExpression(exp);
     
-    nodes.add(new Return(simplify(returnValue)));
-    
-    return nodes;
+    nodes.add(new Return(returnValue));
+   
+    return new IRBlock(nodes, nextTemp);
   }
   
   public void dump(SEXP exp) {
     System.out.println( toString( build(exp )));
   }
 
-  public Operand translateToRValue(SEXP exp) {
+  @Override
+  public Operand translateExpression(SEXP exp) {
     if(exp instanceof ExpressionVector) {
       return translateExpressionList((ExpressionVector)exp);
     } else if(exp instanceof Vector) {
@@ -55,34 +60,44 @@ public class TacFactory {
     } else if(exp instanceof FunctionCall) {
       FunctionCallTranslator builder = builders.get(((FunctionCall) exp).getFunction());
       if(builder == null) {
-        return translateDynamicCall((FunctionCall) exp);
+        return translateCall((FunctionCall) exp);
       } else {
-        return builder.translateToRValue(this, (FunctionCall)exp);
+        return builder.translateToExpression(this, (FunctionCall)exp);
       }
     } else {
       throw new UnsupportedOperationException(exp.toString());
     }
   }
   
-  public void addStatement(SEXP exp) {
+  @Override
+  public void translateStatements(SEXP exp) {
     if(exp instanceof FunctionCall) {
       FunctionCallTranslator builder = builders.get(((FunctionCall) exp).getFunction());
       if(builder == null) {
-        addNode(translateDynamicCall((FunctionCall)exp));
+        addNode(new ExprStatement(translateCall((FunctionCall)exp)));
       } else {
         builder.addStatement(this, (FunctionCall)exp);
       }
     } else {
-      addNode(translateToRValue(exp));
+      addNode(new ExprStatement(translateExpression(exp)));
     }
   }
   
-  public Operand translateDynamicCall(FunctionCall call) {
+  public Operand translateCall(FunctionCall call) {
+    Symbol name = (Symbol)call.getFunction();
+    if(name.isReservedWord()) {
+      return new PrimitiveCall(name, makeOperandList(call));
+    } else {
+      return new DynamicCall(name, makeOperandList(call));
+    }
+  }
+
+  private List<Operand> makeOperandList(FunctionCall call) {
     List<Operand> arguments = Lists.newArrayList();
     for(SEXP arg : call.getArguments().values()) {
-      arguments.add( simplify( translateToRValue(arg) ));
+      arguments.add( simplify( translateExpression(arg) ));
     }
-    return new DynamicCall((Symbol)call.getFunction(), arguments);
+    return arguments;
   }
 
   public LValue addAssignment(Operand rvalue) {
@@ -106,6 +121,14 @@ public class TacFactory {
     }
   }
 
+
+
+  @Override
+  public SimpleExpr translateSimpleExpression(SEXP exp) {
+    return simplify(translateExpression(exp));
+  }
+
+  
   public void addNode(Node node) {
     nodes.add(node);
   }
@@ -115,9 +138,9 @@ public class TacFactory {
       return new Constant(Null.INSTANCE);
     } else {
       for(int i=0;i+1<vector.length();++i) {
-        addStatement(vector.getElementAsSEXP(i));
+        translateStatements(vector.getElementAsSEXP(i));
       }
-      return translateToRValue(vector.getElementAsSEXP(vector.length()-1));
+      return translateExpression(vector.getElementAsSEXP(vector.length()-1));
     }
   }
   
@@ -129,9 +152,9 @@ public class TacFactory {
     return new Label(nextLabel++);
   }
   
-  public static String toString(List<Node> nodes) {
+  public static String toString(IRBlock nodes) {
     StringBuilder sb = new StringBuilder();
-    for(Node node : nodes) {
+    for(Node node : nodes.getStatements()) {
       if(node instanceof Label) {
         sb.append(node).append(":").append("\n");
       } else {
@@ -141,4 +164,13 @@ public class TacFactory {
     return sb.toString();
   }
 
+  @Override
+  public void addStatement(Statement statement) {
+    nodes.add(statement);
+  }
+
+  @Override
+  public void addLabel(Label label) {
+    nodes.add(label);
+  }
 }

@@ -1,9 +1,6 @@
 package r.compiler.ir.tac.functions;
 
 
-import java.util.Iterator;
-
-import r.compiler.ir.tac.TacFactory;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.Operand;
 import r.lang.FunctionCall;
@@ -20,15 +17,15 @@ public class BracketTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToRValue(TacFactory factory, FunctionCall call) {
+  public Operand translateToExpression(TranslationContext context, FunctionCall call) {
     if(call.getArguments().length() == 0) {
       return new Constant(Null.INSTANCE);
     } else {
       for(PairList.Node arg : call.getArguments().nodes()) {
         if(arg.hasNextNode()) {
-          factory.addStatement(arg.getValue()); 
+          context.translateStatements(arg.getValue()); 
         } else {
-          return factory.translateToRValue(arg.getValue());
+          return context.translateExpression(arg.getValue());
         }
       }
       throw new Error("unreachable");
@@ -36,10 +33,10 @@ public class BracketTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(TacFactory tacFactory, FunctionCall call) {
+  public void addStatement(TranslationContext tacFactory, FunctionCall call) {
     if(call.getArguments() != Null.INSTANCE) {
       for(SEXP arg : call.getArguments().values()) {
-        tacFactory.addStatement(arg);
+        tacFactory.translateStatements(arg);
       }
     }
   }

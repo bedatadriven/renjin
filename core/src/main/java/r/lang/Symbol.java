@@ -58,11 +58,11 @@ public final class Symbol extends AbstractSEXP {
    * Hash bit for very frequently used and very rarely redefined 
    * primitives. 
    */
-  private static final int NUM_RESERVED_BITS = 3;
+  private static final int NUM_RESERVED_BITS = 4;
   
   static { 
     TABLE = Maps.newHashMap();
-    addReserved(0x1, 
+    addReserved(0, 
         "if", 
         ".Internal", 
         "function",
@@ -72,10 +72,6 @@ public final class Symbol extends AbstractSEXP {
         "continue",
         "return",
         "next",
-        "paste",
-        "identical",
-        "list",
-        "c",
         "{", "(", 
         "!",
         ":",
@@ -84,7 +80,13 @@ public final class Symbol extends AbstractSEXP {
         "+", "-", "*", "/", "^",
         "<-",
         "[", "[<-", "[[", "[[<-", "$", "$<-",
-        "%*%", "%/%", "%%", "%in%",
+        "%*%", "%/%", "%%", "%in%");
+    
+    addReserved(1,
+        "paste",
+        "identical",
+        "list",
+        "c",
         "as.character",
         "is.character",
         "as.integer",
@@ -199,6 +201,10 @@ public final class Symbol extends AbstractSEXP {
     }
   }
 
+  public boolean isReservedWord() {
+    return hashBit == 1;
+  }
+  
   /**
    * Maps this symbol to a single bit in 32-bit hash bitset.
    * 

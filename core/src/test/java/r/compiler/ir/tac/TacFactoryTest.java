@@ -1,8 +1,10 @@
 package r.compiler.ir.tac;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 
 import org.junit.Test;
 
@@ -19,7 +21,7 @@ public class TacFactoryTest extends EvalTestCase {
   @Test
   public void simple() {
     ExpressionVector ast = RParser.parseSource("x <- 4; x + 3 * sqrt(x)\n");
-    List<Node> ir = factory.build(ast);
+    IRBlock ir = factory.build(ast);
     
     factory.dump( ast );
   }
@@ -50,6 +52,30 @@ public class TacFactoryTest extends EvalTestCase {
   }
   
   @Test
+  public void interpretSimple() {
+    assertThat(evalIR("x<-16; sqrt(x^2)"), equalTo(c(16)));
+  }
+
+  @Test
+  public void interpretIf() {
+    assertThat(evalIR("if(sqrt(4) > 1) 'yes' else 'no'"), equalTo(c("yes")));
+  }
+  
+  @Test
+  public void interpretFor() {
+    assertThat(evalIR("y<-1; for(i in 2:4) {y <- y * i }; y"), equalTo(c(24)));
+  }
+  
+  private SEXP evalIR(String text) {
+    System.out.println("======= " + text + "================");
+    IRBlock block = build(text);
+    System.out.println(block.toString());    
+    System.out.println();
+    return block.evaluate(topLevelContext);
+  }
+  
+  
+  @Test
   public void closureBody() throws IOException {
     topLevelContext.init();
     RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R")))
@@ -61,10 +87,13 @@ public class TacFactoryTest extends EvalTestCase {
   
   private void dump(String rcode) {
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
-    List<Node> ir = factory.build(ast);
+    IRBlock ir = factory.build(ast);
     
     factory.dump( ast );
   }
   
-  
+  private IRBlock build(String rcode) {
+    ExpressionVector ast = RParser.parseSource(rcode + "\n");
+    return factory.build(ast);
+  }
 }

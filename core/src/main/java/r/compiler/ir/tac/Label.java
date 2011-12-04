@@ -7,12 +7,13 @@ public class Label implements Node {
   public Label(int index) {
     this.index = index;
   }
+  
+  public int getIndex() {
+    return index;
+  }
 
   @Override
   public String toString() {
     return "L" + index;
   }
-  
-  
-  
 }

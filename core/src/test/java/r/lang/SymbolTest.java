@@ -1,5 +1,7 @@
 package r.lang;
 
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 public class SymbolTest {
@@ -8,6 +10,7 @@ public class SymbolTest {
   public void hashBits() {
     print("<-");
     print("+");
+    print("*");
     print(".Internal");
     print("if");
     print("sep");
@@ -26,6 +29,11 @@ public class SymbolTest {
     System.out.println(toBinaryString(8388736));
     System.out.println(toBinaryString(128));
  
+  }
+  
+  @Test
+  public void reservedWord() {
+    assertTrue(Symbol.get("*").isReservedWord());
   }
 
   private void print(String name) {

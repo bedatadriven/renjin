@@ -63,6 +63,15 @@ public class JvmiTest extends EvalTestCase {
     
   }
   
+  @Test
+  public void callToArray() {
+    eval("import(r.base.MyBean)");
+    eval("x <- MyBean$new()");
+    
+    assertThat( eval("x$sayHelloToEveryone(c('Bob', 'Steve', 'Ted'))"), 
+        equalTo(c("Hello Bob, Steve, Ted")));
+  }
+  
   private static class MyPrivateImpl implements MyPublicInterface {
 
     @Override

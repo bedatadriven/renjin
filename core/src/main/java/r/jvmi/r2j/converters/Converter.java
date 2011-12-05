@@ -2,6 +2,10 @@ package r.jvmi.r2j.converters;
 
 import r.lang.SEXP;
 
+/**
+ * 
+ * @param <T> the Java-language class to be converted to/from an R SEXP
+ */
 public interface Converter<T>  {
   
   SEXP convertToR(T value);

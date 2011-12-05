@@ -27,6 +27,9 @@ public class Converters  {
     } else if(CollectionConverter.accept(clazz)) {
       return new CollectionConverter();
       
+    } else if(StringArrayConverter.accept(clazz)) {
+      return new StringArrayConverter();
+      
     } else if(ObjectConverter.accept(clazz)) {
       return ObjectConverter.INSTANCE;
       

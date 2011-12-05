@@ -5,6 +5,7 @@ import java.util.List;
 
 import r.lang.DoubleVector;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 public class MyBean {
@@ -61,6 +62,10 @@ public class MyBean {
     return "Hello " + name;
   }
   
+  public String sayHelloToEveryone(String[] args) {
+    return "Hello " + Joiner.on(", ").join(args);
+  }
+  
   public String sayHello(int count) {
     StringBuilder sb = new StringBuilder();
     for(int i=0;i!=count;++i) {
@@ -84,11 +89,8 @@ public class MyBean {
   }
   
   public static class MyChildBean {
-    
     public int getCount() {
       return 42;
-    }
-    
+    } 
   }
-  
 }

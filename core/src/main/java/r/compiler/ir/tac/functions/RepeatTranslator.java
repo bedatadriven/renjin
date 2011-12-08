@@ -1,7 +1,7 @@
 package r.compiler.ir.tac.functions;
 
-import r.compiler.ir.tac.Label;
-import r.compiler.ir.tac.TacFactory;
+import r.compiler.ir.tac.IRLabel;
+import r.compiler.ir.tac.IRBlockBuilder;
 import r.compiler.ir.tac.instructions.GotoStatement;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.Operand;
@@ -17,14 +17,14 @@ public class RepeatTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToExpression(TacFactory builder, TranslationContext context, FunctionCall call) {
+  public Operand translateToExpression(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
     return new Constant(Null.INSTANCE);
   }
 
   @Override
-  public void addStatement(TacFactory builder, TranslationContext context, FunctionCall call) {
-    Label beginLabel = builder.newLabel();
-    Label exitLabel = builder.newLabel();
+  public void addStatement(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
+    IRLabel beginLabel = builder.newLabel();
+    IRLabel exitLabel = builder.newLabel();
     
     builder.addLabel(beginLabel);
     

@@ -12,7 +12,6 @@ import r.compiler.ir.tac.instructions.Return;
 import r.compiler.ir.tac.instructions.Statement;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.DynamicCall;
-import r.compiler.ir.tac.operand.LValue;
 import r.compiler.ir.tac.operand.Operand;
 import r.compiler.ir.tac.operand.PrimitiveCall;
 import r.compiler.ir.tac.operand.SimpleExpr;
@@ -21,6 +20,7 @@ import r.compiler.ir.tac.operand.Variable;
 import r.lang.ExpressionVector;
 import r.lang.FunctionCall;
 import r.lang.Null;
+import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.Symbol;
 import r.lang.Vector;
@@ -28,7 +28,7 @@ import r.lang.Vector;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-public class TacFactory {
+public class IRBlockBuilder {
   
   private int nextTemp = 0;
   private int nextLabel = 0;
@@ -36,7 +36,13 @@ public class TacFactory {
   private FunctionCallTranslators builders = new FunctionCallTranslators();
  
   private List<Statement> statements;
-  private Map<Label, Integer> labels;
+  private Map<IRLabel, Integer> labels;
+  
+  private IRFunctionTable functionTable;
+  
+  public IRBlockBuilder(IRFunctionTable functionTable) {
+    this.functionTable = functionTable;
+  }
   
   public IRBlock build(SEXP exp) {
     
@@ -133,15 +139,19 @@ public class TacFactory {
     return new Temp(nextTemp++);
   }
   
-  public Label newLabel() {
-    return new Label(nextLabel++);
+  public IRLabel newLabel() {
+    return new IRLabel(nextLabel++);
+  }
+  
+  public IRFunction newFunction(PairList formals, SEXP body) {
+    return functionTable.newFunction(formals, body);
   }
 
   public void addStatement(Statement statement) {
     statements.add(statement);
   }
 
-  public void addLabel(Label label) {
+  public void addLabel(IRLabel label) {
     labels.put(label, statements.size());
   }
   

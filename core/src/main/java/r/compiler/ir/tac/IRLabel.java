@@ -1,10 +1,10 @@
 package r.compiler.ir.tac;
 
-public class Label {
+public class IRLabel {
   
   private final int index;
   
-  public Label(int index) {
+  public IRLabel(int index) {
     this.index = index;
   }
   
@@ -33,7 +33,7 @@ public class Label {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    Label other = (Label) obj;
+    IRLabel other = (IRLabel) obj;
     if (index != other.index)
       return false;
     return true;

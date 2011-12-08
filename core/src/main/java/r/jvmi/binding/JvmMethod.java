@@ -160,6 +160,15 @@ public class JvmMethod implements Comparable<JvmMethod> {
   public boolean isRecycle() {
     return recycle;
   }
+  
+  public boolean isStrict() {
+    for(Argument formal : getFormals()) {
+      if(!formal.isEvaluated()) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   public boolean isGeneric() {
     return method.getAnnotation(Generic.class) != null ||

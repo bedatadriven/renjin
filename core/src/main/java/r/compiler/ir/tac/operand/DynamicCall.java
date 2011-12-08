@@ -6,12 +6,18 @@ import javax.sql.rowset.Joinable;
 
 import com.google.common.base.Joiner;
 
+import r.compiler.ir.tac.IRClosure;
+import r.compiler.ir.tac.IRFunction;
 import r.lang.Context;
+import r.lang.Environment;
 import r.lang.Function;
 import r.lang.FunctionCall;
 import r.lang.PairList;
+import r.lang.PrimitiveFunction;
+import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.Symbol;
+import r.lang.exception.EvalException;
 
 /**
  * Function call that is invoked with the full R
@@ -38,15 +44,34 @@ public class DynamicCall implements Operand {
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
     
+    // locate function object
+    Function function = findFunction(name, context);
+    
     // build argument list 
     PairList.Builder argList = new PairList.Builder();
     for(Operand operand : arguments) {
       argList.add((SEXP)operand.retrieveValue(context, temps));
     }
+    PairList args = argList.build();
+    FunctionCall call = new FunctionCall(name, args);
     
-    FunctionCall call = new FunctionCall(name, argList.build());
-    return call.evaluate(context, context.getEnvironment());
+    return function.apply(context, context.getEnvironment(), call, args);
+        
   }
+  
+  private Function findFunction(SEXP functionExp, Context context) {
+    if(functionExp instanceof Symbol) {
+      Symbol symbol = (Symbol) functionExp;
+      Function fn = context.getEnvironment().findFunction(symbol);
+      if(fn == null) {
+        throw new EvalException("could not find function '%s'", symbol.getPrintName());      
+      }
+      return fn;
+    } else {
+      throw new UnsupportedOperationException("only symbols are supported in function calls right now");
+    }
+  }
+
 
   @Override
   public String toString() {

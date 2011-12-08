@@ -24,6 +24,7 @@ import r.jvmi.wrapper.generator.scalars.ScalarType;
 import r.jvmi.wrapper.generator.scalars.ScalarTypes;
 import r.jvmi.wrapper.generator.scalars.SexpType;
 import r.lang.ListVector;
+import r.lang.StrictPrimitiveFunction;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -70,9 +71,53 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     dispatchArityGroup(entry, s, matchingByCount);
   }
     
+  
+  
+  @Override
+  protected Class[] getImplementedInterfaces(List<JvmMethod> overloads) {
+    if( areStrict(overloads) && !hasVarArgs(overloads) ) {
+      return new Class[] { StrictPrimitiveFunction.class };
+    } else {
+      return new Class[0];
+    }
+  }
+
   @Override
   protected void generateOtherCalls(Entry entry, WrapperSourceWriter s,
       List<JvmMethod> overloads) {
+    
+    if(areStrict(overloads) && !hasVarArgs(overloads)) {
+      s.writeBeginBlock("public SEXP applyStrict(Context context, Environment rho, SEXP arguments[]) {");
+      
+      int maxArgumentCount = getMaxPositionalArgs(overloads);
+      boolean needElseIf = false;
+      for(int i = 0; i<=maxArgumentCount;++i) {
+        Collection<JvmMethod> matchingByCount = Collections2.filter(overloads, havingPositionalArgCountOf(i));
+        if(!matchingByCount.isEmpty() && ! hasVarArgs(matchingByCount)) {
+          
+          String condition = "arguments.length == " + i;
+          if(needElseIf) {
+            s.writeBeginIfElse(condition);
+          } else {
+            s.writeBeginIf(condition);
+            needElseIf = true;
+          }
+          for(int j=0;j!=i;++j) {
+            s.writeStatement("SEXP s" + j + " = arguments[" + j + "]");
+          }
+          s.writeBeginTry();
+          dispatchArityGroup(entry, s, matchingByCount);
+          s.writeCatch(Exception.class, "e");
+          s.writeStatement("throw new EvalException(e)");
+          s.writeCloseBlock();
+        }
+      }
+      s.writeElse();
+      s.writeStatement("throw new EvalException(\"incorrect number of args\")");
+      s.writeCloseBlock();
+      s.writeCloseBlock();
+    }
+    
        
     int maxArgumentCount = getMaxPositionalArgs(overloads);
     for(int i = 0; i<=maxArgumentCount;++i) {
@@ -105,6 +150,16 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     return false;
   }
 
+  
+  private boolean areStrict(List<JvmMethod> overloads) {
+    for(JvmMethod overload : overloads) {
+      if(!overload.isStrict()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
   private boolean isEvaluated(List<JvmMethod> overloads, int argumentIndex) {
     boolean evaluated = false;
     boolean unevaluated = false;

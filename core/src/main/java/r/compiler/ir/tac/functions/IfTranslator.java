@@ -1,10 +1,10 @@
 package r.compiler.ir.tac.functions;
 
 
-import r.compiler.ir.tac.Label;
-import r.compiler.ir.tac.TacFactory;
+import r.compiler.ir.tac.IRLabel;
+import r.compiler.ir.tac.IRBlockBuilder;
 import r.compiler.ir.tac.instructions.Assignment;
-import r.compiler.ir.tac.instructions.ConditionalJump;
+import r.compiler.ir.tac.instructions.IfStatement;
 import r.compiler.ir.tac.instructions.GotoStatement;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.Operand;
@@ -22,20 +22,22 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToExpression(TacFactory builder, TranslationContext context, FunctionCall call) {
+  public Operand translateToExpression(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
     SimpleExpr condition = builder.translateSimpleExpression(context, call.getArgument(0));
     
     // since "if" is being used in the context of an expression, we need
     // to store its final value somewhere
     Temp ifResult = builder.newTemp(); 
     
-    Label ifFalseLabel = builder.newLabel();
-    Label endLabel = builder.newLabel();
+    IRLabel trueTarget = builder.newLabel();
+    IRLabel falseTarget = builder.newLabel();
+    IRLabel endLabel = builder.newLabel();
     
-    ConditionalJump jump = new ConditionalJump(condition, ifFalseLabel);
+    IfStatement jump = new IfStatement(condition, trueTarget, falseTarget);
     builder.addStatement(jump);
     
     // evaluate "if true" expression
+    builder.addLabel(trueTarget);
     Operand ifTrueResult = builder.translateExpression(context, call.getArgument(1));
     
     // assign this result to our temp value
@@ -43,7 +45,7 @@ public class IfTranslator extends FunctionCallTranslator {
 
     builder.addStatement(new GotoStatement(endLabel));
     
-    builder.addLabel(ifFalseLabel);
+    builder.addLabel(falseTarget);
     
     // next evaluate "if false" expression
     // if the false clause is absent, it evaluates to 
@@ -67,27 +69,29 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(TacFactory builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
 
     SimpleExpr condition = builder.translateSimpleExpression(context, call.getArgument(0));
-    Label endLabel = builder.newLabel();
-    Label ifFalseLabel;
+    IRLabel trueLabel = builder.newLabel();
+    IRLabel endLabel = builder.newLabel();
+    IRLabel falseLabel;
     if(hasElse(call)) {
-      ifFalseLabel = builder.newLabel();
+      falseLabel = builder.newLabel();
     } else {
-      ifFalseLabel = endLabel;
+      falseLabel = endLabel;
     }
     
-    ConditionalJump jump = new ConditionalJump(condition, ifFalseLabel);
+    IfStatement jump = new IfStatement(condition, trueLabel, falseLabel);
     builder.addStatement(jump);
     
     // evaluate "if true" expression for side effects
+    builder.addLabel(trueLabel);
     builder.translateStatements(context, call.getArgument(1));
     
     builder.addStatement(new GotoStatement(endLabel));
     
     if(hasElse(call)) {
-      builder.addLabel(ifFalseLabel);
+      builder.addLabel(falseLabel);
       builder.translateStatements(context, call.getArgument(2));
     }    
     builder.addLabel(endLabel);

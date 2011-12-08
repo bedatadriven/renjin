@@ -45,7 +45,7 @@ public abstract class GeneratorStrategy {
 
     s.writeStaticImport("r.jvmi.wrapper.WrapperRuntime.*");
 
-    s.writeBeginClass();
+    s.writeBeginClass(getImplementedInterfaces(overloads));
     s.writeBlankLine();
     s.writeConstructor(entry.name);
     s.writeBlankLine();
@@ -76,6 +76,11 @@ public abstract class GeneratorStrategy {
     s.close();    
   }
   
+  protected Class[] getImplementedInterfaces(List<JvmMethod> overloads) {
+    return new Class[0];
+  }
+
+
   protected void generateOtherCalls(Entry entry, WrapperSourceWriter s,
       List<JvmMethod> overloads) {
     

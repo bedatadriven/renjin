@@ -1,17 +1,17 @@
 package r.compiler.ir.tac.instructions;
 
-import r.compiler.ir.tac.Label;
+import r.compiler.ir.tac.IRLabel;
 import r.lang.Context;
 
 public class GotoStatement implements Statement {
 
-  private final Label target;
+  private final IRLabel target;
 
-  public GotoStatement(Label target) {
+  public GotoStatement(IRLabel target) {
     this.target = target;
   }
 
-  public Label getTarget() {
+  public IRLabel getTarget() {
     return target;
   }
 

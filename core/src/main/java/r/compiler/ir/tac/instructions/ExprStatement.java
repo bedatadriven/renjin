@@ -17,7 +17,8 @@ public class ExprStatement implements Statement {
 
   @Override
   public Object interpret(Context context, Object[] temp) {
-    // TODO Auto-generated method stub
+    // execute and discard result
+    operand.retrieveValue(context, temp);
     return null;
   }
 

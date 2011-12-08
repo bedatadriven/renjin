@@ -1,7 +1,7 @@
 package r.compiler.ir.tac.functions;
 
 import r.compiler.ir.exception.InvalidSyntaxException;
-import r.compiler.ir.tac.TacFactory;
+import r.compiler.ir.tac.IRBlockBuilder;
 import r.compiler.ir.tac.instructions.GotoStatement;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.Operand;
@@ -17,7 +17,7 @@ public class BreakTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToExpression(TacFactory builder,
+  public Operand translateToExpression(IRBlockBuilder builder,
       TranslationContext context, FunctionCall call) {
 
     addStatement(builder, context, call);
@@ -25,7 +25,7 @@ public class BreakTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(TacFactory builder, TranslationContext context,
+  public void addStatement(IRBlockBuilder builder, TranslationContext context,
       FunctionCall call) {
 
     if(!(context instanceof LoopContext)) {

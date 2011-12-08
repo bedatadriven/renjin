@@ -14,13 +14,14 @@ import r.lang.ExpressionVector;
 import r.lang.SEXP;
 import r.parser.RParser;
 
-public class TacFactoryTest extends EvalTestCase {
+public class IRBuilderTest extends EvalTestCase {
 
-  private TacFactory factory = new TacFactory(); 
+  private IRFunctionTable functionTable = new IRFunctionTable();
+  private IRBlockBuilder factory = new IRBlockBuilder(functionTable); 
   
   @Test
   public void simple() {
-    ExpressionVector ast = RParser.parseSource("x <- 4; x + 3 * sqrt(x)\n");
+    ExpressionVector ast = RParser.parseSource("x + sqrt(x * y)\n");
     IRBlock ir = factory.build(ast);
     
     factory.dump( ast );

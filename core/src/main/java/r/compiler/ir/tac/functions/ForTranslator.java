@@ -1,10 +1,10 @@
 package r.compiler.ir.tac.functions;
 
-import r.compiler.ir.tac.ElementAccess;
-import r.compiler.ir.tac.Label;
-import r.compiler.ir.tac.TacFactory;
+import r.compiler.ir.tac.IRLabel;
+import r.compiler.ir.tac.IRBlockBuilder;
 import r.compiler.ir.tac.instructions.Assignment;
-import r.compiler.ir.tac.instructions.ConditionalJump;
+import r.compiler.ir.tac.instructions.IfStatement;
+import r.compiler.ir.tac.instructions.ElementAccess;
 import r.compiler.ir.tac.instructions.GotoStatement;
 import r.compiler.ir.tac.instructions.IncrementCounter;
 import r.compiler.ir.tac.operand.CmpGE;
@@ -28,7 +28,7 @@ public class ForTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToExpression(TacFactory builder, TranslationContext context, FunctionCall call) {
+  public Operand translateToExpression(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
     addForLoop(builder, context, call);
     
     return new Constant(Null.INSTANCE);
@@ -36,11 +36,11 @@ public class ForTranslator extends FunctionCallTranslator {
 
 
   @Override
-  public void addStatement(TacFactory builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
     addForLoop(builder, context, call);
   }
  
-  private void addForLoop(TacFactory factory, TranslationContext context, FunctionCall call) {
+  private void addForLoop(IRBlockBuilder factory, TranslationContext context, FunctionCall call) {
     
     Symbol symbol = call.getArgument(0);
     Temp counter = factory.newTemp();
@@ -53,10 +53,10 @@ public class ForTranslator extends FunctionCallTranslator {
     
     SEXP body = call.getArgument(2);
 
-    Label bodyLabel = factory.newLabel();
-    Label counterLabel = factory.newLabel();
-    Label nextLabel = factory.newLabel();
-    Label exitLabel = factory.newLabel();
+    IRLabel bodyLabel = factory.newLabel();
+    IRLabel counterLabel = factory.newLabel();
+    IRLabel nextLabel = factory.newLabel();
+    IRLabel exitLabel = factory.newLabel();
        
     // initialize the counter
     factory.addStatement(new Assignment(counter, new Constant(0)));
@@ -77,7 +77,7 @@ public class ForTranslator extends FunctionCallTranslator {
     
     // check the counter and potentially loop
     factory.addLabel(counterLabel);
-    factory.addStatement(new ConditionalJump(new CmpGE(counter, length), bodyLabel));
+    factory.addStatement(new IfStatement(new CmpGE(counter, length), exitLabel, bodyLabel));
     factory.addLabel(exitLabel);
   }  
 }

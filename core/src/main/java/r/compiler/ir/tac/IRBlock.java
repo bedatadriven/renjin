@@ -18,14 +18,14 @@ public class IRBlock {
   private Statement statements[];
   private int labels[];
   
-  public IRBlock(List<Statement> statements, Map<Label, Integer> labels, int tempCount) {
+  public IRBlock(List<Statement> statements, Map<IRLabel, Integer> labels, int tempCount) {
     this.statements = statements.toArray(new Statement[statements.size()]);
     this.labels = new int[labels.size()];
     this.temp = new Object[tempCount];
   
     Arrays.fill(this.labels, -1);
     
-    for(Entry<Label,Integer> label : labels.entrySet()) {
+    for(Entry<IRLabel,Integer> label : labels.entrySet()) {
         this.labels[label.getKey().getIndex()] = label.getValue();
     }
   }
@@ -40,13 +40,17 @@ public class IRBlock {
       Object result = statements[i].interpret(context, temp);
       if(result == null) {
         i++;
-      } else if(result instanceof Label) {
-        i = labels[ ((Label)result).getIndex() ];
+      } else if(result instanceof IRLabel) {
+        i = labels[ ((IRLabel)result).getIndex() ];
       } else {
         return (SEXP)result;
       }
     }
     return null;
+  }
+
+  public int getLabelInstructionIndex(IRLabel label) {
+    return labels[label.getIndex()];
   }
   
   private String labelAt(int instructionIndex) {
@@ -63,11 +67,15 @@ public class IRBlock {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     for(int i=0;i!=statements.length;++i) {
-      sb.append(labelAt(i))
-        .append(Strings.padEnd(i + ":", 4, ' '))
-        .append(statements[i])
-        .append("\n");
+      appendLineTo(sb, i);
     }
     return sb.toString();
+  }
+
+  public void appendLineTo(StringBuilder sb, int i) {
+    sb.append(labelAt(i))
+      .append(Strings.padEnd(i + ":", 4, ' '))
+      .append(statements[i])
+      .append("\n");
   }
 }

@@ -1,7 +1,6 @@
 package r.jvmi.wrapper;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -39,8 +38,23 @@ public class WrapperSourceWriter {
     println("import static " + spec + ";");
   }
     
-  public void writeBeginClass() {
-    println("public class " + className + " extends BuiltinFunction {");
+  public void writeBeginClass(Class... interfacesImplemented) {
+    StringBuilder classSig = new StringBuilder();
+    classSig.append("public class " + className + " extends BuiltinFunction ");
+    if(interfacesImplemented.length > 0) {
+      classSig.append(" implements ");
+      boolean commaNeeded = false;
+      for(Class iface : interfacesImplemented) {
+        if(commaNeeded) {
+          classSig.append(", ");
+        } else {
+          commaNeeded = true;
+        }
+        classSig.append(iface.getName());
+      }
+    }
+    classSig.append(" {");
+    println(classSig.toString());
     indent++;
   }
   
@@ -169,8 +183,5 @@ public class WrapperSourceWriter {
       sb.append(clazz.getSimpleName());
       return sb.toString();
     } 
-  }
-
-  
-  
+  }  
 }

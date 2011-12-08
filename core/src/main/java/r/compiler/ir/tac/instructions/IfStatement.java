@@ -1,42 +1,43 @@
 package r.compiler.ir.tac.instructions;
 
-import r.compiler.ir.tac.Label;
+import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.operand.SimpleExpr;
 import r.lang.Context;
 import r.lang.Logical;
 import r.lang.SEXP;
 
-public class ConditionalJump implements Statement {
+public class IfStatement implements Statement {
   
   private SimpleExpr condition;
-  private Label ifFalseLabel;
+  private IRLabel trueTarget;
+  private IRLabel falseTarget;
   
-  public ConditionalJump(SimpleExpr condition, Label ifTrue) {
+  public IfStatement(SimpleExpr condition, IRLabel trueTarget, IRLabel falseTarget) {
     this.condition = condition;
-    this.ifFalseLabel = ifTrue;
+    this.trueTarget = trueTarget;
+    this.falseTarget = falseTarget;
   }
 
   public SimpleExpr getCondition() {
     return condition;
   }
+  
+  public IRLabel getTrueTarget() {
+    return trueTarget;
+  }
 
-  public Label getIfFalseLabel() {
-    return ifFalseLabel;
+  public IRLabel getFalseTarget() {
+    return falseTarget;
   }
   
   @Override
-  public String toString() {
-    return "if not " + condition + " goto " + ifFalseLabel;
-  }
-
-  @Override
   public Object interpret(Context context, Object[] temp) {
     boolean conditionalValue =  toBoolean(condition.retrieveValue(context, temp));
-    if(!conditionalValue) {
-      return ifFalseLabel;
+    if(conditionalValue) {
+      return trueTarget;
+    } else {
+      return falseTarget;
     }
-   
-    return null;
   }
   
   private boolean toBoolean(Object obj) {
@@ -47,5 +48,10 @@ public class ConditionalJump implements Statement {
     } else {
       throw new IllegalArgumentException(""+obj);
     }
+  }
+
+  @Override
+  public String toString() {
+    return "if " + condition + " goto " + trueTarget + " else " + falseTarget;
   }
 }

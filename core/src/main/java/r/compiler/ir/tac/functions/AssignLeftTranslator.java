@@ -2,7 +2,7 @@ package r.compiler.ir.tac.functions;
 
 
 import r.compiler.ir.tac.CannotBuildTacException;
-import r.compiler.ir.tac.TacFactory;
+import r.compiler.ir.tac.IRBlockBuilder;
 import r.compiler.ir.tac.instructions.Assignment;
 import r.compiler.ir.tac.operand.Operand;
 import r.compiler.ir.tac.operand.Variable;
@@ -12,16 +12,16 @@ import r.lang.Symbol;
 public class AssignLeftTranslator extends FunctionCallTranslator {
 
   @Override
-  public Operand translateToExpression(TacFactory builder, TranslationContext context, FunctionCall call) {
+  public Operand translateToExpression(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
     return addAssignment(builder, context, call);
   }
   
   @Override
-  public void addStatement(TacFactory builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
     addAssignment(builder, context, call);
   }
   
-  private Variable addAssignment(TacFactory builder, TranslationContext context, FunctionCall call) {
+  private Variable addAssignment(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
     if(!(call.getArgument(0) instanceof Symbol)) {
       throw new CannotBuildTacException("complex assignments not yet implemented");
     }

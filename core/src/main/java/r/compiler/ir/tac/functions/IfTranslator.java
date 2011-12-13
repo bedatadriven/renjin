@@ -73,12 +73,13 @@ public class IfTranslator extends FunctionCallTranslator {
 
     SimpleExpr condition = builder.translateSimpleExpression(context, call.getArgument(0));
     IRLabel trueLabel = builder.newLabel();
-    IRLabel endLabel = builder.newLabel();
-    IRLabel falseLabel;
+    IRLabel falseLabel = builder.newLabel();
+    IRLabel endLabel;
+
     if(hasElse(call)) {
-      falseLabel = builder.newLabel();
+      endLabel = builder.newLabel();
     } else {
-      falseLabel = endLabel;
+      endLabel = falseLabel;
     }
     
     IfStatement jump = new IfStatement(condition, trueLabel, falseLabel);
@@ -88,12 +89,12 @@ public class IfTranslator extends FunctionCallTranslator {
     builder.addLabel(trueLabel);
     builder.translateStatements(context, call.getArgument(1));
     
-    builder.addStatement(new GotoStatement(endLabel));
-    
     if(hasElse(call)) {
+      builder.addStatement(new GotoStatement(endLabel));
       builder.addLabel(falseLabel);
       builder.translateStatements(context, call.getArgument(2));
     }    
+    
     builder.addLabel(endLabel);
   }
 }

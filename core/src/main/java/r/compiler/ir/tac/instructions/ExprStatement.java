@@ -1,5 +1,8 @@
 package r.compiler.ir.tac.instructions;
 
+import java.util.Collections;
+
+import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.operand.Operand;
 import r.lang.Context;
 
@@ -21,12 +24,14 @@ public class ExprStatement implements Statement {
     operand.retrieveValue(context, temp);
     return null;
   }
-
+  
+  @Override
+  public Iterable<IRLabel> possibleTargets() {
+    return Collections.emptySet();
+  }
+  
   @Override
   public String toString() {
     return operand.toString();
   }
-  
-  
-
 }

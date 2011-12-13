@@ -8,7 +8,9 @@ import r.compiler.ir.tac.functions.FunctionCallTranslators;
 import r.compiler.ir.tac.functions.TranslationContext;
 import r.compiler.ir.tac.instructions.Assignment;
 import r.compiler.ir.tac.instructions.ExprStatement;
-import r.compiler.ir.tac.instructions.Return;
+import r.compiler.ir.tac.instructions.GotoStatement;
+import r.compiler.ir.tac.instructions.IfStatement;
+import r.compiler.ir.tac.instructions.ReturnStatement;
 import r.compiler.ir.tac.instructions.Statement;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.DynamicCall;
@@ -36,6 +38,7 @@ public class IRBlockBuilder {
   private FunctionCallTranslators builders = new FunctionCallTranslators();
  
   private List<Statement> statements;
+  private IRLabel currentLabel;
   private Map<IRLabel, Integer> labels;
   
   private IRFunctionTable functionTable;
@@ -52,8 +55,10 @@ public class IRBlockBuilder {
     TranslationContext context = new TopLevelContext();
     Operand returnValue = translateExpression(context, exp);
     
-    statements.add(new Return(returnValue));
+    addStatement(new ReturnStatement(returnValue));
    
+    removeRedundantJumps();
+    
     return new IRBlock(statements, labels, nextTemp);
   }
   
@@ -115,7 +120,7 @@ public class IRBlockBuilder {
       return (SimpleExpr) rvalue;
     } else {
       Temp temp = newTemp();
-      statements.add(new Assignment(temp, rvalue));
+      addStatement(new Assignment(temp, rvalue));
       return temp;      
     }
   }
@@ -149,10 +154,59 @@ public class IRBlockBuilder {
 
   public void addStatement(Statement statement) {
     statements.add(statement);
+    currentLabel = null;
+  }
+  
+  public IRLabel addLabel() {
+    if(currentLabel != null) {
+      return currentLabel; 
+    } else {
+      IRLabel newLabel = newLabel();
+      addLabel(newLabel);
+      return newLabel;
+    }
   }
 
   public void addLabel(IRLabel label) {
     labels.put(label, statements.size());
+    currentLabel = label;
+  }
+  
+  /**
+   * Streamlines IR in the case that you have one goto 
+   * pointing to another goto.
+   */
+  private void removeRedundantJumps() {
+    boolean changed;
+    do {
+      changed = false;
+      for(int i=0;i!=statements.size();++i) {
+        Statement stmt = statements.get(i);
+        if(stmt instanceof IfStatement) {
+          IfStatement ifStmt = (IfStatement) stmt;
+        
+          IRLabel newTrueTarget = ultimateTarget(ifStmt.getTrueTarget());
+          if(newTrueTarget != null) {
+            statements.set(i, ifStmt.setTrueTarget(newTrueTarget));
+            changed = true;
+          }
+          
+          IRLabel newFalseTarget = ultimateTarget(ifStmt.getFalseTarget());
+          if(newFalseTarget != null) {
+            statements.set(i, ifStmt.setFalseTarget(newFalseTarget));
+            changed = true;
+          }
+        }
+      }
+    } while(changed);
+  }
+  
+  private IRLabel ultimateTarget(IRLabel label) {
+    Statement targetStmt = statements.get( labels.get(label) );
+    if(targetStmt instanceof GotoStatement) {
+      return ((GotoStatement) targetStmt).getTarget();
+    }
+    return null;
   }
   
   private static class TopLevelContext implements TranslationContext {

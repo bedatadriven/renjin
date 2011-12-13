@@ -18,21 +18,19 @@ public class RepeatTranslator extends FunctionCallTranslator {
 
   @Override
   public Operand translateToExpression(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
+    addStatement(builder, context, call);
     return new Constant(Null.INSTANCE);
   }
 
   @Override
   public void addStatement(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
-    IRLabel beginLabel = builder.newLabel();
+    IRLabel beginLabel = builder.addLabel();
     IRLabel exitLabel = builder.newLabel();
-    
-    builder.addLabel(beginLabel);
     
     LoopContext loopContext = new LoopContext(beginLabel, exitLabel);
     builder.translateStatements(loopContext, call.getArgument(0));
     
     builder.addStatement(new GotoStatement(beginLabel));
     builder.addLabel(exitLabel);
-   
   }
 }

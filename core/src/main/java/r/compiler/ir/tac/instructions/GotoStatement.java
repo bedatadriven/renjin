@@ -1,9 +1,12 @@
 package r.compiler.ir.tac.instructions;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import r.compiler.ir.tac.IRLabel;
 import r.lang.Context;
 
-public class GotoStatement implements Statement {
+public class GotoStatement implements Statement, BasicBlockEndingStatement {
 
   private final IRLabel target;
 
@@ -13,6 +16,11 @@ public class GotoStatement implements Statement {
 
   public IRLabel getTarget() {
     return target;
+  }
+  
+  @Override
+  public Iterable<IRLabel> possibleTargets() {
+    return Arrays.asList(target);
   }
 
   @Override

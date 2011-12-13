@@ -1,12 +1,14 @@
 package r.compiler.ir.tac.instructions;
 
+import java.util.Arrays;
+
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.operand.SimpleExpr;
 import r.lang.Context;
 import r.lang.Logical;
 import r.lang.SEXP;
 
-public class IfStatement implements Statement {
+public class IfStatement implements Statement, BasicBlockEndingStatement {
   
   private SimpleExpr condition;
   private IRLabel trueTarget;
@@ -30,6 +32,19 @@ public class IfStatement implements Statement {
     return falseTarget;
   }
   
+  public IfStatement setTrueTarget(IRLabel label) {
+    return new IfStatement(condition, label, falseTarget);
+  }
+  
+  public IfStatement setFalseTarget(IRLabel label) {
+    return new IfStatement(condition, trueTarget, label);
+  }
+
+  @Override
+  public Iterable<IRLabel> possibleTargets() {
+    return Arrays.asList(trueTarget, falseTarget);
+  }
+
   @Override
   public Object interpret(Context context, Object[] temp) {
     boolean conditionalValue =  toBoolean(condition.retrieveValue(context, temp));

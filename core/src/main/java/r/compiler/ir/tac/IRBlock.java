@@ -53,13 +53,29 @@ public class IRBlock {
     return labels[label.getIndex()];
   }
   
-  private String labelAt(int instructionIndex) {
+  public IRLabel getIntructionLabel(int instructionIndex) {
     for(int i=0;i!=labels.length;++i) {
       if(labels[i]==instructionIndex) {
-        return Strings.padEnd("L" + i, 5, ' ');
+        return new IRLabel(i);
       }
     }
-    return Strings.repeat(" ", 5);
+    return null;
+  }
+ 
+  public boolean isLabeled(int instructionIndex) {
+    for(int i=0;i!=labels.length;++i) {
+      if(labels[i] == instructionIndex) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  private String labelAt(int instructionIndex) {
+    IRLabel label = getIntructionLabel(instructionIndex);
+    
+    return label == null ? Strings.repeat(" ", 5) :
+      Strings.padEnd(label.toString(), 5, ' ');
   }
   
   

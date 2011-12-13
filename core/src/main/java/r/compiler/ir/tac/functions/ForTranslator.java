@@ -53,8 +53,8 @@ public class ForTranslator extends FunctionCallTranslator {
     
     SEXP body = call.getArgument(2);
 
-    IRLabel bodyLabel = factory.newLabel();
     IRLabel counterLabel = factory.newLabel();
+    IRLabel bodyLabel = factory.newLabel();
     IRLabel nextLabel = factory.newLabel();
     IRLabel exitLabel = factory.newLabel();
        
@@ -62,7 +62,10 @@ public class ForTranslator extends FunctionCallTranslator {
     factory.addStatement(new Assignment(counter, new Constant(0)));
     factory.addStatement(new Assignment(length, 
         new PrimitiveCall(Symbol.get("length"), Lists.newArrayList((Operand)vector))));
-    factory.addStatement(new GotoStatement(counterLabel));
+
+    // check the counter and potentially loop
+    factory.addLabel(counterLabel);
+    factory.addStatement(new IfStatement(new CmpGE(counter, length), exitLabel, bodyLabel));
     
     // start the body here
     factory.addLabel(bodyLabel);
@@ -74,10 +77,9 @@ public class ForTranslator extends FunctionCallTranslator {
     // increment the counter
     factory.addLabel(nextLabel);
     factory.addStatement(new IncrementCounter(counter));
-    
-    // check the counter and potentially loop
-    factory.addLabel(counterLabel);
-    factory.addStatement(new IfStatement(new CmpGE(counter, length), exitLabel, bodyLabel));
+    factory.addStatement(new GotoStatement(counterLabel));
+
     factory.addLabel(exitLabel);
+
   }  
 }

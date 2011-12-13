@@ -1,5 +1,8 @@
 package r.compiler.ir.tac.instructions;
 
+import java.util.Collections;
+
+import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.operand.Temp;
 import r.lang.Context;
 
@@ -19,12 +22,17 @@ public class IncrementCounter implements Statement {
   public Temp getCounter() {
     return counter;
   }
-  
+ 
   @Override
   public Object interpret(Context context, Object[] temp) {
     Integer i = (Integer)temp[counter.getIndex()];
     temp[counter.getIndex()] = i+1;
     return null;
+  }
+  
+  @Override
+  public Iterable<IRLabel> possibleTargets() {
+    return Collections.emptySet();
   }
 
   @Override

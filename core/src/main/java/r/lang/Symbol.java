@@ -215,6 +215,16 @@ public final class Symbol extends AbstractSEXP {
   }
   
   @Override
+  public int hashCode() {
+    return hashBit;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj;
+  }
+
+  @Override
   public String getTypeName() {
     return TYPE_NAME;
   }

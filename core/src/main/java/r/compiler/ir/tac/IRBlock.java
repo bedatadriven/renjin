@@ -76,8 +76,7 @@ public class IRBlock {
     
     return label == null ? Strings.repeat(" ", 5) :
       Strings.padEnd(label.toString(), 5, ' ');
-  }
-  
+  } 
   
   @Override
   public String toString() {

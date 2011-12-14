@@ -1,10 +1,13 @@
 package r.compiler.ir.tac.operand;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.sql.rowset.Joinable;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 
 import r.compiler.ir.tac.IRClosure;
 import r.compiler.ir.tac.IRFunction;
@@ -72,6 +75,15 @@ public class DynamicCall implements Operand {
     }
   }
 
+
+  @Override
+  public Set<Variable> variables() {
+    Set<Variable> variables = Sets.newHashSet();
+    for(Operand operand : arguments) {
+      variables.addAll(operand.variables());
+    }
+    return Collections.unmodifiableSet(variables);
+  }
 
   @Override
   public String toString() {

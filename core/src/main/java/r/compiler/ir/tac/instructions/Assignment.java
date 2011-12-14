@@ -1,10 +1,14 @@
 package r.compiler.ir.tac.instructions;
 
 import java.util.Collections;
+import java.util.Set;
+
+import com.google.common.collect.Sets;
 
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.operand.Operand;
 import r.compiler.ir.tac.operand.LValue;
+import r.compiler.ir.tac.operand.Variable;
 import r.lang.Context;
 
 
@@ -35,9 +39,14 @@ public class Assignment implements Statement {
   public Iterable<IRLabel> possibleTargets() {
     return Collections.emptySet();
   }
+  
+  @Override
+  public Set<Variable> variables() {
+    return Sets.union(target.variables(), rvalue.variables());
+  }
 
   @Override 
   public String toString() {
-    return getTarget() + " := " + rvalue;
+    return getTarget() + " \u2190 " + rvalue;
   }
 }

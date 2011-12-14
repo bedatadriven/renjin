@@ -1,5 +1,9 @@
 package r.compiler.ir.tac.operand;
 
+import java.util.Set;
+
+import com.google.common.collect.Sets;
+
 import r.lang.Context;
 import r.lang.Vector;
 
@@ -24,5 +28,10 @@ public class CmpGE implements SimpleExpr {
     Vector b = (Vector)op2.retrieveValue(context, temps);
     
     return a >= b.getElementAsInt(0);
+  }
+
+  @Override
+  public Set<Variable> variables() {
+    return Sets.union(op1.variables(), op2.variables());
   }
 }

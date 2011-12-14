@@ -1,5 +1,8 @@
 package r.compiler.ir.tac.operand;
 
+import java.util.Collections;
+import java.util.Set;
+
 import r.lang.Context;
 import r.lang.SEXP;
 import r.lang.Symbol;
@@ -11,6 +14,10 @@ public class Variable implements LValue, SimpleExpr {
   
   public Variable(Symbol name) {
     this.name = name;
+  }
+  
+  public Variable(String name) {
+    this(Symbol.get(name));
   }
   
   public Symbol getName() {
@@ -33,5 +40,27 @@ public class Variable implements LValue, SimpleExpr {
   @Override
   public String toString() {
     return name.toString();
+  }
+
+  @Override
+  public Set<Variable> variables() {
+    return Collections.singleton(this);
+  }
+
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Variable other = (Variable) obj;
+    return name == other.name;
   }
 }

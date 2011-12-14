@@ -1,8 +1,11 @@
 package r.compiler.ir.tac.operand;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 
 import r.base.Primitives;
 import r.lang.Context;
@@ -60,5 +63,14 @@ public class PrimitiveCall implements Operand {
       statement = "primitive<" + name + ">";
     }
     return statement + "(" + Joiner.on(", ").join(arguments) + ")";
+  }
+
+  @Override
+  public Set<Variable> variables() {
+    Set<Variable> variables = Sets.newHashSet();
+    for(Operand operand : arguments) {
+      variables.addAll(operand.variables());
+    }
+    return Collections.unmodifiableSet(variables);
   }  
 }

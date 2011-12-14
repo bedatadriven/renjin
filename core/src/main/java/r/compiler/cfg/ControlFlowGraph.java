@@ -1,17 +1,19 @@
 package r.compiler.cfg;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import r.compiler.ir.tac.IRBlock;
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.instructions.BasicBlockEndingStatement;
 import r.compiler.ir.tac.instructions.Statement;
+import r.compiler.ir.tac.operand.Variable;
 
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
@@ -54,8 +56,20 @@ public class ControlFlowGraph {
   }
   
   public List<BasicBlock> getLiveBasicBlocks() {
-    return Lists.newArrayList( 
-        Iterables.filter(basicBlocks, Predicates.in(graph.getVertices())));
+    return Collections.unmodifiableList(basicBlocks);
+  }
+  
+  /**
+   *
+   * @return all variables used or assigned within this 
+   * control flow graph
+   */
+  public Set<Variable> variables() {
+    Set<Variable> variables = Sets.newHashSet();
+    for(BasicBlock bb : basicBlocks) {
+      variables.addAll(bb.variables());
+    }
+    return Collections.unmodifiableSet(variables);
   }
 
   private BasicBlock addNewBasicBlock(IRBlock block, int i) {
@@ -100,11 +114,13 @@ public class ControlFlowGraph {
       for(BasicBlock vertex : Lists.newArrayList(graph.getVertices())) {
         if(vertex != entry && graph.inDegree(vertex) == 0) {
           if(graph.removeVertex(vertex)) {
-            changed=true;
           }
+          changed=true;
         }
       }
     } while(changed);
+    
+    basicBlocks.retainAll(graph.getVertices());
   }
 
   public List<BasicBlock> getBasicBlocks() {

@@ -1,5 +1,8 @@
 package r.compiler.ir.tac.operand;
 
+import java.util.Collections;
+import java.util.Set;
+
 import r.lang.Context;
 
 public class Temp implements LValue, SimpleExpr {
@@ -26,5 +29,10 @@ public class Temp implements LValue, SimpleExpr {
   @Override 
   public String toString() {
     return "_t" + index;
+  }
+
+  @Override
+  public Set<Variable> variables() {
+    return Collections.emptySet();
   }
 }

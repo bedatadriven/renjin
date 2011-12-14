@@ -1,9 +1,11 @@
 package r.compiler.ir.tac.instructions;
 
 import java.util.Collections;
+import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.operand.Temp;
+import r.compiler.ir.tac.operand.Variable;
 import r.lang.Context;
 
 /**
@@ -33,6 +35,11 @@ public class IncrementCounter implements Statement {
   @Override
   public Iterable<IRLabel> possibleTargets() {
     return Collections.emptySet();
+  }
+  
+  @Override
+  public Set<Variable> variables() {
+    return counter.variables();
   }
 
   @Override

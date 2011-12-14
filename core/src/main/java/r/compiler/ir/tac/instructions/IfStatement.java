@@ -1,9 +1,11 @@
 package r.compiler.ir.tac.instructions;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.operand.SimpleExpr;
+import r.compiler.ir.tac.operand.Variable;
 import r.lang.Context;
 import r.lang.Logical;
 import r.lang.SEXP;
@@ -55,6 +57,11 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
     }
   }
   
+  @Override
+  public Set<Variable> variables() {
+    return condition.variables();
+  }
+
   private boolean toBoolean(Object obj) {
     if(obj instanceof Boolean) {
       return (Boolean)obj;

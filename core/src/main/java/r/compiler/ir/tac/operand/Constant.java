@@ -1,5 +1,8 @@
 package r.compiler.ir.tac.operand;
 
+import java.util.Collections;
+import java.util.Set;
+
 import r.lang.Context;
 
 
@@ -23,5 +26,10 @@ public class Constant implements SimpleExpr {
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
     return value;
+  }
+
+  @Override
+  public Set<Variable> variables() {
+    return Collections.emptySet();
   }
 }

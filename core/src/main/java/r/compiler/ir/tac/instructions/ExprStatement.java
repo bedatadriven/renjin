@@ -1,9 +1,11 @@
 package r.compiler.ir.tac.instructions;
 
 import java.util.Collections;
+import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.operand.Operand;
+import r.compiler.ir.tac.operand.Variable;
 import r.lang.Context;
 
 /**
@@ -33,5 +35,10 @@ public class ExprStatement implements Statement {
   @Override
   public String toString() {
     return operand.toString();
+  }
+
+  @Override
+  public Set<Variable> variables() {
+    return operand.variables();
   }
 }

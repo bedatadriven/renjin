@@ -2,8 +2,10 @@ package r.compiler.ir.tac.instructions;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
+import r.compiler.ir.tac.operand.Variable;
 import r.lang.Context;
 
 public class GotoStatement implements Statement, BasicBlockEndingStatement {
@@ -31,5 +33,10 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   @Override
   public Object interpret(Context context, Object[] temp) {
     return target;
+  }
+
+  @Override
+  public Set<Variable> variables() {
+    return Collections.emptySet();
   } 
 }

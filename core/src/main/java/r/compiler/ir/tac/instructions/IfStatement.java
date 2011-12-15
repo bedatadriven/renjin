@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
+import r.compiler.ir.tac.operand.Operand;
 import r.compiler.ir.tac.operand.SimpleExpr;
 import r.compiler.ir.tac.operand.Variable;
 import r.lang.Context;
@@ -23,6 +24,11 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   public SimpleExpr getCondition() {
+    return condition;
+  }
+  
+  @Override
+  public Operand getRHS() {
     return condition;
   }
   
@@ -60,6 +66,14 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   @Override
   public Set<Variable> variables() {
     return condition.variables();
+  }
+  
+  @Override
+  public Statement withRHS(Operand newRHS) {
+    if(!(newRHS instanceof SimpleExpr)) {
+      throw new IllegalArgumentException("if statement requires simple rhs");
+    }
+    return new IfStatement((SimpleExpr) newRHS, trueTarget, falseTarget);
   }
 
   private boolean toBoolean(Object obj) {

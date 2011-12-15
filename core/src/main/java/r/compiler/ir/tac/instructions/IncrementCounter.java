@@ -4,7 +4,8 @@ import java.util.Collections;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.operand.Temp;
+import r.compiler.ir.tac.operand.Operand;
+import r.compiler.ir.tac.operand.TempVariable;
 import r.compiler.ir.tac.operand.Variable;
 import r.lang.Context;
 
@@ -15,13 +16,13 @@ import r.lang.Context;
  */
 public class IncrementCounter implements Statement {
 
-  private Temp counter;
+  private TempVariable counter;
 
-  public IncrementCounter(Temp counter) {
+  public IncrementCounter(TempVariable counter) {
     this.counter = counter;
   }
   
-  public Temp getCounter() {
+  public TempVariable getCounter() {
     return counter;
   }
  
@@ -41,9 +42,23 @@ public class IncrementCounter implements Statement {
   public Set<Variable> variables() {
     return counter.variables();
   }
+  
+  @Override
+  public Operand getRHS() {
+    return counter;
+  }
+  
+  @Override
+  public Statement withRHS(Operand newRHS) {
+    if(!(newRHS instanceof TempVariable)) {
+      throw new IllegalArgumentException("IncrementCounter requires temp rhs");
+    }
+    return new IncrementCounter((TempVariable) newRHS);
+  }
 
   @Override
   public String toString() {
     return "increment counter " + counter;
   }
+
 }

@@ -33,6 +33,11 @@ public class ExprStatement implements Statement {
   }
   
   @Override
+  public Operand getRHS() {
+    return operand;
+  }
+
+  @Override
   public String toString() {
     return operand.toString();
   }
@@ -40,5 +45,10 @@ public class ExprStatement implements Statement {
   @Override
   public Set<Variable> variables() {
     return operand.variables();
+  }
+
+  @Override
+  public Statement withRHS(Operand newRHS) {
+    return new ExprStatement(newRHS);
   }
 }

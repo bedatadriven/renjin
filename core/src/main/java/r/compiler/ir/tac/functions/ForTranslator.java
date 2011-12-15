@@ -1,17 +1,18 @@
 package r.compiler.ir.tac.functions;
 
-import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.IRBlockBuilder;
+import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.instructions.Assignment;
-import r.compiler.ir.tac.instructions.IfStatement;
-import r.compiler.ir.tac.instructions.ElementAccess;
 import r.compiler.ir.tac.instructions.GotoStatement;
+import r.compiler.ir.tac.instructions.IfStatement;
 import r.compiler.ir.tac.instructions.IncrementCounter;
 import r.compiler.ir.tac.operand.CmpGE;
 import r.compiler.ir.tac.operand.Constant;
+import r.compiler.ir.tac.operand.ElementAccess;
+import r.compiler.ir.tac.operand.EnvironmentVariable;
 import r.compiler.ir.tac.operand.Operand;
 import r.compiler.ir.tac.operand.PrimitiveCall;
-import r.compiler.ir.tac.operand.Temp;
+import r.compiler.ir.tac.operand.TempVariable;
 import r.compiler.ir.tac.operand.Variable;
 import r.lang.FunctionCall;
 import r.lang.Null;
@@ -43,10 +44,10 @@ public class ForTranslator extends FunctionCallTranslator {
   private void addForLoop(IRBlockBuilder factory, TranslationContext context, FunctionCall call) {
     
     Symbol symbol = call.getArgument(0);
-    Temp counter = factory.newTemp();
-    Temp length = factory.newTemp();
+    TempVariable counter = factory.newTemp();
+    TempVariable length = factory.newTemp();
     
-    Variable elementVariable = new Variable(symbol);
+    Variable elementVariable = new EnvironmentVariable(symbol);
     
     Operand vector = 
         factory.translateSimpleExpression(context, call.getArgument(1));

@@ -1,5 +1,6 @@
 package r.compiler.cfg;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -150,5 +151,13 @@ public class ControlFlowGraph {
 
   public BasicBlock getExit() {
     return exit;
+  }
+
+  public Collection<BasicBlock> getSuccessors(BasicBlock x) {
+    return graph.getSuccessors(x);
+  }
+
+  public Collection<BasicBlock> getPredecessors(BasicBlock x) {
+    return graph.getPredecessors(x);
   }
 }

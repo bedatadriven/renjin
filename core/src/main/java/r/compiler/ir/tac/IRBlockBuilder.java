@@ -14,11 +14,11 @@ import r.compiler.ir.tac.instructions.ReturnStatement;
 import r.compiler.ir.tac.instructions.Statement;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.DynamicCall;
+import r.compiler.ir.tac.operand.EnvironmentVariable;
 import r.compiler.ir.tac.operand.Operand;
 import r.compiler.ir.tac.operand.PrimitiveCall;
 import r.compiler.ir.tac.operand.SimpleExpr;
-import r.compiler.ir.tac.operand.Temp;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.operand.TempVariable;
 import r.lang.ExpressionVector;
 import r.lang.FunctionCall;
 import r.lang.Null;
@@ -72,7 +72,7 @@ public class IRBlockBuilder {
     } else if(exp instanceof Vector) {
       return new Constant(exp);
     } else if(exp instanceof Symbol) {
-      return new Variable((Symbol)exp);
+      return new EnvironmentVariable((Symbol)exp);
     } else if(exp instanceof FunctionCall) {
       FunctionCallTranslator builder = builders.get(((FunctionCall) exp).getFunction());
       if(builder == null) {
@@ -119,7 +119,7 @@ public class IRBlockBuilder {
     if(rvalue instanceof SimpleExpr) {
       return (SimpleExpr) rvalue;
     } else {
-      Temp temp = newTemp();
+      TempVariable temp = newTemp();
       addStatement(new Assignment(temp, rvalue));
       return temp;      
     }
@@ -140,8 +140,8 @@ public class IRBlockBuilder {
     }
   }
   
-  public Temp newTemp() {
-    return new Temp(nextTemp++);
+  public TempVariable newTemp() {
+    return new TempVariable(nextTemp++);
   }
   
   public IRLabel newLabel() {

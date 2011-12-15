@@ -7,15 +7,15 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.google.common.collect.Iterables;
-
 import r.compiler.CompilerTestCase;
 import r.compiler.cfg.BasicBlock;
 import r.compiler.cfg.CfgPredicates;
 import r.compiler.cfg.ControlFlowGraph;
 import r.compiler.cfg.DominanceTree;
 import r.compiler.ir.tac.IRBlock;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.operand.EnvironmentVariable;
+
+import com.google.common.collect.Iterables;
 
 public class SsaTransformTest extends CompilerTestCase {
 
@@ -25,14 +25,15 @@ public class SsaTransformTest extends CompilerTestCase {
     ControlFlowGraph cfg = new ControlFlowGraph(block);
 
     Iterable<BasicBlock> assignmentsToK = Iterables.filter(cfg.getBasicBlocks(), 
-        CfgPredicates.containsAssignmentTo(new Variable("K")));
+        CfgPredicates.containsAssignmentTo(new EnvironmentVariable("K")));
     
     assertThat(Iterables.size(assignmentsToK), equalTo(3));
     
     
     DominanceTree dtree = new DominanceTree(cfg);
     
-    SsaTransformer.insertPhiFunctions(cfg, dtree);
+    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    transformer.transform();
     
     // See Figure 6 in
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf

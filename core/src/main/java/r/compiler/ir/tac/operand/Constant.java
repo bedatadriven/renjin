@@ -32,4 +32,9 @@ public class Constant implements SimpleExpr {
   public Set<Variable> variables() {
     return Collections.emptySet();
   }
+
+  @Override
+  public Constant renameVariable(Variable name, Variable newName) {
+    return this;
+  }
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import r.base.Primitives;
@@ -72,5 +73,14 @@ public class PrimitiveCall implements Operand {
       variables.addAll(operand.variables());
     }
     return Collections.unmodifiableSet(variables);
+  }
+
+  @Override
+  public PrimitiveCall renameVariable(Variable name, Variable newName) {
+    List<Operand> newOps = Lists.newArrayListWithCapacity(arguments.size());
+    for(Operand argument : arguments) {
+      newOps.add(argument.renameVariable(name, newName));
+    }
+    return new PrimitiveCall(this.name, newOps);
   }  
 }

@@ -9,5 +9,7 @@ public interface Operand  {
   Object retrieveValue(Context context, Object temps[]);
   
   Set<Variable> variables();
+
+  Operand renameVariable(Variable name, Variable newName);
   
 }

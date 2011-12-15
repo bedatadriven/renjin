@@ -4,23 +4,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import javax.sql.rowset.Joinable;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Sets;
-
-import r.compiler.ir.tac.IRClosure;
-import r.compiler.ir.tac.IRFunction;
 import r.lang.Context;
-import r.lang.Environment;
 import r.lang.Function;
 import r.lang.FunctionCall;
 import r.lang.PairList;
-import r.lang.PrimitiveFunction;
-import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.Symbol;
 import r.lang.exception.EvalException;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Function call that is invoked with the full R
@@ -94,5 +88,14 @@ public class DynamicCall implements Operand {
       statement = "dynamic<" + name + ">";
     }
     return statement + "(" + Joiner.on(", ").join(arguments) + ")";
-  }  
+  }
+
+  @Override
+  public Operand renameVariable(Variable name, Variable newName) {
+    List<Operand> newOps = Lists.newArrayListWithCapacity(arguments.size());
+    for(Operand argument : arguments) {
+      newOps.add(argument.renameVariable(name, newName));
+    }
+    return new DynamicCall(this.name, newOps);
+  } 
 }

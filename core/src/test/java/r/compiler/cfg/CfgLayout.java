@@ -136,7 +136,7 @@ public class CfgLayout  {
   }
 
   private void calcCols() {
-    for(BasicBlock bb : cfg.getGraph().getVertices()) {
+    for(BasicBlock bb : cfg.getBasicBlocks()) {
       Pos pos = blockPos.get(bb);
       pos.col = lastColAtRow(pos.row) + 1;
       if(pos.col + 1 > numCols) {

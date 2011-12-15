@@ -1,23 +1,19 @@
 package r.compiler.ir.tac.operand;
 
-
 import java.util.Collections;
 import java.util.Set;
 
-import r.compiler.ir.tac.IRFunction;
 import r.lang.Context;
 
-public class MakeClosure implements Operand {
+public class NullOperand implements Operand {
 
-  private IRFunction function;
+  public static final NullOperand INSTANCE = new NullOperand();
   
-  public MakeClosure(IRFunction function) {
-    this.function = function;
-  }
+  private NullOperand() { }
 
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
-    return function.newClosure(context);
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -29,4 +25,5 @@ public class MakeClosure implements Operand {
   public Operand renameVariable(Variable name, Variable newName) {
     return this;
   }
+  
 }

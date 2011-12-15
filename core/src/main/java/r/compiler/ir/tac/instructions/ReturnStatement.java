@@ -32,6 +32,16 @@ public class ReturnStatement implements Statement {
   }
   
   @Override
+  public Operand getRHS() {
+    return value;
+  }
+  
+  @Override
+  public ReturnStatement withRHS(Operand newRHS) {
+    return new ReturnStatement(newRHS);
+  }
+
+  @Override
   public Iterable<IRLabel> possibleTargets() {
     return Collections.emptySet();
   }
@@ -39,5 +49,5 @@ public class ReturnStatement implements Statement {
   @Override
   public Set<Variable> variables() {
     return value.variables();
-  } 
+  }
 }

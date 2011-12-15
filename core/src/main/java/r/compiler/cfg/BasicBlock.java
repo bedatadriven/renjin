@@ -14,6 +14,8 @@ import r.compiler.ir.tac.instructions.ReturnStatement;
 import r.compiler.ir.tac.instructions.Statement;
 import r.compiler.ir.tac.operand.Variable;
 
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -33,8 +35,14 @@ public class BasicBlock {
     statements.add(statement);
   }
   
-  public void insertPhiFunction(Variable variable) {
-    statements.add(0, new Assignment(variable, new PhiFunction(variable)));
+  public void insertPhiFunction(Variable variable, int count) {
+    statements.add(0, new Assignment(variable, new PhiFunction(variable, count)));
+  }
+
+  public Statement replaceStatement(Statement stmt, Statement newStmt) {
+    int i = statements.indexOf(stmt);
+    statements.set(i, newStmt);
+    return newStmt;
   }
   
   public List<Statement> getStatements() {
@@ -99,9 +107,18 @@ public class BasicBlock {
     return Collections.unmodifiableSet(variables);
   }
   
+  public Iterable<Assignment> assignments() {
+    return (Iterable)Iterables.filter(statements, Predicates.instanceOf(Assignment.class));
+  }
+  
+  public Iterable<Assignment> phiAssignments() {
+    return (Iterable)Iterables.filter(statements, CfgPredicates.isPhiAssignment());
+  }
+  
   @Override
   public String toString() {
     return "BB" + index;
   }
+
   
 }

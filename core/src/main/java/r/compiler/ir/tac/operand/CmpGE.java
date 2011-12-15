@@ -34,4 +34,10 @@ public class CmpGE implements SimpleExpr {
   public Set<Variable> variables() {
     return Sets.union(op1.variables(), op2.variables());
   }
+
+  @Override
+  public CmpGE renameVariable(Variable name, Variable newName) {
+    return new CmpGE(op1.renameVariable(name, newName), 
+                     op2.renameVariable(name, newName));
+  }
 }

@@ -1,11 +1,9 @@
-package r.compiler.ir.tac.instructions;
+package r.compiler.ir.tac.operand;
 
 import java.util.Set;
 
 import com.google.common.collect.Sets;
 
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.Variable;
 import r.lang.Context;
 import r.lang.Vector;
 
@@ -51,5 +49,12 @@ public class ElementAccess implements Operand {
   @Override
   public Set<Variable> variables() {
     return Sets.union(vector.variables(), index.variables());
+  }
+
+  @Override
+  public ElementAccess renameVariable(Variable name, Variable newName) {
+    return new ElementAccess(
+        vector.renameVariable(name, newName), 
+        index.renameVariable(name, newName));
   }
 }

@@ -185,4 +185,8 @@ public class DominanceTree {
   public Collection<BasicBlock> getFrontier(BasicBlock bb) {
     return dominanceFrontier.get(bb);
   }
+
+  public Collection<BasicBlock> getChildren(BasicBlock x) {
+    return tree.getSuccessors(x);
+  }
 }

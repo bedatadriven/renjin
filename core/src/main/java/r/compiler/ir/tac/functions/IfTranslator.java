@@ -9,7 +9,7 @@ import r.compiler.ir.tac.instructions.GotoStatement;
 import r.compiler.ir.tac.operand.Constant;
 import r.compiler.ir.tac.operand.Operand;
 import r.compiler.ir.tac.operand.SimpleExpr;
-import r.compiler.ir.tac.operand.Temp;
+import r.compiler.ir.tac.operand.TempVariable;
 import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.Symbol;
@@ -27,7 +27,7 @@ public class IfTranslator extends FunctionCallTranslator {
     
     // since "if" is being used in the context of an expression, we need
     // to store its final value somewhere
-    Temp ifResult = builder.newTemp(); 
+    TempVariable ifResult = builder.newTemp(); 
     
     IRLabel trueTarget = builder.newLabel();
     IRLabel falseTarget = builder.newLabel();

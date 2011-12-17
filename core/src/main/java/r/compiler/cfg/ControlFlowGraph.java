@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import r.compiler.ir.tac.IRBlock;
+import r.compiler.ir.tac.IRScope;
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.instructions.BasicBlockEndingStatement;
-import r.compiler.ir.tac.instructions.Statement;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Variable;
+import r.compiler.ir.tac.statements.BasicBlockEndingStatement;
+import r.compiler.ir.tac.statements.Statement;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -22,15 +22,15 @@ import edu.uci.ics.jung.graph.Graph;
 
 public class ControlFlowGraph {
 
-  private final IRBlock parent;
+  private final IRScope parent;
   private final DirectedGraph<BasicBlock, Edge> graph;
   private final List<BasicBlock> basicBlocks;
   private BasicBlock entry;
   private BasicBlock exit;
   private Map<IRLabel, BasicBlock> basicBlockMap = Maps.newHashMap();
   
-  public ControlFlowGraph(IRBlock block) {
-    this.parent = block;
+  public ControlFlowGraph(IRScope scope) {
+    this.parent = scope;
     this.graph = new DirectedSparseGraph<BasicBlock, Edge>();
     this.basicBlocks = Lists.newArrayList();
     
@@ -73,9 +73,9 @@ public class ControlFlowGraph {
     return Collections.unmodifiableSet(variables);
   }
 
-  private BasicBlock addNewBasicBlock(IRBlock block, int i) {
+  private BasicBlock addNewBasicBlock(IRScope block, int i) {
     BasicBlock bb = BasicBlock.createWithStartAt(block, i);
-    bb.setIndex(basicBlocks.size());
+    bb.setDebugId(basicBlocks.size());
     basicBlocks.add(bb);
     graph.addVertex(bb);
     if(bb.isLabeled()) {
@@ -85,9 +85,11 @@ public class ControlFlowGraph {
   } 
   
   private void linkBasicBlocks() {
-    entry = basicBlocks.get(0);
+    entry = new BasicBlock(parent);
+    entry.setDebugId("entry");
+    
     exit = new BasicBlock(parent);
-    exit.setIndex(basicBlocks.size());
+    exit.setDebugId("exit");
     
     for(int i=0;i!=basicBlocks.size();++i) {
       BasicBlock bb = basicBlocks.get(i);
@@ -103,7 +105,10 @@ public class ControlFlowGraph {
         }
       }
     }
-    
+    graph.addEdge(new Edge(false), entry, exit);
+    graph.addEdge(new Edge(false), entry, basicBlocks.get(0));
+
+    basicBlocks.add(entry);
     basicBlocks.add(exit);
   }
   
@@ -122,6 +127,12 @@ public class ControlFlowGraph {
     } while(changed);
     
     basicBlocks.retainAll(graph.getVertices());
+    int i=1;
+    for(BasicBlock bb : basicBlocks) {
+      if(bb!=entry && bb!=exit) {
+        bb.setDebugId(i++);
+      }
+    }
   }
 
   public List<BasicBlock> getBasicBlocks() {
@@ -131,12 +142,13 @@ public class ControlFlowGraph {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    int i=1;
     for(BasicBlock bb : basicBlocks) {
-      if(graph.containsVertex(bb)) {
-        sb.append("\nBASIC BLOCK " + (i++) + " ====================\n");
-        sb.append(bb.statementsToString());
+      sb.append("\n" + bb.toString());
+      if(bb.getLabel() != null) {
+        sb.append(": ").append(bb.getLabel());
       }
+      sb.append(" =============\n");
+      sb.append(bb.statementsToString());
     }
     return sb.toString();
   }

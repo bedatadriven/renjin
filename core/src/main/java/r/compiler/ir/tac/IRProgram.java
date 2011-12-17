@@ -7,12 +7,12 @@ import r.lang.SEXP;
 
 public class IRProgram {
 
-  private IRBlock block;
+  private IRScope main;
   private IRFunctionTable functionTable = new IRFunctionTable();
   
   public IRProgram(SEXP program) {
-    IRBlockBuilder builder = new IRBlockBuilder(functionTable);
-    block = builder.build(program);
+    IRScopeBuilder builder = new IRScopeBuilder(functionTable);
+    main = builder.build(program);
   }
   
   @Override
@@ -20,19 +20,25 @@ public class IRProgram {
     StringBuilder sb = new StringBuilder();
     for(IRFunction function : functionTable) {
       sb.append("function@" + function.getId()).append("\n");
-      sb.append(function.getBlock()).append("\n");
+      sb.append(function.getScope()).append("\n");
     }
     
     sb.append("\nMAIN:\n");
-    sb.append(block.toString());
+    sb.append(main.toString());
     return sb.toString();
   }
   
   public SEXP evaluate() throws IOException {
     Context context = Context.newTopLevelContext();
     context.init();
-    return block.evaluate(context);
+    return main.evaluate(context);
   }
-  
-  
+
+  public IRScope getMain() {
+    return main;
+  }
+
+  public Iterable<IRFunction> getFunctions() {
+    return functionTable.getFunctions();    
+  }
 }

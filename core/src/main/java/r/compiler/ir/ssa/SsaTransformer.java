@@ -8,10 +8,10 @@ import r.compiler.cfg.BasicBlock;
 import r.compiler.cfg.CfgPredicates;
 import r.compiler.cfg.ControlFlowGraph;
 import r.compiler.cfg.DominanceTree;
-import r.compiler.ir.tac.instructions.Assignment;
-import r.compiler.ir.tac.instructions.Statement;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.Variable;
+import r.compiler.ir.tac.statements.Assignment;
+import r.compiler.ir.tac.statements.Statement;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -91,31 +91,41 @@ public class SsaTransformer {
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
 
     for(Variable V : cfg.variables()) {
-      C.put(V, 0);
-      S.put(V, new Stack<Integer>());
+
+      // in a deviation from Cytron, et. al,
+      // V_0 represents the uninitialized value
+      
+      C.put(V, 1);
+
+      Stack<Integer> stack = new Stack<Integer>();
+      stack.push(0);
+      S.put(V, stack);
     }
 
     search(cfg.getEntry());
   }
 
   private void search(BasicBlock X) {
+    
     for(Statement stmt : X.getStatements()) {
-      Operand rhs = stmt.getRHS();
+      Expression rhs = stmt.getRHS();
       if(!(rhs instanceof PhiFunction)) {
         for(Variable V : rhs.variables()) {
           int i = Top(V);
-          rhs = rhs.renameVariable(V, new SsaVariable(V, i));
+          rhs = rhs.replaceVariable(V, new SsaVariable(V, i));
         }
         stmt = X.replaceStatement(stmt, stmt.withRHS(rhs));
       }
       
       if(stmt instanceof Assignment) {
         Assignment assignment = (Assignment)stmt;
-        Variable V = (Variable)assignment.getLHS();
-        int i = C.get(V);
-        X.replaceStatement(assignment, assignment.withLHS(new SsaVariable(V, i)));
-        S.get(V).push(i);
-        C.put(V, i + 1);
+        if(assignment.getLHS() instanceof Variable) {
+          Variable V = (Variable)assignment.getLHS();
+          int i = C.get(V);
+          X.replaceStatement(assignment, assignment.withLHS(new SsaVariable(V, i)));
+          S.get(V).push(i);
+          C.put(V, i + 1);
+        }
       }
     }
     
@@ -134,16 +144,17 @@ public class SsaTransformer {
       search(Y);
     }
     for(Assignment A : X.assignments()) {
-      SsaVariable lhs = (SsaVariable) A.getLHS();
-      S.get(lhs.getInner()).pop();
+      if(A.getLHS() instanceof SsaVariable) {
+        SsaVariable lhs = (SsaVariable) A.getLHS();
+        S.get(lhs.getInner()).pop();
+      }
     }
   }
 
   private int Top(Variable V) {
     Stack<Integer> stack = S.get(V);
     if(stack.isEmpty()) {
-//      throw new IllegalStateException("Variable " + V + " has not been assigned to before its use");
-      return 0;
+      throw new IllegalStateException("Variable " + V + " has not been assigned to before its use");
     }
     return stack.peek();
   }

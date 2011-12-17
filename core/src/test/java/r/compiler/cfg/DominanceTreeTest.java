@@ -9,14 +9,14 @@ import java.util.List;
 import org.junit.Test;
 
 import r.compiler.CompilerTestCase;
-import r.compiler.ir.tac.IRBlock;
+import r.compiler.ir.tac.IRScope;
 
 public class DominanceTreeTest extends CompilerTestCase {
 
 
   @Test
   public void immediateDominators() {
-    IRBlock block = buildBody("y<-1; if(q) y<-y+1 else y<-4; y");
+    IRScope block = buildScope("y<-1; if(q) y<-y+1 else y<-4; y");
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     
     System.out.println(cfg);
@@ -36,7 +36,7 @@ public class DominanceTreeTest extends CompilerTestCase {
   
   @Test
   public void dominanceFrontier() throws IOException {
-    IRBlock block = parseCytron();
+    IRScope block = parseCytron();
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     List<BasicBlock> bb = cfg.getLiveBasicBlocks();
     DominanceTree dtree = new DominanceTree(cfg);

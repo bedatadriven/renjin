@@ -1,4 +1,4 @@
-package r.compiler.ir.tac.operand;
+package r.compiler.ir.tac.expressions;
 
 
 import java.util.Collections;
@@ -7,7 +7,7 @@ import java.util.Set;
 import r.compiler.ir.tac.IRFunction;
 import r.lang.Context;
 
-public class MakeClosure implements Operand {
+public class MakeClosure implements Expression {
 
   private IRFunction function;
   
@@ -26,7 +26,12 @@ public class MakeClosure implements Operand {
   }
 
   @Override
-  public Operand renameVariable(Variable name, Variable newName) {
+  public Expression replaceVariable(Variable name, Variable newName) {
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return "closure(" + function.toString() + ")";
   }
 }

@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.ssa.PhiFunction;
-import r.compiler.ir.tac.IRBlock;
+import r.compiler.ir.tac.IRScope;
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.instructions.Assignment;
-import r.compiler.ir.tac.instructions.GotoStatement;
-import r.compiler.ir.tac.instructions.IfStatement;
-import r.compiler.ir.tac.instructions.ReturnStatement;
-import r.compiler.ir.tac.instructions.Statement;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Variable;
+import r.compiler.ir.tac.statements.Assignment;
+import r.compiler.ir.tac.statements.GotoStatement;
+import r.compiler.ir.tac.statements.IfStatement;
+import r.compiler.ir.tac.statements.ReturnStatement;
+import r.compiler.ir.tac.statements.Statement;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
@@ -20,13 +20,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class BasicBlock {
-  private final IRBlock parent;
-  private int index;
+  private final IRScope parent;
+  private String debugId;
   
   private IRLabel label;
   private List<Statement> statements = Lists.newArrayList();
   
-  public BasicBlock(IRBlock parent) {
+  public BasicBlock(IRScope parent) {
     super();
     this.parent = parent;
   }
@@ -49,11 +49,15 @@ public class BasicBlock {
     return statements;
   }
   
-  public void setIndex(int index) {
-    this.index = index;
+  public void setDebugId(int index) {
+    this.debugId = "BB" + index;
   }
 
-  public static BasicBlock createWithStartAt(IRBlock parent, int statementIndex) {
+  public void setDebugId(String string) {
+    this.debugId = string;
+  }
+  
+  public static BasicBlock createWithStartAt(IRScope parent, int statementIndex) {
     BasicBlock block = new BasicBlock(parent);
     block.label = parent.getIntructionLabel(statementIndex);
     block.statements = Lists.newArrayList();
@@ -90,9 +94,6 @@ public class BasicBlock {
 
   public String statementsToString() {
     StringBuilder sb = new StringBuilder();
-    if(label != null) {
-      sb.append(label).append("\n");
-    }
     for(Statement statment : statements) {
       sb.append(statment).append("\n");
     }
@@ -117,8 +118,7 @@ public class BasicBlock {
   
   @Override
   public String toString() {
-    return "BB" + index;
+    return debugId;
   }
 
-  
 }

@@ -12,8 +12,8 @@ import r.compiler.cfg.BasicBlock;
 import r.compiler.cfg.CfgPredicates;
 import r.compiler.cfg.ControlFlowGraph;
 import r.compiler.cfg.DominanceTree;
-import r.compiler.ir.tac.IRBlock;
-import r.compiler.ir.tac.operand.EnvironmentVariable;
+import r.compiler.ir.tac.IRScope;
+import r.compiler.ir.tac.expressions.EnvironmentVariable;
 
 import com.google.common.collect.Iterables;
 
@@ -21,7 +21,7 @@ public class SsaTransformTest extends CompilerTestCase {
 
   @Test
   public void cytronSsa() throws IOException {
-    IRBlock block = parseCytron();
+    IRScope block = parseCytron();
     ControlFlowGraph cfg = new ControlFlowGraph(block);
 
     Iterable<BasicBlock> assignmentsToK = Iterables.filter(cfg.getBasicBlocks(), 
@@ -31,6 +31,7 @@ public class SsaTransformTest extends CompilerTestCase {
     
     
     DominanceTree dtree = new DominanceTree(cfg);
+    System.out.println(dtree);
     
     SsaTransformer transformer = new SsaTransformer(cfg, dtree);
     transformer.transform();
@@ -45,6 +46,31 @@ public class SsaTransformTest extends CompilerTestCase {
     BasicBlock bb2 = cfg.getBasicBlocks().get(1);
     assertThat(bb2.getStatements().size(), equalTo(5));
    
+    System.out.println(cfg);
+  }
+  
+
+  @Test
+  public void forLoop() throws IOException {
+    IRScope block = buildScope("for(i in 1:10) { n<-x[i]; print(n); }");
+    
+    System.out.println(block);
+    
+    
+    ControlFlowGraph cfg = new ControlFlowGraph(block);
+    
+   
+    DominanceTree dtree = new DominanceTree(cfg);
+    
+    System.out.println("CFG:");
+    System.out.println(cfg.getGraph());
+    
+    System.out.println("Dominance Tree:");  
+    System.out.println(dtree);
+    
+    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    transformer.transform();
+     
     System.out.println(cfg);
   }
   

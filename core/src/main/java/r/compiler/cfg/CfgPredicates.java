@@ -1,9 +1,9 @@
 package r.compiler.cfg;
 
 import r.compiler.ir.ssa.PhiFunction;
-import r.compiler.ir.tac.instructions.Assignment;
-import r.compiler.ir.tac.instructions.Statement;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Variable;
+import r.compiler.ir.tac.statements.Assignment;
+import r.compiler.ir.tac.statements.Statement;
 
 import com.google.common.base.Predicate;
 

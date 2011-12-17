@@ -1,19 +1,20 @@
 package r.compiler.ir.tac.functions;
 
-import r.compiler.ir.tac.IRBlockBuilder;
+import r.compiler.ir.tac.IRScopeBuilder;
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.instructions.Assignment;
-import r.compiler.ir.tac.instructions.GotoStatement;
-import r.compiler.ir.tac.instructions.IfStatement;
-import r.compiler.ir.tac.instructions.IncrementCounter;
-import r.compiler.ir.tac.operand.CmpGE;
-import r.compiler.ir.tac.operand.Constant;
-import r.compiler.ir.tac.operand.ElementAccess;
-import r.compiler.ir.tac.operand.EnvironmentVariable;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.PrimitiveCall;
-import r.compiler.ir.tac.operand.TempVariable;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.CmpGE;
+import r.compiler.ir.tac.expressions.Constant;
+import r.compiler.ir.tac.expressions.ElementAccess;
+import r.compiler.ir.tac.expressions.EnvironmentVariable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.LocalVariable;
+import r.compiler.ir.tac.expressions.PrimitiveCall;
+import r.compiler.ir.tac.expressions.Temp;
+import r.compiler.ir.tac.expressions.Variable;
+import r.compiler.ir.tac.statements.Assignment;
+import r.compiler.ir.tac.statements.GotoStatement;
+import r.compiler.ir.tac.statements.IfStatement;
+import r.compiler.ir.tac.statements.IncrementCounter;
 import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.SEXP;
@@ -29,7 +30,7 @@ public class ForTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToExpression(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
+  public Expression translateToExpression(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
     addForLoop(builder, context, call);
     
     return new Constant(Null.INSTANCE);
@@ -37,19 +38,19 @@ public class ForTranslator extends FunctionCallTranslator {
 
 
   @Override
-  public void addStatement(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
     addForLoop(builder, context, call);
   }
  
-  private void addForLoop(IRBlockBuilder factory, TranslationContext context, FunctionCall call) {
+  private void addForLoop(IRScopeBuilder factory, TranslationContext context, FunctionCall call) {
     
     Symbol symbol = call.getArgument(0);
-    TempVariable counter = factory.newTemp();
-    TempVariable length = factory.newTemp();
+    LocalVariable counter = factory.newLocalVariable();
+    Temp length = factory.newTemp();
     
     Variable elementVariable = new EnvironmentVariable(symbol);
     
-    Operand vector = 
+    Expression vector = 
         factory.translateSimpleExpression(context, call.getArgument(1));
     
     SEXP body = call.getArgument(2);
@@ -62,7 +63,7 @@ public class ForTranslator extends FunctionCallTranslator {
     // initialize the counter
     factory.addStatement(new Assignment(counter, new Constant(0)));
     factory.addStatement(new Assignment(length, 
-        new PrimitiveCall(Symbol.get("length"), Lists.newArrayList((Operand)vector))));
+        new PrimitiveCall(Symbol.get("length"), Lists.newArrayList((Expression)vector))));
 
     // check the counter and potentially loop
     factory.addLabel(counterLabel);

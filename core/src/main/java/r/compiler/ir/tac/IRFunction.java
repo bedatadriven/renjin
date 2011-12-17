@@ -10,11 +10,11 @@ public class IRFunction {
   
   private final PairList formals;
   private final SEXP body;
-  private final IRBlock block;
+  private final IRScope block;
   private final int debugId;
   
 
-  public IRFunction(PairList formals, SEXP body, IRBlock block) {
+  public IRFunction(PairList formals, SEXP body, IRScope block) {
     super();
     this.formals = formals;
     this.body = body;
@@ -26,7 +26,7 @@ public class IRFunction {
     return debugId;
   }
   
-  public IRBlock getBlock() {
+  public IRScope getScope() {
     return block;
   }
 

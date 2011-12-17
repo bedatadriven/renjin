@@ -1,23 +1,23 @@
-package r.compiler.ir.tac.instructions;
+package r.compiler.ir.tac.statements;
 
 import java.util.Collections;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
 
 public class ReturnStatement implements Statement {
 
-  private final Operand value;
+  private final Expression value;
 
-  public ReturnStatement(Operand value) {
+  public ReturnStatement(Expression value) {
     super();
     this.value = value;
   }
   
-  public Operand getValue() {
+  public Expression getValue() {
     return value;
   }
   
@@ -32,12 +32,12 @@ public class ReturnStatement implements Statement {
   }
   
   @Override
-  public Operand getRHS() {
+  public Expression getRHS() {
     return value;
   }
   
   @Override
-  public ReturnStatement withRHS(Operand newRHS) {
+  public ReturnStatement withRHS(Expression newRHS) {
     return new ReturnStatement(newRHS);
   }
 

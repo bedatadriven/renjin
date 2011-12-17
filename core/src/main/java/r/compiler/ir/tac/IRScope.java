@@ -5,20 +5,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import r.compiler.ir.tac.instructions.Statement;
+import r.compiler.ir.tac.statements.Statement;
 import r.lang.Context;
 import r.lang.SEXP;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
-public class IRBlock {
+public class IRScope {
   
   private Object temp[];
   private Statement statements[];
   private int labels[];
   
-  public IRBlock(List<Statement> statements, Map<IRLabel, Integer> labels, int tempCount) {
+  public IRScope(List<Statement> statements, Map<IRLabel, Integer> labels, int tempCount) {
     this.statements = statements.toArray(new Statement[statements.size()]);
     this.labels = new int[labels.size()];
     this.temp = new Object[tempCount];

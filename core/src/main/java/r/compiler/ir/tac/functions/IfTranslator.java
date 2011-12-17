@@ -2,14 +2,14 @@ package r.compiler.ir.tac.functions;
 
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.IRBlockBuilder;
-import r.compiler.ir.tac.instructions.Assignment;
-import r.compiler.ir.tac.instructions.IfStatement;
-import r.compiler.ir.tac.instructions.GotoStatement;
-import r.compiler.ir.tac.operand.Constant;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.SimpleExpr;
-import r.compiler.ir.tac.operand.TempVariable;
+import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.expressions.Constant;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.SimpleExpression;
+import r.compiler.ir.tac.expressions.Temp;
+import r.compiler.ir.tac.statements.Assignment;
+import r.compiler.ir.tac.statements.GotoStatement;
+import r.compiler.ir.tac.statements.IfStatement;
 import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.Symbol;
@@ -22,12 +22,12 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToExpression(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
-    SimpleExpr condition = builder.translateSimpleExpression(context, call.getArgument(0));
+  public Expression translateToExpression(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+    SimpleExpression condition = builder.translateSimpleExpression(context, call.getArgument(0));
     
     // since "if" is being used in the context of an expression, we need
     // to store its final value somewhere
-    TempVariable ifResult = builder.newTemp(); 
+    Temp ifResult = builder.newTemp(); 
     
     IRLabel trueTarget = builder.newLabel();
     IRLabel falseTarget = builder.newLabel();
@@ -38,7 +38,7 @@ public class IfTranslator extends FunctionCallTranslator {
     
     // evaluate "if true" expression
     builder.addLabel(trueTarget);
-    Operand ifTrueResult = builder.translateExpression(context, call.getArgument(1));
+    Expression ifTrueResult = builder.translateExpression(context, call.getArgument(1));
     
     // assign this result to our temp value
     builder.addStatement(new Assignment(ifResult, ifTrueResult));
@@ -50,7 +50,7 @@ public class IfTranslator extends FunctionCallTranslator {
     // next evaluate "if false" expression
     // if the false clause is absent, it evaluates to 
     // NULL
-    Operand ifFalseResult;
+    Expression ifFalseResult;
     if(hasElse(call)) {
       ifFalseResult = builder.translateSimpleExpression(context, call.getArgument(2));
     } else {
@@ -69,9 +69,9 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
 
-    SimpleExpr condition = builder.translateSimpleExpression(context, call.getArgument(0));
+    SimpleExpression condition = builder.translateSimpleExpression(context, call.getArgument(0));
     IRLabel trueLabel = builder.newLabel();
     IRLabel falseLabel = builder.newLabel();
     IRLabel endLabel;

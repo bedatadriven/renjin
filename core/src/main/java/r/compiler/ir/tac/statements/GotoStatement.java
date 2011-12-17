@@ -1,13 +1,13 @@
-package r.compiler.ir.tac.instructions;
+package r.compiler.ir.tac.statements;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.operand.NullOperand;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.NullExpression;
+import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
 
 public class GotoStatement implements Statement, BasicBlockEndingStatement {
@@ -44,13 +44,13 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public Operand getRHS() {
-    return NullOperand.INSTANCE;
+  public Expression getRHS() {
+    return NullExpression.INSTANCE;
   }
 
   @Override
-  public Statement withRHS(Operand newRHS) {
-    if(newRHS != NullOperand.INSTANCE) {
+  public Statement withRHS(Expression newRHS) {
+    if(newRHS != NullExpression.INSTANCE) {
       throw new IllegalArgumentException();
     }
     return this;

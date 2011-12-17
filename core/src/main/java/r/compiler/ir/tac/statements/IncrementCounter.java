@@ -1,12 +1,13 @@
-package r.compiler.ir.tac.instructions;
+package r.compiler.ir.tac.statements;
 
 import java.util.Collections;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.TempVariable;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.LValue;
+import r.compiler.ir.tac.expressions.Temp;
+import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
 
 /**
@@ -16,20 +17,20 @@ import r.lang.Context;
  */
 public class IncrementCounter implements Statement {
 
-  private TempVariable counter;
+  private LValue counter;
 
-  public IncrementCounter(TempVariable counter) {
+  public IncrementCounter(LValue counter) {
     this.counter = counter;
   }
   
-  public TempVariable getCounter() {
+  public LValue getCounter() {
     return counter;
   }
  
   @Override
   public Object interpret(Context context, Object[] temp) {
-    Integer i = (Integer)temp[counter.getIndex()];
-    temp[counter.getIndex()] = i+1;
+    Integer i = (Integer) counter.retrieveValue(context, temp);
+    counter.setValue(context, temp, i+1);
     return null;
   }
   
@@ -44,16 +45,16 @@ public class IncrementCounter implements Statement {
   }
   
   @Override
-  public Operand getRHS() {
+  public Expression getRHS() {
     return counter;
   }
   
   @Override
-  public Statement withRHS(Operand newRHS) {
-    if(!(newRHS instanceof TempVariable)) {
-      throw new IllegalArgumentException("IncrementCounter requires temp rhs");
+  public Statement withRHS(Expression newRHS) {
+    if(!(newRHS instanceof LValue)) {
+      throw new IllegalArgumentException("IncrementCounter requires temp lvalue");
     }
-    return new IncrementCounter((TempVariable) newRHS);
+    return new IncrementCounter((LValue) newRHS);
   }
 
   @Override

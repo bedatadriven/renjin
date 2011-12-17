@@ -1,4 +1,4 @@
-package r.compiler.ir.tac.operand;
+package r.compiler.ir.tac.expressions;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,14 +20,14 @@ import r.lang.Symbol;
 /**
  * 
  */
-public class PrimitiveCall implements Operand {
+public class PrimitiveCall implements Expression {
 
   private Symbol name;
-  private final List<Operand> arguments;
+  private final List<Expression> arguments;
   private PrimitiveFunction function;
   private SEXP[] argumentValues;
   
-  public PrimitiveCall(Symbol name, List<Operand> arguments) {
+  public PrimitiveCall(Symbol name, List<Expression> arguments) {
     super();
     this.name = name;
     this.arguments = arguments;
@@ -45,7 +45,7 @@ public class PrimitiveCall implements Operand {
       return ((StrictPrimitiveFunction) function).applyStrict(context, context.getEnvironment(), argumentValues);
     } else {
       PairList.Builder argList = new PairList.Builder();
-      for(Operand operand : arguments) {
+      for(Expression operand : arguments) {
         argList.add((SEXP)operand.retrieveValue(context, temps));
       }
    
@@ -69,17 +69,17 @@ public class PrimitiveCall implements Operand {
   @Override
   public Set<Variable> variables() {
     Set<Variable> variables = Sets.newHashSet();
-    for(Operand operand : arguments) {
+    for(Expression operand : arguments) {
       variables.addAll(operand.variables());
     }
     return Collections.unmodifiableSet(variables);
   }
 
   @Override
-  public PrimitiveCall renameVariable(Variable name, Variable newName) {
-    List<Operand> newOps = Lists.newArrayListWithCapacity(arguments.size());
-    for(Operand argument : arguments) {
-      newOps.add(argument.renameVariable(name, newName));
+  public PrimitiveCall replaceVariable(Variable name, Variable newName) {
+    List<Expression> newOps = Lists.newArrayListWithCapacity(arguments.size());
+    for(Expression argument : arguments) {
+      newOps.add(argument.replaceVariable(name, newName));
     }
     return new PrimitiveCall(this.name, newOps);
   }  

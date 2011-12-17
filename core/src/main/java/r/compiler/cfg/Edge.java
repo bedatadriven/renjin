@@ -12,4 +12,9 @@ public class Edge {
     return backEdge;
   }
   
+  @Override
+  public String toString() {
+    return backEdge ? "backEdge" : "edge";
+  }
+  
 }

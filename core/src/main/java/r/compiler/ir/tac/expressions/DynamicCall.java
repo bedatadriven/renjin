@@ -1,4 +1,4 @@
-package r.compiler.ir.tac.operand;
+package r.compiler.ir.tac.expressions;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,12 +20,12 @@ import com.google.common.collect.Sets;
  * Function call that is invoked with the full R
  * flexibility, no assumptions are made...
  */
-public class DynamicCall implements Operand {
+public class DynamicCall implements Expression {
 
   private final Symbol name;
-  private final List<Operand> arguments;
+  private final List<Expression> arguments;
   
-  public DynamicCall(Symbol name, List<Operand> arguments) {
+  public DynamicCall(Symbol name, List<Expression> arguments) {
     this.name = name;
     this.arguments = arguments;
   }
@@ -34,7 +34,7 @@ public class DynamicCall implements Operand {
     return name;
   }
 
-  public List<Operand> getArguments() {
+  public List<Expression> getArguments() {
     return arguments;
   }
 
@@ -46,7 +46,7 @@ public class DynamicCall implements Operand {
     
     // build argument list 
     PairList.Builder argList = new PairList.Builder();
-    for(Operand operand : arguments) {
+    for(Expression operand : arguments) {
       argList.add((SEXP)operand.retrieveValue(context, temps));
     }
     PairList args = argList.build();
@@ -73,7 +73,7 @@ public class DynamicCall implements Operand {
   @Override
   public Set<Variable> variables() {
     Set<Variable> variables = Sets.newHashSet();
-    for(Operand operand : arguments) {
+    for(Expression operand : arguments) {
       variables.addAll(operand.variables());
     }
     return Collections.unmodifiableSet(variables);
@@ -91,10 +91,10 @@ public class DynamicCall implements Operand {
   }
 
   @Override
-  public Operand renameVariable(Variable name, Variable newName) {
-    List<Operand> newOps = Lists.newArrayListWithCapacity(arguments.size());
-    for(Operand argument : arguments) {
-      newOps.add(argument.renameVariable(name, newName));
+  public Expression replaceVariable(Variable name, Variable newName) {
+    List<Expression> newOps = Lists.newArrayListWithCapacity(arguments.size());
+    for(Expression argument : arguments) {
+      newOps.add(argument.replaceVariable(name, newName));
     }
     return new DynamicCall(this.name, newOps);
   } 

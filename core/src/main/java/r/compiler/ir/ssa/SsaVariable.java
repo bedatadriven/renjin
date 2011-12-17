@@ -3,8 +3,9 @@ package r.compiler.ir.ssa;
 import java.util.Collections;
 import java.util.Set;
 
-import r.compiler.ir.tac.operand.SimpleExpr;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.IRUtils;
+import r.compiler.ir.tac.expressions.SimpleExpression;
+import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
 
 public class SsaVariable implements Variable {
@@ -35,7 +36,7 @@ public class SsaVariable implements Variable {
   }
   
   @Override
-  public SimpleExpr renameVariable(Variable name, Variable newName) {
+  public SimpleExpression replaceVariable(Variable name, Variable newName) {
     return this.equals(name) ? newName : this;
   }
   
@@ -49,11 +50,7 @@ public class SsaVariable implements Variable {
     StringBuilder sb = new StringBuilder();
     sb.append(inner.toString());
     
-    String subscript = Integer.toString(version+1);
-    for(int i=0; i!=subscript.length(); ++i) {
-      int digit = subscript.charAt(i) - '0';
-      sb.appendCodePoint(0x2080 + digit);
-    }
+    IRUtils.appendSubscript(sb, version);
     
     return sb.toString();
   }

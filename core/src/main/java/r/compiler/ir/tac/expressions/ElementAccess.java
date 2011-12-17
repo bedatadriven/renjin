@@ -1,4 +1,4 @@
-package r.compiler.ir.tac.operand;
+package r.compiler.ir.tac.expressions;
 
 import java.util.Set;
 
@@ -11,18 +11,18 @@ import r.lang.Vector;
 /**
  * Extracts a single element from a vector.
  */
-public class ElementAccess implements Operand {
+public class ElementAccess implements Expression {
 
-  private final Operand vector;
-  private final Operand index;
+  private final Expression vector;
+  private final Expression index;
   
-  public ElementAccess(Operand vector, Operand index) {
+  public ElementAccess(Expression vector, Expression index) {
     super();
     this.vector = vector;
     this.index = index;
   }
 
-  public Operand getVector() {
+  public Expression getVector() {
     return vector;
   }
 
@@ -30,7 +30,7 @@ public class ElementAccess implements Operand {
    * @return the value holding the zero-based index of the
    * element to extract
    */
-  public Operand getIndex() {
+  public Expression getIndex() {
     return index;
   }
 
@@ -52,9 +52,9 @@ public class ElementAccess implements Operand {
   }
 
   @Override
-  public ElementAccess renameVariable(Variable name, Variable newName) {
+  public ElementAccess replaceVariable(Variable name, Variable newName) {
     return new ElementAccess(
-        vector.renameVariable(name, newName), 
-        index.renameVariable(name, newName));
+        vector.replaceVariable(name, newName), 
+        index.replaceVariable(name, newName));
   }
 }

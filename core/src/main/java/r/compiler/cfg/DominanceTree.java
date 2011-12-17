@@ -74,20 +74,28 @@ public class DominanceTree {
   
   private void buildTree() {
     for(BasicBlock n : cfg.getBasicBlocks()) {
-      BasicBlock d = getImmediateDominator(n);
+      BasicBlock d = calculateImmediateDominator(n);
       if(d != null) {
         tree.addEdge(new DominanceEdge(), d, n, EdgeType.DIRECTED);
       }
     }
   }
   
-  public BasicBlock getImmediateDominator(BasicBlock n) {
+  private BasicBlock calculateImmediateDominator(BasicBlock n) {
     for(BasicBlock d : strictDominators(n)) {
       if(dominatesImmediately(d, n)) {
         return d;
       }
     }
     return null;
+  }
+  
+  public BasicBlock getImmediateDominator(BasicBlock n) {
+    Collection<BasicBlock> parent = tree.getPredecessors(n);
+    if(parent.size() != 1) {
+      throw new IllegalArgumentException(n.toString());
+    }
+    return parent.iterator().next();
   }
   
   public boolean dominatesImmediately(BasicBlock d, BasicBlock n) {
@@ -188,5 +196,10 @@ public class DominanceTree {
 
   public Collection<BasicBlock> getChildren(BasicBlock x) {
     return tree.getSuccessors(x);
+  }
+  
+  @Override
+  public String toString() {
+    return tree.toString();
   }
 }

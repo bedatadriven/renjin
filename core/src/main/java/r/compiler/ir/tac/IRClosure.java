@@ -26,7 +26,7 @@ public class IRClosure extends Closure {
 
     ClosureDispatcher.matchArgumentsInto(getFormals(), args, functionContext, functionEnvironment);
 
-    SEXP result = function.getBlock().evaluate(functionContext);
+    SEXP result = function.getScope().evaluate(functionContext);
     functionContext.exit();
 
     return result;

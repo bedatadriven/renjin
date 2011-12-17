@@ -7,12 +7,12 @@ import java.util.Date;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import r.compiler.ir.optimize.StaticOptimizer;
 import r.lang.SEXP;
 import r.parser.RParser;
 
 public class IRProgramTest {
 
-  @Ignore("takes too long - should be moved to benchmarks")
   @Test
   public void meanOnline() throws IOException {
     
@@ -20,15 +20,18 @@ public class IRProgramTest {
     
     IRProgram program = new IRProgram(programExpression);
     
+    StaticOptimizer optimizer = new StaticOptimizer(program);
+    optimizer.optimize();
+    
     System.out.println(program.toString());
     
-    long start = new Date().getTime();
-    
-    program.evaluate();
-    
-    long end = new Date().getTime();
-    
-    System.out.println(end-start);
+//    long start = new Date().getTime();
+//    
+//    program.evaluate();
+//    
+//    long end = new Date().getTime();
+//    
+//    System.out.println(end-start);
     
   }
   

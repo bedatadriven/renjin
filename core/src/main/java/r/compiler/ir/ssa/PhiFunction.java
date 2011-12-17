@@ -3,15 +3,15 @@ package r.compiler.ir.ssa;
 import java.util.List;
 import java.util.Set;
 
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-public class PhiFunction implements Operand {
+public class PhiFunction implements Expression {
 
   private List<Variable> arguments;
   
@@ -45,7 +45,7 @@ public class PhiFunction implements Operand {
   }
 
   @Override
-  public Operand renameVariable(Variable name, Variable newName) {
+  public Expression replaceVariable(Variable name, Variable newName) {
     List<Variable> newArguments = Lists.newArrayList();
     for(Variable arg : arguments) {
       newArguments.add(arg.equals(name) ? newName : arg);

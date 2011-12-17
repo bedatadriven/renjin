@@ -1,4 +1,4 @@
-package r.compiler.ir.tac.operand;
+package r.compiler.ir.tac.expressions;
 
 import java.util.Collections;
 import java.util.Set;
@@ -6,7 +6,7 @@ import java.util.Set;
 import r.lang.Context;
 
 
-public class Constant implements SimpleExpr {
+public class Constant implements SimpleExpression {
 
   private Object value;
   
@@ -34,7 +34,7 @@ public class Constant implements SimpleExpr {
   }
 
   @Override
-  public Constant renameVariable(Variable name, Variable newName) {
+  public Constant replaceVariable(Variable name, Variable newName) {
     return this;
   }
 }

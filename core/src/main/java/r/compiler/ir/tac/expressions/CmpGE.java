@@ -1,4 +1,4 @@
-package r.compiler.ir.tac.operand;
+package r.compiler.ir.tac.expressions;
 
 import java.util.Set;
 
@@ -7,11 +7,11 @@ import com.google.common.collect.Sets;
 import r.lang.Context;
 import r.lang.Vector;
 
-public class CmpGE implements SimpleExpr {
-  private final Operand op1;
-  private final Operand op2;
+public class CmpGE implements SimpleExpression {
+  private final Expression op1;
+  private final Expression op2;
   
-  public CmpGE(Operand op1, Operand op2) {
+  public CmpGE(Expression op1, Expression op2) {
     super();
     this.op1 = op1;
     this.op2 = op2;
@@ -36,8 +36,8 @@ public class CmpGE implements SimpleExpr {
   }
 
   @Override
-  public CmpGE renameVariable(Variable name, Variable newName) {
-    return new CmpGE(op1.renameVariable(name, newName), 
-                     op2.renameVariable(name, newName));
+  public CmpGE replaceVariable(Variable name, Variable newName) {
+    return new CmpGE(op1.replaceVariable(name, newName), 
+                     op2.replaceVariable(name, newName));
   }
 }

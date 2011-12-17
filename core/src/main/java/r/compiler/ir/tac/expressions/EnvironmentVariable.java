@@ -1,4 +1,4 @@
-package r.compiler.ir.tac.operand;
+package r.compiler.ir.tac.expressions;
 
 import java.util.Collections;
 import java.util.Set;
@@ -8,7 +8,10 @@ import r.lang.SEXP;
 import r.lang.Symbol;
 import r.lang.exception.EvalException;
 
-public class EnvironmentVariable implements Variable, SimpleExpr {
+/**
+ * A {@code Variable} that is bound to the R {@code Environment}.
+ */
+public class EnvironmentVariable implements Variable {
 
   private final Symbol name;
   
@@ -65,7 +68,7 @@ public class EnvironmentVariable implements Variable, SimpleExpr {
   }
 
   @Override
-  public Variable renameVariable(Variable name, Variable newName) {
+  public Variable replaceVariable(Variable name, Variable newName) {
     if(this.equals(name)) {
       return newName;
     } else {

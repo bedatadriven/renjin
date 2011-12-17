@@ -12,8 +12,8 @@ import java.util.Map;
 
 import org.apache.commons.collections15.Transformer;
 
-import r.compiler.ir.tac.instructions.GotoStatement;
-import r.compiler.ir.tac.instructions.Statement;
+import r.compiler.ir.tac.statements.GotoStatement;
+import r.compiler.ir.tac.statements.Statement;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;

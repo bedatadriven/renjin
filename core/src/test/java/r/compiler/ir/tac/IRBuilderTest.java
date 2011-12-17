@@ -17,12 +17,12 @@ import r.parser.RParser;
 public class IRBuilderTest extends EvalTestCase {
 
   private IRFunctionTable functionTable = new IRFunctionTable();
-  private IRBlockBuilder factory = new IRBlockBuilder(functionTable); 
+  private IRScopeBuilder factory = new IRScopeBuilder(functionTable); 
   
   @Test
   public void simple() {
     ExpressionVector ast = RParser.parseSource("x + sqrt(x * y)\n");
-    IRBlock ir = factory.build(ast);
+    IRScope ir = factory.build(ast);
     
     factory.dump( ast );
   }
@@ -80,7 +80,7 @@ public class IRBuilderTest extends EvalTestCase {
   
   private SEXP evalIR(String text) {
     System.out.println("======= " + text + "================");
-    IRBlock block = build(text);
+    IRScope block = build(text);
     System.out.println(block.toString());    
     System.out.println();
     return block.evaluate(topLevelContext);
@@ -99,12 +99,12 @@ public class IRBuilderTest extends EvalTestCase {
   
   private void dump(String rcode) {
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
-    IRBlock ir = factory.build(ast);
+    IRScope ir = factory.build(ast);
     
     System.out.println(ir.toString());
   }
   
-  private IRBlock build(String rcode) {
+  private IRScope build(String rcode) {
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
     return factory.build(ast);
   }

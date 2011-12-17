@@ -1,0 +1,33 @@
+package r.compiler.ir.tac.expressions;
+
+import java.util.Collections;
+import java.util.Set;
+
+import r.lang.Context;
+
+/**
+ * A nullary expression (used by the Goto statement, for example,
+ * which as no rhs expression. (Not the same as a constant Null.INSTANCE !)
+ */
+
+public class NullExpression implements Expression {
+
+  public static final NullExpression INSTANCE = new NullExpression();
+  
+  private NullExpression() { }
+
+  @Override
+  public Object retrieveValue(Context context, Object[] temps) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Set<Variable> variables() {
+    return Collections.emptySet();
+  }
+
+  @Override
+  public Expression replaceVariable(Variable name, Variable newName) {
+    return this;
+  }
+}

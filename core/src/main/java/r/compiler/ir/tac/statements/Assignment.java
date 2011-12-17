@@ -1,31 +1,32 @@
-package r.compiler.ir.tac.instructions;
+package r.compiler.ir.tac.statements;
 
 import java.util.Collections;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.LValue;
+import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
 
 import com.google.common.collect.Sets;
 
 
 public class Assignment implements Statement {
-  private Variable lhs;
-  private Operand rhs;
+  private LValue lhs;
+  private Expression rhs;
  
-  public Assignment(Variable lhs, Operand rhs) {
+  public Assignment(LValue lhs, Expression rhs) {
     this.lhs = lhs;
     this.rhs = rhs;
   }
  
-  public Variable getLHS() {
+  public LValue getLHS() {
     return lhs;
   }
  
   @Override
-  public Operand getRHS() {
+  public Expression getRHS() {
     return rhs;
   }
 
@@ -46,7 +47,7 @@ public class Assignment implements Statement {
   }
   
   @Override
-  public Assignment withRHS(Operand newRHS) {
+  public Assignment withRHS(Expression newRHS) {
     return new Assignment(lhs, newRHS);
   }
 

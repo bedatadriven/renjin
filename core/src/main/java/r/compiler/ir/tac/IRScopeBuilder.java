@@ -3,22 +3,23 @@ package r.compiler.ir.tac;
 import java.util.List;
 import java.util.Map;
 
+import r.compiler.ir.tac.expressions.Constant;
+import r.compiler.ir.tac.expressions.DynamicCall;
+import r.compiler.ir.tac.expressions.EnvironmentVariable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.LocalVariable;
+import r.compiler.ir.tac.expressions.PrimitiveCall;
+import r.compiler.ir.tac.expressions.SimpleExpression;
+import r.compiler.ir.tac.expressions.Temp;
 import r.compiler.ir.tac.functions.FunctionCallTranslator;
 import r.compiler.ir.tac.functions.FunctionCallTranslators;
 import r.compiler.ir.tac.functions.TranslationContext;
-import r.compiler.ir.tac.instructions.Assignment;
-import r.compiler.ir.tac.instructions.ExprStatement;
-import r.compiler.ir.tac.instructions.GotoStatement;
-import r.compiler.ir.tac.instructions.IfStatement;
-import r.compiler.ir.tac.instructions.ReturnStatement;
-import r.compiler.ir.tac.instructions.Statement;
-import r.compiler.ir.tac.operand.Constant;
-import r.compiler.ir.tac.operand.DynamicCall;
-import r.compiler.ir.tac.operand.EnvironmentVariable;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.PrimitiveCall;
-import r.compiler.ir.tac.operand.SimpleExpr;
-import r.compiler.ir.tac.operand.TempVariable;
+import r.compiler.ir.tac.statements.Assignment;
+import r.compiler.ir.tac.statements.ExprStatement;
+import r.compiler.ir.tac.statements.GotoStatement;
+import r.compiler.ir.tac.statements.IfStatement;
+import r.compiler.ir.tac.statements.ReturnStatement;
+import r.compiler.ir.tac.statements.Statement;
 import r.lang.ExpressionVector;
 import r.lang.FunctionCall;
 import r.lang.Null;
@@ -30,9 +31,10 @@ import r.lang.Vector;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-public class IRBlockBuilder {
+public class IRScopeBuilder {
   
   private int nextTemp = 0;
+  private int nextLocalVariableIndex = 0;
   private int nextLabel = 0;
   
   private FunctionCallTranslators builders = new FunctionCallTranslators();
@@ -43,30 +45,30 @@ public class IRBlockBuilder {
   
   private IRFunctionTable functionTable;
   
-  public IRBlockBuilder(IRFunctionTable functionTable) {
+  public IRScopeBuilder(IRFunctionTable functionTable) {
     this.functionTable = functionTable;
   }
   
-  public IRBlock build(SEXP exp) {
+  public IRScope build(SEXP exp) {
     
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
     
     TranslationContext context = new TopLevelContext();
-    Operand returnValue = translateExpression(context, exp);
+    Expression returnValue = translateExpression(context, exp);
     
     addStatement(new ReturnStatement(returnValue));
    
     removeRedundantJumps();
     
-    return new IRBlock(statements, labels, nextTemp);
+    return new IRScope(statements, labels, nextTemp);
   }
   
   public void dump(SEXP exp) {
     System.out.println( build(exp ).toString());
   }
 
-  public Operand translateExpression(TranslationContext context, SEXP exp) {
+  public Expression translateExpression(TranslationContext context, SEXP exp) {
     if(exp instanceof ExpressionVector) {
       return translateExpressionList(context, (ExpressionVector)exp);
     } else if(exp instanceof Vector) {
@@ -98,7 +100,7 @@ public class IRBlockBuilder {
     }
   }
   
-  public Operand translateCall(TranslationContext context, FunctionCall call) {
+  public Expression translateCall(TranslationContext context, FunctionCall call) {
     Symbol name = (Symbol)call.getFunction();
     if(name.isReservedWord()) {
       return new PrimitiveCall(name, makeOperandList(context, call));
@@ -107,29 +109,29 @@ public class IRBlockBuilder {
     }
   }
 
-  private List<Operand> makeOperandList(TranslationContext context, FunctionCall call) {
-    List<Operand> arguments = Lists.newArrayList();
+  private List<Expression> makeOperandList(TranslationContext context, FunctionCall call) {
+    List<Expression> arguments = Lists.newArrayList();
     for(SEXP arg : call.getArguments().values()) {
       arguments.add( simplify( translateExpression(context, arg) ));
     }
     return arguments;
   }
 
-  public SimpleExpr simplify(Operand rvalue) {
-    if(rvalue instanceof SimpleExpr) {
-      return (SimpleExpr) rvalue;
+  public SimpleExpression simplify(Expression rvalue) {
+    if(rvalue instanceof SimpleExpression) {
+      return (SimpleExpression) rvalue;
     } else {
-      TempVariable temp = newTemp();
+      Temp temp = newTemp();
       addStatement(new Assignment(temp, rvalue));
       return temp;      
     }
   }
 
-  public SimpleExpr translateSimpleExpression(TranslationContext context, SEXP exp) {
+  public SimpleExpression translateSimpleExpression(TranslationContext context, SEXP exp) {
     return simplify(translateExpression(context, exp));
   }
   
-  private Operand translateExpressionList(TranslationContext context, ExpressionVector vector) {
+  private Expression translateExpressionList(TranslationContext context, ExpressionVector vector) {
     if(vector.length() == 0) {
       return new Constant(Null.INSTANCE);
     } else {
@@ -140,8 +142,12 @@ public class IRBlockBuilder {
     }
   }
   
-  public TempVariable newTemp() {
-    return new TempVariable(nextTemp++);
+  public Temp newTemp() {
+    return new Temp(nextTemp++);
+  }
+  
+  public LocalVariable newLocalVariable() {
+    return new LocalVariable("\u039b" + (nextLocalVariableIndex++), nextTemp++);
   }
   
   public IRLabel newLabel() {
@@ -212,5 +218,4 @@ public class IRBlockBuilder {
   private static class TopLevelContext implements TranslationContext {
     
   }
-  
 }

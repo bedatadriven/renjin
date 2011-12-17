@@ -1,10 +1,10 @@
 package r.compiler.ir.tac.functions;
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.IRBlockBuilder;
-import r.compiler.ir.tac.instructions.GotoStatement;
-import r.compiler.ir.tac.operand.Constant;
-import r.compiler.ir.tac.operand.Operand;
+import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.expressions.Constant;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.statements.GotoStatement;
 import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.Symbol;
@@ -17,13 +17,13 @@ public class RepeatTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Operand translateToExpression(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
+  public Expression translateToExpression(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
     addStatement(builder, context, call);
     return new Constant(Null.INSTANCE);
   }
 
   @Override
-  public void addStatement(IRBlockBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
     IRLabel beginLabel = builder.addLabel();
     IRLabel exitLabel = builder.newLabel();
     

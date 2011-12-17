@@ -1,34 +1,34 @@
-package r.compiler.ir.tac.instructions;
+package r.compiler.ir.tac.statements;
 
 import java.util.Arrays;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.SimpleExpr;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.SimpleExpression;
+import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
 import r.lang.Logical;
 import r.lang.SEXP;
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {
   
-  private SimpleExpr condition;
+  private SimpleExpression condition;
   private IRLabel trueTarget;
   private IRLabel falseTarget;
   
-  public IfStatement(SimpleExpr condition, IRLabel trueTarget, IRLabel falseTarget) {
+  public IfStatement(SimpleExpression condition, IRLabel trueTarget, IRLabel falseTarget) {
     this.condition = condition;
     this.trueTarget = trueTarget;
     this.falseTarget = falseTarget;
   }
 
-  public SimpleExpr getCondition() {
+  public SimpleExpression getCondition() {
     return condition;
   }
   
   @Override
-  public Operand getRHS() {
+  public Expression getRHS() {
     return condition;
   }
   
@@ -69,11 +69,11 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
   
   @Override
-  public Statement withRHS(Operand newRHS) {
-    if(!(newRHS instanceof SimpleExpr)) {
+  public Statement withRHS(Expression newRHS) {
+    if(!(newRHS instanceof SimpleExpression)) {
       throw new IllegalArgumentException("if statement requires simple rhs");
     }
-    return new IfStatement((SimpleExpr) newRHS, trueTarget, falseTarget);
+    return new IfStatement((SimpleExpression) newRHS, trueTarget, falseTarget);
   }
 
   private boolean toBoolean(Object obj) {

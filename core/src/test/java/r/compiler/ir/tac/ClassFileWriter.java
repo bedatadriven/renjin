@@ -42,10 +42,10 @@ import org.objectweb.asm.Opcodes;
 public class ClassFileWriter {
 
   ClassWriter cw = new ClassWriter(0);
-  private IRBlock block;
+  private IRScope block;
 
   
-  public ClassFileWriter(IRBlock block, String className) {
+  public ClassFileWriter(IRScope block, String className) {
     this.block = block;
     cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, 
         "java/lang/Object", new String[] { "r/compiler/CompiledBlock" });

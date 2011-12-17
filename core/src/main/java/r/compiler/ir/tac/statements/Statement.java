@@ -1,10 +1,10 @@
-package r.compiler.ir.tac.instructions;
+package r.compiler.ir.tac.statements;
 
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.operand.Operand;
-import r.compiler.ir.tac.operand.Variable;
+import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
 
 public interface Statement {
@@ -15,8 +15,8 @@ public interface Statement {
   
   Set<Variable> variables();
     
-  Operand getRHS();
+  Expression getRHS();
 
-  Statement withRHS(Operand newRHS);
+  Statement withRHS(Expression newRHS);
 
 }

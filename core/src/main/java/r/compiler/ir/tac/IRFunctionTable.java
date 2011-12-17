@@ -14,8 +14,8 @@ public class IRFunctionTable implements Iterable<IRFunction> {
   
   public IRFunction newFunction(PairList formals, SEXP body) {
     
-    IRBlockBuilder blockBuilder = new IRBlockBuilder(this);
-    IRBlock block = blockBuilder.build(body);
+    IRScopeBuilder blockBuilder = new IRScopeBuilder(this);
+    IRScope block = blockBuilder.build(body);
     
     IRFunction irFunction = new IRFunction(formals, body, block);
     functions.add(irFunction);
@@ -27,6 +27,10 @@ public class IRFunctionTable implements Iterable<IRFunction> {
   @Override
   public Iterator<IRFunction> iterator() {
     return functions.iterator();
+  }
+
+  public Iterable<IRFunction> getFunctions() {
+    return functions;
   }
   
 }

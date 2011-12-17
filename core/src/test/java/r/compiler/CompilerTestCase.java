@@ -10,8 +10,8 @@ import org.hamcrest.TypeSafeMatcher;
 
 import r.compiler.cfg.BasicBlock;
 import r.compiler.cfg.ControlFlowGraph;
-import r.compiler.ir.tac.IRBlock;
-import r.compiler.ir.tac.IRBlockBuilder;
+import r.compiler.ir.tac.IRScope;
+import r.compiler.ir.tac.IRScopeBuilder;
 import r.compiler.ir.tac.IRFunctionTable;
 import r.lang.ExpressionVector;
 import r.parser.RParser;
@@ -23,14 +23,14 @@ public class CompilerTestCase {
 
   protected IRFunctionTable functionTable = new IRFunctionTable();
 
-  protected IRBlock buildBody(String rcode) {
+  protected IRScope buildScope(String rcode) {
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
-    return new IRBlockBuilder(functionTable).build(ast);
+    return new IRScopeBuilder(functionTable).build(ast);
   }  
   
 
-  protected final IRBlock parseCytron() throws IOException {
-    return buildBody(Resources.toString(Resources.getResource(ControlFlowGraph.class, "cytron.R"), Charsets.UTF_8));
+  protected final IRScope parseCytron() throws IOException {
+    return buildScope(Resources.toString(Resources.getResource(ControlFlowGraph.class, "cytron.R"), Charsets.UTF_8));
   }
   
   protected final Matcher<Collection<BasicBlock>> itemsEqualTo(final BasicBlock... blocks) {

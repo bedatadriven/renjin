@@ -1,6 +1,6 @@
 package r.compiler.ir.tac;
 
-import r.compiler.ir.tac.instructions.Assignment;
+import r.compiler.ir.tac.statements.Assignment;
 
 public interface TacVisitor {
 

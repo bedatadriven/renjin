@@ -21,7 +21,7 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     System.out.println(cfg);
     
     List<BasicBlock> basicBlocks = cfg.getBasicBlocks();
-    assertThat(basicBlocks.size(), equalTo(2));
+    assertThat(basicBlocks.size(), equalTo(3));  // 1 + exit + entry = 3
     assertThat(basicBlocks.get(0).getStatements().size(), equalTo(block.getStatements().size()));
   }
   
@@ -36,7 +36,7 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     System.out.println(cfg);
 
     List<BasicBlock> basicBlocks = cfg.getBasicBlocks();
-    assertThat(basicBlocks.size(), equalTo(6));
+    assertThat(basicBlocks.size(), equalTo(7));
   }
   
   @Test

@@ -418,7 +418,7 @@ public class CDefines {
   }
   
   public static SEXP eval(SEXP exp, Context context, SEXP rho) {
-    return exp.evaluate(context, (Environment)rho);
+    return context.evaluate(exp, (Environment)rho);
   }
 
   public static SexpType TYPEOF(SEXP exp) {

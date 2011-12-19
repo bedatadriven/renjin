@@ -127,7 +127,7 @@ public class Sequences {
     // evaluate the first arg
     ArgumentIterator argIt = new ArgumentIterator(context, rho, arguments);
     PairList.Node firstArgNode = argIt.nextNode();
-    SEXP firstArg = firstArgNode.getValue().evaluate(context, rho);
+    SEXP firstArg = context.evaluate( firstArgNode.getValue(), rho);
     if(firstArg.isObject()) {
       SEXP result = WrapperRuntime.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
       if(result != null) {
@@ -140,7 +140,7 @@ public class Sequences {
     evaled.add(firstArgNode.getRawTag(), firstArg);
     while(argIt.hasNext()) {
       PairList.Node node = argIt.nextNode();
-      evaled.add(node.getRawTag(), node.getValue().evaluate(context, rho));
+      evaled.add(node.getRawTag(), context.evaluate( node.getValue(), rho));
     }
     
     // declare formals
@@ -321,16 +321,16 @@ public class Sequences {
     SEXP along = matched.findByTag(Symbol.get("along.with"));
 
     if(from!=Symbol.MISSING_ARG) {
-      from = from.evaluate(context, rho);
+      from = context.evaluate( from, rho);
     }
     if(to!=Symbol.MISSING_ARG) {
-      to = to.evaluate(context, rho);
+      to = context.evaluate(to, rho);
     }
     if(by!=Symbol.MISSING_ARG) {
-      by = by.evaluate(context, rho);
+      by = context.evaluate( by, rho );
     }
     if(len!=Symbol.MISSING_ARG) {
-      len = len.evaluate(context, rho);
+      len = context.evaluate( len, rho);
     }
 
     return doSeq(from, to, by, len, along, One);

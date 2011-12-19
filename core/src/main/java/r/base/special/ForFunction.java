@@ -34,13 +34,13 @@ public class ForFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
    PairList args = call.getArguments();
     Symbol symbol = (Symbol) args.getElementAsSEXP(0);
-    Vector elements = (Vector) args.getElementAsSEXP(1).evaluate(context, rho);
+    Vector elements = (Vector) context.evaluate( args.getElementAsSEXP(1), rho);
     SEXP statement = args.getElementAsSEXP(2);
 
     for(int i=0; i!=elements.length(); ++i) {
       try {
         rho.setVariable(symbol, elements.getElementAsSEXP(i));
-        statement.evaluate(context, rho);
+        context.evaluate( statement, rho);
       } catch (BreakException e) {
         break;
       } catch (NextException e) {

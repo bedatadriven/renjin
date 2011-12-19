@@ -237,25 +237,7 @@ public final class Symbol extends AbstractSEXP {
   public String getPrintName() {
     return printName;
   }
-
-  @Override
-  public SEXP evaluate(Context context, Environment rho) {
-    context.clearInvisibleFlag();
-
-    if(this == Symbol.MISSING_ARG) {
-      return this;
-    }
-    SEXP value = rho.findVariable(this);
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException(String.format("object '%s' not found", printName));
-    } 
-    if(value instanceof Promise) {
-      return value.evaluate(context, rho);
-    } else {
-      return value;
-    }
-  }
-
+  
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);

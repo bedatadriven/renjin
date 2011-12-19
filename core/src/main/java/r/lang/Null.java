@@ -70,11 +70,6 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
-  public SEXP evaluate(Context context, Environment rho) {
-    return this;
-  }
-
-  @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }

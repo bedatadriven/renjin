@@ -266,7 +266,7 @@ public class Connections {
       Symbol name = Symbol.get(names.getElement(i));
 
       // c(pos, length) of the serialized object
-      SEXP value = values.get(i).evaluate(context, (Environment) eenv);
+      SEXP value = context.evaluate( values.get(i), (Environment) eenv);
 
       // create a new call, replacing the first argument with the
       // provided arg
@@ -313,7 +313,7 @@ public class Connections {
       @Override
       public SEXP restore(SEXP values) {
         FunctionCall call = FunctionCall.newCall(restoreFunction, values);
-        return call.evaluate(context, context.getGlobalEnvironment());
+        return context.evaluate(call);
       }
     });
 

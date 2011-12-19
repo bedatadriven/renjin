@@ -449,12 +449,7 @@ public interface PairList extends SEXP {
     public static Builder buildList(Symbol tag, SEXP value) {
       return new Builder().add(tag, value);
     }
-
-    @Override
-    public SEXP evaluate(Context context, Environment rho) {
-      return this;
-    }
-
+    
     @Override
     public void accept(SexpVisitor visitor) {
       visitor.visit(this);

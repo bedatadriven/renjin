@@ -70,10 +70,6 @@ public class Promise extends AbstractSEXP implements Recursive {
     this.result = result;
   }
 
-  @Override
-  public SEXP evaluate(Context context, Environment rho) {
-    return force();
-  }
 
   /**
    * Forces the evaluation of this Promise, if it has not already
@@ -83,7 +79,7 @@ public class Promise extends AbstractSEXP implements Recursive {
    */
   public SEXP force() {
     if (result == null) {
-      this.result = expression.evaluate(this.context, environment);
+      this.result = this.context.evaluate(expression, environment);
       this.environment = null;
       this.context = null;
     }

@@ -33,7 +33,7 @@ public class ReturnFunction extends SpecialFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     if(call.getArguments().length() > 0) {
-      throw new ReturnException(rho, call.evalArgument(context, rho, 0));
+      throw new ReturnException(rho, context.evaluate(call.getArgument(0), rho));
     } else {
       throw new ReturnException(rho, Null.INSTANCE);
     }

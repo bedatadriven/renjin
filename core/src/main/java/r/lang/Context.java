@@ -21,16 +21,7 @@
 
 package r.lang;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
-import r.lang.graphics.ColorPalette;
-import r.lang.graphics.GraphicsDevices;
-import r.parser.RParser;
-import r.util.FileSystemUtils;
+import static r.util.CDefines.eval;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,6 +30,20 @@ import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs.VFS;
+
+import r.lang.exception.EvalException;
+import r.lang.graphics.ColorPalette;
+import r.lang.graphics.GraphicsDevices;
+import r.parser.RParser;
+import r.util.FileSystemUtils;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Contexts are the internal mechanism used to keep track of where a
@@ -199,7 +204,7 @@ public class Context {
       securityManager = new SecurityManager();
     }
 
-    /**
+    /** 
      * Sets the paths in which to search for libraries. This is by default based
      * on the java classpath. (See {@link r.util.FileSystemUtils#defaultLibraryPaths()} )
      *
@@ -344,6 +349,84 @@ public class Context {
     context.globals = globals;
     return context;
   }
+  
+  public SEXP evaluate(SEXP expression) {
+    return evaluate(expression, environment);
+  }
+  
+  public SEXP evaluate(SEXP expression, Environment rho) {
+    if(expression instanceof Symbol) {
+      return evaluateSymbol((Symbol)expression, rho);
+    } else if(expression instanceof ExpressionVector) {
+      return evaluateExpressionVector((ExpressionVector) expression, rho);
+    } else if(expression instanceof FunctionCall) {
+      return evaluateCall((FunctionCall) expression, rho);
+    } else if(expression instanceof Promise) {
+      return ((Promise) expression).force();
+    } else if(expression != Null.INSTANCE && expression instanceof PromisePairList) {
+      throw new EvalException("'...' used in an incorrect context");
+    } else {
+      clearInvisibleFlag();
+      return expression;
+    }
+  }
+  
+  private SEXP evaluateSymbol(Symbol symbol, Environment rho) {
+    clearInvisibleFlag();
+
+    if(symbol == Symbol.MISSING_ARG) {
+      return symbol;
+    }
+    SEXP value = rho.findVariable(symbol);
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
+    } 
+    if(value instanceof Promise) {
+      return evaluate(value, rho);
+    } else {
+      return value;
+    }
+  }
+  
+  private SEXP evaluateExpressionVector(ExpressionVector expressionVector, Environment rho) {
+    if(expressionVector.length() == 0) {
+      setInvisibleFlag();
+      return Null.INSTANCE;
+    } else {
+      SEXP result = Null.INSTANCE;
+      for(SEXP sexp : expressionVector) {
+        result = evaluate(sexp, rho);
+      }
+      return result;
+    }
+  }
+  
+  private SEXP evaluateCall(FunctionCall call, Environment rho) {
+    clearInvisibleFlag();
+    Function functionExpr = evaluateFunction(call.getFunction(), rho);
+    return  functionExpr.apply(this, rho, call, call.getArguments());
+  }
+
+  private Function evaluateFunction(SEXP functionExp, Environment rho) {
+    if(functionExp instanceof Symbol) {
+      Symbol symbol = (Symbol) functionExp;
+      Function fn = rho.findFunction(symbol);
+      if(fn == null) {
+        throw new EvalException("could not find function '%s'", symbol.getPrintName());      
+      }
+      return fn;
+    } else {
+      SEXP evaluated = evaluate(functionExp, rho);
+      if(evaluated instanceof Promise) {
+        evaluated = ((Promise) evaluated).force();
+      }
+      if(!(evaluated instanceof Function)) {
+        throw new EvalException("'function' of lang expression is of unsupported type '%s'", functionExp.getTypeName());
+      }
+      return (Function)evaluated;
+    }
+  }
+
 
   /**
    *
@@ -458,7 +541,7 @@ public class Context {
    */
   public void exit() {
     for(SEXP exp : onExit) {
-      exp.evaluate(this, environment);
+      evaluate(exp, environment);
     }
   }
 
@@ -503,21 +586,21 @@ public class Context {
     executeStartupProfile();
 
     // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
-    FunctionCall.newCall(Symbol.get(".First.sys")).evaluate(this, environment);
+    evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
   }
 
   public void loadBasePackage() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadingScript = RParser.parseSource(reader).evaluate(this, globals.baseNamespaceEnv);
+    SEXP loadingScript = evaluate(RParser.parseSource(reader), globals.baseNamespaceEnv);
     reader.close();
-    loadingScript.evaluate(this, globals.baseNamespaceEnv);
+    evaluate(loadingScript, globals.baseNamespaceEnv);
   }
 
   public void executeStartupProfile() throws IOException {
     Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/Rprofile"));
-    SEXP profileScript = RParser.parseSource(reader).evaluate(this, globals.baseNamespaceEnv);
+    SEXP profileScript = evaluate(RParser.parseSource(reader), globals.baseNamespaceEnv);
     reader.close();
-    profileScript.evaluate(this, globals.baseNamespaceEnv);
+    evaluate(profileScript, globals.baseNamespaceEnv);
   }
   
   public void setInvisibleFlag() {

@@ -77,9 +77,8 @@ public class WrapperRuntime {
       if(provided instanceof Promise) {
         provided = ((Promise) provided).force();
       }
-      return (Vector) FunctionCall
-        .newCall(Symbols.AS_CHARACTER, provided)
-          .evaluate(context, rho);
+      return (Vector) context.evaluate( FunctionCall
+        .newCall(Symbols.AS_CHARACTER, provided), rho);
     }
   }
 
@@ -209,7 +208,7 @@ public class WrapperRuntime {
     args = firstArg.getNext();
     
     for(PairList.Node node : args.nodes()) {
-      newArgs.add(node.getRawTag(), node.getValue().evaluate(context, rho));
+      newArgs.add(node.getRawTag(), context.evaluate( node.getValue(), rho));
     }
     
     return newArgs.build();

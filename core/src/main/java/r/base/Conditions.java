@@ -153,7 +153,7 @@ public class Conditions {
         SEXP handler = context.getConditionHandler(conditionClass);
         if(handler != null) {
           FunctionCall handlerCall = FunctionCall.newCall(handler, condition);
-          handlerCall.evaluate(context, context.getEnvironment());
+          context.evaluate(handlerCall);
           return;
         }
       }

@@ -90,9 +90,9 @@ public class IRBuilderTest extends EvalTestCase {
   @Test
   public void closureBody() throws IOException {
     topLevelContext.init();
-    RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R")))
-    .evaluate(topLevelContext, topLevelContext.getEnvironment());
-   
+    topLevelContext.evaluate(
+    RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R"))));
+    
     Closure closure = (Closure) topLevelContext.getGlobalEnvironment().getVariable("mean.online");
     factory.dump(closure.getBody());
   }

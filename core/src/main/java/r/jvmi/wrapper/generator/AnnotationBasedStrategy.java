@@ -325,7 +325,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     s.writeStatement("evaled = value");
     s.outdent();
     s.writeBeginBlock("} else {");
-    s.writeStatement("evaled = value.evaluate(context, rho)");
+    s.writeStatement("evaled = context.evaluate( value, rho)");
     s.writeCloseBlock();
     s.writeBeginBlock("if(node.hasTag()) {");
   

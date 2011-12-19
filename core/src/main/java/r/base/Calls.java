@@ -49,7 +49,7 @@ public class Calls {
   public static PairList evaluateList(Context context, Environment rho, PairList args) {
     PairList.Builder evaled = new PairList.Builder();
     for(PairList.Node node : args.nodes()) {
-      evaled.add(node.getRawTag(), node.getValue().evaluate(context, rho));
+      evaled.add(node.getRawTag(), context.evaluate( node.getValue(), rho));
     }
     return evaled.build();
   }
@@ -287,7 +287,7 @@ public class Calls {
         functionEnvironment.setVariable(name, suppliedEnvironment.getVariable(name));
       }
 
-      SEXP result = closure.getBody().evaluate(functionContext, functionEnvironment);
+      SEXP result = functionContext.evaluate( closure.getBody(), functionEnvironment);
 
       functionContext.exit();
 

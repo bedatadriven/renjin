@@ -113,7 +113,7 @@ public class RenjinScriptEngine implements ScriptEngine {
   }
   
   private Object eval(Context context, SEXP source) {
-    return source.evaluate(context, context.getEnvironment());
+    return context.evaluate( source, context.getEnvironment());
   }
 
   private Context unwrapContext(ScriptContext scriptContext) {

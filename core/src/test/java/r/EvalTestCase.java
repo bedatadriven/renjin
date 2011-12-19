@@ -87,7 +87,7 @@ public abstract class EvalTestCase {
       source = source + "\n";
     }
     SEXP exp = parse(source);
-    return exp.evaluate(topLevelContext, global);
+    return topLevelContext.evaluate( exp );
   }
 
   private SEXP parse(String source)  {

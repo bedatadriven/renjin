@@ -46,7 +46,7 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
     ArgumentIterator argIt = new ArgumentIterator(context, rho, args);
     while(argIt.hasNext()) {
       PairList.Node node = argIt.nextNode();
-      SEXP evaled = node.getValue().evaluate(context, rho);
+      SEXP evaled = context.evaluate( node.getValue(), rho);
       
       if(node.hasTag()) {
         propertyValues.put(node.getTag(), evaled);

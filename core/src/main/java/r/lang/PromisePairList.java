@@ -39,11 +39,6 @@ public interface PromisePairList extends PairList {
     public String getTypeName() {
       return "...";
     }
-
-    @Override
-    public SEXP evaluate(Context context, Environment rho) {
-      throw new EvalException("'...' used in an incorrect context");
-    }
   }
   
   public static class Builder {

@@ -129,8 +129,8 @@ public class Evaluation {
   }
 
   public static ListVector lapply(@Current Context context, @Current Environment rho, FunctionCall call) {
-    Vector vector = (Vector) call.evalArgument(context, rho, 0);
-    Function function = (Function) call.evalArgument(context, rho, 1);
+    Vector vector = (Vector) context.evaluate(call.getArgument(0), rho);
+    Function function = (Function) context.evaluate(call.getArgument(1), rho);
 
     ListVector.Builder builder = ListVector.newBuilder();
     for(int i=0;i!=vector.length();++i) {
@@ -139,7 +139,7 @@ public class Evaluation {
       FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), (SEXP)vector, new IntVector(i+1));
       FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall,
           new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
-      builder.add( applyFunctionCall.evaluate(context, rho) );
+      builder.add( context.evaluate(applyFunctionCall, rho) );
     }
     builder.copySomeAttributesFrom(vector, Symbols.NAMES);
     return builder.build();
@@ -159,7 +159,7 @@ public class Evaluation {
   public static SEXP doCall(@Current Context context, Function what, ListVector arguments, Environment environment) {
     PairList argumentPairList = new PairList.Builder().addAll(arguments).build();
     FunctionCall call = new FunctionCall(what, argumentPairList);
-    return call.evaluate(context, environment);
+    return context.evaluate(call, environment);
   }
 
   @Primitive("do.call")
@@ -176,14 +176,14 @@ public class Evaluation {
     if(call.length() < 1) {
       throw new EvalException("first argument must be character string");
     }
-    SEXP name = call.evalArgument(context, rho, 0);
+    SEXP name = context.evaluate(call.getArgument(0), rho);
     if(!(name instanceof StringVector) || name.length() != 1) {
       throw new EvalException("first argument must be character string");
     }
 
     FunctionCall newCall = new FunctionCall(Symbol.get(((StringVector) name).getElementAsString(0)),
         ((PairList.Node)call.getArguments()).getNextNode());
-    return newCall.evaluate(context, rho);
+    return context.evaluate(newCall, rho);
   }
 
   public static SEXP eval(@Current Context context,
@@ -220,7 +220,7 @@ public class Evaluation {
     
     Context evalContext = context.beginEvalContext(rho);
     
-    SEXP result = expression.evaluate(evalContext, rho);
+    SEXP result = evalContext.evaluate( expression, rho);
     
     evalContext.exit();
     
@@ -355,7 +355,7 @@ public class Evaluation {
   }
   
   public static SEXP UseMethod(Context context, Environment rho, FunctionCall call) {
-    SEXP generic = call.evalArgument(context, rho, 0);
+    SEXP generic = context.evaluate(call.getArgument(0), rho);
     EvalException.check(generic.length() == 1 && generic instanceof StringVector,
         "first argument must be a character string");
 
@@ -364,9 +364,9 @@ public class Evaluation {
     Preconditions.checkArgument(context.getType() == Context.Type.FUNCTION);
     SEXP object;
     if(call.getArguments().length() >= 2) {
-      object = call.evalArgument(context, rho, 1);
+      object = context.evaluate(call.getArgument(1), rho);
     } else {
-      object = context.getArguments().getElementAsSEXP(0).evaluate(context,
+      object = context.evaluate( context.getArguments().getElementAsSEXP(0),
           context.getParent().getEnvironment());
     }
 
@@ -658,7 +658,7 @@ public class Evaluation {
         Symbol t = Symbol.get(sg);
         nextfun = env.findFunction(t);
         if ( nextfun instanceof Promise) {
-          nextfun = nextfun.evaluate(context, env);
+          nextfun = context.evaluate( nextfun, env);
         }
         if (!(nextfun instanceof Function)) {
           throw new EvalException("no method to invoke");
@@ -744,7 +744,7 @@ public class Evaluation {
       Symbol method = Symbol.get(genericName + "." + className);
       SEXP function = rho.findVariable(method);
       if(function != Symbol.UNBOUND_VALUE) {
-        function = function.evaluate(context, rho);
+        function = context.evaluate(function, rho);
 
         Frame extra = new HashFrame();
         extra.setVariable(Symbol.get(".Class"), Calls.computeDataClasses(object));

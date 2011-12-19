@@ -94,11 +94,10 @@ public class Interpreter implements Runnable {
         // clean up last warnings from any previous run
         clearWarnings();
         
-        SEXP result = exp.evaluate(topLevelContext, global);
+        SEXP result = topLevelContext.evaluate(exp, global);
 
         if(!topLevelContext.getGlobals().isInvisible()) {
-          FunctionCall.newCall(Symbol.get("print"), result)
-            .evaluate(topLevelContext, topLevelContext.getEnvironment());
+          topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));
           
         }
         
@@ -123,8 +122,8 @@ public class Interpreter implements Runnable {
   private void printWarnings() {
     SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
-      FunctionCall.newCall(Symbol.get("print.warnings"), warnings)
-        .evaluate(topLevelContext, topLevelContext.getEnvironment().getBaseEnvironment());
+      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+        topLevelContext.getEnvironment().getBaseEnvironment());
     }
   }
 

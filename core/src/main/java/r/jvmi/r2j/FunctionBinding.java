@@ -138,7 +138,7 @@ public class FunctionBinding {
     ArgumentIterator it = new ArgumentIterator(context, rho, arguments);
     int nargs = 0;
     while(it.hasNext()) {
-      args[nargs++] = it.next().evaluate(context, rho);
+      args[nargs++] = context.evaluate( it.next(), rho);
     }
     
     // find overload

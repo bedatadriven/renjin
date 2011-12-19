@@ -21,7 +21,6 @@
 
 package r.lang;
 
-import r.lang.exception.EvalException;
 
 /**
  * Expression representing a call to an R function, consisting of
@@ -46,35 +45,6 @@ public class FunctionCall extends PairList.Node {
   public String getTypeName() {
     return TYPE_NAME;
   }
-
-  @Override
-  public SEXP evaluate(Context context, Environment rho) {
-    context.clearInvisibleFlag();
-    Function functionExpr = evaluateFunction(context, rho);
-    return  functionExpr.apply(context, rho, this, getArguments());
-  }
-
-  private Function evaluateFunction(Context context, Environment rho) {
-    SEXP functionExp = getFunction();
-    if(functionExp instanceof Symbol) {
-      Symbol symbol = (Symbol) functionExp;
-      Function fn = rho.findFunction(symbol);
-      if(fn == null) {
-        throw new EvalException("could not find function '%s'", symbol.getPrintName());      
-      }
-      return fn;
-    } else {
-      SEXP evaluated = functionExp.evaluate(context, rho);
-      if(evaluated instanceof Promise) {
-        evaluated = ((Promise) evaluated).force();
-      }
-      if(!(evaluated instanceof Function)) {
-        throw new EvalException("'function' of lang expression is of unsupported type '%s'", functionExp.getTypeName());
-      }
-      return (Function)evaluated;
-    }
-  }
-
   public static SEXP fromListExp(PairList.Node listExp) {
     return new FunctionCall(listExp.value, listExp.nextNode);
   }
@@ -90,15 +60,10 @@ public class FunctionCall extends PairList.Node {
   public <X extends SEXP> X getArgument(int index) {
     return getArguments().<X>getElementAsSEXP(index);
   }
-
-  public SEXP evalArgument(Context context, Environment rho, int index) {
-    return getArgument(index).evaluate(context, rho);
-  }
-
+  
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
-
   }
 
   @Override
@@ -143,7 +108,4 @@ public class FunctionCall extends PairList.Node {
   public String getImplicitClass() {
     return IMPLICIT_CLASS;
   }
-  
-  
-
 }

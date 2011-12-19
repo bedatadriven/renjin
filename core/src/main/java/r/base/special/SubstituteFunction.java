@@ -40,7 +40,7 @@ public class SubstituteFunction extends SpecialFunction {
     SEXP exp = call.getArgument(0);
     Environment environment = rho;
     if(call.getArguments().length() == 2) {
-      environment =  EvalException.checkedCast(call.evalArgument(context, rho, 1));
+      environment =  EvalException.checkedCast(context.evaluate(call.getArgument(1), rho));
     }
 
     return substitute(exp, environment);

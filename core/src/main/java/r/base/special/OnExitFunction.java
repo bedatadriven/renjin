@@ -47,7 +47,7 @@ public class OnExitFunction extends SpecialFunction {
       SEXP value = call.getArgument(0);
       boolean add = false;
       if(call.getArguments().length() == 2) {
-        add = call.evalArgument(context, rho, 1).asReal() != 0;
+        add = context.evaluate(call.getArgument(1), rho).asReal() != 0;
       }
 
       if(add) {

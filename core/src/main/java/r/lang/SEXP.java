@@ -42,16 +42,6 @@ public interface SEXP {
 
   void accept(SexpVisitor visitor);
 
-  /**
-   * Evaluates this expression in the environment rho
-   *
-   *
-   * @param context
-   * @param rho the environment in which to evaluate the expression
-   * @return the result
-   */
-  SEXP evaluate(Context context, Environment rho);
-
 
   boolean isNumeric();
 

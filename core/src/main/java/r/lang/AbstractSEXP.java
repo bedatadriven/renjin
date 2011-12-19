@@ -80,26 +80,10 @@ public abstract class AbstractSEXP implements SEXP {
     }
   }
 
-
-  /**
-   * Evaluates this expression in the environment rho
-   *
-   *
-   * @param context
-   * @param rho the environment in which to evaluate the expression
-   * @return the result
-   */
-  @Override
-  public SEXP evaluate(Context context, Environment rho) {
-    context.clearInvisibleFlag();
-    return this;
-  }
-
   @Override
   public boolean isNumeric() {
     return false;
   }
-
 
   /**
    * Coerces this {@code SEXP} to a single logical value

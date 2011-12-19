@@ -77,7 +77,7 @@ public class ClosureDispatcher {
         dispatchChain.populateEnvironment(functionEnvironment);
       }
 
-      SEXP result = closure.getBody().evaluate(functionContext, functionEnvironment);
+      SEXP result = functionContext.evaluate( closure.getBody() );
       functionContext.exit();
 
       return result;

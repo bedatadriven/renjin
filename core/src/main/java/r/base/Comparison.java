@@ -40,13 +40,13 @@ public class Comparison {
    */
   public static Logical or(Context context, Environment rho, FunctionCall call) {
 
-    Logical x = checkedToLogical(call.evalArgument(context, rho, 0), "invalid 'x' type in 'x || y'");
+    Logical x = checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x || y'");
 
     if(x == Logical.TRUE) {
       return x;
     }
 
-    Logical y = checkedToLogical(call.evalArgument(context, rho, 1), "invalid 'y' type in 'x || y'");
+    Logical y = checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x || y'");
     if(y == Logical.TRUE) {
       return y;
     }
@@ -68,13 +68,13 @@ public class Comparison {
   @Primitive("&&")
   public static Logical and(Context context, Environment rho, FunctionCall call) {
 
-    Logical x = checkedToLogical(call.evalArgument(context, rho, 0), "invalid 'x' type in 'x && y'");
+    Logical x = checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x && y'");
 
     if(x == Logical.FALSE) {
       return Logical.FALSE;
     }
 
-    Logical y = checkedToLogical(call.evalArgument(context, rho, 1), "invalid 'y' type in 'x && y'");
+    Logical y = checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x && y'");
 
     if(y == Logical.FALSE) {
       return Logical.FALSE;

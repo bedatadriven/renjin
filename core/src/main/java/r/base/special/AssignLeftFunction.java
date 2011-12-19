@@ -52,7 +52,7 @@ public class AssignLeftFunction extends SpecialFunction {
     // x$a[3] <- 4
     // class(x$a[3]) <- "foo"
 
-    SEXP evaluatedValue = value.evaluate(context, rho);
+    SEXP evaluatedValue = context.evaluate( value, rho);
     SEXP rhs = new Promise(value, evaluatedValue);
 
     while(lhs instanceof FunctionCall) {
@@ -60,11 +60,11 @@ public class AssignLeftFunction extends SpecialFunction {
       Symbol getter = (Symbol) call.getFunction();
       Symbol setter = Symbol.get(getter.getPrintName() + "<-");
 
-      rhs = new FunctionCall(setter,
+      rhs = context.evaluate( new FunctionCall(setter,
           PairList.Node.newBuilder()
             .addAll(call.getArguments())
             .add("value", rhs)
-            .build()).evaluate(context, rho);
+            .build()), rho);
 
       lhs = call.getArgument(0);
     }

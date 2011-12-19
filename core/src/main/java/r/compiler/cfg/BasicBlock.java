@@ -7,6 +7,7 @@ import java.util.Set;
 import r.compiler.ir.ssa.PhiFunction;
 import r.compiler.ir.tac.IRScope;
 import r.compiler.ir.tac.IRLabel;
+import r.compiler.ir.tac.expressions.PrimitiveCall;
 import r.compiler.ir.tac.expressions.Variable;
 import r.compiler.ir.tac.statements.Assignment;
 import r.compiler.ir.tac.statements.GotoStatement;
@@ -44,6 +45,11 @@ public class BasicBlock {
     statements.set(i, newStmt);
     return newStmt;
   }
+ 
+  public void replaceStatement(int i, Statement stmt) {
+    statements.set(i, stmt);
+  }
+
   
   public List<Statement> getStatements() {
     return statements;

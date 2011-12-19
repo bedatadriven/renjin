@@ -1,6 +1,8 @@
 package r.compiler.ir.optimize;
 
-import javax.security.auth.login.Configuration;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 import r.compiler.cfg.ControlFlowGraph;
 import r.compiler.cfg.DominanceTree;
@@ -17,9 +19,14 @@ public class StaticOptimizer {
 
   
   private final IRProgram program;
+  private final List<IntraProcedureOptimization> ipOptimizations = Lists.newArrayList();
   
   public StaticOptimizer(IRProgram program) {
     this.program = program;
+  }
+
+  public void addOptimization(IntraProcedureOptimization optimization) {
+    ipOptimizations.add(optimization);
   }
   
   public void optimize() {

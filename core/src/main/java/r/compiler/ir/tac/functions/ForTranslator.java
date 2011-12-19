@@ -7,6 +7,7 @@ import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.ElementAccess;
 import r.compiler.ir.tac.expressions.EnvironmentVariable;
 import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.Increment;
 import r.compiler.ir.tac.expressions.LocalVariable;
 import r.compiler.ir.tac.expressions.PrimitiveCall;
 import r.compiler.ir.tac.expressions.Temp;
@@ -14,7 +15,6 @@ import r.compiler.ir.tac.expressions.Variable;
 import r.compiler.ir.tac.statements.Assignment;
 import r.compiler.ir.tac.statements.GotoStatement;
 import r.compiler.ir.tac.statements.IfStatement;
-import r.compiler.ir.tac.statements.IncrementCounter;
 import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.SEXP;
@@ -78,10 +78,9 @@ public class ForTranslator extends FunctionCallTranslator {
     
     // increment the counter
     factory.addLabel(nextLabel);
-    factory.addStatement(new IncrementCounter(counter));
+    factory.addStatement(new Assignment(counter, new Increment(counter)));
     factory.addStatement(new GotoStatement(counterLabel));
 
     factory.addLabel(exitLabel);
-
   }  
 }

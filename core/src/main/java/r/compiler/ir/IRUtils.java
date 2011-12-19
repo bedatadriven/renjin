@@ -10,4 +10,6 @@ public class IRUtils {
     }
   }
 
+  public static final String LEFT_ARROW = "\u2190";
+
 }

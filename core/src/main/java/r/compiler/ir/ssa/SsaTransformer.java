@@ -72,14 +72,16 @@ public class SsaTransformer {
       while(!W.isEmpty()) {
         BasicBlock X = W.poll();
         for(BasicBlock Y : dtree.getFrontier(X)) {
-          if(hasAlready.get(Y) < iterCount) {
-            Y.insertPhiFunction(V, cfg.getPredecessors(Y).size());
-            // place (V <- phi(V,..., V)) at Y
-            hasAlready.put(Y, iterCount);
-            if(work.get(Y) < iterCount) {
-              work.put(Y, iterCount);
-              W.add(Y);
-            }            
+          if(X != cfg.getExit()) {
+            if(hasAlready.get(Y) < iterCount) {
+              Y.insertPhiFunction(V, cfg.getPredecessors(Y).size());
+              // place (V <- phi(V,..., V)) at Y
+              hasAlready.put(Y, iterCount);
+              if(work.get(Y) < iterCount) {
+                work.put(Y, iterCount);
+                W.add(Y);
+              }            
+            }
           }
         }
       }

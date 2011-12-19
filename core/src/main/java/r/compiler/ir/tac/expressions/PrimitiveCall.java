@@ -35,6 +35,18 @@ public class PrimitiveCall implements Expression {
     this.argumentValues = new SEXP[arguments.size()];
   }
 
+  public PrimitiveCall(String name, Expression... arguments) {
+    this(Symbol.get(name), Lists.newArrayList(arguments));
+  }
+  
+  public Symbol getName() {
+    return name;
+  }
+  
+  public List<Expression> getArguments() {
+    return arguments;
+  }
+  
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
     // build argument list 

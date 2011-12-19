@@ -28,7 +28,7 @@ public class LocalVariable implements Variable {
   }
 
   @Override
-  public SimpleExpression replaceVariable(Variable name, Variable newName) {
+  public Variable replaceVariable(Variable name, Variable newName) {
     return this.equals(name) ? newName : this;
   }
 

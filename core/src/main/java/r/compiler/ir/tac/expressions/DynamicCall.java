@@ -22,16 +22,16 @@ import com.google.common.collect.Sets;
  */
 public class DynamicCall implements Expression {
 
-  private final Symbol name;
+  private final Variable function;
   private final List<Expression> arguments;
   
-  public DynamicCall(Symbol name, List<Expression> arguments) {
-    this.name = name;
+  public DynamicCall(Variable name, List<Expression> arguments) {
+    this.function = name;
     this.arguments = arguments;
   }
 
-  public Symbol getName() {
-    return name;
+  public Variable getName() {
+    return function;
   }
 
   public List<Expression> getArguments() {
@@ -42,7 +42,8 @@ public class DynamicCall implements Expression {
   public Object retrieveValue(Context context, Object[] temps) {
     
     // locate function object
-    Function function = findFunction(name, context);
+    EnvironmentVariable functionName = (EnvironmentVariable)function;
+    Function function = findFunction(functionName.getName(), context);
     
     // build argument list 
     PairList.Builder argList = new PairList.Builder();
@@ -50,7 +51,7 @@ public class DynamicCall implements Expression {
       argList.add((SEXP)operand.retrieveValue(context, temps));
     }
     PairList args = argList.build();
-    FunctionCall call = new FunctionCall(name, args);
+    FunctionCall call = new FunctionCall(functionName.getName(), args);
     
     return function.apply(context, context.getEnvironment(), call, args);
         
@@ -73,21 +74,16 @@ public class DynamicCall implements Expression {
   @Override
   public Set<Variable> variables() {
     Set<Variable> variables = Sets.newHashSet();
+    variables.addAll( function.variables() );
     for(Expression operand : arguments) {
-      variables.addAll(operand.variables());
+      variables.addAll( operand.variables() );
     }
     return Collections.unmodifiableSet(variables);
   }
 
   @Override
   public String toString() {
-    String statement;
-    if(name.getPrintName().equals(">") || name.getPrintName().equals("<")) {
-      statement = "dynamic< " + name + " >";
-    } else {
-      statement = "dynamic<" + name + ">";
-    }
-    return statement + "(" + Joiner.on(", ").join(arguments) + ")";
+    return "\u0394 " + function + "(" + Joiner.on(", ").join(arguments) + ")";
   }
 
   @Override
@@ -96,6 +92,8 @@ public class DynamicCall implements Expression {
     for(Expression argument : arguments) {
       newOps.add(argument.replaceVariable(name, newName));
     }
-    return new DynamicCall(this.name, newOps);
+    return new DynamicCall(
+        (Variable)this.function.replaceVariable(name, newName), 
+        newOps);
   } 
 }

@@ -2,9 +2,7 @@ package r.compiler.ir.tac;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Date;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import r.compiler.ir.optimize.StaticOptimizer;
@@ -16,7 +14,8 @@ public class IRProgramTest {
   @Test
   public void meanOnline() throws IOException {
     
-    SEXP programExpression = RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanVarOnline.R")));
+    SEXP programExpression = RParser.parseSource(new InputStreamReader(getClass()
+        .getResourceAsStream("/meanVarOnline.R")));
     
     IRProgram program = new IRProgram(programExpression);
     
@@ -34,6 +33,4 @@ public class IRProgramTest {
 //    System.out.println(end-start);
     
   }
-  
-  
 }

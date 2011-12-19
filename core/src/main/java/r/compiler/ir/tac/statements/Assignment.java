@@ -3,10 +3,13 @@ package r.compiler.ir.tac.statements;
 import java.util.Collections;
 import java.util.Set;
 
+import r.compiler.ir.IRUtils;
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.LValue;
 import r.compiler.ir.tac.expressions.Variable;
+import r.compiler.ir.tree.AssignmentNode;
+import r.compiler.ir.tree.TreeNode;
 import r.lang.Context;
 
 import com.google.common.collect.Sets;
@@ -57,6 +60,6 @@ public class Assignment implements Statement {
 
   @Override 
   public String toString() {
-    return getLHS() + " \u2190 " + rhs;
+    return getLHS() + " " + IRUtils.LEFT_ARROW + " "  + rhs;
   }
 }

@@ -1,7 +1,7 @@
 mean.online <- function(x) {
 	xbar <- x[1]
 	
-	for(n in seq(from = 2, to = length(x))) {
+	for(n in 2:length(x)) {
 		xbar <- ((n - 1) * xbar + x[n]) / n
 	}
 	
@@ -29,12 +29,8 @@ t.test.online <- function(x, y) { # 2-sample t-test
 	t <- sqrt(n) * sqrt(m) / sqrt(n + m) * (mean.online(x) - mean.online(y)) / sqrt(s2)
 	t
 }
-cat("starting...\n")
-start <- Sys.time()
-
 ### 
 #mean.online(log(seq(10e6)))
-
 
 ### 
 #var.online(log(seq(10e6)))
@@ -44,9 +40,4 @@ start <- Sys.time()
 x <- log(seq(10e5))
 y <- log(seq(10e5 + 5 * 10e5) - 0.5)
 
-cat(paste("t=",t.test.online(x, y),"\n"))
-
-cat("done 2\n");
-end <- Sys.time()
-
-print(end - start) 
+t.test.online(x, y)

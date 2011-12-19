@@ -75,7 +75,7 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
     }
     return new IfStatement((SimpleExpression) newRHS, trueTarget, falseTarget);
   }
-
+ 
   private boolean toBoolean(Object obj) {
     if(obj instanceof Boolean) {
       return (Boolean)obj;

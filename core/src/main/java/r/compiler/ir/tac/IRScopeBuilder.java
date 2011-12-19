@@ -105,7 +105,7 @@ public class IRScopeBuilder {
     if(name.isReservedWord()) {
       return new PrimitiveCall(name, makeOperandList(context, call));
     } else {
-      return new DynamicCall(name, makeOperandList(context, call));
+      return new DynamicCall(new EnvironmentVariable(name), makeOperandList(context, call));
     }
   }
 

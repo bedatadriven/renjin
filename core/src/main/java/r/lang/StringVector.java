@@ -248,7 +248,8 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
 
   private int indexOf(String value, int startIndex) {
     for(int i=startIndex;i<values.length;++i) {
-      if(values[i].equals(value)) {
+      String value_i = values[i];
+      if(value_i != null && value_i.equals(value)) {
         return i;
       }
     }

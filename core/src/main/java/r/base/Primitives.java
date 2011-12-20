@@ -19,6 +19,7 @@ import r.jvmi.wrapper.WrapperGenerator;
 import r.lang.PrimitiveFunction;
 import r.lang.SpecialFunction;
 import r.lang.Symbol;
+import r.lang.exception.EvalException;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -82,7 +83,7 @@ public class Primitives {
       return (PrimitiveFunction) Class.forName(WrapperGenerator.toFullJavaName(entry.name)).newInstance();
       //java.lang.System.out.println("Loaded generated wrapper for " + entry.name);
     } catch(Exception e) {
-      throw new IllegalStateException("Cannot load primitive invoker for builtin " + entry.name);
+      throw new EvalException("Sorry! Not yet implemented: " + entry.name);
     }
   }
   

@@ -86,7 +86,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
     restoreGlobals(context);
     SEXP result;
     try {
-      result = expression.evaluate(context, context.getEnvironment());
+      result = context.evaluate(expression);
     } catch(EvalException e) {
       log.log(Level.WARNING, "Evaluation failed", e);
       throw new InterpreterException(e.getMessage());
@@ -95,8 +95,8 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
 
 
     if(!context.getGlobals().isInvisible()) {
-      FunctionCall.newCall(Symbol.get("print"), result)
-        .evaluate(context, context.getEnvironment());
+    	context.evaluate(
+    	FunctionCall.newCall(Symbol.get("print"), result));
     }
 
     context.getGlobals().stdout.flush();

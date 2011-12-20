@@ -241,6 +241,14 @@ public class BasePackageTest extends EvalTestCase {
     
     assertThat( eval("class(gender) "), equalTo(c("factor")));
   }
+  
+  @Test
+  public void factorPrint() throws IOException {
+    topLevelContext.init();
+    
+    eval(" gender <- factor(c('F','F','F','F', 'M','M','M'))");
+    eval(" print(gender) ");
+  }
 
   @Test
   public void parentFrameFromWithinEval() throws IOException {

@@ -561,6 +561,15 @@ public class Types {
   public static SEXP setAttributes(SEXP exp, ListVector attributes) {
     return exp.setAttributes(attributes);
   }
+  
+  @Primitive("attributes<-")
+  public static SEXP setAttributes(SEXP exp, PairList list) {
+    if(list == Null.INSTANCE) {
+      return exp.setAttributes(ListVector.EMPTY);
+    } else {
+      return exp.setAttributes(((PairList.Node)list).toVector());
+    }
+  }
 
   public static ListVector list(@ArgumentList ListVector arguments) {
     return arguments;

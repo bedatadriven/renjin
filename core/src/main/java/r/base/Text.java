@@ -86,6 +86,13 @@ public class Text {
     }
   }
 
+  @Primitive("encodeString")
+  public static StringVector encodeString(StringVector x, int width, String quote, 
+      int justify, boolean naEncode) {
+    
+    return x;
+  }
+  
   @Primitive("file.path")
   public static StringVector filePath(ListVector components, String fileSeparator) {
     return paste(components, fileSeparator, null);

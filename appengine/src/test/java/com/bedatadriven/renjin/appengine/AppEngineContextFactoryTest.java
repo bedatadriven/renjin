@@ -47,7 +47,7 @@ public class AppEngineContextFactoryTest {
         FileSystemUtils.workingDirectory(fsm));
     context.init();
 
-    Symbol.get("search").evaluate(context, context.getEnvironment());
+    context.evaluate( Symbol.get("search") );
   }
 
   @Test

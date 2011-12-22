@@ -51,6 +51,16 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
       this.values[i] = values[i] ? 1 : 0;
     }
   }
+  
+  /**
+   * Constructs a Logical vector from a list of boolean values
+   */
+  public LogicalVector(Boolean[] values) {
+    this.values = new int[values.length];
+    for (int i = 0; i != values.length; ++i) {
+      this.values[i] = values[i] ? 1 : 0;
+    }
+  }
 
   public LogicalVector() {
     this.values = new int[0];

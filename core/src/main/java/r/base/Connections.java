@@ -38,63 +38,83 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 /**
- *
- *  Functions which create and manipulates connection objects.
- *
+ * 
+ * Functions which create and manipulates connection objects.
+ * 
  * <p>
- * Connection objects are {@link ExternalExp}s that hold a reference to a
- * class implementing the {@link Connection} interface.
- *
+ * Connection objects are {@link ExternalExp}s that hold a reference to a class
+ * implementing the {@link Connection} interface.
+ * 
  */
 public class Connections {
 
   /**
    * Opens a connection to a gzipped file.
-   *
-   * @param context the current call Context
-   * @param path path to the gzipped file
-   * @param open the mode flag
-   * @param encoding the character encoding if the file is to be opened for text reading
-   * @param compressionLevel  integer 0-9
-   * @return an external reference object which inherits from the (S3) class "connection"
+   * 
+   * @param context
+   *          the current call Context
+   * @param path
+   *          path to the gzipped file
+   * @param open
+   *          the mode flag
+   * @param encoding
+   *          the character encoding if the file is to be opened for text
+   *          reading
+   * @param compressionLevel
+   *          integer 0-9
+   * @return an external reference object which inherits from the (S3) class
+   *         "connection"
    * @throws FileSystemException
    */
   public static ExternalExp<Connection> gzfile(@Current final Context context,
-          final String path,
-          String open,
-          String encoding,
-          double compressionLevel) throws FileSystemException {
+      final String path, String open, String encoding, double compressionLevel)
+      throws FileSystemException {
 
-    return new ExternalExp(new GzFileConnection(context.resolveFile(path)), "connection");
+    return new ExternalExp(new GzFileConnection(context.resolveFile(path)),
+        "connection");
   }
 
   /**
    * Opens a connection to a file.
-  
-   * @param context the current Context
-   * @param path path to the file
-   * @param open the mode flag that determines how the file
-   * @param blocking In blocking mode, functions using the connection do not return to the R evaluator
-   *  until the read/write is complete. In non-blocking mode, operations return as soon as possible,
-   * so on input they will return with whatever input is available (possibly none) and for output
-   * they will return whether or not the write succeeded.
-   *
-   * @param encoding the character to encoding, if the file is to be opened as text
-   * @return  an external reference object which inherits from the (S3) class "connection"
+   * 
+   * @param context
+   *          the current Context
+   * @param path
+   *          path to the file
+   * @param open
+   *          the mode flag that determines how the file
+   * @param blocking
+   *          In blocking mode, functions using the connection do not return to
+   *          the R evaluator until the read/write is complete. In non-blocking
+   *          mode, operations return as soon as possible, so on input they will
+   *          return with whatever input is available (possibly none) and for
+   *          output they will return whether or not the write succeeded.
+   * 
+   * @param encoding
+   *          the character to encoding, if the file is to be opened as text
+   * @return an external reference object which inherits from the (S3) class
+   *         "connection"
    */
   public static ExternalExp<Connection> file(@Current final Context context,
-          final String path,
-          String open,
-          boolean blocking,
-          String encoding) {
-    Connection connection = new ConnectionImpl(new InputStreamFactory() {
+      final String path, String open, boolean blocking, String encoding) {
+    Connection connection=null;
+    if (open.equals("r")) {
+      connection = new ConnectionImpl(new InputStreamFactory() {
 
-      @Override
-      public InputStream openInputStream() throws IOException {
-        return openInput(context, path);
-      }
-    });
+        @Override
+        public InputStream openInputStream() throws IOException {
+          return openInput(context, path);
+        }
+      });
+    }else if(open.equals("w")){
+      connection = new ConnectionImpl(new OutputStreamFactory(){
 
+        @Override
+        public OutputStream openOutputStream() throws IOException {
+          return openOutput(context,path);
+        }
+      });
+    }
     return new ExternalExp(connection, "connection");
   }
 
@@ -103,14 +123,17 @@ public class Connections {
   }
 
   public static ExternalExp<Connection> stdout(@Current final Context context) {
-    return new ExternalExp(new StdOutConnection(context.getGlobals().stdout), "connection");
+    return new ExternalExp(new StdOutConnection(context.getGlobals().stdout),
+        "connection");
   }
 
   public static ExternalExp<Connection> stderr() {
-    return new ExternalExp<Connection>(new OutputStreamConnection(java.lang.System.err), "connection");
+    return new ExternalExp<Connection>(new OutputStreamConnection(
+        java.lang.System.err), "connection");
   }
 
-  public static void cat(ListVector list, Connection connection, String sep, SEXP fill, SEXP labels, boolean append) throws IOException {
+  public static void cat(ListVector list, Connection connection, String sep,
+      SEXP fill, SEXP labels, boolean append) throws IOException {
     PrintWriter printWriter = connection.getPrintWriter();
     CatVisitor visitor = new CatVisitor(printWriter, sep, 0);
     for (SEXP element : list) {
@@ -181,40 +204,50 @@ public class Connections {
     public void visit(RawVector vector) {
       catVector(vector);
     }
-    
-    public void visit(Raw raw){
+
+    public void visit(Raw raw) {
       catVector(new RawVector(raw));
     }
 
     @Override
     protected void unhandled(SEXP exp) {
-      throw new EvalException("argument of type '%s' cannot be handled by 'cat'", exp.getTypeName());
+      throw new EvalException(
+          "argument of type '%s' cannot be handled by 'cat'", exp.getTypeName());
     }
   }
 
-  public static SEXP unserializeFromConn(@Current Context context, Connection conn, Environment rho) throws IOException {
-    DatafileReader reader = new DatafileReader(context, rho, conn.getInputStream());
+  public static SEXP unserializeFromConn(@Current Context context,
+      Connection conn, Environment rho) throws IOException {
+    DatafileReader reader = new DatafileReader(context, rho,
+        conn.getInputStream());
     SEXP result = reader.readFile();
     return result;
   }
 
-  public static SEXP unserializeFromConn(@Current Context context, @Current Environment rho, Connection conn, Null nz) throws IOException {
-    DatafileReader reader = new DatafileReader(context, rho, conn.getInputStream());
+  public static SEXP unserializeFromConn(@Current Context context,
+      @Current Environment rho, Connection conn, Null nz) throws IOException {
+    DatafileReader reader = new DatafileReader(context, rho,
+        conn.getInputStream());
     SEXP result = reader.readFile();
     return result;
   }
 
   /**
    * Reload datasets written with the function save.
-   *
+   * 
    * @param context
-   * @param conn a (readable binary) connection or a character string giving the name of the file to load.
-   * @param env the environment where the data should be loaded.
-   * @return  A character vector of the names of objects created, invisibly.
+   * @param conn
+   *          a (readable binary) connection or a character string giving the
+   *          name of the file to load.
+   * @param env
+   *          the environment where the data should be loaded.
+   * @return A character vector of the names of objects created, invisibly.
    * @throws IOException
    */
-  public static SEXP loadFromConn2(@Current Context context, Connection conn, Environment env) throws IOException {
-    DatafileReader reader = new DatafileReader(context, env, conn.getInputStream());
+  public static SEXP loadFromConn2(@Current Context context, Connection conn,
+      Environment env) throws IOException {
+    DatafileReader reader = new DatafileReader(context, env,
+        conn.getInputStream());
     HasNamedValues data = EvalException.checkedCast(reader.readFile());
 
     StringVector.Builder names = new StringVector.Builder();
@@ -227,11 +260,13 @@ public class Connections {
     return names.build();
   }
 
-  public static void close(Connection conn, String type /* Unused */) throws IOException {
+  public static void close(Connection conn, String type /* Unused */)
+      throws IOException {
     conn.close();
   }
 
-  public static String readChar(Connection conn, int nchars, @Recycle(false) boolean useBytes) throws IOException {
+  public static String readChar(Connection conn, int nchars,
+      @Recycle(false) boolean useBytes) throws IOException {
     // at the moment, we assume the encoding is ASCII.
     // We can't easily use an InputStreamReader here because it uses a buffer
     // which messes up subsequent calls to read() on the underlying input stream
@@ -242,7 +277,8 @@ public class Connections {
     int bytesRead;
     int totalBytesRead = 0;
     while (totalBytesRead < nchars
-            && (bytesRead = in.read(buffer, totalBytesRead, nchars - totalBytesRead)) != -1) {
+        && (bytesRead = in
+            .read(buffer, totalBytesRead, nchars - totalBytesRead)) != -1) {
 
       totalBytesRead += bytesRead;
     }
@@ -251,15 +287,19 @@ public class Connections {
   }
 
   /**
-   * Populates a target {@code Environment} with promises to serialized expressions.
-   *
-   * @param names the names of the symbols to be populated
+   * Populates a target {@code Environment} with promises to serialized
+   * expressions.
+   * 
+   * @param names
+   *          the names of the symbols to be populated
    * @param values
    * @param expr
    * @param eenv
    * @param targetEnvironment
    */
-  public static void makeLazy(@Current Context context, StringVector names, ListVector values, FunctionCall expr, Environment eenv, Environment targetEnvironment) {
+  public static void makeLazy(@Current Context context, StringVector names,
+      ListVector values, FunctionCall expr, Environment eenv,
+      Environment targetEnvironment) {
 
     for (int i = 0; i < names.length(); i++) {
       // the name of the symbol
@@ -267,55 +307,62 @@ public class Connections {
 
       // c(pos, length) of the serialized object
       SEXP value = context.evaluate( values.get(i), (Environment) eenv);
-
       // create a new call, replacing the first argument with the
       // provided arg
       PairList.Node.Builder newArgs = PairList.Node.newBuilder();
       newArgs.add(value);
       for (int j = 1; j < expr.getArguments().length(); ++j) {
-        newArgs.add(expr.<SEXP>getArgument(j));
+        newArgs.add(expr.<SEXP> getArgument(j));
       }
-      FunctionCall newCall = new FunctionCall(expr.getFunction(), newArgs.build());
+      FunctionCall newCall = new FunctionCall(expr.getFunction(),
+          newArgs.build());
       targetEnvironment.setVariable(name, new Promise(context, eenv, newCall));
     }
   }
 
   /**
-   *  Retrieves a sequence of bytes as specified by a position/length key
-   *  from a file, optionally decompresses, and unserializes the bytes.
-   *  If the result is a promise, then the promise is forced.
-   * @param key c(offset, length)
-   * @param file the path to the file from which to load the value
-   * @param compression 0=not compressed, 1=deflate, ...
-   * @param restoreFunction a function called to load persisted objects from the serialized stream
+   * Retrieves a sequence of bytes as specified by a position/length key from a
+   * file, optionally decompresses, and unserializes the bytes. If the result is
+   * a promise, then the promise is forced.
+   * 
+   * @param key
+   *          c(offset, length)
+   * @param file
+   *          the path to the file from which to load the value
+   * @param compression
+   *          0=not compressed, 1=deflate, ...
+   * @param restoreFunction
+   *          a function called to load persisted objects from the serialized
+   *          stream
    */
   public static SEXP lazyLoadDBfetch(@Current final Context context,
-          @Current final Environment rho,
-          IntVector key,
-          String file,
-          int compression,
-          final SEXP restoreFunction) throws IOException, DataFormatException {
+      @Current final Environment rho, IntVector key, String file,
+      int compression, final SEXP restoreFunction) throws IOException,
+      DataFormatException {
     byte buffer[] = readRawFromFile(context, file, key);
 
     switch (compression) {
-      case 1:
-        buffer = decompress1(buffer);
-        break;
-      case 3:
-        buffer = decompress3(buffer);
-        break;
-      default:
-        throw new UnsupportedOperationException("compressed==" + compression + " in lazyLoadDBfetch not yet implemented");
+    case 1:
+      buffer = decompress1(buffer);
+      break;
+    case 3:
+      buffer = decompress3(buffer);
+      break;
+    default:
+      throw new UnsupportedOperationException("compressed==" + compression
+          + " in lazyLoadDBfetch not yet implemented");
     }
 
-    DatafileReader reader = new DatafileReader(context, rho, new ByteArrayInputStream(buffer), new DatafileReader.PersistentRestorer() {
+    DatafileReader reader = new DatafileReader(context, rho,
+        new ByteArrayInputStream(buffer),
+        new DatafileReader.PersistentRestorer() {
 
-      @Override
-      public SEXP restore(SEXP values) {
-        FunctionCall call = FunctionCall.newCall(restoreFunction, values);
-        return context.evaluate(call);
-      }
-    });
+          @Override
+          public SEXP restore(SEXP values) {
+            FunctionCall call = FunctionCall.newCall(restoreFunction, values);
+            return context.evaluate(call, context.getGlobalEnvironment());
+          }
+        });
 
     SEXP exp = reader.readFile();
     if (exp instanceof Promise) {
@@ -324,7 +371,8 @@ public class Connections {
     return exp;
   }
 
-  public static byte[] decompress1(byte buffer[]) throws IOException, DataFormatException {
+  public static byte[] decompress1(byte buffer[]) throws IOException,
+      DataFormatException {
     DataInputStream in = new DataInputStream(new ByteArrayInputStream(buffer));
     int outLength = in.readInt();
 
@@ -338,14 +386,16 @@ public class Connections {
     return result;
   }
 
-  public static byte[] decompress3(byte buffer[]) throws IOException, DataFormatException {
+  public static byte[] decompress3(byte buffer[]) throws IOException,
+      DataFormatException {
     DataInputStream in = new DataInputStream(new ByteArrayInputStream(buffer));
     int outlen = in.readInt();
     byte type = in.readByte();
 
     if (type == 'Z') {
       byte[] properties = Arrays.copyOfRange(buffer, 5, 10);
-      ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 10, buffer.length - 5);
+      ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 10,
+          buffer.length - 5);
       ByteArrayOutputStream baos = new ByteArrayOutputStream(outlen);
       LzmaDecoder decoder = new LzmaDecoder();
 
@@ -358,40 +408,40 @@ public class Connections {
     }
 
     throw new EvalException("decompres3: type = " + (char) type);
-//
-//       if (type == 'Z') {
-//           lzma_stream strm = LZMA_STREAM_INIT;
-//           lzma_ret ret;
-//           init_filters();
-//           ret = lzma_raw_decoder(&strm, filters);
-//           if (ret != LZMA_OK) error("internal error %d in R_decompress3", ret);
-//           strm.next_in = p + 5;
-//           strm.avail_in = inlen - 5;
-//           strm.next_out = buf;
-//           strm.avail_out = outlen;
-//           ret = lzma_code(&strm, LZMA_RUN);
-//           if (ret != LZMA_OK && (strm.avail_in > 0))
-//               error("internal error %d in R_decompress3 %d",
-//                     ret, strm.avail_in);
-//           lzma_end(&strm);
-//       } else if (type == '2') {
-//           int res;
-//           res = BZ2_bzBuffToBuffDecompress((char *)buf, &outlen,
-//                                            (char *)(p + 5), inlen - 5, 0, 0);
-//           if(res != BZ_OK) error("internal error %d in R_decompress2", res);
-//       } else if (type == '1') {
-//           uLong outl; int res;
-//           res = uncompress(buf, &outl, (Bytef *)(p + 5), inlen - 5);
-//           if(res != Z_OK) error("internal error %d in R_decompress1");
-//       } else if (type == '0') {
-//           buf = p + 5;
-//       } else error("unknown type in R_decompress3");
-//
-
+    //
+    // if (type == 'Z') {
+    // lzma_stream strm = LZMA_STREAM_INIT;
+    // lzma_ret ret;
+    // init_filters();
+    // ret = lzma_raw_decoder(&strm, filters);
+    // if (ret != LZMA_OK) error("internal error %d in R_decompress3", ret);
+    // strm.next_in = p + 5;
+    // strm.avail_in = inlen - 5;
+    // strm.next_out = buf;
+    // strm.avail_out = outlen;
+    // ret = lzma_code(&strm, LZMA_RUN);
+    // if (ret != LZMA_OK && (strm.avail_in > 0))
+    // error("internal error %d in R_decompress3 %d",
+    // ret, strm.avail_in);
+    // lzma_end(&strm);
+    // } else if (type == '2') {
+    // int res;
+    // res = BZ2_bzBuffToBuffDecompress((char *)buf, &outlen,
+    // (char *)(p + 5), inlen - 5, 0, 0);
+    // if(res != BZ_OK) error("internal error %d in R_decompress2", res);
+    // } else if (type == '1') {
+    // uLong outl; int res;
+    // res = uncompress(buf, &outl, (Bytef *)(p + 5), inlen - 5);
+    // if(res != Z_OK) error("internal error %d in R_decompress1");
+    // } else if (type == '0') {
+    // buf = p + 5;
+    // } else error("unknown type in R_decompress3");
+    //
 
   }
 
-  public static byte[] readRawFromFile(@Current Context context, String file, IntVector key) throws IOException {
+  public static byte[] readRawFromFile(@Current Context context, String file,
+      IntVector key) throws IOException {
     if (key.length() != 2) {
       throw new EvalException("bad offset/length argument");
     }
@@ -408,11 +458,21 @@ public class Connections {
     return buffer;
   }
 
-  private static InputStream openInput(Context context, String description) throws IOException {
+  private static InputStream openInput(Context context, String description)
+      throws IOException {
     if (description.equals("stdin")) {
       return java.lang.System.in;
     } else {
       return context.resolveFile(description).getContent().getInputStream();
+    }
+  }
+
+  private static OutputStream openOutput(Context context,
+      String description) throws IOException {
+    if (description.equals("stdout")) {
+      return java.lang.System.out;
+    } else {
+      return context.resolveFile(description).getContent().getOutputStream();
     }
   }
 
@@ -421,32 +481,65 @@ public class Connections {
     InputStream openInputStream() throws IOException;
   }
 
+  private interface OutputStreamFactory {
+    OutputStream openOutputStream() throws IOException;
+  }
+
   private static class ConnectionImpl implements Connection {
 
     private InputStream inputStream;
     private InputStreamFactory inputStreamFactory;
 
+    private OutputStream outputStream;
+    private OutputStreamFactory outputStreamFactory;
+
     private ConnectionImpl(InputStreamFactory inputStreamFactory) {
       this.inputStreamFactory = inputStreamFactory;
+      this.outputStreamFactory = null;
+    }
+
+    private ConnectionImpl(OutputStreamFactory outputStreamFactory) {
+      this.outputStreamFactory = outputStreamFactory;
+      this.inputStreamFactory = null;
+    }
+
+    private ConnectionImpl(InputStreamFactory inputStreamFactory,
+        OutputStreamFactory outputStreamFactory) {
+      this.inputStreamFactory = inputStreamFactory;
+      this.outputStreamFactory = outputStreamFactory;
     }
 
     @Override
     public InputStream getInputStream() throws IOException {
-      if (inputStream == null) {
-        inputStream = inputStreamFactory.openInputStream();
+      if (inputStreamFactory == null) {
+        throw new EvalException("cannot read from this connection.");
+      } else {
+        if (inputStream == null) {
+          inputStream = inputStreamFactory.openInputStream();
+        }
       }
       return inputStream;
     }
 
     @Override
     public PrintWriter getPrintWriter() throws IOException {
-      throw new EvalException("cannot write to this connection.");
+      if(outputStreamFactory == null){
+        throw new EvalException("cannot write to this connection");
+      }else{
+        if (outputStream == null) {
+          outputStream = outputStreamFactory.openOutputStream();
+        }
+      }
+      return new PrintWriter(outputStream);
     }
 
     @Override
     public void close() throws IOException {
       if (inputStream != null) {
         inputStream.close();
+      }
+      if (outputStream != null) {
+        outputStream.close();
       }
     }
   }

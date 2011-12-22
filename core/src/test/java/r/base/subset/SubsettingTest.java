@@ -30,6 +30,7 @@ import r.lang.exception.EvalException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static r.ExpMatchers.logicalVectorOf;
 
 
 public class SubsettingTest extends EvalTestCase {
@@ -566,4 +567,14 @@ public class SubsettingTest extends EvalTestCase {
     eval("k<-list(1,2,3)");
     eval("k[[2]]<-quote(foo)");
   }
+  
+  @Test
+  public void environmentSymbol(){
+    eval(".testEnv<-new.env()");
+    eval("assign(\"key\",1,.testEnv)");
+    eval("assign(\"value\",\"foo\",.testEnv)");
+    assertThat(eval("if(.testEnv[[\"key\"]]==1) TRUE else FALSE"),logicalVectorOf(Logical.TRUE));
+    assertThat(eval("if(.testEnv[[\"value\"]]==\"foo\") TRUE else FALSE"),logicalVectorOf(Logical.TRUE));
+  }
+  
 }

@@ -45,6 +45,7 @@ public class ClassBinding {
     Multimap<Symbol, Method> methods = ArrayListMultimap.create();
     Multimap<Symbol, Method> staticMethods = ArrayListMultimap.create();
     
+    
     for(Method method : clazz.getMethods()) {
       if((method.getModifiers() & Modifier.PUBLIC) != 0 && 
           method.getDeclaringClass() != Object.class) {
@@ -139,7 +140,7 @@ public class ClassBinding {
   }
   
   public Set<Symbol> getStaticMembers() {
-    return members.keySet();
+    return staticMembers.keySet();
   }
   
   public SEXP getStaticMember(Symbol name) {

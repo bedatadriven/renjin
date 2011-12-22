@@ -11,20 +11,20 @@ import r.lang.SEXP;
 /**
  * Converter between java.lang.Object and R expressions
  */
-public class ObjectConverter implements Converter<Object> {
+public class ObjectArrayConverter implements Converter<Object[]> {
 
-  public static final Converter INSTANCE = new ObjectConverter();
+  public static final Converter INSTANCE = new ObjectArrayConverter();
   
-  private ObjectConverter() {
+  private ObjectArrayConverter() {
     
   }
 
   @Override
-  public SEXP convertToR(Object value) {
+  public SEXP convertToR(Object[] value) {
     if(value == null) {
       return Null.INSTANCE;
-    } else if(value instanceof Class) {
-      return Environment.createChildEnvironment(Environment.EMPTY, new ClassFrame(ClassBinding.get((Class)value)));
+    }else if(value.getClass().isArray()&&value.getClass().getComponentType()==Class.class) {
+      return Environment.createChildEnvironment(Environment.EMPTY, new ClassFrame(ClassBinding.get(value.getClass().getComponentType())));
     } else {
       Converter converter = Converters.get(value.getClass());
       return converter.convertToR(value);
@@ -33,13 +33,7 @@ public class ObjectConverter implements Converter<Object> {
 
   @Override
   public boolean acceptsSEXP(SEXP exp) {
-    try {
-      convertToJava(exp);
-      return true;
-      
-    } catch(ConversionException e) {
-      return false;
-    }
+    return true;
   }
 
   @Override
@@ -61,8 +55,9 @@ public class ObjectConverter implements Converter<Object> {
     // convert R scalars to corresponding java classes
     if(exp instanceof AtomicVector && exp.length() == 1) {
       AtomicVector vector = (AtomicVector) exp;
-      if(!vector.isElementNA(0)) {
-        return vector.getElementAsObject(0);
+      Object object[]= new Object[vector.length()];
+      for(int i =0;i<vector.length();i++){
+        object[i] = vector.getElementAsObject(i);
       }
     }
     
@@ -76,7 +71,7 @@ public class ObjectConverter implements Converter<Object> {
   }
 
   public static boolean accept(Class clazz) {
-    return clazz.equals(Object.class)||clazz.equals(Class.class);
+    return clazz.equals(Object.class);
   }
 
 }

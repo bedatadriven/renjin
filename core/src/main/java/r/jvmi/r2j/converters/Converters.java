@@ -28,9 +28,18 @@ public class Converters  {
       return new CollectionConverter();
       
     } else if(StringArrayConverter.accept(clazz)) {
-      return new StringArrayConverter();
+      return StringArrayConverter.INSTANCE;
       
-    } else if(ObjectConverter.accept(clazz)) {
+    }else if(BooleanArrayConverter.accept(clazz)) {
+      return BooleanArrayConverter.INSTANCE;
+      
+    } else if(IntegerArrayConverter.accept(clazz)) {
+      return IntegerArrayConverter.INSTANCE;
+      
+    }else if(DoubleArrayConverter.accept(clazz)) {
+      return DoubleArrayConverter.INSTANCE;
+      
+    }else if(ObjectConverter.accept(clazz)) {
       return ObjectConverter.INSTANCE;
       
     } else {

@@ -6,6 +6,10 @@ import r.lang.StringVector;
 
 public class StringArrayConverter implements Converter<String[]>{
 
+  public static final Converter INSTANCE = new StringArrayConverter();
+  
+  private StringArrayConverter() { }
+  
   public static boolean accept(Class clazz) {
     return clazz.isArray() && clazz.getComponentType() == String.class;
   }
@@ -17,7 +21,7 @@ public class StringArrayConverter implements Converter<String[]>{
 
   @Override
   public boolean acceptsSEXP(SEXP exp) {
-    return exp instanceof AtomicVector;
+    return exp instanceof StringVector;
   }
 
   @Override

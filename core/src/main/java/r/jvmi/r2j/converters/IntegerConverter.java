@@ -35,9 +35,8 @@ public class IntegerConverter extends PrimitiveScalarConverter<Number> {
 
   @Override
   public boolean acceptsSEXP(SEXP exp) {
-    return exp instanceof DoubleVector ||
-           exp instanceof IntVector ||
-           exp instanceof LogicalVector;
+    return exp instanceof IntVector;// ||exp instanceof DoubleVector ;
+//           exp instanceof LogicalVector;
   }
 
   @Override

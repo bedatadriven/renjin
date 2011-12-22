@@ -24,6 +24,16 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import r.jvmi.annotations.*;
+import r.jvmi.r2j.ClassFrame;
+import r.jvmi.r2j.ObjectFrame;
+import r.jvmi.r2j.converters.BooleanArrayConverter;
+import r.jvmi.r2j.converters.BooleanConverter;
+import r.jvmi.r2j.converters.DoubleArrayConverter;
+import r.jvmi.r2j.converters.DoubleConverter;
+import r.jvmi.r2j.converters.IntegerArrayConverter;
+import r.jvmi.r2j.converters.IntegerConverter;
+import r.jvmi.r2j.converters.StringArrayConverter;
+import r.jvmi.r2j.converters.StringConverter;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.util.NamesBuilder;
@@ -289,15 +299,91 @@ public class Types {
     return new StringVector(symbol.getPrintName());
   }
 
+  @Generic
+  public static StringVector asCharacter(Environment env) {
+    Frame frame = env.getFrame();
+    if (frame instanceof ObjectFrame) {
+      ObjectFrame oframe = (ObjectFrame) frame;
+      Object instance = oframe.getInstance();
+      if (StringConverter.accept(instance.getClass())) {
+        return (StringVector) StringConverter.INSTANCE
+            .convertToR((String) instance);
+      } else if (StringArrayConverter.accept(instance.getClass())) {
+        return (StringVector) StringArrayConverter.INSTANCE
+            .convertToR((String[]) instance);
+      }
+    }
+    throw new EvalException(
+        "unsurpported converter, onlyfor environment with  String or String[] ObjectFrame");
+  }
+
+  @Generic
+  public static LogicalVector asLogical(Environment env) {
+    Frame frame = env.getFrame();
+    if (frame instanceof ObjectFrame) {
+      ObjectFrame oframe = (ObjectFrame) frame;
+      Object instance = oframe.getInstance();
+      Class clazz = instance.getClass();
+      if (BooleanConverter.accept(clazz)) {
+        return (LogicalVector) BooleanConverter.INSTANCE
+            .convertToR((Boolean) instance);
+      } else if (BooleanArrayConverter.accept(clazz)) {
+        return (LogicalVector) BooleanArrayConverter.INSTANCE
+            .convertToR((Boolean[]) instance);
+      }
+    }
+    throw new EvalException(
+        "unsurpported converter,only environment with boolean\\boolean[] or Boolean\\Boolean[] ObjectFrame is implemented");
+  }
+
   public static LogicalVector asLogical(Vector vector) {
     return (LogicalVector) convertVector(new LogicalVector.Builder(), vector);
   }
 
-  @Primitive("as.integer")
+  @Generic
+  public static IntVector asInteger(Environment env) {
+    Frame frame = env.getFrame();
+    if (frame instanceof ObjectFrame) {
+      ObjectFrame oframe = (ObjectFrame) frame;
+      Object instance = oframe.getInstance();
+      Class clazz = instance.getClass();
+      if (IntegerConverter.accept(clazz)) {
+        return (IntVector) IntegerConverter.INSTANCE
+            .convertToR((Integer) instance);
+      } else if (IntegerArrayConverter.accept(clazz)) {
+        return (IntVector) IntegerArrayConverter.INSTANCE
+            .convertToR((Integer[]) instance);
+      }
+    }
+    throw new EvalException(
+        "unsurpported converter,only environment with one element or array of int\\short\\Integer\\Short ObjectFrame is implemented");
+  }
+
+  @Generic
   public static IntVector asInteger(Vector source) {
     return (IntVector) convertVector(new IntVector.Builder(), source);
   }
 
+  @Generic
+  public static DoubleVector asDouble(Environment env) {
+    Frame frame = env.getFrame();
+    if (frame instanceof ObjectFrame) {
+      ObjectFrame oframe = (ObjectFrame) frame;
+      Object instance = oframe.getInstance();
+      Class clazz = instance.getClass();
+      if (DoubleConverter.accept(clazz)) {
+        return (DoubleVector) DoubleConverter.INSTANCE
+            .convertToR((Double) instance);
+      } else if (DoubleArrayConverter.accept(clazz)) {
+        return (DoubleVector) DoubleArrayConverter.INSTANCE
+            .convertToR((Double[]) instance);
+      }
+    }
+    throw new EvalException(
+        "unsurpported converter,only environment with double[] ObjectFrame is implemented");
+  }
+
+  @Generic
   public static DoubleVector asDouble(Vector source) {
     return (DoubleVector) convertVector(new DoubleVector.Builder(), source);
   }
@@ -370,14 +456,15 @@ public class Types {
     }
 
     for (PairList.Node node : x.nodes()) {
-      if(node.hasTag()) {
+      if (node.hasTag()) {
         names.add(node.getTag().getPrintName());
       } else {
         names.addNA();
       }
       result.add(node.getValue());
     }
-    result.setAttribute(Symbols.NAMES.getPrintName(), names.build(result.length()));
+    result.setAttribute(Symbols.NAMES.getPrintName(),
+        names.build(result.length()));
     return result.build();
   }
 
@@ -438,9 +525,19 @@ public class Types {
 
   public static StringVector ls(Environment environment, boolean allNames) {
     StringVector.Builder names = new StringVector.Builder();
-    for (Symbol name : environment.getSymbolNames()) {
-      if (allNames || !name.getPrintName().startsWith(".")) {
-        names.add(name.getPrintName());
+    if (environment.getFrame() instanceof ClassFrame) {
+      ClassFrame of = (ClassFrame)environment.getFrame();
+      of.getSymbols();
+      for (Symbol name : of.getSymbols()) {
+        if (allNames || !name.getPrintName().startsWith(".")) {
+          names.add(name.getPrintName());
+        }
+      }
+    } else {
+      for (Symbol name : environment.getSymbolNames()) {
+        if (allNames || !name.getPrintName().startsWith(".")) {
+          names.add(name.getPrintName());
+        }
       }
     }
     return names.build();
@@ -462,7 +559,8 @@ public class Types {
     return env.isLocked();
   }
 
-  public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual, boolean singleNA, boolean attributesAsSet) {
+  public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual,
+      boolean singleNA, boolean attributesAsSet) {
     if (!numericallyEqual || !singleNA || !attributesAsSet) {
       throw new EvalException(
           "identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");
@@ -702,7 +800,7 @@ public class Types {
     return exp.getTypeName();
   }
 
-  @Generic 
+  @Generic
   @Primitive("names")
   public static SEXP getNames(SEXP exp) {
     return exp.getNames();
@@ -722,129 +820,127 @@ public class Types {
 
   /**
    * 
-   * This implements the 'class' builtin. The R docs mention this
-   * function in the context of S3 dispatch, but it appears that the 
-   * logic has diverged: class(9) for example will return 'numeric', but
-   * the class list used for dispatch by UseMethod is actually c('double', 'numeric')
+   * This implements the 'class' builtin. The R docs mention this function in
+   * the context of S3 dispatch, but it appears that the logic has diverged:
+   * class(9) for example will return 'numeric', but the class list used for
+   * dispatch by UseMethod is actually c('double', 'numeric')
    * 
    * @param exp
    * @return
    */
   @Primitive("class")
   public static StringVector getClass(SEXP exp) {
-    
+
     SEXP classAttribute = exp.getAttribute(Symbols.CLASS);
-    if(classAttribute.length() > 0) {
-      return (StringVector)classAttribute;
+    if (classAttribute.length() > 0) {
+      return (StringVector) classAttribute;
     }
-    
+
     SEXP dim = exp.getAttribute(Symbols.DIM);
-    if(dim.length() == 2) {
+    if (dim.length() == 2) {
       return new StringVector("matrix");
-    } else if(dim.length() > 0) {
+    } else if (dim.length() > 0) {
       return new StringVector("array");
     }
-    
+
     return new StringVector(exp.getImplicitClass());
   }
 
   @Primitive("class<-")
   public static SEXP setClass(SEXP exp, Vector classes) {
     return exp.setAttribute("class", classes);
-    
-    //TODO:
-    // this is apparently more complicated then implemented above:
-//    int nProtect = 0;
-//    if(isNull(value)) {
-//        setAttrib(obj, R_ClassSymbol, value);
-//        if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-//          do_unsetS4(obj, value);
-//        return obj;
-//    }
-//    if(TYPEOF(value) != STRSXP) {
-//        /* Beware: assumes value is protected, which it is
-//           in the only use below */
-//        PROTECT(value = coerceVector(duplicate(value), STRSXP));
-//        nProtect++;
-//    }
-//    if(length(value) > 1) {
-//        setAttrib(obj, R_ClassSymbol, value);
-//        if(IS_S4_OBJECT(obj)) /*  multiple strings only valid for S3 objects */
-//          do_unsetS4(obj, value);
-//    }
-//    else if(length(value) == 0) {
-//        UNPROTECT(nProtect); nProtect = 0;
-//        error(_("invalid replacement object to be a class string"));
-//    }
-//    else {
-//        const char *valueString, *classString; int whichType;
-//        SEXP cur_class; SEXPTYPE valueType;
-//        valueString = CHAR(asChar(value)); /* ASCII */
-//        whichType = class2type(valueString);
-//        valueType = (whichType == -1) ? -1 : classTable[whichType].sexp;
-//        PROTECT(cur_class = R_data_class(obj, FALSE)); nProtect++;
-//        classString = CHAR(asChar(cur_class)); /* ASCII */
-//        /*  assigning type as a class deletes an explicit class attribute. */
-//        if(valueType != -1) {
-//            setAttrib(obj, R_ClassSymbol, R_NilValue);
-//            if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-//              do_unsetS4(obj, value);
-//            if(classTable[whichType].canChange) {
-//                PROTECT(obj = ascommon(call, obj, valueType));
-//                nProtect++;
-//            }
-//            else if(valueType != TYPEOF(obj))
-//                error(_("\"%s\" can only be set as the class if the object has this type; found \"%s\""),
-//                      valueString, type2char(TYPEOF(obj)));
-//            /* else, leave alone */
-//        }
-//        else if(!strcmp("numeric", valueString)) {
-//            setAttrib(obj, R_ClassSymbol, R_NilValue);
-//            if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-//              do_unsetS4(obj, value);
-//            switch(TYPEOF(obj)) {
-//            case INTSXP: case REALSXP: break;
-//            default: PROTECT(obj = coerceVector(obj, REALSXP));
-//                nProtect++;
-//            }
-//        }
-//        /* the next 2 special cases mirror the special code in
-//         * R_data_class */
-//        else if(!strcmp("matrix", valueString)) {
-//            if(length(getAttrib(obj, R_DimSymbol)) != 2)
-//                error(_("invalid to set the class to matrix unless the dimension attribute is of length 2 (was %d)"),
-//                 length(getAttrib(obj, R_DimSymbol)));
-//            setAttrib(obj, R_ClassSymbol, R_NilValue);
-//            if(IS_S4_OBJECT(obj))
-//              do_unsetS4(obj, value);
-//        }
-//        else if(!strcmp("array", valueString)) {
-//            if(length(getAttrib(obj, R_DimSymbol))<= 0)
-//                error(_("cannot set class to \"array\" unless the dimension attribute has length > 0"));
-//            setAttrib(obj, R_ClassSymbol, R_NilValue);
-//            if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-//              UNSET_S4_OBJECT(obj);
-//        }
-//        else { /* set the class but don't do the coercion; that's
-//                  supposed to be done by an as() method */
-//            setAttrib(obj, R_ClassSymbol, value);
-//        }
-//    }
-//    UNPROTECT(nProtect);
-//    return obj;
 
-    
+    // TODO:
+    // this is apparently more complicated then implemented above:
+    // int nProtect = 0;
+    // if(isNull(value)) {
+    // setAttrib(obj, R_ClassSymbol, value);
+    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
+    // do_unsetS4(obj, value);
+    // return obj;
+    // }
+    // if(TYPEOF(value) != STRSXP) {
+    // /* Beware: assumes value is protected, which it is
+    // in the only use below */
+    // PROTECT(value = coerceVector(duplicate(value), STRSXP));
+    // nProtect++;
+    // }
+    // if(length(value) > 1) {
+    // setAttrib(obj, R_ClassSymbol, value);
+    // if(IS_S4_OBJECT(obj)) /* multiple strings only valid for S3 objects */
+    // do_unsetS4(obj, value);
+    // }
+    // else if(length(value) == 0) {
+    // UNPROTECT(nProtect); nProtect = 0;
+    // error(_("invalid replacement object to be a class string"));
+    // }
+    // else {
+    // const char *valueString, *classString; int whichType;
+    // SEXP cur_class; SEXPTYPE valueType;
+    // valueString = CHAR(asChar(value)); /* ASCII */
+    // whichType = class2type(valueString);
+    // valueType = (whichType == -1) ? -1 : classTable[whichType].sexp;
+    // PROTECT(cur_class = R_data_class(obj, FALSE)); nProtect++;
+    // classString = CHAR(asChar(cur_class)); /* ASCII */
+    // /* assigning type as a class deletes an explicit class attribute. */
+    // if(valueType != -1) {
+    // setAttrib(obj, R_ClassSymbol, R_NilValue);
+    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
+    // do_unsetS4(obj, value);
+    // if(classTable[whichType].canChange) {
+    // PROTECT(obj = ascommon(call, obj, valueType));
+    // nProtect++;
+    // }
+    // else if(valueType != TYPEOF(obj))
+    // error(_("\"%s\" can only be set as the class if the object has this type; found \"%s\""),
+    // valueString, type2char(TYPEOF(obj)));
+    // /* else, leave alone */
+    // }
+    // else if(!strcmp("numeric", valueString)) {
+    // setAttrib(obj, R_ClassSymbol, R_NilValue);
+    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
+    // do_unsetS4(obj, value);
+    // switch(TYPEOF(obj)) {
+    // case INTSXP: case REALSXP: break;
+    // default: PROTECT(obj = coerceVector(obj, REALSXP));
+    // nProtect++;
+    // }
+    // }
+    // /* the next 2 special cases mirror the special code in
+    // * R_data_class */
+    // else if(!strcmp("matrix", valueString)) {
+    // if(length(getAttrib(obj, R_DimSymbol)) != 2)
+    // error(_("invalid to set the class to matrix unless the dimension attribute is of length 2 (was %d)"),
+    // length(getAttrib(obj, R_DimSymbol)));
+    // setAttrib(obj, R_ClassSymbol, R_NilValue);
+    // if(IS_S4_OBJECT(obj))
+    // do_unsetS4(obj, value);
+    // }
+    // else if(!strcmp("array", valueString)) {
+    // if(length(getAttrib(obj, R_DimSymbol))<= 0)
+    // error(_("cannot set class to \"array\" unless the dimension attribute has length > 0"));
+    // setAttrib(obj, R_ClassSymbol, R_NilValue);
+    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
+    // UNSET_S4_OBJECT(obj);
+    // }
+    // else { /* set the class but don't do the coercion; that's
+    // supposed to be done by an as() method */
+    // setAttrib(obj, R_ClassSymbol, value);
+    // }
+    // }
+    // UNPROTECT(nProtect);
+    // return obj;
+
   }
-  
+
   @Primitive("oldClass<-")
   public static SEXP setOldClass(SEXP exp, Vector classes) {
-    /*  checkArity(op, args);
-    if (NAMED(CAR(args)) == 2) SETCAR(args, duplicate(CAR(args)));
-    if (length(CADR(args)) == 0) SETCADR(args, R_NilValue);
-    if(IS_S4_OBJECT(CAR(args)))
-      UNSET_S4_OBJECT(CAR(args));
-    setAttrib(CAR(args), R_ClassSymbol, CADR(args));
-    return CAR(args);*/
+    /*
+     * checkArity(op, args); if (NAMED(CAR(args)) == 2) SETCAR(args,
+     * duplicate(CAR(args))); if (length(CADR(args)) == 0) SETCADR(args,
+     * R_NilValue); if(IS_S4_OBJECT(CAR(args))) UNSET_S4_OBJECT(CAR(args));
+     * setAttrib(CAR(args), R_ClassSymbol, CADR(args)); return CAR(args);
+     */
     return exp.setAttribute(Symbols.CLASS, classes);
   }
 
@@ -1017,7 +1113,7 @@ public class Types {
 
     } else if (arguments.length() == 1
         && arguments.getElementAsSEXP(0) instanceof ListVector
-        && StringVector.isNA(arguments.getName(0)) ) {
+        && StringVector.isNA(arguments.getName(0))) {
       ListVector list = (ListVector) arguments.getElementAsSEXP(0);
       if (list.getAttribute(Symbols.NAMES) == Null.INSTANCE) {
         throw new EvalException("list argument has no valid names");

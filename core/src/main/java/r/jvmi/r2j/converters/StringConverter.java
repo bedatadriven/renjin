@@ -11,6 +11,7 @@ public class StringConverter extends BoxedScalarConverter<String> {
   private StringConverter() { }
  
   public static boolean accept(Class clazz) {
+    if(clazz.isArray()) return false;
     return clazz == String.class;
   }
   
@@ -26,7 +27,7 @@ public class StringConverter extends BoxedScalarConverter<String> {
 
   @Override
   public boolean acceptsSEXP(SEXP exp) {
-    return exp instanceof Vector;
+    return (exp instanceof Vector)&&(((Vector)exp).length()==1);
   }
 
   @Override

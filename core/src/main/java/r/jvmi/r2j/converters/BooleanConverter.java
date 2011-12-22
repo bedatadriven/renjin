@@ -30,7 +30,7 @@ public class BooleanConverter extends PrimitiveScalarConverter<Boolean> {
 
   @Override
   public boolean acceptsSEXP(SEXP exp) {
-    return exp instanceof AtomicVector && exp.length() >= 1;
+    return exp instanceof LogicalVector;
   }
 
   @Override

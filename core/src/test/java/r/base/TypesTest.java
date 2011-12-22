@@ -62,6 +62,13 @@ public strictfp class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void asCharacterFromStringObject(){ 
+    eval("import(java.lang.String)");
+    eval("x<-String$new(\"foo\")");
+    assertThat(eval("as.character(x)"),equalTo(c("foo")));
+  }
+  
+  @Test
   public void asCharacterFromList() {
     assertThat( eval("as.character(list(3, 'a', TRUE)) "), equalTo( c("3", "a", "TRUE" )));
     assertThat( eval("as.character(list(c(1,3), 'a', TRUE)) "), equalTo( c("c(1, 3)", "a", "TRUE" )));
@@ -80,6 +87,14 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("f(x)"), equalTo((SEXP)new StringVector()));
   }
 
+  
+  @Test
+  public void asDoubleFromDoubleObject(){ 
+    eval("import(java.lang.Double)");
+    eval("x<-Double$new(1.5)");
+    assertThat(eval("as.double(x)"),equalTo(c(1.5)));
+  }
+  
   @Test
   public void asDoubleFromDouble() {
     assertThat( eval("as.double(3.14)"), equalTo( c(3.14) ) );
@@ -91,6 +106,13 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("as.double(3L)"), equalTo( c(3l) ));
   }
 
+  @Test
+  public void asLogicalFromBooleanObject(){ 
+    eval("import(java.lang.Boolean)");
+    eval("x<-Boolean$new(TRUE)");
+    assertThat(eval("as.logical(x)"),equalTo(c(TRUE)));
+  }
+  
   @Test
   public void asLogicalFromList() {
     assertThat( eval("as.logical(list(1, 99.4, 0, 0L, FALSE, 'TRUE', 'FOO', 'T', 'F', 'FALSE')) "),
@@ -115,6 +137,13 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("as.double(\"not an integer\")"), equalTo( c(DoubleVector.NA) ));
   }
 
+  @Test
+  public void asIntFromIntegerObject(){ 
+    eval("import(java.lang.Integer)");
+    eval("x<-Integer$new(2)");
+    assertThat(eval("as.integer(x)"),equalTo(c(2)));
+  }
+  
   @Test
   public void asIntFromDouble() {
     assertThat( eval("as.integer(3.1)"), equalTo( c_i( 3 )));

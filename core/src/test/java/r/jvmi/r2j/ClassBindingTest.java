@@ -24,6 +24,10 @@ public class ClassBindingTest extends EvalTestCase {
 
     public void setFoo(int count) {
     }
+    
+    public static void staticTest(){
+      
+    }
   }
 
   @Test
@@ -39,7 +43,10 @@ public class ClassBindingTest extends EvalTestCase {
 
     assertThat(binding.getMembers(), not(hasItem(Symbol.get("foo"))));
     assertThat(binding.getMembers(), hasItem(Symbol.get("setFoo")));
-
+    assertThat(binding.getMembers(),not(hasItem(Symbol.get("staticTest"))));
+    assertThat(binding.getStaticMembers(),hasItem(Symbol.get("staticTest")));
+    assertThat(binding.getStaticMembers(),not(hasItem(Symbol.get("setFoo"))));
+    
     MyBean instance = new MyBean();
 
     MemberBinding nameBinding = binding.getMemberBinding(Symbol.get("name"));

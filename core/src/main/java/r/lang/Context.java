@@ -192,7 +192,7 @@ public class Context {
 
       this.stdout = new PrintWriter(java.lang.System.out);
 
-      systemEnvironment = Maps.newHashMap();
+      systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
       systemEnvironment.put("R_LIBS", FileSystemUtils.defaultLibraryPaths());
       options = new Options();
       globalEnvironment = Environment.createGlobalEnvironment();

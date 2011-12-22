@@ -948,6 +948,7 @@ public class Primitives {
     
     // jvm specific
     f("import", Jvmi.class, 0, 0, -1);
+    f("jload", Jvmi.class, 0, 0, -1);
   }
 
   private void add(SpecialFunction fn) {

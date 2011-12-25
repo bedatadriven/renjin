@@ -59,7 +59,8 @@ public class JvmiTest extends EvalTestCase {
     eval("x <- MyBean$new()");
     
     assertThat( eval("x$sayHello('fred')"), equalTo(c("Hello fred")));
-    assertThat( eval("x$sayHello(3)"), equalTo(c("HelloHelloHello")));
+    //use strong type or week type?
+    assertThat( eval("x$sayHello(as.integer(3))"), equalTo(c("HelloHelloHello")));
     
   }
   

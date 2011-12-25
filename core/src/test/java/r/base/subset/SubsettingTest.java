@@ -21,6 +21,8 @@
 
 package r.base.subset;
 
+import java.io.IOException;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import r.EvalTestCase;
@@ -569,7 +571,8 @@ public class SubsettingTest extends EvalTestCase {
   }
   
   @Test
-  public void environmentSymbol(){
+  public void environmentSymbol() throws IOException{
+    this.topLevelContext.init();
     eval(".testEnv<-new.env()");
     eval("assign(\"key\",1,.testEnv)");
     eval("assign(\"value\",\"foo\",.testEnv)");

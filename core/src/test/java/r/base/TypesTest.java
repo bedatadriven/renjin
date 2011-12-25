@@ -141,7 +141,7 @@ public strictfp class TypesTest extends EvalTestCase {
   public void asIntFromIntegerObject(){ 
     eval("import(java.lang.Integer)");
     eval("x<-Integer$new(2)");
-    assertThat(eval("as.integer(x)"),equalTo(c(2)));
+    assertThat(eval("as.integer(x)"),equalTo(c_i(2)));
   }
   
   @Test

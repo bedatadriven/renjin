@@ -100,5 +100,18 @@ public class S3DispatchTest extends EvalTestCase {
     
     assertThat(eval("call[[1]]"), equalTo(symbol("f.default")));
   }
+  
+  @Test
+  public void nextMethodWithElipises() {
+    
+    eval("x <- 1:10 ");
+    eval("class(x) <- 'foo' ");
+    
+    eval("`[.foo` <- function(...) NextMethod() ");
+    
+    assertThat( eval("x[9]"), equalTo(c_i(9)));
+    
+    
+  }
 
 }

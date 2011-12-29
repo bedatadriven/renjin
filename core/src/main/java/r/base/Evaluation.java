@@ -456,11 +456,18 @@ public class Evaluation {
 
     PairList.Builder updatedArgs = new PairList.Builder();
     for(PairList.Node actual : actuals.nodes()) {
-      SEXP temp = context.getParent().getEnvironment().findVariable(actual.getTag());
-      if(temp != Symbol.UNBOUND_VALUE) {
-        updatedArgs.add(actual.getTag(), new Promise(context.getParent(), context.getParent().getEnvironment(), temp));
+      SEXP temp;
+      if(actual.hasTag()) {
+        // an argument may not have a tag even at this point if was 
+        // part of a ... expansion
+        temp = context.getParent().getEnvironment().findVariable(actual.getTag());
       } else {
-        updatedArgs.add(actual.getTag(), actual.getValue());
+        temp = Symbol.UNBOUND_VALUE;
+      }
+      if(temp != Symbol.UNBOUND_VALUE) {
+        updatedArgs.add(actual.getRawTag(), new Promise(context.getParent(), context.getParent().getEnvironment(), temp));
+      } else {
+        updatedArgs.add(actual.getRawTag(), actual.getValue());
       }
     }
     actuals = updatedArgs.build();

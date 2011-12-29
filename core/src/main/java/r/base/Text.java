@@ -163,7 +163,12 @@ public class Text {
       if(input.length() == 0) {
         return "";
       } else if(input instanceof AtomicVector) {
-        return ((AtomicVector) input).getElementAsString(index % input.length());
+        AtomicVector vector = (AtomicVector) input;
+        if(vector.isElementNA(index % input.length())) {
+          return "NA";
+        } else {
+          return vector.getElementAsString(index % input.length());
+        }
 
       } else if(input instanceof ListVector) {
         SEXP element = ((ListVector) input).getElementAsSEXP(index % input.length());

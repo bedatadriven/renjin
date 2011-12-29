@@ -294,29 +294,72 @@ public class System {
   @Primitive("proc.time")
   public static DoubleVector procTime() {
      
+    try {
+      DoubleVector.Builder result = new DoubleVector.Builder();
+      StringVector.Builder names = new StringVector.Builder();
+      
+  
+      // There doesn't seem to be any platform-independent way of accessing 
+      // CPU use for the whole JVM process, so we'll have to make do
+      // with the timings for the thread we're running on. 
+      ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+      long totalCPUTime = threadMXBean.getCurrentThreadCpuTime();
+      long userCPUTime = threadMXBean.getCurrentThreadUserTime();
+      
+      // user.self
+      names.add("user.self");
+      result.add( userCPUTime / NANOSECONDS_PER_SECOND );
+      
+      // sys.self
+      names.add("sys.self");
+      result.add( (totalCPUTime - userCPUTime) / NANOSECONDS_PER_SECOND );
+      
+      // elapsed
+      // (wall clock time)
+      names.add("elapsed");
+      result.add(ManagementFactory.getRuntimeMXBean().getUptime() / MILLISECONDS_PER_SECOND);
+      
+      // AFAIK, we don't have any platform independent way of accessing
+      // this info.
+      
+      // user.child
+      names.add("user.child");
+      result.add(0);
+      
+      // sys.child
+      names.add("sys.child");
+      result.add(0);
+      
+      result.setAttribute(Symbols.NAMES, names.build());
+      result.setAttribute(Symbols.CLASS, new StringVector("proc_time"));
+      return result.build();
+    
+    } catch(Exception e) {
+      return procTimeSafe();
+    }
+  }
+  
+  /**
+   * 
+   * stub implementation of proc.time() for sandboxed
+   * environments
+   */
+  private static DoubleVector procTimeSafe() {
     DoubleVector.Builder result = new DoubleVector.Builder();
     StringVector.Builder names = new StringVector.Builder();
     
-
-    // There doesn't seem to be any platform-independent way of accessing 
-    // CPU use for the whole JVM process, so we'll have to make do
-    // with the timings for the thread we're running on. 
-    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-    long totalCPUTime = threadMXBean.getCurrentThreadCpuTime();
-    long userCPUTime = threadMXBean.getCurrentThreadUserTime();
-    
     // user.self
     names.add("user.self");
-    result.add( userCPUTime / NANOSECONDS_PER_SECOND );
+    result.add( java.lang.System.nanoTime() / NANOSECONDS_PER_SECOND );
     
     // sys.self
     names.add("sys.self");
-    result.add( (totalCPUTime - userCPUTime) / NANOSECONDS_PER_SECOND );
+    result.add( 0 );
     
     // elapsed
     // (wall clock time)
     names.add("elapsed");
-    result.add(ManagementFactory.getRuntimeMXBean().getUptime() / MILLISECONDS_PER_SECOND);
+    result.add( java.lang.System.nanoTime() / MILLISECONDS_PER_SECOND);
     
     // AFAIK, we don't have any platform independent way of accessing
     // this info.
@@ -332,5 +375,5 @@ public class System {
     result.setAttribute(Symbols.NAMES, names.build());
     result.setAttribute(Symbols.CLASS, new StringVector("proc_time"));
     return result.build();
-  } 
+  }
 }

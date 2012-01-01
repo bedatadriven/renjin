@@ -21,7 +21,14 @@
 
 package com.bedatadriven.renjin.appengine;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.script.ScriptEngine;
+import javax.servlet.ServletContext;
+
 import org.apache.commons.vfs.CacheStrategy;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
@@ -31,19 +38,21 @@ import org.apache.commons.vfs.provider.LocalFileProvider;
 import org.apache.commons.vfs.provider.jar.AppEngineJarFileProvider;
 import org.apache.commons.vfs.provider.jar.JarFileProvider;
 import org.apache.commons.vfs.provider.url.UrlFileProvider;
+
 import r.lang.Context;
 import r.lang.SEXP;
+import r.scripting.RenjinScriptEngineFactory;
 
-import javax.servlet.ServletContext;
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.google.common.annotations.VisibleForTesting;
 
 public class AppEngineContextFactory {
 
   private static final Logger LOG = Logger.getLogger(AppEngineContextFactory.class.getName() );
 
+  public static ScriptEngine createScriptEngine(ServletContext servletContext) {
+	  RenjinScriptEngineFactory factory = new RenjinScriptEngineFactory();
+	  return factory.getScriptEngine(createTopLevelContext(servletContext));
+  }
 
   public static Context createTopLevelContext(ServletContext servletContext) {
     FileSystemManager fileSystemManager;

@@ -5,6 +5,8 @@ import java.util.List;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 
+import r.lang.Context;
+
 import com.google.common.collect.Lists;
 
 public class RenjinScriptEngineFactory implements ScriptEngineFactory {
@@ -87,7 +89,11 @@ public class RenjinScriptEngineFactory implements ScriptEngineFactory {
   }
 
   @Override
-  public ScriptEngine getScriptEngine() {
+  public RenjinScriptEngine getScriptEngine() {
     return new RenjinScriptEngine(this);
+  }
+  
+  public RenjinScriptEngine getScriptEngine(Context context) {
+    return new RenjinScriptEngine(this, context);
   }
 }

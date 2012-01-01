@@ -32,6 +32,11 @@ public class RenjinScriptEngine implements ScriptEngine {
     }
   }
 
+  RenjinScriptEngine(RenjinScriptEngineFactory factory, Context context) {
+    this.factory = factory;
+    this.topLevelContext = context;
+  }
+
   @Override
   public Bindings createBindings() {
     return new RenjinBindings(new HashFrame());

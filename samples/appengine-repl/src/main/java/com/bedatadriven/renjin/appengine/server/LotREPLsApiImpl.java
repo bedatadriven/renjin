@@ -93,10 +93,14 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
     }
     saveGlobals(context);
 
-
     if(!context.getGlobals().isInvisible()) {
+    	try {
     	context.evaluate(
-    	FunctionCall.newCall(Symbol.get("print"), result));
+    			FunctionCall.newCall(Symbol.get("print"), result));
+    	} catch(Exception e) {
+    		throw new InterpreterException("Ooops - exception while printing result: " + 
+    				e.getMessage());
+    	}
     }
 
     context.getGlobals().stdout.flush();
@@ -143,7 +147,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
       DatafileWriter writer = new DatafileWriter(baos);
       writer.writeExp(list.build());
 
-      log.severe(count + " variable saved, " + baos.toByteArray().length + " bytes");
+      log.fine(count + " variable saved, " + baos.toByteArray().length + " bytes");
 
       HttpServletRequest request = getThreadLocalRequest();
       HttpSession session = request.getSession();

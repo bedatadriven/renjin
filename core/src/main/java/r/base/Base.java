@@ -210,12 +210,11 @@ public class Base {
     
     lapack.dgesdd(jobu, n, p, xvals, n, s, u, ldu, v, ldvt, work, lwork, iwork, info);
     
-    ListVector.Builder val = new ListVector.Builder();
-    val.add("d", new DoubleVector(s, sexp.getAttributes()));
-    val.add("u", new DoubleVector(u, uexp.getAttributes()));
-    val.add("vt", new DoubleVector(v, vexp.getAttributes()));
-    
-    return val.build();
+    return ListVector.newNamedBuilder()
+      .add("d", new DoubleVector(s, sexp.getAttributes()))
+      .add("u", new DoubleVector(u, uexp.getAttributes()))
+      .add("vt", new DoubleVector(v, vexp.getAttributes()))
+      .build();
   }
  
   // nicer API but output does not match R-2.10's result at all--
@@ -385,7 +384,7 @@ public class Base {
           break;
         }
       }
-      ListVector.Builder ret = new ListVector.Builder();
+      ListVector.NamedBuilder ret = new ListVector.NamedBuilder();
       
       if (complexValues) {
         throw new EvalException("Complex results not yet implemented");
@@ -480,7 +479,7 @@ public class Base {
       if (info.val != 0)
         throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
   
-      ListVector.Builder ret = new ListVector.Builder();
+      ListVector.NamedBuilder ret = ListVector.newNamedBuilder();
       ret.add("values", new DoubleVector(rvalues));
       if (!ov) {
         ret.add("vectors", DoubleVector.newMatrix(rz, n, n));

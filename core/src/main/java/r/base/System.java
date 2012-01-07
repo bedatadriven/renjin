@@ -61,7 +61,7 @@ public class System {
     // this is just copied from my local R installation
     // we'll have to see later what makes the most sense to put here,
     // whether we need to pretend to be some version of R
-    return ListVector.newBuilder()
+    return ListVector.newNamedBuilder()
         .add("platform", "i386-pc-mingw32")
         .add("arch", "i386")
         .add("os", "mingw32")
@@ -151,7 +151,7 @@ public class System {
 
   @Primitive("dyn.load")
   public static ListVector dynLoad(String libraryPath, SEXP local, SEXP now, SEXP dllPath) {
-    ListVector.Builder result = new ListVector.Builder();
+    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
 
     Matcher matcher = Pattern.compile("[/\\\\](\\w+)\\.dll$").matcher(libraryPath);
     if(!matcher.find()) {

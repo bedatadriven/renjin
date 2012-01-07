@@ -35,6 +35,7 @@ import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 
+import r.compiler.ir.tac.IRFunctionTable;
 import r.lang.ComplexVector;
 import r.lang.Context;
 import r.lang.DoubleVector;
@@ -61,6 +62,7 @@ import com.google.common.collect.Lists;
 
 public abstract class EvalTestCase {
 
+  
   protected Environment global;
   protected Environment base;
   protected Context topLevelContext;
@@ -69,7 +71,7 @@ public abstract class EvalTestCase {
   public static final SEXP DOUBLE_0 = new DoubleVector();
 
   public SEXP GlobalEnv;
-
+  
   @Before
   public final void setUp() {
     topLevelContext = Context.newTopLevelContext();
@@ -87,6 +89,8 @@ public abstract class EvalTestCase {
       source = source + "\n";
     }
     SEXP exp = parse(source);
+    
+    
     return topLevelContext.evaluate( exp );
   }
 

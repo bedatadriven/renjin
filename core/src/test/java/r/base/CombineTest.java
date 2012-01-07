@@ -108,7 +108,7 @@ public class CombineTest extends EvalTestCase {
     @Test
     public void pairList() {
         eval(" pairlist <- function(...) .Internal(as.vector(list(...), 'pairlist')) ");
-        eval(" x <- c(pairlist(x=91,y=92))");
+        eval(" x <- c(pairlist(x=91,y=92)) ");
 
         assertThat(eval("names(x)"), equalTo(c("x", "y")));
         assertThat(eval("length(x)"), equalTo(c_i(2)));

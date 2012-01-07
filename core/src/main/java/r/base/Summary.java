@@ -226,7 +226,6 @@ public class Summary {
   @Primitive("mean")
   public static Vector mean(Vector x) {
     double mean = 0.0;
-    Print.print(x, 80);
     for (int i=0;i<x.length();i++){
       mean+=x.getElementAsSEXP(i).asReal();
     }

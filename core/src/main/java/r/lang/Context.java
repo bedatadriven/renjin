@@ -21,8 +21,6 @@
 
 package r.lang;
 
-import static r.util.CDefines.eval;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -36,6 +34,9 @@ import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
 
+import r.compiler.ir.tac.IRFunctionTable;
+import r.compiler.ir.tac.IRScope;
+import r.compiler.ir.tac.IRScopeBuilder;
 import r.lang.exception.EvalException;
 import r.lang.graphics.ColorPalette;
 import r.lang.graphics.GraphicsDevices;
@@ -53,6 +54,10 @@ import com.google.common.collect.Maps;
  * (such as via traceback) and otherwise (the sys.xxx functions).
  */
 public class Context {
+
+  public final static boolean USE_IR = false;
+
+  public final static boolean PRINT_IR = false;
 
 
   public enum Type {
@@ -150,6 +155,8 @@ public class Context {
 
     public final Options options;
 
+    public IRFunctionTable functionTable = new IRFunctionTable();
+    
     /**
      * This is the environment
      */
@@ -355,6 +362,19 @@ public class Context {
   }
   
   public SEXP evaluate(SEXP expression, Environment rho) {
+    if(USE_IR) {
+      return evaluateIR(expression, rho);
+    } else {
+      return evaluateAST(expression, rho);
+    }
+  }
+  
+  /**
+   * This is the eval() routine that is modeled very closely
+   * after the original R interpreter and is working nicely.
+   * 
+   */
+  private SEXP evaluateAST(SEXP expression, Environment rho) {
     if(expression instanceof Symbol) {
       return evaluateSymbol((Symbol)expression, rho);
     } else if(expression instanceof ExpressionVector) {
@@ -421,12 +441,26 @@ public class Context {
         evaluated = ((Promise) evaluated).force();
       }
       if(!(evaluated instanceof Function)) {
-        throw new EvalException("'function' of lang expression is of unsupported type '%s'", functionExp.getTypeName());
+        throw new EvalException("'function' of lang expression is of unsupported type '%s'", evaluated.getTypeName());
       }
       return (Function)evaluated;
     }
   }
 
+  /**
+   * This is the new interpeter routine. It is not yet passing all 
+   * tests.
+   */
+  public SEXP evaluateIR(SEXP expression, Environment rho) {
+    
+    IRScopeBuilder builder = new IRScopeBuilder(globals.functionTable);
+    IRScope scope = builder.build(expression);
+    
+    if(PRINT_IR) {
+      System.out.println(scope);
+    }
+    return scope.evaluate(this);
+  }
 
   /**
    *

@@ -26,6 +26,10 @@ public class IRClosure extends Closure {
 
     ClosureDispatcher.matchArgumentsInto(getFormals(), args, functionContext, functionEnvironment);
 
+    if(Context.PRINT_IR) {
+      System.out.println(function.getScope());
+    }
+    
     SEXP result = function.getScope().evaluate(functionContext);
     functionContext.exit();
 

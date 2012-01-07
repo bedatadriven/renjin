@@ -36,21 +36,16 @@ public class Print {
 
   private Print() {}
 
-
-  public static void print(PrintStream printStream, SEXP value, int charactersPerLine) {
-    printStream.println(new PrintingVisitor(value,charactersPerLine).getResult());
-  }
-
-  public static String print(SEXP expression, int charactersPerLine) {
-    return new PrintingVisitor(expression,charactersPerLine).getResult();
-  }
-
   @Primitive("print.default")
-  public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, SEXP quote, SEXP naPrint,
+  public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
                                     SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) {
 
-    String printed = new PrintingVisitor(expression,80).getResult();
-    context.getGlobals().stdout.print(printed);
+    PrintingVisitor visitor = new PrintingVisitor()
+      .setCharactersPerLine(80)
+      .setQuote(quote);
+    expression.accept(visitor);
+    
+    context.getGlobals().stdout.print(visitor.getResult());
     context.getGlobals().stdout.flush();
     context.setInvisibleFlag();
     return expression;
@@ -65,13 +60,26 @@ public class Print {
   static class PrintingVisitor extends SexpVisitor<String> {
 
     private StringBuilder out;
-    private int charactersPerLine;
+    private int charactersPerLine = 80;
+    private boolean quote = true;
 
-    PrintingVisitor(SEXP exp, int charactersPerLine) {
+    PrintingVisitor() {
       this.out = new StringBuilder();
+    }
+    
+    public PrintingVisitor setCharactersPerLine(int charactersPerLine) {
       this.charactersPerLine = charactersPerLine;
-
+      return this;
+    }
+    
+    public PrintingVisitor setQuote(boolean quote) {
+      this.quote = quote;
+      return this;
+    }
+    
+    public String print(SEXP exp) {
       exp.accept(this);
+      return getResult();
     }
 
     @Override
@@ -122,7 +130,7 @@ public class Print {
 
     @Override
     public void visit(StringVector vector) {
-      printVector(vector, Alignment.LEFT, new ParseUtil.StringPrinter());
+      printVector(vector, Alignment.LEFT, new ParseUtil.StringPrinter().withQuotes(quote));
     }
 
     @Override
@@ -361,8 +369,6 @@ public class Print {
       }
       
       private void print() {
-        int index = 0;
-        
         printColumnHeaders();
         
         for(int i=0; i!=rows;++i) {

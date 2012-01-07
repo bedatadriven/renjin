@@ -28,7 +28,7 @@ public class EnvironmentVariable implements Variable {
   }
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
-    SEXP value = context.getEnvironment().getVariable(name);
+    SEXP value = context.getEnvironment().findVariable(name);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("object '" + name + "' not found");
     }

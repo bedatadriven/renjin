@@ -104,7 +104,7 @@ public class Files {
       }
     }
 
-    return ListVector.newBuilder()
+    return ListVector.newNamedBuilder()
         .add("size", size)
         .add("isdir", isdir)
         .add("mode", mode)

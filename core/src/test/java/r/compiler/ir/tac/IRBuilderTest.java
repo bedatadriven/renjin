@@ -56,6 +56,18 @@ public class IRBuilderTest extends EvalTestCase {
   public void interpretSimple() {
     assertThat(evalIR("x<-16; sqrt(x^2)"), equalTo(c(16)));
   }
+  
+  @Test
+  public void complexAssignment() {
+    assertThat(evalIR("x<-c(1:3); x[1] <- 99 "), equalTo(c(99)));
+    assertThat(eval("x"), equalTo(c(99,2,3)));
+    assertThat(evalIR("x<-list(1:3, 99, 1:4); x[[3]][5] <- 400; x[[3]] "), equalTo(c(1,2,3,4,400)));
+  }
+  
+  @Test
+  public void primitiveUsingSymbol() {
+    assertThat(evalIR("x<-list(a=1,b=2); x$a"), equalTo(c(1)));
+  }
 
   @Test
   public void interpretIf() {

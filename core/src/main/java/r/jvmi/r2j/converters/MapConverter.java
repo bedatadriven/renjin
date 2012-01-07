@@ -15,7 +15,7 @@ public class MapConverter implements Converter<Map<?,?>> {
   
   @Override
   public SEXP convertToR(Map<?,?> map) {
-    ListVector.Builder list = new ListVector.Builder();
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     for(Map.Entry<?,?> entry : map.entrySet()) {
       list.add(
           entry.getKey().toString(), 

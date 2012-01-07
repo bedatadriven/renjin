@@ -83,7 +83,8 @@ public class IRScopeBuilder {
         return builder.translateToExpression(this, null, (FunctionCall)exp);
       }
     } else {
-      throw new UnsupportedOperationException(exp.toString());
+      // environments, pairlists, etc
+      return new Constant(exp);
     }
   }
   
@@ -103,10 +104,39 @@ public class IRScopeBuilder {
   public Expression translateCall(TranslationContext context, FunctionCall call) {
     Symbol name = (Symbol)call.getFunction();
     if(name.isReservedWord()) {
-      return new PrimitiveCall(name, makeOperandList(context, call));
+      return translatePrimitiveCall(context, call);
     } else {
-      return new DynamicCall(new EnvironmentVariable(name), makeOperandList(context, call));
+      return new DynamicCall(new EnvironmentVariable(name), makeNameList(call), makeOperandList(context, call));
     }
+  }
+  
+  public Expression translateSetterCall(TranslationContext context, FunctionCall call, Expression rhs) {
+    FunctionCallTranslator translator = builders.get(call.getFunction());
+    if(translator != null) {
+      return translator.translateToSetterExpression(this, context, call, rhs);
+    } 
+    Symbol name = (Symbol)call.getFunction();
+    List<SEXP> argumentNames = makeNameList(call);
+    List<Expression> arguments = makeOperandList(context, call);
+    
+    // add rhs
+    argumentNames.add(Symbol.get("value"));
+    arguments.add(rhs);
+    
+    if(name.isReservedWord()) {
+      return new PrimitiveCall(name, arguments);
+    } else {
+      return new DynamicCall(new EnvironmentVariable(name), argumentNames, arguments);
+    }
+  }
+
+  public Expression translatePrimitiveCall(TranslationContext context,
+      FunctionCall call) {
+    SEXP function = call.getFunction();
+    if(!(function instanceof Symbol)) {
+      throw new IllegalArgumentException("Expected symbol, got '" + function + "'");
+    }
+    return new PrimitiveCall((Symbol)function, makeOperandList(context, call));
   }
 
   private List<Expression> makeOperandList(TranslationContext context, FunctionCall call) {
@@ -115,6 +145,14 @@ public class IRScopeBuilder {
       arguments.add( simplify( translateExpression(context, arg) ));
     }
     return arguments;
+  }
+  
+  private List<SEXP> makeNameList(FunctionCall call) {
+    List<SEXP> names = Lists.newArrayList();
+    for(PairList.Node node : call.getArguments().nodes()) {
+      names.add(node.getRawTag());
+    }
+    return names;
   }
 
   public SimpleExpression simplify(Expression rvalue) {
@@ -147,7 +185,7 @@ public class IRScopeBuilder {
   }
   
   public LocalVariable newLocalVariable() {
-    return new LocalVariable("\u039b" + (nextLocalVariableIndex++), nextTemp++);
+    return new LocalVariable("Λ" + (nextLocalVariableIndex++), nextTemp++);
   }
   
   public IRLabel newLabel() {

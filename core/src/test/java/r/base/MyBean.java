@@ -1,6 +1,7 @@
 package r.base;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import r.lang.DoubleVector;
@@ -74,7 +75,7 @@ public class MyBean {
     return sb.toString();
   }
   
-  // should be mapped as method, not propery
+  // should be mapped as method, not property
   // because there is no getter
   public void setLocked(boolean locked) {
     
@@ -88,9 +89,29 @@ public class MyBean {
     return Arrays.asList(new MyChildBean(), new MyChildBean());
   }
   
+  public int intVarArg(String dummy, int... toSum) {
+    int sum = 0;
+    for(int x : toSum) {
+      sum += x;
+    }
+    return sum;
+  }
+  
   public static class MyChildBean {
     public int getCount() {
       return 42;
     } 
+  }
+  
+  public void overloadedWithVarArgs(String label, String... sources) {
+  
+  }
+
+  public void overloadedWithVarArgs(String label, Collection<String> sources) {
+  
+  }
+
+  public void overloadedWithVarArgs(Object mapping) {
+
   }
 }

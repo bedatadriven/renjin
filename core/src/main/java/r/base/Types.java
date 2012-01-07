@@ -629,8 +629,21 @@ public class Types {
   }
 
   @Primitive("dimnames<-")
-  public static SEXP setDimensionNames(SEXP exp, ListVector vector) {
-    return exp.setAttribute(Symbols.DIMNAMES, vector);
+  public static SEXP setDimensionNames(@Current Context context, SEXP exp, ListVector dimnames) {
+    Vector dim = (Vector) exp.getAttribute(Symbols.DIM);
+    if(dim.length() != dimnames.length()) {
+      throw new EvalException("length of 'dimnames' [%d] not equal to array extent [%d]", 
+          dimnames.length(), dim.length());
+          
+    }
+    ListVector.Builder dn = new ListVector.Builder();
+    for(SEXP names : dimnames) {
+      if(!(names instanceof StringVector)) {
+        names = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), names));
+      }
+      dn.add(names);
+    }
+    return exp.setAttribute(Symbols.DIMNAMES, dn.build());
   }
 
   public static PairList attributes(SEXP sexp) {
@@ -1103,7 +1116,7 @@ public class Types {
   public static ListVector options(@Current Context context,
       @ArgumentList ListVector arguments) {
     Context.Options options = context.getGlobals().options;
-    ListVector.Builder results = ListVector.newBuilder();
+    ListVector.NamedBuilder results = ListVector.newNamedBuilder();
 
     if (arguments.length() == 0) {
       // return all options as a list

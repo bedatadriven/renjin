@@ -296,7 +296,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     if(varArgsSeen) {
       s.writeBlankLine();
       s.writeComment("match var args");
-      s.writeStatement("ListVector.Builder argList = new ListVector.Builder();");
+      s.writeStatement("ListVector.NamedBuilder argList = new ListVector.NamedBuilder();");
       s.writeBeginBlock("while(argIt.hasNext()) { ");
       writeHandleNode(s, namedFlags);
       s.writeCloseBlock();     

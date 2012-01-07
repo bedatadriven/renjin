@@ -86,7 +86,7 @@ public class Subsetting {
   @Primitive("$<-")
   public static SEXP setElementByName(ListVector list,
       @Evaluate(false) Symbol name, SEXP value) {
-    ListVector.Builder result = ListVector.buildFromClone(list);
+    ListVector.NamedBuilder result = ListVector.buildNamedFromClone(list);
 
     int index = list.getIndexByName(name.getPrintName());
     if (index == -1) {

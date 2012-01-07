@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.netlib.util.StringW;
+
 import r.base.regex.ExtendedRE;
 import r.base.regex.RE;
 import r.base.regex.REFactory;
@@ -650,7 +652,7 @@ public class Text {
        
     List<String> elements = formatCharacterElements(x, naEncode);
     int width = calculateWidth(elements, minWidth);
-    elements = justify(elements, width, Justification.LEFT);
+    elements = justify(elements, width, Justification.LEFT, naEncode);
     
     return buildFormatResult(x, elements);
   }
@@ -696,7 +698,7 @@ public class Text {
     int width = calculateWidth(elements, minWidth);
     
     if(!trim) {
-      elements = justify(elements, width, Justification.RIGHT);
+      elements = justify(elements, width, Justification.RIGHT, naEncode);
     }
     
     return buildFormatResult(x, elements);
@@ -720,25 +722,35 @@ public class Text {
     }
 
     for(String element : elements) {
-      if(element.length() > width) {
-        width = element.length();
-      }
+      width = Math.max(width, stringWidth(element));
     }
     return width; 
+  }
+  
+  private static int stringWidth(String element) {
+    if(StringVector.isNA(element)) {
+      return "NA".length();
+    } else {
+      return element.length();
+    }
   }
   
   enum Justification {
     LEFT, RIGHT
   }
   
-  private static List<String> justify(Iterable<String> elements, int width, Justification justification) {
+  private static List<String> justify(Iterable<String> elements, int width, Justification justification, boolean naEncode) {
     List<String> justified = Lists.newArrayList();
     for(String element : elements) {
-      String padding = padding(Math.max(0, width - element.length()));
-      if(justification == Justification.LEFT) {
-        justified.add(element + padding);
+      if(StringVector.isNA(element) && !naEncode) {
+        justified.add(element);
       } else {
-        justified.add(padding + element);
+        String padding = padding(Math.max(0, width - stringWidth(element)));
+        if(justification == Justification.LEFT) {
+          justified.add(element + padding);
+        } else {
+          justified.add(padding + element);
+        }
       }
     }
     return justified;

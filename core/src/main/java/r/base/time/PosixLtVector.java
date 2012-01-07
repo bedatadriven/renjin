@@ -70,7 +70,7 @@ public class PosixLtVector extends TimeVector {
   }
 
   public static class Builder {
-    private ListVector.Builder list = new ListVector.Builder(9);
+    private ListVector.NamedBuilder list = new ListVector.NamedBuilder(9);
     private IntVector.Builder second = new IntVector.Builder();
     private IntVector.Builder minute = new IntVector.Builder();
     private IntVector.Builder hour = new IntVector.Builder();

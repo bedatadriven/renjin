@@ -28,6 +28,8 @@ import r.EvalTestCase;
 import r.lang.*;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -246,10 +248,15 @@ public class BasePackageTest extends EvalTestCase {
   public void factorPrint() throws IOException {
     topLevelContext.init();
     
+    StringWriter stringWriter = new StringWriter();
+    topLevelContext.getGlobals().setStdOut(new PrintWriter(stringWriter));
+    
     eval(" gender <- factor(c('F','F','F','F', 'M','M','M'))");
     eval(" print(gender) ");
+    
+    assertThat(stringWriter.toString(), equalTo("[1] F F F F M M M\nLevels: F M\n"));
   }
-
+  
   @Test
   public void parentFrameFromWithinEval() throws IOException {
     topLevelContext.init();
@@ -403,6 +410,15 @@ public class BasePackageTest extends EvalTestCase {
 
     assertThat(eval("rowsum(m, group=c(3,3,1), reorder=TRUE)"), equalTo(c_i(3,3,6,9,9,15,12,21)));
 
+  }
+  
+  @Test
+  public void rowLabelsFromFactors() throws IOException {
+    topLevelContext.init();
+    eval("x <- factor(c('Yes','No','No'))");
+    eval("m <- matrix(c(1:6), 3, 2)");
+    eval("rownames(m) <- unique(x)");
+    assertThat(eval("rownames(m)"), equalTo(c("Yes","No")));
   }
   
 }

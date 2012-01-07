@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import r.lang.Context;
+import r.lang.Symbol;
 
 
 public class Constant implements SimpleExpression {
@@ -20,7 +21,11 @@ public class Constant implements SimpleExpression {
   
   @Override
   public String toString() {
-    return value.toString();
+    if(value instanceof Symbol) {
+      return "|" + value + "|";
+    } else {
+      return value.toString();
+    }
   }
 
   @Override

@@ -3,6 +3,7 @@ package r.jvmi.r2j;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.List;
 
 import r.jvmi.r2j.converters.Converter;
@@ -10,6 +11,9 @@ import r.jvmi.r2j.converters.Converters;
 import r.lang.SEXP;
 import r.lang.exception.EvalException;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 public class ConstructorBinding {
@@ -33,40 +37,19 @@ public class ConstructorBinding {
     return overloads.isEmpty();
   }
   
-  public static class Overload {
+  public static class Overload extends AbstractOverload {
     private Constructor constructor;
-    private int nargs;
-    private Converter[] argumentConverters;
+
     
     public Overload(Constructor constructor) {
+      super(constructor.getParameterTypes(), constructor.isVarArgs());
       this.constructor = constructor;
-      this.nargs = constructor.getParameterTypes().length;
-      this.argumentConverters = new Converter[constructor.getParameterTypes().length];
-      for(int i=0;i!=argumentConverters.length;++i) {
-        argumentConverters[i] = Converters.get(constructor.getParameterTypes()[i]);
-      }
     }
     
-    public int getArgCount() {
-      return nargs;
-    }
-    
-    public boolean accept(List<SEXP> args) {
-      for(int i=0; i!=nargs;++i) {
-        if(!argumentConverters[i].acceptsSEXP(args.get(i))) {
-          return false;
-        }
-      }
-      return true;
-    }
-    
+   
     public Object newInstance(List<SEXP> args) {
-      Object converted[] = new Object[nargs];
-      for(int i=0;i!=nargs;++i) {
-        converted[i] = argumentConverters[i].convertToJava(args.get(i));
-      }
       try {
-        return constructor.newInstance(converted);
+        return constructor.newInstance(convertArguments(args));
       } catch (IllegalArgumentException e) {
         throw new RuntimeException(e);
       } catch (InstantiationException e) {
@@ -77,17 +60,23 @@ public class ConstructorBinding {
         throw new RuntimeException(e);
       }  
     }
+    
+    @Override
+    public String toString() {
+      return constructor.toString();
+    }
   }
   
   public Object newInstance(List<SEXP> arguments) {
     for(Overload overload : overloads) {
-      if(overload.getArgCount() == arguments.size() &&
-          overload.accept(arguments)) {
+      if(overload.accept(arguments)) {
         
         return overload.newInstance(arguments);
         
       }
     }
-    throw new EvalException("cannt match actuals to jvm metod arguments");
+
+    throw new EvalException("Cannot match arguments (%s) to any of the constructors:\n%s", 
+        ExceptionUtil.toString(arguments), ExceptionUtil.overloadListToString(overloads));
   }
 }

@@ -2,6 +2,7 @@ package r.compiler.ir.tac;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Date;
 
 import org.junit.Test;
 
@@ -31,6 +32,6 @@ public class IRProgramTest {
 //    long end = new Date().getTime();
 //    
 //    System.out.println(end-start);
-    
+//    
   }
 }

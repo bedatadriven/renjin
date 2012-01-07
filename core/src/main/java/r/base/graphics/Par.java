@@ -27,7 +27,7 @@ public class Par {
   public static SEXP par(@Current Context context, ListVector args) {
     GraphicsDevice dd;
     
-    ListVector.Builder result = new ListVector.Builder();
+    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
     
     dd = Devices.GEcurrentDevice(context);
     for(NamedValue namedValue : args.namedValues()) {

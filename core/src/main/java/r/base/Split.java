@@ -30,7 +30,7 @@ public class Split {
           .addFrom(toSplit, i);
     }
     
-    ListVector.Builder resultList = new ListVector.Builder();
+    ListVector.NamedBuilder resultList = new ListVector.NamedBuilder();
     for(Integer split : map.getKeys()) {
       resultList.add(split.toString(), 
           map.getSplitBuilder(split).build());

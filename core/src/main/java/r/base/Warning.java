@@ -61,7 +61,7 @@ public class Warning {
     } else if(warnMode == 0) {
       // store warnings until end of evaluation
       
-      ListVector.Builder lastWarning = new ListVector.Builder();
+      ListVector.NamedBuilder lastWarning = new ListVector.NamedBuilder();
      
       Environment baseEnv = context.getEnvironment().getBaseEnvironment();
       if(baseEnv.hasVariable(LAST_WARNING)) {

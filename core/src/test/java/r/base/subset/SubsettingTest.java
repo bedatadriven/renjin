@@ -372,6 +372,18 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<- NULL ");
     assertThat( eval("x[[1]]"), equalTo(NULL));
   }
+  
+  @Test
+  public void buildListByName() {
+    eval(" x<-list()");
+    eval(" x[['a']] <- 1");
+    eval(" x[['b']] <- 2");
+    eval(" x[['c']] <- 3");
+    
+    assertThat(eval("x"), equalTo(list(1d,2d,3d)));
+    assertThat(eval("names(x)"), equalTo(c("a","b","c")));
+    
+  }
 
   @Test
   public void columnIndex() {

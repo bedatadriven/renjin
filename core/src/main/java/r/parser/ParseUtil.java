@@ -259,9 +259,24 @@ public class ParseUtil {
   }
 
   public static class StringPrinter implements Function<String, String> {
+    private boolean quote = true;
+    
+    /**
+     * 
+     * @param quote true if the strings should be double-quoted (")
+     */
+    public StringPrinter withQuotes(boolean quote) {
+      this.quote = quote;
+      return this;
+    }
+    
     @Override
     public String apply(String s) {
-      return formatStringLiteral(s, "NA");
+      if(quote || StringVector.isNA(s)) {
+        return formatStringLiteral(s, "NA");        
+      } else {
+        return s;
+      }
     }
   }
 

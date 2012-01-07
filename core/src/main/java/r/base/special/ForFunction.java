@@ -21,7 +21,15 @@
 
 package r.base.special;
 
-import r.lang.*;
+import r.lang.Context;
+import r.lang.Environment;
+import r.lang.FunctionCall;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.SEXP;
+import r.lang.SpecialFunction;
+import r.lang.Symbol;
+import r.lang.Vector;
 
 public class ForFunction extends SpecialFunction {
 
@@ -32,11 +40,21 @@ public class ForFunction extends SpecialFunction {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
-   PairList args = call.getArguments();
+
+//    IRFunctionTable functionTable = new IRFunctionTable();
+//    IRScopeBuilder builder = new IRScopeBuilder(functionTable);
+//    
+//    if(rho != context.getEnvironment()) {
+//      throw new AssertionError("context environment is different from rho");
+//    }
+//    
+//    IRScope scope = builder.build(call);
+//    scope.evaluate(context);
+    
+    PairList args = call.getArguments();
     Symbol symbol = (Symbol) args.getElementAsSEXP(0);
     Vector elements = (Vector) context.evaluate( args.getElementAsSEXP(1), rho);
     SEXP statement = args.getElementAsSEXP(2);
-
     for(int i=0; i!=elements.length(); ++i) {
       try {
         rho.setVariable(symbol, elements.getElementAsSEXP(i));
@@ -47,6 +65,7 @@ public class ForFunction extends SpecialFunction {
         // next iteration
       }
     }
+
     context.setInvisibleFlag();
     return Null.INSTANCE;
   }

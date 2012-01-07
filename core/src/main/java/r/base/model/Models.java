@@ -69,7 +69,7 @@ public class Models {
     
     
     // define attibutes
-    ListVector.Builder attributes = new ListVector.Builder();
+    ListVector.NamedBuilder attributes = ListVector.newNamedBuilder();
     attributes.add("variables", formula.buildVariablesAttribute());
     attributes.add("factors", formula.buildFactorsMatrix());
     attributes.add("term.labels", formula.buildTermLabels());

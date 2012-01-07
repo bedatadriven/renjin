@@ -33,7 +33,6 @@ import r.lang.exception.EvalException;
 import r.util.NamesBuilder;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -292,7 +291,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   public static Builder buildFromClone(ListVector toClone) {
     return new Builder(toClone);
   }
-
+  
+  public static NamedBuilder buildNamedFromClone(ListVector toClone) {
+    return new NamedBuilder(toClone);
+  }
+  
   @Override
   public Builder newCopyBuilder() {
     return new Builder(this);
@@ -307,17 +310,19 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   public Builder newBuilderWithInitialCapacity(int initialCapacity) {
     return new Builder(0, initialCapacity);
   }
+  
+  public static NamedBuilder newNamedBuilder() {
+    return new NamedBuilder();
+  }
 
   @Override
   protected SEXP cloneWithNewAttributes(PairList attributes) {
     return new ListVector(values, attributes);
   }
 
-
   public static class Builder extends AbstractVector.AbstractBuilder<SEXP> {
     private final List<SEXP> values;
-    private final NamesBuilder names;
-
+    
     public Builder() {
       this(0,0);
     }
@@ -327,61 +332,20 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       for(int i=0;i!=initialSize;++i) {
         values.add(Null.INSTANCE);
       }
-      names = NamesBuilder.withInitialCapacity(initialCapacity);
     }
 
     protected Builder(ListVector toClone) {
       values = Lists.newArrayList(toClone);
-      names = NamesBuilder.clonedFrom(toClone);
       copyAttributesFrom(toClone);
     }
 
     public Builder(int initialLength) {
       values = Lists.newArrayListWithCapacity(initialLength);
-      names = NamesBuilder.withInitialLength(initialLength);
       for(int i=0;i!=initialLength;++i) {
         add(Null.INSTANCE);
       }
     }
 
-    public Builder add(String name, SEXP value) {
-      Preconditions.checkNotNull(value);
-
-      values.add(value);
-      names.set(values.size()-1, name);
-      return this;
-    }
-
-    public Builder add(String name, Vector.Builder builder) {
-      return add(name, builder.build());
-    }
-
-    public Builder add(Symbol name, SEXP value) {
-      return add(name.getPrintName(), value);
-    }
-
-    public Builder add(String name, int value) {
-      return add(name, new IntVector(value));
-    }
-
-    public Builder add(String name, String value) {
-      return add(name, new StringVector(value));
-    }
-
-    public Builder add(String name, boolean value) {
-      return add(name, new LogicalVector(value));
-    }
-
-    public Builder add(String name, Logical value) {
-      return add(name, new LogicalVector(value));
-    }
-    
-    public Builder addAll(ListVector list) {
-      for(int i=0;i!=list.length();++i) {
-        add(list.getName(i), list.get(i));
-      }
-      return this;
-    }
 
     @Override
     public Builder add(SEXP value) {
@@ -421,13 +385,6 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     protected List<SEXP> getValues() {
       return values;
     }
-
-    protected PairList buildAttributes() {
-      if(names.haveNames()) {
-        setAttribute(Symbols.NAMES, names.build(values.size()));
-      }
-      return super.buildAttributes();
-    }
     
     public ListVector build() {
       return new ListVector(values, buildAttributes());
@@ -443,6 +400,79 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       }
       return this;
     }
+  }
+  
+  /**
+   * Convenience builder for constructing lists with names
+   *
+   */
+  public static class NamedBuilder extends Builder {
+    private final NamesBuilder names;
+    
+    public NamedBuilder() {
+      super();
+      names = NamesBuilder.withInitialCapacity(10);
+    }
+
+    public NamedBuilder(int initialSize, int initialCapacity) {
+      super(initialSize, initialCapacity);
+      names = NamesBuilder.withInitialCapacity(initialCapacity);
+    }
+
+    protected NamedBuilder(ListVector toClone) {
+      super(toClone);
+      names = NamesBuilder.clonedFrom(toClone);
+    }
+
+    public NamedBuilder(int initialLength) {
+      super(initialLength);
+      names = NamesBuilder.withInitialLength(initialLength);
+    }    
+    
+    public NamedBuilder add(String name, SEXP value) {
+      add(value);
+      names.set(length()-1, name);
+      return this;
+    }
+
+    public NamedBuilder add(String name, Vector.Builder builder) {
+      return add(name, builder.build());
+    }
+
+    public NamedBuilder add(Symbol name, SEXP value) {
+      return add(name.getPrintName(), value);
+    }
+
+    public NamedBuilder add(String name, int value) {
+      return add(name, new IntVector(value));
+    }
+
+    public NamedBuilder add(String name, String value) {
+      return add(name, new StringVector(value));
+    }
+
+    public NamedBuilder add(String name, boolean value) {
+      return add(name, new LogicalVector(value));
+    }
+
+    public NamedBuilder add(String name, Logical value) {
+      return add(name, new LogicalVector(value));
+    }
+    
+    public NamedBuilder addAll(ListVector list) {
+      for(int i=0;i!=list.length();++i) {
+        add(list.getName(i), list.get(i));
+      }
+      return this;
+    }
+
+
+    protected PairList buildAttributes() {
+      if(names.haveNames()) {
+        setAttribute(Symbols.NAMES, names.build(length()));
+      }
+      return super.buildAttributes();
+    }    
   }
 
   private static class ListType extends Vector.Type {
@@ -495,4 +525,6 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       return value;
     }
   }
+
+
 }

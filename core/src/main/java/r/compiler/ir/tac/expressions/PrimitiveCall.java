@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import r.base.Primitives;
+import r.compiler.ir.exception.InvalidSyntaxException;
 import r.lang.Context;
 import r.lang.FunctionCall;
 import r.lang.PairList;
@@ -32,6 +33,12 @@ public class PrimitiveCall implements Expression {
     this.name = name;
     this.arguments = arguments;
     this.function = Primitives.getBuiltin(name);
+    if(function == null) {
+      function = Primitives.getInternal(name);
+    }
+    if(function == null) {
+      throw new InvalidSyntaxException("No such primitive '" + function + "'");
+    }
     this.argumentValues = new SEXP[arguments.size()];
   }
 

@@ -38,7 +38,7 @@ public class DatafileWriterTest {
   @Test
   public void test() throws IOException {
 
-    ListVector.Builder list = new ListVector.Builder();
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     list.add("foo", new StringVector("zefer", "fluuu"));
     list.setAttribute("categories", new IntVector(3));
 

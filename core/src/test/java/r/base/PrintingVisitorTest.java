@@ -34,21 +34,20 @@ public class PrintingVisitorTest {
 
   @Test
   public void realVector() {
-    assertThat(new Print.PrintingVisitor(new DoubleVector(1,99,3), 80).getResult(),
+    assertThat(new Print.PrintingVisitor().print(new DoubleVector(1,99,3)),
         equalTo("[1]  1 99  3\n"));                                                
   }
 
   @Test
   public void stringVector() {
-    assertThat(new Print.PrintingVisitor(new StringVector("abcdef", "a", "b"), 80).getResult(),
+    assertThat(new Print.PrintingVisitor().print(new StringVector("abcdef", "a", "b")),
         equalTo("[1] \"abcdef\" \"a\"      \"b\"     \n"));
   }
 
   @Test
   public void listOfVectors() {
-    assertThat(new Print.PrintingVisitor(
-        new ListVector(new DoubleVector(1), new IntVector(999, 1), new StringVector("hello world")), 80)
-          .getResult(),
+    assertThat(new Print.PrintingVisitor().print(
+        new ListVector(new DoubleVector(1), new IntVector(999, 1), new StringVector("hello world"))),
         equalTo("[[1]]\n" +
                 "[1] 1\n" +
                 "\n" +

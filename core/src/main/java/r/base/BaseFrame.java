@@ -97,7 +97,7 @@ public class BaseFrame implements Frame {
   }
 
   private void installPlatform() {
-    loaded.put(Symbol.get(".Platform"), ListVector.newBuilder()
+    loaded.put(Symbol.get(".Platform"), ListVector.newNamedBuilder()
         .add("OS.type", new StringVector(resolveOsName()))
         .add("file.sep", new StringVector("/"))
         .add("GUI", new StringVector("unknown"))
@@ -123,7 +123,7 @@ public class BaseFrame implements Frame {
   private void installMachine() {
     // TODO: I'm not sure how these values are used, but
     // I have mostly just copied them from my local R installation
-    loaded.put(Symbol.get(".Machine"), ListVector.newBuilder()
+    loaded.put(Symbol.get(".Machine"), ListVector.newNamedBuilder()
         .add("double.eps", new DoubleVector(DoubleVector.EPSILON))
         .add("double.neg.eps", new DoubleVector(1.110223e-16))
         .add("double.xmin",new DoubleVector(2.225074e-308))

@@ -8,6 +8,8 @@ import java.io.IOException;
 import org.junit.Test;
 
 import r.EvalTestCase;
+import r.jvmi.r2j.ClassBinding;
+import r.jvmi.r2j.FunctionBinding;
 import r.jvmi.r2j.ObjectFrame;
 import r.lang.Environment;
 import r.lang.Symbol;
@@ -42,6 +44,14 @@ public class JvmiTest extends EvalTestCase {
     eval("map$put(1,'foo')");
     
     assertThat(eval("map$get(1)"), equalTo(c("foo")));
+  }
+  
+  @Test
+  public void varArgs() {
+    eval("import(r.base.MyBean)");
+    eval("x <- MyBean$new()");
+    
+    assertThat(eval("x$intVarArg('hello')"), equalTo(c_i(0)));
   }
   
   @Test

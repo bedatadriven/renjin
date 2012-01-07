@@ -7,6 +7,7 @@ import java.util.Set;
 import r.lang.Context;
 import r.lang.Function;
 import r.lang.FunctionCall;
+import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.Symbol;
@@ -24,10 +25,12 @@ public class DynamicCall implements Expression {
 
   private final Variable function;
   private final List<Expression> arguments;
+  private final List<SEXP> argumentNames;
   
-  public DynamicCall(Variable name, List<Expression> arguments) {
+  public DynamicCall(Variable name, List<SEXP> argumentNames, List<Expression> arguments) {
     this.function = name;
     this.arguments = arguments;
+    this.argumentNames = argumentNames;
   }
 
   public Variable getName() {
@@ -47,8 +50,8 @@ public class DynamicCall implements Expression {
     
     // build argument list 
     PairList.Builder argList = new PairList.Builder();
-    for(Expression operand : arguments) {
-      argList.add((SEXP)operand.retrieveValue(context, temps));
+    for(int i=0;i!=arguments.size();++i) {
+      argList.add(argumentNames.get(i), (SEXP)arguments.get(i).retrieveValue(context, temps));
     }
     PairList args = argList.build();
     FunctionCall call = new FunctionCall(functionName.getName(), args);
@@ -83,7 +86,18 @@ public class DynamicCall implements Expression {
 
   @Override
   public String toString() {
-    return "\u0394 " + function + "(" + Joiner.on(", ").join(arguments) + ")";
+    StringBuilder sb = new StringBuilder("\u0394 " + function + "(");
+    for(int i=0;i!=argumentNames.size();++i) {
+      if(i > 0) {
+        sb.append(", ");
+      }
+      if(argumentNames.get(i) != Null.INSTANCE) {
+        sb.append(argumentNames.get(i)).append(" = ");
+      }
+      sb.append(arguments.get(i));
+    }
+    sb.append(")");
+    return sb.toString();
   }
 
   @Override
@@ -94,6 +108,7 @@ public class DynamicCall implements Expression {
     }
     return new DynamicCall(
         (Variable)this.function.replaceVariable(name, newName), 
+        argumentNames,
         newOps);
   } 
 }

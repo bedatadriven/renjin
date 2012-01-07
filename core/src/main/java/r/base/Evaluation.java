@@ -237,7 +237,7 @@ public class Evaluation {
       SEXP enclosing) {
     
     SEXP result = eval(context, expression, environment, enclosing);
-    ListVector.Builder list = new ListVector.Builder();
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     list.add("value", result);
     list.add("visible", context.getGlobals().isInvisible());
     return list.build();

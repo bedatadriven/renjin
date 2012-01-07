@@ -163,7 +163,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
   
   public boolean isStrict() {
     for(Argument formal : getFormals()) {
-      if(!formal.isEvaluated()) {
+      if(!formal.isEvaluated() && !formal.isSymbol()) {
         return false;
       }
     }

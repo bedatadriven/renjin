@@ -201,5 +201,13 @@ public class TextTest extends EvalTestCase {
     assertThat( eval("format(c(1,10,1000),trim=T)"), equalTo(c("1", "10", "1000")));
 
   }
+
+  @Test
+  public void formatWithNAs() throws IOException {
+    topLevelContext.init();
+    
+    assertThat(eval("format(c('Hello', NA, 'world', NA))"), equalTo(c( "Hello", "NA   ", "world", "NA   ")));    
+    assertThat(eval("format(c('Hello', NA, 'world', NA), na.encode=FALSE)"), equalTo(c( "Hello", null, "world", null)));
+  }
   
 }

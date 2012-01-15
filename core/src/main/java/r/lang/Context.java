@@ -35,8 +35,8 @@ import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
 
 import r.compiler.ir.tac.IRFunctionTable;
-import r.compiler.ir.tac.IRScope;
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBody;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.lang.exception.EvalException;
 import r.lang.graphics.ColorPalette;
 import r.lang.graphics.GraphicsDevices;
@@ -453,8 +453,8 @@ public class Context {
    */
   public SEXP evaluateIR(SEXP expression, Environment rho) {
     
-    IRScopeBuilder builder = new IRScopeBuilder(globals.functionTable);
-    IRScope scope = builder.build(expression);
+    IRBodyBuilder builder = new IRBodyBuilder(globals.functionTable);
+    IRBody scope = builder.build(expression);
     
     if(PRINT_IR) {
       System.out.println(scope);

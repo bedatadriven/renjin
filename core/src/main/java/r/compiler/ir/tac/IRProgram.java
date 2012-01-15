@@ -7,11 +7,11 @@ import r.lang.SEXP;
 
 public class IRProgram {
 
-  private IRScope main;
+  private IRBody main;
   private IRFunctionTable functionTable = new IRFunctionTable();
   
   public IRProgram(SEXP program) {
-    IRScopeBuilder builder = new IRScopeBuilder(functionTable);
+    IRBodyBuilder builder = new IRBodyBuilder(functionTable);
     main = builder.build(program);
   }
   
@@ -34,7 +34,7 @@ public class IRProgram {
     return main.evaluate(context);
   }
 
-  public IRScope getMain() {
+  public IRBody getMain() {
     return main;
   }
 

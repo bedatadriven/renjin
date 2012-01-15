@@ -12,13 +12,13 @@ import r.lang.SEXP;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
-public class IRScope {
+public class IRBody {
   
   private Object temp[];
   private Statement statements[];
   private int labels[];
   
-  public IRScope(List<Statement> statements, Map<IRLabel, Integer> labels, int tempCount) {
+  public IRBody(List<Statement> statements, Map<IRLabel, Integer> labels, int tempCount) {
     this.statements = statements.toArray(new Statement[statements.size()]);
     this.labels = new int[labels.size()];
     this.temp = new Object[tempCount];

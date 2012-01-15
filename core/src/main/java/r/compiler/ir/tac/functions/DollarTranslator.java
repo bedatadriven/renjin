@@ -1,6 +1,6 @@
 package r.compiler.ir.tac.functions;
 
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.PrimitiveCall;
@@ -16,7 +16,7 @@ public class DollarTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder,
+  public Expression translateToExpression(IRBodyBuilder builder,
       TranslationContext context, FunctionCall call) {
     Expression object = builder.translateExpression(context, call.getArgument(0));
     Symbol index = call.getArgument(1);
@@ -25,7 +25,7 @@ public class DollarTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context,
+  public void addStatement(IRBodyBuilder builder, TranslationContext context,
       FunctionCall call) {
     
     // TODO: does x$a ever have any side effects? Maybe forces a promise?

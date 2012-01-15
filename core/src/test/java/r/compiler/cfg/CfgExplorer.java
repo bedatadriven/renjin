@@ -8,8 +8,8 @@ import java.net.URL;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 
-import r.compiler.ir.tac.IRScope;
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBody;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.IRFunctionTable;
 import r.lang.ExpressionVector;
 import r.parser.RParser;
@@ -34,7 +34,7 @@ public class CfgExplorer {
 
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
     IRFunctionTable functionTable = new IRFunctionTable();
-    IRScope block = new IRScopeBuilder(functionTable).build(ast);
+    IRBody block = new IRBodyBuilder(functionTable).build(ast);
 
     System.out.println(block);
     

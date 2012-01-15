@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.DynamicCall;
 import r.compiler.ir.tac.expressions.EnvironmentVariable;
@@ -25,16 +25,16 @@ import r.lang.exception.EvalException;
 public class AssignLeftTranslator extends FunctionCallTranslator {
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     return addAssignment(builder, context, call);
   }
   
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     addAssignment(builder, context, call);
   }
   
-  private Expression addAssignment(IRScopeBuilder builder, TranslationContext context, FunctionCall assignment) {
+  private Expression addAssignment(IRBodyBuilder builder, TranslationContext context, FunctionCall assignment) {
     // this loop handles nested, complex assignments, such as:
     // class(x) <- "foo"
     // x$a[3] <- 4

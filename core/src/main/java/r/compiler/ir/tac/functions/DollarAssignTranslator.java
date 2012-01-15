@@ -1,6 +1,6 @@
 package r.compiler.ir.tac.functions;
 
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.PrimitiveCall;
@@ -16,7 +16,7 @@ public class DollarAssignTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder,
+  public Expression translateToExpression(IRBodyBuilder builder,
       TranslationContext context, FunctionCall call) {
     
     Expression object = builder.translateExpression(context, call.getArgument(0));
@@ -27,7 +27,7 @@ public class DollarAssignTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context,
+  public void addStatement(IRBodyBuilder builder, TranslationContext context,
       FunctionCall call) {
     
     // assignment itself has no side effects,
@@ -39,7 +39,7 @@ public class DollarAssignTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToSetterExpression(IRScopeBuilder builder,
+  public Expression translateToSetterExpression(IRBodyBuilder builder,
       TranslationContext context, FunctionCall call, Expression rhs) {
     
     Expression object = builder.translateExpression(context, call.getArgument(0));

@@ -9,13 +9,13 @@ import java.util.List;
 import org.junit.Test;
 
 import r.compiler.CompilerTestCase;
-import r.compiler.ir.tac.IRScope;
+import r.compiler.ir.tac.IRBody;
 
 public class ControlFlowGraphTest extends CompilerTestCase {
 
   @Test
   public void singleBlock() {
-    IRScope block = buildScope("y<-x+1;z<-3; 4");
+    IRBody block = buildScope("y<-x+1;z<-3; 4");
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     
     System.out.println(cfg);
@@ -27,7 +27,7 @@ public class ControlFlowGraphTest extends CompilerTestCase {
   
   @Test
   public void forLoop() {
-    IRScope block = buildScope("y <- 0; for(i in 1:10) y <- y + i; sqrt(y + 3 * x)");
+    IRBody block = buildScope("y <- 0; for(i in 1:10) y <- y + i; sqrt(y + 3 * x)");
     System.out.println(block);
 
     
@@ -41,7 +41,7 @@ public class ControlFlowGraphTest extends CompilerTestCase {
   
   @Test
   public void forBlock() {
-    IRScope block = buildScope("if(length(x)==1) FALSE else { y<-0; for(i in seq_along(x)) y <- y+1 }");
+    IRBody block = buildScope("if(length(x)==1) FALSE else { y<-0; for(i in seq_along(x)) y <- y+1 }");
     System.out.println(block);
 //    
 //
@@ -78,7 +78,7 @@ public class ControlFlowGraphTest extends CompilerTestCase {
   
   @Test
   public void cytron() throws IOException {
-    IRScope block = parseCytron();
+    IRBody block = parseCytron();
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     List<BasicBlock> bb = cfg.getLiveBasicBlocks();
     

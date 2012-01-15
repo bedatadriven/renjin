@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.ssa.PhiFunction;
-import r.compiler.ir.tac.IRScope;
+import r.compiler.ir.tac.IRBody;
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.expressions.PrimitiveCall;
 import r.compiler.ir.tac.expressions.Variable;
@@ -21,13 +21,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class BasicBlock {
-  private final IRScope parent;
+  private final IRBody parent;
   private String debugId;
   
   private IRLabel label;
   private List<Statement> statements = Lists.newArrayList();
   
-  public BasicBlock(IRScope parent) {
+  public BasicBlock(IRBody parent) {
     super();
     this.parent = parent;
   }
@@ -63,7 +63,7 @@ public class BasicBlock {
     this.debugId = string;
   }
   
-  public static BasicBlock createWithStartAt(IRScope parent, int statementIndex) {
+  public static BasicBlock createWithStartAt(IRBody parent, int statementIndex) {
     BasicBlock block = new BasicBlock(parent);
     block.label = parent.getIntructionLabel(statementIndex);
     block.statements = Lists.newArrayList();

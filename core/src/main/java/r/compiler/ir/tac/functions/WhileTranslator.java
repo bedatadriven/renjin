@@ -1,7 +1,7 @@
 package r.compiler.ir.tac.functions;
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.CmpGE;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.ElementAccess;
@@ -31,7 +31,7 @@ public class WhileTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     addLoop(builder, context, call);
     
     return new Constant(Null.INSTANCE);
@@ -39,11 +39,11 @@ public class WhileTranslator extends FunctionCallTranslator {
 
 
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     addLoop(builder, context, call);
   }
  
-  private void addLoop(IRScopeBuilder factory, TranslationContext context, FunctionCall call) {
+  private void addLoop(IRBodyBuilder factory, TranslationContext context, FunctionCall call) {
     
     SEXP condition = call.getArgument(0);
     

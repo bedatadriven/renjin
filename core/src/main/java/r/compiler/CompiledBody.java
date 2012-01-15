@@ -4,7 +4,7 @@ import r.lang.Context;
 import r.lang.Environment;
 import r.lang.SEXP;
 
-public interface CompiledBlock {
+public interface CompiledBody {
 
   SEXP eval(Context context, Environment rho);
   

@@ -1,7 +1,7 @@
 package r.compiler.ir.tac.functions;
 
 import r.compiler.ir.exception.InvalidSyntaxException;
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.statements.ExprStatement;
 import r.lang.FunctionCall;
@@ -16,7 +16,7 @@ public class InternalCallTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder,
+  public Expression translateToExpression(IRBodyBuilder builder,
       TranslationContext context, FunctionCall call) {
     SEXP primitiveCall = call.getArgument(0);
     if(!(primitiveCall instanceof FunctionCall)) {
@@ -26,7 +26,7 @@ public class InternalCallTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context,
+  public void addStatement(IRBodyBuilder builder, TranslationContext context,
       FunctionCall call) {
     builder.addStatement(
         new ExprStatement(translateToExpression(builder, context, call)));

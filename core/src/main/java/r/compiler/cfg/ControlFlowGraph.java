@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import r.compiler.ir.tac.IRScope;
+import r.compiler.ir.tac.IRBody;
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.expressions.Variable;
 import r.compiler.ir.tac.statements.BasicBlockEndingStatement;
@@ -22,15 +22,15 @@ import edu.uci.ics.jung.graph.Graph;
 
 public class ControlFlowGraph {
 
-  private final IRScope parent;
+  private final IRBody parent;
   private final DirectedGraph<BasicBlock, Edge> graph;
   private final List<BasicBlock> basicBlocks;
   private BasicBlock entry;
   private BasicBlock exit;
   private Map<IRLabel, BasicBlock> basicBlockMap = Maps.newHashMap();
   
-  public ControlFlowGraph(IRScope scope) {
-    this.parent = scope;
+  public ControlFlowGraph(IRBody body) {
+    this.parent = body;
     this.graph = new DirectedSparseGraph<BasicBlock, Edge>();
     this.basicBlocks = Lists.newArrayList();
     
@@ -73,7 +73,7 @@ public class ControlFlowGraph {
     return Collections.unmodifiableSet(variables);
   }
 
-  private BasicBlock addNewBasicBlock(IRScope block, int i) {
+  private BasicBlock addNewBasicBlock(IRBody block, int i) {
     BasicBlock bb = BasicBlock.createWithStartAt(block, i);
     bb.setDebugId(basicBlocks.size());
     basicBlocks.add(bb);

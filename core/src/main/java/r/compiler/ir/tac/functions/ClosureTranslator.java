@@ -1,6 +1,6 @@
 package r.compiler.ir.tac.functions;
 
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.MakeClosure;
@@ -18,7 +18,7 @@ public class ClosureTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder,
+  public Expression translateToExpression(IRBodyBuilder builder,
       TranslationContext context, FunctionCall call) {
    
     PairList formals = EvalException.checkedCast(call.getArgument(0));
@@ -29,7 +29,7 @@ public class ClosureTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context,
+  public void addStatement(IRBodyBuilder builder, TranslationContext context,
       FunctionCall call) {
 
     // a closure whose value is not used has no side effects

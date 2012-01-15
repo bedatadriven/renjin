@@ -2,7 +2,7 @@ package r.compiler.ir.tac.functions;
 
 
 import r.compiler.ir.tac.IRLabel;
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.SimpleExpression;
@@ -22,7 +22,7 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     SimpleExpression condition = builder.translateSimpleExpression(context, call.getArgument(0));
     
     // since "if" is being used in the context of an expression, we need
@@ -69,7 +69,7 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
 
     SimpleExpression condition = builder.translateSimpleExpression(context, call.getArgument(0));
     IRLabel trueLabel = builder.newLabel();

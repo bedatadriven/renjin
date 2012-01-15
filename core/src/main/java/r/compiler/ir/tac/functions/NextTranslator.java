@@ -1,7 +1,7 @@
 package r.compiler.ir.tac.functions;
 
 import r.compiler.ir.exception.InvalidSyntaxException;
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.statements.GotoStatement;
@@ -17,7 +17,7 @@ public class NextTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder,
+  public Expression translateToExpression(IRBodyBuilder builder,
       TranslationContext context, FunctionCall call) {
 
     addStatement(builder, context, call);
@@ -25,7 +25,7 @@ public class NextTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context,
+  public void addStatement(IRBodyBuilder builder, TranslationContext context,
       FunctionCall call) {
 
     if(!(context instanceof LoopContext)) {

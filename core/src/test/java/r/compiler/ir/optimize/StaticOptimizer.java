@@ -9,7 +9,7 @@ import r.compiler.cfg.DominanceTree;
 import r.compiler.ir.ssa.SsaTransformer;
 import r.compiler.ir.tac.IRFunction;
 import r.compiler.ir.tac.IRProgram;
-import r.compiler.ir.tac.IRScope;
+import r.compiler.ir.tac.IRBody;
 
 /**
  * Optimizes an R program statically. (Ahead of time)
@@ -42,7 +42,7 @@ public class StaticOptimizer {
     }
   }
 
-  private void doIntraScopeOptimization(IRScope main) {
+  private void doIntraScopeOptimization(IRBody main) {
     ControlFlowGraph cfg = new ControlFlowGraph(main);
     DominanceTree dtree = new DominanceTree(cfg);
     SsaTransformer ssaTransformer = new SsaTransformer(cfg, dtree);

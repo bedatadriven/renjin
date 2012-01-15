@@ -13,7 +13,7 @@ import org.objectweb.asm.Opcodes;
 import r.compiler.cfg.BasicBlock;
 import r.compiler.cfg.ControlFlowGraph;
 import r.compiler.ir.tac.IRProgram;
-import r.compiler.ir.tac.IRScope;
+import r.compiler.ir.tac.IRBody;
 import r.compiler.ir.tree.TreeBuilder;
 import r.compiler.ir.tree.TreeNode;
 import r.lang.SEXP;
@@ -73,9 +73,9 @@ public class ProgramCompiler implements Opcodes {
     
   }
   
-  private void compileBody(IRScope scope) {
+  private void compileBody(IRBody body) {
     
-    ControlFlowGraph cfg = new ControlFlowGraph(scope);
+    ControlFlowGraph cfg = new ControlFlowGraph(body);
     TreeBuilder builder = new TreeBuilder();
     
     for(BasicBlock bb : cfg.getBasicBlocks()) {

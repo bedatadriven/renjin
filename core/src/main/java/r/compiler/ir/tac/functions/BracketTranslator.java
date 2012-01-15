@@ -1,7 +1,7 @@
 package r.compiler.ir.tac.functions;
 
 
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.Expression;
 import r.lang.FunctionCall;
@@ -18,7 +18,7 @@ public class BracketTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     if(call.getArguments().length() == 0) {
       return new Constant(Null.INSTANCE);
     } else {
@@ -34,7 +34,7 @@ public class BracketTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     if(call.getArguments() != Null.INSTANCE) {
       for(SEXP arg : call.getArguments().values()) {
         builder.translateStatements(context, arg);

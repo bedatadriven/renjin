@@ -1,6 +1,6 @@
 package r.compiler.ir.tac.functions;
 
-import r.compiler.ir.tac.IRScopeBuilder;
+import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.expressions.CmpGE;
 import r.compiler.ir.tac.expressions.Constant;
@@ -30,7 +30,7 @@ public class ForTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public Expression translateToExpression(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     addForLoop(builder, context, call);
     
     return new Constant(Null.INSTANCE);
@@ -38,11 +38,11 @@ public class ForTranslator extends FunctionCallTranslator {
 
 
   @Override
-  public void addStatement(IRScopeBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     addForLoop(builder, context, call);
   }
  
-  private void addForLoop(IRScopeBuilder factory, TranslationContext context, FunctionCall call) {
+  private void addForLoop(IRBodyBuilder factory, TranslationContext context, FunctionCall call) {
     
     Symbol symbol = call.getArgument(0);
     LocalVariable counter = factory.newLocalVariable();

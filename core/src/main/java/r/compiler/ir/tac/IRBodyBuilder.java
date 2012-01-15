@@ -31,7 +31,7 @@ import r.lang.Vector;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-public class IRScopeBuilder {
+public class IRBodyBuilder {
   
   private int nextTemp = 0;
   private int nextLocalVariableIndex = 0;
@@ -45,11 +45,11 @@ public class IRScopeBuilder {
   
   private IRFunctionTable functionTable;
   
-  public IRScopeBuilder(IRFunctionTable functionTable) {
+  public IRBodyBuilder(IRFunctionTable functionTable) {
     this.functionTable = functionTable;
   }
   
-  public IRScope build(SEXP exp) {
+  public IRBody build(SEXP exp) {
     
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
@@ -61,7 +61,7 @@ public class IRScopeBuilder {
    
     removeRedundantJumps();
     
-    return new IRScope(statements, labels, nextTemp);
+    return new IRBody(statements, labels, nextTemp);
   }
   
   public void dump(SEXP exp) {

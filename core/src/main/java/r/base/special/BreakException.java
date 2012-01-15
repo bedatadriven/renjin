@@ -23,4 +23,12 @@ package r.base.special;
 
 import r.lang.exception.ControlFlowException;
 
-public class BreakException extends ControlFlowException {   }
+public class BreakException extends ControlFlowException {  
+  
+  public static final BreakException INSTANCE = new BreakException();
+  
+  private BreakException() {
+    
+  }
+  
+}

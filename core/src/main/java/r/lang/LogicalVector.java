@@ -408,6 +408,11 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
     public Builder newBuilderWithInitialSize(int initialSize) {
       return new Builder(initialSize);
     }
+  
+    @Override
+    public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+      return new Builder(0, initialCapacity);
+    }
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {

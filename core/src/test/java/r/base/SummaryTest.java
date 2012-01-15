@@ -150,4 +150,22 @@ public class SummaryTest extends EvalTestCase {
     assertThat(eval(".Internal(pmax(TRUE, c(1,2,3), c(0,NA,0)))"), equalTo(c(1, 2, 3)));
   }
   
+  @Test
+  public void cor() {
+    assertThat(eval(".Internal(cor(1:5,1:5, 1L, FALSE))"), closeTo(c(1), 0.0001));
+    assertThat(eval(".Internal(cor(1:5,5:1, 1L, FALSE))"), closeTo(c(-1), 0.0001));
+    assertThat(eval(".Internal(cor(1:4, c(1, -4, 0, 4), 1L, FALSE))"), closeTo(c(0.507952), 0.000001));
+  }
+
+  @Test
+  public void corMatrix() {
+    eval("x<-c(1,2,3,3,2,1,0,-1,0)");
+    eval("dim(x) <- c(3,3)");
+    
+    assertThat(eval(".Internal(cor(x,NULL, 1L, FALSE))"), closeTo(matrix( 
+        row(1, -1, 0),
+        row(-1, 1, 0),
+        row(0, 0, 1)), 0.0001));
+   
+  }
 }

@@ -32,6 +32,6 @@ public class NextFunction extends SpecialFunction {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    throw new NextException();
+    throw NextException.INSTANCE;
   }
 }

@@ -421,4 +421,12 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("rownames(m)"), equalTo(c("Yes","No")));
   }
   
+  @Test
+  public void kendallCor() throws IOException {
+    topLevelContext.init();
+    
+    
+    
+  }
+  
 }

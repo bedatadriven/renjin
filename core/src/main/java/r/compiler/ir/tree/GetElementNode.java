@@ -37,4 +37,8 @@ public class GetElementNode implements TreeNode {
     children.set(childIndex, child);
   }
 
+  @Override
+  public void accept(TreeVisitor visitor) {
+    visitor.getElement(this);
+  }
 }

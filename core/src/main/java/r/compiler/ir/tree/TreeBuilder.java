@@ -5,9 +5,11 @@ import java.util.Map;
 import java.util.Set;
 
 import r.compiler.cfg.BasicBlock;
+import r.compiler.ir.tac.expressions.DynamicCall;
 import r.compiler.ir.tac.expressions.ElementAccess;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.LValue;
+import r.compiler.ir.tac.expressions.MakeClosure;
 import r.compiler.ir.tac.expressions.PrimitiveCall;
 import r.compiler.ir.tac.expressions.SimpleExpression;
 import r.compiler.ir.tac.statements.Assignment;
@@ -82,10 +84,14 @@ public class TreeBuilder {
   private TreeNode createNode(Expression expr) {
      if(expr instanceof PrimitiveCall) {
        return createPrimitiveCallNode((PrimitiveCall)expr);
+     } else if(expr instanceof DynamicCall) {
+       return createDynamicCallNode((DynamicCall)expr);
      } else if(expr instanceof ElementAccess) {
        return createGetElementNode((ElementAccess) expr);
      } else if(expr instanceof SimpleExpression) {
        return createValueNode((SimpleExpression) expr);
+     } else if(expr instanceof MakeClosure) {
+       return new ClosureNode( ((MakeClosure)expr).getFunction() );
      } else {
        throw new UnsupportedOperationException(expr.toString());
      }
@@ -110,6 +116,10 @@ public class TreeBuilder {
 
   private TreeNode createPrimitiveCallNode(PrimitiveCall expr) {
     return new PrimitiveCallNode(expr.getName(), createNodeList(expr.getArguments()));
+  }
+  
+  private TreeNode createDynamicCallNode(DynamicCall expr) {
+    return new DynamicCallNode(createNode(expr.getName()), createNodeList(expr.getArguments()));
   }
 
   private List<TreeNode> createNodeList(List<Expression> arguments) {

@@ -29,7 +29,10 @@ public class PrimitiveCallNode implements TreeNode {
   @Override
   public void replace(int childIndex, TreeNode child) {
     arguments.set(childIndex, child);
+  }
+
+  @Override
+  public void accept(TreeVisitor visitor) {
+    visitor.primitiveCall(this);
   } 
-  
-  
 }

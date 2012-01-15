@@ -83,6 +83,7 @@ public class Combine {
   static class Inspector extends SexpVisitor<Vector.Type> {
 
     private boolean recursive = false;
+    private int count = 0;
     private Vector.Type resultType = Null.VECTOR_TYPE;
 
     /**
@@ -95,16 +96,19 @@ public class Combine {
     @Override
     public void visit(DoubleVector vector) {
       resultType = Vector.Type.widest(resultType, vector);
+      count += vector.length();
     }
 
     @Override
     public void visit(IntVector vector) {
       resultType = Vector.Type.widest(resultType, vector);
+      count += vector.length();
     }
 
     @Override
     public void visit(LogicalVector vector) {
       resultType = Vector.Type.widest(resultType, vector);
+      count += vector.length();
     }
 
     @Override
@@ -115,6 +119,7 @@ public class Combine {
     @Override
     public void visit(StringVector vector) {
       resultType = Vector.Type.widest(resultType, vector);
+      count += vector.length();
     }
 
     @Override
@@ -123,6 +128,7 @@ public class Combine {
         acceptAll(list);
       } else {
         resultType = Vector.Type.widest(resultType, list);
+        count += list.length();
       }
     }
 
@@ -134,11 +140,16 @@ public class Combine {
     @Override
     protected void unhandled(SEXP exp) {
       resultType = Vector.Type.widest(resultType, ListVector.VECTOR_TYPE);
+      count++;
     }
 
     @Override
     public Vector.Type getResult() {
       return resultType;
+    }
+    
+    public int getCount() {
+      return count;
     }
   }
 

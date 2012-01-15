@@ -32,6 +32,6 @@ public class BreakFunction extends SpecialFunction {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    throw new BreakException();
+    throw BreakException.INSTANCE;
   }
 }

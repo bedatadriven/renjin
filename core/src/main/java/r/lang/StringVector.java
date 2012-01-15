@@ -364,6 +364,11 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
     }
 
     @Override
+    public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+      return new Builder(0,initialCapacity);
+    }
+
+    @Override
     public Vector getElementAsVector(Vector vector, int index) {
       return new StringVector(vector.getElementAsString(index));
     }

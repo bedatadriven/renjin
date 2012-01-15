@@ -8,4 +8,6 @@ public interface TreeNode {
 
   void replace(int childIndex, TreeNode child);
   
+  void accept(TreeVisitor visitor);
+  
 }

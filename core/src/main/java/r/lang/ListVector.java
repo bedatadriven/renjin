@@ -29,6 +29,7 @@ import java.util.List;
 import org.apache.commons.math.complex.Complex;
 
 import r.base.Parse;
+import r.lang.Vector.Builder;
 import r.lang.exception.EvalException;
 import r.util.NamesBuilder;
 
@@ -487,6 +488,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     @Override
     public Builder newBuilderWithInitialSize(int initialSize) {
       return new Builder(initialSize);
+    }
+   
+    @Override
+    public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+      return new Builder(0, initialCapacity);
     }
 
     @Override

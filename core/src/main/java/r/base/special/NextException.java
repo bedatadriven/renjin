@@ -23,4 +23,12 @@ package r.base.special;
 
 import r.lang.exception.ControlFlowException;
 
-public class NextException extends ControlFlowException {   }
+public class NextException extends ControlFlowException {   
+  
+  public static final NextException INSTANCE = new NextException();
+  
+  private NextException() {
+    
+  }
+  
+}

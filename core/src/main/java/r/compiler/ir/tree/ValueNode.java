@@ -28,6 +28,11 @@ public class ValueNode implements TreeNode {
   }
 
   @Override
+  public void accept(TreeVisitor visitor) {
+    visitor.value(this);
+  }
+
+  @Override
   public void replace(int childIndex, TreeNode child) {
     throw new UnsupportedOperationException();
   }

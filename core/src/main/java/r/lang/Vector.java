@@ -85,7 +85,7 @@ public interface Vector extends SEXP {
    * @return
    */
   Builder newBuilderWithInitialSize(int initialSize);
-
+ 
   /**
    * 
    * Returns a builder for this type of vector, initially allocating enough
@@ -265,6 +265,13 @@ public interface Vector extends SEXP {
     public abstract Builder newBuilder();
 
     public abstract Builder newBuilderWithInitialSize(int initialSize);
+    
+    /**
+     * Returns a builder for this type of vector, with no elements added, but
+     * an initial capacity of {@code initialCapacity}
+
+     */
+    public abstract Builder newBuilderWithInitialCapacity(int initialCapacity);
     
     public final boolean isAtomic() {
       return size < Order.LIST;

@@ -26,6 +26,10 @@ public class AssignmentNode implements TreeNode {
   public TreeNode getRHS() {
     return rhs;
   }
+  
+  public LValue getLHS() {
+    return lhs;
+  }
 
   @Override
   public String toString() {
@@ -35,6 +39,11 @@ public class AssignmentNode implements TreeNode {
   @Override
   public void replace(int childIndex, TreeNode child) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void accept(TreeVisitor visitor) {
+    visitor.assignment(this);
   }
   
 }

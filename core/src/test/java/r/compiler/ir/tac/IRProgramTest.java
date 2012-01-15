@@ -6,7 +6,9 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import r.compiler.ir.ProgramCompiler;
 import r.compiler.ir.optimize.StaticOptimizer;
+import r.compiler.ir.tree.TreeBuilder;
 import r.lang.SEXP;
 import r.parser.RParser;
 
@@ -18,12 +20,9 @@ public class IRProgramTest {
     SEXP programExpression = RParser.parseSource(new InputStreamReader(getClass()
         .getResourceAsStream("/meanVarOnline.R")));
     
-    IRProgram program = new IRProgram(programExpression);
+    ProgramCompiler compiler = new ProgramCompiler();
+    compiler.compile(programExpression);
     
-    StaticOptimizer optimizer = new StaticOptimizer(program);
-    optimizer.optimize();
-    
-    System.out.println(program.toString());
     
 //    long start = new Date().getTime();
 //    

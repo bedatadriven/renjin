@@ -29,6 +29,10 @@ public class MakeClosure implements Expression {
   public Expression replaceVariable(Variable name, Variable newName) {
     return this;
   }
+  
+  public IRFunction getFunction() {
+    return function;
+  }
 
   @Override
   public String toString() {

@@ -21,12 +21,23 @@
 
 package r.base;
 
+import java.util.List;
+
+import r.base.variance.VarianceCalculator;
 import r.jvmi.annotations.ArgumentList;
 import r.jvmi.annotations.NamedFlag;
 import r.jvmi.annotations.Primitive;
-import r.lang.*;
+import r.lang.AtomicVector;
+import r.lang.DoubleVector;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.Logical;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.SEXP;
+import r.lang.Symbols;
+import r.lang.Vector;
 import r.lang.exception.EvalException;
-import r.lang.exception.IncompatibleDimensionsException;
 
 /**
  * Summary group functions of vectors such as min, max, sum, etc.
@@ -447,4 +458,14 @@ public class Summary {
     abstract boolean predicate(Number x, Number y);
   }
 
-}
+  public static DoubleVector cor(AtomicVector x, AtomicVector y, int naMethod, boolean kendall) {
+    
+    if(kendall) {
+      throw new EvalException("kendall=true nyi");
+    }
+
+    VarianceCalculator calculator = new VarianceCalculator(x, y, naMethod);
+    return calculator.calculate();
+    
+  }
+ }

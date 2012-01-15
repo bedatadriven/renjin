@@ -232,6 +232,11 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     public Builder newBuilderWithInitialSize(int initialSize) {
       return new RawVector.Builder(initialSize);
     }
+    
+    @Override
+    public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+      return new RawVector.Builder(0);
+    }
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {
@@ -242,9 +247,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
       return vector1.getElementAsInt(index1) - vector2.getElementAsInt(index2);
     }
-  }
-  
-  
+  }  
 
   @Override
   public String toString() {

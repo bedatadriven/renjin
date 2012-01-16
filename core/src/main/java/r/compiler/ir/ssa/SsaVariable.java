@@ -6,6 +6,7 @@ import java.util.Set;
 
 import r.compiler.ir.IRUtils;
 import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.ExpressionVisitor;
 import r.compiler.ir.tac.expressions.SimpleExpression;
 import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
@@ -86,6 +87,11 @@ public class SsaVariable implements Variable {
   @Override
   public void setChild(int childIndex, Expression child) {
     throw new IllegalArgumentException();
+  }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitSsaVariable(this);
   }
   
   

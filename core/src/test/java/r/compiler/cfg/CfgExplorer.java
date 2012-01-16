@@ -1,9 +1,7 @@
 package r.compiler.cfg;
 
-import java.awt.Dimension;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;

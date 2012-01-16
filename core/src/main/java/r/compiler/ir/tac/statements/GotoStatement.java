@@ -66,4 +66,9 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   public void setChild(int childIndex, Expression child) {
     throw new IllegalArgumentException();
   }
+
+  @Override
+  public void accept(StatementVisitor visitor) {
+    visitor.visitGoto(this);
+  }
 }

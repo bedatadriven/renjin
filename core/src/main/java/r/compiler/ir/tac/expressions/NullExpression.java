@@ -41,6 +41,11 @@ public class NullExpression implements Expression {
   public void setChild(int i, Expression expr) {
     throw new IllegalArgumentException();
   }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    // NOOP
+  }
   
   
 }

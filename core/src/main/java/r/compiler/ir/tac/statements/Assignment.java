@@ -77,4 +77,9 @@ public class Assignment implements Statement {
       throw new IllegalArgumentException("childIndex=" + childIndex);
     }
   }
+
+  @Override
+  public void accept(StatementVisitor visitor) {
+    visitor.visitAssignment(this);
+  }
 }

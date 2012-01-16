@@ -30,7 +30,12 @@ public class TreeBuilder {
   private Set<LValue> usedOnce = Sets.newHashSet();
   private Set<Assignment> embeded = Sets.newHashSet();
 
-  public List<Statement> build(BasicBlock block) {
+  
+  public static List<Statement> build(BasicBlock block) {
+    return new TreeBuilder().doBuild(block);
+  }
+  
+  private List<Statement> doBuild(BasicBlock block) {
     for(Statement stmt : block.getStatements()) {
       checkUses(stmt.getRHS());
       if(stmt instanceof Assignment) {

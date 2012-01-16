@@ -74,5 +74,10 @@ public class ElementAccess implements Expression {
     } else {
       throw new IllegalArgumentException();
     }
+  }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitElementAccess(this);
   } 
 }

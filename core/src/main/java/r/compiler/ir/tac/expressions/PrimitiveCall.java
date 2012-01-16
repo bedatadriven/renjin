@@ -111,5 +111,10 @@ public class PrimitiveCall implements Expression {
   @Override
   public void setChild(int i, Expression expr) {
     arguments.set(i, expr);
+  }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitPrimitiveCall(this);
   }  
 }

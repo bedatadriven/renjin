@@ -57,6 +57,11 @@ public class Increment implements Expression {
       throw new IllegalArgumentException();
     }
   }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitIncrement(this);
+  }
   
   
 }

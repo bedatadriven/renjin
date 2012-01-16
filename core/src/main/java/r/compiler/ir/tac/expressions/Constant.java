@@ -53,4 +53,11 @@ public class Constant implements SimpleExpression {
   public void setChild(int i, Expression expr) {
     throw new IllegalArgumentException();
   }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitConstant(this);
+  }
+  
+  
 }

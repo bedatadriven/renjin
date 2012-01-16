@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.tac.expressions.Expression;
+import r.compiler.ir.tac.expressions.ExpressionVisitor;
 import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
 
@@ -71,6 +72,11 @@ public class PhiFunction implements Expression {
   @Override
   public void setChild(int childIndex, Expression child) {
     arguments.set(childIndex, (Variable)child);
+  }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitPhiFunction(this);
   }
   
   

@@ -78,6 +78,11 @@ public class LocalVariable implements Variable {
   public void setChild(int i, Expression expr) {
     throw new IllegalArgumentException();
   }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitLocalVariable(this);
+  }
   
   
 }

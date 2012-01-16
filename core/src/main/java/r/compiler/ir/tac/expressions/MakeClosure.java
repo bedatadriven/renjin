@@ -49,4 +49,9 @@ public class MakeClosure implements Expression {
   public String toString() {
     return "closure(" + function.toString() + ")";
   }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitMakeClosure(this);
+  }
 }

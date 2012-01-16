@@ -67,4 +67,9 @@ public class ExprStatement implements Statement {
       throw new IllegalArgumentException();
     }
   }
+
+  @Override
+  public void accept(StatementVisitor visitor) {
+    visitor.visitExprStatement(this);
+  }
 }

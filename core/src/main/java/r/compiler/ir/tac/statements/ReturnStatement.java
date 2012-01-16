@@ -65,4 +65,9 @@ public class ReturnStatement implements Statement {
       throw new IllegalArgumentException();
     }
   }
+
+  @Override
+  public void accept(StatementVisitor visitor) {
+    visitor.visitReturn(this);
+  }
 }

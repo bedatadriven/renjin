@@ -91,13 +91,13 @@
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm</artifactId>
-      <version>3.3</version>
+      <version>4.0</version>
     </dependency>
 
     <dependency>
       <groupId>asm</groupId>
-      <artifactId>asm-tree</artifactId>
-      <version>3.3</version>
+      <artifactId>asm-util</artifactId>
+      <version>4.0</version>
     </dependency>
 
 

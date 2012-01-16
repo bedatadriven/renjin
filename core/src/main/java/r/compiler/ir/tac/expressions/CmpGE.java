@@ -58,4 +58,9 @@ public class CmpGE implements SimpleExpression {
       throw new IllegalArgumentException("i=" + i);
     }
   }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitCmpGE(this);
+  }
 }

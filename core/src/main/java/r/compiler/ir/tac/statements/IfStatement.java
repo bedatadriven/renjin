@@ -106,4 +106,9 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
       throw new IllegalArgumentException();
     }
   }
+
+  @Override
+  public void accept(StatementVisitor visitor) {
+    visitor.visitIf(this);
+  }
 }

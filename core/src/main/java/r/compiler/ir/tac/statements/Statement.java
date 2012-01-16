@@ -20,4 +20,5 @@ public interface Statement extends TreeNode {
 
   Statement withRHS(Expression newRHS);
 
+  void accept(StatementVisitor visitor);
 }

@@ -78,4 +78,9 @@ public class Temp implements LValue {
   public List<Expression> getChildren() {
     return Collections.emptyList();
   }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitTemp(this);
+  }
 }

@@ -127,5 +127,10 @@ public class DynamicCall implements Expression {
     } else {
       arguments.set(i-1, expr);
     }
+  }
+
+  @Override
+  public void accept(ExpressionVisitor visitor) {
+    visitor.visitDynamicCall(this);
   } 
 }

@@ -29,4 +29,6 @@ public interface Expression extends TreeNode {
   Expression replaceVariable(Variable variable, Variable newVariable);
   
   
+  void accept(ExpressionVisitor visitor);
+  
 }

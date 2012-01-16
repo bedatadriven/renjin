@@ -4,6 +4,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import r.lang.DoubleVector;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.SEXP;
 import r.lang.SexpVisitor;
 
 public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opcodes {
@@ -30,7 +33,31 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
     } else {
       throw new UnsupportedOperationException("only double vectors of length 1 are implemented");
     }
+  }
     
+  @Override
+  public void visit(Null nullExpression) {
+    mv.visitFieldInsn(GETSTATIC, "r/lang/Null", "INSTANCE", "Lr/lang/Null;");
+  }
+
+  @Override
+  public void visit(LogicalVector vector) {
+    if(vector.length() == 1) {
+      if(vector.getElementAsRawLogical(0) == 1) {
+        mv.visitFieldInsn(GETSTATIC, "r/lang/LogicalVector", "TRUE", "Lr/lang/LogicalVector;");
+      } else if(vector.getElementAsRawLogical(0) == 0) {
+        mv.visitFieldInsn(GETSTATIC, "r/lang/LogicalVector", "FALSE", "Lr/lang/LogicalVector;");
+      } else {
+        throw new UnsupportedOperationException("nyi");
+      }
+    } else {
+      throw new UnsupportedOperationException("nyi");
+    }
+  }
+
+  @Override
+  protected void unhandled(SEXP exp) {
+    throw new UnsupportedOperationException("Constant generation nyi for " + exp);
   }
   
   

@@ -2,11 +2,17 @@ package r.compiler.ir;
 
 import java.util.Map;
 
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import com.google.common.collect.Maps;
+
+import r.base.Primitives;
+import r.compiler.cfg.BasicBlock;
 import r.compiler.ir.ssa.PhiFunction;
 import r.compiler.ir.ssa.SsaVariable;
+import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.expressions.CmpGE;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.DynamicCall;
@@ -26,17 +32,21 @@ import r.compiler.ir.tac.statements.GotoStatement;
 import r.compiler.ir.tac.statements.IfStatement;
 import r.compiler.ir.tac.statements.ReturnStatement;
 import r.compiler.ir.tac.statements.StatementVisitor;
+import r.jvmi.binding.JvmMethod;
+import r.jvmi.wrapper.WrapperGenerator;
+import r.lang.PrimitiveFunction;
 import r.lang.SEXP;
 import r.lang.Symbol;
 
 public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opcodes {
   
   private MethodVisitor mv;
-  private Map<LValue, Integer> variableSlots;
+  private Map<LValue, Integer> variableSlots = Maps.newHashMap();
+  private Map<IRLabel, Label> labels = Maps.newHashMap();
   
   private int context = 1;
   private int rho = 2;
-  
+  private int localVariablesStart = 3;
   
   public class GenerationContext {
     
@@ -68,14 +78,19 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
    */
   private void localVariableAssignment(LValue lhs, Expression rhs) {
     
-    rhs.accept(this);
+    if(rhs instanceof Increment) {
+      Increment inc = (Increment) rhs;
+      if(inc.getCounter().equals(lhs)) {
+        mv.visitIincInsn(getVariableSlot(lhs), 1);
+        return;
+      }
+    }
     
-    mv.visitVarInsn(ASTORE, getLocalVariablePos(lhs));
+    rhs.accept(this);
+
+    mv.visitVarInsn(ASTORE, getVariableSlot(lhs));
   }
 
-  private int getLocalVariablePos(LValue lhs) {
-    return 0;
-  }
 
   /**
    * Assign a value into the context's {@code Environment} 
@@ -91,13 +106,19 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "setVariable", "(Lr/lang/Symbol;Lr/lang/SEXP;)V");
   }
 
-
+  public void startBasicBlock(BasicBlock bb) {
+    if(bb.getLabel() != null) {
+      mv.visitLabel(getAsmLabel(bb.getLabel()));
+    }
+  }
 
   @Override
   public void visitConstant(Constant constant) {
     if(constant.getValue() instanceof SEXP) {
       SEXP exp = (SEXP)constant.getValue();
       exp.accept(new ConstantGeneratingVisitor(mv));
+    } else if (constant.getValue() instanceof Integer) {
+      pushInt((Integer)constant.getValue());
     } else {
       throw new UnsupportedOperationException();
     }
@@ -108,15 +129,84 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
   @Override
   public void visitDynamicCall(DynamicCall call) {
-    throw new UnsupportedOperationException();
+
+    EnvironmentVariable functionName = (EnvironmentVariable)call.getName();
     
+    // find the function
+    
+    mv.visitVarInsn(ALOAD, rho);
+    mv.visitLdcInsn(functionName.getName().getPrintName());
+    mv.visitMethodInsn(INVOKESTATIC, "r/lang/Symbol", "get", "(Ljava/lang/String;)Lr/lang/Symbol;");
+    mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "findFunction", "(Lr/lang/Symbol;)Lr/lang/Function;");
+    
+    // check if null
+    Label l2 = new Label();
+    mv.visitInsn(DUP);
+    mv.visitJumpInsn(IFNONNULL, l2);
+    mv.visitTypeInsn(NEW, "r/lang/exception/EvalException");
+    mv.visitInsn(DUP);
+    mv.visitLdcInsn("No such method");
+    mv.visitInsn(ICONST_0);
+    mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+    mv.visitMethodInsn(INVOKESPECIAL, "r/lang/exception/EvalException", "<init>", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+    mv.visitInsn(ATHROW);
+    
+    
+    // check if strict
+    Label l3 = new Label();
+    mv.visitLabel(l2);
+    mv.visitInsn(DUP);
+    mv.visitTypeInsn(INSTANCEOF, "r/lang/StrictPrimitiveFunction");
+    mv.visitJumpInsn(IFNE, l3);
+
+    mv.visitTypeInsn(NEW, "java/lang/UnsupportedOperationException");
+    mv.visitInsn(DUP);
+    mv.visitLdcInsn("non-strict primitives not yet implemented");
+    mv.visitMethodInsn(INVOKESPECIAL, "java/lang/UnsupportedOperationException", "<init>", "(Ljava/lang/String;)V");
+    mv.visitInsn(ATHROW);
+    
+    // execute strict
+    mv.visitLabel(l3);
+    mv.visitVarInsn(ALOAD, context);
+    mv.visitVarInsn(ALOAD, rho);
+    pushArgs(call);
+    
+    mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/StrictPrimitiveFunction", "applyStrict", "(Lr/lang/Context;Lr/lang/Environment;[Lr/lang/SEXP;)Lr/lang/SEXP;");    
   }
 
+  private void pushArgs(DynamicCall call) {
+
+    // create array
+    pushInt(call.getArguments().size());
+    mv.visitTypeInsn(ANEWARRAY, "r/lang/SEXP");
+    
+    for(int i=0; i!=call.getArguments().size();++i) {
+      mv.visitInsn(DUP);
+      
+      pushInt(i);
+      call.getArguments().get(i).accept(this);
+      mv.visitInsn(AASTORE);
+    }
+  }
+
+  private void pushInt(int i) {
+    if(i <= 5) {
+      mv.visitInsn(ICONST_0 + i);
+    } else if(i < 127){
+      mv.visitIntInsn(BIPUSH, i);
+    } else {
+      throw new UnsupportedOperationException("more than 127 arguments? something is wrong.");
+    }
+  }
 
 
   @Override
   public void visitElementAccess(ElementAccess expr) {
-    throw new UnsupportedOperationException();
+    
+    expr.getVector().accept(this);
+    expr.getIndex().accept(this);
+    
+    mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/Vector", "getElementAsSEXP", "(I)Lr/lang/SEXP;");
     
   }
 
@@ -141,8 +231,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
   @Override
   public void visitLocalVariable(LocalVariable variable) {
-    throw new UnsupportedOperationException();
-    
+    mv.visitVarInsn(ILOAD, getVariableSlot(variable));    
   }
 
 
@@ -157,7 +246,24 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
   @Override
   public void visitPrimitiveCall(PrimitiveCall call) {
-    throw new UnsupportedOperationException();
+
+    mv.visitVarInsn(ALOAD, context);
+    mv.visitVarInsn(ALOAD, rho);
+    
+    for(Expression arg : call.getArguments()) {
+      arg.accept(this);
+    }
+    
+    StringBuilder methodSig = new StringBuilder();
+    methodSig.append("(Lr/lang/Context;Lr/lang/Environment;");
+    for(int i=0;i!=call.getArguments().size();++i) {
+      methodSig.append("Lr/lang/SEXP;");
+    }
+    methodSig.append(")Lr/lang/SEXP;");
+   
+    
+    mv.visitMethodInsn(INVOKESTATIC, WrapperGenerator.toFullJavaName(call.getName().getPrintName()).replace(".", "/"), "doApply", methodSig.toString());
+    
     
   }
 
@@ -165,8 +271,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
   @Override
   public void visitTemp(Temp temp) {
-    throw new UnsupportedOperationException();
-    
+    mv.visitVarInsn(ALOAD, getVariableSlot(temp));
   }
 
 
@@ -205,18 +310,52 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
   @Override
   public void visitGoto(GotoStatement statement) {
-    throw new UnsupportedOperationException();
-    
+    mv.visitJumpInsn(GOTO, getAsmLabel(statement.getTarget()));
   }
 
 
 
   @Override
-  public void visitIf(IfStatement ifStatement) {
-    throw new UnsupportedOperationException();
+  public void visitIf(IfStatement stmt) {
     
+    if(stmt.getCondition() instanceof CmpGE) {
+     
+      CmpGE cmp = (CmpGE) stmt.getCondition();
+      mv.visitVarInsn(ILOAD, getVariableSlot((LValue)cmp.getOp1()));
+      mv.visitVarInsn(ILOAD, getVariableSlot((LValue)cmp.getOp1()));
+      
+      mv.visitJumpInsn(IF_ICMPLT, getAsmLabel(stmt.getFalseTarget()));
+      
+    } else {
+    
+      stmt.getCondition().accept(this);
+      
+      mv.visitMethodInsn(INVOKESTATIC, "r/compiler/CompiledRuntime", 
+            "evaluateCondition", "(Lr/lang/SEXP;)Z");
+      
+      // IFEQ : jump if i==0
+      mv.visitJumpInsn(IFEQ, getAsmLabel(stmt.getFalseTarget()));
+    }
+    mv.visitJumpInsn(GOTO, getAsmLabel(stmt.getTrueTarget()));
   }
-
+  
+  private Label getAsmLabel(IRLabel label) {
+    Label asmLabel = labels.get(label);
+    if(asmLabel == null) {
+      asmLabel = new Label();
+      labels.put(label, asmLabel);
+    }
+    return asmLabel;
+  }
+  
+  private int getVariableSlot(LValue lvalue) {
+    Integer index = variableSlots.get(lvalue);
+    if(index == null) {
+      index = variableSlots.size();
+      variableSlots.put(lvalue, index);
+    }
+    return index + localVariablesStart;
+  }
 
 
   @Override
@@ -227,6 +366,4 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitInsn(ARETURN);
     
   }
-
-  
 }

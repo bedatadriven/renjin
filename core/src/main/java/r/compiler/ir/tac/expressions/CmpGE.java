@@ -24,6 +24,14 @@ public class CmpGE implements SimpleExpression {
     return op1 + " >= " + op2;
   }
 
+  public Expression getOp1() {
+    return op1;
+  }
+
+  public Expression getOp2() {
+    return op2;
+  }
+
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
     Integer a = (Integer)op1.retrieveValue(context, temps);

@@ -45,6 +45,7 @@ public class ExpressionCompiler implements Opcodes {
     className = "Body" + System.identityHashCode(exp);
 
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+    //cw = new ClassWriter(0);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
         "java/lang/Object", new String[] { "r/compiler/CompiledBody" });
@@ -73,7 +74,7 @@ public class ExpressionCompiler implements Opcodes {
     writeBody(mv);
 //    mv.visitInsn(ACONST_NULL);
 //    mv.visitInsn(ARETURN);
-    mv.visitMaxs(1, 3);
+    mv.visitMaxs(1, 1);
     mv.visitEnd();
   }
 
@@ -81,13 +82,15 @@ public class ExpressionCompiler implements Opcodes {
     IRFunctionTable functionTable = new IRFunctionTable();
     IRBodyBuilder builder = new IRBodyBuilder(functionTable);
     IRBody body = builder.build(exp);
-
+    
     ByteCodeVisitor visitor = new ByteCodeVisitor(mv);
     
     
     ControlFlowGraph cfg = new ControlFlowGraph(body);
     for(BasicBlock bb : cfg.getBasicBlocks()) {
-
+      
+      visitor.startBasicBlock(bb);
+      
       List<Statement> statements = TreeBuilder.build(bb);
       for(Statement stmt : statements) {
         stmt.accept(visitor);

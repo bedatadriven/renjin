@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import r.compiler.cfg.BasicBlock;
 import r.compiler.ir.ssa.SsaVariable;
+import r.compiler.ir.tac.statements.Statement;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.ElementAccess;
 import r.compiler.ir.tac.expressions.EnvironmentVariable;
@@ -38,33 +39,33 @@ public class TreeBuilderTest {
             new PrimitiveCall("-", var("n",3), new Constant(1))));
     bb.addStatement(
         new Assignment(
-            new Temp(6),
-            new PrimitiveCall("*", new Temp(5), var("xbar", 3))));
+            temp(6),
+            new PrimitiveCall("*", temp(5), var("xbar", 3))));
     bb.addStatement(
         new Assignment(
-            new Temp(7),
+            temp(7),
             new PrimitiveCall("[", var("x", 0), var("n", 3))));
     bb.addStatement(
         new Assignment(
-            new Temp(8),
-            new PrimitiveCall("+", new Temp(6), new Temp(7))));
+            temp(8),
+            new PrimitiveCall("+", temp(6), temp(7))));
     bb.addStatement(
         new Assignment(
             var("xbar", 4),
-            new PrimitiveCall("/", new Temp(8), var("n", 3))));
+            new PrimitiveCall("/", temp(8), var("n", 3))));
 
    
     TreeBuilder builder = new TreeBuilder();
-    List<TreeNode> trees = builder.build(bb);
+    List<Statement> trees = builder.build(bb);
 
-    for(TreeNode tree : trees) {
+    for(Statement tree : trees) {
       System.out.println(tree);
     }
     
   }
 
   private Temp temp(int index) {
-    return new Temp(index);
+    return new Temp(index-1);
   }
 
   private SsaVariable var(String name, int version) {

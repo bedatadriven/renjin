@@ -2,6 +2,7 @@ package r.compiler.ir.tac.expressions;
 
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRFunction;
@@ -32,6 +33,16 @@ public class MakeClosure implements Expression {
   
   public IRFunction getFunction() {
     return function;
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Collections.emptyList();
+  }
+  
+  @Override
+  public void setChild(int i, Expression expr) {
+    throw new IllegalArgumentException();
   }
 
   @Override

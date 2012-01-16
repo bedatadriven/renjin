@@ -23,7 +23,7 @@ import com.google.common.collect.Sets;
  */
 public class DynamicCall implements Expression {
 
-  private final Variable function;
+  private Variable function;
   private final List<Expression> arguments;
   private final List<SEXP> argumentNames;
   
@@ -110,5 +110,22 @@ public class DynamicCall implements Expression {
         (Variable)this.function.replaceVariable(name, newName), 
         argumentNames,
         newOps);
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    List<Expression> children = Lists.newArrayList();
+    children.add(function);
+    children.addAll(arguments);
+    return children;
+  }
+
+  @Override
+  public void setChild(int i, Expression expr) {
+    if(i == 0) {
+      function = (Variable)expr;
+    } else {
+      arguments.set(i-1, expr);
+    }
   } 
 }

@@ -1,6 +1,7 @@
 package r.compiler.ir.tac.expressions;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import r.lang.Context;
@@ -67,4 +68,16 @@ public class LocalVariable implements Variable {
   public String toString() {
     return name;
   }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void setChild(int i, Expression expr) {
+    throw new IllegalArgumentException();
+  }
+  
+  
 }

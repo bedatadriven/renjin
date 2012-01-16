@@ -1,6 +1,8 @@
 package r.compiler.ir.tac.statements;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
@@ -50,5 +52,19 @@ public class ExprStatement implements Statement {
   @Override
   public Statement withRHS(Expression newRHS) {
     return new ExprStatement(newRHS);
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Arrays.asList(operand);
+  }
+
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    if(childIndex == 0) {
+      operand = child;
+    } else {
+      throw new IllegalArgumentException();
+    }
   }
 }

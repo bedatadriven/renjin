@@ -1,5 +1,7 @@
 package r.compiler.ir.tac.expressions;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import r.lang.Context;
@@ -37,7 +39,24 @@ public class Increment implements Expression {
     return counterValue + 1;
   }
 
-  @Override  public Expression replaceVariable(Variable variable, Variable newVariable) {
+  @Override  
+  public Expression replaceVariable(Variable variable, Variable newVariable) {
     return new Increment( counter.replaceVariable(variable, newVariable));
   }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Arrays.asList((Expression)counter);
+  }
+
+  @Override
+  public void setChild(int i, Expression expr) {
+    if(i==0) {
+      counter = (LValue) expr;
+    } else {
+      throw new IllegalArgumentException();
+    }
+  }
+  
+  
 }

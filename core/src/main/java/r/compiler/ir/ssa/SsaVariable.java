@@ -1,9 +1,11 @@
 package r.compiler.ir.ssa;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.IRUtils;
+import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.SimpleExpression;
 import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
@@ -74,6 +76,16 @@ public class SsaVariable implements Variable {
       return false;
     SsaVariable other = (SsaVariable) obj;
     return inner.equals(other.inner) && version == other.version;
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    throw new IllegalArgumentException();
   }
   
   

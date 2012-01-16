@@ -1,5 +1,7 @@
 package r.compiler.ir.tac.expressions;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
@@ -13,8 +15,8 @@ import r.lang.Vector;
  */
 public class ElementAccess implements Expression {
 
-  private final Expression vector;
-  private final Expression index;
+  private Expression vector;
+  private Expression index;
   
   public ElementAccess(Expression vector, Expression index) {
     super();
@@ -57,4 +59,20 @@ public class ElementAccess implements Expression {
         vector.replaceVariable(name, newName), 
         index.replaceVariable(name, newName));
   }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Arrays.asList(vector, index);
+  }
+
+  @Override
+  public void setChild(int i, Expression expr) {
+    if(i==0) {
+      vector = expr;
+    } else if(i==1) {
+      index = expr;
+    } else {
+      throw new IllegalArgumentException();
+    }
+  } 
 }

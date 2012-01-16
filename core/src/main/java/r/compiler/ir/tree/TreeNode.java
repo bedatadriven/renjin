@@ -2,12 +2,13 @@ package r.compiler.ir.tree;
 
 import java.util.List;
 
+import r.compiler.ir.tac.expressions.Expression;
+
 public interface TreeNode {
 
-  List<TreeNode> getChildren();
+  List<Expression> getChildren();
 
-  void replace(int childIndex, TreeNode child);
+  void setChild(int childIndex, Expression child);
   
-  void accept(TreeVisitor visitor);
   
 }

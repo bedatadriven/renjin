@@ -77,15 +77,7 @@ public class ProgramCompiler implements Opcodes {
     
     ControlFlowGraph cfg = new ControlFlowGraph(body);
     TreeBuilder builder = new TreeBuilder();
-    
-    for(BasicBlock bb : cfg.getBasicBlocks()) {
-      List<TreeNode> nodes = builder.build(bb);
-            
-      for(TreeNode node : nodes) {
-        System.out.println(node);
-      }
-    }
-     
+   
   }
   
 }

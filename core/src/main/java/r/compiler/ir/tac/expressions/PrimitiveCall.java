@@ -101,5 +101,15 @@ public class PrimitiveCall implements Expression {
       newOps.add(argument.replaceVariable(name, newName));
     }
     return new PrimitiveCall(this.name, newOps);
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    return arguments;
+  }
+
+  @Override
+  public void setChild(int i, Expression expr) {
+    arguments.set(i, expr);
   }  
 }

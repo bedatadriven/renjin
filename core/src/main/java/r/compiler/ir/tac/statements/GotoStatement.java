@@ -2,6 +2,7 @@ package r.compiler.ir.tac.statements;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
@@ -54,5 +55,15 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
       throw new IllegalArgumentException();
     }
     return this;
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    throw new IllegalArgumentException();
   }
 }

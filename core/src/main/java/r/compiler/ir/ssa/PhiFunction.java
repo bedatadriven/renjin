@@ -62,4 +62,16 @@ public class PhiFunction implements Expression {
   public Variable getArgument(int j) {
     return arguments.get(j);
   }
+
+  @Override
+  public List<Expression> getChildren() {
+    return (List)arguments;
+  }
+
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    arguments.set(childIndex, (Variable)child);
+  }
+  
+  
 } 

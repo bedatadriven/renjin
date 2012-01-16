@@ -1,5 +1,7 @@
 package r.compiler.ir.tac.expressions;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
@@ -8,8 +10,8 @@ import r.lang.Context;
 import r.lang.Vector;
 
 public class CmpGE implements SimpleExpression {
-  private final Expression op1;
-  private final Expression op2;
+  private Expression op1;
+  private Expression op2;
   
   public CmpGE(Expression op1, Expression op2) {
     super();
@@ -39,5 +41,21 @@ public class CmpGE implements SimpleExpression {
   public CmpGE replaceVariable(Variable name, Variable newName) {
     return new CmpGE(op1.replaceVariable(name, newName), 
                      op2.replaceVariable(name, newName));
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Arrays.asList(op1, op2);
+  }
+
+  @Override
+  public void setChild(int i, Expression expr) {
+    if(i==0) {
+      op1 = expr;
+    } else if(i==1) {
+      op2 = expr;
+    } else {
+      throw new IllegalArgumentException("i=" + i);
+    }
   }
 }

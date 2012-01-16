@@ -1,6 +1,8 @@
 package r.compiler.ir.tac.statements;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.IRUtils;
@@ -8,8 +10,6 @@ import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.LValue;
 import r.compiler.ir.tac.expressions.Variable;
-import r.compiler.ir.tree.AssignmentNode;
-import r.compiler.ir.tree.TreeNode;
 import r.lang.Context;
 
 import com.google.common.collect.Sets;
@@ -53,6 +53,7 @@ public class Assignment implements Statement {
   public Assignment withRHS(Expression newRHS) {
     return new Assignment(lhs, newRHS);
   }
+  
 
   public Statement withLHS(Variable lhs) {
     return new Assignment(lhs, rhs);
@@ -61,5 +62,19 @@ public class Assignment implements Statement {
   @Override 
   public String toString() {
     return getLHS() + " " + IRUtils.LEFT_ARROW + " "  + rhs;
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Arrays.asList(rhs);
+  }
+
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    if(childIndex == 0) {
+      rhs = child;
+    } else {
+      throw new IllegalArgumentException("childIndex=" + childIndex);
+    }
   }
 }

@@ -1,6 +1,8 @@
 package r.compiler.ir.tac.statements;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
@@ -13,17 +15,17 @@ import r.lang.SEXP;
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {
   
-  private SimpleExpression condition;
+  private Expression condition;
   private IRLabel trueTarget;
   private IRLabel falseTarget;
   
-  public IfStatement(SimpleExpression condition, IRLabel trueTarget, IRLabel falseTarget) {
+  public IfStatement(Expression condition, IRLabel trueTarget, IRLabel falseTarget) {
     this.condition = condition;
     this.trueTarget = trueTarget;
     this.falseTarget = falseTarget;
   }
 
-  public SimpleExpression getCondition() {
+  public Expression getCondition() {
     return condition;
   }
   
@@ -89,5 +91,19 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   @Override
   public String toString() {
     return "if " + condition + " goto " + trueTarget + " else " + falseTarget;
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Collections.singletonList((Expression)condition);
+  }
+
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    if(childIndex == 0) {
+      condition = child;
+    } else {
+      throw new IllegalArgumentException();
+    }
   }
 }

@@ -1,6 +1,7 @@
 package r.compiler.ir.tac.statements;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.tac.IRLabel;
@@ -10,7 +11,7 @@ import r.lang.Context;
 
 public class ReturnStatement implements Statement {
 
-  private final Expression value;
+  private Expression value;
 
   public ReturnStatement(Expression value) {
     super();
@@ -49,5 +50,19 @@ public class ReturnStatement implements Statement {
   @Override
   public Set<Variable> variables() {
     return value.variables();
+  }
+
+  @Override
+  public List<Expression> getChildren() {
+    return Collections.singletonList(value);
+  }
+
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    if(childIndex == 0) {
+      value = child;
+    } else {
+      throw new IllegalArgumentException();
+    }
   }
 }

@@ -1,6 +1,7 @@
 package r.compiler.ir.tac.expressions;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import r.compiler.ir.IRUtils;
@@ -47,6 +48,11 @@ public class Temp implements LValue {
   }
 
   @Override
+  public void setChild(int i, Expression expr) {
+    throw new IllegalArgumentException();
+  }
+
+  @Override
   public Temp replaceVariable(Variable name, Variable newName) {
     return this;
   }
@@ -66,5 +72,10 @@ public class Temp implements LValue {
       return false;
     Temp other = (Temp) obj;
     return index == other.index;
+  }
+  
+  @Override
+  public List<Expression> getChildren() {
+    return Collections.emptyList();
   }
 }

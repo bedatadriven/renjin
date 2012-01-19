@@ -42,8 +42,8 @@ varBenchmark <- newBenchmark("mean.online of 10e6 values", {
 
 tTestBenchmark <- newBenchmark("t.test.online of 10e6 values",
    init = {	 
-	x <- log(seq(10e5))
-	y <- log(seq(10e5 + 5 * 10e5) - 0.5)
+	x <- log(seq(10e6))
+	y <- log(seq(10e6 + 5 * 10e6) - 0.5)
    },
    run = {
 	t.test.online(x, y)
@@ -54,5 +54,5 @@ registerBenchmarkSuite(
    name="Mean Var Online",
    source="TU Dortmund",
    description="Good benchmark of tight loops that normally would be extracted and put in a native C library",
-   benchmarks = list(meanBenchmark, varBenchmark, tTestBenchmark))
+   benchmarks = list(meanBenchmark))
    		

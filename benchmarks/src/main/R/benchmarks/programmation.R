@@ -79,6 +79,6 @@ registerBenchmarkSuite(
    name="Programmation",
    source="R-benchmark-25.R",
    description="'Programmation' benchmarks from the R-benchmark-25.R script",
-   benchmarks = list(fib, hilbert))
+   benchmarks = list(fib, hilbert, escoufier))
    		
    		

@@ -2,6 +2,7 @@
 
 cat("Starting benchmarks...\n")
 
+warmupRuns <- 3
 runs <- 1
 profile <- FALSE
 pattern <- c()
@@ -56,14 +57,16 @@ cat(c(length(suites), " benchmark suites have been registered\n"));
 
 timeBenchmark <- function(benchmark) {
 	cumulate <- 0; b <- 0
-	for (i in 1:runs) {
+	for (i in 1:(warmupRuns+runs)) {
 	  invisible(gc())
 	  env <- new.env(parent=benchmark$enclosure)
 	  eval(benchmark$init, env)
 	  timing <- system.time({
 	    b <- eval(benchmark$run, env)
 	  })[3]
-	  cumulate <- cumulate + timing
+	  if(i > warmupRuns) {
+	  	cumulate <- cumulate + timing
+	  }
 	}
 	remove("b")
 	cumulate/runs

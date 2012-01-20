@@ -376,4 +376,9 @@ public class System {
     result.setAttribute(Symbols.CLASS, new StringVector("proc_time"));
     return result.build();
   }
+
+  @Primitive("machine")
+  public static String machine() {
+    return "Unix";
+  }
 }

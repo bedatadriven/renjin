@@ -245,8 +245,8 @@ public class Primitives {
     f("attributes<-", Types.class, null, 0, 1, 1, PP_FUNCALL, PREC_LEFT, 1);
     f("attr", Types.class, 0, 1, -1);
     f("attr<-", Types.class, 0, 1, 3, PP_FUNCALL, PREC_LEFT, 1);
-    f("comment", /*comment*/ null, 0, 11, 1);
-    f("comment<-", /*commentgets*/ null, 0, 11, 2, PP_FUNCALL, PREC_LEFT, 1);
+    f("comment", Types.class, 0, 11, 1);
+    f("comment<-", Types.class, 0, 11, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("levels<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("get", Types.class, 1, 11, 4);
     f("mget", /*mget*/ null, 1, 11, 5);
@@ -594,7 +594,7 @@ public class Primitives {
     f("proc.time", System.class, 0, 1, 0);
     f("gc.time", /*gctime*/ null, 0, 1, -1);
     f("Version", System.class, 0, 11, 0);
-    f("machine", /*machine*/ null, 0, 11, 0);
+    f("machine", System.class, 0, 11, 0);
     f("commandArgs", System.class, 0, 11, 0);
     f("unzip", Files.class, 0, 111, 6);
     f("parse", Evaluation.class, 0, 11, 6);
@@ -679,15 +679,15 @@ public class Primitives {
     f("dataviewer", /*dataviewer*/ null, 0, 111, 2);
     f("args", /*args*/ null, 0, 11, 1);
     f("formals", Types.class, 0, 11, 1);
-    f("body", /*body*/ null, 0, 11, 1);
+    f("body", Types.class, 0, 11, 1);
     f("bodyCode", /*bodyCode*/ null, 0, 11, 1);
     f("emptyenv", Types.class, 0, 1, 0);
     f("baseenv", Types.class, 0, 1, 0);
     f("globalenv", Types.class, 0, 1, 0);
     f("environment", Types.class, 0, 11, 1);
     f("environment<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
-    f("environmentName", /*envirName*/ null, 0, 11, 1);
-    f("env2list", /*env2list*/ null, 0, 11, 2);
+    f("environmentName", Types.class, 0, 11, 1);
+    f("env2list", Types.class, 0, 11, 2);
     f("reg.finalizer", /*regFinaliz*/ null, 0, 11, 3);
     f("options", Types.class, 0, 211, 1);
     f("sink", /*sink*/ null, 0, 111, 4);

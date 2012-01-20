@@ -499,6 +499,17 @@ public class Types {
     return arg;
   }
 
+  @Primitive("list2env")
+  public static ListVector env2list(Environment env, boolean allNames) {
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+    for(Symbol name : env.getSymbolNames()) {
+      if(allNames || !name.getPrintName().startsWith(".")) {
+        list.add(name, env.getVariable(name));
+      }
+    }
+    return list.build();
+  }
+
   @Primitive("as.environment")
   public static Environment asEnvironment(@Current Context context, double index) {
     Environment result = context.getGlobalEnvironment();
@@ -509,6 +520,11 @@ public class Types {
       result = result.getParent();
     }
     return result;
+  }
+  
+  @Primitive("environmentName")
+  public static String environmentName(Environment env) {
+    return env.getName();
   }
 
   @Primitive("parent.env")
@@ -714,6 +730,11 @@ public class Types {
     return closure.getFormals();
   }
 
+  @Primitive("body")
+  public static SEXP body(Closure closure) {
+    return closure.getBody();
+  }
+
   public static Environment newEnv(boolean hash, Environment parent, int size) {
     return Environment.createChildEnvironment(parent);
   }
@@ -857,6 +878,16 @@ public class Types {
     }
 
     return new StringVector(exp.getImplicitClass());
+  }
+
+  @Primitive("comment")
+  public static SEXP getComment(SEXP exp) {
+    return exp.getAttribute(Symbols.COMMENT);
+  }
+  
+  @Primitive("comment<-")
+  public static SEXP setComment(StringVector exp) {
+    return exp.setAttribute(Symbols.COMMENT, exp);
   }
 
   @Primitive("class<-")

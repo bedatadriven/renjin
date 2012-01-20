@@ -1,7 +1,7 @@
 package r.lang;
 
 public class Symbols {
-  
+
   private Symbols() {}
 
   public static final Symbol NAMES = Symbol.get("names");
@@ -16,6 +16,7 @@ public class Symbols {
   public static final Symbol DIMNAMES = Symbol.get("dimnames");
   public static final Symbol NAME = Symbol.get("name");
   public static final Symbol DOT_ENVIRONMENT = Symbol.get(".Environment");
+  public static final Symbol COMMENT = Symbol.get("comment");
 
   public static final Symbol TZONE = Symbol.get("tzone");
   

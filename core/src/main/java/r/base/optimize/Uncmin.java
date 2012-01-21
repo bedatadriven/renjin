@@ -90,189 +90,16 @@ package r.base.optimize;
  * @author (translator)Steve Verrill
  * @version .5 --- April 14, 1998
  */
-
-
 class Uncmin {
 
-
-  /**
-   * <p/>
-   * The optif0_f77 method minimizes a smooth nonlinear function of n variables.
-   * A method that computes the function value at any point
-   * must be supplied.  (See Uncmin_methods.java and UncminTest.java.)
-   * Derivative values are not required.
-   * The optif0_f77 method provides the simplest user access to the UNCMIN
-   * minimization routines.  Without a recompile,
-   * the user has no control over options.
-   * For details, see the Schnabel et al reference and the comments in the code.
-   * <p/>
-   * Translated by Steve Verrill, August 4, 1998.
-   *
-   * @param n        The number of arguments of the function to minimize
-   * @param x        The initial estimate of the minimum point
-   * @param minclass A class that implements the Uncmin_methods
-   *                 interface (see the definition in
-   *                 Uncmin_methods.java).  See UncminTest_f77.java for an
-   *                 example of such a class.  The class must define:
-   *                 1.) a method, f_to_minimize, to minimize.
-   *                 f_to_minimize must have the form
-   *                 <p/>
-   *                 public static double f_to_minimize(double x[])
-   *                 <p/>
-   *                 where x is the vector of arguments to the function
-   *                 and the return value is the value of the function
-   *                 evaluated at x.
-   *                 2.) a method, gradient, that has the form
-   *                 <p/>
-   *                 public static void gradient(double x[],
-   *                 double g[])
-   *                 <p/>
-   *                 where g is the gradient of f evaluated at x.  This
-   *                 method will have an empty body if the user
-   *                 does not wish to provide an analytic estimate
-   *                 of the gradient.
-   *                 3.) a method, hessian, that has the form
-   *                 <p/>
-   *                 public static void hessian(double x[],
-   *                 double h[][])
-   *                 where h is the Hessian of f evaluated at x.  This
-   *                 method will have an empty body if the user
-   *                 does not wish to provide an analytic estimate
-   *                 of the Hessian.  If the user wants Uncmin
-   *                 to check the Hessian, then the hessian method
-   *                 should only fill the lower triangle (and diagonal)
-   *                 of h.
-   * @param xpls     The final estimate of the minimum point
-   * @param fpls     The value of f_to_minimize at xpls
-   * @param gpls     The gradient at the local minimum xpls
-   * @param itrmcd   Termination code
-   *                 ITRMCD =  0:  Optimal solution found
-   *                 ITRMCD =  1:  Terminated with gradient small,
-   *                 xpls is probably optimal
-   *                 ITRMCD =  2:  Terminated with stepsize small,
-   *                 xpls is probably optimal
-   *                 ITRMCD =  3:  Lower point cannot be found,
-   *                 xpls is probably optimal
-   *                 ITRMCD =  4:  Iteration limit (150) exceeded
-   *                 ITRMCD =  5:  Too many large steps,
-   *                 function may be unbounded
-   * @param a        Workspace for the Hessian (or its estimate)
-   *                 and its Cholesky decomposition
-   * @param udiag    Workspace for the diagonal of the Hessian
-   */
-
-  public static void optif0_f77(int n, double x[], UncminFunction minclass,
-                                double xpls[], double fpls[], double gpls[],
-                                int itrmcd[], double a[][], double udiag[]) {
-
-
-/*
-
-Here is a copy of the optif0 FORTRAN documentation:
-
-      SUBROUTINE OPTIF0(NR,N,X,FCN,XPLS,FPLS,GPLS,ITRMCD,A,WRK)
-c
-      implicit double precision (a-h,o-z)
-c
-C
-C PURPOSE
-C -------
-C PROVIDE SIMPLEST INTERFACE TO MINIMIZATION PACKAGE.
-C USER HAS NO CONTROL OVER OPTIONS.
-
-
-C PARAMETERS
-C ----------
-C NR           --> ROW DIMENSION OF MATRIX
-C N            --> DIMENSION OF PROBLEM
-C X(N)         --> INITIAL ESTIMATE OF MINIMUM
-C FCN          --> NAME OF ROUTINE TO EVALUATE MINIMIZATION FUNCTION.
-C                  MUST BE DECLARED EXTERNAL IN CALLING ROUTINE.
-C XPLS(N)     <--  LOCAL MINIMUM
-C FPLS        <--  FUNCTION VALUE AT LOCAL MINIMUM XPLS
-C GPLS(N)     <--  GRADIENT AT LOCAL MINIMUM XPLS
-C ITRMCD      <--  TERMINATION CODE
-C A(N,N)       --> WORKSPACE
-C WRK(N,9)     --> WORKSPACE
-C
-
-*/
-
-    int msg[] = new int[2];
-
-    double typsiz[] = new double[n + 1];
-    double g[] = new double[n + 1];
-    double p[] = new double[n + 1];
-    double sx[] = new double[n + 1];
-    double wrk0[] = new double[n + 1];
-    double wrk1[] = new double[n + 1];
-    double wrk2[] = new double[n + 1];
-    double wrk3[] = new double[n + 1];
-
-    double dlt[] = new double[2];
-    double fscale[] = new double[2];
-    double stepmx[] = new double[2];
-
-    int ndigit[] = new int[2];
-
-    int i, ig, it;
-    int lt;
-
-    int method[] = new int[2];
-    int iexp[] = new int[2];
-    int itnlim[] = new int[2];
-    int iagflg[] = new int[2];
-    int iahflg[] = new int[2];
-
-    double gradtl[] = new double[2];
-    double steptl[] = new double[2];
-
-    dfault_f77(n, x, typsiz, fscale, method, iexp, msg,
-        ndigit, itnlim, iagflg, iahflg, dlt,
-        gradtl, stepmx, steptl);
-
-    optdrv_f77(n, x, minclass, typsiz, fscale, method,
-        iexp, msg, ndigit, itnlim, iagflg, iahflg,
-        dlt, gradtl, stepmx, steptl, xpls,
-        fpls, gpls, itrmcd, a, udiag, g, p, sx,
-        wrk0, wrk1, wrk2, wrk3);
-
-    if (itrmcd[1] == 1) {
-
-      //System.out.print("\nUncmin WARNING --- itrmcd = 1, " +
-      //                 "probably converged, gradient small\n\n");
-
-    } else if (itrmcd[1] == 2) {
-
-      //System.out.print("\nUncmin WARNING --- itrmcd = 2, " +
-      //                 "probably converged, stepsize small\n\n");
-
-    } else if (itrmcd[1] == 3) {
-
-      //System.out.print("\nUncmin WARNING --- itrmcd = 3, " +
-      //                 "cannot find lower point\n\n");
-
-    } else if (itrmcd[1] == 4) {
-
-      //System.out.print("\nUncmin WARNING --- itrmcd = 4, " +
-      //                 "too many iterations\n\n");
-
-    } else if (itrmcd[1] == 5) {
-
-      //System.out.print("\nUncmin WARNING --- itrmcd = 5, " +
-      //                 "too many large steps, " +
-      //                 "possibly unbounded\n\n");
-
-    }
-
-    return;
-
+  public enum Method {
+    LINE_SEARCH,
+    DOUBLE_DOGLEG,
+    MORE_HEBDON
   }
 
-
   /**
-   * <p/>
-   * The optif9_f77 method minimizes a smooth nonlinear function of n variables.
+   * Minimizes a smooth nonlinear function of n variables.
    * A method that computes the function value at any point
    * must be supplied.  (See Uncmin_methods.java and UncminTest.java.)
    * Derivative values are not required.
@@ -357,76 +184,24 @@ C
    */
 
   public static void optif9_f77(int n, double x[], UncminFunction minclass,
-                                double typsiz[], double fscale[], int method[],
-                                int iexp[], int msg[], int ndigit[], int itnlim[],
+                                double typsiz[], double fscale, Method method,
+                                boolean iexp, int msg[], int ndigit[], int itnlim[],
                                 int iagflg[], int iahflg[], double dlt[],
                                 double gradtl[], double stepmx[], double steptl[],
                                 double xpls[], double fpls[], double gpls[],
                                 int itrmcd[], double a[][], double udiag[]) {
 
-/*
 
-Here is a copy of the optif9 FORTRAN documentation:
 
-      SUBROUTINE OPTIF9(NR,N,X,FCN,D1FCN,D2FCN,TYPSIZ,FSCALE,
-     +     METHOD,IEXP,MSG,NDIGIT,ITNLIM,IAGFLG,IAHFLG,IPR,
-     +     DLT,GRADTL,STEPMX,STEPTL,
-     +     XPLS,FPLS,GPLS,ITRMCD,A,WRK)
-c
-      implicit double precision (a-h,o-z)
-c
-C
-C PURPOSE
-C -------
-C PROVIDE COMPLETE INTERFACE TO MINIMIZATION PACKAGE.
-C USER HAS FULL CONTROL OVER OPTIONS.
-C
-C PARAMETERS
-C ----------
-C NR           --> ROW DIMENSION OF MATRIX
-C N            --> DIMENSION OF PROBLEM
-C X(N)         --> ON ENTRY: ESTIMATE TO A ROOT OF FCN
-C FCN          --> NAME OF SUBROUTINE TO EVALUATE OPTIMIZATION FUNCTION
-C                  MUST BE DECLARED EXTERNAL IN CALLING ROUTINE
-C                            FCN: R(N) --> R(1)
-C D1FCN        --> (OPTIONAL) NAME OF SUBROUTINE TO EVALUATE GRADIENT
-C                  OF FCN.  MUST BE DECLARED EXTERNAL IN CALLING ROUTINE
-C D2FCN        --> (OPTIONAL) NAME OF SUBROUTINE TO EVALUATE HESSIAN OF
-C                  OF FCN.  MUST BE DECLARED EXTERNAL IN CALLING ROUTINE
-C TYPSIZ(N)    --> TYPICAL SIZE FOR EACH COMPONENT OF X
-C FSCALE       --> ESTIMATE OF SCALE OF OBJECTIVE FUNCTION
-C METHOD       --> ALGORITHM TO USE TO SOLVE MINIMIZATION PROBLEM
-C                    =1 LINE SEARCH
-C                    =2 DOUBLE DOGLEG
-C                    =3 MORE-HEBDON
-C IEXP         --> =1 IF OPTIMIZATION FUNCTION FCN IS EXPENSIVE TO
-C                  EVALUATE, =0 OTHERWISE.  IF SET THEN HESSIAN WILL
-C                  BE EVALUATED BY SECANT UPDATE INSTEAD OF
-C                  ANALYTICALLY OR BY FINITE DIFFERENCES
-C MSG         <--> ON INPUT:  (.GT.0) MESSAGE TO INHIBIT CERTAIN
-C                    AUTOMATIC CHECKS
-C                  ON OUTPUT: (.LT.0) ERROR CODE; =0 NO ERROR
-C NDIGIT       --> NUMBER OF GOOD DIGITS IN OPTIMIZATION FUNCTION FCN
-C ITNLIM       --> MAXIMUM NUMBER OF ALLOWABLE ITERATIONS
-C IAGFLG       --> =1 IF ANALYTIC GRADIENT SUPPLIED
-C IAHFLG       --> =1 IF ANALYTIC HESSIAN SUPPLIED
-C IPR          --> DEVICE TO WHICH TO SEND OUTPUT
-C DLT          --> TRUST REGION RADIUS
-C GRADTL       --> TOLERANCE AT WHICH GRADIENT CONSIDERED CLOSE
-C                  ENOUGH TO ZERO TO TERMINATE ALGORITHM
-C STEPMX       --> MAXIMUM ALLOWABLE STEP SIZE
-C STEPTL       --> RELATIVE STEP SIZE AT WHICH SUCCESSIVE ITERATES
-C                  CONSIDERED CLOSE ENOUGH TO TERMINATE ALGORITHM
-C XPLS(N)     <--> ON EXIT:  XPLS IS LOCAL MINIMUM
-C FPLS        <--> ON EXIT:  FUNCTION VALUE AT SOLUTION, XPLS
-C GPLS(N)     <--> ON EXIT:  GRADIENT AT SOLUTION XPLS
-C ITRMCD      <--  TERMINATION CODE
-C A(N,N)       --> WORKSPACE FOR HESSIAN (OR ESTIMATE)
-C                  AND ITS CHOLESKY DECOMPOSITION
-C WRK(N,8)     --> WORKSPACE
-C
+// CHECK FUNCTION SCALE
 
-*/
+    if (fscale == 0) {
+      fscale = 1.0;
+    }
+    if (fscale < 0.0) {
+      fscale = -fscale;
+    }
+
 
     double g[] = new double[n + 1];
     double p[] = new double[n + 1];
@@ -471,15 +246,11 @@ C
 //                          "possibly unbounded\n\n");
 
     }
-
-    return;
-
   }
 
 
   /**
-   * <p/>
-   * The bakslv_f77 method solves Ax = b where A is an upper triangular
+   * Solves Ax = b where A is an upper triangular
    * matrix.  Note that A is input as a lower triangular matrix and
    * this method takes its transpose implicitly.
    * <p/>
@@ -492,35 +263,6 @@ C
    */
 
   public static void bakslv_f77(int n, double a[][], double x[], double b[]) {
-
-/*
-
-Here is a copy of the bakslv FORTRAN documentation:
-
-      SUBROUTINE BAKSLV(NR,N,A,X,B)
-
-C
-C PURPOSE
-C -------
-C SOLVE  AX=B  WHERE A IS UPPER TRIANGULAR MATRIX.
-C NOTE THAT A IS INPUT AS A LOWER TRIANGULAR MATRIX AND
-C THAT THIS ROUTINE TAKES ITS TRANSPOSE IMPLICITLY.
-C
-C PARAMETERS
-C ----------
-C NR           --> ROW DIMENSION OF MATRIX
-C N            --> DIMENSION OF PROBLEM
-C A(N,N)       --> LOWER TRIANGULAR MATRIX (PRESERVED)
-C X(N)        <--  SOLUTION VECTOR
-C B(N)         --> RIGHT-HAND SIDE VECTOR
-C
-C NOTE
-C ----
-C IF B IS NO LONGER REQUIRED BY CALLING ROUTINE,
-C THEN VECTORS B AND X MAY SHARE THE SAME STORAGE.
-C
-
-*/
 
     int i, ip1, j;
     double sum;
@@ -538,17 +280,11 @@ C
       sum = 0.0;
 
       for (j = ip1; j <= n; j++) {
-
         sum += a[j][i] * x[j];
-
       }
 
       x[i] = (b[i] - sum) / a[i][i];
-
     }
-
-    return;
-
   }
 
 
@@ -577,35 +313,7 @@ C
   public static void chlhsn_f77(int n, double a[][], double epsm,
                                 double sx[], double udiag[]) {
 
-/*
-
-Here is a copy of the chlhsn FORTRAN documentation:
-
-      SUBROUTINE CHLHSN(NR,N,A,EPSM,SX,UDIAG)
-
-C
-C PURPOSE
-C -------
-C FIND THE L(L-TRANSPOSE) [WRITTEN LL+] DECOMPOSITION OF THE PERTURBED
-C MODEL HESSIAN MATRIX A+MU*I(WHERE MU\0 AND I IS THE IDENTITY MATRIX)
-C WHICH IS SAFELY POSITIVE DEFINITE.  IF A IS SAFELY POSITIVE DEFINITE
-C UPON ENTRY, THEN MU=0.
-C
-C PARAMETERS
-C ----------
-C NR           --> ROW DIMENSION OF MATRIX
-C N            --> DIMENSION OF PROBLEM
-C A(N,N)      <--> ON ENTRY; "A" IS MODEL HESSIAN (ONLY LOWER
-C                  TRIANGULAR PART AND DIAGONAL STORED)
-C                  ON EXIT:  A CONTAINS L OF LL+ DECOMPOSITION OF
-C                  PERTURBED MODEL HESSIAN IN LOWER TRIANGULAR
-C                  PART AND DIAGONAL AND CONTAINS HESSIAN IN UPPER
-C                  TRIANGULAR PART AND UDIAG
-C EPSM         --> MACHINE EPSILON
-C SX(N)        --> DIAGONAL SCALING MATRIX FOR X
-C UDIAG(N)    <--  ON EXIT: CONTAINS DIAGONAL OF HESSIAN
-C
-C INTERNAL VARIABLES
+/*C INTERNAL VARIABLES
 C ------------------
 C TOL              TOLERANCE
 C DIAGMN           MINIMUM ELEMENT ON DIAGONAL OF A
@@ -643,7 +351,13 @@ C
 */
 
     int i, j, im1, jm1;
-    double tol, diagmx, diagmn, posmax, amu, offmax,
+
+    /**
+     * tolerance
+     */
+    double tol;
+
+    double diagmx, diagmn, posmax, amu, offmax,
         evmin, evmax, offrow, sdd;
 
     double addmax[] = new double[2];
@@ -842,9 +556,6 @@ C
       udiag[j] *= sx[j] * sx[j];
 
     }
-
-    return;
-
   }
 
 
@@ -941,9 +652,7 @@ C
       temp = a[j][j] - sum;
 
       if (temp >= amnlsq) {
-
         a[j][j] = Math.sqrt(temp);
-
       } else {
 
 // FIND MAXIMUM OFF-DIAGONAL ELEMENT IN COLUMN
@@ -951,9 +660,9 @@ C
         offmax = 0.0;
 
         for (i = jp1; i <= n; i++) {
-
-          if (Math.abs(a[i][j]) > offmax) offmax = Math.abs(a[i][j]);
-
+          if (Math.abs(a[i][j]) > offmax) {
+            offmax = Math.abs(a[i][j]);
+          }
         }
 
         if (offmax <= amnlsq) offmax = amnlsq;
@@ -968,130 +677,15 @@ C
 // FIND I,J ELEMENT OF LOWER TRIANGULAR MATRIX
 
       for (i = jp1; i <= n; i++) {
-
         sum = 0.0;
 
         for (k = 1; k <= jm1; k++) {
-
           sum += a[i][k] * a[j][k];
-
         }
 
         a[i][j] = (a[i][j] - sum) / a[j][j];
-
       }
-
     }
-
-    return;
-
-  }
-
-
-  /**
-   * <p/>
-   * The dfault_f77 method sets default values for each input
-   * variable to the minimization algorithm.
-   * <p/>
-   * Translated by Steve Verrill, August 4, 1998.
-   *
-   * @param n      Dimension of the problem
-   * @param x      Initial estimate of the solution (to compute max step size)
-   * @param typsiz Typical size for each component of x
-   * @param fscale Estimate of the scale of the minimization function
-   * @param method Algorithm to use to solve the minimization problem
-   * @param iexp   = 0 if the minimization function is not expensive to evaluate
-   * @param msg    Message to inhibit certain automatic checks and output
-   * @param ndigit Number of good digits in the minimization function
-   * @param itnlim Maximum number of allowable iterations
-   * @param iagflg = 0 if an analytic gradient is not supplied
-   * @param iahflg = 0 if an analytic Hessian is not supplied
-   * @param dlt    Trust region radius
-   * @param gradtl Tolerance at which the gradient is considered close enough
-   *               to zero to terminate the algorithm
-   * @param stepmx "Value of zero to trip default maximum in optchk"
-   * @param steptl Tolerance at which successive iterates are considered
-   *               close enough to terminate the algorithm
-   */
-
-  public static void dfault_f77(int n, double x[], double typsiz[],
-                                double fscale[], int method[], int iexp[],
-                                int msg[], int ndigit[], int itnlim[],
-                                int iagflg[], int iahflg[], double dlt[],
-                                double gradtl[], double stepmx[],
-                                double steptl[]) {
-
-/*
-
-Here is a copy of the dfault FORTRAN documentation:
-
-
-      SUBROUTINE DFAULT(N,X,TYPSIZ,FSCALE,METHOD,IEXP,MSG,NDIGIT,
-     +     ITNLIM,IAGFLG,IAHFLG,IPR,DLT,GRADTL,STEPMX,STEPTL)
-
-C
-C PURPOSE
-C -------
-C SET DEFAULT VALUES FOR EACH INPUT VARIABLE TO
-C MINIMIZATION ALGORITHM.
-C
-C PARAMETERS
-C ----------
-C N            --> DIMENSION OF PROBLEM
-C X(N)         --> INITIAL GUESS TO SOLUTION (TO COMPUTE MAX STEP SIZE)
-C TYPSIZ(N)   <--  TYPICAL SIZE FOR EACH COMPONENT OF X
-C FSCALE      <--  ESTIMATE OF SCALE OF MINIMIZATION FUNCTION
-C METHOD      <--  ALGORITHM TO USE TO SOLVE MINIMIZATION PROBLEM
-C IEXP        <--  =0 IF MINIMIZATION FUNCTION NOT EXPENSIVE TO EVALUATE
-C MSG         <--  MESSAGE TO INHIBIT CERTAIN AUTOMATIC CHECKS + OUTPUT
-C NDIGIT      <--  NUMBER OF GOOD DIGITS IN MINIMIZATION FUNCTION
-C ITNLIM      <--  MAXIMUM NUMBER OF ALLOWABLE ITERATIONS
-C IAGFLG      <--  =0 IF ANALYTIC GRADIENT NOT SUPPLIED
-C IAHFLG      <--  =0 IF ANALYTIC HESSIAN NOT SUPPLIED
-C IPR         <--  DEVICE TO WHICH TO SEND OUTPUT
-C DLT         <--  TRUST REGION RADIUS
-C GRADTL      <--  TOLERANCE AT WHICH GRADIENT CONSIDERED CLOSE ENOUGH
-C                  TO ZERO TO TERMINATE ALGORITHM
-C STEPMX      <--  VALUE OF ZERO TO TRIP DEFAULT MAXIMUM IN OPTCHK
-C STEPTL      <--  TOLERANCE AT WHICH SUCCESSIVE ITERATES CONSIDERED
-C                  CLOSE ENOUGH TO TERMINATE ALGORITHM
-C
-
-*/
-
-    int i;
-    double epsm;
-
-// SET TYPICAL SIZE OF X AND MINIMIZATION FUNCTION
-
-    for (i = 1; i <= n; i++) {
-
-      typsiz[i] = 1.0;
-
-    }
-
-    fscale[1] = 1.0;
-
-// SET TOLERANCES
-
-    dlt[1] = -1.0;
-
-    epsm = 1.12e-16;
-    gradtl[1] = Math.pow(epsm, 1.0 / 3.0);
-    steptl[1] = Math.sqrt(epsm);
-
-    stepmx[1] = 0.0;
-
-// SET FLAGS
-
-    method[1] = 1;
-    iexp[1] = 1;
-    msg[1] = 0;
-    ndigit[1] = -1;
-    itnlim[1] = 150;
-    iagflg[1] = 0;
-    iahflg[1] = 0;
-
   }
 
 
@@ -1248,11 +842,7 @@ C
       tregup_f77(n, x, f, g, a, minclass, sc, sx, nwtake, stepmx,
           steptl, dlt, iretcd, wrk3, fplsp, xpls, fpls,
           mxtake, 2, wrk1);
-
     }
-
-    return;
-
   }
 
 
@@ -1443,15 +1033,9 @@ C
             sc[i] = (ssd[i] + alam * v[i]) / sx[i];
 
           }
-
         }
-
       }
-
     }
-
-    return;
-
   }
 
 
@@ -1979,7 +1563,7 @@ C
 
   public static void grdchk_f77(int n, double x[], UncminFunction minclass,
                                 double f[], double g[], double typsiz[],
-                                double sx[], double fscale[], double rnf,
+                                double sx[], double fscale, double rnf,
                                 double analtl, double gest[]) {
 
 /*
@@ -2029,7 +1613,7 @@ C
 
     for (i = 1; i <= n; i++) {
 
-      gs = Math.max(Math.abs(f[1]), fscale[1]) / Math.max(Math.abs(x[i]), typsiz[i]);
+      gs = Math.max(Math.abs(f[1]), fscale) / Math.max(Math.abs(x[i]), typsiz[i]);
 
       if (Math.abs(g[i] - gest[i]) >
           Math.max(Math.abs(g[i]), gs) * analtl) ker = 1;
@@ -2712,7 +2296,7 @@ C
    */
 
   public static void hsnint_f77(int n, double a[][], double sx[],
-                                int method[]) {
+                                Method method) {
 
 /*
 
@@ -2742,7 +2326,7 @@ C
 
     for (j = 1; j <= n; j++) {
 
-      if (method[1] == 3) {
+      if (method == Method.MORE_HEBDON) {
 
         a[j][j] = sx[j] * sx[j];
 
@@ -3050,21 +2634,14 @@ C
             almbda = tlmbda;
 
           }
-
         }
-
       }
-
     }
-
-    return;
-
   }
 
 
   /**
-   * <p/>
-   * The mvmltl_f77 method computes y = Lx where L is a lower
+   * Computes y = Lx where L is a lower
    * triangular matrix stored in A.
    * <p/>
    * Translated by Steve Verrill, April 27, 1998.
@@ -3126,7 +2703,6 @@ C
 
 
   /**
-   * <p/>
    * The mvmlts_f77 method computes y = Ax where A is a symmetric matrix
    * stored in its lower triangular part.
    * <p/>
@@ -3189,11 +2765,7 @@ C
       }
 
       y[i] = sum;
-
     }
-
-    return;
-
   }
 
 
@@ -3280,8 +2852,6 @@ C
    * @param ndigit Number of good digits in the optimization function
    * @param epsm   Machine epsilon
    * @param dlt    Trust region radius
-   * @param method Algorithm indicator
-   * @param iexp   Expense flag
    * @param iagflg = 1 if an analytic gradient is supplied
    * @param iahflg = 1 if an analytic Hessian is supplied
    * @param stepmx Maximum step size
@@ -3289,9 +2859,9 @@ C
    */
 
   public static void optchk_f77(int n, double x[], double typsiz[],
-                                double sx[], double fscale[], double gradtl[],
+                                double sx[], double fscale, double gradtl[],
                                 int itnlim[], int ndigit[], double epsm,
-                                double dlt[], int method[], int iexp[],
+                                double dlt[],
                                 int iagflg[], int iahflg[], double stepmx[],
                                 int msg[]) {
 
@@ -3338,10 +2908,8 @@ C
 // CHECK THAT PARAMETERS ONLY TAKE ON ACCEPTABLE VALUES.
 // IF NOT, SET THEM TO DEFAULT VALUES.
 
-    if (method[1] < 1 || method[1] > 3) method[1] = 1;
     if (iagflg[1] != 1) iagflg[1] = 0;
     if (iahflg[1] != 1) iahflg[1] = 0;
-    if (iexp[1] != 0) iexp[1] = 1;
 
     if ((msg[1] / 2) % 2 == 1 && iagflg[1] == 0) {
 
@@ -3409,11 +2977,6 @@ C
 
     }
 
-// CHECK FUNCTION SCALE
-
-    if (fscale[1] == 0) fscale[1] = 1.0;
-    if (fscale[1] < 0.0) fscale[1] = -fscale[1];
-
 // CHECK GRADIENT TOLERANCE
 
     if (gradtl[1] < 0.0) {
@@ -3438,11 +3001,12 @@ C
 
 // CHECK TRUST REGION RADIUS
 
-    if (dlt[1] <= 0.0) dlt[1] = -1.0;
-    if (dlt[1] > stepmx[1]) dlt[1] = stepmx[1];
-
-    return;
-
+    if (dlt[1] <= 0.0) {
+      dlt[1] = -1.0;
+    }
+    if (dlt[1] > stepmx[1]) {
+      dlt[1] = stepmx[1];
+    }
   }
 
 
@@ -3531,8 +3095,8 @@ C
    */
 
   public static void optdrv_f77(int n, double x[], UncminFunction minclass,
-                                double typsiz[], double fscale[], int method[],
-                                int iexp[], int msg[], int ndigit[], int itnlim[],
+                                double typsiz[], double fscale, Method method,
+                                boolean iexp, int msg[], int ndigit[], int itnlim[],
                                 int iagflg[], int iahflg[], double dlt[],
                                 double gradtl[], double stepmx[], double steptl[],
                                 double xpls[], double fpls[], double gpls[],
@@ -3659,7 +3223,7 @@ C
     epsm = 1.12e-16;
 
     optchk_f77(n, x, typsiz, sx, fscale, gradtl, itnlim, ndigit,
-        epsm, dlt, method, iexp, iagflg, iahflg, stepmx,
+        epsm, dlt, iagflg, iahflg, stepmx,
         msg);
 
 //   removed because don't want to stop if msg = -2
@@ -3746,7 +3310,7 @@ C
       System.out.print("\n");
 
 
-      System.out.println("\n\nOPTDRV      Typical f = " + fscale[1]);
+      System.out.println("\n\nOPTDRV      Typical f = " + fscale);
       System.out.print("OPTDRV      Number of good digits in");
       System.out.println(" f_to_minimize = " + ndigit[1]);
       System.out.print("OPTDRV      Gradient flag");
@@ -3754,9 +3318,9 @@ C
       System.out.print("OPTDRV      Hessian flag");
       System.out.println(" = " + iahflg[1]);
       System.out.print("OPTDRV      Expensive function calculation flag");
-      System.out.println(" = " + iexp[1]);
+      System.out.println(" = " + iexp);
       System.out.print("OPTDRV      Method to use");
-      System.out.println(" = " + method[1]);
+      System.out.println(" = " + method);
       System.out.print("OPTDRV      Iteration limit");
       System.out.println(" = " + itnlim[1]);
       System.out.print("OPTDRV      Machine epsilon");
@@ -3819,7 +3383,7 @@ C
 
     } else {
 
-      if (iexp[1] == 1) {
+      if (iexp) {
 
 // IF OPTIMIZATION FUNCTION EXPENSIVE TO EVALUATE (IEXP=1), THEN
 // HESSIAN WILL BE OBTAINED BY SECANT UPDATES.  GET INITIAL HESSIAN.
@@ -3880,7 +3444,7 @@ C
 // SECANT UPDATES.  CHOLESKY DECOMPOSITION L ALREADY OBTAINED FROM
 // SECFAC.)
 
-        if (iexp[1] != 1 || method[1] == 3) {
+        if ( ! iexp || method == Method.MORE_HEBDON) {
 
           chlhsn_f77(n, a, epsm, sx, udiag);
 
@@ -3889,9 +3453,7 @@ C
 // SOLVE FOR NEWTON STEP:  AP=-G
 
         for (i = 1; i <= n; i++) {
-
           wrk1[i] = -g[i];
-
         }
 
         lltslv_f77(n, a, p, wrk1);
@@ -3899,11 +3461,11 @@ C
 // DECIDE WHETHER TO ACCEPT NEWTON STEP  XPLS=X + P
 // OR TO CHOOSE XPLS BY A GLOBAL STRATEGY.
 
-        if (iagflg[1] == 0 && method[1] != 1) {
+        if (iagflg[1] == 0 && method != Method.LINE_SEARCH) {
 
           dltsav = dlt[1];
 
-          if (method[1] != 2) {
+          if (method != Method.DOUBLE_DOGLEG) {
 
             amusav = amu[1];
             dlpsav = dltp[1];
@@ -3914,13 +3476,13 @@ C
 
         }
 
-        if (method[1] == 1) {
+        if (method == Method.LINE_SEARCH) {
 
           lnsrch_f77(n, x, f, g, p, xpls, fpls, minclass,
               mxtake, iretcd, stepmx, steptl,
               sx);
 
-        } else if (method[1] == 2) {
+        } else if (method == Method.DOUBLE_DOGLEG) {
 
           dogdrv_f77(n, x, f, g, a, p, xpls, fpls, minclass,
               sx, stepmx, steptl, dlt, iretcd,
@@ -3952,7 +3514,7 @@ C
 
           fstocd_f77(n, x, minclass, sx, rnf, g);
 
-          if (method[1] == 1) {
+          if (method == Method.LINE_SEARCH) {
 
 // SOLVE FOR NEWTON STEP:  AP=-G
 
@@ -3971,7 +3533,7 @@ C
           } else {
 
             dlt[1] = dltsav;
-            if (method[1] == 2) {
+            if (method == Method.DOUBLE_DOGLEG) {
 
 
 // SOLVE FOR NEWTON STEP:  AP=-G
@@ -4060,9 +3622,9 @@ C
 
 // EVALUATE HESSIAN AT XPLS
 
-          if (iexp[1] != 0) {
+          if ( iexp ) {
 
-            if (method[1] == 3) {
+            if (method == Method.MORE_HEBDON) {
 
               secunf_f77(n, x, g, a, udiag, xpls, gpls, epsm,
                   itncnt, rnf, iagflg, noupdt,
@@ -4193,7 +3755,7 @@ C
   public static void optstp_f77(int n, double xpls[], double fpls[],
                                 double gpls[], double x[], int itncnt[],
                                 int icscmx[], int itrmcd[], double gradtl[],
-                                double steptl[], double sx[], double fscale[],
+                                double steptl[], double sx[], double fscale,
                                 int itnlim[], int iretcd[], boolean mxtake[],
                                 int msg[]) {
 /*
@@ -4271,7 +3833,7 @@ C
 // FIND DIRECTION IN WHICH RELATIVE GRADIENT MAXIMUM.
 // CHECK WHETHER WITHIN TOLERANCE
 
-      d = Math.max(Math.abs(fpls[1]), fscale[1]);
+      d = Math.max(Math.abs(fpls[1]), fscale);
       rgx = 0.0;
 
       for (i = 1; i <= n; i++) {
@@ -4383,8 +3945,6 @@ C
         System.out.print("OPTSTP    stepmx is too small.\n");
 
       }
-
-      return;
 
     }
 
@@ -4890,15 +4450,9 @@ C Z(N)        <--  RESULT VECTOR
 */
 
     int i;
-
     for (i = 1; i <= n; i++) {
-
       z[i] = s * v[i];
-
     }
-
-    return;
-
   }
 
 
@@ -5757,9 +5311,6 @@ C
       }
 
     }
-
-    return;
-
   }
 
   static double[][] f77_array(int size_1, int size_2) {

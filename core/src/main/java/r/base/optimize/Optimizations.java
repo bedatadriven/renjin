@@ -56,7 +56,7 @@ public class Optimizations {
         xpls[], gpls[], a[][], wrk[], dlt;
 
     double fpls[] = new double[]{-1,-1};
-    int i, j, k, method, iexp, omsg,
+    int i, j, k, omsg,
         n, itncnt = -1;
 
     int code[] = new int[]{-1, -1};
@@ -128,8 +128,8 @@ public class Optimizations {
     //   FT_init(n, FT_SIZE, state);
     /* Plug in the call to the optimizer here */
 
-    method = 1;  /* Line Search */
-    iexp = iahflg ? 0 : 1; /* Function calls are expensive */
+    Uncmin.Method method = Uncmin.Method.LINE_SEARCH;  /* Line Search */
+    boolean iexp = !iahflg; /* Function calls are expensive */
     dlt = 1.0;
 
     xpls = Uncmin.f77_array(n);
@@ -145,9 +145,9 @@ public class Optimizations {
         Uncmin.to_f77(x),
         state,
         Uncmin.to_f77(typsiz),
-        new double[]{0, fscale},
-        new int[]{0, method},
-        new int[]{0, iexp},
+        fscale,
+        method,
+        iexp,
         new int[]{0, msg},
         new int[]{0, ndigit},
         new int[]{0, itnlim},

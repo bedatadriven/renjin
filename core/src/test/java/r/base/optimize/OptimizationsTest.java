@@ -38,7 +38,7 @@ public class OptimizationsTest extends EvalTestCase {
     eval("f <- function(x) sum((x-1:length(x))^2)");
     eval("x <- nlm(f, c(10,10))");
 
-    assertThat(eval("x$estimate"), closeTo(c(1,2), 0.00001));
+    assertThat(eval("x$estimate"), closeTo(c(1, 2), 0.00001));
     assertThat(eval("x$code"), equalTo(c_i(1)));
     assertThat(eval("x$minimum"), closeTo(c(4.303458e-26), 0.0001e-26));
     assertThat(eval("x$gradient"), closeTo(c( 2.757794e-13, -3.099743e-13), 0.00001e-13));
@@ -48,17 +48,27 @@ public class OptimizationsTest extends EvalTestCase {
   public void nlmWithGradient() throws IOException {
     topLevelContext.init();
        eval("f <- function(x, a) {" +
-        "    res <- sum((x-a)^2)\n" +
-        "    attr(res, 'gradient') <- 2*(x-a)\n" +
-        "    res }");
+           "    res <- sum((x-a)^2)\n" +
+           "    attr(res, 'gradient') <- 2*(x-a)\n" +
+           "    res }");
 
     eval("x <- nlm(f, c(10,10), a=c(3,5))");
 
-    assertThat(eval("x$estimate"), closeTo(c(3,5), 0.0001));
+    assertThat(eval("x$estimate"), closeTo(c(3, 5), 0.0001));
     assertThat(eval("x$minimum"), closeTo(c(0), 0.000001));
     assertThat(eval("x$code"), equalTo(c_i(1)));
     assertThat(eval("x$gradient"), closeTo(c(0,0), 0.00001));
-
   }
+
+  @Test
+  public void fmin() throws IOException {
+    topLevelContext.init();
+
+    eval("f <- function (x,a) (x-a)^2");
+    eval("x <-  optimize(f, c(0, 1), tol = 0.0001, a = 1/3)");
+
+    assertThat(eval("x$minimum"), closeTo(c(0.333333), 0.000001));
+  }
+
 
 }

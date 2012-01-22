@@ -21,6 +21,10 @@
 
 package r.base.optimize;
 
+import org.apache.commons.math.FunctionEvaluationException;
+import org.apache.commons.math.MaxIterationsExceededException;
+import org.apache.commons.math.optimization.GoalType;
+import org.apache.commons.math.optimization.univariate.BrentOptimizer;
 import r.base.Types;
 import r.jvmi.annotations.Current;
 import r.lang.*;
@@ -237,6 +241,30 @@ public class Optimizations {
   private static void assertNotNA(double x) {
     if(DoubleVector.isNA(x)) {
       throw new EvalException("invalid NA parameter");
+    }
+  }
+
+  /**
+   * Searches the interval from lower to upper for a minimum or maximum of the
+   * function f with respect to its first argument.
+   *
+   * <p>This implementation uses the BrentOptimizer from Apache Commons Math, which
+   * is the same reference used by the original R:
+   *
+   * <p>
+   * Brent, R. (1973) Algorithms for Minimization without Derivatives. Englewood Cliffs N.J.: Prentice-Hall.
+   */
+  public static double fmin(@Current Context context, @Current Environment rho,
+                          Function fn, double lower, double upper, double tol) {
+
+    BrentOptimizer optimizer = new BrentOptimizer();
+    optimizer.setAbsoluteAccuracy(tol);
+    try {
+      return optimizer.optimize(new UnivariateRealClosure(context, rho, fn), GoalType.MINIMIZE, lower, upper);
+    } catch (MaxIterationsExceededException e) {
+      throw new EvalException("maximum iterations reached", e);
+    } catch (FunctionEvaluationException e) {
+      throw new EvalException(e);
     }
   }
 }

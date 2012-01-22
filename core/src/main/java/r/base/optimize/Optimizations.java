@@ -23,6 +23,7 @@ package r.base.optimize;
 
 import org.apache.commons.math.FunctionEvaluationException;
 import org.apache.commons.math.MaxIterationsExceededException;
+import org.apache.commons.math.analysis.solvers.BrentSolver;
 import org.apache.commons.math.optimization.GoalType;
 import org.apache.commons.math.optimization.univariate.BrentOptimizer;
 import r.base.Types;
@@ -267,4 +268,5 @@ public class Optimizations {
       throw new EvalException(e);
     }
   }
+
 }

@@ -11,6 +11,7 @@ import r.base.match.Match;
 import r.base.matrix.Matrices;
 import r.base.model.Models;
 import r.base.optimize.Optimizations;
+import r.base.optimize.Roots;
 import r.base.random.RNG;
 import r.base.random.Sampling;
 import r.base.special.*;
@@ -843,7 +844,7 @@ public class Primitives {
     f("nlm", Optimizations.class, 0, 11, 11);
     f("fmin", Optimizations.class, 0, 11, 4);
     f("zeroin", /*zeroin*/ null, 0, 11, 5);
-    f("zeroin2", /*zeroin2*/ null, 0, 11, 7);
+    f("zeroin2", Roots.class, 0, 11, 7);
     f("optim", /*optim*/ null, 0, 11, 7);
     f("optimhess", /*optimhess*/ null, 0, 11, 4);
     f("terms.formula", Models.class, 0, 11, 5);

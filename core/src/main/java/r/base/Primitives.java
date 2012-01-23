@@ -845,7 +845,7 @@ public class Primitives {
     f("fmin", Optimizations.class, 0, 11, 4);
     f("zeroin", /*zeroin*/ null, 0, 11, 5);
     f("zeroin2", Roots.class, 0, 11, 7);
-    f("optim", /*optim*/ null, 0, 11, 7);
+    f("optim", Optimizations.class, 0, 11, 7);
     f("optimhess", /*optimhess*/ null, 0, 11, 4);
     f("terms.formula", Models.class, 0, 11, 5);
     f("update.formula", /*updateform*/ null, 0, 11, 2);

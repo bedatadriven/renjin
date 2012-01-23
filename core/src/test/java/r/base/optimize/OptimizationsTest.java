@@ -71,4 +71,27 @@ public class OptimizationsTest extends EvalTestCase {
   }
 
 
+  @Test
+  public void nelderMead() throws IOException {
+    topLevelContext.init();
+
+    eval("fr <- function(x) {   ## Rosenbrock Banana function\n" +
+        "    x1 <- x[1]\n" +
+        "    x2 <- x[2]\n" +
+        "    100 * (x2 - x1 * x1)^2 + (1 - x1)^2\n" +
+        "}");
+    eval("grr <- function(x) { ## Gradient of 'fr'\n" +
+        "    x1 <- x[1]\n" +
+        "    x2 <- x[2]\n" +
+        "    c(-400 * x1 * (x2 - x1 * x1) - 2 * (1 - x1),\n" +
+        "       200 *      (x2 - x1 * x1))\n" +
+        "}");
+
+    eval("x <- optim(c(-1.2,1), fr)");
+
+    assertThat(eval("x$par"), closeTo(c(1.0, 1.0), 0.00001));
+    assertThat(eval("x$value"), closeTo(c(0), 0.000001));
+
+  }
+
 }

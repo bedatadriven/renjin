@@ -39,14 +39,10 @@
 
   <dependencies>
 
-    <!-- Currently we are using both Colt and Apache Commons Math
-         for the mathematical heavy lifting.
-         It may be possible to eliminate one or the other
-         -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math</artifactId>
-      <version>2.1</version>
+      <version>2.2</version>
     </dependency>
     
     <dependency>
@@ -112,7 +108,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.7</version>
+      <version>4.10</version>
       <scope>test</scope>
     </dependency>
     <dependency>

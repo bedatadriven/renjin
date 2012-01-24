@@ -24,7 +24,11 @@ package r.base;
 import java.io.IOException;
 
 import org.junit.Test;
+
+import com.google.common.base.Charsets;
+
 import r.EvalTestCase;
+import r.lang.IntVector;
 import r.lang.SEXP;
 import r.lang.StringVector;
 
@@ -208,6 +212,27 @@ public class TextTest extends EvalTestCase {
     
     assertThat(eval("format(c('Hello', NA, 'world', NA))"), equalTo(c( "Hello", "NA   ", "world", "NA   ")));    
     assertThat(eval("format(c('Hello', NA, 'world', NA), na.encode=FALSE)"), equalTo(c( "Hello", null, "world", null)));
+  }
+  
+  @Test
+  public void intToUtf8() {
+    
+    byte[] encoded = new String("€").getBytes(Charsets.UTF_8);
+    assertThat(encoded.length, equalTo(3));
+    java.lang.System.out.println(Integer.toHexString(encoded[0]) + " " + Integer.toHexString(encoded[1]) + " " + Integer.toHexString(encoded[2]));
+    
+    assertThat(eval(".Internal(utf8ToInt('hello'))"), equalTo(c_i(104,101,108, 108, 111)));
+    assertThat(eval(".Internal(utf8ToInt(NA_character_))"), equalTo(c_i(IntVector.NA)));
+
+    
+    // check special handling of 0s
+    assertThat(eval(".Internal(intToUtf8(c(104L,0,101L), FALSE))"), equalTo(c("he")));
+    assertThat(eval(".Internal(intToUtf8(c(104L,0,101L), TRUE))"), equalTo(c("h", "", "e")));
+
+    // check special handling of NAs
+    assertThat(eval(".Internal(intToUtf8(c(104L,NA), FALSE))"), equalTo(c(StringVector.NA)));
+    assertThat(eval(".Internal(intToUtf8(c(104L,NA), TRUE))"), equalTo(c("h", StringVector.NA)));
+    
   }
   
 }

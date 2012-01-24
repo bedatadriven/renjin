@@ -101,7 +101,6 @@ public class WrapperGenerator {
           
           GeneratorStrategy strategy = findStrategy(strategies, overloads);
           if(strategy != null) {
-            System.out.println(entry.name + ": using " + strategy.getClass().getSimpleName() + " strategy" );
     
             generate(sourcesDir, entry, overloads, strategy);
           } else {

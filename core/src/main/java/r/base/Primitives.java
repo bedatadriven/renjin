@@ -546,8 +546,8 @@ public class Primitives {
     f("intToBits", Types.class, 1, 11, 1);
     f("rawToBits", Types.class , 1, 11, 1);
     f("packBits", /*packBits*/ null, 1, 11, 2);
-    f("utf8ToInt", /*utf8ToInt*/ null, 1, 11, 1);
-    f("intToUtf8", /*intToUtf8*/ null, 1, 11, 2);
+    f("utf8ToInt", Text.class, 1, 11, 1);
+    f("intToUtf8", Text.class, 1, 11, 2);
     f("encodeString",Text.class, 1, 11, 5);
     f("iconv", /*iconv*/ null, 0, 11, 5);
     f("strtrim", Text.class, 0, 11, 2);

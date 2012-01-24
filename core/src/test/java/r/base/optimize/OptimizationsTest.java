@@ -67,7 +67,7 @@ public class OptimizationsTest extends EvalTestCase {
     eval("f <- function (x,a) (x-a)^2");
     eval("x <-  optimize(f, c(0, 1), tol = 0.0001, a = 1/3)");
 
-    assertThat(eval("x$minimum"), closeTo(c(0.333333), 0.000001));
+    assertThat(eval("x$minimum"), closeTo(c(0.333333), 0.0001));
   }
 
 

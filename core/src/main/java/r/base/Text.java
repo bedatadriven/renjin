@@ -28,8 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.netlib.util.StringW;
-
 import r.base.regex.ExtendedRE;
 import r.base.regex.RE;
 import r.base.regex.REFactory;
@@ -803,6 +801,72 @@ public class Text {
       }
     }
     return strings;
+  }
+  
+  /**
+   * converts a length-one character string to an integer vector of (numeric) 
+   * Unicode code points. The name (I think) is a misnomer because it has nothing to do with 
+   * UTF-8 -- it seems to return code points. 
+   *
+   * @param x a single string
+   * @return
+   */
+  public static IntVector utf8ToInt(String x) {
+    if(StringVector.isNA(x)) {
+      return new IntVector(IntVector.NA);
+    } else {
+      IntVector.Builder codePoints = new IntVector.Builder(x.length());
+      for(int i=0;i!=x.length();++i) {
+        codePoints.set(i, x.codePointAt(i));
+      }
+      return codePoints.build();
+    }
+   }
+  
+  /**
+   * 
+   * @param x
+   * @param multiple
+   * @return
+   */
+  public static StringVector intToUtf8(AtomicVector x, boolean multiple) {
+    if(multiple) {
+      
+      // return a vector of characters for each code point
+      StringVector.Builder chars = new StringVector.Builder(x.length());
+      for(int i=0;i!=x.length();++i) {
+        if(x.isElementNA(i)) {
+          chars.setNA(i);
+        } else {
+          int codePoint = x.getElementAsInt(i);
+          if(codePoint == 0) {
+            chars.set(i, "");
+          } else {
+            chars.set(i, new String(new int[] { codePoint }, 0, 1));
+          }
+        }
+      }
+      return chars.build();
+      
+    } else {
+      
+      // returns a single string built from all the codepoints
+      if(x.containsNA()) {
+        return new StringVector(StringVector.NA);
+      } else {
+        StringBuilder result = new StringBuilder();
+        for(int i=0;i!=x.length();++i) {
+          if(x.isElementNA(i)) {
+          } 
+          int codePoint = x.getElementAsInt(i);
+          if(codePoint != 0) {
+            result.appendCodePoint(codePoint);
+          }
+        }
+        return new StringVector(result.toString());
+      }
+    }
+    
   }
 
 }

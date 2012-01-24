@@ -13,6 +13,9 @@ public class TestCompiled implements CompiledBody {
   @Override
   public SEXP eval(Context context, Environment rho) {
     
+    Vector x = new DoubleVector(1);
+    int i = x.getElementAsInt(4);
+    
     return Null.INSTANCE;
    
   }

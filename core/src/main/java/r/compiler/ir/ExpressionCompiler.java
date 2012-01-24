@@ -8,6 +8,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import r.compiler.CompiledBody;
@@ -47,6 +48,7 @@ public class ExpressionCompiler implements Opcodes {
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     //cw = new ClassWriter(0);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+    //cv = new CheckClassAdapter(cv);
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
         "java/lang/Object", new String[] { "r/compiler/CompiledBody" });
   }
@@ -89,13 +91,17 @@ public class ExpressionCompiler implements Opcodes {
     ControlFlowGraph cfg = new ControlFlowGraph(body);
     for(BasicBlock bb : cfg.getBasicBlocks()) {
       
+      System.out.println(bb.statementsToString());
+      
       visitor.startBasicBlock(bb);
       
-      List<Statement> statements = TreeBuilder.build(bb);
-      for(Statement stmt : statements) {
+    //  List<Statement> statements = TreeBuilder.build(bb);
+      for(Statement stmt : bb.getStatements()) {
         stmt.accept(visitor);
       }
     }
+    
+    visitor.dumpLdc();
   }
 
   private void writeClassEnd() {

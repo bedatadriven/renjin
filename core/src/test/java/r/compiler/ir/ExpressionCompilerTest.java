@@ -61,10 +61,9 @@ public class ExpressionCompilerTest {
   }
   
   @Test
-  @Ignore
   public void forLoop() throws Exception {
-    DoubleVector result = (DoubleVector) compileAndEval(context, "x <- 0; for(i in 1:10) x <- x + 10; \n");
-    assertThat(result.getElementAsInt(0), equalTo(2));
+    DoubleVector result = (DoubleVector) compileAndEval(context, "x <- 0; for(i in 1:10) { x <- x + 10 }; x \n");
+    assertThat(result.getElementAsInt(0), equalTo(100));
     
   }
 

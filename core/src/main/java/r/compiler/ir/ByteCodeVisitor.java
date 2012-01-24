@@ -6,9 +6,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import com.google.common.collect.Maps;
-
-import r.base.Primitives;
 import r.compiler.cfg.BasicBlock;
 import r.compiler.ir.ssa.PhiFunction;
 import r.compiler.ir.ssa.SsaVariable;
@@ -32,11 +29,11 @@ import r.compiler.ir.tac.statements.GotoStatement;
 import r.compiler.ir.tac.statements.IfStatement;
 import r.compiler.ir.tac.statements.ReturnStatement;
 import r.compiler.ir.tac.statements.StatementVisitor;
-import r.jvmi.binding.JvmMethod;
 import r.jvmi.wrapper.WrapperGenerator;
-import r.lang.PrimitiveFunction;
 import r.lang.SEXP;
 import r.lang.Symbol;
+
+import com.google.common.collect.Maps;
 
 public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opcodes {
   
@@ -84,14 +81,31 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
         mv.visitIincInsn(getVariableSlot(lhs), 1);
         return;
       }
+    } else if(rhs instanceof Constant ) {
+      // need to generalize this to accommodate primitive results from
+      // methods as well.
+      // the following just handles the special case of the integer
+      // loop counter for _for_ loops.
+      
+      Constant constant = (Constant) rhs;
+      
+      constant.accept(this);
+      
+      if(constant.getValue() instanceof Integer) {
+        mv.visitVarInsn(ISTORE, getVariableSlot(lhs));
+      } else {
+        mv.visitVarInsn(ASTORE, getVariableSlot(lhs));
+      }
+    } else {
+      
+      rhs.accept(this);
+  
+      mv.visitVarInsn(ASTORE, getVariableSlot(lhs));
     }
-    
-    rhs.accept(this);
-
-    mv.visitVarInsn(ASTORE, getVariableSlot(lhs));
   }
 
 
+  
   /**
    * Assign a value into the context's {@code Environment} 
    */
@@ -322,7 +336,13 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
      
       CmpGE cmp = (CmpGE) stmt.getCondition();
       mv.visitVarInsn(ILOAD, getVariableSlot((LValue)cmp.getOp1()));
-      mv.visitVarInsn(ILOAD, getVariableSlot((LValue)cmp.getOp1()));
+
+      // this is a hack because we know that CmpGe is always used in the context
+      // of a for loop where the second argument is an IntVector resulting from length()
+      // to make more general...
+      mv.visitVarInsn(ALOAD, getVariableSlot((LValue)cmp.getOp2()));
+      pushInt(0);
+      mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/Vector", "getElementAsInt", "(I)I");
       
       mv.visitJumpInsn(IF_ICMPLT, getAsmLabel(stmt.getFalseTarget()));
       
@@ -365,5 +385,11 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     
     mv.visitInsn(ARETURN);
     
+  }
+  
+  public void dumpLdc() {
+    for(LValue var : variableSlots.keySet()) {
+      System.out.println((variableSlots.get(var) + localVariablesStart) + " => " + var);
+    }
   }
 }

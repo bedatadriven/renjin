@@ -6,7 +6,7 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 
 import org.apache.commons.math.linear.RealMatrix;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 
 import r.EvalTestCase;
@@ -16,6 +16,14 @@ import r.util.CommonsMath;
 
 public class MatrixTest extends EvalTestCase {
 
+  private static final double ERROR = 0.00001;
+
+  @Before
+  public void setup() throws IOException{
+    super.setUp();
+    topLevelContext.init();
+  }
+  
   @Test
   public void svd() throws IOException {
     topLevelContext.init();
@@ -72,17 +80,42 @@ public class MatrixTest extends EvalTestCase {
   }
   
   @Test
-  @Ignore("not yet working")
-  public void eigenWithImaginaryResults() throws IOException {
-    
-    topLevelContext.init();
-    eval("res <- matrix(c(3, 4, -2, -1),2)");
-    assertThat( eval("res$values"), equalTo(c(complex(1,2), complex(1,-2))));
-    assertThat( eval("res$vectors"), closeTo(matrix(
-        row(-0.7071068, -0.7071068),
-        row( 0.7071068, -0.7071068)), 0.00001));
+  public void eigenValuesWithImaginaryResults() throws IOException {
+    assertThat(eval("eigen(matrix(c(3, 5, -2, -1),2))$values"),closeTo(c(complex(1,2.44949),complex( 1,2.44949)),ERROR));
+    assertThat( eval("eigen(matrix(c(3, 4, -2, -1),2))$values"), closeTo(c(complex(1,2), complex(1,-2)),ERROR));
   }
   
+  @Test
+  public void eigenValuesWithImaginaryResultsThreeRowMatrix() throws IOException{
+    assertThat(eval("eigen(matrix(c(3,4,1,-2,-1,1,1,1,5),3))$values"),
+        closeTo(c(complex(5.457299,0.000000),complex(0.771350,1.996507),complex(0.771350,1.996507)),ERROR));
+  }
+  
+  @Test
+//  @Ignore("not yet working")
+  public void eigenVectorsWithImaginaryResults() throws IOException {
+    
+    topLevelContext.init();
+//    eval("eigen(matrix(c(3, 5, -2, -1),2))");
+    eval("res <- eigen(matrix(c(3, 4, -2, -1),2))");
+//    eval("eigen(matrix(c(3,4,1,-2,-1,1,1,1,5),3))");
+//    assertThat(eval("res$vectors[1]")(complex(0.4082483,0.4082483)));
+//    assertThat( eval("res$vectors"), closeTo(matrix(
+//        row(complex(0.4082483,0.4082483), complex(0.4082483,-0.4082483)),
+//        row(complex(0.8164966),complex(0.8164966))), 0.00001));
+    assertThat(eval("Re(res$vectors[1])"),closeTo(c(0.4082483),0.00001));
+    assertThat(eval("Re(res$vectors[2])"),closeTo(c(0.8164966),0.00001));
+    assertThat(eval("Re(res$vectors[3])"),closeTo(c(0.4082483),0.00001));
+    assertThat(eval("Re(res$vectors[4])"),closeTo(c(0.8164966),0.00001));
+    assertThat(eval("Im(res$vectors[1])"),closeTo(c(0.4082483),0.00001));
+    assertThat(eval("Im(res$vectors[2])"),closeTo(c(0.0),0.00001));
+    assertThat(eval("Im(res$vectors[3])"),closeTo(c(-0.4082483),0.00001));
+    assertThat(eval("Im(res$vectors[4])"),closeTo(c(0.0),0.00001));
+  }
+  
+//  public static Complex complex(double x, double y){
+//    return new Complex(x,y);
+//  }
   
   
   @Test

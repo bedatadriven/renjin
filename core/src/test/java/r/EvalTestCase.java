@@ -109,6 +109,10 @@ public abstract class EvalTestCase {
     }
   }
   
+  protected Complex complex(double real) {
+    return new Complex(real, 0);
+  }
+  
   protected Complex complex(double real, double imaginary) {
     return new Complex(real, imaginary);
   }
@@ -204,12 +208,28 @@ public abstract class EvalTestCase {
     return Matchers.closeTo((double)d, epsilon);
   }
 
+  protected Complex[] row(Complex... z){
+    return z;
+  }
+  
   protected double[] row(double... d) {
     return d;
   }
 
   protected SEXP matrix(double[]... rows) {
     DoubleVector.Builder matrix = new DoubleVector.Builder();
+    int nrows = rows.length;
+    int ncols = rows[0].length;
+    
+    for(int j=0;j!=ncols;++j) {
+      for(int i=0;i!=nrows;++i) {
+        matrix.add(rows[i][j]);
+      }
+    }
+    return matrix.build();
+  }
+  protected SEXP matrix(Complex[]... rows) {
+    ComplexVector.Builder matrix = new ComplexVector.Builder();
     int nrows = rows.length;
     int ncols = rows[0].length;
     

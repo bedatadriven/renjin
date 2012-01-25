@@ -2,6 +2,8 @@ package r.jvmi.wrapper.generator.scalars;
 
 import java.util.Map;
 
+import org.apache.commons.math.complex.Complex;
+
 import r.jvmi.wrapper.GeneratorDefinitionException;
 import r.lang.Logical;
 import r.lang.SEXP;
@@ -23,6 +25,7 @@ public class ScalarTypes {
     types.put(Double.TYPE, new DoubleType()); 
     types.put(Float.TYPE, new FloatType()); 
     types.put(Logical.class, new LogicalType());
+    types.put(Complex.class, new ComplexType());
   }
   
   public static boolean has(Class clazz) {

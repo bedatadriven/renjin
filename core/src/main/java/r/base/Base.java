@@ -21,15 +21,23 @@
 
 package r.base;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import org.apache.commons.math.complex.Complex;
 import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
 import r.base.matrix.Matrix;
 import r.base.matrix.MatrixBuilder;
-import r.jvmi.annotations.Current;
 import r.lang.AtomicVector;
-import r.lang.Context;
+import r.lang.ComplexVector;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.ListVector;
@@ -330,9 +338,83 @@ public class Base {
     return new DoubleVector(Bcontent);
   }
   
+  /**
+   * Represents an eigenvalue-eigenvector pair
+   * @author jamie
+   *
+   */
+  private static class ComplexEntry implements Comparable<ComplexEntry>{
+    public Complex z;
+    public double[] vector;
+    public ComplexEntry(Complex z, double[] vector){
+      this.z=z;
+      this.vector=vector;
+    }
+  /**
+   * TODO ensure ordering of the two complex conjugates (if there are any)
+   */
+    @Override
+    public int compareTo(ComplexEntry that) {
+      Complex o1=this.z;
+      Complex o2=that.z;
+      if(o1.getImaginary()==0 && o2.getImaginary()!=0){
+        return -1;
+      }else if(o1.getImaginary()!=0 && o2.getImaginary()==0){
+        return 1;
+      }else{
+        return (int)(ComplexGroup.Mod(o2)-ComplexGroup.Mod(o1));
+      }
+    }
+
+    public static Complex[] getEigenvalues(int n, List<ComplexEntry> complex) {
+      Complex[] eigenvalues= new Complex[n];
+      for(int i=0; i<n; i++){
+        eigenvalues[i]=complex.get(i).z;
+      }
+      return eigenvalues;
+    }
+    
+    /**
+     * For an explanation of the logic of parsing LAPACK results, see
+     * http://www.netlib.org/lapack/explore-html/d9/d28/dgeev_8f_source.html
+     * @param complexes
+     * @return
+     */
+    public static Complex[] getEigenvectors(List<ComplexEntry> complexes){
+      int n = complexes.size();
+      Complex[] result = new Complex[n*n];
+      for(int j=0; j<n; j++){
+        Complex z = complexes.get(j).z;
+        if(z.getImaginary()==0){
+          // v(j) = VR(:,j)
+          for(int index=0; index<n; index++){
+            result[n*j+index]=complex(complexes.get(j).vector[index]);
+          }
+        }else if(j+1<n && isConjugate(z,complexes.get(j+1).z)){
+//          v(j) = VR(:,j) + i*VR(:,j+1) and
+          for(int index=0; index<n; index++){
+            result[n*j+index]=complex(complexes.get(j).vector[index],complexes.get(j+1).vector[index]);
+          }
+        }else if(j>0 && isConjugate(z,complexes.get(j-1).z)){
+//          v(j+1) = VR(:,j) - i*VR(:,j+1)
+          for(int index=0; index<n; index++){
+            result[n*j+index]=complex(complexes.get(j-1).vector[index],-1*complexes.get(j).vector[index]);
+          }
+        }else{
+          assert false :"This should never happen!";
+        }
+      }
+      return result;
+    }
+    private static boolean isConjugate(Complex z, Complex w) {
+      return z.getReal()==w.getReal() && z.getImaginary()==-1*w.getImaginary();
+    }
+    
+  }
+  
   public static SEXP La_rg(SEXP x, boolean ov)
   {
-      boolean complexValues;
+  
       int lwork;
       double work[], tmp[];
       String jobVL, jobVR;
@@ -351,7 +433,9 @@ public class Base {
       
       if (vectors) {
           jobVR = "V";
+          jobVL="V";
           right = new double[n*n];
+          left=new double[n*n];
       }
       double wR[] = new double[n];
       double wI[] = new double[n];
@@ -370,24 +454,29 @@ public class Base {
       
       lwork = (int) tmp[0];
       work =  new double[lwork];
-      
       lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, work, lwork, info);
 
       if (info.val != 0)
           throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
 
-      complexValues = false;
-      for (int i = 0; i < n; i++) {
-        /* This test used to be !=0 for R < 2.3.0.  This is OK for 0+0i */
-        if (Math.abs(wI[i]) >  10 * DoubleVector.EPSILON * Math.abs(wR[i])) {
-          complexValues = true;
-          break;
-        }
-      }
       ListVector.NamedBuilder ret = new ListVector.NamedBuilder();
       
-      if (complexValues) {
-        throw new EvalException("Complex results not yet implemented");
+      if (thereAreComplexResults(n, wR, wI)) {
+        
+        //Step 1: Get different eigenvalues
+        List<ComplexEntry> complex = new ArrayList<ComplexEntry>();
+        for(int i=0; i<n; i++ ){
+          complex.add(new ComplexEntry(complex(wR[i],wI[i]),Arrays.copyOfRange(right, n*i, n*(i+1))));
+        }
+        Collections.sort(complex);
+        Complex[] eigenvalues = ComplexEntry.getEigenvalues(n, complex);
+        ComplexVector values = new ComplexVector(eigenvalues);
+        
+        ret.add("values",values);
+        print(wR);
+        print(wI);
+        print(right);
+        ret.add("vectors", vectors ? ComplexVector.newMatrix(ComplexEntry.getEigenvectors(complex), n, n) : Null.INSTANCE);
 //    
 //        val = allocVector(CPLXSXP, n);
 //          for (i = 0; i < n; i++) {
@@ -406,6 +495,68 @@ public class Base {
         ret.add("vectors", vectors ? DoubleVector.newMatrix(right, n, n) : Null.INSTANCE);
       }
       return ret.build();
+  }
+
+  
+
+  private static boolean thereAreComplexResults(int n, double[] wR, double[] wI) {
+    boolean complexValues = false;
+    for (int i = 0; i < n; i++) {
+      /* This test used to be !=0 for R < 2.3.0.  This is OK for 0+0i */
+      if (Math.abs(wI[i]) >  10 * DoubleVector.EPSILON * Math.abs(wR[i])) {
+        complexValues = true;
+        break;
+      }
+    }
+    return complexValues;
+  }
+  
+  private static void print(ComplexVector values) {
+    java.lang.System.out.println(values);
+    
+  }
+
+  private static void print(double[] right) {
+    List<Double> list = new ArrayList<Double>();
+    if (right != null) {
+      for (double x : right) {
+        list.add(x);
+      }
+    }
+    java.lang.System.out.println(list);
+  }
+
+  public static ComplexVector c(double... d){
+    ComplexVector.Builder builder = new ComplexVector.Builder();  
+    for(double di : d){
+        builder.add(new Complex(di,0));
+    }
+      return builder.build();
+  }
+  
+  public static Complex complex(double x,double y){
+    return new Complex(x,y);
+  }
+  
+  public static Complex complex(double x){
+    return complex(x,0);
+  }
+  
+  protected static Complex[] row(Complex... z){
+    return z;
+  }
+  
+  protected static SEXP matrix(Complex[]... rows) {
+    ComplexVector.Builder matrix = new ComplexVector.Builder();
+    int nrows = rows.length;
+    int ncols = rows[0].length;
+    
+    for(int j=0;j!=ncols;++j) {
+      for(int i=0;i!=nrows;++i) {
+        matrix.add(rows[i][j]);
+      }
+    }
+    return matrix.build();
   }
 
   private static int getSquareMatrixSize(SEXP x) {

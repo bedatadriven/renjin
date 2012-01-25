@@ -102,7 +102,7 @@ public class SubscriptOperation {
     }
 
     if( subscriptArguments.size()!=1 && subscriptArguments.size() != sourceDim.length) {
-      throw new EvalException("incorrect number of dimensions");
+      throw new EvalException("Incorrect number of dimensions. Subscripts: " + subscriptArguments.size() + ", source dimension: "+ sourceDim.length );
     }
     return sourceDim;
   }

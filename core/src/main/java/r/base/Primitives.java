@@ -82,9 +82,8 @@ public class Primitives {
   private static PrimitiveFunction createFunction(Entry entry) {
    try {
       return (PrimitiveFunction) Class.forName(WrapperGenerator.toFullJavaName(entry.name)).newInstance();
-      //java.lang.System.out.println("Loaded generated wrapper for " + entry.name);
     } catch(Exception e) {
-      throw new EvalException("Sorry! Not yet implemented: " + entry.name);
+      throw new EvalException("Sorry! Not yet implemented: " + entry.name,e);
     }
   }
   
@@ -219,7 +218,7 @@ public class Primitives {
 /* printname  c-entry   offset  eval  arity pp-kind      precedence rightassoc
  * ---------  -------   ------  ----  ----- -------      ---------- ----------*/
     f("vector", Types.class, 0, 11, 2);
-    f("complex", /*complex*/ null, 0, 11, 3);
+    f("complex", ComplexGroup.class, 0, 11, 3);
     f("matrix", Combine.class, 0, 11, -1);
     f("length", Types.class, 0, 1, 1);
     f("length<-", /*lengthgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
@@ -502,7 +501,7 @@ public class Primitives {
     f("as.character", Types.class, "asCharacter", 0, 1, -1);
     f("as.integer", Types.class, "asInteger", 1, 1, -1);
     f("as.double", Types.class, "asDouble",  2, 1, -1);
-    f("as.complex", /*ascharacter*/ null, 3, 1, -1);
+    f("as.complex", Types.class, 3, 1, -1);
     f("as.logical", Types.class, "asLogical", 4, 1, -1);
     f("as.raw", Types.class, 5, 1, 1);
     f("as.vector", Types.class, 0, 11, 2);

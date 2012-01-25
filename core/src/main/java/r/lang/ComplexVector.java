@@ -21,13 +21,15 @@
 
 package r.lang;
 
-import com.google.common.collect.Iterators;
-import org.apache.commons.math.complex.Complex;
-
-import r.lang.Vector.Builder;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.math.complex.Complex;
+
+import com.google.common.collect.Iterators;
+import static r.util.RInternalDSL.*;
 
 public class ComplexVector extends AbstractAtomicVector implements Iterable<Complex> {
 
@@ -43,11 +45,34 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
     this.values = Arrays.copyOf(values, values.length);
   }
 
+  public ComplexVector(double[] values, PairList attributes) {
+    super(attributes);
+    this.values=new Complex[values.length];
+    for(int i=0; i<values.length; i++){
+      this.values[i]=complex(values[i]);
+    }
+  }
+  
   public ComplexVector(Complex[] values, PairList attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, values.length);
   }
+  
+  public ComplexVector(Complex[] values, int length, PairList attributes) {
+    super(attributes);
+    this.values = Arrays.copyOf(values, length);
+  }
 
+  public static ComplexVector newMatrix(double[] values, int nRows, int nCols) {
+    PairList attributes = new PairList.Node(Symbols.DIM, new IntVector(nRows,nCols), Null.INSTANCE);
+    return new ComplexVector(values, attributes);
+  }
+  
+  public static ComplexVector newMatrix(Complex[] values, int nRows, int nCols) {
+    PairList attributes = new PairList.Node(Symbols.DIM,new IntVector(nRows,nCols), Null.INSTANCE);
+    return new ComplexVector(values,attributes);
+  }
+  
   @Override
   public String getTypeName() {
     return TYPE_NAME;
@@ -90,7 +115,8 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
 
   @Override
   public String getElementAsString(int index) {
-    throw new UnsupportedOperationException("implement me");
+    Complex z = values[index];
+    return z.getReal()+"+"+z.getImaginary()+"i";
   }
 
   @Override
@@ -109,7 +135,7 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
   public Complex getElementAsComplex(int index) {
     return values[index];
   }
-
+  
   @Override
   public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     Complex value = vector.getElementAsComplex(vectorIndex);
@@ -122,13 +148,29 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
   }
 
   @Override
+  public boolean equals(Object x){
+    if(x instanceof ComplexVector){
+      ComplexVector that = (ComplexVector)x;
+      if(this.length()!=that.length()) return false;
+      else{
+        for(int i=0; i<this.length(); i++){
+          if(!this.values[i].equals(that.values[i])){
+            return false;
+          }
+        }
+        return true;
+      }
+    }else return false;
+  }
+  
+  @Override
   public int compare(int index1, int index2) {
     throw new UnsupportedOperationException("implement me");
   }
 
   @Override
   public Builder newBuilderWithInitialSize(int initialSize) {
-    throw new UnsupportedOperationException("implement me");
+    return new Builder(initialSize);
   }
   
   @Override
@@ -153,7 +195,114 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
 
   @Override
   public boolean isElementNA(int index) {
-    throw new UnsupportedOperationException("implement me!");
+    return values[index]==ComplexVector.NA;
+  }
+  
+  @Override
+  public String toString(){
+    ArrayList<String> list = new ArrayList<String>();
+    for(Complex z : values){
+      list.add(z.getReal()+"+"+z.getImaginary()+"i");
+    }
+    return list.toString();
+  }
+  
+  public static class Builder extends AbstractAtomicBuilder{
+    private static final int MIN_INITIAL_CAPACITY = 50;
+    private Complex values[];
+    private int size;
+
+    public Builder(int initialSize, int initialCapacity) {
+      if(initialCapacity < MIN_INITIAL_CAPACITY) {
+        initialCapacity = MIN_INITIAL_CAPACITY;
+      }
+      if(initialSize > initialCapacity) {
+        initialCapacity = initialSize;
+      }
+      values = new Complex[initialCapacity];
+      size = initialSize;
+      Arrays.fill(values, NA);
+    }
+    
+
+    public Builder() {
+      this(0, MIN_INITIAL_CAPACITY);
+    }
+
+    public Builder(int initialSize) {
+      this(initialSize, initialSize);
+    }
+    
+    public static Builder withInitialSize(int size) {
+      return new Builder(size, size);
+    }
+    
+    public static Builder withInitialCapacity(int capacity) {
+      return new Builder(0, capacity);
+    }
+    
+    private Builder(ComplexVector exp) {
+      this.values = Arrays.copyOf(exp.values, exp.values.length);
+      this.size = this.values.length;
+
+      copyAttributesFrom(exp);
+    }
+
+    public Builder set(int index, Complex value) {
+      ensureCapacity(index+1);
+      if(index+1 > size) {
+        size = index+1;
+      }
+      values[index] = value;
+      return this;
+    }
+
+    public Builder add(Complex value) {
+      return set(size, value);
+    }
+
+    @Override
+    public Builder add(Number value) {
+      return add(new Complex(value.doubleValue(),0));
+    }
+
+    @Override
+    public Builder setNA(int index) {
+      return set(index, NA);
+    }
+
+    @Override
+    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
+      return set(destinationIndex, source.getElementAsComplex(sourceIndex));
+    }
+
+   
+//    public Builder set(int index, Double value) {
+//      return set(index, (double)value);
+//    }
+
+    @Override
+    public int length() {
+      return size;
+    }
+
+    public void ensureCapacity(int minCapacity) {
+      int oldCapacity = values.length;
+      if (minCapacity > oldCapacity) {
+        Complex oldData[] = values;
+        int newCapacity = (oldCapacity * 3)/2 + 1;
+        if (newCapacity < minCapacity)
+          newCapacity = minCapacity;
+        // minCapacity is usually close to size, so this is a win:
+        values = Arrays.copyOf(oldData, newCapacity);
+        Arrays.fill(values, oldCapacity, values.length, NA);
+      }
+    }
+
+    @Override
+    public ComplexVector build() {
+      return new ComplexVector(values, size, buildAttributes());
+    }
   }
 
   private static class ComplexType extends Vector.Type {
@@ -163,27 +312,32 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
 
     @Override
     public Builder newBuilder() {
-      throw new UnsupportedOperationException("implement me!");
+      return new Builder(0, 0);
     }
-    
+
     @Override
     public Builder newBuilderWithInitialSize(int length) {
-      throw new UnsupportedOperationException("implement me!");
+      return new Builder(length);
     }
 
     @Override
     public Builder newBuilderWithInitialCapacity(int initialCapacity) {
-      throw new UnsupportedOperationException("implement me!");
+      return new Builder(0, initialCapacity);
+    }
+
+    @Override
+    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
+//      return Double.compare(vector1.getElementAsDouble(index1), vector2.getElementAsDouble(index2));
+      throw new UnsupportedOperationException("Implement me!!!");
     }
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {
       return new ComplexVector(vector.getElementAsComplex(index));
     }
-
-    @Override
-    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
-      throw new UnsupportedOperationException();
-    }
   }
+
+  
+  
+
 }

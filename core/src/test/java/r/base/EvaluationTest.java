@@ -50,6 +50,12 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat(result, realVectorEqualTo(2));
   }
+  
+  @Test
+  public void vectorizedSqrt() throws IOException{
+    SEXP result = eval("sqrt(c(1,4,9))[2]");
+    assertThat(result,realVectorEqualTo(2));
+  }
 
   @Test
   public void ifStatement() throws IOException {

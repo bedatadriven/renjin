@@ -26,6 +26,8 @@ import com.google.common.base.Strings;
 
 import java.util.Collections;
 
+import org.apache.commons.math.complex.Complex;
+
 import r.lang.exception.EvalException;
 
 /**
@@ -259,4 +261,6 @@ public abstract class AbstractSEXP implements SEXP {
       throw new IllegalArgumentException();
     }
   }
+  
+  
 }

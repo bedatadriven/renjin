@@ -41,6 +41,7 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval(".Internal(as.POSIXct(t, 'HST'))"), equalTo(c(1320607620d)));
   }
   
+  @Ignore("This test seems to depend on the location or time settings.")
   @Test
   public void asPosixLt() throws IOException {
     topLevelContext.init();
@@ -50,6 +51,7 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("names(format(ct))"), equalTo(NULL));
   }
 
+  @Ignore("This test seems to depend on the location or time settings.")
   @Test
   public void printTime() throws IOException {
     topLevelContext.init();

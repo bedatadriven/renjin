@@ -244,7 +244,7 @@ public interface Vector extends SEXP {
     public static final int LOGICAL = 2;
     public static final int INTEGER = 3;
     public static final int DOUBLE = 4;
-    public static final int COMPLEX = 5;
+    public static final int COMPLEX = 10;//FIXME should be 5
     public static final int CHARACTER = 6;
     public static final int LIST = 7;
     public static final int EXPRESSION = 8;

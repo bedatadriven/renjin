@@ -126,7 +126,7 @@ public class WrapperGenerator {
       compilationUnits.add(new WrapperSource(sourceFile));
       
     } catch(GeneratorDefinitionException e) {
-      System.err.println("Error generatoring wrapper for '" + entry.name + "': " + e.getMessage());
+      System.err.println("Error generating wrapper for '" + entry.name + "': " + e.getMessage());
       System.err.println("Overloads defined:");
       for(JvmMethod method : overloads) {
         System.err.println("  " + method.toString());

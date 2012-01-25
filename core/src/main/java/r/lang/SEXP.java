@@ -21,6 +21,8 @@
 
 package r.lang;
 
+import org.apache.commons.math.complex.Complex;
+
 /**
  * Base interface for all R data types.
  */
@@ -161,4 +163,5 @@ public interface SEXP {
    * wrapping the element if necessary in a new {@link r.lang.AtomicVector} if necessary
    */
   <S extends SEXP> S getElementAsSEXP(int index);
+
 }

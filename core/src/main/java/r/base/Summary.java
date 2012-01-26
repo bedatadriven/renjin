@@ -61,6 +61,7 @@ public class Summary {
 
   /**
    * range returns a vector containing the minimum and maximum of all the given arguments.
+   * (And recurses through lists!)
    *
    * @param arguments  any numeric or character objects.
    * @param removeNA indicating if NA's should be omitted.
@@ -69,28 +70,66 @@ public class Summary {
   public static Vector range(@ArgumentList ListVector arguments,
                            @NamedFlag("na.rm") boolean removeNA) {
 
+    Range range = new Range();
+    range.setRemoveNA(removeNA);
+    try {
+      range.addList(arguments);
+    } catch (RangeContainsNA containsNA) {
+      return containsNA.result;
+    }
+    return range.result();
+  }
+  
+  private static class RangeContainsNA extends Exception {
+    private Vector result;
+
+    public RangeContainsNA(Vector result) {
+      super();
+      this.result = result;
+    }
+    
+  }
+  
+  private static class Range {
+    boolean removeNA;
     Vector minValue = null;
     Vector maxValue = null;
     Vector.Type resultType = IntVector.VECTOR_TYPE;
 
-    for(SEXP argument : arguments) {
-      AtomicVector vector = EvalException.checkedCast(argument);
+    public void setRemoveNA(boolean removeNA) {
+      this.removeNA = removeNA;
+    }
+    
+    public void addList(ListVector list) throws RangeContainsNA {
+      for(SEXP argument : list) {
+        if(argument instanceof ListVector) {
+          addList((ListVector)argument);
+        } else if(argument instanceof AtomicVector) {
+          addVector(argument);
+        } else {
+          throw new EvalException("range() contains illegal element type '" + argument.getTypeName() + "'");
+        }
+      }
+    }
 
+    private void addVector(SEXP argument) throws RangeContainsNA {
+      AtomicVector vector = EvalException.checkedCast(argument);
+ 
       if(vector.getVectorType().isWiderThan(resultType)) {
         resultType = vector.getVectorType();
       }
-
+ 
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {
           if(!removeNA) {
             Vector.Builder result = resultType.newBuilder();
             result.addNA();
             result.addNA();
-            return result.build();
+            throw new RangeContainsNA(result.build());
           }
         } else {
           resultType = Vector.Type.widest(resultType, vector.getVectorType());
-
+ 
           if(maxValue == null || resultType.compareElements(maxValue, 0, vector, i) < 0) {
             maxValue = resultType.getElementAsVector(vector, i);
           }
@@ -100,13 +139,16 @@ public class Summary {
         }
       }
     }
-    if(maxValue == null) {
-      return new DoubleVector(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
-    } else {
-      Vector.Builder result = resultType.newBuilder();
-      result.addFrom(minValue, 0);
-      result.addFrom(maxValue, 0);
-      return result.build();
+    
+    public Vector result() {
+      if(maxValue == null) {
+        return new DoubleVector(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+      } else {
+        Vector.Builder result = resultType.newBuilder();
+        result.addFrom(minValue, 0);
+        result.addFrom(maxValue, 0);
+        return result.build();
+      }
     }
   }
 

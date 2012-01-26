@@ -50,6 +50,11 @@ public class SummaryTest extends EvalTestCase {
   }
 
   @Test
+  public void rangeWorksRecursively() {
+    assertThat(eval("range(list(1,2,1:10,list(-9,1:100)))"), equalTo(c(-9, 100)));
+  }
+  
+  @Test
   public void rangeWithNAs() {
     assertThat(eval("range(1,99, NA)"), equalTo(c(DoubleVector.NA, DoubleVector.NA)));
     assertThat(eval("range(1L,99L, NA)"), equalTo(c_i(IntVector.NA, IntVector.NA)));

@@ -21,9 +21,12 @@
 
 package r.lang;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import r.base.BaseFrame;
@@ -216,7 +219,21 @@ public class Environment extends AbstractSEXP implements Recursive {
   }
 
   public Collection<Symbol> getSymbolNames() {
-    return frame.getSymbols();
+    List<Symbol> ordered = new ArrayList<Symbol>(frame.getSymbols());
+    Collections.sort(ordered,new Comparator<Symbol>(){
+      @Override
+      public int compare(Symbol o1, Symbol o2) {
+        if(o1.getPrintName().startsWith(".") && !o2.getPrintName().startsWith(".")){
+          return 1;
+        }else if(!o1.getPrintName().startsWith(".") && o2.getPrintName().startsWith(".")){
+          return -1;
+        }else{
+          return o1.getPrintName().compareTo(o2.getPrintName());
+        }
+      }
+      
+    });
+    return ordered;
   }
 
   public boolean bindingIsLocked(Symbol symbol) {

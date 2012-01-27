@@ -243,6 +243,30 @@ public strictfp class TypesTest extends EvalTestCase {
   }
   
   @Test
+  public void env2list_hiddenFirst() {
+    eval(" env <- .Internal(new.env(TRUE, globalenv(), 29L))");
+    eval(" env$.a <- 1");
+    eval(" env$a <- 2");
+    eval(" x <- .Internal(env2list(env,FALSE))");
+    eval(" y <- .Internal(env2list(env,TRUE))");
+
+    assertThat( eval("names(x)"), CoreMatchers.equalTo(c("a")));
+    assertThat( eval("names(y)"), CoreMatchers.equalTo(c("a",".a")));
+  }
+  
+  @Test
+  public void env2list_multipleNonHidden() {
+    eval(" env <- .Internal(new.env(TRUE, globalenv(), 29L))");
+    eval(" env$a <- 1");
+    eval(" env$b <- 2");
+    eval(" x <- .Internal(env2list(env,FALSE))");
+    eval(" y <- .Internal(env2list(env,TRUE))");
+
+    assertThat( eval("names(x)"), CoreMatchers.equalTo(c("a","b")));
+    assertThat( eval("names(y)"), CoreMatchers.equalTo(c("a","b")));
+  }
+  
+  @Test
   public void environmentName() {
     assertThat( eval(".Internal(environmentName(baseenv()))"), CoreMatchers.equalTo(c("base")));
     assertThat( eval(".Internal(environmentName(globalenv()))"), CoreMatchers.equalTo(c("R_GlobalEnv")));

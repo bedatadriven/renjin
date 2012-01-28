@@ -21,7 +21,7 @@
 
 package r.base;
 
-import org.apache.commons.math.linear.RealMatrix;
+import org.apache.commons.math.complex.Complex;
 
 import r.jvmi.annotations.AllowNA;
 import r.jvmi.annotations.GroupGeneric;
@@ -29,14 +29,9 @@ import r.jvmi.annotations.PreserveAttributeStyle;
 import r.jvmi.annotations.PreserveAttributes;
 import r.jvmi.annotations.Primitive;
 import r.jvmi.annotations.Recycle;
-import r.lang.AtomicVector;
 import r.lang.DoubleVector;
 import r.lang.Logical;
-import r.lang.SEXP;
 import r.lang.Symbol;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
-import r.util.CommonsMath;
 
 /**
  * Default implementations of the Ops group of functions.
@@ -56,6 +51,13 @@ public class Ops  {
   @Primitive("+")
   @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
+  public static Complex plus(Complex x, Complex y) {
+    return x.add(y);
+  }
+  
+  @Primitive("+")
+  @Recycle
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double plus(double x) {
     return x;
   }
@@ -65,6 +67,13 @@ public class Ops  {
   @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double minus(double x, double y) {
     return x - y;
+  }
+  
+  @Primitive("-")
+  @Recycle
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  public static Complex minus(Complex x, Complex y) {
+    return x.subtract(y);
   }
 
   @Primitive("-")
@@ -80,6 +89,14 @@ public class Ops  {
     return x / y;
   }
 
+  @Primitive("/")
+  @Recycle
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  public static Complex divide(Complex x, Complex y) {
+    return x.divide(y);
+  }
+
+  
   @Primitive("*")
   @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
@@ -87,6 +104,14 @@ public class Ops  {
     return x * y;
   }
 
+  @Primitive("*")
+  @Recycle
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  public static Complex multiply(Complex x, Complex y) {
+    return x.multiply(y);
+  }
+
+  
   @Primitive("==")
   @Recycle
   public static boolean equalTo(double x, double y) {

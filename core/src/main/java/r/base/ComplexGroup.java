@@ -32,7 +32,6 @@ public class ComplexGroup {
   }
   
   public static Complex complex(double x, double y){
-    java.lang.System.out.println(y);
     return new Complex(x,y);
   }
   
@@ -46,8 +45,6 @@ public class ComplexGroup {
   
   
   public static Complex Conj(Complex z){
-    java.lang.System.out.println("Im(z): " + z.getImaginary());
-    java.lang.System.out.println("Re(z): " + z.getReal());
     return new Complex(z.getReal(),-1*z.getImaginary());
   }
   

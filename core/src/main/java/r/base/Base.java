@@ -656,4 +656,3 @@ public class Base {
     return out.setAttributes(attributesToCopy);  
   }
 }
-

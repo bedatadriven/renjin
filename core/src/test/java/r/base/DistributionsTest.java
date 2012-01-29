@@ -286,7 +286,7 @@ public class DistributionsTest extends EvalTestCase{
     @Test 
     public void tukeys() throws IOException{
       //This is confusing. Because location of parameters are replaced in R calls
-      topLevelContext.init();
+      assumingBasePackagesLoad();
 
       assertThat(eval("ptukey(5.20, 14,12,5 , TRUE, FALSE)").asReal(), closeTo(0.7342322, ERROR));
       assertThat(eval("ptukey(4.9, 21,9,2,T,T)").asReal(), closeTo(-0.406227, ERROR));

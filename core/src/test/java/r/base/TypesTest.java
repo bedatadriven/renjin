@@ -209,8 +209,17 @@ public strictfp class TypesTest extends EvalTestCase {
 
     eval(" x <- !x ");
     assertThat( eval(" dimnames(x)[[2]] "), equalTo( c("a", "b")));
-
   }
+  
+  @Test
+  public void nullDimNamePreservedOnAssignment() {
+    eval(" x <- 1:12");
+    eval(" dim(x) <- c(3,4) ");
+    eval(" dimnames(x) <- list(NULL, c('a','b','c','d'))");
+    
+    assertThat(eval("dimnames(x)[[1]]"), equalTo(NULL));
+  }
+
 
   @Test
   public void unaryPreservesNames() {

@@ -14,8 +14,6 @@ public class ComplexNumberTest extends EvalTestCase {
   
   @Test
   public void imaginaryPartOfConvertedDoubleShouldBeZero() throws IOException {
-    topLevelContext.init();
-    
     assertThat( eval("Im(as.complex(1))"), equalTo(c(0)) );
   }
   
@@ -34,30 +32,30 @@ public class ComplexNumberTest extends EvalTestCase {
   
   @Test
   public void sizeAt0_1() throws IOException{
-    topLevelContext.init();
-//    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
+    assumingBasePackagesLoad();
+    //    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
     assertThat(eval("Mod(complex(0,1))"),equalTo(c(1)));
     assertThat(eval("Mod(complex(0,9))"),equalTo(c(9)));
   }
   
   @Test
   public void argumentAt0_1() throws IOException{
-    topLevelContext.init();
+    assumingBasePackagesLoad();
 //    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
     assertThat(eval("Arg(complex(0, 1))/pi"),equalTo(c(0.5)));
   }
   
   @Test
   public void polarCoordinatesAt1_0() throws IOException{
-    topLevelContext.init();
-//    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
+    assumingBasePackagesLoad();
+    //    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
     assertThat(eval("Mod(complex(1,0))"),equalTo(c(1)));
     assertThat(eval("Mod(complex(9,0))"),equalTo(c(9)));
   }
   
   @Test
   public void complexConjugate() throws IOException{
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     assertThat(eval("Im(Conj(complex(0,1)))"),equalTo(c(-1)));
   }
 }

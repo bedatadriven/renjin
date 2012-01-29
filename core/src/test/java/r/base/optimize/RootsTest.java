@@ -32,7 +32,7 @@ public class RootsTest extends EvalTestCase {
 
   @Test
   public void uniroot() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
 
     eval("f <- function (x,a) x - a");
     eval("xmin <- uniroot(f, c(0, 1), tol = 0.0001, a = 1/3)");

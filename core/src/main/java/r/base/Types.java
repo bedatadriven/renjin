@@ -692,7 +692,7 @@ public class Types {
     }
     ListVector.Builder dn = new ListVector.Builder();
     for(SEXP names : dimnames) {
-      if(!(names instanceof StringVector)) {
+      if(names != Null.INSTANCE && !(names instanceof StringVector)) {
         names = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), names));
       }
       dn.add(names);

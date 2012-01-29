@@ -14,7 +14,7 @@ public class TestSampling extends EvalTestCase {
   public void SamplingWithReplacement() throws IOException {
     double delta = 0.00001;
 
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     eval("x<-1:5");
     eval("p<-c(0.00, 0.00, 0.00, 1, 0.00)");
 
@@ -24,7 +24,7 @@ public class TestSampling extends EvalTestCase {
   @Test
   public void SamplingWithReplacementUniform() throws IOException {
     double delta = 0.1;
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     eval("x<-1:5");
     assertThat(eval("mean(sample(x, 10000L, TRUE, rep(1/5,5)))").asReal(), closeTo(3.0, delta));
   }
@@ -32,7 +32,7 @@ public class TestSampling extends EvalTestCase {
   @Test
   public void SamplingWithoutReplacement() throws IOException {
     double delta = 0.00001;
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     eval("x<-c(1,2,3,4,5,10,9,8,7,6)");
     assertThat(eval("sort(sample(x, 10L, FALSE))"), equalTo(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));
   }
@@ -40,7 +40,7 @@ public class TestSampling extends EvalTestCase {
   @Test
   public void SamplingMinimumParametersCall() throws IOException {
     double delta = 0.00001;
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     eval("x<-c(1,2,3,4,5,10,9,8,7,6)");
     assertThat(eval("sort(sample(x, 10L))"), equalTo(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));
   }

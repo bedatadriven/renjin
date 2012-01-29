@@ -23,6 +23,7 @@ package r.parser;
 
 import com.google.common.base.Function;
 import r.lang.DoubleVector;
+import r.lang.IntVector;
 import r.lang.Logical;
 import r.lang.StringVector;
 
@@ -244,7 +245,14 @@ public class ParseUtil {
   }
 
   public static class IntDeparser extends IntPrinter {
-
+    @Override
+    public String apply(Integer integer) {
+      if(IntVector.isNA(integer)) {
+        return "NA";
+      } else {
+        return ParseUtil.toString(integer) + "L";
+      }
+    }
   }
 
   public static class LogicalPrinter implements Function<Logical, String> {

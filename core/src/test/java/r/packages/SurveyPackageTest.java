@@ -10,7 +10,6 @@ public class SurveyPackageTest extends PackageTest {
 
   @Test
   public void surveyPackage() throws Exception {
-    topLevelContext.init();
 
     java.lang.System.out.println(eval(".find.package('survey') "));
     eval(" library(survey) ");

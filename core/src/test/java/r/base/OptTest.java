@@ -24,11 +24,12 @@ package r.base;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import java.io.IOException;
-
 import org.junit.Test;
 
 import r.EvalTestCase;
+import r.lang.LogicalVector;
+import r.lang.SEXP;
+import r.lang.Symbol;
 import r.lang.exception.EvalException;
 
 public class OptTest extends EvalTestCase{
@@ -69,4 +70,16 @@ public class OptTest extends EvalTestCase{
     assertThat(eval("quote(x)==quote(y)"), equalTo(c(false)));
     assertThat(eval("quote(x)==quote(x)"), equalTo(c(true)));
   }
+  
+  @Test
+  public void complexAdd() {
+    assertThat(eval("3+1i"), equalTo(c(complex(3,1))));
+  }
+  
+  @Test
+  public void negatedLogical() {
+    topLevelContext.getEnvironment().setVariable(Symbol.get("x"), LogicalVector.EMPTY);
+    assertThat(eval("!x"), equalTo((SEXP)LogicalVector.EMPTY));
+  }
+  
 }

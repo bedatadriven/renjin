@@ -121,6 +121,12 @@ public class Combine {
       resultType = Vector.Type.widest(resultType, vector);
       count += vector.length();
     }
+    
+    @Override
+    public void visit(ComplexVector vector) {
+      resultType = Vector.Type.widest(resultType, vector);
+      count += vector.length();
+    }
 
     @Override
     public void visit(ListVector list) {

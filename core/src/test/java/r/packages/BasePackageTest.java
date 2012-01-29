@@ -44,9 +44,8 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void loadBase() throws IOException {
 
-    loadBasePackage();
-    executeStartupProfile();
-
+    topLevelContext.init();
+    
     StringVector letters = (StringVector) eval("letters");
     assertThat( letters.getElement(0),  equalTo( "a" ));
     assertThat( letters.getElement(25), equalTo( "z" ));
@@ -106,7 +105,7 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void rowNames() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval(" xi <- list(c(55, 60, 30, 40, 11)) ");
     eval(" attr(xi, 'row.names') <- c(NA, -5) ");
@@ -166,16 +165,9 @@ public class BasePackageTest extends EvalTestCase {
     assertThat( eval("lapply(x,f,2) "), equalTo(list(3d)));
   }
 
-  @Test
-  public void packages() throws Exception {
-    topLevelContext.init();
-
-    java.lang.System.out.println(eval(".packages()"));
-  }
-
   @Test 
   public void genericSubscript() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
 
     eval("  d<-as.data.frame(list(ids=1:5)) ");
     assertThat( eval(" d[,1] "), equalTo( c_i(1,2,3,4,5)));
@@ -184,7 +176,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test 
   public void factor() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval(" cat <- factor(c(1:3), exclude= c(NA, NaN)) ");
     eval(" addNA(cat, ifany=TRUE) ");
@@ -198,7 +190,8 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void factorInteger() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
+    
     eval("x <- 1:5");
     eval("exclude <- c(NA, NaN)");
     
@@ -225,7 +218,7 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void setRowNames() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval(" xi <- list(c(1:5))");
     eval(" class(xi) <- 'data.frame'");
@@ -236,7 +229,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void factorIssue10() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval(" gender <- c('F','F','F','F', 'M','M','M') ");
     eval(" gender <- factor(gender) ");
@@ -246,7 +239,7 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void factorPrint() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     StringWriter stringWriter = new StringWriter();
     topLevelContext.getGlobals().setStdOut(new PrintWriter(stringWriter));
@@ -259,7 +252,7 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void parentFrameFromWithinEval() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval("qq<-99");
     eval("g<-function(envir=parent.frame()) envir ");
@@ -280,16 +273,15 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void sapply() throws IOException {
-    loadBasePackage();
-    executeStartupProfile();
-
+    assumingBasePackagesLoad();
+    
     eval(" x<-list() ");
     assertThat(eval("sapply(attr(~1,'vars'), deparse, width.cutoff = 500)[-1L]"), equalTo(list()));
   }
 
   @Test
   public void fork() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
 
     Context context1 = topLevelContext.fork();
     context1.evaluate( FunctionCall.newCall(Symbol.get("search")));
@@ -300,14 +292,15 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test @Ignore("not working yet")
   public void lzmaDecompression() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
+    
     eval("data(USArrests)");
     eval("names(USArrests)");
   }
   
   @Test
   public void asDataFrameForMatrix() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval("g<-matrix(1:64,8)");
     eval("df<-as.data.frame(g)");
@@ -316,7 +309,7 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void factorEquality() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
 
     eval("y <- as.factor(c(1,0))");
     assertThat( eval("y == c('1', '0')"), equalTo(c(true,true)));
@@ -324,7 +317,7 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void outer() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval("x <- c(1,0,1,0,1,0)");
     eval("y <- as.factor(c(1,0,1,0,1,0))");
@@ -342,13 +335,15 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void issue8() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
+    
     assertThat( eval("rep(seq(1,10,1),2)"), equalTo(c( 1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10)));
   }
 
   @Test
   public void source() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
+    
     global.setVariable(Symbol.get("fn"), 
         new StringVector(BasePackageTest.class.getResource("SourceTest.R").getFile()));
       eval("source(fn)");
@@ -356,7 +351,8 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void splitAssign() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
+    
     eval("n <- 10");
     eval("nn <- 100");
     eval("g <- factor(round(n * runif(n * nn)))");
@@ -369,7 +365,8 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void remove() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
+    
     eval("a<-1");
     eval("remove(a)");
   }
@@ -384,8 +381,8 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void bquote() throws IOException {
-    topLevelContext.init();
-       
+    assumingBasePackagesLoad();
+    
     eval("x <- bquote(~0 + .(quote(births)))");
     eval("print(x)");
 
@@ -401,7 +398,7 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void rowSums() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval("m <- matrix(1:12, 3)");
     
@@ -414,7 +411,8 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void rowLabelsFromFactors() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
+    
     eval("x <- factor(c('Yes','No','No'))");
     eval("m <- matrix(c(1:6), 3, 2)");
     eval("rownames(m) <- unique(x)");
@@ -422,11 +420,18 @@ public class BasePackageTest extends EvalTestCase {
   }
   
   @Test
+  @Ignore("todo")
   public void kendallCor() throws IOException {
-    topLevelContext.init();
     
     
     
   }
   
+  @Test
+  public void inOpWithNA() throws IOException {
+    assumingBasePackagesLoad();
+    
+    assertThat( eval("NA %in% FALSE"), equalTo(c(false)));
+    assertThat( eval("NA %in% TRUE"), equalTo(c(false))); 
+  }
 }

@@ -51,8 +51,8 @@ public class ModelsTest extends EvalTestCase {
 
   @Test
   public void testWithOneDepVar() throws IOException {
-    topLevelContext.init();
-
+    assumingBasePackagesLoad();
+    
     eval(" t <- terms(~births)");
 
     eval("print(t)");
@@ -65,7 +65,7 @@ public class ModelsTest extends EvalTestCase {
 
   @Test
   public void modelMatrixWithInteractions() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval("data <- data.frame(age=c(18,20,22,25), height=c(110,100,75,120), row.names=c('a','b','c','d'))");
     eval("m <- model.matrix(~ age * height, data=data)");
@@ -82,7 +82,7 @@ public class ModelsTest extends EvalTestCase {
 
   @Test
   public void modelMatrixSimple() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval("data <- data.frame(age=c(18,20,22,25), height=c(110,100,75,120), row.names=c('a','b','c','d'))");
     eval("m <- model.matrix(~ age + height, data=data)");

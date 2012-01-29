@@ -13,7 +13,8 @@ public class SplitTest extends EvalTestCase {
 
   @Test
   public void split() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
+    
     eval("x <- split(c(10:1), c(1,2,1,2,1,2,1,2,3,3))");
     
     assertThat(eval("x$`1`"), equalTo(c_i(10,8,6,4)));

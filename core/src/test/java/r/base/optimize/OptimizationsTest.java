@@ -33,7 +33,7 @@ public class OptimizationsTest extends EvalTestCase {
 
   @Test
   public void nlm() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
 
     eval("f <- function(x) sum((x-1:length(x))^2)");
     eval("x <- nlm(f, c(10,10))");
@@ -46,8 +46,9 @@ public class OptimizationsTest extends EvalTestCase {
 
   @Test
   public void nlmWithGradient() throws IOException {
-    topLevelContext.init();
-       eval("f <- function(x, a) {" +
+    assumingBasePackagesLoad();
+    
+    eval("f <- function(x, a) {" +
            "    res <- sum((x-a)^2)\n" +
            "    attr(res, 'gradient') <- 2*(x-a)\n" +
            "    res }");
@@ -62,8 +63,8 @@ public class OptimizationsTest extends EvalTestCase {
 
   @Test
   public void fmin() throws IOException {
-    topLevelContext.init();
-
+    assumingBasePackagesLoad();
+    
     eval("f <- function (x,a) (x-a)^2");
     eval("x <-  optimize(f, c(0, 1), tol = 0.0001, a = 1/3)");
 
@@ -73,8 +74,8 @@ public class OptimizationsTest extends EvalTestCase {
 
   @Test
   public void nelderMead() throws IOException {
-    topLevelContext.init();
-
+    assumingBasePackagesLoad();
+    
     eval("fr <- function(x) {   ## Rosenbrock Banana function\n" +
         "    x1 <- x[1]\n" +
         "    x2 <- x[2]\n" +

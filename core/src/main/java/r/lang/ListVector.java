@@ -28,12 +28,10 @@ import java.util.List;
 
 import org.apache.commons.math.complex.Complex;
 
-import r.base.Parse;
-import r.lang.Vector.Builder;
+import r.base.Deparse;
 import r.lang.exception.EvalException;
 import r.util.NamesBuilder;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -145,6 +143,14 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
     throw new EvalException("(list) object cannot be coerced to type 'double'");
   }
+  
+  public double getElementAsDouble(String name) {
+    return getElementAsDouble(getIndexByName(name));
+  }
+  
+  public ListVector getElementAsList(String name) {
+    return (ListVector)getElementAsSEXP(getIndexByName(name));
+  }
 
   @Override
   public int getElementAsInt(int index) {
@@ -154,6 +160,10 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
     throw new EvalException("(list) object cannot be coerced to type 'int'");
   }
+  
+  public int getElementAsInt(String name) {
+    return getElementAsInt(getIndexByName(name));
+  }
 
   @Override
   public String getElementAsString(int index) {
@@ -161,7 +171,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsString(0);
     }
-    return Parse.deparse(value);
+    return Deparse.deparseExp(value);
   }
 
   @Override
@@ -170,7 +180,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsObject(0);
     }
-    return Parse.deparse(value);
+    return Deparse.deparseExp(value);
   }
 
   @Override
@@ -280,9 +290,19 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("list(");
-    Joiner.on(", ").appendTo(sb, values);
-    return sb.append(")").toString();
+    StringBuilder sb = new StringBuilder("ListVector{");
+    sb.append("length=").append(length()).append(", elements=[");
+    for(int i=0;i<Math.min(length(), 5);++i) {
+      if(i!=0) {
+        sb.append(", ");
+      }
+      sb.append(getElementAsSEXP(i));
+    }
+    if(length() > 5) {
+      sb.append(", ...");
+    }
+    sb.append("]}");
+    return sb.toString();
   }
 
   public static Builder newBuilder() {

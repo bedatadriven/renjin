@@ -13,6 +13,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import r.EvalTestCase;
@@ -21,10 +22,13 @@ import r.lang.graphics.GraphicsDevice;
 
 public class GraphicsTest extends EvalTestCase {
   
+  @Before
+  public void setupPackages() {
+    assumingBasePackagesLoad();
+  }
   
   @Test
   public void coordinateSystems() throws IOException {
-    topLevelContext.init();
 
     // compared to output from R2.12
     // with png(filename='test.png', width=420, height=340)
@@ -51,7 +55,6 @@ public class GraphicsTest extends EvalTestCase {
  
   @Test
   public void plotWindow() throws IOException {
-    topLevelContext.init();
 
     // compared to output from R2.12
     // with png(filename='test.png', width=420, height=340)
@@ -72,7 +75,6 @@ public class GraphicsTest extends EvalTestCase {
 
   @Test
   public void awtIntegrationTest() throws IOException {
-    topLevelContext.init();
     BufferedImage image = new BufferedImage(420, 340, ColorSpace.TYPE_RGB);
 
     Graphics2D g2d = (Graphics2D) image.getGraphics();
@@ -89,8 +91,6 @@ public class GraphicsTest extends EvalTestCase {
       FileOutputStream fos = new FileOutputStream("target/simplestPossible.png");
       ImageIO.write(image, "PNG", fos);
       fos.close();
-      
-    
       
     }
   }

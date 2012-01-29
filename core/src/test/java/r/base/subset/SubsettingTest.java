@@ -564,6 +564,16 @@ public class SubsettingTest extends EvalTestCase {
   }
   
   @Test
+  public void emptyLogicalIndex() {
+    eval(" x <- 1:12 ");
+    eval(" dim(x) <- 3:4 ");
+    eval(" y <- x[ c(), , drop=FALSE] ");
+    assertThat(eval(".Internal(typeof(y))"), equalTo(c("integer")));
+    assertThat(eval("dim(y)"), equalTo(c_i(0, 4)));
+    
+  }
+  
+  @Test
   public void pairListElipses() {
     eval(" x <- .Internal(as.vector(list(a=1, z=4), 'pairlist'))");
     eval(" x$... <- 4");
@@ -584,7 +594,8 @@ public class SubsettingTest extends EvalTestCase {
   
   @Test
   public void environmentSymbol() throws IOException{
-    this.topLevelContext.init();
+    assumingBasePackagesLoad();
+    
     eval(".testEnv<-new.env()");
     eval("assign(\"key\",1,.testEnv)");
     eval("assign(\"value\",\"foo\",.testEnv)");

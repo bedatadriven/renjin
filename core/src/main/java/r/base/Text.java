@@ -184,7 +184,7 @@ public class Text {
       if(element.length() == 1 && element instanceof AtomicVector) {
         return ((AtomicVector) element).getElementAsString(0);
       } else {
-        return Parse.deparse(element);
+        return Deparse.deparseExp(element);
       }
     }
   }
@@ -701,7 +701,20 @@ public class Text {
     
     return buildFormatResult(x, elements);
   }
-  
+
+  public static StringVector format(IntVector x, boolean trim, SEXP digits, int nsmall, 
+      SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
+       
+    List<String> elements = formatNumericalElements(x);
+    int width = calculateWidth(elements, minWidth);
+    
+    if(!trim) {
+      elements = justify(elements, width, Justification.RIGHT, naEncode);
+    }
+    
+    return buildFormatResult(x, elements);
+  }
+
   private static StringVector buildFormatResult(Vector x,
       List<String> elements) {
     StringVector.Builder result = new StringVector.Builder();

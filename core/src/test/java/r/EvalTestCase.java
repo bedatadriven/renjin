@@ -34,6 +34,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
+import org.junit.internal.AssumptionViolatedException;
 
 import r.compiler.ir.tac.IRFunctionTable;
 import r.lang.ComplexVector;
@@ -82,6 +83,20 @@ public abstract class EvalTestCase {
 
   protected SEXP eval(String source) {
     return evaluate(source);
+  }
+  
+  /**
+   * Fully initializes the context, loading the R-language
+   * base packages and recommended packages.
+   * If this initializes fails, an AssumptionViolatedError exception 
+   * will be thrown rather than an error.
+   */
+  protected void assumingBasePackagesLoad() {
+    try {
+      topLevelContext.init();
+    } catch(Exception e) {
+      throw new AssumptionViolatedException("Exception thrown while loading R-language packages");
+    }
   }
 
   protected SEXP evaluate(String source)  {

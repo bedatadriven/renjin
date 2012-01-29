@@ -176,7 +176,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
   @Override
   public Complex getElementAsComplex(int index) {
-    return new Complex(index, 0);
+    return new Complex(values[index], 0);
   }
 
   @Override

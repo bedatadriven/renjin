@@ -101,7 +101,7 @@ public class JvmiTest extends EvalTestCase {
   
   @Test
   public void sapplyOnLists() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     eval("import(r.base.MyBean)");
     eval("x <- MyBean$new()");

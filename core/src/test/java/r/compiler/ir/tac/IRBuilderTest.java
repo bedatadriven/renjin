@@ -101,7 +101,7 @@ public class IRBuilderTest extends EvalTestCase {
   
   @Test
   public void closureBody() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     topLevelContext.evaluate(
     RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R"))));
     

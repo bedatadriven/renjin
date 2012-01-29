@@ -21,12 +21,11 @@ public class MatrixTest extends EvalTestCase {
   @Before
   public void setup() throws IOException{
     super.setUp();
-    topLevelContext.init();
+    assumingBasePackagesLoad();
   }
   
   @Test
   public void svd() throws IOException {
-    topLevelContext.init();
     
     eval("hilbert <- function(n) { i <- 1:n; 1 / outer(i - 1, i, '+') }");
     eval("X <- hilbert(9)[,1:6]");
@@ -70,7 +69,6 @@ public class MatrixTest extends EvalTestCase {
   @Test
   public void eigenWithLa_rs() throws IOException {
     
-    topLevelContext.init();
     eval("res <- eigen(cbind(c(1,-1),c(-1,1)))");
     assertThat( eval("res$values"), equalTo(c(2,0)));
     assertThat( eval("res$vectors"), closeTo(matrix(
@@ -95,7 +93,6 @@ public class MatrixTest extends EvalTestCase {
 //  @Ignore("not yet working")
   public void eigenVectorsWithImaginaryResults() throws IOException {
     
-    topLevelContext.init();
 //    eval("eigen(matrix(c(3, 5, -2, -1),2))");
     eval("res <- eigen(matrix(c(3, 4, -2, -1),2))");
 //    eval("eigen(matrix(c(3,4,1,-2,-1,1,1,1,5),3))");
@@ -120,7 +117,6 @@ public class MatrixTest extends EvalTestCase {
   
   @Test
   public void eigenWithLa_rg() throws IOException {
-    topLevelContext.init();
     
     eval("res <- eigen(cbind(c(1,-1),c(-1,1)), symmetric=FALSE)");
     assertThat( eval("res$values"), equalTo(c(2,0)));
@@ -133,8 +129,6 @@ public class MatrixTest extends EvalTestCase {
   @Test
   public void testSolve() throws IOException {
 
-    topLevelContext.init();
-
     assertThat(eval("solve(matrix(c(1,3,7,6),2,2))"), closeTo(matrix(
         row(-0.4,  0.46666667),
         row( 0.2, -0.06666667)), 0.0000001));
@@ -142,7 +136,7 @@ public class MatrixTest extends EvalTestCase {
   
   @Test(expected = r.lang.exception.EvalException.class)
   public void testSolveSingularity() throws IOException {
-    topLevelContext.init();
+
     assertThat(eval("solve(matrix(c(1,2,2,4),2,2))"), closeTo(matrix(
             row(0, 0),
             row(0, 0)), 0.0000001));
@@ -179,7 +173,6 @@ public class MatrixTest extends EvalTestCase {
 
   @Test
   public void rowSums() throws IOException {
-    topLevelContext.init();
     eval("q <- matrix(c(NA, 4, 3, 5, 9, 20), 3)");
    
     assertThat(eval("rowSums(q)"), equalTo(c(DoubleVector.NA, 13, 23)));
@@ -188,7 +181,6 @@ public class MatrixTest extends EvalTestCase {
   
   @Test
   public void rowMeans() throws IOException {
-    topLevelContext.init();
     eval("q <- matrix(1:32, 4)");
     assertThat(eval("rowMeans(q)"), equalTo(c(15,16,17,18)));
     
@@ -196,27 +188,23 @@ public class MatrixTest extends EvalTestCase {
 
   @Test
   public void colSums() throws IOException {
-    topLevelContext.init();
     eval("q <- matrix(1:32, 4)");
     assertThat(eval("colSums(q)"), equalTo(c(10,26,42,58,74,90,106,122)));
   }
 
   @Test
   public void transpose() throws IOException {
-    topLevelContext.init();
     assertThat(eval("t(c(1,2,3,4))"), equalTo(c(1,2,3,4)));
   }
 
   @Test
   public void colMeans() throws IOException {
-    topLevelContext.init();
     eval("q <- matrix(1:32, 4)");
     assertThat(eval("colMeans(q)"), equalTo(c(2.5, 6.5, 10.5, 14.5, 18.5, 22.5, 26.5, 30.5)));
   }
   
   @Test
   public void matrixEmptyData() throws IOException {
-    topLevelContext.init();
     eval("m <- matrix(double(), 2, 3)");
     assertThat(eval("m"), equalTo(c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA, 
                                     DoubleVector.NA, DoubleVector.NA, DoubleVector.NA)));
@@ -229,7 +217,6 @@ public class MatrixTest extends EvalTestCase {
   
   @Test
   public void tcrossprod() throws IOException {
-    topLevelContext.init();
     assertThat(eval("tcrossprod(matrix(1:4,2,2))"), equalTo(c(10,14,14,20)));
   }
 

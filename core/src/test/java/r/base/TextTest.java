@@ -199,7 +199,7 @@ public class TextTest extends EvalTestCase {
   
   @Test
   public void format() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     assertThat( eval("format(c(1,10,1000))"), equalTo(c("   1", "  10", "1000")));
     assertThat( eval("format(c(1,10,1000),trim=T)"), equalTo(c("1", "10", "1000")));
@@ -208,7 +208,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void formatWithNAs() throws IOException {
-    topLevelContext.init();
+    assumingBasePackagesLoad();
     
     assertThat(eval("format(c('Hello', NA, 'world', NA))"), equalTo(c( "Hello", "NA   ", "world", "NA   ")));    
     assertThat(eval("format(c('Hello', NA, 'world', NA), na.encode=FALSE)"), equalTo(c( "Hello", null, "world", null)));

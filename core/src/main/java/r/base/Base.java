@@ -24,12 +24,15 @@ package r.base;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.math.complex.Complex;
 import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
+
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 import r.base.matrix.Matrix;
 import r.base.matrix.MatrixBuilder;
@@ -508,11 +511,12 @@ public class Base {
     return complexValues;
   }
   
+  //TODO: replace this with log4j
   private static void print(ComplexVector values) {
-    java.lang.System.out.println(values);
     
   }
 
+  //TODO: replace this with log4j
   private static void print(double[] right) {
     List<Double> list = new ArrayList<Double>();
     if (right != null) {
@@ -520,7 +524,6 @@ public class Base {
         list.add(x);
       }
     }
-    java.lang.System.out.println(list);
   }
 
   public static ComplexVector c(double... d){
@@ -653,3 +656,4 @@ public class Base {
     return out.setAttributes(attributesToCopy);  
   }
 }
+

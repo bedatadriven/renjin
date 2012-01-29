@@ -32,6 +32,9 @@
 
   <dependencies>
 
+    <!-- Currently we are using both Colt and Apache Commons Math for the 
+      mathematical heavy lifting. It may be possible to eliminate one or the other -->
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math</artifactId>

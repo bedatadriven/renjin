@@ -32,8 +32,6 @@ import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
-
 import r.base.matrix.Matrix;
 import r.base.matrix.MatrixBuilder;
 import r.lang.AtomicVector;

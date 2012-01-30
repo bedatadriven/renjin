@@ -21,10 +21,9 @@
 
 package r.base;
 
-import java.util.List;
-
 import r.base.variance.VarianceCalculator;
 import r.jvmi.annotations.ArgumentList;
+import r.jvmi.annotations.GroupGeneric;
 import r.jvmi.annotations.NamedFlag;
 import r.jvmi.annotations.Primitive;
 import r.lang.AtomicVector;
@@ -47,17 +46,33 @@ public class Summary {
   private Summary() {}
 
   @Primitive
+  @GroupGeneric
   public static SEXP min(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
-    return range(arguments, removeNA).getElementAsSEXP(0);
+    try {
+      return new RangeCalculator()
+        .setRemoveNA(removeNA)
+        .addList(arguments)
+        .getMinimum();
+    } catch (RangeContainsNA e) {
+      return new DoubleVector(DoubleVector.NA);
+    }
   }
 
   @Primitive
+  @GroupGeneric
   public static SEXP max(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
-    return range(arguments, removeNA).getElementAsSEXP(1);
+    try {
+      return new RangeCalculator()
+        .setRemoveNA(removeNA)
+        .addList(arguments)
+        .getMaximum();
+    } catch (RangeContainsNA e) {
+      return new DoubleVector(DoubleVector.NA);
+    }  
   }
 
 
@@ -70,49 +85,66 @@ public class Summary {
    * @return a vector containing the minimum and maximum of all the given arguments.
    */
   @Primitive
+  @GroupGeneric
   public static Vector range(@ArgumentList ListVector arguments,
-                           @NamedFlag("na.rm") boolean removeNA) {
+                             @NamedFlag("na.rm") boolean removeNA) {
 
-    Range range = new Range();
-    range.setRemoveNA(removeNA);
+    // in the C implementation, this primitive actually delegates back to a
+    // function in the base library called "range.default". I don't think 
+    // it's a good idea to create a circular dependency between the 
+    // the primitives layer and the base library package, so we're implementing here.
+    
+    // another oddity: the min() and max() functions do not accept lists or 
+    // other recursive structures. The range() implementation does.
+    
     try {
-      range.addList(arguments);
-    } catch (RangeContainsNA containsNA) {
-      return containsNA.result;
-    }
-    return range.result();
+      return new RangeCalculator()
+        .setRemoveNA(removeNA)
+        .setRecursive(true)
+        .addList(arguments)
+        .getRange();
+    } catch (RangeContainsNA e) {
+      return new DoubleVector(DoubleVector.NA, DoubleVector.NA);
+    }  
   }
   
-  private static class RangeContainsNA extends Exception {
-    private Vector result;
-
-    public RangeContainsNA(Vector result) {
-      super();
-      this.result = result;
-    }
+  private static class RangeContainsNA extends Exception {  }
+  
+  private static class RangeCalculator {
+    private boolean removeNA;
+    private boolean recursive;
+    private Vector minValue = null;
+    private Vector maxValue = null;
+    private Vector.Type resultType = IntVector.VECTOR_TYPE;
     
-  }
-  
-  private static class Range {
-    boolean removeNA;
-    Vector minValue = null;
-    Vector maxValue = null;
-    Vector.Type resultType = IntVector.VECTOR_TYPE;
+    /**
+     * It is tempting to immediately return once the first NA is encountered,
+     * but in the CR, the return type is determined by ALL the elements
+     * in the input, not just the ones before the first NA.
+     */
+    private boolean naEncountered = false;
 
-    public void setRemoveNA(boolean removeNA) {
+    public RangeCalculator setRemoveNA(boolean removeNA) {
       this.removeNA = removeNA;
+      return this;
     }
     
-    public void addList(ListVector list) throws RangeContainsNA {
+    public RangeCalculator setRecursive(boolean recursive) {
+      this.recursive = recursive;
+      return this;
+    }
+    
+    public RangeCalculator addList(ListVector list) throws RangeContainsNA {
       for(SEXP argument : list) {
-        if(argument instanceof ListVector) {
-          addList((ListVector)argument);
-        } else if(argument instanceof AtomicVector) {
+        if(argument instanceof AtomicVector) {
           addVector(argument);
+        } else if(recursive && argument instanceof ListVector) {
+          addList((ListVector)argument);
         } else {
-          throw new EvalException("range() contains illegal element type '" + argument.getTypeName() + "'");
+          throw new EvalException("invalid 'type' (%s) of argument", argument.getTypeName());
         }
       }
+      return this;
     }
 
     private void addVector(SEXP argument) throws RangeContainsNA {
@@ -125,10 +157,7 @@ public class Summary {
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {
           if(!removeNA) {
-            Vector.Builder result = resultType.newBuilder();
-            result.addNA();
-            result.addNA();
-            throw new RangeContainsNA(result.build());
+            naEncountered = true;
           }
         } else {
           resultType = Vector.Type.widest(resultType, vector.getVectorType());
@@ -139,19 +168,37 @@ public class Summary {
           if(minValue == null || resultType.compareElements(minValue, 0, vector, i) > 0) {
             minValue = resultType.getElementAsVector(vector, i);
           }
+          
         }
       }
     }
     
-    public Vector result() {
+    public Vector getRange() {
       if(maxValue == null) {
         return new DoubleVector(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
       } else {
         Vector.Builder result = resultType.newBuilder();
-        result.addFrom(minValue, 0);
-        result.addFrom(maxValue, 0);
+        if(naEncountered) {
+          result.addNA();
+          result.addNA();
+        } else {
+          result.addFrom(minValue, 0);
+          result.addFrom(maxValue, 0);
+        }
         return result.build();
       }
+    }
+    
+    public Vector getMinimum() {
+      return naEncountered ? buildNA() : minValue;
+    }
+    
+    public Vector getMaximum() {
+      return naEncountered ? buildNA() : maxValue;
+    }
+    
+    private Vector buildNA() {
+      return resultType.newBuilder().addNA().build();
     }
   }
 
@@ -163,6 +210,7 @@ public class Summary {
    * @return
    */
   @Primitive
+  @GroupGeneric
   public static double prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
     double product = 1;
     for(SEXP argument : arguments) {
@@ -181,6 +229,7 @@ public class Summary {
   }
 
   @Primitive
+  @GroupGeneric
   public static SEXP sum(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
     int intSum = 0;
     double doubleSum = 0;
@@ -233,6 +282,7 @@ public class Summary {
    * and ... contains no TRUE values and at least one NA value).
    */
   @Primitive
+  @GroupGeneric
   public static Logical any(@ArgumentList ListVector arguments,
                             @NamedFlag("na.rm") boolean removeNA) {
 
@@ -264,6 +314,7 @@ public class Summary {
    *  na.rm = FALSE and ... contains no FALSE values and at least one NA value).
    */
   @Primitive
+  @GroupGeneric
   public static Logical all(@ArgumentList ListVector arguments,
                             @NamedFlag("na.rm") boolean removeNA) {
 

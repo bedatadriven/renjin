@@ -15,6 +15,7 @@ import r.jvmi.wrapper.WrapperSourceWriter;
 import r.jvmi.wrapper.generator.args.ArgConverterStrategies;
 import r.jvmi.wrapper.generator.args.ArgConverterStrategy;
 import r.jvmi.wrapper.generator.generic.GenericDispatchStrategy;
+import r.jvmi.wrapper.generator.generic.SummaryGroupGenericStrategy;
 import r.jvmi.wrapper.generator.generic.OpsGroupGenericDispatchStrategy;
 import r.jvmi.wrapper.generator.generic.SimpleDispatchStrategy;
 import r.jvmi.wrapper.generator.recycling.RecycledArgument;
@@ -52,8 +53,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
        
       if(!matchingByCount.isEmpty()) {
         s.writeBeginIf("!argIt.hasNext()");
-        genericDispatchStrategy.beforePrimitiveIsCalled(s, i);
-        dispatchArityGroup(entry, s, matchingByCount);
+        dispatchArityGroup(entry, s, matchingByCount, genericDispatchStrategy);
         s.writeCloseBlock();
       }
       
@@ -67,12 +67,10 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     
     
     Collection<JvmMethod> matchingByCount = Collections2.filter(overloads, havingPositionalArgCountOf(maxArgumentCount));
-    genericDispatchStrategy.beforePrimitiveIsCalled(s, maxArgumentCount);
-    dispatchArityGroup(entry, s, matchingByCount);
+    genericDispatchStrategy.beforeTypeMatching(s, maxArgumentCount);
+    dispatchArityGroup(entry, s, matchingByCount, genericDispatchStrategy);
   }
     
-  
-  
   @Override
   protected Class[] getImplementedInterfaces(List<JvmMethod> overloads) {
     if( areStrict(overloads) && !hasVarArgs(overloads) ) {
@@ -106,7 +104,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
             s.writeStatement("SEXP s" + j + " = arguments[" + j + "]");
           }
           s.writeBeginTry();
-          dispatchArityGroup(entry, s, matchingByCount);
+          dispatchArityGroup(entry, s, matchingByCount, new GenericDispatchStrategy());
           s.writeCatch(Exception.class, "e");
           s.writeStatement("throw new EvalException(e)");
           s.writeCloseBlock();
@@ -132,7 +130,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
         
         s.writeBeginBlock(signature.toString());
         s.writeBeginTry();
-        dispatchArityGroup(entry, s, matchingByCount);
+        dispatchArityGroup(entry, s, matchingByCount, new GenericDispatchStrategy());
         s.writeCatch(Exception.class, "e");
         s.writeStatement("throw new EvalException(e)");
         s.writeCloseBlock();
@@ -200,13 +198,17 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
   }
   
   private GenericDispatchStrategy getGenericDispatchStrategy(Entry entry, List<JvmMethod> overloads) {
-    if(overloads.get(0).isGroupGeneric()) {
-      if (overloads.get(0).getGenericGroup().equals("Ops")) {
+    JvmMethod overload = overloads.get(0);
+    if(overload.isGroupGeneric()) {
+      if (overload.getGenericGroup().equals("Ops")) {
         return new OpsGroupGenericDispatchStrategy(entry.name);
+      } else if(overload.getGenericGroup().equals("Summary")) {
+        return new SummaryGroupGenericStrategy(entry.name);
       } else {
-        throw new GeneratorDefinitionException("Only 'Ops' @GenericGroup functions are supported at the moment");
+        throw new GeneratorDefinitionException("Group generic dispatch for group '" + overload.getGenericName() +
+            "' is not implemented");
       }
-    } else if(overloads.get(0).isGeneric()) {
+    } else if(overload.isGeneric()) {
       return new SimpleDispatchStrategy(entry.name);
     } else {
       return new GenericDispatchStrategy();
@@ -214,11 +216,12 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
   }
 
   
-  private void dispatchArityGroup(Entry entry, WrapperSourceWriter s, Collection<JvmMethod> overloads) {
+  private void dispatchArityGroup(Entry entry, WrapperSourceWriter s, Collection<JvmMethod> overloads,
+      GenericDispatchStrategy genericDispatchStrategy) {
     if(overloads.size() == 1) {
       JvmMethod overload = overloads.iterator().next();
       if(overload.getPositionalFormals().isEmpty()) {
-        generateCall(s, overload);
+        generateCall(s, overload, genericDispatchStrategy);
         return;
       }
     }
@@ -226,7 +229,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     IfElseSeries choice = new IfElseSeries(s, overloads.size());
     for(JvmMethod overload : overloads) {
       choice.elseIf(testCondition(overload));
-      generateCall(s, overload);
+      generateCall(s, overload, genericDispatchStrategy);
     }
     choice.finish();
     s.writeStatement(noMatchingOverloadErrorMessage(entry, overloads));
@@ -246,7 +249,8 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
   }
 
   
-  protected void generateCall(WrapperSourceWriter s, JvmMethod method) {
+  protected void generateCall(WrapperSourceWriter s, JvmMethod method, 
+      GenericDispatchStrategy genericDispatchStrategy) {
   
     s.writeComment("**** " + method.toString());
 
@@ -262,7 +266,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
         argumentList.add(contextualArgumentName(argument));
       
       } else if(argument.isAnnotatedWith(r.jvmi.annotations.ArgumentList.class)) {
-        argumentList.add("argList.build()");
+        argumentList.add("argList");
         varArgsSeen = true;
         
       } else {
@@ -296,18 +300,22 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     if(varArgsSeen) {
       s.writeBlankLine();
       s.writeComment("match var args");
-      s.writeStatement("ListVector.NamedBuilder argList = new ListVector.NamedBuilder();");
+      s.writeStatement("ListVector.NamedBuilder argListBuilder = new ListVector.NamedBuilder();");
       s.writeBeginBlock("while(argIt.hasNext()) { ");
       writeHandleNode(s, namedFlags);
       s.writeCloseBlock();     
+      s.writeStatement("ListVector argList = argListBuilder.build()");
     }
 
     s.writeBlankLine();
+    
+    genericDispatchStrategy.beforePrimitiveCalled(s);
     
     if(method.isRecycle()) {
       writeRecyclingCalls(s, method, argumentList, recycledArgs);
     } else { 
       s.writeComment("make call");
+      
       s.writeStatement(callStatement(method, argumentList));
     }
     if(method.returnsVoid()) {
@@ -340,14 +348,16 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
         }
          
         s.writeBeginBlock( (needElseIf ? "} else " : "") + "if(name.equals(\"" + namedFlag.getName() + "\")) {");
+        s.writeBeginIf("node.getValue() != Symbol.MISSING_ARG");
         s.writeStatement(ArgConverterStrategies.findArgConverterStrategy(namedFlag).conversionStatement(namedFlags.get(namedFlag), "evaled"));
+        s.writeCloseBlock();
         needElseIf = true;
       }
       s.outdent();
       s.writeBeginBlock("} else {");
     }
       
-    s.writeStatement("argList.add(node.getTag(), evaled);");
+    s.writeStatement("argListBuilder.add(node.getTag(), evaled);");
     
     if(!namedFlags.isEmpty()) {
       s.writeCloseBlock();
@@ -355,7 +365,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     
     s.outdent();
     s.writeBeginBlock("} else {");
-    s.writeStatement("argList.add(evaled);");
+    s.writeStatement("argListBuilder.add(evaled);");
     s.writeCloseBlock();
   }
   

@@ -103,7 +103,6 @@ public class Primitives {
     f("gettext", Text.class, 0, 11, 2);
     f("ngettext", Text.class, 0, 11, 4);
     f("bindtextdomain", Text.class, 0, 11, 2);
-
     f(".addCondHands", Conditions.class, 0, 111, 5);
     f(".resetCondHands", /*resetCondHands*/ null, 0, 111, 1);
     f(".signalCondition", Conditions.class, 0, 11, 3);

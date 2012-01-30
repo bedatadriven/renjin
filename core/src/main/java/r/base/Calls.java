@@ -75,7 +75,7 @@ public class Calls {
 //		return 0;
 
     //isOps = strcmp(group, "Ops") == 0;
-    isOps = true;
+    isOps = group.equals("Ops");
 
 //    /* try for formal method */
 //    if (length(args) == 1 && !IS_S4_OBJECT(CAR(args)))
@@ -254,19 +254,25 @@ public class Calls {
 
 
     PairList promisedArgs = promiseArgs(call.getArguments(), context, rho);
-    if (promisedArgs.length() != args.length())
+    if (promisedArgs.length() != args.length()) {
       throw new EvalException("dispatch error in group dispatch");
-
+    }
     if(promisedArgs != Null.INSTANCE) {
-      for (PairList.Node promised = (PairList.Node)promisedArgs,
-               evaluated = (PairList.Node)args; promised.hasNextNode();
-           promised=promised.getNextNode(), evaluated = evaluated.getNextNode()) {
+      PairList.Node promised = (PairList.Node)promisedArgs;
+      PairList.Node evaluated = (PairList.Node)args;
+      
+      while(true) {
 
         ((Promise)promised.getValue()).setResult(evaluated.getValue());
         /* ensure positional matching for operators */
         if (isOps) {
           promised.setTag(Null.INSTANCE);
         }
+        if(!promised.hasNextNode()) {
+          break;
+        }
+        promised = promised.getNextNode();
+        evaluated = evaluated.getNextNode();
       }
     }
 
@@ -582,6 +588,9 @@ public class Calls {
    * @return
    */
   public static StringVector computeDataClasses(SEXP exp) {
+    if(exp instanceof Promise) {
+      exp = ((Promise)exp).force();
+    }
     SEXP classAttribute = exp.getAttribute(Symbols.CLASS);
     if(classAttribute.length() > 0) {
       return (StringVector)classAttribute;

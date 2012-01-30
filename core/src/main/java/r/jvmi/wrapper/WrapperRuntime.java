@@ -230,6 +230,26 @@ public class WrapperRuntime {
 
     return Calls.DispatchGroup(group, call, name, newArgs, context, rho);
   }
-
+  
+  public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
+      String name, ListVector evaluatedArguments, boolean naRm) {
+    
+    // REpackage the evaluated arguments.
+    // this is ghastly but i don't think it will
+    // get better until Calls is refactored
+    
+    PairList.Builder newArgs = new PairList.Builder();
+    int varArgIndex = 0;
+    Symbol naRmName = Symbol.get("na.rm");
+    for(PairList.Node node : call.getArguments().nodes()) {
+      if(node.getRawTag() == naRmName) {
+        newArgs.add(node.getTag(), new LogicalVector(naRm));
+      } else {
+        newArgs.add(node.getRawTag(), evaluatedArguments.get(varArgIndex++));
+      }
+    }
+    
+    return Calls.DispatchGroup("Summary", call, name, newArgs.build(), context, rho);
+  }
 
 }

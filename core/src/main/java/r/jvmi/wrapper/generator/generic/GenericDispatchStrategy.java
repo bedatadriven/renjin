@@ -1,6 +1,5 @@
 package r.jvmi.wrapper.generator.generic;
 
-import r.jvmi.binding.JvmMethod;
 import r.jvmi.wrapper.WrapperSourceWriter;
 
 public class GenericDispatchStrategy {
@@ -9,8 +8,12 @@ public class GenericDispatchStrategy {
 
   }
 
-  public void beforePrimitiveIsCalled(WrapperSourceWriter s, int arity) {
+  public void beforeTypeMatching(WrapperSourceWriter s, int arity) {
 
   }
 
+  public void beforePrimitiveCalled(WrapperSourceWriter s) {
+    
+  }
+  
 }

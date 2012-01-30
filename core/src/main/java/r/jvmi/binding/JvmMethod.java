@@ -176,7 +176,8 @@ public class JvmMethod implements Comparable<JvmMethod> {
   }
   
   public boolean isGroupGeneric() {
-    return method.getDeclaringClass().getAnnotation(GroupGeneric.class) != null;
+    return method.getDeclaringClass().getAnnotation(GroupGeneric.class) != null ||
+        method.getAnnotation(GroupGeneric.class) != null;
   }
   
   public String getGenericGroup() {

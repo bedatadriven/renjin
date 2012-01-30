@@ -643,7 +643,7 @@ public class Combine {
     }
 
   
-  @Primitive("row")
+  @Primitive
   public static IntVector row(IntVector dims){
     IntVector.Builder data = new IntVector.Builder();
     if(dims.length()!=2){
@@ -660,7 +660,7 @@ public class Combine {
     return(result);
   }
   
-  @Primitive("col")
+  @Primitive
   public static IntVector col(IntVector dims){
     IntVector.Builder data = new IntVector.Builder();
     if(dims.length()!=2){

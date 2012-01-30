@@ -71,52 +71,52 @@ public class MathExt {
     return Math.abs(x);
   }
 
-  @Primitive("asinh")
+  @Primitive
   public static double asinh(double val) {
     return (Math.log(val + Math.sqrt(val * val + 1)));
   }
 
-  @Primitive("acosh")
+  @Primitive
   public static double acosh(double val) {
     return (Math.log(val + Math.sqrt(val + 1) * Math.sqrt(val - 1)));
   }
 
-  @Primitive("atanh")
+  @Primitive
   public static double atanh(double val) {
     return (0.5 * Math.log((1 + val) / (1 - val)));
   }
 
-  @Primitive("atan2")
+  @Primitive
   public static double atan2(double y, double x) {
     return (Math.atan2(y, x));
   }
 
-  @Primitive("signif")
+  @Primitive
   public static double signif(@Recycle double x, @Recycle int digits) {
     return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
 
-  @Primitive("expm1")
+  @Primitive
   public static double expm1(@Recycle double x) {
     return (Math.exp(x) - 1);
   }
 
-  @Primitive("log1p")
+  @Primitive
   public static double log1p(@Recycle double x) {
-    return (Math.log(1 + x));
+    return Math.log1p(x);
   }
 
-  @Primitive("beta")
+  @Primitive
   public static double beta(@Recycle double a, @Recycle double b) {
     return (Math.exp(Beta.logBeta(a, b)));
   }
 
-  @Primitive("lbeta")
+  @Primitive
   public static double lbeta(@Recycle double a, @Recycle double b) {
     return (Beta.logBeta(a, b));
   }
 
-  @Primitive("choose")
+  @Primitive
   public static double choose(@Recycle double n, @Recycle int k) {
     /*
      * Because gamma(a+1) = factorial(a)
@@ -135,7 +135,7 @@ public class MathExt {
     }
   }
 
-  @Primitive("lchoose")
+  @Primitive
   public static double lchoose(@Recycle double n, @Recycle int k) {
     return (Math.log(choose(n, k)));
   }
@@ -143,7 +143,7 @@ public class MathExt {
   
   // our wrapper generator gets confused by the two double & float overloads
   // of Math.round
-  @Primitive("round")
+  @Primitive
   public static double round(@Recycle double x) {
     return Math.round(x);
   }

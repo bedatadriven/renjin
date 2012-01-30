@@ -522,8 +522,8 @@ public class Sequences {
         && to <= Integer.MAX_VALUE && to >= Integer.MIN_VALUE;
   }
 
-  @Primitive("seq_along")
-  public static int[] seqAlong(SEXP exp) {
+  @Primitive
+  public static int[] seq_along(SEXP exp) {
     int indexes[] = new int[exp.length()];
     for(int i=0;i!=indexes.length;++i) {
       indexes[i] = i+1;
@@ -531,8 +531,8 @@ public class Sequences {
     return indexes;
   }
 
-  @Primitive("seq_len")
-  public static IntVector seqLength(int length) {
+  @Primitive
+  public static IntVector seq_len(int length) {
     IntVector.Builder result = new IntVector.Builder();
     for(int i=1;i<=length;++i) {
       result.add(i);

@@ -286,7 +286,7 @@ public class Optimizations {
    * @param upper
    * @return
    */
-  @Primitive("optim")
+  @Primitive
   public static ListVector optim(@Current Context context,
                              @Current Environment rho,
                              DoubleVector par,

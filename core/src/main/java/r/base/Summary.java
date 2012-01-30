@@ -46,12 +46,14 @@ public class Summary {
 
   private Summary() {}
 
+  @Primitive
   public static SEXP min(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
     return range(arguments, removeNA).getElementAsSEXP(0);
   }
 
+  @Primitive
   public static SEXP max(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
@@ -67,6 +69,7 @@ public class Summary {
    * @param removeNA indicating if NA's should be omitted.
    * @return a vector containing the minimum and maximum of all the given arguments.
    */
+  @Primitive
   public static Vector range(@ArgumentList ListVector arguments,
                            @NamedFlag("na.rm") boolean removeNA) {
 
@@ -159,6 +162,7 @@ public class Summary {
    * @param removeNA
    * @return
    */
+  @Primitive
   public static double prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
     double product = 1;
     for(SEXP argument : arguments) {
@@ -176,6 +180,7 @@ public class Summary {
     return product;
   }
 
+  @Primitive
   public static SEXP sum(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
     int intSum = 0;
     double doubleSum = 0;
@@ -227,6 +232,7 @@ public class Summary {
    * (including if there are no values). Otherwise the value is NA (which can only occur if na.rm = FALSE
    * and ... contains no TRUE values and at least one NA value).
    */
+  @Primitive
   public static Logical any(@ArgumentList ListVector arguments,
                             @NamedFlag("na.rm") boolean removeNA) {
 
@@ -257,6 +263,7 @@ public class Summary {
    * FALSE if at least one of the values in x is FALSE. Otherwise the value is NA (which can only occur if
    *  na.rm = FALSE and ... contains no FALSE values and at least one NA value).
    */
+  @Primitive
   public static Logical all(@ArgumentList ListVector arguments,
                             @NamedFlag("na.rm") boolean removeNA) {
 
@@ -276,7 +283,7 @@ public class Summary {
   }
   
   
-  @Primitive("mean")
+  @Primitive
   public static Vector mean(Vector x) {
     double mean = 0.0;
     for (int i=0;i<x.length();i++){
@@ -291,7 +298,7 @@ public class Summary {
   "all.obs", "complete.obs", "pairwise.complete", "everything", "na.or.complete"
       kendall = TRUE/FALSE)
   */
-  @Primitive("cov")
+  @Primitive
   public static Vector cov(Vector x, Vector y, int naMethod, boolean useKendall){
     if(y == null) {
       throw new UnsupportedOperationException("Covariance with x matrix only is not implemented yet");
@@ -320,7 +327,7 @@ public class Summary {
   }
   
   
-  @Primitive("cumsum")
+  @Primitive
   public static DoubleVector cumsum(Vector source) {
     DoubleVector.Builder result = new DoubleVector.Builder();
     double sum = source.getElementAsDouble(0);
@@ -336,7 +343,7 @@ public class Summary {
     return (result.build());
   }
 
-  @Primitive("cumprod")
+  @Primitive
   public static DoubleVector cumprod(Vector source) {
     DoubleVector.Builder result = new DoubleVector.Builder();
     double sum = source.getElementAsDouble(0);
@@ -352,7 +359,7 @@ public class Summary {
     return (result.build());
   }
 
-  @Primitive("cummax")
+  @Primitive
   public static DoubleVector cummax(Vector source) {
     DoubleVector.Builder result = new DoubleVector.Builder();
     double max = source.getElementAsDouble(0);
@@ -368,7 +375,7 @@ public class Summary {
     return (result.build());
   }
 
-  @Primitive("cummin")
+  @Primitive
   public static DoubleVector cummin(Vector source) {
     DoubleVector.Builder result = new DoubleVector.Builder();
     double min = source.getElementAsDouble(0);
@@ -384,7 +391,7 @@ public class Summary {
     return (result.build());
   }
 
-  @Primitive("pmin")
+  @Primitive
   public static Vector pmin(boolean naRm, @ArgumentList ListVector vectors) {
     ParallelProcessor processor = new ParallelProcessor(naRm, vectors) {
       @Override
@@ -395,7 +402,7 @@ public class Summary {
     return processor.compute();
   }
   
-  @Primitive("pmax")
+  @Primitive
   public static Vector pmax(boolean naRm, @ArgumentList ListVector vectors) {
     ParallelProcessor processor = new ParallelProcessor(naRm, vectors) {
       @Override

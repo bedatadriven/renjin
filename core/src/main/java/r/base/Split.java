@@ -19,7 +19,7 @@ public class Split {
    * @param factors
    * @return
    */
-  @Primitive("split")
+  @Primitive
   public static ListVector split(Vector toSplit, IntVector factors) {
     assert toSplit.length() == factors.length();
     

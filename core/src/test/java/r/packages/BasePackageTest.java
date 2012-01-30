@@ -434,4 +434,12 @@ public class BasePackageTest extends EvalTestCase {
     assertThat( eval("NA %in% FALSE"), equalTo(c(false)));
     assertThat( eval("NA %in% TRUE"), equalTo(c(false))); 
   }
+  
+  @Test
+  public void summaryForDataFrame() throws IOException {
+    assumingBasePackagesLoad();
+    eval(" x <-as.data.frame(list(x=1:10,y=11:20)) ");
+    
+    assertThat(eval("max(x)"), equalTo(c_i(20)));
+  }
 }

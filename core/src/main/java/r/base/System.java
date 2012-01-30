@@ -201,7 +201,7 @@ public class System {
     return result.build();
   }
   
-  @Primitive("date")
+  @Primitive
   public static StringVector date() {
     // R Style Date Format
     // Example in R: Fri Sep  9 12:20:00 2011 
@@ -269,7 +269,7 @@ public class System {
     }
   }
 
-  @Primitive("gc")
+  @Primitive
   public static DoubleVector gc(boolean verbose, boolean reset) {
     try {
       java.lang.System.gc();
@@ -377,7 +377,7 @@ public class System {
     return result.build();
   }
 
-  @Primitive("machine")
+  @Primitive
   public static String machine() {
     return "Unix";
   }

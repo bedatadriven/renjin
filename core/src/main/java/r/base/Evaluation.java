@@ -171,7 +171,7 @@ public class Evaluation {
     return doCall(context, (Function) function, arguments, environment);
   }
 
-  @Primitive("call")
+  @Primitive
   public static SEXP call(@Current Context context, @Current Environment rho, FunctionCall call) {
     if(call.length() < 1) {
       throw new EvalException("first argument must be character string");

@@ -83,7 +83,7 @@ public class RNG {
     }
   }
 
-  @Primitive("runif")
+  @Primitive
   public static DoubleVector runif(int n, double a, double b) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -92,7 +92,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rnorm")
+  @Primitive
   public static DoubleVector rnorm(int n, double mean, double sd) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -101,7 +101,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rgamma")
+  @Primitive
   public static DoubleVector rgamma(int n, double shape, double scale) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -110,7 +110,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rchisq")
+  @Primitive
   public static DoubleVector rchisq(int n, double df) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -119,7 +119,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rnchisq")
+  @Primitive
   public static DoubleVector rnchisq(int n, double df, double ncp) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -128,7 +128,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rexp")
+  @Primitive
   public static DoubleVector rexp(int n, double invrate) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -137,7 +137,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rpois")
+  @Primitive
   public static DoubleVector rpois(int n, double mu) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -146,7 +146,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rsignrank")
+  @Primitive
   public static DoubleVector rsignrank(int nn, double n) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < nn; i++) {
@@ -155,7 +155,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rwilcox")
+  @Primitive
   public static DoubleVector rwilcox(int nn, double m, double n) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < nn; i++) {
@@ -164,7 +164,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rgeom")
+  @Primitive
   public static DoubleVector rgeom(int n, double p) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -173,7 +173,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rt")
+  @Primitive
   public static DoubleVector rt(int n, double df) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -182,7 +182,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rccauchy")
+  @Primitive
   public static DoubleVector rcauchy(int n, double location, double scale) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -191,7 +191,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rlnorm")
+  @Primitive
   public static DoubleVector rlnorm(int n, double meanlog, double sdlog) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -200,7 +200,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rlogis")
+  @Primitive
   public static DoubleVector rlogis(int n, double location, double scale) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -209,7 +209,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rweibull")
+  @Primitive
   public static DoubleVector rweibull(int n, double shape, double scale) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -218,7 +218,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rnbinom")
+  @Primitive
   public static DoubleVector rnbinom(int n, double size, double prob) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -227,7 +227,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rnbinom_mu")
+  @Primitive
   public static DoubleVector rnbinom_mu(int n, double size, double mu) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -236,7 +236,7 @@ public class RNG {
     return (vb.build());
   }
   
-  @Primitive("rbinom")
+  @Primitive
   public static DoubleVector rbinom(int n, double size, double prob) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -246,7 +246,7 @@ public class RNG {
   }
   
   
-  @Primitive("rf")
+  @Primitive
   public static DoubleVector rf(int n, double df1, double df2) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -255,7 +255,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rbeta")
+  @Primitive
   public static DoubleVector rbeta(int n, double shape1, double shape2) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -264,7 +264,7 @@ public class RNG {
     return (vb.build());
   }
   
-  @Primitive("rhyper")
+  @Primitive
   public static DoubleVector rhyper(int nn, double m, double n, double k){
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {

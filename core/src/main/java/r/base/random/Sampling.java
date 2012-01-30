@@ -69,7 +69,7 @@ public class Sampling {
     return (resultb.build());
   }
 
-  @Primitive("sample")
+  @Primitive
   public static IntVector sample(int x, int size, boolean replace, SEXP prob) {
     double[] probs = new double[x];
     int mysize = size;

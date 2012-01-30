@@ -75,7 +75,7 @@ public class Deparse {
   
   public static String[] CONTROL_STATEMENTS = new String[] { "break", "next" };
   
-  @Primitive("deparse")
+  @Primitive
   @Recycle(false)
   public static String deparse(SEXP exp, int widthCutoff, boolean backTick, int options, int nlines) {
     return new DeparsingVisitor(exp).getResult();

@@ -520,4 +520,14 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat(eval(".Internal(intToBits(1))"), equalTo(c(rv.getAsRawArray())));
   }
 
+  @Test
+  public void isNaGeneric() {
+    
+    eval("x<-1");
+    eval("class(x) <- 'foo'");
+    
+    eval("is.na.foo <- function(x) 'FOO!!'");
+    assertThat(eval("is.na(x)"), equalTo(c("FOO!!")));
+  }
+  
 }

@@ -60,7 +60,7 @@ public class VarianceCalculator {
     double calculate(Variable x, Variable y);
   }
   
-  private class Pearson implements Method {
+  private class PearsonCorrelation implements Method {
     public double calculate(Variable x, Variable y) {
       double sum_xy = 0;
       double sum_x = 0;
@@ -90,6 +90,44 @@ public class VarianceCalculator {
           Math.sqrt(sum_x2 - ((sum_x*sum_x) / n) ) /
           Math.sqrt(sum_y2 - ((sum_y*sum_y) / n) ); 
     }
+  }
+  
+  private class SampleCovariance implements Method {
+
+    @Override
+    public double calculate(Variable x, Variable y) {
+      
+      // first pass, calculate means
+      double sum_x = 0;
+      double sum_y = 0;
+      double n = 0;
+      
+      for(int i=0;i!=x.observations;++i) {
+        double x_i = x.get(i);
+        double y_i = y.get(i);
+        if(missingStrategy.use(x_i, y_i, i)) {
+          sum_x += x_i;
+          sum_y += y_i;
+          n++;
+        }
+      }
+      
+      double mean_x = sum_x / n;
+      double mean_y = sum_y / n;
+      
+      // second pass, calculate sum of the products of the deviates
+      double sum_deviates = 0;
+      for(int i=0;i!=x.observations;++i) {
+        double x_i = x.get(i);
+        double y_i = y.get(i);
+        if(missingStrategy.use(x_i, y_i, i)) {
+          sum_deviates += (x_i-mean_x)*(y_i-mean_y);
+        }
+      }
+      
+      return sum_deviates / (n - 1d);
+    }
+    
   }
   
   private interface MissingStrategy {
@@ -131,7 +169,7 @@ public class VarianceCalculator {
 
     @Override
     public boolean use(double x, double y, int observationIndex) {
-      throw new UnsupportedOperationException("nyi");
+      return !DoubleVector.isNA(x) && !DoubleVector.isNA(y);
     }
     
   }
@@ -162,7 +200,7 @@ public class VarianceCalculator {
   private VariableSet x;
   private VariableSet y;
   private DoubleMatrixBuilder result;
-  private Method method = new Pearson();
+  private Method method;
   private MissingStrategy missingStrategy;
   
   public VarianceCalculator(AtomicVector x, AtomicVector y, int missingStrategy) {
@@ -177,6 +215,17 @@ public class VarianceCalculator {
       }
     }
     this.missingStrategy = createMissingStrategy(missingStrategy);
+  }
+  
+
+  public VarianceCalculator withCovarianceMethod() {
+    this.method = new SampleCovariance();
+    return this;
+  }
+
+  public VarianceCalculator withPearsonCorrelation() {
+    this.method = new PearsonCorrelation();
+    return this;
   }
   
   public DoubleVector calculate() {

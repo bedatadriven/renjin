@@ -124,8 +124,8 @@ public class Primitives {
     f("as.function.default", /*asfunction*/ null, 0, 11, 2, PP_FUNCTION, PREC_FN, 0);
 
     add(new AssignLeftFunction());
-    f("=", /*set*/ null, 3, 100, -1, PP_ASSIGN, PREC_EQ, 1);
-
+    add(new AssignFunction());
+    
     add(new ReassignLeftFunction());
     add(new BeginFunction());
     add(new ParenFunction());
@@ -552,14 +552,14 @@ public class Primitives {
 
 /* Type Checking (typically implemented in ./coerce.c ) */
 
-    f("is.null", Types.class, "isNull", 0 /*NILSXP*/, 1, 1);
-    f("is.logical", Types.class, "isLogical" ,0 /*LGLSXP*/, 1, 1);
-    f("is.integer", Types.class, "isInteger", 0 /*INTSXP*/, 1, 1);
-    f("is.real", Types.class, "isReal", 0/*REALSXP */, 1, 1);
-    f("is.double", Types.class, "isDouble", 0 /*REALSXP*/, 1, 1);
-    f("is.complex", Types.class, "isComplex", 0/*CPLXSXP*/, 1, 1);
-    f("is.character", Types.class,"isCharacter", 0 /*STRSXP*/, 1, 1);
-    f("is.symbol", Types.class, "isSymbol", 0 /*SYMSXP*/, 1, 1);
+    f("is.null", Types.class,  0 /*NILSXP*/, 1, 1);
+    f("is.logical", Types.class ,0 /*LGLSXP*/, 1, 1);
+    f("is.integer", Types.class, 0 /*INTSXP*/, 1, 1);
+    f("is.real", Types.class,  0/*REALSXP */, 1, 1);
+    f("is.double", Types.class, 0 /*REALSXP*/, 1, 1);
+    f("is.complex", Types.class, 0/*CPLXSXP*/, 1, 1);
+    f("is.character", Types.class, 0 /*STRSXP*/, 1, 1);
+    f("is.symbol", Types.class,  0 /*SYMSXP*/, 1, 1);
     f("is.environment", Types.class, "isEnvironment", 0/* ENVSXP */, 1, 1);
     f("is.list", Types.class,"isList", 0/* VECSXP */, 1, 1);
     f("is.pairlist", Types.class, "isPairList", 0 /*LISTSXP */, 1, 1);
@@ -568,24 +568,24 @@ public class Primitives {
 
     f("is.object", Types.class, 50, 1, 1);
 
-    f("is.numeric", Types.class, "isNumeric", 100, 1, 1);
+    f("is.numeric", Types.class,  100, 1, 1);
     f("is.matrix", Types.class, 101, 1, 1);
     f("is.array", Types.class, 102, 1, 1);
 
-    f("is.atomic", Types.class, "isAtomic", 200, 1, 1);
-    f("is.recursive", Types.class, "isRecursive",201, 1, 1);
+    f("is.atomic", Types.class, 200, 1, 1);
+    f("is.recursive", Types.class, 201, 1, 1);
 
-    f("is.call",  Types.class, "isCall", 300, 1, 1);
-    f("is.language", Types.class, "isLanguage",  301, 1, 1);
-    f("is.function", Types.class, "isFunction", 302, 1, 1);
+    f("is.call",  Types.class, 300, 1, 1);
+    f("is.language", Types.class, 301, 1, 1);
+    f("is.function", Types.class, 302, 1, 1);
 
-    f("is.single", Types.class,"isSingle", 999, 1, 1);
+    f("is.single", Types.class, 999, 1, 1);
 
     f("is.vector", Types.class, 0, 11, 2);
-    f("is.na", Types.class, "isNA", 0, 1, 1);
-    f("is.nan", Types.class, "isNaN", 0, 1, 1);
-    f("is.finite", Types.class, "isFinite", 0, 1, 1);
-    f("is.infinite", Types.class, "isInfinite",  0, 1, 1);
+    f("is.na", Types.class,  0, 1, 1);
+    f("is.nan", Types.class,  0, 1, 1);
+    f("is.finite", Types.class, 0, 1, 1);
+    f("is.infinite", Types.class, 0, 1, 1);
 
 
 /* Miscellaneous */

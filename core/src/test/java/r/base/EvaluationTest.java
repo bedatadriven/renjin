@@ -95,8 +95,14 @@ public class EvaluationTest extends EvalTestCase {
 
   @Test
   public void assign() throws IOException {
-    assertThat(eval("x<-2"), realVectorEqualTo(2));
-    assertThat(eval("x"), realVectorEqualTo(2));
+    assertThat(eval("x<-2"), equalTo(c(2)));
+    assertThat(eval("x"), equalTo(c(2)));
+  }
+  
+  @Test
+  public void oldAssign() {
+    assertThat(eval("x=2"), equalTo(c(2)));
+    assertThat(eval("x"), equalTo(c(2)));
   }
 
   @Test

@@ -27,6 +27,7 @@ import r.jvmi.annotations.GroupGeneric;
 import r.jvmi.annotations.NamedFlag;
 import r.jvmi.annotations.Primitive;
 import r.lang.AtomicVector;
+import r.lang.ComplexVector;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.ListVector;
@@ -150,6 +151,10 @@ public class Summary {
     private void addVector(SEXP argument) throws RangeContainsNA {
       AtomicVector vector = EvalException.checkedCast(argument);
  
+      if(vector instanceof ComplexVector) {
+        throw new EvalException("invalid 'type' (complex) of argument");
+      }
+      
       if(vector.getVectorType().isWiderThan(resultType)) {
         resultType = vector.getVectorType();
       }
@@ -343,41 +348,6 @@ public class Summary {
     return(new DoubleVector(new double[]{mean / x.length()}));
   }
   
-  
-  /* co[vr](x, y, use =
-    { 1,        2,      3,         4,       5  }
-  "all.obs", "complete.obs", "pairwise.complete", "everything", "na.or.complete"
-      kendall = TRUE/FALSE)
-  */
-  @Primitive
-  public static Vector cov(Vector x, Vector y, int naMethod, boolean useKendall){
-    if(y == null) {
-      throw new UnsupportedOperationException("Covariance with x matrix only is not implemented yet");
-    }
-    
-    if(useKendall){
-      throw new UnsupportedOperationException("Kendall method is not implemented yet");
-    }
-    
-    if(x.getAttribute(Symbols.DIM).asReal() > 1 && y.getAttribute(Symbols.DIM).asReal()>1){
-      throw new UnsupportedOperationException("Covariance with matrices is not implemented yet");
-    }
-       
-    /*
-     * That means, covariance is now variance
-     */
-    if(y.length() == 0) y = x;
-    
-    double meanx=mean(x).asReal();
-    double meany=mean(y).asReal();
-    double sum2 = 0.0;
-    for (int i=0;i<x.length();i++){
-      sum2 += (x.getElementAsDouble(i) -meanx) * (y.getElementAsDouble(i) -meany);
-    }
-    return(new DoubleVector(new double[]{sum2 /(x.length()-1)}));
-  }
-  
-  
   @Primitive
   public static DoubleVector cumsum(Vector source) {
     DoubleVector.Builder result = new DoubleVector.Builder();
@@ -564,8 +534,21 @@ public class Summary {
       throw new EvalException("kendall=true nyi");
     }
 
-    VarianceCalculator calculator = new VarianceCalculator(x, y, naMethod);
-    return calculator.calculate();
-    
+    return new VarianceCalculator(x, y, naMethod)
+        .withPearsonCorrelation()
+        .calculate();
   }
+  
+
+  @Primitive
+  public static Vector cov(AtomicVector x, AtomicVector y, int naMethod, boolean kendall) {
+    if(kendall) {
+      throw new EvalException("kendall=true nyi");
+    }
+
+    return new VarianceCalculator(x, y, naMethod)
+        .withCovarianceMethod()
+        .calculate();
+  }
+  
  }

@@ -231,4 +231,33 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   
     return topLevelContext.evaluate(call);
   }
+  
+  public FunctionCallBuilder invoke(String functionName) {
+    return new FunctionCallBuilder(functionName);
+  }
+  
+  public class FunctionCallBuilder {
+    
+    private Symbol function;
+    private PairList.Builder arguments = new PairList.Builder();
+    
+    private FunctionCallBuilder(String functionName) {
+      this.function = Symbol.get(functionName);
+    }
+    
+    public FunctionCallBuilder withArgument(Object argument) {
+      arguments.add(RuntimeConverter.INSTANCE.convertToR(argument));
+      return this;
+    }
+    
+    public FunctionCallBuilder withNamedArgument(String name, Object argument) {
+      arguments.add(name, RuntimeConverter.INSTANCE.convertToR(argument));
+      return this;
+    }
+    
+    public <S extends SEXP> S apply() {
+      FunctionCall call = new FunctionCall(function, arguments.build());
+      return (S)topLevelContext.evaluate(call);
+    }
+  }
 }

@@ -327,8 +327,7 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
 
     @Override
     public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
-//      return Double.compare(vector1.getElementAsDouble(index1), vector2.getElementAsDouble(index2));
-      throw new UnsupportedOperationException("Implement me!!!");
+      throw new UnsupportedOperationException("invalid comparison with complex values");
     }
 
     @Override

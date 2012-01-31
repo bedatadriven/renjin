@@ -81,73 +81,91 @@ import com.google.common.collect.Lists;
  */
 public class Types {
 
+  @Primitive("is.null")
   public static boolean isNull(SEXP exp) {
     return exp == Null.INSTANCE;
   }
 
+  @Primitive("is.logical")
   public static boolean isLogical(SEXP exp) {
     return exp instanceof LogicalVector;
   }
 
+  @Primitive("is.integer")
   public static boolean isInteger(SEXP exp) {
     return exp instanceof IntVector;
   }
 
+  @Primitive("is.real")
   public static boolean isReal(SEXP exp) {
     return exp instanceof DoubleVector;
   }
 
+  @Primitive("is.double")
   public static boolean isDouble(SEXP exp) {
     return exp instanceof DoubleVector;
   }
 
+  @Primitive("is.complex")
   public static boolean isComplex(SEXP exp) {
     return exp instanceof ComplexVector;
   }
 
   @Generic
+  @Primitive("is.character")
   public static boolean isCharacter(SEXP exp) {
     return exp instanceof StringVector;
   }
 
+  @Primitive("is.symbol")
   public static boolean isSymbol(SEXP exp) {
     return exp instanceof Symbol;
   }
 
+  @Primitive("is.environment")
   public static boolean isEnvironment(SEXP exp) {
     return exp instanceof Environment;
   }
 
+  @Primitive("is.expression")
   public static boolean isExpression(SEXP exp) {
     return exp instanceof Environment;
   }
 
+  @Primitive("is.list")
   public static boolean isList(SEXP exp) {
     return exp instanceof ListVector || exp.getClass() == PairList.Node.class;
   }
 
+  @Primitive("is.pairlist")
   public static boolean isPairList(SEXP exp) {
     return exp instanceof PairList;
   }
 
+  @Primitive("is.atomic")
   public static boolean isAtomic(SEXP exp) {
     return exp instanceof AtomicVector;
   }
 
+  @Primitive("is.recursive")
   public static boolean isRecursive(SEXP exp) {
     return exp instanceof Recursive;
   }
 
+  @Generic
+  @Primitive("is.numeric")
   public static boolean isNumeric(SEXP exp) {
     return (exp instanceof IntVector && !exp.inherits("factor"))
         || exp instanceof LogicalVector || exp instanceof DoubleVector;
   }
 
+  @Generic
   @Primitive("is.matrix")
   public static boolean isMatrix(SEXP exp) {
     return exp.getAttribute(Symbols.DIM).length() == 2;
   }
 
+  @Generic
   @Primitive("is.array")
   public static boolean isArray(SEXP exp) {
     return exp.getAttribute(Symbols.DIM).length() > 0;
@@ -187,24 +205,29 @@ public class Types {
     return exp.isObject();
   }
 
+  @Primitive("is.call")
   public static boolean isCall(SEXP exp) {
     return exp instanceof FunctionCall;
   }
 
+  @Primitive("is.language")
   public static boolean isLanguage(SEXP exp) {
     return exp instanceof Symbol || exp instanceof FunctionCall
         || exp instanceof ExpressionVector;
 
   }
 
+  @Primitive("is.function")
   public static boolean isFunction(SEXP exp) {
     return exp instanceof Function;
   }
 
+  @Primitive("is.single")
   public static boolean isSingle(SEXP exp) {
     throw new EvalException("type \"single\" unimplemented in R");
   }
-
+  
+  @Generic
   @Primitive("is.na")
   public static LogicalVector isNA(Vector list) {
     LogicalVector.Builder result = new LogicalVector.Builder(list.length());
@@ -218,18 +241,25 @@ public class Types {
     return result.build();
   }
 
+  @Generic
+  @Primitive("is.nan")
   public static boolean isNaN(@Recycle double value) {
     return DoubleVector.isNaN(value);
   }
 
+  @Generic
+  @Primitive("is.finite")
   public static boolean isFinite(@Recycle double value) {
     return !Double.isInfinite(value);
   }
 
+  @Generic
+  @Primitive("is.infinite")
   public static boolean isInfinite(@Recycle double value) {
     return Double.isInfinite(value);
   }
 
+  @Generic
   @Primitive("as.raw")
   public static RawVector asRaw(Vector source) {
     /*
@@ -248,7 +278,7 @@ public class Types {
     return (new LogicalVector(v.getVectorType() == RawVector.VECTOR_TYPE));
   }
 
-  @Primitive("rawToBits")
+  @Primitive
   public static RawVector rawToBits(RawVector rv) {
     RawVector.Builder b = new RawVector.Builder();
     Raw[] raws;
@@ -260,8 +290,8 @@ public class Types {
     }
     return (b.build());
   }
-
-  @Primitive("charToRaw")
+  
+  @Primitive
   public static RawVector charToRaw(StringVector sv) {
     RawVector.Builder b = new RawVector.Builder();
     if (sv.length() != 1) {
@@ -271,10 +301,10 @@ public class Types {
     for (int i = 0; i < sv.getElement(0).length(); i++) {
       b.add(new Raw(sv.getElement(0).charAt(i)));
     }
-    return (b.build());
+    return b.build();
   }
 
-  @Primitive("rawShift")
+  @Primitive
   public static RawVector rawShift(RawVector rv, int n) {
     if (n > Raw.NUM_BITS || n < (-1 * Raw.NUM_BITS)) {
       throw new EvalException("argument 'shift' must be a small integer");
@@ -296,7 +326,7 @@ public class Types {
    * !!Weird It is supposed to be an integer has four bytes! It is supposed to
    * be integer's byte order is big-endian!
    */
-  @Primitive("intToBits")
+  @Primitive
   public static RawVector intToBits(Vector rv) {
     RawVector.Builder b = new RawVector.Builder();
     RawVector.Builder reverseb = new RawVector.Builder();
@@ -323,16 +353,19 @@ public class Types {
   }
 
   @Generic
+  @Primitive("as.character")
   public static StringVector asCharacter(Vector source) {
     return (StringVector) convertVector(new StringVector.Builder(), source);
   }
 
   @Generic
+  @Primitive("as.character")
   public static StringVector asCharacter(Symbol symbol) {
     return new StringVector(symbol.getPrintName());
   }
 
   @Generic
+  @Primitive("as.character")
   public static StringVector asCharacter(Environment env) {
     Frame frame = env.getFrame();
     if (frame instanceof ObjectFrame) {
@@ -347,10 +380,11 @@ public class Types {
       }
     }
     throw new EvalException(
-        "unsurpported converter, onlyfor environment with  String or String[] ObjectFrame");
+        "unsupported converter, only for environment with  String or String[] ObjectFrame");
   }
 
   @Generic
+  @Primitive("as.logical")
   public static LogicalVector asLogical(Environment env) {
     Frame frame = env.getFrame();
     if (frame instanceof ObjectFrame) {
@@ -369,11 +403,14 @@ public class Types {
         "unsurpported converter,only environment with boolean\\boolean[] or Boolean\\Boolean[] ObjectFrame is implemented");
   }
 
+  @Generic
+  @Primitive("as.logical")
   public static LogicalVector asLogical(Vector vector) {
     return (LogicalVector) convertVector(new LogicalVector.Builder(), vector);
   }
 
   @Generic
+  @Primitive("as.integer")
   public static IntVector asInteger(Environment env) {
     Frame frame = env.getFrame();
     if (frame instanceof ObjectFrame) {
@@ -393,11 +430,13 @@ public class Types {
   }
 
   @Generic
+  @Primitive("as.integer")
   public static IntVector asInteger(Vector source) {
     return (IntVector) convertVector(new IntVector.Builder(), source);
   }
 
   @Generic
+  @Primitive("as.double")
   public static DoubleVector asDouble(Environment env) {
     Frame frame = env.getFrame();
     if (frame instanceof ObjectFrame) {
@@ -417,6 +456,7 @@ public class Types {
   }
 
   @Generic
+  @Primitive("as.double")
   public static DoubleVector asDouble(Vector source) {
     return (DoubleVector) convertVector(new DoubleVector.Builder(), source);
   }
@@ -428,11 +468,13 @@ public class Types {
     return builder.build();
   }
   
+  @Generic
   @Primitive("as.complex")
-  public static Complex asComplex(double x){
+  public static Complex asComplex(@Recycle double x){
     return new Complex(x,0);
   }
   
+  @Generic
   @Primitive("as.vector")
   public static SEXP asVector(Vector x, String mode) {
     Vector.Builder result;
@@ -475,6 +517,7 @@ public class Types {
     return result.build();
   }
 
+  @Generic
   @Primitive("as.vector")
   public static SEXP asVector(PairList x, String mode) {
     Vector.Builder result;
@@ -537,7 +580,7 @@ public class Types {
     return arg;
   }
 
-  @Primitive("list2env")
+  @Primitive
   public static ListVector env2list(Environment env, boolean allNames) {
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     for(Symbol name : env.getSymbolNames()) {
@@ -560,7 +603,7 @@ public class Types {
     return result;
   }
   
-  @Primitive("environmentName")
+  @Primitive
   public static String environmentName(Environment env) {
     return env.getName();
   }
@@ -577,6 +620,7 @@ public class Types {
     return environment;
   }
 
+  @Primitive
   public static StringVector ls(Environment environment, boolean allNames) {
     StringVector.Builder names = new StringVector.Builder();
     if (environment.getFrame() instanceof ClassFrame) {
@@ -596,23 +640,28 @@ public class Types {
     }
     return names.build();
   }
-
+  
+  @Primitive
   public static void lockEnvironment(Environment env, boolean bindings) {
     env.lock(bindings);
   }
 
+  @Primitive
   public static void lockBinding(Symbol name, Environment env) {
     env.lockBinding(name);
   }
 
+  @Primitive
   public static void unlockBinding(Symbol name, Environment env) {
     env.unlockBinding(name);
   }
 
+  @Primitive
   public static boolean environmentIsLocked(Environment env) {
     return env.isLocked();
   }
 
+  @Primitive
   public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual,
       boolean singleNA, boolean attributesAsSet) {
     if (!numericallyEqual || !singleNA || !attributesAsSet) {
@@ -652,12 +701,13 @@ public class Types {
     return libEnv;
   }
 
-  @Primitive("dim")
   @Generic
+  @Primitive("dim")
   public static SEXP getDimensions(SEXP sexp) {
     return sexp.getAttribute(Symbols.DIM);
   }
 
+  @Generic
   @Primitive("dim<-")
   public static SEXP setDimensions(SEXP exp, AtomicVector vector) {
     int dim[] = new int[vector.length()];
@@ -681,7 +731,8 @@ public class Types {
   public static SEXP getDimensionNames(SEXP exp) {
     return exp.getAttribute(Symbols.DIMNAMES);
   }
-
+  
+  @Generic
   @Primitive("dimnames<-")
   public static SEXP setDimensionNames(@Current Context context, SEXP exp, ListVector dimnames) {
     Vector dim = (Vector) exp.getAttribute(Symbols.DIM);
@@ -700,6 +751,7 @@ public class Types {
     return exp.setAttribute(Symbols.DIMNAMES, dn.build());
   }
 
+  @Primitive
   public static PairList attributes(SEXP sexp) {
     return sexp.getAttributes();
   }
@@ -736,14 +788,17 @@ public class Types {
     }
   }
 
+  @Primitive
   public static ListVector list(@ArgumentList ListVector arguments) {
     return arguments;
   }
 
+  @Primitive
   public static Environment environment(@Current Context context) {
     return context.getGlobalEnvironment();
   }
 
+  @Primitive
   public static SEXP environment(@Current Environment rho, SEXP exp) {
     if (exp == Null.INSTANCE) {
       // if the user passes null, we return the current exp
@@ -764,47 +819,57 @@ public class Types {
     }
   }
 
+  @Primitive
   public static PairList formals(Closure closure) {
     return closure.getFormals();
   }
 
-  @Primitive("body")
+  @Primitive
   public static SEXP body(Closure closure) {
     return closure.getBody();
   }
 
+  @Primitive
   public static Environment newEnv(boolean hash, Environment parent, int size) {
     return Environment.createChildEnvironment(parent);
   }
 
+  @Primitive
   public static Environment baseenv(@Current Environment rho) {
     return rho.getBaseEnvironment();
   }
 
+  @Primitive
   public static Environment emptyenv(@Current Environment rho) {
     return rho.getBaseEnvironment().getParent();
   }
 
+  @Primitive
   public static Environment globalenv(@Current Context context) {
     return context.getGlobalEnvironment();
   }
 
+  @Primitive
   public static boolean exists(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
     return environment.findVariable(Symbol.get(x), modePredicate(mode),
         inherits) != Symbol.UNBOUND_VALUE;
   }
 
+  @Primitive
   public static SEXP get(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
     return environment.findVariable(Symbol.get(x), modePredicate(mode),
         inherits);
   }
 
+  @Generic
+  @Primitive
   public static int length(SEXP exp) {
     return exp.length();
   }
 
+  @Primitive
   public static SEXP vector(String mode, int length) {
     if ("logical".equals(mode)) {
       return new LogicalVector(new int[length]);
@@ -868,6 +933,7 @@ public class Types {
     return builder.copyAttributesFrom(source).build();
   }
 
+  @Primitive
   public static String typeof(SEXP exp) {
     return exp.getTypeName();
   }
@@ -1026,6 +1092,7 @@ public class Types {
     return exp.setAttribute(Symbols.CLASS, classes);
   }
 
+  @Primitive
   public static SEXP unclass(SEXP exp) {
     return exp.setAttribute("class", Null.INSTANCE);
   }
@@ -1035,6 +1102,7 @@ public class Types {
     return exp.setAttribute(which, value);
   }
 
+  @Primitive
   public static SEXP oldClass(SEXP exp) {
     if (!exp.hasAttributes()) {
       return Null.INSTANCE;
@@ -1042,6 +1110,7 @@ public class Types {
     return exp.getAttribute(Symbols.CLASS);
   }
 
+  @Primitive
   public static boolean inherits(SEXP exp, StringVector what) {
     StringVector classes = getClass(exp);
     for (String whatClass : what) {
@@ -1052,10 +1121,12 @@ public class Types {
     return false;
   }
 
+  @Primitive
   public static boolean inherits(SEXP exp, String what) {
     return Iterables.contains(getClass(exp), what);
   }
 
+  @Primitive
   public static SEXP inherits(SEXP exp, StringVector what, boolean which) {
     if (!which) {
       return new LogicalVector(inherits(exp, what));
@@ -1070,16 +1141,19 @@ public class Types {
     return new IntVector(result);
   }
 
+  @Primitive
   public static SEXP invisible(@Current Context context, SEXP value) {
     context.setInvisibleFlag();
     return value;
   }
 
+  @Primitive
   public static SEXP invisible(@Current Context context) {
     context.setInvisibleFlag();
     return Null.INSTANCE;
   }
 
+  @Primitive
   public static StringVector search(@Current Context context) {
     List<String> names = Lists.newArrayList();
     Environment env = context.getGlobalEnvironment();
@@ -1130,10 +1204,12 @@ public class Types {
     return newEnv;
   }
 
+  @Primitive
   public static String Encoding(StringVector vector) {
     return "UTF-8";
   }
 
+  @Primitive
   public static StringVector setEncoding(StringVector vector,
       String encodingName) {
     if (encodingName.equals("UTF-8") || encodingName.equals("unknown")) {
@@ -1143,7 +1219,8 @@ public class Types {
           "Only UTF-8 and unknown encoding are supported at this point");
     }
   }
-
+  
+  @Primitive
   public static boolean isFactor(SEXP exp) {
     return exp instanceof IntVector && exp.inherits("factor");
   }
@@ -1182,6 +1259,7 @@ public class Types {
     return true;
   }
 
+  @Primitive
   public static ListVector options(@Current Context context,
       @ArgumentList ListVector arguments) {
     Context.Options options = context.getGlobals().options;
@@ -1231,6 +1309,7 @@ public class Types {
    * returns a vector of type "expression" containing its arguments
    * (unevaluated).
    */
+  @Primitive
   public static ExpressionVector expression(@ArgumentList ListVector arguments) {
     return new ExpressionVector(arguments);
   }

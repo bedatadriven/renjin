@@ -441,6 +441,6 @@ public class BasePackageTest extends EvalTestCase {
     eval(" x <-as.data.frame(list(x=1:10,y=11:20)) ");
     
     assertThat(eval("max(x)"), equalTo(c_i(20)));
-    
   }
+  
 }

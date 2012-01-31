@@ -21,22 +21,17 @@
 
 package r.lang;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import org.apache.commons.math.complex.Complex;
-
-import r.lang.IntVector.Builder;
-import r.parser.ParseUtil;
-import r.util.collect.PrimitiveArrays;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.naming.InitialContext;
+import org.apache.commons.math.complex.Complex;
+
+import r.parser.ParseUtil;
+import r.util.collect.PrimitiveArrays;
 
 public final class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
-
+  
   public static final String TYPE_NAME = "double";
 
   public static final Vector.Type VECTOR_TYPE = new DoubleType();
@@ -308,7 +303,15 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
       return Double.toString(values[0]);
     } else {
       StringBuilder sb = new StringBuilder("c(");
-      Joiner.on(", ").appendTo(sb, Iterables.transform(this, new ParseUtil.RealPrinter()));
+      for(int i=0;i!=Math.min(5,length());++i) {
+        if(i > 0) {
+          sb.append(", ");
+        }
+        sb.append(ParseUtil.toString(getElementAsDouble(i)));
+      }
+      if(length() > 5) {
+        sb.append(",... ").append(length()).append(" elements total");
+      }
       return sb.append(")").toString();
     }
   }

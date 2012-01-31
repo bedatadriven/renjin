@@ -64,5 +64,17 @@ public interface PromisePairList extends PairList {
         return head;
       }
     } 
+    
+    public static PromisePairList fromList(ListVector vector) {
+      Builder list = new Builder();
+      for(NamedValue namedValue : vector.namedValues()) {
+        if(namedValue.hasName()) {
+          list.add(Symbol.get(namedValue.getName()), Promise.repromise(namedValue.getValue()));
+        } else {
+          list.add(Null.INSTANCE, Promise.repromise(namedValue.getValue()));
+        }
+      }
+      return list.build();
+    }
   }
 }

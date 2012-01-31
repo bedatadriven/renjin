@@ -21,17 +21,40 @@
 
 package r.base;
 
+import java.util.List;
+
+import r.jvmi.annotations.ArgumentList;
+import r.jvmi.annotations.Current;
+import r.jvmi.annotations.NamedFlag;
+import r.jvmi.annotations.Primitive;
+import r.lang.AtomicVector;
+import r.lang.ComplexVector;
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.ExpressionVector;
+import r.lang.FunctionCall;
+import r.lang.Indexes;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.LogicalVector;
+import r.lang.NamedValue;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.Promise;
+import r.lang.PromisePairList;
+import r.lang.SEXP;
+import r.lang.SexpVisitor;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Symbols;
+import r.lang.Vector;
+import r.lang.exception.EvalException;
+
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.NamedFlag;
-import r.lang.*;
-import r.lang.exception.EvalException;
-
-import java.util.List;
-import r.jvmi.annotations.Primitive;
 
 /**
  * Implementation of the combine-related functions, including c(), list(), unlist(),
@@ -369,10 +392,16 @@ public class Combine {
    * @return  a matrix combining the ... arguments column-wise or row-wise.
    * (Exception: if there are no inputs or all the inputs are NULL, the value is NULL.)
    */
-  public static SEXP rbind(@ArgumentList ListVector arguments) {
+  public static SEXP rbind(@Current Context context, @Current Environment rho, 
+      int deparseLevel, @ArgumentList ListVector arguments) {
 
+    SEXP genericResult = tryBindDispatch(context, rho, "rbind", deparseLevel, arguments);
+    if(genericResult != null) {
+      return genericResult;
+    }
+    
     List<BindArgument> bindArguments = Lists.newArrayList();
-    for(int i=1;i!=arguments.length();++i) {
+    for(int i=0;i!=arguments.length();++i) {
       Vector argument = EvalException.checkedCast(arguments.getElementAsSEXP(i));
       if(argument.length() != 0) {
         bindArguments.add(new BindArgument(argument, true));
@@ -455,8 +484,14 @@ public class Combine {
    * @param arguments  the expressions to combined
    * @return  a matrix combining the ... arguments column-wise or row-wise.
    */
-  public static SEXP cbind(int deparseLevel, @ArgumentList ListVector arguments) {
+  public static SEXP cbind(@Current Context context, @Current Environment rho,
+      int deparseLevel, @ArgumentList ListVector arguments) {
 
+    SEXP genericResult = tryBindDispatch(context, rho, "cbind", deparseLevel, arguments);
+    if(genericResult != null) {
+      return genericResult;
+    }
+    
     List<BindArgument> bindArguments = Lists.newArrayList();
     for(SEXP arg : arguments) {
       Vector argument = EvalException.checkedCast(arg);
@@ -570,7 +605,69 @@ public class Combine {
       }
     }
   }
+  
+  /**
+   *    The method dispatching is _not_ done via ‘UseMethod()’, but by
+     C-internal dispatching.  Therefore there is no need for, e.g.,
+     ‘rbind.default’.
 
+     <p>The dispatch algorithm is described in the source file
+     (‘.../src/main/bind.c’) as
+
+    <ol>
+     <li>For each argument we get the list of possible class
+          memberships from the class attribute.</li>
+
+       <li>We inspect each class in turn to see if there is an
+          applicable method.</li>
+
+       <li>If we find an applicable method we make sure that it is
+          identical to any method determined for prior arguments.  If
+          it is identical, we proceed, otherwise we immediately drop
+          through to the default code.</li>
+      </ol>
+    
+   * @param functionName
+   * @param arguments
+   * @return
+   */
+  private static SEXP tryBindDispatch(Context context, Environment rho, 
+      String bindFunctionName, int deparseLevel, ListVector arguments) {
+    
+    Symbol foundMethod = null;
+    r.lang.Function foundFunction = null;
+    
+    for(SEXP argument : arguments) {
+      Vector classes = (Vector) argument.getAttribute(Symbols.CLASS);
+      for(int i=0;i!=classes.length();++i) {
+        Symbol methodName = Symbol.get(bindFunctionName + "." + classes.getElementAsString(i));
+        r.lang.Function function = rho.findFunction(methodName);
+        if(function != null) {
+          if(foundMethod != null && methodName != foundMethod) {
+            // conflicting overloads,
+            // drop into default function
+            return null;
+          } 
+          foundMethod = methodName;
+          foundFunction = function;
+        }
+      }
+    }
+    
+    if(foundFunction == null) {
+      // no methods found, drop thru to default
+      return null;
+    }
+    
+    // build a new FunctionCall object and apply
+   PairList.Builder args = new PairList.Builder();
+   args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntVector(deparseLevel)));
+   args.addAll(arguments);
+   
+   FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), args.build());
+   return foundFunction.apply(context, rho, call, call.getArguments());
+  }
+  
   /**
    * Builds a two-dimensional matrix using an underlying {@link Vector.Builder}
    */

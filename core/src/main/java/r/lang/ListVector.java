@@ -290,18 +290,17 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("ListVector{");
-    sb.append("length=").append(length()).append(", elements=[");
-    for(int i=0;i<Math.min(length(), 5);++i) {
+    StringBuilder sb = new StringBuilder("list(");
+    for(int i=0;i<Math.min(length(), 20);++i) {
       if(i!=0) {
         sb.append(", ");
       }
       sb.append(getElementAsSEXP(i));
     }
-    if(length() > 5) {
-      sb.append(", ...");
+    if(length() > 20) {
+      sb.append(", ...").append(length()).append(" elements total");
     }
-    sb.append("]}");
+    sb.append(")");
     return sb.toString();
   }
 

@@ -20,14 +20,14 @@
  */
 package r.base;
 
-import org.junit.Test;
-import r.EvalTestCase;
-import r.lang.IntVector;
-import r.lang.Logical;
-import r.lang.SEXP;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
+
+import r.EvalTestCase;
+import r.lang.Logical;
+import r.lang.SEXP;
 
 public class CombineTest extends EvalTestCase {
 
@@ -182,4 +182,27 @@ public class CombineTest extends EvalTestCase {
   public void colTest() {
     assertThat(eval(".Internal(col(dim(.Internal(matrix(1:12,3,4, FALSE,NULL)))))"), equalTo(c_i(1,1,1,2,2,2,3,3,3,4,4,4)));
   }
+  
+  @Test
+  public void bindDispatch() {
+    eval("rbind.foo <- function(..., deparse.level = 1) 42L ");
+    eval("rbind.bar <- function(..., deparse.level = 1) c(...)*2 ");
+
+    eval("x <- 1");
+    eval("class(x) <- 'foo'");
+    
+    eval("y <- 2");
+    
+    eval("z <- 3");
+    eval("class(z) <- 'bar'");
+    
+    assertThat(eval(".Internal(rbind(1, x, y))"), equalTo(c_i(42)));
+    assertThat(eval(".Internal(rbind(1, y, x))"), equalTo(c_i(42)));
+    
+    assertThat(eval(".Internal(rbind(1, x, y, z))"), equalTo(c(1,2,3))); // default method
+    
+    assertThat(eval(".Internal(rbind(1, y, z))"), equalTo(c(4, 6))); // default method
+    
+  }
+  
 }

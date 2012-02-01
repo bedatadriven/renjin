@@ -125,25 +125,25 @@
 
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
         <executions>
-
-          <!-- Generate wrapper for the primitives in the base package -->
           <execution>
-            <id>compile-base-package</id>
+            <id>package-jar-with-dependencies</id>
+            <phase>package</phase>
             <goals>
-              <goal>exec</goal>
+              <goal>single</goal>
             </goals>
-            <phase>process-classes</phase>
             <configuration>
-              <executable>java</executable>
-              <arguments>
-                <argument>-classpath</argument>
-                <classpath />
-                <argument>r.jvmi.wrapper.WrapperGenerator</argument>
-              </arguments>
+              <appendAssemblyId>true</appendAssemblyId>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+              <archive>
+                <manifest>
+                  <mainClass>r.interpreter.StandardConsole</mainClass>
+                </manifest>
+              </archive>
             </configuration>
           </execution>
         </executions>

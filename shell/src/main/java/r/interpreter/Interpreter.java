@@ -58,6 +58,34 @@ public class Interpreter implements Runnable {
     }
   }
 
+  /**
+   * A decorator(?) around a standard reader that looks for special characters
+   * (up, down, Ctrl-D) and catches those, and passes everything else along.
+   * @author jamie
+   *
+   */
+  public static class ConsoleReader extends Reader{
+    private Reader x;
+
+    public ConsoleReader(Reader x){
+      this.x=x;
+    }
+
+    @Override
+    public int read(char[] cbuf, int off, int len) throws IOException {
+      int count = x.read(cbuf, off, len);
+      
+      return count;
+    }
+
+    @Override
+    public void close() throws IOException {
+      x.close();
+      
+    }
+  }
+  
+  
   @Override
   public void run() {
 
@@ -83,9 +111,6 @@ public class Interpreter implements Runnable {
 
       try {
         
-        
-        parser.parse();
-
         SEXP exp = parser.getResult();
         if(exp == null) {
           continue;

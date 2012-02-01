@@ -32,9 +32,13 @@ public class StandardConsole implements Console{
   private final PrintStream err;
 
   public StandardConsole() {
-    in = new InputStreamReader(System.in);
-    out = System.out;
-    err = System.err;
+    this(new InputStreamReader(System.in),System.out,System.err);
+  }
+  
+  public StandardConsole(Reader in,PrintStream out, PrintStream err){
+    this.in = in;
+    this.out = out;
+    this.err = err;
   }
 
   @Override

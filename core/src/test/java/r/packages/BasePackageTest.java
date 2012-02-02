@@ -185,6 +185,16 @@ public class BasePackageTest extends EvalTestCase {
     eval("nl <- length(ll <- levels(cat))");
     
     assertThat( eval("nl"), equalTo(c_i(3)));
+  
+    eval("exclude <- NA");
+    eval("exclude <- as.vector(exclude, typeof(c(1,2,NA)))");
+    assertThat(eval("is.na(exclude)"), equalTo(c(true)));
+    
+    // ensure that NA is NOT added as a level
+    eval(" cat <- factor(c(1,2,NA)) ");
+    assertThat( eval("levels(cat)"), equalTo(c("1", "2")));
+    
+  
   }
   
 
@@ -442,5 +452,6 @@ public class BasePackageTest extends EvalTestCase {
     
     assertThat(eval("max(x)"), equalTo(c_i(20)));
   }
+ 
   
 }

@@ -247,6 +247,9 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
         sb.append(getElementAsInt(i)).append("L");
       }
     }
+    if(length() > 5) {
+      sb.append("...").append(length()).append(" elements total");
+    }
     sb.append(")");
     return sb.toString();
   }

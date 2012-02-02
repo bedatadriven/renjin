@@ -1,5 +1,7 @@
 package r.base.variance;
 
+import java.util.BitSet;
+
 import r.base.matrix.DoubleMatrixBuilder;
 import r.lang.AtomicVector;
 import r.lang.DoubleVector;
@@ -58,6 +60,7 @@ public class VarianceCalculator {
   
   private interface Method {
     double calculate(Variable x, Variable y);
+    double calculate(Variable x);
   }
   
   private class PearsonCorrelation implements Method {
@@ -89,6 +92,11 @@ public class VarianceCalculator {
       return (sum_xy - ((sum_x*sum_y)/n)) / 
           Math.sqrt(sum_x2 - ((sum_x*sum_x) / n) ) /
           Math.sqrt(sum_y2 - ((sum_y*sum_y) / n) ); 
+    }
+
+    @Override
+    public double calculate(Variable x) {
+      return 1.0;
     }
   }
   
@@ -126,6 +134,11 @@ public class VarianceCalculator {
       }
       
       return sum_deviates / (n - 1d);
+    }
+
+    @Override
+    public double calculate(Variable x) {
+      return calculate(x, x);
     }
     
   }
@@ -191,9 +204,30 @@ public class VarianceCalculator {
   
   private final class NaOrComplete implements MissingStrategy {
 
+    private BitSet incomplete;
+    
+    public NaOrComplete(VariableSet x, VariableSet y) {
+      incomplete = new BitSet(x.observations);
+      markMissing(x);
+      markMissing(y);
+    }
+    
+    private void markMissing(VariableSet x) {
+      if(x != null) {
+        for(int i=0;i!=x.variables;++i) {
+          Variable variable = x.getVariable(i);
+          for(int j=0;j!=x.observations;++j) {
+            if(DoubleVector.isNA(variable.get(j))) {
+              incomplete.set(j, false);
+            }
+          }
+        }
+      }
+    }
+    
     @Override
     public boolean use(double x, double y, int observationIndex) {
-      throw new UnsupportedOperationException("nyi");
+      return !incomplete.get(observationIndex);
     }
   }
   
@@ -240,7 +274,7 @@ public class VarianceCalculator {
     result = new DoubleMatrixBuilder(this.x.variables, this.x.variables);
     int nVars = x.variables;
     for(int i=0;i!=nVars;++i) {
-      result.set(i, i, 1.0);
+      result.set(i, i, method.calculate(x.getVariable(i)));
       for(int j=i+1;j<nVars;++j) {
         double value = method.calculate(x.getVariable(i), x.getVariable(j));
         result.setValue(i, j, value);
@@ -278,7 +312,7 @@ public class VarianceCalculator {
       case 4:
         return new Everything();
       case 5:
-        return new NaOrComplete();
+        return new NaOrComplete(x, y);
       default:
           throw new IllegalArgumentException("missingStrategy = " + index);
     }

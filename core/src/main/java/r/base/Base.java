@@ -333,7 +333,7 @@ public class Base {
     if (rcond.val < tol.get(0)) {
       throw new EvalException("system is computationally singular: reciprocal condition number = " + rcond.val);
     }
-    return new DoubleVector(Bcontent);
+    return new DoubleVector(Bcontent, Bin.getAttributes());
   }
   
   /**

@@ -69,7 +69,12 @@ public class Match {
       if( incomparables.contains(search, i)) {
         matches[i] = noMatch;
       } else {
-        int pos = table.indexOf(search, i, 0);
+        int pos;
+        if(search.isElementNA(i)) {
+          pos = table.indexOfNA();
+        } else {
+          pos = table.indexOf(search, i, 0);
+        }
         matches[i] = pos >= 0 ? pos+1 : noMatch;
       }
     }

@@ -128,10 +128,13 @@ public class MatrixTest extends EvalTestCase {
   
   @Test
   public void testSolve() throws IOException {
-
-    assertThat(eval("solve(matrix(c(1,3,7,6),2,2))"), closeTo(matrix(
+    eval("x <- solve(matrix(c(1,3,7,6),2,2))");
+    
+    assertThat(eval("x"), closeTo(matrix(
         row(-0.4,  0.46666667),
         row( 0.2, -0.06666667)), 0.0000001));
+    
+    assertThat(eval("dim(x)"), equalTo(c_i(2,2)));
   }
   
   @Test(expected = r.lang.exception.EvalException.class)

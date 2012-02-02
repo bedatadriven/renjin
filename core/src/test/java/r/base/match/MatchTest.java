@@ -45,6 +45,13 @@ public class MatchTest extends EvalTestCase {
   public void matchStrings() {
     assertThat( eval( ".Internal(match( c(1,2), c('z', 'y', '1', '2'), NA_integer_, FALSE)) "), equalTo( c_i(3, 4)));
   }
+  
+
+  @Test
+  public void matchNA() {
+    assertThat( eval(" .Internal(match(as.character(c(1,2,NA)), NA_real_, NA_integer_, NULL))"), equalTo(c(0)));
+    
+  }
 
   @Test
   public void pmatch() {
@@ -75,6 +82,5 @@ public class MatchTest extends EvalTestCase {
     assertThat( eval(" .Internal(duplicated(c(1,2,3,3), FALSE, FALSE)) "), equalTo( c(false,false,false,true)) );
     assertThat( eval(" .Internal(duplicated(c(2,2,3,3), FALSE, TRUE)) "), equalTo( c(true, false,true,false) ));
   }
-
   
 }

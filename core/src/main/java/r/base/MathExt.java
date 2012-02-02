@@ -23,17 +23,13 @@ package r.base;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import org.apache.commons.math.MathException;
+
 import org.apache.commons.math.special.Beta;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
 
 import r.jvmi.annotations.Primitive;
 import r.jvmi.annotations.Recycle;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Symbol;
-import r.lang.Vector;
 
 /**
  * Math functions not found in java.Math or apache commons math
@@ -147,4 +143,17 @@ public class MathExt {
   public static double round(@Recycle double x) {
     return Math.round(x);
   }
+  
+  /**
+   * TODO in R, trunc also works on Dates.
+   * @param x
+   * @return
+   */
+  @Primitive("trunc")
+  public static double truncate(double x){
+    return Math.floor(x);
+  }
+  
+  
+  
 }

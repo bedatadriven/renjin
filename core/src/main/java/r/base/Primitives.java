@@ -285,7 +285,7 @@ public class Primitives {
     f("ceiling", Math.class, "ceil", 2, 1, 1);
     f("sqrt", Math.class, 3, 1, 1);
     f("sign", Math.class, "signum", 4, 1, 1);
-    f("trunc", /*trunc*/ null, 5, 1, -1);
+    f("trunc", MathExt.class, 5, 1, -1);
     
     f("exp", Math.class, 10, 1, 1);
     f("expm1", MathExt.class, 11, 1, 1);

@@ -171,4 +171,14 @@ public class MathTest extends EvalTestCase {
   public void roundRecycles() {
     assertThat(eval("round(c(0.6,1.2,0.3))"), equalTo(c(1,1,0)));
   }
+  
+  @Test
+  public void truncateLessThanHalf() {
+    assertThat(eval("trunc(1.1)").asReal(), equalTo(1.0));
+  }
+  
+  @Test
+  public void truncateGreaterThanHalf() {
+    assertThat(eval("trunc(1.6)").asReal(), equalTo(1.0));
+  }
 }

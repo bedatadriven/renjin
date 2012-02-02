@@ -9,5 +9,12 @@ public class NullSubscript extends Subscript {
   @Override
   public int getCount() {
      return 0;
+  }
+
+  @Override
+  public int getAt(int i) {
+    throw new IllegalArgumentException("a null subscript selects no elements (i=" + i + ")");
   }  
+  
+  
 }

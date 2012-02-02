@@ -172,16 +172,17 @@ public class Subsetting {
     }
 
     // handle the more complicated cases
-    return new SubscriptOperation().setSource(source).setDrop(drop)
-        .setSubscripts(arguments).extract();
+    return new SubscriptOperation()
+        .setSource(source, arguments)
+        .setDrop(drop)
+        .extract();
   }
 
   @Generic
   @Primitive("[<-")
   public static SEXP setSubset(SEXP source, @ArgumentList ListVector arguments) {
     return new SubscriptOperation()
-        .setSource(source)
-        .setSubscripts(arguments, 0, 1)
+        .setSource(source, arguments, 0, 1)
         .replace((Vector) arguments.getElementAsSEXP(arguments.length() - 1),
             false);
   }
@@ -190,8 +191,8 @@ public class Subsetting {
   @Primitive("[[<-")
   public static SEXP setSingleElement(SEXP source,
       @ArgumentList ListVector arguments) {
-    return new SubscriptOperation().setSource(source)
-        .setSubscripts(arguments, 0, 1)
+    return new SubscriptOperation()
+        .setSource(source, arguments, 0, 1)
         .replace(arguments.getElementAsSEXP(arguments.length() - 1), true);
   }
 

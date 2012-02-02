@@ -111,7 +111,7 @@ public class Promise extends AbstractSEXP implements Recursive {
 
   @Override
   public String toString() {
-    return expression.toString();
+    return "{" + expression + "=>" + result + "}";
   }
 
   public static SEXP repromise(SEXP value) {

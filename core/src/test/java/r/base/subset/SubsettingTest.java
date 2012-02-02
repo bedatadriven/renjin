@@ -593,6 +593,25 @@ public class SubsettingTest extends EvalTestCase {
   }
   
   @Test
+  public void coordinateMatrices() {
+    
+    eval("x<-1:12");
+    eval("dim(x) <- c(3,4) ");
+    
+    // define a matrix with coordinates in rows
+    // 1 3
+    // 3 4
+    eval("coords <- c(1,3,3,4)");
+    eval("dim(coords) <- c(2,2)");
+    
+    assertThat(eval("x[coords]"), equalTo(c_i(7, 12)));
+    
+    // logical matrices should NEVER be treated as coordinate
+    // matrices, regardless of their dimension
+    assertThat(eval("x[coords == 1]"), equalTo(c_i(1,5,9)));
+  }
+  
+  @Test
   public void environmentSymbol() throws IOException{
     assumingBasePackagesLoad();
     

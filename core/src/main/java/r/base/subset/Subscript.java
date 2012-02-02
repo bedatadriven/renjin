@@ -41,7 +41,5 @@ public abstract class Subscript {
    * @param i the index of the selected element
    * @return the source index
    */
-  public int getAt(int i) {
-    throw new UnsupportedOperationException();
-  }
+  public abstract int getAt(int i);
 }

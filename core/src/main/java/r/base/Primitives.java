@@ -220,7 +220,7 @@ public class Primitives {
     f("complex", ComplexGroup.class, 0, 11, 3);
     f("matrix", Combine.class, 0, 11, -1);
     f("length", Types.class, 0, 1, 1);
-    f("length<-", /*lengthgets*/ null, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
+    f("length<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("row", Combine.class, 1, 11, 1);
     f("col", Combine.class, 2, 11, 1);
     f("c", Combine.class,  0, 0, -1);

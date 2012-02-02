@@ -1313,4 +1313,11 @@ public class Types {
   public static ExpressionVector expression(@ArgumentList ListVector arguments) {
     return new ExpressionVector(arguments);
   }
+  
+  
+  @Primitive("length<-")
+  public static Vector setLength(Vector source,int length){
+    //It's length-1 because R is base 1 and Java is base 0.
+    return source.newCopyBuilder().setNA(length-1).build();
+  }
 }

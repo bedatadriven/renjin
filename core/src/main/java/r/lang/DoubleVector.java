@@ -307,7 +307,11 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
         if(i > 0) {
           sb.append(", ");
         }
-        sb.append(ParseUtil.toString(getElementAsDouble(i)));
+        if(isNA(getElementAsDouble(i))){
+          sb.append("NA");
+        }else{
+          sb.append(ParseUtil.toString(getElementAsDouble(i)));
+        }
       }
       if(length() > 5) {
         sb.append(",... ").append(length()).append(" elements total");

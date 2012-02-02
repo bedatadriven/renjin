@@ -55,7 +55,7 @@ public strictfp class TypesTest extends EvalTestCase {
         equalTo(c("1.33333333333333")));
     assertThat( eval("as.character(TRUE)"), equalTo( c("TRUE") ));
   }
-
+  
   @Test
   public void asCharacterWithNA() {
     assertThat( eval("as.character(NA)"), equalTo( c( StringVector.NA )) );
@@ -474,6 +474,15 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("length(y)"), equalTo( c_i(2)));
     assertThat( eval("names(y)"), equalTo(  NULL ));
     assertThat( eval(".Internal(typeof(y[[2]]))"), equalTo( c("language")));
+  }
+  
+  @Test
+  public void setLength(){
+    eval("x <- c(1,2,3)");
+    assertThat(eval("length(x)").asReal(), equalTo(3.0));
+    eval("length(x)<-4");
+    assertThat(eval("length(x)").asReal(), equalTo(4.0));
+    assertThat(eval("x").getElementAsSEXP(3).asReal(),equalTo(DoubleVector.NA));
   }
   
   @Test

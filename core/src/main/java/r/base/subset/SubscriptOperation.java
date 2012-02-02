@@ -67,7 +67,7 @@ public class SubscriptOperation {
     // source vector
    
   
-    if(subscripts.isEmpty()) {
+    if(subscripts.isEmpty()) {  
       selection = new CompleteSelection(source);
     
     } else if(subscripts.size() == 1) {
@@ -291,77 +291,4 @@ public class SubscriptOperation {
     }
     return result;
   }
-
-
-//  private class Subscripts implements Iterable<Integer> {
-//
-//
-//    public Subscripts() {
-
-//
-//    private AtomicVector names(int dimensionIndex) {
-//      if(subscripts.length == 1 && !sourceIsArray()) {
-//        return source.getNames();
-//      } else {
-//        Vector dimNames = (Vector) source.getAttribute(Symbols.DIMNAMES);
-//        return dimNames.getElementAsSEXP(dimensionIndex);
-//      }
-//    }
-//
-//    /**
-//     * 
-//     * @return the number of elements selected by the subscripts. For example,
-//     * given the indices x[1:2,1:2], the total number of elements selected
-//     * is 2x2 = 4. 
-//     */
-//    public int getElementCount() {
-//      return elementCount;
-//    }
-//
-//    /**
-//     * 
-//     * @return true if no elements are selected by these subscripts. For example,
-//     * {@code x[FALSE]}
-//     */
-//    public boolean isEmpty() {
-//      return elementCount == 0;
-//    }
-//
-//    private int[] dropUnitDimensions() {
-//      int newDim[] = new int[dim.length];
-//      int count = 0;
-//      for(int i=0;i!= dim.length;++i) {
-//        if(dim[i] > 1) {
-//          newDim[count++] = dim[i];
-//        }
-//      }
-//      return java.util.Arrays.copyOf(newDim, count);
-//    }
-//
-//    public SEXP dimensionAttribute() {
-//      int attribute[];
-//      if(drop) {
-//        attribute = dropUnitDimensions();
-//      } else {
-//        attribute = dim;
-//      }
-//      if(attribute.length == 0) {
-//        return Null.INSTANCE;
-//      } else if(attribute.length == 1 && !sourceIsArray()) {
-//        return Null.INSTANCE;
-//      } else {
-//        return new IntVector(attribute);
-//      }
-//    }
-//
-//    @Override
-//    public Iterator<Integer> iterator() {
-//      if(isEmpty()) {
-//        return Iterators.emptyIterator();
-//      } else {
-//        return new IndexIterator();
-//      }
-//    }
-//
-
 }

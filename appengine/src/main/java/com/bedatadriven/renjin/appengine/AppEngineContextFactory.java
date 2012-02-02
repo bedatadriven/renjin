@@ -23,6 +23,7 @@ package com.bedatadriven.renjin.appengine;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,8 +51,8 @@ public class AppEngineContextFactory {
   private static final Logger LOG = Logger.getLogger(AppEngineContextFactory.class.getName() );
 
   public static ScriptEngine createScriptEngine(ServletContext servletContext) {
-	  RenjinScriptEngineFactory factory = new RenjinScriptEngineFactory();
-	  return factory.getScriptEngine(createTopLevelContext(servletContext));
+    RenjinScriptEngineFactory factory = new RenjinScriptEngineFactory();
+    return factory.getScriptEngine(createTopLevelContext(servletContext));
   }
 
   public static Context createTopLevelContext(ServletContext servletContext) {
@@ -68,7 +69,7 @@ public class AppEngineContextFactory {
       // be forked on each incoming request
       Context context = Context.newTopLevelContext(fileSystemManager,
           findHomeDirectory(servletContext), fileSystemManager.resolveFile("file:///"));
-      context.getGlobals().setLibraryPaths(computeLibraryPaths(fileSystemManager));
+      context.getGlobals().setLibraryPaths(computeLibraryPaths(fileSystemManager, servletContext));
       context.init();
       return context;
     } catch (IOException e) {
@@ -159,9 +160,24 @@ public class AppEngineContextFactory {
   /**
    *
    * @param fileSystemManager
+   * @param servletContext 
    * @return
    */
-  private static String computeLibraryPaths(FileSystemManager fileSystemManager) {
-    return "";
+  private static String computeLibraryPaths(FileSystemManager fileSystemManager, ServletContext servletContext) {
+    File contextRoot = contextRoot(servletContext);
+    File webInfFolder = new File(contextRoot, "WEB-INF");
+    File libFolder = new File(webInfFolder, "lib");
+
+    StringBuilder paths = new StringBuilder();
+    
+    for(File lib : libFolder.listFiles()) {
+      if(lib.getName().endsWith(".jar")) {
+        if(paths.length() > 0) {
+          paths.append(";");
+        }
+        paths.append("jar:file:///WEB-INF/lib/").append(lib.getName()).append("!/");
+      }
+    }
+    return paths.toString();
   }
 }

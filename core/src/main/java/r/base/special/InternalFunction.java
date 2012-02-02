@@ -35,14 +35,14 @@ public class InternalFunction extends SpecialFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP arg = call.getArgument(0);
+    assert arg!=null;
     if(!(arg instanceof FunctionCall)) {
       throw new EvalException("invalid .Internal() argument");
     }
     FunctionCall internalCall = (FunctionCall) arg;
     Symbol internalName = (Symbol)internalCall.getFunction();
     SEXP function = Primitives.getInternal(internalName);
-
-    if(function == Null.INSTANCE) {
+    if(function==null || function == Null.INSTANCE) {
       throw new EvalException(String.format("no internal function \"%s\"", internalName.getPrintName()));
     }
     return ((Function)function).apply(context, rho, internalCall, internalCall.getArguments());

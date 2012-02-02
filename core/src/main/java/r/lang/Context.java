@@ -448,7 +448,7 @@ public class Context {
   }
 
   /**
-   * This is the new interpeter routine. It is not yet passing all 
+   * This is the new interpreter routine. It is not yet passing all 
    * tests.
    */
   public SEXP evaluateIR(SEXP expression, Environment rho) {

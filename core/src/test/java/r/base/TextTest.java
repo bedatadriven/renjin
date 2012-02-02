@@ -235,4 +235,37 @@ public class TextTest extends EvalTestCase {
     
   }
   
+  @Test
+  public void setSubstring(){
+    assumingBasePackagesLoad();
+    eval("x<-\"aaaa\"");
+    eval("substr(x,2,3) <- \"xx\"");
+    assertThat(eval("x").toString(),equalTo("\"axxa\""));
+  }
+
+  @Test
+  public void setSubstringAtBeginning(){
+    assumingBasePackagesLoad();
+    eval("x<-\"aaaa\"");
+    eval("substr(x,1,2) <- \"xx\"");
+    assertThat(eval("x").toString(),equalTo("\"xxaa\""));
+  }
+  
+  @Test
+  public void setSubstringAtEnd(){
+    assumingBasePackagesLoad();
+    eval("x<-\"aaaa\"");
+    eval("substr(x,3,4) <- \"xx\"");
+    assertThat(eval("x").toString(),equalTo("\"aaxx\""));
+  }
+  
+  @Test
+  public void setSubstringNumbersDontMatchUp(){
+    assumingBasePackagesLoad();
+    eval("x<-\"aaaa\"");
+    eval("substr(x,1,4) <- \"xx\"");
+    assertThat(eval("x").toString(),equalTo("\"xxaa\""));
+  }
+
+  
 }

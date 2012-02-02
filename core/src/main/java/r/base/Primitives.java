@@ -522,7 +522,7 @@ public class Primitives {
     f("nchar", Text.class, 1, 11, 3);
     f("nzchar", Text.class, 1, 1, 1);
     f("substr", Text.class, 1, 11, 3);
-    f("substr<-", /*substrgets*/ null, 1, 11, 4);
+    f("substr<-", Text.class, 1, 11, 4);
     f("strsplit", Text.class, 1, 11, 6);
     f("abbreviate", /*abbrev*/ null, 1, 11, 3);
     f("make.names", Text.class, 0, 11, 2);

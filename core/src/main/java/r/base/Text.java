@@ -881,5 +881,13 @@ public class Text {
     }
     
   }
+  
+  @Primitive("substr<-")
+  public static StringVector setSubstring(String s, int start, int stop,String replace) {
+    StringVector.Builder result = new StringVector.Builder();
+    result.add(s.substring(0, start-1)+replace+s.substring(Math.min(stop,start-1+replace.length())));
+
+    return result.build();
+  }
 
 }

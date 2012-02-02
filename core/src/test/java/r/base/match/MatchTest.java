@@ -49,7 +49,8 @@ public class MatchTest extends EvalTestCase {
 
   @Test
   public void matchNA() {
-    assertThat( eval(" .Internal(match(as.character(c(1,2,NA)), NA_real_, NA_integer_, NULL))"), equalTo(c(0)));
+    assertThat( eval(" .Internal(match(as.character(c(1,2,NA)), NA_real_, NA_integer_, NULL))"), 
+        equalTo(c_i(IntVector.NA, IntVector.NA, 1)));
     
   }
 

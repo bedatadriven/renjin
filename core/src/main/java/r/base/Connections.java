@@ -20,7 +20,23 @@
  */
 package r.base;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
+
 import org.apache.commons.vfs.FileSystemException;
+
 import r.base.compression.lzma.LzmaDecoder;
 import r.base.connections.GzFileConnection;
 import r.base.connections.OutputStreamConnection;
@@ -28,14 +44,30 @@ import r.base.connections.StdInConnection;
 import r.base.connections.StdOutConnection;
 import r.io.DatafileReader;
 import r.jvmi.annotations.Current;
+import r.jvmi.annotations.Primitive;
 import r.jvmi.annotations.Recycle;
-import r.lang.*;
+import r.lang.AtomicVector;
+import r.lang.Connection;
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.ExternalExp;
+import r.lang.FunctionCall;
+import r.lang.HasNamedValues;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.LogicalVector;
+import r.lang.NamedValue;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.Promise;
+import r.lang.Raw;
+import r.lang.RawVector;
+import r.lang.SEXP;
+import r.lang.SexpVisitor;
+import r.lang.StringVector;
+import r.lang.Symbol;
 import r.lang.exception.EvalException;
-
-import java.io.*;
-import java.util.Arrays;
-import java.util.zip.DataFormatException;
-import java.util.zip.Inflater;
 
 /**
  * 
@@ -530,7 +562,7 @@ public class Connections {
           outputStream = outputStreamFactory.openOutputStream();
         }
       }
-      return new PrintWriter(outputStream);
+      return new PrintWriter(outputStream,true);
     }
 
     @Override
@@ -541,6 +573,49 @@ public class Connections {
       if (outputStream != null) {
         outputStream.close();
       }
+    }
+  }
+  
+  @Primitive("readLines")
+  public static String readLines(ExternalExp<Connection> connection){
+//    return "hello";
+    try {
+      assert null!=connection.getValue();
+      return new BufferedReader(new InputStreamReader(connection.getValue().getInputStream())).readLine();
+    } catch (IOException e) {
+      //FIXME
+      throw new RuntimeException();
+    }
+  }
+  
+  @Primitive("writeLines")
+  public static void writeLines(String x, ExternalExp<Connection> connection){
+    try{
+      connection.getValue().getPrintWriter().println(x);
+    }catch(IOException e){
+      throw new RuntimeException();
+    }
+  }
+  
+  //FIXME: port should be an int
+  @Primitive("socketConnection")
+  public static ExternalExp<Connection> socketConnection(String host,double port){
+    try {
+      final Socket socket = new Socket(host,(int)port);
+      Connection conn= new ConnectionImpl(new InputStreamFactory(){
+
+        @Override
+        public InputStream openInputStream() throws IOException {
+          return socket.getInputStream();
+        }},new OutputStreamFactory(){
+
+          @Override
+          public OutputStream openOutputStream() throws IOException {
+            return socket.getOutputStream();
+          }});
+      return new ExternalExp<Connection>(conn, "connection");
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 }

@@ -872,8 +872,8 @@ public class Primitives {
     f("stdin", Connections.class, 0, 11, 0);
     f("stdout", Connections.class, 0, 11, 0);
     f("stderr", Connections.class, 0, 11, 0);
-    f("readLines", /*readLines*/ null, 0, 11, 5);
-    f("writeLines", /*writelines*/ null, 0, 11, 4);
+    f("readLines",Connections.class, 0, 11, 5);
+    f("writeLines", Connections.class, 0, 11, 4);
     f("readBin", /*readbin*/ null, 0, 11, 6);
     f("writeBin", /*writebin*/ null, 0, 211, 5);
     f("readChar", Connections.class, 0, 11, 3);
@@ -901,7 +901,7 @@ public class Primitives {
     f("rawConnectionValue", /*rawconvalue*/ null, 0, 11, 1);
     f("textConnection", /*textconnection*/ null, 0, 11, 5);
     f("textConnectionValue", /*textconvalue*/ null, 0, 11, 1);
-    f("socketConnection", /*sockconn*/ null, 0, 11, 6);
+    f("socketConnection", Connections.class, 0, 11, 6);
     f("sockSelect", /*sockselect*/ null, 0, 11, 3);
     f("getConnection", /*getconnection*/ null, 0, 11, 1);
     f("getAllConnections", /*getallconnections*/ null, 0, 11, 0);

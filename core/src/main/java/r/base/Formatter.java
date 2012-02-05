@@ -457,7 +457,7 @@ import r.lang.exception.EvalException;
  *              formatting of -0.0f
  *              round up/down when last digits are 50000...
  */
-class Formatter {
+public class Formatter {
   /**
    * Constructs an array of control specifications
    * possibly preceded, separated, or followed by

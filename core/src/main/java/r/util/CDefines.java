@@ -30,6 +30,7 @@ import r.lang.Environment;
 import r.lang.ExpressionVector;
 import r.lang.Frame;
 import r.lang.FunctionCall;
+import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.LogicalVector;
 import r.lang.Null;
@@ -446,6 +447,7 @@ public class CDefines {
   public static final SexpType VECSXP = new SexpType();
   public static final SexpType STRSXP = new SexpType();
   public static final SexpType REALSXP = new SexpType();
+  public static final SexpType INTSXP = new SexpType();
 
   public static Vector.Builder allocVector(SexpType type, int size) {
     if(type == VECSXP) {
@@ -484,6 +486,15 @@ public class CDefines {
   public static void setAttrib(Builder builder, Symbol name, Builder valueBuilder) {
     builder.setAttribute(name, valueBuilder.build());
   }
+
+  public static SEXP ScalarInteger(int flag) {
+    return new IntVector(flag);
+  }
+  
+  public static boolean isNull(SEXP exp) {
+    return exp == Null.INSTANCE;
+  }
+
   
   
   public enum ArithOpType {

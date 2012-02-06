@@ -39,17 +39,17 @@ public class CranLocalExplorer {
 		
 		String packageName = parsePackageRoot(archive);
 		
-		TarArchiveEntry entry;
-		while((entry=tarIn.getNextTarEntry()) != null) {
-			if(entry.getName().endsWith(".Rd")) {
-				visitor.visitRdFile(tarIn, entry);
-			} else if(entry.getName().startsWith(packageName + "/src/") &&
-					entry.getSize() != 0) {
-				visitNativeSource(entry.getName(), tarIn);
-			} else if(entry.getName().equals(packageName + "/DESCRIPTION")) {
-				visitDescription(PackageDescription.fromInputStream(tarIn));
-			}
-		}
+//		TarArchiveEntry entry;
+//		while((entry=tarIn.getNextTarEntry()) != null) {
+//			if(entry.getName().endsWith(".Rd")) {
+//				visitor.visitRdFile(tarIn, entry);
+//			} else if(entry.getName().startsWith(packageName + "/src/") &&
+//					entry.getSize() != 0) {
+//				visitNativeSource(entry.getName(), tarIn);
+//			} else if(entry.getName().equals(packageName + "/DESCRIPTION")) {
+//				visitDescription(PackageDescription.fromInputStream(tarIn));
+//			}
+//		}
 	}
 
 	

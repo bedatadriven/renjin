@@ -111,6 +111,8 @@ public class Interpreter implements Runnable {
 
       try {
         
+        parser.parse();
+    	  
         SEXP exp = parser.getResult();
         if(exp == null) {
           continue;

@@ -229,7 +229,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   @Override
   public void visitEnvironmentVariable(EnvironmentVariable variable) {
     mv.visitVarInsn(ALOAD, rho);
-    mv.visitLdcInsn("x");
+    mv.visitLdcInsn(variable.getName().getPrintName());
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "getVariable", "(Ljava/lang/String;)Lr/lang/SEXP;");    
   }
 

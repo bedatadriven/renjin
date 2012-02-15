@@ -67,6 +67,11 @@ public class ExpressionCompilerTest {
     
   }
 
+  @Test
+  public void envVars() throws Exception {
+	  DoubleVector result = (DoubleVector) compileAndEval(context,"a <- 1; b <- 2; c <- a + b; c \n");
+	  assertThat(result.getElementAsInt(0), equalTo(3));
+  }
 
   private SEXP compileAndEval(Context context, String code)
       throws InstantiationException, IllegalAccessException {

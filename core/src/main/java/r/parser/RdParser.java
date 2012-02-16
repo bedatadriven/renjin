@@ -92,30 +92,6 @@ import r.util.CDefines;
  */
 
 
-//
-///* Routines used to build the parse tree */
-//
-//static SEXP	xxpushMode(int, int, int);
-//static void	xxpopMode(SEXP);
-//static SEXP	xxnewlist(SEXP);
-//static SEXP	xxlist(SEXP, SEXP);
-//static SEXP	xxmarkup(SEXP, SEXP, int, Location *);
-//static SEXP	xxmarkup2(SEXP, SEXP, SEXP, int, int, Location *);
-//static SEXP	xxmarkup3(SEXP, SEXP, SEXP, SEXP, int, Location *);
-//static SEXP	xxOptionmarkup(SEXP, SEXP, SEXP, int, Location *);
-//static SEXP	xxtag(SEXP, int, Location *);
-//static void	xxsavevalue(SEXP, Location *);
-//static void	xxWarnNewline();
-//
-//static int	mkMarkup(int);
-//static int      mkIfdef(int);
-//static int	mkCode(int);
-//static int	mkText(int);
-//static int	mkVerb(int);
-//static int 	mkComment(int);
-//
-
-
 /**
  * A Bison parser, automatically generated from <tt>gramRd.y</tt>.
  *
@@ -632,7 +608,7 @@ public class RdParser
 
         /* Line 353 of lalr1.java  */
         /* Line 204 of "gramRd.y"  */
-      { yyval = xxtag(((yystack.valueAt (1-(1)))), COMMENT, yyloc); };
+      { yyval = yystack.valueStack[0] = xxtag(((yystack.valueAt (1-(1)))), COMMENT, yyloc); };
       break;
 
 
@@ -641,7 +617,7 @@ public class RdParser
 
         /* Line 353 of lalr1.java  */
         /* Line 205 of "gramRd.y"  */
-      { yyval = xxtag(((yystack.valueAt (1-(1)))), TEXT, yyloc); };
+      { yyval = yystack.valueStack[0] = xxtag(((yystack.valueAt (1-(1)))), TEXT, yyloc); };
       break;
 
 
@@ -677,7 +653,7 @@ public class RdParser
 
         /* Line 353 of lalr1.java  */
         /* Line 211 of "gramRd.y"  */
-      { yyval = xxtag(((yystack.valueAt (1-(1)))), TEXT, yyloc); };
+      { yyval = yystack.valueStack[0] = xxtag(((yystack.valueAt (1-(1)))), TEXT, yyloc); };
       break;
 
 
@@ -686,7 +662,7 @@ public class RdParser
 
         /* Line 353 of lalr1.java  */
         /* Line 212 of "gramRd.y"  */
-      { yyval = xxtag(((yystack.valueAt (1-(1)))), RCODE, yyloc); };
+      { yyval = yystack.valueStack[0] = xxtag(((yystack.valueAt (1-(1)))), RCODE, yyloc); };
       break;
 
 
@@ -695,7 +671,7 @@ public class RdParser
 
         /* Line 353 of lalr1.java  */
         /* Line 213 of "gramRd.y"  */
-      { yyval = xxtag(((yystack.valueAt (1-(1)))), VERB, yyloc); };
+      { yyval = yystack.valueStack[0] = xxtag(((yystack.valueAt (1-(1)))), VERB, yyloc); };
       break;
 
 
@@ -704,7 +680,7 @@ public class RdParser
 
         /* Line 353 of lalr1.java  */
         /* Line 214 of "gramRd.y"  */
-      { yyval = xxtag(((yystack.valueAt (1-(1)))), COMMENT, yyloc); };
+      { yyval = yystack.valueStack[0] = xxtag(((yystack.valueAt (1-(1)))), COMMENT, yyloc); };
       break;
 
 
@@ -713,7 +689,7 @@ public class RdParser
 
         /* Line 353 of lalr1.java  */
         /* Line 215 of "gramRd.y"  */
-      { yyval = xxtag(((yystack.valueAt (1-(1)))), UNKNOWN, yyloc); yyerror(yyunknown); };
+      { yyval = yystack.valueStack[0] = xxtag(((yystack.valueAt (1-(1)))), UNKNOWN, yyloc); yyerror(yyunknown); };
       break;
 
 
@@ -1884,8 +1860,8 @@ public class RdParser
 
   /* User implementation code.  */
 
-  private static final boolean DEBUGVALS = false;   /* 1 causes detailed internal state output to R console */  
-  private static final boolean DEBUGMODE = false;   /* 1 causes Bison output of parse state, to stdout or stderr */
+  private static final boolean DEBUGVALS = true;   /* 1 causes detailed internal state output to R console */  
+  private static final boolean DEBUGMODE = true;   /* 1 causes Bison output of parse state, to stdout or stderr */
 
   private boolean wCalls = true;
 
@@ -2140,11 +2116,10 @@ public class RdParser
       flag |= flag1;
     }
     if (!isNull(body2)) {
-      int flag2;
       if (argcount < 2) error("internal error: inconsistent argument count");
-      int flag1 = getDynamicFlag(body1);
-      ans.set(0, setDynamicFlag(PairToVectorList(CDR(body1)), flag1));
-      flag |= flag1;
+      int flag2 = getDynamicFlag(body2);
+      ans.set(1, setDynamicFlag(PairToVectorList(CDR(body2)), flag2));
+      flag |= flag2;
     }
     ans.setAttribute(install("Rd_tag"), header);
     ans.setAttribute(Symbols.SRC_REF, makeSrcref(lloc, SrcFile));
@@ -2216,8 +2191,8 @@ public class RdParser
   }
 
   private SEXP xxtag(SEXP item, int type, Location lloc) {
-    setAttrib(item, install("Rd_tag"), new StringVector(yytname__[yytranslate_(type)]));
-    setAttrib(item, Symbols.SRC_REF, makeSrcref(lloc, SrcFile));
+    item = setAttrib(item, install("Rd_tag"), new StringVector(yytname__[yytranslate_(type)]));
+    item = setAttrib(item, Symbols.SRC_REF, makeSrcref(lloc, SrcFile));
     return item;
   }
 
@@ -2327,17 +2302,6 @@ public class RdParser
     } else {
       return Null.INSTANCE;
     }
-  }
-
-  private SEXP mkString2(String s, int len) {
-    //    SEXP t;
-    //    cetype_t enc = CE_UTF8;
-    //
-    //    PROTECT(t = allocVector(STRSXP, 1));
-    //    SET_STRING_ELT(t, 0, mkCharLenCE(s, len, enc));
-    //    UNPROTECT(1);
-    //    return t;
-    return new StringVector(s);
   }
 
 
@@ -2621,22 +2585,7 @@ public class RdParser
     }
     return UNKNOWN;
   }
-
-  private void TEXT_PUSH(Object c) {
-//    do {                  
-//      int nc = bp - stext;       
-//      if (nc >= nstext - 1) {             
-//        char *old = stext;              
-//        nstext *= 2;                    
-//        stext = malloc(nstext);         
-//        if(!stext) error(_("unable to allocate buffer for long string at line %d"), xxlineno);
-//        memmove(stext, old, nc);        
-//        if(old != st0) free(old);	    
-//        bp = stext+nc; }		    
-//      *bp++ = (c);                        
-//    } while(false);
-  }
-
+  
   String yytname__translations[] =
     {
       /* the left column are strings coming from bison, the right
@@ -2717,8 +2666,13 @@ public class RdParser
     };
     
     if (c != '\n') xxungetc(c); /* newline causes a break, but we keep it */
-    yylval = new StringVector(text.toString());
+    yylval = new StringVector(correctCrLf(text.toString()));
     return TEXT;
+  }
+
+  private String correctCrLf(String s) {
+    // i think this must be handled  by R at the character stream level...
+    return s.replace("\r\n", "\n");
   }
 
   private int mkComment(int c) {
@@ -2729,9 +2683,17 @@ public class RdParser
     } while ((c = xxgetc()) != '\n' && c != R_EOF);
 
     xxungetc(c);
-
-    yylval = new StringVector(text.toString());
+    
+    yylval = new StringVector(removeTrailingCR(text.toString()));
     return COMMENT;
+  }
+
+  private String removeTrailingCR(String string) {
+    if(string.endsWith("\r")) {
+      return string.substring(0, string.length()-1);
+    } else {
+      return string;
+    }
   }
 
   private int mkCode(int c) {
@@ -2763,7 +2725,7 @@ public class RdParser
           if (lookahead == '\\') { /* This must be the 3rd backslash */
             lookahead = xxgetc();
             if (lookahead == xxinRString || lookahead == '\\') {	
-              TEXT_PUSH(c);
+              text.appendCodePoint(c);
               c = lookahead;
               escaped = true;
             } else {
@@ -2771,7 +2733,7 @@ public class RdParser
               xxungetc('\\');	     /* and the 3rd */
             }
           } else if (lookahead == xxinRString) { /* There could be one or two before this */
-            TEXT_PUSH(c);
+            text.appendCodePoint(c);
             c = lookahead;
             escaped = true;
           } else if (!escaped && (lookahead == 'l' || lookahead == 'v')) { 
@@ -2786,7 +2748,7 @@ public class RdParser
         if (c == '#') {
           do {
             escaped = false;
-            TEXT_PUSH(c);
+            text.appendCodePoint(c);
             c = xxgetc();
             if (c == '\\') {
               int lookahead = xxgetc();
@@ -2813,7 +2775,7 @@ public class RdParser
             c = '\\';
             break;
           } else {
-            TEXT_PUSH('\\');
+            text.append('\\');
             c = lookahead;
           }
         } else if (c == LBRACE) {
@@ -2823,7 +2785,7 @@ public class RdParser
           else xxbraceDepth--;
         } else if (c == R_EOF) break;
       }
-      TEXT_PUSH(c);
+      text.appendCodePoint(c);
       if (c == '\n') {
         if (xxinRString != 0 && !xxNewlineInString) { 
           xxNewlineInString = (xxlineno-1) != 0;
@@ -2835,7 +2797,7 @@ public class RdParser
     if (c != '\n') {
       xxungetc(c);
     }
-    yylval = new StringVector(text.toString());
+    yylval = new StringVector(correctCrLf(text.toString()));
     return RCODE; 
   }
 
@@ -2902,24 +2864,23 @@ public class RdParser
       } while (c != '\n' && c != R_EOF);
       break;
     case UNKNOWN:
-//      UNPROTECT(1);
-//      bp--; bp--;
-//      for (; bp > stext; bp--) 
-//        xxungetc(*bp);
-//      switch (xxmode) {
-//      case RLIKE:     
-//        retval = mkCode(*bp);
-//        break;
-//      case INOPTION:
-//      case LATEXLIKE:
-//        retval = mkText(*bp);
-//        break;
-//      case VERBATIM:
-//        retval = mkVerb(*bp);
-//        break;
-//      }
-//      break;
-      throw new UnsupportedOperationException("nyi");
+      while(text.length() > 1) {
+        xxungetc(text.codePointAt(text.length()-1));
+        text.setLength(text.length()-1);
+      }
+      switch (xxmode) {
+      case RLIKE:     
+        retval = mkCode(text.codePointAt(0));
+        break;
+      case INOPTION:
+      case LATEXLIKE:
+        retval = mkText(text.codePointAt(0));
+        break;
+      case VERBATIM:
+        retval = mkVerb(text.codePointAt(0));
+        break;
+      }
+      break;
     }
     return retval;
   }
@@ -3182,17 +3143,14 @@ public class RdParser
   }
 
   private void Rprintf(String message, Object... arguments) {
-    AtomicVector args[] = new AtomicVector[arguments.length];
-    for(int i=0;i!=args.length;++i) {
-      if(arguments[i] instanceof AtomicVector) {
-        args[i] = (AtomicVector) arguments[i];        
-      } else {
-        args[i] = (AtomicVector)RuntimeConverter.INSTANCE.convertToR(arguments[i]);
+    // quick hack to support %p :
+    for(int i = 0 ;i!=arguments.length;++i) {
+      if(arguments[i] instanceof SEXP) {
+        arguments[i] = System.identityHashCode(arguments[i]);
       }
     }
-
-    r.base.Formatter formatter = new r.base.Formatter(message);
-    System.out.println(formatter.sprintf(args, 0));
+    message = message.replace("%p", "0x%x");
+    System.out.println( String.format(message, arguments) );
   }
 }
 

@@ -61,6 +61,15 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
 
     @Override
+    public SEXP getAttribute(Symbol name) {
+      if(attributes.containsKey(name)) {
+        return attributes.get(name);
+      } else {
+        return Null.INSTANCE;
+      }
+    }
+
+    @Override
     public Builder copyAttributesFrom(Vector exp) {
       if(((AbstractSEXP)exp).getAttributes() != Null.INSTANCE) {
         for(PairList.Node node : exp.getAttributes().nodes()) {

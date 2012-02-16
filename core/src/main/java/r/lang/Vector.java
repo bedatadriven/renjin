@@ -213,7 +213,9 @@ public interface Vector extends SEXP {
     * @return this Builder, for method chaining
     */
     Builder setAttribute(Symbol name, SEXP value);
-    
+
+    SEXP getAttribute(Symbol install);
+
     /**
      * @return the current length of the vector under construction.
      */

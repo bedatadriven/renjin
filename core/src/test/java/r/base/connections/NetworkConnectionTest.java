@@ -95,7 +95,7 @@ public class NetworkConnectionTest extends EvalTestCase {
   }
 
   @Test
-  // @Ignore
+  @Ignore
   public void write() throws InterruptedException {
     assumingBasePackagesLoad();
     SocketWriteTestDriver writer = new SocketWriteTestDriver();

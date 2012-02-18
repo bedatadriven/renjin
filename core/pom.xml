@@ -43,7 +43,7 @@
     <dependency>
       <groupId>org.netlib</groupId>
       <artifactId>netlib-java</artifactId>
-      <version>0.9.3-renjin-patched</version>
+      <version>0.9.3-renjin-patched-2</version>
     </dependency>
 
     <!-- Abstraction on file system -->

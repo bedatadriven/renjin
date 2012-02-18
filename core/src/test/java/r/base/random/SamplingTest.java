@@ -8,10 +8,10 @@ import org.junit.Test;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 
-public class TestSampling extends EvalTestCase {
+public class SamplingTest extends EvalTestCase {
 
   @Test
-  public void SamplingWithReplacement() throws IOException {
+  public void withReplacement() throws IOException {
     double delta = 0.00001;
 
     assumingBasePackagesLoad();
@@ -22,7 +22,7 @@ public class TestSampling extends EvalTestCase {
   }
 
   @Test
-  public void SamplingWithReplacementUniform() throws IOException {
+  public void withReplacementUniform() throws IOException {
     double delta = 0.1;
     assumingBasePackagesLoad();
     eval("x<-1:5");
@@ -30,16 +30,14 @@ public class TestSampling extends EvalTestCase {
   }
 
   @Test
-  public void SamplingWithoutReplacement() throws IOException {
-    double delta = 0.00001;
+  public void withoutReplacement() throws IOException {
     assumingBasePackagesLoad();
     eval("x<-c(1,2,3,4,5,10,9,8,7,6)");
     assertThat(eval("sort(sample(x, 10L, FALSE))"), equalTo(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));
   }
   
   @Test
-  public void SamplingMinimumParametersCall() throws IOException {
-    double delta = 0.00001;
+  public void minimumParametersCall() throws IOException {
     assumingBasePackagesLoad();
     eval("x<-c(1,2,3,4,5,10,9,8,7,6)");
     assertThat(eval("sort(sample(x, 10L))"), equalTo(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));

@@ -1,14 +1,13 @@
 package r.base.random;
 
-import r.EvalTestCase;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 
-public class TestRNG extends EvalTestCase {
+import r.EvalTestCase;
+
+public class RngTest extends EvalTestCase {
 
   private static final double DELTA = 0.1;
 

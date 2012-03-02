@@ -23,7 +23,7 @@ public class DollarAssignTranslator extends FunctionCallTranslator {
     Symbol index = call.getArgument(1);
     Expression replacement = builder.translateExpression(context, call.getArgument(2));
     
-    return new PrimitiveCall("$<-", builder.simplify(object), new Constant(index), replacement);
+    return new PrimitiveCall(call, "$<-", builder.simplify(object), new Constant(index), replacement);
   }
 
   @Override
@@ -45,7 +45,7 @@ public class DollarAssignTranslator extends FunctionCallTranslator {
     Expression object = builder.translateExpression(context, call.getArgument(0));
     Symbol index = call.getArgument(1);
     
-    return new PrimitiveCall("$<-", object, new Constant(index), rhs);
+    return new PrimitiveCall(call, "$<-", object, new Constant(index), builder.simplify(rhs));
   
   }
 

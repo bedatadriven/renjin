@@ -6,6 +6,6 @@ package r.lang;
  */
 public interface StrictPrimitiveFunction extends Function {
 
-  SEXP applyStrict(Context context, Environment rho, SEXP arguments[]);
+  SEXP applyStrict(Context context, Environment rho, FunctionCall call, SEXP arguments[]);
   
 }

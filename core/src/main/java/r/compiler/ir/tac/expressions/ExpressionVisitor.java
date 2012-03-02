@@ -17,4 +17,6 @@ public interface ExpressionVisitor {
   void visitCmpGE(CmpGE cmp);
   void visitSsaVariable(SsaVariable variable);
   void visitPhiFunction(PhiFunction phiFunction);
+  void visitPromise(UnevaluatedArgument promise);
+  void visitLength(Length length);
 }

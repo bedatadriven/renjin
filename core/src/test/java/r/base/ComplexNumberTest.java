@@ -42,20 +42,20 @@ public class ComplexNumberTest extends EvalTestCase {
   public void argumentAt0_1() throws IOException{
     assumingBasePackagesLoad();
 //    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
-    assertThat(eval("Arg(complex(0, 1))/pi"),equalTo(c(0.5)));
+    assertThat(eval("Arg(complex(real=0, i=1))/pi"),equalTo(c(0.5)));
   }
   
   @Test
   public void polarCoordinatesAt1_0() throws IOException{
     assumingBasePackagesLoad();
     //    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
-    assertThat(eval("Mod(complex(1,0))"),equalTo(c(1)));
-    assertThat(eval("Mod(complex(9,0))"),equalTo(c(9)));
+    assertThat(eval("Mod(complex(real=1,i=0))"),equalTo(c(1)));
+    assertThat(eval("Mod(complex(real=9,i=0))"),equalTo(c(9)));
   }
   
   @Test
   public void complexConjugate() throws IOException{
     assumingBasePackagesLoad();
-    assertThat(eval("Im(Conj(complex(0,1)))"),equalTo(c(-1)));
+    assertThat(eval("Im(Conj(complex(real=0,i=1)))"),equalTo(c(-1)));
   }
 }

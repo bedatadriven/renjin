@@ -38,7 +38,7 @@ public class StaticOptimizer {
     doIntraScopeOptimization(program.getMain());
     for(IRFunction function : program.getFunctions()) {
       System.out.println(function);
-      doIntraScopeOptimization(function.getScope());
+      doIntraScopeOptimization(function.getBody());
     }
   }
 

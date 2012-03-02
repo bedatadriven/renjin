@@ -1,11 +1,14 @@
 package r.compiler.ir.tac.functions;
 
+import r.compiler.ir.exception.InvalidSyntaxException;
 import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.PrimitiveCall;
 import r.compiler.ir.tac.statements.ExprStatement;
 import r.lang.FunctionCall;
+import r.lang.SEXP;
+import r.lang.StringVector;
 import r.lang.Symbol;
 
 public class DollarTranslator extends FunctionCallTranslator {
@@ -19,9 +22,20 @@ public class DollarTranslator extends FunctionCallTranslator {
   public Expression translateToExpression(IRBodyBuilder builder,
       TranslationContext context, FunctionCall call) {
     Expression object = builder.translateExpression(context, call.getArgument(0));
-    Symbol index = call.getArgument(1);
+    Symbol index = toSymbol(call.getArgument(1));
     
-    return new PrimitiveCall("$", builder.simplify(object), new Constant(index) ); 
+    return new PrimitiveCall(call, "$", builder.simplify(object), new Constant(index) ); 
+  }
+
+  private Symbol toSymbol(SEXP argument) {
+    if(argument instanceof Symbol) {
+      return (Symbol) argument;
+    } else if(argument.length() == 1 && argument instanceof StringVector) {
+      StringVector vector = (StringVector)argument;
+      return Symbol.get(vector.getElement(0));
+    } else {
+      throw new InvalidSyntaxException("Illegal index value: " + argument);
+    }
   }
 
   @Override

@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import r.base.special.ReturnException;
+import r.compiler.ir.exception.InvalidSyntaxException;
 import r.lang.Context;
 import r.lang.Function;
 import r.lang.FunctionCall;
@@ -13,7 +15,6 @@ import r.lang.SEXP;
 import r.lang.Symbol;
 import r.lang.exception.EvalException;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -23,18 +24,38 @@ import com.google.common.collect.Sets;
  */
 public class DynamicCall implements Expression {
 
-  private Variable function;
+  /**
+   * The IR expression from which we will obtain the actual
+   * function value at runtime
+   */
+  private Expression functionExpr;
+  
+  /**
+   * The S expression from the original AST which we 
+   * need to pass to closures at runtime. For example, given the AST
+   * <code>
+   * x$f(33)
+   * </code>
+   * 
+   * If x$f evaluates to a closure, a new Context needs to be created
+   * that contains a copy of the original {@link FunctionCall}. So we 
+   * need to retain the x$f literal.
+   */
+  private SEXP functionName;
+  
   private final List<Expression> arguments;
   private final List<SEXP> argumentNames;
   
-  public DynamicCall(Variable name, List<SEXP> argumentNames, List<Expression> arguments) {
-    this.function = name;
+  public DynamicCall(SEXP functionName, Expression function, 
+      List<SEXP> argumentNames, List<Expression> arguments) {
+    this.functionName = functionName;
+    this.functionExpr = function;
     this.arguments = arguments;
     this.argumentNames = argumentNames;
   }
 
-  public Variable getName() {
-    return function;
+  public Expression getFunction() {
+    return functionExpr;
   }
 
   public List<Expression> getArguments() {
@@ -44,9 +65,9 @@ public class DynamicCall implements Expression {
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
     
+  
     // locate function object
-    EnvironmentVariable functionName = (EnvironmentVariable)function;
-    Function function = findFunction(functionName.getName(), context);
+    Function functionValue = findFunction(context, temps);
     
     // build argument list 
     PairList.Builder argList = new PairList.Builder();
@@ -54,22 +75,44 @@ public class DynamicCall implements Expression {
       argList.add(argumentNames.get(i), (SEXP)arguments.get(i).retrieveValue(context, temps));
     }
     PairList args = argList.build();
-    FunctionCall call = new FunctionCall(functionName.getName(), args);
+    FunctionCall call = new FunctionCall(functionName, args);
     
-    return function.apply(context, context.getEnvironment(), call, args);
-        
+    return functionValue.apply(context, context.getEnvironment(), call, args);
+  
   }
   
-  private Function findFunction(SEXP functionExp, Context context) {
-    if(functionExp instanceof Symbol) {
-      Symbol symbol = (Symbol) functionExp;
+
+  private Function findFunction(Context context, Object[] temps) {
+ 
+    // we have to different cases here. 
+    // if the function call is in the form 
+    //
+    // f(a,b,c)
+    // 
+    // then we do a special lookup to find the first 
+    // _function_ with the name `f` in the enclosing environments.
+    // bindings with non-function values are ignored.
+    //
+    // this is *different* then simply evaluating the symbol `f`.
+    
+    if(functionName instanceof Symbol) {
+      Symbol symbol = (Symbol) functionName;
       Function fn = context.getEnvironment().findFunction(symbol);
       if(fn == null) {
         throw new EvalException("could not find function '%s'", symbol.getPrintName());      
       }
       return fn;
     } else {
-      throw new UnsupportedOperationException("only symbols are supported in function calls right now");
+      
+      // otherwise, we need to proceed to evaluate the expression 
+      // as it's been translated into IR. It must evaluate to a
+      // function value.
+      
+      Object value = functionExpr.retrieveValue(context, temps);
+      if(!(value instanceof Function)) {
+        throw new InvalidSyntaxException("attempt to apply non-function: " + value);
+      }
+      return (Function) value;
     }
   }
 
@@ -77,7 +120,7 @@ public class DynamicCall implements Expression {
   @Override
   public Set<Variable> variables() {
     Set<Variable> variables = Sets.newHashSet();
-    variables.addAll( function.variables() );
+    variables.addAll( functionExpr.variables() );
     for(Expression operand : arguments) {
       variables.addAll( operand.variables() );
     }
@@ -86,7 +129,7 @@ public class DynamicCall implements Expression {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("\u0394 " + function + "(");
+    StringBuilder sb = new StringBuilder("\u0394 " + functionExpr + "(");
     for(int i=0;i!=argumentNames.size();++i) {
       if(i > 0) {
         sb.append(", ");
@@ -106,8 +149,8 @@ public class DynamicCall implements Expression {
     for(Expression argument : arguments) {
       newOps.add(argument.replaceVariable(name, newName));
     }
-    return new DynamicCall(
-        (Variable)this.function.replaceVariable(name, newName), 
+    return new DynamicCall(functionName,
+        (Variable)this.functionExpr.replaceVariable(name, newName), 
         argumentNames,
         newOps);
   }
@@ -115,7 +158,7 @@ public class DynamicCall implements Expression {
   @Override
   public List<Expression> getChildren() {
     List<Expression> children = Lists.newArrayList();
-    children.add(function);
+    children.add(functionExpr);
     children.addAll(arguments);
     return children;
   }
@@ -123,7 +166,7 @@ public class DynamicCall implements Expression {
   @Override
   public void setChild(int i, Expression expr) {
     if(i == 0) {
-      function = (Variable)expr;
+      functionExpr = (Variable)expr;
     } else {
       arguments.set(i-1, expr);
     }

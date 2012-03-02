@@ -26,40 +26,43 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
-    return addAssignment(builder, context, call);
+
+
+    Expression rhs = builder.translateExpression(context, call.getArgument(1));
+
+    // since the rhs will be used as this expression's value, 
+    // we need to assure that it is not evaluated twice
+    if(!(rhs instanceof Constant)) {
+      // avoid evaluating RHS twice
+      Temp temp = builder.newTemp();
+      builder.addStatement(new Assignment(temp, rhs));
+      rhs = temp;
+    }
+    
+    addAssignment(builder, context, call, rhs);
+    return rhs;
   }
   
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
-    addAssignment(builder, context, call);
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall assignment) {
+    Expression rhs = builder.translateExpression(context, assignment.getArgument(1));
+
+    addAssignment(builder, context, assignment, rhs);
   }
   
-  private Expression addAssignment(IRBodyBuilder builder, TranslationContext context, FunctionCall assignment) {
+  private void addAssignment(IRBodyBuilder builder, TranslationContext context, FunctionCall assignment, 
+      Expression rhs) {
     // this loop handles nested, complex assignments, such as:
     // class(x) <- "foo"
     // x$a[3] <- 4
     // class(x$a[3]) <- "foo"
 
     SEXP lhs = assignment.getArgument(0);
-    Expression rhs = builder.translateExpression(context, assignment.getArgument(1));
-    
-    if(isComplex(lhs) && !(rhs instanceof Constant)) {
-      // avoid evaluating RHS twice
-      Temp temp = builder.newTemp();
-      builder.addStatement(new Assignment(temp, rhs));
-      rhs = temp;
-    }
-      
-    Expression initialRhs = rhs;
-
     
     while(lhs instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) lhs;
-      Symbol getter = (Symbol) call.getFunction();
-      Symbol setter = Symbol.get(getter.getPrintName() + "<-");
-      FunctionCall setterCall = new FunctionCall(setter, call.getArguments());
       
-      rhs = builder.translateSetterCall(context, setterCall, rhs);
+      rhs = builder.translateSetterCall(context, call, rhs);
       lhs = call.getArgument(0);
     }
 
@@ -72,14 +75,13 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
       throw new EvalException("cannot assign to value of type " + lhs.getTypeName());
     }
 
-    // make the final assignment to the target symbol
-    builder.addStatement(new Assignment(target, rhs));
+    doAssignment(builder, target, rhs);
     
-    return initialRhs;
   }
 
-  private boolean isComplex(SEXP lhs) {
-    return lhs instanceof FunctionCall;
+  protected void doAssignment(IRBodyBuilder builder, LValue target, Expression rhs) {
+    // make the final assignment to the target symbol
+    builder.addStatement(new Assignment(target, rhs));
   }
 
   @Override

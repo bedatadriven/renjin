@@ -9,21 +9,37 @@ import r.compiler.ir.tac.IRLabel;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.SimpleExpression;
 import r.compiler.ir.tac.expressions.Variable;
+import r.lang.ComplexVector;
 import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.IntVector;
 import r.lang.Logical;
+import r.lang.LogicalVector;
 import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.exception.EvalException;
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {
   
   private Expression condition;
   private IRLabel trueTarget;
   private IRLabel falseTarget;
+  private IRLabel naTarget;
+  
+  public IfStatement(Expression condition, IRLabel trueTarget, IRLabel falseTarget, IRLabel naTarget) {
+    this.condition = condition;
+    this.trueTarget = trueTarget;
+    this.falseTarget = falseTarget;
+    this.naTarget = naTarget;
+  }
   
   public IfStatement(Expression condition, IRLabel trueTarget, IRLabel falseTarget) {
     this.condition = condition;
     this.trueTarget = trueTarget;
     this.falseTarget = falseTarget;
+    this.naTarget = null;
   }
+  
 
   public Expression getCondition() {
     return condition;
@@ -43,26 +59,35 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
   
   public IfStatement setTrueTarget(IRLabel label) {
-    return new IfStatement(condition, label, falseTarget);
+    return new IfStatement(condition, label, falseTarget, naTarget);
   }
   
   public IfStatement setFalseTarget(IRLabel label) {
-    return new IfStatement(condition, trueTarget, label);
+    return new IfStatement(condition, trueTarget, label, naTarget);
   }
 
   @Override
   public Iterable<IRLabel> possibleTargets() {
-    return Arrays.asList(trueTarget, falseTarget);
+    if(naTarget == null) {
+      return Arrays.asList(trueTarget, falseTarget); 
+    } else {
+      return Arrays.asList(trueTarget, falseTarget, naTarget);
+    }
   }
 
   @Override
   public Object interpret(Context context, Object[] temp) {
-    boolean conditionalValue =  toBoolean(condition.retrieveValue(context, temp));
-    if(conditionalValue) {
+    Logical value = toLogical(condition.retrieveValue(context, temp));
+    switch(value) {
+    case TRUE:
       return trueTarget;
-    } else {
+    case FALSE:
       return falseTarget;
     }
+    if(naTarget == null) {
+      throw new EvalException("missing value where TRUE/FALSE needed");
+    }
+    return naTarget;
   }
   
   @Override
@@ -75,22 +100,32 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
     if(!(newRHS instanceof SimpleExpression)) {
       throw new IllegalArgumentException("if statement requires simple rhs");
     }
-    return new IfStatement((SimpleExpression) newRHS, trueTarget, falseTarget);
+    return new IfStatement((SimpleExpression) newRHS, trueTarget, falseTarget, naTarget);
   }
  
-  private boolean toBoolean(Object obj) {
+  private Logical toLogical(Object obj) {
     if(obj instanceof Boolean) {
-      return (Boolean)obj;
+      return ((Boolean)obj) ? Logical.TRUE : Logical.FALSE;
     } else if(obj instanceof SEXP) {
-      return ((SEXP)obj).asLogical() == Logical.TRUE;
-    } else {
-      throw new IllegalArgumentException(""+obj);
-    }
+      SEXP s = (SEXP)obj;
+      if (s.length() == 0) {
+        throw new EvalException("argument is of length zero");
+      }
+      if( (s instanceof DoubleVector) ||
+          (s instanceof ComplexVector) ||
+          (s instanceof IntVector) ||
+          (s instanceof LogicalVector) ) {
+        return ((SEXP)obj).asLogical();        
+      }
+    } 
+    throw new EvalException("invalid type where logical expected");
+    
   }
 
   @Override
   public String toString() {
-    return "if " + condition + " goto " + trueTarget + " else " + falseTarget;
+    return "if " + condition + " => TRUE:" + trueTarget + ", FALSE:" +  falseTarget +
+          ", NA:" + (naTarget == null ? "ERROR" : naTarget);
   }
 
   @Override

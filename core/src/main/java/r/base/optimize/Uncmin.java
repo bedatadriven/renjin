@@ -2921,12 +2921,12 @@ C
 
     if ((msg[1] / 4) % 2 == 1 && iahflg[1] == 0) {
 
-      System.out.print("\n\nOPTCHK   User requests that analytic Hessian");
-      System.out.print(" be accepted as properly coded,\n");
-      System.out.print("OPTCHK   msg = " + msg + ",\n");
-      System.out.print("OPTCHK   but an analytic Hessian is not");
-      System.out.print(" supplied,\n");
-      System.out.print("OPTCHK   iahflg = " + iahflg[1] + ".\n\n");
+//      System.out.print("\n\nOPTCHK   User requests that analytic Hessian");
+//      System.out.print(" be accepted as properly coded,\n");
+//      System.out.print("OPTCHK   msg = " + msg + ",\n");
+//      System.out.print("OPTCHK   but an analytic Hessian is not");
+//      System.out.print(" supplied,\n");
+//      System.out.print("OPTCHK   iahflg = " + iahflg[1] + ".\n\n");
 
       throw new IllegalArgumentException();
     }

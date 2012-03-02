@@ -79,6 +79,9 @@ public class Promise extends AbstractSEXP implements Recursive {
    */
   public SEXP force() {
     if (result == null) {
+      if(Context.PRINT_IR) {
+        System.out.println("=== THUNK");
+      }
       this.result = this.context.evaluate(expression, environment);
       this.environment = null;
       this.context = null;

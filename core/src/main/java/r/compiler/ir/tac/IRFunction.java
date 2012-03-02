@@ -26,7 +26,7 @@ public class IRFunction {
     return debugId;
   }
   
-  public IRBody getScope() {
+  public IRBody getBody() {
     return block;
   }
 
@@ -38,7 +38,7 @@ public class IRFunction {
     return new IRClosure(context.getEnvironment(), this);
   }
   
-  public SEXP getBody() {
+  public SEXP getBodyExpression() {
     return body;
   }
   

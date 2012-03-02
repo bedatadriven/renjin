@@ -36,23 +36,23 @@ public class TreeBuilderTest {
     bb.addStatement(
         new Assignment(
             temp(5),
-            new PrimitiveCall("-", var("n",3), new Constant(1))));
+            new PrimitiveCall(null, "-", var("n",3), new Constant(1))));
     bb.addStatement(
         new Assignment(
             temp(6),
-            new PrimitiveCall("*", temp(5), var("xbar", 3))));
+            new PrimitiveCall(null, "*", temp(5), var("xbar", 3))));
     bb.addStatement(
         new Assignment(
             temp(7),
-            new PrimitiveCall("[", var("x", 0), var("n", 3))));
+            new PrimitiveCall(null, "[", var("x", 0), var("n", 3))));
     bb.addStatement(
         new Assignment(
             temp(8),
-            new PrimitiveCall("+", temp(6), temp(7))));
+            new PrimitiveCall(null, "+", temp(6), temp(7))));
     bb.addStatement(
         new Assignment(
             var("xbar", 4),
-            new PrimitiveCall("/", temp(8), var("n", 3))));
+            new PrimitiveCall(null, "/", temp(8), var("n", 3))));
 
    
     TreeBuilder builder = new TreeBuilder();

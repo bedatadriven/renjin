@@ -20,7 +20,7 @@ public class IRProgram {
     StringBuilder sb = new StringBuilder();
     for(IRFunction function : functionTable) {
       sb.append("function@" + function.getId()).append("\n");
-      sb.append(function.getScope()).append("\n");
+      sb.append(function.getBody()).append("\n");
     }
     
     sb.append("\nMAIN:\n");

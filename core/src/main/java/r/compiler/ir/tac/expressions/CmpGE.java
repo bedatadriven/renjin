@@ -4,11 +4,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import r.lang.Context;
+
 import com.google.common.collect.Sets;
 
-import r.lang.Context;
-import r.lang.Vector;
-
+/**
+ * Checks whether op1 is greater than or equal to op2. 
+ * Op1 and op2 must be integers. (Not sexps!)
+ */
 public class CmpGE implements SimpleExpression {
   private Expression op1;
   private Expression op2;
@@ -35,9 +38,9 @@ public class CmpGE implements SimpleExpression {
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
     Integer a = (Integer)op1.retrieveValue(context, temps);
-    Vector b = (Vector)op2.retrieveValue(context, temps);
+    Integer b = (Integer)op2.retrieveValue(context, temps);
     
-    return a >= b.getElementAsInt(0);
+    return a >= b;
   }
 
   @Override

@@ -11,5 +11,7 @@ public class IRUtils {
   }
 
   public static final String LEFT_ARROW = "\u2190";
+  
+  public static final String LEFT_DOUBLE_ARROW = "\u21D0";
 
 }

@@ -1,8 +1,41 @@
 package r.base;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static r.base.PPkind.PP_BINARY;
+import static r.base.PPkind.PP_BINARY2;
+import static r.base.PPkind.PP_DOLLAR;
+import static r.base.PPkind.PP_FOREIGN;
+import static r.base.PPkind.PP_FUNCALL;
+import static r.base.PPkind.PP_FUNCTION;
+import static r.base.PPkind.PP_SUBASS;
+import static r.base.PPkind.PP_SUBSET;
+import static r.base.PPkind.PP_UNARY;
+import static r.base.PPprec.PREC_AND;
+import static r.base.PPprec.PREC_COLON;
+import static r.base.PPprec.PREC_COMPARE;
+import static r.base.PPprec.PREC_DOLLAR;
+import static r.base.PPprec.PREC_FN;
+import static r.base.PPprec.PREC_LEFT;
+import static r.base.PPprec.PREC_NOT;
+import static r.base.PPprec.PREC_OR;
+import static r.base.PPprec.PREC_PERCENT;
+import static r.base.PPprec.PREC_POWER;
+import static r.base.PPprec.PREC_PROD;
+import static r.base.PPprec.PREC_SUBSET;
+import static r.base.PPprec.PREC_SUM;
+import static r.base.PPprec.PREC_TILDE;
+import static r.util.CDefines.RelOpType.EQOP;
+import static r.util.CDefines.RelOpType.GEOP;
+import static r.util.CDefines.RelOpType.GTOP;
+import static r.util.CDefines.RelOpType.LEOP;
+import static r.util.CDefines.RelOpType.LTOP;
+import static r.util.CDefines.RelOpType.NEOP;
+
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.math.distribution.Distribution;
+
 import r.base.graphics.Graphics;
 import r.base.graphics.Par;
 import r.base.graphics.Plot;
@@ -14,22 +47,41 @@ import r.base.optimize.Optimizations;
 import r.base.optimize.Roots;
 import r.base.random.RNG;
 import r.base.random.Sampling;
-import r.base.special.*;
+import r.base.special.AssignFunction;
+import r.base.special.AssignLeftFunction;
+import r.base.special.BeginFunction;
+import r.base.special.BreakFunction;
+import r.base.special.ClosureFunction;
+import r.base.special.ForFunction;
+import r.base.special.IfFunction;
+import r.base.special.InternalFunction;
+import r.base.special.NextFunction;
+import r.base.special.OnExitFunction;
+import r.base.special.ParenFunction;
+import r.base.special.ReassignLeftFunction;
+import r.base.special.RepeatFunction;
+import r.base.special.RestartFunction;
+import r.base.special.ReturnFunction;
+import r.base.special.SubstituteFunction;
+import r.base.special.SwitchFunction;
+import r.base.special.WhileFunction;
 import r.base.subset.Subsetting;
 import r.base.time.Time;
+import r.jvmi.binding.JvmMethod;
 import r.jvmi.wrapper.WrapperGenerator;
+import r.lang.BuiltinFunction;
+import r.lang.Context;
+import r.lang.Environment;
+import r.lang.FunctionCall;
+import r.lang.PairList;
 import r.lang.PrimitiveFunction;
+import r.lang.SEXP;
 import r.lang.SpecialFunction;
 import r.lang.Symbol;
 import r.lang.exception.EvalException;
 
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-
-import static r.base.PPkind.*;
-import static r.base.PPprec.*;
-import static r.util.CDefines.RelOpType.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class Primitives {
 
@@ -79,15 +131,22 @@ public class Primitives {
     return Sets.union(INSTANCE.builtins.keySet(), INSTANCE.builtinEntries.keySet());
   }
   
-  private static PrimitiveFunction createFunction(Entry entry) {
+  private static PrimitiveFunction createFunction(final Entry entry) {
    try {
       return (PrimitiveFunction) Class.forName(WrapperGenerator.toFullJavaName(entry.name)).newInstance();
     } catch(Exception e) {
-      throw new EvalException("Sorry! Not yet implemented: " + entry.name,e);
+      return new BuiltinFunction(entry.name) {
+
+        @Override
+        public SEXP apply(Context context, Environment rho,
+            FunctionCall call, PairList args) {
+          throw new EvalException("Sorry! " + entry.name + " not yet implemented!");
+        }
+      };
     }
   }
   
-    
+   
   public Primitives() {
     add(new IfFunction());
     add(new WhileFunction());
@@ -955,7 +1014,7 @@ public class Primitives {
   }
 
   private void add(Entry entry) {     
-    if ((entry.eval % 100) / 10 != 0) {
+    if (entry.isInternal()) {
       internalEntries.put(Symbol.get(entry.name), entry);
     } else {
       builtinEntries.put(Symbol.get(entry.name), entry);
@@ -1027,6 +1086,10 @@ public class Primitives {
 
     private Entry() {
 
+    }
+
+    public boolean isInternal() {
+      return ((eval % 100) / 10) != 0;
     }
 
     private Entry(String name, Class functionClass, String methodName, Object code, int eval, int arity, PPinfo gram) {

@@ -27,8 +27,11 @@ import java.util.Iterator;
 
 import org.apache.commons.math.complex.Complex;
 
+import com.google.common.collect.Iterators;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Primitives;
+
 import r.parser.ParseUtil;
-import r.util.collect.PrimitiveArrays;
 
 public final class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
   
@@ -247,7 +250,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
   @Override
   public Iterator<Double> iterator() {
-    return PrimitiveArrays.asUnmodifiableIterator(values);
+    return Iterators.unmodifiableIterator(Doubles.asList(values).iterator());
   }
 
   public double asReal() {

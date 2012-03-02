@@ -11,6 +11,7 @@ import r.compiler.ir.tac.expressions.LocalVariable;
 import r.compiler.ir.tac.expressions.PrimitiveCall;
 import r.compiler.ir.tac.expressions.SimpleExpression;
 import r.compiler.ir.tac.expressions.Temp;
+import r.compiler.ir.tac.expressions.UnevaluatedArgument;
 import r.compiler.ir.tac.functions.FunctionCallTranslator;
 import r.compiler.ir.tac.functions.FunctionCallTranslators;
 import r.compiler.ir.tac.functions.TranslationContext;
@@ -25,8 +26,8 @@ import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
+import r.lang.StringVector;
 import r.lang.Symbol;
-import r.lang.Vector;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -71,21 +72,29 @@ public class IRBodyBuilder {
   public Expression translateExpression(TranslationContext context, SEXP exp) {
     if(exp instanceof ExpressionVector) {
       return translateExpressionList(context, (ExpressionVector)exp);
-    } else if(exp instanceof Vector) {
-      return new Constant(exp);
     } else if(exp instanceof Symbol) {
-      return new EnvironmentVariable((Symbol)exp);
+      if(exp == Symbol.MISSING_ARG) {
+        return new Constant(exp);
+      } else {
+        return new EnvironmentVariable((Symbol)exp);
+      }
     } else if(exp instanceof FunctionCall) {
       FunctionCallTranslator builder = builders.get(((FunctionCall) exp).getFunction());
       if(builder == null) {
         return translateCall(context, (FunctionCall) exp);
       } else {
-        return builder.translateToExpression(this, null, (FunctionCall)exp);
+        return builder.translateToExpression(this, context, (FunctionCall)exp);
       }
     } else {
       // environments, pairlists, etc
       return new Constant(exp);
     }
+  }
+  
+  public static boolean isConstant(SEXP exp) {
+    return ! (exp instanceof ExpressionVector ||
+              exp instanceof Symbol ||
+              exp instanceof FunctionCall);
   }
   
   public void translateStatements(TranslationContext context, SEXP exp) {
@@ -102,31 +111,75 @@ public class IRBodyBuilder {
   }
   
   public Expression translateCall(TranslationContext context, FunctionCall call) {
-    Symbol name = (Symbol)call.getFunction();
-    if(name.isReservedWord()) {
+    SEXP function = call.getFunction();
+    if(function instanceof Symbol && ((Symbol) function).isReservedWord()) {
       return translatePrimitiveCall(context, call);
     } else {
-      return new DynamicCall(new EnvironmentVariable(name), makeNameList(call), makeOperandList(context, call));
+      return new DynamicCall(call.getFunction(), translateSimpleExpression(context, function), makeNameList(call), 
+          makeUnevaledArgList(context, call.getArguments()));
     }
   }
   
-  public Expression translateSetterCall(TranslationContext context, FunctionCall call, Expression rhs) {
-    FunctionCallTranslator translator = builders.get(call.getFunction());
-    if(translator != null) {
-      return translator.translateToSetterExpression(this, context, call, rhs);
-    } 
-    Symbol name = (Symbol)call.getFunction();
-    List<SEXP> argumentNames = makeNameList(call);
-    List<Expression> arguments = makeOperandList(context, call);
-    
-    // add rhs
-    argumentNames.add(Symbol.get("value"));
-    arguments.add(rhs);
-    
-    if(name.isReservedWord()) {
-      return new PrimitiveCall(name, arguments);
+  public List<Expression> makeUnevaledArgList(TranslationContext context, PairList argumentSexps) {
+    List<Expression> list = Lists.newArrayList();
+    for(SEXP argument : argumentSexps.values()) {
+      if(argument == Symbol.MISSING_ARG) {
+        list.add(new Constant(argument));
+      } else {
+        list.add(unevaledArg(argument));
+      }
+    }
+    return list;
+  }
+  
+  public Expression unevaledArg(SEXP exp) {
+    if(isConstant(exp)) {
+      return new Constant(exp);
     } else {
-      return new DynamicCall(new EnvironmentVariable(name), argumentNames, arguments);
+      return new UnevaluatedArgument(exp);
+    }
+  }
+  
+  
+  public Expression translateSetterCall(TranslationContext context, FunctionCall getterCall, Expression rhs) {
+    Symbol getter = (Symbol) getterCall.getFunction();
+    Symbol setter = Symbol.get(getter.getPrintName() + "<-");
+    
+    // normally this call is created at runtime, with the  value 
+    // of the rhs in the argument list. Since we don't have
+    // the value of the rhs yet
+    FunctionCall setterCall = new FunctionCall(
+        setter,
+        PairList.Node.newBuilder()
+          .addAll(getterCall.getArguments())
+          .add("value", new StringVector("TODO: evaluated RHS here"))
+          .build());
+    
+    FunctionCallTranslator translator = builders.get(setter);
+    if(translator != null) {
+      return translator.translateToSetterExpression(this, context, setterCall, rhs);
+    } 
+
+    
+    if(setter.isReservedWord()) {
+      List<Expression> arguments = makeEvaledArgList(context, getterCall.getArguments());
+      arguments.add(rhs);
+      
+      return new PrimitiveCall(setterCall, setter, arguments);
+      
+    } else {
+      
+      // note that rhs has been evaled at this point
+      List<Expression> arguments = makeUnevaledArgList(context, getterCall.getArguments());
+      arguments.add(rhs);
+
+      List<SEXP> argumentNames = makeNameList(getterCall);
+      argumentNames.add(Symbol.get("value"));
+      
+      return new DynamicCall(setter,
+          new EnvironmentVariable(setter), 
+          argumentNames, 
+          arguments);
     }
   }
 
@@ -136,12 +189,12 @@ public class IRBodyBuilder {
     if(!(function instanceof Symbol)) {
       throw new IllegalArgumentException("Expected symbol, got '" + function + "'");
     }
-    return new PrimitiveCall((Symbol)function, makeOperandList(context, call));
+    return new PrimitiveCall(call, (Symbol)function, makeEvaledArgList(context, call.getArguments()));
   }
 
-  private List<Expression> makeOperandList(TranslationContext context, FunctionCall call) {
+  private List<Expression> makeEvaledArgList(TranslationContext context, PairList argumentSexps) {
     List<Expression> arguments = Lists.newArrayList();
-    for(SEXP arg : call.getArguments().values()) {
+    for(SEXP arg : argumentSexps.values()) {
       arguments.add( simplify( translateExpression(context, arg) ));
     }
     return arguments;

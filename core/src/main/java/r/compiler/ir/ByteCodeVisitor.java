@@ -17,6 +17,8 @@ import r.compiler.ir.tac.expressions.ElementAccess;
 import r.compiler.ir.tac.expressions.EnvironmentVariable;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.ExpressionVisitor;
+import r.compiler.ir.tac.expressions.Length;
+import r.compiler.ir.tac.expressions.UnevaluatedArgument;
 import r.compiler.ir.tac.expressions.Increment;
 import r.compiler.ir.tac.expressions.LValue;
 import r.compiler.ir.tac.expressions.LocalVariable;
@@ -96,6 +98,10 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
       } else {
         mv.visitVarInsn(ASTORE, getVariableSlot(lhs));
       }
+    } else if(rhs instanceof Length) {
+      rhs.accept(this);
+      mv.visitVarInsn(ISTORE, getVariableSlot(lhs));
+      
     } else {
       
       rhs.accept(this);
@@ -144,7 +150,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   @Override
   public void visitDynamicCall(DynamicCall call) {
 
-    EnvironmentVariable functionName = (EnvironmentVariable)call.getName();
+    EnvironmentVariable functionName = (EnvironmentVariable)call.getFunction();
     
     // find the function
     
@@ -213,18 +219,13 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     }
   }
 
-
   @Override
   public void visitElementAccess(ElementAccess expr) {
-    
     expr.getVector().accept(this);
     expr.getIndex().accept(this);
     
-    mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/Vector", "getElementAsSEXP", "(I)Lr/lang/SEXP;");
-    
+    mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/Vector", "getElementAsSEXP", "(I)Lr/lang/SEXP;");    
   }
-
-
 
   @Override
   public void visitEnvironmentVariable(EnvironmentVariable variable) {
@@ -232,8 +233,6 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitLdcInsn(variable.getName().getPrintName());
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "getVariable", "(Ljava/lang/String;)Lr/lang/SEXP;");    
   }
-
-
 
   @Override
   public void visitIncrement(Increment increment) {
@@ -252,11 +251,8 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
   @Override
   public void visitMakeClosure(MakeClosure closure) {
-    throw new UnsupportedOperationException();
-    
+    throw new UnsupportedOperationException();    
   }
-
-
 
   @Override
   public void visitPrimitiveCall(PrimitiveCall call) {
@@ -276,12 +272,14 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     methodSig.append(")Lr/lang/SEXP;");
    
     
-    mv.visitMethodInsn(INVOKESTATIC, WrapperGenerator.toFullJavaName(call.getName().getPrintName()).replace(".", "/"), "doApply", methodSig.toString());
-    
-    
+    mv.visitMethodInsn(INVOKESTATIC, WrapperGenerator.toFullJavaName(call.getName().getPrintName()).replace(".", "/"), "doApply", methodSig.toString());    
   }
-
-
+  
+  @Override
+  public void visitLength(Length length) {
+    length.getVector().accept(this);
+    mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/SEXP", "length", "()I");
+  }
 
   @Override
   public void visitTemp(Temp temp) {
@@ -293,7 +291,6 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   @Override
   public void visitCmpGE(CmpGE cmp) {
     throw new UnsupportedOperationException();
-    
   }
 
 
@@ -336,14 +333,8 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
      
       CmpGE cmp = (CmpGE) stmt.getCondition();
       mv.visitVarInsn(ILOAD, getVariableSlot((LValue)cmp.getOp1()));
-
-      // this is a hack because we know that CmpGe is always used in the context
-      // of a for loop where the second argument is an IntVector resulting from length()
-      // to make more general...
-      mv.visitVarInsn(ALOAD, getVariableSlot((LValue)cmp.getOp2()));
-      pushInt(0);
-      mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/Vector", "getElementAsInt", "(I)I");
-      
+      mv.visitVarInsn(ILOAD, getVariableSlot((LValue)cmp.getOp2()));
+     
       mv.visitJumpInsn(IF_ICMPLT, getAsmLabel(stmt.getFalseTarget()));
       
     } else {
@@ -392,4 +383,15 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
       System.out.println((variableSlots.get(var) + localVariablesStart) + " => " + var);
     }
   }
+
+
+
+  @Override
+  public void visitPromise(UnevaluatedArgument promise) {
+    // TODO Auto-generated method stub
+    
+  }
+
+
+
 }

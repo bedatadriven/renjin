@@ -11,19 +11,20 @@ import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.Closure;
 import r.lang.ExpressionVector;
+import r.lang.Logical;
 import r.lang.SEXP;
+import r.lang.Symbol;
 import r.parser.RParser;
 
-public class IRBuilderTest extends EvalTestCase {
+public class IRBodyBuilderTest extends EvalTestCase {
 
   private IRFunctionTable functionTable = new IRFunctionTable();
-  private IRBodyBuilder factory = new IRBodyBuilder(functionTable); 
   
   @Test
   public void simple() {
     ExpressionVector ast = RParser.parseSource("x + sqrt(x * y)\n");
+    IRBodyBuilder factory = new IRBodyBuilder(functionTable); 
     IRBody ir = factory.build(ast);
-    
     factory.dump( ast );
   }
 
@@ -60,7 +61,7 @@ public class IRBuilderTest extends EvalTestCase {
   @Test
   public void complexAssignment() {
     assertThat(evalIR("x<-c(1:3); x[1] <- 99 "), equalTo(c(99)));
-    assertThat(eval("x"), equalTo(c(99,2,3)));
+    assertThat(evalIR("x"), equalTo(c(99,2,3)));
     assertThat(evalIR("x<-list(1:3, 99, 1:4); x[[3]][5] <- 400; x[[3]] "), equalTo(c(1,2,3,4,400)));
   }
   
@@ -86,8 +87,59 @@ public class IRBuilderTest extends EvalTestCase {
   }
   
   @Test
+  public void lazyArgument() {
+    assertThat(evalIR("x <- quote(y)"), equalTo((SEXP)Symbol.get("y")));
+  }
+  
+  @Test
+  public void complexFunctionValue() {
+    assertThat(evalIR("x<-list(f=function() { 42 }); x$f();"), equalTo(c(42)));
+  }
+  
+  @Test
+  public void missingArgs() {
+    evalIR("x <- 1:3");
+    assertThat(evalIR("x[]"), equalTo(c_i(1,2,3)));
+  }
+  
+  @Test
+  public void returnFunction() {
+    assertThat(evalIR("f<-function() { sqrt(4); return(2); 3}; f(); "), equalTo(c(2)));
+  }
+  
+  @Test
   public void interpretRepeat() {
     assertThat(evalIR("y<-1; repeat {y <- y+1; if(y > 10) break }; y"), equalTo(c(11)));
+  }
+  
+  @Test
+  public void shortCircuitAnd() {
+    assertThat(evalIR("FALSE && explode()"), equalTo(c(false)));
+    assertThat(evalIR("1 && 2"), equalTo(c(true)));
+    assertThat(evalIR("NA && 1"), equalTo(c(Logical.NA)));
+    assertThat(evalIR("NA && FALSE"), equalTo(c(false)));
+    assertThat(evalIR("42 && 1"), equalTo(c(true)));
+    assertThat(evalIR("FALSE && rocket(); NULL "), equalTo(NULL));
+  
+  }
+  
+  @Test
+  public void shortCircuitOr() {
+    assertThat(evalIR("TRUE || explode()"), equalTo(c(true)));
+    assertThat(evalIR("0 || 2"), equalTo(c(true)));
+    assertThat(evalIR("1 || 2"), equalTo(c(true)));
+    assertThat(evalIR("1 || NA"), equalTo(c(true)));
+    assertThat(evalIR("NA || 0"), equalTo(c(Logical.NA)));
+    assertThat(evalIR("NA || 1"), equalTo(c(true)));
+    assertThat(evalIR("0 || NA"), equalTo(c(Logical.NA)));
+    assertThat(evalIR("1 || NA"), equalTo(c(true)));
+    assertThat(evalIR("1 || rocket(); NULL "), equalTo(NULL));
+  }
+ 
+  
+  @Test
+  public void assignmentInThunk() {
+    assertThat(evalIR("length(x <- 42); x;"), equalTo(c(42)));    
   }
   
   private SEXP evalIR(String text) {
@@ -106,11 +158,13 @@ public class IRBuilderTest extends EvalTestCase {
     RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R"))));
     
     Closure closure = (Closure) topLevelContext.getGlobalEnvironment().getVariable("mean.online");
+    IRBodyBuilder factory = new IRBodyBuilder(functionTable);
     factory.dump(closure.getBody());
   }
   
   private void dump(String rcode) {
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
+    IRBodyBuilder factory = new IRBodyBuilder(functionTable);
     IRBody ir = factory.build(ast);
     
     System.out.println(ir.toString());
@@ -118,6 +172,7 @@ public class IRBuilderTest extends EvalTestCase {
   
   private IRBody build(String rcode) {
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
+    IRBodyBuilder factory = new IRBodyBuilder(functionTable);
     return factory.build(ast);
   }
 }

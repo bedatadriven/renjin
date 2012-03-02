@@ -372,8 +372,10 @@ public class Evaluation {
 
 
     StringVector classes = Calls.computeDataClasses(object);
-    DispatchGeneric(context, rho, call, genericName, object, classes);
-
+    SEXP result = DispatchGeneric(context, rho, call, genericName, object, classes);
+    if(result != null) {
+      return result;
+    }
     throw new EvalException("no applicable method for '%s' applied to an object of class \"%s\"",
         genericName, classes.toString());
   }
@@ -381,7 +383,7 @@ public class Evaluation {
   public static SEXP NextMethod(Context context, Environment env, FunctionCall call) {
 
     if(call.getArguments().length() < 2) {
-      throw new UnsupportedOperationException(".Internal(NextMethod()) must be called with at least 2 arguments");
+      throw new EvalException(".Internal(NextMethod()) must be called with at least 2 arguments");
     }
 
 //    char buf[512], b[512], bb[512], tbuf[10];
@@ -746,7 +748,7 @@ public class Evaluation {
   }
 
 
-  private static void DispatchGeneric(Context context, Environment rho, FunctionCall call, String genericName, SEXP object, StringVector classes) {
+  private static SEXP DispatchGeneric(Context context, Environment rho, FunctionCall call, String genericName, SEXP object, StringVector classes) {
     for(String className : Iterables.concat(classes, Arrays.asList("default"))) {
       Symbol method = Symbol.get(genericName + "." + className);
       SEXP function = rho.findVariable(method);
@@ -765,13 +767,14 @@ public class Evaluation {
         if(function instanceof Closure) {
          SEXP result = Calls.applyClosure((Closure) function, context, newCall,
               repromisedArgs, rho, extra);
-          throw new ReturnException(context.getEnvironment(), result);
+         return result;
         } else {
           throw new UnsupportedOperationException("target of UseMethod is not a closure, it is a " +
               function.getClass().getName() );
         }
       }
     }
+    return null;
   }
 
   /**

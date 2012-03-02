@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import r.lang.Context;
+import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.Symbol;
 import r.lang.exception.EvalException;
@@ -33,7 +34,11 @@ public class EnvironmentVariable implements Variable {
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("object '" + name + "' not found");
     }
-    return value;
+    if(value instanceof Promise) {
+      return ((Promise) value).force();
+    } else {
+      return value;
+    }
   }
   
   @Override

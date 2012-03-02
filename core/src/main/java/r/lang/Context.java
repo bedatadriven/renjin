@@ -454,12 +454,16 @@ public class Context {
   public SEXP evaluateIR(SEXP expression, Environment rho) {
     
     IRBodyBuilder builder = new IRBodyBuilder(globals.functionTable);
-    IRBody scope = builder.build(expression);
-    
-    if(PRINT_IR) {
-      System.out.println(scope);
+    if(expression instanceof Promise) {
+      return ((Promise) expression).force();
+    } else {
+      IRBody body = builder.build(expression);
+      
+      if(PRINT_IR) {
+        System.out.println(body);
+      }
+      return body.evaluate(this);
     }
-    return scope.evaluate(this);
   }
 
   /**

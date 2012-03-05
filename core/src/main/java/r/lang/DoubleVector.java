@@ -162,8 +162,13 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   @Override
   public String getElementAsString(int index) {
     double value = values[index];
-    return isNaN(value) ? "NaN" :
-        ParseUtil.toString(value);
+    if(isNA(value)) {
+      return StringVector.NA;
+    } else if(isNaN(value)) {
+      return "NaN";
+    } else {
+      return ParseUtil.toString(value);
+    }
   }
 
   @Override
@@ -408,6 +413,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
     }
 
     public Builder set(int index, double value) {
+      boolean isNA = (Double.doubleToRawLongBits(value) == NA_BITS);
       ensureCapacity(index+1);
       if(index+1 > size) {
         size = index+1;
@@ -427,12 +433,16 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
     @Override
     public Builder setNA(int index) {
-      return set(index, NA);
+      return set(index, Double.longBitsToDouble(NA_BITS));
     }
 
     @Override
     public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      return set(destinationIndex, source.getElementAsDouble(sourceIndex));
+      if(source.isElementNA(sourceIndex)) {
+        return setNA(destinationIndex);
+      } else {
+        return set(destinationIndex, source.getElementAsDouble(sourceIndex));
+      }
     }
 
     public Builder set(int index, Double value) {

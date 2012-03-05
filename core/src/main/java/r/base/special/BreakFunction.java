@@ -25,10 +25,10 @@ import r.lang.*;
 
 public class BreakFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "break";
+  public BreakFunction() {
+    super("break");
   }
+  
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {

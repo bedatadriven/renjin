@@ -25,11 +25,10 @@ import r.lang.*;
 
 public class ParenFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "(";
+  public ParenFunction() {
+    super("(");
   }
-
+  
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     return context.evaluate(call.getArgument(0), rho);

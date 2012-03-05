@@ -38,23 +38,23 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
-  public static Logical or(Context context, Environment rho, FunctionCall call) {
+  public static LogicalVector or(Context context, Environment rho, FunctionCall call) {
 
     Logical x = checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x || y'");
 
     if(x == Logical.TRUE) {
-      return x;
+      return LogicalVector.TRUE;
     }
 
     Logical y = checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x || y'");
     if(y == Logical.TRUE) {
-      return y;
+      return LogicalVector.TRUE;
     }
 
     if(x == Logical.NA || y == Logical.NA) {
-      return Logical.NA;
+      return LogicalVector.NA_VECTOR;
     } else {
-      return Logical.FALSE;
+      return LogicalVector.FALSE;
     }
   }
 
@@ -66,22 +66,22 @@ public class Comparison {
    * will only compare the first element in each vector.
    */
   @Primitive("&&")
-  public static Logical and(Context context, Environment rho, FunctionCall call) {
+  public static LogicalVector and(Context context, Environment rho, FunctionCall call) {
 
     Logical x = checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x && y'");
 
     if(x == Logical.FALSE) {
-      return Logical.FALSE;
+      return LogicalVector.FALSE;
     }
 
     Logical y = checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x && y'");
 
     if(y == Logical.FALSE) {
-      return Logical.FALSE;
+      return LogicalVector.FALSE;
     } else if(x == Logical.TRUE && y == Logical.TRUE) {
-      return Logical.TRUE;
+      return LogicalVector.TRUE;
     } else {
-      return Logical.NA;
+      return LogicalVector.NA_VECTOR;
     }
   }
 

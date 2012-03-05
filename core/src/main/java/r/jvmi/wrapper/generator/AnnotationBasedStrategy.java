@@ -1,5 +1,7 @@
 package r.jvmi.wrapper.generator;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -9,41 +11,179 @@ import r.jvmi.annotations.NamedFlag;
 import r.jvmi.annotations.PreserveAttributeStyle;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.binding.JvmMethod.Argument;
+import r.jvmi.wrapper.ArgumentException;
+import r.jvmi.wrapper.ArgumentIterator;
 import r.jvmi.wrapper.GeneratorDefinitionException;
 import r.jvmi.wrapper.IfElseSeries;
+import r.jvmi.wrapper.WrapperRuntime;
 import r.jvmi.wrapper.WrapperSourceWriter;
 import r.jvmi.wrapper.generator.args.ArgConverterStrategies;
 import r.jvmi.wrapper.generator.args.ArgConverterStrategy;
 import r.jvmi.wrapper.generator.generic.GenericDispatchStrategy;
-import r.jvmi.wrapper.generator.generic.SummaryGroupGenericStrategy;
 import r.jvmi.wrapper.generator.generic.OpsGroupGenericDispatchStrategy;
 import r.jvmi.wrapper.generator.generic.SimpleDispatchStrategy;
+import r.jvmi.wrapper.generator.generic.SummaryGroupGenericStrategy;
 import r.jvmi.wrapper.generator.recycling.RecycledArgument;
 import r.jvmi.wrapper.generator.recycling.RecycledArguments;
 import r.jvmi.wrapper.generator.recycling.SingleRecycledArgument;
 import r.jvmi.wrapper.generator.scalars.ScalarType;
 import r.jvmi.wrapper.generator.scalars.ScalarTypes;
-import r.jvmi.wrapper.generator.scalars.SexpType;
+import r.lang.Context;
+import r.lang.Environment;
 import r.lang.ListVector;
-import r.lang.StrictPrimitiveFunction;
+import r.lang.SEXP;
+import r.lang.exception.EvalException;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-public class AnnotationBasedStrategy extends GeneratorStrategy {
+public class AnnotationBasedStrategy extends GeneratorStrategy  {
 
-  @Override
-  public boolean accept(List<JvmMethod> overloads) {
-    // return !overloads.get(0).isGroupGeneric();
-    return true;
+
+
+
+  protected void generateMethods(Entry entry, WrapperSourceWriter s, List<JvmMethod> overloads) {
+
+    generateApplyMethod(entry, s, overloads);
+    
+    if(!entry.isSpecial()) {
+      generateBuiltinApply(s, entry, overloads);
+    }
+    
+    generateFixedArityMethods(s, entry, overloads);
+
+    generateStaticMatchAndApply(s, entry, overloads);
+
   }
 
-  @Override
-  protected void generateCall(Entry entry, WrapperSourceWriter s,
+  private String argumentErrorMessage(Entry entry, List<JvmMethod> overloads) {
+    StringBuilder message = new StringBuilder();
+    message.append("\"Invalid argument. Expected:");
+    for(JvmMethod method : overloads) {
+      message.append("\\n\\t");
+      method.appendFriendlySignatureTo(entry.name, message);
+    }
+    message.append("\"");
+    return message.toString();
+  }
+  
+  protected String noMatchingOverloadErrorMessage(Entry entry, Collection<JvmMethod> overloads) {
+    
+    int nargs = overloads.iterator().next().countPositionalFormals();
+    
+    StringBuilder message = new StringBuilder();
+    message.append("throw new EvalException(context, ");
+    message.append("\"Invalid argument:\\n");
+    message.append("\\t").append(entry.name).append("(");
+    
+    for(int i=0;i<nargs;++i) {
+      if(i > 0) {
+        message.append(", ");
+      }
+      message.append("%s");
+    }
+    message.append(")\\n");
+    message.append("\\tExpected:");
+    for(JvmMethod method : overloads) {
+      message.append("\\n\\t");
+      method.appendFriendlySignatureTo(entry.name, message);
+    }
+    message.append("\"");
+    for(int i=0;i<nargs;++i) {
+      message.append(", s" + i + ".getTypeName()");
+    }
+    message.append(")");
+    return message.toString();
+  }
+
+  protected final String contextualArgumentName(Argument formal) {
+    if(formal.getClazz().equals(Context.class)) {
+      return "context";
+    } else if(formal.getClazz().equals(Environment.class)) {
+      return "rho"; 
+    } else {
+      throw new RuntimeException("Invalid contextual argument type: " + formal.getClazz());
+    }
+  }
+
+  protected static class ArgumentList {
+    private StringBuilder sb = new StringBuilder();
+    
+    public ArgumentList(String... args) {
+      for(String arg : args) {
+        add(arg);
+      }
+    }
+    
+    public void add(String name) {
+      if(sb.length() > 0) {
+        sb.append(", ");
+      }
+      sb.append(name);
+    }
+    @Override
+    public String toString() {
+      return sb.toString();
+    }
+  }
+    
+    
+  protected final String callStatement(JvmMethod method, ArgumentList argumentList) {
+    StringBuilder call = new StringBuilder();
+    call.append(method.getDeclaringClass().getName()).append(".")
+      .append(method.getName())
+      .append("(")
+      .append(argumentList.toString())
+      .append(")");
+    
+    return handleReturn(method, call.toString());
+  }
+  
+  protected final String handleReturn(JvmMethod method, String execution) {
+    if(method.returnsVoid()) {
+      return execution + ";";
+      
+    } else if(SEXP.class.isAssignableFrom(method.getReturnType())) {
+      return "return " + execution + ";";
+    
+    } else {
+      verifyWeHaveWrapResult(method);
+      return "return wrapResult(" + execution + ");";    
+    }
+  }
+  
+  private void verifyWeHaveWrapResult(JvmMethod method) {
+    for(Method runtimeMethod : WrapperRuntime.class.getMethods()) {
+      if(runtimeMethod.getName().equals("wrapResult") &&
+         runtimeMethod.getParameterTypes().length == 1 &&
+         (runtimeMethod.getModifiers() & Modifier.STATIC) != 0 &&
+         runtimeMethod.getParameterTypes()[0].isAssignableFrom(method.getReturnType())) {
+        return;
+      }
+    }
+    throw new GeneratorDefinitionException("Do not have a wrapper for return type " + method.getReturnType().getName());
+  }
+
+
+  private void generateApplyMethod(Entry entry, WrapperSourceWriter s,
       List<JvmMethod> overloads) {
-    s.writeStatement("ArgumentIterator argIt = new ArgumentIterator(context, rho, args)");
+
+    s.println("@Override");
+    s.writeBeginBlock("public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {");
+   
+    generateApplyMethodBody(s, entry, overloads, new PairListArgItType());
+    
+    s.writeCloseBlock();
+  }
+
+  private void generateApplyMethodBody(WrapperSourceWriter s, Entry entry,
+      List<JvmMethod> overloads, ArgumentItType argItType) {
+    
+    s.writeBeginTry();
+    
+    argItType.init(s);
     s.writeBlankLine();
 
     GenericDispatchStrategy genericDispatchStrategy = getGenericDispatchStrategy(
@@ -55,76 +195,42 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
           havingPositionalArgCountOf(i));
 
       if (!matchingByCount.isEmpty()) {
-        s.writeBeginIf("!argIt.hasNext()");
-        dispatchArityGroup(entry, s, matchingByCount, genericDispatchStrategy);
+        s.writeBeginIf("!" + argItType.hasNext());
+        dispatchArityGroup(entry, s, matchingByCount, genericDispatchStrategy, 
+           argItType);
         s.writeCloseBlock();
       }
 
-      if (isEvaluated(overloads, i)) {
-        s.writeStatement("SEXP s" + i + " = argIt.evalNext()");
-      } else {
-        s.writeStatement("SEXP s" + i + " = argIt.next()");
-      }
-      genericDispatchStrategy.afterArgIsEvaluated(s, i);
+      s.writeStatement("SEXP s" + i + " = " + argItType.nextArg(isEvaluated(overloads,i)));
+      genericDispatchStrategy.afterArgIsEvaluated(s, i, argItType);
     }
 
     Collection<JvmMethod> matchingByCount = Collections2.filter(overloads,
         havingPositionalArgCountOf(maxArgumentCount));
     genericDispatchStrategy.beforeTypeMatching(s, maxArgumentCount);
-    dispatchArityGroup(entry, s, matchingByCount, genericDispatchStrategy);
+    dispatchArityGroup(entry, s, matchingByCount, genericDispatchStrategy,
+       argItType  );
+    
+
+    s.writeCatch(ArgumentException.class, "e");
+    s.writeStatement("throw new EvalException(context, " + argumentErrorMessage(entry, overloads) + ");");
+    s.writeCatch(EvalException.class, "e");
+    s.writeStatement("e.initContext(context)");
+    s.writeStatement("throw e;");    
+    s.writeCatch(RuntimeException.class, "e");
+    s.writeStatement("throw e;");
+    s.writeCatch(Exception.class, "e");
+    s.writeStatement("throw new r.lang.exception.EvalException(e);");
+    s.writeCloseBlock();
   }
 
-  @Override
-  protected Class[] getImplementedInterfaces(List<JvmMethod> overloads) {
-    if (areStrict(overloads) && !hasVarArgs(overloads)) {
-      return new Class[] { StrictPrimitiveFunction.class };
-    } else {
-      return new Class[0];
-    }
-  }
-
-  @Override
-  protected void generateOtherCalls(Entry entry, WrapperSourceWriter s,
-      List<JvmMethod> overloads) {
-
-    if (areStrict(overloads) && !hasVarArgs(overloads)) {
-
-      GenericDispatchStrategy genericDispatchStrategy = getGenericDispatchStrategy(
-          entry, overloads);
-
-      s.writeBeginBlock("public SEXP applyStrict(Context context, Environment rho, FunctionCall call, SEXP arguments[]) {");
-
-      int maxArgumentCount = getMaxPositionalArgs(overloads);
-      boolean needElseIf = false;
-      for (int i = 0; i <= maxArgumentCount; ++i) {
-        Collection<JvmMethod> matchingByCount = Collections2.filter(overloads,
-            havingPositionalArgCountOf(i));
-        if (!matchingByCount.isEmpty() && !hasVarArgs(matchingByCount)) {
-
-          String condition = "arguments.length == " + i;
-          if (needElseIf) {
-            s.writeBeginIfElse(condition);
-          } else {
-            s.writeBeginIf(condition);
-            needElseIf = true;
-          }
-          for (int j = 0; j != i; ++j) {
-            s.writeStatement("SEXP s" + j + " = arguments[" + j + "]");
-          }
-          s.writeBeginTry();
-          genericDispatchStrategy.beforeTypeMatching(s, i);
-
-          dispatchArityGroup(entry, s, matchingByCount, genericDispatchStrategy);
-          s.writeCatch(Exception.class, "e");
-          s.writeStatement("throw new EvalException(e)");
-          s.writeCloseBlock();
-        }
-      }
-      s.writeElse();
-      s.writeStatement("throw new EvalException(\"incorrect number of args\")");
-      s.writeCloseBlock();
-      s.writeCloseBlock();
-    }
+  /**
+   * Generate the static methods that 
+   * @param s
+   * @param entry
+   * @param overloads
+   */
+  private void generateFixedArityMethods(WrapperSourceWriter s, Entry entry, List<JvmMethod> overloads) {
 
     int maxArgumentCount = getMaxPositionalArgs(overloads);
     for (int i = 0; i <= maxArgumentCount; ++i) {
@@ -142,13 +248,30 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
         s.writeBeginBlock(signature.toString());
         s.writeBeginTry();
         dispatchArityGroup(entry, s, matchingByCount,
-            new GenericDispatchStrategy());
+            new GenericDispatchStrategy(), null);
         s.writeCatch(Exception.class, "e");
         s.writeStatement("throw new EvalException(e)");
         s.writeCloseBlock();
         s.writeCloseBlock();
       }
     }
+
+  }
+  
+  private void generateBuiltinApply(WrapperSourceWriter s, Entry entry,
+      List<JvmMethod> overloads) {
+    
+    s.writeBeginBlock("public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP arguments[]) {");
+    generateApplyMethodBody(s, entry, overloads, new ArrayArgItType());
+    s.writeCloseBlock();
+  }
+  
+  private void generateStaticMatchAndApply(WrapperSourceWriter s, Entry entry,
+      List<JvmMethod> overloads) {
+    
+    s.writeBeginBlock("public static SEXP matchAndApply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP arguments[]) {");
+    generateApplyMethodBody(s, entry, overloads, new ArrayArgItType());
+    s.writeCloseBlock();
   }
 
   private boolean hasVarArgs(Collection<JvmMethod> overloads) {
@@ -160,15 +283,6 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     return false;
   }
 
-  private boolean areStrict(List<JvmMethod> overloads) {
-    for (JvmMethod overload : overloads) {
-      if (!overload.isStrict()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   private boolean isEvaluated(List<JvmMethod> overloads, int argumentIndex) {
     boolean evaluated = false;
     boolean unevaluated = false;
@@ -177,7 +291,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
         if (overload.getFormals().get(argumentIndex).isEvaluated()) {
           evaluated = true;
         } else {
-          unevaluated = false;
+          unevaluated = true;
         }
       }
     }
@@ -231,11 +345,12 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
 
   private void dispatchArityGroup(Entry entry, WrapperSourceWriter s,
       Collection<JvmMethod> overloads,
-      GenericDispatchStrategy genericDispatchStrategy) {
+      GenericDispatchStrategy genericDispatchStrategy,
+      ArgumentItType argItType) {
     if (overloads.size() == 1) {
       JvmMethod overload = overloads.iterator().next();
       if (overload.getPositionalFormals().isEmpty()) {
-        generateCall(s, overload, genericDispatchStrategy);
+        generateCall(s, overload, genericDispatchStrategy, argItType);
         return;
       }
     }
@@ -243,7 +358,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     IfElseSeries choice = new IfElseSeries(s, overloads.size());
     for (JvmMethod overload : overloads) {
       choice.elseIf(testCondition(overload));
-      generateCall(s, overload, genericDispatchStrategy);
+      generateCall(s, overload, genericDispatchStrategy, argItType);
     }
     choice.finish();
     s.writeStatement(noMatchingOverloadErrorMessage(entry, overloads));
@@ -263,8 +378,8 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
     return condition.toString();
   }
 
-  protected void generateCall(WrapperSourceWriter s, JvmMethod method,
-      GenericDispatchStrategy genericDispatchStrategy) {
+  private void generateCall(WrapperSourceWriter s, JvmMethod method,
+      GenericDispatchStrategy genericDispatchStrategy, ArgumentItType argItType) {
 
     s.writeComment("**** " + method.toString());
 
@@ -320,8 +435,8 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       s.writeBlankLine();
       s.writeComment("match var args");
       s.writeStatement("ListVector.NamedBuilder argListBuilder = new ListVector.NamedBuilder();");
-      s.writeBeginBlock("while(argIt.hasNext()) { ");
-      writeHandleNode(s, namedFlags);
+      s.writeBeginBlock("while(" + argItType.hasNext() + ") { ");
+      writeHandleNode(s, namedFlags, argItType);
       s.writeCloseBlock();
       s.writeStatement("ListVector argList = argListBuilder.build()");
     }
@@ -345,21 +460,15 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
   }
 
   private void writeHandleNode(WrapperSourceWriter s,
-      Map<JvmMethod.Argument, String> namedFlags) {
-    s.writeStatement("PairList.Node node = argIt.nextNode()");
-    s.writeStatement("SEXP value = node.getValue()");
+      Map<JvmMethod.Argument, String> namedFlags, ArgumentItType argIt) {
+   
     s.writeStatement("SEXP evaled");
-    s.writeBeginBlock("if(Symbol.MISSING_ARG.equals(value)) {");
-    s.writeStatement("evaled = value");
-    s.outdent();
-    s.writeBeginBlock("} else {");
-    s.writeStatement("evaled = context.evaluate( value, rho)");
-    s.writeCloseBlock();
-    s.writeBeginBlock("if(node.hasTag()) {");
+    argIt.writeFetchNextNode(s);
+    
+    s.writeBeginIf(argIt.hasName());
+    s.writeStatement("String name = " + argIt.fetchArgName());
 
     if (!namedFlags.isEmpty()) {
-      s.writeStatement("String name = node.getTag().getPrintName()");
-
       boolean needElseIf = false;
       for (JvmMethod.Argument namedFlag : namedFlags.keySet()) {
 
@@ -369,7 +478,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
 
         s.writeBeginBlock((needElseIf ? "} else " : "") + "if(name.equals(\""
             + namedFlag.getName() + "\")) {");
-        s.writeBeginIf("node.getValue() != Symbol.MISSING_ARG");
+        s.writeBeginIf("evaled != Symbol.MISSING_ARG");
         s.writeStatement(ArgConverterStrategies.findArgConverterStrategy(
             namedFlag).conversionStatement(namedFlags.get(namedFlag), "evaled"));
         s.writeCloseBlock();
@@ -379,7 +488,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       s.writeBeginBlock("} else {");
     }
 
-    s.writeStatement("argListBuilder.add(node.getTag(), evaled);");
+    s.writeStatement("argListBuilder.add(name, evaled);");
 
     if (!namedFlags.isEmpty()) {
       s.writeCloseBlock();
@@ -472,5 +581,12 @@ public class AnnotationBasedStrategy extends GeneratorStrategy {
       s.writeCloseBlock();
     }
     s.writeStatement("return result.build();");
+  }
+
+
+
+  @Override
+  public boolean accept(List<JvmMethod> overloads) {
+    return true;
   }
 }

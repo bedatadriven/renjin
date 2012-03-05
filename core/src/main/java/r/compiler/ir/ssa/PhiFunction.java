@@ -7,6 +7,7 @@ import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.ExpressionVisitor;
 import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
+import r.lang.SEXP;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -77,6 +78,11 @@ public class PhiFunction implements Expression {
   @Override
   public void accept(ExpressionVisitor visitor) {
     visitor.visitPhiFunction(this);
+  }
+
+  @Override
+  public SEXP getSExpression() {
+    return arguments.get(0).getSExpression();
   }
   
   

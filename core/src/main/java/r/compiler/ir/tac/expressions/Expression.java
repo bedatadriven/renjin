@@ -4,6 +4,7 @@ import java.util.Set;
 
 import r.compiler.ir.tree.TreeNode;
 import r.lang.Context;
+import r.lang.SEXP;
 
 public interface Expression extends TreeNode {
 
@@ -15,6 +16,9 @@ public interface Expression extends TreeNode {
    * @return
    */
   Object retrieveValue(Context context, Object temps[]);
+  
+  
+  SEXP getSExpression();
   
   /**
    * 

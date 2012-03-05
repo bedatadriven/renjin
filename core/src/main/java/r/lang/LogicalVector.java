@@ -37,7 +37,8 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
   public static LogicalVector TRUE = new LogicalVector(1);
   public static LogicalVector FALSE = new LogicalVector(0);
-
+  public static LogicalVector NA_VECTOR = new LogicalVector(NA);
+  
   private int[] values;
 
 

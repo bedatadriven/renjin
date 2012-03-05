@@ -30,19 +30,32 @@ public class PassThrough extends GeneratorStrategy {
   public boolean accept(List<JvmMethod> overloads) {
     return overloads.size() == 1 && overloads.get(0).acceptsCall();
   }
+  
 
 
   @Override
-  protected void generateCall(Entry entry, WrapperSourceWriter s, List<JvmMethod> overloads) {
+  protected void generateMethods(Entry entry, WrapperSourceWriter s, List<JvmMethod> overloads) {
     JvmMethod method = overloads.get(0);
     
-    s.writeStatement(callStatement(method, new ArgumentList("context", "rho", "call")));
+
+    s.println("@Override");
+    s.writeBeginBlock("public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {");
+    
+    StringBuilder call = new StringBuilder();
+    call.append(method.getDeclaringClass().getName()).append(".")
+      .append(method.getName())
+      .append("(context, rho, call)");
     
     if(method.returnsVoid()) {
+      s.writeStatement(call.toString());
       s.writeStatement("context.setInvisibleFlag()");
       s.writeStatement("return r.lang.Null.INSTANCE;");
+    } else {
+      s.writeStatement("return " + call.toString());
     }
     
+    s.writeCloseBlock();
+
   }
   
 }

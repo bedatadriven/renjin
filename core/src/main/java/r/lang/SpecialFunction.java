@@ -25,20 +25,30 @@ import r.base.Warning;
 import r.lang.exception.EvalException;
 
 public abstract class SpecialFunction extends PrimitiveFunction {
+  
   public static final String TYPE_NAME = "special";
 
+  private final String name;
+  
+  protected SpecialFunction(String name) {
+    this.name = name;
+  }
+  
   @Override
   public String getTypeName() {
     return TYPE_NAME;
   }
 
-  public abstract String getName();
+  public final String getName() {
+    return name;
+  }
 
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visitSpecial(this);
   }
-
+  
+  
   public static boolean asLogicalNoNA(Context context, FunctionCall call, SEXP s) {
 
     if (s.length() == 0) {
@@ -60,7 +70,8 @@ public abstract class SpecialFunction extends PrimitiveFunction {
     checkArity(call, 0);
   }
 
-    protected void checkArity(FunctionCall call, int expectedArguments, int optional) {
+  
+  protected void checkArity(FunctionCall call, int expectedArguments, int optional) {
       int count = call.getArguments().length();
       EvalException.check(count <= expectedArguments &&
           count >= (expectedArguments-optional),

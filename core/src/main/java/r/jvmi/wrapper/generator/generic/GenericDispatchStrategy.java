@@ -1,10 +1,11 @@
 package r.jvmi.wrapper.generator.generic;
 
 import r.jvmi.wrapper.WrapperSourceWriter;
+import r.jvmi.wrapper.generator.ArgumentItType;
 
 public class GenericDispatchStrategy {
 
-  public void afterArgIsEvaluated(WrapperSourceWriter s, int index) {
+  public void afterArgIsEvaluated(WrapperSourceWriter s, int index, ArgumentItType argItType) {
 
   }
 

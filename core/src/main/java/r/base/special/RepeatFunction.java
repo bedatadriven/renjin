@@ -26,11 +26,10 @@ import r.lang.exception.EvalException;
 
 public class RepeatFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "repeat";
+  public RepeatFunction() {
+    super("repeat");
   }
-
+  
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP statement = args.getElementAsSEXP(0);

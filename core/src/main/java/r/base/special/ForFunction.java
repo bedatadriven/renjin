@@ -33,11 +33,10 @@ import r.lang.Vector;
 
 public class ForFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "for";
+  public ForFunction() {
+    super("for");
   }
-
+  
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
 

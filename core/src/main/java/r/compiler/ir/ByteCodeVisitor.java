@@ -6,6 +6,8 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import r.compiler.ConstantGeneratingVisitor;
+import r.compiler.ThunkMap;
 import r.compiler.cfg.BasicBlock;
 import r.compiler.ir.ssa.PhiFunction;
 import r.compiler.ir.ssa.SsaVariable;
@@ -18,7 +20,7 @@ import r.compiler.ir.tac.expressions.EnvironmentVariable;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.ExpressionVisitor;
 import r.compiler.ir.tac.expressions.Length;
-import r.compiler.ir.tac.expressions.UnevaluatedArgument;
+import r.compiler.ir.tac.expressions.IRThunk;
 import r.compiler.ir.tac.expressions.Increment;
 import r.compiler.ir.tac.expressions.LValue;
 import r.compiler.ir.tac.expressions.LocalVariable;
@@ -46,6 +48,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   private int context = 1;
   private int rho = 2;
   private int localVariablesStart = 3;
+  private ThunkMap thunkMap;
   
   public class GenerationContext {
     
@@ -53,8 +56,9 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   }
   
   
-  public ByteCodeVisitor(MethodVisitor mv) {
+  public ByteCodeVisitor(ThunkMap thunkMap, MethodVisitor mv) {
     super();
+    this.thunkMap = thunkMap;
     this.mv = mv;
   }
 
@@ -90,7 +94,6 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
       // loop counter for _for_ loops.
       
       Constant constant = (Constant) rhs;
-      
       constant.accept(this);
       
       if(constant.getValue() instanceof Integer) {
@@ -116,7 +119,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
    * Assign a value into the context's {@code Environment} 
    */
   private void environmentAssignment(Symbol name, Expression rhs) {
-    mv.visitVarInsn(ALOAD, 1);
+    mv.visitVarInsn(ALOAD, context);
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Context", "getEnvironment", "()Lr/lang/Environment;");
     mv.visitLdcInsn(name.getPrintName());
     mv.visitMethodInsn(INVOKESTATIC, "r/lang/Symbol", "get", "(Ljava/lang/String;)Lr/lang/Symbol;");
@@ -142,10 +145,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     } else {
       throw new UnsupportedOperationException();
     }
-    
   }
-
-
 
   @Override
   public void visitDynamicCall(DynamicCall call) {
@@ -171,7 +171,6 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitMethodInsn(INVOKESPECIAL, "r/lang/exception/EvalException", "<init>", "(Ljava/lang/String;[Ljava/lang/Object;)V");
     mv.visitInsn(ATHROW);
     
-    
     // check if strict
     Label l3 = new Label();
     mv.visitLabel(l2);
@@ -189,19 +188,41 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitLabel(l3);
     mv.visitVarInsn(ALOAD, context);
     mv.visitVarInsn(ALOAD, rho);
-    pushArgs(call);
+    pushEvaluatedArgs(call);
     
     mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/StrictPrimitiveFunction", "applyStrict", "(Lr/lang/Context;Lr/lang/Environment;[Lr/lang/SEXP;)Lr/lang/SEXP;");    
   }
 
-  private void pushArgs(DynamicCall call) {
+  /**
+   * If our dynamic call resolves to a primitive at runtime, then
+   * evaluate the arguments inline to avoid the overhead of creating 
+   * thunks.
+   */
+  private void pushEvaluatedArgs(DynamicCall call) {
 
     // create array
     pushInt(call.getArguments().size());
     mv.visitTypeInsn(ANEWARRAY, "r/lang/SEXP");
     
     for(int i=0; i!=call.getArguments().size();++i) {
+      // keep the array on the stack
       mv.visitInsn(DUP);
+      
+      Expression arg = call.getArguments().get(0);
+      if(arg instanceof IRThunk) {
+        SEXP sexp = ((IRThunk) arg).getSEXP();
+        if(sexp instanceof Symbol) {
+          visitEnvironmentVariable(new EnvironmentVariable((Symbol) sexp));
+          mv.visitTypeInsn(NEW, "r/compiler/runtime/VariablePromise");
+          mv.visitInsn(DUP);
+          mv.visitVarInsn(ALOAD, context);
+          mv.visitLdcInsn(((Symbol) sexp).getPrintName());
+          mv.visitMethodInsn(INVOKESPECIAL, "r/compiler/runtime/VariablePromise", "<init>", "(Lr/lang/Context;Ljava/lang/String;)V"); 
+        } else {
+         // String thunkClass = thunkMap.getClassName(arg);
+          throw new UnsupportedOperationException();
+        }
+      }
       
       pushInt(i);
       call.getArguments().get(i).accept(this);
@@ -387,7 +408,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
 
   @Override
-  public void visitPromise(UnevaluatedArgument promise) {
+  public void visitPromise(IRThunk promise) {
     // TODO Auto-generated method stub
     
   }

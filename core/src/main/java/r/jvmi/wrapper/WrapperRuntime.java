@@ -200,6 +200,36 @@ public class WrapperRuntime {
     return dispatcher.apply(chain, newArgs);
   }
 
+  public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call, 
+      String name, String[] argumentNames, SEXP[] arguments) {
+    
+    if(call.getFunction() instanceof Symbol &&
+        ((Symbol)call.getFunction()).getPrintName().endsWith(".default")) {
+      return null;
+    }
+    
+    Vector classVector = (Vector)arguments[0].getAttribute(Symbols.CLASS);
+    if(classVector.length() == 0) {
+      return null;
+    }
+
+    DispatchChain chain = DispatchChain.newChain(rho, name, classVector);
+    if(chain == null) {
+      return null;
+    }
+
+    PairList.Builder newArgsBuilder = new PairList.Builder();
+    for(int i=0;i!=arguments.length;++i) {
+      newArgsBuilder.add(argumentNames[i], arguments[i]);
+    }
+    PairList newArgs = newArgsBuilder.build();
+    
+    FunctionCall newCall = new FunctionCall(chain.getMethodSymbol(), newArgs);
+
+    ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, newCall);
+    return dispatcher.apply(chain, newArgs);
+  }
+  
   private static PairList reassembleAndEvaluateArgs(SEXP object, PairList args, Context context, Environment rho) {
     PairList.Builder newArgs = new PairList.Builder();
     Node firstArg = (PairList.Node)args;

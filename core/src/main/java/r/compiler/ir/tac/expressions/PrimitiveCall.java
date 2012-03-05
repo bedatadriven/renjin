@@ -1,30 +1,32 @@
 package r.compiler.ir.tac.expressions;
 
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 import r.base.Primitives;
-import r.base.special.ReturnException;
 import r.compiler.ir.exception.InvalidSyntaxException;
-import r.compiler.ir.tac.IRBody;
 import r.compiler.ir.tac.IRBodyBuilder;
-import r.jvmi.binding.JvmMethod;
+import r.jvmi.wrapper.WrapperGenerator;
+import r.jvmi.wrapper.WrapperRuntime;
+import r.lang.BuiltinFunction;
 import r.lang.Context;
+import r.lang.Environment;
 import r.lang.FunctionCall;
 import r.lang.PairList;
 import r.lang.PrimitiveFunction;
 import r.lang.Promise;
-import r.lang.PromisePairList;
 import r.lang.SEXP;
-import r.lang.StrictPrimitiveFunction;
 import r.lang.Symbol;
 import r.lang.Symbols;
+import r.lang.exception.EvalException;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * 
@@ -42,8 +44,8 @@ public class PrimitiveCall implements Expression {
   private FunctionCall call;
   
   private final List<Expression> arguments;
-  private PrimitiveFunction function;
-  private SEXP[] argumentValues;
+  private Method primitiveMethod;
+  private String[] argumentNames;
   
   /**
    * Elipses (...) need to be handled specially because they are 
@@ -56,23 +58,45 @@ public class PrimitiveCall implements Expression {
     this.call = call;
     this.name = name;
     this.arguments = arguments;
+    this.argumentNames = new String[arguments.size()];
+    for(int i=0;i!=argumentNames.length;++i) {
+      argumentNames[i] = Strings.emptyToNull(call.getArguments().getName(i));
+    }
     
     for(Expression argument : arguments) {
-      if(argument instanceof EnvironmentVariable && 
-          ((EnvironmentVariable) argument).getName() == Symbols.ELLIPSES) {
+      if(argument == Elipses.INSTANCE) {
         elipses = true;
         break;
       }
     }
     
-    this.function = Primitives.getBuiltin(name);
-    if(function == null) {
-      function = Primitives.getInternal(name);
+    this.primitiveMethod = findMethod(name, arguments.size());
+    
+  }
+  
+  private Method findMethod(Symbol name, int arity) {
+    try {
+      Class wrapperClass = Class.forName(WrapperGenerator.toFullJavaName(name.getPrintName()));
+      return wrapperClass.getMethod("matchAndApply", new Class[] { 
+          Context.class,
+          Environment.class,
+          FunctionCall.class,
+          String[].class,
+          SEXP[].class
+      });
+//      for(Method method : wrapperClass.getMethods()) {
+//        if(method.getName().equals("doApply") && method.getParameterTypes().length == 
+//            arity + 2) {
+//          return method;
+//        }
+//      }
+    } catch (ClassNotFoundException e) {
+      // probably not yet implemented 
+      // but throw an error only at runtime to allow compilation to continue
+    } catch (SecurityException e) {
+    } catch (NoSuchMethodException e) {
     }
-    if(function == null) {
-      throw new InvalidSyntaxException("No such primitive '" + function + "'");
-    }
-    this.argumentValues = new SEXP[arguments.size()];
+    return null;
   }
   
   public PrimitiveCall(FunctionCall call, String name, Expression... arguments) {
@@ -89,56 +113,63 @@ public class PrimitiveCall implements Expression {
   
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
-    // build argument list 
-    if(!elipses && function instanceof StrictPrimitiveFunction) {
-      return applyStrict(context, temps);
-    } else {
-      return apply(context, temps);
+    if(primitiveMethod == null) {
+      throw new UnsupportedOperationException("doApply() method for " + name + " not found");
+    }
+
+    try {
+      if(elipses) {
+        return applyDynamic(context, temps);
+      } else {
+        return applyStatic(context, temps);
+      }
+    } catch (InvocationTargetException e) {
+      if(e.getCause() instanceof EvalException) {
+        throw (EvalException)e.getCause();
+      } else {
+        throw new EvalException(e.getCause());
+      }
+    } catch (Exception e) {
+      throw new EvalException(e);
     }
   }
-
-
-  private Object apply(Context context, Object[] temps) {
-
-    PairList.Builder argList = new PairList.Builder();
-    int i = 0;
-    for(PairList.Node node : call.getArguments().nodes()) {
-      Expression expr = arguments.get(i++);
-      if(expr instanceof EnvironmentVariable &&
-          ((EnvironmentVariable) expr).getName() == Symbols.ELLIPSES) {
-        argList.add(node.getRawTag(), Symbols.ELLIPSES);
-      } else {
-        SEXP evaled = (SEXP)expr.retrieveValue(context, temps);
-        argList.add(node.getRawTag(), maybeRepromise(evaled));
-      }
-    }
   
-    PairList args = argList.build();
-    FunctionCall call = new FunctionCall(name, args);
-    return function.apply(context, context.getEnvironment() , call, args);  
-  }
-
-  private SEXP maybeRepromise(SEXP value) {
-    // the argument has already been evaluated;
-    // if it is not constant, we need to package it in a promise
-    // to assure that it does not get reevaluated
-    if(IRBodyBuilder.isConstant(value)) {
-      return value;
-    } else {
-      return new Promise(value, value);
+  private SEXP applyStatic(Context context, Object[] temps) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+    // names and argument count are determined at 
+    // compile time
+    SEXP[] argumentValues = new SEXP[arguments.size()];
+    for(int i=0;i!=arguments.size();++i) {
+      argumentValues[i] = (SEXP)arguments.get(i).retrieveValue(context, temps);
     }
+    return (SEXP) primitiveMethod.invoke(null, context, context.getEnvironment(), 
+        call, argumentNames, argumentValues);
   }
-
-  private Object applyStrict(Context context, Object[] temps) {
-    for(int i=0;i!=argumentValues.length;++i) {
-      SEXP value = (SEXP)arguments.get(i).retrieveValue(context, temps);
-      if(value instanceof Promise) {
-        argumentValues[i] = ((Promise) value).force();
+  
+  private SEXP applyDynamic(Context context, Object[] temps) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+    // the function call includes a '...' that needs to be expanded into the 
+    // argument list
+    PairList extraArgs = (PairList) context.getEnvironment().getVariable(Symbols.ELLIPSES);
+    int numArgs = arguments.size() + extraArgs.length() - 1;
+    String names[] = new String[numArgs];
+    SEXP values[] = new SEXP[numArgs];
+    int outArgIndex=0;
+    int stdArgIndex=0;
+    for(Expression arg : arguments) {
+      if(arg == Elipses.INSTANCE) {
+        for(PairList.Node node : extraArgs.nodes()) {
+          names[outArgIndex] = Strings.emptyToNull(node.getName());
+          values[outArgIndex] = ((Promise)node.getValue()).force();
+          outArgIndex++;
+        }
       } else {
-        argumentValues[i] = value;
+        names[outArgIndex] = argumentNames[stdArgIndex];
+        values[outArgIndex] = (SEXP) arguments.get(stdArgIndex).retrieveValue(context, temps);
+        outArgIndex++;
+        stdArgIndex++;
       }
     }
-    return ((StrictPrimitiveFunction) function).applyStrict(context, context.getEnvironment(), call, argumentValues);
+    return (SEXP) primitiveMethod.invoke(null, context, context.getEnvironment(), 
+        call, names, values);
   }
   
   @Override
@@ -183,5 +214,10 @@ public class PrimitiveCall implements Expression {
   @Override
   public void accept(ExpressionVisitor visitor) {
     visitor.visitPrimitiveCall(this);
+  }
+
+  @Override
+  public SEXP getSExpression() {
+    return call;
   }  
 }

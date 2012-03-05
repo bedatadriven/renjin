@@ -162,7 +162,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   @Override
   public String getElementAsString(int index) {
     double value = values[index];
-    return isNaN(value) ? StringVector.NA :
+    return isNaN(value) ? "NaN" :
         ParseUtil.toString(value);
   }
 

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import r.lang.Context;
+import r.lang.SEXP;
 
 /**
  * Variable that is to be stored as a JVM local variable when 
@@ -83,6 +84,9 @@ public class LocalVariable implements Variable {
   public void accept(ExpressionVisitor visitor) {
     visitor.visitLocalVariable(this);
   }
-  
-  
+
+  @Override
+  public SEXP getSExpression() {
+    throw new UnsupportedOperationException();
+  } 
 }

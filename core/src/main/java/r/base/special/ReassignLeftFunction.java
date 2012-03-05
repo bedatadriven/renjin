@@ -26,9 +26,8 @@ import r.lang.exception.EvalException;
 
 public class ReassignLeftFunction extends AssignLeftFunction {
 
-  @Override
-  public String getName() {
-    return "<<-";
+  public ReassignLeftFunction() {
+    super("<<-");
   }
   
   @Override

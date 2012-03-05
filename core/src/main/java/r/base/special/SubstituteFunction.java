@@ -29,11 +29,10 @@ import java.util.List;
 
 public class SubstituteFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "substitute";
+  public SubstituteFunction() {
+    super("substitute");
   }
-
+  
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     checkArity(call, 2, 1);

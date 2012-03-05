@@ -38,17 +38,26 @@ public class Print {
 
   @Primitive("print.default")
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
-                                    SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) {
+      SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) {
 
     PrintingVisitor visitor = new PrintingVisitor()
-      .setCharactersPerLine(80)
-      .setQuote(quote);
+    .setCharactersPerLine(80)
+    .setQuote(quote);
     expression.accept(visitor);
-    
+
     context.getGlobals().stdout.print(visitor.getResult());
     context.getGlobals().stdout.flush();
     context.setInvisibleFlag();
     return expression;
+
+  }
+
+  public static String doPrint(SEXP expression) {
+    PrintingVisitor visitor = new PrintingVisitor()
+    .setCharactersPerLine(80);
+    expression.accept(visitor);
+
+    return visitor.getResult();
   }
 
   @Primitive("print.function")

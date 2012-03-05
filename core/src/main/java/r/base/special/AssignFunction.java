@@ -20,8 +20,8 @@ package r.base.special;
  */
 public class AssignFunction extends AssignLeftFunction {
 
-  @Override
-  public String getName() {
-    return "=";
+  public AssignFunction() {
+    super("=");
   }
+  
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import r.lang.Context;
+import r.lang.SEXP;
 
 /**
  * Increments a counter variable. Only used for the 
@@ -62,6 +63,9 @@ public class Increment implements Expression {
   public void accept(ExpressionVisitor visitor) {
     visitor.visitIncrement(this);
   }
-  
-  
+
+  @Override
+  public SEXP getSExpression() {
+    throw new UnsupportedOperationException();
+  }
 }

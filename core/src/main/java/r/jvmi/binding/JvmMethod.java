@@ -447,7 +447,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
           defaultValue = ((DefaultValue) annotation).value();
         
         } else if(annotation instanceof InvokeAsCharacter) {
-          evaluated = false;
+          evaluated = true;
           explicitConverter = new AsCharacterConverter();
         }
       }

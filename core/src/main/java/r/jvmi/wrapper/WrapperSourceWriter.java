@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import r.base.Primitives.Entry;
+
 /**
  * Utility class for writing java source for generated wrappers 
  * for functions. 
@@ -38,9 +40,11 @@ public class WrapperSourceWriter {
     println("import static " + spec + ";");
   }
     
-  public void writeBeginClass(Class... interfacesImplemented) {
+  public void writeBeginClass(Entry entry, Class... interfacesImplemented) {
     StringBuilder classSig = new StringBuilder();
-    classSig.append("public class " + className + " extends BuiltinFunction ");
+    classSig.append("public class " + className + " extends " + 
+        (entry.isSpecial() ? "SpecialFunction" : "BuiltinFunction"));
+     
     if(interfacesImplemented.length > 0) {
       classSig.append(" implements ");
       boolean commaNeeded = false;
@@ -61,13 +65,7 @@ public class WrapperSourceWriter {
   public void writeConstructor(String functionName) {
     println("public " + className + "() { super(" + quote(functionName) + "); }");
   }  
-  
-  public void writeBeginApplyMethod() {
-    println("@Override");
-    println("public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {");
-    indent++;
-  }
-  
+    
   public void writeComment(String comment) {
     println("// " + comment);
   }

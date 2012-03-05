@@ -8,10 +8,14 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 import r.compiler.CompiledBody;
+import r.compiler.ExpressionCompiler;
+import r.compiler.ThunkMap;
+import r.compiler.runtime.VariablePromise;
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.ExpressionVector;
 import r.lang.IntVector;
+import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.Symbol;
 import r.parser.RParser;
@@ -36,6 +40,11 @@ public class ExpressionCompilerTest {
     assertThat(result.getElementAsDouble(0), equalTo(4d));
   }
   
+  public void variableThunk() {
+    Promise exp = new VariablePromise(context, "foo");
+    exp.force();
+  }
+  
   @Test
   public void ifStatement() throws Exception {
         
@@ -44,9 +53,9 @@ public class ExpressionCompilerTest {
     assertThat(result.getElementAsDouble(0), equalTo(42d));
     
   }
-  
+    
+  @Ignore("work in progress")
   @Test
-  @Ignore("dynamic calls are in progress")
   public void dynamicCall() throws Exception {
     IntVector result = (IntVector) compileAndEval(context, "x<-5; length(x)\n");
     assertThat(result.getElementAsInt(0), equalTo(1));
@@ -77,7 +86,8 @@ public class ExpressionCompilerTest {
   private SEXP compileAndEval(Context context, String code)
       throws InstantiationException, IllegalAccessException {
     ExpressionVector exp = RParser.parseSource(code);
-    Class<CompiledBody> compiled = ExpressionCompiler.compile(exp);
+    ThunkMap thunkMap = new ThunkMap();
+    Class<CompiledBody> compiled = ExpressionCompiler.compile(thunkMap, exp);
     
     return compiled.newInstance().eval(context, context.getEnvironment());
   }

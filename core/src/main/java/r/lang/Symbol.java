@@ -70,7 +70,6 @@ public final class Symbol extends AbstractSEXP {
         "for",
         "break",
         "continue",
-        "return",
         "next",
         "{", "(", 
         "!",

@@ -5,28 +5,36 @@ import java.util.List;
 import java.util.Set;
 
 import r.lang.Context;
-import r.lang.Promise;
 import r.lang.SEXP;
+import r.lang.Symbols;
 
 /**
- * An unevaluated argument to a dynamic function call. 
- * (it will become a promise at runtime)
- *
+ * When used within an argument list, the elipses symbol
+ * (...) indicates that the unmatched arguments from the calling
+ * function should be merged into the argument list to the function call.
+ * 
+ * <code>
+ * f <- function(...) list(...)
+ * x <- f(1,2,3)  
+ * </code>
+ * 
  */
-public class UnevaluatedArgument implements SimpleExpression {
-  
-  /**
-   * The original expression
-   */
-  private SEXP exp;
+public class Elipses implements SimpleExpression {
 
-  public UnevaluatedArgument(SEXP exp) {
-    this.exp = exp;
+  public static final Elipses INSTANCE = new Elipses();
+  
+  private Elipses() {
+    
+  }
+  
+  @Override
+  public Object retrieveValue(Context context, Object[] temps) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public SEXP retrieveValue(Context context, Object[] temps) {
-    return exp;
+  public SEXP getSExpression() {
+    return Symbols.ELLIPSES;
   }
 
   @Override
@@ -36,7 +44,7 @@ public class UnevaluatedArgument implements SimpleExpression {
 
   @Override
   public void accept(ExpressionVisitor visitor) {
-    visitor.visitPromise(this);
+   
   }
 
   @Override
@@ -46,7 +54,7 @@ public class UnevaluatedArgument implements SimpleExpression {
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    throw new IllegalArgumentException();
+    
   }
 
   @Override
@@ -56,6 +64,6 @@ public class UnevaluatedArgument implements SimpleExpression {
 
   @Override
   public String toString() {
-    return "UNEVALED[ " + exp + " ]";
+    return "...";
   }
 }

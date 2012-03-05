@@ -37,9 +37,9 @@ public class Promise extends AbstractSEXP implements Recursive {
 
   public static final String TYPE_NAME = "promise";
 
-  private Context context;
-  private Environment environment;
-  private SEXP expression;
+  protected Context context;
+  protected Environment environment;
+  protected SEXP expression;
   private SEXP result;
 
   public Promise(Context context, Environment environment, SEXP expression) {
@@ -79,16 +79,21 @@ public class Promise extends AbstractSEXP implements Recursive {
    */
   public SEXP force() {
     if (result == null) {
-      if(Context.PRINT_IR) {
-        System.out.println("=== THUNK");
-      }
-      this.result = this.context.evaluate(expression, environment);
+      this.result = doEval();
       this.environment = null;
       this.context = null;
     }
     return result;
   }
 
+  protected SEXP doEval() {
+    if(Context.PRINT_IR) {
+      System.out.println("=== THUNK");
+    }
+    return this.context.evaluate(expression, environment);
+  }
+  
+  
   public void setResult(SEXP exp) {
     this.result = exp;
     this.environment = null;

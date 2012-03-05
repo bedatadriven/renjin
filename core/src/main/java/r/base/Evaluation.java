@@ -380,11 +380,9 @@ public class Evaluation {
         genericName, classes.toString());
   }
 
-  public static SEXP NextMethod(Context context, Environment env, FunctionCall call) {
+  public static SEXP NextMethod(@Current Context context, @Current Environment env,
+      SEXP generic, SEXP object, @ArgumentList ListVector extraArgs) {
 
-    if(call.getArguments().length() < 2) {
-      throw new EvalException(".Internal(NextMethod()) must be called with at least 2 arguments");
-    }
 
 //    char buf[512], b[512], bb[512], tbuf[10];
 //    const char *sb, *sg, *sk;
@@ -532,7 +530,9 @@ public class Evaluation {
     }
 
     /* the generic comes from either the sysparent or it's named */
-    SEXP generic = sysp.getEnvironment().getVariable(".Generic");
+    if(generic == Null.INSTANCE) {
+      generic = sysp.getEnvironment().getVariable(".Generic");
+    }
     if (generic == Symbol.UNBOUND_VALUE) {
       //  generic = eval(CAR(args), env);
       throw new EvalException(".Generic not present");

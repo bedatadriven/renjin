@@ -382,7 +382,7 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void doSwitch() {
     eval("switch <- function (EXPR, ...) .Internal(switch(EXPR, ...))");
-
+    
     assertThat( eval("switch('z', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
     assertThat( eval("switch('a', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
     assertThat( eval("switch('a', alligator=4,aardvark=2)"), equalTo( NULL ));

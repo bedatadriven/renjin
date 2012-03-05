@@ -25,11 +25,10 @@ import r.lang.*;
 
 public class ReturnFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "return";
+  public ReturnFunction() {
+    super("return");
   }
-
+  
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     if(call.getArguments().length() > 0) {

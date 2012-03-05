@@ -83,8 +83,6 @@ public class WrapperGenerator {
     
     List<GeneratorStrategy> strategies = Lists.newArrayList();
     strategies.add(new PassThrough());
-  //  strategies.add(new SingleOverloadWithoutRecycling());
-   // strategies.add(new UnaryRecyclingStrategy());
     strategies.add(new AnnotationBasedStrategy());
   
     int implementedCount = 0;

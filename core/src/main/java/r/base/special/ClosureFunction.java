@@ -26,9 +26,8 @@ import r.lang.exception.EvalException;
 
 public class ClosureFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "function";
+  public ClosureFunction() {
+    super("function");
   }
 
   @Override

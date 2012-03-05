@@ -27,9 +27,8 @@ import r.lang.exception.EvalException;
 
 public class InternalFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return ".Internal";
+  public InternalFunction() {
+    super(".Internal");
   }
 
   @Override

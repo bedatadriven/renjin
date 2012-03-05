@@ -96,6 +96,9 @@ public class EnvironmentVariable implements Variable {
   public void accept(ExpressionVisitor visitor) {
     visitor.visitEnvironmentVariable(this);
   }
-  
-  
+
+  @Override
+  public SEXP getSExpression() {
+    return name;
+  }
 }

@@ -54,6 +54,24 @@ public class IRBodyBuilderTest extends EvalTestCase {
   }
   
   @Test
+  public void multipleAssigns() {
+    evalIR("burt <- .Internal(rep.int(0, 29*29)) ; " +
+    		   "dim(burt) <- c(29,29); " +
+    		   "ii <- c(1,2);" +
+    		   "jj <- c(3,4);" +
+    		   "m <- c(134,33,2,46);" +
+    		   "dim(m) <- c(2,2); " +
+    		   "t <- function(x) .Internal(t.default(x)); " +
+    		   "burt[jj, ii] <- t(   burt[ii, jj] <- m   );");
+    
+    assertThat(evalIR("burt[jj,ii]"), equalTo(c(134,2,33,46)));
+    assertThat(evalIR("burt[ii,jj]"), equalTo(c(134,33,2,46)));
+    
+
+   
+  }
+  
+  @Test
   public void interpretSimple() {
     assertThat(evalIR("x<-16; sqrt(x^2)"), equalTo(c(16)));
   }
@@ -72,6 +90,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
 
   @Test
   public void interpretIf() {
+    assertThat(evalIR("sqrt(4)"), equalTo(c(2)));
     assertThat(evalIR("if(sqrt(4) > 1) 'yes' else 'no'"), equalTo(c("yes")));
   }
   
@@ -90,6 +109,13 @@ public class IRBodyBuilderTest extends EvalTestCase {
   public void lazyArgument() {
     assertThat(evalIR("x <- quote(y)"), equalTo((SEXP)Symbol.get("y")));
   }
+  
+  @Test
+  public void primitivesWithElipses() {
+    assertThat(evalIR("x<-10:20; f<-function(...) x[...]; f(1);"), equalTo(c_i(10)));
+  }
+  
+  
   
   @Test
   public void complexFunctionValue() {

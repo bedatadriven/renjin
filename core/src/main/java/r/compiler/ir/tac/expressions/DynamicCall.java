@@ -4,8 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import r.base.special.ReturnException;
-import r.compiler.ir.exception.InvalidSyntaxException;
+import r.lang.BuiltinFunction;
 import r.lang.Context;
 import r.lang.Function;
 import r.lang.FunctionCall;
@@ -24,12 +23,7 @@ import com.google.common.collect.Sets;
  */
 public class DynamicCall implements Expression {
 
-  /**
-   * The IR expression from which we will obtain the actual
-   * function value at runtime
-   */
-  private Expression functionExpr;
-  
+
   /**
    * The S expression from the original AST which we 
    * need to pass to closures at runtime. For example, given the AST
@@ -43,15 +37,42 @@ public class DynamicCall implements Expression {
    */
   private SEXP functionName;
   
+  
+  /**
+   * The IR expression from which we will obtain the actual
+   * function value at runtime, IF {@code functionName} is NOT a {@link Symbol}
+   */
+  private Expression functionExpr;
+  
+  /**
+   * The original function call. We just need to pass this around.
+   */
+  private FunctionCall call;
+  
   private final List<Expression> arguments;
   private final List<SEXP> argumentNames;
+  private final String[] argumentNamesArray;
+  private boolean elipses;
   
-  public DynamicCall(SEXP functionName, Expression function, 
+  public DynamicCall(FunctionCall call, Expression function, 
       List<SEXP> argumentNames, List<Expression> arguments) {
-    this.functionName = functionName;
+    this.call = call;
+    this.functionName = call.getFunction();
     this.functionExpr = function;
     this.arguments = arguments;
     this.argumentNames = argumentNames;
+    this.argumentNamesArray = new String[argumentNames.size()];
+    for(int i=0;i!=argumentNames.size();++i) {
+      if(argumentNames.get(i) instanceof Symbol) {
+        argumentNamesArray[i] = ((Symbol) argumentNames.get(i)).getPrintName();
+      }
+    }
+    this.elipses = false;
+    for(Expression expression: arguments) {
+      if(expression == Elipses.INSTANCE ) {
+        elipses = true;
+      }
+    }
   }
 
   public Expression getFunction() {
@@ -65,22 +86,42 @@ public class DynamicCall implements Expression {
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
     
-  
     // locate function object
     Function functionValue = findFunction(context, temps);
     
-    // build argument list 
-    PairList.Builder argList = new PairList.Builder();
-    for(int i=0;i!=arguments.size();++i) {
-      argList.add(argumentNames.get(i), (SEXP)arguments.get(i).retrieveValue(context, temps));
+    if(! elipses && functionValue instanceof BuiltinFunction) {
+      return ((BuiltinFunction)functionValue).apply(context, 
+          context.getEnvironment(), call, argumentNamesArray, evaluateArgs(context, temps));
+    } else {
+      
+      PairList.Builder args = new PairList.Builder();
+      for(int i=0;i!=arguments.size();++i) {
+        args.add(argumentNames.get(i), arguments.get(i).getSExpression());
+      }
+      
+      return functionValue.apply(context, context.getEnvironment(), call, args.build());
     }
-    PairList args = argList.build();
-    FunctionCall call = new FunctionCall(functionName, args);
     
-    return functionValue.apply(context, context.getEnvironment(), call, args);
-  
+    // build argument list 
+//    PairList.Builder argList = new PairList.Builder();
+//    for(int i=0;i!=arguments.size();++i) {
+//      argList.add(argumentNames.get(i), (SEXP)arguments.get(i).retrieveValue(context, temps));
+//    }
+//    PairList args = argList.build();
+//    FunctionCall call = new FunctionCall(functionName, args);
+//    
+//    return functionValue.apply(context, context.getEnvironment(), call, args);
+//  
   }
   
+
+  private SEXP[] evaluateArgs(Context context, Object[] temps) {
+    SEXP[] evaluated = new SEXP[arguments.size()];
+    for(int i=0;i!=evaluated.length;++i) {
+      evaluated[i] = (SEXP) arguments.get(i).retrieveValue(context, temps);
+    }
+    return evaluated;
+  }
 
   private Function findFunction(Context context, Object[] temps) {
  
@@ -110,7 +151,7 @@ public class DynamicCall implements Expression {
       
       Object value = functionExpr.retrieveValue(context, temps);
       if(!(value instanceof Function)) {
-        throw new InvalidSyntaxException("attempt to apply non-function: " + value);
+        throw new EvalException("attempt to apply non-function: " + value);
       }
       return (Function) value;
     }
@@ -149,7 +190,7 @@ public class DynamicCall implements Expression {
     for(Expression argument : arguments) {
       newOps.add(argument.replaceVariable(name, newName));
     }
-    return new DynamicCall(functionName,
+    return new DynamicCall(call,
         (Variable)this.functionExpr.replaceVariable(name, newName), 
         argumentNames,
         newOps);
@@ -175,5 +216,11 @@ public class DynamicCall implements Expression {
   @Override
   public void accept(ExpressionVisitor visitor) {
     visitor.visitDynamicCall(this);
+  }
+
+  @Override
+  public SEXP getSExpression() {
+    return call;
   } 
+  
 }

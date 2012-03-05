@@ -26,11 +26,10 @@ import r.lang.exception.EvalException;
 
 public class RestartFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "restart";
+  public RestartFunction() {
+    super("restart");
   }
-
+  
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     throw new EvalException("restart is not yet implemented.");

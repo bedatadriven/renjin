@@ -10,6 +10,7 @@ import r.compiler.ir.tac.expressions.ExpressionVisitor;
 import r.compiler.ir.tac.expressions.SimpleExpression;
 import r.compiler.ir.tac.expressions.Variable;
 import r.lang.Context;
+import r.lang.SEXP;
 
 public class SsaVariable implements Variable {
   private final Variable inner;
@@ -93,6 +94,10 @@ public class SsaVariable implements Variable {
   public void accept(ExpressionVisitor visitor) {
     visitor.visitSsaVariable(this);
   }
-  
-  
+
+  @Override
+  public SEXP getSExpression() {
+    return inner.getSExpression();
+  }
+
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import r.lang.Context;
+import r.lang.SEXP;
 
 /**
  * A nullary expression (used by the Goto statement, for example,
@@ -46,6 +47,9 @@ public class NullExpression implements Expression {
   public void accept(ExpressionVisitor visitor) {
     // NOOP
   }
-  
-  
+
+  @Override
+  public SEXP getSExpression() {
+    throw new UnsupportedOperationException();
+  }
 }

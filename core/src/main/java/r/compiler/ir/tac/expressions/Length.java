@@ -63,6 +63,9 @@ public class Length implements SimpleExpression {
   public String toString() {
     return "length(" + vector + ")";
   }
-  
-  
+
+  @Override
+  public SEXP getSExpression() {
+    throw new UnsupportedOperationException();
+  }
 }

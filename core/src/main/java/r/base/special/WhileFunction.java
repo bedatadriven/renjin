@@ -25,11 +25,10 @@ import r.lang.*;
 
 public class WhileFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "while";
+  public WhileFunction() {
+    super("while");
   }
-
+  
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP condition = args.getElementAsSEXP(0);

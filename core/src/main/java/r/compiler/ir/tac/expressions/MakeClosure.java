@@ -7,6 +7,7 @@ import java.util.Set;
 
 import r.compiler.ir.tac.IRFunction;
 import r.lang.Context;
+import r.lang.SEXP;
 
 public class MakeClosure implements Expression {
 
@@ -53,5 +54,10 @@ public class MakeClosure implements Expression {
   @Override
   public void accept(ExpressionVisitor visitor) {
     visitor.visitMakeClosure(this);
+  }
+
+  @Override
+  public SEXP getSExpression() {
+    throw new UnsupportedOperationException();
   }
 }

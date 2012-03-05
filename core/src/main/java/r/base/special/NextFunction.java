@@ -25,11 +25,10 @@ import r.lang.*;
 
 public class NextFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "next";
+  public NextFunction() {
+    super("next");
   }
-
+  
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     throw NextException.INSTANCE;

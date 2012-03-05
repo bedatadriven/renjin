@@ -3,15 +3,17 @@ package r.compiler.ir.tac;
 import java.util.List;
 import java.util.Map;
 
+import r.compiler.ir.Thunk;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.DynamicCall;
+import r.compiler.ir.tac.expressions.Elipses;
 import r.compiler.ir.tac.expressions.EnvironmentVariable;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.LocalVariable;
 import r.compiler.ir.tac.expressions.PrimitiveCall;
 import r.compiler.ir.tac.expressions.SimpleExpression;
 import r.compiler.ir.tac.expressions.Temp;
-import r.compiler.ir.tac.expressions.UnevaluatedArgument;
+import r.compiler.ir.tac.expressions.IRThunk;
 import r.compiler.ir.tac.functions.FunctionCallTranslator;
 import r.compiler.ir.tac.functions.FunctionCallTranslators;
 import r.compiler.ir.tac.functions.TranslationContext;
@@ -28,6 +30,7 @@ import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.Symbol;
+import r.lang.Symbols;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -45,6 +48,7 @@ public class IRBodyBuilder {
   private Map<IRLabel, Integer> labels;
   
   private IRFunctionTable functionTable;
+  private List<IRThunk> thunks = Lists.newArrayList();
   
   public IRBodyBuilder(IRFunctionTable functionTable) {
     this.functionTable = functionTable;
@@ -115,7 +119,9 @@ public class IRBodyBuilder {
     if(function instanceof Symbol && ((Symbol) function).isReservedWord()) {
       return translatePrimitiveCall(context, call);
     } else {
-      return new DynamicCall(call.getFunction(), translateSimpleExpression(context, function), makeNameList(call), 
+      return new DynamicCall(call, 
+          translateSimpleExpression(context, function), 
+          makeNameList(call), 
           makeUnevaledArgList(context, call.getArguments()));
     }
   }
@@ -125,6 +131,8 @@ public class IRBodyBuilder {
     for(SEXP argument : argumentSexps.values()) {
       if(argument == Symbol.MISSING_ARG) {
         list.add(new Constant(argument));
+      } else if(argument == Symbols.ELLIPSES) {
+        list.add(Elipses.INSTANCE);
       } else {
         list.add(unevaledArg(argument));
       }
@@ -136,11 +144,19 @@ public class IRBodyBuilder {
     if(isConstant(exp)) {
       return new Constant(exp);
     } else {
-      return new UnevaluatedArgument(exp);
+      return translateThunk(exp);
     }
   }
   
   
+  private IRThunk translateThunk(SEXP exp) {
+    IRBodyBuilder thunkBodyBuilder = new IRBodyBuilder(functionTable);
+    IRBody body = thunkBodyBuilder.build(exp);
+    IRThunk thunk = new IRThunk(exp, body);
+    thunks.add(thunk);
+    return thunk;
+  }
+
   public Expression translateSetterCall(TranslationContext context, FunctionCall getterCall, Expression rhs) {
     Symbol getter = (Symbol) getterCall.getFunction();
     Symbol setter = Symbol.get(getter.getPrintName() + "<-");
@@ -163,7 +179,7 @@ public class IRBodyBuilder {
     
     if(setter.isReservedWord()) {
       List<Expression> arguments = makeEvaledArgList(context, getterCall.getArguments());
-      arguments.add(rhs);
+      arguments.add(simplify( rhs ));
       
       return new PrimitiveCall(setterCall, setter, arguments);
       
@@ -176,7 +192,7 @@ public class IRBodyBuilder {
       List<SEXP> argumentNames = makeNameList(getterCall);
       argumentNames.add(Symbol.get("value"));
       
-      return new DynamicCall(setter,
+      return new DynamicCall(setterCall,
           new EnvironmentVariable(setter), 
           argumentNames, 
           arguments);
@@ -195,7 +211,11 @@ public class IRBodyBuilder {
   private List<Expression> makeEvaledArgList(TranslationContext context, PairList argumentSexps) {
     List<Expression> arguments = Lists.newArrayList();
     for(SEXP arg : argumentSexps.values()) {
-      arguments.add( simplify( translateExpression(context, arg) ));
+      if(arg == Symbols.ELLIPSES) {
+        arguments.add( Elipses.INSTANCE );
+      } else {
+        arguments.add( simplify( translateExpression(context, arg) ));
+      }
     }
     return arguments;
   }

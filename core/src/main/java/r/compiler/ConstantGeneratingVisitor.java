@@ -1,4 +1,4 @@
-package r.compiler.ir;
+package r.compiler;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;

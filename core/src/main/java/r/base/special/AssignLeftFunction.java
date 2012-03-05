@@ -27,9 +27,12 @@ import r.lang.exception.EvalException;
 
 public class AssignLeftFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "<-";
+  public AssignLeftFunction() {
+    super("<-");
+  }
+  
+  protected AssignLeftFunction(String name) {
+    super(name);
   }
 
   @Override

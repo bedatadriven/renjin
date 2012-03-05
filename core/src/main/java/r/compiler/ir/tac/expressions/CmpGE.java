@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import r.lang.Context;
+import r.lang.SEXP;
 
 import com.google.common.collect.Sets;
 
@@ -73,5 +74,10 @@ public class CmpGE implements SimpleExpression {
   @Override
   public void accept(ExpressionVisitor visitor) {
     visitor.visitCmpGE(this);
+  }
+
+  @Override
+  public SEXP getSExpression() {
+    throw new UnsupportedOperationException();
   }
 }

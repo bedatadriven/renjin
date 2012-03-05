@@ -25,10 +25,9 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 
 public class SetFunction extends SpecialFunction {
-
-  @Override
-  public String getName() {
-    return "=";
+  
+  public SetFunction() {
+    super("=");
   }
 
   @Override

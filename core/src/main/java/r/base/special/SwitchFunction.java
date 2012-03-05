@@ -27,11 +27,10 @@ import r.lang.exception.EvalException;
 
 public class SwitchFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "switch";
+  public SwitchFunction() {
+    super("switch");
   }
-
+  
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     EvalException.check(call.length() > 1, "argument \"EXPR\" is missing");

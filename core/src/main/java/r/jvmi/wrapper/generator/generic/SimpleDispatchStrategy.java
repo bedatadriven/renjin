@@ -22,6 +22,8 @@
 package r.jvmi.wrapper.generator.generic;
 
 import r.jvmi.wrapper.WrapperSourceWriter;
+import r.jvmi.wrapper.generator.ArgumentItType;
+import r.jvmi.wrapper.generator.PairListArgItType;
 
 public class SimpleDispatchStrategy extends GenericDispatchStrategy {
 
@@ -32,15 +34,18 @@ public class SimpleDispatchStrategy extends GenericDispatchStrategy {
   }
 
   @Override
-  public void afterArgIsEvaluated(WrapperSourceWriter s, int index) {
+  public void afterArgIsEvaluated(WrapperSourceWriter s, int index, ArgumentItType argItType) {
     if(index == 0) {
       s.writeBeginIf("((AbstractSEXP)s0).isObject()");
-      s.writeStatement("SEXP genericResult = tryDispatchFromPrimitive(context, rho, call, \"" + name + "\", s0, args);");
+      if(argItType instanceof PairListArgItType) {
+        s.writeStatement("SEXP genericResult = tryDispatchFromPrimitive(context, rho, call, \"" + name + "\", s0, args);");
+      } else {
+        s.writeStatement("SEXP genericResult = tryDispatchFromPrimitive(context, rho, call, \"" + name + "\", argumentNames, arguments);");
+      }
       s.writeBeginBlock("if(genericResult != null) {");
       s.writeStatement("return genericResult");
       s.writeCloseBlock();
       s.writeCloseBlock();
     }
   }
-  
 }

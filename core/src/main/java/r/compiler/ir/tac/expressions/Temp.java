@@ -7,6 +7,7 @@ import java.util.Set;
 import r.compiler.ir.IRUtils;
 import r.compiler.ir.tac.IRLabel;
 import r.lang.Context;
+import r.lang.SEXP;
 
 /**
  * A slot for a temporary value. 
@@ -82,5 +83,10 @@ public class Temp implements LValue {
   @Override
   public void accept(ExpressionVisitor visitor) {
     visitor.visitTemp(this);
+  }
+
+  @Override
+  public SEXP getSExpression() {
+    throw new UnsupportedOperationException();
   }
 }

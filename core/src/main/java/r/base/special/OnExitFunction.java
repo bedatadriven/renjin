@@ -26,9 +26,8 @@ import r.lang.exception.EvalException;
 
 public class OnExitFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "on.exit";
+  public OnExitFunction() {
+    super("on.exit");
   }
 
   @Override

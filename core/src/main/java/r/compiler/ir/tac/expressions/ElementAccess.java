@@ -7,6 +7,7 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 
 import r.lang.Context;
+import r.lang.SEXP;
 import r.lang.Vector;
 
 
@@ -79,5 +80,10 @@ public class ElementAccess implements Expression {
   @Override
   public void accept(ExpressionVisitor visitor) {
     visitor.visitElementAccess(this);
+  }
+
+  @Override
+  public SEXP getSExpression() {
+    throw new UnsupportedOperationException();
   } 
 }

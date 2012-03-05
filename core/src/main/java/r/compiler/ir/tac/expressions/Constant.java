@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import r.lang.Context;
+import r.lang.SEXP;
 import r.lang.Symbol;
 
 
@@ -58,6 +59,9 @@ public class Constant implements SimpleExpression {
   public void accept(ExpressionVisitor visitor) {
     visitor.visitConstant(this);
   }
-  
-  
+
+  @Override
+  public SEXP getSExpression() {
+    return (SEXP)value;
+  }
 }

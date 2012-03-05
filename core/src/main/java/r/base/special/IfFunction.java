@@ -25,9 +25,8 @@ import r.lang.*;
 
 public class IfFunction extends SpecialFunction {
 
-  @Override
-  public String getName() {
-    return "if";
+  public IfFunction() {
+    super("if");
   }
 
   @Override

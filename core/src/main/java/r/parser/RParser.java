@@ -30,6 +30,9 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.io.CharStreams;
+import com.google.common.io.InputSupplier;
+
 import static r.util.CDefines.*;
 
 
@@ -62,6 +65,8 @@ import static r.util.CDefines.*;
 public class RParser {
 
   public static ExpressionVector parseSource(Reader reader) throws IOException {
+        
+ 
     ParseState parseState = new ParseState();
     ParseOptions parseOptions = ParseOptions.defaults();
     Lexer lexer = new RLexer(parseOptions, parseState, reader);
@@ -70,6 +75,18 @@ public class RParser {
     return parser.parseAll();
   }
 
+  /**
+   * Parses the source and adds a terminator of the stream if it does not exist.
+   * @param reader
+   * @return
+   * @throws IOException
+   */
+  public static ExpressionVector parseAllSource(Reader reader) throws IOException {
+    String source = CharStreams.toString(reader);
+    return parseSource(CharStreams.join(CharStreams.newReaderSupplier(source),
+        CharStreams.newReaderSupplier("\n")).getInput());
+  }
+  
   public static ExpressionVector parseSource(String source) {
     try {
       return parseSource(new StringReader(source));

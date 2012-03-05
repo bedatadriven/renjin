@@ -75,8 +75,13 @@ public class PrimitiveCall implements Expression {
   }
   
   private Method findMethod(Symbol name, int arity) {
+    PrimitiveFunction fn = Primitives.getBuiltin(name);
+    if(fn == null) {
+      fn = Primitives.getInternal(name);
+    }
+    Class wrapperClass = fn.getClass();
     try {
-      Class wrapperClass = Class.forName(WrapperGenerator.toFullJavaName(name.getPrintName()));
+
       return wrapperClass.getMethod("matchAndApply", new Class[] { 
           Context.class,
           Environment.class,
@@ -90,11 +95,11 @@ public class PrimitiveCall implements Expression {
 //          return method;
 //        }
 //      }
-    } catch (ClassNotFoundException e) {
-      // probably not yet implemented 
-      // but throw an error only at runtime to allow compilation to continue
     } catch (SecurityException e) {
     } catch (NoSuchMethodException e) {
+    }
+    if(name.getPrintName().equals("switch")) {
+      System.out.println("switch!");
     }
     return null;
   }

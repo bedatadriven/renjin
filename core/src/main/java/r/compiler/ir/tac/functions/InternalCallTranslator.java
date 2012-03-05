@@ -18,11 +18,13 @@ public class InternalCallTranslator extends FunctionCallTranslator {
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,
       TranslationContext context, FunctionCall call) {
-    SEXP primitiveCall = call.getArgument(0);
-    if(!(primitiveCall instanceof FunctionCall)) {
+    SEXP argument = call.getArgument(0);
+    if(!(argument instanceof FunctionCall)) {
       throw new InvalidSyntaxException(".Internal() expects a language object as its only argument");
     }
-    return builder.translatePrimitiveCall(context, (FunctionCall) primitiveCall);
+    FunctionCall primitiveCall = (FunctionCall) argument;
+
+    return builder.translatePrimitiveCall(context, primitiveCall);
   }
 
   @Override

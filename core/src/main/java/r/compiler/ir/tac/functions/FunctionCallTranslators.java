@@ -29,6 +29,7 @@ public class FunctionCallTranslators {
     builders.put(Symbol.get(".Internal"), new InternalCallTranslator());
     builders.put(Symbol.get("&&"), new AndTranslator());
     builders.put(Symbol.get("||"), new OrTranslator());
+    builders.put(Symbol.get("switch"), new SwitchTranslator());
   }
   
   public FunctionCallTranslator get(SEXP function) {

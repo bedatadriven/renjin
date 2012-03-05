@@ -96,7 +96,12 @@ public class DynamicCall implements Expression {
       
       PairList.Builder args = new PairList.Builder();
       for(int i=0;i!=arguments.size();++i) {
-        args.add(argumentNames.get(i), arguments.get(i).getSExpression());
+        Expression argument = arguments.get(i);
+        if(argument instanceof IRThunk || argument instanceof Elipses) {
+          args.add(argumentNames.get(i), argument.getSExpression());
+        } else { 
+          args.add(argumentNames.get(i), (SEXP)argument.retrieveValue(context, temps));
+        }
       }
       
       return functionValue.apply(context, context.getEnvironment(), call, args.build());

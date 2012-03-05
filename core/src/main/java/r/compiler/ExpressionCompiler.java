@@ -40,8 +40,6 @@ public class ExpressionCompiler implements Opcodes {
     this.thunkMap = thunkMap;
   }
 
-
-
   private Class<CompiledBody> doCompile(SEXP exp) {
     this.exp = exp;
     startClass();

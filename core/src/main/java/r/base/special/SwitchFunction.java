@@ -33,12 +33,16 @@ public class SwitchFunction extends SpecialFunction {
   
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    return doApply(context, rho, call, args);
+  }
+
+  private static SEXP doApply(Context context, Environment rho, FunctionCall call, PairList args) {
     EvalException.check(call.length() > 1, "argument \"EXPR\" is missing");
 
-    SEXP expr = context.evaluate(call.getArgument(0),rho);
+    SEXP expr = context.evaluate(args.getElementAsSEXP(0),rho);
     EvalException.check(expr.length() == 1, "EXPR must return a length 1 vector");
 
-    PromisePairList branchPromises  = (PromisePairList) context.evaluate( call.getArgument(1), rho);
+    PromisePairList branchPromises  = (PromisePairList) context.evaluate( args.getElementAsSEXP(1), rho);
     Iterable<PairList.Node> branches = branchPromises.nodes();
 
     if(expr instanceof StringVector) {
@@ -79,7 +83,7 @@ public class SwitchFunction extends SpecialFunction {
     return Null.INSTANCE;
   }
 
-  private SEXP nextNonMissing(PairList.Node node) {
+  private static SEXP nextNonMissing(PairList.Node node) {
     do {
       if(node.getValue() != Symbol.MISSING_ARG) {
         return node.getValue();
@@ -89,5 +93,13 @@ public class SwitchFunction extends SpecialFunction {
       }
       node = node.getNextNode();
     } while(true);
+  }
+  
+  public static SEXP matchAndApply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments) {
+    PairList.Builder args = new PairList.Builder();
+    for(int i =0;i!=arguments.length;++i) {
+      args.add(argumentNames[i], arguments[i]);
+    }
+    return doApply(context, rho, call, args.build());
   }
 }

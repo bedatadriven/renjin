@@ -1,7 +1,5 @@
 package r.compiler.ir.tac;
 
-import org.apache.commons.math.FunctionEvaluationException;
-
 import r.base.Calls;
 import r.base.ClosureDispatcher;
 import r.base.special.ReturnException;
@@ -43,7 +41,7 @@ public class IRClosure extends Closure {
     try {
 
     
-    result = function.getBody().evaluate(functionContext);
+      result = function.getBody().evaluate(functionContext);
 
     } catch(ReturnException e) {
       if(functionEnvironment != e.getEnvironment()) {

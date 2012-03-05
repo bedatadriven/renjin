@@ -83,15 +83,19 @@ public class IRBodyBuilder {
         return new EnvironmentVariable((Symbol)exp);
       }
     } else if(exp instanceof FunctionCall) {
-      FunctionCallTranslator builder = builders.get(((FunctionCall) exp).getFunction());
-      if(builder == null) {
         return translateCall(context, (FunctionCall) exp);
-      } else {
-        return builder.translateToExpression(this, context, (FunctionCall)exp);
-      }
     } else {
       // environments, pairlists, etc
       return new Constant(exp);
+    }
+  }
+
+  private boolean isReservedFunction(SEXP exp) {
+    if(exp instanceof FunctionCall) {
+      SEXP fn = ((FunctionCall) exp).getFunction();
+      return fn instanceof Symbol && ((Symbol) fn).isReservedWord();
+    } else {
+      return false;
     }
   }
   
@@ -101,16 +105,17 @@ public class IRBodyBuilder {
               exp instanceof FunctionCall);
   }
   
-  public void translateStatements(TranslationContext context, SEXP exp) {
-    if(exp instanceof FunctionCall) {
-      FunctionCallTranslator builder = builders.get(((FunctionCall) exp).getFunction());
-      if(builder == null) {
-        addStatement(new ExprStatement(translateCall(context, (FunctionCall)exp)));
-      } else {
-        builder.addStatement(this, context, (FunctionCall)exp);
+  public void translateStatements(TranslationContext context, SEXP sexp) {
+    if( isReservedFunction(sexp) ) {
+      FunctionCallTranslator translator = builders.get( ((FunctionCall)sexp).getFunction() );
+      if(translator != null) {
+        translator.addStatement(this, context, (FunctionCall)sexp);
+        return;
       }
-    } else {
-      addStatement(new ExprStatement(translateExpression(context, exp)));
+    }
+    Expression expr = translateExpression(context, sexp);
+    if(!(expr instanceof Constant)) {
+      addStatement(new ExprStatement(expr));  
     }
   }
   
@@ -202,10 +207,15 @@ public class IRBodyBuilder {
   public Expression translatePrimitiveCall(TranslationContext context,
       FunctionCall call) {
     SEXP function = call.getFunction();
-    if(!(function instanceof Symbol)) {
-      throw new IllegalArgumentException("Expected symbol, got '" + function + "'");
+    FunctionCallTranslator translator = builders.get(function);
+    if(translator != null) {
+      return translator.translateToExpression(this, context, call);
+    } else {
+      if(!(function instanceof Symbol)) {
+        throw new IllegalArgumentException("Expected symbol, got '" + function + "'");
+      }
+      return new PrimitiveCall(call, (Symbol)function, makeEvaledArgList(context, call.getArguments()));
     }
-    return new PrimitiveCall(call, (Symbol)function, makeEvaledArgList(context, call.getArguments()));
   }
 
   private List<Expression> makeEvaledArgList(TranslationContext context, PairList argumentSexps) {

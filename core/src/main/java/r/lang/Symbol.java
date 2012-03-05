@@ -21,12 +21,10 @@
 
 package r.lang;
 
+import java.util.HashMap;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-
-import r.lang.exception.EvalException;
-
-import java.util.HashMap;
 
 public final class Symbol extends AbstractSEXP {
 
@@ -64,12 +62,13 @@ public final class Symbol extends AbstractSEXP {
     TABLE = Maps.newHashMap();
     addReserved(0, 
         "if", 
-        ".Internal", 
+        ".Internal",   
         "function",
         "while",
         "for",
         "break",
         "continue",
+        "repeat",
         "next",
         "{", "(", 
         "!",
@@ -131,7 +130,6 @@ public final class Symbol extends AbstractSEXP {
         "missing",
         "names",
         "inherits",
-        "repeat",
         "attr",
         "match",
         "which");

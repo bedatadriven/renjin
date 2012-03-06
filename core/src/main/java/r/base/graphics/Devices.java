@@ -1,6 +1,7 @@
 package r.base.graphics;
 
-import r.jvmi.annotations.Current;
+import org.renjin.primitives.annotations.Current;
+
 import r.lang.Context;
 import r.lang.SEXP;
 import r.lang.graphics.GraphicsDevice;

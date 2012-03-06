@@ -3,7 +3,8 @@ package r.base;
 import java.util.Map;
 import java.util.Set;
 
-import r.jvmi.annotations.Primitive;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.Vector;

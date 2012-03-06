@@ -3,7 +3,8 @@ package r.jvmi.r2j;
 import java.util.List;
 import java.util.Map;
 
-import r.jvmi.wrapper.ArgumentIterator;
+import org.renjin.primitives.annotations.processor.ArgumentIterator;
+
 import r.lang.AbstractSEXP;
 import r.lang.Context;
 import r.lang.Environment;

@@ -25,12 +25,13 @@ import com.google.common.collect.Lists;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
+
 import r.base.file.FileScanner;
 import r.base.regex.ExtendedRE;
 import r.base.regex.RE;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Recycle;
 import r.lang.*;
 import r.lang.exception.EvalException;
 

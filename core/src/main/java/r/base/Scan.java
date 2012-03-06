@@ -21,7 +21,6 @@
 
 package r.base;
 
-import r.jvmi.annotations.Current;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -29,6 +28,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import org.renjin.primitives.annotations.Current;
 
 public class Scan {
 

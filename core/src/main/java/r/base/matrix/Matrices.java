@@ -1,6 +1,7 @@
 package r.base.matrix;
 
-import r.jvmi.annotations.Primitive;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.lang.AtomicVector;
 import r.lang.DoubleVector;
 import r.lang.Indexes;

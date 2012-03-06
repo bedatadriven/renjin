@@ -1,8 +1,9 @@
 package r.base.graphics;
 
 
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Recycle;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Recycle;
+
 import r.lang.Context;
 import r.lang.exception.EvalException;
 import r.lang.graphics.GraphicsDevice;

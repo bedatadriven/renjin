@@ -7,9 +7,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Evaluate;
-import r.jvmi.annotations.Primitive;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Evaluate;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.jvmi.r2j.ClassBinding;
 import r.jvmi.r2j.ClassFrame;
 import r.lang.Context;

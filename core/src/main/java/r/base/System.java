@@ -32,8 +32,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.IntVector;

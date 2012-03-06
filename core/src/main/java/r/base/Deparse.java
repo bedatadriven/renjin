@@ -22,8 +22,9 @@
 package r.base;
 
 
-import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Recycle;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
+
 import r.lang.AtomicVector;
 import r.lang.BuiltinFunction;
 import r.lang.CHARSEXP;

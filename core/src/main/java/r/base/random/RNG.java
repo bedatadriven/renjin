@@ -5,7 +5,8 @@
 package r.base.random;
 
 import org.apache.commons.math.random.MersenneTwister;
-import r.jvmi.annotations.Primitive;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.exception.EvalException;

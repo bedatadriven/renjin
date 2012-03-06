@@ -21,8 +21,9 @@
 
 package r.base;
 
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.lang.Context;
 import r.lang.Environment;
 import r.lang.Function;

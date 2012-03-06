@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.math.distribution.Distribution;
+import org.renjin.primitives.annotations.processor.WrapperGenerator;
 
 import r.base.graphics.Graphics;
 import r.base.graphics.Par;
@@ -68,7 +69,6 @@ import r.base.special.SwitchFunction;
 import r.base.special.WhileFunction;
 import r.base.subset.Subsetting;
 import r.base.time.Time;
-import r.jvmi.wrapper.WrapperGenerator;
 import r.lang.BuiltinFunction;
 import r.lang.Context;
 import r.lang.Environment;

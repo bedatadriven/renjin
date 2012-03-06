@@ -1,8 +1,8 @@
 package r.base;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.primitives.annotations.processor.scalars.ComplexType;
 
-import r.jvmi.wrapper.generator.scalars.ComplexType;
 import r.lang.AtomicVector;
 import r.lang.ComplexVector;
 import r.lang.DoubleVector;

@@ -21,7 +21,8 @@
 
 package r.base;
 
-import r.jvmi.annotations.Current;
+import org.renjin.primitives.annotations.Current;
+
 import r.lang.*;
 import r.lang.exception.EvalException;
 

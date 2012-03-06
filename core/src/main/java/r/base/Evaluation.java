@@ -30,11 +30,12 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
+import org.renjin.primitives.annotations.ArgumentList;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Evaluate;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.base.special.ReturnException;
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Evaluate;
-import r.jvmi.annotations.Primitive;
 import r.jvmi.r2j.FunctionBinding;
 import r.lang.Closure;
 import r.lang.Connection;

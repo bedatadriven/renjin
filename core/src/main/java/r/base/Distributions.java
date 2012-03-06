@@ -39,6 +39,7 @@ import org.apache.commons.math.distribution.PascalDistributionImpl;
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 import org.apache.commons.math.distribution.TDistributionImpl;
 import org.apache.commons.math.distribution.WeibullDistributionImpl;
+import org.renjin.primitives.annotations.Recycle;
 
 import r.base.distributions.LogisticDistribution;
 import r.base.distributions.UniformDistribution;
@@ -52,7 +53,6 @@ import r.base.random.SignRank;
 import r.base.random.StudentsT;
 import r.base.random.Tukey;
 import r.base.random.Wilcox;
-import r.jvmi.annotations.Recycle;
 
 /**
  * Density, mass, cumulative and inverse cumulative distribution functions.

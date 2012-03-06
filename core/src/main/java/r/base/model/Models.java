@@ -23,10 +23,11 @@ package r.base.model;
 
 import java.util.List;
 
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.base.Types;
 import r.base.matrix.DoubleMatrixBuilder;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
 import r.lang.AtomicVector;
 import r.lang.Context;
 import r.lang.Environment;

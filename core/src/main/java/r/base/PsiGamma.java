@@ -1,7 +1,8 @@
 package r.base;
 
+import org.renjin.primitives.annotations.Primitive;
+
 import r.base.random.SignRank;
-import r.jvmi.annotations.Primitive;
 import r.lang.DoubleVector;
 
 public class PsiGamma {

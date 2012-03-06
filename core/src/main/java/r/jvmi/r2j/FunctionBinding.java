@@ -7,9 +7,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.renjin.primitives.annotations.processor.ArgumentIterator;
+
 import r.jvmi.r2j.converters.Converter;
 import r.jvmi.r2j.converters.Converters;
-import r.jvmi.wrapper.ArgumentIterator;
 import r.lang.Context;
 import r.lang.Environment;
 import r.lang.PairList;

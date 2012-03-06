@@ -27,9 +27,9 @@ import java.math.RoundingMode;
 import org.apache.commons.math.special.Beta;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
 
-import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Recycle;
 
 /**
  * Math functions not found in java.Math or apache commons math

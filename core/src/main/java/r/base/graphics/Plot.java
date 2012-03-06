@@ -1,8 +1,9 @@
 package r.base.graphics;
 
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
+import org.renjin.primitives.annotations.ArgumentList;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.ExpressionVector;

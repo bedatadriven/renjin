@@ -22,11 +22,11 @@
 package r.base;
 
 import org.apache.commons.math.linear.RealVector;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.processor.ArgumentIterator;
+import org.renjin.primitives.annotations.processor.WrapperRuntime;
 
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
-import r.jvmi.wrapper.ArgumentIterator;
-import r.jvmi.wrapper.WrapperRuntime;
 import r.lang.AtomicVector;
 import r.lang.Context;
 import r.lang.DoubleVector;

@@ -36,6 +36,9 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 import org.apache.commons.vfs.FileSystemException;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
 
 import r.base.compression.lzma.LzmaDecoder;
 import r.base.connections.GzFileConnection;
@@ -43,9 +46,6 @@ import r.base.connections.OutputStreamConnection;
 import r.base.connections.StdInConnection;
 import r.base.connections.StdOutConnection;
 import r.io.DatafileReader;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Recycle;
 import r.lang.AtomicVector;
 import r.lang.Connection;
 import r.lang.Context;

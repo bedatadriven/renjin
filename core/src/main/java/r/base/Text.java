@@ -28,14 +28,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.renjin.primitives.annotations.AllowNA;
+import org.renjin.primitives.annotations.ArgumentList;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
+
 import r.base.regex.ExtendedRE;
 import r.base.regex.RE;
 import r.base.regex.REFactory;
-import r.jvmi.annotations.AllowNA;
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Recycle;
 import r.lang.AtomicVector;
 import r.lang.Context;
 import r.lang.DoubleVector;

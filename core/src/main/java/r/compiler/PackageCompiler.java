@@ -13,8 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.logging.Log;
+import org.renjin.primitives.annotations.processor.WrapperGenerator;
 
-import r.jvmi.wrapper.WrapperGenerator;
 import r.lang.Closure;
 import r.lang.Context;
 import r.lang.Environment;

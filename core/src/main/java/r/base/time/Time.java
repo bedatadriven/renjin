@@ -26,8 +26,8 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
+import org.renjin.primitives.annotations.Primitive;
 
-import r.jvmi.annotations.Primitive;
 import r.lang.DoubleVector;
 import r.lang.ListVector;
 import r.lang.SEXP;

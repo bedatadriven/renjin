@@ -38,16 +38,11 @@ import java.util.Locale;
 import java.util.Vector;
 
 import r.lang.AtomicVector;
-import r.lang.Context;
 import r.lang.DoubleVector;
-import r.lang.Environment;
-import r.lang.FunctionCall;
 import r.lang.IntVector;
-import r.lang.ListVector;
 import r.lang.LogicalVector;
 import r.lang.SEXP;
 import r.lang.StringVector;
-import r.lang.Symbol;
 import r.lang.exception.EvalException;
 
 /**

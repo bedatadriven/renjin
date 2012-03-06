@@ -23,10 +23,11 @@ package r.base;
 
 import java.util.List;
 
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.NamedFlag;
-import r.jvmi.annotations.Primitive;
+import org.renjin.primitives.annotations.ArgumentList;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.NamedFlag;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.lang.AtomicVector;
 import r.lang.ComplexVector;
 import r.lang.Context;

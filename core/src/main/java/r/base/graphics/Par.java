@@ -1,6 +1,7 @@
 package r.base.graphics;
 
-import r.jvmi.annotations.Current;
+import org.renjin.primitives.annotations.Current;
+
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.ListVector;

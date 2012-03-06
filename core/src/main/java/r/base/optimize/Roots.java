@@ -24,7 +24,8 @@ package r.base.optimize;
 import org.apache.commons.math.FunctionEvaluationException;
 import org.apache.commons.math.MaxIterationsExceededException;
 import org.apache.commons.math.analysis.solvers.BrentSolver;
-import r.jvmi.annotations.Current;
+import org.renjin.primitives.annotations.Current;
+
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.Environment;

@@ -1,6 +1,7 @@
 package r.base.random;
 
-import r.jvmi.annotations.Primitive;
+import org.renjin.primitives.annotations.Primitive;
+
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.Null;

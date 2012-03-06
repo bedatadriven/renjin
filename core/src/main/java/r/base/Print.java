@@ -24,13 +24,14 @@ package r.base;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Primitive;
 import r.lang.*;
 import r.parser.ParseUtil;
 
 import java.io.PrintStream;
 import java.util.List;
+
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
 
 public class Print {
 

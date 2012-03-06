@@ -23,13 +23,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>parent</artifactId>
-    <groupId>com.bedatadriven.renjin</groupId>
-    <version>0.1.2-SNAPSHOT</version>
+    <groupId>org.renjin</groupId>
+    <version>0.6.4-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath> 
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.bedatadriven.renjin</groupId>
   <artifactId>renjin-appengine</artifactId>
   <name>AppEngine Support classes for Renjin</name>
   <packaging>jar</packaging>
@@ -42,7 +41,7 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.bedatadriven.renjin</groupId>
+      <groupId>org.renjin</groupId>
       <artifactId>renjin-core</artifactId>
       <version>${version}</version>
     </dependency>

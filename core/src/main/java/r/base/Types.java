@@ -26,14 +26,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.primitives.annotations.ArgumentList;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Generic;
+import org.renjin.primitives.annotations.InvokeAsCharacter;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
+import org.renjin.primitives.annotations.Visible;
 
-import r.jvmi.annotations.ArgumentList;
-import r.jvmi.annotations.Current;
-import r.jvmi.annotations.Generic;
-import r.jvmi.annotations.InvokeAsCharacter;
-import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Recycle;
-import r.jvmi.annotations.Visible;
 import r.jvmi.r2j.ClassFrame;
 import r.jvmi.r2j.ObjectFrame;
 import r.jvmi.r2j.converters.BooleanArrayConverter;

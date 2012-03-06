@@ -21,11 +21,27 @@
 
 package r.base.subset;
 
-import com.google.common.base.Strings;
+import org.renjin.primitives.annotations.ArgumentList;
+import org.renjin.primitives.annotations.DefaultValue;
+import org.renjin.primitives.annotations.Evaluate;
+import org.renjin.primitives.annotations.Generic;
+import org.renjin.primitives.annotations.NamedFlag;
+import org.renjin.primitives.annotations.Primitive;
 
-import r.jvmi.annotations.*;
-import r.lang.*;
+import r.lang.AtomicVector;
+import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.Null;
+import r.lang.PairList;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbol;
+import r.lang.Vector;
 import r.lang.exception.EvalException;
+
+import com.google.common.base.Strings;
 
 public class Subsetting {
 

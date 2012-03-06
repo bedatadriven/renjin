@@ -3,8 +3,8 @@ package r.compiler;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.primitives.annotations.processor.WrapperGenerator;
 
-import r.jvmi.wrapper.WrapperGenerator;
 import r.lang.Closure;
 import r.lang.Environment;
 import r.lang.SEXP;

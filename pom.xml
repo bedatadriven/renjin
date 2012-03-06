@@ -24,9 +24,9 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.bedatadriven.renjin</groupId>
+  <groupId>org.renjin</groupId>
   <artifactId>parent</artifactId>
-  <version>0.1.2-SNAPSHOT</version>
+  <version>0.6.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Renjin Parent</name>
 

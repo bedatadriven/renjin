@@ -22,13 +22,13 @@
 package r.base;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.primitives.annotations.AllowNA;
+import org.renjin.primitives.annotations.GroupGeneric;
+import org.renjin.primitives.annotations.PreserveAttributeStyle;
+import org.renjin.primitives.annotations.PreserveAttributes;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
 
-import r.jvmi.annotations.AllowNA;
-import r.jvmi.annotations.GroupGeneric;
-import r.jvmi.annotations.PreserveAttributeStyle;
-import r.jvmi.annotations.PreserveAttributes;
-import r.jvmi.annotations.Primitive;
-import r.jvmi.annotations.Recycle;
 import r.lang.DoubleVector;
 import r.lang.Logical;
 import r.lang.Symbol;

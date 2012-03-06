@@ -25,7 +25,7 @@ import com.google.common.io.ByteStreams;
 
 public class CRAN {
 
-	public static final String CRAN_MIRROR = "http://cran.xl-mirror.nl/";
+	public static final String CRAN_MIRROR = "http://ftp.yalwa.org/cran/";
 
 	public static List<CranPackage> fetchPackageList() throws IOException {
 	  Document dom = fetchAsDom(
@@ -122,11 +122,16 @@ public class CRAN {
 		} else {
 			System.out.println(sourceZip + ": downloading...");
 			URL url = new URL(CRAN.CRAN_MIRROR + "src/contrib/" + sourceZip.getName());
-			InputStream in = url.openStream();
-			FileOutputStream out = new FileOutputStream(sourceZip);
-			ByteStreams.copy(in, out);
-			in.close();
-			out.close();
+			try {
+				InputStream in = url.openStream();
+				FileOutputStream out = new FileOutputStream(sourceZip);
+				ByteStreams.copy(in, out);
+				in.close();
+				out.close();
+			} catch(Exception e) {
+				sourceZip.delete();
+				e.printStackTrace();
+			}
 		}
 	}
 }

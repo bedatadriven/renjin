@@ -61,6 +61,13 @@ public class PackageDescription {
 		public void setVersionRange(String versionRange) {
 			this.versionRange = versionRange;
 		}
+
+		@Override
+		public String toString() {
+			return (name + "  " + versionRange).trim();
+		}
+		
+		
 	}
 
 	private static class PackageDependencyParser implements Function<String, PackageDependency> {
@@ -202,5 +209,4 @@ public class PackageDescription {
 	public String getUrl() {
 		return getProperty("URL");
 	}
-
 }

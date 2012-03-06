@@ -4,4 +4,8 @@ public abstract class CranVisitor {
 	
 	public abstract CranPackageVisitor visitPackage(String name);
 	
+	public void visitComplete() {
+		
+	}
+	
 }

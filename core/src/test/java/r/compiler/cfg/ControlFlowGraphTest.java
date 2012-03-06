@@ -8,8 +8,14 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+
 import r.compiler.CompilerTestCase;
 import r.compiler.ir.tac.IRBody;
+import r.compiler.ir.tac.IRBodyBuilder;
+import r.lang.ExpressionVector;
+import r.parser.RParser;
 
 public class ControlFlowGraphTest extends CompilerTestCase {
 
@@ -99,4 +105,12 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     assertThat(cfg.getGraph().getSuccessors(bb.get(11)), itemsEqualTo(bb.get(12),bb.get(1)));
   }
 
+  @Test
+  public void dataframe() throws IOException {
+   IRBody body = buildScope(Resources.toString(
+       getClass().getResource("dataframe.test.R"), Charsets.UTF_8));
+ 
+   ControlFlowGraph cfg = new ControlFlowGraph(body);
+  }
+  
 }

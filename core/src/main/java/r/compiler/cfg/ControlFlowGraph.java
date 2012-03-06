@@ -73,13 +73,13 @@ public class ControlFlowGraph {
     return Collections.unmodifiableSet(variables);
   }
 
-  private BasicBlock addNewBasicBlock(IRBody block, int i) {
-    BasicBlock bb = BasicBlock.createWithStartAt(block, i);
+  private BasicBlock addNewBasicBlock(IRBody body, int i) {
+    BasicBlock bb = BasicBlock.createWithStartAt(body, i);
     bb.setDebugId(basicBlocks.size());
     basicBlocks.add(bb);
     graph.addVertex(bb);
-    if(bb.isLabeled()) {
-      basicBlockMap.put(bb.getLabel(), bb);
+    for(IRLabel label : bb.getLabels()) {
+      basicBlockMap.put(label, bb);
     }
     return bb;
   } 
@@ -100,6 +100,10 @@ public class ControlFlowGraph {
       } else {
         for(IRLabel targetLabel : bb.targets()) {
           BasicBlock targetBB = basicBlockMap.get(targetLabel);
+          if(targetBB == null) {
+            throw new NullPointerException("whoops! no basic block with label '" + targetLabel +
+                "' in IRBody " + parent);
+          }
           int targetBBIndex = basicBlocks.indexOf(targetBB);
           graph.addEdge(new Edge(targetBBIndex <= i), bb, targetBB);
         }
@@ -144,8 +148,8 @@ public class ControlFlowGraph {
     StringBuilder sb = new StringBuilder();
     for(BasicBlock bb : basicBlocks) {
       sb.append("\n" + bb.toString());
-      if(bb.getLabel() != null) {
-        sb.append(": ").append(bb.getLabel());
+      if(bb.getLabels() != null) {
+        sb.append(": ").append(bb.getLabels());
       }
       sb.append(" =============\n");
       sb.append(bb.statementsToString());

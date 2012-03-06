@@ -24,7 +24,7 @@ public class BasicBlock {
   private final IRBody parent;
   private String debugId;
   
-  private IRLabel label;
+  private Set<IRLabel> labels;
   private List<Statement> statements = Lists.newArrayList();
   
   public BasicBlock(IRBody parent) {
@@ -65,18 +65,18 @@ public class BasicBlock {
   
   public static BasicBlock createWithStartAt(IRBody parent, int statementIndex) {
     BasicBlock block = new BasicBlock(parent);
-    block.label = parent.getIntructionLabel(statementIndex);
+    block.labels = parent.getIntructionLabels(statementIndex);
     block.statements = Lists.newArrayList();
     block.statements.add(parent.getStatements().get(statementIndex));
     return block;
   }
 
-  public IRLabel getLabel() {
-    return label;
+  public Set<IRLabel> getLabels() {
+    return labels;
   }
   
   public boolean isLabeled() {
-    return label != null;
+    return !labels.isEmpty();
   }
   
   public Statement getTerminal() {

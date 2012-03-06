@@ -7,8 +7,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.concordion.api.Unimplemented;
+
 import r.base.Primitives;
 import r.base.special.SwitchFunction;
+import r.compiler.runtime.CompiledRuntime;
+import r.compiler.runtime.UnimplementedPrimitive;
 import r.lang.Context;
 import r.lang.Environment;
 import r.lang.FunctionCall;
@@ -27,7 +31,7 @@ import com.google.common.collect.Sets;
 /**
  * 
  */
-public class PrimitiveCall implements Expression {
+public class PrimitiveCall implements CallExpression {
 
   private Symbol name;
   
@@ -47,7 +51,7 @@ public class PrimitiveCall implements Expression {
    * Elipses (...) need to be handled specially because they are 
    * actually merged into the argument list
    */
-  private boolean elipses;
+  private int elipsesIndex;
   
   public PrimitiveCall(FunctionCall call, Symbol name, List<Expression> arguments) {
     super();
@@ -59,9 +63,10 @@ public class PrimitiveCall implements Expression {
       argumentNames[i] = Strings.emptyToNull(call.getArguments().getName(i));
     }
     
-    for(Expression argument : arguments) {
-      if(argument == Elipses.INSTANCE) {
-        elipses = true;
+    this.elipsesIndex = -1;
+    for(int i=0;i!=arguments.size();++i) {
+      if(arguments.get(i) == Elipses.INSTANCE) {
+        elipsesIndex = i;
         break;
       }
     }
@@ -113,11 +118,7 @@ public class PrimitiveCall implements Expression {
     }
 
     try {
-      if(elipses) {
-        return applyDynamic(context, temps);
-      } else {
         return applyStatic(context, temps);
-      }
     } catch (InvocationTargetException e) {
       if(e.getCause() instanceof EvalException) {
         throw (EvalException)e.getCause();
@@ -132,40 +133,24 @@ public class PrimitiveCall implements Expression {
   private SEXP applyStatic(Context context, Object[] temps) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
     // names and argument count are determined at 
     // compile time
+    String[] argumentNames = this.argumentNames;
     SEXP[] argumentValues = new SEXP[arguments.size()];
     for(int i=0;i!=arguments.size();++i) {
-      argumentValues[i] = (SEXP)arguments.get(i).retrieveValue(context, temps);
-    }
-        
-    return (SEXP) primitiveMethod.invoke(null, context, context.getEnvironment(), 
-        call, argumentNames, argumentValues);
-  }
-  
-  private SEXP applyDynamic(Context context, Object[] temps) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-    // the function call includes a '...' that needs to be expanded into the 
-    // argument list
-    PairList extraArgs = (PairList) context.getEnvironment().getVariable(Symbols.ELLIPSES);
-    int numArgs = arguments.size() + extraArgs.length() - 1;
-    String names[] = new String[numArgs];
-    SEXP values[] = new SEXP[numArgs];
-    int outArgIndex=0;
-    int stdArgIndex=0;
-    for(Expression arg : arguments) {
-      if(arg == Elipses.INSTANCE) {
-        for(PairList.Node node : extraArgs.nodes()) {
-          names[outArgIndex] = Strings.emptyToNull(node.getName());
-          values[outArgIndex] = node.getValue().force();
-          outArgIndex++;
-        }
-      } else {
-        names[outArgIndex] = argumentNames[stdArgIndex];
-        values[outArgIndex] = (SEXP) arguments.get(stdArgIndex).retrieveValue(context, temps);
-        outArgIndex++;
-        stdArgIndex++;
+      if(arguments.get(i) != Elipses.INSTANCE) {
+        argumentValues[i] = (SEXP)arguments.get(i).retrieveValue(context, temps);
       }
     }
-    return (SEXP) primitiveMethod.invoke(null, context, context.getEnvironment(), 
-        call, names, values);
+      
+    PairList extraArgs;
+    if(elipsesIndex != -1) {
+      extraArgs = (PairList) context.getEnvironment().getVariable(Symbols.ELLIPSES);
+      argumentNames = CompiledRuntime.spliceArgNames(argumentNames, extraArgs, elipsesIndex);
+      argumentValues = CompiledRuntime.spliceArgValues(argumentValues, extraArgs, elipsesIndex);
+    } 
+    
+    return (SEXP) primitiveMethod.invoke(null, context, 
+        context.getEnvironment(), 
+        call, argumentNames, argumentValues);
   }
   
   @Override
@@ -223,15 +208,21 @@ public class PrimitiveCall implements Expression {
    * the number and names of arguments will be determined at runtime
    */
   public boolean hasElipses() {
-    return elipses;
+    return elipsesIndex!=-1;
   }
 
+  public int getElipsesIndex() {
+    return elipsesIndex;
+  }
+  
   public List<String> getArgumentNames() {
     return Arrays.asList(argumentNames);
   }  
   
   public Class getWrapperClass() {
+    if(primitiveMethod == null) {
+      return UnimplementedPrimitive.class;
+    }
     return primitiveMethod.getDeclaringClass();
-    
   }
 }

@@ -104,7 +104,7 @@ public class DateTimeFormat  {
             }
           }
           break;
-        case 's':
+        case 'S':
           // Second as decimal number (00-61), allowing for up to two
           // leap-seconds (but POSIX-complaint implementations will ignore
           // leap seconds).

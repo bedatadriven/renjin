@@ -24,7 +24,7 @@ import com.google.common.collect.Sets;
  * Function call that is invoked with the full R
  * flexibility, no assumptions are made...
  */
-public class DynamicCall implements Expression {
+public class DynamicCall implements CallExpression {
 
 
   /**
@@ -55,7 +55,7 @@ public class DynamicCall implements Expression {
   private final List<Expression> arguments;
   private final List<SEXP> argumentNames;
   private final String[] argumentNamesArray;
-  private boolean elipses;
+  private int elipsesIndex;
   
   public DynamicCall(FunctionCall call, Expression function, 
       List<SEXP> argumentNames, List<Expression> arguments) {
@@ -70,10 +70,10 @@ public class DynamicCall implements Expression {
         argumentNamesArray[i] = ((Symbol) argumentNames.get(i)).getPrintName();
       }
     }
-    this.elipses = false;
-    for(Expression expression: arguments) {
-      if(expression == Elipses.INSTANCE ) {
-        elipses = true;
+    this.elipsesIndex = -1;
+    for(int i=0;i!=arguments.size();++i) {
+      if(arguments.get(i) == Elipses.INSTANCE ) {
+        elipsesIndex = i;
       }
     }
   }
@@ -96,7 +96,7 @@ public class DynamicCall implements Expression {
     // locate function object
     Function functionValue = findFunction(context, temps);
     
-    if(! elipses && functionValue instanceof BuiltinFunction) {
+    if(! hasElipses() && functionValue instanceof BuiltinFunction) {
       return ((BuiltinFunction)functionValue).apply(context, 
           context.getEnvironment(), call, argumentNamesArray, evaluateArgs(context, temps));
     } else if(functionValue instanceof Closure) {
@@ -117,17 +117,6 @@ public class DynamicCall implements Expression {
       return ((Closure) functionValue).matchAndApply(context, call, args.build());
 
     } else {
-//      
-//      PairList.Builder args = new PairList.Builder();
-//      for(int i=0;i!=arguments.size();++i) {
-//        Expression argument = arguments.get(i);
-//        if(argument instanceof IRThunk || argument instanceof Elipses) {
-//          args.add(argumentNames.get(i), argument.getSExpression());
-//        } else { 
-//          args.add(argumentNames.get(i), (SEXP)argument.retrieveValue(context, temps));
-//        }
-//      }
-//      
       return functionValue.apply(context, context.getEnvironment(), call, call.getArguments());
     }
   }
@@ -266,5 +255,15 @@ public class DynamicCall implements Expression {
         }
       }
     });
+  }
+
+  @Override
+  public int getElipsesIndex() {
+    return elipsesIndex;
+  }
+
+  @Override
+  public boolean hasElipses() {
+    return elipsesIndex != -1;
   } 
 }

@@ -26,6 +26,7 @@ import r.lang.*;
 import r.lang.exception.EvalException;
 
 import java.util.List;
+import java.util.Set;
 
 public class SubstituteFunction extends SpecialFunction {
 
@@ -37,26 +38,31 @@ public class SubstituteFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     checkArity(call, 2, 1);
     SEXP exp = call.getArgument(0);
-    Environment environment = rho;
+    SubstituteContext substituteContext = new EnvironmentContext(rho);
     if(call.getArguments().length() == 2) {
-      environment =  EvalException.checkedCast(context.evaluate(call.getArgument(1), rho));
+      SEXP envirSexp = context.evaluate(call.getArgument(1), rho);
+      if(envirSexp instanceof Environment) {
+        substituteContext = new EnvironmentContext((Environment) envirSexp);
+      } else if(envirSexp instanceof ListVector) {
+        substituteContext = new ListContext((ListVector) envirSexp);
+      }
     }
 
-    return substitute(exp, environment);
+    return substitute(exp, substituteContext);
   }
 
-  private static SEXP substitute(SEXP exp, Environment environment) {
-    SubstitutingVisitor visitor = new SubstitutingVisitor(environment);
+  private static SEXP substitute(SEXP exp, SubstituteContext context) {
+    SubstitutingVisitor visitor = new SubstitutingVisitor(context);
     exp.accept(visitor);
     return visitor.getResult() ;
   }
 
   public static class SubstitutingVisitor extends SexpVisitor<SEXP> {
-    private final Environment environment;
+    private final SubstituteContext context;
     private SEXP result;
 
-    public SubstitutingVisitor(Environment environment) {
-      this.environment = environment;
+    public SubstitutingVisitor(SubstituteContext context) {
+      this.context = context;
     }
 
     @Override
@@ -72,7 +78,7 @@ public class SubstituteFunction extends SpecialFunction {
       PairList.Builder builder = PairList.Node.newBuilder();
       for(PairList.Node node : arguments.nodes()) {
         if(node.getValue().equals(Symbols.ELLIPSES)) {
-          builder.addAll(unpackPromiseList((PromisePairList)environment.getVariable((Symbol)node.getValue())));
+          builder.addAll(unpackPromiseList((PromisePairList)context.getVariable((Symbol)node.getValue())));
         } else {
           builder.add(node.getRawTag(), substitute(node.getValue()));
         }
@@ -110,8 +116,8 @@ public class SubstituteFunction extends SpecialFunction {
 
     @Override
     public void visit(Symbol symbol) {
-      if(environment.hasVariable(symbol)) {
-        result = environment.getVariable(symbol);
+      if(context.hasVariable(symbol)) {
+        result = context.getVariable(symbol);
         if(result instanceof Promise) {
           result = ((Promise) result).getExpression();
         }
@@ -152,7 +158,57 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     private SEXP substitute(SEXP exp) {
-      return SubstituteFunction.substitute(exp, environment);
+      return SubstituteFunction.substitute(exp, context);
     }
   }
+  
+  private interface SubstituteContext {
+    SEXP getVariable(Symbol name);
+    boolean hasVariable(Symbol name);
+  }
+  
+  private static class EnvironmentContext implements SubstituteContext {
+    private final Environment rho;
+
+    public EnvironmentContext(Environment rho) {
+      super();
+      this.rho = rho;
+    }
+
+    @Override
+    public SEXP getVariable(Symbol name) {
+      return rho.getVariable(name);
+    }
+
+    @Override
+    public boolean hasVariable(Symbol name) {
+      return rho.hasVariable(name);
+    }
+  
+  }
+  
+  private static class ListContext implements SubstituteContext {
+    private ListVector list;
+    
+    public ListContext(ListVector list) {
+      this.list = list;
+    }
+
+    @Override
+    public SEXP getVariable(Symbol name) {
+      int index = list.getIndexByName(name.getPrintName());
+      if(index == -1) {
+        return Symbol.UNBOUND_VALUE;
+      } else {
+        return list.getElementAsSEXP(index);
+      }
+    }
+
+    @Override
+    public boolean hasVariable(Symbol name) {
+      return list.getIndexByName(name.getPrintName()) != -1;
+    }
+        
+  }
+  
 }

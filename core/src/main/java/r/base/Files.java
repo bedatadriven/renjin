@@ -30,6 +30,7 @@ import r.base.regex.ExtendedRE;
 import r.base.regex.RE;
 import r.jvmi.annotations.Current;
 import r.jvmi.annotations.Primitive;
+import r.jvmi.annotations.Recycle;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -44,6 +45,13 @@ import java.util.zip.ZipInputStream;
  */
 public class Files {
 
+  public static final int CHECK_ACCESS_EXISTENCE = 0;
+  public static final int CHECK_ACCESS_EXECUTE = 1;
+  public static final int CHECK_ACCESS_WRITE = 2;
+  public static final int CHECK_ACCESS_READ = 3;
+  
+ 
+  
   private Files() {}
 
   /**
@@ -59,6 +67,32 @@ public class Files {
     } else {
       return path;
     }
+  }
+  
+  @Primitive("file.access")
+  public static IntVector fileAccess(@Current Context context, StringVector names, int mode ) throws FileSystemException {
+    IntVector.Builder result = new IntVector.Builder();
+    for(String name : names) {
+      FileObject file = context.resolveFile(pathExpand(name));
+      result.add(checkAccess(file, mode));
+    }
+    result.setAttribute(Symbols.NAMES, new StringVector(names.toArray()));
+    return result.build();
+  }
+
+  private static int checkAccess(FileObject file, int mode)
+      throws FileSystemException {
+    switch(mode) {
+    case CHECK_ACCESS_EXISTENCE:
+      return file.exists() ? 0 : -1;
+    case CHECK_ACCESS_READ:
+      return file.isReadable() ? 0 : -1;
+    case CHECK_ACCESS_WRITE:
+      return file.isWriteable() ? 0 : -1;
+    case CHECK_ACCESS_EXECUTE:
+      return -1; // don't know if this is possible to check with VFS
+    }
+    throw new EvalException("Invalid 'mode' argument");
   }
 
   /**

@@ -258,6 +258,27 @@ public class Types {
   public static boolean isInfinite(@Recycle double value) {
     return Double.isInfinite(value);
   }
+  
+  /**
+   * Default implementation of as.function. Note that this is an
+   * internal primitive called by the closure "as.function.default" in the
+   * base package, so it is not itself generic.
+   * 
+   * @param list a ListVector containing the formal argument and the last element as the function body
+   * @param envir the environment overwhich to close
+   * @return a new Closure
+   */
+  @Primitive("as.function.default")
+  public static Closure asFunctionDefault(ListVector list, Environment envir) {
+  
+    PairList.Builder formals = new PairList.Builder();
+    for(int i=0;(i+1)<list.length();++i) {
+      formals.add(list.getName(i), list.getElementAsSEXP(i));
+    }
+    SEXP body = list.getElementAsSEXP(list.length() - 1);
+    
+    return new Closure(envir, formals.build(), body);
+  }
 
   @Generic
   @Primitive("as.raw")

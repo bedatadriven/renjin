@@ -13,12 +13,17 @@ public class ThunkMap {
    */
   private Map<IRThunk, String> map = Maps.newHashMap();
   
-  private String packagePrefix = "r/compiled/runtime/";
+  private String classPrefix = "r/compiled/runtime/";
   
+  public ThunkMap(String classPrefix) {
+    super();
+    this.classPrefix = classPrefix;
+  }
+
   public String getClassName(IRThunk thunk) {
     String className = map.get(thunk);
     if(className == null) {
-      className = packagePrefix + map.size();
+      className = classPrefix + map.size();
       map.put(thunk, className);
     }
     return className;

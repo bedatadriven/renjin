@@ -2,11 +2,18 @@ package r.compiler;
 
 import java.util.List;
 
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
+
 import r.lang.SEXP;
 
 import com.google.common.collect.Lists;
 
-public class SexpPool {
+/**
+ * Maintains a pool of SEXP literals stored in class fields.
+ *
+ */
+public class SexpPool implements Opcodes {
 
   public static class Entry {
     private SEXP sexp;
@@ -44,5 +51,11 @@ public class SexpPool {
   public List<Entry> entries() {
     return entries;
   }
-  
+
+  public void writeFields(ClassVisitor cv) {
+    for(SexpPool.Entry entry : entries()) {
+      cv.visitField(ACC_PRIVATE, entry.getFieldName(), 
+          entry.getType(), null, null);
+    }    
+  }
 }

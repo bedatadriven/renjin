@@ -73,4 +73,8 @@ public class IRThunk implements SimpleExpression {
   public SEXP getSExpression() {
     return sexp;
   }
+  
+  public IRBody getBody() {
+    return thunkBody;
+  }
 }

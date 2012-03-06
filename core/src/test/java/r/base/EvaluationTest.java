@@ -321,6 +321,7 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval(" g() "), equalTo(c(3)));
 
   }
+ 
   
   @Test
   public void dotDotDotToPrimitive() {
@@ -333,11 +334,17 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f1 <- function(x, y = x)             { x <- x + 1; y }   ");
     eval(" s1 <- function(x, y = substitute(x)) { x <- x + 1; y }   ");
     eval(" s2 <- function(x, y) { if(missing(y)) y <- substitute(x); x <- x + 1; y } ");
+   
     eval(" a <- 10  ");
 
     assertThat( eval(" f1(a) "), equalTo( c(11) ) );
     assertThat( eval(" s1(a) "), equalTo( c(11) ) );
     assertThat( eval(" s2(a) "), equalTo( symbol("a") ));
+  }
+  
+  @Test
+  public void substituteWithList() {
+    assertThat( eval(" substitute(x, list(x=42)) "), equalTo(c(42)));
   }
 
   @Test

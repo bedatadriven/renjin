@@ -11,16 +11,14 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import r.compiler.cfg.BasicBlock;
 import r.compiler.cfg.ControlFlowGraph;
 import r.compiler.ir.tac.IRBody;
-import r.compiler.ir.tac.expressions.IRThunk;
+import r.compiler.ir.tac.IRBodyBuilder;
+import r.compiler.ir.tac.IRFunctionTable;
 import r.compiler.ir.tac.statements.Statement;
 import r.lang.Closure;
 
-/**
- * Compiles a Thunk to a subclass of a Promise sexp 
- */
-public class ThunkCompiler implements Opcodes {
+public class ClosureCompiler implements Opcodes {
 
-  private IRThunk thunk;
+  private Closure closure;
   private ClassWriter cw;
   private ClassVisitor cv;
   private GenerationContext generationContext;
@@ -30,46 +28,53 @@ public class ThunkCompiler implements Opcodes {
       .doCompileAndLoad(closure);
   }
   
-  public static byte[] compile(String className, ThunkMap thunkMap, IRThunk thunk) {
-    return new ThunkCompiler(thunkMap, className)
-    .doCompile(thunk);    
+  public static byte[] compile(String className, Closure closure) {
+    return new ClosureCompiler(className)
+    .doCompile(closure);    
   }
   
-  public ThunkCompiler(ThunkMap thunkMap, String className) {
+  public ClosureCompiler(String className) {
     super();
     
     this.generationContext = new GenerationContext(className,
-        thunkMap);
+        new ThunkMap(className + "$"));
   }
 
-  public byte[] doCompile(IRThunk thunk) {
-    this.thunk = thunk;
+  public byte[] doCompile(Closure closure) {
+    this.closure = closure;
     startClass();
-    writeStaticDoEval();
+    writeDoEval();
     writeConstructor();
-    writeSexp();
+    writeFormals();
+    writeBodySexp();
     generationContext.getSexpPool().writeFields(cv);
     writeClassEnd();
     return cw.toByteArray();
   }
 
+  public Class<Closure> doCompileAndLoad(Closure closure) {
+    return new MyClassLoader().defineClass(generationContext.getClassName().replace('/', '.'), doCompile(closure)); 
+  }
+  
   private void startClass() {
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     //cw = new ClassWriter(0);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
   //  cv = new CheckClassAdapter(cv);
-    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, generationContext.getClassName(), null, "r/lang/Promise", null);
+    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, generationContext.getClassName(), null, "r/lang/Closure", null);
 
   }
 
   private void writeConstructor() {
-    MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "(Lr/lang/Context;Lr/lang/Environment;)V", null, null);
+
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "<init>", "(Lr/lang/Environment;)V", null, null);
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
+    mv.visitInsn(DUP);
     mv.visitVarInsn(ALOAD, 1);
-    mv.visitVarInsn(ALOAD, 2);
-    mv.visitMethodInsn(INVOKESTATIC, "r/compiler/runtime/CompiledThunkExample", "createSexp", "()Lr/lang/SEXP;");
-    mv.visitMethodInsn(INVOKESPECIAL, "r/lang/Promise", "<init>", "(Lr/lang/Context;Lr/lang/Environment;Lr/lang/SEXP;)V");
+    mv.visitMethodInsn(INVOKESTATIC, generationContext.getClassName(), "createFormals", "()Lr/lang/PairList;");
+    mv.visitMethodInsn(INVOKESTATIC, generationContext.getClassName(), "createBody", "()Lr/lang/SEXP;");
+    mv.visitMethodInsn(INVOKESPECIAL, "r/lang/Closure", "<init>", "(Lr/lang/Environment;Lr/lang/PairList;Lr/lang/SEXP;)V");
       
     // initialize sexp pool
   
@@ -86,35 +91,51 @@ public class ThunkCompiler implements Opcodes {
     mv.visitEnd();
   }
 
-  private void writeStaticDoEval() {  
-    MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "doEval", "(Lr/lang/Context;Lr/lang/Environment;)Lr/lang/SEXP;", null, null);
+  private void writeDoEval() {
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "doApply", 
+        "(Lr/lang/Context;)Lr/lang/SEXP;", null, null);
     mv.visitCode();
+    mv.visitVarInsn(ALOAD, 1);
+    mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Context", "getEnvironment", "()Lr/lang/Environment;");
+    mv.visitVarInsn(ASTORE, 2);
+
     writeDoEvalBody(mv);
-    mv.visitInsn(ARETURN);
+    
     mv.visitMaxs(1, 1);
     mv.visitEnd();
   }
   
-  private void writeSexpPool() {
-    for(SexpPool.Entry entry : generationContext.getSexpPool().entries()) {
-      cv.visitField(ACC_PRIVATE, entry.getFieldName(), 
-          entry.getType(), null, null);
-    }
-  }
+  private void writeFormals() {
   
-  private void writeSexp() {
+    MethodVisitor mv = cv.visitMethod(ACC_PRIVATE + ACC_STATIC, 
+        "createFormals", "()Lr/lang/PairList;", null, null);
+    mv.visitCode();
+    
+    ConstantGeneratingVisitor cgv = new ConstantGeneratingVisitor(mv);
+    closure.getFormals().accept(cgv);
+    mv.visitInsn(ARETURN);
+    mv.visitMaxs(1, 0);
+    mv.visitEnd();
+  }
+
+  private void writeBodySexp() {
+
     MethodVisitor mv = cv.visitMethod(ACC_PRIVATE + ACC_STATIC, 
         "createBody", "()Lr/lang/SEXP;", null, null);
     mv.visitCode();
     ConstantGeneratingVisitor cgv = new ConstantGeneratingVisitor(mv);
-    thunk.getSExpression().accept(cgv);
+    closure.getBody().accept(cgv);
     mv.visitInsn(ARETURN);
-    mv.visitMaxs(1, 1);
+    mv.visitMaxs(1, 0);
     mv.visitEnd();
  }
  
   private void writeDoEvalBody(MethodVisitor mv) {
-    IRBody body = thunk.getBody();
+    IRFunctionTable functionTable = new IRFunctionTable();
+    IRBodyBuilder builder = new IRBodyBuilder(functionTable);
+    IRBody body = builder.build(closure.getBody());
+    
+    System.out.println(body);
     
     ByteCodeVisitor visitor = new ByteCodeVisitor(generationContext, mv);
     
@@ -131,10 +152,15 @@ public class ThunkCompiler implements Opcodes {
         stmt.accept(visitor);
       }
     }
-    
   }
 
   private void writeClassEnd() {
     cv.visitEnd();
+  }
+
+  class MyClassLoader extends ClassLoader {
+    public Class defineClass(String name, byte[] b) {
+      return defineClass(name, b, 0, b.length);
+   }
   }
 }

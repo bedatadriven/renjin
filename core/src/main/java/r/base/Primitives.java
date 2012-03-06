@@ -180,7 +180,7 @@ public class Primitives {
     addInternal("restart", new RestartFunction());
     add(new ClosureFunction());
 
-    f("as.function.default", /*asfunction*/ null, 0, 11, 2, PP_FUNCTION, PREC_FN, 0);
+    f("as.function.default", Types.class, 0, 11, 2, PP_FUNCTION, PREC_FN, 0);
 
     add(new AssignLeftFunction());
     add(new AssignFunction());
@@ -795,7 +795,7 @@ public class Primitives {
     f("file.exists", Files.class, 0, 11, 1);
     f("file.choose", /*filechoose*/ null, 0, 11, 1);
     f("file.info", Files.class, 0, 11, 1);
-    f("file.access", /*fileaccess*/ null, 0, 11, 2);
+    f("file.access", Files.class, 0, 11, 2);
     f("dir.create", Files.class, 0, 11, 4);
     f("tempfile", Files.class, 0, 11, 2);
     f("tempdir", Files.class, 0, 11, 0);

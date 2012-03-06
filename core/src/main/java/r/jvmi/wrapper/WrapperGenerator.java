@@ -190,8 +190,12 @@ public class WrapperGenerator {
   }
 
   public static String toJavaName(String rName) {
+    return toJavaName("R$primitive$", rName);
+  }
+  
+  public static String toJavaName(String prefix, String rName) {
     StringBuilder sb = new StringBuilder();
-    sb.append("R$primitive$");
+    sb.append(prefix);
     // for some readability, translate "." to $
     rName = rName.replace('.', '$');
     

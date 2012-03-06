@@ -82,7 +82,7 @@ public class Closure extends AbstractSEXP implements Function {
 
     SEXP result;
     try {
-      result = doEval(functionContext);
+      result = doApply(functionContext);
     } catch(ReturnException e) {
       if(functionEnvironment != e.getEnvironment()) {
         throw e;
@@ -94,7 +94,7 @@ public class Closure extends AbstractSEXP implements Function {
     return result;
   }
 
-  protected SEXP doEval(Context functionContext) {
+  public SEXP doApply(Context functionContext) {
     return functionContext.evaluate(body);
   }
    

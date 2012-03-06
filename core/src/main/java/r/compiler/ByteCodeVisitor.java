@@ -1,6 +1,5 @@
 package r.compiler;
 
-import java.util.List;
 import java.util.Map;
 
 import org.objectweb.asm.Label;
@@ -11,10 +10,12 @@ import r.compiler.cfg.BasicBlock;
 import r.compiler.ir.ssa.PhiFunction;
 import r.compiler.ir.ssa.SsaVariable;
 import r.compiler.ir.tac.IRLabel;
+import r.compiler.ir.tac.expressions.CallExpression;
 import r.compiler.ir.tac.expressions.CmpGE;
 import r.compiler.ir.tac.expressions.Constant;
 import r.compiler.ir.tac.expressions.DynamicCall;
 import r.compiler.ir.tac.expressions.ElementAccess;
+import r.compiler.ir.tac.expressions.Elipses;
 import r.compiler.ir.tac.expressions.EnvironmentVariable;
 import r.compiler.ir.tac.expressions.Expression;
 import r.compiler.ir.tac.expressions.ExpressionVisitor;
@@ -32,7 +33,6 @@ import r.compiler.ir.tac.statements.GotoStatement;
 import r.compiler.ir.tac.statements.IfStatement;
 import r.compiler.ir.tac.statements.ReturnStatement;
 import r.compiler.ir.tac.statements.StatementVisitor;
-import r.jvmi.wrapper.WrapperGenerator;
 import r.lang.FunctionCall;
 import r.lang.SEXP;
 import r.lang.Symbol;
@@ -48,7 +48,9 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   
   private int context = 1;
   private int rho = 2;
-  private int localVariablesStart = 3;
+  private int work1 = 3;
+  private int work2 = 4;
+  private int localVariablesStart = 5;
   
   
   public ByteCodeVisitor(GenerationContext generationContext, MethodVisitor mv) {
@@ -123,8 +125,10 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   }
 
   public void startBasicBlock(BasicBlock bb) {
-    if(bb.getLabel() != null) {
-      mv.visitLabel(getAsmLabel(bb.getLabel()));
+    if(bb.getLabels() != null) {
+      for(IRLabel label : bb.getLabels()) {
+        mv.visitLabel(getAsmLabel(label));        
+      }
     }
   }
 
@@ -134,7 +138,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
       SEXP exp = (SEXP)constant.getValue();
       exp.accept(new ConstantGeneratingVisitor(mv));
     } else if (constant.getValue() instanceof Integer) {
-      pushInt((Integer)constant.getValue());
+      ByteCodeUtil.pushInt(mv, (Integer)constant.getValue());
     } else {
       throw new UnsupportedOperationException();
     }
@@ -142,21 +146,17 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
   @Override
   public void visitDynamicCall(DynamicCall call) {
-
-    EnvironmentVariable functionName = (EnvironmentVariable)call.getFunction();
-    
-    // push the function onto the static
     
     if(call.getFunctionSexp() instanceof Symbol) {
       mv.visitVarInsn(ALOAD, rho);
-      mv.visitLdcInsn(functionName.getName().getPrintName());
+      mv.visitLdcInsn(((Symbol)call.getFunctionSexp()).getPrintName());
       mv.visitMethodInsn(INVOKESTATIC, "r/lang/Symbol", "get", "(Ljava/lang/String;)Lr/lang/Symbol;");
       mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "findFunctionOrThrow", "(Lr/lang/Symbol;)Lr/lang/Function;");
     } else {
       // otherwise we need to evaluate the function
-      call.getFunction().accept(this);
-      
+      call.getFunction().accept(this);    
     }
+    
     // construct a new PairList with the argument
     Label l3 = new Label();
     mv.visitInsn(DUP);
@@ -172,11 +172,17 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     // execute strict
     mv.visitLabel(l3);
     mv.visitTypeInsn(CHECKCAST, "r/lang/BuiltinFunction");
+    
+    maybeLoadElipses(call);
+    
     mv.visitVarInsn(ALOAD, context);
     mv.visitVarInsn(ALOAD, rho);
     pushSexp(call.getCall());
-    pushArgNames(call.getArgumentNames());
+    pushArgNames(call);
+    maybeSpliceArgumentNames(call);
+    
     pushEvaluatedArgs(call);
+    maybeSpliceArgumentValues(call);
 
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/BuiltinFunction", "apply", 
         "(Lr/lang/Context;Lr/lang/Environment;Lr/lang/FunctionCall;[Ljava/lang/String;[Lr/lang/SEXP;)Lr/lang/SEXP;");
@@ -184,18 +190,37 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     
   }
 
-  private void pushArgNames(List<String> argumentNames) {
-    pushInt(argumentNames.size());
+  /**
+   * Pushes the array of argument names onto the stack.
+   */
+  private void pushArgNames(CallExpression call) {
+    
+    pushInt(call.getArgumentNames().size());
     mv.visitTypeInsn(ANEWARRAY, "java/lang/String");
    
-    for(int i=0;i!=argumentNames.size();++i) {
-      if(argumentNames.get(i) != null) {
+    for(int i=0;i!=call.getArgumentNames().size();++i) {
+      if(call.getArgumentNames().get(i) != null) {
         mv.visitInsn(DUP);
-        pushInt(i);
-        mv.visitLdcInsn( argumentNames.get(i) );
+        ByteCodeUtil.pushInt(mv, i);
+        mv.visitLdcInsn( call.getArgumentNames().get(i) );
         mv.visitInsn(AASTORE);
       }
     }  
+  }
+
+  /**
+   * If the call includes an '...' argument, generate the call
+   * to splice the remaining arguments to this function into
+   * the argument list.
+   */
+  private void maybeSpliceArgumentNames(CallExpression call) {
+    if(call.hasElipses()) {
+      // insert the elipses argument names
+      mv.visitVarInsn(ALOAD, work1); // '...' pairlist
+      pushInt(call.getElipsesIndex());
+      mv.visitMethodInsn(INVOKESTATIC, "r/compiler/runtime/CompiledRuntime", "spliceArgNames",
+            "([Ljava/lang/String;Lr/lang/PairList;I)[Ljava/lang/String;");
+    }
   }
 
   private void pushSexp(FunctionCall call) {
@@ -217,38 +242,36 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitTypeInsn(ANEWARRAY, "r/lang/SEXP");
     
     for(int i=0; i!=call.getArguments().size();++i) {
-      // keep the array on the stack
-      mv.visitInsn(DUP);
-      pushInt(i);
-
-      Expression arg = call.getArguments().get(0);
-      if(arg instanceof IRThunk) {
-        SEXP sexp = ((IRThunk) arg).getSEXP();
-        if(sexp instanceof Symbol) {
-          visitEnvironmentVariable(new EnvironmentVariable((Symbol) sexp));
-//          mv.visitTypeInsn(NEW, "r/compiler/runtime/VariablePromise");
-//          mv.visitInsn(DUP);
-//          mv.visitVarInsn(ALOAD, context);
-//          mv.visitLdcInsn(((Symbol) sexp).getPrintName());
-//          mv.visitMethodInsn(INVOKESPECIAL, "r/compiler/runtime/VariablePromise", "<init>", "(Lr/lang/Context;Ljava/lang/String;)V"); 
+      if(call.getArguments().get(i) != Elipses.INSTANCE) {
+        // keep the array on the stack
+        mv.visitInsn(DUP);
+        pushInt(i);
+    
+        Expression arg = call.getArguments().get(0);
+        if(arg instanceof IRThunk) {
+          SEXP sexp = ((IRThunk) arg).getSEXP();
+          if(sexp instanceof Symbol) {
+            // since this is a simple case, just do it inline
+            visitEnvironmentVariable(new EnvironmentVariable((Symbol) sexp));
+          } else {
+            // otherwise call out to the corresponding thunk's
+            // static method. We rely on the jvm to inline at runtime 
+            // if necessary
+            mv.visitVarInsn(ALOAD, context);
+            mv.visitVarInsn(ALOAD, rho);
+            
+            String thunkClass = generationContext.getThunkMap().getClassName((IRThunk)arg);
+            mv.visitMethodInsn(INVOKESTATIC, thunkClass , "doEval", 
+                "(Lr/lang/Context;Lr/lang/Environment;)Lr/lang/SEXP;");
+          }
         } else {
-         // String thunkClass = thunkMap.getClassName(arg);
-          throw new UnsupportedOperationException();
+          arg.accept(this);
         }
-      }      
-      mv.visitInsn(AASTORE);
+        mv.visitInsn(AASTORE);
+      }
     }
   }
 
-  private void pushInt(int i) {
-    if(i <= 5) {
-      mv.visitInsn(ICONST_0 + i);
-    } else if(i < 127){
-      mv.visitIntInsn(BIPUSH, i);
-    } else {
-      throw new UnsupportedOperationException("more than 127 arguments? something is wrong.");
-    }
-  }
 
   @Override
   public void visitElementAccess(ElementAccess expr) {
@@ -262,7 +285,9 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   public void visitEnvironmentVariable(EnvironmentVariable variable) {
     mv.visitVarInsn(ALOAD, rho);
     mv.visitLdcInsn(variable.getName().getPrintName());
-    mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "getVariable", "(Ljava/lang/String;)Lr/lang/SEXP;");    
+    mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "findVariableOrThrow", "(Ljava/lang/String;)Lr/lang/SEXP;");    
+    // ensure that promises are forced
+    mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/SEXP", "force", "()Lr/lang/SEXP;");
   }
 
   @Override
@@ -277,7 +302,12 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   
   @Override
   public void visitMakeClosure(MakeClosure closure) {
-    throw new UnsupportedOperationException();    
+    String closureClass = generationContext.addClosure(closure.getFunction());
+    mv.visitTypeInsn(NEW, closureClass);
+    mv.visitInsn(DUP);
+    mv.visitVarInsn(ALOAD, context);
+    mv.visitVarInsn(ALOAD, rho);    
+    mv.visitMethodInsn(INVOKESPECIAL, closureClass, "<init>", "(Lr/lang/Context;Lr/lang/Environment;)V");
   }
 
   @Override
@@ -285,31 +315,65 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
     mv.visitVarInsn(ALOAD, context);
     mv.visitVarInsn(ALOAD, rho);
-    
-    if(call.hasElipses()) {
-      throw new UnsupportedOperationException("Elipses not supported yet in primitive calls");
-    }
 
     // push the original function call on the stack
     pushSexp(call.getSExpression());
+
+    // retrieve the value of '...' from the environment, which
+    // will contain a pair list of promises
+
+    maybeLoadElipses(call);
+
+    // push the argument names
+    pushArgNames(call);
+    maybeSpliceArgumentNames(call);
     
-    // send the argument names
-    pushArgNames(call.getArgumentNames());
+    // push the argument values
+    pushPrimitiveArgArray(call);
+    maybeSpliceArgumentValues(call);
     
+    mv.visitMethodInsn(INVOKESTATIC, call.getWrapperClass().getName().replace('.', '/'), "matchAndApply", 
+        "(Lr/lang/Context;Lr/lang/Environment;Lr/lang/FunctionCall;[Ljava/lang/String;[Lr/lang/SEXP;)Lr/lang/SEXP;");
+  }
+
+  private void maybeSpliceArgumentValues(CallExpression call) {
+    if(call.hasElipses()) {
+      // insert the elipses argument values 
+      mv.visitVarInsn(ALOAD, work1); // '...' pairlist
+      pushInt(call.getElipsesIndex());
+      mv.visitMethodInsn(INVOKESTATIC, "r/compiler/runtime/CompiledRuntime", "spliceArgValues",
+            "([Lr/lang/SEXP;Lr/lang/PairList;I)[Lr/lang/SEXP;");
+    }
+  }
+
+  private void maybeLoadElipses(CallExpression call) {
+    if(call.hasElipses()) {
+      mv.visitVarInsn(ALOAD, rho);
+      mv.visitFieldInsn(GETSTATIC, "r/lang/Symbols", "ELLIPSES", "Lr/lang/Symbol;");
+      mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "getVariable", "(Lr/lang/Symbol;)Lr/lang/SEXP;");
+      mv.visitTypeInsn(CHECKCAST, "r/lang/PairList");
+      mv.visitVarInsn(ASTORE, work1);
+    }
+  }
+  
+  private void pushPrimitiveArgArray(PrimitiveCall call) {
     // create array of values
     pushInt(call.getArguments().size());
     mv.visitTypeInsn(ANEWARRAY, "r/lang/SEXP");
     for(int i=0;i!=call.getArguments().size();++i) {
-      mv.visitInsn(DUP);
-      pushInt(i);
-      call.getArguments().get(i).accept(this);
-      mv.visitInsn(AASTORE);
+      if(call.getArguments().get(i) != Elipses.INSTANCE) {
+        mv.visitInsn(DUP);
+        pushInt(i);
+        call.getArguments().get(i).accept(this);
+        mv.visitInsn(AASTORE);
+      }
     }
-
-    mv.visitMethodInsn(INVOKESTATIC, call.getWrapperClass().getName().replace('.', '/'), "matchAndApply", 
-        "(Lr/lang/Context;Lr/lang/Environment;Lr/lang/FunctionCall;[Ljava/lang/String;[Lr/lang/SEXP;)Lr/lang/SEXP;");
   }
   
+  private void pushInt(int i) {
+     ByteCodeUtil.pushInt(mv, i);
+  }
+
   @Override
   public void visitLength(Length length) {
     length.getVector().accept(this);
@@ -339,8 +403,8 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
   @Override
   public void visitExprStatement(ExprStatement statement) {
-    throw new UnsupportedOperationException();
-    
+    statement.getRHS().accept(this);
+    mv.visitInsn(POP);
   }
 
   @Override
@@ -363,7 +427,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     
       stmt.getCondition().accept(this);
       
-      mv.visitMethodInsn(INVOKESTATIC, "r/compiler/CompiledRuntime", 
+      mv.visitMethodInsn(INVOKESTATIC, "r/compiler/runtime/CompiledRuntime", 
             "evaluateCondition", "(Lr/lang/SEXP;)Z");
       
       // IFEQ : jump if i==0
@@ -397,12 +461,6 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitInsn(ARETURN);
   }
   
-  public void dumpLdc() {
-    for(LValue var : variableSlots.keySet()) {
-      System.out.println((variableSlots.get(var) + localVariablesStart) + " => " + var);
-    }
-  }
-
   @Override
   public void visitPromise(IRThunk promise) {
     // TODO Auto-generated method stub

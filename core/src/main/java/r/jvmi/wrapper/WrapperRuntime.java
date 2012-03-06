@@ -83,11 +83,10 @@ public class WrapperRuntime {
   }
 
   public static boolean convertToBooleanPrimitive(SEXP exp) {
-    Vector vector = checkedSubClassAndAssertScalar(exp);
-    if(vector.isElementNA(0)) {
-      throw new UnsupportedOperationException("an NA value cannot be cast to a Java boolean value");
+    if(exp.length() == 0) {
+      return false;
     }
-    return vector.getElementAsLogical(0) == Logical.TRUE;  
+    return exp.asLogical() == Logical.TRUE;
   }
   
   public static Vector convertToVector(SEXP exp) {

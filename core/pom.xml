@@ -84,7 +84,6 @@
       <artifactId>asm</artifactId>
       <version>4.0</version>
     </dependency>
-
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm-util</artifactId>
@@ -139,7 +138,7 @@
 
           <!-- Generate wrapper for the primitives in the base package -->
           <execution>
-            <id>compile-base-package</id>
+            <id>generate-primitive-wrappers</id>
             <goals>
               <goal>exec</goal>
             </goals>
@@ -150,6 +149,23 @@
                 <argument>-classpath</argument>
                 <classpath />
                 <argument>r.jvmi.wrapper.WrapperGenerator</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>compile-base-package</id>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          <!--   <phase>process-classes</phase>-->
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath />
+                <argument>r.compiler.PackageCompiler</argument>
+                <argument>src/main/r/base</argument>
+                <argument>target/classes</argument>
               </arguments>
             </configuration>
           </execution>

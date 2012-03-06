@@ -31,11 +31,8 @@ public class ExpressionCompilerTest {
   
   @Test
   public void simplestTest() throws Exception {
-    
     context.getEnvironment().setVariable(Symbol.get("x"), new DoubleVector(1,2,3,4));
-    
     DoubleVector result = (DoubleVector) compileAndEval(context, "x<-4; x\n");
-   
     assertThat(result.getElementAsDouble(0), equalTo(4d));
   }
   
@@ -46,18 +43,14 @@ public class ExpressionCompilerTest {
   
   @Test
   public void ifStatement() throws Exception {
-        
     DoubleVector result = (DoubleVector) compileAndEval(context, "if(TRUE) 42 else 5\n");
-   
     assertThat(result.getElementAsDouble(0), equalTo(42d));
-    
   }
     
   @Test
   public void dynamicCall() throws Exception {
     SEXP result = compileAndEval(context, "x<-5; length(x)\n");
     assertThat(((Vector)result).getElementAsInt(0), equalTo(1));
-
   }
   
   @Test
@@ -70,7 +63,6 @@ public class ExpressionCompilerTest {
   public void forLoop() throws Exception {
     DoubleVector result = (DoubleVector) compileAndEval(context, "x <- 0; for(i in 1:10) { x <- x + 10 }; x \n");
     assertThat(result.getElementAsInt(0), equalTo(100));
-    
   }
 
   @Test
@@ -82,7 +74,7 @@ public class ExpressionCompilerTest {
   private SEXP compileAndEval(Context context, String code)
       throws InstantiationException, IllegalAccessException {
     ExpressionVector exp = RParser.parseSource(code);
-    ThunkMap thunkMap = new ThunkMap();
+    ThunkMap thunkMap = new ThunkMap("r/anon/Thunk");
     Class<CompiledBody> compiled = ExpressionCompiler.compile(thunkMap, exp);
     
     return compiled.newInstance().eval(context, context.getEnvironment());

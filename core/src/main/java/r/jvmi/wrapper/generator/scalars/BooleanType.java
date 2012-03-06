@@ -47,8 +47,7 @@ public class BooleanType extends ScalarType {
 
   @Override
   public String testExpr(String expr) {
-    return "(" + expr + " instanceof IntVector || " + expr + " instanceof DoubleVector || " + 
-        expr + " instanceof LogicalVector)";
+    return "(" + expr + " instanceof Vector)";
   }
   
   

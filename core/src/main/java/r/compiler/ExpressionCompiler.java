@@ -40,7 +40,7 @@ public class ExpressionCompiler implements Opcodes {
     startClass();
     writeImplementation();
     writeConstructor();
-    writeSexpPool();
+    generationContext.getSexpPool().writeFields(cv);
     writeClassEnd();
     
     return new MyClassLoader().defineClass(generationContext.getClassName().replace('/', '.'), cw.toByteArray());
@@ -49,7 +49,6 @@ public class ExpressionCompiler implements Opcodes {
   private void startClass() {
 
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-    //cw = new ClassWriter(0);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
     //cv = new CheckClassAdapter(cv);
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, generationContext.getClassName(), null,
@@ -96,20 +95,12 @@ public class ExpressionCompiler implements Opcodes {
     mv.visitEnd();
   }
   
-  private void writeSexpPool() {
-    for(SexpPool.Entry entry : generationContext.getSexpPool().entries()) {
-      cv.visitField(ACC_PRIVATE, entry.getFieldName(), 
-          entry.getType(), null, null);
-    }
-  }
-
   private void writeBody(MethodVisitor mv) {
     IRFunctionTable functionTable = new IRFunctionTable();
     IRBodyBuilder builder = new IRBodyBuilder(functionTable);
     IRBody body = builder.build(exp);
     
     ByteCodeVisitor visitor = new ByteCodeVisitor(generationContext, mv);
-    
     
     ControlFlowGraph cfg = new ControlFlowGraph(body);
     for(BasicBlock bb : cfg.getBasicBlocks()) {
@@ -123,8 +114,6 @@ public class ExpressionCompiler implements Opcodes {
         stmt.accept(visitor);
       }
     }
-    
-    visitor.dumpLdc();
   }
 
   private void writeClassEnd() {

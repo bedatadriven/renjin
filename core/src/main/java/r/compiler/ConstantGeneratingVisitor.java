@@ -3,14 +3,18 @@ package r.compiler;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import r.lang.ComplexVector;
 import r.lang.DoubleVector;
 import r.lang.FunctionCall;
+import r.lang.IntVector;
 import r.lang.LogicalVector;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.SexpVisitor;
+import r.lang.StringVector;
 import r.lang.Symbol;
+import r.lang.Vector;
 
 public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opcodes {
   private MethodVisitor mv;
@@ -37,7 +41,78 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
       throw new UnsupportedOperationException("only double vectors of length 1 are implemented");
     }
   }
+   
+  @Override
+  public void visit(ComplexVector vector) {
+    mv.visitTypeInsn(NEW, "r/lang/ComplexVector");
+    mv.visitInsn(DUP);
     
+    ByteCodeUtil.pushInt(mv, vector.length());
+    mv.visitTypeInsn(ANEWARRAY, "org/apache/commons/math/complex/Complex");
+    for(int i=0;i!=vector.length();++i) {
+      mv.visitInsn(DUP);
+      ByteCodeUtil.pushInt(mv, i);
+      mv.visitTypeInsn(NEW, "org/apache/commons/math/complex/Complex");
+      mv.visitInsn(DUP);
+      pushDouble(vector.getElementAsComplex(i).getReal());
+      pushDouble(vector.getElementAsComplex(i).getImaginary());
+      mv.visitMethodInsn(INVOKESPECIAL, "org/apache/commons/math/complex/Complex", "<init>", "(DD)V");
+      mv.visitInsn(AASTORE);
+    }
+
+    mv.visitMethodInsn(INVOKESPECIAL, "r/lang/ComplexVector", "<init>", "([Lorg/apache/commons/math/complex/Complex;)V");
+
+  }
+
+  private void pushDouble(double x) {
+    if(x == 0) {
+     mv.visitInsn(DCONST_0);
+    } else if(x==1) {
+      mv.visitInsn(DCONST_1);
+    } else {
+      mv.visitLdcInsn(Double.valueOf(x));
+    }     
+  }
+
+  @Override
+  public void visit(IntVector vector) {
+    mv.visitTypeInsn(NEW, "r/lang/IntVector");
+    mv.visitInsn(DUP);
+    
+    pushIntArray(vector);
+
+    mv.visitMethodInsn(INVOKESPECIAL, "r/lang/IntVector", "<init>", "([I)V");    
+  }
+
+  private void pushIntArray(Vector vector) {
+    ByteCodeUtil.pushInt(mv, vector.length());
+    mv.visitIntInsn(NEWARRAY, T_INT);
+    for(int i=0;i!=vector.length();++i) {
+      mv.visitInsn(DUP);
+      ByteCodeUtil.pushInt(mv, i);
+      mv.visitLdcInsn(vector.getElementAsInt(i));
+      mv.visitInsn(IASTORE);
+    }
+  }
+
+  @Override
+  public void visit(StringVector vector) {
+    mv.visitTypeInsn(NEW, "r/lang/StringVector");
+    mv.visitInsn(DUP);
+    
+    ByteCodeUtil.pushInt(mv, vector.length());
+    mv.visitTypeInsn(ANEWARRAY, "java/lang/String");
+    for(int i=0;i!=vector.length();++i) {
+      if(!vector.isElementNA(i)) {
+        mv.visitInsn(DUP);
+        ByteCodeUtil.pushInt(mv, i);
+        mv.visitLdcInsn(vector.getElement(i));
+        mv.visitInsn(AASTORE);
+      }
+    }
+    mv.visitMethodInsn(INVOKESPECIAL, "r/lang/StringVector", "<init>", "([Ljava/lang/String;)V");
+  }
+
   @Override
   public void visit(Null nullExpression) {
     mv.visitFieldInsn(GETSTATIC, "r/lang/Null", "INSTANCE", "Lr/lang/Null;");
@@ -56,27 +131,24 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
   }
 
   @Override
-  public void visit(FunctionCall call) {
+  public void visit(PairList.Node node) {
+    mv.visitTypeInsn(NEW, "r/lang/PairList$Node");
+    mv.visitInsn(DUP);
     
+    node.getRawTag().accept(this);
+    node.getValue().accept(this);
+    node.getNext().accept(this);
+    mv.visitMethodInsn(INVOKESPECIAL, "r/lang/PairList$Node", "<init>", "(Lr/lang/SEXP;Lr/lang/SEXP;Lr/lang/PairList;)V");
+  }
+
+  @Override
+  public void visit(FunctionCall call) {
+ 
     mv.visitTypeInsn(NEW, "r/lang/FunctionCall");
     mv.visitInsn(DUP);
-    
-    mv.visitTypeInsn(NEW, "r/lang/PairList$Builder");
-    mv.visitInsn(DUP);
-    mv.visitMethodInsn(INVOKESPECIAL, "r/lang/PairList$Builder", "<init>", "()V");
-
-    for(PairList.Node node : call.getArguments().nodes()) {
-      if(node.hasTag()) {
-        node.getTag().accept(this);
-        node.getValue().accept(this);
-        mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/PairList$Builder", "add", "(Lr/lang/SEXP;Lr/lang/SEXP;)Lr/lang/PairList$Builder;");
-      } else {
-        node.getValue().accept(this);
-        mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/PairList$Builder", "add", "(Lr/lang/SEXP;)Lr/lang/PairList$Builder;");
-      }
-    }
-    mv.visitInsn(DUP);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/PairList$Builder", "build", "()Lr/lang/PairList;");
+    call.getFunction().accept(this);
+    call.getArguments().accept(this);
+   // Null.INSTANCE.accept(this);
     mv.visitMethodInsn(INVOKESPECIAL, "r/lang/FunctionCall", "<init>", "(Lr/lang/SEXP;Lr/lang/PairList;)V");
   }
 
@@ -87,11 +159,16 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
         mv.visitFieldInsn(GETSTATIC, "r/lang/LogicalVector", "TRUE", "Lr/lang/LogicalVector;");
       } else if(vector.getElementAsRawLogical(0) == 0) {
         mv.visitFieldInsn(GETSTATIC, "r/lang/LogicalVector", "FALSE", "Lr/lang/LogicalVector;");
-      } else {
-        throw new UnsupportedOperationException("nyi");
+      } else {        
+        mv.visitFieldInsn(GETSTATIC, "r/lang/LogicalVector", "NA_VECTOR", "Lr/lang/LogicalVector;");
       }
     } else {
-      throw new UnsupportedOperationException("nyi");
+      mv.visitTypeInsn(NEW, "r/lang/LogicalVector");
+      mv.visitInsn(DUP);
+      
+      pushIntArray(vector);
+
+      mv.visitMethodInsn(INVOKESPECIAL, "r/lang/IntVector", "<init>", "([I)V");    
     }
   }
 
@@ -99,6 +176,4 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
   protected void unhandled(SEXP exp) {
     throw new UnsupportedOperationException("Constant generation nyi for " + exp);
   }
-  
-  
 }

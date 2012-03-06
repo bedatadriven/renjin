@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import r.compiler.ir.tac.statements.Statement;
 import r.lang.Context;
@@ -11,6 +12,7 @@ import r.lang.SEXP;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class IRBody {
   
@@ -53,13 +55,14 @@ public class IRBody {
     return labels[label.getIndex()];
   }
   
-  public IRLabel getIntructionLabel(int instructionIndex) {
+  public Set<IRLabel> getIntructionLabels(int instructionIndex) {
+    Set<IRLabel> set = Sets.newHashSet();
     for(int i=0;i!=labels.length;++i) {
       if(labels[i]==instructionIndex) {
-        return new IRLabel(i);
+        set.add(new IRLabel(i));
       }
     }
-    return null;
+    return set;
   }
  
   public boolean isLabeled(int instructionIndex) {
@@ -72,10 +75,10 @@ public class IRBody {
   }
   
   private String labelAt(int instructionIndex) {
-    IRLabel label = getIntructionLabel(instructionIndex);
+    Set<IRLabel> labels = getIntructionLabels(instructionIndex);
     
-    return label == null ? Strings.repeat(" ", 5) :
-      Strings.padEnd(label.toString(), 5, ' ');
+    return  labels.isEmpty() ? Strings.repeat(" ", 5) :
+      Strings.padEnd(labels.iterator().next().toString(), 5, ' ');
   } 
   
   @Override

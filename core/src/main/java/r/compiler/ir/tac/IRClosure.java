@@ -29,8 +29,11 @@ public class IRClosure extends Closure {
     return matchAndApply(callingContext, call, promisedArgs);
   }
   
-  protected SEXP doEval(Context functionContext) {
+  
+  
+  @Override
+  public SEXP doApply(Context functionContext) {
     return function.getBody().evaluate(functionContext);
-  }  
+  }
   
 }

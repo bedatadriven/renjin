@@ -35,7 +35,9 @@ import org.junit.Test;
 
 import r.EvalTestCase;
 import r.lang.DoubleVector;
+import r.lang.FunctionCall;
 import r.lang.IntVector;
+import r.lang.ListVector;
 import r.lang.Logical;
 import r.lang.Null;
 import r.lang.PairList;
@@ -43,6 +45,7 @@ import r.lang.Raw;
 import r.lang.RawVector;
 import r.lang.SEXP;
 import r.lang.StringVector;
+import r.lang.Symbol;
 
 public strictfp class TypesTest extends EvalTestCase {
 
@@ -320,6 +323,22 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" attr(x, 'class') <- 'foo' ");
 
     assertThat( eval(" class(x) "), equalTo( c("foo")));
+  }
+  
+  @Test
+  public void asFunctionDefault() {
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+    list.add("a", Symbol.MISSING_ARG);
+    list.add("b", new DoubleVector(2));
+    list.add(FunctionCall.newCall(Symbol.get("+"), Symbol.get("a"), Symbol.get("b")));
+    global.setVariable(Symbol.get("x"), list.build());
+    
+    eval("f <- .Internal(as.function.default(x, globalenv()))");
+    assertThat(eval("f(1)"), equalTo(c(3)));
+    assertThat(eval("f(1,3)"), equalTo(c(4)));
+    
+    
+    
   }
   
   @Test

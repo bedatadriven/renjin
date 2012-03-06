@@ -1,6 +1,8 @@
 package r.compiler.runtime;
 
 import r.lang.Context;
+import r.lang.Environment;
+import r.lang.Null;
 import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.Symbol;
@@ -20,5 +22,5 @@ public class VariablePromise extends Promise {
     }
     return value;
   }
-
+  
 }

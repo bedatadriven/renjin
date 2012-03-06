@@ -287,6 +287,14 @@ public class Environment extends AbstractSEXP implements Recursive {
     return parent.findVariable(symbol);
   }
   
+  public SEXP findVariableOrThrow(String name) {
+    SEXP value = findVariable(Symbol.get(name));
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("object '" + name + "' not found");
+    }
+    return value;
+  }
+  
   public Function findFunction(Symbol symbol) {
     Function value = frame.getFunction(symbol);
     if(value != null) {

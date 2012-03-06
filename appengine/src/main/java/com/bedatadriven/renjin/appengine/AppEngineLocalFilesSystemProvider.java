@@ -74,8 +74,6 @@ public class AppEngineLocalFilesSystemProvider
   public FileObject findFile(FileObject baseFile, String uri,
                              FileSystemOptions properties) throws FileSystemException {
 
-    System.out.println(uri);
-
     // Parse the name
     final StringBuffer buffer = new StringBuffer(uri);
     String scheme = UriParser.extractScheme(uri, buffer);

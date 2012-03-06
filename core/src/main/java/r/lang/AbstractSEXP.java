@@ -262,5 +262,8 @@ public abstract class AbstractSEXP implements SEXP {
     }
   }
   
+  public SEXP force() {
+    return this;
+  }
   
 }

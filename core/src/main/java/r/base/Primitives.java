@@ -753,7 +753,7 @@ public class Primitives {
     f("lib.fixup", Types.class, 0, 111, 2);
     f("pos.to.env", /*pos2env*/ null, 0, 1, 1);
     f("eapply", /*eapply*/ null, 0, 10, 4);
-    f("lapply", Evaluation.class, 0, 10, 2);
+    f("lapply", Evaluation.class, 1, 10, 2);
     f("rapply", /*rapply*/ null, 0, 11, 5);
     f("islistfactor",  Types.class, 0, 11, 2);
     f("colSums", Matrices.class, 0, 11, 4);

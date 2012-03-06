@@ -164,4 +164,7 @@ public interface SEXP {
    */
   <S extends SEXP> S getElementAsSEXP(int index);
 
+  
+  SEXP force();
+  
 }

@@ -294,6 +294,14 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
     return parent.findFunction(symbol);   
   }
+  
+  public Function findFunctionOrThrow(Symbol symbol) {
+    Function function = findFunction(symbol);
+    if(function == null) {
+      throw new EvalException("could not find function \"" + symbol + "\"");
+    }
+    return function;
+  }
 
   /**
    *

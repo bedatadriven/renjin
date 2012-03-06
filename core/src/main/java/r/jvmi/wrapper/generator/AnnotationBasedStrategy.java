@@ -41,9 +41,6 @@ import com.google.common.collect.Maps;
 
 public class AnnotationBasedStrategy extends GeneratorStrategy  {
 
-
-
-
   protected void generateMethods(Entry entry, WrapperSourceWriter s, List<JvmMethod> overloads) {
 
     generateApplyMethod(entry, s, overloads);

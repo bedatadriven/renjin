@@ -1,34 +1,28 @@
 package r.compiler;
 
 import java.io.PrintWriter;
-import java.util.List;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import r.compiler.cfg.BasicBlock;
 import r.compiler.cfg.ControlFlowGraph;
-import r.compiler.ir.ByteCodeVisitor;
 import r.compiler.ir.tac.IRBody;
 import r.compiler.ir.tac.IRBodyBuilder;
 import r.compiler.ir.tac.IRFunctionTable;
 import r.compiler.ir.tac.statements.Statement;
-import r.compiler.ir.tree.TreeBuilder;
 import r.lang.SEXP;
 
 public class ExpressionCompiler implements Opcodes {
 
   private SEXP exp;
-  private String className;
   private ClassWriter cw;
   private ClassVisitor cv;
-  
-  private ThunkMap thunkMap;
+  private GenerationContext generationContext;
  
 
   public static Class<CompiledBody> compile(ThunkMap thunkMap, SEXP exp) {
@@ -37,27 +31,28 @@ public class ExpressionCompiler implements Opcodes {
   
   public ExpressionCompiler(ThunkMap thunkMap) {
     super();
-    this.thunkMap = thunkMap;
+    this.generationContext = new GenerationContext("Body" + System.identityHashCode(exp),
+        thunkMap);
   }
 
   private Class<CompiledBody> doCompile(SEXP exp) {
     this.exp = exp;
     startClass();
-    writeConstructor();
     writeImplementation();
+    writeConstructor();
+    writeSexpPool();
     writeClassEnd();
-
-    return new MyClassLoader().defineClass(className.replace('/', '.'), cw.toByteArray());
+    
+    return new MyClassLoader().defineClass(generationContext.getClassName().replace('/', '.'), cw.toByteArray());
   }
 
   private void startClass() {
-    className = "Body" + System.identityHashCode(exp);
 
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     //cw = new ClassWriter(0);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
     //cv = new CheckClassAdapter(cv);
-    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
+    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, generationContext.getClassName(), null,
         "java/lang/Object", new String[] { "r/compiler/CompiledBody" });
   }
 
@@ -69,11 +64,24 @@ public class ExpressionCompiler implements Opcodes {
     mv.visitLabel(l0);
     mv.visitLineNumber(8, l0);
     mv.visitVarInsn(ALOAD, 0);
+    mv.visitInsn(DUP);
     mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+    
+    // initialize sexp pool
+  
+    ConstantGeneratingVisitor cgv = new ConstantGeneratingVisitor(mv);
+    for(SexpPool.Entry entry : generationContext.getSexpPool().entries()) {
+      mv.visitInsn(DUP); // keep "this" on the stack
+      entry.getSexp().accept(cgv);
+      mv.visitFieldInsn(PUTFIELD, 
+          generationContext.getClassName(), entry.getFieldName(), entry.getType());
+    }
+    
+    
     mv.visitInsn(RETURN);
     Label l1 = new Label();
     mv.visitLabel(l1);
-    mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
+    mv.visitLocalVariable("this", "L" + generationContext.getClassName() + ";", null, l0, l1, 0);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
   }
@@ -87,13 +95,20 @@ public class ExpressionCompiler implements Opcodes {
     mv.visitMaxs(1, 1);
     mv.visitEnd();
   }
+  
+  private void writeSexpPool() {
+    for(SexpPool.Entry entry : generationContext.getSexpPool().entries()) {
+      cv.visitField(ACC_PRIVATE, entry.getFieldName(), 
+          entry.getType(), null, null);
+    }
+  }
 
   private void writeBody(MethodVisitor mv) {
     IRFunctionTable functionTable = new IRFunctionTable();
     IRBodyBuilder builder = new IRBodyBuilder(functionTable);
     IRBody body = builder.build(exp);
     
-    ByteCodeVisitor visitor = new ByteCodeVisitor(thunkMap, mv);
+    ByteCodeVisitor visitor = new ByteCodeVisitor(generationContext, mv);
     
     
     ControlFlowGraph cfg = new ControlFlowGraph(body);

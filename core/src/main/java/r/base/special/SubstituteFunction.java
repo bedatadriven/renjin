@@ -123,9 +123,17 @@ public class SubstituteFunction extends SpecialFunction {
     private PairList unpackPromiseList(PromisePairList dotExp) {
       PairList.Builder unpacked = new PairList.Node.Builder();
       for(PairList.Node node : dotExp.nodes()) {
-        unpacked.add(node.getRawTag(), ((Promise)node.getValue()).getExpression());
+        unpacked.add(node.getRawTag(), unpromise(node.getValue()));
       }
       return unpacked.build();
+    }
+
+    private SEXP unpromise(SEXP value) {
+      if(value instanceof Promise) {
+        return ((Promise) value).getExpression();
+      } else {
+        return value;
+      }
     }
 
     @Override

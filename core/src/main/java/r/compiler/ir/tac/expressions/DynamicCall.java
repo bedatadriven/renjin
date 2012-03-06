@@ -5,13 +5,16 @@ import java.util.List;
 import java.util.Set;
 
 import r.lang.BuiltinFunction;
+import r.lang.Closure;
 import r.lang.Context;
 import r.lang.Function;
 import r.lang.FunctionCall;
 import r.lang.Null;
 import r.lang.PairList;
+import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.Symbol;
+import r.lang.Symbols;
 import r.lang.exception.EvalException;
 
 import com.google.common.collect.Lists;
@@ -35,7 +38,7 @@ public class DynamicCall implements Expression {
    * that contains a copy of the original {@link FunctionCall}. So we 
    * need to retain the x$f literal.
    */
-  private SEXP functionName;
+  private SEXP functionSexp;
   
   
   /**
@@ -57,7 +60,7 @@ public class DynamicCall implements Expression {
   public DynamicCall(FunctionCall call, Expression function, 
       List<SEXP> argumentNames, List<Expression> arguments) {
     this.call = call;
-    this.functionName = call.getFunction();
+    this.functionSexp = call.getFunction();
     this.functionExpr = function;
     this.arguments = arguments;
     this.argumentNames = argumentNames;
@@ -73,6 +76,10 @@ public class DynamicCall implements Expression {
         elipses = true;
       }
     }
+  }
+  
+  public FunctionCall getCall() {
+    return call;
   }
 
   public Expression getFunction() {
@@ -92,33 +99,54 @@ public class DynamicCall implements Expression {
     if(! elipses && functionValue instanceof BuiltinFunction) {
       return ((BuiltinFunction)functionValue).apply(context, 
           context.getEnvironment(), call, argumentNamesArray, evaluateArgs(context, temps));
-    } else {
-      
+    } else if(functionValue instanceof Closure) {
+        
       PairList.Builder args = new PairList.Builder();
-      for(int i=0;i!=arguments.size();++i) {
-        Expression argument = arguments.get(i);
-        if(argument instanceof IRThunk || argument instanceof Elipses) {
-          args.add(argumentNames.get(i), argument.getSExpression());
-        } else { 
-          args.add(argumentNames.get(i), (SEXP)argument.retrieveValue(context, temps));
+      int argNameIndex=0;
+      for(Expression argument : arguments) {
+        if(argument instanceof Elipses) {
+          // splice existing promise list into 
+          SEXP elipses = context.getEnvironment().findVariable(Symbols.ELLIPSES);
+          args.addAll((PairList)elipses); 
+        } else if(argument instanceof IRThunk) {
+          args.add(argumentNames.get(argNameIndex++), new IRPromise(context, temps, (IRThunk)argument));
+        } else {
+          args.add(argumentNames.get(argNameIndex++), (SEXP)argument.retrieveValue(context, temps));
         }
       }
-      
-      return functionValue.apply(context, context.getEnvironment(), call, args.build());
+      return ((Closure) functionValue).matchAndApply(context, call, args.build());
+
+    } else {
+//      
+//      PairList.Builder args = new PairList.Builder();
+//      for(int i=0;i!=arguments.size();++i) {
+//        Expression argument = arguments.get(i);
+//        if(argument instanceof IRThunk || argument instanceof Elipses) {
+//          args.add(argumentNames.get(i), argument.getSExpression());
+//        } else { 
+//          args.add(argumentNames.get(i), (SEXP)argument.retrieveValue(context, temps));
+//        }
+//      }
+//      
+      return functionValue.apply(context, context.getEnvironment(), call, call.getArguments());
     }
-    
-    // build argument list 
-//    PairList.Builder argList = new PairList.Builder();
-//    for(int i=0;i!=arguments.size();++i) {
-//      argList.add(argumentNames.get(i), (SEXP)arguments.get(i).retrieveValue(context, temps));
-//    }
-//    PairList args = argList.build();
-//    FunctionCall call = new FunctionCall(functionName, args);
-//    
-//    return functionValue.apply(context, context.getEnvironment(), call, args);
-//  
   }
   
+  private static class IRPromise extends Promise {
+    private Object[] temps;
+    private IRThunk thunk;
+
+    public IRPromise(Context context, Object temps[], IRThunk thunk) {
+      super(context, context.getEnvironment(), thunk.getSExpression());
+      this.temps = temps;
+      this.thunk = thunk;
+    }
+
+    @Override
+    protected SEXP doEval() {
+      return thunk.retrieveValue(context, temps);
+    }
+  }
 
   private SEXP[] evaluateArgs(Context context, Object[] temps) {
     SEXP[] evaluated = new SEXP[arguments.size()];
@@ -141,13 +169,8 @@ public class DynamicCall implements Expression {
     //
     // this is *different* then simply evaluating the symbol `f`.
     
-    if(functionName instanceof Symbol) {
-      Symbol symbol = (Symbol) functionName;
-      Function fn = context.getEnvironment().findFunction(symbol);
-      if(fn == null) {
-        throw new EvalException("could not find function '%s'", symbol.getPrintName());      
-      }
-      return fn;
+    if(functionSexp instanceof Symbol) {
+      return context.getEnvironment().findFunctionOrThrow((Symbol)functionSexp);
     } else {
       
       // otherwise, we need to proceed to evaluate the expression 
@@ -162,6 +185,9 @@ public class DynamicCall implements Expression {
     }
   }
 
+  public SEXP getFunctionSexp() {
+    return functionSexp;
+  }
 
   @Override
   public Set<Variable> variables() {
@@ -226,6 +252,19 @@ public class DynamicCall implements Expression {
   @Override
   public SEXP getSExpression() {
     return call;
+  }
+
+  public List<String> getArgumentNames() {
+    return Lists.transform(argumentNames, new com.google.common.base.Function<SEXP, String>() {
+
+      @Override
+      public String apply(SEXP input) {
+        if(input instanceof Symbol) {
+          return ((Symbol) input).getPrintName();
+        } else {
+          return null;
+        }
+      }
+    });
   } 
-  
 }

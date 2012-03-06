@@ -128,9 +128,8 @@ public class Evaluation {
     }
   }
 
-  public static ListVector lapply(@Current Context context, @Current Environment rho, FunctionCall call) {
-    Vector vector = (Vector) context.evaluate(call.getArgument(0), rho);
-    Function function = (Function) context.evaluate(call.getArgument(1), rho);
+  public static ListVector lapply(@Current Context context, @Current Environment rho, Vector vector,
+      Function function) {
 
     ListVector.Builder builder = ListVector.newBuilder();
     for(int i=0;i!=vector.length();++i) {

@@ -77,6 +77,7 @@ public class Promise extends AbstractSEXP implements Recursive {
    *
    * @return the result of the evaluation
    */
+  @Override
   public SEXP force() {
     if (result == null) {
       this.result = doEval();

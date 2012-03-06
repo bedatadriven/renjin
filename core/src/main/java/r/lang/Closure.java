@@ -22,6 +22,7 @@
 package r.lang;
 
 import r.base.ClosureDispatcher;
+import r.base.special.ReturnException;
 
 /**
  * The function closure data type.
@@ -70,6 +71,33 @@ public class Closure extends AbstractSEXP implements Function {
     ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, call);
     return dispatcher.applyClosure(this, args);
   }
+  
+
+  public SEXP matchAndApply(Context callingContext, FunctionCall call, 
+      PairList promisedArgs) {
+    Context functionContext = callingContext.beginFunction(call, this, promisedArgs);
+    Environment functionEnvironment = functionContext.getEnvironment();    
+
+    ClosureDispatcher.matchArgumentsInto(getFormals(), promisedArgs, functionContext, functionEnvironment);
+
+    SEXP result;
+    try {
+      result = doEval(functionContext);
+    } catch(ReturnException e) {
+      if(functionEnvironment != e.getEnvironment()) {
+        throw e;
+      }
+      result = e.getValue();
+    } finally {
+      functionContext.exit();
+    }
+    return result;
+  }
+
+  protected SEXP doEval(Context functionContext) {
+    return functionContext.evaluate(body);
+  }
+   
 
   /**
    * A function's <strong> evaluation environment</strong> is the environment
@@ -130,4 +158,5 @@ public class Closure extends AbstractSEXP implements Function {
     }
     return sb.append(")").toString();
   }
+
 }

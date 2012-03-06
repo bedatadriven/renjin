@@ -2,22 +2,18 @@ package r.compiler.ir.tac.expressions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import r.base.Primitives;
-import r.compiler.ir.exception.InvalidSyntaxException;
-import r.compiler.ir.tac.IRBodyBuilder;
-import r.jvmi.wrapper.WrapperGenerator;
-import r.jvmi.wrapper.WrapperRuntime;
-import r.lang.BuiltinFunction;
+import r.base.special.SwitchFunction;
 import r.lang.Context;
 import r.lang.Environment;
 import r.lang.FunctionCall;
 import r.lang.PairList;
 import r.lang.PrimitiveFunction;
-import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.Symbol;
 import r.lang.Symbols;
@@ -89,12 +85,6 @@ public class PrimitiveCall implements Expression {
           String[].class,
           SEXP[].class
       });
-//      for(Method method : wrapperClass.getMethods()) {
-//        if(method.getName().equals("doApply") && method.getParameterTypes().length == 
-//            arity + 2) {
-//          return method;
-//        }
-//      }
     } catch (SecurityException e) {
     } catch (NoSuchMethodException e) {
     }
@@ -146,6 +136,7 @@ public class PrimitiveCall implements Expression {
     for(int i=0;i!=arguments.size();++i) {
       argumentValues[i] = (SEXP)arguments.get(i).retrieveValue(context, temps);
     }
+        
     return (SEXP) primitiveMethod.invoke(null, context, context.getEnvironment(), 
         call, argumentNames, argumentValues);
   }
@@ -163,7 +154,7 @@ public class PrimitiveCall implements Expression {
       if(arg == Elipses.INSTANCE) {
         for(PairList.Node node : extraArgs.nodes()) {
           names[outArgIndex] = Strings.emptyToNull(node.getName());
-          values[outArgIndex] = ((Promise)node.getValue()).force();
+          values[outArgIndex] = node.getValue().force();
           outArgIndex++;
         }
       } else {
@@ -222,7 +213,25 @@ public class PrimitiveCall implements Expression {
   }
 
   @Override
-  public SEXP getSExpression() {
+  public FunctionCall getSExpression() {
     return call;
+  }
+
+  /**
+   * 
+   * @return true if this call has '...' in its arguments, meaning that
+   * the number and names of arguments will be determined at runtime
+   */
+  public boolean hasElipses() {
+    return elipses;
+  }
+
+  public List<String> getArgumentNames() {
+    return Arrays.asList(argumentNames);
   }  
+  
+  public Class getWrapperClass() {
+    return primitiveMethod.getDeclaringClass();
+    
+  }
 }

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 
 import r.compiler.CompiledBody;
 import r.compiler.ExpressionCompiler;
@@ -14,10 +13,10 @@ import r.compiler.runtime.VariablePromise;
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.ExpressionVector;
-import r.lang.IntVector;
 import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.Symbol;
+import r.lang.Vector;
 import r.parser.RParser;
 
 public class ExpressionCompilerTest {
@@ -54,20 +53,17 @@ public class ExpressionCompilerTest {
     
   }
     
-  @Ignore("work in progress")
   @Test
   public void dynamicCall() throws Exception {
-    IntVector result = (IntVector) compileAndEval(context, "x<-5; length(x)\n");
-    assertThat(result.getElementAsInt(0), equalTo(1));
+    SEXP result = compileAndEval(context, "x<-5; length(x)\n");
+    assertThat(((Vector)result).getElementAsInt(0), equalTo(1));
 
   }
   
   @Test
   public void primitiveCall() throws Exception {
-    
     DoubleVector result = (DoubleVector) compileAndEval(context, "1 + 1\n");
     assertThat(result.getElementAsInt(0), equalTo(2));
-
   }
   
   @Test
@@ -91,5 +87,4 @@ public class ExpressionCompilerTest {
     
     return compiled.newInstance().eval(context, context.getEnvironment());
   }
-
 }

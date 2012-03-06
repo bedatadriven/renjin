@@ -24,35 +24,13 @@ public class IRClosure extends Closure {
   public SEXP apply(Context callingContext, Environment callingEnvironment, 
       FunctionCall call, PairList args) {
 
-    SEXP result;
-
     PairList promisedArgs = Calls.promiseArgs(args, callingContext, callingEnvironment);
     
-    Context functionContext = callingContext.beginFunction(call, this, promisedArgs);
-    Environment functionEnvironment = functionContext.getEnvironment();    
+    return matchAndApply(callingContext, call, promisedArgs);
+  }
   
-    ClosureDispatcher.matchArgumentsInto(getFormals(), promisedArgs, functionContext, functionEnvironment);
-
-    if(Context.PRINT_IR) {
-      System.out.println("=== " + function.toString() + ", function context = " + Integer.toHexString(System.identityHashCode(functionContext)));
-      System.out.println(function.getBody());
-    }
-    
-    try {
-
-    
-      result = function.getBody().evaluate(functionContext);
-
-    } catch(ReturnException e) {
-      if(functionEnvironment != e.getEnvironment()) {
-        throw e;
-      }
-      result = e.getValue();
-    } finally {
-      functionContext.exit();
-    }
-    return result;
-
+  protected SEXP doEval(Context functionContext) {
+    return function.getBody().evaluate(functionContext);
   }  
   
 }

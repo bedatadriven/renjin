@@ -1,10 +1,13 @@
 package r.compiler;
 
+import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.Maps;
+import java.util.Map.Entry;
 
 import r.compiler.ir.tac.IRFunction;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public class GenerationContext {
   private String className;
@@ -12,12 +15,35 @@ public class GenerationContext {
   private ThunkMap thunkMap;
   private Map<String, IRFunction> closures = Maps.newHashMap();
   
-  public GenerationContext(String className, ThunkMap thunkMap) {
+  private int contextLdc = 1;
+  private int environmentLdc = 2;
+  
+  public GenerationContext(String className, SexpPool sexpPool, ThunkMap thunkMap) {
     this.className = className;
-    this.sexpPool = new SexpPool();
+    this.sexpPool = sexpPool;
     this.thunkMap = thunkMap;
   }
   
+  public int getContextLdc() {
+    return contextLdc;
+  }
+  
+  public int getEnvironmentLdc() {
+    return environmentLdc;
+  }
+    
+  public void setContextLdc(int contextLdc) {
+    this.contextLdc = contextLdc;
+  }
+
+  public void setEnvironmentLdc(int environmentLdc) {
+    this.environmentLdc = environmentLdc;
+  }
+  
+  public int getFirstFreeLocalVariable() {
+    return Math.max(contextLdc, environmentLdc) + 1;
+  }
+
   public String getClassName() {
     return className;
   }
@@ -34,5 +60,9 @@ public class GenerationContext {
     String className = this.className + "$closure$" + closures.size();
     closures.put(className, fn);
     return className;
+  }
+  
+  public List<Entry<String, IRFunction>> getNestedClosures() {
+    return Lists.newArrayList(closures.entrySet());
   }
 }

@@ -3,14 +3,13 @@ package r.compiler.ir;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import org.junit.Before;
 import org.junit.Test;
 
+import r.EvalTestCase;
 import r.compiler.CompiledBody;
 import r.compiler.ExpressionCompiler;
 import r.compiler.ThunkMap;
 import r.compiler.runtime.VariablePromise;
-import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.ExpressionVector;
 import r.lang.Promise;
@@ -19,64 +18,67 @@ import r.lang.Symbol;
 import r.lang.Vector;
 import r.parser.RParser;
 
-public class ExpressionCompilerTest {
+public class ExpressionCompilerTest extends EvalTestCase {
   
-  private Context context;
 
-  @Before
-  public void setUp() {
-    context = Context.newTopLevelContext();
-
-  }
-  
   @Test
   public void simplestTest() throws Exception {
-    context.getEnvironment().setVariable(Symbol.get("x"), new DoubleVector(1,2,3,4));
-    DoubleVector result = (DoubleVector) compileAndEval(context, "x<-4; x\n");
+    topLevelContext.getEnvironment().setVariable(Symbol.get("x"), new DoubleVector(1,2,3,4));
+    DoubleVector result = (DoubleVector) compileAndEval("x<-4; x\n");
     assertThat(result.getElementAsDouble(0), equalTo(4d));
   }
   
   public void variableThunk() {
-    Promise exp = new VariablePromise(context, "foo");
+    Promise exp = new VariablePromise(topLevelContext, "foo");
     exp.force();
   }
   
   @Test
   public void ifStatement() throws Exception {
-    DoubleVector result = (DoubleVector) compileAndEval(context, "if(TRUE) 42 else 5\n");
+    DoubleVector result = (DoubleVector) compileAndEval("if(TRUE) 42 else 5\n");
     assertThat(result.getElementAsDouble(0), equalTo(42d));
   }
     
   @Test
   public void dynamicCall() throws Exception {
-    SEXP result = compileAndEval(context, "x<-5; length(x)\n");
+    SEXP result = compileAndEval("x<-5; length(x)\n");
     assertThat(((Vector)result).getElementAsInt(0), equalTo(1));
   }
   
   @Test
+  public void dynamicCallToClosure() throws Exception {
+    topLevelContext.evaluate(RParser.parseSource("f<-function(x) sqrt(x);"));
+    assertThat( compileAndEval("y<-16; f(y)\n"), equalTo(c(4)));
+    assertThat( compileAndEval("f(16)\n"), equalTo(c(4)));
+    //assertThat( compileAndEval("f(1+1)\n"), equalTo(c(4)));
+  }
+  
+  @Test
   public void primitiveCall() throws Exception {
-    DoubleVector result = (DoubleVector) compileAndEval(context, "1 + 1\n");
+    DoubleVector result = (DoubleVector) compileAndEval("1 + 1\n");
     assertThat(result.getElementAsInt(0), equalTo(2));
   }
   
   @Test
   public void forLoop() throws Exception {
-    DoubleVector result = (DoubleVector) compileAndEval(context, "x <- 0; for(i in 1:10) { x <- x + 10 }; x \n");
+    DoubleVector result = (DoubleVector) compileAndEval("x <- 0; for(i in 1:10) { x <- x + 10 }; x \n");
     assertThat(result.getElementAsInt(0), equalTo(100));
   }
 
   @Test
   public void envVars() throws Exception {
-	  DoubleVector result = (DoubleVector) compileAndEval(context,"a <- 1; b <- 2; c <- a + b; c \n");
+	  DoubleVector result = (DoubleVector) compileAndEval("a <- 1; b <- 2; c <- a + b; c \n");
 	  assertThat(result.getElementAsInt(0), equalTo(3));
   }
 
-  private SEXP compileAndEval(Context context, String code)
+  private SEXP compileAndEval(String code)
       throws InstantiationException, IllegalAccessException {
     ExpressionVector exp = RParser.parseSource(code);
     ThunkMap thunkMap = new ThunkMap("r/anon/Thunk");
     Class<CompiledBody> compiled = ExpressionCompiler.compile(thunkMap, exp);
     
-    return compiled.newInstance().eval(context, context.getEnvironment());
+    return compiled.newInstance().eval(topLevelContext, topLevelContext.getEnvironment());
   }
+  
+  
 }

@@ -25,10 +25,6 @@ public class ThunkCompiler implements Opcodes {
   private ClassVisitor cv;
   private GenerationContext generationContext;
 
-  public static Class<Closure> compileAndLoad(Closure closure) {
-    return new ClosureCompiler("Closure" + System.identityHashCode(closure))
-      .doCompileAndLoad(closure);
-  }
   
   public static byte[] compile(String className, ThunkMap thunkMap, IRThunk thunk) {
     return new ThunkCompiler(thunkMap, className)
@@ -39,6 +35,7 @@ public class ThunkCompiler implements Opcodes {
     super();
     
     this.generationContext = new GenerationContext(className,
+        new StaticFieldSexpPool(className),
         thunkMap);
   }
 
@@ -68,18 +65,11 @@ public class ThunkCompiler implements Opcodes {
     mv.visitVarInsn(ALOAD, 0);
     mv.visitVarInsn(ALOAD, 1);
     mv.visitVarInsn(ALOAD, 2);
-    mv.visitMethodInsn(INVOKESTATIC, "r/compiler/runtime/CompiledThunkExample", "createSexp", "()Lr/lang/SEXP;");
+    mv.visitMethodInsn(INVOKESTATIC, generationContext.getClassName(), "createSexp", "()Lr/lang/SEXP;");
     mv.visitMethodInsn(INVOKESPECIAL, "r/lang/Promise", "<init>", "(Lr/lang/Context;Lr/lang/Environment;Lr/lang/SEXP;)V");
       
     // initialize sexp pool
-  
-    ConstantGeneratingVisitor cgv = new ConstantGeneratingVisitor(mv);
-    for(SexpPool.Entry entry : generationContext.getSexpPool().entries()) {
-      mv.visitInsn(DUP); // keep "this" on the stack
-      entry.getSexp().accept(cgv);
-      mv.visitFieldInsn(PUTFIELD, 
-          generationContext.getClassName(), entry.getFieldName(), entry.getType());
-    }
+    generationContext.getSexpPool().writeConstructorBody(mv);
     
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
@@ -87,7 +77,7 @@ public class ThunkCompiler implements Opcodes {
   }
 
   private void writeStaticDoEval() {  
-    MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "doEval", "(Lr/lang/Context;Lr/lang/Environment;)Lr/lang/SEXP;", null, null);
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC + ACC_STATIC, "doEval", "(Lr/lang/Context;Lr/lang/Environment;)Lr/lang/SEXP;", null, null);
     mv.visitCode();
     writeDoEvalBody(mv);
     mv.visitInsn(ARETURN);
@@ -95,16 +85,10 @@ public class ThunkCompiler implements Opcodes {
     mv.visitEnd();
   }
   
-  private void writeSexpPool() {
-    for(SexpPool.Entry entry : generationContext.getSexpPool().entries()) {
-      cv.visitField(ACC_PRIVATE, entry.getFieldName(), 
-          entry.getType(), null, null);
-    }
-  }
   
   private void writeSexp() {
     MethodVisitor mv = cv.visitMethod(ACC_PRIVATE + ACC_STATIC, 
-        "createBody", "()Lr/lang/SEXP;", null, null);
+        "createSexp", "()Lr/lang/SEXP;", null, null);
     mv.visitCode();
     ConstantGeneratingVisitor cgv = new ConstantGeneratingVisitor(mv);
     thunk.getSExpression().accept(cgv);
@@ -115,7 +99,9 @@ public class ThunkCompiler implements Opcodes {
  
   private void writeDoEvalBody(MethodVisitor mv) {
     IRBody body = thunk.getBody();
-    
+
+    generationContext.setContextLdc(0);
+    generationContext.setEnvironmentLdc(1);
     ByteCodeVisitor visitor = new ByteCodeVisitor(generationContext, mv);
     
     

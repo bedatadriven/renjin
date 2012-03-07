@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import r.compiler.runtime.VariablePromise;
 import r.lang.BuiltinFunction;
 import r.lang.Closure;
 import r.lang.Context;
@@ -109,7 +110,12 @@ public class DynamicCall implements CallExpression {
           SEXP elipses = context.getEnvironment().findVariable(Symbols.ELLIPSES);
           args.addAll((PairList)elipses); 
         } else if(argument instanceof IRThunk) {
-          args.add(argumentNames.get(argNameIndex++), new IRPromise(context, temps, (IRThunk)argument));
+          if(argument.getSExpression() instanceof Symbol) {
+            args.add(argumentNames.get(argNameIndex++), 
+                new VariablePromise(context, "foo"));
+          } else {
+            args.add(argumentNames.get(argNameIndex++), new IRPromise(context, temps, (IRThunk)argument));
+          }
         } else {
           args.add(argumentNames.get(argNameIndex++), (SEXP)argument.retrieveValue(context, temps));
         }
@@ -239,7 +245,7 @@ public class DynamicCall implements CallExpression {
   }
 
   @Override
-  public SEXP getSExpression() {
+  public FunctionCall getSExpression() {
     return call;
   }
 

@@ -1,61 +1,20 @@
 package r.compiler;
 
-import java.util.List;
-
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.MethodVisitor;
 
-import r.lang.SEXP;
-
-import com.google.common.collect.Lists;
+import r.lang.FunctionCall;
 
 /**
- * Maintains a pool of SEXP literals stored in class fields.
- *
+ * Support classes which makes available SEXP literals 
+ * to compiled java classs.
  */
-public class SexpPool implements Opcodes {
+public interface SexpPool {
 
-  public static class Entry {
-    private SEXP sexp;
-    private String type;
-    private String fieldName;
-    
-    public Entry(SEXP sexp, String className, String fieldName) {
-      super();
-      this.sexp = sexp;
-      this.type = className;
-      this.fieldName = fieldName;
-    } 
-    
-    public SEXP getSexp() {
-      return sexp;
-    }
-    
-    public String getFieldName() {
-      return fieldName;
-    }
+  void writeFields(ClassVisitor cv);
+  void writeConstructorBody(MethodVisitor mv);
+  void writeStaticInitializerBody(MethodVisitor mv);
 
-    public String getType() {
-      return type;
-    }
-  }
-  
-  List<Entry> entries = Lists.newArrayList();
-  
-  public String add(SEXP sexp, String type) {
-    Entry entry = new Entry(sexp, type, "sexp" + entries.size());
-    entries.add(entry);
-    return entry.getFieldName();
-  }
-  
-  public List<Entry> entries() {
-    return entries;
-  }
+  void pushSexp(MethodVisitor mv, FunctionCall call, String string);
 
-  public void writeFields(ClassVisitor cv) {
-    for(SexpPool.Entry entry : entries()) {
-      cv.visitField(ACC_PRIVATE, entry.getFieldName(), 
-          entry.getType(), null, null);
-    }    
-  }
 }

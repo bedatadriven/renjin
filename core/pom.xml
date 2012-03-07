@@ -156,9 +156,10 @@
             <goals>
               <goal>exec</goal>
             </goals>
-          <!--   <phase>process-classes</phase>-->
+            <!--  <phase>process-classes</phase> -->
             <configuration>
               <executable>java</executable>
+              <skip>true</skip>
               <arguments>
                 <argument>-classpath</argument>
                 <classpath />

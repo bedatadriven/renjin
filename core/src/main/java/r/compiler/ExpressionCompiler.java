@@ -31,7 +31,9 @@ public class ExpressionCompiler implements Opcodes {
   
   public ExpressionCompiler(ThunkMap thunkMap) {
     super();
-    this.generationContext = new GenerationContext("Body" + System.identityHashCode(exp),
+    String className = "Body" + System.identityHashCode(exp);
+    this.generationContext = new GenerationContext(className,
+        new FieldSexpPool(className),
         thunkMap);
   }
 
@@ -68,14 +70,7 @@ public class ExpressionCompiler implements Opcodes {
     
     // initialize sexp pool
   
-    ConstantGeneratingVisitor cgv = new ConstantGeneratingVisitor(mv);
-    for(SexpPool.Entry entry : generationContext.getSexpPool().entries()) {
-      mv.visitInsn(DUP); // keep "this" on the stack
-      entry.getSexp().accept(cgv);
-      mv.visitFieldInsn(PUTFIELD, 
-          generationContext.getClassName(), entry.getFieldName(), entry.getType());
-    }
-    
+    generationContext.getSexpPool().writeConstructorBody(mv);
     
     mv.visitInsn(RETURN);
     Label l1 = new Label();

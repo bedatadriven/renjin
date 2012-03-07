@@ -113,6 +113,13 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void doubleAssign() {
+    eval("x <- y <- 42");
+    assertThat(eval("x"), equalTo(c(42)));
+    assertThat(eval("y"), equalTo(c(42)));
+  }
+  
+  @Test
   public void assignIsSilent() throws IOException {
     eval("x<-1");
     assertThat(topLevelContext.getGlobals().isInvisible(), equalTo(true));
@@ -560,4 +567,5 @@ public class EvaluationTest extends EvalTestCase {
     
   }
 }
+
 

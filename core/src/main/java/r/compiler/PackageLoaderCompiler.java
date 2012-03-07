@@ -14,9 +14,9 @@ public class PackageLoaderCompiler implements Opcodes {
 
   public static byte[] compile(String packageName, Environment packageEnvironment) {
 
-    ClassWriter cw = new ClassWriter(0);
-    cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, packageName, null,
-        "java/lang/Object", null);
+    ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+    cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, CompiledNames.loaderClassName(packageName), null,
+        "java/lang/Object", new String[] { "r/compiler/runtime/PackageLoader" });
 
     writeInit(cw);
     writeLoadMethod(cw, packageName, packageEnvironment);
@@ -35,7 +35,7 @@ public class PackageLoaderCompiler implements Opcodes {
   }
 
   private static void writeLoadMethod(ClassWriter cw, String packageName, Environment rho) {
-    MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "load",
+    MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "load",
         "(Lr/lang/Context;Lr/lang/Environment;)V", null, null);
     mv.visitCode();
 
@@ -51,18 +51,22 @@ public class PackageLoaderCompiler implements Opcodes {
   }
 
   private static void storeClosure(MethodVisitor mv, String packageName, Symbol symbol) {
-    mv.visitVarInsn(ALOAD, 1);
+    mv.visitVarInsn(ALOAD, 2);
     mv.visitLdcInsn(symbol.getPrintName());
     mv.visitMethodInsn(INVOKESTATIC, "r/lang/Symbol", "get", 
         "(Ljava/lang/String;)Lr/lang/Symbol;");
     mv.visitTypeInsn(NEW, "r/compiler/runtime/PromisedFunction");
     mv.visitInsn(DUP);
-    mv.visitVarInsn(ALOAD, 0);
     mv.visitVarInsn(ALOAD, 1);
-    mv.visitLdcInsn(packageName + "/" + WrapperGenerator.toJavaName("", symbol.getPrintName()));
+    mv.visitVarInsn(ALOAD, 2);
+    mv.visitLdcInsn(functionClassName(packageName, symbol));
     mv.visitMethodInsn(INVOKESPECIAL, "r/compiler/runtime/PromisedFunction", "<init>",
         "(Lr/lang/Context;Lr/lang/Environment;Ljava/lang/String;)V");
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "setVariable", 
         "(Lr/lang/Symbol;Lr/lang/SEXP;)V");
+  }
+
+  private static String functionClassName(String packageName, Symbol symbol) {
+    return packageName.replace('/', '.') + "." + WrapperGenerator.toJavaName("", symbol.getPrintName());
   }
 }

@@ -1,6 +1,8 @@
 package r.compiler;
 
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import r.compiler.ir.tac.expressions.IRThunk;
 
@@ -27,6 +29,14 @@ public class ThunkMap {
       map.put(thunk, className);
     }
     return className;
+  }
+
+  public Set<Entry<IRThunk, String>> entrySet() {
+    return map.entrySet();
+  }
+
+  public Set<IRThunk> keySet() {
+    return map.keySet();
   }
   
 }

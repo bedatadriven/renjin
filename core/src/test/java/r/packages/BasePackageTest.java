@@ -25,6 +25,8 @@ import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import r.EvalTestCase;
+import r.compiler.runtime.PackageLoader;
+import r.compiler.runtime.PackageLoaders;
 import r.lang.*;
 
 import java.io.IOException;
@@ -383,6 +385,7 @@ public class BasePackageTest extends EvalTestCase {
 
   private void loadBasePackage() throws IOException {
     topLevelContext.loadBasePackage();
+    //PackageLoaders.load(topLevelContext, topLevelContext.getEnvironment().getBaseEnvironment(), "org.renjin.base");
   }
 
   private void executeStartupProfile() throws IOException {

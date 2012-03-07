@@ -23,6 +23,8 @@ package r.parser;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
+import org.junit.Ignore;
+
 import r.lang.*;
 
 import java.io.IOException;
@@ -39,6 +41,7 @@ import org.junit.Test;
 import r.EvalTestCase;
 import r.lang.ExpressionVector;
 import r.lang.FunctionCall;
+import r.lang.Symbol;
 
 
 public class RParserTest {
@@ -218,16 +221,19 @@ public class RParserTest {
     return result;
   }
   
-  /*
-   * I used getFunction().toString() because i can't inherit this class from EvalTestCase
-   * for using the symbol(). This class implements some abstract classes from test package.
-   * Finally, this works without too many hacks.
-   */
   @Test
   public void matrixProduct() throws IOException{ 
    ExpressionVector result = RParser.parseSource(new StringReader("c(1,2,3) %*% c(7,8,7)\n"));
    FunctionCall call = (FunctionCall)result.getElementAsSEXP(0);
-   assertThat(call.getFunction().toString(), equalTo("%*%")); 
+   Symbol function = (Symbol) call.getFunction();
+   assertThat(function.getPrintName(), equalTo("%*%")); 
+  }
+  
+  @Test
+  @Ignore("EEk! Not working, to fix")
+  public void attach() throws IOException {
+    ExpressionVector vector = (ExpressionVector) parseResource("attach.R");
+    assertThat(vector.length(), equalTo(3));
   }
   
 }

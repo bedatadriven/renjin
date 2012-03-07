@@ -9,6 +9,10 @@ import r.lang.SEXP;
 import r.lang.Symbol;
 
 
+/**
+ * A value known at compile time.
+ *
+ */
 public class Constant implements SimpleExpression {
 
   private Object value;

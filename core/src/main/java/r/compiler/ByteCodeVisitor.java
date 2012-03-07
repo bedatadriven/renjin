@@ -46,17 +46,16 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   private Map<LValue, Integer> variableSlots = Maps.newHashMap();
   private Map<IRLabel, Label> labels = Maps.newHashMap();
   
-  private int context = 1;
-  private int rho = 2;
-  private int work1 = 3;
-  private int work2 = 4;
-  private int localVariablesStart = 5;
+  private int work1;
+  private int localVariablesStart;
   
   
   public ByteCodeVisitor(GenerationContext generationContext, MethodVisitor mv) {
     super();
     this.generationContext = generationContext;
     this.mv = mv;
+    this.work1 = generationContext.getFirstFreeLocalVariable();
+    this.localVariablesStart = work1 + 1;
   }
   
   @Override
@@ -114,7 +113,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
    * Assign a value into the context's {@code Environment} 
    */
   private void environmentAssignment(Symbol name, Expression rhs) {
-    mv.visitVarInsn(ALOAD, context);
+    loadContext();
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Context", "getEnvironment", "()Lr/lang/Environment;");
     mv.visitLdcInsn(name.getPrintName());
     mv.visitMethodInsn(INVOKESTATIC, "r/lang/Symbol", "get", "(Ljava/lang/String;)Lr/lang/Symbol;");
@@ -148,7 +147,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   public void visitDynamicCall(DynamicCall call) {
     
     if(call.getFunctionSexp() instanceof Symbol) {
-      mv.visitVarInsn(ALOAD, rho);
+      loadEnvironment();
       mv.visitLdcInsn(((Symbol)call.getFunctionSexp()).getPrintName());
       mv.visitMethodInsn(INVOKESTATIC, "r/lang/Symbol", "get", "(Ljava/lang/String;)Lr/lang/Symbol;");
       mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "findFunctionOrThrow", "(Lr/lang/Symbol;)Lr/lang/Function;");
@@ -156,27 +155,121 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
       // otherwise we need to evaluate the function
       call.getFunction().accept(this);    
     }
+       
+    Label finish = new Label();
+
     
     // construct a new PairList with the argument
-    Label l3 = new Label();
+    Label builtinCall = new Label();
     mv.visitInsn(DUP);
     mv.visitTypeInsn(INSTANCEOF, "r/lang/BuiltinFunction");
-    mv.visitJumpInsn(IFNE, l3);
+    mv.visitJumpInsn(IFNE, builtinCall);
     
+    Label closureCall = new Label();
+    mv.visitInsn(DUP);
+    mv.visitTypeInsn(INSTANCEOF, "r/lang/Closure");
+    mv.visitJumpInsn(IFNE, closureCall);
+    
+    // THROW
     mv.visitTypeInsn(NEW, "java/lang/UnsupportedOperationException");
     mv.visitInsn(DUP);
     mv.visitLdcInsn("non-strict primitives not yet implemented");
     mv.visitMethodInsn(INVOKESPECIAL, "java/lang/UnsupportedOperationException", "<init>", "(Ljava/lang/String;)V");
     mv.visitInsn(ATHROW);
     
-    // execute strict
-    mv.visitLabel(l3);
+    // APPLY closure
+    mv.visitLabel(closureCall);
+    applyClosureDynamically(call);
+    mv.visitJumpInsn(GOTO, finish);
+        
+    // APPLY builtin 
+    mv.visitLabel(builtinCall);
+    applyBuiltinDynamically(call);
+  
+    mv.visitLabel(finish);
+    
+  }
+  
+  private void loadEnvironment() {
+    mv.visitVarInsn(ALOAD, generationContext.getEnvironmentLdc());
+  }
+
+  private void applyClosureDynamically(DynamicCall call) {
+    
+    mv.visitTypeInsn(CHECKCAST, "r/lang/Closure");       
+    loadContext();
+    pushSexp(call.getSExpression());
+    
+    // build the pairlist of promises
+    mv.visitTypeInsn(NEW, "r/lang/PairList$Builder");
+    mv.visitInsn(DUP);
+    mv.visitMethodInsn(INVOKESPECIAL, "r/lang/PairList$Builder", "<init>", "()V");
+  
+    for(int i=0;i!=call.getArguments().size();++i) {
+      Expression argument = call.getArguments().get(i);
+      if(argument == Elipses.INSTANCE) {
+        loadElipses();
+        mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/PairList$Builder", "addAll", 
+        "(Lr/lang/PairList;)Lr/lang/PairList$Builder;");
+      } else {
+        
+        if(call.getArgumentNames().get(i)!=null) {
+          mv.visitLdcInsn(call.getArgumentNames().get(i));
+        }
+        
+        if(argument instanceof IRThunk) {
+          if(argument.getSExpression() instanceof Symbol) {
+            Symbol symbol = (Symbol) argument.getSExpression();
+            // create a promise to a variable in this scope
+            mv.visitTypeInsn(NEW, "r/compiler/runtime/VariablePromise");
+            mv.visitInsn(DUP);
+            loadContext();
+            mv.visitLdcInsn(symbol.getPrintName());
+            mv.visitMethodInsn(INVOKESPECIAL, "r/compiler/runtime/VariablePromise", "<init>", 
+                "(Lr/lang/Context;Ljava/lang/String;)V");
+            
+          } else {
+            // instantatiate our compiled thunk class
+            String thunkClass = generationContext.getThunkMap().getClassName((IRThunk)argument);
+            mv.visitTypeInsn(NEW, thunkClass);
+            mv.visitInsn(DUP);
+            loadContext();
+            loadEnvironment();
+            mv.visitMethodInsn(INVOKESPECIAL, thunkClass , "<init>", 
+                "(Lr/lang/Context;Lr/lang/Environment;)V");
+            
+          }
+        } else {
+          argument.accept(this);
+        }
+        
+        if(call.getArgumentNames().get(i)!=null) {
+          mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/PairList$Builder", "add", 
+          "(Ljava/lang/String;Lr/lang/SEXP;)Lr/lang/PairList$Builder;");
+        } else { 
+          mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/PairList$Builder", "add", 
+              "(Lr/lang/SEXP;)Lr/lang/PairList$Builder;");
+        }
+      }
+    }
+    mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/PairList$Builder", "build", "()Lr/lang/PairList;");    
+    mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Closure", "matchAndApply",
+        "(Lr/lang/Context;Lr/lang/FunctionCall;Lr/lang/PairList;)Lr/lang/SEXP;");
+   
+  }
+
+
+  private void loadContext() {
+    mv.visitVarInsn(ALOAD, generationContext.getContextLdc());
+  }
+
+  private void applyBuiltinDynamically(DynamicCall call) {
     mv.visitTypeInsn(CHECKCAST, "r/lang/BuiltinFunction");
     
-    maybeLoadElipses(call);
-    
-    mv.visitVarInsn(ALOAD, context);
-    mv.visitVarInsn(ALOAD, rho);
+    maybeStoreElipses(call);
+
+    loadContext();
+    loadEnvironment();
     pushSexp(call.getCall());
     pushArgNames(call);
     maybeSpliceArgumentNames(call);
@@ -186,8 +279,6 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/BuiltinFunction", "apply", 
         "(Lr/lang/Context;Lr/lang/Environment;Lr/lang/FunctionCall;[Ljava/lang/String;[Lr/lang/SEXP;)Lr/lang/SEXP;");
-  
-    
   }
 
   /**
@@ -224,10 +315,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   }
 
   private void pushSexp(FunctionCall call) {
-    mv.visitVarInsn(ALOAD, 0); // this
-    mv.visitFieldInsn(GETFIELD, generationContext.getClassName(),
-        generationContext.getSexpPool().add(call, "Lr/lang/FunctionCall;"), 
-        "Lr/lang/FunctionCall;");
+    generationContext.getSexpPool().pushSexp(mv, call, "Lr/lang/FunctionCall;");
   }
 
   /**
@@ -247,7 +335,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
         mv.visitInsn(DUP);
         pushInt(i);
     
-        Expression arg = call.getArguments().get(0);
+        Expression arg = call.getArguments().get(i);
         if(arg instanceof IRThunk) {
           SEXP sexp = ((IRThunk) arg).getSEXP();
           if(sexp instanceof Symbol) {
@@ -257,8 +345,8 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
             // otherwise call out to the corresponding thunk's
             // static method. We rely on the jvm to inline at runtime 
             // if necessary
-            mv.visitVarInsn(ALOAD, context);
-            mv.visitVarInsn(ALOAD, rho);
+            loadContext();
+            loadEnvironment();
             
             String thunkClass = generationContext.getThunkMap().getClassName((IRThunk)arg);
             mv.visitMethodInsn(INVOKESTATIC, thunkClass , "doEval", 
@@ -283,7 +371,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
 
   @Override
   public void visitEnvironmentVariable(EnvironmentVariable variable) {
-    mv.visitVarInsn(ALOAD, rho);
+    loadEnvironment();
     mv.visitLdcInsn(variable.getName().getPrintName());
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "findVariableOrThrow", "(Ljava/lang/String;)Lr/lang/SEXP;");    
     // ensure that promises are forced
@@ -305,24 +393,23 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     String closureClass = generationContext.addClosure(closure.getFunction());
     mv.visitTypeInsn(NEW, closureClass);
     mv.visitInsn(DUP);
-    mv.visitVarInsn(ALOAD, context);
-    mv.visitVarInsn(ALOAD, rho);    
-    mv.visitMethodInsn(INVOKESPECIAL, closureClass, "<init>", "(Lr/lang/Context;Lr/lang/Environment;)V");
+    loadEnvironment();
+    mv.visitMethodInsn(INVOKESPECIAL, closureClass, "<init>", "(Lr/lang/Environment;)V");
   }
 
   @Override
   public void visitPrimitiveCall(PrimitiveCall call) {
 
-    mv.visitVarInsn(ALOAD, context);
-    mv.visitVarInsn(ALOAD, rho);
-
+    loadContext();
+    loadEnvironment();
+    
     // push the original function call on the stack
     pushSexp(call.getSExpression());
 
     // retrieve the value of '...' from the environment, which
     // will contain a pair list of promises
 
-    maybeLoadElipses(call);
+    maybeStoreElipses(call);
 
     // push the argument names
     pushArgNames(call);
@@ -346,14 +433,18 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     }
   }
 
-  private void maybeLoadElipses(CallExpression call) {
+  private void maybeStoreElipses(CallExpression call) {
     if(call.hasElipses()) {
-      mv.visitVarInsn(ALOAD, rho);
-      mv.visitFieldInsn(GETSTATIC, "r/lang/Symbols", "ELLIPSES", "Lr/lang/Symbol;");
-      mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "getVariable", "(Lr/lang/Symbol;)Lr/lang/SEXP;");
-      mv.visitTypeInsn(CHECKCAST, "r/lang/PairList");
+      loadElipses();
       mv.visitVarInsn(ASTORE, work1);
     }
+  }
+
+  private void loadElipses() {
+    loadEnvironment();
+    mv.visitFieldInsn(GETSTATIC, "r/lang/Symbols", "ELLIPSES", "Lr/lang/Symbol;");
+    mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "getVariable", "(Lr/lang/Symbol;)Lr/lang/SEXP;");
+    mv.visitTypeInsn(CHECKCAST, "r/lang/PairList");
   }
   
   private void pushPrimitiveArgArray(PrimitiveCall call) {

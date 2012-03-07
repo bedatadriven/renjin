@@ -1,4 +1,4 @@
-package r.compiler.ir;
+package r.compiler;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -46,9 +46,25 @@ public class ClosureCompilerTest extends EvalTestCase {
 
   @Test
   public void colMeans() throws Exception {
-    ExpressionVector source = RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("colMeans.R")));
-    topLevelContext.evaluate(source);
+    source("colMeans.R");
     compileClosure("colMeans", "colMeans.compiled");
+  }
+  
+  @Test
+  public void message() throws Exception {
+    source("message.R");
+    compileClosure("message", "message.compiled");
+  }
+  
+  @Test
+  public void Map() throws Exception  {
+    eval(" Map <- function(f, ...) mapply(f, ..., SIMPLIFY = FALSE)");
+    compileClosure("Map", "Map.compiled");
+  }
+
+  private void source(String string) throws IOException {
+    ExpressionVector source = RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream(string)));
+    topLevelContext.evaluate(source);
   }
   
   private void compileClosure(String src, String dest) throws InstantiationException,

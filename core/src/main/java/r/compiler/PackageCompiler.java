@@ -9,12 +9,18 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.logging.Log;
 import org.renjin.primitives.annotations.processor.WrapperGenerator;
 
+import r.compiler.ir.tac.IRBody;
+import r.compiler.ir.tac.IRBodyBuilder;
+import r.compiler.ir.tac.IRFunction;
+import r.compiler.ir.tac.IRFunctionTable;
+import r.compiler.ir.tac.expressions.IRThunk;
 import r.lang.Closure;
 import r.lang.Context;
 import r.lang.Environment;
@@ -25,6 +31,7 @@ import r.parser.RParser;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 
 public class PackageCompiler {
@@ -59,7 +66,7 @@ public class PackageCompiler {
       SEXP value = packageEnvironment.getVariable(name);
       if(value instanceof Closure) {
         try { 
-          compileClosure(WrapperGenerator.toJavaName(name.getPrintName()), (Closure)value);
+          compileClosure(packageMethodClassName(name), (Closure)value);
         } catch(Exception e) {
           LOGGER.log(Level.SEVERE, "Error compiling closure '" + name + "'", e);
           throw new RuntimeException("Error compiling closure '" + name + "'", e);
@@ -68,17 +75,59 @@ public class PackageCompiler {
     }
   }
 
-  private void compileClosure(String name, Closure closure)
+  private String packageMethodClassName(Symbol name) {
+    return WrapperGenerator.toJavaName("", name.getPrintName());
+  }
+
+  private void compileClosure(String name, Closure closure) throws IOException {
+    IRBodyBuilder builder = new IRBodyBuilder(new IRFunctionTable());
+    IRBody body = builder.build(closure.getBody());
+    IRFunction function = new IRFunction(closure.getFormals(), closure.getBody(), body);
+    compileFunction(packageName + "/" + name, function);
+  }
+  
+  private void compileFunction(String fullClassName, IRFunction closure)
       throws FileNotFoundException, IOException {
    
-    File classFile = new File(packageDir, name + ".class");
+    ClosureCompiler closureCompiler = new ClosureCompiler(fullClassName);
+    writeClassFile(fullClassName, closureCompiler.doCompile(closure));
+    
+    // need to compile any nested closures we encountered
+    for(Entry<String, IRFunction> entry : closureCompiler.getNestedClosures()) {
+      compileFunction(entry.getKey(), entry.getValue());
+    }
+    
+    // and also thunks (unevalauted arguments) 
+    ThunkMap thunkMap = closureCompiler.getThunkMap();
+    Set<IRThunk> compiledThunks = Sets.newHashSet();
+    Set<IRThunk> toCompile = Sets.newHashSet(thunkMap.keySet());
+
+    do {
+      for(IRThunk thunk : toCompile) {
+        String className = thunkMap.getClassName(thunk);
+        compileThunk(thunkMap, className, thunk);
+        compiledThunks.add(thunk);
+      }
+      toCompile = Sets.newHashSet(thunkMap.keySet());
+      toCompile.removeAll(compiledThunks);
+    } while(!toCompile.isEmpty());
+  }
+
+  private void compileThunk(ThunkMap thunkMap, String className, IRThunk thunk) throws FileNotFoundException, IOException {
+    ThunkCompiler compiler = new ThunkCompiler(thunkMap, className);
+    writeClassFile(className, compiler.doCompile(thunk));
+  }
+
+  private void writeClassFile(String className, byte[] content)
+      throws FileNotFoundException, IOException {
+    File classFile = new File(outDir, className + ".class");
     FileOutputStream fos = new FileOutputStream(classFile);
-    fos.write(ClosureCompiler.compile(packageName + "/" + name, closure));
+    fos.write(content);
     fos.close();
   }
   
   private void compileLoader() throws IOException {
-    File classFile = new File(packageDir, "Loader");
+    File classFile = new File(packageDir, "Loader.class");
     FileOutputStream fos = new FileOutputStream(classFile);
     fos.write(PackageLoaderCompiler.compile(packageName, packageEnvironment));
     fos.close();
@@ -92,13 +141,18 @@ public class PackageCompiler {
     List<File> srcFiles = findSourceFiles();
 
     for(File srcFile : srcFiles) {
-      LOGGER.fine("Evaluating " + srcFile.getName());
+      System.out.println("Evaluating " + srcFile.getName());
       Reader reader = new InputStreamReader(new FileInputStream(srcFile));
-      SEXP srcBody = RParser.parseSource(CharStreams.toString(reader) + "\n");
+      String source = CharStreams.toString(reader);
+      SEXP srcBody = RParser.parseSource(source + "\n");
       reader.close();
       context.evaluate(srcBody);
     }
     this.packageEnvironment = context.getEnvironment();
+    
+    for(Symbol symbol : packageEnvironment.getSymbolNames()) {
+      System.out.println(symbol + "=>" + packageEnvironment.getVariable(symbol).getTypeName());
+    }
   }
 
   private List<File> findSourceFiles() {

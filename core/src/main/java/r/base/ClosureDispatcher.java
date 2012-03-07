@@ -27,7 +27,6 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
 import r.base.dispatch.DispatchChain;
-import r.base.special.ReturnException;
 import r.lang.*;
 import r.lang.exception.EvalException;
 
@@ -35,6 +34,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+
+import org.renjin.primitives.special.ReturnException;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;

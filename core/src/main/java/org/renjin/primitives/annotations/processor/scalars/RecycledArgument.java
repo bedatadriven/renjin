@@ -6,7 +6,6 @@ import r.jvmi.binding.JvmMethod.Argument;
 public class RecycledArgument {
   
   
-  
   /**
    * The formal definition of this argument
    */

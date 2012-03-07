@@ -45,7 +45,7 @@ public class FileSystemUtils {
     // hardcode to the R home location to the classpath location
     // where this class is found.
 
-    return RHomeFromSEXPClassURL(r.base.System.class.getResource("/r/lang/SEXP.class").toString());
+    return RHomeFromSEXPClassURL(org.renjin.primitives.System.class.getResource("/r/lang/SEXP.class").toString());
   }
 
 

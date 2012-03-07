@@ -22,6 +22,7 @@
 package r.base.regex;
 
 import org.junit.Test;
+import org.renjin.primitives.text.regex.ExtendedRE;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

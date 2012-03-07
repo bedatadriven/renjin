@@ -26,6 +26,8 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.renjin.primitives.Primitives;
+
 import r.lang.DoubleVector;
 import r.lang.Frame;
 import r.lang.Function;

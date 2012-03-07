@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.renjin.primitives.Primitives.Entry;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.PreserveAttributeStyle;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategies;
@@ -20,7 +21,6 @@ import org.renjin.primitives.annotations.processor.scalars.ScalarType;
 import org.renjin.primitives.annotations.processor.scalars.ScalarTypes;
 import org.renjin.primitives.annotations.processor.scalars.SingleRecycledArgument;
 
-import r.base.Primitives.Entry;
 import r.jvmi.binding.JvmMethod;
 import r.jvmi.binding.JvmMethod.Argument;
 import r.lang.Context;

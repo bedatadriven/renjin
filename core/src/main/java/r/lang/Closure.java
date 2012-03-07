@@ -21,8 +21,9 @@
 
 package r.lang;
 
+import org.renjin.primitives.special.ReturnException;
+
 import r.base.ClosureDispatcher;
-import r.base.special.ReturnException;
 
 /**
  * The function closure data type.

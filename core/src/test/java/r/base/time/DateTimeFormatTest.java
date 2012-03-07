@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Test;
+import org.renjin.primitives.time.DateTimeFormat;
 
 public class DateTimeFormatTest {
 

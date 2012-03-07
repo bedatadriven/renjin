@@ -31,9 +31,11 @@ import org.apache.commons.math.complex.Complex;
 import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
+import org.renjin.primitives.ComplexGroup;
+import org.renjin.primitives.Types;
+import org.renjin.primitives.matrix.Matrix;
+import org.renjin.primitives.matrix.MatrixBuilder;
 
-import r.base.matrix.Matrix;
-import r.base.matrix.MatrixBuilder;
 import r.lang.AtomicVector;
 import r.lang.ComplexVector;
 import r.lang.DoubleVector;

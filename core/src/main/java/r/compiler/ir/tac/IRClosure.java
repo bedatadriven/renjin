@@ -1,8 +1,9 @@
 package r.compiler.ir.tac;
 
+import org.renjin.primitives.special.ReturnException;
+
 import r.base.Calls;
 import r.base.ClosureDispatcher;
-import r.base.special.ReturnException;
 import r.lang.Closure;
 import r.lang.Context;
 import r.lang.Environment;

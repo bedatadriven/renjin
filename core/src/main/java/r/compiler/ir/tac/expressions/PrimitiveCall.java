@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.concordion.api.Unimplemented;
+import org.renjin.primitives.Primitives;
+import org.renjin.primitives.special.SwitchFunction;
 
-import r.base.Primitives;
-import r.base.special.SwitchFunction;
 import r.compiler.runtime.CompiledRuntime;
 import r.compiler.runtime.UnimplementedPrimitive;
 import r.lang.Context;

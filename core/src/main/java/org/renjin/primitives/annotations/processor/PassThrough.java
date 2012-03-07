@@ -2,8 +2,9 @@ package org.renjin.primitives.annotations.processor;
 
 import java.util.List;
 
+import org.renjin.primitives.Primitives.Entry;
 
-import r.base.Primitives.Entry;
+
 import r.jvmi.binding.JvmMethod;
 
 /**

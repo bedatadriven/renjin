@@ -1860,8 +1860,8 @@ public class RdParser
 
   /* User implementation code.  */
 
-  private static final boolean DEBUGVALS = true;   /* 1 causes detailed internal state output to R console */  
-  private static final boolean DEBUGMODE = true;   /* 1 causes Bison output of parse state, to stdout or stderr */
+  private static final boolean DEBUGVALS = false;   /* 1 causes detailed internal state output to R console */  
+  private static final boolean DEBUGMODE = false;   /* 1 causes Bison output of parse state, to stdout or stderr */
 
   private boolean wCalls = true;
 

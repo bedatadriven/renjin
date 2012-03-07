@@ -594,7 +594,7 @@ public class Context {
 
   /**
    * Sets a function to handle a specific class of condition.
-   * @see r.base.Conditions
+   * @see org.renjin.primitives.Conditions
    *
    * @param conditionClass  the (S3) condition class to be handled by this handler.
    * @param function an expression that evaluates to a function that accepts a signaled

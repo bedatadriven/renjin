@@ -15,8 +15,9 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
-import r.base.Primitives;
-import r.base.Primitives.Entry;
+import org.renjin.primitives.Primitives;
+import org.renjin.primitives.Primitives.Entry;
+
 import r.jvmi.binding.JvmMethod;
 
 import com.google.common.base.Charsets;

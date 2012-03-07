@@ -21,7 +21,7 @@
 
 package r.interpreter;
 
-import r.base.Warning;
+import org.renjin.primitives.Warning;
 import r.lang.*;
 import r.lang.exception.EvalException;
 import r.lang.exception.FunctionCallException;

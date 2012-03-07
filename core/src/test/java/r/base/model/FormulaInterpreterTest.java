@@ -6,6 +6,9 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.junit.Test;
+import org.renjin.primitives.models.Formula;
+import org.renjin.primitives.models.FormulaInterpreter;
+import org.renjin.primitives.models.Term;
 
 import r.lang.ExpressionVector;
 import r.lang.FunctionCall;

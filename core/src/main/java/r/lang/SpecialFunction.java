@@ -21,7 +21,8 @@
 
 package r.lang;
 
-import r.base.Warning;
+import org.renjin.primitives.Warning;
+
 import r.lang.exception.EvalException;
 
 public abstract class SpecialFunction extends PrimitiveFunction {

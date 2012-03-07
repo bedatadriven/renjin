@@ -25,8 +25,9 @@ import java.io.IOException;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.renjin.primitives.subset.Subsetting;
+
 import r.EvalTestCase;
-import r.base.subset.Subsetting;
 import r.lang.*;
 import r.lang.exception.EvalException;
 

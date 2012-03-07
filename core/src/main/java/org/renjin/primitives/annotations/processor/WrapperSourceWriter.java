@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import r.base.Primitives.Entry;
+import org.renjin.primitives.Primitives.Entry;
+
 
 /**
  * Utility class for writing java source for generated wrappers 

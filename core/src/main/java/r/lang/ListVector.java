@@ -27,8 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.primitives.Deparse;
 
-import r.base.Deparse;
 import r.lang.exception.EvalException;
 import r.util.NamesBuilder;
 

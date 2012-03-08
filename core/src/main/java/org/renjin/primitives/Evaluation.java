@@ -368,8 +368,12 @@ public class Evaluation {
     if(call.getArguments().length() >= 2) {
       object = context.evaluate(call.getArgument(1), rho);
     } else {
-      object = context.evaluate( context.getArguments().getElementAsSEXP(0),
-          context.getParent().getEnvironment());
+      if( context.getArguments().length() == 0) {
+        object = Null.INSTANCE;
+      } else {
+        object = context.evaluate( context.getArguments().getElementAsSEXP(0),
+            context.getParent().getEnvironment());
+      }
     }
 
 
@@ -382,6 +386,7 @@ public class Evaluation {
         genericName, classes.toString());
   }
 
+  @Primitive
   public static SEXP NextMethod(@Current Context context, @Current Environment env,
       SEXP generic, SEXP object, @ArgumentList ListVector extraArgs) {
 
@@ -446,7 +451,6 @@ public class Evaluation {
     }
     /* get formals and actuals; attach the names of the formals to
        the actuals, expanding any ... that occurs */
-
     PairList formals = ((Closure) s).getFormals();
     PairList actuals = context.getParent().getArguments();
     actuals = Calls.matchArguments(formals, actuals);
@@ -466,7 +470,7 @@ public class Evaluation {
       } else {
         temp = Symbol.UNBOUND_VALUE;
       }
-      if(temp != Symbol.UNBOUND_VALUE) {
+      if(temp != Symbol.UNBOUND_VALUE && !(temp instanceof Promise)) {
         updatedArgs.add(actual.getRawTag(), new Promise(context.getParent(), context.getParent().getEnvironment(), temp));
       } else {
         updatedArgs.add(actual.getRawTag(), actual.getValue());
@@ -759,7 +763,7 @@ public class Evaluation {
 
         Frame extra = new HashFrame();
         extra.setVariable(Symbol.get(".Class"), Calls.computeDataClasses(object));
-        extra.setVariable(Symbol.get(".Method"), method);
+        extra.setVariable(Symbol.get(".Method"), new StringVector(method.getPrintName()));
         extra.setVariable(Symbol.get(".Generic"), new StringVector(genericName));
 
         PairList repromisedArgs = Calls.promiseArgs(context.getArguments(), context, rho);

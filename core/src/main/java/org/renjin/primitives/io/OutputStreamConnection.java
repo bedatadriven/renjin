@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,45 +19,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package org.renjin.primitives.io;
 
-/**
- * This was the internal storage format for Strings in the
- * C-implementation; it doesn't appear that these are visible
- * from the R-language; if that's the case this may be removed
- * at some point.
- */
-public class CHARSEXP extends AbstractSEXP {
+import r.lang.Connection;
 
-  private String value;
-  public static final String TYPE_NAME = "char";
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 
-  public CHARSEXP(String value) {
-    this.value = value;
+public class OutputStreamConnection implements Connection {
+  private PrintWriter pw;
+
+
+  public OutputStreamConnection(PrintStream out) {
+    pw = new PrintWriter(out);
   }
 
   @Override
-  public String getTypeName() {
-    return TYPE_NAME;
+  public InputStream getInputStream() throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public int length() {
-    return value.length();
-  }
-
-  public String getValue() {
-    return value;
+  public PrintWriter getPrintWriter() throws IOException {
+    return pw;
   }
 
   @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
-  }
+  public void close() throws IOException {
 
-  @Override
-  public String toString() {
-    return value;
   }
-
 }

@@ -170,12 +170,9 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitTypeInsn(INSTANCEOF, "r/lang/Closure");
     mv.visitJumpInsn(IFNE, closureCall);
     
-    // THROW
-    mv.visitTypeInsn(NEW, "java/lang/UnsupportedOperationException");
-    mv.visitInsn(DUP);
-    mv.visitLdcInsn("non-strict primitives not yet implemented");
-    mv.visitMethodInsn(INVOKESPECIAL, "java/lang/UnsupportedOperationException", "<init>", "(Ljava/lang/String;)V");
-    mv.visitInsn(ATHROW);
+    // APPLY SPECIAL
+    applySpecialDynamically(call);
+    mv.visitJumpInsn(GOTO, finish);
     
     // APPLY closure
     mv.visitLabel(closureCall);
@@ -190,6 +187,24 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     
   }
   
+  private void applySpecialDynamically(DynamicCall call) {
+    // here we just send the arguments untouched as SEXPs
+    // to the function. 
+    // 
+    // For the most part, we try to translate R's special
+    // functions like `if`, `while`, `for` etc to JVM control
+    // structure, but it is still possible for them to be called
+    // dynamically so we need to be prepared.
+    
+    loadContext();
+    loadEnvironment();
+    pushSexp(call.getSExpression());
+    mv.visitInsn(DUP);
+    mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/FunctionCall", "getArguments", "()Lr/lang/PairList;");
+    mv.visitMethodInsn(INVOKEINTERFACE, "r/lang/Function", "apply",
+        "(Lr/lang/Context;Lr/lang/Environment;Lr/lang/FunctionCall;Lr/lang/PairList;)Lr/lang/SEXP;");
+  }
+
   private void loadEnvironment() {
     mv.visitVarInsn(ALOAD, generationContext.getEnvironmentLdc());
   }

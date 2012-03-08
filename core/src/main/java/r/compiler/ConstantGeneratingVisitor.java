@@ -3,8 +3,10 @@ package r.compiler;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import r.lang.BuiltinFunction;
 import r.lang.ComplexVector;
 import r.lang.DoubleVector;
+import r.lang.Environment;
 import r.lang.FunctionCall;
 import r.lang.IntVector;
 import r.lang.LogicalVector;
@@ -151,7 +153,13 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
    // Null.INSTANCE.accept(this);
     mv.visitMethodInsn(INVOKESPECIAL, "r/lang/FunctionCall", "<init>", "(Lr/lang/SEXP;Lr/lang/PairList;)V");
   }
-
+  
+  @Override
+  public void visit(BuiltinFunction builtin) {
+    mv.visitLdcInsn(builtin.getName());
+    mv.visitMethodInsn(INVOKESTATIC, "org/renjin/Primitives", "getBuiltin", "(Ljava/lang/String;)Lr/lang/SEXP;");
+  }
+ 
   @Override
   public void visit(LogicalVector vector) {
     if(vector.length() == 1) {

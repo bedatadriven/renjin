@@ -30,7 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.connections.Connections;
+import org.renjin.primitives.io.Connections;
 
 public class Scan {
 

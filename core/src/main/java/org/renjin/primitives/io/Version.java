@@ -1,7 +1,7 @@
 /*
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
+ * Copyright (C) 1997--2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
@@ -19,45 +19,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package org.renjin.primitives.io;
 
-/**
- * This was the internal storage format for Strings in the
- * C-implementation; it doesn't appear that these are visible
- * from the R-language; if that's the case this may be removed
- * at some point.
- */
-public class CHARSEXP extends AbstractSEXP {
+class Version {
+  private int v, p, s;
+  private int packed;
 
-  private String value;
-  public static final String TYPE_NAME = "char";
-
-  public CHARSEXP(String value) {
-    this.value = value;
+  Version(int packed) {
+    this.packed = packed;
+    v = this.packed / 65536; packed = packed % 65536;
+    p = packed / 256; packed = packed % 256;
+    s = packed;
   }
 
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
+  Version(int v, int p, int s) {
+    this.v = v;
+    this.p = p;
+    this.s = s;
+    this.packed = s + (p * 256) + (v * 65536);
   }
 
-  @Override
-  public int length() {
-    return value.length();
+  public boolean isExperimental() {
+    return packed < 0;
   }
 
-  public String getValue() {
-    return value;
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
+  public int asPacked() {
+    return packed;
   }
 
   @Override
   public String toString() {
-    return value;
+    return String.format("%d.%d.%d", v, p, s);
   }
-
 }

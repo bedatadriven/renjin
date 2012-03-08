@@ -239,6 +239,10 @@ public class Environment extends AbstractSEXP implements Recursive {
   public boolean bindingIsLocked(Symbol symbol) {
     return lockedBindings != null && lockedBindings.contains(symbol);
   }
+  
+  public void setVariable(String name, SEXP value) {
+    setVariable(Symbol.get(name), value);
+  }
 
   public void setVariable(Symbol symbol, SEXP value) {
     if(bindingIsLocked(symbol)) {

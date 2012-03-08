@@ -46,7 +46,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
    * 
    * <p>Note that this is slightly different than the C implementation of R,
    * which uses a "signaled" NaN with the same payload. The serialized XDR form of NA is 
-   * different still: see {@link r.io.SerializationFormat#XDR_NA_BITS}.
+   * different still: see {@link org.renjin.primitives.io.SerializationFormat#XDR_NA_BITS}.
    * 
    * <p>The Java Language Spec is somewhat ambiguous regarding the extent to which
    * non-canonical NaNs will be preserved. What is clear though, is that signaled bit

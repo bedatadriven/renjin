@@ -42,6 +42,8 @@ public class PackageCompiler {
   private String packageName = "org/renjin/base";
   private Environment packageEnvironment;
   private File packageDir;
+  private boolean base;
+  private boolean compile;
   
   public PackageCompiler(File rootDir) throws IOException {
     this.rootDir = rootDir;
@@ -57,8 +59,16 @@ public class PackageCompiler {
     packageDir.mkdirs();
 
     evaluatePackageBody();
-    compileClosures();    
-    compileLoader(); 
+    if(compile) {
+      compileClosures();  
+      compileLoader(); 
+    } else {
+      createDatabase();
+    }
+  }
+
+  private void createDatabase() {
+    
   }
 
   private void compileClosures() throws FileNotFoundException, IOException {
@@ -137,7 +147,9 @@ public class PackageCompiler {
       IOException {
 
     Context context = Context.newTopLevelContext();
-    
+    if(!base) {
+      context.init();
+    }    
     List<File> srcFiles = findSourceFiles();
 
     for(File srcFile : srcFiles) {

@@ -12,6 +12,12 @@ import r.lang.Symbol;
 
 public class PackageLoaderCompiler implements Opcodes {
 
+  
+  private static final int THIS = 0;
+  private static final int CONTEXT = 1;
+  private static final int ENVIRONMENT = 2;
+
+
   public static byte[] compile(String packageName, Environment packageEnvironment) {
 
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
@@ -27,7 +33,7 @@ public class PackageLoaderCompiler implements Opcodes {
   private static void writeInit(ClassWriter cw) {
     MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
     mv.visitCode();
-    mv.visitVarInsn(ALOAD, 0);
+    mv.visitVarInsn(ALOAD, THIS);
     mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
@@ -41,8 +47,14 @@ public class PackageLoaderCompiler implements Opcodes {
 
     for(Symbol symbol : rho.getSymbolNames()) {
       SEXP value = rho.getVariable(symbol);
-      if(value instanceof Closure) {
-        storeClosure(mv, packageName, symbol);        
+      try {
+        if(value instanceof Closure) {
+          storeClosure(mv, packageName, symbol);        
+        } else {
+          storeConstant(mv, symbol, rho.getVariable(symbol));
+        }
+      } catch(Exception e) {
+        throw new RuntimeException("Error generating code for '" + symbol + "'", e);
       }
     }
     mv.visitInsn(RETURN);
@@ -50,22 +62,28 @@ public class PackageLoaderCompiler implements Opcodes {
     mv.visitEnd();
   }
 
+
   private static void storeClosure(MethodVisitor mv, String packageName, Symbol symbol) {
-    mv.visitVarInsn(ALOAD, 2);
+    mv.visitVarInsn(ALOAD, ENVIRONMENT);
     mv.visitLdcInsn(symbol.getPrintName());
-    mv.visitMethodInsn(INVOKESTATIC, "r/lang/Symbol", "get", 
-        "(Ljava/lang/String;)Lr/lang/Symbol;");
     mv.visitTypeInsn(NEW, "r/compiler/runtime/PromisedFunction");
     mv.visitInsn(DUP);
-    mv.visitVarInsn(ALOAD, 1);
-    mv.visitVarInsn(ALOAD, 2);
+    mv.visitVarInsn(ALOAD, CONTEXT);
+    mv.visitVarInsn(ALOAD, ENVIRONMENT);
     mv.visitLdcInsn(functionClassName(packageName, symbol));
     mv.visitMethodInsn(INVOKESPECIAL, "r/compiler/runtime/PromisedFunction", "<init>",
         "(Lr/lang/Context;Lr/lang/Environment;Ljava/lang/String;)V");
     mv.visitMethodInsn(INVOKEVIRTUAL, "r/lang/Environment", "setVariable", 
-        "(Lr/lang/Symbol;Lr/lang/SEXP;)V");
+        "(Ljava/lang/String;Lr/lang/SEXP;)V");
   }
 
+  private static void storeConstant(MethodVisitor mv, Symbol symbol, SEXP value) {
+    mv.visitVarInsn(ALOAD, ENVIRONMENT);
+    mv.visitLdcInsn(symbol.getPrintName());
+    ConstantGeneratingVisitor cgv = new ConstantGeneratingVisitor(mv);
+    value.accept(cgv);
+  }
+  
   private static String functionClassName(String packageName, Symbol symbol) {
     return packageName.replace('/', '.') + "." + WrapperGenerator.toJavaName("", symbol.getPrintName());
   }

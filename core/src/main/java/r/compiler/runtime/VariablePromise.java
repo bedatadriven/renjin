@@ -18,7 +18,11 @@ public class VariablePromise extends Promise {
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("object '" + expression + "' not found");
     }
-    return value;
+    if(value instanceof Promise) {
+      return value.force();
+    } else {
+      return value;
+    }
   }
   
 }

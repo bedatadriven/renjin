@@ -9,9 +9,9 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 
 import org.junit.Test;
+import org.renjin.primitives.io.RDataReader;
 
 import r.EvalTestCase;
-import r.io.DatafileReader;
 import r.lang.ListVector;
 import r.lang.Null;
 import r.lang.PairList;
@@ -42,8 +42,7 @@ public class RdParserTest extends EvalTestCase {
   public void comparison() throws IOException {
     
     // output from C-R 2.12.1
-    DatafileReader reader = new DatafileReader(topLevelContext, topLevelContext.getEnvironment(), 
-        getClass().getResourceAsStream("expected.Rdata"));
+    RDataReader reader = new RDataReader(topLevelContext, getClass().getResourceAsStream("expected.Rdata"));
     PairList.Node contents = (Node) reader.readFile();
     ListVector expected = contents.getElementAsSEXP(0);
     

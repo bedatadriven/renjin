@@ -165,6 +165,15 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat(eval("y"), equalTo( c(3) ));
   }
+  
+  @Test
+  public void evalOrderArgs() {
+    
+    eval("f <- function(x = (z + 1)) { mx <- missing(x); z <- 1; x }\n");
+    
+    assertThat(eval("f()"), equalTo(c(2)));
+    
+  }
 
   @Test
   public void simplestForStatement() throws IOException {
@@ -556,8 +565,53 @@ public class EvaluationTest extends EvalTestCase {
       
 
     assertThat(eval(".Internal(typeof(z[[2]]))"), equalTo(c("language")));
-    
-    
+  }
+  
+  @Test
+  public void nextMethodWithMissing() {
+    eval("NextMethod <- function (generic = NULL, object = NULL, ...) " +
+    		".Internal(NextMethod(generic, object, ...))");
+    eval("`[.foo` <- function(x, ..., drop = explode()) NextMethod() ");
+    eval("x<-1");
+    eval("class(x) <- 'foo'");
+    eval("x[1]");
+  }
+
+  @Test
+  public void nextMethodClosure() {
+    eval("NextMethod <- function (generic = NULL, object = NULL, ...) " +
+        ".Internal(NextMethod(generic, object, ...))");
+    eval("g.default <- function(x, b = 42) b ");
+    eval("g.foo <- function(x, b = 22) NextMethod() ");
+    eval("g <- function(x,b = 16) UseMethod('g') ");
+    eval("x<-1");
+    eval("class(x) <- 'foo'");
+    assertThat(eval("g(x)"), equalTo(c(42)));
+  }
+
+  @Test
+  public void nextMethodArgReorder() {
+    eval("NextMethod <- function (generic = NULL, object = NULL, ...) " +
+        ".Internal(NextMethod(generic, object, ...))");
+    eval("g.default <- function(b,a) b ");
+    eval("g.foo <- function(a,b) NextMethod() ");
+    eval("g <- function(a,b) UseMethod('g') ");
+    eval("x<-1");
+    eval("class(x) <- 'foo'");
+    assertThat(eval("g(41,42)"), equalTo(c(41)));
+  }
+
+  
+  @Test
+  public void nextMethodWithMissingFirstArg() {
+    eval("NextMethod <- function (generic = NULL, object = NULL, ...) " +
+        ".Internal(NextMethod(generic, object, ...))");
+    eval("g.default <- function(x = 42) x ");
+    eval("g.foo <- function(x = explode()) NextMethod() ");
+    eval("g <- function(x) UseMethod('g') ");
+    eval("x<-1");
+    eval("class(x) <- 'foo'");
+    assertThat(eval("g()"), equalTo(c(42)));
   }
 }
 

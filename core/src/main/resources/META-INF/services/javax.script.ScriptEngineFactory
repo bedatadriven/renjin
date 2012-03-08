@@ -1,1 +1,1 @@
-r.scripting.RenjinScriptEngineFactory
+org.renjin.script.RenjinScriptEngineFactory

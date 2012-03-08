@@ -36,11 +36,11 @@ import java.util.Set;
 
 import org.apache.commons.math.distribution.Distribution;
 import org.renjin.primitives.annotations.processor.WrapperGenerator;
-import org.renjin.primitives.connections.Connections;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.graphics.Graphics;
 import org.renjin.primitives.graphics.Par;
 import org.renjin.primitives.graphics.Plot;
+import org.renjin.primitives.io.Connections;
 import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.match.Match;
 import org.renjin.primitives.matrix.Matrices;
@@ -99,6 +99,9 @@ public class Primitives {
   
   private static final Primitives INSTANCE = new Primitives();
   
+  public static PrimitiveFunction getBuiltin(String name) {
+    return getBuiltin(Symbol.get(name));
+  }
   
   public static PrimitiveFunction getBuiltin(Symbol symbol) {
     PrimitiveFunction fn = INSTANCE.builtins.get(symbol);

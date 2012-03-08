@@ -295,6 +295,9 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       if(i!=0) {
         sb.append(", ");
       }
+      if(!Strings.isNullOrEmpty(getName(i))) {
+        sb.append(getName(i)).append(" = ");
+      }
       sb.append(getElementAsSEXP(i));
     }
     if(length() > 20) {

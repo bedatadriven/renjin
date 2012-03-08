@@ -454,7 +454,7 @@ public class RParser {
     yyDebugStream = s;
   }
 
-  private int yydebug = Integer.MAX_VALUE;
+  private int yydebug = 0;
 
   /**
    * Answer the verbosity of the debugging output; 0 means that all kinds of

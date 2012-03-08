@@ -185,6 +185,19 @@ public class RLexerTest {
   public void bracedExpressionList() {
     assertTokenSequence("{ a\n b }", '{', SYMBOL, '\n', SYMBOL, '}');
   }
+  
+  @Test
+  public void newLinesFollowingElseAreIgnored() {
+    assertTokenSequence("if(TRUE) 1 else\n2\n", 
+        t(IF), 
+        t('('), 
+        logicalVector(Logical.TRUE),  
+        t(')'), 
+        realVector(1), 
+        t(ELSE),
+        realVector(2),
+        t('\n'));
+  }
 
   @Test
   public void bigIfStatement() {

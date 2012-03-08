@@ -38,6 +38,10 @@ import static r.ExpMatchers.*;
 
 
 import org.junit.Test;
+
+import com.google.common.io.CharStreams;
+import com.google.common.io.Resources;
+
 import r.EvalTestCase;
 import r.lang.ExpressionVector;
 import r.lang.FunctionCall;
@@ -199,6 +203,13 @@ public class RParserTest {
   }
 
   @Test
+  public void parseElseWithNewline() throws IOException {
+    ExpressionVector result = parseAll("if(TRUE) 1 else\n2\n");
+    
+    assertThat(result.length(), equalTo(1));
+  }
+  
+  @Test
   public void parseRealScript() throws IOException {
     ExpressionVector result = (ExpressionVector) parseResource("/testScript.R");
 
@@ -227,13 +238,6 @@ public class RParserTest {
    FunctionCall call = (FunctionCall)result.getElementAsSEXP(0);
    Symbol function = (Symbol) call.getFunction();
    assertThat(function.getPrintName(), equalTo("%*%")); 
-  }
-  
-  @Test
-  @Ignore("EEk! Not working, to fix")
-  public void attach() throws IOException {
-    ExpressionVector vector = (ExpressionVector) parseResource("attach.R");
-    assertThat(vector.length(), equalTo(3));
   }
   
 }

@@ -271,7 +271,7 @@ public class RLexer implements RParser.Lexer {
 
       case ELSE:
         contextStack.ifPop();
-        parseState.setEatLines(false);
+        parseState.setEatLines(true);
         break;
 
       /* These tokens terminate any immediately */

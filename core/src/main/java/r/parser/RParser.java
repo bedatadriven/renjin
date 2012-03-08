@@ -141,7 +141,7 @@ public class RParser {
   /**
    * True if verbose error messages are enabled.
    */
-  public boolean errorVerbose = false;
+  public boolean errorVerbose = true;
   private StatusResult extendedParseResult;
 
   private SEXP result;
@@ -454,7 +454,7 @@ public class RParser {
     yyDebugStream = s;
   }
 
-  private int yydebug = 0;
+  private int yydebug = Integer.MAX_VALUE;
 
   /**
    * Answer the verbosity of the debugging output; 0 means that all kinds of

@@ -20,8 +20,10 @@
  */
 package org.renjin.primitives.random;
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 import org.apache.commons.math.special.Gamma;
+import org.renjin.primitives.annotations.Current;
 
 public class Beta {
 
@@ -42,7 +44,7 @@ public class Beta {
   } else				\
   w = DBL_MAX
    */
-  public static double rbeta(double aa, double bb) {
+  public static double rbeta(Context context, double aa, double bb) {
     double a, b, alpha;
     double r, s, t, u1, u2, v, w, y, z;
 
@@ -85,8 +87,8 @@ public class Beta {
       }
       /* FIXME: "do { } while()", but not trivially because of "continue"s:*/
       for (;;) {
-        u1 = RNG.unif_rand();
-        u2 = RNG.unif_rand();
+        u1 = context.rng.unif_rand();
+        u2 = context.rng.unif_rand();
         if (u1 < 0.5) {
           y = u1 * u2;
           z = u1 * y;
@@ -135,8 +137,8 @@ public class Beta {
         gamma = a + 1.0 / beta;
       }
       do {
-        u1 = RNG.unif_rand();
-        u2 = RNG.unif_rand();
+        u1 = context.rng.unif_rand();
+        u2 = context.rng.unif_rand();
 
         v = beta * Math.log(u1 / (1.0 - u1));
         if (v <= expmax) {

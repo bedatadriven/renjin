@@ -20,16 +20,17 @@
  */
 package org.renjin.primitives.random;
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 
 public class Geometric {
 
-  public static double rgeom(double p) {
+  public static double rgeom(Context context, double p) {
     if (p <= 0 || p > 1) {
       return (Double.NaN);
     }
 
-    return Poisson.rpois(Exponantial.exp_rand() * ((1 - p) / p));
+    return Poisson.rpois(context, Exponantial.exp_rand(context) * ((1 - p) / p));
   }
 
   public static double pgeom(double x, double p, boolean lower_tail, boolean log_p) {

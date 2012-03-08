@@ -1,11 +1,12 @@
 package org.renjin.primitives.random;
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 
 public class Multinomial {
 
-  public static void rmultinom(int n, double[] prob, int K, int[] rN) /* `Return' vector  rN[1:K] {K := length(prob)}
+  public static void rmultinom(Context context, int n, double[] prob, int K, int[] rN) /* `Return' vector  rN[1:K] {K := length(prob)}
    *  where rN[j] ~ Bin(n, prob[j]) ,  sum_j rN[j] == n,  sum_j prob[j] == 1,
    */ {
     int k;
@@ -65,7 +66,7 @@ public class Multinomial {
       if (prob[k] != 0.0) {
         pp = prob[k] / p_tot;
         /* printf("[%d] %.17f\n", k+1, pp); */
-        rN[k] = ((pp < 1.) ? (int) Binom.rbinom((double) n, pp)
+        rN[k] = ((pp < 1.) ? (int) Binom.rbinom(context, (double) n, pp)
                 : /*>= 1; > 1 happens because of rounding */ n);
         n -= rN[k];
       } else {

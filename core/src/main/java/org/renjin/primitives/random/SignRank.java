@@ -1,5 +1,7 @@
 package org.renjin.primitives.random;
 
+import r.lang.Context;
+
 public class SignRank {
 
   public static double DBL_EPSILON = Math.pow(2., -52.);
@@ -71,7 +73,7 @@ public class SignRank {
    * Random Number Generator for SignRank
    * 
    */
-  public static double rsignrank(double n) {
+  public static double rsignrank(Context context, double n) {
     int i, k;
     double r;
 
@@ -93,7 +95,7 @@ public class SignRank {
     r = 0.0;
     k = (int) n;
     for (i = 0; i < k;) {
-      r += (++i) * Math.floor(RNG.unif_rand() + 0.5);
+      r += (++i) * Math.floor(context.rng.unif_rand() + 0.5);
     }
     return (r);
 

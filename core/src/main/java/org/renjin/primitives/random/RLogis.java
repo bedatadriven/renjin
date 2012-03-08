@@ -21,9 +21,11 @@
 
 package org.renjin.primitives.random;
 
+import r.lang.Context;
+
 public class RLogis {
 
-  public static double rlogis(double location, double scale) {
+  public static double rlogis(Context context, double location, double scale) {
     if (Double.isNaN(location) || Double.isInfinite(scale)) {
       return (Double.NaN);
     }
@@ -31,7 +33,7 @@ public class RLogis {
     if (scale == 0. || Double.isInfinite(location)) {
       return location;
     } else {
-      double u = RNG.unif_rand();
+      double u = context.rng.unif_rand();
       return location + scale * Math.log(u / (1. - u));
     }
   }

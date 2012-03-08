@@ -20,6 +20,8 @@
  */
 package org.renjin.primitives.random;
 
+import r.lang.Context;
+
 
 public class Exponantial {
 
@@ -43,11 +45,11 @@ public class Exponantial {
     1.0000000000000000
   };
 
-  public static double exp_rand() {
+  public static double exp_rand(Context context) {
     double a = 0.;
-    double u = RNG.unif_rand();    /* precaution if u = 0 is ever returned */
+    double u = context.rng.unif_rand();    /* precaution if u = 0 is ever returned */
     while (u <= 0. || u >= 1.) {
-      u = RNG.unif_rand();
+      u = context.rng.unif_rand();
     }
     for (;;) {
       u += u;
@@ -63,9 +65,9 @@ public class Exponantial {
     }
 
     int i = 0;
-    double ustar = RNG.unif_rand(), umin = ustar;
+    double ustar = context.rng.unif_rand(), umin = ustar;
     do {
-      ustar = RNG.unif_rand();
+      ustar = context.rng.unif_rand();
       if (umin > ustar) {
         umin = ustar;
       }
@@ -74,7 +76,7 @@ public class Exponantial {
     return a + umin * q[0];
   }
 
-  public static double rexp(double scale) {
+  public static double rexp(Context context, double scale) {
     if (scale <= 0.0) {
       if (scale == 0.) {
         return 0.;
@@ -82,6 +84,6 @@ public class Exponantial {
         return Double.NaN;
       }
     }
-    return scale * Exponantial.exp_rand();
+    return scale * Exponantial.exp_rand(context);
   }
 }

@@ -2,13 +2,15 @@ package org.renjin.primitives.random;
 
 import org.renjin.primitives.MathExt;
 
+import r.lang.Context;
+
 public class Wilcox {
 
   private static double[][][] w;
   private static int allocated_m, allocated_n;
   private final static int WILCOX_MAX = 50;
 
-  public static double rwilcox(double m, double n) {
+  public static double rwilcox(Context context, double m, double n) {
     int i, j, k;
     int[] x;
     double r;
@@ -37,7 +39,7 @@ public class Wilcox {
     }
 
     for (i = 0; i < n; i++) {
-      j = (int) (Math.floor(k * RNG.unif_rand()));
+      j = (int) (Math.floor(k * context.rng.unif_rand()));
       r += x[j];
       x[j] = x[--k];
     }

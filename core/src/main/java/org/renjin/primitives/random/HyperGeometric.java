@@ -1,5 +1,6 @@
 package org.renjin.primitives.random;
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 
 public class HyperGeometric {
@@ -52,7 +53,7 @@ public class HyperGeometric {
     static double a, d, s, w;
     static double tn, xl, xr, kl, kr, lamdl, lamdr, p1, p2, p3;
 
-    public static double rhyper(double nn1in, double nn2in, double kkin) {
+    public static double rhyper(Context context, double nn1in, double nn2in, double kkin) {
 
 
       /* These should become `thread_local globals' : */
@@ -140,9 +141,9 @@ public class HyperGeometric {
           }
         }
         L10:
-        L10();
+        L10(context);
         L20:
-        L20();
+        L20(context);
       } else { /* III : h2pe --------------------------------------------- */
 
         if (setup1 || setup2) {
@@ -169,7 +170,7 @@ public class HyperGeometric {
           p3 = p2 + kr / lamdr;
         }
         L30:
-        L30();
+        L30(context);
         /* return appropriate variate */
 
         if (kk + kk >= tn) {
@@ -188,43 +189,43 @@ public class HyperGeometric {
       return ix;
     }
 
-    public static void L10() {
+    public static void L10(Context context) {
       //L10:
       p = w;
       ix = minjx;
-      u = RNG.unif_rand() * scale;
-      L20();
+      u = context.rng.unif_rand() * scale;
+      L20(context);
       //??????????????*
     }
 
-    public static void L20() {
+    public static void L20(Context context) {
       if (u > p) {
         u -= p;
         p *= (n1 - ix) * (k - ix);
         ix++;
         p = p / ix / (n2 - k + ix);
         if (ix > maxjx) {
-          L10();
+          L10(context);
         }
-        L20();
+        L20(context);
       }
     }
 
-    public static void L30() {
-      u = RNG.unif_rand() * p3;
-      v = RNG.unif_rand();
+    public static void L30(Context context) {
+      u = context.rng.unif_rand() * p3;
+      v = context.rng.unif_rand();
       if (u < p1) { /* rectangular region */
         ix = (int) (xl + u);
       } else if (u <= p2) { /* left tail */
         ix = (int) (xl + Math.log(v) / lamdl);
         if (ix < minjx) {
-          L30();
+          L30(context);
         }
         v = v * (u - p1) * lamdl;
       } else { /* right tail */
         ix = (int) (xr - Math.log(v) / lamdr);
         if (ix > maxjx) {
-          L30();
+          L30(context);
         }
         v = v * (u - p2) * lamdr;
       }
@@ -317,7 +318,7 @@ public class HyperGeometric {
         }
       }
       if (reject) {
-        L30();
+        L30(context);
       }
     }
   }

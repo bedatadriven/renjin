@@ -20,6 +20,8 @@
  */
 package org.renjin.primitives.random;
 
+import r.lang.Context;
+
 
 public class Normal {
 
@@ -77,19 +79,19 @@ public class Normal {
   static N01type N01_kind = N01type.INVERSION;
 
   
-  public static double rnorm(double mu, double sigma) {
+  public static double rnorm(Context context, double mu, double sigma) {
     if ((Double.NaN == mu) || sigma < 0.) {
       return (Double.NaN);
     }
     if (sigma == 0.) {
       return mu; 
     } else {
-      return mu + sigma * norm_rand();
+      return mu + sigma * norm_rand(context);
     }
   }
 
   
-  public static double norm_rand() {
+  public static double norm_rand(Context context) {
     double s, u1, w, y, u2, u3, aa, tt, theta, R;
     int i;
 
@@ -97,7 +99,7 @@ public class Normal {
 
       case AHRENS_DIETER: /* see Reference above */
 
-        u1 = RNG.unif_rand();
+        u1 = context.rng.unif_rand();
         s = 0.0;
         if (u1 > 0.5) {
           s = 1.0;
@@ -112,7 +114,7 @@ public class Normal {
           u2 = u1 - i;
           aa = a[i - 1];
           while (u2 <= t[i - 1]) {
-            u1 = RNG.unif_rand();
+            u1 = context.rng.unif_rand();
             w = u1 * (a[i] - aa);
             tt = (w * 0.5 + aa) * w;
             for (;;) {
@@ -121,14 +123,14 @@ public class Normal {
                 return (s == 1.0) ? -y : y;
               }
 
-              u1 = RNG.unif_rand();
+              u1 = context.rng.unif_rand();
               if (u2 < u1) {
                 break;
               }
               tt = u1;
-              u2 = RNG.unif_rand();
+              u2 = context.rng.unif_rand();
             }
-            u2 = RNG.unif_rand();
+            u2 = context.rng.unif_rand();
           }
           w = (u2 - t[i - 1]) * h[i - 1];
         } else {
@@ -147,18 +149,18 @@ public class Normal {
             w = u1 * d[i - 1];
             tt = (w * 0.5 + aa) * w;
             for (;;) {
-              u2 = RNG.unif_rand();
+              u2 = context.rng.unif_rand();
               if (u2 > tt) {
                 y = aa + w;
                 return (s == 1.0) ? -y : y;
               }
-              u1 = RNG.unif_rand();
+              u1 = context.rng.unif_rand();
               if (u2 < u1) {
                 break;
               }
               tt = u1;
             }
-            u1 = RNG.unif_rand();
+            u1 = context.rng.unif_rand();
           }
 
         }
@@ -172,16 +174,16 @@ public class Normal {
         /* note: this has problems, but is retained for
          * reproducibility of older codes, with the same
          * numeric code */
-        u1 = RNG.unif_rand();
+        u1 = context.rng.unif_rand();
         if (u1 < 0.884070402298758) {
-          u2 = RNG.unif_rand();
+          u2 = context.rng.unif_rand();
           return A * (1.13113163544180 * u1 + u2 - 1);
         }
 
         if (u1 >= 0.973310954173898) { /* tail: */
           for (;;) {
-            u2 = RNG.unif_rand();
-            u3 = RNG.unif_rand();
+            u2 = context.rng.unif_rand();
+            u3 = context.rng.unif_rand();
             tt = (A * A - 2 * Math.log(u3));
             if (u2 * u2 < (A * A) / tt) {
               return (u1 < 0.986655477086949) ? Math.sqrt(tt) : -Math.sqrt(tt);
@@ -191,8 +193,8 @@ public class Normal {
 
         if (u1 >= 0.958720824790463) { /* region3: */
           for (;;) {
-            u2 = RNG.unif_rand();
-            u3 = RNG.unif_rand();
+            u2 = context.rng.unif_rand();
+            u3 = context.rng.unif_rand();
             tt = A - 0.630834801921960 * Math.min(u2, u3);
             if (Math.max(u2, u3) <= 0.755591531667601) {
               return (u2 < u3) ? tt : -tt;
@@ -205,8 +207,8 @@ public class Normal {
 
         if (u1 >= 0.911312780288703) { /* region2: */
           for (;;) {
-            u2 = RNG.unif_rand();
-            u3 = RNG.unif_rand();
+            u2 = context.rng.unif_rand();
+            u3 = context.rng.unif_rand();
             tt = 0.479727404222441 + 1.105473661022070 * Math.min(u2, u3);
             if (Math.max(u2, u3) <= 0.872834976671790) {
               return (u2 < u3) ? tt : -tt;
@@ -219,8 +221,8 @@ public class Normal {
 
         /* ELSE	 region1: */
         for (;;) {
-          u2 = RNG.unif_rand();
-          u3 = RNG.unif_rand();
+          u2 = context.rng.unif_rand();
+          u3 = context.rng.unif_rand();
           tt = 0.479727404222441 - 0.595507138015940 * Math.min(u2, u3);
           if (Math.max(u2, u3) <= 0.805577924423817) {
             return (u2 < u3) ? tt : -tt;
@@ -235,22 +237,22 @@ public class Normal {
       case INVERSION:
         int BIG = 134217728; /* 2^27 */
         /* unif_rand() alone is not of high enough precision */
-        u1 = RNG.unif_rand();
-        u1 = (int) (BIG * u1) + RNG.unif_rand();
+        u1 = context.rng.unif_rand();
+        u1 = (int) (BIG * u1) + context.rng.unif_rand();
         return qnorm5(u1 / BIG, 0.0, 1.0, 1, 0);
       case KINDERMAN_RAMAGE: /* see Reference above */
         /* corrected version from Josef Leydold
          * */
-        u1 = RNG.unif_rand();
+        u1 = context.rng.unif_rand();
         if (u1 < 0.884070402298758) {
-          u2 = RNG.unif_rand();
+          u2 = context.rng.unif_rand();
           return A * (1.131131635444180 * u1 + u2 - 1);
         }
 
         if (u1 >= 0.973310954173898) { /* tail: */
           for (;;) {
-            u2 = RNG.unif_rand();
-            u3 = RNG.unif_rand();
+            u2 = context.rng.unif_rand();
+            u3 = context.rng.unif_rand();
             tt = (A * A - 2 * Math.log(u3));
             if (u2 * u2 < (A * A) / tt) {
               return (u1 < 0.986655477086949) ? Math.sqrt(tt) : -Math.sqrt(tt);
@@ -260,8 +262,8 @@ public class Normal {
 
         if (u1 >= 0.958720824790463) { /* region3: */
           for (;;) {
-            u2 = RNG.unif_rand();
-            u3 = RNG.unif_rand();
+            u2 = context.rng.unif_rand();
+            u3 = context.rng.unif_rand();
             tt = A - 0.630834801921960 * Math.min(u2, u3);
             if (Math.max(u2, u3) <= 0.755591531667601) {
               return (u2 < u3) ? tt : -tt;
@@ -274,8 +276,8 @@ public class Normal {
 
         if (u1 >= 0.911312780288703) { /* region2: */
           for (;;) {
-            u2 = RNG.unif_rand();
-            u3 = RNG.unif_rand();
+            u2 = context.rng.unif_rand();
+            u3 = context.rng.unif_rand();
             tt = 0.479727404222441 + 1.105473661022070 * Math.min(u2, u3);
             if (Math.max(u2, u3) <= 0.872834976671790) {
               return (u2 < u3) ? tt : -tt;
@@ -288,8 +290,8 @@ public class Normal {
 
         /* ELSE	 region1: */
         for (;;) {
-          u2 = RNG.unif_rand();
-          u3 = RNG.unif_rand();
+          u2 = context.rng.unif_rand();
+          u3 = context.rng.unif_rand();
           tt = 0.479727404222441 - 0.595507138015940 * Math.min(u2, u3);
           if (tt < 0.) {
             continue;

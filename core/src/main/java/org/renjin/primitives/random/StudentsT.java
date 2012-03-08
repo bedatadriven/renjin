@@ -1,6 +1,7 @@
 package org.renjin.primitives.random;
 
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 import r.util.CDefines;
 
@@ -17,12 +18,12 @@ public class StudentsT {
    * return Normal.norm_rand() / Math.sqrt(ChiSquare.rchisq(df) / df);
    * }
    */
-  public static double rt(double df) {
+  public static double rt(Context context, double df) {
     if (Double.isNaN(df) || df <= 0.0) {
       return (Double.NaN);
     }
 
-    return Normal.norm_rand() / Math.sqrt(ChiSquare.rchisq(df) / df);
+    return Normal.norm_rand(context) / Math.sqrt(ChiSquare.rchisq(context, df) / df);
 
   }
 

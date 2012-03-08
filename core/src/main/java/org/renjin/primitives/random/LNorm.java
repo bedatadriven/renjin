@@ -20,16 +20,17 @@
  */
 package org.renjin.primitives.random;
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 
 public class LNorm {
 
-  public static double rlnorm(double meanlog, double sdlog) {
+  public static double rlnorm(Context context, double meanlog, double sdlog) {
     if (Double.isNaN(meanlog) || sdlog < 0.) {
       return (Double.NaN);
     }
 
-    return Math.exp(Normal.rnorm(meanlog, sdlog));
+    return Math.exp(Normal.rnorm(context, meanlog, sdlog));
   }
 
   public static double dlnorm(double x, double meanlog, double sdlog, boolean give_log) {

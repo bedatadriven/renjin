@@ -6,6 +6,8 @@ package org.renjin.primitives.random;
 
 import org.renjin.primitives.MathExt;
 
+import r.lang.Context;
+
 /**
  *
  * @author hako
@@ -42,7 +44,7 @@ public class Gamma {
   static double q0, b, si, c;/* no. 2 (step 4) */
 
 
-  public static double rgamma(double a, double scale) {
+  public static double rgamma(Context context, double a, double scale) {
 
     double e, p, q, r, t, u, v, w, x, ret_val;
 
@@ -59,15 +61,15 @@ public class Gamma {
       }
       e = 1.0 + exp_m1 * a;
       for (;;) {
-        p = e * RNG.unif_rand();
+        p = e * context.rng.unif_rand();
         if (p >= 1.0) {
           x = -Math.log((e - p) / a);
-          if (Exponantial.exp_rand() >= (1.0 - a) * Math.log(x)) {
+          if (Exponantial.exp_rand(context) >= (1.0 - a) * Math.log(x)) {
             break;
           }
         } else {
           x = Math.exp(Math.log(p) / a);
-          if (Exponantial.exp_rand() >= x) {
+          if (Exponantial.exp_rand(context) >= x) {
             break;
           }
         }
@@ -88,7 +90,7 @@ public class Gamma {
     x = (s,1/2) -normal deviate. */
 
     /* immediate acceptance (i) */
-    t = Normal.norm_rand();
+    t = Normal.norm_rand(context);
     x = s + 0.5 * t;
     ret_val = x * x;
     if (t >= 0.0) {
@@ -96,7 +98,7 @@ public class Gamma {
     }
 
     /* Step 3: u = 0,1 - uniform sample. squeeze acceptance (s) */
-    u = RNG.unif_rand();
+    u = context.rng.unif_rand();
     if (d * u <= t * t * t) {
       return scale * ret_val;
     }
@@ -150,8 +152,8 @@ public class Gamma {
       /* Step 8: e = standard exponential deviate
        *	u =  0,1 -uniform deviate
        *	t = (b,si)-double exponential (laplace) sample */
-      e = Exponantial.exp_rand();
-      u = RNG.unif_rand();
+      e = Exponantial.exp_rand(context);
+      u = context.rng.unif_rand();
       u = u + u - 1.0;
       if (u < 0.0) {
         t = b - si * e;

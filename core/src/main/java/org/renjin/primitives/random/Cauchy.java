@@ -20,16 +20,18 @@
  */
 package org.renjin.primitives.random;
 
+import r.lang.Context;
+
 public class Cauchy {
 
-  public static double rcauchy(double location, double scale) {
+  public static double rcauchy(Context context, double location, double scale) {
     if (Double.isNaN(location) || scale < 0) {
       return Double.NaN;
     }
     if (scale == 0.) {
       return location;
     } else {
-      return location + scale * Math.tan(Math.PI * RNG.unif_rand());
+      return location + scale * Math.tan(Math.PI * context.rng.unif_rand());
     }
   }
 }

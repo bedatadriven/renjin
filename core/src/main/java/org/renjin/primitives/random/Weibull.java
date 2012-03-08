@@ -20,9 +20,11 @@
  */
 package org.renjin.primitives.random;
 
+import r.lang.Context;
+
 public class Weibull {
 
-  public static double rweibull(double shape, double scale) {
+  public static double rweibull(Context context, double shape, double scale) {
     if (Double.isInfinite(shape) || Double.isInfinite(scale) || shape <= 0. || scale <= 0.) {
       if (scale == 0.) {
         return 0.;
@@ -30,6 +32,6 @@ public class Weibull {
         return (Double.NaN);
       }
     }
-    return scale * Math.pow(-Math.log(RNG.unif_rand()), 1.0 / shape);
+    return scale * Math.pow(-Math.log(context.rng.unif_rand()), 1.0 / shape);
   }
 }

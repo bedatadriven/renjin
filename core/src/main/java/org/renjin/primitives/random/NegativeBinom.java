@@ -20,20 +20,22 @@
  */
 package org.renjin.primitives.random;
 
+import r.lang.Context;
+
 public class NegativeBinom {
 
-  public static double rnbinom(double size, double prob) {
+  public static double rnbinom(Context context, double size, double prob) {
     if (Double.isInfinite(size) || Double.isInfinite(prob) || size <= 0 || prob <= 0 || prob > 1) {
       /* prob = 1 is ok, PR#1218 */
       return (Double.NaN);
     }
-    return (prob == 1) ? 0 : Poisson.rpois(Gamma.rgamma(size, (1 - prob) / prob));
+    return (prob == 1) ? 0 : Poisson.rpois(context, Gamma.rgamma(context, size, (1 - prob) / prob));
   }
 
-  public static double rnbinom_mu(double size, double mu) {
+  public static double rnbinom_mu(Context context, double size, double mu) {
     if (Double.isInfinite(size) || Double.isInfinite(mu) || size <= 0 || mu < 0) {
       return (Double.NaN);
     }
-    return (mu == 0) ? 0 : Poisson.rpois(Gamma.rgamma(size, mu / size));
+    return (mu == 0) ? 0 : Poisson.rpois(context, Gamma.rgamma(context, size, mu / size));
   }
 }

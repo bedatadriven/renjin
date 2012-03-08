@@ -1,7 +1,9 @@
 package org.renjin.primitives.random;
 
+import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.Null;
@@ -24,7 +26,7 @@ public class Sampling {
     return (result);
   }
 
-  public static IntVector sampleWithReplacement(int size, double[] prob) {
+  public static IntVector sampleWithReplacement(Context context, int size, double[] prob) {
     double[] cumProbs = new double[prob.length];
     IntVector.Builder resultb = new IntVector.Builder();
     cumProbs[0] = prob[0];
@@ -32,7 +34,7 @@ public class Sampling {
       cumProbs[i] = prob[i] + cumProbs[i - 1];
     }
     for (int i = 0; i < size; i++) {
-      double arand = RNG.unif_rand();
+      double arand = context.rng.unif_rand();;
       int index = RouletteWheel(cumProbs, arand);
       resultb.add(index + 1);
     }
@@ -48,7 +50,7 @@ public class Sampling {
    * Because of the first stage aim, I am leaving it as a running but in-efficient algorithm.
    * Tests were passed :)
    */
-  public static IntVector sampleWithoutReplacement(int size, double[] prob) {
+  public static IntVector sampleWithoutReplacement(Context context, int size, double[] prob) {
     double[] cumProbs = new double[prob.length];
     int[] selectedIndices = new int[prob.length];
     int numItems = 0;
@@ -59,7 +61,7 @@ public class Sampling {
     }
 
     while (numItems < size) {
-      double arand = RNG.unif_rand();
+      double arand = context.rng.unif_rand();
       int index = RouletteWheel(cumProbs, arand);
       if (selectedIndices[index] == 0) {
         selectedIndices[index] = 1;
@@ -70,8 +72,8 @@ public class Sampling {
     return (resultb.build());
   }
 
-  @Primitive
-  public static IntVector sample(int x, int size, boolean replace, SEXP prob) {
+  @Primitive("sample")
+  public static IntVector sample(@Current Context context, int x, int size, boolean replace, SEXP prob) {
     double[] probs = new double[x];
     int mysize = size;
 
@@ -92,9 +94,9 @@ public class Sampling {
 
 
     if (replace) {
-      return (sampleWithReplacement(mysize, probs));
+      return (sampleWithReplacement(context, mysize, probs));
     } else {
-      return (sampleWithoutReplacement(mysize, probs));
+      return (sampleWithoutReplacement(context, mysize, probs));
     }
 
 

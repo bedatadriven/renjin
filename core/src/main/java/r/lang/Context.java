@@ -33,6 +33,7 @@ import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
+import org.renjin.primitives.random.RNG;
 
 import r.compiler.ir.tac.IRFunctionTable;
 import r.compiler.ir.tac.IRBody;
@@ -97,7 +98,8 @@ public class Context {
 
   private List<SEXP> onExit = Lists.newArrayList();
 
-
+  public RNG rng = new RNG(this);
+  
   public static class Options {
     private Map<String, SEXP> map;
 
@@ -185,6 +187,7 @@ public class Context {
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
     
+     
     /**
      * Whether the result of the evaluation should be "invisible" in a
      * REPL

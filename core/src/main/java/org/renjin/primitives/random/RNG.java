@@ -4,24 +4,29 @@
  */
 package org.renjin.primitives.random;
 
+
 import org.apache.commons.math.random.MersenneTwister;
+import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
 import r.lang.exception.EvalException;
 
 public class RNG {
 
-  public static MersenneTwister mersenneTwisterAlg = null;
-  public static RNGtype RNG_kind = RNGtype.MERSENNE_TWISTER; //default
-  public static N01type N01_kind = N01type.INVERSION; //default
-  static int[] dummy = new int[625];
-  static DoubleVector seeds;
-  static int randomseed = 0;
+  public MersenneTwister mersenneTwisterAlg = null;
+  public RNGtype RNG_kind = RNGtype.MERSENNE_TWISTER; //default
+  public N01type N01_kind = N01type.INVERSION; //default
+  int[] dummy = new int[625];
+  DoubleVector seeds;
+  int randomseed = 0;
   static double i2_32m1 = 2.328306437080797e-10;/* = 1/(2^32 - 1) */
-
-  static RNGTAB[] RNG_Table = new RNGTAB[]{
+  public Context context;
+  
+  
+  RNGTAB[] RNG_Table = new RNGTAB[]{
     new RNGTAB(RNGtype.WICHMANN_HILL, N01type.BUGGY_KINDERMAN_RAMAGE, "Wichmann-Hill"),
     new RNGTAB(RNGtype.MARSAGLIA_MULTICARRY, N01type.BUGGY_KINDERMAN_RAMAGE, "Marsaglia-MultiCarry"),
     new RNGTAB(RNGtype.SUPER_DUPER, N01type.BUGGY_KINDERMAN_RAMAGE, "Super-Duper"),
@@ -30,246 +35,252 @@ public class RNG {
     new RNGTAB(RNGtype.USER_UNIF, N01type.BUGGY_KINDERMAN_RAMAGE, "User-supplied"),
     new RNGTAB(RNGtype.KNUTH_TAOCP2, N01type.BUGGY_KINDERMAN_RAMAGE, "Knuth-TAOCP-2002")};
 
-  public static IntVector RNGkind(int kind, int normalkind) {
+  public RNG(Context context){
+	  this.context = context;
+  }
+  
+  public IntVector RNGkind(int kind, int normalkind) {
     try {
-      RNG.RNG_kind = RNGtype.values()[kind];
+      RNG_kind = RNGtype.values()[kind];
     } catch (Exception e) {
       throw new EvalException("RNGkind: unimplemented RNG kind " + kind);
     }
 
     try {
-      RNG.N01_kind = N01type.values()[normalkind];
+      N01_kind = N01type.values()[normalkind];
     } catch (Exception e) {
       throw new EvalException("invalid Normal type in RNGkind");
     }
 
-    RNG.RNG_kind = RNGtype.values()[kind];
-    RNG.N01_kind = N01type.values()[normalkind];
+    RNG_kind = RNGtype.values()[kind];
+    N01_kind = N01type.values()[normalkind];
     //System.out.println("Random generator is set to " + RNG.RNG_kind + " and " + RNG.N01_kind);
-    return (new IntVector(RNG.RNG_kind.ordinal(), RNG.N01_kind.ordinal()));
+    return (new IntVector(RNG_kind.ordinal(), N01_kind.ordinal()));
   }
 
   /*
    * Primitives.
    */
   @Primitive("set.seed")
-  public static void set_seed(int seed, int kind, int normalkind) {
-    RNG.randomseed = seed;
-    RNG.RNGkind(kind, normalkind);
-    switch (RNG_kind) {
+  public static void set_seed(@Current Context context, int seed, int kind, int normalkind) {
+    RNG rng = context.rng;
+	rng.randomseed = seed;
+    rng.RNGkind(kind, normalkind);
+    switch (rng.RNG_kind) {
       case WICHMANN_HILL:
-        throw new EvalException(RNG_kind + " not implemented yet");
+        throw new EvalException(rng.RNG_kind + " not implemented yet");
 
       case MARSAGLIA_MULTICARRY:
-        throw new EvalException(RNG_kind + " not implemented yet");
+        throw new EvalException(rng.RNG_kind + " not implemented yet");
 
       case SUPER_DUPER:
-        throw new EvalException(RNG_kind + " not implemented yet");
+        throw new EvalException(rng.RNG_kind + " not implemented yet");
 
       case MERSENNE_TWISTER:
-        if (mersenneTwisterAlg == null) {
-          mersenneTwisterAlg = new MersenneTwister(seed);
+        if (rng.mersenneTwisterAlg == null) {
+          rng.mersenneTwisterAlg = new MersenneTwister(seed);
         } else {
-          mersenneTwisterAlg.setSeed(seed);
+          rng.mersenneTwisterAlg.setSeed(seed);
         }
         return;
 
       case KNUTH_TAOCP:
       case KNUTH_TAOCP2:
-        throw new EvalException(RNG_kind + " not implemented yet");
+        throw new EvalException(rng.RNG_kind + " not implemented yet");
       case USER_UNIF:
-        throw new EvalException(RNG_kind + " not implemented yet");
+        throw new EvalException(rng.RNG_kind + " not implemented yet");
       default:
-        throw new EvalException(RNG_kind + " not implemented yet");
+        throw new EvalException(rng.RNG_kind + " not implemented yet");
     }
   }
 
-  @Primitive
-  public static DoubleVector runif(int n, double a, double b) {
+  @Primitive("runif")
+  public static DoubleVector runif(@Current Context context, int n, double a, double b) {
+	RNG rng = context.rng;
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(a + unif_rand() * (b - a));
+      vb.add(a + rng.unif_rand() * (b - a));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rnorm(int n, double mean, double sd) {
+  @Primitive("rnorm")
+  public static DoubleVector rnorm(@Current Context context, int n, double mean, double sd) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Normal.rnorm(mean, sd));
+      vb.add(Normal.rnorm(context, mean, sd));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rgamma(int n, double shape, double scale) {
+  @Primitive("rgamma")
+  public static DoubleVector rgamma(@Current Context context, int n, double shape, double scale) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Gamma.rgamma(shape, scale));
+      vb.add(Gamma.rgamma(context, shape, scale));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rchisq(int n, double df) {
+  @Primitive("rchisq")
+  public static DoubleVector rchisq(@Current Context context, int n, double df) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(ChiSquare.rchisq(df));
+      vb.add(ChiSquare.rchisq(context, df));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rnchisq(int n, double df, double ncp) {
+  @Primitive("rnchisq")
+  public static DoubleVector rnchisq(@Current Context context, int n, double df, double ncp) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(ChiSquare.rnchisq(df, ncp));
+      vb.add(ChiSquare.rnchisq(context, df, ncp));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rexp(int n, double invrate) {
+  @Primitive("rexp")
+  public static DoubleVector rexp(@Current Context context, int n, double invrate) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Exponantial.rexp(invrate));
+      vb.add(Exponantial.rexp(context, invrate));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rpois(int n, double mu) {
+  @Primitive("rpois")
+  public static DoubleVector rpois(@Current Context context, int n, double mu) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Poisson.rpois(mu));
+      vb.add(Poisson.rpois(context, mu));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rsignrank(int nn, double n) {
+  @Primitive("rsignrank")
+  public static DoubleVector rsignrank(@Current Context context, int nn, double n) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < nn; i++) {
-      vb.add(SignRank.rsignrank(n));
+      vb.add(SignRank.rsignrank(context, n));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rwilcox(int nn, double m, double n) {
+  @Primitive("rwilcox")
+  public static DoubleVector rwilcox(@Current Context context, int nn, double m, double n) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < nn; i++) {
-      vb.add(Wilcox.rwilcox(m, n));
+      vb.add(Wilcox.rwilcox(context, m, n));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rgeom(int n, double p) {
+  @Primitive("rgeom")
+  public static DoubleVector rgeom(@Current Context context, int n, double p) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Geometric.rgeom(p));
+      vb.add(Geometric.rgeom(context, p));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rt(int n, double df) {
+  @Primitive("rt")
+  public static DoubleVector rt(@Current Context context, int n, double df) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(StudentsT.rt(df));
+      vb.add(StudentsT.rt(context, df));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rcauchy(int n, double location, double scale) {
+  @Primitive("rcauchy")
+  public static DoubleVector rcauchy(@Current Context context, int n, double location, double scale) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Cauchy.rcauchy(location, scale));
+      vb.add(Cauchy.rcauchy(context, location, scale));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rlnorm(int n, double meanlog, double sdlog) {
+  @Primitive("rlnorm")
+  public static DoubleVector rlnorm(@Current Context context, int n, double meanlog, double sdlog) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(LNorm.rlnorm(meanlog, sdlog));
+      vb.add(LNorm.rlnorm(context, meanlog, sdlog));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rlogis(int n, double location, double scale) {
+  @Primitive("rlogis")
+  public static DoubleVector rlogis(@Current Context context, int n, double location, double scale) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(RLogis.rlogis(location, scale));
+      vb.add(RLogis.rlogis(context, location, scale));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rweibull(int n, double shape, double scale) {
+  @Primitive("rweibull")
+  public static DoubleVector rweibull(@Current Context context, int n, double shape, double scale) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Weibull.rweibull(shape, scale));
+      vb.add(Weibull.rweibull(context, shape, scale));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rnbinom(int n, double size, double prob) {
+  @Primitive("rnbinom")
+  public static DoubleVector rnbinom(@Current Context context, int n, double size, double prob) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(NegativeBinom.rnbinom(size, prob));
+      vb.add(NegativeBinom.rnbinom(context, size, prob));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rnbinom_mu(int n, double size, double mu) {
+  @Primitive("rnbinom_mu")
+  public static DoubleVector rnbinom_mu(@Current Context context, int n, double size, double mu) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(NegativeBinom.rnbinom_mu(size, mu));
+      vb.add(NegativeBinom.rnbinom_mu(context, size, mu));
     }
     return (vb.build());
   }
   
-  @Primitive
-  public static DoubleVector rbinom(int n, double size, double prob) {
+  @Primitive("rbinom")
+  public static DoubleVector rbinom(@Current Context context, int n, double size, double prob) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Binom.rbinom(size, prob));
+      vb.add(Binom.rbinom(context, size, prob));
     }
     return (vb.build());
   }
   
   
-  @Primitive
-  public static DoubleVector rf(int n, double df1, double df2) {
+  @Primitive("rf")
+  public static DoubleVector rf(@Current Context context, int n, double df1, double df2) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(F.rf(df1, df2));
+      vb.add(F.rf(context, df1, df2));
     }
     return (vb.build());
   }
 
-  @Primitive
-  public static DoubleVector rbeta(int n, double shape1, double shape2) {
+  @Primitive("rbeta")
+  public static DoubleVector rbeta(@Current Context context, int n, double shape1, double shape2) {
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Beta.rbeta(shape1, shape2));
+      vb.add(Beta.rbeta(context, shape1, shape2));
     }
     return (vb.build());
   }
   
-  @Primitive
-  public static DoubleVector rhyper(int nn, double m, double n, double k){
+  @Primitive("rhyper")
+  public static DoubleVector rhyper(@Current Context context, int nn, double m, double n, double k){
     DoubleVector.Builder vb = new DoubleVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(HyperGeometric.Random_hyper_geometric.rhyper(m, n, k));
+      vb.add(HyperGeometric.Random_hyper_geometric.rhyper(context, m, n, k));
     }
     return (vb.build());
   }
@@ -297,10 +308,10 @@ public class RNG {
    * 
    * mhsatman
    */
-  public static double unif_rand() {
+  public double unif_rand() {
     double value;
 
-    switch (RNG_kind) {
+    switch (this.RNG_kind) {
 
       case WICHMANN_HILL:
         throw new EvalException(RNG_kind + " not implemented yet");
@@ -313,10 +324,10 @@ public class RNG {
 
       case MERSENNE_TWISTER:
         if (mersenneTwisterAlg == null) {
-          if (RNG.randomseed == 0) {
+          if (this.randomseed == 0) {
             Randomize(RNG_kind);
           }
-          mersenneTwisterAlg = new MersenneTwister((long) RNG.randomseed);
+          mersenneTwisterAlg = new MersenneTwister((long) this.randomseed);
         }
         return (mersenneTwisterAlg.nextDouble());
 
@@ -333,10 +344,10 @@ public class RNG {
   /*
    * This part of R is platform dependent. this formula is random itself :)
    */
-  static void Randomize(RNGtype kind) {
+  public void Randomize(RNGtype kind) {
     int sseed;
     sseed = (int) (new java.util.Date()).getTime();
-    RNG.randomseed = sseed;
+    this.randomseed = sseed;
     switch (RNG_kind) {
 
       case WICHMANN_HILL:

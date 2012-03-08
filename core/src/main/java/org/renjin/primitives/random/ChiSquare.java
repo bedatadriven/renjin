@@ -25,6 +25,7 @@
 package org.renjin.primitives.random;
 
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 
 public class ChiSquare {
@@ -32,17 +33,17 @@ public class ChiSquare {
   /*
    * For central chi-square distribution
    */
-  static double rchisq(double df) {
+  static double rchisq(Context context, double df) {
     if (df < 0.0) {
       return (Double.NaN);
     }
-    return Gamma.rgamma(df / 2.0, 2.0);
+    return Gamma.rgamma(context, df / 2.0, 2.0);
   }
 
   /*
    * Chi-square distribution with non-central parameter.
    */
-  static double rnchisq(double df, double lambda) {
+  static double rnchisq(Context context, double df, double lambda) {
     if (df < 0. || lambda < 0.) {
       return Double.NaN;
     }
@@ -51,15 +52,15 @@ public class ChiSquare {
       if (df == 0.) {
         return (Double.NaN);
       } else {
-        return Gamma.rgamma(df / 2., 2.);
+        return Gamma.rgamma(context, df / 2., 2.);
       }
     } else {
-      double r = Poisson.rpois(lambda / 2.);
+      double r = Poisson.rpois(context, lambda / 2.);
       if (r > 0.) {
-        r = rchisq(2. * r);
+        r = rchisq(context, 2. * r);
       }
       if (df > 0.) {
-        r += Gamma.rgamma(df / 2., 2.);
+        r += Gamma.rgamma(context, df / 2., 2.);
       }
       return r;
     }

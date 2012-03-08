@@ -2,11 +2,12 @@ package org.renjin.primitives.random;
 
 import org.renjin.primitives.MathExt;
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 
 public class Binom {
 
-  public static double rbinom(double nin, double pp) {
+  public static double rbinom(Context context, double nin, double pp) {
 
     /* static */
     double c = 0, fm = 0, npq = 0, p1 = 0, p2 = 0, p3 = 0, p4 = 0, qn = 0;
@@ -39,7 +40,7 @@ public class Binom {
     }
 
     if (r >= Integer.MAX_VALUE) {
-      return Distributions.qbinom(RNG.unif_rand(), (int) r, pp, false, false);
+      return Distributions.qbinom(context.rng.unif_rand(), (int) r, pp, false, false);
     }
     /* else */
     n = (int) r;
@@ -69,7 +70,7 @@ public class Binom {
         while (true) {
           ix = 0;
           f = qn;
-          u = RNG.unif_rand();
+          u = context.rng.unif_rand();
           while (true) {
             if (u < f) {
               if (psave > 0.5) {
@@ -116,7 +117,7 @@ public class Binom {
       while (true) {
         ix = 0;
         f = qn;
-        u = RNG.unif_rand();
+        u = context.rng.unif_rand();
         while (true) {
           if (u < f) {
             if (psave > 0.5) {
@@ -137,8 +138,8 @@ public class Binom {
 
     /*-------------------------- np = n*p >= 30 : ------------------- */
     while (true) {
-      u = RNG.unif_rand() * p4;
-      v = RNG.unif_rand();
+      u = context.rng.unif_rand() * p4;
+      v = context.rng.unif_rand();
       /* triangular region */
       if (u <= p1) {
         ix = (int) (xm - p1 * v + u);

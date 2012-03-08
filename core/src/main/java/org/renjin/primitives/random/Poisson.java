@@ -20,6 +20,7 @@
  */
 package org.renjin.primitives.random;
 
+import r.lang.Context;
 import r.lang.DoubleVector;
 import org.apache.commons.math.special.Gamma;
 
@@ -57,7 +58,7 @@ public class Poisson {
     return ((y >= 0) ? Math.abs(x) : Math.abs(x));
   }
 
-  public static double rpois(double mu) {
+  public static double rpois(Context context, double mu) {
 
     /* Local Vars  [initialize some for -Wall]: */
     double del, difmuk = 0., E = 0., fk = 0., fx, fy, g, px, py, t, u = 0., v, x;
@@ -109,7 +110,7 @@ public class Poisson {
 
         for (;;) {
           /* Step U. uniform sample for inversion method */
-          u = RNG.unif_rand();
+          u = context.rng.unif_rand();
           if (u <= p0) {
             return 0.;
           }
@@ -148,7 +149,7 @@ public class Poisson {
     /* Only if mu >= 10 : ----------------------- */
 
     /* Step N. normal sample */
-    g = mu + s * Normal.norm_rand();/* norm_rand() ~ N(0,1), standard normal */
+    g = mu + s * Normal.norm_rand(context);/* norm_rand() ~ N(0,1), standard normal */
 
     if (g >= 0.) {
       pois = Math.floor(g);
@@ -159,7 +160,7 @@ public class Poisson {
       /* Step S. squeeze acceptance */
       fk = pois;
       difmuk = mu - fk;
-      u = RNG.unif_rand(); /* ~ U(0,1) - sample */
+      u = context.rng.unif_rand(); /* ~ U(0,1) - sample */
       if (d * u >= difmuk * difmuk * difmuk) {
         return pois;
       }
@@ -198,11 +199,11 @@ public class Poisson {
       if (!gotoStepF) {
         /* Step E. Exponential Sample */
 
-        E = Exponantial.exp_rand();	/* ~ Exp(1) (standard exponential) */
+        E = Exponantial.exp_rand(context);	/* ~ Exp(1) (standard exponential) */
 
         /*  sample t from the laplace 'hat'
         (if t <= -0.6744 then pk < fk for all mu >= 10.) */
-        u = 2 * RNG.unif_rand() - 1.;
+        u = 2 * context.rng.unif_rand() - 1.;
         t = 1.8 + fsign(E, u);
         if (t > -0.6744) {
           pois = Math.floor(mu + s * t);

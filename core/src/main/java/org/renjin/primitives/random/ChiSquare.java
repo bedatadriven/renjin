@@ -33,7 +33,7 @@ public class ChiSquare {
   /*
    * For central chi-square distribution
    */
-  static double rchisq(Context context, double df) {
+  static double rchisq(Context.Globals context, double df) {
     if (df < 0.0) {
       return (Double.NaN);
     }
@@ -43,7 +43,7 @@ public class ChiSquare {
   /*
    * Chi-square distribution with non-central parameter.
    */
-  static double rnchisq(Context context, double df, double lambda) {
+  static double rnchisq(Context.Globals context, double df, double lambda) {
     if (df < 0. || lambda < 0.) {
       return Double.NaN;
     }

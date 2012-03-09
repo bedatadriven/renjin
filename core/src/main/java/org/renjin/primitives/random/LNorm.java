@@ -25,7 +25,7 @@ import r.lang.DoubleVector;
 
 public class LNorm {
 
-  public static double rlnorm(Context context, double meanlog, double sdlog) {
+  public static double rlnorm(Context.Globals context, double meanlog, double sdlog) {
     if (Double.isNaN(meanlog) || sdlog < 0.) {
       return (Double.NaN);
     }

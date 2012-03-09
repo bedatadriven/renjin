@@ -24,7 +24,7 @@ import r.lang.Context;
 
 public class Weibull {
 
-  public static double rweibull(Context context, double shape, double scale) {
+  public static double rweibull(Context.Globals context, double shape, double scale) {
     if (Double.isInfinite(shape) || Double.isInfinite(scale) || shape <= 0. || scale <= 0.) {
       if (scale == 0.) {
         return 0.;

@@ -73,7 +73,7 @@ public class SignRank {
    * Random Number Generator for SignRank
    * 
    */
-  public static double rsignrank(Context context, double n) {
+  public static double rsignrank(Context.Globals context, double n) {
     int i, k;
     double r;
 

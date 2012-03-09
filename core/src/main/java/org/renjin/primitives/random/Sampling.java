@@ -26,7 +26,7 @@ public class Sampling {
     return (result);
   }
 
-  public static IntVector sampleWithReplacement(Context context, int size, double[] prob) {
+  public static IntVector sampleWithReplacement(Context.Globals context, int size, double[] prob) {
     double[] cumProbs = new double[prob.length];
     IntVector.Builder resultb = new IntVector.Builder();
     cumProbs[0] = prob[0];
@@ -50,7 +50,7 @@ public class Sampling {
    * Because of the first stage aim, I am leaving it as a running but in-efficient algorithm.
    * Tests were passed :)
    */
-  public static IntVector sampleWithoutReplacement(Context context, int size, double[] prob) {
+  public static IntVector sampleWithoutReplacement(Context.Globals context, int size, double[] prob) {
     double[] cumProbs = new double[prob.length];
     int[] selectedIndices = new int[prob.length];
     int numItems = 0;
@@ -73,7 +73,7 @@ public class Sampling {
   }
 
   @Primitive("sample")
-  public static IntVector sample(@Current Context context, int x, int size, boolean replace, SEXP prob) {
+  public static IntVector sample(@Current Context.Globals context, int x, int size, boolean replace, SEXP prob) {
     double[] probs = new double[x];
     int mysize = size;
 

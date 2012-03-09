@@ -24,7 +24,7 @@ import r.lang.Context;
 
 public class NegativeBinom {
 
-  public static double rnbinom(Context context, double size, double prob) {
+  public static double rnbinom(Context.Globals context, double size, double prob) {
     if (Double.isInfinite(size) || Double.isInfinite(prob) || size <= 0 || prob <= 0 || prob > 1) {
       /* prob = 1 is ok, PR#1218 */
       return (Double.NaN);
@@ -32,7 +32,7 @@ public class NegativeBinom {
     return (prob == 1) ? 0 : Poisson.rpois(context, Gamma.rgamma(context, size, (1 - prob) / prob));
   }
 
-  public static double rnbinom_mu(Context context, double size, double mu) {
+  public static double rnbinom_mu(Context.Globals context, double size, double mu) {
     if (Double.isInfinite(size) || Double.isInfinite(mu) || size <= 0 || mu < 0) {
       return (Double.NaN);
     }

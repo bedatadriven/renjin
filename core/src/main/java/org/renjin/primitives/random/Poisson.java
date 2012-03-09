@@ -58,7 +58,7 @@ public class Poisson {
     return ((y >= 0) ? Math.abs(x) : Math.abs(x));
   }
 
-  public static double rpois(Context context, double mu) {
+  public static double rpois(Context.Globals context, double mu) {
 
     /* Local Vars  [initialize some for -Wall]: */
     double del, difmuk = 0., E = 0., fk = 0., fx, fy, g, px, py, t, u = 0., v, x;

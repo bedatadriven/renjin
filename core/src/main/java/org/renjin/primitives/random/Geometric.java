@@ -25,7 +25,7 @@ import r.lang.DoubleVector;
 
 public class Geometric {
 
-  public static double rgeom(Context context, double p) {
+  public static double rgeom(Context.Globals context, double p) {
     if (p <= 0 || p > 1) {
       return (Double.NaN);
     }

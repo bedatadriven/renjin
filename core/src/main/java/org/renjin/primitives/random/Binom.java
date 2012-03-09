@@ -7,7 +7,7 @@ import r.lang.DoubleVector;
 
 public class Binom {
 
-  public static double rbinom(Context context, double nin, double pp) {
+  public static double rbinom(Context.Globals context, double nin, double pp) {
 
     /* static */
     double c = 0, fm = 0, npq = 0, p1 = 0, p2 = 0, p3 = 0, p4 = 0, qn = 0;

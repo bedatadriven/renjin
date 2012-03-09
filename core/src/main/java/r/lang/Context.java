@@ -98,8 +98,7 @@ public class Context {
 
   private List<SEXP> onExit = Lists.newArrayList();
 
-  public RNG rng = new RNG(this);
-  
+    
   public static class Options {
     private Map<String, SEXP> map;
 
@@ -187,6 +186,7 @@ public class Context {
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
     
+    public RNG rng = new RNG(this);
      
     /**
      * Whether the result of the evaluation should be "invisible" in a

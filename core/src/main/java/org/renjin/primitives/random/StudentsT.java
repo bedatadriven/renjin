@@ -18,7 +18,7 @@ public class StudentsT {
    * return Normal.norm_rand() / Math.sqrt(ChiSquare.rchisq(df) / df);
    * }
    */
-  public static double rt(Context context, double df) {
+  public static double rt(Context.Globals context, double df) {
     if (Double.isNaN(df) || df <= 0.0) {
       return (Double.NaN);
     }

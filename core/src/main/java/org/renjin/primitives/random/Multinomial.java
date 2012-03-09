@@ -6,7 +6,7 @@ import r.lang.IntVector;
 
 public class Multinomial {
 
-  public static void rmultinom(Context context, int n, double[] prob, int K, int[] rN) /* `Return' vector  rN[1:K] {K := length(prob)}
+  public static void rmultinom(Context.Globals context, int n, double[] prob, int K, int[] rN) /* `Return' vector  rN[1:K] {K := length(prob)}
    *  where rN[j] ~ Bin(n, prob[j]) ,  sum_j rN[j] == n,  sum_j prob[j] == 1,
    */ {
     int k;

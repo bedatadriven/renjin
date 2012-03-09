@@ -25,7 +25,7 @@ import r.lang.Context;
 
 public class RLogis {
 
-  public static double rlogis(Context context, double location, double scale) {
+  public static double rlogis(Context.Globals context, double location, double scale) {
     if (Double.isNaN(location) || Double.isInfinite(scale)) {
       return (Double.NaN);
     }

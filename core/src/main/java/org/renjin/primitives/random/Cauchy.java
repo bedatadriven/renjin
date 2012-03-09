@@ -24,7 +24,7 @@ import r.lang.Context;
 
 public class Cauchy {
 
-  public static double rcauchy(Context context, double location, double scale) {
+  public static double rcauchy(Context.Globals context, double location, double scale) {
     if (Double.isNaN(location) || scale < 0) {
       return Double.NaN;
     }

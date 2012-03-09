@@ -53,7 +53,7 @@ public class HyperGeometric {
     static double a, d, s, w;
     static double tn, xl, xr, kl, kr, lamdl, lamdr, p1, p2, p3;
 
-    public static double rhyper(Context context, double nn1in, double nn2in, double kkin) {
+    public static double rhyper(Context.Globals context, double nn1in, double nn2in, double kkin) {
 
 
       /* These should become `thread_local globals' : */
@@ -189,7 +189,7 @@ public class HyperGeometric {
       return ix;
     }
 
-    public static void L10(Context context) {
+    public static void L10(Context.Globals context) {
       //L10:
       p = w;
       ix = minjx;
@@ -198,7 +198,7 @@ public class HyperGeometric {
       //??????????????*
     }
 
-    public static void L20(Context context) {
+    public static void L20(Context.Globals context) {
       if (u > p) {
         u -= p;
         p *= (n1 - ix) * (k - ix);
@@ -211,7 +211,7 @@ public class HyperGeometric {
       }
     }
 
-    public static void L30(Context context) {
+    public static void L30(Context.Globals context) {
       u = context.rng.unif_rand() * p3;
       v = context.rng.unif_rand();
       if (u < p1) { /* rectangular region */

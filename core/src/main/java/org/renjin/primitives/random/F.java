@@ -6,7 +6,7 @@ import r.lang.DoubleVector;
 
 public class F {
 
-  public static double rf(Context context, double n1, double n2) {
+  public static double rf(Context.Globals context, double n1, double n2) {
     double v1, v2;
     if (Double.isNaN(n1) || Double.isNaN(n2) || n1 <= 0. || n2 <= 0.) {
       return (Double.NaN);

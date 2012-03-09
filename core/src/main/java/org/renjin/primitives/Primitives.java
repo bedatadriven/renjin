@@ -4,8 +4,8 @@ import static org.renjin.primitives.PPkind.PP_BINARY;
 import static org.renjin.primitives.PPkind.PP_BINARY2;
 import static org.renjin.primitives.PPkind.PP_DOLLAR;
 import static org.renjin.primitives.PPkind.PP_FOREIGN;
-import static org.renjin.primitives.PPkind.PP_FUNCALL;
 import static org.renjin.primitives.PPkind.PP_FUNCTION;
+import static org.renjin.primitives.PPkind.PP_FUNCALL;
 import static org.renjin.primitives.PPkind.PP_SUBASS;
 import static org.renjin.primitives.PPkind.PP_SUBSET;
 import static org.renjin.primitives.PPkind.PP_UNARY;
@@ -33,6 +33,7 @@ import static r.util.CDefines.RelOpType.NEOP;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Condition;
 
 import org.apache.commons.math.distribution.Distribution;
 import org.renjin.primitives.annotations.processor.WrapperGenerator;
@@ -40,7 +41,9 @@ import org.renjin.primitives.files.Files;
 import org.renjin.primitives.graphics.Graphics;
 import org.renjin.primitives.graphics.Par;
 import org.renjin.primitives.graphics.Plot;
-import org.renjin.primitives.io.Connections;
+import org.renjin.primitives.io.Cat;
+import org.renjin.primitives.io.connections.Connections;
+import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.match.Match;
 import org.renjin.primitives.matrix.Matrices;
@@ -172,7 +175,7 @@ public class Primitives {
     f(".addCondHands", Conditions.class, 0, 111, 5);
     f(".resetCondHands", /*resetCondHands*/ null, 0, 111, 1);
     f(".signalCondition", Conditions.class, 0, 11, 3);
-    f(".dfltStop", /*dfltStop*/ null, 0, 11, 2);
+    f(".dfltStop", Conditions.class, 0, 11, 2);
     f(".dfltWarn", /*dfltWarn*/ null, 0, 11, 2);
     f(".addRestart", Conditions.class, 0, 11, 1);
     f(".getRestart", /*getRestart*/ null, 0, 11, 1);
@@ -221,7 +224,7 @@ public class Primitives {
 
     f("Recall", /*recall*/ null, 0, 210, -1);
     f("delayedAssign", Evaluation.class, 0, 111, 4);
-    f("makeLazy", Connections.class, 0, 111, 5);
+    f("makeLazy", Serialization.class, 0, 111, 5);
     f(".Primitive", Evaluation.class, 0, 1, 1);
     f("identical",  Types.class, 0, 11, 5);
 
@@ -574,7 +577,7 @@ public class Primitives {
     f("file.path", Text.class, 0, 11, 2);
     f("format", Text.class, 0, 11, 8);
     f("format.info", /*formatinfo*/ null, 0, 11, 3);
-    f("cat", Connections.class, 0, 111, 6);
+    f("cat", Cat.class, 0, 111, 6);
     f("call", Evaluation.class, 0, 0, -1);
     f("do.call", Evaluation.class, 0, 211, 3);
     f("as.call", Types.class, 0, 1, 1);
@@ -667,9 +670,9 @@ public class Primitives {
     f("save", /*save*/ null, 0, 111, 6);
     f("saveToConn", /*saveToConn*/ null, 0, 111, 6);
     f("load", /*load*/ null, 0, 111, 2);
-    f("loadFromConn2", Connections.class, 0, 111, 2);
+    f("loadFromConn2", Serialization.class, 0, 111, 2);
     f("serializeToConn", /*serializeToConn*/ null, 0, 111, 5);
-    f("unserializeFromConn", Connections.class, 0, 111, 2);
+    f("unserializeFromConn", Serialization.class, 0, 111, 2);
     f("deparse", Deparse.class, 0, 11, 5);
     f("deparseRd", /*deparseRd*/ null, 0, 11, 2);
     f("dput", /*dput*/ null, 0, 111, 3);
@@ -1006,7 +1009,7 @@ public class Primitives {
     f("write.table", /*writetable*/ null, 0, 111, 11);
     f("Encoding", Types.class, 0, 11, 1);
     f("setEncoding", Types.class, 0, 11, 2);
-    f("lazyLoadDBfetch", Connections.class, 0, 1, 4);
+    f("lazyLoadDBfetch", Serialization.class, 0, 1, 4);
     f("setTimeLimit", /*setTimeLimit*/ null, 0, 111, 3);
     f("setSessionTimeLimit", /*setSessionTimeLimit*/ null, 0, 111, 2);
     f("icuSetCollate", /*ICUset*/ null, 0, 111, -1, PP_FUNCALL, PREC_FN, 0) ;

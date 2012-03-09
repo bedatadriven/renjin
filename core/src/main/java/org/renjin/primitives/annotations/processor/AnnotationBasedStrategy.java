@@ -94,7 +94,9 @@ public class AnnotationBasedStrategy extends GeneratorStrategy  {
     if(formal.getClazz().equals(Context.class)) {
       return "context";
     } else if(formal.getClazz().equals(Environment.class)) {
-      return "rho"; 
+      return "rho";
+    } else if(formal.getClazz().equals(Context.Globals.class)) {
+      return "context.getGlobals()";
     } else {
       throw new RuntimeException("Invalid contextual argument type: " + formal.getClazz());
     }

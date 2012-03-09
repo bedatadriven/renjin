@@ -19,45 +19,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.serialization;
 
-import static org.renjin.primitives.io.SerializationFormat.BASEENV_SXP;
-import static org.renjin.primitives.io.SerializationFormat.BASENAMESPACE_SXP;
-import static org.renjin.primitives.io.SerializationFormat.BCODESXP;
-import static org.renjin.primitives.io.SerializationFormat.BUILTINSXP;
-import static org.renjin.primitives.io.SerializationFormat.CHARSXP;
-import static org.renjin.primitives.io.SerializationFormat.CLASSREFSXP;
-import static org.renjin.primitives.io.SerializationFormat.CLOSXP;
-import static org.renjin.primitives.io.SerializationFormat.CPLXSXP;
-import static org.renjin.primitives.io.SerializationFormat.DOTSXP;
-import static org.renjin.primitives.io.SerializationFormat.EMPTYENV_SXP;
-import static org.renjin.primitives.io.SerializationFormat.ENVSXP;
-import static org.renjin.primitives.io.SerializationFormat.EXPRSXP;
-import static org.renjin.primitives.io.SerializationFormat.EXTPTRSXP;
-import static org.renjin.primitives.io.SerializationFormat.GENERICREFSXP;
-import static org.renjin.primitives.io.SerializationFormat.GLOBALENV_SXP;
-import static org.renjin.primitives.io.SerializationFormat.INTSXP;
-import static org.renjin.primitives.io.SerializationFormat.LANGSXP;
-import static org.renjin.primitives.io.SerializationFormat.LGLSXP;
-import static org.renjin.primitives.io.SerializationFormat.LISTSXP;
-import static org.renjin.primitives.io.SerializationFormat.MISSINGARG_SXP;
-import static org.renjin.primitives.io.SerializationFormat.NAMESPACESXP;
-import static org.renjin.primitives.io.SerializationFormat.NILVALUE_SXP;
-import static org.renjin.primitives.io.SerializationFormat.PACKAGESXP;
-import static org.renjin.primitives.io.SerializationFormat.PERSISTSXP;
-import static org.renjin.primitives.io.SerializationFormat.PROMSXP;
-import static org.renjin.primitives.io.SerializationFormat.RAWSXP;
-import static org.renjin.primitives.io.SerializationFormat.REALSXP;
-import static org.renjin.primitives.io.SerializationFormat.REFSXP;
-import static org.renjin.primitives.io.SerializationFormat.S4SXP;
-import static org.renjin.primitives.io.SerializationFormat.SPECIALSXP;
-import static org.renjin.primitives.io.SerializationFormat.STRSXP;
-import static org.renjin.primitives.io.SerializationFormat.SYMSXP;
-import static org.renjin.primitives.io.SerializationFormat.UNBOUNDVALUE_SXP;
-import static org.renjin.primitives.io.SerializationFormat.VECSXP;
-import static org.renjin.primitives.io.SerializationFormat.VERSION2;
-import static org.renjin.primitives.io.SerializationFormat.WEAKREFSXP;
-import static org.renjin.primitives.io.SerializationFormat.XDR_NA_BITS;
+import static org.renjin.primitives.io.serialization.SerializationFormat.BASEENV_SXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.BASENAMESPACE_SXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.BCODESXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.BUILTINSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.CHARSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.CLASSREFSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.CLOSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.CPLXSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.DOTSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.EMPTYENV_SXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.ENVSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.EXPRSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.EXTPTRSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.GENERICREFSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.GLOBALENV_SXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.INTSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.LANGSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.LGLSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.LISTSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.MISSINGARG_SXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.NAMESPACESXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.NILVALUE_SXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.PACKAGESXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.PERSISTSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.PROMSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.RAWSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.REALSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.REFSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.S4SXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.SPECIALSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.STRSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.SYMSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.UNBOUNDVALUE_SXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.VECSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.VERSION2;
+import static org.renjin.primitives.io.serialization.SerializationFormat.WEAKREFSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_NA_BITS;
 
 import java.io.BufferedReader;
 import java.io.DataInput;
@@ -117,6 +117,11 @@ public class RDataReader {
 
   public SEXP readFile() throws IOException {
     in = readHeader(conn);
+    readAndVerifyVersion();
+    return readExp();
+  }
+
+  protected void readAndVerifyVersion() throws IOException {
     version = in.readInt();
     writerVersion = new Version(in.readInt());
     releaseVersion = new Version(in.readInt());
@@ -130,8 +135,6 @@ public class RDataReader {
             version, releaseVersion, releaseVersion));
       }
     }
-
-    return readExp();
   }
 
 
@@ -154,7 +157,7 @@ public class RDataReader {
       }
     }
 
-    for(int i= VERSION2;i!=7;++i) {
+    for(int i= 2;i!=7;++i) {
       bytes[i] = (byte) conn.read();
     }
 

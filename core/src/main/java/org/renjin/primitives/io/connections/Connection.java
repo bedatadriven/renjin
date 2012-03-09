@@ -19,32 +19,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
-
-import r.lang.Connection;
+package org.renjin.primitives.io.connections;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 
 /**
- * Connection object for the standard input stream.
- * Currently a stub, will throw an exception if actually used.
+ *  By default the connection is not opened when created (except for ‘socketConnection’), but may
+ *  be opened by setting a non-empty value of argument ‘open’.
+ *
  */
-public class StdInConnection implements Connection {
+public interface Connection {
+  
+  
+  /**
+   * 
+   * @return the file 
+   * @throws IOException 
+   */
+  InputStream getInputStream() throws IOException;
+  
+  Reader getReader() throws IOException;
+  
+  OutputStream getOutputStream() throws IOException;
 
-  @Override
-  public InputStream getInputStream() throws IOException {
-    return null; // TODO
-  }
+  PrintWriter getPrintWriter() throws IOException;
+  
+  void close() throws IOException;
 
-  @Override
-  public PrintWriter getPrintWriter() throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void close() throws IOException {
-    /* NOOP */
-  }
 }

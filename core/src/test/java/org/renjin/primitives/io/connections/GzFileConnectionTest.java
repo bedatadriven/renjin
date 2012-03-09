@@ -19,13 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.connections;
 
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.VFS;
 import org.junit.Test;
-import org.renjin.primitives.io.Connections;
-import org.renjin.primitives.io.GzFileConnection;
+import org.renjin.primitives.io.connections.Connections;
+import org.renjin.primitives.io.connections.GzFileConnection;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class GzFileConnectionTest {
   public void readCompressed() throws IOException {
 
     FileObject file = VFS.getManager().resolveFile(getClass().getResource("test.txt.gz").getFile());
-    GzFileConnection conn = new GzFileConnection(file);
+    GzFileConnection conn = new GzFileConnection(file, "");
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
     assertThat(reader.readLine(), equalTo("hello world"));
@@ -51,7 +51,7 @@ public class GzFileConnectionTest {
   public void multipleReads() throws IOException {
 
     FileObject file = VFS.getManager().resolveFile(getClass().getResource("test2.txt").getFile());
-    GzFileConnection conn = new GzFileConnection(file);
+    GzFileConnection conn = new GzFileConnection(file, "");
 
     assertThat( Connections.readChar(conn, 9, false), equalTo("The quick"));
     assertThat( Connections.readChar(conn, 6, false), equalTo(" brown"));
@@ -63,7 +63,7 @@ public class GzFileConnectionTest {
   public void readUnCompressed() throws IOException {
 
     FileObject file = VFS.getManager().resolveFile(getClass().getResource("test.txt").getFile());
-    GzFileConnection conn = new GzFileConnection(file);
+    GzFileConnection conn = new GzFileConnection(file, "");
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
     assertThat(reader.readLine(), equalTo("Hello again, dear world"));

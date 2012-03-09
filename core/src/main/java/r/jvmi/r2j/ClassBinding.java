@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import r.lang.Context;
 import r.lang.SEXP;
 import r.lang.Symbol;
 
@@ -151,8 +152,8 @@ public class ClassBinding {
     return getStaticMember(Symbol.get(name));
   }
 
-  public Object newInstance(List<SEXP> constructorArgs) {
-    return constructorBinding.newInstance(constructorArgs);
+  public Object newInstance(Context context, List<SEXP> constructorArgs) {
+    return constructorBinding.newInstance(context, constructorArgs);
   }
 
   public Class getBoundClass() {

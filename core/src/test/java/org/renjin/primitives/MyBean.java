@@ -4,6 +4,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.renjin.primitives.annotations.Current;
+
+import r.lang.Context;
 import r.lang.DoubleVector;
 
 import com.google.common.base.Joiner;
@@ -101,6 +104,10 @@ public class MyBean {
     public int getCount() {
       return 42;
     } 
+  }
+
+  public void methodWithContext(@Current Context context, String name) {
+    java.lang.System.out.println(context);
   }
   
   public void overloadedWithVarArgs(String label, String... sources) {

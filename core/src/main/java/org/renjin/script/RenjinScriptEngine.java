@@ -13,6 +13,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 
+import org.renjin.primitives.Warning;
+
 import r.jvmi.r2j.converters.Converters;
 import r.jvmi.r2j.converters.RuntimeConverter;
 import r.lang.Context;
@@ -50,6 +52,10 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     this.topLevelContext = context;
   }
 
+  public Context.Globals getApartment() {
+    return topLevelContext.getGlobals();
+  }
+  
   @Override
   public Bindings createBindings() {
     return new RenjinBindings(new HashFrame());
@@ -234,6 +240,18 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   
   public FunctionCallBuilder invoke(String functionName) {
     return new FunctionCallBuilder(functionName);
+  }
+  
+
+
+  public void printWarnings() {
+    SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    if(warnings != Symbol.UNBOUND_VALUE) {
+      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+        topLevelContext.getEnvironment().getBaseEnvironment());
+    }
+
+    topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
   
   public class FunctionCallBuilder {

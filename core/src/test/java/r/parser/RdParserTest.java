@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 
 import org.junit.Test;
-import org.renjin.primitives.io.RDataReader;
+import org.renjin.primitives.io.serialization.RDataReader;
 
 import r.EvalTestCase;
 import r.lang.ListVector;

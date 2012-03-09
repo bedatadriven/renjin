@@ -46,7 +46,7 @@ public final class ExternalExp<T> extends AbstractSEXP {
 
   @Override
   public String getTypeName() {
-    return "external";
+    return "external[" + (value == null ? "null" : value.getClass().getName()) + "]";
   }
 
   public T getValue() {

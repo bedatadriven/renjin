@@ -56,7 +56,7 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
       }
     }
   
-    Object instance = binding.newInstance(constructorArgs);
+    Object instance = binding.newInstance(context, constructorArgs);
     Environment env = Environment.createChildEnvironment(Environment.EMPTY,
         new ObjectFrame(instance));
     

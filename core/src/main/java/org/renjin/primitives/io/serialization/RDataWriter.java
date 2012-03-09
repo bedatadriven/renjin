@@ -19,42 +19,55 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.serialization;
 
-import static org.renjin.primitives.io.SerializationFormat.CHARSXP;
-import static org.renjin.primitives.io.SerializationFormat.INTSXP;
-import static org.renjin.primitives.io.SerializationFormat.LGLSXP;
-import static org.renjin.primitives.io.SerializationFormat.LISTSXP;
-import static org.renjin.primitives.io.SerializationFormat.NILVALUE_SXP;
-import static org.renjin.primitives.io.SerializationFormat.RAWSXP;
-import static org.renjin.primitives.io.SerializationFormat.REALSXP;
-import static org.renjin.primitives.io.SerializationFormat.STRSXP;
-import static org.renjin.primitives.io.SerializationFormat.SYMSXP;
-import static org.renjin.primitives.io.SerializationFormat.UTF8_MASK;
-import static org.renjin.primitives.io.SerializationFormat.VECSXP;
-import static org.renjin.primitives.io.SerializationFormat.VERSION2;
-import static org.renjin.primitives.io.SerializationFormat.XDR_FORMAT;
+import static org.renjin.primitives.io.serialization.SerializationFormat.CHARSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.INTSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.LGLSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.LISTSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.NILVALUE_SXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.RAWSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.REALSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.STRSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.SYMSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.UTF8_MASK;
+import static org.renjin.primitives.io.serialization.SerializationFormat.VECSXP;
+import static org.renjin.primitives.io.serialization.SerializationFormat.VERSION2;
+import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_FORMAT;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
 
+import org.renjin.primitives.Namespaces;
+
+import com.google.common.collect.Maps;
+
+import r.lang.Closure;
+import r.lang.Context;
 import r.lang.DoubleVector;
+import r.lang.Environment;
+import r.lang.FunctionCall;
 import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.LogicalVector;
 import r.lang.Null;
 import r.lang.PairList;
+import r.lang.RawVector;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.Symbol;
-import r.lang.RawVector;
 
 public class RDataWriter {
 
+  private Context context;
   private DataOutputStream out;
 
-  public RDataWriter(OutputStream out) throws IOException {
+  private Map<SEXP, Integer> references = Maps.newHashMap();
+
+  public RDataWriter(Context context, OutputStream out) throws IOException {
+    this.context = context;
     this.out = new DataOutputStream(out);
     writeHeader();
   }
@@ -79,12 +92,18 @@ public class RDataWriter {
       writeStringVector((StringVector) exp);
     } else if(exp instanceof ListVector) {
       writeList((ListVector) exp);
+    } else if(exp instanceof FunctionCall) {
+      writeFunctionCall((FunctionCall)exp);
     } else if(exp instanceof PairList.Node){
       writePairList((PairList.Node) exp);
     } else if(exp instanceof Symbol) {
       writeSymbol((Symbol) exp);
+    } else if(exp instanceof Closure) {
+      writeClosure((Closure)exp);
     } else if(exp instanceof RawVector) {
       writeRawVector((RawVector) exp);
+    } else if(exp instanceof Environment) {
+      writeEnvironment((Environment)exp);
     } else {
       throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented");
     }
@@ -134,6 +153,9 @@ public class RDataWriter {
     writeAttributes(vector);
   }
   
+  private void writeStringVector(String element) throws IOException {
+    writeStringVector(new StringVector(element));
+  }
 
   private void writeStringVector(StringVector vector) throws IOException {
     writeFlags(STRSXP, vector);
@@ -164,6 +186,97 @@ public class RDataWriter {
       writeNull();
     }
   }
+
+  private void writeFunctionCall(FunctionCall exp) throws IOException {
+    writeFlags(SerializationFormat.LANGSXP, exp);
+    writeAttributes(exp);
+    writeTag(exp);
+    writeExp(exp.getValue());
+    if(exp.hasNextNode()) {
+      writeExp(exp.getNextNode());
+    } else {
+      writeNull();
+    }
+  }
+
+  private void writeClosure(Closure exp) throws IOException {
+    writeFlags(SerializationFormat.CLOSXP, exp);
+    writeAttributes(exp);
+    writeExp(exp.getEnclosingEnvironment());
+    writeExp(exp.getFormals());
+    writeExp(exp.getBody());
+  }
+  
+  private void writeEnvironment(Environment env) throws IOException {
+    if(env == context.getGlobalEnvironment()) {
+      out.writeInt(SerializationFormat.GLOBALENV_SXP);
+    } else if(env == context.getGlobalEnvironment().getBaseEnvironment()) {
+      out.writeInt(SerializationFormat.BASEENV_SXP);
+    } else if(env == Environment.EMPTY) {
+      out.writeInt(SerializationFormat.EMPTYENV_SXP);
+    } else if(Namespaces.isNamespaceEnv(context, env)) {
+      writeNamespace(env);
+    } else {
+      
+      if(!writeRef(env)) {
+        writeFlags(SerializationFormat.ENVSXP, env);
+        writeExp(env.getParent());
+        writeFrame(env);
+        writeExp(Null.INSTANCE); // hashtab (unused)
+        writeExp(env.getAttributes());
+        addRef(env);
+      }    
+    }
+  }
+  
+  private void writeFrame(Environment exp) throws IOException {
+    PairList.Builder frame = new PairList.Builder();
+    for(Symbol name : exp.getSymbolNames()) {
+      frame.add(name, exp.getVariable(name));
+    }
+    writeExp(frame.build());
+  }
+
+  private void writeNamespace(Environment ns) throws IOException {
+    if(ns == context.getGlobals().namespaceRegistry.getVariable(Symbol.get("base"))) {
+      out.writeInt(SerializationFormat.BASENAMESPACE_SXP);
+    } else {
+      if(!writeRef(ns)) {
+        writeFlags(SerializationFormat.NAMESPACESXP, ns);
+        writeStringVector(getNamespaceName(ns));
+        addRef(ns);
+      }
+    }
+  }
+
+  private boolean writeRef(SEXP ns) throws IOException {
+    if(references.containsKey(ns)) {
+      writeRefIndex(references.get(ns));
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private void writeRefIndex(int index) throws IOException {
+    if(index > Flags.MAX_PACKED_INDEX) {
+      out.writeInt(SerializationFormat.REFSXP);
+      out.writeInt(index);
+    } else {
+      out.writeInt(SerializationFormat.REFSXP | (index << 8));
+    }
+  }
+ 
+  private void addRef(SEXP exp) {
+    references.put(exp, references.size() + 1);
+  }
+
+  private String getNamespaceName(Environment ns) {
+    Environment info = (Environment) ns.getVariable(".__NAMESPACE__.");
+    StringVector spec = (StringVector) info.getVariable("spec");
+    return spec.getElementAsString(0);
+  }
+
   private void writeSymbol(Symbol symbol) throws IOException {
     writeFlags(SYMSXP, symbol);
     writeCharExp(symbol.getPrintName());

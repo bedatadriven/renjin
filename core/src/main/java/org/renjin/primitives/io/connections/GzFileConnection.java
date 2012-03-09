@@ -19,15 +19,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.connections;
 
 import org.apache.commons.vfs.FileObject;
-import r.lang.Connection;
+import org.apache.commons.vfs.FileSystemException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * A connection to a gzipped file.
@@ -38,30 +40,19 @@ import java.util.zip.GZIPInputStream;
  * as a regular file.
  *
  */
-public class GzFileConnection implements Connection {
+public class GzFileConnection extends FileConnection {
 
   public static final int GZIP_MAGIC_BYTE1 = 31;
   public static final int GZIP_MAGIC_BYTE2 = 139;
 
-  private boolean open;
-  private FileObject file;
-  private InputStream in;
 
-  public GzFileConnection(FileObject file) {
-    this.file = file;
-    this.open = true;
+  public GzFileConnection(FileObject file, String openMode) throws IOException {
+    super(file, openMode);
   }
 
   @Override
-  public InputStream getInputStream() throws IOException {
-    if(in == null) {
-      openAsInput();
-    }
-    return in;
-  }
-
-  private void openAsInput() throws IOException {
-    in = file.getContent().getInputStream();
+  protected InputStream doOpenForInput() throws IOException {
+    InputStream in = super.doOpenForInput();
     in.mark(2);
     boolean isCompressed =
         in.read() == GZIP_MAGIC_BYTE1 &&
@@ -69,24 +60,17 @@ public class GzFileConnection implements Connection {
     in.reset();
 
     if(isCompressed) {
-      in = new GZIPInputStream(in);
-    }
-    open = true;
-  }
-
-  @Override
-  public PrintWriter getPrintWriter() throws IOException {
-    return null;
-  }
-
-  @Override
-  public void close() throws IOException {
-    if(open) {
-      if(in!=null) {
-        in.close();
-        in = null;
-      }
-      open = false;
+      return new GZIPInputStream(in);
+    } else {
+      return in;
     }
   }
+  
+  
+  @Override
+  protected OutputStream doOpenForOutput() throws IOException {
+    return new GZIPOutputStream(super.doOpenForOutput());
+  }
+
+
 }

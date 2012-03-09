@@ -162,4 +162,11 @@ public class Conditions {
       context = context.getParent();
     }
   }
+  
+  @Primitive(".dfltStop")
+  public static void defaultStop(@Current Context context, String message, FunctionCall call) {
+    EvalException e = new EvalException(message);
+    e.initContext(context);
+    throw e;
+  }
 }

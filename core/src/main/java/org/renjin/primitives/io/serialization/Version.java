@@ -19,35 +19,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.serialization;
 
-import r.lang.Connection;
-import r.lang.exception.EvalException;
+class Version {
+  private int v, p, s;
+  private int packed;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
+  Version(int packed) {
+    this.packed = packed;
+    v = this.packed / 65536; packed = packed % 65536;
+    p = packed / 256; packed = packed % 256;
+    s = packed;
+  }
 
-public class StdOutConnection implements Connection {
+  Version(int v, int p, int s) {
+    this.v = v;
+    this.p = p;
+    this.s = s;
+    this.packed = s + (p * 256) + (v * 65536);
+  }
 
-  private final PrintWriter writer;
+  public boolean isExperimental() {
+    return packed < 0;
+  }
 
-  public StdOutConnection(PrintWriter writer) {
-    this.writer = writer;
+  public int asPacked() {
+    return packed;
   }
 
   @Override
-  public InputStream getInputStream() throws IOException {
-    throw new EvalException("cannot read from stdout");
-  }
-
-  @Override
-  public PrintWriter getPrintWriter() throws IOException {
-    return writer;
-  }
-
-  @Override
-  public void close() throws IOException {
-
+  public String toString() {
+    return String.format("%d.%d.%d", v, p, s);
   }
 }

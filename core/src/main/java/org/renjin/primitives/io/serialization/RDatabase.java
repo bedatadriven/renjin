@@ -1,4 +1,4 @@
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.serialization;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
+
+import org.renjin.primitives.io.ByteArrayCompression;
 
 
 import r.lang.Context;
@@ -134,7 +136,7 @@ public class RDatabase {
     byte bytes[] = new byte[entry.length];
     buffer.position(entry.offset);
     buffer.get(bytes, 0, entry.length);
-    bytes = Connections.decompress(compression, bytes);
+    bytes = ByteArrayCompression.decompress(compression, bytes);
     return bytes;
   }
   

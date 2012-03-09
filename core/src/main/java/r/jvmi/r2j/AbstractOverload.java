@@ -1,12 +1,16 @@
 package r.jvmi.r2j;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.renjin.primitives.annotations.Current;
+
 import r.jvmi.r2j.converters.Converter;
 import r.jvmi.r2j.converters.Converters;
+import r.lang.Context;
 import r.lang.SEXP;
 
 public abstract class AbstractOverload {
@@ -18,12 +22,14 @@ public abstract class AbstractOverload {
   private int baseArgCount;
   
   private boolean varArgs;
+  private int firstArg = 0;
+  private boolean context;
   private Converter[] argumentConverters;
   
   private Converter varArgConverter;
   private Class varArgElementClass;
   
-  public AbstractOverload(Class[] parameterTypes, boolean varArgs) {
+  public AbstractOverload(Class[] parameterTypes, Annotation[][] annotations, boolean varArgs) {
     this.nargs = parameterTypes.length;
     this.varArgs = varArgs;
     
@@ -33,9 +39,16 @@ public abstract class AbstractOverload {
       baseArgCount = nargs;
     }
     
+    // check for @Current Context args
+    if(firstArgIsContext(annotations)) {
+      firstArg = 1;
+      baseArgCount --;
+      context = true;
+    }
+    
     this.argumentConverters = new Converter[baseArgCount];
     for(int i=0;i!=baseArgCount;++i) {
-      argumentConverters[i] = Converters.get(parameterTypes[i]);
+      argumentConverters[i] = Converters.get(parameterTypes[firstArg+i]);
     }
     
     if(varArgs) {
@@ -43,11 +56,26 @@ public abstract class AbstractOverload {
       varArgConverter = Converters.get(varArgElementClass);
     }
   }
+
+  private boolean firstArgIsContext(Annotation[][] annotations) {
+    if(annotations.length == 0) {
+      return false;
+    }
+    for(int i=0;i!=annotations[0].length;++i) {
+      if(annotations[0][i] instanceof Current) {
+        return true;
+      }
+    }
+    return false;
+  }
   
-  protected final Object[] convertArguments(List<SEXP> args) {
+  protected final Object[] convertArguments(Context context, List<SEXP> args) {
     Object converted[] = new Object[nargs];
+    if(this.context) {
+      converted[0] = context;
+    }
     for(int i=0;i!=baseArgCount;++i) {
-      converted[i] = argumentConverters[i].convertToJava(args.get(i));
+      converted[i+firstArg] = argumentConverters[i].convertToJava(args.get(i));
     }
     if(varArgs) {
       Object extra = Array.newInstance(varArgElementClass, args.size() - baseArgCount);

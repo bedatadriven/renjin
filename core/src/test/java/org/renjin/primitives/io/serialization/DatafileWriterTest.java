@@ -19,13 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.serialization;
 
-import org.junit.Test;
-import org.renjin.primitives.io.RDataReader;
-import org.renjin.primitives.io.RDataWriter;
-
-import r.lang.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,10 +30,27 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.renjin.primitives.io.serialization.RDataReader;
+import org.renjin.primitives.io.serialization.RDataWriter;
+
+import r.lang.Closure;
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.FunctionCall;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.Logical;
+import r.lang.LogicalVector;
+import r.lang.PairList;
+import r.lang.Symbol;
+import r.lang.PairList.Builder;
+import r.lang.SEXP;
+import r.lang.StringVector;
 
 public class DatafileWriterTest {
+
+  private Context context = Context.newTopLevelContext();
 
   @Test
   public void test() throws IOException {
@@ -69,21 +83,36 @@ public class DatafileWriterTest {
  //   write("testsimple.rdata", list);
   }
 
+  @Test
+  public void testClosure() throws IOException {
+    
+    PairList.Builder formals = new Builder();
+    formals.add("x", new IntVector(1));
+    formals.add("y", new IntVector(2));
+    
+    FunctionCall body = FunctionCall.newCall(Symbol.get("+"), Symbol.get("x"), Symbol.get("y"));
+    
+    Closure closure = new Closure(context.getGlobalEnvironment(), formals.build(), body);
+    
+    assertReRead(closure);
+    write("closure.rdata", closure);
+  }
+
+  
   private void write(String fileName, SEXP exp) throws IOException {
     FileOutputStream fos = new FileOutputStream(fileName);
     GZIPOutputStream zos = new GZIPOutputStream(fos);
-    RDataWriter writer = new RDataWriter(zos);
+    RDataWriter writer = new RDataWriter(context, zos);
     writer.writeExp(exp);
     zos.close();
   }
 
   private void assertReRead(SEXP exp) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    RDataWriter writer = new RDataWriter(baos);
+    RDataWriter writer = new RDataWriter(context, baos);
     writer.writeExp(exp);
 
     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-    Context context = Context.newTopLevelContext();
     RDataReader reader = new RDataReader(context, bais);
     SEXP resexp = reader.readFile();
 

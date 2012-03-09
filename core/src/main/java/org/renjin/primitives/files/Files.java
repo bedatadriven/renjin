@@ -457,21 +457,25 @@ public class Files {
                                  boolean list, boolean overwrite, boolean junkpaths) throws IOException {
 
     ZipInputStream zin = new ZipInputStream(context.resolveFile(pathExpand(zipFile)).getContent().getInputStream());
-    FileObject exdir = context.resolveFile(exdirUri);
-
-    if(list) {
-      throw new EvalException("unzip(list=true) not yet implemented");
-    }
-
-    ZipEntry entry;
-    while ( (entry=zin.getNextEntry()) != null ) {
-      if( unzipMatches(entry, files))  {
-         unzipExtract(zin, entry, exdir, junkpaths, overwrite);
+    try {
+      FileObject exdir = context.resolveFile(exdirUri);
+  
+      if(list) {
+        throw new EvalException("unzip(list=true) not yet implemented");
       }
+  
+      ZipEntry entry;
+      while ( (entry=zin.getNextEntry()) != null ) {
+        if( unzipMatches(entry, files))  {
+           unzipExtract(zin, entry, exdir, junkpaths, overwrite);
+        }
+      }
+      context.setInvisibleFlag();
+  
+      return new IntVector(0);
+    } finally {
+      zin.close();
     }
-    context.setInvisibleFlag();
-
-    return new IntVector(0);
   }
 
   /**

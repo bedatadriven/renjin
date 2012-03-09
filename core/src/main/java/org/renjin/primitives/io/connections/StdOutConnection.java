@@ -19,16 +19,47 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package r.lang;
+package org.renjin.primitives.io.connections;
+
+import r.lang.Context;
+import r.lang.exception.EvalException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 
-public interface Connection {
-  InputStream getInputStream() throws IOException;
 
-  PrintWriter getPrintWriter() throws IOException;
+public class StdOutConnection implements Connection {
 
-  void close() throws IOException;
+  private final Context context;
+
+  public StdOutConnection(Context context) {
+    this.context = context;
+  }
+
+  @Override
+  public InputStream getInputStream() throws IOException {
+    throw new EvalException("cannot read from stdout");
+  }
+
+  @Override
+  public Reader getReader() throws IOException {
+    throw new EvalException("cannot read from stdout");
+  }
+  
+  @Override
+  public PrintWriter getPrintWriter() throws IOException {
+    return context.getGlobals().stdout;
+  }
+
+  @Override
+  public void close() throws IOException {
+  }
+
+  @Override
+  public OutputStream getOutputStream() throws IOException {
+    throw new EvalException("Cannot open stdout for binary output, only text (todo?)");
+  }
 }

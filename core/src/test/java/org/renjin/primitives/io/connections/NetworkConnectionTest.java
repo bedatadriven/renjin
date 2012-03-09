@@ -1,4 +1,4 @@
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.connections;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

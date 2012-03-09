@@ -34,13 +34,13 @@ import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.special.ReturnException;
 
 import r.base.Base;
 import r.base.Calls;
 import r.jvmi.r2j.FunctionBinding;
 import r.lang.Closure;
-import r.lang.Connection;
 import r.lang.Context;
 import r.lang.Environment;
 import r.lang.ExpressionVector;
@@ -456,6 +456,18 @@ public class Evaluation {
     actuals = Calls.matchArguments(formals, actuals);
     actuals = expandDotDotDot(actuals);
 
+
+    // strip out arguments with missing values. These named arguments may not 
+    // be defined in calls further down the chain and we don't want to "generate"
+    // new arguments
+    PairList.Builder noMissing = new PairList.Builder();
+    for(PairList.Node node : actuals.nodes()) {
+      if(node.getValue() != Symbol.MISSING_ARG) {
+        noMissing.add(node.getRawTag(), node.getValue());
+      }
+    }
+    actuals = noMissing.build();
+    
 //    /* we can't duplicate because it would force the promises */
 //    /* so we do our own duplication of the promargs */
 //
@@ -470,7 +482,9 @@ public class Evaluation {
       } else {
         temp = Symbol.UNBOUND_VALUE;
       }
-      if(temp != Symbol.UNBOUND_VALUE && !(temp instanceof Promise)) {
+      if(temp != Symbol.UNBOUND_VALUE && 
+          !isDefaultArgValue(temp) &&
+          temp != Symbol.MISSING_ARG) {
         updatedArgs.add(actual.getRawTag(), new Promise(context.getParent(), context.getParent().getEnvironment(), temp));
       } else {
         updatedArgs.add(actual.getRawTag(), actual.getValue());
@@ -737,6 +751,10 @@ public class Evaluation {
 //    UNPROTECT(10);
 //    return(ans);
 //    throw new EvalException("this and no further");
+  }
+
+  private static boolean isDefaultArgValue(SEXP temp) {
+    return temp instanceof Promise;
   }
 
   private static PairList expandDotDotDot(PairList actuals) {

@@ -3,17 +3,12 @@ package r.jvmi.r2j;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.List;
 
-import r.jvmi.r2j.converters.Converter;
-import r.jvmi.r2j.converters.Converters;
+import r.lang.Context;
 import r.lang.SEXP;
 import r.lang.exception.EvalException;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 public class ConstructorBinding {
@@ -42,14 +37,15 @@ public class ConstructorBinding {
 
     
     public Overload(Constructor constructor) {
-      super(constructor.getParameterTypes(), constructor.isVarArgs());
+      super(constructor.getParameterTypes(), 
+          constructor.getParameterAnnotations(), constructor.isVarArgs());
       this.constructor = constructor;
     }
     
    
-    public Object newInstance(List<SEXP> args) {
+    public Object newInstance(Context context, List<SEXP> args) {
       try {
-        return constructor.newInstance(convertArguments(args));
+        return constructor.newInstance(convertArguments(context, args));
       } catch (IllegalArgumentException e) {
         throw new RuntimeException(e);
       } catch (InstantiationException e) {
@@ -67,11 +63,11 @@ public class ConstructorBinding {
     }
   }
   
-  public Object newInstance(List<SEXP> arguments) {
+  public Object newInstance(Context context, List<SEXP> arguments) {
     for(Overload overload : overloads) {
       if(overload.accept(arguments)) {
         
-        return overload.newInstance(arguments);
+        return overload.newInstance(context, arguments);
         
       }
     }

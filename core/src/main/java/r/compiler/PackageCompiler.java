@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.renjin.packaging.PackagingUtils;
 import org.renjin.primitives.annotations.processor.WrapperGenerator;
 
 import r.compiler.ir.tac.IRBody;
@@ -150,7 +151,7 @@ public class PackageCompiler {
     if(!base) {
       context.init();
     }    
-    List<File> srcFiles = findSourceFiles();
+    List<File> srcFiles = PackagingUtils.findSourceFiles(rootDir);
 
     for(File srcFile : srcFiles) {
       System.out.println("Evaluating " + srcFile.getName());
@@ -167,23 +168,6 @@ public class PackageCompiler {
     }
   }
 
-  private List<File> findSourceFiles() {
-    List<File> srcFiles = Lists.newArrayList();
-    for(File file : this.rootDir.listFiles()) {
-      if(file.getName().toLowerCase().endsWith(".r")) {
-        srcFiles.add(file);
-      }
-    }
-    
-    Collections.sort(srcFiles, Ordering.natural().onResultOf(new Function<File, Comparable>() {
-      @Override
-      public Comparable apply(File input) {
-        return input.getName();
-      }
-    }));
-   
-    return srcFiles;
-  }
   
   public static void main(String[] args) throws IOException {
     PackageCompiler compiler = new PackageCompiler(new File(args[0]));

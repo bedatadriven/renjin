@@ -23,6 +23,8 @@ package r.lang;
 
 import org.renjin.primitives.special.ReturnException;
 
+import com.google.common.base.Objects;
+
 import r.base.ClosureDispatcher;
 
 /**
@@ -158,6 +160,39 @@ public class Closure extends AbstractSEXP implements Function {
       ((PairList.Node) getFormals()).appendValuesTo(sb);
     }
     return sb.append(")").toString();
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((body == null) ? 0 : body.hashCode());
+    result = prime
+        * result
+        + ((enclosingEnvironment == null) ? 0 : enclosingEnvironment.hashCode());
+    result = prime * result + ((formals == null) ? 0 : formals.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (!(obj instanceof Closure))
+      return false;
+    Closure other = (Closure) obj;
+    if(!Objects.equal(body, other.body)) {
+      return false;
+    }
+    if(!Objects.equal(enclosingEnvironment, other.enclosingEnvironment)) {
+      return false;
+    }
+    if(!Objects.equal(formals, other.formals)) {
+      return false;
+    }
+    return true;
   }
 
 }

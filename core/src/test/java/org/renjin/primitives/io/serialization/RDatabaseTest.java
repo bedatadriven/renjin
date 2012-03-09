@@ -1,10 +1,10 @@
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.serialization;
 
 import java.io.IOException;
 import java.util.zip.DataFormatException;
 
 import org.junit.Test;
-import org.renjin.primitives.io.RDatabase;
+import org.renjin.primitives.io.serialization.RDatabase;
 
 import r.EvalTestCase;
 import r.lang.Environment;

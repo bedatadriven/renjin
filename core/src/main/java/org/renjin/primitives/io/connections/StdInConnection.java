@@ -19,35 +19,54 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.connections;
 
-import r.lang.Connection;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 
-public class OutputStreamConnection implements Connection {
-  private PrintWriter pw;
+import r.lang.Context;
+import r.lang.exception.EvalException;
 
 
-  public OutputStreamConnection(PrintStream out) {
-    pw = new PrintWriter(out);
+/**
+ * Connection object for the standard input stream.
+ * Currently a stub, will throw an exception if actually used.
+ */
+public class StdInConnection implements Connection {
+
+  private final Context context;
+  
+  public StdInConnection(Context context) {
+    super();
+    this.context = context;
   }
 
   @Override
   public InputStream getInputStream() throws IOException {
-    throw new UnsupportedOperationException();
+    return null; // TODO
   }
 
   @Override
   public PrintWriter getPrintWriter() throws IOException {
-    return pw;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void close() throws IOException {
+    /* NOOP */
+  }
 
+  @Override
+  public OutputStream getOutputStream() throws IOException {
+   throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Reader getReader() throws IOException {
+    throw new EvalException("implement me!");
   }
 }

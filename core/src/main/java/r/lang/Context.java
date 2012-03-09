@@ -186,8 +186,11 @@ public class Context {
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
     
+    private StringVector commandLineArguments = new StringVector("renjin");
+    
     public RNG rng = new RNG(this);
      
+    
     /**
      * Whether the result of the evaluation should be "invisible" in a
      * REPL
@@ -253,6 +256,14 @@ public class Context {
 
     public ColorPalette getColorPalette() {
       return colorPalette;
+    }
+    
+    public void setCommandLineArguments(String executableName, String... arguments) {
+      commandLineArguments = new StringVector(Lists.asList(executableName, arguments));
+    }
+    
+    public StringVector getCommandLineArguments() {
+      return commandLineArguments;
     }
 
     public void setColorPalette(ColorPalette colorPalette) {

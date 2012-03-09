@@ -48,7 +48,9 @@ public class FunctionBinding {
     private Converter returnValueConverter;
     
     public Overload(Method method) {
-      super(method.getParameterTypes(), method.isVarArgs());
+      super(method.getParameterTypes(),
+            method.getParameterAnnotations(), 
+            method.isVarArgs());
       this.method = method;
       this.returnValueConverter = Converters.get(method.getReturnType());    
     
@@ -59,8 +61,8 @@ public class FunctionBinding {
     }
     
     
-    public SEXP invoke(Object instance, List<SEXP> args) {
-      Object[] converted = convertArguments(args);
+    public SEXP invoke(Context context, Object instance, List<SEXP> args) {
+      Object[] converted = convertArguments(context, args);
       try {
         Object result = method.invoke(instance, converted);
         return returnValueConverter.convertToR(result);
@@ -98,7 +100,7 @@ public class FunctionBinding {
     for(Overload overload : overloads) {
       if(overload.accept(args)) {
         
-        return overload.invoke(instance, args);
+        return overload.invoke(context, instance, args);
         
       }
     }

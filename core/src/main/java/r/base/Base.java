@@ -21,10 +21,11 @@
 
 package r.base;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.math.complex.Complex;
@@ -33,18 +34,25 @@ import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.io.ByteArrayCompression;
+import org.renjin.primitives.io.serialization.RDataWriter;
+import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
 
 import r.lang.AtomicVector;
 import r.lang.ComplexVector;
+import r.lang.Context;
 import r.lang.DoubleVector;
+import r.lang.Environment;
 import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.StringVector;
+import r.lang.Symbol;
 import r.lang.Symbols;
 import r.lang.Vector;
 import r.lang.exception.EvalException;
@@ -655,4 +663,37 @@ public class Base {
 
     return out.setAttributes(attributesToCopy);  
   }
+  
+
+  /* Gets the binding values of variables from a frame and returns them
+   as a list.  If the force argument is true, promises are forced;
+   otherwise they are not. */
+
+  public static SEXP  R_getVarsFromFrame(StringVector vars, Environment env, boolean force) {
+
+    ListVector.NamedBuilder val = new ListVector.NamedBuilder();
+    for(String var : vars) {
+      SEXP boundValue = env.getVariable(var);
+      if(boundValue == Symbol.UNBOUND_VALUE) {
+        throw new EvalException("object %s not found", boundValue);
+      }
+      if(force) {
+        boundValue = boundValue.force();
+      }
+      val.add(var, boundValue);
+    }
+    return val.build();
+  }
+
+
+  /* Serializes and, optionally, compresses a value and appends the
+   result to a file.  Returns the key position/length key for
+   retrieving the value */
+
+  public static SEXP R_lazyLoadDBinsertValue(@Current Context context, SEXP value, SEXP file, SEXP ascii,
+      Vector compress, SEXP hook) throws Exception
+  {
+    return Serialization.lazyLoadDbInsertValue(context, value, file, compress);
+  }
+
 }

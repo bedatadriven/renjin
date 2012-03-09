@@ -19,10 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.serialization;
 
 import org.junit.Test;
-import org.renjin.primitives.io.Version;
+import org.renjin.primitives.io.serialization.Version;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

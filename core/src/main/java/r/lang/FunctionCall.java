@@ -108,4 +108,22 @@ public class FunctionCall extends PairList.Node {
   public String getImplicitClass() {
     return IMPLICIT_CLASS;
   }
+  
+  @Override
+  public int hashCode() {
+    return getFunction().hashCode();
+  }
+  
+  @Override
+  public boolean equals(Object other) {
+    if(other == null) {
+      return false;
+    }
+    if(other.getClass() != FunctionCall.class) {
+      return false;
+    }
+    FunctionCall otherCall = (FunctionCall) other;
+    return getFunction().equals(otherCall.getFunction()) &&
+        getArguments().equals(otherCall.getArguments());
+  }
 }

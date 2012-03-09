@@ -19,14 +19,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.serialization;
 
+
+import r.lang.Closure;
+import r.lang.Environment;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.Symbols;
 
 class Flags {
+ 
+  public final static int MAX_PACKED_INDEX = Integer.MAX_VALUE >> 8;
+  
   private final static int IS_OBJECT_BIT_MASK = (1 << 8);
   private final static int HAS_ATTR_BIT_MASK = (1 << 9);
   private final static int HAS_TAG_BIT_MASK = (1 << 10);
@@ -83,7 +89,9 @@ class Flags {
     if(exp instanceof PairList.Node && ((PairList.Node) exp).hasTag()) {
       flags |= HAS_TAG_BIT_MASK;
     }
+    if(exp instanceof Closure | exp instanceof Environment) {
+      flags |= HAS_TAG_BIT_MASK;
+    }
     return flags;
   }
-
 }

@@ -145,9 +145,8 @@ public class System {
     }
   }
 
-  public static StringVector commandArgs() {
-    // TODO: something reasonable
-    return new StringVector("C:\\Program Files\\R\\R-2.10.1\\bin\\Rgui.exe");
+  public static StringVector commandArgs(@Current Context context) {
+    return context.getGlobals().getCommandLineArguments();
   }
 
   @Primitive("dyn.load")

@@ -613,5 +613,18 @@ public class EvaluationTest extends EvalTestCase {
     eval("class(x) <- 'foo'");
     assertThat(eval("g()"), equalTo(c(42)));
   }
+  
+  @Test
+  public void nextMethodWithMissingArg() {
+    eval("NextMethod <- function (generic = NULL, object = NULL, ...) " +
+        ".Internal(NextMethod(generic, object, ...))");
+    eval("g.default <- function(x,...) nargs() ");
+    eval("g.foo <- function(x,i,j) NextMethod() ");
+    eval("g <- function(x,i,j) UseMethod('g') ");
+    eval("x<-1");
+    eval("class(x) <- 'foo'");
+    assertThat(eval("g(x,1)"), equalTo(c_i(2)));
+    assertThat(eval("g(x,1,2)"), equalTo(c_i(3)));
+  }
 }
 

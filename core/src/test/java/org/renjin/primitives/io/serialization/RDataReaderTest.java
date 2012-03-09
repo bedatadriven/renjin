@@ -19,10 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives.io;
+package org.renjin.primitives.io.serialization;
 
 import org.junit.Test;
-import org.renjin.primitives.io.RDataReader;
+import org.renjin.primitives.io.serialization.RDataReader;
 
 import r.EvalTestCase;
 import r.lang.*;
@@ -35,7 +35,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
-public class DatafileReaderTest extends EvalTestCase {
+public class RDataReaderTest extends EvalTestCase {
 
   /**
    *

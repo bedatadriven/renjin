@@ -1,6 +1,7 @@
 package r.base.random;
 
 import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -128,5 +129,12 @@ public class RngTest extends EvalTestCase {
    public void rt() {
      eval("set.seed(12345, 'Mersenne-Twister','I')");
      assertThat(eval("rt(1,3)").asReal(), closeTo(3.28, 0.1));
+   }
+   
+   @Test
+   public void rmultinom(){
+	   eval("set.seed(1234, 'Mersenne-Twister','I')");
+	   assertThat(eval("rmultinom(1,3,c(0.5,0.5))") , equalTo(c(1,2)));
+	   assertThat(eval("dim(rmultinom(20,3,c(0.5,0.3,0.2)))") , equalTo(c_i(3,20)));
    }
 }

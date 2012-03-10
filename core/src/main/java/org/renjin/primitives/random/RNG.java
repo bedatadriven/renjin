@@ -12,6 +12,7 @@ import org.renjin.primitives.annotations.Primitive;
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
+import r.lang.Symbols;
 import r.lang.exception.EvalException;
 
 public class RNG {
@@ -285,6 +286,19 @@ public class RNG {
     return (vb.build());
   }
 
+  @Primitive("rmultinom")
+  public static DoubleVector rmultinom(@Current Context context, int n, int size, DoubleVector prob){
+    DoubleVector.Builder vb = new DoubleVector.Builder();
+    int[] RN = new int[prob.length()];
+    for (int i=0;i<n;i++){
+    	Multinomial.rmultinom(context.getGlobals(), size, prob.toDoubleArray(), prob.length(), RN);
+    	for (int j = 0; j < prob.length(); j++) {
+    		vb.add(RN[j]);
+    	}
+    }
+    vb.setAttribute(Symbols.DIM, new IntVector(prob.length(), n));
+    return (vb.build());
+  }
   /*
    * One of the Most important method in RNG
    * Before creating a random number from the distribution D,

@@ -40,23 +40,25 @@ public class RNG {
 	  this.context = globals;
   }
   
-  public IntVector RNGkind(int kind, int normalkind) {
+  @Primitive("RNGkind")
+  public static IntVector RNGkind(@Current Context context, int kind, int normalkind) {
+	RNG rng = context.getGlobals().rng;  
     try {
-      RNG_kind = RNGtype.values()[kind];
+      rng.RNG_kind = RNGtype.values()[kind];
     } catch (Exception e) {
       throw new EvalException("RNGkind: unimplemented RNG kind " + kind);
     }
 
     try {
-      N01_kind = N01type.values()[normalkind];
+      rng.N01_kind = N01type.values()[normalkind];
     } catch (Exception e) {
       throw new EvalException("invalid Normal type in RNGkind");
     }
 
-    RNG_kind = RNGtype.values()[kind];
-    N01_kind = N01type.values()[normalkind];
+    rng.RNG_kind = RNGtype.values()[kind];
+    rng.N01_kind = N01type.values()[normalkind];
     //System.out.println("Random generator is set to " + RNG.RNG_kind + " and " + RNG.N01_kind);
-    return (new IntVector(RNG_kind.ordinal(), N01_kind.ordinal()));
+    return (new IntVector(rng.RNG_kind.ordinal(), rng.N01_kind.ordinal()));
   }
 
   /*
@@ -66,7 +68,7 @@ public class RNG {
   public static void set_seed(@Current Context context, int seed, int kind, int normalkind) {
     RNG rng = context.getGlobals().rng;
 	rng.randomseed = seed;
-    rng.RNGkind(kind, normalkind);
+    RNGkind(context, kind, normalkind);
     switch (rng.RNG_kind) {
       case WICHMANN_HILL:
         throw new EvalException(rng.RNG_kind + " not implemented yet");

@@ -24,7 +24,10 @@ package org.renjin.primitives.files;
 import com.google.common.collect.Lists;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.FileType;
+import org.apache.commons.vfs.provider.AbstractFileObject;
+import org.apache.commons.vfs.util.FileObjectUtils;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
@@ -400,7 +403,10 @@ public class Files {
   public static String getwd(@Current Context context) {
     return context.getGlobals().workingDirectory.getName().getURI();
   }
-
+  
+  public static void setwd(@Current Context context, String dir) throws FileSystemException{
+	  context.getGlobals().workingDirectory = context.resolveFile(dir);
+  }
   /**
    * Unlink deletes the file(s) or directories specified by {@code paths}.
    * @param context the current call Context

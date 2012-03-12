@@ -42,7 +42,8 @@ import org.apache.commons.vfs.provider.url.UrlFileProvider;
 
 import r.lang.Context;
 import r.lang.SEXP;
-import r.scripting.RenjinScriptEngineFactory;
+//import r.scripting.RenjinScriptEngineFactory;
+import org.renjin.script.*;
 
 import com.google.common.annotations.VisibleForTesting;
 

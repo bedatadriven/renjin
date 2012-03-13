@@ -861,7 +861,7 @@ public class Primitives {
     f("hcl", /*hcl*/ null, 0, 11, 5);
     f("gray", RgbHsv.class, 0, 11, 1);
     f("colors", /*colors*/ null, 0, 11, 0);
-    f("col2rgb", /*col2RGB*/ null, 0, 11, 1);
+    f("col2rgb", RgbHsv.class, 0, 11, 1);
     f("palette", /*palette*/ null, 0, 11, 1);
     f("plot.new", Plot.class, 0, 111, 0);
     f("plot.window", Plot.class, 0, 111, 3);

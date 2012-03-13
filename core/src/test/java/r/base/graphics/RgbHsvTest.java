@@ -43,4 +43,11 @@ public class RgbHsvTest extends EvalTestCase{
 		 assertThat(eval("col2rgb('aliceblue')"), equalTo(c_i(240, 248, 255)));
 		 assertThat(eval("col2rgb(c('aliceblue', 'blue'))"), equalTo(c_i(240,248,255,0,0,255)));
 	 }
+	 
+	 
+	 @Test
+	 public void rgb2hsv(){
+		 assertThat(eval("rgb2hsv(1,1,0)"), closeTo(
+				 matrix(row( 0.166666667, 1, 0.003921569)), 0.01));
+	 }
 }

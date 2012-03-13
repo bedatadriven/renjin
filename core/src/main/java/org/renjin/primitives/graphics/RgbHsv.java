@@ -1120,4 +1120,22 @@ public class RgbHsv {
 				"red", "green", "blue" }));
 		return (ib.build());
 	}
+
+	@Primitive("rgb2hsv")
+	public static DoubleVector rgb2hsv(DoubleVector rgb) {
+		DoubleVector.Builder result = new DoubleVector.Builder();
+		float[] hsvvals = new float[3];
+		for (int i = 0; i < rgb.length(); i += 3) {
+			Color.RGBtoHSB((int) (rgb.get(i) * 255),
+					(int) (rgb.get(i + 1) * 255), (int) (rgb.get(i + 2) * 255),
+					hsvvals);
+			result.add(hsvvals[0]);
+			result.add(hsvvals[1]);
+			result.add(hsvvals[2]);
+		}
+		result.setAttribute(Symbols.DIM, new IntVector(3, rgb.length() / 3));
+		result.setAttribute(Symbols.ROW_NAMES, new StringVector(new String[] {
+				"h", "s", "v" }));
+		return (result.build());
+	}
 }

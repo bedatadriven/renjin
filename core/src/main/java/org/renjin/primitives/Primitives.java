@@ -856,7 +856,7 @@ public class Primitives {
     f("dev.set", /*devset*/ null, 0, 111, 1);
     f("rgb", RgbHsv.class, 0, 11, 6);
     f("rgb256", RgbHsv.class, 1, 11, 5);
-    f("rgb2hsv", /*RGB2hsv*/ null, 0, 11, 1);
+    f("rgb2hsv", RgbHsv.class, 0, 11, 1);
     f("hsv", RgbHsv.class, 0, 11, 5);
     f("hcl", /*hcl*/ null, 0, 11, 5);
     f("gray", RgbHsv.class, 0, 11, 1);

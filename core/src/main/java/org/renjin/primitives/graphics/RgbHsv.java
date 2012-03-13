@@ -14,6 +14,14 @@ import r.lang.exception.EvalException;
 
 public class RgbHsv {
 
+	private final static double DEG2RAD = 0.01745329251994329576;
+	private final static double WHITE_X = 95.047;
+	private final static double WHITE_Y = 100.000;
+	private final static double WHITE_Z = 108.883;
+	private final static double WHITE_u = 0.1978398;
+	private final static double WHITE_v = 0.4683363;
+	private final static double GAMMA = 2.4;
+
 	private static ArrayList<ColorDataBaseEntry> colorDataBase = null;
 	private static String[] defaultPalette = new String[] { "black", "red",
 			"green3", "blue", "cyan", "magenta", "yellow", "grey", };
@@ -1138,4 +1146,72 @@ public class RgbHsv {
 				"h", "s", "v" }));
 		return (result.build());
 	}
+
+	private static double gtrans(double u) {
+		if (u > 0.00304) {
+			return 1.055 * Math.pow(u, (1 / GAMMA)) - 0.055;
+		} else {
+			return 12.92 * u;
+		}
+	}
+
+	private static double[] hcl2rgb(double h, double c, double l) {
+		double L, U, V;
+		double u, v;
+		double X, Y, Z;
+		double R, G, B;
+
+		/* Step 1 : Convert to CIE-LUV */
+
+		h = DEG2RAD * h;
+		L = l;
+		U = c * Math.cos(h);
+		V = c * Math.sin(h);
+
+		/* Step 2 : Convert to CIE-XYZ */
+
+		if (L <= 0 && U == 0 && V == 0) {
+			X = 0;
+			Y = 0;
+			Z = 0;
+		} else {
+			Y = WHITE_Y
+					* ((L > 7.999592) ? Math.pow((L + 16) / 116, 3) : L / 903.3);
+			u = U / (13 * L) + WHITE_u;
+			v = V / (13 * L) + WHITE_v;
+			X = 9.0 * Y * u / (4 * v);
+			Z = -X / 3 - 5 * Y + 3 * Y / v;
+		}
+
+		/* Step 4 : CIE-XYZ to sRGB */
+
+		R = gtrans((3.240479 * X - 1.537150 * Y - 0.498535 * Z) / WHITE_Y);
+		G = gtrans((-0.969256 * X + 1.875992 * Y + 0.041556 * Z) / WHITE_Y);
+		B = gtrans((0.055648 * X - 0.204043 * Y + 1.057311 * Z) / WHITE_Y);
+
+		return (new double[] { R, G, B });
+	}
+
+	private static int ScaleAlpha(double x) {
+		if (!DoubleVector.isFinite(x) || x < 0.0 || x > 1.0)
+			throw new EvalException("alpha level " + x + ", not in [0,1]");
+		return (int) (255 * x + 0.5);
+	}
+
+	public static String RGBA2rgb(int r, int g, int b, int a) {
+		char[] ColBuf = new char[8];
+		char[] HexDigits = new char[] { '0', '1', '2', '3', '4', '5', '6', '7',
+				'8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+		ColBuf[0] = '#';
+		ColBuf[1] = HexDigits[(r >> 4) & 15];
+		ColBuf[2] = HexDigits[r & 15];
+		ColBuf[3] = HexDigits[(g >> 4) & 15];
+		ColBuf[4] = HexDigits[g & 15];
+		ColBuf[5] = HexDigits[(b >> 4) & 15];
+		ColBuf[6] = HexDigits[b & 15];
+		ColBuf[7] = HexDigits[(a >> 4) & 15];
+		ColBuf[8] = HexDigits[a & 15];
+		return new String(ColBuf);
+	}
+
 }

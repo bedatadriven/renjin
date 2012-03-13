@@ -23,7 +23,6 @@ package com.bedatadriven.renjin.appengine;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

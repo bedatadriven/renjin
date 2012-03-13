@@ -16,27 +16,37 @@
 
 package com.bedatadriven.renjin.appengine.server;
 
-import com.bedatadriven.renjin.appengine.AppEngineContextFactory;
-import com.bedatadriven.renjin.appengine.shared.InterpreterException;
-import com.bedatadriven.renjin.appengine.shared.LotREPLsApi;
-import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import r.io.DatafileReader;
-import r.io.DatafileWriter;
-import r.lang.*;
-import r.lang.SecurityManager;
-import r.lang.exception.EvalException;
-import r.parser.RParser;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.renjin.primitives.io.serialization.RDataReader;
+import org.renjin.primitives.io.serialization.RDataWriter;
+
+import r.lang.Context;
+import r.lang.Environment;
+import r.lang.ExpressionVector;
+import r.lang.FunctionCall;
+import r.lang.PairList;
+import r.lang.SEXP;
+import r.lang.SecurityManager;
+import r.lang.Symbol;
+import r.lang.Vector;
+import r.lang.exception.EvalException;
+import r.parser.RParser;
+
+import com.bedatadriven.renjin.appengine.AppEngineContextFactory;
+import com.bedatadriven.renjin.appengine.shared.InterpreterException;
+import com.bedatadriven.renjin.appengine.shared.LotREPLsApi;
+import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 /**
  * Server-side implementation of LotREPLsApi. This class manages the
@@ -116,7 +126,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
       globals = (byte[]) session.getAttribute(GLOBALS);
       if (globals != null) {
 
-        DatafileReader reader = new DatafileReader(context, context.getEnvironment(),
+    	RDataReader reader = new RDataReader(context,
             new ByteArrayInputStream(globals));
         PairList list = (PairList) reader.readFile();
         for(PairList.Node node : list.nodes()) {
@@ -144,7 +154,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
         }
       }
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      DatafileWriter writer = new DatafileWriter(baos);
+      RDataWriter writer = new RDataWriter(context, baos);
       writer.writeExp(list.build());
 
       log.fine(count + " variable saved, " + baos.toByteArray().length + " bytes");

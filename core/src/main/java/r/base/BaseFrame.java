@@ -21,9 +21,7 @@
 
 package r.base;
 
-import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.renjin.primitives.Primitives;
@@ -37,6 +35,7 @@ import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.Symbol;
+import r.util.FileSystemUtils;
 
 import com.google.common.collect.Sets;
 
@@ -44,8 +43,10 @@ import com.google.common.collect.Sets;
  *  The {@code Frame} that provides the primitive functions for the
  *  the base environment.
  *
- *  The singleton instance is immutable and so can be safely shared between
- * multiple threads / contexts.
+ *  <p>
+ *  The base frame is actually SHARED between the base namespace and the base environment:
+ *  they are identical except for their parent of course.
+ *  
  */
 public class BaseFrame implements Frame {
 
@@ -99,6 +100,11 @@ public class BaseFrame implements Frame {
   }
 
   private void installPlatform() {
+    loaded.put(Symbol.get(".Library"), 
+        new StringVector(FileSystemUtils.homeDirectoryInCoreJar() + "/library"));
+    loaded.put(Symbol.get(".Library.site"), 
+        new StringVector());
+    
     loaded.put(Symbol.get(".Platform"), ListVector.newNamedBuilder()
         .add("OS.type", new StringVector(resolveOsName()))
         .add("file.sep", new StringVector("/"))
@@ -106,7 +112,7 @@ public class BaseFrame implements Frame {
         .add("endian", new StringVector("big"))
         .add("pkgType", new StringVector("source"))
         .add("r_arch", new StringVector(""))
-        .add("dynlib.ext", new StringVector(".dll"))
+        .add("dynlib.ext", new StringVector(".jar"))
         .build());
   }
   
@@ -156,5 +162,10 @@ public class BaseFrame implements Frame {
   public void clear() {
     throw new UnsupportedOperationException("The base frame cannot be cleared");
     
+  }
+
+  @Override
+  public boolean isMissingArgument(Symbol name) {
+    return false;
   }
 }

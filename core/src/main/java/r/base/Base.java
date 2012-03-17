@@ -48,6 +48,7 @@ import r.lang.DoubleVector;
 import r.lang.Environment;
 import r.lang.IntVector;
 import r.lang.ListVector;
+import r.lang.LogicalVector;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
@@ -690,10 +691,16 @@ public class Base {
    result to a file.  Returns the key position/length key for
    retrieving the value */
 
-  public static SEXP R_lazyLoadDBinsertValue(@Current Context context, SEXP value, SEXP file, SEXP ascii,
+  public static SEXP R_lazyLoadDBinsertValue(@Current Context context,
+      SEXP value, String file, SEXP ascii,
       Vector compress, SEXP hook) throws Exception
   {
-    return Serialization.lazyLoadDbInsertValue(context, value, file, compress);
+    return Serialization.lazyLoadDbInsertValue(context, null, value, file, compress, hook);
   }
 
+  public static SEXP R_isS4Object(SEXP exp) {
+    // TODO(S4)
+    return new LogicalVector(false);
+  }
+  
 }

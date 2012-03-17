@@ -1,9 +1,12 @@
 package org.renjin.script;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
+
+import org.renjin.RVersion;
 
 import r.lang.Context;
 
@@ -36,7 +39,7 @@ public class RenjinScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public String getLanguageVersion() {
-    return "2.10";
+    return RVersion.STRING;
   }
 
   @Override
@@ -97,4 +100,30 @@ public class RenjinScriptEngineFactory implements ScriptEngineFactory {
     return new RenjinScriptEngine(this, context);
   }
   
+  
+  public Builder withOptions() {
+    return new Builder();
+  }
+  
+  
+  
+  public class Builder {
+    
+    private final Context context;
+    
+    private Builder() {
+      context = Context.newTopLevelContext();
+    }
+    
+    public Builder withNoDefaultPackages() {
+      context.getGlobals().systemEnvironment.put("R_DEFAULT_PACKAGES", "NULL");
+      return this;
+    }
+    
+    public RenjinScriptEngine get() throws IOException {
+      context.init();
+      return getScriptEngine(context);
+    }
+    
+  }
 }

@@ -58,6 +58,12 @@ public class Closure extends AbstractSEXP implements Function {
   public String getTypeName() {
     return TYPE_NAME;
   }
+  
+
+  @Override
+  protected SEXP cloneWithNewAttributes(PairList attributes) {
+    return new Closure(this.enclosingEnvironment, this.formals, this.body, this.attributes);
+  }
 
   @Override
   public String getImplicitClass() {

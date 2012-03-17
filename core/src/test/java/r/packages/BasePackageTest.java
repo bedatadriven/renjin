@@ -77,7 +77,6 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void packageVersion() throws IOException {
     loadBasePackage();
-    executeStartupProfile();
 
     eval(" x <- package_version('1.2-4') ");
   }
@@ -85,7 +84,6 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void groupGeneric() throws IOException {
     loadBasePackage();
-    executeStartupProfile();
 
     eval(" x <- as.numeric_version('1.2.3') ");
     eval(" y <- as.numeric_version('1.0.9') ");
@@ -97,7 +95,6 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void versionCompare2() throws IOException {
     loadBasePackage();
-    executeStartupProfile();
 
     eval(" x <- as.numeric_version('2.10.1') ");
     eval(" y <- as.numeric_version('2.2.0') ");
@@ -133,7 +130,6 @@ public class BasePackageTest extends EvalTestCase {
   public void dquote() throws IOException {
 
     loadBasePackage();
-    executeStartupProfile();
 
     assertThat( eval(" dQuote('a') "), equalTo( c("\"a\"")) );
   }
@@ -143,7 +139,6 @@ public class BasePackageTest extends EvalTestCase {
   public void formals() throws IOException {
 
     loadBasePackage();
-    executeStartupProfile();
 
     eval("g <- function() sys.parent() ");
     eval("f <- function() g() ");
@@ -160,7 +155,6 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void lapply() throws Exception {
     loadBasePackage();
-    executeStartupProfile();
 
     eval("f<-function(a,b) a+b ");
     eval("x<-c(1)");
@@ -277,7 +271,6 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void parse() throws IOException {
     loadBasePackage();
-    executeStartupProfile();
 
     assertThat(eval(" parse(text='1') "), equalTo(expression(1d)));
 
@@ -384,12 +377,7 @@ public class BasePackageTest extends EvalTestCase {
   }
 
   private void loadBasePackage() throws IOException {
-    topLevelContext.loadBasePackage();
-    //PackageLoaders.load(topLevelContext, topLevelContext.getEnvironment().getBaseEnvironment(), "org.renjin.base");
-  }
-
-  private void executeStartupProfile() throws IOException {
-    topLevelContext.executeStartupProfile();
+    topLevelContext.init();
   }
 
   @Test
@@ -456,5 +444,15 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("max(x)"), equalTo(c_i(20)));
   }
  
+  @Test
+  public void emptyFactor() {
+    assumingBasePackagesLoad();
+    
+    eval("x <- factor() ");
+    assertThat(eval("class(x)"), equalTo(c("factor")));
+    assertThat(eval("attr(x,'levels')"), equalTo((SEXP)StringVector.EMPTY));
+    assertThat(eval("typeof(x)"), equalTo(c("integer")));
+    assertThat(eval("is.factor(x)"), equalTo(c(true)));
+  }
   
 }

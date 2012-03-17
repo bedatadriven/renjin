@@ -3,21 +3,20 @@ package org.renjin.cran;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 
 public class PackageDescription {
 
-	private Map<String, String> properties;
+	private ArrayListMultimap<String, String> properties = ArrayListMultimap.create();
 
 	public static class PackageDependency {
 		private String name;
@@ -121,7 +120,7 @@ public class PackageDescription {
 	public static PackageDescription fromString(String contents) throws IOException {
 
 		PackageDescription d = new PackageDescription();
-		d.properties = Maps.newHashMap();
+		d.properties = ArrayListMultimap.create();
 
 		List<String> lines = CharStreams.readLines(new StringReader(contents));
 		String key = null;
@@ -156,33 +155,49 @@ public class PackageDescription {
 	public static PackageDescription fromInputStream(InputStream in) throws IOException {
 		return fromString(CharStreams.toString(new InputStreamReader(in)));
 	}
-
-	public String getProperty(String key) {
-		return properties.get(key);
+	
+	public static PackageDescription fromReader(Reader reader) throws IOException {
+	  return fromString(CharStreams.toString(reader));
 	}
 
+	public String getFirstProperty(String key) {
+	  if(properties.containsKey(key)) {
+	    return properties.get(key).iterator().next();
+	  } else {
+	    return null;
+	  }
+	}
+	
+	public List<String> getProperty(String key) {
+	  return properties.get(key);
+	}
+
+	public boolean hasProperty(String key) {
+	  return properties.containsKey(key);
+	}
+	
 	public String getPackage() {
-		return getProperty("Package");
+		return getFirstProperty("Package");
 	}
 
 	public String getTitle() {
-		return getProperty("Title");
+		return getFirstProperty("Title");
 	}
 
 	public String getVersion() {
-		return getProperty("Version");
+		return getFirstProperty("Version");
 	}
 
 	public Iterable<Person> getAuthors() {
-		return Iterables.transform(Arrays.asList(getProperty("Author").split("\\s*,\\s*")), new PersonParser());
+		return Iterables.transform(Arrays.asList(getFirstProperty("Author").split("\\s*,\\s*")), new PersonParser());
 	}
 
 	public Person getMaintainer() {
-		return new Person(getProperty("Maintainer"));
+		return new Person(getFirstProperty("Maintainer"));
 	}
 
 	public String getDescription() {
-		return getProperty("Description");
+		return getFirstProperty("Description");
 	}
 
 	public Iterable<PackageDependency> getImports() {
@@ -194,7 +209,7 @@ public class PackageDescription {
 	}
 
 	private Iterable<PackageDependency> getPackageDependencyList(String property) {
-		String list = getProperty(property);
+		String list = getFirstProperty(property);
 		if(list == null) {
 			return Collections.emptySet();
 		} else {
@@ -203,10 +218,14 @@ public class PackageDescription {
 	}
 
 	public String getLicense() {
-		return getProperty("License");
+		return getFirstProperty("License");
 	}
 
 	public String getUrl() {
-		return getProperty("URL");
+		return getFirstProperty("URL");
 	}
+
+  public Iterable<String> getProperties() {
+    return properties.keySet();
+  }
 }

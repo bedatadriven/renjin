@@ -35,6 +35,8 @@ import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.internal.AssumptionViolatedException;
+import org.renjin.script.RenjinScriptEngine;
+import org.renjin.script.RenjinScriptEngineFactory;
 
 import r.compiler.ir.tac.IRFunctionTable;
 import r.lang.ComplexVector;

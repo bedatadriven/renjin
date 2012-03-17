@@ -26,6 +26,7 @@ import r.lang.Closure;
 import r.lang.Environment;
 import r.lang.Null;
 import r.lang.PairList;
+import r.lang.Promise;
 import r.lang.SEXP;
 import r.lang.Symbols;
 
@@ -90,6 +91,18 @@ class Flags {
       flags |= HAS_TAG_BIT_MASK;
     }
     if(exp instanceof Closure | exp instanceof Environment) {
+      flags |= HAS_TAG_BIT_MASK;
+    }
+    return flags;
+  }
+  
+  public static int computePromiseFlags(Promise promise) {
+    int flags = SerializationFormat.PROMSXP;
+
+    if(promise.getAttributes() != Null.INSTANCE) {
+      flags |= HAS_ATTR_BIT_MASK;
+    }
+    if(promise.getEnvironment() != null) {
       flags |= HAS_TAG_BIT_MASK;
     }
     return flags;

@@ -82,6 +82,11 @@ public class TextTest extends EvalTestCase {
         "c('datasets', 'utils', 'grDevices', 'graphics', 'stats', 'methods'), FALSE, TRUE, FALSE, FALSE, FALSE))"),
         equalTo( c("datasets", "utils", "grDevices", "graphics", "stats", "methods")) );
   }
+  
+  @Test
+  public void posixCharacterClass() {
+   
+  }
 
   @Test
   public void sprintf() {
@@ -153,7 +158,7 @@ public class TextTest extends EvalTestCase {
   @Test
   public void split() {
     eval("strsplit <- function (x, split, extended = TRUE, fixed = FALSE, perl = FALSE, useBytes = FALSE) " +
-            ".Internal(strsplit(x, as.character(split), as.logical(extended),  as.logical(fixed), " +
+            ".Internal(strsplit(x, as.character(split),  as.logical(fixed), " +
                       "as.logical(perl), as.logical(useBytes)))");
 
     assertThat( eval("strsplit('a,b', ',')"), equalTo( list( c("a","b") )));
@@ -170,9 +175,9 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void grepFixed() {
-    eval(" grep <- function (pattern, x, ignore.case = FALSE, extended = TRUE, perl = FALSE, " +
+    eval(" grep <- function (pattern, x, ignore.case = FALSE, perl = FALSE, " +
         "    value = FALSE, fixed = FALSE, useBytes = FALSE, invert = FALSE)  " +
-        " .Internal(grep(as.character(pattern), x, ignore.case, extended, " +
+        " .Internal(grep(as.character(pattern), x, ignore.case, " +
         "        value, perl, fixed, useBytes, invert))");
 
 
@@ -267,5 +272,15 @@ public class TextTest extends EvalTestCase {
     assertThat(eval("x").toString(),equalTo("\"xxaa\""));
   }
 
+  @Test 
+  public void iconv() {
+    eval(".Internal(iconv(c('A','B'),'UTF-8','ASCII', as.character(NA), FALSE, FALSE))");
+  }
   
+  @Test
+  public void strtoi() {
+    assertThat(eval(".Internal(strtoi(c('0666','0xFF', '42'), 0L))"), equalTo(c_i(438, 255, 42)));
+    assertThat(eval(".Internal(strtoi('0666', 10L))"), equalTo(c_i(666)));
+    assertThat(eval(".Internal(strtoi('0xFF', 16L))"), equalTo(c_i(255)));    
+  }
 }

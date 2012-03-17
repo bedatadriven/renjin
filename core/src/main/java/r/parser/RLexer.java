@@ -842,12 +842,14 @@ an ANSI digit or not */
       if (parseOptions.isGenerateCode() && seendot == 1 && !seenexp) {
         logger.warning(String.format("integer literal %sL contains unnecessary decimal point", buffer.toString()));
       }
-      yylval = parseOptions.isGenerateCode() ? IntVector.parseInt(buffer.toString()) : R_NilValue;
+      yylval = parseOptions.isGenerateCode() ? 
+          new IntVector(ParseUtil.parseInt(buffer.toString())) : R_NilValue;
     } else {
       if (c != 'L') {
         xxungetc(c);
       }
-      yylval = parseOptions.isGenerateCode() ? DoubleVector.parseDouble(buffer.toString()) : R_NilValue;
+      yylval = parseOptions.isGenerateCode() ?
+          new DoubleVector(ParseUtil.parseDouble(buffer.toString())) : R_NilValue;
     }
 
     return NUM_CONST;

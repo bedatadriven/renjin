@@ -37,6 +37,7 @@ import r.lang.IntVector;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.SEXP;
+import r.lang.StringVector;
 import r.lang.Symbol;
 import r.lang.Symbols;
 import r.lang.Vector;
@@ -95,18 +96,33 @@ public class Sequences {
 
 
   @Primitive("rep.int")
-  public static Vector repeatInt(Vector x, int times) {
-    EvalException.check(times >= 0, "invalid 'times' value");
+  public static Vector repeatInt(Vector x, Vector timesVector) {
 
-    Vector.Builder result = x.newBuilderWithInitialSize(x.length() * times);
-    int count = 0;
-    while(times > 0) {
-      for(int i =0; i!=x.length();++i) {
-        result.setFrom(count++, x, i);
+    if(timesVector.length() == 1) {
+      int times = timesVector.getElementAsInt(0);
+      Vector.Builder result = x.newBuilderWithInitialSize(x.length() * times);
+      int count = 0;
+      while(times > 0) {
+        for(int i =0; i!=x.length();++i) {
+          result.setFrom(count++, x, i);
+        }
+        times--;
       }
-      times--;
+      return result.build();
+    } else {
+      if(timesVector.length() != x.length()) {
+        throw new EvalException("Invalid 'times' value: times must be the same length as x");
+      }
+      Vector.Builder result = x.newBuilderWithInitialCapacity(x.length());
+      for(int i=0;i!=x.length();++i) {
+        int times = timesVector.getElementAsInt(i);
+        while(times > 0) {
+          result.addFrom(x, i);
+          times--;
+        }
+      }
+      return result.build();
     }
-    return result.build();
   }
 
   @Primitive("rep")

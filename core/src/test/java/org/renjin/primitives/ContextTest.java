@@ -21,15 +21,16 @@
 
 package org.renjin.primitives;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 import org.junit.Test;
+
 import r.EvalTestCase;
 import r.lang.FunctionCall;
 import r.lang.SEXP;
 import r.lang.exception.EvalException;
-
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class ContextTest extends EvalTestCase {
 
@@ -76,17 +77,33 @@ public class ContextTest extends EvalTestCase {
   @Test
   public void parentFrameInGlobal() {
     eval( "parent.frame <- function(n = 1) .Internal(parent.frame(n)) ");
-
+    eval( "environment <- function(fun = NULL) .Internal(environment(fun))  ");
+    eval( "f <- function() parent.frame()");
+    eval( "g <- function() c( f(), environment() ) ");
+    eval( "gx <- g()");
+    
     assertThat(eval("parent.frame()"), is(GlobalEnv));
     assertThat(eval("parent.frame(1)"), is(GlobalEnv));
     assertThat(eval("parent.frame(99)"), is(GlobalEnv));
+    assertThat(eval("gx[[1]]"), is(eval("gx[[2]]")));
   }
 
+  @Test
+  public void parentFrameInGlobal2() {
+    eval( "parent.frame <- function(n = 1) .Internal(parent.frame(n)) ");
+    eval( "f <- function() parent.frame(2)$xx");
+    eval( "g <- function() f() ");
+    eval( "h <- function() { xx <- 99; g() } ");
+    
+    assertThat(eval("h()"), equalTo(c(99)));
+  }
+  
+  
   @Test(expected = EvalException.class)
   public void parentFrameInvalidArg() {
     eval(" .Internal(parent.frame(-1)) ");
   }
-
+  
   @Test
   public void parentFrameClosure() {
     eval(" parent.frame <- function(n=1) .Internal(parent.frame(n)) ");
@@ -100,12 +117,14 @@ public class ContextTest extends EvalTestCase {
   public void parentFrameInFormals() {
 
     eval(" parent.frame <- function(n=1) .Internal(parent.frame(n)) ");
-    eval(" g<- function(env = parent.frame()) env$zzz * 2");
-    eval(" f<- function() { zzz<-21; g() } ");
+    eval(" g<- function(env = parent.frame()) env$zzz");
+    eval(" f<- function() { zzz<-42; g() } ");
 
     assertThat( eval("f()"), equalTo( c(42)));
   }
 
+
+  
   @Test
   public void sysCall() {
     eval(" sys.call <- function (which = 0) .Internal(sys.call(which))");
@@ -124,7 +143,6 @@ public class ContextTest extends EvalTestCase {
 
     assertThat( eval("f()"), equalTo( c_i(0) ));
     assertThat( eval("g()"), equalTo( c_i(1) ));
-
   }
 
 }

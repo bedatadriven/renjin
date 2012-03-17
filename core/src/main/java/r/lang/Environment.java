@@ -161,6 +161,12 @@ public class Environment extends AbstractSEXP implements Recursive {
     ns.name = "namespace:" + namespaceName;
     return ns;
   }
+  
+  public static Environment createBaseNamespaceEnvironment(Environment globalEnv) {
+    Environment ns = createChildEnvironment(globalEnv, globalEnv.baseEnvironment.getFrame());
+    ns.name = "namespace:base";
+    return ns;
+  }
 
   public static Environment createChildEnvironment(Environment parent, Frame frame) {
     Environment child = new Environment();
@@ -300,6 +306,9 @@ public class Environment extends AbstractSEXP implements Recursive {
   }
   
   public Function findFunction(Symbol symbol) {
+    if(frame.isMissingArgument(symbol)) {
+      throw new EvalException("argument '%s' is missing, with no default", symbol.toString());
+    }
     Function value = frame.getFunction(symbol);
     if(value != null) {
       return value;

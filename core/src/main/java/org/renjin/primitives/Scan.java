@@ -5,7 +5,9 @@
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
- * This program is free software: you can redistribute it and/or modify
+ * This program
+import com.google.common.base.Strings;
+ is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -21,17 +23,27 @@
 
 package org.renjin.primitives;
 
-import r.lang.*;
-import r.lang.exception.EvalException;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
+
+import r.lang.Context;
+import r.lang.ExternalExp;
+import r.lang.ListVector;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbols;
+import r.lang.Vector;
+import r.lang.exception.EvalException;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 public class Scan {
 
@@ -40,7 +52,7 @@ public class Scan {
                             SEXP file,
                             Vector what,
                             int nmax,
-                            String sep,
+                            String seperator,
                             String dec,
                             String quote,
                             int skip,
@@ -71,24 +83,35 @@ public class Scan {
 
     BufferedReader lineReader = new BufferedReader( new InputStreamReader( in, toJavaEncoding(encoding)));
 
-    if(!(what instanceof StringVector)) {
-      throw new EvalException("only strings are supported for scan");
+    Scanner scanner;
+    if(what instanceof ListVector) {
+      scanner = new ListReader((ListVector)what, seperator);
+    } else {
+      scanner = getAtomicScanner(what);
     }
-
-    StringReader fieldReader = new StringReader();
+    
     String line;
-
     while( (line=lineReader.readLine())!=null) {
-      fieldReader.read(line);
+      if(!Strings.isNullOrEmpty(commentChar)) {
+        if(line.startsWith(commentChar)) {
+          continue;
+        }
+      }
+      scanner.read(line);
     }
-    return fieldReader.build();
+    return scanner.build();
   }
 
   private static String toJavaEncoding(String encoding) {
     return "UTF-8";
   }
+  
+  interface Scanner {
+    void read(String line);
+    Vector build();
+  }
 
-  private static class StringReader {
+  private static class StringReader implements Scanner {
     private final StringVector.Builder builder;
 
     private StringReader() {
@@ -102,5 +125,49 @@ public class Scan {
     public StringVector build() {
       return builder.build();
     }
+  }
+  
+  
+  private static Scanner getAtomicScanner(SEXP exp) {
+    if(exp instanceof StringVector) {
+      return new StringReader();
+    } else {
+      throw new UnsupportedOperationException(
+          String.format("column type '%s' not implemented", exp.getTypeName()));
+    }
+  }
+  
+  private static class ListReader implements Scanner {
+
+    private String seperator;
+    private StringVector names;
+    private List<Scanner> columnReaders = Lists.newArrayList();
+        
+    public ListReader(ListVector columns, String sep) {
+      this.seperator = sep;
+      this.names = (StringVector) columns.getAttribute(Symbols.NAMES);
+      for(SEXP column : columns) {
+        columnReaders.add(getAtomicScanner(column));
+      }
+    }
+    
+    @Override
+    public void read(String line) {
+      String[] fields = line.split(seperator);
+      for(int i=0;i!=fields.length;++i) {
+        columnReaders.get(i).read(fields[i]);
+      }
+    }
+
+    @Override
+    public Vector build() {
+      ListVector.Builder result = new ListVector.Builder();
+      for(Scanner scanner : columnReaders) {
+        result.add(scanner.build());
+      }
+      result.setAttribute(Symbols.NAMES, names);
+      return result.build();
+    }
+    
   }
 }

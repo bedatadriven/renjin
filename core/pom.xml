@@ -152,6 +152,21 @@
             </configuration>
           </execution>
           <execution>
+            <id>compile-packages</id>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath />
+                <argument>org.renjin.packaging.Bootstrapper</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
             <id>compile-base-package</id>
             <goals>
               <goal>exec</goal>

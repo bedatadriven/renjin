@@ -150,11 +150,17 @@ public class Subsetting {
    * Same as "[" but not generic
    */
   @Primitive(".subset")
-  public static SEXP subset(SEXP source, @ArgumentList ListVector arguments,
+  public static SEXP subset(Vector source, @ArgumentList ListVector arguments,
       @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     return getSubset(source, arguments, drop);
   }
 
+  @Primitive(".subset")
+  public static SEXP subset(PairList source, @ArgumentList ListVector arguments,
+      @NamedFlag("drop") @DefaultValue(true) boolean drop) {
+    return getSubset(source.toVector(), arguments, drop);
+  }
+  
   @Generic
   @Primitive("[")
   public static SEXP getSubset(SEXP source, @ArgumentList ListVector arguments,
@@ -194,6 +200,7 @@ public class Subsetting {
         .extract();
   }
 
+  
   @Generic
   @Primitive("[<-")
   public static SEXP setSubset(SEXP source, @ArgumentList ListVector arguments) {
@@ -207,9 +214,33 @@ public class Subsetting {
   @Primitive("[[<-")
   public static SEXP setSingleElement(SEXP source,
       @ArgumentList ListVector arguments) {
-    return new SubscriptOperation()
-        .setSource(source, arguments, 0, 1)
-        .replace(arguments.getElementAsSEXP(arguments.length() - 1), true);
+    
+    if(source instanceof Environment) {
+      if(arguments.length() != 2) {
+        throw new EvalException("Incorrect number of subscripts");
+      }
+      if(!(arguments.get(0) instanceof StringVector)) {
+        throw new EvalException("wrong arguments for subsetting an environment");
+      }
+      String name = arguments.getElementAsString(0);
+      SEXP value = arguments.getElementAsSEXP(1);
+      ((Environment)source).setVariable(name, value);
+      return source;
+      
+    } else if(source instanceof PairList || source instanceof Vector) {
+
+      Vector result = new SubscriptOperation()
+          .setSource(source, arguments, 0, 1)
+          .replace(arguments.getElementAsSEXP(arguments.length() - 1), true);
+      
+      if(source instanceof PairList.Node) {
+        return PairList.Node.fromVector(result);
+      } else {
+        return result;
+      }
+    } else {
+      throw new EvalException("'%s' is not subsettable", source.getTypeName());
+    } 
   }
 
   @Generic

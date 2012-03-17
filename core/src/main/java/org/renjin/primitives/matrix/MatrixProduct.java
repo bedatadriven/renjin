@@ -5,7 +5,9 @@ import org.netlib.blas.BLAS;
 import r.lang.AtomicVector;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
+import r.lang.ListVector;
 import r.lang.Null;
+import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.Symbols;
 import r.lang.Vector;
@@ -33,6 +35,8 @@ class MatrixProduct {
   private int ldy;
 
   private boolean sym;
+  
+  private ListVector.Builder dimnames = new ListVector.Builder(2);
 
   public MatrixProduct(int primop, AtomicVector x, AtomicVector y) {
     super();
@@ -158,36 +162,43 @@ class MatrixProduct {
 
     matprod(getXArray(), nrx, ncx,
         getYArray(), nry, ncy, ans);
-    //
-    //    PROTECT(xdims = getAttrib(CAR(args), R_DimNamesSymbol));
-    //    PROTECT(ydims = getAttrib(y, R_DimNamesSymbol));
-    //
-    //    if (xdims != Null.INSTANCE || ydims != Null.INSTANCE) {
-    //        SEXP dimnames, dimnamesnames, dnx=Null.INSTANCE, dny=Null.INSTANCE;
-    //
-    //        /* allocate dimnames and dimnamesnames */
-    //
-    //        PROTECT(dimnames = allocVector(VECSXP, 2));
-    //        PROTECT(dimnamesnames = allocVector(STRSXP, 2));
-    //        if (xdims != Null.INSTANCE) {
-    //            if (ldx == 2 || ncx == 1) {
-    //                SET_VECTOR_ELT(dimnames, 0, VECTOR_ELT(xdims, 0));
-    //                dnx = getAttrib(xdims, R_NamesSymbol);
-    //                if(!isNull(dnx))
-    //                    SET_STRING_ELT(dimnamesnames, 0, STRING_ELT(dnx, 0));
-    //            }
-    //        }
-    //
+    
+    
+    Vector xdimnames = (Vector) x.getAttribute(Symbols.DIMNAMES);
+    
+    if (xdimnames != Null.INSTANCE) {
+        if (ldx == 2 || ncx == 1) {
+          dimnames.set(0, xdimnames.getElementAsSEXP(0));
+//            dnx = getAttrib(xdims, R_NamesSymbol);
+//            if(!isNull(dnx))
+//                SET_STRING_ELT(dimnamesnames, 0, STRING_ELT(dnx, 0));
+        }
+    }
+
     ydimsEtcetera();
 
     return makeMatrix(ans, nrx, ncy);
   }
 
   private DoubleVector makeMatrix(double[] values, int nr, int nc) {
-    return (DoubleVector)new DoubleVector(values)
-    .setAttribute(Symbols.DIM, new IntVector(nr, nc));
+    PairList.Builder attributes = new PairList.Builder();
+    attributes.add(Symbols.DIM, new IntVector(nr, nc));
+    attributes.add(Symbols.DIMNAMES, buildDimnames());
+
+    
+    return new DoubleVector(values, attributes.build());
   }
 
+  private Vector buildDimnames() {
+    ListVector vector = dimnames.build();
+    if(vector.getElementAsSEXP(0) != null ||
+       vector.getElementAsSEXP(1) != null) {
+      return vector;
+    } else {
+      return Null.INSTANCE;
+    }
+  }
+  
   public DoubleVector crossprod() {
     double ans[] = new double[ncx * ncy];
     //    if (mode == CPLXSXP)
@@ -235,39 +246,32 @@ class MatrixProduct {
   }
 
   private void ydimsEtcetera() {
-    SEXP xdimnames = x.getAttribute(Symbols.DIMNAMES);
-    SEXP ydimnames = y.getAttribute(Symbols.DIMNAMES);
-
-    if (xdimnames != Null.INSTANCE || ydimnames != Null.INSTANCE) {
-      throw new EvalException("%*% for matricies with dimnnames not yet implemented");
-    }
-
-
-    //    SEXP dny;
-    //    if (ydims != Null.INSTANCE) {                                 
-    //        if (ldy == 2) {                                        
-    //            SET_VECTOR_ELT(dimnames, 1, VECTOR_ELT(ydims, 1)); 
-    //            dny = getAttrib(ydims, R_NamesSymbol);             
-    //            if(dny != Null.INSTANCE)                                   
-    //                SET_STRING_ELT(dimnamesnames, 1, STRING_ELT(dny, 1));
-    //        } else if (nry == 1) {                                 
-    //            SET_VECTOR_ELT(dimnames, 1, VECTOR_ELT(ydims, 0)); 
-    //            dny = getAttrib(ydims, R_NamesSymbol);             
-    //            if(!isNull(dny))                                   
-    //                SET_STRING_ELT(dimnamesnames, 1, STRING_ELT(dny, 0));
-    //        }                                                      
-    //    }                                                          
-    //                                                               
-    //    /* We sometimes attach a dimnames attribute                
-    //     * whose elements are all NULL ...                         
-    //     * This is ugly but causes no real damage.                 
-    //     * Now (2.1.0 ff), we don't anymore: */                    
-    //    if (VECTOR_ELT(dimnames,0) != Null.INSTANCE ||                
-    //        VECTOR_ELT(dimnames,1) != Null.INSTANCE) {                
-    //        if (dnx != Null.INSTANCE || dny != Null.INSTANCE)            
-    //            setAttrib(dimnames, R_NamesSymbol, dimnamesnames); 
-    //        setAttrib(ans, R_DimNamesSymbol, dimnames);            
-    //    }                      
+    
+    Vector ydimnames = (Vector) y.getAttribute(Symbols.DIMNAMES);
+        if (ydimnames != Null.INSTANCE) {                                 
+            if (ldy == 2) { 
+              dimnames.set(1, ydimnames.getElementAsSEXP(1));
+//                AtomicVector dny = getAttrib(ydims, R_NamesSymbol);             
+//                if(dny != Null.INSTANCE)                                   
+//                    SET_STRING_ELT(dimnamesnames, 1, STRING_ELT(dny, 1));
+            } else if (nry == 1) {                                 
+              dimnames.set(1, ydimnames.getElementAsSEXP(0)); 
+//                dny = getAttrib(ydims, R_NamesSymbol);             
+//                if(!isNull(dny))                                   
+//                    SET_STRING_ELT(dimnamesnames, 1, STRING_ELT(dny, 0));
+            }                                                      
+        }                                                          
+//                                                                   
+//        /* We sometimes attach a dimnames attribute                
+//         * whose elements are all NULL ...                         
+//         * This is ugly but causes no real damage.                 
+//         * Now (2.1.0 ff), we don't anymore: */                    
+//        if (VECTOR_ELT(dimnames,0) != Null.INSTANCE ||                
+//            VECTOR_ELT(dimnames,1) != Null.INSTANCE) {                
+//            if (dnx != Null.INSTANCE || dny != Null.INSTANCE)            
+//                setAttrib(dimnames, R_NamesSymbol, dimnamesnames); 
+//            setAttrib(ans, R_DimNamesSymbol, dimnames);            
+//        }                      
   }
 
   public DoubleVector tcrossprod() {

@@ -23,6 +23,7 @@ package org.renjin.primitives.text;
 
 import static com.google.common.collect.Iterables.transform;
 
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,9 @@ import org.renjin.primitives.Deparse;
 import org.renjin.primitives.annotations.AllowNA;
 import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.InvokeAsCharacter;
+import org.renjin.primitives.annotations.PreserveAttributeStyle;
+import org.renjin.primitives.annotations.PreserveAttributes;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
 import org.renjin.primitives.text.regex.ExtendedRE;
@@ -47,6 +51,7 @@ import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.LogicalVector;
 import r.lang.Null;
+import r.lang.RawVector;
 import r.lang.ReservedWords;
 import r.lang.SEXP;
 import r.lang.StringVector;
@@ -289,12 +294,11 @@ public class Text {
   public static String sub(String pattern, String replacement,
                            @Recycle String x,
                            boolean ignoreCase,
-                           boolean extended,
                            boolean perl,
                            boolean fixed,
                            boolean useBytes) {
-
-    RE re = REFactory.compile(pattern, ignoreCase, extended, perl, fixed, useBytes);
+    
+    RE re = REFactory.compile(pattern, ignoreCase, perl, fixed, useBytes);
     return  re.subst(x, replacement, ExtendedRE.REPLACE_FIRSTONLY | ExtendedRE.REPLACE_BACKREFERENCES );
   }
 
@@ -316,12 +320,11 @@ public class Text {
   public static String gsub(String pattern, String replacement,
                             @Recycle String x,
                             boolean ignoreCase,
-                            boolean extended,
                             boolean perl,
                             boolean fixed,
                             boolean useBytes) {
 
-    RE re = REFactory.compile(pattern, ignoreCase, extended, perl, fixed, useBytes);
+    RE re = REFactory.compile(pattern, ignoreCase, perl, fixed, useBytes);
     return re.subst(x, replacement, ExtendedRE.REPLACE_ALL | ExtendedRE.REPLACE_BACKREFERENCES );
   }
 
@@ -337,27 +340,26 @@ public class Text {
    * @return  a {@code StringVector} containing the splits
    */
   public static StringVector strsplit(@Recycle String x, @Recycle String split,
-                                      boolean extended,
                                       boolean fixed,
                                       boolean perl,
                                       boolean useBytes) {
 
-    RE re = REFactory.compile(split, false, extended, perl, fixed, useBytes);
+    RE re = REFactory.compile(split, false, perl, fixed, useBytes);
     return new StringVector( re.split(x) );
   }
 
+  @Primitive
   public static Vector grep(
       String pattern,
       StringVector x,
       boolean ignoreCase,
-      boolean extended,
       boolean value,
       boolean perl,
       boolean fixed,
       boolean useBytes,
       boolean invert) {
 
-    RE re = REFactory.compile(pattern,ignoreCase,extended, perl, fixed, useBytes);
+    RE re = REFactory.compile(pattern,ignoreCase, perl, fixed, useBytes);
     if(value) {
       StringVector.Builder result = new StringVector.Builder();
       for(String string : x) {
@@ -395,14 +397,13 @@ public class Text {
       String pattern,
       StringVector x,
       boolean ignoreCase,
-      boolean extended,
       boolean value,
       boolean perl,
       boolean fixed,
       boolean useBytes,
       boolean invert) {
 
-    RE re = REFactory.compile(pattern, ignoreCase, extended, perl, fixed, useBytes);
+    RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
     LogicalVector.Builder result = new LogicalVector.Builder();
     for(String string : x) {
       result.add( ! StringVector.isNA(string) && re.match(string ));
@@ -657,6 +658,15 @@ public class Text {
     return buildFormatResult(x, elements);
   }
 
+  public static StringVector format(LogicalVector x, boolean trim, SEXP digits, SEXP nsmall, 
+      SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
+       
+    List<String> elements = formatLogicalElements(x);
+    int width = calculateWidth(elements, minWidth);
+    elements = justify(elements, width, Justification.RIGHT, naEncode);
+    
+    return buildFormatResult(x, elements);
+  }
 
   /**
    * 
@@ -891,5 +901,69 @@ public class Text {
 
     return result.build();
   }
+  
+  /**
+   * Stub implementation of the iconv method. 
+   * 
+   * <p>
+   * A fundamental difference between C-R and Renjin is that C-R stores strings as 
+   * raw bytes and encodes to strings upon use. Therefore an R StringVector can have an
+   * "encoding" attribute which dictates how the bytes should be interprted.
+   * 
+   * <p>
+   * Renjin uses JVM Strings for StringVector storage, which are always stored in UTF-16
+   * encoding. So transcoding a String from one encoding to another doesn't make much sense. 
+   * 
+   * <p>
+   * There still may be some cases where this does make sense, but I think we'll need
+   * concrete cases to properly wrap our heads around how it should work.
+   * 
+   * @param x the input StringVector
+   * @param from the charset from which to convert
+   * @param to the charset to which to convert
+   * @param sub the string to use a substitute for unsupported characters
+   * @param mark true if encoding should be marked (not implemented)
+   * @param toRaw true if a ListVector of RawVectors should be returned instead of a StringVector
+   * @return
+   */
+  @Primitive
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  public static Vector iconv(@InvokeAsCharacter Vector x, String from, String to, String sub, boolean mark, boolean toRaw) {
+    if(toRaw) {
+      Charset destCharSet = RCharsets.getByName(to);
+      ListVector.Builder result = new ListVector.Builder();
+      for(int i=0;i!=x.length();++i) {
+        result.add(new RawVector(
+            x.getElementAsString(i)
+              .getBytes(destCharSet)));
+      }
+      return result.build();
+    } else {
+      return x;
+    }
+  }
 
+  @Primitive
+  @PreserveAttributes(PreserveAttributeStyle.NONE)
+  public static int strtoi(@Recycle String x, @Recycle(false) int base) {
+    if(base == 0) {
+      // For the default ‘base = 0L’, the base chosen from the string
+      // representation of that element of ‘x’. The standard C
+      //rules for choosing the base are that octal constants (prefix ‘0’
+      // not followed by ‘x’ or ‘X’) and hexadecimal constants (prefix ‘0x’
+      // or ‘0X’) are interpreted as base ‘8’ and ‘16’; all other strings
+      // are interpreted as base ‘10’.
+      if(x.startsWith("0x") || x.startsWith("0X")) {
+        return Integer.parseInt(x.substring(2), 16);
+      } else if(x.startsWith("0")) {
+        return Integer.parseInt(x, 8);
+      } else {
+        return Integer.parseInt(x, 10);
+      }
+    } else if(base == 16 && (x.startsWith("0x") || x.startsWith("0X"))) {
+      return Integer.parseInt(x.substring(2), 16);
+    } else {
+      return Integer.parseInt(x, base);
+    }
+  }
 }

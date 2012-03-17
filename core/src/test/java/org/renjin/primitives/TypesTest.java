@@ -39,6 +39,7 @@ import r.lang.FunctionCall;
 import r.lang.IntVector;
 import r.lang.ListVector;
 import r.lang.Logical;
+import r.lang.LogicalVector;
 import r.lang.Null;
 import r.lang.PairList;
 import r.lang.Raw;
@@ -46,6 +47,7 @@ import r.lang.RawVector;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.Symbol;
+import r.lang.exception.EvalException;
 
 public strictfp class TypesTest extends EvalTestCase {
 
@@ -174,8 +176,17 @@ public strictfp class TypesTest extends EvalTestCase {
     eval( "dim(x) <- c(3,4,1)");
     
     assertThat( eval("dim(x)"), equalTo(c_i(3,4,1)));
+  
+    eval( "dim(x) <- NULL ");
+    assertThat( eval("dim(x)"), equalTo(NULL));
   }
 
+  @Test(expected=EvalException.class)
+  public void attributeReplaceOnNull() {
+    eval( "dim(NULL) <- c(0,4)");
+  }
+
+    
 
   @Test
   public void na() {
@@ -183,7 +194,10 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval(" is.na(NA) "), equalTo( c(TRUE)));
     assertThat( eval(" is.na(c(1L, NA_integer_)) "), equalTo( c(FALSE, TRUE)));
     assertThat( eval(" is.na(c(NA_character_, '', 'foo')) "), equalTo( c(TRUE, FALSE, FALSE)));
+    assertThat( eval(" is.na(c()) "), equalTo((SEXP)LogicalVector.EMPTY));
   }
+  
+  
 
   @Test
   public void naList() {
@@ -239,7 +253,9 @@ public strictfp class TypesTest extends EvalTestCase {
 
   @Test
   public void environment() {
-    assertThat( eval(".Internal(environment())"), CoreMatchers.is((SEXP) topLevelContext.getGlobalEnvironment()));
+    eval(" environment <- function(fun=NULL) .Internal(environment(fun)) ");
+    eval(" f <- function() { qqq<-42; environment()$qqq }");
+    assertThat( eval("f()"), equalTo(c(42)));
   }
   
   @Test
@@ -529,6 +545,13 @@ public strictfp class TypesTest extends EvalTestCase {
   }
   
   @Test
+  public void multiByteCharToRaw(){
+    Raw r1 = new Raw(0xc2);
+    Raw r2 = new Raw(0xa0);
+    assertThat( eval(".Internal(charToRaw('\u00a0'))"), equalTo(c(r1,r2)));
+  }
+  
+  @Test
   public void rawShift() {
     Raw r1 = new Raw(0x3a);Raw r2 = new Raw(0x3c);Raw r3 = new Raw(0x3e);
     assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),1))"), equalTo(c(r1, r2, r3)));
@@ -557,5 +580,30 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("is.na.foo <- function(x) 'FOO!!'");
     assertThat(eval("is.na(x)"), equalTo(c("FOO!!")));
   }
+  
+  @Test
+  public void rawToChar() {
+    
+    byte[] bytes = "!\"#$%&'()".getBytes();
+    String s = new String(bytes);
+    
+    assertThat(eval(".Internal(rawToChar(as.raw(32:126), FALSE))"), equalTo(
+        c(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")));
+    
+  }
+  
+  @Test
+  public void drop() {
+    
+    eval("x <- 1:12");
+    eval("dim(x) <- c(3,1, 4, 1)");
+    eval("dimnames(x) <- dimnames(x) <- list(c('r1','r2','r3'), 'd2', c('c1', 'c2', 'c3', 'c4'), 'd4')");
+    eval("y <- .Internal(drop(x))");
+    
+    assertThat(eval("dim(y)"), equalTo(c_i(3,4)));
+    assertThat(eval("dimnames(y)[[1]]"), equalTo(c("r1", "r2", "r3")));
+    assertThat(eval("dimnames(y)[[2]]"), equalTo(c("c1", "c2", "c3", "c4")));
+  }
+  
   
 }

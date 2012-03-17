@@ -5,6 +5,7 @@ import java.util.Collection;
 import r.lang.Indexes;
 import r.lang.IntVector;
 import r.lang.ListVector;
+import r.lang.Null;
 import r.lang.StringVector;
 import r.lang.Symbols;
 import r.lang.Vector;
@@ -15,8 +16,8 @@ class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
   private final int nrows;
   private final int ncols;
   
-  private StringVector rowNames;
-  private StringVector colNames;
+  private Vector rowNames = Null.INSTANCE;
+  private Vector colNames = Null.INSTANCE;
   
   public AbstractMatrixBuilder(Vector.Type vectorType, int nrows, int ncols) {
     this.nrows = nrows;
@@ -54,7 +55,7 @@ class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
   }
   
   public V build() {
-    if(rowNames != null && colNames != null) {
+    if(rowNames != Null.INSTANCE || colNames != Null.INSTANCE) {
       builder.setAttribute(Symbols.DIMNAMES, new ListVector(rowNames, colNames));
     }
     return (V)builder.build();

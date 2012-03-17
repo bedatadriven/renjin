@@ -168,6 +168,18 @@ public class SubsettingTest extends EvalTestCase {
 
     assertThat( eval(" x[] "), equalTo( c_i(41,42,43)));
   }
+  
+  @Test
+  public void nrowsOnZeroWidthMatrix() {
+    eval("m <- 1:12" );
+    eval("dim(m) <- c(3,4)");
+    eval("m2 <- m[FALSE,,drop=FALSE]");
+    assertThat(eval("dim(m2)[2]"), equalTo(c_i(4)));
+    eval("l2 <- .Internal(vector('logical',0)) ");
+    eval("fin <- m2[!l2,,drop=FALSE]");
+    assertThat(eval("dim(fin)"), equalTo(c_i(0,4)));
+    
+  }
 
   @Test
   public void namedSubscripts() {
@@ -240,7 +252,26 @@ public class SubsettingTest extends EvalTestCase {
 
     assertThat( eval("x") , equalTo(c(1,2,3)));
   }
-
+  
+  @Test
+  public void emptyLogicalVectorWithNoDimsIsAlwaysNull() {
+    assertThat(eval(" c()[1]"), equalTo(NULL));
+  }
+  
+  @Test
+  public void emptyVectorWithDimsIsNotNull() {
+    eval("x<-TRUE[-1]");
+    eval("dim(x) <- c(0,1)");
+    assertThat(eval(" x[1]"), equalTo(c(Logical.NA)));
+  }
+  
+  @Test
+  public void emptyDoubleVectorIsNotNull() {
+    eval("select <- TRUE[-1]");
+    eval("x <- 1[-1]");
+    assertThat(eval(" x[select]"), equalTo((SEXP)DoubleVector.EMPTY));
+  }
+  
   @Test
   public void listElementByName() {
     eval(" p <- list(x=33, y=44) ");
@@ -303,6 +334,11 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x[1:2] <- NULL ");
 
     assertThat( eval("x"), equalTo(list(3d)));
+  }
+  
+  @Test
+  public void replaceElementInEnv() {
+   
   }
 
 
@@ -512,6 +548,14 @@ public class SubsettingTest extends EvalTestCase {
 
     assertThat( eval("x"), equalTo( list("foo" ))) ;
   }
+  
+  @Test
+  public void replaceSingleElementInEnvironment() {
+    eval("x <- globalenv()");
+    eval("x[['foo']] <- 42");
+    
+    assertThat(eval("foo"), equalTo(c(42)));
+  }
 
   @Test
    public void addNewListItemByNameViaReplaceSingleItem() {
@@ -540,6 +584,11 @@ public class SubsettingTest extends EvalTestCase {
     assertThat( eval("p[1:2]"), equalTo(list(1d,2d)));
     assertThat( eval("names(p[TRUE])"), equalTo(c("a", "b", "", "")));
     assertThat( eval("p[['b']]"), equalTo(c(2)));
+   
+    eval("p[[1]]<-99");
+    assertThat( eval(".Internal(typeof(p))"), equalTo(c("pairlist")));
+    assertThat( eval("p$a"), equalTo(c(99)));
+   
   }
 
   @Test
@@ -621,6 +670,25 @@ public class SubsettingTest extends EvalTestCase {
     eval("assign(\"value\",\"foo\",.testEnv)");
     assertThat(eval("if(.testEnv[[\"key\"]]==1) TRUE else FALSE"),logicalVectorOf(Logical.TRUE));
     assertThat(eval("if(.testEnv[[\"value\"]]==\"foo\") TRUE else FALSE"),logicalVectorOf(Logical.TRUE));
+  }
+  
+
+  @Test
+  public void emptyLogical() {
+    eval("x <- 1:10");
+    eval("emptyLogical <- TRUE[-1]");
+    assertThat(eval("x[emptyLogical]"), equalTo((SEXP)IntVector.EMPTY));
+  }
+  
+  @Test
+  public void dimNamesToNamesWhenDrop() {
+    eval("x <- 1:12");
+    eval("dim(x) <- c(3,4)");
+    eval("dimnames(x) <- list(c('A','B','C'), NULL)");
+    
+    eval("y <- x[,1L]");
+    assertThat(eval("names(y)"), equalTo(c("A","B","C")));
+    
   }
   
 }

@@ -43,6 +43,7 @@ import org.renjin.primitives.graphics.Par;
 import org.renjin.primitives.graphics.Plot;
 import org.renjin.primitives.graphics.RgbHsv;
 import org.renjin.primitives.io.Cat;
+import org.renjin.primitives.io.DebianControlFiles;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.match.Duplicates;
@@ -210,7 +211,7 @@ public class Primitives {
     f("[[<-", Subsetting.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
     f("$<-", Subsetting.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
 
-    addInternal("switch", new SwitchFunction());
+    add(new SwitchFunction());
 
     f("browser", /*browser*/ null, 0, 101, 3);
     f("debug", /*debug*/ null, 0, 111, 3);
@@ -297,7 +298,7 @@ public class Primitives {
     f("unlist", Combine.class, 0, 11, 3);
     f("cbind", Combine.class, 1, 10, -1);
     f("rbind", Combine.class, 2, 10, -1);
-    f("drop", /*drop*/ null, 0, 11, 1);
+    f("drop", Types.class, 0, 11, 1);
     f("oldClass", Types.class, 0, 1, 1);
     f("oldClass<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("class", Types.class, "getClass", 0, 1, 1);
@@ -326,6 +327,7 @@ public class Primitives {
     f("unique", Duplicates.class, 1, 11, 3);
     f("anyDuplicated", Duplicates.class, 2, 11, 3);
     f("which.min", Sort.class, 0, 11, 1);
+    f("which", Match.class, 0, 11, 1);
     f("pmin", Summary.class, 0, 11, -1);
     f("pmax", Summary.class, 1, 11, -1);
     f("which.max", Sort.class, 1, 11, 1);
@@ -609,7 +611,7 @@ public class Primitives {
     f("sprintf", Text.class, 1, 11, -1);
     f("make.unique", Text.class, 0, 11, 2);
     f("charToRaw", Types.class, 1, 11, 1);
-    f("rawToChar", /*rawToChar*/ null, 1, 11, 2);
+    f("rawToChar", Types.class, 1, 11, 2);
     f("rawShift", Types.class , 1, 11, 2);
     f("intToBits", Types.class, 1, 11, 1);
     f("rawToBits", Types.class , 1, 11, 1);
@@ -617,9 +619,10 @@ public class Primitives {
     f("utf8ToInt", Text.class, 1, 11, 1);
     f("intToUtf8", Text.class, 1, 11, 2);
     f("encodeString",Text.class, 1, 11, 5);
-    f("iconv", /*iconv*/ null, 0, 11, 5);
+    f("iconv", Text.class, 0, 11, 5);
     f("strtrim", Text.class, 0, 11, 2);
-
+    f("strtoi", Text.class,  0, 11, 2);
+    
 /* Type Checking (typically implemented in ./coerce.c ) */
 
     f("is.null", Types.class,  0 /*NILSXP*/, 1, 1);
@@ -666,13 +669,14 @@ public class Primitives {
     f("machine", System.class, 0, 11, 0);
     f("commandArgs", System.class, 0, 11, 0);
     f("unzip", Files.class, 0, 111, 6);
+    f("system", System.class, 0, 211, 5);
     f("parse", Evaluation.class, 0, 11, 6);
     f("parse_Rd", /*parseRd*/ null, 0, 11, 7);
     f("save", /*save*/ null, 0, 111, 6);
     f("saveToConn", /*saveToConn*/ null, 0, 111, 6);
     f("load", /*load*/ null, 0, 111, 2);
     f("loadFromConn2", Serialization.class, 0, 111, 2);
-    f("serializeToConn", /*serializeToConn*/ null, 0, 111, 5);
+    f("serializeToConn", Serialization.class, 0, 111, 5);
     f("unserializeFromConn", Serialization.class, 0, 111, 2);
     f("deparse", Deparse.class, 0, 11, 5);
     f("deparseRd", /*deparseRd*/ null, 0, 11, 2);
@@ -759,12 +763,13 @@ public class Primitives {
     f("env2list", Types.class, 0, 11, 2);
     f("reg.finalizer", /*regFinaliz*/ null, 0, 11, 3);
     f("options", Types.class, 0, 211, 1);
-    f("sink", /*sink*/ null, 0, 111, 4);
+    f("sink", Connections.class, 0, 111, 4);
     f("sink.number", /*sinknumber*/ null, 0, 11, 1);
     f("lib.fixup", Types.class, 0, 111, 2);
     f("pos.to.env", /*pos2env*/ null, 0, 1, 1);
     f("eapply", /*eapply*/ null, 0, 10, 4);
     f("lapply", Evaluation.class, 1, 10, 2);
+    f("vapply", Evaluation.class, 1, 10, 4);
     f("rapply", /*rapply*/ null, 0, 11, 5);
     f("islistfactor",  Types.class, 0, 11, 2);
     f("colSums", Matrices.class, 0, 11, 4);
@@ -782,7 +787,7 @@ public class Primitives {
     f("merge", /*merge*/ null, 0, 11, 4);
     f("capabilities", System.class, 0, 11, 0);
     f("capabilitiesX11", /*capabilitiesX11*/ null, 0, 11, 0);
-    f("new.env", Types.class, "newEnv", 0, 11, 3);
+    f("new.env", Types.class, 0, 11, 3);
     f("parent.env", Types.class, 0, 11, 1);
     f("parent.env<-", Types.class, 0, 11, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("visibleflag", /*visibleflag*/ null, 0, 1, 0);
@@ -795,10 +800,10 @@ public class Primitives {
 
     f("file.show", /*fileshow*/ null, 0, 111, 5);
     f("file.edit", /*fileedit*/ null, 0, 111, 3);
-    f("file.create", /*filecreate*/ null, 0, 11, 2);
+    f("file.create", Files.class, 0, 11, 2);
     f("file.remove", /*fileremove*/ null, 0, 11, 1);
     f("file.rename", /*filerename*/ null, 0, 11, 2);
-    f("file.append", /*fileappend*/ null, 0, 11, 2);
+    f("file.append", Files.class, 0, 11, 2);
     f("codeFiles.append", /*fileappend*/ null, 1, 11, 2);
     f("file.symlink", /*filesymlink*/ null, 0, 11, 2);
     f("file.copy", /*filecopy*/ null, 0, 11, 4);
@@ -815,14 +820,14 @@ public class Primitives {
     f("index.search", /*indexsearch*/ null, 0, 11, 5);
     f("Sys.getenv", System.class, 0, 11, 2);
     f("Sys.setenv", System.class, 0, 111, 2);
-    f("Sys.unsetenv", /*unsetenv*/ null, 0, 111, 1);
+    f("Sys.unsetenv", System.class, 0, 111, 1);
     f("getwd", Files.class, 0, 11, 0);
     f("setwd", Files.class, 0, 111, 1);
     f("basename", Files.class, 0, 11, 1);
     f("dirname", Files.class, 0, 11, 1);
-    f("dirchmod", /*dirchmod*/ null, 0, 111, 1);
-    f("Sys.chmod", /*syschmod*/ null, 0, 111, 2);
-    f("Sys.umask", /*sysumask*/ null, 0, 111, 1);
+    f("dirchmod", System.class, 0, 111, 1);
+    f("Sys.chmod", System.class, 0, 111, 2);
+    f("Sys.umask", System.class, 0, 111, 1);
     f("Sys.readlink", /*readlink*/ null, 0, 11, 1);
     f("Sys.info", System.class, 0, 11, 0);
     f("Sys.sleep", System.class, 0, 11, 1);
@@ -831,7 +836,7 @@ public class Primitives {
     f("Sys.localeconv", /*localeconv*/ null, 0, 11, 0);
     f("path.expand", Files.class, "pathExpand", 0, 11, 1);
     f("Sys.getpid",System.class, 0, 11, 0);
-    f("normalizePath", /*normalizepath*/ null, 0, 11, 1);
+    f("normalizePath", Files.class, 0, 11, 1);
     f("Sys.glob", Files.class, "glob", 0, 11, 2);
     f("unlink", Files.class, 0, 111, 2);
 
@@ -949,7 +954,7 @@ public class Primitives {
     f("readChar", Connections.class, 0, 11, 3);
     f("writeChar", /*writechar*/ null, 0, 211, 5);
     f("open", /*open*/ null, 0, 11, 3);
-    f("isOpen", /*isopen*/ null, 0, 11, 2);
+    f("isOpen", Connections.class, 0, 11, 2);
     f("isIncomplete", /*isincomplete*/ null, 0, 11, 1);
     f("isSeekable", /*isseekable*/ null, 0, 11, 1);
     f("close", Connections.class, 0, 11, 2);
@@ -982,7 +987,7 @@ public class Primitives {
     f("memCompress", /*memCompress*/ null, 0, 11, 2);
     f("memDecompress", /*memDecompress*/ null, 0, 11, 2);
 
-    f("readDCF", /*readDCF*/ null, 0, 11, 2);
+    f("readDCF", DebianControlFiles.class, 0, 11, 2);
 
     f("getNumRtoCConverters", /*getNumRtoCConverters*/ null, 0, 11, 0);
     f("getRtoCConverterDescriptions", /*getRtoCConverterDescriptions*/ null, 0, 11, 0);

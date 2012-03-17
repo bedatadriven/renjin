@@ -25,6 +25,8 @@ import java.util.IdentityHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import r.lang.exception.EvalException;
+
 public class HashFrame implements Frame{
 
   private IdentityHashMap<Symbol, SEXP> values = new IdentityHashMap<Symbol, SEXP>();
@@ -53,11 +55,23 @@ public class HashFrame implements Frame{
       if(value instanceof Promise) {
         value = ((Promise) value).force();
       } 
+      if(value == Symbol.MISSING_ARG) {
+        throw new EvalException("argument '%s' is missing with no default", name.toString());
+      }
       if(value instanceof Function) {
         return (Function)value;
       }
     }
     return null;
+  }
+
+
+  @Override
+  public boolean isMissingArgument(Symbol name) {
+    if(functionFilter != 0 && (functionFilter & name.hashBit()) != 0) {
+      return values.get(name) == Symbol.MISSING_ARG;
+    }
+    return false;
   }
   
   @Override
@@ -65,7 +79,8 @@ public class HashFrame implements Frame{
     values.put(name, value);
     // we add Promises to the function filter because they *could* be 
     // functions
-    if(value instanceof Function || value instanceof Promise) {
+    if(value instanceof Function || value instanceof Promise ||
+        value == Symbol.MISSING_ARG) {
       functionFilter |= name.hashBit();
     }
   }
@@ -88,4 +103,5 @@ public class HashFrame implements Frame{
     }
     return sb.toString();
   }
+
 }

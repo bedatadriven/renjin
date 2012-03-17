@@ -39,6 +39,7 @@ import r.lang.PairList;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.Symbols;
+import r.lang.Vector;
 import r.lang.exception.EvalException;
 
 /**
@@ -200,6 +201,24 @@ public class Match {
     }
     
     return new FunctionCall(call.getFunction(), matched);
+  }
+  
+  /**
+   * Returns an IntVector indices of elements that are {@code TRUE}.
+   * 
+   * <p>Note that the which() function in the base package handles 
+   * array indices and names, this internal function simply returns
+   * the indices
+   */
+  @Primitive
+  public static IntVector which(Vector x) {
+    IntVector.Builder indices = new IntVector.Builder();
+    for(int i=0;i!=x.length();++i) {
+      if(x.isElementTrue(i)) {
+        indices.add(i+1);
+      }
+    }
+    return indices.build();
   }
   
 }

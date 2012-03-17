@@ -90,9 +90,7 @@ public class WrapperGenerator {
       if(singleFunction == null || singleFunction.equals(entry.name)) {
         List<JvmMethod> overloads = JvmMethod.findOverloads(entry.functionClass, entry.name, entry.methodName);
         
-        if(overloads.isEmpty()) {
-          System.out.println(entry.name + ": not implemented.");
-        } else {
+        if(!overloads.isEmpty()) {
           implementedCount ++;
           
           GeneratorStrategy strategy = findStrategy(strategies, overloads);

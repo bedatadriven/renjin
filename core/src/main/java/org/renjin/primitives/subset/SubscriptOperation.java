@@ -54,8 +54,10 @@ public class SubscriptOperation {
   public SubscriptOperation setSource(SEXP source, ListVector arguments, int skipBeginning, int skipEnd) {
     if(source instanceof PairList.Node) {
       this.source = ((PairList.Node) source).toVector();
+    } else if(source instanceof Vector) {
+      this.source = (Vector) source;
     } else {
-      this.source = EvalException.checkedCast(source);
+      throw new EvalException("Invalid source: " + source);
     }
     subscripts = Lists.newArrayList();
     for(int i=skipBeginning; i+skipEnd<arguments.length();++i) {
@@ -110,9 +112,9 @@ public class SubscriptOperation {
     return this;
   }
 
-  public SEXP extract() {
+  public Vector extract() {
 
-    if(source instanceof AtomicVector && source.length() == 0) {
+    if(source == Null.INSTANCE) {
       return Null.INSTANCE;
 
     } else {
@@ -138,11 +140,47 @@ public class SubscriptOperation {
         }
       }
       result.setAttribute(Symbols.DIM, extractionDimension());
-      if(names != null) {
-        result.setAttribute(Symbols.NAMES, names.build());
+      
+      // COMPUTE NAMES:
+      // if only subscript is used, always draw names from the NAMES attribute
+      // of the source
+      if(subscripts.size() == 1 && !sourceIsSingleDimensionArray()) {        
+        // (no DIMs attribute)
+        if(names != null) {
+          result.setAttribute(Symbols.NAMES, names.build());
+        }
+      } else {
+        // otherwise treat as an array and use dimnames
+        IntVector.Builder dim = new IntVector.Builder();
+        ListVector.Builder dimNames = new ListVector.Builder();
+        boolean hasDimNames = false;
+        int[] selectedDim = selection.getSubscriptDimensions();
+        for(int d=0;d!=selectedDim.length;++d) {
+          if(selectedDim[d] > 1 || !drop) {
+            dim.add(selectedDim[d]);
+            
+            Vector dimNamesElement = selection.getDimensionNames(d);
+            hasDimNames |= (dimNamesElement != Null.INSTANCE);
+            dimNames.add(dimNamesElement);
+          }
+        }
+        if(dim.length() > 1 || !drop) {
+          result.setAttribute(Symbols.DIM, dim.build());
+          if(hasDimNames) {
+            result.setAttribute(Symbols.DIMNAMES, dimNames.build());
+          }
+        } else {
+          if(hasDimNames) {
+            result.setAttribute(Symbols.NAMES, dimNames.build().getElementAsSEXP(0));
+          }
+        }
       }
       return result.build();
     }
+  }
+  
+  private boolean sourceIsSingleDimensionArray() {
+    return source.getAttribute(Symbols.DIM).length() == 1;
   }
 
   private Vector extractionDimension() {
@@ -190,8 +228,8 @@ public class SubscriptOperation {
       return result.build();
     }
   }
-
-  public SEXP replace(SEXP elements, boolean single) {
+  
+  public Vector replace(SEXP elements, boolean single) {
 
     // [[<- and [<- seem to have a special meaning when
     // the replacement value is NULL and the vector is a list

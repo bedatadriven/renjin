@@ -1065,8 +1065,7 @@ public class RgbHsv {
 
 	@Primitive("hsv")
 	public static String hsv(@Recycle double h, @Recycle double s,
-			@Recycle double v, @Recycle double gamma, @Recycle double alpha) {
-		// R 2.14 do not use gamma...
+			@Recycle double v,  @Recycle double alpha) {
 		Color clr = Color.getHSBColor((float) h, (float) s, (float) v);
 		String sclr = getHexRgb(clr.getRed(), clr.getGreen(), clr.getBlue(),
 				alpha * 255, 255, true);

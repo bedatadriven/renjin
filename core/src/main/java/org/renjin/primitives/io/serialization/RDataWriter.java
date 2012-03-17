@@ -35,16 +35,19 @@ import static org.renjin.primitives.io.serialization.SerializationFormat.VECSXP;
 import static org.renjin.primitives.io.serialization.SerializationFormat.VERSION2;
 import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_FORMAT;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
+import org.apache.commons.math.complex.Complex;
+import org.renjin.RVersion;
 import org.renjin.primitives.Namespaces;
 
-import com.google.common.collect.Maps;
-
+import r.lang.BuiltinFunction;
 import r.lang.Closure;
+import r.lang.ComplexVector;
 import r.lang.Context;
 import r.lang.DoubleVector;
 import r.lang.Environment;
@@ -54,32 +57,61 @@ import r.lang.ListVector;
 import r.lang.LogicalVector;
 import r.lang.Null;
 import r.lang.PairList;
+import r.lang.PrimitiveFunction;
+import r.lang.Promise;
 import r.lang.RawVector;
 import r.lang.SEXP;
 import r.lang.StringVector;
 import r.lang.Symbol;
+import r.lang.Vector;
+
+import com.google.common.collect.Maps;
 
 public class RDataWriter {
 
+  public interface PersistenceHook {
+    Vector apply(SEXP exp);
+  }
+  
   private Context context;
+  private PersistenceHook hook;
   private DataOutputStream out;
+  
 
   private Map<SEXP, Integer> references = Maps.newHashMap();
 
-  public RDataWriter(Context context, OutputStream out) throws IOException {
+  public RDataWriter(Context context, PersistenceHook hook, OutputStream out) throws IOException {
     this.context = context;
+    this.hook = hook;
     this.out = new DataOutputStream(out);
-    writeHeader();
   }
 
+  public RDataWriter(Context context, OutputStream out) throws IOException {
+    this(context, null, out);
+  }
+
+  public void writeFile(SEXP exp) throws IOException {
+    writeHeader();
+    writeExp(exp);
+  }
+  
   private void writeHeader() throws IOException {
     out.writeBytes(XDR_FORMAT);
     out.writeInt(VERSION2);
-    out.writeInt(new Version(2,10,1).asPacked());
+    out.writeInt(Version.CURRENT.asPacked());
     out.writeInt(new Version(2,3,0).asPacked());
   }
 
   public void writeExp(SEXP exp) throws IOException {
+    
+    if(tryWritePersistent(exp)) {
+      return;
+    }
+    
+    if(tryWriteRef(exp)) {
+      return;
+    }
+    
     if(exp instanceof Null) {
       writeNull();
     } else if(exp instanceof LogicalVector) {
@@ -90,11 +122,15 @@ public class RDataWriter {
       writeDoubleVector((DoubleVector) exp);
     } else if(exp instanceof StringVector) {
       writeStringVector((StringVector) exp);
+    } else if(exp instanceof ComplexVector) {
+      writeComplexVector((ComplexVector)exp);
+    } else if(exp instanceof Promise) {
+      writePromise((Promise)exp);
     } else if(exp instanceof ListVector) {
       writeList((ListVector) exp);
     } else if(exp instanceof FunctionCall) {
       writeFunctionCall((FunctionCall)exp);
-    } else if(exp instanceof PairList.Node){
+    } else if(exp instanceof PairList.Node) {
       writePairList((PairList.Node) exp);
     } else if(exp instanceof Symbol) {
       writeSymbol((Symbol) exp);
@@ -104,11 +140,63 @@ public class RDataWriter {
       writeRawVector((RawVector) exp);
     } else if(exp instanceof Environment) {
       writeEnvironment((Environment)exp);
+    } else if(exp instanceof PrimitiveFunction) {
+      writePrimitive((PrimitiveFunction)exp);
     } else {
       throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented");
     }
   }
 
+  private boolean tryWritePersistent(SEXP exp) throws IOException {
+    if(hook == null) {
+      return false;
+    }
+    if(exp == Null.INSTANCE || isSpecialEnvironment(exp)) {
+      return false;
+    }
+    Vector name = hook.apply(exp);
+    if(name == Null.INSTANCE) {
+      return false;
+    }
+    
+    out.writeInt(SerializationFormat.PERSISTSXP);
+    writePersistentNameVector((StringVector) name);
+    addRef(exp);
+    return true;
+  } 
+
+  private void writePersistentNameVector(StringVector name) throws IOException {
+    // place holder to allow names attribute
+    out.writeInt(0);
+    out.writeInt(name.length());
+    for(int i=0;i!=name.length();++i) {
+      writeCharExp(name.getElementAsString(i));
+    }
+  }
+
+  private boolean isSpecialEnvironment(SEXP exp) {
+    if(! (exp instanceof Environment)) {
+      return false;
+    }
+    if( exp == Environment.EMPTY) {
+      return true;
+    }
+    if( exp == context.getEnvironment().getBaseEnvironment() ) {
+      return true;
+    }
+    if( Namespaces.isNamespaceEnv(context, exp)) {
+      return true;
+    }
+    if( isPackageEnvironment(exp)) {
+      return true;
+    }
+    return false;
+  }
+
+  private boolean isPackageEnvironment(SEXP exp) {
+    // TODO 
+    return false;
+  }
 
   private void writeNull() throws IOException {
     out.writeInt(NILVALUE_SXP);
@@ -144,7 +232,19 @@ public class RDataWriter {
     }
     writeAttributes(vector);
   }
-  
+
+
+  private void writeComplexVector(ComplexVector vector) throws IOException {
+    writeFlags(SerializationFormat.CPLXSXP, vector);
+    out.writeInt(vector.length());
+    for(int i=0;i!=vector.length();++i) {
+      Complex value = vector.getElementAsComplex(i);
+      out.writeDouble(value.getReal());
+      out.writeDouble(value.getImaginary());
+    }
+    writeAttributes(vector);
+  }
+
   
   private void writeRawVector(RawVector vector) throws IOException {
     writeFlags(RAWSXP, vector);
@@ -173,6 +273,16 @@ public class RDataWriter {
       writeExp(element);
     }
     writeAttributes(vector);
+  }
+
+  private void writePromise(Promise exp) throws IOException {
+    out.writeInt(Flags.computePromiseFlags(exp));
+    writeAttributes(exp);
+    if(exp.getEnvironment() != null) {
+      writeExp(exp.getEnvironment());
+    }
+    writeExp(exp.getValue() == null ? Null.INSTANCE : exp.getValue());
+    writeExp(exp.getExpression());  
   }
 
   private void writePairList(PairList.Node node) throws IOException {
@@ -208,24 +318,25 @@ public class RDataWriter {
   }
   
   private void writeEnvironment(Environment env) throws IOException {
+    // add reference FIRST to avoid infinite loops
+
     if(env == context.getGlobalEnvironment()) {
       out.writeInt(SerializationFormat.GLOBALENV_SXP);
     } else if(env == context.getGlobalEnvironment().getBaseEnvironment()) {
       out.writeInt(SerializationFormat.BASEENV_SXP);
     } else if(env == Environment.EMPTY) {
       out.writeInt(SerializationFormat.EMPTYENV_SXP);
-    } else if(Namespaces.isNamespaceEnv(context, env)) {
-      writeNamespace(env);
-    } else {
-      
-      if(!writeRef(env)) {
+    } else {      
+      if(Namespaces.isNamespaceEnv(context, env)) {
+        writeNamespace(env);
+      } else {
+        addRef(env);
         writeFlags(SerializationFormat.ENVSXP, env);
         writeExp(env.getParent());
         writeFrame(env);
         writeExp(Null.INSTANCE); // hashtab (unused)
         writeExp(env.getAttributes());
-        addRef(env);
-      }    
+      }
     }
   }
   
@@ -241,17 +352,15 @@ public class RDataWriter {
     if(ns == context.getGlobals().namespaceRegistry.getVariable(Symbol.get("base"))) {
       out.writeInt(SerializationFormat.BASENAMESPACE_SXP);
     } else {
-      if(!writeRef(ns)) {
-        writeFlags(SerializationFormat.NAMESPACESXP, ns);
-        writeStringVector(getNamespaceName(ns));
-        addRef(ns);
-      }
+      addRef(ns);
+      writeFlags(SerializationFormat.NAMESPACESXP, ns);
+      writePersistentNameVector(getNamespaceName(ns));
     }
   }
 
-  private boolean writeRef(SEXP ns) throws IOException {
-    if(references.containsKey(ns)) {
-      writeRefIndex(references.get(ns));
+  private boolean tryWriteRef(SEXP exp) throws IOException {
+    if(references.containsKey(exp)) {
+      writeRefIndex(references.get(exp));
       return true;
     } else {
       return false;
@@ -271,18 +380,22 @@ public class RDataWriter {
     references.put(exp, references.size() + 1);
   }
 
-  private String getNamespaceName(Environment ns) {
+  private StringVector getNamespaceName(Environment ns) {
     Environment info = (Environment) ns.getVariable(".__NAMESPACE__.");
     StringVector spec = (StringVector) info.getVariable("spec");
-    return spec.getElementAsString(0);
+    return (StringVector) spec.getElementAsSEXP(0);
   }
 
   private void writeSymbol(Symbol symbol) throws IOException {
-    writeFlags(SYMSXP, symbol);
-    writeCharExp(symbol.getPrintName());
-//
-//  CHARSEXP printName = (CHARSEXP) readExp();
-//    return addReadRef( new Symbol( printName.getValue()) );
+    if(symbol == Symbol.UNBOUND_VALUE) {
+      out.writeInt(SerializationFormat.UNBOUNDVALUE_SXP);
+    } else if(symbol == Symbol.MISSING_ARG) {
+      out.writeInt(SerializationFormat.MISSINGARG_SXP);
+    } else {
+      addRef(symbol);
+      writeFlags(SYMSXP, symbol);
+      writeCharExp(symbol.getPrintName());
+    }
   }
 
 
@@ -310,6 +423,16 @@ public class RDataWriter {
     }
   }
 
+  private void writePrimitive(PrimitiveFunction exp) throws IOException {
+    if(exp instanceof BuiltinFunction) {
+      out.writeInt(SerializationFormat.BUILTINSXP);
+    } else {
+      out.writeInt(SerializationFormat.SPECIALSXP);
+    }
+    out.writeInt(exp.getName().length());
+    out.writeBytes(exp.getName());
+  }
+  
   private void writeFlags(int type, SEXP exp) throws IOException {
     out.writeInt(Flags.computeFlags(exp, type));
   }

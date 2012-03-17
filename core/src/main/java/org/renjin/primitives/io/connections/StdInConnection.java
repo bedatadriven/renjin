@@ -22,11 +22,11 @@
 package org.renjin.primitives.io.connections;
 
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.Reader;
 
 import r.lang.Context;
 import r.lang.exception.EvalException;
@@ -66,7 +66,12 @@ public class StdInConnection implements Connection {
   }
 
   @Override
-  public Reader getReader() throws IOException {
+  public BufferedReader getReader() throws IOException {
     throw new EvalException("implement me!");
+  }
+
+  @Override
+  public boolean isOpen() {
+    return true;
   }
 }

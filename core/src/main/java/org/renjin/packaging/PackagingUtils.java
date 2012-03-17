@@ -14,7 +14,6 @@ import com.google.common.io.Files;
 
 public class PackagingUtils {
 
-
   public static List<File> findSourceFiles(File packageRoot) {
     List<File> srcFiles = Lists.newArrayList();
     for(File file : new File(packageRoot, "R").listFiles()) {
@@ -41,8 +40,8 @@ public class PackagingUtils {
    * @param outputDir
    * @throws IOException
    */
-  public static void concatSources(List<File> sources, File outputDir) throws IOException {
-    File outSource = new File(outputDir + "/R/all.R");
+  public static void concatSources(List<File> sources, File libraryRoot, String packageName) throws IOException {
+    File outSource = new File(libraryRoot.getAbsolutePath() + "/" + packageName + "/R/" + packageName);
     Files.createParentDirs(outSource);
     
     PrintWriter writer = new PrintWriter(outSource);
@@ -53,6 +52,4 @@ public class PackagingUtils {
     
     writer.close();
   }
-  
-  
 }

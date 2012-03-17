@@ -80,5 +80,10 @@ public class FileConnection extends AbstractConnection {
       out.close();
     }
   }
+
+  @Override
+  public boolean isOpen() {
+    return in!=null || out!=null;
+  }
   
 }

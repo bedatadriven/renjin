@@ -62,13 +62,7 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     this(values, values.length, attributes);
   }
   
-  public static SEXP parseInt(String s) {
-    if (s.startsWith("0x")) {
-      return new IntVector(Integer.parseInt(s.substring(2), 16));
-    } else {
-      return new IntVector(Integer.parseInt(s));
-    }
-  }
+ 
 
   @Override
   public String getTypeName() {

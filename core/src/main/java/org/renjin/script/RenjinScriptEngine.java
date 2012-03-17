@@ -1,6 +1,9 @@
 package org.renjin.script;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -54,6 +57,10 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   public Context.Globals getApartment() {
     return topLevelContext.getGlobals();
+  }
+  
+  public Context getTopLevelContext() {
+    return topLevelContext;
   }
   
   @Override
@@ -142,6 +149,13 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   
   private Object eval(Context context, SEXP source) {
     return context.evaluate( source, context.getEnvironment());
+  }
+
+  public void eval(File file) throws IOException, ScriptException {
+    InputStreamReader reader = new InputStreamReader(
+        new FileInputStream(file));
+    eval(reader);
+    reader.close();
   }
   
   private InputSupplier<Reader> newReaderSupplier(final Reader reader) {
@@ -278,4 +292,9 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
       return (S)topLevelContext.evaluate(call);
     }
   }
+
+  public Context getRuntimeContext() {
+    return topLevelContext;
+  }
+
 }

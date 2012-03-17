@@ -55,6 +55,13 @@ public interface Frame {
   
   /**
    * 
+   * @param name
+   * @return true if {@code MISSING_ARGUMENT} is bound to this symbol
+   */
+  boolean isMissingArgument(Symbol name);
+  
+  /**
+   * 
    * @param name 
    * @param value
    */

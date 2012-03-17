@@ -21,14 +21,15 @@
 
 package org.renjin.primitives;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import r.EvalTestCase;
-
-import r.lang.StringVector;
-import r.lang.exception.EvalException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+
+import java.util.List;
+
+import org.junit.Ignore;
+import org.junit.Test;
+
+import r.EvalTestCase;
 
 public class SystemTest extends EvalTestCase {
 
@@ -83,17 +84,23 @@ public class SystemTest extends EvalTestCase {
    
    @Test
    public void SysSleep(){
+     assumingBasePackagesLoad();
+     
      double delta = 100;
-     try{
-       topLevelContext.init();
-     }catch(Exception e){
-       
-     }
      long start = java.lang.System.currentTimeMillis();
      eval("Sys.sleep(1)");
      long stop = java.lang.System.currentTimeMillis();
      assertThat((double)(stop-start), closeTo(1000.0, delta));
    }
    
-   
+   @Test
+   public void parseCommandLineArgs() {
+     List<String> parsed = System.parseArgs("cp -Lr --preserve=timestamps 'datasets' '/tmp/Rbuild'");
+     assertThat(parsed.get(0), equalTo("cp"));
+     assertThat(parsed.get(1), equalTo("-Lr"));
+     assertThat(parsed.get(2), equalTo("--preserve=timestamps"));
+     assertThat(parsed.get(3), equalTo("datasets"));
+     assertThat(parsed.get(4), equalTo("/tmp/Rbuild"));
+     
+   }
 }

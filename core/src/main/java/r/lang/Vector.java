@@ -63,7 +63,7 @@ public interface Vector extends SEXP {
    * @return the element at {@code index} as logical value, encoded as an integer. See {@link Logical#internalValue}
    */
   int getElementAsRawLogical(int index);
-
+  
   /**
    * @param index zero-based index
    * @return true if the element at {@code index} is true.

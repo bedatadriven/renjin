@@ -108,13 +108,14 @@ public class Conditions {
    * Conditions are somewhat analogous to exceptions in the JVM, while handlers
    * are like catch clauses.
    *
-   * Conditions, like exceptions, have a class, n
+   * This internal function registers a new handler in the context for conditions
+   * of a given class.
    *
    * @param context
    * @param classes the S3 conditions classes to be handled
    * @param handlers the functions which
-   * @param parentEnv
-   * @param target
+   * @param parentEnv 
+   * @param target not clear-- doesn't see to be used anymore
    * @param calling
    * @return
    */
@@ -123,7 +124,7 @@ public class Conditions {
                                           StringVector classes,
                                           ListVector handlers,
                                           Environment parentEnv,
-                                          Environment target,
+                                          SEXP target,
                                           LogicalVector calling) {
 
     if(classes.length() != handlers.length()) {
@@ -165,6 +166,13 @@ public class Conditions {
   
   @Primitive(".dfltStop")
   public static void defaultStop(@Current Context context, String message, FunctionCall call) {
+    EvalException e = new EvalException(message);
+    e.initContext(context);
+    throw e;
+  }
+  
+  @Primitive(".dfltStop")
+  public static void defaultStop(@Current Context context, String message, Null nz) {
     EvalException e = new EvalException(message);
     e.initContext(context);
     throw e;

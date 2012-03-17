@@ -21,11 +21,11 @@
 
 package org.renjin.primitives.io.connections;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.Reader;
 
 /**
  *  By default the connection is not opened when created (except for ‘socketConnection’), but may
@@ -42,12 +42,14 @@ public interface Connection {
    */
   InputStream getInputStream() throws IOException;
   
-  Reader getReader() throws IOException;
+  BufferedReader getReader() throws IOException;
   
   OutputStream getOutputStream() throws IOException;
 
   PrintWriter getPrintWriter() throws IOException;
   
   void close() throws IOException;
+  
+  boolean isOpen();
 
 }

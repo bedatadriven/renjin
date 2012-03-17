@@ -25,9 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
-import r.lang.Vector.Builder;
 import r.lang.exception.EvalException;
 import r.parser.ParseUtil;
 
@@ -47,6 +45,10 @@ public class StringVector extends AbstractAtomicVector implements Iterable<Strin
 
   public StringVector(String... values) {
     this.values = Arrays.copyOf(values, values.length, String[].class);
+  }
+
+  public StringVector(Iterable<String> properties) {
+    this.values = Iterables.toArray(properties, String.class);
   }
 
   public StringVector(Collection<String> values, PairList attributes) {

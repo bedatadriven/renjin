@@ -123,7 +123,24 @@ public class Promise extends AbstractSEXP implements Recursive {
     return "{" + expression + "=>" + result + "}";
   }
 
-  public static SEXP repromise(SEXP value) {
+  public static Promise repromise(SEXP value) {
     return new Promise(value, value);
+  }
+
+  public Environment getEnvironment() {
+    return environment;
+  }
+  
+  /**
+   * 
+   * @return the evaluated value of the Promise, or {@code null}
+   * if the Promise has not yet been evaluated.
+   */
+  public SEXP getValue() {
+    return result;
+  }
+  
+  public boolean isEvaluated() {
+    return result != null;
   }
 }

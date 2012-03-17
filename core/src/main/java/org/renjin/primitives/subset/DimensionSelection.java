@@ -5,7 +5,6 @@ import java.util.List;
 
 import r.lang.AtomicVector;
 import r.lang.Indexes;
-import r.lang.IntVector;
 import r.lang.Null;
 import r.lang.SEXP;
 import r.lang.Symbols;
@@ -58,7 +57,8 @@ public class DimensionSelection extends Selection {
 
 
   public DimensionSelection(SEXP source, List<SEXP> subscriptArguments) {
-
+    super(source);
+    
     Preconditions.checkArgument(subscriptArguments.size() > 1, 
         "ArrayElementSet at least 2 subscripts");
 
@@ -168,5 +168,31 @@ public class DimensionSelection extends Selection {
       throw new EvalException("no 'dimnames' attribute for array");
     }
     return (AtomicVector)dimNames.getElementAsSEXP(dimensionIndex);
+  }
+
+
+  @Override
+  public Iterable<Integer> getSelectionAlongDimension(int dimensionIndex) {
+    final Subscript subscript = subscripts[dimensionIndex];
+    final int length = subscript.getCount();
+    return new Iterable<Integer>() {
+
+      @Override
+      public Iterator<Integer> iterator() {
+        return new UnmodifiableIterator<Integer>() {
+          int i = 0 ;
+          @Override
+          public boolean hasNext() {
+            return i < length;
+          }
+
+          @Override
+          public Integer next() {
+            return subscript.getAt(i++);
+          }
+          
+        };
+      }
+    };
   }
 }

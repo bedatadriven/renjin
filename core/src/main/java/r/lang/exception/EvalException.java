@@ -53,7 +53,9 @@ public class EvalException extends RuntimeException {
   }
 
   public void initContext(Context context) {
-    this.context = context;
+    if(this.context == null) {
+      this.context = context;
+    }
   }
 
   @Override

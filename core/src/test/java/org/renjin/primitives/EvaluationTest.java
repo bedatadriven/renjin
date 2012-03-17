@@ -29,7 +29,6 @@ import static r.ExpMatchers.realVectorEqualTo;
 
 import java.io.IOException;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.primitives.special.IfFunction;
 
@@ -200,10 +199,19 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void functionWithMissing() throws IOException {
     eval("f <- function(x) { missing(x) }");
-    assertThat(eval("f()"), logicalVectorOf(Logical.TRUE));
-    assertThat(eval("f(1)"), logicalVectorOf(Logical.FALSE));
+    assertThat(eval("f()"), equalTo(c(true)));
+    assertThat(eval("f(1)"), equalTo(c(false)));
   }
 
+  @Test
+  public void missingArgPropogates() {
+    eval("f <- function(x) missing(x) ");
+    eval("g <- function(x) f(x) ");
+    eval("h <- function(x) g(x) ");
+    assertThat(eval("g()"), equalTo(c(true)));
+    assertThat(eval("h()"), equalTo(c(true)));
+
+  }
 
   @Test
   public void missingWithDefaultArg() {
@@ -224,9 +232,9 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void missingWithDefaultArgPart2() {
     eval("y <- 4");
-    eval("f<-function(x=1){  if(!missing(x)) 41 else 42 } ");
+    eval("f<-function(x=1) missing(x) ");
 
-    assertThat( eval("f(y)"), equalTo( c(41)));
+    assertThat( eval("f(y)"), equalTo( c(false)));
   }
 
   @Test
@@ -383,6 +391,7 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat( eval("f()"), equalTo(c(42)));
   }
+  
 
   @Test
   public void quoteSymbol() {
@@ -397,7 +406,6 @@ public class EvaluationTest extends EvalTestCase {
 
   @Test
   public void doSwitch() {
-    eval("switch <- function (EXPR, ...) .Internal(switch(EXPR, ...))");
     
     assertThat( eval("switch('z', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
     assertThat( eval("switch('a', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
@@ -499,7 +507,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" c<-25");
     assertThat( eval( ".Internal(eval(quote((a+b)/c), params, globalenv()))") , equalTo(c(4)));
   }
-
+  
   @Test
   public void rhsIsEvaledOnlyOnce() {
     eval(" onlyonce <- function() { " +
@@ -626,5 +634,31 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("g(x,1)"), equalTo(c_i(2)));
     assertThat(eval("g(x,1,2)"), equalTo(c_i(3)));
   }
+  
+  @Test
+  public void subsetWithinUseMethod() {
+    eval("f.foo <- function(x, filter) { e <- substitute(filter); l <- list(a=42,b=3); " +
+    		".Internal(eval(e, l, NULL)); }");
+    eval("f <- function(x, filter) UseMethod('f') ");
+    eval("x <- 1");
+    eval("class(x) <- 'foo'");
+    assertThat(eval("f(x, a+b)"), equalTo(c(45)));
+  }
+  
+  @Test
+  public void funCallInClosure() {
+    eval("fn <- function(x) x ");
+    eval("f <- function(fn) fn(16) ");
+    eval("g <- function(fn) f(fn) ");
+    eval("h <- sqrt");
+    assertThat(eval("g(h)"), equalTo(c(4)));
+  }
+  
+  @Test(expected=EvalException.class)
+  public void missingArgMasksFunction() {
+    eval("f <- function(c) c() ");
+    eval("f()");
+  }
+  
 }
 

@@ -252,12 +252,6 @@ public class RDataReader {
   }
 
 
-
-  private SEXP print(SEXP readCharExp) {
-    System.out.println(readCharExp);
-    return readCharExp;
-  }
-
   private SEXP readPromise(Flags flags) throws IOException {
     SEXP attributes = readTag(flags);
     SEXP env = readTag(flags);
@@ -338,7 +332,7 @@ public class RDataReader {
   }
 
   private SEXP readNamespace() throws IOException {
-    StringVector name = readStringVector();
+    StringVector name = readPersistentNamesVector();
     SEXP namespace = context.findNamespace(Symbol.get(name.getElementAsString(0)));
     if(namespace == Null.INSTANCE) {
       throw new IllegalStateException("Cannot find namespace '" + name + "'");
@@ -463,10 +457,10 @@ public class RDataReader {
     if(restorer == null) {
       throw new IOException("no restore method available");
     }
-    return addReadRef( restorer.restore(readStringVector()) );
+    return addReadRef( restorer.restore(readPersistentNamesVector()) );
   }
 
-  private StringVector readStringVector() throws IOException {
+  private StringVector readPersistentNamesVector() throws IOException {
     if(in.readInt() != 0) {
       throw new IOException("names in persistent strings are not supported yet");
     }

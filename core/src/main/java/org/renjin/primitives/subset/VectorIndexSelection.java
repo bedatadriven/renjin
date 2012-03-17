@@ -1,17 +1,12 @@
 package org.renjin.primitives.subset;
 
 import java.util.Iterator;
-import java.util.List;
-
-import com.google.common.collect.UnmodifiableIterator;
 
 import r.lang.AtomicVector;
-import r.lang.IntVector;
-import r.lang.Null;
 import r.lang.SEXP;
 import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
+
+import com.google.common.collect.UnmodifiableIterator;
 
 /**
  * When only one subscript, without dim(s) is provided, it is treated
@@ -24,6 +19,7 @@ public class VectorIndexSelection extends Selection {
   private final Subscript subscript;
   
   public VectorIndexSelection(SEXP source, SEXP subscript) {
+    super(source);
     this.source = source;
     this.subscript = parseSubscript(subscript, 0, source.length());
   }
@@ -63,6 +59,14 @@ public class VectorIndexSelection extends Selection {
   @Override
   protected AtomicVector getNames(int dimensionIndex) {
     return (AtomicVector) source.getAttribute(Symbols.NAMES);
+  }
+
+  @Override
+  public Iterable<Integer> getSelectionAlongDimension(int dimensionIndex) {
+    if(dimensionIndex != 0) {
+      throw new IllegalArgumentException("dimensionIndex: " + dimensionIndex);
+    }
+    return this;
   }
 
 }

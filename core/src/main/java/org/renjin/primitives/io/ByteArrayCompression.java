@@ -71,15 +71,16 @@ public final class ByteArrayCompression {
     dos.writeInt(buffer.length);
     
     Deflater deflater = new Deflater();
-    deflater.setInput(buffer, 4, buffer.length - 4);
-  
+    deflater.setInput(buffer, 0, buffer.length);
+    deflater.finish();
+    
     byte compressed[] = new byte[buffer.length * 2];
     int bytesOut = deflater.deflate(compressed);
     deflater.end();
     
     dos.write(compressed, 0, bytesOut);
   
-    return compressed;
+    return baos.toByteArray();
   }
 
   public static byte[] compress3(byte[] buffer) throws IOException {

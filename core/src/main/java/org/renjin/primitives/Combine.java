@@ -27,6 +27,7 @@ import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.matrix.IntMatrixBuilder;
 
 import r.lang.AtomicVector;
 import r.lang.ComplexVector;
@@ -715,22 +716,62 @@ public class Combine {
    * The list can be named, and the list names will be used as names for the dimensions.
    * @return
    */
-  public static SEXP matrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
+  @Primitive
+  public static Vector matrix(@Current Context context, 
+      Vector data,
+      int nrow, int ncol, 
+      boolean byRow, 
+      Vector dimnames,
+      boolean nrowMissing, boolean ncolMissing) {
+
+    int lendat = data.length();
+
+        if (nrowMissing && ncolMissing) {
+          nrow = lendat;
+        } else if(nrowMissing) {
+          nrow = (int)Math.ceil(lendat / (double)ncol);
+        } else if(ncolMissing) {
+          ncol = (int)Math.ceil(lendat / (double)nrow);
+        }
+
+        if(lendat > 0) {
+          if (lendat > 1 && (nrow * ncol) % lendat != 0) {
+            if (((lendat > nrow) && (lendat / nrow) * nrow != lendat) ||
+                ((lendat < nrow) && (nrow / lendat) * lendat != nrow)) {
+              
+              Warning.invokeWarning(context, 
+                  "data length [%d] is not a sub-multiple or multiple of the number of rows [%d]",
+                    lendat, nrow);
+              
+            } else if (((lendat > ncol) && (lendat / ncol) * ncol != lendat) ||
+                ((lendat < ncol) && (ncol / lendat) * lendat != ncol)) {
+              
+              Warning.invokeWarning(context, 
+                  "data length [%d] is not a sub-multiple or multiple of the number of columns [%d]",
+                  lendat, ncol);
+            }
+          }  else if ((lendat > 1) && (nrow * ncol == 0)){
+            Warning.invokeWarning(context, 
+                "data length exceeds size of matrix");
+          }        
+        }
+
         Vector.Builder result = data.newBuilderWithInitialSize(nrow * ncol);
         int i = 0;
 
-        if(data.length() > 0) {
+        if(lendat > 0) {
           if (!byRow) {
               for (int col = 0; col < ncol; ++col) {
                   for (int row = 0; row < nrow; ++row) {
-                      int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol) % data.length();
+                      int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol) 
+                          % lendat;
                       result.setFrom(i++, data, sourceIndex);
                   }
               }
           } else {
               for (int row = 0; row < nrow; ++row) {
                   for (int col = 0; col < ncol; ++col) {
-                      result.setFrom(row + (col * nrow), data, i % data.length());
+                      result.setFrom(row + (col * nrow), data, i % lendat);
                       i++;
                   }
               }
@@ -743,36 +784,35 @@ public class Combine {
   
   @Primitive
   public static IntVector row(IntVector dims){
-    IntVector.Builder data = new IntVector.Builder();
     if(dims.length()!=2){
       throw new EvalException("a matrix-like object is required as argument to 'row/col'");
     }
     int n = dims.getElementAsInt(0);
     int m = dims.getElementAsInt(1);
+    IntMatrixBuilder data = new IntMatrixBuilder(n, m);
     for (int i=0;i<n;i++){
       for (int j=0;j<m;j++){
-        data.add(i+1);
+        data.set(i, j, i+1);
       }
     }
-    IntVector result = (IntVector)matrix(data.build(),n,m,true,null);
-    return(result);
+    return data.build();
   }
   
+
   @Primitive
-  public static IntVector col(IntVector dims){
-    IntVector.Builder data = new IntVector.Builder();
+  public static IntVector col(IntVector dims) {
     if(dims.length()!=2){
       throw new EvalException("a matrix-like object is required as argument to 'row/col'");
     }
     int n = dims.getElementAsInt(0);
     int m = dims.getElementAsInt(1);
+    IntMatrixBuilder data = new IntMatrixBuilder(n, m);
     for (int i=0;i<n;i++){
       for (int j=0;j<m;j++){
-        data.add(j+1);
+        data.set(i,j,(j+1));
       }
     }
-    IntVector result = (IntVector)matrix(data.build(),n,m,true,null);
-    return(result);
+    return data.build();
   }
 
 }

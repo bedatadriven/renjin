@@ -69,6 +69,7 @@ public class Matrices {
   }
   
   
+  @Primitive
   public static DoubleVector rowSums(AtomicVector x, int numRows, int rowLength, boolean naRm) {
     
     double sums[] = new double[numRows];
@@ -87,6 +88,7 @@ public class Matrices {
     return new DoubleVector(sums);
   }
   
+  @Primitive
   public static DoubleVector rowMeans(AtomicVector x, int numRows, int rowLength, boolean naRm) {
     DoubleVector sums = rowSums(x, numRows,  rowLength, naRm);
     DoubleVector.Builder dvb = new DoubleVector.Builder();
@@ -95,7 +97,8 @@ public class Matrices {
     }
     return (dvb.build());
   }
-  
+
+  @Primitive
   public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
     
     double sums[] = new double[numColumns];

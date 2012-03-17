@@ -88,6 +88,9 @@ public class ClosureDispatcher {
         throw e;
       }
       return e.getValue();
+    } catch(EvalException e) {
+      e.initContext(functionContext);
+      throw e;
     }
   }
 

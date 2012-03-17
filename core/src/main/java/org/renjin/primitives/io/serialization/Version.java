@@ -21,7 +21,15 @@
 
 package org.renjin.primitives.io.serialization;
 
+import org.renjin.RVersion;
+
 class Version {
+
+  public static final Version CURRENT = new Version(
+      RVersion.MAJOR,
+      RVersion.MINOR_1,
+      RVersion.MINOR_2);
+  
   private int v, p, s;
   private int packed;
 

@@ -1,0 +1,123 @@
+#  File src/library/utils/R/sessionInfo.R
+#  Part of the R package, http://www.R-project.org
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+
+sessionInfo <- function(package=NULL)
+{
+    z <- list()
+    z$R.version <- R.Version()
+    z$platform <- z$R.version$platform
+    if(nzchar(.Platform$r_arch))
+        z$platform <- paste(z$platform, .Platform$r_arch, sep="/")
+    z$platform <- paste(z$platform, " (", 8*.Machine$sizeof.pointer, "-bit)",
+                        sep = "")
+    z$locale <- Sys.getlocale()
+
+    if(is.null(package)){
+        package <- grep("^package:", search(), value=TRUE)
+        # weed out environments which are not really packages
+        keep <- sapply(package, function(x) x == "package:base" || !is.null(attr(as.environment(x), "path")))
+        package <- sub("^package:", "", package[keep])
+    }
+
+    ## no need to re-encode given what we extract.
+    pkgDesc <- lapply(package, packageDescription, encoding = NA)
+    if(length(package) == 0) stop("no valid packages were specified")
+    basePkgs <- sapply(pkgDesc,
+                       function(x) !is.null(x$Priority) && x$Priority=="base")
+    ## Hmm, see tools:::.get_standard_package_names()$base
+    z$basePkgs <- package[basePkgs]
+    if(any(!basePkgs)){
+        z$otherPkgs <- pkgDesc[!basePkgs]
+        names(z$otherPkgs) <- package[!basePkgs]
+    }
+    loadedOnly <- loadedNamespaces()
+    loadedOnly <- loadedOnly[!(loadedOnly %in% package)]
+    if (length(loadedOnly)) {
+        names(loadedOnly) <- loadedOnly
+        pkgDesc <- c(pkgDesc, lapply(loadedOnly, packageDescription))
+        z$loadedOnly <- pkgDesc[loadedOnly]
+    }
+    class(z) <- "sessionInfo"
+    z
+}
+
+print.sessionInfo <- function(x, locale=TRUE, ...)
+{
+    mkLabel <- function(L, n) {
+        vers <- sapply(L[[n]], function(x) x[["Version"]])
+        pkg <-  sapply(L[[n]], function(x) x[["Package"]])
+        paste(pkg, vers, sep="_")
+    }
+
+    cat(x$R.version$version.string, "\n", sep="")
+    cat("Platform: ", x$platform, "\n\n", sep="")
+    if(locale){
+        cat("locale:\n")
+        print(strsplit(x$locale, ";", fixed=TRUE)[[1]], quote=FALSE)
+        cat("\n")
+    }
+    cat("attached base packages:\n")
+    print(x$basePkgs, quote=FALSE)
+    if(!is.null(x$otherPkgs)){
+        cat("\nother attached packages:\n")
+        print(mkLabel(x, "otherPkgs"), quote=FALSE)
+    }
+    if(!is.null(x$loadedOnly)){
+        cat("\nloaded via a namespace (and not attached):\n")
+        print(mkLabel(x, "loadedOnly"), quote=FALSE)
+    }
+    invisible(x)
+}
+
+toLatex.sessionInfo <- function(object, locale=TRUE, ...)
+{
+    opkgver <- sapply(object$otherPkgs, function(x) x$Version)
+    nspkgver <- sapply(object$loadedOnly, function(x) x$Version)
+    z <- c("\\begin{itemize}\\raggedright",
+           paste("  \\item ", object$R.version$version.string,
+                 ", \\verb|", object$R.version$platform, "|", sep=""))
+
+    if(locale){
+        z <- c(z,
+               paste("  \\item Locale: \\verb|",
+                     gsub(";","|, \\\\verb|", object$locale)
+                     , "|", sep=""))
+    }
+
+    z <- c(z, strwrap(paste("\\item Base packages: ",
+                         paste(sort(object$basePkgs), collapse=", ")),
+                   indent=2, exdent=4))
+
+    if(length(opkgver)){
+        opkgver <- opkgver[sort(names(opkgver))]
+        z <- c(z,
+               strwrap(paste("  \\item Other packages: ",
+                             paste(names(opkgver), opkgver, sep="~",
+                                   collapse=", ")),
+                       indent=2, exdent=4))
+    }
+    if(length(nspkgver)){
+        nspkgver <- nspkgver[sort(names(nspkgver))]
+        z <- c(z,
+               strwrap(paste("  \\item Loaded via a namespace (and not attached): ",
+                             paste(names(nspkgver), nspkgver, sep="~",
+                                   collapse=", ")),
+                       indent=2, exdent=4))
+    }
+    z <- c(z, "\\end{itemize}")
+    class(z) <- "Latex"
+    z
+}

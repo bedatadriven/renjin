@@ -192,6 +192,7 @@ public class MatrixTest extends EvalTestCase {
   @Test
   public void colSums() throws IOException {
     eval("q <- matrix(1:32, 4)");
+    eval("print(q)");
     assertThat(eval("colSums(q)"), equalTo(c(10,26,42,58,74,90,106,122)));
   }
 

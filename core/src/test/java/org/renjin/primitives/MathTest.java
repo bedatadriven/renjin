@@ -86,10 +86,8 @@ public class MathTest extends EvalTestCase {
  
   @Test
   public void transpose() {
-    try {
-      topLevelContext.init();
-    } catch (Exception e) {
-    }
+    assumingBasePackagesLoad();
+    
     assertThat(eval("t(matrix(c(1,2,3,4,5,6),3,2))"), equalTo(c(1, 4, 2, 5, 3, 6)));
   }
   

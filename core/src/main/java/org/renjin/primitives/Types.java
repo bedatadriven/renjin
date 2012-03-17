@@ -72,6 +72,7 @@ import r.lang.Vector;
 import r.lang.exception.EvalException;
 import r.util.NamesBuilder;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -139,7 +140,9 @@ public class Types {
 
   @Primitive("is.pairlist")
   public static boolean isPairList(SEXP exp) {
-    return exp instanceof PairList;
+    // strange, but true: 
+    return exp instanceof PairList &&
+        !(exp instanceof FunctionCall);
   }
 
   @Primitive("is.atomic")
@@ -313,14 +316,43 @@ public class Types {
   }
   
   @Primitive
+  public static StringVector rawToChar(RawVector vector, boolean multiple) {
+    byte[] bytes = vector.getAsByteArray();
+    if(multiple) {
+      StringVector.Builder result = new StringVector.Builder(0, vector.length());
+      for(int i=0;i!=vector.length();++i) {
+        result.add(new StringVector(new String(bytes,i,1)));
+      }
+      return result.build();
+      
+    } else {
+      return new StringVector(new String(bytes));
+    }
+  }
+  
+  @Primitive
   public static RawVector charToRaw(StringVector sv) {
-    RawVector.Builder b = new RawVector.Builder();
+    // the R lang docs inexplicably say that
+    // this method converts a length-one character vector
+    // to raw bytes 'without taking into account any declared encoding'
+    
+    // (AB) I think this means that we just dump out the 
+    // string how ever it was stored internally. In R, the 
+    // storage of a string depends on its encoding; in the JVM,
+    // its always UTF-16. 
+    
+    // this implementation splits the difference and dumps
+    // out the string as UTF-8. 
+    
     if (sv.length() != 1) {
       throw new EvalException(
           "argument should be a character vector of length 1");
     }
-    for (int i = 0; i < sv.getElement(0).length(); i++) {
-      b.add(new Raw(sv.getElement(0).charAt(i)));
+    
+    RawVector.Builder b = new RawVector.Builder();
+    byte[] bytes = sv.getElementAsString(0).getBytes(Charsets.UTF_8);
+    for (int i = 0; i < bytes.length; i++) {
+      b.add(new Raw(bytes[i]));
     }
     return b.build();
   }
@@ -727,24 +759,68 @@ public class Types {
   public static SEXP getDimensions(SEXP sexp) {
     return sexp.getAttribute(Symbols.DIM);
   }
-
+  
+  @Primitive
+  public static SEXP drop(Vector x) {
+    Vector dim = (Vector) x.getAttribute(Symbols.DIM);
+    
+    if(dim.length() == 0) {
+      return x;
+    } else {
+    
+      Vector dimnames = (Vector) x.getAttribute(Symbols.DIMNAMES);
+      
+      IntVector.Builder newDim = new IntVector.Builder();
+      ListVector.Builder newDimnames = new ListVector.Builder();
+      boolean haveDimNames = false;
+      
+      for(int i=0;i!=dim.length();++i) {
+        if(dim.getElementAsInt(i) > 1) {
+          newDim.add(dim.getElementAsInt(i));
+          if(dimnames != Null.INSTANCE) {
+            Vector dimNameElement = dimnames.getElementAsSEXP(i);
+            if(dimNameElement != Null.INSTANCE) {
+              haveDimNames = true;
+            }
+            newDimnames.add(dimNameElement);
+          }
+        }
+      }
+      
+      if(newDim.length() == 0 ||
+         (newDim.length() == 1 && dim.length() > 1)) {
+        return x.setAttribute(Symbols.DIM, Null.INSTANCE)
+                .setAttribute(Symbols.DIMNAMES, Null.INSTANCE);
+      } else {
+        return x.setAttribute(Symbols.DIM, newDim.build())
+                .setAttribute(Symbols.DIMNAMES, newDimnames.build());
+      }
+      
+    }
+  }
+  
   @Generic
   @Primitive("dim<-")
   public static SEXP setDimensions(SEXP exp, AtomicVector vector) {
-    int dim[] = new int[vector.length()];
-    int prod = 1;
-    for (int i = 0; i != vector.length(); ++i) {
-      dim[i] = vector.getElementAsInt(i);
-      prod *= dim[i];
+    if(vector.length() == 0) {
+      return exp.setAttribute(Symbols.DIM, Null.INSTANCE);
+      
+    } else {
+      int dim[] = new int[vector.length()];
+      int prod = 1;
+      for (int i = 0; i != vector.length(); ++i) {
+        dim[i] = vector.getElementAsInt(i);
+        prod *= dim[i];
+      }
+  
+      if (prod != exp.length()) {
+        throw new EvalException(
+            "dims [product %d] do not match the length of object [%d]", prod,
+            exp.length());
+      }
+  
+      return exp.setAttribute(Symbols.DIM, new IntVector(dim));
     }
-
-    if (prod != exp.length()) {
-      throw new EvalException(
-          "dims [product %d] do not match the length of object [%d]", prod,
-          exp.length());
-    }
-
-    return exp.setAttribute(Symbols.DIM, new IntVector(dim));
   }
 
   @Generic
@@ -772,6 +848,12 @@ public class Types {
     return exp.setAttribute(Symbols.DIMNAMES, dn.build());
   }
 
+  @Generic
+  @Primitive("dimnames<-")
+  public static SEXP setDimensionNames(@Current Context context, SEXP exp, Null nz) {
+    return exp.setAttribute(Symbols.DIMNAMES, Null.INSTANCE);
+  }
+  
   @Primitive
   public static PairList attributes(SEXP sexp) {
     return sexp.getAttributes();
@@ -816,14 +898,18 @@ public class Types {
 
   @Primitive
   public static Environment environment(@Current Context context) {
-    return context.getGlobalEnvironment();
+    // since this primitive is internal, we will be called by a wrapping closure,
+    // so grab the parent context
+    return context.getParent().getEnvironment();
   }
 
   @Primitive
-  public static SEXP environment(@Current Environment rho, SEXP exp) {
+  public static SEXP environment(@Current Context context, SEXP exp) {
     if (exp == Null.INSTANCE) {
       // if the user passes null, we return the current exp
-      return rho;
+      // but since this primitive is internal, we will be called by a wrapping closure,
+      // so grab the parent context      
+      return context.getParent().getEnvironment();
     } else if (exp instanceof Closure) {
       return ((Closure) exp).getEnclosingEnvironment();
     } else {
@@ -850,7 +936,7 @@ public class Types {
     return closure.getBody();
   }
 
-  @Primitive
+  @Primitive("new.env")
   public static Environment newEnv(boolean hash, Environment parent, int size) {
     return Environment.createChildEnvironment(parent);
   }

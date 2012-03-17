@@ -479,41 +479,6 @@ public class RECompiler
             syntaxError("Empty or unterminated class");
         }
 
-        // Check for POSIX character class
-        if ( (idx+1) < len && pattern.charAt(idx) == '[' && pattern.charAt(idx+1) == ':')
-        {
-            // Skip second bracket and colon
-            idx+=2;
-
-            // POSIX character classes are denoted with lowercase ASCII strings
-            int idxStart = idx;
-            while (idx < len && pattern.charAt(idx) >= 'a' && pattern.charAt(idx) <= 'z')
-            {
-                idx++;
-            }
-
-            // Should be a ":]" to terminate the POSIX character class
-            if ((idx + 2) < len && pattern.charAt(idx) == ':' &&
-                pattern.charAt(idx + 1) == ']' && pattern.charAt(idx + 2) == ']')
-            {
-                // Get character class
-                String charClass = pattern.substring(idxStart, idx);
-
-                // Select the POSIX class id
-                Character i = (Character)hashPOSIX.get(charClass);
-                if (i != null)
-                {
-                    // Move past colon and right bracket
-                    idx += 3;
-
-                    // Return new POSIX character class node
-                    return node(ExtendedRE.OP_POSIXCLASS, i.charValue());
-                }
-                syntaxError("Invalid POSIX character class '" + charClass + "'");
-            }
-            syntaxError("Invalid POSIX character class syntax");
-        }
-
         // Try to build a class.  Create OP_ANYOF node
         int ret = node(ExtendedRE.OP_ANYOF, 0);
 
@@ -535,15 +500,58 @@ public class RECompiler
             // Switch on character
             switch (pattern.charAt(idx))
             {
+            
                 case '^':
-                    include = !include;
+                    // Update to match R syntax:
+                    // Caret is special character ONLY if it is the
+                    // first character in the class, otherwise 
+                    // treated as literal
                     if (idx == idxFirst)
                     {
                         range.include(Character.MIN_VALUE, Character.MAX_VALUE, true);
+                        include = !include;
+                        idx++;
+                        continue;
+                    } else {
+                        // treat as literal
+                        simpleChar = '^';
+                        idx++;
+                        break switchOnCharacter;
                     }
-                    idx++;
-                    continue;
 
+                case '[':
+                    String className = posixClass();
+                    if(className != null) {
+                      idx += className.length() + "[::]".length();
+                      if(className.equals("alpha")) {
+                        range.include('A', 'Z', include);
+                        range.include('a', 'z', include);
+                      } else if(className.equals("alnum")) {
+                        range.include('A', 'Z', include);
+                        range.include('a', 'z', include);
+                        range.include('0', '9', include);
+                      } else if(className.equals("blank")) {
+                        range.include(' ', include);
+                        range.include('\t', include);
+                      } else if(className.equals("digit")) {
+                        range.include('0', '9', include);
+                      } else if(className.equals("upper")) {
+                        range.include('A', 'Z', include);
+                      } else if(className.equals("lower")) {
+                        range.include('a', 'z', include);
+                      } else if(className.equals("space")) {
+                        range.include(' ', include);
+                        range.include('\t', include);
+                        range.include('\r', include);
+                        range.include('\n', include);
+                        range.include((char)11, include); // vertical tab
+                        range.include('\f', include);
+                      } else {
+                        throw new RESyntaxException("Posix class " + className + " not implemented");
+                      }
+                    }
+                    continue;
+                    
                 case '\\':
                 {
                     // Escape always advances the stream
@@ -699,6 +707,36 @@ public class RECompiler
             emit((char)range.maxRange[i]);
         }
         return ret;
+    }
+
+    private String posixClass() {
+      int idx = this.idx;
+      // Check for POSIX character class
+      if ( (idx+1) < len && pattern.charAt(idx+1) == ':')
+      {
+          // Skip second bracket and colon
+          idx+=2;        
+          
+          // POSIX character classes are denoted with lowercase ASCII strings
+          int idxStart = idx;
+          while (idx < len && pattern.charAt(idx) >= 'a' && pattern.charAt(idx) <= 'z')
+          {
+              idx++;
+          }
+
+          // Should be a ":]" to terminate the POSIX character class
+          if ((idx + 1) < len && pattern.charAt(idx) == ':' &&
+              pattern.charAt(idx + 1) == ']' /*&& pattern.charAt(idx + 2) == ']'*/)
+          {
+              // Get character class
+              String charClass = pattern.substring(idxStart, idx);
+
+              idx += 2;
+              return charClass;
+              
+          }
+      }
+      return null;
     }
 
     /**

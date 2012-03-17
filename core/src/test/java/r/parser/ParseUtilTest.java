@@ -21,6 +21,7 @@
 
 package r.parser;
 
+import org.joda.time.format.FormatUtils;
 import org.junit.Test;
 import r.lang.StringVector;
 
@@ -48,5 +49,15 @@ public class ParseUtilTest {
     assertThat(ParseUtil.formatStringLiteral("\u00a1", "NA"), equalTo("\"\\u00a1\""));
     assertThat(ParseUtil.formatStringLiteral("\u01a1", "NA"), equalTo("\"\\u01a1\""));
     assertThat(ParseUtil.formatStringLiteral("\u1fa1", "NA"), equalTo("\"\\u1fa1\""));
+  }
+  
+  @Test
+  public void exponent() {
+    assertThat(ParseUtil.parseDouble("1e+06"), equalTo(1e6));
+  }
+  
+  @Test
+  public void integerExponent() {
+    assertThat(ParseUtil.parseInt("1e+06"), equalTo((int)1e6));
   }
 }

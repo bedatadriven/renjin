@@ -34,8 +34,8 @@ public class RgbHsvTest extends EvalTestCase{
 	 }
 	 
 	 @Test 
-	 public void hsv(){
-		 assertThat(eval("hsv(c(0.5,1),1,1,1,1)"), equalTo(c("#00FFFFFF", "#FF0000FF")));
+	 public void hsv() {
+		 assertThat(eval("hsv(c(0.5,1),1,1,1)"), equalTo(c("#00FFFFFF", "#FF0000FF")));
 	 }
 	 
 	 @Test

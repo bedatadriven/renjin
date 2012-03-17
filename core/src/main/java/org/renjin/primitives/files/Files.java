@@ -21,27 +21,38 @@
 
 package org.renjin.primitives.files;
 
-import com.google.common.collect.Lists;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.FileType;
-import org.apache.commons.vfs.provider.AbstractFileObject;
-import org.apache.commons.vfs.util.FileObjectUtils;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
-import org.renjin.primitives.text.regex.ExtendedRE;
-import org.renjin.primitives.text.regex.RE;
-
-import r.lang.*;
-import r.lang.exception.EvalException;
-
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileType;
+import org.renjin.primitives.Warning;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
+import org.renjin.primitives.annotations.Visible;
+import org.renjin.primitives.text.regex.ExtendedRE;
+import org.renjin.primitives.text.regex.RE;
+
+import r.lang.Context;
+import r.lang.DoubleVector;
+import r.lang.IntVector;
+import r.lang.ListVector;
+import r.lang.LogicalVector;
+import r.lang.Null;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.Symbols;
+import r.lang.Vector;
+import r.lang.exception.EvalException;
+
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 
 /**
  * Function for manipulating files and paths.
@@ -131,11 +142,11 @@ public class Files {
         }
         exe.add(file.getName().getBaseName().endsWith(".exe") ? "yes" : "no");
       } else {
-        size.add(IntVector.NA);
-        isdir.add(IntVector.NA);
-        mode.add(IntVector.NA);
-        mtime.add(DoubleVector.NA);
-        exe.add(StringVector.NA);
+        size.addNA();
+        isdir.addNA();
+        mode.addNA();
+        mtime.addNA();
+        exe.addNA();
       }
     }
 
@@ -149,6 +160,25 @@ public class Files {
         .add("exe", exe)
         .build();
   }
+  
+  /**
+   * Convert file paths to canonical form for the platform, to display
+   * them in a user-understandable form.
+   *
+   * <p>If a path is not a real path the result is undefined.  This
+   * implementation will return the input.
+   *
+   */
+  @Primitive
+  @Recycle
+  public static String normalizePath(@Current Context context, String path) {
+    try {
+      return context.resolveFile(path).getName().getURI();
+    } catch(FileSystemException e) {
+      return path;
+    }
+  }
+  
   /**
     * Gets the type or storage mode of an object.
 
@@ -302,7 +332,7 @@ public class Files {
                                        final String pattern,
                                        final boolean allFiles,
                                        final boolean fullNames,
-                                       boolean recursive,
+                                       final boolean recursive,
                                        final boolean ignoreCase) throws IOException {
 
     return new Object() {
@@ -314,13 +344,13 @@ public class Files {
         for(String path : paths) {
           FileObject folder = context.resolveFile(path);
           if(folder.getType() == FileType.FOLDER) {
-            if(allFiles) {
-              add(folder, ".");
-              add(folder, "..");
+            if(allFiles & !recursive) {
+              add(path, ".");
+              add(path, "..");
             }
             for(FileObject child : folder.getChildren()) {
               if(filter(child)) {
-                add(child);
+                add(path, child);
               }
             }
           }
@@ -328,17 +358,17 @@ public class Files {
         return result.build();
       }
 
-      void add(FileObject file) {
+      void add(String path, FileObject file) {
         if(fullNames) {
-          result.add(file.getName().getURI());
+          result.add(path + "/" + file.getName().getBaseName());
         } else {
           result.add(file.getName().getBaseName());
         }
       }
 
-      void add(FileObject folder, String name) throws FileSystemException {
+      void add(String path, String name) throws FileSystemException {
         if(fullNames) {
-          result.add(folder.resolveFile(name).getName().getURI());
+          result.add(path + "/" + name);
         } else {
           result.add(name);
         }
@@ -404,9 +434,20 @@ public class Files {
     return context.getGlobals().workingDirectory.getName().getURI();
   }
   
-  public static void setwd(@Current Context context, String dir) throws FileSystemException{
-	  context.getGlobals().workingDirectory = context.resolveFile(dir);
-  }
+  @Visible(false)
+  public static String setwd(@Current Context context, String workingDirectoryName) throws FileSystemException {
+    FileObject newWorkingDirectory = context.resolveFile(workingDirectoryName);
+    if(!newWorkingDirectory.exists() ||
+        newWorkingDirectory.getType() != FileType.FOLDER) {
+      throw new EvalException("cannot change working directory");
+    }
+   
+    String previous = context.getGlobals().workingDirectory.getName().getURI();
+    
+    context.getGlobals().workingDirectory = newWorkingDirectory;
+    return previous;
+  } 
+
   /**
    * Unlink deletes the file(s) or directories specified by {@code paths}.
    * @param context the current call Context
@@ -522,4 +563,56 @@ public class Files {
       return false;
     }
   }
+  
+  @Primitive("file.create")
+  public static boolean fileCreate(@Current Context context, @Recycle String fileName, @Recycle(false) boolean showWarnings) throws IOException {
+    try {
+      FileObject file = context.resolveFile(fileName);
+      // VFS will create the parent folder if it doesn't exist, 
+      // which the R method is not supposed to do
+      if(!file.getParent().exists()) {
+        throw new IOException("No such file or directory");
+      }
+      file.getContent().getOutputStream().close();
+      return true;
+      
+    } catch (Exception e) {
+      if(showWarnings) {
+        Warning.invokeWarning(context, "cannot create file '%s', reason '%s'", fileName, e.getMessage());
+      }
+      return false;
+    }
+  }
+  
+  /**
+   *  ‘file.append’ attempts to append the files named by its second
+   * argument to those named by its first.  The R subscript recycling
+   * rule is used to align names given in vectors of different lengths.
+   */
+  @Primitive("file.append")
+  public static boolean fileAppend(@Current Context context, @Recycle String destFileName, @Recycle String sourceFileName) {
+    try {
+      FileObject sourceFile = context.resolveFile(sourceFileName);
+      if(!sourceFile.exists()) {
+        return false;
+      }
+      FileObject destFile = context.resolveFile(destFileName);
+      OutputStream out = destFile.getContent().getOutputStream(true);
+      try {
+        InputStream in = sourceFile.getContent().getInputStream();
+        try {
+          ByteStreams.copy(in, out);
+        } finally {
+          try { in.close(); } catch(Exception ignored) {}
+        }
+      } finally {
+        try { out.close(); } catch(Exception ignored) {}
+      }
+      return true;
+    } catch(Exception e) {
+      return false;
+    }
+  }
+
+  
 }

@@ -184,7 +184,9 @@ public class ParseUtil {
         case '+': p++;
         default: ;
       }
-      for (n = 0; s.charAt(p) >= '0' && s.charAt(p) <= '9'; p++) n = n * 10 + (s.charAt(p) - '0');
+      for (n = 0; p < s.length() && s.charAt(p) >= '0' && s.charAt(p) <= '9'; p++) {
+        n = n * 10 + (s.charAt(p) - '0');
+      }
       expn += expsign * n;
     }
 
@@ -207,6 +209,43 @@ public class ParseUtil {
       ans *= fac;
     }
     return new DoubleResult(sign * ans, p);
+  }
+  
+  public static int parseInt(String s) {
+    if (s.startsWith("0x")) {
+      return Integer.parseInt(s.substring(2), 16);
+    } else {
+      
+      int eIndex = s.indexOf('e');
+      if(eIndex != -1) {
+        return parseIntWithExponent(s, eIndex);
+      } else {
+        return Integer.parseInt(s);
+      }
+    }
+  }
+
+  protected static int parseIntWithExponent(String s, int eIndex) {
+    int base = Integer.parseInt(s.substring(0, eIndex));
+    int powerStart = eIndex+1;
+    int signChar = s.codePointAt(powerStart);
+    if(signChar == '-') {
+      throw new NumberFormatException("integers cannot have negative exponents!");      
+    } else if(signChar == '+') {
+      powerStart++;
+    }
+    
+    int power = Integer.parseInt(s.substring(powerStart));
+    if(power < 0) {
+      throw new NumberFormatException("integers cannot have negative exponents!");      
+    } else if(power == 0) { 
+      return base;
+    } else {
+      for(int i=0;i!=power;++i) {
+        base *= 10;
+      }
+      return base;
+    }
   }
 
   private static boolean nextWordIgnoringCaseIs(String s, int i, String word) {

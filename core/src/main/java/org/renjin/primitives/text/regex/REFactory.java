@@ -39,14 +39,12 @@ public class REFactory {
    * @param useBytes true to match on bytes (not implemented)
    * @return the compiled regular expression
    */
-  public static RE compile(String pattern, boolean ignoreCase, boolean extended, boolean perl, boolean fixed,
+  public static RE compile(String pattern, boolean ignoreCase, boolean perl, boolean fixed,
                            boolean useBytes) {
     if(fixed) {
       return new FixedRE(pattern);
-    } else if(extended) {
-      return new ExtendedRE(pattern, ignoreCase);
     } else {
-      throw new EvalException("Unsupported combination of regex flags");
-    }
+      return new ExtendedRE(pattern, ignoreCase);
+    } 
   }
 }

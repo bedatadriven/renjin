@@ -58,6 +58,11 @@ public class ClassFrame implements Frame {
   public void remove(Symbol name) {
     throw new EvalException("Cannot remove from a JVM class frame");  
   }
+
+  @Override
+  public boolean isMissingArgument(Symbol name) {
+    return false;
+  }
   
   
 }

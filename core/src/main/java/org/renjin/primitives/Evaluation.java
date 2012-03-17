@@ -21,6 +21,7 @@
 
 package org.renjin.primitives;
 
+import java.awt.Graphics;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -146,6 +147,55 @@ public class Evaluation {
     builder.copySomeAttributesFrom(vector, Symbols.NAMES);
     return builder.build();
   }
+  
+  public static Vector vapply(@Current Context context, @Current Environment rho, Vector vector,
+      Function function, Vector funValue, boolean useNames) {
+
+    int outLength;
+    if(funValue.length() == 1) {
+      outLength = vector.length();
+    } else {
+      throw new EvalException("length(funValue) != 1 not yet implemented");
+    }
+    
+    // Retrieve the additional arguments from the `...` value 
+    // in the closure that called us
+    PairList extraArgs = (PairList)rho.getVariable(Symbols.ELLIPSES);
+    
+    Vector.Builder result = funValue.getVectorType().newBuilderWithInitialCapacity(vector.length());
+    for(int i=0;i!=vector.length();++i) {
+
+      // build function call 
+      PairList.Builder args = new PairList.Builder();
+      
+      FunctionCall getCall = FunctionCall.newCall(
+          Symbol.get("[["), vector, new IntVector(i+1));
+      
+      args.add(getCall);
+      args.addAll(extraArgs);
+      FunctionCall call = new FunctionCall(function, args.build());
+      
+      // evaluate
+      SEXP x = context.evaluate(call);
+      
+      // check the result
+      if(!(x instanceof Vector) || ((Vector)x).getVectorType().isWiderThan(funValue)) {
+        throw new EvalException("values must be type '%s',\n but %s result is type '%s'",
+            funValue.getTypeName(),
+            Deparse.deparseExp(call),
+            x.getTypeName());
+            
+      }
+      result.addFrom(x, 0);
+    }
+    
+    if(useNames) {
+      result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
+    }
+    
+    return result.build();
+  }
+  
 
 
   public static void stop(boolean call, String message) {
@@ -196,7 +246,16 @@ public class Evaluation {
     if(environment instanceof Environment) {
       rho = (Environment) environment;
     } else {
-
+      
+      /*
+       * If ‘envir’ is ‘NULL’ it is interpreted as an empty list so no
+       *    values could be found in ‘envir’ and look-up goes directly to
+       * ‘enclos’.
+       */
+      if(environment == Null.INSTANCE) {
+        environment = ListVector.EMPTY;
+      }
+      
       /* If envir is a list (such as a data frame) or pairlist, it is copied into a temporary environment
        * (with enclosure enclos), and the temporary environment is used for evaluation. So if expr
        * changes any of the components named in the (pair)list, the changes are lost.
@@ -213,7 +272,7 @@ public class Evaluation {
           }
         }
       } else {
-        throw new EvalException("invalid 'environ' argument");
+        throw new EvalException("invalid 'environ' argument: " + environment);
       }
     }
 
@@ -228,6 +287,7 @@ public class Evaluation {
     
     return result;
   }
+  
   
   /**
    * Evaluates the expression and then packs it into a named ListVector
@@ -248,29 +308,52 @@ public class Evaluation {
   public static SEXP quote(@Evaluate(false) SEXP exp) {
     return exp;
   }
-
+  
+  
   public static boolean missing(@Current Context context, @Current Environment rho, @Evaluate(false) Symbol symbol) {
     SEXP value = rho.findVariable(symbol);
+    
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("'missing' can only be used for arguments");
-
     } else if(value == Symbol.MISSING_ARG) {
       return true;
-    } else {
-      // we need to rematch the arguments to determine whether the value was actually provided
-      // or whether 'value' contains the default value
-      //
-      // this seems quite expensive, perhaps there's a faster way?
-      PairList rematched = Calls.matchArguments(
-          Calls.stripDefaultValues(context.getClosure().getFormals()),
-          context.getCall().getArguments());
-      SEXP providedValue = rematched.findByTag(symbol);
+    } else if(isPromisedMissingArg(value)) {
+      return true;
+    } 
+    
+    
+    // we need to rematch the arguments to determine whether the value was actually provided
+    // or whether 'value' contains the default value
+    //
+    // this seems quite expensive, perhaps there's a faster way?
+    PairList rematched = Calls.matchArguments(
+        Calls.stripDefaultValues(context.getClosure().getFormals()),
+        context.getCall().getArguments());
+    SEXP providedValue = rematched.findByTag(symbol);
 
-      return providedValue == Symbol.MISSING_ARG;
-      //return false;
-    }
+    return providedValue == Symbol.MISSING_ARG;
+    //return false;
+    
   }
 
+
+  private static boolean isPromisedMissingArg(SEXP exp) {
+    if(exp instanceof Promise) {
+      Promise promise = (Promise)exp;
+      if(!promise.isEvaluated() && promise.getExpression() instanceof Symbol) {
+        Symbol argumentName = (Symbol) promise.getExpression();
+        SEXP argumentValue = promise.getEnvironment().getVariable(argumentName);
+        if(argumentValue == Symbol.MISSING_ARG) {
+          return true;          
+        } else if(isPromisedMissingArg(argumentValue)) {
+          return true;
+        }
+      }
+    } 
+    return false;
+  }
+  
+  
   @Primitive(".C")
   public static SEXP dotC(@Current Context context,
                                 @Current Environment rho,
@@ -318,6 +401,11 @@ public class Evaluation {
     return doNativeCall(context, rho, methodName, packageName, callArguments.build());
   }
 
+  /**
+   * Dispatches what were originally calls to "native" libraries (C/Fortran/etc)
+   * to a Java class. 
+   * 
+   */
   private static SEXP doNativeCall(Context context, Environment rho,
       String methodName, String packageName, PairList arguments) {
     Class packageClass;
@@ -325,6 +413,8 @@ public class Evaluation {
       packageClass = Base.class;
     } else if(packageName.equals("methods")) {
       packageClass = Methods.class;
+    } else if(packageName.equals("grDevices")) {
+      packageClass = Graphics.class;
     } else {
       String packageClassName = "r.library." + packageName + "." +
           packageName.substring(0, 1).toUpperCase() + packageName.substring(1);
@@ -597,14 +687,14 @@ public class Evaluation {
        If t is R_UnboundValue then we called the current method directly
     */
 
-    SEXP method = context.getParent().getEnvironment().getVariable(".Method");
+    SEXP dotMethod = context.getParent().getEnvironment().getVariable(".Method");
 
     String b=null;
-    if( method != Symbol.UNBOUND_VALUE) {
-      if( !(method instanceof StringVector) ) {
+    if( dotMethod != Symbol.UNBOUND_VALUE) {
+      if( !(dotMethod instanceof StringVector) ) {
         throw new EvalException("wrong value for .Method");
       }
-      for(String ss : (StringVector)method) {
+      for(String ss : (StringVector)dotMethod) {
         if(!ss.isEmpty()) {
           b = ss;
           break;
@@ -716,18 +806,18 @@ public class Evaluation {
 
     /* It is possible that if a method was called directly that
         'method' is unset */
-//    if (method != Symbol.UNBOUND_VALUE) {
+//    if (dotMethod != Symbol.UNBOUND_VALUE) {
 //      /* for Ops we need `method' to be a vector */
 //
-//      PROTECT(method = duplicate(method));
+//      PROTECT(method = duplicate(dotMethod));
 //      for(j = 0; j < length(method); j++) {
-//        if (strlen(CHAR(STRING_ELT(method,j))))
-//          SET_STRING_ELT(method, j,  mkChar(buf));
+//        if (strlen(CHAR(STRING_ELT(dotMethod,j))))
+//          SET_STRING_ELT(dotMethod, j,  mkChar(buf));
 //      }
 //    } else {
-    method = Symbol.get(buf);
+//    dotMethod = Symbol.get(buf);
 //    }
-    m.setVariable(Symbol.get(".Method"), method);
+    m.setVariable(Symbol.get(".Method"), new StringVector(buf));
 //    defineVar(install(".GenericCallEnv"), callenv, m);
 //    defineVar(install(".GenericDefEnv"), defenv, m);
 
@@ -735,7 +825,7 @@ public class Evaluation {
     m.setVariable(Symbol.get(".Generic"), generic);
     m.setVariable(Symbol.get(".Group"), groupExp);
 
-    FunctionCall newcall = new FunctionCall(method, actuals);
+    FunctionCall newcall = new FunctionCall(Symbol.get(buf), actuals);
 
 
     if(nextfun instanceof Closure) {

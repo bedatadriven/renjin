@@ -67,4 +67,9 @@ public class ObjectFrame implements Frame {
   public Object getInstance() {
     return instance;
   }
+
+  @Override
+  public boolean isMissingArgument(Symbol name) {
+    return false;
+  }
 }

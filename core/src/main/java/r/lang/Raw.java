@@ -1,6 +1,8 @@
 
 package r.lang;
 
+import com.google.common.primitives.UnsignedBytes;
+
 
 public class Raw {
   
@@ -13,8 +15,9 @@ public class Raw {
    * 
    * @param value Integer between 0 and 255
    */
-  public void setValue(int value){
-    this.internalValue = (byte) (value - 128);
+  public void setValue(int value) {
+    this.internalValue = UnsignedBytes.checkedCast(value);
+ //   this.internalValue = (byte) (value - 128);
   }
   
   /**
@@ -24,26 +27,31 @@ public class Raw {
    * It is within the range 0<byte<255 (unsigned char)
    */
   public int getValue(){
-    return(internalValue + 128);
+    return UnsignedBytes.toInt(internalValue);
+//    return(internalValue + 128);
   }
   
   
   public Raw(int value){
-    this.internalValue = (byte)(value - 128);
+    setValue(value);
   }
   
-  public Raw(){
+  public Raw(byte value) {
+    this.internalValue = value;
+  }
+  
+  public Raw() {
     this.internalValue = (byte)RawVector.NA;
   }
   
   @Override
-  public String toString(){
+  public String toString() {
     String s = Integer.toHexString(this.getValue());
     if(s.length()==1) s="0"+s;
     return(s);
   }
   
-  public Raw[] getAsZerosAndOnes(){
+  public Raw[] getAsZerosAndOnes() {
     Raw[] raws = new Raw[Raw.NUM_BITS];
     int val = this.getValue();
     int k;
@@ -55,7 +63,7 @@ public class Raw {
     return(raws);
   }
   
-  public byte getAsByte(){
+  public byte getAsByte() {
     return(this.internalValue);
   }
 
@@ -71,7 +79,5 @@ public class Raw {
     return (false);
   }
   
-  
-  
-  
+   
 }

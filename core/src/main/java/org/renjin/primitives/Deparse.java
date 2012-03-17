@@ -236,7 +236,7 @@ public class Deparse {
           deparseNormalCall(call);
         }
       } else {
-        super.visit(call);
+        deparseNormalCall(call);
       }
     }
 
@@ -306,7 +306,11 @@ public class Deparse {
     }
 
     private void deparseNormalCall(FunctionCall call) {
-      call.getFunction().accept(this);
+      if(call.getFunction() instanceof Symbol) {
+        call.getFunction().accept(this);
+      } else {
+        deparsed.append("FUN");
+      }
       deparsed.append("(");
       deparseArgumentList(call.getArguments().nodes());
       deparsed.append(")");

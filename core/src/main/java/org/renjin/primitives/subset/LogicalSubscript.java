@@ -36,15 +36,20 @@ public class LogicalSubscript extends Subscript {
   private int[] indices;
 
   public LogicalSubscript(int dimLength, LogicalVector subscript) {
-    indices = new int[dimLength];
     count = 0;
-    for(int i=0;i!=indices.length;++i) {
-      int subscriptIndex = i % subscript.length();
-      int value = subscript.getElementAsRawLogical(subscriptIndex);
-      if(value == 1) {
-        indices[count++] = i;
-      } else if(IntVector.isNA(value)) {
-        indices[count++] = IntVector.NA;
+    if(subscript.length() == 0) {
+      indices = new int[0];
+    } else {
+      indices = new int[dimLength];
+  
+      for(int i=0;i!=indices.length;++i) {
+        int subscriptIndex = i % subscript.length();
+        int value = subscript.getElementAsRawLogical(subscriptIndex);
+        if(value == 1) {
+          indices[count++] = i;
+        } else if(IntVector.isNA(value)) {
+          indices[count++] = IntVector.NA;
+        }
       }
     }
   }

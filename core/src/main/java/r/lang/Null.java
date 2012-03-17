@@ -137,17 +137,17 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   public PairList getAttributes() {
     return Null.INSTANCE;
   }
-  
-  
+   
 
   @Override
-  public SEXP setAttribute(String attributeName, SEXP value) {
+  public SEXP setAttribute(Symbol attributeName, SEXP value) {
     if(value == Null.INSTANCE) {
       return this;
     } else {
       throw new EvalException("Attributes cannot be set on NULL");
     }
   }
+
 
   @Override
   public Null getAttribute(Symbol name) {

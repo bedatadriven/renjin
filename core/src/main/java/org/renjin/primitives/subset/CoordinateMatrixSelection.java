@@ -22,6 +22,7 @@ import r.lang.exception.EvalException;
  */
 public class CoordinateMatrixSelection extends Selection {
 
+  
   private Matrix coordinateMatrix;
   private int sourceDim[];
   
@@ -45,6 +46,7 @@ public class CoordinateMatrixSelection extends Selection {
   }
   
   public CoordinateMatrixSelection(SEXP source, SEXP subscript) {
+    super(source);
     this.coordinateMatrix = new Matrix((Vector)subscript);
     this.sourceDim = dimAsIntArray(source);
     
@@ -100,5 +102,28 @@ public class CoordinateMatrixSelection extends Selection {
         return Indexes.arrayIndexToVectorIndex(getCoordinate(row++), sourceDim);
       }
     }; 
+  }
+
+  @Override
+  public Iterable<Integer> getSelectionAlongDimension(final int dimensionIndex) {
+    return new Iterable<Integer>() {
+      
+      @Override
+      public Iterator<Integer> iterator() {
+        return new UnmodifiableIterator<Integer>() {
+          int i=0;
+          
+          @Override
+          public boolean hasNext() {
+            return i < coordinateMatrix.getNumRows();
+          }
+
+          @Override
+          public Integer next() {
+            return coordinateMatrix.getElementAsInt(i++, dimensionIndex);
+          }
+        };
+      }
+    };
   }
 }

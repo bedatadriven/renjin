@@ -113,6 +113,7 @@ public class Context {
       map.put("verbose", new LogicalVector(false));
       map.put("check.bounds", new LogicalVector(false));
       map.put("keep.source", new LogicalVector(true));
+      map.put("keep.source.pkgs", new LogicalVector(false));
       map.put("warnings.length", new IntVector(1000));
       map.put("OutDec", new StringVector("."));
     }
@@ -211,7 +212,7 @@ public class Context {
       globalEnvironment = Environment.createGlobalEnvironment();
       baseEnvironment = globalEnvironment.getBaseEnvironment();
       namespaceRegistry = new HashFrame();
-      baseNamespaceEnv = Environment.createNamespaceEnvironment(globalEnvironment, "base");
+      baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
       namespaceRegistry.setVariable(Symbol.get("base"), baseNamespaceEnv);
       globalEnvironment.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
       securityManager = new SecurityManager();
@@ -415,6 +416,7 @@ public class Context {
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
     } 
+    
     if(value instanceof Promise) {
       return evaluate(value, rho);
     } else {
@@ -634,25 +636,24 @@ public class Context {
    *
    */
   public void init() throws IOException {
-    loadBasePackage();
-    executeStartupProfile();
-
+    // TODO(alex): remove once default packages are compiling
+   // getGlobals().systemEnvironment.put("R_DEFAULT_PACKAGES", "NULL");
+    
+    evalBaseResource("/r/library/base/R/base");
+    evalBaseResource("/r/library/base/R/Rprofile");
+    
     // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
     evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
   }
 
-  public void loadBasePackage() throws IOException {
-    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/base"));
-    SEXP loadingScript = evaluate(RParser.parseSource(reader), globals.baseNamespaceEnv);
-    reader.close();
-    evaluate(loadingScript, globals.baseNamespaceEnv);
-  }
-
-  public void executeStartupProfile() throws IOException {
-    Reader reader = new InputStreamReader(getClass().getResourceAsStream("/r/library/base/R/Rprofile"));
-    SEXP profileScript = evaluate(RParser.parseSource(reader), globals.baseNamespaceEnv);
-    reader.close();
-    evaluate(profileScript, globals.baseNamespaceEnv);
+  protected void evalBaseResource(String resourceName) throws IOException {
+    Context evalContext = this.beginEvalContext(globals.baseNamespaceEnv);
+    Reader reader = new InputStreamReader(getClass().getResourceAsStream(resourceName));
+    try {
+      evalContext.evaluate(RParser.parseSource(reader));
+    } finally {
+      reader.close();
+    }
   }
   
   public void setInvisibleFlag() {
@@ -662,5 +663,4 @@ public class Context {
   public void clearInvisibleFlag() {
     globals.invisible = false;
   }
-
 }

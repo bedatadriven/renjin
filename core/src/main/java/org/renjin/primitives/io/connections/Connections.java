@@ -20,8 +20,10 @@
  */
 package org.renjin.primitives.io.connections;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.UnknownHostException;
 
@@ -31,7 +33,11 @@ import org.renjin.primitives.annotations.Recycle;
 
 import r.lang.Context;
 import r.lang.ExternalExp;
+import r.lang.SEXP;
+import r.lang.StringVector;
+import r.lang.exception.EvalException;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 
 /**
@@ -99,7 +105,9 @@ public class Connections {
   public static ExternalExp<Connection> file(@Current final Context context,
       final String path, String open, boolean blocking, String encoding) throws IOException {
     
-    if(STD_OUT.equals(path)) {
+    if(path.isEmpty()) {
+      return asSexp(new SingleThreadedFifoConnection());
+    } else if(STD_OUT.equals(path)) {
       return stdout(context);
     } else if(STD_IN.equals(path)) {
       return stdin(context);
@@ -111,7 +119,8 @@ public class Connections {
   }
 
   
-  private static ExternalExp<Connection> asSexp(Connection conn) {
+  @VisibleForTesting
+  static ExternalExp<Connection> asSexp(Connection conn) {
     return new ExternalExp<Connection>(conn, "connection");
   }
   
@@ -157,20 +166,50 @@ public class Connections {
   }
 
   @Primitive("readLines")
-  public static String readLines(Connection connection) throws IOException {
-//    return "hello";
-    //  return connection.getReader().readLine();
-    throw new UnsupportedOperationException();
+  public static StringVector readLines(Connection connection, int numLines, boolean ok, 
+      boolean warn, String encoding) throws IOException {
+    
+    BufferedReader reader = connection.getReader();
+    StringVector.Builder lines = new StringVector.Builder();
+    String line;
+    while((line=reader.readLine())!=null && 
+        (lines.length() != numLines)) {
+      lines.add(line);
+    }
+    
+    if(numLines > 0 && 
+       lines.length() < numLines && 
+       !ok) {
+      
+      throw new EvalException("too few lines read in readLines");
+    }
+    
+    return lines.build();
   }
   
   @Primitive("writeLines")
-  public static void writeLines(String x, Connection connection) throws IOException {
-    connection.getPrintWriter().println(x);
+  public static void writeLines(StringVector x, Connection connection, String seperator, boolean useBytes) throws IOException {
+    PrintWriter writer = connection.getPrintWriter();
+    for(String line : x) {
+      writer.print(line);
+      writer.print(seperator);
+    }
   }
   
   //FIXME: port should be an int
   @Primitive("socketConnection")
   public static ExternalExp<Connection> socketConnection(String host, double port) throws UnknownHostException, IOException{
     return asSexp(new SocketConnection(host, (int) port));
+  }
+  
+  @Primitive
+  public static void sink(SEXP file, SEXP closeOnExit, SEXP arg2, SEXP split) {
+    // todo: implement
+  }
+  
+  @Primitive
+  public static boolean isOpen(Connection conn, String rw) {
+    //TODO: handle rw parameter
+    return conn.isOpen();
   }
 }

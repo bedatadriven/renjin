@@ -23,6 +23,7 @@ package org.renjin.primitives;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import r.EvalTestCase;
@@ -31,6 +32,12 @@ import r.lang.SEXP;
 
 public class CombineTest extends EvalTestCase {
 
+    @Before
+    public void defineMatrix() {
+      eval("matrix <- function (data = NA, nrow = 1, ncol = 1, byrow = FALSE, dimnames = NULL) " +
+            " .Internal(matrix(data, nrow, ncol, byrow, dimnames, missing(nrow), missing(ncol)))");
+    }
+  
     @Test
     public void realList() {
         assertThat(eval("c(1,2,3)"), equalTo(c(1, 2, 3)));
@@ -161,26 +168,26 @@ public class CombineTest extends EvalTestCase {
 
     @Test
     public void matrix() {
-        assertThat(eval(".Internal(matrix(c(1,2,3,4),2,2,FALSE,NULL))"), equalTo(c(1, 2, 3, 4)));
-        assertThat(eval(".Internal(matrix(c(1,2,3,4),2,4,FALSE,NULL))"), equalTo(c(1, 2, 3, 4, 1, 2, 3, 4)));
-        assertThat(eval("as.double(.Internal(matrix(1:10,5,2,FALSE,NULL)))"), equalTo(c(1,2,3,4,5,6,7,8,9,10)));
+        assertThat(eval("matrix(c(1,2,3,4),2,2)"), equalTo(c(1, 2, 3, 4)));
+        assertThat(eval("matrix(c(1,2,3,4),2,4)"), equalTo(c(1, 2, 3, 4, 1, 2, 3, 4)));
+        assertThat(eval("as.double(matrix(1:10,5,2))"), equalTo(c(1,2,3,4,5,6,7,8,9,10)));
     }
 
     @Test
     public void matrixByRow() {
-        assertThat(eval(".Internal(matrix(c(1,2,3,4),2,2,TRUE,NULL))"), equalTo(c(1, 3, 2, 4)));
-        assertThat(eval(".Internal(matrix(c(1,2,3,4),2,4,TRUE,NULL))"), equalTo(c(1, 1, 2, 2, 3, 3, 4, 4)));
-        assertThat(eval("as.double(.Internal(matrix(1:10,5,2,TRUE,NULL)))"), equalTo(c(1,3,5,7,9,2,4,6,8,10)));
+        assertThat(eval("matrix(c(1,2,3,4),2,2,TRUE)"), equalTo(c(1, 3, 2, 4)));
+        assertThat(eval("matrix(c(1,2,3,4),2,4,TRUE)"), equalTo(c(1, 1, 2, 2, 3, 3, 4, 4)));
+        assertThat(eval("as.double(matrix(1:10,5,2,TRUE))"), equalTo(c(1,3,5,7,9,2,4,6,8,10)));
     }
     
   @Test
   public void rowTest() {
-    assertThat(eval(".Internal(row(dim(.Internal(matrix(1:12,3,4, FALSE,NULL)))))"), equalTo(c_i(1,2,3,1,2,3,1,2,3,1,2,3)));
+    assertThat(eval(".Internal(row(dim(matrix(1:12,3,4))))"), equalTo(c_i(1,2,3,1,2,3,1,2,3,1,2,3)));
   }
   
   @Test
   public void colTest() {
-    assertThat(eval(".Internal(col(dim(.Internal(matrix(1:12,3,4, FALSE,NULL)))))"), equalTo(c_i(1,1,1,2,2,2,3,3,3,4,4,4)));
+    assertThat(eval(".Internal(col(dim(matrix(1:12,3,4))))"), equalTo(c_i(1,1,1,2,2,2,3,3,3,4,4,4)));
   }
   
   @Test

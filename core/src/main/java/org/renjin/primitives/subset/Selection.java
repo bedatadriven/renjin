@@ -3,6 +3,7 @@ package org.renjin.primitives.subset;
 import r.lang.AtomicVector;
 import r.lang.DoubleVector;
 import r.lang.IntVector;
+import r.lang.ListVector;
 import r.lang.LogicalVector;
 import r.lang.Null;
 import r.lang.SEXP;
@@ -18,6 +19,13 @@ import r.lang.exception.EvalException;
  */
 public abstract class Selection implements Iterable<Integer> {
 
+  private final SEXP source;
+ 
+  public Selection(SEXP source) {
+    super();
+    this.source = source;
+  }
+
   /**
    * 
    * @return the number of dimensions in the source object 
@@ -32,6 +40,9 @@ public abstract class Selection implements Iterable<Integer> {
    */
   public abstract int getElementCount();
 
+  
+  public abstract Iterable<Integer> getSelectionAlongDimension(int dimensionIndex);
+  
   /**
    * 
    * @return true if this ElementSet selects no elements
@@ -53,7 +64,7 @@ public abstract class Selection implements Iterable<Integer> {
   protected final Subscript parseSubscript(SEXP argument, int dimensionIndex, int dimensionLength) {
     if(argument == Symbol.MISSING_ARG) {
       return new MissingSubscript(dimensionLength);
-
+      
     } else if(argument instanceof LogicalVector) {
       return new LogicalSubscript(dimensionLength, (LogicalVector)argument);
 
@@ -82,5 +93,19 @@ public abstract class Selection implements Iterable<Integer> {
     return ((IntVector) dim).toIntArray();
   }
 
+  public Vector getDimensionNames(int dimIndex) {
+    Vector dimNames = (Vector) source.getAttribute(Symbols.DIMNAMES);
+    if(dimNames != Null.INSTANCE) {
+      Vector sourceNames = dimNames.getElementAsSEXP(dimIndex);
+      if(sourceNames != Null.INSTANCE) {
+        StringVector.Builder names = new StringVector.Builder();
+        for(Integer index : getSelectionAlongDimension(dimIndex)) {
+          names.add( sourceNames.getElementAsString(index) );
+        }
+        return names.build();
+      }
+    }
+    return Null.INSTANCE;
+  }
 
 }

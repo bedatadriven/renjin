@@ -5,7 +5,9 @@
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
- * This program is free software: you can redistribute it and/or modify
+ * This program
+import com.google.common.collect.Lists;
+ is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -21,19 +23,26 @@
 
 package org.renjin.primitives;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.ThreadMXBean;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.provider.local.LocalFile;
+import org.renjin.RVersion;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
+import org.renjin.primitives.annotations.Visible;
 
 import r.lang.Context;
 import r.lang.DoubleVector;
@@ -43,9 +52,11 @@ import r.lang.LogicalVector;
 import r.lang.Null;
 import r.lang.SEXP;
 import r.lang.StringVector;
-import r.lang.Symbol;
 import r.lang.Symbols;
 import r.lang.exception.EvalException;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 
 public class System {
 
@@ -68,13 +79,13 @@ public class System {
         .add("os", "mingw32")
         .add("system", "i386, mingw32")
         .add("status", "")
-        .add("major", "2")
-        .add("minor", "10.1")
+        .add("major", RVersion.MAJOR)
+        .add("minor", RVersion.MINOR)
         .add("year", "2009")
         .add("month", "12")
         .add("day", "14")
         .add("svn rev", "50720")
-        .add("version.string", "R version 2.10.1 (2009-12-14)")
+        .add("version.string", "R version " + RVersion.MAJOR + "." + RVersion.MINOR + "(2009-12-14)")
         .build();
 
   }
@@ -105,6 +116,20 @@ public class System {
     LogicalVector.Builder result = new LogicalVector.Builder();
     for(int i=0;i!=names.length();++i) {
       map.put(names.getElementAsString(i), values.getElementAsString(i));
+      result.add(true);
+    }
+    return result.build();
+  }
+  
+  @Primitive("Sys.unsetenv")
+  @Visible(false)
+  public static LogicalVector unsetEnvironment(@Current Context context, StringVector names) {
+
+    Map<String, String> map = context.getGlobals().systemEnvironment;
+
+    LogicalVector.Builder result = new LogicalVector.Builder();
+    for(int i=0;i!=names.length();++i) {
+      map.remove(names.getElementAsString(i));
       result.add(true);
     }
     return result.build();
@@ -381,4 +406,86 @@ public class System {
   public static String machine() {
     return "Unix";
   }
+  
+  @Primitive
+  public static void dirchmod(StringVector dir ) {
+    // not supported
+  }
+
+  @Primitive("Sys.chmod")
+  public static boolean sysChmod(@Recycle String path, int mode, boolean useUmask) {
+    // Not supported on our "platform" 
+    // There are many cases where a Sys.chmod call would fail, so I think this 
+    /// is a perfectly valid and complete implementation
+    return false;
+  }
+  
+  /**
+   * ‘Sys.umask’ sets the ‘umask’ and returns the previous value: as a
+   * special case ‘mode = NA’ just returns the current value.  It may
+   * not be supported (when a warning is issued and ‘"0"’ is returned).
+   * For more details see your OS's documentation on the system call
+   * ‘umask’, e.g. ‘man 2 umask’
+   */
+  @Primitive("Sys.umask")
+  public static int sysChmod(int umask) {
+    
+    // Not supported on our "platform" 
+    // There are many cases where a Sys.chmod call would fail, so I think this 
+    /// is a perfectly valid and complete implementation
+    return 0;
+  }
+  
+  @Primitive("system")
+  public static SEXP system(@Current Context context, String command, int flag, SEXP stdin, SEXP stdout, SEXP stderr) throws IOException, InterruptedException {
+    boolean invisible = (flag >= 20 && flag < 29);
+    boolean minimized = (flag >= 10 && flag < 19);
+    
+    List<String> args = parseArgs(command);
+    ProcessBuilder builder = new ProcessBuilder(args);
+    
+    FileObject workingDir = context.getGlobals().workingDirectory;
+    if(workingDir instanceof LocalFile) {
+      File localDir = new File(workingDir.getURL().getFile());
+      builder.directory(localDir);
+    }
+    Process process = builder.start();
+    process.waitFor();
+    
+    int exitValue = process.exitValue();
+    return new IntVector(exitValue);
+  }
+  
+  @VisibleForTesting
+  static List<String> parseArgs(String commandLine) {
+    List<String> terms = Lists.newArrayList();
+    boolean dquoted = false;
+    boolean squoted = false;
+    char lastChar = 0;
+    StringBuilder currentTerm = new StringBuilder();
+    for(int i=0;i!=commandLine.length();++i) {
+      char c = commandLine.charAt(i);
+      if(!dquoted && !squoted && Character.isWhitespace(c)) {
+        if(!Character.isWhitespace(lastChar)) {
+          terms.add(currentTerm.toString());
+          currentTerm.setLength(0);
+        }       
+      } else if(!squoted && c == '"') {
+        dquoted = !dquoted;
+      
+      } else if(!dquoted && c == '\'') {
+        squoted = !squoted;
+        
+      } else {
+        currentTerm.append(c);
+      }
+      lastChar = c;
+    }
+    if(currentTerm.length() > 0) {
+      terms.add(currentTerm.toString());
+    }
+    return terms;
+  }
+  
 }
+  

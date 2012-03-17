@@ -3,6 +3,8 @@ package org.renjin.primitives.io.serialization;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.DataFormatException;
 
@@ -11,7 +13,10 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.ByteArrayCompression;
 import org.renjin.primitives.io.connections.Connection;
+import org.renjin.primitives.io.serialization.RDataWriter.PersistenceHook;
 
+import r.base.Base;
+import r.lang.Closure;
 import r.lang.Context;
 import r.lang.Environment;
 import r.lang.FunctionCall;
@@ -31,6 +36,9 @@ import r.lang.exception.EvalException;
 public class Serialization {
 
 
+  private static final int DEFAULT_SERIALIZATION_VERSION = 0;
+
+
   @Primitive
   public static SEXP unserializeFromConn(@Current Context context,
       Connection conn, Environment rho) throws IOException {
@@ -48,7 +56,74 @@ public class Serialization {
     return reader.readFile();
   }
 
- 
+  /**
+   * 
+   * @param context
+   * @param object
+   * @param con
+   * @param ascii
+   * @param versionSexp
+   * @param refhook  A mechanism is provided to allow special handling of non-system
+   reference objects (all weak references and external pointers, and
+   all environments other than package environments, name space
+   environments, and the global environment).  The hook function
+   consists of a function pointer and a data value.  The serialization
+   function pointer is called with the reference object and the data
+   value as arguments.  It should return R_NilValue for standard
+   handling and an STRSXP for special handling.  In an STRSXP is
+   returned, then a special handing mark is written followed by the
+   strings in the STRSXP (attributes are ignored).  
+   * @throws IOException
+   */
+  @Primitive
+  public static void serializeToConn(@Current Context context, SEXP object, 
+      Connection con, boolean ascii, SEXP versionSexp, SEXP refhook) throws IOException {
+    
+    if(ascii) {
+      throw new EvalException("ascii format serialization not implemented");
+    }
+    
+    int version = DEFAULT_SERIALIZATION_VERSION;
+    if(versionSexp instanceof Vector && versionSexp.length() == 1) {
+      version = ((Vector)versionSexp).getElementAsInt(0);
+    }
+    
+    RDataWriter writer = new RDataWriter(context,
+        createHook(context, refhook),  con.getOutputStream());
+    writer.writeFile(object);
+    
+  }
+  
+  private static PersistenceHook createHook(final Context context, final SEXP hookExp) {
+    if(hookExp == Null.INSTANCE) {
+      return null; 
+    } 
+    if(!(hookExp instanceof Closure)) {
+      throw new EvalException("Illegal type for refhook"); 
+    }  
+    return new PersistenceHook() {
+      
+      @Override
+      public Vector apply(SEXP exp) {
+        
+        // make sure exp doesn't get evaled
+        Promise promisedExp = Promise.repromise(exp);
+        
+        FunctionCall hookCall = FunctionCall.newCall(hookExp, promisedExp);
+        SEXP result = context.evaluate(hookCall);
+        if(result == Null.INSTANCE) {
+          return Null.INSTANCE;
+        } else if(result instanceof StringVector) {
+          return (StringVector) result;
+        } else {
+          throw new EvalException("Unexpected result from hook function: " + result);
+        }
+      }
+    };
+  
+  }
+  
+  
   /**
    * Reload datasets written with the function save.
    * 
@@ -79,12 +154,7 @@ public class Serialization {
     return names.build();
   }
   
-  @Primitive
-  public static SEXP serializeToConn(@Current Context context, SEXP object, Connection con, SEXP ascii, 
-      SEXP version, SEXP refhook) {
-    throw new UnsupportedOperationException();
-    
-  }
+
   
 
   /**
@@ -140,26 +210,33 @@ public class Serialization {
       @Current final Environment rho, IntVector key, String file,
       int compression, final SEXP restoreFunction) throws IOException,
       DataFormatException {
-    byte buffer[] = readRawFromFile(context, file, key);
-
-    buffer = ByteArrayCompression.decompress(compression, buffer);
-
-    RDataReader reader = new RDataReader(context, rho,
-        new ByteArrayInputStream(buffer),
-        new RDataReader.PersistentRestorer() {
-
-          @Override
-          public SEXP restore(SEXP values) {
-            FunctionCall call = FunctionCall.newCall(restoreFunction, values);
-            return context.evaluate(call, context.getGlobalEnvironment());
-          }
-        });
-
-    SEXP exp = reader.readFile();
-    if (exp instanceof Promise) {
-      exp = ((Promise) exp).force();
+    
+    try {
+      
+      byte buffer[] = readRawFromFile(context, file, key);
+  
+      buffer = ByteArrayCompression.decompress(compression, buffer);
+  
+      RDataReader reader = new RDataReader(context, rho,
+          new ByteArrayInputStream(buffer),
+          new RDataReader.PersistentRestorer() {
+  
+            @Override
+            public SEXP restore(SEXP values) {
+              FunctionCall call = FunctionCall.newCall(restoreFunction, values);
+              return context.evaluate(call, context.getGlobalEnvironment());
+            }
+          });
+  
+      SEXP exp = reader.readFile();
+      if (exp instanceof Promise) {
+        exp = ((Promise) exp).force();
+      }
+      return exp;
+    } catch(Exception e) {      
+      throw new EvalException("Exception reading database entry at " + key + " in " +
+            file, e);
     }
-    return exp;
   }
   
   public static byte[] readRawFromFile(@Current Context context, String file,
@@ -188,25 +265,36 @@ public class Serialization {
   }
   
 
-  public static SEXP lazyLoadDbInsertValue(Context context, SEXP value,
-      SEXP file, Vector compress) throws IOException, Exception {
+  /**
+   * Appends an SEXP to a rdb file, returning an IntVector in the form (offset, length)
+   * of the compressed block.
+   * 
+   * <p>This method is actually called from {@link Base}
+   */
+  public static SEXP lazyLoadDbInsertValue(Context context, Environment rho, SEXP value,
+       String file, Vector compress, SEXP hook) throws IOException, Exception {
 
+    File rdb = new File(file);
+    if(rdb.exists() && rdb.length() == 295686) {
+      System.out.println("foo!");
+    }
+    
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    RDataWriter writer = new RDataWriter(context, baos);
-    writer.writeExp(value);
+    RDataWriter writer = new RDataWriter(context, createHook(context, hook), baos);
+    writer.writeFile(value);
     
     byte[] bytes = ByteArrayCompression.compress(compress.getElementAsInt(0), baos.toByteArray());
     
-    IntVector key = appendRawToFile(file, bytes);
- //   return key;
-    return Null.INSTANCE;
-  }
-
-  private static IntVector appendRawToFile(SEXP file, byte[] bytes) {
-
+    FileOutputStream fos = new FileOutputStream(file, true);
+    try { 
+      fos.write(bytes);
+    } finally {
+      fos.close();
+    }
     
+    int offset = (int) (rdb.length() - bytes.length);
+    int length = bytes.length;
     
-    return null;
+    return new IntVector(offset, length);
   }
-
 }

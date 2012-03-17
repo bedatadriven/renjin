@@ -19,9 +19,9 @@ public class CompleteSelection extends Selection {
   private AtomicVector sourceDim;
   
   public CompleteSelection(SEXP source) {
+    super(source);
     this.source = source;
-    this.sourceDim = (AtomicVector) source.getAttribute(Symbols.DIM);
-    
+    this.sourceDim = (AtomicVector) source.getAttribute(Symbols.DIM);  
   }
   
   @Override
@@ -63,9 +63,40 @@ public class CompleteSelection extends Selection {
       return ((IntVector)sourceDim).toIntArray();
     }
   }
+  
+  private int getDimensionLength(int d) {
+    if(sourceDim.length() == 0 && d == 0) {
+      return source.length();
+    } else {
+      return sourceDim.getElementAsInt(d);
+    }
+  }
 
   @Override
   protected AtomicVector getNames(int dimensionIndex) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Iterable<Integer> getSelectionAlongDimension(int dimensionIndex) {
+    final int length = getDimensionLength(dimensionIndex);
+    return new Iterable<Integer>() {
+      
+      @Override
+      public Iterator<Integer> iterator() {
+        return new UnmodifiableIterator<Integer>() {
+          private int i = 0;
+          @Override
+          public boolean hasNext() {
+            return i < length;
+          }
+
+          @Override
+          public Integer next() {
+            return i++;
+          }
+        };
+      }
+    };
   }
 }

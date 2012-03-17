@@ -117,10 +117,7 @@ public class SubstituteFunction extends SpecialFunction {
     @Override
     public void visit(Symbol symbol) {
       if(context.hasVariable(symbol)) {
-        result = context.getVariable(symbol);
-        if(result instanceof Promise) {
-          result = ((Promise) result).getExpression();
-        }
+        result = unpromise(context.getVariable(symbol));
       } else {
         result = symbol;
       }
@@ -135,11 +132,10 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     private SEXP unpromise(SEXP value) {
-      if(value instanceof Promise) {
-        return ((Promise) value).getExpression();
-      } else {
-        return value;
-      }
+      while(value instanceof Promise) {
+        value = ((Promise) value).getExpression();
+      } 
+      return value;
     }
 
     @Override

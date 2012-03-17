@@ -339,7 +339,7 @@ public class RdParser
     public int size = 16;
     public int height = -1;
 
-    public final void push (int state, Object value    	   	      	    , Location loc) {
+    public final void push (int state, Object value, Location loc) {
       height++;
       if (size == height) 
       {
@@ -1865,7 +1865,7 @@ public class RdParser
 
   private boolean wCalls = true;
 
-  private int YYERROR_VERBOSE = 1;
+  private int YYERROR_VERBOSE = 0;
   //
   //static void yyerror(const char *);
   //static int yylex();
@@ -1938,7 +1938,7 @@ public class RdParser
   private boolean  xxNewlineInString;
   private int  xxlineno, xxbyteno, xxcolno;
   private int  xxmode, xxitemType, xxbraceDepth;  /* context for lexer */
-  private boolean  xxDebugTokens = true;  /* non-zero causes debug output to R console */
+  private boolean  xxDebugTokens = false;  /* non-zero causes debug output to R console */
   private String xxBasename;     /* basename of file for error messages */
   private SEXP Value;
   private int  xxinitvalue;

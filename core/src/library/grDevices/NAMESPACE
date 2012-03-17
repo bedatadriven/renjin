@@ -1,0 +1,81 @@
+## Explicitly enumerate the symbols here that are in the registration
+## information rather than use .registration as there are symbols that
+## conflict with functions on Windows, i.e. savePlot.
+
+# if(tools:::.OStype() == "windows") {
+#    useDynLib(grDevices, R_chull, R_CreateAtVector, R_GAxisPars,
+#              PicTeX, PostScript, XFig, PDF,
+#              Cdevga=devga, CsavePlot=savePlot, devCairo,
+#              Type1FontInUse, CIDFontInUse, R_GD_nullDevice)
+#} else {
+#    useDynLib(grDevices, R_chull, R_CreateAtVector, R_GAxisPars,
+#              PicTeX, PostScript, XFig, PDF, CQuartz = Quartz, devCairo,
+#              Type1FontInUse, CIDFontInUse, R_GD_nullDevice)
+#}
+
+export(Hershey, adjustcolor, as.graphicsAnnot, as.raster, axisTicks, blues9,
+       boxplot.stats, check.options, chull, CIDFont, col2rgb, colors,
+       colours, cm, colorRamp, colorRampPalette, contourLines,
+       convertColor, colorConverter, colorspaces, cm.colors, densCols,
+       devAskNewPage, dev.capabilities, dev.capture, dev.control, dev.copy,
+       dev.copy2eps, dev.copy2pdf, dev.cur, dev.hold, dev.flush,
+       dev.interactive, dev.list, dev.new, dev.next, dev.off,
+       dev.prev, dev.print, dev.set, dev.size, 
+    # RENJIN todo: dev2bitmap,
+       deviceIsInteractive, embedFonts, extendrange, getGraphicsEvent,
+       getGraphicsEventEnv, graphics.off, gray, grey, gray.colors,
+       grey.colors, heat.colors, hsv, hcl, is.raster, make.rgb,
+       n2mfrow, nclass.Sturges, nclass.FD, nclass.scott, palette, pdf,
+       pdf.options, pdfFonts, pictex, postscript, postscriptFont,
+       postscriptFonts, ps.options, rainbow, recordGraphics,
+       recordPlot, replayPlot, rgb, rgb2hsv, 
+     # RENJIN todo: savePlot, 
+       setEPS,
+       setGraphicsEventEnv, setGraphicsEventHandlers, setPS,
+       terrain.colors, topo.colors, trans3d, Type1Font, .axisPars,
+       xfig, xyTable, xy.coords, xyz.coords)
+
+#RENJIN: we probably need to implement our own graphics devices
+## devices common to all platforms
+#export(X11, x11, bitmap, bmp, jpeg, png, tiff)
+
+S3method(print, recordedplot)
+S3method(print, colorConverter)
+S3method(print, RGBcolorConverter)
+
+S3method("checkFont", "default")
+S3method("checkFont", "Type1Font")
+S3method("checkFont", "CIDFont")
+S3method("matchEncoding", "Type1Font")
+S3method("matchEncoding", "CIDFont")
+
+S3method("as.raster", "raster")
+S3method("as.raster", "logical")
+S3method("as.raster", "numeric")
+S3method("as.raster", "character")
+S3method("as.raster", "matrix")
+S3method("as.raster", "array")
+
+S3method("as.matrix", "raster")
+S3method("is.na", "raster")
+S3method("[", "raster")
+S3method("[<-", "raster")
+S3method("Ops", "raster")
+
+S3method("print", "raster")
+
+S3method(pretty, Date)
+S3method(pretty, POSIXt)
+
+
+#if(tools:::.OStype() == "windows") {
+#    export(bringToTop, msgWindow, win.graph, win.metafile, win.print,
+#           windows, windows.options, windowsFont, windowsFonts)
+#    export(cairo_pdf, cairo_ps, svg)
+#
+#   S3method("[", SavedPlots)
+#    S3method(print, SavedPlots)
+#} else {
+#    export(cairo_pdf, cairo_ps, X11.options, X11Font, X11Fonts,
+#           quartz, quartz.options, quartzFont, quartzFonts, svg)
+#}

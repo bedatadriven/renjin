@@ -100,6 +100,12 @@ public class SequenceTest extends EvalTestCase {
   }
   
   @Test
+  public void repIntEach() {
+    assertThat( eval(".Internal(rep.int(c('a', 'b', 'c'), c(3, 2, 4)))"),
+        equalTo(c("a","a","a","b","b","c","c","c","c")));
+  }
+  
+  @Test
   public void repRecycling() {
     assertThat( eval(" rep(c(1, 2, 3, 4, 5, 6, 7, 8, 9), c(9, 9, 9, 9, 9, 9, 9, 9, 9))"), equalTo(
         c(1, 1, 1, 1, 1, 1, 1, 1, 1, 

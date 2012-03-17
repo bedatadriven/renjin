@@ -42,8 +42,7 @@ public class SwitchFunction extends SpecialFunction {
     SEXP expr = context.evaluate(args.getElementAsSEXP(0),rho);
     EvalException.check(expr.length() == 1, "EXPR must return a length 1 vector");
 
-    PromisePairList branchPromises  = (PromisePairList) context.evaluate( args.getElementAsSEXP(1), rho);
-    Iterable<PairList.Node> branches = branchPromises.nodes();
+    Iterable<PairList.Node> branches = Iterables.skip(args.nodes(), 1);
 
     if(expr instanceof StringVector) {
       String name = ((StringVector) expr).getElementAsString(0);
@@ -79,7 +78,7 @@ public class SwitchFunction extends SpecialFunction {
         return context.evaluate( Iterables.get(branches, branchIndex-1).getValue(), rho);
       }
     }
-
+    // no match
     return Null.INSTANCE;
   }
 

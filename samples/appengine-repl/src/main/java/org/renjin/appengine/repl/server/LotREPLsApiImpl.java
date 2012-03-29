@@ -155,7 +155,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
       }
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       RDataWriter writer = new RDataWriter(context, baos);
-      writer.writeExp(list.build());
+      writer.writeFile(list.build());
 
       log.fine(count + " variable saved, " + baos.toByteArray().length + " bytes");
 

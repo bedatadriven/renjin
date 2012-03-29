@@ -148,10 +148,8 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
       int count =0;
       for(Symbol symbol : globalEnvironment.getSymbolNames()) {
         SEXP value = globalEnvironment.getVariable(symbol);
-        if(value instanceof Vector) {
-          list.add(symbol, value);
-          count++;
-        }
+        list.add(symbol, value);
+        count++;
       }
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       RDataWriter writer = new RDataWriter(context, baos);

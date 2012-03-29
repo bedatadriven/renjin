@@ -43,7 +43,7 @@
     <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>renjin-core</artifactId>
-      <version>${version}</version>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

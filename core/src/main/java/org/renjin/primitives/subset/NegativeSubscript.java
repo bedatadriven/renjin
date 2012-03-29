@@ -21,7 +21,7 @@
 
 package org.renjin.primitives.subset;
 
-import r.lang.AtomicVector;
+import org.renjin.sexp.AtomicVector;
 
 public class NegativeSubscript extends Subscript {
   private int[] indices;

@@ -1,26 +1,27 @@
 package org.renjin.primitives.annotations.processor;
 
-import r.base.Calls;
-import r.base.ClosureDispatcher;
-import r.base.dispatch.DispatchChain;
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.Environment;
-import r.lang.ExternalExp;
-import r.lang.FunctionCall;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Logical;
-import r.lang.LogicalVector;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.PairList.Node;
-import r.lang.Promise;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.Symbols;
-import r.lang.Vector;
+import org.renjin.eval.Calls;
+import org.renjin.eval.ClosureDispatcher;
+import org.renjin.eval.Context;
+import org.renjin.eval.DispatchChain;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExternalExp;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+import org.renjin.sexp.PairList.Node;
+
 
 /**
  * 

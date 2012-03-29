@@ -21,8 +21,8 @@
 
 package org.renjin.primitives.subset;
 
-import r.lang.IntVector;
-import r.lang.LogicalVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.LogicalVector;
 
 /**
  * Logical subscripts, i.e: x[TRUE, FALSE]

@@ -3,13 +3,13 @@ package org.renjin.primitives.models;
 import java.util.List;
 
 import org.renjin.primitives.matrix.IntMatrixBuilder;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
-import r.lang.FunctionCall;
-import r.lang.IntVector;
-import r.lang.PairList;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbol;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.Collections2;

@@ -3,22 +3,22 @@ package org.renjin.primitives.io;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.connections.Connection;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Raw;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SexpVisitor;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
-import r.lang.AtomicVector;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.LogicalVector;
-import r.lang.Null;
-import r.lang.Raw;
-import r.lang.RawVector;
-import r.lang.SEXP;
-import r.lang.SexpVisitor;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.exception.EvalException;
 
 public class Cat extends SexpVisitor<String> {
 

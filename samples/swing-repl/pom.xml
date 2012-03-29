@@ -67,7 +67,7 @@
               </descriptorRefs>
               <archive>
                 <manifest>
-                  <mainClass>r.desktop.MainFrame</mainClass>
+                  <mainClass>org.renjin.desktop.MainFrame</mainClass>
                 </manifest>
               </archive>
             </configuration>

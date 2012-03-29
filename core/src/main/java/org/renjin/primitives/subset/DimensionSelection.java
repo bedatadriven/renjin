@@ -3,13 +3,14 @@ package org.renjin.primitives.subset;
 import java.util.Iterator;
 import java.util.List;
 
-import r.lang.AtomicVector;
-import r.lang.Indexes;
-import r.lang.Null;
-import r.lang.SEXP;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.Indexes;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;

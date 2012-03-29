@@ -5,9 +5,9 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
 
-import r.EvalTestCase;
-import r.lang.exception.EvalException;
 
 public class VApplyTest extends EvalTestCase {
 

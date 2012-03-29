@@ -11,16 +11,16 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.model.InitializationError;
+import org.renjin.eval.Context;
+import org.renjin.parser.RParser;
 import org.renjin.script.RenjinScriptEngine;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 import com.google.common.collect.Lists;
 
-import r.lang.Closure;
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.SEXP;
-import r.lang.Symbol;
-import r.parser.RParser;
 
 public class RTestFile extends ParentRunner<RTestFunction> {
 

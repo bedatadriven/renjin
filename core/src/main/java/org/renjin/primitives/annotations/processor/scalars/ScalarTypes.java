@@ -4,9 +4,9 @@ import java.util.Map;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.primitives.annotations.processor.GeneratorDefinitionException;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.SEXP;
 
-import r.lang.Logical;
-import r.lang.SEXP;
 
 import com.google.common.collect.Maps;
 

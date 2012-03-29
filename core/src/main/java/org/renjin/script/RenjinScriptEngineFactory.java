@@ -7,8 +7,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 
 import org.renjin.RVersion;
+import org.renjin.eval.Context;
 
-import r.lang.Context;
 
 import com.google.common.collect.Lists;
 

@@ -21,17 +21,31 @@
 
 package org.renjin.primitives;
 
+import java.util.List;
+
+import org.renjin.eval.Context;
+import org.renjin.parser.ParseUtil;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SexpVisitor;
+import org.renjin.sexp.SpecialFunction;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+
+
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import r.lang.*;
-import r.parser.ParseUtil;
-
-import java.io.PrintStream;
-import java.util.List;
-
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
 
 public class Print {
 

@@ -1,8 +1,9 @@
 package org.renjin.primitives.random;
 
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
+import org.renjin.eval.Context;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+
 
 public class Multinomial {
 

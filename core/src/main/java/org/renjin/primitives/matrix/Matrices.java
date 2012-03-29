@@ -1,16 +1,16 @@
 package org.renjin.primitives.matrix;
 
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.Indexes;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import r.lang.AtomicVector;
-import r.lang.DoubleVector;
-import r.lang.Indexes;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.SEXP;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 /**
  * Implementation of R primitive functions involving matrices.
@@ -36,7 +36,7 @@ public class Matrices {
                           Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
         }
       }
-      if (!(x.getAttribute(Symbols.DIMNAMES) instanceof r.lang.Null)) {
+      if (!(x.getAttribute(Symbols.DIMNAMES) instanceof org.renjin.sexp.Null)) {
         ListVector dimNames = (ListVector) x.getAttribute(Symbols.DIMNAMES);
         ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
         builder.setAttribute(Symbols.DIMNAMES, newDimNames);

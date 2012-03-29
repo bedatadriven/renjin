@@ -25,8 +25,9 @@
 package org.renjin.primitives.random;
 
 
-import r.lang.Context;
-import r.lang.DoubleVector;
+import org.renjin.eval.Context;
+import org.renjin.sexp.DoubleVector;
+
 
 public class ChiSquare {
 

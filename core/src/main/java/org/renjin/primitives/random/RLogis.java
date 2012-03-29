@@ -21,7 +21,7 @@
 
 package org.renjin.primitives.random;
 
-import r.lang.Context;
+import org.renjin.eval.Context;
 
 public class RLogis {
 

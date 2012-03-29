@@ -6,8 +6,8 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 
-import r.EvalTestCase;
 
 public class SplitTest extends EvalTestCase {
 

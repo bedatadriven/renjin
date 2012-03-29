@@ -1,7 +1,8 @@
 package org.renjin.primitives.annotations.processor.args;
 
-import r.jvmi.binding.JvmMethod.Argument;
-import r.lang.ExternalExp;
+import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
+import org.renjin.sexp.ExternalExp;
+
 
 public class UnwrapExternalObject extends ArgConverterStrategy {
 

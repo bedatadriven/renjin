@@ -5,8 +5,8 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 
-import r.EvalTestCase;
 
 public class DeparseTest extends EvalTestCase {
 

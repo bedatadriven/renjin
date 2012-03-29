@@ -1,10 +1,10 @@
 package org.renjin.primitives.time;
 
 import org.joda.time.DateTime;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
 
-import r.lang.DoubleVector;
-import r.lang.StringVector;
-import r.lang.Symbols;
 
 /**
  * Wraps a {@code DoubleVector} that contains instants-in-time stored

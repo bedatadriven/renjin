@@ -1,9 +1,9 @@
 package org.renjin.primitives.annotations.processor.args;
 
+import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
 import org.renjin.primitives.annotations.processor.scalars.ScalarType;
 import org.renjin.primitives.annotations.processor.scalars.ScalarTypes;
 
-import r.jvmi.binding.JvmMethod.Argument;
 
 public class ToScalar extends ArgConverterStrategy {
   private ScalarType scalarType;

@@ -24,13 +24,13 @@ package org.renjin.primitives.optimize;
 import org.apache.commons.math.FunctionEvaluationException;
 import org.apache.commons.math.MaxIterationsExceededException;
 import org.apache.commons.math.analysis.solvers.BrentSolver;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Function;
 
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.Environment;
-import r.lang.Function;
-import r.lang.exception.EvalException;
 
 public class Roots {
 

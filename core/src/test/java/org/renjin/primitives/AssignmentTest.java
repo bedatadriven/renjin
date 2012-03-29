@@ -22,7 +22,7 @@
 package org.renjin.primitives;
 
 import org.junit.Test;
-import r.EvalTestCase;
+import org.renjin.EvalTestCase;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

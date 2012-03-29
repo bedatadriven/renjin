@@ -23,11 +23,11 @@ package org.renjin.primitives;
 
 import org.junit.Test;
 import org.renjin.primitives.Print;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.StringVector;
 
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.StringVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

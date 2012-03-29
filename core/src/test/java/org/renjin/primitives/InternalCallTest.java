@@ -22,8 +22,9 @@
 package org.renjin.primitives;
 
 import org.junit.Test;
-import r.EvalTestCase;
-import r.lang.DoubleVector;
+import org.renjin.EvalTestCase;
+import org.renjin.sexp.DoubleVector;
+
 
 import java.io.IOException;
 

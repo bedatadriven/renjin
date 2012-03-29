@@ -1,8 +1,9 @@
 package org.renjin.primitives.models;
 
-import r.lang.SEXP;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector;
+
 
 public class ModelVariable {
 

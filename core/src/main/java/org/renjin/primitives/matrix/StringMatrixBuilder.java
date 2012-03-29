@@ -1,10 +1,11 @@
 package org.renjin.primitives.matrix;
 
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.StringVector;
-import r.lang.Vector.Type;
-import r.parser.ParseUtil;
+import org.renjin.parser.ParseUtil;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector.Type;
+
  
 public class StringMatrixBuilder extends AbstractMatrixBuilder<StringVector.Builder, StringVector> 
 implements MatrixBuilder {

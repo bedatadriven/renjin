@@ -1,6 +1,6 @@
 package org.renjin.primitives.matrix;
 
-import r.lang.IntVector;
+import org.renjin.sexp.IntVector;
 
 public class IntMatrixBuilder extends AbstractMatrixBuilder<IntVector.Builder, IntVector>
     implements MatrixBuilder {

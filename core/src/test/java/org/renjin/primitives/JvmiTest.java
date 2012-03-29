@@ -6,13 +6,13 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.jvminterop.ClassBinding;
+import org.renjin.jvminterop.FunctionBinding;
+import org.renjin.jvminterop.ObjectFrame;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Symbol;
 
-import r.EvalTestCase;
-import r.jvmi.r2j.ClassBinding;
-import r.jvmi.r2j.FunctionBinding;
-import r.jvmi.r2j.ObjectFrame;
-import r.lang.Environment;
-import r.lang.Symbol;
 
 public class JvmiTest extends EvalTestCase {
 

@@ -31,6 +31,8 @@ import java.util.zip.ZipInputStream;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
@@ -38,18 +40,16 @@ import org.renjin.primitives.annotations.Recycle;
 import org.renjin.primitives.annotations.Visible;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.RE;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.LogicalVector;
-import r.lang.Null;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
@@ -425,7 +425,7 @@ public class Files {
    *
    * <p>
    * Renjin maintains its own internal pointer to the working directory which lives in
-   * {@link r.lang.Context.Globals}
+   * {@link org.renjin.eval.Context.Globals}
    *
    * @param context the current call Context
    * @return an absolute filename representing the current working directory

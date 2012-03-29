@@ -21,9 +21,10 @@
 
 package org.renjin.primitives.subset;
 
-import r.lang.AtomicVector;
-import r.lang.IntVector;
-import r.lang.exception.EvalException;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.IntVector;
+
 
 /**
  * Positive numbers are interpreted as positional subscripts,

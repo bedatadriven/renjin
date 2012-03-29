@@ -22,12 +22,13 @@
 package org.renjin.primitives.files;
 
 import com.google.common.collect.Lists;
-import r.lang.Context;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import org.renjin.eval.Context;
 
 /**
  * Implements "globbing" on files, like "c:\test\*\*.jar"

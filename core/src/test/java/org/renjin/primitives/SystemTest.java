@@ -28,8 +28,8 @@ import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 
-import r.EvalTestCase;
 
 public class SystemTest extends EvalTestCase {
 

@@ -22,13 +22,13 @@
 package org.renjin.primitives;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 import org.renjin.primitives.Sequences;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.SEXP;
 
-import r.EvalTestCase;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.LogicalVector;
-import r.lang.SEXP;
 
 import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;

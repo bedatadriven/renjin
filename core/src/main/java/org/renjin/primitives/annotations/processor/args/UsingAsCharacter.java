@@ -1,8 +1,8 @@
 package org.renjin.primitives.annotations.processor.args;
 
 import org.renjin.primitives.annotations.InvokeAsCharacter;
+import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
 
-import r.jvmi.binding.JvmMethod.Argument;
 
 public class UsingAsCharacter extends ArgConverterStrategy {
 

@@ -24,11 +24,11 @@ import java.io.IOException;
 
 import org.apache.commons.math.MathException;
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 import org.renjin.primitives.random.Distributions;
+import org.renjin.sexp.DoubleVector;
 
 
-import r.EvalTestCase;
-import r.lang.DoubleVector;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;

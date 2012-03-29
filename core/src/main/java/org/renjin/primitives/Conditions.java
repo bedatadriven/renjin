@@ -21,11 +21,18 @@
 
 package org.renjin.primitives;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-
-import r.lang.*;
-import r.lang.exception.EvalException;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
 
 /**
  * These functions provide a mechanism for handling unusual conditions,

@@ -20,12 +20,22 @@
  */
 package org.renjin.primitives;
 
-import static r.lang.CollectionUtils.modePredicate;
-
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.jvminterop.ClassFrame;
+import org.renjin.jvminterop.ObjectFrame;
+import org.renjin.jvminterop.converters.BooleanArrayConverter;
+import org.renjin.jvminterop.converters.BooleanConverter;
+import org.renjin.jvminterop.converters.DoubleArrayConverter;
+import org.renjin.jvminterop.converters.DoubleConverter;
+import org.renjin.jvminterop.converters.IntegerArrayConverter;
+import org.renjin.jvminterop.converters.IntegerConverter;
+import org.renjin.jvminterop.converters.StringArrayConverter;
+import org.renjin.jvminterop.converters.StringConverter;
 import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Generic;
@@ -33,46 +43,35 @@ import org.renjin.primitives.annotations.InvokeAsCharacter;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
 import org.renjin.primitives.annotations.Visible;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.Attributes;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.ComplexVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.Frame;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Raw;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.Recursive;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+import org.renjin.util.NamesBuilder;
 
-import r.jvmi.r2j.ClassFrame;
-import r.jvmi.r2j.ObjectFrame;
-import r.jvmi.r2j.converters.BooleanArrayConverter;
-import r.jvmi.r2j.converters.BooleanConverter;
-import r.jvmi.r2j.converters.DoubleArrayConverter;
-import r.jvmi.r2j.converters.DoubleConverter;
-import r.jvmi.r2j.converters.IntegerArrayConverter;
-import r.jvmi.r2j.converters.IntegerConverter;
-import r.jvmi.r2j.converters.StringArrayConverter;
-import r.jvmi.r2j.converters.StringConverter;
-import r.lang.AtomicVector;
-import r.lang.Attributes;
-import r.lang.Closure;
-import r.lang.ComplexVector;
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.Environment;
-import r.lang.ExpressionVector;
-import r.lang.Frame;
-import r.lang.Function;
-import r.lang.FunctionCall;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.LogicalVector;
-import r.lang.NamedValue;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.Raw;
-import r.lang.RawVector;
-import r.lang.Recursive;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
-import r.util.NamesBuilder;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -959,14 +958,14 @@ public class Types {
   @Primitive
   public static boolean exists(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(Symbol.get(x), modePredicate(mode),
+    return environment.findVariable(Symbol.get(x), Types.modePredicate(mode),
         inherits) != Symbol.UNBOUND_VALUE;
   }
 
   @Primitive
   public static SEXP get(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(Symbol.get(x), modePredicate(mode),
+    return environment.findVariable(Symbol.get(x), Types.modePredicate(mode),
         inherits);
   }
 
@@ -1426,5 +1425,15 @@ public class Types {
   public static Vector setLength(Vector source,int length){
     //It's length-1 because R is base 1 and Java is base 0.
     return source.newCopyBuilder().setNA(length-1).build();
+  }
+
+  public static Predicate<SEXP> modePredicate(String mode) {
+    if(mode.equals("any")) {
+      return Predicates.alwaysTrue();
+    } else if(mode.equals("function")){
+      return CollectionUtils.IS_FUNCTION;
+    } else {
+      throw new EvalException(" mode '%s' as a predicate is implemented.", mode);
+    }
   }
 }

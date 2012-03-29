@@ -11,8 +11,8 @@ import java.net.Socket;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 
-import r.EvalTestCase;
 
 /**
  * Verifies that readLines, writeLines, and socketConnection work for simple cases.

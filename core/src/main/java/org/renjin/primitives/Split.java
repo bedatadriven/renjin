@@ -4,10 +4,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Vector;
 
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Vector;
 
 import com.google.common.collect.Maps;
 

@@ -21,14 +21,14 @@
 
 package org.renjin.primitives;
 
+import org.renjin.eval.Context;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Symbol;
 
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.FunctionCall;
-import r.lang.ListVector;
-import r.lang.Symbol;
 
 public class Warning {
 

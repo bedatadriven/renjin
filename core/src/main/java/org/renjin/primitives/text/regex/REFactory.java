@@ -21,7 +21,7 @@
 
 package org.renjin.primitives.text.regex;
 
-import r.lang.exception.EvalException;
+import org.renjin.eval.EvalException;
 
 /**
  * Compiles a regular expression based on the supplied options.

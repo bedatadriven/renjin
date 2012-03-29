@@ -1,9 +1,9 @@
 package org.renjin.primitives.annotations.processor.args;
 
 import org.renjin.primitives.annotations.processor.GeneratorDefinitionException;
+import org.renjin.primitives.annotations.processor.JvmMethod;
+import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
 
-import r.jvmi.binding.JvmMethod;
-import r.jvmi.binding.JvmMethod.Argument;
 
 public class ArgConverterStrategies {
 

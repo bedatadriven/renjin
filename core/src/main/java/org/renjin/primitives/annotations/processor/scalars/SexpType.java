@@ -1,8 +1,8 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
-import r.lang.ListVector;
-import r.lang.SEXP;
-import r.lang.Vector.Builder;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector.Builder;
 
 public class SexpType extends ScalarType {
 

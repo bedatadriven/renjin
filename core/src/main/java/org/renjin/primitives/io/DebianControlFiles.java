@@ -5,19 +5,19 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.matrix.MatrixBuilder;
 import org.renjin.primitives.matrix.StringMatrixBuilder;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Null;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;

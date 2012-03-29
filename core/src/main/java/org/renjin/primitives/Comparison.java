@@ -21,10 +21,15 @@
 
 package org.renjin.primitives;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Primitive;
-
-import r.lang.*;
-import r.lang.exception.EvalException;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.SEXP;
 
 
 public class Comparison {

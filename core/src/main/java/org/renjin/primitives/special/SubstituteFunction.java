@@ -21,12 +21,23 @@
 
 package org.renjin.primitives.special;
 
-import com.google.common.collect.Lists;
-import r.lang.*;
-import r.lang.exception.EvalException;
-
 import java.util.List;
-import java.util.Set;
+
+import org.renjin.eval.Context;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.PromisePairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SexpVisitor;
+import org.renjin.sexp.SpecialFunction;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+
+import com.google.common.collect.Lists;
 
 public class SubstituteFunction extends SpecialFunction {
 

@@ -3,19 +3,19 @@ package org.renjin.primitives.models;
 import java.util.Arrays;
 import java.util.List;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.matrix.DoubleMatrixBuilder;
 import org.renjin.primitives.models.ModelFrame.Variable;
 import org.renjin.primitives.models.TermsObject.Term;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector;
 
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Null;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 import com.google.common.collect.Lists;
 

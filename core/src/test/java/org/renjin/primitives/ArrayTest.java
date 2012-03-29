@@ -22,7 +22,6 @@
 package org.renjin.primitives;
 
 import org.junit.Test;
-import r.lang.Indexes;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

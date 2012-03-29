@@ -6,14 +6,14 @@ package org.renjin.primitives.random;
 
 
 import org.apache.commons.math.random.MersenneTwister;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Symbols;
 
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.Symbols;
-import r.lang.exception.EvalException;
 
 public class RNG {
 

@@ -3,14 +3,15 @@ package org.renjin.cran;
 import java.io.IOException;
 import java.io.Reader;
 
-import r.lang.ListVector;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.SEXP;
-import r.lang.SexpVisitor;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.parser.RdParser;
+import org.renjin.parser.RdParser;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SexpVisitor;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+
 
 import com.google.common.io.InputSupplier;
 

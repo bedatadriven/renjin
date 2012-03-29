@@ -1,6 +1,6 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
-import r.lang.IntVector;
+import org.renjin.sexp.IntVector;
 
 public class IntegerType extends ScalarType {
 

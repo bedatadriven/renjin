@@ -7,7 +7,8 @@ import java.util.List;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 
-import r.lang.Context;
+import org.renjin.eval.Context;
+
 
 public class RenjinScriptContext implements ScriptContext{
 

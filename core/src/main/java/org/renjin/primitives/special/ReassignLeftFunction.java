@@ -21,8 +21,9 @@
 
 package org.renjin.primitives.special;
 
-import r.lang.*;
-import r.lang.exception.EvalException;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 public class ReassignLeftFunction extends AssignLeftFunction {
 

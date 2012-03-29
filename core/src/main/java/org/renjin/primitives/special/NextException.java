@@ -21,7 +21,6 @@
 
 package org.renjin.primitives.special;
 
-import r.lang.exception.ControlFlowException;
 
 public class NextException extends ControlFlowException {   
   

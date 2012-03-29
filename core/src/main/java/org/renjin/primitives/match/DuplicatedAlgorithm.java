@@ -1,7 +1,7 @@
 package org.renjin.primitives.match;
 
-import r.lang.LogicalVector;
-import r.lang.Vector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Vector;
 
 public class DuplicatedAlgorithm implements DuplicateSearchAlgorithm<LogicalVector> {
 

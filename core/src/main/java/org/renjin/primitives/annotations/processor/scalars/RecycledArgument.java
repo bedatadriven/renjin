@@ -1,7 +1,7 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
-import r.jvmi.binding.JvmMethod;
-import r.jvmi.binding.JvmMethod.Argument;
+import org.renjin.primitives.annotations.processor.JvmMethod;
+import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
 
 public class RecycledArgument {
   

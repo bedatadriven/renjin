@@ -18,7 +18,6 @@ import javax.tools.ToolProvider;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.Primitives.Entry;
 
-import r.jvmi.binding.JvmMethod;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;

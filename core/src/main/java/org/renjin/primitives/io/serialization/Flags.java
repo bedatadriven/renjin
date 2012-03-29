@@ -22,13 +22,13 @@
 package org.renjin.primitives.io.serialization;
 
 
-import r.lang.Closure;
-import r.lang.Environment;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.Promise;
-import r.lang.SEXP;
-import r.lang.Symbols;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbols;
 
 class Flags {
  

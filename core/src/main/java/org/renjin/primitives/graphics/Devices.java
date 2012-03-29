@@ -1,12 +1,12 @@
 package org.renjin.primitives.graphics;
 
+import org.renjin.eval.Context;
+import org.renjin.graphics.GraphicsDevice;
 import org.renjin.primitives.annotations.Current;
+import org.renjin.sexp.SEXP;
 
-import r.lang.Context;
-import r.lang.SEXP;
-import r.lang.graphics.GraphicsDevice;
 
-import static r.util.CDefines.*;
+import static org.renjin.util.CDefines.*;
 
 
 public class Devices {

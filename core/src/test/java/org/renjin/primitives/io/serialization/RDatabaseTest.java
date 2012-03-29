@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.zip.DataFormatException;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 import org.renjin.primitives.io.serialization.RDatabase;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Symbol;
 
-import r.EvalTestCase;
-import r.lang.Environment;
-import r.lang.Symbol;
 
 public class RDatabaseTest extends EvalTestCase {
 

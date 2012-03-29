@@ -1,11 +1,11 @@
 package org.renjin.primitives;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
-import r.EvalTestCase;
 
 public class TabulateTest extends EvalTestCase {
 

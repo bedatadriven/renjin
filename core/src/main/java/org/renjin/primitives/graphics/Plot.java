@@ -1,24 +1,24 @@
 package org.renjin.primitives.graphics;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.graphics.Color;
+import org.renjin.graphics.GraphicsDevice;
+import org.renjin.graphics.LineType;
+import org.renjin.graphics.TextStyle;
+import org.renjin.graphics.geom.Point;
+import org.renjin.graphics.geom.Rectangle;
 import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector;
 
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.ExpressionVector;
-import r.lang.ListVector;
-import r.lang.Null;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
-import r.lang.graphics.Color;
-import r.lang.graphics.GraphicsDevice;
-import r.lang.graphics.LineType;
-import r.lang.graphics.TextStyle;
-import r.lang.graphics.geom.Point;
-import r.lang.graphics.geom.Rectangle;
 
 public class Plot {
 

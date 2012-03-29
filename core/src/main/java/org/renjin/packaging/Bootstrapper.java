@@ -22,7 +22,7 @@ import com.google.common.io.Files;
 public class Bootstrapper {
 
   private File srcRoot = new File("src/library");
-  private File destRoot = new File("target/classes/r/library");
+  private File destRoot = new File("target/classes/org/renjin/library");
   
   public Bootstrapper() throws IOException, ScriptException {
     

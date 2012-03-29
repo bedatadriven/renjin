@@ -2,11 +2,10 @@ package org.renjin.primitives.annotations.processor;
 
 import java.util.List;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.Primitives.Entry;
 
 
-import r.jvmi.binding.JvmMethod;
-import r.lang.exception.EvalException;
 
 /**
  * Base class for all the different strategies for generating 
@@ -26,7 +25,8 @@ public abstract class GeneratorStrategy {
     
     
     s.writePackage("r.base.primitives");   
-    s.writeImport("r.lang.*");
+    s.writeImport("org.renjin.sexp.*");
+    s.writeImport("org.renjin.eval.Context");
     s.writeImport(WrapperRuntime.class);
     s.writeImport(ArgumentException.class);
     s.writeImport(ArgumentIterator.class);

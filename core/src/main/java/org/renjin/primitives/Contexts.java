@@ -21,14 +21,14 @@
 
 package org.renjin.primitives;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
 
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.Function;
-import r.lang.FunctionCall;
-import r.lang.exception.EvalException;
 
 /**
  * Functions that provide access to the call Context stack.

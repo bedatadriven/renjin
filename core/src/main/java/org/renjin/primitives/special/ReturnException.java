@@ -21,9 +21,9 @@
 
 package org.renjin.primitives.special;
 
-import r.lang.Environment;
-import r.lang.SEXP;
-import r.lang.exception.ControlFlowException;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.SEXP;
+
 
 public class ReturnException extends ControlFlowException {
 

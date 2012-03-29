@@ -21,19 +21,24 @@
 
 package org.renjin.primitives.io.serialization;
 
-import org.junit.Test;
-import org.renjin.primitives.io.serialization.RDataReader;
-
-import r.EvalTestCase;
-import r.lang.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+
 
 public class RDataReaderTest extends EvalTestCase {
 

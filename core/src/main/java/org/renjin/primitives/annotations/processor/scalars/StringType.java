@@ -1,7 +1,7 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
-import r.lang.StringVector;
-import r.lang.Vector.Builder;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector.Builder;
 
 public class StringType extends ScalarType {
 

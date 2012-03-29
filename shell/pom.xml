@@ -59,6 +59,7 @@
       <groupId>org.concordion</groupId>
       <artifactId>concordion</artifactId>
       <version>1.4.2</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -82,7 +83,7 @@
               </descriptorRefs>
               <archive>
                 <manifest>
-                  <mainClass>r.interpreter.StandardConsole</mainClass>
+                  <mainClass>org.renjin.cli.StandardConsole</mainClass>
                 </manifest>
               </archive>
             </configuration>

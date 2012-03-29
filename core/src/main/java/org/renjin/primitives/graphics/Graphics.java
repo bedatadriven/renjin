@@ -1,13 +1,13 @@
 package org.renjin.primitives.graphics;
 
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.graphics.GraphicsDevice;
+import org.renjin.graphics.geom.Point;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Recycle;
 
-import r.lang.Context;
-import r.lang.exception.EvalException;
-import r.lang.graphics.GraphicsDevice;
-import r.lang.graphics.geom.Point;
 
 public class Graphics {
 

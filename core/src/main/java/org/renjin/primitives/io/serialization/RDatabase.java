@@ -12,14 +12,14 @@ import java.util.Set;
 import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
 
+import org.renjin.eval.Context;
 import org.renjin.primitives.io.ByteArrayCompression;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector;
 
 
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.ListVector;
-import r.lang.SEXP;
-import r.lang.Vector;
 
 import com.google.common.collect.Maps;
 

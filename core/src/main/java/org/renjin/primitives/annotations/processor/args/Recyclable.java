@@ -1,10 +1,10 @@
 package org.renjin.primitives.annotations.processor.args;
 
+import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
 import org.renjin.primitives.annotations.processor.scalars.ScalarType;
 import org.renjin.primitives.annotations.processor.scalars.ScalarTypes;
+import org.renjin.sexp.Vector;
 
-import r.jvmi.binding.JvmMethod.Argument;
-import r.lang.Vector;
 
 public class Recyclable extends ArgConverterStrategy {
 

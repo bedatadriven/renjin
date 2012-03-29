@@ -26,10 +26,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 import org.renjin.primitives.MathExt;
 import org.renjin.primitives.PsiGamma;
 
-import r.EvalTestCase;
 
 public class MathTest extends EvalTestCase {
 

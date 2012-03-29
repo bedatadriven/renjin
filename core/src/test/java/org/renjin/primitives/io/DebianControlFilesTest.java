@@ -5,13 +5,13 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 import org.renjin.primitives.Print;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.ResourceConnection;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
 
-import r.EvalTestCase;
-import r.lang.Null;
-import r.lang.SEXP;
 
 public class DebianControlFilesTest extends EvalTestCase {
 
@@ -19,7 +19,7 @@ public class DebianControlFilesTest extends EvalTestCase {
   public void licenseTest() throws IOException {
    
     
-    ResourceConnection conn = new ResourceConnection(getClass(), "/r/share/licenses/license.db");
+    ResourceConnection conn = new ResourceConnection(getClass(), "/org/renjin/share/licenses/license.db");
     topLevelContext.getEnvironment().setVariable("x",
         DebianControlFiles.readDCF(conn, Null.INSTANCE, true));
     

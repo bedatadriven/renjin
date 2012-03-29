@@ -21,7 +21,15 @@
 
 package org.renjin.primitives.optimize;
 
-import r.lang.*;
+import org.renjin.eval.Context;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
 
 class RUncminFunction implements UncminFunction {
 

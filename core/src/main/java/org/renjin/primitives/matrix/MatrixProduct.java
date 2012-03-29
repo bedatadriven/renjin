@@ -1,17 +1,17 @@
 package org.renjin.primitives.matrix;
 
 import org.netlib.blas.BLAS;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import r.lang.AtomicVector;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.SEXP;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 class MatrixProduct {
 

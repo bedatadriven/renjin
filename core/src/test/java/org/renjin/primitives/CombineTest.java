@@ -25,10 +25,10 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.SEXP;
 
-import r.EvalTestCase;
-import r.lang.Logical;
-import r.lang.SEXP;
 
 public class CombineTest extends EvalTestCase {
 

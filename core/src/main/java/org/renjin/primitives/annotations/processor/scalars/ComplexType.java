@@ -1,8 +1,8 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.sexp.ComplexVector;
 
-import r.lang.ComplexVector;
 
 public class ComplexType extends ScalarType{
 

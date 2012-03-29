@@ -1,7 +1,7 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
-import r.lang.DoubleVector;
-import r.lang.Vector.Builder;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Vector.Builder;
 
 public class DoubleType extends ScalarType {
 

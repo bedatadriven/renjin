@@ -4,11 +4,11 @@ import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Symbol;
 
-import r.lang.Context;
-import r.lang.FunctionCall;
-import r.lang.Symbol;
-import r.lang.exception.EvalException;
 
 public class RTestFunction extends Runner {
 

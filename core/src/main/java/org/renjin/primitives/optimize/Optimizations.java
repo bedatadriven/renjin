@@ -28,12 +28,20 @@ import org.apache.commons.math.optimization.OptimizationException;
 import org.apache.commons.math.optimization.RealPointValuePair;
 import org.apache.commons.math.optimization.direct.NelderMead;
 import org.apache.commons.math.optimization.univariate.BrentOptimizer;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-
-import r.lang.*;
-import r.lang.exception.EvalException;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 public class Optimizations {
 

@@ -1,6 +1,6 @@
 package org.renjin.primitives.match;
 
-import r.lang.Vector;
+import org.renjin.sexp.Vector;
 
 public class AnyDuplicateAlgorithm implements DuplicateSearchAlgorithm<Integer> {
 

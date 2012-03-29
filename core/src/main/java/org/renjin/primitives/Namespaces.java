@@ -21,10 +21,15 @@
 
 package org.renjin.primitives;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
-
-import r.lang.*;
-import r.lang.exception.EvalException;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Frame;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
 
 public class Namespaces {
 

@@ -2,10 +2,11 @@ package org.renjin.primitives.subset;
 
 import java.util.Iterator;
 
-import r.lang.AtomicVector;
-import r.lang.IntVector;
-import r.lang.SEXP;
-import r.lang.Symbols;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbols;
+
 
 import com.google.common.collect.UnmodifiableIterator;
 

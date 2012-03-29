@@ -23,7 +23,12 @@ package org.renjin.primitives.optimize;
 
 import org.apache.commons.math.FunctionEvaluationException;
 import org.apache.commons.math.analysis.MultivariateRealFunction;
-import r.lang.*;
+import org.renjin.eval.Context;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Vector;
 
 public class MultivariateRealClosure implements MultivariateRealFunction {
 

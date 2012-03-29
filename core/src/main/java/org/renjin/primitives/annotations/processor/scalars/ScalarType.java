@@ -1,6 +1,6 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
-import r.lang.Vector;
+import org.renjin.sexp.Vector;
 
 
 public abstract class ScalarType {

@@ -24,13 +24,13 @@ package org.renjin.primitives;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
 
 import com.google.common.base.Charsets;
 
-import r.EvalTestCase;
-import r.lang.IntVector;
-import r.lang.SEXP;
-import r.lang.StringVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

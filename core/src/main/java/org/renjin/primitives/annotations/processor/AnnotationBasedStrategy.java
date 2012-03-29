@@ -6,9 +6,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.Primitives.Entry;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.PreserveAttributeStyle;
+import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategies;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategy;
 import org.renjin.primitives.annotations.processor.generic.GenericDispatchStrategy;
@@ -20,14 +23,10 @@ import org.renjin.primitives.annotations.processor.scalars.RecycledArguments;
 import org.renjin.primitives.annotations.processor.scalars.ScalarType;
 import org.renjin.primitives.annotations.processor.scalars.ScalarTypes;
 import org.renjin.primitives.annotations.processor.scalars.SingleRecycledArgument;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
 
-import r.jvmi.binding.JvmMethod;
-import r.jvmi.binding.JvmMethod.Argument;
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.ListVector;
-import r.lang.SEXP;
-import r.lang.exception.EvalException;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -214,7 +213,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy  {
     s.writeCatch(RuntimeException.class, "e");
     s.writeStatement("throw e;");
     s.writeCatch(Exception.class, "e");
-    s.writeStatement("throw new r.lang.exception.EvalException(e);");
+    s.writeStatement("throw new org.renjin.eval.EvalException(e);");
     s.writeCloseBlock();
   }
 
@@ -448,7 +447,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy  {
     }
     if (method.returnsVoid()) {
       s.writeStatement("context.setInvisibleFlag()");
-      s.writeStatement("return r.lang.Null.INSTANCE;");
+      s.writeStatement("return org.renjin.sexp.Null.INSTANCE;");
     }
     s.writeBlankLine();
   }

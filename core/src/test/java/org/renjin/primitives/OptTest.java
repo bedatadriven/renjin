@@ -25,12 +25,12 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
-import r.EvalTestCase;
-import r.lang.LogicalVector;
-import r.lang.SEXP;
-import r.lang.Symbol;
-import r.lang.exception.EvalException;
 
 public class OptTest extends EvalTestCase{
   

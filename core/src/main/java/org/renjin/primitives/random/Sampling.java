@@ -1,14 +1,14 @@
 package org.renjin.primitives.random;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
 
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.Null;
-import r.lang.SEXP;
-import r.lang.exception.EvalException;
 
 public class Sampling {
 
@@ -77,7 +77,7 @@ public class Sampling {
     double[] probs = new double[x];
     int mysize = size;
 
-    if (prob != r.lang.Null.INSTANCE) {
+    if (prob != org.renjin.sexp.Null.INSTANCE) {
       if (prob.length() != x) {
         throw new EvalException("Length of x and probs are not equal");
       }
@@ -85,7 +85,7 @@ public class Sampling {
 
 
     for (int i = 0; i < x; i++) {
-      if (prob == r.lang.Null.INSTANCE) {
+      if (prob == org.renjin.sexp.Null.INSTANCE) {
         probs[i] = 1.0 / probs.length;
       } else {
         probs[i] = ((DoubleVector)prob).get(i);

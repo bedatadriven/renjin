@@ -5,6 +5,6 @@
  * <p>
  * Not all special functions are implemented here, these are the most frequently
  * used and those that do not need complicated argument matching and so can be
- * implemented as simple subclasses of {@link r.lang.SpecialFunction}
+ * implemented as simple subclasses of {@link org.renjin.SpecialFunction}
  */
 package org.renjin.primitives.special;

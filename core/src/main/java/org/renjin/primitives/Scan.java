@@ -29,18 +29,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
+import org.renjin.sexp.ExternalExp;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import r.lang.Context;
-import r.lang.ExternalExp;
-import r.lang.ListVector;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;

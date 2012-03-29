@@ -27,15 +27,15 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.UnknownHostException;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
+import org.renjin.sexp.ExternalExp;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
 
-import r.lang.Context;
-import r.lang.ExternalExp;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.exception.EvalException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;

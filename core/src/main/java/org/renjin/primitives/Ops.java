@@ -28,10 +28,10 @@ import org.renjin.primitives.annotations.PreserveAttributeStyle;
 import org.renjin.primitives.annotations.PreserveAttributes;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.Symbol;
 
-import r.lang.DoubleVector;
-import r.lang.Logical;
-import r.lang.Symbol;
 
 /**
  * Default implementations of the Ops group of functions.

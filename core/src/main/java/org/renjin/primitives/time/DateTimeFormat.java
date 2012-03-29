@@ -5,9 +5,9 @@ import java.util.List;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.StringVector;
 
-import r.lang.StringVector;
-import r.lang.exception.EvalException;
 
 import com.google.common.collect.Lists;
 

@@ -21,8 +21,8 @@
 
 package org.renjin.primitives.subset;
 
-import r.lang.AtomicVector;
-import r.lang.StringVector;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.StringVector;
 
 /**
  * Named subscripts select element by name, for example

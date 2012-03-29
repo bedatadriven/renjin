@@ -24,22 +24,22 @@ package org.renjin.primitives;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
-import static r.ExpMatchers.logicalVectorOf;
-import static r.ExpMatchers.realVectorEqualTo;
+import static org.renjin.ExpMatchers.logicalVectorOf;
+import static org.renjin.ExpMatchers.realVectorEqualTo;
 
 import java.io.IOException;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.special.IfFunction;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
-import r.EvalTestCase;
-import r.lang.FunctionCall;
-import r.lang.Logical;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.SEXP;
-import r.lang.Symbol;
-import r.lang.exception.EvalException;
 
 public class EvaluationTest extends EvalTestCase {
 

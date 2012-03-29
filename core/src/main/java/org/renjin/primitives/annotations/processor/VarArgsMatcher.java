@@ -2,11 +2,10 @@ package org.renjin.primitives.annotations.processor;
 
 import java.util.Map;
 
+import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategies;
 
 
-import r.jvmi.binding.JvmMethod;
-import r.jvmi.binding.JvmMethod.Argument;
 
 public class VarArgsMatcher {
 

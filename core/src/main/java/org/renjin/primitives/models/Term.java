@@ -5,7 +5,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import r.lang.SEXP;
+import org.renjin.sexp.SEXP;
+
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;

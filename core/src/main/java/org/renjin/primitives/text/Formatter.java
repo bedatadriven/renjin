@@ -37,13 +37,14 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Vector;
 
-import r.lang.AtomicVector;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.LogicalVector;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.exception.EvalException;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+
 
 /**
  * PrintfFormat allows the formatting of an array of

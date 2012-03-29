@@ -21,9 +21,17 @@
 
 package org.renjin.primitives.special;
 
-import r.compiler.ir.exception.InvalidSyntaxException;
-import r.lang.*;
-import r.lang.exception.EvalException;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
+import org.renjin.eval.Context;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SpecialFunction;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+
 
 public class AssignLeftFunction extends SpecialFunction {
 

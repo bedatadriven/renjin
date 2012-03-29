@@ -43,27 +43,27 @@ import java.util.Map;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.RVersion;
+import org.renjin.eval.Context;
 import org.renjin.primitives.Namespaces;
+import org.renjin.sexp.BuiltinFunction;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.ComplexVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.PrimitiveFunction;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
 
-import r.lang.BuiltinFunction;
-import r.lang.Closure;
-import r.lang.ComplexVector;
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.Environment;
-import r.lang.FunctionCall;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.LogicalVector;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.PrimitiveFunction;
-import r.lang.Promise;
-import r.lang.RawVector;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.Vector;
 
 import com.google.common.collect.Maps;
 

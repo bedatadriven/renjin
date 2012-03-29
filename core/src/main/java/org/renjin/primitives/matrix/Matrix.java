@@ -1,11 +1,12 @@
 package org.renjin.primitives.matrix;
 
-import r.lang.DoubleVector;
-import r.lang.Indexes;
-import r.lang.IntVector;
-import r.lang.Null;
-import r.lang.Symbols;
-import r.lang.Vector;
+import org.renjin.primitives.Indexes;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+
 
 /**
  * Wrapper class for an R {@link Vector} with two dimensions. 

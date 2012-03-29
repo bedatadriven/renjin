@@ -2,7 +2,7 @@
 package org.renjin.primitives.random;
 
 
-import r.lang.DoubleVector;
+import org.renjin.sexp.DoubleVector;
 
 
 public class Tukey {

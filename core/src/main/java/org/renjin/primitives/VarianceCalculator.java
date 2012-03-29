@@ -2,14 +2,14 @@ package org.renjin.primitives;
 
 import java.util.BitSet;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.matrix.DoubleMatrixBuilder;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import r.lang.AtomicVector;
-import r.lang.DoubleVector;
-import r.lang.Null;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 public class VarianceCalculator {
 

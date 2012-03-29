@@ -22,17 +22,18 @@
 package org.renjin.primitives;
 
 import org.junit.Test;
-import r.EvalTestCase;
-import r.lang.Logical;
-import r.lang.LogicalVector;
-import r.lang.SEXP;
-import r.lang.exception.EvalException;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.SEXP;
+
 
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static r.lang.Logical.*;
+import static org.renjin.sexp.Logical.*;
 
 public class ComparisonTest extends EvalTestCase {
 

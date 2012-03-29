@@ -2,8 +2,9 @@ package org.renjin.primitives.matrix;
 
 import java.util.Collection;
 
-import r.lang.StringVector;
-import r.lang.Vector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector;
+
 
 public interface MatrixBuilder {
   void setRowNames(StringVector names);

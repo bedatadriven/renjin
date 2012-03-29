@@ -21,15 +21,16 @@
 
 package org.renjin.primitives.special;
 
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.FunctionCall;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.SEXP;
-import r.lang.SpecialFunction;
-import r.lang.Symbol;
-import r.lang.Vector;
+import org.renjin.eval.Context;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SpecialFunction;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
+
 
 public class ForFunction extends SpecialFunction {
 

@@ -2,16 +2,16 @@ package org.renjin.primitives.match;
 
 import java.util.HashMap;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.match.DuplicateSearchAlgorithm.Action;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Vector;
 
 import com.google.common.collect.Maps;
 
-import r.lang.AtomicVector;
-import r.lang.Logical;
-import r.lang.LogicalVector;
-import r.lang.Null;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 
 public class Duplicates {  

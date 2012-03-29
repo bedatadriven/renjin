@@ -17,7 +17,7 @@
 
 package org.renjin.primitives.text.regex;
 
-import r.lang.exception.EvalException;
+import org.renjin.eval.EvalException;
 
 /**
  * Exception thrown to indicate a syntax error in a regular expression.

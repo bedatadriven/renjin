@@ -1,9 +1,9 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
-import r.jvmi.binding.JvmMethod;
 
 import java.util.List;
 
+import org.renjin.primitives.annotations.processor.JvmMethod;
 import org.renjin.primitives.annotations.processor.WrapperSourceWriter;
 
 public class RecycledArguments {

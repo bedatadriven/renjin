@@ -4,9 +4,9 @@
  */
 package org.renjin.primitives.random;
 
+import org.renjin.eval.Context;
 import org.renjin.primitives.MathExt;
 
-import r.lang.Context;
 
 /**
  *

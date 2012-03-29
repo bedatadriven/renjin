@@ -23,35 +23,34 @@ package org.renjin.primitives;
 
 import java.util.List;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.matrix.IntMatrixBuilder;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.ComplexVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.PromisePairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SexpVisitor;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import r.lang.AtomicVector;
-import r.lang.ComplexVector;
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.Environment;
-import r.lang.ExpressionVector;
-import r.lang.FunctionCall;
-import r.lang.Indexes;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.LogicalVector;
-import r.lang.NamedValue;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.Promise;
-import r.lang.PromisePairList;
-import r.lang.SEXP;
-import r.lang.SexpVisitor;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
@@ -482,7 +481,7 @@ public class Combine {
 
   /**
    * Takes a sequence of vector, matrix or data frames arguments and
-   * combine by columns. See {@link #rbind(r.lang.ListVector)}
+   * combine by columns. See {@link #rbind(org.renjin.sexp.ListVector)}
    * @param arguments  the expressions to combined
    * @return  a matrix combining the ... arguments column-wise or row-wise.
    */
@@ -637,13 +636,13 @@ public class Combine {
       String bindFunctionName, int deparseLevel, ListVector arguments) {
     
     Symbol foundMethod = null;
-    r.lang.Function foundFunction = null;
+    org.renjin.sexp.Function foundFunction = null;
     
     for(SEXP argument : arguments) {
       Vector classes = (Vector) argument.getAttribute(Symbols.CLASS);
       for(int i=0;i!=classes.length();++i) {
         Symbol methodName = Symbol.get(bindFunctionName + "." + classes.getElementAsString(i));
-        r.lang.Function function = rho.findFunction(methodName);
+        org.renjin.sexp.Function function = rho.findFunction(methodName);
         if(function != null) {
           if(foundMethod != null && methodName != foundMethod) {
             // conflicting overloads,

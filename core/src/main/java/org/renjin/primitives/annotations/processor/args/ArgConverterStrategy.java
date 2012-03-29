@@ -1,8 +1,9 @@
 package org.renjin.primitives.annotations.processor.args;
 
-import r.jvmi.binding.JvmMethod;
-import r.jvmi.binding.JvmMethod.Argument;
-import r.lang.SEXP;
+import org.renjin.primitives.annotations.processor.JvmMethod;
+import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
+import org.renjin.sexp.SEXP;
+
 
 /**
  * Base class for the different strategies for converting incoming argument (SEXPs) to

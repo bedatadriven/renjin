@@ -26,28 +26,28 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
-import static r.lang.Logical.FALSE;
-import static r.lang.Logical.TRUE;
+import static org.renjin.sexp.Logical.FALSE;
+import static org.renjin.sexp.Logical.TRUE;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Raw;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
-import r.EvalTestCase;
-import r.lang.DoubleVector;
-import r.lang.FunctionCall;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Logical;
-import r.lang.LogicalVector;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.Raw;
-import r.lang.RawVector;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.exception.EvalException;
 
 public strictfp class TypesTest extends EvalTestCase {
 

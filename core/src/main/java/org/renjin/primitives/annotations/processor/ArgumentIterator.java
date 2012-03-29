@@ -1,12 +1,13 @@
 package org.renjin.primitives.annotations.processor;
 
-import r.lang.Context;
-import r.lang.PromisePairList;
-import r.lang.Environment;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.SEXP;
-import r.lang.Symbols;
+import org.renjin.eval.Context;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.PromisePairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbols;
+
 
 /**
  * Iterates over an argument list, nesting into ... as necessary.

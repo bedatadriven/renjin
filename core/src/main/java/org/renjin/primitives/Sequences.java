@@ -22,27 +22,27 @@
 package org.renjin.primitives;
 
 import org.apache.commons.math.linear.RealVector;
+import org.renjin.eval.Calls;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.processor.ArgumentIterator;
 import org.renjin.primitives.annotations.processor.WrapperRuntime;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+import org.renjin.util.NamesBuilder;
 
-import r.base.Calls;
-import r.lang.AtomicVector;
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.Environment;
-import r.lang.FunctionCall;
-import r.lang.IntVector;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
-import r.util.NamesBuilder;
 
 import com.google.common.annotations.VisibleForTesting;
 

@@ -2,7 +2,8 @@ package org.renjin.primitives.match;
 
 import java.util.Iterator;
 
-import r.lang.Vector;
+import org.renjin.sexp.Vector;
+
 
 class IndexSequence implements Iterable<Integer> {
 

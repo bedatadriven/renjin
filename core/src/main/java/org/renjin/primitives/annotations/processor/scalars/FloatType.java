@@ -1,6 +1,6 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
-import r.lang.DoubleVector;
+import org.renjin.sexp.DoubleVector;
 
 public class FloatType extends ScalarType {
   

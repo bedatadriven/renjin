@@ -7,18 +7,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.jvminterop.ClassBinding;
+import org.renjin.jvminterop.ClassFrame;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
-import r.jvmi.r2j.ClassBinding;
-import r.jvmi.r2j.ClassFrame;
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.exception.EvalException;
 
 /**
  * Renjin-specific JVM interface primitives for interacting with 

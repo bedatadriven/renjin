@@ -10,10 +10,10 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.io.lzma.LzmaDecoder;
 import org.renjin.primitives.io.lzma.LzmaEncoder;
 
-import r.lang.exception.EvalException;
 
 /**
  * Utility functions for compression and uncompressing blocks

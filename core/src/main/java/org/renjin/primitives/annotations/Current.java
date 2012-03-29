@@ -26,8 +26,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import r.lang.Context;
-import r.lang.Environment;
+import org.renjin.eval.Context;
+import org.renjin.sexp.Environment;
+
 
 /**
  * Indicates that the parameter should be mapped to the 

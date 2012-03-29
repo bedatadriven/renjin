@@ -2,13 +2,13 @@ package org.renjin.primitives;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.primitives.annotations.processor.scalars.ComplexType;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.ComplexVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
 
-import r.lang.AtomicVector;
-import r.lang.ComplexVector;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.Null;
-import r.lang.SEXP;
 
 public class ComplexGroup {
 

@@ -2,13 +2,14 @@ package org.renjin.primitives.matrix;
 
 import java.util.Collection;
 
-import r.lang.Indexes;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Null;
-import r.lang.StringVector;
-import r.lang.Symbols;
-import r.lang.Vector;
+import org.renjin.primitives.Indexes;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+
 
 class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
 

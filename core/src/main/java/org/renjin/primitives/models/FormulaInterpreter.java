@@ -1,10 +1,11 @@
 package org.renjin.primitives.models;
 
-import r.lang.FunctionCall;
-import r.lang.SEXP;
-import r.lang.Symbol;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
+
 
 /**
  * Model formulas in R are defined with a Dynamic Specific Language (DSL)

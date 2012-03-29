@@ -16,20 +16,20 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 
+import org.renjin.eval.Context;
+import org.renjin.jvminterop.converters.Converters;
+import org.renjin.jvminterop.converters.RuntimeConverter;
+import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.HashFrame;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
-import r.jvmi.r2j.converters.Converters;
-import r.jvmi.r2j.converters.RuntimeConverter;
-import r.lang.Context;
-import r.lang.Environment;
-import r.lang.Function;
-import r.lang.FunctionCall;
-import r.lang.HashFrame;
-import r.lang.ListVector;
-import r.lang.PairList;
-import r.lang.SEXP;
-import r.lang.Symbol;
-import r.parser.RParser;
 
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;

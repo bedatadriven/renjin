@@ -9,8 +9,8 @@ import java.io.Reader;
 
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
+import org.renjin.eval.EvalException;
 
-import r.lang.exception.EvalException;
 
 public class FileConnection extends AbstractConnection {
 

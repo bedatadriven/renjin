@@ -30,7 +30,7 @@
   <!-- Servlets -->
   <servlet>
     <servlet-name>replApi</servlet-name>
-    <servlet-class>com.bedatadriven.renjin.appengine.server.LotREPLsApiImpl</servlet-class>
+    <servlet-class>org.renjin.appengine.repl.server.LotREPLsApiImpl</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
   

@@ -1,6 +1,6 @@
 package org.renjin.primitives.matrix;
 
-import r.lang.DoubleVector;
+import org.renjin.sexp.DoubleVector;
 
 public class DoubleMatrixBuilder extends AbstractMatrixBuilder<DoubleVector.Builder, DoubleVector> 
     implements MatrixBuilder {

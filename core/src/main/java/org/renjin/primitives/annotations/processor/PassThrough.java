@@ -5,7 +5,6 @@ import java.util.List;
 import org.renjin.primitives.Primitives.Entry;
 
 
-import r.jvmi.binding.JvmMethod;
 
 /**
  * Strategy for generating a wrapper in the case where the declared JVM method
@@ -50,7 +49,7 @@ public class PassThrough extends GeneratorStrategy {
     if(method.returnsVoid()) {
       s.writeStatement(call.toString());
       s.writeStatement("context.setInvisibleFlag()");
-      s.writeStatement("return r.lang.Null.INSTANCE;");
+      s.writeStatement("return org.renjin.sexp.Null.INSTANCE;");
     } else {
       s.writeStatement("return " + call.toString());
     }

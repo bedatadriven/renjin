@@ -22,7 +22,7 @@
 package org.renjin.primitives;
 
 import org.junit.Test;
-import r.util.FileSystemUtils;
+import org.renjin.util.FileSystemUtils;
 
 import java.net.MalformedURLException;
 
@@ -38,18 +38,18 @@ public class JarFileTest {
 
   @Test
   public void RHomeInJar() throws MalformedURLException {
-    String url = "jar:file:/C:/Users/Owner/.m2/repository/com/bedatadriven/renjin/renjin-core/0.1.0-SNAPSHOT/renjin-core-0.1.0-SNAPSHOT.jar!/r/lang/SEXP.class";
+    String url = "jar:file:/C:/Users/Owner/.m2/repository/com/bedatadriven/renjin/renjin-core/0.1.0-SNAPSHOT/renjin-core-0.1.0-SNAPSHOT.jar!/org/renjin/sexp/SEXP.class";
 
     assertThat( FileSystemUtils.RHomeFromSEXPClassURL(url), equalTo(
-        "jar:file:/C:/Users/Owner/.m2/repository/com/bedatadriven/renjin/renjin-core/0.1.0-SNAPSHOT/renjin-core-0.1.0-SNAPSHOT.jar!/r"));
+        "jar:file:/C:/Users/Owner/.m2/repository/com/bedatadriven/renjin/renjin-core/0.1.0-SNAPSHOT/renjin-core-0.1.0-SNAPSHOT.jar!/org/renjin"));
 
   }
 
   @Test
   public void RHomeInDir() {
-    String expected = getClass().getResource("/r/lang/SEXP.class").getFile();
+    String expected = getClass().getResource("/org/renjin/sexp/SEXP.class").getFile();
     expected = expected.substring(0, expected.length()-16);
-    assertThat(FileSystemUtils.RHomeFromSEXPClassURL(getClass().getResource("/r/lang/SEXP.class").toString()),
+    assertThat(FileSystemUtils.RHomeFromSEXPClassURL(getClass().getResource("/org/renjin/sexp/SEXP.class").toString()),
         equalTo(expected));
   }
 }

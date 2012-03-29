@@ -6,10 +6,11 @@ import java.util.Set;
 
 import javax.script.Bindings;
 
-import r.jvmi.r2j.converters.Converters;
-import r.lang.Frame;
-import r.lang.SEXP;
-import r.lang.Symbol;
+import org.renjin.jvminterop.converters.Converters;
+import org.renjin.sexp.Frame;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+
 
 public class RenjinBindings implements Bindings {
 

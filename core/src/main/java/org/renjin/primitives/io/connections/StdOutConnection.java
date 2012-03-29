@@ -27,8 +27,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import r.lang.Context;
-import r.lang.exception.EvalException;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+
 
 
 public class StdOutConnection implements Connection {

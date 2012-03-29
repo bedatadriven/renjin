@@ -2,15 +2,15 @@ package org.renjin.primitives.models;
 
 import java.util.List;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.Types;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.LogicalVector;
-import r.lang.SEXP;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 import com.google.common.collect.Lists;
 

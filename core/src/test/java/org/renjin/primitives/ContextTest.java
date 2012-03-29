@@ -26,11 +26,11 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
 
-import r.EvalTestCase;
-import r.lang.FunctionCall;
-import r.lang.SEXP;
-import r.lang.exception.EvalException;
 
 public class ContextTest extends EvalTestCase {
 

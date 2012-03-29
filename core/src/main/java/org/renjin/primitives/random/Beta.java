@@ -20,10 +20,10 @@
  */
 package org.renjin.primitives.random;
 
-import r.lang.Context;
-import r.lang.DoubleVector;
 import org.apache.commons.math.special.Gamma;
+import org.renjin.eval.Context;
 import org.renjin.primitives.annotations.Current;
+import org.renjin.sexp.DoubleVector;
 
 public class Beta {
 

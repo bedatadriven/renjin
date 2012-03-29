@@ -21,25 +21,25 @@
 
 package org.renjin.primitives.subset;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.DefaultValue;
 import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Generic;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
 
-import r.lang.AtomicVector;
-import r.lang.DoubleVector;
-import r.lang.Environment;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Null;
-import r.lang.PairList;
-import r.lang.SEXP;
-import r.lang.StringVector;
-import r.lang.Symbol;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
 
 import com.google.common.base.Strings;
 

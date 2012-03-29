@@ -3,14 +3,15 @@ package org.renjin.primitives.graphics;
 import java.awt.Color;
 import java.util.ArrayList;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
-import r.lang.DoubleVector;
-import r.lang.IntVector;
-import r.lang.StringVector;
-import r.lang.Symbols;
-import r.lang.Vector;
-import r.lang.exception.EvalException;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+
 
 public class RgbHsv {
 

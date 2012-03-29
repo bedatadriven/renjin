@@ -23,7 +23,7 @@ package org.renjin.primitives.io.serialization;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static r.util.CDefines.eval;
+import static org.renjin.util.CDefines.eval;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,23 +32,23 @@ import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.Context;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.PairList.Builder;
 
-import r.EvalTestCase;
-import r.lang.Closure;
-import r.lang.Context;
-import r.lang.DoubleVector;
-import r.lang.FunctionCall;
-import r.lang.IntVector;
-import r.lang.ListVector;
-import r.lang.Logical;
-import r.lang.LogicalVector;
-import r.lang.PairList;
-import r.lang.Symbol;
-import r.lang.PairList.Builder;
-import r.lang.SEXP;
-import r.lang.StringVector;
 
 public class RDataWriterTest extends EvalTestCase {
 

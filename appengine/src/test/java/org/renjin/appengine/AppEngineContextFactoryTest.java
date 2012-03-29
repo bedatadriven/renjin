@@ -57,7 +57,7 @@ public class AppEngineContextFactoryTest {
     String home = AppEngineContextFactory.findHomeDirectory(
         new File("/base/app/1.234234"), resourcePath);
 
-    assertThat( home, equalTo("jar:file:///WEB-INF/lib/renjin-core-0.1.0-SNAPSHOT.jar!/r"));
+    assertThat( home, equalTo("jar:file:///WEB-INF/lib/renjin-core-0.1.0-SNAPSHOT.jar!/org/renjin"));
   }
 
 }

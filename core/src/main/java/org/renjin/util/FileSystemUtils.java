@@ -37,7 +37,7 @@ public class FileSystemUtils {
    *
    * @return  the path to the R home directory as packaged within
    * the renjin-core.jar archive. This will be a layered URI in the form
-   * jar:file:///path/to/renjin-core.jar!/r/library
+   * jar:file:///path/to/renjin-core.jar!/org/renjin/library
    */
   public static String homeDirectoryInCoreJar() {
     // hardcode to the R home location to the classpath location

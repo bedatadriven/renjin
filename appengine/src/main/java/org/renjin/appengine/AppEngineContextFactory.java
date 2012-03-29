@@ -125,7 +125,7 @@ public class AppEngineContextFactory {
 
     File jarFile = jarFileFromResource(sexpClassPath);
     StringBuilder homePath = new StringBuilder();
-    homePath.append('/').append(jarFile.getName()).append("!/r");
+    homePath.append('/').append(jarFile.getName()).append("!/org/renjin");
 
     File parent = jarFile.getParentFile();
     while(!servletContextRoot.equals(parent)) {

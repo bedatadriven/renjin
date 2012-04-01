@@ -229,8 +229,8 @@ public class Context {
       baseEnvironment = globalEnvironment.getBaseEnvironment();
       namespaceRegistry = new HashFrame();
       baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
+      baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
       namespaceRegistry.setVariable(Symbol.get("base"), baseNamespaceEnv);
-      globalEnvironment.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
       securityManager = new SecurityManager();
     }
 

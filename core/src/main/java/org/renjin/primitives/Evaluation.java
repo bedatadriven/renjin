@@ -150,13 +150,6 @@ public class Evaluation {
   
   public static Vector vapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function, Vector funValue, boolean useNames) {
-
-    int outLength;
-    if(funValue.length() == 1) {
-      outLength = vector.length();
-    } else {
-      throw new EvalException("length(funValue) != 1 not yet implemented");
-    }
     
     // Retrieve the additional arguments from the `...` value 
     // in the closure that called us
@@ -179,18 +172,25 @@ public class Evaluation {
       SEXP x = context.evaluate(call);
       
       // check the result
-      if(!(x instanceof Vector) || ((Vector)x).getVectorType().isWiderThan(funValue)) {
+      if(!(x instanceof Vector) || 
+          x.length() != funValue.length() ||
+          ((Vector)x).getVectorType().isWiderThan(funValue)) {
         throw new EvalException("values must be type '%s',\n but %s result is type '%s'",
             funValue.getTypeName(),
             Deparse.deparseExp(call),
             x.getTypeName());
             
       }
-      result.addFrom(x, 0);
+      for(int j=0;j!=funValue.length();++j) {
+        result.addFrom(x, j);
+      }
     }
     
     if(useNames) {
       result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
+    }
+    if(funValue.length() != 1) {
+      result.setAttribute(Symbols.DIM, new IntVector(funValue.length(), vector.length()));
     }
     
     return result.build();

@@ -25,23 +25,28 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.NamedFlag;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Generic;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.Closure;
 import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 
-
 import com.google.common.collect.Lists;
-import com.google.common.primitives.Primitives;
 
 public class Sort {
 
@@ -248,5 +253,12 @@ public class Sort {
       }
     }
     return (new IntVector(maxIndex + 1));
+  }
+  
+  @Primitive
+  @Generic
+  public static SEXP xtfrm(@Current Context context, SEXP x) {
+    FunctionCall defaultCall = FunctionCall.newCall(Symbol.get("xtfrm.default"), x);
+    return context.evaluate(defaultCall);
   }
 }

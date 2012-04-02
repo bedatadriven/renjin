@@ -733,6 +733,7 @@ public class Primitives {
     f("browserSetDebug", /*sysbrowser*/ null, 3, 111, 1);
     f("parent.frame", Contexts.class, "parentFrame", 0, 11, -1);
     f("sort", Sort.class, 1, 11, 2);
+    f("xtfrm", Sort.class, 0, 1, 1);
     f("is.unsorted", /*isunsorted*/ null, 0, 11, 2);
     f("psort", /*psort*/ null, 0, 11, 2);
     f("qsort", Sort.class, 0, 11, 2);

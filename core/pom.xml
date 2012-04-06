@@ -94,7 +94,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>r07</version>
+      <version>11.0.2</version>
     </dependency>
 
     <!-- unit test framework -->
@@ -114,6 +114,7 @@
       <groupId>org.concordion</groupId>
       <artifactId>concordion</artifactId>
       <version>1.4.2</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

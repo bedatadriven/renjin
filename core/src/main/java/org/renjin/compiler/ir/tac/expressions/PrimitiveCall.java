@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.concordion.api.Unimplemented;
 import org.renjin.compiler.runtime.CompiledRuntime;
 import org.renjin.compiler.runtime.UnimplementedPrimitive;
 import org.renjin.eval.Context;

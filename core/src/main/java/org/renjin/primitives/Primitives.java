@@ -735,7 +735,7 @@ public class Primitives {
     f("sort", Sort.class, 1, 11, 2);
     f("xtfrm", Sort.class, 0, 1, 1);
     f("is.unsorted", /*isunsorted*/ null, 0, 11, 2);
-    f("psort", /*psort*/ null, 0, 11, 2);
+    f("psort", Sort.class, null, 0, 11, 2);
     f("qsort", Sort.class, 0, 11, 2);
     f("radixsort", /*radixsort*/ null, 0, 11, 3);
     f("order", Sort.class, 0, 11, -1);
@@ -842,7 +842,7 @@ public class Primitives {
     f("unlink", Files.class, 0, 111, 2);
 
 /* Complex Valued Functions */
-    f("fft", /*fft*/ null, 0, 11, 2);
+    f("fft", FFT.class, 0, 11, 2);
     f("mvfft", /*mvfft*/ null, 0, 11, 2);
     f("nextn", /*nextn*/ null, 0, 11, 2);
     f("polyroot", /*polyroot*/ null, 0, 11, 1);

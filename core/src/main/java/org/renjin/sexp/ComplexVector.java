@@ -64,6 +64,11 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
     this.values = Arrays.copyOf(values, length);
   }
 
+  public ComplexVector(Complex[] values, int length) {
+    super();
+    this.values = Arrays.copyOf(values, length);
+  }
+
   public static ComplexVector newMatrix(double[] values, int nRows, int nCols) {
     PairList attributes = new PairList.Node(Symbols.DIM, new IntVector(nRows,nCols), Null.INSTANCE);
     return new ComplexVector(values, attributes);

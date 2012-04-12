@@ -703,4 +703,10 @@ public class Base {
     return new LogicalVector(false);
   }
   
+  public static ListVector str_signif(Vector x, int n, String type, int width, int digits, String format, String flag, StringVector resultVector) {
+    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
+    result.add("result", StrSignIf.str_signif(x, width, digits, format, flag));
+    return result.build();
+  }
+  
 }

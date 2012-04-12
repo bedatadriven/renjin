@@ -116,6 +116,7 @@ public class Sort {
     return new IntVector(sorted, x.getAttributes());
   }
 
+  @Primitive("qsort")
   public static DoubleVector qsort(DoubleVector x, LogicalVector returnIndexes) {
 
     if(returnIndexes.isElementTrue(0)) {
@@ -131,7 +132,14 @@ public class Sort {
     return (DoubleVector)sorted
             .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
+  
+  @Primitive("psort")
+  public static DoubleVector psort(DoubleVector x, Vector indexes) {
+    // stub implementation: we just do a full sort
+    return qsort(x, LogicalVector.FALSE);
+  }
 
+  @Primitive("qsort")
   public static IntVector qsort(IntVector x, LogicalVector returnIndexes) {
 
     if(returnIndexes.isElementTrue(0)) {
@@ -146,6 +154,11 @@ public class Sort {
     // drop the names attributes if present because it will not be sorted
     return (IntVector)sorted
             .setAttribute(Symbols.NAMES, Null.INSTANCE);  
+  }
+  
+  @Primitive("psort")
+  public static IntVector psort(IntVector x, Vector indexes) {
+    return qsort(x, LogicalVector.FALSE);
   }
   
   private static void reverse(int[] b) {

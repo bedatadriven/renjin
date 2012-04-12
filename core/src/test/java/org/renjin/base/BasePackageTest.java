@@ -461,5 +461,5 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("typeof(x)"), equalTo(c("integer")));
     assertThat(eval("is.factor(x)"), equalTo(c(true)));
   }
-  
+ 
 }

@@ -22,6 +22,7 @@
 package org.renjin.primitives;
 
 
+import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.ParseUtil;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
@@ -100,9 +101,10 @@ public class Deparse {
     }
 
     @Override
-    public void visit(ComplexVector complexExp) {
-      throw new UnsupportedOperationException();
+    public void visit(ComplexVector vector) {
+      deparseAtomicVector(vector, ElementDeparser.COMPLEX);
     }
+    
 
     @Override
     public void visit(Environment environment) {
@@ -492,8 +494,14 @@ public class Deparse {
     COMPLEX {
       @Override
       String deparse(Vector vector, int index) {
-        // TODO
-        return vector.getElementAsComplex(index).toString();
+        Complex complex = vector.getElementAsComplex(index);
+        StringBuilder sb = new StringBuilder();
+        sb.append(ParseUtil.toString(complex.getReal()));
+        if(complex.getImaginary() >= 0) {
+          sb.append("+");
+        }
+        sb.append(ParseUtil.toString(complex.getImaginary())).append("i");
+        return sb.toString();
       }
 
       @Override

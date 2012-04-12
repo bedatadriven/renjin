@@ -19,7 +19,7 @@ public class JvmiTest extends EvalTestCase {
   @Test
   public void newInstance() {
     eval("import(org.renjin.primitives.MyBean)");
-    eval("x <- MyBean$new()");
+    eval("x <- MyBean$new()"  );
     
     assertThat(eval("x$name"), equalTo(c("fred")));
     assertThat(eval("x$membershipStatus"), equalTo(c("PENDING")));
@@ -117,5 +117,6 @@ public class JvmiTest extends EvalTestCase {
     assertThat( eval("sapply(x$childBeans, function(x) x$count)"), equalTo(c_i(42,42)));
     
   }
+  
   
 }

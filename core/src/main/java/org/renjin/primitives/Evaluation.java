@@ -132,6 +132,7 @@ public class Evaluation {
     }
   }
 
+  
   public static ListVector lapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function) {
 
@@ -416,7 +417,7 @@ public class Evaluation {
     } else if(packageName.equals("grDevices")) {
       packageClass = Graphics.class;
     } else {
-      String packageClassName = "r.library." + packageName + "." +
+      String packageClassName = "org.renjin." + packageName + "." +
           packageName.substring(0, 1).toUpperCase() + packageName.substring(1);
       try {
         packageClass = Class.forName(packageClassName);

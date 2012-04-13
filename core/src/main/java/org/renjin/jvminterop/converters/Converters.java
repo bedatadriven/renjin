@@ -37,7 +37,7 @@ public class Converters  {
       return IntegerArrayConverter.INSTANCE;
       
     }else if(DoubleArrayConverter.accept(clazz)) {
-      return DoubleArrayConverter.INSTANCE;
+      return new DoubleArrayConverter(clazz);
       
     }else if(ObjectConverter.accept(clazz)) {
       return ObjectConverter.INSTANCE;

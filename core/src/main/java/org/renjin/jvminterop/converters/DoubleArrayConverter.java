@@ -1,5 +1,7 @@
 package org.renjin.jvminterop.converters;
 
+import java.lang.reflect.Array;
+
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.DoubleVector;
@@ -9,11 +11,12 @@ import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
 
-public class DoubleArrayConverter implements Converter<Number[]> {
+public class DoubleArrayConverter implements Converter<Object> {
 
-  public static final Converter INSTANCE = new DoubleArrayConverter();
+  public final Class componentClass;
 
-  private DoubleArrayConverter() {
+  public DoubleArrayConverter(Class clazz) {
+    componentClass = clazz.getComponentType();
   }
 
   public static boolean accept(Class clazz) {
@@ -25,13 +28,13 @@ public class DoubleArrayConverter implements Converter<Number[]> {
   }
 
   @Override
-  public SEXP convertToR(Number[] value) {
+  public SEXP convertToR(Object value) {
     if (value == null) {
       return new DoubleVector(DoubleVector.NA);
     } else {
-      double dArray[] = new double[value.length];
-      for (int i = 0; i < value.length; i++) {
-        dArray[i] = value[i].doubleValue();
+      double dArray[] = new double[Array.getLength(value)];
+      for (int i = 0; i < Array.getLength(value); i++) {
+        dArray[i] = ((Number)Array.get(value, i)).doubleValue();
       }
       return new DoubleVector(dArray);
     }
@@ -39,9 +42,9 @@ public class DoubleArrayConverter implements Converter<Number[]> {
 
   @Override
   public boolean acceptsSEXP(SEXP exp) {
-    return exp instanceof DoubleVector ;//|| exp instanceof IntVector;
-//    || exp instanceof LogicalVector
-//        || exp instanceof IntVector;
+    return  exp instanceof DoubleVector || 
+            exp instanceof IntVector || 
+            exp instanceof LogicalVector;
   }
 
   @Override
@@ -57,12 +60,13 @@ public class DoubleArrayConverter implements Converter<Number[]> {
       //to keep its type info
       return new Double[0];
     }
-    DoubleVector dv= (DoubleVector)value;
+    AtomicVector dv= (AtomicVector)value;
     int length = dv.length();
-    Double[] values = new Double[length];
+   
+    Object array = Array.newInstance(componentClass, value.length());
     for(int i=0;i<length;i++){
-      values[i]= dv.getElementAsObject(i);
+      Array.set(array, i, dv.getElementAsObject(i));
     }
-    return values;
+    return array;
   }
 }

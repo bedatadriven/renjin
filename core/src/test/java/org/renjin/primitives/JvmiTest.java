@@ -7,8 +7,6 @@ import java.io.IOException;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.jvminterop.ClassBinding;
-import org.renjin.jvminterop.FunctionBinding;
 import org.renjin.jvminterop.ObjectFrame;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Symbol;
@@ -81,6 +79,12 @@ public class JvmiTest extends EvalTestCase {
     
     assertThat( eval("x$sayHelloToEveryone(c('Bob', 'Steve', 'Ted'))"), 
         equalTo(c("Hello Bob, Steve, Ted")));
+  }
+  
+  @Test
+  public void vectorToVargs() {
+    eval("import(org.renjin.primitives.MyBean)");
+    assertThat( eval("MyBean$sum(1:5)"), equalTo(c(15)));
   }
   
   private static class MyPrivateImpl implements MyPublicInterface {

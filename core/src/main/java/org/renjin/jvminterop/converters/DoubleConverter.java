@@ -36,8 +36,8 @@ public class DoubleConverter extends PrimitiveScalarConverter<Number> {
 
   @Override
   public boolean acceptsSEXP(SEXP exp) {
-    return exp instanceof DoubleVector;// || exp instanceof IntVector ;
-//           exp instanceof LogicalVector;
+    return exp instanceof DoubleVector || exp instanceof IntVector ||
+           exp instanceof LogicalVector;
   }
 
   @Override

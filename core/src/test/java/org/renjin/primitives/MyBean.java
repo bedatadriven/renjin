@@ -121,4 +121,12 @@ public class MyBean {
   public void overloadedWithVarArgs(Object mapping) {
 
   }
+  
+  public static double sum(double... values) {
+    double sum = 0;
+    for(int i=0;i!=values.length;++i) {
+      sum += values[i];
+    }
+    return sum;
+  }
 }

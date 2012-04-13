@@ -499,7 +499,7 @@ public class Types {
         return (DoubleVector) DoubleConverter.INSTANCE
             .convertToR((Double) instance);
       } else if (DoubleArrayConverter.accept(clazz)) {
-        return (DoubleVector) DoubleArrayConverter.INSTANCE
+        return (DoubleVector)new DoubleArrayConverter(clazz)
             .convertToR((Double[]) instance);
       }
     }

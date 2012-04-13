@@ -27,7 +27,9 @@ public abstract class AbstractOverload {
   private Converter[] argumentConverters;
   
   private Converter varArgConverter;
+  private Converter varArgArrayConverter;
   private Class varArgElementClass;
+  
   
   public AbstractOverload(Class[] parameterTypes, Annotation[][] annotations, boolean varArgs) {
     this.nargs = parameterTypes.length;
@@ -52,6 +54,7 @@ public abstract class AbstractOverload {
     }
     
     if(varArgs) {
+      varArgArrayConverter = Converters.get(parameterTypes[nargs-1]);
       varArgElementClass = parameterTypes[nargs-1].getComponentType();
       varArgConverter = Converters.get(varArgElementClass);
     }
@@ -78,11 +81,16 @@ public abstract class AbstractOverload {
       converted[i+firstArg] = argumentConverters[i].convertToJava(args.get(i));
     }
     if(varArgs) {
-      Object extra = Array.newInstance(varArgElementClass, args.size() - baseArgCount);
-      for(int i=0; (i+baseArgCount)<args.size();++i) {
-        Array.set(extra, i, varArgConverter.convertToJava(args.get(i+baseArgCount)));
+      int nVarArgs = args.size() - baseArgCount;
+      if(nVarArgs == 1  && varArgArrayConverter.acceptsSEXP(args.get(baseArgCount))) {
+        converted[nargs-1] = varArgArrayConverter.convertToJava(args.get(baseArgCount));
+      } else {
+        Object extra = Array.newInstance(varArgElementClass, args.size() - baseArgCount);
+        for(int i=0; (i+baseArgCount)<args.size();++i) {
+          Array.set(extra, i, varArgConverter.convertToJava(args.get(i+baseArgCount)));
+        }
+        converted[nargs-1] = extra;
       }
-      converted[nargs-1] = extra;
     }
     return converted;
   }

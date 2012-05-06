@@ -345,6 +345,14 @@ public interface PairList extends SEXP {
       }
     }
     
+    public Builder newCopyBuilder() {
+      Builder builder = new Builder();
+      for(Node node : nodes()) {
+          builder.add(node.getRawTag(), node.getValue());
+      }
+      return builder;
+    }
+    
     public static Node singleton(Symbol tag, SEXP value) {
       return new Node(tag, value, Null.INSTANCE);
     }
@@ -468,16 +476,78 @@ public interface PairList extends SEXP {
  
   }
 
-  public class Builder {
-    private Node head = null;
-    private Node tail;
-
+  public class Builder implements ListBuilder {
+    protected Node head = null;
+    protected Node tail;
+    protected PairList attributes = null;
+    
     public Builder() {
     }
+    
+    public Builder(Node head) {
+      this.head = head;
+      this.tail = head;
+    }
+
+    public Builder withAttributes(PairList attributes) {
+      this.attributes = attributes;
+      return this;
+    }
+    
+    public int length() {
+      if(head == null) {
+        return 0;
+      } else {
+        return head.length();
+      }
+    }
+    
+    @Override
+    public int getIndexByName(String name) {
+      if(head != null) {
+        int i = 0;
+        for(Node node : head.nodes()) {
+          if(node.hasTag() && node.getTag().getPrintName().equals(name)) {
+            return i;
+          }
+          i++;
+        }
+      }
+      return -1;
+    }
+
+    /**
+     * Removes the node at index {@code index}.
+     * 
+     * @param index zero-based index
+     */
+    public Builder remove(int index) {
+      if(index == 0) {
+        head = head.hasNextNode() ? head.getNextNode() : null;
+      } else {
+        // find the node that preceeds the node to delete
+        PairList.Node precedingNode = head;
+        int i = 0;
+        while(i < index-1) {
+          if(!precedingNode.hasNextNode()) {
+            throw new IndexOutOfBoundsException();
+          }
+          precedingNode = precedingNode.getNextNode();
+          i++;
+        }
+        Node removed = precedingNode.getNextNode();
+        precedingNode.setNextNode(removed.getNextNode());
+        if(removed == tail) {
+          tail = precedingNode;
+        }         
+      }
+      return this;
+    }
+    
 
     public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
-        head = new Node(tag, s, Null.INSTANCE);
+        head = new Node(tag, s, attributes);
         tail = head;
       } else {
         Node next = new Node(tag, s, Null.INSTANCE);
@@ -504,6 +574,10 @@ public interface PairList extends SEXP {
     public Builder add(SEXP s) {
       return add(Null.INSTANCE, s);
     }
+    
+    public Builder addCopy(Node node) {
+      return add(node.getRawTag(), node.getValue());
+    }
 
     public Builder add(String name, SEXP value) {
       SEXP tag = Null.INSTANCE;
@@ -511,6 +585,29 @@ public interface PairList extends SEXP {
         tag = Symbol.get(name);
       }
       return add(tag, value);
+    }
+    
+    /**
+     * Replaces the 
+     * @param index
+     * @param value
+     * @return
+     */
+    public Builder set(int index, SEXP value) {
+      if(index < 0) {
+        throw new IndexOutOfBoundsException("index must be > 0");
+      }
+      Node node = head;
+      int node_i = 0;
+      while(node_i != index) {
+        if(!node.hasNextNode()) {
+          throw new IndexOutOfBoundsException();
+        }
+        node = node.getNextNode();
+        node_i++;
+      }
+      node.setValue(value);
+      return this;
     }
 
     public PairList build() {

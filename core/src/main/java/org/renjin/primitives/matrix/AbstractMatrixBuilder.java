@@ -27,7 +27,7 @@ class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
     builder.setAttribute(Symbols.DIM, new IntVector(nrows, ncols));
   }
  
-  public void setRowNames(StringVector names) {
+  public void setRowNames(Vector names) {
     rowNames = names;
   }
   

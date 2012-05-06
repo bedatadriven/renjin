@@ -382,6 +382,13 @@ public class Evaluation {
     return doNativeCall(context, rho, methodName, packageName, callArguments.build());
     
   }
+
+  @Primitive(".Fortran")
+  public static SEXP dotFortran(@Current Context context,
+                                @Current Environment rho,
+                                @ArgumentList ListVector arguments) {
+    return dotC(context, rho, arguments);
+  }
   
   @Primitive(".Call")
   public static SEXP dotCall(@Current Context context,

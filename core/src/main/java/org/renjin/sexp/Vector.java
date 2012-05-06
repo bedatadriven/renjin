@@ -233,9 +233,9 @@ public interface Vector extends SEXP {
      * 
      * @param vector the {@code Vector} from which to copy the attributes
      */
-    Builder copyAttributesFrom(Vector vector);
+    Builder copyAttributesFrom(SEXP vector);
 
-    Builder copySomeAttributesFrom(Vector exp, Symbol... toCopy);
+    Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy);
   }
 
   static class Order {

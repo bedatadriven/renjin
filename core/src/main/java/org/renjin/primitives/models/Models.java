@@ -28,7 +28,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.matrix.DoubleMatrixBuilder;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
@@ -40,7 +39,6 @@ import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
-
 
 import com.google.common.collect.Lists;
 
@@ -126,7 +124,7 @@ public class Models {
       @Current Context context,
       @Current Environment rho,
       SEXP terms,
-      StringVector row_names,
+      Vector row_names,
       Vector variables,
       Vector varnames,
       Vector dots,
@@ -213,7 +211,8 @@ public class Models {
     if (row_names.length() == nr) {
         attributes.add(Symbols.ROW_NAMES, row_names);
     } else {
-        throw new UnsupportedOperationException("todo");
+        attributes.add(Symbols.ROW_NAMES, new IntVector(IntVector.NA, -nr));
+    
         /*
         PROTECT(row_names = allocVector(INTSXP, nr));
         for (i = 0; i < nr; i++) INTEGER(row_names)[i] = i+1; */

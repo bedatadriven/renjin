@@ -540,6 +540,18 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("matched$b"), equalTo(c(1)));
   }
   
+
+  @Test
+  public void matchCallWithMissingArgs() throws IOException {
+    assumingBasePackagesLoad();
+    
+    eval("f<-function(a,b) match.call()");
+    eval("matched <- f(b=1)");
+    
+    assertThat(eval("length(matched)"), equalTo(c_i(2)));
+  }
+  
+  
   @Test
   public void matchCallDotsNotExpanded() throws IOException {
     assumingBasePackagesLoad();

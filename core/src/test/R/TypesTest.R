@@ -32,3 +32,5 @@ testAsCharacterFromNull <- function() {
 	f <- function(a) g(as.character(a))
 	assertThat(f(x), identicalTo(character(0)))
 }
+
+

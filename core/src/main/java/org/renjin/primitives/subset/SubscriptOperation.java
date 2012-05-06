@@ -230,7 +230,7 @@ public class SubscriptOperation {
     }
   }
   
-  public Vector replace(SEXP elements, boolean single) {
+  public Vector replace(SEXP elements) {
 
     // [[<- and [<- seem to have a special meaning when
     // the replacement value is NULL and the vector is a list
@@ -238,7 +238,7 @@ public class SubscriptOperation {
       return remove();
 
     } else if(subscripts.size() == 1 && subscripts.get(0) instanceof StringVector) {
-      return replaceByName(elements, single);
+      return replaceByName(elements);
     }
     
     if(!selection.isEmpty() && elements.length() == 0) {
@@ -251,20 +251,16 @@ public class SubscriptOperation {
     for(int index : selection) {
       assert index < source.length() || selection.getSourceDimensions() == 1;
       if(!IntVector.isNA(index)) {
-        if(single) {
-          result.set(index, elements);
-        } else {
-          result.setFrom(index, elements, replacement++);
-          if(replacement >= elements.length()) {
-            replacement = 0;
-          }
+        result.setFrom(index, elements, replacement++);
+        if(replacement >= elements.length()) {
+          replacement = 0;
         }
       }
     }
     return result.build();
   }
 
-  private Vector replaceByName(SEXP elements, boolean single) {
+  private Vector replaceByName(SEXP elements) {
     StringVector namesToReplace = (StringVector) subscripts.get(0);
     Vector.Builder result = createReplacementBuilder(elements);
     StringVector.Builder names = source.getNames() == Null.INSTANCE ? StringVector.newBuilder() :
@@ -278,11 +274,8 @@ public class SubscriptOperation {
         index = result.length();
         names.set(index, nameToReplace);
       }
-      if(single) {
-        result.set(index, elements);
-      } else {
-        result.setFrom(index, elements, replacementIndex++);
-      }
+
+      result.setFrom(index, elements, replacementIndex++);
     }
 
     result.setAttribute(Symbols.NAMES, names.build());

@@ -38,5 +38,10 @@ testDensity <- function() {
 	print(d)
 	assertThat(d$bw, closeTo(0.3115, 0.0001))
 	assertThat(mean(d$y), closeTo(0.2520675, 0.0001))
-	
+}
+
+testLm <- function() {
+	x <- seq(1,15)
+	y <- sin(x)
+	fit <- lm(y~x)
 }

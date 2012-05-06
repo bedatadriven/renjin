@@ -21,6 +21,11 @@
 
 package org.renjin.sexp;
 
+import org.renjin.sexp.PairList.Builder;
+import org.renjin.sexp.PairList.Node;
+
+import com.google.common.base.Strings;
+
 
 /**
  * Expression representing a call to an R function, consisting of
@@ -126,4 +131,34 @@ public class FunctionCall extends PairList.Node {
     return getFunction().equals(otherCall.getFunction()) &&
         getArguments().equals(otherCall.getArguments());
   }
+
+  @Override
+  public Builder newCopyBuilder() {
+      Builder builder = new Builder();
+      for(Node node : nodes()) {
+          builder.add(node.getRawTag(), node.getValue());
+      }
+      return builder;
+  }
+
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+  
+  public static class Builder extends PairList.Builder {
+
+    public Builder add(SEXP tag, SEXP s) {
+      if (head == null) {
+        head = new FunctionCall(s, attributes);
+        tail = head;
+      } else {
+        Node next = new Node(tag, s, Null.INSTANCE);
+        tail.nextNode = next;
+        tail = next;
+      }
+      return this;
+    }
+
+  }
+  
 }

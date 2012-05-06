@@ -45,6 +45,9 @@ done
 # Shared files
 for DIR in "encodings" "licenses" "make" "R"
 do
-	mkdir -p src/main/resources/r/share/$DIR
-	cp -u -R $R_SRC_ROOT/share/$DIR/* src/main/resources/r/share/$DIR
+	mkdir -p src/main/resources/org/renjin/share/$DIR
+	cp -u -R $R_SRC_ROOT/share/$DIR/* src/main/resources/org/renjin/share/$DIR
 done
+
+mkdir -p src/main/resources/org/renjin/etc
+cp -u $R_SRC_ROOT/etc/repositories src/main/resources/org/renjin/etc

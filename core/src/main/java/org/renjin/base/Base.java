@@ -709,4 +709,9 @@ public class Base {
     return result.build();
   }
   
+  public static SEXP dqrls() {
+    return Null.INSTANCE;
+    
+  }
+  
 }

@@ -29,6 +29,7 @@ import java.util.List;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Deparse;
+import org.renjin.sexp.ListVector.Builder;
 import org.renjin.util.NamesBuilder;
 
 
@@ -283,6 +284,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     return true;
   }
 
+  
   @Override
   public int hashCode() {
     return values.hashCode();
@@ -337,6 +339,10 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   public static NamedBuilder newNamedBuilder() {
     return new NamedBuilder();
   }
+  
+  public NamedBuilder newCopyNamedBuilder() {
+    return new NamedBuilder(this);
+  }
 
   @Override
   protected SEXP cloneWithNewAttributes(PairList attributes) {
@@ -369,6 +375,10 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       }
     }
 
+    protected Builder remove(int index) {
+      this.values.remove(index);
+      return this;
+    }
 
     @Override
     public Builder add(SEXP value) {
@@ -429,7 +439,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
    * Convenience builder for constructing lists with names
    *
    */
-  public static class NamedBuilder extends Builder {
+  public static class NamedBuilder extends Builder implements ListBuilder {
     private final NamesBuilder names;
     
     public NamedBuilder() {
@@ -469,6 +479,17 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     public NamedBuilder add(String name, int value) {
       return add(name, new IntVector(value));
     }
+    
+    @Override
+    public NamedBuilder add(SEXP value) {
+      super.add(value);
+      return this;
+    }
+    
+    @Override
+    public int getIndexByName(String nameToReplace) {
+      return names.getIndexByName(nameToReplace);
+    }
 
     public NamedBuilder add(String name, String value) {
       return add(name, new StringVector(value));
@@ -488,7 +509,19 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       }
       return this;
     }
+    
+    @Override
+    public NamedBuilder set(int index, SEXP value) {
+      super.set(index, value);
+      return this;
+    }
 
+    @Override
+    public NamedBuilder remove(int index) {
+      super.remove(index);
+      names.remove(index);
+      return this;
+    }
 
     protected PairList buildAttributes() {
       if(names.haveNames()) {

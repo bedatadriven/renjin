@@ -89,6 +89,14 @@ public final class NamesBuilder {
     }
   }
   
+  public Vector build() {
+    if(names == null) {
+      return Null.INSTANCE;
+    } else {
+      return new StringVector(names);
+    }
+  }
+  
   public static NamesBuilder withInitialCapacity(int initialCapacity) {
     return new NamesBuilder(0, initialCapacity);
   }
@@ -103,5 +111,19 @@ public final class NamesBuilder {
 
   public int length() {
     return size;
+  }
+
+  public void remove(int index) {
+    if(names != null) {
+      names.remove(index);
+    }
+  }
+  
+  public int getIndexByName(String name) {
+    if(names == null) {
+      return -1;
+    } else {
+      return names.indexOf(name);
+    }
   }
 }

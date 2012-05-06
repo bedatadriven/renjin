@@ -7,7 +7,7 @@ import org.renjin.sexp.Vector;
 
 
 public interface MatrixBuilder {
-  void setRowNames(StringVector names);
+  void setRowNames(Vector names);
   void setRowNames(Collection<String> names);
   void setColNames(StringVector names);
   void setColNames(Collection<String> names);

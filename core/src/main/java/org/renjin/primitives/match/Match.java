@@ -38,6 +38,7 @@ import org.renjin.sexp.Null;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 
@@ -186,10 +187,10 @@ public class Match {
     
     PairList matched = Calls.matchArguments(closure.getFormals(), call.getArguments());
     
-    if(expandDots) {
-      PairList.Builder expandedArgs = new PairList.Builder();
-      for(PairList.Node node : matched.nodes()) {
-        if(node.getTag() == Symbols.ELLIPSES) {
+    PairList.Builder expandedArgs = new PairList.Builder();
+    for(PairList.Node node : matched.nodes()) {
+      if(node.getValue() != Symbol.MISSING_ARG) {
+        if(expandDots && node.getTag() == Symbols.ELLIPSES) {
           for(PairList.Node elipseNode : ((PairList)node.getValue()).nodes()) {
             expandedArgs.add(elipseNode.getRawTag(), elipseNode.getValue());
           }
@@ -197,10 +198,9 @@ public class Match {
           expandedArgs.add(node.getTag(), node.getValue());
         }
       }
-      matched = expandedArgs.build();
     }
     
-    return new FunctionCall(call.getFunction(), matched);
+    return new FunctionCall(call.getFunction(), expandedArgs.build());
   }
   
   /**

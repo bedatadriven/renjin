@@ -47,7 +47,7 @@ public class ModelMatrixBuilder {
     computeMatrix();
 
     matrix.setColNames(columnNames());
-    matrix.setRowNames((StringVector)modelFrame.getRowNames());
+    matrix.setRowNames(modelFrame.getRowNames());
 
   }
 

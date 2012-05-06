@@ -21,12 +21,10 @@
 
 package org.renjin.sexp;
 
+import java.util.Collections;
+
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.Vector.Builder;
-
-
-import java.util.Collections;
 
 /**
  * The R Nullary object.
@@ -310,7 +308,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     }
 
     @Override
-    public Vector.Builder copyAttributesFrom(Vector exp) {
+    public Vector.Builder copyAttributesFrom(SEXP exp) {
       if(exp.getAttributes() != Null.INSTANCE) {
         throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
       }
@@ -318,7 +316,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     }
     
     @Override
-    public Vector.Builder copySomeAttributesFrom(Vector exp, Symbol... toCopy) {
+    public Vector.Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
       if(exp.getAttributes() != Null.INSTANCE) {
         throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
       }

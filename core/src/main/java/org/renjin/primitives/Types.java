@@ -406,6 +406,13 @@ public class Types {
 
   @Generic
   @Primitive("as.character")
+  public static StringVector asCharacter(PairList.Node source) {
+    return (StringVector) convertVector(new StringVector.Builder(), source.toVector());
+  }
+
+  
+  @Generic
+  @Primitive("as.character")
   public static StringVector asCharacter(Vector source) {
     return (StringVector) convertVector(new StringVector.Builder(), source);
   }

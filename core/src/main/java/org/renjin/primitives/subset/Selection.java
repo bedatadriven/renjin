@@ -16,7 +16,7 @@ import org.renjin.sexp.Vector;
 
 /**
  * Encapsulates a set of elements that have been selected by 
- * the arguments to the subset function
+ * the arguments to the subset function.
  */
 public abstract class Selection implements Iterable<Integer> {
 

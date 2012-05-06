@@ -25,17 +25,18 @@ public class Bootstrapper {
   private File destRoot = new File("target/classes/org/renjin/library");
   
   public Bootstrapper() throws IOException, ScriptException {
-    
-    // this is the minimum we need to run a proper context
-    System.out.println("Building base package database...");
-    installPackageSources("base");
-    copyProfile();
-    
-    // now we have enough to create the base package database
-    createBasePackageDatabase();
-    
-    // next up we need the tools sources in place
+
     try {
+      
+      // this is the minimum we need to run a proper context
+      System.out.println("Building base package database...");
+      installPackageSources("base");
+      copyProfile();
+      
+      // now we have enough to create the base package database
+      createBasePackageDatabase();
+      
+      // next up we need the tools sources in place
       bootstrapTools();
     
       // now we can compile the rest of the packages

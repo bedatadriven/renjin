@@ -409,15 +409,23 @@ public class Text {
     }
     return result.build();
   }
+  
 
-  public static Vector agrep(String pattern, StringVector x, boolean ignoreCase, boolean value,
-                              int maxDistance, int maxDeletions, int maxInsertions,
-                              int maxSubstitutions, boolean useBytes) {
+  public static Vector agrep(String pattern, StringVector x,  boolean ignoreCase, boolean value,
+                              Vector costs, Vector bounds, boolean useBytes, boolean fixed) {
 
+    if(!fixed) {
+      throw new EvalException("fixed = FALSE not impelmented for agrep.");
+    }
+  
+    int maxDistance = maxDistance(bounds, pattern);
+    
+    FuzzyMatcher matcher = new FuzzyMatcher(pattern, ignoreCase);
+    
     if(value) {
       StringVector.Builder result = new StringVector.Builder();
       for(int i=0;i!=x.length();++i) {
-        if(distance(pattern, x.getElementAsString(i)) < maxDistance) {
+        if(matcher.contains(x.getElementAsString(i)) <= maxDistance) {
           result.add(x.getElementAsString(i));
         }
       }
@@ -425,12 +433,28 @@ public class Text {
     } else {
       IntVector.Builder result = new IntVector.Builder();
       for(int i=0;i!=x.length();++i) {
-        if(distance(pattern, x.getElementAsString(i)) < maxDistance) {
-          result.add(i);
+        if(matcher.contains(x.getElementAsString(i)) <= maxDistance) {
+          result.add(i+1);
         }
       }
       return result.build();
     }
+  }
+  
+  private static int maxDistance(Vector bounds, String pattern) {
+
+    if(bounds.length() != 5) {
+      throw new EvalException("Expected bounds argument of length 5");
+    }
+    if(!bounds.isElementNA(1) || !bounds.isElementNA(2) || !bounds.isElementNA(3) ||
+       !bounds.isElementNA(4)) {
+      throw new EvalException("max distance with specific components (all, insertions, deletions, substitutions not implemented");
+    }
+    double maxDistance = bounds.getElementAsDouble(0);
+    if(maxDistance < 1) {
+      maxDistance = maxDistance * pattern.length();
+    }
+    return (int)Math.ceil(maxDistance);
   }
 
 
@@ -444,64 +468,6 @@ public class Text {
       return mi;
   }
 
-
-  /**
-   * Compute Levenshtein distance between two strings.
-   * Source: org.apache.xmlbeans.impl.common
-   * @param s
-   * @param t
-   * @return
-   */
-  private static int distance(String s, String t)
-  {
-      int d[][]; // matrix
-      int n; // length of s
-      int m; // length of t
-      int i; // iterates through s
-      int j; // iterates through t
-      char s_i; // ith character of s
-      char t_j; // jth character of t
-      int cost; // cost
-
-      // Step 1
-      n = s.length();
-      m = t.length();
-      if (n == 0)
-          return m;
-      if (m == 0)
-          return n;
-      d = new int[n+1][m+1];
-
-      // Step 2
-      for (i = 0; i <= n; i++)
-          d[i][0] = i;
-      for (j = 0; j <= m; j++)
-          d[0][j] = j;
-
-      // Step 3
-      for (i = 1; i <= n; i++)
-      {
-          s_i = s.charAt (i - 1);
-
-          // Step 4
-          for (j = 1; j <= m; j++)
-          {
-              t_j = t.charAt(j - 1);
-
-              // Step 5
-              if (s_i == t_j)
-                  cost = 0;
-              else
-                  cost = 1;
-
-              // Step 6
-              d[i][j] = minimum(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1] + cost);
-          }
-      }
-
-      // Step 7
-      return d[n][m];
-  }
 
   public static StringVector substr(StringVector x, int start, int stop) {
     StringVector.Builder result = new StringVector.Builder();

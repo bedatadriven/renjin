@@ -35,6 +35,7 @@
     <module>shell</module>
     <module>appengine</module>
     <module>tests</module>
+    <module>tools/maven-plugin</module>
     <module>samples/swing-repl</module>
     <module>samples/appengine-repl</module>
   </modules>

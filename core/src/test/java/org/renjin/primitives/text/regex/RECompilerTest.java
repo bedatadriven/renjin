@@ -94,4 +94,11 @@ public class RECompilerTest {
     
   }
   
+  @Test
+  public void compileProblem() {
+    ExtendedRE re = new ExtendedRE("[[<>=!]+");
+    assertTrue(re.match("["));
+    assertTrue(re.match(">="));
+  }
+  
 }

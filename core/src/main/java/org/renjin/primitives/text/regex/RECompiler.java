@@ -521,7 +521,11 @@ public class RECompiler
 
                 case '[':
                     String className = posixClass();
-                    if(className != null) {
+                    if(className == null) {
+                      simpleChar = '[';
+                      idx++;
+                      break switchOnCharacter;
+                    } else {
                       idx += className.length() + "[::]".length();
                       if(className.equals("alpha")) {
                         range.include('A', 'Z', include);

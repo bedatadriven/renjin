@@ -12,7 +12,6 @@ import org.renjin.script.RenjinScriptEngine;
 import org.renjin.script.RenjinScriptEngineFactory;
 
 import com.google.common.base.Charsets;
-import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 
 /**
@@ -41,7 +40,7 @@ public class Bootstrapper {
     
       // now we can compile the rest of the packages
       for(String packageName : new String[] 
-          { "datasets", "utils", "grDevices", "graphics", "stats" }) {
+          { "datasets", "utils", "grDevices", "graphics", "stats", "splines" }) {
         buildPackage(packageName);
       }
     } catch(Exception e) {
@@ -130,11 +129,6 @@ public class Bootstrapper {
         file(srcRoot, packageName).getAbsolutePath(),
         file(destRoot, packageName).getAbsolutePath(),
         packageName));
-        
-    String lazyLoadScript = Files.toString(file(srcRoot, "tools", "R", "makeLazyLoad.R"), Charsets.UTF_8);
-    lazyLoadScript += "\n" + "makeLazyLoading('tools')\n";
-    
-    eval(lazyLoadScript);
   }
   
   private static File file(File parent, String... children) {

@@ -21,7 +21,7 @@ cp -u $BASE/R/windows/*.R src/library/base/R   # the windows impl of sytem() is 
 mkdir -p src/library/profile
 cp -u $R_SRC_ROOT/src/library/profile/Common.R src/library/profile/
 
-for PKG in "tools" "datasets" "stats" "graphics" "utils" "grDevices" 
+for PKG in "tools" "datasets" "stats" "graphics" "utils" "grDevices" "splines"
 do
 	# currently, we are only copying the R sources and
 	# data folder; we don't have the time for the 

@@ -124,8 +124,8 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- This library is used during compile-time code generation but should
-         not be necessary when using renjin -->
+    <!-- This library is used during compile-time code generation but is
+         not necessary when using renjin-->
     <dependency>
       <groupId>com.sun.codemodel</groupId>
       <artifactId>codemodel</artifactId>
@@ -161,6 +161,7 @@
             <phase>process-classes</phase>
             <configuration>
               <executable>java</executable>
+              <classpathScope>compile</classpathScope>
               <arguments>
                 <argument>-classpath</argument>
                 <classpath />

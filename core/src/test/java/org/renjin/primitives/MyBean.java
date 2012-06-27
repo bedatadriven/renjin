@@ -1,16 +1,15 @@
 package org.renjin.primitives;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import org.renjin.eval.Context;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import org.renjin.eval.Context;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.sexp.DoubleVector;
-
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 public class MyBean {
 
@@ -85,7 +84,7 @@ public class MyBean {
   }
   
   public DoubleVector compute() {
-    return new DoubleVector(1,2,3);
+    return new DoubleArrayVector(1,2,3);
   }
   
   public List<MyChildBean> getChildBeans() {

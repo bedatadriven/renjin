@@ -5,11 +5,7 @@ import org.apache.commons.math.linear.BlockRealMatrix;
 import org.apache.commons.math.linear.MatrixIndexException;
 import org.apache.commons.math.linear.RealMatrix;
 import org.renjin.primitives.Indexes;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 /**
@@ -50,8 +46,8 @@ public class CommonsMath {
     int nrows = matrix.getRowDimension();
     int ncols = matrix.getColumnDimension();
     
-    DoubleVector.Builder vector = DoubleVector.Builder.withInitialSize(nrows * ncols);
-    vector.setAttribute(Symbols.DIM, new IntVector(nrows, ncols));
+    DoubleArrayVector.Builder vector = DoubleArrayVector.Builder.withInitialSize(nrows * ncols);
+    vector.setAttribute(Symbols.DIM, new IntArrayVector(nrows, ncols));
     
     int vector_i = 0;
     for(int i=0;i!=ncols;++i) {

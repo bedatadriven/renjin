@@ -22,37 +22,13 @@
 package org.renjin.primitives;
 
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.ParseUtil;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.BuiltinFunction;
-import org.renjin.sexp.CHARSEXP;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SexpVisitor;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
-
-
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
+import org.renjin.sexp.*;
 
 public class Deparse {
 

@@ -21,6 +21,7 @@
 
 package org.renjin.primitives;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.math.linear.RealVector;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
@@ -29,22 +30,10 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.processor.ArgumentIterator;
 import org.renjin.primitives.annotations.processor.WrapperRuntime;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.primitives.sequence.DoubleSequence;
+import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
-
-
-import com.google.common.annotations.VisibleForTesting;
 
 
 /**
@@ -67,26 +56,26 @@ public class Sequences {
   }
 
   public static Vector colonSequence(Context context, SEXP s1, SEXP s2 ) {
-    checkArg(context, s1);
-    checkArg(context, s2);
+    assertScalar(context, s1);
+    assertScalar(context, s2);
 
     double n1 = s1.asReal();
     double n2 = s2.asReal();
 
-    checkValue(n1);
-    checkValue(n2);
+    assertNotNa(n1);
+    assertNotNa(n2);
 
     return new Range(n1, n2).vector();
   }
 
 
-  private static void checkValue(double r1) {
+  private static void assertNotNa(double r1) {
     if(DoubleVector.isNaN(r1)) {
       throw new EvalException("NA/NaN argument");
     }
   }
 
-  private static void checkArg(Context context, SEXP exp) {
+  private static void assertScalar(Context context, SEXP exp) {
     if(exp.length() == 0) {
       throw new EvalException("argument of length 0");
     } else if(exp.length() > 1) {
@@ -94,6 +83,11 @@ public class Sequences {
     }
   }
 
+  private static void assertFinite(String name, double to) {
+    if(!DoubleVector.isFinite(to)) {
+      throw new EvalException("'" + name + "' must be finite");
+    }
+  }
 
   @Primitive("rep.int")
   public static Vector repeatInt(Vector x, Vector timesVector) {
@@ -176,7 +170,7 @@ public class Sequences {
     
     return rep(
         (Vector)x,
-        times == Symbol.MISSING_ARG ? new IntVector(1) : (Vector)times,
+        times == Symbol.MISSING_ARG ? new IntArrayVector(1) : (Vector)times,
         lengthOut == Symbol.MISSING_ARG ? IntVector.NA : ((Vector)lengthOut).getElementAsInt(0),
         each == Symbol.MISSING_ARG ? IntVector.NA : ((Vector)each).getElementAsInt(0));
   }
@@ -229,22 +223,6 @@ public class Sequences {
 
     return result.build();
   }
-  
-  private static int toInt(SEXP exp) {
-    if(exp == Symbol.MISSING_ARG) {
-      return IntVector.NA;
-    } else {
-      return ((Vector)exp).getElementAsInt(0);
-    }
-  }
-  
-  private static Vector toVector(SEXP exp) {
-    if(exp == Symbol.MISSING_ARG) {
-      return Null.INSTANCE;
-    } else {
-      return (Vector)exp;
-    }
-  }
 
   @VisibleForTesting
   static class Range {
@@ -279,39 +257,11 @@ public class Sequences {
     }
 
     public Vector vector() {
-      return useInteger ? intVector() : realVector();
-    }
-
-    private IntVector intVector() {
-      int values[] = new int[(int) count];
-      int index = 0;
-
-      if(n1 <= n2) {
-        for(int n=(int)n1; n<=n2; n++) {
-          values[index++] = n;
-        }
+      if(useInteger) {
+        return IntSequence.fromTo(n1, n2);
       } else {
-        for(int n=(int)n1; n>=n2; n--) {
-          values[index++] = n;
-        }
+        return DoubleSequence.fromTo(n1, n2);
       }
-      return new IntVector(values);
-    }
-
-    private DoubleVector realVector() {
-      double[] values = new double[(int) count];
-      int index = 0;
-
-      if(n1 <= n2) {
-        for(double n=n1; n<=n2; n+=1d) {
-          values[index++] = n;
-        }
-      } else {
-        for(double n=n1; n>=n2; n-=1d) {
-          values[index++] = n;
-        }
-      }
-      return new DoubleVector(values);
     }
   }
 
@@ -350,26 +300,24 @@ public class Sequences {
       len = context.evaluate( len, rho);
     }
 
-    return doSeq(from, to, by, len, along, One);
+    return doSeqInt(from, to, by, len, along, One);
   }
 
-  private static SEXP doSeq(SEXP from, SEXP to, SEXP by, SEXP len, SEXP along, boolean one) {
+  private static SEXP doSeqInt(SEXP from, SEXP to, SEXP by, SEXP len, SEXP along, boolean one) {
     if(one && from != Symbol.MISSING_ARG) {
       int lf = from.length();
-      if(lf == 1 && ( from instanceof IntVector ||  from instanceof RealVector)) {
+      if(lf == 1 && ( from instanceof IntVector || from instanceof RealVector)) {
         return new Range(1.0, ((AtomicVector) from).getElementAsDouble(0)).vector();
       } else if (lf != 0) {
         return new Range(1.0, lf).vector();
       } else {
-        return new IntVector();
+        return new IntArrayVector();
       }
     }
 
     int lout = IntVector.NA;
     if(along != Symbol.MISSING_ARG) {
-      //int lout = INTEGER(along)[0];
       if(one) {
-        // ans = lout ? seq_colon(1.0, (double)lout, call) : allocVector(INTSXP, 0);
         throw new UnsupportedOperationException("implement me!");
       }
     } else if(len != Symbol.MISSING_ARG && len != Symbol.MISSING_ARG) {
@@ -391,7 +339,7 @@ public class Sequences {
         return sequenceBy(from, to, rfrom, rto, rby);
       }
     } else if (lout == 0) {
-      return new IntVector();
+      return new IntArrayVector();
 
     } else if (one) {
       return new Range(1.0, lout).vector();
@@ -425,9 +373,7 @@ public class Sequences {
     if(!DoubleVector.isFinite(rfrom)) {
       throw new EvalException("'from' must be finite");
     }
-    if(!DoubleVector.isFinite(rto)) {
-      throw new EvalException("'to' must be finite");
-    }
+    assertFinite("to", rto);
     if(del == 0.0 && rto == 0.0) {
       return to;
     }
@@ -460,100 +406,61 @@ public class Sequences {
         ra[nn] = rto;
       }
     }
-    return new DoubleVector(ra);
+    return new DoubleArrayVector(ra);
   }
 
   private static SEXP sequenceFromTo(double from, double to, int length) {
-    if(!DoubleVector.isFinite(from)) {
-      throw new EvalException("'from' must be finite");
-    }
-    if(!DoubleVector.isFinite(to)) {
-      throw new EvalException("'to' must be finite");
-    }
-    double sequence[] = new double[length];
-    if(length > 0) sequence[0] = from;
-    if(length > 1) sequence[length - 1] = to;
-    if(length > 2) {
-      double by = (to - from)/(double)(length - 1);
-      for(int i = 1; i < length-1; i++) {
-        sequence[i] = from + i*by;
-      }
-    }
-    return new DoubleVector(sequence);
+    assertFinite("from", from);
+    assertFinite("to", to);
+
+    double by = (to - from)/(double)(length - 1);
+
+    return newSequence(from, by, to, length);
   }
 
   private static SEXP sequenceTo(int length, double to, double by) {
-    if(!DoubleVector.isFinite(to)) {
-      throw new EvalException("'to' must be finite");
-    }
-    if(!DoubleVector.isFinite(by)) {
-      throw new EvalException("'by' must be finite") ;
-    }
+    assertFinite("to", to);
+    assertFinite("by", by);
 
     double from = to - (length-1)*by;
 
-    if(isIntegerRange(from, to, by)) {
-      int sequence[] = new int[length];
-      for(int i = 0; i < length; i++) {
-        sequence[i] = (int) (to - (length - 1 - i)*by);
-      }
-      return new IntVector(sequence);
-
-    } else {
-      double sequence[] = new double[length];
-      for(int i = 0; i < length; i++){
-        sequence[i] = to - (length - 1 - i)*by;
-      }
-      return new DoubleVector(sequence);
-    }
+    return newSequence(from, by, to, length);
   }
 
   private static SEXP sequenceFrom(int length, double from, double by) {
-    if(!DoubleVector.isFinite(from)) {
-      throw new EvalException("'from' must be finite");
-    }
-    if(!DoubleVector.isFinite(by)) {
-      throw new EvalException("'by' must be finite");
-    }
+    assertFinite("from", from);
+    assertFinite("by", by);
 
     double to = from +(length-1)*by;
 
-    if(isIntegerRange(from, to, by)) {
-      int sequence[] = new int[length];
-      for(int i = 0; i < length; i++) {
-        sequence[i] = (int) (from + i*by);
-      }
-      return new IntVector(sequence);
-
-    } else {
-      double sequence[] = new double[length];
-      for(int i = 0; i < length; i++) {
-        sequence[i] = from + i*by;
-      }
-      return new DoubleVector(sequence);
-    }
+    return newSequence(from, by, to, length);
   }
 
-  private static boolean isIntegerRange(double from, double to, double by) {
-    return by == (int)by && from <= Integer.MAX_VALUE && from >= Integer.MIN_VALUE
-        && to <= Integer.MAX_VALUE && to >= Integer.MIN_VALUE;
-  }
 
   @Primitive
-  public static int[] seq_along(SEXP exp) {
-    int indexes[] = new int[exp.length()];
-    for(int i=0;i!=indexes.length;++i) {
-      indexes[i] = i+1;
-    }
-    return indexes;
+  public static IntVector seq_along(SEXP exp) {
+    return new IntSequence(1, 1, exp.length());
   }
 
   @Primitive
   public static IntVector seq_len(int length) {
-    IntVector.Builder result = new IntVector.Builder();
-    for(int i=1;i<=length;++i) {
-      result.add(i);
-    }
-    return result.build();
+    return new IntSequence(1, 1, length);
   }
+
+  private static SEXP newSequence(double from, double by, double to, int length) {
+    if(isIntegerRange(from, to, by)) {
+      return new IntSequence((int)from, (int)by, length);
+    } else {
+      return new DoubleSequence(from, by, length);
+    }
+  }
+
+  private static boolean isIntegerRange(double from, double to, double by) {
+    return by == (int)by &&
+           from <= Integer.MAX_VALUE &&
+           from >= Integer.MIN_VALUE &&
+           to <= Integer.MAX_VALUE &&
+           to >= Integer.MIN_VALUE;
+  }
+
 }

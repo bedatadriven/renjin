@@ -1,5 +1,6 @@
 package org.renjin.graphics.geom;
 
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 
 public class Dimension {
@@ -29,6 +30,6 @@ public class Dimension {
   }
 
   public DoubleVector toVector() {
-    return new DoubleVector(width, height);
+    return new DoubleArrayVector(width, height);
   }
 }

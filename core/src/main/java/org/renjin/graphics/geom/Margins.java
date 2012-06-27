@@ -1,6 +1,6 @@
 package org.renjin.graphics.geom;
 
-import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
@@ -55,7 +55,7 @@ public class Margins {
   }
   
   public Vector toVector() {
-    return new DoubleVector(bottom, left, top, right);
+    return new DoubleArrayVector(bottom, left, top, right);
   }
 
   public Margins multiplyBy(Dimension size) {

@@ -1,93 +1,26 @@
-/*
- * R : A Computer Language for Statistical Data Analysis
- * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
- * Copyright (C) 2003, 2004  The R Foundation
- * Copyright (C) 2010 bedatadriven
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package org.renjin.sexp;
 
+import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
-import org.renjin.sexp.Vector.Builder;
 
-
-import java.util.Arrays;
 import java.util.Iterator;
 
-public class LogicalVector extends AbstractAtomicVector implements Iterable<Logical> {
+
+public abstract class LogicalVector extends AbstractAtomicVector implements Iterable<Logical> {
   public static final String TYPE_NAME = "logical";
-  public static final Vector.Type VECTOR_TYPE = new LogicalType();
-  public static final LogicalVector EMPTY = new LogicalVector();
-
+  public static final Type VECTOR_TYPE = new LogicalType();
+  public static final LogicalVector EMPTY = new LogicalArrayVector();
   public static int NA = IntVector.NA;
+  public static LogicalVector TRUE = new LogicalArrayVector(1);
+  public static LogicalVector FALSE = new LogicalArrayVector(0);
+  public static LogicalVector NA_VECTOR = new LogicalArrayVector(NA);
 
-  public static LogicalVector TRUE = new LogicalVector(1);
-  public static LogicalVector FALSE = new LogicalVector(0);
-  public static LogicalVector NA_VECTOR = new LogicalVector(NA);
-  
-  private int[] values;
-
-
-
-  /**
-   * Constructs a Logical vector from a list of boolean values
-   */
-  public LogicalVector(boolean... values) {
-    this.values = new int[values.length];
-    for (int i = 0; i != values.length; ++i) {
-      this.values[i] = values[i] ? 1 : 0;
-    }
-  }
-  
-  /**
-   * Constructs a Logical vector from a list of boolean values
-   */
-  public LogicalVector(Boolean[] values) {
-    this.values = new int[values.length];
-    for (int i = 0; i != values.length; ++i) {
-      this.values[i] = values[i] ? 1 : 0;
-    }
-  }
-
-  public LogicalVector() {
-    this.values = new int[0];
-  }
-
-  public LogicalVector(int[] values, PairList attributes) {
-     super(attributes);
-     this.values = Arrays.copyOf(values, values.length);
-  }
-
-  public LogicalVector(int[] values, int size, PairList attributes) {
+  public LogicalVector(PairList attributes) {
     super(attributes);
-    this.values = Arrays.copyOf(values, size);  
-  }
-  
-  public LogicalVector(int... values) {
-    this(values, Null.INSTANCE);
   }
 
-  public LogicalVector(Logical... values) {
-    this.values = new int[values.length];
-    for (int i = 0; i != values.length; ++i) {
-      this.values[i] = values[i].getInternalValue();
-    }
+  protected LogicalVector() {
   }
-
 
   @Override
   public String getTypeName() {
@@ -95,31 +28,29 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
   }
 
   @Override
-  public int length() {
-    return values.length;
-  }
+  public abstract int length();
 
   @Override
   public int getElementAsInt(int index) {
-    return values[index];
+    return getElementAsRawLogical(index);
   }
 
   @Override
   public double getElementAsDouble(int index) {
-    int value = values[index];
+    int value = getElementAsRawLogical(index);
     return value == IntVector.NA ? DoubleVector.NA : (double) value;
   }
 
   @Override
   public SEXP getElementAsSEXP(int index) {
-    return new LogicalVector(values[index]);
+    return new LogicalArrayVector(getElementAsRawLogical(index));
   }
 
   @Override
   public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     int value = vector.getElementAsRawLogical(startIndex);
-    for(int i=0;i<values.length;++i) {
-      if(value == values[i]) {
+    for(int i=0;i<length();++i) {
+      if(value ==  getElementAsRawLogical(i)) {
         return i;
       }
     }
@@ -128,12 +59,12 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
   @Override
   public int compare(int index1, int index2) {
-    return values[index1] - values[index2];
+    return getElementAsRawLogical(index1) - getElementAsRawLogical(index2);
   }
 
   @Override
   public Boolean getElementAsObject(int index) {
-    int value = values[index];
+    int value = getElementAsInt(index);
     if(IntVector.isNA(value)) {
       throw new IllegalStateException(String.format("The element at index %d is NA," +
           " and cannot be represented as a Boolean. Make sure you are calling isElementNA() first.", index));
@@ -144,20 +75,18 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
   @Override
   public Logical getElementAsLogical(int index) {
-    return Logical.valueOf(values[index]);
+    return Logical.valueOf(getElementAsRawLogical(index));
   }
 
   @Override
-  public int getElementAsRawLogical(int index) {
-    return values[index];
-  }
+  public abstract int getElementAsRawLogical(int index);
 
   @Override
   public Complex getElementAsComplex(int index) {
-    if(IntVector.isNA(values[index])) {
-      return ComplexVector.NA;  
+    if(IntVector.isNA(getElementAsRawLogical(index))) {
+      return ComplexVector.NA;
     }
-    return new Complex(values[index], 0);
+    return new Complex(getElementAsDouble(index), 0);
   }
 
   @Override
@@ -167,7 +96,7 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
   @Override
   public String getElementAsString(int index) {
-    int value = values[index];
+    int value = getElementAsRawLogical(index);
     if(value == IntVector.NA) {
       return StringVector.NA;
     } else if(value == 0) {
@@ -184,19 +113,15 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
   @Override
   public Logical asLogical() {
-    if (values[0] == IntVector.NA) {
-      return Logical.NA;
-    } else {
-      return values[0] == 0 ? Logical.FALSE : Logical.TRUE;
-    }
+    return getElementAsLogical(0);
   }
 
   @Override
   public double asReal() {
-    if(values.length == 0) {
+    if(length() == 0) {
       return DoubleVector.NA;
     } else {
-      return values[0];
+      return getElementAsDouble(0);
     }
   }
 
@@ -207,55 +132,59 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
   @Override
   public Iterator<Logical> iterator() {
-    return new Iterator<Logical>() {
+    return new UnmodifiableIterator<Logical>() {
       private int i=0;
 
       @Override
       public boolean hasNext() {
-        return i<values.length;
+        return i<length();
       }
 
       @Override
       public Logical next() {
-        return Logical.valueOf(values[i++]);
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException();
+        return getElementAsLogical(i++);
       }
     };
   }
 
   @Override
-  public boolean equals(Object o) {
+  public final boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (o == null || !(o instanceof LogicalVector)) return false;
 
     LogicalVector that = (LogicalVector) o;
-
-    if (!Arrays.equals(values, that.values)) return false;
-
+    if(this.length() != that.length()) {
+      return false;
+    }
+    for(int i=0;i!=length();++i) {
+      if(this.getElementAsRawLogical(i) != that.getElementAsRawLogical(i)) {
+        return false;
+      }
+    }
     return true;
   }
 
   @Override
-  public int hashCode() {
-    return Arrays.hashCode(values);
+  public final int hashCode() {
+    int hash = 37;
+    for(int i=0;i!=length();++i) {
+      hash += getElementAsRawLogical(i);
+    }
+    return hash;
   }
 
   @Override
   public String toString() {
     if (length() == 1) {
-      return toString(values[0]);
+      return toString(getElementAsRawLogical(0));
     } else {
       StringBuilder sb = new StringBuilder();
       sb.append("c(");
-      for (int i = 0; i != values.length; ++i) {
+      for (int i = 0; i != length(); ++i) {
         if(i > 0) {
           sb.append(", ");
         }
-        sb.append(toString(values[i]));
+        sb.append(toString(getElementAsRawLogical(i)));
       }
       sb.append(")");
       return sb.toString();
@@ -263,24 +192,22 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
   }
 
   @Override
-  public Builder newCopyBuilder() {
-    return new Builder(this);
+  public LogicalArrayVector.Builder newCopyBuilder() {
+    return new LogicalArrayVector.Builder(this);
   }
 
   @Override
-  public Builder newBuilderWithInitialSize(int initialSize) {
-    return new Builder(initialSize, initialSize);
-  }
-  
-  @Override
-  public Builder newBuilderWithInitialCapacity(int initialCapacity) {
-    return new Builder(0, initialCapacity);
+  public LogicalArrayVector.Builder newBuilderWithInitialSize(int initialSize) {
+    return new LogicalArrayVector.Builder(initialSize, initialSize);
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
-    return new LogicalVector(values, attributes);
+  public LogicalArrayVector.Builder newBuilderWithInitialCapacity(int initialCapacity) {
+    return new LogicalArrayVector.Builder(0, initialCapacity);
   }
+
+  @Override
+  protected abstract SEXP cloneWithNewAttributes(PairList attributes);
 
   private String toString(int x) {
     if (x == 1) {
@@ -294,106 +221,9 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
   @Override
   public boolean isElementNA(int index) {
-    return IntVector.isNA(values[index]);
+    return IntVector.isNA(getElementAsRawLogical(index));
   }
 
-  public static class Builder
-      extends AbstractAtomicBuilder {
-    
-    private static final int MIN_INITIAL_CAPACITY = 10;
-    
-    private int values[];
-    private int size;
-
-    public Builder(int initialSize, int initialCapacity) {
-      if(initialCapacity < MIN_INITIAL_CAPACITY) {
-        initialCapacity = MIN_INITIAL_CAPACITY;
-      }
-      if(initialSize > initialCapacity) {
-        initialCapacity = initialSize;
-      }
-      values = new int[initialCapacity];
-      size = initialSize;
-      Arrays.fill(values, NA);
-    }
-
-    public Builder() {
-      this(0, MIN_INITIAL_CAPACITY);
-    }
-    
-    public Builder(int initialSize) {
-      this(initialSize, initialSize);
-    }
-
-    private Builder(LogicalVector toClone) {
-      this.values = Arrays.copyOf(toClone.values, toClone.values.length);
-      this.size = this.values.length;
-      copyAttributesFrom(toClone);
-    }
-
-    public Builder add(int value) {
-      return set(size, value);
-    }
-
-    public Builder add(boolean value) {
-      return add(value ? 1 : 0);
-    }
-    
-    public Builder add(Number value) {
-      return add(value.intValue() != 0 ? 1 : 0);
-    }
-
-    public Builder set(int index, int value) {
-      ensureCapacity(index+1);
-      if(index+1 > size) {
-        size = index+1;
-      }
-      values[index] = value;
-      return this;
-    }
-
-    public Builder set(int index, boolean value) {
-      return set(index, value ? 1 : 0);
-    }
-
-    public Builder set(int index, Logical value) {
-      return set(index, value.getInternalValue());
-    }
-
-    @Override
-    public Builder setNA(int index) {
-      return set(index, NA);
-    }
-
-    @Override
-    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      return set(destinationIndex, source.getElementAsRawLogical(sourceIndex));
-    }
-
-    @Override
-    public int length() {
-      return size;
-    }
-    
-    public void ensureCapacity(int minCapacity) {
-      int oldCapacity = values.length;
-      if (minCapacity > oldCapacity) {
-        int oldData[] = values;
-        int newCapacity = (oldCapacity * 3)/2 + 1;
-        if (newCapacity < minCapacity)
-          newCapacity = minCapacity;
-        // minCapacity is usually close to size, so this is a win:
-        values = Arrays.copyOf(oldData, newCapacity);
-        Arrays.fill(values, oldCapacity, values.length, NA);
-      }
-    }
-    
-    @Override
-    public LogicalVector build() {
-      return new LogicalVector(values, size, buildAttributes());
-    }
-
-  }
 
   private static class LogicalType extends Vector.Type {
     public LogicalType() {
@@ -402,22 +232,22 @@ public class LogicalVector extends AbstractAtomicVector implements Iterable<Logi
 
     @Override
     public Vector.Builder newBuilder() {
-      return new Builder(0, 0);
+      return new LogicalArrayVector.Builder(0, 0);
     }
-    
+
     @Override
     public Builder newBuilderWithInitialSize(int initialSize) {
-      return new Builder(initialSize);
+      return new LogicalArrayVector.Builder(initialSize);
     }
-  
+
     @Override
     public Builder newBuilderWithInitialCapacity(int initialCapacity) {
-      return new Builder(0, initialCapacity);
+      return new LogicalArrayVector.Builder(0, initialCapacity);
     }
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {
-      return new LogicalVector(vector.getElementAsRawLogical(index));
+      return new LogicalArrayVector(vector.getElementAsRawLogical(index));
     }
 
     @Override

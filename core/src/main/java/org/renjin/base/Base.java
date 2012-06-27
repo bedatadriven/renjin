@@ -21,13 +21,6 @@
 
 package org.renjin.base;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.math.complex.Complex;
 import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
@@ -37,25 +30,15 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.io.ByteArrayCompression;
-import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -121,9 +104,9 @@ public class Base {
         }
       }
       if (type == 1) {
-        ans = new IntVector(n);
+        ans = new IntArrayVector(n);
       } else {
-        ans = new IntVector(Math.abs(n));
+        ans = new IntArrayVector(Math.abs(n));
       }
     }
     return ans;
@@ -153,7 +136,7 @@ public class Base {
         }
       }
     }
-    return PairList.Node.singleton("ans", new IntVector(counts));
+    return PairList.Node.singleton("ans", new IntArrayVector(counts));
   }
   
   public static SEXP Rrowsum_df(ListVector x, int ncol, Vector group, SEXP ugroup, boolean naRm) {
@@ -228,9 +211,9 @@ public class Base {
     lapack.dgesdd(jobu, n, p, xvals, n, s, u, ldu, v, ldvt, work, lwork, iwork, info);
     
     return ListVector.newNamedBuilder()
-      .add("d", new DoubleVector(s, sexp.getAttributes()))
-      .add("u", new DoubleVector(u, uexp.getAttributes()))
-      .add("vt", new DoubleVector(v, vexp.getAttributes()))
+      .add("d", new DoubleArrayVector(s, sexp.getAttributes()))
+      .add("u", new DoubleArrayVector(u, uexp.getAttributes()))
+      .add("vt", new DoubleArrayVector(v, vexp.getAttributes()))
       .build();
   }
  
@@ -257,9 +240,9 @@ public class Base {
   public static SEXP La_dgesv(DoubleVector A, DoubleVector Bin, DoubleVector tolin) {
     int n, p;
     IntVector ipiv, Adims, Bdims;
-    IntVector.Builder ipivBuilder;
+    IntArrayVector.Builder ipivBuilder;
     DoubleVector avals;
-    DoubleVector.Builder avalsBuilder;
+    DoubleArrayVector.Builder avalsBuilder;
     org.netlib.util.intW info;
 
     double anorm;
@@ -276,7 +259,7 @@ public class Base {
       throw new EvalException("'b' must be a numeric matrix");
     }
     //PROTECT(B = duplicate(Bin));
-    DoubleVector.Builder bu = new DoubleVector.Builder();
+    DoubleArrayVector.Builder bu = new DoubleArrayVector.Builder();
     for (int i = 0; i < Bin.length(); i++) {
       bu.add(Bin.get(i));
     }    
@@ -305,14 +288,14 @@ public class Base {
     }
 
     //ipiv = new IntVector(); //Will be size of n
-    ipivBuilder = new IntVector.Builder();
+    ipivBuilder = new IntArrayVector.Builder();
     for (int i = 0; i < n; i++) {
       ipivBuilder.add(0);
     }
     ipiv = ipivBuilder.build();
 
     //avals = (double *) R_alloc(n * n, sizeof(double));
-    avalsBuilder = new DoubleVector.Builder();
+    avalsBuilder = new DoubleArrayVector.Builder();
     //Memcpy(avals, REAL(A), n * n);
     for (int i = 0; i < A.length(); i++) {
       avalsBuilder.add(A.get(i));
@@ -344,7 +327,7 @@ public class Base {
     if (rcond.val < tol.get(0)) {
       throw new EvalException("system is computationally singular: reciprocal condition number = " + rcond.val);
     }
-    return new DoubleVector(Bcontent, Bin.getAttributes());
+    return new DoubleArrayVector(Bcontent, Bin.getAttributes());
   }
   
   /**
@@ -500,8 +483,8 @@ public class Base {
 ////        SET_VECTOR_ELT(ret, 1, unscramble(wI, n, right));
 //        }
       } else {
-        ret.add("values", new DoubleVector(wR));
-        ret.add("vectors", vectors ? DoubleVector.newMatrix(right, n, n) : Null.INSTANCE);
+        ret.add("values", new DoubleArrayVector(wR));
+        ret.add("vectors", vectors ? DoubleArrayVector.newMatrix(right, n, n) : Null.INSTANCE);
       }
       return ret.build();
   }
@@ -640,9 +623,9 @@ public class Base {
         throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
   
       ListVector.NamedBuilder ret = ListVector.newNamedBuilder();
-      ret.add("values", new DoubleVector(rvalues));
+      ret.add("values", new DoubleArrayVector(rvalues));
       if (!ov) {
-        ret.add("vectors", DoubleVector.newMatrix(rz, n, n));
+        ret.add("vectors", DoubleArrayVector.newMatrix(rz, n, n));
       }
       return ret.build();
   }
@@ -700,7 +683,7 @@ public class Base {
 
   public static SEXP R_isS4Object(SEXP exp) {
     // TODO(S4)
-    return new LogicalVector(false);
+    return new LogicalArrayVector(false);
   }
   
   public static ListVector str_signif(Vector x, int n, String type, int width, int digits, String format, String flag, StringVector resultVector) {

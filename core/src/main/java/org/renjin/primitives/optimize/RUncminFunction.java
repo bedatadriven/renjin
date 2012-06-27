@@ -22,14 +22,7 @@
 package org.renjin.primitives.optimize;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 class RUncminFunction implements UncminFunction {
 
@@ -64,7 +57,7 @@ class RUncminFunction implements UncminFunction {
   }
 
   public SEXP doApply(double x[]) {
-    FunctionCall call = FunctionCall.newCall(function, new DoubleVector(x));
+    FunctionCall call = FunctionCall.newCall(function, new DoubleArrayVector(x));
     return context.evaluate(call, rho);
   }
 

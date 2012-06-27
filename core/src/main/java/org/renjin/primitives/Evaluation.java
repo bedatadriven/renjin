@@ -21,16 +21,9 @@
 
 package org.renjin.primitives;
 
-import java.awt.Graphics;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.List;
-
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.renjin.base.Base;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
@@ -44,33 +37,18 @@ import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.special.ReturnException;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.ExternalExp;
+import org.renjin.sexp.*;
 import org.renjin.sexp.Frame;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.HashFrame;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.PromisePairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
 
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import java.awt.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.List;
 
 public class Evaluation {
 
@@ -111,7 +89,7 @@ public class Evaluation {
   }
 
   public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
-    assignEnv.setVariable(Symbol.get(x), new Promise(context, evalEnv, expr));
+    assignEnv.setVariable(Symbol.get(x), Promise.repromise(context, evalEnv, expr));
   }
 
 
@@ -140,7 +118,7 @@ public class Evaluation {
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
-      FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), (SEXP)vector, new IntVector(i+1));
+      FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), (SEXP)vector, new IntArrayVector(i+1));
       FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall,
           new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
       builder.add( context.evaluate(applyFunctionCall, rho) );
@@ -163,7 +141,7 @@ public class Evaluation {
       PairList.Builder args = new PairList.Builder();
       
       FunctionCall getCall = FunctionCall.newCall(
-          Symbol.get("[["), vector, new IntVector(i+1));
+          Symbol.get("[["), vector, new IntArrayVector(i+1));
       
       args.add(getCall);
       args.addAll(extraArgs);
@@ -191,7 +169,7 @@ public class Evaluation {
       result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
     }
     if(funValue.length() != 1) {
-      result.setAttribute(Symbols.DIM, new IntVector(funValue.length(), vector.length()));
+      result.setAttribute(Symbols.DIM, new IntArrayVector(funValue.length(), vector.length()));
     }
     
     return result.build();
@@ -583,7 +561,7 @@ public class Evaluation {
       if(temp != Symbol.UNBOUND_VALUE && 
           !isDefaultArgValue(temp) &&
           temp != Symbol.MISSING_ARG) {
-        updatedArgs.add(actual.getRawTag(), new Promise(context.getParent(), context.getParent().getEnvironment(), temp));
+        updatedArgs.add(actual.getRawTag(), Promise.repromise(context.getParent(), context.getParent().getEnvironment(), temp));
       } else {
         updatedArgs.add(actual.getRawTag(), actual.getValue());
       }

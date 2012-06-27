@@ -25,14 +25,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
+import org.renjin.sexp.*;
 
 /**
  * These functions provide a mechanism for handling unusual conditions,
@@ -142,7 +135,7 @@ public class Conditions {
 
     for (int i = n - 1; i >= 0; i--) {
       context.setConditionHandler(classes.getElementAsString(i),
-          new Promise(context, parentEnv, handlers.getElementAsSEXP(i)));
+          Promise.repromise(context, parentEnv, handlers.getElementAsSEXP(i)));
     }
   }
 

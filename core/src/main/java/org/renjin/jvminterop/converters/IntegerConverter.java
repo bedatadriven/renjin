@@ -1,8 +1,7 @@
 package org.renjin.jvminterop.converters;
 
-import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
@@ -16,9 +15,9 @@ public class IntegerConverter extends PrimitiveScalarConverter<Number> {
   @Override
   public SEXP convertToR(Number value) {
     if(value == null) {
-      return new IntVector(IntVector.NA);
+      return new IntArrayVector(IntVector.NA);
     } else {
-      return new IntVector(value.intValue());
+      return new IntArrayVector(value.intValue());
     }
   }
 

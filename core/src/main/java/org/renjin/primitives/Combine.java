@@ -21,8 +21,10 @@
 
 package org.renjin.primitives;
 
-import java.util.List;
-
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.ArgumentList;
@@ -30,32 +32,9 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.matrix.IntMatrixBuilder;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.PromisePairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SexpVisitor;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-
-import com.google.common.base.Function;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * Implementation of the combine-related functions, including c(), list(), unlist(),
@@ -312,7 +291,7 @@ public class Combine {
       newVector.setFrom(newIndex, source, i);
     }
 
-    newVector.setAttribute(Symbols.DIM, new IntVector(permutedDims));
+    newVector.setAttribute(Symbols.DIM, new IntArrayVector(permutedDims));
 
     for(PairList.Node node : source.getAttributes().nodes()) {
       if(node.getTag().equals(Symbols.DIM)) {
@@ -662,7 +641,7 @@ public class Combine {
     
     // build a new FunctionCall object and apply
    PairList.Builder args = new PairList.Builder();
-   args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntVector(deparseLevel)));
+   args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntArrayVector(deparseLevel)));
    args.addAll(arguments);
    
    FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), args.build());
@@ -698,7 +677,7 @@ public class Combine {
     }
 
     public Vector build() {
-      return builder.setAttribute(Symbols.DIM, new IntVector(rows,cols))
+      return builder.setAttribute(Symbols.DIM, new IntArrayVector(rows,cols))
           .build();
     }
   }
@@ -776,7 +755,7 @@ public class Combine {
               }
           }
         }
-        result.setAttribute(Symbols.DIM, new IntVector(nrow, ncol));
+        result.setAttribute(Symbols.DIM, new IntArrayVector(nrow, ncol));
         return result.build();
     }
 

@@ -1,5 +1,6 @@
 package org.renjin.graphics.geom;
 
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
@@ -75,7 +76,7 @@ public class Rectangle {
   }
   
   public DoubleVector toVector() {
-    return new DoubleVector(x1, x2, y1, y2);
+    return new DoubleArrayVector(x1, x2, y1, y2);
   }
 
   public Rectangle normalize(Rectangle rect) {

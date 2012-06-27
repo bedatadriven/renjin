@@ -95,7 +95,7 @@ public class Attributes {
    * 
    * @param rowNames the {@code row.names} vector to validate
    * @return the given {@code rowNames} vector, possibly in compact form. 
-   * @throws EvalException if {@code rowNames} is not a {@link StringVector} or a {@link IntVector}
+   * @throws EvalException if {@code rowNames} is not a {@link StringVector} or a {@link IntArrayVector}
    */
   public static Vector validateRowNames(SEXP rowNames) {
     
@@ -140,7 +140,7 @@ public class Attributes {
    * Compact {@code row.names} values represent a row names vector of 1..n and takes the 
    * internal storage form of {@code c(NA, -n)}.
    *  
-   * @param vector the {@link IntVector} to test
+   * @param vector the {@link IntArrayVector} to test
    * @return true if the given vector is in the internal compact form of c(NA, -n) 
    */
   public static boolean isCompactRowName(IntVector vector) {
@@ -151,7 +151,7 @@ public class Attributes {
    * Compact {@code row.names} values represent a row names vector of 1..n and takes the 
    * internal storage form of {@code c(NA, -n)}.
    *  
-   * @param vector the {@link IntVector} to test
+   * @param vector the {@link IntArrayVector} to test
    * @return true if the given vector is in the internal compact form of c(NA, -n) 
    */  
   public static boolean isCompactRowName(SEXP exp) {
@@ -177,10 +177,10 @@ public class Attributes {
   /**
    * Creates a compact internal form for {@code row.names} c(NA, -n)
    * @param n the length of the row name vector
-   * @return an {@link IntVector} in the form c(NA, -n)
+   * @return an {@link IntArrayVector} in the form c(NA, -n)
    */
   public static IntVector compactRowNames(int n) {
-    return new IntVector(IntVector.NA, -n);
+    return new IntArrayVector(IntVector.NA, -n);
   }
 
   /**
@@ -221,7 +221,7 @@ public class Attributes {
     for(int i=0;i!=n;++i) {
       result[i] = i+1;
     }
-    return new IntVector(result);
+    return new IntArrayVector(result);
   }
 
 }

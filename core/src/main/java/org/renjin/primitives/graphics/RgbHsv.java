@@ -1,16 +1,12 @@
 package org.renjin.primitives.graphics;
 
-import java.awt.Color;
-import java.util.ArrayList;
-
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.awt.*;
+import java.util.ArrayList;
 
 
 public class RgbHsv {
@@ -1100,7 +1096,7 @@ public class RgbHsv {
 	@Primitive("col2rgb")
 	public static IntVector col2rgb(Vector s) {
 		int[] result;
-		IntVector.Builder ib = new IntVector.Builder();
+		IntArrayVector.Builder ib = new IntArrayVector.Builder();
 
 		for (int j = 0; j < s.length(); j++) {
 			String name = "white", rgb = "#FFFFFF";
@@ -1123,7 +1119,7 @@ public class RgbHsv {
 				ib.add(result[i]);
 			}
 		}
-		ib.setAttribute(Symbols.DIM, new IntVector(3, s.length()));
+		ib.setAttribute(Symbols.DIM, new IntArrayVector(3, s.length()));
 		ib.setAttribute(Symbols.ROW_NAMES, new StringVector(new String[] {
 				"red", "green", "blue" }));
 		return (ib.build());
@@ -1131,7 +1127,7 @@ public class RgbHsv {
 
 	@Primitive("rgb2hsv")
 	public static DoubleVector rgb2hsv(DoubleVector rgb) {
-		DoubleVector.Builder result = new DoubleVector.Builder();
+		DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
 		float[] hsvvals = new float[3];
 		for (int i = 0; i < rgb.length(); i += 3) {
 			Color.RGBtoHSB((int) (rgb.get(i) * 255),
@@ -1141,7 +1137,7 @@ public class RgbHsv {
 			result.add(hsvvals[1]);
 			result.add(hsvvals[2]);
 		}
-		result.setAttribute(Symbols.DIM, new IntVector(3, rgb.length() / 3));
+		result.setAttribute(Symbols.DIM, new IntArrayVector(3, rgb.length() / 3));
 		result.setAttribute(Symbols.ROW_NAMES, new StringVector(new String[] {
 				"h", "s", "v" }));
 		return (result.build());

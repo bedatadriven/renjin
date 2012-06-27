@@ -21,30 +21,10 @@
 
 package org.renjin.util;
 
-import org.renjin.eval.Context;
-import org.renjin.sexp.CHARSEXP;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.Frame;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-import org.renjin.sexp.Vector.Builder;
-
-
 import com.google.common.base.Preconditions;
+import org.renjin.eval.Context;
+import org.renjin.sexp.*;
+import org.renjin.sexp.Vector.Builder;
 
 /**
  * Macros and static methods defined in the original C implementation
@@ -489,7 +469,7 @@ public class CDefines {
   }
 
   public static SEXP ScalarInteger(int flag) {
-    return new IntVector(flag);
+    return new IntArrayVector(flag);
   }
   
   public static boolean isNull(SEXP exp) {

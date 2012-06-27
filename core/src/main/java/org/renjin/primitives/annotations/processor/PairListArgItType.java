@@ -7,7 +7,8 @@ public class PairListArgItType implements ArgumentItType {
   public void init(WrapperSourceWriter s) {
     s.writeStatement("ArgumentIterator argIt = new ArgumentIterator(context, rho, args)");
   }
-  
+
+
   public void writeFetchNextNode(WrapperSourceWriter s) {
 
     s.writeStatement("PairList.Node node = argIt.nextNode()");

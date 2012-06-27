@@ -21,16 +21,14 @@
 
 package org.renjin.sexp;
 
+import com.google.common.collect.Iterators;
+import org.apache.commons.math.complex.Complex;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
-import org.apache.commons.math.complex.Complex;
-
-import com.google.common.collect.Iterators;
-
-import static org.renjin.util.RInternalDSL.*;
+import static org.renjin.util.RInternalDSL.complex;
 
 public class ComplexVector extends AbstractAtomicVector implements Iterable<Complex> {
 
@@ -70,12 +68,12 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
   }
 
   public static ComplexVector newMatrix(double[] values, int nRows, int nCols) {
-    PairList attributes = new PairList.Node(Symbols.DIM, new IntVector(nRows,nCols), Null.INSTANCE);
+    PairList attributes = new PairList.Node(Symbols.DIM, new IntArrayVector(nRows,nCols), Null.INSTANCE);
     return new ComplexVector(values, attributes);
   }
   
   public static ComplexVector newMatrix(Complex[] values, int nRows, int nCols) {
-    PairList attributes = new PairList.Node(Symbols.DIM,new IntVector(nRows,nCols), Null.INSTANCE);
+    PairList attributes = new PairList.Node(Symbols.DIM,new IntArrayVector(nRows,nCols), Null.INSTANCE);
     return new ComplexVector(values,attributes);
   }
   

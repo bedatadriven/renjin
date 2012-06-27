@@ -1,14 +1,9 @@
 package org.renjin.jvminterop.converters;
 
-import java.lang.reflect.Array;
-
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.lang.reflect.Array;
 
 
 public class DoubleArrayConverter implements Converter<Object> {
@@ -30,20 +25,20 @@ public class DoubleArrayConverter implements Converter<Object> {
   @Override
   public SEXP convertToR(Object value) {
     if (value == null) {
-      return new DoubleVector(DoubleVector.NA);
+      return new DoubleArrayVector(DoubleVector.NA);
     } else {
       double dArray[] = new double[Array.getLength(value)];
       for (int i = 0; i < Array.getLength(value); i++) {
         dArray[i] = ((Number)Array.get(value, i)).doubleValue();
       }
-      return new DoubleVector(dArray);
+      return new DoubleArrayVector(dArray);
     }
   }
 
   @Override
   public boolean acceptsSEXP(SEXP exp) {
-    return  exp instanceof DoubleVector || 
-            exp instanceof IntVector || 
+    return  exp instanceof DoubleVector ||
+            exp instanceof IntVector ||
             exp instanceof LogicalVector;
   }
 

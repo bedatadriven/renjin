@@ -26,17 +26,7 @@ import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.GroupGeneric;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 /**
@@ -57,7 +47,7 @@ public class Summary {
         .addList(arguments)
         .getMinimum();
     } catch (RangeContainsNA e) {
-      return new DoubleVector(DoubleVector.NA);
+      return new DoubleArrayVector(DoubleVector.NA);
     }
   }
 
@@ -72,7 +62,7 @@ public class Summary {
         .addList(arguments)
         .getMaximum();
     } catch (RangeContainsNA e) {
-      return new DoubleVector(DoubleVector.NA);
+      return new DoubleArrayVector(DoubleVector.NA);
     }  
   }
 
@@ -105,7 +95,7 @@ public class Summary {
         .addList(arguments)
         .getRange();
     } catch (RangeContainsNA e) {
-      return new DoubleVector(DoubleVector.NA, DoubleVector.NA);
+      return new DoubleArrayVector(DoubleVector.NA, DoubleVector.NA);
     }  
   }
   
@@ -180,7 +170,7 @@ public class Summary {
     
     public Vector getRange() {
       if(maxValue == null) {
-        return new DoubleVector(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+        return new DoubleArrayVector(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
       } else {
         Vector.Builder result = resultType.newBuilder();
         if(naEncountered) {
@@ -246,7 +236,7 @@ public class Summary {
         for(int i=0;i!=argument.length();++i) {
           if(vector.isElementNA(i)) {
             if(!removeNA) {
-              return haveDouble ? new DoubleVector(DoubleVector.NA) : new IntVector(IntVector.NA);
+              return haveDouble ? new DoubleArrayVector(DoubleVector.NA) : new IntArrayVector(IntVector.NA);
             }
           } else {
             intSum += vector.getElementAsInt(i);
@@ -258,7 +248,7 @@ public class Summary {
         for(int i=0;i!=vector.length();++i) {
           if(vector.isElementNA(i)) {
             if(!removeNA) {
-              return new DoubleVector(DoubleVector.NA);
+              return new DoubleArrayVector(DoubleVector.NA);
             }
           } else {
             doubleSum += vector.getElementAsDouble(i);
@@ -268,7 +258,7 @@ public class Summary {
         throw new EvalException("invalid 'type' (" + argument.getTypeName() + ") of argument");
       }
     }
-    return haveDouble ? new DoubleVector(doubleSum + intSum) : new IntVector(intSum);
+    return haveDouble ? new DoubleArrayVector(doubleSum + intSum) : new IntArrayVector(intSum);
   }
 
   /**
@@ -345,12 +335,12 @@ public class Summary {
     for (int i=0;i<x.length();i++){
       mean+=x.getElementAsSEXP(i).asReal();
     }
-    return(new DoubleVector(new double[]{mean / x.length()}));
+    return(new DoubleArrayVector(new double[]{mean / x.length()}));
   }
   
   @Primitive
   public static DoubleVector cumsum(Vector source) {
-    DoubleVector.Builder result = new DoubleVector.Builder();
+    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     double sum = source.getElementAsDouble(0);
     result.add(sum);
     for (int i = 1; i < source.length(); i++) {
@@ -366,7 +356,7 @@ public class Summary {
 
   @Primitive
   public static DoubleVector cumprod(Vector source) {
-    DoubleVector.Builder result = new DoubleVector.Builder();
+    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     double sum = source.getElementAsDouble(0);
     result.add(sum);
     for (int i = 1; i < source.length(); i++) {
@@ -382,7 +372,7 @@ public class Summary {
 
   @Primitive
   public static DoubleVector cummax(Vector source) {
-    DoubleVector.Builder result = new DoubleVector.Builder();
+    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     double max = source.getElementAsDouble(0);
     result.add(max);
     for (int i = 1; i < source.length(); i++) {
@@ -398,7 +388,7 @@ public class Summary {
 
   @Primitive
   public static DoubleVector cummin(Vector source) {
-    DoubleVector.Builder result = new DoubleVector.Builder();
+    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     double min = source.getElementAsDouble(0);
     result.add(min);
     for (int i = 1; i < source.length(); i++) {
@@ -501,9 +491,9 @@ public class Summary {
     
     private Vector.Builder createBuilder() {
       if(realResult) {
-        return new DoubleVector.Builder();
+        return new DoubleArrayVector.Builder();
       } else {
-        return new IntVector.Builder();
+        return new IntArrayVector.Builder();
       }
     }
     

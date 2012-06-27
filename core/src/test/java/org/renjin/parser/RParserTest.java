@@ -21,30 +21,19 @@
 
 package org.renjin.parser;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.renjin.ExpMatchers.logicalVectorOf;
-import static org.renjin.ExpMatchers.realVectorEqualTo;
-import static org.renjin.ExpMatchers.symbolNamed;
+import org.hamcrest.CoreMatchers;
+import org.junit.Before;
+import org.junit.Test;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.Before;
-import org.junit.Test;
-import org.renjin.parser.RParser;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.renjin.ExpMatchers.*;
 
 
 public class RParserTest {
@@ -56,7 +45,7 @@ public class RParserTest {
   @Test
   public void one() throws IOException {
     SEXP r = parseSingle("1\n");
-    assertThat(r, CoreMatchers.instanceOf(DoubleVector.class));
+    assertThat(r, CoreMatchers.instanceOf(DoubleArrayVector.class));
   }
 
   @Test

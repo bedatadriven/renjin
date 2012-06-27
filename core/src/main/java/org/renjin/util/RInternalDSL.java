@@ -1,14 +1,7 @@
 package org.renjin.util;
 
 import org.apache.commons.math.complex.Complex;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Raw;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
+import org.renjin.sexp.*;
 
 
 public class RInternalDSL {
@@ -25,11 +18,11 @@ public class RInternalDSL {
   }
 
   public static SEXP c(boolean... values) {
-    return new LogicalVector(values);
+    return new LogicalArrayVector(values);
   }
 
   public static SEXP c(Logical... values) {
-    return new LogicalVector(values);
+    return new LogicalArrayVector(values);
   }
 
   public static SEXP c(String... values) {
@@ -37,7 +30,7 @@ public class RInternalDSL {
   }
 
   public static SEXP c(double... values) {
-    return new DoubleVector(values);
+    return new DoubleArrayVector(values);
   }
   
   public static SEXP c(Raw... values){

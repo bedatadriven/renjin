@@ -1,12 +1,7 @@
 package org.renjin.primitives.annotations.processor;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PromisePairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
 
 /**
@@ -29,7 +24,8 @@ public class ArgumentIterator {
   private Environment rho;
   private PairList args;
   private PairList elipses = Null.INSTANCE;
-  
+  private String currentName;
+
   public ArgumentIterator(Context context, Environment rho, PairList args) {
     super();
     this.context = context;
@@ -52,16 +48,17 @@ public class ArgumentIterator {
       throw new ArgumentException();
     }
   
-    SEXP arg = node.getValue();
-    
-    if(Symbols.ELLIPSES.equals(arg)) {
-      PromisePairList dotdot = (PromisePairList) context.evaluate( arg, rho);
+    SEXP value = node.getValue();
+
+
+    if(Symbols.ELLIPSES.equals(value)) {
+      PromisePairList dotdot = (PromisePairList) context.evaluate( value, rho);
       elipses = dotdot;
       return evalNext();
 
     } else {
-     
-      return context.evaluate( arg, rho);
+      this.currentName = node.getName();
+      return context.evaluate( value, rho);
     } 
   }
   
@@ -79,7 +76,8 @@ public class ArgumentIterator {
       // we've run out of arguments!
       throw new ArgumentException();
     }
-  
+
+    this.currentName = node.getName();
     return node.getValue(); 
   }
   
@@ -110,6 +108,7 @@ public class ArgumentIterator {
       return node;
     } 
   }
+
   
   public boolean hasNext() {
     if(elipses != Null.INSTANCE) {
@@ -132,6 +131,4 @@ public class ArgumentIterator {
     
     return false;
   }
-  
-
 }

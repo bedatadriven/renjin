@@ -21,17 +21,10 @@
 
 package org.renjin.primitives.annotations.processor;
 
+import org.renjin.sexp.*;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
 
 /**
  * Converts Java class to "R-friendly" names
@@ -46,14 +39,14 @@ class FriendlyTypesNames {
     names = new HashMap<Class, String>();
     names.put(SEXP[].class, "...");
     names.put(SEXP.class, "any");
-    names.put(LogicalVector.class, LogicalVector.TYPE_NAME);
+    names.put(LogicalArrayVector.class, LogicalVector.TYPE_NAME);
     names.put(Logical.class, LogicalVector.TYPE_NAME);
     names.put(Boolean.class, LogicalVector.TYPE_NAME);
     names.put(Boolean.TYPE, LogicalVector.TYPE_NAME);
-    names.put(IntVector.class, IntVector.TYPE_NAME);
+    names.put(IntArrayVector.class, IntVector.TYPE_NAME);
     names.put(Integer.class, IntVector.TYPE_NAME);
     names.put(Integer.TYPE, IntVector.TYPE_NAME);
-    names.put(DoubleVector.class, DoubleVector.TYPE_NAME);
+    names.put(DoubleArrayVector.class, DoubleVector.TYPE_NAME);
     names.put(Double.class, DoubleVector.TYPE_NAME);
     names.put(Double.TYPE, DoubleVector.TYPE_NAME);
     names.put(String.class, StringVector.TYPE_NAME);

@@ -1,14 +1,9 @@
 package org.renjin.primitives.matrix;
 
-import java.util.Collection;
-
 import org.renjin.primitives.Indexes;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.util.Collection;
 
 
 class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
@@ -24,7 +19,7 @@ class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
     this.nrows = nrows;
     this.ncols = ncols;
     builder = (B) vectorType.newBuilderWithInitialSize(nrows * ncols);
-    builder.setAttribute(Symbols.DIM, new IntVector(nrows, ncols));
+    builder.setAttribute(Symbols.DIM, new IntArrayVector(nrows, ncols));
   }
  
   public void setRowNames(Vector names) {

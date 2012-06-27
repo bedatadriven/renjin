@@ -2,11 +2,9 @@ package org.renjin.jvminterop.converters;
 
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
 
 
 public class IntegerArrayConverter implements Converter<Number[]> {
@@ -19,13 +17,13 @@ public class IntegerArrayConverter implements Converter<Number[]> {
   @Override
   public SEXP convertToR(Number[] value) {
     if (value == null) {
-      return new IntVector(IntVector.NA);
+      return new IntArrayVector(IntVector.NA);
     } else {
       int iArray[] = new int[value.length];
       for (int i = 0; i < value.length; i++) {
         iArray[i] = value[i].intValue();
       }
-      return new IntVector(iArray);
+      return new IntArrayVector(iArray);
     }
   }
 

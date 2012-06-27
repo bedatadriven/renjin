@@ -1,5 +1,6 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
+import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
 
 public class IntegerType extends ScalarType {
@@ -30,8 +31,8 @@ public class IntegerType extends ScalarType {
   }
 
   @Override
-  public Class<IntVector.Builder> getBuilderClass() {
-    return IntVector.Builder.class;
+  public Class<IntArrayVector.Builder> getBuilderClass() {
+    return IntArrayVector.Builder.class;
   }
 
   @Override

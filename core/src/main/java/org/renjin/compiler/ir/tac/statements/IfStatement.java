@@ -1,23 +1,17 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
+import org.renjin.sexp.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {

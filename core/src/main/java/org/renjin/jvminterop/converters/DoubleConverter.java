@@ -1,10 +1,6 @@
 package org.renjin.jvminterop.converters;
 
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 public class DoubleConverter extends PrimitiveScalarConverter<Number> {
 
@@ -16,9 +12,9 @@ public class DoubleConverter extends PrimitiveScalarConverter<Number> {
   @Override
   public SEXP convertToR(Number value) {
     if(value == null) {  
-      return new DoubleVector(DoubleVector.NA);
+      return new DoubleArrayVector(DoubleVector.NA);
     } else {
-      return new DoubleVector(value.doubleValue());
+      return new DoubleArrayVector(value.doubleValue());
     }
   }
 

@@ -1,5 +1,6 @@
 package org.renjin.stats;
 
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.ListVector;
 
@@ -11,7 +12,7 @@ public class Stats {
     
     ListVector.NamedBuilder result = new ListVector.NamedBuilder();
     result.add("y", 
-        new DoubleVector(Massdist.massdist(x.toDoubleArray(), weights.toDoubleArray(), nx, xlo, xhi, y.toDoubleArray(), ny)));
+        new DoubleArrayVector(Massdist.massdist(x.toDoubleArray(), weights.toDoubleArray(), nx, xlo, xhi, y.toDoubleArray(), ny)));
     
     return result.build();
     
@@ -34,7 +35,7 @@ public class Stats {
         yleft, yright, f);
     
     ListVector.NamedBuilder result = new ListVector.NamedBuilder();
-    result.add("xout", new DoubleVector(xout));
+    result.add("xout", new DoubleArrayVector(xout));
     return result.build();
   }
 }

@@ -1,13 +1,12 @@
 package org.renjin.primitives;
 
+import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.ComplexVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.Vector;
-
-import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class FFT {
 

@@ -1,6 +1,7 @@
 package org.renjin.primitives.time;
 
 import org.joda.time.DateTime;
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbols;
@@ -33,7 +34,7 @@ public class PosixCtVector extends TimeVector {
   }  
   
   public static class Builder {
-    private final DoubleVector.Builder vector = new DoubleVector.Builder();
+    private final DoubleArrayVector.Builder vector = new DoubleArrayVector.Builder();
     
     public Builder add(DateTime dateTime) {
       vector.add(dateTime.getMillis() / 1000);

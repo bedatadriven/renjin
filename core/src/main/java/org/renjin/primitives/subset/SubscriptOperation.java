@@ -21,23 +21,13 @@
 
 package org.renjin.primitives.subset;
 
-import java.util.List;
-import java.util.Set;
-
-import org.renjin.eval.EvalException;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.*;
+
+import java.util.List;
+import java.util.Set;
 
 public class SubscriptOperation {
 
@@ -152,7 +142,7 @@ public class SubscriptOperation {
         }
       } else {
         // otherwise treat as an array and use dimnames
-        IntVector.Builder dim = new IntVector.Builder();
+        IntArrayVector.Builder dim = new IntArrayVector.Builder();
         ListVector.Builder dimNames = new ListVector.Builder();
         boolean hasDimNames = false;
         int[] selectedDim = selection.getSubscriptDimensions();
@@ -203,7 +193,7 @@ public class SubscriptOperation {
       
       int[] selectedDim = selection.getSubscriptDimensions();
       
-      IntVector.Builder result = new IntVector.Builder();
+      IntArrayVector.Builder result = new IntArrayVector.Builder();
       
       for(int i=0;i!=selectedDim.length;++i) {
         

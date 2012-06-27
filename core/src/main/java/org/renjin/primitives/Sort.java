@@ -20,33 +20,19 @@
  */
 package org.renjin.primitives;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Generic;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class Sort {
 
@@ -81,7 +67,7 @@ public class Sort {
       reverse(sorted);
     }
 
-    return new DoubleVector(sorted, x.getAttributes());
+    return new DoubleArrayVector(sorted, x.getAttributes());
   }
   
   private static void reverse(double[] b) {
@@ -113,7 +99,7 @@ public class Sort {
       reverse(sorted);
     }
 
-    return new IntVector(sorted, x.getAttributes());
+    return new IntArrayVector(sorted, x.getAttributes());
   }
 
   @Primitive("qsort")
@@ -126,7 +112,7 @@ public class Sort {
     double[] values = x.toDoubleArray();
     Arrays.sort(values);
     
-    DoubleVector sorted = new DoubleVector(values, x.getAttributes());
+    DoubleVector sorted = new DoubleArrayVector(values, x.getAttributes());
     
     // drop the names attributes if present because it will not be sorted
     return (DoubleVector)sorted
@@ -149,7 +135,7 @@ public class Sort {
     int[] values = x.toIntArray();
     Arrays.sort(values);
     
-    IntVector sorted = new IntVector(values, x.getAttributes());
+    IntVector sorted = new IntArrayVector(values, x.getAttributes());
     
     // drop the names attributes if present because it will not be sorted
     return (IntVector)sorted
@@ -225,7 +211,7 @@ public class Sort {
       }
     });
 
-    IntVector.Builder result = new IntVector.Builder();
+    IntArrayVector.Builder result = new IntArrayVector.Builder();
     for (Integer index : ordering) {
       result.add(index + 1);
     }
@@ -236,7 +222,7 @@ public class Sort {
   @Primitive("which.min")
   public static IntVector whichMin(Vector v) {
     if (v.length() == 0) {
-      IntVector.Builder b = new IntVector.Builder();
+      IntArrayVector.Builder b = new IntArrayVector.Builder();
       return (b.build());
     }
     int minIndex = 0;
@@ -248,13 +234,13 @@ public class Sort {
         minIndex = i;
       }
     }
-    return (new IntVector(minIndex + 1));
+    return (new IntArrayVector(minIndex + 1));
   }
 
   @Primitive("which.max")
   public static IntVector whichMax(Vector v) {
     if (v.length() == 0) {
-      IntVector.Builder b = new IntVector.Builder();
+      IntArrayVector.Builder b = new IntArrayVector.Builder();
       return (b.build());
     }
     int maxIndex = 0;
@@ -265,7 +251,7 @@ public class Sort {
         maxIndex = i;
       }
     }
-    return (new IntVector(maxIndex + 1));
+    return (new IntArrayVector(maxIndex + 1));
   }
   
   @Primitive

@@ -1,18 +1,11 @@
 package org.renjin.primitives.models;
 
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Types;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * Encapsulates a model frame object. 
@@ -137,7 +130,7 @@ public class ModelFrame {
   }
 
   public static boolean isOrderedFactor(SEXP vector) {
-    return vector instanceof IntVector && 
+    return vector instanceof IntVector &&
         vector.inherits("factor") && 
         vector.inherits("ordered");
   }

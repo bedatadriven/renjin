@@ -1,116 +1,58 @@
-/*
- * R : A Computer Language for Statistical Data Analysis
- * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
- * Copyright (C) 2003, 2004  The R Foundation
- * Copyright (C) 2010 bedatadriven
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package org.renjin.sexp;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-
+import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.ParseUtil;
 
-import com.google.common.collect.Iterators;
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Primitives;
+import java.util.Iterator;
 
 
-public final class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
-  
+public abstract class DoubleVector extends AbstractAtomicVector implements Iterable<Double> {
+
   public static final String TYPE_NAME = "double";
 
-  public static final Vector.Type VECTOR_TYPE = new DoubleType();
-  public static final DoubleVector EMPTY = new DoubleVector();
+  public static final Type VECTOR_TYPE = new DoubleType();
 
   /**
    * This is the internal representation R uses to
    * represent NAs: a "quiet NaN" with a payload of 0x1954.
-   * 
+   * <p/>
    * <p>Note that this is slightly different than the C implementation of R,
-   * which uses a "signaled" NaN with the same payload. The serialized XDR form of NA is 
+   * which uses a "signaled" NaN with the same payload. The serialized XDR form of NA is
    * different still: see {@link org.renjin.primitives.io.serialization.SerializationFormat#XDR_NA_BITS}.
-   * 
+   * <p/>
    * <p>The Java Language Spec is somewhat ambiguous regarding the extent to which
    * non-canonical NaNs will be preserved. What is clear though, is that signaled bit
    * (bit 12) is dropped by {@link Double#longBitsToDouble(long)}, at least on the few
    * platforms on which I have tested the Sun JDK 1.6.
-   *
+   * <p/>
    * <p>The payload, however, does appear to be preserved by the JVM.
    */
-  private static final long NA_BITS = 0x7ff8000000001954L;
+  protected static final long NA_BITS = 0x7ff8000000001954L;
 
   /**
    * The double constant used to designate elements or values that are
    * missing in the statistical sense, or literally "Not Available". The following
    * has the relationships hold true:
-   *
+   * <p/>
    * <ul>
    * <li>isNaN(NA) is <i>true</i>
    * <li>isNA(Double.NaN) is <i>false</i>
    * </ul>
-   
-   *
    */
   public static final double NA = Double.longBitsToDouble(NA_BITS);
 
   public static final double NaN = Double.NaN;
   public static final double EPSILON = 2.220446e-16;
 
+  public static final DoubleVector EMPTY = new DoubleArrayVector();
 
-  private double[] values;
-
-  private DoubleVector(PairList attributes) {
+  protected DoubleVector(PairList attributes) {
     super(attributes);
   }
 
-  public DoubleVector(double... values) {
-    this.values = Arrays.copyOf(values, values.length);
-  }
+  protected DoubleVector() {
 
-  public DoubleVector(double[] values, PairList attributes) {
-    this(attributes);
-    this.values = Arrays.copyOf(values, values.length);
-  }
-
-  public DoubleVector(double[] values, int length, PairList attributes) {
-    this(attributes);
-    this.values = Arrays.copyOf(values, length);
-  }
-
-  public DoubleVector(Collection<Double> values) {
-    this.values = new double[values.size()];
-    int i = 0;
-    for(Double value : values) {
-      this.values[i++] = value;
-    }
-  }
-
-  @Override
-  public String getTypeName() {
-    return TYPE_NAME;
-  }
-
-  @Override
-  public Type getVectorType() {
-    return VECTOR_TYPE;
   }
 
   /**
@@ -121,211 +63,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
    * @return a RealVector of length one
    */
   public static SEXP parseDouble(String text) {
-    return new DoubleVector(Double.parseDouble(text));
-  }
-
-  @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
-    DoubleVector clone = new DoubleVector(attributes);
-    clone.values = values;
-    return clone;
-  }
-
-  public double get(int i) {
-    return values[i];
-  }
-
-  @Override
-  public Logical getElementAsLogical(int index) {
-    double value = values[index];
-    if(isNA(value)) {
-      return Logical.NA;
-    } else if(value == 0) {
-      return Logical.FALSE;
-    } else {
-      return Logical.TRUE;
-    }
-  }
-
-  @Override
-  public int getElementAsRawLogical(int index) {
-    double value = values[index];
-    if(isNaN(value)) {
-      return IntVector.NA;
-    } else if(value == 0) {
-      return 0;
-    } else {
-      return 1;
-    }
-  }
-
-  @Override
-  public String getElementAsString(int index) {
-    double value = values[index];
-    if(isNA(value)) {
-      return StringVector.NA;
-    } else if(isNaN(value)) {
-      return "NaN";
-    } else {
-      return ParseUtil.toString(value);
-    }
-  }
-
-  @Override
-  public int getElementAsInt(int index) {
-    double value = values[index];
-    return isNaN(value) ? IntVector.NA : (int) value;
-  }
-
-  @Override
-  public Complex getElementAsComplex(int index) {
-    return new Complex(values[index], 0);
-  }
-
-  @Override
-  public double getElementAsDouble(int index) {
-    return values[index];
-  }
-
-  public DoubleVector getElementAsSEXP(int index) {
-    return new DoubleVector(values[index]);
-  }
-
-  @Override
-  public Double getElementAsObject(int index) {
-    return values[index];
-  }
-
-  @Override
-  public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
-    double value = vector.getElementAsDouble(vectorIndex);
-    for(int i=startIndex;i<values.length;++i) {
-      if(value == values[i]) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  @Override
-  public int compare(int index1, int index2) {
-    return Double.compare(values[index1], values[index2]);
-  }
-
-  public int[] coerceToIntArray() {
-    int integers[] = new int[values.length];
-    for(int i=0; i!=values.length; ++i) {
-      integers[i] = isNaN(values[i]) ? IntVector.NA : (int)values[i];
-    }
-    return integers;
-  }
-
-  @Override
-  public int length() {
-    return values.length;
-  }
-
-  @Override
-  public boolean isNumeric() {
-    return true;
-  }
-
-  @Override
-  public Logical asLogical() {
-    double x = values[0];
-
-    if (Double.isNaN(x)) {
-      return Logical.NA;
-    } else if (x == 0) {
-      return Logical.FALSE;
-    } else {
-      return Logical.TRUE;
-    }
-  }
-
-  @Override
-  public String getImplicitClass() {
-    return "numeric";
-  }
-
-  @Override
-  public void accept(SexpVisitor visitor) {
-    visitor.visit(this);
-  }
-
-  @Override
-  public Iterator<Double> iterator() {
-    return Iterators.unmodifiableIterator(Doubles.asList(values).iterator());
-  }
-
-  public double asReal() {
-    if(values.length == 0) {
-      return NA;
-    } else {
-      return values[0];
-    }
-  }
-  
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    DoubleVector vector = (DoubleVector) o;
-    
-    if(this.length() != vector.length()) {
-      return false;
-    }
-    for(int i=0;i!=values.length;++i) {
-      double this_i = values[i];
-      double that_i = vector.values[i];
-      
-      if( isNA(this_i)  != isNA(that_i) ) {
-        return false;
-      }
-      if( isNaN(this_i) != isNaN(that_i) ) {
-        return false;
-      }
-      if( !isNaN(this_i) && !isNaN(that_i) && this_i != that_i) {
-        return false;
-      }
-    }
-    
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    return Arrays.hashCode(values);
-  }
-
-  @Override
-  public double[] toDoubleArray() {
-    return Arrays.copyOf(values, values.length);
-  }
-  
-  @Override
-  public String toString() {
-    if (values.length == 1) {
-      return Double.toString(values[0]);
-    } else {
-      StringBuilder sb = new StringBuilder("c(");
-      for(int i=0;i!=Math.min(5,length());++i) {
-        if(i > 0) {
-          sb.append(", ");
-        }
-        if(isNA(getElementAsDouble(i))){
-          sb.append("NA");
-        }else{
-          sb.append(ParseUtil.toString(getElementAsDouble(i)));
-        }
-      }
-      if(length() > 5) {
-        sb.append(",... ").append(length()).append(" elements total");
-      }
-      return sb.append(")").toString();
-    }
+    return new DoubleArrayVector(Double.parseDouble(text));
   }
 
   public static boolean isNaN(double x) {
@@ -342,155 +80,260 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
   }
 
   @Override
-  public Builder newCopyBuilder() {
-    return new Builder(this);
+  public String getTypeName() {
+    return TYPE_NAME;
   }
 
   @Override
-  public Builder newBuilderWithInitialSize(int initialSize) {
-    return new Builder(initialSize, initialSize);
+  public Type getVectorType() {
+    return VECTOR_TYPE;
   }
-  
+
   @Override
-  public Builder newBuilderWithInitialCapacity(int initialCapacity) {
-    return new Builder(0, initialCapacity);
+  protected abstract SEXP cloneWithNewAttributes(PairList attributes);
+
+  public double get(int i) {
+    return getElementAsDouble(i);
   }
 
-  public static DoubleVector newMatrix(double[] values, int nRows, int nCols) {
-    PairList attributes = new PairList.Node(Symbols.DIM, new IntVector(nRows,nCols), Null.INSTANCE);
-    return new DoubleVector(values, attributes);
+  @Override
+  public Logical getElementAsLogical(int index) {
+    double value = getElementAsDouble(index);
+    if (isNA(value)) {
+      return Logical.NA;
+    } else if (value == 0) {
+      return Logical.FALSE;
+    } else {
+      return Logical.TRUE;
+    }
   }
 
+  @Override
+  public int getElementAsRawLogical(int index) {
+    double value = getElementAsDouble(index);
+    if (isNaN(value)) {
+      return IntVector.NA;
+    } else if (value == 0) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+
+  @Override
+  public String getElementAsString(int index) {
+    double value = getElementAsDouble(index);
+    if (isNA(value)) {
+      return StringVector.NA;
+    } else if (isNaN(value)) {
+      return "NaN";
+    } else {
+      return ParseUtil.toString(value);
+    }
+  }
+
+  @Override
+  public int getElementAsInt(int index) {
+    double value = getElementAsDouble(index);
+    return Double.isNaN(value) ? IntVector.NA : (int) value;
+  }
+
+  @Override
+  public Complex getElementAsComplex(int index) {
+    return new Complex(getElementAsDouble(index), 0);
+  }
+
+  @Override
+  public abstract double getElementAsDouble(int index);
+
+  public DoubleVector getElementAsSEXP(int index) {
+    return new DoubleArrayVector(getElementAsDouble(index));
+  }
+
+  @Override
+  public Double getElementAsObject(int index) {
+    return getElementAsDouble(index);
+  }
+
+  @Override
+  public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
+    double value = vector.getElementAsDouble(vectorIndex);
+    for (int i = startIndex; i < length(); ++i) {
+      if (value == getElementAsDouble(i)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  @Override
+  public int compare(int index1, int index2) {
+    return Double.compare(getElementAsDouble(index1), getElementAsDouble(index2));
+  }
+
+  @Override
+  public abstract int length();
+
+  @Override
+  public boolean isNumeric() {
+    return true;
+  }
+
+  @Override
+  public Logical asLogical() {
+    return getElementAsLogical(0);
+  }
+
+  @Override
+  public String getImplicitClass() {
+    return "numeric";
+  }
+
+  @Override
+  public void accept(SexpVisitor visitor) {
+    visitor.visit(this);
+  }
+
+  @Override
+  public Iterator<Double> iterator() {
+    return new UnmodifiableIterator<Double>() {
+      private int index = 0;
+
+      @Override
+      public boolean hasNext() {
+        return index != length();
+      }
+
+      @Override
+      public Double next() {
+        return getElementAsDouble(index++);
+      }
+    };
+  }
+
+  public double asReal() {
+    if (length() == 0) {
+      return NA;
+    } else {
+      return getElementAsDouble(0);
+    }
+  }
+
+
+  @Override
+  public double[] toDoubleArray() {
+    double[] array = new double[length()];
+    for(int i=0;i!=array.length;++i) {
+      array[i] = getElementAsDouble(i);
+    }
+    return array;
+  }
+
+  @Override
+  public String toString() {
+    if (length() == 1) {
+      return Double.toString(getElementAsDouble(0));
+    } else {
+      StringBuilder sb = new StringBuilder("c(");
+      for (int i = 0; i != Math.min(5, length()); ++i) {
+        if (i > 0) {
+          sb.append(", ");
+        }
+        if (isNA(getElementAsDouble(i))) {
+          sb.append("NA");
+        } else {
+          sb.append(ParseUtil.toString(getElementAsDouble(i)));
+        }
+      }
+      if (length() > 5) {
+        sb.append(",... ").append(length()).append(" elements total");
+      }
+      return sb.append(")").toString();
+    }
+  }
+
+
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || !(o instanceof DoubleVector)) return false;
+
+    DoubleVector vector = (DoubleVector) o;
+
+    if (this.length() != vector.length()) {
+      return false;
+    }
+    for (int i = 0; i != length(); ++i) {
+      double this_i = getElementAsDouble(i);
+      double that_i = vector.getElementAsDouble(i);
+
+      if (isNA(this_i) != isNA(that_i)) {
+        return false;
+      }
+      if (isNaN(this_i) != isNaN(that_i)) {
+        return false;
+      }
+      if (!isNaN(this_i) && !isNaN(that_i) && this_i != that_i) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  @Override
+  public final int hashCode() {
+    int hash = 37;
+    for(int i=0;i!=length();++i) {
+      long value = Double.doubleToRawLongBits(getElementAsDouble(i));
+      hash += (int)( value ^ (value >>> 32));
+    }
+    return hash;
+  }
+
+  @Override
+  public DoubleArrayVector.Builder newCopyBuilder() {
+    return new DoubleArrayVector.Builder(this);
+  }
+
+  @Override
+  public DoubleArrayVector.Builder newBuilderWithInitialSize(int initialSize) {
+    return new DoubleArrayVector.Builder(initialSize);
+  }
+
+  @Override
+  public DoubleArrayVector.Builder newBuilderWithInitialCapacity(int initialCapacity) {
+    return new DoubleArrayVector.Builder(0, initialCapacity);
+  }
 
   @Override
   public boolean isElementNA(int index) {
-    return isNA(values[index]);
-  }
-  
-  public boolean isElementNaN(int i) {
-    return Double.isNaN(values[i]);
+    return isNA(getElementAsDouble(index));
   }
 
-  public static class Builder extends AbstractAtomicBuilder {
-    private static final int MIN_INITIAL_CAPACITY = 50;
-    private double values[];
-    private int size;
-
-    public Builder(int initialSize, int initialCapacity) {
-      if(initialCapacity < MIN_INITIAL_CAPACITY) {
-        initialCapacity = MIN_INITIAL_CAPACITY;
-      }
-      if(initialSize > initialCapacity) {
-        initialCapacity = initialSize;
-      }
-      values = new double[initialCapacity];
-      size = initialSize;
-      Arrays.fill(values, NA);
-    }
-    
-
-    public Builder() {
-      this(0, MIN_INITIAL_CAPACITY);
-    }
-
-    public Builder(int initialSize) {
-      this(initialSize, initialSize);
-    }
-    
-    public static Builder withInitialSize(int size) {
-      return new Builder(size, size);
-    }
-    
-    public static Builder withInitialCapacity(int capacity) {
-      return new Builder(0, capacity);
-    }
-    
-    private Builder(DoubleVector exp) {
-      this.values = Arrays.copyOf(exp.values, exp.values.length);
-      this.size = this.values.length;
-
-      copyAttributesFrom(exp);
-    }
-
-    public Builder set(int index, double value) {
-      boolean isNA = (Double.doubleToRawLongBits(value) == NA_BITS);
-      ensureCapacity(index+1);
-      if(index+1 > size) {
-        size = index+1;
-      }
-      values[index] = value;
-      return this;
-    }
-
-    public Builder add(double value) {
-      return set(size, value);
-    }
-
-    @Override
-    public Builder add(Number value) {
-      return add(value.doubleValue());
-    }
-
-    @Override
-    public Builder setNA(int index) {
-      return set(index, Double.longBitsToDouble(NA_BITS));
-    }
-
-    @Override
-    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      if(source.isElementNA(sourceIndex)) {
-        return setNA(destinationIndex);
-      } else {
-        return set(destinationIndex, source.getElementAsDouble(sourceIndex));
-      }
-    }
-
-    public Builder set(int index, Double value) {
-      return set(index, (double)value);
-    }
-
-    @Override
-    public int length() {
-      return size;
-    }
-
-    public void ensureCapacity(int minCapacity) {
-      int oldCapacity = values.length;
-      if (minCapacity > oldCapacity) {
-        double oldData[] = values;
-        int newCapacity = (oldCapacity * 3)/2 + 1;
-        if (newCapacity < minCapacity)
-          newCapacity = minCapacity;
-        // minCapacity is usually close to size, so this is a win:
-        values = Arrays.copyOf(oldData, newCapacity);
-        Arrays.fill(values, oldCapacity, values.length, NA);
-      }
-    }
-
-    @Override
-    public DoubleVector build() {
-      return new DoubleVector(values, size, buildAttributes());
-    }
+  public boolean isElementNaN(int index) {
+    return isNaN(getElementAsDouble(index));
   }
 
-  private static class DoubleType extends Vector.Type {
+  private static class DoubleType extends Type {
     public DoubleType() {
       super(Order.DOUBLE);
     }
 
     @Override
-    public Builder newBuilder() {
-      return new Builder(0, 0);
+    public DoubleArrayVector.Builder newBuilder() {
+      return new DoubleArrayVector.Builder(0, 0);
     }
 
     @Override
-    public Builder newBuilderWithInitialSize(int length) {
-      return new Builder(length);
+    public DoubleArrayVector.Builder newBuilderWithInitialSize(int length) {
+      return new DoubleArrayVector.Builder(length);
     }
 
     @Override
-    public Builder newBuilderWithInitialCapacity(int initialCapacity) {
-      return new Builder(0, initialCapacity);
+    public DoubleArrayVector.Builder newBuilderWithInitialCapacity(int initialCapacity) {
+      return new DoubleArrayVector.Builder(0, initialCapacity);
     }
 
     @Override
@@ -500,10 +343,7 @@ public final class DoubleVector extends AbstractAtomicVector implements Iterable
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {
-      return new DoubleVector(vector.getElementAsDouble(index));
+      return new DoubleArrayVector(vector.getElementAsDouble(index));
     }
-    
-
   }
-
 }

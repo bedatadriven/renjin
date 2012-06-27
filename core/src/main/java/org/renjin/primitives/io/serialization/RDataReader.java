@@ -21,73 +21,16 @@
 
 package org.renjin.primitives.io.serialization;
 
-import static org.renjin.primitives.io.serialization.SerializationFormat.BASEENV_SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.BASENAMESPACE_SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.BCODESXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.BUILTINSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.CHARSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.CLASSREFSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.CLOSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.CPLXSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.DOTSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.EMPTYENV_SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.ENVSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.EXPRSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.EXTPTRSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.GENERICREFSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.GLOBALENV_SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.INTSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.LANGSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.LGLSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.LISTSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.MISSINGARG_SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.NAMESPACESXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.NILVALUE_SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.PACKAGESXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.PERSISTSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.PROMSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.RAWSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.REALSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.REFSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.S4SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.SPECIALSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.STRSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.SYMSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.UNBOUNDVALUE_SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.VECSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.VERSION2;
-import static org.renjin.primitives.io.serialization.SerializationFormat.WEAKREFSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_NA_BITS;
-
-import java.io.BufferedReader;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
-import org.renjin.sexp.CHARSEXP;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.renjin.primitives.io.serialization.SerializationFormat.*;
 
 
 public class RDataReader {
@@ -402,7 +345,7 @@ public class RDataReader {
     for(int i=0;i!=length;++i) {
       values[i] = in.readDouble();
     }
-    return new DoubleVector(values, readAttributes(flags));
+    return new DoubleArrayVector(values, readAttributes(flags));
   }
 
   private SEXP readIntVector(Flags flags) throws IOException {
@@ -411,7 +354,7 @@ public class RDataReader {
     for(int i=0;i!=length;++i) {
       values[i] = in.readInt();
     }
-    return new IntVector(values, readAttributes(flags));
+    return new IntArrayVector(values, readAttributes(flags));
   }
 
 
@@ -421,7 +364,7 @@ public class RDataReader {
     for(int i=0;i!=length;++i) {
       values[i] = in.readInt();
     }
-    return new LogicalVector(values, readAttributes(flags));
+    return new LogicalArrayVector(values, readAttributes(flags));
   }
 
   private SEXP readCharExp(Flags flags) throws IOException {

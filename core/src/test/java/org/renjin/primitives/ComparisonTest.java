@@ -25,9 +25,8 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.SEXP;
-
 
 import java.io.IOException;
 
@@ -295,6 +294,6 @@ public class ComparisonTest extends EvalTestCase {
 
   @Test
   public void notEmptyList() {
-    assertThat( eval( "!list()"), equalTo( (SEXP)new LogicalVector()));
+    assertThat( eval( "!list()"), equalTo( (SEXP)new LogicalArrayVector()));
   }
 }

@@ -21,8 +21,17 @@
 
 package org.renjin.primitives.annotations.processor;
 
-import static java.lang.reflect.Modifier.isPublic;
-import static java.lang.reflect.Modifier.isStatic;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.annotations.*;
+import org.renjin.primitives.special.ControlFlowException;
+import org.renjin.sexp.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -32,37 +41,8 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.AllowNA;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.DefaultValue;
-import org.renjin.primitives.annotations.Evaluate;
-import org.renjin.primitives.annotations.Generic;
-import org.renjin.primitives.annotations.GroupGeneric;
-import org.renjin.primitives.annotations.InvokeAsCharacter;
-import org.renjin.primitives.annotations.NamedFlag;
-import org.renjin.primitives.annotations.PreserveAttributeStyle;
-import org.renjin.primitives.annotations.PreserveAttributes;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
-import org.renjin.primitives.special.ControlFlowException;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SEXPFactory;
-import org.renjin.sexp.Symbol;
-
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import static java.lang.reflect.Modifier.isPublic;
+import static java.lang.reflect.Modifier.isStatic;
 
 /**
  * Wraps a {@code java.lang.reflect.Method} and provides
@@ -334,7 +314,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
     return method.getReturnType() == Void.class || method.getReturnType() == Void.TYPE;
   }
 
-  public Object getName() {
+  public String getName() {
     return method.getName();
   }
   
@@ -553,7 +533,14 @@ public class JvmMethod implements Comparable<JvmMethod> {
     public boolean hasExplicitConverter() {
       return explicitConverter != null;
     }
- 
+
+    public boolean isVarArg() {
+      return isAnnotatedWith(org.renjin.primitives.annotations.ArgumentList.class);
+    }
+
+    public boolean isNamedFlag() {
+      return isAnnotatedWith(NamedFlag.class);
+    }
   }
 
   private class IsFormal implements Predicate<Argument> {

@@ -21,26 +21,19 @@
 
 package org.renjin.base;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.Context;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -173,7 +166,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     eval("  d<-as.data.frame(list(ids=1:5)) ");
-    assertThat( eval(" d[,1] "), equalTo( c_i(1,2,3,4,5)));
+    assertThat( eval(" d[,1] "), elementsEqualTo( 1,2,3,4,5));
 
   }
 
@@ -217,7 +210,7 @@ public class BasePackageTest extends EvalTestCase {
     eval("levels <- unique(y[ind])");
     
     assertThat( eval("levels"), equalTo(c("1","2","3","4", "5")));
-    
+
     eval("force(ordered)");
     eval("exclude <- as.vector(exclude, typeof(x))");
     

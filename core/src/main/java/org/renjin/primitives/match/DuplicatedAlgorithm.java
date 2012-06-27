@@ -1,15 +1,16 @@
 package org.renjin.primitives.match;
 
+import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.Vector;
 
 public class DuplicatedAlgorithm implements DuplicateSearchAlgorithm<LogicalVector> {
 
-  private LogicalVector.Builder result;
+  private LogicalArrayVector.Builder result;
   
   @Override
   public void init(Vector source) {
-    result = new LogicalVector.Builder(source.length());    
+    result = new LogicalArrayVector.Builder(source.length());
   }
   
   @Override

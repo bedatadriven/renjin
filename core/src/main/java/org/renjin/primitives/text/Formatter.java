@@ -32,18 +32,13 @@
 
 package org.renjin.primitives.text;
 
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.*;
+
 import java.text.DecimalFormatSymbols;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Vector;
-
-import org.renjin.eval.EvalException;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
 
 
 /**

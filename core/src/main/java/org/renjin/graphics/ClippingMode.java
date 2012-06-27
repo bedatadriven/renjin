@@ -1,6 +1,7 @@
 package org.renjin.graphics;
 
 import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.SEXP;
 
@@ -18,7 +19,7 @@ public enum ClippingMode {
   }
 
   public LogicalVector toExp() {
-    return new LogicalVector(logicalValue);
+    return new LogicalArrayVector(logicalValue);
   }
 
   public static ClippingMode fromExp(SEXP exp) {

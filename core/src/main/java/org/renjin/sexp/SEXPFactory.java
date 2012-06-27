@@ -32,31 +32,31 @@ public class SEXPFactory {
       return (SEXP) result;
 
     } else if(result instanceof Long) {
-      return new DoubleVector(((Long)result).doubleValue());
+      return new DoubleArrayVector(((Long)result).doubleValue());
 
     } else if(result instanceof Double) {
-      return new DoubleVector( (Double) result );
+      return new DoubleArrayVector( (Double) result );
 
     } else if(result instanceof Boolean) {
-      return new LogicalVector( (Boolean) result );
+      return new LogicalArrayVector( (Boolean) result );
 
     } else if(result instanceof Logical) {
-      return new LogicalVector( (Logical) result );
+      return new LogicalArrayVector( (Logical) result );
 
     } else if(result instanceof Integer) {
-      return new IntVector( (Integer) result);
+      return new IntArrayVector( (Integer) result);
 
     } else if(result instanceof String) {
       return new StringVector( (String) result );
 
     } else if(result instanceof int[]) {
-      return new IntVector((int[]) result);
+      return new IntArrayVector((int[]) result);
 
     } else if(result instanceof double[]) {
-      return new DoubleVector((double[]) result);
+      return new DoubleArrayVector((double[]) result);
 
     } else if(result instanceof boolean[]) {
-      return new LogicalVector((boolean[]) result);
+      return new LogicalArrayVector((boolean[]) result);
 
     } else {
       return new ExternalExp(result, Null.INSTANCE);

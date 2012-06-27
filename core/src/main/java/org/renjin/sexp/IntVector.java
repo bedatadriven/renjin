@@ -1,44 +1,17 @@
-/*
- * R : A Computer Language for Statistical Data Analysis
- * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997-2008  The R Development Core Team
- * Copyright (C) 2003, 2004  The R Foundation
- * Copyright (C) 2010 bedatadriven
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package org.renjin.sexp;
 
-import java.util.Arrays;
-import java.util.Iterator;
-
+import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.ParseUtil;
-import org.renjin.sexp.Vector.Builder;
+
+import java.util.Iterator;
 
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.UnmodifiableIterator;
-
-public class IntVector extends AbstractAtomicVector implements Iterable<Integer> {
-
+public abstract class IntVector extends AbstractAtomicVector implements Iterable<Integer> {
   public static final String TYPE_NAME = "integer";
   public static final int TYPE_CODE = 13;
-  public static final Vector.Type VECTOR_TYPE = new IntType();
-  public static final IntVector EMPTY = new IntVector();
-
+  public static final Type VECTOR_TYPE = new IntType();
+  public static final IntVector EMPTY = new IntArrayVector();
   public static final String IMPLICIT_CLASS = "integer";
 
   /**
@@ -47,22 +20,17 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
    */
   public static final int NA = Integer.MIN_VALUE;
 
-  private int[] values;
-
-  public IntVector(int... values) {
-    this.values = Arrays.copyOf(values, values.length);
+  protected IntVector() {
+    super();
   }
 
-  public IntVector(int[] values, int length, PairList attributes) {
+  protected IntVector(PairList attributes) {
     super(attributes);
-    this.values = Arrays.copyOf(values, length);
   }
 
-  public IntVector(int[] values, PairList attributes) {
-    this(values, values.length, attributes);
+  public static boolean isNA(int value) {
+    return value == NA;
   }
-  
- 
 
   @Override
   public String getTypeName() {
@@ -75,18 +43,14 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   }
 
   @Override
-  public int length() {
-    return values.length;
-  }
+  public abstract int length();
 
   @Override
-  public int getElementAsInt(int i) {
-    return values[i];
-  }
+  public abstract int getElementAsInt(int i);
 
   @Override
   public Logical asLogical() {
-    if(values.length == 0) {
+    if (length() == 0) {
       return Logical.NA;
     }
     return getElementAsLogical(0);
@@ -94,28 +58,28 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
   @Override
   public double getElementAsDouble(int index) {
-    return isElementNA(index) ? DoubleVector.NA : values[index];
+    return isElementNA(index) ? DoubleVector.NA : getElementAsInt(index);
   }
 
   @Override
   public String getElementAsString(int index) {
-    return isElementNA(index) ? StringVector.NA : ParseUtil.toString(values[index]);
+    return isElementNA(index) ? StringVector.NA : ParseUtil.toString(getElementAsInt(index));
   }
 
   @Override
   public SEXP getElementAsSEXP(int index) {
-    return new IntVector(values[index]);
+    return new IntArrayVector(getElementAsInt(index));
   }
 
   @Override
   public Complex getElementAsComplex(int index) {
-    return new Complex(values[index], 0);
+    return new Complex(getElementAsDouble(index), 0);
   }
 
   @Override
   public int getElementAsRawLogical(int index) {
-    int value = values[index];
-    if(value == 0 || isNA(value)) {
+    int value = getElementAsInt(index);
+    if (value == 0 || isNA(value)) {
       return value;
     } else {
       return 1;
@@ -124,14 +88,14 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
   @Override
   public Integer getElementAsObject(int index) {
-    return values[index];
+    return getElementAsInt(index);
   }
-  
+
   @Override
   public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     int value = vector.getElementAsInt(vectorIndex);
-    for(int i=startIndex;i<values.length;++i) {
-      if(value == values[i]) {
+    for (int i = startIndex; i < length(); ++i) {
+      if (value == getElementAsInt(i)) {
         return i;
       }
     }
@@ -140,22 +104,22 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
   @Override
   public int compare(int index1, int index2) {
-    return values[index1] - values[index2];
+    return getElementAsInt(index1) - getElementAsInt(index2);
   }
 
   @Override
-  public Builder newBuilderWithInitialSize(int initialSize) {
-    return new Builder(initialSize, initialSize);
-  }
-  
-  @Override
-  public Builder newBuilderWithInitialCapacity(int initialCapacity) {
-    return new Builder(0, initialCapacity);
+  public IntArrayVector.Builder newBuilderWithInitialSize(int initialSize) {
+    return new IntArrayVector.Builder(initialSize, initialSize);
   }
 
   @Override
-  public Builder newCopyBuilder() {
-    return new Builder(this);
+  public IntArrayVector.Builder newBuilderWithInitialCapacity(int initialCapacity) {
+    return new IntArrayVector.Builder(0, initialCapacity);
+  }
+
+  @Override
+  public IntArrayVector.Builder newCopyBuilder() {
+    return new IntArrayVector.Builder(this);
   }
 
   @Override
@@ -170,15 +134,19 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
   @Override
   public double asReal() {
-    if(length() == 0 || values[0] == NA) {
+    if (length() == 0 || isElementNA(0)) {
       return DoubleVector.NA;
     } else {
-      return values[0];
+      return getElementAsDouble(0);
     }
   }
 
   public int[] toIntArray() {
-    return Arrays.copyOf(values, values.length);
+    int[] array = new int[length()];
+    for(int i=0;i!=array.length;++i) {
+      array[i] = getElementAsInt(i);
+    }
+    return array;
   }
 
   @Override
@@ -187,38 +155,16 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
-    return new IntVector(values, values.length, attributes);
-  }
-
-  @Override
   public Iterator<Integer> iterator() {
     return new ValueIterator();
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    IntVector intExp = (IntVector) o;
-
-    if (!Arrays.equals(values, intExp.values)) return false;
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    return Arrays.hashCode(values);
-  }
-  
-  @Override
   public double[] toDoubleArray() {
-    double[] d = new double[this.values.length];
-    for(int i=0;i!=d.length;++i) {
-      int x = this.values[i];
-      if(x == NA){
+    double[] d = new double[length()];
+    for (int i = 0; i != d.length; ++i) {
+      int x = getElementAsInt(i);
+      if (x == NA) {
         d[i] = DoubleVector.NA;
       } else {
         d[i] = x;
@@ -227,34 +173,89 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
     return d;
   }
 
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || !(o instanceof IntVector)) return false;
+
+    IntVector that = (IntVector) o;
+    if(that.length() != this.length()) {
+      return false;
+    }
+
+    for(int i=0;i!=length();++i) {
+      if(getElementAsInt(i)!=that.getElementAsInt(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public final int hashCode() {
+    int hash = 37;
+    for(int i=0;i!=length();++i) {
+      hash += getElementAsInt(i);
+    }
+    return hash;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("c(");
-    for(int i=0;i<Math.min(5, length());++i) {
-      if(i > 0) {
+    for (int i = 0; i < Math.min(5, length()); ++i) {
+      if (i > 0) {
         sb.append(", ");
       }
-      if(isElementNA(i)) {
+      if (isElementNA(i)) {
         sb.append("NA_integer_");
       } else {
         sb.append(getElementAsInt(i)).append("L");
       }
     }
-    if(length() > 5) {
+    if (length() > 5) {
       sb.append("...").append(length()).append(" elements total");
     }
     sb.append(")");
     return sb.toString();
   }
 
-  public static boolean isNA(int value) {
-    return value == NA;
-  }
-
   @Override
   public boolean isElementNA(int index) {
-    return isNA(values[index]);
+    return isNA(getElementAsInt(index));
+  }
+
+  private static class IntType extends Type {
+    private IntType() {
+      super(Order.INTEGER);
+    }
+
+    @Override
+    public IntArrayVector.Builder newBuilder() {
+      return new IntArrayVector.Builder(0, 0);
+    }
+
+    @Override
+    public IntArrayVector.Builder newBuilderWithInitialSize(int initialSize) {
+      return new IntArrayVector.Builder(initialSize);
+    }
+
+    @Override
+    public IntArrayVector.Builder newBuilderWithInitialCapacity(int initialCapacity) {
+      return new IntArrayVector.Builder(0, initialCapacity);
+    }
+
+    @Override
+    public Vector getElementAsVector(Vector vector, int index) {
+      return new IntArrayVector(vector.getElementAsInt(index));
+    }
+
+    @Override
+    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
+      return vector1.getElementAsInt(index1) - vector2.getElementAsInt(index2);
+    }
   }
 
   private class ValueIterator extends UnmodifiableIterator<Integer> {
@@ -262,127 +263,12 @@ public class IntVector extends AbstractAtomicVector implements Iterable<Integer>
 
     @Override
     public boolean hasNext() {
-      return i < values.length;
+      return i < length();
     }
 
     @Override
     public Integer next() {
-      return values[i++];
-    }
-  }
-
-  public static class Builder extends AbstractAtomicBuilder {
-    private static final int MIN_INITIAL_CAPACITY = 50;
-    private int values[];
-    private int size;
-
-    public Builder(int initialSize, int initialCapacity) {
-      if(initialCapacity < MIN_INITIAL_CAPACITY) {
-        initialCapacity = MIN_INITIAL_CAPACITY;
-      }
-      if(initialSize > initialCapacity) {
-        initialCapacity = initialSize;
-      }
-      values = new int[initialCapacity];
-      size = initialSize;
-      Arrays.fill(values, NA);
-    }
-    
-    public Builder(int initialSize) {
-      this(initialSize, initialSize);
-    }
-
-    private Builder(IntVector exp) {
-      this.values = Arrays.copyOf(exp.values, exp.values.length);
-      this.size = this.values.length;
-
-      copyAttributesFrom(exp);
-    }
-
-    public Builder() {
-      this(0, MIN_INITIAL_CAPACITY);
-    }
-
-    public Builder set(int index, int value) {
-      ensureCapacity(index+1);
-      if(index+1 > size) {
-        size = index+1;
-      }
-      values[index] = value;
-      return this;
-    }
-
-    public Builder add(int value) {
-      return set(size, value);
-    }
-    
-    @Override
-    public Builder add(Number value) {
-      return add(value.intValue());
-    }
-
-    @Override
-    public Builder setNA(int index) {
-      return set(index, NA);
-    }
-
-    @Override
-    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      return set(destinationIndex, source.getElementAsInt(sourceIndex));
-    }
-
-    @Override
-    public int length() {
-      return size;
-    }
-
-    public void ensureCapacity(int minCapacity) {
-      int oldCapacity = values.length;
-      if (minCapacity > oldCapacity) {
-        int oldData[] = values;
-        int newCapacity = (oldCapacity * 3)/2 + 1;
-        if (newCapacity < minCapacity)
-          newCapacity = minCapacity;
-        // minCapacity is usually close to size, so this is a win:
-        values = Arrays.copyOf(oldData, newCapacity);
-        Arrays.fill(values, oldCapacity, values.length, NA);
-      }
-    }
-
-    @Override
-    public IntVector build() {
-      return new IntVector(values, size, buildAttributes());
-    }
-  }
-
-  private static class IntType extends Vector.Type {
-    private IntType() {
-      super(Order.INTEGER);
-    }
-
-    @Override
-    public Builder newBuilder() {
-      return new Builder(0, 0);
-    }
-    
-    @Override
-    public Builder newBuilderWithInitialSize(int initialSize) {
-      return new Builder(initialSize);
-    }
-   
-    @Override
-    public Builder newBuilderWithInitialCapacity(int initialCapacity) {
-      return new Builder(0, initialCapacity);
-    }
-
-    @Override
-    public Vector getElementAsVector(Vector vector, int index) {
-      return new IntVector(vector.getElementAsInt(index));
-    }
-
-    @Override
-    public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
-      return vector1.getElementAsInt(index1) - vector2.getElementAsInt(index2);
+      return getElementAsInt(i++);
     }
   }
 }

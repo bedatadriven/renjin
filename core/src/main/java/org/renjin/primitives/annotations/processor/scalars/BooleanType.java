@@ -1,7 +1,7 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
+import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Vector.Builder;
 
 public class BooleanType extends ScalarType {
 
@@ -41,8 +41,8 @@ public class BooleanType extends ScalarType {
   }
 
   @Override
-  public Class<LogicalVector.Builder> getBuilderClass() {
-    return LogicalVector.Builder.class;
+  public Class<LogicalArrayVector.Builder> getBuilderClass() {
+    return LogicalArrayVector.Builder.class;
   }
 
   @Override

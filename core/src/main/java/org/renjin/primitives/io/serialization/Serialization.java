@@ -1,13 +1,5 @@
 package org.renjin.primitives.io.serialization;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.zip.DataFormatException;
-
 import org.apache.commons.vfs.FileContent;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
@@ -17,20 +9,10 @@ import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.ByteArrayCompression;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.serialization.RDataWriter.PersistenceHook;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.HasNamedValues;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.io.*;
+import java.util.zip.DataFormatException;
 
 
 public class Serialization {
@@ -187,7 +169,7 @@ public class Serialization {
       }
       FunctionCall newCall = new FunctionCall(expr.getFunction(),
           newArgs.build());
-      targetEnvironment.setVariable(name, new Promise(context, eenv, newCall));
+      targetEnvironment.setVariable(name, Promise.repromise(context, eenv, newCall));
     }
   }
 
@@ -295,6 +277,6 @@ public class Serialization {
     int offset = (int) (rdb.length() - bytes.length);
     int length = bytes.length;
     
-    return new IntVector(offset, length);
+    return new IntArrayVector(offset, length);
   }
 }

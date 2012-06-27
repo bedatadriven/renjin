@@ -4,22 +4,7 @@ import org.renjin.eval.Calls;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchChain;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExternalExp;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 import org.renjin.sexp.PairList.Node;
 
 
@@ -144,11 +129,11 @@ public class WrapperRuntime {
   }
   
   public static SEXP wrapResult(int i) {
-    return new IntVector(i);
+    return new IntArrayVector(i);
   }
   
   public static SEXP wrapResult(Integer i) {
-    return new IntVector(i == null ? IntVector.NA : i);
+    return new IntArrayVector(i == null ? IntVector.NA : i);
   }
   
   public static SEXP wrapResult(String s) {
@@ -156,27 +141,27 @@ public class WrapperRuntime {
   }    
  
   public static SEXP wrapResult(boolean b) {
-    return new LogicalVector(b);
+    return new LogicalArrayVector(b);
   }
   
   public static SEXP wrapResult(float f) {
-    return new DoubleVector(f);
+    return new DoubleArrayVector(f);
   }
   
   public static SEXP wrapResult(double d) {
-    return new DoubleVector(d);
+    return new DoubleArrayVector(d);
   }
  
   public static SEXP wrapResult(long result) {
-    return new DoubleVector((double)result);
+    return new DoubleArrayVector((double)result);
   }
   
   public static SEXP wrapResult(int [] result) {
-    return new IntVector(result);
+    return new IntArrayVector(result);
   }
   
   public static SEXP wrapResult(Logical result) {
-    return new LogicalVector(result);
+    return new LogicalArrayVector(result);
   }
   
   /**
@@ -289,7 +274,7 @@ public class WrapperRuntime {
     Symbol naRmName = Symbol.get("na.rm");
     for(PairList.Node node : call.getArguments().nodes()) {
       if(node.getRawTag() == naRmName) {
-        newArgs.add(node.getTag(), new LogicalVector(naRm));
+        newArgs.add(node.getTag(), new LogicalArrayVector(naRm));
       } else {
         newArgs.add(node.getRawTag(), evaluatedArguments.get(varArgIndex++));
       }

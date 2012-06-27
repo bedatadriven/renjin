@@ -2,15 +2,7 @@ package org.renjin.primitives.matrix;
 
 import org.netlib.blas.BLAS;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 class MatrixProduct {
@@ -182,11 +174,11 @@ class MatrixProduct {
 
   private DoubleVector makeMatrix(double[] values, int nr, int nc) {
     PairList.Builder attributes = new PairList.Builder();
-    attributes.add(Symbols.DIM, new IntVector(nr, nc));
+    attributes.add(Symbols.DIM, new IntArrayVector(nr, nc));
     attributes.add(Symbols.DIMNAMES, buildDimnames());
 
     
-    return new DoubleVector(values, attributes.build());
+    return new DoubleArrayVector(values, attributes.build());
   }
 
   private Vector buildDimnames() {

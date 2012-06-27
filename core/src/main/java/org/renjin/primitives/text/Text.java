@@ -21,7 +21,17 @@
 
 package org.renjin.primitives.text;
 
-import static com.google.common.collect.Iterables.transform;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.Deparse;
+import org.renjin.primitives.annotations.*;
+import org.renjin.primitives.text.regex.ExtendedRE;
+import org.renjin.primitives.text.regex.RE;
+import org.renjin.primitives.text.regex.REFactory;
+import org.renjin.sexp.*;
 
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
@@ -29,39 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.Deparse;
-import org.renjin.primitives.annotations.AllowNA;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.InvokeAsCharacter;
-import org.renjin.primitives.annotations.PreserveAttributeStyle;
-import org.renjin.primitives.annotations.PreserveAttributes;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
-import org.renjin.primitives.text.regex.ExtendedRE;
-import org.renjin.primitives.text.regex.RE;
-import org.renjin.primitives.text.regex.REFactory;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import static com.google.common.collect.Iterables.transform;
 
 public class Text {
 
@@ -369,7 +347,7 @@ public class Text {
       return result.build();
     } else {
 
-      IntVector.Builder result = new IntVector.Builder(0);
+      IntArrayVector.Builder result = new IntArrayVector.Builder(0);
       for(int i=0;i!=x.length();++i) {
         if(re.match(x.getElementAsString(i))) {
           result.add(i+1);
@@ -403,7 +381,7 @@ public class Text {
       boolean invert) {
 
     RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
-    LogicalVector.Builder result = new LogicalVector.Builder();
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     for(String string : x) {
       result.add( ! StringVector.isNA(string) && re.match(string ));
     }
@@ -431,7 +409,7 @@ public class Text {
       }
       return result.build();
     } else {
-      IntVector.Builder result = new IntVector.Builder();
+      IntArrayVector.Builder result = new IntArrayVector.Builder();
       for(int i=0;i!=x.length();++i) {
         if(matcher.contains(x.getElementAsString(i)) <= maxDistance) {
           result.add(i+1);
@@ -623,7 +601,7 @@ public class Text {
     return buildFormatResult(x, elements);
   }
 
-  public static StringVector format(LogicalVector x, boolean trim, SEXP digits, SEXP nsmall, 
+  public static StringVector format(LogicalVector x, boolean trim, SEXP digits, SEXP nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
     List<String> elements = formatLogicalElements(x);
@@ -666,7 +644,7 @@ public class Text {
 
    * @return
    */
-  public static StringVector format(DoubleVector x, boolean trim, SEXP digits, int nsmall, 
+  public static StringVector format(DoubleVector x, boolean trim, SEXP digits, int nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
     List<String> elements = formatNumericalElements(x);
@@ -679,7 +657,7 @@ public class Text {
     return buildFormatResult(x, elements);
   }
 
-  public static StringVector format(IntVector x, boolean trim, SEXP digits, int nsmall, 
+  public static StringVector format(IntVector x, boolean trim, SEXP digits, int nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
     List<String> elements = formatNumericalElements(x);
@@ -803,9 +781,9 @@ public class Text {
    */
   public static IntVector utf8ToInt(String x) {
     if(StringVector.isNA(x)) {
-      return new IntVector(IntVector.NA);
+      return new IntArrayVector(IntVector.NA);
     } else {
-      IntVector.Builder codePoints = new IntVector.Builder(x.length());
+      IntArrayVector.Builder codePoints = new IntArrayVector.Builder(x.length());
       for(int i=0;i!=x.length();++i) {
         codePoints.set(i, x.codePointAt(i));
       }

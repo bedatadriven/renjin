@@ -21,23 +21,17 @@
 
 package org.renjin.primitives.io.serialization;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 
 public class RDataReaderTest extends EvalTestCase {
@@ -73,9 +67,9 @@ public class RDataReaderTest extends EvalTestCase {
     assertThat(exp, instanceOf(PairList.Node.class));
 
     PairList.Node pairList = (PairList.Node) exp;
-    assertThat(pairList.findByTag(symbol("a")), equalTo( eval("1:99") ));
-    assertThat(pairList.findByTag(symbol("b")), equalTo( eval("sqrt(1:25) ") ));
-    assertThat(pairList.findByTag(symbol("c")), equalTo( c(Logical.NA )));
+    assertThat(pairList.findByTag(symbol("a")), elementsEqualTo( eval("1:99") ));
+    assertThat(pairList.findByTag(symbol("b")), elementsEqualTo( eval("sqrt(1:25) ") ));
+    assertThat(pairList.findByTag(symbol("c")), elementsEqualTo( c(Logical.NA )));
     assertThat(pairList.findByTag(symbol("d")), equalTo( list(Logical.NA, DoubleVector.NA, IntVector.NA, NULL )));
 
     ListVector d = (ListVector) pairList.findByTag(symbol("d"));

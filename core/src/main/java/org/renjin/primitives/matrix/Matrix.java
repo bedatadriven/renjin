@@ -1,11 +1,7 @@
 package org.renjin.primitives.matrix;
 
 import org.renjin.primitives.Indexes;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 /**

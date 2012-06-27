@@ -22,8 +22,6 @@
 package org.renjin.sexp;
 
 import org.junit.Test;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.PairList;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -33,7 +31,7 @@ public class PairListTest {
   @Test
   public void lang() {
 
-    PairList list = PairList.Node.fromArray(new IntVector(1), new IntVector(2), new IntVector(3));
+    PairList list = PairList.Node.fromArray(new IntArrayVector(1), new IntArrayVector(2), new IntArrayVector(3));
 
     assertThat(list.length(), equalTo(3));
 

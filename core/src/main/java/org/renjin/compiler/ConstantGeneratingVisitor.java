@@ -2,19 +2,7 @@ package org.renjin.compiler;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.sexp.BuiltinFunction;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SexpVisitor;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opcodes {
@@ -29,7 +17,7 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
   public void visit(DoubleVector vector) {
     
     if(vector.length() == 1) {
-      mv.visitTypeInsn(NEW, "org/renjin/sexp/DoubleVector");
+      mv.visitTypeInsn(NEW, "org/renjin/sexp/DoubleArrayVector");
       mv.visitInsn(DUP);
       mv.visitInsn(ICONST_1);
       mv.visitIntInsn(NEWARRAY, T_DOUBLE);
@@ -37,7 +25,7 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
       mv.visitInsn(ICONST_0);
       mv.visitLdcInsn(vector.getElementAsDouble(0));
       mv.visitInsn(DASTORE);
-      mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/sexp/DoubleVector", "<init>", "([D)V");
+      mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/sexp/DoubleArrayVector", "<init>", "([D)V");
     } else {
       throw new UnsupportedOperationException("only double vectors of length 1 are implemented");
     }
@@ -77,12 +65,12 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
 
   @Override
   public void visit(IntVector vector) {
-    mv.visitTypeInsn(NEW, "org/renjin/sexp/IntVector");
+    mv.visitTypeInsn(NEW, "org/renjin/sexp/IntArrayVector");
     mv.visitInsn(DUP);
     
     pushIntArray(vector);
 
-    mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/sexp/IntVector", "<init>", "([I)V");    
+    mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/sexp/IntArrayVector", "<init>", "([I)V");
   }
 
   private void pushIntArray(Vector vector) {
@@ -175,7 +163,7 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
       
       pushIntArray(vector);
 
-      mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/sexp/IntVector", "<init>", "([I)V");    
+      mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/sexp/IntArrayVector", "<init>", "([I)V");
     }
   }
 

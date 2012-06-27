@@ -21,26 +21,18 @@
 
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.renjin.ExpMatchers.logicalVectorOf;
-
-import java.io.IOException;
-
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.subset.Subsetting;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
+import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.renjin.ExpMatchers.logicalVectorOf;
 
 
 public class SubsettingTest extends EvalTestCase {
@@ -52,8 +44,8 @@ public class SubsettingTest extends EvalTestCase {
     assertThat( eval(" x[2] "), equalTo( c(92) ));
     assertThat( eval(" x[3] "), equalTo( c(93) ));
     assertThat( eval(" x[4] "), equalTo( c(DoubleVector.NA)) );
-    assertThat( eval(" x[0] "), equalTo( (SEXP) new DoubleVector() ));
-    assertThat( eval(" x[NULL] "), equalTo( (SEXP) new DoubleVector() ));
+    assertThat( eval(" x[0] "), equalTo( (SEXP) new DoubleArrayVector() ));
+    assertThat( eval(" x[NULL] "), equalTo( (SEXP) new DoubleArrayVector() ));
     assertThat( eval(" x[3L] "), equalTo( c(93) ));
   }
 
@@ -249,7 +241,7 @@ public class SubsettingTest extends EvalTestCase {
   public void subsetOfPosAndZeroIndices() {
     eval("  x<-c(91, 92, 93, 94, 95) ");
 
-    assertThat( eval("x[c(1,0,1)]"), Matchers.equalTo((SEXP) new DoubleVector(91, 91)));
+    assertThat( eval("x[c(1,0,1)]"), Matchers.equalTo((SEXP) new DoubleArrayVector(91, 91)));
   }
 
   @Test
@@ -276,7 +268,7 @@ public class SubsettingTest extends EvalTestCase {
   public void emptyDoubleVectorIsNotNull() {
     eval("select <- TRUE[-1]");
     eval("x <- 1[-1]");
-    assertThat(eval(" x[select]"), equalTo((SEXP)DoubleVector.EMPTY));
+    assertThat(eval(" x[select]"), equalTo((SEXP) DoubleVector.EMPTY));
   }
   
   @Test

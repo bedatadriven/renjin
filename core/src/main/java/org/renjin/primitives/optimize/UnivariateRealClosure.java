@@ -24,11 +24,7 @@ package org.renjin.primitives.optimize;
 import org.apache.commons.math.FunctionEvaluationException;
 import org.apache.commons.math.analysis.UnivariateRealFunction;
 import org.renjin.eval.Context;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 public class UnivariateRealClosure implements UnivariateRealFunction {
 
@@ -44,7 +40,7 @@ public class UnivariateRealClosure implements UnivariateRealFunction {
 
   @Override
   public double value(double x) throws FunctionEvaluationException {
-    FunctionCall call = FunctionCall.newCall(fn, new DoubleVector(x));
+    FunctionCall call = FunctionCall.newCall(fn, new DoubleArrayVector(x));
     Vector y = (Vector)context.evaluate(call, rho);
     return y.getElementAsDouble(0);
   }

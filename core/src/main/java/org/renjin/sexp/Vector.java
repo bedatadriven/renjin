@@ -41,7 +41,7 @@ public interface Vector extends SEXP {
    *
    * @param index zero-based index
    * @return the element at {@code index} as an {@code int} value, converting if necessary. If no conversion
-   * is possible, {@link IntVector#NA}
+   * is possible, {@link IntArrayVector#NA}
    */
   int getElementAsInt(int index);
   

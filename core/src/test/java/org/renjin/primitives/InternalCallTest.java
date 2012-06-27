@@ -23,8 +23,7 @@ package org.renjin.primitives;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.sexp.DoubleVector;
-
+import org.renjin.sexp.DoubleArrayVector;
 
 import java.io.IOException;
 
@@ -36,7 +35,7 @@ public class InternalCallTest extends EvalTestCase {
 
   @Test
   public void call() throws IOException {
-    assertThat(eval(".Internal(Sys.time())"), instanceOf(DoubleVector.class));
+    assertThat(eval(".Internal(Sys.time())"), instanceOf(DoubleArrayVector.class));
   }
 
 }

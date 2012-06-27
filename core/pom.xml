@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.6.4-SNAPSHOT</version>
+    <version>0.6.8-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -121,6 +121,16 @@
       <groupId>org.concordion</groupId>
       <artifactId>concordion</artifactId>
       <version>1.4.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- This library is used during compile-time code generation but should
+         not be necessary when using renjin -->
+    <dependency>
+      <groupId>com.sun.codemodel</groupId>
+      <artifactId>codemodel</artifactId>
+      <version>2.6</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 

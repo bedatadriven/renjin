@@ -21,32 +21,22 @@
 
 package org.renjin.eval;
 
-import static com.google.common.collect.Collections2.filter;
-import static com.google.common.collect.Collections2.transform;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.PeekingIterator;
+import org.renjin.primitives.CollectionUtils;
+import org.renjin.primitives.special.ReturnException;
+import org.renjin.sexp.*;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.renjin.primitives.CollectionUtils;
-import org.renjin.primitives.special.ReturnException;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.PromisePairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.PeekingIterator;
+import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Collections2.transform;
 
 
 public class ClosureDispatcher {
@@ -110,7 +100,7 @@ public class ClosureDispatcher {
       if(value == Symbol.MISSING_ARG) {
         SEXP defaultValue = formals.findByTag(node.getTag());
         if(defaultValue != Symbol.MISSING_ARG) {
-          value =  new Promise(innerContext, innerEnv, defaultValue);
+          value =  Promise.repromise(innerContext, innerEnv, defaultValue);
         }
       }
       innerEnv.setVariable(node.getTag(), value);

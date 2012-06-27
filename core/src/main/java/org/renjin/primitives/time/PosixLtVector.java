@@ -2,12 +2,7 @@ package org.renjin.primitives.time;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 /**
@@ -71,15 +66,15 @@ public class PosixLtVector extends TimeVector {
 
   public static class Builder {
     private ListVector.NamedBuilder list = new ListVector.NamedBuilder(9);
-    private IntVector.Builder second = new IntVector.Builder();
-    private IntVector.Builder minute = new IntVector.Builder();
-    private IntVector.Builder hour = new IntVector.Builder();
-    private IntVector.Builder dayOfMonth = new IntVector.Builder();
-    private IntVector.Builder month = new IntVector.Builder();
-    private IntVector.Builder year = new IntVector.Builder();
-    private IntVector.Builder weekday = new IntVector.Builder();
-    private IntVector.Builder dayOfYear = new IntVector.Builder();
-    private IntVector.Builder dst = new IntVector.Builder();
+    private IntArrayVector.Builder second = new IntArrayVector.Builder();
+    private IntArrayVector.Builder minute = new IntArrayVector.Builder();
+    private IntArrayVector.Builder hour = new IntArrayVector.Builder();
+    private IntArrayVector.Builder dayOfMonth = new IntArrayVector.Builder();
+    private IntArrayVector.Builder month = new IntArrayVector.Builder();
+    private IntArrayVector.Builder year = new IntArrayVector.Builder();
+    private IntArrayVector.Builder weekday = new IntArrayVector.Builder();
+    private IntArrayVector.Builder dayOfYear = new IntArrayVector.Builder();
+    private IntArrayVector.Builder dst = new IntArrayVector.Builder();
     
     public Builder add(DateTime time) {
       second.add(time.getSecondOfMinute());

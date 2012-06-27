@@ -1,5 +1,9 @@
 package org.renjin.primitives.annotations.processor.args;
 
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JVar;
+import org.renjin.primitives.annotations.processor.ApplyMethodContext;
 import org.renjin.primitives.annotations.processor.JvmMethod;
 import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
 import org.renjin.sexp.SEXP;
@@ -72,4 +76,7 @@ public abstract class ArgConverterStrategy {
 
   public abstract String getTestExpr(String argLocal);
 
+  public abstract JExpression getTestExpr(JCodeModel codeModel, JVar sexpVariable);
+
+  public abstract JExpression convertArgument(ApplyMethodContext method, JExpression sexp);
 }

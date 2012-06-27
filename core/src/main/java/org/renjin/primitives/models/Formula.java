@@ -1,19 +1,12 @@
 package org.renjin.primitives.models;
 
-import java.util.List;
-
-import org.renjin.primitives.matrix.IntMatrixBuilder;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-
-
 import com.google.common.base.Functions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
+import org.renjin.primitives.matrix.IntMatrixBuilder;
+import org.renjin.sexp.*;
+
+import java.util.List;
 
 /**
  * Encapsulates the properties of R model formulae, which consist of three elements:
@@ -116,7 +109,7 @@ public class Formula {
    */
   public SEXP buildFactorsMatrix() {
     if(terms.size() == 0) {
-      return new IntVector(); 
+      return new IntArrayVector();
     } else {
       List<SEXP> variables = uniqueVariables();
       IntMatrixBuilder matrix = new IntMatrixBuilder(variables.size(), terms.size());
@@ -157,7 +150,7 @@ public class Formula {
    *                indicating that an intercept is to be fit.
    */
   public IntVector buildInterceptAttribute() {
-    return new IntVector(intercept);
+    return new IntArrayVector(intercept);
   }
   
   /**
@@ -166,7 +159,7 @@ public class Formula {
    * response.
    */
   public IntVector buildResponseAttribute() {
-    return new IntVector(response == null ? 0 : 1 );
+    return new IntArrayVector(response == null ? 0 : 1 );
   }
   
   @Override

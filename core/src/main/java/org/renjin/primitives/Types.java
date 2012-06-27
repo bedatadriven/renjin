@@ -20,61 +20,23 @@
  */
 package org.renjin.primitives;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.jvminterop.ClassFrame;
-import org.renjin.jvminterop.ObjectFrame;
-import org.renjin.jvminterop.converters.BooleanArrayConverter;
-import org.renjin.jvminterop.converters.BooleanConverter;
-import org.renjin.jvminterop.converters.DoubleArrayConverter;
-import org.renjin.jvminterop.converters.DoubleConverter;
-import org.renjin.jvminterop.converters.IntegerArrayConverter;
-import org.renjin.jvminterop.converters.IntegerConverter;
-import org.renjin.jvminterop.converters.StringArrayConverter;
-import org.renjin.jvminterop.converters.StringConverter;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Generic;
-import org.renjin.primitives.annotations.InvokeAsCharacter;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
-import org.renjin.primitives.annotations.Visible;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Attributes;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.Frame;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Raw;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.Recursive;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-import org.renjin.util.NamesBuilder;
-
-
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.jvminterop.ClassFrame;
+import org.renjin.jvminterop.ObjectFrame;
+import org.renjin.jvminterop.converters.*;
+import org.renjin.primitives.annotations.*;
+import org.renjin.sexp.*;
+import org.renjin.util.NamesBuilder;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Primitive type inspection and coercion functions
@@ -228,19 +190,65 @@ public class Types {
   public static boolean isSingle(SEXP exp) {
     throw new EvalException("type \"single\" unimplemented in R");
   }
+
+  private static class IsNaVector extends LogicalVector {
+    private final Vector vector;
+
+    private IsNaVector(Vector vector) {
+      super(buildAttributes(vector));
+      this.vector = vector;
+    }
+
+    private static PairList buildAttributes(Vector vector) {
+      PairList.Builder attributes = new PairList.Builder();
+      for(PairList.Node attribute : vector.getAttributes().nodes()) {
+        if(attribute.getTag() == Symbols.DIM ||
+           attribute.getTag() == Symbols.NAMES ||
+           attribute.getTag() == Symbols.DIMNAMES) {
+          attributes.add(attribute.getTag(), attribute.getValue());
+        }
+      }
+      return attributes.build();
+    }
+
+    private IsNaVector(PairList attributes, Vector vector) {
+      super(attributes);
+      this.vector = vector;
+    }
+
+    @Override
+    public int length() {
+      return vector.length();
+    }
+
+    @Override
+    public int getElementAsRawLogical(int index) {
+      return vector.isElementNA(index) ? 1 : 0;
+    }
+
+    @Override
+    protected SEXP cloneWithNewAttributes(PairList attributes) {
+      return new IsNaVector(attributes, vector);
+    }
+  }
   
   @Generic
   @Primitive("is.na")
-  public static LogicalVector isNA(Vector list) {
-    LogicalVector.Builder result = new LogicalVector.Builder(list.length());
-    for (int i = 0; i != list.length(); ++i) {
-      result.set(i, list.isElementNA(i));
-    }
-    result.setAttribute(Symbols.DIM, list.getAttribute(Symbols.DIM));
-    result.setAttribute(Symbols.NAMES, list.getAttribute(Symbols.NAMES));
-    result.setAttribute(Symbols.DIMNAMES, list.getAttribute(Symbols.DIMNAMES));
+  public static LogicalVector isNA(final Vector vector) {
+    if(vector.length() > 100) {
+      return new IsNaVector(vector);
 
-    return result.build();
+    } else {
+      LogicalArrayVector.Builder result = new LogicalArrayVector.Builder(vector.length());
+      for (int i = 0; i != vector.length(); ++i) {
+        result.set(i, vector.isElementNA(i));
+      }
+      result.setAttribute(Symbols.DIM, vector.getAttribute(Symbols.DIM));
+      result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
+      result.setAttribute(Symbols.DIMNAMES, vector.getAttribute(Symbols.DIMNAMES));
+
+      return result.build();
+    }
   }
 
   @Generic
@@ -298,7 +306,7 @@ public class Types {
 
   @Primitive("is.raw")
   public static SEXP isRaw(Vector v) {
-    return (new LogicalVector(v.getVectorType() == RawVector.VECTOR_TYPE));
+    return (new LogicalArrayVector(v.getVectorType() == RawVector.VECTOR_TYPE));
   }
 
   @Primitive
@@ -465,7 +473,7 @@ public class Types {
   @Generic
   @Primitive("as.logical")
   public static LogicalVector asLogical(Vector vector) {
-    return (LogicalVector) convertVector(new LogicalVector.Builder(), vector);
+    return (LogicalVector) convertVector(new LogicalArrayVector.Builder(), vector);
   }
 
   @Generic
@@ -491,7 +499,7 @@ public class Types {
   @Generic
   @Primitive("as.integer")
   public static IntVector asInteger(Vector source) {
-    return (IntVector) convertVector(new IntVector.Builder(), source);
+    return (IntVector) convertVector(new IntArrayVector.Builder(), source);
   }
 
   @Generic
@@ -517,7 +525,13 @@ public class Types {
   @Generic
   @Primitive("as.double")
   public static DoubleVector asDouble(Vector source) {
-    return (DoubleVector) convertVector(new DoubleVector.Builder(), source);
+    if(source instanceof DoubleVector) {
+      return (DoubleVector) ((DoubleVector)source).setAttributes(ListVector.EMPTY);
+    } else if(source.length() < 100) {
+      return (DoubleVector) convertVector(new DoubleArrayVector.Builder(), source);
+    } else {
+      return new CastingDoubleVector(source);
+    }
   }
 
   private static Vector convertVector(Vector.Builder builder, Vector source) {
@@ -525,6 +539,34 @@ public class Types {
       builder.addFrom(source, i);
     }
     return builder.build();
+  }
+
+  private static class CastingDoubleVector extends DoubleVector {
+    private final Vector inner;
+
+    private CastingDoubleVector(PairList attributes, Vector inner) {
+      super(attributes);
+      this.inner = inner;
+    }
+
+    private CastingDoubleVector(Vector inner) {
+      this.inner = inner;
+    }
+
+    @Override
+    protected SEXP cloneWithNewAttributes(PairList attributes) {
+      return new CastingDoubleVector(attributes, inner);
+    }
+
+    @Override
+    public double getElementAsDouble(int index) {
+      return inner.getElementAsDouble(index);
+    }
+
+    @Override
+    public int length() {
+      return inner.length();
+    }
   }
   
   @Generic
@@ -542,11 +584,11 @@ public class Types {
     } else if ("character".equals(mode)) {
       result = new StringVector.Builder();
     } else if ("logical".equals(mode)) {
-      result = new LogicalVector.Builder(x.length());
+      result = new LogicalArrayVector.Builder(x.length());
     } else if ("integer".equals(mode)) {
-      result = new IntVector.Builder(x.length());
+      result = new IntArrayVector.Builder(x.length());
     } else if ("numeric".equals(mode) || "double".equals(mode)) {
-      result = new DoubleVector.Builder(x.length());
+      result = new DoubleArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
     } else if ("pairlist".equals(mode)) {
@@ -584,9 +626,9 @@ public class Types {
     if ("character".equals(mode)) {
       result = new StringVector.Builder();
     } else if ("logical".equals(mode)) {
-      result = new LogicalVector.Builder(x.length());
+      result = new LogicalArrayVector.Builder(x.length());
     } else if ("numeric".equals(mode)) {
-      result = new DoubleVector.Builder(x.length());
+      result = new DoubleArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
     } else if ("raw".equals(mode)) {
@@ -776,7 +818,7 @@ public class Types {
     
       Vector dimnames = (Vector) x.getAttribute(Symbols.DIMNAMES);
       
-      IntVector.Builder newDim = new IntVector.Builder();
+      IntArrayVector.Builder newDim = new IntArrayVector.Builder();
       ListVector.Builder newDimnames = new ListVector.Builder();
       boolean haveDimNames = false;
       
@@ -825,7 +867,7 @@ public class Types {
             exp.length());
       }
   
-      return exp.setAttribute(Symbols.DIM, new IntVector(dim));
+      return exp.setAttribute(Symbols.DIM, new IntArrayVector(dim));
     }
   }
 
@@ -985,16 +1027,16 @@ public class Types {
   @Primitive
   public static SEXP vector(String mode, int length) {
     if ("logical".equals(mode)) {
-      return new LogicalVector(new int[length]);
+      return new LogicalArrayVector(new int[length]);
 
     } else if ("integer".equals(mode)) {
-      return new IntVector(new int[length]);
+      return new IntArrayVector(new int[length]);
 
     } else if ("numeric".equals(mode)) {
-      return new DoubleVector(new double[length]);
+      return new DoubleArrayVector(new double[length]);
 
     } else if ("double".equals(mode)) {
-      return new DoubleVector(new double[length]);
+      return new DoubleArrayVector(new double[length]);
 
     } else if ("complex".equals(mode)) {
       throw new UnsupportedOperationException("implement me!");
@@ -1028,11 +1070,11 @@ public class Types {
   public static SEXP setStorageMode(Vector source, String newMode) {
     Vector.Builder builder;
     if (newMode.equals("logical")) {
-      builder = new LogicalVector.Builder();
+      builder = new LogicalArrayVector.Builder();
     } else if (newMode.equals("double")) {
-      builder = new DoubleVector.Builder();
+      builder = new DoubleArrayVector.Builder();
     } else if (newMode.equals("integer")) {
-      builder = new IntVector.Builder();
+      builder = new IntArrayVector.Builder();
     } else if (newMode.equals("character")) {
       builder = new StringVector.Builder();
     } else {
@@ -1242,7 +1284,7 @@ public class Types {
   @Primitive
   public static SEXP inherits(SEXP exp, StringVector what, boolean which) {
     if (!which) {
-      return new LogicalVector(inherits(exp, what));
+      return new LogicalArrayVector(inherits(exp, what));
     }
     StringVector classes = getClass(exp);
     int result[] = new int[what.length()];
@@ -1251,7 +1293,7 @@ public class Types {
       result[i] = Iterables.indexOf(classes,
           Predicates.equalTo(what.getElement(i))) + 1;
     }
-    return new IntVector(result);
+    return new IntArrayVector(result);
   }
 
   @Primitive

@@ -23,12 +23,9 @@ package org.renjin.primitives;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.primitives.Sequences;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.SEXP;
-
 
 import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -55,42 +52,38 @@ public class SequenceTest extends EvalTestCase {
 
   @Test
   public void ascendingInts() {
-    assertThat(colon(199,201),
-        equalTo((SEXP)new IntVector(199, 200, 201)));
+    assertThat(colon(199,201), elementsEqualTo(199, 200, 201));
   }
 
   @Test
   public void descendingInts() {
-    assertThat(colon(9, 5),
-        equalTo((SEXP)new IntVector(9, 8, 7, 6, 5)));
+    assertThat(colon(9, 5), elementsEqualTo(9, 8, 7, 6, 5));
   }
 
   @Test
   public void ascendingReals() {
-    assertThat(colon(1.2, 5).toString(),
-        equalTo(new DoubleVector(1.2, 2.2, 3.2, 4.2).toString()));
+    assertThat(colon(1.2, 5), elementsEqualTo(1.2, 2.2, 3.2, 4.2));
   }
 
   @Test
   public void descendingReals() {
-    assertThat(colon(9.1, 5.1).toString(),
-        equalTo(new DoubleVector(9.1, 8.1, 7.1, 6.1, 5.1).toString()));
+    assertThat(colon(9.1, 5.1), elementsEqualTo(9.1, 8.1, 7.1, 6.1, 5.1));
   }
 
 
   private SEXP colon(double n1, double n2) {
     Sequences fn = new Sequences();                 
-    return fn.colonSequence(topLevelContext, new DoubleVector(n1), new DoubleVector(n2));
+    return fn.colonSequence(topLevelContext, new DoubleArrayVector(n1), new DoubleArrayVector(n2));
   }
 
   @Test
   public void assignment() {
-    assertThat( eval( "x <- 1:3 "), equalTo( c_i(1,2,3)));
+    assertThat( eval( "x <- 1:3 "), elementsEqualTo(1, 2, 3));
   }
 
   @Test
   public void combine() {
-    assertThat( eval( "c(1:3) "), equalTo( c_i(1,2,3)));
+    assertThat( eval( "c(1:3) "), elementsEqualTo(1, 2, 3));
   }
 
   @Test
@@ -121,12 +114,11 @@ public class SequenceTest extends EvalTestCase {
 
   @Test
   public void seqInt() {
-    assertThat( eval(" seq.int(to=6, from=3)" ), equalTo(c_i(3,4,5,6)));
-    assertThat( eval(" seq.int(3,6)" ), equalTo(c_i(3,4,5,6)));
-    assertThat( eval(" seq.int(from=10, length=4)" ), equalTo(c(10,11,12,13))); // this seems like it should be double
-                                                                                // but R.2.10.1 returns double
-    assertThat( eval(" seq.int(to=10, by=2)"), equalTo(c(1,3,5,7,9)));
-    assertThat( eval(" seq.int(length=4)" ), equalTo(c_i(1,2,3,4)));
+    assertThat( eval(" seq.int(to=6, from=3)" ), elementsEqualTo(3, 4, 5, 6));
+    assertThat( eval(" seq.int(3,6)" ), elementsEqualTo(3, 4, 5, 6));
+    assertThat( eval(" seq.int(from=10, length=4)" ), elementsEqualTo(10, 11, 12, 13));
+    assertThat( eval(" seq.int(to=10, by=2)"), elementsEqualTo(1, 3, 5, 7, 9));
+    assertThat( eval(" seq.int(length=4)" ), elementsEqualTo(1, 2, 3, 4));
   }
 
   @Test
@@ -146,8 +138,6 @@ public class SequenceTest extends EvalTestCase {
 
   @Test
   public void repWithZeroLengthOut() {
-    assertThat( eval(" rep(NA, length.out=0) "), equalTo( (SEXP)new LogicalVector()));
+    assertThat( eval(" rep(NA, length.out=0) "), equalTo( (SEXP)new LogicalArrayVector()));
   }
-
-
 }

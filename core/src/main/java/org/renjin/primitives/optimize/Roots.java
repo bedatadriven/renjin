@@ -27,6 +27,7 @@ import org.apache.commons.math.analysis.solvers.BrentSolver;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Function;
@@ -65,6 +66,6 @@ public class Roots {
       throw new EvalException(e);
     }
 
-    return new DoubleVector(root, iterations, estimatedPrecision);
+    return new DoubleArrayVector(root, iterations, estimatedPrecision);
   }
 }

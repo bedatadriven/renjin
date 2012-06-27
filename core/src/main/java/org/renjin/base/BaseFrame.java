@@ -21,23 +21,13 @@
 
 package org.renjin.base;
 
-import java.util.IdentityHashMap;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.renjin.primitives.Primitives;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Frame;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 import org.renjin.util.FileSystemUtils;
 
-
-import com.google.common.collect.Sets;
+import java.util.IdentityHashMap;
+import java.util.Set;
 
 /**
  *  The {@code Frame} that provides the primitive functions for the
@@ -132,24 +122,24 @@ public class BaseFrame implements Frame {
     // TODO: I'm not sure how these values are used, but
     // I have mostly just copied them from my local R installation
     loaded.put(Symbol.get(".Machine"), ListVector.newNamedBuilder()
-        .add("double.eps", new DoubleVector(DoubleVector.EPSILON))
-        .add("double.neg.eps", new DoubleVector(1.110223e-16))
-        .add("double.xmin",new DoubleVector(2.225074e-308))
-        .add("double.xmax", new DoubleVector(1.797693e+308))
-        .add("double.base", new IntVector(2))
-        .add("double.digits", new IntVector(53))
-        .add("double.rounding", new IntVector(5))
-        .add("double.guard", new IntVector(0))
-        .add("double.ulp.digits", new IntVector(-52))
-        .add("double.neg.ulp.digits", new IntVector(-53))
-        .add("double.exponent", new IntVector(11))
-        .add("double.min.exp", new IntVector(Double.MIN_EXPONENT))
-        .add("double.max.exp", new IntVector(Double.MAX_EXPONENT))
-        .add("integer.max", new IntVector(Integer.MAX_VALUE))
-        .add("sizeof.long", new IntVector(4))
-        .add("sizeof.longlong", new IntVector(8))
-        .add("sizeof.longdouble", new IntVector(12))
-        .add("sizeof.pointer", new IntVector(4))
+        .add("double.eps", new DoubleArrayVector(DoubleVector.EPSILON))
+        .add("double.neg.eps", new DoubleArrayVector(1.110223e-16))
+        .add("double.xmin",new DoubleArrayVector(2.225074e-308))
+        .add("double.xmax", new DoubleArrayVector(1.797693e+308))
+        .add("double.base", new IntArrayVector(2))
+        .add("double.digits", new IntArrayVector(53))
+        .add("double.rounding", new IntArrayVector(5))
+        .add("double.guard", new IntArrayVector(0))
+        .add("double.ulp.digits", new IntArrayVector(-52))
+        .add("double.neg.ulp.digits", new IntArrayVector(-53))
+        .add("double.exponent", new IntArrayVector(11))
+        .add("double.min.exp", new IntArrayVector(Double.MIN_EXPONENT))
+        .add("double.max.exp", new IntArrayVector(Double.MAX_EXPONENT))
+        .add("integer.max", new IntArrayVector(Integer.MAX_VALUE))
+        .add("sizeof.long", new IntArrayVector(4))
+        .add("sizeof.longlong", new IntArrayVector(8))
+        .add("sizeof.longdouble", new IntArrayVector(12))
+        .add("sizeof.pointer", new IntArrayVector(4))
        .build());
 
   }

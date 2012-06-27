@@ -28,19 +28,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 /**
@@ -109,7 +97,7 @@ public class Match {
    * giving the indices of the elements in table which matched, or {@code nomatch}.
    */
   public static IntVector pmatch(StringVector x, StringVector table, int noMatch, boolean duplicatesOk) {
-    IntVector.Builder result = new IntVector.Builder(x.length());
+    IntArrayVector.Builder result = new IntArrayVector.Builder(x.length());
     boolean matchedTable[] = new boolean[table.length()];
     boolean matchedSearch[] = new boolean[x.length()];
 
@@ -212,7 +200,7 @@ public class Match {
    */
   @Primitive
   public static IntVector which(Vector x) {
-    IntVector.Builder indices = new IntVector.Builder();
+    IntArrayVector.Builder indices = new IntArrayVector.Builder();
     for(int i=0;i!=x.length();++i) {
       if(x.isElementTrue(i)) {
         indices.add(i+1);

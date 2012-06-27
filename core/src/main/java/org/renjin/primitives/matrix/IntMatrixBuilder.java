@@ -1,8 +1,9 @@
 package org.renjin.primitives.matrix;
 
+import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
 
-public class IntMatrixBuilder extends AbstractMatrixBuilder<IntVector.Builder, IntVector>
+public class IntMatrixBuilder extends AbstractMatrixBuilder<IntArrayVector.Builder, IntVector>
     implements MatrixBuilder {
   
   public IntMatrixBuilder(int nrows, int ncols) {

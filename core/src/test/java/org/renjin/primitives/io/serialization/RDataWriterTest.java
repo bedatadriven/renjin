@@ -21,9 +21,10 @@
 
 package org.renjin.primitives.io.serialization;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.renjin.util.CDefines.eval;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.sexp.*;
+import org.renjin.sexp.PairList.Builder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,23 +32,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-import org.renjin.eval.Context;
-import org.renjin.primitives.io.serialization.RDataReader;
-import org.renjin.primitives.io.serialization.RDataWriter;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.PairList.Builder;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class RDataWriterTest extends EvalTestCase {
@@ -58,14 +44,14 @@ public class RDataWriterTest extends EvalTestCase {
 
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     list.add("foo", new StringVector("zefer", "fluuu"));
-    list.setAttribute("categories", new IntVector(3));
+    list.setAttribute("categories", new IntArrayVector(3));
 
 
     PairList.Builder file = new PairList.Builder();
     file.add("a", new StringVector("who", "am", "i", StringVector.NA));
-    file.add("b", new IntVector(1, 2, 3, IntVector.NA, 4));
-    file.add("c", new LogicalVector(Logical.NA, Logical.FALSE, Logical.TRUE));
-    file.add("d", new DoubleVector(3.14, 6.02, DoubleVector.NA));
+    file.add("b", new IntArrayVector(1, 2, 3, IntVector.NA, 4));
+    file.add("c", new LogicalArrayVector(Logical.NA, Logical.FALSE, Logical.TRUE));
+    file.add("d", new DoubleArrayVector(3.14, 6.02, DoubleVector.NA));
     file.add("l", list.build());
 
 
@@ -76,7 +62,7 @@ public class RDataWriterTest extends EvalTestCase {
   @Test
   public void testVerySimple() throws IOException {
     PairList.Builder pl = new PairList.Builder();
-    pl.add("serialized", new IntVector(1,2,3,4));
+    pl.add("serialized", new IntArrayVector(1,2,3,4));
 
     PairList list = pl.build();
 
@@ -95,8 +81,8 @@ public class RDataWriterTest extends EvalTestCase {
   public void testClosure() throws IOException {
     
     PairList.Builder formals = new Builder();
-    formals.add("x", new IntVector(1));
-    formals.add("y", new IntVector(2));
+    formals.add("x", new IntArrayVector(1));
+    formals.add("y", new IntArrayVector(2));
     
     FunctionCall body = FunctionCall.newCall(Symbol.get("+"), Symbol.get("x"), Symbol.get("y"));
     

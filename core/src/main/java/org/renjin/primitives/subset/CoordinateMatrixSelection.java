@@ -1,19 +1,12 @@
 package org.renjin.primitives.subset;
 
-import java.util.Iterator;
-import java.util.List;
-
+import com.google.common.collect.UnmodifiableIterator;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Indexes;
 import org.renjin.primitives.matrix.Matrix;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.UnmodifiableIterator;
+import java.util.Iterator;
 
 
 /**

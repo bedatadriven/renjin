@@ -3,13 +3,7 @@ package org.renjin.primitives.matrix;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Indexes;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 /**
@@ -23,7 +17,7 @@ public class Matrices {
   public static Vector transpose(Vector x) {
     Vector dimensions = (Vector) x.getAttribute(Symbols.DIM);
     if(dimensions.length() == 0) {
-      return (Vector)x.setAttribute(Symbols.DIM, new IntVector(1, x.length()));
+      return (Vector)x.setAttribute(Symbols.DIM, new IntArrayVector(1, x.length()));
       
     } else if(dimensions.length() == 2){
       Vector.Builder builder = x.newBuilderWithInitialSize(x.length());
@@ -41,7 +35,7 @@ public class Matrices {
         ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
         builder.setAttribute(Symbols.DIMNAMES, newDimNames);
       }
-      builder.setAttribute(Symbols.DIM, new IntVector(ncols, nrows));
+      builder.setAttribute(Symbols.DIM, new IntArrayVector(ncols, nrows));
       result = builder.build();
       return (result);
       
@@ -85,13 +79,13 @@ public class Matrices {
       }
     }
     
-    return new DoubleVector(sums);
+    return new DoubleArrayVector(sums);
   }
   
   @Primitive
   public static DoubleVector rowMeans(AtomicVector x, int numRows, int rowLength, boolean naRm) {
     DoubleVector sums = rowSums(x, numRows,  rowLength, naRm);
-    DoubleVector.Builder dvb = new DoubleVector.Builder();
+    DoubleArrayVector.Builder dvb = new DoubleArrayVector.Builder();
     for (int i = 0; i < numRows; i++) {
       dvb.add(sums.get(i) / rowLength);
     }
@@ -120,12 +114,12 @@ public class Matrices {
       sums[column] = sum;
     }
     
-    return new DoubleVector(sums);
+    return new DoubleArrayVector(sums);
   }
   
   public static DoubleVector colMeans(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
     DoubleVector sums = colSums(x, columnLength, numColumns, naRm);
-    DoubleVector.Builder dvb = new DoubleVector.Builder();
+    DoubleArrayVector.Builder dvb = new DoubleArrayVector.Builder();
     for (int i = 0; i < numColumns; i++) {
       dvb.add(sums.get(i) / columnLength);
     }

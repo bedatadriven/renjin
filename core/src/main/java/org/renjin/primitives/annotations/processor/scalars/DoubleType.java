@@ -1,7 +1,7 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Vector.Builder;
 
 public class DoubleType extends ScalarType {
 
@@ -31,8 +31,8 @@ public class DoubleType extends ScalarType {
   }
 
   @Override
-  public Class<DoubleVector.Builder> getBuilderClass() {
-    return DoubleVector.Builder.class;
+  public Class<DoubleArrayVector.Builder> getBuilderClass() {
+    return DoubleArrayVector.Builder.class;
   }
 
 }

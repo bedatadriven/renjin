@@ -5,8 +5,8 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 
 
@@ -28,7 +28,7 @@ public class Sampling {
 
   public static IntVector sampleWithReplacement(Context.Globals context, int size, double[] prob) {
     double[] cumProbs = new double[prob.length];
-    IntVector.Builder resultb = new IntVector.Builder();
+    IntArrayVector.Builder resultb = new IntArrayVector.Builder();
     cumProbs[0] = prob[0];
     for (int i = 1; i < cumProbs.length; i++) {
       cumProbs[i] = prob[i] + cumProbs[i - 1];
@@ -54,7 +54,7 @@ public class Sampling {
     double[] cumProbs = new double[prob.length];
     int[] selectedIndices = new int[prob.length];
     int numItems = 0;
-    IntVector.Builder resultb = new IntVector.Builder();
+    IntArrayVector.Builder resultb = new IntArrayVector.Builder();
     cumProbs[0] = prob[0];
     for (int i = 1; i < cumProbs.length; i++) {
       cumProbs[i] = prob[i] + cumProbs[i - 1];

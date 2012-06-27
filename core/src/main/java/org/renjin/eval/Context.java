@@ -21,14 +21,8 @@
 
 package org.renjin.eval;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
@@ -40,28 +34,16 @@ import org.renjin.graphics.ColorPalette;
 import org.renjin.graphics.GraphicsDevices;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.random.RNG;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.Frame;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.HashFrame;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.PromisePairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 import org.renjin.util.FileSystemUtils;
 
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Contexts are the internal mechanism used to keep track of where a
@@ -122,15 +104,15 @@ public class Context {
       map = Maps.newHashMap();
       map.put("prompt", new StringVector("> "));
       map.put("continue", new StringVector("+ "));
-      map.put("expressions" , new IntVector(5000));
-      map.put("width", new IntVector(80));
-      map.put("digits", new IntVector(7));
-      map.put("echo", new LogicalVector(false));
-      map.put("verbose", new LogicalVector(false));
-      map.put("check.bounds", new LogicalVector(false));
-      map.put("keep.source", new LogicalVector(true));
-      map.put("keep.source.pkgs", new LogicalVector(false));
-      map.put("warnings.length", new IntVector(1000));
+      map.put("expressions" , new IntArrayVector(5000));
+      map.put("width", new IntArrayVector(80));
+      map.put("digits", new IntArrayVector(7));
+      map.put("echo", new LogicalArrayVector(false));
+      map.put("verbose", new LogicalArrayVector(false));
+      map.put("check.bounds", new LogicalArrayVector(false));
+      map.put("keep.source", new LogicalArrayVector(true));
+      map.put("keep.source.pkgs", new LogicalArrayVector(false));
+      map.put("warnings.length", new IntArrayVector(1000));
       map.put("OutDec", new StringVector("."));
     }
 

@@ -21,13 +21,8 @@
 
 package org.renjin.primitives.files;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
@@ -40,19 +35,14 @@ import org.renjin.primitives.annotations.Recycle;
 import org.renjin.primitives.annotations.Visible;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.RE;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Function for manipulating files and paths.
@@ -83,7 +73,7 @@ public class Files {
   
   @Primitive("file.access")
   public static IntVector fileAccess(@Current Context context, StringVector names, int mode ) throws FileSystemException {
-    IntVector.Builder result = new IntVector.Builder();
+    IntArrayVector.Builder result = new IntArrayVector.Builder();
     for(String name : names) {
       FileObject file = context.resolveFile(pathExpand(name));
       result.add(checkAccess(file, mode));
@@ -118,11 +108,11 @@ public class Files {
   @Primitive("file.info")
   public static ListVector fileInfo(@Current Context context, StringVector paths) throws FileSystemException {
 
-    DoubleVector.Builder size = new DoubleVector.Builder();
-    LogicalVector.Builder isdir = new LogicalVector.Builder();
-    IntVector.Builder mode = (IntVector.Builder) new IntVector.Builder()
+    DoubleArrayVector.Builder size = new DoubleArrayVector.Builder();
+    LogicalArrayVector.Builder isdir = new LogicalArrayVector.Builder();
+    IntArrayVector.Builder mode = (IntArrayVector.Builder) new IntArrayVector.Builder()
         .setAttribute(Symbols.CLASS, new StringVector("octmode"));
-    DoubleVector.Builder mtime = new DoubleVector.Builder();
+    DoubleArrayVector.Builder mtime = new DoubleArrayVector.Builder();
     StringVector.Builder exe = new StringVector.Builder();
 
     for(String path : paths) {
@@ -304,7 +294,7 @@ public class Files {
     // TODO: return correct value and implement warnings documented above
 
     context.setInvisibleFlag();
-    return new LogicalVector(true);
+    return new LogicalArrayVector(true);
   }
 
   /**
@@ -459,7 +449,7 @@ public class Files {
    * @throws FileSystemException
    */
   public static IntVector unlink(@Current Context context, StringVector paths, boolean recursive) throws FileSystemException {
-    IntVector.Builder result = new IntVector.Builder();
+    IntArrayVector.Builder result = new IntArrayVector.Builder();
     for(String path : paths) {
       if(StringVector.isNA(path)) {
         result.add(0);
@@ -519,7 +509,7 @@ public class Files {
       }
       context.setInvisibleFlag();
   
-      return new IntVector(0);
+      return new IntArrayVector(0);
     } finally {
       zin.close();
     }

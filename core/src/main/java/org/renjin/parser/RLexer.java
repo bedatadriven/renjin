@@ -21,60 +21,17 @@
 
 package org.renjin.parser;
 
-import static java.lang.Character.isDigit;
-import static org.renjin.parser.RParser.AND;
-import static org.renjin.parser.RParser.AND2;
-import static org.renjin.parser.RParser.BREAK;
-import static org.renjin.parser.RParser.ELSE;
-import static org.renjin.parser.RParser.END_OF_INPUT;
-import static org.renjin.parser.RParser.EOF;
-import static org.renjin.parser.RParser.EQ;
-import static org.renjin.parser.RParser.EQ_ASSIGN;
-import static org.renjin.parser.RParser.ERROR;
-import static org.renjin.parser.RParser.FOR;
-import static org.renjin.parser.RParser.FUNCTION;
-import static org.renjin.parser.RParser.GE;
-import static org.renjin.parser.RParser.GT;
-import static org.renjin.parser.RParser.IF;
-import static org.renjin.parser.RParser.IN;
-import static org.renjin.parser.RParser.LBB;
-import static org.renjin.parser.RParser.LE;
-import static org.renjin.parser.RParser.LEFT_ASSIGN;
-import static org.renjin.parser.RParser.LT;
-import static org.renjin.parser.RParser.NE;
-import static org.renjin.parser.RParser.NEXT;
-import static org.renjin.parser.RParser.NS_GET;
-import static org.renjin.parser.RParser.NS_GET_INT;
-import static org.renjin.parser.RParser.NULL_CONST;
-import static org.renjin.parser.RParser.NUM_CONST;
-import static org.renjin.parser.RParser.OR;
-import static org.renjin.parser.RParser.OR2;
-import static org.renjin.parser.RParser.REPEAT;
-import static org.renjin.parser.RParser.RIGHT_ASSIGN;
-import static org.renjin.parser.RParser.SPECIAL;
-import static org.renjin.parser.RParser.STR_CONST;
-import static org.renjin.parser.RParser.SYMBOL;
-import static org.renjin.parser.RParser.WHILE;
-import static org.renjin.parser.Tokens.LBRACE;
-import static org.renjin.parser.Tokens.RBRACE;
-import static org.renjin.parser.Tokens.R_EOF;
-import static org.renjin.util.CDefines.R_NilValue;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.logging.Logger;
 
-import org.apache.commons.math.complex.Complex;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.util.CDefines;
+import static java.lang.Character.isDigit;
+import static org.renjin.parser.RParser.*;
+import static org.renjin.parser.Tokens.*;
+import static org.renjin.util.CDefines.R_NilValue;
 
 
 public class RLexer implements RParser.Lexer {
@@ -891,13 +848,13 @@ an ANSI digit or not */
         logger.warning(String.format("integer literal %sL contains unnecessary decimal point", buffer.toString()));
       }
       yylval = parseOptions.isGenerateCode() ? 
-          new IntVector(ParseUtil.parseInt(buffer.toString())) : R_NilValue;
+          new IntArrayVector(ParseUtil.parseInt(buffer.toString())) : R_NilValue;
     } else {
       if (c != 'L') {
         xxungetc(c);
       }
       yylval = parseOptions.isGenerateCode() ?
-          new DoubleVector(ParseUtil.parseDouble(buffer.toString())) : R_NilValue;
+          new DoubleArrayVector(ParseUtil.parseDouble(buffer.toString())) : R_NilValue;
     }
 
     return NUM_CONST;
@@ -1219,25 +1176,25 @@ an ANSI digit or not */
             if (parseOptions.isGenerateCode()) {
               switch (i) {
                 case 1:
-                  yylval = new LogicalVector(Logical.NA);
+                  yylval = new LogicalArrayVector(Logical.NA);
                   break;
                 case 2:
-                  yylval = new LogicalVector(true);
+                  yylval = new LogicalArrayVector(true);
                   break;
                 case 3:
-                  yylval = new LogicalVector(false);
+                  yylval = new LogicalArrayVector(false);
                   break;
                 case 4:
-                  yylval = new DoubleVector(Double.POSITIVE_INFINITY);
+                  yylval = new DoubleArrayVector(Double.POSITIVE_INFINITY);
                   break;
                 case 5:
-                  yylval = new DoubleVector(Double.NaN);
+                  yylval = new DoubleArrayVector(Double.NaN);
                   break;
                 case 6:
-                  yylval = new IntVector(IntVector.NA);
+                  yylval = new IntArrayVector(IntVector.NA);
                   break;
                 case 7:
-                  yylval = new DoubleVector(DoubleVector.NA);
+                  yylval = new DoubleArrayVector(DoubleVector.NA);
                   break;
                 case 8:
                   yylval = new StringVector(StringVector.NA);

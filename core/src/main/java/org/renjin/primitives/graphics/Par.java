@@ -2,21 +2,11 @@ package org.renjin.primitives.graphics;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.graphics.AxisIntervalCalculationStyle;
-import org.renjin.graphics.ClippingMode;
-import org.renjin.graphics.Color;
-import org.renjin.graphics.GraphicsDevice;
-import org.renjin.graphics.LineType;
+import org.renjin.graphics.*;
 import org.renjin.graphics.geom.Margins;
 import org.renjin.graphics.geom.Rectangle;
 import org.renjin.primitives.annotations.Current;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 public class Par {
@@ -153,7 +143,7 @@ public class Par {
 
       @Override
       public SEXP query(GraphicsDevice dd) {
-        return new DoubleVector(dd.getParameters().getCexBase());
+        return new DoubleArrayVector(dd.getParameters().getCexBase());
       }
 
       @Override
@@ -165,7 +155,7 @@ public class Par {
 
       @Override
       public SEXP query(GraphicsDevice dd) {
-        return new DoubleVector( dd.getParameters().getAxisAnnotationStyle().getFontSizeFactor() );
+        return new DoubleArrayVector( dd.getParameters().getAxisAnnotationStyle().getFontSizeFactor() );
       }
 
       @Override
@@ -176,7 +166,7 @@ public class Par {
     new Parameter("cex.lab") {
       @Override
       public SEXP query(GraphicsDevice dd) {
-        return new DoubleVector( dd.getParameters().getXyLabelStyle().getFontSizeFactor() );
+        return new DoubleArrayVector( dd.getParameters().getXyLabelStyle().getFontSizeFactor() );
       }
 
       @Override
@@ -187,7 +177,7 @@ public class Par {
     new Parameter("cex.main") {
       @Override
       public SEXP query(GraphicsDevice dd) {
-        return new DoubleVector( dd.getParameters().getMainTitleStyle().getFontSizeFactor() );
+        return new DoubleArrayVector( dd.getParameters().getMainTitleStyle().getFontSizeFactor() );
       }
 
       @Override
@@ -198,7 +188,7 @@ public class Par {
     new Parameter("cex.sub") {
       @Override
       public SEXP query(GraphicsDevice dd) {
-        return new DoubleVector( dd.getParameters().getSubTitleStyle().getFontSizeFactor() );
+        return new DoubleArrayVector( dd.getParameters().getSubTitleStyle().getFontSizeFactor() );
       }
 
       @Override
@@ -327,7 +317,7 @@ public class Par {
     new Parameter("lwd") {
       @Override
       public SEXP query(GraphicsDevice dd) {
-        return new DoubleVector(dd.getParameters().getLineWidth());
+        return new DoubleArrayVector(dd.getParameters().getLineWidth());
       }
 
       @Override

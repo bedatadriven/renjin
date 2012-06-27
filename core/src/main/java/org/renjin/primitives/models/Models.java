@@ -21,26 +21,15 @@
 
 package org.renjin.primitives.models;
 
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
 public class Models {
 
@@ -72,7 +61,7 @@ public class Models {
     attributes.add("variables", formula.buildVariablesAttribute());
     attributes.add("factors", formula.buildFactorsMatrix());
     attributes.add("term.labels", formula.buildTermLabels());
-    attributes.add("order", new IntVector());
+    attributes.add("order", new IntArrayVector());
     attributes.add("intercept", formula.buildInterceptAttribute());
     attributes.add("response",  formula.buildResponseAttribute());
     attributes.add(".Environment", context.getGlobalEnvironment() );
@@ -211,7 +200,7 @@ public class Models {
     if (row_names.length() == nr) {
         attributes.add(Symbols.ROW_NAMES, row_names);
     } else {
-        attributes.add(Symbols.ROW_NAMES, new IntVector(IntVector.NA, -nr));
+        attributes.add(Symbols.ROW_NAMES, new IntArrayVector(IntVector.NA, -nr));
     
         /*
         PROTECT(row_names = allocVector(INTSXP, nr));

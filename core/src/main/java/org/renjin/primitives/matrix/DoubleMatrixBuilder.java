@@ -1,8 +1,9 @@
 package org.renjin.primitives.matrix;
 
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 
-public class DoubleMatrixBuilder extends AbstractMatrixBuilder<DoubleVector.Builder, DoubleVector> 
+public class DoubleMatrixBuilder extends AbstractMatrixBuilder<DoubleArrayVector.Builder, DoubleVector>
     implements MatrixBuilder {
 
   public DoubleMatrixBuilder(int nrows, int ncols) {

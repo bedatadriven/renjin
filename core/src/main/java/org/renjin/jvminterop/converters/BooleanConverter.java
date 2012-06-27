@@ -1,10 +1,6 @@
 package org.renjin.jvminterop.converters;
 
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 public class BooleanConverter extends PrimitiveScalarConverter<Boolean> {
 
@@ -17,9 +13,9 @@ public class BooleanConverter extends PrimitiveScalarConverter<Boolean> {
   @Override
   public SEXP convertToR(Boolean value) {
     if(value == null) {
-      return new LogicalVector(LogicalVector.NA);
+      return new LogicalArrayVector(LogicalVector.NA);
     } else {
-      return new LogicalVector(value);
+      return new LogicalArrayVector(value);
     }
   }
 

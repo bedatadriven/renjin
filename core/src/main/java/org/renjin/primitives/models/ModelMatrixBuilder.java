@@ -1,23 +1,13 @@
 package org.renjin.primitives.models;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.matrix.DoubleMatrixBuilder;
 import org.renjin.primitives.models.ModelFrame.Variable;
 import org.renjin.primitives.models.TermsObject.Term;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-
-import com.google.common.collect.Lists;
+import java.util.Arrays;
 
 /**
  * Constructs a model matrix from a {@link TermsObject} and a
@@ -164,7 +154,7 @@ public class ModelMatrixBuilder {
     /* Record which columns of the design matrix are associated */
     /* with which model terms. */
 
-    IntVector.Builder assign = new IntVector.Builder(nc);
+    IntArrayVector.Builder assign = new IntArrayVector.Builder(nc);
     int k = 0;
     if( terms.hasIntercept()) {
       assign.add(0);

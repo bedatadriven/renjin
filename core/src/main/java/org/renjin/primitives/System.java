@@ -23,6 +23,19 @@ import com.google.common.collect.Lists;
 
 package org.renjin.primitives;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.provider.local.LocalFile;
+import org.renjin.RVersion;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
+import org.renjin.primitives.annotations.Visible;
+import org.renjin.sexp.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -35,28 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.provider.local.LocalFile;
-import org.renjin.RVersion;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
-import org.renjin.primitives.annotations.Visible;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 
 public class System {
 
@@ -113,7 +104,7 @@ public class System {
 
     Map<String, String> map = context.getGlobals().systemEnvironment;
 
-    LogicalVector.Builder result = new LogicalVector.Builder();
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     for(int i=0;i!=names.length();++i) {
       map.put(names.getElementAsString(i), values.getElementAsString(i));
       result.add(true);
@@ -127,7 +118,7 @@ public class System {
 
     Map<String, String> map = context.getGlobals().systemEnvironment;
 
-    LogicalVector.Builder result = new LogicalVector.Builder();
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     for(int i=0;i!=names.length();++i) {
       map.remove(names.getElementAsString(i));
       result.add(true);
@@ -200,7 +191,7 @@ public class System {
    * @return
    */
   public static LogicalVector capabilities(StringVector what) {
-    LogicalVector.Builder result = new LogicalVector.Builder();
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     StringVector.Builder names = new StringVector.Builder();
 
     for(String capability : what) {
@@ -215,7 +206,7 @@ public class System {
 
   public static LogicalVector capabilities() {
 
-    LogicalVector.Builder result = new LogicalVector.Builder();
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     StringVector.Builder names = new StringVector.Builder();
 
     for(String capability : Capabilities.NAMES) {
@@ -282,7 +273,7 @@ public class System {
     }catch (Exception e){
       //Handled string wrong?
     }
-    return(new IntVector(result));
+    return(new IntArrayVector(result));
   }
   
   @Primitive("Sys.sleep")
@@ -301,7 +292,7 @@ public class System {
     } catch(Exception e) {
       
     }
-    return new DoubleVector();
+    return new DoubleArrayVector();
   }
   
   /**
@@ -320,7 +311,7 @@ public class System {
   public static DoubleVector procTime() {
      
     try {
-      DoubleVector.Builder result = new DoubleVector.Builder();
+      DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
       StringVector.Builder names = new StringVector.Builder();
       
   
@@ -370,7 +361,7 @@ public class System {
    * environments
    */
   private static DoubleVector procTimeSafe() {
-    DoubleVector.Builder result = new DoubleVector.Builder();
+    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     StringVector.Builder names = new StringVector.Builder();
     
     // user.self
@@ -453,7 +444,7 @@ public class System {
     process.waitFor();
     
     int exitValue = process.exitValue();
-    return new IntVector(exitValue);
+    return new IntArrayVector(exitValue);
   }
   
   @VisibleForTesting

@@ -1,6 +1,11 @@
 package org.renjin.primitives.annotations.processor.args;
 
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JVar;
+import org.renjin.primitives.annotations.processor.ApplyMethodContext;
 import org.renjin.primitives.annotations.processor.JvmMethod.Argument;
+import org.renjin.primitives.annotations.processor.WrapperRuntime;
 import org.renjin.primitives.annotations.processor.scalars.ScalarType;
 import org.renjin.primitives.annotations.processor.scalars.ScalarTypes;
 
@@ -23,7 +28,18 @@ public class ToScalar extends ArgConverterStrategy {
   }
 
   @Override
+  public JExpression convertArgument(ApplyMethodContext parent, JExpression sexp) {
+    return parent.classRef(WrapperRuntime.class).staticInvoke(scalarType.getConversionMethod())
+            .arg(sexp);
+  }
+
+  @Override
   public String getTestExpr(String argLocal) {
     return scalarType.testExpr(argLocal);
+  }
+
+  @Override
+  public JExpression getTestExpr(JCodeModel codeModel, JVar sexpVariable) {
+    return scalarType.testExpr(codeModel, sexpVariable);
   }
 }

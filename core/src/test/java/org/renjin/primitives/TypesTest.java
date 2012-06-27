@@ -21,6 +21,13 @@
 
 package org.renjin.primitives;
 
+import org.hamcrest.CoreMatchers;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.*;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
@@ -28,25 +35,6 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.renjin.sexp.Logical.FALSE;
 import static org.renjin.sexp.Logical.TRUE;
-
-import org.hamcrest.CoreMatchers;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-import org.renjin.eval.EvalException;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Raw;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
 
 
 public strictfp class TypesTest extends EvalTestCase {
@@ -345,7 +333,7 @@ public strictfp class TypesTest extends EvalTestCase {
   public void asFunctionDefault() {
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     list.add("a", Symbol.MISSING_ARG);
-    list.add("b", new DoubleVector(2));
+    list.add("b", new DoubleArrayVector(2));
     list.add(FunctionCall.newCall(Symbol.get("+"), Symbol.get("a"), Symbol.get("b")));
     global.setVariable(Symbol.get("x"), list.build());
     

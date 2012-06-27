@@ -21,16 +21,11 @@
 
 package org.renjin.primitives.model;
 
-import java.io.IOException;
-
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
+import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.sameInstance;
@@ -44,9 +39,9 @@ public class ModelsTest extends EvalTestCase {
     eval(" formula <- ~1 ");
     eval(" t <- .Internal(terms.formula(formula,NULL,NULL, FALSE,FALSE))");
 
-    assertThat( eval(" t "), equalTo((SEXP)FunctionCall.newCall(Symbol.get("~"), new DoubleVector(1))));
+    assertThat( eval(" t "), equalTo((SEXP)FunctionCall.newCall(Symbol.get("~"), new DoubleArrayVector(1))));
     assertThat( eval(" attr(t, 'variables')"), equalTo(call("list")));
-    assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector()));
+    assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntArrayVector()));
     assertThat( eval(" .Internal(environment(t)) "), sameInstance((SEXP)topLevelContext.getGlobalEnvironment()));
   }
 
@@ -61,7 +56,7 @@ public class ModelsTest extends EvalTestCase {
     assertThat( eval(" class(t) "), equalTo(c("terms", "formula")));
     assertThat( eval(" attr(t, 'variables') "), equalTo(call("list", Symbol.get("births"))));
     assertThat( eval(" attr(t, 'term.labels') "), equalTo(c("births")));
-    assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntVector(1)));
+    assertThat( eval(" attr(t, 'factors')"), equalTo((SEXP)new IntArrayVector(1)));
   }
 
   @Test

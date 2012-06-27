@@ -1,25 +1,18 @@
 package org.renjin.compiler.cfg;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import org.renjin.compiler.ir.ssa.PhiFunction;
-import org.renjin.compiler.ir.tac.IRBody;
-import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.PrimitiveCall;
-import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.compiler.ir.tac.statements.GotoStatement;
-import org.renjin.compiler.ir.tac.statements.IfStatement;
-import org.renjin.compiler.ir.tac.statements.ReturnStatement;
-import org.renjin.compiler.ir.tac.statements.Statement;
-
-
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.renjin.compiler.ir.ssa.PhiFunction;
+import org.renjin.compiler.ir.tac.IRBody;
+import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.expressions.Variable;
+import org.renjin.compiler.ir.tac.statements.*;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class BasicBlock {
   private final IRBody parent;
@@ -51,7 +44,6 @@ public class BasicBlock {
     statements.set(i, stmt);
   }
 
-  
   public List<Statement> getStatements() {
     return statements;
   }

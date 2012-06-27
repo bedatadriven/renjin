@@ -21,13 +21,7 @@
 
 package org.renjin;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.apache.commons.math.complex.Complex;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -35,46 +29,32 @@ import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.internal.AssumptionViolatedException;
-import org.renjin.compiler.ir.tac.IRFunctionTable;
 import org.renjin.eval.Context;
 import org.renjin.parser.ParseOptions;
 import org.renjin.parser.ParseState;
 import org.renjin.parser.RLexer;
 import org.renjin.parser.RParser;
-import org.renjin.script.RenjinScriptEngine;
-import org.renjin.script.RenjinScriptEngineFactory;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.Raw;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SEXPFactory;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
 
-import com.google.common.collect.Lists;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public abstract class EvalTestCase {
 
-  
+
   protected Environment global;
   protected Environment base;
   protected Context topLevelContext;
   public static final SEXP NULL = Null.INSTANCE;
   public static final SEXP CHARACTER_0 = new StringVector();
-  public static final SEXP DOUBLE_0 = new DoubleVector();
+  public static final SEXP DOUBLE_0 = new DoubleArrayVector();
 
   public SEXP GlobalEnv;
-  
+
   @Before
   public final void setUp() {
     topLevelContext = Context.newTopLevelContext();
@@ -86,7 +66,7 @@ public abstract class EvalTestCase {
   protected SEXP eval(String source) {
     return evaluate(source);
   }
-  
+
   /**
    * Fully initializes the context, loading the R-language
    * base packages and recommended packages.
@@ -106,8 +86,8 @@ public abstract class EvalTestCase {
       source = source + "\n";
     }
     SEXP exp = parse(source);
-    
-    
+
+
     return topLevelContext.evaluate( exp );
   }
 
@@ -125,25 +105,25 @@ public abstract class EvalTestCase {
       throw new RuntimeException(e);
     }
   }
-  
+
   protected Complex complex(double real) {
     return new Complex(real, 0);
   }
-  
+
   protected Complex complex(double real, double imaginary) {
     return new Complex(real, imaginary);
   }
-  
+
   protected SEXP c(Complex... values) {
     return new ComplexVector(values);
   }
 
   protected SEXP c(boolean... values) {
-    return new LogicalVector(values);
+    return new LogicalArrayVector(values);
   }
 
   protected SEXP c(Logical... values) {
-    return new LogicalVector(values);
+    return new LogicalArrayVector(values);
   }
 
   protected SEXP c(String... values) {
@@ -151,15 +131,15 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP c(double... values) {
-    return new DoubleVector(values);
+    return new DoubleArrayVector(values);
   }
-  
+
   protected SEXP c(Raw... values){
     return new RawVector(values);
   }
 
   protected SEXP c_i(int... values) {
-    return new IntVector(values);
+    return new IntArrayVector(values);
   }
 
   protected SEXP list(Object... values) {
@@ -185,12 +165,12 @@ public abstract class EvalTestCase {
   protected Matcher<SEXP> closeTo(final SEXP expectedSexp, final double epsilon) {
     final Vector expected = (Vector)expectedSexp;
     return new TypeSafeMatcher<SEXP>() {
-  
+
       @Override
       public void describeTo(Description d) {
-          d.appendText(expectedSexp.toString());
+        d.appendText(expectedSexp.toString());
       }
-  
+
       @Override
       public boolean matchesSafely(SEXP item) {
         if(!(item instanceof Vector)) {
@@ -220,7 +200,7 @@ public abstract class EvalTestCase {
   protected Matcher<Double> closeTo(double d, double epsilon) {
     return Matchers.closeTo(d, epsilon);
   }
-  
+
   protected Matcher<Double> closeTo(int d, double epsilon) {
     return Matchers.closeTo((double)d, epsilon);
   }
@@ -228,16 +208,16 @@ public abstract class EvalTestCase {
   protected Complex[] row(Complex... z){
     return z;
   }
-  
+
   protected double[] row(double... d) {
     return d;
   }
 
   protected SEXP matrix(double[]... rows) {
-    DoubleVector.Builder matrix = new DoubleVector.Builder();
+    DoubleArrayVector.Builder matrix = new DoubleArrayVector.Builder();
     int nrows = rows.length;
     int ncols = rows[0].length;
-    
+
     for(int j=0;j!=ncols;++j) {
       for(int i=0;i!=nrows;++i) {
         matrix.add(rows[i][j]);
@@ -249,12 +229,47 @@ public abstract class EvalTestCase {
     ComplexVector.Builder matrix = new ComplexVector.Builder();
     int nrows = rows.length;
     int ncols = rows[0].length;
-    
+
     for(int j=0;j!=ncols;++j) {
       for(int i=0;i!=nrows;++i) {
         matrix.add(rows[i][j]);
       }
     }
     return matrix.build();
+  }
+
+  protected Matcher<SEXP> elementsEqualTo(double... elements) {
+    return elementsEqualTo(new DoubleArrayVector(elements));
+  }
+
+//
+//  protected Matcher<SEXP> elementsEqualTo(int... elements) {
+//    return elementsEqualTo(new IntArrayVector(elements));
+//  }
+
+  protected Matcher<SEXP> elementsEqualTo(final SEXP expected) {
+    return new TypeSafeMatcher<SEXP>() {
+      @Override
+      public boolean matchesSafely(SEXP actual) {
+        Vector v1 = (Vector)actual;
+        Vector v2 = (Vector)expected;
+        if(v1.length() != v2.length()) {
+          return false;
+        }
+        for(int i=0;i!=v1.length();++i) {
+          if(v1.isElementNA(i) != v2.isElementNA(i)) {
+            return false;
+          } else if(v1.getVectorType().compareElements(v1, i, v2, i) != 0) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendValue(expected.toString());
+      }
+    };
   }
 }

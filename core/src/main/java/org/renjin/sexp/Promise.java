@@ -44,7 +44,7 @@ public class Promise extends AbstractSEXP implements Recursive {
   protected SEXP expression;
   private SEXP result;
 
-  public Promise(Context context, Environment environment, SEXP expression) {
+  protected Promise(Context context, Environment environment, SEXP expression) {
     this.expression = expression;
     this.environment = environment;
     this.context = context;
@@ -144,5 +144,13 @@ public class Promise extends AbstractSEXP implements Recursive {
   
   public boolean isEvaluated() {
     return result != null;
+  }
+  
+  public static Promise repromise(Context context, Environment environment, SEXP expression) {
+    if(expression instanceof Promise) {
+      return (Promise)expression;
+    } else {
+      return new Promise(context, environment, expression);
+    }
   }
 }

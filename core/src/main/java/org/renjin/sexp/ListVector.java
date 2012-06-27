@@ -21,22 +21,19 @@
 
 package org.renjin.sexp;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.Deparse;
-import org.renjin.sexp.ListVector.Builder;
-import org.renjin.util.NamesBuilder;
-
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.Deparse;
+import org.renjin.util.NamesBuilder;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Generic vector of {@code SEXP}s
@@ -427,9 +424,9 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     public Builder add(Number value) {
       if(value instanceof Integer || value instanceof Byte || value instanceof Byte || 
           value instanceof Short) {
-        add(new IntVector(value.intValue()));
+        add(new IntArrayVector(value.intValue()));
       } else {
-        add(new DoubleVector(value.doubleValue()));
+        add(new DoubleArrayVector(value.doubleValue()));
       }
       return this;
     }
@@ -477,7 +474,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
 
     public NamedBuilder add(String name, int value) {
-      return add(name, new IntVector(value));
+      return add(name, new IntArrayVector(value));
     }
     
     @Override
@@ -496,11 +493,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
 
     public NamedBuilder add(String name, boolean value) {
-      return add(name, new LogicalVector(value));
+      return add(name, new LogicalArrayVector(value));
     }
 
     public NamedBuilder add(String name, Logical value) {
-      return add(name, new LogicalVector(value));
+      return add(name, new LogicalArrayVector(value));
     }
     
     public NamedBuilder addAll(ListVector list) {

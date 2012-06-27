@@ -1,37 +1,12 @@
 package org.renjin.parser;
 
-import static org.renjin.util.CDefines.CAR;
-import static org.renjin.util.CDefines.CDR;
-import static org.renjin.util.CDefines.CHAR;
-import static org.renjin.util.CDefines.CONS;
-import static org.renjin.util.CDefines.PROTECT;
-import static org.renjin.util.CDefines.R_NilValue;
-import static org.renjin.util.CDefines.SETCAR;
-import static org.renjin.util.CDefines.SETCDR;
-import static org.renjin.util.CDefines.STRING_ELT;
-import static org.renjin.util.CDefines.UNPROTECT;
-import static org.renjin.util.CDefines.UNPROTECT_PTR;
-import static org.renjin.util.CDefines._;
-import static org.renjin.util.CDefines.error;
-import static org.renjin.util.CDefines.getAttrib;
-import static org.renjin.util.CDefines.install;
-import static org.renjin.util.CDefines.isNull;
-import static org.renjin.util.CDefines.length;
+import org.renjin.sexp.*;
+import org.renjin.util.CDefines;
 
 import java.io.IOException;
 import java.io.Reader;
 
-import org.renjin.jvminterop.converters.RuntimeConverter;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.util.CDefines;
+import static org.renjin.util.CDefines.*;
 
 
 /* A Bison parser, made by GNU Bison 2.4.1.  */
@@ -1951,7 +1926,7 @@ public class RdParser
 
 
   private SEXP xxpushMode(int newmode, int newitem, boolean neweqn) {
-    IntVector.Builder ans = new IntVector.Builder();
+    IntArrayVector.Builder ans = new IntArrayVector.Builder();
 
     ans.add(xxmode);		/* Lexer mode */
     ans.add(xxitemType);	/* What is \item? */
@@ -2006,13 +1981,13 @@ public class RdParser
 
   private void setDynamicFlag(ListVector.Builder item, int flag) {
     if (flag != 0) {
-      CDefines.setAttrib(item, Symbol.get("dynamicFlag"), new IntVector(flag));
+      CDefines.setAttrib(item, Symbol.get("dynamicFlag"), new IntArrayVector(flag));
     }
   }
 
   private SEXP setDynamicFlag(SEXP item, int flag) {
     if (flag != 0) {
-      return item.setAttribute(Symbol.get("dynamicFlag"), new IntVector(flag));
+      return item.setAttribute(Symbol.get("dynamicFlag"), new IntArrayVector(flag));
     } else {
       return item;
     }
@@ -2290,7 +2265,7 @@ public class RdParser
 
   private SEXP makeSrcref(Location lloc, SEXP srcfile) {
     if(lloc.begin != null && lloc.end != null) {
-      IntVector.Builder val = new IntVector.Builder();
+      IntArrayVector.Builder val = new IntArrayVector.Builder();
       val.add(lloc.begin.line);
       val.add(lloc.begin.byteIndex);
       val.add(lloc.end.line);

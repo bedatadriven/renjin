@@ -2,11 +2,9 @@ package org.renjin.jvminterop.converters;
 
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
 
 
 public class BooleanArrayConverter implements Converter<Boolean[]> {
@@ -20,9 +18,9 @@ public class BooleanArrayConverter implements Converter<Boolean[]> {
   @Override
   public SEXP convertToR(Boolean[] value) {
     if(value == null) {
-      return new LogicalVector(LogicalVector.NA);
+      return new LogicalArrayVector(LogicalVector.NA);
     } else {
-      return new LogicalVector(value);
+      return new LogicalArrayVector(value);
     }
   }
   

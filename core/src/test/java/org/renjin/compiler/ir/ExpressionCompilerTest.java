@@ -1,8 +1,5 @@
 package org.renjin.compiler.ir;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.CompiledBody;
@@ -10,12 +7,10 @@ import org.renjin.compiler.ExpressionCompiler;
 import org.renjin.compiler.ThunkMap;
 import org.renjin.compiler.runtime.VariablePromise;
 import org.renjin.parser.RParser;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class ExpressionCompilerTest extends EvalTestCase {
@@ -23,7 +18,7 @@ public class ExpressionCompilerTest extends EvalTestCase {
 
   @Test
   public void simplestTest() throws Exception {
-    topLevelContext.getEnvironment().setVariable(Symbol.get("x"), new DoubleVector(1,2,3,4));
+    topLevelContext.getEnvironment().setVariable(Symbol.get("x"), new DoubleArrayVector(1,2,3,4));
     DoubleVector result = (DoubleVector) compileAndEval("x<-4; x\n");
     assertThat(result.getElementAsDouble(0), equalTo(4d));
   }

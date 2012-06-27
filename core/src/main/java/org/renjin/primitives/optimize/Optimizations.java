@@ -33,15 +33,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 public class Optimizations {
 
@@ -199,9 +191,9 @@ public class Optimizations {
           a[i + j * n] = a[j + i * n];
     }
 
-    result.add("minimum", new DoubleVector(fpls[1]));
-    result.add("estimate", new DoubleVector(Uncmin.from_f77(xpls)));
-    result.add("gradient", new DoubleVector(Uncmin.from_f77(gpls)));
+    result.add("minimum", new DoubleArrayVector(fpls[1]));
+    result.add("estimate", new DoubleArrayVector(Uncmin.from_f77(xpls)));
+    result.add("gradient", new DoubleArrayVector(Uncmin.from_f77(gpls)));
     if (want_hessian) {
 //
 //	SET_STRING_ELT(names, k, mkChar("hessian"));
@@ -209,8 +201,8 @@ public class Optimizations {
 //	for (i = 0; i < n * n; i++)
 //	    REAL(VECTOR_ELT(value, k))[i] = a[i];
     }
-    result.add("code", new IntVector(code[1]));
-    result.add("iterations", new IntVector(itncnt));
+    result.add("code", new IntArrayVector(code[1]));
+    result.add("iterations", new IntArrayVector(itncnt));
 
     return result.build();
   }
@@ -314,10 +306,10 @@ public class Optimizations {
       try {
         RealPointValuePair res = optimizer.optimize(g, GoalType.MINIMIZE, par.toDoubleArray());
         ListVector.Builder result = new ListVector.Builder();
-        result.add(new DoubleVector(res.getPoint()));
-        result.add(new DoubleVector(res.getValue()));
-        result.add(new IntVector(IntVector.NA, IntVector.NA));
-        result.add(new IntVector(0));
+        result.add(new DoubleArrayVector(res.getPoint()));
+        result.add(new DoubleArrayVector(res.getValue()));
+        result.add(new IntArrayVector(IntVector.NA, IntVector.NA));
+        result.add(new IntArrayVector(0));
         result.add(Null.INSTANCE);
         return result.build();
 

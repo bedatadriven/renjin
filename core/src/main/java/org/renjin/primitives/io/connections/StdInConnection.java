@@ -22,14 +22,12 @@
 package org.renjin.primitives.io.connections;
 
 
-import java.io.BufferedReader;
+import org.renjin.eval.EvalException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 
 
 
@@ -39,16 +37,15 @@ import org.renjin.eval.EvalException;
  */
 public class StdInConnection implements Connection {
 
-  private final Context context;
-  
-  public StdInConnection(Context context) {
-    super();
-    this.context = context;
-  }
+  private InputStream stream = System.in;
 
+  public void setInputStream(InputStream in) {
+    this.stream = in;
+  }
+  
   @Override
   public InputStream getInputStream() throws IOException {
-    return null; // TODO
+    return stream; // TODO
   }
 
   @Override
@@ -67,12 +64,22 @@ public class StdInConnection implements Connection {
   }
 
   @Override
-  public BufferedReader getReader() throws IOException {
+  public PushbackBufferedReader getReader() throws IOException {
     throw new EvalException("implement me!");
   }
 
   @Override
   public boolean isOpen() {
     return true;
+  }
+
+  @Override
+  public void open(OpenSpec spec) throws IOException {
+    
+  }
+
+  @Override
+  public String getClassName() {
+    return "terminal";
   }
 }

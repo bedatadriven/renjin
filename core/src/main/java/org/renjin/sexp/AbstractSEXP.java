@@ -23,11 +23,9 @@ package org.renjin.sexp;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import org.renjin.eval.EvalException;
 
 import java.util.Collections;
-
-import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.EvalException;
 
 
 /**
@@ -127,18 +125,14 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public boolean inherits(String sClassName) {
-
-    // TODO: S4
-//    SEXP klass;
-//    int i, nclass;
-//    if (isObject()) {
-//      klass = getAttrib(s, R_ClassSymbol);
-//      nclass = length(klass);
-//      for (i = 0; i < nclass; i++) {  
-//        if (!strcmp(CHAR(STRING_ELT(klass, i)), name))
-//          return TRUE;
-//      }
-//    }
+    if(isObject()) {
+      Vector classes = (Vector)getAttribute(Symbols.CLASS);
+      for(int i=0;i!=classes.length();++i) {
+        if(sClassName.equals(classes.getElementAsString(i))) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 

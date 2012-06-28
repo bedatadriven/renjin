@@ -14,8 +14,10 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-md5sum <- function(files)
-    structure(.Call(Rmd5, files), names=files)
+md5sum <- function(files) {
+	import(org.renjin.tools.Tools)
+	Tools$Rmd5(files)
+}
 
 .installMD5sums <- function(pkgDir, outDir = pkgDir)
 {

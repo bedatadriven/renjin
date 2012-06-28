@@ -21,38 +21,36 @@
 
 package org.renjin.primitives.io.connections;
 
-import java.io.BufferedReader;
+import org.renjin.eval.EvalException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-
 
 
 public class StdOutConnection implements Connection {
 
-  private final Context context;
+  private PrintWriter stream = new PrintWriter(System.out);
 
-  public StdOutConnection(Context context) {
-    this.context = context;
+  public void setOutputStream(PrintWriter out) {
+    this.stream = out;
   }
-
+  
   @Override
   public InputStream getInputStream() throws IOException {
     throw new EvalException("cannot read from stdout");
   }
 
   @Override
-  public BufferedReader getReader() throws IOException {
+  public PushbackBufferedReader getReader() throws IOException {
     throw new EvalException("cannot read from stdout");
   }
   
   @Override
   public PrintWriter getPrintWriter() throws IOException {
-    return context.getGlobals().stdout;
+    return stream;
   }
 
   @Override
@@ -61,11 +59,22 @@ public class StdOutConnection implements Connection {
 
   @Override
   public OutputStream getOutputStream() throws IOException {
+    // todo: fix me
     throw new EvalException("Cannot open stdout for binary output, only text (todo?)");
   }
 
   @Override
   public boolean isOpen() {
     return true;
+  }
+
+  @Override
+  public void open(OpenSpec spec) throws IOException {
+    
+  }
+
+  @Override
+  public String getClassName() {
+    return "terminal";
   }
 }

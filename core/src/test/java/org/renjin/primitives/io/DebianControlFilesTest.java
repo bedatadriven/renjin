@@ -1,16 +1,14 @@
 package org.renjin.primitives.io;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
-import java.io.IOException;
-
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.primitives.Print;
-import org.renjin.primitives.io.connections.Connections;
-import org.renjin.primitives.io.connections.ResourceConnection;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
+
+import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class DebianControlFilesTest extends EvalTestCase {
@@ -19,9 +17,9 @@ public class DebianControlFilesTest extends EvalTestCase {
   public void licenseTest() throws IOException {
    
     
-    ResourceConnection conn = new ResourceConnection(getClass(), "/org/renjin/share/licenses/license.db");
+    SEXP conn = openResourceAsConn("/org/renjin/share/licenses/license.db");
     topLevelContext.getEnvironment().setVariable("x",
-        DebianControlFiles.readDCF(conn, Null.INSTANCE, true));
+        DebianControlFiles.readDCF(topLevelContext, conn, Null.INSTANCE, true));
     
     assertThat(eval("dim(x)"), equalTo(c_i(29,7)));
     assertThat(eval("dimnames(x)[[1]]"), equalTo(NULL));
@@ -37,8 +35,8 @@ public class DebianControlFilesTest extends EvalTestCase {
   public void continuationTest() throws IOException {
    
     
-    ResourceConnection conn = new ResourceConnection(getClass(), "continuation.dcf");
-    SEXP db = DebianControlFiles.readDCF(conn, Null.INSTANCE, true);
+    SEXP conn = openResourceAsConn("continuation.dcf");
+    SEXP db = DebianControlFiles.readDCF(topLevelContext, conn, Null.INSTANCE, true);
        
     topLevelContext.getEnvironment().setVariable("x",
         db);

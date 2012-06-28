@@ -22,12 +22,11 @@
 package org.renjin.desktop;
 
 
-
-import javax.swing.*;
-
+import org.apache.commons.vfs.FileSystemException;
 import org.renjin.cli.Console;
 import org.renjin.cli.Interpreter;
 
+import javax.swing.*;
 import java.awt.*;
 
 
@@ -62,7 +61,7 @@ public class MainFrame extends JFrame {
     return console;
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws FileSystemException {
 
     loadNativeLookAndFeel();
 

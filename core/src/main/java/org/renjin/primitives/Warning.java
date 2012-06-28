@@ -29,6 +29,8 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.Symbol;
 
+import java.io.IOException;
+
 
 public class Warning {
 
@@ -43,22 +45,26 @@ public class Warning {
   }
 
   @Primitive("warning")
-  public static void warning(@Current Context context, boolean call, boolean immediate, String message) {
+  public static void warning(@Current Context context, boolean call, boolean immediate, String message) throws IOException {
   
     if(call || !immediate) {
       emitWarning(context, Contexts.sysCall(context, 1), immediate, message);
     } else {
-      context.getGlobals().stdout.println("Warning message:");
-      context.getGlobals().stdout.println(message);
+      context.getGlobals().getStdOut().println("Warning message:");
+      context.getGlobals().getStdOut().println(message);
     }
   }
 
   private static void emitWarning(Context context, FunctionCall call,
-      boolean immediate, String message) {
+      boolean immediate, String message)  {
     int warnMode = context.getGlobals().options.getInt("warn", 0);
     if(warnMode == 1 || (warnMode <= 0 && immediate)) {
-      context.getGlobals().stdout.println("Warning in " + call.toString() + " :");
-      context.getGlobals().stdout.println("  " + message);
+      try {
+        context.getGlobals().getStdOut().println("Warning in " + call.toString() + " :");
+        context.getGlobals().getStdOut().println("  " + message);
+      } catch(IOException e) {
+        
+      }
     } else if(warnMode == 0) {
       // store warnings until end of evaluation
       

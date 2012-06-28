@@ -476,6 +476,15 @@ public class JvmMethod implements Comparable<JvmMethod> {
       return false;
     }
     
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+      for(Annotation annotation : method.getParameterAnnotations()[index]) {
+        if(annotation.annotationType() == annotationClass) {
+          return (T) annotation;
+        }
+      }
+      return null;
+    }
+    
     public Class getClazz() {
       return clazz;
     }
@@ -540,6 +549,15 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
     public boolean isNamedFlag() {
       return isAnnotatedWith(NamedFlag.class);
+    }
+
+    public CastStyle getCastStyle() {
+      Cast cast = getAnnotation(Cast.class);
+      if(cast == null) {
+        return CastStyle.IMPLICIT;
+      } else {
+        return cast.value();
+      }
     }
   }
 

@@ -23,9 +23,7 @@ package org.renjin.primitives.files;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileType;
+import org.apache.commons.vfs.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Warning;
@@ -475,6 +473,32 @@ public class Files {
       }
     }
   }
+  
+  @Primitive("file.copy")
+  public static LogicalVector fileCopy(@Current Context context, StringVector fromFiles, String to, boolean overwrite, final boolean recursive) throws FileSystemException {
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
+    FileObject toFile = context.resolveFile(to);
+    for(String from : fromFiles) {
+      try {
+        toFile.copyFrom(context.resolveFile(from), new FileSelector() {
+          
+          @Override
+          public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
+            return true;
+          }
+          
+          @Override
+          public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
+            return recursive;
+          }
+        });
+        result.add(true);
+      } catch(FileSystemException e) {
+        result.add(false);
+      }
+    }
+    return result.build();
+  }
 
   /**
    * Extract files from or list a zip archive.
@@ -603,6 +627,4 @@ public class Files {
       return false;
     }
   }
-
-  
 }

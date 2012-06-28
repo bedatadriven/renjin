@@ -16,18 +16,7 @@
 
 package org.renjin.appengine.repl.server;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
+import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import org.renjin.appengine.AppEngineContextFactory;
 import org.renjin.appengine.repl.shared.InterpreterException;
 import org.renjin.appengine.repl.shared.LotREPLsApi;
@@ -37,16 +26,18 @@ import org.renjin.eval.SecurityManager;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-
-import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Server-side implementation of LotREPLsApi. This class manages the
@@ -92,7 +83,8 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
 
     Context context = masterTopLevelContext.fork();
     StringWriter writer = new StringWriter();
-    context.getGlobals().setStdOut(new PrintWriter(writer));
+    PrintWriter stdOutWriter = new PrintWriter(writer);
+	  context.getGlobals().setStdOut(stdOutWriter);
     restoreGlobals(context);
     SEXP result;
     try {
@@ -113,7 +105,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
     	}
     }
 
-    context.getGlobals().stdout.flush();
+    stdOutWriter.flush();
     return writer.toString();
 
   }

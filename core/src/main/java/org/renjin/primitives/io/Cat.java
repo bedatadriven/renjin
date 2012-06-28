@@ -1,8 +1,10 @@
 package org.renjin.primitives.io;
 
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.io.connections.Connection;
+import org.renjin.primitives.io.connections.Connections;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -12,10 +14,10 @@ import java.io.PrintWriter;
 public class Cat extends SexpVisitor<String> {
 
   @Primitive
-  public static void cat(ListVector list, Connection connection, String sep,
+  public static void cat(@Current Context context, ListVector list, SEXP connection, String sep,
       SEXP fill, SEXP labels, boolean append) throws IOException {
     
-    PrintWriter printWriter = connection.getPrintWriter();
+    PrintWriter printWriter = Connections.getConnection(context, connection).getPrintWriter();
     Cat visitor = new Cat(printWriter, sep, 0);
     for (SEXP element : list) {
       element.accept(visitor);

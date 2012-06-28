@@ -34,6 +34,7 @@ import org.renjin.parser.ParseOptions;
 import org.renjin.parser.ParseState;
 import org.renjin.parser.RLexer;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.io.connections.ResourceConnection;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -271,5 +272,11 @@ public abstract class EvalTestCase {
         description.appendValue(expected.toString());
       }
     };
+  }
+  
+  protected SEXP openResourceAsConn(String resourceName) {
+    ResourceConnection conn = new ResourceConnection(getClass(), resourceName);
+    IntVector connSexp = topLevelContext.getGlobals().getConnectionTable().newConnection(conn);
+    return connSexp;
   }
 }

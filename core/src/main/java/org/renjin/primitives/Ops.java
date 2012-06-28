@@ -22,15 +22,11 @@
 package org.renjin.primitives;
 
 import org.apache.commons.math.complex.Complex;
-import org.renjin.primitives.annotations.AllowNA;
-import org.renjin.primitives.annotations.GroupGeneric;
-import org.renjin.primitives.annotations.PreserveAttributeStyle;
-import org.renjin.primitives.annotations.PreserveAttributes;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
+import org.renjin.primitives.annotations.*;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
 
 
 /**
@@ -56,9 +52,9 @@ public class Ops  {
   }
   
   @Primitive("+")
-  @Recycle
+  @Recycle(false)
   @PreserveAttributes(PreserveAttributeStyle.ALL)
-  public static double plus(double x) {
+  public static Vector plus(Vector x) {
     return x;
   }
 
@@ -78,7 +74,13 @@ public class Ops  {
 
   @Primitive("-")
   @PreserveAttributes(PreserveAttributeStyle.ALL)
-  public static double minus(double x) {
+  public static double minus(@Cast(CastStyle.EXPLICIT) double x) {
+    return -x;
+  }
+  
+  @Primitive("-")
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  public static int minus(@Cast(CastStyle.EXPLICIT) int x) {
     return -x;
   }
 

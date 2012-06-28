@@ -33,6 +33,7 @@ import org.renjin.compiler.ir.tac.IRFunctionTable;
 import org.renjin.graphics.ColorPalette;
 import org.renjin.graphics.GraphicsDevices;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.random.RNG;
 import org.renjin.sexp.*;
 import org.renjin.util.FileSystemUtils;
@@ -177,11 +178,11 @@ public class Context {
     
     public SecurityManager securityManager;
     
-    public PrintWriter stdout;
-    
     private GraphicsDevices graphicsDevices = new GraphicsDevices();
     private ColorPalette colorPalette = new ColorPalette();
 
+    private final ConnectionTable connectionTable = new ConnectionTable();
+    
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
     
@@ -189,6 +190,7 @@ public class Context {
     
     public RNG rng = new RNG(this);
      
+    private SessionController sessionController = new SessionController();
     
     /**
      * Whether the result of the evaluation should be "invisible" in a
@@ -201,8 +203,6 @@ public class Context {
       this.fileSystemManager = fileSystemManager;
       this.homeDirectory = homeDirectory;
       this.workingDirectory = workingDirectory;
-
-      this.stdout = new PrintWriter(java.lang.System.out);
 
       systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
       systemEnvironment.put("R_LIBS", FileSystemUtils.defaultLibraryPaths());
@@ -227,7 +227,6 @@ public class Context {
     }
 
     private Globals(Globals toShare) {
-      this.stdout = toShare.stdout;
       this.homeDirectory = toShare.homeDirectory;
       this.fileSystemManager = toShare.fileSystemManager;
       this.systemEnvironment = Maps.newHashMap(toShare.systemEnvironment);
@@ -242,7 +241,7 @@ public class Context {
     }
 
     public void setStdOut(PrintWriter writer) {
-      this.stdout = writer;
+      this.connectionTable.getStdout().setOutputStream(writer);
     }
     
     public GraphicsDevices getGraphicsDevices() {
@@ -251,6 +250,18 @@ public class Context {
 
     public SEXP getOption(String name) {
       return options.get(name);
+    }
+    
+    public SessionController getSessionController() {
+      return sessionController;
+    }
+
+    public void setSessionController(SessionController sessionController) {
+      this.sessionController = sessionController;
+    }
+    
+    public ConnectionTable getConnectionTable() {
+      return connectionTable;
     }
 
     public ColorPalette getColorPalette() {
@@ -271,6 +282,10 @@ public class Context {
 
     public boolean isInvisible() {
       return invisible;
+    }
+
+    public PrintWriter getStdOut() throws IOException {
+      return connectionTable.getStdout().getPrintWriter();
     }
   }
 
@@ -634,9 +649,6 @@ public class Context {
    *
    */
   public void init() throws IOException {
-    // TODO(alex): remove once default packages are compiling
-   // getGlobals().systemEnvironment.put("R_DEFAULT_PACKAGES", "NULL");
-    
     evalBaseResource("/org/renjin/library/base/R/base");
     evalBaseResource("/org/renjin/library/base/R/Rprofile");
     

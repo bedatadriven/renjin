@@ -21,14 +21,12 @@
 
 package org.renjin.util;
 
-import java.io.File;
-import java.util.regex.Pattern;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
 
 public class FileSystemUtils {
   
@@ -43,20 +41,38 @@ public class FileSystemUtils {
     // hardcode to the R home location to the classpath location
     // where this class is found.
 
-    return RHomeFromSEXPClassURL(org.renjin.primitives.System.class.getResource("/org/renjin/sexp/SEXP.class").toString());
+    return embeddedRHomeFromSEXPClassURL(org.renjin.primitives.System.class.getResource("/org/renjin/sexp/SEXP.class").toString());
   }
 
+  public static String homeDirectoryInLocalFs() {
+    return localRHomeFromSEXPClassURL(org.renjin.primitives.System.class.getResource("/org/renjin/sexp/SEXP.class").toString());
+
+  }
 
   @VisibleForTesting
-  public static String RHomeFromSEXPClassURL(String url) {
+  public static String embeddedRHomeFromSEXPClassURL(String url) {
     String homeUrl = url.substring(0, url.length() - "/org/renjin/sexp/SEXP.class".length()) + "/org/renjin";
-    if(homeUrl.startsWith("jar:file")) {
-
-    }
     if(homeUrl.startsWith("file:/")) {
       homeUrl = homeUrl.substring("file:".length());
     }
     return homeUrl;
+  }
+  
+  @VisibleForTesting
+  public static String localRHomeFromSEXPClassURL(String url) {
+    String homeUrl = url.substring(0, url.length() - "/org/renjin/sexp/SEXP.class".length());
+    
+    if(!homeUrl.endsWith(".jar!") || !homeUrl.startsWith("jar:file:")) {
+      throw new IllegalStateException("Expected to find SEXP.class within a JAR in an installed location, you probably" +
+      		" want to be using homeDirectoryInCoreJar() instead. ");
+    }
+    int depDir = homeUrl.lastIndexOf('/');
+    int homeDir = homeUrl.lastIndexOf('/', depDir-1);
+    if(depDir == -1 || homeDir == -1) {
+      throw new IllegalStateException("Can't figure out the R_HOME from the jar location '" + homeUrl + "'");
+    }
+    return homeUrl.substring("jar:".length(), homeDir);
+ 
   }
 
   /**

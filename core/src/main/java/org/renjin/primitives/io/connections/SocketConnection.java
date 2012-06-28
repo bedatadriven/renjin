@@ -1,18 +1,14 @@
+
 package org.renjin.primitives.io.connections;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class SocketConnection implements Connection {
 
   private final Socket socket;
-  private BufferedReader reader;
+  private PushbackBufferedReader reader;
   private PrintWriter writer;
   
   public SocketConnection(String host, int port) throws UnknownHostException, IOException {
@@ -30,9 +26,9 @@ public class SocketConnection implements Connection {
   }
 
   @Override
-  public BufferedReader getReader() throws IOException {
+  public PushbackBufferedReader getReader() throws IOException {
     if(this.reader == null) {
-      this.reader = new BufferedReader(
+      this.reader = new PushbackBufferedReader(
           new InputStreamReader(getInputStream()));
     }
     return this.reader;
@@ -57,6 +53,16 @@ public class SocketConnection implements Connection {
   @Override
   public boolean isOpen() {
     return true;
+  }
+
+  @Override
+  public void open(OpenSpec spec) throws IOException {
+    
+  }
+
+  @Override
+  public String getClassName() {
+    return "socket";
   }
 
 }

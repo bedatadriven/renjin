@@ -35,7 +35,7 @@ public class ToScalar extends ArgConverterStrategy {
 
   @Override
   public String getTestExpr(String argLocal) {
-    return scalarType.testExpr(argLocal);
+    return scalarType.testExpr(argLocal, formal.getCastStyle());
   }
 
   @Override

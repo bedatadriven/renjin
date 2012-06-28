@@ -36,6 +36,7 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.connections.Connection;
+import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.special.ReturnException;
 import org.renjin.sexp.*;
 import org.renjin.sexp.Frame;
@@ -877,14 +878,9 @@ public class Evaluation {
     return null;
   }
 
-  /**
-   * @return  TRUE when R is being used interactively and FALSE otherwise.
-   */
-  public static boolean interactive() {
-    return false;
-  }
 
-  public static ExpressionVector parse(SEXP file, SEXP maxExpressions, Vector text, String prompt, String sourceFile, String encoding) throws IOException {
+
+  public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text, String prompt, SEXP sourceFile, String encoding) throws IOException {
     List<SEXP> expressions = Lists.newArrayList();
     if(text != Null.INSTANCE) {
       for(int i=0;i!=text.length();++i) {
@@ -896,9 +892,9 @@ public class Evaluation {
           throw new EvalException("I/O Exception occurred during parse: " + e.getMessage());
         }
       }
-    } else if(file instanceof ExternalExp) {
-      ExternalExp<Connection> conn = EvalException.checkedCast(file);
-      Reader reader = new InputStreamReader(conn.getValue().getInputStream());
+    } else if(file.inherits("connection")) {
+      Connection conn = Connections.getConnection(context, file);
+      Reader reader = new InputStreamReader(conn.getInputStream());
       ExpressionVector result = RParser.parseSource(reader);
       Iterables.addAll(expressions, result);
     }

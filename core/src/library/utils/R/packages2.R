@@ -289,9 +289,6 @@ install.packages <-
 
         if(type %in% "win.binary")
             stop("cannot install Windows binary packages on this platform")
-
-        if(!file.exists(file.path(R.home("bin"), "INSTALL")))
-            stop("This version of R is not set up to install source packages\nIf it was installed from an RPM, you may need the R-devel RPM")
     }
 
     ## we need to ensure that R CMD INSTALL runs with the same

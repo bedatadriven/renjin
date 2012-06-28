@@ -5,9 +5,7 @@
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
  *
- * This program
-import com.google.common.collect.Lists;
- is free software: you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -46,8 +44,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class System {
 
@@ -161,27 +157,16 @@ public class System {
     }
   }
 
-  public static StringVector commandArgs(@Current Context context) {
-    return context.getGlobals().getCommandLineArguments();
+
+  @Primitive("Sys.setlocale")
+  public static String setLocale(int categoryIndex, String locale) {
+    java.lang .System.out.println("locale = " + locale);
+    return "";
   }
 
-  @Primitive("dyn.load")
-  public static ListVector dynLoad(String libraryPath, SEXP local, SEXP now, SEXP dllPath) {
-    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
-
-    Matcher matcher = Pattern.compile("[/\\\\](\\w+)\\.dll$").matcher(libraryPath);
-    if(!matcher.find()) {
-      throw new EvalException("libary path not in expected format");
-    }
-
-    result.add("name", matcher.group(1));
-    result.add("path", libraryPath);
-    result.add("dynamicLookup", LogicalVector.TRUE);
-    result.add("handle", Null.INSTANCE);
-    result.add("info", "something here");
-    result.setAttribute(Symbols.CLASS, new StringVector("DLLInfo"));
-    return result.build();
-    // TODO: maybe warn or something?
+  
+  public static StringVector commandArgs(@Current Context context) {
+    return context.getGlobals().getCommandLineArguments();
   }
 
   /**

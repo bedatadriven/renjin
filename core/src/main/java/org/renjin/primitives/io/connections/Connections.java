@@ -20,25 +20,22 @@
  */
 package org.renjin.primitives.io.connections;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.net.UnknownHostException;
-
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import org.apache.commons.vfs.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
-import org.renjin.sexp.ExternalExp;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
+import org.renjin.sexp.*;
 
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.net.URL;
+import java.net.UnknownHostException;
 
 /**
  * 
@@ -73,11 +70,11 @@ public class Connections {
    *         "connection"
    * @throws IOException 
    */
-  public static ExternalExp<Connection> gzfile(@Current final Context context,
+  public static IntVector gzfile(@Current final Context context,
       final String path, String open, String encoding, double compressionLevel)
       throws IOException {
 
-    return asSexp(new GzFileConnection(context.resolveFile(path), open));
+    return newConnection(context, open, new GzFileConnection(context.resolveFile(path)));
   }
   
   /**
@@ -102,11 +99,11 @@ public class Connections {
    *         "connection"
    * @throws IOException 
    */
-  public static ExternalExp<Connection> file(@Current final Context context,
+  public static IntVector file(@Current final Context context,
       final String path, String open, boolean blocking, String encoding) throws IOException {
     
     if(path.isEmpty()) {
-      return asSexp(new SingleThreadedFifoConnection());
+      return newConnection(context, open, new SingleThreadedFifoConnection());
     } else if(STD_OUT.equals(path)) {
       return stdout(context);
     } else if(STD_IN.equals(path)) {
@@ -114,39 +111,48 @@ public class Connections {
     } else if(STD_ERR.equals(path)) {
       return stderr(context);
     } else {
-      return asSexp(new FileConnection(context.resolveFile(path), open));
+      return newConnection(context, open, new FileConnection(context.resolveFile(path)));
     }
   }
-
-  
-  @VisibleForTesting
-  static ExternalExp<Connection> asSexp(Connection conn) {
-    return new ExternalExp<Connection>(conn, "connection");
-  }
   
   @Primitive
-  public static ExternalExp<Connection> stdin(@Current final Context context) {
-    return asSexp(new StdInConnection(context));
+  public static IntVector url(@Current final Context context,
+      final String description, String open, boolean blocking, String encoding) throws IOException {
+  
+    return newConnection(context, open, new UrlConnection(new URL(description)));
+  }
+  
+  
+  
+  @Primitive
+  public static IntVector stdin(@Current final Context context) {
+    return terminal(ConnectionTable.STDIN_HANDLE);
   }
 
   @Primitive
-  public static ExternalExp<Connection> stdout(@Current final Context context) {
-    return asSexp(new StdOutConnection(context));
+  public static IntVector stdout(@Current final Context context) {
+    return terminal(ConnectionTable.STDOUT_HANDLE);
   }
 
-  public static ExternalExp<Connection> stderr(@Current Context context) {
-    return asSexp(new StdOutConnection(context));
+  public static IntVector stderr(@Current Context context) {
+    return terminal(ConnectionTable.STDERR_HANDLE);
+  }
+  
+  private static IntVector terminal(int index) {
+    return new IntArrayVector(new int[] { index }, PairList.Node.singleton(Symbols.CLASS, new StringVector("connection", "terminal")));
   }
 
   @Primitive
-  public static void close(Connection conn, String type /* Unused */)
+  public static void close(@Current Context context, SEXP conn, String type /* Unused */)
       throws IOException {
-    conn.close();
+    getConnection(context, conn).close();
   }
 
-  public static String readChar(Connection conn, int nchars,
+  public static String readChar(@Current Context context, SEXP connIndex, int nchars,
       @Recycle(false) boolean useBytes) throws IOException {
 
+    Connection conn = getConnection(context, connIndex);
+    
     if(useBytes) {
       byte[] bytes = new byte[nchars];
       DataInputStream dis = new DataInputStream(conn.getInputStream());
@@ -166,10 +172,10 @@ public class Connections {
   }
 
   @Primitive("readLines")
-  public static StringVector readLines(Connection connection, int numLines, boolean ok, 
+  public static StringVector readLines(@Current Context context, SEXP connection, int numLines, boolean ok, 
       boolean warn, String encoding) throws IOException {
     
-    BufferedReader reader = connection.getReader();
+    PushbackBufferedReader reader = getConnection(context, connection).getReader();
     StringVector.Builder lines = new StringVector.Builder();
     String line;
     while((line=reader.readLine())!=null && 
@@ -188,8 +194,8 @@ public class Connections {
   }
   
   @Primitive("writeLines")
-  public static void writeLines(StringVector x, Connection connection, String seperator, boolean useBytes) throws IOException {
-    PrintWriter writer = connection.getPrintWriter();
+  public static void writeLines(@Current Context context, StringVector x, SEXP connIndex, String seperator, boolean useBytes) throws IOException {
+    PrintWriter writer = getConnection(context, connIndex).getPrintWriter();
     for(String line : x) {
       writer.print(line);
       writer.print(seperator);
@@ -198,8 +204,8 @@ public class Connections {
   
   //FIXME: port should be an int
   @Primitive("socketConnection")
-  public static ExternalExp<Connection> socketConnection(String host, double port) throws UnknownHostException, IOException{
-    return asSexp(new SocketConnection(host, (int) port));
+  public static IntVector socketConnection(@Current Context context, String host, double port) throws UnknownHostException, IOException{
+    return newConnection(context, "", new SocketConnection(host, (int) port));
   }
   
   @Primitive
@@ -208,8 +214,48 @@ public class Connections {
   }
   
   @Primitive
-  public static boolean isOpen(Connection conn, String rw) {
+  public static void open(@Current Context context, SEXP conn, String open, boolean blocking) throws IOException {
+    getConnection(context, conn).open(new OpenSpec(open));    
+  }
+  
+  @Primitive
+  public static boolean isOpen(@Current Context context, SEXP conn, String rw) {
     //TODO: handle rw parameter
-    return conn.isOpen();
+    return getConnection(context, conn).isOpen();
+  }
+  
+  @Primitive
+  public static void pushBack(@Current Context context, Vector data, SEXP connection, boolean newLine) throws IOException {
+    PushbackBufferedReader reader = getConnection(context, connection).getReader();
+    String suffix = newLine ? "\n" : "";
+    for(int i=data.length()-1;i>=0;--i) {
+      if(data.isElementNA(i)) {
+        reader.pushBack("NA" + suffix);
+      } else {
+        reader.pushBack(data.getElementAsString(i) + suffix);
+      }
+    }
+  }
+  
+  @Primitive
+  public static int pushBackLength(@Current Context context, SEXP connection) throws IOException {
+    PushbackBufferedReader reader = getConnection(context, connection).getReader();
+    return reader.countLinesPushedBack();
+  }
+  
+  
+  public static Connection getConnection(Context context, SEXP conn) {
+    if(!conn.inherits("connection") || !(conn instanceof Vector) || conn.length() != 1) {
+      throw new EvalException("'con' is not a connection");
+    }
+    int connIndex = ((Vector)conn).getElementAsInt(0);
+    return context.getGlobals().getConnectionTable().getConnection(connIndex);
+  }
+
+  private static IntVector newConnection(final Context context, String open, Connection conn) throws IOException, FileSystemException {
+    if(!Strings.isNullOrEmpty(open)) {
+      conn.open(new OpenSpec(open));
+    }
+    return context.getGlobals().getConnectionTable().newConnection(conn);
   }
 }

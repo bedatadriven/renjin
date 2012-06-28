@@ -51,3 +51,5 @@ done
 
 mkdir -p src/main/resources/org/renjin/etc
 cp -u $R_SRC_ROOT/etc/repositories src/main/resources/org/renjin/etc
+cp -u $R_SRC_ROOT/etc/Makeconf src/main/resources/org/renjin/etc/Makeconf
+

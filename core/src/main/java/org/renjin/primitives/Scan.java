@@ -6,6 +6,12 @@
  * Copyright (C) 2010 bedatadriven
  *
  * This program
+import org.renjin.sexp.LogicalArrayVector;
+
+import org.renjin.sexp.LogicalArrayVector;
+
+import org.renjin.sexp.LogicalArrayVector;
+
 import com.google.common.base.Strings;
  is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,31 +29,42 @@ import com.google.common.base.Strings;
 
 package org.renjin.primitives;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.List;
-
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.io.connections.Connection;
-import org.renjin.primitives.io.connections.Connections;
-import org.renjin.sexp.ExternalExp;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.renjin.eval.Context;
+import org.renjin.parser.ParseUtil;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.io.connections.Connections;
+import org.renjin.primitives.io.connections.PushbackBufferedReader;
+import org.renjin.sexp.*;
+import org.renjin.sexp.LogicalArrayVector.Builder;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class Scan {
 
 
+  @Primitive
+  public static StringVector readTableHead(@Current Context context,
+     SEXP conn, int nLines, String commentChar, int blankLinesSkip, String quote, String sep) throws IOException {
+    
+    PushbackBufferedReader reader = Connections.getConnection(context, conn).getReader();
+    
+    StringVector.Builder head = new StringVector.Builder();
+    String line;
+    while( nLines > 0 && (line=reader.readLine())!=null) {
+      head.add(line);
+      nLines -- ;
+    }
+    return head.build();
+  }
+  
   public static Vector scan(@Current Context context,
                             SEXP file,
                             Vector what,
@@ -67,31 +84,40 @@ public class Scan {
                             String commentChar,
                             boolean allowEscapes,
                             String encoding) throws IOException {
-    InputStream in;
+    
+    
+    PushbackBufferedReader lineReader;
     if(file instanceof StringVector) {
       String fileName = ((StringVector) file).getElementAsString(0);
       if(fileName.length() == 0) {
-        in = java.lang.System.in;
+        lineReader = context.getGlobals().getConnectionTable().getStdin().getReader();
       } else {
-        in = Connections.file(context,fileName,"o",true,encoding).getValue().getInputStream();
+        SEXP fileConn = Connections.file(context,fileName,"o",true,encoding);
+        lineReader = Connections.getConnection(context, fileConn).getReader();
       }
-    } else if(file instanceof ExternalExp && ((ExternalExp) file).getValue() instanceof Connection) {
-        in = ((Connection) ((ExternalExp) file).getValue()).getInputStream();
     } else {
-      throw new EvalException("illegal file argument");
+      lineReader = Connections.getConnection(context, file).getReader();
     }
 
-    BufferedReader lineReader = new BufferedReader( new InputStreamReader( in, toJavaEncoding(encoding)));
-
+    Splitter splitter;
+    if(Strings.isNullOrEmpty(seperator)) {
+      splitter = new NullSplitter();
+    } else {
+      splitter = new DelimitedSplitter(quote, seperator);
+    }
+    
     Scanner scanner;
     if(what instanceof ListVector) {
-      scanner = new ListReader((ListVector)what, seperator);
+      scanner = new ListReader((ListVector)what, splitter);
     } else {
-      scanner = getAtomicScanner(what);
+      scanner = new ScalarReader(getAtomicScanner(what), splitter);
     }
     
     String line;
-    while( (line=lineReader.readLine())!=null) {
+    int linesRead = 0;
+    while( (linesRead < nlines || nlines <= 0) && 
+            (line=lineReader.readLine())!=null) {
+      linesRead ++;
       if(!Strings.isNullOrEmpty(commentChar)) {
         if(line.startsWith(commentChar)) {
           continue;
@@ -137,14 +163,37 @@ public class Scan {
     }
   }
   
+  private static class ScalarReader implements Scanner {
+    private Splitter splitter;
+    private Scanner columnReader;
+        
+    public ScalarReader(Scanner scanner, Splitter splitter) {
+      this.splitter = splitter;
+      this.columnReader = scanner;
+    }
+    
+    @Override
+    public void read(String line) {
+      List<String> fields = splitter.split(line);
+      for(int i=0;i!=fields.size();++i) {
+        columnReader.read(fields.get(i));
+      }
+    }
+
+    @Override
+    public Vector build() {
+      return columnReader.build();
+    }
+  }
+  
   private static class ListReader implements Scanner {
 
-    private String seperator;
+    private Splitter splitter;
     private StringVector names;
     private List<Scanner> columnReaders = Lists.newArrayList();
         
-    public ListReader(ListVector columns, String sep) {
-      this.seperator = sep;
+    public ListReader(ListVector columns, Splitter splitter) {
+      this.splitter = splitter;
       this.names = (StringVector) columns.getAttribute(Symbols.NAMES);
       for(SEXP column : columns) {
         columnReaders.add(getAtomicScanner(column));
@@ -153,9 +202,9 @@ public class Scan {
     
     @Override
     public void read(String line) {
-      String[] fields = line.split(seperator);
-      for(int i=0;i!=fields.length;++i) {
-        columnReaders.get(i).read(fields[i]);
+      List<String> fields = splitter.split(line);
+      for(int i=0;i!=fields.size();++i) {
+        columnReaders.get(i).read(fields.get(i));
       }
     }
 
@@ -168,6 +217,216 @@ public class Scan {
       result.setAttribute(Symbols.NAMES, names);
       return result.build();
     }
+  }
+  
+  private abstract static class Splitter {
+    
+    public abstract List<String> split(String line);
     
   }
+  
+  private static class NullSplitter extends Splitter{
+
+    @Override
+    public List<String> split(String line) {
+      return Collections.singletonList(line);
+    }
+  }
+  
+  private static class DelimitedSplitter extends Splitter {
+    private char quote;
+    private char sep;
+    
+    public DelimitedSplitter(String quote, String seperator) {
+      this.quote = quote.charAt(0);
+      this.sep = seperator.charAt(0);
+    }
+
+    public List<String> split(String line) {
+      StringBuilder sb = new StringBuilder();
+      List<String> fields = Lists.newArrayList();
+      boolean quoted = false;
+      for(int i=0;i!=line.length();++i) {
+        char c = line.charAt(i);
+        if(c == quote) {
+          quoted = !quoted;
+        } else if(!quoted && c == sep) {
+          fields.add(sb.toString());
+          sb.setLength(0);
+        } else {
+          sb.append(c);
+        }
+      }
+      fields.add(sb.toString());
+      return fields;
+    }
+  }
+  
+  
+  
+  /**
+   * This is principally a helper function for ‘read.table’.  Given a
+     character vector, it attempts to convert it to logical, integer,
+     numeric or complex, and failing that converts it to factor unless
+     ‘as.is = TRUE’.  The first type that can accept all the
+     non-missing values is chosen.
+
+     Vectors which are entirely missing values are converted to
+     logical, since ‘NA’ is primarily logical.
+
+     Vectors containing ‘F’, ‘T’, ‘FALSE’, ‘TRUE’ or values from
+     ‘na.strings’ are converted to logical.  Vectors containing
+     optional whitespace followed by decimal constants representable as
+     R integers or values from ‘na.strings’ are converted to integer.
+     Other vectors containing optional whitespace followed by other
+     decimal or hexadecimal constants (see NumericConstants), or ‘NaN’,
+     ‘Inf’ or ‘infinity’ (ignoring case) or values from ‘na.strings’
+     are converted to numeric.
+
+   * @param x
+   * @param naStrings
+   * @param asIs
+   * @param dec
+   * @return
+   */
+  @Primitive("type.convert")
+  public static Vector typeConvert(StringVector vector, StringVector naStrings, boolean asIs, String dec) {
+    
+    Converter<?> converter = getConverter(vector, naStrings);
+    if(converter != null) {
+      return converter.build(vector, naStrings);
+    } else if(asIs) {
+      return vector;
+    } else {
+      return buildFactor(vector, naStrings);
+    }
+  }
+  
+  private static Vector buildFactor(StringVector vector, StringVector naStrings) {
+      Map<String, Integer> codes = Maps.newHashMap();
+      IntArrayVector.Builder factor = new IntArrayVector.Builder(vector.length());
+      for(int i=0;i!=vector.length();++i) {
+        String element = vector.getElementAsString(i);
+        if(naStrings.indexOf(element) == -1) {
+          Integer code = codes.get(element);
+          if(code == null) {
+            code = codes.size()+1;
+            codes.put(element, code);
+          }
+          factor.set(i, code);
+        }
+      }
+      StringVector.Builder levels = StringVector.newBuilder();
+      for(Entry<String, Integer> level : codes.entrySet()) {
+        levels.set(level.getValue()-1, level.getKey());
+      }
+      factor.setAttribute(Symbols.CLASS, new StringVector("factor"));
+      factor.setAttribute(Symbols.LEVELS, levels.build());
+      return factor.build();
+  }
+
+  private static Converter<?> getConverter(StringVector vector, StringVector naStrings) {
+    Converter<?> converters[] = new Converter<?>[] {
+        new LogicalConverter(),
+        new IntConverter(),
+        new DoubleConverter()
+    };
+    for(Converter<?> converter : converters) {
+      if(converter.accept(vector, naStrings)) {
+        return converter;
+      }
+    }
+    return null;
+  }
+  
+  
+  private static abstract class Converter<BuilderT extends Vector.Builder> {
+    abstract boolean accept(String string);
+    
+    abstract BuilderT newBuilder(int length);
+    abstract void set(BuilderT builder, int index, String string);
+    
+    public boolean accept(StringVector vector, StringVector naStrings) {
+      for(int i=0;i!=vector.length();++i) {
+        String element = vector.getElementAsString(i);
+        if(naStrings.indexOf(element) == -1 && !accept(element)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    public Vector build(StringVector vector, StringVector naStrings) {
+      BuilderT builder = newBuilder(vector.length());
+      for(int i=0;i!=vector.length();++i) {
+        String element = vector.getElementAsString(i);
+        if(naStrings.indexOf(element) == -1) {
+          set(builder, i, element);
+        }
+      }
+      return builder.build();
+    }
+    
+  }
+  
+  private static class LogicalConverter extends Converter<LogicalArrayVector.Builder> {
+    @Override
+    public boolean accept(String string) {
+      return string.equals("T") || string.equals("F") || string.equals("TRUE") || string.equals("FALSE");
+    }
+    @Override
+    public void set(LogicalArrayVector.Builder builder, int index, String string) {
+      if(string.equals("T") || string.equals("TRUE")) {
+        builder.set(index, true);
+      } else {
+        builder.set(index, false);
+      }
+    }
+    @Override
+    Builder newBuilder(int length) {
+      return new LogicalArrayVector.Builder(length);
+    } 
+  }
+  
+  private static class IntConverter extends Converter<IntArrayVector.Builder> {
+    @Override
+    public boolean accept(String string) {
+      try {
+        ParseUtil.parseInt(string);
+        return true;
+      } catch(Exception e) {
+        return false;
+      }
+    }
+    
+    @Override
+    public void set(IntArrayVector.Builder builder, int index, String string) {
+      builder.set(index, ParseUtil.parseInt(string));
+    }
+
+    @Override
+    public IntArrayVector.Builder newBuilder(int length) {
+      return new IntArrayVector.Builder(length);
+    }
+  } 
+  
+  private static class DoubleConverter extends Converter<DoubleArrayVector.Builder> {
+    
+    @Override
+    public boolean accept(String string) {
+      try {
+        return !DoubleVector.isNA(ParseUtil.parseDouble(string));
+      } catch(Exception e) {
+        return false;
+      }
+    }
+    @Override
+    public void set(DoubleArrayVector.Builder builder, int index, String string) {
+      builder.set(index, ParseUtil.parseDouble(string));
+    }
+    @Override
+    DoubleArrayVector.Builder newBuilder(int length) {
+      return new DoubleArrayVector.Builder(length);
+    }
+  } 
 }

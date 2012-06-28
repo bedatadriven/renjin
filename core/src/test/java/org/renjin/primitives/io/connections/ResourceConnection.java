@@ -7,7 +7,7 @@ import java.io.OutputStream;
 public class ResourceConnection extends AbstractConnection {
   private Class clazz;
   private String name;
-  
+
   public ResourceConnection(Class clazz, String name) {
     super();
     this.clazz = clazz;
@@ -42,6 +42,17 @@ public class ResourceConnection extends AbstractConnection {
   @Override
   public boolean isOpen() {
     return true;
+  }
+
+  @Override
+  public void open(OpenSpec spec) throws IOException {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public String getClassName() {
+    return "file";
   }
   
   

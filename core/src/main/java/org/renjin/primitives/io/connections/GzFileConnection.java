@@ -22,12 +22,10 @@
 package org.renjin.primitives.io.connections;
 
 import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -46,8 +44,8 @@ public class GzFileConnection extends FileConnection {
   public static final int GZIP_MAGIC_BYTE2 = 139;
 
 
-  public GzFileConnection(FileObject file, String openMode) throws IOException {
-    super(file, openMode);
+  public GzFileConnection(FileObject file) throws IOException {
+    super(file);
   }
 
   @Override
@@ -65,7 +63,6 @@ public class GzFileConnection extends FileConnection {
       return in;
     }
   }
-  
   
   @Override
   protected OutputStream doOpenForOutput() throws IOException {

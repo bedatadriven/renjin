@@ -102,8 +102,19 @@ public class BaseFrame implements Frame {
         .add("endian", new StringVector("big"))
         .add("pkgType", new StringVector("source"))
         .add("r_arch", new StringVector(""))
-        .add("dynlib.ext", new StringVector(".jar"))
+        .add("dynlib.ext", new StringVector(dynlibExt()))
         .build());
+  }
+
+  protected String dynlibExt() {
+    String os = java.lang.System.getProperty("os.name").toLowerCase();
+    if(os.contains("win")) {
+      return ".dll";
+    } else if(os.contains("mac")) {
+      return ".dylib";
+    } else {
+      return ".so";
+    }
   }
   
   

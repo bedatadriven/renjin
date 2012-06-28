@@ -21,7 +21,6 @@
 
 package org.renjin.primitives.io.connections;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,6 +34,8 @@ import java.io.PrintWriter;
 public interface Connection {
   
   
+  void open(OpenSpec spec) throws IOException;
+  
   /**
    * 
    * @return the file 
@@ -42,7 +43,7 @@ public interface Connection {
    */
   InputStream getInputStream() throws IOException;
   
-  BufferedReader getReader() throws IOException;
+  PushbackBufferedReader getReader() throws IOException;
   
   OutputStream getOutputStream() throws IOException;
 
@@ -51,5 +52,11 @@ public interface Connection {
   void close() throws IOException;
   
   boolean isOpen();
+  
+  /**
+   * 
+   * @return the S3 "sub" class of this connection (e.g. "terminal", "file", etc)
+   */
+  String getClassName();
 
 }

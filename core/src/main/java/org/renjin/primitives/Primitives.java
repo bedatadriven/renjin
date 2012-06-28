@@ -1,40 +1,7 @@
 package org.renjin.primitives;
 
-import static org.renjin.primitives.PPkind.PP_BINARY;
-import static org.renjin.primitives.PPkind.PP_BINARY2;
-import static org.renjin.primitives.PPkind.PP_DOLLAR;
-import static org.renjin.primitives.PPkind.PP_FOREIGN;
-import static org.renjin.primitives.PPkind.PP_FUNCTION;
-import static org.renjin.primitives.PPkind.PP_FUNCALL;
-import static org.renjin.primitives.PPkind.PP_SUBASS;
-import static org.renjin.primitives.PPkind.PP_SUBSET;
-import static org.renjin.primitives.PPkind.PP_UNARY;
-import static org.renjin.primitives.PPprec.PREC_AND;
-import static org.renjin.primitives.PPprec.PREC_COLON;
-import static org.renjin.primitives.PPprec.PREC_COMPARE;
-import static org.renjin.primitives.PPprec.PREC_DOLLAR;
-import static org.renjin.primitives.PPprec.PREC_FN;
-import static org.renjin.primitives.PPprec.PREC_LEFT;
-import static org.renjin.primitives.PPprec.PREC_NOT;
-import static org.renjin.primitives.PPprec.PREC_OR;
-import static org.renjin.primitives.PPprec.PREC_PERCENT;
-import static org.renjin.primitives.PPprec.PREC_POWER;
-import static org.renjin.primitives.PPprec.PREC_PROD;
-import static org.renjin.primitives.PPprec.PREC_SUBSET;
-import static org.renjin.primitives.PPprec.PREC_SUM;
-import static org.renjin.primitives.PPprec.PREC_TILDE;
-import static org.renjin.util.CDefines.RelOpType.EQOP;
-import static org.renjin.util.CDefines.RelOpType.GEOP;
-import static org.renjin.util.CDefines.RelOpType.GTOP;
-import static org.renjin.util.CDefines.RelOpType.LEOP;
-import static org.renjin.util.CDefines.RelOpType.LTOP;
-import static org.renjin.util.CDefines.RelOpType.NEOP;
-
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.locks.Condition;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -57,40 +24,19 @@ import org.renjin.primitives.optimize.Roots;
 import org.renjin.primitives.random.Distributions;
 import org.renjin.primitives.random.RNG;
 import org.renjin.primitives.random.Sampling;
-import org.renjin.primitives.special.AssignFunction;
-import org.renjin.primitives.special.AssignLeftFunction;
-import org.renjin.primitives.special.BeginFunction;
-import org.renjin.primitives.special.BreakFunction;
-import org.renjin.primitives.special.ClosureFunction;
-import org.renjin.primitives.special.ForFunction;
-import org.renjin.primitives.special.IfFunction;
-import org.renjin.primitives.special.InternalFunction;
-import org.renjin.primitives.special.NextFunction;
-import org.renjin.primitives.special.OnExitFunction;
-import org.renjin.primitives.special.ParenFunction;
-import org.renjin.primitives.special.QuoteFunction;
-import org.renjin.primitives.special.ReassignLeftFunction;
-import org.renjin.primitives.special.RepeatFunction;
-import org.renjin.primitives.special.RestartFunction;
-import org.renjin.primitives.special.ReturnFunction;
-import org.renjin.primitives.special.SubstituteFunction;
-import org.renjin.primitives.special.SwitchFunction;
-import org.renjin.primitives.special.WhileFunction;
+import org.renjin.primitives.special.*;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
-import org.renjin.sexp.BuiltinFunction;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SpecialFunction;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.renjin.primitives.PPkind.*;
+import static org.renjin.primitives.PPprec.*;
+import static org.renjin.util.CDefines.RelOpType.*;
 
 public class Primitives {
 
@@ -584,7 +530,7 @@ public class Primitives {
     f("call", Evaluation.class, 0, 0, -1);
     f("do.call", Evaluation.class, 0, 211, 3);
     f("as.call", Types.class, 0, 1, 1);
-    f("type.convert", /*typecvt*/ null, 1, 11, 4);
+    f("type.convert", Scan.class, 1, 11, 4);
     f("as.environment", Types.class, "asEnvironment", 0, 1, 1);
     f("storage.mode<-", Types.class, 0, 1, 2);
 
@@ -685,9 +631,9 @@ public class Primitives {
     add(new SubstituteFunction());
     add(new QuoteFunction());// f("quote", Evaluation.class, 0, 0, 1);
     f("quit", /*quit*/ null, 0, 111, 3);
-    f("interactive", Evaluation.class, 0, 0, 0);
+    f("interactive", Session.class, 0, 0, 0);
     f("readline", /*readln*/ null, 0, 11, 1);
-    f("menu", /*menu*/ null, 0, 11, 1);
+    f("menu", Session.class, 0, 11, 1);
     f("print.default", Print.class, 0, 111, 9);
     f("print.function", Print.class, 0, 111, 3);
     f("prmatrix", /*prmatrix*/ null, 0, 111, 6);
@@ -711,7 +657,7 @@ public class Primitives {
     f(".External.graphics", /*Externalgr*/ null, 0, 1, -1, PP_FOREIGN, PREC_FN, 0);
     f(".Call.graphics", /*dotcallgr*/ null, 0, 1, -1, PP_FOREIGN, PREC_FN, 0);
     f("recordGraphics", /*recordGraphics*/ null, 0, 211, 3, PP_FOREIGN, PREC_FN, 0);
-    f("dyn.load", System.class, 0, 111, 4);
+    f("dyn.load", Native.class, 0, 111, 4);
     f("dyn.unload", System.class, 0, 111, 1);
     f("ls", Types.class, 1, 11, 2);
     f("typeof", Types.class, 1, 11, 1);
@@ -744,7 +690,7 @@ public class Primitives {
     f("nargs", Evaluation.class, 1, 0, 0);
     f("scan", Scan.class, 0, 11, 18);
     f("count.fields", /*countfields*/ null, 0, 11, 6);
-    f("readTableHead", /*readtablehead*/ null, 0, 11, 6);
+    f("readTableHead", Scan.class, 0, 11, 6);
     f("t.default", Matrices.class, 0, 11, 1);
     f("aperm", Combine.class, 0, 11, 3);
     f("builtins", /*builtins*/ null, 0, 11, 1);
@@ -807,7 +753,7 @@ public class Primitives {
     f("file.append", Files.class, 0, 11, 2);
     f("codeFiles.append", /*fileappend*/ null, 1, 11, 2);
     f("file.symlink", /*filesymlink*/ null, 0, 11, 2);
-    f("file.copy", /*filecopy*/ null, 0, 11, 4);
+    f("file.copy", Files.class, 0, 11, 4);
     f("list.files", Files.class, 0, 11, 6);
     f("file.exists", Files.class, 0, 11, 1);
     f("file.choose", /*filechoose*/ null, 0, 11, 1);
@@ -833,7 +779,7 @@ public class Primitives {
     f("Sys.info", System.class, 0, 11, 0);
     f("Sys.sleep", System.class, 0, 11, 1);
     f("Sys.getlocale", System.class, 0, 11, 1);
-    f("Sys.setlocale", /*setlocale*/ null, 0, 11, 2);
+    f("Sys.setlocale", System.class, 0, 11, 2);
     f("Sys.localeconv", /*localeconv*/ null, 0, 11, 0);
     f("path.expand", Files.class, "pathExpand", 0, 11, 1);
     f("Sys.getpid",System.class, 0, 11, 0);
@@ -954,14 +900,14 @@ public class Primitives {
     f("writeBin", /*writebin*/ null, 0, 211, 5);
     f("readChar", Connections.class, 0, 11, 3);
     f("writeChar", /*writechar*/ null, 0, 211, 5);
-    f("open", /*open*/ null, 0, 11, 3);
+    f("open", Connections.class, 0, 11, 3);
     f("isOpen", Connections.class, 0, 11, 2);
     f("isIncomplete", /*isincomplete*/ null, 0, 11, 1);
     f("isSeekable", /*isseekable*/ null, 0, 11, 1);
     f("close", Connections.class, 0, 11, 2);
     f("flush", /*flush*/ null, 0, 11, 1);
     f("file", Connections.class, 1, 11, 4);
-    f("url", /*url*/ null, 0, 11, 4);
+    f("url", Connections.class, 0, 11, 4);
     f("pipe", /*pipe*/ null, 0, 11, 3);
     f("fifo", /*fifo*/ null, 0, 11, 4);
     f("gzfile", Connections.class, 0, 11, 4);
@@ -970,9 +916,9 @@ public class Primitives {
     f("unz", /*unz*/ null, 0, 11, 3);
     f("seek", /*seek*/ null, 0, 11, 4);
     f("truncate", /*truncate*/ null, 0, 11, 1);
-    f("pushBack", /*pushback*/ null, 0, 11, 3);
-    f("clearPushBack", /*clearpushback*/ null, 0, 11, 1);
-    f("pushBackLength", /*pushbacklength*/ null, 0, 11, 1);
+    f("pushBack", Connections.class, 0, 11, 3);
+    f("clearPushBack", Connections.class, 0, 11, 1);
+    f("pushBackLength", Connections.class, 0, 11, 1);
     f("rawConnection", /*rawconnection*/ null, 0, 11, 3);
     f("rawConnectionValue", /*rawconvalue*/ null, 0, 11, 1);
     f("textConnection", /*textconnection*/ null, 0, 11, 5);

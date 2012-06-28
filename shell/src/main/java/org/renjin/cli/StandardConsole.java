@@ -21,6 +21,8 @@
 
 package org.renjin.cli;
 
+import org.apache.commons.vfs.FileSystemException;
+
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -76,7 +78,7 @@ public class StandardConsole implements Console{
     return 80;
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws FileSystemException {
       Interpreter interpreter = new Interpreter( new StandardConsole() );
       new Thread ( interpreter ).start();     
   }

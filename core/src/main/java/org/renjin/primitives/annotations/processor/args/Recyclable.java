@@ -48,7 +48,7 @@ public class Recyclable extends ArgConverterStrategy {
 
   @Override
   public String getTestExpr(String argLocal) {
-    return "(" + argLocal + ".length()==0 || (" + scalarType.testExpr(argLocal) + "))";
+      return "(" + argLocal + ".length()==0 || (" + scalarType.testExpr(argLocal, formal.getCastStyle()) + "))";
   }
 
 }

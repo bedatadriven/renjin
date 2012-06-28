@@ -1,27 +1,22 @@
 package org.renjin.primitives.io;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.io.connections.Connection;
-import org.renjin.primitives.matrix.MatrixBuilder;
-import org.renjin.primitives.matrix.StringMatrixBuilder;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.io.connections.Connections;
+import org.renjin.primitives.io.connections.PushbackBufferedReader;
+import org.renjin.primitives.matrix.StringMatrixBuilder;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Primitives for reading Debian Control Files (DCF), which are used to store
@@ -74,7 +69,7 @@ public class DebianControlFiles {
    * @throws IOException
    */
   @Primitive
-  public static SEXP readDCF(Connection conn, Vector requestedFields, boolean keepWhiteSpace) throws IOException {
+  public static SEXP readDCF(@Current Context context, SEXP conn, Vector requestedFields, boolean keepWhiteSpace) throws IOException {
     
     Map<Cell, String> cells = Maps.newHashMap();
     List<String> fields = Lists.newArrayList();
@@ -90,7 +85,7 @@ public class DebianControlFiles {
     int rowIndex = 0;
     boolean lastLineWasBlank = false;
     String line;
-    BufferedReader reader = conn.getReader();
+    PushbackBufferedReader reader = Connections.getConnection(context, conn).getReader();
     Cell lastCell = null;
     while((line=reader.readLine())!=null) {
       boolean lineIsBlank = line.trim().length() == 0;

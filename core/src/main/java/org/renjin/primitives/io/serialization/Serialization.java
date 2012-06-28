@@ -7,7 +7,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.ByteArrayCompression;
-import org.renjin.primitives.io.connections.Connection;
+import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.serialization.RDataWriter.PersistenceHook;
 import org.renjin.sexp.*;
 
@@ -23,18 +23,18 @@ public class Serialization {
 
   @Primitive
   public static SEXP unserializeFromConn(@Current Context context,
-      Connection conn, Environment rho) throws IOException {
+      SEXP conn, Environment rho) throws IOException {
     
-    RDataReader reader = new RDataReader(context, conn.getInputStream());
+    RDataReader reader = new RDataReader(context, Connections.getConnection(context, conn).getInputStream());
     return reader.readFile();
   }
 
   @Primitive
   public static SEXP unserializeFromConn(@Current Context context,
-      Connection conn, Null nz) throws IOException {
+      SEXP conn, Null nz) throws IOException {
     
     RDataReader reader = new RDataReader(context, 
-        conn.getInputStream());
+        Connections.getConnection(context, conn).getInputStream());
     return reader.readFile();
   }
 
@@ -59,7 +59,7 @@ public class Serialization {
    */
   @Primitive
   public static void serializeToConn(@Current Context context, SEXP object, 
-      Connection con, boolean ascii, SEXP versionSexp, SEXP refhook) throws IOException {
+      SEXP con, boolean ascii, SEXP versionSexp, SEXP refhook) throws IOException {
     
     if(ascii) {
       throw new EvalException("ascii format serialization not implemented");
@@ -71,7 +71,7 @@ public class Serialization {
     }
     
     RDataWriter writer = new RDataWriter(context,
-        createHook(context, refhook),  con.getOutputStream());
+        createHook(context, refhook), Connections.getConnection(context, con).getOutputStream());
     writer.writeFile(object);
     
   }
@@ -119,11 +119,11 @@ public class Serialization {
    * @throws IOException
    */
   @Primitive
-  public static SEXP loadFromConn2(@Current Context context, Connection conn,
+  public static SEXP loadFromConn2(@Current Context context, SEXP conn,
       Environment env) throws IOException {
 
     RDataReader reader = new RDataReader(context,
-        conn.getInputStream());
+        Connections.getConnection(context, conn).getInputStream());
     HasNamedValues data = EvalException.checkedCast(reader.readFile());
 
     StringVector.Builder names = new StringVector.Builder();

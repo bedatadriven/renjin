@@ -30,6 +30,7 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.*;
 
+import java.io.IOException;
 import java.util.List;
 
 public class Print {
@@ -38,15 +39,15 @@ public class Print {
 
   @Primitive("print.default")
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
-      SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) {
+      SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) throws IOException {
 
     PrintingVisitor visitor = new PrintingVisitor()
     .setCharactersPerLine(80)
     .setQuote(quote);
     expression.accept(visitor);
 
-    context.getGlobals().stdout.print(visitor.getResult());
-    context.getGlobals().stdout.flush();
+    context.getGlobals().getStdOut().print(visitor.getResult());
+    context.getGlobals().getStdOut().flush();
     context.setInvisibleFlag();
     return expression;
 
@@ -61,9 +62,9 @@ public class Print {
   }
 
   @Primitive("print.function")
-  public static void printFunction(@Current Context context, SEXP x, boolean useSource) {
-    context.getGlobals().stdout.println(x.toString());
-    context.getGlobals().stdout.flush();
+  public static void printFunction(@Current Context context, SEXP x, boolean useSource) throws IOException {
+    context.getGlobals().getStdOut().println(x.toString());
+    context.getGlobals().getStdOut().flush();
   }
 
   static class PrintingVisitor extends SexpVisitor<String> {

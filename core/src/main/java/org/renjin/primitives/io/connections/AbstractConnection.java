@@ -1,21 +1,19 @@
 package org.renjin.primitives.io.connections;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.Reader;
 
 public abstract class AbstractConnection implements Connection {
 
-  private BufferedReader reader;
+  private PushbackBufferedReader reader;
   private PrintWriter writer;
   
   @Override
-  public final BufferedReader getReader() throws IOException {
+  public final PushbackBufferedReader getReader() throws IOException {
     if(this.reader == null) {
       this.reader =
-          new BufferedReader(
+          new PushbackBufferedReader(
           new InputStreamReader(getInputStream()));
     }
     return this.reader;

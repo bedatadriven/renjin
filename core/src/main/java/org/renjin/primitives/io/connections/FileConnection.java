@@ -1,15 +1,13 @@
-package org.renjin.primitives.io.connections;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.Reader;
+package org.renjin.primitives.io.connections;
 
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.renjin.eval.EvalException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 
 public class FileConnection extends AbstractConnection {
@@ -19,16 +17,30 @@ public class FileConnection extends AbstractConnection {
   
   private FileObject file;
   
-  public FileConnection(FileObject file, String openMode) throws IOException {
+  public FileConnection(FileObject file) throws IOException {
     this.file = file;
-    if(openMode.contains("w")) {
-      assureOpenForOutput();
-    } 
-    if(openMode.contains("r")) {
-      assureOpenForInput();
-    }
   }
   
+  @Override
+  public void open(OpenSpec spec) throws IOException {
+    if(spec.forReading() && spec.forWriting()) {
+      throw new EvalException("Read/write file connections not yet implemented");
+    }
+    if(spec.forReading()) {
+      if(spec.isBinary()) {
+        assureOpenForInput();
+      } else {
+        getReader();
+      }
+    } else if(spec.forWriting()) {
+      if(spec.isBinary()) {
+        assureOpenForOutput();
+      } else {
+        getPrintWriter();
+      }
+    }
+  }
+
   private final InputStream assureOpenForInput() throws IOException {
     if(out != null) {
       throw new EvalException("connection is already opened for output, cannot open for input");
@@ -85,5 +97,9 @@ public class FileConnection extends AbstractConnection {
   public boolean isOpen() {
     return in!=null || out!=null;
   }
-  
+
+  @Override
+  public String getClassName() {
+    return "file";
+  }
 }

@@ -1,5 +1,6 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
+import org.renjin.primitives.annotations.CastStyle;
 import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
 
@@ -46,7 +47,7 @@ public class BooleanType extends ScalarType {
   }
 
   @Override
-  public String testExpr(String expr) {
+  public String testExpr(String expr, CastStyle castStyle) {
     return "(" + expr + " instanceof Vector)";
   }
   

@@ -1,15 +1,6 @@
 package org.renjin.primitives.io.connections;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 
 /**
  * Creates a circular connection that can be first written to
@@ -26,7 +17,7 @@ public class SingleThreadedFifoConnection implements Connection {
   // it assumes that the byte buffer is read completely each time
   
   private ByteArrayOutputStream out;
-  private BufferedReader reader;
+  private PushbackBufferedReader reader;
   private PrintWriter writer;
   
   public SingleThreadedFifoConnection() {
@@ -58,8 +49,8 @@ public class SingleThreadedFifoConnection implements Connection {
   }
 
   @Override
-  public BufferedReader getReader() throws IOException {
-    return this.reader = new BufferedReader(
+  public PushbackBufferedReader getReader() throws IOException {
+    return this.reader = new PushbackBufferedReader(
         new InputStreamReader(
             new ByteArrayInputStream(getContent())));
   }
@@ -72,5 +63,16 @@ public class SingleThreadedFifoConnection implements Connection {
   @Override
   public void close() throws IOException {
     
+  }
+
+  @Override
+  public void open(OpenSpec spec) throws IOException {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public String getClassName() {
+    return "fifo";
   }  
 }

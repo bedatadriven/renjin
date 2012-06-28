@@ -1,5 +1,6 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
+import org.renjin.primitives.annotations.CastStyle;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
 
@@ -36,10 +37,14 @@ public class IntegerType extends ScalarType {
   }
 
   @Override
-  public String testExpr(String expr) {
+  public String testExpr(String expr, CastStyle castStyle) {
     // R language generally seems to allow implicit conversion of doubles
     // to ints
-    return "(" + expr + " instanceof IntVector || " + expr + " instanceof DoubleVector || " + 
-      expr + " instanceof LogicalVector)";
+    if(castStyle == CastStyle.IMPLICIT) {
+      return "(" + expr + " instanceof IntVector || " + expr + " instanceof DoubleVector || " + 
+        expr + " instanceof LogicalVector)";
+    } else {
+      return "(" + expr + " instanceof IntVector)";
+    }
   } 
 }

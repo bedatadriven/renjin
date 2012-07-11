@@ -78,7 +78,7 @@ public class RDataReaderTest extends EvalTestCase {
     System.out.println(Long.toHexString(Double.doubleToRawLongBits(d_2.getElementAsDouble(0))));
     assertThat(DoubleVector.isNA(d_2.getElementAsDouble(0)), equalTo(true));
   }
-
+  
   @Test
   public void loadNA() throws IOException {
     InputStream in = getClass().getResourceAsStream("/na.RData");

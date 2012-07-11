@@ -32,7 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
 
@@ -75,7 +75,29 @@ public class RDataWriterTest extends EvalTestCase {
     assertReRead(Symbol.MISSING_ARG);
     assertReRead(Symbol.UNBOUND_VALUE);
   }
+
   
+  @Test
+  public void sharedEnvironmentBetweenClosures() throws IOException {
+        
+    Environment child = Environment.createChildEnvironment(topLevelContext.getGlobalEnvironment());
+        
+    Closure f = new Closure(child, 
+          PairList.Node.singleton("x", Symbol.MISSING_ARG),
+          new DoubleArrayVector(42));
+    Closure g = new Closure(child, 
+          PairList.Node.singleton("y", Symbol.MISSING_ARG), 
+          new DoubleArrayVector(52));
+    
+    ListVector list = new ListVector(f, g, new DoubleArrayVector(1,2,3));
+
+    ListVector relist = (ListVector) writeAndReRead(list);
+    
+    assertThat(relist.getElementAsSEXP(0), instanceOf(Closure.class));
+    assertThat(relist.getElementAsSEXP(1), instanceOf(Closure.class));
+    assertThat(relist.getElementAsSEXP(2), equalTo(c(1,2,3)));
+
+  }
 
   @Test
   public void testClosure() throws IOException {
@@ -104,7 +126,24 @@ public class RDataWriterTest extends EvalTestCase {
     assertReRead(topLevelContext.getEnvironment().getVariable("f"));
   } 
 
+  @Test
+  public void attributesCompatiblityWithCR() throws IOException {
+    eval("x <- 1:10");
+    eval("attr(x,'foo') <- 'bar'");
+    
+    write("target/attributesCompatiblityWithCR.RData", eval("x"));
+  }
   
+  @Test
+  public void closureEnclosedByClosure() throws IOException {
+    eval("f <- function(x) x*2 ");
+    eval("g <- function(fn) function(x) fn(x) ");
+    
+    // won't be equal with equals() because the deserialized environment's
+    // identity will not be preserved
+    writeAndReRead(eval("g(f)"));
+  }
+
   private void write(String fileName, SEXP exp) throws IOException {
     FileOutputStream fos = new FileOutputStream(fileName);
     GZIPOutputStream zos = new GZIPOutputStream(fos);
@@ -114,6 +153,10 @@ public class RDataWriterTest extends EvalTestCase {
   }
 
   private void assertReRead(SEXP exp) throws IOException {
+    assertThat(writeAndReRead(exp), equalTo(exp));
+  }
+
+  private SEXP writeAndReRead(SEXP exp) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(topLevelContext, baos);
     writer.writeFile(exp);
@@ -121,7 +164,6 @@ public class RDataWriterTest extends EvalTestCase {
     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
     RDataReader reader = new RDataReader(topLevelContext, bais);
     SEXP resexp = reader.readFile();
-
-    assertThat(resexp, equalTo(exp));
+    return resexp;
   }
 }

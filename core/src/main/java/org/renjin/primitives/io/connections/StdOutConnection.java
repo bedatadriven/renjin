@@ -77,4 +77,29 @@ public class StdOutConnection implements Connection {
   public String getClassName() {
     return "terminal";
   }
+
+  @Override
+  public String getDescription() {
+    return "stdout";
+  }
+
+  @Override
+  public String getMode() {
+    return "w";
+  }
+
+  @Override
+  public boolean canRead() {
+    return false;
+  }
+
+  @Override
+  public boolean canWrite() {
+    return true;
+  }
+
+  @Override
+  public Type getType() {
+    return Type.TEXT;
+  }
 }

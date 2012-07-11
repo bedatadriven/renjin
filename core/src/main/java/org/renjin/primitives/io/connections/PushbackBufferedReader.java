@@ -47,7 +47,6 @@ public class PushbackBufferedReader extends Reader {
     if(pushbackStack.length()==0) {
       return reader.readLine();
     } else {
-      // The qick brown fox\n
       int newLine = nextNewline(pushbackStack);
       if(newLine == -1) {
         return popStack() + Strings.nullToEmpty(reader.readLine());

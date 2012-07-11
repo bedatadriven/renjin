@@ -618,8 +618,8 @@ public class Primitives {
     f("system", System.class, 0, 211, 5);
     f("parse", Evaluation.class, 0, 11, 6);
     f("parse_Rd", /*parseRd*/ null, 0, 11, 7);
-    f("save", /*save*/ null, 0, 111, 6);
-    f("saveToConn", /*saveToConn*/ null, 0, 111, 6);
+    f("save", Serialization.class, 0, 111, 6);
+    f("saveToConn", Serialization.class, 0, 111, 6);
     f("load", /*load*/ null, 0, 111, 2);
     f("loadFromConn2", Serialization.class, 0, 111, 2);
     f("serializeToConn", Serialization.class, 0, 111, 5);

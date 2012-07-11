@@ -28,6 +28,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
+import org.renjin.primitives.io.connections.Connection.Type;
 import org.renjin.sexp.*;
 
 import java.io.DataInputStream;
@@ -140,6 +141,20 @@ public class Connections {
   
   private static IntVector terminal(int index) {
     return new IntArrayVector(new int[] { index }, PairList.Node.singleton(Symbols.CLASS, new StringVector("connection", "terminal")));
+  }
+  
+  @Primitive("summary.connection")
+  public static ListVector summaryConnection(@Current Context context, SEXP connHandle) {
+    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
+    Connection connection = getConnection(context, connHandle);
+    result.add("description", connection.getDescription());
+    result.add("class", connection.getClassName());
+    result.add("mode", connection.getMode());
+    result.add("text", connection.getType() == Type.TEXT ? "text" : "binary");
+    result.add("opened", connection.isOpen() ? "opened" : "closed");
+    result.add("can read", connection.canRead() ? "yes" : "no");
+    result.add("can write", connection.canWrite() ? "yes" : "no");
+    return result.build();
   }
 
   @Primitive

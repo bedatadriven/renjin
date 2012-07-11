@@ -41,6 +41,21 @@ public abstract class AbstractConnection implements Connection {
     }
   }
   
+  @Override
+  public String getMode() {
+    return "r";
+  }
+
+  @Override
+  public boolean canRead() {
+    return true;
+  }
+
+  @Override
+  public boolean canWrite() {
+    return true;
+  }
+
   protected abstract void closeInputIfOpen() throws IOException;
   protected abstract void closeOutputIfOpen() throws IOException;
 }

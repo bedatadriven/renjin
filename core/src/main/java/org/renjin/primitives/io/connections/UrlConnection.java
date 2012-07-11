@@ -11,6 +11,7 @@ public class UrlConnection extends AbstractConnection {
 
   private final URL url;
   private InputStream in;  
+  private OpenSpec openSpec = new OpenSpec("r");
 
   public UrlConnection(URL url) {
     super();
@@ -19,6 +20,7 @@ public class UrlConnection extends AbstractConnection {
 
   @Override
   public void open(OpenSpec spec) throws IOException {
+    this.openSpec = spec;
     if(spec.forWriting()) {
       throw new EvalException("Cannot open url connection for writing");
     } else {
@@ -61,5 +63,25 @@ public class UrlConnection extends AbstractConnection {
   @Override
   public String getClassName() {
     return "url";
+  }
+
+  @Override
+  public boolean canRead() {
+    return true;
+  }
+
+  @Override
+  public boolean canWrite() {
+    return false;
+  }
+
+  @Override
+  public String getDescription() {
+    return url.toExternalForm();
+  }
+
+  @Override
+  public Type getType() {
+    return openSpec.getType();
   }
 }

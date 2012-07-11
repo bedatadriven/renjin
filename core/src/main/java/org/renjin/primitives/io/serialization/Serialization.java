@@ -7,7 +7,9 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.ByteArrayCompression;
+import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
+import org.renjin.primitives.io.connections.OpenSpec;
 import org.renjin.primitives.io.serialization.RDataWriter.PersistenceHook;
 import org.renjin.sexp.*;
 
@@ -74,6 +76,65 @@ public class Serialization {
         createHook(context, refhook), Connections.getConnection(context, con).getOutputStream());
     writer.writeFile(object);
     
+  }
+  
+  
+  /**
+   * Serializes a list of objects within a given environment to a connnection
+   * 
+   * @param context 
+   * @param names character vector of the names of objects to be serialized
+   * @param connHandle the connection handle (int)
+   * @param ascii TRUE for ascii (not implemented)
+   * @param version the version number 
+   * @param envir the environment from which to save objects
+   * @param evalPromises TRUE to force promises
+   * @throws IOException
+   */
+  @Primitive
+  public static void saveToConn(@Current Context context, 
+      StringVector names, 
+      SEXP connHandle, 
+      boolean ascii, 
+      SEXP version, 
+      Environment envir, 
+      boolean evalPromises) throws IOException {
+    
+    Connection con = Connections.getConnection(context, connHandle);
+    boolean wasOpen = con.isOpen();
+    if(!wasOpen) {
+      con.open(new OpenSpec("wb"));
+    }
+    
+    if(!con.canWrite()) {
+      throw new EvalException("connection not open for writing");
+    } 
+    if(ascii) {
+      throw new EvalException("ascii serialization not implemented");
+    }
+    PairList.Builder list = new PairList.Builder();
+    for(String name : names) {
+      SEXP value = envir.getVariable(name);
+      if(value == Symbol.UNBOUND_VALUE) {
+        throw new EvalException("object '%s' not found", name);
+      }
+      if(evalPromises) {
+        value = value.force();
+      }
+      list.add(name, value);
+    }
+    
+    RDataWriter writer = new RDataWriter(context, con.getOutputStream());
+    writer.writeFile(list.build());
+    
+    if (!wasOpen) {
+      con.close();
+    }
+  }
+  
+  @Primitive
+  public static void save(SEXP list, SEXP file, SEXP ascii, SEXP version, SEXP environment, SEXP evalPromises) {
+    throw new EvalException("Serialization version 1 not supported.");
   }
   
   private static PersistenceHook createHook(final Context context, final SEXP hookExp) {

@@ -145,7 +145,7 @@ public class RDataReader {
       case NAMESPACESXP:
         return readNamespace();
       case ENVSXP:
-        return readEnv();
+        return readEnv(flags);
       case LISTSXP:
         return readPairList(flags);
       case LANGSXP:
@@ -196,17 +196,16 @@ public class RDataReader {
 
 
   private SEXP readPromise(Flags flags) throws IOException {
-    SEXP attributes = readTag(flags);
+    SEXP attributes = readAttributes(flags);
     SEXP env = readTag(flags);
     SEXP value = readExp();
     SEXP expr = readExp();
 
-    if(value != Null.INSTANCE) {
+    if(value == Null.INSTANCE) {
+      return Promise.repromise(context, (Environment)env, expr);
+    } else {
       return new Promise(expr, value);
     }
-
-    throw new IOException();
-
   }
 
   private SEXP readClosure(Flags flags) throws IOException {
@@ -244,7 +243,12 @@ public class RDataReader {
   }
 
   private PairList readAttributes(Flags flags) throws IOException {
-    return flags.hasAttributes ? (PairList)readExp() : Null.INSTANCE;
+    if(flags.hasAttributes) {
+      SEXP pairList = readExp();
+      return (PairList)pairList;
+    } else {
+      return Null.INSTANCE;
+    }
   }
 
   private SEXP readPackage() throws IOException {
@@ -283,19 +287,27 @@ public class RDataReader {
     return addReadRef( namespace );
   }
 
-  private SEXP readEnv() throws IOException {
-    int locked = in.readInt();
+  private SEXP readEnv(Flags flags) throws IOException {
 
     Environment env = Environment.createChildEnvironment(Environment.EMPTY);
     addReadRef(env);
-
+    
+    boolean locked = in.readInt() == 1;
     SEXP parent = readExp();
     SEXP frame = readExp();
     SEXP hashtab = readExp(); // unused
+    
+    // NB: environment's attributes is ALWAYS written,
+    // regardless of flag
     SEXP attributes = readExp();
 
     env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
     env.setVariables( (PairList) frame );
+    
+    
+    if(locked) {
+      env.lock(true);
+    }
 
     return env;
   }
@@ -305,11 +317,15 @@ public class RDataReader {
   }
 
   private SEXP readListExp(Flags flags) throws IOException {
-    return new ListVector(readExpArray(), readAttributes(flags));
+    SEXP[] values = readExpArray();
+    PairList attributes = readAttributes(flags);
+    return new ListVector(values, attributes);
   }
 
   private SEXP readExpExp(Flags flags) throws IOException {
-    return new ExpressionVector(readExpArray(), readAttributes(flags));
+    SEXP[] values = readExpArray();
+    PairList attributes = readAttributes(flags);
+    return new ExpressionVector(values, attributes);
   }
 
   private SEXP[] readExpArray() throws IOException {

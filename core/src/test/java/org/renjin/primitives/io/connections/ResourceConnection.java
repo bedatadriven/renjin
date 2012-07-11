@@ -54,6 +54,16 @@ public class ResourceConnection extends AbstractConnection {
   public String getClassName() {
     return "file";
   }
+
+  @Override
+  public String getDescription() {
+    return name;
+  }
+
+  @Override
+  public Type getType() {
+    return Type.TEXT;
+  }
   
   
 }

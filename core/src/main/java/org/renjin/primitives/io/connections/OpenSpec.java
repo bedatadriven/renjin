@@ -1,5 +1,7 @@
 package org.renjin.primitives.io.connections;
 
+import org.renjin.primitives.io.connections.Connection.Type;
+
 import com.google.common.base.Strings;
 
 /**
@@ -44,4 +46,14 @@ public class OpenSpec {
   public boolean isBinary() {
     return spec.contains("b");
   }
+  
+  public Type getType() {
+    return isText() ? Type.TEXT : Type.BINARY;
+  }
+
+  @Override
+  public String toString() {
+    return spec;
+  }
+  
 }

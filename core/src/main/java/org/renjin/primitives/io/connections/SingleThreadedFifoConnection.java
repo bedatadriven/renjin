@@ -74,5 +74,31 @@ public class SingleThreadedFifoConnection implements Connection {
   @Override
   public String getClassName() {
     return "fifo";
+  }
+
+  @Override
+  public String getDescription() {
+    return "";
+  }
+
+  @Override
+  public String getMode() {
+    return "rw";
+  }
+
+  @Override
+  public boolean canRead() {
+    return true;
+  }
+
+  @Override
+  public boolean canWrite() {
+    return true;
+  }
+
+  @Override
+  public Type getType() {
+    // TODO don't know what the right answer is here
+    return Type.TEXT;
   }  
 }

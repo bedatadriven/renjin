@@ -68,6 +68,4 @@ public class GzFileConnection extends FileConnection {
   protected OutputStream doOpenForOutput() throws IOException {
     return new GZIPOutputStream(super.doOpenForOutput());
   }
-
-
 }

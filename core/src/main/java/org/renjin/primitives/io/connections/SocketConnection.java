@@ -10,9 +10,12 @@ public class SocketConnection implements Connection {
   private final Socket socket;
   private PushbackBufferedReader reader;
   private PrintWriter writer;
+  private String description;
+  private OpenSpec openSpec = new OpenSpec("rw");
   
   public SocketConnection(String host, int port) throws UnknownHostException, IOException {
     this.socket = new Socket(host, port);
+    this.description = host + ":" + port;
   }
 
   @Override
@@ -57,12 +60,37 @@ public class SocketConnection implements Connection {
 
   @Override
   public void open(OpenSpec spec) throws IOException {
-    
+    this.openSpec = spec;
   }
 
   @Override
   public String getClassName() {
     return "socket";
+  }
+
+  @Override
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  public String getMode() {
+    return "rw";
+  }
+
+  @Override
+  public boolean canRead() {
+    return true;
+  }
+
+  @Override
+  public boolean canWrite() {
+    return true;
+  }
+
+  @Override
+  public Type getType() {
+    return openSpec.getType();
   }
 
 }

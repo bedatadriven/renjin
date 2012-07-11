@@ -200,7 +200,6 @@ public class RDataWriter {
     writeAttributes(vector);
   }
 
-
   private void writeComplexVector(ComplexVector vector) throws IOException {
     writeFlags(SerializationFormat.CPLXSXP, vector);
     out.writeInt(vector.length());
@@ -212,7 +211,6 @@ public class RDataWriter {
     writeAttributes(vector);
   }
 
-  
   private void writeRawVector(RawVector vector) throws IOException {
     writeFlags(RAWSXP, vector);
     out.writeInt(vector.length());
@@ -220,10 +218,6 @@ public class RDataWriter {
     writeAttributes(vector);
   }
   
-  private void writeStringVector(String element) throws IOException {
-    writeStringVector(new StringVector(element));
-  }
-
   private void writeStringVector(StringVector vector) throws IOException {
     writeFlags(STRSXP, vector);
     out.writeInt(vector.length());
@@ -299,9 +293,13 @@ public class RDataWriter {
       } else {
         addRef(env);
         writeFlags(SerializationFormat.ENVSXP, env);
+        out.writeInt(env.isLocked() ? 1 : 0);
         writeExp(env.getParent());
         writeFrame(env);
         writeExp(Null.INSTANCE); // hashtab (unused)
+        
+        // NB: attributes for an environment are
+        // ALWAYS written, even if NULL
         writeExp(env.getAttributes());
       }
     }
@@ -378,8 +376,11 @@ public class RDataWriter {
   }
 
   private void writeAttributes(SEXP exp) throws IOException {
-    SEXP attributes = exp.getAttributes();
+    PairList attributes = exp.getAttributes();
     if(attributes != Null.INSTANCE) {
+      if(!(attributes instanceof PairList.Node)) {
+        throw new AssertionError(attributes.getClass());
+      }
       writeExp(attributes);
     }
   }

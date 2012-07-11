@@ -16,6 +16,7 @@ public class FileConnection extends AbstractConnection {
   private OutputStream out;
   
   private FileObject file;
+  private OpenSpec openSpec = null;
   
   public FileConnection(FileObject file) throws IOException {
     this.file = file;
@@ -23,6 +24,7 @@ public class FileConnection extends AbstractConnection {
   
   @Override
   public void open(OpenSpec spec) throws IOException {
+    this.openSpec = spec;
     if(spec.forReading() && spec.forWriting()) {
       throw new EvalException("Read/write file connections not yet implemented");
     }
@@ -102,4 +104,38 @@ public class FileConnection extends AbstractConnection {
   public String getClassName() {
     return "file";
   }
+
+  @Override
+  public String getDescription() {
+    return file.getName().getPath();
+  }
+
+  @Override
+  public Type getType() {
+    if(openSpec == null) {
+      return Type.TEXT;
+    } else {
+      return openSpec.getType();
+    }
+  }
+
+  @Override
+  public String getMode() {
+    if(openSpec == null) {
+      return "r";
+    } else {
+      return openSpec.toString();
+    }
+  }
+
+  @Override
+  public boolean canRead() {
+    return !isOpen() || openSpec == null || openSpec.forReading();
+  }
+
+  @Override
+  public boolean canWrite() {
+    return !isOpen() || openSpec == null || openSpec.forWriting();
+  }
+  
 }

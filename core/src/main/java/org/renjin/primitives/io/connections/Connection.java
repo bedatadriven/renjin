@@ -33,6 +33,10 @@ import java.io.PrintWriter;
  */
 public interface Connection {
   
+  enum Type {
+    TEXT,
+    BINARY
+  };
   
   void open(OpenSpec spec) throws IOException;
   
@@ -58,5 +62,14 @@ public interface Connection {
    * @return the S3 "sub" class of this connection (e.g. "terminal", "file", etc)
    */
   String getClassName();
+  
+  String getDescription();
 
+  String getMode();
+
+  boolean canRead();
+  
+  boolean canWrite();
+  
+  Type getType();
 }

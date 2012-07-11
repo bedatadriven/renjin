@@ -82,4 +82,29 @@ public class StdInConnection implements Connection {
   public String getClassName() {
     return "terminal";
   }
+
+  @Override
+  public String getDescription() {
+    return "stdin";
+  }
+
+  @Override
+  public String getMode() {
+    return "r";
+  }
+
+  @Override
+  public boolean canRead() {
+    return true;
+  }
+
+  @Override
+  public boolean canWrite() {
+    return false;
+  }
+
+  @Override
+  public Type getType() {
+    return Type.TEXT;
+  }
 }

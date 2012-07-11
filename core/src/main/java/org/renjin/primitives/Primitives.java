@@ -927,7 +927,7 @@ public class Primitives {
     f("sockSelect", /*sockselect*/ null, 0, 11, 3);
     f("getConnection", /*getconnection*/ null, 0, 11, 1);
     f("getAllConnections", /*getallconnections*/ null, 0, 11, 0);
-    f("summary.connection", /*sumconnection*/ null, 0, 11, 1);
+    f("summary.connection", Connections.class, 0, 11, 1);
     f("download", /*download*/ null, 0, 11, 5);
     f("nsl", /*nsl*/ null, 0, 11, 1);
     f("gzcon", /*gzcon*/ null, 0, 11, 3);

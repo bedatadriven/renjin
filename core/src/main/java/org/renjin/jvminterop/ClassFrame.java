@@ -3,10 +3,12 @@ package org.renjin.jvminterop;
 import java.util.Set;
 
 import org.renjin.eval.EvalException;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.Frame;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
 
 
 public class ClassFrame implements Frame {
@@ -24,6 +26,9 @@ public class ClassFrame implements Frame {
 
   @Override
   public SEXP getVariable(Symbol name) {
+    if(name == Symbols.CLASS) {
+      return Environment.createChildEnvironment(Environment.EMPTY, new ObjectFrame(binding.getBoundClass()));
+    }
     SEXP value = binding.getStaticMember(name);
     if(value == null) {
       return Symbol.UNBOUND_VALUE;

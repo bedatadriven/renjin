@@ -20,14 +20,14 @@
  */
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.SEXP;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class CombineTest extends EvalTestCase {
@@ -141,6 +141,20 @@ public class CombineTest extends EvalTestCase {
         assertThat(eval(".Internal(cbind(1, 5, 6, 7))"), equalTo(c(5, 6, 7)));
         assertThat(eval("dim(.Internal(cbind(1, 5,6, 7)))"), equalTo(c_i(1, 3)));
         assertThat(eval(".Internal(cbind(1, c(5,6), c(9)))"), equalTo(c(5, 6, 9, 9)));
+    }
+    
+    @Test
+    public void cbindWithDimnames() {
+        eval("a <- 1:4");
+        eval("dim(a) <- c(4,1) ");
+        eval("dimnames(a) <- list(c('r1','r2','r3', 'r4'), c('c1'))");
+        eval("b <- (1:4)+10");
+        eval("dim(b) <- c(4,1) ");
+        
+        eval("x <- .Internal(cbind(1, a, b))");
+        assertThat(eval("length(dimnames(x)[[1]])"), equalTo(c_i(4)));
+        assertThat(eval("length(dimnames(x)[[2]])"), equalTo(c_i(2)));
+        
     }
     
     @Test

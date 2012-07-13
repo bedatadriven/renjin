@@ -535,16 +535,31 @@ public class Combine {
     }
 
     AtomicVector rowNames = Null.INSTANCE;
-    AtomicVector colNames = Null.INSTANCE;
+    StringVector.Builder colNames = new StringVector.Builder();
 
+    boolean hasColNames = false;
+    
     for(BindArgument argument : bindArguments) {
       if(argument.rowNames.length() == rows) {
         rowNames = argument.rowNames;
         break;
       }
     }
+    for(BindArgument argument : bindArguments) {
+      if(argument.colNames != Null.INSTANCE) {
+        hasColNames = true;
+        for(int i=0; i!=argument.cols;++i) {
+          colNames.add(argument.colNames.getElementAsString(i));
+        }
+      } else {
+        for(int i=0; i!=argument.cols;++i) {
+          colNames.add("");
+        }        
+      }
+    }
 
-    builder.setDimNames(rowNames, colNames);
+    builder.setDimNames(rowNames, 
+        hasColNames ? colNames.build() : Null.INSTANCE);
 
     return builder.build();
   }
@@ -581,6 +596,12 @@ public class Combine {
         AtomicVector dimVector = (AtomicVector) dim;
         rows = dimVector.getElementAsInt(0);
         cols = dimVector.getElementAsInt(1);
+        Vector dimNames = (Vector) this.vector.getAttribute(Symbols.DIMNAMES);
+        if(dimNames instanceof ListVector && dimNames.length() == 2) {
+          rowNames = (AtomicVector) dimNames.getElementAsSEXP(0);
+          colNames = (AtomicVector) dimNames.getElementAsSEXP(1);
+        }
+        
         matrix = true;
       }
     }

@@ -431,6 +431,14 @@ public class RParser {
     this.options = options;
     this.state = state;
   }
+  
+  public RParser(Reader reader) {
+    this.state = new ParseState();
+    this.options = new ParseOptions();
+    this.yylexer = new RLexer(options, state, reader);
+  }
+  
+  
 
   private java.io.PrintStream yyDebugStream = System.err;
 

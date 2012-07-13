@@ -2,6 +2,8 @@ package org.renjin.eval;
 
 import org.renjin.sexp.StringVector;
 
+import java.io.IOException;
+
 
 /**
  * Provides implementations for the session-oriented R commands
@@ -26,7 +28,7 @@ public class SessionController {
     return false;
   }
 
-  public int menu(StringVector choices) {
+  public int menu(StringVector choices) throws IOException {
     throw new EvalException("menu() is not available");
   }
   

@@ -61,4 +61,4 @@ fi
 exec "$JAVACMD" \
   $RENJIN_OPTS \
   -cp $(echo ${RENJIN_HOME}/dependencies/*.jar | tr ' ' ':') \
-  org.renjin.cli.StandardConsole "$@"
+  org.renjin.cli.JlineRepl "$@"

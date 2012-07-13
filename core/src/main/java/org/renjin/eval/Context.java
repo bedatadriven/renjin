@@ -38,10 +38,7 @@ import org.renjin.primitives.random.RNG;
 import org.renjin.sexp.*;
 import org.renjin.util.FileSystemUtils;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.Reader;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -658,7 +655,11 @@ public class Context {
 
   protected void evalBaseResource(String resourceName) throws IOException {
     Context evalContext = this.beginEvalContext(globals.baseNamespaceEnv);
-    Reader reader = new InputStreamReader(getClass().getResourceAsStream(resourceName));
+    InputStream in = getClass().getResourceAsStream(resourceName);
+    if(in == null) {
+      throw new IOException("Could not load resource '" + resourceName + "'");
+    }
+    Reader reader = new InputStreamReader(in);
     try {
       evalContext.evaluate(RParser.parseSource(reader));
     } finally {

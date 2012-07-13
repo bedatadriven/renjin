@@ -630,7 +630,7 @@ public class Primitives {
     f("dump", /*dump*/ null, 0, 111, 5);
     add(new SubstituteFunction());
     add(new QuoteFunction());// f("quote", Evaluation.class, 0, 0, 1);
-    f("quit", /*quit*/ null, 0, 111, 3);
+    f("quit", Session.class, 0, 111, 3);
     f("interactive", Session.class, 0, 0, 0);
     f("readline", /*readln*/ null, 0, 11, 1);
     f("menu", Session.class, 0, 11, 1);

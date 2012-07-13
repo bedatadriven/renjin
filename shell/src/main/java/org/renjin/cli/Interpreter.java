@@ -21,10 +21,7 @@
 
 package org.renjin.cli;
 
-import com.google.common.base.Strings;
 import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.*;
@@ -33,9 +30,11 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
-import org.renjin.util.FileSystemUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.Reader;
 
 
 /**
@@ -46,19 +45,14 @@ public class Interpreter implements Runnable {
   private final Console console;
   private Environment global;
   private Context topLevelContext;
-  private FileSystemManager manager;
-
+  
   
   public Interpreter(Console console) throws FileSystemException {
-    manager = VFS.getManager();
-    String home = findRHome();
-
     this.console = console;    
-    this.topLevelContext = Context.newTopLevelContext(manager,
-        home,
-        FileSystemUtils.workingDirectory(manager));
+    
+    StandaloneContextFactory factory = new StandaloneContextFactory();
+    this.topLevelContext = factory.create();
     this.topLevelContext.getGlobals().setStdOut(new PrintWriter(console.getOut()));
-    this.topLevelContext.getGlobals().setLibraryPaths(computeLibraryPaths(home));
     this.topLevelContext.getGlobals().setSessionController(new CliSessionController(console));
     this.global = topLevelContext.getEnvironment();
 
@@ -66,64 +60,6 @@ public class Interpreter implements Runnable {
       ((RichConsole) console).setNameCompletion(new SymbolCompletion(global));
     }
   }
-
-  protected String computeLibraryPaths(String home) {
-    StringBuilder libs = new StringBuilder();
-    libs.append(computeUserHome());
-    libs.append(";");
-    libs.append(home).append("/library");
-    return libs.toString();
-  }
-
-  protected String computeUserHome() {
-    File dir = new File( System.getProperty("user.home") + "/R/renjin/0.6.8" );
-    dir.mkdirs();
-    return dir.getAbsolutePath();
-  }
-
-  private String findRHome() throws FileSystemException {
-    
-    if(!Strings.isNullOrEmpty(System.getProperty("renjin.home"))) {
-      return System.getProperty("renjin.home");
-      
-    } else {
-      
-      if(manager.resolveFile(FileSystemUtils.homeDirectoryInLocalFs()).exists()) {
-        return FileSystemUtils.homeDirectoryInLocalFs();
-      } else {
-        return FileSystemUtils.homeDirectoryInCoreJar();
-      }
-    }
-  }
-
-
-  /**
-   * A decorator(?) around a standard reader that looks for special characters
-   * (up, down, Ctrl-D) and catches those, and passes everything else along.
-   * @author jamie
-   *
-   */
-  public static class ConsoleReader extends Reader{
-    private Reader x;
-
-    public ConsoleReader(Reader x){
-      this.x=x;
-    }
-
-    @Override
-    public int read(char[] cbuf, int off, int len) throws IOException {
-      int count = x.read(cbuf, off, len);
-      
-      return count;
-    }
-
-    @Override
-    public void close() throws IOException {
-      x.close();
-      
-    }
-  }
-  
   
   @Override
   public void run() {

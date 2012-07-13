@@ -6,6 +6,8 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.StringVector;
 
+import java.io.IOException;
+
 /**
  * Implementation of interactive session related primitives like q(), interactive(),
  * menu(), etc
@@ -14,7 +16,7 @@ import org.renjin.sexp.StringVector;
 public class Session {
 
   @Primitive
-  public static void q(@Current Context context, String saveMode, int exitCode, boolean runLast) {
+  public static void quit(@Current Context context, String saveMode, int exitCode, boolean runLast) {
     context.getGlobals().getSessionController().quit(context, SaveMode.valueOf(saveMode.toUpperCase()), exitCode, runLast);
   }
   
@@ -27,7 +29,7 @@ public class Session {
   }
   
   @Primitive
-  public static int menu(@Current Context context, StringVector choices) {
+  public static int menu(@Current Context context, StringVector choices) throws IOException {
     return context.getGlobals().getSessionController().menu(choices);
   }
 }

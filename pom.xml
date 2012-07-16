@@ -39,7 +39,6 @@
     <module>tools/maven-plugin</module>
     <module>samples/swing-repl</module>
     <module>samples/appengine-repl</module>
-    <module>dist/ubuntu</module>
   </modules>
 
   <properties>
@@ -240,4 +239,12 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>ubuntu</id>
+      <modules>
+        <module>dist/ubuntu</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

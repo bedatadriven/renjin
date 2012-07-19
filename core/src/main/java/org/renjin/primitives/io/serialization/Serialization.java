@@ -74,7 +74,7 @@ public class Serialization {
     
     RDataWriter writer = new RDataWriter(context,
         createHook(context, refhook), Connections.getConnection(context, con).getOutputStream());
-    writer.writeFile(object);
+    writer.save(object);
     
   }
   
@@ -125,7 +125,7 @@ public class Serialization {
     }
     
     RDataWriter writer = new RDataWriter(context, con.getOutputStream());
-    writer.writeFile(list.build());
+    writer.save(list.build());
     
     if (!wasOpen) {
       con.close();
@@ -324,7 +324,7 @@ public class Serialization {
     
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(context, createHook(context, hook), baos);
-    writer.writeFile(value);
+    writer.save(value);
     
     byte[] bytes = ByteArrayCompression.compress(compress.getElementAsInt(0), baos.toByteArray());
     

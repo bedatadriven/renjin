@@ -56,20 +56,41 @@ public class RDataWriter {
   public RDataWriter(Context context, OutputStream out) throws IOException {
     this(context, null, out);
   }
+  
+  /**
+   * @deprecated Call save() explicitly
+   * @param sexp
+   * @throws IOException 
+   */
+  @Deprecated
+  public void writeFile(SEXP sexp) throws IOException {
+    save(sexp);
+  }
 
-  public void writeFile(SEXP exp) throws IOException {
-    writeHeader();
+  /**
+   * Serializes the given {@code sexp}, prefixed by the 
+   * magic bytes 'RDX\n'
+   * @throws IOException
+   */
+  public void save(SEXP sexp) throws IOException {
+    out.writeBytes(XDR_MAGIC_HEADER);
+    serialize(sexp);
+  }
+
+  public void serialize(SEXP exp) throws IOException {
+    out.writeByte(XDR_FORMAT);
+    out.writeByte('\n');
+    writeVersion();
     writeExp(exp);
   }
-  
-  private void writeHeader() throws IOException {
-    out.writeBytes(XDR_FORMAT);
+    
+  private void writeVersion() throws IOException {
     out.writeInt(VERSION2);
     out.writeInt(Version.CURRENT.asPacked());
     out.writeInt(new Version(2,3,0).asPacked());
   }
 
-  public void writeExp(SEXP exp) throws IOException {
+  private void writeExp(SEXP exp) throws IOException {
     
     if(tryWritePersistent(exp)) {
       return;

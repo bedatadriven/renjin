@@ -88,11 +88,11 @@ public class RDataReader {
 
     if(bytes[1] == '\n') {
       switch(bytes[0]) {
-        case 'X':
+        case XDR_FORMAT:
           return new XdrReader(conn);
-        case 'A':
+        case ASCII_FORMAT:
           return new AsciiReader(conn);
-        case 'B':
+        case BINARY_FORMAT:
           return new BinaryReader(conn);
         default:
           throw new IOException("Malformed header: " + Integer.toHexString(bytes[0]) + " " +
@@ -104,12 +104,12 @@ public class RDataReader {
       bytes[i] = (byte) conn.read();
     }
 
-    String header = new String(bytes);
-    if(header.equals(SerializationFormat.ASCII_FORMAT)) {
+    String header = new String(bytes,0,5);
+    if(header.equals(ASCII_MAGIC_HEADER)) {
       return new AsciiReader(conn);
-    } else if(header.equals(SerializationFormat.BINARY_FORMAT)) {
+    } else if(header.equals(BINARY_MAGIC_HEADER)) {
       return new BinaryReader(conn);
-    } else if(header.equals(SerializationFormat.XDR_FORMAT)) {
+    } else if(header.equals(XDR_MAGIC_HEADER)) {
       return new XdrReader(conn);
     }
 

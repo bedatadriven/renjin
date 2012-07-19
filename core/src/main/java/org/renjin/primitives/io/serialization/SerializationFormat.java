@@ -23,9 +23,13 @@ package org.renjin.primitives.io.serialization;
 
 class SerializationFormat {
 
-  public static final String ASCII_FORMAT = "RDA2\nA\n";
-  public static final String BINARY_FORMAT = "RDB2\nB\n";
-  public static final String XDR_FORMAT = "RDX2\nX\n";
+  public static final String ASCII_MAGIC_HEADER = "RDA2\n";
+  public static final String BINARY_MAGIC_HEADER = "RDB2\n";
+  public static final String XDR_MAGIC_HEADER = "RDX2\n";
+  
+  public static final byte ASCII_FORMAT = 'A';
+  public static final byte BINARY_FORMAT = 'B';
+  public static final byte XDR_FORMAT = 'X';
 
   public static final int  NILSXP	  =   0;  /* nil = NULL */
   public static final int  SYMSXP	  =   1;	  /* symbols */

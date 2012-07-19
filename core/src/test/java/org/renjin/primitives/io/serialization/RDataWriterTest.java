@@ -148,7 +148,7 @@ public class RDataWriterTest extends EvalTestCase {
     FileOutputStream fos = new FileOutputStream(fileName);
     GZIPOutputStream zos = new GZIPOutputStream(fos);
     RDataWriter writer = new RDataWriter(topLevelContext, zos);
-    writer.writeFile(exp);
+    writer.save(exp);
     zos.close();
   }
 
@@ -159,7 +159,7 @@ public class RDataWriterTest extends EvalTestCase {
   private SEXP writeAndReRead(SEXP exp) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(topLevelContext, baos);
-    writer.writeFile(exp);
+    writer.save(exp);
 
     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
     RDataReader reader = new RDataReader(topLevelContext, bais);

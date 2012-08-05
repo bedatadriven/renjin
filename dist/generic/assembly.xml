@@ -1,0 +1,44 @@
+
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>renjin-standalone</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+
+    <includeBaseDirectory>true</includeBaseDirectory>
+
+    <moduleSets>
+        <moduleSet>
+            <useAllReactorProjects/>
+            <includeSubModules/>
+            <binaries>
+                <outputDirectory>dependencies</outputDirectory>
+            </binaries>
+        </moduleSet>
+    </moduleSets>
+  
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>dependencies</outputDirectory>
+        </dependencySet>
+    </dependencySets>
+  
+    <files>
+        <file>
+            <source>src/main/scripts/renjin</source>
+            <outputDirectory>bin</outputDirectory>
+        </file>
+    </files>
+    
+    <fileSets>
+        <fileSet>
+            <includes>
+                <include>library/**</include>
+            </includes>
+            <directory>target/dependency/org/renjin</directory>
+            <outputDirectory></outputDirectory>
+        </fileSet>
+    </fileSets>
+
+</assembly>

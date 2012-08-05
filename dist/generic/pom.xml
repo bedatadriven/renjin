@@ -23,7 +23,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>renjin-generic-package</artifactId>
-    <name>Renjin</name>
+    <name>Renjin Standalone Platform-independent distribution</name>
     <packaging>pom</packaging>
 
     <dependencies>
@@ -39,19 +39,6 @@
         </dependency>
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>java.net</id>
-            <url>http://download.java.net/maven/2</url>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>functional-java</id>
-            <url>http://functionaljava.googlecode.com/svn/maven</url>
-        </pluginRepository>
-    </pluginRepositories>
-  
     <build>
         <plugins>
       

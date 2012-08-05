@@ -1,12 +1,7 @@
 package org.renjin.jvminterop;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.jvminterop.converters.Converter;
@@ -16,9 +11,14 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 
-import com.google.common.collect.Lists;
-
+/**
+ * Encapsulates the binding between a JVM method and a R function, including any
+ * required conversions.
+ */
 public class FunctionBinding {
 
   private List<Overload> overloads = Lists.newArrayList();
@@ -31,16 +31,27 @@ public class FunctionBinding {
     AbstractOverload.sortOverloads(this.overloads);
   }
 
+  /**
+   *
+   * @return  the JVM classes on which this method was declared
+   */
+  public Class getDeclaringClass() {
+    return Iterables.get(overloads, 0).getDeclaringClass();
+  }
+
+  /**
+   * @return the name of the JVM method
+   */
+  public String getName() {
+    return Iterables.get(overloads, 0).getName();
+  }
+  
   private void addOverload(Method method) {
     Overload overload = new Overload(method);
     if(overload.getArgCount() > maxArgCount) {
       maxArgCount = overload.getArgCount();
     }
     this.overloads.add(overload);
-  }
-  
-  public FunctionBinding(Method[] methods) {
-    this(Arrays.asList(methods));
   }
 
   public static class Overload extends AbstractOverload {
@@ -60,6 +71,13 @@ public class FunctionBinding {
       this.method.setAccessible(true);
     }
     
+    public Class getDeclaringClass() {
+      return method.getDeclaringClass();
+    }
+    
+    public String getName() {
+      return method.getName();
+    }
     
     public SEXP invoke(Context context, Object instance, List<SEXP> args) {
       Object[] converted = convertArguments(context, args);
@@ -91,7 +109,6 @@ public class FunctionBinding {
     // eval arguments
     List<SEXP> args = Lists.newArrayListWithCapacity(maxArgCount);
     ArgumentIterator it = new ArgumentIterator(context, rho, arguments);
-    int nargs = 0;
     while(it.hasNext()) {
       args.add(context.evaluate( it.next(), rho));
     }
@@ -99,12 +116,15 @@ public class FunctionBinding {
     // find overload
     for(Overload overload : overloads) {
       if(overload.accept(args)) {
-        
-        return overload.invoke(context, instance, args);
-        
+        return overload.invoke(context, instance, args);        
       }
     }
     throw new EvalException("Cannot match arguments (%s) to any JVM method overload:\n%s", 
         ExceptionUtil.toString(args), ExceptionUtil.overloadListToString(overloads));
+  }
+
+  @Override
+  public String toString() {
+    return getName();
   }
 }

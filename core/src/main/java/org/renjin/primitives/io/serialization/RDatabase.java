@@ -1,27 +1,17 @@
 package org.renjin.primitives.io.serialization;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import com.google.common.collect.Maps;
+import org.renjin.eval.Context;
+import org.renjin.primitives.io.ByteArrayCompression;
+import org.renjin.sexp.*;
+
+import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
-
-import org.renjin.eval.Context;
-import org.renjin.primitives.io.ByteArrayCompression;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
-
-
-
-import com.google.common.collect.Maps;
 
 /**
  * Provides read access to an .rdb file.
@@ -118,7 +108,7 @@ public class RDatabase {
         new RDataReader.PersistentRestorer() {
 
           @Override
-          public SEXP restore(SEXP value) {
+          public SEXP restore(StringVector value) {
             try {
               System.out.println("persistent restore: " + value);
               return getEnvironment(value);

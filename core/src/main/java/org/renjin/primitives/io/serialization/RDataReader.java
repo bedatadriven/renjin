@@ -595,8 +595,12 @@ public class RDataReader {
     }
   }
 
+  /**
+   * Interface that allows Renjin containers to restore objects
+   * previously stored by {@link RDataWriter.PersistenceHook}
+   */
   public interface PersistentRestorer {
-    SEXP restore(SEXP values);
+    SEXP restore(StringVector values);
   }
 
 }

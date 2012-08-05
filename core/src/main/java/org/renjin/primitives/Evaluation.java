@@ -380,7 +380,7 @@ public class Evaluation {
     for(int i=1;i<arguments.length();++i) {
       if("PACKAGE".equals(arguments.getName(i))) {
         packageName = arguments.getElementAsString(i);  
-      } else if(arguments.getElementAsSEXP(i) != Null.INSTANCE) {
+      } else  {
         callArguments.add(arguments.getElementAsSEXP(i));
       }
     }

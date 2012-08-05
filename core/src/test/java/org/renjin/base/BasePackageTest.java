@@ -454,5 +454,23 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("typeof(x)"), equalTo(c("integer")));
     assertThat(eval("is.factor(x)"), equalTo(c(true)));
   }
+  
+  @Test
+  public void serialize() {
+    
+    assumingBasePackagesLoad();
+    
+    eval("x <- serialize(42, connection=NULL)");
+    assertThat(eval("length(x)"), equalTo(c_i(30)));
+    assertThat(eval("x[1:6]"), equalTo(raw(0x58, 0x0a, 0x00, 0x00, 0x00, 0x02)));
+  }
+
+  private SEXP raw(int... integers) {
+    RawVector.Builder vector = new RawVector.Builder();
+    for(int i : integers) {
+      vector.add(i);
+    }
+    return vector.build();
+  }
  
 }

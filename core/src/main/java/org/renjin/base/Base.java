@@ -35,6 +35,7 @@ import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
 import org.renjin.sexp.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,7 +59,7 @@ public class Base {
 
   private Base() { }
   
-  public static boolean R_isMethodsDispatchOn() {
+  public static boolean R_isMethodsDispatchOn(SEXP onOff) {
     return false;
   }
 
@@ -694,7 +695,10 @@ public class Base {
   
   public static SEXP dqrls() {
     return Null.INSTANCE;
-    
   }
-  
+
+  public static SEXP R_serialize(@Current Context context, SEXP object, SEXP connection, boolean ascii,
+      SEXP version, SEXP refhook) throws IOException {
+    return Serialization.serialize(context, object, connection, ascii, version, refhook);
+  }
 }

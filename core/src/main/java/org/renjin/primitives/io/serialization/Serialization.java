@@ -265,7 +265,7 @@ public class Serialization {
           new RDataReader.PersistentRestorer() {
   
             @Override
-            public SEXP restore(SEXP values) {
+            public SEXP restore(StringVector values) {
               FunctionCall call = FunctionCall.newCall(restoreFunction, values);
               return context.evaluate(call, context.getGlobalEnvironment());
             }
@@ -339,5 +339,32 @@ public class Serialization {
     int length = bytes.length;
     
     return new IntArrayVector(offset, length);
+  }
+
+  /**
+   *
+   * Writes ‘object’ to the specified connection.  If ‘connection’ is ‘NULL’ then
+   * ‘object’ is serialized to a raw vector, which is returned as the result of
+   * ‘serialize’.
+   *
+   * @param object the object to serialize
+   * @param connection  an open connection handle OR {@code Null.INSTANCE} if the object is to be serialized
+   * to a raw vector
+   * @param ascii if 'TRUE' an ASCII representation is written (not implemented)
+   * @param version
+   * @param refhook  a hook function for handling reference objects.
+   * @return a {@code RawVector}
+   * @throws IOException
+   */
+  public static SEXP serialize(@Current Context context, SEXP object, SEXP connection, boolean ascii,
+      SEXP version, SEXP refhook) throws IOException {
+    EvalException.check(!ascii, "ascii = TRUE has not been implemented");
+    EvalException.check(refhook == Null.INSTANCE, "refHook != NULL has not been implemented yet.");
+    EvalException.check(connection == Null.INSTANCE, "Only connection = NULL has been implemented so far.");
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    RDataWriter writer = new RDataWriter(context, baos);
+    writer.serialize(object);
+    return new RawVector(baos.toByteArray());
   }
 }

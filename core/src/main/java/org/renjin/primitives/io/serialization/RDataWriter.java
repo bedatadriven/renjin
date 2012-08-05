@@ -36,14 +36,25 @@ import static org.renjin.primitives.io.serialization.SerializationFormat.*;
 
 public class RDataWriter {
 
+  /**
+   * Interfaces that allows R developers and Renjin containers to provide
+   * custom serialization for certain types of sexps, like Java objects that
+   * are stored in an R Environment.
+   */
   public interface PersistenceHook {
+
+    /**
+     *
+     * @param exp the S-expression to serialize
+     * @return {@code Null.INSTANCE} if the container provide custom serialization
+     * for this sexp, or a {@code StringVector} if it does.
+     */
     Vector apply(SEXP exp);
   }
   
   private Context context;
   private PersistenceHook hook;
   private DataOutputStream out;
-  
 
   private Map<SEXP, Integer> references = Maps.newHashMap();
 
@@ -131,7 +142,8 @@ public class RDataWriter {
     } else if(exp instanceof PrimitiveFunction) {
       writePrimitive((PrimitiveFunction)exp);
     } else {
-      throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented");
+      throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented: ["
+         + exp.toString() + "]");
     }
   }
 

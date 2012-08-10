@@ -103,14 +103,14 @@ public class RDataWriter {
 
   private void writeExp(SEXP exp) throws IOException {
     
-    if(tryWritePersistent(exp)) {
-      return;
-    }
-    
     if(tryWriteRef(exp)) {
       return;
     }
     
+    if(tryWritePersistent(exp)) {
+      return;
+    }
+     
     if(exp instanceof Null) {
       writeNull();
     } else if(exp instanceof LogicalVector) {

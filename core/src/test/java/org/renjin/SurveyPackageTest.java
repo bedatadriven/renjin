@@ -1,9 +1,9 @@
 package org.renjin;
 
+import org.junit.Test;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-
-import org.junit.Test;
 
 
 public class SurveyPackageTest extends PackageTest {
@@ -11,8 +11,7 @@ public class SurveyPackageTest extends PackageTest {
   @Test
   public void surveyPackage() throws Exception {
 
-    java.lang.System.out.println(eval(".find.package('survey') "));
-    eval(" library(survey) ");
+    eval(" library(survey, lib.loc='src/test/resources') ");
 
     assertThat( eval(" data(hospital, verbose=TRUE) "), equalTo(c("hospital")) );
 

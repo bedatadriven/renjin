@@ -21,14 +21,7 @@
 
 package org.renjin.appengine;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.script.ScriptEngine;
-import javax.servlet.ServletContext;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs.CacheStrategy;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
@@ -38,13 +31,18 @@ import org.apache.commons.vfs.provider.LocalFileProvider;
 import org.apache.commons.vfs.provider.jar.AppEngineJarFileProvider;
 import org.apache.commons.vfs.provider.jar.JarFileProvider;
 import org.apache.commons.vfs.provider.url.UrlFileProvider;
-
-//import r.scripting.RenjinScriptEngineFactory;
 import org.renjin.eval.Context;
-import org.renjin.script.*;
+import org.renjin.script.RenjinScriptEngineFactory;
 import org.renjin.sexp.SEXP;
 
-import com.google.common.annotations.VisibleForTesting;
+import javax.script.ScriptEngine;
+import javax.servlet.ServletContext;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+//import r.scripting.RenjinScriptEngineFactory;
 
 public class AppEngineContextFactory {
 
@@ -69,7 +67,6 @@ public class AppEngineContextFactory {
       // be forked on each incoming request
       Context context = Context.newTopLevelContext(fileSystemManager,
           findHomeDirectory(servletContext), fileSystemManager.resolveFile("file:///"));
-      context.getGlobals().setLibraryPaths(computeLibraryPaths(fileSystemManager, servletContext));
       context.init();
       return context;
     } catch (IOException e) {
@@ -155,29 +152,5 @@ public class AppEngineContextFactory {
       jarPath = jarPath.substring(5);
     }
     return new File(jarPath);
-  }
-
-  /**
-   *
-   * @param fileSystemManager
-   * @param servletContext 
-   * @return
-   */
-  private static String computeLibraryPaths(FileSystemManager fileSystemManager, ServletContext servletContext) {
-    File contextRoot = contextRoot(servletContext);
-    File webInfFolder = new File(contextRoot, "WEB-INF");
-    File libFolder = new File(webInfFolder, "lib");
-
-    StringBuilder paths = new StringBuilder();
-    
-    for(File lib : libFolder.listFiles()) {
-      if(lib.getName().endsWith(".jar")) {
-        if(paths.length() > 0) {
-          paths.append(";");
-        }
-        paths.append("jar:file:///WEB-INF/lib/").append(lib.getName()).append("!/");
-      }
-    }
-    return paths.toString();
   }
 }

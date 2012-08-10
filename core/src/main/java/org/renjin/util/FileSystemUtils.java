@@ -77,10 +77,10 @@ public class FileSystemUtils {
 
   /**
    *
-   * @return a default, semi-colon delimited, set of paths in which to search for libraries
+   * @return a semi-colon delimited set of paths in which to search for libraries
    * that includes all jars and directories on the classpath ({@code System.getProperty(java.class.path)}
    */
-  public static String defaultLibraryPaths() {
+  public static String libraryPathsFromClassPath() {
     return libraryPathsFromClassPath(System.getProperty("java.class.path"));
   }
 

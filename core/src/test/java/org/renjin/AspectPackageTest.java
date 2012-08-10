@@ -1,16 +1,21 @@
-package org.renjin; 
+package org.renjin;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import org.junit.Test;
-
 public class AspectPackageTest extends PackageTest {
+  
+  @Before
+  public void defineLibraryPath() {
+    eval("library('aspect', lib.loc='src/test/resources')");
+  }
   
   @Test
   public void simple() {
     
-    eval("library('aspect')");
     eval("data('wurzer')");
 
     eval("print(aspect:::burtTable(wurzer))");
@@ -41,7 +46,6 @@ public class AspectPackageTest extends PackageTest {
 
   @Test
   public void ordinal() {
-    eval("library('aspect')");
     eval("data('wurzer')");
    
     eval("m <- length(wurzer)");

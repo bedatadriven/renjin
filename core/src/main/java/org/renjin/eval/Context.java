@@ -202,7 +202,6 @@ public class Context {
       this.workingDirectory = workingDirectory;
 
       systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
-      systemEnvironment.put("R_LIBS", FileSystemUtils.defaultLibraryPaths());
       options = new Options();
       globalEnvironment = Environment.createGlobalEnvironment();
       baseEnvironment = globalEnvironment.getBaseEnvironment();

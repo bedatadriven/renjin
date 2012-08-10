@@ -107,7 +107,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>r07</version>
+      <version>13.0</version>
     </dependency>
 
     <!-- unit test framework -->
@@ -136,7 +136,6 @@
       <groupId>com.sun.codemodel</groupId>
       <artifactId>codemodel</artifactId>
       <version>2.6</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 

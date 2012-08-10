@@ -1,6 +1,5 @@
 package org.renjin.primitives.io.serialization;
 
-import org.apache.commons.vfs.FileContent;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -14,6 +13,8 @@ import org.renjin.primitives.io.serialization.RDataWriter.PersistenceHook;
 import org.renjin.sexp.*;
 
 import java.io.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.zip.DataFormatException;
 
 
@@ -21,6 +22,7 @@ public class Serialization {
 
 
   private static final int DEFAULT_SERIALIZATION_VERSION = 0;
+
 
 
   @Primitive
@@ -250,16 +252,16 @@ public class Serialization {
    *          stream
    */
   public static SEXP lazyLoadDBfetch(@Current final Context context,
-      @Current final Environment rho, IntVector key, String file,
+      @Current final Environment rho, IntVector key, final String file,
       int compression, final SEXP restoreFunction) throws IOException,
       DataFormatException {
     
     try {
-      
+
       byte buffer[] = readRawFromFile(context, file, key);
-  
+
       buffer = ByteArrayCompression.decompress(compression, buffer);
-  
+
       RDataReader reader = new RDataReader(context, rho,
           new ByteArrayInputStream(buffer),
           new RDataReader.PersistentRestorer() {
@@ -271,40 +273,30 @@ public class Serialization {
             }
           });
   
-      SEXP exp = reader.readFile();
-      if (exp instanceof Promise) {
-        exp = ((Promise) exp).force();
-      }
-      return exp;
-    } catch(Exception e) {      
+      return reader.readFile().force();
+    } catch(Exception e) {
       throw new EvalException("Exception reading database entry at " + key + " in " +
             file, e);
     }
   }
   
-  public static byte[] readRawFromFile(@Current Context context, String file,
-      IntVector key) throws IOException {
+  public static byte[] readRawFromFile(@Current final Context context, final String file,
+      IntVector key) throws IOException, ExecutionException, DataFormatException {
     if (key.length() != 2) {
       throw new EvalException("bad offset/length argument");
     }
+
     int offset = key.getElementAsInt(0);
     int length = key.getElementAsInt(1);
 
-    byte buffer[] = new byte[length];
+    RDatabase database = context.getGlobals().getPackageDatabaseCache().get(file, new Callable<RDatabase>() {
+      @Override
+      public RDatabase call() throws Exception {
+        return new RDatabase(context.resolveFile(file));
+      }
+    });
 
-    FileContent content = context.resolveFile(file).getContent();
-    if(content.isOpen()) {
-      throw new EvalException(file + " is already open!");
-    }
-    DataInputStream in = new DataInputStream(content.getInputStream());
-    try {
-      in.skipBytes(offset);
-      in.readFully(buffer);
-    } finally {
-      in.close();
-    }
-
-    return buffer;
+    return database.getBytes(offset, length);
   }
   
 

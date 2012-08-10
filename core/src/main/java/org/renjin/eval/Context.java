@@ -21,6 +21,8 @@
 
 package org.renjin.eval;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.vfs.FileObject;
@@ -34,6 +36,7 @@ import org.renjin.graphics.ColorPalette;
 import org.renjin.graphics.GraphicsDevices;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.ConnectionTable;
+import org.renjin.primitives.io.serialization.RDatabase;
 import org.renjin.primitives.random.RNG;
 import org.renjin.sexp.*;
 import org.renjin.util.FileSystemUtils;
@@ -179,7 +182,15 @@ public class Context {
     private ColorPalette colorPalette = new ColorPalette();
 
     private final ConnectionTable connectionTable = new ConnectionTable();
-    
+
+    /**
+     * Package database cache to speed up lazy loading of package
+     * members
+     */
+    private final Cache<String, RDatabase> packageDatabaseCache = CacheBuilder.newBuilder()
+          .weakValues()
+          .build();
+
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
     
@@ -262,6 +273,10 @@ public class Context {
 
     public ColorPalette getColorPalette() {
       return colorPalette;
+    }
+
+    public Cache<String, RDatabase> getPackageDatabaseCache() {
+      return packageDatabaseCache;
     }
     
     public void setCommandLineArguments(String executableName, String... arguments) {

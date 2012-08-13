@@ -73,7 +73,7 @@
       <plugin>
         <groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
         <artifactId>maven-svn-revision-number-plugin</artifactId>
-        <version>1.6</version>
+        <version>1.13</version>
         <executions>
           <execution>
             <id>init</id>

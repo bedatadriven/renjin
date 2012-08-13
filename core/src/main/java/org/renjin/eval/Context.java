@@ -25,10 +25,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRFunctionTable;
@@ -224,8 +223,7 @@ public class Context {
     }
 
     /** 
-     * Sets the paths in which to search for libraries. This is by default based
-     * on the java classpath. (See {@link org.renjin.util.FileSystemUtils#defaultLibraryPaths()} )
+     * Sets the paths in which to search for libraries.
      *
      * @param paths a semi-colon delimited list of paths
      */
@@ -325,14 +323,15 @@ public class Context {
    * @return a new top level context using the default VFS FileSystemManager and the
    * renjin-core jar as the R_HOME directory.
    *
-   * @see org.apache.commons.vfs.VFS#getManager()
+   * @see org.apache.commons.vfs2.VFS#getManager()
    * @see org.renjin.util.FileSystemUtils#homeDirectoryInCoreJar()
    */
   public static Context newTopLevelContext() {
     try {
-      return newTopLevelContext(VFS.getManager(),
+      FileSystemManager fsm = FileSystemUtils.getMinimalFileSystemManager();
+      return newTopLevelContext(fsm,
             FileSystemUtils.homeDirectoryInCoreJar(),
-            FileSystemUtils.workingDirectory(VFS.getManager()));
+            FileSystemUtils.workingDirectory(fsm));
     } catch (FileSystemException e) {
       throw new RuntimeException("Could not init FileSystemManger", e);
     }

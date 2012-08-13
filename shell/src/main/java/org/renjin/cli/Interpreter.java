@@ -21,7 +21,7 @@
 
 package org.renjin.cli;
 
-import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.*;

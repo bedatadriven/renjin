@@ -21,11 +21,11 @@
 
 package org.renjin.appengine;
 
-import org.apache.commons.vfs.*;
-import org.apache.commons.vfs.provider.AbstractFileProvider;
-import org.apache.commons.vfs.provider.LocalFileProvider;
-import org.apache.commons.vfs.provider.UriParser;
-import org.apache.commons.vfs.provider.local.LocalFileSystem;
+import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.provider.AbstractFileProvider;
+import org.apache.commons.vfs2.provider.LocalFileProvider;
+import org.apache.commons.vfs2.provider.UriParser;
+import org.apache.commons.vfs2.provider.local.LocalFileSystem;
 
 import java.io.File;
 import java.util.Arrays;
@@ -75,7 +75,7 @@ public class AppEngineLocalFilesSystemProvider
                              FileSystemOptions properties) throws FileSystemException {
 
     // Parse the name
-    final StringBuffer buffer = new StringBuffer(uri);
+    final StringBuilder buffer = new StringBuilder(uri);
     String scheme = UriParser.extractScheme(uri, buffer);
     if(scheme == null) {
       scheme = "file";

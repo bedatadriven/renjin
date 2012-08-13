@@ -23,7 +23,7 @@ package org.renjin.primitives.files;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
-import org.apache.commons.vfs.*;
+import org.apache.commons.vfs2.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Warning;

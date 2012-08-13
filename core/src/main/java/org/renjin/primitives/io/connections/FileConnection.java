@@ -1,8 +1,8 @@
 
 package org.renjin.primitives.io.connections;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.EvalException;
 
 import java.io.IOException;

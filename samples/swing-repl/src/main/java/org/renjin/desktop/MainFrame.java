@@ -22,7 +22,7 @@
 package org.renjin.desktop;
 
 
-import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.cli.Console;
 import org.renjin.cli.Interpreter;
 

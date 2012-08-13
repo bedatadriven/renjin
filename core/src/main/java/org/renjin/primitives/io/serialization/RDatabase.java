@@ -1,6 +1,6 @@
 package org.renjin.primitives.io.serialization;
 
-import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs2.FileObject;
 
 import java.io.IOException;
 import java.io.InputStream;

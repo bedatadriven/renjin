@@ -21,7 +21,7 @@
 
 package org.renjin.cli;
 
-import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs2.FileSystemException;
 
 import java.io.InputStreamReader;
 import java.io.PrintStream;

@@ -22,16 +22,15 @@
 package org.renjin.appengine;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.vfs.CacheStrategy;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.cache.NullFilesCache;
-import org.apache.commons.vfs.impl.DefaultFileSystemManager;
-import org.apache.commons.vfs.provider.LocalFileProvider;
-import org.apache.commons.vfs.provider.jar.AppEngineJarFileProvider;
-import org.apache.commons.vfs.provider.jar.JarFileProvider;
-import org.apache.commons.vfs.provider.url.UrlFileProvider;
+import org.apache.commons.vfs2.CacheStrategy;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.cache.NullFilesCache;
+import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
+import org.apache.commons.vfs2.provider.LocalFileProvider;
+import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.Context;
+import org.renjin.eval.vfs.FastJarFileProvider;
 import org.renjin.script.RenjinScriptEngineFactory;
 import org.renjin.sexp.SEXP;
 
@@ -92,7 +91,7 @@ public class AppEngineContextFactory {
   @VisibleForTesting
   static FileSystemManager createFileSystemManager(LocalFileProvider localFileProvider) throws FileSystemException {
     try {
-      JarFileProvider jarFileProvider = new AppEngineJarFileProvider();
+      FastJarFileProvider jarFileProvider = new FastJarFileProvider();
 
       // this provides a fake local file system rooted in the servlet context root.
       // this is necessary because on the actual appengine platform, any queries to the ancestors

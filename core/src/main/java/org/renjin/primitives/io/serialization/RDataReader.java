@@ -569,7 +569,7 @@ public class RDataReader {
     }
 
     public XdrReader(InputStream conn) throws IOException {
-      this(new DataInputStream(conn));
+      this(new DataInputStream(new BufferedInputStream(conn)));
     }
 
     @Override

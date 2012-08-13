@@ -23,8 +23,8 @@ package org.renjin.primitives;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.provider.local.LocalFile;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.renjin.RVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;

@@ -22,14 +22,11 @@ package org.renjin.appengine;
 
 
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.FileType;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.FileType;
 import org.junit.Test;
-import org.renjin.appengine.AppEngineContextFactory;
-import org.renjin.appengine.AppEngineLocalFilesSystemProvider;
-
 
 import java.io.File;
 

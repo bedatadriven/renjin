@@ -1,9 +1,8 @@
 package org.renjin.cli;
 
 import com.google.common.base.Strings;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.eval.Context;
 import org.renjin.util.FileSystemUtils;
 
@@ -24,7 +23,7 @@ public class StandaloneContextFactory {
   }
   
   public Context create() throws FileSystemException {
-    manager = VFS.getManager();
+    manager = FileSystemUtils.getMinimalFileSystemManager();
     String home = findRHome();
 
     Context topLevel = Context.newTopLevelContext(manager,

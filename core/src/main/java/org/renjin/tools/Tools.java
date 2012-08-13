@@ -1,7 +1,7 @@
 package org.renjin.tools;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.sexp.StringVector;

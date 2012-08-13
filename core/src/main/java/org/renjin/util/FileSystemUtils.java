@@ -22,9 +22,13 @@
 package org.renjin.util;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemManager;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
+import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
+import org.apache.commons.vfs2.provider.url.UrlFileProvider;
+import org.renjin.eval.vfs.FastJarFileProvider;
 
 import java.io.File;
 
@@ -134,5 +138,14 @@ public class FileSystemUtils {
     } catch (FileSystemException e) {
       throw new RuntimeException("Could not resolve current working directory", e);
     }
+  }
+
+  public static FileSystemManager getMinimalFileSystemManager() throws FileSystemException {
+    DefaultFileSystemManager fsm = new DefaultFileSystemManager();
+    fsm.setDefaultProvider(new UrlFileProvider());
+    fsm.addProvider("file", new DefaultLocalFileProvider());
+    fsm.addProvider("jar", new FastJarFileProvider());
+    fsm.init();
+    return fsm;
   }
 }

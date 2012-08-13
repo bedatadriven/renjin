@@ -4,6 +4,7 @@ public enum PrimitiveType implements GimpleType {
 
   DOUBLE_TYPE,
   INT_TYPE,
-  VOID_TYPE
+  VOID_TYPE,
+  FLOAT_TYPE
 
 }

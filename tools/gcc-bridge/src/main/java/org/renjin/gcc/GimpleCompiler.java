@@ -1,6 +1,7 @@
 package org.renjin.gcc;
 
 import com.google.common.base.Charsets;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.shimple.ShimpleWriter;
@@ -39,19 +40,36 @@ public class GimpleCompiler {
 		this.className = className;
 	}
 	
-	public void compile(List<GimpleFunction> functions) throws FileNotFoundException {
+	public void compile(List<GimpleFunction> functions) throws Exception {
 		
 		File packageFolder = getPackageFolder();
 		packageFolder.mkdirs();
 		
 		writeShimple(functions);
-		
-		soot.Main.main(new String[] {
-          "-v",
-					"--src-prec", "jimple",
-					"-output-dir", outputDirectory.getAbsolutePath(),
-					packageName + "." + className });
-		
+
+    System.out.println("outputDirectory = " + outputDirectory.getAbsolutePath());
+
+    String separator = System.getProperty("file.separator");
+    String classpath = System.getProperty("java.class.path");
+    String path = System.getProperty("java.home")
+            + separator + "bin" + separator + "java";
+    ProcessBuilder processBuilder =
+            new ProcessBuilder(path,
+            "-cp",
+            classpath,
+            "soot.Main",
+            "-v",
+            "-pp",
+            "--src-prec", "jimple",
+            "-output-dir", outputDirectory.getAbsolutePath(),
+            packageName + "." + className);
+
+    Process process = processBuilder.start();
+    process.waitFor();
+
+    String err = new String(ByteStreams.toByteArray(process.getErrorStream()));
+    System.out.println(err);
+
 	}
 
 	protected void writeShimple(List<GimpleFunction> functions)

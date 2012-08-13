@@ -208,6 +208,8 @@ public class GimpleParser {
       return new PointerType(parseType(typeDecl.substring(0, typeDecl.length()-1).trim()));
     } else if(typeDecl.equals("double")) {
 			return PrimitiveType.DOUBLE_TYPE;
+    } else if(typeDecl.equals("float")) {
+      return PrimitiveType.FLOAT_TYPE;
     } else if(typeDecl.equals("int") || typeDecl.equals("long unsigned int")) {
       return PrimitiveType.INT_TYPE;
 		} else {

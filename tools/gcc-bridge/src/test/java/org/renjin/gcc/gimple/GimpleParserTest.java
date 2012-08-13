@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -10,6 +11,7 @@ import java.util.List;
 
 public class GimpleParserTest {
 
+  @Ignore
 	@Test
 	public void swilk() throws IOException {
 		

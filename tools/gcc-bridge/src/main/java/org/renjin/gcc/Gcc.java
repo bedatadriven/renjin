@@ -12,6 +12,7 @@ import java.util.List;
 public class Gcc {
 
 	private String gccBinary = "gcc";
+  private List<String> includeDirectories = Lists.newArrayList();
 
 	public String compileToGimple(File source) throws IOException {
 		
@@ -24,6 +25,11 @@ public class Gcc {
 		// See http://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html#Debugging-Options
 		command.add("-fdump-tree-optimized");
 		command.add("-fdump-tree-optimized-raw");
+
+    for(String includeDir : includeDirectories) {
+      command.add("-I");
+      command.add(includeDir);
+    }
 	
 		command.add(source.getAbsolutePath());
 		
@@ -48,6 +54,10 @@ public class Gcc {
 		
 		return Files.toString(gimple, Charsets.UTF_8);
 	}
+
+  public void addIncludeDirectory(File path) {
+    includeDirectories.add(path.getAbsolutePath());
+  }
 
 	public File createTempDirectory() throws IOException {
 		final File temp;

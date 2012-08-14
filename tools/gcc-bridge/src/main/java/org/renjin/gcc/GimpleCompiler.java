@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.shimple.MethodTable;
 import org.renjin.gcc.shimple.ShimpleWriter;
 
 import java.io.File;
@@ -24,10 +25,11 @@ public class GimpleCompiler {
 	private String className;
 	
 	private ShimpleWriter writer;
-	private int indent;
 
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
-	
+
+  private MethodTable methodTable = new MethodTable();
+
 	public void setPackageName(String name) {
 		this.packageName = name;
 	}
@@ -39,8 +41,12 @@ public class GimpleCompiler {
 	public void setClassName(String className) {
 		this.className = className;
 	}
-	
-	public void compile(List<GimpleFunction> functions) throws Exception {
+
+  public MethodTable getMethodTable() {
+    return methodTable;
+  }
+
+  public void compile(List<GimpleFunction> functions) throws Exception {
 		
 		File packageFolder = getPackageFolder();
 		packageFolder.mkdirs();
@@ -80,7 +86,7 @@ public class GimpleCompiler {
 
     LOGGER.info("Writing shimple source to " + shimpleSource);
 
-		this.writer = new ShimpleWriter(shimpleSource, fqClassName);
+		this.writer = new ShimpleWriter(methodTable, shimpleSource, fqClassName);
 		
 		// write default constructor
 		writer.writeDefaultConstructor();
@@ -114,9 +120,5 @@ public class GimpleCompiler {
 		}
 		return sootRoot;
 	}
-	
-	private void println(String text) {
-		writer.println(text);
-	}
-	
+
 }

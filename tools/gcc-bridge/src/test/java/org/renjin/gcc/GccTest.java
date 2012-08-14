@@ -1,5 +1,6 @@
 package org.renjin.gcc;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
@@ -38,6 +39,13 @@ public class GccTest {
     Double result = (Double)method.invoke(null, new DoubleArrayPointer(15, 20, 300), 3);
 
     assertThat(result, equalTo(335d));
+
+  }
+
+  @Test
+  @Ignore
+  public void functionPointers() throws Exception {
+    Class clazz = compile("funptr.c", "FunPtr");
 
   }
 

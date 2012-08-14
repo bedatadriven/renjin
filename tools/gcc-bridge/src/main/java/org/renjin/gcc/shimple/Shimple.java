@@ -28,6 +28,8 @@ public class Shimple {
   public static String constant(Object value) {
     if(value instanceof Number) {
       return value.toString();
+    } else if(value instanceof Boolean) {
+      return value.toString();
     } else {
       throw new UnsupportedOperationException("constant: " + value);
     }
@@ -42,10 +44,16 @@ public class Shimple {
         return "void";
       case INT_TYPE :
         return "int";
+      case BOOLEAN:
+        return "boolean";
       }
     } else if(gimpleType instanceof PointerType) {
       return "org.renjin.gcc.runtime.Pointer";
     }
     throw new UnsupportedOperationException(gimpleType.toString());
+  }
+
+  public static String type(Class<?> type) {
+    return type.toString();
   }
 }

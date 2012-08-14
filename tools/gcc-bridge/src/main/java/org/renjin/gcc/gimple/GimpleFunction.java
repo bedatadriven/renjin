@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleNull;
 import org.renjin.gcc.gimple.expr.GimpleVar;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.PrimitiveType;
@@ -60,6 +61,8 @@ public class GimpleFunction {
   public GimpleType getType(GimpleExpr expr) {
 		if(expr instanceof GimpleVar) {
 			return getVariableType(((GimpleVar) expr).getName());
+    } else if(expr == GimpleNull.INSTANCE) {
+      return PrimitiveType.VOID_TYPE;
 		} else {
 			throw new UnsupportedOperationException("don't know how to deduce type for '" + expr + "'");
 		}

@@ -13,9 +13,11 @@ public class ShimpleWriter {
 	private PrintWriter writer;
 	private int indent = 0;
 	private Object className;
-	
-	public ShimpleWriter(File source, String className) throws FileNotFoundException {
-		this.writer = new PrintWriter(source);
+  private MethodTable methodTable;
+
+  public ShimpleWriter(MethodTable methodTable, File source, String className) throws FileNotFoundException {
+    this.methodTable = methodTable;
+    this.writer = new PrintWriter(source);
 		this.className = className;
 		
 		println("public class " + className + " extends java.lang.Object");
@@ -74,7 +76,7 @@ public class ShimpleWriter {
 
     initializeParameters(function);
 
-    ShimpleInsVisitor insWriter = new ShimpleInsVisitor(this);
+    ShimpleInsVisitor insWriter = new ShimpleInsVisitor(methodTable, this);
     function.visitIns(insWriter);
 
     closeBlock();

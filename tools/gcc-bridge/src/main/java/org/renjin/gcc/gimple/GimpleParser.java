@@ -1,10 +1,7 @@
 package org.renjin.gcc.gimple;
 
 import com.google.common.collect.Lists;
-import org.renjin.gcc.gimple.expr.GimpleConstant;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleNull;
-import org.renjin.gcc.gimple.expr.GimpleVar;
+import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.PointerType;
 import org.renjin.gcc.gimple.type.PrimitiveType;
@@ -143,36 +140,63 @@ public class GimpleParser {
 	private GimpleExpr parseExpr(String text) {
     if(text.equals("NULL")) {
       return GimpleNull.INSTANCE;
-    } else if(Character.isDigit(text.charAt(0))) {
+    } else if(Character.isDigit(text.charAt(0)) || text.charAt(0)=='-') {
 			return parseDoubleConstant(text);
 		} else {
-			return parseVar(text);
+			return parseName(text);
 		}
 	}
 	
 	private GimpleConstant parseDoubleConstant(String text) {
-		return new GimpleConstant(Double.parseDouble(text));
+    if(text.equals("0B")) {
+      // TODO: not sure if this is correct
+      return new GimpleConstant(false);
+    } else {
+		  return new GimpleConstant(Double.parseDouble(text));
+    }
 	}
 
-	private GimpleVar parseVar(String ssaName) {
-		int originStart = ssaName.indexOf('(');
-		if(originStart != -1) {
-			ssaName = ssaName.substring(0, originStart);
-		}
-    while(ssaName.startsWith("*")) {
-      ssaName = ssaName.substring(1);
-    }
+	private GimpleExpr parseName(String name) {
+    name = stripNameDecorators(name);
 
+    if(name.matches(".+_\\d+")) {
+      return parseVar(name);
+    } else {
+      return new GimpleExternal(name);
+    }
+	}
+
+  private String stripNameDecorators(String name) {
+    int originStart = name.indexOf('(');
+    if(originStart != -1) {
+      name = name.substring(0, originStart);
+    }
+    while(name.startsWith("*")) {
+      name = name.substring(1);
+    }
+    return name;
+  }
+
+  private GimpleVar parseVar(String text) {
+    String ssaName = stripNameDecorators(text);
     int underscore = ssaName.lastIndexOf('_');
+    if(underscore == -1) {
+      throw new AssertionError("Expecting ssa name: " + text);
+    }
     String name = ssaName.substring(0, underscore);
     int version = Integer.parseInt(ssaName.substring(underscore+1));
     return new GimpleVar(name, version);
-	}
-	
-	private GimpleCall parseCall(String line) {
-		String[] arguments = parseInsArguments(line);
-		return new GimpleCall(arguments[0], parseOperands(arguments, 1));
-	}
+  }
+
+  private GimpleCall parseCall(String line) {
+    String[] arguments = parseInsArguments(line);
+    List<GimpleExpr> operands = parseOperands(arguments, 2);
+    if(arguments[1].equals("NULL")) {
+      return new GimpleCall(arguments[0], null, operands);
+    } else {
+      return new GimpleCall(arguments[0], parseVar(arguments[1]), operands);
+    }
+  }
 
 	private void assertNextLine(BufferedReader reader, String expected) throws IOException {
 		String line = reader.readLine();
@@ -212,6 +236,8 @@ public class GimpleParser {
       return PrimitiveType.FLOAT_TYPE;
     } else if(typeDecl.equals("int") || typeDecl.equals("long unsigned int")) {
       return PrimitiveType.INT_TYPE;
+    } else if(typeDecl.equals("_Bool")) {
+      return PrimitiveType.BOOLEAN;
 		} else {
 			throw new UnsupportedOperationException("cannot parse '" + typeDecl + "' type declaration yet");
 		}

@@ -2,6 +2,7 @@ package org.renjin.gcc.gimple;
 
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.expr.*;
+import org.renjin.gcc.gimple.type.FunctionPointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.PointerType;
 import org.renjin.gcc.gimple.type.PrimitiveType;
@@ -44,8 +45,6 @@ public class GimpleParser {
 				// function body
 				if(isLabel(line)) {
 					currentBB = currentFunction.addBasicBlock(parseLabel(line));
-				} else if(isVarDecl(line)) {
-					currentFunction.addVarDecl(parseVarDecl(line));
 				} else if(line.startsWith("gimple_assign")) {
 					currentBB.addIns(parseAssign(line));
 					//  gimple_assign <indirect_ref, D.6853_34, *n_29(D), NULL>
@@ -57,14 +56,30 @@ public class GimpleParser {
 					currentBB.addIns(parseCall(line));
 				} else if(line.startsWith("gimple_return")) {
 					currentBB.addIns(parseReturn(line));
-				}
+        } else if(line.startsWith("gimple_switch")) {
+          currentBB.addIns(parseSwitch(line));
+        } else if(line.startsWith("gimple_label")) {
+          currentBB.addIns(parseLabelIns(line));
+        } else if(line.startsWith("#")) {
+          // ignore
+        } else {
+          currentFunction.addVarDecl(parseVarDecl(line));
+        }
 				
 			}
 		}
 		return functions;
 	}
 
-	private GimpleVarDecl parseVarDecl(String line) {
+  private GimpleIns parseLabelIns(String line) {
+    return new GimpleLabelIns();
+  }
+
+  private GimpleIns parseSwitch(String line) {
+    return new GimpleSwitch();
+  }
+
+  private GimpleVarDecl parseVarDecl(String line) {
 		// strip final ;
 		int terminatingSemi = line.indexOf(';');
 		line = line.substring(0, terminatingSemi);
@@ -77,7 +92,7 @@ public class GimpleParser {
 	}
 
 	private boolean isVarDecl(String line) {
-		return line.indexOf('<') == -1;
+		return line.indexOf('<') == -1 || isFunctionPointerTypeDecl(line);
 	}
 
 	private GimpleIns parseReturn(String line) {
@@ -192,9 +207,9 @@ public class GimpleParser {
     String[] arguments = parseInsArguments(line);
     List<GimpleExpr> operands = parseOperands(arguments, 2);
     if(arguments[1].equals("NULL")) {
-      return new GimpleCall(arguments[0], null, operands);
+      return new GimpleCall(parseExpr(arguments[0]), null, operands);
     } else {
-      return new GimpleCall(arguments[0], parseVar(arguments[1]), operands);
+      return new GimpleCall(parseExpr(arguments[0]), parseVar(arguments[1]), operands);
     }
   }
 
@@ -208,7 +223,7 @@ public class GimpleParser {
 	private GimpleFunction parseFunctionDeclaration(String line) {
 		int paramListStart = line.indexOf('(');
 		String name = line.substring(0, paramListStart);
-		GimpleFunction fn = new GimpleFunction(name);
+		GimpleFunction fn = new GimpleFunction(name.trim());
 		
 		int paramListEnd = line.lastIndexOf(')');
 		String params[] = line.substring(paramListStart+1, paramListEnd).split("\\s*,\\s*");
@@ -238,12 +253,42 @@ public class GimpleParser {
       return PrimitiveType.INT_TYPE;
     } else if(typeDecl.equals("_Bool")) {
       return PrimitiveType.BOOLEAN;
+    } else if(isFunctionPointerTypeDecl(typeDecl)) {
+      return parseFunctionPointerType(typeDecl);
 		} else {
 			throw new UnsupportedOperationException("cannot parse '" + typeDecl + "' type declaration yet");
 		}
 	}
 
-	private boolean isComment(String line) {
+  private boolean isFunctionPointerTypeDecl(String typeDecl) {
+    return typeDecl.matches("\\S+ \\(\\*.*\\) \\(.*\\)");
+  }
+
+  private GimpleType parseFunctionPointerType(String typeDecl) {
+    // double (*<T573>) (double)
+
+    int firstParen = typeDecl.indexOf('(');
+    GimpleType returnType = parseType(typeDecl.substring(0, firstParen).trim());
+
+    int firstClauseEnd = typeDecl.indexOf(')', firstParen+1);
+    String firstClause = typeDecl.substring(firstParen+1, firstClauseEnd).trim();
+    if(!firstClause.startsWith("*")) {
+      throw new IllegalArgumentException("first clause: " + firstClause);
+    }
+
+    int secondClauseStart = typeDecl.indexOf('(', firstClauseEnd+1);
+    int secondClauseEnd = typeDecl.lastIndexOf(')');
+    String secondClause = typeDecl.substring(secondClauseStart+1, secondClauseEnd).trim();
+
+    String[] argumentTypes = secondClause.split(",");
+    List<GimpleType> arguments = Lists.newArrayList();
+    for(String argument : argumentTypes) {
+      arguments.add(parseType(argument.trim()));
+    }
+    return new FunctionPointerType(returnType, arguments);
+  }
+
+  private boolean isComment(String line) {
 		return line.startsWith(";;");
 	}
 	

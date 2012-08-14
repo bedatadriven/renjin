@@ -2,7 +2,8 @@ package org.renjin.gcc.runtime;
 
 
 import org.apache.commons.math.util.FastMath;
-import org.renjin.gcc.shimple.MethodTable;
+import org.renjin.eval.EvalException;
+import org.renjin.gcc.translate.MethodTable;
 import org.renjin.sexp.DoubleVector;
 
 /**
@@ -14,6 +15,10 @@ public class CR {
 
   public static void warning(String text) {
     java.lang.System.out.println(text);
+  }
+
+  public static void error(String text) {
+    throw new EvalException(text);
   }
 
 

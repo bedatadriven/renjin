@@ -8,23 +8,31 @@ import java.util.List;
 
 public class GimpleCall extends GimpleIns {
 
-	private String function;
+	private GimpleExpr function;
 	private List<GimpleExpr> operands;
   private GimpleVar lhs;
 	
-	public GimpleCall(String function, GimpleVar lhs, List<GimpleExpr> operands) {
+	public GimpleCall(GimpleExpr function, GimpleVar lhs, List<GimpleExpr> operands) {
 		super();
     this.lhs = lhs;
 		this.function = function;
 		this.operands = operands;
 	}
 
-  public String getFunction() {
+  public GimpleExpr getFunction() {
     return function;
   }
 
-  public int getArgumentCount() {
+  public int getParamCount() {
     return operands.size();
+  }
+
+  public List<GimpleExpr> getParams() {
+    return operands;
+  }
+
+  public GimpleVar getLhs() {
+    return lhs;
   }
 
   @Override

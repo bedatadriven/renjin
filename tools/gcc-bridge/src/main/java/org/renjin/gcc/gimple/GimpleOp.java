@@ -7,7 +7,17 @@ public enum GimpleOp {
   ABS_EXPR,
   ADDR_EXPR,
   FLOAT_EXPR,
+
+  /**
+   * Real Constant
+   */
 	REAL_CST,
+
+  /**
+   * Integer Constant
+   */
+  INTEGER_CST,
+
   NE_EXPR,
   EQ_EXPR,
   LT_EXPR,
@@ -15,7 +25,6 @@ public enum GimpleOp {
   LE_EXPR,
   GE_EXPR,
   TRUTH_NOT_EXPR,
-  INTEGER_CST,
   POINTER_PLUS_EXPR,
   INDIRECT_REF,
   PLUS_EXPR,

@@ -1,10 +1,10 @@
-package org.renjin.gcc.shimple;
+package org.renjin.gcc.translate;
 
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.renjin.gcc.gimple.GimpleCall;
 import org.renjin.gcc.gimple.expr.GimpleExternal;
+import org.renjin.gcc.jimple.JimpleMethodRef;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 public class MethodTable {
+
+
 
   private class MethodEntry {
     private Class clazz;
@@ -49,28 +51,29 @@ public class MethodTable {
     referenceClasses.add(clazz);
   }
 
-  public Method resolve(GimpleCall call) {
-    MethodEntry entry = methods.get(call.getFunction());
+  public JimpleMethodRef resolve(String functionName) {
+    MethodEntry entry = methods.get(functionName);
     if(entry != null) {
-      Method method = findMethod(call, entry.clazz, entry.methodName);
+      Method method = findMethod(entry.clazz, entry.methodName);
       if(method != null) {
-        return method;
+        return new JimpleMethodRef(method);
       }
     }
     for(Class clazz : referenceClasses) {
-      Method method = findMethod(call, clazz, call.getFunction());
+      Method method = findMethod(clazz, functionName);
       if(method != null) {
-        return method;
+        return new JimpleMethodRef(method);
       }
     }
 
-    throw new IllegalArgumentException("No matching method for " + call);
+    throw new IllegalArgumentException("No matching method for " + functionName);
   }
 
-  private Method findMethod(GimpleCall call, Class clazz, String methodName) {
+  private Method findMethod(Class clazz, String methodName) {
     List<Method> methods = Lists.newArrayList();
     for(Method method : clazz.getMethods()) {
-      if(method.getName().equals(methodName) && method.getParameterTypes().length == call.getArgumentCount() ) {
+      if(method.getName().equals(methodName) &&
+              Modifier.isStatic(method.getModifiers())) {
         methods.add(method);
       }
     }

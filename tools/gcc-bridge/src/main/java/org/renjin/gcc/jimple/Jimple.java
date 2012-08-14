@@ -1,4 +1,4 @@
-package org.renjin.gcc.shimple;
+package org.renjin.gcc.jimple;
 
 
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -7,7 +7,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.PointerType;
 import org.renjin.gcc.gimple.type.PrimitiveType;
 
-public class Shimple {
+public class Jimple {
 
   public static String id(GimpleParameter param) {
     return validIdentifier(param.getName());
@@ -35,20 +35,20 @@ public class Shimple {
     }
   }
 
-  public static String type(GimpleType gimpleType) {
+  public static JimpleType type(GimpleType gimpleType) {
     if(gimpleType instanceof PrimitiveType) {
       switch((PrimitiveType)gimpleType) {
       case DOUBLE_TYPE:
-        return "double";
+        return new JimpleType("double");
       case VOID_TYPE:
-        return "void";
+        return new JimpleType("void");
       case INT_TYPE :
-        return "int";
+        return new JimpleType("int");
       case BOOLEAN:
-        return "boolean";
+        return new JimpleType("boolean");
       }
     } else if(gimpleType instanceof PointerType) {
-      return "org.renjin.gcc.runtime.Pointer";
+      return new JimpleType("org.renjin.gcc.runtime.Pointer");
     }
     throw new UnsupportedOperationException(gimpleType.toString());
   }

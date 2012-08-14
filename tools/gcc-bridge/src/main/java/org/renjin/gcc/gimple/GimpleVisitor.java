@@ -30,4 +30,9 @@ public class GimpleVisitor {
 
 
   }
+
+  public void visitSwitch(GimpleSwitch gimpleSwitch) {
+
+
+  }
 }

@@ -197,7 +197,6 @@ static double R_minkowski(double *x, int nr, int nc, int i1, int i2, double p)
 enum { EUCLIDEAN=1, MAXIMUM, MANHATTAN, CANBERRA, BINARY, MINKOWSKI };
 /* == 1,2,..., defined by order in the R function dist */
 
-#ifdef RENJIN_FUNC_PTRS_IMPLEMENTED
 
 void R_distance(double *x, int *nr, int *nc, double *d, int *diag,
 		int *method, double *p)
@@ -270,5 +269,3 @@ void R_distance(double *x, int *nr, int *nc, double *d, int *diag,
 		distfun(x, *nr, *nc, i, j) : R_minkowski(x, *nr, *nc, i, j, *p);
 #endif
 }
-
-#endif

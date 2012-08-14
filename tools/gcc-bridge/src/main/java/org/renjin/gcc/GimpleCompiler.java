@@ -1,16 +1,19 @@
 package org.renjin.gcc;
 
-import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
 import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.shimple.MethodTable;
-import org.renjin.gcc.shimple.ShimpleWriter;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleOutput;
+import org.renjin.gcc.jimple.JimpleWriter;
+import org.renjin.gcc.translate.GimpleFunctionTranslator;
+import org.renjin.gcc.translate.MethodTable;
+import org.renjin.gcc.translate.TranslationContext;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -24,7 +27,7 @@ public class GimpleCompiler {
 	private String packageName;
 	private String className;
 	
-	private ShimpleWriter writer;
+	private JimpleWriter writer;
 
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
 
@@ -50,59 +53,65 @@ public class GimpleCompiler {
 		
 		File packageFolder = getPackageFolder();
 		packageFolder.mkdirs();
-		
-		writeShimple(functions);
+
+    JimpleOutput output = translate(functions);
 
     System.out.println("outputDirectory = " + outputDirectory.getAbsolutePath());
+    output.write(outputDirectory);
+//
+//    for(String className : output.getClassNames()) {
+//      compileJimple(className);
+//    }
 
+    compileJimple(output.getClassNames());
+	}
+
+  private void compileJimple(Set<String> classNames) throws IOException, InterruptedException {
+    LOGGER.info("Compiling " + className);
     String separator = System.getProperty("file.separator");
     String classpath = System.getProperty("java.class.path");
     String path = System.getProperty("java.home")
             + separator + "bin" + separator + "java";
+
+    List<String> cmd = Lists.newArrayList();
+    cmd.add(path);
+    cmd.add("-cp");
+    cmd.add(classpath);
+    cmd.add("soot.Main");
+    cmd.add("-v");
+    cmd.add("-pp");
+    cmd.add("-src-prec");
+    cmd.add("jimple");
+    cmd.add("-output-dir");
+    cmd.add(outputDirectory.getAbsolutePath());
+    cmd.addAll(classNames);
+
     ProcessBuilder processBuilder =
-            new ProcessBuilder(path,
-            "-cp",
-            classpath,
-            "soot.Main",
-            "-v",
-            "-pp",
-            "--src-prec", "jimple",
-            "-output-dir", outputDirectory.getAbsolutePath(),
-            packageName + "." + className);
+            new ProcessBuilder(cmd);
 
     Process process = processBuilder.start();
-    process.waitFor();
+    int exitCode = process.waitFor();
 
-    String err = new String(ByteStreams.toByteArray(process.getErrorStream()));
-    System.out.println(err);
+    if(exitCode != 0) {
+      throw new RuntimeException(new String(ByteStreams.toByteArray(process.getErrorStream())));
+    }
+  }
 
-	}
+  protected JimpleOutput translate(List<GimpleFunction> functions)
+          throws IOException {
 
-	protected void writeShimple(List<GimpleFunction> functions)
-			throws FileNotFoundException {
-		outputDirectory.mkdirs();
-		String fqClassName = packageName + "." + className;
-		File shimpleSource = new File(outputDirectory, fqClassName + ".jimple");
+    JimpleOutput jimple = new JimpleOutput();
 
-    LOGGER.info("Writing shimple source to " + shimpleSource);
+    JimpleClassBuilder mainClass = jimple.newClass();
+    mainClass.setClassName(className);
+    mainClass.setPackageName(packageName);
 
-		this.writer = new ShimpleWriter(methodTable, shimpleSource, fqClassName);
-		
-		// write default constructor
-		writer.writeDefaultConstructor();
-
+    TranslationContext context = new TranslationContext(mainClass, methodTable, functions);
     for(GimpleFunction function : functions) {
-      writer.writeFunction(function);
-
+      GimpleFunctionTranslator translator = new GimpleFunctionTranslator(context);
+      translator.translate(function);
     }
-		writer.closeBlock();
-		writer.close();
-
-    try {
-      System.out.println(Files.toString(shimpleSource, Charsets.UTF_8));
-    } catch (IOException e) {
-
-    }
+    return jimple;
   }
 	
 	private File getPackageFolder() {

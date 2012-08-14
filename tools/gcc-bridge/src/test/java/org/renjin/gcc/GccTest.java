@@ -1,6 +1,5 @@
 package org.renjin.gcc;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
@@ -43,10 +42,11 @@ public class GccTest {
   }
 
   @Test
-  @Ignore
   public void functionPointers() throws Exception {
     Class clazz = compile("funptr.c", "FunPtr");
-
+    Method method = clazz.getMethod("sum_array", Pointer.class, int.class);
+    Double result = (Double)method.invoke(null, new DoubleArrayPointer(1,4,16), 3);
+    System.out.println(result);
   }
 
   private Class<?> compile(String sourceFile, String className) throws Exception {

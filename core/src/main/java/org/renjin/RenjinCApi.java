@@ -1,15 +1,15 @@
-package org.renjin.gcc.runtime;
+package org.renjin;
 
 
 import org.apache.commons.math.util.FastMath;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.translate.MethodTable;
 import org.renjin.sexp.DoubleVector;
 
 /**
- * Emulation of the C-R's internal API
+ * Emulation of the C API for code compiled via GCC
  */
-public class CR {
+public class RenjinCApi {
+
 
   public static final double R_NaReal = DoubleVector.NA;
 
@@ -21,11 +21,12 @@ public class CR {
     throw new EvalException(text);
   }
 
+  public static boolean R_finite(double x) {
+    return DoubleVector.isFinite(x);
+  }
 
-  public static void init(MethodTable table) {
-    table.addMethod("R_finite", DoubleVector.class, "isFinite");
-    table.addMethod("R_pow", FastMath.class, "pow");
-    table.addReferenceClass(CR.class);
+  public static double R_pow(double x, double y) {
+    return FastMath.pow(x, y);
   }
 
   public static void R_registerRoutines(Object dll, Object CEntries, Object callEntries, Object fortEntries, int count) {

@@ -61,7 +61,6 @@ public class GccStruct extends Struct {
 
   @Override
   public void assignMember(FunctionContext context, JimpleExpr instance, String member, JimpleExpr jimpleExpr) {
-    JimpleType jimpleType = new JimpleType("java.lang.Object");
     context.getBuilder().addStatement(instance + ".<" + structClass.getFqcn() + ": " +
             types.get(member) + " " + member + "> = " + jimpleExpr);
   }

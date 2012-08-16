@@ -24,34 +24,8 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>gcc-bridge</artifactId>
-  <name>Renjin GCC Bridge</name>
-  <description>Utility to bridge GCC compilation results and the JVM</description>
+  <artifactId>gcc-runtime</artifactId>
+  <name>Renjin GCC Runtime</name>
+  <description>Runtime classes for code translated from GCC</description>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>r07</version>
-    </dependency>
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>gcc-runtime</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>soot</groupId>
-      <artifactId>soot</artifactId>
-      <version>2.4.0</version>
-      <classifier>all-deps</classifier>
-    </dependency>
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>renjin-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-  </dependencies>
-
-  <build>
-  </build>
 </project>

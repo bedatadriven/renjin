@@ -2,9 +2,9 @@ package org.renjin.gcc;
 
 
 import com.google.common.collect.Lists;
+import org.renjin.RenjinCApi;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
-import org.renjin.gcc.runtime.CR;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
@@ -44,7 +44,7 @@ public class PackageCompiler {
     compiler.setOutputDirectory(new File("target/classes"));
     compiler.setPackageName("org.renjin");
     compiler.setClassName("Stats");
-    CR.init(compiler.getMethodTable());
+    compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
     compiler.compile(functions);
   }
 

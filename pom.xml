@@ -38,6 +38,7 @@
     <module>benchmarks</module>
     <module>tools/maven-plugin</module>
     <module>tools/gcc-bridge</module>
+    <module>tools/gcc-runtime</module> 
     <module>samples/swing-repl</module>
     <module>samples/appengine-repl</module>
     <module>dist/generic</module>

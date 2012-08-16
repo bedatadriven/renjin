@@ -69,9 +69,9 @@ public class GimpleCompiler {
     options.add(outputDirectory.getAbsolutePath());
     options.addAll(classNames);
 
-    soot.Main.main(options.toArray(new String[0]));
+    //soot.Main.main(options.toArray(new String[0]));
 
-    //compileJimpleNewProcess(options);
+    compileJimpleNewProcess(options);
   }
 
   private void compileJimpleNewProcess(List<String> sootOptions) throws IOException, InterruptedException {

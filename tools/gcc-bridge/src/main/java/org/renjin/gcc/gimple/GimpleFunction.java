@@ -36,8 +36,7 @@ public class GimpleFunction {
 		if(!label.toLowerCase().startsWith("bb ")) {
 			throw new IllegalArgumentException("Expected label in the form 'BB 999', got: '"  + label + "'");
 		}
-		int number = Integer.parseInt(label.substring(3));
-		GimpleBasicBlock bb = new GimpleBasicBlock(number);
+		GimpleBasicBlock bb = new GimpleBasicBlock(label.replace(" ", ""));
 		basicBlocks.add(bb);
 		return bb;
 	}

@@ -5,7 +5,6 @@ import com.google.common.io.ByteStreams;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleOutput;
-import org.renjin.gcc.jimple.JimpleWriter;
 import org.renjin.gcc.translate.GimpleFunctionTranslator;
 import org.renjin.gcc.translate.MethodTable;
 import org.renjin.gcc.translate.TranslationContext;
@@ -26,8 +25,6 @@ public class GimpleCompiler {
 	private File sootDirectory;
 	private String packageName;
 	private String className;
-	
-	private JimpleWriter writer;
 
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
 
@@ -58,15 +55,26 @@ public class GimpleCompiler {
 
     System.out.println("outputDirectory = " + outputDirectory.getAbsolutePath());
     output.write(outputDirectory);
-//
-//    for(String className : output.getClassNames()) {
-//      compileJimple(className);
-//    }
 
     compileJimple(output.getClassNames());
 	}
 
   private void compileJimple(Set<String> classNames) throws IOException, InterruptedException {
+    List<String> options = Lists.newArrayList();
+    options.add("-v");
+    options.add("-pp");
+    options.add("-src-prec");
+    options.add("jimple");
+    options.add("-output-dir");
+    options.add(outputDirectory.getAbsolutePath());
+    options.addAll(classNames);
+
+//    soot.Main.main(options.toArray(new String[0]));
+
+    compileJimpleNewProcess(options);
+  }
+
+  private void compileJimpleNewProcess(List<String> sootOptions) throws IOException, InterruptedException {
     LOGGER.info("Compiling " + className);
     String separator = System.getProperty("file.separator");
     String classpath = System.getProperty("java.class.path");
@@ -78,13 +86,8 @@ public class GimpleCompiler {
     cmd.add("-cp");
     cmd.add(classpath);
     cmd.add("soot.Main");
-    cmd.add("-v");
-    cmd.add("-pp");
-    cmd.add("-src-prec");
-    cmd.add("jimple");
-    cmd.add("-output-dir");
-    cmd.add(outputDirectory.getAbsolutePath());
-    cmd.addAll(classNames);
+    cmd.addAll(sootOptions);
+
 
     ProcessBuilder processBuilder =
             new ProcessBuilder(cmd);

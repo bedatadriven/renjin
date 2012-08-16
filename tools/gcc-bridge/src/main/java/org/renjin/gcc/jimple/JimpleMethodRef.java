@@ -1,6 +1,7 @@
 package org.renjin.gcc.jimple;
 
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 import java.lang.reflect.Method;
@@ -90,5 +91,10 @@ public class JimpleMethodRef {
     result = 31 * result + returnType.hashCode();
     result = 31 * result + parameterTypes.hashCode();
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return returnType + " " + className + "." + methodName + "(" + Joiner.on(", ").join(parameterTypes) + ")";
   }
 }

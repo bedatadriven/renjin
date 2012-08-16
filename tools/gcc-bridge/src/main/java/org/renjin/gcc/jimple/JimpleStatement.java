@@ -10,6 +10,11 @@ public class JimpleStatement extends JimpleBodyElement {
   }
 
   @Override
+  public void write(JimpleWriter w) {
+    w.println(toString());
+  }
+
+  @Override
   public String toString() {
     return text + ";";
   }

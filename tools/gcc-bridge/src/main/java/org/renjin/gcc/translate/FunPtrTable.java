@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 
-public class FunPtrInterfaceTable {
+public class FunPtrTable {
 
   public static final String PACKAGE_NAME = "org.renjin.gcc.runtime";
 
@@ -20,7 +20,7 @@ public class FunPtrInterfaceTable {
 
   private TranslationContext context;
 
-  public FunPtrInterfaceTable(TranslationContext context) {
+  public FunPtrTable(TranslationContext context) {
     this.context = context;
   }
 

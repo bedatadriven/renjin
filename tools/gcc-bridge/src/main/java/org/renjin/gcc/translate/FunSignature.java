@@ -42,8 +42,12 @@ public class FunSignature {
       return "D";
     } else if(type.toString().equals("int")) {
       return "I";
-    } else if(type.toString().equals("org.renjin.gcc.runtime.Pointer")) {
-      return "P";
+    } else if(type.toString().equals("void")) {
+      return "V";
+    } else if(type.toString().equals("org.renjin.gcc.runtime.DoublePtr")) {
+      return "d";
+    } else if(type.toString().equals("org.renjin.gcc.runtime.Ptr")) {
+      return "v";
     } else {
       throw new UnsupportedOperationException(type.toString());
     }

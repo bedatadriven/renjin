@@ -6,7 +6,16 @@ public enum GimpleOp {
   RDIV_EXPR,
   ABS_EXPR,
   ADDR_EXPR,
+
+  /**
+   * Converting integer to real
+   */
   FLOAT_EXPR,
+
+  /**
+   * Truncate float to integer
+   */
+  FIX_TRUNC_EXPR,
 
   /**
    * Real Constant

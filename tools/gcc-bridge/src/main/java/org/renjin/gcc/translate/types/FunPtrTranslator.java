@@ -1,11 +1,12 @@
-package org.renjin.gcc.translate;
+package org.renjin.gcc.translate.types;
 
 
-import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.FunctionPointerType;
-import org.renjin.gcc.jimple.JimpleMethodBuilder;
 import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.TranslationContext;
+import org.renjin.gcc.translate.var.FunPtrVar;
+import org.renjin.gcc.translate.var.Variable;
 
 public class FunPtrTranslator extends TypeTranslator {
 
@@ -21,11 +22,6 @@ public class FunPtrTranslator extends TypeTranslator {
   }
 
   @Override
-  public void declareParameter(JimpleMethodBuilder builder, GimpleParameter param) {
-    builder.addParameter(jimpleType(), param.getName());
-  }
-
-  @Override
   public JimpleType returnType() {
     return jimpleType();
   }
@@ -35,12 +31,12 @@ public class FunPtrTranslator extends TypeTranslator {
   }
 
   @Override
-  public void declareVariable(JimpleMethodBuilder builder, GimpleVarDecl varDecl) {
-    builder.addVarDecl(jimpleType(), builder.resolveVarName(varDecl.getName()));
+  public JimpleType paramType() {
+    return jimpleType();
   }
 
   @Override
-  public JimpleType paramType() {
-    return jimpleType();
+  public Variable createLocalVariable(FunctionContext functionContext, String gimpleName) {
+    return new FunPtrVar(functionContext, gimpleName, type);
   }
 }

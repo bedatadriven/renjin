@@ -14,8 +14,6 @@ import java.util.Map;
 
 public class MethodTable {
 
-
-
   private class MethodEntry {
     private Class clazz;
     private String methodName;
@@ -37,6 +35,7 @@ public class MethodTable {
   private void addDefaults() {
     addMethod("__isnan", Double.class, "isNaN");
     addMethod("sqrt", Math.class);
+    addMethod("floor", Math.class);
   }
 
   private void addMethod(String methodName, Class<Math> clazz) {

@@ -1,6 +1,7 @@
 package org.renjin.gcc;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
@@ -8,11 +9,14 @@ import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class Gcc {
 
 	private String gccBinary = "gcc";
   private List<String> includeDirectories = Lists.newArrayList();
+
+  private static final Logger LOGGER = Logger.getLogger(Gcc.class.getName());
 
 	public String compileToGimple(File source) throws IOException {
 		
@@ -32,7 +36,9 @@ public class Gcc {
     }
 	
 		command.add(source.getAbsolutePath());
-		
+
+    LOGGER.info("Executing " + Joiner.on(" ").join(command));
+
 		File tempDir = createTempDirectory();
 		
 		Process gcc = new ProcessBuilder(command)
@@ -45,10 +51,13 @@ public class Gcc {
 			throw new GccException("Compiler interrupted");
 		}
 		
+    String stderr = new String(ByteStreams.toByteArray(gcc.getErrorStream()));
+
 		if(gcc.exitValue() != 0) {
-			String stderr = new String(ByteStreams.toByteArray(gcc.getErrorStream()));
 			throw new GccException("Compilation failed:\n" + stderr);
-		}
+		} else {
+      java.lang.System.err.println(stderr);
+    }
 		
 		File gimple = new File(tempDir, source.getName() + ".143t.optimized");
 		

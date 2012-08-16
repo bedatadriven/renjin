@@ -30,6 +30,8 @@ public class Jimple {
       return value.toString();
     } else if(value instanceof Boolean) {
       return value.toString();
+    } else if(value instanceof String) {
+      return "\"" + value + "\"";
     } else {
       throw new UnsupportedOperationException("constant: " + value);
     }

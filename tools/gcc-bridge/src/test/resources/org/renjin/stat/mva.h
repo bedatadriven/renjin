@@ -22,7 +22,7 @@
 
 void dblcen(double *a, int *na);
 
-void R_distance(double *x, int *nr, int *nc, double *d, int *diag,
+void R_distance(double *x, int *nr, int *nc, double *d, int *diag, 
 		int *method, double *p);
 /* double R_euclidean(double *x, int nr, int nc, int i1, int i2);
    double R_maximum  (double *x, int nr, int nc, int i1, int i2);
@@ -32,18 +32,18 @@ void R_distance(double *x, int *nr, int *nc, double *d, int *diag,
 
 
 
-//SEXP R_cutree(SEXP merge, SEXP which);
-//
-//void
-//F77_SUB(hclust)(int *n, int *len, int *iopt, int *ia, int *ib,
-//		double *crit, double *membr, int *nn,
-//		double *disnn, int *flag, double *diss);
-//
-//void
-//F77_SUB(hcass2)(int *n, int *ia, int *ib, int *iorder, int *iia, int *iib);
-//
-//void
-//F77_SUB(kmns)(double *a, int *m, int *n, double *c, int *k,
-//	      int *ic1, int *ic2, int *nc, double * an1, double *an2,
-//	      int *ncp, double *d, int *itran,
-//	      int *live, int *iter, double *wss, int *ifault);
+SEXP R_cutree(SEXP merge, SEXP which);
+
+void
+F77_SUB(hclust)(int *n, int *len, int *iopt, int *ia, int *ib,
+		double *crit, double *membr, int *nn,
+		double *disnn, int *flag, double *diss);
+
+void
+F77_SUB(hcass2)(int *n, int *ia, int *ib, int *iorder, int *iia, int *iib);
+
+void
+F77_SUB(kmns)(double *a, int *m, int *n, double *c, int *k,
+	      int *ic1, int *ic2, int *nc, double * an1, double *an2,
+	      int *ncp, double *d, int *itran,
+	      int *live, int *iter, double *wss, int *ifault);

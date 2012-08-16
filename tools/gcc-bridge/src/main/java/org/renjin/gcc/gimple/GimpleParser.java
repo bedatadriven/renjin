@@ -2,10 +2,7 @@ package org.renjin.gcc.gimple;
 
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.expr.*;
-import org.renjin.gcc.gimple.type.FunctionPointerType;
-import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.gimple.type.PointerType;
-import org.renjin.gcc.gimple.type.PrimitiveType;
+import org.renjin.gcc.gimple.type.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -72,11 +69,38 @@ public class GimpleParser {
 	}
 
   private GimpleIns parseLabelIns(String line) {
-    return new GimpleLabelIns();
+    //gimple_label <<L0>>
+    String[] args = parseInsArguments(line);
+    GimpleLabel target = new GimpleLabel(args[0].substring(1, args[0].length()-1));
+    return new GimpleLabelIns(target);
+  }
+
+  private GimpleLabel parseSwitchLabel(String branch) {
+    int labelStart = branch.indexOf('<');
+    int labelEnd = branch.indexOf('>', labelStart+1);
+    return new GimpleLabel(branch.substring(labelStart+1, labelEnd));
+  }
+
+  private int parseSwitchValue(String branch) {
+    int start = "case ".length();
+    int end = branch.indexOf(':');
+    return Integer.parseInt(branch.substring(start, end));
   }
 
   private GimpleIns parseSwitch(String line) {
-    return new GimpleSwitch();
+    String[] args = parseInsArguments(line);
+    GimpleExpr expr = parseExpr(args[0]);
+
+    List<GimpleSwitch.Branch> branches = Lists.newArrayList();
+    for(int i=1;i!=args.length;++i) {
+      if(args[i].startsWith("default:")) {
+        branches.add(new GimpleSwitch.Branch(GimpleSwitch.DEFAULT, parseSwitchLabel(args[i])));
+      } else if(args[i].startsWith("case ")) {
+        branches.add(new GimpleSwitch.Branch(parseSwitchValue(args[i]), parseSwitchLabel(args[i])));
+      }
+    }
+
+    return new GimpleSwitch(expr, branches);
   }
 
   private GimpleVarDecl parseVarDecl(String line) {
@@ -91,11 +115,7 @@ public class GimpleParser {
     return new GimpleVarDecl(parseType(typeDecl), identifier);
 	}
 
-	private boolean isVarDecl(String line) {
-		return line.indexOf('<') == -1 || isFunctionPointerTypeDecl(line);
-	}
-
-	private GimpleIns parseReturn(String line) {
+  private GimpleIns parseReturn(String line) {
 		GimpleExpr value = parseExpr(parseInsArguments(line)[0]);
 		return new GimpleReturn(value);
 	}
@@ -155,19 +175,28 @@ public class GimpleParser {
 	private GimpleExpr parseExpr(String text) {
     if(text.equals("NULL")) {
       return GimpleNull.INSTANCE;
+    } else if(text.startsWith("&\"") && text.endsWith("\"[0]")) {
+      return parseStringConstant(text);
     } else if(Character.isDigit(text.charAt(0)) || text.charAt(0)=='-') {
-			return parseDoubleConstant(text);
+			return parseNumericConstant(text);
 		} else {
 			return parseName(text);
 		}
 	}
-	
-	private GimpleConstant parseDoubleConstant(String text) {
+
+  private GimpleExpr parseStringConstant(String text) {
+    String str = text.substring("&\"".length(), text.length()-"\"[0]".length());
+    return new GimpleConstant(str);
+  }
+
+  private GimpleConstant parseNumericConstant(String text) {
     if(text.equals("0B")) {
       // TODO: not sure if this is correct
-      return new GimpleConstant(false);
-    } else {
+      return new GimpleConstant(0);
+    } else if(text.indexOf('.') != -1) {
 		  return new GimpleConstant(Double.parseDouble(text));
+    } else {
+      return new GimpleConstant(Integer.parseInt(text));
     }
 	}
 
@@ -253,15 +282,25 @@ public class GimpleParser {
       return PrimitiveType.INT_TYPE;
     } else if(typeDecl.equals("_Bool")) {
       return PrimitiveType.BOOLEAN;
+    } else if(typeDecl.equals("void")) {
+      return PrimitiveType.VOID_TYPE;
     } else if(isFunctionPointerTypeDecl(typeDecl)) {
       return parseFunctionPointerType(typeDecl);
+    } else if(typeDecl.startsWith("struct ")) {
+      return parseStructType(typeDecl);
 		} else {
 			throw new UnsupportedOperationException("cannot parse '" + typeDecl + "' type declaration yet");
 		}
 	}
 
+  private GimpleType parseStructType(String typeDecl) {
+    String structName = typeDecl.substring("struct ".length()).trim();
+    return new GimpleStructType(structName);
+
+  }
+
   private boolean isFunctionPointerTypeDecl(String typeDecl) {
-    return typeDecl.matches("\\S+ \\(\\*.*\\) \\(.*\\)");
+    return typeDecl.matches(".+\\(\\*.*\\) \\(.*\\)");
   }
 
   private GimpleType parseFunctionPointerType(String typeDecl) {

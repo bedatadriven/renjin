@@ -53,7 +53,6 @@ public class JimpleMethodBuilder {
     this.returnType = returnType;
   }
 
-
   public void setModifiers(JimpleModifiers... modifiers) {
     this.modifiers = Sets.newHashSet(modifiers);
   }
@@ -64,6 +63,10 @@ public class JimpleMethodBuilder {
 
   public void addStatement(JimpleStatement statement) {
     body.add(statement);
+  }
+
+  public void add(JimpleBodyElement bodyElement) {
+    this.body.add(bodyElement);
   }
 
   public void write(JimpleWriter w) {
@@ -82,7 +85,7 @@ public class JimpleMethodBuilder {
       }
 
       for(JimpleBodyElement bodyElement : body) {
-        w.println(bodyElement.toString());
+        bodyElement.write(w);
       }
 
       w.closeBlock();
@@ -118,4 +121,5 @@ public class JimpleMethodBuilder {
   public String resolveVarName(String name) {
     return Jimple.id(name);
   }
+
 }

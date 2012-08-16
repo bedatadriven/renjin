@@ -35,4 +35,9 @@ public class GimpleVisitor {
 
 
   }
+
+  public void visitLabelIns(GimpleLabelIns labelIns) {
+
+
+  }
 }

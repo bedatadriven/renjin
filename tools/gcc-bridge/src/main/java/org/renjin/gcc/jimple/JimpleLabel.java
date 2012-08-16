@@ -9,6 +9,11 @@ public class JimpleLabel extends JimpleBodyElement {
   }
 
   @Override
+  public void write(JimpleWriter w) {
+    w.println(name + ":");
+  }
+
+  @Override
   public String toString() {
     return name + ":";
   }

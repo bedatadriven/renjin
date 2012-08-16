@@ -1,23 +1,18 @@
-package org.renjin.gcc.translate;
+package org.renjin.gcc.translate.types;
 
 
-import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.PrimitiveType;
-import org.renjin.gcc.jimple.JimpleMethodBuilder;
 import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.var.NumericVar;
+import org.renjin.gcc.translate.var.Variable;
 
-public class PrimitiveTypeTranslator extends TypeTranslator {
+public class NumericTypeTranslator extends TypeTranslator {
 
   private PrimitiveType type;
 
-  public PrimitiveTypeTranslator(PrimitiveType type) {
+  public NumericTypeTranslator(PrimitiveType type) {
     this.type = type;
-  }
-
-  @Override
-  public void declareParameter(JimpleMethodBuilder builder, GimpleParameter param) {
-    builder.addParameter(asJimple(), param.getName());
   }
 
   @Override
@@ -28,11 +23,6 @@ public class PrimitiveTypeTranslator extends TypeTranslator {
   @Override
   public JimpleType returnType() {
     return new JimpleType(asJimpleName());
-  }
-
-  @Override
-  public void declareVariable(JimpleMethodBuilder builder, GimpleVarDecl varDecl) {
-    builder.addVarDecl(asJimple(), builder.resolveVarName(varDecl.getName()));
   }
 
   private JimpleType asJimple() {
@@ -51,5 +41,10 @@ public class PrimitiveTypeTranslator extends TypeTranslator {
         return "boolean";
     }
     throw new UnsupportedOperationException(type.name());
+  }
+
+  @Override
+  public Variable createLocalVariable(FunctionContext functionContext, String gimpleName) {
+    return new NumericVar(functionContext, gimpleName, type);
   }
 }

@@ -3,8 +3,7 @@ package org.renjin.gcc;
 import org.junit.Test;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
-import org.renjin.gcc.runtime.DoubleArrayPointer;
-import org.renjin.gcc.runtime.Pointer;
+import org.renjin.gcc.runtime.DoublePtr;
 
 import java.io.File;
 import java.io.StringReader;
@@ -34,8 +33,8 @@ public class GccTest {
   public void pointers() throws Exception {
     Class clazz = compile("pointers.c", "Pointers");
 
-    Method method = clazz.getMethod("sum_array", Pointer.class, int.class);
-    Double result = (Double)method.invoke(null, new DoubleArrayPointer(15, 20, 300), 3);
+    Method method = clazz.getMethod("sum_array", DoublePtr.class, int.class);
+    Double result = (Double)method.invoke(null, new DoublePtr(15, 20, 300), 3);
 
     assertThat(result, equalTo(335d));
 
@@ -44,10 +43,23 @@ public class GccTest {
   @Test
   public void functionPointers() throws Exception {
     Class clazz = compile("funptr.c", "FunPtr");
-    Method method = clazz.getMethod("sum_array", Pointer.class, int.class);
-    Double result = (Double)method.invoke(null, new DoubleArrayPointer(1,4,16), 3);
+    Method method = clazz.getMethod("sum_array", DoublePtr.class, int.class);
+    Double result = (Double)method.invoke(null, new DoublePtr(1,4,16), 3);
     System.out.println(result);
   }
+
+  @Test
+  public void boolToInt() throws Exception {
+    Class clazz = compile("bool2int.c", "BoolInt");
+
+  }
+
+  @Test
+  public void distBinary() throws Exception {
+    Class clazz = compile("distbinary.c", "DistBinary");
+
+  }
+
 
   private Class<?> compile(String sourceFile, String className) throws Exception {
     File source = new File(getClass().getResource(sourceFile).getFile());

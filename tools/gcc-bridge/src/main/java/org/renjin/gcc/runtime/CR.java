@@ -27,4 +27,12 @@ public class CR {
     table.addMethod("R_pow", FastMath.class, "pow");
     table.addReferenceClass(CR.class);
   }
+
+  public static void R_registerRoutines(Object dll, Object CEntries, Object callEntries, Object fortEntries, int count) {
+
+  }
+
+  public static void R_useDynamicSymbols(Object dll, int count) {
+
+  }
 }

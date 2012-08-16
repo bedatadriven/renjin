@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.runtime.CR;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
 
 import java.io.File;
 import java.io.StringReader;
@@ -39,7 +41,7 @@ public class PackageCompiler {
     }
 
     GimpleCompiler compiler = new GimpleCompiler();
-    compiler.setOutputDirectory(new File("target/test-classes"));
+    compiler.setOutputDirectory(new File("target/classes"));
     compiler.setPackageName("org.renjin");
     compiler.setClassName("Stats");
     CR.init(compiler.getMethodTable());
@@ -54,7 +56,13 @@ public class PackageCompiler {
   public static void main(String[] args) throws Exception {
     PackageCompiler compiler = new PackageCompiler();
     compiler.addSource(new File("src/test/resources/org/renjin/stat/distance.c"));
+    compiler.addSource(new File("src/test/resources/org/renjin/stat/massdist.c"));
+    compiler.addSource(new File("src/test/resources/org/renjin/stat/init.c"));
     compiler.compile();
+
+    Class statsClass = Class.forName("org.renjin.Stats");
+    statsClass.getMethod("R_distance", DoublePtr.class, IntPtr.class, IntPtr.class,
+        DoublePtr.class, IntPtr.class, IntPtr.class, DoublePtr.class);
   }
 
 }

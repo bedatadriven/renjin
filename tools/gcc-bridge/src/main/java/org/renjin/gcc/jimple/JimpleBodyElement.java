@@ -1,6 +1,7 @@
 package org.renjin.gcc.jimple;
 
 
-public class JimpleBodyElement {
+public abstract class JimpleBodyElement {
 
+  public abstract void write(JimpleWriter w);
 }

@@ -42,6 +42,11 @@ public class JimpleWriter {
 		println("}");
 	}
 
+  public void closeBlockWithSemicolon() {
+		indent--;
+		println("};");
+	}
+
   public void close() {
 		writer.close();
 	}

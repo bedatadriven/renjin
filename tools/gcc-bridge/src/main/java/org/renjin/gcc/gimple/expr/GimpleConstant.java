@@ -11,6 +11,14 @@ public class GimpleConstant extends GimpleExpr {
     return value;
   }
 
+  public Number getNumberValue() {
+    if(value instanceof  Number) {
+      return (Number) value;
+    } else {
+      throw new UnsupportedOperationException("Can't coerce constant to number: " + value);
+    }
+  }
+
   @Override
   public String toString() {
     return value.toString();

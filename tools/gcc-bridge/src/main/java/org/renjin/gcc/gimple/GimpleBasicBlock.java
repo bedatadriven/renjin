@@ -6,21 +6,21 @@ import java.util.List;
 
 public class GimpleBasicBlock {
 	
-	private int number;
+	private String name;
 	private List<GimpleIns> instructions = Lists.newArrayList();
 
-	public GimpleBasicBlock(int number) {
-		this.number = number;
+	public GimpleBasicBlock(String name) {
+		this.name = name;
 	}
-	
-	public int getNumber() {
-		return number;
-	}
-	
-	@Override
+
+  public String getName() {
+    return name;
+  }
+
+  @Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("<BB ").append(number).append(">:\n");
+		sb.append("<").append(name).append(">:\n");
 		for(GimpleIns ins : instructions) {
 			sb.append("  ").append(ins).append("\n");
 		}

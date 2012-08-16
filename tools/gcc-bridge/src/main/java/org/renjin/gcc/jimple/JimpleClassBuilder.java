@@ -22,6 +22,10 @@ public class JimpleClassBuilder extends AbstractClassBuilder {
     w.println("public class " + getFqcn() + " extends java.lang.Object" + implementsText());
     w.startBlock();
 
+    for(JimpleFieldBuilder field : getFields()) {
+      field.write(w);
+    }
+
     w.println("public void <init>()");
     w.startBlock();
     w.println(getFqcn() + " r0;");
@@ -57,5 +61,6 @@ public class JimpleClassBuilder extends AbstractClassBuilder {
   public JimpleOutput getOutput() {
     return output;
   }
+
 
 }

@@ -1,6 +1,6 @@
 package org.renjin.gcc.gimple.expr;
 
-public class GimpleVar extends GimpleExpr {
+public class GimpleVar extends GimpleLValue {
 
 	private final String name;
   private final int version;
@@ -10,7 +10,11 @@ public class GimpleVar extends GimpleExpr {
     this.version = version;
 	}
 
-	public String getName() {
+  public GimpleVar(String varName) {
+    this(varName, -1);
+  }
+
+  public String getName() {
 		return name;
 	}
 
@@ -20,7 +24,11 @@ public class GimpleVar extends GimpleExpr {
 
   @Override
 	public String toString() {
-		return name + "_" + version;
+    if(version < 0) {
+      return name;
+    } else {
+		  return name + "_" + version;
+    }
 	}
 	
 }

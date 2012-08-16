@@ -5,6 +5,8 @@ import org.renjin.gcc.gimple.GimpleCall;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.expr.GimpleExternal;
+import org.renjin.gcc.gimple.struct.Struct;
+import org.renjin.gcc.gimple.struct.StructTable;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleMethodRef;
@@ -21,12 +23,14 @@ public class TranslationContext {
   private MethodTable methodTable;
   private List<GimpleFunction> functions;
   private FunPtrTable funPtrTable;
+  private StructTable structTable;
 
   public TranslationContext(JimpleClassBuilder mainClass, MethodTable methodTable, List<GimpleFunction> functions) {
     this.mainClass = mainClass;
     this.methodTable = methodTable;
     this.functions = functions;
     this.funPtrTable = new FunPtrTable(this);
+    this.structTable = new StructTable(this);
   }
 
   public JimpleClassBuilder getMainClass() {
@@ -81,9 +85,11 @@ public class TranslationContext {
     } else if(type instanceof PointerType && ((PointerType) type).getInnerType() instanceof PrimitiveType) {
       return new NumericPtrTypeTranslator((PointerType) type);
     } else if(type instanceof PointerType && ((PointerType) type).getInnerType() instanceof GimpleStructType) {
-      return new StructTypeTranslator((GimpleStructType) ((PointerType) type).getInnerType());
+      return new StructTypeTranslator(this, type);
     } else if(type instanceof FunctionPointerType) {
       return new FunPtrTranslator(this, (FunctionPointerType)type);
+    } else if(type instanceof GimpleStructType) {
+      return new StructTypeTranslator(this, type);
     } else {
       throw new UnsupportedOperationException(type.toString());
     }
@@ -105,4 +111,11 @@ public class TranslationContext {
     return funPtrTable.getInvokerClassName(method);
   }
 
+  public List<GimpleFunction> getFunctions() {
+    return functions;
+  }
+
+  public Struct resolveStruct(String name) {
+    return structTable.resolveStruct(name);
+  }
 }

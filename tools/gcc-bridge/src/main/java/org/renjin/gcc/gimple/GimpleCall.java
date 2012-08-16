@@ -2,7 +2,7 @@ package org.renjin.gcc.gimple;
 
 import com.google.common.base.Joiner;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleVar;
+import org.renjin.gcc.gimple.expr.GimpleLValue;
 
 import java.util.List;
 
@@ -10,9 +10,9 @@ public class GimpleCall extends GimpleIns {
 
 	private GimpleExpr function;
 	private List<GimpleExpr> operands;
-  private GimpleVar lhs;
+  private GimpleLValue lhs;
 	
-	public GimpleCall(GimpleExpr function, GimpleVar lhs, List<GimpleExpr> operands) {
+	public GimpleCall(GimpleExpr function, GimpleLValue lhs, List<GimpleExpr> operands) {
 		super();
     this.lhs = lhs;
 		this.function = function;
@@ -31,7 +31,7 @@ public class GimpleCall extends GimpleIns {
     return operands;
   }
 
-  public GimpleVar getLhs() {
+  public GimpleLValue getLhs() {
     return lhs;
   }
 

@@ -9,6 +9,7 @@ public abstract class AbstractClassBuilder {
   private String packageName;
   private String className;
 
+  private final List<JimpleFieldBuilder> fields = Lists.newArrayList();
   private final List<JimpleMethodBuilder> methods = Lists.newArrayList();
 
   public String getFqcn() {
@@ -41,6 +42,16 @@ public abstract class AbstractClassBuilder {
     return method;
   }
 
+  public JimpleFieldBuilder newField() {
+    JimpleFieldBuilder field = new JimpleFieldBuilder();
+    fields.add(field);
+    return field;
+  }
+
+
+  public List<JimpleFieldBuilder> getFields() {
+    return fields;
+  }
 
   public List<JimpleMethodBuilder> getMethods() {
     return methods;

@@ -46,6 +46,10 @@ public class GimpleFunction {
 		typeMap.put(decl.getName(), decl.getType());
 	}
 
+  public boolean hasVariable(String name) {
+    return typeMap.containsKey(name);
+  }
+
 	public GimpleType getVariableType(String name) {
     if(typeMap.containsKey(name)) {
       return typeMap.get(name);

@@ -2,6 +2,7 @@ package org.renjin.gcc.translate.var;
 
 
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.expr.GimpleCompoundRef;
 import org.renjin.gcc.gimple.expr.GimpleConstant;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleVar;
@@ -61,7 +62,9 @@ public class NumericVar extends Variable {
       case MULT_EXPR:
         assignBinary("*", operands);
         break;
+
       case RDIV_EXPR:
+      case TRUNC_DIV_EXPR:
         assignBinary("/", operands);
         break;
       case ABS_EXPR:
@@ -97,6 +100,9 @@ public class NumericVar extends Variable {
         assignRef(operands);
         break;
 
+      case COMPONENT_REF:
+        assignCompoundRef((GimpleCompoundRef) operands.get(0));
+        break;
 
       default:
         throw new UnsupportedOperationException("Unexpected operator in assignment to numeric variable: " + op + " " + operands);
@@ -175,6 +181,12 @@ public class NumericVar extends Variable {
     doAssign(JimpleExpr.binaryInfix(operator,
             context.asNumericExpr(operands.get(0)),
             context.asNumericExpr(operands.get(1))));
+  }
+
+  private void assignCompoundRef(GimpleCompoundRef compoundRef) {
+    Variable var = context.lookupVar(compoundRef.getVar());
+    doAssign(var.memberRef(compoundRef.getMember(), jimpleType));
+
   }
 
 

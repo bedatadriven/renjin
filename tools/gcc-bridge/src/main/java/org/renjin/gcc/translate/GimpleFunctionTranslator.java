@@ -6,6 +6,7 @@ import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.FunctionPointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.jimple.*;
+import org.renjin.gcc.translate.var.Variable;
 
 import java.lang.reflect.Field;
 
@@ -49,7 +50,13 @@ public class GimpleFunctionTranslator extends GimpleVisitor {
   @Override
   public void visitAssignment(GimpleAssign assignment) {
     try {
-      context.lookupVar(assignment.getRHS()).assign(assignment.getOperator(), assignment.getOperands());
+      if(assignment.getLHS() instanceof GimpleVar) {
+        context.lookupVar((GimpleVar) assignment.getLHS()).assign(assignment.getOperator(), assignment.getOperands());
+      } else if(assignment.getLHS() instanceof GimpleCompoundRef) {
+        GimpleCompoundRef ref = (GimpleCompoundRef) assignment.getLHS();
+        Variable var = context.lookupVar(ref.getVar());
+        var.assignMember(ref.getMember(), assignment.getOperator(), assignment.getOperands());
+      }
     } catch(Exception e) {
       throw new TranslationException("Exception translating " + assignment, e);
     }
@@ -89,8 +96,18 @@ public class GimpleFunctionTranslator extends GimpleVisitor {
     try {
 
       StringBuilder stmt = new StringBuilder();
+
+      GimpleVar lhs;
+      if(call.getLhs() instanceof GimpleVar) {
+        lhs = (GimpleVar)call.getLhs();
+      } else if(call.getLhs() == null) {
+        lhs = null;
+      } else {
+        throw new UnsupportedOperationException("Lvalue: " + call.getLhs());
+      }
+
       if(call.getLhs() != null) {
-        stmt.append(Jimple.id(call.getLhs()));
+        stmt.append(Jimple.id(lhs));
         stmt.append(" = ");
       }
 
@@ -172,9 +189,16 @@ public class GimpleFunctionTranslator extends GimpleVisitor {
       return Jimple.constant(((GimpleConstant) expr).getValue());
     } else if(expr instanceof GimpleExternal) {
       return resolveExternal((GimpleExternal) expr);
+    } else if(expr instanceof GimpleAddressOf) {
+      return translateAddressOf((GimpleAddressOf) expr);
     } else {
       throw new UnsupportedOperationException(expr.toString());
     }
+  }
+
+  private String translateAddressOf(GimpleAddressOf expr) {
+    Variable var = context.lookupVar(expr.getExpr());
+    return var.addressOf().toString();
   }
 
   private String resolveExternal(GimpleExternal external) {

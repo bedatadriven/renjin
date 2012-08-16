@@ -145,7 +145,7 @@ public class GimpleParser {
 		//  gimple_assign <indirect_ref, D.6853_34, *n_29(D), NULL>
 		String[] arguments = parseInsArguments(line);
 		List<GimpleExpr> operands = parseOperands(arguments, 2);
-		return new GimpleAssign(parseOp(arguments[0]), parseVar(arguments[1]), operands);
+		return new GimpleAssign(parseOp(arguments[0]), parseLValue(arguments[1]), operands);
 	}
 
 	private GimpleOp parseOp(String string) {
@@ -177,12 +177,28 @@ public class GimpleParser {
       return GimpleNull.INSTANCE;
     } else if(text.startsWith("&\"") && text.endsWith("\"[0]")) {
       return parseStringConstant(text);
+    } else if(text.startsWith("&")) {
+      return parseAddressOf(text);
     } else if(Character.isDigit(text.charAt(0)) || text.charAt(0)=='-') {
 			return parseNumericConstant(text);
+    } else if(text.contains("->")) {
+      return parseCompoundArrowRef(text);
 		} else {
 			return parseName(text);
 		}
 	}
+
+  private GimpleExpr parseAddressOf(String text) {
+    GimpleExpr expr = parseExpr(text.substring("&".length()));
+    return new GimpleAddressOf(expr);
+  }
+
+  private GimpleExpr parseCompoundArrowRef(String text) {
+    int arrow = text.indexOf("->");
+    GimpleVar var = parseSsaName(text.substring(0,arrow));
+    String field = text.substring(arrow+"->".length());
+    return new GimpleCompoundRef(var, field);
+  }
 
   private GimpleExpr parseStringConstant(String text) {
     String str = text.substring("&\"".length(), text.length()-"\"[0]".length());
@@ -200,16 +216,6 @@ public class GimpleParser {
     }
 	}
 
-	private GimpleExpr parseName(String name) {
-    name = stripNameDecorators(name);
-
-    if(name.matches(".+_\\d+")) {
-      return parseVar(name);
-    } else {
-      return new GimpleExternal(name);
-    }
-	}
-
   private String stripNameDecorators(String name) {
     int originStart = name.indexOf('(');
     if(originStart != -1) {
@@ -221,15 +227,75 @@ public class GimpleParser {
     return name;
   }
 
-  private GimpleVar parseVar(String text) {
-    String ssaName = stripNameDecorators(text);
+  private GimpleExpr parseName(String text) {
+    String cleanText = stripNameDecorators(text);
+    if(isCompoundRef(cleanText)) {
+      return parseCompoundRef(cleanText);
+    } else if(isSsaName(cleanText)) {
+      return parseSsaName(cleanText);
+    } else if(isLocalVariable(cleanText)) {
+      return parseLocalVariable(cleanText);
+    } else {
+      return new GimpleExternal(text);
+    }
+  }
+
+  private GimpleLValue parseLValue(String text) {
+    GimpleExpr name = parseName(text);
+    if(name instanceof GimpleLValue) {
+      return (GimpleLValue)name;
+    } else {
+      throw new UnsupportedOperationException("Expected lvalue: " + text);
+    }
+  }
+
+  private boolean isCompoundRef(String text) {
+    int dot = text.indexOf('.');
+    if(dot == -1) {
+      return false;
+    }
+    String varName = text.substring(0, dot);
+    if(!currentFunction.hasVariable(varName)) {
+      return false;
+    }
+    GimpleType variableType = currentFunction.getVariableType(varName);
+    return variableType instanceof GimpleStructType;
+  }
+
+  private GimpleCompoundRef parseCompoundRef(String text) {
+    int dot = text.indexOf('.');
+    String varName = text.substring(0, dot);
+    String field = text.substring(dot+1);
+    return new GimpleCompoundRef(new GimpleVar(varName), field);
+  }
+
+  private boolean isSsaName(String text) {
+    text = stripNameDecorators(text);
+    int underscore = text.lastIndexOf('_');
+    if(underscore == -1) {
+      return false;
+    }
+    String varName = text.substring(0, underscore);
+    return currentFunction.hasVariable(varName);
+  }
+
+  private GimpleVar parseSsaName(String ssaName) {
+    ssaName = stripNameDecorators(ssaName);
     int underscore = ssaName.lastIndexOf('_');
     if(underscore == -1) {
-      throw new AssertionError("Expecting ssa name: " + text);
+      throw new AssertionError("Expecting ssa name: " + ssaName);
     }
     String name = ssaName.substring(0, underscore);
     int version = Integer.parseInt(ssaName.substring(underscore+1));
     return new GimpleVar(name, version);
+  }
+
+  private boolean isLocalVariable(String text) {
+    return currentFunction.hasVariable(text);
+  }
+
+  private GimpleVar parseLocalVariable(String text) {
+    return new GimpleVar(stripNameDecorators(text).trim());
   }
 
   private GimpleCall parseCall(String line) {
@@ -238,7 +304,7 @@ public class GimpleParser {
     if(arguments[1].equals("NULL")) {
       return new GimpleCall(parseExpr(arguments[0]), null, operands);
     } else {
-      return new GimpleCall(parseExpr(arguments[0]), parseVar(arguments[1]), operands);
+      return new GimpleCall(parseExpr(arguments[0]), parseLValue(arguments[1]), operands);
     }
   }
 
@@ -272,13 +338,22 @@ public class GimpleParser {
 	}
 
 	private GimpleType parseType(String typeDecl) {
+
+    if(typeDecl.endsWith("& restrict")) {
+      // TODO: this is emitted when translating fortran code.
+      // what does it mean??
+      typeDecl = typeDecl.substring(0, typeDecl.length() - "& restrict".length()).trim();
+    }
+
 		if(typeDecl.endsWith("*")) {
       return new PointerType(parseType(typeDecl.substring(0, typeDecl.length()-1).trim()));
     } else if(typeDecl.equals("double")) {
 			return PrimitiveType.DOUBLE_TYPE;
     } else if(typeDecl.equals("float")) {
       return PrimitiveType.FLOAT_TYPE;
-    } else if(typeDecl.equals("int") || typeDecl.equals("long unsigned int")) {
+    } else if(typeDecl.equals("int") ||
+              typeDecl.equals("long unsigned int") ||
+              typeDecl.equals("integer(kind=4)")) {
       return PrimitiveType.INT_TYPE;
     } else if(typeDecl.equals("_Bool")) {
       return PrimitiveType.BOOLEAN;

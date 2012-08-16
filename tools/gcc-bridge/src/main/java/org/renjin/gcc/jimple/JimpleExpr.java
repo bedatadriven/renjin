@@ -1,5 +1,8 @@
 package org.renjin.gcc.jimple;
 
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+
 import java.lang.reflect.Field;
 
 public class JimpleExpr {
@@ -41,5 +44,15 @@ public class JimpleExpr {
 
   public static JimpleExpr cast(JimpleExpr expr, JimpleType type) {
     return new JimpleExpr( "(" + type + ")" + expr);
+  }
+
+  public static JimpleExpr doubleConstant(GimpleExpr gimpleExpr) {
+    Object value = ((GimpleConstant)gimpleExpr).getValue();
+    return doubleConstant((Number)value);
+  }
+
+  public static JimpleExpr integerConstant(GimpleExpr gimpleExpr) {
+    Object value = ((GimpleConstant)gimpleExpr).getValue();
+    return integerConstant((Number) value);
   }
 }

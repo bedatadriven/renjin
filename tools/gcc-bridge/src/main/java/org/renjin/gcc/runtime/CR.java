@@ -35,4 +35,16 @@ public class CR {
   public static void R_useDynamicSymbols(Object dll, int count) {
 
   }
+
+  public static void Rf_warning(String text) {
+    System.err.println(text);
+  }
+
+  public static void Rf_error(String text) {
+    throw new RuntimeException(text);
+  }
+
+  public static boolean R_IsNA(double x) {
+    return DoubleVector.isNA(x);
+  }
 }

@@ -57,7 +57,7 @@ public class PackageCompiler {
     PackageCompiler compiler = new PackageCompiler();
     compiler.addSource(new File("src/test/resources/org/renjin/stat/distance.c"));
     compiler.addSource(new File("src/test/resources/org/renjin/stat/massdist.c"));
-    compiler.addSource(new File("src/test/resources/org/renjin/stat/init.c"));
+    compiler.addSource(new File("src/test/resources/org/renjin/stat/approx.c"));
     compiler.compile();
 
     Class statsClass = Class.forName("org.renjin.Stats");

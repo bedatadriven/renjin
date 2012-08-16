@@ -79,6 +79,14 @@ public class FunctionContext {
   }
 
 
+  public Variable lookupVar(GimpleExpr gimpleExpr) {
+    if(gimpleExpr instanceof GimpleVar) {
+      return lookupVar((GimpleVar)gimpleExpr);
+    } else {
+      throw new UnsupportedOperationException("Expected GimpleVar, got: " + gimpleExpr);
+    }
+  }
+
   public Collection<Variable> getVariables() {
     return variables.values();
   }

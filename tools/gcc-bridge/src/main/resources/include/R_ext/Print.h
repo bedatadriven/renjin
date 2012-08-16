@@ -1,6 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001, 2004  The R Development Core Team.
+ *  Copyright (C) 1998-2010    Robert Gentleman, Ross Ihaka
+ *                             and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -16,31 +17,32 @@
  *  along with this program; if not, a copy is available at
  *  http://www.r-project.org/Licenses/
  */
+#ifndef R_EXT_PRINT_H_
+#define R_EXT_PRINT_H_
 
-/* don't disallow including this one more than once */
-
-/* This is intended to be called from other header files, so not callable
-   from C++ */
-
-#undef LibExtern
-#undef LibImport
-#undef LibExport
-
-/* Don't try to include CYGWIN here: decorating some symbols breaks
-   the auto-export that it relies on, even if R_DLL_BUILD were set. */
-#ifdef WIN32 /* WIN32 as does not depend on config.h */
-#define LibImport __declspec(dllimport)
-#define LibExport __declspec(dllexport)
+#ifdef  __cplusplus
+/* If the vprintf interface is defined at all in C++ it may only be
+   defined in namespace std. */
+# ifdef R_USE_C99_IN_CXX
+#  include <cstdarg>
+#  ifdef __SUNPRO_CC
+using _STLP_VENDOR_CSTD::va_list;
+#  endif
+# endif
+extern "C" {
 #else
-#define LibImport
-#define LibExport
+# include <stdarg.h>
 #endif
 
-#ifdef __MAIN__
-#define LibExtern LibExport
-#define extern
-#elif defined(R_DLL_BUILD)
-#define LibExtern extern
-#else
-#define LibExtern extern LibImport
+void Rprintf(const char *, ...);
+void REprintf(const char *, ...);
+#if !defined(__cplusplus) || defined R_USE_C99_IN_CXX
+void Rvprintf(const char *, va_list);
+void REvprintf(const char *, va_list);
 #endif
+
+#ifdef  __cplusplus
+}
+#endif
+
+#endif /* R_EXT_PRINT_H_ */

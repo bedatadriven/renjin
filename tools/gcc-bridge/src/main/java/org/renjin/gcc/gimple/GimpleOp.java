@@ -17,6 +17,8 @@ public enum GimpleOp {
    */
   FIX_TRUNC_EXPR,
 
+  TRUNC_DIV_EXPR,
+
   /**
    * Real Constant
    */
@@ -39,5 +41,7 @@ public enum GimpleOp {
   PLUS_EXPR,
   MINUS_EXPR,
   SSA_NAME,
-  VAR_DECL
+  VAR_DECL,
+  COMPONENT_REF,
+
 }

@@ -1,6 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001, 2004  The R Development Core Team.
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+ *  Copyright (C) 1998-2007   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -17,30 +18,25 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* don't disallow including this one more than once */
+#ifndef R_EXT_CONSTANTS_H_
+#define R_EXT_CONSTANTS_H_
 
-/* This is intended to be called from other header files, so not callable
-   from C++ */
-
-#undef LibExtern
-#undef LibImport
-#undef LibExport
-
-/* Don't try to include CYGWIN here: decorating some symbols breaks
-   the auto-export that it relies on, even if R_DLL_BUILD were set. */
-#ifdef WIN32 /* WIN32 as does not depend on config.h */
-#define LibImport __declspec(dllimport)
-#define LibExport __declspec(dllexport)
-#else
-#define LibImport
-#define LibExport
+/* usually in math.h, but in case not ... */
+#ifndef M_PI
+#define M_PI 3.141592653589793238462643383279502884197169399375
 #endif
 
-#ifdef __MAIN__
-#define LibExtern LibExport
-#define extern
-#elif defined(R_DLL_BUILD)
-#define LibExtern extern
-#else
-#define LibExtern extern LibImport
+#ifndef STRICT_R_HEADERS
+#define PI             M_PI
+#include <float.h>  /* Defines the rest, at least in C99 */
+#define SINGLE_EPS     FLT_EPSILON
+#define SINGLE_BASE    FLT_RADIX
+#define SINGLE_XMIN    FLT_MIN
+#define SINGLE_XMAX    FLT_MAX
+#define DOUBLE_DIGITS  DBL_MANT_DIG
+#define DOUBLE_EPS     DBL_EPSILON
+#define DOUBLE_XMAX    DBL_MAX
+#define DOUBLE_XMIN    DBL_MIN
 #endif
+
+#endif /* R_EXT_CONSTANTS_H_ */

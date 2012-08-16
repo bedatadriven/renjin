@@ -1,6 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001, 2004  The R Development Core Team.
+ *  Copyright (C) 1998-2005   Robert Gentleman, Ross Ihaka 
+ *                            and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -17,30 +18,28 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* don't disallow including this one more than once */
+#ifndef R_ERROR_H_
+#define R_ERROR_H_
 
-/* This is intended to be called from other header files, so not callable
-   from C++ */
-
-#undef LibExtern
-#undef LibImport
-#undef LibExport
-
-/* Don't try to include CYGWIN here: decorating some symbols breaks
-   the auto-export that it relies on, even if R_DLL_BUILD were set. */
-#ifdef WIN32 /* WIN32 as does not depend on config.h */
-#define LibImport __declspec(dllimport)
-#define LibExport __declspec(dllexport)
-#else
-#define LibImport
-#define LibExport
+#ifdef  __cplusplus
+extern "C" {
 #endif
 
-#ifdef __MAIN__
-#define LibExtern LibExport
-#define extern
-#elif defined(R_DLL_BUILD)
-#define LibExtern extern
-#else
-#define LibExtern extern LibImport
+void	Rf_error(const char *, ...);
+void	Rf_warning(const char *, ...);
+void	WrongArgCount(const char *);
+void	UNIMPLEMENTED(const char *);
+void 	R_ShowMessage(const char *s);
+    
+
+#ifdef  __cplusplus
+}
 #endif
+
+#ifndef R_NO_REMAP
+#define error Rf_error
+#define warning Rf_warning
+#endif
+
+
+#endif /* R_ERROR_H_ */

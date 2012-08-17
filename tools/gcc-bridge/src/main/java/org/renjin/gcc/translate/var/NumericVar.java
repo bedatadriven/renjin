@@ -36,6 +36,9 @@ public class NumericVar extends Variable {
       case BOOLEAN:
         jimpleType = JimpleType.BOOLEAN;
         break;
+      case LONG:
+        jimpleType = JimpleType.LONG;
+        break;
       default:
         throw new IllegalArgumentException(gimpleType.name());
     }
@@ -70,6 +73,11 @@ public class NumericVar extends Variable {
       case ABS_EXPR:
         assignAbs(operands.get(0));
         break;
+
+      case MAX_EXPR:
+        assignMax(operands);
+        break;
+
       case REAL_CST:
         assignConstant(operands.get(0));
         break;
@@ -134,6 +142,7 @@ public class NumericVar extends Variable {
 
   }
 
+  @Override
   public boolean isReal() {
     return gimpleType == PrimitiveType.DOUBLE_TYPE;
   }
@@ -152,17 +161,21 @@ public class NumericVar extends Variable {
   }
 
   private void assignBoolean(JimpleExpr booleanExpr) {
+    assignIfElse(booleanExpr, JimpleExpr.integerConstant(1), JimpleExpr.integerConstant(0));
+  }
+
+  private void assignIfElse(JimpleExpr booleanExpr, JimpleExpr ifTrue, JimpleExpr ifFalse) {
     String trueLabel = context.newLabel();
     String doneLabel = context.newLabel();
 
     context.getBuilder().addStatement("if " + booleanExpr +
             " goto " + trueLabel);
 
-    context.getBuilder().addStatement(jimpleName + " = 1");
+    context.getBuilder().addStatement(jimpleName + " = " + ifFalse);
     context.getBuilder().addStatement("goto " + doneLabel);
 
     context.getBuilder().addLabel(trueLabel);
-    context.getBuilder().addStatement(jimpleName + " = 0");
+    context.getBuilder().addStatement(jimpleName + " = " + ifTrue);
     context.getBuilder().addStatement("goto " + doneLabel);
 
     context.getBuilder().addLabel(doneLabel);
@@ -193,6 +206,13 @@ public class NumericVar extends Variable {
   private void assignAbs(GimpleExpr gimpleExpr) {
     doAssign(new JimpleExpr("staticinvoke <java.lang.Math: double abs(double)>(" +
             context.asNumericExpr(gimpleExpr) + ")"));
+  }
+
+  private void assignMax(List<GimpleExpr> operands) {
+    JimpleExpr a = context.asNumericExpr(operands.get(0));
+    JimpleExpr b = context.asNumericExpr(operands.get(1));
+
+    assignIfElse(JimpleExpr.binaryInfix(">", a, b), a, b);
   }
 
   private void doAssign(JimpleExpr rhs) {

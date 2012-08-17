@@ -9,6 +9,7 @@ public class JimpleType {
   public static final JimpleType INT = new JimpleType("int");
   public static final JimpleType BOOLEAN = new JimpleType("boolean");
   public static final JimpleType DOUBLE = new JimpleType("double");
+  public static final JimpleType LONG = new JimpleType("long");
 
   public JimpleType(String name) {
     this.name = name;

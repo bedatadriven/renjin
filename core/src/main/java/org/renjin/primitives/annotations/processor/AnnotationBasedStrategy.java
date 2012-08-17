@@ -1,11 +1,9 @@
 package org.renjin.primitives.annotations.processor;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Primitives.Entry;
@@ -18,20 +16,16 @@ import org.renjin.primitives.annotations.processor.generic.GenericDispatchStrate
 import org.renjin.primitives.annotations.processor.generic.OpsGroupGenericDispatchStrategy;
 import org.renjin.primitives.annotations.processor.generic.SimpleDispatchStrategy;
 import org.renjin.primitives.annotations.processor.generic.SummaryGroupGenericStrategy;
-import org.renjin.primitives.annotations.processor.scalars.RecycledArgument;
-import org.renjin.primitives.annotations.processor.scalars.RecycledArguments;
-import org.renjin.primitives.annotations.processor.scalars.ScalarType;
-import org.renjin.primitives.annotations.processor.scalars.ScalarTypes;
-import org.renjin.primitives.annotations.processor.scalars.SingleRecycledArgument;
+import org.renjin.primitives.annotations.processor.scalars.*;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 
-
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public class AnnotationBasedStrategy extends GeneratorStrategy  {
 
@@ -402,8 +396,12 @@ public class AnnotationBasedStrategy extends GeneratorStrategy  {
         s.writeTempLocalDeclaration(strategy.getTempLocalType(), convertedLocal);
 
         if (argument.isAnnotatedWith(NamedFlag.class)) {
-          s.writeStatement(convertedLocal + " = "
-              + (argument.getDefaultValue() ? "true" : "false"));
+          if(argument.getClazz().equals(boolean.class)) {
+            s.writeStatement(convertedLocal + " = "
+                + (argument.getDefaultValue() ? "true" : "false"));
+          } else {
+            s.writeStatement(convertedLocal + " = null");
+          }
           namedFlags.put(argument, convertedLocal);
         } else {
           if (varArgsSeen) {

@@ -45,11 +45,6 @@
       <version>2.4.0</version>
       <classifier>all-deps</classifier>
     </dependency>
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>renjin-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <build>

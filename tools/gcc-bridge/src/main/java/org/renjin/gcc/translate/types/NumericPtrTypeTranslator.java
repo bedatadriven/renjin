@@ -3,6 +3,7 @@ package org.renjin.gcc.translate.types;
 import org.renjin.gcc.gimple.type.PointerType;
 import org.renjin.gcc.gimple.type.PrimitiveType;
 import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.runtime.BooleanPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.Ptr;
@@ -26,9 +27,13 @@ public class NumericPtrTypeTranslator extends TypeTranslator {
       case INT_TYPE:
         wrapperClass = IntPtr.class;
         break;
+      case BOOLEAN:
+        wrapperClass = BooleanPtr.class;
+        break;
       case VOID_TYPE:
         wrapperClass = Ptr.class;
         break;
+
       default:
         throw new UnsupportedOperationException(type.toString());
     }

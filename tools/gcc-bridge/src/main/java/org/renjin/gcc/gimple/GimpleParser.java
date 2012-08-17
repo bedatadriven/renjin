@@ -59,6 +59,8 @@ public class GimpleParser {
           currentBB.addIns(parseLabelIns(line));
         } else if(line.startsWith("#")) {
           // ignore
+        } else if(line.startsWith("static ")) {
+          currentFunction.addVarDecl(parseStaticVarDecl(line));
         } else {
           currentFunction.addVarDecl(parseVarDecl(line));
         }
@@ -67,6 +69,19 @@ public class GimpleParser {
 		}
 		return functions;
 	}
+
+  private GimpleVarDecl parseStaticVarDecl(String line) {
+    int equals = line.lastIndexOf('=');
+    String varDecl = line.substring("static ".length(), equals).trim();
+    String constant = line.substring(equals+1, line.lastIndexOf(';')).trim();
+
+    int identifierStart = varDecl.lastIndexOf(' ')+1;
+		String identifier = varDecl.substring(identifierStart);
+    String typeDecl = varDecl.substring(0, identifierStart-1).trim();
+
+    return new GimpleVarDecl(parseType(typeDecl), identifier,
+            parseNumericConstant(constant).getValue());
+  }
 
   private GimpleIns parseLabelIns(String line) {
     //gimple_label <<L0>>
@@ -228,6 +243,10 @@ public class GimpleParser {
   }
 
   private GimpleExpr parseName(String text) {
+    if(isArrayRef(text)) {
+      return parseArrayRef(text);
+    }
+
     String cleanText = stripNameDecorators(text);
     if(isCompoundRef(cleanText)) {
       return parseCompoundRef(cleanText);
@@ -238,6 +257,35 @@ public class GimpleParser {
     } else {
       return new GimpleExternal(text);
     }
+  }
+
+  private GimpleExpr parseArrayRef(String cleanText) {
+    int bracket = cleanText.lastIndexOf('[');
+    String index = cleanText.substring(bracket+1, cleanText.lastIndexOf(']'));
+    GimpleExpr indexExpr = parseExpr(index);
+
+    String name = stripEnclosingParens(cleanText.substring(0, bracket));
+    if(name.startsWith("*")) {
+      name = name.substring(1);
+    }
+    GimpleExpr var = parseName(name);
+    if(!(var instanceof GimpleVar)) {
+      throw new UnsupportedOperationException(var.toString());
+    }
+    return new GimpleArrayRef((GimpleVar)var, indexExpr);
+  }
+
+  private String stripEnclosingParens(String s) {
+    String trimmed = s.trim();
+    if(trimmed.startsWith("(") && trimmed.endsWith(")")) {
+      return trimmed.substring(1,trimmed.length()-1).trim();
+    } else {
+      return trimmed;
+    }
+  }
+
+  private boolean isArrayRef(String text) {
+    return text.matches(".*\\[\\S+\\]");
   }
 
   private GimpleLValue parseLValue(String text) {
@@ -339,23 +387,42 @@ public class GimpleParser {
 
 	private GimpleType parseType(String typeDecl) {
 
-    if(typeDecl.endsWith("& restrict")) {
-      // TODO: this is emitted when translating fortran code.
-      // what does it mean??
-      typeDecl = typeDecl.substring(0, typeDecl.length() - "& restrict".length()).trim();
+    // ignore the restrict keyword.
+    // it's not clear from the docs what it means
+    // but for our purposes it doesn't seem to matter
+    typeDecl = typeDecl.replaceAll("restrict", "").trim();
+
+    // we may also see additional information about the length
+    // of the array provided by the fortran compiler, but we're
+    // going to ignore that too:
+    if(typeDecl.matches(".*\\[\\S+:\\S+\\]")) {
+      int lastBracket = typeDecl.lastIndexOf('[');
+      typeDecl = typeDecl.substring(0, lastBracket).trim();
     }
 
-		if(typeDecl.endsWith("*")) {
+		if(typeDecl.endsWith("*") || typeDecl.endsWith("&")) {
       return new PointerType(parseType(typeDecl.substring(0, typeDecl.length()-1).trim()));
-    } else if(typeDecl.equals("double")) {
+    } else if(typeDecl.equals("double") || typeDecl.equals("real(kind=8)")) {
 			return PrimitiveType.DOUBLE_TYPE;
     } else if(typeDecl.equals("float")) {
       return PrimitiveType.FLOAT_TYPE;
     } else if(typeDecl.equals("int") ||
-              typeDecl.equals("long unsigned int") ||
-              typeDecl.equals("integer(kind=4)")) {
+              typeDecl.equals("integer(kind=4)") ||
+              typeDecl.equals("character(kind=4)")) {
       return PrimitiveType.INT_TYPE;
-    } else if(typeDecl.equals("_Bool")) {
+
+    } else if(typeDecl.equals("integer(kind=8)")) {
+      return PrimitiveType.LONG;
+
+    } else if( typeDecl.equals("long unsigned int") ||
+               typeDecl.equals("<unnamed-unsigned:64>") ||
+               typeDecl.equals("bit_size_type")) {
+      // TODO: we're treating sunsigned 64-bit integers as java its because to this point these
+      // types represent pointers, and even on 64-bit platform, java arrays are only addressable to 31-bits
+      // but this isn't something that should be addressed here at the parser level.
+      return PrimitiveType.INT_TYPE;
+
+    } else if(typeDecl.equals("_Bool") || typeDecl.equals("logical(kind=4)")) {
       return PrimitiveType.BOOLEAN;
     } else if(typeDecl.equals("void")) {
       return PrimitiveType.VOID_TYPE;

@@ -1,10 +1,8 @@
 package org.renjin.gcc.jimple;
 
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,9 +38,6 @@ public class JimpleOutput {
       JimpleWriter writer = new JimpleWriter(jimpleSource);
       clazz.write(writer);
       writer.close();
-
-      java.lang.System.out.println(Files.toString(jimpleSource, Charsets.UTF_8));
-
     }
   }
 

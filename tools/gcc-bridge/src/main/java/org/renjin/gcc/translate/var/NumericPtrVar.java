@@ -19,6 +19,7 @@ public class NumericPtrVar extends Variable {
 
   private FunctionContext context;
   private String gimpleName;
+  private PrimitiveType gimpleType;
   private String jimpleArrayName;
   private String jimpleOffsetName;
   private JimpleType arrayType;
@@ -27,6 +28,7 @@ public class NumericPtrVar extends Variable {
   public NumericPtrVar(FunctionContext context, String gimpleName, PrimitiveType type) {
     this.context = context;
     this.gimpleName = gimpleName;
+    this.gimpleType = type;
     this.jimpleArrayName = Jimple.id(gimpleName) + "_array";
     this.jimpleOffsetName = Jimple.id(gimpleName + "_offset");
     switch(type) {
@@ -78,22 +80,18 @@ public class NumericPtrVar extends Variable {
   }
 
   private void assignValue(GimpleExpr gimpleExpr) {
+ //   context.getBuilder().addStatement("staticinvoke <org.renjin.gcc.runtime.Debug: void println(java.lang.String)>(\"assignValue\")");
     context.getBuilder().addStatement(jimpleArrayName + "[" + jimpleOffsetName + "] = " +
-      context.asNumericExpr(gimpleExpr));
+        context.asNumericExpr(gimpleExpr));
   }
 
 
   private void assignPointerPlus(List<GimpleExpr> operands) {
     NumericPtrVar var = asPtr(operands.get(0));
-    JimpleExpr byteCount = context.asNumericExpr(operands.get(1));
-    String count = context.declareTemp(JimpleType.INT);
-    context.getBuilder().addStatement(count + " = " + byteCount + " / " + valueSize());
-    assignPointer(var, new JimpleExpr(count));
-  }
-
-  private void assignPointer(GimpleExpr gimpleExpr) {
-    NumericPtrVar var = asPtr(gimpleExpr);
-    assignPointer(var, new JimpleExpr(var.jimpleOffsetName));
+    JimpleExpr bytesToIncrement = context.asNumericExpr(operands.get(1));
+    String positionsToIncrement = context.declareTemp(JimpleType.INT);
+    context.getBuilder().addStatement(positionsToIncrement + " = " + bytesToIncrement + " / " + valueSize());
+    assignPointer(var, new JimpleExpr(positionsToIncrement));
   }
 
   private void assignPointer(NumericPtrVar var, JimpleExpr offset) {
@@ -101,9 +99,14 @@ public class NumericPtrVar extends Variable {
     context.getBuilder().addStatement(jimpleOffsetName + " = " + var.jimpleOffsetName + " + " + offset);
   }
 
-
   private int valueSize() {
-    return 8;
+    switch (gimpleType) {
+      case DOUBLE_TYPE:
+        return 8;
+      case INT_TYPE:
+        return 4;
+    }
+    throw new UnsupportedOperationException(gimpleType.toString());
   }
 
   private NumericPtrVar asPtr(GimpleExpr gimpleExpr) {

@@ -24,12 +24,9 @@ package org.renjin.primitives;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.renjin.base.Base;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.jvminterop.FunctionBinding;
-import org.renjin.methods.Methods;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
@@ -39,15 +36,11 @@ import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.special.ReturnException;
 import org.renjin.sexp.*;
-import org.renjin.sexp.Frame;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
@@ -332,107 +325,8 @@ public class Evaluation {
     } 
     return false;
   }
-  
-  
-  @Primitive(".C")
-  public static SEXP dotC(@Current Context context,
-                                @Current Environment rho,
-                                @ArgumentList ListVector arguments) {
-    
-    String methodName = arguments.getElementAsString(0);
-    String packageName = null;
-    boolean naOK = false;
-    
-    PairList.Builder callArguments = new PairList.Builder();
-    for(int i=1;i<arguments.length();++i) {
-      if("PACKAGE".equals(arguments.getName(i))) {
-        packageName = arguments.getElementAsString(i);
-      } else if("NAOK".equals(arguments.getName(i))) {
-        naOK = (arguments.asLogical() == Logical.TRUE);
-      } else if("DUP".equals(arguments.getName(i))) {
-        // ignore
-      } else if("ENCODING".equals(arguments.getName(i))) {
-        // ignore
-      } else if(arguments.getElementAsSEXP(i) != Null.INSTANCE) {
-        callArguments.add(arguments.getElementAsSEXP(i));
-      }
-    }
-    
-    return doNativeCall(context, rho, methodName, packageName, callArguments.build());
-    
-  }
 
-  @Primitive(".Fortran")
-  public static SEXP dotFortran(@Current Context context,
-                                @Current Environment rho,
-                                @ArgumentList ListVector arguments) {
-    return dotC(context, rho, arguments);
-  }
-  
-  @Primitive(".Call")
-  public static SEXP dotCall(@Current Context context,
-                                   @Current Environment rho,
-                                   @ArgumentList ListVector arguments) {
 
-    String methodName = arguments.getElementAsString(0);
-    String packageName = null;
-    PairList.Builder callArguments = new PairList.Builder();
-    for(int i=1;i<arguments.length();++i) {
-      if("PACKAGE".equals(arguments.getName(i))) {
-        packageName = arguments.getElementAsString(i);  
-      } else  {
-        callArguments.add(arguments.getElementAsSEXP(i));
-      }
-    }
-
-    return doNativeCall(context, rho, methodName, packageName, callArguments.build());
-  }
-
-  /**
-   * Dispatches what were originally calls to "native" libraries (C/Fortran/etc)
-   * to a Java class. 
-   * 
-   */
-  private static SEXP doNativeCall(Context context, Environment rho,
-      String methodName, String packageName, PairList arguments) {
-    Class packageClass;
-    if(packageName.equals("base")) {
-      packageClass = Base.class;
-    } else if(packageName.equals("methods")) {
-      packageClass = Methods.class;
-    } else if(packageName.equals("grDevices")) {
-      packageClass = Graphics.class;
-    } else {
-      String packageClassName = "org.renjin." + packageName + "." +
-          packageName.substring(0, 1).toUpperCase() + packageName.substring(1);
-      try {
-        packageClass = Class.forName(packageClassName);
-      } catch (ClassNotFoundException e) {
-        throw new EvalException("Could not find class for 'native' methods for package '%s' (className='%s')",
-            packageName, packageClassName);
-      }
-    }
-    
-    List<Method> overloads = Lists.newArrayList();
-    for(Method method : packageClass.getMethods()) {
-      if(method.getName().equals(methodName) && 
-          (method.getModifiers() & (Modifier.STATIC | Modifier.PUBLIC)) != 0) {
-        overloads.add(method);
-      }
-    }
-    
-    if(overloads.isEmpty()) {
-      throw new EvalException("Method " + methodName + " not defined in " + packageName);
-    }
-
-    FunctionBinding binding = new FunctionBinding(overloads);
-    return binding.invoke(null, context, rho, arguments);
-
-//    throw new EvalException(
-//        String.format("Call to native function '%s' in package '%s'",
-//            methodName, packageName));
-  }
-  
   public static SEXP UseMethod(Context context, Environment rho, FunctionCall call) {
     SEXP generic = context.evaluate(call.getArgument(0), rho);
     EvalException.check(generic.length() == 1 && generic instanceof StringVector,

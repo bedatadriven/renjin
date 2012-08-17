@@ -45,6 +45,8 @@ public class NumericTypeTranslator extends TypeTranslator {
 
   @Override
   public Variable createLocalVariable(FunctionContext functionContext, String gimpleName) {
+
+
     return new NumericVar(functionContext, gimpleName, type);
   }
 }

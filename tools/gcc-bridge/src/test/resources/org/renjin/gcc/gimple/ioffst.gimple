@@ -1,0 +1,31 @@
+
+
+;; Function ioffst (ioffst_)
+
+ioffst (integer(kind=4) & restrict n, integer(kind=4) & restrict i, integer(kind=4) & restrict j)
+{
+  integer(kind=4) __result_ioffst.46;
+  integer(kind=4) D.1892;
+  integer(kind=4) D.1891;
+  integer(kind=4) D.1890;
+  integer(kind=4) D.1889;
+  integer(kind=4) D.1888;
+  integer(kind=4) D.1887;
+  integer(kind=4) D.1886;
+  integer(kind=4) D.1885;
+  integer(kind=4) D.1884;
+
+<bb 2>:
+  gimple_assign <indirect_ref, D.1884_2, *j_1(D), NULL>
+  gimple_assign <indirect_ref, D.1885_4, *i_3(D), NULL>
+  gimple_assign <plus_expr, D.1886_5, D.1885_4, -1>
+  gimple_assign <indirect_ref, D.1887_7, *n_6(D), NULL>
+  gimple_assign <mult_expr, D.1888_8, D.1886_5, D.1887_7>
+  gimple_assign <plus_expr, D.1889_9, D.1888_8, D.1884_2>
+  gimple_assign <plus_expr, D.1890_12, D.1885_4, 1>
+  gimple_assign <mult_expr, D.1891_13, D.1890_12, D.1885_4>
+  gimple_assign <trunc_div_expr, D.1892_14, D.1891_13, -2>
+  gimple_assign <plus_expr, __result_ioffst.46_15, D.1889_9, D.1892_14>
+  gimple_return <__result_ioffst.46_15>
+
+}

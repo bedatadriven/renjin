@@ -48,4 +48,18 @@ public class RenjinCApi {
   public static boolean R_IsNA(double x) {
     return DoubleVector.isNA(x);
   }
+
+  public static void debugij(int i, int j) {
+    System.out.println("i = " + i + ", j = " + j);
+  }
+
+  public static void debug(String str) {
+    System.out.println(str);
+  }
+
+  public static void debug_var(String varName, double x) {
+    System.out.println(varName + " = " + x);
+
+  }
 }
+

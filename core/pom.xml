@@ -31,12 +31,23 @@
 
   <dependencies>
 
-    <!-- Currently we are using both Colt and Apache Commons Math for the 
-      mathematical heavy lifting. It may be possible to eliminate one or the other -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math</artifactId>
       <version>2.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>gcc-runtime</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>gcc-bridge</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>

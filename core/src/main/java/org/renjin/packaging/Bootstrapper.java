@@ -1,18 +1,16 @@
 package org.renjin.packaging;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-
-import javax.script.ScriptException;
-
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import org.renjin.RVersion;
 import org.renjin.script.RenjinScriptEngine;
 import org.renjin.script.RenjinScriptEngineFactory;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
+import javax.script.ScriptException;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Bootstraps the packaging of the default R packages
@@ -129,6 +127,16 @@ public class Bootstrapper {
         file(srcRoot, packageName).getAbsolutePath(),
         file(destRoot, packageName).getAbsolutePath(),
         packageName));
+
+    try {
+      NativeSourcesCompiler compiler = new NativeSourcesCompiler();
+      compiler.setPackageName(packageName);
+      compiler.setSourceRoot(srcRoot);
+      compiler.compile();
+    } catch(Exception e) {
+      e.printStackTrace();
+      System.out.println("WARNING: failed to compile native sources for " + packageName + ", some functions may be missing...");
+    }
   }
   
   private static File file(File parent, String... children) {

@@ -1,6 +1,8 @@
 package org.renjin.gcc.runtime;
 
 
+import java.util.Arrays;
+
 public class DoublePtr implements Ptr {
   public final double[] array;
   public final int offset;
@@ -13,5 +15,10 @@ public class DoublePtr implements Ptr {
   public DoublePtr(double... values) {
     this.array = values;
     this.offset = 0;
+  }
+
+  @Override
+  public String toString() {
+    return offset + "+" + Arrays.toString(array);
   }
 }

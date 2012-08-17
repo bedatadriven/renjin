@@ -90,7 +90,6 @@ public class GimpleFunctionTranslator extends GimpleVisitor {
     builder.add(jimpleSwitch);
   }
 
-
   @Override
   public void visitCall(GimpleCall call) {
     try {

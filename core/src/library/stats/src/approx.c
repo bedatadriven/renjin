@@ -57,15 +57,18 @@ static double approx1(double v, double *x, double *y, int n,
     /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
     int i, j, ij;
 
-    if(!n) return R_NaN;
+    if(!n)
+      return R_NaN;
 
     i = 0;
     j = n - 1;
 
     /* handle out-of-domain points */
 
-    if(v < x[i]) return Meth->ylow;
-    if(v > x[j]) return Meth->yhigh;
+    if(v < x[i])
+      return Meth->ylow;
+    if(v > x[j])
+      return Meth->yhigh;
 
     /* find the correct interval by bisection */
 
@@ -84,12 +87,12 @@ static double approx1(double v, double *x, double *y, int n,
     /* impossible: if(x[j] == x[i]) return y[i]; */
 
     if(Meth->kind == 1) { /* linear */
-	return y[i] + (y[j] - y[i]) * ((v - x[i])/(x[j] - x[i]));
+	    return y[i] + (y[j] - y[i]) * ((v - x[i])/(x[j] - x[i]));
+    } else { /* 2 : constant */
+    	return y[i] * Meth->f1 + y[j] * Meth->f2;
     }
-    else { /* 2 : constant */
-	return y[i] * Meth->f1 + y[j] * Meth->f2;
-    }
-}/* approx1() */
+}
+
 
 
 	/* R Frontend for Linear and Constant Interpolation */
@@ -104,28 +107,29 @@ void R_approx(double *x, double *y, int *nxy, double *xout, int *nout,
 
     switch(*method) {
     case 1: /* linear */
-	break;
+	    break;
     case 2: /* constant */
-	if(!R_FINITE(*f) || *f < 0 || *f > 1)
-	    error(_("approx(): invalid f value"));
-	M.f2 = *f;
-	M.f1 = 1 - *f;
-	break;
+      if(!R_FINITE(*f) || *f < 0 || *f > 1)
+        error(_("approx(): invalid f value"));
+      M.f2 = *f;
+      M.f1 = 1 - *f;
+      break;
     default:
-	error(_("approx(): invalid interpolation method"));
-	break;
+    	error(_("approx(): invalid interpolation method"));
+	    break;
     }
 
     for(i = 0 ; i < *nxy ; i++)
-	if(ISNA(x[i]) || ISNA(y[i]))
-	    error(_("approx(): attempted to interpolate NA values"));
+	    if(ISNA(x[i]) || ISNA(y[i]))
+	      error(_("approx(): attempted to interpolate NA values"));
 
     M.kind = *method;
     M.ylow = *yleft;
     M.yhigh = *yright;
 
     for(i = 0 ; i < *nout; i++)
-	if(!ISNA(xout[i])) xout[i] = approx1(xout[i], x, y, *nxy, &M);
+	    if(!ISNA(xout[i]))
+	      xout[i] = approx1(xout[i], x, y, *nxy, &M);
 }
 
 /* Testing done only once - in a separate function */

@@ -31,4 +31,8 @@ public abstract class Variable {
   public JimpleExpr addressOf() {
     throw new UnsupportedOperationException(this + " is not addressable");
   }
+
+  public boolean isReal() {
+    throw new UnsupportedOperationException(this + " does not have a numeric representation");
+  }
 }

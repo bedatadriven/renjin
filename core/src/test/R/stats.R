@@ -30,11 +30,12 @@ testMassdist <- function() {
 }
 
 testDensity <- function() {
+  cat(c("testDensity Starting...\n"))
 	x <- c(-0.44577826, -1.20585657,  0.04112631,  0.63938841, -0.78655436, -0.38548930,
 		   -0.47586788,  0.71975069, -0.01850562, -1.37311776)
-	
-  
-   	d <- density(x)
+
+
+  d <- density(x)
 	print(d)
 	assertThat(d$bw, closeTo(0.3115, 0.0001))
 	assertThat(mean(d$y), closeTo(0.2520675, 0.0001))

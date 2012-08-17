@@ -24,11 +24,13 @@ public class Gcc {
 		command.add(gccBinary);
 		command.add("-c"); // compile only, do not link
 		command.add("-S"); // stop at assembly generation
+ //   command.add("-O9"); // highest optimization
 		
 		// Turn on dumping of gimple trees
 		// See http://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html#Debugging-Options
 		command.add("-fdump-tree-optimized");
 		command.add("-fdump-tree-optimized-raw");
+   // command.add("-fdump-tree-optimized-lineno");
 
     for(String includeDir : includeDirectories) {
       command.add("-I");

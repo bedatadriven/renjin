@@ -1,0 +1,2771 @@
+
+;; Function approx1 (approx1)
+
+Analyzing Edge Insertions.
+approx1 (double v, double * x, double * y, int n, struct appr_meth * Meth)
+{
+  int ij;
+  int j;
+  int i;
+  double D.4106D.4106;
+  double D.4105D.4105;
+  double D.4104D.4104;
+  double * D.4103D.4103;
+  long unsigned int D.4102D.4102;
+  long unsigned int D.4101D.4101;
+  double D.4100D.4100;
+  double D.4099D.4099;
+  double D.4098D.4098;
+  double * D.4097D.4097;
+  long unsigned int D.4096D.4096;
+  long unsigned int D.4095D.4095;
+  double D.4094D.4094;
+  double D.4093D.4093;
+  double D.4092D.4092;
+  double D.4091D.4091;
+  double * D.4090D.4090;
+  long unsigned int D.4089D.4089;
+  long unsigned int D.4088D.4088;
+  double D.4087D.4087;
+  double * D.4086D.4086;
+  long unsigned int D.4085D.4085;
+  long unsigned int D.4084D.4084;
+  double D.4083D.4083;
+  double D.4082D.4082;
+  double * D.4081D.4081;
+  long unsigned int D.4080D.4080;
+  long unsigned int D.4079D.4079;
+  double D.4078D.4078;
+  double D.4077D.4077;
+  double * D.4076D.4076;
+  long unsigned int D.4075D.4075;
+  long unsigned int D.4074D.4074;
+  double D.4073D.4073;
+  double * D.4072D.4072;
+  long unsigned int D.4071D.4071;
+  long unsigned int D.4070D.4070;
+  double D.4069D.4069;
+  double * D.4068D.4068;
+  long unsigned int D.4067D.4067;
+  long unsigned int D.4066D.4066;
+  int D.4063D.4063;
+  double * D.4062D.4062;
+  long unsigned int D.4061D.4061;
+  long unsigned int D.4060D.4060;
+  double D.4057D.4057;
+  double * D.4056D.4056;
+  long unsigned int D.4055D.4055;
+  long unsigned int D.4054D.4054;
+  double * D.4053D.4053;
+  long unsigned int D.4052D.4052;
+  long unsigned int D.4051D.4051;
+  double D.4048D.4048;
+  double * D.4047D.4047;
+  long unsigned int D.4046D.4046;
+  long unsigned int D.4045D.4045;
+  int D.4044D.4044;
+  _Bool D.4040D.4040;
+  double D.4039D.4039;
+  double * D.4038D.4038;
+  long unsigned int D.4037D.4037;
+  long unsigned int D.4036D.4036;
+  int D.4035D.4035;
+  _Bool D.4032D.4032;
+  double D.4031D.4031;
+  double * D.4030D.4030;
+  long unsigned int D.4029D.4029;
+  long unsigned int D.4028D.4028;
+  _Bool D.4025D.4025;
+  double D.4024D.4024;
+  double * D.4023D.4023;
+  long unsigned int D.4022D.4022;
+  long unsigned int D.4021D.4021;
+  double D.4020D.4020;
+
+<bb 2>:
+  gimple_cond <eq_expr, n, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <var_decl, D.4020D.4020, R_NaN, NULL>
+  goto <bb 20>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <plus_expr, j, n, -1>
+  gimple_assign <nop_expr, D.4021D.4021, i, NULL>
+  gimple_assign <mult_expr, D.4022D.4022, D.4021D.4021, 8>
+  gimple_assign <pointer_plus_expr, D.4023D.4023, x, D.4022D.4022>
+  gimple_assign <indirect_ref, D.4024D.4024, *D.4023D.4023, NULL>
+  gimple_assign <gt_expr, D.4025D.4025, D.4024D.4024, v>
+  gimple_cond <ne_expr, D.4025D.4025, 0, NULL, NULL>
+    goto <bb 5>;
+  else
+    goto <bb 6>;
+
+<bb 5>:
+  gimple_assign <component_ref, D.4020D.4020, Meth->ylow, NULL>
+  goto <bb 20>;
+
+<bb 6>:
+  gimple_assign <nop_expr, D.4028D.4028, j, NULL>
+  gimple_assign <mult_expr, D.4029D.4029, D.4028D.4028, 8>
+  gimple_assign <pointer_plus_expr, D.4030D.4030, x, D.4029D.4029>
+  gimple_assign <indirect_ref, D.4031D.4031, *D.4030D.4030, NULL>
+  gimple_assign <lt_expr, D.4032D.4032, D.4031D.4031, v>
+  gimple_cond <ne_expr, D.4032D.4032, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 8>;
+
+<bb 7>:
+  gimple_assign <component_ref, D.4020D.4020, Meth->yhigh, NULL>
+  goto <bb 20>;
+
+<bb 8>:
+  goto <bb 12>;
+
+<bb 9>:
+  gimple_assign <plus_expr, D.4035D.4035, i, j>
+  gimple_assign <trunc_div_expr, ij, D.4035D.4035, 2>
+  gimple_assign <nop_expr, D.4036D.4036, ij, NULL>
+  gimple_assign <mult_expr, D.4037D.4037, D.4036D.4036, 8>
+  gimple_assign <pointer_plus_expr, D.4038D.4038, x, D.4037D.4037>
+  gimple_assign <indirect_ref, D.4039D.4039, *D.4038D.4038, NULL>
+  gimple_assign <gt_expr, D.4040D.4040, D.4039D.4039, v>
+  gimple_cond <ne_expr, D.4040D.4040, 0, NULL, NULL>
+    goto <bb 10>;
+  else
+    goto <bb 11>;
+
+<bb 10>:
+  gimple_assign <var_decl, j, ij, NULL>
+  goto <bb 12>;
+
+<bb 11>:
+  gimple_assign <var_decl, i, ij, NULL>
+
+<bb 12>:
+  gimple_assign <plus_expr, D.4044D.4044, j, -1>
+  gimple_cond <gt_expr, D.4044D.4044, i, NULL, NULL>
+    goto <bb 9>;
+  else
+    goto <bb 13>;
+
+<bb 13>:
+  gimple_assign <nop_expr, D.4045D.4045, j, NULL>
+  gimple_assign <mult_expr, D.4046D.4046, D.4045D.4045, 8>
+  gimple_assign <pointer_plus_expr, D.4047D.4047, x, D.4046D.4046>
+  gimple_assign <indirect_ref, D.4048D.4048, *D.4047D.4047, NULL>
+  gimple_cond <eq_expr, D.4048D.4048, v, NULL, NULL>
+    goto <bb 14>;
+  else
+    goto <bb 15>;
+
+<bb 14>:
+  gimple_assign <nop_expr, D.4051D.4051, j, NULL>
+  gimple_assign <mult_expr, D.4052D.4052, D.4051D.4051, 8>
+  gimple_assign <pointer_plus_expr, D.4053D.4053, y, D.4052D.4052>
+  gimple_assign <indirect_ref, D.4020D.4020, *D.4053D.4053, NULL>
+  goto <bb 20>;
+
+<bb 15>:
+  gimple_assign <nop_expr, D.4054D.4054, i, NULL>
+  gimple_assign <mult_expr, D.4055D.4055, D.4054D.4054, 8>
+  gimple_assign <pointer_plus_expr, D.4056D.4056, x, D.4055D.4055>
+  gimple_assign <indirect_ref, D.4057D.4057, *D.4056D.4056, NULL>
+  gimple_cond <eq_expr, D.4057D.4057, v, NULL, NULL>
+    goto <bb 16>;
+  else
+    goto <bb 17>;
+
+<bb 16>:
+  gimple_assign <nop_expr, D.4060D.4060, i, NULL>
+  gimple_assign <mult_expr, D.4061D.4061, D.4060D.4060, 8>
+  gimple_assign <pointer_plus_expr, D.4062D.4062, y, D.4061D.4061>
+  gimple_assign <indirect_ref, D.4020D.4020, *D.4062D.4062, NULL>
+  goto <bb 20>;
+
+<bb 17>:
+  gimple_assign <component_ref, D.4063D.4063, Meth->kind, NULL>
+  gimple_cond <eq_expr, D.4063D.4063, 1, NULL, NULL>
+    goto <bb 18>;
+  else
+    goto <bb 19>;
+
+<bb 18>:
+  gimple_assign <nop_expr, D.4066D.4066, i, NULL>
+  gimple_assign <mult_expr, D.4067D.4067, D.4066D.4066, 8>
+  gimple_assign <pointer_plus_expr, D.4068D.4068, y, D.4067D.4067>
+  gimple_assign <indirect_ref, D.4069D.4069, *D.4068D.4068, NULL>
+  gimple_assign <nop_expr, D.4070D.4070, j, NULL>
+  gimple_assign <mult_expr, D.4071D.4071, D.4070D.4070, 8>
+  gimple_assign <pointer_plus_expr, D.4072D.4072, y, D.4071D.4071>
+  gimple_assign <indirect_ref, D.4073D.4073, *D.4072D.4072, NULL>
+  gimple_assign <nop_expr, D.4074D.4074, i, NULL>
+  gimple_assign <mult_expr, D.4075D.4075, D.4074D.4074, 8>
+  gimple_assign <pointer_plus_expr, D.4076D.4076, y, D.4075D.4075>
+  gimple_assign <indirect_ref, D.4077D.4077, *D.4076D.4076, NULL>
+  gimple_assign <minus_expr, D.4078D.4078, D.4073D.4073, D.4077D.4077>
+  gimple_assign <nop_expr, D.4079D.4079, i, NULL>
+  gimple_assign <mult_expr, D.4080D.4080, D.4079D.4079, 8>
+  gimple_assign <pointer_plus_expr, D.4081D.4081, x, D.4080D.4080>
+  gimple_assign <indirect_ref, D.4082D.4082, *D.4081D.4081, NULL>
+  gimple_assign <minus_expr, D.4083D.4083, v, D.4082D.4082>
+  gimple_assign <nop_expr, D.4084D.4084, j, NULL>
+  gimple_assign <mult_expr, D.4085D.4085, D.4084D.4084, 8>
+  gimple_assign <pointer_plus_expr, D.4086D.4086, x, D.4085D.4085>
+  gimple_assign <indirect_ref, D.4087D.4087, *D.4086D.4086, NULL>
+  gimple_assign <nop_expr, D.4088D.4088, i, NULL>
+  gimple_assign <mult_expr, D.4089D.4089, D.4088D.4088, 8>
+  gimple_assign <pointer_plus_expr, D.4090D.4090, x, D.4089D.4089>
+  gimple_assign <indirect_ref, D.4091D.4091, *D.4090D.4090, NULL>
+  gimple_assign <minus_expr, D.4092D.4092, D.4087D.4087, D.4091D.4091>
+  gimple_assign <rdiv_expr, D.4093D.4093, D.4083D.4083, D.4092D.4092>
+  gimple_assign <mult_expr, D.4094D.4094, D.4078D.4078, D.4093D.4093>
+  gimple_assign <plus_expr, D.4020D.4020, D.4069D.4069, D.4094D.4094>
+  goto <bb 20>;
+
+<bb 19>:
+  gimple_assign <nop_expr, D.4095D.4095, i, NULL>
+  gimple_assign <mult_expr, D.4096D.4096, D.4095D.4095, 8>
+  gimple_assign <pointer_plus_expr, D.4097D.4097, y, D.4096D.4096>
+  gimple_assign <indirect_ref, D.4098D.4098, *D.4097D.4097, NULL>
+  gimple_assign <component_ref, D.4099D.4099, Meth->f1, NULL>
+  gimple_assign <mult_expr, D.4100D.4100, D.4098D.4098, D.4099D.4099>
+  gimple_assign <nop_expr, D.4101D.4101, j, NULL>
+  gimple_assign <mult_expr, D.4102D.4102, D.4101D.4101, 8>
+  gimple_assign <pointer_plus_expr, D.4103D.4103, y, D.4102D.4102>
+  gimple_assign <indirect_ref, D.4104D.4104, *D.4103D.4103, NULL>
+  gimple_assign <component_ref, D.4105D.4105, Meth->f2, NULL>
+  gimple_assign <mult_expr, D.4106D.4106, D.4104D.4104, D.4105D.4105>
+  gimple_assign <plus_expr, D.4020D.4020, D.4100D.4100, D.4106D.4106>
+
+<bb 20>:
+  gimple_return <D.4020D.4020>
+
+}
+
+
+
+;; Function R_approx (R_approx)
+
+Analyzing Edge Insertions.
+R_approx (double * x, double * y, int * nxy, double * xout, int * nout, int * method, double * yleft, double * yright, double * f)
+{
+  struct appr_meth M;
+  int i;
+  int D.4177D.4177;
+  double D.4176D.4176;
+  double D.4175D.4175;
+  double * D.4174D.4174;
+  long unsigned int D.4173D.4173;
+  long unsigned int D.4172D.4172;
+  int D.4171D.4171;
+  double * D.4170D.4170;
+  long unsigned int D.4169D.4169;
+  long unsigned int D.4168D.4168;
+  int D.4165D.4165;
+  double D.4164D.4164;
+  double * D.4163D.4163;
+  long unsigned int D.4162D.4162;
+  long unsigned int D.4161D.4161;
+  double D.4160D.4160;
+  double D.4159D.4159;
+  int D.4158D.4158;
+  int D.4157D.4157;
+  int D.4156D.4156;
+  double D.4155D.4155;
+  double * D.4154D.4154;
+  long unsigned int D.4153D.4153;
+  long unsigned int D.4152D.4152;
+  int D.4150D.4150;
+  double D.4149D.4149;
+  double * D.4148D.4148;
+  long unsigned int D.4147D.4147;
+  long unsigned int D.4146D.4146;
+  double D.4143D.4143;
+  double D.4142D.4142;
+  double D.4141D.4141;
+  _Bool D.4140D.4140;
+  double D.4139D.4139;
+  _Bool D.4137D.4137;
+  double D.4136D.4136;
+  int D.4134D.4134;
+  double D.4133D.4133;
+  int D.4130D.4130;
+
+<bb 2>:
+  gimple_assign <real_cst, M.ylow, 0.0, NULL>
+  gimple_assign <real_cst, M.yhigh, 0.0, NULL>
+  gimple_assign <real_cst, M.f1, 0.0, NULL>
+  gimple_assign <real_cst, M.f2, 0.0, NULL>
+  gimple_assign <integer_cst, M.kind, 0, NULL>
+  gimple_assign <indirect_ref, D.4130D.4130, *method, NULL>
+  gimple_switch <D.4130D.4130, default: <L6>, case 1: <L0>, case 2: <L1>>
+
+gimple_label <<L0>>
+  goto <bb 10>;
+
+gimple_label <<L1>>
+  gimple_assign <indirect_ref, D.4133D.4133, *f, NULL>
+  gimple_call <R_finite, D.4134D.4134, D.4133D.4133>
+  gimple_cond <eq_expr, D.4134D.4134, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <indirect_ref, D.4136D.4136, *f, NULL>
+  gimple_assign <lt_expr, D.4137D.4137, D.4136D.4136, 0.0>
+  gimple_cond <ne_expr, D.4137D.4137, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 6>;
+
+<bb 6>:
+  gimple_assign <indirect_ref, D.4139D.4139, *f, NULL>
+  gimple_assign <gt_expr, D.4140D.4140, D.4139D.4139, 1.0e+0>
+  gimple_cond <ne_expr, D.4140D.4140, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 8>;
+
+<bb 7>:
+  gimple_call <Rf_error, NULL, &"approx(): invalid f value"[0]>
+
+<bb 8>:
+  gimple_assign <indirect_ref, D.4141D.4141, *f, NULL>
+  gimple_assign <var_decl, M.f2, D.4141D.4141, NULL>
+  gimple_assign <indirect_ref, D.4142D.4142, *f, NULL>
+  gimple_assign <minus_expr, D.4143D.4143, 1.0e+0, D.4142D.4142>
+  gimple_assign <var_decl, M.f1, D.4143D.4143, NULL>
+  goto <bb 10>;
+
+gimple_label <<L6>>
+  gimple_call <Rf_error, NULL, &"approx(): invalid interpolation method"[0]>
+
+<bb 10>:
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 15>;
+
+<bb 11>:
+  gimple_assign <nop_expr, D.4146D.4146, i, NULL>
+  gimple_assign <mult_expr, D.4147D.4147, D.4146D.4146, 8>
+  gimple_assign <pointer_plus_expr, D.4148D.4148, x, D.4147D.4147>
+  gimple_assign <indirect_ref, D.4149D.4149, *D.4148D.4148, NULL>
+  gimple_call <R_IsNA, D.4150D.4150, D.4149D.4149>
+  gimple_cond <ne_expr, D.4150D.4150, 0, NULL, NULL>
+    goto <bb 13>;
+  else
+    goto <bb 12>;
+
+<bb 12>:
+  gimple_assign <nop_expr, D.4152D.4152, i, NULL>
+  gimple_assign <mult_expr, D.4153D.4153, D.4152D.4152, 8>
+  gimple_assign <pointer_plus_expr, D.4154D.4154, y, D.4153D.4153>
+  gimple_assign <indirect_ref, D.4155D.4155, *D.4154D.4154, NULL>
+  gimple_call <R_IsNA, D.4156D.4156, D.4155D.4155>
+  gimple_cond <ne_expr, D.4156D.4156, 0, NULL, NULL>
+    goto <bb 13>;
+  else
+    goto <bb 14>;
+
+<bb 13>:
+  gimple_call <Rf_error, NULL, &"approx(): attempted to interpolate NA values"[0]>
+
+<bb 14>:
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 15>:
+  gimple_assign <indirect_ref, D.4157D.4157, *nxy, NULL>
+  gimple_cond <gt_expr, D.4157D.4157, i, NULL, NULL>
+    goto <bb 11>;
+  else
+    goto <bb 16>;
+
+<bb 16>:
+  gimple_assign <indirect_ref, D.4158D.4158, *method, NULL>
+  gimple_assign <var_decl, M.kind, D.4158D.4158, NULL>
+  gimple_assign <indirect_ref, D.4159D.4159, *yleft, NULL>
+  gimple_assign <var_decl, M.ylow, D.4159D.4159, NULL>
+  gimple_assign <indirect_ref, D.4160D.4160, *yright, NULL>
+  gimple_assign <var_decl, M.yhigh, D.4160D.4160, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 20>;
+
+<bb 17>:
+  gimple_assign <nop_expr, D.4161D.4161, i, NULL>
+  gimple_assign <mult_expr, D.4162D.4162, D.4161D.4161, 8>
+  gimple_assign <pointer_plus_expr, D.4163D.4163, xout, D.4162D.4162>
+  gimple_assign <indirect_ref, D.4164D.4164, *D.4163D.4163, NULL>
+  gimple_call <R_IsNA, D.4165D.4165, D.4164D.4164>
+  gimple_cond <eq_expr, D.4165D.4165, 0, NULL, NULL>
+    goto <bb 18>;
+  else
+    goto <bb 19>;
+
+<bb 18>:
+  gimple_assign <nop_expr, D.4168D.4168, i, NULL>
+  gimple_assign <mult_expr, D.4169D.4169, D.4168D.4168, 8>
+  gimple_assign <pointer_plus_expr, D.4170D.4170, xout, D.4169D.4169>
+  gimple_assign <indirect_ref, D.4171D.4171, *nxy, NULL>
+  gimple_assign <nop_expr, D.4172D.4172, i, NULL>
+  gimple_assign <mult_expr, D.4173D.4173, D.4172D.4172, 8>
+  gimple_assign <pointer_plus_expr, D.4174D.4174, xout, D.4173D.4173>
+  gimple_assign <indirect_ref, D.4175D.4175, *D.4174D.4174, NULL>
+  gimple_call <approx1, D.4176D.4176, D.4175D.4175, x, y, D.4171D.4171, &M>
+  gimple_assign <var_decl, *D.4170D.4170, D.4176D.4176, NULL>
+
+<bb 19>:
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 20>:
+  gimple_assign <indirect_ref, D.4177D.4177, *nout, NULL>
+  gimple_cond <gt_expr, D.4177D.4177, i, NULL, NULL>
+    goto <bb 17>;
+  else
+    goto <bb 21>;
+
+<bb 21>:
+  gimple_return <NULL>
+
+}
+
+
+
+;; Function R_approxtest (R_approxtest)
+
+Analyzing Edge Insertions.
+R_approxtest (double * x, double * y, int * nxy, int * method, double * f)
+{
+  int i;
+  int D.4217D.4217;
+  int D.4216D.4216;
+  double D.4215D.4215;
+  double * D.4214D.4214;
+  long unsigned int D.4213D.4213;
+  long unsigned int D.4212D.4212;
+  int D.4210D.4210;
+  double D.4209D.4209;
+  double * D.4208D.4208;
+  long unsigned int D.4207D.4207;
+  long unsigned int D.4206D.4206;
+  _Bool D.4203D.4203;
+  double D.4202D.4202;
+  _Bool D.4200D.4200;
+  double D.4199D.4199;
+  int D.4197D.4197;
+  double D.4196D.4196;
+  int D.4193D.4193;
+
+<bb 2>:
+  gimple_assign <indirect_ref, D.4193D.4193, *method, NULL>
+  gimple_switch <D.4193D.4193, default: <L6>, case 1: <L0>, case 2: <L1>>
+
+gimple_label <<L0>>
+  goto <bb 10>;
+
+gimple_label <<L1>>
+  gimple_assign <indirect_ref, D.4196D.4196, *f, NULL>
+  gimple_call <R_finite, D.4197D.4197, D.4196D.4196>
+  gimple_cond <eq_expr, D.4197D.4197, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <indirect_ref, D.4199D.4199, *f, NULL>
+  gimple_assign <lt_expr, D.4200D.4200, D.4199D.4199, 0.0>
+  gimple_cond <ne_expr, D.4200D.4200, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 6>;
+
+<bb 6>:
+  gimple_assign <indirect_ref, D.4202D.4202, *f, NULL>
+  gimple_assign <gt_expr, D.4203D.4203, D.4202D.4202, 1.0e+0>
+  gimple_cond <ne_expr, D.4203D.4203, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 8>;
+
+<bb 7>:
+  gimple_call <Rf_error, NULL, &"approx(): invalid f value"[0]>
+
+<bb 8>:
+  goto <bb 10>;
+
+gimple_label <<L6>>
+  gimple_call <Rf_error, NULL, &"approx(): invalid interpolation method"[0]>
+
+<bb 10>:
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 15>;
+
+<bb 11>:
+  gimple_assign <nop_expr, D.4206D.4206, i, NULL>
+  gimple_assign <mult_expr, D.4207D.4207, D.4206D.4206, 8>
+  gimple_assign <pointer_plus_expr, D.4208D.4208, x, D.4207D.4207>
+  gimple_assign <indirect_ref, D.4209D.4209, *D.4208D.4208, NULL>
+  gimple_call <R_IsNA, D.4210D.4210, D.4209D.4209>
+  gimple_cond <ne_expr, D.4210D.4210, 0, NULL, NULL>
+    goto <bb 13>;
+  else
+    goto <bb 12>;
+
+<bb 12>:
+  gimple_assign <nop_expr, D.4212D.4212, i, NULL>
+  gimple_assign <mult_expr, D.4213D.4213, D.4212D.4212, 8>
+  gimple_assign <pointer_plus_expr, D.4214D.4214, y, D.4213D.4213>
+  gimple_assign <indirect_ref, D.4215D.4215, *D.4214D.4214, NULL>
+  gimple_call <R_IsNA, D.4216D.4216, D.4215D.4215>
+  gimple_cond <ne_expr, D.4216D.4216, 0, NULL, NULL>
+    goto <bb 13>;
+  else
+    goto <bb 14>;
+
+<bb 13>:
+  gimple_call <Rf_error, NULL, &"approx(): attempted to interpolate NA values"[0]>
+
+<bb 14>:
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 15>:
+  gimple_assign <indirect_ref, D.4217D.4217, *nxy, NULL>
+  gimple_cond <gt_expr, D.4217D.4217, i, NULL, NULL>
+    goto <bb 11>;
+  else
+    goto <bb 16>;
+
+<bb 16>:
+  gimple_return <NULL>
+
+}
+
+
+
+;; Function R_approxfun (R_approxfun)
+
+Analyzing Edge Insertions.
+R_approxfun (double * x, double * y, int * nxy, double * xout, int * nout, int * method, double * yleft, double * yright, double * f)
+{
+  struct appr_meth M;
+  int i;
+  int D.4256D.4256;
+  double D.4255D.4255;
+  double D.4254D.4254;
+  double * D.4253D.4253;
+  long unsigned int D.4252D.4252;
+  long unsigned int D.4251D.4251;
+  int D.4250D.4250;
+  double * D.4249D.4249;
+  long unsigned int D.4248D.4248;
+  long unsigned int D.4247D.4247;
+  int D.4244D.4244;
+  double D.4243D.4243;
+  double * D.4242D.4242;
+  long unsigned int D.4241D.4241;
+  long unsigned int D.4240D.4240;
+  double D.4239D.4239;
+  double D.4238D.4238;
+  int D.4237D.4237;
+  double D.4236D.4236;
+  double D.4235D.4235;
+  double D.4234D.4234;
+
+<bb 2>:
+  gimple_assign <real_cst, M.ylow, 0.0, NULL>
+  gimple_assign <real_cst, M.yhigh, 0.0, NULL>
+  gimple_assign <real_cst, M.f1, 0.0, NULL>
+  gimple_assign <real_cst, M.f2, 0.0, NULL>
+  gimple_assign <integer_cst, M.kind, 0, NULL>
+  gimple_assign <indirect_ref, D.4234D.4234, *f, NULL>
+  gimple_assign <var_decl, M.f2, D.4234D.4234, NULL>
+  gimple_assign <indirect_ref, D.4235D.4235, *f, NULL>
+  gimple_assign <minus_expr, D.4236D.4236, 1.0e+0, D.4235D.4235>
+  gimple_assign <var_decl, M.f1, D.4236D.4236, NULL>
+  gimple_assign <indirect_ref, D.4237D.4237, *method, NULL>
+  gimple_assign <var_decl, M.kind, D.4237D.4237, NULL>
+  gimple_assign <indirect_ref, D.4238D.4238, *yleft, NULL>
+  gimple_assign <var_decl, M.ylow, D.4238D.4238, NULL>
+  gimple_assign <indirect_ref, D.4239D.4239, *yright, NULL>
+  gimple_assign <var_decl, M.yhigh, D.4239D.4239, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 6>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.4240D.4240, i, NULL>
+  gimple_assign <mult_expr, D.4241D.4241, D.4240D.4240, 8>
+  gimple_assign <pointer_plus_expr, D.4242D.4242, xout, D.4241D.4241>
+  gimple_assign <indirect_ref, D.4243D.4243, *D.4242D.4242, NULL>
+  gimple_call <R_IsNA, D.4244D.4244, D.4243D.4243>
+  gimple_cond <eq_expr, D.4244D.4244, 0, NULL, NULL>
+    goto <bb 4>;
+  else
+    goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <nop_expr, D.4247D.4247, i, NULL>
+  gimple_assign <mult_expr, D.4248D.4248, D.4247D.4247, 8>
+  gimple_assign <pointer_plus_expr, D.4249D.4249, xout, D.4248D.4248>
+  gimple_assign <indirect_ref, D.4250D.4250, *nxy, NULL>
+  gimple_assign <nop_expr, D.4251D.4251, i, NULL>
+  gimple_assign <mult_expr, D.4252D.4252, D.4251D.4251, 8>
+  gimple_assign <pointer_plus_expr, D.4253D.4253, xout, D.4252D.4252>
+  gimple_assign <indirect_ref, D.4254D.4254, *D.4253D.4253, NULL>
+  gimple_call <approx1, D.4255D.4255, D.4254D.4254, x, y, D.4250D.4250, &M>
+  gimple_assign <var_decl, *D.4249D.4249, D.4255D.4255, NULL>
+
+<bb 5>:
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 6>:
+  gimple_assign <indirect_ref, D.4256D.4256, *nout, NULL>
+  gimple_cond <gt_expr, D.4256D.4256, i, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 7>;
+
+<bb 7>:
+  gimple_return <NULL>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  int i;
+  double sum;
+  double D.2643D.2643;
+  double D.2642D.2642;
+  double * D.2641D.2641;
+  long unsigned int D.2640D.2640;
+  long unsigned int D.2639D.2639;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2639D.2639, i, NULL>
+  gimple_assign <mult_expr, D.2640D.2640, D.2639D.2639, 8>
+  gimple_assign <pointer_plus_expr, D.2641D.2641, values, D.2640D.2640>
+  gimple_assign <indirect_ref, D.2642D.2642, *D.2641D.2641, NULL>
+  gimple_assign <plus_expr, sum, D.2642D.2642, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2643D.2643, sum, NULL>
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  int i;
+  double sum;
+  double D.2643D.2643;
+  double D.2642D.2642;
+  double * D.2641D.2641;
+  long unsigned int D.2640D.2640;
+  long unsigned int D.2639D.2639;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2639D.2639, i, NULL>
+  gimple_assign <mult_expr, D.2640D.2640, D.2639D.2639, 8>
+  gimple_assign <pointer_plus_expr, D.2641D.2641, values, D.2640D.2640>
+  gimple_assign <indirect_ref, D.2642D.2642, *D.2641D.2641, NULL>
+  gimple_assign <plus_expr, sum, D.2642D.2642, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2643D.2643, sum, NULL>
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function R_dist_binary (R_dist_binary)
+
+Analyzing Edge Insertions.
+R_dist_binary (double * x, int nr, int nc, int i1, int i2)
+{
+  int j;
+  int dist;
+  int count;
+  int total;
+  double D.2647D.2647;
+  double D.2646D.2646;
+  double D.2643D.2643;
+
+<bb 2>:
+  gimple_assign <integer_cst, total, 0, NULL>
+  gimple_assign <integer_cst, count, 0, NULL>
+  gimple_assign <integer_cst, dist, 0, NULL>
+  gimple_cond <eq_expr, total, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <real_cst, D.2643D.2643, 1.0e+0, NULL>
+  goto <bb 7>;
+
+<bb 4>:
+  gimple_cond <eq_expr, count, 0, NULL, NULL>
+    goto <bb 5>;
+  else
+    goto <bb 6>;
+
+<bb 5>:
+  gimple_assign <real_cst, D.2643D.2643, 0.0, NULL>
+  goto <bb 7>;
+
+<bb 6>:
+  gimple_assign <float_expr, D.2646D.2646, dist, NULL>
+  gimple_assign <float_expr, D.2647D.2647, count, NULL>
+  gimple_assign <rdiv_expr, D.2643D.2643, D.2646D.2646, D.2647D.2647>
+
+<bb 7>:
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function square (square)
+
+Analyzing Edge Insertions.
+square (double x)
+{
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2633D.2633, x, x>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function cube (cube)
+
+Analyzing Edge Insertions.
+cube (double x)
+{
+  double D.2638D.2638;
+  double D.2637D.2637;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2638D.2638, x, x>
+  gimple_assign <mult_expr, D.2637D.2637, D.2638D.2638, x>
+  gimple_return <D.2637D.2637>
+
+}
+
+
+
+;; Function sum_x_array (sum_x_array)
+
+Analyzing Edge Insertions.
+sum_x_array (double * values, int length, double (*<T675>) (double) fn)
+{
+  int i;
+  double sum;
+  double D.2655D.2655;
+  double D.2654D.2654;
+  double D.2653D.2653;
+  double * D.2652D.2652;
+  long unsigned int D.2651D.2651;
+  long unsigned int D.2650D.2650;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2650D.2650, i, NULL>
+  gimple_assign <mult_expr, D.2651D.2651, D.2650D.2650, 8>
+  gimple_assign <pointer_plus_expr, D.2652D.2652, values, D.2651D.2651>
+  gimple_assign <indirect_ref, D.2653D.2653, *D.2652D.2652, NULL>
+  gimple_call <fn, D.2654D.2654, D.2653D.2653>
+  gimple_assign <plus_expr, sum, D.2654D.2654, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2655D.2655, sum, NULL>
+  gimple_return <D.2655D.2655>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  double (*<T675>) (double) fn;
+  double D.2666D.2666;
+  double D.2665D.2665;
+
+<bb 2>:
+  gimple_assign <integer_cst, fn, 0B, NULL>
+  gimple_cond <gt_expr, length, 1, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <addr_expr, fn, square, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <addr_expr, fn, cube, NULL>
+
+<bb 5>:
+  gimple_call <sum_x_array, D.2666D.2666, values, length, fn>
+  gimple_assign <var_decl, D.2665D.2665, D.2666D.2666, NULL>
+  gimple_return <D.2665D.2665>
+
+}
+
+
+
+;; Function circle_area (circle_area)
+
+Analyzing Edge Insertions.
+circle_area (double radius)
+{
+  double D.2634D.2634;
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2634D.2634, radius, 3.141592653589793115997963468544185161590576171875e+0>
+  gimple_assign <mult_expr, D.2633D.2633, D.2634D.2634, radius>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function square (square)
+
+Analyzing Edge Insertions.
+square (double x)
+{
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2633D.2633, x, x>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function cube (cube)
+
+Analyzing Edge Insertions.
+cube (double x)
+{
+  double D.2638D.2638;
+  double D.2637D.2637;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2638D.2638, x, x>
+  gimple_assign <mult_expr, D.2637D.2637, D.2638D.2638, x>
+  gimple_return <D.2637D.2637>
+
+}
+
+
+
+;; Function sum_x_array (sum_x_array)
+
+Analyzing Edge Insertions.
+sum_x_array (double * values, int length, double (*<T675>) (double) fn)
+{
+  int i;
+  double sum;
+  double D.2655D.2655;
+  double D.2654D.2654;
+  double D.2653D.2653;
+  double * D.2652D.2652;
+  long unsigned int D.2651D.2651;
+  long unsigned int D.2650D.2650;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2650D.2650, i, NULL>
+  gimple_assign <mult_expr, D.2651D.2651, D.2650D.2650, 8>
+  gimple_assign <pointer_plus_expr, D.2652D.2652, values, D.2651D.2651>
+  gimple_assign <indirect_ref, D.2653D.2653, *D.2652D.2652, NULL>
+  gimple_call <fn, D.2654D.2654, D.2653D.2653>
+  gimple_assign <plus_expr, sum, D.2654D.2654, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2655D.2655, sum, NULL>
+  gimple_return <D.2655D.2655>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  double (*<T675>) (double) fn;
+  double D.2666D.2666;
+  double D.2665D.2665;
+
+<bb 2>:
+  gimple_assign <integer_cst, fn, 0B, NULL>
+  gimple_cond <gt_expr, length, 1, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <addr_expr, fn, square, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <addr_expr, fn, cube, NULL>
+
+<bb 5>:
+  gimple_call <sum_x_array, D.2666D.2666, values, length, fn>
+  gimple_assign <var_decl, D.2665D.2665, D.2666D.2666, NULL>
+  gimple_return <D.2665D.2665>
+
+}
+
+
+
+;; Function R_dist_binary (R_dist_binary)
+
+Analyzing Edge Insertions.
+R_dist_binary (double * x, int nr, int nc, int i1, int i2)
+{
+  int j;
+  int dist;
+  int count;
+  int total;
+  double D.2647D.2647;
+  double D.2646D.2646;
+  double D.2643D.2643;
+
+<bb 2>:
+  gimple_assign <integer_cst, total, 0, NULL>
+  gimple_assign <integer_cst, count, 0, NULL>
+  gimple_assign <integer_cst, dist, 0, NULL>
+  gimple_cond <eq_expr, total, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <real_cst, D.2643D.2643, 1.0e+0, NULL>
+  goto <bb 7>;
+
+<bb 4>:
+  gimple_cond <eq_expr, count, 0, NULL, NULL>
+    goto <bb 5>;
+  else
+    goto <bb 6>;
+
+<bb 5>:
+  gimple_assign <real_cst, D.2643D.2643, 0.0, NULL>
+  goto <bb 7>;
+
+<bb 6>:
+  gimple_assign <float_expr, D.2646D.2646, dist, NULL>
+  gimple_assign <float_expr, D.2647D.2647, count, NULL>
+  gimple_assign <rdiv_expr, D.2643D.2643, D.2646D.2646, D.2647D.2647>
+
+<bb 7>:
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function test (test)
+
+Analyzing Edge Insertions.
+test (int x)
+{
+  int z;
+  int D.1597D.1597;
+
+<bb 2>:
+  gimple_assign <eq_expr, z, x, 42>
+  gimple_cond <ne_expr, z, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, D.1597D.1597, 4, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, D.1597D.1597, 5, NULL>
+
+<bb 5>:
+  gimple_return <D.1597D.1597>
+
+}
+
+
+
+;; Function circle_area (circle_area)
+
+Analyzing Edge Insertions.
+circle_area (double radius)
+{
+  double D.2634D.2634;
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2634D.2634, radius, 3.141592653589793115997963468544185161590576171875e+0>
+  gimple_assign <mult_expr, D.2633D.2633, D.2634D.2634, radius>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function lessThan (lessThan)
+
+Analyzing Edge Insertions.
+lessThan (double x, double y)
+{
+  int i;
+  int D.1600D.1600;
+  _Bool D.1596D.1596;
+
+<bb 2>:
+  gimple_assign <lt_expr, D.1596D.1596, x, y>
+  gimple_cond <ne_expr, D.1596D.1596, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, i, 1, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+
+<bb 5>:
+  gimple_assign <var_decl, D.1600D.1600, i, NULL>
+  gimple_return <D.1600D.1600>
+
+}
+
+
+
+;; Function lessThanEqual (lessThanEqual)
+
+Analyzing Edge Insertions.
+lessThanEqual (double x, double y)
+{
+  int i;
+  int D.1610D.1610;
+  _Bool D.1606D.1606;
+
+<bb 2>:
+  gimple_assign <le_expr, D.1606D.1606, x, y>
+  gimple_cond <ne_expr, D.1606D.1606, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, i, 1, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+
+<bb 5>:
+  gimple_assign <var_decl, D.1610D.1610, i, NULL>
+  gimple_return <D.1610D.1610>
+
+}
+
+
+
+;; Function greaterThan (greaterThan)
+
+Analyzing Edge Insertions.
+greaterThan (double x, double y)
+{
+  int i;
+  int D.1620D.1620;
+  _Bool D.1616D.1616;
+
+<bb 2>:
+  gimple_assign <gt_expr, D.1616D.1616, x, y>
+  gimple_cond <ne_expr, D.1616D.1616, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, i, 1, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+
+<bb 5>:
+  gimple_assign <var_decl, D.1620D.1620, i, NULL>
+  gimple_return <D.1620D.1620>
+
+}
+
+
+
+;; Function greaterThanEqual (greaterThanEqual)
+
+Analyzing Edge Insertions.
+greaterThanEqual (double x, double y)
+{
+  int i;
+  int D.1630D.1630;
+  _Bool D.1626D.1626;
+
+<bb 2>:
+  gimple_assign <ge_expr, D.1626D.1626, x, y>
+  gimple_cond <ne_expr, D.1626D.1626, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, i, 1, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+
+<bb 5>:
+  gimple_assign <var_decl, D.1630D.1630, i, NULL>
+  gimple_return <D.1630D.1630>
+
+}
+
+
+
+;; Function R_dist_binary (R_dist_binary)
+
+Analyzing Edge Insertions.
+R_dist_binary (double * x, int nr, int nc, int i1, int i2)
+{
+  int j;
+  int dist;
+  int count;
+  int total;
+  double D.2647D.2647;
+  double D.2646D.2646;
+  double D.2643D.2643;
+
+<bb 2>:
+  gimple_assign <integer_cst, total, 0, NULL>
+  gimple_assign <integer_cst, count, 0, NULL>
+  gimple_assign <integer_cst, dist, 0, NULL>
+  gimple_cond <eq_expr, total, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <real_cst, D.2643D.2643, 1.0e+0, NULL>
+  goto <bb 7>;
+
+<bb 4>:
+  gimple_cond <eq_expr, count, 0, NULL, NULL>
+    goto <bb 5>;
+  else
+    goto <bb 6>;
+
+<bb 5>:
+  gimple_assign <real_cst, D.2643D.2643, 0.0, NULL>
+  goto <bb 7>;
+
+<bb 6>:
+  gimple_assign <float_expr, D.2646D.2646, dist, NULL>
+  gimple_assign <float_expr, D.2647D.2647, count, NULL>
+  gimple_assign <rdiv_expr, D.2643D.2643, D.2646D.2646, D.2647D.2647>
+
+<bb 7>:
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function approx1 (approx1)
+
+Analyzing Edge Insertions.
+approx1 (double v, double * x, double * y, int n, struct appr_meth * Meth)
+{
+  int ij;
+  int j;
+  int i;
+  double D.4106D.4106;
+  double D.4105D.4105;
+  double D.4104D.4104;
+  double * D.4103D.4103;
+  long unsigned int D.4102D.4102;
+  long unsigned int D.4101D.4101;
+  double D.4100D.4100;
+  double D.4099D.4099;
+  double D.4098D.4098;
+  double * D.4097D.4097;
+  long unsigned int D.4096D.4096;
+  long unsigned int D.4095D.4095;
+  double D.4094D.4094;
+  double D.4093D.4093;
+  double D.4092D.4092;
+  double D.4091D.4091;
+  double * D.4090D.4090;
+  long unsigned int D.4089D.4089;
+  long unsigned int D.4088D.4088;
+  double D.4087D.4087;
+  double * D.4086D.4086;
+  long unsigned int D.4085D.4085;
+  long unsigned int D.4084D.4084;
+  double D.4083D.4083;
+  double D.4082D.4082;
+  double * D.4081D.4081;
+  long unsigned int D.4080D.4080;
+  long unsigned int D.4079D.4079;
+  double D.4078D.4078;
+  double D.4077D.4077;
+  double * D.4076D.4076;
+  long unsigned int D.4075D.4075;
+  long unsigned int D.4074D.4074;
+  double D.4073D.4073;
+  double * D.4072D.4072;
+  long unsigned int D.4071D.4071;
+  long unsigned int D.4070D.4070;
+  double D.4069D.4069;
+  double * D.4068D.4068;
+  long unsigned int D.4067D.4067;
+  long unsigned int D.4066D.4066;
+  int D.4063D.4063;
+  double * D.4062D.4062;
+  long unsigned int D.4061D.4061;
+  long unsigned int D.4060D.4060;
+  double D.4057D.4057;
+  double * D.4056D.4056;
+  long unsigned int D.4055D.4055;
+  long unsigned int D.4054D.4054;
+  double * D.4053D.4053;
+  long unsigned int D.4052D.4052;
+  long unsigned int D.4051D.4051;
+  double D.4048D.4048;
+  double * D.4047D.4047;
+  long unsigned int D.4046D.4046;
+  long unsigned int D.4045D.4045;
+  int D.4044D.4044;
+  _Bool D.4040D.4040;
+  double D.4039D.4039;
+  double * D.4038D.4038;
+  long unsigned int D.4037D.4037;
+  long unsigned int D.4036D.4036;
+  int D.4035D.4035;
+  _Bool D.4032D.4032;
+  double D.4031D.4031;
+  double * D.4030D.4030;
+  long unsigned int D.4029D.4029;
+  long unsigned int D.4028D.4028;
+  _Bool D.4025D.4025;
+  double D.4024D.4024;
+  double * D.4023D.4023;
+  long unsigned int D.4022D.4022;
+  long unsigned int D.4021D.4021;
+  double D.4020D.4020;
+
+<bb 2>:
+  gimple_cond <eq_expr, n, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <var_decl, D.4020D.4020, R_NaN, NULL>
+  goto <bb 20>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <plus_expr, j, n, -1>
+  gimple_assign <nop_expr, D.4021D.4021, i, NULL>
+  gimple_assign <mult_expr, D.4022D.4022, D.4021D.4021, 8>
+  gimple_assign <pointer_plus_expr, D.4023D.4023, x, D.4022D.4022>
+  gimple_assign <indirect_ref, D.4024D.4024, *D.4023D.4023, NULL>
+  gimple_assign <gt_expr, D.4025D.4025, D.4024D.4024, v>
+  gimple_cond <ne_expr, D.4025D.4025, 0, NULL, NULL>
+    goto <bb 5>;
+  else
+    goto <bb 6>;
+
+<bb 5>:
+  gimple_assign <component_ref, D.4020D.4020, Meth->ylow, NULL>
+  goto <bb 20>;
+
+<bb 6>:
+  gimple_assign <nop_expr, D.4028D.4028, j, NULL>
+  gimple_assign <mult_expr, D.4029D.4029, D.4028D.4028, 8>
+  gimple_assign <pointer_plus_expr, D.4030D.4030, x, D.4029D.4029>
+  gimple_assign <indirect_ref, D.4031D.4031, *D.4030D.4030, NULL>
+  gimple_assign <lt_expr, D.4032D.4032, D.4031D.4031, v>
+  gimple_cond <ne_expr, D.4032D.4032, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 8>;
+
+<bb 7>:
+  gimple_assign <component_ref, D.4020D.4020, Meth->yhigh, NULL>
+  goto <bb 20>;
+
+<bb 8>:
+  goto <bb 12>;
+
+<bb 9>:
+  gimple_assign <plus_expr, D.4035D.4035, i, j>
+  gimple_assign <trunc_div_expr, ij, D.4035D.4035, 2>
+  gimple_assign <nop_expr, D.4036D.4036, ij, NULL>
+  gimple_assign <mult_expr, D.4037D.4037, D.4036D.4036, 8>
+  gimple_assign <pointer_plus_expr, D.4038D.4038, x, D.4037D.4037>
+  gimple_assign <indirect_ref, D.4039D.4039, *D.4038D.4038, NULL>
+  gimple_assign <gt_expr, D.4040D.4040, D.4039D.4039, v>
+  gimple_cond <ne_expr, D.4040D.4040, 0, NULL, NULL>
+    goto <bb 10>;
+  else
+    goto <bb 11>;
+
+<bb 10>:
+  gimple_assign <var_decl, j, ij, NULL>
+  goto <bb 12>;
+
+<bb 11>:
+  gimple_assign <var_decl, i, ij, NULL>
+
+<bb 12>:
+  gimple_assign <plus_expr, D.4044D.4044, j, -1>
+  gimple_cond <gt_expr, D.4044D.4044, i, NULL, NULL>
+    goto <bb 9>;
+  else
+    goto <bb 13>;
+
+<bb 13>:
+  gimple_assign <nop_expr, D.4045D.4045, j, NULL>
+  gimple_assign <mult_expr, D.4046D.4046, D.4045D.4045, 8>
+  gimple_assign <pointer_plus_expr, D.4047D.4047, x, D.4046D.4046>
+  gimple_assign <indirect_ref, D.4048D.4048, *D.4047D.4047, NULL>
+  gimple_cond <eq_expr, D.4048D.4048, v, NULL, NULL>
+    goto <bb 14>;
+  else
+    goto <bb 15>;
+
+<bb 14>:
+  gimple_assign <nop_expr, D.4051D.4051, j, NULL>
+  gimple_assign <mult_expr, D.4052D.4052, D.4051D.4051, 8>
+  gimple_assign <pointer_plus_expr, D.4053D.4053, y, D.4052D.4052>
+  gimple_assign <indirect_ref, D.4020D.4020, *D.4053D.4053, NULL>
+  goto <bb 20>;
+
+<bb 15>:
+  gimple_assign <nop_expr, D.4054D.4054, i, NULL>
+  gimple_assign <mult_expr, D.4055D.4055, D.4054D.4054, 8>
+  gimple_assign <pointer_plus_expr, D.4056D.4056, x, D.4055D.4055>
+  gimple_assign <indirect_ref, D.4057D.4057, *D.4056D.4056, NULL>
+  gimple_cond <eq_expr, D.4057D.4057, v, NULL, NULL>
+    goto <bb 16>;
+  else
+    goto <bb 17>;
+
+<bb 16>:
+  gimple_assign <nop_expr, D.4060D.4060, i, NULL>
+  gimple_assign <mult_expr, D.4061D.4061, D.4060D.4060, 8>
+  gimple_assign <pointer_plus_expr, D.4062D.4062, y, D.4061D.4061>
+  gimple_assign <indirect_ref, D.4020D.4020, *D.4062D.4062, NULL>
+  goto <bb 20>;
+
+<bb 17>:
+  gimple_assign <component_ref, D.4063D.4063, Meth->kind, NULL>
+  gimple_cond <eq_expr, D.4063D.4063, 1, NULL, NULL>
+    goto <bb 18>;
+  else
+    goto <bb 19>;
+
+<bb 18>:
+  gimple_assign <nop_expr, D.4066D.4066, i, NULL>
+  gimple_assign <mult_expr, D.4067D.4067, D.4066D.4066, 8>
+  gimple_assign <pointer_plus_expr, D.4068D.4068, y, D.4067D.4067>
+  gimple_assign <indirect_ref, D.4069D.4069, *D.4068D.4068, NULL>
+  gimple_assign <nop_expr, D.4070D.4070, j, NULL>
+  gimple_assign <mult_expr, D.4071D.4071, D.4070D.4070, 8>
+  gimple_assign <pointer_plus_expr, D.4072D.4072, y, D.4071D.4071>
+  gimple_assign <indirect_ref, D.4073D.4073, *D.4072D.4072, NULL>
+  gimple_assign <nop_expr, D.4074D.4074, i, NULL>
+  gimple_assign <mult_expr, D.4075D.4075, D.4074D.4074, 8>
+  gimple_assign <pointer_plus_expr, D.4076D.4076, y, D.4075D.4075>
+  gimple_assign <indirect_ref, D.4077D.4077, *D.4076D.4076, NULL>
+  gimple_assign <minus_expr, D.4078D.4078, D.4073D.4073, D.4077D.4077>
+  gimple_assign <nop_expr, D.4079D.4079, i, NULL>
+  gimple_assign <mult_expr, D.4080D.4080, D.4079D.4079, 8>
+  gimple_assign <pointer_plus_expr, D.4081D.4081, x, D.4080D.4080>
+  gimple_assign <indirect_ref, D.4082D.4082, *D.4081D.4081, NULL>
+  gimple_assign <minus_expr, D.4083D.4083, v, D.4082D.4082>
+  gimple_assign <nop_expr, D.4084D.4084, j, NULL>
+  gimple_assign <mult_expr, D.4085D.4085, D.4084D.4084, 8>
+  gimple_assign <pointer_plus_expr, D.4086D.4086, x, D.4085D.4085>
+  gimple_assign <indirect_ref, D.4087D.4087, *D.4086D.4086, NULL>
+  gimple_assign <nop_expr, D.4088D.4088, i, NULL>
+  gimple_assign <mult_expr, D.4089D.4089, D.4088D.4088, 8>
+  gimple_assign <pointer_plus_expr, D.4090D.4090, x, D.4089D.4089>
+  gimple_assign <indirect_ref, D.4091D.4091, *D.4090D.4090, NULL>
+  gimple_assign <minus_expr, D.4092D.4092, D.4087D.4087, D.4091D.4091>
+  gimple_assign <rdiv_expr, D.4093D.4093, D.4083D.4083, D.4092D.4092>
+  gimple_assign <mult_expr, D.4094D.4094, D.4078D.4078, D.4093D.4093>
+  gimple_assign <plus_expr, D.4020D.4020, D.4069D.4069, D.4094D.4094>
+  goto <bb 20>;
+
+<bb 19>:
+  gimple_assign <nop_expr, D.4095D.4095, i, NULL>
+  gimple_assign <mult_expr, D.4096D.4096, D.4095D.4095, 8>
+  gimple_assign <pointer_plus_expr, D.4097D.4097, y, D.4096D.4096>
+  gimple_assign <indirect_ref, D.4098D.4098, *D.4097D.4097, NULL>
+  gimple_assign <component_ref, D.4099D.4099, Meth->f1, NULL>
+  gimple_assign <mult_expr, D.4100D.4100, D.4098D.4098, D.4099D.4099>
+  gimple_assign <nop_expr, D.4101D.4101, j, NULL>
+  gimple_assign <mult_expr, D.4102D.4102, D.4101D.4101, 8>
+  gimple_assign <pointer_plus_expr, D.4103D.4103, y, D.4102D.4102>
+  gimple_assign <indirect_ref, D.4104D.4104, *D.4103D.4103, NULL>
+  gimple_assign <component_ref, D.4105D.4105, Meth->f2, NULL>
+  gimple_assign <mult_expr, D.4106D.4106, D.4104D.4104, D.4105D.4105>
+  gimple_assign <plus_expr, D.4020D.4020, D.4100D.4100, D.4106D.4106>
+
+<bb 20>:
+  gimple_return <D.4020D.4020>
+
+}
+
+
+
+;; Function R_approx (R_approx)
+
+Analyzing Edge Insertions.
+R_approx (double * x, double * y, int * nxy, double * xout, int * nout, int * method, double * yleft, double * yright, double * f)
+{
+  struct appr_meth M;
+  int i;
+  int D.4177D.4177;
+  double D.4176D.4176;
+  double D.4175D.4175;
+  double * D.4174D.4174;
+  long unsigned int D.4173D.4173;
+  long unsigned int D.4172D.4172;
+  int D.4171D.4171;
+  double * D.4170D.4170;
+  long unsigned int D.4169D.4169;
+  long unsigned int D.4168D.4168;
+  int D.4165D.4165;
+  double D.4164D.4164;
+  double * D.4163D.4163;
+  long unsigned int D.4162D.4162;
+  long unsigned int D.4161D.4161;
+  double D.4160D.4160;
+  double D.4159D.4159;
+  int D.4158D.4158;
+  int D.4157D.4157;
+  int D.4156D.4156;
+  double D.4155D.4155;
+  double * D.4154D.4154;
+  long unsigned int D.4153D.4153;
+  long unsigned int D.4152D.4152;
+  int D.4150D.4150;
+  double D.4149D.4149;
+  double * D.4148D.4148;
+  long unsigned int D.4147D.4147;
+  long unsigned int D.4146D.4146;
+  double D.4143D.4143;
+  double D.4142D.4142;
+  double D.4141D.4141;
+  _Bool D.4140D.4140;
+  double D.4139D.4139;
+  _Bool D.4137D.4137;
+  double D.4136D.4136;
+  int D.4134D.4134;
+  double D.4133D.4133;
+  int D.4130D.4130;
+
+<bb 2>:
+  gimple_assign <real_cst, M.ylow, 0.0, NULL>
+  gimple_assign <real_cst, M.yhigh, 0.0, NULL>
+  gimple_assign <real_cst, M.f1, 0.0, NULL>
+  gimple_assign <real_cst, M.f2, 0.0, NULL>
+  gimple_assign <integer_cst, M.kind, 0, NULL>
+  gimple_assign <indirect_ref, D.4130D.4130, *method, NULL>
+  gimple_switch <D.4130D.4130, default: <L6>, case 1: <L0>, case 2: <L1>>
+
+gimple_label <<L0>>
+  goto <bb 10>;
+
+gimple_label <<L1>>
+  gimple_assign <indirect_ref, D.4133D.4133, *f, NULL>
+  gimple_call <R_finite, D.4134D.4134, D.4133D.4133>
+  gimple_cond <eq_expr, D.4134D.4134, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <indirect_ref, D.4136D.4136, *f, NULL>
+  gimple_assign <lt_expr, D.4137D.4137, D.4136D.4136, 0.0>
+  gimple_cond <ne_expr, D.4137D.4137, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 6>;
+
+<bb 6>:
+  gimple_assign <indirect_ref, D.4139D.4139, *f, NULL>
+  gimple_assign <gt_expr, D.4140D.4140, D.4139D.4139, 1.0e+0>
+  gimple_cond <ne_expr, D.4140D.4140, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 8>;
+
+<bb 7>:
+  gimple_call <Rf_error, NULL, &"approx(): invalid f value"[0]>
+
+<bb 8>:
+  gimple_assign <indirect_ref, D.4141D.4141, *f, NULL>
+  gimple_assign <var_decl, M.f2, D.4141D.4141, NULL>
+  gimple_assign <indirect_ref, D.4142D.4142, *f, NULL>
+  gimple_assign <minus_expr, D.4143D.4143, 1.0e+0, D.4142D.4142>
+  gimple_assign <var_decl, M.f1, D.4143D.4143, NULL>
+  goto <bb 10>;
+
+gimple_label <<L6>>
+  gimple_call <Rf_error, NULL, &"approx(): invalid interpolation method"[0]>
+
+<bb 10>:
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 15>;
+
+<bb 11>:
+  gimple_assign <nop_expr, D.4146D.4146, i, NULL>
+  gimple_assign <mult_expr, D.4147D.4147, D.4146D.4146, 8>
+  gimple_assign <pointer_plus_expr, D.4148D.4148, x, D.4147D.4147>
+  gimple_assign <indirect_ref, D.4149D.4149, *D.4148D.4148, NULL>
+  gimple_call <R_IsNA, D.4150D.4150, D.4149D.4149>
+  gimple_cond <ne_expr, D.4150D.4150, 0, NULL, NULL>
+    goto <bb 13>;
+  else
+    goto <bb 12>;
+
+<bb 12>:
+  gimple_assign <nop_expr, D.4152D.4152, i, NULL>
+  gimple_assign <mult_expr, D.4153D.4153, D.4152D.4152, 8>
+  gimple_assign <pointer_plus_expr, D.4154D.4154, y, D.4153D.4153>
+  gimple_assign <indirect_ref, D.4155D.4155, *D.4154D.4154, NULL>
+  gimple_call <R_IsNA, D.4156D.4156, D.4155D.4155>
+  gimple_cond <ne_expr, D.4156D.4156, 0, NULL, NULL>
+    goto <bb 13>;
+  else
+    goto <bb 14>;
+
+<bb 13>:
+  gimple_call <Rf_error, NULL, &"approx(): attempted to interpolate NA values"[0]>
+
+<bb 14>:
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 15>:
+  gimple_assign <indirect_ref, D.4157D.4157, *nxy, NULL>
+  gimple_cond <gt_expr, D.4157D.4157, i, NULL, NULL>
+    goto <bb 11>;
+  else
+    goto <bb 16>;
+
+<bb 16>:
+  gimple_assign <indirect_ref, D.4158D.4158, *method, NULL>
+  gimple_assign <var_decl, M.kind, D.4158D.4158, NULL>
+  gimple_assign <indirect_ref, D.4159D.4159, *yleft, NULL>
+  gimple_assign <var_decl, M.ylow, D.4159D.4159, NULL>
+  gimple_assign <indirect_ref, D.4160D.4160, *yright, NULL>
+  gimple_assign <var_decl, M.yhigh, D.4160D.4160, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 20>;
+
+<bb 17>:
+  gimple_assign <nop_expr, D.4161D.4161, i, NULL>
+  gimple_assign <mult_expr, D.4162D.4162, D.4161D.4161, 8>
+  gimple_assign <pointer_plus_expr, D.4163D.4163, xout, D.4162D.4162>
+  gimple_assign <indirect_ref, D.4164D.4164, *D.4163D.4163, NULL>
+  gimple_call <R_IsNA, D.4165D.4165, D.4164D.4164>
+  gimple_cond <eq_expr, D.4165D.4165, 0, NULL, NULL>
+    goto <bb 18>;
+  else
+    goto <bb 19>;
+
+<bb 18>:
+  gimple_assign <nop_expr, D.4168D.4168, i, NULL>
+  gimple_assign <mult_expr, D.4169D.4169, D.4168D.4168, 8>
+  gimple_assign <pointer_plus_expr, D.4170D.4170, xout, D.4169D.4169>
+  gimple_assign <indirect_ref, D.4171D.4171, *nxy, NULL>
+  gimple_assign <nop_expr, D.4172D.4172, i, NULL>
+  gimple_assign <mult_expr, D.4173D.4173, D.4172D.4172, 8>
+  gimple_assign <pointer_plus_expr, D.4174D.4174, xout, D.4173D.4173>
+  gimple_assign <indirect_ref, D.4175D.4175, *D.4174D.4174, NULL>
+  gimple_call <approx1, D.4176D.4176, D.4175D.4175, x, y, D.4171D.4171, &M>
+  gimple_assign <var_decl, *D.4170D.4170, D.4176D.4176, NULL>
+
+<bb 19>:
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 20>:
+  gimple_assign <indirect_ref, D.4177D.4177, *nout, NULL>
+  gimple_cond <gt_expr, D.4177D.4177, i, NULL, NULL>
+    goto <bb 17>;
+  else
+    goto <bb 21>;
+
+<bb 21>:
+  gimple_return <NULL>
+
+}
+
+
+
+;; Function R_approxtest (R_approxtest)
+
+Analyzing Edge Insertions.
+R_approxtest (double * x, double * y, int * nxy, int * method, double * f)
+{
+  int i;
+  int D.4217D.4217;
+  int D.4216D.4216;
+  double D.4215D.4215;
+  double * D.4214D.4214;
+  long unsigned int D.4213D.4213;
+  long unsigned int D.4212D.4212;
+  int D.4210D.4210;
+  double D.4209D.4209;
+  double * D.4208D.4208;
+  long unsigned int D.4207D.4207;
+  long unsigned int D.4206D.4206;
+  _Bool D.4203D.4203;
+  double D.4202D.4202;
+  _Bool D.4200D.4200;
+  double D.4199D.4199;
+  int D.4197D.4197;
+  double D.4196D.4196;
+  int D.4193D.4193;
+
+<bb 2>:
+  gimple_assign <indirect_ref, D.4193D.4193, *method, NULL>
+  gimple_switch <D.4193D.4193, default: <L6>, case 1: <L0>, case 2: <L1>>
+
+gimple_label <<L0>>
+  goto <bb 10>;
+
+gimple_label <<L1>>
+  gimple_assign <indirect_ref, D.4196D.4196, *f, NULL>
+  gimple_call <R_finite, D.4197D.4197, D.4196D.4196>
+  gimple_cond <eq_expr, D.4197D.4197, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <indirect_ref, D.4199D.4199, *f, NULL>
+  gimple_assign <lt_expr, D.4200D.4200, D.4199D.4199, 0.0>
+  gimple_cond <ne_expr, D.4200D.4200, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 6>;
+
+<bb 6>:
+  gimple_assign <indirect_ref, D.4202D.4202, *f, NULL>
+  gimple_assign <gt_expr, D.4203D.4203, D.4202D.4202, 1.0e+0>
+  gimple_cond <ne_expr, D.4203D.4203, 0, NULL, NULL>
+    goto <bb 7>;
+  else
+    goto <bb 8>;
+
+<bb 7>:
+  gimple_call <Rf_error, NULL, &"approx(): invalid f value"[0]>
+
+<bb 8>:
+  goto <bb 10>;
+
+gimple_label <<L6>>
+  gimple_call <Rf_error, NULL, &"approx(): invalid interpolation method"[0]>
+
+<bb 10>:
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 15>;
+
+<bb 11>:
+  gimple_assign <nop_expr, D.4206D.4206, i, NULL>
+  gimple_assign <mult_expr, D.4207D.4207, D.4206D.4206, 8>
+  gimple_assign <pointer_plus_expr, D.4208D.4208, x, D.4207D.4207>
+  gimple_assign <indirect_ref, D.4209D.4209, *D.4208D.4208, NULL>
+  gimple_call <R_IsNA, D.4210D.4210, D.4209D.4209>
+  gimple_cond <ne_expr, D.4210D.4210, 0, NULL, NULL>
+    goto <bb 13>;
+  else
+    goto <bb 12>;
+
+<bb 12>:
+  gimple_assign <nop_expr, D.4212D.4212, i, NULL>
+  gimple_assign <mult_expr, D.4213D.4213, D.4212D.4212, 8>
+  gimple_assign <pointer_plus_expr, D.4214D.4214, y, D.4213D.4213>
+  gimple_assign <indirect_ref, D.4215D.4215, *D.4214D.4214, NULL>
+  gimple_call <R_IsNA, D.4216D.4216, D.4215D.4215>
+  gimple_cond <ne_expr, D.4216D.4216, 0, NULL, NULL>
+    goto <bb 13>;
+  else
+    goto <bb 14>;
+
+<bb 13>:
+  gimple_call <Rf_error, NULL, &"approx(): attempted to interpolate NA values"[0]>
+
+<bb 14>:
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 15>:
+  gimple_assign <indirect_ref, D.4217D.4217, *nxy, NULL>
+  gimple_cond <gt_expr, D.4217D.4217, i, NULL, NULL>
+    goto <bb 11>;
+  else
+    goto <bb 16>;
+
+<bb 16>:
+  gimple_return <NULL>
+
+}
+
+
+
+;; Function R_approxfun (R_approxfun)
+
+Analyzing Edge Insertions.
+R_approxfun (double * x, double * y, int * nxy, double * xout, int * nout, int * method, double * yleft, double * yright, double * f)
+{
+  struct appr_meth M;
+  int i;
+  int D.4256D.4256;
+  double D.4255D.4255;
+  double D.4254D.4254;
+  double * D.4253D.4253;
+  long unsigned int D.4252D.4252;
+  long unsigned int D.4251D.4251;
+  int D.4250D.4250;
+  double * D.4249D.4249;
+  long unsigned int D.4248D.4248;
+  long unsigned int D.4247D.4247;
+  int D.4244D.4244;
+  double D.4243D.4243;
+  double * D.4242D.4242;
+  long unsigned int D.4241D.4241;
+  long unsigned int D.4240D.4240;
+  double D.4239D.4239;
+  double D.4238D.4238;
+  int D.4237D.4237;
+  double D.4236D.4236;
+  double D.4235D.4235;
+  double D.4234D.4234;
+
+<bb 2>:
+  gimple_assign <real_cst, M.ylow, 0.0, NULL>
+  gimple_assign <real_cst, M.yhigh, 0.0, NULL>
+  gimple_assign <real_cst, M.f1, 0.0, NULL>
+  gimple_assign <real_cst, M.f2, 0.0, NULL>
+  gimple_assign <integer_cst, M.kind, 0, NULL>
+  gimple_assign <indirect_ref, D.4234D.4234, *f, NULL>
+  gimple_assign <var_decl, M.f2, D.4234D.4234, NULL>
+  gimple_assign <indirect_ref, D.4235D.4235, *f, NULL>
+  gimple_assign <minus_expr, D.4236D.4236, 1.0e+0, D.4235D.4235>
+  gimple_assign <var_decl, M.f1, D.4236D.4236, NULL>
+  gimple_assign <indirect_ref, D.4237D.4237, *method, NULL>
+  gimple_assign <var_decl, M.kind, D.4237D.4237, NULL>
+  gimple_assign <indirect_ref, D.4238D.4238, *yleft, NULL>
+  gimple_assign <var_decl, M.ylow, D.4238D.4238, NULL>
+  gimple_assign <indirect_ref, D.4239D.4239, *yright, NULL>
+  gimple_assign <var_decl, M.yhigh, D.4239D.4239, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 6>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.4240D.4240, i, NULL>
+  gimple_assign <mult_expr, D.4241D.4241, D.4240D.4240, 8>
+  gimple_assign <pointer_plus_expr, D.4242D.4242, xout, D.4241D.4241>
+  gimple_assign <indirect_ref, D.4243D.4243, *D.4242D.4242, NULL>
+  gimple_call <R_IsNA, D.4244D.4244, D.4243D.4243>
+  gimple_cond <eq_expr, D.4244D.4244, 0, NULL, NULL>
+    goto <bb 4>;
+  else
+    goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <nop_expr, D.4247D.4247, i, NULL>
+  gimple_assign <mult_expr, D.4248D.4248, D.4247D.4247, 8>
+  gimple_assign <pointer_plus_expr, D.4249D.4249, xout, D.4248D.4248>
+  gimple_assign <indirect_ref, D.4250D.4250, *nxy, NULL>
+  gimple_assign <nop_expr, D.4251D.4251, i, NULL>
+  gimple_assign <mult_expr, D.4252D.4252, D.4251D.4251, 8>
+  gimple_assign <pointer_plus_expr, D.4253D.4253, xout, D.4252D.4252>
+  gimple_assign <indirect_ref, D.4254D.4254, *D.4253D.4253, NULL>
+  gimple_call <approx1, D.4255D.4255, D.4254D.4254, x, y, D.4250D.4250, &M>
+  gimple_assign <var_decl, *D.4249D.4249, D.4255D.4255, NULL>
+
+<bb 5>:
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 6>:
+  gimple_assign <indirect_ref, D.4256D.4256, *nout, NULL>
+  gimple_cond <gt_expr, D.4256D.4256, i, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 7>;
+
+<bb 7>:
+  gimple_return <NULL>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  int i;
+  double sum;
+  double D.2643D.2643;
+  double D.2642D.2642;
+  double * D.2641D.2641;
+  long unsigned int D.2640D.2640;
+  long unsigned int D.2639D.2639;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2639D.2639, i, NULL>
+  gimple_assign <mult_expr, D.2640D.2640, D.2639D.2639, 8>
+  gimple_assign <pointer_plus_expr, D.2641D.2641, values, D.2640D.2640>
+  gimple_assign <indirect_ref, D.2642D.2642, *D.2641D.2641, NULL>
+  gimple_assign <plus_expr, sum, D.2642D.2642, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2643D.2643, sum, NULL>
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function circle_area (circle_area)
+
+Analyzing Edge Insertions.
+circle_area (double radius)
+{
+  double D.2634D.2634;
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2634D.2634, radius, 3.141592653589793115997963468544185161590576171875e+0>
+  gimple_assign <mult_expr, D.2633D.2633, D.2634D.2634, radius>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function test (test)
+
+Analyzing Edge Insertions.
+test (int x)
+{
+  int z;
+  int D.1597D.1597;
+
+<bb 2>:
+  gimple_assign <eq_expr, z, x, 42>
+  gimple_cond <ne_expr, z, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, D.1597D.1597, 4, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, D.1597D.1597, 5, NULL>
+
+<bb 5>:
+  gimple_return <D.1597D.1597>
+
+}
+
+
+
+;; Function circle_area (circle_area)
+
+Analyzing Edge Insertions.
+circle_area (double radius)
+{
+  double D.2634D.2634;
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2634D.2634, radius, 3.141592653589793115997963468544185161590576171875e+0>
+  gimple_assign <mult_expr, D.2633D.2633, D.2634D.2634, radius>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function circle_area (circle_area)
+
+Analyzing Edge Insertions.
+circle_area (double radius)
+{
+  double D.2634D.2634;
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2634D.2634, radius, 3.141592653589793115997963468544185161590576171875e+0>
+  gimple_assign <mult_expr, D.2633D.2633, D.2634D.2634, radius>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function lessThan (lessThan)
+
+Analyzing Edge Insertions.
+lessThan (double x, double y)
+{
+  int i;
+  int D.1600D.1600;
+  _Bool D.1596D.1596;
+
+<bb 2>:
+  gimple_assign <lt_expr, D.1596D.1596, x, y>
+  gimple_cond <ne_expr, D.1596D.1596, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, i, 1, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+
+<bb 5>:
+  gimple_assign <var_decl, D.1600D.1600, i, NULL>
+  gimple_return <D.1600D.1600>
+
+}
+
+
+
+;; Function lessThanEqual (lessThanEqual)
+
+Analyzing Edge Insertions.
+lessThanEqual (double x, double y)
+{
+  int i;
+  int D.1610D.1610;
+  _Bool D.1606D.1606;
+
+<bb 2>:
+  gimple_assign <le_expr, D.1606D.1606, x, y>
+  gimple_cond <ne_expr, D.1606D.1606, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, i, 1, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+
+<bb 5>:
+  gimple_assign <var_decl, D.1610D.1610, i, NULL>
+  gimple_return <D.1610D.1610>
+
+}
+
+
+
+;; Function greaterThan (greaterThan)
+
+Analyzing Edge Insertions.
+greaterThan (double x, double y)
+{
+  int i;
+  int D.1620D.1620;
+  _Bool D.1616D.1616;
+
+<bb 2>:
+  gimple_assign <gt_expr, D.1616D.1616, x, y>
+  gimple_cond <ne_expr, D.1616D.1616, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, i, 1, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+
+<bb 5>:
+  gimple_assign <var_decl, D.1620D.1620, i, NULL>
+  gimple_return <D.1620D.1620>
+
+}
+
+
+
+;; Function greaterThanEqual (greaterThanEqual)
+
+Analyzing Edge Insertions.
+greaterThanEqual (double x, double y)
+{
+  int i;
+  int D.1630D.1630;
+  _Bool D.1626D.1626;
+
+<bb 2>:
+  gimple_assign <ge_expr, D.1626D.1626, x, y>
+  gimple_cond <ne_expr, D.1626D.1626, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, i, 1, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, i, 0, NULL>
+
+<bb 5>:
+  gimple_assign <var_decl, D.1630D.1630, i, NULL>
+  gimple_return <D.1630D.1630>
+
+}
+
+
+
+;; Function circle_area (circle_area)
+
+Analyzing Edge Insertions.
+circle_area (double radius)
+{
+  double D.2634D.2634;
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2634D.2634, radius, 3.141592653589793115997963468544185161590576171875e+0>
+  gimple_assign <mult_expr, D.2633D.2633, D.2634D.2634, radius>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function square (square)
+
+Analyzing Edge Insertions.
+square (double x)
+{
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2633D.2633, x, x>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function cube (cube)
+
+Analyzing Edge Insertions.
+cube (double x)
+{
+  double D.2638D.2638;
+  double D.2637D.2637;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2638D.2638, x, x>
+  gimple_assign <mult_expr, D.2637D.2637, D.2638D.2638, x>
+  gimple_return <D.2637D.2637>
+
+}
+
+
+
+;; Function sum_x_array (sum_x_array)
+
+Analyzing Edge Insertions.
+sum_x_array (double * values, int length, double (*<T675>) (double) fn)
+{
+  int i;
+  double sum;
+  double D.2655D.2655;
+  double D.2654D.2654;
+  double D.2653D.2653;
+  double * D.2652D.2652;
+  long unsigned int D.2651D.2651;
+  long unsigned int D.2650D.2650;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2650D.2650, i, NULL>
+  gimple_assign <mult_expr, D.2651D.2651, D.2650D.2650, 8>
+  gimple_assign <pointer_plus_expr, D.2652D.2652, values, D.2651D.2651>
+  gimple_assign <indirect_ref, D.2653D.2653, *D.2652D.2652, NULL>
+  gimple_call <fn, D.2654D.2654, D.2653D.2653>
+  gimple_assign <plus_expr, sum, D.2654D.2654, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2655D.2655, sum, NULL>
+  gimple_return <D.2655D.2655>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  double (*<T675>) (double) fn;
+  double D.2666D.2666;
+  double D.2665D.2665;
+
+<bb 2>:
+  gimple_assign <integer_cst, fn, 0B, NULL>
+  gimple_cond <gt_expr, length, 1, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <addr_expr, fn, square, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <addr_expr, fn, cube, NULL>
+
+<bb 5>:
+  gimple_call <sum_x_array, D.2666D.2666, values, length, fn>
+  gimple_assign <var_decl, D.2665D.2665, D.2666D.2666, NULL>
+  gimple_return <D.2665D.2665>
+
+}
+
+
+
+;; Function square (square)
+
+Analyzing Edge Insertions.
+square (double x)
+{
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2633D.2633, x, x>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function cube (cube)
+
+Analyzing Edge Insertions.
+cube (double x)
+{
+  double D.2638D.2638;
+  double D.2637D.2637;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2638D.2638, x, x>
+  gimple_assign <mult_expr, D.2637D.2637, D.2638D.2638, x>
+  gimple_return <D.2637D.2637>
+
+}
+
+
+
+;; Function sum_x_array (sum_x_array)
+
+Analyzing Edge Insertions.
+sum_x_array (double * values, int length, double (*<T675>) (double) fn)
+{
+  int i;
+  double sum;
+  double D.2655D.2655;
+  double D.2654D.2654;
+  double D.2653D.2653;
+  double * D.2652D.2652;
+  long unsigned int D.2651D.2651;
+  long unsigned int D.2650D.2650;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2650D.2650, i, NULL>
+  gimple_assign <mult_expr, D.2651D.2651, D.2650D.2650, 8>
+  gimple_assign <pointer_plus_expr, D.2652D.2652, values, D.2651D.2651>
+  gimple_assign <indirect_ref, D.2653D.2653, *D.2652D.2652, NULL>
+  gimple_call <fn, D.2654D.2654, D.2653D.2653>
+  gimple_assign <plus_expr, sum, D.2654D.2654, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2655D.2655, sum, NULL>
+  gimple_return <D.2655D.2655>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  double (*<T675>) (double) fn;
+  double D.2666D.2666;
+  double D.2665D.2665;
+
+<bb 2>:
+  gimple_assign <integer_cst, fn, 0B, NULL>
+  gimple_cond <gt_expr, length, 1, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <addr_expr, fn, square, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <addr_expr, fn, cube, NULL>
+
+<bb 5>:
+  gimple_call <sum_x_array, D.2666D.2666, values, length, fn>
+  gimple_assign <var_decl, D.2665D.2665, D.2666D.2666, NULL>
+  gimple_return <D.2665D.2665>
+
+}
+
+
+
+;; Function square (square)
+
+Analyzing Edge Insertions.
+square (double x)
+{
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2633D.2633, x, x>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function cube (cube)
+
+Analyzing Edge Insertions.
+cube (double x)
+{
+  double D.2638D.2638;
+  double D.2637D.2637;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2638D.2638, x, x>
+  gimple_assign <mult_expr, D.2637D.2637, D.2638D.2638, x>
+  gimple_return <D.2637D.2637>
+
+}
+
+
+
+;; Function sum_x_array (sum_x_array)
+
+Analyzing Edge Insertions.
+sum_x_array (double * values, int length, double (*<T675>) (double) fn)
+{
+  int i;
+  double sum;
+  double D.2655D.2655;
+  double D.2654D.2654;
+  double D.2653D.2653;
+  double * D.2652D.2652;
+  long unsigned int D.2651D.2651;
+  long unsigned int D.2650D.2650;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2650D.2650, i, NULL>
+  gimple_assign <mult_expr, D.2651D.2651, D.2650D.2650, 8>
+  gimple_assign <pointer_plus_expr, D.2652D.2652, values, D.2651D.2651>
+  gimple_assign <indirect_ref, D.2653D.2653, *D.2652D.2652, NULL>
+  gimple_call <fn, D.2654D.2654, D.2653D.2653>
+  gimple_assign <plus_expr, sum, D.2654D.2654, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2655D.2655, sum, NULL>
+  gimple_return <D.2655D.2655>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  double (*<T675>) (double) fn;
+  double D.2666D.2666;
+  double D.2665D.2665;
+
+<bb 2>:
+  gimple_assign <integer_cst, fn, 0B, NULL>
+  gimple_cond <gt_expr, length, 1, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <addr_expr, fn, square, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <addr_expr, fn, cube, NULL>
+
+<bb 5>:
+  gimple_call <sum_x_array, D.2666D.2666, values, length, fn>
+  gimple_assign <var_decl, D.2665D.2665, D.2666D.2666, NULL>
+  gimple_return <D.2665D.2665>
+
+}
+
+
+
+;; Function circle_area (circle_area)
+
+Analyzing Edge Insertions.
+circle_area (double radius)
+{
+  double D.2634D.2634;
+  double D.2633D.2633;
+
+<bb 2>:
+  gimple_assign <mult_expr, D.2634D.2634, radius, 3.141592653589793115997963468544185161590576171875e+0>
+  gimple_assign <mult_expr, D.2633D.2633, D.2634D.2634, radius>
+  gimple_return <D.2633D.2633>
+
+}
+
+
+
+;; Function R_dist_binary (R_dist_binary)
+
+Analyzing Edge Insertions.
+R_dist_binary (double * x, int nr, int nc, int i1, int i2)
+{
+  int j;
+  int dist;
+  int count;
+  int total;
+  double D.2647D.2647;
+  double D.2646D.2646;
+  double D.2643D.2643;
+
+<bb 2>:
+  gimple_assign <integer_cst, total, 0, NULL>
+  gimple_assign <integer_cst, count, 0, NULL>
+  gimple_assign <integer_cst, dist, 0, NULL>
+  gimple_cond <eq_expr, total, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <real_cst, D.2643D.2643, 1.0e+0, NULL>
+  goto <bb 7>;
+
+<bb 4>:
+  gimple_cond <eq_expr, count, 0, NULL, NULL>
+    goto <bb 5>;
+  else
+    goto <bb 6>;
+
+<bb 5>:
+  gimple_assign <real_cst, D.2643D.2643, 0.0, NULL>
+  goto <bb 7>;
+
+<bb 6>:
+  gimple_assign <float_expr, D.2646D.2646, dist, NULL>
+  gimple_assign <float_expr, D.2647D.2647, count, NULL>
+  gimple_assign <rdiv_expr, D.2643D.2643, D.2646D.2646, D.2647D.2647>
+
+<bb 7>:
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  int i;
+  double sum;
+  double D.2643D.2643;
+  double D.2642D.2642;
+  double * D.2641D.2641;
+  long unsigned int D.2640D.2640;
+  long unsigned int D.2639D.2639;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2639D.2639, i, NULL>
+  gimple_assign <mult_expr, D.2640D.2640, D.2639D.2639, 8>
+  gimple_assign <pointer_plus_expr, D.2641D.2641, values, D.2640D.2640>
+  gimple_assign <indirect_ref, D.2642D.2642, *D.2641D.2641, NULL>
+  gimple_assign <plus_expr, sum, D.2642D.2642, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2643D.2643, sum, NULL>
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function test (test)
+
+Analyzing Edge Insertions.
+test (int x)
+{
+  int z;
+  int D.1597D.1597;
+
+<bb 2>:
+  gimple_assign <eq_expr, z, x, 42>
+  gimple_cond <ne_expr, z, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, D.1597D.1597, 4, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, D.1597D.1597, 5, NULL>
+
+<bb 5>:
+  gimple_return <D.1597D.1597>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  int i;
+  double sum;
+  double D.2643D.2643;
+  double D.2642D.2642;
+  double * D.2641D.2641;
+  long unsigned int D.2640D.2640;
+  long unsigned int D.2639D.2639;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2639D.2639, i, NULL>
+  gimple_assign <mult_expr, D.2640D.2640, D.2639D.2639, 8>
+  gimple_assign <pointer_plus_expr, D.2641D.2641, values, D.2640D.2640>
+  gimple_assign <indirect_ref, D.2642D.2642, *D.2641D.2641, NULL>
+  gimple_assign <plus_expr, sum, D.2642D.2642, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2643D.2643, sum, NULL>
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  int i;
+  double sum;
+  double D.2643D.2643;
+  double D.2642D.2642;
+  double * D.2641D.2641;
+  long unsigned int D.2640D.2640;
+  long unsigned int D.2639D.2639;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2639D.2639, i, NULL>
+  gimple_assign <mult_expr, D.2640D.2640, D.2639D.2639, 8>
+  gimple_assign <pointer_plus_expr, D.2641D.2641, values, D.2640D.2640>
+  gimple_assign <indirect_ref, D.2642D.2642, *D.2641D.2641, NULL>
+  gimple_assign <plus_expr, sum, D.2642D.2642, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2643D.2643, sum, NULL>
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function sum_array (sum_array)
+
+Analyzing Edge Insertions.
+sum_array (double * values, int length)
+{
+  int i;
+  double sum;
+  double D.2643D.2643;
+  double D.2642D.2642;
+  double * D.2641D.2641;
+  long unsigned int D.2640D.2640;
+  long unsigned int D.2639D.2639;
+
+<bb 2>:
+  gimple_assign <real_cst, sum, 0.0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  gimple_assign <integer_cst, i, 0, NULL>
+  goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <nop_expr, D.2639D.2639, i, NULL>
+  gimple_assign <mult_expr, D.2640D.2640, D.2639D.2639, 8>
+  gimple_assign <pointer_plus_expr, D.2641D.2641, values, D.2640D.2640>
+  gimple_assign <indirect_ref, D.2642D.2642, *D.2641D.2641, NULL>
+  gimple_assign <plus_expr, sum, D.2642D.2642, sum>
+  gimple_assign <plus_expr, i, i, 1>
+
+<bb 4>:
+  gimple_cond <ne_expr, i, length, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 5>;
+
+<bb 5>:
+  gimple_assign <var_decl, D.2643D.2643, sum, NULL>
+  gimple_return <D.2643D.2643>
+
+}
+
+
+
+;; Function test (test)
+
+Analyzing Edge Insertions.
+test (int x)
+{
+  int z;
+  int D.1597D.1597;
+
+<bb 2>:
+  gimple_assign <eq_expr, z, x, 42>
+  gimple_cond <ne_expr, z, 0, NULL, NULL>
+    goto <bb 3>;
+  else
+    goto <bb 4>;
+
+<bb 3>:
+  gimple_assign <integer_cst, D.1597D.1597, 4, NULL>
+  goto <bb 5>;
+
+<bb 4>:
+  gimple_assign <integer_cst, D.1597D.1597, 5, NULL>
+
+<bb 5>:
+  gimple_return <D.1597D.1597>
+
+}
+
+

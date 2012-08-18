@@ -60,6 +60,7 @@ public class NumericPtrVar extends Variable {
       case POINTER_PLUS_EXPR:
         assignPointerPlus(operands);
         break;
+      case VAR_DECL:
       case SSA_NAME:
         assignValue(operands.get(0));
         break;

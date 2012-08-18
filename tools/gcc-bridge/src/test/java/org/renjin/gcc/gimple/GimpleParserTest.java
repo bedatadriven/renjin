@@ -24,10 +24,6 @@ public class GimpleParserTest {
 	public void swilk() throws IOException {
 
     List<GimpleFunction> functions = parse("swilk.c.143t.optimized");
-		
-		for(GimpleFunction fn : functions) {
-			System.out.println(fn.toString());
-		}
 	}
 
 
@@ -37,8 +33,8 @@ public class GimpleParserTest {
     List<GimpleFunction> functions = parse("gimple4.4.6");
 
 		for(GimpleFunction fn : functions) {
-			System.out.println(fn.toString());
 		}
+
   }
 
   private List<GimpleFunction> parse(String resourceName) throws IOException {

@@ -46,12 +46,13 @@ public class StructVar extends Variable {
       doAssign(member, JimpleExpr.integerConstant(operands.get(0)));
       break;
 
+    case VAR_DECL:
     case SSA_NAME:
       doAssign(member, context.lookupVar(operands.get(0)).asNumericExpr());
       break;
 
     default:
-      throw new UnsupportedOperationException();
+      throw new UnsupportedOperationException(operator + " " + operands);
     }
   }
 

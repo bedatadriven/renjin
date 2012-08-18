@@ -6,6 +6,7 @@ import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.runtime.DoublePtr;
 
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -115,14 +116,27 @@ public class GccTest {
     GimpleParser parser = new GimpleParser();
     List<GimpleFunction> functions = parser.parse(new StringReader(gimple));
 
+    return compileGimple(className, functions);
+  }
+
+  private Class<?> compileGimple(String className, List<GimpleFunction> functions) throws Exception {
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setOutputDirectory(new File("target/test-classes"));
     compiler.setPackageName("org.renjin.gcc");
     compiler.setClassName(className);
     compiler.setVerbose(true);
+    compiler.getMethodTable().addReferenceClass(RStubs.class);
     compiler.compile(functions);
 
     return Class.forName("org.renjin.gcc." + className);
+  }
+
+  @Test
+  public void structFromGcc4_4_6() throws Exception {
+    GimpleParser parser = new GimpleParser();
+    List<GimpleFunction> fns = parser.parse(new InputStreamReader(getClass().getResourceAsStream("approx.gimple")));
+
+    Class clazz = compileGimple("Gcc4_4_6", fns);
   }
 
 }

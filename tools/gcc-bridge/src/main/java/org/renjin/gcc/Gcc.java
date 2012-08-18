@@ -7,7 +7,9 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -24,7 +26,7 @@ public class Gcc {
 		command.add(gccBinary);
 		command.add("-c"); // compile only, do not link
 		command.add("-S"); // stop at assembly generation
- //   command.add("-O9"); // highest optimization
+//    command.add("-O9"); // highest optimization
 		
 		// Turn on dumping of gimple trees
 		// See http://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html#Debugging-Options
@@ -60,11 +62,21 @@ public class Gcc {
 		} else {
       java.lang.System.err.println(stderr);
     }
-		
-		File gimple = new File(tempDir, source.getName() + ".143t.optimized");
+
+		File gimple = findGimpleOutput(tempDir, source);
 		
 		return Files.toString(gimple, Charsets.UTF_8);
 	}
+
+  private File findGimpleOutput(File dir, File source) throws FileNotFoundException {
+    for(File file : dir.listFiles()) {
+      if(file.getName().startsWith(source.getName()) && file.getName().endsWith("optimized")) {
+        return file;
+      }
+    }
+    throw new FileNotFoundException("Could not find gimple output in " + dir.getAbsolutePath() + ", files present: " +
+            Arrays.toString(dir.listFiles()));
+  }
 
   public void addIncludeDirectory(File path) {
     includeDirectories.add(path.getAbsolutePath());

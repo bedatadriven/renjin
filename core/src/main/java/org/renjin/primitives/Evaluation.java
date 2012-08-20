@@ -21,14 +21,12 @@
 
 package org.renjin.primitives;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
-import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
@@ -41,7 +39,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Arrays;
 import java.util.List;
 
 public class Evaluation {
@@ -63,6 +60,7 @@ public class Evaluation {
    * Note that assignment to an attached list or data frame changes the attached copy
    *  and not the original object: see attach and with.
    */
+  @Primitive
   public static SEXP assign(@Current Context context, String name, SEXP value, Environment environ, boolean inherits) {
 
     Symbol symbol = Symbol.get(name);
@@ -82,6 +80,7 @@ public class Evaluation {
     return value;
   }
 
+  @Primitive
   public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
     assignEnv.setVariable(Symbol.get(x), Promise.repromise(context, evalEnv, expr));
   }
@@ -104,7 +103,7 @@ public class Evaluation {
     }
   }
 
-  
+  @Primitive
   public static ListVector lapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function) {
 
@@ -120,7 +119,8 @@ public class Evaluation {
     builder.copySomeAttributesFrom(vector, Symbols.NAMES);
     return builder.build();
   }
-  
+
+  @Primitive
   public static Vector vapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function, Vector funValue, boolean useNames) {
     
@@ -169,8 +169,7 @@ public class Evaluation {
     return result.build();
   }
   
-
-
+  @Primitive
   public static void stop(boolean call, String message) {
     throw new EvalException(message);
   }
@@ -211,6 +210,7 @@ public class Evaluation {
     return context.evaluate(newCall, rho);
   }
 
+  @Primitive
   public static SEXP eval(@Current Context context,
                                 SEXP expression, SEXP environment,
                                 SEXP enclosing) {
@@ -277,12 +277,13 @@ public class Evaluation {
     list.add("visible", context.getGlobals().isInvisible());
     return list.build();
   }
-  
+
+  @Primitive
   public static SEXP quote(@Evaluate(false) SEXP exp) {
     return exp;
   }
   
-  
+  @Primitive
   public static boolean missing(@Current Context context, @Current Environment rho, @Evaluate(false) Symbol symbol) {
     SEXP value = rho.findVariable(symbol);
     
@@ -327,454 +328,9 @@ public class Evaluation {
   }
 
 
-  public static SEXP UseMethod(Context context, Environment rho, FunctionCall call) {
-    SEXP generic = context.evaluate(call.getArgument(0), rho);
-    EvalException.check(generic.length() == 1 && generic instanceof StringVector,
-        "first argument must be a character string");
-
-    String genericName = ((StringVector)generic).getElementAsString(0);
-
-    Preconditions.checkArgument(context.getType() == Context.Type.FUNCTION);
-    SEXP object;
-    if(call.getArguments().length() >= 2) {
-      object = context.evaluate(call.getArgument(1), rho);
-    } else {
-      if( context.getArguments().length() == 0) {
-        object = Null.INSTANCE;
-      } else {
-        object = context.evaluate( context.getArguments().getElementAsSEXP(0),
-            context.getParent().getEnvironment());
-      }
-    }
-
-
-    StringVector classes = Calls.computeDataClasses(object);
-    SEXP result = DispatchGeneric(context, rho, call, genericName, object, classes);
-    if(result != null) {
-      return result;
-    }
-    throw new EvalException("no applicable method for '%s' applied to an object of class \"%s\"",
-        genericName, classes.toString());
-  }
-
   @Primitive
-  public static SEXP NextMethod(@Current Context context, @Current Environment env,
-      SEXP generic, SEXP object, @ArgumentList ListVector extraArgs) {
-
-
-//    char buf[512], b[512], bb[512], tbuf[10];
-//    const char *sb, *sg, *sk;
-//    SEXP ans, s, t, klass, method, matchedarg, generic, nextfun;
-//    SEXP sysp, m, formals, actuals, tmp, newcall;
-//    SEXP a, group, basename;
-//    SEXP callenv, defenv;
-//    RCNTXT *cptr;
-//    int i, j, cftmp;
-
-//    cptr = R_GlobalContext;
-//    cftmp = cptr->callflag;
-//    cptr->callflag = CTXT_GENERIC;
-
-    /* get the env NextMethod was called from */
-//    sysp = R_GlobalContext->sysparent;
-//    while (cptr != NULL) {
-//        if (cptr->callflag & CTXT_FUNCTION && cptr->cloenv == sysp) break;
-//        cptr = cptr->nextcontext;
-//    }
-//    if (cptr == NULL)
-//        error(_("'NextMethod' called from outside a function"));
-
-    Context sysp = context.getParent();
-
-    /* eg get("print.ts")(1) */
-//    if (TYPEOF(CAR(cptr->call)) == LANGSXP)
-//       error(_("'NextMethod' called from an anonymous function"));
-
-    /* Find dispatching environments. Promises shouldn't occur, but
-       check to be on the safe side.  If the variables are not in the
-       environment (the method was called outside a method dispatch)
-       then chose reasonable defaults. */
-    SEXP callenv = env.getVariable(".GenericCallEnv");
-
-    /*if (TYPEOF(callenv) == PROMSXP)
-        callenv = eval(callenv, R_BaseEnv);
-    else */
-    if (callenv == Symbol.UNBOUND_VALUE) {
-      callenv = env;
-    }
-
-    SEXP defenv = env.getVariable(".GenericDefEnv");
-    /*if (TYPEOF(defenv) == PROMSXP) defenv = eval(defenv, R_BaseEnv);
-    else */
-    if (defenv == Symbol.UNBOUND_VALUE) {
-      defenv = context.getGlobalEnvironment();
-    }
-
-    /* set up the arglist */
-    SEXP s = Calls.lookupMethod((Symbol)sysp.getCall().getFunction(), (Environment)env,
-        (Environment)callenv, (Environment)defenv);
-
-    if(s == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("no calling generic was found: was a method called directly?");
-    }
-    if (!(s instanceof Closure)){ /* R_LookupMethod looked for a function */
-      throw new EvalException("function' is not a function, but of type %s", s.getTypeName());
-    }
-    /* get formals and actuals; attach the names of the formals to
-       the actuals, expanding any ... that occurs */
-    PairList formals = ((Closure) s).getFormals();
-    PairList actuals = context.getParent().getArguments();
-    actuals = Calls.matchArguments(formals, actuals);
-    actuals = expandDotDotDot(actuals);
-
-
-    // strip out arguments with missing values. These named arguments may not 
-    // be defined in calls further down the chain and we don't want to "generate"
-    // new arguments
-    PairList.Builder noMissing = new PairList.Builder();
-    for(PairList.Node node : actuals.nodes()) {
-      if(node.getValue() != Symbol.MISSING_ARG) {
-        noMissing.add(node.getRawTag(), node.getValue());
-      }
-    }
-    actuals = noMissing.build();
-    
-//    /* we can't duplicate because it would force the promises */
-//    /* so we do our own duplication of the promargs */
-//
-
-    PairList.Builder updatedArgs = new PairList.Builder();
-    for(PairList.Node actual : actuals.nodes()) {
-      SEXP temp;
-      if(actual.hasTag()) {
-        // an argument may not have a tag even at this point if was 
-        // part of a ... expansion
-        temp = context.getParent().getEnvironment().findVariable(actual.getTag());
-      } else {
-        temp = Symbol.UNBOUND_VALUE;
-      }
-      if(temp != Symbol.UNBOUND_VALUE && 
-          !isDefaultArgValue(temp) &&
-          temp != Symbol.MISSING_ARG) {
-        updatedArgs.add(actual.getRawTag(), Promise.repromise(context.getParent(), context.getParent().getEnvironment(), temp));
-      } else {
-        updatedArgs.add(actual.getRawTag(), actual.getValue());
-      }
-    }
-    actuals = updatedArgs.build();
-
-
-
-
-//    PROTECT(matchedarg = allocList(length(cptr->promargs)));
-//    for (t = matchedarg, s = cptr->promargs; t != R_NilValue;
-//         s = CDR(s), t = CDR(t)) {
-//        SETCAR(t, CAR(s));
-//        SET_TAG(t, TAG(s));
-//    }
-//    for (t = matchedarg; t != R_NilValue; t = CDR(t)) {
-//        for (m = actuals; m != R_NilValue; m = CDR(m))
-//            if (CAR(m) == CAR(t))  {
-//                if (CAR(m) == R_MissingArg) {
-//                    tmp = findVarInFrame3(cptr->cloenv, TAG(m), TRUE);
-//                    if (tmp == R_MissingArg) break;
-//                }
-//                SETCAR(t, mkPROMISE(TAG(m), cptr->cloenv));
-//                break;
-//           }
-//    }
-//    /*
-//      Now see if there were any other arguments passed in
-//      Currently we seem to only allow named args to change
-//      or to be added, this is at variance with p. 470 of the
-//      White Book
-//    */
-//
-//    s = CADDR(args); /* this is ... and we need to see if it's bound */
-//    if (s == R_DotsSymbol) {
-//        t = findVarInFrame3(env, s, TRUE);
-//        if (t != R_NilValue && t != R_MissingArg) {
-//            SET_TYPEOF(t, LISTSXP); /* a safe mutation */
-//            s = matchmethargs(matchedarg, t);
-//            UNPROTECT(1);
-//            PROTECT(matchedarg = s);
-//            newcall = fixcall(newcall, matchedarg);
-//        }
-//    }
-//    else
-//        error(_("wrong argument ..."));
-
-    /*
-      .Class is used to determine the next method; if it doesn't
-      exist the first argument to the current method is used
-      the second argument to NextMethod is another option but
-      isn't currently used).
-    */
-    SEXP klass = sysp.getEnvironment().getVariable(".Class");
-
-
-    if (klass == Symbol.UNBOUND_VALUE) {
-//        s = GetObject(cptr);
-//        if (!isObject(s)) error(_("object not specified"));
-//        klass = getAttrib(s, R_ClassSymbol);
-      throw new EvalException(".Class attribute not present");
-    }
-
-    /* the generic comes from either the sysparent or it's named */
-    if(generic == Null.INSTANCE) {
-      generic = sysp.getEnvironment().getVariable(".Generic");
-    }
-    if (generic == Symbol.UNBOUND_VALUE) {
-      //  generic = eval(CAR(args), env);
-      throw new EvalException(".Generic not present");
-    }
-    if( generic == Null.INSTANCE ) {
-      throw new EvalException("generic function not specified");
-    }
-
-    if ( !(generic instanceof StringVector) || generic.length() > 1) {
-      throw new EvalException("invalid generic argument to NextMethod");
-    }
-
-//    if (CHAR(STRING_ELT(generic, 0))[0] == '\0')
-//        error(_("generic function not specified"));
-
-    /* determine whether we are in a Group dispatch */
-
-    SEXP groupExp = context.getParent().getEnvironment().getVariable(".Group");
-    String group;
-    if (groupExp == Symbol.UNBOUND_VALUE) {
-      group = "";
-    } else {
-      group = ((StringVector)groupExp).getElementAsString(0);
-    }
-
-//    if (!isString(group) || length(group) > 1)
-//        error(_("invalid 'group' argument found in NextMethod"));
-
-    /* determine the root: either the group or the generic will be it */
-
-    String basename;
-    if (group.isEmpty()) {
-      basename = ((StringVector)generic).getElementAsString(0);
-    } else {
-      basename = group;
-    }
-
-    SEXP nextfun = Null.INSTANCE;
-
-    /*
-       Find the method currently being invoked and jump over the current call
-       If t is R_UnboundValue then we called the current method directly
-    */
-
-    SEXP dotMethod = context.getParent().getEnvironment().getVariable(".Method");
-
-    String b=null;
-    if( dotMethod != Symbol.UNBOUND_VALUE) {
-      if( !(dotMethod instanceof StringVector) ) {
-        throw new EvalException("wrong value for .Method");
-      }
-      for(String ss : (StringVector)dotMethod) {
-        if(!ss.isEmpty()) {
-          b = ss;
-          break;
-        }
-      }
-//        for(i = 0; i < length(method); i++) {
-//            ss = translateChar(STRING_ELT(method, i));
-//            if(strlen(ss) >= 512)
-//                error(_("method name too long in '%s'"), ss);
-//            sprintf(b, "%s", ss);
-//            if(strlen(b)) break;
-//        }
-//        /* for binary operators check that the second argument's method
-//           is the same or absent */
-//        for(j = i; j < length(method); j++){
-//            const char *ss = translateChar(STRING_ELT(method, j));
-//            if(strlen(ss) >= 512)
-//                error(_("method name too long in '%s'"), ss);
-//          sprintf(bb, "%s", ss);
-//          if (strlen(bb) && strcmp(b,bb))
-//              warning(_("Incompatible methods ignored"));
-//        }
-    }
-    else {
-//        if(strlen(CHAR(PRINTNAME(CAR(cptr->call)))) >= 512)
-//           error(_("call name too long in '%s'"),
-//                 CHAR(PRINTNAME(CAR(cptr->call))));
-//        sprintf(b, "%s", CHAR(PRINTNAME(CAR(cptr->call))));
-      throw new EvalException(".Method is not set, not sure what to do");
-    }
-
-    String sb = basename;
-    String buf = null;
-    int j;
-    for (j = 0; j < klass.length(); j++) {
-      String sk = ((StringVector)klass).getElementAsString(j);
-      buf = sb + "." + sk;
-      if (!buf.equals(b)) {
-        break;
-      }
-    }
-
-    if (buf != null && buf.equals(b)) { /* we found a match and start from there */
-      j++;
-    } else {
-      j = 0;  /*no match so start with the first element of .Class */
-    }
-    /* we need the value of i on exit from the for loop to figure out
-           how many classes to drop. */
-
-    String sg = ((StringVector)generic).getElementAsString(0);
-    int i;
-    for (i = j ; i < klass.length(); i++) {
-      String sk = ((StringVector)klass).getElementAsString(0);
-      buf = sg + "." + sk;
-      nextfun = Calls.lookupMethod(Symbol.get(buf), env, (Environment)callenv, (Environment)defenv);
-      if (nextfun instanceof Function) {
-        break;
-      }
-      if (groupExp != Symbol.UNBOUND_VALUE) {
-        /* if not Generic.foo, look for Group.foo */
-        buf = sb + "." + sk;
-        nextfun = Calls.lookupMethod(Symbol.get(buf), env, (Environment)callenv, (Environment)defenv);
-        if(nextfun instanceof Function) {
-          break;
-        }
-      }
-      if (nextfun instanceof Function) {
-        break;
-      }
-    }
-    if (!(nextfun instanceof Function)) {
-      buf = sg + ".default";
-      nextfun = Calls.lookupMethod(Symbol.get(buf), env, (Environment)callenv, (Environment)defenv);
-      /* If there is no default method, try the generic itself,
-        provided it is primitive or a wrapper for a .Internal
-        function of the same name.
-      */
-      if (!(nextfun instanceof Function)) {
-        Symbol t = Symbol.get(sg);
-        nextfun = env.findFunction(t);
-        if ( nextfun instanceof Promise) {
-          nextfun = context.evaluate( nextfun, env);
-        }
-        if (!(nextfun instanceof Function)) {
-          throw new EvalException("no method to invoke");
-        }
-        if (nextfun instanceof Closure) {
-          PrimitiveFunction internal = Primitives.getInternal(t);
-          if (internal != null)
-            nextfun = internal;
-          else {
-            throw new EvalException("no method to invoke");
-          }
-        }
-      }
-    }
-
-    StringVector.Builder newklass = new StringVector.Builder();
-    for(j=0;j< newklass.length();++j) {
-      newklass.add(((StringVector)klass).getElementAsString(i++));
-    }
-    newklass.setAttribute("previous", klass);
-
-   // PROTECT(m = allocSExp(ENVSXP));
-    Frame m = new HashFrame();
-    m.setVariable(Symbol.get(".Class"), newklass.build());
-
-
-    /* It is possible that if a method was called directly that
-        'method' is unset */
-//    if (dotMethod != Symbol.UNBOUND_VALUE) {
-//      /* for Ops we need `method' to be a vector */
-//
-//      PROTECT(method = duplicate(dotMethod));
-//      for(j = 0; j < length(method); j++) {
-//        if (strlen(CHAR(STRING_ELT(dotMethod,j))))
-//          SET_STRING_ELT(dotMethod, j,  mkChar(buf));
-//      }
-//    } else {
-//    dotMethod = Symbol.get(buf);
-//    }
-    m.setVariable(Symbol.get(".Method"), new StringVector(buf));
-//    defineVar(install(".GenericCallEnv"), callenv, m);
-//    defineVar(install(".GenericDefEnv"), defenv, m);
-
-
-    m.setVariable(Symbol.get(".Generic"), generic);
-    m.setVariable(Symbol.get(".Group"), groupExp);
-
-    FunctionCall newcall = new FunctionCall(Symbol.get(buf), actuals);
-
-
-    if(nextfun instanceof Closure) {
-      return Calls.applyClosure((Closure)nextfun, context, newcall, actuals, env, m);
-    } else {
-      return ((Function)nextfun).apply(context, env, newcall, actuals);
-    }
-
-//
-//
-//    SETCAR(newcall, method);
-//    ans = applyMethod(newcall, nextfun, matchedarg, env, m);
-//    UNPROTECT(10);
-//    return(ans);
-//    throw new EvalException("this and no further");
-  }
-
-  private static boolean isDefaultArgValue(SEXP temp) {
-    return temp instanceof Promise;
-  }
-
-  private static PairList expandDotDotDot(PairList actuals) {
-    PairList.Builder result = new PairList.Builder();
-    for(PairList.Node node : actuals.nodes()) {
-      if(node.getValue() instanceof PromisePairList) {
-        for(PairList.Node dotNode : ((PromisePairList) node.getValue()).nodes()) {
-          result.add(dotNode.getRawTag(), dotNode.getValue());
-        }
-      } else {
-        result.add(node.getRawTag(), node.getValue());
-      }
-    }
-    return result.build();
-  }
-
-
-  private static SEXP DispatchGeneric(Context context, Environment rho, FunctionCall call, String genericName, SEXP object, StringVector classes) {
-    for(String className : Iterables.concat(classes, Arrays.asList("default"))) {
-      Symbol method = Symbol.get(genericName + "." + className);
-      SEXP function = rho.findVariable(method);
-      if(function != Symbol.UNBOUND_VALUE) {
-        function = context.evaluate(function, rho);
-
-        Frame extra = new HashFrame();
-        extra.setVariable(Symbol.get(".Class"), Calls.computeDataClasses(object));
-        extra.setVariable(Symbol.get(".Method"), new StringVector(method.getPrintName()));
-        extra.setVariable(Symbol.get(".Generic"), new StringVector(genericName));
-
-        PairList repromisedArgs = Calls.promiseArgs(context.getArguments(), context, rho);
-        FunctionCall newCall = new FunctionCall(method,repromisedArgs);
-
-
-        if(function instanceof Closure) {
-         SEXP result = Calls.applyClosure((Closure) function, context, newCall,
-              repromisedArgs, rho, extra);
-         return result;
-        } else {
-          throw new UnsupportedOperationException("target of UseMethod is not a closure, it is a " +
-              function.getClass().getName() );
-        }
-      }
-    }
-    return null;
-  }
-
-
-
-  public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text, String prompt, SEXP sourceFile, String encoding) throws IOException {
+  public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text,
+                                       String prompt, SEXP sourceFile, String encoding) throws IOException {
     List<SEXP> expressions = Lists.newArrayList();
     if(text != Null.INSTANCE) {
       for(int i=0;i!=text.length();++i) {
@@ -808,7 +364,8 @@ public class Evaluation {
     }
     return fn;
   }
-  
+
+  @Primitive
   public static void remove(StringVector names, Environment envir, boolean inherits) {
     if(inherits) {
       throw new EvalException("remove(inherits=TRUE) is not yet implemented");

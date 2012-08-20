@@ -37,7 +37,6 @@ import java.util.ListIterator;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
-import static org.renjin.util.CDefines.*;
 
 /**
  * Routines for dispatching and generally organizing function calls.
@@ -54,230 +53,6 @@ public class Calls {
     return evaled.build();
   }
 
-
-  public static SEXP DispatchGroup(String group, FunctionCall call, String opName, PairList args, Context context, Environment rho) {
-    int i, j, nargs;
-
-    if(call.getFunction() instanceof Symbol && ((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
-      return null;
-    }
-
-    boolean useS4 = true, isOps = false;
-
-    /* pre-test to avoid string computations when there is nothing to
-     dispatch on because either there is only one argument and it
-     isn't an object or there are two or more arguments but neither
-     of the first two is an object -- both of these cases would be
-     rejected by the code following the string examination code
-     below */
-//	if (args != R_NilValue && !isObject(CAR(args)) && (CDR(args) == R_NilValue
-//			|| !isObject(CADR(args))))
-//		return 0;
-
-    //isOps = strcmp(group, "Ops") == 0;
-    isOps = group.equals("Ops");
-
-//    /* try for formal method */
-//    if (length(args) == 1 && !IS_S4_OBJECT(CAR(args)))
-//      useS4 = FALSE;
-//    if (length(args) == 2 && !IS_S4_OBJECT(CAR(args)) && !IS_S4_OBJECT(CADR(
-//        args)))
-//      useS4 = FALSE;
-//    if (useS4) {
-//      /* Remove argument names to ensure positional matching */
-//      if (isOps)
-//        for (s = args; s != R_NilValue; s = CDR(s))
-//          SET_TAG(s, R_NilValue);
-//      if (R_has_methods(op) && (value = R_possible_dispatch(call, op, args,
-//          rho, FALSE))) {
-//        *ans = value;
-//        return 1;
-//      }
-//      /* else go on to look for S3 methods */
-//    }
-
-    /* check whether we are processing the default method */
-    if (isSymbol(CAR(call))) {
-//      if (strlen(CHAR(PRINTNAME(CAR(call)))) >= 512)
-//        error(_("call name too long in '%s'"), CHAR(PRINTNAME(CAR(call))));
-
-      String symbolName = ((Symbol)CAR(call)).getPrintName();
-      //sprintf(lbuf, "%s", CHAR(PRINTNAME(CAR(call))) );
-      int pt = symbolName.indexOf('.');
-      pt = symbolName.indexOf('.', pt);
-
-      if (pt != -1 && symbolName.substring(pt).equals("default")) {
-        return null;
-      }
-    }
-
-    if (isOps)
-      nargs = args.length();
-    else
-      nargs = 1;
-
-//    if (nargs == 1 && !isObject(CAR(args)))
-//      return 0;
-//
-//    if (!isObject(CAR(args)) && !isObject(CADR(args)))
-//      return 0;
-
-    String generic = opName;
-
-//    lclass = IS_S4_OBJECT(CAR(args)) ? R_data_class2(CAR(args)) : getAttrib(
-//        CAR(args), R_ClassSymbol);
-
-    Vector lclass = Calls.computeDataClasses(CAR(args));
-    Vector rclass;
-    if (nargs == 2) {
-//      rclass = IS_S4_OBJECT(CADR(args)) ? R_data_class2(CADR(args))
-//          : getAttrib(CADR(args), R_ClassSymbol);
-      rclass = Calls.computeDataClasses(args.getElementAsSEXP(1));
-    } else {
-      rclass = Null.INSTANCE;
-    }
-
-//
-//    lsxp = R_NilValue;
-//    lgr = R_NilValue;
-//    lmeth = R_NilValue;
-//    rsxp = R_NilValue;
-//    rgr = R_NilValue;
-//    rmeth = R_NilValue;
-
-    FindResult left = findmethod(context, lclass, group, generic, rho);
-//    if (fm.sxp instanceof Function && IS_S4_OBJECT(CAR(args)) && lwhich > 0
-//        && isBasicClass(translateChar(STRING_ELT(lclass, lwhich)))) {
-//      /* This and the similar test below implement the strategy
-//        for S3 methods selected for S4 objects.  See ?Methods */
-//      value = CAR(args);
-//      if (NAMED(value))
-//        SET_NAMED(value, 2);
-//      value = R_getS4DataSlot(value, S4SXP); /* the .S3Class obj. or NULL*/
-//      if (value != R_NilValue) /* use the S3Part as the inherited object */
-//        SETCAR(args, value);
-//    }
-
-    FindResult right;
-    if (nargs == 2) {
-      right = findmethod(context, rclass, group, generic, rho);
-    } else {
-      right = new FindResult();
-      right.which = 0;
-    }
-
-//    if (isFunction(rsxp) && IS_S4_OBJECT(CADR(args)) && rwhich > 0
-//        && isBasicClass(translateChar(STRING_ELT(rclass, rwhich)))) {
-//      value = CADR(args);
-//      if (NAMED(value))
-//        SET_NAMED(value, 2);
-//      value = R_getS4DataSlot(value, S4SXP);
-//      if (value != R_NilValue)
-//        SETCADR(args, value);
-//    }
-
-
-    if (!(left.sxp instanceof Function) &&!(right.sxp instanceof Function)) {
-      UNPROTECT(2);
-      return null; /* no generic or group method so use default*/
-    }
-
-    if (!left.sxp.equals(right.sxp)) {
-//      if (isFunction(lsxp) && isFunction(rsxp)) {
-//        /* special-case some methods involving difftime */
-//        const char *lname = CHAR(PRINTNAME(lmeth)), *rname =
-//            CHAR(PRINTNAME(rmeth));
-//        if (streql(rname, "Ops.difftime") && (streql(lname, "+.POSIXt")
-//            || streql(lname, "-.POSIXt") || streql(lname, "+.Date")
-//            || streql(lname, "-.Date")))
-//          rsxp = R_NilValue;
-//        else if (streql(lname, "Ops.difftime")
-//            && (streql(rname, "+.POSIXt") || streql(rname, "+.Date")))
-//          lsxp = R_NilValue;
-//        else {
-//          warning(_("Incompatible methods (\"%s\", \"%s\") for \"%s\""),
-//              lname, rname, generic);
-//          UNPROTECT(2);
-//          return 0;
-//        }
-//      }
-      /* if the right hand side is the one */
-      if (!(left.sxp instanceof Function)) { /* copy over the righthand stuff */
-        lclass = rclass;
-        left = right;
-      }
-    }
-
-    /* we either have a group method or a class method */
-
-//    PROTECT(newrho = allocSExp(ENVSXP));
-    Frame newrho = new HashFrame();
-    String[] m = new String[nargs];
-    PairList.Node s = (PairList.Node)args;
-    for (i = 0; i < nargs; i++) {
-      StringVector t = computeDataClasses(args.getElementAsSEXP(i));
-
-//      t = IS_S4_OBJECT(CAR(s)) ? R_data_class2(CAR(s)) : getAttrib(CAR(s),
-//          R_ClassSymbol);
-
-      boolean set = false;
-      for (j = 0; j < t.length(); j++) {
-        if ( t.getElementAsString(j).equals(lclass.getElementAsString(left.which))) {
-          m[i] = left.buf;
-          set = true;
-          break;
-        }
-      }
-      if (!set) {
-        m[i] = "";
-      }
-    }
-
-    newrho.setVariable(Symbol.get(".Method"), new StringVector(m));
-    newrho.setVariable(Symbol.get(".Generic"), new StringVector(generic));
-    newrho.setVariable(Symbol.get(".Group"), left.gr);
-
-    StringVector.Builder dotClass = StringVector.newBuilder();
-    for(j=left.which;j<lclass.length();++j) {
-      dotClass.add(lclass.getElementAsString(j));
-    }
-
-    newrho.setVariable(Symbol.get(".Class"), dotClass.build());
-    newrho.setVariable(Symbol.get(".GenericCallEnv"), rho);
-    newrho.setVariable(Symbol.get(".GenericDefEnv"), rho.getBaseEnvironment());
-
-    FunctionCall newCall = FunctionCall.newCall(left.meth, call.getArguments());
-
-    /* the arguments have been evaluated; since we are passing them */
-    /* out to a closure we need to wrap them in promises so that */
-    /* they get duplicated and things like missing/substitute work. */
-
-
-    PairList promisedArgs = promiseArgs(call.getArguments(), context, rho);
-    if (promisedArgs.length() != args.length()) {
-      throw new EvalException("dispatch error in group dispatch");
-    }
-    if(promisedArgs != Null.INSTANCE) {
-      PairList.Node promised = (PairList.Node)promisedArgs;
-      PairList.Node evaluated = (PairList.Node)args;
-      
-      while(true) {
-
-        ((Promise)promised.getValue()).setResult(evaluated.getValue());
-        /* ensure positional matching for operators */
-        if (isOps) {
-          promised.setTag(Null.INSTANCE);
-        }
-        if(!promised.hasNextNode()) {
-          break;
-        }
-        promised = promised.getNextNode();
-        evaluated = evaluated.getNextNode();
-      }
-    }
-
-    return applyClosure((Closure)left.sxp, context, newCall, promisedArgs, rho, newrho);
-  }
 
   public static SEXP applyClosure(Closure closure, Context context, FunctionCall call, PairList promisedArgs, Environment rho,
                                         Frame suppliedEnvironment) {
@@ -304,14 +79,6 @@ public class Calls {
       }
       return e.getValue();
     }
-  }
-
-  private static class FindResult {
-    SEXP sxp;
-    SEXP gr;
-    Symbol meth;
-    int which;
-    String buf;
   }
 
   /* Create a promise to evaluate each argument.  Although this is most */
@@ -354,40 +121,7 @@ public class Calls {
     return list.build();
   }
 
-  /* gr needs to be protected on return from this function */
-  static FindResult findmethod(Context context, Vector Class, String group,  String generic, Environment rho) {
-    int len, whichclass;
-    FindResult result = new FindResult();
-
-    len = Class.length();
-
-    /* Need to interleave looking for group and generic methods
-     e.g. if class(x) is c("foo", "bar)" then x > 3 should invoke
-     "Ops.foo" rather than ">.bar"
-     */
-    for (whichclass = 0; whichclass < len; whichclass++) {
-      String ss = Class.getElementAsString(whichclass);
-      result.buf = generic + "." + ss;
-
-      result.meth = Symbol.get(result.buf);
-      result.sxp = lookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
-      if (result.sxp instanceof Function) {
-        result.gr = new StringVector("");
-        break;
-      }
-      result.buf = group + "." + ss;
-      result.meth = Symbol.get(result.buf);
-      result.sxp = lookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
-      if (result.sxp instanceof Function) {
-        result.gr = new StringVector(group);
-        break;
-      }
-    }
-    result.which = whichclass;
-    return result;
-  }
-
-/*  usemethod  -  calling functions need to evaluate the object
+  /*  usemethod  -  calling functions need to evaluate the object
  *  (== 2nd argument).  They also need to ensure that the
  *  argument list is set up in the correct manner.
  *
@@ -401,41 +135,6 @@ public class Calls {
  *
  *    3. fix up the argument list; it should be the arguments to the
  *       generic matched to the formals of the method to be invoked */
-
-  public static SEXP lookupMethod(Symbol method, SEXP rho, Environment callrho, Environment defrho)
-  {
-//
-//    if (callrho == Null.INSTANCE) {
-//      throw new EvalException("use of NULL environment is defunct");
-//    } else if( callrho instanceof Environment) {
-//      throw new EvalException("bad generic call environment");
-//    }
-//    if (defrho == Null.INSTANCE) {
-//      throw new EvalException("use of NULL environment is defunct");
-//    } else if(!(defrho instanceof Environment)) {
-//      throw new EvalException("bad generic definition environment");
-//    }
-//    if (defrho == R_BaseEnv)
-//      defrho = R_BaseNamespace;
-
-    /* This evaluates promises */
-    SEXP val = callrho.findVariable(method, CollectionUtils.IS_FUNCTION, true);
-    if (val instanceof Function) {
-      return val;
-    } else {
-//      /* We assume here that no one registered a non-function */
-//      SEXP table = findVarInFrame3(defrho,
-//          install(".__S3MethodsTable__."),
-//          TRUE);
-//      if (TYPEOF(table) == PROMSXP) table = eval(table, R_BaseEnv);
-//      if (TYPEOF(table) == ENVSXP) {
-//        val = findVarInFrame3(table, method, TRUE);
-//        if (TYPEOF(val) == PROMSXP) val = eval(val, rho);
-//        if (val != R_UnboundValue) return val;
-//      }
-      return R_UnboundValue;
-    }
-  }
 
   public static PairList stripDefaultValues(PairList formals) {
     PairList.Builder result = new PairList.Builder();
@@ -582,39 +281,6 @@ public class Calls {
 
   private static <X> X first(Iterable<X> values) {
     return values.iterator().next();
-  }
-  
-  /**
-   * Computes the class list used for normal S3 Dispatch. Note that this 
-   * is different than the class() function
-   * 
-   * @param exp
-   * @return
-   */
-  public static StringVector computeDataClasses(SEXP exp) {
-    if(exp instanceof Promise) {
-      exp = ((Promise)exp).force();
-    }
-    SEXP classAttribute = exp.getAttribute(Symbols.CLASS);
-    if(classAttribute.length() > 0) {
-      return (StringVector)classAttribute;
-    } else {
-      StringVector.Builder dataClass = new StringVector.Builder();
-      
-      SEXP dim = exp.getAttribute(Symbols.DIM);
-      if(dim.length() == 2) {
-        dataClass.add("matrix");
-      } else if(dim.length() == 1) {
-        dataClass.add("array");
-      }
-      if(exp instanceof IntVector || exp instanceof DoubleVector) {
-        dataClass.add(exp.getTypeName());
-        dataClass.add("numeric");
-      } else {
-         dataClass.add(exp.getImplicitClass());
-      }
-      return dataClass.build();
-    }
   }
 
 }

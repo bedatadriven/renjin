@@ -855,8 +855,8 @@ public class Primitives {
 
 /* Objects */
     f("inherits", Types.class, 0, 11, 3);
-    f("UseMethod", Evaluation.class, 0, 200, -1);
-    f("NextMethod", Evaluation.class, 0, 210, -1);
+    f("UseMethod", S3.class, 0, 200, -1);
+    f("NextMethod", S3.class, 0, 210, -1);
     f("standardGeneric", /*standardGeneric*/ null, 0, 201, -1);
 
 /* Modelling Functionality */

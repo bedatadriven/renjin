@@ -1,9 +1,9 @@
 package org.renjin.primitives.annotations.processor;
 
-import org.renjin.eval.Calls;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchChain;
+import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 import org.renjin.sexp.PairList.Node;
 
@@ -250,7 +250,7 @@ public class WrapperRuntime {
 
     PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
 
-    return Calls.DispatchGroup(group, call, name, newArgs, context, rho);
+    return S3.DispatchGroup(group, call, name, newArgs, context, rho);
   }
 
 
@@ -259,7 +259,7 @@ public class WrapperRuntime {
 
     PairList newArgs = new PairList.Node(s0, new PairList.Node(s1, Null.INSTANCE));
 
-    return Calls.DispatchGroup(group, call, name, newArgs, context, rho);
+    return S3.DispatchGroup(group, call, name, newArgs, context, rho);
   }
   
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
@@ -280,7 +280,7 @@ public class WrapperRuntime {
       }
     }
     
-    return Calls.DispatchGroup("Summary", call, name, newArgs.build(), context, rho);
+    return S3.DispatchGroup("Summary", call, name, newArgs.build(), context, rho);
   }
 
 }

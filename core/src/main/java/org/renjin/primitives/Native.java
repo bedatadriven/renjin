@@ -64,7 +64,7 @@ public class Native {
     }
 
     if(packageName.equals("base")) {
-      return delegateToJavaMethod(context, rho, methodName, packageName, callArguments);
+      return delegateToJavaMethod(context, methodName, packageName, callArguments);
     }
 
     Method method = Iterables.getOnlyElement(findMethod(packageName, methodName));
@@ -159,7 +159,7 @@ public class Native {
                              @NamedFlag("PACKAGE") String packageName) {
 
 
-    return delegateToJavaMethod(context, rho, methodName, packageName, callArguments);
+    return delegateToJavaMethod(context, methodName, packageName, callArguments);
   }
 
   /**
@@ -167,8 +167,10 @@ public class Native {
    * to a Java class. The Calling convention (.C/.Fortran/.Call) are ignored.
    *
    */
-  public static SEXP delegateToJavaMethod(Context context, Environment rho,
-                                          String methodName, String packageName, ListVector arguments) {
+  public static SEXP delegateToJavaMethod(Context context,
+                                          String methodName,
+                                          String packageName,
+                                          ListVector arguments) {
 
     List<Method> overloads = findMethod(packageName, methodName);
 
@@ -177,7 +179,7 @@ public class Native {
     }
 
     FunctionBinding binding = new FunctionBinding(overloads);
-    return binding.invoke(null, context, rho, PairList.Node.fromVector(arguments));
+    return binding.invoke(null, context, arguments);
   }
 
   public static List<Method> findMethod(String packageName, String methodName) {

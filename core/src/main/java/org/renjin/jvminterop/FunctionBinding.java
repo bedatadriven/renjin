@@ -8,6 +8,7 @@ import org.renjin.jvminterop.converters.Converter;
 import org.renjin.jvminterop.converters.Converters;
 import org.renjin.primitives.annotations.processor.ArgumentIterator;
 import org.renjin.sexp.Environment;
+import org.renjin.sexp.ListVector;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
@@ -103,8 +104,15 @@ public class FunctionBinding {
       return method.toString();
     }
   }
-  
-  public SEXP invoke(Object instance, Context context, Environment rho, PairList arguments) {
+
+  /**
+   *
+   * @param instance the JVM object instance
+   * @param context the calling context
+   * @param rho the calling environment
+   * @param arguments the UNEVALUATED arguments
+   */
+  public SEXP evaluateArgsAndInvoke(Object instance, Context context, Environment rho, PairList arguments) {
     
     // eval arguments
     List<SEXP> args = Lists.newArrayListWithCapacity(maxArgCount);
@@ -112,14 +120,28 @@ public class FunctionBinding {
     while(it.hasNext()) {
       args.add(context.evaluate( it.next(), rho));
     }
-    
+    return invoke(instance, context, args);
+  }
+
+  /**
+   *
+   * @param instance the JVM object instance
+   * @param context the calling context
+   * @param evaluatedArguments  the already EVALUATED arguments
+   */
+  public SEXP invoke(Object instance, Context context, ListVector evaluatedArguments) {
+    List<SEXP> args = Lists.newArrayList(evaluatedArguments);
+    return invoke(instance, context, args);
+  }
+
+  private SEXP invoke(Object instance, Context context, List<SEXP> args) {
     // find overload
     for(Overload overload : overloads) {
       if(overload.accept(args)) {
-        return overload.invoke(context, instance, args);        
+        return overload.invoke(context, instance, args);
       }
     }
-    throw new EvalException("Cannot match arguments (%s) to any JVM method overload:\n%s", 
+    throw new EvalException("Cannot match arguments (%s) to any JVM method overload:\n%s",
         ExceptionUtil.toString(args), ExceptionUtil.overloadListToString(overloads));
   }
 

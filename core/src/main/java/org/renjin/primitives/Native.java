@@ -18,6 +18,12 @@ import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.*;
 
 import java.awt.*;
+import java.lang.Class;
+import java.lang.ClassNotFoundException;
+import java.lang.Exception;
+import java.lang.Object;
+import java.lang.String;
+import java.lang.UnsupportedOperationException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -25,6 +31,7 @@ import java.util.List;
 
 public class Native {
 
+  public static final boolean DEBUG = false;
 
   @Primitive("dyn.load")
   public static ListVector dynLoad(String libraryPath, SEXP local, SEXP now, SEXP dllPath) {
@@ -52,14 +59,9 @@ public class Native {
                           @NamedFlag("DUP") boolean dup,
                           @NamedFlag("ENCODING") boolean encoding) {
 
-    java.lang.System.out.print(".C('" + methodName + "', ");
-    for(NamedValue arg : callArguments.namedValues()) {
-      if(!Strings.isNullOrEmpty(arg.getName())) {
-       java.lang.System.out.print(arg.getName() + " = ");
-      }
-      java.lang.System.out.println(Deparse.deparse(arg.getValue(), 80, false, 0, 0) + ", ");
+    if(DEBUG) {
+      dumpCall(methodName, packageName, callArguments);
     }
-    java.lang.System.out.println("PACKAGE = '" + packageName + "')");
 
     if(packageName.equals("base")) {
       return delegateToJavaMethod(context, rho, methodName, packageName, callArguments);
@@ -88,10 +90,23 @@ public class Native {
 
     ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
     for(int i=0;i!=nativeArguments.length;++i) {
-      java.lang.System.out.println(callArguments.getName(i) + " = " + nativeArguments[i].toString());
+      if(DEBUG) {
+        java.lang.System.out.println(callArguments.getName(i) + " = " + nativeArguments[i].toString());
+      }
       builder.add(callArguments.getName(i), sexpFromPointer(nativeArguments[i]));
     }
     return builder.build();
+  }
+
+  private static void dumpCall(String methodName, String packageName, ListVector callArguments) {
+    java.lang.System.out.print(".C('" + methodName + "', ");
+    for(NamedValue arg : callArguments.namedValues()) {
+      if(!Strings.isNullOrEmpty(arg.getName())) {
+       java.lang.System.out.print(arg.getName() + " = ");
+      }
+      java.lang.System.out.println(Deparse.deparse(arg.getValue(), 80, false, 0, 0) + ", ");
+    }
+    java.lang.System.out.println("PACKAGE = '" + packageName + "')");
   }
 
   public static SEXP sexpFromPointer(Object ptr) {
@@ -178,7 +193,7 @@ public class Native {
     return overloads;
   }
 
-  public static Class getPackageClass(String packageName) {
+  private static Class getPackageClass(String packageName) {
     Class packageClass;
     if(packageName.equals("base")) {
       packageClass = Base.class;

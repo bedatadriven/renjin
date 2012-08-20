@@ -253,18 +253,21 @@ public class Types {
 
   @Generic
   @Primitive("is.nan")
+  @AllowNA
   public static boolean isNaN(@Recycle double value) {
-    return DoubleVector.isNaN(value);
+    return !DoubleVector.isNA(value) && DoubleVector.isNaN(value);
   }
 
   @Generic
   @Primitive("is.finite")
+  @AllowNA
   public static boolean isFinite(@Recycle double value) {
-    return !Double.isInfinite(value);
+    return !Double.isNaN(value) && !Double.isInfinite(value);
   }
 
   @Generic
   @Primitive("is.infinite")
+  @AllowNA
   public static boolean isInfinite(@Recycle double value) {
     return Double.isInfinite(value);
   }

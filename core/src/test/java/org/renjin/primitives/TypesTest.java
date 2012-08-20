@@ -184,8 +184,32 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval(" is.na(c(NA_character_, '', 'foo')) "), equalTo( c(TRUE, FALSE, FALSE)));
     assertThat( eval(" is.na(c()) "), equalTo((SEXP)LogicalVector.EMPTY));
   }
-  
-  
+
+
+  @Test
+  public void finite() {
+    assertThat( eval("is.finite(42)"), equalTo(c(true)));
+    assertThat( eval("is.finite(1/0)"), equalTo(c(false)));
+    assertThat( eval("is.finite(1/0)"), equalTo(c(false)));
+    assertThat( eval("is.finite(NA)"), equalTo(c(false)));
+    assertThat( eval("is.finite(NaN)"), equalTo(c(false)));
+  }
+
+  @Test
+  public void infinite() {
+    assertThat( eval("is.infinite(1)"), equalTo(c(false)));
+    assertThat( eval("is.infinite(1/0)"), equalTo(c(true)));
+    assertThat( eval("is.infinite(NA)"), equalTo(c(false)));
+    assertThat( eval("is.infinite(NaN)"), equalTo(c(false)));
+  }
+
+  @Test
+  public void isnan() {
+    assertThat( eval("is.nan(1)"), equalTo(c(false)));
+    assertThat( eval("is.nan(1/0)"), equalTo(c(false)));
+    assertThat( eval("is.nan(NA)"), equalTo(c(false)));
+    assertThat( eval("is.nan(sqrt(-2))"), equalTo(c(true)));
+  }
 
   @Test
   public void naList() {

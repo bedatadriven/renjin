@@ -31,7 +31,7 @@ public class MethodFunction extends AbstractSEXP implements Function {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call,
       PairList args) {
-    return functionBinding.invoke(instance, context, rho, args);
+    return functionBinding.evaluateArgsAndInvoke(instance, context, rho, args);
   }
 
   /**

@@ -21,8 +21,6 @@
 
 package org.renjin.sexp;
 
-import org.apache.commons.math.complex.Complex;
-
 /**
  * Base interface for all R data types.
  */
@@ -100,7 +98,7 @@ public interface SEXP {
   String getName(int index);
   
   /**
-   * Searches the list of this expression's {@link Attributes#NAMES} attribute for the
+   * Searches the list of this expression's {@link AttributeUtils#NAMES} attribute for the
    * provided {@code name}.
    *
    * @param name the name for which to search

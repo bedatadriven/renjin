@@ -32,6 +32,7 @@ import org.renjin.primitives.annotations.processor.ArgumentIterator;
 import org.renjin.primitives.annotations.processor.WrapperRuntime;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
@@ -199,6 +200,22 @@ public class Sequences {
       throw new EvalException("invalid 'times' argument");
     }
 
+    /*
+     * If there is no per-element times parameter,
+     * and we have a large vector, then just return
+     * a wrapper around this vector and avoid
+     * allocating the extra memory.
+     */
+    if(x instanceof DoubleVector &&
+       times.length() == 1 &&
+       x.length() > RepDoubleVector.LENGTH_THRESHOLD) {
+
+      return new RepDoubleVector((DoubleVector) x, resultLength, each);
+    }
+
+    /**
+     * Go ahead and allocate and fill the memory
+     */
     Vector.Builder result = x.newBuilderWithInitialCapacity(resultLength);
     NamesBuilder names = NamesBuilder.withInitialCapacity(resultLength);
     int result_i = 0;

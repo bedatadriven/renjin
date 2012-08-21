@@ -76,7 +76,7 @@ public abstract class AbstractSEXP implements SEXP {
     if(attributes == Null.INSTANCE) {
       return attributes;
     } else {
-      return Attributes.expandAttributes((PairList)attributes);
+      return AttributeUtils.expandAttributes((PairList) attributes);
     }
   }
 
@@ -198,7 +198,7 @@ public abstract class AbstractSEXP implements SEXP {
   public SEXP setAttribute(Symbol attributeName, SEXP value) {
     return cloneWithNewAttributes(
         replaceAttribute(attributeName,
-            Attributes.validateAttribute(this, attributeName, value)));
+            AttributeUtils.validateAttribute(this, attributeName, value)));
   }
 
   @Override
@@ -212,7 +212,7 @@ public abstract class AbstractSEXP implements SEXP {
       SEXP attributeValue = attributes.getElementAsSEXP(i);
       if(attributeValue != Null.INSTANCE) {
         list.add(Symbol.get(attributeName), 
-            Attributes.validateAttribute(this, Symbol.get(attributeName), attributeValue));
+            AttributeUtils.validateAttribute(this, Symbol.get(attributeName), attributeValue));
       }
     }
     return cloneWithNewAttributes(list.build());

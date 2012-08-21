@@ -34,17 +34,19 @@ public final class DoubleArrayVector extends DoubleVector {
   }
 
   public DoubleArrayVector(double... values) {
-    this.values = Arrays.copyOf(values, values.length);
+    this(values, Null.INSTANCE);
   }
 
   public DoubleArrayVector(double[] values, PairList attributes) {
-    this(attributes);
-    this.values = Arrays.copyOf(values, values.length);
+    this(values, values.length, attributes);
   }
 
   public DoubleArrayVector(double[] values, int length, PairList attributes) {
     this(attributes);
     this.values = Arrays.copyOf(values, length);
+    if(length >= 5000) {
+      System.out.println("new double array length = " + length);
+    }
   }
 
   public DoubleArrayVector(Collection<Double> values) {

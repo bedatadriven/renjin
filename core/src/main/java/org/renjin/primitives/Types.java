@@ -925,13 +925,13 @@ public class Types {
     for (PairList.Node node : exp.getAttributes().nodes()) {
       String name = node.getTag().getPrintName();
       if (name.equals(which)) {
-        return Attributes.postProcessAttributeValue(node);
+        return AttributeUtils.postProcessAttributeValue(node);
       } else if (name.startsWith(which)) {
         partialMatch = node;
         partialMatchCount++;
       }
     }
-    return partialMatchCount == 1 ? Attributes
+    return partialMatchCount == 1 ? AttributeUtils
         .postProcessAttributeValue(partialMatch) : Null.INSTANCE;
   }
 

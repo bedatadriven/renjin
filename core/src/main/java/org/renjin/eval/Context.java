@@ -400,19 +400,6 @@ public class Context {
   }
   
   public SEXP evaluate(SEXP expression, Environment rho) {
-    if(USE_IR) {
-      return evaluateIR(expression, rho);
-    } else {
-      return evaluateAST(expression, rho);
-    }
-  }
-  
-  /**
-   * This is the eval() routine that is modeled very closely
-   * after the original R interpreter and is working nicely.
-   * 
-   */
-  private SEXP evaluateAST(SEXP expression, Environment rho) {
     if(expression instanceof Symbol) {
       return evaluateSymbol((Symbol)expression, rho);
     } else if(expression instanceof ExpressionVector) {
@@ -420,7 +407,7 @@ public class Context {
     } else if(expression instanceof FunctionCall) {
       return evaluateCall((FunctionCall) expression, rho);
     } else if(expression instanceof Promise) {
-      return ((Promise) expression).force();
+      return expression.force();
     } else if(expression != Null.INSTANCE && expression instanceof PromisePairList) {
       throw new EvalException("'...' used in an incorrect context");
     } else {

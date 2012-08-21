@@ -1,16 +1,9 @@
 package org.renjin.util;
 
-import java.util.List;
-
-import org.objectweb.asm.tree.IntInsnNode;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-
 import com.google.common.collect.Lists;
+import org.renjin.sexp.*;
+
+import java.util.List;
 
 /**
  * Helper class to build names attribute
@@ -68,7 +61,7 @@ public final class NamesBuilder {
 
   private void ensureSize(int newSize) {
     if(names == null) {
-      names = Lists.newArrayListWithCapacity(Math.max(initialCapacity, size));
+      names = Lists.newArrayListWithCapacity(Math.max(initialCapacity, newSize));
     }
     while(newSize > names.size()) {
       names.add("");
@@ -85,7 +78,7 @@ public final class NamesBuilder {
       while(names.size() < length) {
         names.add("");
       }
-      return new StringVector(names);
+      return new StringArrayVector(names);
     }
   }
   
@@ -93,7 +86,7 @@ public final class NamesBuilder {
     if(names == null) {
       return Null.INSTANCE;
     } else {
-      return new StringVector(names);
+      return new StringArrayVector(names);
     }
   }
   

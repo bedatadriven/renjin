@@ -3,7 +3,7 @@ package org.renjin.primitives.io.connections;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
-import org.renjin.sexp.StringVector;
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.Symbols;
 
 /**
@@ -38,7 +38,7 @@ public class ConnectionTable {
   public IntVector newConnection(Connection conn) {
     IntArrayVector.Builder sexp = new IntArrayVector.Builder(1);
     sexp.set(0, installConnection(conn));
-    sexp.setAttribute(Symbols.CLASS, new StringVector("connection", conn.getClassName()));
+    sexp.setAttribute(Symbols.CLASS, new StringArrayVector("connection", conn.getClassName()));
     return sexp.build();
   }
   

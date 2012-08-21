@@ -140,7 +140,8 @@ public class Connections {
   }
   
   private static IntVector terminal(int index) {
-    return new IntArrayVector(new int[] { index }, PairList.Node.singleton(Symbols.CLASS, new StringVector("connection", "terminal")));
+    return new IntArrayVector(new int[] { index }, PairList.Node.singleton(Symbols.CLASS,
+            new StringArrayVector("connection", "terminal")));
   }
   
   @Primitive("summary.connection")

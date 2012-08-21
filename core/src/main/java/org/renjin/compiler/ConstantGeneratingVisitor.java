@@ -86,7 +86,7 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
 
   @Override
   public void visit(StringVector vector) {
-    mv.visitTypeInsn(NEW, "org/renjin/sexp/StringVector");
+    mv.visitTypeInsn(NEW, "org/renjin/sexp/StringArrayVector");
     mv.visitInsn(DUP);
     
     ByteCodeUtil.pushInt(mv, vector.length());
@@ -95,11 +95,11 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
       if(!vector.isElementNA(i)) {
         mv.visitInsn(DUP);
         ByteCodeUtil.pushInt(mv, i);
-        mv.visitLdcInsn(vector.getElement(i));
+        mv.visitLdcInsn(vector.getElementAsString(i));
         mv.visitInsn(AASTORE);
       }
     }
-    mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/sexp/StringVector", "<init>", "([Ljava/lang/String;)V");
+    mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/sexp/StringArrayVector", "<init>", "([Ljava/lang/String;)V");
   }
 
   @Override

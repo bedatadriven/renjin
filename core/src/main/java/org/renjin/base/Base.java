@@ -66,7 +66,7 @@ public class Base {
   public static ListVector R_getSymbolInfo(String sname, SEXP spackage, boolean withRegistrationInfo) {
 
     ListVector.Builder result = new ListVector.Builder();
-    result.setAttribute(Symbols.CLASS, new StringVector("CRoutine"));
+    result.setAttribute(Symbols.CLASS, StringVector.valueOf("CRoutine"));
 
     return result.build();
 

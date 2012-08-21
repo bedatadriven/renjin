@@ -2,6 +2,7 @@ package org.renjin.jvminterop.converters;
 
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
 
 public class StringArrayConverter implements Converter<String[]>{
@@ -16,7 +17,7 @@ public class StringArrayConverter implements Converter<String[]>{
   
   @Override
   public SEXP convertToR(String[] value) {
-    return new StringVector(value);
+    return new StringArrayVector(value);
   }
 
   @Override

@@ -1120,7 +1120,7 @@ public class RgbHsv {
 			}
 		}
 		ib.setAttribute(Symbols.DIM, new IntArrayVector(3, s.length()));
-		ib.setAttribute(Symbols.ROW_NAMES, new StringVector(new String[] {
+		ib.setAttribute(Symbols.ROW_NAMES, new StringArrayVector(new String[] {
 				"red", "green", "blue" }));
 		return (ib.build());
 	}
@@ -1138,7 +1138,7 @@ public class RgbHsv {
 			result.add(hsvvals[2]);
 		}
 		result.setAttribute(Symbols.DIM, new IntArrayVector(3, rgb.length() / 3));
-		result.setAttribute(Symbols.ROW_NAMES, new StringVector(new String[] {
+		result.setAttribute(Symbols.ROW_NAMES, new StringArrayVector(new String[] {
 				"h", "s", "v" }));
 		return (result.build());
 	}

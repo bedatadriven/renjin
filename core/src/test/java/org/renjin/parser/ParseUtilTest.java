@@ -21,9 +21,7 @@
 
 package org.renjin.parser;
 
-import org.joda.time.format.FormatUtils;
 import org.junit.Test;
-import org.renjin.parser.ParseUtil;
 import org.renjin.sexp.StringVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -34,7 +32,7 @@ public class ParseUtilTest {
   @Test
   public void deparseCharacterNA() {
 
-    StringVector exp = new StringVector(StringVector.NA);
+    StringVector exp = StringVector.valueOf(StringVector.NA);
 
     assertThat(new ParseUtil.StringDeparser().apply(StringVector.NA), equalTo("NA_character_"));
   }

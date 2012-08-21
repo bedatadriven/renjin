@@ -1108,7 +1108,7 @@ an ANSI digit or not */
       yylval = install(stext.toString());
       return SYMBOL;
     } else {
-      yylval = new StringVector(stext.toString());
+      yylval = StringVector.valueOf(stext.toString());
     }
     if (have_warned != 0) {
       logger.warning(String.format("unrecognized escape(s) removed from \"%s\"", ctext));
@@ -1197,7 +1197,7 @@ an ANSI digit or not */
                   yylval = new DoubleArrayVector(DoubleVector.NA);
                   break;
                 case 8:
-                  yylval = new StringVector(StringVector.NA);
+                  yylval = StringVector.valueOf(StringVector.NA);
                   break;
                 case 9:
                   yylval = new ComplexVector(new Complex(DoubleVector.NA, DoubleVector.NA));

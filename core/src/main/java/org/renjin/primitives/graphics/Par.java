@@ -262,7 +262,7 @@ public class Par {
 
       @Override
       public SEXP query(GraphicsDevice dd) {
-         return new StringVector(dd.getParameters().getForeground().toString());
+         return StringVector.valueOf(dd.getParameters().getForeground().toString());
       }
 
       @Override

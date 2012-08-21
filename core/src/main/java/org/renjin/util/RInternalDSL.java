@@ -26,7 +26,7 @@ public class RInternalDSL {
   }
 
   public static SEXP c(String... values) {
-    return new StringVector(values);
+    return new StringArrayVector(values);
   }
 
   public static SEXP c(double... values) {

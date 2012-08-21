@@ -1,24 +1,17 @@
 package org.renjin.compiler.ir.tree;
 
-import java.util.List;
-
 import org.junit.Test;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.ir.ssa.SsaVariable;
-import org.renjin.compiler.ir.tac.expressions.Constant;
-import org.renjin.compiler.ir.tac.expressions.ElementAccess;
-import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LocalVariable;
-import org.renjin.compiler.ir.tac.expressions.PrimitiveCall;
-import org.renjin.compiler.ir.tac.expressions.Temp;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.compiler.ir.tree.TreeBuilder;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
+
+import java.util.List;
 
 
 public class TreeBuilderTest {
@@ -74,7 +67,7 @@ public class TreeBuilderTest {
     // create dummy fcall
     PairList.Builder args = new PairList.Builder();
     for(Expression argument : arguments) {
-      args.add(new StringVector(argument.toString()));
+      args.add(StringVector.valueOf(argument.toString()));
     }
     return new PrimitiveCall(new FunctionCall(Symbol.get(fnName), args.build()), fnName, arguments);
   }

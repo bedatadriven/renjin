@@ -2430,7 +2430,7 @@ public class RParser {
 
     PairList attributes = PairList.Node.newBuilder()
         .add(Symbols.SRC_FILE, srcfile)
-        .add(Symbols.CLASS, new StringVector("srcref"))
+        .add(Symbols.CLASS, new StringArrayVector("srcref"))
         .build();
 
     return new IntArrayVector(values, attributes);

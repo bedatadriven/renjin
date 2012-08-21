@@ -21,16 +21,15 @@
 
 package org.renjin.primitives;
 
-import java.io.IOException;
-
+import com.google.common.base.Charsets;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
 
-import com.google.common.base.Charsets;
-
+import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -107,7 +106,7 @@ public class TextTest extends EvalTestCase {
     assertThat( eval("sprintf(c('a%d', 'b%d'), c(1,2,3,4))"), equalTo( c("a1", "b2", "a3", "b4")));
 
     // empty list
-    assertThat( eval("sprintf('%s', c())"), equalTo( (SEXP)new StringVector()));
+    assertThat( eval("sprintf('%s', c())"), equalTo( (SEXP)new StringArrayVector()));
   }
   
   @Test

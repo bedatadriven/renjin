@@ -2,6 +2,7 @@ package org.renjin.graphics;
 
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
 
 public enum LineType {
@@ -47,6 +48,6 @@ public enum LineType {
   }
 
   public StringVector toExpression() {
-    return new StringVector(name().toLowerCase());
+    return new StringArrayVector(name().toLowerCase());
   }
 }

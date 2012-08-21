@@ -23,6 +23,7 @@ testXtfrm <- function() {
 
 testVapplyWithMatrixResult <- function() {
 	res <- vapply(list(c(1L,2L,NA_integer_),c(1L,2L,NA_integer_)), is.na, c(NA,NA,NA))
+	print(dim(res))
 	assertThat( res, identicalTo( matrix(c(FALSE,FALSE,TRUE,FALSE,FALSE,TRUE), nrow=3)) )
 }
 

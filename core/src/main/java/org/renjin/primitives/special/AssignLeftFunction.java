@@ -23,14 +23,7 @@ package org.renjin.primitives.special;
 
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SpecialFunction;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 
 public class AssignLeftFunction extends SpecialFunction {
@@ -85,7 +78,7 @@ public class AssignLeftFunction extends SpecialFunction {
     if( lhs instanceof Symbol) {
       target = (Symbol) lhs;
     } else if(lhs instanceof StringVector) {
-      target = Symbol.get(((StringVector) lhs).getElement(0));
+      target = Symbol.get(((StringVector) lhs).getElementAsString(0));
     } else {
       throw new InvalidSyntaxException("cannot assign to value '" + lhs + " (of type " + lhs.getTypeName() + ")");
     }

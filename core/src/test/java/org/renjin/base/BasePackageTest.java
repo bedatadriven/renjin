@@ -49,8 +49,8 @@ public class BasePackageTest extends EvalTestCase {
     topLevelContext.init();
     
     StringVector letters = (StringVector) eval("letters");
-    assertThat( letters.getElement(0),  equalTo( "a" ));
-    assertThat( letters.getElement(25), equalTo( "z" ));
+    assertThat( letters.getElementAsString(0),  equalTo( "a" ));
+    assertThat( letters.getElementAsString(25), equalTo( "z" ));
 
     eval( "assign('x', 42) ");
     assertThat( eval( "x" ) , equalTo( c(42) ));
@@ -349,8 +349,8 @@ public class BasePackageTest extends EvalTestCase {
   public void source() throws IOException {
     assumingBasePackagesLoad();
     
-    global.setVariable(Symbol.get("fn"), 
-        new StringVector(BasePackageTest.class.getResource("SourceTest.R").getFile()));
+    global.setVariable(Symbol.get("fn"),
+            StringVector.valueOf(BasePackageTest.class.getResource("SourceTest.R").getFile()));
       eval("source(fn)");
   }
   

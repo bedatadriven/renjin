@@ -17,7 +17,7 @@ public class StringConverter extends BoxedScalarConverter<String> {
   
   @Override
   public SEXP convertToR(String value) {
-    return new StringVector(value);
+    return StringVector.valueOf(value);
   }
 
   @Override

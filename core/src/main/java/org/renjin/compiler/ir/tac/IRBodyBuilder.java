@@ -1,40 +1,16 @@
 package org.renjin.compiler.ir.tac;
 
-import java.util.List;
-import java.util.Map;
-
-import org.renjin.compiler.ir.Thunk;
-import org.renjin.compiler.ir.tac.expressions.Constant;
-import org.renjin.compiler.ir.tac.expressions.DynamicCall;
-import org.renjin.compiler.ir.tac.expressions.Elipses;
-import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.IRThunk;
-import org.renjin.compiler.ir.tac.expressions.LocalVariable;
-import org.renjin.compiler.ir.tac.expressions.PrimitiveCall;
-import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
-import org.renjin.compiler.ir.tac.expressions.Temp;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.functions.FunctionCallTranslator;
 import org.renjin.compiler.ir.tac.functions.FunctionCallTranslators;
 import org.renjin.compiler.ir.tac.functions.TranslationContext;
-import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.compiler.ir.tac.statements.ExprStatement;
-import org.renjin.compiler.ir.tac.statements.GotoStatement;
-import org.renjin.compiler.ir.tac.statements.IfStatement;
-import org.renjin.compiler.ir.tac.statements.ReturnStatement;
-import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.compiler.ir.tac.statements.*;
+import org.renjin.sexp.*;
 
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.List;
+import java.util.Map;
 
 public class IRBodyBuilder {
   
@@ -174,7 +150,7 @@ public class IRBodyBuilder {
         setter,
         PairList.Node.newBuilder()
           .addAll(getterCall.getArguments())
-          .add("value", new StringVector("TODO: evaluated RHS here"))
+          .add("value", new StringArrayVector("TODO: evaluated RHS here"))
           .build());
     
     FunctionCallTranslator translator = builders.get(setter);

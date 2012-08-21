@@ -3,7 +3,7 @@ package org.renjin.primitives.time;
 import org.joda.time.DateTime;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.StringVector;
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.Symbols;
 
 
@@ -54,7 +54,7 @@ public class PosixCtVector extends TimeVector {
     }
     
     public DoubleVector buildDoubleVector() {
-      vector.setAttribute(Symbols.CLASS, new StringVector("POSIXct", "POSIXt"));
+      vector.setAttribute(Symbols.CLASS, new StringArrayVector("POSIXct", "POSIXt"));
       return vector.build();
     }
   }

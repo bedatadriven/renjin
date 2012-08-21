@@ -189,7 +189,7 @@ public class Serialization {
         Connections.getConnection(context, conn).getInputStream());
     HasNamedValues data = EvalException.checkedCast(reader.readFile());
 
-    StringVector.Builder names = new StringVector.Builder();
+    StringArrayVector.Builder names = new StringArrayVector.Builder();
 
     for (NamedValue pair : data.namedValues()) {
       env.setVariable(Symbol.get(pair.getName()), pair.getValue());
@@ -219,7 +219,7 @@ public class Serialization {
 
     for (int i = 0; i < names.length(); i++) {
       // the name of the symbol
-      Symbol name = Symbol.get(names.getElement(i));
+      Symbol name = Symbol.get(names.getElementAsString(i));
 
       // c(pos, length) of the serialized object
       SEXP value = context.evaluate( values.get(i), (Environment) eenv);

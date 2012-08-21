@@ -90,19 +90,19 @@ public class BaseFrame implements Frame {
   }
 
   private void installPlatform() {
-    loaded.put(Symbol.get(".Library"), 
-        new StringVector(FileSystemUtils.homeDirectoryInCoreJar() + "/library"));
+    loaded.put(Symbol.get(".Library"),
+            StringVector.valueOf(FileSystemUtils.homeDirectoryInCoreJar() + "/library"));
     loaded.put(Symbol.get(".Library.site"), 
-        new StringVector());
+        new StringArrayVector());
     
     loaded.put(Symbol.get(".Platform"), ListVector.newNamedBuilder()
-        .add("OS.type", new StringVector(resolveOsName()))
-        .add("file.sep", new StringVector("/"))
-        .add("GUI", new StringVector("unknown"))
-        .add("endian", new StringVector("big"))
-        .add("pkgType", new StringVector("source"))
-        .add("r_arch", new StringVector(""))
-        .add("dynlib.ext", new StringVector(dynlibExt()))
+        .add("OS.type", StringVector.valueOf(resolveOsName()))
+        .add("file.sep", StringVector.valueOf("/"))
+        .add("GUI", StringVector.valueOf("unknown"))
+        .add("endian", StringVector.valueOf("big"))
+        .add("pkgType", StringVector.valueOf("source"))
+        .add("r_arch", StringVector.valueOf(""))
+        .add("dynlib.ext", StringVector.valueOf(dynlibExt()))
         .build());
   }
 

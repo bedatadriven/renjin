@@ -21,10 +21,10 @@
 
 package org.renjin.sexp;
 
-import java.util.Collections;
-
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.EvalException;
+
+import java.util.Collections;
 
 /**
  * The R Nullary object.
@@ -118,7 +118,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
 
   @Override
   public StringVector getS3Class() {
-    return new StringVector("NULL");
+    return new StringArrayVector("NULL");
   }
 
   @Override

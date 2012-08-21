@@ -103,7 +103,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     SEXP names = attributes.findByTag(Symbols.NAMES);
     if(names instanceof StringVector) {
       for(int i=0;i!=names.length();++i) {
-        if(((StringVector) names).getElement(i).equals(name)) {
+        if(((StringVector) names).getElementAsString(i).equals(name)) {
           return i;
         }
       }
@@ -489,7 +489,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
 
     public NamedBuilder add(String name, String value) {
-      return add(name, new StringVector(value));
+      return add(name, new StringArrayVector(value));
     }
 
     public NamedBuilder add(String name, boolean value) {

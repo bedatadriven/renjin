@@ -21,6 +21,8 @@
 
 package org.renjin.primitives;
 
+import org.renjin.sexp.Vector;
+
 /**
  * Utility class for mapping matrix and array indices to vector indices. 
  * 
@@ -74,7 +76,7 @@ public class Indexes {
   /**
    * Translates a vector index to a matrix column in a matrix with {@code nrows}
    * @param vectorIndex zero-based storage vector index
-   * @param nrows number of rows in the matrix
+   * @param numRows number of rows in the matrix
    * @return the corresponding matrix row
    */
   public static Integer vectorIndexToCol(int vectorIndex, int numRows, int numCols) {
@@ -128,4 +130,34 @@ public class Indexes {
     return false;
   }
 
+
+  /**
+   * Reorders or permutes the given {@code vector}.
+   * @param vector vector
+   * @param permutation  zero-based permutation array
+   * @return
+   */
+  public static Vector permute(Vector vector, int[] permutation) {
+    Vector.Builder permuted = vector.newBuilderWithInitialSize(vector.length());
+    for(int i=0;i!=vector.length();++i) {
+      permuted.setFrom(i, vector, permutation[i]);
+    }
+    return permuted.build();
+  }
+
+  public static int[] permute(int values[], int permutation[]) {
+    int copy[] = new int[values.length];
+    for(int i=0;i!=values.length;++i) {
+      copy[i] = values[ permutation[ i ] ];
+    }
+    return copy;
+  }
+
+  public static int[] unpermute(int values[], int permutation[]) {
+    int copy[] = new int[values.length];
+    for(int i=0;i!=values.length;++i) {
+      copy[ permutation[i] ] = values[ i ];
+    }
+    return copy;
+  }
 }

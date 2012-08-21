@@ -33,7 +33,7 @@ public class DollarTranslator extends FunctionCallTranslator {
       return (Symbol) argument;
     } else if(argument.length() == 1 && argument instanceof StringVector) {
       StringVector vector = (StringVector)argument;
-      return Symbol.get(vector.getElement(0));
+      return Symbol.get(vector.getElementAsString(0));
     } else {
       throw new InvalidSyntaxException("Illegal index value: " + argument);
     }

@@ -22,13 +22,7 @@
 package org.renjin.eval;
 
 import org.renjin.primitives.CollectionUtils;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 public class DispatchChain {
   public static final Symbol GENERIC = Symbol.get(".Generic");
@@ -76,10 +70,10 @@ public class DispatchChain {
 
   public void populateEnvironment(Environment rho) {
     rho.setVariable(CLASS, classes);
-    rho.setVariable(METHOD, new StringVector(method));
-    rho.setVariable(GENERIC, new StringVector(generic));
+    rho.setVariable(METHOD, new StringArrayVector(method));
+    rho.setVariable(GENERIC, StringVector.valueOf(generic));
     if(group != null) {
-      rho.setVariable(GROUP, new StringVector(group));
+      rho.setVariable(GROUP, StringVector.valueOf(group));
     }
   }
 
@@ -113,7 +107,7 @@ public class DispatchChain {
       classes = Null.INSTANCE;
       return false;
     } else {
-      StringVector.Builder newClass = StringVector.newBuilder();
+      StringArrayVector.Builder newClass = StringVector.newBuilder();
       for(int i=1; i!=previous.length();++i) {
         newClass.add(previous.getElementAsString(i));
       }

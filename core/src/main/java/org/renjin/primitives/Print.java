@@ -281,7 +281,7 @@ public class Print {
         if(nameVector.isElementNA(index)) {
           return "<NA>";
         } else {
-          return nameVector.getElement(index);
+          return nameVector.getElementAsString(index);
         }
       }
 

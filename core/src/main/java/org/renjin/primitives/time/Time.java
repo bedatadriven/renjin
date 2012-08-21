@@ -21,20 +21,14 @@
 
 package org.renjin.primitives.time;
 
-import java.util.List;
-
+import com.google.common.base.Strings;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
-
-import com.google.common.base.Strings;
+import java.util.List;
 
 /**
  * Implementation of date time-related functions.
@@ -61,7 +55,7 @@ public class Time {
   public static SEXP strptime(StringVector x, StringVector formats, String tz) {
     
     if(x.length() == 0 || formats.length() == 0) {
-      return new StringVector();
+      return StringVector.EMPTY;
     }
     
     DateTimeZone timeZone = timeZoneFromRSpecification(tz);

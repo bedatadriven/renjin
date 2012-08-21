@@ -110,9 +110,9 @@ public class SubscriptOperation {
 
     } else {
 
-      StringVector.Builder names = null;
+      StringArrayVector.Builder names = null;
       if(source.getAttribute(Symbols.NAMES) != Null.INSTANCE) {
-        names = new StringVector.Builder();
+        names = new StringArrayVector.Builder();
       }
       Vector.Builder result = source.newBuilderWithInitialSize(selection.getElementCount());
       int count = 0;
@@ -253,8 +253,8 @@ public class SubscriptOperation {
   private Vector replaceByName(SEXP elements) {
     StringVector namesToReplace = (StringVector) subscripts.get(0);
     Vector.Builder result = createReplacementBuilder(elements);
-    StringVector.Builder names = source.getNames() == Null.INSTANCE ? StringVector.newBuilder() :
-        (StringVector.Builder) source.getNames().newCopyBuilder();
+    StringArrayVector.Builder names = source.getNames() == Null.INSTANCE ? StringVector.newBuilder() :
+        (StringArrayVector.Builder) source.getNames().newCopyBuilder();
 
     int replacementIndex = 0;
 

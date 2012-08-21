@@ -202,7 +202,15 @@ public final class DoubleArrayVector extends DoubleVector {
 
     @Override
     public DoubleVector build() {
-      return new DoubleArrayVector(values, size, buildAttributes());
+      if(values.length == size) {
+        // Do not make an extra copy of the array
+        DoubleArrayVector vector = new DoubleArrayVector(buildAttributes());
+        vector.values = values;
+        values = null; // will trigger an error if the caller attempts subsequent modification
+        return vector;
+      } else {
+        return new DoubleArrayVector(values, size, buildAttributes());
+      }
     }
   }
 

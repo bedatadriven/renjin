@@ -77,7 +77,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval( " x<- NULL");
     eval( " g<-function(b) b");
     eval( " f<-function(a) g(as.character(a)) ");
-    assertThat( eval("f(x)"), equalTo((SEXP)new StringVector()));
+    assertThat( eval("f(x)"), equalTo((SEXP)new StringArrayVector()));
   }
 
   

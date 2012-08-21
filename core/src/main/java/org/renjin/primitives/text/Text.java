@@ -55,7 +55,7 @@ public class Text {
         results[index] = Joiner.on(separator).join(
             transform(arguments, new StringElementAt(index)));
       }
-      return new StringVector( results );
+      return new StringArrayVector( results );
 
     } else {
       StringBuilder result = new StringBuilder();
@@ -66,7 +66,7 @@ public class Text {
         Joiner.on(separator).appendTo(result,
             transform(arguments, new StringElementAt(index)));
       }
-      return new StringVector( result.toString() );
+      return StringVector.valueOf(result.toString());
     }
   }
 
@@ -322,7 +322,7 @@ public class Text {
                                       boolean useBytes) {
 
     RE re = REFactory.compile(split, false, perl, fixed, useBytes);
-    return new StringVector( re.split(x) );
+    return new StringArrayVector( re.split(x) );
   }
 
   @Primitive
@@ -591,7 +591,7 @@ public class Text {
 
    * @return
    */
-  public static StringVector format(StringVector x, boolean trim, SEXP digits, SEXP nsmall, 
+  public static StringVector format(StringVector x, boolean trim, SEXP digits, SEXP nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
     List<String> elements = formatCharacterElements(x, naEncode);
@@ -820,7 +820,7 @@ public class Text {
       
       // returns a single string built from all the codepoints
       if(x.containsNA()) {
-        return new StringVector(StringVector.NA);
+        return StringVector.valueOf(StringVector.NA);
       } else {
         StringBuilder result = new StringBuilder();
         for(int i=0;i!=x.length();++i) {
@@ -831,7 +831,7 @@ public class Text {
             result.appendCodePoint(codePoint);
           }
         }
-        return new StringVector(result.toString());
+        return StringVector.valueOf(result.toString());
       }
     }
     
@@ -839,7 +839,7 @@ public class Text {
   
   @Primitive("substr<-")
   public static StringVector setSubstring(String s, int start, int stop,String replace) {
-    StringVector.Builder result = new StringVector.Builder();
+    StringArrayVector.Builder result = new StringArrayVector.Builder();
     result.add(s.substring(0, start-1)+replace+s.substring(Math.min(stop,start-1+replace.length())));
 
     return result.build();

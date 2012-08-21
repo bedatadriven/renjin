@@ -69,15 +69,21 @@ public class Attributes {
    * @param expression the expression whose {@code names} attribute is to be updated
    * @param names the proposed {@code names} attribute value
    * @return the {@code names} vector, coerced to a {@link StringVector}
-   * @throws EvalException if the given {@code names} vector cannot be coerced to a {@link StringVector} or if it is not 
+   * @throws EvalException if the given {@code names} vector cannot be coerced to a {@link StringVector} or if it is not
    * the same length as {@code expression} 
    */
   public static StringVector validateNamesAttributes(SEXP expression, SEXP names) {
     if(names.length() > expression.length()) {
       throw new EvalException("'names' attribute [%d] must be the same length as the vector [%d]",
           names.length(), expression.length());
+    } else if(!(names instanceof StringVector) || names.length() < expression.length()) {
+      return StringArrayVector.coerceFrom(names).setLength(expression.length());
+
+    } else if(names.hasAttributes()) {
+      return (StringVector) names.setAttributes(ListVector.EMPTY);
+    } else {
+      return (StringVector) names;
     }
-    return StringVector.coerceFrom(names).setLength(expression.length());
   }
 
   /**
@@ -87,7 +93,7 @@ public class Attributes {
    * @return the {@code classNames} vector, coerced to {@link StringVector} if not null.
    */
   public static SEXP validateClassAttributes(SEXP classNames) {
-    return classNames.length() == 0 ? Null.INSTANCE : StringVector.coerceFrom(classNames);
+    return classNames.length() == 0 ? Null.INSTANCE : StringArrayVector.coerceFrom(classNames);
   }
   
   /**

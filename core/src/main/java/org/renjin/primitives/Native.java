@@ -45,7 +45,7 @@ public class Native {
     result.add("dynamicLookup", LogicalVector.TRUE);
     result.add("handle", new ExternalExp<NativeLibrary>(library));
     result.add("info", "something here");
-    result.setAttribute(Symbols.CLASS, new StringVector("DLLInfo"));
+    result.setAttribute(Symbols.CLASS, StringVector.valueOf("DLLInfo"));
     return result.build();
   }
 

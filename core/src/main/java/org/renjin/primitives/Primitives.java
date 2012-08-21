@@ -235,7 +235,7 @@ public class Primitives {
  * ---------  -------   ------  ----  ----- -------      ---------- ----------*/
     f("vector", Types.class, 0, 11, 2);
     f("complex", ComplexGroup.class, 0, 11, 3);
-    f("matrix", Combine.class, 0, 11, -1);
+    f("matrix", Matrices.class, 0, 11, -1);
     f("length", Types.class, 0, 1, 1);
     f("length<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("row", Combine.class, 1, 11, 1);
@@ -692,7 +692,7 @@ public class Primitives {
     f("count.fields", /*countfields*/ null, 0, 11, 6);
     f("readTableHead", Scan.class, 0, 11, 6);
     f("t.default", Matrices.class, 0, 11, 1);
-    f("aperm", Combine.class, 0, 11, 3);
+    f("aperm", Matrices.class, 0, 11, 3);
     f("builtins", /*builtins*/ null, 0, 11, 1);
     f("edit", /*edit*/ null, 0, 11, 4);
     f("dataentry", /*dataentry*/ null, 0, 11, 2);

@@ -358,7 +358,7 @@ public class S3 {
       }
     }
 
-    StringVector.Builder newklass = new StringVector.Builder();
+    StringArrayVector.Builder newklass = new StringArrayVector.Builder();
     for(j=0;j< newklass.length();++j) {
       newklass.add(((StringVector)klass).getElementAsString(i++));
     }
@@ -382,7 +382,7 @@ public class S3 {
 //    } else {
 //    dotMethod = Symbol.get(buf);
 //    }
-    m.setVariable(Symbol.get(".Method"), new StringVector(buf));
+    m.setVariable(Symbol.get(".Method"), StringVector.valueOf(buf));
 //    defineVar(install(".GenericCallEnv"), callenv, m);
 //    defineVar(install(".GenericDefEnv"), defenv, m);
 
@@ -440,8 +440,8 @@ public class S3 {
 
         Frame extra = new HashFrame();
         extra.setVariable(Symbol.get(".Class"), computeDataClasses(object));
-        extra.setVariable(Symbol.get(".Method"), new StringVector(method.getPrintName()));
-        extra.setVariable(Symbol.get(".Generic"), new StringVector(genericMethodName));
+        extra.setVariable(Symbol.get(".Method"), StringVector.valueOf(method.getPrintName()));
+        extra.setVariable(Symbol.get(".Generic"), StringVector.valueOf(genericMethodName));
 
         PairList repromisedArgs = Calls.promiseArgs(context.getArguments(), context, rho);
         FunctionCall newCall = new FunctionCall(method,repromisedArgs);
@@ -478,14 +478,14 @@ public class S3 {
       result.meth = Symbol.get(result.buf);
       result.sxp = lookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
       if (result.sxp instanceof Function) {
-        result.gr = new StringVector("");
+        result.gr = StringVector.valueOf("");
         break;
       }
       result.buf = group + "." + ss;
       result.meth = Symbol.get(result.buf);
       result.sxp = lookupMethod(result.meth, rho, rho, rho.getBaseEnvironment());
       if (result.sxp instanceof Function) {
-        result.gr = new StringVector(group);
+        result.gr = StringVector.valueOf(group);
         break;
       }
     }
@@ -550,7 +550,7 @@ public class S3 {
       /*
        * Compute implicit class based on DIM attribute and type
        */
-      StringVector.Builder dataClass = new StringVector.Builder();
+      StringArrayVector.Builder dataClass = new StringArrayVector.Builder();
       SEXP dim = exp.getAttribute(Symbols.DIM);
       if(dim.length() == 2) {
         dataClass.add("matrix");
@@ -745,11 +745,11 @@ public class S3 {
       }
     }
 
-    newrho.setVariable(Symbol.get(".Method"), new StringVector(m));
-    newrho.setVariable(Symbol.get(".Generic"), new StringVector(generic));
+    newrho.setVariable(Symbol.get(".Method"), new StringArrayVector(m));
+    newrho.setVariable(Symbol.get(".Generic"), StringVector.valueOf(generic));
     newrho.setVariable(Symbol.get(".Group"), left.gr);
 
-    StringVector.Builder dotClass = StringVector.newBuilder();
+    StringArrayVector.Builder dotClass = StringVector.newBuilder();
     for(j=left.which;j<lclass.length();++j) {
       dotClass.add(lclass.getElementAsString(j));
     }
@@ -896,8 +896,8 @@ public class S3 {
     private Frame persistChain() {
       HashFrame frame = new HashFrame();
       frame.setVariable(Symbol.get(".Class"), resolver.classes);
-      frame.setVariable(Symbol.get(".Method"), new StringVector(method.getPrintName()));
-      frame.setVariable(Symbol.get(".Generic"), new StringVector(resolver.genericMethodName));
+      frame.setVariable(Symbol.get(".Method"), StringVector.valueOf(method.getPrintName()));
+      frame.setVariable(Symbol.get(".Generic"), StringVector.valueOf(resolver.genericMethodName));
       frame.setVariable(Symbol.get(".GenericCallEnv"), resolver.callingEnvironment);
       frame.setVariable(Symbol.get(".GenericDefEnv"), resolver.definitionEnvironment);
       return frame;

@@ -47,7 +47,7 @@ public class SEXPFactory {
       return new IntArrayVector( (Integer) result);
 
     } else if(result instanceof String) {
-      return new StringVector( (String) result );
+      return StringVector.valueOf((String) result);
 
     } else if(result instanceof int[]) {
       return new IntArrayVector((int[]) result);

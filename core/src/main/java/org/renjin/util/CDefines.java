@@ -48,7 +48,7 @@ public class CDefines {
 
   public static CHARSEXP STRING_ELT(SEXP x, int i) {
     StringVector vector = (StringVector)x;
-    return new CHARSEXP(vector.getElement(i));
+    return new CHARSEXP(vector.getElementAsString(i));
   }
   
   public static SEXP VECTOR_ELT(SEXP x, int i) {
@@ -434,7 +434,7 @@ public class CDefines {
     if(type == VECSXP) {
       return new ListVector.Builder(size);
     } else if(type == STRSXP) {
-      return new StringVector.Builder(size);
+      return new StringArrayVector.Builder(size);
     } else {
       throw new UnsupportedOperationException();
     }
@@ -452,7 +452,7 @@ public class CDefines {
     if(tag == R_NilValue) {
       builder.setNA(i);
     } else {
-      ((StringVector.Builder)builder).set(i, ((CHARSEXP)tag).toString());
+      ((StringArrayVector.Builder)builder).set(i, ((CHARSEXP)tag).toString());
     }
   }
 

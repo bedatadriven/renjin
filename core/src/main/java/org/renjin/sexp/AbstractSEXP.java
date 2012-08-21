@@ -111,7 +111,7 @@ public abstract class AbstractSEXP implements SEXP {
     if(classAttribute instanceof StringVector) {
       return (StringVector) classAttribute;
     }
-    return new StringVector( getImplicitClass() );
+    return new StringArrayVector( getImplicitClass() );
   }
   
 
@@ -146,7 +146,7 @@ public abstract class AbstractSEXP implements SEXP {
   public String getName(int index) {
     SEXP names = attributes.findByTag(Symbols.NAMES);
     if(names instanceof StringVector) {
-      return ((StringVector) names).getElement(index);
+      return ((StringVector) names).getElementAsString(index);
     }
     return StringVector.NA;
   }
@@ -167,7 +167,7 @@ public abstract class AbstractSEXP implements SEXP {
       if(namesExp instanceof StringVector) {
         StringVector names = (StringVector) namesExp;
         for(int i=0;i!=names.length();++i) {
-          if(names.getElement(i).equals(name)) {
+          if(names.getElementAsString(i).equals(name)) {
             return i;
           }
         }

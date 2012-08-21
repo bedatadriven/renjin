@@ -50,7 +50,7 @@ public class Sort {
       Arrays.sort(sorted);
     }
 
-    return new StringVector(sorted, x.getAttributes());
+    return new StringArrayVector(sorted, x.getAttributes());
   }
 
   public static Vector sort(DoubleVector x, boolean decreasing) {

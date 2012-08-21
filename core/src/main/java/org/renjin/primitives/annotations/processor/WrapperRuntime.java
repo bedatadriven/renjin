@@ -137,7 +137,7 @@ public class WrapperRuntime {
   }
   
   public static SEXP wrapResult(String s) {
-    return new StringVector(s);
+    return StringVector.valueOf(s);
   }    
  
   public static SEXP wrapResult(boolean b) {

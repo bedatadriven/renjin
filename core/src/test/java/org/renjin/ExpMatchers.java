@@ -74,7 +74,7 @@ public class ExpMatchers {
     return new BaseMatcher<SEXP>() {
       @Override
       public boolean matches(Object o) {
-        return o instanceof StringVector && ((StringVector) o).getElement(0).equals(string);
+        return o instanceof StringVector && ((StringVector) o).getElementAsString(0).equals(string);
       }
 
       @Override

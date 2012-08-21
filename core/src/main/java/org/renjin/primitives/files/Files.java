@@ -76,7 +76,7 @@ public class Files {
       FileObject file = context.resolveFile(pathExpand(name));
       result.add(checkAccess(file, mode));
     }
-    result.setAttribute(Symbols.NAMES, new StringVector(names.toArray()));
+    result.setAttribute(Symbols.NAMES, new StringArrayVector(names.toArray()));
     return result.build();
   }
 
@@ -109,7 +109,7 @@ public class Files {
     DoubleArrayVector.Builder size = new DoubleArrayVector.Builder();
     LogicalArrayVector.Builder isdir = new LogicalArrayVector.Builder();
     IntArrayVector.Builder mode = (IntArrayVector.Builder) new IntArrayVector.Builder()
-        .setAttribute(Symbols.CLASS, new StringVector("octmode"));
+        .setAttribute(Symbols.CLASS, StringVector.valueOf("octmode"));
     DoubleArrayVector.Builder mtime = new DoubleArrayVector.Builder();
     StringVector.Builder exe = new StringVector.Builder();
 
@@ -249,7 +249,7 @@ public class Files {
         }
       }
     }
-    return new StringVector(matching);
+    return new StringArrayVector(matching);
   }
 
   /**

@@ -320,7 +320,7 @@ public class Scan {
       for(Entry<String, Integer> level : codes.entrySet()) {
         levels.set(level.getValue()-1, level.getKey());
       }
-      factor.setAttribute(Symbols.CLASS, new StringVector("factor"));
+      factor.setAttribute(Symbols.CLASS, StringVector.valueOf("factor"));
       factor.setAttribute(Symbols.LEVELS, levels.build());
       return factor.build();
   }

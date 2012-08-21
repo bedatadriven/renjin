@@ -37,7 +37,7 @@ public class Models {
   @Primitive("~")
   public static SEXP tilde(Context context, Environment rho, FunctionCall call) {
     PairList.Builder attributes = PairList.Node.newBuilder();
-    attributes.add(Symbols.CLASS, new StringVector("formula"));
+    attributes.add(Symbols.CLASS, StringVector.valueOf("formula"));
     attributes.add(Symbols.DOT_ENVIRONMENT, rho);
 
     return new FunctionCall(call.getFunction(), call.getArguments(),
@@ -65,7 +65,7 @@ public class Models {
     attributes.add("intercept", formula.buildInterceptAttribute());
     attributes.add("response",  formula.buildResponseAttribute());
     attributes.add(".Environment", context.getGlobalEnvironment() );
-    attributes.add("class", new StringVector("terms", "formula"));
+    attributes.add("class", new StringArrayVector("terms", "formula"));
     
     // create an new Function Call
     FunctionCall copy = x.clone();
@@ -168,7 +168,7 @@ public class Models {
         names.add(ss);
         j++;
     }
-    attributes.add(Symbols.NAMES, new StringVector(names));
+    attributes.add(Symbols.NAMES, new StringArrayVector(names));
 
     /* Sanity checks to ensure that the the answer can become */
     /* a data frame.  Be deeply suspicious here! */
@@ -196,7 +196,7 @@ public class Models {
     /* To do this we must attach "class"  and */
     /* "row.names" attributes */
 
-    attributes.add(Symbols.CLASS, new StringVector("data.frame"));
+    attributes.add(Symbols.CLASS, StringVector.valueOf("data.frame"));
     if (row_names.length() == nr) {
         attributes.add(Symbols.ROW_NAMES, row_names);
     } else {

@@ -32,7 +32,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 
@@ -43,12 +44,12 @@ public class RDataWriterTest extends EvalTestCase {
   public void test() throws IOException {
 
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
-    list.add("foo", new StringVector("zefer", "fluuu"));
+    list.add("foo", new StringArrayVector("zefer", "fluuu"));
     list.setAttribute("categories", new IntArrayVector(3));
 
 
     PairList.Builder file = new PairList.Builder();
-    file.add("a", new StringVector("who", "am", "i", StringVector.NA));
+    file.add("a", new StringArrayVector("who", "am", "i", StringVector.NA));
     file.add("b", new IntArrayVector(1, 2, 3, IntVector.NA, 4));
     file.add("c", new LogicalArrayVector(Logical.NA, Logical.FALSE, Logical.TRUE));
     file.add("d", new DoubleArrayVector(3.14, 6.02, DoubleVector.NA));

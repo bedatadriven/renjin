@@ -1,26 +1,14 @@
 package org.renjin.compiler.ir.tac.functions;
 
 
-import java.util.List;
-
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.expressions.Constant;
-import org.renjin.compiler.ir.tac.expressions.DynamicCall;
-import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.Temp;
-import org.renjin.compiler.ir.tac.expressions.Variable;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
-
-import com.google.common.collect.Lists;
 
 
 public class AssignLeftTranslator extends FunctionCallTranslator {
@@ -71,7 +59,7 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
     if( lhs instanceof Symbol) {
       target = new EnvironmentVariable((Symbol) lhs);
     } else if(lhs instanceof StringVector) {
-      target =  new EnvironmentVariable( Symbol.get(((StringVector) lhs).getElement(0)) );
+      target =  new EnvironmentVariable( Symbol.get(((StringVector) lhs).getElementAsString(0)) );
     } else {
       throw new EvalException("cannot assign to value of type " + lhs.getTypeName());
     }

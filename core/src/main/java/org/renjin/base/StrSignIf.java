@@ -45,18 +45,12 @@
 package org.renjin.base;
 
 
-import static java.lang.Math.floor;
-import static java.lang.Math.log10;
-import static java.lang.Math.pow;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-
-import org.apache.commons.math.util.MathUtils;
-import org.renjin.eval.EvalException;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.StringVector.Builder;
-import org.renjin.sexp.Vector;
 
 public class StrSignIf {
 
@@ -90,7 +84,7 @@ public class StrSignIf {
   {
       NumberFormat formatter = buildFormat(digits, format, flag);
       
-      StringVector.Builder result = new StringVector.Builder();
+      StringArrayVector.Builder result = new StringArrayVector.Builder();
       for(int i=0;i!=x.length();++i) {
         result.add(formatter.format(x.getElementAsDouble(i)));
       }

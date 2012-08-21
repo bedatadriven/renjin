@@ -2,6 +2,7 @@ package org.renjin.graphics;
 
 import org.renjin.eval.Context;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
 
@@ -151,7 +152,7 @@ public class Color {
   }
 
   public SEXP toExp() {
-    return new StringVector(toString());
+    return new StringArrayVector(toString());
   }
 
   @Override

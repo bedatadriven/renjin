@@ -51,7 +51,7 @@ public abstract class EvalTestCase {
   protected Environment base;
   protected Context topLevelContext;
   public static final SEXP NULL = Null.INSTANCE;
-  public static final SEXP CHARACTER_0 = new StringVector();
+  public static final SEXP CHARACTER_0 = new StringArrayVector();
   public static final SEXP DOUBLE_0 = new DoubleArrayVector();
 
   public SEXP GlobalEnv;
@@ -128,7 +128,7 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP c(String... values) {
-    return new StringVector(values);
+    return new StringArrayVector(values);
   }
 
   protected SEXP c(double... values) {

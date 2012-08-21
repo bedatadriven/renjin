@@ -89,7 +89,7 @@ public abstract class Selection implements Iterable<Integer> {
     if(dimNames != Null.INSTANCE) {
       Vector sourceNames = dimNames.getElementAsSEXP(dimIndex);
       if(sourceNames != Null.INSTANCE) {
-        StringVector.Builder names = new StringVector.Builder();
+        StringArrayVector.Builder names = new StringArrayVector.Builder();
         for(Integer index : getSelectionAlongDimension(dimIndex)) {
           names.add( sourceNames.getElementAsString(index) );
         }

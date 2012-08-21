@@ -27,7 +27,7 @@ class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
   }
   
   public void setRowNames(Collection<String> names) {
-    rowNames = new StringVector(names);
+    rowNames = new StringArrayVector(names);
   }
   
   public void setColNames(StringVector names) {
@@ -35,7 +35,7 @@ class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
   }
   
   public void setColNames(Collection<String> names) {
-    colNames = new StringVector(names);
+    colNames = new StringArrayVector(names);
   }
   
   public int getRows() {

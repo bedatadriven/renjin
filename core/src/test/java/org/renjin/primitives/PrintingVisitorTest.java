@@ -22,10 +22,7 @@
 package org.renjin.primitives;
 
 import org.junit.Test;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.StringVector;
+import org.renjin.sexp.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -40,14 +37,14 @@ public class PrintingVisitorTest {
 
   @Test
   public void stringVector() {
-    assertThat(new Print.PrintingVisitor().print(new StringVector("abcdef", "a", "b")),
+    assertThat(new Print.PrintingVisitor().print(new StringArrayVector("abcdef", "a", "b")),
         equalTo("[1] \"abcdef\" \"a\"      \"b\"     \n"));
   }
 
   @Test
   public void listOfVectors() {
     assertThat(new Print.PrintingVisitor().print(
-        new ListVector(new DoubleArrayVector(1), new IntArrayVector(999, 1), new StringVector("hello world"))),
+        new ListVector(new DoubleArrayVector(1), new IntArrayVector(999, 1), StringVector.valueOf("hello world"))),
         equalTo("[[1]]\n" +
                 "[1] 1\n" +
                 "\n" +

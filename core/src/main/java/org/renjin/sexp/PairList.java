@@ -188,7 +188,7 @@ public interface PairList extends SEXP {
 
     @Override
     public AtomicVector getNames() {
-      StringVector.Builder names = new StringVector.Builder();
+      StringArrayVector.Builder names = new StringArrayVector.Builder();
       boolean hasNames = false;
       for(PairList.Node node : nodes()) {
         if (node.hasTag()) {

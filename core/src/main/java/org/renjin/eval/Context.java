@@ -102,8 +102,8 @@ public class Context {
 
     public Options() {
       map = Maps.newHashMap();
-      map.put("prompt", new StringVector("> "));
-      map.put("continue", new StringVector("+ "));
+      map.put("prompt", new StringArrayVector("> "));
+      map.put("continue", new StringArrayVector("+ "));
       map.put("expressions" , new IntArrayVector(5000));
       map.put("width", new IntArrayVector(80));
       map.put("digits", new IntArrayVector(7));
@@ -113,7 +113,7 @@ public class Context {
       map.put("keep.source", new LogicalArrayVector(true));
       map.put("keep.source.pkgs", new LogicalArrayVector(false));
       map.put("warnings.length", new IntArrayVector(1000));
-      map.put("OutDec", new StringVector("."));
+      map.put("OutDec", new StringArrayVector("."));
     }
 
     private Options(Options toCopy) {
@@ -193,7 +193,7 @@ public class Context {
     // can this be moved down to context so it's not global?
     public FileObject workingDirectory;
     
-    private StringVector commandLineArguments = new StringVector("renjin");
+    private StringVector commandLineArguments = StringVector.valueOf("renjin");
     
     public RNG rng = new RNG(this);
      
@@ -278,7 +278,7 @@ public class Context {
     }
     
     public void setCommandLineArguments(String executableName, String... arguments) {
-      commandLineArguments = new StringVector(Lists.asList(executableName, arguments));
+      commandLineArguments = new StringArrayVector(Lists.asList(executableName, arguments));
     }
     
     public StringVector getCommandLineArguments() {

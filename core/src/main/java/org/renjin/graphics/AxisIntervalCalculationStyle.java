@@ -1,6 +1,7 @@
 package org.renjin.graphics;
 
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
 
@@ -48,6 +49,6 @@ public enum AxisIntervalCalculationStyle {
   }
 
   public StringVector toExp() {
-    return new StringVector(name().substring(0,1).toLowerCase());
+    return new StringArrayVector(name().substring(0,1).toLowerCase());
   }
 }

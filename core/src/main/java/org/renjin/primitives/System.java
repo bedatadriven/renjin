@@ -79,7 +79,7 @@ public class System {
 
   @Primitive("Sys.getenv")
   public static StringVector getEnvironment(@Current Context context, StringVector names, String unset) {
-    StringVector.Builder result = new StringVector.Builder();
+    StringVector.Builder result = new StringArrayVector.Builder();
 
     Map<String, String> map = context.getGlobals().systemEnvironment;
     if(names.length() == 0) {
@@ -239,7 +239,7 @@ public class System {
     sb.add(java.lang.System.getProperty("login.name"));
     sb.add(java.lang.System.getProperty("user.name"));
 
-    sb.setAttribute("names", new StringVector(new String[]{"sysname", "release", "version", "nodename", "machine", "login", "user"}));
+    sb.setAttribute("names", new StringArrayVector("sysname", "release", "version", "nodename", "machine", "login", "user"));
     return (sb.build());
   }
   
@@ -332,7 +332,7 @@ public class System {
       result.add(0);
       
       result.setAttribute(Symbols.NAMES, names.build());
-      result.setAttribute(Symbols.CLASS, new StringVector("proc_time"));
+      result.setAttribute(Symbols.CLASS, StringVector.valueOf("proc_time"));
       return result.build();
     
     } catch(Exception e) {
@@ -374,7 +374,7 @@ public class System {
     result.add(0);
     
     result.setAttribute(Symbols.NAMES, names.build());
-    result.setAttribute(Symbols.CLASS, new StringVector("proc_time"));
+    result.setAttribute(Symbols.CLASS, StringVector.valueOf("proc_time"));
     return result.build();
   }
 

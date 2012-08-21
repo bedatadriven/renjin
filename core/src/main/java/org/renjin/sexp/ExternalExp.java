@@ -37,13 +37,6 @@ public final class ExternalExp<T> extends AbstractSEXP {
     this.value = value;
   }
 
-  public ExternalExp(T value, String... className) {
-    super(new PairList.Builder().add(Symbols.CLASS,
-        new StringVector(className)).build());
-
-    this.value = value;
-  }
-
   @Override
   public String getTypeName() {
     return "external[" + (value == null ? "null" : value.getClass().getName()) + "]";

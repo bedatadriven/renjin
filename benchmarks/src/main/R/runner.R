@@ -2,8 +2,8 @@
 
 cat("Starting benchmarks...\n")
 
-warmupRuns <- 3
-runs <- 1
+warmupRuns <- 1
+runs <- 2
 profile <- FALSE
 pattern <- c()
 

@@ -32,6 +32,7 @@ import org.renjin.jvminterop.ClassFrame;
 import org.renjin.jvminterop.ObjectFrame;
 import org.renjin.jvminterop.converters.*;
 import org.renjin.primitives.annotations.*;
+import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
@@ -331,12 +332,12 @@ public class Types {
     if(multiple) {
       StringVector.Builder result = new StringVector.Builder(0, vector.length());
       for(int i=0;i!=vector.length();++i) {
-        result.add(new StringVector(new String(bytes,i,1)));
+        result.add(StringVector.valueOf(new String(bytes, i, 1)));
       }
       return result.build();
       
     } else {
-      return new StringVector(new String(bytes));
+      return StringVector.valueOf(new String(bytes));
     }
   }
   
@@ -425,13 +426,19 @@ public class Types {
   @Generic
   @Primitive("as.character")
   public static StringVector asCharacter(Vector source) {
-    return (StringVector) convertVector(new StringVector.Builder(), source);
+    if(source instanceof StringVector) {
+      return (StringVector) source.setAttributes(ListVector.EMPTY);
+    } else if(source.length() < 100) {
+      return (StringVector) convertVector(new StringVector.Builder(), source);
+    } else {
+      return new ConvertingStringVector(source);
+    }
   }
 
   @Generic
   @Primitive("as.character")
   public static StringVector asCharacter(Symbol symbol) {
-    return new StringVector(symbol.getPrintName());
+    return StringVector.valueOf(symbol.getPrintName());
   }
 
   @Generic
@@ -1047,7 +1054,7 @@ public class Types {
     } else if ("character".equals(mode)) {
       String values[] = new String[length];
       Arrays.fill(values, "");
-      return new StringVector(values);
+      return new StringArrayVector(values);
 
     } else if ("list".equals(mode)) {
       SEXP values[] = new SEXP[length];
@@ -1134,12 +1141,12 @@ public class Types {
 
     SEXP dim = exp.getAttribute(Symbols.DIM);
     if (dim.length() == 2) {
-      return new StringVector("matrix");
+      return StringVector.valueOf("matrix");
     } else if (dim.length() > 0) {
-      return new StringVector("array");
+      return StringVector.valueOf("array");
     }
 
-    return new StringVector(exp.getImplicitClass());
+    return StringVector.valueOf(exp.getImplicitClass());
   }
 
   @Primitive("comment")
@@ -1294,7 +1301,7 @@ public class Types {
 
     for (int i = 0; i != what.length(); ++i) {
       result[i] = Iterables.indexOf(classes,
-          Predicates.equalTo(what.getElement(i))) + 1;
+          Predicates.equalTo(what.getElementAsString(i))) + 1;
     }
     return new IntArrayVector(result);
   }
@@ -1323,7 +1330,7 @@ public class Types {
     names.set(0, ".GlobalEnv");
     names.set(names.size() - 1, "package:base");
 
-    return new StringVector(names);
+    return new StringArrayVector(names);
   }
 
   @Visible(false)
@@ -1349,7 +1356,7 @@ public class Types {
     Environment newEnv = Environment.createChildEnvironment(child.getParent());
     child.setParent(newEnv);
 
-    newEnv.setAttribute(Symbols.NAME.getPrintName(), new StringVector(name));
+    newEnv.setAttribute(Symbols.NAME.getPrintName(), StringVector.valueOf(name));
 
     // copy all values from the provided environment into the
     // new environment

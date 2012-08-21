@@ -343,7 +343,7 @@ public class RDataReader {
     for(int i=0;i!=length;++i) {
       values[i] = ((CHARSEXP)readExp()).getValue();
     }
-    return new StringVector(values, readAttributes(flags));
+    return new StringArrayVector(values, readAttributes(flags));
   }
 
   private SEXP readComplexExp(Flags flags) throws IOException {
@@ -428,7 +428,7 @@ public class RDataReader {
     for(int i=0;i!=len;++i) {
       values[i] = ((CHARSEXP)readExp()).getValue();
     }
-    return new StringVector(values);
+    return new StringArrayVector(values);
   }
 
   private interface StreamReader {

@@ -2043,7 +2043,7 @@ public class RdParser
       UNPROTECT_PTR(body);	
     }
     if (isNull(header)) {
-      PROTECT(header = new StringVector("LIST"));
+      PROTECT(header = new StringArrayVector("LIST"));
     }
 
     ans = ans.setAttribute(install("Rd_tag"), header);
@@ -2159,7 +2159,7 @@ public class RdParser
           valueBuilder.add(node.getValue());
         }
       }
-      valueBuilder.setAttribute(Symbols.CLASS, new StringVector("Rd"));
+      valueBuilder.setAttribute(Symbols.CLASS, new StringArrayVector("Rd"));
       valueBuilder.setAttribute(Symbols.SRC_REF, makeSrcref(lloc, SrcFile));
       setDynamicFlag(valueBuilder, flag);
       Value = valueBuilder.build();
@@ -2167,7 +2167,7 @@ public class RdParser
   }
 
   private SEXP xxtag(SEXP item, int type, Location lloc) {
-    item = setAttrib(item, install("Rd_tag"), new StringVector(yytname__[yytranslate_(type)]));
+    item = setAttrib(item, install("Rd_tag"), new StringArrayVector(yytname__[yytranslate_(type)]));
     item = setAttrib(item, Symbols.SRC_REF, makeSrcref(lloc, SrcFile));
     return item;
   }
@@ -2273,7 +2273,7 @@ public class RdParser
       val.add(lloc.begin.column);
       val.add(lloc.end.column);
       val.setAttribute(Symbols.SRC_FILE, srcfile);
-      val.setAttribute(Symbols.CLASS, new StringVector("srcref"));
+      val.setAttribute(Symbols.CLASS, new StringArrayVector("srcref"));
       return val.build();
     } else {
       return Null.INSTANCE;
@@ -2642,7 +2642,7 @@ public class RdParser
     };
     
     if (c != '\n') xxungetc(c); /* newline causes a break, but we keep it */
-    yylval = new StringVector(correctCrLf(text.toString()));
+    yylval = new StringArrayVector(correctCrLf(text.toString()));
     return TEXT;
   }
 
@@ -2660,7 +2660,7 @@ public class RdParser
 
     xxungetc(c);
     
-    yylval = new StringVector(removeTrailingCR(text.toString()));
+    yylval = new StringArrayVector(removeTrailingCR(text.toString()));
     return COMMENT;
   }
 
@@ -2773,7 +2773,7 @@ public class RdParser
     if (c != '\n') {
       xxungetc(c);
     }
-    yylval = new StringVector(correctCrLf(text.toString()));
+    yylval = new StringArrayVector(correctCrLf(text.toString()));
     return RCODE; 
   }
 
@@ -2808,7 +2808,7 @@ public class RdParser
         }
       }
     }
-    PROTECT(yylval = new StringVector(text.toString()));
+    PROTECT(yylval = new StringArrayVector(text.toString()));
     xxungetc(c);
     return retval;
   }
@@ -2831,7 +2831,7 @@ public class RdParser
     }
     xxungetc(c);
     retval = KeywordLookup(text.toString());
-    yylval = new StringVector(text.toString());
+    yylval = new StringArrayVector(text.toString());
 
     switch (retval) {
     case ENDIF:  /* eat chars to the end of the line */
@@ -2911,7 +2911,7 @@ public class RdParser
     if (c != '\n') {
       xxungetc(c);
     }
-    yylval = new StringVector(text.toString());
+    yylval = new StringArrayVector(text.toString());
     return VERB;  
   }
 
@@ -2955,7 +2955,7 @@ public class RdParser
         yylloc.end.line = 0;
         yylloc.end.column = 0;
         yylloc.end.byteIndex = 0;
-        PROTECT(yylval = new StringVector(""));
+        PROTECT(yylval = new StringArrayVector(""));
         c = xxinitvalue;
         xxinitvalue = 0;
         return(c);

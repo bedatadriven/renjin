@@ -110,7 +110,7 @@ public class PosixLtVector extends TimeVector {
     }
     
     public Builder withTimeZone(DateTimeZone tz) {
-      list.setAttribute(Symbols.TZONE, new StringVector(tz.getID()));
+      list.setAttribute(Symbols.TZONE, StringVector.valueOf(tz.getID()));
       return this;
     }
   
@@ -140,7 +140,7 @@ public class PosixLtVector extends TimeVector {
       list.add(WEEKDAY_FIELD, weekday);
       list.add(DAY_OF_YEAR_FIELD, dayOfYear);
       list.add(DST_FIELD, dst);
-      list.setAttribute(Symbols.CLASS, new StringVector("POSIXlt", "POSIXt"));
+      list.setAttribute(Symbols.CLASS, new StringArrayVector("POSIXlt", "POSIXt"));
       return list.build();
     }
   }

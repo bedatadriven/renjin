@@ -1,7 +1,7 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Vector.Builder;
 
 public class StringType extends ScalarType {
 
@@ -31,8 +31,8 @@ public class StringType extends ScalarType {
   }
 
   @Override
-  public Class<StringVector.Builder> getBuilderClass() {
-    return StringVector.Builder.class;
+  public Class<StringArrayVector.Builder> getBuilderClass() {
+    return StringArrayVector.Builder.class;
   }
   
 }

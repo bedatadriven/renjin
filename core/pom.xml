@@ -48,6 +48,7 @@
       <groupId>org.renjin</groupId>
       <artifactId>gcc-bridge</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -193,6 +194,7 @@
             <phase>process-classes</phase>
             <configuration>
               <executable>java</executable>
+              <classpathScope>compile</classpathScope>
               <arguments>
                 <argument>-classpath</argument>
                 <classpath />

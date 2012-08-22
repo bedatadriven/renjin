@@ -21,17 +21,13 @@
 
 package org.renjin.sexp;
 
-import com.google.common.collect.Maps;
-
-import java.util.Map;
-
 abstract class AbstractVector extends AbstractSEXP implements Vector {
 
-  protected AbstractVector(SEXP tag, PairList attributes) {
+  protected AbstractVector(SEXP tag, AttributeMap attributes) {
     super(attributes);
   }
 
-  protected AbstractVector(PairList attributes) {
+  protected AbstractVector(AttributeMap attributes) {
     super(attributes);
   }
 
@@ -45,7 +41,7 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
 
 
   abstract static class AbstractBuilder<S extends SEXP> implements Builder<S> {
-    private final Map<Symbol,SEXP> attributes = Maps.newHashMap();
+    private final AttributeMap.Builder attributes = AttributeMap.builder();
 
     @Override
     public Builder setAttribute(String name, SEXP value) {
@@ -55,27 +51,25 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     @Override
     public Builder setAttribute(Symbol name, SEXP value) {
       if(value != Null.INSTANCE) {
-        attributes.put(name, value);
+        attributes.set(name, value);
       }
       return this;
     }
 
     @Override
+    public Builder setDim(int row, int col) {
+      attributes.setDim(row, col);
+      return this;
+    }
+
+    @Override
     public SEXP getAttribute(Symbol name) {
-      if(attributes.containsKey(name)) {
-        return attributes.get(name);
-      } else {
-        return Null.INSTANCE;
-      }
+      return attributes.get(name);
     }
 
     @Override
     public Builder copyAttributesFrom(SEXP exp) {
-      if(((AbstractSEXP)exp).getAttributes() != Null.INSTANCE) {
-        for(PairList.Node node : exp.getAttributes().nodes()) {
-          attributes.put(node.getTag(), node.getValue());
-        }
-      }
+      attributes.addAllFrom(exp.getAttributes());
       return this;
     }
     
@@ -86,14 +80,8 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
      */
     @Override
     public Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
-      for(PairList.Node node : exp.getAttributes().nodes()) {
-        if(node.getTag().equals(Symbols.NAMES) ||
-           node.getTag().equals(Symbols.DIM) ||
-           node.getTag().equals(Symbols.DIMNAMES)) {
-
-          attributes.put(node.getTag(), node.getValue());
-          
-        }
+      for(int i=0;i!=toCopy.length;++i) {
+        attributes.addIfNotNull(exp.getAttributes(), toCopy[i]);
       }
       return this;
     }
@@ -109,18 +97,8 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
       return setFrom(length(), source, sourceIndex);
     }
 
-    protected PairList buildAttributes() {
-      if(attributes.isEmpty() ) {
-        return Null.INSTANCE;
-      } else {
-        PairList.Node.Builder pairList = PairList.Node.newBuilder();
-        for(Map.Entry<Symbol, SEXP> pair : attributes.entrySet()) {
-          if(pair.getValue() != Null.INSTANCE) {
-            pairList.add(pair.getKey(), pair.getValue());
-          }
-        }
-        return pairList.build();
-      }
+    protected AttributeMap buildAttributes() {
+      return attributes.build();
     }
   }
 }

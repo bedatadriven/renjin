@@ -2433,7 +2433,7 @@ public class RParser {
         .add(Symbols.CLASS, new StringArrayVector("srcref"))
         .build();
 
-    return new IntArrayVector(values, attributes);
+    return new IntArrayVector(values, AttributeMap.fromPairList(attributes));
   }
 
   static SEXP attachSrcrefs(SEXP val, SEXP srcfile) {

@@ -1,14 +1,11 @@
 package org.renjin.primitives.subset;
 
-import java.util.Iterator;
-
+import com.google.common.collect.UnmodifiableIterator;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
 
-
-import com.google.common.collect.UnmodifiableIterator;
+import java.util.Iterator;
 
 /**
  * Selection of the entire source vector
@@ -22,7 +19,7 @@ public class CompleteSelection extends Selection {
   public CompleteSelection(SEXP source) {
     super(source);
     this.source = source;
-    this.sourceDim = (AtomicVector) source.getAttribute(Symbols.DIM);  
+    this.sourceDim = (AtomicVector) source.getAttributes().getDim();
   }
   
   @Override

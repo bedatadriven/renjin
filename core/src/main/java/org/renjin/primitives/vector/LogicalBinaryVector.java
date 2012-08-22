@@ -1,7 +1,7 @@
 package org.renjin.primitives.vector;
 
+import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
@@ -35,7 +35,7 @@ public class LogicalBinaryVector extends LogicalVector {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     throw new UnsupportedOperationException();
   }
 }

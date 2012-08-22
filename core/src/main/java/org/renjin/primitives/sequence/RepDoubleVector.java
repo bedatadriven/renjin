@@ -1,7 +1,9 @@
 package org.renjin.primitives.sequence;
 
 
-import org.renjin.sexp.*;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.SEXP;
 
 public class RepDoubleVector extends DoubleVector {
 
@@ -11,7 +13,7 @@ public class RepDoubleVector extends DoubleVector {
   private int length;
   private int each;
 
-  private RepDoubleVector(DoubleVector source, int length, int each, PairList attributes) {
+  private RepDoubleVector(DoubleVector source, int length, int each, AttributeMap attributes) {
     super(attributes);
     this.source = source;
     this.length = length;
@@ -25,20 +27,19 @@ public class RepDoubleVector extends DoubleVector {
     this(source, length, each, transformAttributes(source, length, each));
   }
 
-  private static PairList transformAttributes(DoubleVector source, int length, int each) {
-    PairList.Builder builder = new PairList.Builder();
-    for(PairList.Node node : source.getAttributes().nodes()) {
-      if(node.getTag() == Symbols.NAMES) {
-        builder.add(Symbols.NAMES, new RepStringVector((Vector)node.getValue(), length, each, Null.INSTANCE));
-      } else {
-        builder.add(node.getTag(), node.getValue());
-      }
+  private static AttributeMap transformAttributes(DoubleVector source, int length, int each) {
+    if(source.getAttributes().hasNames()) {
+      return source.getAttributes()
+              .copy()
+              .setNames(new RepStringVector(source.getAttributes().getNames(), length, each, AttributeMap.EMPTY))
+              .build();
+    } else {
+      return source.getAttributes();
     }
-    return builder.build();
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new RepDoubleVector(source, length, each, attributes);
   }
 

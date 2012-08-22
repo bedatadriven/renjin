@@ -10,6 +10,8 @@ public interface ListBuilder {
   ListBuilder add(SEXP value);
   
   ListBuilder add(String name, SEXP value);
+
+  ListBuilder add(Symbol name, SEXP value);
   
   ListBuilder set(int index, SEXP value);
    

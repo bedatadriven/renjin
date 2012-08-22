@@ -28,7 +28,7 @@ public final class ExternalExp<T> extends AbstractSEXP {
 
   private final T value;
 
-  public ExternalExp(T value, PairList attributes) {
+  public ExternalExp(T value, AttributeMap attributes) {
     super(attributes);
     this.value = value;
   }
@@ -52,7 +52,7 @@ public final class ExternalExp<T> extends AbstractSEXP {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new ExternalExp<T>(value, attributes);
   }
 }

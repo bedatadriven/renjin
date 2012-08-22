@@ -173,11 +173,10 @@ class MatrixProduct {
   }
 
   private DoubleVector makeMatrix(double[] values, int nr, int nc) {
-    PairList.Builder attributes = new PairList.Builder();
-    attributes.add(Symbols.DIM, new IntArrayVector(nr, nc));
-    attributes.add(Symbols.DIMNAMES, buildDimnames());
+    AttributeMap.Builder attributes = AttributeMap.builder();
+    attributes.setDim(nr, nc);
+    attributes.set(Symbols.DIMNAMES, buildDimnames());
 
-    
     return new DoubleArrayVector(values, attributes.build());
   }
 

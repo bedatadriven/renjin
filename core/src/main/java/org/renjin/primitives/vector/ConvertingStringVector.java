@@ -1,7 +1,6 @@
 package org.renjin.primitives.vector;
 
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
+import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
 
@@ -9,13 +8,13 @@ public class ConvertingStringVector extends StringVector {
 
   private final Vector source;
 
-  public ConvertingStringVector(Vector source, PairList attributes) {
+  public ConvertingStringVector(Vector source, AttributeMap attributes) {
     super(attributes);
     this.source = source;
   }
 
   public ConvertingStringVector(Vector source) {
-    this(source, Null.INSTANCE);
+    this(source, AttributeMap.EMPTY);
   }
 
   @Override
@@ -29,7 +28,7 @@ public class ConvertingStringVector extends StringVector {
   }
 
   @Override
-  protected StringVector cloneWithNewAttributes(PairList attributes) {
+  protected StringVector cloneWithNewAttributes(AttributeMap attributes) {
     return new ConvertingStringVector(source, attributes);
   }
 }

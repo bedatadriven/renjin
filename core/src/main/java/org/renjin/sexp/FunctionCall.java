@@ -21,12 +21,6 @@
 
 package org.renjin.sexp;
 
-import org.renjin.sexp.PairList.Builder;
-import org.renjin.sexp.PairList.Node;
-
-import com.google.common.base.Strings;
-
-
 /**
  * Expression representing a call to an R function, consisting of
  * a function reference and a list of arguments.
@@ -42,7 +36,7 @@ public class FunctionCall extends PairList.Node {
     super(function, arguments);
   }
 
-  public FunctionCall(SEXP function, PairList arguments, PairList attributes) {
+  public FunctionCall(SEXP function, PairList arguments, AttributeMap attributes) {
     super(Null.INSTANCE, function, attributes, arguments);
   }
 
@@ -100,7 +94,7 @@ public class FunctionCall extends PairList.Node {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new FunctionCall(getFunction(), getArguments(), attributes);
   }
 
@@ -149,7 +143,7 @@ public class FunctionCall extends PairList.Node {
 
     public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
-        head = new FunctionCall(s, attributes);
+        head = new FunctionCall(s, Null.INSTANCE, attributes);
         tail = head;
       } else {
         Node next = new Node(tag, s, Null.INSTANCE);

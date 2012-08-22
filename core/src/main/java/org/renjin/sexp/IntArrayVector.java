@@ -31,12 +31,12 @@ public class IntArrayVector extends IntVector {
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  public IntArrayVector(int[] values, int length, PairList attributes) {
+  public IntArrayVector(int[] values, int length, AttributeMap attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, length);
   }
 
-  public IntArrayVector(int[] values, PairList attributes) {
+  public IntArrayVector(int[] values, AttributeMap attributes) {
     this(values, values.length, attributes);
   }
 
@@ -52,7 +52,7 @@ public class IntArrayVector extends IntVector {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new IntArrayVector(values, values.length, attributes);
   }
 

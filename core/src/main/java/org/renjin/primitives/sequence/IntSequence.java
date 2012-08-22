@@ -1,8 +1,8 @@
 package org.renjin.primitives.sequence;
 
 
+import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.IntVector;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
@@ -18,7 +18,7 @@ public class IntSequence extends IntVector {
     this.length = length;
   }
 
-  public IntSequence(PairList attributes, int from, int by, int length) {
+  public IntSequence(AttributeMap attributes, int from, int by, int length) {
     super(attributes);
     this.from = from;
     this.by = by;
@@ -41,7 +41,7 @@ public class IntSequence extends IntVector {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new IntSequence(attributes, from, by, length);
   }
 

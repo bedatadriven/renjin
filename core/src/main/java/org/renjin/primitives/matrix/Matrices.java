@@ -18,7 +18,7 @@ public class Matrices {
   
   @Primitive("t.default")
   public static Vector transpose(Vector x) {
-    Vector dimensions = (Vector) x.getAttribute(Symbols.DIM);
+    Vector dimensions = x.getAttributes().getDim();
     if(dimensions.length() == 0) {
       return (Vector)x.setAttribute(Symbols.DIM, new IntArrayVector(1, x.length()));
       
@@ -37,7 +37,7 @@ public class Matrices {
         ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
         builder.setAttribute(Symbols.DIMNAMES, newDimNames);
       }
-      builder.setAttribute(Symbols.DIM, new IntArrayVector(ncols, nrows));
+      builder.setDim(nrows, ncols);
       return builder.build();
 
     } else {
@@ -142,7 +142,7 @@ public class Matrices {
   public static SEXP aperm(Vector source, AtomicVector permutationVector, boolean resize) {
     if(!resize) throw new UnsupportedOperationException("resize=TRUE not yet implemented");
 
-    SEXP dimExp = source.getAttribute(Symbols.DIM);
+    SEXP dimExp = source.getAttributes().getDim();
     EvalException.check(dimExp instanceof IntVector, "invalid first argument, must be an array");
     int permutation[] = toPermutationArray(permutationVector);
 

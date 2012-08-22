@@ -196,7 +196,7 @@ public class RDataReader {
 
 
   private SEXP readPromise(Flags flags) throws IOException {
-    SEXP attributes = readAttributes(flags);
+    AttributeMap attributes = readAttributes(flags);
     SEXP env = readTag(flags);
     SEXP value = readExp();
     SEXP expr = readExp();
@@ -209,7 +209,7 @@ public class RDataReader {
   }
 
   private SEXP readClosure(Flags flags) throws IOException {
-    PairList attributes = readAttributes(flags);
+    AttributeMap attributes = readAttributes(flags);
     Environment env = (Environment) readTag(flags);
     PairList formals = (PairList) readExp();
     SEXP body =  readExp();
@@ -218,7 +218,7 @@ public class RDataReader {
   }
 
   private SEXP readLangExp(Flags flags) throws IOException {
-    PairList attributes = readAttributes(flags);
+    AttributeMap attributes = readAttributes(flags);
     SEXP tag = readTag(flags);
     SEXP function = readExp();
     PairList arguments = (PairList) readExp();
@@ -230,7 +230,7 @@ public class RDataReader {
   }
 
   private PairList readPairList(Flags flags) throws IOException {
-    PairList attributes = (PairList) readAttributes(flags);
+    AttributeMap attributes = readAttributes(flags);
     SEXP tag = readTag(flags);
     SEXP value = readExp();
     PairList nextNode = (PairList) readExp();
@@ -242,12 +242,12 @@ public class RDataReader {
     return flags.hasTag ? readExp() : Null.INSTANCE;
   }
 
-  private PairList readAttributes(Flags flags) throws IOException {
+  private AttributeMap readAttributes(Flags flags) throws IOException {
     if(flags.hasAttributes) {
       SEXP pairList = readExp();
-      return (PairList)pairList;
+      return AttributeMap.fromPairList((PairList) pairList);
     } else {
-      return Null.INSTANCE;
+      return AttributeMap.EMPTY;
     }
   }
 
@@ -318,13 +318,13 @@ public class RDataReader {
 
   private SEXP readListExp(Flags flags) throws IOException {
     SEXP[] values = readExpArray();
-    PairList attributes = readAttributes(flags);
+    AttributeMap attributes = readAttributes(flags);
     return new ListVector(values, attributes);
   }
 
   private SEXP readExpExp(Flags flags) throws IOException {
     SEXP[] values = readExpArray();
-    PairList attributes = readAttributes(flags);
+    AttributeMap attributes = readAttributes(flags);
     return new ExpressionVector(values, attributes);
   }
 

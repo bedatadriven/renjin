@@ -1,7 +1,7 @@
 package org.renjin.primitives.sequence;
 
 
-import org.renjin.sexp.PairList;
+import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
 
@@ -12,7 +12,7 @@ public class RepStringVector extends StringVector {
   private int length;
   private int each;
 
-  public RepStringVector(Vector source, int length, int each, PairList attributes) {
+  public RepStringVector(Vector source, int length, int each, AttributeMap attributes) {
     super(attributes);
     this.source = source;
     this.sourceLength = source.length();
@@ -26,7 +26,7 @@ public class RepStringVector extends StringVector {
   }
 
   @Override
-  protected StringVector cloneWithNewAttributes(PairList attributes) {
+  protected StringVector cloneWithNewAttributes(AttributeMap attributes) {
     return new RepStringVector(source, length, each, attributes);
   }
 

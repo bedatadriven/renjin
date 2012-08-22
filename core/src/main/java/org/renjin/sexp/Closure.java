@@ -21,11 +21,10 @@
 
 package org.renjin.sexp;
 
+import com.google.common.base.Objects;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.primitives.special.ReturnException;
-
-import com.google.common.base.Objects;
 
 
 /**
@@ -44,7 +43,7 @@ public class Closure extends AbstractSEXP implements Function {
   private SEXP body;
   private PairList formals;
 
-  public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, PairList attributes) {
+  public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, AttributeMap attributes) {
     super(attributes);
     this.enclosingEnvironment = enclosingEnvironment;
     this.body = body;
@@ -52,7 +51,7 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   public Closure(Environment environment, PairList formals, SEXP body) {
-    this(environment, formals, body, Null.INSTANCE);
+    this(environment, formals, body, AttributeMap.EMPTY);
   }
 
   @Override
@@ -62,7 +61,7 @@ public class Closure extends AbstractSEXP implements Function {
   
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new Closure(this.enclosingEnvironment, this.formals, this.body, this.attributes);
   }
 

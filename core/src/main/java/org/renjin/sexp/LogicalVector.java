@@ -15,7 +15,7 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   public static LogicalVector FALSE = new LogicalArrayVector(0);
   public static LogicalVector NA_VECTOR = new LogicalArrayVector(NA);
 
-  public LogicalVector(PairList attributes) {
+  public LogicalVector(AttributeMap attributes) {
     super(attributes);
   }
 
@@ -207,7 +207,7 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   }
 
   @Override
-  protected abstract SEXP cloneWithNewAttributes(PairList attributes);
+  protected abstract SEXP cloneWithNewAttributes(AttributeMap attributes);
 
   private String toString(int x) {
     if (x == 1) {

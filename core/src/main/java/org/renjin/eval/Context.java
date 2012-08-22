@@ -446,7 +446,7 @@ public class Context {
       return result;
     }
   }
-  
+
   private SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
     Function functionExpr = evaluateFunction(call.getFunction(), rho);

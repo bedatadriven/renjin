@@ -23,14 +23,12 @@ package org.renjin.sexp;
 
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
-import org.renjin.sexp.Vector.Builder;
-
 
 import java.util.Iterator;
 
 public abstract class AbstractAtomicVector extends AbstractVector implements AtomicVector{
 
-  protected AbstractAtomicVector(PairList attributes) {
+  protected AbstractAtomicVector(AttributeMap attributes) {
     super(attributes);
   }
 

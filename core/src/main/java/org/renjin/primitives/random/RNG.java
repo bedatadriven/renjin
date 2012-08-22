@@ -98,7 +98,7 @@ public class RNG {
   @Primitive("runif")
   public static DoubleVector runif(@Current Context context, int n, double a, double b) {
 	RNG rng = context.getGlobals().rng;
-    DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
+    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
       vb.add(a + rng.unif_rand() * (b - a));
     }
@@ -107,7 +107,7 @@ public class RNG {
 
   @Primitive("rnorm")
   public static DoubleVector rnorm(@Current Context context, int n, double mean, double sd) {
-    DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
+    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
       vb.add(Normal.rnorm(context.getGlobals(), mean, sd));
     }
@@ -116,7 +116,7 @@ public class RNG {
 
   @Primitive("rgamma")
   public static DoubleVector rgamma(@Current Context context, int n, double shape, double scale) {
-    DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
+    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
       vb.add(Gamma.rgamma(context.getGlobals(), shape, scale));
     }
@@ -125,7 +125,7 @@ public class RNG {
 
   @Primitive("rchisq")
   public static DoubleVector rchisq(@Current Context context, int n, double df) {
-    DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
+    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
       vb.add(ChiSquare.rchisq(context.getGlobals(), df));
     }

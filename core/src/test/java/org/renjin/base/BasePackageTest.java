@@ -450,9 +450,16 @@ public class BasePackageTest extends EvalTestCase {
     
     eval("x <- factor() ");
     assertThat(eval("class(x)"), equalTo(c("factor")));
-    assertThat(eval("attr(x,'levels')"), equalTo((SEXP)StringVector.EMPTY));
+    assertThat(eval("attr(x,'levels')"), equalTo((SEXP) StringVector.EMPTY));
     assertThat(eval("typeof(x)"), equalTo(c("integer")));
     assertThat(eval("is.factor(x)"), equalTo(c(true)));
+  }
+
+  @Test
+  public void attributeOverflow() {
+    assumingBasePackagesLoad();
+
+    eval(" all.equal(list(names = NULL), list(names = NULL))");
   }
   
   @Test

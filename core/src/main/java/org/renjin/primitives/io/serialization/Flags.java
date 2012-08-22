@@ -22,13 +22,7 @@
 package org.renjin.primitives.io.serialization;
 
 
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
 class Flags {
  
@@ -84,7 +78,7 @@ class Flags {
     if(exp.getAttribute(Symbols.CLASS) != Null.INSTANCE) {
       flags |= IS_OBJECT_BIT_MASK;
     }
-    if(exp.getAttributes() != Null.INSTANCE) {
+    if(exp.getAttributes() != AttributeMap.EMPTY) {
       flags |= HAS_ATTR_BIT_MASK;
     }
     if(exp instanceof PairList.Node && ((PairList.Node) exp).hasTag()) {
@@ -99,7 +93,7 @@ class Flags {
   public static int computePromiseFlags(Promise promise) {
     int flags = SerializationFormat.PROMSXP;
 
-    if(promise.getAttributes() != Null.INSTANCE) {
+    if(promise.getAttributes() != AttributeMap.EMPTY) {
       flags |= HAS_ATTR_BIT_MASK;
     }
     if(promise.getEnvironment() != null) {

@@ -24,7 +24,7 @@ package org.renjin.primitives.models;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Types;
+import org.renjin.primitives.Attributes;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.*;
@@ -36,12 +36,11 @@ public class Models {
 
   @Primitive("~")
   public static SEXP tilde(Context context, Environment rho, FunctionCall call) {
-    PairList.Builder attributes = PairList.Node.newBuilder();
-    attributes.add(Symbols.CLASS, StringVector.valueOf("formula"));
-    attributes.add(Symbols.DOT_ENVIRONMENT, rho);
-
     return new FunctionCall(call.getFunction(), call.getArguments(),
-        attributes.build());
+        AttributeMap.builder()
+          .setClass("formula")
+          .set(Symbols.DOT_ENVIRONMENT, rho)
+          .build());
 
   }
 
@@ -57,15 +56,15 @@ public class Models {
     
     
     // define attibutes
-    ListVector.NamedBuilder attributes = ListVector.newNamedBuilder();
-    attributes.add("variables", formula.buildVariablesAttribute());
-    attributes.add("factors", formula.buildFactorsMatrix());
-    attributes.add("term.labels", formula.buildTermLabels());
-    attributes.add("order", new IntArrayVector());
-    attributes.add("intercept", formula.buildInterceptAttribute());
-    attributes.add("response",  formula.buildResponseAttribute());
-    attributes.add(".Environment", context.getGlobalEnvironment() );
-    attributes.add("class", new StringArrayVector("terms", "formula"));
+    AttributeMap.Builder attributes = AttributeMap.builder();
+    attributes.set("variables", formula.buildVariablesAttribute());
+    attributes.set("factors", formula.buildFactorsMatrix());
+    attributes.set("term.labels", formula.buildTermLabels());
+    attributes.set("order", new IntArrayVector());
+    attributes.set("intercept", formula.buildInterceptAttribute());
+    attributes.set("response",  formula.buildResponseAttribute());
+    attributes.set(".Environment", context.getGlobalEnvironment() );
+    attributes.set("class", new StringArrayVector("terms", "formula"));
     
     // create an new Function Call
     FunctionCall copy = x.clone();
@@ -152,7 +151,7 @@ public class Models {
     List<SEXP> data = Lists.newArrayList(); 
     List<String> names = Lists.newArrayList();
     
-    PairList.Node.Builder attributes = new PairList.Node.Builder();
+    AttributeMap.Builder attributes = AttributeMap.builder();
     
     for (int i = 0; i < nvars; i++) {
         data.add(variables.getElementAsSEXP(i));
@@ -163,12 +162,12 @@ public class Models {
         if (dots.getElementAsSEXP(i) == Null.INSTANCE) {
           continue;
         }
-        ss = "(" + ((StringVector)dotnames).getElementAsString(i) + ")";
+        ss = "(" + dotnames.getElementAsString(i) + ")";
         data.add(dots.getElementAsSEXP(i));
         names.add(ss);
         j++;
     }
-    attributes.add(Symbols.NAMES, new StringArrayVector(names));
+    attributes.setNames(new StringArrayVector(names));
 
     /* Sanity checks to ensure that the the answer can become */
     /* a data frame.  Be deeply suspicious here! */
@@ -196,11 +195,11 @@ public class Models {
     /* To do this we must attach "class"  and */
     /* "row.names" attributes */
 
-    attributes.add(Symbols.CLASS, StringVector.valueOf("data.frame"));
+    attributes.setClass("data.frame");
     if (row_names.length() == nr) {
-        attributes.add(Symbols.ROW_NAMES, row_names);
+        attributes.set(Symbols.ROW_NAMES, row_names);
     } else {
-        attributes.add(Symbols.ROW_NAMES, new IntArrayVector(IntVector.NA, -nr));
+        attributes.set(Symbols.ROW_NAMES, new IntArrayVector(IntVector.NA, -nr));
     
         /*
         PROTECT(row_names = allocVector(INTSXP, nr));
@@ -276,7 +275,7 @@ public class Models {
         } else {
           return ((IntVector)s).getElementAsInt(0);
         }
-    } else if(Types.inherits(s, "data.frame")) {
+    } else if(Attributes.inherits(s, "data.frame")) {
       return nrows(s.getElementAsSEXP(0));
       
     } else {  

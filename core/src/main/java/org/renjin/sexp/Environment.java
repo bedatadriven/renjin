@@ -21,21 +21,13 @@
 
 package org.renjin.sexp;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.renjin.base.BaseFrame;
-import org.renjin.eval.EvalException;
-
-
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import com.google.common.collect.UnmodifiableIterator;
+import org.renjin.base.BaseFrame;
+import org.renjin.eval.EvalException;
+
+import java.util.*;
 
 /**
  * The Environment data type.
@@ -197,7 +189,7 @@ public class Environment extends AbstractSEXP implements Recursive {
 
 
   public String getName() {
-    SEXP nameAttribute = this.attributes.findByTag(Symbols.NAME);
+    SEXP nameAttribute = this.attributes.get(Symbols.NAME);
     if(nameAttribute instanceof StringVector) {
       return ((StringVector) nameAttribute).getElementAsString(0);
     } else if(name == null) {
@@ -405,7 +397,7 @@ public class Environment extends AbstractSEXP implements Recursive {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     this.attributes = attributes;
     return this;
   }

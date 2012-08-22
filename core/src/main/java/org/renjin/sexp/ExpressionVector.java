@@ -31,7 +31,7 @@ public class ExpressionVector extends ListVector {
   public static final String TYPE_NAME = "expression";
 
 
-  public ExpressionVector(SEXP[] functionCalls, PairList attributes) {
+  public ExpressionVector(SEXP[] functionCalls, AttributeMap attributes) {
     super(functionCalls, attributes);
   }
 
@@ -39,7 +39,7 @@ public class ExpressionVector extends ListVector {
     super(functionCalls);
   }
 
-  public ExpressionVector(Iterable<SEXP> expressions, PairList attributes) {
+  public ExpressionVector(Iterable<SEXP> expressions, AttributeMap attributes) {
     super(expressions, attributes);
   }
 

@@ -1,10 +1,10 @@
 package org.renjin.sexp;
 
-import java.util.Arrays;
-import java.util.Iterator;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.UnmodifiableIterator;
+
+import java.util.Arrays;
+import java.util.Iterator;
 
 public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
@@ -19,7 +19,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
   }
   
   
-  public RawVector(Raw[] values, PairList attributes) {
+  public RawVector(Raw[] values, AttributeMap attributes) {
     super(attributes);
     this.values = new Raw[values.length];
     this.values = Arrays.copyOf(values, values.length);

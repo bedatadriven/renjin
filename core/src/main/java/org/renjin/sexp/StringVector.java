@@ -13,12 +13,12 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
 
   public static final String TYPE_NAME = "character";
   public static final String NA = null;
-  public static final StringVector EMPTY = new StringArrayVector();
 
   public static final Vector.Type VECTOR_TYPE = new StringType();
+  public static final StringVector EMPTY = new StringArrayVector();
 
 
-  public StringVector(PairList attributes) {
+  public StringVector(AttributeMap attributes) {
     super(attributes);
   }
 
@@ -117,7 +117,7 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
   public abstract int length();
 
   @Override
-  protected abstract StringVector cloneWithNewAttributes(PairList attributes);
+  protected abstract StringVector cloneWithNewAttributes(AttributeMap attributes);
 
   @Override
   public int compare(int index1, int index2) {

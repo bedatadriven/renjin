@@ -163,7 +163,7 @@ public class Evaluation {
       result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
     }
     if(funValue.length() != 1) {
-      result.setAttribute(Symbols.DIM, new IntArrayVector(funValue.length(), vector.length()));
+      result.setDim(funValue.length(), vector.length());
     }
     
     return result.build();

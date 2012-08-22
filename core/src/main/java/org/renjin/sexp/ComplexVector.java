@@ -44,7 +44,7 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  public ComplexVector(double[] values, PairList attributes) {
+  public ComplexVector(double[] values, AttributeMap attributes) {
     super(attributes);
     this.values=new Complex[values.length];
     for(int i=0; i<values.length; i++){
@@ -52,12 +52,12 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
     }
   }
   
-  public ComplexVector(Complex[] values, PairList attributes) {
+  public ComplexVector(Complex[] values, AttributeMap attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, values.length);
   }
   
-  public ComplexVector(Complex[] values, int length, PairList attributes) {
+  public ComplexVector(Complex[] values, int length, AttributeMap attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, length);
   }
@@ -67,14 +67,8 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
     this.values = Arrays.copyOf(values, length);
   }
 
-  public static ComplexVector newMatrix(double[] values, int nRows, int nCols) {
-    PairList attributes = new PairList.Node(Symbols.DIM, new IntArrayVector(nRows,nCols), Null.INSTANCE);
-    return new ComplexVector(values, attributes);
-  }
-  
   public static ComplexVector newMatrix(Complex[] values, int nRows, int nCols) {
-    PairList attributes = new PairList.Node(Symbols.DIM,new IntArrayVector(nRows,nCols), Null.INSTANCE);
-    return new ComplexVector(values,attributes);
+    return new ComplexVector(values, AttributeMap.builder().setDim(nRows, nCols).build());
   }
   
   @Override

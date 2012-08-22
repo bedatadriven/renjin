@@ -26,7 +26,7 @@ public class CoordinateMatrixSelection extends Selection {
       return false;
     }
     
-    Vector subscriptDim = (Vector)subscript.getAttribute(Symbols.DIM);
+    Vector subscriptDim = subscript.getAttributes().getDim();
     if(subscriptDim.length() != 2) {
       return false;
     }

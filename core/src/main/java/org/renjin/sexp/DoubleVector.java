@@ -47,7 +47,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
 
   public static final DoubleVector EMPTY = new DoubleArrayVector();
 
-  protected DoubleVector(PairList attributes) {
+  protected DoubleVector(AttributeMap attributes) {
     super(attributes);
   }
 
@@ -90,7 +90,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   }
 
   @Override
-  protected abstract SEXP cloneWithNewAttributes(PairList attributes);
+  protected abstract SEXP cloneWithNewAttributes(AttributeMap attributes);
 
   public double get(int i) {
     return getElementAsDouble(i);

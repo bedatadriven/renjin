@@ -46,17 +46,17 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   private final ArrayList<SEXP> values;
 
-  public ListVector(Iterable<? extends SEXP> values,  PairList attributes) {
+  public ListVector(Iterable<? extends SEXP> values,  AttributeMap attributes) {
     super(Null.INSTANCE, attributes);
     this.values = new ArrayList<SEXP>();
     Iterables.addAll(this.values, values);
   }
 
   public ListVector(Iterable<? extends SEXP> values) {
-    this(values, Null.INSTANCE);
+    this(values, AttributeMap.EMPTY);
   }
 
-  public ListVector(SEXP[] values, SEXP tag, PairList attributes) {
+  public ListVector(SEXP[] values, SEXP tag, AttributeMap attributes) {
     super(tag, attributes);
     this.values = new ArrayList<SEXP>();
     Collections.addAll(this.values, values);
@@ -64,14 +64,14 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     assert checkDims() : "dim do not match length of object";
   }
 
-  public ListVector(SEXP[] values, PairList attributes) {
+  public ListVector(SEXP[] values, AttributeMap attributes) {
     this(values, Null.INSTANCE, attributes);
 
     assert checkDims() : "dim do not match length of object";
   }
 
   public ListVector(SEXP... values) {
-    this(values, Null.INSTANCE);
+    this(values, AttributeMap.EMPTY);
   }
 
   @Override
@@ -100,7 +100,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
 
   public int indexOfName(String name) {
-    SEXP names = attributes.findByTag(Symbols.NAMES);
+    SEXP names = attributes.getNamesOrNull();
     if(names instanceof StringVector) {
       for(int i=0;i!=names.length();++i) {
         if(((StringVector) names).getElementAsString(i).equals(name)) {
@@ -342,7 +342,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new ListVector(values, attributes);
   }
 
@@ -520,7 +520,8 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       return this;
     }
 
-    protected PairList buildAttributes() {
+    @Override
+    protected AttributeMap buildAttributes() {
       if(names.haveNames()) {
         setAttribute(Symbols.NAMES, names.build(length()));
       }

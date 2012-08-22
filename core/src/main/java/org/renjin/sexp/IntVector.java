@@ -24,7 +24,7 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
     super();
   }
 
-  protected IntVector(PairList attributes) {
+  protected IntVector(AttributeMap attributes) {
     super(attributes);
   }
 

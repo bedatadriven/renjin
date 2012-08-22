@@ -364,11 +364,14 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("f <- .Internal(as.function.default(x, globalenv()))");
     assertThat(eval("f(1)"), equalTo(c(3)));
     assertThat(eval("f(1,3)"), equalTo(c(4)));
-    
-    
-    
   }
-  
+
+  @Test
+  public void dimAttributesAreConverted() {
+    eval(" x <- 1");
+    eval(" attributes(x) <- list(dim=1)");
+  }
+
   @Test
   public void atomicVectorsHaveImplicitClasses() {
     assertThat( eval("class(9)"), equalTo(c("numeric")));

@@ -214,6 +214,8 @@ public interface Vector extends SEXP {
     */
     Builder setAttribute(Symbol name, SEXP value);
 
+    Builder setDim(int row, int col);
+
     SEXP getAttribute(Symbol install);
 
     /**

@@ -17,6 +17,7 @@ public class Symbols {
   public static final Symbol NAME = Symbol.get("name");
   public static final Symbol DOT_ENVIRONMENT = Symbol.get(".Environment");
   public static final Symbol COMMENT = Symbol.get("comment");
+  public static final Symbol LEFT_BRACE = Symbol.get("{");
 
   public static final Symbol TZONE = Symbol.get("tzone");
   

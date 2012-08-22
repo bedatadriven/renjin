@@ -88,7 +88,7 @@ public interface PairList extends SEXP {
      */
     protected PairList nextNode = Null.INSTANCE;
 
-    public Node(SEXP tag, SEXP value, PairList attributes, PairList nextNode) {
+    public Node(SEXP tag, SEXP value, AttributeMap attributes, PairList nextNode) {
       super(attributes);
       this.tag = tag;
       this.value = value;
@@ -98,7 +98,7 @@ public interface PairList extends SEXP {
     }
 
     public Node(SEXP tag, SEXP value, PairList nextNode) {
-      super(Null.INSTANCE);
+      super(AttributeMap.EMPTY);
       this.tag = tag;
       this.value = value;
       if(nextNode instanceof Node) {
@@ -454,10 +454,6 @@ public interface PairList extends SEXP {
       return new Builder();
     }
 
-    public static Builder buildList(Symbol tag, SEXP value) {
-      return new Builder().add(tag, value);
-    }
-    
     @Override
     public void accept(SexpVisitor visitor) {
       visitor.visit(this);
@@ -479,8 +475,8 @@ public interface PairList extends SEXP {
   public class Builder implements ListBuilder {
     protected Node head = null;
     protected Node tail;
-    protected PairList attributes = null;
-    
+    protected AttributeMap attributes = AttributeMap.EMPTY;
+
     public Builder() {
     }
     
@@ -489,7 +485,7 @@ public interface PairList extends SEXP {
       this.tail = head;
     }
 
-    public Builder withAttributes(PairList attributes) {
+    public Builder withAttributes(AttributeMap attributes) {
       this.attributes = attributes;
       return this;
     }
@@ -547,7 +543,7 @@ public interface PairList extends SEXP {
 
     public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
-        head = new Node(tag, s, attributes);
+        head = new Node(tag, s, attributes, Null.INSTANCE);
         tail = head;
       } else {
         Node next = new Node(tag, s, Null.INSTANCE);
@@ -555,6 +551,11 @@ public interface PairList extends SEXP {
         tail = next;
       }
       return this;
+    }
+
+    @Override
+    public Builder add(Symbol name, SEXP value) {
+      return add((SEXP)name, value);
     }
 
     public Builder addAll(PairList list) {

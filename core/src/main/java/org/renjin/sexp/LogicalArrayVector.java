@@ -53,18 +53,18 @@ public class LogicalArrayVector extends LogicalVector {
     this.values = new int[0];
   }
 
-  public LogicalArrayVector(int[] values, PairList attributes) {
+  public LogicalArrayVector(int[] values, AttributeMap attributes) {
      super(attributes);
      this.values = Arrays.copyOf(values, values.length);
   }
 
-  public LogicalArrayVector(int[] values, int size, PairList attributes) {
+  public LogicalArrayVector(int[] values, int size, AttributeMap attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, size);  
   }
   
   public LogicalArrayVector(int... values) {
-    this(values, Null.INSTANCE);
+    this(values, AttributeMap.EMPTY);
   }
 
   public LogicalArrayVector(Logical... values) {
@@ -86,7 +86,7 @@ public class LogicalArrayVector extends LogicalVector {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new LogicalArrayVector(values, attributes);
   }
 

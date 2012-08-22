@@ -639,14 +639,14 @@ public class Base {
     // have consequences -- this is called from [.data.frame
     ListVector attributesToCopy;
     if(in.hasAttributes()) {
-      attributesToCopy = (ListVector)in.getAttributes().toVector();
+      attributesToCopy = in.getAttributes().toVector();
     } else {
       attributesToCopy = new ListVector();
     }
     //IS_S4_OBJECT(in) ?  SET_S4_OBJECT(out) : UNSET_S4_OBJECT(out);
     //SET_OBJECT(out, OBJECT(in));
 
-    return out.setAttributes(attributesToCopy);  
+    return out.setAttributes(AttributeMap.fromListVector(attributesToCopy));
   }
   
 

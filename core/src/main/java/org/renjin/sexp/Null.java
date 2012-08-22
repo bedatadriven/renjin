@@ -127,13 +127,16 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
-  public SEXP setAttributes(ListVector attributes) {
-    throw new EvalException("Attributes cannot be set on NULL");
+  public SEXP setAttributes(AttributeMap attributes) {
+    if(attributes != AttributeMap.EMPTY) {
+      throw new EvalException("Attributes cannot be set on NULL");
+    }
+    return this;
   }
 
   @Override
-  public PairList getAttributes() {
-    return Null.INSTANCE;
+  public AttributeMap getAttributes() {
+    return AttributeMap.EMPTY;
   }
    
 
@@ -309,7 +312,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
 
     @Override
     public Vector.Builder copyAttributesFrom(SEXP exp) {
-      if(exp.getAttributes() != Null.INSTANCE) {
+      if(exp.hasAttributes()) {
         throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
       }
       return this;
@@ -317,7 +320,7 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     
     @Override
     public Vector.Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
-      if(exp.getAttributes() != Null.INSTANCE) {
+      if(exp.hasAttributes()) {
         throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
       }
       return this;
@@ -357,7 +360,12 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     public Vector.Builder setAttribute(Symbol name, SEXP value) {
       throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
     }
-    
+
+    @Override
+    public Vector.Builder setDim(int row, int col) {
+      throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
+
     @Override
     public SEXP getAttribute(Symbol install) {
       return Null.INSTANCE;

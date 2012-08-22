@@ -196,10 +196,10 @@ public class Print {
       private int elementsPerLine;
       private AtomicVector names;
 
-      private VectorPrinter(List<String> elements, Alignment elementAlign, PairList attributes) {
+      private VectorPrinter(List<String> elements, Alignment elementAlign, AttributeMap attributes) {
         this.elements = elements;
         this.elementAlign = elementAlign;
-        this.names = (AtomicVector)attributes.findByTag(Symbols.NAMES);
+        this.names = (AtomicVector)attributes.getNamesOrNull();
         if(hasNames()) {
           elementAlign = Alignment.RIGHT;
         }
@@ -321,14 +321,14 @@ public class Print {
       private Vector rowNames = Null.INSTANCE;
       private Vector colNames = Null.INSTANCE;
       
-      private MatrixPrinter(List<String> elements, Alignment elementAlign, PairList attributes) {
+      private MatrixPrinter(List<String> elements, Alignment elementAlign, AttributeMap attributes) {
         this.elements = elements;
         this.elementAlign = elementAlign;
-        Vector dim = (Vector)attributes.findByTag(Symbols.DIM);
+        Vector dim = (Vector)attributes.get(Symbols.DIM);
         rows = dim.getElementAsInt(0);
         cols = dim.getElementAsInt(1);
         
-        SEXP dimnames = (Vector)attributes.findByTag(Symbols.DIMNAMES);
+        SEXP dimnames = (Vector)attributes.get(Symbols.DIMNAMES);
         if(dimnames.length() == 2) {
           rowNames = dimnames.getElementAsSEXP(0);
           colNames = dimnames.getElementAsSEXP(1);

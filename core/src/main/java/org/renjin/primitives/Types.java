@@ -23,7 +23,6 @@ package org.renjin.primitives;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
@@ -139,10 +138,8 @@ public class Types {
   @Primitive("is.vector")
   public static boolean isVector(SEXP exp, String mode) {
     // first check for any attribute besides names
-    for (PairList.Node node : exp.getAttributes().nodes()) {
-      if (!node.getTag().equals(Symbols.NAMES)) {
-        return false;
-      }
+    if(exp.getAttributes().hasAnyBesidesName()) {
+      return false;
     }
 
     // otherwise check
@@ -200,19 +197,16 @@ public class Types {
       this.vector = vector;
     }
 
-    private static PairList buildAttributes(Vector vector) {
-      PairList.Builder attributes = new PairList.Builder();
-      for(PairList.Node attribute : vector.getAttributes().nodes()) {
-        if(attribute.getTag() == Symbols.DIM ||
-           attribute.getTag() == Symbols.NAMES ||
-           attribute.getTag() == Symbols.DIMNAMES) {
-          attributes.add(attribute.getTag(), attribute.getValue());
-        }
-      }
-      return attributes.build();
+    private static AttributeMap buildAttributes(Vector vector) {
+      AttributeMap sourceAttributes = vector.getAttributes();
+      return AttributeMap.builder()
+              .addIfNotNull(sourceAttributes, Symbols.DIM)
+              .addIfNotNull(sourceAttributes, Symbols.NAMES)
+              .addIfNotNull(sourceAttributes, Symbols.DIMNAMES)
+              .build();
     }
 
-    private IsNaVector(PairList attributes, Vector vector) {
+    private IsNaVector(AttributeMap attributes, Vector vector) {
       super(attributes);
       this.vector = vector;
     }
@@ -228,7 +222,7 @@ public class Types {
     }
 
     @Override
-    protected SEXP cloneWithNewAttributes(PairList attributes) {
+    protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
       return new IsNaVector(attributes, vector);
     }
   }
@@ -427,7 +421,7 @@ public class Types {
   @Primitive("as.character")
   public static StringVector asCharacter(Vector source) {
     if(source instanceof StringVector) {
-      return (StringVector) source.setAttributes(ListVector.EMPTY);
+      return (StringVector) source.setAttributes(AttributeMap.EMPTY);
     } else if(source.length() < 100) {
       return (StringVector) convertVector(new StringVector.Builder(), source);
     } else {
@@ -453,7 +447,7 @@ public class Types {
             .convertToR((String) instance);
       } else if (StringArrayConverter.accept(instance.getClass())) {
         return (StringVector) StringArrayConverter.INSTANCE
-            .convertToR((String[]) instance);
+            .convertToR(instance);
       }
     }
     throw new EvalException(
@@ -536,7 +530,7 @@ public class Types {
   @Primitive("as.double")
   public static DoubleVector asDouble(Vector source) {
     if(source instanceof DoubleVector) {
-      return (DoubleVector) ((DoubleVector)source).setAttributes(ListVector.EMPTY);
+      return (DoubleVector) source.setAttributes(AttributeMap.EMPTY);
     } else if(source.length() < 100) {
       return (DoubleVector) convertVector(new DoubleArrayVector.Builder(), source);
     } else {
@@ -554,7 +548,7 @@ public class Types {
   private static class CastingDoubleVector extends DoubleVector {
     private final Vector inner;
 
-    private CastingDoubleVector(PairList attributes, Vector inner) {
+    private CastingDoubleVector(AttributeMap attributes, Vector inner) {
       super(attributes);
       this.inner = inner;
     }
@@ -564,7 +558,7 @@ public class Types {
     }
 
     @Override
-    protected SEXP cloneWithNewAttributes(PairList attributes) {
+    protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
       return new CastingDoubleVector(attributes, inner);
     }
 
@@ -812,12 +806,6 @@ public class Types {
     return libEnv;
   }
 
-  @Generic
-  @Primitive("dim")
-  public static SEXP getDimensions(SEXP sexp) {
-    return sexp.getAttribute(Symbols.DIM);
-  }
-  
   @Primitive
   public static SEXP drop(Vector x) {
     Vector dim = (Vector) x.getAttribute(Symbols.DIM);
@@ -854,98 +842,6 @@ public class Types {
                 .setAttribute(Symbols.DIMNAMES, newDimnames.build());
       }
       
-    }
-  }
-  
-  @Generic
-  @Primitive("dim<-")
-  public static SEXP setDimensions(SEXP exp, AtomicVector vector) {
-    if(vector.length() == 0) {
-      return exp.setAttribute(Symbols.DIM, Null.INSTANCE);
-      
-    } else {
-      int dim[] = new int[vector.length()];
-      int prod = 1;
-      for (int i = 0; i != vector.length(); ++i) {
-        dim[i] = vector.getElementAsInt(i);
-        prod *= dim[i];
-      }
-  
-      if (prod != exp.length()) {
-        throw new EvalException(
-            "dims [product %d] do not match the length of object [%d]", prod,
-            exp.length());
-      }
-  
-      return exp.setAttribute(Symbols.DIM, new IntArrayVector(dim));
-    }
-  }
-
-  @Generic
-  @Primitive("dimnames")
-  public static SEXP getDimensionNames(SEXP exp) {
-    return exp.getAttribute(Symbols.DIMNAMES);
-  }
-  
-  @Generic
-  @Primitive("dimnames<-")
-  public static SEXP setDimensionNames(@Current Context context, SEXP exp, ListVector dimnames) {
-    Vector dim = (Vector) exp.getAttribute(Symbols.DIM);
-    if(dim.length() != dimnames.length()) {
-      throw new EvalException("length of 'dimnames' [%d] not equal to array extent [%d]", 
-          dimnames.length(), dim.length());
-          
-    }
-    ListVector.Builder dn = new ListVector.Builder();
-    for(SEXP names : dimnames) {
-      if(names != Null.INSTANCE && !(names instanceof StringVector)) {
-        names = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), names));
-      }
-      dn.add(names);
-    }
-    return exp.setAttribute(Symbols.DIMNAMES, dn.build());
-  }
-
-  @Generic
-  @Primitive("dimnames<-")
-  public static SEXP setDimensionNames(@Current Context context, SEXP exp, Null nz) {
-    return exp.setAttribute(Symbols.DIMNAMES, Null.INSTANCE);
-  }
-  
-  @Primitive
-  public static PairList attributes(SEXP sexp) {
-    return sexp.getAttributes();
-  }
-
-  @Primitive("attr")
-  public static SEXP getAttribute(SEXP exp, String which) {
-    PairList.Node partialMatch = null;
-    int partialMatchCount = 0;
-
-    for (PairList.Node node : exp.getAttributes().nodes()) {
-      String name = node.getTag().getPrintName();
-      if (name.equals(which)) {
-        return AttributeUtils.postProcessAttributeValue(node);
-      } else if (name.startsWith(which)) {
-        partialMatch = node;
-        partialMatchCount++;
-      }
-    }
-    return partialMatchCount == 1 ? AttributeUtils
-        .postProcessAttributeValue(partialMatch) : Null.INSTANCE;
-  }
-
-  @Primitive("attributes<-")
-  public static SEXP setAttributes(SEXP exp, ListVector attributes) {
-    return exp.setAttributes(attributes);
-  }
-  
-  @Primitive("attributes<-")
-  public static SEXP setAttributes(SEXP exp, PairList list) {
-    if(list == Null.INSTANCE) {
-      return exp.setAttributes(ListVector.EMPTY);
-    } else {
-      return exp.setAttributes(((PairList.Node)list).toVector());
     }
   }
 
@@ -1101,209 +997,6 @@ public class Types {
   @Primitive
   public static String typeof(SEXP exp) {
     return exp.getTypeName();
-  }
-
-  @Generic
-  @Primitive("names")
-  public static SEXP getNames(SEXP exp) {
-    return exp.getNames();
-  }
-
-  @Generic
-  @Primitive("names<-")
-  public static SEXP setNames(SEXP exp, @InvokeAsCharacter Vector names) {
-    return exp.setAttribute("names", names);
-  }
-
-  @Generic
-  @Primitive("levels<-")
-  public static SEXP setLabels(SEXP exp, SEXP levels) {
-    return exp.setAttribute(Symbols.LEVELS, levels);
-  }
-
-  /**
-   * 
-   * This implements the 'class' builtin. The R docs mention this function in
-   * the context of S3 dispatch, but it appears that the logic has diverged:
-   * class(9) for example will return 'numeric', but the class list used for
-   * dispatch by UseMethod is actually c('double', 'numeric')
-   * 
-   * @param exp
-   * @return
-   */
-  @Primitive("class")
-  public static StringVector getClass(SEXP exp) {
-
-    SEXP classAttribute = exp.getAttribute(Symbols.CLASS);
-    if (classAttribute.length() > 0) {
-      return (StringVector) classAttribute;
-    }
-
-    SEXP dim = exp.getAttribute(Symbols.DIM);
-    if (dim.length() == 2) {
-      return StringVector.valueOf("matrix");
-    } else if (dim.length() > 0) {
-      return StringVector.valueOf("array");
-    }
-
-    return StringVector.valueOf(exp.getImplicitClass());
-  }
-
-  @Primitive("comment")
-  public static SEXP getComment(SEXP exp) {
-    return exp.getAttribute(Symbols.COMMENT);
-  }
-  
-  @Primitive("comment<-")
-  public static SEXP setComment(StringVector exp) {
-    return exp.setAttribute(Symbols.COMMENT, exp);
-  }
-
-  @Primitive("class<-")
-  public static SEXP setClass(SEXP exp, Vector classes) {
-    return exp.setAttribute("class", classes);
-
-    // TODO:
-    // this is apparently more complicated then implemented above:
-    // int nProtect = 0;
-    // if(isNull(value)) {
-    // setAttrib(obj, R_ClassSymbol, value);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // return obj;
-    // }
-    // if(TYPEOF(value) != STRSXP) {
-    // /* Beware: assumes value is protected, which it is
-    // in the only use below */
-    // PROTECT(value = coerceVector(duplicate(value), STRSXP));
-    // nProtect++;
-    // }
-    // if(length(value) > 1) {
-    // setAttrib(obj, R_ClassSymbol, value);
-    // if(IS_S4_OBJECT(obj)) /* multiple strings only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // }
-    // else if(length(value) == 0) {
-    // UNPROTECT(nProtect); nProtect = 0;
-    // error(_("invalid replacement object to be a class string"));
-    // }
-    // else {
-    // const char *valueString, *classString; int whichType;
-    // SEXP cur_class; SEXPTYPE valueType;
-    // valueString = CHAR(asChar(value)); /* ASCII */
-    // whichType = class2type(valueString);
-    // valueType = (whichType == -1) ? -1 : classTable[whichType].sexp;
-    // PROTECT(cur_class = R_data_class(obj, FALSE)); nProtect++;
-    // classString = CHAR(asChar(cur_class)); /* ASCII */
-    // /* assigning type as a class deletes an explicit class attribute. */
-    // if(valueType != -1) {
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // if(classTable[whichType].canChange) {
-    // PROTECT(obj = ascommon(call, obj, valueType));
-    // nProtect++;
-    // }
-    // else if(valueType != TYPEOF(obj))
-    // error(_("\"%s\" can only be set as the class if the object has this type; found \"%s\""),
-    // valueString, type2char(TYPEOF(obj)));
-    // /* else, leave alone */
-    // }
-    // else if(!strcmp("numeric", valueString)) {
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // switch(TYPEOF(obj)) {
-    // case INTSXP: case REALSXP: break;
-    // default: PROTECT(obj = coerceVector(obj, REALSXP));
-    // nProtect++;
-    // }
-    // }
-    // /* the next 2 special cases mirror the special code in
-    // * R_data_class */
-    // else if(!strcmp("matrix", valueString)) {
-    // if(length(getAttrib(obj, R_DimSymbol)) != 2)
-    // error(_("invalid to set the class to matrix unless the dimension attribute is of length 2 (was %d)"),
-    // length(getAttrib(obj, R_DimSymbol)));
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj))
-    // do_unsetS4(obj, value);
-    // }
-    // else if(!strcmp("array", valueString)) {
-    // if(length(getAttrib(obj, R_DimSymbol))<= 0)
-    // error(_("cannot set class to \"array\" unless the dimension attribute has length > 0"));
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // UNSET_S4_OBJECT(obj);
-    // }
-    // else { /* set the class but don't do the coercion; that's
-    // supposed to be done by an as() method */
-    // setAttrib(obj, R_ClassSymbol, value);
-    // }
-    // }
-    // UNPROTECT(nProtect);
-    // return obj;
-
-  }
-
-  @Primitive("oldClass<-")
-  public static SEXP setOldClass(SEXP exp, Vector classes) {
-    /*
-     * checkArity(op, args); if (NAMED(CAR(args)) == 2) SETCAR(args,
-     * duplicate(CAR(args))); if (length(CADR(args)) == 0) SETCADR(args,
-     * R_NilValue); if(IS_S4_OBJECT(CAR(args))) UNSET_S4_OBJECT(CAR(args));
-     * setAttrib(CAR(args), R_ClassSymbol, CADR(args)); return CAR(args);
-     */
-    return exp.setAttribute(Symbols.CLASS, classes);
-  }
-
-  @Primitive
-  public static SEXP unclass(SEXP exp) {
-    return exp.setAttribute("class", Null.INSTANCE);
-  }
-
-  @Primitive("attr<-")
-  public static SEXP setAttribute(SEXP exp, String which, SEXP value) {
-    return exp.setAttribute(which, value);
-  }
-
-  @Primitive
-  public static SEXP oldClass(SEXP exp) {
-    if (!exp.hasAttributes()) {
-      return Null.INSTANCE;
-    }
-    return exp.getAttribute(Symbols.CLASS);
-  }
-
-  @Primitive
-  public static boolean inherits(SEXP exp, StringVector what) {
-    StringVector classes = getClass(exp);
-    for (String whatClass : what) {
-      if (Iterables.contains(classes, whatClass)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Primitive
-  public static boolean inherits(SEXP exp, String what) {
-    return Iterables.contains(getClass(exp), what);
-  }
-
-  @Primitive
-  public static SEXP inherits(SEXP exp, StringVector what, boolean which) {
-    if (!which) {
-      return new LogicalArrayVector(inherits(exp, what));
-    }
-    StringVector classes = getClass(exp);
-    int result[] = new int[what.length()];
-
-    for (int i = 0; i != what.length(); ++i) {
-      result[i] = Iterables.indexOf(classes,
-          Predicates.equalTo(what.getElementAsString(i))) + 1;
-    }
-    return new IntArrayVector(result);
   }
 
   @Primitive

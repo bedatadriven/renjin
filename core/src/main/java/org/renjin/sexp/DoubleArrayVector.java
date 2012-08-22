@@ -29,19 +29,19 @@ public final class DoubleArrayVector extends DoubleVector {
 
   private double[] values;
 
-  private DoubleArrayVector(PairList attributes) {
+  private DoubleArrayVector(AttributeMap attributes) {
     super(attributes);
   }
 
   public DoubleArrayVector(double... values) {
-    this(values, Null.INSTANCE);
+    this(values, AttributeMap.EMPTY);
   }
 
-  public DoubleArrayVector(double[] values, PairList attributes) {
+  public DoubleArrayVector(double[] values, AttributeMap attributes) {
     this(values, values.length, attributes);
   }
 
-  public DoubleArrayVector(double[] values, int length, PairList attributes) {
+  public DoubleArrayVector(double[] values, int length, AttributeMap attributes) {
     this(attributes);
     this.values = Arrays.copyOf(values, length);
     if(length >= 5000) {
@@ -58,7 +58,7 @@ public final class DoubleArrayVector extends DoubleVector {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     DoubleArrayVector clone = new DoubleArrayVector(attributes);
     clone.values = values;
     return clone;
@@ -91,8 +91,7 @@ public final class DoubleArrayVector extends DoubleVector {
   }
 
   public static DoubleVector newMatrix(double[] values, int nRows, int nCols) {
-    PairList attributes = new PairList.Node(Symbols.DIM, new IntArrayVector(nRows,nCols), Null.INSTANCE);
-    return new DoubleArrayVector(values, attributes);
+    return new DoubleArrayVector(values, AttributeMap.builder().setDim(nRows, nCols).build());
   }
 
 

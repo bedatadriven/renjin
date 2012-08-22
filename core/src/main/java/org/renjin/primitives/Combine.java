@@ -508,7 +508,7 @@ public class Combine {
     private final boolean matrix;
 
     public BindArgument(Vector vector, boolean defaultToRows) {
-      SEXP dim = vector.getAttribute(Symbols.DIM);
+      SEXP dim = vector.getAttributes().getDim();
       this.vector = vector;
       if(dim == Null.INSTANCE || dim.length() != 2) {
         if(defaultToRows) {

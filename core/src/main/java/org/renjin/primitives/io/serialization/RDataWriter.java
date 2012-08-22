@@ -333,7 +333,7 @@ public class RDataWriter {
         
         // NB: attributes for an environment are
         // ALWAYS written, even if NULL
-        writeExp(env.getAttributes());
+        writeExp(env.getAttributes().asPairList());
       }
     }
   }
@@ -409,7 +409,7 @@ public class RDataWriter {
   }
 
   private void writeAttributes(SEXP exp) throws IOException {
-    PairList attributes = exp.getAttributes();
+    PairList attributes = exp.getAttributes().asPairList();
     if(attributes != Null.INSTANCE) {
       if(!(attributes instanceof PairList.Node)) {
         throw new AssertionError(attributes.getClass());

@@ -34,7 +34,7 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
   protected final String values[];
 
 
-  public StringArrayVector(String[] values, PairList attributes) {
+  public StringArrayVector(String[] values, AttributeMap attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, values.length, String[].class);
 
@@ -46,19 +46,19 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
   }
 
   public StringArrayVector(String... values) {
-    this(Arrays.copyOf(values, values.length, String[].class), Null.INSTANCE);
+    this(Arrays.copyOf(values, values.length, String[].class), AttributeMap.EMPTY);
   }
 
   public StringArrayVector(Iterable<String> properties) {
-    this(Iterables.toArray(properties, String.class), Null.INSTANCE);
+    this(Iterables.toArray(properties, String.class), AttributeMap.EMPTY);
   }
 
-  public StringArrayVector(Collection<String> values, PairList attributes) {
+  public StringArrayVector(Collection<String> values, AttributeMap attributes) {
     this(values.toArray(new String[values.size()]), attributes);
   }
 
   public StringArrayVector(Collection<String> values) {
-    this(values, Null.INSTANCE);
+    this(values, AttributeMap.EMPTY);
   }
 
 
@@ -109,7 +109,7 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
   }
 
   @Override
-  protected StringArrayVector cloneWithNewAttributes(PairList attributes) {
+  protected StringArrayVector cloneWithNewAttributes(AttributeMap attributes) {
     return new StringArrayVector(values, attributes);
   }
 

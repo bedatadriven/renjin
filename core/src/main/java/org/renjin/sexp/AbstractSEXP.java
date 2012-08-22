@@ -22,8 +22,7 @@
 package org.renjin.sexp;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import org.renjin.eval.EvalException;
+import org.renjin.primitives.Attributes;
 
 import java.util.Collections;
 
@@ -33,23 +32,23 @@ import java.util.Collections;
  */
 public abstract class AbstractSEXP implements SEXP {
 
-  protected PairList attributes;
+  protected AttributeMap attributes;
 
   private final boolean object;
 
   protected AbstractSEXP() {
-    this.attributes = Null.INSTANCE;
+    this.attributes = AttributeMap.EMPTY;
     this.object = false;
   }
 
-  protected AbstractSEXP(PairList attributes) {
+  protected AbstractSEXP(AttributeMap attributes) {
     Preconditions.checkNotNull(attributes);
     this.attributes = attributes;
-    this.object = attributes.findByTag(Symbols.CLASS).length() > 0;
+    this.object = attributes.hasClass();
   }
 
   protected boolean checkDims() {
-    Vector dimVector = (Vector)attributes.findByTag(Symbols.DIM);
+    Vector dimVector = attributes.getDim();
     if(dimVector.length() == 0) {
       return true;
     }
@@ -68,16 +67,12 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public final boolean hasAttributes() {
-    return attributes != null && attributes.length() != 0;
+    return attributes != AttributeMap.EMPTY;
   }
 
   @Override
-  public PairList getAttributes() {
-    if(attributes == Null.INSTANCE) {
-      return attributes;
-    } else {
-      return AttributeUtils.expandAttributes((PairList) attributes);
-    }
+  public AttributeMap getAttributes() {
+    return attributes;
   }
 
   @Override
@@ -107,7 +102,7 @@ public abstract class AbstractSEXP implements SEXP {
    */
   @Override
   public StringVector getS3Class() {
-    SEXP classAttribute = attributes.findByTag(Symbols.CLASS);
+    SEXP classAttribute = attributes.getClassVector();
     if(classAttribute instanceof StringVector) {
       return (StringVector) classAttribute;
     }
@@ -138,17 +133,16 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public AtomicVector getNames() {
-    // either Null.INSTANCE or StringVector, enforced below
-    return (AtomicVector) attributes.findByTag(Symbols.NAMES);
+    return attributes.getNamesOrNull();
   }
 
   @Override
   public String getName(int index) {
-    SEXP names = attributes.findByTag(Symbols.NAMES);
-    if(names instanceof StringVector) {
-      return ((StringVector) names).getElementAsString(index);
+    if(attributes.hasNames()) {
+      return attributes.getNames().getElementAsString(index);
+    } else {
+      return StringVector.NA;
     }
-    return StringVector.NA;
   }
 
   /**
@@ -163,7 +157,7 @@ public abstract class AbstractSEXP implements SEXP {
   @Override
   public final int getIndexByName(String name) {
     if(attributes != null) {
-      SEXP namesExp = attributes.findByTag(Symbols.NAMES);
+      SEXP namesExp = attributes.get(Symbols.NAMES);
       if(namesExp instanceof StringVector) {
         StringVector names = (StringVector) namesExp;
         for(int i=0;i!=names.length();++i) {
@@ -183,10 +177,7 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public SEXP getAttribute(Symbol name) {
-    if(hasAttributes()) {
-      return attributes.findByTag(name);
-    }
-    return Null.INSTANCE;
+    return attributes.get(name);
   }
 
   @Override
@@ -198,47 +189,23 @@ public abstract class AbstractSEXP implements SEXP {
   public SEXP setAttribute(Symbol attributeName, SEXP value) {
     return cloneWithNewAttributes(
         replaceAttribute(attributeName,
-            AttributeUtils.validateAttribute(this, attributeName, value)));
+            Attributes.validateAttribute(this, attributeName, value)));
   }
 
   @Override
-  public SEXP setAttributes(ListVector attributes) {
-    PairList.Builder list = new PairList.Builder();
-    for(int i=0;i!=attributes.length();++i) {
-      String attributeName = attributes.getName(i);
-      if(Strings.isNullOrEmpty(attributeName)) {
-        throw new EvalException("Attributes must be named");
-      }
-      SEXP attributeValue = attributes.getElementAsSEXP(i);
-      if(attributeValue != Null.INSTANCE) {
-        list.add(Symbol.get(attributeName), 
-            AttributeUtils.validateAttribute(this, Symbol.get(attributeName), attributeValue));
-      }
-    }
-    return cloneWithNewAttributes(list.build());
+  public SEXP setAttributes(AttributeMap attributes) {
+    return cloneWithNewAttributes(attributes);
   }
 
-  private PairList replaceAttribute(Symbol attributeName, SEXP newValue) {
-    PairList.Node.Builder builder = new PairList.Builder();
-    boolean replaced = false;
-    for(PairList.Node node : attributes.nodes()) {
-      if(node.getTag() == attributeName) {
-        if(newValue != Null.INSTANCE) {
-          builder.add(node.getTag(), newValue);
-        }
-        replaced = true;
-      } else {
-        builder.add(node.getRawTag(), node.getValue());
-      }
-    }
-    if(!replaced && newValue != Null.INSTANCE) {
-      builder.add(attributeName, newValue);
-    }
-    return builder.build();
+  private AttributeMap replaceAttribute(Symbol attributeName, SEXP newValue) {
+    return this.attributes.copy().set(attributeName, newValue).build();
   }
 
-  protected SEXP cloneWithNewAttributes(PairList attributes) {
-    throw new UnsupportedOperationException("cannot change/set attributes on " + getClass().getSimpleName());
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
+    if(attributes != AttributeMap.EMPTY) {
+      throw new UnsupportedOperationException("cannot change/set attributes on " + getClass().getSimpleName());
+    }
+    return this;
   }
 
   @Override

@@ -5,7 +5,9 @@ import org.apache.commons.math.linear.BlockRealMatrix;
 import org.apache.commons.math.linear.MatrixIndexException;
 import org.apache.commons.math.linear.RealMatrix;
 import org.renjin.primitives.Indexes;
-import org.renjin.sexp.*;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Vector;
 
 
 /**
@@ -47,7 +49,7 @@ public class CommonsMath {
     int ncols = matrix.getColumnDimension();
     
     DoubleArrayVector.Builder vector = DoubleArrayVector.Builder.withInitialSize(nrows * ncols);
-    vector.setAttribute(Symbols.DIM, new IntArrayVector(nrows, ncols));
+    vector.setDim(nrows, ncols);
     
     int vector_i = 0;
     for(int i=0;i!=ncols;++i) {
@@ -67,7 +69,7 @@ public class CommonsMath {
     public MatrixAdapter(Vector vector) {
       this.vector = vector;
       
-      Vector dim = (Vector) vector.getAttribute(Symbols.DIM);
+      Vector dim = vector.getAttributes().getDim();
       if(dim == Null.INSTANCE) {
         throw new IllegalArgumentException("the vector has no 'dim' attribute");
       }

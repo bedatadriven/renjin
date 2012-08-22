@@ -36,7 +36,7 @@ public interface SEXP {
 
   boolean hasAttributes();
 
-  PairList getAttributes();
+  AttributeMap getAttributes();
 
   String getTypeName();
 
@@ -98,7 +98,7 @@ public interface SEXP {
   String getName(int index);
   
   /**
-   * Searches the list of this expression's {@link AttributeUtils#NAMES} attribute for the
+   * Searches the list of this expression's {@link org.renjin.primitives.Attributes#NAMES} attribute for the
    * provided {@code name}.
    *
    * @param name the name for which to search
@@ -140,12 +140,12 @@ public interface SEXP {
   
   /**
    * Replaces all of this {@code SEXP}'s attributes with the attributes
-   * specified by {@code attributes} {@code ListVector}.
+   * specified by {@code attributes}
    *
-   * @param attributes a list of attributes. All elements must be named.
+   * @param attributes a new collection of attributes
    * @return a copy of this {@code SEXP} with the new attributes
    */
-  SEXP setAttributes(ListVector attributes);
+  SEXP setAttributes(AttributeMap attributes);
 
 
   /**

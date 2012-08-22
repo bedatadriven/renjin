@@ -70,7 +70,7 @@ public class RDataReaderTest extends EvalTestCase {
     assertThat(pairList.findByTag(symbol("a")), elementsEqualTo( eval("1:99") ));
     assertThat(pairList.findByTag(symbol("b")), elementsEqualTo( eval("sqrt(1:25) ") ));
     assertThat(pairList.findByTag(symbol("c")), elementsEqualTo( c(Logical.NA )));
-    assertThat(pairList.findByTag(symbol("d")), equalTo( list(Logical.NA, DoubleVector.NA, IntVector.NA, NULL )));
+    assertThat(pairList.findByTag(symbol("d")), equalTo( list(c(Logical.NA), DoubleVector.NA, IntVector.NA, NULL )));
 
     ListVector d = (ListVector) pairList.findByTag(symbol("d"));
     DoubleVector d_2 = (DoubleVector) d.getElementAsSEXP(1);

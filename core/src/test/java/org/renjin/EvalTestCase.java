@@ -30,6 +30,7 @@ import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.internal.AssumptionViolatedException;
 import org.renjin.eval.Context;
+import org.renjin.jvminterop.converters.Converters;
 import org.renjin.parser.ParseOptions;
 import org.renjin.parser.ParseState;
 import org.renjin.parser.RLexer;
@@ -146,7 +147,7 @@ public abstract class EvalTestCase {
   protected SEXP list(Object... values) {
     ListVector.Builder builder = ListVector.newBuilder();
     for(Object obj : values) {
-      builder.add(SEXPFactory.fromJava(obj));
+      builder.add(Converters.fromJava(obj));
     }
     return builder.build();
   }
@@ -154,7 +155,7 @@ public abstract class EvalTestCase {
   protected SEXP expression(Object... values) {
     List<SEXP> builder = Lists.newArrayList();
     for(Object obj : values) {
-      builder.add(SEXPFactory.fromJava(obj));
+      builder.add(Converters.fromJava(obj));
     }
     return new ExpressionVector(builder);
   }

@@ -1,5 +1,7 @@
 package org.renjin.jvminterop.converters;
 
+import org.renjin.sexp.SEXP;
+
 public class Converters  {
 
   public static Converter get(Class clazz) {
@@ -46,5 +48,8 @@ public class Converters  {
       return new ObjectOfASpecificClassConverter(clazz);
     }
   }
-  
+
+  public static SEXP fromJava(Object obj) {
+    return get(obj.getClass()).convertToR(obj);
+  }
 }

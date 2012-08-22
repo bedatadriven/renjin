@@ -21,7 +21,6 @@
 
 package org.renjin.primitives.annotations.processor;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -30,15 +29,10 @@ import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.*;
-import org.renjin.primitives.special.ControlFlowException;
 import org.renjin.sexp.*;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.reflect.Modifier.isPublic;
@@ -183,23 +177,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
     return method.getDeclaringClass().getSimpleName();
   }
 
-  /**
-   * Determines whether all attributes should be preserved from the arguments in the return type. 
-   * <p>For example:
-   * <ul>
-   * <li>class(x) == class(-x)</li>
-   * <li>attr(x,'foo') == attr(-x, 'foo')</li>
-   * 
-   * 
-   * 
-   * @return
-   */
-  public boolean shouldPreserveAllAttributes() {
-    
-    return getReturnType().equals(getFormals().get(0).getClass());
-  }
 
-  
   public PreserveAttributeStyle getPreserveAttributesStyle() {
     PreserveAttributes annotation = method.getAnnotation(PreserveAttributes.class);
     return annotation == null ? PreserveAttributeStyle.SPECIAL : annotation.value();
@@ -220,91 +198,9 @@ public class JvmMethod implements Comparable<JvmMethod> {
     return arguments;
   }
 
-  /**
-   * @return true if this method's arguments exactly match the {@code expectedArgumentTypes}
-   */
-  public boolean argumentListEquals(Class... expectedArgumentTypes) {
-    return Arrays.equals(method.getParameterTypes(), expectedArgumentTypes);
-  }
-
   public Class getDeclaringClass() {
     return method.getDeclaringClass();
   }
-
-  /**
-   * Invokes the underlying static method
-   *
-    * @param arguments
-   * @param <X>
-   * @return
-   */
-  public <X> X invoke(Object... arguments) {
-    try {
-      return (X) method.invoke(null, arguments);
-    } catch (IllegalAccessException e) {
-      throw new EvalException("Access exception while invoking method:\n" + method.toString(), e);
-    } catch (InvocationTargetException e) {
-      if(e.getCause() instanceof ControlFlowException) {
-        throw (ControlFlowException)e.getCause();
-      } else  if(e.getCause() instanceof EvalException) {
-        // Rethrow eval Exceptions
-        throw (EvalException)e.getCause();
-      } else {
-        // wrap checked exceptions
-        throw new EvalException(e.getCause());
-      }
-    } catch(IllegalArgumentException e) {
-      throw new EvalException("IllegalArgumentException while invoking " + method.toString());
-    }
-  }
-
-  /**
-   * Invokes the method with the given arguments and converts the return value to
-   * an R {@code SEXP} and wraps the {@code SEXP} in a {@code EvalResult}.
-   */
-  public SEXP invokeAndWrap(Context context, Object... arguments) {
-    Object result = invoke(arguments);
-
-    if(method.getReturnType() == Void.TYPE) {
-      context.setInvisibleFlag();
-      return Null.INSTANCE;
-    } else {
-      return SEXPFactory.fromJava(result);
-    }
-  }
-
-
-  public SEXP invokeWithContextAndWrap(Context context, Environment rho, Object[] formals) {
-    return invokeAndWrap(context, assembleArgumentListWithContext(context, rho, formals));
-  }
-
-  public Object invokeWithContext(Context context, Environment rho, Object[] formals) {
-    return invoke( assembleArgumentListWithContext(context, rho, formals ));
-  }
-
-  private Object[] assembleArgumentListWithContext(Context context, Environment rho, Object[] formals) {
-    Object params[] = new Object[arguments.size()];
-    int formalIndex = 0;
-
-    for(int i=0;i!=arguments.size();i++) {
-      if(arguments.get(i).isContextual()) {
-        Class clazz = arguments.get(i).getClazz();
-        if(clazz.equals(Environment.class)) {
-          params[i] = rho;
-        } else if(clazz.equals(Context.class)) {
-          params[i] = context;
-        } else {
-          throw new UnsupportedOperationException(
-              String.format("Cannot inject argument of type '%s' into method %s",
-                clazz.getName(), this.toString()));
-        }
-      } else {
-        params[i] = formals[formalIndex++];
-      }
-    }
-    return params;
-  }
-
 
   public Class getReturnType() {
     return method.getReturnType();
@@ -317,7 +213,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
   public String getName() {
     return method.getName();
   }
-  
 
   public int countPositionalFormals() {
     return getPositionalFormals().size();
@@ -405,16 +300,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
     return method.isAnnotationPresent(AllowNA.class);
   }
 
-  public int getFormalIndexByName(String name) {
-    Preconditions.checkNotNull(name);
-    for(int i=0;i!=formals.size();++i) {
-      if(name.equals(formals.get(i).getName())) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
   public class Argument {
     private int index;
     private Class clazz;
@@ -425,8 +310,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
     public boolean recycle;
     public boolean atomicType;
     public boolean defaultValue;
-    
-    public ExplicitConverter explicitConverter;
 
     public Argument(Method method, int index) {
       clazz = method.getParameterTypes()[index];
@@ -447,24 +330,11 @@ public class JvmMethod implements Comparable<JvmMethod> {
         
         } else if(annotation instanceof InvokeAsCharacter) {
           evaluated = true;
-          explicitConverter = new AsCharacterConverter();
         }
       }
 
       symbol = (clazz == Symbol.class);
       atomicType = isAtomic(clazz);
-    }
-
-    public boolean isAssignableFrom(Object value) {
-      return clazz.isAssignableFrom(value.getClass());
-    }
-
-    public Type getTypeArgument(int typeArgumentIndex) {
-      Type argType = method.getGenericParameterTypes()[index];
-      if(argType instanceof ParameterizedType) {
-        return (Class) ((ParameterizedType) argType).getActualTypeArguments()[typeArgumentIndex];
-      }
-      return null;
     }
 
     public boolean isAnnotatedWith(Class<? extends Annotation> annotationClass) {
@@ -524,24 +394,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
     public int getIndex() {
       return index;
     }
-    
-    /**
-     * 
-     * @return then name of the R-language converter function
-     * that will first convert provided arguments.
-     */
-    public ExplicitConverter getExplicitConverter() {
-      return explicitConverter;
-    }
-
-    /**
-     * 
-     * @return true if this argument has it's own R-language converter
-     * function (like "as.character")
-     */
-    public boolean hasExplicitConverter() {
-      return explicitConverter != null;
-    }
 
     public boolean isVarArg() {
       return isAnnotatedWith(org.renjin.primitives.annotations.ArgumentList.class);
@@ -600,18 +452,4 @@ public class JvmMethod implements Comparable<JvmMethod> {
     }
     return false;
   }
-  
-  public interface ExplicitConverter {
-    SEXP convert(Context context, Environment rho, SEXP provided);
-  }
-  
-  public class AsCharacterConverter implements ExplicitConverter {
-
-    @Override
-    public SEXP convert(Context context, Environment rho, SEXP provided) {
-      return WrapperRuntime.invokeAsCharacter(context, rho, provided);
-    }
-  }
-
-
 }

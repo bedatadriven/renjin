@@ -149,13 +149,6 @@ public interface SEXP {
 
 
   /**
-   *
-   * @return an {@code Iterable} over elements within this
-   * expression.
-   */
-  Iterable<SEXP> elements();
-
-  /**
    * @param index zero-based index of the element
    * @return the element at {@code index} as a {@link org.renjin.sexp.SEXP},
    * wrapping the element if necessary in a new {@link org.renjin.sexp.AtomicVector} if necessary

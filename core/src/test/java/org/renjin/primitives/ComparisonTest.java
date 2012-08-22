@@ -294,6 +294,6 @@ public class ComparisonTest extends EvalTestCase {
 
   @Test
   public void notEmptyList() {
-    assertThat( eval( "!list()"), equalTo( (SEXP)new LogicalArrayVector()));
+    assertThat( eval( "!list()"), equalTo( (SEXP) LogicalArrayVector.EMPTY));
   }
 }

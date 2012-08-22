@@ -24,8 +24,6 @@ package org.renjin.sexp;
 import com.google.common.base.Preconditions;
 import org.renjin.primitives.Attributes;
 
-import java.util.Collections;
-
 
 /**
  * Base class for R data types.
@@ -206,11 +204,6 @@ public abstract class AbstractSEXP implements SEXP {
       throw new UnsupportedOperationException("cannot change/set attributes on " + getClass().getSimpleName());
     }
     return this;
-  }
-
-  @Override
-  public Iterable<SEXP> elements() {
-    return Collections.<SEXP>singleton(this);
   }
 
   @Override

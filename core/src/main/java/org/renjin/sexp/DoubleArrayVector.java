@@ -44,7 +44,7 @@ public final class DoubleArrayVector extends DoubleVector {
   public DoubleArrayVector(double[] values, int length, AttributeMap attributes) {
     this(attributes);
     this.values = Arrays.copyOf(values, length);
-    if(length >= 5000) {
+    if(Vector.DEBUG_ALLOC && length >= 5000) {
       System.out.println("new double array length = " + length);
     }
   }
@@ -55,6 +55,17 @@ public final class DoubleArrayVector extends DoubleVector {
     for(Double value : values) {
       this.values[i++] = value;
     }
+  }
+
+  /**
+   * Creates a new DoubleArrayVector by wrapping an existing
+   * array, without copying. The array provided CAN NOT BE SUBSEQUENTLY
+   * MODIFIED.
+   */
+  public static DoubleArrayVector unsafe(double[] array) {
+    DoubleArrayVector vector = new DoubleArrayVector();
+    vector.values = array;
+    return vector;
   }
 
   @Override
@@ -147,7 +158,6 @@ public final class DoubleArrayVector extends DoubleVector {
     }
 
     public Builder set(int index, double value) {
-      boolean isNA = (Double.doubleToRawLongBits(value) == NA_BITS);
       ensureCapacity(index+1);
       if(index+1 > size) {
         size = index+1;
@@ -204,6 +214,9 @@ public final class DoubleArrayVector extends DoubleVector {
     @Override
     public DoubleVector build() {
       if(values.length == size) {
+        if(Vector.DEBUG_ALLOC && values.length >= 5000) {
+          System.out.println("building DoubleVector = " + values.length);
+        }
         // Do not make an extra copy of the array
         DoubleArrayVector vector = new DoubleArrayVector(buildAttributes());
         vector.values = values;
@@ -214,5 +227,4 @@ public final class DoubleArrayVector extends DoubleVector {
       }
     }
   }
-
 }

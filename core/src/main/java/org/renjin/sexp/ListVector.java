@@ -218,11 +218,6 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
   }
 
-  @Override
-  public Iterable<SEXP> elements() {
-    return this;
-  }
-
   /**
    * @return the length of the longest element
    */

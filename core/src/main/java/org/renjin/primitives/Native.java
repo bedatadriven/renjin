@@ -110,8 +110,11 @@ public class Native {
   }
 
   public static SEXP sexpFromPointer(Object ptr) {
+    // Currently, our GCC bridge doesn't support storing values
+    // to fields, so we can be confident that no other references
+    // to these pointers exist
     if(ptr instanceof DoublePtr) {
-      return new DoubleArrayVector(((DoublePtr) ptr).array);
+      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array);
     } else if(ptr instanceof IntPtr) {
       return new IntArrayVector(((IntPtr) ptr).array);
     } else {

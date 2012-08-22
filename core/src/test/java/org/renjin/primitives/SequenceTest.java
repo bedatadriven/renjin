@@ -24,7 +24,7 @@ package org.renjin.primitives;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.LogicalArrayVector;
+import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.SEXP;
 
 import static junit.framework.Assert.assertTrue;
@@ -138,6 +138,6 @@ public class SequenceTest extends EvalTestCase {
 
   @Test
   public void repWithZeroLengthOut() {
-    assertThat( eval(" rep(NA, length.out=0) "), equalTo( (SEXP)new LogicalArrayVector()));
+    assertThat( eval(" rep(NA, length.out=0) "), equalTo( (SEXP) LogicalVector.EMPTY));
   }
 }

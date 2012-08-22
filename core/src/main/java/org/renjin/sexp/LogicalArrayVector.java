@@ -38,7 +38,34 @@ public class LogicalArrayVector extends LogicalVector {
       this.values[i] = values[i] ? 1 : 0;
     }
   }
+
+  public LogicalArrayVector(int[] values, int size, AttributeMap attributes) {
+    super(attributes);
+    this.values = Arrays.copyOf(values, size);  
+    if(Vector.DEBUG_ALLOC && size > 5000) {
+      System.out.println("Copying LogicalArrayVector, size = " + size);
+    }
+  }
+
+  public LogicalArrayVector(int[] values, AttributeMap attributes) {
+     this(values, values.length, attributes);
+  }
   
+  public LogicalArrayVector(int... values) {
+    this(values, values.length, AttributeMap.EMPTY);
+  }
+
+  private LogicalArrayVector(AttributeMap attributes) {
+    super(attributes);
+  }
+
+  public LogicalArrayVector(Logical... values) {
+    this.values = new int[values.length];
+    for (int i = 0; i != values.length; ++i) {
+      this.values[i] = values[i].getInternalValue();
+    }
+  }
+
   /**
    * Constructs a Logical vector from a list of boolean values
    */
@@ -49,31 +76,11 @@ public class LogicalArrayVector extends LogicalVector {
     }
   }
 
-  public LogicalArrayVector() {
-    this.values = new int[0];
+  public static LogicalArrayVector unsafe(int[] array) {
+    LogicalArrayVector vector = new LogicalArrayVector(AttributeMap.EMPTY);
+    vector.values = array;
+    return vector;
   }
-
-  public LogicalArrayVector(int[] values, AttributeMap attributes) {
-     super(attributes);
-     this.values = Arrays.copyOf(values, values.length);
-  }
-
-  public LogicalArrayVector(int[] values, int size, AttributeMap attributes) {
-    super(attributes);
-    this.values = Arrays.copyOf(values, size);  
-  }
-  
-  public LogicalArrayVector(int... values) {
-    this(values, AttributeMap.EMPTY);
-  }
-
-  public LogicalArrayVector(Logical... values) {
-    this.values = new int[values.length];
-    for (int i = 0; i != values.length; ++i) {
-      this.values[i] = values[i].getInternalValue();
-    }
-  }
-
 
   @Override
   public int length() {
@@ -186,7 +193,18 @@ public class LogicalArrayVector extends LogicalVector {
     
     @Override
     public LogicalVector build() {
-      return new LogicalArrayVector(values, size, buildAttributes());
+      if(values.length == size) {
+        LogicalArrayVector vector = new LogicalArrayVector(buildAttributes());
+        vector.values = values;
+        // builder shouldn't touch the values after we hand over to vector
+        this.values = null;
+        return vector;
+      } else {
+        if(Vector.DEBUG_ALLOC && size > 5000) {
+          System.out.println("building LogicalVector = " + size);
+        }
+        return new LogicalArrayVector(values, size, buildAttributes());
+      }
     }
   }
 }

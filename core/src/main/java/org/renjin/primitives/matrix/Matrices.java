@@ -6,6 +6,8 @@ import org.renjin.primitives.Indexes;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.vector.ConstantDoubleVector;
+import org.renjin.primitives.vector.CyclingDoubleVector;
 import org.renjin.sexp.*;
 
 
@@ -18,30 +20,37 @@ public class Matrices {
   
   @Primitive("t.default")
   public static Vector transpose(Vector x) {
-    Vector dimensions = x.getAttributes().getDim();
-    if(dimensions.length() == 0) {
-      return (Vector)x.setAttribute(Symbols.DIM, new IntArrayVector(1, x.length()));
-      
-    } else if(dimensions.length() == 2) {
-      Vector.Builder builder = x.newBuilderWithInitialSize(x.length());
-      int nrows = dimensions.getElementAsInt(0);
-      int ncols = dimensions.getElementAsInt(1);
-      for (int i = 0; i < nrows; i++) {
-        for (int j = 0; j < ncols; j++) {
-          builder.setFrom(Indexes.matrixIndexToVectorIndex(j, i, ncols, nrows), x,
-                          Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
-        }
-      }
-      if (!(x.getAttribute(Symbols.DIMNAMES) instanceof org.renjin.sexp.Null)) {
-        ListVector dimNames = (ListVector) x.getAttribute(Symbols.DIMNAMES);
-        ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
-        builder.setAttribute(Symbols.DIMNAMES, newDimNames);
-      }
-      builder.setDim(nrows, ncols);
-      return builder.build();
+    if(x.length() > TransposedMatrix.LENGTH_THRESHOLD) {
+      // Just wrap the matrix
+      return new TransposedMatrix(x);
 
     } else {
-      throw new EvalException("argument is not a matrix");
+      // Actually allocate the memory and perform transposition
+      Vector dimensions = x.getAttributes().getDim();
+      if(dimensions.length() == 0) {
+        return (Vector)x.setAttribute(Symbols.DIM, new IntArrayVector(1, x.length()));
+
+      } else if(dimensions.length() == 2) {
+        Vector.Builder builder = x.newBuilderWithInitialSize(x.length());
+        int nrows = dimensions.getElementAsInt(0);
+        int ncols = dimensions.getElementAsInt(1);
+        for (int i = 0; i < nrows; i++) {
+          for (int j = 0; j < ncols; j++) {
+            builder.setFrom(Indexes.matrixIndexToVectorIndex(j, i, ncols, nrows), x,
+                            Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
+          }
+        }
+        if (!(x.getAttribute(Symbols.DIMNAMES) instanceof org.renjin.sexp.Null)) {
+          ListVector dimNames = (ListVector) x.getAttribute(Symbols.DIMNAMES);
+          ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
+          builder.setAttribute(Symbols.DIMNAMES, newDimNames);
+        }
+        builder.setDim(nrows, ncols);
+        return builder.build();
+
+      } else {
+        throw new EvalException("argument is not a matrix");
+      }
     }
   }
 
@@ -66,7 +75,6 @@ public class Matrices {
   
   @Primitive
   public static DoubleVector rowSums(AtomicVector x, int numRows, int rowLength, boolean naRm) {
-    
     double sums[] = new double[numRows];
     int sourceIndex = 0;
     for(int col=0;col < rowLength; col++) {
@@ -80,17 +88,30 @@ public class Matrices {
       }
     }
     
-    return new DoubleArrayVector(sums);
+    return DoubleArrayVector.unsafe(sums);
   }
   
   @Primitive
   public static DoubleVector rowMeans(AtomicVector x, int numRows, int rowLength, boolean naRm) {
-    DoubleVector sums = rowSums(x, numRows,  rowLength, naRm);
-    DoubleArrayVector.Builder dvb = new DoubleArrayVector.Builder();
-    for (int i = 0; i < numRows; i++) {
-      dvb.add(sums.get(i) / rowLength);
+    double sums[] = new double[numRows];
+    int counts[] = new int[numRows];
+    int sourceIndex = 0;
+    for(int col=0;col < rowLength; col++) {
+      for(int row=0;row<numRows;row++) {
+        double value = x.getElementAsDouble(sourceIndex++);
+        if(!naRm) {
+          sums[row] += value;
+          counts[row] ++;
+        } else if(!Double.isNaN(value)) {
+          sums[row] += value;
+          counts[row] ++;
+        }
+      }
     }
-    return (dvb.build());
+    for(int row=0;row<numRows;row++) {
+      sums[row] /= (double)counts[row];
+    }
+    return DoubleArrayVector.unsafe(sums);
   }
 
   @Primitive
@@ -236,60 +257,78 @@ public class Matrices {
                               Vector dimnames,
                               boolean nrowMissing, boolean ncolMissing) {
 
-    int lendat = data.length();
+    int dataLength = data.length();
 
     if (nrowMissing && ncolMissing) {
-      nrow = lendat;
+      nrow = dataLength;
     } else if(nrowMissing) {
-      nrow = (int)Math.ceil(lendat / (double)ncol);
+      nrow = (int)Math.ceil(dataLength / (double)ncol);
     } else if(ncolMissing) {
-      ncol = (int)Math.ceil(lendat / (double)nrow);
+      ncol = (int)Math.ceil(dataLength / (double)nrow);
     }
 
-    if(lendat > 0) {
-      if (lendat > 1 && (nrow * ncol) % lendat != 0) {
-        if (((lendat > nrow) && (lendat / nrow) * nrow != lendat) ||
-                ((lendat < nrow) && (nrow / lendat) * lendat != nrow)) {
+    if(dataLength > 0) {
+      if (dataLength > 1 && (nrow * ncol) % dataLength != 0) {
+        if (((dataLength > nrow) && (dataLength / nrow) * nrow != dataLength) ||
+                ((dataLength < nrow) && (nrow / dataLength) * dataLength != nrow)) {
 
           Warning.invokeWarning(context,
                   "data length [%d] is not a sub-multiple or multiple of the number of rows [%d]",
-                  lendat, nrow);
+                  dataLength, nrow);
 
-        } else if (((lendat > ncol) && (lendat / ncol) * ncol != lendat) ||
-                ((lendat < ncol) && (ncol / lendat) * lendat != ncol)) {
+        } else if (((dataLength > ncol) && (dataLength / ncol) * ncol != dataLength) ||
+                ((dataLength < ncol) && (ncol / dataLength) * dataLength != ncol)) {
 
           Warning.invokeWarning(context,
                   "data length [%d] is not a sub-multiple or multiple of the number of columns [%d]",
-                  lendat, ncol);
+                  dataLength, ncol);
         }
-      }  else if ((lendat > 1) && (nrow * ncol == 0)){
+      }  else if ((dataLength > 1) && (nrow * ncol == 0)){
         Warning.invokeWarning(context,
                 "data length exceeds size of matrix");
       }
     }
 
+    /*
+     * Avoid allocating huge arrays of data
+     */
+    int resultLength = (nrow * ncol);
+    if(!byRow && resultLength > 500) {
+      if(data instanceof DoubleVector) {
+        if(data.length() == 1) {
+          return new ConstantDoubleVector(data.getElementAsDouble(0), resultLength, AttributeMap.dim(nrow, ncol));
+        } else {
+          return new CyclingDoubleVector(data, resultLength, AttributeMap.dim(nrow, ncol));
+        }
+      }
+    }
+    return allocMatrix(data, nrow, ncol, byRow);
+  }
+
+  private static Vector allocMatrix(Vector data, int nrow, int ncol, boolean byRow) {
     Vector.Builder result = data.newBuilderWithInitialSize(nrow * ncol);
+    int dataLength = data.length();
     int i = 0;
 
-    if(lendat > 0) {
+    if(dataLength > 0) {
       if (!byRow) {
         for (int col = 0; col < ncol; ++col) {
           for (int row = 0; row < nrow; ++row) {
             int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol)
-                    % lendat;
+                    % dataLength;
             result.setFrom(i++, data, sourceIndex);
           }
         }
       } else {
         for (int row = 0; row < nrow; ++row) {
           for (int col = 0; col < ncol; ++col) {
-            result.setFrom(row + (col * nrow), data, i % lendat);
+            result.setFrom(row + (col * nrow), data, i % dataLength);
             i++;
           }
         }
       }
     }
-    result.setAttribute(Symbols.DIM, new IntArrayVector(nrow, ncol));
+    result.setDim(nrow, ncol);
     return result.build();
   }
 }

@@ -136,6 +136,16 @@ public class AttributeMap {
     return names == null ? Null.INSTANCE : names;
   }
 
+  public AttributeMap copyOnlyNames() {
+    if(names == null ) {
+      return AttributeMap.EMPTY;
+    } else {
+      AttributeMap attributes = new AttributeMap();
+      attributes.names = names;
+      return attributes;
+    }
+  }
+
   public static class Builder {
     private StringVector classes = null;
     private StringVector names = null;
@@ -317,5 +327,11 @@ public class AttributeMap {
       }
       return attributes.build();
     }
+  }
+
+  public static AttributeMap dim(int row, int col) {
+    AttributeMap map = new AttributeMap();
+    map.dim = new IntArrayVector(row, col);
+    return map;
   }
 }

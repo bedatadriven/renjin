@@ -139,5 +139,4 @@ public class IntArrayVector extends IntVector {
       return new IntArrayVector(values, size, buildAttributes());
     }
   }
-
 }

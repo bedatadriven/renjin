@@ -55,17 +55,6 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
 
   }
 
-  /**
-   * Returns a RealVector with a single double value parsed from the
-   * supplied string.
-   *
-   * @param text the string representation to parse
-   * @return a RealVector of length one
-   */
-  public static SEXP parseDouble(String text) {
-    return new DoubleArrayVector(Double.parseDouble(text));
-  }
-
   public static boolean isNaN(double x) {
     return Double.isNaN(x);
   }

@@ -36,11 +36,6 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
   }
 
   @Override
-  public Iterable<SEXP> elements() {
-    return new Elements();
-  }
-
-  @Override
   public boolean containsNA() {
     return indexOfNA() != -1;
   }

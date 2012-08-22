@@ -31,6 +31,7 @@ import org.renjin.jvminterop.ClassFrame;
 import org.renjin.jvminterop.ObjectFrame;
 import org.renjin.jvminterop.converters.*;
 import org.renjin.primitives.annotations.*;
+import org.renjin.primitives.vector.ConstantDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
@@ -582,10 +583,13 @@ public class Types {
   @Generic
   @Primitive("as.vector")
   public static SEXP asVector(Vector x, String mode) {
+
+    if(mode.equals("any")) {
+      return x.setAttributes(x.getAttributes().copyOnlyNames());
+    }
+
     Vector.Builder result;
-    if ("any".equals(mode)) {
-      result = x.getVectorType().newBuilder();
-    } else if ("character".equals(mode)) {
+    if ("character".equals(mode)) {
       result = new StringVector.Builder();
     } else if ("logical".equals(mode)) {
       result = new LogicalArrayVector.Builder(x.length());
@@ -938,11 +942,8 @@ public class Types {
     } else if ("integer".equals(mode)) {
       return new IntArrayVector(new int[length]);
 
-    } else if ("numeric".equals(mode)) {
-      return new DoubleArrayVector(new double[length]);
-
-    } else if ("double".equals(mode)) {
-      return new DoubleArrayVector(new double[length]);
+    } else if ("numeric".equals(mode) || "double".equals(mode)) {
+      return new ConstantDoubleVector(0, length);
 
     } else if ("complex".equals(mode)) {
       throw new UnsupportedOperationException("implement me!");

@@ -29,6 +29,8 @@ import org.apache.commons.math.complex.Complex;
  */
 public interface Vector extends SEXP {
 
+  public static final boolean DEBUG_ALLOC = false;
+
   /**
    *
    * @param index zero-based index

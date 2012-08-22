@@ -103,6 +103,9 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
   }
 
   @Override
+  protected abstract SEXP cloneWithNewAttributes(AttributeMap attributes);
+
+  @Override
   public int compare(int index1, int index2) {
     return getElementAsInt(index1) - getElementAsInt(index2);
   }

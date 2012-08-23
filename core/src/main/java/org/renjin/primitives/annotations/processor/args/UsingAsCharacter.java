@@ -21,11 +21,6 @@ public class UsingAsCharacter extends ArgConverterStrategy {
   }
 
   @Override
-  public String conversionExpression(String argumentExpression) {
-    return "invokeAsCharacter(context, rho, " + argumentExpression + ")";
-  }
-
-  @Override
   public JExpression convertArgument(ApplyMethodContext parent, JExpression sexp) {
     return parent.classRef(WrapperRuntime.class).staticInvoke("invokeAsCharacter")
             .arg(parent.getContext())
@@ -34,15 +29,7 @@ public class UsingAsCharacter extends ArgConverterStrategy {
   }
 
   @Override
-  public String getTestExpr(String argLocal) {
-    return "true";
-  }
-
-  @Override
   public JExpression getTestExpr(JCodeModel codeModel, JVar sexpVariable) {
     return JExpr.TRUE;
   }
-
-
-
 }

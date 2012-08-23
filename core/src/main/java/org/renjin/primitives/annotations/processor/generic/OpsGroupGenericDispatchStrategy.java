@@ -3,7 +3,6 @@ package org.renjin.primitives.annotations.processor.generic;
 import com.sun.codemodel.*;
 import org.renjin.primitives.annotations.processor.ApplyMethodContext;
 import org.renjin.primitives.annotations.processor.WrapperRuntime;
-import org.renjin.primitives.annotations.processor.WrapperSourceWriter;
 import org.renjin.sexp.SEXP;
 
 import java.util.List;
@@ -21,29 +20,6 @@ public class OpsGroupGenericDispatchStrategy extends GenericDispatchStrategy {
     this.name = name;
   }
 
-
-
-  @Override
-  public void beforeTypeMatching(WrapperSourceWriter s, int arity) {
-
-    if(arity == 1) {
-      s.writeBeginIf("((AbstractSEXP)s0).isObject()");
-    } else {
-      s.writeBeginIf("((AbstractSEXP)s0).isObject() || ((AbstractSEXP)s1).isObject()");
-    }
-    
-    StringBuilder argsList = new StringBuilder("context, rho, call, \"Ops\", \"" + name + "\", s0");
-    if(arity == 2) {
-      argsList.append(", s1");
-    }
-
-    s.writeStatement("SEXP genericResult = tryDispatchGroupFromPrimitive(" + argsList.toString() + ")");
-    s.writeBeginBlock("if(genericResult != null) {");
-    s.writeStatement("return genericResult");
-    s.writeCloseBlock();
-    
-    s.writeCloseBlock();
-  }
 
   @Override
   public void beforeTypeMatching(ApplyMethodContext context,

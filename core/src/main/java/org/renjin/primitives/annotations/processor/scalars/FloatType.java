@@ -27,11 +27,6 @@ public class FloatType extends ScalarType {
   }
 
   @Override
-  public String getNALiteral() {
-    return "DoubleVector.NA";
-  }
-
-  @Override
   public Class<DoubleArrayVector.Builder> getBuilderClass() {
     return DoubleArrayVector.Builder.class;
   }

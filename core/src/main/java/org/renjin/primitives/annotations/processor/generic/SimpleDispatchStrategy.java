@@ -24,7 +24,8 @@ package org.renjin.primitives.annotations.processor.generic;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
-import org.renjin.primitives.annotations.processor.*;
+import org.renjin.primitives.annotations.processor.ApplyMethodContext;
+import org.renjin.primitives.annotations.processor.WrapperRuntime;
 import org.renjin.sexp.SEXP;
 
 import static com.sun.codemodel.JExpr._null;
@@ -40,22 +41,6 @@ public class SimpleDispatchStrategy extends GenericDispatchStrategy {
     this.name = name;
   }
 
-
-  @Override
-  public void afterArgIsEvaluated(WrapperSourceWriter s, int index, ArgumentItType argItType) {
-    if(index == 0) {
-      s.writeBeginIf("((AbstractSEXP)s0).isObject()");
-      if(argItType instanceof PairListArgItType) {
-        s.writeStatement("SEXP genericResult = tryDispatchFromPrimitive(context, rho, call, \"" + name + "\", s0, args);");
-      } else {
-        s.writeStatement("SEXP genericResult = tryDispatchFromPrimitive(context, rho, call, \"" + name + "\", argumentNames, arguments);");
-      }
-      s.writeBeginBlock("if(genericResult != null) {");
-      s.writeStatement("return genericResult");
-      s.writeCloseBlock();
-      s.writeCloseBlock();
-    }
-  }
 
   @Override
   public void afterArgIsEvaluated(ApplyMethodContext context, JExpression functionCall, JExpression arguments,

@@ -27,11 +27,6 @@ public class SexpType extends ScalarType {
   }
 
   @Override
-  public String getNALiteral() {
-    return "Null.INSTANCE";
-  }
-
-  @Override
   public Class<? extends Builder<?>> getBuilderClass() {
     return ListVector.Builder.class;
   }

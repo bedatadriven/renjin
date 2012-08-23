@@ -1,7 +1,6 @@
 package org.renjin.compiler;
 
-import java.util.Map;
-
+import com.google.common.collect.Maps;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -9,35 +8,13 @@ import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.ir.ssa.PhiFunction;
 import org.renjin.compiler.ir.ssa.SsaVariable;
 import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.CallExpression;
-import org.renjin.compiler.ir.tac.expressions.CmpGE;
-import org.renjin.compiler.ir.tac.expressions.Constant;
-import org.renjin.compiler.ir.tac.expressions.DynamicCall;
-import org.renjin.compiler.ir.tac.expressions.ElementAccess;
-import org.renjin.compiler.ir.tac.expressions.Elipses;
-import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.ExpressionVisitor;
-import org.renjin.compiler.ir.tac.expressions.IRThunk;
-import org.renjin.compiler.ir.tac.expressions.Increment;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.Length;
-import org.renjin.compiler.ir.tac.expressions.LocalVariable;
-import org.renjin.compiler.ir.tac.expressions.MakeClosure;
-import org.renjin.compiler.ir.tac.expressions.PrimitiveCall;
-import org.renjin.compiler.ir.tac.expressions.Temp;
-import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.compiler.ir.tac.statements.ExprStatement;
-import org.renjin.compiler.ir.tac.statements.GotoStatement;
-import org.renjin.compiler.ir.tac.statements.IfStatement;
-import org.renjin.compiler.ir.tac.statements.ReturnStatement;
-import org.renjin.compiler.ir.tac.statements.StatementVisitor;
+import org.renjin.compiler.ir.tac.expressions.*;
+import org.renjin.compiler.ir.tac.statements.*;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-
-import com.google.common.collect.Maps;
+import java.util.Map;
 
 public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opcodes {
   
@@ -434,7 +411,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     pushPrimitiveArgArray(call);
     maybeSpliceArgumentValues(call);
     
-    mv.visitMethodInsn(INVOKESTATIC, call.getWrapperClass().getName().replace('.', '/'), "matchAndApply", 
+    mv.visitMethodInsn(INVOKESTATIC, call.getWrapperClass().getName().replace('.', '/'), "doApply",
         "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;Lorg/renjin/sexp/FunctionCall;[Ljava/lang/String;[Lorg/renjin/sexp/SEXP;)Lorg/renjin/sexp/SEXP;");
   }
 

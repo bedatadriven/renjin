@@ -28,11 +28,6 @@ public class ComplexType extends ScalarType{
   }
 
   @Override
-  public String getNALiteral() {
-    return "ComplexVector.NA";
-  }
-
-  @Override
   public Class<ComplexVector.Builder> getBuilderClass() {
     return ComplexVector.Builder.class;
   }

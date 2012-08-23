@@ -4,7 +4,6 @@ import com.sun.codemodel.*;
 import org.renjin.primitives.annotations.processor.ApplyMethodContext;
 import org.renjin.primitives.annotations.processor.VarArgParser;
 import org.renjin.primitives.annotations.processor.WrapperRuntime;
-import org.renjin.primitives.annotations.processor.WrapperSourceWriter;
 import org.renjin.sexp.SEXP;
 
 import static com.sun.codemodel.JExpr.lit;
@@ -18,21 +17,6 @@ public class SummaryGroupGenericStrategy extends GenericDispatchStrategy {
     this.name = name;
   }
 
-  
-  @Override
-  public void beforePrimitiveCalled(WrapperSourceWriter s) {
-
-    s.writeBeginIf("argList.length() > 0 && ((AbstractSEXP)argList.getElementAsSEXP(0)).isObject()");
-    
-
-    s.writeStatement("SEXP genericResult = tryDispatchSummaryFromPrimitive(context, rho, call, " +
-    		"\"" + name + "\", argList, arg0)");
-    s.writeBeginBlock("if(genericResult != null) {");
-    s.writeStatement("return genericResult");
-    s.writeCloseBlock();
-    
-    s.writeCloseBlock();
-  }
 
   @Override
   public void beforePrimitiveCalled(JBlock parent, VarArgParser args, ApplyMethodContext context, JExpression call) {

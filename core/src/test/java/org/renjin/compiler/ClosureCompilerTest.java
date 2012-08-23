@@ -1,21 +1,16 @@
 package org.renjin.compiler;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.parser.RParser;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-import org.renjin.compiler.ClosureCompiler;
-import org.renjin.parser.RParser;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class ClosureCompilerTest extends EvalTestCase {

@@ -30,12 +30,7 @@ public class ApplyArrayArgsMethodBuilder implements ApplyMethodContext{
   }
 
   public void build() {
-    method = invoker.method(JMod.PUBLIC, SEXP.class, "apply");
-    context = method.param(Context.class, "context");
-    environment = method.param(Environment.class, "environment");
-    call = method.param(FunctionCall.class, "call");
-    argNames = method.param(String[].class, "argNames");
-    args = method.param(SEXP[].class, "args");
+    declareMethod();
 
     ExceptionWrapper mainTryBlock = new ExceptionWrapper(codeModel, method.body(), context);
     for(Integer arity : primitive.getArity()) {
@@ -65,12 +60,7 @@ public class ApplyArrayArgsMethodBuilder implements ApplyMethodContext{
 
 
   public void buildVarArgs() {
-    method = invoker.method(JMod.PUBLIC, SEXP.class, "apply");
-    context = method.param(Context.class, "context");
-    environment = method.param(Environment.class, "environment");
-    call = method.param(FunctionCall.class, "call");
-    argNames = method.param(String[].class, "argNames");
-    args = method.param(SEXP[].class, "args");
+    declareMethod();
 
     ExceptionWrapper mainTryBlock = new ExceptionWrapper(codeModel, method.body(), context);
 
@@ -92,6 +82,15 @@ public class ApplyArrayArgsMethodBuilder implements ApplyMethodContext{
     mainTryBlock.catchEvalExceptions();
     mainTryBlock.catchRuntimeExceptions();
     mainTryBlock.catchExceptions();
+  }
+
+  private void declareMethod() {
+    method = invoker.method(JMod.PUBLIC | JMod.STATIC, SEXP.class, "doApply");
+    context = method.param(Context.class, "context");
+    environment = method.param(Environment.class, "environment");
+    call = method.param(FunctionCall.class, "call");
+    argNames = method.param(String[].class, "argNames");
+    args = method.param(SEXP[].class, "args");
   }
 
   private void convertArguments(JBlock parent, VarArgParser parser) {

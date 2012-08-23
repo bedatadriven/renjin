@@ -23,24 +23,13 @@ public class ToScalar extends ArgConverterStrategy {
   }
 
   @Override
-  public String conversionExpression(String argumentExpression) {
-    return scalarType.getConversionMethod() + "(" + argumentExpression + ")";
-  }
-
-  @Override
   public JExpression convertArgument(ApplyMethodContext parent, JExpression sexp) {
     return parent.classRef(WrapperRuntime.class).staticInvoke(scalarType.getConversionMethod())
             .arg(sexp);
   }
 
   @Override
-  public String getTestExpr(String argLocal) {
-    return scalarType.testExpr(argLocal, formal.getCastStyle());
-  }
-
-  @Override
   public JExpression getTestExpr(JCodeModel codeModel, JVar sexpVariable) {
     return scalarType.testExpr(codeModel, sexpVariable, this.formal.getCastStyle());
   }
-
 }

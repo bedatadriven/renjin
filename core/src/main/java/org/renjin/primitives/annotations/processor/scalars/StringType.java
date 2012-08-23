@@ -26,11 +26,6 @@ public class StringType extends ScalarType {
   }
 
   @Override
-  public String getNALiteral() {
-    return "StringVector.NA";
-  }
-
-  @Override
   public Class<StringArrayVector.Builder> getBuilderClass() {
     return StringArrayVector.Builder.class;
   }

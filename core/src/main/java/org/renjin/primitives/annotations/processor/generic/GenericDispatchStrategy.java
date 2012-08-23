@@ -2,9 +2,7 @@ package org.renjin.primitives.annotations.processor.generic;
 
 import com.sun.codemodel.*;
 import org.renjin.primitives.annotations.processor.ApplyMethodContext;
-import org.renjin.primitives.annotations.processor.ArgumentItType;
 import org.renjin.primitives.annotations.processor.VarArgParser;
-import org.renjin.primitives.annotations.processor.WrapperSourceWriter;
 import org.renjin.sexp.AbstractSEXP;
 
 import java.util.List;
@@ -20,21 +18,9 @@ public class GenericDispatchStrategy {
     this.codeModel = codeModel;
   }
 
-  public void afterArgIsEvaluated(WrapperSourceWriter s, int index, ArgumentItType argItType) {
-
-  }
-
   public void afterArgIsEvaluated(ApplyMethodContext context, JExpression functionCall, JExpression arguments,
                                   JBlock parent, JExpression argument, int index) {
 
-  }
-
-  public void beforeTypeMatching(WrapperSourceWriter s, int arity) {
-
-  }
-
-  public void beforePrimitiveCalled(WrapperSourceWriter s) {
-    
   }
 
   public void beforeTypeMatching(ApplyMethodContext context, JExpression functionCall,

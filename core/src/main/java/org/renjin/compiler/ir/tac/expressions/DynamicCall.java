@@ -24,32 +24,32 @@ public class DynamicCall implements CallExpression {
    * <code>
    * x$f(33)
    * </code>
-   * 
+   *
    * If x$f evaluates to a closure, a new Context needs to be created
    * that contains a copy of the original {@link FunctionCall}. So we 
    * need to retain the x$f literal.
    */
   private SEXP functionSexp;
-  
-  
+
+
   /**
    * The IR expression from which we will obtain the actual
    * function value at runtime, IF {@code functionName} is NOT a {@link Symbol}
    */
   private Expression functionExpr;
-  
+
   /**
    * The original function call. We just need to pass this around.
    */
   private FunctionCall call;
-  
+
   private final List<Expression> arguments;
   private final List<SEXP> argumentNames;
   private final String[] argumentNamesArray;
   private int elipsesIndex;
-  
-  public DynamicCall(FunctionCall call, Expression function, 
-      List<SEXP> argumentNames, List<Expression> arguments) {
+
+  public DynamicCall(FunctionCall call, Expression function,
+                     List<SEXP> argumentNames, List<Expression> arguments) {
     this.call = call;
     this.functionSexp = call.getFunction();
     this.functionExpr = function;
@@ -68,7 +68,7 @@ public class DynamicCall implements CallExpression {
       }
     }
   }
-  
+
   public FunctionCall getCall() {
     return call;
   }
@@ -83,13 +83,12 @@ public class DynamicCall implements CallExpression {
 
   @Override
   public Object retrieveValue(Context context, Object[] temps) {
-    
+
     // locate function object
     Function functionValue = findFunction(context, temps);
 
     if(! hasElipses() && functionValue instanceof BuiltinFunction) {
-      return ((BuiltinFunction)functionValue).apply(context,
-          context.getEnvironment(), call, argumentNamesArray, evaluateArgs(context, temps));
+      return ((BuiltinFunction)functionValue).apply(context, context.getEnvironment(), call, argumentNamesArray, evaluateArgs(context, temps));
     } else if(functionValue instanceof Closure) {
 
       PairList.Builder args = new PairList.Builder();
@@ -102,7 +101,7 @@ public class DynamicCall implements CallExpression {
         } else if(argument instanceof IRThunk) {
           if(argument.getSExpression() instanceof Symbol) {
             args.add(argumentNames.get(argNameIndex++),
-                new VariablePromise(context, ((Symbol) argument.getSExpression()).getPrintName()));
+                    new VariablePromise(context, ((Symbol) argument.getSExpression()).getPrintName()));
           } else {
             args.add(argumentNames.get(argNameIndex++), new IRPromise(context, temps, (IRThunk)argument));
           }
@@ -142,7 +141,7 @@ public class DynamicCall implements CallExpression {
   }
 
   private Function findFunction(Context context, Object[] temps) {
- 
+
     // we have to different cases here. 
     // if the function call is in the form 
     //
@@ -153,15 +152,15 @@ public class DynamicCall implements CallExpression {
     // bindings with non-function values are ignored.
     //
     // this is *different* then simply evaluating the symbol `f`.
-    
+
     if(functionSexp instanceof Symbol) {
       return context.getEnvironment().findFunctionOrThrow((Symbol)functionSexp);
     } else {
-      
+
       // otherwise, we need to proceed to evaluate the expression 
       // as it's been translated into IR. It must evaluate to a
       // function value.
-      
+
       Object value = functionExpr.retrieveValue(context, temps);
       if(!(value instanceof Function)) {
         throw new EvalException("attempt to apply non-function: " + value);
@@ -207,9 +206,9 @@ public class DynamicCall implements CallExpression {
       newOps.add(argument.replaceVariable(name, newName));
     }
     return new DynamicCall(call,
-        (Variable)this.functionExpr.replaceVariable(name, newName), 
-        argumentNames,
-        newOps);
+            (Variable)this.functionExpr.replaceVariable(name, newName),
+            argumentNames,
+            newOps);
   }
 
   @Override
@@ -261,5 +260,5 @@ public class DynamicCall implements CallExpression {
   @Override
   public boolean hasElipses() {
     return elipsesIndex != -1;
-  } 
+  }
 }

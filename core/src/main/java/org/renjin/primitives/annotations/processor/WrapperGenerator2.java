@@ -33,11 +33,6 @@ public class WrapperGenerator2 {
       generator.setSingleFunction(args[0]);
     }
     generator.generate();
-
-    // for now, run the legacy WrapperGenerator as its required
-    // by the compiler
-    WrapperGenerator.main(new String[0]);
-
     System.exit(generator.isSuccessful() ? 0 : 1);
   }
   

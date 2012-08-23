@@ -13,29 +13,9 @@ public abstract class ScalarType {
   
   public abstract String getAccessorMethod();
 
-  public Class getStorageType() {
-    return getScalarType();
-  }
-
   public abstract Class getVectorType();
-  
-  public String convertToStorageTypeExpression(String valueExpression) {
-    return valueExpression;
-  }
-
-  public abstract String getNALiteral();
 
   public abstract Class<? extends Vector.Builder<?>> getBuilderClass();
-
-  public String testExpr(String expr, CastStyle castStyle) {
-    switch(castStyle) {
-    case IMPLICIT:
-      return expr + " instanceof Vector && " + getVectorType().getName() + ".VECTOR_TYPE.isWiderThanOrEqualTo((Vector)" + expr + ")";
-    case EXPLICIT:
-      return expr + " instanceof " + getVectorType().getName();
-    }
-    throw new IllegalArgumentException("castStyle:" + castStyle);
-  }
 
   public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, CastStyle castStyle) {
     JClass vectorClass = codeModel.ref(Vector.class);

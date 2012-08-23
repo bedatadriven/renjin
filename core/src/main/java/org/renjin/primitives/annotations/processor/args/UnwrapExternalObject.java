@@ -23,17 +23,6 @@ public class UnwrapExternalObject extends ArgConverterStrategy {
   }
 
   @Override
-  public String conversionExpression(String argumentExpression) {
-    return "WrapperRuntime.<" + formal.getClazz().getName() + ">unwrapExternal(" + argumentExpression + ")";
-  }
-
-  @Override
-  public String getTestExpr(String argLocal) {
-    return argLocal + " instanceof " + ExternalExp.class.getSimpleName() + " && " +
-        "((" + ExternalExp.class.getSimpleName() + ")" + argLocal + ").getValue() instanceof " + formal.getClazz().getName();
-  }
-
-  @Override
   public JExpression getTestExpr(JCodeModel codeModel, JVar sexp) {
     JClass externalClass = codeModel.ref(ExternalExp.class);
     return sexp._instanceof(externalClass)
@@ -46,5 +35,4 @@ public class UnwrapExternalObject extends ArgConverterStrategy {
     JClass formalClass = method.classRef(formal.getClazz());
     return cast(formalClass, invoke(cast(externalClass, sexp), "getValue"));
   }
-
 }

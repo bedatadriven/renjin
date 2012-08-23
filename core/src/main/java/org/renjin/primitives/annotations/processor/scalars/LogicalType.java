@@ -23,23 +23,8 @@ public class LogicalType extends ScalarType {
   }
 
   @Override
-  public Class getStorageType() {
-    return Integer.TYPE;
-  }
-  
-  @Override
-  public String getNALiteral() {
-    return "IntVector.NA";
-  }
-
-  @Override
   public Class getVectorType() {
     return LogicalVector.class;
-  }
-
-  @Override
-  public String convertToStorageTypeExpression(String valueExpression) {
-    return valueExpression + ".getInternalValue()";
   }
 
   @Override

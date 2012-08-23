@@ -32,25 +32,8 @@ public class IntegerType extends ScalarType {
   }
 
   @Override
-  public String getNALiteral() {
-    return "IntVector.NA";
-  }
-
-  @Override
   public Class<IntArrayVector.Builder> getBuilderClass() {
     return IntArrayVector.Builder.class;
-  }
-
-  @Override
-  public String testExpr(String expr, CastStyle castStyle) {
-    // R language generally seems to allow implicit conversion of doubles
-    // to ints
-    if(castStyle == CastStyle.IMPLICIT) {
-      return "(" + expr + " instanceof IntVector || " + expr + " instanceof DoubleVector || " + 
-        expr + " instanceof LogicalVector)";
-    } else {
-      return "(" + expr + " instanceof IntVector)";
-    }
   }
 
   @Override

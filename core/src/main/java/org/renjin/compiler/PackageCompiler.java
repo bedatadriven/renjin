@@ -1,19 +1,7 @@
 package org.renjin.compiler;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import com.google.common.collect.Sets;
+import com.google.common.io.CharStreams;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRFunction;
@@ -22,18 +10,18 @@ import org.renjin.compiler.ir.tac.expressions.IRThunk;
 import org.renjin.eval.Context;
 import org.renjin.packaging.PackagingUtils;
 import org.renjin.parser.RParser;
-import org.renjin.primitives.annotations.processor.WrapperGenerator;
+import org.renjin.primitives.annotations.processor.WrapperGenerator2;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
-import com.google.common.io.CharStreams;
+import java.io.*;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PackageCompiler {
 
@@ -87,7 +75,7 @@ public class PackageCompiler {
   }
 
   private String packageMethodClassName(Symbol name) {
-    return WrapperGenerator.toJavaName("", name.getPrintName());
+    return WrapperGenerator2.toJavaName("", name.getPrintName());
   }
 
   private void compileClosure(String name, Closure closure) throws IOException {

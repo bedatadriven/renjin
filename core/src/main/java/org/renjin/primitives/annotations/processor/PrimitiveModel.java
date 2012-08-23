@@ -1,5 +1,6 @@
 package org.renjin.primitives.annotations.processor;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.renjin.primitives.Primitives;
@@ -54,10 +55,11 @@ public class PrimitiveModel {
   public List<JvmMethod> overloadsWithPosArgCountOf(int i) {
     List<JvmMethod> matching = Lists.newArrayList();
     for(JvmMethod overload : overloads) {
-      if(overload.countPositionalFormals() == i) {
+      if(!overload.isPassThrough() && overload.countPositionalFormals() == i) {
         matching.add(overload);
       }
     }
+    Collections.sort(matching);
     return matching;
   }
 
@@ -78,34 +80,6 @@ public class PrimitiveModel {
               "Mixing evaluated and unevaluated arguments at the same position is not yet supported");
     }
     return evaluated;
-  }
-
-  public String noMatchingOverloadErrorMessage() {
-
-    int nargs = overloads.iterator().next().countPositionalFormals();
-
-    StringBuilder message = new StringBuilder();
-    message.append("Invalid argument:\n");
-    message.append("\t").append(entry.name).append("(");
-
-    for(int i=0;i<nargs;++i) {
-      if(i > 0) {
-        message.append(", ");
-      }
-      message.append("%s");
-    }
-    message.append(")\n");
-    message.append("\tExpected:");
-    for(JvmMethod method : overloads) {
-      message.append("\n\t");
-      method.appendFriendlySignatureTo(entry.name, message);
-    }
-    message.append("\"");
-    for(int i=0;i<nargs;++i) {
-      message.append(", s" + i + ".getTypeName()");
-    }
-    message.append(")");
-    return message.toString();
   }
 
   public String getName() {
@@ -129,6 +103,18 @@ public class PrimitiveModel {
     return list;
   }
 
+  public int getMaxArity() {
+    int max = 0;
+    for(JvmMethod overload : overloads) {
+      if(!overload.isPassThrough()) {
+        if(overload.countPositionalFormals() > max) {
+          max = overload.countPositionalFormals();
+        }
+      }
+    }
+    return max;
+  }
+
   public boolean hasVargs() {
     for(JvmMethod overload : overloads) {
       for(JvmMethod.Argument argument : overload.getFormals()) {
@@ -142,5 +128,28 @@ public class PrimitiveModel {
 
   public List<JvmMethod> getOverloads() {
     return overloads;
+  }
+
+  public JvmMethod getPassThrough() {
+    for(JvmMethod overload : overloads) {
+      if(overload.isPassThrough()) {
+        return overload;
+      }
+    }
+    throw new GeneratorDefinitionException("No @PassThrough method defined for " + getName());
+  }
+
+  public boolean isPassThrough() {
+    boolean passThrough = false;
+    for(JvmMethod overload : overloads) {
+      if(overload.isPassThrough())  {
+        passThrough = true;
+      }
+    }
+    if(passThrough && overloads.size() != 1) {
+      throw new GeneratorDefinitionException(getName() + " overload " + getPassThrough() + " is annotated with " +
+              "@PassThrough but there are multiple overloads defined: " + Joiner.on("\n").join(overloads));
+    }
+    return passThrough;
   }
 }

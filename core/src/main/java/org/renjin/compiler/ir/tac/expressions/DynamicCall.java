@@ -1,26 +1,15 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.renjin.compiler.runtime.VariablePromise;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.BuiltinFunction;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Function call that is invoked with the full R
@@ -97,23 +86,23 @@ public class DynamicCall implements CallExpression {
     
     // locate function object
     Function functionValue = findFunction(context, temps);
-    
+
     if(! hasElipses() && functionValue instanceof BuiltinFunction) {
-      return ((BuiltinFunction)functionValue).apply(context, 
+      return ((BuiltinFunction)functionValue).apply(context,
           context.getEnvironment(), call, argumentNamesArray, evaluateArgs(context, temps));
     } else if(functionValue instanceof Closure) {
-        
+
       PairList.Builder args = new PairList.Builder();
       int argNameIndex=0;
       for(Expression argument : arguments) {
         if(argument instanceof Elipses) {
-          // splice existing promise list into 
+          // splice existing promise list into
           SEXP elipses = context.getEnvironment().findVariable(Symbols.ELLIPSES);
-          args.addAll((PairList)elipses); 
+          args.addAll((PairList)elipses);
         } else if(argument instanceof IRThunk) {
           if(argument.getSExpression() instanceof Symbol) {
-            args.add(argumentNames.get(argNameIndex++), 
-                new VariablePromise(context, "foo"));
+            args.add(argumentNames.get(argNameIndex++),
+                new VariablePromise(context, ((Symbol) argument.getSExpression()).getPrintName()));
           } else {
             args.add(argumentNames.get(argNameIndex++), new IRPromise(context, temps, (IRThunk)argument));
           }
@@ -127,7 +116,7 @@ public class DynamicCall implements CallExpression {
       return functionValue.apply(context, context.getEnvironment(), call, call.getArguments());
     }
   }
-  
+
   private static class IRPromise extends Promise {
     private Object[] temps;
     private IRThunk thunk;

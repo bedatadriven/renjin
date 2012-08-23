@@ -26,6 +26,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Attributes;
 import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.*;
 
@@ -34,6 +35,7 @@ import java.util.List;
 public class Models {
 
 
+  @PassThrough
   @Primitive("~")
   public static SEXP tilde(Context context, Environment rho, FunctionCall call) {
     return new FunctionCall(call.getFunction(), call.getArguments(),

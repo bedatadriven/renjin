@@ -114,6 +114,9 @@ public class Files {
     StringVector.Builder exe = new StringVector.Builder();
 
     for(String path : paths) {
+      if(StringVector.isNA(path)) {
+        throw new EvalException("invalid filename argument");
+      }
       FileObject file =  context.resolveFile(path);
       if(file.exists()) {
         if(file.getType() == FileType.FILE) {
@@ -159,7 +162,7 @@ public class Files {
    */
   @Primitive
   @Recycle
-  public static String normalizePath(@Current Context context, String path) {
+  public static String normalizePath(@Current Context context, String path, @Recycle(false) String winSlash, @Recycle(false) SEXP mustWork) {
     try {
       return context.resolveFile(path).getName().getURI();
     } catch(FileSystemException e) {
@@ -321,7 +324,8 @@ public class Files {
                                        final boolean allFiles,
                                        final boolean fullNames,
                                        final boolean recursive,
-                                       final boolean ignoreCase) throws IOException {
+                                       final boolean ignoreCase,
+                                       final boolean includeDirs) throws IOException {
 
     return new Object() {
 
@@ -366,6 +370,9 @@ public class Files {
         if(!allFiles && isHidden(child)) {
           return false;
         }
+        if(recursive && !includeDirs && child.getType() == FileType.FOLDER) {
+          return false;
+        }
         if(filter!=null && !filter.match(child.getName().getBaseName())) {
           return false;
         }
@@ -403,8 +410,8 @@ public class Files {
    *
    * @return path that can be used as names for temporary files
    */
-  public static String tempfile(String pattern, String tempdir) {
-    return tempdir + "/" + pattern;
+  public static String tempfile(String pattern, String tempdir, String fileExt) {
+    return tempdir + "/" + pattern + fileExt;
   }
 
   /**
@@ -446,7 +453,7 @@ public class Files {
    * regarded as failures.
    * @throws FileSystemException
    */
-  public static IntVector unlink(@Current Context context, StringVector paths, boolean recursive) throws FileSystemException {
+  public static IntVector unlink(@Current Context context, StringVector paths, boolean recursive, boolean force) throws FileSystemException {
     IntArrayVector.Builder result = new IntArrayVector.Builder();
     for(String path : paths) {
       if(StringVector.isNA(path)) {

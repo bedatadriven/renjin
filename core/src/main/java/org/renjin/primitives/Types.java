@@ -772,7 +772,7 @@ public class Types {
 
   @Primitive
   public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual,
-      boolean singleNA, boolean attributesAsSet) {
+      boolean singleNA, boolean attributesAsSet, boolean ignoreByteCode) {
     if (!numericallyEqual || !singleNA || !attributesAsSet) {
       throw new EvalException(
           "identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");

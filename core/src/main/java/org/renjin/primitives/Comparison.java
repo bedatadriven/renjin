@@ -23,13 +23,9 @@ package org.renjin.primitives;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 
 public class Comparison {
@@ -44,6 +40,8 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
+  @PassThrough
+  @Primitive("||")
   public static LogicalVector or(Context context, Environment rho, FunctionCall call) {
 
     Logical x = checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x || y'");
@@ -71,6 +69,7 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
+  @PassThrough
   @Primitive("&&")
   public static LogicalVector and(Context context, Environment rho, FunctionCall call) {
 

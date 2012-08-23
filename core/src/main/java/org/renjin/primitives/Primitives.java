@@ -5,7 +5,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.processor.WrapperGenerator;
+import org.renjin.primitives.annotations.processor.WrapperGenerator2;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.graphics.Graphics;
 import org.renjin.primitives.graphics.Par;
@@ -91,7 +91,7 @@ public class Primitives {
   
   private static PrimitiveFunction createFunction(final Entry entry) {
    try {
-      return (PrimitiveFunction) Class.forName(WrapperGenerator.toFullJavaName(entry.name)).newInstance();
+      return (PrimitiveFunction) Class.forName(WrapperGenerator2.toFullJavaName(entry.name)).newInstance();
     } catch(Exception e) {
       return new BuiltinFunction(entry.name) {
 

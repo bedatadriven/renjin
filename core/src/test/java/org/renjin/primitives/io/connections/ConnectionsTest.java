@@ -34,6 +34,7 @@ public class ConnectionsTest extends EvalTestCase {
     assumingBasePackagesLoad();
     
     eval("x <- getCRANmirrors()");
+    eval("print(class(x))");
     assertThat(eval("length(row.names(x)) > 10"), equalTo(c(true)));
     assertThat(eval("length(x$Name) > 10"), equalTo(c(true))); 
   }

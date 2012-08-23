@@ -21,15 +21,15 @@
 
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class OptTest extends EvalTestCase{
@@ -42,6 +42,11 @@ public class OptTest extends EvalTestCase{
     assertThat(eval("10L>5L"), equalTo(c(true)));
     assertThat(eval("TRUE>FALSE"), equalTo(c(true)));
     assertThat(eval("'one' > 'zed'"), equalTo(c(false)));
+  }
+
+  @Test
+  public void typePreservedAndNotMangledByImplicitCasting() {
+    assertThat(eval("-1L"), equalTo(c_i(-1)));
   }
   
   @Test(expected=EvalException.class)

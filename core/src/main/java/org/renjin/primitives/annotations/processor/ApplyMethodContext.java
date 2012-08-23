@@ -1,6 +1,7 @@
 package org.renjin.primitives.annotations.processor;
 
 import com.sun.codemodel.JClass;
+import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 
 public interface ApplyMethodContext {
@@ -10,4 +11,5 @@ public interface ApplyMethodContext {
 
   JClass classRef(Class<?> clazz);
 
+  JCodeModel getCodeModel();
 }

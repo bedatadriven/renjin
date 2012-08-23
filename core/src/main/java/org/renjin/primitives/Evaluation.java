@@ -29,6 +29,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Evaluate;
+import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
@@ -195,6 +196,7 @@ public class Evaluation {
     return doCall(context, (Function) function, arguments, environment);
   }
 
+  @PassThrough
   @Primitive
   public static SEXP call(@Current Context context, @Current Environment rho, FunctionCall call) {
     if(call.length() < 1) {

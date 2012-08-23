@@ -1,17 +1,17 @@
 package org.renjin.primitives.annotations.processor;
 
 
-import com.google.common.collect.Lists;
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.annotations.processor.generic.GenericDispatchStrategy;
+import org.renjin.primitives.annotations.processor.generic.OpsGroupGenericDispatchStrategy;
+import org.renjin.primitives.annotations.processor.generic.SimpleDispatchStrategy;
+import org.renjin.primitives.annotations.processor.generic.SummaryGroupGenericStrategy;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
-
-import java.util.List;
-import java.util.Map;
 
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.lit;
@@ -28,28 +28,24 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
   protected JMethod method;
 
   protected JVar argumentIterator;
+  protected GenericDispatchStrategy genericDispatchStrategy;
 
-  private List<JVar> positionalArgumentSexps = Lists.newArrayList();
-  private Map<JvmMethod.Argument,JVar> namedFlags;
 
   public ApplyMethodBuilder(JCodeModel codeModel, JDefinedClass invoker, PrimitiveModel primitive) {
     this.codeModel = codeModel;
     this.invoker = invoker;
     this.primitive = primitive;
+    this.genericDispatchStrategy = genericDispatchStrategy(primitive);
   }
 
   public void build() {
-    method = invoker.method( JMod.PUBLIC, SEXP.class, "apply" );
-    context = method.param(Context.class, "context");
-    environment = method.param(Environment.class, "environment");
-    call = method.param(FunctionCall.class, "call");
-    args = method.param(PairList.class, "args");
+    declareMethod();
 
-    JTryBlock mainTryBlock = method.body()._try();
+    ExceptionWrapper mainTryBlock = new ExceptionWrapper(codeModel, method.body(), context);
     catchArgumentExceptions(mainTryBlock);
-    catchEvalExceptions(mainTryBlock);
-    catchRuntimeExceptions(mainTryBlock);
-    catchExceptions(mainTryBlock);
+    mainTryBlock.catchEvalExceptions();
+    mainTryBlock.catchRuntimeExceptions();
+    mainTryBlock.catchExceptions();
 
     argumentIterator = mainTryBlock.body().decl(classRef(ArgumentIterator.class), "argIt",
             _new(classRef(ArgumentIterator.class))
@@ -62,17 +58,27 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
 
   }
 
-  protected abstract void apply(JBlock parent);
-
-  private JInvocation invocation(JvmMethod overload, List<JExpression> argumentList) {
-    JInvocation invocation = classRef(overload.getDeclaringClass()).staticInvoke(overload.getName());
-    for(JExpression arg : argumentList) {
-      invocation.arg(arg);
-    }
-    return invocation;
+  @Override
+  public JClass classRef(Class<?> clazz) {
+    return codeModel.ref(clazz);
   }
 
+  @Override
+  public JCodeModel getCodeModel() {
+    return codeModel;
+  }
 
+  protected void declareMethod() {
+    method = invoker.method( JMod.PUBLIC, SEXP.class, "apply" );
+    context = method.param(Context.class, "context");
+    environment = method.param(Environment.class, "environment");
+    call = method.param(FunctionCall.class, "call");
+    args = method.param(PairList.class, "args");
+  }
+
+  protected void apply(JBlock parent) {
+
+  }
 
   protected JExpression contextualExpression(JvmMethod.Argument formal) {
     if(formal.getClazz().equals(Context.class)) {
@@ -97,18 +103,7 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
     }
   }
 
-  private void catchEvalExceptions(JTryBlock mainTryBlock) {
-    JCatchBlock catchBlock = mainTryBlock._catch(classRef(EvalException.class));
-    JVar e = catchBlock.param("e");
-    catchBlock.body().invoke(e, "initContext").arg(context);
-    catchBlock.body()._throw(e);
-  }
-
-  public JClass classRef(Class<?> clazz) {
-    return (JClass) codeModel._ref(clazz);
-  }
-
-  private void catchArgumentExceptions(JTryBlock mainTryBlock) {
+  public void catchArgumentExceptions(ExceptionWrapper mainTryBlock) {
     mainTryBlock._catch((JClass) codeModel._ref(ArgumentException.class))
             .body().
             _throw(_new(codeModel._ref(EvalException.class))
@@ -116,18 +111,25 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
                     .arg(lit(primitive.argumentErrorMessage())));
   }
 
-
-  private void catchRuntimeExceptions(JTryBlock mainTryBlock) {
-    JCatchBlock catchBlock = mainTryBlock._catch(classRef(RuntimeException.class));
-    JVar e = catchBlock.param("e");
-    catchBlock.body()._throw(e);
+  private GenericDispatchStrategy genericDispatchStrategy(PrimitiveModel primitive) {
+    JvmMethod overload =  primitive.getOverloads().get(0);
+    if (overload.isGroupGeneric()) {
+      if (overload.getGenericGroup().equals("Ops")) {
+        return new OpsGroupGenericDispatchStrategy(codeModel, primitive.getName());
+      } else if (overload.getGenericGroup().equals("Summary")) {
+        return new SummaryGroupGenericStrategy(codeModel, primitive.getName());
+      } else {
+        throw new GeneratorDefinitionException(
+            "Group generic dispatch for group '" + overload.getGenericName()
+                + "' is not implemented");
+      }
+    } else if (overload.isGeneric()) {
+      return new SimpleDispatchStrategy(codeModel, primitive.getName());
+    } else {
+      return new GenericDispatchStrategy(codeModel);
+    }
   }
 
-  private void catchExceptions(JTryBlock mainTryBlock) {
-    JCatchBlock catchBlock = mainTryBlock._catch(classRef(Exception.class));
-    JVar e = catchBlock.param("e");
-    catchBlock.body()._throw(_new(classRef(EvalException.class)).arg(e));
-  }
 
   @Override
   public JExpression getContext() {
@@ -138,4 +140,5 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
   public JExpression getEnvironment() {
     return environment;
   }
+
 }

@@ -40,6 +40,9 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
 
     assert checkDims() : "dim do not match length of object";
 
+    if(values.length == 2 && isNA(values[0])) {
+      System.out.println("WARNING: compact RN probably be converted");
+    }
     if(values.length >= 5000) {
       System.out.println("StringArrayVector length=" + values.length);
     }

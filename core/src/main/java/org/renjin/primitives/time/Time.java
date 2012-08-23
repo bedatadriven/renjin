@@ -93,7 +93,7 @@ public class Time {
   }
   
   @Primitive("as.POSIXlt") 
-  public static ListVector asPOSIXlt(DoubleVector x) {
+  public static ListVector asPOSIXlt(DoubleVector x, String tz) {
     return new PosixLtVector.Builder()
       .addAll(new PosixCtVector(x))
       .buildListVector();

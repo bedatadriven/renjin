@@ -40,6 +40,7 @@ public class ToScalar extends ArgConverterStrategy {
 
   @Override
   public JExpression getTestExpr(JCodeModel codeModel, JVar sexpVariable) {
-    return scalarType.testExpr(codeModel, sexpVariable);
+    return scalarType.testExpr(codeModel, sexpVariable, this.formal.getCastStyle());
   }
+
 }

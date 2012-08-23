@@ -115,8 +115,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy  {
       return sb.toString();
     }
   }
-    
-    
+
   protected final String callStatement(JvmMethod method, ArgumentList argumentList) {
     StringBuilder call = new StringBuilder();
     call.append(method.getDeclaringClass().getName()).append(".")
@@ -235,7 +234,7 @@ public class AnnotationBasedStrategy extends GeneratorStrategy  {
         s.writeBeginBlock(signature.toString());
         s.writeBeginTry();
         dispatchArityGroup(entry, s, matchingByCount,
-            new GenericDispatchStrategy(), null);
+            new GenericDispatchStrategy(null), null);
         s.writeCatch(Exception.class, "e");
         s.writeStatement("throw new EvalException(e)");
         s.writeCloseBlock();
@@ -315,18 +314,18 @@ public class AnnotationBasedStrategy extends GeneratorStrategy  {
     JvmMethod overload = overloads.get(0);
     if (overload.isGroupGeneric()) {
       if (overload.getGenericGroup().equals("Ops")) {
-        return new OpsGroupGenericDispatchStrategy(entry.name);
+        return new OpsGroupGenericDispatchStrategy(null, entry.name);
       } else if (overload.getGenericGroup().equals("Summary")) {
-        return new SummaryGroupGenericStrategy(entry.name);
+        return new SummaryGroupGenericStrategy(null, entry.name);
       } else {
         throw new GeneratorDefinitionException(
             "Group generic dispatch for group '" + overload.getGenericName()
                 + "' is not implemented");
       }
     } else if (overload.isGeneric()) {
-      return new SimpleDispatchStrategy(entry.name);
+      return new SimpleDispatchStrategy(null, entry.name);
     } else {
-      return new GenericDispatchStrategy();
+      return new GenericDispatchStrategy(null);
     }
   }
 

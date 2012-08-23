@@ -1,8 +1,8 @@
 package org.renjin.primitives.annotations.processor;
 
-import java.util.List;
-
 import org.renjin.primitives.Primitives.Entry;
+
+import java.util.List;
 
 
 
@@ -28,7 +28,7 @@ public class PassThrough extends GeneratorStrategy {
 
   @Override
   public boolean accept(List<JvmMethod> overloads) {
-    return overloads.size() == 1 && overloads.get(0).acceptsCall();
+    return overloads.size() == 1 && overloads.get(0).isPassThrough();
   }
   
 

@@ -27,6 +27,7 @@ import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.processor.ArgumentIterator;
 import org.renjin.primitives.annotations.processor.WrapperRuntime;
@@ -120,6 +121,7 @@ public class Sequences {
     }
   }
 
+  @PassThrough
   @Primitive("rep")
   public static SEXP repeat(Context context, Environment rho, FunctionCall call) {
 
@@ -282,6 +284,7 @@ public class Sequences {
     }
   }
 
+  @PassThrough
   @Primitive("seq.int")
   public static SEXP seqInt(Context context, Environment rho, FunctionCall call) {
 

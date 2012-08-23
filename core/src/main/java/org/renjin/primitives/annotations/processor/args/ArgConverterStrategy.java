@@ -73,10 +73,10 @@ public abstract class ArgConverterStrategy {
     return formal.isEvaluated();
   }
 
-
   public abstract String getTestExpr(String argLocal);
 
   public abstract JExpression getTestExpr(JCodeModel codeModel, JVar sexpVariable);
 
   public abstract JExpression convertArgument(ApplyMethodContext method, JExpression sexp);
+
 }

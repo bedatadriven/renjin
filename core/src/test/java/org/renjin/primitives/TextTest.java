@@ -78,7 +78,7 @@ public class TextTest extends EvalTestCase {
   @Test
   public void sub() {
     assertThat( eval(".Internal(sub('[[:blank:]]*([[:alnum:]]+)', '\\\\1', " +
-        "c('datasets', 'utils', 'grDevices', 'graphics', 'stats', 'methods'), FALSE, TRUE, FALSE, FALSE, FALSE))"),
+        "c('datasets', 'utils', 'grDevices', 'graphics', 'stats', 'methods'), FALSE, TRUE, FALSE, FALSE))"),
         equalTo( c("datasets", "utils", "grDevices", "graphics", "stats", "methods")) );
   }
   

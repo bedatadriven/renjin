@@ -1,31 +1,23 @@
 package org.renjin.compiler.ir.tac.expressions;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.renjin.compiler.runtime.CompiledRuntime;
+import org.renjin.compiler.runtime.UnimplementedPrimitive;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.Primitives;
+import org.renjin.primitives.annotations.processor.WrapperGenerator;
+import org.renjin.sexp.*;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import org.renjin.compiler.runtime.CompiledRuntime;
-import org.renjin.compiler.runtime.UnimplementedPrimitive;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.Primitives;
-import org.renjin.primitives.special.SwitchFunction;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-
-
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * 
@@ -79,7 +71,12 @@ public class PrimitiveCall implements CallExpression {
     if(fn == null) {
       fn = Primitives.getInternal(name);
     }
-    Class wrapperClass = fn.getClass();
+    Class wrapperClass = null;
+    try {
+      wrapperClass = Class.forName(WrapperGenerator.toFullJavaName(fn.getName()));
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
     try {
 
       return wrapperClass.getMethod("matchAndApply", new Class[] { 
@@ -91,9 +88,6 @@ public class PrimitiveCall implements CallExpression {
       });
     } catch (SecurityException e) {
     } catch (NoSuchMethodException e) {
-    }
-    if(name.getPrintName().equals("switch")) {
-      System.out.println("switch!");
     }
     return null;
   }

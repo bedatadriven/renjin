@@ -46,4 +46,5 @@ public class UnwrapExternalObject extends ArgConverterStrategy {
     JClass formalClass = method.classRef(formal.getClazz());
     return cast(formalClass, invoke(cast(externalClass, sexp), "getValue"));
   }
+
 }

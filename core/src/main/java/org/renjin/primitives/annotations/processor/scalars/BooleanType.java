@@ -1,8 +1,12 @@
 package org.renjin.primitives.annotations.processor.scalars;
 
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JVar;
 import org.renjin.primitives.annotations.CastStyle;
 import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Vector;
 
 public class BooleanType extends ScalarType {
 
@@ -50,6 +54,9 @@ public class BooleanType extends ScalarType {
   public String testExpr(String expr, CastStyle castStyle) {
     return "(" + expr + " instanceof Vector)";
   }
-  
-  
+
+  @Override
+  public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, CastStyle castStyle) {
+    return sexpVariable._instanceof(codeModel.ref(Vector.class));
+  }
 }

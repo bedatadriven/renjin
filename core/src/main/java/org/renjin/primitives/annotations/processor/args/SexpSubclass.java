@@ -50,4 +50,5 @@ public class SexpSubclass extends ArgConverterStrategy {
   public JExpression getTestExpr(JCodeModel codeModel, JVar sexpVariable) {
     return sexpVariable._instanceof(codeModel._ref(formal.getClazz()));
   }
+
 }

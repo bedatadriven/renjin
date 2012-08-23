@@ -8,8 +8,7 @@ import org.renjin.sexp.SEXP;
 
 import java.util.List;
 
-import static com.sun.codemodel.JExpr._new;
-import static com.sun.codemodel.JExpr.invoke;
+import static com.sun.codemodel.JExpr.*;
 
 /**
  * Implements the apply() method of {@code PrimitiveFunction} for methods
@@ -33,18 +32,28 @@ public class FixedArityApplyBuilder extends ApplyMethodBuilder {
 
         // if this is the last argument, then we call the wrapper
         // for this overload
-
-        parent._if(lastArgument())._then()._return(invokeWrapper(arguments));
+        arityMatches(parent._if(lastArgument())._then(), arguments);
       }
 
       JVar argument = parent.decl(classRef(SEXP.class), "s" + i, nextArgAsSexp(primitive.isEvaluated(i)));
       arguments.add(argument);
+
+      genericDispatchStrategy.afterArgIsEvaluated(this, call, args, parent, argument, i);
     }
 
-    parent._if(lastArgument())._then()._return(invokeWrapper(arguments));
+    arityMatches(parent._if(lastArgument())._then(), arguments);
 
     // if we still have arguments left, there are too many
-    parent._throw(_new(classRef(EvalException.class)));
+    parent._throw(_new(classRef(EvalException.class)).arg(invalidArityMessage()));
+  }
+
+  private JExpression invalidArityMessage() {
+    return lit(primitive.getName() + ": too many arguments, expected at most " + primitive.getMaxArity() + ".");
+  }
+
+  private void arityMatches(JBlock parent, List<JExpression> arguments) {
+    genericDispatchStrategy.beforeTypeMatching(this, call, arguments, parent);
+    parent._return(invokeWrapper(arguments));
   }
 
   private JExpression invokeWrapper(List<JExpression> arguments) {

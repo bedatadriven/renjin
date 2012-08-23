@@ -101,7 +101,8 @@ public class Connections {
    * @throws IOException 
    */
   public static IntVector file(@Current final Context context,
-      final String path, String open, boolean blocking, String encoding) throws IOException {
+      final String path, String open, boolean blocking, String encoding,
+      boolean raw) throws IOException {
     
     if(path.isEmpty()) {
       return newConnection(context, open, new SingleThreadedFifoConnection());

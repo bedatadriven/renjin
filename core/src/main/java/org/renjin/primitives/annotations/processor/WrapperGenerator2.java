@@ -1,36 +1,24 @@
 package org.renjin.primitives.annotations.processor;
 
-import java.io.*;
-import java.lang.System;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.StandardLocation;
-import javax.tools.ToolProvider;
-
-import com.sun.codemodel.CodeWriter;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JPackage;
-import org.renjin.primitives.*;
-import org.renjin.primitives.Primitives.Entry;
-
-
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.sun.codemodel.CodeWriter;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JPackage;
+import org.renjin.primitives.Primitives;
+import org.renjin.primitives.Primitives.Entry;
+
+import javax.tools.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 
- * Generates wrapper classes for primitive functions. 
+ * Generates wrapper classes for primitive functions. This generator
+ * supercedes {@link WrapperGenerator2},
  *
  */
 public class WrapperGenerator2 {
@@ -45,7 +33,11 @@ public class WrapperGenerator2 {
       generator.setSingleFunction(args[0]);
     }
     generator.generate();
-   
+
+    // for now, run the legacy WrapperGenerator as its required
+    // by the compiler
+    WrapperGenerator.main(new String[0]);
+
     System.exit(generator.isSuccessful() ? 0 : 1);
   }
   
@@ -81,11 +73,7 @@ public class WrapperGenerator2 {
   
   private void generateSources()
       throws IOException {
-    
-    List<GeneratorStrategy> strategies = Lists.newArrayList();
-    strategies.add(new PassThrough());
-    strategies.add(new AnnotationBasedStrategy());
-  
+
     int implementedCount = 0;
 
     JCodeModel codeModel = new JCodeModel();
@@ -94,18 +82,9 @@ public class WrapperGenerator2 {
     for(Entry entry : entries) {
       if(singleFunction == null || singleFunction.equals(entry.name)) {
         List<JvmMethod> overloads = JvmMethod.findOverloads(entry.functionClass, entry.name, entry.methodName);
-        
         if(!overloads.isEmpty()) {
+          generate(codeModel, new PrimitiveModel(entry, overloads));
           implementedCount ++;
-
-
-          GeneratorStrategy strategy = findStrategy(strategies, overloads);
-          if(strategy != null) {
-    
-            generate(codeModel, new PrimitiveModel(entry, overloads), strategy);
-          } else {
-            System.out.println(entry.name + ": no generation strategy available");
-          }
         }
       }
     }
@@ -133,11 +112,9 @@ public class WrapperGenerator2 {
 
     System.out.println("Total primitives: " + entries.size());
     System.out.println("   % Implemented: " + ((double)implementedCount / entries.size() * 100d) + "%");
-     
   }
 
-
-  private void generate(JCodeModel codeModel, PrimitiveModel primitive, GeneratorStrategy strategy) throws IOException {
+  private void generate(JCodeModel codeModel, PrimitiveModel primitive) throws IOException {
     try {
       InvokerGenerator generator = new InvokerGenerator(codeModel);
       generator.generate(primitive);
@@ -145,26 +122,14 @@ public class WrapperGenerator2 {
     } catch(Exception e) {
       System.err.println("Error generating wrapper for '" + primitive.getName() + "': " + e.getMessage());
       System.err.println("Overloads defined:");
-//      for(JvmMethod method : overloads) {
-//        System.err.println("  " + method.toString());
-//      }
+      for(JvmMethod method : primitive.getOverloads()) {
+        System.err.println("  " + method.toString());
+      }
       encounteredError = true;
       e.printStackTrace();
     }
   }
-    
-  
-  private static GeneratorStrategy findStrategy(
-      List<GeneratorStrategy> strategies, List<JvmMethod> overloads) {
-    
-    for(GeneratorStrategy strategy : strategies) {
-      if(strategy.accept(overloads)) {
-        return strategy;
-      }
-    }
-    return null;
-  }
-  
+
   private static class WrapperSource extends SimpleJavaFileObject {
     
     private File file;
@@ -177,25 +142,17 @@ public class WrapperGenerator2 {
     @Override
     public CharSequence getCharContent(boolean ignoreEncodingErrors)
         throws IOException {
-      
       return Files.toString(file, Charsets.UTF_8);
-      
     }
-    
   }
 
   public void compile() throws IOException {
 
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-
     DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-
     StandardJavaFileManager jfm = compiler.getStandardFileManager(diagnostics, null, null);
-
     jfm.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singleton(outputDir));
-
-    JavaCompiler.CompilationTask task = compiler.getTask(null, jfm, diagnostics, null, null, compilationUnits);
-
+    JavaCompiler.CompilationTask task = compiler.getTask(null, jfm, diagnostics, Lists.<String>newArrayList("-g"), null, compilationUnits);
     boolean success = task.call();
 
     if(!success) {
@@ -271,8 +228,8 @@ public class WrapperGenerator2 {
     }
     return sb.toString();
   }
-  
+
   public static String toFullJavaName(String rName) {
-    return "r.base.primitives." + toJavaName(rName);
+    return "org.renjin.primitives." + toJavaName(rName);
   }
 }

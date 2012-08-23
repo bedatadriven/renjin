@@ -4,16 +4,21 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
+import org.renjin.eval.Context.Globals;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategies;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategy;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class OverloadWrapperBuilder implements ApplyMethodContext {
+import static com.sun.codemodel.JExpr._new;
+import static com.sun.codemodel.JExpr.lit;
 
+public class OverloadWrapperBuilder implements ApplyMethodContext {
 
   protected JCodeModel codeModel;
   protected JDefinedClass invoker;
@@ -21,7 +26,6 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
   private int arity;
 
   private List<JVar> arguments = Lists.newArrayList();
-  private Map<JvmMethod.Argument, JVar> argumentMap = Maps.newHashMap();
   private JVar context;
   private JVar environment;
 
@@ -33,39 +37,105 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
   }
 
   public void build() {
-    JMethod method = invoker.method(JMod.STATIC | JMod.PUBLIC, codeModel.ref(SEXP.class), "doApply");
+    JMethod method = invoker.method(JMod.STATIC | JMod.PUBLIC, codeModel.ref(SEXP.class), "doApply")
+        ._throws(Exception.class);
+
     context = method.param(Context.class, "context");
     environment = method.param(Environment.class, "environment");
-
     for(int i=0;i!=arity;++i) {
       JVar argument = method.param(SEXP.class, "arg" + i);
       arguments.add(argument);
     }
 
     IfElseBuilder matchSequence = new IfElseBuilder(method.body());
-    for(JvmMethod overload : primitive.overloadsWithPosArgCountOf(arity)) {
+    List<JvmMethod> overloads = Lists.newArrayList( primitive.overloadsWithPosArgCountOf(arity) );
+    Collections.sort( overloads, new OverloadComparator());
+    for(JvmMethod overload : overloads) {
       invokeOverload(overload, matchSequence._if(argumentsMatch(overload)));
     }
+    matchSequence._else()._throw(_new(codeModel.ref(EvalException.class))
+            .arg(typeMismatchErrorMessage(arguments)));
   }
 
-  private void invokeOverload(JvmMethod overload, JBlock block) {
-    JInvocation invocation = codeModel.ref(overload.getDeclaringClass())
-            .staticInvoke(overload.getName());
+  private void sort(List<JvmMethod> overloads) {
+    Collections.sort(overloads, new OverloadComparator());
+  }
+
+  private JExpression typeMismatchErrorMessage(List<JVar> arguments) {
+    JInvocation format = codeModel.ref(String.class).staticInvoke("format");
+    format.arg(lit(typeMessageErrorFormat(arguments.size())));
+    for(JVar arg : arguments) {
+      format.arg(arg.invoke("getTypeName"));
+    }
+    return format;
+  }
+
+  private String typeMessageErrorFormat(int nargs) {
+    StringBuilder message = new StringBuilder();
+    message.append("Invalid argument:\n");
+    message.append("\t").append(primitive.getName()).append("(");
+
+    for(int i=0;i<nargs;++i) {
+      if(i > 0) {
+        message.append(", ");
+      }
+      message.append("%s");
+    }
+    message.append(")\n");
+    message.append("\tExpected:");
+    for(JvmMethod method : primitive.getOverloads()) {
+      message.append("\n\t");
+      method.appendFriendlySignatureTo(primitive.getName(), message);
+    }
+    return message.toString();
+  }
+
+  private Map<JvmMethod.Argument, JExpression> mapArguments(JvmMethod overload) {
+    Map<JvmMethod.Argument, JExpression> argumentMap = Maps.newHashMap();
 
     int argumentPos = 0;
     for(JvmMethod.Argument argument : overload.getAllArguments()) {
       if(argument.isContextual()) {
         if(argument.getClazz().equals(Context.class)) {
-          invocation.arg(context);
+          argumentMap.put(argument, context);
+        } else if(argument.getClazz().equals(Environment.class)){
+          argumentMap.put(argument, environment);
+        } else if(argument.getClazz().equals(Globals.class)) {
+          argumentMap.put(argument, context.invoke("getGlobals"));
         } else {
           throw new UnsupportedOperationException(argument.getClazz().getName());
         }
       } else {
-        invocation.arg(convert(argument, arguments.get(argumentPos++)));
+        argumentMap.put(argument, convert(argument, arguments.get(argumentPos++)));
       }
     }
+    return argumentMap;
+  }
 
-    block._return(invocation);
+  private void invokeOverload(JvmMethod overload, JBlock block) {
+
+    if(overload.isRecycle()) {
+      new RecycleLoopBuilder(codeModel, block, overload, mapArguments(overload))
+            .build();
+    } else {
+      invokeSimpleMethod(overload, block);
+    }
+  }
+
+  /**
+   * Invokes with the JVM method simply (without recycling) using the
+   * provided arguments.
+   */
+  private void invokeSimpleMethod(JvmMethod overload, JBlock block) {
+    JInvocation invocation = codeModel.ref(overload.getDeclaringClass())
+            .staticInvoke(overload.getName());
+
+    Map<JvmMethod.Argument, JExpression> argumentMap = mapArguments(overload);
+
+    for(JvmMethod.Argument argument : overload.getAllArguments()) {
+      invocation.arg(argumentMap.get(argument));
+    }
+    CodeModelUtils.returnSexp(codeModel, block, overload, invocation);
   }
 
   private JExpression convert(JvmMethod.Argument argument, JVar sexp) {
@@ -78,7 +148,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
    * match the given overload.
    */
   private JExpression argumentsMatch(JvmMethod overload) {
-    JExpression condition = null;
+    JExpression condition = JExpr.TRUE;
     List<JvmMethod.Argument> posFormals = overload.getPositionalFormals();
     for (int i = 0; i != posFormals.size(); ++i) {
 
@@ -95,7 +165,6 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
     return condition;
   }
 
-
   @Override
   public JExpression getContext() {
     return context;
@@ -110,4 +179,10 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
   public JClass classRef(Class<?> clazz) {
     return codeModel.ref(clazz);
   }
+
+  @Override
+  public JCodeModel getCodeModel() {
+    return codeModel;
+  }
+
 }

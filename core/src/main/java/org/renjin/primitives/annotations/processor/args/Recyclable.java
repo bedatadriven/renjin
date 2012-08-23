@@ -38,7 +38,7 @@ public class Recyclable extends ArgConverterStrategy {
 
   @Override
   public JExpression getTestExpr(JCodeModel codeModel, JVar sexp) {
-    return sexp.invoke("length").eq(lit(0)).cor(scalarType.testExpr(codeModel, sexp));
+    return sexp.invoke("length").eq(lit(0)).cor(scalarType.testExpr(codeModel, sexp, this.formal.getCastStyle()));
   }
 
   @Override

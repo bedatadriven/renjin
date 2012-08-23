@@ -21,18 +21,25 @@
 
 package org.renjin.primitives.annotations.processor.generic;
 
-import org.renjin.primitives.annotations.processor.ArgumentItType;
-import org.renjin.primitives.annotations.processor.PairListArgItType;
-import org.renjin.primitives.annotations.processor.WrapperSourceWriter;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpression;
+import org.renjin.primitives.annotations.processor.*;
+import org.renjin.sexp.SEXP;
+
+import static com.sun.codemodel.JExpr._null;
+import static com.sun.codemodel.JExpr.lit;
 
 
 public class SimpleDispatchStrategy extends GenericDispatchStrategy {
 
   private final String name;
 
-  public SimpleDispatchStrategy(String name) {
+  public SimpleDispatchStrategy(JCodeModel codeModel, String name) {
+    super(codeModel);
     this.name = name;
   }
+
 
   @Override
   public void afterArgIsEvaluated(WrapperSourceWriter s, int index, ArgumentItType argItType) {
@@ -49,4 +56,24 @@ public class SimpleDispatchStrategy extends GenericDispatchStrategy {
       s.writeCloseBlock();
     }
   }
+
+  @Override
+  public void afterArgIsEvaluated(ApplyMethodContext context, JExpression functionCall, JExpression arguments,
+                                  JBlock parent, JExpression argument, int index) {
+    if(index == 0) {
+
+      JBlock ifObject = parent._if(fastIsObject(argument))._then();
+      JExpression genericResult = ifObject.decl(codeModel.ref(SEXP.class), "genericResult",
+              codeModel.ref(WrapperRuntime.class).staticInvoke("tryDispatchFromPrimitive")
+              .arg(context.getContext())
+              .arg(context.getEnvironment())
+              .arg(functionCall)
+              .arg(lit(name))
+              .arg(argument)
+              .arg(arguments));
+      ifObject._if(genericResult.ne(_null()))._then()._return(genericResult);
+
+    }
+  }
+
 }

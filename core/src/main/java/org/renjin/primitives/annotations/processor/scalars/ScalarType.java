@@ -37,10 +37,18 @@ public abstract class ScalarType {
     throw new IllegalArgumentException("castStyle:" + castStyle);
   }
 
-  public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable) {
-    JClass vectorClass = codeModel.ref(getVectorType());
-    JClass vectorTypeClass = codeModel.ref(vectorClass.name() + ".VECTOR_TYPE");
+  public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, CastStyle castStyle) {
+    JClass vectorClass = codeModel.ref(Vector.class);
+    JExpression vectorType =  codeModel.ref(getVectorType()).staticRef("VECTOR_TYPE");
     return sexpVariable._instanceof(vectorClass)
-            .cand(vectorTypeClass.staticInvoke("isWiderThanOrEqualTo").arg(JExpr.cast(vectorClass, sexpVariable)));
+            .cand(vectorType.invoke("isWiderThanOrEqualTo").arg(JExpr.cast(vectorClass, sexpVariable)));
+  }
+
+  public Vector.Type getVectorTypeInstance() {
+    try {
+      return (Vector.Type) getVectorType().getField("VECTOR_TYPE").get(null);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

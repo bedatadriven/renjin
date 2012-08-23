@@ -29,6 +29,7 @@ import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.*;
+import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.sexp.*;
 
 import java.lang.annotation.Annotation;
@@ -98,7 +99,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
     }
 
     for(Argument formal : formals) {
-      formal.recycle = formal.isAnnotatedWith(Recycle.class) ||
+      formal.recycle = (formal.isAnnotatedWith(Recycle.class) && formal.getAnnotation(Recycle.class).value()) ||
           (implicitRecycling && formal.isAtomicElementType() && !formal.hasName());
       if(formal.recycle) {
         this.recycle = true;
@@ -134,11 +135,21 @@ public class JvmMethod implements Comparable<JvmMethod> {
    * @return  true if this overload will handle the call itself, that is, it
    * has a signature of (EnvExp, LangExp)
    */
-  public boolean acceptsCall() {
-    return arguments.size() == 3 &&
+  public boolean isPassThrough() {
+    boolean implicit =
+           arguments.size() == 3 &&
            arguments.get(0).getClazz().equals(Context.class) &&
            arguments.get(1).getClazz().equals(Environment.class) &&
            arguments.get(2).getClazz().equals(FunctionCall.class);
+
+    boolean explicit = isAnnotatedWith(PassThrough.class);
+
+
+    if(implicit && !explicit) {
+      throw new GeneratorDefinitionException("Pass through method " + toString() +
+              " must use explicit @PassThrough annotation");
+    }
+    return explicit;
   }
 
   public boolean acceptsArgumentList() {

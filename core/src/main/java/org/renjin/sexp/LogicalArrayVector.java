@@ -194,15 +194,15 @@ public class LogicalArrayVector extends LogicalVector {
     @Override
     public LogicalVector build() {
       if(values.length == size) {
+        if(Vector.DEBUG_ALLOC && size > 5000) {
+          System.out.println("building LogicalVector = " + size);
+        }
         LogicalArrayVector vector = new LogicalArrayVector(buildAttributes());
         vector.values = values;
         // builder shouldn't touch the values after we hand over to vector
         this.values = null;
         return vector;
       } else {
-        if(Vector.DEBUG_ALLOC && size > 5000) {
-          System.out.println("building LogicalVector = " + size);
-        }
         return new LogicalArrayVector(values, size, buildAttributes());
       }
     }

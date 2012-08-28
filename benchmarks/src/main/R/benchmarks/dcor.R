@@ -2,15 +2,13 @@
 
 dcor <- function (x, y, index = 1)
 {
-	if (!(class(x) == "dist"))
-		x <- dist(x)
-	if (!(class(y) == "dist"))
-		y <- dist(y)
+  import(org.renjin.DistanceMatrix)
+
+  x <- DistanceMatrix$new(x)
+  y <- DistanceMatrix$new(y)
 
   cat("calculated distances...\n")
 
-	x <- as.matrix(x)
-	y <- as.matrix(y)
 	n <- nrow(x)
 	m <- nrow(y)
 	if (n != m)
@@ -40,6 +38,8 @@ dcor <- function (x, y, index = 1)
 	dVarX <- sqrt(mean(A * A))
 	dVarY <- sqrt(mean(B * B))
 	V <- sqrt(dVarX * dVarY)
+	print(V)
+	print(dCov)
 	if (V > 0)
 		dCor <- dCov/V
 	else dCor <- 0
@@ -48,8 +48,8 @@ dcor <- function (x, y, index = 1)
 
 dcor5k <- newBenchmark("distance correlation n = 5000",
  init = {
-	a <- rnorm(5000);
-	b <- rnorm(5000);
+	a <- rnorm(20000);
+	b <- rnorm(20000);
  },
  run = {
   dcor(a,b)

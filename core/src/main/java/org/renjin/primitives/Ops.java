@@ -37,6 +37,7 @@ public class Ops  {
 
   private Ops() {}
 
+  @Deferrable
   @Primitive("+")
   @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
@@ -50,7 +51,8 @@ public class Ops  {
   public static Complex plus(Complex x, Complex y) {
     return x.add(y);
   }
-  
+
+  @Deferrable
   @Primitive("+")
   @Recycle(false)
   @PreserveAttributes(PreserveAttributeStyle.ALL)
@@ -61,6 +63,7 @@ public class Ops  {
   @Primitive("-")
   @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Deferrable
   public static double minus(double x, double y) {
     return x - y;
   }
@@ -72,18 +75,21 @@ public class Ops  {
     return x.subtract(y);
   }
 
+  @Deferrable
   @Primitive("-")
   @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double minus(@Cast(CastStyle.EXPLICIT) double x) {
     return -x;
   }
-  
+
+  @Deferrable
   @Primitive("-")
   @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static int minus(@Cast(CastStyle.EXPLICIT) int x) {
     return -x;
   }
 
+  @Deferrable
   @Primitive("/")
   @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
@@ -99,6 +105,7 @@ public class Ops  {
   }
 
   
+  @Deferrable
   @Primitive("*")
   @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
@@ -113,7 +120,8 @@ public class Ops  {
     return x.multiply(y);
   }
 
-  
+
+  @Deferrable
   @Primitive("==")
   @Recycle
   public static boolean equalTo(double x, double y) {
@@ -126,84 +134,100 @@ public class Ops  {
     return x == y;
   }
 
+  @Deferrable
   @Primitive("==")
   public static boolean equalTo(String x, String y) {
     return x.equals(y);
   }
 
+  @Deferrable
   @Primitive("!=")
   public static boolean notEqualTo(double x, double y) {
     return x != y;
   }
 
+  @Deferrable
   @Primitive("!=")
   public static boolean notEqualTo(String x, String y) {
     return !x.equals(y);
   }
 
+  @Deferrable
   @Primitive("<")
   public static boolean lessThan(double x, double y) {
     return x < y;
   }
 
+  @Deferrable
   @Primitive("<")
   public static boolean lessThan(String x, String y) {
     return x.compareTo(y) < 0;
   }
 
+  @Deferrable
   @Primitive("<=")
   public static boolean lessThanOrEqualTo(double x, double y) {
     return x <= y;
   }
 
+  @Deferrable
   @Primitive("<=")
   public static boolean lessThanOrEqualTo(String x, String y) {
     return x.compareTo(y) <= 0;
   }
 
+  @Deferrable
   @Primitive(">")
   public static boolean greaterThan(double x, double y) {
     return x > y;
   }
 
+  @Deferrable
   @Primitive(">")
   public static boolean greaterThan(String x, String y) {
     return x.compareTo(y) > 0;
   }
 
+  @Deferrable
   @Primitive(">=")
   public static boolean greaterThanOrEqual(double x, double y) {
     return x >= y;
   }
 
+  @Deferrable
   @Primitive(">=")
   public static boolean greaterThanOrEqual(String x, String y) {
     return x.compareTo(y) >= 0;
   }
 
+  @Deferrable
   @Primitive("^")
   @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static double power(double x, double y) {
     return Math.pow(x, y);
   }
 
+  @Deferrable
   @Primitive("!")
   public static boolean not(boolean value) {
     return !value;
   }
 
+  @Deferrable
   @Primitive("%%")
   @Recycle
   public static double modulus(double x, double y) {
     return x % y;
   }
-  
+
+  @Deferrable
   @Primitive("%/%")
   @Recycle
   public static double integerDivision(double x, double y) {
     return Math.floor(x / y);
   }
-  
+
+  @Deferrable
   @Primitive("&")
   @AllowNA
   public static Logical and(double x, double y) {
@@ -216,6 +240,7 @@ public class Ops  {
     }
   }
 
+  @Deferrable
   @Primitive("|")
   @AllowNA
   public static Logical or(double x, double y) {
@@ -228,6 +253,4 @@ public class Ops  {
       return Logical.NA;
     }
   }
-  
-  
 }

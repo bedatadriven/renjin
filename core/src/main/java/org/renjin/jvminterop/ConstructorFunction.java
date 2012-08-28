@@ -1,22 +1,13 @@
 package org.renjin.jvminterop;
 
-import java.util.List;
-import java.util.Map;
-
-import org.renjin.eval.Context;
-import org.renjin.primitives.annotations.processor.ArgumentIterator;
-import org.renjin.sexp.AbstractSEXP;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SexpVisitor;
-import org.renjin.sexp.Symbol;
-
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.renjin.eval.Context;
+import org.renjin.primitives.annotations.processor.ArgumentIterator;
+import org.renjin.sexp.*;
+
+import java.util.List;
+import java.util.Map;
 
 public class ConstructorFunction extends AbstractSEXP implements Function {
 
@@ -57,13 +48,17 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
     }
   
     Object instance = binding.newInstance(context, constructorArgs);
-    Environment env = Environment.createChildEnvironment(Environment.EMPTY,
-        new ObjectFrame(instance));
-    
-    for(Map.Entry<Symbol, SEXP> property : propertyValues.entrySet()) {
-      env.setVariable(property.getKey(), property.getValue());
+    if(instance instanceof SEXP) {
+      return (SEXP) instance;
+    } else {
+      Environment env = Environment.createChildEnvironment(Environment.EMPTY,
+          new ObjectFrame(instance));
+
+      for(Map.Entry<Symbol, SEXP> property : propertyValues.entrySet()) {
+        env.setVariable(property.getKey(), property.getValue());
+      }
+
+      return env;
     }
-    
-    return env;
   }
 }

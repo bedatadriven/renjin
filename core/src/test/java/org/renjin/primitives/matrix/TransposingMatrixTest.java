@@ -10,14 +10,14 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
-public class TransposedMatrixTest {
+public class TransposingMatrixTest {
 
 @Test
   public void transposed() {
     DoubleVector x = new DoubleSequence(1,1,12);
     x = (DoubleVector)x.setAttribute(Symbols.DIM, new IntArrayVector(4,3));
 
-    DoubleVector y = new TransposedMatrix(x);
+    DoubleVector y = new TransposingMatrix(x);
     assertThat(y.getElementAsDouble(9), equalTo(4d));
     assertThat(y.getElementAsDouble(4), equalTo(6d));
   }

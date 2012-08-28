@@ -29,7 +29,6 @@ import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.*;
-import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.sexp.*;
 
 import java.lang.annotation.Annotation;
@@ -309,6 +308,10 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
   public boolean acceptsNA() {
     return method.isAnnotationPresent(AllowNA.class);
+  }
+
+  public boolean isDeferrable() {
+    return isAnnotatedWith(Deferrable.class) || method.getDeclaringClass().equals(Math.class);
   }
 
   public class Argument {

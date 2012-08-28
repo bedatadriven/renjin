@@ -180,11 +180,14 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     } else {
       StringBuilder sb = new StringBuilder();
       sb.append("c(");
-      for (int i = 0; i != length(); ++i) {
+      for (int i = 0; i != Math.min(5, length()); ++i) {
         if(i > 0) {
           sb.append(", ");
         }
         sb.append(toString(getElementAsRawLogical(i)));
+      }
+      if (length() > 5) {
+        sb.append(",... ").append(length()).append(" elements total");
       }
       sb.append(")");
       return sb.toString();

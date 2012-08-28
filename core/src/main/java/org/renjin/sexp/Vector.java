@@ -29,6 +29,10 @@ import org.apache.commons.math.complex.Complex;
  */
 public interface Vector extends SEXP {
 
+  /**
+   * Set to true at build time to get messages
+   * when Renjin allocates/copies new big vectors
+   */
   public static final boolean DEBUG_ALLOC = false;
 
   /**

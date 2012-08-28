@@ -47,18 +47,29 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
       arguments.add(argument);
     }
 
+    /**
+     * Tests the arguments given against those of each Java overload
+     */
     IfElseBuilder matchSequence = new IfElseBuilder(method.body());
     List<JvmMethod> overloads = Lists.newArrayList( primitive.overloadsWithPosArgCountOf(arity) );
+
+    /*
+     * Sort the overloads so that we test more narrow types first, e.g.,
+     * try "int" before falling back to "double".
+     */
     Collections.sort( overloads, new OverloadComparator());
     for(JvmMethod overload : overloads) {
+      /*
+       * If the types match, invoke the Java method
+       */
       invokeOverload(overload, matchSequence._if(argumentsMatch(overload)));
     }
+
+    /**
+     * No matching methods, throw an exception
+     */
     matchSequence._else()._throw(_new(codeModel.ref(EvalException.class))
             .arg(typeMismatchErrorMessage(arguments)));
-  }
-
-  private void sort(List<JvmMethod> overloads) {
-    Collections.sort(overloads, new OverloadComparator());
   }
 
   private JExpression typeMismatchErrorMessage(List<JVar> arguments) {
@@ -115,7 +126,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
   private void invokeOverload(JvmMethod overload, JBlock block) {
 
     if(overload.isRecycle()) {
-      new RecycleLoopBuilder(codeModel, block, overload, mapArguments(overload))
+      new RecycleLoopBuilder(codeModel, block, primitive, overload, mapArguments(overload))
             .build();
     } else {
       invokeSimpleMethod(overload, block);

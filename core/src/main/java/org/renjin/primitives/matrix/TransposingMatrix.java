@@ -1,9 +1,10 @@
 package org.renjin.primitives.matrix;
 
 
+import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
-public class TransposedMatrix extends DoubleVector {
+public class TransposingMatrix extends DoubleVector implements DeferredComputation {
 
   public static final int LENGTH_THRESHOLD = 1000;
 
@@ -12,7 +13,7 @@ public class TransposedMatrix extends DoubleVector {
   private int sourceRowCount;
   private int sourceColCount;
 
-  private TransposedMatrix(Vector source, AttributeMap attributes) {
+  private TransposingMatrix(Vector source, AttributeMap attributes) {
     super(attributes);
     this.source = source;
     this.sourceDim = ((IntVector)source.getAttribute(Symbols.DIM)).toIntArray();
@@ -20,7 +21,7 @@ public class TransposedMatrix extends DoubleVector {
     this.sourceColCount = sourceDim[1];
   }
 
-  public TransposedMatrix(Vector source) {
+  public TransposingMatrix(Vector source) {
     this(source, transformAttributes(source.getAttributes()));
   }
 
@@ -35,7 +36,7 @@ public class TransposedMatrix extends DoubleVector {
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new TransposedMatrix(source, attributes);
+    return new TransposingMatrix(source, attributes);
   }
 
   @Override
@@ -50,5 +51,15 @@ public class TransposedMatrix extends DoubleVector {
   @Override
   public int length() {
     return source.length();
+  }
+
+  @Override
+  public Vector[] getOperands() {
+    return new Vector[] { source, new IntArrayVector(sourceRowCount) };
+  }
+
+  @Override
+  public String getComputationName() {
+    return "t";
   }
 }

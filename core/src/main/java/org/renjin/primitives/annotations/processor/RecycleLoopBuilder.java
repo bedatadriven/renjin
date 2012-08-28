@@ -24,6 +24,7 @@ import static com.sun.codemodel.JExpr.lit;
 public class RecycleLoopBuilder {
 
 
+
   private class RecycledArgument {
     private JvmMethod.Argument formal;
     private ScalarType scalarType;
@@ -59,6 +60,7 @@ public class RecycleLoopBuilder {
   private JCodeModel codeModel;
   private JBlock parent;
 
+  private PrimitiveModel primitive;
   /**
    * The JVM method to invoke on the individual elements
    */
@@ -75,15 +77,15 @@ public class RecycleLoopBuilder {
 
   private JVar builder;
 
-  public RecycleLoopBuilder(JCodeModel codeModel, JBlock parent, JvmMethod overload,
+  public RecycleLoopBuilder(JCodeModel codeModel, JBlock parent, PrimitiveModel primitive, JvmMethod overload,
                             Map<JvmMethod.Argument, JExpression> argumentMap) {
 
     this.codeModel = codeModel;
     this.parent = parent;
+    this.primitive = primitive;
     this.overload = overload;
     this.vectorType = codeModel.ref(Vector.class);
     this.resultType = ScalarTypes.get(overload.getReturnType());
-
 
     for(JvmMethod.Argument argument : overload.getAllArguments()) {
       if(argument.isRecycle()) {
@@ -130,6 +132,28 @@ public class RecycleLoopBuilder {
       parent._if(arg.length.eq(lit(0)))._then()._return(emptyResult());
       parent._if(arg.length.gt(cycleCount))._then().assign(cycleCount, arg.length);
     }
+
+    if(overload.isDeferrable()) {
+      DeferredVectorBuilder deferred = new DeferredVectorBuilder(codeModel, primitive, overload);
+      deferred.buildClass();
+      deferred.maybeReturn(parent, cycleCount, deferredArgumentList());
+    }
+  }
+
+  private List<JExpression> deferredArgumentList() {
+
+    // make sure all args are recycled
+    for(JvmMethod.Argument arg : overload.getAllArguments()) {
+      if(!arg.isRecycle()) {
+        throw new UnsupportedOperationException("All arguments of a deferred vector must be @Recycle");
+      }
+    }
+
+    List<JExpression> list = Lists.newArrayList();
+    for(RecycledArgument arg : recycledArguments) {
+      list.add(arg.vector);
+    }
+    return list;
   }
 
   private JExpression nullInstance() {
@@ -207,9 +231,7 @@ public class RecycleLoopBuilder {
   //  result.set(i, org.renjin.primitives.Ops.plus(arg0_element, arg1_element));
 
     return builder.invoke("set").arg(cycleIndex).arg(computeCycleResult());
-
   }
-
 
   private JStatement assignNA() {
     return builder.invoke("setNA").arg(cycleIndex);
@@ -250,7 +272,6 @@ public class RecycleLoopBuilder {
               .arg(symbol("NAMES"));
     }
     throw new IllegalArgumentException("preserve attribute style: " + overload.getPreserveAttributesStyle());
-
   }
 
   private JExpression symbol(String name) {

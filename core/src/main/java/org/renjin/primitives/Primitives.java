@@ -238,8 +238,8 @@ public class Primitives {
     f("matrix", Matrices.class, 0, 11, -1);
     f("length", Types.class, 0, 1, 1);
     f("length<-", Types.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
-    f("row", Combine.class, 1, 11, 1);
-    f("col", Combine.class, 2, 11, 1);
+    f("row", Matrices.class, 1, 11, 1);
+    f("col", Matrices.class, 2, 11, 1);
     f("c", Combine.class,  0, 1, -1);
     f("unlist", Combine.class, 0, 11, 3);
     f("cbind", Combine.class, 1, 10, -1);

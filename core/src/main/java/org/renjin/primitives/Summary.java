@@ -22,10 +22,9 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.GroupGeneric;
-import org.renjin.primitives.annotations.NamedFlag;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.*;
+import org.renjin.primitives.summary.DeferredMean;
+import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 
@@ -328,14 +327,29 @@ public class Summary {
     return Logical.TRUE;
   }
   
-  
+
+  @Deferrable
   @Primitive
-  public static Vector mean(Vector x) {
-    double mean = 0.0;
-    for (int i=0;i<x.length();i++){
-      mean+=x.getElementAsSEXP(i).asReal();
+  public static DoubleVector mean(Vector x) {
+
+    if(x instanceof DeferredComputation) {
+      return new DeferredMean(x, AttributeMap.EMPTY);
     }
-    return(new DoubleArrayVector(new double[]{mean / x.length()}));
+
+    double mean = 0;
+    for (int i=0;i<x.length();i++){
+      mean+=x.getElementAsDouble(i);
+    }
+    return new DoubleArrayVector(mean / x.length());
+  }
+
+  public double[] compute(Vector[] x) {
+    double[] x_array = ((DoubleArrayVector)x[0]).toDoubleArrayUnsafe();
+    double sum = 0;
+    for(int i=0;i!=x_array.length;++i) {
+      sum += x_array[i];
+    }
+    return new double[] { sum / x_array.length };
   }
   
   @Primitive

@@ -6,6 +6,8 @@ import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
+/**
+ */
 public class DoubleSequence extends DoubleVector {
 
   private double from;
@@ -34,7 +36,6 @@ public class DoubleSequence extends DoubleVector {
   public int length() {
     return length;
   }
-
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {

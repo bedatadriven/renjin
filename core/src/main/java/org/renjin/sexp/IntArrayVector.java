@@ -34,6 +34,10 @@ public class IntArrayVector extends IntVector {
   public IntArrayVector(int[] values, int length, AttributeMap attributes) {
     super(attributes);
     this.values = Arrays.copyOf(values, length);
+
+    if(Vector.DEBUG_ALLOC && length > 5000) {
+      System.out.println("IntArrayVector alloc = " + length);
+    }
   }
 
   public IntArrayVector(int[] values, AttributeMap attributes) {

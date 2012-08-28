@@ -30,8 +30,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.NamedFlag;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.matrix.IntMatrixBuilder;
 import org.renjin.sexp.*;
 
 import java.util.List;
@@ -633,38 +631,5 @@ public class Combine {
     }
   }
 
-
-  @Primitive
-  public static IntVector row(IntVector dims){
-    if(dims.length()!=2){
-      throw new EvalException("a matrix-like object is required as argument to 'row/col'");
-    }
-    int n = dims.getElementAsInt(0);
-    int m = dims.getElementAsInt(1);
-    IntMatrixBuilder data = new IntMatrixBuilder(n, m);
-    for (int i=0;i<n;i++){
-      for (int j=0;j<m;j++){
-        data.set(i, j, i+1);
-      }
-    }
-    return data.build();
-  }
-  
-
-  @Primitive
-  public static IntVector col(IntVector dims) {
-    if(dims.length()!=2){
-      throw new EvalException("a matrix-like object is required as argument to 'row/col'");
-    }
-    int n = dims.getElementAsInt(0);
-    int m = dims.getElementAsInt(1);
-    IntMatrixBuilder data = new IntMatrixBuilder(n, m);
-    for (int i=0;i<n;i++){
-      for (int j=0;j<m;j++){
-        data.set(i,j,(j+1));
-      }
-    }
-    return data.build();
-  }
 
 }

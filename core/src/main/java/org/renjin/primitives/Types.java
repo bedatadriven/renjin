@@ -585,7 +585,7 @@ public class Types {
   public static SEXP asVector(Vector x, String mode) {
 
     if(mode.equals("any")) {
-      return x.setAttributes(x.getAttributes().copyOnlyNames());
+      return x.setAttributes(x.getAttributes().copyNames());
     }
 
     Vector.Builder result;

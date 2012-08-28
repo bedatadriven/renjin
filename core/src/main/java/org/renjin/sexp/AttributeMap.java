@@ -11,10 +11,15 @@ import java.util.Map;
 
 /**
  *
- * Stores the attributes of SEXP.
+ * Immutable map of a SEXP's attributes.
  *
+ * <p>In R, any value can be associated with zero or more arbitrary
+ * key/value pairs called attributes.</p>
+ *
+ * <p>There are many "special" attributes however, that
+ * determine how the value is interpreted. The
  * The most commonly accessed attributes
- * are stored as direct pointers, others in an
+ * are stored in this structure as direct pointers, others in an
  * IdentityHashMap.
  */
 public class AttributeMap {
@@ -29,10 +34,20 @@ public class AttributeMap {
   private AttributeMap() {
   }
 
+  /**
+   *
+   * @return the <em>dim</em> attribute, or {@code Null.INSTANCE} if no
+   * <em>dim</em> attribute is present.
+   */
   public Vector getDim() {
     return dim == null ? Null.INSTANCE : dim;
   }
 
+  /**
+   *
+   * @return a list of the names of the attributes
+   * present in the map.
+   */
   public Iterable<Symbol> names() {
     List<Symbol> list = Lists.newArrayList();
     if(classes != null) {
@@ -124,6 +139,10 @@ public class AttributeMap {
     return names;
   }
 
+  /**
+   *
+   * @return {@code true} if this map contains a <em>class</em> attribute.
+   */
   public boolean hasClass() {
     return classes != null;
   }
@@ -136,7 +155,11 @@ public class AttributeMap {
     return names == null ? Null.INSTANCE : names;
   }
 
-  public AttributeMap copyOnlyNames() {
+  /**
+   * @return  a copy of this {@code AttributeMap} containing
+   * this {@code AttributeMap}'s {@code names} attribute.
+   */
+  public AttributeMap copyNames() {
     if(names == null ) {
       return AttributeMap.EMPTY;
     } else {
@@ -145,6 +168,94 @@ public class AttributeMap {
       return attributes;
     }
   }
+
+  /**
+   *
+   * @return a new {@code AttributeMap}, containing only the
+   * this {@code AttributeMap}'s {@code dim}, {@code names}, and {@code dimnames} attributes.
+   */
+  public AttributeMap copyStructural() {
+    if(classes == null && map == null) {
+      return this;
+    } else if(dim != null || names != null || (map != null && map.containsKey(Symbols.DIMNAMES))) {
+      AttributeMap copy = new AttributeMap();
+      copy.dim = this.dim;
+      copy.names = this.names;
+      if(this.map != null) {
+        SEXP dimnames = map.get(Symbols.DIMNAMES);
+        if(dimnames != null) {
+          copy.map = Maps.newIdentityHashMap();
+          copy.map.put(Symbols.DIMNAMES, dimnames);
+        }
+      }
+      return copy;
+    } else {
+      return AttributeMap.EMPTY;
+    }
+  }
+
+  /**
+   *
+   * @return a new {@code AttributeMap} containing the {@code dim}, {@code names}, and {@code dimnames}
+   * attributes from <em>a</em> and <em>b</em>. If an attribute is defined in both, the value in <em>a</em>
+   * takes precedence.
+   */
+  public static AttributeMap combineStructural(AttributeMap a, AttributeMap b) {
+    Builder builder = new Builder();
+    builder.addIfNotNull(b, Symbols.DIM);
+    builder.addIfNotNull(b, Symbols.NAME);
+    builder.addIfNotNull(b, Symbols.DIMNAMES);
+    builder.addIfNotNull(a, Symbols.DIM);
+    builder.addIfNotNull(a, Symbols.NAME);
+    builder.addIfNotNull(a, Symbols.DIMNAMES);
+    return builder.build();
+  }
+
+  /**
+   * Combines the attributes from vectors <em>x</em> and <em>y</em> according
+   * to the R language rules:
+   * <ul>
+   *   <li>If <em>x</em> is longer, only <em>x</em>'s attributes are copied</li>
+   *   <li>If <em>y</em> is longer, only <em>y</em>'s attributes are copied</li>
+   *   <li>If <em>x</em> and <em>y</em> are the same length, attributes from both <em>x</em>
+   *   and <em>y</em> are copied, with those of <em>x</em> taking precedence.</li>
+   * </ul>
+   *
+   */
+  public static AttributeMap combineAttributes(Vector x, Vector y) {
+    if(x.length() > y.length()) {
+      return x.getAttributes();
+    } else if(y.length() > x.length()) {
+      return y.getAttributes();
+    } else {
+      Builder builder = new Builder(y.getAttributes());
+      builder.addAllFrom(x.getAttributes());
+      return builder.build();
+    }
+  }
+
+  /**
+   * Combines the <em>dim</em>, <em>names</em>, and <em>dimnames</em> attributes from
+   * vectors <em>x</em> and <em>y</em> according
+   * to the R language rules:
+   * <ul>
+   *   <li>If <em>x</em> is longer, only <em>x</em>'s attributes are copied</li>
+   *   <li>If <em>y</em> is longer, only <em>y</em>'s attributes are copied</li>
+   *   <li>If <em>x</em> and <em>y</em> are the same length, attributes from both <em>x</em>
+   *   and <em>y</em> are copied, with those of <em>x</em> taking precedence.</li>
+   * </ul>
+   *
+   */
+  public static AttributeMap combineStructuralAttributes(Vector x, Vector y) {
+    if(x.length() > y.length()) {
+      return x.getAttributes().copyStructural();
+    } else if(y.length() > x.length()) {
+      return y.getAttributes().copyStructural();
+    } else {
+      return combineStructural(x.getAttributes(), y.getAttributes());
+    }
+  }
+
 
   public static class Builder {
     private StringVector classes = null;
@@ -165,6 +276,7 @@ public class AttributeMap {
       if(attributes.map != null) {
         this.map = new IdentityHashMap<Symbol, SEXP>(attributes.map);
       }
+      updateEmptyFlag();
     }
 
     public Builder set(String name, SEXP value) {
@@ -202,8 +314,13 @@ public class AttributeMap {
       } else if(map != null) {
         map.remove(name);
       }
-      this.empty = (classes == null && dim == null && names == null && (map == null || map.isEmpty()));
+      updateEmptyFlag();
       return this;
+    }
+
+    private void updateEmptyFlag() {
+      this.empty = (classes == null && dim == null && names == null &&
+              (map == null || map.isEmpty()));
     }
 
     public Builder removeDim() {

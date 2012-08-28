@@ -4,16 +4,17 @@ package org.renjin.primitives.sequence;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector;
 
 public class RepDoubleVector extends DoubleVector {
 
   public static final int LENGTH_THRESHOLD = 100;
 
-  private final DoubleVector source;
+  private final Vector source;
   private int length;
   private int each;
 
-  private RepDoubleVector(DoubleVector source, int length, int each, AttributeMap attributes) {
+  public RepDoubleVector(Vector source, int length, int each, AttributeMap attributes) {
     super(attributes);
     this.source = source;
     this.length = length;

@@ -6,8 +6,8 @@ import org.renjin.primitives.Indexes;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConstantDoubleVector;
-import org.renjin.primitives.vector.CyclingDoubleVector;
 import org.renjin.sexp.*;
 
 
@@ -45,7 +45,7 @@ public class Matrices {
           ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
           builder.setAttribute(Symbols.DIMNAMES, newDimNames);
         }
-        builder.setDim(nrows, ncols);
+        builder.setDim(ncols, nrows);
         return builder.build();
 
       } else {
@@ -298,7 +298,7 @@ public class Matrices {
         if(data.length() == 1) {
           return new ConstantDoubleVector(data.getElementAsDouble(0), resultLength, AttributeMap.dim(nrow, ncol));
         } else {
-          return new CyclingDoubleVector(data, resultLength, AttributeMap.dim(nrow, ncol));
+          return new RepDoubleVector(data, resultLength, 1, AttributeMap.dim(nrow, ncol));
         }
       }
     }

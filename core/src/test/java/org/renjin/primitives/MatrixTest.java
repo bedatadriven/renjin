@@ -1,10 +1,5 @@
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-
 import org.apache.commons.math.linear.RealMatrix;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +7,11 @@ import org.renjin.EvalTestCase;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Vector;
 import org.renjin.util.CommonsMath;
+
+import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class MatrixTest extends EvalTestCase {
@@ -199,6 +199,17 @@ public class MatrixTest extends EvalTestCase {
   @Test
   public void transpose() throws IOException {
     assertThat(eval("t(c(1,2,3,4))"), equalTo(c(1,2,3,4)));
+
+    eval("m <- 1:12");
+    eval("dim(m) <- c(3,4)");
+    eval("mt <- t(m) ");
+    assertThat(eval("dim(mt)"), equalTo(c_i(4,3)));
+
+    // try with big matrix
+    eval("m <- 1:(3000*5000)");
+    eval("dim(m) <- c(3000,5000)");
+    eval("mt <- t(m) ");
+    assertThat(eval("dim(mt)"), equalTo(c_i(5000,3000)));
   }
 
   @Test

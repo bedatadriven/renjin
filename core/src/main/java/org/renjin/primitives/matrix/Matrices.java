@@ -7,7 +7,9 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.primitives.vector.ComputingIntVector;
 import org.renjin.primitives.vector.ConstantDoubleVector;
+import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 
@@ -17,12 +19,12 @@ import org.renjin.sexp.*;
 public class Matrices {
 
   private Matrices() {}
-  
+
   @Primitive("t.default")
   public static Vector transpose(Vector x) {
-    if(x.length() > TransposedMatrix.LENGTH_THRESHOLD) {
+    if(x.length() > TransposingMatrix.LENGTH_THRESHOLD) {
       // Just wrap the matrix
-      return new TransposedMatrix(x);
+      return new TransposingMatrix(x);
 
     } else {
       // Actually allocate the memory and perform transposition
@@ -37,7 +39,7 @@ public class Matrices {
         for (int i = 0; i < nrows; i++) {
           for (int j = 0; j < ncols; j++) {
             builder.setFrom(Indexes.matrixIndexToVectorIndex(j, i, ncols, nrows), x,
-                            Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
+                    Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
           }
         }
         if (!(x.getAttribute(Symbols.DIMNAMES) instanceof org.renjin.sexp.Null)) {
@@ -57,22 +59,22 @@ public class Matrices {
   @Primitive("%*%")
   public static SEXP matrixproduct(AtomicVector x, AtomicVector y) {
     return new MatrixProduct(MatrixProduct.PROD, x, y)
-      .matprod();
+            .matprod();
   }
-  
+
   @Primitive("crossprod")
   public static SEXP crossprod(AtomicVector x, AtomicVector y) {
     return new MatrixProduct(MatrixProduct.CROSSPROD, x, y)
-      .crossprod();
+            .crossprod();
   }
-  
+
   @Primitive("tcrossprod")
   public static SEXP tcrossprod(AtomicVector x, AtomicVector y) {
     return new MatrixProduct(MatrixProduct.TCROSSPROD, x, y)
-      .tcrossprod();
+            .tcrossprod();
   }
-  
-  
+
+
   @Primitive
   public static DoubleVector rowSums(AtomicVector x, int numRows, int rowLength, boolean naRm) {
     double sums[] = new double[numRows];
@@ -87,12 +89,19 @@ public class Matrices {
         }
       }
     }
-    
+
     return DoubleArrayVector.unsafe(sums);
   }
-  
+
   @Primitive
-  public static DoubleVector rowMeans(AtomicVector x, int numRows, int rowLength, boolean naRm) {
+  public static DoubleVector rowMeans(AtomicVector x,
+                                      int numRows,
+                                      int rowLength,
+                                      boolean naRm) {
+    if(!naRm && x instanceof DeferredComputation) {
+      return new DeferredRowMeans(x, numRows, AttributeMap.EMPTY);
+    }
+
     double sums[] = new double[numRows];
     int counts[] = new int[numRows];
     int sourceIndex = 0;
@@ -116,7 +125,7 @@ public class Matrices {
 
   @Primitive
   public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
-    
+
     double sums[] = new double[numColumns];
     for(int column=0;column < numColumns; column++) {
       int sourceIndex = columnLength*column;
@@ -135,10 +144,10 @@ public class Matrices {
       }
       sums[column] = sum;
     }
-    
+
     return new DoubleArrayVector(sums);
   }
-  
+
   public static DoubleVector colMeans(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
     DoubleVector sums = colSums(x, columnLength, numColumns, naRm);
     DoubleArrayVector.Builder dvb = new DoubleArrayVector.Builder();
@@ -174,13 +183,13 @@ public class Matrices {
       return source;
 
     } else if(source instanceof DoubleVector && isMatrixTransposition(permutation) &&
-            source.length() > TransposedMatrix.LENGTH_THRESHOLD) {
+            source.length() > TransposingMatrix.LENGTH_THRESHOLD) {
 
       /*
-       * This is equivalent to a transposition, just return a
-       * wrapper
+       * This is equivalent to a transposition, use
+       * the faster transpose method
        */
-      return new TransposedMatrix(source);
+      return transpose(source);
 
     } else {
       /*
@@ -330,5 +339,40 @@ public class Matrices {
     }
     result.setDim(nrow, ncol);
     return result.build();
+  }
+
+  @Primitive
+  public static IntVector row(IntVector dims){
+    if(dims.length()!=2){
+      throw new EvalException("a matrix-like object is required as argument to 'row/col'");
+    }
+    final int rows = dims.getElementAsInt(0);
+    final int cols = dims.getElementAsInt(1);
+
+    ComputingIntVector.Functor fn = new ComputingIntVector.Functor() {
+      @Override
+      public int apply(int index) {
+        return (index % rows) + 1;
+      }
+    };
+
+    return new ComputingIntVector(fn, rows * cols, AttributeMap.dim(rows, cols));
+  }
+
+  @Primitive
+  public static IntVector col(IntVector dims) {
+    if(dims.length()!=2){
+      throw new EvalException("a matrix-like object is required as argument to 'row/col'");
+    }
+    final int rows = dims.getElementAsInt(0);
+    final int cols = dims.getElementAsInt(1);
+
+    ComputingIntVector.Functor fn = new ComputingIntVector.Functor() {
+      @Override
+      public int apply(int index) {
+        return (index / rows) + 1;
+      }
+    };
+    return new ComputingIntVector(fn, rows * cols, AttributeMap.dim(rows, cols));
   }
 }

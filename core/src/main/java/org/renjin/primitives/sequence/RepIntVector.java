@@ -1,10 +1,11 @@
 package org.renjin.primitives.sequence;
 
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector;
 
-import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.*;
-
-public class RepDoubleVector extends DoubleVector implements DeferredComputation {
+public class RepIntVector extends IntVector {
 
   public static final int LENGTH_THRESHOLD = 100;
 
@@ -12,7 +13,7 @@ public class RepDoubleVector extends DoubleVector implements DeferredComputation
   private int length;
   private int each;
 
-  public RepDoubleVector(Vector source, int length, int each, AttributeMap attributes) {
+  public RepIntVector(Vector source, int length, int each, AttributeMap attributes) {
     super(attributes);
     this.source = source;
     this.length = length;
@@ -22,7 +23,7 @@ public class RepDoubleVector extends DoubleVector implements DeferredComputation
     }
   }
 
-  public RepDoubleVector(Vector source, int length, int each) {
+  public RepIntVector(Vector source, int length, int each) {
     this(source, length, each, transformAttributes(source, length, each));
   }
 
@@ -43,22 +44,12 @@ public class RepDoubleVector extends DoubleVector implements DeferredComputation
   }
 
   @Override
-  public double getElementAsDouble(int index) {
-    return source.getElementAsDouble((index / each) % source.length());
+  public int getElementAsInt(int index) {
+    return source.getElementAsInt((index / each) % source.length());
   }
 
   @Override
   public int length() {
     return length;
-  }
-
-  @Override
-  public Vector[] getOperands() {
-    return new Vector[] { source, new IntArrayVector(length/each/source.length()), new IntArrayVector(each) };
-  }
-
-  @Override
-  public String getComputationName() {
-    return "rep";
   }
 }

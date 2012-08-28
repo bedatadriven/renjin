@@ -34,6 +34,7 @@ import org.renjin.primitives.annotations.processor.WrapperRuntime;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.primitives.sequence.RepIntVector;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
@@ -212,7 +213,13 @@ public class Sequences {
        times.length() == 1 &&
        x.length() > RepDoubleVector.LENGTH_THRESHOLD) {
 
-      return new RepDoubleVector((DoubleVector) x, resultLength, each);
+      return new RepDoubleVector(x, resultLength, each);
+
+    } else if(x instanceof IntVector &&
+       times.length() == 1 &&
+       x.length() > RepIntVector.LENGTH_THRESHOLD) {
+
+      return new RepIntVector(x, resultLength, each);
     }
 
     /**

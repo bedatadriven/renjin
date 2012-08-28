@@ -20,15 +20,16 @@
  */
 package org.renjin.primitives;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-
 import org.apache.commons.math.special.Beta;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
+import org.renjin.primitives.annotations.Deferrable;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 
 /**
@@ -39,11 +40,13 @@ public class MathExt {
   private MathExt() {
   }
 
+  @Deferrable
   @Recycle
   public static double gamma(double x) {
     return Math.exp(Gamma.logGamma(x));
   }
 
+  @Deferrable
   @Recycle
   public static double log(double x, double base) {
 
@@ -52,62 +55,74 @@ public class MathExt {
     return MathUtils.log(base, x);
   }
 
+  @Deferrable
   @Recycle
   public static double log(double d) {
     return Math.log(d);
   }
 
+  @Deferrable
   @Recycle
   public static double log2(double d) {
     return MathUtils.log(2, d);
   }
 
+  @Deferrable
   @Recycle
   public static double abs(double x) {
     return Math.abs(x);
   }
 
+  @Deferrable
   @Primitive
   public static double asinh(double val) {
     return (Math.log(val + Math.sqrt(val * val + 1)));
   }
 
+  @Deferrable
   @Primitive
   public static double acosh(double val) {
     return (Math.log(val + Math.sqrt(val + 1) * Math.sqrt(val - 1)));
   }
 
+  @Deferrable
   @Primitive
   public static double atanh(double val) {
     return (0.5 * Math.log((1 + val) / (1 - val)));
   }
 
+  @Deferrable
   @Primitive
   public static double atan2(double y, double x) {
     return (Math.atan2(y, x));
   }
 
+  @Deferrable
   @Primitive
   public static double signif(@Recycle double x, @Recycle int digits) {
     return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
 
+  @Deferrable
   @Primitive
   public static double expm1(@Recycle double x) {
     return (Math.exp(x) - 1);
   }
 
+  @Deferrable
   @Primitive
   public static double log1p(@Recycle double x) {
     return Math.log1p(x);
   }
 
   @Primitive
+  @Deferrable
   public static double beta(@Recycle double a, @Recycle double b) {
     return (Math.exp(Beta.logBeta(a, b)));
   }
 
   @Primitive
+  @Deferrable
   public static double lbeta(@Recycle double a, @Recycle double b) {
     return (Beta.logBeta(a, b));
   }
@@ -140,6 +155,7 @@ public class MathExt {
   // our wrapper generator gets confused by the two double & float overloads
   // of Math.round
   @Primitive
+  @Deferrable
   public static double round(@Recycle double x) {
     return Math.round(x);
   }
@@ -150,10 +166,8 @@ public class MathExt {
    * @return
    */
   @Primitive("trunc")
+  @Deferrable
   public static double truncate(double x){
     return Math.floor(x);
   }
-  
-  
-  
 }

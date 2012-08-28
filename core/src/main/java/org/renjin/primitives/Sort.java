@@ -67,7 +67,7 @@ public class Sort {
       reverse(sorted);
     }
 
-    return new DoubleArrayVector(sorted, x.getAttributes());
+    return (Vector) DoubleArrayVector.unsafe(sorted).setAttributes(x.getAttributes());
   }
   
   private static void reverse(double[] b) {

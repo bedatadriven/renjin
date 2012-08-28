@@ -24,6 +24,7 @@ package org.renjin.sexp;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Warning;
+import org.renjin.primitives.vector.DeferredComputation;
 
 
 public abstract class SpecialFunction extends PrimitiveFunction {
@@ -58,6 +59,10 @@ public abstract class SpecialFunction extends PrimitiveFunction {
     }
     if (s.length() > 1) {
       Warning.invokeWarning(context, call, "the condition has length > 1 and only the first element will be used");
+    }
+
+    if(s instanceof DeferredComputation) {
+
     }
 
     Logical logical = s.asLogical();

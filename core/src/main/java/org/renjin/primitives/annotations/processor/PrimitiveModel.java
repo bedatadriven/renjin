@@ -26,12 +26,11 @@ public class PrimitiveModel {
 
   public String argumentErrorMessage() {
     StringBuilder message = new StringBuilder();
-    message.append("\"Invalid argument. Expected:");
+    message.append("Invalid argument: %s. Expected:");
     for(JvmMethod method : overloads) {
-      message.append("\\n\\t");
+      message.append("\n\t");
       method.appendFriendlySignatureTo(entry.name, message);
     }
-    message.append("\"");
     return message.toString();
   }
 

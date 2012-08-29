@@ -161,8 +161,7 @@ public class Files {
    *
    */
   @Primitive
-  @Recycle
-  public static String normalizePath(@Current Context context, String path, @Recycle(false) String winSlash, @Recycle(false) SEXP mustWork) {
+  public static String normalizePath(@Current Context context, @Recycle String path, String winSlash, SEXP mustWork) {
     try {
       return context.resolveFile(path).getName().getURI();
     } catch(FileSystemException e) {

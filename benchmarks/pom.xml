@@ -25,7 +25,7 @@
     <artifactId>parent</artifactId>
     <groupId>org.renjin</groupId>
     <version>0.6.8-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath> 
+    <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -39,5 +39,37 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-  
+
+  <profiles>
+    <profile>
+      <id>benchmark</id>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2</version>
+            <executions>
+
+              <!-- Generate wrapper for the primitives in the base package -->
+              <execution>
+                <id>benchmarks</id>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <phase>validate</phase>
+                <configuration>
+                  <mainClass>org.renjin.benchmarks.Benchmarks</mainClass>
+                  <arguments>
+                    <argument>distance</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

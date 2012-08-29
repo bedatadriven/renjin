@@ -80,18 +80,6 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
 
   }
 
-  protected JExpression contextualExpression(JvmMethod.Argument formal) {
-    if(formal.getClazz().equals(Context.class)) {
-      return context;
-    } else if(formal.getClazz().equals(Environment.class)) {
-      return environment;
-    } else if(formal.getClazz().equals(Context.Globals.class)) {
-      return context.invoke("getGlobals");
-    } else {
-      throw new RuntimeException("Invalid contextual argument type: " + formal.getClazz());
-    }
-  }
-
   /**
    * Extracts the next argument at {@code positionalIndex} into a SEXP expression
    */
@@ -104,11 +92,13 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
   }
 
   public void catchArgumentExceptions(ExceptionWrapper mainTryBlock) {
-    mainTryBlock._catch((JClass) codeModel._ref(ArgumentException.class))
-            .body().
+    JCatchBlock catchBlock = mainTryBlock._catch((JClass) codeModel._ref(ArgumentException.class));
+    JVar e = catchBlock.param("e");
+    catchBlock.body().
             _throw(_new(codeModel._ref(EvalException.class))
                     .arg(context)
-                    .arg(lit(primitive.argumentErrorMessage())));
+                    .arg(lit(primitive.argumentErrorMessage()))
+                    .arg(e.invoke("getMessage")));
   }
 
   private GenericDispatchStrategy genericDispatchStrategy(PrimitiveModel primitive) {

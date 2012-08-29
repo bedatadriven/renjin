@@ -45,7 +45,7 @@ public class ArgumentIterator {
       
     } else {
       // we've run out of arguments!
-      throw new ArgumentException();
+      throw new ArgumentException("too few arguments");
     }
   
     SEXP value = node.getValue();
@@ -78,7 +78,7 @@ public class ArgumentIterator {
       
     } else {
       // we've run out of arguments!
-      throw new ArgumentException();
+      throw new ArgumentException("too few arguments");
     }
 
     this.currentName = node.getName();
@@ -97,7 +97,7 @@ public class ArgumentIterator {
       
     } else {
       // we've run out of arguments!
-      throw new ArgumentException();
+      throw new ArgumentException("too few arguments");
     }
   
     SEXP arg = node.getValue();

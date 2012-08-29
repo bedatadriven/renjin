@@ -67,7 +67,7 @@ public class MeanJitterTest {
 
     DoubleArrayVector vector = new DoubleArrayVector(new double[] { 1,2,3,4,5,6,7,8,9,10,11,12 } ,
             AttributeMap.dim(4,3));
-    TransposingMatrix t = new TransposingMatrix(vector);
+    TransposingMatrix t = new TransposingMatrix(vector, AttributeMap.dim(3,4));
     DeferredMean mean = new DeferredMean(t, AttributeMap.EMPTY);
     DeferredGraph graph = new DeferredGraph(mean);
 

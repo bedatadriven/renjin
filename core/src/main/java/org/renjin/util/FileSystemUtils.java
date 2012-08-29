@@ -66,17 +66,21 @@ public class FileSystemUtils {
   public static String localRHomeFromSEXPClassURL(String url) {
     String homeUrl = url.substring(0, url.length() - "/org/renjin/sexp/SEXP.class".length());
     
-    if(!homeUrl.endsWith(".jar!") || !homeUrl.startsWith("jar:file:")) {
-      throw new IllegalStateException("Expected to find SEXP.class within a JAR in an installed location, you probably" +
-      		" want to be using homeDirectoryInCoreJar() instead. ");
+    if(homeUrl.endsWith(".jar!") && homeUrl.startsWith("jar:file:")) {
+
+      int depDir = homeUrl.lastIndexOf('/');
+      int homeDir = homeUrl.lastIndexOf('/', depDir-1);
+      if(depDir == -1 || homeDir == -1) {
+        throw new IllegalStateException("Can't figure out the R_HOME from the jar location '" + homeUrl + "'");
+      }
+      return homeUrl.substring("jar:".length(), homeDir);
+    } else {
+
+      return url.substring(0, url.length() - "/sexp/SEXP.class".length());
+
+//      // file:/home/alex/dev/renjin/core/target/classes/org/renjin/sexp/SEXP.class
+//      throw new UnsupportedOperationException();
     }
-    int depDir = homeUrl.lastIndexOf('/');
-    int homeDir = homeUrl.lastIndexOf('/', depDir-1);
-    if(depDir == -1 || homeDir == -1) {
-      throw new IllegalStateException("Can't figure out the R_HOME from the jar location '" + homeUrl + "'");
-    }
-    return homeUrl.substring("jar:".length(), homeDir);
- 
   }
 
   /**

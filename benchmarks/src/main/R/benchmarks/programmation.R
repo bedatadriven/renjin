@@ -14,8 +14,8 @@ fib <- newBenchmark("3,500,000 Fibonacci numbers calculation (vector calc)",
 hilbert <- newBenchmark("Creation of a 3000x3000 Hilbert matrix (matrix calc)", {
 	a <- 3000
 	b <- rep(1:a, a)
-  	dim(b) <- c(a, a);
-    b <- 1 / (t(b) + 0:(a-1))
+  dim(b) <- c(a, a);
+  b <- 1 / (t(b) + 0:(a-1))
 })	
 
 ## I haven't included this yet because Renjin's handling vector/matrix updating 

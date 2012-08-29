@@ -29,37 +29,24 @@ public class WrapperRuntime {
     if(exp instanceof DoubleVector || exp instanceof IntVector || exp instanceof LogicalVector) {
       return ((Vector)exp).getElementAsInt(0);
     }
-    throw new ArgumentException();
+    throw new ArgumentException("expected int");
   }
-  
+
   /**
-   * 
+   *
    * @param args
-   * @return the next argument in the argument pair list.
-   * @throws ArgumentException if there is no next argument
-   */
-  public static PairList.Node nextArgument(PairList args) {
-    if(args == Null.INSTANCE) {
-      throw new ArgumentException();
-    }
-    return ((PairList.Node)args).getNextNode();
-  }
-  
-  /**
-   * 
-   * @param args
-   * @return the value of the argument 
+   * @return the value of the argument
    * @throws ArgumentException if there is no current argument
    */
   public static SEXP argumentValue(PairList args) {
     if(!(args instanceof PairList.Node)) {
-      throw new ArgumentException();
+      throw new ArgumentException("too few arguments");
     }
     return ((PairList.Node)args).getValue();
   }
 
   private Integer convertToInteger(SEXP exp) {
-    
+
     if(exp == Null.INSTANCE) {
       return null;
     }
@@ -70,7 +57,7 @@ public class WrapperRuntime {
       return vector.getElementAsInt(0);
     }
   }
-  
+
   public static Vector invokeAsCharacter(Context context, Environment rho,
       SEXP provided) {
     if(provided == Null.INSTANCE) {
@@ -95,7 +82,7 @@ public class WrapperRuntime {
     try {
       return (Vector)exp;
     } catch(ClassCastException e) {
-      throw new ArgumentException();
+      throw new ArgumentException("expected vector");
     }
   }
   
@@ -111,10 +98,10 @@ public class WrapperRuntime {
   
   private static Vector checkedSubClassAndAssertScalar(SEXP exp) {
     if(exp.length() != 1) {
-      throw new ArgumentException();
+      throw new ArgumentException("expected vector of length 1");
     }
     if(!(exp instanceof Vector)) {
-      throw new ArgumentException();
+      throw new ArgumentException("expected vector of length 1");
     }
     return (Vector)exp;
   }
@@ -124,7 +111,7 @@ public class WrapperRuntime {
       ExternalExp<T> external = (ExternalExp<T>)exp;
       return (T)external.getValue();
     } catch(ClassCastException e) {
-      throw new ArgumentException();
+      throw new ArgumentException("expected external object");
     }
   }
   

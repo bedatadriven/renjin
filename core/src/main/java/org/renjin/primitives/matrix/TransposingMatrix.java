@@ -13,25 +13,12 @@ public class TransposingMatrix extends DoubleVector implements DeferredComputati
   private int sourceRowCount;
   private int sourceColCount;
 
-  private TransposingMatrix(Vector source, AttributeMap attributes) {
+  public TransposingMatrix(Vector source, AttributeMap attributes) {
     super(attributes);
     this.source = source;
     this.sourceDim = ((IntVector)source.getAttribute(Symbols.DIM)).toIntArray();
     this.sourceRowCount = sourceDim[0];
     this.sourceColCount = sourceDim[1];
-  }
-
-  public TransposingMatrix(Vector source) {
-    this(source, transformAttributes(source.getAttributes()));
-  }
-
-  private static AttributeMap transformAttributes(AttributeMap attributes) {
-    int[] dim = attributes.getDimArray();
-    assert dim.length == 2;
-
-    IntVector transposedDim = new IntArrayVector(dim[1], dim[0]);
-
-    return attributes.copy().setDim(transposedDim).build();
   }
 
   @Override

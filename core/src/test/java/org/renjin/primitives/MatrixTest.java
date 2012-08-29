@@ -244,6 +244,11 @@ public class MatrixTest extends EvalTestCase {
     eval("dim(m) <- c(3000,5000)");
     eval("mt <- t(m) ");
     assertThat(eval("dim(mt)"), equalTo(c_i(5000,3000)));
+
+    // try with a big vector
+    eval("m <- 1:1e6");
+    eval("mt <- t(m)");
+    assertThat(eval("dim(mt)"), equalTo(c_i(1, 1000000)));
   }
 
   @Test

@@ -22,20 +22,23 @@ public class Matrices {
 
   @Primitive("t.default")
   public static Vector transpose(Vector x) {
-    if(x.length() > TransposingMatrix.LENGTH_THRESHOLD) {
-      // Just wrap the matrix
-      return new TransposingMatrix(x);
+    // Actually allocate the memory and perform transposition
+    Vector dimensions = x.getAttributes().getDim();
+    if(dimensions.length() == 0) {
+      return (Vector)x.setAttributes(AttributeMap.dim(1, x.length()));
 
-    } else {
-      // Actually allocate the memory and perform transposition
-      Vector dimensions = x.getAttributes().getDim();
-      if(dimensions.length() == 0) {
-        return (Vector)x.setAttribute(Symbols.DIM, new IntArrayVector(1, x.length()));
+    } else if(dimensions.length() == 2) {
+      int nrows = dimensions.getElementAsInt(0);
+      int ncols = dimensions.getElementAsInt(1);
 
-      } else if(dimensions.length() == 2) {
+      if(x.length() > TransposingMatrix.LENGTH_THRESHOLD) {
+        // Just wrap the matrix
+        return new TransposingMatrix(x, AttributeMap.dim(ncols, nrows));
+
+      } else {
+        // actually allocate the memory
         Vector.Builder builder = x.newBuilderWithInitialSize(x.length());
-        int nrows = dimensions.getElementAsInt(0);
-        int ncols = dimensions.getElementAsInt(1);
+
         for (int i = 0; i < nrows; i++) {
           for (int j = 0; j < ncols; j++) {
             builder.setFrom(Indexes.matrixIndexToVectorIndex(j, i, ncols, nrows), x,
@@ -49,10 +52,9 @@ public class Matrices {
         }
         builder.setDim(ncols, nrows);
         return builder.build();
-
-      } else {
-        throw new EvalException("argument is not a matrix");
       }
+    } else {
+      throw new EvalException("argument is not a matrix");
     }
   }
 

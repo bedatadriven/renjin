@@ -300,6 +300,12 @@ public class Matrices {
       }
     }
 
+    AttributeMap attributes = AttributeMap
+            .builder()
+            .setDim(nrow, ncol)
+            .set(Symbols.DIMNAMES, dimnames)
+            .build();
+
     /*
      * Avoid allocating huge arrays of data
      */
@@ -307,16 +313,16 @@ public class Matrices {
     if(!byRow && resultLength > 500) {
       if(data instanceof DoubleVector) {
         if(data.length() == 1) {
-          return new ConstantDoubleVector(data.getElementAsDouble(0), resultLength, AttributeMap.dim(nrow, ncol));
+          return new ConstantDoubleVector(data.getElementAsDouble(0), resultLength, attributes);
         } else {
-          return new RepDoubleVector(data, resultLength, 1, AttributeMap.dim(nrow, ncol));
+          return new RepDoubleVector(data, resultLength, 1, attributes);
         }
       }
     }
-    return allocMatrix(data, nrow, ncol, byRow);
+    return allocMatrix(data, nrow, ncol, byRow, dimnames);
   }
 
-  private static Vector allocMatrix(Vector data, int nrow, int ncol, boolean byRow) {
+  private static Vector allocMatrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
     Vector.Builder result = data.newBuilderWithInitialSize(nrow * ncol);
     int dataLength = data.length();
     int i = 0;
@@ -340,6 +346,7 @@ public class Matrices {
       }
     }
     result.setDim(nrow, ncol);
+    result.setAttribute(Symbols.DIMNAMES, dimnames);
     return result.build();
   }
 

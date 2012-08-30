@@ -258,6 +258,13 @@ public class MatrixTest extends EvalTestCase {
   }
 
   @Test
+  public void matrixDimNames() {
+    eval(" m <- matrix(nrow=2,ncol=2,dimnames=list(c('a','b'), c('x', 'y'))) ");
+    assertThat( eval(" dimnames(m)[[1]]"), equalTo(c("a", "b")));
+    assertThat( eval(" dimnames(m)[[2]]"), equalTo(c("x", "y")));
+  }
+
+  @Test
   public void matrixEmptyData() throws IOException {
     eval("m <- matrix(double(), 2, 3)");
     assertThat(eval("m"), equalTo(c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA,

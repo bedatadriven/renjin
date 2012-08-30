@@ -21,6 +21,7 @@
 
 package org.renjin.sexp;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.renjin.primitives.Attributes;
 
@@ -159,7 +160,7 @@ public abstract class AbstractSEXP implements SEXP {
       if(namesExp instanceof StringVector) {
         StringVector names = (StringVector) namesExp;
         for(int i=0;i!=names.length();++i) {
-          if(names.getElementAsString(i).equals(name)) {
+          if(Objects.equal(names.getElementAsString(i), name)) {
             return i;
           }
         }

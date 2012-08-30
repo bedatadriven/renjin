@@ -1,15 +1,11 @@
 package org.renjin.primitives;
 
+import com.google.common.collect.Maps;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.*;
+
 import java.util.Map;
 import java.util.Set;
-
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Vector;
-
-
-import com.google.common.collect.Maps;
 
 public class Split {
   private Split() {}
@@ -30,10 +26,12 @@ public class Split {
       map.getSplitBuilder(split)
           .addFrom(toSplit, i);
     }
+
+    StringVector levels = (StringVector) factors.getAttributes().get(Symbols.LEVELS);
     
     ListVector.NamedBuilder resultList = new ListVector.NamedBuilder();
     for(Integer split : map.getKeys()) {
-      resultList.add(split.toString(), 
+      resultList.add(levels.getElementAsString(split-1),
           map.getSplitBuilder(split).build());
     }
     return resultList.build();

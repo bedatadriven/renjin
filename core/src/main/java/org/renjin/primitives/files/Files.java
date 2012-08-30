@@ -82,17 +82,24 @@ public class Files {
 
   private static int checkAccess(FileObject file, int mode)
       throws FileSystemException {
-    switch(mode) {
-    case CHECK_ACCESS_EXISTENCE:
-      return file.exists() ? 0 : -1;
-    case CHECK_ACCESS_READ:
-      return file.isReadable() ? 0 : -1;
-    case CHECK_ACCESS_WRITE:
-      return file.isWriteable() ? 0 : -1;
-    case CHECK_ACCESS_EXECUTE:
-      return -1; // don't know if this is possible to check with VFS
+
+    boolean ok = true;
+    if( (mode & CHECK_ACCESS_EXISTENCE) != 0 && !file.exists()) {
+      ok = false;
     }
-    throw new EvalException("Invalid 'mode' argument");
+
+    if( (mode & CHECK_ACCESS_READ) != 0 && !file.isReadable()) {
+      ok = false;
+    }
+
+    if( (mode & CHECK_ACCESS_WRITE) != 0 & !file.isWriteable()) {
+      ok = false;
+    }
+
+    //case CHECK_ACCESS_EXECUTE:
+//      return -1; // don't know if this is possible to check with VFS
+  //  }
+    return ok ? 0 : -1;
   }
 
   /**

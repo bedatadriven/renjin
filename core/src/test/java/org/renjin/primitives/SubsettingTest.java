@@ -689,5 +689,16 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("names(y)"), equalTo(c("A","B","C")));
     
   }
+
+  @Test(expected = EvalException.class)
+  public void absetDimNamesThrowsEvalException() {
+    eval("x <- c(1,2,3,4)");
+    eval("dim(x) <- c(1,4)");
+    eval("dimnames(x) <- list(NULL, c('a','b','c','d'))");
+    eval("y <- x[,c('a','b', 'x')]");
+    assertThat(eval("y"), equalTo(c(1,2)));
+
+  }
+
   
 }

@@ -701,4 +701,8 @@ public class Base {
       SEXP version, SEXP refhook) throws IOException {
     return Serialization.serialize(context, object, connection, ascii, version, refhook);
   }
+
+  public static String crc64ToString(String value) {
+    return Crc64.getCrc64(value);
+  }
 }

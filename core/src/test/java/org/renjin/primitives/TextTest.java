@@ -282,4 +282,21 @@ public class TextTest extends EvalTestCase {
     assertThat(eval(".Internal(strtoi('0666', 10L))"), equalTo(c_i(666)));
     assertThat(eval(".Internal(strtoi('0xFF', 16L))"), equalTo(c_i(255)));    
   }
+
+  @Test
+  public void regexReplace() {
+    assumingBasePackagesLoad();
+    eval("pat <- '^R[[:space:]]*\\\\(([[<>=!]+)[[:space:]]+(.*)\\\\)[[:space:]]*' ");
+    eval("x <- c('R (>= 2.10)', 'R(>= 2.4.0)', 'R (>= 2.10)')");
+    eval("ops <-  sub(pat, \"\\\\1\", x)");
+    eval("v_t_1 <- sub(pat, \"\\\\2\", x)");
+    eval("v_t <- split(v_t_1, ops)");
+
+    assertThat(eval("ops"), equalTo(c(">=", ">=", ">=")));
+    assertThat(eval("v_t_1"), equalTo(c("2.10", "2.4.0", "2.10")));
+    assertThat(eval("length(v_t)"), equalTo(c_i(1)));
+    assertThat(eval("names(v_t)"), equalTo(c(">=")));
+
+
+  }
 }

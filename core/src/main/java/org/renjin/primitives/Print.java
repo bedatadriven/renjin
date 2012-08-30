@@ -24,12 +24,10 @@ package org.renjin.primitives;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.renjin.compiler.pipeline.DeferredGraph;
 import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -42,11 +40,6 @@ public class Print {
   @Primitive("print.default")
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
       SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) throws IOException {
-
-    if(expression instanceof DeferredComputation) {
-      DeferredGraph graph = new DeferredGraph((DeferredComputation) expression);
-      graph.dumpGraph();
-    }
 
     PrintingVisitor visitor = new PrintingVisitor()
     .setCharactersPerLine(80)

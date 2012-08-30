@@ -2,6 +2,7 @@ package org.renjin.cli;
 
 import jline.console.ConsoleReader;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
 import org.renjin.sexp.FunctionCall;
@@ -51,24 +52,31 @@ public class JlineRepl {
     do {
       reader.setPrompt("> ");
       if(!parser.parse()) {
-        System.err.println("result = " + parser.getResult() + ", status = " + parser.getResultStatus());        
+        System.err.println("result = " + parser.getResult() + ", status = " + parser.getResultStatus());
       }
 
       SEXP exp = parser.getResult();
       if(exp == null) {
         continue;
       }
-      
+
       // clean up last warnings from any previous run
       clearWarnings();
-      
-      SEXP result = topLevelContext.evaluate(exp, topLevelContext.getGlobalEnvironment());
 
-      if(!topLevelContext.getGlobals().isInvisible()) {
-        topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));
+      try {
+        SEXP result = topLevelContext.evaluate(exp, topLevelContext.getGlobalEnvironment());
+
+        if(!topLevelContext.getGlobals().isInvisible()) {
+          topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));
+        }
+
+        printWarnings();
+      } catch(EvalException e) {
+        reader.getOutput().append(e.getMessage());
+        reader.getOutput().append("\n");
+      } catch(Exception e) {
+        e.printStackTrace(new PrintWriter(reader.getOutput()));
       }
-      
-      printWarnings();
 
     } while(true);
   }

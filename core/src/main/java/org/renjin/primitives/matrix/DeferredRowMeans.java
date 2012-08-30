@@ -51,7 +51,6 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
     System.out.println("computing row means...");
     if(vector.length() >= DeferredGraph.JIT_THRESHOLD) {
       DeferredGraph computeGraph = new DeferredGraph(this);
-      computeGraph.dumpGraph();
       computeGraph.compute();
     } else {
       double means[] = new double[numRows];

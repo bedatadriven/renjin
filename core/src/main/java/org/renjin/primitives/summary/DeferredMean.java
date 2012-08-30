@@ -38,7 +38,6 @@ public class DeferredMean extends DoubleVector implements MemoizedComputation {
     if(!calculated) {
       if(vector instanceof DeferredComputation && vector.length() >= DeferredGraph.JIT_THRESHOLD) {
         DeferredGraph computeGraph = new DeferredGraph(this);
-        computeGraph.dumpGraph();
         computeGraph.compute();
       } else {
         calculate();

@@ -73,15 +73,13 @@ public class DeferredGraph {
     return newNode;
   }
 
-  public void dumpGraph() {
+  private void dumpGraph() {
     try {
       File tempFile = File.createTempFile("deferred", ".dot");
       PrintWriter writer = new PrintWriter(tempFile);
       printGraph(writer);
       writer.close();
-      if(DEBUG) {
-        System.out.println("Dumping compute graph to " + tempFile.getAbsolutePath());
-      }
+      System.out.println("Dumping compute graph to " + tempFile.getAbsolutePath());
     } catch (IOException e) {
     }
   }
@@ -148,6 +146,9 @@ public class DeferredGraph {
   }
 
   public Vector compute() {
+    if(DEBUG) {
+      dumpGraph();
+    }
     return compute(rootNode);
   }
 

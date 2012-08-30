@@ -1,20 +1,14 @@
 package org.renjin.primitives.subset;
 
-import java.util.Iterator;
-import java.util.List;
-
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.Indexes;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.Indexes;
+import org.renjin.sexp.*;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * When multiple subscripts are provided, they are treated as selecting/deselecting 
@@ -191,7 +185,6 @@ public class DimensionSelection extends Selection {
           public Integer next() {
             return subscript.getAt(i++);
           }
-          
         };
       }
     };

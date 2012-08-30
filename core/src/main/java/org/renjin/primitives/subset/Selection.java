@@ -91,6 +91,9 @@ public abstract class Selection implements Iterable<Integer> {
       if(sourceNames != Null.INSTANCE) {
         StringArrayVector.Builder names = new StringArrayVector.Builder();
         for(Integer index : getSelectionAlongDimension(dimIndex)) {
+          if(index >= sourceNames.length()) {
+            throw new EvalException("subscript out of bounds: ");
+          }
           names.add( sourceNames.getElementAsString(index) );
         }
         return names.build();

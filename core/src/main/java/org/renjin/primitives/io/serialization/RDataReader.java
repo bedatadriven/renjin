@@ -26,6 +26,9 @@ import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
 import org.renjin.sexp.*;
 
+import com.google.common.collect.Lists;
+import com.google.common.io.InputSupplier;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +38,6 @@ import static org.renjin.primitives.io.serialization.SerializationFormat.*;
 
 public class RDataReader {
   
-  private final Context context;
   private InputStream conn;
   private StreamReader in;
 
@@ -43,23 +45,29 @@ public class RDataReader {
   private Version writerVersion;
   private Version releaseVersion;
 
-  private List<SEXP> referenceTable;
+  private List<SEXP> referenceTable = Lists.newArrayList();
 
   private PersistentRestorer restorer;
+  private ReadContext readContext;
 
   public RDataReader(Context context, InputStream conn) {
-    this.context = context;
+    this.readContext = new DefaultContext(context);
     this.conn = conn;
-    this.referenceTable = new ArrayList<SEXP>();
   }
 
   public RDataReader(Context context, Environment rho, InputStream conn, PersistentRestorer restorer) {
     this(context, conn);
     this.restorer = restorer;
   }
+  
+  public RDataReader(InputStream conn) {
+    this.readContext = new NullReadContext();
+    this.conn = conn;
+  }
 
   public SEXP readFile() throws IOException {
-    in = readHeader(conn);
+    byte streamType = readStreamType(conn);
+    in = createStreamReader(streamType, conn);
     readAndVerifyVersion();
     return readExp();
   }
@@ -79,41 +87,59 @@ public class RDataReader {
       }
     }
   }
-
-
-  private static StreamReader readHeader(InputStream conn) throws IOException {
+  
+  public static boolean isRDataFile(InputSupplier<InputStream> inputSupplier) throws IOException {
+    InputStream in = inputSupplier.getInput();
+    try {
+      byte streamType = readStreamType(in);
+      return streamType != -1;
+    } finally {
+      in.close();
+    }
+  }
+  
+  public static byte readStreamType(InputStream in) throws IOException {
     byte bytes[] = new byte[7];
-    bytes[0] = (byte) conn.read();
-    bytes[1] = (byte) conn.read();
-
+    bytes[0] = (byte) in.read();
+    bytes[1] = (byte) in.read();
+    
     if(bytes[1] == '\n') {
       switch(bytes[0]) {
         case XDR_FORMAT:
-          return new XdrReader(conn);
         case ASCII_FORMAT:
-          return new AsciiReader(conn);
         case BINARY_FORMAT:
-          return new BinaryReader(conn);
+          return bytes[0];
         default:
-          throw new IOException("Malformed header: " + Integer.toHexString(bytes[0]) + " " +
-              Integer.toHexString(bytes[1]));
+          return -1;
       }
     }
-
     for(int i= 2;i!=7;++i) {
-      bytes[i] = (byte) conn.read();
+      bytes[i] = (byte) in.read();
     }
 
     String header = new String(bytes,0,5);
     if(header.equals(ASCII_MAGIC_HEADER)) {
-      return new AsciiReader(conn);
+      return ASCII_FORMAT;
     } else if(header.equals(BINARY_MAGIC_HEADER)) {
-      return new BinaryReader(conn);
+      return BINARY_FORMAT;
     } else if(header.equals(XDR_MAGIC_HEADER)) {
-      return new XdrReader(conn);
+      return XDR_FORMAT;
+    } else {
+      return -1;
     }
+  }
 
-    throw new IOException("could not read header");
+  private static StreamReader createStreamReader(byte type, InputStream conn) throws IOException {
+    switch(type) {
+      case XDR_FORMAT:
+        return new XdrReader(conn);
+      case ASCII_FORMAT:
+        return new AsciiReader(conn);
+      case BINARY_FORMAT:
+        return new BinaryReader(conn);
+      default:
+        throw new IOException("could not read header");
+    }
   }
 
   public SEXP readExp() throws IOException {
@@ -125,15 +151,15 @@ public class RDataReader {
       case EMPTYENV_SXP:
         return Environment.EMPTY;
       case BASEENV_SXP:
-        return context.getGlobals().baseEnvironment;
+        return readContext.getBaseEnvironment();
       case GLOBALENV_SXP:
-        return context.getGlobals().globalEnvironment;
+        return readContext.getGlobalEnvironment();
       case UNBOUNDVALUE_SXP:
         return Symbol.UNBOUND_VALUE;
       case MISSINGARG_SXP:
         return Symbol.MISSING_ARG;
       case BASENAMESPACE_SXP:
-        return context.getGlobals().baseNamespaceEnv;
+        return readContext.getBaseNamespaceEnvironment();
       case REFSXP:
         return readReference(flags);
       case PERSISTSXP:
@@ -202,7 +228,7 @@ public class RDataReader {
     SEXP expr = readExp();
 
     if(value == Null.INSTANCE) {
-      return Promise.repromise(context, (Environment)env, expr);
+      return readContext.createPromise(expr, (Environment)env);
     } else {
       return new Promise(expr, value);
     }
@@ -280,7 +306,7 @@ public class RDataReader {
 
   private SEXP readNamespace() throws IOException {
     StringVector name = readPersistentNamesVector();
-    SEXP namespace = context.findNamespace(Symbol.get(name.getElementAsString(0)));
+    SEXP namespace = readContext.findNamespace(Symbol.get(name.getElementAsString(0)));
     if(namespace == Null.INSTANCE) {
       throw new IllegalStateException("Cannot find namespace '" + name + "'");
     }
@@ -603,4 +629,80 @@ public class RDataReader {
     SEXP restore(StringVector values);
   }
 
+  public interface ReadContext {
+
+    SEXP getBaseEnvironment();
+
+    SEXP createPromise(SEXP expr, Environment environment);
+
+    SEXP findNamespace(Symbol symbol);
+
+    SEXP getBaseNamespaceEnvironment();
+
+    SEXP getGlobalEnvironment();    
+  }
+  
+  public static class DefaultContext implements ReadContext {
+
+    private Context context;
+    
+    public DefaultContext(Context context) {
+      this.context = context;
+    }
+
+    @Override
+    public SEXP getBaseEnvironment() {
+      return context.getGlobals().baseEnvironment;
+    }
+
+    @Override
+    public SEXP createPromise(SEXP expr, Environment env) {
+      return Promise.repromise(context, env, expr);
+    }
+
+    @Override
+    public SEXP findNamespace(Symbol symbol) {
+      return context.findNamespace(symbol);
+    }
+
+    @Override
+    public SEXP getBaseNamespaceEnvironment() {
+      return context.getGlobals().baseNamespaceEnv;
+    }
+
+    @Override
+    public SEXP getGlobalEnvironment() {
+      return context.getGlobalEnvironment();
+    }
+  }
+  
+  public static class NullReadContext implements ReadContext {
+
+    @Override
+    public SEXP getBaseEnvironment() {
+      return Null.INSTANCE;
+    }
+
+    @Override
+    public SEXP createPromise(SEXP expr, Environment environment) {
+      return Null.INSTANCE;
+    }
+
+    @Override
+    public SEXP findNamespace(Symbol symbol) {
+      return Null.INSTANCE;
+    }
+
+    @Override
+    public SEXP getBaseNamespaceEnvironment() {
+      return Null.INSTANCE;
+    }
+
+    @Override
+    public SEXP getGlobalEnvironment() {
+      return Null.INSTANCE;
+    } 
+    
+  }
+  
 }

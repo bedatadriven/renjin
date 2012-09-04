@@ -25,6 +25,9 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.*;
 
+import com.google.common.io.ByteStreams;
+import com.google.common.io.InputSupplier;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
@@ -55,6 +58,27 @@ public class RDataReaderTest extends EvalTestCase {
     PairList.Node pairList = (PairList.Node) exp;
     assertThat(pairList.length(), equalTo(1));
     assertThat(pairList.getValue(), equalTo( c(1,2,3,4) ));
+  }
+  
+  @Test
+  public void isRDataFile() throws IOException {
+    InputSupplier<InputStream> rdata = new InputSupplier<InputStream>() {
+      
+      @Override
+      public InputStream getInput() throws IOException {
+        InputStream in = getClass().getResourceAsStream("/simple.RData");
+        return new GZIPInputStream(in);
+      }
+    }; 
+    InputSupplier<InputStream> notRData = new InputSupplier<InputStream>() {
+      
+      @Override
+      public InputStream getInput() throws IOException {
+        return getClass().getResourceAsStream("/jarfiletest.jar");
+      }
+    }; 
+    
+    assertThat(RDataReader.isRDataFile(notRData), equalTo(false));
   }
 
   @Test

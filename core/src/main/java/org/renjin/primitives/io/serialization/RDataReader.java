@@ -680,27 +680,27 @@ public class RDataReader {
 
     @Override
     public SEXP getBaseEnvironment() {
-      return Null.INSTANCE;
+      return Environment.EMPTY;
     }
 
     @Override
     public SEXP createPromise(SEXP expr, Environment environment) {
-      return Null.INSTANCE;
+      return Promise.repromise(Null.INSTANCE);
     }
 
     @Override
     public SEXP findNamespace(Symbol symbol) {
-      return Null.INSTANCE;
+      return Environment.EMPTY;
     }
 
     @Override
     public SEXP getBaseNamespaceEnvironment() {
-      return Null.INSTANCE;
+      return Environment.EMPTY;
     }
 
     @Override
     public SEXP getGlobalEnvironment() {
-      return Null.INSTANCE;
+      return Environment.EMPTY;
     } 
     
   }

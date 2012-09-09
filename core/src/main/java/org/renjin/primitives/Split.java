@@ -23,8 +23,10 @@ public class Split {
     SplitMap map = new SplitMap(toSplit);
     for(int i=0;i!=factors.length();++i) {
       int split = factors.getElementAsInt(i);
-      map.getSplitBuilder(split)
-          .addFrom(toSplit, i);
+      if(IntVector.isNA(split)) {
+        map.getSplitBuilder(split)
+            .addFrom(toSplit, i);
+      }
     }
 
     StringVector levels = (StringVector) factors.getAttributes().get(Symbols.LEVELS);

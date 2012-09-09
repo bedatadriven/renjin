@@ -22,5 +22,15 @@ public class SplitTest extends EvalTestCase {
     assertThat(eval("x$`3`"), equalTo(c_i(2,1)));
   }
   
+  @Test
+  public void splitWithMissing() throws IOException {
+    assumingBasePackagesLoad();
+    
+    eval("x <- split(c(10:1), c(1,2,1,2,1,2,1,2,3,NA))");
+    eval("print(x)");
+    assertThat(eval("x$`1`"), equalTo(c_i(10,8,6,4)));
+    assertThat(eval("x$`2`"), equalTo(c_i(9,7,5,3)));
+    assertThat(eval("x$`3`"), equalTo(c_i(2)));
+  }
   
 }

@@ -23,7 +23,7 @@ public class Split {
     SplitMap map = new SplitMap(toSplit);
     for(int i=0;i!=factors.length();++i) {
       int split = factors.getElementAsInt(i);
-      if(IntVector.isNA(split)) {
+      if(!IntVector.isNA(split)) {
         map.getSplitBuilder(split)
             .addFrom(toSplit, i);
       }

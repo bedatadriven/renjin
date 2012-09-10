@@ -1,38 +1,19 @@
 package org.renjin.script;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
-import javax.script.Bindings;
-import javax.script.Invocable;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
-import javax.script.ScriptException;
-
+import com.google.common.io.CharStreams;
+import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
 import org.renjin.jvminterop.converters.Converters;
 import org.renjin.jvminterop.converters.RuntimeConverter;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.HashFrame;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
-
-import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
+import javax.script.*;
+import java.io.*;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
@@ -46,7 +27,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     try {
       topLevelContext.init();
     } catch (IOException e) {
-      throw new RuntimeException();
+      throw new RuntimeException(e);
     }
   }
 

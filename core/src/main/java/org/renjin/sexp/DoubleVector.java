@@ -30,6 +30,9 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
    */
   protected static final long NA_BITS = 0x7ff8000000001954L;
 
+  protected static final long LOWER_WORD_MASK = 0x00000000FFFFFFFFL;
+
+  
   /**
    * The double constant used to designate elements or values that are
    * missing in the statistical sense, or literally "Not Available". The following
@@ -60,8 +63,13 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   }
 
   public static boolean isNA(double input) {
-    long bits = Double.doubleToRawLongBits(input);
-    return bits == NA_BITS;
+    if(Double.isNaN(input)) {
+      long bits = Double.doubleToRawLongBits(input);
+      long lowerWord = bits & LOWER_WORD_MASK;
+      return lowerWord == 1954;
+    } else {
+      return false;
+    }
   }
 
   public static boolean isFinite(double d) {

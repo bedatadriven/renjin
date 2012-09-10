@@ -1,15 +1,15 @@
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.jvminterop.ObjectFrame;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Symbol;
+
+import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class JvmiTest extends EvalTestCase {
@@ -119,8 +119,16 @@ public class JvmiTest extends EvalTestCase {
     eval("x <- MyBean$new()");
     
     assertThat( eval("sapply(x$childBeans, function(x) x$count)"), equalTo(c_i(42,42)));
-    
   }
-  
+
+  @Test
+  public void longIsNotMangled() {
+
+    eval("import(org.renjin.primitives.MyBean)");
+    eval("x <- MyBean$calculateLong()");
+    eval("MyBean$useLongValue(x)");
+
+  }
+
   
 }

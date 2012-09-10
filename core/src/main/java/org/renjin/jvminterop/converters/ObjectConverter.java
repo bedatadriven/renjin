@@ -3,10 +3,7 @@ package org.renjin.jvminterop.converters;
 import org.renjin.jvminterop.ClassBinding;
 import org.renjin.jvminterop.ClassFrame;
 import org.renjin.jvminterop.ObjectFrame;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 
 /**
@@ -57,6 +54,11 @@ public class ObjectConverter implements Converter<Object> {
       } else if(env.getFrame() instanceof ClassFrame) {
         return ((ClassFrame)env.getFrame()).getBoundClass();
       }
+    }
+    
+    // special case for opaque Long handle
+    if(exp instanceof LongArrayVector && exp.length() == 1) {
+      return ((LongArrayVector)exp).getElementAsLong(0);
     }
     
     // convert R scalars to corresponding java classes

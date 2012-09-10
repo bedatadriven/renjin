@@ -14,6 +14,9 @@ public class Converters  {
     } else if(IntegerConverter.accept(clazz)) {
       return IntegerConverter.INSTANCE;
       
+    } else if(LongConverter.accept(clazz)) {
+      return LongConverter.INSTANCE; 
+      
     } else if(DoubleConverter.accept(clazz)) {
       return DoubleConverter.INSTANCE;
     

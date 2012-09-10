@@ -17,6 +17,8 @@ public class MyBean {
   private int count;
   private List<String> children = Lists.newArrayList();
 
+  private static final long LONG_VALUE = 214748364700L;
+
   public enum Membership {
     PENDING,
     ACTIVE,
@@ -128,4 +130,17 @@ public class MyBean {
     }
     return sum;
   }
+
+  public static long calculateLong() {
+    return LONG_VALUE;
+  }
+
+  public static void useLongValue(long value) {
+    if(value != LONG_VALUE) {
+      throw new AssertionError("long has been mangled by R");
+    }
+  }
+
+
+
 }

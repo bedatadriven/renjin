@@ -84,6 +84,4 @@ class SerializationFormat {
 
   public static final int VERSION2 = 2;
 
-  public static final long XDR_NA_BITS = 0x7ff80000000007a2L;
-
 }

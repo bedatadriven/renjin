@@ -15,11 +15,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
 
   /**
    * This is the internal representation R uses to
-   * represent NAs: a "quiet NaN" with a payload of 0x1954.
-   * <p/>
-   * <p>Note that this is slightly different than the C implementation of R,
-   * which uses a "signaled" NaN with the same payload. The serialized XDR form of NA is
-   * different still: see {@link org.renjin.primitives.io.serialization.SerializationFormat#XDR_NA_BITS}.
+   * represent NAs: a "quiet NaN" with a payload of 1954 (0x07A2).
    * <p/>
    * <p>The Java Language Spec is somewhat ambiguous regarding the extent to which
    * non-canonical NaNs will be preserved. What is clear though, is that signaled bit
@@ -28,7 +24,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
    * <p/>
    * <p>The payload, however, does appear to be preserved by the JVM.
    */
-  protected static final long NA_BITS = 0x7ff8000000001954L;
+  public static final long NA_BITS = 0x7FF00000000007A2L;
 
   protected static final long LOWER_WORD_MASK = 0x00000000FFFFFFFFL;
 
@@ -49,6 +45,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   public static final double EPSILON = 2.220446e-16;
 
   public static final DoubleVector EMPTY = new DoubleArrayVector();
+  public static final int NA_PAYLOAD = 1954;
 
   protected DoubleVector(AttributeMap attributes) {
     super(attributes);
@@ -66,7 +63,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     if(Double.isNaN(input)) {
       long bits = Double.doubleToRawLongBits(input);
       long lowerWord = bits & LOWER_WORD_MASK;
-      return lowerWord == 1954;
+      return lowerWord == NA_PAYLOAD;
     } else {
       return false;
     }

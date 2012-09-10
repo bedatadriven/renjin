@@ -41,6 +41,12 @@ public class RDataWriterTest extends EvalTestCase {
 
 
   @Test
+  public void NAs() throws IOException {
+    assertReRead(new DoubleArrayVector(DoubleVector.NA));
+
+  }
+
+  @Test
   public void test() throws IOException {
 
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();

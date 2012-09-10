@@ -225,7 +225,7 @@ public class RDataWriter {
     out.writeInt(vector.length());
     for(int i=0;i!=vector.length();++i) {
       if(vector.isElementNA(i)) {
-        out.writeLong(SerializationFormat.XDR_NA_BITS);
+        out.writeLong(DoubleVector.NA_BITS);
       } else {
         out.writeDouble(vector.getElementAsDouble(i));
       }

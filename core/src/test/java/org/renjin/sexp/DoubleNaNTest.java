@@ -22,27 +22,12 @@
 package org.renjin.sexp;
 
 import org.junit.Test;
-import org.renjin.sexp.DoubleVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
 public class DoubleNaNTest {
-  
-  private static final long SIGNALED_NA_BITS = 0x7ff0000000001954L;
-  private static final long QUIET_NA_BITS = 0x7ff8000000001954L;
 
-  @Test
-  public strictfp void quietNAsWithPayloadArePreserved() {
-    System.out.println("                 SIGNALED_NA_BITS  : " + bits(SIGNALED_NA_BITS));
-    System.out.println("longBitsToDouble(SIGNALED_NA_BITS) : " + bits(Double.longBitsToDouble(SIGNALED_NA_BITS)));
-    System.out.println("                    QUIET_NA_BITS  : " + bits(QUIET_NA_BITS));
-    System.out.println("longBitsToDouble(   QUIET_NA_BITS) : " + bits(Double.longBitsToDouble(QUIET_NA_BITS)));
-    System.out.println("                            NaN    : " + bits(Double.NaN));
-
-    assertThat(bits(QUIET_NA_BITS),
-        equalTo(bits(Double.longBitsToDouble(QUIET_NA_BITS))));
-  }
 
   @Test
   public void test() {
@@ -53,6 +38,25 @@ public class DoubleNaNTest {
     assertTrue("isNA(NA) #2", DoubleVector.isNA(DoubleVector.NA));
     assertFalse("isNA(NaN)", DoubleVector.isNA(DoubleVector.NaN));
 
+  }
+  
+  @Test
+  public void bitsTest() {
+    long na = 0x7ff00000000007A2L;
+    long lowerWordMask = 0x00000000FFFFFFFFL;
+    
+    System.out.println(bits(na));
+    System.out.println(bits(lowerWordMask));
+    
+    
+    long naMasked = na & lowerWordMask;
+
+    System.out.println(bits(naMasked));
+    System.out.println(bits(1954L));
+    
+    assertThat(naMasked, equalTo(1954L));
+    
+    
   }
   
   @Test

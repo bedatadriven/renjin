@@ -21,12 +21,10 @@
 
 package org.renjin.primitives.io.serialization;
 
+import com.google.common.io.InputSupplier;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.*;
-
-import com.google.common.io.ByteStreams;
-import com.google.common.io.InputSupplier;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -119,6 +117,23 @@ public class RDataReaderTest extends EvalTestCase {
     assertThat(DoubleVector.isNA(x.getElementAsDouble(0)), equalTo(true));
   }
 
+  @Test
+  public void loadNA2() throws IOException {
+    InputStream in = getClass().getResourceAsStream("/na2.RData");
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+
+    SEXP exp = reader.readFile();
+
+    assertThat(exp, instanceOf(PairList.Node.class));
+
+    PairList.Node pairList = (PairList.Node) exp;
+    ListVector df = (ListVector) pairList.findByTag(symbol("df"));
+    DoubleVector x = (DoubleVector) df.getElementAsSEXP(0);
+    
+    assertThat(x.isElementNA(2), equalTo(true));
+  }
+  
 
   protected Symbol symbol(String name){
     return Symbol.get(name);

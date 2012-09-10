@@ -21,16 +21,14 @@
 
 package org.renjin.primitives.io.serialization;
 
+import com.google.common.collect.Lists;
+import com.google.common.io.InputSupplier;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
 import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.InputSupplier;
-
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.renjin.primitives.io.serialization.SerializationFormat.*;
@@ -613,11 +611,7 @@ public class RDataReader {
     @Override
     public double readDouble() throws IOException {
       long bits = in.readLong();
-      if(bits == XDR_NA_BITS) {
-        return DoubleVector.NA;
-      } else {
-        return Double.longBitsToDouble(bits);
-      }
+      return Double.longBitsToDouble(bits);
     }
   }
 

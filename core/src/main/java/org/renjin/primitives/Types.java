@@ -32,7 +32,9 @@ import org.renjin.jvminterop.ObjectFrame;
 import org.renjin.jvminterop.converters.*;
 import org.renjin.primitives.annotations.*;
 import org.renjin.primitives.vector.ConstantDoubleVector;
+import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
+import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
@@ -532,10 +534,10 @@ public class Types {
   public static DoubleVector asDouble(Vector source) {
     if(source instanceof DoubleVector) {
       return (DoubleVector) source.setAttributes(AttributeMap.EMPTY);
-    } else if(source.length() < 100) {
-      return (DoubleVector) convertVector(new DoubleArrayVector.Builder(), source);
+    } else if(source instanceof DeferredComputation || source.length() > 100) {
+      return new ConvertingDoubleVector(source);
     } else {
-      return new CastingDoubleVector(source);
+      return (DoubleVector) convertVector(new DoubleArrayVector.Builder(), source);
     }
   }
 
@@ -546,34 +548,6 @@ public class Types {
     return builder.build();
   }
 
-  private static class CastingDoubleVector extends DoubleVector {
-    private final Vector inner;
-
-    private CastingDoubleVector(AttributeMap attributes, Vector inner) {
-      super(attributes);
-      this.inner = inner;
-    }
-
-    private CastingDoubleVector(Vector inner) {
-      this.inner = inner;
-    }
-
-    @Override
-    protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-      return new CastingDoubleVector(attributes, inner);
-    }
-
-    @Override
-    public double getElementAsDouble(int index) {
-      return inner.getElementAsDouble(index);
-    }
-
-    @Override
-    public int length() {
-      return inner.length();
-    }
-  }
-  
   @Generic
   @Primitive("as.complex")
   public static Complex asComplex(@Recycle double x){

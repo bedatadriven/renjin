@@ -72,7 +72,7 @@ public class MeanJitterTest {
     DeferredGraph graph = new DeferredGraph(mean);
 
     graph.compute();
-  }
+  } 
 
   @Test
   public void nestedDistanceMatrixAndBinaryOp() {

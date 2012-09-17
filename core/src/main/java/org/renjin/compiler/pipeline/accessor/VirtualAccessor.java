@@ -1,5 +1,8 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import java.lang.reflect.Modifier;
+import java.util.logging.Logger;
+
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.sexp.Vector;
@@ -8,18 +11,33 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class VirtualAccessor extends Accessor {
 
+  private static final Logger LOGGER = Logger.getLogger(VirtualAccessor.class.getName());
+  
   /**
    * The local variable where we're storing the
-   * raw array, double[]
+   * pointer to the Vector object
    */
   private int ptrLocalIndex;
   private String vectorClass;
   private int operandIndex;
 
   public VirtualAccessor(Vector vector, int operandIndex) {
-    this.vectorClass = vector.getClass().getName().replace('.', '/');
+    // we really want to reference this class as specifically as possible
+    if(!Modifier.isPublic(vector.getClass().getModifiers())) {
+      LOGGER.warning("Vector class " + vector.getClass().getName() + " is not public: member access may not be fully inlined by JVM.");
+    } 
+    this.vectorClass = findFirstPublicSuperClass(vector.getClass()).getName().replace('.', '/');
     this.operandIndex = operandIndex;
   }
+
+  
+  private Class findFirstPublicSuperClass(Class clazz) {
+    while(!Modifier.isPublic(clazz.getModifiers())) {
+      clazz = clazz.getSuperclass();
+    }
+    return clazz;
+  }
+
 
   public void init(ComputeMethod method) {
 

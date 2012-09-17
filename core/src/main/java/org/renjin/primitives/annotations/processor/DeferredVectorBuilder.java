@@ -13,7 +13,7 @@ import static com.sun.codemodel.JExpr.lit;
 
 public class DeferredVectorBuilder {
 
-  public static final int LENGTH_THRESHOLD = 1;
+  public static final int LENGTH_THRESHOLD = 100;
 
   private JCodeModel codeModel;
   private PrimitiveModel primitive;

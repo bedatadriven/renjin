@@ -220,7 +220,6 @@ public class MatrixTest extends EvalTestCase {
   public void rowMeans() throws IOException {
     eval("q <- matrix(1:32, 4)");
     assertThat(eval("rowMeans(q)"), equalTo(c(15,16,17,18)));
-
   }
 
   @Test

@@ -275,6 +275,7 @@ public class Attributes {
   @Primitive("dim<-")
   public static SEXP setDimensions(SEXP exp, AtomicVector vector) {
     AttributeMap.Builder newAttributes = exp.getAttributes().copy();
+    newAttributes.remove(Symbols.NAMES);
     if(vector == Null.INSTANCE) {
       newAttributes.removeDim();
     } else {
@@ -362,13 +363,25 @@ public class Attributes {
   @Generic
   @Primitive("names")
   public static SEXP getNames(SEXP exp) {
+    // if the vector is a 1-dimensional array,
+    // then "names" are stored in the dimnames attribute
+    if(exp.getAttributes().getDim().length() == 1) {
+      return exp.getAttributes().getDimNames(0);
+    }
     return exp.getNames();
   }
 
   @Generic
   @Primitive("names<-")
   public static SEXP setNames(SEXP exp, @InvokeAsCharacter Vector names) {
-    return exp.setAttribute("names", names);
+    if(exp.getAttributes().getDim().length() == 1) {
+      return exp.setAttributes(exp.getAttributes()
+          .copy()
+          .setArrayNames(names)
+          .build());
+    } else {
+      return exp.setAttribute("names", names);
+    }
   }
 
   @Generic

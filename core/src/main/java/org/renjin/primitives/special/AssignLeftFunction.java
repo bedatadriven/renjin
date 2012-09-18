@@ -65,11 +65,14 @@ public class AssignLeftFunction extends SpecialFunction {
       Symbol getter = (Symbol) call.getFunction();
       Symbol setter = Symbol.get(getter.getPrintName() + "<-");
 
-      rhs = context.evaluate( new FunctionCall(setter,
-          PairList.Node.newBuilder()
-            .addAll(call.getArguments())
-            .add("value", rhs)
-            .build()), rho);
+      PairList setterArgs = PairList.Node.newBuilder()
+          .addAll(call.getArguments())
+          .add("value", rhs)
+          .build();
+      
+      FunctionCall setterCall = new FunctionCall(setter, setterArgs);
+      
+      rhs = context.evaluate(setterCall, rho);
 
       lhs = call.getArgument(0);
     }

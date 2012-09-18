@@ -36,5 +36,23 @@ public class AttributeTest extends EvalTestCase {
 
     assertThat( eval("p$x"), equalTo(c(1)));
   }
+  
+  @Test
+  public void arrayNamesDropsNames() {
+    eval("x <- c(a=1,b=2,c=3)");
+    eval("dim(x) <- 3L");
+    assertThat(eval("names(x)"), equalTo(NULL));
+    assertThat(eval("length(attributes(x))"), equalTo(c_i(1)));
+  }
+  
+  @Test
+  public void arrayNames() {
+    eval("x <- c(1,2,3)");
+    eval("dim(x) <- 3L");
+    eval("dimnames(x)[[1]] <- c('a','b','c')");
+    
+    assertThat(eval("names(x)"), equalTo(c("a","b","c")));
+
+  }
 
 }

@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.eval.EvalException;
+import org.renjin.sexp.PairList.Builder;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -125,6 +126,25 @@ public class AttributeMap {
 
   public int[] getDimArray() {
     return dim.toIntArray();
+  }
+
+  public Vector getDimNames() {
+    if(map == null) {
+      return Null.INSTANCE;
+    } else {
+      return (Vector) map.get(Symbols.DIMNAMES);
+    }
+  }
+
+  public Vector getDimNames(int i) {
+    if(map == null) {
+      return Null.INSTANCE;
+    }
+    Vector vector = (Vector) map.get(Symbols.DIMNAMES);
+    if(vector instanceof ListVector) {
+      return (Vector)((ListVector) vector).getElementAsSEXP(0);
+    }
+    return Null.INSTANCE;
   }
 
   public static Builder builder() {
@@ -351,13 +371,30 @@ public class AttributeMap {
       this.empty = false;
       return this;
     }
-
+    
     public Builder setNames(StringVector names) {
       this.names = names;
       this.empty = false;
       return this;
     }
+ 
+    /**
+     * Sets a 1-dimensional {@code DIMNAMES} attribute 
+     * @param names
+     * @return
+     */
+    public Builder setArrayNames(Vector names) {
+      if(names == Null.INSTANCE) {
+        remove(Symbols.DIMNAMES);
+      } else if(names instanceof StringVector) {
+        set(Symbols.DIMNAMES, new ListVector(names));
+      } else {
+        throw new IllegalArgumentException("" + names);
+      }
+      return this;
+    }
 
+    
     public Builder setClass(String... classNames) {
       this.classes = new StringArrayVector(classNames);
       this.empty = false;
@@ -451,4 +488,6 @@ public class AttributeMap {
     map.dim = new IntArrayVector(row, col);
     return map;
   }
+
+
 }

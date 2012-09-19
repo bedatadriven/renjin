@@ -186,13 +186,9 @@ public class Files {
      if(file.isReadable()) {
        access += 4;
      }
-     try {
-       if(file.isWriteable()) {
-         access += 2;
-       }
-     } catch(Exception e) {
-       // this will throw a security exception on 
-       // appengine. Dus, NOT writable!
+
+     if(file.isWriteable()) {
+       access += 2;
      }
      if(file.getType()==FileType.FOLDER) {
        access += 1;

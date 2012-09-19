@@ -99,7 +99,7 @@ public class AppEngineLocalFilesSystemProvider
     }
 
     // Find the file
-    return filesystem.resolveFile(path);
+    return new AppEngineLocalFileObject(filesystem.resolveFile(path));
   }
 
   @Override

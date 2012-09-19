@@ -671,6 +671,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("f <- function(c) c() ");
     eval("f()");
   }
+
   
 }
 

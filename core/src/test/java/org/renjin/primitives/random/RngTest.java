@@ -141,4 +141,10 @@ public class RngTest extends EvalTestCase {
 	   assertThat(eval("rmultinom(1,3,c(0.5,0.5))") , equalTo(c(1,2)));
 	   assertThat(eval("dim(rmultinom(20,3,c(0.5,0.3,0.2)))") , equalTo(c_i(3,20)));
    }
+   
+   @Test
+   public void randomSeedSetInGlobalEnv(){
+     eval("runif(1)");
+     eval(".Internal(get('.Random.seed', envir = .GlobalEnv, 'any', inherits = FALSE))");
+   }
 }

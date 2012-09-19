@@ -626,5 +626,10 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x<-4 ");
     assertThat( eval(".Internal(eval(ex,globalenv(),NULL))"), equalTo(c(8)));
   }
-  
+
+  @Test(expected=EvalException.class) 
+  public void getThrowsOnNonExistantVariable() {
+    eval(".Internal(get('nonexistant.variable', globalenv(), 'any', TRUE))");
+  }
+
 }

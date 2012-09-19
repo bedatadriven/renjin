@@ -940,8 +940,12 @@ public class Types {
   @Primitive
   public static SEXP get(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
-    return environment.findVariable(Symbol.get(x), Types.modePredicate(mode),
+    SEXP value = environment.findVariable(Symbol.get(x), Types.modePredicate(mode),
         inherits);
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("Object '%s' not found", x);
+    }
+    return value;
   }
 
   @Generic

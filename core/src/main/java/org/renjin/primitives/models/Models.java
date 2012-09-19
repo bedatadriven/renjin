@@ -275,7 +275,7 @@ public class Models {
         if(dim == Null.INSTANCE) {
           return s.length();
         } else {
-          return ((IntVector)s).getElementAsInt(0);
+          return ((IntVector)dim).getElementAsInt(0);
         }
     } else if(Attributes.inherits(s, "data.frame")) {
       return nrows(s.getElementAsSEXP(0));

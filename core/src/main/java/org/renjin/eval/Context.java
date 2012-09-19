@@ -219,7 +219,12 @@ public class Context {
       baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
       baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
       namespaceRegistry.setVariable(Symbol.get("base"), baseNamespaceEnv);
-      securityManager = new SecurityManager();
+      securityManager = new SecurityManager(); 
+      
+      // quick fix: more work needs to be done to figure out where 
+      // to put this, but in the meantime some packages require its presence
+      globalEnvironment.setVariable(".Random.seed", new IntArrayVector(1));
+
     }
 
     /** 

@@ -21,6 +21,7 @@
 
 package org.renjin.primitives;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
@@ -74,7 +75,25 @@ public class OptTest extends EvalTestCase{
   public void symbolEquality() {
     assertThat(eval("quote(x)==quote(y)"), equalTo(c(false)));
     assertThat(eval("quote(x)==quote(x)"), equalTo(c(true)));
+    assertThat(eval("quote(a)<quote(b)"), equalTo(c(true)));
   }
+  
+  @Test
+  public void stringComparison() {
+    assertThat(eval("'a' < 'b'"), equalTo(c(true)));
+  }
+  
+  @Test
+  public void languageEquality() {
+    assertThat(eval("quote(c(1)) == 'c(1)'"), equalTo(c(true)));
+  }
+  
+  @Ignore("this makes no sense to me")
+  @Test
+  public void listComparison() {
+    assertThat(eval("list(1) == 1"), equalTo(c(true)));
+  }
+  
   
   @Test
   public void complexAdd() {

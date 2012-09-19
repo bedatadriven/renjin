@@ -3,6 +3,7 @@ package org.renjin.primitives.annotations.processor;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchChain;
+import org.renjin.primitives.Deparse;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 import org.renjin.sexp.PairList.Node;
@@ -79,9 +80,13 @@ public class WrapperRuntime {
   }
   
   public static Vector convertToVector(SEXP exp) {
-    try {
+    if(exp instanceof Vector) {
       return (Vector)exp;
-    } catch(ClassCastException e) {
+    } else if(exp instanceof Symbol) {
+      return new StringArrayVector( ((Symbol) exp).getPrintName() );
+    } else if(exp instanceof FunctionCall) {
+      return new StringArrayVector( Deparse.deparseExp(exp) );
+    } else {
       throw new ArgumentException("expected vector");
     }
   }

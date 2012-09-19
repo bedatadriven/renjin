@@ -4,6 +4,7 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
 import org.renjin.primitives.annotations.CastStyle;
+import org.renjin.primitives.annotations.processor.JvmMethod;
 import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.Vector;
@@ -36,7 +37,7 @@ public class BooleanType extends ScalarType {
   }
 
   @Override
-  public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, CastStyle castStyle) {
+  public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, JvmMethod.Argument formal) {
     return sexpVariable._instanceof(codeModel.ref(Vector.class));
   }
 }

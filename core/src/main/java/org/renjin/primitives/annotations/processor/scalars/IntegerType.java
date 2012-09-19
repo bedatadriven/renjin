@@ -4,6 +4,7 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
 import org.renjin.primitives.annotations.CastStyle;
+import org.renjin.primitives.annotations.processor.JvmMethod;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
@@ -37,8 +38,8 @@ public class IntegerType extends ScalarType {
   }
 
   @Override
-  public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, CastStyle castStyle) {
-    if(castStyle == CastStyle.IMPLICIT) {
+  public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, JvmMethod.Argument formal) {
+    if(formal.getCastStyle() == CastStyle.IMPLICIT) {
       return sexpVariable._instanceof(codeModel.ref(IntVector.class))
               .cor(sexpVariable._instanceof(codeModel.ref(DoubleVector.class)))
               .cor(sexpVariable._instanceof(codeModel.ref(LogicalVector.class)));

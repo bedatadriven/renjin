@@ -125,27 +125,27 @@ public class Print {
 
     @Override
     public void visit(IntVector vector) {
-      printVector(vector, Alignment.RIGHT, new ParseUtil.IntPrinter());
+      printVector(vector, Alignment.RIGHT, new ParseUtil.IntPrinter(), "integer");
     }
 
     @Override
     public void visit(LogicalVector vector) {
-      printVector(vector, Alignment.RIGHT, new ParseUtil.LogicalPrinter());
+      printVector(vector, Alignment.RIGHT, new ParseUtil.LogicalPrinter(), "logical");
     }
 
     @Override
     public void visit(DoubleVector vector) {
-      printVector(vector, Alignment.RIGHT, new ParseUtil.RealPrinter());
+      printVector(vector, Alignment.RIGHT, new ParseUtil.RealPrinter(), "numeric");
     }
 
     @Override
     public void visit(StringVector vector) {
-      printVector(vector, Alignment.LEFT, new ParseUtil.StringPrinter().withQuotes(quote));
+      printVector(vector, Alignment.LEFT, new ParseUtil.StringPrinter().withQuotes(quote), "character");
     }
 
     @Override
     public void visit(RawVector vector) {
-      printVector(vector, Alignment.RIGHT, new ParseUtil.RawPrinter());
+      printVector(vector, Alignment.RIGHT, new ParseUtil.RawPrinter(), "raw");
     }   
 
     @Override
@@ -158,17 +158,22 @@ public class Print {
       out.append(".Primitive(").append(ParseUtil.formatStringLiteral(special.getName(), "NA"));
     }
 
-    private <T> void printVector(Iterable<T> vector, Alignment align, Function<T, String> printer) {
+    private <T> void printVector(Iterable<T> vector, Alignment align, Function<T, String> printer, String typeName) {
       SEXP sexp = (SEXP)vector;
-      List<String> elements = Lists.newArrayList(Iterables.transform(vector, printer));
       
-      SEXP dim = sexp.getAttribute(Symbols.DIM);
-      if(dim.length() == 2) {
-        new MatrixPrinter(elements, align, sexp.getAttributes());
+      if(sexp.length() == 0) {
+        out.append(typeName).append("(0)");
       } else {
-        new VectorPrinter(elements, align, sexp.getAttributes());
+        List<String> elements = Lists.newArrayList(Iterables.transform(vector, printer));
+        
+        SEXP dim = sexp.getAttribute(Symbols.DIM);
+        if(dim.length() == 2) {
+          new MatrixPrinter(elements, align, sexp.getAttributes());
+        } else {
+          new VectorPrinter(elements, align, sexp.getAttributes());
+        }
+        printAttributes(sexp);
       }
-      printAttributes(sexp);
     }
 
     private void printAttributes(SEXP sexp) {

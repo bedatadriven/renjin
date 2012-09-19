@@ -22,10 +22,19 @@
 package org.renjin.primitives;
 
 import org.apache.commons.math.complex.Complex;
-import org.renjin.primitives.annotations.*;
+import org.renjin.primitives.annotations.AllowNA;
+import org.renjin.primitives.annotations.Cast;
+import org.renjin.primitives.annotations.CastStyle;
+import org.renjin.primitives.annotations.CoerceLanguageToString;
+import org.renjin.primitives.annotations.Deferrable;
+import org.renjin.primitives.annotations.GroupGeneric;
+import org.renjin.primitives.annotations.PreserveAttributeStyle;
+import org.renjin.primitives.annotations.PreserveAttributes;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Logical;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
 
@@ -128,15 +137,10 @@ public class Ops  {
     return x == y;
   }
   
-  @Primitive("==")
-  @Recycle(false)
-  public static boolean equalTo(Symbol x, Symbol y) {
-    return x == y;
-  }
-
+  @Recycle
   @Deferrable
   @Primitive("==")
-  public static boolean equalTo(String x, String y) {
+  public static boolean equalTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.equals(y);
   }
 
@@ -148,7 +152,7 @@ public class Ops  {
 
   @Deferrable
   @Primitive("!=")
-  public static boolean notEqualTo(String x, String y) {
+  public static boolean notEqualTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return !x.equals(y);
   }
 
@@ -160,7 +164,7 @@ public class Ops  {
 
   @Deferrable
   @Primitive("<")
-  public static boolean lessThan(String x, String y) {
+  public static boolean lessThan(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.compareTo(y) < 0;
   }
 
@@ -172,7 +176,7 @@ public class Ops  {
 
   @Deferrable
   @Primitive("<=")
-  public static boolean lessThanOrEqualTo(String x, String y) {
+  public static boolean lessThanOrEqualTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.compareTo(y) <= 0;
   }
 
@@ -184,7 +188,7 @@ public class Ops  {
 
   @Deferrable
   @Primitive(">")
-  public static boolean greaterThan(String x, String y) {
+  public static boolean greaterThan(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.compareTo(y) > 0;
   }
 
@@ -196,7 +200,7 @@ public class Ops  {
 
   @Deferrable
   @Primitive(">=")
-  public static boolean greaterThanOrEqual(String x, String y) {
+  public static boolean greaterThanOrEqual(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.compareTo(y) >= 0;
   }
 

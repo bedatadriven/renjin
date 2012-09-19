@@ -25,7 +25,7 @@ import java.util.ListIterator;
 public class DeferredGraph {
 
   public static boolean DEBUG = false;
-  public static final int JIT_THRESHOLD = 5000;
+  public static final int JIT_THRESHOLD = 1000;
 
   private DeferredNode rootNode;
   private List<DeferredNode> nodes = Lists.newArrayList();

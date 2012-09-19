@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.DeferredGraph;
 import org.renjin.sexp.Vector;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -22,6 +23,9 @@ public class VirtualAccessor extends Accessor {
   private int operandIndex;
 
   public VirtualAccessor(Vector vector, int operandIndex) {
+    if(DeferredGraph.DEBUG) {
+      System.out.println("VirtualAccessor for " + vector.getClass().getName());
+    }
     // we really want to reference this class as specifically as possible
     if(!Modifier.isPublic(vector.getClass().getModifiers())) {
       LOGGER.warning("Vector class " + vector.getClass().getName() + " is not public: member access may not be fully inlined by JVM.");

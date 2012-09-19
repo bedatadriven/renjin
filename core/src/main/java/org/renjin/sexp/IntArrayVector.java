@@ -26,6 +26,10 @@ import java.util.Arrays;
 public class IntArrayVector extends IntVector {
 
   private int[] values;
+  
+  private IntArrayVector(AttributeMap attributes) {
+    super(attributes);
+  }
 
   public IntArrayVector(int... values) {
     this.values = Arrays.copyOf(values, values.length);
@@ -44,7 +48,6 @@ public class IntArrayVector extends IntVector {
     this(values, values.length, attributes);
   }
 
-
   @Override
   public int length() {
     return values.length;
@@ -57,7 +60,16 @@ public class IntArrayVector extends IntVector {
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new IntArrayVector(values, values.length, attributes);
+    IntArrayVector clone = new IntArrayVector(attributes);
+    clone.values = values;
+    return clone;    
+  }
+  
+  /**
+   * @return a pointer to the underlying array. DO NOT MODIFY!!
+   */
+  public int[] toIntArrayUnsafe() {
+    return values;
   }
 
   public static class Builder extends AbstractAtomicBuilder {
@@ -140,7 +152,19 @@ public class IntArrayVector extends IntVector {
 
     @Override
     public IntVector build() {
-      return new IntArrayVector(values, size, buildAttributes());
+      if(size == values.length) {
+        IntArrayVector vector = new IntArrayVector(buildAttributes());
+        vector.values = values;
+        // subsequent edits will throw error!
+        this.values = null;
+        return vector;
+      } else {
+        return new IntArrayVector(values, size, buildAttributes());
+      }
+    }
+
+    public static Builder withInitialCapacity(int capacity) {
+      return new Builder(0, capacity);
     }
   }
 }

@@ -28,13 +28,13 @@ public class Sampling {
 
   public static IntVector sampleWithReplacement(Context.Globals context, int size, double[] prob) {
     double[] cumProbs = new double[prob.length];
-    IntArrayVector.Builder resultb = new IntArrayVector.Builder();
+    IntArrayVector.Builder resultb = IntArrayVector.Builder.withInitialCapacity(size);
     cumProbs[0] = prob[0];
     for (int i = 1; i < cumProbs.length; i++) {
       cumProbs[i] = prob[i] + cumProbs[i - 1];
     }
     for (int i = 0; i < size; i++) {
-      double arand = context.rng.unif_rand();;
+      double arand = context.rng.unif_rand();
       int index = RouletteWheel(cumProbs, arand);
       resultb.add(index + 1);
     }

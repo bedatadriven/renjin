@@ -54,9 +54,9 @@ public class DeferredJitter {
     long startTime = System.nanoTime();
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = cw;
-    if(DeferredGraph.DEBUG) {
-      cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-    }
+//    if(DeferredGraph.DEBUG) {
+//      cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+//    }
     //cv = new CheckClassAdapter(cv);
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object",
             new String[]{"org/renjin/compiler/pipeline/JittedComputation"});

@@ -620,5 +620,11 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat(eval("dimnames(y)[[2]]"), equalTo(c("c1", "c2", "c3", "c4")));
   }
   
+  @Test
+  public void expression() {
+    eval(" ex <- expression({ x * 2})");
+    eval(" x<-4 ");
+    assertThat( eval(".Internal(eval(ex,globalenv(),NULL))"), equalTo(c(8)));
+  }
   
 }

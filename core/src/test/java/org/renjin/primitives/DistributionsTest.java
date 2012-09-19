@@ -23,6 +23,7 @@ package org.renjin.primitives;
 import java.io.IOException;
 
 import org.apache.commons.math.MathException;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.primitives.random.Distributions;
@@ -292,5 +293,15 @@ public class DistributionsTest extends EvalTestCase{
       assertThat(eval("ptukey(5.20, 14,12,5 , TRUE, FALSE)").asReal(), closeTo(0.7342322, ERROR));
       assertThat(eval("ptukey(4.9, 21,9,2,T,T)").asReal(), closeTo(-0.406227, ERROR));
       assertThat(eval("qtukey(0.90, 6,3, 4,T,F)").asReal(), closeTo(8.001985, ERROR));      
+    }
+    
+    @Test
+    public void chisquareZeroDf() {
+      assertThat(eval(".Internal(pchisq(0.5, df=0, TRUE, FALSE))"), Matchers.equalTo(c(1)));
+      assertThat(eval(".Internal(pchisq(0.5, df=0, FALSE, FALSE))"), Matchers.equalTo(c(0)));
+      assertThat(eval(".Internal(pnchisq(0.5, df=0, ncp=0.5,  TRUE, FALSE))"), closeTo(c( 0.8225176), ERROR));
+      assertThat(eval(".Internal(qchisq(0.5, df=0, TRUE, FALSE))"), equalTo(c(0)));
+      assertThat(eval("is.infinite(.Internal(qchisq(1, df=0, TRUE, FALSE)))"), equalTo(c(true)));
+      
     }
 }

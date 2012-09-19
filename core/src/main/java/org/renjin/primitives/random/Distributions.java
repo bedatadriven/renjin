@@ -40,6 +40,7 @@ import org.apache.commons.math.distribution.PoissonDistributionImpl;
 import org.apache.commons.math.distribution.TDistributionImpl;
 import org.apache.commons.math.distribution.WeibullDistributionImpl;
 import org.renjin.primitives.annotations.Recycle;
+import org.renjin.primitives.random.distributions.ChisquareZeroDfDistribution;
 import org.renjin.primitives.random.distributions.LogisticDistribution;
 import org.renjin.primitives.random.distributions.UniformDistribution;
 
@@ -230,7 +231,11 @@ public class Distributions {
   }
 
   public static double pchisq(@Recycle double q, @Recycle double df, boolean lowerTail, boolean logP) {
-    return p(new ChiSquaredDistributionImpl(df), q, lowerTail, logP);
+    if(df == 0) {
+      return p(new ChisquareZeroDfDistribution(), q, lowerTail, logP);
+    } else {
+      return p(new ChiSquaredDistributionImpl(df), q, lowerTail, logP);
+    }
   }
 
   public static double pnchisq(@Recycle double q, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {
@@ -238,7 +243,11 @@ public class Distributions {
   }
 
   public static double qchisq(@Recycle double p, @Recycle double df, boolean lowerTail, boolean logP) {
-    return q(new ChiSquaredDistributionImpl(df), p, lowerTail, logP);
+    if(df == 0) {
+      return q(new ChisquareZeroDfDistribution(), p, lowerTail, logP);
+    } else {
+      return q(new ChiSquaredDistributionImpl(df), p, lowerTail, logP);
+    }
   }
 
   public static double qnchisq(@Recycle double p, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {

@@ -160,6 +160,13 @@ public class MathExt {
     return Math.round(x);
   }
   
+  @Primitive
+  @Deferrable
+  public static double round(@Recycle double x, @Recycle int digits) {
+    double factor = Math.pow(10, digits);
+    return Math.round(x * factor) / factor;
+  }
+  
   /**
    * TODO in R, trunc also works on Dates.
    * @param x

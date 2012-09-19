@@ -181,4 +181,10 @@ public class MathTest extends EvalTestCase {
   public void truncateGreaterThanHalf() {
     assertThat(eval("trunc(1.6)").asReal(), equalTo(1.0));
   }
+  
+  @Test
+  public void roundWithDigits() {
+    assertThat(eval("round(1/3,2)"), equalTo(c(0.33)));
+    
+  }
 }

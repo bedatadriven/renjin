@@ -217,9 +217,16 @@ public class Subsetting {
   @Primitive("[[<-")
   public static SEXP setSingleElement(AtomicVector source, Vector index, Vector replacement) {
     // When applied to atomic vectors, [[<- works exactly like [<-
-    return new SubscriptOperation()
-    .setSource(source, new ListVector(index), 0, 0)
-    .replace(replacement); 
+    // EXCEPT when the vector is zero-length, and then we create a new list
+    if(source.length() == 0) {
+      return setSingleElement(new ListVector.NamedBuilder(), 
+          index.getElementAsInt(0), 
+          replacement);
+    } else {
+      return new SubscriptOperation()
+      .setSource(source, new ListVector(index), 0, 0)
+      .replace(replacement); 
+    }
   }
     
   

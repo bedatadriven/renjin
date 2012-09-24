@@ -21,16 +21,21 @@
 
 package org.renjin.appengine;
 
-import org.apache.commons.vfs2.*;
-import org.apache.commons.vfs2.provider.AbstractFileProvider;
-import org.apache.commons.vfs2.provider.LocalFileProvider;
-import org.apache.commons.vfs2.provider.UriParser;
-import org.apache.commons.vfs2.provider.local.LocalFileSystem;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+
+import org.apache.commons.vfs2.Capability;
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystem;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.provider.AbstractFileProvider;
+import org.apache.commons.vfs2.provider.LocalFileProvider;
+import org.apache.commons.vfs2.provider.UriParser;
 
 /**
  * Provides read-only access to the application context
@@ -94,7 +99,7 @@ public class AppEngineLocalFilesSystemProvider
       final FileName rootName =
           getContext().parseURI(scheme + ":" + FileName.ROOT_PATH);
 
-      filesystem = new LocalFileSystem(rootName, rootFile.getAbsolutePath(), properties);
+      filesystem = new AppEngineLocalFileSystem(rootName, rootFile.getAbsolutePath(), properties);
       addFileSystem(this, filesystem);
     }
 

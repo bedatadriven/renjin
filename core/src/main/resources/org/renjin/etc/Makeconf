@@ -4,14 +4,14 @@
 #
 # R was configured using the following call
 # (not including env. vars and site configuration)
-# configure  '--disable-byte-compiled-packages' '--without-recommended-packages'
+# configure  '--enable-R-shlib' '--disable-byte-compiled-packages' '--without-recommended-packages' 'JAVA_HOME=/usr/lib/jvm/java-6-sun'
 
 ## This fails if it contains spaces, or if it is quoted
 include $(R_SHARE_DIR)/make/vars.mk
 
 AR = ar
 ## Used by packages 'maps' and 'mapdata'
-AWK = mawk
+AWK = gawk
 BLAS_LIBS = -L$(R_HOME)/lib$(R_ARCH) -lRblas
 C_VISIBILITY = -fvisibility=hidden
 CC = gcc -std=gnu99
@@ -43,20 +43,20 @@ FCPICFLAGS = -fpic
 FPICFLAGS = -fpic
 FOUNDATION_CPPFLAGS = 
 FOUNDATION_LIBS = 
-JAR = /usr/bin/jar
-JAVA = /usr/bin/java
-JAVAC = /usr/bin/javac
-JAVAH = /usr/bin/javah
-JAVA_HOME = /usr/lib/jvm/java-6-openjdk/jre
-JAVA_LD_LIBRARY_PATH = $(JAVA_HOME)/lib/amd64/server:$(JAVA_HOME)/lib/amd64:$(JAVA_HOME)/../lib/amd64:/usr/local/lib64:/usr/java/packages/lib/amd64:/usr/lib/x86_64-linux-gnu/jni:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/jni:/lib:/usr/lib
-JAVA_LIBS = -L$(JAVA_HOME)/lib/amd64/server -L$(JAVA_HOME)/lib/amd64 -L$(JAVA_HOME)/../lib/amd64 -L/usr/local/lib64 -L/usr/java/packages/lib/amd64 -L/usr/lib/x86_64-linux-gnu/jni -L/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -L/usr/lib/jni -L/lib -L/usr/lib -ljvm
-JAVA_CPPFLAGS = -I$(JAVA_HOME)/../include
+JAR = /usr/lib/jvm/java-6-sun/bin/jar
+JAVA = /usr/lib/jvm/java-6-sun/jre/bin/java
+JAVAC = /usr/lib/jvm/java-6-sun/bin/javac
+JAVAH = /usr/lib/jvm/java-6-sun/bin/javah
+JAVA_HOME = /usr/lib/jvm/java-6-sun
+JAVA_LD_LIBRARY_PATH = $(JAVA_HOME)-1.6.0.26/jre/lib/amd64/server:$(JAVA_HOME)-1.6.0.26/jre/lib/amd64:$(JAVA_HOME)-1.6.0.26/jre/../lib/amd64:/usr/local/lib64:/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib
+JAVA_LIBS = -L$(JAVA_HOME)-1.6.0.26/jre/lib/amd64/server -L$(JAVA_HOME)-1.6.0.26/jre/lib/amd64 -L$(JAVA_HOME)-1.6.0.26/jre/../lib/amd64 -L/usr/local/lib64 -L/usr/java/packages/lib/amd64 -L/usr/lib64 -L/lib64 -L/lib -L/usr/lib -ljvm
+JAVA_CPPFLAGS = -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux
 LAPACK_LIBS = -L$(R_HOME)/lib$(R_ARCH) -lRlapack
 ## we only need this is if it is external, as otherwise link to R
 LIBINTL= 
 LIBM = -lm
-LIBR = 
-LIBS =  -lrt -ldl -lm
+LIBR = -L$(R_HOME)/lib$(R_ARCH) -lR
+LIBS =  -lrt -ldl -lm -licuuc -licui18n
 ## needed by R CMD config
 LIBnn = lib64
 LIBTOOL = $(SHELL) "$(R_HOME)/bin/libtool"

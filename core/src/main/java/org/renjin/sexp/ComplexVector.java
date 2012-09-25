@@ -158,9 +158,18 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
         }
         return true;
       }
-    }else return false;
+    } else {
+      return false;
+    }
   }
   
+  
+  
+  @Override
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
+    return new ComplexVector(this.values, attributes);
+  }
+
   @Override
   public int compare(int index1, int index2) {
     throw new UnsupportedOperationException("implement me");

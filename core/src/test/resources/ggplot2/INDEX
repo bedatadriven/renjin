@@ -1,0 +1,222 @@
++.gg                    Modify a ggplot or theme object by adding on
+                        new components.
+add_theme               Modify properties of an element in a theme
+                        object
+aes                     Generate aesthetic mappings that describe how
+                        variables in the data are mapped to visual
+                        properties (aesthetics) of geoms.
+aes_all                 Given a character vector, create a set of
+                        identity mappings
+aes_auto                Automatic aesthetic mapping
+aes_colour_fill_alpha   Colour related aesthetics: colour, fill and
+                        alpha
+aes_group_order         Aesthetics: group, order
+aes_linetype_size_shape
+                        Differentiation related aesthetics: linetype,
+                        size, shape
+aes_position            Position related aesthetics: x, y, xmin, xmax,
+                        ymin, ymax, xend, yend
+aes_string              Generate aesthetic mappings from a string
+annotate                Create an annotation layer.
+annotation_custom       Annotation: Custom grob.
+annotation_logticks     Annotation: log tick marks
+annotation_map          Annotation: maps.
+annotation_raster       Annotation: High-performance rectangular
+                        tiling.
+autoplot                Create a complete ggplot appropriate to a
+                        particular data type
+borders                 Create a layer of map borders.
+calc_element            Calculate the element properties, by inheriting
+                        properties from its parents
+coord_cartesian         Cartesian coordinates.
+coord_fixed             Cartesian coordinates with fixed relationship
+                        between x and y scales.
+coord_flip              Flipped cartesian coordinates.
+coord_map               Map projections.
+coord_polar             Polar coordinates.
+coord_trans             Transformed cartesian coordinate system.
+cut_interval            Cut numeric vector into intervals of equal
+                        length.
+cut_number              Cut numeric vector into intervals containing
+                        equal number of points.
+diamonds                Prices of 50,000 round cut diamonds
+discrete_scale          Discrete scale constructor.
+economics               US economic time series.
+element_blank           Theme element: blank. This theme element draws
+                        nothing, and assigns no space
+element_line            Theme element: line.
+element_rect            Theme element: rectangle.
+element_text            Theme element: text.
+expand_limits           Expand the plot limits with data.
+facet_grid              Lay out panels in a grid.
+facet_null              Facet specification: a single panel.
+facet_wrap              Wrap a 1d ribbon of panels into 2d.
+fortify                 Fortify a model with data.
+fortify-multcomp        Fortify methods for objects produced by
+                        'multcomp'
+fortify.lm              Supplement the data fitted to a linear model
+                        with model fit statistics.
+fortify.map             Fortify method for map objects.
+fortify.sp              Fortify method for classes from the sp package.
+geom_abline             Line specified by slope and intercept.
+geom_area               Area plot.
+geom_bar                Bars, rectangles with bases on x-axis
+geom_bin2d              Add heatmap of 2d bin counts.
+geom_blank              Blank, draws nothing.
+geom_boxplot            Box and whiskers plot.
+geom_contour            Display contours of a 3d surface in 2d.
+geom_crossbar           Hollow bar with middle indicated by horizontal
+                        line.
+geom_density            Display a smooth density estimate.
+geom_density2d          Contours from a 2d density estimate.
+geom_dotplot            Dot plot
+geom_errorbar           Error bars.
+geom_errorbarh          Horizontal error bars
+geom_freqpoly           Frequency polygon.
+geom_hex                Hexagon bining.
+geom_histogram          Histogram
+geom_hline              Horizontal line.
+geom_jitter             Points, jittered to reduce overplotting.
+geom_line               Connect observations, ordered by x value.
+geom_linerange          An interval represented by a vertical line.
+geom_map                Polygons from a reference map.
+geom_path               Connect observations in original order
+geom_point              Points, as for a scatterplot
+geom_pointrange         An interval represented by a vertical line,
+                        with a point in the middle.
+geom_polygon            Polygon, a filled path.
+geom_quantile           Add quantile lines from a quantile regression.
+geom_raster             High-performance rectangular tiling.
+geom_rect               2d rectangles.
+geom_ribbon             Ribbons, y range with continuous x values.
+geom_rug                Marginal rug plots.
+geom_segment            Single line segments.
+geom_smooth             Add a smoothed conditional mean.
+geom_step               Connect observations by stairs.
+geom_text               Textual annotations.
+geom_tile               Tile plane with rectangles.
+geom_violin             Violin plot.
+geom_vline              Line, vertical.
+ggfluctuation           Create a fluctuation plot.
+ggmissing               Create a plot to illustrate patterns of missing
+                        values.
+ggorder                 A plot to investigate the order in which
+                        observations were recorded.
+ggpcp                   Make a parallel coordinates plot.
+ggplot.data.frame       Create a new ggplot plot from a data frame
+ggplot2                 ggplot2.
+ggsave                  Save a ggplot with sensible defaults
+ggscale                 Components of a scale:
+ggstructure             A plot which aims to reveal gross structural
+                        anomalies in the data.
+guide_colourbar         Contiuous colour bar guide.
+guide_legend            Legend guide.
+guides                  Set guides for each scale.
+hmisc                   Wrap up a selection of summary functions from
+                        Hmisc to make it easy to use with
+                        'stat_summary'.
+is.ggplot               Reports whether x is a ggplot object
+is.rel                  Reports whether x is a rel object
+is.theme                Reports whether x is a theme object
+label_both              Label facets with value and variable.
+label_bquote            Label facet with 'bquoted' expressions
+label_parsed            Label facets with parsed label.
+label_value             Label facets with their value. This is the
+                        default labelling scheme.
+labs                    Change axis labels and legend titles
+last_plot               Retrieve the last plot to be modified or
+                        created.
+map_data                Create a data frame of map data.
+mean_se                 Calculate mean and standard errors on either
+                        side.
+midwest                 Midwest demographics.
+movies                  Movie information and user ratings from
+                        IMDB.com.
+mpg                     Fuel economy data from 1999 and 2008 for 38
+                        popular models of car
+msleep                  An updated and expanded version of the mammals
+                        sleep dataset.
+opts                    Build a theme (or partial theme) from theme
+                        elements
+plotmatrix              Code to create a scatterplot matrix
+                        (experimental)
+position_dodge          Adjust position by dodging overlaps to the
+                        side.
+position_fill           Stack overlapping objects on top of one
+                        another, and standardise to have equal height.
+position_identity       Don't adjust position
+position_jitter         Jitter points to avoid overplotting.
+position_stack          Stack overlapping objects on top of one
+                        another.
+presidential            Terms of 10 presidents from Eisenhower to Bush
+                        W.
+print.ggplot            Draw plot on current graphics device.
+qplot                   Quick plot
+rel                     Relative sizing for theme elements
+resolution              Compute the "resolution" of a data vector.
+scale_alpha             Alpha scales.
+scale_area              Scale area instead of radius (for size).
+scale_colour_brewer     Sequential, diverging and qualitative colour
+                        scales from colorbrewer.org
+scale_colour_gradient   Smooth gradient between two colours
+scale_colour_gradient2
+                        Diverging colour gradient
+scale_colour_gradientn
+                        Smooth colour gradient between n colours
+scale_colour_grey       Sequential grey colour scale.
+scale_colour_hue        Qualitative colour scale with evenly spaced
+                        hues.
+scale_identity          Use values without scaling.
+scale_linetype          Scale for line patterns.
+scale_manual            Create your own discrete scale.
+scale_shape             Scale for shapes, aka glyphs.
+scale_size              Size scale.
+scale_x_continuous      Continuous position scales (x & y).
+scale_x_date            Position scale, date
+scale_x_datetime        Position scale, date
+scale_x_discrete        Discrete position.
+seals                   Vector field of seal movements.
+stat_bin                Bin data.
+stat_bin2d              Count number of observation in rectangular
+                        bins.
+stat_bindot             Bin data for dot plot.
+stat_binhex             Bin 2d plane into hexagons.
+stat_boxplot            Calculate components of box and whisker plot.
+stat_contour            Calculate contours of 3d data.
+stat_density            1d kernel density estimate.
+stat_density2d          2d density estimation.
+stat_ecdf               Empirical Cumulative Density Function
+stat_function           Superimpose a function.
+stat_identity           Identity statistic.
+stat_qq                 Calculation for quantile-quantile plot.
+stat_quantile           Continuous quantiles.
+stat_smooth             Add a smoother.
+stat_spoke              Convert angle and radius to xend and yend.
+stat_sum                Sum unique values.  Useful for overplotting on
+                        scatterplots.
+stat_summary            Summarise y values at every unique x.
+stat_summary2d          Apply funciton for 2D rectangular bins.
+stat_summary_hex        Apply funciton for 2D hexagonal bins.
+stat_unique             Remove duplicates.
+stat_ydensity           1d kernel density estimate along y axis, for
+                        violin plot.
+theme                   Set theme elements
+theme_blank             Deprecated theme_xx functions
+theme_bw                A theme with white background and black
+                        gridlines.
+theme_grey              A theme with grey background and white
+                        gridlines.
+theme_update            Get, set and update themes.
+translate_qplot_base    Translating between qplot and base graphics
+translate_qplot_ggplot
+                        Translating between qplot and ggplot
+translate_qplot_gpl     Translating between qplot and Graphics
+                        Production Library (GPL)
+translate_qplot_lattice
+                        Translating between qplot and lattice
+update_element          Update theme param
+update_geom_defaults    Modify geom/stat aesthetic defaults for future
+                        plots
+update_labels           Update axis/legend labels
+xlim                    Convenience functions to set the limits of the
+                        x and y axis.

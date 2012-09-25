@@ -21,6 +21,7 @@
 
 package org.renjin.eval;
 
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
@@ -177,6 +178,8 @@ public class Context {
     
     public SecurityManager securityManager;
     
+    private Map<Class, Object> singletons = Maps.newHashMap();
+    
     private GraphicsDevices graphicsDevices = new GraphicsDevices();
     private ColorPalette colorPalette = new ColorPalette();
 
@@ -264,6 +267,25 @@ public class Context {
     
     public SessionController getSessionController() {
       return sessionController;
+    }
+    
+    /**
+     * Retrieves the singleton associated with this apartment.
+     * @param clazz
+     * @return
+     */
+    public <X> X getSingleton(Class<X> clazz) {
+      X instance = (X) singletons.get(clazz);
+      if(instance == null) {
+        try {
+          instance = clazz.newInstance();
+        } catch (Exception e) {
+          throw new RuntimeException("Can instantiate singleton " + clazz.getName() + 
+              ": the class must have a public default constructor", e);
+        }
+        singletons.put(clazz, instance);
+      }
+      return instance;
     }
 
     public void setSessionController(SessionController sessionController) {
@@ -451,11 +473,12 @@ public class Context {
       return result;
     }
   }
+  
 
   private SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
     Function functionExpr = evaluateFunction(call.getFunction(), rho);
-    return  functionExpr.apply(this, rho, call, call.getArguments());
+    return functionExpr.apply(this, rho, call, call.getArguments());
   }
 
   private Function evaluateFunction(SEXP functionExp, Environment rho) {

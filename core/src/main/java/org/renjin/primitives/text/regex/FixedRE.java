@@ -31,6 +31,7 @@ import java.util.List;
 public class FixedRE implements RE {
 
   private String pattern;
+  private int matchStart;
 
   public FixedRE(String pattern) {
     this.pattern = pattern;
@@ -38,7 +39,8 @@ public class FixedRE implements RE {
 
   @Override
   public boolean match(String search) {
-    return search.indexOf(pattern) != -1;
+    int matchStart = search.indexOf(pattern);
+    return matchStart != -1;
   }
 
   @Override
@@ -62,5 +64,23 @@ public class FixedRE implements RE {
     }
     splits.add(s.substring(i));
     return splits.toArray(new String[splits.size()]);
+  }
+
+  @Override
+  public int getGroupStart(int groupIndex) {
+    if(groupIndex != 0) {
+      throw new IllegalArgumentException("groupIndex out of bounds: fixed REs have no sub groups.");
+    }
+    return matchStart;
+  }
+
+  @Override
+  public int getGroupEnd(int groupIndex) {
+    int start = getGroupStart(groupIndex);
+    if(start == -1) {
+      return -1;
+    } else {
+      return start + pattern.length();
+    }
   }
 }

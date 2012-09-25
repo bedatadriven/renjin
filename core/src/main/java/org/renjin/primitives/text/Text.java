@@ -45,6 +45,7 @@ public class Text {
 
   private Text() {}
 
+  @Primitive
   public static StringVector paste(ListVector arguments, String separator, String collapse) {
 
     int resultLength = arguments.maxElementLength();
@@ -82,6 +83,7 @@ public class Text {
     return paste(components, fileSeparator, null);
   }
 
+  @Primitive
   public static StringVector sprintf(@Current Context context, @Current Environment rho, 
         StringVector format, @ArgumentList ListVector arguments) {
     
@@ -179,12 +181,14 @@ public class Text {
    * @param messages
    * @return
    */
+  @Primitive
   public static StringVector gettext(String domain, StringVector messages) {
     // stub implementation; no translation
     return messages;
   }
 
   @Recycle(false)
+  @Primitive
   public static String ngettext(double n,
                                 String singularMessage,
                                 String pluralMessage,
@@ -193,6 +197,7 @@ public class Text {
     return n == 1 ? singularMessage : pluralMessage;
   }
 
+  @Primitive
   public static void bindtextdomain(String domain, String dirname) {
     // translation not yet supported.
   }
@@ -220,10 +225,12 @@ public class Text {
     return translation.toString();
   }
 
+  @Primitive
   public static String tolower(String x) {
     return x.toLowerCase();
   }
 
+  @Primitive
   public static String toupper(String x) {
     return x.toUpperCase();
   }
@@ -236,6 +243,7 @@ public class Text {
    * @return
    */
   @AllowNA
+  @Primitive
   public static int nchar(@Recycle String x, String type, boolean allowNA) {
     if(StringVector.isNA(x)) {
       return 2;
@@ -250,6 +258,7 @@ public class Text {
    * @return true if the string of non-zero length, false if the string is empty
    */
   @AllowNA
+  @Primitive
   public static boolean nzchar(String x) {
     return StringVector.isNA(x) || x.length() != 0;
   }
@@ -268,6 +277,7 @@ public class Text {
    * Not supported
    * @return  the string with replacements made
    */
+  @Primitive
   public static String sub(String pattern, String replacement,
                            @Recycle String x,
                            boolean ignoreCase,
@@ -294,6 +304,7 @@ public class Text {
    * Not supported
    * @return  the string with replacements made
    */
+  @Primitive
   public static String gsub(String pattern, String replacement,
                             @Recycle String x,
                             boolean ignoreCase,
@@ -316,6 +327,7 @@ public class Text {
    * Not supported
    * @return  a {@code StringVector} containing the splits
    */
+  @Primitive
   public static StringVector strsplit(@Recycle String x, @Recycle String split,
                                       boolean fixed,
                                       boolean perl,
@@ -370,6 +382,7 @@ public class Text {
    * @param invert
    * @return a logical vector (match or not for each element of x).
    */
+  @Primitive
   public static Vector grepl(
       String pattern,
       StringVector x,
@@ -388,7 +401,7 @@ public class Text {
     return result.build();
   }
   
-
+  @Primitive
   public static Vector agrep(String pattern, StringVector x,  boolean ignoreCase, boolean value,
                               Vector costs, Vector bounds, boolean useBytes, boolean fixed) {
 
@@ -436,17 +449,32 @@ public class Text {
   }
 
 
-  private static int minimum(int a, int b, int c)
-  {
-      int mi = a;
-      if (b < mi)
-          mi = b;
-      if (c < mi)
-          mi = c;
-      return mi;
+  @Primitive
+  public static IntVector regexpr(String pattern, StringVector vector, boolean ignoreCase, boolean perl,
+      boolean fixed, boolean useBytes) {
+    
+    RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
+    IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
+    IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
+    
+    for(String text : vector) {
+      if(re.match(text)) {
+        int start = re.getGroupStart(0);
+        int end = re.getGroupEnd(0);
+        position.add(start+1);
+        matchLength.add(end-start);
+      } else {
+        position.add(-1);
+        matchLength.add(-1);
+      }
+    }
+    
+    position.setAttribute("match.length", matchLength.build());
+    position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
+    return position.build();
   }
 
-
+  @Primitive
   public static StringVector substr(StringVector x, int start, int stop) {
     StringVector.Builder result = new StringVector.Builder();
     for(String s : x) {

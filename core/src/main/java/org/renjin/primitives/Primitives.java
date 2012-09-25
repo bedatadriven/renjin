@@ -5,6 +5,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.methods.Methods;
 import org.renjin.primitives.annotations.processor.WrapperGenerator2;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.graphics.Graphics;
@@ -152,7 +153,7 @@ public class Primitives {
     f("[",Subsetting.class, 1, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
     f("[[", Subsetting.class, 2, 0, -1, PP_SUBSET, PREC_SUBSET, 0);
     f("$", Subsetting.class, 3, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
-    f("@", /*AT*/ null, 0, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
+    f("@", Subsetting.class, 0, 0, 2, PP_DOLLAR, PREC_DOLLAR, 0);
     f("[<-", Subsetting.class, 0, 0, 3, PP_SUBASS, PREC_LEFT, 1);
     f("[[<-", Subsetting.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
     f("$<-", Subsetting.class, 1, 0, 3, PP_SUBASS, PREC_LEFT, 1);
@@ -248,6 +249,7 @@ public class Primitives {
     f("oldClass", Attributes.class, 0, 1, 1);
     f("oldClass<-", Attributes.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("class", Attributes.class, "getClass", 0, 1, 1);
+    f(".cache_class", Methods.class, 1, 1, 2, PP_FUNCALL, PREC_FN, 0);
     f("class<-", Attributes.class, "setClass", 0, 1, 2);
     f("unclass", Attributes.class, 0, 1, 1);
     f("names", Attributes.class,  "getNames", 0, 1, 1);
@@ -548,7 +550,7 @@ public class Primitives {
     f("grepl", Text.class, 1, 11, 9);
     f("sub", Text.class, 0, 11, 8);
     f("gsub", Text.class, 1, 11, 8);
-    f("regexpr", /*regexpr*/ null, 1, 11, 7);
+    f("regexpr", Text.class, 1, 11, 7);
     f("gregexpr", /*gregexpr*/ null, 1, 11, 7);
     f("agrep", Text.class, 1, 11, 9);
     f("tolower", Text.class, 0, 11, 1);

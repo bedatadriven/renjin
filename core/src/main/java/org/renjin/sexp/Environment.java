@@ -271,7 +271,11 @@ public class Environment extends AbstractSEXP implements Recursive {
         return value;
       }
     }
-    return parent.findVariable(symbol, predicate, inherits);
+    if(inherits) {
+      return parent.findVariable(symbol, predicate, inherits);
+    } else {
+      return Symbol.UNBOUND_VALUE;
+    }
   }
 
   /**
@@ -478,5 +482,6 @@ public class Environment extends AbstractSEXP implements Recursive {
       throw new UnsupportedOperationException("The empty environment does not have a parent.");
     }
   }
+
 
 }

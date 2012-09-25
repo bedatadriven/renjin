@@ -296,7 +296,13 @@ public class TextTest extends EvalTestCase {
     assertThat(eval("v_t_1"), equalTo(c("2.10", "2.4.0", "2.10")));
     assertThat(eval("length(v_t)"), equalTo(c_i(1)));
     assertThat(eval("names(v_t)"), equalTo(c(">=")));
-
-
+  }
+  
+  @Test
+  public void regexprTest() {
+    eval("m <- .Internal(regexpr('[ABC]+', c('querty', 'BCA', 'AAAA'), ignore.case=FALSE, perl=FALSE, fixed=FALSE, useBytes=FALSE))");
+    assertThat(eval("m"), equalTo(c_i(-1,1,1)));
+    assertThat(eval("attr(m, 'match.length')"), equalTo(c_i(-1,3,4)));
+    
   }
 }

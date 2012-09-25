@@ -21,9 +21,11 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.Attributes;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import org.renjin.primitives.Attributes;
 
 
 /**
@@ -199,10 +201,10 @@ public abstract class AbstractSEXP implements SEXP {
   private AttributeMap replaceAttribute(Symbol attributeName, SEXP newValue) {
     return this.attributes.copy().set(attributeName, newValue).build();
   }
-
+  
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     if(attributes != AttributeMap.EMPTY) {
-      throw new UnsupportedOperationException("cannot change/set attributes on " + getClass().getSimpleName());
+      throw new EvalException("cannot change/set attributes on " + getClass().getSimpleName());
     }
     return this;
   }

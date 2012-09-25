@@ -38,7 +38,7 @@ public class Bootstrapper {
     
       // now we can compile the rest of the packages
       for(String packageName : new String[] 
-          { "datasets", "utils", "grDevices", "graphics", "stats", "splines" }) {
+          { "datasets", "utils", "grDevices", "graphics", "stats", "splines", "methods" }) {
         buildPackage(packageName);
       }
     } catch(Exception e) {

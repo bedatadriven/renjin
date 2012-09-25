@@ -10,6 +10,8 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+import java_cup.lexer;
+
 /**
  *
  * Immutable map of a SEXP's attributes.
@@ -95,6 +97,10 @@ public class AttributeMap {
     }
   }
 
+
+  public SEXP get(String what) {
+    return get(Symbol.get(what));
+  }
 
   public SEXP get(Symbol name) {
     if(name == Symbols.CLASS && classes != null) {
@@ -347,6 +353,10 @@ public class AttributeMap {
       return remove(Symbols.DIM);
     }
 
+    public SEXP get(String what) {
+      return get(Symbol.get(what));
+    }
+
     public SEXP get(Symbol name) {
       if(name == Symbols.CLASS) {
         return classes;
@@ -487,6 +497,21 @@ public class AttributeMap {
     AttributeMap map = new AttributeMap();
     map.dim = new IntArrayVector(row, col);
     return map;
+  }
+
+  public String getString(Symbol name) {
+    SEXP value = get(name);
+    if(value == Null.INSTANCE) {
+      return null;
+    }
+    if(value instanceof StringVector && value.length() == 1) {
+      return ((StringVector) value).getElementAsString(0);
+    }
+    throw new EvalException("Expected character(1) value for attribute %s", name.getPrintName());
+  }
+
+  public String getPackage() {
+    return getString(Symbols.PACKAGE);
   }
 
 

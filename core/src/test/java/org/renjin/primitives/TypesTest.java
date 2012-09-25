@@ -631,5 +631,21 @@ public strictfp class TypesTest extends EvalTestCase {
   public void getThrowsOnNonExistantVariable() {
     eval(".Internal(get('nonexistant.variable', globalenv(), 'any', TRUE))");
   }
-
+  
+  @Test
+  public void existsNoInherit() {
+    assumingBasePackagesLoad();
+    eval("x <- 42");
+    eval("f <- function() { exists('x', inherits=FALSE) } ");
+    assertThat( eval("f()"), equalTo(c(false)));
+  }
+  
+  @Test
+  public void getNoInheritThrows() {
+    assumingBasePackagesLoad();
+    eval("x <- 42");
+    eval("f <- function() { exists('x', inherits=FALSE) } ");
+    eval("f()");
+  }
+  
 }

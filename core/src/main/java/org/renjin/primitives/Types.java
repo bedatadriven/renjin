@@ -613,6 +613,8 @@ public class Types {
       result = new IntArrayVector.Builder(x.length());
     } else if ("numeric".equals(mode) || "double".equals(mode)) {
       result = new DoubleArrayVector.Builder(x.length());
+    } else if ("complex".equals(mode)) {
+      result = new ComplexVector.Builder(x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
     } else if ("pairlist".equals(mode)) {
@@ -718,14 +720,24 @@ public class Types {
 
   @Primitive("as.environment")
   public static Environment asEnvironment(@Current Context context, double index) {
-    Environment result = context.getGlobalEnvironment();
-    for (int i = 1; i < index; ++i) {
-      if (result == Environment.EMPTY) {
-        throw new EvalException("invalid 'pos' argument");
+    if(index < 0) {
+      Environment result = context.getEnvironment();
+      while(index < 0) {
+        result = result.getParent();
+        index++;
       }
-      result = result.getParent();
+      return result;
+      
+    } else {
+      Environment result = context.getGlobalEnvironment();
+      for (int i = 1; i < index; ++i) {
+        if (result == Environment.EMPTY) {
+          throw new EvalException("invalid 'pos' argument");
+        }
+        result = result.getParent();
+      }
+      return result;
     }
-    return result;
   }
   
   @Primitive
@@ -779,6 +791,11 @@ public class Types {
   @Primitive
   public static void unlockBinding(Symbol name, Environment env) {
     env.unlockBinding(name);
+  }
+  
+  @Primitive
+  public static boolean bindingIsLocked(Symbol name, Environment env) {
+    return env.bindingIsLocked(name);
   }
 
   @Primitive

@@ -60,11 +60,7 @@ public abstract class SpecialFunction extends PrimitiveFunction {
     if (s.length() > 1) {
       Warning.invokeWarning(context, call, "the condition has length > 1 and only the first element will be used");
     }
-
-    if(s instanceof DeferredComputation) {
-
-    }
-
+    
     Logical logical = s.asLogical();
     if (logical == Logical.NA) {
       throw new EvalException("missing value where TRUE/FALSE needed");

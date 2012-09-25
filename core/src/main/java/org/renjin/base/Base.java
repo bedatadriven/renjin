@@ -21,25 +21,44 @@
 
 package org.renjin.base;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.math.complex.Complex;
 import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.methods.Methods;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
-import org.renjin.sexp.*;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.ComplexVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalArrayVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.S4Object;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
 
 /**
@@ -682,10 +701,6 @@ public class Base {
     return Serialization.lazyLoadDbInsertValue(context, null, value, file, compress, hook);
   }
 
-  public static SEXP R_isS4Object(SEXP exp) {
-    // TODO(S4)
-    return new LogicalArrayVector(false);
-  }
   
   public static ListVector str_signif(Vector x, int n, String type, int width, int digits, String format, String flag, StringVector resultVector) {
     ListVector.NamedBuilder result = new ListVector.NamedBuilder();
@@ -704,5 +719,26 @@ public class Base {
 
   public static String crc64ToString(String value) {
     return Crc64.getCrc64(value);
+  }
+  public static SEXP R_isS4Object(SEXP exp) {
+    if(exp instanceof S4Object) {
+      return LogicalVector.TRUE;
+    } else if(exp.getAttribute(Symbols.S4_BIT) != Null.INSTANCE) {
+      return LogicalVector.TRUE;
+    } else {
+      return LogicalVector.FALSE;
+    }
+  }
+  
+  public static SEXP R_do_new_object(S4Object classRepresentation) {
+    return Methods.R_do_new_object(classRepresentation);
+  }
+  
+  public static SEXP R_setS4Object(SEXP object, boolean bool, int index) {
+    if(object instanceof S4Object) {
+      return object;
+    } else {
+      return object.setAttribute(Symbols.S4_BIT, LogicalVector.TRUE);
+    }
   }
 }

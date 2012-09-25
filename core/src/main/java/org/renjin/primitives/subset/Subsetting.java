@@ -74,6 +74,18 @@ public class Subsetting {
     }
     return value;
   }
+  
+
+  @Primitive("@")
+  public static SEXP getSlotValue(SEXP object, @Evaluate(false) Symbol slotName) {
+    if(slotName.getPrintName().equals(".Data")) {
+      throw new EvalException("todo");
+    }
+    
+    return object.getAttribute(slotName);
+    
+  
+  }
 
   @Generic
   @Primitive("$")

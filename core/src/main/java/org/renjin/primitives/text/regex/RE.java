@@ -112,4 +112,19 @@ public interface RE {
    * @return Array of strings
    */
   String[] split(String s);
+  
+  /**
+   * 
+   * @return the character index of the last matched group, or -1 if the group
+   * was not matched. 
+   */
+  int getGroupStart(int groupIndex);
+  
+  /**
+   * 
+   * @return the character index of the end of the last matched group, or -1 if the group
+   * was not matched. 
+   */
+  int getGroupEnd(int groupIndex);
+  
 }

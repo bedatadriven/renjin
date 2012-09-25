@@ -82,6 +82,12 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
   public int getElementAsRawLogical(int index) {
     return (Logical.valueOf(this.values[index].getValue()).getInternalValue());
   }
+  
+  @Override
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
+    return new RawVector(this.values, attributes);
+  }
+
 
   @Override
   public SEXP getElementAsSEXP(int index) {

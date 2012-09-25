@@ -151,6 +151,15 @@ public class BasePackageTest extends EvalTestCase {
     SEXP result = eval("f(1) ");
     assertThat(result, Matchers.equalTo(c("a", "b", "c")));
   }
+  
+  @Test
+  public void sysFunction() {
+    assumingBasePackagesLoad();
+    
+    eval("g <- function() { y <- 99; x<- 42; function() { sys.function() }  };");
+    eval("fn <- g()");
+    assertThat(eval("environment(fn)$x"), equalTo(c(42)));
+  }
 
   @Test
   public void lapply() throws Exception {

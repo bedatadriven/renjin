@@ -21,14 +21,37 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.EvalException;
+
 
 public abstract class PrimitiveFunction extends AbstractSEXP implements Function {
 
   public abstract String getName();
-  
-  
+    
+  public PrimitiveFunction() {
+    super();
+  }
+
+  public PrimitiveFunction(AttributeMap attributes) {
+    super(attributes);
+  }
+
   @Override
   public String getImplicitClass() {
     return Function.IMPLICIT_CLASS;
   }
+
+  @Override
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
+    PrimitiveFunction clone;
+    try {
+      clone = getClass().newInstance();
+    } catch (Exception e) {
+      throw new EvalException("Exception cloning " + getName() + ": you may need to implement cloneWithNewAttributes yourself");
+    }
+    clone.attributes = attributes;
+    return clone;
+  }
+ 
+  
 }

@@ -631,9 +631,9 @@ public class ExtendedRE implements Serializable, RE {
     public String getParen(int which)
     {
         int start;
-        if (which < parenCount && (start = getParenStart(which)) >= 0)
+        if (which < parenCount && (start = getGroupStart(which)) >= 0)
         {
-            return search.substring(start, getParenEnd(which));
+            return search.substring(start, getGroupEnd(which));
         }
         return null;
     }
@@ -644,7 +644,7 @@ public class ExtendedRE implements Serializable, RE {
      * @param which Nesting level of subexpression
      * @return String index
      */
-    public final int getParenStart(int which)
+    public final int getGroupStart(int which)
     {
         if (which < parenCount)
         {
@@ -676,7 +676,7 @@ public class ExtendedRE implements Serializable, RE {
      * @param which Nesting level of subexpression
      * @return String index
      */
-    public final int getParenEnd(int which)
+    public final int getGroupEnd(int which)
     {
         if (which < parenCount)
         {
@@ -712,7 +712,7 @@ public class ExtendedRE implements Serializable, RE {
     {
         if (which < parenCount)
         {
-            return getParenEnd(which) - getParenStart(which);
+            return getGroupEnd(which) - getGroupStart(which);
         }
         return -1;
     }
@@ -915,7 +915,7 @@ public class ExtendedRE implements Serializable, RE {
                         }
 
                         // Don't set paren if already set later on
-                        if (getParenStart(opdata) == -1)
+                        if (getGroupStart(opdata) == -1)
                         {
                             setParenStart(opdata, idx);
                         }
@@ -938,7 +938,7 @@ public class ExtendedRE implements Serializable, RE {
                         }
 
                         // Don't set paren if already set later on
-                        if (getParenEnd(opdata) == -1)
+                        if (getGroupEnd(opdata) == -1)
                         {
                             setParenEnd(opdata, idx);
                         }
@@ -1576,10 +1576,10 @@ public class ExtendedRE implements Serializable, RE {
         while (pos < len && match(s, pos))
         {
             // Get start of match
-            int start = getParenStart(0);
+            int start = getGroupStart(0);
 
             // Get end of match
-            int newpos = getParenEnd(0);
+            int newpos = getGroupEnd(0);
 
             // Check if no progress was made
             if (newpos == pos)
@@ -1630,7 +1630,7 @@ public class ExtendedRE implements Serializable, RE {
         while (pos < len && match(substituteIn, pos))
         {
             // Append string before match
-            ret.append(substituteIn.substring(pos, getParenStart(0)));
+            ret.append(substituteIn.substring(pos, getGroupStart(0)));
 
             if ((flags & REPLACE_BACKREFERENCES) != 0)
             {
@@ -1674,7 +1674,7 @@ public class ExtendedRE implements Serializable, RE {
             }
 
             // Move forward, skipping past match
-            int newpos = getParenEnd(0);
+            int newpos = getGroupEnd(0);
 
             // We always want to make progress!
             if (newpos == pos)

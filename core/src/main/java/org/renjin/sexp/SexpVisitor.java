@@ -115,6 +115,12 @@ public class SexpVisitor<R> {
     unhandled(list);
   }
 
+
+  public void visit(S4Object s4Object) {
+    unhandled(s4Object);
+  }
+
+  
   public final void acceptAll(Iterable<SEXP> elements) {
     for(SEXP element : elements) {
       element.accept(this);

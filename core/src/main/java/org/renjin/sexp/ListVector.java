@@ -98,6 +98,19 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   public int length() {
     return values.size();
   }
+ 
+  @Override
+  public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
+    for(int i=0;i!=values.size();++i) {
+      SEXP element = values.get(i);
+      if(element instanceof AtomicVector && element.length() == 1) {
+        if(((AtomicVector)element).indexOf(vector, vectorIndex, 0) != -1) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
 
   public int indexOfName(String name) {
     SEXP names = attributes.getNamesOrNull();

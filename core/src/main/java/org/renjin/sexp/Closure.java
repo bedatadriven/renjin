@@ -61,8 +61,8 @@ public class Closure extends AbstractSEXP implements Function {
   
 
   @Override
-  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new Closure(this.enclosingEnvironment, this.formals, this.body, this.attributes);
+  protected SEXP cloneWithNewAttributes(AttributeMap newAttributes) {
+    return new Closure(this.enclosingEnvironment, this.formals, this.body, newAttributes);
   }
 
   @Override

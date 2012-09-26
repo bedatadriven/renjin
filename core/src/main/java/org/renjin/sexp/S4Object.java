@@ -17,7 +17,7 @@ public class S4Object extends AbstractSEXP {
 
   @Override
   public void accept(SexpVisitor visitor) {
-    throw new UnsupportedOperationException("implement me");
+    visitor.visit(this);
   }
 
   @Override
@@ -30,7 +30,10 @@ public class S4Object extends AbstractSEXP {
     StringBuilder sb = new StringBuilder();
     sb.append("S4[");
     for(PairList.Node node : attributes.asPairList().nodes()) {
-      sb.append(" ").append(node.getTag()).append("=").append(node.getValue());
+      SEXP value = node.getValue();
+      if(!(value instanceof Function) && value.length() > 0) {
+        sb.append(" ").append(node.getTag()).append("=").append(value);
+      }
     }
     sb.append("]");
     return sb.toString();

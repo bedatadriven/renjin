@@ -24,6 +24,7 @@ package org.renjin.primitives.special;
 import java.util.List;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.ExpressionVector;
 import org.renjin.sexp.FunctionCall;
@@ -49,20 +50,30 @@ public class SubstituteFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     checkArity(call, 2, 1);
     SEXP exp = call.getArgument(0);
-    SubstituteContext substituteContext = new EnvironmentContext(rho);
     if(call.getArguments().length() == 2) {
       SEXP envirSexp = context.evaluate(call.getArgument(1), rho);
-      if(envirSexp instanceof Environment) {
-        substituteContext = new EnvironmentContext((Environment) envirSexp);
-      } else if(envirSexp instanceof ListVector) {
-        substituteContext = new ListContext((ListVector) envirSexp);
-      }
+      return substitute(exp, envirSexp);
+    } else {
+      return substitute(exp, new EnvironmentContext(rho));
     }
-
+  }
+  
+  public static SEXP substitute(SEXP exp, SEXP envirSexp) {
+    SubstituteContext substituteContext;
+    if(envirSexp instanceof Environment) {
+      substituteContext = new EnvironmentContext((Environment) envirSexp);
+    } else if(envirSexp instanceof ListVector) {
+      substituteContext = new ListContext((ListVector) envirSexp);
+    } else if(envirSexp instanceof PairList) {
+      substituteContext = new PairListContext((PairList)envirSexp);
+    } else {
+      throw new EvalException("Cannot substitute using environment of type %s: expected list, pairlist, or environment", 
+          envirSexp.getTypeName());
+    }
     return substitute(exp, substituteContext);
   }
 
-  private static SEXP substitute(SEXP exp, SubstituteContext context) {
+  public static SEXP substitute(SEXP exp, SubstituteContext context) {
     SubstitutingVisitor visitor = new SubstitutingVisitor(context);
     exp.accept(visitor);
     return visitor.getResult() ;
@@ -217,5 +228,30 @@ public class SubstituteFunction extends SpecialFunction {
     }
         
   }
+
+
   
+  private static class PairListContext implements SubstituteContext {
+    private PairList list;
+    
+    public PairListContext(PairList list) {
+      this.list = list;
+    }
+
+    @Override
+    public SEXP getVariable(Symbol name) {
+      for(PairList.Node node : list.nodes()) {
+        if(node.getTag() == name) {
+          return node.getValue();
+        }
+      }
+      return Symbol.UNBOUND_VALUE;
+    }
+
+    @Override
+    public boolean hasVariable(Symbol name) {
+      return getVariable(name) != Symbol.UNBOUND_VALUE;
+    }
+        
+  }
 }

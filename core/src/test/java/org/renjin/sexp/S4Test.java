@@ -14,7 +14,7 @@ public class S4Test extends EvalTestCase {
     topLevelContext.init();
   }
   
-  @Ignore("not yet working")
+  @Ignore("Not quiiitee working.")
   @Test
   public void firstTest() {
     eval("library(methods)");

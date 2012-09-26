@@ -162,7 +162,7 @@ public class Print {
       SEXP sexp = (SEXP)vector;
       
       if(sexp.length() == 0) {
-        out.append(typeName).append("(0)");
+        out.append(typeName).append("(0)\n");
       } else {
         List<String> elements = Lists.newArrayList(Iterables.transform(vector, printer));
         

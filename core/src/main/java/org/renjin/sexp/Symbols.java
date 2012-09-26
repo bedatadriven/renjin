@@ -29,10 +29,13 @@ public class Symbols {
   public static final Symbol ROW_NAMES = Symbol.get("row.names");
   public static final Symbol AS_CHARACTER = Symbol.get("as.character");
   public static final Symbol TEMP = Symbol.get("*tmp*");
+  
+  // S4 Symbols
   public static final Symbol PACKAGE = Symbol.get("package");
   public static final Symbol CLASS_NAME = Symbol.get("className");
   public static final Symbol PROTOTYPE = Symbol.get("prototype");
   public static final Symbol S4_BIT = Symbol.get("__S4_BIT");
+  public static final Symbol GENERIC = Symbol.get("generic");
 
   
 }

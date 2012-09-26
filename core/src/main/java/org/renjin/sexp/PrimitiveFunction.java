@@ -43,14 +43,10 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    PrimitiveFunction clone;
-    try {
-      clone = getClass().newInstance();
-    } catch (Exception e) {
-      throw new EvalException("Exception cloning " + getName() + ": you may need to implement cloneWithNewAttributes yourself");
-    }
-    clone.attributes = attributes;
-    return clone;
+    // Seems strange being able to set attributes on globally 
+    // shared objects...
+    this.attributes = attributes;
+    return this;
   }
  
   

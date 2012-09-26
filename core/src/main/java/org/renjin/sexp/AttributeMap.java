@@ -101,6 +101,10 @@ public class AttributeMap {
   public SEXP get(String what) {
     return get(Symbol.get(what));
   }
+  
+  public boolean has(Symbol name) {
+    return get(name) != Null.INSTANCE;
+  }
 
   public SEXP get(Symbol name) {
     if(name == Symbols.CLASS && classes != null) {
@@ -504,8 +508,12 @@ public class AttributeMap {
     if(value == Null.INSTANCE) {
       return null;
     }
-    if(value instanceof StringVector && value.length() == 1) {
-      return ((StringVector) value).getElementAsString(0);
+    if(value instanceof StringVector) {
+      if(value.length() == 1) {
+        return ((StringVector) value).getElementAsString(0);
+      } else if(value.length() == 0) {
+        return null;
+      }
     }
     throw new EvalException("Expected character(1) value for attribute %s", name.getPrintName());
   }
@@ -513,6 +521,8 @@ public class AttributeMap {
   public String getPackage() {
     return getString(Symbols.PACKAGE);
   }
+
+
 
 
 }

@@ -33,6 +33,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 
@@ -487,6 +488,16 @@ public class BasePackageTest extends EvalTestCase {
       vector.add(i);
     }
     return vector.build();
+  }
+  
+  @Test
+  public void recall() {
+    assumingBasePackagesLoad();
+    
+    eval("fib <- function(n) if(n<=2) { if(n>=0) 1 else 0 } else Recall(n-1) + Recall(n-2)");
+    eval("fibonacci <- fib");
+    eval("rm(fib)");
+    assertThat(eval("fibonacci(10)"), equalTo(c(55)));
   }
  
 }

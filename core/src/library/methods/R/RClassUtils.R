@@ -182,8 +182,11 @@ makePrototypeFromClassDef <-
 #                         slotDefs[[what]],
 #                         "\") is NULL; new() will fail for this class unless this slot is supplied in the call")
             }
-            else
-                check[match(what, pnames)] <- TRUE
+            else {
+				stop("WHOA!")
+				
+				check[match(what, pnames)] <- TRUE
+			}
         }
     }
     if(any(check))

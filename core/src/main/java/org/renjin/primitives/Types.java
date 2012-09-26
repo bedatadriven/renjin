@@ -79,6 +79,7 @@ import org.renjin.sexp.Vector;
 import org.renjin.util.NamesBuilder;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
@@ -738,6 +739,23 @@ public class Types {
       }
       return result;
     }
+  }
+ 
+  @Primitive("as.environment")
+  public static Environment asEnvironment(@Current Context context, String name) {
+    Environment result = context.getEnvironment();
+    while(result != Environment.EMPTY) {
+      if(Objects.equal(result.getName(), name)) {
+        return result;
+      }
+      if(name.equals("package:base") && result == result.getBaseEnvironment()) {
+        return result;
+      }
+      result = result.getParent();
+      
+    }
+    throw new EvalException("no environment called '%s' on the search list", name);
+    
   }
   
   @Primitive

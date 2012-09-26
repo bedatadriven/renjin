@@ -49,7 +49,7 @@ public class Match {
    *        For historical reasons, FALSE is equivalent to NULL.
    * @return
    */
-  public static int[] match(AtomicVector search, AtomicVector table, int noMatch, AtomicVector incomparables) {
+  public static int[] match(AtomicVector search, Vector table, int noMatch, AtomicVector incomparables) {
     //For historical reasons, FALSE is equivalent to NULL.
     if(incomparables.equals( LogicalVector.FALSE ) ) {
       incomparables = Null.INSTANCE;
@@ -62,7 +62,7 @@ public class Match {
       } else {
         int pos;
         if(search.isElementNA(i)) {
-          pos = table.indexOfNA();
+          pos = indexOfNA(table);
         } else {
           pos = table.indexOf(search, i, 0);
         }
@@ -70,6 +70,15 @@ public class Match {
       }
     }
     return matches;
+  }
+
+  private static int indexOfNA(Vector table) {
+    for(int i=0;i!=table.length();++i) {
+      if(table.isElementNA(i)) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /**

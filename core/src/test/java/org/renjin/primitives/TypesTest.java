@@ -648,4 +648,9 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("f()");
   }
   
+  @Test
+  public void asEnvironmentWithName() {
+    assertThat(eval("as.environment('package:base')"), 
+        is((SEXP)topLevelContext.getGlobalEnvironment().getBaseEnvironment()));
+  }
 }

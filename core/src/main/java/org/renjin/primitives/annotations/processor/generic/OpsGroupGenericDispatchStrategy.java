@@ -1,8 +1,8 @@
 package org.renjin.primitives.annotations.processor.generic;
 
 import com.sun.codemodel.*;
+import org.renjin.primitives.S3;
 import org.renjin.primitives.annotations.processor.ApplyMethodContext;
-import org.renjin.primitives.annotations.processor.WrapperRuntime;
 import org.renjin.sexp.SEXP;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class OpsGroupGenericDispatchStrategy extends GenericDispatchStrategy {
                                  JExpression functionCall, List<JExpression> arguments,
                                  JBlock parent) {
 
-    JInvocation dispatchInvocation = codeModel.ref(WrapperRuntime.class)
+    JInvocation dispatchInvocation = codeModel.ref(S3.class)
             .staticInvoke("tryDispatchGroupFromPrimitive")
             .arg(context.getContext())
             .arg(context.getEnvironment())

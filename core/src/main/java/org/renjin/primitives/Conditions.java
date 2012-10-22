@@ -135,7 +135,7 @@ public class Conditions {
 
     for (int i = n - 1; i >= 0; i--) {
       context.setConditionHandler(classes.getElementAsString(i),
-          Promise.repromise(context, parentEnv, handlers.getElementAsSEXP(i)));
+          Promise.repromise(parentEnv, handlers.getElementAsSEXP(i)));
     }
   }
 
@@ -177,4 +177,18 @@ public class Conditions {
     e.initContext(context);
     throw e;
   }
+  
+  @Primitive
+  public static void stop(@Current Context context, boolean call, String message) {
+
+    while(!context.isTopLevel()) {
+      SEXP handler = context.getConditionHandler("error");
+      if(handler != null) {
+        throw new EvalException("todo");
+      }
+      context = context.getParent();
+    }
+    
+    throw new EvalException(message);
+   }
 }

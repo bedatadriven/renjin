@@ -21,24 +21,19 @@
 
 package org.renjin.primitives;
 
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.special.IfFunction;
+import org.renjin.sexp.*;
+
+import java.io.IOException;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.renjin.ExpMatchers.logicalVectorOf;
 import static org.renjin.ExpMatchers.realVectorEqualTo;
-
-import java.io.IOException;
-
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.special.IfFunction;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
 
 
 public class EvaluationTest extends EvalTestCase {
@@ -638,6 +633,7 @@ public class EvaluationTest extends EvalTestCase {
   public void nextMethodWithMissingArg() {
     eval("NextMethod <- function (generic = NULL, object = NULL, ...) " +
         ".Internal(NextMethod(generic, object, ...))");
+
     eval("g.default <- function(x,...) nargs() ");
     eval("g.foo <- function(x,i,j) NextMethod() ");
     eval("g <- function(x,i,j) UseMethod('g') ");

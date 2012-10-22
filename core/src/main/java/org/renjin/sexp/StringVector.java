@@ -70,6 +70,15 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
   }
 
   @Override
+  public String asString() {
+    if(length() == 1) {
+      return getElementAsString(0);
+    } else {
+      return super.asString();
+    }
+  }
+
+  @Override
   public String getElementAsObject(int index) {
     return getElementAsString(index);
   }

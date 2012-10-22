@@ -24,8 +24,8 @@ package org.renjin.primitives.annotations.processor.generic;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
+import org.renjin.primitives.S3;
 import org.renjin.primitives.annotations.processor.ApplyMethodContext;
-import org.renjin.primitives.annotations.processor.WrapperRuntime;
 import org.renjin.sexp.SEXP;
 
 import static com.sun.codemodel.JExpr._null;
@@ -49,7 +49,7 @@ public class SimpleDispatchStrategy extends GenericDispatchStrategy {
 
       JBlock ifObject = parent._if(fastIsObject(argument))._then();
       JExpression genericResult = ifObject.decl(codeModel.ref(SEXP.class), "genericResult",
-              codeModel.ref(WrapperRuntime.class).staticInvoke("tryDispatchFromPrimitive")
+              codeModel.ref(S3.class).staticInvoke("tryDispatchFromPrimitive")
               .arg(context.getContext())
               .arg(context.getEnvironment())
               .arg(functionCall)

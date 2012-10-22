@@ -1,39 +1,7 @@
 package org.renjin.primitives;
 
-import static org.renjin.primitives.PPkind.PP_BINARY;
-import static org.renjin.primitives.PPkind.PP_BINARY2;
-import static org.renjin.primitives.PPkind.PP_DOLLAR;
-import static org.renjin.primitives.PPkind.PP_FOREIGN;
-import static org.renjin.primitives.PPkind.PP_FUNCALL;
-import static org.renjin.primitives.PPkind.PP_FUNCTION;
-import static org.renjin.primitives.PPkind.PP_SUBASS;
-import static org.renjin.primitives.PPkind.PP_SUBSET;
-import static org.renjin.primitives.PPkind.PP_UNARY;
-import static org.renjin.primitives.PPprec.PREC_AND;
-import static org.renjin.primitives.PPprec.PREC_COLON;
-import static org.renjin.primitives.PPprec.PREC_COMPARE;
-import static org.renjin.primitives.PPprec.PREC_DOLLAR;
-import static org.renjin.primitives.PPprec.PREC_FN;
-import static org.renjin.primitives.PPprec.PREC_LEFT;
-import static org.renjin.primitives.PPprec.PREC_NOT;
-import static org.renjin.primitives.PPprec.PREC_OR;
-import static org.renjin.primitives.PPprec.PREC_PERCENT;
-import static org.renjin.primitives.PPprec.PREC_POWER;
-import static org.renjin.primitives.PPprec.PREC_PROD;
-import static org.renjin.primitives.PPprec.PREC_SUBSET;
-import static org.renjin.primitives.PPprec.PREC_SUM;
-import static org.renjin.primitives.PPprec.PREC_TILDE;
-import static org.renjin.util.CDefines.RelOpType.EQOP;
-import static org.renjin.util.CDefines.RelOpType.GEOP;
-import static org.renjin.util.CDefines.RelOpType.GTOP;
-import static org.renjin.util.CDefines.RelOpType.LEOP;
-import static org.renjin.util.CDefines.RelOpType.LTOP;
-import static org.renjin.util.CDefines.RelOpType.NEOP;
-
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -57,40 +25,19 @@ import org.renjin.primitives.optimize.Roots;
 import org.renjin.primitives.random.Distributions;
 import org.renjin.primitives.random.RNG;
 import org.renjin.primitives.random.Sampling;
-import org.renjin.primitives.special.AssignFunction;
-import org.renjin.primitives.special.AssignLeftFunction;
-import org.renjin.primitives.special.BeginFunction;
-import org.renjin.primitives.special.BreakFunction;
-import org.renjin.primitives.special.ClosureFunction;
-import org.renjin.primitives.special.ForFunction;
-import org.renjin.primitives.special.IfFunction;
-import org.renjin.primitives.special.InternalFunction;
-import org.renjin.primitives.special.NextFunction;
-import org.renjin.primitives.special.OnExitFunction;
-import org.renjin.primitives.special.ParenFunction;
-import org.renjin.primitives.special.QuoteFunction;
-import org.renjin.primitives.special.ReassignLeftFunction;
-import org.renjin.primitives.special.RecallFunction;
-import org.renjin.primitives.special.RepeatFunction;
-import org.renjin.primitives.special.RestartFunction;
-import org.renjin.primitives.special.ReturnFunction;
-import org.renjin.primitives.special.SubstituteFunction;
-import org.renjin.primitives.special.SwitchFunction;
-import org.renjin.primitives.special.WhileFunction;
+import org.renjin.primitives.special.*;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
-import org.renjin.sexp.BuiltinFunction;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SpecialFunction;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+
+import static org.renjin.primitives.PPkind.*;
+import static org.renjin.primitives.PPprec.*;
+import static org.renjin.util.CDefines.RelOpType.*;
 
 public class Primitives {
 
@@ -168,7 +115,7 @@ public class Primitives {
     add(new NextFunction());
     add(new ReturnFunction());
 
-    f("stop", Evaluation.class, 0, 11, 2);
+    f("stop", Conditions.class, 0, 11, 2);
     f("warning", Warning.class, 0, 111, 3);
 
     f("gettext", Text.class, 0, 11, 2);

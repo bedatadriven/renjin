@@ -194,7 +194,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
       throw new NullPointerException("name");
     }
    
-    Function function = topLevelContext.getEnvironment().findFunction(Symbol.get(name));
+    Function function = topLevelContext.getEnvironment().findFunction(topLevelContext, Symbol.get(name));
     if(function == null) {
       throw new NoSuchMethodException(name);
     }

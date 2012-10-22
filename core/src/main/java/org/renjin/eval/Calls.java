@@ -114,7 +114,7 @@ public class Calls {
         if(node.getValue() instanceof Promise) {
           list.add(node.getRawTag(), node.getValue());
         } else {
-          list.add(node.getRawTag(), Promise.repromise(context, rho, node.getValue()));
+          list.add(node.getRawTag(), Promise.repromise(rho, node.getValue()));
         }
       }
     }
@@ -153,7 +153,7 @@ public class Calls {
       if(value == Symbol.MISSING_ARG) {
         SEXP defaultValue = formals.findByTag(node.getTag());
         if(defaultValue != Symbol.MISSING_ARG) {
-          value =  Promise.repromise(innerContext, innerEnv, defaultValue);
+          value =  Promise.repromise(innerEnv, defaultValue);
         }
       }
       innerEnv.setVariable(node.getTag(), value);

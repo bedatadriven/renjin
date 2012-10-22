@@ -21,6 +21,8 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
+
 import java.util.Set;
 
 /**
@@ -47,11 +49,13 @@ public interface Frame {
    * {@code getVariable()} but will only return function values, allowing the implementation
    * to optimize this frequent case.
    * 
+   *
+   * @param context
    * @param name the name of the variable to lookup
-   * @return the function value of the variable bound to this frame, or {@code Symbol.UNBOUND} if 
+   * @return the function value of the variable bound to this frame, or {@code Symbol.UNBOUND} if
    * no such variable exists
    */
-  Function getFunction(Symbol name);
+  Function getFunction(Context context, Symbol name);
   
   /**
    * 

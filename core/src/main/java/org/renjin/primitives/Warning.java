@@ -72,7 +72,7 @@ public class Warning {
      
       Environment baseEnv = context.getEnvironment().getBaseEnvironment();
       if(baseEnv.hasVariable(LAST_WARNING)) {
-        lastWarning.addAll((ListVector)baseEnv.getVariable(LAST_WARNING).force());
+        lastWarning.addAll((ListVector)baseEnv.getVariable(LAST_WARNING).force(context));
       }
       
       lastWarning.add(message, call);

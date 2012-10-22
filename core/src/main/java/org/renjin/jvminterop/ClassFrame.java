@@ -1,14 +1,10 @@
 package org.renjin.jvminterop;
 
-import java.util.Set;
-
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Frame;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
+
+import java.util.Set;
 
 
 public class ClassFrame implements Frame {
@@ -41,7 +37,7 @@ public class ClassFrame implements Frame {
   }
 
   @Override
-  public Function getFunction(Symbol name) {
+  public Function getFunction(Context context, Symbol name) {
     SEXP value = getVariable(name);
     if(value instanceof Function) {
       return (Function)value;

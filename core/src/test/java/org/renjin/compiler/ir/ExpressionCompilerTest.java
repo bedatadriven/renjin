@@ -5,7 +5,6 @@ import org.renjin.EvalTestCase;
 import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.ExpressionCompiler;
 import org.renjin.compiler.ThunkMap;
-import org.renjin.compiler.runtime.VariablePromise;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.*;
 
@@ -22,12 +21,7 @@ public class ExpressionCompilerTest extends EvalTestCase {
     DoubleVector result = (DoubleVector) compileAndEval("x<-4; x\n");
     assertThat(result.getElementAsDouble(0), equalTo(4d));
   }
-  
-  public void variableThunk() {
-    Promise exp = new VariablePromise(topLevelContext, "foo");
-    exp.force();
-  }
-  
+
   @Test
   public void ifStatement() throws Exception {
     DoubleVector result = (DoubleVector) compileAndEval("if(TRUE) 42 else 5\n");

@@ -30,7 +30,6 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.processor.ArgumentIterator;
-import org.renjin.primitives.annotations.processor.WrapperRuntime;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.sequence.RepDoubleVector;
@@ -145,7 +144,7 @@ public class Sequences {
     PairList.Node firstArgNode = argIt.nextNode();
     SEXP firstArg = context.evaluate( firstArgNode.getValue(), rho);
     if(firstArg.isObject()) {
-      SEXP result = WrapperRuntime.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
+      SEXP result = S3.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
       if(result != null) {
         return result;
       }

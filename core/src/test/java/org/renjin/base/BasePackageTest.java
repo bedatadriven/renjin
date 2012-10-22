@@ -33,7 +33,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 
@@ -70,7 +69,7 @@ public class BasePackageTest extends EvalTestCase {
   private SEXP getValue(Environment env, String name) {
     SEXP value = env.getVariable(name);
     if(value instanceof Promise) {
-      value = ((Promise) value).force();
+      value = value.force(topLevelContext);
     }
     return value;
   }

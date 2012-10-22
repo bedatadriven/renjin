@@ -49,7 +49,7 @@ public class StdOutConnection implements Connection {
   }
   
   @Override
-  public PrintWriter getPrintWriter() throws IOException {
+  public PrintWriter getPrintWriter()  {
     return stream;
   }
 

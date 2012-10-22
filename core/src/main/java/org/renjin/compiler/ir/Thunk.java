@@ -9,7 +9,7 @@ import org.renjin.sexp.SEXP;
 public class Thunk extends Promise {
 
   public Thunk(Context context) {
-    super(context, context.getEnvironment(), Null.INSTANCE);
+    super(context.getEnvironment(), Null.INSTANCE);
   }
 
   @Override

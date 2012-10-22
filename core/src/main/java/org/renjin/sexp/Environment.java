@@ -25,6 +25,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import com.google.common.collect.UnmodifiableIterator;
 import org.renjin.base.BaseFrame;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 
 import java.util.*;
@@ -256,23 +257,26 @@ public class Environment extends AbstractSEXP implements Recursive {
   /**
    * Searches the environment for a value that matches the given predicate.
    *
+   *
+   *
+   * @param context
    * @param symbol The symbol for which to search
    * @param predicate a predicate that tests possible return values
    * @param inherits if {@code true}, enclosing frames are searched
    * @return the bound value or {@code Symbol.UNBOUND_VALUE} if not found
    */
-  public SEXP findVariable(Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
+  public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
     SEXP value = frame.getVariable(symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       if(value instanceof Promise) {
-        value = ((Promise) value).force();
+        value = ((Promise) value).force(context);
       }
       if(predicate.apply(value)) {
         return value;
       }
     }
     if(inherits) {
-      return parent.findVariable(symbol, predicate, inherits);
+      return parent.findVariable(context, symbol, predicate, inherits);
     } else {
       return Symbol.UNBOUND_VALUE;
     }
@@ -302,19 +306,19 @@ public class Environment extends AbstractSEXP implements Recursive {
     return value;
   }
   
-  public Function findFunction(Symbol symbol) {
+  public Function findFunction(Context context, Symbol symbol) {
     if(frame.isMissingArgument(symbol)) {
       throw new EvalException("argument '%s' is missing, with no default", symbol.toString());
     }
-    Function value = frame.getFunction(symbol);
+    Function value = frame.getFunction(context, symbol);
     if(value != null) {
       return value;
     }
-    return parent.findFunction(symbol);   
+    return parent.findFunction(context, symbol);
   }
   
-  public Function findFunctionOrThrow(Symbol symbol) {
-    Function function = findFunction(symbol);
+  public Function findFunctionOrThrow(Context context, Symbol symbol) {
+    Function function = findFunction(context, symbol);
     if(function == null) {
       throw new EvalException("could not find function \"" + symbol + "\"");
     }
@@ -448,7 +452,7 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
 
     @Override
-    public SEXP findVariable(Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
+    public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
       return Symbol.UNBOUND_VALUE;
     }
 
@@ -468,7 +472,7 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
 
     @Override
-    public Function findFunction(Symbol symbol) {
+    public Function findFunction(Context context, Symbol symbol) {
       return null;
     }
 

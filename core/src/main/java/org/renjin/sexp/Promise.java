@@ -39,15 +39,13 @@ public class Promise extends AbstractSEXP implements Recursive {
 
   public static final String TYPE_NAME = "promise";
 
-  protected Context context;
   protected Environment environment;
   protected SEXP expression;
   private SEXP result;
 
-  protected Promise(Context context, Environment environment, SEXP expression) {
+  protected Promise(Environment environment, SEXP expression) {
     this.expression = expression;
     this.environment = environment;
-    this.context = context;
   }
 
   /**
@@ -67,7 +65,6 @@ public class Promise extends AbstractSEXP implements Recursive {
    */
   public Promise(SEXP expression, SEXP result) {
     this.environment = null;
-    this.context = null;
     this.expression = expression;
     this.result = result;
   }
@@ -78,29 +75,25 @@ public class Promise extends AbstractSEXP implements Recursive {
    * been evaluated.
    *
    * @return the result of the evaluation
+   * @param context
    */
   @Override
-  public SEXP force() {
+  public SEXP force(Context context) {
     if (result == null) {
-      this.result = doEval();
+      this.result = doEval(context);
       this.environment = null;
-      this.context = null;
     }
     return result;
   }
 
-  protected SEXP doEval() {
-    if(Context.PRINT_IR) {
-      System.out.println("=== THUNK");
-    }
-    return this.context.evaluate(expression, environment);
+  protected SEXP doEval(Context context) {
+    return context.evaluate(expression, environment);
   }
   
   
   public void setResult(SEXP exp) {
     this.result = exp;
     this.environment = null;
-    this.context = null;
   }
 
   @Override
@@ -146,11 +139,11 @@ public class Promise extends AbstractSEXP implements Recursive {
     return result != null;
   }
   
-  public static Promise repromise(Context context, Environment environment, SEXP expression) {
+  public static Promise repromise(Environment environment, SEXP expression) {
     if(expression instanceof Promise) {
       return (Promise)expression;
     } else {
-      return new Promise(context, environment, expression);
+      return new Promise(environment, expression);
     }
   }
 }

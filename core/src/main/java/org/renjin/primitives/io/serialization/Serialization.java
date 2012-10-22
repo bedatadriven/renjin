@@ -121,7 +121,7 @@ public class Serialization {
         throw new EvalException("object '%s' not found", name);
       }
       if(evalPromises) {
-        value = value.force();
+        value = value.force(context);
       }
       list.add(name, value);
     }
@@ -232,7 +232,7 @@ public class Serialization {
       }
       FunctionCall newCall = new FunctionCall(expr.getFunction(),
           newArgs.build());
-      targetEnvironment.setVariable(name, Promise.repromise(context, eenv, newCall));
+      targetEnvironment.setVariable(name, Promise.repromise(eenv, newCall));
     }
   }
 
@@ -273,7 +273,7 @@ public class Serialization {
             }
           });
   
-      return reader.readFile().force();
+      return reader.readFile().force(context);
     } catch(Exception e) {
       throw new EvalException("Exception reading database entry at " + key + " in " +
             file, e);

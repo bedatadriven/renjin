@@ -21,23 +21,13 @@
 
 package org.renjin.methods;
 
+import com.google.common.base.Strings;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.special.SubstituteFunction;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.S4Object;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-
-import com.google.common.base.Strings;
+import org.renjin.sexp.*;
 
 public class Methods {
 
@@ -175,13 +165,13 @@ public class Methods {
     return klass;
   }
 
-  public static SEXP R_getGeneric(String symbol, boolean mustFind, Environment rho, String pkg) {
-    return R_getGeneric(Symbol.get(symbol), mustFind, rho, pkg);
+  public static SEXP R_getGeneric(@Current Context context, String symbol, boolean mustFind, Environment rho, String pkg) {
+    return R_getGeneric(context, Symbol.get(symbol), mustFind, rho, pkg);
   }
   
-  public static SEXP R_getGeneric(Symbol symbol, boolean mustFind, Environment rho, String pkg) {
+  public static SEXP R_getGeneric(@Current Context context, Symbol symbol, boolean mustFind, Environment rho, String pkg) {
 
-    SEXP generic = getGeneric(symbol, rho, pkg);
+    SEXP generic = getGeneric(context, symbol, rho, pkg);
     if(generic == Symbol.UNBOUND_VALUE) {
       if(mustFind) {
         throw new EvalException("No generic function definition found for '%s' in the supplied environment", symbol.getPrintName());
@@ -191,7 +181,7 @@ public class Methods {
     return generic;
   }
 
-  protected static SEXP getGeneric(Symbol symbol, Environment env, String pkg) {
+  protected static SEXP getGeneric(@Current Context context, Symbol symbol, Environment env, String pkg) {
     SEXP vl;
     SEXP generic = Symbol.UNBOUND_VALUE;
     String gpackage; 
@@ -202,7 +192,7 @@ public class Methods {
     while (rho != Environment.EMPTY) {
       vl =  rho.getVariable(symbol);
       if (vl != Symbol.UNBOUND_VALUE) {
-        vl = vl.force();
+        vl = vl.force(context);
 
         ok = false;
         if(IS_GENERIC(vl)) {

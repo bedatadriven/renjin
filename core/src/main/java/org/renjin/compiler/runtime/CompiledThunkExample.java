@@ -1,11 +1,7 @@
 package org.renjin.compiler.runtime;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 
 public class CompiledThunkExample extends Promise {
@@ -19,7 +15,7 @@ public class CompiledThunkExample extends Promise {
   }
   
   public CompiledThunkExample(Context context, Environment rho) {
-    super(context, rho, createBody() );
+    super(rho, createBody() );
   }
 
   private static SEXP createBody() {
@@ -27,7 +23,7 @@ public class CompiledThunkExample extends Promise {
   }
 
   @Override
-  protected SEXP doEval() {
+  protected SEXP doEval(Context context) {
     return Null.INSTANCE;
   }
 

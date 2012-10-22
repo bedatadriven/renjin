@@ -64,9 +64,7 @@ public class WrapperRuntime {
     if(provided == Null.INSTANCE) {
       return Null.INSTANCE;
     } else {
-      if(provided instanceof Promise) {
-        provided = ((Promise) provided).force();
-      }
+      provided = provided.force(context);
       return (Vector) context.evaluate( FunctionCall
         .newCall(Symbols.AS_CHARACTER, provided), rho);
     }
@@ -155,124 +153,6 @@ public class WrapperRuntime {
   public static SEXP wrapResult(Logical result) {
     return new LogicalArrayVector(result);
   }
-  
-  /**
-   * There are a few primitive functions (`[[` among them) which are proper builtins, but attempt
-   * to dispatch on the class of their first argument before going ahead with the default implementation.
-   * 
-   * @param context
-   * @param rho
-   * @param name the name of the function
-   * @param args the original args from the FunctionCall
-   * @param object evaluated first argument
-   * @return
-   */
-  public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call, 
-      String name, SEXP object, PairList args) {
-    
-    if(call.getFunction() instanceof Symbol &&
-        ((Symbol)call.getFunction()).getPrintName().endsWith(".default")) {
-      return null;
-    }
-    
-    Vector classVector = (Vector)object.getAttribute(Symbols.CLASS);
-    if(classVector.length() == 0) {
-      return null;
-    }
 
-    DispatchChain chain = DispatchChain.newChain(rho, name, classVector);
-    if(chain == null) {
-      return null;
-    }
-
-    PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
-
-    FunctionCall newCall = new FunctionCall(chain.getMethodSymbol(), newArgs);
-
-    ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, newCall);
-    return dispatcher.apply(chain, newArgs);
-  }
-
-  public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call, 
-      String name, String[] argumentNames, SEXP[] arguments) {
-    
-    if(call.getFunction() instanceof Symbol &&
-        ((Symbol)call.getFunction()).getPrintName().endsWith(".default")) {
-      return null;
-    }
-    
-    Vector classVector = (Vector)arguments[0].getAttribute(Symbols.CLASS);
-    if(classVector.length() == 0) {
-      return null;
-    }
-
-    DispatchChain chain = DispatchChain.newChain(rho, name, classVector);
-    if(chain == null) {
-      return null;
-    }
-
-    PairList.Builder newArgsBuilder = new PairList.Builder();
-    for(int i=0;i!=arguments.length;++i) {
-      newArgsBuilder.add(argumentNames[i], arguments[i]);
-    }
-    PairList newArgs = newArgsBuilder.build();
-    
-    FunctionCall newCall = new FunctionCall(chain.getMethodSymbol(), newArgs);
-
-    ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, newCall);
-    return dispatcher.apply(chain, newArgs);
-  }
-  
-  private static PairList reassembleAndEvaluateArgs(SEXP object, PairList args, Context context, Environment rho) {
-    PairList.Builder newArgs = new PairList.Builder();
-    Node firstArg = (PairList.Node)args;
-    newArgs.add(firstArg.getRawTag(), object);
-    
-    args = firstArg.getNext();
-    
-    for(PairList.Node node : args.nodes()) {
-      newArgs.add(node.getRawTag(), context.evaluate( node.getValue(), rho));
-    }
-    
-    return newArgs.build();
-  }
-
-  public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String group, String name, SEXP s0) {
-
-    PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
-
-    return S3.DispatchGroup(group, call, name, newArgs, context, rho);
-  }
-
-
-  public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String group, String name, SEXP s0, SEXP s1) {
-
-    PairList newArgs = new PairList.Node(s0, new PairList.Node(s1, Null.INSTANCE));
-
-    return S3.DispatchGroup(group, call, name, newArgs, context, rho);
-  }
-  
-  public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String name, ListVector evaluatedArguments, boolean naRm) {
-    
-    // REpackage the evaluated arguments.
-    // this is ghastly but i don't think it will
-    // get better until Calls is refactored
-    
-    PairList.Builder newArgs = new PairList.Builder();
-    int varArgIndex = 0;
-    Symbol naRmName = Symbol.get("na.rm");
-    for(PairList.Node node : call.getArguments().nodes()) {
-      if(node.getRawTag() == naRmName) {
-        newArgs.add(node.getTag(), new LogicalArrayVector(naRm));
-      } else {
-        newArgs.add(node.getRawTag(), evaluatedArguments.get(varArgIndex++));
-      }
-    }
-    
-    return S3.DispatchGroup("Summary", call, name, newArgs.build(), context, rho);
-  }
 
 }

@@ -651,7 +651,7 @@ public class RDataReader {
 
     @Override
     public SEXP createPromise(SEXP expr, Environment env) {
-      return Promise.repromise(context, env, expr);
+      return Promise.repromise(env, expr);
     }
 
     @Override

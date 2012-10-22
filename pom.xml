@@ -42,6 +42,7 @@
     <module>samples/swing-repl</module>
     <module>samples/appengine-repl</module>
     <module>dist/generic</module>
+    <module>appl</module>
   </modules>
 
   <properties>

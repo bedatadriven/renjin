@@ -91,6 +91,9 @@ public class NumericVar extends Variable {
         assignBinary("-", operands);
         break;
 
+      case BIT_NOT_EXPR:
+        assignBitNot(operands.get(0));
+        break;
       case EQ_EXPR:
       case NE_EXPR:
       case LE_EXPR:
@@ -116,6 +119,7 @@ public class NumericVar extends Variable {
         throw new UnsupportedOperationException("Unexpected operator in assignment to numeric variable: " + op + " " + operands);
     }
   }
+
 
   private void integerToReal(GimpleExpr gimpleExpr) {
     // Soot will complain if we convert a real to a real
@@ -162,6 +166,11 @@ public class NumericVar extends Variable {
 
   private void assignBoolean(JimpleExpr booleanExpr) {
     assignIfElse(booleanExpr, JimpleExpr.integerConstant(1), JimpleExpr.integerConstant(0));
+  }
+
+
+  private void assignBitNot(GimpleExpr operand) {
+    doAssign(JimpleExpr.binaryInfix("^", context.asNumericExpr(operand), JimpleExpr.integerConstant(-1)));
   }
 
   private void assignIfElse(JimpleExpr booleanExpr, JimpleExpr ifTrue, JimpleExpr ifFalse) {

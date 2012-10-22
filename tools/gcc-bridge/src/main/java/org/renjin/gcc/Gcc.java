@@ -32,6 +32,8 @@ public class Gcc {
 		// See http://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html#Debugging-Options
 		command.add("-fdump-tree-optimized");
 		command.add("-fdump-tree-optimized-raw");
+    command.add("-fdump-tree-ssa");
+   // command.add("-fdump-tree-optimized-verbose");
    // command.add("-fdump-tree-optimized-lineno");
 
     for(String includeDir : includeDirectories) {

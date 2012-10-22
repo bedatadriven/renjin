@@ -2,9 +2,7 @@ package org.renjin.gcc.translate.var;
 
 
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.expr.GimpleConstant;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleVar;
+import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.PrimitiveType;
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
@@ -60,6 +58,9 @@ public class NumericPtrVar extends Variable {
       case POINTER_PLUS_EXPR:
         assignPointerPlus(operands);
         break;
+      case ADDR_EXPR:
+        assignAddress(operands);
+        break;
       case VAR_DECL:
       case SSA_NAME:
         assignValue(operands.get(0));
@@ -72,6 +73,7 @@ public class NumericPtrVar extends Variable {
         throw new UnsupportedOperationException(op + " " + operands);
     }
   }
+
 
   private void assignConstant(GimpleConstant constant) {
     if(constant.getNumberValue().doubleValue() != 0) {
@@ -93,6 +95,25 @@ public class NumericPtrVar extends Variable {
     String positionsToIncrement = context.declareTemp(JimpleType.INT);
     context.getBuilder().addStatement(positionsToIncrement + " = " + bytesToIncrement + " / " + valueSize());
     assignPointer(var, new JimpleExpr(positionsToIncrement));
+  }
+
+
+  private void assignAddress(List<GimpleExpr> operands) {
+    GimpleExpr operand = operands.get(0);
+    if(operand instanceof GimpleAddressOf) {
+      GimpleExpr value = ((GimpleAddressOf) operand).getExpr();
+      if(value instanceof GimpleArrayRef) {
+        assignArrayElement((GimpleArrayRef)value);
+      }
+    } else {
+      throw new UnsupportedOperationException(operand.toString());
+    }
+  }
+
+  private void assignArrayElement(GimpleArrayRef arrayRef) {
+    NumericPtrVar var = asPtr(arrayRef.getVar());
+    JimpleExpr positionsToIncrement = context.asNumericExpr(arrayRef.getIndex());
+    assignPointer(var, positionsToIncrement);
   }
 
   private void assignPointer(NumericPtrVar var, JimpleExpr offset) {

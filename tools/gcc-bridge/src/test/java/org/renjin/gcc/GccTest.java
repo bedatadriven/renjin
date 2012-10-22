@@ -1,5 +1,6 @@
 package org.renjin.gcc;
 
+import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
@@ -106,15 +107,29 @@ public class GccTest {
     return (Integer) method.invoke(null, x, y);
   }
 
+  @Test
+  public void fortranTest() throws Exception {
+//    Class clazz = compile(Lists.newArrayList("dqrls.f", "dqrdc2.f"), "Dqrls");
 
-  private Class<?> compile(String sourceFile, String className) throws Exception {
-    File source = new File(getClass().getResource(sourceFile).getFile());
+
+  }
+
+  private Class<?> compile(String source, String className) throws Exception {
+    return compile(Lists.newArrayList(source), className);
+  }
+
+  private Class<?> compile(List<String> sources, String className) throws Exception {
 
     Gcc gcc = new Gcc();
-    String gimple = gcc.compileToGimple(source);
-
     GimpleParser parser = new GimpleParser();
-    List<GimpleFunction> functions = parser.parse(new StringReader(gimple));
+    List<GimpleFunction> functions = Lists.newArrayList();
+
+    for(String sourceName : sources) {
+      File source = new File(getClass().getResource(sourceName).getFile());
+      String gimple = gcc.compileToGimple(source);
+      System.out.println(gimple);
+      functions.addAll(parser.parse(new StringReader(gimple)));
+    }
 
     return compileGimple(className, functions);
   }

@@ -52,6 +52,8 @@ public enum GimpleOp {
   COMPONENT_REF,
   ARRAY_REF,
 
+  BIT_NOT_EXPR,
+
   NEGATE_EXPR,
 
   /**

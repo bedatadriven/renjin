@@ -47,7 +47,7 @@ public class GimpleParser {
         try {
           parseFunctionBodyLine(reader, line);
         } catch(Exception e) {
-          throw new RuntimeException("Exception parsing line '" + line + "' in function '" + currentFunction.getName() + "'");
+          throw new RuntimeException("Exception parsing line '" + line + "' in function '" + currentFunction.getName() + "'", e);
         }
       }
     }
@@ -416,7 +416,7 @@ public class GimpleParser {
     // we may also see additional information about the length
     // of the array provided by the fortran compiler, but we're
     // going to ignore that too:
-    if(typeDecl.matches(".*\\[\\S+:\\S+\\]")) {
+    if(typeDecl.matches(".*\\[\\S+:(\\S+)?\\]")) {
       int lastBracket = typeDecl.lastIndexOf('[');
       typeDecl = typeDecl.substring(0, lastBracket).trim();
     }

@@ -10,6 +10,14 @@ public class GimpleArrayRef extends GimpleLValue {
     this.index = index;
   }
 
+  public GimpleVar getVar() {
+    return var;
+  }
+
+  public GimpleExpr getIndex() {
+    return index;
+  }
+
   @Override
   public String toString() {
     return var + "[" + index + "]";

@@ -21,20 +21,23 @@
 
 package org.renjin.cli;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Reader;
+
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.parser.*;
+import org.renjin.parser.ParseException;
+import org.renjin.parser.ParseOptions;
+import org.renjin.parser.ParseState;
+import org.renjin.parser.RLexer;
+import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
-
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.Reader;
 
 
 /**
@@ -47,19 +50,17 @@ public class Interpreter implements Runnable {
   private Context topLevelContext;
   
   
-  public Interpreter(Console console) throws FileSystemException {
+  public Interpreter(Console console, Context context) throws FileSystemException {
     this.console = console;    
-    
-    StandaloneContextFactory factory = new StandaloneContextFactory();
-    this.topLevelContext = factory.create();
-    this.topLevelContext.getGlobals().setStdOut(new PrintWriter(console.getOut()));
-    this.topLevelContext.getGlobals().setSessionController(new CliSessionController(console));
-    this.global = topLevelContext.getEnvironment();
+    this.topLevelContext = context;
+
+    this.global = context.getEnvironment();
 
     if(console instanceof RichConsole) {
       ((RichConsole) console).setNameCompletion(new SymbolCompletion(global));
     }
   }
+ 
   
   @Override
   public void run() {

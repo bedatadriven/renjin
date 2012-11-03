@@ -23,11 +23,15 @@ package org.renjin.desktop;
 
 
 import org.apache.commons.vfs2.FileSystemException;
+import org.renjin.cli.CliSessionController;
 import org.renjin.cli.Console;
 import org.renjin.cli.Interpreter;
+import org.renjin.cli.StandaloneContextFactory;
+import org.renjin.eval.Context;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.PrintWriter;
 
 
 public class MainFrame extends JFrame {
@@ -66,8 +70,12 @@ public class MainFrame extends JFrame {
     loadNativeLookAndFeel();
 
     MainFrame mainFrame = new MainFrame();
+    
+    Context topLevelContext = Context.newTopLevelContext();
+    topLevelContext.getGlobals().setStdOut(new PrintWriter(mainFrame.getConsole().getOut()));
+    //topLevelContext.getGlobals().setSessionController(new CliSessionController(mainFrame.));
 
-    Interpreter interpreter = new Interpreter( mainFrame.getConsole() );
+    Interpreter interpreter = new Interpreter( mainFrame.getConsole(), topLevelContext );
     new Thread ( interpreter ).start();
   }
 

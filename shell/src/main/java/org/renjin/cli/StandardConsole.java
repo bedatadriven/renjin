@@ -21,11 +21,13 @@
 
 package org.renjin.cli;
 
-import org.apache.commons.vfs2.FileSystemException;
-
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Reader;
+
+import org.apache.commons.vfs2.FileSystemException;
+import org.renjin.eval.Context;
 
 public class StandardConsole implements Console{
 
@@ -79,7 +81,15 @@ public class StandardConsole implements Console{
   }
 
   public static void main(String[] args) throws FileSystemException {
-      Interpreter interpreter = new Interpreter( new StandardConsole() );
-      new Thread ( interpreter ).start();     
+
+    StandardConsole console = new StandardConsole();
+
+    StandaloneContextFactory factory = new StandaloneContextFactory();
+    Context topLevelContext = factory.create();
+    topLevelContext.getGlobals().setStdOut(new PrintWriter(console.getOut()));
+    topLevelContext.getGlobals().setSessionController(new CliSessionController(console));
+
+    Interpreter interpreter = new Interpreter( console, topLevelContext );
+    new Thread ( interpreter ).start();     
   }
 }

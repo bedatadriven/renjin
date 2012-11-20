@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.Double.NaN;
@@ -38,9 +39,14 @@ public class GccTest {
 
     Method method = clazz.getMethod("sum_array", DoublePtr.class, int.class);
     Double result = (Double)method.invoke(null, new DoublePtr(15, 20, 300), 3);
-
+    
     assertThat(result, equalTo(335d));
 
+    Method fillMethod = clazz.getMethod("fill_array", DoublePtr.class, int.class);
+    DoublePtr ptr = new DoublePtr(new double[5]);
+    fillMethod.invoke(null, ptr, ptr.array.length);
+    
+    System.out.println(Arrays.toString(ptr.array));
   }
 
   @Test
@@ -67,6 +73,16 @@ public class GccTest {
     Class clazz = compile("distbinary.c", "DistBinary");
 
   }
+  
+  @Test
+  public void negate() throws Exception {
+    Class clazz = compile("negate.c", "Negate");
+    
+    Method method = clazz.getMethod("negate", double.class);
+    assertThat((Double)method.invoke(null, 1.5), equalTo(-1.5));
+    assertThat((Double)method.invoke(null, -1.5), equalTo(1.5));
+
+  }
 
   @Test
   public void fpComparison() throws Exception {
@@ -78,6 +94,9 @@ public class GccTest {
     assertThat(call(clazz, "lessThan", 1.5, 1.2), equalTo(0));
     assertThat(call(clazz, "lessThan", NaN, NaN), equalTo(0));
     assertThat(call(clazz, "lessThan", NaN, 42), equalTo(0));
+    
+    assertThat(call(clazz, "flessThan", -2.4f, -2.3f), equalTo(1));
+    assertThat(call(clazz, "flessThan", -2.4f, -2.4f), equalTo(0));
 
     assertThat(call(clazz, "lessThanEqual", -2.4, -2.3), equalTo(1));
     assertThat(call(clazz, "lessThanEqual", -2.4, -2.4), equalTo(1));
@@ -104,6 +123,11 @@ public class GccTest {
 
   private int call(Class clazz, String methodName, double x, double y) throws Exception {
     Method method = clazz.getMethod(methodName, double.class, double.class);
+    return (Integer) method.invoke(null, x, y);
+  }
+  
+  private int call(Class clazz, String methodName, float x, float y) throws Exception {
+    Method method = clazz.getMethod(methodName, float.class, float.class);
     return (Integer) method.invoke(null, x, y);
   }
 

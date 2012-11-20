@@ -51,7 +51,8 @@ public enum GimpleOp {
 
   COMPONENT_REF,
   ARRAY_REF,
-
+  MEM_REF,
+  
   BIT_NOT_EXPR,
 
   NEGATE_EXPR,
@@ -65,5 +66,6 @@ public enum GimpleOp {
   /**
    * From GCC source code: Additional relational operators for floating point unordered.
    */
-  UNORDERED_EXPR
+  UNORDERED_EXPR,
+  
 }

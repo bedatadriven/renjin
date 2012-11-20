@@ -28,6 +28,10 @@ public class JimpleExpr {
   public static JimpleExpr integerConstant(int x) {
     return new JimpleExpr(Integer.toString(x));
   }
+  
+  public static JimpleExpr longConstant(long x) {
+    return new JimpleExpr(Long.toString(x) + "L");
+  }
 
   public static JimpleExpr doubleConstant(Number number) {
     return doubleConstant(number.doubleValue());
@@ -54,5 +58,9 @@ public class JimpleExpr {
   public static JimpleExpr integerConstant(GimpleExpr gimpleExpr) {
     Object value = ((GimpleConstant)gimpleExpr).getValue();
     return integerConstant((Number) value);
+  }
+
+  public static JimpleExpr floatConstant(float floatValue) {
+    return new JimpleExpr(Float.toString(floatValue) + "F");
   }
 }

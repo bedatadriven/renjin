@@ -7,6 +7,7 @@ import org.renjin.gcc.gimple.type.PointerType;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.TranslationContext;
+import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.var.StructPtrVar;
 import org.renjin.gcc.translate.var.StructVar;
 import org.renjin.gcc.translate.var.Variable;
@@ -43,7 +44,7 @@ public class StructTypeTranslator extends TypeTranslator {
   }
 
   @Override
-  public Variable createLocalVariable(FunctionContext functionContext, String gimpleName) {
+  public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage usage) {
     if(pointer) {
       return new StructPtrVar(functionContext, gimpleName, struct);
     } else {

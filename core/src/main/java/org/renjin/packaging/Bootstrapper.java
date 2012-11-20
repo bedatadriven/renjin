@@ -128,10 +128,10 @@ public class Bootstrapper {
         file(destRoot, packageName).getAbsolutePath(),
         packageName));
 
-    try {
+    try {     
       NativeSourcesCompiler compiler = new NativeSourcesCompiler();
       compiler.setPackageName(packageName);
-      compiler.setSourceRoot(srcRoot);
+      compiler.addSources(file(srcRoot, packageName, "src"));
       compiler.compile();
     } catch(Exception e) {
       e.printStackTrace();

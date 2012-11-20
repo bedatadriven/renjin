@@ -31,65 +31,76 @@ public class ConditionalTranslator {
   }
 
   public JimpleExpr translateCondition(GimpleOp operator, List<GimpleExpr> operands) {
-    if(isReal(operands.get(0)) || isReal(operands.get(1))) {
+    JimpleType type = inferType(operands.get(0), operands.get(1));
+    if(type.equals(JimpleType.DOUBLE) || type.equals(JimpleType.FLOAT)) {
       switch (operator) {
         case NE_EXPR:
-          return floatComparison("cmpl", "!= 0", operands);
+          return floatComparison("cmpl", "!= 0", operands, type);
         case EQ_EXPR:
-          return floatComparison("cmpl", "== 0", operands);
+          return floatComparison("cmpl", "== 0", operands, type);
         case LE_EXPR:
-          return floatComparison("cmpg", "<= 0", operands) ;
+          return floatComparison("cmpg", "<= 0", operands, type) ;
         case LT_EXPR:
-          return floatComparison("cmpg", "< 0", operands) ;
+          return floatComparison("cmpg", "< 0", operands, type) ;
         case GT_EXPR:
-          return floatComparison("cmpl", "> 0", operands) ;
+          return floatComparison("cmpl", "> 0", operands, type) ;
         case GE_EXPR:
-          return floatComparison("cmpl", ">= 0", operands) ;
+          return floatComparison("cmpl", ">= 0", operands, type) ;
       }
     } else {
       switch (operator) {
         case NE_EXPR:
-          return relational("!=", operands);
+          return intComparison("!=", operands);
         case EQ_EXPR:
-          return relational("==", operands);
+          return intComparison("==", operands);
         case LE_EXPR:
-          return relational("<=", operands);
+          return intComparison("<=", operands);
         case LT_EXPR:
-          return relational("<", operands);
+          return intComparison("<", operands);
         case GT_EXPR:
-          return relational(">", operands);
+          return intComparison(">", operands);
         case GE_EXPR:
-          return relational(">=", operands);
+          return intComparison(">=", operands);
       }
     }
     throw new UnsupportedOperationException(operator.name() + operands.toString());
   }
 
-  private boolean isReal(GimpleExpr gimpleExpr) {
+  private JimpleType findType(GimpleExpr gimpleExpr) {
     if(gimpleExpr instanceof GimpleVar) {
       Variable var = context.lookupVar(gimpleExpr);
-      return var.isReal();
-    } else if(gimpleExpr instanceof GimpleConstant) {
-      return ((GimpleConstant) gimpleExpr).getValue() instanceof Double;
+      return var.getNumericType();
     } else {
-      throw new UnsupportedOperationException(gimpleExpr.toString());
+      return null; // we treat constants as untyped 
     }
   }
+  
+  private JimpleType inferType(GimpleExpr e1, GimpleExpr e2) {
+    JimpleType type = findType(e1);
+    if(type != null) {
+      return type;
+    }
+    type = findType(e2);
+    if(type == null) {
+      throw new UnsupportedOperationException("Could not deduce types from " + e1 + " or " + e2);
+    }
+    return type;
+  }
 
-  private JimpleExpr floatComparison(String operator, String condition, List<GimpleExpr> operands) {
+  private JimpleExpr floatComparison(String operator, String condition, List<GimpleExpr> operands, JimpleType type) {
 
     String cmp = context.declareTemp(JimpleType.INT);
     context.getBuilder().addStatement(cmp + " = " +
-             context.asNumericExpr(operands.get(0)) + " " + operator + " " +
-             context.asNumericExpr(operands.get(1)));
+             context.asNumericExpr(operands.get(0), type) + " " + operator + " " +
+             context.asNumericExpr(operands.get(1), type));
 
     return new JimpleExpr(cmp + " " + condition);
   }
 
-  private JimpleExpr relational(String operator, List<GimpleExpr> operands) {
+  private JimpleExpr intComparison(String operator, List<GimpleExpr> operands) {
     return JimpleExpr.binaryInfix(operator,
-            context.asNumericExpr(operands.get(0)),
-            context.asNumericExpr(operands.get(1)));
+            context.asNumericExpr(operands.get(0), JimpleType.INT),
+            context.asNumericExpr(operands.get(1), JimpleType.INT));
 
   }
 }

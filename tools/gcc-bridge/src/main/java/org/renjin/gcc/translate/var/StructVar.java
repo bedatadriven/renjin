@@ -7,6 +7,7 @@ import org.renjin.gcc.gimple.struct.Struct;
 import org.renjin.gcc.gimple.type.GimpleStructType;
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
+import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 
 import java.util.List;
@@ -48,7 +49,8 @@ public class StructVar extends Variable {
 
     case VAR_DECL:
     case SSA_NAME:
-      doAssign(member, context.lookupVar(operands.get(0)).asNumericExpr());
+      Variable var = context.lookupVar(operands.get(0));
+      doAssign(member, var.asNumericExpr(var.getNumericType()));
       break;
 
     default:

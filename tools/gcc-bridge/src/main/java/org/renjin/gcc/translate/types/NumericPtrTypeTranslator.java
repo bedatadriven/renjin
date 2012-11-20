@@ -8,6 +8,7 @@ import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.var.NumericPtrVar;
 import org.renjin.gcc.translate.var.Variable;
 
@@ -50,7 +51,7 @@ public class NumericPtrTypeTranslator extends TypeTranslator {
   }
 
   @Override
-  public Variable createLocalVariable(FunctionContext functionContext, String gimpleName) {
+  public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage usage) {
     return new NumericPtrVar(functionContext, gimpleName, primitiveType);
   }
 }

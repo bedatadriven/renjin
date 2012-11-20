@@ -11,3 +11,11 @@ double sum_array(double* values, int length) {
   }
   return sum;
 }
+
+void fill_array(double* values, int length) {
+  int i;
+  for(i=0;i!=length;++i) {
+    values[i] = i * 1.54;
+  }
+  
+}

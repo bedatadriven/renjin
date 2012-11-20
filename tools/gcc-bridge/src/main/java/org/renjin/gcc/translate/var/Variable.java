@@ -12,12 +12,20 @@ public abstract class Variable {
 
   public abstract void assign(GimpleOp op, List<GimpleExpr> operands);
 
-  public JimpleExpr asNumericExpr() {
+  public JimpleExpr asNumericExpr(JimpleType type) {
     throw new UnsupportedOperationException(this + " does not have a numeric representation");
   }
 
+  public JimpleType getNumericType() {
+    throw new UnsupportedOperationException(this + " does not have a numeric representation");
+  }
+  
   public void initFromParameter() {
 
+  }
+  
+  public void initFromConstant(Object value) {
+    throw new UnsupportedOperationException();
   }
 
   public void assignMember(String member, GimpleOp operator, List<GimpleExpr> operands) {
@@ -34,5 +42,13 @@ public abstract class Variable {
 
   public boolean isReal() {
     throw new UnsupportedOperationException(this + " does not have a numeric representation");
+  }
+
+  public JimpleExpr asNumericArrayRef(JimpleExpr index) {
+    throw new UnsupportedOperationException(this + " cannot be referenced as a numeric array");
+  }
+
+  public void assignIndirect(GimpleOp operator, List<GimpleExpr> operands) {
+    throw new UnsupportedOperationException();
   }
 }

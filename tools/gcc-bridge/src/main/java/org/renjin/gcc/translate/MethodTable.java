@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.expr.GimpleExternal;
 import org.renjin.gcc.jimple.JimpleMethodRef;
+import org.renjin.gcc.runtime.Builtins;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -34,6 +35,16 @@ public class MethodTable {
 
   private void addDefaults() {
     addMethod("__isnan", Double.class, "isNaN");
+    addMethod("__builtin_sin", Math.class, "sin");
+    addMethod("__builtin_log", Math.class, "log");
+    addMethod("__builtin_cos", Math.class, "cos");
+    addMethod("__builtin_sqrt", Math.class, "sqrt");
+    addMethod("__builtin_pow", Math.class, "pow");
+    addMethod("__builtin_powi", Builtins.class, "powi");
+    addMethod("_gfortran_pow_i4_i4", Builtins.class, "_gfortran_pow_i4_i4");
+    
+
+
     addMethod("sqrt", Math.class);
     addMethod("floor", Math.class);
   }

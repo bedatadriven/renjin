@@ -5,6 +5,7 @@ import org.renjin.gcc.gimple.type.FunctionPointerType;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.TranslationContext;
+import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.var.FunPtrVar;
 import org.renjin.gcc.translate.var.Variable;
 
@@ -36,7 +37,7 @@ public class FunPtrTranslator extends TypeTranslator {
   }
 
   @Override
-  public Variable createLocalVariable(FunctionContext functionContext, String gimpleName) {
+  public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage usage) {
     return new FunPtrVar(functionContext, gimpleName, type);
   }
 }

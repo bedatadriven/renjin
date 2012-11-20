@@ -61,5 +61,12 @@ public class RenjinCApi {
     System.out.println(varName + " = " + x);
 
   }
+  
+ 
+  // fortran calling convention
+  public static void rwarn(String message, int charCount)  {
+    // TODO: we really need the R context here
+    System.err.println(message);
+  }
 }
 

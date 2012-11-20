@@ -17,6 +17,8 @@ public class JimpleMethodBuilder {
   private List<JimpleParam> params = Lists.newArrayList();
   private List<JimpleBodyElement> body = Lists.newArrayList();
   private Set<JimpleModifiers> modifiers = Sets.newHashSet(JimpleModifiers.PUBLIC);
+  
+  private int nextTempIndex = 1;
 
   JimpleMethodBuilder(AbstractClassBuilder classBuilder) {
     this.classBuilder = classBuilder;
@@ -38,6 +40,11 @@ public class JimpleMethodBuilder {
     varDecls.add(new JimpleVarDecl(type, name));
   }
 
+  public String addTempVarDecl(JimpleType type) {
+    String name = "__temp" + (nextTempIndex++);
+    varDecls.add(new JimpleVarDecl(type, name));
+    return name;
+  }
 
   public void addParameter(JimpleType type, String name) {
     JimpleParam jimpleParam = new JimpleParam(type, name);

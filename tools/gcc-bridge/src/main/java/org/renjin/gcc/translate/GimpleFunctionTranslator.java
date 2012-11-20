@@ -6,6 +6,7 @@ import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.FunctionPointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.jimple.*;
+import org.renjin.gcc.translate.var.NumericPtrVar;
 import org.renjin.gcc.translate.var.Variable;
 
 import java.lang.reflect.Field;
@@ -52,10 +53,19 @@ public class GimpleFunctionTranslator extends GimpleVisitor {
     try {
       if(assignment.getLHS() instanceof GimpleVar) {
         context.lookupVar((GimpleVar) assignment.getLHS()).assign(assignment.getOperator(), assignment.getOperands());
+      
       } else if(assignment.getLHS() instanceof GimpleCompoundRef) {
         GimpleCompoundRef ref = (GimpleCompoundRef) assignment.getLHS();
         Variable var = context.lookupVar(ref.getVar());
         var.assignMember(ref.getMember(), assignment.getOperator(), assignment.getOperands());
+      
+      } else if(assignment.getLHS() instanceof GimpleIndirection) {
+        GimpleIndirection indirectRef = (GimpleIndirection) assignment.getLHS();
+        Variable var = context.lookupVar(indirectRef.getPointer());
+        var.assignIndirect(assignment.getOperator(), assignment.getOperands());
+        
+      } else {
+        throw new UnsupportedOperationException("lhs: " + assignment.getLHS());
       }
     } catch(Exception e) {
       throw new TranslationException("Exception translating " + assignment, e);
@@ -114,6 +124,7 @@ public class GimpleFunctionTranslator extends GimpleVisitor {
       if(call.getFunction() instanceof GimpleExternal) {
         method = translationContext.resolveMethod(call);
         stmt.append("staticinvoke").append(method.signature());
+        
       } else if(call.getFunction() instanceof GimpleVar) {
         GimpleType type = function.getType(call.getFunction());
         if(!(type instanceof FunctionPointerType)) {

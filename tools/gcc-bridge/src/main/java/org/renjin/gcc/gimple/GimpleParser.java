@@ -12,6 +12,8 @@ import java.util.List;
 public class GimpleParser {
 
 
+  private static final String FORTRAN_STRING_PREFIX = "&\"";
+  private static final String FORTRAN_STRING_SUFFIX = "\"[1]{lb: 1 sz: 1}";
   private GimpleFunction currentFunction;
   private GimpleBasicBlock currentBB;
 
@@ -78,7 +80,7 @@ public class GimpleParser {
     } else if(line.startsWith("static ")) {
       currentFunction.addVarDecl(parseStaticVarDecl(line));
     } else {
-      currentFunction.addVarDecl(parseVarDecl(line));
+      currentFunction.addVarDecl(parseVarDecl(line, null));
     }
   }
 
@@ -87,12 +89,7 @@ public class GimpleParser {
     String varDecl = line.substring("static ".length(), equals).trim();
     String constant = line.substring(equals+1, line.lastIndexOf(';')).trim();
 
-    int identifierStart = varDecl.lastIndexOf(' ')+1;
-    String identifier = varDecl.substring(identifierStart);
-    String typeDecl = varDecl.substring(0, identifierStart-1).trim();
-
-    return new GimpleVarDecl(parseType(typeDecl), identifier,
-            parseNumericConstant(constant).getValue());
+    return parseVarDecl(varDecl, parseNumericConstant(constant).getValue());
   }
 
   private GimpleIns parseLabelIns(String line) {
@@ -130,16 +127,28 @@ public class GimpleParser {
     return new GimpleSwitch(expr, branches);
   }
 
-  private GimpleVarDecl parseVarDecl(String line) {
+  private GimpleVarDecl parseVarDecl(String line, Object constantValue) {
     // strip final ;
     int terminatingSemi = line.indexOf(';');
-    line = line.substring(0, terminatingSemi);
+    if(terminatingSemi != -1) {
+      line = line.substring(0, terminatingSemi);
+    }
 
     // split into tokens
     int identifierStart = line.lastIndexOf(' ')+1;
-    String identifier = line.substring(identifierStart);
     String typeDecl = line.substring(0, identifierStart-1).trim();
-    return new GimpleVarDecl(parseType(typeDecl), identifier);
+    GimpleType type = parseType(typeDecl);
+
+    String identifier = line.substring(identifierStart);
+    if(identifier.indexOf('[') != -1) {
+      if(constantValue == null) {
+        throw new UnsupportedOperationException("array type decl without constant value provided: " + line);
+      }
+      identifier = identifier.substring(0, identifier.indexOf('['));
+      type = new PointerType(type);
+    }
+    
+    return new GimpleVarDecl(type, identifier, constantValue);
   }
 
   private GimpleIns parseReturn(String line) {
@@ -203,16 +212,29 @@ public class GimpleParser {
     if(text.equals("NULL")) {
       return GimpleNull.INSTANCE;
     } else if(text.startsWith("&\"") && text.endsWith("\"[0]")) {
-      return parseStringConstant(text);
+      return parseStringConstant(text, "&\"", "\"[0]");
+    } else if(text.startsWith(FORTRAN_STRING_PREFIX) && text.endsWith(FORTRAN_STRING_SUFFIX)) {
+      return parseFortranStringConstant(text);
+    } else if(text.startsWith("\"") && text.endsWith("\"")) {
+      return parseStringConstant(text, "\"", "\"");
     } else if(text.startsWith("&")) {
       return parseAddressOf(text);
     } else if(Character.isDigit(text.charAt(0)) || text.charAt(0)=='-') {
       return parseNumericConstant(text);
-    } else if(text.contains("->")) {
+    } else if(text.contains("->")) {  
       return parseCompoundArrowRef(text);
+    } else if(text.startsWith("*")) {
+      return parseIndirection(text);
     } else {
       return parseName(text);
     }
+  }
+  
+
+
+  private GimpleExpr parseIndirection(String text) {
+    GimpleExpr pointerExpr = parseExpr(text.substring("*".length()));
+    return new GimpleIndirection(pointerExpr);
   }
 
   private GimpleExpr parseAddressOf(String text) {
@@ -236,8 +258,13 @@ public class GimpleParser {
     return new GimpleCompoundRef(var, field);
   }
 
-  private GimpleExpr parseStringConstant(String text) {
-    String str = text.substring("&\"".length(), text.length()-"\"[0]".length());
+  private GimpleExpr parseStringConstant(String text, String prefix, String suffix) {
+    String str = text.substring(prefix.length(), text.length()-suffix.length());
+    return new GimpleConstant(str);
+  }
+  
+  private GimpleExpr parseFortranStringConstant(String text) {
+    String str = text.substring(FORTRAN_STRING_PREFIX.length(), text.length() - FORTRAN_STRING_SUFFIX.length());
     return new GimpleConstant(str);
   }
 
@@ -245,6 +272,8 @@ public class GimpleParser {
     if(text.equals("0B")) {
       // TODO: not sure if this is correct
       return new GimpleConstant(0);
+    } else if(text.startsWith("{")) {
+      return parseConstantArray(text);
     } else if(text.indexOf('.') != -1) {
       return new GimpleConstant(Double.parseDouble(text));
     } else {
@@ -252,13 +281,27 @@ public class GimpleParser {
     }
   }
 
+  private GimpleConstant parseConstantArray(String text) {
+   if(text.indexOf('.') != -1) {
+     String[] values = text.substring("{".length(), text.lastIndexOf('}')).split("\\s*,\\s*");
+     double [] dvalues = new double[values.length];
+     for(int i=0;i!=values.length;++i) {
+       dvalues[i] = Double.parseDouble(values[i]);
+     }
+     return new GimpleConstant(dvalues);
+   } else {
+     throw new UnsupportedOperationException(text);
+   }
+   
+  }
+
   private String stripNameDecorators(String name) {
     int originStart = name.indexOf('(');
     if(originStart != -1) {
       name = name.substring(0, originStart);
     }
-    while(name.startsWith("*")) {
-      name = name.substring(1);
+    if(name.startsWith("*")) {
+      throw new UnsupportedOperationException();
     }
     return name;
   }
@@ -266,6 +309,8 @@ public class GimpleParser {
   private GimpleExpr parseName(String text) {
     if(isArrayRef(text)) {
       return parseArrayRef(text);
+    } else if(text.startsWith("*")) {
+      return parseIndirection(text);
     }
 
     String cleanText = stripNameDecorators(text);
@@ -287,11 +332,11 @@ public class GimpleParser {
 
     String name = stripEnclosingParens(cleanText.substring(0, bracket));
     if(name.startsWith("*")) {
-      name = name.substring(1);
+      throw new UnsupportedOperationException();
     }
     GimpleExpr var = parseName(name);
     if(!(var instanceof GimpleVar)) {
-      throw new UnsupportedOperationException(var.toString());
+      throw new UnsupportedOperationException(var.toString() + " [" + var.getClass().getSimpleName() + "]");
     }
     return new GimpleArrayRef((GimpleVar)var, indexExpr);
   }
@@ -434,6 +479,9 @@ public class GimpleParser {
 
     } else if(typeDecl.equals("integer(kind=8)")) {
       return PrimitiveType.LONG;
+      
+    } else if(typeDecl.equals("real(kind=4)")) {
+      return PrimitiveType.FLOAT_TYPE;
 
     } else if( typeDecl.equals("long unsigned int") ||
             typeDecl.equals("<unnamed-unsigned:64>") ||

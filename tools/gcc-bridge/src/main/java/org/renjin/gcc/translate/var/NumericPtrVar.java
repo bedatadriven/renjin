@@ -1,17 +1,23 @@
 package org.renjin.gcc.translate.var;
 
 
+import java.lang.reflect.Array;
+import java.util.List;
+
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.expr.*;
+import org.renjin.gcc.gimple.expr.GimpleAddressOf;
+import org.renjin.gcc.gimple.expr.GimpleArrayRef;
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleVar;
 import org.renjin.gcc.gimple.type.PrimitiveType;
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.types.PrimitiveTypes;
 
-import java.util.List;
+import com.google.common.primitives.Primitives;
 
 public class NumericPtrVar extends Variable {
 
@@ -22,6 +28,7 @@ public class NumericPtrVar extends Variable {
   private String jimpleOffsetName;
   private JimpleType arrayType;
   private JimpleType wrapperType;
+  private JimpleType jimpleType;
 
   public NumericPtrVar(FunctionContext context, String gimpleName, PrimitiveType type) {
     this.context = context;
@@ -29,16 +36,9 @@ public class NumericPtrVar extends Variable {
     this.gimpleType = type;
     this.jimpleArrayName = Jimple.id(gimpleName) + "_array";
     this.jimpleOffsetName = Jimple.id(gimpleName + "_offset");
-    switch(type) {
-    case DOUBLE_TYPE:
-      arrayType = new JimpleType("double[]");
-      wrapperType = new JimpleType(DoublePtr.class);
-      break;
-    case INT_TYPE:
-      arrayType = new JimpleType("int[]");
-      wrapperType = new JimpleType(IntPtr.class);
-      break;
-    }
+    this.arrayType = PrimitiveTypes.getArrayType(type);
+    this.wrapperType = PrimitiveTypes.getWrapperType(type);
+    this.jimpleType = PrimitiveTypes.get(type);
 
     context.getBuilder().addVarDecl(arrayType, jimpleArrayName);
     context.getBuilder().addVarDecl(JimpleType.INT, jimpleOffsetName);
@@ -51,6 +51,27 @@ public class NumericPtrVar extends Variable {
     context.getBuilder().addStatement(jimpleOffsetName + " = " + gimpleName + ".<" +
             wrapperType + ": int offset>");
   }
+  
+  
+
+  @Override
+  public void initFromConstant(Object value) {
+    if(!value.getClass().isArray()) {
+      throw new UnsupportedOperationException("Cannot init ptr from value '" + value + "' (" + value.getClass() + ")");
+    }
+    context.getBuilder().addStatement(String.format("%s = newarray (%s)[%d]",
+        jimpleArrayName, 
+        PrimitiveTypes.get(gimpleType),
+        Array.getLength(value)));
+    
+    for(int i=0;i!=Array.getLength(value);++i) {
+      context.getBuilder().addStatement(String.format("%s[%d] = %s",
+         jimpleArrayName, i, 
+         Array.get(value, i).toString()));
+    }
+    
+    
+  }
 
   @Override
   public void assign(GimpleOp op, List<GimpleExpr> operands) {
@@ -61,12 +82,8 @@ public class NumericPtrVar extends Variable {
       case ADDR_EXPR:
         assignAddress(operands);
         break;
-      case VAR_DECL:
-      case SSA_NAME:
-        assignValue(operands.get(0));
-        break;
       case REAL_CST:
-        assignConstant((GimpleConstant) operands.get(0));
+        assignNullPtr((GimpleConstant) operands.get(0));
         break;
 
       default:
@@ -75,23 +92,38 @@ public class NumericPtrVar extends Variable {
   }
 
 
-  private void assignConstant(GimpleConstant constant) {
+  @Override
+  public void assignIndirect(GimpleOp op, List<GimpleExpr> operands) {
+    switch(op) {
+    case VAR_DECL:
+    case SSA_NAME:
+    case REAL_CST:
+      assignValue(operands.get(0));
+      break;
+
+
+    default:
+      throw new UnsupportedOperationException(op + " " + operands);
+    }
+  }
+
+  private void assignNullPtr(GimpleConstant constant) {
     if(constant.getNumberValue().doubleValue() != 0) {
       throw new UnsupportedOperationException("Can only assign 0 to pointers: " + constant);
     }
     context.getBuilder().addStatement(jimpleArrayName + " = null");
   }
+  
 
   private void assignValue(GimpleExpr gimpleExpr) {
- //   context.getBuilder().addStatement("staticinvoke <org.renjin.gcc.runtime.Debug: void println(java.lang.String)>(\"assignValue\")");
     context.getBuilder().addStatement(jimpleArrayName + "[" + jimpleOffsetName + "] = " +
-        context.asNumericExpr(gimpleExpr));
+        context.asNumericExpr(gimpleExpr, PrimitiveTypes.get(gimpleType)));
   }
 
 
   private void assignPointerPlus(List<GimpleExpr> operands) {
     NumericPtrVar var = asPtr(operands.get(0));
-    JimpleExpr bytesToIncrement = context.asNumericExpr(operands.get(1));
+    JimpleExpr bytesToIncrement = context.asNumericExpr(operands.get(1), JimpleType.INT);
     String positionsToIncrement = context.declareTemp(JimpleType.INT);
     context.getBuilder().addStatement(positionsToIncrement + " = " + bytesToIncrement + " / " + valueSize());
     assignPointer(var, new JimpleExpr(positionsToIncrement));
@@ -112,7 +144,7 @@ public class NumericPtrVar extends Variable {
 
   private void assignArrayElement(GimpleArrayRef arrayRef) {
     NumericPtrVar var = asPtr(arrayRef.getVar());
-    JimpleExpr positionsToIncrement = context.asNumericExpr(arrayRef.getIndex());
+    JimpleExpr positionsToIncrement = context.asNumericExpr(arrayRef.getIndex(), JimpleType.INT);
     assignPointer(var, positionsToIncrement);
   }
 
@@ -144,4 +176,14 @@ public class NumericPtrVar extends Variable {
   public JimpleExpr indirectRef() {
     return new JimpleExpr(jimpleArrayName + "[" + jimpleOffsetName + "]");
   }
+
+  @Override
+  public JimpleExpr asNumericArrayRef(JimpleExpr index) {
+
+    String tempIndex = context.getBuilder().addTempVarDecl(JimpleType.INT);
+    context.getBuilder().addStatement(tempIndex + " = " + jimpleOffsetName + " + " + index);
+    return new JimpleExpr(jimpleArrayName + "[" + tempIndex + "]");
+  }
+  
+  
 }

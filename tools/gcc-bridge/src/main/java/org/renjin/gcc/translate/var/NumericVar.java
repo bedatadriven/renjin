@@ -1,48 +1,32 @@
 package org.renjin.gcc.translate.var;
 
 
+import java.util.List;
+
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.GimpleCompoundRef;
-import org.renjin.gcc.gimple.expr.GimpleConstant;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleIndirection;
 import org.renjin.gcc.gimple.expr.GimpleVar;
 import org.renjin.gcc.gimple.type.PrimitiveType;
-import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.ConditionalTranslator;
 import org.renjin.gcc.translate.FunctionContext;
-
-import java.util.List;
+import org.renjin.gcc.translate.types.PrimitiveTypes;
 
 public class NumericVar extends Variable {
 
   private final FunctionContext context;
-  private final String jimpleName;
   private final PrimitiveType gimpleType;
   private final JimpleType jimpleType;
+  private final NumericStorage storage;
 
-  public NumericVar(FunctionContext context, String gimpleName, PrimitiveType gimpleType) {
+  public NumericVar(FunctionContext context, PrimitiveType gimpleType, NumericStorage storage) {
     this.context = context;
-    this.jimpleName = Jimple.id(gimpleName);
     this.gimpleType = gimpleType;
-    switch (gimpleType) {
-      case DOUBLE_TYPE:
-        jimpleType = JimpleType.DOUBLE;
-        break;
-      case INT_TYPE:
-        jimpleType = JimpleType.INT;
-        break;
-      case BOOLEAN:
-        jimpleType = JimpleType.BOOLEAN;
-        break;
-      case LONG:
-        jimpleType = JimpleType.LONG;
-        break;
-      default:
-        throw new IllegalArgumentException(gimpleType.name());
-    }
-    context.getBuilder().addVarDecl(jimpleType, jimpleName);
+    this.storage = storage;
+    this.jimpleType  = PrimitiveTypes.get(gimpleType);
   }
 
   @Override
@@ -51,6 +35,8 @@ public class NumericVar extends Variable {
       case VAR_DECL:
       case SSA_NAME:
       case NOP_EXPR:
+      case PAREN_EXPR:
+      case ARRAY_REF:
         assignNop(operands.get(0));
         break;
 
@@ -70,6 +56,11 @@ public class NumericVar extends Variable {
       case TRUNC_DIV_EXPR:
         assignBinary("/", operands);
         break;
+        
+      case NEGATE_EXPR:
+        assignNegated(operands);
+        break;
+        
       case ABS_EXPR:
         assignAbs(operands.get(0));
         break;
@@ -108,6 +99,7 @@ public class NumericVar extends Variable {
         break;
 
       case INDIRECT_REF:
+      case MEM_REF:
         assignRef(operands);
         break;
 
@@ -121,29 +113,21 @@ public class NumericVar extends Variable {
   }
 
 
+
   private void integerToReal(GimpleExpr gimpleExpr) {
-    // Soot will complain if we convert a real to a real
-    // so we need to double check that the source is really an integer
-    if(gimpleExpr instanceof GimpleVar) {
-      Variable var = context.lookupVar((GimpleVar) gimpleExpr);
-      if(var instanceof NumericVar && ((NumericVar) var).isReal()) {
-        assignNop(gimpleExpr);
-        return;
-      }
-    } else if(gimpleExpr instanceof GimpleConstant) {
-      if(((GimpleConstant) gimpleExpr).getValue() instanceof Double) {
-        assignNop(gimpleExpr);
-        return;
-      }
+    if(!jimpleType.equals(JimpleType.DOUBLE) && !jimpleType.equals(JimpleType.FLOAT) ) {
+      throw new IllegalStateException();
     }
-    JimpleExpr number = context.asNumericExpr(gimpleExpr);
-    doAssign(JimpleExpr.cast(number, JimpleType.DOUBLE));
+    storage.assign(context.asNumericExpr(gimpleExpr, jimpleType));
   }
 
   private void realToInteger(GimpleExpr gimpleExpr) {
-    JimpleExpr number = context.asNumericExpr(gimpleExpr);
-    doAssign(JimpleExpr.cast(number, JimpleType.INT));
-
+    storage.assign(context.asNumericExpr(gimpleExpr, JimpleType.INT));
+  }
+  
+  @Override
+  public JimpleType getNumericType() {
+    return jimpleType;
   }
 
   @Override
@@ -160,7 +144,7 @@ public class NumericVar extends Variable {
   }
 
   private void assignNegation(GimpleExpr expr) {
-    JimpleExpr condition = new JimpleExpr(context.asNumericExpr(expr) + " != 0");
+    JimpleExpr condition = new JimpleExpr(asTypedNumericExpr(expr) + " != 0");
     assignBoolean(condition);
   }
 
@@ -170,7 +154,7 @@ public class NumericVar extends Variable {
 
 
   private void assignBitNot(GimpleExpr operand) {
-    doAssign(JimpleExpr.binaryInfix("^", context.asNumericExpr(operand), JimpleExpr.integerConstant(-1)));
+    storage.assign(JimpleExpr.binaryInfix("^", asTypedNumericExpr(operand), JimpleExpr.integerConstant(-1)));
   }
 
   private void assignIfElse(JimpleExpr booleanExpr, JimpleExpr ifTrue, JimpleExpr ifFalse) {
@@ -180,57 +164,83 @@ public class NumericVar extends Variable {
     context.getBuilder().addStatement("if " + booleanExpr +
             " goto " + trueLabel);
 
-    context.getBuilder().addStatement(jimpleName + " = " + ifFalse);
+    storage.assign(ifFalse);
     context.getBuilder().addStatement("goto " + doneLabel);
 
     context.getBuilder().addLabel(trueLabel);
-    context.getBuilder().addStatement(jimpleName + " = " + ifTrue);
+    storage.assign(ifTrue);
     context.getBuilder().addStatement("goto " + doneLabel);
 
     context.getBuilder().addLabel(doneLabel);
   }
 
   @Override
-  public JimpleExpr asNumericExpr() {
-    return new JimpleExpr(jimpleName);
+  public JimpleExpr asNumericExpr(JimpleType type) {
+    if(type.equals(jimpleType)) {
+      return storage.asNumericExpr();
+    } else if(this.jimpleType.equals(JimpleType.BOOLEAN) && type.equals(JimpleType.INT)) {
+      return storage.asNumericExpr();
+    } else {
+      String tempVar = context.declareTemp(type);
+      context.getBuilder().addStatement(String.format("%s = (%s)%s", 
+          tempVar,
+          type.toString(), storage.asNumericExpr().toString()));
+      return new JimpleExpr(tempVar);
+    }
+  }
+  
+  @Override
+  public JimpleExpr addressOf() {
+    return storage.addressOf();
   }
 
   private void assignNop(GimpleExpr gimpleExpr) {
-    doAssign(context.asNumericExpr(gimpleExpr));
+    storage.assign(asTypedNumericExpr(gimpleExpr));
   }
 
   private void assignBinary(String operator, List<GimpleExpr> operands) {
-    doAssign(JimpleExpr.binaryInfix(operator,
-            context.asNumericExpr(operands.get(0)),
-            context.asNumericExpr(operands.get(1))));
+    storage.assign(JimpleExpr.binaryInfix(operator,
+            asTypedNumericExpr(operands.get(0)),
+            asTypedNumericExpr(operands.get(1))));
+  }
+  
+
+  private void assignNegated(List<GimpleExpr> operands) {
+    storage.assign(new JimpleExpr("neg " + asTypedNumericExpr(operands.get(0))));
   }
 
   private void assignCompoundRef(GimpleCompoundRef compoundRef) {
     Variable var = context.lookupVar(compoundRef.getVar());
-    doAssign(var.memberRef(compoundRef.getMember(), jimpleType));
-
+    storage.assign(var.memberRef(compoundRef.getMember(), PrimitiveTypes.get(gimpleType)));
   }
 
-
   private void assignAbs(GimpleExpr gimpleExpr) {
-    doAssign(new JimpleExpr("staticinvoke <java.lang.Math: double abs(double)>(" +
-            context.asNumericExpr(gimpleExpr) + ")"));
+    switch(this.gimpleType) {
+    case DOUBLE_TYPE:
+      storage.assign(new JimpleExpr("staticinvoke <java.lang.Math: double abs(double)>(" +
+          asTypedNumericExpr(gimpleExpr) + ")"));
+      break;
+    case INT_TYPE:
+      storage.assign(new JimpleExpr("staticinvoke <java.lang.Math: int abs(int)>(" +
+          asTypedNumericExpr(gimpleExpr) + ")"));
+      break;
+    default:
+      throw new UnsupportedOperationException("abs on type " + this.gimpleType.name());
+    }
+
   }
 
   private void assignMax(List<GimpleExpr> operands) {
-    JimpleExpr a = context.asNumericExpr(operands.get(0));
-    JimpleExpr b = context.asNumericExpr(operands.get(1));
+    JimpleExpr a = asTypedNumericExpr(operands.get(0));
+    JimpleExpr b = asTypedNumericExpr(operands.get(1));
 
     assignIfElse(JimpleExpr.binaryInfix(">", a, b), a, b);
   }
 
-  private void doAssign(JimpleExpr rhs) {
-    context.getBuilder().addStatement(jimpleName + " = " + rhs);
-  }
 
   private void assignRef(List<GimpleExpr> ops) {
     NumericPtrVar pointer = asPointer(ops.get(0));
-    doAssign(pointer.indirectRef());
+    storage.assign(pointer.indirectRef());
   }
 
   private NumericPtrVar asPointer(GimpleExpr expr) {
@@ -239,17 +249,23 @@ public class NumericVar extends Variable {
       if(var instanceof NumericPtrVar) {
         return (NumericPtrVar) var;
       }
+    } else if(expr instanceof GimpleIndirection) {
+      return asPointer(((GimpleIndirection) expr).getPointer());
     }
     throw new IllegalArgumentException(expr.toString());
   }
 
 
   private void assignConstant(GimpleExpr gimpleExpr) {
-    doAssign(context.asNumericExpr(gimpleExpr));
+    storage.assign(asTypedNumericExpr(gimpleExpr));
+  }
+
+  private JimpleExpr asTypedNumericExpr(GimpleExpr gimpleExpr) {
+    return context.asNumericExpr(gimpleExpr, PrimitiveTypes.get(gimpleType));
   }
 
   @Override
   public String toString() {
-    return "NumericVar:" + jimpleName;
+    return "NumericVar:" + storage;
   }
 }

@@ -7,6 +7,7 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
+import org.renjin.sexp.SEXP;
 
 import java.io.File;
 import java.io.StringReader;
@@ -15,45 +16,41 @@ import java.util.List;
 public class NativeSourcesCompiler {
 
   private String packageName;
-  private File srcRoot;
+  private List<File> sources = Lists.newArrayList();
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;
   }
 
-  public void setSourceRoot(File srcRoot) {
-    this.srcRoot = srcRoot;
-  }
-
-  private List<File> findSources() {
-    List<File> sources = Lists.newArrayList();
-    File packageRoot = new File(srcRoot, packageName);
-    File src = new File(packageRoot, "src");
-
+  /**
+   * Adds sources from 
+   * @param libraryPath the package root. Native sources are expected to be in srcRoot/src
+   */
+  public void addSources(File src) {
     if(src.exists() && src.listFiles() != null) {
       for(File file : src.listFiles()) {
-        if(file.getName().endsWith(".c")) {
+        if(file.getName().endsWith(".c") || file.getName().endsWith(".f")) {
           sources.add(file);
         }
       }
     }
-    return sources;
   }
 
   public void compile() throws Exception {
 
-    List<File> sources = findSources();
     if(!sources.isEmpty()) {
 
       List<GimpleFunction> functions = Lists.newArrayList();
 
       Gcc gcc = new Gcc();
-      gcc.addIncludeDirectory(new File("src/main/include"));
+      gcc.addIncludeDirectory(unpackIncludes());
 
       GimpleParser parser = new GimpleParser();
 
       for(File sourceFile : sources) {
         String gimple = gcc.compileToGimple(sourceFile);
+        System.out.println(gimple);
+        
         try {
           functions.addAll(parser.parse(new StringReader(gimple)));
         } catch(Exception e) {
@@ -70,6 +67,10 @@ public class NativeSourcesCompiler {
     }
   }
 
+  private File unpackIncludes() {
+    return new File("src/main/include");
+  }
+
   private String properCase(String packageName) {
     return packageName.substring(0,1).toUpperCase() + packageName.substring(1).toLowerCase();
   }
@@ -77,7 +78,7 @@ public class NativeSourcesCompiler {
   public static void main(String[] args) throws Exception {
     NativeSourcesCompiler compiler = new NativeSourcesCompiler();
     compiler.setPackageName("stats");
-    compiler.setSourceRoot(new File("src/library"));
+    compiler.addSources(new File("src/library"));
     compiler.compile();
   }
 

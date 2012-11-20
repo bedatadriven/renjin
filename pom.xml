@@ -43,10 +43,12 @@
     <module>samples/appengine-repl</module>
     <module>dist/generic</module>
     <module>appl</module>
+    <module>packages/hyp2f1zhangjin</module>
   </modules>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <renjin.version>${project.version}</renjin.version>
   </properties>
 
   <scm>

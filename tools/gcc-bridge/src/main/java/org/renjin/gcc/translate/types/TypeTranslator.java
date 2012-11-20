@@ -3,6 +3,7 @@ package org.renjin.gcc.translate.types;
 
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.var.Variable;
 
 /**
@@ -14,6 +15,6 @@ public abstract class TypeTranslator {
 
   public abstract JimpleType returnType();
 
-  public abstract Variable createLocalVariable(FunctionContext functionContext, String gimpleName);
+  public abstract Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage varUsage);
 
 }

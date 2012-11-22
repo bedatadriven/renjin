@@ -49,6 +49,20 @@ public class S3DispatchTest extends EvalTestCase {
   }
 
   @Test
+  public void nextMethodInSeveralContextsDown() {
+    eval(" structure <- function(x, class) { class(x) <- class; x } ");
+    eval(" `[.simple.list` <- function(x, i, ...) { structure(NextMethod('['), class = class(x)) }");
+    eval(" sl <- list(41,42,43) ");
+    eval(" class(sl) <- 'simple.list'");
+
+    eval(" x <- sl[1]");
+    
+    assertThat( eval("class(x)"), equalTo(c("simple.list")));
+    assertThat( eval("x"), equalTo(list(41d)));
+
+  }
+  
+  @Test
   public void groupGeneric() {
     eval(" Ops.numeric_version <- function(e1,e2) { e1<-e1$value; e2<-e2$value; NextMethod(.Generic) } ");
     eval(" o1 <- list(value=4) ");

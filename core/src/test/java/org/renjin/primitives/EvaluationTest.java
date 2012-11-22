@@ -668,6 +668,20 @@ public class EvaluationTest extends EvalTestCase {
     eval("f()");
   }
 
-  
+
+  @Test
+  public void correctEnclosingEnvironment() {
+    eval("new.env <- function (hash = TRUE, parent = parent.frame(), size = 29L) .Internal(new.env(hash, parent, size))");
+    eval(" eval <- function(expr, envir = parent.frame()," +
+    		" enclos = if(is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) .Internal(eval(expr, envir, enclos))");
+    eval( "parent.frame <- function(n = 1) .Internal(parent.frame(n)) ");
+    eval("eval.parent <- function(expr, n = 1){  p <- parent.frame(n + 1); eval(expr , p) } ");
+    eval("local <- function (expr, envir = new.env()) eval.parent(substitute(eval(quote(expr), envir)))");
+    
+    eval("f<-function() { zz <- 42; local({ zz }) }");
+    
+    assertThat(eval("f()"), equalTo(c(42)));
+
+  }
 }
 

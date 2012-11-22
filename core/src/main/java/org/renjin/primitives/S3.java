@@ -1,16 +1,41 @@
 package org.renjin.primitives;
 
-import com.google.common.collect.Lists;
-import org.renjin.eval.*;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.*;
+import static org.renjin.util.CDefines.R_UnboundValue;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.renjin.util.CDefines.*;
+import org.renjin.eval.Calls;
+import org.renjin.eval.ClosureDispatcher;
+import org.renjin.eval.Context;
+import org.renjin.eval.DispatchChain;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.annotations.ArgumentList;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Frame;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.HashFrame;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalArrayVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.PrimitiveFunction;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.PromisePairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+
+import com.google.common.collect.Lists;
 
 /**
  * Primitives used in the implementation of the S3 object system
@@ -551,25 +576,31 @@ public class S3 {
   public static SEXP dispatchGroup(String group, FunctionCall call, String opName, PairList args, Context context, Environment rho) {
     int i, j, nargs;
 
-    if(call.getFunction() instanceof Symbol && ((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
+    /*
+     * First we need to see if we've already been through this.
+     * (It's complicated)
+     * 
+     * - This method is called by "generic" primitives that, before doing 
+     *   their normal thing, check to see if there's a user-defined function
+     *   out there that provides specific behavior for the object. 
+     * 
+     * - It can happen that that user function in turn calls NextMethod() 
+     *   to defer to the default behavior of the primitive. In this case,
+     *   we don't want to check again because we've already been through
+     *   that; to do so would be to loop infinitely.
+     *   
+     * - We can only tell whether this is the first or second time around,
+     *   because if it's the second, NextMethod() will invoke the primitive
+     *   by the name "<primitive>.default", like "as.character.default". 
+     */
+    if(call.getFunction() instanceof Symbol && 
+        ((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
       return null;
     }
 
 
-
     boolean useS4 = true, isOps = false;
 
-    /* pre-test to avoid string computations when there is nothing to
-     dispatch on because either there is only one argument and it
-     isn't an object or there are two or more arguments but neither
-     of the first two is an object -- both of these cases would be
-     rejected by the code following the string examination code
-     below */
-//	if (args != R_NilValue && !isObject(CAR(args)) && (CDR(args) == R_NilValue
-//			|| !isObject(CADR(args))))
-//		return 0;
-
-    //isOps = strcmp(group, "Ops") == 0;
     isOps = group.equals("Ops");
 
 //    /* try for formal method */
@@ -591,47 +622,38 @@ public class S3 {
 //      /* else go on to look for S3 methods */
 //    }
 
-    /* check whether we are processing the default method */
-    if (isSymbol(CAR(call))) {
-//      if (strlen(CHAR(PRINTNAME(CAR(call)))) >= 512)
-//        error(_("call name too long in '%s'"), CHAR(PRINTNAME(CAR(call))));
-
-      String symbolName = ((Symbol)CAR(call)).getPrintName();
-      //sprintf(lbuf, "%s", CHAR(PRINTNAME(CAR(call))) );
-      int pt = symbolName.indexOf('.');
-      pt = symbolName.indexOf('.', pt);
-
-      if (pt != -1 && symbolName.substring(pt).equals("default")) {
-        return null;
-      }
-    }
 
     if (isOps)
       nargs = args.length();
     else
       nargs = 1;
 
-//    if (nargs == 1 && !isObject(CAR(args)))
-//      return 0;
-//
-//    if (!isObject(CAR(args)) && !isObject(CADR(args)))
-//      return 0;
-
     String generic = opName;
 
 //    lclass = IS_S4_OBJECT(CAR(args)) ? R_data_class2(CAR(args)) : getAttrib(
 //        CAR(args), R_ClassSymbol);
 
-    Vector lclass = computeDataClasses(context, CAR(args));
-    Vector rclass;
-    if (nargs == 2) {
-//      rclass = IS_S4_OBJECT(CADR(args)) ? R_data_class2(CADR(args))
-//          : getAttrib(CADR(args), R_ClassSymbol);
-      rclass = computeDataClasses(context, args.getElementAsSEXP(1));
-    } else {
-      rclass = Null.INSTANCE;
+    GenericMethod left = Resolver.start(context, group, opName, args.getElementAsSEXP(0))
+        .withBaseDefinitionEnvironment()
+        .findNext();
+        
+    GenericMethod right = null;
+    if(nargs == 2) {
+      right = Resolver.start(context, group, opName, args.getElementAsSEXP(1))
+          .withBaseDefinitionEnvironment()
+          .findNext();
     }
-
+    
+    if(left == null && right == null) {
+      // no generic method found
+      return null;
+    }
+    
+    if(left == null) {
+      left = right;
+    }
+    
+    
 //
 //    lsxp = R_NilValue;
 //    lgr = R_NilValue;
@@ -640,7 +662,7 @@ public class S3 {
 //    rgr = R_NilValue;
 //    rmeth = R_NilValue;
 
-    FindResult left = findmethod(context, lclass, group, generic, rho);
+//    FindResult left = findmethod(context, lclass, group, generic, rho);
 //    if (fm.sxp instanceof Function && IS_S4_OBJECT(CAR(args)) && lwhich > 0
 //        && isBasicClass(translateChar(STRING_ELT(lclass, lwhich)))) {
 //      /* This and the similar test below implement the strategy
@@ -653,13 +675,6 @@ public class S3 {
 //        SETCAR(args, value);
 //    }
 
-    FindResult right;
-    if (nargs == 2) {
-      right = findmethod(context, rclass, group, generic, rho);
-    } else {
-      right = new FindResult();
-      right.which = 0;
-    }
 
 //    if (isFunction(rsxp) && IS_S4_OBJECT(CADR(args)) && rwhich > 0
 //        && isBasicClass(translateChar(STRING_ELT(rclass, rwhich)))) {
@@ -670,14 +685,17 @@ public class S3 {
 //      if (value != R_NilValue)
 //        SETCADR(args, value);
 //    }
+//
+//
+//
+//    if(left == null && right == null) {
+//      return null; /* no generic or group method so use default*/
+//      
+//    }
+//    
+    
 
-
-    if (!(left.sxp instanceof Function) &&!(right.sxp instanceof Function)) {
-      UNPROTECT(2);
-      return null; /* no generic or group method so use default*/
-    }
-
-    if (!left.sxp.equals(right.sxp)) {
+//    if (!left.sxp.equals(right.sxp)) {
 //      if (isFunction(lsxp) && isFunction(rsxp)) {
 //        /* special-case some methods involving difftime */
 //        const char *lname = CHAR(PRINTNAME(lmeth)), *rname =
@@ -697,55 +715,56 @@ public class S3 {
 //        }
 //      }
       /* if the right hand side is the one */
-      if (!(left.sxp instanceof Function)) { /* copy over the righthand stuff */
-        lclass = rclass;
-        left = right;
-      }
-    }
+//      if (!(left.sxp instanceof Function)) { /* copy over the righthand stuff */
+//        lclass = rclass;
+//        left = right;
+//      }
+//    }
 
+    
     /* we either have a group method or a class method */
 
 //    PROTECT(newrho = allocSExp(ENVSXP));
-    Frame newrho = new HashFrame();
-    String[] m = new String[nargs];
-    PairList.Node s = (PairList.Node)args;
-    for (i = 0; i < nargs; i++) {
-      StringVector t = computeDataClasses(context, args.getElementAsSEXP(i));
+//    Frame newrho = new HashFrame();
+//    String[] m = new String[nargs];
+//    PairList.Node s = (PairList.Node)args;
+//    for (i = 0; i < nargs; i++) {
+//      StringVector t = computeDataClasses(context, args.getElementAsSEXP(i));
+//
+////      t = IS_S4_OBJECT(CAR(s)) ? R_data_class2(CAR(s)) : getAttrib(CAR(s),
+////          R_ClassSymbol);
+//
+//      boolean set = false;
+//      for (j = 0; j < t.length(); j++) {
+//        if ( t.getElementAsString(j).equals(lclass.getElementAsString(left.which))) {
+//          m[i] = left.buf;
+//          set = true;
+//          break;
+//        }
+//      }
+//      if (!set) {
+//        m[i] = "";
+//      }
+//    }
 
-//      t = IS_S4_OBJECT(CAR(s)) ? R_data_class2(CAR(s)) : getAttrib(CAR(s),
-//          R_ClassSymbol);
-
-      boolean set = false;
-      for (j = 0; j < t.length(); j++) {
-        if ( t.getElementAsString(j).equals(lclass.getElementAsString(left.which))) {
-          m[i] = left.buf;
-          set = true;
-          break;
-        }
-      }
-      if (!set) {
-        m[i] = "";
-      }
-    }
-
-    newrho.setVariable(Symbol.get(".Method"), new StringArrayVector(m));
-    newrho.setVariable(Symbol.get(".Generic"), StringVector.valueOf(generic));
-    newrho.setVariable(Symbol.get(".Group"), left.gr);
-
-    StringArrayVector.Builder dotClass = StringVector.newBuilder();
-    for(j=left.which;j<lclass.length();++j) {
-      dotClass.add(lclass.getElementAsString(j));
-    }
-
-    newrho.setVariable(Symbol.get(".Class"), dotClass.build());
-    newrho.setVariable(Symbol.get(".GenericCallEnv"), rho);
-    newrho.setVariable(Symbol.get(".GenericDefEnv"), rho.getBaseEnvironment());
-
-    FunctionCall newCall = FunctionCall.newCall(left.meth, call.getArguments());
-
-    /* the arguments have been evaluated; since we are passing them */
-    /* out to a closure we need to wrap them in promises so that */
-    /* they get duplicated and things like missing/substitute work. */
+//    newrho.setVariable(Symbol.get(".Method"), new StringArrayVector(m));
+//    newrho.setVariable(Symbol.get(".Generic"), StringVector.valueOf(generic));
+//    newrho.setVariable(Symbol.get(".Group"), left.gr);
+//
+//    StringArrayVector.Builder dotClass = StringVector.newBuilder();
+//    for(j=left.which;j<lclass.length();++j) {
+//      dotClass.add(lclass.getElementAsString(j));
+//    }
+//
+//    newrho.setVariable(Symbol.get(".Class"), dotClass.build());
+//    newrho.setVariable(Symbol.get(".GenericCallEnv"), rho);
+//    newrho.setVariable(Symbol.get(".GenericDefEnv"), rho.getBaseEnvironment());
+//
+//    FunctionCall newCall = FunctionCall.newCall(left.meth, call.getArguments());
+//
+//    /* the arguments have been evaluated; since we are passing them */
+//    /* out to a closure we need to wrap them in promises so that */
+//    /* they get duplicated and things like missing/substitute work. */
 
 
     PairList promisedArgs = Calls.promiseArgs(call.getArguments(), context, rho);
@@ -770,8 +789,8 @@ public class S3 {
         evaluated = evaluated.getNextNode();
       }
     }
-
-    return Calls.applyClosure((Closure) left.sxp, context, newCall, promisedArgs, rho, newrho);
+    return left.doApply(context, rho, promisedArgs);
+//    return Calls.applyClosure((Closure) left.sxp, context, newCall, promisedArgs, rho, newrho);
   }
 
   /**
@@ -889,6 +908,12 @@ public class S3 {
     return dispatchGroup("Summary", call, name, newArgs.build(), context, rho);
   }
 
+  
+  /**
+   * Helper class to deal with all the messy details of resolving
+   * generic methods.
+   *
+   */
   private static class Resolver {
 
     /**
@@ -900,7 +925,9 @@ public class S3 {
      * The environment in which the generic was defined. This will be the
      * enclosing environment of the function that calls UseMethod().
      */
-    private Environment definitionEnvironment;
+    private Environment definitionEnvironment = Environment.EMPTY;
+    
+    private String group;
 
     /**
      * The name of the generic: for example "print" or "summary" or
@@ -918,13 +945,25 @@ public class S3 {
 
     private SEXP object;
 
+    /**
+     * The context of the *previous* generic method called,
+     * or null if this is the first method dispatched from
+     * UseMethod().
+     */
+    private Context previousContext;
+    
     private static Resolver start(Context context, String genericMethodName, SEXP object) {
+      return start(context, null, genericMethodName, object);
+    }
+
+    private static Resolver start(Context context, String group, String genericMethodName, SEXP object) {
       Resolver resolver = new Resolver();
       resolver.callingEnvironment = context.getEnvironment();
       resolver.genericMethodName = genericMethodName;
-      resolver.classes = Lists.newArrayList(computeDataClasses(context, object));
       resolver.context = context;
       resolver.object = object;
+      resolver.group = group;
+      resolver.classes = Lists.newArrayList(computeDataClasses(context, object));
       return resolver;
     }
 
@@ -938,10 +977,12 @@ public class S3 {
 
       Resolver resolver = new Resolver();
       resolver.context = context;
+      resolver.previousContext = parentContext;
       resolver.callingEnvironment = context.getEnvironment();
       resolver.definitionEnvironment = method.resolver.definitionEnvironment;
       resolver.genericMethodName = method.resolver.genericMethodName;
       resolver.classes = method.nextClasses();
+      resolver.group = method.resolver.group;
       resolver.object = method.resolver.object;
       return resolver;
     }
@@ -954,13 +995,27 @@ public class S3 {
       return this;
     }
 
+    /**
+     * Sets the name of the generic method to resolve from 
+     * an argument provided to UseMethod(). 
+     * 
+     * @param generic the 'generic' argument, giving the name of the method, like
+     * 'as.character', or 'print'.
+     */
     public Resolver withGenericArgument(SEXP generic) {
       if(generic != Null.INSTANCE) {
         this.genericMethodName = generic.asString();
       }
       return this;
     }
-
+    
+    /**
+     * Sets the name of the generic method to resolve from 
+     * an argument provided to UseMethod(). 
+     * 
+     * @param genericName the 'generic' argument, giving the name of the method, like
+     * 'as.character', or 'print'.
+     */
     public Resolver withGenericArgument(String genericName) {
       this.genericMethodName = genericName;
       return this;
@@ -983,17 +1038,6 @@ public class S3 {
         }
       }
       throw new EvalException("NextMethod called out of context");
-    }
-
-    private static Environment retrieveDefEnv(Context context, Environment env) {
-      SEXP defEnv = env.getVariable(".GenericDefEnv");
-      if(defEnv == Symbol.UNBOUND_VALUE) {
-        return context.getGlobalEnvironment();
-      } else if(defEnv instanceof Environment) {
-        return (Environment)defEnv;
-      } else {
-        throw new EvalException("Unexpected value for .GenericalDefEnv: " + defEnv);
-      }
     }
 
     public GenericMethod next() {
@@ -1032,19 +1076,38 @@ public class S3 {
       }
     }
 
-    private GenericMethod findNext() {
+    public GenericMethod findNext() {
       Environment methodTable = getMethodTable();
-
+      GenericMethod method = null;
+      
       for(String className : classes) {
-        Symbol method = Symbol.get(genericMethodName + "." + className);
-        SEXP function = callingEnvironment.findFunction(context, method);
-        if(function != null) {
-          return new GenericMethod(this, method, className, (Function) function);
-        } else if(methodTable != null && methodTable.hasVariable(method)) {
-          return new GenericMethod(this, method, className, (Function) methodTable.getVariable(method).force(context));
+        
+        method = findNext(methodTable, genericMethodName, className);
+        if(method != null) {
+          return method;
+        }
+        if(group != null) {
+          method = findNext(methodTable, group, className);
+          if(method != null) {
+            return method;
+          }
         }
       }
       return null;
+    }
+
+    private GenericMethod findNext(Environment methodTable, String name, String className) {
+      Symbol method = Symbol.get(name + "." + className);
+      SEXP function = callingEnvironment.findFunction(context, method);
+      if(function != null) {
+        return new GenericMethod(this, method, className, (Function) function);
+        
+      } else if(methodTable != null && methodTable.hasVariable(method)) {
+        return new GenericMethod(this, method, className, (Function) methodTable.getVariable(method).force(context));
+      
+      } else {
+        return null;
+      }
     }
 
     private Environment getMethodTable() {
@@ -1102,13 +1165,32 @@ public class S3 {
 
     public PairList nextArguments(Context callContext, Environment callEnvironment) {
 
-        Closure closure = (Closure) this.function;
-
+      /*
+       * Get the arguments to the function that called NextMethod(),
+       * no arguments are really passed to NextMethod() at all.
+       * 
+       * Note that we have to do a bit of climbing here-- it can be that previous 
+       * method looked like:
+       * 
+       * `[.simple.list <- function(x, i, ...) structure(NextMethod('['], class=class(x))
+       * 
+       * In this case, NextMethod is passed a promise to the closure 'structure',
+       * and so our parent context is NOT the function context of `[.simple.list`
+       * but that of `structure`. 
+       * 
+       */
+      Context parentContext = callContext.getParent();
+      while(parentContext.getParent() != resolver.previousContext) {
+        parentContext = parentContext.getParent();
+      }
+      PairList actuals = parentContext.getArguments();
+      Closure closure = parentContext.getClosure();
+        
       /* get formals and actuals; attach the names of the formals to
          the actuals, expanding any ... that occurs */
       PairList formals = closure.getFormals();
-      PairList actuals = resolver.context.getArguments();
       actuals = Calls.matchArguments(formals, actuals);
+   
       actuals = expandDotDotDot(actuals);
 
 
@@ -1126,6 +1208,7 @@ public class S3 {
 //    /* we can't duplicate because it would force the promises */
 //    /* so we do our own duplication of the promargs */
 //
+      Environment previousEnv = parentContext.getEnvironment();
 
       PairList.Builder updatedArgs = new PairList.Builder();
       for(PairList.Node actual : actuals.nodes()) {
@@ -1133,14 +1216,14 @@ public class S3 {
         if(actual.hasTag()) {
           // an argument may not have a tag even at this point if was
           // part of a ... expansion
-          temp = callContext.getParent().getEnvironment().findVariable(actual.getTag());
+          temp = previousEnv.findVariable(actual.getTag());
         } else {
           temp = Symbol.UNBOUND_VALUE;
         }
         if(temp != Symbol.UNBOUND_VALUE &&
                 !isDefaultArgValue(temp) &&
                 temp != Symbol.MISSING_ARG) {
-          updatedArgs.add(actual.getRawTag(), Promise.repromise(callContext.getParent().getEnvironment(), temp));
+          updatedArgs.add(actual.getRawTag(), Promise.repromise(previousEnv, temp));
         } else {
           updatedArgs.add(actual.getRawTag(), actual.getValue());
         }

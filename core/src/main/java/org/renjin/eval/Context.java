@@ -506,7 +506,7 @@ public class Context {
   private Function evaluateFunction(SEXP functionExp, Environment rho) {
     if(functionExp instanceof Symbol) {
       Symbol symbol = (Symbol) functionExp;
-      Function fn = rho.findFunction(parent, symbol);
+      Function fn = rho.findFunction(this, symbol);
       if(fn == null) {
         throw new EvalException("could not find function '%s'", symbol.getPrintName());      
       }

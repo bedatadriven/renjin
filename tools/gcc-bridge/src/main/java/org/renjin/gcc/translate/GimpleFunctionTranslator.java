@@ -122,7 +122,7 @@ public class GimpleFunctionTranslator extends GimpleVisitor {
 
       JimpleMethodRef method;
       if(call.getFunction() instanceof GimpleExternal) {
-        method = translationContext.resolveMethod(call);
+        method = translationContext.resolveMethod(call, function.getCallingConvention());
         stmt.append("staticinvoke").append(method.signature());
         
       } else if(call.getFunction() instanceof GimpleVar) {

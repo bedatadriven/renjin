@@ -3,6 +3,7 @@ package org.renjin.gcc.jimple;
 
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.expr.GimpleVar;
+import org.renjin.gcc.gimple.type.GimpleStructType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.PointerType;
 import org.renjin.gcc.gimple.type.PrimitiveType;
@@ -50,7 +51,10 @@ public class Jimple {
         return new JimpleType("boolean");
       }
     } else if(gimpleType instanceof PointerType) {
-      return new JimpleType("org.renjin.gcc.runtime.Pointer");
+      GimpleType innerType = ((PointerType) gimpleType).getInnerType();
+      if(innerType instanceof GimpleStructType) {
+        return new JimpleType("java.lang.Object");        
+      }
     }
     throw new UnsupportedOperationException(gimpleType.toString());
   }

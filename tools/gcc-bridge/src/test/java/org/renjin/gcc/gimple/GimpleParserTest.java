@@ -3,6 +3,7 @@ package org.renjin.gcc.gimple;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.renjin.gcc.CallingConvention;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,7 +17,7 @@ public class GimpleParserTest {
 
   @Before
   public void setUp() throws Exception {
-    parser = new GimpleParser();
+    parser = new GimpleParser(new CallingConvention());
   }
 
   @Ignore

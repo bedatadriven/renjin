@@ -145,13 +145,14 @@ public class GccTest {
   private Class<?> compile(List<String> sources, String className) throws Exception {
 
     Gcc gcc = new Gcc();
-    GimpleParser parser = new GimpleParser();
     List<GimpleFunction> functions = Lists.newArrayList();
 
     for(String sourceName : sources) {
       File source = new File(getClass().getResource(sourceName).getFile());
       String gimple = gcc.compileToGimple(source);
       System.out.println(gimple);
+
+      GimpleParser parser = new GimpleParser(CallingConventions.fromFile(source));
       functions.addAll(parser.parse(new StringReader(gimple)));
     }
 
@@ -172,7 +173,7 @@ public class GccTest {
 
   @Test
   public void structFromGcc4_4_6() throws Exception {
-    GimpleParser parser = new GimpleParser();
+    GimpleParser parser = new GimpleParser(new CallingConvention());
     List<GimpleFunction> fns = parser.parse(new InputStreamReader(getClass().getResourceAsStream("approx.gimple")));
 
     Class clazz = compileGimple("Gcc4_4_6", fns);

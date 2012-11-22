@@ -2,7 +2,11 @@ package org.renjin.packaging;
 
 
 import com.google.common.collect.Lists;
+import com.google.common.io.Resources;
+
 import org.renjin.RenjinCApi;
+import org.renjin.gcc.CallingConvention;
+import org.renjin.gcc.CallingConventions;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -11,6 +15,7 @@ import org.renjin.sexp.SEXP;
 
 import java.io.File;
 import java.io.StringReader;
+import java.net.URL;
 import java.util.List;
 
 public class NativeSourcesCompiler {
@@ -45,12 +50,12 @@ public class NativeSourcesCompiler {
       Gcc gcc = new Gcc();
       gcc.addIncludeDirectory(unpackIncludes());
 
-      GimpleParser parser = new GimpleParser();
 
       for(File sourceFile : sources) {
         String gimple = gcc.compileToGimple(sourceFile);
         System.out.println(gimple);
-        
+
+        GimpleParser parser = new GimpleParser(CallingConventions.fromFile(sourceFile));
         try {
           functions.addAll(parser.parse(new StringReader(gimple)));
         } catch(Exception e) {
@@ -68,7 +73,13 @@ public class NativeSourcesCompiler {
   }
 
   private File unpackIncludes() {
-    return new File("src/main/include");
+    
+    URL url = Resources.getResource("org/renjin/include/R.h");
+    if(url.getProtocol().equals("file")) {
+        return new File(url.getFile()).getParentFile();
+    } else {
+      throw new UnsupportedOperationException("Don't know how to deal with include location at " + url);
+    }
   }
 
   private String properCase(String packageName) {

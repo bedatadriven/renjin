@@ -37,7 +37,7 @@
 /*-- Mathlib as part of R --  define this for standalone : */
 /* #undef MATHLIB_STANDALONE */
 
-#define R_VERSION_STRING "2.14.2"
+#define R_VERSION_STRING "2.14.1"
 
 #ifndef HAVE_EXPM1
 # define HAVE_EXPM1 1

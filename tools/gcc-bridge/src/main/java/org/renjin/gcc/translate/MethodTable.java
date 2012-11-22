@@ -35,13 +35,15 @@ public class MethodTable {
 
   private void addDefaults() {
     addMethod("__isnan", Double.class, "isNaN");
-    addMethod("__builtin_sin", Math.class, "sin");
-    addMethod("__builtin_log", Math.class, "log");
-    addMethod("__builtin_cos", Math.class, "cos");
-    addMethod("__builtin_sqrt", Math.class, "sqrt");
-    addMethod("__builtin_pow", Math.class, "pow");
-    addMethod("__builtin_powi", Builtins.class, "powi");
-    addMethod("_gfortran_pow_i4_i4", Builtins.class, "_gfortran_pow_i4_i4");
+    
+    // G77 builtins
+    addMethod("__builtin_sin__", Math.class, "sin");
+    addMethod("__builtin_log__", Math.class, "log");
+    addMethod("__builtin_cos__", Math.class, "cos");
+    addMethod("__builtin_sqrt__", Math.class, "sqrt");
+    addMethod("__builtin_pow__", Math.class, "pow");
+    addMethod("__builtin_powi__", Builtins.class, "powi");
+    addMethod("_gfortran_pow_i4_i4__", Builtins.class, "gfortran_pow_i4_i4");
     
 
 

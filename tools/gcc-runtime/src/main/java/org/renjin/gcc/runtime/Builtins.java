@@ -12,7 +12,7 @@ public class Builtins {
 		}
 	}
 	
-	public static int _gfortran_pow_i4_i4(int base, int exponent) {
+	public static int gfortran_pow_i4_i4(int base, int exponent) {
 		 if(exponent < 0) {
 			 throw new IllegalArgumentException("exponent must be > 0: " + exponent);
 		 }

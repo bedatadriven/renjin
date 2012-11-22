@@ -11,6 +11,8 @@ public class Builder {
 		NativeSourcesCompiler compiler = new NativeSourcesCompiler();
 		compiler.setPackageName("hyp2f1zhangjin");
 		compiler.addSources(new File("src/main/fortran"));
+		//compiler.addSources(new File("src/main/c"));
+
 		compiler.compile();
 	}
 	

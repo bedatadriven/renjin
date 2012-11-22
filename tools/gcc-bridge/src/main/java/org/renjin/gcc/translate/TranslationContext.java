@@ -1,6 +1,8 @@
 package org.renjin.gcc.translate;
 
 import com.google.common.collect.Lists;
+
+import org.renjin.gcc.CallingConvention;
 import org.renjin.gcc.gimple.GimpleCall;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -46,7 +48,7 @@ public class TranslationContext {
   }
 
 
-  public JimpleMethodRef resolveMethod(GimpleCall call) {
+  public JimpleMethodRef resolveMethod(GimpleCall call, CallingConvention callingConvention) {
 
     String methodName;
     if(call.getFunction() instanceof GimpleExternal) {
@@ -54,7 +56,7 @@ public class TranslationContext {
     } else {
       throw new UnsupportedOperationException(call.toString());
     }
-    return resolveMethod(methodName);
+    return resolveMethod(callingConvention.mangleFunctionName(methodName));
   }
 
   private JimpleMethodRef resolveInternally(String name) {

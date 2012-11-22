@@ -1,5 +1,7 @@
 import com.google.common.collect.Lists;
 import org.renjin.appl.ExternalRoutines;
+import org.renjin.gcc.CallingConventions;
+import org.renjin.gcc.CallingConvention;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -14,12 +16,13 @@ public class Build {
   public static void main(String[] args) throws Exception {
 
     Gcc gcc = new Gcc();
-    GimpleParser parser = new GimpleParser();
     List<GimpleFunction> functions = Lists.newArrayList();
 
     for(File source : findSources()) {
       String gimple = gcc.compileToGimple(source);
       System.out.println(gimple);
+
+      GimpleParser parser = new GimpleParser(CallingConventions.fromFile(source));
       functions.addAll(parser.parse(new StringReader(gimple)));
     }
 

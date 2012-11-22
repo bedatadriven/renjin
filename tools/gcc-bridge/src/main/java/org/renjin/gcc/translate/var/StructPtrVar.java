@@ -17,19 +17,28 @@ public class StructPtrVar extends Variable {
   private Struct struct;
   private String gimpleName;
   private String jimpleName;
+  private FunctionContext context;
 
 
   public StructPtrVar(FunctionContext context, String gimpleName, Struct struct) {
     this.struct = struct;
     this.gimpleName = gimpleName;
     this.jimpleName = Jimple.id(gimpleName);
-
+    this.context = context;
+    
     context.getBuilder().addVarDecl(struct.getJimpleType(), jimpleName);
   }
 
   @Override
   public void assign(GimpleOp op, List<GimpleExpr> operands) {
-    throw new UnsupportedOperationException(op + " " + operands);
+    switch(op) {
+    case SSA_NAME:
+      context.getBuilder().addStatement(jimpleName + " = " + operands.get(0).toString());
+      break;
+    default:
+      throw new UnsupportedOperationException(op + " " + operands);      
+    }
+
   }
 
   @Override

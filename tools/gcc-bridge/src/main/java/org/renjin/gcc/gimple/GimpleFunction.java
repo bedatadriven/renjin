@@ -3,6 +3,8 @@ package org.renjin.gcc.gimple;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import org.renjin.gcc.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleNull;
 import org.renjin.gcc.gimple.expr.GimpleVar;
@@ -14,20 +16,26 @@ import java.util.Map;
 
 public class GimpleFunction {
 	private String name;
+	private CallingConvention callingConvention;
 	private List<GimpleBasicBlock> basicBlocks = Lists.newArrayList();
 	private List<GimpleParameter> parameters = Lists.newArrayList();
 	private List<GimpleVarDecl> variableDeclarations = Lists.newArrayList();
 	private Map<String, GimpleType> typeMap = Maps.newHashMap();
 
-  GimpleFunction(String name) {
+  GimpleFunction(String name, CallingConvention callingConvention) {
 		this.name = name;
+		this.callingConvention = callingConvention;
 	}
 	
 	public String getName() {
 		return name;
 	}
 	
-	public void addParameter(GimpleParameter parameter) {
+	public void setName(String name) {
+    this.name = name;
+  }
+
+  public void addParameter(GimpleParameter parameter) {
 		parameters.add(parameter);
 		typeMap.put(parameter.getName(), parameter.getType());
 	}
@@ -115,5 +123,9 @@ public class GimpleFunction {
 		sb.append("}\n");
 		return sb.toString();
 	}
+
+  public CallingConvention getCallingConvention() {
+    return callingConvention;
+  }
 
 }

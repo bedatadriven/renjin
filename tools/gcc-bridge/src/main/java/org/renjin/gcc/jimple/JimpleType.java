@@ -18,7 +18,12 @@ public class JimpleType {
   }
 
   public JimpleType(Class clazz) {
-    this.name = clazz.getName();
+    if(clazz.isArray()) {
+      JimpleType componentType = new JimpleType(clazz.getComponentType());
+      this.name = componentType.toString() + "[]";
+    } else {
+      this.name = clazz.getName();
+    }
   }
 
   public JimpleType(Type type) {

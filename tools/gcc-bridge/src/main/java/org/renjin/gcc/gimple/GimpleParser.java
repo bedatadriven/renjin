@@ -1,6 +1,8 @@
 package org.renjin.gcc.gimple;
 
 import com.google.common.collect.Lists;
+
+import org.renjin.gcc.CallingConvention;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
 
@@ -16,6 +18,13 @@ public class GimpleParser {
   private static final String FORTRAN_STRING_SUFFIX = "\"[1]{lb: 1 sz: 1}";
   private GimpleFunction currentFunction;
   private GimpleBasicBlock currentBB;
+  private CallingConvention callingConvention;
+  
+
+  public GimpleParser(CallingConvention callingConvention) {
+    super();
+    this.callingConvention = callingConvention;
+  }
 
   public List<GimpleFunction> parse(Reader reader) throws IOException {
     return parse(new BufferedReader(reader));
@@ -432,7 +441,7 @@ public class GimpleParser {
   private GimpleFunction parseFunctionDeclaration(String line) {
     int paramListStart = line.indexOf('(');
     String name = line.substring(0, paramListStart);
-    GimpleFunction fn = new GimpleFunction(name.trim());
+    GimpleFunction fn = new GimpleFunction(callingConvention.mangleFunctionName(name.trim()), callingConvention);
 
     int paramListEnd = line.lastIndexOf(')');
     String params[] = line.substring(paramListStart+1, paramListEnd).split("\\s*,\\s*");
@@ -478,6 +487,9 @@ public class GimpleParser {
       return PrimitiveType.INT_TYPE;
 
     } else if(typeDecl.equals("integer(kind=8)")) {
+      return PrimitiveType.LONG;
+      
+    } else if(typeDecl.equals("long int")) {
       return PrimitiveType.LONG;
       
     } else if(typeDecl.equals("real(kind=4)")) {

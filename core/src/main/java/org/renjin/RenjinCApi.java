@@ -4,6 +4,7 @@ package org.renjin;
 import org.apache.commons.math.util.FastMath;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.SEXP;
 
 /**
  * Emulation of the C API for code compiled via GCC
@@ -62,9 +63,38 @@ public class RenjinCApi {
 
   }
   
+  public static int LENGTH(SEXP x) {
+    throw new UnsupportedOperationException();
+  }
+  
+  public static double[] REAL(SEXP x) {
+    throw new UnsupportedOperationException();
+  }
+  
+  
+  public static SEXP Rf_coerceVector(SEXP x, int type) {
+    throw new UnsupportedOperationException();
+  }
+  
+  public static SEXP Rf_protect(SEXP obj) {
+    // NOOP
+    return obj;
+  }
+  
+  public static void Rf_unprotect(int count) {
+    // NOOP
+  }
+  
+  public static SEXP Rf_allocVector(int type, int size) {
+    return null;
+  }
+  
+  public static void R_CheckUserInterrupt() {
+    
+  }
  
   // fortran calling convention
-  public static void rwarn(String message, int charCount)  {
+  public static void rwarn_(String message, int charCount)  {
     // TODO: we really need the R context here
     System.err.println(message);
   }

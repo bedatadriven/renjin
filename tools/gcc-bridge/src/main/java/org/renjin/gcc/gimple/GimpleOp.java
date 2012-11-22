@@ -68,4 +68,6 @@ public enum GimpleOp {
    */
   UNORDERED_EXPR,
   
+  CONVERT_EXPR,
+  TRUNC_MOD_EXPR
 }

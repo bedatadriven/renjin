@@ -57,6 +57,10 @@ public class NumericVar extends Variable {
         assignBinary("/", operands);
         break;
         
+      case TRUNC_MOD_EXPR:
+        assignBinary("%", operands);
+        break;
+        
       case NEGATE_EXPR:
         assignNegated(operands);
         break;

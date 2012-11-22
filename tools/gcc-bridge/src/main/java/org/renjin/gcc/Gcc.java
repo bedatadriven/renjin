@@ -49,6 +49,7 @@ public class Gcc {
 		
 		Process gcc = new ProcessBuilder(command)
 			.directory(tempDir)
+			.redirectErrorStream(true)
 			.start();
 			
 		try {
@@ -56,7 +57,9 @@ public class Gcc {
 		} catch (InterruptedException e) {
 			throw new GccException("Compiler interrupted");
 		}
-		
+    String stdout = new String(ByteStreams.toByteArray(gcc.getInputStream()));
+    System.out.println(stdout);
+
     String stderr = new String(ByteStreams.toByteArray(gcc.getErrorStream()));
 
 		if(gcc.exitValue() != 0) {

@@ -131,8 +131,8 @@ public class Primitives {
     f(".invokeRestart", /*invokeRestart*/ null, 0, 11, 2);
     f(".addTryHandlers", /*addTryHandlers*/ null, 0, 111, 0);
 
-    f("geterrmessage", /*geterrmessage*/ null, 0, 11, 0);
-    f("seterrmessage", /*seterrmessage*/ null, 0, 111, 1);
+    f("geterrmessage", Conditions.class, 0, 11, 0);
+    f("seterrmessage", Conditions.class, 0, 111, 1);
     f("printDeferredWarnings", /*printDeferredWarnings*/ null, 0, 111, 0);
     f("interruptsSuspended", /*interruptsSuspended*/ null, 0, 11, -1);
 

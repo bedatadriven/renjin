@@ -176,9 +176,12 @@ public class ContextTest extends EvalTestCase {
     eval("MyNextMethod <- function() sys.frame(-1)$.Class");
     eval("`[.foo` <- function(x, i) list(MyNextMethod())");
 
+    eval(" x <- c(1,2,3) ");
+    eval(" class(x) <- 'foo' ");
+    
     // because 'list' is a primitive, it's arguments are evaluated in the same context
     // as 'f's body, and sys.frame works logically
-    assertThat(eval("x[1]"), equalTo(c("foo")));
+    assertThat(eval("x[1]"), equalTo(list("foo")));
 
     eval("myClosure <- function(x) x");
     eval("`[.foo` <- function(x, i) myClosure(MyNextMethod())");

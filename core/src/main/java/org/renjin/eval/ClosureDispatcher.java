@@ -66,7 +66,7 @@ public class ClosureDispatcher {
 
   private SEXP apply(Closure closure, PairList promisedArgs) {
 
-    Context functionContext = callingContext.beginFunction(call, closure, promisedArgs);
+    Context functionContext = callingContext.beginFunction(callingEnvironment, call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {
@@ -92,7 +92,8 @@ public class ClosureDispatcher {
     }
   }
 
-  public static void matchArgumentsInto(PairList formals, PairList actuals, Context innerContext, Environment innerEnv) {
+  public static void matchArgumentsInto(PairList formals, PairList actuals, 
+      Context innerContext, Environment innerEnv) {
 
     PairList matched = matchArguments(formals, actuals);
     for(PairList.Node node : matched.nodes()) {

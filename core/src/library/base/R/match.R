@@ -30,8 +30,11 @@ pmatch <- function(x, table, nomatch = NA_integer_, duplicates.ok = FALSE)
 match.arg <- function (arg, choices, several.ok = FALSE)
 {
     if (missing(choices)) {
-	formal.args <- formals(sys.function(sys.parent()))
-	choices <- eval(formal.args[[deparse(substitute(arg))]])
+		sysp <- sys.parent()
+		sysfn <- sys.function(sysp)
+		formal.args <- formals(sysfn)
+		argname <- deparse(substitute(arg))
+		choices <- eval(formal.args[[argname]])
     }
     if (is.null(arg)) return(choices[1L])
     else if(!is.character(arg))

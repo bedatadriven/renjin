@@ -82,9 +82,9 @@ public class Closure extends AbstractSEXP implements Function {
   }
   
 
-  public SEXP matchAndApply(Context callingContext, FunctionCall call, 
+  public SEXP matchAndApply(Context callingContext, Environment callingEnvironment, FunctionCall call, 
       PairList promisedArgs) {
-    Context functionContext = callingContext.beginFunction(call, this, promisedArgs);
+    Context functionContext = callingContext.beginFunction(callingEnvironment, call, this, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();    
 
     ClosureDispatcher.matchArgumentsInto(getFormals(), promisedArgs, functionContext, functionEnvironment);

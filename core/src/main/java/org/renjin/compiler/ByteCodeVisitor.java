@@ -1,6 +1,9 @@
 package org.renjin.compiler;
 
 import com.google.common.collect.Maps;
+
+import edu.uci.ics.jung.graph.util.Context;
+
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -125,9 +128,10 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     
     if(call.getFunctionSexp() instanceof Symbol) {
       loadEnvironment();
+      loadContext();
       mv.visitLdcInsn(((Symbol)call.getFunctionSexp()).getPrintName());
       mv.visitMethodInsn(INVOKESTATIC, "org/renjin/sexp/Symbol", "get", "(Ljava/lang/String;)Lorg/renjin/sexp/Symbol;");
-      mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/Environment", "findFunctionOrThrow", "(Lorg/renjin/sexp/Symbol;)Lorg/renjin/sexp/Function;");
+      mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/Environment", "findFunctionOrThrow", "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Symbol;)Lorg/renjin/sexp/Function;");
     } else {
       // otherwise we need to evaluate the function
       call.getFunction().accept(this);    
@@ -190,6 +194,8 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     
     mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/Closure");       
     loadContext();
+    loadEnvironment();
+    
     pushSexp(call.getSExpression());
     
     // build the pairlist of promises
@@ -246,7 +252,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     }
     mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/PairList$Builder", "build", "()Lorg/renjin/sexp/PairList;");    
     mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/Closure", "matchAndApply",
-        "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/FunctionCall;Lorg/renjin/sexp/PairList;)Lorg/renjin/sexp/SEXP;");
+        "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;Lorg/renjin/sexp/FunctionCall;Lorg/renjin/sexp/PairList;)Lorg/renjin/sexp/SEXP;");
    
   }
 
@@ -266,8 +272,13 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     pushArgNames(call);
     maybeSpliceArgumentNames(call);
     
-    pushEvaluatedArgs(call);
-    maybeSpliceArgumentValues(call);
+    if(call.hasElipses()) {
+      loadContext();
+      pushEvaluatedArgs(call);      
+      spliceArgumentValues(call);
+    } else {
+      pushEvaluatedArgs(call);      
+    }
 
     mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/BuiltinFunction", "apply", 
         "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;Lorg/renjin/sexp/FunctionCall;[Ljava/lang/String;[Lorg/renjin/sexp/SEXP;)Lorg/renjin/sexp/SEXP;");
@@ -367,7 +378,9 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitLdcInsn(variable.getName().getPrintName());
     mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/Environment", "findVariableOrThrow", "(Ljava/lang/String;)Lorg/renjin/sexp/SEXP;");    
     // ensure that promises are forced
-    mv.visitMethodInsn(INVOKEINTERFACE, "org/renjin/sexp/SEXP", "force", "()Lorg/renjin/sexp/SEXP;");
+    loadContext();
+    mv.visitMethodInsn(INVOKEINTERFACE, "org/renjin/sexp/SEXP", "force", "(Lorg/renjin/eval/Context;)Lorg/renjin/sexp/SEXP;");
+
   }
 
   @Override
@@ -408,21 +421,28 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     maybeSpliceArgumentNames(call);
     
     // push the argument values
-    pushPrimitiveArgArray(call);
-    maybeSpliceArgumentValues(call);
+    
+    if(call.hasElipses()) {
+      loadContext();
+      pushPrimitiveArgArray(call);
+      spliceArgumentValues(call);      
+    } else {
+      pushPrimitiveArgArray(call);
+    }
     
     mv.visitMethodInsn(INVOKESTATIC, call.getWrapperClass().getName().replace('.', '/'), "doApply",
         "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;Lorg/renjin/sexp/FunctionCall;[Ljava/lang/String;[Lorg/renjin/sexp/SEXP;)Lorg/renjin/sexp/SEXP;");
   }
 
-  private void maybeSpliceArgumentValues(CallExpression call) {
-    if(call.hasElipses()) {
-      // insert the elipses argument values 
-      mv.visitVarInsn(ALOAD, work1); // '...' pairlist
-      pushInt(call.getElipsesIndex());
-      mv.visitMethodInsn(INVOKESTATIC, "org/renjin/compiler/runtime/CompiledRuntime", "spliceArgValues",
-            "([Lorg/renjin/sexp/SEXP;Lorg/renjin/sexp/PairList;I)[Lorg/renjin/sexp/SEXP;");
-    }
+  private void spliceArgumentValues(CallExpression call) {
+
+    
+    // insert the elipses argument values 
+    mv.visitVarInsn(ALOAD, work1); // '...' pairlist
+    pushInt(call.getElipsesIndex());
+    mv.visitMethodInsn(INVOKESTATIC, "org/renjin/compiler/runtime/CompiledRuntime", "spliceArgValues",
+          "(Lorg/renjin/eval/Context;[Lorg/renjin/sexp/SEXP;Lorg/renjin/sexp/PairList;I)[Lorg/renjin/sexp/SEXP;");
+  
   }
 
   private void maybeStoreElipses(CallExpression call) {

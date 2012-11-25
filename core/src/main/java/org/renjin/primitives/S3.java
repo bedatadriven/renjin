@@ -726,26 +726,28 @@ public class S3 {
 
 //    PROTECT(newrho = allocSExp(ENVSXP));
 //    Frame newrho = new HashFrame();
-//    String[] m = new String[nargs];
-//    PairList.Node s = (PairList.Node)args;
-//    for (i = 0; i < nargs; i++) {
-//      StringVector t = computeDataClasses(context, args.getElementAsSEXP(i));
-//
-////      t = IS_S4_OBJECT(CAR(s)) ? R_data_class2(CAR(s)) : getAttrib(CAR(s),
-////          R_ClassSymbol);
-//
-//      boolean set = false;
-//      for (j = 0; j < t.length(); j++) {
-//        if ( t.getElementAsString(j).equals(lclass.getElementAsString(left.which))) {
-//          m[i] = left.buf;
-//          set = true;
-//          break;
-//        }
-//      }
-//      if (!set) {
-//        m[i] = "";
-//      }
-//    }
+    String[] m = new String[nargs];
+    PairList.Node s = (PairList.Node)args;
+    for (i = 0; i < nargs; i++) {
+      StringVector t = computeDataClasses(context, args.getElementAsSEXP(i));
+
+//      t = IS_S4_OBJECT(CAR(s)) ? R_data_class2(CAR(s)) : getAttrib(CAR(s),
+//          R_ClassSymbol);
+
+      boolean set = false;
+      for (j = 0; j < t.length(); j++) {
+        if ( t.getElementAsString(j).equals(left.className )) {
+          m[i] = left.method.getPrintName();
+          set = true;
+          break;
+        }
+      }
+      if (!set) {
+        m[i] = "";
+      }
+    }
+    left.withMethodVector(m);
+    
 
 //    newrho.setVariable(Symbol.get(".Method"), new StringArrayVector(m));
 //    newrho.setVariable(Symbol.get(".Generic"), StringVector.valueOf(generic));
@@ -1131,11 +1133,29 @@ public class S3 {
     private Symbol method;
     private Function function;
     private String className;
+    
+    /**
+     * The vector stored in .Method
+     * 
+     * <p>Normally it is just a single string containing the 
+     * name of the selected method, but for Ops group members,
+     * it a two element string vector of the form 
+     * 
+     * [ "Ops.factor", ""]
+     * [ "", "Ops.factor"] or
+     * [ "Ops.factor", "Ops.factor"] 
+     * 
+     * depending on which (or both) of the operands belong to 
+     * the selected class.
+     * 
+     */
+    private StringVector methodVector;
 
     public GenericMethod(Resolver resolver, Symbol method, String className, Function function) {
       assert function != null;
       this.resolver = resolver;
       this.method = method;
+      this.methodVector = new StringArrayVector(method.getPrintName());
       this.className = className;
       this.function = function;
     }
@@ -1155,12 +1175,17 @@ public class S3 {
       callContext.setState(GenericMethod.class, this);
 
       if(function instanceof Closure) {
-        return Calls.applyClosure((Closure) function, callContext, newCall,
+        return Calls.applyClosure((Closure) function, callContext, callEnvironment,  newCall,
                 args, callEnvironment, persistChain());
       } else {
         // primitive
         return function.apply(callContext, callEnvironment, newCall, args);
       }
+    }
+    
+    public GenericMethod withMethodVector(String[] methodNames) {
+      this.methodVector = new StringArrayVector(methodNames);
+      return this;
     }
 
     public PairList nextArguments(Context callContext, Environment callEnvironment) {
@@ -1234,7 +1259,7 @@ public class S3 {
     private Frame persistChain() {
       HashFrame frame = new HashFrame();
       frame.setVariable(Symbol.get(".Class"), new StringArrayVector(resolver.classes));
-      frame.setVariable(Symbol.get(".Method"), StringVector.valueOf(method.getPrintName()));
+      frame.setVariable(Symbol.get(".Method"), methodVector);
       frame.setVariable(Symbol.get(".Generic"), StringVector.valueOf(resolver.genericMethodName));
       frame.setVariable(Symbol.get(".GenericCallEnv"), resolver.callingEnvironment);
       frame.setVariable(Symbol.get(".GenericDefEnv"), resolver.definitionEnvironment);
@@ -1243,7 +1268,7 @@ public class S3 {
 
     /**
      *
-     * @return remaining classes to be tried after this method
+     * @return remaining classes to be  tried after this method
      */
     public List<String> nextClasses() {
       if(className == null) {

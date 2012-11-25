@@ -109,7 +109,8 @@ public class DynamicCall implements CallExpression {
           args.add(argumentNames.get(argNameIndex++), (SEXP)argument.retrieveValue(context, temps));
         }
       }
-      return ((Closure) functionValue).matchAndApply(context, call, args.build());
+      // TODO: check calling environment
+      return ((Closure) functionValue).matchAndApply(context, context.getEnvironment(), call, args.build());
 
     } else {
       return functionValue.apply(context, context.getEnvironment(), call, call.getArguments());

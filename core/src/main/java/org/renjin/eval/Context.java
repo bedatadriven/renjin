@@ -330,9 +330,15 @@ public class Context {
   private int evaluationDepth;
   private Type type;
   private Environment environment;
-  private Globals globals;
+  private Globals globals; 
   private FunctionCall call;
   private Closure closure;
+  
+  /**
+   * The environment from which the closure was called
+   */
+  private Environment callingEnvironment;
+  
   private PairList arguments = Null.INSTANCE;
 
   /**
@@ -401,7 +407,7 @@ public class Context {
 
   }
 
-  public Context beginFunction(FunctionCall call, Closure closure, PairList arguments) {
+  public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;
@@ -411,6 +417,7 @@ public class Context {
     context.globals = globals;
     context.arguments = arguments;
     context.call= call;
+    context.callingEnvironment = rho;
     return context;
   }
   
@@ -720,5 +727,9 @@ public class Context {
   
   public void clearInvisibleFlag() {
     globals.invisible = false;
+  }
+
+  public Environment getCallingEnvironment() {
+    return callingEnvironment;
   }
 }

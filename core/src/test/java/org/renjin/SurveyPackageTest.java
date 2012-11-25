@@ -15,8 +15,6 @@ public class SurveyPackageTest extends PackageTest {
 
     assertThat( eval(" data(hospital, verbose=TRUE) "), equalTo(c("hospital")) );
 
-    java.lang.System.out.println( eval("ls() "));
-
     assertThat(eval("typeof(hospital)"), equalTo(c("list")));
     assertThat(eval("sum(hospital$births)"), equalTo(c(25667)));
 

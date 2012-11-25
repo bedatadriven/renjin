@@ -45,6 +45,12 @@ public class MathExt {
   public static double gamma(double x) {
     return Math.exp(Gamma.logGamma(x));
   }
+  
+  @Deferrable
+  @Recycle
+  public static double sign(double x) {
+    return Math.signum(x);
+  }
 
   @Deferrable
   @Recycle

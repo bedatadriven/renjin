@@ -21,46 +21,50 @@
 ## CARE:  try() in ./New-Internal.R  depends on *internal* coding of tryCatch()!
 ## ----   If you change this, be sure to adapt  try().
 tryCatch <- function(expr, ..., finally) {
-    tryCatchList <- function(expr, names, parentenv, handlers) {
-	nh <- length(names)
-	if (nh > 1L)
-	    tryCatchOne(tryCatchList(expr, names[-nh], parentenv,
-                                     handlers[-nh]),
-			names[nh], parentenv, handlers[[nh]])
-	else if (nh == 1L)
-	    tryCatchOne(expr, names, parentenv, handlers[[1L]])
-	else expr
-    }
-    tryCatchOne <- function(expr, name, parentenv, handler) {
-	doTryCatch <- function(expr, name, parentenv, handler) {
-	    .Internal(.addCondHands(name, list(handler), parentenv,
-				    environment(), FALSE))
-	    expr
+	tryCatchList <- function(expr, names, parentenv, handlers) {
+		nh <- length(names)
+		if (nh > 1L)
+			tryCatchOne(tryCatchList(expr, 
+							names[-nh], 
+							parentenv,
+							handlers[-nh]),
+					names[nh], 
+					parentenv, 
+					handlers[[nh]])
+		else if (nh == 1L)
+			tryCatchOne(expr, names, parentenv, handlers[[1L]])
+		else expr
 	}
-	value <- doTryCatch(return(expr), name, parentenv, handler)
-	# The return in the call above will exit withOneRestart unless
-	# the handler is invoked; we only get to this point if the handler
-	# is invoked.  If we get here then the handler will have been
-	# popped off the internal handler stack.
-	if (is.null(value[[1L]])) {
-	    # a simple error; message is stored internally
-	    # and call is in result; this defers all allocs until
-	    # after the jump
-	    msg <- .Internal(geterrmessage())
-	    call <- value[[2L]]
-	    cond <- simpleError(msg, call)
+	tryCatchOne <- function(expr, name, parentenv, handler) {
+		doTryCatch <- function(expr, name, parentenv, handler) {
+			.Internal(.addCondHands(name, list(handler), parentenv,
+							environment(), FALSE))
+			expr
+		}
+		value <- doTryCatch(return(expr), name, parentenv, handler)
+		# The return in the call above will exit withOneRestart unless
+		# the handler is invoked; we only get to this point if the handler
+		# is invoked.  If we get here then the handler will have been
+		# popped off the internal handler stack.
+		if (is.null(value[[1L]])) {
+			# a simple error; message is stored internally
+			# and call is in result; this defers all allocs until
+			# after the jump
+			msg <- .Internal(geterrmessage())
+			call <- value[[2L]]
+			cond <- simpleError(msg, call)
+		}
+		else cond <- value[[1L]]
+		value[[3L]](cond)
 	}
-	else cond <- value[[1L]]
-	value[[3L]](cond)
-    }
-    if (! missing(finally))
-        on.exit(finally)
-    handlers <- list(...)
-    classes <- names(handlers)
-    parentenv <- parent.frame()
-    if (length(classes) != length(handlers))
-        stop("bad handler specification")
-    tryCatchList(expr, classes, parentenv, handlers)
+	if (! missing(finally))
+		on.exit(finally)
+	handlers <- list(...)
+	classes <- names(handlers)
+	parentenv <- parent.frame()
+	if (length(classes) != length(handlers))
+		stop("bad handler specification")
+	tryCatchList(expr, classes, parentenv, handlers)
 }
 
 withCallingHandlers <- function(expr, ...) {

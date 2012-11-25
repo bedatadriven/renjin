@@ -876,7 +876,7 @@ public class Types {
       // if the user passes null, we return the current exp
       // but since this primitive is internal, we will be called by a wrapping closure,
       // so grab the parent context      
-      return context.getParent().getEnvironment();
+      return context.getCallingEnvironment();
     } else if (exp instanceof Closure) {
       return ((Closure) exp).getEnclosingEnvironment();
     } else {

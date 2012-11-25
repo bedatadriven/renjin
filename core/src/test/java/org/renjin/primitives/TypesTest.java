@@ -268,6 +268,15 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" environment <- function(fun=NULL) .Internal(environment(fun)) ");
     eval(" f <- function() { qqq<-42; environment()$qqq }");
     assertThat( eval("f()"), equalTo(c(42)));
+
+  }
+  
+  @Test
+  public void environmentCalledFromPromise() {
+    eval(" environment <- function(fun=NULL) .Internal(environment(fun)) ");
+    eval(" g <- function(env) env$zz ");
+    eval(" h <- function() { zz<-33; g(environment()); }");
+    assertThat( eval("h()"), equalTo(c(33)));
   }
   
   @Test

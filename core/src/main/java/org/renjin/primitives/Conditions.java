@@ -184,7 +184,7 @@ public class Conditions {
     while(!context.isTopLevel()) {
       SEXP handler = context.getConditionHandler("error");
       if(handler != null) {
-        throw new EvalException("todo");
+        throw new EvalException(message + " (TODO: handler is registered but that is not impl yet!)");
       }
       context = context.getParent();
     }

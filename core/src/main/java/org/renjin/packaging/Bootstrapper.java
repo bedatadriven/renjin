@@ -38,7 +38,7 @@ public class Bootstrapper {
     
       // now we can compile the rest of the packages
       for(String packageName : new String[] 
-          { "datasets", "utils", "grDevices", "graphics", "stats", "splines", "methods" }) {
+          {"datasets", "utils", "grDevices", "graphics", "stats", "splines", "methods" }) {
         buildPackage(packageName);
       }
     } catch(Exception e) {
@@ -96,7 +96,7 @@ public class Bootstrapper {
   }
 
   private void eval(String source) throws ScriptException, IOException {
-    System.out.println(source);
+    //System.out.println(source);
     RenjinScriptEngineFactory factory = new RenjinScriptEngineFactory();
     RenjinScriptEngine engine = factory.withOptions().withNoDefaultPackages().get();
     engine.eval(source); 

@@ -1,20 +1,18 @@
 package org.renjin.primitives;
 
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
+import org.renjin.EvalTestCase;
 
 public class ConditionsTest extends EvalTestCase {
 
   @Test
-  @Ignore("not yet impl")
   public void catchStop() {
     assumingBasePackagesLoad();
-    eval("x <- tryCatch(stop('foo'), error = function(...) 41) ");
-    assertThat(eval("x"), equalTo(c(42)));
+    assertThat(eval("tryCatch(stop('foo'), error = function(...) 41)"), equalTo(c(41)));
+    assertThat(eval("tryCatch(nonExistantVar + 1, error = function(...) 42)"), equalTo(c(42)));
   }
 }

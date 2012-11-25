@@ -180,15 +180,6 @@ public class Conditions {
   
   @Primitive
   public static void stop(@Current Context context, boolean call, String message) {
-
-    while(!context.isTopLevel()) {
-      SEXP handler = context.getConditionHandler("error");
-      if(handler != null) {
-        throw new EvalException(message + " (TODO: handler is registered but that is not impl yet!)");
-      }
-      context = context.getParent();
-    }
-    
     throw new EvalException(message);
    }
 }

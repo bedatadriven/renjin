@@ -68,11 +68,6 @@ public abstract class SpecialFunction extends PrimitiveFunction {
 
     return logical == Logical.TRUE;
   }
-
-  protected void checkArity(FunctionCall call, int expectedArguments) {
-    checkArity(call, 0);
-  }
-
   
   protected void checkArity(FunctionCall call, int expectedArguments, int optional) {
       int count = call.getArguments().length();

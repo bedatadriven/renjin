@@ -37,6 +37,7 @@ import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
+import org.renjin.sexp.Vector.Builder;
 import org.renjin.util.NamesBuilder;
 
 import java.util.Arrays;
@@ -897,6 +898,11 @@ public class Types {
   public static PairList formals(Closure closure) {
     return closure.getFormals();
   }
+  
+  @Primitive
+  public static Null formals(PrimitiveFunction function) {
+    return Null.INSTANCE;
+  } 
 
   @Primitive
   public static SEXP body(Closure closure) {
@@ -1199,9 +1205,13 @@ public class Types {
   
   
   @Primitive("length<-")
-  public static Vector setLength(Vector source,int length){
-    //It's length-1 because R is base 1 and Java is base 0.
-    return source.newCopyBuilder().setNA(length-1).build();
+  public static Vector setLength(Vector source, int length) {
+     Builder copy = source.newBuilderWithInitialSize(length);
+     for(int i=0;i!=Math.min(length, source.length());++i) {
+       copy.setFrom(i, source, i);
+     }
+     copy.copyAttributesFrom(source);
+     return copy.build();
   }
 
   public static Predicate<SEXP> modePredicate(String mode) {

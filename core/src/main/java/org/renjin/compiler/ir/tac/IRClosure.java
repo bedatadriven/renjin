@@ -27,7 +27,7 @@ public class IRClosure extends Closure {
 
     PairList promisedArgs = Calls.promiseArgs(args, callingContext, callingEnvironment);
     
-    return matchAndApply(callingContext, call, promisedArgs);
+    return matchAndApply(callingContext, callingEnvironment, call, promisedArgs);
   }
   
   

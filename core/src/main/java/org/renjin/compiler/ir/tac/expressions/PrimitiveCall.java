@@ -138,8 +138,8 @@ public class PrimitiveCall implements CallExpression {
     if(elipsesIndex != -1) {
       extraArgs = (PairList) context.getEnvironment().getVariable(Symbols.ELLIPSES);
       argumentNames = CompiledRuntime.spliceArgNames(argumentNames, extraArgs, elipsesIndex);
-      argumentValues = CompiledRuntime.spliceArgValues(argumentValues, extraArgs, elipsesIndex);
-    } 
+      argumentValues = CompiledRuntime.spliceArgValues(context, argumentValues, extraArgs, elipsesIndex);
+    }
     
     return (SEXP) primitiveMethod.invoke(null, context, 
         context.getEnvironment(), 

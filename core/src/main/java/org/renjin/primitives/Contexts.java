@@ -22,9 +22,11 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
@@ -48,12 +50,7 @@ public class Contexts {
    */
   @Primitive("sys.nframe")
   public static int sysFrameCount(@Current Context context) {
-    if(context.getEvaluationDepth() == 0) {
-      return 0;
-    } else {
-      // don't count the closure within which .Internal(sys.nframe()) is called
-      return context.getEvaluationDepth() - 1;
-    }
+    return framedepth(findStartingContext(context));
   }
 
   /**
@@ -71,65 +68,217 @@ public class Contexts {
     // note that we actually climb n+1 parents in order to
     // skip the closure that makes the .Internal(parent.frame()) call
 
-    Context parent = context;
-    while(n>=0 && !parent.isTopLevel()) {
-      if(parent.getType() == Context.Type.FUNCTION) {
-        --n;
+    Context cptr = context;
+    Environment t = cptr.getCallingEnvironment();
+    while (!cptr.isTopLevel()){
+      if (cptr.getType() == Type.FUNCTION ) {
+        if (cptr.getEnvironment() == t) {
+          if (n == 1) {
+            return cptr.getCallingEnvironment();
+          }
+          n--;
+          t = cptr.getCallingEnvironment();
+        }
       }
-      parent = parent.getParent();
+      cptr = cptr.getParent();
     }
-    return parent.getEnvironment();
+    return context.getGlobalEnvironment();
+  } 
+
+  
+  /** Find the environment that can be returned by sys.frame 
+    * (so it needs to be on the cloenv pointer of a context) that matches 
+    * the environment where the closure arguments are to be evaluated. 
+    * It would be much simpler if sysparent just returned cptr->sysparent
+    * but then we wouldn't be compatible with S. 
+    **/
+  private static int R_sysparent(int n, Context cptr) {
+    int j;
+    if(n <= 0) {
+      throw new EvalException("only positive values of 'n' are allowed");
+    }
+    while (!cptr.isTopLevel() && n > 1) {
+      if (cptr.getType() == Type.FUNCTION ) {
+        n--;
+      }
+      cptr = cptr.getParent();
+    }
+    /* make sure we're looking at a return context */
+    while (!cptr.isTopLevel()  && cptr.getType() != Type.FUNCTION)  { 
+      cptr = cptr.getParent();
+    }
+
+    Environment s = cptr.getCallingEnvironment();
+
+    if(s == cptr.getGlobalEnvironment()) {
+      return 0;
+    }
+    j = 0;
+    while (true ) {
+      if (cptr.getType() == Type.FUNCTION) {
+        j++;
+        if( cptr.getEnvironment() == s )
+          n=j;
+      }
+      if(cptr.isTopLevel()) {
+        break;
+      }
+      cptr = cptr.getParent();
+    }
+    n = j - n + 1;
+    if (n < 0) {
+      n = 0;
+    }
+    return n;
+  }
+  
+  private static Closure R_sysfunction(int n, Context cptr) {
+    if (n > 0) {
+      n = framedepth(cptr) - n;
+    } else {
+      n = - n;
+    }
+    if (n < 0) {
+      throw new EvalException("not that many frames on the stack");
+    }
+    while (!cptr.isTopLevel()) {
+      if (cptr.getType() == Type.FUNCTION ) {
+        if (n == 0)
+          return cptr.getClosure();
+        else
+          n--;
+      }
+      cptr = cptr.getParent();
+    }
+    if (n == 0 && cptr.isTopLevel()) {
+      return cptr.getClosure();
+    }
+    throw new EvalException("not that many frames on the stack");
+  }
+  
+
+/* R_sysframe - look back up the context stack until the */
+/* nth closure context and return that cloenv. */
+/* R_sysframe(0) means the R_GlobalEnv environment */
+/* negative n counts back from the current frame */
+/* positive n counts up from the globalEnv */
+
+  private static Environment R_sysframe(int n, Context cptr) {
+    if (n == 0) {
+      return cptr.getGlobalEnvironment();
+    }
+
+    if (n > 0) {
+      n = framedepth(cptr) - n;
+    }  else {
+      n = -n;
+    }
+
+    if(n < 0) {
+      throw new EvalException("not that many frames on the stack");
+    }
+
+    while (!cptr.isTopLevel()) {
+      if (cptr.getType() == Type.FUNCTION ) {
+        if (n == 0) {  /* we need to detach the enclosing env */
+          return cptr.getEnvironment();
+        } else {
+          n--;
+        }
+      }
+      cptr = cptr.getParent();
+    }
+    if(n == 0 && cptr.isTopLevel()) {
+      return cptr.getGlobalEnvironment();
+    }
+    throw new EvalException("not that many frames on the stack");
   }
 
+
+  private static FunctionCall R_syscall(int n, Context cptr) {
+    /* negative n counts back from the current frame */
+    /* positive n counts up from the globalEnv */
+  
+    if (n > 0)
+      n = framedepth(cptr) - n;
+    else
+      n = - n;
+    if(n < 0) {
+      throw new EvalException("not that many frames on the stack");
+    }
+    while (!cptr.isTopLevel() ) {
+      if (cptr.getType() == Type.FUNCTION) {
+        if (n == 0) {
+          return cptr.getCall();
+        } else {
+          n--;
+        }
+      }
+      cptr = cptr.getParent();
+    }
+    if (n == 0 && cptr.isTopLevel()) {
+      return cptr.getCall();
+    }
+    throw new EvalException("not that many frames on the stack");
+  }
+
+
+  private static int framedepth(Context cptr)
+  {
+    int nframe = 0;
+    while (!cptr.isTopLevel()) {
+      if (cptr.getType() == Type.FUNCTION )
+        nframe++;
+      cptr = cptr.getParent();
+    }
+    return nframe;
+  }
+  
   @Primitive("sys.parent")
   public static int sysParent(@Current Context context, int n) {
-    if(n < 1) {
-      throw new EvalException("invalid 'n' value");
-    }
+    
+    Context cptr = findStartingContext(context);
+    
+    int i, nframe;
+    i = nframe = framedepth(cptr);
+    /* This is a pretty awful kludge, but the alternative would be
+       a major redesign of everything... -pd */
+    while (n-- > 0)
+        i = R_sysparent(nframe - i + 1, cptr);
+    return i;
+  
+  }
 
-    // note that we actually climb n+1 parents in order to
-    // skip the closure that makes the .Internal(parent.frame()) call
-
-    Context parent = context;
-    while(n>=0 && !parent.isTopLevel()) {
-      if(parent.getType() == Context.Type.FUNCTION) {
-        --n;
+  private static Context findStartingContext(Context context) {
+    /* first find the context that sys.xxx needs to be evaluated in */
+    Context cptr = context;
+    Environment t = cptr.getCallingEnvironment();
+    while (!cptr.isTopLevel()) {
+      if(cptr.getType() == Type.FUNCTION) {
+        if(cptr.getEnvironment() == t) {
+          break;
+        }
       }
-      parent = parent.getParent();
+      cptr = cptr.getParent();
     }
-    return parent.getEvaluationDepth();
+    return cptr;
   }
 
 
   @Primitive("sys.frame")
   public static Environment sysFrame(@Current Context context, int which) {
-    return walkUpFrame(context, which).getEnvironment();
+    return R_sysframe(which, findStartingContext(context));
   }
 
   @Primitive("sys.call")
   public static FunctionCall sysCall(@Current Context context, int which) {
-    return walkUpFrame(context, which).getCall();
+    return R_syscall(which, findStartingContext(context));
   }
 
   @Primitive("sys.function")
   public static Function sysFunction(@Current Context context, int which) {
-    return walkUpFrame(context, which).getClosure();
+    return R_sysfunction(which, findStartingContext(context));
   }
 
 
-  private static Context walkUpFrame(Context context, int which) {
-    if(which <= 0) {
-      which = context.getEvaluationDepth() + which - 1;
-    }
-
-    if(which < 0 || which > context.getEvaluationDepth()) {
-      throw new EvalException("not that many frames on the stack");
-    }
-
-    Context frame = context;
-    while(frame.getEvaluationDepth() != which) {
-      frame = frame.getParent();
-    }
-    return frame;
-  }
 }

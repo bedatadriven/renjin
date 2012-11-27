@@ -4,11 +4,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.runtime.PackageLoader;
-import org.renjin.eval.Context;
 import org.renjin.sexp.Environment;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class CompiledBasePackageTest extends EvalTestCase {
 
@@ -22,7 +21,7 @@ public class CompiledBasePackageTest extends EvalTestCase {
     Environment baseEnv = topLevelContext.getEnvironment().getBaseEnvironment();
     loader.load(topLevelContext, baseEnv);
     
-    assertThat(baseEnv.getVariable("xor").force().getClass().getSimpleName(), equalTo("xor"));
+    assertThat(baseEnv.getVariable("xor").force(topLevelContext).getClass().getSimpleName(), equalTo("xor"));
     assertThat(eval("xor(TRUE,TRUE)"), equalTo(c(false)));
   }
   

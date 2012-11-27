@@ -10,20 +10,16 @@ import org.renjin.sexp.Symbol;
 public class VariablePromise extends Promise {
 
   public VariablePromise(Context context, String name) {
-    super(context, context.getEnvironment(), Symbol.get(name));
+    super(context.getEnvironment(), Symbol.get(name));
   }
 
   @Override
-  protected SEXP doEval() {
+  protected SEXP doEval(Context context) {
     SEXP value = environment.findVariable((Symbol)expression);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("object '" + expression + "' not found");
     }
-    if(value instanceof Promise) {
-      return value.force();
-    } else {
-      return value;
-    }
+    return value.force(context);
   }
   
 }

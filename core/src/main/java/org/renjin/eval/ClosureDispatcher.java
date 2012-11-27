@@ -30,6 +30,7 @@ import org.renjin.primitives.CollectionUtils;
 import org.renjin.primitives.special.ReturnException;
 import org.renjin.sexp.*;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -66,7 +67,7 @@ public class ClosureDispatcher {
 
   private SEXP apply(Closure closure, PairList promisedArgs) {
 
-    Context functionContext = callingContext.beginFunction(call, closure, promisedArgs);
+    Context functionContext = callingContext.beginFunction(callingEnvironment, call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {
@@ -86,13 +87,34 @@ public class ClosureDispatcher {
         throw e;
       }
       return e.getValue();
+
     } catch(EvalException e) {
       e.initContext(functionContext);
-      throw e;
+      SEXP handler = findHandler(functionContext, Arrays.asList("simpleError", "error", "condition"));
+      if(handler != null) {
+        // the R code in conditions.R expects this format (condition, message, handler).
+        // I think is the kind of thing that should be moved entirely into java to avoid
+        // these complicated relationships between R and Java/C code but i don't want
+        // to mess with the R code too much at this point.
+        return new ListVector(e.getCondition(), Null.INSTANCE, handler);
+      } else {
+        throw e;
+      }
     }
   }
-
-  public static void matchArgumentsInto(PairList formals, PairList actuals, Context innerContext, Environment innerEnv) {
+  
+  private static SEXP findHandler(Context context, Iterable<String> conditionClasses) {
+    for(String conditionClass : conditionClasses) {
+      SEXP handler = context.getConditionHandler(conditionClass);
+      if(handler != null) {
+        return handler;
+      }
+    }
+    return null;
+  }
+  
+  public static void matchArgumentsInto(PairList formals, PairList actuals, 
+      Context innerContext, Environment innerEnv) {
 
     PairList matched = matchArguments(formals, actuals);
     for(PairList.Node node : matched.nodes()) {
@@ -100,7 +122,7 @@ public class ClosureDispatcher {
       if(value == Symbol.MISSING_ARG) {
         SEXP defaultValue = formals.findByTag(node.getTag());
         if(defaultValue != Symbol.MISSING_ARG) {
-          value =  Promise.repromise(innerContext, innerEnv, defaultValue);
+          value =  Promise.repromise(innerEnv, defaultValue);
         }
       }
       innerEnv.setVariable(node.getTag(), value);

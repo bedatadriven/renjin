@@ -13,12 +13,12 @@ public class PromisedFunction extends Promise {
   private String className;
 
   public PromisedFunction(Context context, Environment environment, String className) {
-    super(context, environment, Null.INSTANCE);
+    super(environment, Null.INSTANCE);
     this.className = className;
   }
 
   @Override
-  protected SEXP doEval() {
+  protected SEXP doEval(Context context) {
     try {
       return (SEXP) Class.forName(className).getConstructor(Environment.class)
         .newInstance(environment);

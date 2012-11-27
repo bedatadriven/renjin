@@ -21,15 +21,15 @@
 
 package org.renjin.primitives;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 
 public class ContextTest extends EvalTestCase {
@@ -145,4 +145,51 @@ public class ContextTest extends EvalTestCase {
     assertThat( eval("g()"), equalTo( c_i(1) ));
   }
 
+  @Test
+  public void contextPromises() {
+    eval(" sys.frame <- function(which = 0L) .Internal(sys.frame(which)) ");
+    eval(" function (generic = NULL, object = NULL, ...) .Internal(NextMethod(generic, object, ...))");
+    eval(" f <- function() sys.frame(-1)$q ");
+    eval(" g <- function() { q<-42; f(); }");
+
+    assertThat(eval("g()"), equalTo(c(42)));
+
+    eval(" h <- function(x) { q<- 41; x }");
+    assertThat(eval("h(f())"), equalTo(c(41)));
+  }
+
+  @Test
+  public void primitiveDispatchInPromise() {
+    eval(" toupper <- function(x) .Internal(toupper(x)) ");
+    eval(" as.character.foo <- function(x) toupper(NextMethod('as.character'))");
+    eval(" x <- 'bar' ");
+    eval(" class(x) <- 'foo'");
+
+    assertThat( eval("as.character(x) "), equalTo(c("BAR")));
+  }
+
+
+  @Test
+  public void moreContextsPromises() {
+    eval(" sys.frame <- function(which = 0L) .Internal(sys.frame(which)) ");
+
+    eval("MyNextMethod <- function() sys.frame(-1)$.Class");
+    eval("`[.foo` <- function(x, i) list(MyNextMethod())");
+
+    eval(" x <- c(1,2,3) ");
+    eval(" class(x) <- 'foo' ");
+    
+    // because 'list' is a primitive, it's arguments are evaluated in the same context
+    // as 'f's body, and sys.frame works logically
+    assertThat(eval("x[1]"), equalTo(list("foo")));
+
+    eval("myClosure <- function(x) x");
+    eval("`[.foo` <- function(x, i) myClosure(MyNextMethod())");
+
+    // now MyNextMethod() is evaluated in the new context for myClosure and
+    // sys.frame(-1) refers to myClosure's environment.
+    assertThat(eval("x[1]"), equalTo(NULL));
+
+
+  }
 }

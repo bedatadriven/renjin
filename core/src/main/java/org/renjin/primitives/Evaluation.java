@@ -83,7 +83,7 @@ public class Evaluation {
 
   @Primitive
   public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
-    assignEnv.setVariable(Symbol.get(x), Promise.repromise(context, evalEnv, expr));
+    assignEnv.setVariable(Symbol.get(x), Promise.repromise(evalEnv, expr));
   }
 
 
@@ -170,10 +170,6 @@ public class Evaluation {
     return result.build();
   }
   
-  @Primitive
-  public static void stop(boolean call, String message) {
-    throw new EvalException(message);
-  }
 
   @Primitive("return")
   public static SEXP doReturn(@Current Environment rho, SEXP value) {
@@ -189,10 +185,10 @@ public class Evaluation {
 
   @Primitive("do.call")
   public static SEXP doCall(@Current Context context, @Current Environment rho, String what, ListVector arguments, Environment environment) {
-    SEXP function = environment.findVariable(Symbol.get(what));
-    if(function instanceof Promise) {
-      function = ((Promise) function).force();
-    }
+    SEXP function = environment
+            .findVariable(Symbol.get(what))
+            .force(context);
+
     return doCall(context, (Function) function, arguments, environment);
   }
 

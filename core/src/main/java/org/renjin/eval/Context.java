@@ -21,7 +21,6 @@
 
 package org.renjin.eval;
 
-import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
@@ -58,6 +57,7 @@ public class Context {
   public final static boolean USE_IR = false;
 
   public final static boolean PRINT_IR = false;
+
 
 
   public enum Type {
@@ -330,9 +330,15 @@ public class Context {
   private int evaluationDepth;
   private Type type;
   private Environment environment;
-  private Globals globals;
+  private Globals globals; 
   private FunctionCall call;
   private Closure closure;
+  
+  /**
+   * The environment from which the closure was called
+   */
+  private Environment callingEnvironment;
+  
   private PairList arguments = Null.INSTANCE;
 
   /**
@@ -341,6 +347,8 @@ public class Context {
    * conditions are signaled.
    */
   private Map<String, SEXP> conditionHandlers = Maps.newHashMap();
+
+  private Map<Class, Object> stateMap = null;
 
   private Context() {
   }
@@ -399,7 +407,7 @@ public class Context {
 
   }
 
-  public Context beginFunction(FunctionCall call, Closure closure, PairList arguments) {
+  public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;
@@ -409,6 +417,7 @@ public class Context {
     context.globals = globals;
     context.arguments = arguments;
     context.call= call;
+    context.callingEnvironment = rho;
     return context;
   }
   
@@ -434,7 +443,7 @@ public class Context {
     } else if(expression instanceof FunctionCall) {
       return evaluateCall((FunctionCall) expression, rho);
     } else if(expression instanceof Promise) {
-      return expression.force();
+      return expression.force(this);
     } else if(expression != Null.INSTANCE && expression instanceof PromisePairList) {
       throw new EvalException("'...' used in an incorrect context");
     } else {
@@ -442,7 +451,27 @@ public class Context {
       return expression;
     }
   }
-  
+
+  public <T> T getState(Class<T> clazz) {
+    if(stateMap != null) {
+      return (T)stateMap.get(clazz);
+    } else {
+      return null;
+    }
+  }
+
+
+  public <T> void setState(T instance) {
+    this.<T>setState((Class<T>) instance.getClass(), instance);
+  }
+
+  public <T> void setState(Class<T> clazz, T instance) {
+    if(stateMap == null) {
+      stateMap = Maps.newHashMap();
+    }
+    stateMap.put(clazz, instance);
+  }
+
   private SEXP evaluateSymbol(Symbol symbol, Environment rho) {
     clearInvisibleFlag();
 
@@ -484,16 +513,13 @@ public class Context {
   private Function evaluateFunction(SEXP functionExp, Environment rho) {
     if(functionExp instanceof Symbol) {
       Symbol symbol = (Symbol) functionExp;
-      Function fn = rho.findFunction(symbol);
+      Function fn = rho.findFunction(this, symbol);
       if(fn == null) {
         throw new EvalException("could not find function '%s'", symbol.getPrintName());      
       }
       return fn;
     } else {
-      SEXP evaluated = evaluate(functionExp, rho);
-      if(evaluated instanceof Promise) {
-        evaluated = ((Promise) evaluated).force();
-      }
+      SEXP evaluated = evaluate(functionExp, rho).force(this);
       if(!(evaluated instanceof Function)) {
         throw new EvalException("'function' of lang expression is of unsupported type '%s'", evaluated.getTypeName());
       }
@@ -509,7 +535,7 @@ public class Context {
     
     IRBodyBuilder builder = new IRBodyBuilder(globals.functionTable);
     if(expression instanceof Promise) {
-      return ((Promise) expression).force();
+      return expression.force(parent);
     } else {
       IRBody body = builder.build(expression);
       
@@ -701,5 +727,9 @@ public class Context {
   
   public void clearInvisibleFlag() {
     globals.invisible = false;
+  }
+
+  public Environment getCallingEnvironment() {
+    return callingEnvironment;
   }
 }

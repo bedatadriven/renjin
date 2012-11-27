@@ -1,13 +1,12 @@
 package org.renjin.script;
 
-import java.io.Reader;
-import java.io.Writer;
-import java.util.List;
+import org.renjin.eval.Context;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
-
-import org.renjin.eval.Context;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.List;
 
 
 public class RenjinScriptContext implements ScriptContext{
@@ -51,7 +50,7 @@ public class RenjinScriptContext implements ScriptContext{
 
   @Override
   public Writer getErrorWriter() {
-    return errorWriter;
+    return context.getGlobals().getConnectionTable().getStderr().getPrintWriter();
   }
 
   @Override

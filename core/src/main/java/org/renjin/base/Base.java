@@ -21,12 +21,6 @@
 
 package org.renjin.base;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.math.complex.Complex;
 import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
@@ -40,25 +34,13 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalArrayVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.S4Object;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -673,7 +655,7 @@ public class Base {
    as a list.  If the force argument is true, promises are forced;
    otherwise they are not. */
 
-  public static SEXP  R_getVarsFromFrame(StringVector vars, Environment env, boolean force) {
+  public static SEXP  R_getVarsFromFrame(@Current Context context, StringVector vars, Environment env, boolean force) {
 
     ListVector.NamedBuilder val = new ListVector.NamedBuilder();
     for(String var : vars) {
@@ -682,7 +664,7 @@ public class Base {
         throw new EvalException("object %s not found", boundValue);
       }
       if(force) {
-        boundValue = boundValue.force();
+        boundValue = boundValue.force(context);
       }
       val.add(var, boundValue);
     }

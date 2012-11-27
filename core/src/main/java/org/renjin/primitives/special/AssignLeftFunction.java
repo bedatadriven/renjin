@@ -88,7 +88,7 @@ public class AssignLeftFunction extends SpecialFunction {
 
     // make the final assignment to the target symbol
     if(rhs instanceof Promise) {
-      rhs = ((Promise) rhs).force();
+      rhs = rhs.force(context);
     }
     assignResult(rho, target, rhs);
 

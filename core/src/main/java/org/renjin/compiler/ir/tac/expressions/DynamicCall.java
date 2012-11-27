@@ -109,7 +109,8 @@ public class DynamicCall implements CallExpression {
           args.add(argumentNames.get(argNameIndex++), (SEXP)argument.retrieveValue(context, temps));
         }
       }
-      return ((Closure) functionValue).matchAndApply(context, call, args.build());
+      // TODO: check calling environment
+      return ((Closure) functionValue).matchAndApply(context, context.getEnvironment(), call, args.build());
 
     } else {
       return functionValue.apply(context, context.getEnvironment(), call, call.getArguments());
@@ -121,13 +122,13 @@ public class DynamicCall implements CallExpression {
     private IRThunk thunk;
 
     public IRPromise(Context context, Object temps[], IRThunk thunk) {
-      super(context, context.getEnvironment(), thunk.getSExpression());
+      super(context.getEnvironment(), thunk.getSExpression());
       this.temps = temps;
       this.thunk = thunk;
     }
 
     @Override
-    protected SEXP doEval() {
+    protected SEXP doEval(Context context) {
       return thunk.retrieveValue(context, temps);
     }
   }
@@ -154,7 +155,7 @@ public class DynamicCall implements CallExpression {
     // this is *different* then simply evaluating the symbol `f`.
 
     if(functionSexp instanceof Symbol) {
-      return context.getEnvironment().findFunctionOrThrow((Symbol)functionSexp);
+      return context.getEnvironment().findFunctionOrThrow(context, (Symbol)functionSexp);
     } else {
 
       // otherwise, we need to proceed to evaluate the expression 

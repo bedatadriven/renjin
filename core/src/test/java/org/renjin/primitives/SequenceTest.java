@@ -140,4 +140,11 @@ public class SequenceTest extends EvalTestCase {
   public void repWithZeroLengthOut() {
     assertThat( eval(" rep(NA, length.out=0) "), equalTo( (SEXP) LogicalVector.EMPTY));
   }
+  
+  @Test
+  public void seqIntFrom() {
+    eval(" x <- seq.int(from=1, length.out=1) ");
+    assertThat( eval("x[1]"), equalTo( c_i(1)));
+    
+  }
 }

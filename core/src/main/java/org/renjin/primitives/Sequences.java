@@ -21,7 +21,6 @@
 
 package org.renjin.primitives;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.math.linear.RealVector;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
@@ -30,14 +29,27 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.processor.ArgumentIterator;
-import org.renjin.primitives.annotations.processor.WrapperRuntime;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.sequence.RepIntVector;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 import org.renjin.util.NamesBuilder;
+
+import com.google.common.annotations.VisibleForTesting;
 
 
 /**
@@ -145,7 +157,7 @@ public class Sequences {
     PairList.Node firstArgNode = argIt.nextNode();
     SEXP firstArg = context.evaluate( firstArgNode.getValue(), rho);
     if(firstArg.isObject()) {
-      SEXP result = WrapperRuntime.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
+      SEXP result = S3.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
       if(result != null) {
         return result;
       }
@@ -441,9 +453,12 @@ public class Sequences {
     assertFinite("from", from);
     assertFinite("to", to);
 
-    double by = (to - from)/(double)(length - 1);
-
-    return newSequence(from, by, to, length);
+    if(length == 1) {
+      return newSequence(from, 1, to, length);
+    } else {
+      double by = (to - from)/(double)(length - 1);
+      return newSequence(from, by, to, length);
+    }
   }
 
   private static SEXP sequenceTo(int length, double to, double by) {

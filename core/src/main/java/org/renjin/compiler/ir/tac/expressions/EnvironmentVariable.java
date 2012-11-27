@@ -1,14 +1,13 @@
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
 
 
 /**
@@ -35,11 +34,7 @@ public class EnvironmentVariable implements Variable {
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("object '" + name + "' not found");
     }
-    if(value instanceof Promise) {
-      return ((Promise) value).force();
-    } else {
-      return value;
-    }
+    return value.force(context);
   }
   
   @Override

@@ -22,27 +22,35 @@
 package org.renjin.eval;
 
 import org.renjin.eval.Context.Type;
+import org.renjin.sexp.ListVector;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.Symbols;
 
 
 public class EvalException extends RuntimeException {
-  private SEXP exp;
+  private SEXP condition;
   private Context context;
-
-  public EvalException(String message, Object... args) {
-    super(args.length == 0 ? message : String.format(message, args));
+  
+  public EvalException(String message, Throwable t) {
+    super(message, t);
+    ListVector.NamedBuilder condition = ListVector.newNamedBuilder();
+    condition.add("message", this.getMessage());
+    condition.setAttribute(Symbols.CLASS, new StringArrayVector("condition", "error", "simpleError"));
+    this.condition = condition.build();
   }
-
-  public EvalException(String message, Throwable t, Object... args) {
-      super(args.length == 0 ? message : String.format(message, args),t);
-    }
+  
+  public EvalException(String message, Object... args) {
+    this(args.length == 0 ? message : String.format(message, args), (Throwable)null);
+  }
 
   
   public EvalException(Context context, String message, Object... args) {
-    super(String.format(message, args));
+    this(args.length == 0 ? message : String.format(message, args), (Throwable)null);
     this.context = context;
   }
+
 
   public EvalException(Throwable cause) {
     super(cause.getMessage(), cause);
@@ -110,5 +118,9 @@ public class EvalException extends RuntimeException {
     } catch (ClassCastException e) {
       throw new EvalException("invalid 'type' (%s) of argument", argument.getTypeName());
     }
+  }
+
+  public SEXP getCondition() {
+    return condition;
   }
 }

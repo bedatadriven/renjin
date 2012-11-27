@@ -54,10 +54,10 @@ public class Calls {
   }
 
 
-  public static SEXP applyClosure(Closure closure, Context context, FunctionCall call, PairList promisedArgs, Environment rho,
+  public static SEXP applyClosure(Closure closure, Context context, Environment callingEnvironment, FunctionCall call, PairList promisedArgs, Environment rho,
                                         Frame suppliedEnvironment) {
 
-    Context functionContext = context.beginFunction(call, closure, promisedArgs);
+    Context functionContext = context.beginFunction(callingEnvironment, call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {
@@ -114,7 +114,7 @@ public class Calls {
         if(node.getValue() instanceof Promise) {
           list.add(node.getRawTag(), node.getValue());
         } else {
-          list.add(node.getRawTag(), Promise.repromise(context, rho, node.getValue()));
+          list.add(node.getRawTag(), Promise.repromise(rho, node.getValue()));
         }
       }
     }
@@ -153,7 +153,7 @@ public class Calls {
       if(value == Symbol.MISSING_ARG) {
         SEXP defaultValue = formals.findByTag(node.getTag());
         if(defaultValue != Symbol.MISSING_ARG) {
-          value =  Promise.repromise(innerContext, innerEnv, defaultValue);
+          value =  Promise.repromise(innerEnv, defaultValue);
         }
       }
       innerEnv.setVariable(node.getTag(), value);

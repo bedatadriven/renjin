@@ -15,6 +15,12 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   public static LogicalVector FALSE = new LogicalArrayVector(0);
   public static LogicalVector NA_VECTOR = new LogicalArrayVector(NA);
 
+
+
+  public static SEXP valueOf(boolean value) {
+    return value ? TRUE : FALSE;
+  }
+  
   public LogicalVector(AttributeMap attributes) {
     super(attributes);
   }
@@ -258,4 +264,5 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
       return vector1.getElementAsRawLogical(index1) - vector2.getElementAsRawLogical(index2);
     }
   }
+
 }

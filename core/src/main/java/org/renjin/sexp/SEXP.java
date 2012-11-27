@@ -21,6 +21,8 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
+
 /**
  * Base interface for all R data types.
  */
@@ -56,6 +58,9 @@ public interface SEXP {
    * Coerces this {@code SEXP} to a single double value.
    */
   double asReal();
+
+
+  String asString();
 
   /**
    *
@@ -156,6 +161,6 @@ public interface SEXP {
   <S extends SEXP> S getElementAsSEXP(int index);
 
   
-  SEXP force();
-  
+  SEXP force(Context context);
+
 }

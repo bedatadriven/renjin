@@ -268,6 +268,15 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" environment <- function(fun=NULL) .Internal(environment(fun)) ");
     eval(" f <- function() { qqq<-42; environment()$qqq }");
     assertThat( eval("f()"), equalTo(c(42)));
+
+  }
+  
+  @Test
+  public void environmentCalledFromPromise() {
+    eval(" environment <- function(fun=NULL) .Internal(environment(fun)) ");
+    eval(" g <- function(env) env$zz ");
+    eval(" h <- function() { zz<-33; g(environment()); }");
+    assertThat( eval("h()"), equalTo(c(33)));
   }
   
   @Test
@@ -529,10 +538,14 @@ public strictfp class TypesTest extends EvalTestCase {
   @Test
   public void setLength(){
     eval("x <- c(1,2,3)");
-    assertThat(eval("length(x)").asReal(), equalTo(3.0));
+    assertThat(eval("length(x)"), equalTo(c_i(3)));
     eval("length(x)<-4");
-    assertThat(eval("length(x)").asReal(), equalTo(4.0));
-    assertThat(eval("x").getElementAsSEXP(3).asReal(),equalTo(DoubleVector.NA));
+    assertThat(eval("length(x)"), equalTo(c_i(4)));
+    assertThat(eval("is.na(x[4])"),equalTo(c(true)));
+    
+    eval("length(x) <- 2");
+    assertThat(eval("x"), equalTo(c(1,2)));
+    
   }
   
   @Test

@@ -25,6 +25,7 @@ package org.renjin.primitives;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.EvalException;
 import org.renjin.parser.ParseUtil;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
@@ -147,7 +148,8 @@ public class Deparse {
 
     @Override
     public void visit(Promise promise) {
-      promise.force().accept(this);
+      //promise.force(context).accept(this);
+      throw new EvalException("todo: deparse promises");
     }
 
     @Override

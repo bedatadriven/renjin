@@ -570,7 +570,7 @@ public class Combine {
       Vector classes = (Vector) argument.getAttribute(Symbols.CLASS);
       for(int i=0;i!=classes.length();++i) {
         Symbol methodName = Symbol.get(bindFunctionName + "." + classes.getElementAsString(i));
-        org.renjin.sexp.Function function = rho.findFunction(methodName);
+        org.renjin.sexp.Function function = rho.findFunction(context, methodName);
         if(function != null) {
           if(foundMethod != null && methodName != foundMethod) {
             // conflicting overloads,

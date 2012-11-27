@@ -38,7 +38,7 @@ public class Bootstrapper {
     
       // now we can compile the rest of the packages
       for(String packageName : new String[] 
-          { "datasets", "utils", "grDevices", "graphics", "stats", "splines", "methods" }) {
+          {"datasets", "utils", "grDevices", "graphics", "stats", "splines", "methods" }) {
         buildPackage(packageName);
       }
     } catch(Exception e) {
@@ -96,6 +96,7 @@ public class Bootstrapper {
   }
 
   private void eval(String source) throws ScriptException, IOException {
+    //System.out.println(source);
     RenjinScriptEngineFactory factory = new RenjinScriptEngineFactory();
     RenjinScriptEngine engine = factory.withOptions().withNoDefaultPackages().get();
     engine.eval(source); 
@@ -107,8 +108,8 @@ public class Bootstrapper {
 
     installPackageSources("tools");
     eval(String.format("tools:::.install_package_description('%s', '%s')",
-        file(srcRoot, "tools").getAbsolutePath(),
-        file(destRoot, "tools").getAbsolutePath()));
+        escape(file(srcRoot, "tools").getAbsolutePath()),
+        escape(file(destRoot, "tools").getAbsolutePath())));
     
     String lazyLoadScript = Files.toString(file(srcRoot, "tools", "R", "makeLazyLoad.R"), Charsets.UTF_8);
     lazyLoadScript += "\n" + "makeLazyLoading('tools')\n";
@@ -117,6 +118,10 @@ public class Bootstrapper {
   }
 
 
+  private String escape(String s) {
+    return s.replace("\\", "\\\\");
+  }
+
   private void buildPackage(String packageName) throws IOException, ScriptException {
     System.out.println(String.format("Building package '%s'...", packageName));
 
@@ -124,8 +129,8 @@ public class Bootstrapper {
     eval(
       String.format("tools:::.install_package_description('%s', '%s')\n" +
                     "tools:::makeLazyLoading('%s')\n",
-        file(srcRoot, packageName).getAbsolutePath(),
-        file(destRoot, packageName).getAbsolutePath(),
+        escape(file(srcRoot, packageName).getAbsolutePath()),
+        escape(file(destRoot, packageName).getAbsolutePath()),
         packageName));
 
     try {     

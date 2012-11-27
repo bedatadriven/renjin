@@ -36,17 +36,19 @@ public class DispatchChain {
   private Closure closure;
   private Vector classes;
 
+  private final Context context;
 
-  public DispatchChain() {
+  public DispatchChain(Context context) {
 
+    this.context = context;
   }
 
-  public static DispatchChain newChain(Environment callingEnvironment, String generic, Vector classes) {
+  public static DispatchChain newChain(Context context, Environment callingEnvironment, String generic, Vector classes) {
     for(int i = 0; i!=classes.length();++i) {
       Symbol method = Symbol.get(generic + "." + classes.getElementAsString(i));
-      SEXP function = callingEnvironment.findVariable(method, CollectionUtils.IS_FUNCTION, true);
+      SEXP function = callingEnvironment.findVariable(context, method, CollectionUtils.IS_FUNCTION, true);
       if(function != Symbol.UNBOUND_VALUE) {
-        DispatchChain chain = new DispatchChain();
+        DispatchChain chain = new DispatchChain(context);
         chain.classes = classes;
         chain.generic = generic;
         chain.method = method.getPrintName();
@@ -55,17 +57,6 @@ public class DispatchChain {
       }
     }
     return null;
-  }
-
-  public static DispatchChain fromEnvironment(Environment rho) {
-    DispatchChain chain = new DispatchChain();
-    chain.classes = (Vector) rho.getVariable(CLASS);
-    chain.method = ((Vector)rho.getVariable(METHOD)).getElementAsString(0);
-    chain.generic = ((Vector)rho.getVariable(GENERIC)).getElementAsString(0);
-    if(rho.hasVariable(GROUP)) {
-      chain.group = ((Vector)rho.getVariable(GROUP)).getElementAsString(0);
-    }
-    return chain;
   }
 
   public void populateEnvironment(Environment rho) {

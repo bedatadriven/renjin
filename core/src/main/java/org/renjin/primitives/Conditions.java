@@ -103,6 +103,17 @@ public class Conditions {
 
   private Conditions() {}
 
+  public static class ErrorMessage {
+    private String value;
+
+    public String getValue() {
+      return value;
+    }
+
+    public void setValue(String value) {
+      this.value = value;
+    } 
+  }
 
   /**
    * Conditions are somewhat analogous to exceptions in the JVM, while handlers
@@ -135,7 +146,7 @@ public class Conditions {
 
     for (int i = n - 1; i >= 0; i--) {
       context.setConditionHandler(classes.getElementAsString(i),
-          Promise.repromise(context, parentEnv, handlers.getElementAsSEXP(i)));
+          Promise.repromise(parentEnv, handlers.getElementAsSEXP(i)));
     }
   }
 
@@ -176,5 +187,22 @@ public class Conditions {
     EvalException e = new EvalException(message);
     e.initContext(context);
     throw e;
+  }
+  
+  @Primitive
+  public static void stop(@Current Context context, boolean call, String message) {
+    throw new EvalException(message);
+  }
+  
+  @Primitive
+  public static String geterrmessage(@Current Context context) {
+    ErrorMessage errorMessage = context.getGlobals().getSingleton(ErrorMessage.class);
+    return errorMessage.getValue();
+  }
+  
+  @Primitive
+  public static void seterrmessage(@Current Context context, String message) {
+    ErrorMessage errorMessage = context.getGlobals().getSingleton(ErrorMessage.class);
+    errorMessage.setValue(message);
   }
 }

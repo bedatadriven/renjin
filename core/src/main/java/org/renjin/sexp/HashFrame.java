@@ -21,11 +21,12 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+
 import java.util.IdentityHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import org.renjin.eval.EvalException;
 
 
 public class HashFrame implements Frame{
@@ -50,17 +51,17 @@ public class HashFrame implements Frame{
   }
 
   @Override
-  public Function getFunction(Symbol name) {
+  public Function getFunction(Context context, Symbol name) {
     if(functionFilter != 0 && (functionFilter & name.hashBit()) != 0) {
       SEXP value = values.get(name);
-      if(value instanceof Promise) {
-        value = ((Promise) value).force();
-      } 
-      if(value == Symbol.MISSING_ARG) {
-        throw new EvalException("argument '%s' is missing with no default", name.toString());
-      }
-      if(value instanceof Function) {
-        return (Function)value;
+      if(value != null) {
+        value = value.force(context);
+        if(value == Symbol.MISSING_ARG) {
+          throw new EvalException("argument '%s' is missing with no default", name.toString());
+        }
+        if(value instanceof Function) {
+            return (Function)value;
+        }
       }
     }
     return null;

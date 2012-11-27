@@ -23,14 +23,17 @@ package org.renjin.methods;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.special.SubstituteFunction;
+import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.Null;
+import org.renjin.sexp.PrimitiveFunction;
 import org.renjin.sexp.S4Object;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
@@ -45,6 +48,7 @@ public class Methods {
     System.out.println("methods init");
     return env;
   }
+ 
 
   public static boolean R_set_method_dispatch(@Current Context context, LogicalVector onOff) {
     MethodDispatch methodContext = context.getGlobals().getSingleton(MethodDispatch.class);
@@ -68,17 +72,36 @@ public class Methods {
   }
 
   public static SEXP R_set_slot(SEXP object, String name, SEXP value) {
-    return object.setAttribute(name,  value);
+    if(name.equals(".Data")) {
+      // the .Data slot actually refers to the object value itself, for 
+      // example the double values contained in a double vector
+      // So we copy the slots from 'object' to the new value
+      return value.setAttributes(object.getAttributes());
+    } else {
+      // When set via S4 methods, R attributes can contain
+      // invalid values, for example the 'class' attribute
+      // might contain a double vector of arbitrary length.
+      // For this reason we have to be careful to avoid attribute
+      // validation. 
+      return object.setAttributes(object.getAttributes().copy().set(name, value).build());
+    }
   }
 
   public static SEXP R_get_slot(SEXP object, String what) {
-    SEXP value = object.getAttributes().get(what);
-    if(value == Null.INSTANCE) {
-      throw new EvalException("no slot of name \"%s\" for this object of class \"%s\"", what, 
-          object.getAttributes().getClass());
-
+    if(what.equals(".Data")) {
+      if(object instanceof S4Object) {
+        throw new EvalException("Data part is undefined for general S4 object");
+      }
+      return object.setAttributes(AttributeMap.EMPTY);
+    } else {
+      SEXP value = object.getAttributes().get(what);
+      if(value == Null.INSTANCE) {
+        throw new EvalException("no slot of name \"%s\" for this object of class \"%s\"", what, 
+            object.getAttributes().getClass());
+  
+      }
+      return value;
     }
-    return value;
   }
 
   public static String R_methodsPackageMetaName(String prefix, String name, String packageName) {
@@ -175,13 +198,13 @@ public class Methods {
     return klass;
   }
 
-  public static SEXP R_getGeneric(String symbol, boolean mustFind, Environment rho, String pkg) {
-    return R_getGeneric(Symbol.get(symbol), mustFind, rho, pkg);
+  public static SEXP R_getGeneric(@Current Context context, String symbol, boolean mustFind, Environment rho, String pkg) {
+    return R_getGeneric(context, Symbol.get(symbol), mustFind, rho, pkg);
   }
   
-  public static SEXP R_getGeneric(Symbol symbol, boolean mustFind, Environment rho, String pkg) {
+  public static SEXP R_getGeneric(@Current Context context, Symbol symbol, boolean mustFind, Environment rho, String pkg) {
 
-    SEXP generic = getGeneric(symbol, rho, pkg);
+    SEXP generic = getGeneric(context, symbol, rho, pkg);
     if(generic == Symbol.UNBOUND_VALUE) {
       if(mustFind) {
         throw new EvalException("No generic function definition found for '%s' in the supplied environment", symbol.getPrintName());
@@ -191,7 +214,7 @@ public class Methods {
     return generic;
   }
 
-  protected static SEXP getGeneric(Symbol symbol, Environment env, String pkg) {
+  protected static SEXP getGeneric(@Current Context context, Symbol symbol, Environment env, String pkg) {
     SEXP vl;
     SEXP generic = Symbol.UNBOUND_VALUE;
     String gpackage; 
@@ -202,7 +225,7 @@ public class Methods {
     while (rho != Environment.EMPTY) {
       vl =  rho.getVariable(symbol);
       if (vl != Symbol.UNBOUND_VALUE) {
-        vl = vl.force();
+        vl = vl.force(context);
 
         ok = false;
         if(IS_GENERIC(vl)) {
@@ -250,4 +273,75 @@ public class Methods {
   public static SEXP do_substitute_direct(SEXP f, SEXP env) {
     return SubstituteFunction.substitute(f, env);
   }
+  
+  
+  public static SEXP R_M_setPrimitiveMethods(@Current Context context, SEXP fname, SEXP op, String code_vec,
+      SEXP fundef, SEXP mlist) {
+    
+    return R_set_prim_method(context, fname, op, code_vec, fundef, mlist);
+    
+  }
+  
+  
+  public static void do_set_prim_method(@Current Context context, PrimitiveFunction op, 
+      String code_string, SEXP fundef, SEXP mlist) {
+
+    prim_methods_t code = parseCode(code_string);
+
+    PrimitiveMethodTable table = context.getGlobals().getSingleton(PrimitiveMethodTable.class);
+    PrimitiveMethodTable.Entry entry = table.get(op);
+    
+    entry.setMethods(code);
+
+    if(code != prim_methods_t.SUPPRESSED) {
+      if(fundef != Null.INSTANCE) {
+        entry.setGeneric((Closure)fundef);
+      }
+    }
+    if(code == prim_methods_t.HAS_METHODS) {
+      entry.setMethodList(mlist);
+    }
+  }
+  
+  public static SEXP R_set_prim_method(@Current Context context, SEXP fname, SEXP op, String code_string, SEXP fundef, SEXP mlist) {
+    PrimitiveMethodTable table = context.getGlobals().getSingleton(PrimitiveMethodTable.class);
+    
+    /* with a NULL op, turns all primitive matching off or on (used to avoid possible infinite
+    recursion in methods computations*/
+    if(op == Null.INSTANCE) {
+      SEXP value = LogicalVector.valueOf(table.isPrimitiveMethodsAllowed());
+      switch(parseCode(code_string)) {
+      case NO_METHODS:
+        table.setPrimitiveMethodsAllowed(false);
+        break;
+      case HAS_METHODS:
+        table.setPrimitiveMethodsAllowed(true);
+        break;
+      default: /* just report the current state */
+        break;
+      }
+      return value;
+    } else {
+      do_set_prim_method(context, (PrimitiveFunction)op, code_string, fundef, mlist);
+      return fname;
+    }
+  }
+
+
+  private static prim_methods_t parseCode(String code_string) {
+    prim_methods_t code = prim_methods_t.NO_METHODS;
+    if(code_string.equalsIgnoreCase("clear")) {
+      code = prim_methods_t.NO_METHODS;
+    } else if(code_string.equalsIgnoreCase("reset")) {
+      code = prim_methods_t.NEEDS_RESET;
+    } else if(code_string.equalsIgnoreCase("set")) {
+      code = prim_methods_t.HAS_METHODS;
+    } else if(code_string.equalsIgnoreCase("suppress")) {
+      code = prim_methods_t.SUPPRESSED;
+    }  else {
+      throw new EvalException("invalid primitive methods code (\"%s\"): should be \"clear\", \"reset\", \"set\", or \"suppress\"", code_string);
+    }
+    return code;
+  }
+
 }

@@ -22,6 +22,7 @@
 package org.renjin.base;
 
 import com.google.common.collect.Sets;
+import org.renjin.eval.Context;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 import org.renjin.util.FileSystemUtils;
@@ -61,7 +62,7 @@ public class BaseFrame implements Frame {
   }
   
   @Override
-  public Function getFunction(Symbol name) {
+  public Function getFunction(Context context, Symbol name) {
     SEXP value = Primitives.getBuiltin(name);
     if(value == null) {
       value = loaded.get(name);
@@ -70,7 +71,7 @@ public class BaseFrame implements Frame {
       return null;
     }
     if(value instanceof Promise) {
-      value = ((Promise) value).force();
+      value = value.force(context);
     }
     if(value instanceof Function) {
       return (Function)value;

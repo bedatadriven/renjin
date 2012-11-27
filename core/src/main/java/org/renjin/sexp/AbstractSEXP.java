@@ -21,11 +21,11 @@
 
 package org.renjin.sexp;
 
-import org.renjin.eval.EvalException;
-import org.renjin.primitives.Attributes;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.Attributes;
 
 
 /**
@@ -210,6 +210,11 @@ public abstract class AbstractSEXP implements SEXP {
   }
 
   @Override
+  public String asString() {
+    throw new EvalException("Cannot coerce " + getTypeName() + " to scalar string");
+  }
+
+  @Override
   public <S extends SEXP> S getElementAsSEXP(int index) {
     if(index == 0) {
       return (S)this;
@@ -218,7 +223,7 @@ public abstract class AbstractSEXP implements SEXP {
     }
   }
   
-  public SEXP force() {
+  public SEXP force(Context context) {
     return this;
   }
   

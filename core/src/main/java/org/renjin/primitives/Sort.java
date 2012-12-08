@@ -102,6 +102,24 @@ public class Sort {
     return new IntArrayVector(sorted, x.getAttributes());
   }
 
+  @Primitive("is.unsorted")
+  public static boolean isUnsorted(AtomicVector x, boolean strictly) {
+    for(int i=1;i<x.length();++i) {
+      int z = x.compare(i-1, i);
+      if(z > 0) {
+        return true;
+      } else if(strictly && z == 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  @Primitive("is.unsorted")
+  public static LogicalVector isUnsorted(ListVector x, boolean strictly) {
+    return LogicalVector.NA_VECTOR;
+  }
+ 
   @Primitive("qsort")
   public static DoubleVector qsort(DoubleVector x, LogicalVector returnIndexes) {
 

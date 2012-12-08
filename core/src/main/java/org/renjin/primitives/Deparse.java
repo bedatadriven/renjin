@@ -96,7 +96,7 @@ public class Deparse {
 
     @Override
     public void visit(BuiltinFunction builtin) {
-      throw new UnsupportedOperationException();
+      deparsed.append(".Primitive(\"" + builtin.getName() + "\")");
     }
 
     @Override

@@ -682,7 +682,7 @@ public class Primitives {
     f("parent.frame", Contexts.class, "parentFrame", 0, 11, -1);
     f("sort", Sort.class, 1, 11, 2);
     f("xtfrm", Sort.class, 0, 1, 1);
-    f("is.unsorted", /*isunsorted*/ null, 0, 11, 2);
+    f("is.unsorted", Sort.class, 0, 11, 2);
     f("psort", Sort.class, null, 0, 11, 2);
     f("qsort", Sort.class, 0, 11, 2);
     f("radixsort", /*radixsort*/ null, 0, 11, 3);

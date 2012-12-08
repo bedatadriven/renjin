@@ -313,6 +313,19 @@ public class AttributeMap {
       return set(Symbol.get(name), value);
     }
 
+//    
+//    public Builder setSlot(String name, SEXP value) {
+//      // this is different than the normal set() method becuase
+//      // clasically attributes cannot be NULL, but slot values can and often are.
+//      
+//      // i think that attributes and slots values should be stored in different
+//      // structures, but i don't know how much R code makes assumptions about
+//      // the storage of slots...
+//      
+//      // TODO Auto-generated method stub
+//      return null;
+//    }
+//    
     public Builder set(Symbol name, SEXP value) {
       if(value == Null.INSTANCE) {
         return remove(name);
@@ -465,6 +478,7 @@ public class AttributeMap {
         return attributes;
       }
     }
+
 
   }
 

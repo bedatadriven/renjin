@@ -82,9 +82,12 @@ public class Subsetting {
       throw new EvalException("todo");
     }
     
-    return object.getAttribute(slotName);
-    
-  
+    SEXP value = object.getAttribute(slotName);
+    if(value == Symbols.S4_NULL) {
+      return Null.INSTANCE;
+    } else {
+      return value;
+    }
   }
 
   @Generic

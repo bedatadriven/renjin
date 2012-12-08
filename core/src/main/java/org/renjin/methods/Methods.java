@@ -83,7 +83,8 @@ public class Methods {
       // might contain a double vector of arbitrary length.
       // For this reason we have to be careful to avoid attribute
       // validation. 
-      return object.setAttributes(object.getAttributes().copy().set(name, value).build());
+      SEXP slotValue = value == Null.INSTANCE ? Symbols.S4_NULL : value;
+      return object.setAttributes(object.getAttributes().copy().set(name, slotValue).build());
     }
   }
 
@@ -96,11 +97,13 @@ public class Methods {
     } else {
       SEXP value = object.getAttributes().get(what);
       if(value == Null.INSTANCE) {
-        throw new EvalException("no slot of name \"%s\" for this object of class \"%s\"", what, 
-            object.getAttributes().getClass());
-  
+        throw new EvalException("no slot of name \"%s\" for this object of class %s, what", 
+            object.getAttributes().getClassVector());  
+      } else if(value == Symbols.S4_NULL) {
+        return Null.INSTANCE;
+      } else {
+        return value;
       }
-      return value;
     }
   }
 

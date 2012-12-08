@@ -1,17 +1,19 @@
 package org.renjin.gcc.translate;
 
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.renjin.gcc.gimple.expr.GimpleExternal;
-import org.renjin.gcc.jimple.JimpleMethodRef;
-import org.renjin.gcc.runtime.Builtins;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
+
+import org.renjin.gcc.gimple.expr.GimpleExternal;
+import org.renjin.gcc.runtime.Builtins;
+import org.renjin.gcc.translate.call.JvmMethodRef;
+import org.renjin.gcc.translate.call.MethodRef;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public class MethodTable {
 
@@ -42,14 +44,13 @@ public class MethodTable {
     addMethod("__builtin_cos__", Math.class, "cos");
     addMethod("__builtin_sqrt__", Math.class, "sqrt");
     addMethod("__builtin_pow__", Math.class, "pow");
-    addMethod("__builtin_powi__", Builtins.class, "powi");
-    addMethod("_gfortran_pow_i4_i4__", Builtins.class, "gfortran_pow_i4_i4");
-    
-
 
     addMethod("sqrt", Math.class);
     addMethod("floor", Math.class);
+    
+    addReferenceClass(Builtins.class);
   }
+  
 
   private void addMethod(String methodName, Class<Math> clazz) {
     addMethod(methodName, clazz, methodName);
@@ -63,18 +64,18 @@ public class MethodTable {
     referenceClasses.add(clazz);
   }
 
-  public JimpleMethodRef resolve(String functionName) {
+  public MethodRef resolve(String functionName) {
     MethodEntry entry = methods.get(functionName);
     if(entry != null) {
       Method method = findMethod(entry.clazz, entry.methodName);
       if(method != null) {
-        return new JimpleMethodRef(method);
+        return new JvmMethodRef(method);
       }
     }
     for(Class clazz : referenceClasses) {
       Method method = findMethod(clazz, functionName);
       if(method != null) {
-        return new JimpleMethodRef(method);
+        return new JvmMethodRef(method);
       }
     }
 

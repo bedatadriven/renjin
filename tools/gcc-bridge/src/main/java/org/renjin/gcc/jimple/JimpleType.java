@@ -1,45 +1,20 @@
 package org.renjin.gcc.jimple;
 
 
-import java.lang.reflect.Type;
-
 public class JimpleType {
-  private String name;
 
-  public static final JimpleType INT = new JimpleType("int");
-  public static final JimpleType BOOLEAN = new JimpleType("boolean");
-  public static final JimpleType DOUBLE = new JimpleType("double");
-  public static final JimpleType FLOAT = new JimpleType("float");
-  public static final JimpleType LONG = new JimpleType("long");
-  public static final JimpleType VOID = new JimpleType("void");
+  public static final JimpleType INT = new RealJimpleType(int.class);
+  public static final JimpleType BOOLEAN = new RealJimpleType(boolean.class);
+  public static final JimpleType DOUBLE = new RealJimpleType(double.class);
+  public static final JimpleType FLOAT = new RealJimpleType(float.class);
+  public static final JimpleType LONG = new RealJimpleType(long.class);
+  public static final JimpleType VOID = new RealJimpleType(void.class);
+  public static final JimpleType CHAR = new RealJimpleType(char.class);
 
-  public JimpleType(String name) {
-    this.name = name;
-  }
-
-  public JimpleType(Class clazz) {
-    if(clazz.isArray()) {
-      JimpleType componentType = new JimpleType(clazz.getComponentType());
-      this.name = componentType.toString() + "[]";
-    } else {
-      this.name = clazz.getName();
-    }
-  }
-
-  public JimpleType(Type type) {
-    if(type instanceof Class) {
-      this.name = ((Class) type).getName();
-    } else {
-      throw new UnsupportedOperationException(type.toString());
-    }
-  }
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    return result;
+    return toString().hashCode();
   }
 
   @Override
@@ -48,14 +23,30 @@ public class JimpleType {
       return true;
     if (obj == null)
       return false;
-    if (getClass() != obj.getClass())
-      return false;
-    JimpleType other = (JimpleType) obj;
-    return other.name.equals(name);
+    if (obj instanceof JimpleType) {
+      return obj.toString().equals(this.toString());
+    }
+    return false;
   }
 
-  @Override
-  public String toString() {
-    return name;
+  public boolean isPointerWrapper() {
+    return false;
   }
+
+  public boolean isPrimitive() {
+    return false;
+  }
+
+  public Class asPrimitiveClass() {
+    throw new UnsupportedOperationException();
+  }
+
+  public boolean isFunctionPointer() {
+    return false;
+  }
+
+  public boolean isAssignableFrom(Class otherClass) {
+    return false;
+  }
+
 }

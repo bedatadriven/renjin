@@ -51,25 +51,4 @@ public class JimpleWriter {
 		writer.close();
 	}
 
-  private void initializeParameters(GimpleFunction function) {
-    int paramIndex = 0;
-    for(GimpleParameter param : function.getParameters()) {
-      println(param.getName() + " := @parameter" + paramIndex + ": " + Jimple.type(param.getType())
-          + ";");
-      paramIndex++;
-    }
-  }
-
-  private String argumentList(GimpleFunction function) {
-    StringBuilder sb = new StringBuilder();
-    boolean needsComma = false;
-    for(GimpleParameter param : function.getParameters()) {
-      if(needsComma) {
-        sb.append(",");
-      }
-      sb.append(Jimple.type(param.getType()));
-      needsComma = true;
-    }
-    return sb.toString();
-  }
 }

@@ -63,4 +63,13 @@ public class JimpleExpr {
   public static JimpleExpr floatConstant(float floatValue) {
     return new JimpleExpr(Float.toString(floatValue) + "F");
   }
+  
+  public static JimpleExpr stringLiteral(String value) {
+    StringBuilder expr = new StringBuilder();
+    expr.append('"');
+    // TODO: escape
+    expr.append(value);
+    expr.append('"');
+    return new JimpleExpr(expr.toString());
+  }
 }

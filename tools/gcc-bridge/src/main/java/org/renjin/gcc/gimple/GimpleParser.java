@@ -6,6 +6,8 @@ import org.renjin.gcc.CallingConvention;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
 
+import polyglot.ast.Typed;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -39,25 +41,31 @@ public class GimpleParser {
     currentBB = null;
 
     while((line = reader.readLine()) != null) {
+
       line = line.trim();
       if(line.isEmpty() || isComment(line)) {
         continue;
       }
-      if(currentFunction == null) {
-        // expect function declaration
-        // but also stray debug output like 'Analyzing Edge Insertions' from
-        // some earlier versions of GCC
-        if(line.contains("(") && line.contains(")"))  {
-          currentFunction = parseFunctionDeclaration(line);
-          functions.add(currentFunction);
-          assertNextLine(reader, "{");
+      try {
+  
+        if(currentFunction == null) {
+          // expect function declaration
+          // but also stray debug output like 'Analyzing Edge Insertions' from
+          // some earlier versions of GCC
+          if(line.contains("(") && line.contains(")"))  {
+            currentFunction = parseFunctionDeclaration(line);
+            functions.add(currentFunction);
+            assertNextLine(reader, "{");
+          }
+        } else if(line.equals("}")) {
+          currentFunction = null;
+        } else {
+            parseFunctionBodyLine(reader, line);
         }
-      } else if(line.equals("}")) {
-        currentFunction = null;
-      } else {
-        try {
-          parseFunctionBodyLine(reader, line);
-        } catch(Exception e) {
+      } catch(Exception e) {
+        if(currentFunction == null) {
+          throw new RuntimeException("Exception parsing line '" + line + "' at top level", e);
+        } else {
           throw new RuntimeException("Exception parsing line '" + line + "' in function '" + currentFunction.getName() + "'", e);
         }
       }
@@ -444,10 +452,12 @@ public class GimpleParser {
     GimpleFunction fn = new GimpleFunction(callingConvention.mangleFunctionName(name.trim()), callingConvention);
 
     int paramListEnd = line.lastIndexOf(')');
-    String params[] = line.substring(paramListStart+1, paramListEnd).split("\\s*,\\s*");
-
-    for(String param : params) {
-      fn.addParameter(parseParameter(param));
+    String paramList = line.substring(paramListStart+1, paramListEnd).trim();
+    if(!paramList.isEmpty()) {
+      String params[] = paramList.split("\\s*,\\s*");
+      for(String param : params) {
+        fn.addParameter(parseParameter(param));
+      }
     }
 
     return fn;
@@ -494,14 +504,19 @@ public class GimpleParser {
       
     } else if(typeDecl.equals("real(kind=4)")) {
       return PrimitiveType.FLOAT_TYPE;
+      
+    } else if(typeDecl.equals("char") || typeDecl.equals("const char")) {
+      return PrimitiveType.CHAR;
 
     } else if( typeDecl.equals("long unsigned int") ||
             typeDecl.equals("<unnamed-unsigned:64>") ||
-            typeDecl.equals("bit_size_type")) {
-      // TODO: we're treating sunsigned 64-bit integers as java its because to this point these
+            typeDecl.equals("bit_size_type") || 
+            typeDecl.equals("unsigned int")) {
+      // TODO: we're treating unsigned 64-bit integers as java its because to this point these
       // types represent pointers, and even on 64-bit platform, java arrays are only addressable to 31-bits
       // but this isn't something that should be addressed here at the parser level.
       return PrimitiveType.INT_TYPE;
+      
 
     } else if(typeDecl.equals("_Bool") || typeDecl.equals("logical(kind=4)")) {
       return PrimitiveType.BOOLEAN;

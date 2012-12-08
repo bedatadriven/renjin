@@ -1,23 +1,33 @@
 package org.renjin.gcc.translate;
 
-import com.google.common.collect.Lists;
+import java.lang.reflect.Field;
+import java.util.List;
 
 import org.renjin.gcc.CallingConvention;
 import org.renjin.gcc.gimple.GimpleCall;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.expr.GimpleExternal;
-import org.renjin.gcc.gimple.struct.Struct;
-import org.renjin.gcc.gimple.struct.StructTable;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.FunctionPointerType;
+import org.renjin.gcc.gimple.type.GimpleStructType;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.PointerType;
+import org.renjin.gcc.gimple.type.PrimitiveType;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
-import org.renjin.gcc.jimple.JimpleMethodRef;
 import org.renjin.gcc.jimple.JimpleOutput;
 import org.renjin.gcc.jimple.JimpleType;
-import org.renjin.gcc.translate.types.*;
+import org.renjin.gcc.translate.call.GccFunction;
+import org.renjin.gcc.translate.call.JvmMethodRef;
+import org.renjin.gcc.translate.call.MethodRef;
+import org.renjin.gcc.translate.struct.Struct;
+import org.renjin.gcc.translate.struct.StructTable;
+import org.renjin.gcc.translate.types.FunPtrTranslator;
+import org.renjin.gcc.translate.types.PrimitivePtrTypeTranslator;
+import org.renjin.gcc.translate.types.PrimitiveTypeTranslator;
+import org.renjin.gcc.translate.types.StructTypeTranslator;
+import org.renjin.gcc.translate.types.TypeTranslator;
 
-import java.lang.reflect.Field;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 
 public class TranslationContext {
@@ -39,8 +49,8 @@ public class TranslationContext {
     return mainClass;
   }
 
-  public JimpleMethodRef resolveMethod(String name) {
-    JimpleMethodRef ref = resolveInternally(name);
+  public MethodRef resolveMethod(String name) {
+    MethodRef ref = resolveInternally(name);
     if(ref != null) {
       return ref;
     }
@@ -48,7 +58,7 @@ public class TranslationContext {
   }
 
 
-  public JimpleMethodRef resolveMethod(GimpleCall call, CallingConvention callingConvention) {
+  public MethodRef resolveMethod(GimpleCall call, CallingConvention callingConvention) {
 
     String methodName;
     if(call.getFunction() instanceof GimpleExternal) {
@@ -59,7 +69,7 @@ public class TranslationContext {
     return resolveMethod(callingConvention.mangleFunctionName(methodName));
   }
 
-  private JimpleMethodRef resolveInternally(String name) {
+  private MethodRef resolveInternally(String name) {
     for(GimpleFunction function : functions) {
       if(function.getName().equals(name)) {
         return asRef(function);
@@ -68,13 +78,13 @@ public class TranslationContext {
     return null;
   }
 
-  private JimpleMethodRef asRef(GimpleFunction function) {
+  private MethodRef asRef(GimpleFunction function) {
     JimpleType returnType = resolveType(function.returnType()).returnType();
     List<JimpleType> paramTypes = Lists.newArrayList();
     for(GimpleParameter param : function.getParameters()) {
       paramTypes.add(resolveType(param.getType()).paramType());
     }
-    return new JimpleMethodRef(mainClass.getFqcn(), function.getName(), returnType, paramTypes);
+    return new GccFunction(mainClass.getFqcn(), function.getName(), returnType, paramTypes);
   }
 
   public Field findField(GimpleExternal external) {
@@ -83,9 +93,9 @@ public class TranslationContext {
 
   public TypeTranslator resolveType(GimpleType type) {
     if(type instanceof PrimitiveType) {
-      return new NumericTypeTranslator((PrimitiveType) type);
+      return new PrimitiveTypeTranslator((PrimitiveType) type);
     } else if(type instanceof PointerType && ((PointerType) type).getInnerType() instanceof PrimitiveType) {
-      return new NumericPtrTypeTranslator((PointerType) type);
+      return new PrimitivePtrTypeTranslator((PointerType) type);
     } else if(type instanceof PointerType && ((PointerType) type).getInnerType() instanceof GimpleStructType) {
       return new StructTypeTranslator(this, type);
     } else if(type instanceof FunctionPointerType) {
@@ -105,11 +115,11 @@ public class TranslationContext {
     return funPtrTable.getInterfaceName(type);
   }
 
-  public JimpleMethodRef getFunctionPointerMethod(FunctionPointerType type) {
+  public FunSignature getFunctionPointerMethod(FunctionPointerType type) {
     return funPtrTable.methodRef(type);
   }
 
-  public String getInvokerClass(JimpleMethodRef method) {
+  public String getInvokerClass(MethodRef method) {
     return funPtrTable.getInvokerClassName(method);
   }
 
@@ -119,5 +129,9 @@ public class TranslationContext {
 
   public Struct resolveStruct(String name) {
     return structTable.resolveStruct(name);
+  }
+
+  public JimpleType getInvokerType(MethodRef method) {
+    return new InvokerJimpleType(getInvokerClass(method));
   }
 }

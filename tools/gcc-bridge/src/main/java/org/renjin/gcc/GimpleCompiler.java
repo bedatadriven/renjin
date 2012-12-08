@@ -1,20 +1,25 @@
 package org.renjin.gcc;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
-import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.jimple.JimpleClassBuilder;
-import org.renjin.gcc.jimple.JimpleOutput;
-import org.renjin.gcc.translate.GimpleFunctionTranslator;
-import org.renjin.gcc.translate.MethodTable;
-import org.renjin.gcc.translate.TranslationContext;
-
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleOutput;
+import org.renjin.gcc.translate.FunctionTranslator;
+import org.renjin.gcc.translate.MethodTable;
+import org.renjin.gcc.translate.TranslationContext;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 
 /**
  * Compiles a set of Gimple functions to jvm class file
@@ -44,7 +49,7 @@ public class GimpleCompiler {
 	}
 
   public MethodTable getMethodTable() {
-    return methodTable;
+    return methodTable; 
   }
 
   public void compile(List<GimpleFunction> functions) throws Exception {
@@ -130,7 +135,7 @@ public class GimpleCompiler {
 
     TranslationContext context = new TranslationContext(mainClass, methodTable, functions);
     for(GimpleFunction function : functions) {
-      GimpleFunctionTranslator translator = new GimpleFunctionTranslator(context);
+      FunctionTranslator translator = new FunctionTranslator(context);
       translator.translate(function);
     }
     return jimple;
@@ -158,7 +163,9 @@ public class GimpleCompiler {
             return;
           }
           if(cp == '\n') {
-            LOGGER.info(line.toString());
+            if(verbose) {
+              System.err.println(line.toString());
+            }
             line.setLength(0);
           } else {
             line.appendCodePoint(cp);

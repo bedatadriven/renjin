@@ -3,8 +3,8 @@ package org.renjin.gcc.translate;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
+import org.renjin.gcc.gimple.GimpleCall;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -13,11 +13,14 @@ import org.renjin.gcc.gimple.expr.GimpleConstant;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleExternal;
 import org.renjin.gcc.gimple.expr.GimpleVar;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleMethodBuilder;
 import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.translate.call.MethodRef;
 import org.renjin.gcc.translate.types.TypeTranslator;
 import org.renjin.gcc.translate.var.Variable;
+import org.renjin.gcc.CallingConvention;
 
 import com.google.common.collect.Maps;
 
@@ -43,9 +46,9 @@ public class FunctionContext {
       Variable localVariable = translationContext
           .resolveType(decl.getType())
           .createLocalVariable(this, decl.getName(), varUsage.getUsage(decl));
-      System.out.println(decl + " => " + localVariable.getClass().getSimpleName());
       
       variables.put(decl.getName(), localVariable);
+
       
       if(decl.getConstantValue() != null) {
         localVariable.initFromConstant(decl.getConstantValue());
@@ -61,6 +64,15 @@ public class FunctionContext {
     }
   }
 
+
+  public MethodRef resolveMethod(GimpleCall call) {
+    return translationContext.resolveMethod(call, getCallingConvention());
+  }
+  
+  public CallingConvention getCallingConvention() {
+    return gimpleFunction.getCallingConvention();
+  }
+  
   public String declareTemp(JimpleType type) {
     String name = "_tmp" + (nextTempId++);
     builder.addVarDecl(type, name);
@@ -107,7 +119,7 @@ public class FunctionContext {
   public JimpleExpr asNumericExpr(GimpleExpr gimpleExpr, JimpleType type) {
     if(gimpleExpr instanceof GimpleVar) {
       Variable variable = lookupVar((GimpleVar)gimpleExpr);
-      return variable.asNumericExpr(type);
+      return variable.asPrimitiveExpr(type);
     } else if (gimpleExpr instanceof GimpleConstant) {
       return asConstant(((GimpleConstant) gimpleExpr).getValue(), type);
     } else if (gimpleExpr instanceof GimpleExternal) {
@@ -121,7 +133,7 @@ public class FunctionContext {
 
   private JimpleExpr numericFromArrayRef(GimpleArrayRef ref) {
     JimpleExpr index = asNumericExpr(ref.getIndex(), JimpleType.INT);
-    return lookupVar(ref.getVar()).asNumericArrayRef(index);
+    return lookupVar(ref.getVar()).asPrimitiveArrayRef(index);
   }
 
   private JimpleExpr fromField(GimpleExternal external) {
@@ -152,4 +164,7 @@ public class FunctionContext {
     }
   }
 
+  public GimpleType getGimpleVariableType(GimpleExpr expr) {
+    return gimpleFunction.getType(expr);
+  }
 }

@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.type.FunctionPointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.jimple.*;
+import org.renjin.gcc.translate.call.MethodRef;
 
 import java.util.List;
 import java.util.Set;
@@ -16,7 +17,7 @@ public class FunPtrTable {
   public static final String PACKAGE_NAME = "org.renjin.gcc.runtime";
 
   private Set<FunSignature> interfaces = Sets.newHashSet();
-  private Set<JimpleMethodRef> invokers = Sets.newHashSet();
+  private Set<MethodRef> invokers = Sets.newHashSet();
 
   private TranslationContext context;
 
@@ -40,7 +41,7 @@ public class FunPtrTable {
     return PACKAGE_NAME + "." + signature.interfaceName();
   }
 
-  public String getInterfaceName(JimpleMethodRef ref) {
+  public String getInterfaceName(MethodRef ref) {
     return getInterfaceName(new FunSignature(ref));
   }
 
@@ -48,10 +49,8 @@ public class FunPtrTable {
     return getInterfaceName(signature(type));
   }
 
-  public JimpleMethodRef methodRef(FunctionPointerType type) {
-    FunSignature signature = signature(type);
-    String interfaceName = getInterfaceName(type);
-    return new JimpleMethodRef(interfaceName, "apply", signature.getReturnType(), signature.getParameterTypes());
+  public FunSignature methodRef(FunctionPointerType type) {
+    return signature(type);
   }
 
   private void addInterface(FunSignature signature) {
@@ -72,7 +71,7 @@ public class FunPtrTable {
     interfaces.add(signature);
   }
 
-  public String getInvokerClassName(JimpleMethodRef method) {
+  public String getInvokerClassName(MethodRef method) {
     String invokerName = invokerName(method);
 
     if(!invokers.contains(method)) {
@@ -116,7 +115,7 @@ public class FunPtrTable {
     return invokerName;
   }
 
-  private String invokerName(JimpleMethodRef method) {
+  private String invokerName(MethodRef method) {
     return method.getClassName() + "$" + method.getMethodName() + "$" + new FunSignature(method).interfaceName();
   }
 }

@@ -69,7 +69,7 @@ public class ConditionalTranslator {
   private JimpleType findType(GimpleExpr gimpleExpr) {
     if(gimpleExpr instanceof GimpleVar) {
       Variable var = context.lookupVar(gimpleExpr);
-      return var.getNumericType();
+      return var.getPrimitiveType();
     } else {
       return null; // we treat constants as untyped 
     }

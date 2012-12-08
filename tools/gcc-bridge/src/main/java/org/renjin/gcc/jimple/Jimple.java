@@ -7,6 +7,7 @@ import org.renjin.gcc.gimple.type.GimpleStructType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.PointerType;
 import org.renjin.gcc.gimple.type.PrimitiveType;
+import org.renjin.gcc.translate.types.PrimitiveTypes;
 
 public class Jimple {
 
@@ -36,27 +37,6 @@ public class Jimple {
     } else {
       throw new UnsupportedOperationException("constant: " + value);
     }
-  }
-
-  public static JimpleType type(GimpleType gimpleType) {
-    if(gimpleType instanceof PrimitiveType) {
-      switch((PrimitiveType)gimpleType) {
-      case DOUBLE_TYPE:
-        return new JimpleType("double");
-      case VOID_TYPE:
-        return new JimpleType("void");
-      case INT_TYPE :
-        return new JimpleType("int");
-      case BOOLEAN:
-        return new JimpleType("boolean");
-      }
-    } else if(gimpleType instanceof PointerType) {
-      GimpleType innerType = ((PointerType) gimpleType).getInnerType();
-      if(innerType instanceof GimpleStructType) {
-        return new JimpleType("java.lang.Object");        
-      }
-    }
-    throw new UnsupportedOperationException(gimpleType.toString());
   }
 
   public static String type(Class<?> type) {

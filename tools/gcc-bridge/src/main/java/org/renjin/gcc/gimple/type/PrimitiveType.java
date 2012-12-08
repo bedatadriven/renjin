@@ -7,5 +7,6 @@ public enum PrimitiveType implements GimpleType {
   VOID_TYPE,
   FLOAT_TYPE,
   LONG,
-  BOOLEAN
+  BOOLEAN,
+  CHAR
 }

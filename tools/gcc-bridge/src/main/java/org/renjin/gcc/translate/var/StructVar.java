@@ -1,16 +1,15 @@
 package org.renjin.gcc.translate.var;
 
 
+import java.util.List;
+
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.struct.Struct;
 import org.renjin.gcc.gimple.type.GimpleStructType;
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
-import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
-
-import java.util.List;
+import org.renjin.gcc.translate.struct.Struct;
 
 public class StructVar extends Variable {
 
@@ -27,8 +26,8 @@ public class StructVar extends Variable {
     this.jimpleName = Jimple.id(gimpleName);
 
     context.getBuilder().addVarDecl(struct.getJimpleType(), jimpleName);
-    context.getBuilder().addStatement(jimpleName + " = new " + struct.getFqcn());
-    context.getBuilder().addStatement("specialinvoke " + jimpleName + ".<" + struct.getFqcn() + ": void <init>()>()");
+    context.getBuilder().addStatement(jimpleName + " = new " + struct.getJimpleType());
+    context.getBuilder().addStatement("specialinvoke " + jimpleName + ".<" + struct.getJimpleType() + ": void <init>()>()");
   }
 
 
@@ -50,7 +49,7 @@ public class StructVar extends Variable {
     case VAR_DECL:
     case SSA_NAME:
       Variable var = context.lookupVar(operands.get(0));
-      doAssign(member, var.asNumericExpr(var.getNumericType()));
+      doAssign(member, var.asPrimitiveExpr(var.getPrimitiveType()));
       break;
 
     default:
@@ -63,7 +62,13 @@ public class StructVar extends Variable {
   }
 
   @Override
-  public JimpleExpr addressOf() {
+  public JimpleExpr wrapPointer() {
+    return new JimpleExpr(jimpleName);
+  }
+
+
+  @Override
+  public JimpleExpr returnExpr() {
     return new JimpleExpr(jimpleName);
   }
 }

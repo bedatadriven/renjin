@@ -2,12 +2,12 @@ package org.renjin.gcc.translate.var;
 
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.struct.Struct;
 import org.renjin.gcc.gimple.type.GimpleStructType;
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.struct.Struct;
 
 import java.util.List;
 
@@ -44,5 +44,10 @@ public class StructPtrVar extends Variable {
   @Override
   public JimpleExpr memberRef(String member, JimpleType jimpleType) {
     return struct.memberRef(new JimpleExpr(jimpleName), member, jimpleType);
+  }
+
+  @Override
+  public JimpleExpr returnExpr() {
+    return new JimpleExpr(jimpleName);
   }
 }

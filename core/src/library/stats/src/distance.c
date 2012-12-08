@@ -42,6 +42,15 @@
 #define both_non_NA(a,b) (!ISNAN(a) && !ISNAN(b))
 #endif
 
+static double Rtest(double x) {
+   
+    if(ISNAN(x)) {
+    	return 1;
+    } else {
+    	return 42;
+    }
+}
+
 static double R_euclidean(double *x, int nr, int nc, int i1, int i2)
 {
     double dev, dist;

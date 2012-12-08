@@ -1,30 +1,33 @@
 package org.renjin.packaging;
 
 
-import com.google.common.collect.Lists;
-import com.google.common.io.Resources;
-
-import org.renjin.RenjinCApi;
-import org.renjin.gcc.CallingConvention;
-import org.renjin.gcc.CallingConventions;
-import org.renjin.gcc.Gcc;
-import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.GimpleParser;
-import org.renjin.sexp.SEXP;
-
 import java.io.File;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.List;
 
+import org.renjin.RenjinCApi;
+import org.renjin.gcc.CallingConventions;
+import org.renjin.gcc.Gcc;
+import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.GimpleParser;
+
+import com.google.common.collect.Lists;
+import com.google.common.io.Resources;
+
 public class NativeSourcesCompiler {
 
   private String packageName;
+  private boolean verbose = true;
   private List<File> sources = Lists.newArrayList();
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;
+  }
+
+  private void setVerbose(boolean verbose) {
+    this.verbose = verbose;
   }
 
   /**
@@ -53,8 +56,10 @@ public class NativeSourcesCompiler {
 
       for(File sourceFile : sources) {
         String gimple = gcc.compileToGimple(sourceFile);
-        System.out.println(gimple);
-
+        if(verbose) {
+          System.out.println(gimple);
+        }
+        
         GimpleParser parser = new GimpleParser(CallingConventions.fromFile(sourceFile));
         try {
           functions.addAll(parser.parse(new StringReader(gimple)));
@@ -67,6 +72,7 @@ public class NativeSourcesCompiler {
       compiler.setOutputDirectory(new File("target/classes"));
       compiler.setPackageName("org.renjin." + packageName.toLowerCase());
       compiler.setClassName(properCase(packageName));
+      compiler.setVerbose(verbose);
       compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
       compiler.compile(functions);
     }
@@ -78,7 +84,9 @@ public class NativeSourcesCompiler {
     if(url.getProtocol().equals("file")) {
         return new File(url.getFile()).getParentFile();
     } else {
-      throw new UnsupportedOperationException("Don't know how to deal with include location at " + url);
+      // jar:file:/C:/Users/Alex/dev/renjin/core/target/renjin-core-0.6.8-SNAPSHOT.jar!/org/renjin/include/R.h
+      throw new UnsupportedOperationException("Don't know how to deal with include location at " + url + 
+          "\nfile = " + url.getFile());
     }
   }
 
@@ -90,7 +98,9 @@ public class NativeSourcesCompiler {
     NativeSourcesCompiler compiler = new NativeSourcesCompiler();
     compiler.setPackageName("stats");
     compiler.addSources(new File("src/library"));
+    compiler.setVerbose(true);
     compiler.compile();
+    
   }
 
 }

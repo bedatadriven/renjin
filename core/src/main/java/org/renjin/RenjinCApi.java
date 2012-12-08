@@ -3,6 +3,7 @@ package org.renjin;
 
 import org.apache.commons.math.util.FastMath;
 import org.renjin.eval.EvalException;
+import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.SEXP;
 
@@ -14,12 +15,12 @@ public class RenjinCApi {
 
   public static final double R_NaReal = DoubleVector.NA;
 
-  public static void warning(String text) {
-    java.lang.System.out.println(text);
+  public static void warning(CharPtr text) {
+    java.lang.System.out.println(text.asString());
   }
 
-  public static void error(String text) {
-    throw new EvalException(text);
+  public static void error(CharPtr text) {
+    throw new EvalException(text.asString());
   }
 
   public static boolean R_finite(double x) {
@@ -38,12 +39,20 @@ public class RenjinCApi {
 
   }
 
-  public static void Rf_warning(String text) {
-    System.err.println(text);
+  public static void Rf_warning(CharPtr text) {
+    System.err.println(text.asString());
+  }
+  
+  public static CharPtr gettext(CharPtr message) {
+    return message;
+  }
+  
+  public static CharPtr dgettext(CharPtr packageName, CharPtr message) {
+    return message;
   }
 
-  public static void Rf_error(String text) {
-    throw new RuntimeException(text);
+  public static void Rf_error(CharPtr text) {
+    throw new RuntimeException(text.asString());
   }
 
   public static boolean R_IsNA(double x) {
@@ -58,7 +67,7 @@ public class RenjinCApi {
     System.out.println(str);
   }
 
-  public static void debug_var(String varName, double x) {
+  public static void debug_var(CharPtr varName, double x) {
     System.out.println(varName + " = " + x);
 
   }
@@ -94,9 +103,9 @@ public class RenjinCApi {
   }
  
   // fortran calling convention
-  public static void rwarn_(String message, int charCount)  {
+  public static void rwarn_(CharPtr message, int charCount)  {
     // TODO: we really need the R context here
-    System.err.println(message);
+    System.err.println(message.asString());
   }
 }
 

@@ -1,8 +1,11 @@
 package org.renjin.gcc.translate;
 
 
-import org.renjin.gcc.jimple.JimpleMethodRef;
+import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.translate.call.CallParam;
+import org.renjin.gcc.translate.call.GccFunction;
+import org.renjin.gcc.translate.call.MethodRef;
 
 import java.util.List;
 
@@ -10,7 +13,7 @@ public class FunSignature {
   private final JimpleType returnType;
   private final List<JimpleType> parameterTypes;
 
-  public FunSignature(JimpleMethodRef ref) {
+  public FunSignature(MethodRef ref) {
     this.returnType = ref.getReturnType();
     this.parameterTypes = ref.getParameterTypes();
   }
@@ -28,6 +31,19 @@ public class FunSignature {
     return parameterTypes;
   }
 
+  public String jimpleSignature() {
+    return methodRef().signature();
+  }
+
+  private GccFunction methodRef() {
+    return new GccFunction(FunPtrTable.PACKAGE_NAME + "." + interfaceName(), "apply", getReturnType(), getParameterTypes());
+  }
+
+
+  public List<CallParam> getParams() {
+    return methodRef().getParams();
+  }
+  
   public String interfaceName() {
     StringBuilder sb = new StringBuilder("FunPtr");
     sb.append(typeAbbrev(returnType));

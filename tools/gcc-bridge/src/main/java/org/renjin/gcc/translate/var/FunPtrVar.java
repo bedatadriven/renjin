@@ -6,9 +6,11 @@ import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleExternal;
 import org.renjin.gcc.gimple.type.FunctionPointerType;
 import org.renjin.gcc.jimple.Jimple;
-import org.renjin.gcc.jimple.JimpleMethodRef;
+import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.call.MethodRef;
+import org.renjin.gcc.translate.types.FunPtrJimpleType;
 
 import java.util.List;
 
@@ -23,7 +25,7 @@ public class FunPtrVar extends Variable {
     this.context = context;
     this.jimpleName = Jimple.id(gimpleName);
     this.type = type;
-    this.jimpleType = new JimpleType(context.getTranslationContext().getFunctionPointerInterfaceName(type));
+    this.jimpleType = new FunPtrJimpleType(context.getTranslationContext().getFunctionPointerInterfaceName(type));
 
     context.getBuilder().addVarDecl(jimpleType, jimpleName);
   }
@@ -62,11 +64,11 @@ public class FunPtrVar extends Variable {
 
 
   private void assignNewInvoker(GimpleExternal param) {
-    JimpleMethodRef method = context.getTranslationContext().resolveMethod(((GimpleExternal) param).getName());
-    String invokerClass = context.getTranslationContext().getInvokerClass(method);
-    String ptr = context.declareTemp(new JimpleType(invokerClass));
-    context.getBuilder().addStatement(ptr + " = new " + invokerClass);
-    context.getBuilder().addStatement("specialinvoke " + ptr + ".<" + invokerClass + ": void <init>()>()");
+    MethodRef method = context.getTranslationContext().resolveMethod(((GimpleExternal) param).getName());
+    JimpleType invokerType = context.getTranslationContext().getInvokerType(method);
+    String ptr = context.declareTemp(invokerType);
+    context.getBuilder().addStatement(ptr + " = new " + invokerType);
+    context.getBuilder().addStatement("specialinvoke " + ptr + ".<" + invokerType + ": void <init>()>()");
     context.getBuilder().addStatement(jimpleName + " = " + ptr);
   }
 
@@ -81,5 +83,12 @@ public class FunPtrVar extends Variable {
     context.getBuilder().addStatement(Jimple.id(jimpleName) + " = null");
   }
 
-
+  public JimpleExpr getJimpleVariable() {
+    return new JimpleExpr(jimpleName);
+  }
+  
+  @Override
+  public JimpleExpr returnExpr() {
+    return new JimpleExpr(jimpleName);
+  }
 }

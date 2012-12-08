@@ -28,7 +28,7 @@ public class FunPtrTranslator extends TypeTranslator {
   }
 
   private JimpleType jimpleType() {
-    return new JimpleType(interfaceName);
+    return new FunPtrJimpleType(interfaceName);
   }
 
   @Override

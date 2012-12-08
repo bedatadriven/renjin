@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
+import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 
 import java.io.File;
@@ -56,6 +57,15 @@ public class GccTest {
     Double result = (Double)method.invoke(null, new DoublePtr(1,4,16), 3);
     System.out.println(result);
   }
+  
+  @Test
+  public void calls() throws Exception {
+    
+    Class clazz = compile("calls.c", "Calls");
+    Method sqrtMethod = clazz.getMethod("testsqrt", double.class);
+    assertThat((Double)sqrtMethod.invoke(null, 4d), equalTo(3d));
+
+  }
 
   @Test
   public void boolToInt() throws Exception {
@@ -71,8 +81,30 @@ public class GccTest {
   @Test
   public void distBinary() throws Exception {
     Class clazz = compile("distbinary.c", "DistBinary");
-
   }
+  
+  
+  @Test
+  public void chars() throws Exception { 
+    Class clazz = compile("chars.c", "Chars");
+    
+    Method method = clazz.getMethod("circle_name");
+    CharPtr ptr = (CharPtr) method.invoke(null);
+    
+    assertThat(ptr.asString(), equalTo("Hello world"));
+    
+    method = clazz.getMethod("test_first_char");
+    Integer result = (Integer) method.invoke(null);
+    
+    assertThat(result, equalTo((int)'h'));
+    
+    method = clazz.getMethod("unmarshall");
+    result = (Integer) method.invoke(null);
+    
+    assertThat(result, equalTo((int)'e'));
+  }
+  
+  
   
   @Test
   public void negate() throws Exception {
@@ -121,6 +153,11 @@ public class GccTest {
     assertThat(call(clazz, "greaterThanEqual", NaN, 42), equalTo(0));
   }
 
+  private Integer call(Class clazz, String methodName, double x) throws Exception {
+    Method method = clazz.getMethod(methodName, double.class);
+    return (Integer) method.invoke(null, x);
+  }
+
   private int call(Class clazz, String methodName, double x, double y) throws Exception {
     Method method = clazz.getMethod(methodName, double.class, double.class);
     return (Integer) method.invoke(null, x, y);
@@ -138,6 +175,9 @@ public class GccTest {
 
   }
 
+
+  
+  
   private Class<?> compile(String source, String className) throws Exception {
     return compile(Lists.newArrayList(source), className);
   }

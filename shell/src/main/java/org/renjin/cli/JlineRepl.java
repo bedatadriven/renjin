@@ -1,16 +1,22 @@
 package org.renjin.cli;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+
+import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
+
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
+import org.renjin.parser.RParser.StatusResult;
 import org.renjin.primitives.Warning;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import com.google.common.base.Strings;
 
 /**
  * A Read-Eval-Print Loop that uses Jline for 
@@ -19,8 +25,7 @@ import java.io.PrintWriter;
 public class JlineRepl {
   
   public static void main(String[] args) throws Exception {
-      new JlineRepl();
-    
+    new JlineRepl();    
   }
 
   private Context topLevelContext;
@@ -28,18 +33,29 @@ public class JlineRepl {
   private PrintWriter out;
   
   private RParser parser;
+  private JlineReader jlineReader;
   
   public JlineRepl() throws Exception {
     
-    reader = new ConsoleReader();
+    if(Strings.nullToEmpty(System.getProperty("os.name")).startsWith("Windows")) {
+      // AnsiWindowsTerminal does not work properly in WIndows 7
+      // so disabling across the board for now
+      reader = new ConsoleReader(System.in, System.out, new UnsupportedTerminal());
+    } else {
+      reader = new ConsoleReader();
+    }
+    
+    reader.getTerminal().init();
+
     out = new PrintWriter(reader.getOutput());
     
     this.topLevelContext = new StandaloneContextFactory().create();
     this.topLevelContext.getGlobals().getConnectionTable().getStdout().setOutputStream(out);
     this.topLevelContext.getGlobals().setSessionController(new JlineSessionController(reader));
     this.topLevelContext.init();
-    
+   
     parser = new RParser(new JlineReader(reader));
+    
     try {
       loop();
     } finally {
@@ -52,11 +68,16 @@ public class JlineRepl {
     do {
       reader.setPrompt("> ");
       if(!parser.parse()) {
+        if(jlineReader.isEof()) {
+          return;
+        }
         System.err.println("result = " + parser.getResult() + ", status = " + parser.getResultStatus());
       }
 
       SEXP exp = parser.getResult();
-      if(exp == null) {
+      if(parser.getResultStatus() == StatusResult.EOF) {
+        return;
+      } else if(exp == null) {
         continue;
       }
 

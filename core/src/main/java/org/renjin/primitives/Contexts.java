@@ -50,7 +50,7 @@ public class Contexts {
    */
   @Primitive("sys.nframe")
   public static int sysFrameCount(@Current Context context) {
-    return framedepth(findStartingContext(context));
+    return findStartingContext(context).getFrameDepth();
   }
 
   /**
@@ -132,9 +132,9 @@ public class Contexts {
     return n;
   }
   
-  private static Closure R_sysfunction(int n, Context cptr) {
+  public static Closure R_sysfunction(int n, Context cptr) {
     if (n > 0) {
-      n = framedepth(cptr) - n;
+      n = cptr.getFrameDepth() - n;
     } else {
       n = - n;
     }
@@ -169,7 +169,7 @@ public class Contexts {
     }
 
     if (n > 0) {
-      n = framedepth(cptr) - n;
+      n = cptr.getFrameDepth() - n;
     }  else {
       n = -n;
     }
@@ -200,7 +200,7 @@ public class Contexts {
     /* positive n counts up from the globalEnv */
   
     if (n > 0)
-      n = framedepth(cptr) - n;
+      n = cptr.getFrameDepth() - n;
     else
       n = - n;
     if(n < 0) {
@@ -223,16 +223,7 @@ public class Contexts {
   }
 
 
-  private static int framedepth(Context cptr)
-  {
-    int nframe = 0;
-    while (!cptr.isTopLevel()) {
-      if (cptr.getType() == Type.FUNCTION )
-        nframe++;
-      cptr = cptr.getParent();
-    }
-    return nframe;
-  }
+
   
   @Primitive("sys.parent")
   public static int sysParent(@Current Context context, int n) {
@@ -240,7 +231,7 @@ public class Contexts {
     Context cptr = findStartingContext(context);
     
     int i, nframe;
-    i = nframe = framedepth(cptr);
+    i = nframe = cptr.getFrameDepth();
     /* This is a pretty awful kludge, but the alternative would be
        a major redesign of everything... -pd */
     while (n-- > 0)
@@ -249,7 +240,7 @@ public class Contexts {
   
   }
 
-  private static Context findStartingContext(Context context) {
+  public static Context findStartingContext(Context context) {
     /* first find the context that sys.xxx needs to be evaluated in */
     Context cptr = context;
     Environment t = cptr.getCallingEnvironment();

@@ -170,7 +170,7 @@ public class Text {
       if(element.length() == 1 && element instanceof AtomicVector) {
         return ((AtomicVector) element).getElementAsString(0);
       } else {
-        return Deparse.deparseExp(element);
+        return Deparse.deparseExp(null, element);
       }
     }
   }

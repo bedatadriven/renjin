@@ -70,12 +70,12 @@ public class SortTest extends EvalTestCase {
         assertThat( eval(".Internal(order(TRUE,FALSE,c(1,1,1), c(1,2,1), c(3,9,1)))"), equalTo(c_i(3,1,2)));
         assertThat( eval(".Internal(order(TRUE,TRUE,c(1,1,1), c(1,2,1), c(3,9,1)))"), equalTo(c_i(2,1,3)));
     }
-    
+
     @Test
     public void qsort() {
       assertThat( eval(".Internal(qsort(c(3,1,5,0), FALSE))"), equalTo(c(0,1,3,5)));
     }
-    
+
     @Test
     public void unsorted() {
       assertThat( eval(".Internal(is.unsorted(c(1,2,3), TRUE))"), equalTo(c(false)) );
@@ -83,6 +83,4 @@ public class SortTest extends EvalTestCase {
       assertThat( eval(".Internal(is.unsorted(c(1,1,1), TRUE))"), equalTo(c(true)) );
       assertThat( eval(".Internal(is.unsorted(c(1,1,1), FALSE))"), equalTo(c(false)) );
     }
-    
-    
 }

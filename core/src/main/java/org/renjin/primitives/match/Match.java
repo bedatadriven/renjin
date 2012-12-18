@@ -37,6 +37,7 @@ import org.renjin.sexp.*;
 public class Match {
 
   private static final int UNMATCHED = -1;
+  private static final int MULTIPLE_MATCH = -2;
 
   private Match() { }
 
@@ -49,7 +50,7 @@ public class Match {
    *        For historical reasons, FALSE is equivalent to NULL.
    * @return
    */
-  public static int[] match(AtomicVector search, Vector table, int noMatch, AtomicVector incomparables) {
+  public static int[] match(Vector search, Vector table, int noMatch, AtomicVector incomparables) {
     //For historical reasons, FALSE is equivalent to NULL.
     if(incomparables.equals( LogicalVector.FALSE ) ) {
       incomparables = Null.INSTANCE;
@@ -71,6 +72,7 @@ public class Match {
     }
     return matches;
   }
+  
 
   private static int indexOfNA(Vector table) {
     for(int i=0;i!=table.length();++i) {
@@ -80,6 +82,7 @@ public class Match {
     }
     return -1;
   }
+  
 
   /**
    * pmatch seeks matches for the elements of its first argument among those of its second.
@@ -101,11 +104,36 @@ public class Match {
    * @param x the values to be matched
    * @param table the values to be matched against: converted to a character vector.
    * @param noMatch the value to be returned at non-matching or multiply partially matching positions.
-   * @param duplicatesOk should elements be in table be used more than once?
+   * @param duplicatesOk can elements be in table be matched to multiple elements in x?
    * @return An integer vector (possibly including NA if nomatch = NA) of the same length as x,
    * giving the indices of the elements in table which matched, or {@code nomatch}.
    */
+  @Primitive
   public static IntVector pmatch(StringVector x, StringVector table, int noMatch, boolean duplicatesOk) {
+    return commonStringMatch(x, table, noMatch, noMatch, duplicatesOk);
+  }
+  
+  @Primitive
+  public static IntVector charmatch(StringVector x, StringVector table, int noMatch) {
+    // I don't really understand the difference between charmatch and pmatch:
+    // it seems that for pmatch, if the search string partially matches more than one
+    // element in table, then it's returns the no match value (default = NA)
+    // 
+    // charmatch() on the ohter hand seems to return 0 for the special case.
+    return commonStringMatch(x, table, noMatch, 0, true );
+  }
+  
+
+  /**
+   * Common implementation for pmatch and charmatch
+   * @param x
+   * @param table
+   * @param unmatchedCode the value to return when there is no match
+   * @param duplicatePartialsCode the value to return when a value in x partially matches multiple values in table
+   * @return
+   */
+  private static IntVector commonStringMatch(StringVector x, StringVector table,
+      int unmatchedCode, int duplicatePartialsCode, boolean duplicatesOk) {
     IntArrayVector.Builder result = new IntArrayVector.Builder(x.length());
     boolean matchedTable[] = new boolean[table.length()];
     boolean matchedSearch[] = new boolean[x.length()];
@@ -126,11 +154,13 @@ public class Match {
       if(!matchedSearch[i]) {
         String toMatch = pmatchElementAt(x, i);
         int match = uniquePartialMatch(toMatch, table);
-        if(match != UNMATCHED && (duplicatesOk || !matchedTable[match])) {
+        if(match == UNMATCHED) {
+          result.set(i, unmatchedCode);
+        } else if(match == MULTIPLE_MATCH) {
+          result.set(i, duplicatePartialsCode);
+        } else if(duplicatesOk || !matchedTable[match]) {
           result.set(i, match+1);
           matchedTable[match] = true;
-        } else {
-          result.set(i, noMatch);
         }
       }
     }
@@ -147,6 +177,13 @@ public class Match {
     return -1;
   }
 
+  /**
+   * Attempts to match a string value within in a table of values
+   * @param toMatch
+   * @param table
+   * @return the index of the unique martial match, UNMATCHED if there were no partial matches,
+   * and MULTIPLE_MATCH if there were multiple partial matches
+   */
   private static int uniquePartialMatch(String toMatch, StringVector table) {
     int partialMatch = UNMATCHED;
     for(int i=0;i!=table.length();++i) {
@@ -154,7 +191,7 @@ public class Match {
       if(t.startsWith(toMatch)) {
         // if we've previously found a partial match, abort
         if(partialMatch != UNMATCHED) {
-          return UNMATCHED;
+          return MULTIPLE_MATCH;
         }
         partialMatch = i;
       }

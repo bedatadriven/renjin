@@ -223,9 +223,12 @@ public class Subsetting {
   @Generic
   @Primitive("[<-")
   public static SEXP setSubset(SEXP source, @ArgumentList ListVector arguments) {
+    
+    SEXP replacement = arguments.getElementAsSEXP(arguments.length() - 1);
+   
     return new SubscriptOperation()
         .setSource(source, arguments, 0, 1)
-        .replace((Vector) arguments.getElementAsSEXP(arguments.length() - 1));
+        .replace(replacement);
   }
   
   @Generic

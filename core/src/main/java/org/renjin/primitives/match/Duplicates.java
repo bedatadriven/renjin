@@ -28,7 +28,7 @@ public class Duplicates {
    * @return logical indicating if duplication should be considered from the last, i.e., the last
    *       (or rightmost) of identical elements will be kept. This only matters for names or dimnames.
    */
-  public static Vector unique(AtomicVector x, AtomicVector incomparables, boolean fromLast) {
+  public static Vector unique(Vector x, Vector incomparables, boolean fromLast) {
     
     return search(x, incomparables, fromLast, 
         new UniqueAlgorithm());
@@ -61,7 +61,7 @@ public class Duplicates {
   
   private static <ResultType> ResultType search(
       Vector x, 
-      AtomicVector incomparables,
+      Vector incomparables,
       boolean fromLast,
       DuplicateSearchAlgorithm<ResultType> algorithm) {
    

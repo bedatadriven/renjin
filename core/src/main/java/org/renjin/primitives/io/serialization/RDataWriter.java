@@ -27,6 +27,8 @@ import org.renjin.eval.Context;
 import org.renjin.primitives.Namespaces;
 import org.renjin.sexp.*;
 
+import soot.RefType;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -141,11 +143,16 @@ public class RDataWriter {
       writeEnvironment((Environment)exp);
     } else if(exp instanceof PrimitiveFunction) {
       writePrimitive((PrimitiveFunction)exp);
+    } else if(exp instanceof S4Object) {
+      writeS4((S4Object)exp);
+    } else if(exp instanceof ExternalExp) {
+      writeExternalPtr((ExternalExp)exp);
     } else {
       throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented: ["
          + exp.toString() + "]");
     }
   }
+
 
   private boolean tryWritePersistent(SEXP exp) throws IOException {
     if(hook == null) {
@@ -231,6 +238,20 @@ public class RDataWriter {
       }
     }
     writeAttributes(vector);
+  }
+
+
+  private void writeS4(S4Object exp) throws IOException {
+    writeFlags(S4SXP, exp);
+    writeAttributes(exp);
+  }
+
+  private void writeExternalPtr(ExternalExp exp) throws IOException {
+    addRef(exp);
+    writeFlags(EXTPTRSXP, exp);
+    writeExp(Null.INSTANCE); // protected value (not currently used)
+    writeExp(Null.INSTANCE); // tag (not currently used)
+    writeAttributes(exp);
   }
 
   private void writeComplexVector(ComplexVector vector) throws IOException {
@@ -433,6 +454,7 @@ public class RDataWriter {
     out.writeInt(exp.getName().length());
     out.writeBytes(exp.getName());
   }
+
   
   private void writeFlags(int type, SEXP exp) throws IOException {
     out.writeInt(Flags.computeFlags(exp, type));

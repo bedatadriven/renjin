@@ -274,4 +274,8 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
       return getElementAsInt(i++);
     }
   }
+
+  public static SEXP valueOf(int value) {
+    return new IntArrayVector(value);
+  }
 }

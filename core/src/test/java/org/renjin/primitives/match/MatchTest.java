@@ -50,7 +50,6 @@ public class MatchTest extends EvalTestCase {
   @Test
   public void matchAgainstList() {
     assertThat( eval( ".Internal(match( c(1,2), list('z', 'y', '1', '2'), NA_integer_, FALSE)) "), equalTo( c_i(3, 4)));
-
   }
   
 
@@ -73,6 +72,16 @@ public class MatchTest extends EvalTestCase {
 
     assertThat( eval("pmatch('hello', NULL) "), equalTo(c_i(IntVector.NA)));
 
+  }
+  
+  @Test
+  public void charMatch() {
+    eval(" charmatch <- function (x, table, nomatch = NA_integer_) .Internal(charmatch(as.character(x), as.character(table), nomatch))");
+
+    assertThat( eval(" charmatch('','')  "), equalTo(c_i(1)));
+    assertThat( eval(" charmatch('m',   c('mean', 'median', 'mode'))  "), equalTo(c_i(0)));
+    assertThat( eval(" charmatch('med', c('mean', 'median', 'mode'))  "), equalTo(c_i(2)));
+    assertThat( eval(" charmatch('x',   c('mean', 'median', 'mode'))  "), equalTo(c_i(IntVector.NA)));
   }
 
   @Test

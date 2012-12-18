@@ -498,5 +498,33 @@ public class BasePackageTest extends EvalTestCase {
     eval("rm(fib)");
     assertThat(eval("fibonacci(10)"), equalTo(c(55)));
   }
- 
+  
+  @Test
+  public void mapply() {
+    assumingBasePackagesLoad();
+    
+    assertThat(eval("mapply(rep, 1:4, 4:1)"), equalTo(list(
+        c_i(1,1,1,1),
+        c_i(2,2,2),
+        c_i(3,3),
+        c_i(4)
+        )));
+  }
+  
+  @Test
+  public void assignInClosure() {
+    assumingBasePackagesLoad();
+    
+    eval(" f <- function() { y<-66; fieldClasses <- NULL; assign('fieldClasses', 42); fieldClasses; } ");
+    
+    assertThat(eval("f()"), equalTo(c(42)));
+    
+  }
+
+  @Test
+  public void ls() {
+    assumingBasePackagesLoad();
+    
+    eval("ls(.Internal(getNamespaceRegistry()),all.names=TRUE)");
+  }
 }

@@ -20,28 +20,74 @@
  */
 package org.renjin.primitives;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
+import org.renjin.eval.Context.Type;
+import org.renjin.eval.EvalException;
+import org.renjin.jvminterop.ClassFrame;
+import org.renjin.jvminterop.ObjectFrame;
+import org.renjin.jvminterop.converters.BooleanArrayConverter;
+import org.renjin.jvminterop.converters.BooleanConverter;
+import org.renjin.jvminterop.converters.DoubleArrayConverter;
+import org.renjin.jvminterop.converters.DoubleConverter;
+import org.renjin.jvminterop.converters.IntegerArrayConverter;
+import org.renjin.jvminterop.converters.IntegerConverter;
+import org.renjin.jvminterop.converters.StringArrayConverter;
+import org.renjin.jvminterop.converters.StringConverter;
+import org.renjin.methods.Methods;
+import org.renjin.primitives.annotations.AllowNA;
+import org.renjin.primitives.annotations.ArgumentList;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Generic;
+import org.renjin.primitives.annotations.PassThrough;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Recycle;
+import org.renjin.primitives.annotations.Visible;
+import org.renjin.primitives.vector.ConstantDoubleVector;
+import org.renjin.primitives.vector.ConvertingDoubleVector;
+import org.renjin.primitives.vector.ConvertingStringVector;
+import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.ComplexVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.Frame;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalArrayVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.PrimitiveFunction;
+import org.renjin.sexp.Raw;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.Recursive;
+import org.renjin.sexp.S4Object;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
+import org.renjin.sexp.Vector.Builder;
+import org.renjin.util.NamesBuilder;
+
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
-import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.jvminterop.ClassFrame;
-import org.renjin.jvminterop.ObjectFrame;
-import org.renjin.jvminterop.converters.*;
-import org.renjin.primitives.annotations.*;
-import org.renjin.primitives.vector.ConstantDoubleVector;
-import org.renjin.primitives.vector.ConvertingDoubleVector;
-import org.renjin.primitives.vector.ConvertingStringVector;
-import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.*;
-import org.renjin.sexp.Vector.Builder;
-import org.renjin.util.NamesBuilder;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Primitive type inspection and coercion functions
@@ -678,26 +724,37 @@ public class Types {
     return list.build();
   }
 
+  @Recycle
   @Primitive("as.environment")
-  public static Environment asEnvironment(@Current Context context, double index) {
-    if(index < 0) {
-      Environment result = context.getEnvironment();
-      while(index < 0) {
-        result = result.getParent();
-        index++;
+  public static Environment asEnvironment(@Current Context context, int pos) {
+    Environment env;
+    Context cptr;
+
+    if (IntVector.isNA(pos) || pos < -1 || pos == 0) {
+        throw new EvalException("invalid 'pos' argument");
+    } else if (pos == -1) {
+      /* make sure the context is a funcall */
+      cptr = context;
+      while( context.getType() != Type.FUNCTION && !cptr.isTopLevel() ) {
+        cptr = cptr.getParent();
       }
-      return result;
-      
+      if( cptr.getType() != Type.FUNCTION) {
+        throw new EvalException("no enclosing environment");
+      }
+      env = cptr.getCallingEnvironment();
+      if (env == null) {
+        throw new EvalException("invalid 'pos' argument");
+      }
     } else {
-      Environment result = context.getGlobalEnvironment();
-      for (int i = 1; i < index; ++i) {
-        if (result == Environment.EMPTY) {
-          throw new EvalException("invalid 'pos' argument");
-        }
-        result = result.getParent();
+      for (env = context.getGlobalEnvironment(); env != Environment.EMPTY && pos > 1;
+          env = env.getParent()) {
+        pos--;
       }
-      return result;
+      if (pos != 1) {
+        throw new EvalException("invalid 'pos' argument");
+      }
     }
+    return env;
   }
  
   @Primitive("as.environment")
@@ -713,8 +770,25 @@ public class Types {
       result = result.getParent();
       
     }
-    throw new EvalException("no environment called '%s' on the search list", name);
-    
+    throw new EvalException("no environment called '%s' on the search list", name); 
+  }
+  
+  @Primitive("as.environment")
+  public static Environment asEnvironment(ListVector list) {
+    Environment env = Environment.createChildEnvironment(Environment.EMPTY);
+    for(NamedValue namedValue : list.namedValues()) {
+      env.setVariable(namedValue.getName(), namedValue.getValue());
+    }
+    return env;
+  }
+  
+  @Primitive("as.environment")
+  public static Environment asEnvironment(S4Object obj) {
+    SEXP env = obj.getAttribute(Symbol.get(".xData"));
+    if(env instanceof Environment) {
+      return (Environment)env;
+    }
+    throw new EvalException("object does not extend 'environment'");
   }
   
   @Primitive

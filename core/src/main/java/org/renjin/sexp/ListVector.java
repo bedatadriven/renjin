@@ -100,13 +100,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
  
   @Override
-  public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
-    for(int i=0;i!=values.size();++i) {
-      SEXP element = values.get(i);
-      if(element instanceof AtomicVector && element.length() == 1) {
-        if(((AtomicVector)element).indexOf(vector, vectorIndex, 0) != -1) {
-          return i;
-        }
+  public int indexOf(Vector vector, int vectorIndex, int startIndex) {
+    SEXP elementToMatch = vector.getElementAsSEXP(vectorIndex);
+    for(int i=startIndex;i<values.size();++i) {
+      if(values.get(i).equals(elementToMatch)) {
+        return i;
       }
     }
     return -1;
@@ -182,7 +180,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsString(0);
     }
-    return Deparse.deparseExp(value);
+    return Deparse.deparseExp(null, value);
   }
 
   @Override
@@ -191,7 +189,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsObject(0);
     }
-    return Deparse.deparseExp(value);
+    return Deparse.deparseExp(null, value);
   }
 
   @Override
@@ -219,6 +217,18 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       return ((AtomicVector) value).getElementAsComplex(0);
     }
     throw new EvalException("(list) object cannot be coerced to type 'complex'");
+  }
+
+  
+  @Override
+  public boolean contains(Vector vector, int vectorIndex) {
+    SEXP match = vector.getElementAsSEXP(vectorIndex);
+    for(int i=0;i!=this.length();++i) {
+      if(values.get(i).equals(match)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override

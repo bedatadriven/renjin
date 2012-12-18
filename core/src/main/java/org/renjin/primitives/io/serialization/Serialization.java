@@ -310,9 +310,6 @@ public class Serialization {
        String file, Vector compress, SEXP hook) throws IOException, Exception {
 
     File rdb = new File(file);
-    if(rdb.exists() && rdb.length() == 295686) {
-      System.out.println("foo!");
-    }
     
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(context, createHook(context, hook), baos);

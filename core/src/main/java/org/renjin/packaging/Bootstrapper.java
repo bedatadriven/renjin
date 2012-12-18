@@ -137,6 +137,7 @@ public class Bootstrapper {
       NativeSourcesCompiler compiler = new NativeSourcesCompiler();
       compiler.setPackageName(packageName);
       compiler.addSources(file(srcRoot, packageName, "src"));
+      compiler.setVerbose(false);
       compiler.compile();
     } catch(Exception e) {
       e.printStackTrace();

@@ -83,7 +83,7 @@ public class WrapperRuntime {
     } else if(exp instanceof Symbol) {
       return new StringArrayVector( ((Symbol) exp).getPrintName() );
     } else if(exp instanceof FunctionCall) {
-      return new StringArrayVector( Deparse.deparseExp(exp) );
+      return new StringArrayVector( Deparse.deparseExp(null, exp) );
     } else {
       throw new ArgumentException("expected vector");
     }

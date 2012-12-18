@@ -25,13 +25,17 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     this.values = Arrays.copyOf(values, values.length);
   }
   
-  public RawVector(byte[] bytes) {
+  public RawVector(byte[] bytes, AttributeMap attributes) {
+    super(attributes);
     this.values = new Raw[bytes.length];
     for(int i=0;i!=bytes.length;++i) {
       this.values[i] = new Raw(bytes[i]);
     }
   }
 
+  public RawVector(byte[] bytes) {
+    this(bytes, AttributeMap.EMPTY);
+  }
 
   public byte[] getAsByteArray(){
     byte[] bytes = new byte[this.values.length];

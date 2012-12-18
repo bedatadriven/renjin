@@ -6,7 +6,7 @@ public class S4Object extends AbstractSEXP {
     
   }
   
-  private S4Object(AttributeMap attributes) {
+  public S4Object(AttributeMap attributes) {
     super(attributes);
   }
   

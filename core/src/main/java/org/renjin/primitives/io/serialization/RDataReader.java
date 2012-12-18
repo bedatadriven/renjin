@@ -26,6 +26,7 @@ import com.google.common.io.InputSupplier;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
+import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 
 import java.io.*;
@@ -210,14 +211,21 @@ public class RDataReader {
       case GENERICREFSXP:
         throw new IOException("this version of R cannot read generic function references");
       case RAWSXP:
-        throw new IOException("this version of R cannot read RAWSXP");
+        return rawRawVector(flags);
       case S4SXP:
-        return readS4XP();
+        return readS4XP(flags);
       default:
         throw new IOException(String.format("ReadItem: unknown type %d, perhaps written by later version of R", flags.type));
     }
   }
 
+
+  private SEXP rawRawVector(Flags flags) throws IOException {
+    int length = in.readInt();
+    byte[] bytes = in.readString(length);
+    AttributeMap attributes = readAttributes(flags);
+    return new RawVector(bytes, attributes);
+  }
 
   private SEXP readPromise(Flags flags) throws IOException {
     AttributeMap attributes = readAttributes(flags);
@@ -225,7 +233,7 @@ public class RDataReader {
     SEXP value = readExp();
     SEXP expr = readExp();
 
-    if(value == Null.INSTANCE) {
+    if(env != Null.INSTANCE) {
       return readContext.createPromise(expr, (Environment)env);
     } else {
       return new Promise(expr, value);
@@ -336,8 +344,8 @@ public class RDataReader {
     return env;
   }
 
-  private SEXP readS4XP() throws IOException {
-    throw new IOException("not yet impl");
+  private SEXP readS4XP(Flags flags) throws IOException {
+    return new S4Object(readAttributes(flags));
   }
 
   private SEXP readListExp(Flags flags) throws IOException {
@@ -425,7 +433,9 @@ public class RDataReader {
   }
 
   private SEXP readPrimitive(Flags flags) throws IOException {
-    throw new IOException("readPrim ");
+    int nameLength = in.readInt();
+    String name = new String(in.readString(nameLength));
+    return Primitives.getBuiltin(name);
   }
 
   private SEXP readWeakReference(Flags flags) throws IOException {
@@ -433,7 +443,13 @@ public class RDataReader {
   }
 
   private SEXP readExternalPointer(Flags flags) throws IOException {
-    throw new IOException("readExternalPointer not yet implemented");
+    ExternalExp ptr = new ExternalExp(null);
+    addReadRef(ptr);
+    //R_SetExternalPtrAddr(s, NULL);
+    readExp(); // protected (not used)
+    readExp(); // tag (not used)
+    ptr = (ExternalExp) ptr.setAttributes(readAttributes(flags));
+    return ptr;
   }
 
   private SEXP readPersistentExp() throws IOException {

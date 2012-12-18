@@ -607,6 +607,17 @@ public class Context {
   public int getEvaluationDepth() {
     return evaluationDepth;
   }
+  
+  public int getFrameDepth() {
+    int nframe = 0;
+    Context cptr = this;
+    while (!cptr.isTopLevel()) {
+      if (cptr.getType() == Type.FUNCTION )
+        nframe++;
+      cptr = cptr.getParent();
+    }
+    return nframe;
+  }
 
   public Context getParent() {
     return parent;
@@ -731,5 +742,9 @@ public class Context {
 
   public Environment getCallingEnvironment() {
     return callingEnvironment;
+  }
+
+  public Environment getBaseEnvironment() {
+    return getGlobalEnvironment().getBaseEnvironment();
   }
 }

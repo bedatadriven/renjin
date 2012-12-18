@@ -29,6 +29,8 @@ import org.renjin.sexp.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.io.Reader;
 import java.io.StringReader;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -189,7 +191,7 @@ public class RParserTest {
 
     assertThat(result.length(), equalTo(1));
   }
-
+  
   @Test
   public void parseElseWithNewline() throws IOException {
     ExpressionVector result = parseAll("if(TRUE) 1 else\n2\n");

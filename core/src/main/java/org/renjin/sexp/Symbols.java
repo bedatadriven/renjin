@@ -38,6 +38,7 @@ public class Symbols {
   public static final Symbol S4_NULL = Symbol.get("\001NULL\001");
   
   public static final Symbol GENERIC = Symbol.get("generic");
+  public static final Symbol SOURCE = Symbol.get("source");
 
   
 }

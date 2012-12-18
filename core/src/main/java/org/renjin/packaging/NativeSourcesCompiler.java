@@ -26,7 +26,7 @@ public class NativeSourcesCompiler {
     this.packageName = packageName;
   }
 
-  private void setVerbose(boolean verbose) {
+  public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }
 

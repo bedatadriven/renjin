@@ -133,7 +133,7 @@ public class Primitives {
 
     f("geterrmessage", Conditions.class, 0, 11, 0);
     f("seterrmessage", Conditions.class, 0, 111, 1);
-    f("printDeferredWarnings", /*printDeferredWarnings*/ null, 0, 111, 0);
+    f("printDeferredWarnings", Warning.class, 0, 111, 0);
     f("interruptsSuspended", /*interruptsSuspended*/ null, 0, 11, -1);
 
     addInternal("restart", new RestartFunction());
@@ -256,7 +256,7 @@ public class Primitives {
     f("names<-", Attributes.class, "setNames", 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("dimnames", Attributes.class, 0, 1, 1);
     f("dimnames<-", Attributes.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
-    f("all.names", /*allnames*/ null, 0, 11, 4);
+    f("all.names", AllNamesVisitor.class, 0, 11, 4);
     f("dim", Attributes.class, 0, 1, 1);
     f("dim<-", Attributes.class, 0, 1, 2, PP_FUNCALL, PREC_LEFT, 1);
     f("attributes", Attributes.class, 0, 1, 1);
@@ -281,7 +281,7 @@ public class Primitives {
     f("which.max", Sort.class, 1, 11, 1);
     f("match", Match.class, 0, 11, 4);
     f("pmatch", Match.class, 0, 11, 4);
-    f("charmatch", /*charmatch*/ null, 0, 11, 3);
+    f("charmatch", Match.class, 0, 11, 3);
     f("match.call", Match.class, 0, 11, 3);
     f("complete.cases", /*compcases*/ null, 0, 11, 1);
 
@@ -859,7 +859,7 @@ public class Primitives {
     f("inherits", Attributes.class, 0, 11, 3);
     f("UseMethod", S3.class, 0, 200, -1);
     f("NextMethod", S3.class, 0, 210, -1);
-    f("standardGeneric", /*standardGeneric*/ null, 0, 201, -1);
+    f("standardGeneric", Methods.class, 0, 201, -1);
 
 /* Modelling Functionality */
 

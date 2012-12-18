@@ -50,5 +50,16 @@ public class UniqueTest extends EvalTestCase {
   public void falseIncomparablesIsTreatedAsNull() {
     assertThat( eval(" .Internal(unique(c(0, 1, 0, 0, 0, 0, 0, 0), FALSE, FALSE))"), equalTo(c(0,1)));
   }
+  
+  @Test
+  public void uniqueList() {
+    assertThat( eval(" .Internal(unique(list('a','b','a','a'), FALSE,FALSE))"), equalTo(list("a","b")));
+    assertThat( eval(" .Internal(unique(list('a','a', c(1,2), c(1,2)), FALSE,FALSE))"), 
+        equalTo(list("a",c(1,2))));
+    assertThat( eval(" length(.Internal(unique(list('a','a', c(1,2), c(a=1,b=2)), FALSE,FALSE)))"), 
+        equalTo(c_i(3)));
+    
+
+  }
 
 }

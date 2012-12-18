@@ -22,14 +22,36 @@
 package org.renjin.primitives;
 
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.EvalException;
+import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
+import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.annotations.Recycle;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.BuiltinFunction;
+import org.renjin.sexp.CHARSEXP;
+import org.renjin.sexp.ComplexVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.PrimitiveFunction;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SexpVisitor;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 
 public class Deparse {
 
@@ -56,19 +78,21 @@ public class Deparse {
   
   @Primitive
   @Recycle(false)
-  public static String deparse(SEXP exp, int widthCutoff, boolean backTick, int options, int nlines) {
-    return new DeparsingVisitor(exp).getResult();
+  public static String deparse(@Current Context context, SEXP exp, int widthCutoff, boolean backTick, int options, int nlines) {
+    return new DeparsingVisitor(context, exp).getResult();
   }
   
-  public static String deparseExp(SEXP exp) {
-    return new DeparsingVisitor(exp).getResult();
+  public static String deparseExp(Context context, SEXP exp) {
+    return new DeparsingVisitor(context, exp).getResult();
   }
 
   private static class DeparsingVisitor extends SexpVisitor<String> {
 
     private StringBuilder deparsed = new StringBuilder();
+    private Context context;
 
-    public DeparsingVisitor(SEXP exp) {
+    public DeparsingVisitor(Context context, SEXP exp) {
+      this.context = context;
       exp.accept(this);
     }
 
@@ -148,8 +172,7 @@ public class Deparse {
 
     @Override
     public void visit(Promise promise) {
-      //promise.force(context).accept(this);
-      throw new EvalException("todo: deparse promises");
+      promise.force(context).accept(this);
     }
 
     @Override

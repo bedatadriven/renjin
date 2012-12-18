@@ -104,7 +104,7 @@ public class Native {
       if(!Strings.isNullOrEmpty(arg.getName())) {
        java.lang.System.out.print(arg.getName() + " = ");
       }
-      java.lang.System.out.println(Deparse.deparse(arg.getValue(), 80, false, 0, 0) + ", ");
+      java.lang.System.out.println(Deparse.deparse(null, arg.getValue(), 80, false, 0, 0) + ", ");
     }
     java.lang.System.out.println("PACKAGE = '" + packageName + "')");
   }

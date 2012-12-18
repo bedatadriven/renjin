@@ -151,13 +151,13 @@ public class Evaluation {
           ((Vector)x).getVectorType().isWiderThan(funValue)) {
         throw new EvalException("values must be type '%s',\n but %s result is type '%s'",
             funValue.getTypeName(),
-            Deparse.deparseExp(call),
+            Deparse.deparseExp(context, call),
             x.getTypeName());
             
       }
       for(int j=0;j!=funValue.length();++j) {
         result.addFrom(x, j);
-      }
+       }
     }
     
     if(useNames) {
@@ -169,7 +169,44 @@ public class Evaluation {
     
     return result.build();
   }
-  
+
+  public static ListVector mapply(Context context, SEXP f, SEXP varyingArgs, Vector constantArgs, Environment rho) {
+
+    int longest = 0;
+    int[] lengths = new int[varyingArgs.length()];
+    for(int i = 0; i < varyingArgs.length(); i++){
+      lengths[i] = varyingArgs.getElementAsSEXP(i).length();
+      if (lengths[i] > longest) {
+        longest=lengths[i];
+      }
+    }
+
+    
+    ListVector.Builder result = ListVector.newBuilder();
+    
+    Symbol doubleBracket = Symbol.get("[[");
+    
+    for(int i = 0; i<longest; ++i) {
+    
+      /* build a call
+         f(dots[[1]][[4]],dots[[2]][[4]],dots[[3]][[4]],d=7)
+      */
+      
+      PairList.Builder args = new PairList.Builder();
+      for(int j = 0; j!=varyingArgs.length();++ j) {
+        SEXP arg = varyingArgs.getElementAsSEXP(j);
+        args.add(varyingArgs.getName(j),
+            FunctionCall.newCall(doubleBracket, arg, IntVector.valueOf( (i % arg.length()) + 1 )));
+      }
+      if(constantArgs.length() > 0) {
+        args.addAll((ListVector)constantArgs);
+      }
+      result.add(context.evaluate(new FunctionCall(f, args.build()), rho));
+    }
+       
+    return result.build();
+  }
+
 
   @Primitive("return")
   public static SEXP doReturn(@Current Environment rho, SEXP value) {
@@ -203,9 +240,8 @@ public class Evaluation {
       throw new EvalException("first argument must be character string");
     }
 
-    FunctionCall newCall = new FunctionCall(Symbol.get(((StringVector) name).getElementAsString(0)),
+    return new FunctionCall(Symbol.get(((StringVector) name).getElementAsString(0)),
         ((PairList.Node)call.getArguments()).getNextNode());
-    return context.evaluate(newCall, rho);
   }
 
   @Primitive

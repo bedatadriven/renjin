@@ -85,8 +85,17 @@ public interface Vector extends SEXP {
   * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
   * can be found
   */
- int indexOf(AtomicVector vector, int vectorIndex, int startIndex);
+ int indexOf(Vector vector, int vectorIndex, int startIndex);
   
+
+ /**
+  * @param vector an {@code AtomicVector }
+  * @param vectorIndex an index of {@code vector}
+  * @return true if this vector contains an element equal to the
+  * the element at {@code vectorIndex} in {@code vector}
+  */
+  boolean contains(Vector vector, int vectorIndex);
+ 
   /**
    *
    * @param index zero-based index
@@ -244,6 +253,7 @@ public interface Vector extends SEXP {
      * @return a new Vector.
      */
     Vector build();
+    
 
     /**
      * Copies attributes from the provided {@code vector} argument, replacing 

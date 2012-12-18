@@ -36,7 +36,7 @@ public class MeanJitterTest {
 
     DoubleArrayVector vector = new DoubleArrayVector(5,10,3,2,1);
     DistanceMatrix matrix = new DistanceMatrix(vector);
-    System.out.println(Deparse.deparseExp(matrix));
+    System.out.println(Deparse.deparseExp(null, matrix));
     DeferredMean mean = new DeferredMean(matrix, AttributeMap.EMPTY);
     DeferredGraph graph = new DeferredGraph(mean);
 
@@ -49,7 +49,7 @@ public class MeanJitterTest {
 
     DoubleArrayVector vector = new DoubleArrayVector(5,10,3,2,1);
     DistanceMatrix matrix = new DistanceMatrix(vector);
-    System.out.println(Deparse.deparseExp(matrix));
+    System.out.println(Deparse.deparseExp(null, matrix));
     Vector negative = new R$primitive$$minus$deferred_d(matrix, AttributeMap.EMPTY);
     DeferredMean mean = new DeferredMean(negative, AttributeMap.EMPTY);
     DeferredGraph graph = new DeferredGraph(mean);

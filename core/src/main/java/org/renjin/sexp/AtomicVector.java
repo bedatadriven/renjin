@@ -35,7 +35,7 @@ public interface AtomicVector extends Vector {
    * @return true if the vector contains any {@code NA} values
    */
   boolean containsNA();
-
+  
   /**
    * @param vector an {@code AtomicVector }
    * @param vectorIndex an index of {@code vector}
@@ -43,6 +43,19 @@ public interface AtomicVector extends Vector {
    * the element at {@code vectorIndex} in {@code vector}
    */
   boolean contains(AtomicVector vector, int vectorIndex);
+
+  /**
+  *
+  * @param vector an {@code AtomicVector}
+  * @param vectorIndex an index of {@code vector}
+  * @param startIndex
+  * @return the index of the first element in this vector that equals
+  * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
+  * can be found
+  */
+ int indexOf(AtomicVector vector, int vectorIndex, int startIndex);
+  
+
 
   /***
    * @return the index of the first NA element.

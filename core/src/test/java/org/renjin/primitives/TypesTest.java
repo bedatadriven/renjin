@@ -662,8 +662,18 @@ public strictfp class TypesTest extends EvalTestCase {
   }
   
   @Test
+  public void listToEnvironment() {
+    eval("x <- as.environment(list(a=42,b=64))");
+    assertThat(eval("x$a"), equalTo(c(42)));
+    assertThat(eval("x$b"), equalTo(c(64)));
+
+  }
+  
+  @Test
   public void asEnvironmentWithName() {
     assertThat(eval("as.environment('package:base')"), 
         is((SEXP)topLevelContext.getGlobalEnvironment().getBaseEnvironment()));
   }
+
+
 }

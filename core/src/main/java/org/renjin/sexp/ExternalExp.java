@@ -39,7 +39,7 @@ public final class ExternalExp<T> extends AbstractSEXP {
 
   @Override
   public String getTypeName() {
-    return "external[" + (value == null ? "null" : value.getClass().getName()) + "]";
+    return "externalptr";
   }
 
   public T getValue() {
@@ -53,6 +53,7 @@ public final class ExternalExp<T> extends AbstractSEXP {
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new ExternalExp<T>(value, attributes);
+    this.attributes = attributes;
+    return this;
   }
 }

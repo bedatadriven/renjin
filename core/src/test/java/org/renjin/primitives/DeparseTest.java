@@ -30,6 +30,7 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(list(1,'s',3L))"), equalTo(c("list(1, \"s\", 3L)")));
     assertThat(eval("deparse(list(a=1,b='foo'))"), equalTo(c("list(a = 1, b = \"foo\")")));
   } 
+ 
   
   @Test
   public void emptyVectors() {

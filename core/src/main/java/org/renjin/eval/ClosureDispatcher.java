@@ -96,6 +96,11 @@ public class ClosureDispatcher {
         // I think is the kind of thing that should be moved entirely into java to avoid
         // these complicated relationships between R and Java/C code but i don't want
         // to mess with the R code too much at this point.
+        
+        // DEBUG
+        e.printStackTrace();
+        
+        
         return new ListVector(e.getCondition(), Null.INSTANCE, handler);
       } else {
         throw e;

@@ -21,10 +21,11 @@
 
 package org.renjin.sexp;
 
-import com.google.common.collect.UnmodifiableIterator;
+import java.util.Iterator;
+
 import org.apache.commons.math.complex.Complex;
 
-import java.util.Iterator;
+import com.google.common.collect.UnmodifiableIterator;
 
 public abstract class AbstractAtomicVector extends AbstractVector implements AtomicVector{
 
@@ -39,7 +40,18 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
   public boolean containsNA() {
     return indexOfNA() != -1;
   }
+  
+  
 
+  @Override
+  public boolean contains(Vector vector, int vectorIndex) {
+    if(vector instanceof AtomicVector) {
+      return contains((AtomicVector)vector, vectorIndex);
+    } else {
+      return false;
+    }
+  }
+  
   @Override
   public Complex getElementAsComplex(int index) {
     return new Complex(getElementAsDouble(index), 0);
@@ -60,6 +72,20 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
     return indexOf(vector, vectorIndex, 0) != -1;
   }
   
+  @Override
+  public int indexOf(Vector vector, int vectorIndex, int startIndex) {
+    if(vector instanceof AtomicVector) {
+      return indexOf((AtomicVector)vector, vectorIndex, startIndex);
+    } else {
+      SEXP element = vector.getElementAsSEXP(vectorIndex);
+      if(element instanceof AtomicVector && element.length() == 1) {
+        return indexOf((AtomicVector)element, 0, startIndex);
+      } else {
+        return -1;
+      }
+    }
+  }
+
   @Override
   public double[] toDoubleArray() {
     double [] d = new double[length()];

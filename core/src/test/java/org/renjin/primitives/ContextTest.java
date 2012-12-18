@@ -160,6 +160,8 @@ public class ContextTest extends EvalTestCase {
 
   @Test
   public void primitiveDispatchInPromise() {
+    eval(" NextMethod <- function (generic = NULL, object = NULL, ...) .Internal(NextMethod(generic, object, ...))");
+
     eval(" toupper <- function(x) .Internal(toupper(x)) ");
     eval(" as.character.foo <- function(x) toupper(NextMethod('as.character'))");
     eval(" x <- 'bar' ");

@@ -140,10 +140,12 @@ public abstract class AbstractSEXP implements SEXP {
   @Override
   public String getName(int index) {
     if(attributes.hasNames()) {
-      return attributes.getNames().getElementAsString(index);
-    } else {
-      return StringVector.NA;
-    }
+      StringVector names = attributes.getNames();
+      if(names.length() > 0) {
+        return names.getElementAsString(index);        
+      }
+    } 
+    return StringVector.NA;
   }
 
   /**

@@ -79,4 +79,10 @@ public class Warning {
       baseEnv.setVariable(LAST_WARNING, lastWarning.build());
     }
   }
+  
+  @Primitive
+  public static void printDeferredWarnings(@Current Context context) {
+    context.getGlobals().getConnectionTable().getStderr().getPrintWriter().println("In addition: (TODO)");
+  }
+  
 }

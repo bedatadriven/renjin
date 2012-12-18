@@ -178,6 +178,16 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   public Vector.Builder newBuilderWithInitialCapacity(int initialCapacity) {
     return NullBuilder.INSTANCE;
   }
+  
+  @Override
+  public boolean contains(Vector vector, int vectorIndex) {
+    return false;
+  }
+
+  @Override
+  public int indexOf(Vector vector, int vectorIndex, int startIndex) {
+    return -1;
+  }
 
   @Override
   public Comparable getElementAsObject(int index) {

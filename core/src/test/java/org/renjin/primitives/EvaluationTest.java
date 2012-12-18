@@ -487,16 +487,6 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
-  public void call() {
-
-    eval(" x <- 0 ");
-    eval(" f <- function(value) x<<-value ");
-    eval(" call('f', 3) ");
-
-    assertThat( eval("x"), equalTo(c(3)));
-  }
-
-  @Test
   public void evalWithPairList() {
     eval(" params <- list(a=1,b=99)");
     eval(" c<-25");
@@ -662,6 +652,7 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("g(h)"), equalTo(c(4)));
   }
   
+ 
   @Test(expected=EvalException.class)
   public void missingArgMasksFunction() {
     eval("f <- function(c) c() ");
@@ -683,5 +674,11 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("f()"), equalTo(c(42)));
 
   }
+
+  @Test
+  public void doCallCall() {
+    eval("x <- call('function.that.does.not.exist', 'foo')");
+  }
+ 
 }
 

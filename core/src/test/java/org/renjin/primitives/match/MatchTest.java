@@ -52,6 +52,11 @@ public class MatchTest extends EvalTestCase {
     assertThat( eval( ".Internal(match( c(1,2), list('z', 'y', '1', '2'), NA_integer_, FALSE)) "), equalTo( c_i(3, 4)));
   }
   
+  @Test
+  public void matchSymbols() {
+    assertThat( eval(" .Internal(match( list(quote(x)), list(quote(z), quote(y), quote(x)), NA_integer_, FALSE)) "), equalTo( c_i(3)));
+  }
+  
 
   @Test
   public void matchNA() {

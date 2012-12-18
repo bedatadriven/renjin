@@ -43,7 +43,6 @@
     <module>samples/appengine-repl</module>
     <module>dist/generic</module>
     <module>appl</module>
-    <module>packages/hyp2f1zhangjin</module>
   </modules>
 
   <properties>

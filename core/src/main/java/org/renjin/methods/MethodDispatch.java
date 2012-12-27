@@ -135,7 +135,6 @@ public class MethodDispatch {
   }
   
   public SEXP R_dispatchGeneric(Context context, Symbol fname, Environment ev, SEXP fdef)   {
-    System.err.println("R_dispatchGeneric(fname=" + fname + ")");
     SEXP method;
     SEXP f;
     SEXP val=Null.INSTANCE;
@@ -174,8 +173,6 @@ public class MethodDispatch {
     ListVector.Builder classListBuilder = ListVector.newBuilder();
     StringVector thisClass;
     StringBuilder buf = new StringBuilder();
-
-    System.out.println("fname = " + fname + ", nargs = " + nargs);
     
     for(int i = 0; i < nargs; i++) {
       Symbol arg_sym = sigargs.getElementAsSEXP(i);

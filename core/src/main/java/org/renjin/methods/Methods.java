@@ -52,8 +52,6 @@ public class Methods {
 
 
   public static SEXP R_initMethodDispatch(@Current Context context, SEXP environ) {
-    System.out.println("methods init");
-
     context.getGlobals().getSingleton(MethodDispatch.class)
     .init(environ == Null.INSTANCE ? context.getGlobalEnvironment() : (Environment)environ);
     return environ;
@@ -68,7 +66,6 @@ public class Methods {
     } else if(onOff.getElementAsLogical(0) == Logical.FALSE) {
       methodContext.setEnabled(false);
     }
-    System.out.println("methods enabled = " + methodContext.isEnabled());
     return oldValue;
   }
 
@@ -167,11 +164,7 @@ public class Methods {
     SEXP classNameExp = classRepresentation.getAttributes().get(Symbols.CLASS_NAME);
     String className = ((StringVector)classNameExp).getElementAsString(0);
     SEXP prototype = classRepresentation.getAttribute(Symbols.PROTOTYPE);
-
-    if(!(prototype instanceof S4Object)) {
-      //  System.out.println(prototype.getClass().getSimpleName());
-    }
-
+    
     if(prototype instanceof S4Object || classNameExp.getAttributes().getPackage() != null) {
       return prototype.setAttribute(Symbols.CLASS, classNameExp);
     } else {

@@ -38,9 +38,14 @@ public class Bootstrapper {
     
       // now we can compile the rest of the packages
       for(String packageName : new String[] 
-          {"datasets", "utils", "grDevices", "graphics", "stats", "splines", "methods" }) {
+          {"datasets", "utils", "grDevices", "graphics", "stats", "splines"}) {
         buildPackage(packageName);
       }
+      
+      // finally, load the methods package which triggers a one-time
+      // initialization step and updates the rdb file
+      buildMethodsPackage();
+      
     } catch(Exception e) {
       System.out.println("R language package build failed, expect subsequent test failures...");
       e.printStackTrace();
@@ -143,6 +148,29 @@ public class Bootstrapper {
       e.printStackTrace();
       System.out.println("WARNING: failed to compile native sources for " + packageName + ", some functions may be missing...");
     }
+  }
+  
+  private void buildMethodsPackage() throws IOException, ScriptException {
+    // the methods package has a special one-time loading step
+    // that writes out the lazy loaded db on completion
+    String packageName = "methods";
+    System.out.println(String.format("Building package 'methods'...", packageName));
+
+    installPackageSources(packageName);
+    eval(
+      String.format("tools:::.install_package_description('%s', '%s')\n",
+        escape(file(srcRoot, packageName).getAbsolutePath()),
+        escape(file(destRoot, packageName).getAbsolutePath()),
+        packageName));
+
+    eval("library(methods)");
+    
+    // copy the namespace loader 
+    File loaderScript = file(destRoot,  packageName, "R", packageName);
+    if(!loaderScript.delete()) {
+      throw new IOException("Could not remove " +  loaderScript.getAbsolutePath());
+    }
+    Files.copy(new File("src/main/resources/org/renjin/share/R/nspackloader.R"), loaderScript);
   }
   
   private static File file(File parent, String... children) {

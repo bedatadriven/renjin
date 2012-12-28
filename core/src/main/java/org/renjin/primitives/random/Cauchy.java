@@ -20,11 +20,11 @@
  */
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 
 public class Cauchy {
 
-  public static double rcauchy(Context.Globals context, double location, double scale) {
+  public static double rcauchy(Session context, double location, double scale) {
     if (Double.isNaN(location) || scale < 0) {
       return Double.NaN;
     }

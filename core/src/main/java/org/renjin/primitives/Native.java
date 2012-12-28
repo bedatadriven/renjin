@@ -200,7 +200,7 @@ public class Native {
 
   private static Class getPackageClass(String packageName) {
     Class packageClass;
-    if(packageName.equals("base")) {
+    if(packageName == null || packageName.equals("base")) {
       packageClass = Base.class;
     } else if(packageName.equals("methods")) {
       packageClass = Methods.class;

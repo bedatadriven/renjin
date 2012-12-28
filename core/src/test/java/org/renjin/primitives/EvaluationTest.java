@@ -109,14 +109,14 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void assignIsSilent() throws IOException {
     eval("x<-1");
-    assertThat(topLevelContext.getGlobals().isInvisible(), equalTo(true));
+    assertThat(topLevelContext.getSession().isInvisible(), equalTo(true));
   }
   
   @Test
   public void invisibleFlagIsReset() throws IOException {
     eval("x<-1");
     eval("x");
-    assertThat(topLevelContext.getGlobals().isInvisible(), equalTo(false));
+    assertThat(topLevelContext.getSession().isInvisible(), equalTo(false));
   }
 
   @Test

@@ -50,8 +50,8 @@ public class JlineRepl {
     out = new PrintWriter(reader.getOutput());
     
     this.topLevelContext = new StandaloneContextFactory().create();
-    this.topLevelContext.getGlobals().getConnectionTable().getStdout().setOutputStream(out);
-    this.topLevelContext.getGlobals().setSessionController(new JlineSessionController(reader));
+    this.topLevelContext.getSession().getConnectionTable().getStdout().setOutputStream(out);
+    this.topLevelContext.getSession().setSessionController(new JlineSessionController(reader));
     this.topLevelContext.init();
    
     parser = new RParser(new JlineReader(reader));
@@ -87,7 +87,7 @@ public class JlineRepl {
       try {
         SEXP result = topLevelContext.evaluate(exp, topLevelContext.getGlobalEnvironment());
 
-        if(!topLevelContext.getGlobals().isInvisible()) {
+        if(!topLevelContext.getSession().isInvisible()) {
           topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));
         }
 

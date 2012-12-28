@@ -20,7 +20,7 @@
  */
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 
 
 public class Exponantial {
@@ -45,7 +45,7 @@ public class Exponantial {
     1.0000000000000000
   };
 
-  public static double exp_rand(Context.Globals context) {
+  public static double exp_rand(Session context) {
     double a = 0.;
     double u = context.rng.unif_rand();    /* precaution if u = 0 is ever returned */
     while (u <= 0. || u >= 1.) {
@@ -76,7 +76,7 @@ public class Exponantial {
     return a + umin * q[0];
   }
 
-  public static double rexp(Context.Globals context, double scale) {
+  public static double rexp(Session context, double scale) {
     if (scale <= 0.0) {
       if (scale == 0.) {
         return 0.;

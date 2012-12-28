@@ -116,7 +116,7 @@ public class RenjinScriptEngineFactory implements ScriptEngineFactory {
     }
     
     public Builder withNoDefaultPackages() {
-      context.getGlobals().systemEnvironment.put("R_DEFAULT_PACKAGES", "NULL");
+      context.getSession().systemEnvironment.put("R_DEFAULT_PACKAGES", "NULL");
       return this;
     }
     

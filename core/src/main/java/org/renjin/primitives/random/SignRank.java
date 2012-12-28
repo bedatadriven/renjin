@@ -1,6 +1,6 @@
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 
 public class SignRank {
 
@@ -73,7 +73,7 @@ public class SignRank {
    * Random Number Generator for SignRank
    * 
    */
-  public static double rsignrank(Context.Globals context, double n) {
+  public static double rsignrank(Session context, double n) {
     int i, k;
     double r;
 

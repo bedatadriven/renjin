@@ -18,6 +18,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.graphics.GraphicsDevice;
+import org.renjin.graphics.GraphicsDevices;
 import org.renjin.graphics.device.AwtGraphicsDevice;
 
 
@@ -38,7 +39,7 @@ public class GraphicsTest extends EvalTestCase {
     
     GraphicsDeviceDriverStub driver = new GraphicsDeviceDriverStub(420, 340);
     GraphicsDevice device = new GraphicsDevice(driver);
-    topLevelContext.getGlobals().getGraphicsDevices().setActive(device); 
+    topLevelContext.getSingleton(GraphicsDevices.class).setActive(device); 
     
     assertThat("din", eval("par('din')"), equalTo(c(driver.getSize().getWidth(), driver.getSize().getHeight())));
     assertThat("fig", eval("par('fig')"), equalTo(c(0, 1, 0, 1)));
@@ -63,7 +64,7 @@ public class GraphicsTest extends EvalTestCase {
     
     GraphicsDeviceDriverStub driver = new GraphicsDeviceDriverStub(420, 340);
     GraphicsDevice device = new GraphicsDevice(driver);
-    topLevelContext.getGlobals().getGraphicsDevices().setActive(device); 
+    topLevelContext.getSingleton(GraphicsDevices.class).setActive(device); 
    
     eval("barplot(c(1,2,3), main='Distribution', xlab='Number')");
   
@@ -85,7 +86,7 @@ public class GraphicsTest extends EvalTestCase {
     g2d.fill(g2d.getDeviceConfiguration().getBounds());
     
     AwtGraphicsDevice driver = new AwtGraphicsDevice(g2d);
-    topLevelContext.getGlobals().getGraphicsDevices().setActive(new GraphicsDevice(driver));
+    topLevelContext.getSingleton(GraphicsDevices.class).setActive(new GraphicsDevice(driver));
     
     try {
       eval("barplot(c(1,2,3), main='Distribution', xlab='Number')");

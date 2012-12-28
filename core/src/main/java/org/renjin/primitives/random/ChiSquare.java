@@ -25,7 +25,7 @@
 package org.renjin.primitives.random;
 
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.sexp.DoubleVector;
 
 
@@ -34,7 +34,7 @@ public class ChiSquare {
   /*
    * For central chi-square distribution
    */
-  static double rchisq(Context.Globals context, double df) {
+  static double rchisq(Session context, double df) {
     if (df < 0.0) {
       return (Double.NaN);
     }
@@ -44,7 +44,7 @@ public class ChiSquare {
   /*
    * Chi-square distribution with non-central parameter.
    */
-  static double rnchisq(Context.Globals context, double df, double lambda) {
+  static double rnchisq(Session context, double df, double lambda) {
     if (df < 0. || lambda < 0.) {
       return Double.NaN;
     }

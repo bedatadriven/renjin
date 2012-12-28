@@ -17,7 +17,7 @@ public class Session {
 
   @Primitive
   public static void quit(@Current Context context, String saveMode, int exitCode, boolean runLast) {
-    context.getGlobals().getSessionController().quit(context, SaveMode.valueOf(saveMode.toUpperCase()), exitCode, runLast);
+    context.getSession().getSessionController().quit(context, SaveMode.valueOf(saveMode.toUpperCase()), exitCode, runLast);
   }
   
   /**
@@ -25,11 +25,11 @@ public class Session {
    */
   @Primitive
   public static boolean interactive(@Current Context context) {
-    return context.getGlobals().getSessionController().isInteractive();
+    return context.getSession().getSessionController().isInteractive();
   }
   
   @Primitive
   public static int menu(@Current Context context, StringVector choices) throws IOException {
-    return context.getGlobals().getSessionController().menu(choices);
+    return context.getSession().getSessionController().menu(choices);
   }
 }

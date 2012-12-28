@@ -21,29 +21,32 @@
 
 package org.renjin.eval;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.ir.tac.IRBody;
-import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.IRFunctionTable;
-import org.renjin.graphics.ColorPalette;
-import org.renjin.graphics.GraphicsDevices;
 import org.renjin.parser.RParser;
-import org.renjin.primitives.io.connections.ConnectionTable;
-import org.renjin.primitives.io.serialization.RDatabase;
-import org.renjin.primitives.random.RNG;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.PromisePairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;
 
-import java.io.*;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Contexts are the internal mechanism used to keep track of where a
@@ -98,239 +101,11 @@ public class Context {
   private List<SEXP> onExit = Lists.newArrayList();
 
     
-  public static class Options {
-    private Map<String, SEXP> map;
-
-    public Options() {
-      map = Maps.newHashMap();
-      map.put("prompt", new StringArrayVector("> "));
-      map.put("continue", new StringArrayVector("+ "));
-      map.put("expressions" , new IntArrayVector(5000));
-      map.put("width", new IntArrayVector(80));
-      map.put("digits", new IntArrayVector(7));
-      map.put("echo", new LogicalArrayVector(false));
-      map.put("verbose", new LogicalArrayVector(false));
-      map.put("check.bounds", new LogicalArrayVector(false));
-      map.put("keep.source", new LogicalArrayVector(true));
-      map.put("keep.source.pkgs", new LogicalArrayVector(false));
-      map.put("warnings.length", new IntArrayVector(1000));
-      map.put("OutDec", new StringArrayVector("."));
-    }
-
-    private Options(Options toCopy) {
-      map = Maps.newHashMap(toCopy.map);
-    }
-
-    public SEXP get(String name) {
-      SEXP value = map.get(name);
-      return value == null ? Null.INSTANCE : value;
-    }
-    
-    public int getInt(String name, int defaultValue) {
-      SEXP value = get(name);
-      if(value instanceof AtomicVector && value.length() >= 1) {
-        return ((AtomicVector)value).getElementAsInt(0);
-      }
-      return defaultValue;
-    }
-
-    public SEXP set(String name, SEXP value) {
-      SEXP old = map.put(name, value);
-      return old == null ? Null.INSTANCE : value;
-    }
-
-    public Set<String> names() {
-      return map.keySet();
-    }
-
-    public Options clone() {
-      return new Options(this);
-    }
-  }
-
-  /**
-   * Parking lot for random global variables from the C-implementation of R
-   *  that we need to do something with.
-   */
-  public static class Globals {
-
-    public final Options options;
-
-    public IRFunctionTable functionTable = new IRFunctionTable();
-    
-    /**
-     * This is the environment
-     */
-    public final Map<String, String> systemEnvironment;
-
-    public final Frame namespaceRegistry;
-
-    /**
-     * The R_HOME path. This is the path from which the base package is loaded.
-     */
-    public final String homeDirectory;
-
-    public final Environment baseEnvironment;
-    public final Environment globalEnvironment;
-    public final Environment baseNamespaceEnv;
-
-    public final FileSystemManager fileSystemManager;
-    
-    public SecurityManager securityManager;
-    
-    private Map<Class, Object> singletons = Maps.newHashMap();
-    
-    private GraphicsDevices graphicsDevices = new GraphicsDevices();
-    private ColorPalette colorPalette = new ColorPalette();
-
-    private final ConnectionTable connectionTable = new ConnectionTable();
-
-    /**
-     * Package database cache to speed up lazy loading of package
-     * members
-     */
-    private final Cache<String, RDatabase> packageDatabaseCache = CacheBuilder.newBuilder()
-          .weakValues()
-          .build();
-
-    // can this be moved down to context so it's not global?
-    public FileObject workingDirectory;
-    
-    private StringVector commandLineArguments = StringVector.valueOf("renjin");
-    
-    public RNG rng = new RNG(this);
-     
-    private SessionController sessionController = new SessionController();
-    
-    /**
-     * Whether the result of the evaluation should be "invisible" in a
-     * REPL
-     */
-    private boolean invisible;
-
-    private Globals(FileSystemManager fileSystemManager, String homeDirectory,
-                    FileObject workingDirectory) {
-      this.fileSystemManager = fileSystemManager;
-      this.homeDirectory = homeDirectory;
-      this.workingDirectory = workingDirectory;
-
-      systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
-      options = new Options();
-      globalEnvironment = Environment.createGlobalEnvironment();
-      baseEnvironment = globalEnvironment.getBaseEnvironment();
-      namespaceRegistry = new HashFrame();
-      baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
-      baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
-      namespaceRegistry.setVariable(Symbol.get("base"), baseNamespaceEnv);
-      securityManager = new SecurityManager(); 
-      
-      // quick fix: more work needs to be done to figure out where 
-      // to put this, but in the meantime some packages require its presence
-      globalEnvironment.setVariable(".Random.seed", new IntArrayVector(1));
-
-    }
-
-    /** 
-     * Sets the paths in which to search for libraries.
-     *
-     * @param paths a semi-colon delimited list of paths
-     */
-    public void setLibraryPaths(String paths) {
-      systemEnvironment.put("R_LIBS", paths);
-    }
-
-    private Globals(Globals toShare) {
-      this.homeDirectory = toShare.homeDirectory;
-      this.fileSystemManager = toShare.fileSystemManager;
-      this.systemEnvironment = Maps.newHashMap(toShare.systemEnvironment);
-      this.globalEnvironment = Environment.forkGlobalEnvironment(toShare.globalEnvironment);
-      this.baseEnvironment = toShare.baseEnvironment;
-      this.namespaceRegistry = toShare.namespaceRegistry;
-      this.baseNamespaceEnv = toShare.baseNamespaceEnv;
-      namespaceRegistry.setVariable(Symbol.get("base"), baseNamespaceEnv);
-      globalEnvironment.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
-      workingDirectory = toShare.workingDirectory;
-      options = toShare.options.clone();
-    }
-
-    public void setStdOut(PrintWriter writer) {
-      this.connectionTable.getStdout().setOutputStream(writer);
-    }
-    
-    public GraphicsDevices getGraphicsDevices() {
-      return graphicsDevices;
-    }
-
-    public SEXP getOption(String name) {
-      return options.get(name);
-    }
-    
-    public SessionController getSessionController() {
-      return sessionController;
-    }
-    
-    /**
-     * Retrieves the singleton associated with this apartment.
-     * @param clazz
-     * @return
-     */
-    public <X> X getSingleton(Class<X> clazz) {
-      X instance = (X) singletons.get(clazz);
-      if(instance == null) {
-        try {
-          instance = clazz.newInstance();
-        } catch (Exception e) {
-          throw new RuntimeException("Can instantiate singleton " + clazz.getName() + 
-              ": the class must have a public default constructor", e);
-        }
-        singletons.put(clazz, instance);
-      }
-      return instance;
-    }
-
-    public void setSessionController(SessionController sessionController) {
-      this.sessionController = sessionController;
-    }
-    
-    public ConnectionTable getConnectionTable() {
-      return connectionTable;
-    }
-
-    public ColorPalette getColorPalette() {
-      return colorPalette;
-    }
-
-    public Cache<String, RDatabase> getPackageDatabaseCache() {
-      return packageDatabaseCache;
-    }
-    
-    public void setCommandLineArguments(String executableName, String... arguments) {
-      commandLineArguments = new StringArrayVector(Lists.asList(executableName, arguments));
-    }
-    
-    public StringVector getCommandLineArguments() {
-      return commandLineArguments;
-    }
-
-    public void setColorPalette(ColorPalette colorPalette) {
-      this.colorPalette = colorPalette;
-    }
-
-    public boolean isInvisible() {
-      return invisible;
-    }
-
-    public PrintWriter getStdOut() throws IOException {
-      return connectionTable.getStdout().getPrintWriter();
-    }
-  }
-
-
   private Context parent;
   private int evaluationDepth;
   private Type type;
   private Environment environment;
-  private Globals globals; 
+  private Session session; 
   private FunctionCall call;
   private Closure closure;
   
@@ -381,30 +156,12 @@ public class Context {
    */
   public static Context newTopLevelContext(FileSystemManager fileSystemManager, String homeDirectory,
                                            FileObject workingDirectory) {
-    Globals globals = new Globals(fileSystemManager, homeDirectory, workingDirectory);
+    Session globals = new Session(fileSystemManager, homeDirectory, workingDirectory);
     Context context = new Context();
-    context.globals = globals;
+    context.session = globals;
     context.type = Type.TOP_LEVEL;
     context.environment = globals.globalEnvironment;
     return context;
-  }
-
-  /**
-   *
-   * @return a new Context that can be used independently of the current context,
-   * but shares everything except the
-   */
-  public Context fork() {
-    // TODO: extract TopLevelContext class
-    if(this.type != Context.Type.TOP_LEVEL) {
-      throw new UnsupportedOperationException("fork() can only be called on a top level context");
-    }
-    Context context = new Context();
-    context.globals = new Globals(this.globals);
-    context.type = Context.Type.TOP_LEVEL;
-    context.environment = context.globals.globalEnvironment;
-    return context;
-
   }
 
   public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
@@ -414,7 +171,7 @@ public class Context {
     context.evaluationDepth = evaluationDepth+1;
     context.closure = closure;
     context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
-    context.globals = globals;
+    context.session = session;
     context.arguments = arguments;
     context.call= call;
     context.callingEnvironment = rho;
@@ -427,7 +184,7 @@ public class Context {
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
     context.environment = environment;
-    context.globals = globals;
+    context.session = session;
     return context;
   }
   
@@ -460,6 +217,9 @@ public class Context {
     }
   }
 
+  public <T> T getSingleton(Class<T> clazz) {
+    return session.getSingleton(clazz);
+  }
 
   public <T> void setState(T instance) {
     this.<T>setState((Class<T>) instance.getClass(), instance);
@@ -528,31 +288,12 @@ public class Context {
   }
 
   /**
-   * This is the new interpreter routine. It is not yet passing all 
-   * tests.
-   */
-  public SEXP evaluateIR(SEXP expression, Environment rho) {
-    
-    IRBodyBuilder builder = new IRBodyBuilder(globals.functionTable);
-    if(expression instanceof Promise) {
-      return expression.force(parent);
-    } else {
-      IRBody body = builder.build(expression);
-      
-      if(PRINT_IR) {
-        System.out.println(body);
-      }
-      return body.evaluate(this);
-    }
-  }
-
-  /**
    *
    * @return the {@link FileSystemManager} associated with this Context. All R primitives that
    * interact with the file system defer to this manager.
    */
   public FileSystemManager getFileSystemManager() {
-    return globals.fileSystemManager;
+    return session.fileSystemManager;
   }
 
   /**
@@ -569,7 +310,7 @@ public class Context {
    * @throws FileSystemException
    */
   public FileObject resolveFile(String uri) throws FileSystemException {
-    return getFileSystemManager().resolveFile(globals.workingDirectory, uri);
+    return getFileSystemManager().resolveFile(session.workingDirectory, uri);
   }
 
   /**
@@ -581,7 +322,7 @@ public class Context {
   }
 
   public Environment getGlobalEnvironment() {
-    return globals.globalEnvironment;
+    return session.globalEnvironment;
   }
 
   public Closure getClosure() {
@@ -623,8 +364,8 @@ public class Context {
     return parent;
   }
 
-  public Globals getGlobals() {
-    return globals;
+  public Session getSession() {
+    return session;
   }
 
   public Type getType() {
@@ -675,7 +416,7 @@ public class Context {
   }
 
   public SEXP findNamespace(Symbol name) {
-    SEXP value =  globals.namespaceRegistry.getVariable(name);
+    SEXP value =  session.namespaceRegistry.getVariable(name);
     if(value == Symbol.UNBOUND_VALUE) {
       return Null.INSTANCE;
     } else {
@@ -719,7 +460,7 @@ public class Context {
   }
 
   protected void evalBaseResource(String resourceName) throws IOException {
-    Context evalContext = this.beginEvalContext(globals.baseNamespaceEnv);
+    Context evalContext = this.beginEvalContext(session.baseNamespaceEnv);
     InputStream in = getClass().getResourceAsStream(resourceName);
     if(in == null) {
       throw new IOException("Could not load resource '" + resourceName + "'");
@@ -733,11 +474,11 @@ public class Context {
   }
   
   public void setInvisibleFlag() {
-    globals.invisible = true;
+    session.invisible = true;
   }
   
   public void clearInvisibleFlag() {
-    globals.invisible = false;
+    session.invisible = false;
   }
 
   public Environment getCallingEnvironment() {

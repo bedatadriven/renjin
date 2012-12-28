@@ -20,13 +20,13 @@
  */
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.sexp.DoubleVector;
 
 
 public class LNorm {
 
-  public static double rlnorm(Context.Globals context, double meanlog, double sdlog) {
+  public static double rlnorm(Session context, double meanlog, double sdlog) {
     if (Double.isNaN(meanlog) || sdlog < 0.) {
       return (Double.NaN);
     }

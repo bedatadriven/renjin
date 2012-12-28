@@ -46,8 +46,8 @@ public class Print {
     .setQuote(quote);
     expression.accept(visitor);
 
-    context.getGlobals().getStdOut().print(visitor.getResult());
-    context.getGlobals().getStdOut().flush();
+    context.getSession().getStdOut().print(visitor.getResult());
+    context.getSession().getStdOut().flush();
     context.setInvisibleFlag();
     return expression;
 
@@ -63,8 +63,8 @@ public class Print {
 
   @Primitive("print.function")
   public static void printFunction(@Current Context context, SEXP x, boolean useSource) throws IOException {
-    context.getGlobals().getStdOut().println(x.toString());
-    context.getGlobals().getStdOut().flush();
+    context.getSession().getStdOut().println(x.toString());
+    context.getSession().getStdOut().flush();
   }
 
   static class PrintingVisitor extends SexpVisitor<String> {

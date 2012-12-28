@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.primitives;
+package org.renjin.primitives.packaging;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -47,22 +47,22 @@ public class Namespaces {
   @Primitive
   public static Environment getNamespaceRegistry(@Current Context context) {
     return Environment.createChildEnvironment(
-        Environment.EMPTY, context.getGlobals().namespaceRegistry);
+        Environment.EMPTY, context.getSession().namespaceRegistry);
   }
   
   @Primitive
   public static void registerNamespace(@Current Context context, String name, Environment env) {
-    Frame registry = context.getGlobals().namespaceRegistry;
+    Frame registry = context.getSession().namespaceRegistry;
     Symbol symbol = Symbol.get(name);
     if(registry.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
-      throw new EvalException("name space already registered");
+      throw new EvalException("namespace already registered");
     }
     registry.setVariable(symbol, env);
   }
 
   @Primitive
   public static boolean isNamespaceEnv(@Current Context context, SEXP envExp) {
-    if(envExp == context.getGlobals().baseNamespaceEnv) {
+    if(envExp == context.getSession().baseNamespaceEnv) {
       return true;
     } else if(envExp instanceof Environment) {
       Environment env = (Environment)envExp;

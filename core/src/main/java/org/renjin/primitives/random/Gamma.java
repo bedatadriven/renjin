@@ -4,7 +4,7 @@
  */
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.primitives.MathExt;
 
 
@@ -44,7 +44,7 @@ public class Gamma {
   static double q0, b, si, c;/* no. 2 (step 4) */
 
 
-  public static double rgamma(Context.Globals context, double a, double scale) {
+  public static double rgamma(Session context, double a, double scale) {
 
     double e, p, q, r, t, u, v, w, x, ret_val;
 

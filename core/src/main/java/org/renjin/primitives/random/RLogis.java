@@ -21,11 +21,11 @@
 
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 
 public class RLogis {
 
-  public static double rlogis(Context.Globals context, double location, double scale) {
+  public static double rlogis(Session context, double location, double scale) {
     if (Double.isNaN(location) || Double.isInfinite(scale)) {
       return (Double.NaN);
     }

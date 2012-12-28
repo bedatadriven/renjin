@@ -61,7 +61,7 @@ public class TimeTest extends EvalTestCase {
     topLevelContext.init();
     
     StringWriter stringWriter = new StringWriter();
-    topLevelContext.getGlobals().setStdOut(new PrintWriter(stringWriter));
+    topLevelContext.getSession().setStdOut(new PrintWriter(stringWriter));
 
     eval("print(as.POSIXct('2009-07-01 00:00:00'))");
 

@@ -99,7 +99,7 @@ public class Interpreter implements Runnable {
         
         SEXP result = topLevelContext.evaluate(exp, global);
 
-        if(!topLevelContext.getGlobals().isInvisible()) {
+        if(!topLevelContext.getSession().isInvisible()) {
           topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));
           
         }

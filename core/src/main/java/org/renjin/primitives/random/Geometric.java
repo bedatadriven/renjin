@@ -20,13 +20,13 @@
  */
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.sexp.DoubleVector;
 
 
 public class Geometric {
 
-  public static double rgeom(Context.Globals context, double p) {
+  public static double rgeom(Session context, double p) {
     if (p <= 0 || p > 1) {
       return (Double.NaN);
     }

@@ -170,7 +170,7 @@ public class ArgumentTest extends EvalTestCase {
     eval( "f <- function( a = if(FALSE) {1 } ) { a }" );
 
     assertThat(evaluate( "f()"), equalTo( (SEXP) Null.INSTANCE )) ;
-    assertThat(topLevelContext.getGlobals().isInvisible(), equalTo(true));
+    assertThat(topLevelContext.getSession().isInvisible(), equalTo(true));
 
   }
 
@@ -181,7 +181,7 @@ public class ArgumentTest extends EvalTestCase {
     eval( "f <- function( a = if(FALSE) {1 } ) { a; a}" );
 
     eval( "f()");
-    assertThat(topLevelContext.getGlobals().isInvisible(), equalTo(false));
+    assertThat(topLevelContext.getSession().isInvisible(), equalTo(false));
   }
 
 

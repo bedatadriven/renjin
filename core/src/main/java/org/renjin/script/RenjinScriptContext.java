@@ -50,7 +50,7 @@ public class RenjinScriptContext implements ScriptContext{
 
   @Override
   public Writer getErrorWriter() {
-    return context.getGlobals().getConnectionTable().getStderr().getPrintWriter();
+    return context.getSession().getConnectionTable().getStderr().getPrintWriter();
   }
 
   @Override

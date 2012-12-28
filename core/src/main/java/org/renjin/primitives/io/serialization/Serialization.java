@@ -289,7 +289,7 @@ public class Serialization {
     int offset = key.getElementAsInt(0);
     int length = key.getElementAsInt(1);
 
-    RDatabase database = context.getGlobals().getPackageDatabaseCache().get(file, new Callable<RDatabase>() {
+    RDatabase database = context.getSession().getPackageDatabaseCache().get(file, new Callable<RDatabase>() {
       @Override
       public RDatabase call() throws Exception {
         return new RDatabase(context.resolveFile(file));

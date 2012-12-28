@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.ListVector;
 
@@ -99,8 +100,8 @@ public class VarArgParser {
       return methodContext.getContext();
     } else if(formal.getClazz().equals(Environment.class)) {
       return methodContext.getEnvironment();
-    } else if(formal.getClazz().equals(Context.Globals.class)) {
-      return methodContext.getContext().invoke("getGlobals");
+    } else if(formal.getClazz().equals(Session.class)) {
+      return methodContext.getContext().invoke("getSession");
     } else {
       throw new RuntimeException("Invalid contextual argument type: " + formal.getClazz());
     }

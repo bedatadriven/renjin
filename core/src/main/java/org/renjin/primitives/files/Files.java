@@ -26,6 +26,7 @@ import com.google.common.io.ByteStreams;
 import org.apache.commons.vfs2.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
@@ -427,13 +428,13 @@ public class Files {
    *
    * <p>
    * Renjin maintains its own internal pointer to the working directory which lives in
-   * {@link org.renjin.eval.Context.Globals}
+   * {@link org.renjin.eval.Session}
    *
    * @param context the current call Context
    * @return an absolute filename representing the current working directory
    */
   public static String getwd(@Current Context context) {
-    return context.getGlobals().workingDirectory.getName().getURI();
+    return context.getSession().workingDirectory.getName().getURI();
   }
   
   @Visible(false)
@@ -444,9 +445,9 @@ public class Files {
       throw new EvalException("cannot change working directory");
     }
    
-    String previous = context.getGlobals().workingDirectory.getName().getURI();
+    String previous = context.getSession().workingDirectory.getName().getURI();
     
-    context.getGlobals().workingDirectory = newWorkingDirectory;
+    context.getSession().workingDirectory = newWorkingDirectory;
     return previous;
   } 
 

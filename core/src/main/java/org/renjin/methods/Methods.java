@@ -52,14 +52,14 @@ public class Methods {
 
 
   public static SEXP R_initMethodDispatch(@Current Context context, SEXP environ) {
-    context.getGlobals().getSingleton(MethodDispatch.class)
+    context.getSession().getSingleton(MethodDispatch.class)
     .init(environ == Null.INSTANCE ? context.getGlobalEnvironment() : (Environment)environ);
     return environ;
   }
 
 
   public static boolean R_set_method_dispatch(@Current Context context, LogicalVector onOff) {
-    MethodDispatch methodContext = context.getGlobals().getSingleton(MethodDispatch.class);
+    MethodDispatch methodContext = context.getSession().getSingleton(MethodDispatch.class);
     boolean oldValue = methodContext.isEnabled();
     if(onOff.getElementAsLogical(0) == Logical.TRUE) {
       methodContext.setEnabled(true);
@@ -175,7 +175,7 @@ public class Methods {
   @Primitive(".cache_class")
   public static SEXP cacheClass(@Current Context context, String className) {
     return context
-        .getGlobals()
+        .getSession()
         .getSingleton(MethodDispatch.class)
         .getExtends(className);
   }
@@ -183,7 +183,7 @@ public class Methods {
   @Primitive(".cache_class")
   public static SEXP cacheClass(@Current Context context, String className, SEXP klass) {
     context
-    .getGlobals()
+    .getSession()
     .getSingleton(MethodDispatch.class)
     .putExtends(className, klass);  
     return klass;
@@ -279,7 +279,7 @@ public class Methods {
 
     prim_methods_t code = parseCode(code_string);
 
-    PrimitiveMethodTable table = context.getGlobals().getSingleton(PrimitiveMethodTable.class);
+    PrimitiveMethodTable table = context.getSession().getSingleton(PrimitiveMethodTable.class);
     PrimitiveMethodTable.Entry entry = table.get(op);
 
     entry.setMethods(code);
@@ -295,7 +295,7 @@ public class Methods {
   }
 
   public static SEXP R_set_prim_method(@Current Context context, SEXP fname, SEXP op, String code_string, SEXP fundef, SEXP mlist) {
-    PrimitiveMethodTable table = context.getGlobals().getSingleton(PrimitiveMethodTable.class);
+    PrimitiveMethodTable table = context.getSession().getSingleton(PrimitiveMethodTable.class);
 
     /* with a NULL op, turns all primitive matching off or on (used to avoid possible infinite
     recursion in methods computations*/
@@ -363,7 +363,7 @@ public class Methods {
       throw new EvalException("call to standardGeneric(\"%s\") apparently not from the body of that generic function", fname);
     }
 
-    return context.getGlobals().getSingleton(MethodDispatch.class)
+    return context.getSession().getSingleton(MethodDispatch.class)
     .standardGeneric(context, Symbol.get(fname), env, fdef);
     
   }
@@ -473,7 +473,7 @@ public class Methods {
 
   public static SEXP data_part(Context context, SEXP obj) {
     SEXP val = context.evaluate(FunctionCall.newCall(MethodDispatch.s_getDataPart, obj), 
-        context.getGlobals().getSingleton(MethodDispatch.class).getMethodsNamespace());
+        context.getSession().getSingleton(MethodDispatch.class).getMethodsNamespace());
 
     return val.setAttribute(Symbols.S4_BIT, Null.INSTANCE);
   }

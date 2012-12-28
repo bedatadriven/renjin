@@ -27,6 +27,7 @@ import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Options;
 import org.renjin.jvminterop.ClassFrame;
 import org.renjin.jvminterop.ObjectFrame;
 import org.renjin.jvminterop.converters.BooleanArrayConverter;
@@ -1214,7 +1215,8 @@ public class Types {
   @Primitive
   public static ListVector options(@Current Context context,
       @ArgumentList ListVector arguments) {
-    Context.Options options = context.getGlobals().options;
+    Options options = context.getSession().getSingleton(Options.class);
+    
     ListVector.NamedBuilder results = ListVector.newNamedBuilder();
 
     if (arguments.length() == 0) {

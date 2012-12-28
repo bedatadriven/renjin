@@ -1,13 +1,13 @@
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.primitives.MathExt;
 import org.renjin.sexp.DoubleVector;
 
 
 public class Binom {
 
-  public static double rbinom(Context.Globals context, double nin, double pp) {
+  public static double rbinom(Session context, double nin, double pp) {
 
     /* static */
     double c = 0, fm = 0, npq = 0, p1 = 0, p2 = 0, p3 = 0, p4 = 0, qn = 0;

@@ -44,33 +44,36 @@ import java.util.logging.Logger;
  * interpreters for each language and routes commands appropriately.
  *
  */
-public class LotREPLsApiImpl extends RemoteServiceServlet implements
-    LotREPLsApi {
+public class LotREPLsApiImpl extends RemoteServiceServlet implements LotREPLsApi {
   private static final String GLOBALS = "GLOBALS";
   private final Logger log = Logger.getLogger(LotREPLsApiImpl.class.getName());
+  private ServletConfig config;
 
-  private Context masterTopLevelContext;
 
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
 
+    this.config = config;
+
+  }
+
+  private Context createSession() {
     // The default VFS manager uses a Softref file cache that
     // is not allowed on AppEngine
-    masterTopLevelContext = AppEngineContextFactory.createTopLevelContext(config.getServletContext());
-    
+    Context topLevelContext = AppEngineContextFactory.createTopLevelContext(config.getServletContext());
+
     // disable creation of java objects for the moment
     // (otherwise any would could access the datastore and do something annoying with it)
     // figure out how to apply more narrow gain permissions later.
-    masterTopLevelContext.getGlobals().securityManager = new SecurityManager() {
+    topLevelContext.getSession().securityManager = new SecurityManager() {
 
-		@Override
-		public boolean allowNewInstance(Class clazz) {
-			return false;
-		}
-    	
+      @Override
+      public boolean allowNewInstance(Class clazz) {
+        return false;
+      }
     };
-
+    return topLevelContext;
   }
 
   public String eval(String script)
@@ -81,10 +84,10 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
       return "";
     }
 
-    Context context = masterTopLevelContext.fork();
+    Context context = createSession();
     StringWriter writer = new StringWriter();
     PrintWriter stdOutWriter = new PrintWriter(writer);
-	  context.getGlobals().setStdOut(stdOutWriter);
+    context.getSession().setStdOut(stdOutWriter);
     restoreGlobals(context);
     SEXP result;
     try {
@@ -95,14 +98,14 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
     }
     saveGlobals(context);
 
-    if(!context.getGlobals().isInvisible()) {
-    	try {
-    	context.evaluate(
-    			FunctionCall.newCall(Symbol.get("print"), result));
-    	} catch(Exception e) {
-    		throw new InterpreterException("Ooops - exception while printing result: " + 
-    				e.getMessage());
-    	}
+    if(!context.getSession().isInvisible()) {
+      try {
+        context.evaluate(
+            FunctionCall.newCall(Symbol.get("print"), result));
+      } catch(Exception e) {
+        throw new InterpreterException("Ooops - exception while printing result: " + 
+            e.getMessage());
+      }
     }
 
     stdOutWriter.flush();
@@ -118,7 +121,7 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements
       globals = (byte[]) session.getAttribute(GLOBALS);
       if (globals != null) {
 
-    	RDataReader reader = new RDataReader(context,
+        RDataReader reader = new RDataReader(context,
             new ByteArrayInputStream(globals));
         PairList list = (PairList) reader.readFile();
         for(PairList.Node node : list.nodes()) {

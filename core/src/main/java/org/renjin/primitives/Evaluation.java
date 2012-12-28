@@ -308,7 +308,7 @@ public class Evaluation {
     SEXP result = eval(context, expression, environment, enclosing);
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     list.add("value", result);
-    list.add("visible", context.getGlobals().isInvisible());
+    list.add("visible", context.getSession().isInvisible());
     return list.build();
   }
 

@@ -8,6 +8,7 @@ package org.renjin.primitives.random;
 import org.apache.commons.math.random.MersenneTwister;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.*;
@@ -22,7 +23,7 @@ public class RNG {
   DoubleVector seeds;
   int randomseed = 0;
   static double i2_32m1 = 2.328306437080797e-10;/* = 1/(2^32 - 1) */
-  public Context.Globals context;
+  public Session context;
   
   
   RNGTAB[] RNG_Table = new RNGTAB[]{
@@ -34,13 +35,13 @@ public class RNG {
     new RNGTAB(RNGtype.USER_UNIF, N01type.BUGGY_KINDERMAN_RAMAGE, "User-supplied"),
     new RNGTAB(RNGtype.KNUTH_TAOCP2, N01type.BUGGY_KINDERMAN_RAMAGE, "Knuth-TAOCP-2002")};
 
-  public RNG(Context.Globals globals){
+  public RNG(Session globals){
 	  this.context = globals;
   }
   
   @Primitive("RNGkind")
   public static IntVector RNGkind(@Current Context context, int kind, int normalkind) {
-	RNG rng = context.getGlobals().rng;  
+	RNG rng = context.getSession().rng;  
     try {
       rng.RNG_kind = RNGtype.values()[kind];
     } catch (Exception e) {
@@ -64,7 +65,7 @@ public class RNG {
    */
   @Primitive("set.seed")
   public static void set_seed(@Current Context context, int seed, int kind, int normalkind) {
-    RNG rng = context.getGlobals().rng;
+    RNG rng = context.getSession().rng;
 	rng.randomseed = seed;
     RNGkind(context, kind, normalkind);
     switch (rng.RNG_kind) {
@@ -97,7 +98,7 @@ public class RNG {
 
   @Primitive("runif")
   public static DoubleVector runif(@Current Context context, int n, double a, double b) {
-	RNG rng = context.getGlobals().rng;
+	RNG rng = context.getSession().rng;
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
       vb.add(a + rng.unif_rand() * (b - a));
@@ -109,7 +110,7 @@ public class RNG {
   public static DoubleVector rnorm(@Current Context context, int n, double mean, double sd) {
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
-      vb.add(Normal.rnorm(context.getGlobals(), mean, sd));
+      vb.add(Normal.rnorm(context.getSession(), mean, sd));
     }
     return (vb.build());
   }
@@ -118,7 +119,7 @@ public class RNG {
   public static DoubleVector rgamma(@Current Context context, int n, double shape, double scale) {
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
-      vb.add(Gamma.rgamma(context.getGlobals(), shape, scale));
+      vb.add(Gamma.rgamma(context.getSession(), shape, scale));
     }
     return (vb.build());
   }
@@ -127,7 +128,7 @@ public class RNG {
   public static DoubleVector rchisq(@Current Context context, int n, double df) {
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
-      vb.add(ChiSquare.rchisq(context.getGlobals(), df));
+      vb.add(ChiSquare.rchisq(context.getSession(), df));
     }
     return (vb.build());
   }
@@ -136,7 +137,7 @@ public class RNG {
   public static DoubleVector rnchisq(@Current Context context, int n, double df, double ncp) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(ChiSquare.rnchisq(context.getGlobals(), df, ncp));
+      vb.add(ChiSquare.rnchisq(context.getSession(), df, ncp));
     }
     return (vb.build());
   }
@@ -145,7 +146,7 @@ public class RNG {
   public static DoubleVector rexp(@Current Context context, int n, double invrate) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Exponantial.rexp(context.getGlobals(), invrate));
+      vb.add(Exponantial.rexp(context.getSession(), invrate));
     }
     return (vb.build());
   }
@@ -154,7 +155,7 @@ public class RNG {
   public static DoubleVector rpois(@Current Context context, int n, double mu) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Poisson.rpois(context.getGlobals(), mu));
+      vb.add(Poisson.rpois(context.getSession(), mu));
     }
     return (vb.build());
   }
@@ -163,7 +164,7 @@ public class RNG {
   public static DoubleVector rsignrank(@Current Context context, int nn, double n) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < nn; i++) {
-      vb.add(SignRank.rsignrank(context.getGlobals(), n));
+      vb.add(SignRank.rsignrank(context.getSession(), n));
     }
     return (vb.build());
   }
@@ -172,7 +173,7 @@ public class RNG {
   public static DoubleVector rwilcox(@Current Context context, int nn, double m, double n) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < nn; i++) {
-      vb.add(Wilcox.rwilcox(context.getGlobals(), m, n));
+      vb.add(Wilcox.rwilcox(context.getSession(), m, n));
     }
     return (vb.build());
   }
@@ -181,7 +182,7 @@ public class RNG {
   public static DoubleVector rgeom(@Current Context context, int n, double p) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Geometric.rgeom(context.getGlobals(), p));
+      vb.add(Geometric.rgeom(context.getSession(), p));
     }
     return (vb.build());
   }
@@ -190,7 +191,7 @@ public class RNG {
   public static DoubleVector rt(@Current Context context, int n, double df) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(StudentsT.rt(context.getGlobals(), df));
+      vb.add(StudentsT.rt(context.getSession(), df));
     }
     return (vb.build());
   }
@@ -199,7 +200,7 @@ public class RNG {
   public static DoubleVector rcauchy(@Current Context context, int n, double location, double scale) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Cauchy.rcauchy(context.getGlobals(), location, scale));
+      vb.add(Cauchy.rcauchy(context.getSession(), location, scale));
     }
     return (vb.build());
   }
@@ -208,7 +209,7 @@ public class RNG {
   public static DoubleVector rlnorm(@Current Context context, int n, double meanlog, double sdlog) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(LNorm.rlnorm(context.getGlobals(), meanlog, sdlog));
+      vb.add(LNorm.rlnorm(context.getSession(), meanlog, sdlog));
     }
     return (vb.build());
   }
@@ -217,7 +218,7 @@ public class RNG {
   public static DoubleVector rlogis(@Current Context context, int n, double location, double scale) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(RLogis.rlogis(context.getGlobals(), location, scale));
+      vb.add(RLogis.rlogis(context.getSession(), location, scale));
     }
     return (vb.build());
   }
@@ -226,7 +227,7 @@ public class RNG {
   public static DoubleVector rweibull(@Current Context context, int n, double shape, double scale) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Weibull.rweibull(context.getGlobals(), shape, scale));
+      vb.add(Weibull.rweibull(context.getSession(), shape, scale));
     }
     return (vb.build());
   }
@@ -235,7 +236,7 @@ public class RNG {
   public static DoubleVector rnbinom(@Current Context context, int n, double size, double prob) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(NegativeBinom.rnbinom(context.getGlobals(), size, prob));
+      vb.add(NegativeBinom.rnbinom(context.getSession(), size, prob));
     }
     return (vb.build());
   }
@@ -244,7 +245,7 @@ public class RNG {
   public static DoubleVector rnbinom_mu(@Current Context context, int n, double size, double mu) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(NegativeBinom.rnbinom_mu(context.getGlobals(), size, mu));
+      vb.add(NegativeBinom.rnbinom_mu(context.getSession(), size, mu));
     }
     return (vb.build());
   }
@@ -253,7 +254,7 @@ public class RNG {
   public static DoubleVector rbinom(@Current Context context, int n, double size, double prob) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Binom.rbinom(context.getGlobals(), size, prob));
+      vb.add(Binom.rbinom(context.getSession(), size, prob));
     }
     return (vb.build());
   }
@@ -263,7 +264,7 @@ public class RNG {
   public static DoubleVector rf(@Current Context context, int n, double df1, double df2) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(F.rf(context.getGlobals(), df1, df2));
+      vb.add(F.rf(context.getSession(), df1, df2));
     }
     return (vb.build());
   }
@@ -272,7 +273,7 @@ public class RNG {
   public static DoubleVector rbeta(@Current Context context, int n, double shape1, double shape2) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
-      vb.add(Beta.rbeta(context.getGlobals(), shape1, shape2));
+      vb.add(Beta.rbeta(context.getSession(), shape1, shape2));
     }
     return (vb.build());
   }
@@ -281,7 +282,7 @@ public class RNG {
   public static DoubleVector rhyper(@Current Context context, int nn, double m, double n, double k){
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < nn; i++) {
-      vb.add(HyperGeometric.Random_hyper_geometric.rhyper(context.getGlobals(), m, n, k));
+      vb.add(HyperGeometric.Random_hyper_geometric.rhyper(context.getSession(), m, n, k));
     }
     return (vb.build());
   }
@@ -291,7 +292,7 @@ public class RNG {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     int[] RN = new int[prob.length()];
     for (int i=0;i<n;i++){
-    	Multinomial.rmultinom(context.getGlobals(), size, prob.toDoubleArray(), prob.length(), RN);
+    	Multinomial.rmultinom(context.getSession(), size, prob.toDoubleArray(), prob.length(), RN);
     	for (int j = 0; j < prob.length(); j++) {
     		vb.add(RN[j]);
     	}

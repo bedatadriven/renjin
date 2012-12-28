@@ -662,7 +662,7 @@ public class RDataReader {
 
     @Override
     public SEXP getBaseEnvironment() {
-      return context.getGlobals().baseEnvironment;
+      return context.getSession().baseEnvironment;
     }
 
     @Override
@@ -677,7 +677,7 @@ public class RDataReader {
 
     @Override
     public SEXP getBaseNamespaceEnvironment() {
-      return context.getGlobals().baseNamespaceEnv;
+      return context.getSession().baseNamespaceEnv;
     }
 
     @Override

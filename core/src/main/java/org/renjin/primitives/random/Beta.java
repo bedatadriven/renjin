@@ -21,7 +21,7 @@
 package org.renjin.primitives.random;
 
 import org.apache.commons.math.special.Gamma;
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.sexp.DoubleVector;
 
@@ -44,7 +44,7 @@ public class Beta {
   } else				\
   w = DBL_MAX
    */
-  public static double rbeta(Context.Globals context, double aa, double bb) {
+  public static double rbeta(Session context, double aa, double bb) {
     double a, b, alpha;
     double r, s, t, u1, u2, v, w, y, z;
 

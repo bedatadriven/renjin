@@ -20,7 +20,7 @@
  */
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 
 
 public class Normal {
@@ -79,7 +79,7 @@ public class Normal {
   static N01type N01_kind = N01type.INVERSION;
 
   
-  public static double rnorm(Context.Globals context, double mu, double sigma) {
+  public static double rnorm(Session context, double mu, double sigma) {
     if ((Double.NaN == mu) || sigma < 0.) {
       return (Double.NaN);
     }
@@ -91,7 +91,7 @@ public class Normal {
   }
 
   
-  public static double norm_rand(Context.Globals context) {
+  public static double norm_rand(Session context) {
     double s, u1, w, y, u2, u3, aa, tt, theta, R;
     int i;
 

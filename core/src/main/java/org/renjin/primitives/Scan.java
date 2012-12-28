@@ -90,7 +90,7 @@ public class Scan {
     if(file instanceof StringVector) {
       String fileName = ((StringVector) file).getElementAsString(0);
       if(fileName.length() == 0) {
-        lineReader = context.getGlobals().getConnectionTable().getStdin().getReader();
+        lineReader = context.getSession().getConnectionTable().getStdin().getReader();
       } else {
         SEXP fileConn = Connections.file(context,fileName,"o",true,encoding,false);
         lineReader = Connections.getConnection(context, fileConn).getReader();

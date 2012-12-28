@@ -20,11 +20,11 @@
  */
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 
 public class Weibull {
 
-  public static double rweibull(Context.Globals context, double shape, double scale) {
+  public static double rweibull(Session context, double shape, double scale) {
     if (Double.isInfinite(shape) || Double.isInfinite(scale) || shape <= 0. || scale <= 0.) {
       if (scale == 0.) {
         return 0.;

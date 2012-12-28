@@ -277,7 +277,7 @@ public abstract class EvalTestCase {
   
   protected SEXP openResourceAsConn(String resourceName) {
     ResourceConnection conn = new ResourceConnection(getClass(), resourceName);
-    IntVector connSexp = topLevelContext.getGlobals().getConnectionTable().newConnection(conn);
+    IntVector connSexp = topLevelContext.getSession().getConnectionTable().newConnection(conn);
     return connSexp;
   }
 }

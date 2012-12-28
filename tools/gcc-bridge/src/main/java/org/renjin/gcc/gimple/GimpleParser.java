@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
 import org.renjin.gcc.CallingConvention;
@@ -225,7 +226,8 @@ public class GimpleParser {
     return new Goto(target);
   }
 
-  private GimpleExpr parseExpr(String text) {
+  @VisibleForTesting
+  GimpleExpr parseExpr(String text) {
     if(text.equals("NULL")) {
       return GimpleNull.INSTANCE;
     } else if(text.startsWith("&\"") && text.endsWith("\"[0]")) {
@@ -348,14 +350,11 @@ public class GimpleParser {
     GimpleExpr indexExpr = parseExpr(index);
 
     String name = stripEnclosingParens(cleanText.substring(0, bracket));
-    if(name.startsWith("*")) {
-      throw new UnsupportedOperationException();
-    }
-    GimpleExpr var = parseName(name);
-    if(!(var instanceof GimpleVar)) {
-      throw new UnsupportedOperationException(var.toString() + " [" + var.getClass().getSimpleName() + "]");
-    }
-    return new GimpleArrayRef((GimpleVar)var, indexExpr);
+    GimpleExpr var = parseExpr(name);
+//    if(!(var instanceof GimpleVar)) {
+//      throw new UnsupportedOperationException(var.toString() + " [" + var.getClass().getSimpleName() + "]");
+//    }
+    return new GimpleArrayRef(var, indexExpr);
   }
 
   private String stripEnclosingParens(String s) {
@@ -493,7 +492,8 @@ public class GimpleParser {
       return PrimitiveType.FLOAT_TYPE;
     } else if(typeDecl.equals("int") ||
             typeDecl.equals("integer(kind=4)") ||
-            typeDecl.equals("character(kind=4)")) {
+            typeDecl.equals("character(kind=4)") ||
+            typeDecl.equals("<unnamed-unsigned:32>")) {
       return PrimitiveType.INT_TYPE;
 
     } else if(typeDecl.equals("integer(kind=8)")) {

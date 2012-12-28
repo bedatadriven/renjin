@@ -51,7 +51,7 @@ public class GzFileConnectionTest extends EvalTestCase {
   public void multipleReads() throws IOException {
 
     FileObject file = VFS.getManager().resolveFile(getClass().getResource("test2.txt").getFile());
-    SEXP conn = topLevelContext.getGlobals().getConnectionTable().newConnection(new GzFileConnection(file));
+    SEXP conn = topLevelContext.getSession().getConnectionTable().newConnection(new GzFileConnection(file));
 
     assertThat( Connections.readChar(topLevelContext, conn, 9, false), equalTo("The quick"));
     assertThat( Connections.readChar(topLevelContext, conn, 6, false), equalTo(" brown"));

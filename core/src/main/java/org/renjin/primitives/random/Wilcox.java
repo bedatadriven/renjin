@@ -1,6 +1,6 @@
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.primitives.MathExt;
 
 
@@ -10,7 +10,7 @@ public class Wilcox {
   private static int allocated_m, allocated_n;
   private final static int WILCOX_MAX = 50;
 
-  public static double rwilcox(Context.Globals context, double m, double n) {
+  public static double rwilcox(Session context, double m, double n) {
     int i, j, k;
     int[] x;
     double r;

@@ -24,7 +24,7 @@ package org.renjin.primitives.io.serialization;
 import com.google.common.collect.Maps;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
-import org.renjin.primitives.Namespaces;
+import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.sexp.*;
 
 import soot.RefType;
@@ -368,7 +368,7 @@ public class RDataWriter {
   }
 
   private void writeNamespace(Environment ns) throws IOException {
-    if(ns == context.getGlobals().namespaceRegistry.getVariable(Symbol.get("base"))) {
+    if(ns == context.getSession().namespaceRegistry.getVariable(Symbol.get("base"))) {
       out.writeInt(SerializationFormat.BASENAMESPACE_SXP);
     } else {
       addRef(ns);

@@ -269,13 +269,13 @@ public class Connections {
       throw new EvalException("'con' is not a connection");
     }
     int connIndex = ((Vector)conn).getElementAsInt(0);
-    return context.getGlobals().getConnectionTable().getConnection(connIndex);
+    return context.getSession().getConnectionTable().getConnection(connIndex);
   }
 
   private static IntVector newConnection(final Context context, String open, Connection conn) throws IOException, FileSystemException {
     if(!Strings.isNullOrEmpty(open)) {
       conn.open(new OpenSpec(open));
     }
-    return context.getGlobals().getConnectionTable().newConnection(conn);
+    return context.getSession().getConnectionTable().newConnection(conn);
   }
 }

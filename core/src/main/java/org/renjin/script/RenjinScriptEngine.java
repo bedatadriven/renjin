@@ -3,6 +3,7 @@ package org.renjin.script;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.jvminterop.converters.Converters;
 import org.renjin.jvminterop.converters.RuntimeConverter;
 import org.renjin.parser.RParser;
@@ -36,8 +37,8 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     this.topLevelContext = context;
   }
 
-  public Context.Globals getApartment() {
-    return topLevelContext.getGlobals();
+  public Session getApartment() {
+    return topLevelContext.getSession();
   }
   
   public Context getTopLevelContext() {

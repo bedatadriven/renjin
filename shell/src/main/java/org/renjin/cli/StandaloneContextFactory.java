@@ -30,7 +30,7 @@ public class StandaloneContextFactory {
         home,
         FileSystemUtils.workingDirectory(manager));
     
-    topLevel.getGlobals().setLibraryPaths(computeLibraryPaths(home));
+    topLevel.getSession().setLibraryPaths(computeLibraryPaths(home));
     return topLevel;
   }
   

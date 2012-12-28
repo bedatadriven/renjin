@@ -196,13 +196,13 @@ public class Conditions {
   
   @Primitive
   public static String geterrmessage(@Current Context context) {
-    ErrorMessage errorMessage = context.getGlobals().getSingleton(ErrorMessage.class);
+    ErrorMessage errorMessage = context.getSession().getSingleton(ErrorMessage.class);
     return errorMessage.getValue();
   }
   
   @Primitive
   public static void seterrmessage(@Current Context context, String message) {
-    ErrorMessage errorMessage = context.getGlobals().getSingleton(ErrorMessage.class);
+    ErrorMessage errorMessage = context.getSession().getSingleton(ErrorMessage.class);
     errorMessage.setValue(message);
   }
 }

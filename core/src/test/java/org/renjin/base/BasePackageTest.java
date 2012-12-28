@@ -56,13 +56,13 @@ public class BasePackageTest extends EvalTestCase {
     assertThat( eval( "x" ) , equalTo( c(42) ));
 
     // make sure that closures are enclosed by the base namspace
-    Closure closure = (Closure)getValue( topLevelContext.getGlobals().baseEnvironment, "backsolve" );
-    assertThat( closure.getEnclosingEnvironment(), equalTo(topLevelContext.getGlobals().baseNamespaceEnv ));
+    Closure closure = (Closure)getValue( topLevelContext.getSession().baseEnvironment, "backsolve" );
+    assertThat( closure.getEnclosingEnvironment(), equalTo(topLevelContext.getSession().baseNamespaceEnv ));
 
 
     // make sure that base scripts are populated in both the base environment and the base namespace
-    assertThat( getValue( topLevelContext.getGlobals().baseEnvironment, "letters" ).length(), equalTo( 26 ));
-  //  assertThat( getValue( topLevelContext.getGlobals().baseNamespaceEnv, "letters" ).length(), equalTo( 26 ));
+    assertThat( getValue( topLevelContext.getSession().baseEnvironment, "letters" ).length(), equalTo( 26 ));
+  //  assertThat( getValue( topLevelContext.getSession().baseNamespaceEnv, "letters" ).length(), equalTo( 26 ));
 
   }
 
@@ -257,7 +257,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
     
     StringWriter stringWriter = new StringWriter();
-    topLevelContext.getGlobals().setStdOut(new PrintWriter(stringWriter));
+    topLevelContext.getSession().setStdOut(new PrintWriter(stringWriter));
     
     eval(" gender <- factor(c('F','F','F','F', 'M','M','M'))");
     eval(" print(gender) ");
@@ -291,17 +291,6 @@ public class BasePackageTest extends EvalTestCase {
     
     eval(" x<-list() ");
     assertThat(eval("sapply(attr(~1,'vars'), deparse, width.cutoff = 500)[-1L]"), equalTo(list()));
-  }
-
-  @Test
-  public void fork() throws IOException {
-    assumingBasePackagesLoad();
-
-    Context context1 = topLevelContext.fork();
-    context1.evaluate( FunctionCall.newCall(Symbol.get("search")));
-
-    Context context2 = topLevelContext.fork();
-
   }
 
   @Test @Ignore("not working yet")

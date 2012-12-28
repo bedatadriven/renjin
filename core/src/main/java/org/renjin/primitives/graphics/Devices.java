@@ -1,7 +1,9 @@
 package org.renjin.primitives.graphics;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.Options;
 import org.renjin.graphics.GraphicsDevice;
+import org.renjin.graphics.GraphicsDevices;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.sexp.SEXP;
 
@@ -16,8 +18,8 @@ public class Devices {
     /* If there are no active devices
      * check the options for a "default device".
      * If there is one, start it up. */
-    if (context.getGlobals().getGraphicsDevices().isEmpty()) {
-      SEXP defdev = context.getGlobals().getOption("device");
+    if (context.getSession().getSingleton(GraphicsDevices.class).isEmpty()) {
+      SEXP defdev = context.getSession().getSingleton(Options.class).get("device");
       if (isString(defdev) && length(defdev) > 0) {
         SEXP devName = install(CHAR(STRING_ELT(defdev, 0)));
         /*  Not clear where this should be evaluated, since
@@ -35,7 +37,7 @@ public class Devices {
              The option is unlikely to be set if it is not loaded,
              as the default setting is in grDevices:::.onLoad.
           */
-          SEXP ns = findVarInFrame(context.getGlobals().namespaceRegistry,
+          SEXP ns = findVarInFrame(context.getSession().namespaceRegistry,
                   install("grDevices"));
           if(ns != R_UnboundValue &&
                   findVar(devName, ns) != R_UnboundValue) {
@@ -52,7 +54,7 @@ public class Devices {
       } else
         error(_("no active or default device"));
     }
-    return context.getGlobals().getGraphicsDevices().getActive();
+    return context.getSession().getSingleton(GraphicsDevices.class).getActive();
   }
 
 }

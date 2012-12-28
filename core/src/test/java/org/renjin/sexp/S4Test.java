@@ -16,9 +16,10 @@ public class S4Test extends EvalTestCase {
   @Test
   public void firstTest() {
     eval("library(methods)");
-    eval("print(search())");
     eval("setClass('BMI', representation(weight='numeric', size='numeric'))");
-   
+    eval("setMethod('show', 'BMI', function(object) { cat('BMI=',object@weight/(object@size^2),' \n ')})");
+    eval("(myBMI <- new('BMI',weight=85,size=1.84))");
+    eval("show(myBMI)");
     
   }
 }

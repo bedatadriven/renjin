@@ -4,8 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
-import org.renjin.eval.Context.Globals;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategies;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategy;
 import org.renjin.sexp.Environment;
@@ -111,8 +111,8 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
           argumentMap.put(argument, context);
         } else if(argument.getClazz().equals(Environment.class)){
           argumentMap.put(argument, environment);
-        } else if(argument.getClazz().equals(Globals.class)) {
-          argumentMap.put(argument, context.invoke("getGlobals"));
+        } else if(argument.getClazz().equals(Session.class)) {
+          argumentMap.put(argument, context.invoke("getSession"));
         } else {
           throw new UnsupportedOperationException(argument.getClazz().getName());
         }

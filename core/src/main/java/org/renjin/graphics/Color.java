@@ -86,7 +86,7 @@ public class Color {
   }
 
   public static Color fromExp(Context context, GraphicsDevice device, Vector colorVector, int elementIndex) {
-    return fromExp(context.getGlobals().getColorPalette(), device.getParameters().getBackground(), colorVector,
+    return fromExp(context.getSession().getColorPalette(), device.getParameters().getBackground(), colorVector,
             elementIndex % colorVector.length());  
   }
 

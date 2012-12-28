@@ -4,11 +4,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.CallingConvention;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.List;
 
 public class GimpleParserTest {
@@ -35,7 +37,14 @@ public class GimpleParserTest {
 
 		for(GimpleFunction fn : functions) {
 		}
-
+  }
+  
+  @Test
+  @Ignore("wip")
+  public void pointerPrecedence() throws IOException {
+    GimpleParser parser = new GimpleParser(new CallingConvention());
+    GimpleExpr expr = parser.parseExpr("&(*x(D))[y]");
+    
   }
 
   private List<GimpleFunction> parse(String resourceName) throws IOException {

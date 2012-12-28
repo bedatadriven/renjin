@@ -21,7 +21,7 @@
 package org.renjin.primitives.random;
 
 import org.apache.commons.math.special.Gamma;
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.sexp.DoubleVector;
 
 public class Poisson {
@@ -58,7 +58,7 @@ public class Poisson {
     return ((y >= 0) ? Math.abs(x) : Math.abs(x));
   }
 
-  public static double rpois(Context.Globals context, double mu) {
+  public static double rpois(Session context, double mu) {
 
     /* Local Vars  [initialize some for -Wall]: */
     double del, difmuk = 0., E = 0., fk = 0., fx, fy, g, px, py, t, u = 0., v, x;

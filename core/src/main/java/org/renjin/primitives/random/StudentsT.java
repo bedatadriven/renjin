@@ -1,7 +1,7 @@
 package org.renjin.primitives.random;
 
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.util.CDefines;
 
@@ -19,7 +19,7 @@ public class StudentsT {
    * return Normal.norm_rand() / Math.sqrt(ChiSquare.rchisq(df) / df);
    * }
    */
-  public static double rt(Context.Globals context, double df) {
+  public static double rt(Session context, double df) {
     if (Double.isNaN(df) || df <= 0.0) {
       return (Double.NaN);
     }

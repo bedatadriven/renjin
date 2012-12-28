@@ -22,6 +22,7 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.Options;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.Environment;
@@ -50,18 +51,18 @@ public class Warning {
     if(call || !immediate) {
       emitWarning(context, Contexts.sysCall(context, 1), immediate, message);
     } else {
-      context.getGlobals().getStdOut().println("Warning message:");
-      context.getGlobals().getStdOut().println(message);
+      context.getSession().getStdOut().println("Warning message:");
+      context.getSession().getStdOut().println(message);
     }
   }
 
   private static void emitWarning(Context context, FunctionCall call,
       boolean immediate, String message)  {
-    int warnMode = context.getGlobals().options.getInt("warn", 0);
+    int warnMode = context.getSession().getSingleton(Options.class).getInt("warn", 0);
     if(warnMode == 1 || (warnMode <= 0 && immediate)) {
       try {
-        context.getGlobals().getStdOut().println("Warning in " + call.toString() + " :");
-        context.getGlobals().getStdOut().println("  " + message);
+        context.getSession().getStdOut().println("Warning in " + call.toString() + " :");
+        context.getSession().getStdOut().println("  " + message);
       } catch(IOException e) {
         
       }
@@ -82,7 +83,7 @@ public class Warning {
   
   @Primitive
   public static void printDeferredWarnings(@Current Context context) {
-    context.getGlobals().getConnectionTable().getStderr().getPrintWriter().println("In addition: (TODO)");
+    context.getSession().getConnectionTable().getStderr().getPrintWriter().println("In addition: (TODO)");
   }
   
 }

@@ -43,7 +43,7 @@ public class Jvmi {
       throw new EvalException("Cannot find class '%s'", className);
     }
     
-    if(!context.getGlobals().securityManager.allowNewInstance(clazz)) {
+    if(!context.getSession().securityManager.allowNewInstance(clazz)) {
       throw new EvalException("Permission to create a new instance of class '%s' has been denied by the security manager",
           className);
     }

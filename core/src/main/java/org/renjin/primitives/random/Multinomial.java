@@ -1,13 +1,13 @@
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 
 
 public class Multinomial {
 
-  public static void rmultinom(Context.Globals context, int n, double[] prob, int K, int[] rN) /* `Return' vector  rN[1:K] {K := length(prob)}
+  public static void rmultinom(Session context, int n, double[] prob, int K, int[] rN) /* `Return' vector  rN[1:K] {K := length(prob)}
    *  where rN[j] ~ Bin(n, prob[j]) ,  sum_j rN[j] == n,  sum_j prob[j] == 1,
    */ {
     int k;

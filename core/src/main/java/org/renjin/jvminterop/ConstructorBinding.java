@@ -27,6 +27,7 @@ public class ConstructorBinding {
         this.overloads.add(overload);
       }
     }
+    AbstractOverload.sortOverloads(this.overloads);
   }
   
   public boolean isEmpty() {

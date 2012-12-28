@@ -1,6 +1,6 @@
 package org.renjin.primitives.random;
 
-import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.sexp.DoubleVector;
 
 
@@ -54,7 +54,7 @@ public class HyperGeometric {
     static double a, d, s, w;
     static double tn, xl, xr, kl, kr, lamdl, lamdr, p1, p2, p3;
 
-    public static double rhyper(Context.Globals context, double nn1in, double nn2in, double kkin) {
+    public static double rhyper(Session context, double nn1in, double nn2in, double kkin) {
 
 
       /* These should become `thread_local globals' : */
@@ -190,7 +190,7 @@ public class HyperGeometric {
       return ix;
     }
 
-    public static void L10(Context.Globals context) {
+    public static void L10(Session context) {
       //L10:
       p = w;
       ix = minjx;
@@ -199,7 +199,7 @@ public class HyperGeometric {
       //??????????????*
     }
 
-    public static void L20(Context.Globals context) {
+    public static void L20(Session context) {
       if (u > p) {
         u -= p;
         p *= (n1 - ix) * (k - ix);
@@ -212,7 +212,7 @@ public class HyperGeometric {
       }
     }
 
-    public static void L30(Context.Globals context) {
+    public static void L30(Session context) {
       u = context.rng.unif_rand() * p3;
       v = context.rng.unif_rand();
       if (u < p1) { /* rectangular region */

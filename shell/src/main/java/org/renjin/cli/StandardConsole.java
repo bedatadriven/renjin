@@ -86,8 +86,8 @@ public class StandardConsole implements Console{
 
     StandaloneContextFactory factory = new StandaloneContextFactory();
     Context topLevelContext = factory.create();
-    topLevelContext.getGlobals().setStdOut(new PrintWriter(console.getOut()));
-    topLevelContext.getGlobals().setSessionController(new CliSessionController(console));
+    topLevelContext.getSession().setStdOut(new PrintWriter(console.getOut()));
+    topLevelContext.getSession().setSessionController(new CliSessionController(console));
 
     Interpreter interpreter = new Interpreter( console, topLevelContext );
     new Thread ( interpreter ).start();     

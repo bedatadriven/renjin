@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.ir.tac.IRBody;
@@ -57,6 +58,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
   }
   
   @Test
+  @Ignore("wip")
   public void multipleAssigns() {
     evalIR("burt <- .Internal(rep.int(0, 29*29)) ; " +
     		   "dim(burt) <- c(29,29); " +

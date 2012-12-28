@@ -4,6 +4,7 @@ package org.renjin.primitives.graphics;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.graphics.GraphicsDevice;
+import org.renjin.graphics.GraphicsDevices;
 import org.renjin.graphics.geom.Point;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Recycle;
@@ -29,7 +30,7 @@ public class Graphics {
   }
  
   private static Point grConvert(Context context, Point point, int from, int to) {
-    GraphicsDevice active = context.getGlobals().getGraphicsDevices().getActive();
+    GraphicsDevice active = context.getSession().getSingleton(GraphicsDevices.class).getActive();
     Point device = toDeviceCoordinates(active, point, from);
     return fromDeviceCoordinates(active, device, to);
   }

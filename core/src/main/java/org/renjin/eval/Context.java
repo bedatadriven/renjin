@@ -31,7 +31,9 @@ import java.util.Map;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
+import org.renjin.base.BaseFrame;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.ExpressionVector;
@@ -415,14 +417,6 @@ public class Context {
     }
   }
 
-  public SEXP findNamespace(Symbol name) {
-    SEXP value =  session.namespaceRegistry.getVariable(name);
-    if(value == Symbol.UNBOUND_VALUE) {
-      return Null.INSTANCE;
-    } else {
-      return value;
-    }
-  }
 
   /**
    * Sets a function to handle a specific class of condition.
@@ -452,11 +446,13 @@ public class Context {
    *
    */
   public void init() throws IOException {
-    evalBaseResource("/org/renjin/library/base/R/base");
-    evalBaseResource("/org/renjin/library/base/R/Rprofile");
+    BaseFrame baseFrame = (BaseFrame) session.baseEnvironment.getFrame();
+    baseFrame.load(this);
     
-    // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
-    evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
+//    evalBaseResource("/org/renjin/library/base/R/Rprofile");
+//    
+//    // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
+//    evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
   }
 
   protected void evalBaseResource(String resourceName) throws IOException {
@@ -487,5 +483,9 @@ public class Context {
 
   public Environment getBaseEnvironment() {
     return getGlobalEnvironment().getBaseEnvironment();
+  }
+
+  public NamespaceRegistry getNamespaceRegistry() {
+    return session.getNamespaceRegistry();
   }
 }

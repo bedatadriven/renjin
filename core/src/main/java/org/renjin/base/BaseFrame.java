@@ -21,14 +21,28 @@
 
 package org.renjin.base;
 
-import com.google.common.collect.Sets;
-import org.renjin.eval.Context;
-import org.renjin.primitives.Primitives;
-import org.renjin.sexp.*;
-import org.renjin.util.FileSystemUtils;
-
+import java.io.IOException;
+import java.net.URL;
 import java.util.IdentityHashMap;
 import java.util.Set;
+
+import org.renjin.eval.Context;
+import org.renjin.gcc.runtime.Builtins;
+import org.renjin.packaging.LazyLoadFrame;
+import org.renjin.primitives.Primitives;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Frame;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.util.FileSystemUtils;
+
+import com.google.common.collect.Sets;
+import com.google.common.io.Resources;
 
 /**
  *  The {@code Frame} that provides the primitive functions for the
@@ -42,7 +56,7 @@ import java.util.Set;
 public class BaseFrame implements Frame {
 
   private final IdentityHashMap<Symbol, SEXP> loaded = new IdentityHashMap<Symbol, SEXP>(1100);
-
+  
   @Override
   public Set<Symbol> getSymbols() {
     return Sets.union(Primitives.getBuiltinSymbols(), loaded.keySet());
@@ -97,13 +111,13 @@ public class BaseFrame implements Frame {
         new StringArrayVector());
     
     loaded.put(Symbol.get(".Platform"), ListVector.newNamedBuilder()
-        .add("OS.type", StringVector.valueOf(resolveOsName()))
-        .add("file.sep", StringVector.valueOf("/"))
-        .add("GUI", StringVector.valueOf("unknown"))
-        .add("endian", StringVector.valueOf("big"))
-        .add("pkgType", StringVector.valueOf("source"))
-        .add("r_arch", StringVector.valueOf(""))
-        .add("dynlib.ext", StringVector.valueOf(dynlibExt()))
+        .add("OS.type", resolveOsName())
+        .add("file.sep", "/")
+        .add("GUI", "unknown")
+        .add("endian", "big")
+        .add("pkgType", "source")
+        .add("r_arch", "")
+        .add("dynlib.ext", dynlibExt())
         .build());
   }
 
@@ -134,24 +148,24 @@ public class BaseFrame implements Frame {
     // TODO: I'm not sure how these values are used, but
     // I have mostly just copied them from my local R installation
     loaded.put(Symbol.get(".Machine"), ListVector.newNamedBuilder()
-        .add("double.eps", new DoubleArrayVector(DoubleVector.EPSILON))
-        .add("double.neg.eps", new DoubleArrayVector(1.110223e-16))
-        .add("double.xmin",new DoubleArrayVector(2.225074e-308))
-        .add("double.xmax", new DoubleArrayVector(1.797693e+308))
-        .add("double.base", new IntArrayVector(2))
-        .add("double.digits", new IntArrayVector(53))
-        .add("double.rounding", new IntArrayVector(5))
-        .add("double.guard", new IntArrayVector(0))
-        .add("double.ulp.digits", new IntArrayVector(-52))
-        .add("double.neg.ulp.digits", new IntArrayVector(-53))
-        .add("double.exponent", new IntArrayVector(11))
-        .add("double.min.exp", new IntArrayVector(Double.MIN_EXPONENT))
-        .add("double.max.exp", new IntArrayVector(Double.MAX_EXPONENT))
-        .add("integer.max", new IntArrayVector(Integer.MAX_VALUE))
-        .add("sizeof.long", new IntArrayVector(4))
-        .add("sizeof.longlong", new IntArrayVector(8))
-        .add("sizeof.longdouble", new IntArrayVector(12))
-        .add("sizeof.pointer", new IntArrayVector(4))
+        .add("double.eps", DoubleVector.EPSILON)
+        .add("double.neg.eps", 1.110223e-16)
+        .add("double.xmin", 2.225074e-308)
+        .add("double.xmax", 1.797693e+308)
+        .add("double.base", 2)
+        .add("double.digits", 53)
+        .add("double.rounding", 5)
+        .add("double.guard", 0)
+        .add("double.ulp.digits", -52)
+        .add("double.neg.ulp.digits", -53)
+        .add("double.exponent", 11)
+        .add("double.min.exp", Double.MIN_EXPONENT)
+        .add("double.max.exp", Double.MAX_EXPONENT)
+        .add("integer.max", Integer.MAX_VALUE)
+        .add("sizeof.long", 4)
+        .add("sizeof.longlong", 8)
+        .add("sizeof.longdouble", 12)
+        .add("sizeof.pointer", 4)
        .build());
 
   }
@@ -163,11 +177,27 @@ public class BaseFrame implements Frame {
   @Override
   public void clear() {
     throw new UnsupportedOperationException("The base frame cannot be cleared");
-    
   }
 
   @Override
   public boolean isMissingArgument(Symbol name) {
     return false;
+  }
+  
+  public void load(Context context) throws IOException {
+    URL baseNamespace = Resources.getResource("org/renjin/baseNamespace");
+    LazyLoadFrame frame = new LazyLoadFrame(context, Resources.newInputStreamSupplier(baseNamespace));
+    for(Symbol name : frame.getNames()) {
+      loaded.put(name, frame.get(name));
+    }
+   
+    // aliases
+    addPrimitiveAlias("as.double", "as.numeric");
+    addPrimitiveAlias("as.double", "as.real");
+    addPrimitiveAlias("is.symbol", "is.name"); 
+  }
+
+  private void addPrimitiveAlias(String primitiveName, String alias) {
+    loaded.put(Symbol.get(alias), Primitives.getBuiltin(primitiveName));
   }
 }

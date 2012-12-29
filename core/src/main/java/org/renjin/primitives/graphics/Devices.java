@@ -37,8 +37,7 @@ public class Devices {
              The option is unlikely to be set if it is not loaded,
              as the default setting is in grDevices:::.onLoad.
           */
-          SEXP ns = findVarInFrame(context.getSession().namespaceRegistry,
-                  install("grDevices"));
+          SEXP ns = context.getSession().getNamespaceRegistry().getNamespace("grDevices").getNamespaceEnvironment();
           if(ns != R_UnboundValue &&
                   findVar(devName, ns) != R_UnboundValue) {
             PROTECT(defdev = lang1(devName));

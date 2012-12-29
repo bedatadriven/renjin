@@ -672,7 +672,7 @@ public class RDataReader {
 
     @Override
     public SEXP findNamespace(Symbol symbol) {
-      return context.findNamespace(symbol);
+      return context.getSession().getNamespaceRegistry().getNamespace(symbol).getNamespaceEnvironment();
     }
 
     @Override

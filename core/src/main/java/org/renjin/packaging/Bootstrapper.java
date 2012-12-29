@@ -1,16 +1,28 @@
 package org.renjin.packaging;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
-import org.renjin.RVersion;
-import org.renjin.script.RenjinScriptEngine;
-import org.renjin.script.RenjinScriptEngineFactory;
-
-import javax.script.ScriptException;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
+import javax.script.ScriptException;
+
+import org.renjin.RVersion;
+import org.renjin.eval.Context;
+import org.renjin.parser.RParser;
+import org.renjin.script.RenjinScriptEngine;
+import org.renjin.script.RenjinScriptEngineFactory;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.PrimitiveFunction;
+import org.renjin.sexp.SEXP;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 
 /**
  * Bootstraps the packaging of the default R packages
@@ -25,26 +37,7 @@ public class Bootstrapper {
 
     try {
       
-      // this is the minimum we need to run a proper context
-      System.out.println("Building base package database...");
-      installPackageSources("base");
-      copyProfile();
-      
-      // now we have enough to create the base package database
-      createBasePackageDatabase();
-      
-      // next up we need the tools sources in place
-      bootstrapTools();
-    
-      // now we can compile the rest of the packages
-      for(String packageName : new String[] 
-          {"datasets", "utils", "grDevices", "graphics", "stats", "splines"}) {
-        buildPackage(packageName);
-      }
-      
-      // finally, load the methods package which triggers a one-time
-      // initialization step and updates the rdb file
-      buildMethodsPackage();
+      serializeBaseEnv();
       
     } catch(Exception e) {
       System.out.println("R language package build failed, expect subsequent test failures...");
@@ -183,6 +176,55 @@ public class Bootstrapper {
 
   public static void main(String[] args) throws IOException, ScriptException {
       new Bootstrapper();
+  }
+ 
+  public void serializeBaseEnv() throws IOException {
+    
+  // Evaluate the basesources into the base namespace environment
+  
+    Context context = Context.newTopLevelContext();
+    Environment baseNamespaceEnv = context.getNamespaceRegistry().getBase().getNamespaceEnvironment();
+    Context evalContext = context.beginEvalContext(baseNamespaceEnv);
+    
+    File baseSourceRoot = new File("src/main/R/base");
+    List<File> baseSources = Lists.newArrayList();
+    for(File sourceFile : baseSourceRoot.listFiles()) {
+      if(sourceFile.getName().endsWith(".R")) {
+        baseSources.add(sourceFile);
+      }
+    }
+    Collections.sort(baseSources);
+    
+    for(File baseSource : baseSources) {
+      FileReader reader = new FileReader(baseSource);
+      SEXP expr = RParser.parseAllSource(reader);
+      reader.close();
+      evalContext.evaluate(expr);
+    }
+    
+    // now serialize them to a lazy-loadable frame
+    
+    final List<String> omit = Lists.newArrayList(
+        ".Last.value", ".AutoloadEnv", ".BaseNamespaceEnv", 
+        ".Device", ".Devices", ".Machine", ".Options", ".Platform");
+    
+    new LazyLoadFrameBuilder(context)
+    .outputTo(new File("target/classes/org/renjin/baseNamespace"))
+    .filter(new Predicate<NamedValue>() {
+      public boolean apply(NamedValue namedValue) {
+        if(omit.contains(namedValue.getName())) {
+          return false;
+        }
+        if(namedValue.getValue() instanceof PrimitiveFunction) {
+          return false;
+        }
+        return true;
+      }
+    })
+    .build(baseNamespaceEnv);
+  
+
+      
   }
   
 }

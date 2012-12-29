@@ -36,7 +36,7 @@ public class Packages {
     Environment packageEnv = deserializePackageEnvironment(context, inSup);
    
     // Register namespace
-    Namespaces.registerNamespace(context, namespace, packageEnv);
+  //  Namespaces.registerNamespace(context, namespace, packageEnv);
     
     // Attach the exports to the search path
     // TODO: attach the exports instead of the environment

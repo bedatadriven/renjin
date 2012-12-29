@@ -134,7 +134,8 @@ public class Types {
   @Primitive("is.symbol")
   public static boolean isSymbol(SEXP exp) {
     return exp instanceof Symbol;
-  }
+  } 
+
 
   @Primitive("is.environment")
   public static boolean isEnvironment(SEXP exp) {

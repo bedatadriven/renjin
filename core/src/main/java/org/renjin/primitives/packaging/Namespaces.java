@@ -24,9 +24,10 @@ package org.renjin.primitives.packaging;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.Frame;
+import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
@@ -35,29 +36,12 @@ import org.renjin.sexp.Vector;
 public class Namespaces {
 
   @Primitive
-  public static SEXP getRegisteredNamespace(@Current Context context, String name) {
-    return getRegisteredNamespace(context, Symbol.get(name));
-  }
-
-  @Primitive
-  public static SEXP getRegisteredNamespace(@Current Context context, Symbol name) {
-    return context.findNamespace(name);
-  }
-
-  @Primitive
-  public static Environment getNamespaceRegistry(@Current Context context) {
-    return Environment.createChildEnvironment(
-        Environment.EMPTY, context.getSession().namespaceRegistry);
-  }
-  
-  @Primitive
-  public static void registerNamespace(@Current Context context, String name, Environment env) {
-    Frame registry = context.getSession().namespaceRegistry;
-    Symbol symbol = Symbol.get(name);
-    if(registry.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
-      throw new EvalException("namespace already registered");
+  public static SEXP getRegisteredNamespace(@Current NamespaceRegistry registry, Symbol name) {
+    if(registry.isRegistered(name)) {
+      return registry.getNamespace(name).getNamespaceEnvironment();
+    } else {
+      return Null.INSTANCE;
     }
-    registry.setVariable(symbol, env);
   }
 
   @Primitive
@@ -102,4 +86,13 @@ public class Namespaces {
     }
   }
 
+  @Primitive(":::")
+  public static SEXP getNamespaceValue(@Current NamespaceRegistry registry, @Evaluate(false) Symbol namespace, @Evaluate(false) Symbol entry) {
+    return registry.getNamespace(namespace).getEntry(entry);  
+  }
+  
+  @Primitive("::")
+  public static SEXP getExportedNamespaceValue(@Current NamespaceRegistry registry, @Evaluate(false) Symbol namespace, @Evaluate(false) Symbol entry) {
+    return registry.getNamespace(namespace).getExport(entry);  
+  }
 }

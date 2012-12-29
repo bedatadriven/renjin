@@ -368,7 +368,7 @@ public class RDataWriter {
   }
 
   private void writeNamespace(Environment ns) throws IOException {
-    if(ns == context.getSession().namespaceRegistry.getVariable(Symbol.get("base"))) {
+    if(ns == context.getSession().getNamespaceRegistry().getNamespace(Symbol.get("base")).getNamespaceEnvironment()) {
       out.writeInt(SerializationFormat.BASENAMESPACE_SXP);
     } else {
       addRef(ns);

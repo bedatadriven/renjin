@@ -482,6 +482,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       names = NamesBuilder.withInitialLength(initialLength);
     }    
     
+    
     public NamedBuilder add(String name, SEXP value) {
       add(value);
       names.set(length()-1, name);
@@ -498,6 +499,10 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
     public NamedBuilder add(String name, int value) {
       return add(name, new IntArrayVector(value));
+    }
+    
+    public NamedBuilder add(String name, double value) {
+      return add(name, new DoubleArrayVector(value));
     }
     
     @Override

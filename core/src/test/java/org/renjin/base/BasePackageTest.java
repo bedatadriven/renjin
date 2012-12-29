@@ -120,7 +120,7 @@ public class BasePackageTest extends EvalTestCase {
 
     loadBasePackage();
 
-    eval("info <- file.info('" + getClass().getResource("/org/renjin/library/base/R/base").getFile() + "')");
+    eval("info <- file.info('" + getClass().getResource("/org/renjin/sexp/SEXP.class").getFile() + "')");
 
     assertThat(eval("info$isdir"), equalTo(c(false)));
     assertThat(eval("info$mode"), equalTo(c_i(Integer.parseInt("666", 8))));

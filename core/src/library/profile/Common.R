@@ -51,10 +51,11 @@ local({dp <- Sys.getenv("R_DEFAULT_PACKAGES")
     })
 
 ## Expand R_LIBS_* environment variables.
-Sys.setenv(R_LIBS_SITE =
-           .expand_R_libs_env_var(Sys.getenv("R_LIBS_SITE")))
-Sys.setenv(R_LIBS_USER =
-           .expand_R_libs_env_var(Sys.getenv("R_LIBS_USER")))
+# RENJIN: ripping out package mgmt stuff
+#Sys.setenv(R_LIBS_SITE =
+#           .expand_R_libs_env_var(Sys.getenv("R_LIBS_SITE")))
+#Sys.setenv(R_LIBS_USER =
+#           .expand_R_libs_env_var(Sys.getenv("R_LIBS_USER")))
 
 .First.sys <- function()
 {

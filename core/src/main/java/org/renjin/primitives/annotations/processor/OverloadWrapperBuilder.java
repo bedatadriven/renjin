@@ -6,6 +6,7 @@ import com.sun.codemodel.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
+import org.renjin.primitives.annotations.SessionScoped;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategies;
 import org.renjin.primitives.annotations.processor.args.ArgConverterStrategy;
 import org.renjin.sexp.Environment;
@@ -113,6 +114,8 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
           argumentMap.put(argument, environment);
         } else if(argument.getClazz().equals(Session.class)) {
           argumentMap.put(argument, context.invoke("getSession"));
+        } else if(argument.getClazz().getAnnotation(SessionScoped.class) != null) {
+          argumentMap.put(argument, context.invoke("getSingleton").arg(JExpr.dotclass(codeModel.ref(argument.getClazz()))));
         } else {
           throw new UnsupportedOperationException(argument.getClazz().getName());
         }

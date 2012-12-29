@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
+import javax.xml.stream.events.Namespace;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.graphics.ColorPalette;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.io.serialization.RDatabase;
+import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.random.RNG;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Frame;
@@ -37,7 +40,7 @@ public class Session {
    */
   public final Map<String, String> systemEnvironment;
 
-  public final Frame namespaceRegistry;
+  public final NamespaceRegistry namespaceRegistry;
 
   /**
    * The R_HOME path. This is the path from which the base package is loaded.
@@ -90,10 +93,9 @@ public class Session {
     systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
     globalEnvironment = Environment.createGlobalEnvironment();
     baseEnvironment = globalEnvironment.getBaseEnvironment();
-    namespaceRegistry = new HashFrame();
     baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
     baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
-    namespaceRegistry.setVariable(Symbol.get("base"), baseNamespaceEnv);
+    namespaceRegistry = new NamespaceRegistry(baseNamespaceEnv);
     securityManager = new SecurityManager(); 
     
     // quick fix: more work needs to be done to figure out where 
@@ -125,6 +127,9 @@ public class Session {
    * @return
    */
   public <X> X getSingleton(Class<X> clazz) {
+    if(clazz == NamespaceRegistry.class) {
+      return (X)namespaceRegistry;
+    }
     X instance = (X) singletons.get(clazz);
     if(instance == null) {
       try {
@@ -172,5 +177,9 @@ public class Session {
 
   public PrintWriter getStdOut() throws IOException {
     return connectionTable.getStdout().getPrintWriter();
+  }
+
+  public NamespaceRegistry getNamespaceRegistry() {
+    return namespaceRegistry;
   }
 }

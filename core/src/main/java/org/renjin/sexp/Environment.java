@@ -21,14 +21,21 @@
 
 package org.renjin.sexp;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
-import com.google.common.collect.UnmodifiableIterator;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 
-import java.util.*;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
+import com.google.common.collect.UnmodifiableIterator;
 
 /**
  * The Environment data type.
@@ -53,7 +60,7 @@ import java.util.*;
  *  use of {@code NULL} as an environment is defunct.
  *
  */
-public class Environment extends AbstractSEXP implements Recursive {
+public class Environment extends AbstractSEXP implements Recursive, HasNamedValues {
 
 
   public static final String TYPE_NAME = "environment";
@@ -403,6 +410,7 @@ public class Environment extends AbstractSEXP implements Recursive {
   public boolean hasVariable(Symbol symbol) {
     return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE;
   }
+  
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
@@ -487,5 +495,64 @@ public class Environment extends AbstractSEXP implements Recursive {
     }
   }
 
+  @Override
+  public Iterable<NamedValue> namedValues() {
+    return new NamedValues();
+  }
+  
+  private class NamedValues implements Iterable<NamedValue> {
+
+    @Override
+    public Iterator<NamedValue> iterator() {
+      return new NamedValueIterator();
+    }
+    
+  }
+
+  private class NamedValueIterator extends UnmodifiableIterator<NamedValue> {
+
+    private Iterator<Symbol> names;
+    
+    private NamedValueIterator() {
+      this.names = getSymbolNames().iterator();
+    }
+    
+    @Override
+    public boolean hasNext() {
+      return names.hasNext();
+    }
+
+    @Override
+    public NamedValue next() {
+      BoundValue boundValue = new BoundValue();
+      Symbol name = names.next();
+      boundValue.name = name;
+      boundValue.value = getVariable(name);
+      return boundValue;
+    }
+    
+  }
+  
+  private static class BoundValue implements NamedValue {
+
+    private Symbol name;
+    private SEXP value;
+    
+    @Override
+    public boolean hasName() {
+      return true;
+    }
+
+    @Override
+    public String getName() {
+      return name.getPrintName();
+    }
+
+    @Override
+    public SEXP getValue() {
+      return value;
+    } 
+    
+  }
 
 }

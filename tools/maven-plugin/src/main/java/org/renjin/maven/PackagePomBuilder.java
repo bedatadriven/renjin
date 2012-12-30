@@ -71,15 +71,4 @@ public class PackagePomBuilder {
 		return model;
 	}
 	
-	public static void main(String[] args) throws FileNotFoundException, IOException {
-		PackageDescription desc = PackageDescription.fromInputStream(new FileInputStream(
-				"C:\\Users\\Alex\\Documents\\GitHub\\renjin-cran-ports\\survey_3.29\\DESCRIPTION"));
-		Model pom = build(desc);
-		
-		FileWriter fileWriter = new FileWriter("C:\\Users\\Alex\\Documents\\GitHub\\renjin-cran-ports\\survey_3.29\\pom.xml");
-		
-		MavenXpp3Writer writer = new MavenXpp3Writer();
-		writer.write(fileWriter, pom);
-		fileWriter.close();	
-	}
 }

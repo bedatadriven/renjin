@@ -39,6 +39,8 @@
     <module>tools/maven-plugin</module>
     <module>tools/gcc-bridge</module>
     <module>tools/gcc-runtime</module> 
+    <module>tools/legacy-compiler</module> 
+    <module>tools/legacy-runtime</module> 
     <module>samples/swing-repl</module>
     <module>samples/appengine-repl</module>
     <module>dist/generic</module>
@@ -243,7 +245,15 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>13.0</version>
+      </dependency>
+	</dependencies>
+  </dependencyManagement>
   <profiles>
     <profile>
       <id>ubuntu</id>

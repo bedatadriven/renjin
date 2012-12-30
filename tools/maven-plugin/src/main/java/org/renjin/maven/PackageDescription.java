@@ -1,5 +1,7 @@
 package org.renjin.maven;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,6 +15,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
+import com.google.common.io.Closeables;
 
 /**
  * Package DESCRIPTION file
@@ -162,6 +165,16 @@ public class PackageDescription {
 	public static PackageDescription fromReader(Reader reader) throws IOException {
 	  return fromString(CharStreams.toString(reader));
 	}
+	
+
+  public static PackageDescription fromFile(File file) throws IOException {
+    FileInputStream in = new FileInputStream(file);
+    try {
+      return fromInputStream(in);
+    } finally {
+      Closeables.closeQuietly(in);
+    }
+  }
 
 	public String getFirstProperty(String key) {
 	  if(properties.containsKey(key)) {
@@ -231,4 +244,5 @@ public class PackageDescription {
   public Iterable<String> getProperties() {
     return properties.keySet();
   }
+
 }

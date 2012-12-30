@@ -21,19 +21,26 @@
 
 package org.renjin.base;
 
-import org.hamcrest.Matchers;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-import org.renjin.eval.Context;
-import org.renjin.sexp.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.hamcrest.Matchers;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
 
 /**

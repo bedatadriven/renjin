@@ -1,0 +1,86 @@
+#  File src/library/stats/R/optim.R
+#  Part of the R package, http://www.R-project.org
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+
+optim <- function(par, fn, gr = NULL, ...,
+		  method = c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"),
+		  lower = -Inf, upper = Inf,
+		  control = list(), hessian = FALSE)
+{
+    fn1 <- function(par) fn(par,...)
+    gr1 <- if (!is.null(gr)) function(par) gr(par,...)
+    method <- match.arg(method)
+    if((length(lower) > 1L || length(upper) > 1L ||
+       lower[1L] != -Inf || upper[1L] != Inf)
+       && !any(method == c("L-BFGS-B","Brent"))) {
+	warning("bounds can only be used with method L-BFGS-B (or Brent)")
+	method <- "L-BFGS-B"
+    }
+    npar <- length(par)
+    ## Defaults :
+    con <- list(trace = 0, fnscale = 1, parscale = rep.int(1, npar),
+		ndeps = rep.int(1e-3, npar),
+		maxit = 100L, abstol = -Inf, reltol = sqrt(.Machine$double.eps),
+		alpha = 1.0, beta = 0.5, gamma = 2.0,
+		REPORT = 10,
+		type = 1,
+		lmm = 5, factr = 1e7, pgtol = 0,
+		tmax = 10, temp = 10.0)
+    nmsC <- names(con)
+    if (method == "Nelder-Mead") con$maxit <- 500
+    if (method == "SANN") {
+	con$maxit <- 10000
+	con$REPORT <- 100
+    }
+    con[(namc <- names(control))] <- control
+    if(length(noNms <- namc[!namc %in% nmsC]))
+	warning("unknown names in control: ", paste(noNms,collapse=", "))
+    if(con$trace < 0)
+	warning("read the documentation for 'trace' more carefully")
+    else if (method == "SANN" && con$trace && as.integer(con$REPORT) == 0)
+	stop("'trace != 0' needs 'REPORT >= 1'")
+    if (method == "L-BFGS-B" &&
+	any(!is.na(match(c("reltol","abstol"), namc))))
+	warning("method L-BFGS-B uses 'factr' (and 'pgtol') instead of 'reltol' and 'abstol'")
+    if(npar == 1 && method == "Nelder-Mead")
+        warning("one-diml optimization by Nelder-Mead is unreliable:\n",
+                "use \"Brent\" or optimize() directly")
+    if(npar > 1 && method == "Brent")
+	stop('method = "Brent" is only available for one-dimensional optimization')
+    lower <- as.double(rep(lower, length.out = npar))
+    upper <- as.double(rep(upper, length.out = npar))
+    if(method == "Brent") { ## 1-D
+        if(any(!is.finite(c(upper, lower))))
+           stop("'lower' and 'upper' must be finite values")
+	res <- optimize(function(par) fn(par,...)/con$fnscale,
+                        lower = lower, upper = upper, tol = con$reltol)
+	names(res)[names(res) == c("minimum", "objective")] <- c("par", "value")
+        res$value <- res$value * con$fnscale
+	res <- c(res, list(counts = c(NA, NA), convergence = 0L, message= NULL))
+    } else {
+	res <- .Internal(optim(par, fn1, gr1, method, con, lower, upper))
+	names(res) <- c("par", "value", "counts", "convergence", "message")
+    }
+    names(res$counts) <- c("function", "gradient")
+    nm <- names(par)
+    if(!is.null(nm)) names(res$par) <- nm
+    if (hessian) {
+        hess <- .Internal(optimhess(res$par, fn1, gr1, con))
+        hess <- 0.5*(hess + t(hess))
+        if(!is.null(nm)) dimnames(hess) <- list(nm, nm)
+        res$hessian <- hess
+    }
+    res
+}

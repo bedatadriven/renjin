@@ -42,7 +42,7 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
-      <artifactId>renjin-core</artifactId>
+      <artifactId>renjin-script-engine</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

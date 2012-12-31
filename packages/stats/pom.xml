@@ -20,4 +20,24 @@
       <name>R Development Core Team and contributors worldwide</name>
     </developer>
   </developers>
+  <dependencies>
+  	<dependency>
+  		<groupId>org.renjin</groupId>
+  		<artifactId>renjin-legacy-runtime</artifactId>
+  		<version>${project.version}</version>
+  	</dependency>
+  </dependencies>
+  <build>
+  	<plugins>
+  		<plugin>
+  			<groupId>org.renjin</groupId>
+  			<artifactId>renjin-maven-plugin</artifactId>
+  			<version>${project.version}</version>
+  			<goals>
+  				<goal>compile</goal>
+  				<goal>legacy-sources-compile</goal>
+  			</goals>
+  		</plugin>
+  	</plugins>
+  </build>
 </project>

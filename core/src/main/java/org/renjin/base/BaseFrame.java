@@ -27,7 +27,6 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 import org.renjin.eval.Context;
-import org.renjin.gcc.runtime.Builtins;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.DoubleVector;
@@ -46,11 +45,12 @@ import com.google.common.io.Resources;
 
 /**
  *  The {@code Frame} that provides the primitive functions for the
- *  the base environment.
+ *  the base environment as well as the base package functions written
+ *  in the R language.
  *
  *  <p>
  *  The base frame is actually SHARED between the base namespace and the base environment:
- *  they are identical except for their parent of course.
+ *  they are identical except for their place within the environment hierarchy.
  *  
  */
 public class BaseFrame implements Frame {

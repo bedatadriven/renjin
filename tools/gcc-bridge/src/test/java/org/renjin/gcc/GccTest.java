@@ -200,7 +200,9 @@ public class GccTest {
   }
 
   private Class<?> compileGimple(String className, List<GimpleFunction> functions) throws Exception {
+    
     GimpleCompiler compiler = new GimpleCompiler();
+    compiler.setJimpleOutputDirectory(new File("target/test-jimple"));
     compiler.setOutputDirectory(new File("target/test-classes"));
     compiler.setPackageName("org.renjin.gcc");
     compiler.setClassName(className);

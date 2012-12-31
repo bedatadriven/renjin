@@ -21,30 +21,40 @@
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
     <version>0.7.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>renjin-legacy-runtime</artifactId>
-  <name>Renjin Legacy Runtime</name>
-  <description>Emulated C/Fortran API</description>
-
+  <artifactId>renjin-script-engine</artifactId>
+  <name>Renjin Script Engine</name>
+  <description>Renjin implementation of the javax.script API</description>
+  
   <dependencies>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>renjin-core</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+
+    <!-- unit test framework -->
     <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>gcc-runtime</artifactId>
-      <version>${project.version}</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
+    <plugins>
+    
+
+    </plugins>
   </build>
 </project>

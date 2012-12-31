@@ -201,7 +201,7 @@
               <arguments>
                 <argument>-classpath</argument>
                 <classpath />
-                <argument>org.renjin.packaging.Bootstrapper</argument>
+                <argument>org.renjin.base.BasePackageCompiler</argument>
               </arguments>
             </configuration>
           </execution>

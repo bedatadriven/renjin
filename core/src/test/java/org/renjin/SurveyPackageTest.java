@@ -1,11 +1,13 @@
 package org.renjin;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
+@Ignore("needs to be moved out of core")
 public class SurveyPackageTest extends PackageTest {
 
   @Test

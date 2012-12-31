@@ -520,7 +520,8 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void ls() {
     assumingBasePackagesLoad();
-    
-    eval("ls(.Internal(getNamespaceRegistry()),all.names=TRUE)");
+    eval("x<-41");
+    eval(".Foo <- 'bar'");
+    eval("print(ls(all.names=TRUE))");
   }
 }

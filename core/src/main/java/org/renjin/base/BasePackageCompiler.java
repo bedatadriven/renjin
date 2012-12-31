@@ -1,4 +1,4 @@
-package org.renjin.packaging;
+package org.renjin.base;
 
 import java.io.File;
 import java.io.FileReader;
@@ -6,9 +6,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import javax.script.ScriptException;
-
 import org.renjin.eval.Context;
+import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.NamedValue;
@@ -22,9 +21,9 @@ import com.google.common.collect.Lists;
  * Bootstraps the packaging of the base R package
  *
  */
-public class Bootstrapper {
+public class BasePackageCompiler {
 
-  public static void main(String[] args) throws IOException, ScriptException {
+  public static void main(String[] args) throws IOException {
  
     // Evaluate the base sources into the base namespace environment
   

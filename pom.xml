@@ -32,10 +32,12 @@
 
   <modules>
     <module>core</module>
+	<module>script-engine</module>
     <module>shell</module>
     <module>appengine</module>
     <module>tests</module>
     <module>benchmarks</module>
+	<module>packages</module>
     <module>tools/maven-plugin</module>
     <module>tools/gcc-bridge</module>
     <module>tools/gcc-runtime</module> 
@@ -128,6 +130,13 @@
           </execution>
         </executions>
       </plugin>
+	   <plugin>
+            <groupId>com.mycila.maven-license-plugin</groupId>
+            <artifactId>maven-license-plugin</artifactId>
+            <configuration>
+                <header>src/etc/header.txt</header>
+            </configuration>
+        </plugin>
         <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>

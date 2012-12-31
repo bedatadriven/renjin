@@ -17,25 +17,15 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <modules>
+    <module>stats</module>
+  </modules>
+  
   <dependencies>
    
   </dependencies>
 
   <build>
-    <plugins>
-      <plugin>
-        <groupId>org.renjin</groupId>
-        <artifactId>renjin-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <executions>
-          <execution>
-            <id>renjin-compile</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
+    
   </build>
 </project>

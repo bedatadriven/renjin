@@ -1,9 +1,13 @@
 package org.renjin.stats;
 
+import org.junit.Ignore;
 
 
 
+@Ignore
 public class StatsPackageTest  {
+  
+  
 //
 //  @Test
 //  public void dist() {

@@ -45,22 +45,12 @@ public class Namespaces {
   }
 
   @Primitive
-  public static boolean isNamespaceEnv(@Current Context context, SEXP envExp) {
-    if(envExp == context.getSession().baseNamespaceEnv) {
-      return true;
-    } else if(envExp instanceof Environment) {
-      Environment env = (Environment)envExp;
-      SEXP info = env.getVariable(Symbol.get(".__NAMESPACE__."));
-      if(info instanceof Environment) {
-        SEXP spec = ((Environment)info).getVariable(Symbol.get("spec"));
-        if(spec instanceof StringVector && spec.length() > 0) {
-          return true;
-        } else {
-          return false;
-        }
-      }
+  public static boolean isNamespaceEnv(@Current NamespaceRegistry registry, SEXP envExp) {
+    if(envExp instanceof Environment) {
+      return registry.isNamespaceEnv((Environment)envExp);
+    } else {
+      return false;
     }
-    return false;
   }
 
   @Primitive

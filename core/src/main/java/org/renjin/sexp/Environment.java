@@ -110,40 +110,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return global;
   }
 
-  /**
-   * Creates a new, empty global environment that shares the provided
-   * {@code globalEnvironments} parents.
-   *
-   */
-  public static Environment forkGlobalEnvironment(Environment toFork) {
-    if(!GLOBAL_ENVIRONMENT_NAME.equals(toFork.getName())){
-      throw new IllegalArgumentException("forkGlobalEnvironment requires an existing global environment");
-    }
-    Environment global = new Environment();
-    global.name = GLOBAL_ENVIRONMENT_NAME;
-    global.baseEnvironment = toFork.baseEnvironment;
-    global.parent = toFork.parent;
-    global.frame = new HashFrame();
-
-    return global;
-  }
-
-//  /**
-//   * Creates a copy of the environment tree, replacing
-//   * the global environment with a new, empty global environment.
-//   *
-//   * <p>Parents of the global environment are preserved and
-//   * shared between this tree and the forked tree.</p>
-//   *
-//   * @return the Global Environment
-//   */
-//  public Environment fork() {
-//    Environment forkedGlobal = new Environment();
-//    forkedGlobal.name = this.name;
-//    forked.baseEnvironment =
-//
-//  }
-
   private static Environment createBaseEnvironment(Environment global) {
     Environment base = new Environment();
     base.name = "base";
@@ -160,6 +126,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public static Environment createNamespaceEnvironment(Environment parent, String namespaceName) {
     Environment ns = createChildEnvironment(parent);
     ns.name = "namespace:" + namespaceName;
+    return ns;
+  }
+  
+  public static Environment createNamedEnvironment(Environment parent, String name) {
+    Environment ns = createChildEnvironment(parent);
+    ns.name = name;
     return ns;
   }
   

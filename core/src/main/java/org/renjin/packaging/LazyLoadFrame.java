@@ -46,7 +46,7 @@ public class LazyLoadFrame {
   private Context context;
   private Map<Symbol, Value> map = Maps.newIdentityHashMap();
 
-  public LazyLoadFrame(Context context, InputSupplier<InputStream> frame) throws IOException {
+  public LazyLoadFrame(Context context, InputSupplier<? extends InputStream> frame) throws IOException {
     this.context = context;
     
     DataInputStream din = new DataInputStream(frame.getInput());

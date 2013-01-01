@@ -191,7 +191,7 @@ public class RDataWriter {
     if( exp == context.getEnvironment().getBaseEnvironment() ) {
       return true;
     }
-    if( Namespaces.isNamespaceEnv(context, exp)) {
+    if( Namespaces.isNamespaceEnv(context.getNamespaceRegistry(), exp)) {
       return true;
     }
     if( isPackageEnvironment(exp)) {
@@ -342,7 +342,7 @@ public class RDataWriter {
     } else if(env == Environment.EMPTY) {
       out.writeInt(SerializationFormat.EMPTYENV_SXP);
     } else {      
-      if(Namespaces.isNamespaceEnv(context, env)) {
+      if(Namespaces.isNamespaceEnv(context.getNamespaceRegistry(), env)) {
         writeNamespace(env);
       } else {
         addRef(env);
@@ -400,9 +400,7 @@ public class RDataWriter {
   }
 
   private StringVector getNamespaceName(Environment ns) {
-    Environment info = (Environment) ns.getVariable(".__NAMESPACE__.");
-    StringVector spec = (StringVector) info.getVariable("spec");
-    return (StringVector) spec.getElementAsSEXP(0);
+    return StringVector.valueOf(context.getNamespaceRegistry().getNamespace(ns).getName());
   }
 
   private void writeSymbol(Symbol symbol) throws IOException {

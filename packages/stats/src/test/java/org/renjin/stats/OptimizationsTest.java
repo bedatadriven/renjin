@@ -27,10 +27,10 @@ import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 
-import org.hamcrest.Matcher;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.renjin.sexp.SEXP;
 
+@Ignore
 public class OptimizationsTest extends EvalTestCase {
 
   @Test

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
-import javax.xml.stream.events.Namespace;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -12,6 +11,7 @@ import org.renjin.graphics.ColorPalette;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.io.serialization.RDatabase;
 import org.renjin.primitives.packaging.NamespaceRegistry;
+import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.primitives.random.RNG;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Frame;
@@ -34,6 +34,8 @@ import com.google.common.collect.Maps;
  * live within a single JVM.
  */
 public class Session {
+  
+  private final Context topLevelContext;
   
   /**
    * This is the environment
@@ -84,8 +86,9 @@ public class Session {
    */
   boolean invisible;
 
-  Session(FileSystemManager fileSystemManager, String homeDirectory,
+  Session(Context topLevelContext, FileSystemManager fileSystemManager, String homeDirectory,
                   FileObject workingDirectory) {
+    this.topLevelContext = topLevelContext;
     this.fileSystemManager = fileSystemManager;
     this.homeDirectory = homeDirectory;
     this.workingDirectory = workingDirectory;
@@ -95,7 +98,7 @@ public class Session {
     baseEnvironment = globalEnvironment.getBaseEnvironment();
     baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
     baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
-    namespaceRegistry = new NamespaceRegistry(baseNamespaceEnv);
+    namespaceRegistry = new NamespaceRegistry(new PackageLoader(),  topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager(); 
     
     // quick fix: more work needs to be done to figure out where 

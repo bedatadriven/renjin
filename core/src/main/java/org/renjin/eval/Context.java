@@ -158,8 +158,8 @@ public class Context {
    */
   public static Context newTopLevelContext(FileSystemManager fileSystemManager, String homeDirectory,
                                            FileObject workingDirectory) {
-    Session globals = new Session(fileSystemManager, homeDirectory, workingDirectory);
     Context context = new Context();
+    Session globals = new Session(context, fileSystemManager, homeDirectory, workingDirectory);
     context.session = globals;
     context.type = Type.TOP_LEVEL;
     context.environment = globals.globalEnvironment;

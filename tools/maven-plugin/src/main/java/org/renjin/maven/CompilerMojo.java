@@ -11,8 +11,11 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.renjin.eval.Context;
+import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.io.serialization.RDataWriter;
+import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.packaging.NamespaceDef;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
@@ -49,14 +52,19 @@ public class CompilerMojo extends AbstractMojo {
 	 */
 	private String packageName;
 
+	/**
+   * @parameter expression="${project.artifactId}"
+   * @required
+	 */
+	private String namespaceName;
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		Context context = initContext();
-
-		Environment packageEnvironment = Environment.createChildEnvironment(context.getGlobalEnvironment());
-		evaluateSources(context, packageEnvironment);
-		serializeEnvironment(context, packageEnvironment, getEnvironmentFile());
+		
+		Namespace namespace = context.getNamespaceRegistry().createNamespace(new NamespaceDef(), namespaceName);
+		evaluateSources(context, namespace.getNamespaceEnvironment());
+		serializeEnvironment(context, namespace.getNamespaceEnvironment(), getEnvironmentFile());
 		copyNamespace();
 	}
 
@@ -106,7 +114,7 @@ public class CompilerMojo extends AbstractMojo {
 		return packageRoot;
 	}
 
-	private void evaluateSources(Context context, Environment packageEnvironment)
+	private void evaluateSources(Context context, Environment namespaceEnvironment)
 			throws MojoExecutionException {
 		for(File sourceFile : getRSources()) {
 			getLog().debug("Evaluating '" + sourceFile + "'");
@@ -115,7 +123,7 @@ public class CompilerMojo extends AbstractMojo {
 				SEXP expr = RParser.parseAllSource(reader);
 				reader.close();
 				
-				context.evaluate(expr, packageEnvironment);
+				context.evaluate(expr, namespaceEnvironment);
 				
 			} catch (Exception e) {
 				throw new MojoExecutionException("Exception evaluating " + sourceFile.getName(), e);
@@ -123,15 +131,15 @@ public class CompilerMojo extends AbstractMojo {
 		}
 	}
 	
-	private void serializeEnvironment(Context context, Environment packageEnv, File environmentFile) throws MojoExecutionException  {
+	private void serializeEnvironment(Context context, Environment namespaceEnv, File environmentFile) throws MojoExecutionException  {
 		
-		getLog().info("Writing package environment to " + environmentFile);
+		getLog().info("Writing namespace environment to " + environmentFile);
 		try {
-			FileOutputStream fos = new FileOutputStream(environmentFile);
-			RDataWriter rdataWriter = new RDataWriter(context, fos);
-			rdataWriter.serialize(packageEnv);
+		  LazyLoadFrameBuilder builder = new LazyLoadFrameBuilder(context);
+		  builder.outputTo(environmentFile);
+		  builder.build(namespaceEnv);
 		} catch(IOException e) {
-			throw new MojoExecutionException("Exception encountered serializing package environment", e);
+			throw new MojoExecutionException("Exception encountered serializing namespace environment", e);
 		}
 	}
 }

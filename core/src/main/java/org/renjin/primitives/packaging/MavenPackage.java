@@ -51,7 +51,6 @@ public class MavenPackage implements Package {
   
   public URL getEnvironmentUrl() {
     String name = groupId.replace('.', '/') + "/" + artifactId + "/environment";
-    System.err.println(name);
     return Resources.getResource(name);
   }
   

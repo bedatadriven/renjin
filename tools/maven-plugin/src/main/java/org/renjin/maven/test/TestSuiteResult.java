@@ -101,6 +101,8 @@ public class TestSuiteResult {
       }
       testsuite.appendChild(testcase);
     }
+    document.appendChild(testsuite);
+    
     return document;
   }
 

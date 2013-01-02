@@ -26,14 +26,16 @@ public class TestRunner {
     this.namespace = namespaceName;
     
     File testSources = new File("src/test/R");
-    for(File sourceFile : testSources.listFiles()) {
-      if(sourceFile.getName().toUpperCase().endsWith(".R")) {
-        try {
-          reporter.startFile(sourceFile);
-          executeTestFile(sourceFile);
-          reporter.fileComplete();
-        } catch (IOException e) {
-          System.out.println("FAILURE: " + sourceFile.getName());
+    if(testSources.exists() && testSources.listFiles() != null) {
+      for(File sourceFile : testSources.listFiles()) {
+        if(sourceFile.getName().toUpperCase().endsWith(".R")) {
+          try {
+            reporter.startFile(sourceFile);
+            executeTestFile(sourceFile);
+            reporter.fileComplete();
+          } catch (IOException e) {
+            System.out.println("FAILURE: " + sourceFile.getName());
+          }
         }
       }
     }

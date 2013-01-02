@@ -1,7 +1,6 @@
 package org.renjin.maven;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
@@ -13,7 +12,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.renjin.eval.Context;
 import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
-import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceDef;
 import org.renjin.sexp.Environment;
@@ -46,6 +44,8 @@ public class CompilerMojo extends AbstractMojo {
 	 */
 	private File outputDirectory;	
 	
+	
+	
 	/**
 	 * @parameter expression="${project.groupId}.${project.artifactId}"
 	 * @required
@@ -57,11 +57,17 @@ public class CompilerMojo extends AbstractMojo {
    * @required
 	 */
 	private String namespaceName;
+	
+	/**
+	 * @parameter expression="${project.basedir}/NAMESPACE"
+	 * @required
+	 */
+	private File namespaceFile;
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		Context context = initContext();
-		
+	
 		Namespace namespace = context.getNamespaceRegistry().createNamespace(new NamespaceDef(), namespaceName);
 		evaluateSources(context, namespace.getNamespaceEnvironment());
 		serializeEnvironment(context, namespace.getNamespaceEnvironment(), getEnvironmentFile());
@@ -70,12 +76,12 @@ public class CompilerMojo extends AbstractMojo {
 
 
 	private void copyNamespace() throws MojoFailureException, MojoExecutionException {
-		try {
-			File namespaceSource = new File("NAMESPACE");
-			if(!namespaceSource.exists()) {
+	  try {
+			if(!namespaceFile.exists()) {
+			  getLog().error("NAMESPACE file is missing. (looked in " + namespaceFile.getAbsolutePath() + ")");
 				throw new MojoFailureException("Missing NAMESPACE file");
 			}
-			Files.copy(namespaceSource, getNamespaceOutput());
+			Files.copy(namespaceFile, getNamespaceOutput());
 		} catch (IOException e) {
 			throw new MojoExecutionException("Exception copying NAMESPACE file", e);
 		}

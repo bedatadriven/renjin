@@ -47,14 +47,26 @@ public class TestMojo extends AbstractMojo {
     * @readonly
     */
   private MavenProject project;
+  
+  /**
+   * @parameter default-value="${project.basedir}/src/test/R"
+   * @required
+   */
+  private File testSourceDirectory;
 
+  /**
+   * @parameter default-value="${project.build.directory}/surefire-reports"
+   * @required
+   */
+  private File reportsDirectory;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     ClassLoader classLoader = getClassLoader();
     try {
       Object runner = classLoader.loadClass("org.renjin.maven.test.TestRunner").newInstance();
-      runner.getClass().getMethod("run", String.class).invoke(runner, namespaceName);
+      runner.getClass().getMethod("run", File.class, File.class, String.class).invoke(runner, 
+          testSourceDirectory, reportsDirectory, namespaceName);
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);
     }
@@ -85,6 +97,4 @@ public class TestMojo extends AbstractMojo {
     artifacts.addAll(pluginDependencies);
     return artifacts; 
   }
-
-
 }

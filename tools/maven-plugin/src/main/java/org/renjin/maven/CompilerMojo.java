@@ -97,8 +97,6 @@ public class CompilerMojo extends AbstractMojo {
 			throw new MojoExecutionException("Could not initialize R top level context", e);
 		}
 	}
-	
-
 
 	private List<File> getRSources() {
 		List<File> list = Lists.newArrayList(sourceDirectory.listFiles());

@@ -10,10 +10,15 @@ public class TestReporter {
   private List<TestSuiteResult> suites = Lists.newArrayList();
   private TestSuiteResult currentSuite;
   private long currentSuiteStarted;
-  private File reportDir = new File("target/surefire-reports");
+  private File reportsDir;
   
   private TestCaseResult currentCase;
   private long currentCaseStarted;
+  
+  public TestReporter(File reportsDir) {
+    this.reportsDir = reportsDir;
+    this.reportsDir.mkdirs();
+  }
   
   public void start() {
     System.out.println("-------------------------------------------------------");
@@ -32,7 +37,7 @@ public class TestReporter {
   public void fileComplete() {
     currentSuite.setTime( (System.currentTimeMillis() - currentSuiteStarted) / 1000d );
   
-    currentSuite.writeXml(reportDir);
+    currentSuite.writeXml(reportsDir);
     
     System.out.println(String.format("Tests run: %d, Failures: %d, Errors: %d, Skipped: %d, Time elapsed: %.3f %s",
         currentSuite.getResults().size(),

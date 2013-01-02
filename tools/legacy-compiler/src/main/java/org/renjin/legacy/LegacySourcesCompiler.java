@@ -30,6 +30,8 @@ public class LegacySourcesCompiler {
   private boolean verbose = true;
   private List<File> sources = Lists.newArrayList();
   private List<File> classPaths = Lists.newArrayList();
+  private File jimpleDirectory = new File("target/jimple");
+  private File outputDirectory = new File("target/classes");
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;
@@ -38,7 +40,15 @@ public class LegacySourcesCompiler {
   public void setClassName(String className) {
     this.className = className;
   }
-  
+ 
+  public void setJimpleDirectory(File jimpleOutputDirectory) {
+    this.jimpleDirectory = jimpleOutputDirectory;
+  }
+
+  public void setOutputDirectory(File outputDirectory) {
+    this.outputDirectory = outputDirectory;
+  }
+
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }
@@ -91,8 +101,8 @@ public class LegacySourcesCompiler {
       jimpleOutput.mkdirs();
 
       GimpleCompiler compiler = new GimpleCompiler();
-      compiler.setJimpleOutputDirectory(jimpleOutput);
-      compiler.setOutputDirectory(new File("target/classes"));
+      compiler.setJimpleOutputDirectory(jimpleDirectory);
+      compiler.setOutputDirectory(outputDirectory);
       compiler.setPackageName(packageName);
       compiler.setClassName(className);
       compiler.addSootClassPaths(classPaths);
@@ -144,6 +154,4 @@ public class LegacySourcesCompiler {
     }
     return tempDir;
   }
-
-
 }

@@ -14,20 +14,25 @@ import org.renjin.sexp.Symbol;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
+/**
+ * Discovers and runs a set of R test scripts, usually from
+ * src/test/R
+ * 
+ */
 public class TestRunner {
 
   private String namespace;
-  private TestReporter reporter = new TestReporter();
+  private TestReporter reporter;
 
-  public void run(String namespaceName) throws Exception {
+  public void run(File sourceDirectory, File reportsDirectory, String namespaceName) throws Exception {
     
+    reporter = new TestReporter(reportsDirectory);
     reporter.start();
     
     this.namespace = namespaceName;
     
-    File testSources = new File("src/test/R");
-    if(testSources.exists() && testSources.listFiles() != null) {
-      for(File sourceFile : testSources.listFiles()) {
+    if(sourceDirectory.isDirectory() && sourceDirectory.listFiles() != null) {
+      for(File sourceFile : sourceDirectory.listFiles()) {
         if(sourceFile.getName().toUpperCase().endsWith(".R")) {
           try {
             reporter.startFile(sourceFile);
@@ -39,7 +44,6 @@ public class TestRunner {
         }
       }
     }
-    
   }
 
   private Context createContext() throws IOException  {
@@ -63,8 +67,6 @@ public class TestRunner {
     } 
     return false;
   }
-
-
 
   private void executeTestFile(File sourceFile) throws IOException {
     ExpressionVector source = RParser.parseSource(Files.newReaderSupplier(sourceFile, Charsets.UTF_8));

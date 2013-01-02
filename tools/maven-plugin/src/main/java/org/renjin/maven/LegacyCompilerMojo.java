@@ -38,22 +38,52 @@ public class LegacyCompilerMojo extends AbstractMojo {
    * @readonly
    * @since 1.1-beta-1
    */
- private List<Artifact> pluginDependencies;
+  private List<Artifact> pluginDependencies;
+  
+  /**
+   * @parameter default-value="${project.basedir}"
+   * @readonly
+   */
+  private File baseDir;
+  
+  /**
+   * Name of the R package
+   * @parameter expression="${project.build.outputDirectory}"
+   * @required
+   * @readonly
+   */
+  private File outputDirectory; 
+  
+  /**
+   * Directory to which the intermediate jimple files are written
+   * @parameter expression="${project.build.directory}/jimple"
+   * @required
+   */
+  private File jimpleDirectory; 
+  
   
   
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     LegacySourcesCompiler compiler = new LegacySourcesCompiler();
-    compiler.addSources(new File("src/main/c"));
+    compiler.addSources(sourceDir("c"));
     compiler.setVerbose(false);
     compiler.setPackageName(groupId + "." + artifactId);
     compiler.setClassName(properCase(artifactId));
     compiler.addClassPaths(pluginDependencies());
+    compiler.setOutputDirectory(outputDirectory);
+    compiler.setJimpleDirectory(jimpleDirectory);
+    
     try {
       compiler.compile();
     } catch (Exception e) {
       throw new MojoExecutionException("Compilation of legacy sources failed", e);
     }
+  }
+
+  private File sourceDir(String subDirectory) {
+    return new File(baseDir.getAbsolutePath() + File.separator + "src" + File.separator + "main" + 
+          File.separator + subDirectory);
   }
 
   private List<File> pluginDependencies() {

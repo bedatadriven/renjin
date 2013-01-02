@@ -2,6 +2,7 @@ package org.renjin.maven.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
@@ -71,6 +72,9 @@ public class TestRunner {
   private void executeTestFile(File sourceFile) throws IOException {
     ExpressionVector source = RParser.parseSource(Files.newReaderSupplier(sourceFile, Charsets.UTF_8));
     Context ctx = createContext();
+    ctx.getSession().setStdOut(reporter.getStdOut());
+    ctx.getSession().setStdErr(reporter.getStdOut());
+    
     loadLibrary(ctx, namespace);
     ctx.evaluate(source);
 

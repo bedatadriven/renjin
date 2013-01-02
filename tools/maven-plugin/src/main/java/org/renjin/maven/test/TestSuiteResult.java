@@ -1,12 +1,10 @@
 package org.renjin.maven.test;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -82,6 +80,15 @@ public class TestSuiteResult {
     testsuite.setAttribute("skipped", Integer.toString(countOutcomes(TestOutcome.SKIPPED)));
     testsuite.setAttribute("tests", Integer.toString(results.size()));
     testsuite.setAttribute("name", name);
+    
+    Element properties = document.createElement("properties");
+    for(Entry entry : System.getProperties().entrySet()) {
+      Element property = document.createElement("property");
+      property.setAttribute("name", (String)entry.getKey());
+      property.setAttribute("value", (String)entry.getValue());
+      properties.appendChild(property);
+    }
+    testsuite.appendChild(properties);
     
     for(TestCaseResult result : results) {
       Element testcase = document.createElement("testcase");

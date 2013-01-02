@@ -1,6 +1,8 @@
 package org.renjin.maven.test;
 
 import java.io.File;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -14,6 +16,8 @@ public class TestReporter {
   
   private TestCaseResult currentCase;
   private long currentCaseStarted;
+  
+  private PrintWriter stdout;
   
   public TestReporter(File reportsDir) {
     this.reportsDir = reportsDir;
@@ -32,14 +36,35 @@ public class TestReporter {
     currentSuite = new TestSuiteResult();
     currentSuite.setName(file.getName());
     currentSuiteStarted = System.currentTimeMillis();
+    stdout = openOutput();
+  }
+
+  private PrintWriter openOutput() {
+    try {
+      return new PrintWriter(new File(reportsDir, currentSuite.getName() + "-output.txt"));
+    } catch(Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+
+  public PrintWriter getStdOut() {
+    return stdout;
   }
   
   public void fileComplete() {
-    currentSuite.setTime( (System.currentTimeMillis() - currentSuiteStarted) / 1000d );
-  
+    currentSuite.setTime( (System.currentTimeMillis() - currentSuiteStarted) / 1000d );  
     currentSuite.writeXml(reportsDir);
     
-    System.out.println(String.format("Tests run: %d, Failures: %d, Errors: %d, Skipped: %d, Time elapsed: %.3f %s",
+    stdout.close();
+    
+    printResultsBanner(System.out);
+   
+  }
+
+
+  private void printResultsBanner(PrintStream out) {
+    out.println(String.format("Tests run: %d, Failures: %d, Errors: %d, Skipped: %d, Time elapsed: %.3f %s",
         currentSuite.getResults().size(),
         currentSuite.countOutcomes(TestOutcome.FAILURE),
         currentSuite.countOutcomes(TestOutcome.ERROR),
@@ -64,11 +89,11 @@ public class TestReporter {
   public void functionThrew(Exception e) {
     currentCase.setOutcome(TestOutcome.ERROR);
     currentCase.setException(e);
+    e.printStackTrace(stdout);
     functionComplete();
   }
 
   private void functionComplete() {
     currentSuite.setTime( (System.currentTimeMillis() - currentCaseStarted) / 1000d );
   }
-  
 }

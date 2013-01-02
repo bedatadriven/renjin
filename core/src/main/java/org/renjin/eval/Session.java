@@ -120,6 +120,10 @@ public class Session {
     this.connectionTable.getStdout().setOutputStream(writer);
   }
   
+  public void setStdErr(PrintWriter writer) {
+    this.connectionTable.getStderr().setOutputStream(writer);
+  }
+  
   public SessionController getSessionController() {
     return sessionController;
   }

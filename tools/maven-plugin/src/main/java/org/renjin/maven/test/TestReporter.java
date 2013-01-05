@@ -34,14 +34,21 @@ public class TestReporter {
     System.out.println("Running " + file.getName());
     
     currentSuite = new TestSuiteResult();
-    currentSuite.setName(file.getName());
+    currentSuite.setScriptFile(file);
+    currentSuite.setClassName(stripExt(file));
     currentSuiteStarted = System.currentTimeMillis();
+    suites.add(currentSuite);
     stdout = openOutput();
+  }
+
+  private String stripExt(File file) {
+    String name = file.getName();
+    return name.substring(0, name.length() - ".R".length());
   }
 
   private PrintWriter openOutput() {
     try {
-      return new PrintWriter(new File(reportsDir, currentSuite.getName() + "-output.txt"));
+      return new PrintWriter(new File(reportsDir, currentSuite.getClassName() + "-output.txt"));
     } catch(Exception e) {
       throw new RuntimeException(e);
     }
@@ -70,12 +77,16 @@ public class TestReporter {
         currentSuite.countOutcomes(TestOutcome.ERROR),
         currentSuite.countOutcomes(TestOutcome.SKIPPED),
         currentSuite.getTime(),
-        currentSuite.countOutcomes(TestOutcome.FAILURE) > 0 ? " << FAILURE!" : ""));
+        currentSuite.hasFailures() ? " << FAILURE!" : ""));
   }
   
   public void startFunction(String name) {
+    if(name.startsWith("test.")) {
+      name = name.substring("test.".length());
+    }
+    
     currentCase = new TestCaseResult();
-    currentCase.setClassName(currentSuite.getName());
+    currentCase.setClassName(currentSuite.getClassName());
     currentCase.setName(name);
     currentSuite.addCase(currentCase);
     currentCaseStarted = System.currentTimeMillis();
@@ -89,6 +100,10 @@ public class TestReporter {
   public void functionThrew(Exception e) {
     currentCase.setOutcome(TestOutcome.ERROR);
     currentCase.setException(e);
+    System.err.println(String.format("%s() in %s failed: %s", 
+        currentCase.getName(), 
+        currentSuite.getScriptFile().getName(),
+        e.getMessage()));
     e.printStackTrace(stdout);
     functionComplete();
   }
@@ -96,4 +111,13 @@ public class TestReporter {
   private void functionComplete() {
     currentSuite.setTime( (System.currentTimeMillis() - currentCaseStarted) / 1000d );
   }
+
+  public boolean allTestsSucceeded() {
+    for(TestSuiteResult suite : suites) {
+      if(suite.hasFailures()) {
+        return false;
+      }
+    }
+    return true;
+  } 
 }

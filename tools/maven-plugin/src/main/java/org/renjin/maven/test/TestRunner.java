@@ -2,7 +2,6 @@ package org.renjin.maven.test;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
@@ -25,7 +24,7 @@ public class TestRunner {
   private String namespace;
   private TestReporter reporter;
 
-  public void run(File sourceDirectory, File reportsDirectory, String namespaceName) throws Exception {
+  public boolean run(File sourceDirectory, File reportsDirectory, String namespaceName) throws Exception {
     
     reporter = new TestReporter(reportsDirectory);
     reporter.start();
@@ -45,6 +44,8 @@ public class TestRunner {
         }
       }
     }
+    
+    return reporter.allTestsSucceeded();
   }
 
   private Context createContext() throws IOException  {

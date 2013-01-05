@@ -42,6 +42,8 @@ import com.google.common.collect.Lists;
  */
 public class S3 {
 
+  public static Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
+
 
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
     /*
@@ -953,6 +955,7 @@ public class S3 {
      * UseMethod().
      */
     private Context previousContext;
+
     
     private static Resolver start(Context context, String genericMethodName, SEXP object) {
       return start(context, null, genericMethodName, object);
@@ -1113,7 +1116,7 @@ public class S3 {
     }
 
     private Environment getMethodTable() {
-      SEXP table = definitionEnvironment.getVariable(".__S3MethodsTable__.").force(context);
+      SEXP table = definitionEnvironment.getVariable(METHODS_TABLE).force(context);
       if(table instanceof Environment) {
         return (Environment) table;
       } else if(table == Symbol.UNBOUND_VALUE) {

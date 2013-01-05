@@ -2,14 +2,23 @@ package org.renjin.primitives.packaging;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.S3;
 import org.renjin.primitives.annotations.SessionScoped;
+import org.renjin.primitives.packaging.NamespaceDef.S3Export;
+import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
+import org.renjin.sexp.Function;
 import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.PrimitiveFunction;
+import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Session-level registry of namespaces
@@ -71,14 +80,52 @@ public class NamespaceRegistry {
 
     Package pkg = loader.load(name.getPrintName());
     
+    // load the serialized functions/values from the classpath
+    // and add them to our private namespace environment
     Namespace namespace = createNamespace(pkg.getNamespaceDef(), name.getPrintName());
     for(NamedValue value : pkg.loadSymbols(context)) {
       namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
+    }
+
+    Set<Symbol> groups = Sets.newHashSet(Symbol.get("Ops"));
+    
+    // we need to export S3 methods to the namespaces to which
+    // the generic functions were defined
+    for(S3Export export : namespace.getDef().getS3Exports()) {
+      Function method = (Function) namespace.getNamespaceEnvironment().getVariable(export.getMethod());
+      Environment definitionEnv;
+      if(groups.contains(export.getGenericFunction())) {
+        definitionEnv = getBaseNamespaceEnv();
+      } else {
+        SEXP genericFunction = namespace.getNamespaceEnvironment().findFunction(context, export.getGenericFunction());
+        if(genericFunction == null) {
+          //throw new EvalException("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
+          System.err.println("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
+          continue;
+        }
+        definitionEnv = getDefinitionEnv( genericFunction );
+      }
+      if(!definitionEnv.hasVariable(S3.METHODS_TABLE)) {
+        definitionEnv.setVariable(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()));
+      }
+      Environment methodsTable = (Environment) definitionEnv.getVariable(S3.METHODS_TABLE);
+      methodsTable.setVariable(export.getMethod(), method);
+      //System.out.println("installing " + export.getMethod() + " to " + definitionEnv.getName());
     }
     
     return namespace;
   }
   
+  private Environment getDefinitionEnv(SEXP genericFunction) {
+    if(genericFunction instanceof Closure) {
+      return ((Closure) genericFunction).getEnclosingEnvironment();
+    } else if(genericFunction instanceof PrimitiveFunction) {
+      return getBaseNamespaceEnv();
+    } else {
+      throw new IllegalArgumentException(genericFunction.getClass().getName());
+    }
+  }
+
   public boolean isRegistered(Symbol name) {
     return namespaces.containsKey(name);
   }

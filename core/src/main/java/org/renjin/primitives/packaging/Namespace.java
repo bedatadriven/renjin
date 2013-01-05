@@ -29,13 +29,32 @@ public class Namespace {
     throw new EvalException("unimplemented");
   }
 
+  /**
+   *
+   * @return the private environment for this namespace
+   */
   public Environment getNamespaceEnvironment() {
     return this.namespaceEnvironment;
   }
 
+  /**
+   * Copies the exported (public) symbols from our namespace environment
+   * to the given package environment
+   * 
+   * @param packageEnv
+   */
   public void copyExportsTo(Environment packageEnv) {
     for(Symbol name : def.getExports()) {
       packageEnv.setVariable(name, namespaceEnvironment.getVariable(name));
     }
   }
+
+  /**
+   * 
+   * @return the namespace definition (from the NAMESPACE file)
+   */
+  public NamespaceDef getDef() {
+    return def;
+  }
+  
 }

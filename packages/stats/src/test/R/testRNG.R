@@ -4,6 +4,8 @@
 
 library(hamcrest)
 
+DELTA <- 0.01
+
 test.RNGkind <- function() {
 	k <- RNGkind('Mersenne-Twister', 'Inversion')
 	assertThat(k, equalTo(c("Mersenne-Twister", "Inversion")))
@@ -54,19 +56,19 @@ test.rgamma <- function() {
 
 test.rchisq <- function() {
 	set.seed(12345, 'Mersenne-Twister','I')
-	assertThat(eval("rchisq(1,6)"), closeTo(10.74, DELTA))
+	assertThat(rchisq(1,6), closeTo(10.74, DELTA))
 }
 
 
 test.rexp <- function() {
 	set.seed(12345, 'Mersenne-Twister','I')
-	assertThat(eval("rexp(1,6)"), closeTo(0.021, DELTA))
+	assertThat(rexp(1,6), closeTo(0.021, DELTA))
 }
 
 
 test.rcauchy <- function() {
 	set.seed(12345, 'Mersenne-Twister','I')
-	assertThat(eval("rcauchy(1,8,6)"), closeTo(7.122, DELTA))
+	assertThat(rcauchy(1,8,6), closeTo(7.122, DELTA))
 }
 
 
@@ -114,9 +116,9 @@ test.rt <- function() {
 
 
 test.rmultinom <- function() {
-	eval("set.seed(1234, 'Mersenne-Twister','I')");
-	assertThat(eval("rmultinom(1,3,c(0.5,0.5))") , equalTo(c(1,2)));
-	assertThat(eval("dim(rmultinom(20,3,c(0.5,0.3,0.2)))") , equalTo(c_i(3,20)));
+	set.seed(1234, 'Mersenne-Twister','I')
+	assertThat(rmultinom(1,3,c(0.5,0.5)), equalTo(c(1,2)))
+	assertThat(dim(rmultinom(20,3,c(0.5,0.3,0.2))), equalTo(c(3,20)))
 }
 
 

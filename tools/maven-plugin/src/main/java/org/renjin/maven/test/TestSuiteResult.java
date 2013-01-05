@@ -22,19 +22,38 @@ import com.google.common.collect.Lists;
 
 public class TestSuiteResult {
 
-  private String name;
+  /**
+   * The R script file containing the tests
+   */
+  private File scriptFile;
+ 
+  /**
+   * Fake class name based on the name of the script 
+   */
+  private String className;
+  
+  /**
+   * Results of individual test functions
+   */
   private List<TestCaseResult> results = Lists.newArrayList();
   
   private double time;
   
   
-
-  public String getName() {
-    return name;
+  public String getClassName() {
+    return className;
+  }
+  
+  public File getScriptFile() {
+    return scriptFile;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setScriptFile(File scriptFile) {
+    this.scriptFile = scriptFile;
+  }
+
+  public void setClassName(String name) {
+    this.className = name;
   }
 
   public List<TestCaseResult> getResults() {
@@ -62,13 +81,23 @@ public class TestSuiteResult {
     }
     return count;
   }
-  
+
+
+  public boolean hasFailures() {
+    return countOutcomes(TestOutcome.FAILURE) > 0 ||
+        countOutcomes(TestOutcome.ERROR) > 0;
+  }
 
   public void addCase(TestCaseResult caseResult) {
     results.add(caseResult);
   }
   
-  public Document toXML() throws ParserConfigurationException {
+  /**
+   * 
+   * @return creates a JUnit-style XML document representing these results
+   * @throws ParserConfigurationException
+   */
+  public Document toJunitXML() throws ParserConfigurationException {
     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
     Document document = documentBuilder.newDocument();
@@ -79,7 +108,7 @@ public class TestSuiteResult {
     testsuite.setAttribute("errors", Integer.toString(countOutcomes(TestOutcome.ERROR)));
     testsuite.setAttribute("skipped", Integer.toString(countOutcomes(TestOutcome.SKIPPED)));
     testsuite.setAttribute("tests", Integer.toString(results.size()));
-    testsuite.setAttribute("name", name);
+    testsuite.setAttribute("name", className);
     
     Element properties = document.createElement("properties");
     for(Entry entry : System.getProperties().entrySet()) {
@@ -113,9 +142,13 @@ public class TestSuiteResult {
     return document;
   }
 
+  /**
+   * Writes the JUnit XML file to a reports directory
+   * @param reportDir
+   */
   public void writeXml(File reportDir) {
     try {
-      File xmlFile = new File(reportDir, "TEST-" + name + ".xml");
+      File xmlFile = new File(reportDir, "TEST-" + className + ".xml");
       
       TransformerFactory factory = TransformerFactory.newInstance();
       Transformer transformer = factory.newTransformer();
@@ -125,15 +158,12 @@ public class TestSuiteResult {
       // transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
   
       StreamResult result = new StreamResult(xmlFile);
-      DOMSource source = new DOMSource(toXML());
+      DOMSource source = new DOMSource(toJunitXML());
       transformer.transform(source, result);
       
     } catch(Exception e) {
       throw new RuntimeException(e);
     }
-
-    
   }
-
 
 }

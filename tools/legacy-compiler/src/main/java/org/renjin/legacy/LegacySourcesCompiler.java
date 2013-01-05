@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -77,11 +78,14 @@ public class LegacySourcesCompiler {
 
     if(!sources.isEmpty()) {
 
+      if(checkUpToDate()) {
+        return;
+      }
+      
       List<GimpleFunction> functions = Lists.newArrayList();
 
       Gcc gcc = new Gcc();
       gcc.addIncludeDirectory(unpackIncludes());
-
 
       for(File sourceFile : sources) {
         String gimple = gcc.compileToGimple(sourceFile);
@@ -110,6 +114,35 @@ public class LegacySourcesCompiler {
       compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
       compiler.compile(functions);
     }
+  }
+
+  private boolean checkUpToDate() {
+    if(sourcesLastModified() < classLastModified()) {
+      System.out.println(packageName + "." + className + "  is up to date, skipping legacy compilation");
+      return true;
+    } else { 
+      return false;
+    }
+  }
+
+  private long classLastModified() {
+    File classFile = new File(outputDirectory.getAbsolutePath() + File.separator +
+        packageName.replace('.', File.separatorChar) +
+        File.separator + className + ".class");
+    System.out.println("class file (" + classFile.getAbsolutePath() + ") last modified on " + new Date(classFile.lastModified()));
+    return classFile.lastModified();
+  }
+
+  private long sourcesLastModified() {
+    long lastModified = 0;
+    for(File source: sources) {
+      if(source.lastModified() > lastModified) {
+        lastModified = source.lastModified();
+      }
+    }
+    System.out.println("sources last modified: " + lastModified);
+
+    return lastModified;
   }
 
   private File unpackIncludes() throws IOException {

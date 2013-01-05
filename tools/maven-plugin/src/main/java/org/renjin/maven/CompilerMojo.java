@@ -66,16 +66,41 @@ public class CompilerMojo extends AbstractMojo {
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		Context context = initContext();
-	
-		Namespace namespace = context.getNamespaceRegistry().createNamespace(new NamespaceDef(), namespaceName);
-		evaluateSources(context, namespace.getNamespaceEnvironment());
-		serializeEnvironment(context, namespace.getNamespaceEnvironment(), getEnvironmentFile());
+	  compileNamespaceEnvironment();
 		copyNamespace();
 	}
 
+  private void compileNamespaceEnvironment() throws MojoExecutionException {
+    List<File> sources = getRSources();
+    if(isUpToDate(sources)) {
+      return;
+    }
+    
+    Context context = initContext();
+	
+		Namespace namespace = context.getNamespaceRegistry().createNamespace(new NamespaceDef(), namespaceName);
+		evaluateSources(context, getRSources(), namespace.getNamespaceEnvironment());
+		serializeEnvironment(context, namespace.getNamespaceEnvironment(), getEnvironmentFile());
+  }
 
-	private void copyNamespace() throws MojoFailureException, MojoExecutionException {
+
+	private boolean isUpToDate(List<File> sources) {
+	  long lastModified = 0;
+	  for(File source : sources) {
+	    if(source.lastModified() > lastModified) {
+	      lastModified = source.lastModified();
+	    }
+	  }
+	  
+	  if(lastModified < getEnvironmentFile().lastModified()) {
+	    getLog().info("namespaceEnvironment is up to date, skipping compiliation");
+	    return true;
+	  }
+	  
+	  return false;
+  }
+
+  private void copyNamespace() throws MojoFailureException, MojoExecutionException {
 	  try {
 			if(!namespaceFile.exists()) {
 			  getLog().error("NAMESPACE file is missing. (looked in " + namespaceFile.getAbsolutePath() + ")");
@@ -86,7 +111,6 @@ public class CompilerMojo extends AbstractMojo {
 			throw new MojoExecutionException("Exception copying NAMESPACE file", e);
 		}
 	}
-
 
 	private Context initContext() throws MojoExecutionException  {
 		try {
@@ -118,9 +142,9 @@ public class CompilerMojo extends AbstractMojo {
 		return packageRoot;
 	}
 
-	private void evaluateSources(Context context, Environment namespaceEnvironment)
+	private void evaluateSources(Context context, List<File> sources, Environment namespaceEnvironment)
 			throws MojoExecutionException {
-		for(File sourceFile : getRSources()) {
+		for(File sourceFile : sources) {
 			getLog().debug("Evaluating '" + sourceFile + "'");
 			try {
 				FileReader reader = new FileReader(sourceFile);

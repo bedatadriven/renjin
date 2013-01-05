@@ -55,18 +55,41 @@ public class TestMojo extends AbstractMojo {
   private File testSourceDirectory;
 
   /**
-   * @parameter default-value="${project.build.directory}/surefire-reports"
+   * @parameter default-value="${project.build.directory}/renjin-test-reports"
    * @required
    */
   private File reportsDirectory;
 
+  /**
+   * @parameter expression="skipTests" default-value="false"
+   */
+  private boolean skipTests;
+  
+  /**
+   * @parameter expression="${maven.test.failure.ignore}" default-value="false"
+   */
+  private boolean testFailureIgnore;
+  
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+  
+    if(skipTests) {
+      getLog().info("Skipping Renjin tests.");
+      return;
+    }
+    
     ClassLoader classLoader = getClassLoader();
     try {
       Object runner = classLoader.loadClass("org.renjin.maven.test.TestRunner").newInstance();
-      runner.getClass().getMethod("run", File.class, File.class, String.class).invoke(runner, 
-          testSourceDirectory, reportsDirectory, namespaceName);
+      boolean succeeded = (Boolean)runner.getClass()
+          .getMethod("run", File.class, File.class, String.class)
+          .invoke(runner, testSourceDirectory, reportsDirectory, namespaceName);
+     
+      System.out.println("succeeded = " + succeeded);
+      
+      if(!succeeded && !testFailureIgnore) {
+        throw new MojoFailureException("There were R test failures");
+      }
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);
     }

@@ -8,8 +8,8 @@
     <version>0.7.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>stats</artifactId>
-  <description>R statistical functions</description>
+  <artifactId>graphics</artifactId>
+  <description>The R Graphics Package</description>
   <licenses>
     <license>
       <name>Part of R 2.14.2</name>
@@ -28,17 +28,7 @@
   	</dependency>
   	<dependency>
   		<groupId>org.renjin</groupId>
-  		<artifactId>renjin-legacy-runtime</artifactId>
-  		<version>${project.version}</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.renjin</groupId>
-  		<artifactId>graphics</artifactId>
-  		<version>${project.version}</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.renjin</groupId>
-  		<artifactId>utils</artifactId>
+  		<artifactId>grDevices</artifactId>
   		<version>${project.version}</version>
   	</dependency>
   	<dependency>

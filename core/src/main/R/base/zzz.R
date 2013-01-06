@@ -246,9 +246,9 @@ F <- FALSE
 R.version <- structure(R.Version(), class = "simple.list")
 version <- R.version            # for S compatibility
 
-
 options(keep.source = interactive())
-options(warn = 0)options(timeout = 60)
+options(warn = 0)
+options(timeout = 60)
 options(encoding = "native.enc")
 options(show.error.messages = TRUE)
 ## keep in sync with PrintDefaults() in  ../../main/print.c :

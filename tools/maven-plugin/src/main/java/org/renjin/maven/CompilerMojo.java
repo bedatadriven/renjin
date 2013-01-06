@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.maven.MavenExecutionException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -17,6 +18,7 @@ import org.renjin.primitives.packaging.NamespaceDef;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
@@ -98,7 +100,7 @@ public class CompilerMojo extends AbstractMojo {
 	  }
 	  
 	  return false;
-  }
+	}
 
   private void copyNamespace() throws MojoFailureException, MojoExecutionException {
 	  try {

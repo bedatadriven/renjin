@@ -77,7 +77,7 @@ export(reshapeWide, reshapeLong, print.coefmat, anovalist.lm, lm.fit.null,
 
 import(graphics)
 ## 'graphics' imports 'grDevices' completely; hence this is currently a noop:
-importFrom(grDevices, dev.interactive, palette, extendrange, xy.coords)
+#importFrom(grDevices, dev.interactive, palette, extendrange, xy.coords)
 
 importFrom(utils, str)
 

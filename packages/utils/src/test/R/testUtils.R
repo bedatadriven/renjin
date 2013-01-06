@@ -1,0 +1,5 @@
+
+
+test.namespaceLoads() {
+	library(utils)
+}

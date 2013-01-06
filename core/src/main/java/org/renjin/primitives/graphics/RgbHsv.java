@@ -977,41 +977,35 @@ public class RgbHsv {
 	}
 
 	private static String getHexRgb(double red, double green, double blue,
-			double alpha, double maxcolorvalue, boolean useAlpha) {
+			double alpha, double maxColorValue, boolean useAlpha) {
 		if (red < 0 || green < 0 || blue < 0 || alpha < 0
-				|| red > maxcolorvalue || green > maxcolorvalue
-				|| blue > maxcolorvalue || alpha > maxcolorvalue) {
+				|| red > maxColorValue || green > maxColorValue
+				|| blue > maxColorValue || alpha > maxColorValue) {
 			throw new EvalException(
 					"One of the color intensities is not in [0,"
-							+ maxcolorvalue + "]");
+							+ maxColorValue + "]");
 		}
-		String sred = Integer.toHexString((int) (red * 255.0 / maxcolorvalue))
-				.toUpperCase();
-		String sgreen = Integer.toHexString(
-				(int) (green * 255.0 / maxcolorvalue)).toUpperCase();
-		String sblue = Integer
-				.toHexString((int) (blue * 255.0 / maxcolorvalue))
-				.toUpperCase();
-		String salpha = Integer.toHexString(
-				(int) (alpha * 255.0 / maxcolorvalue)).toUpperCase();
-		if (sred.length() < 2) {
-			sred = "0" + sred;
+		StringBuilder hex = new StringBuilder();
+		hex.append('#');
+		appendHexDouble(red, maxColorValue, hex);
+		appendHexDouble(green, maxColorValue, hex);
+		appendHexDouble(blue, maxColorValue, hex);
+		
+		if(useAlpha) {
+		  appendHexDouble(alpha, maxColorValue, hex);
 		}
-		if (sgreen.length() < 2) {
-			sgreen = "0" + sgreen;
-		}
-		if (sblue.length() < 2) {
-			sblue = "0" + sblue;
-		}
-		if (salpha.length() < 2) {
-			salpha = "0" + salpha;
-		}
-		if (useAlpha) {
-			return ("#" + sred + sgreen + sblue + salpha);
-		} else {
-			return ("#" + sred + sgreen + sblue);
-		}
+    return hex.toString();
 	}
+
+  private static void appendHexDouble(double value, double maxValue, StringBuilder sb) {
+    String hex = Integer
+				.toHexString((int) Math.round((value * 255.0 / maxValue)) )
+				.toUpperCase();
+    if(hex.length() == 1) {
+      sb.append('0');
+    }
+    sb.append(hex);
+  }
 
 	@Primitive("rgb")
 	public static StringVector rgb(DoubleVector red, DoubleVector green,

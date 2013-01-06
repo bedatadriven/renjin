@@ -8,8 +8,8 @@
     <version>0.7.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>stats</artifactId>
-  <description>R statistical functions</description>
+  <artifactId>splines</artifactId>
+  <description>Regression Spline Functions and Classes</description>
   <licenses>
     <license>
       <name>Part of R 2.14.2</name>
@@ -17,30 +17,15 @@
   </licenses>
   <developers>
     <developer>
-      <name>R Development Core Team and contributors worldwide</name>
+      <name>Douglas M. Bates</name>
+	  <email>bates@stat.wisc.edu</email>
     </developer>
+	<developer>
+	  <name>William N. Venables</name>
+	  <email>Bill.Venables@csiro.au</email>
+	</developer>
   </developers>
   <dependencies>
-  	<dependency>
-  		<groupId>org.renjin</groupId>
-  		<artifactId>renjin-core</artifactId>
-  		<version>${project.version}</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.renjin</groupId>
-  		<artifactId>renjin-legacy-runtime</artifactId>
-  		<version>${project.version}</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.renjin</groupId>
-  		<artifactId>graphics</artifactId>
-  		<version>${project.version}</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.renjin</groupId>
-  		<artifactId>utils</artifactId>
-  		<version>${project.version}</version>
-  	</dependency>
   	<dependency>
   		<groupId>org.renjin</groupId>
   		<artifactId>hamcrest</artifactId>
@@ -59,7 +44,6 @@
   					<id>build</id>	
   					<goals>
   						<goal>compile</goal>
-  						<goal>legacy-sources-compile</goal>
   					</goals>
   					<phase>compile</phase>
   				</execution>

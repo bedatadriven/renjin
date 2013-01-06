@@ -1,6 +1,6 @@
 library(hamcrest)
 
-ERROR <- 0.00001
+ERROR <- 0.0001
 
 test.dist <- function() {
 	print(dist(1:10))

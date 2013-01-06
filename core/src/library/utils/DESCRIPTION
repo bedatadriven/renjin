@@ -1,8 +1,0 @@
-Package: utils
-Version: 2.14.2
-Priority: base
-Title: The R Utils Package
-Author: R Development Core Team and contributors worldwide
-Maintainer: R Core Team <R-core@r-project.org>
-Description: R utility functions
-License: Part of R 2.14.2

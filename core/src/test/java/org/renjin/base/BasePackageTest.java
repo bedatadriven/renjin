@@ -512,7 +512,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
     
     eval(" f <- function() { y<-66; fieldClasses <- NULL; assign('fieldClasses', 42); fieldClasses; } ");
-    
+      
     assertThat(eval("f()"), equalTo(c(42)));
     
   }

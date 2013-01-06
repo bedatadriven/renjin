@@ -1,9 +1,12 @@
 export("?", .DollarNames, CRAN.packages, Rprof, Rprofmem, RShowDoc,
        RSiteSearch, URLdecode, URLencode, View, adist, alarm, apropos,
        aregexec, argsAnywhere, assignInNamespace, as.roman, as.person,
-       as.personList, as.relistable, aspell, aspell_package_Rd_files,
-       aspell_package_vignettes,
-       aspell_write_personal_dictionary_file, available.packages,
+       as.personList, as.relistable, 
+#	   aspell, 
+#	   aspell_package_Rd_files,
+#      aspell_package_vignettes,
+#      aspell_write_personal_dictionary_file, 
+	   available.packages,
        browseEnv, browseURL, browseVignettes, bug.report,
        capture.output, checkCRAN, chooseBioCmirror, chooseCRANmirror,
        citation, citEntry, citHeader, citFooter, close.socket, combn,
@@ -55,8 +58,8 @@ S3method(head, "function")
 S3method(head, matrix)
 S3method(head, ftable)
 S3method(head, table)
-S3method(print, "aspell")
-S3method(print, "aspell_inspect_context")
+#S3method(print, "aspell")
+#S3method(print, "aspell_inspect_context")
 S3method(print, Bibtex)
 S3method(print, findLineNumResult)
 S3method(print, getAnywhere)
@@ -88,7 +91,7 @@ S3method(str, POSIXt)
 S3method(str, Date)
 S3method(str, data.frame)
 S3method(str, default)
-S3method(summary, aspell)
+#S3method(summary, aspell)
 S3method(summary, packageStatus)
 S3method(tail, data.frame)
 S3method(tail, default)

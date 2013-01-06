@@ -26,7 +26,10 @@ public class Namespace {
   }
 
   public SEXP getExport(Symbol entry) {
-    throw new EvalException("unimplemented");
+    if(def.getExports().contains(entry)) {
+      return this.namespaceEnvironment.getVariable(entry);
+    }
+    throw new EvalException("Namespace " + name + " has no exported symbol named '" + entry.getPrintName() + "'");
   }
 
   /**

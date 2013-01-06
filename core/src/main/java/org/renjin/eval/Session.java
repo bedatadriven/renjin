@@ -17,6 +17,7 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.Frame;
 import org.renjin.sexp.HashFrame;
 import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
@@ -101,6 +102,10 @@ public class Session {
     namespaceRegistry = new NamespaceRegistry(new PackageLoader(),  topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager(); 
     
+    // TODO(alex)
+    // several packages rely on the presence of .Random.seed in the global
+    // even though it's an implementation detail.
+    globalEnvironment.setVariable(".Random.seed", IntVector.valueOf(1));
   }
 
   /** 

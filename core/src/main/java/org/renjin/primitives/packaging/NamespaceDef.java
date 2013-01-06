@@ -3,7 +3,9 @@ package org.renjin.primitives.packaging;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.renjin.parser.RParser;
 import org.renjin.sexp.ExpressionVector;
@@ -14,6 +16,7 @@ import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
 
@@ -51,16 +54,26 @@ public class NamespaceDef {
     }
   }
   
-  private static class Import {
+  public static class NamespaceImport {
     private Symbol namespace;
     private List<Symbol> symbols = Lists.newArrayList();
+    private boolean importAll;
+    public Symbol getNamespace() {
+      return namespace;
+    }
+    public List<Symbol> getSymbols() {
+      return symbols;
+    }
+    public boolean isImportAll() {
+      return importAll;
+    }
+    
     
     
   }
   
-  
-  private List<Symbol> imports = Lists.newArrayList();
-  private List<Symbol> exports = Lists.newArrayList();
+  private List<NamespaceImport> imports = Lists.newArrayList();
+  private Set<Symbol> exports = Sets.newHashSet();
   private List<S3Export> s3Exports = Lists.newArrayList();
   
   public void parse(Reader reader) throws IOException {
@@ -74,10 +87,19 @@ public class NamespaceDef {
         addTo(call.getArguments(), exports);
         
       } else if(call.getFunction() == Symbol.get("import")) {
-        addTo(call.getArguments(), imports);
+        NamespaceImport nsImport = new NamespaceImport();
+        nsImport.namespace = toSymbol( call.getArgument(0) );
+        nsImport.importAll = true;
+        imports.add(nsImport);
         
       } else if(call.getFunction() == Symbol.get("importFrom")) {
         
+        NamespaceImport nsImport = new NamespaceImport();
+        nsImport.namespace = toSymbol( call.getArgument(0) );
+        for(int i=1; i<call.getArguments().length();++i) {
+          nsImport.symbols.add( toSymbol( call.getArgument(1) ) );
+        }
+        imports.add(nsImport);
         
       } else if(call.getFunction() == Symbol.get("S3method")) {
         Symbol generic = toSymbol( call.getArgument(0) );
@@ -87,7 +109,7 @@ public class NamespaceDef {
     }
   }
   
-  private void addTo(PairList arguments, List<Symbol> list) {
+  private void addTo(PairList arguments, Collection<Symbol> list) {
     for(SEXP exp : arguments.values()) {
       list.add(toSymbol(exp));
     }
@@ -103,24 +125,16 @@ public class NamespaceDef {
     }
   }
 
-  public List<Symbol> getImports() {
+  public List<NamespaceImport> getImports() {
     return imports;
   }
 
-  public void setImports(List<Symbol> imports) {
-    this.imports = imports;
-  }
-
-  public List<Symbol> getExports() {
+  public Set<Symbol> getExports() {
     return exports;
   }
 
   public List<S3Export> getS3Exports() {
     return s3Exports;
-  }
-  
-  public void setExports(List<Symbol> exports) {
-    this.exports = exports;
   }
 
   public void parse(InputSupplier<InputStreamReader> readerSupplier) throws IOException {

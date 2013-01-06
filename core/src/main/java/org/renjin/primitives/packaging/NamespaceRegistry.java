@@ -78,6 +78,8 @@ public class NamespaceRegistry {
   
   private Namespace load(Symbol name) throws IOException {
 
+    System.err.println("loading namespace " + name);
+    
     Package pkg = loader.load(name.getPrintName());
     
     // load the serialized functions/values from the classpath
@@ -86,22 +88,43 @@ public class NamespaceRegistry {
     for(NamedValue value : pkg.loadSymbols(context)) {
       namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
     }
+    
+    // import foreign symbols
+    Environment importsEnv = namespace.getNamespaceEnvironment().getParent();
+    for(NamespaceDef.NamespaceImport importDef : pkg.getNamespaceDef().getImports() ) {
+      Namespace importedNamespace = getNamespace(importDef.getNamespace());
+      if(importDef.isImportAll()) {
+        importedNamespace.copyExportsTo(importsEnv);
+      } else {
+        for(Symbol importedSymbol : importDef.getSymbols()) {
+          SEXP importedExp = importedNamespace.getExport(importedSymbol);
+          importsEnv.setVariable(importedSymbol, importedExp);
+        }
+      }
+    }
 
     Set<Symbol> groups = Sets.newHashSet(Symbol.get("Ops"));
     
     // we need to export S3 methods to the namespaces to which
     // the generic functions were defined
     for(S3Export export : namespace.getDef().getS3Exports()) {
-      Function method = (Function) namespace.getNamespaceEnvironment().getVariable(export.getMethod());
+      SEXP methodExp =  namespace.getNamespaceEnvironment().getVariable(export.getMethod());
+      if(methodExp == Symbol.UNBOUND_VALUE) {
+        throw new EvalException("Missing export: " + export.getMethod());
+      }
+      if(!(methodExp instanceof Function)) {
+        throw new IllegalStateException(export.getMethod() + ": expected function but was " + methodExp.getClass().getName());
+      }
+      Function method = (Function) methodExp;
       Environment definitionEnv;
       if(groups.contains(export.getGenericFunction())) {
         definitionEnv = getBaseNamespaceEnv();
       } else {
         SEXP genericFunction = namespace.getNamespaceEnvironment().findFunction(context, export.getGenericFunction());
         if(genericFunction == null) {
-          //throw new EvalException("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
-          System.err.println("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
-          continue;
+          throw new EvalException("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
+          //System.err.println("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
+          //continue;
         }
         definitionEnv = getDefinitionEnv( genericFunction );
       }

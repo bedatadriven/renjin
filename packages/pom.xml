@@ -20,6 +20,9 @@
   <modules>
     <module>stats</module>
 	<module>hamcrest</module>
+	<module>utils</module>
+	<module>graphics</module>
+	<module>grDevices</module>
   </modules>
   
   <dependencies>

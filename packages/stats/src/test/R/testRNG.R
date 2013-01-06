@@ -68,7 +68,7 @@ test.rexp <- function() {
 
 test.rcauchy <- function() {
 	set.seed(12345, 'Mersenne-Twister','I')
-	assertThat(rcauchy(1,8,6), closeTo(7.122, DELTA))
+	assertThat(rcauchy(1,8,6), closeTo(0.789036, DELTA))
 }
 
 
@@ -114,17 +114,16 @@ test.rt <- function() {
 	assertThat(rt(1,3), closeTo(3.28, 0.1));
 }
 
-
 test.rmultinom <- function() {
 	set.seed(1234, 'Mersenne-Twister','I')
 	assertThat(rmultinom(1,3,c(0.5,0.5)), equalTo(c(1,2)))
 	assertThat(dim(rmultinom(20,3,c(0.5,0.3,0.2))), equalTo(c(3,20)))
 }
 
-
 test.randomSeedSetInGlobalEnv <- function() {
 	.GlobalEnv$x <- 42
 	runif(1)
+	print(.GlobalEnv)
 	print(ls(envir=.GlobalEnv,all.names=T))
 	get('.Random.seed', envir = .GlobalEnv, inherits = FALSE)
 }

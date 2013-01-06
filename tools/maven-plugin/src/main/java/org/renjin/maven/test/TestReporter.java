@@ -90,6 +90,11 @@ public class TestReporter {
     currentCase.setName(name);
     currentSuite.addCase(currentCase);
     currentCaseStarted = System.currentTimeMillis();
+    
+    stdout.println("---------------------------------------------------");
+    stdout.println("Running " + name + "()");
+    stdout.println("---------------------------------------------------");
+    
   }
   
   public void functionSucceeded() {

@@ -458,7 +458,7 @@ public class Primitives {
     f("qgamma", Distributions.class, 15, 11, 3 + 2);
 
     f("dlnorm", Distributions.class, 16, 11, 3 + 1);
-    f("plnorm", Distribution.class, 17, 11, 3 + 2);
+    f("plnorm", Distributions.class, 17, 11, 3 + 2);
     f("qlnorm", Distributions.class, 18, 11, 3 + 2);
 
     f("dlogis", Distributions.class, 19, 11, 3 + 1);
@@ -503,9 +503,9 @@ public class Primitives {
 
 /* Mathematical Functions of Four Numeric (+ 1-2 int) Variables */
 
-    f("dhyper", Distribution.class, 1, 11, 4 + 1);
-    f("phyper", Distribution.class, 2, 11, 4 + 2);
-    f("qhyper", Distribution.class, 3, 11, 4 + 2);
+    f("dhyper", Distributions.class, 1, 11, 4 + 1);
+    f("phyper", Distributions.class, 2, 11, 4 + 2);
+    f("qhyper", Distributions.class, 3, 11, 4 + 2);
 
     f("dnbeta", Distributions.class, 4, 11, 4 + 1);
     f("pnbeta", Distributions.class, 5, 11, 4 + 2);

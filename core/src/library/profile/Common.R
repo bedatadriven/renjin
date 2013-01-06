@@ -26,7 +26,8 @@ options(warn = 0)
 # options(repos = c(CRAN="@CRAN@"))
 # options(BIOC = "http://www.bioconductor.org")
 
-options(timeout = 60)
+options(keep.source = interactive())
+options(warn = 0)options(timeout = 60)
 options(encoding = "native.enc")
 options(show.error.messages = TRUE)
 ## keep in sync with PrintDefaults() in  ../../main/print.c :

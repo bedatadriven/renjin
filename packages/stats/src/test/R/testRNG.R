@@ -123,6 +123,8 @@ test.rmultinom <- function() {
 
 
 test.randomSeedSetInGlobalEnv <- function() {
-	runif(1);
+	.GlobalEnv$x <- 42
+	runif(1)
+	print(ls(envir=.GlobalEnv,all.names=T))
 	get('.Random.seed', envir = .GlobalEnv, inherits = FALSE)
 }

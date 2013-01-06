@@ -101,9 +101,6 @@ public class Session {
     namespaceRegistry = new NamespaceRegistry(new PackageLoader(),  topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager(); 
     
-    // quick fix: more work needs to be done to figure out where 
-    // to put this, but in the meantime some packages require its presence
-    globalEnvironment.setVariable(".Random.seed", new IntArrayVector(1));
   }
 
   /** 

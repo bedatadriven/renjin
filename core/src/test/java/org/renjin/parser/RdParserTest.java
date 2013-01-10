@@ -80,6 +80,10 @@ public class RdParserTest extends EvalTestCase {
               result.getElementAsSEXP(i), ((ListVector) expected).getElementAsSEXP(i));
         }
       }
+    } else if(result instanceof StringVector && expected instanceof StringVector && result.length() == 1 && expected.length() == 1) {
+      String s1 = ((StringVector) result).getElementAsString(0);
+      String s2 = ((StringVector) expected).getElementAsString(0);
+      assertThat(node, s1.replace("\r\n", "\n"), equalTo(s2));
     } else {
       assertThat(node, result, equalTo(expected));
     }

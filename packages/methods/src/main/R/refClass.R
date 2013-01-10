@@ -88,10 +88,12 @@ installClassMethod <- function(def, self, me, selfEnv, thisClass) {
 
 ..hasCodeTools <- FALSE
 .hasCodeTools <- function() {
-    if(!identical(..hasCodeTools, TRUE)) # will be FALSE when methods is built, keep checking
-        .assignOverBinding("..hasCodeTools",length(list.files(system.file(package = "codetools"))) > 0,
-                           .methodsNamespace, FALSE)
-    ..hasCodeTools
+	# RENJIN: no tools package
+	## if(!identical(..hasCodeTools, TRUE)) # will be FALSE when methods is built, keep checking
+	##     .assignOverBinding("..hasCodeTools",length(list.files(system.file(package = "codetools"))) > 0,
+	##                        .methodsNamespace, FALSE)
+	## ..hasCodeTools
+	FALSE
 }
 
 .getGlobalFuns <- function(def) {

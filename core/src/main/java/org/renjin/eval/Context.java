@@ -449,6 +449,8 @@ public class Context {
     BaseFrame baseFrame = (BaseFrame) session.baseEnvironment.getFrame();
     baseFrame.load(this);
     
+    evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.baseNamespaceEnv);
+    
 //    evalBaseResource("/org/renjin/library/base/R/Rprofile");
 //    
 //    // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);

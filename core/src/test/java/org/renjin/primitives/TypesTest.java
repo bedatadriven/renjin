@@ -675,5 +675,12 @@ public strictfp class TypesTest extends EvalTestCase {
         is((SEXP)topLevelContext.getGlobalEnvironment().getBaseEnvironment()));
   }
 
+  @Test
+  public void asGlobalEnv() {
+    eval("f <- function() as.environment('.GlobalEnv')");
+    eval("environment(f) <- .BaseNamespaceEnv ");
+    
+    eval("f()");
+  }
 
 }

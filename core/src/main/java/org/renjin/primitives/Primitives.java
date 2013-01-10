@@ -1008,10 +1008,13 @@ public class Primitives {
     f("bindingIsActive", /*bndIsActive*/ null, 0, 11, 2);
 /* looks like mkUnbound is unused in base R */
     f("mkUnbound", /*mkUnbound*/ null, 0, 111, 1);
-    f("isNamespaceEnv", Namespaces.class, 0, 11, 1);
+    f("isNamespace", Namespaces.class, 0, 0, 1);
   // hiding:  f("registerNamespace", Namespaces.class, 0, 11, 2);
    // hiding: f("unregisterNamespace", Namespaces.class, 0, 11, 1);
-    f("getRegisteredNamespace", Namespaces.class, 0, 11, 1);
+    f("getNamespace", Namespaces.class, 0, 0, 1);
+    f("getRegisteredNamespace",Namespaces.class,  0, 11,  1);
+    f("loadedNamespaces", Namespaces.class, 0,0,0);
+    
     //hiding: f("getNamespaceRegistry", Namespaces.class, 0, 11, 0);
    // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);
     f("env.profile", /*envprofile*/ null, 0, 211, 1);

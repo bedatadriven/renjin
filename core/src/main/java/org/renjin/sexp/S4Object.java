@@ -39,6 +39,24 @@ public class S4Object extends AbstractSEXP {
     return sb.toString();
     
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if(obj == null) {
+      return false;
+    }
+    if(!(obj instanceof S4Object)) {
+      return false;
+    }
+    S4Object other = (S4Object)obj;
+    return attributes.equals(other.attributes);
+  }
+
+  @Override
+  public int hashCode() {
+    return attributes.hashCode();
+  }
+
   
   
 

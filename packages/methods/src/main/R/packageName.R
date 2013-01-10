@@ -29,7 +29,8 @@ getPackageName <- function(where = topenv(parent.frame()), create = TRUE) {
         if(regexpr("package:", envName, fixed = TRUE) == 1L)
           pkg <- sub("package:","", envName, fixed = TRUE)
     }
-    if(!nzchar(pkg)) { ## is still ""
+
+	if(!nzchar(pkg)) { ## is still ""
         if(identical(env, .GlobalEnv))
             pkg <- ".GlobalEnv"
         else if(identical(env, .BaseNamespaceEnv))

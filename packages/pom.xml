@@ -20,9 +20,11 @@
   <modules>
     <module>stats</module>
 	<module>hamcrest</module>
-	<module>utils</module>
 	<module>graphics</module>
 	<module>grDevices</module>
+	<module>methods</module>
+	<module>splines</module>
+	<module>utils</module>
   </modules>
   
   <dependencies>

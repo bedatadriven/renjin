@@ -24,39 +24,42 @@ public class RNG {
   int randomseed = 0;
   static double i2_32m1 = 2.328306437080797e-10;/* = 1/(2^32 - 1) */
   public Session context;
-  
-  
+
+
   RNGTAB[] RNG_Table = new RNGTAB[]{
-    new RNGTAB(RNGtype.WICHMANN_HILL, N01type.BUGGY_KINDERMAN_RAMAGE, "Wichmann-Hill"),
-    new RNGTAB(RNGtype.MARSAGLIA_MULTICARRY, N01type.BUGGY_KINDERMAN_RAMAGE, "Marsaglia-MultiCarry"),
-    new RNGTAB(RNGtype.SUPER_DUPER, N01type.BUGGY_KINDERMAN_RAMAGE, "Super-Duper"),
-    new RNGTAB(RNGtype.MERSENNE_TWISTER, N01type.BUGGY_KINDERMAN_RAMAGE, "Mersenne-Twister"),
-    new RNGTAB(RNGtype.KNUTH_TAOCP, N01type.BUGGY_KINDERMAN_RAMAGE, "Knuth-TAOCP"),
-    new RNGTAB(RNGtype.USER_UNIF, N01type.BUGGY_KINDERMAN_RAMAGE, "User-supplied"),
-    new RNGTAB(RNGtype.KNUTH_TAOCP2, N01type.BUGGY_KINDERMAN_RAMAGE, "Knuth-TAOCP-2002")};
+      new RNGTAB(RNGtype.WICHMANN_HILL, N01type.BUGGY_KINDERMAN_RAMAGE, "Wichmann-Hill"),
+      new RNGTAB(RNGtype.MARSAGLIA_MULTICARRY, N01type.BUGGY_KINDERMAN_RAMAGE, "Marsaglia-MultiCarry"),
+      new RNGTAB(RNGtype.SUPER_DUPER, N01type.BUGGY_KINDERMAN_RAMAGE, "Super-Duper"),
+      new RNGTAB(RNGtype.MERSENNE_TWISTER, N01type.BUGGY_KINDERMAN_RAMAGE, "Mersenne-Twister"),
+      new RNGTAB(RNGtype.KNUTH_TAOCP, N01type.BUGGY_KINDERMAN_RAMAGE, "Knuth-TAOCP"),
+      new RNGTAB(RNGtype.USER_UNIF, N01type.BUGGY_KINDERMAN_RAMAGE, "User-supplied"),
+      new RNGTAB(RNGtype.KNUTH_TAOCP2, N01type.BUGGY_KINDERMAN_RAMAGE, "Knuth-TAOCP-2002")};
 
   public RNG(Session globals){
-	  this.context = globals;
+    this.context = globals;
   }
-  
+
   @Primitive("RNGkind")
-  public static IntVector RNGkind(@Current Context context, int kind, int normalkind) {
-	RNG rng = context.getSession().rng;  
-    try {
-      rng.RNG_kind = RNGtype.values()[kind];
-    } catch (Exception e) {
-      throw new EvalException("RNGkind: unimplemented RNG kind " + kind);
+  public static IntVector RNGkind(@Current Context context, SEXP kindExp, SEXP normalkindExp) {
+    RNG rng = context.getSession().rng;  
+    
+    if(kindExp != Null.INSTANCE) {
+      int kind = ((AtomicVector)kindExp).getElementAsInt(0);
+      try {
+        rng.RNG_kind = RNGtype.values()[kind];
+      } catch (Exception e) {
+        throw new EvalException("RNGkind: unimplemented RNG kind " + kind);
+      }
     }
+    if(normalkindExp != Null.INSTANCE) {
+      int normalkind = ((AtomicVector)normalkindExp).getElementAsInt(0);
+      try {
+        rng.N01_kind = N01type.values()[normalkind];
+      } catch (Exception e) {
+        throw new EvalException("invalid Normal type in RNGkind");
+      }
+    } 
 
-    try {
-      rng.N01_kind = N01type.values()[normalkind];
-    } catch (Exception e) {
-      throw new EvalException("invalid Normal type in RNGkind");
-    }
-
-    rng.RNG_kind = RNGtype.values()[kind];
-    rng.N01_kind = N01type.values()[normalkind];
-    //System.out.println("Random generator is set to " + RNG.RNG_kind + " and " + RNG.N01_kind);
     return (new IntArrayVector(rng.RNG_kind.ordinal(), rng.N01_kind.ordinal()));
   }
 
@@ -64,41 +67,41 @@ public class RNG {
    * Primitives.
    */
   @Primitive("set.seed")
-  public static void set_seed(@Current Context context, int seed, int kind, int normalkind) {
+  public static void set_seed(@Current Context context, int seed, SEXP kind, SEXP normalkind) {
     RNG rng = context.getSession().rng;
-	rng.randomseed = seed;
+    rng.randomseed = seed;
     RNGkind(context, kind, normalkind);
     switch (rng.RNG_kind) {
-      case WICHMANN_HILL:
-        throw new EvalException(rng.RNG_kind + " not implemented yet");
+    case WICHMANN_HILL:
+      throw new EvalException(rng.RNG_kind + " not implemented yet");
 
-      case MARSAGLIA_MULTICARRY:
-        throw new EvalException(rng.RNG_kind + " not implemented yet");
+    case MARSAGLIA_MULTICARRY:
+      throw new EvalException(rng.RNG_kind + " not implemented yet");
 
-      case SUPER_DUPER:
-        throw new EvalException(rng.RNG_kind + " not implemented yet");
+    case SUPER_DUPER:
+      throw new EvalException(rng.RNG_kind + " not implemented yet");
 
-      case MERSENNE_TWISTER:
-        if (rng.mersenneTwisterAlg == null) {
-          rng.mersenneTwisterAlg = new MersenneTwister(seed);
-        } else {
-          rng.mersenneTwisterAlg.setSeed(seed);
-        }
-        return;
+    case MERSENNE_TWISTER:
+      if (rng.mersenneTwisterAlg == null) {
+        rng.mersenneTwisterAlg = new MersenneTwister(seed);
+      } else {
+        rng.mersenneTwisterAlg.setSeed(seed);
+      }
+      return;
 
-      case KNUTH_TAOCP:
-      case KNUTH_TAOCP2:
-        throw new EvalException(rng.RNG_kind + " not implemented yet");
-      case USER_UNIF:
-        throw new EvalException(rng.RNG_kind + " not implemented yet");
-      default:
-        throw new EvalException(rng.RNG_kind + " not implemented yet");
+    case KNUTH_TAOCP:
+    case KNUTH_TAOCP2:
+      throw new EvalException(rng.RNG_kind + " not implemented yet");
+    case USER_UNIF:
+      throw new EvalException(rng.RNG_kind + " not implemented yet");
+    default:
+      throw new EvalException(rng.RNG_kind + " not implemented yet");
     }
   }
 
   @Primitive("runif")
   public static DoubleVector runif(@Current Context context, int n, double a, double b) {
-	RNG rng = context.getSession().rng;
+    RNG rng = context.getSession().rng;
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
       vb.add(a + rng.unif_rand() * (b - a));
@@ -249,7 +252,7 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rbinom")
   public static DoubleVector rbinom(@Current Context context, int n, double size, double prob) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
@@ -258,8 +261,8 @@ public class RNG {
     }
     return (vb.build());
   }
-  
-  
+
+
   @Primitive("rf")
   public static DoubleVector rf(@Current Context context, int n, double df1, double df2) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
@@ -277,7 +280,7 @@ public class RNG {
     }
     return (vb.build());
   }
-  
+
   @Primitive("rhyper")
   public static DoubleVector rhyper(@Current Context context, int nn, double m, double n, double k){
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
@@ -292,10 +295,10 @@ public class RNG {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     int[] RN = new int[prob.length()];
     for (int i=0;i<n;i++){
-    	Multinomial.rmultinom(context.getSession(), size, prob.toDoubleArray(), prob.length(), RN);
-    	for (int j = 0; j < prob.length(); j++) {
-    		vb.add(RN[j]);
-    	}
+      Multinomial.rmultinom(context.getSession(), size, prob.toDoubleArray(), prob.length(), RN);
+      for (int j = 0; j < prob.length(); j++) {
+        vb.add(RN[j]);
+      }
     }
     vb.setAttribute(Symbols.DIM, new IntArrayVector(prob.length(), n));
     return (vb.build());
@@ -328,31 +331,31 @@ public class RNG {
 
     switch (this.RNG_kind) {
 
-      case WICHMANN_HILL:
-        throw new EvalException(RNG_kind + " not implemented yet");
+    case WICHMANN_HILL:
+      throw new EvalException(RNG_kind + " not implemented yet");
 
-      case MARSAGLIA_MULTICARRY:
-        throw new EvalException(RNG_kind + " not implemented yet");
+    case MARSAGLIA_MULTICARRY:
+      throw new EvalException(RNG_kind + " not implemented yet");
 
-      case SUPER_DUPER:
-        throw new EvalException(RNG_kind + " not implemented yet");
+    case SUPER_DUPER:
+      throw new EvalException(RNG_kind + " not implemented yet");
 
-      case MERSENNE_TWISTER:
-        if (mersenneTwisterAlg == null) {
-          if (this.randomseed == 0) {
-            Randomize(RNG_kind);
-          }
-          mersenneTwisterAlg = new MersenneTwister((long) this.randomseed);
+    case MERSENNE_TWISTER:
+      if (mersenneTwisterAlg == null) {
+        if (this.randomseed == 0) {
+          Randomize(RNG_kind);
         }
-        return (mersenneTwisterAlg.nextDouble());
+        mersenneTwisterAlg = new MersenneTwister((long) this.randomseed);
+      }
+      return (mersenneTwisterAlg.nextDouble());
 
-      case KNUTH_TAOCP:
-      case KNUTH_TAOCP2:
-        throw new EvalException(RNG_kind + " not implemented yet");
-      case USER_UNIF:
-        throw new EvalException(RNG_kind + " not implemented yet");
-      default:
-        throw new EvalException(RNG_kind + " not implemented yet");
+    case KNUTH_TAOCP:
+    case KNUTH_TAOCP2:
+      throw new EvalException(RNG_kind + " not implemented yet");
+    case USER_UNIF:
+      throw new EvalException(RNG_kind + " not implemented yet");
+    default:
+      throw new EvalException(RNG_kind + " not implemented yet");
     }
   }
 
@@ -365,30 +368,30 @@ public class RNG {
     this.randomseed = sseed;
     switch (RNG_kind) {
 
-      case WICHMANN_HILL:
-        throw new EvalException(RNG_kind + " not implemented yet");
+    case WICHMANN_HILL:
+      throw new EvalException(RNG_kind + " not implemented yet");
 
-      case MARSAGLIA_MULTICARRY:
-        throw new EvalException(RNG_kind + " not implemented yet");
+    case MARSAGLIA_MULTICARRY:
+      throw new EvalException(RNG_kind + " not implemented yet");
 
-      case SUPER_DUPER:
-        throw new EvalException(RNG_kind + " not implemented yet");
+    case SUPER_DUPER:
+      throw new EvalException(RNG_kind + " not implemented yet");
 
-      case MERSENNE_TWISTER:
-        if (mersenneTwisterAlg == null) {
-          mersenneTwisterAlg = new MersenneTwister(sseed);
-        } else {
-          mersenneTwisterAlg.setSeed(sseed);
-        }
-        return;
+    case MERSENNE_TWISTER:
+      if (mersenneTwisterAlg == null) {
+        mersenneTwisterAlg = new MersenneTwister(sseed);
+      } else {
+        mersenneTwisterAlg.setSeed(sseed);
+      }
+      return;
 
-      case KNUTH_TAOCP:
-      case KNUTH_TAOCP2:
-        throw new EvalException(RNG_kind + " not implemented yet");
-      case USER_UNIF:
-        throw new EvalException(RNG_kind + " not implemented yet");
-      default:
-        throw new EvalException(RNG_kind + " not implemented yet");
+    case KNUTH_TAOCP:
+    case KNUTH_TAOCP2:
+      throw new EvalException(RNG_kind + " not implemented yet");
+    case USER_UNIF:
+      throw new EvalException(RNG_kind + " not implemented yet");
+    default:
+      throw new EvalException(RNG_kind + " not implemented yet");
     }
   }
 }

@@ -287,6 +287,52 @@ public class AttributeMap {
   }
 
 
+  
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((classes == null) ? 0 : classes.hashCode());
+    result = prime * result + ((dim == null) ? 0 : dim.hashCode());
+    result = prime * result + ((map == null) ? 0 : map.hashCode());
+    result = prime * result + ((names == null) ? 0 : names.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    AttributeMap other = (AttributeMap) obj;
+    if (classes == null) {
+      if (other.classes != null)
+        return false;
+    } else if (!classes.equals(other.classes))
+      return false;
+    if (dim == null) {
+      if (other.dim != null)
+        return false;
+    } else if (!dim.equals(other.dim))
+      return false;
+    if (map == null) {
+      if (other.map != null)
+        return false;
+    } else if (!map.equals(other.map))
+      return false;
+    if (names == null) {
+      if (other.names != null)
+        return false;
+    } else if (!names.equals(other.names))
+      return false;
+    return true;
+  }
+
+
+
   public static class Builder {
     private StringVector classes = null;
     private StringVector names = null;
@@ -313,19 +359,6 @@ public class AttributeMap {
       return set(Symbol.get(name), value);
     }
 
-//    
-//    public Builder setSlot(String name, SEXP value) {
-//      // this is different than the normal set() method becuase
-//      // clasically attributes cannot be NULL, but slot values can and often are.
-//      
-//      // i think that attributes and slots values should be stored in different
-//      // structures, but i don't know how much R code makes assumptions about
-//      // the storage of slots...
-//      
-//      // TODO Auto-generated method stub
-//      return null;
-//    }
-//    
     public Builder set(Symbol name, SEXP value) {
       if(value == Null.INSTANCE) {
         return remove(name);

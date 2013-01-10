@@ -24,6 +24,7 @@ package org.renjin.base;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -351,11 +352,13 @@ public class BasePackageTest extends EvalTestCase {
   }
 
   @Test
+  @Ignore("has dependency on utils package!")
   public void source() throws IOException {
     assumingBasePackagesLoad();
     
+    String file = BasePackageTest.class.getResource("SourceTest.R").getFile();
     global.setVariable(Symbol.get("fn"),
-            StringVector.valueOf(BasePackageTest.class.getResource("SourceTest.R").getFile()));
+            StringVector.valueOf(new File(file).getAbsolutePath()));
       eval("source(fn)");
   }
   
@@ -365,8 +368,8 @@ public class BasePackageTest extends EvalTestCase {
     
     eval("n <- 10");
     eval("nn <- 100");
-    eval("g <- factor(round(n * runif(n * nn)))");
-    eval("x <- rnorm(n * nn) + sqrt(as.double(g))");
+    eval("g <- factor(2+round(sin(1:(n*nn)*(pi/6))))");
+    eval("x <- rep(c(6,4,3,1,9), length.out=n * nn) + sqrt(as.double(g))");
     eval("xg <- split(x, g)");
     eval("zz <- x");
     eval("lresult <- lapply(split(x, g), scale)");

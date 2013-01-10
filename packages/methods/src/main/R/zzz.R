@@ -14,12 +14,12 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-..First.lib  <-
+..First.lib  <-		
   ## Initialize the methods package.  Called from .onLoad, first
   ## during INSTALL, when saved will be FALSE, at which time
   ## the serious computation is done.  (The name ..First.lib is only historical)
   function(libname, pkgname, where)
-{
+{	
     if(missing(where)) {
         where <- match(paste("package:", pkgname, sep=""), search())
         if(is.na(where)) {
@@ -109,18 +109,26 @@
     }
 }
 
+# RENJIN: ..First.lib is called directly by 
+# bootstrapper
 .onLoad <- function(libname, pkgname) {
-    env <- environment(sys.function())
-    doSave <- identical(get(".saveImage", envir = env), FALSE)
-    ..First.lib(libname, pkgname, env)
-    if(doSave) {
-        dbbase <- file.path(libname, pkgname, "R", pkgname)
-        ns <- asNamespace(pkgname)
-        tools:::makeLazyLoadDB(ns, dbbase)
-    }
-    if(Sys.getenv("R_S4_BIND") == "active")
-        methods:::bind_activation(TRUE)
+
+	where <- environment(sys.function())
+	initMethodDispatch(where)
+	## temporary empty reference to the package's own namespace
+	assign("a.methodsNamespace", new.env(), envir = where)
+	.Call("R_set_method_dispatch", TRUE, PACKAGE = "methods")
 }
+##     doSave <- identical(get(".saveImage", envir = env), FALSE)
+##     ..First.lib(libname, pkgname, env)
+##     if(doSave) {
+##         dbbase <- file.path(libname, pkgname, "R", pkgname)
+##         ns <- asNamespace(pkgname)
+##         tools:::makeLazyLoadDB(ns, dbbase)
+##     }
+##     if(Sys.getenv("R_S4_BIND") == "active")
+##         methods:::bind_activation(TRUE)
+## }
 
 .onUnload <- function(libpath) {
     cat("unloading 'methods' package ...\n")# see when this is called
@@ -151,7 +159,6 @@
 .Last.lib <- function(libpath) .isMethodsDispatchOn(FALSE)
 
 .saveImage <- FALSE
-## cat("Saving namespace image ...\n")
 
 ## want ASCII quotes, not fancy nor translated ones
 .dQ <- function (x) paste('"', x, '"', sep = '')

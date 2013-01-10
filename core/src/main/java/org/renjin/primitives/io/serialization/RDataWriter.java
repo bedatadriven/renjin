@@ -191,7 +191,7 @@ public class RDataWriter {
     if( exp == context.getEnvironment().getBaseEnvironment() ) {
       return true;
     }
-    if( Namespaces.isNamespaceEnv(context.getNamespaceRegistry(), exp)) {
+    if( Namespaces.isNamespace(context.getNamespaceRegistry(), exp)) {
       return true;
     }
     if( isPackageEnvironment(exp)) {
@@ -342,7 +342,7 @@ public class RDataWriter {
     } else if(env == Environment.EMPTY) {
       out.writeInt(SerializationFormat.EMPTYENV_SXP);
     } else {      
-      if(Namespaces.isNamespaceEnv(context.getNamespaceRegistry(), env)) {
+      if(Namespaces.isNamespace(context.getNamespaceRegistry(), env)) {
         writeNamespace(env);
       } else {
         addRef(env);

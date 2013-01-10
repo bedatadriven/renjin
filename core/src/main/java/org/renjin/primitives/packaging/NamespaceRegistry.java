@@ -12,9 +12,11 @@ import org.renjin.primitives.packaging.NamespaceDef.S3Export;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.PrimitiveFunction;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 
 import com.google.common.collect.Maps;
@@ -38,7 +40,7 @@ public class NamespaceRegistry {
 	public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
 	  this.loader = loader;
 	  this.context = context;
-	  Namespace baseNamespace = new Namespace(new NamespaceDef(), "base", baseNamespaceEnv);
+	  Namespace baseNamespace = new BaseNamespace(baseNamespaceEnv);
     namespaces.put(BASE, baseNamespace);
 	  envirMap.put(baseNamespaceEnv, baseNamespace);
 	}
@@ -59,6 +61,10 @@ public class NamespaceRegistry {
 	  return ns;
 	}
 	
+	public Iterable<Symbol> getLoadedNamespaces() {
+	  return namespaces.keySet();
+	}
+	
   public Namespace getNamespace(Symbol name) {
 	  Namespace namespace = namespaces.get(name);
 	  if(namespace == null) {
@@ -77,8 +83,6 @@ public class NamespaceRegistry {
   }
   
   private Namespace load(Symbol name) throws IOException {
-
-    System.err.println("loading namespace " + name);
     
     Package pkg = loader.load(name.getPrintName());
     
@@ -133,9 +137,16 @@ public class NamespaceRegistry {
       }
       Environment methodsTable = (Environment) definitionEnv.getVariable(S3.METHODS_TABLE);
       methodsTable.setVariable(export.getMethod(), method);
-      //System.out.println("installing " + export.getMethod() + " to " + definitionEnv.getName());
     }
-    
+
+    if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
+      System.err.println("running onLoad in " + name);
+      StringVector nameArgument = StringVector.valueOf(name.getPrintName());
+      context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument), 
+          namespace.getNamespaceEnvironment());
+    } else {
+      System.err.println("no .onLoad method in " + name);
+    }
     return namespace;
   }
   
@@ -173,6 +184,9 @@ public class NamespaceRegistry {
     Namespace namespace = new Namespace(namespaceDef, namespaceName, namespaceEnv);
     namespaces.put(Symbol.get(namespaceName), namespace);
     envirMap.put(namespaceEnv, namespace);
+    
+    // save the name to the environment
+    namespaceEnv.setVariable(".packageName", StringVector.valueOf(namespaceName));
     return namespace;
   }
 

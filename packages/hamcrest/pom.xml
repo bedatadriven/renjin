@@ -38,24 +38,12 @@
 					<execution>
 						<id>build</id>
 						<goals>
-							<goal>compile</goal>
+							<goal>namespace-compile</goal>
 						</goals>
 						<phase>compile</phase>
 					</execution>
 					
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.13</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.renjin</groupId>
-						<artifactId>renjin-surefire-provider</artifactId>
-						<version>${project.version}</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 		</plugins>
 	</build>

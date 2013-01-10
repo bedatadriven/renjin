@@ -827,7 +827,8 @@ cacheMetaData <-
     ## a collection of actions performed on attach or detach
     ## to update class and method information.
     pkg <- getPackageName(where)
-    classes <- getClasses(where)
+    
+	classes <- getClasses(where)
     for(cl in classes) {
         cldef <- (if(attach) get(classMetaName(cl), where) # NOT getClassDef, it will use cache
                   else  getClassDef(cl, searchWhere))
@@ -856,6 +857,7 @@ cacheMetaData <-
     for(i in seq_along(generics)) {
         f <- generics[[i]]
         fpkg <- packages[[i]]
+		cat(c("f = ", deparse(f), ", fpkg = ", fpkg, "\n"))
         if(!identical(fpkg, pkg) && doCheck) {
             if(attach) {
                 env <- as.environment(where)

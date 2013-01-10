@@ -48,8 +48,7 @@
   				<execution>
   					<id>build</id>	
   					<goals>
-  						<goal>compile</goal>
-  						<goal>legacy-sources-compile</goal>
+  						<goal>namespace-compile</goal>
   					</goals>
   					<phase>compile</phase>
   				</execution>

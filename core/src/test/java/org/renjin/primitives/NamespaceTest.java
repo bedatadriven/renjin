@@ -11,8 +11,8 @@ public class NamespaceTest extends EvalTestCase {
   
   @Test
   public void isNamespace() {
-    assertThat(eval(".Internal(isNamespaceEnv(baseenv()))"), equalTo(c(false)));
-    assertThat(eval(".Internal(isNamespaceEnv(globalenv()))"), equalTo(c(false)));
-     
+    assertThat(eval("isNamespace(baseenv())"), equalTo(c(false)));
+    assertThat(eval("isNamespace(globalenv())"), equalTo(c(false)));
+       
   }
 }

@@ -73,12 +73,20 @@ public class TestRunner {
   private void executeTestFile(File sourceFile) throws IOException {
     ExpressionVector source = RParser.parseSource(Files.newReaderSupplier(sourceFile, Charsets.UTF_8));
     Context ctx = createContext();
-    ctx.getSession().setStdOut(reporter.getStdOut());
-    ctx.getSession().setStdErr(reporter.getStdOut());
+    System.err.println("startign execution");
+//    ctx.getSession().setStdOut(reporter.getStdOut());
+//    ctx.getSession().setStdErr(reporter.getStdOut());
     
     loadLibrary(ctx, namespace);
-    ctx.evaluate(source);
-
+    
+    try {
+      reporter.startFunction("root");
+      ctx.evaluate(source);
+      reporter.functionSucceeded();
+    } catch(Exception e) {
+      reporter.functionThrew(e);
+    }
+    
     for(Symbol name : ctx.getGlobalEnvironment().getSymbolNames()) {
       if(name.getPrintName().startsWith("test.")) {
         SEXP value = ctx.getGlobalEnvironment().getVariable(name);

@@ -88,6 +88,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 /**
@@ -761,6 +762,11 @@ public class Types {
  
   @Primitive("as.environment")
   public static Environment asEnvironment(@Current Context context, String name) {
+    
+    if(name.equals(".GlobalEnv")) {
+      return context.getGlobalEnvironment();
+    }
+    
     Environment result = context.getEnvironment();
     while(result != Environment.EMPTY) {
       if(Objects.equal(result.getName(), name)) {

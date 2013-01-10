@@ -22,10 +22,17 @@ public class Namespace {
   }
 
   public SEXP getEntry(Symbol entry) {
-    throw new EvalException("unimplemented");
+    SEXP value = namespaceEnvironment.getVariable(entry);
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("Namespace " + name + " has no symbol named '" + entry + "'");
+    }
+    return value;
   }
 
   public SEXP getExport(Symbol entry) {
+    if(name.equals("base")) {
+      return getEntry(entry);
+    }
     if(def.getExports().contains(entry)) {
       return this.namespaceEnvironment.getVariable(entry);
     }

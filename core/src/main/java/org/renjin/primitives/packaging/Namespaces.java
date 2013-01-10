@@ -21,8 +21,6 @@
 
 package org.renjin.primitives.packaging;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
@@ -31,7 +29,6 @@ import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
 
 public class Namespaces {
 
@@ -43,37 +40,33 @@ public class Namespaces {
       return Null.INSTANCE;
     }
   }
+  
+  @Primitive
+  public static SEXP getNamespace(@Current NamespaceRegistry registry, Symbol name) {
+    return registry.getNamespace(name).getNamespaceEnvironment();
+  }
 
   @Primitive
-  public static boolean isNamespaceEnv(@Current NamespaceRegistry registry, SEXP envExp) {
+  public static SEXP getNamespace(@Current NamespaceRegistry registry, String name) {
+    return registry.getNamespace(name).getNamespaceEnvironment();
+  }
+  
+  @Primitive
+  public static boolean isNamespace(@Current NamespaceRegistry registry, SEXP envExp) {
     if(envExp instanceof Environment) {
       return registry.isNamespaceEnv((Environment)envExp);
     } else {
       return false;
     }
   }
-
+  
   @Primitive
-  public static void importIntoEnv(Environment impenv, Vector impnames, Environment expenv, Vector expnames) {
-
-    /* This function copies values of variables from one environment
-       to another environment, possibly with different names.
-       Promises are not forced and active bindings are preserved. */
-
-    if(impnames.length() != expnames.length()) {
-      throw new EvalException("length of import and export names must match");
+  public static StringVector loadedNamespaces(@Current NamespaceRegistry registry) {
+    StringVector.Builder result = new StringVector.Builder();
+    for(Symbol name : registry.getLoadedNamespaces()) {
+      result.add(name.getPrintName());
     }
-
-    for(int i=0;i!=impnames.length();++i) {
-      if(impnames.isElementNA(i) || expnames.isElementNA(i)) {
-        throw new EvalException("Import/export name cannot be NA");
-      }
-      Symbol impsym = Symbol.get(impnames.getElementAsString(i));
-      Symbol expsym = Symbol.get(expnames.getElementAsString(i));
-
-      SEXP value = expenv.findVariable(impsym);
-      impenv.setVariable(expsym, value);
-    }
+    return result.build();
   }
 
   @Primitive(":::")
@@ -84,5 +77,15 @@ public class Namespaces {
   @Primitive("::")
   public static SEXP getExportedNamespaceValue(@Current NamespaceRegistry registry, @Evaluate(false) Symbol namespace, @Evaluate(false) Symbol entry) {
     return registry.getNamespace(namespace).getExport(entry);  
+  }
+  
+  @Primitive
+  public static boolean require(@Current NamespaceRegistry registry, @Evaluate(false) Symbol name) {
+    try {
+      registry.getNamespace(name);
+      return true;
+    } catch(Exception e) {
+      return false;
+    }
   }
 }

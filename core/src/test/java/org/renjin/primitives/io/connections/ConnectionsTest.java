@@ -28,17 +28,6 @@ public class ConnectionsTest extends EvalTestCase {
     assertThat(eval("length(lines)"), equalTo(c_i(2)));
   }
  
-  
-  @Test
-  public void url() {
-    assumingBasePackagesLoad();
-    
-    eval("x <- getCRANmirrors()");
-    eval("print(class(x))");
-    assertThat(eval("length(row.names(x)) > 10"), equalTo(c(true)));
-    assertThat(eval("length(x$Name) > 10"), equalTo(c(true))); 
-  }
-  
   @Test
   public void summary() {
     eval("x <- .Internal(summary.connection(.Internal(stdin())))");

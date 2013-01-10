@@ -61,7 +61,7 @@ public class TestMojo extends AbstractMojo {
   private File reportsDirectory;
 
   /**
-   * @parameter expression="skipTests" default-value="false"
+   * @parameter expression="${skipTests}" default-value="false"
    */
   private boolean skipTests;
   
@@ -84,9 +84,7 @@ public class TestMojo extends AbstractMojo {
       boolean succeeded = (Boolean)runner.getClass()
           .getMethod("run", File.class, File.class, String.class)
           .invoke(runner, testSourceDirectory, reportsDirectory, namespaceName);
-     
-      System.out.println("succeeded = " + succeeded);
-      
+           
       if(!succeeded && !testFailureIgnore) {
         throw new MojoFailureException("There were R test failures");
       }

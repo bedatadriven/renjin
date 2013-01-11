@@ -3,6 +3,7 @@ package org.renjin.maven.namespace;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -79,7 +80,10 @@ public class NamespaceBuilder {
   }
 
   private List<File> getRSources() {
-    List<File> list = Lists.newArrayList(sourceDirectory.listFiles());
+    List<File> list = Lists.newArrayList();
+    if(sourceDirectory.listFiles() != null) {
+      list.addAll(Arrays.asList(sourceDirectory.listFiles()));
+    }
     Collections.sort(list);
     return list;
   }

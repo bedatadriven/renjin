@@ -177,7 +177,7 @@ public class LegacySourcesCompiler {
             entry.getName().substring(includePath.length()).replace('/', File.separatorChar));
         target.getParentFile().mkdirs();
 
-        System.err.println("extracting to "  + target);
+        //System.err.println("extracting to "  + target);
 
         InputStream in = jar.getInputStream(entry);
         FileOutputStream out = new FileOutputStream(target);

@@ -22,6 +22,7 @@
 	<module>hamcrest</module>
 	<module>graphics</module>
 	<module>grDevices</module>
+	<module>datasets</module>
 	<module>methods</module>
 	<module>splines</module>
 	<module>utils</module>

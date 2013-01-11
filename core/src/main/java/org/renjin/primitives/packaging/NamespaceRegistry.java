@@ -127,8 +127,6 @@ public class NamespaceRegistry {
         SEXP genericFunction = namespace.getNamespaceEnvironment().findFunction(context, export.getGenericFunction());
         if(genericFunction == null) {
           throw new EvalException("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
-          //System.err.println("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
-          //continue;
         }
         definitionEnv = getDefinitionEnv( genericFunction );
       }
@@ -140,12 +138,9 @@ public class NamespaceRegistry {
     }
 
     if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
-      System.err.println("running onLoad in " + name);
       StringVector nameArgument = StringVector.valueOf(name.getPrintName());
       context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument), 
           namespace.getNamespaceEnvironment());
-    } else {
-      System.err.println("no .onLoad method in " + name);
     }
     return namespace;
   }

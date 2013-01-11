@@ -150,10 +150,6 @@ public class NamespaceMojo extends AbstractMojo {
   private List<Artifact> getDependencies() {
     List<Artifact> artifacts = Lists.newArrayList();
     artifacts.addAll(project.getCompileArtifacts());
-    System.out.println("COMPILE Artifacts:");
-    for(Artifact artifact : artifacts) {
-      System.out.println("Artifact: " + artifact.getArtifactId());
-    }
     artifacts.addAll(pluginDependencies);
     return artifacts; 
   }

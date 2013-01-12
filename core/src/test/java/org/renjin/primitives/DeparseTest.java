@@ -45,7 +45,7 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(quote(repeat x))"), equalTo(c("repeat x")));
     assertThat(eval("deparse(quote(while(x) y))"), equalTo(c("while (x) y")));
     assertThat(eval("deparse(quote(f(x=1,3)))"), equalTo(c("f(x = 1, 3)")));
-    assertThat(eval("deparse(quote({ x+1 }))"), equalTo(c("{ x + 1 }")));
+    assertThat(eval("deparse(quote({ x+1 }))"), equalTo(c("{\nx + 1\n}")));
     assertThat(eval("deparse(quote(x:y))"), equalTo(c("x:y")));
     assertThat(eval("deparse(quote(2*(1+x)))"), equalTo(c("2 * (1 + x)")));
     assertThat(eval("deparse(quote(!x))"), equalTo(c("!x")));

@@ -24,6 +24,7 @@ package org.renjin.sexp;
 import com.google.common.base.Objects;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.special.ReturnException;
 
 
@@ -49,7 +50,7 @@ public class Closure extends AbstractSEXP implements Function {
     this.body = body;
     this.formals = formals; 
   }
-
+ 
   public Closure(Environment environment, PairList formals, SEXP body) {
     this(environment, formals, body, AttributeMap.EMPTY);
   }

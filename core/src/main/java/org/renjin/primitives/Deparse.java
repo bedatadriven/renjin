@@ -284,9 +284,9 @@ public class Deparse {
     }
 
     private void deparseBracket(FunctionCall call) {
-      deparsed.append("{ ");
+      deparsed.append("{\n");
       call.getArgument(0).accept(this);
-      deparsed.append(" }");
+      deparsed.append("\n}");
     }
     
     private void deparseParen(FunctionCall call) {
@@ -369,7 +369,9 @@ public class Deparse {
     
     @Override
     public void visit(Symbol symbol) {
-      deparsed.append(symbol.getPrintName());
+      if(symbol != Symbol.MISSING_ARG) {
+        deparsed.append(symbol.getPrintName());
+      }
     }
     
     protected void unhandled(SEXP exp) {

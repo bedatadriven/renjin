@@ -139,10 +139,10 @@ public class Combine {
       }
     }
 
-    @Override
-    public void visit(ExpressionVector vector) {
-      visit((ListVector)vector);
-    }
+//    @Override
+//    public void visit(ExpressionVector vector) {
+//      visit((ListVector)vector);
+//    }
 
     @Override
     protected void unhandled(SEXP exp) {
@@ -181,10 +181,16 @@ public class Combine {
         String prefix = combinePrefixes(parentPrefix, Strings.nullToEmpty(namedValue.getName()));
         SEXP value = namedValue.getValue();
 
-        if(recursive && value instanceof ListVector) {
+        if(value instanceof FunctionCall) {
+          vector.add(value);
+          addName(prefix);
+        
+        } else if(recursive && isList(value)) {
           add(prefix, ((ListVector) value).namedValues());
+          
         } else if(recursive && value instanceof PairList) {
           add(prefix, ((PairList)value).nodes());
+
         } else {
           for(int i=0;i!=value.length();++i) {
             vector.addFrom(value, i);
@@ -193,6 +199,10 @@ public class Combine {
         }
       }
       return this;
+    }
+
+    private boolean isList(SEXP value) {
+      return value instanceof ListVector && !(value instanceof ExpressionVector);
     }
 
     private void addNameFrom(String prefix, SEXP vector, int index) {
@@ -221,11 +231,15 @@ public class Combine {
         }
       }
 
+      addName(name.toString());
+    }
+
+    private void addName(String name) {
       if(name.length() > 0) {
         haveNames = true;
       }
 
-      names.add( name.toString() );
+      names.add( name );
     }
 
     private String combinePrefixes(String a, String b) {

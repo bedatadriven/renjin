@@ -493,6 +493,10 @@ public class MethodDispatch {
       //      missing = R_GetVarLocMISSING(loc);
       //      val = R_GetVarLocValue(loc);
 
+      if(!next.hasTag()) {
+        throw new EvalException("closure formal has no tag! op = " + op);
+      }
+      
       Symbol symbol = next.getTag();
       SEXP val = rho.findVariable(symbol);
       if(val == Symbol.UNBOUND_VALUE) {

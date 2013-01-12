@@ -361,6 +361,18 @@ public interface Vector extends SEXP {
      */
     public abstract int compareElements(Vector vector1, int index1, Vector vector2, int index2);
 
+    
+    /**
+     * Checks equality between the two elements, coercing types to this {@code Type}.
+     * @param vector1
+     * @param index1
+     * @param vector2
+     * @param index2
+     * @return
+     */    
+    public boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2) {
+      return compareElements(vector1, index1, vector2, index2) == 0;
+    }
 
     public static Type widest(Type a, Type b) {
       if(b.isWiderThan(a)) {

@@ -110,6 +110,7 @@ public class TestReporter {
         currentSuite.getScriptFile().getName(),
         e.getMessage()));
     e.printStackTrace(stdout);
+    e.printStackTrace();
     functionComplete();
   }
 

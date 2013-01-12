@@ -270,7 +270,7 @@ public class BasePackageTest extends EvalTestCase {
     eval(" gender <- factor(c('F','F','F','F', 'M','M','M'))");
     eval(" print(gender) ");
     
-    assertThat(stringWriter.toString(), equalTo("[1] F F F F M M M\nLevels: F M\n"));
+    assertThat(stringWriter.toString().replace("\r\n", "\n"), equalTo("[1] F F F F M M M\nLevels: F M\n"));
   }
   
   @Test
@@ -526,5 +526,28 @@ public class BasePackageTest extends EvalTestCase {
     eval("x<-41");
     eval(".Foo <- 'bar'");
     eval("print(ls(all.names=TRUE))");
+  }
+  
+  @Test
+  public void setBody() {
+    assumingBasePackagesLoad();
+    eval("f <- function(x,y,z) y ");
+    eval("body(f) <- quote(x) ");
+    assertThat(eval("f(42)"), equalTo(c(42)));
+  }
+  
+  @Test
+  public void setFormals() {
+    assumingBasePackagesLoad();
+    
+    eval(" f <- function(x) {  .findNextFromTable(method, f, optional, envir) }");
+    eval(" bd <- body(f)");
+    eval(" print(typeof(if(is.null(bd) || is.list(bd)) list(bd) else bd)) ");
+    eval(" value <-  alist(method=,f='<unknown>', mlist=,optional=FALSE,envir=) ");
+    eval(" newf <- c(value, if(is.null(bd) || is.list(bd)) list(bd) else bd) ");
+    eval(" print(newf) ");
+    assertThat(eval("length(newf)"), equalTo(c_i(6)));
+    
+    
   }
 }

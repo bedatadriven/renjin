@@ -338,6 +338,12 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
     }
 
     @Override
+    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
+        int index2) {
+      return vector1.getElementAsComplex(index1).equals(vector2.getElementAsComplex(index2));
+    }
+
+    @Override
     public Vector getElementAsVector(Vector vector, int index) {
       return new ComplexVector(vector.getElementAsComplex(index));
     }

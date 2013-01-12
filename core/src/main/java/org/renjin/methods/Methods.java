@@ -78,12 +78,13 @@ public class Methods {
     return new ExternalExp(null);
   }
 
-  public static SEXP R_set_slot(SEXP object, String name, SEXP value) {
+  public static SEXP R_set_slot(@Current Context context, SEXP object, String name, SEXP value) {
     if(name.equals(".Data")) {
       // the .Data slot actually refers to the object value itself, for 
       // example the double values contained in a double vector
       // So we copy the slots from 'object' to the new value
-      return value.setAttributes(object.getAttributes());
+      return context.evaluate(FunctionCall.newCall(Symbol.get("setDataPart"), object, value),
+          context.getSingleton(MethodDispatch.class).getMethodsNamespace());
     } else {
       // When set via S4 methods, R attributes can contain
       // invalid values, for example the 'class' attribute
@@ -94,6 +95,7 @@ public class Methods {
       return object.setAttributes(object.getAttributes().copy().set(name, slotValue).build());
     }
   }
+
 
   public static SEXP R_get_slot(@Current Context context, SEXP object, String what) {
     return R_do_slot(context, object, StringArrayVector.valueOf(what));

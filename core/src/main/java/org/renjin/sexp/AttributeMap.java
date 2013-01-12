@@ -31,6 +31,12 @@ public class AttributeMap {
   private IntVector dim = null;
 
   private Map<Symbol, SEXP> map;
+  
+  public static boolean CATCH_DEFINED = false;
+  
+  public static void catchDefined() {
+    CATCH_DEFINED = true;
+  }
 
   public static AttributeMap EMPTY = new AttributeMap();
 
@@ -360,6 +366,10 @@ public class AttributeMap {
     }
 
     public Builder set(Symbol name, SEXP value) {
+      if(CATCH_DEFINED && name.getPrintName().equals("defined")) {
+        throw new EvalException(value.toString());
+      }
+      
       if(value == Null.INSTANCE) {
         return remove(name);
       } else {

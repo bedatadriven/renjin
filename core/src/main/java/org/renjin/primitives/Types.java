@@ -21,7 +21,9 @@
 package org.renjin.primitives;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
@@ -38,7 +40,6 @@ import org.renjin.jvminterop.converters.IntegerArrayConverter;
 import org.renjin.jvminterop.converters.IntegerConverter;
 import org.renjin.jvminterop.converters.StringArrayConverter;
 import org.renjin.jvminterop.converters.StringConverter;
-import org.renjin.methods.Methods;
 import org.renjin.primitives.annotations.AllowNA;
 import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
@@ -59,6 +60,7 @@ import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.ExternalExp;
 import org.renjin.sexp.Frame;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
@@ -90,6 +92,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Primitive type inspection and coercion functions
@@ -335,7 +338,11 @@ public class Types {
   
     PairList.Builder formals = new PairList.Builder();
     for(int i=0;(i+1)<list.length();++i) {
-      formals.add(list.getName(i), list.getElementAsSEXP(i));
+      String name = list.getName(i);
+      if(Strings.isNullOrEmpty(name)) {
+        throw new EvalException("formal arguments to a closure must be named");
+      }
+      formals.add(name, list.getElementAsSEXP(i));
     }
     SEXP body = list.getElementAsSEXP(list.length() - 1);
     
@@ -869,9 +876,134 @@ public class Types {
       throw new EvalException(
           "identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");
     }
-    return x.equals(y);
+
+    return identical(x,y);
   }
 
+  private static boolean identical(SEXP x, SEXP y) {
+    if(x == y) {
+      return true;
+    }
+    if(x.length() != y.length()) {
+      return false;
+    }
+    if(x instanceof AtomicVector) {
+      if(!(y instanceof AtomicVector)) {
+        return false;
+      }
+      return identicalAttributes(x,y ) &&
+          identicalElements((AtomicVector)x, (AtomicVector)y);
+
+    } else if(x instanceof ExpressionVector) {
+      if(!(y instanceof ExpressionVector)) {
+        return false;
+      }
+      return identicalAttributes(x, y) &&
+          identicalElements((ListVector)x, (ListVector)y);      
+
+    } else if(x instanceof ListVector) {
+      if(!(y instanceof ListVector)) {
+        return false;
+      }
+      return identicalAttributes(x, y) &&
+          identicalElements((ListVector)x, (ListVector)y);
+
+    } else if(x instanceof FunctionCall) {
+      if(!(y instanceof FunctionCall)) {
+        return false;
+      }
+      return identicalAttributes(x, y) &&
+          identicalElements((PairList)x, (PairList)y);
+
+    } else if(x instanceof PairList.Node) {
+      if(!(y instanceof PairList.Node)) {
+        return false;
+      }
+      return identicalAttributes(x, y) &&
+          identicalElements((PairList)x, (PairList)y);
+
+    } else if(x instanceof S4Object) {
+      return identicalAttributes(x, y);
+
+    } else if(x instanceof ExternalExp) {
+      if(!(y instanceof ExternalExp)) {
+        return false;
+      }
+      return identicalPtrs((ExternalExp)x, (ExternalExp)y);
+      
+    } else if(x instanceof Symbol || x instanceof Environment || x instanceof Function) {
+      return x == y;
+
+    } else {
+      throw new UnsupportedOperationException("x = " + x.getClass() + ", y = " + y.getClass());
+    }
+  }
+  
+  private static boolean identicalPtrs(ExternalExp x, ExternalExp y) {
+    return Objects.equal(x, y);
+  }
+
+  private static boolean identicalElements(ListVector x, ListVector y) {
+    assert x.length() == y.length();
+
+    for(int i=0;i!=x.length();++i) {
+      if(!identical(x.getElementAsSEXP(i), y.getElementAsSEXP(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean identicalElements(AtomicVector x, AtomicVector y) {
+    assert x.length() == y.length();
+    
+    Vector.Type vectorType = x.getVectorType();
+    if(y.getVectorType() != vectorType) {
+      return false;
+    }
+    for(int i=0;i!=x.length();++i) {
+      if(!vectorType.elementsEqual(x, i, y, i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  private static boolean identicalElements(PairList x, PairList y) {
+    assert x.length() == y.length();
+    
+    Iterator<PairList.Node> xi = x.nodes().iterator();
+    Iterator<PairList.Node> yi = y.nodes().iterator();
+    while(xi.hasNext()) {
+      PairList.Node xni = xi.next();
+      PairList.Node yni = yi.next();
+      if(xni.getRawTag() != yni.getRawTag() ||
+          !identical(xni.getValue(), yni.getValue())) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  private static boolean identicalAttributes(SEXP x, SEXP y) {
+    AttributeMap xa = x.getAttributes();
+    AttributeMap ya = y.getAttributes();
+    if(xa==ya) {
+      return true;
+    }
+    Set<Symbol> xan = Sets.newHashSet(xa.names());
+    Set<Symbol> yan = Sets.newHashSet(ya.names());
+    if(xan.size() != yan.size()) {
+      return false;
+    }
+    for(Symbol name : xan) {
+      if(!identical(xa.get(name), ya.get(name))) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
   /*----------------------------------------------------------------------
   
   do_libfixup
@@ -1289,12 +1421,16 @@ public class Types {
   
   @Primitive("length<-")
   public static Vector setLength(Vector source, int length) {
-     Builder copy = source.newBuilderWithInitialSize(length);
-     for(int i=0;i!=Math.min(length, source.length());++i) {
-       copy.setFrom(i, source, i);
-     }
-     copy.copyAttributesFrom(source);
-     return copy.build();
+
+    Builder copy = source.newBuilderWithInitialSize(length);
+    for(int i=0;i!=Math.min(length, source.length());++i) {
+      copy.setFrom(i, source, i);
+    }
+    AttributeMap attribs = source.getAttributes();
+    if(attribs.hasNames()) {
+      copy.setAttribute(Symbols.NAMES, setLength(attribs.getNames(), length));
+    }
+    return copy.build();
   }
 
   public static Predicate<SEXP> modePredicate(String mode) {

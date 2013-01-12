@@ -41,7 +41,7 @@ public class Print {
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
       SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) throws IOException {
 
-    PrintingVisitor visitor = new PrintingVisitor()
+    PrintingVisitor visitor = new PrintingVisitor(context)
     .setCharactersPerLine(80)
     .setQuote(quote);
     expression.accept(visitor);
@@ -54,7 +54,10 @@ public class Print {
   }
 
   public static String doPrint(SEXP expression) {
-    PrintingVisitor visitor = new PrintingVisitor()
+    // we only need the context because we may need to force
+    // an unevaluated promise... but this seems super unlikely...
+    // try removing this once we have a larger test suite built up
+    PrintingVisitor visitor = new PrintingVisitor(null)
     .setCharactersPerLine(80);
     expression.accept(visitor);
 
@@ -72,11 +75,17 @@ public class Print {
     private StringBuilder out;
     private int charactersPerLine = 80;
     private boolean quote = true;
+    private Context context;
 
-    PrintingVisitor() {
+    PrintingVisitor(Context context) {
       this.out = new StringBuilder();
+      this.context = context;
     }
     
+    public PrintingVisitor() {
+      this.out = new StringBuilder();
+    }
+
     public PrintingVisitor setCharactersPerLine(int charactersPerLine) {
       this.charactersPerLine = charactersPerLine;
       return this;
@@ -111,7 +120,12 @@ public class Print {
       printAttributes(list);
     }
     
-    
+    @Override
+    public void visit(FunctionCall call) {
+      out.append(Deparse.deparseExp(context, call));
+      out.append("\n");
+    }
+
     @Override
     protected void unhandled(SEXP exp) {
       out.append(exp.toString()).append('\n');

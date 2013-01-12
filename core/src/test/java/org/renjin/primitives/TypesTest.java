@@ -21,13 +21,6 @@
 
 package org.renjin.primitives;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-import org.renjin.eval.EvalException;
-import org.renjin.sexp.*;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
@@ -35,6 +28,28 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.renjin.sexp.Logical.FALSE;
 import static org.renjin.sexp.Logical.TRUE;
+
+import org.hamcrest.CoreMatchers;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Raw;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.S4Object;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
 
 public strictfp class TypesTest extends EvalTestCase {
@@ -545,7 +560,18 @@ public strictfp class TypesTest extends EvalTestCase {
     
     eval("length(x) <- 2");
     assertThat(eval("x"), equalTo(c(1,2)));
-    
+  }
+
+  @Test
+  public void setLengthWithNames() {
+    eval("x <- c(a=1,b=2,c=3)");
+    eval("attr(x, 'foo') <- 'baz'");
+
+    eval("length(x)<-2");
+    assertThat(eval("length(x)"), equalTo(c_i(2)));
+    assertThat(eval("length(names(x))"),equalTo(c_i(2)));
+    assertThat(eval("attr(x,'foo')"),equalTo(NULL));
+
   }
   
   @Test
@@ -634,6 +660,59 @@ public strictfp class TypesTest extends EvalTestCase {
   }
   
   @Test
+  public void identicalS4() {
+    topLevelContext.getGlobalEnvironment().setVariable("x", new S4Object());
+    topLevelContext.getGlobalEnvironment().setVariable("y", new S4Object());
+    eval("attr(x, 'foo') <- 'bar' ");
+    eval("attr(y, 'foo') <- 'baz' ");
+    
+    assertThat(eval(".Internal(identical(x,y,TRUE,TRUE,TRUE,TRUE))"), equalTo(c(false)));
+
+    eval("attr(y, 'foo') <- 'bar' ");
+
+    assertThat(eval(".Internal(identical(x,y,TRUE,TRUE,TRUE,TRUE))"), equalTo(c(true)));
+  }
+  
+  @Test
+  public void identical() {
+    eval("identical <- function(x,y) .Internal(identical(x,y,TRUE,TRUE,TRUE,TRUE)) ");
+    
+    assertThat(eval("identical(1,1)"), equalTo(c(true)));
+    assertThat(eval("identical(1,1L)"), equalTo(c(false)));
+    assertThat(eval("identical(1,NA)"), equalTo(c(false)));
+    assertThat(eval("identical(NA,NA)"), equalTo(c(true)));
+    assertThat(eval("identical(NA_real_,NA_real_)"), equalTo(c(true)));
+    assertThat(eval("identical(1:3,c(1L,2L,3L))"), equalTo(c(true)));
+    assertThat(eval("identical(quote(x), quote(y))"), equalTo(c(false)));
+    assertThat(eval("identical(quote(x), quote(x))"), equalTo(c(true)));
+    assertThat(eval("identical(NULL, NULL)"), equalTo(c(true)));
+    assertThat(eval("identical(NULL, 1)"), equalTo(c(false)));
+    assertThat(eval("identical(list(x=1,y='foo',NA), list(x=1,y='foo',NA))"), equalTo(c(true)));
+    assertThat(eval("identical(function(x) x, function(x) x)"), equalTo(c(false)));
+    assertThat(eval("identical(1+3i, 1+4i)"), equalTo(c(false)));
+    assertThat(eval("identical(1+3i, 2+3i)"), equalTo(c(false)));
+    assertThat(eval("identical(1+3i, 1+3i)"), equalTo(c(true)));
+    
+    
+    
+    eval("f<- function(x) x");
+    assertThat(eval("identical(f,f)"), equalTo(c(true)));
+
+    eval("y <- x <- 1:12");
+    eval("dim(x) <- c(6,2)");
+    eval("dim(y) <- c(3,4)");
+    assertThat(eval("identical(x,y)"), equalTo(c(false)));
+    
+    eval("dim(y) <- c(6,2)");
+    assertThat(eval("identical(x,y)"), equalTo(c(true)));
+    
+    eval("attr(x,'foo') <- 'bar'");
+    assertThat(eval("identical(x,y)"), equalTo(c(false)));
+    
+  }
+  
+  
+  @Test
   public void expression() {
     eval(" ex <- expression({ x * 2})");
     eval(" x<-4 ");
@@ -682,5 +761,6 @@ public strictfp class TypesTest extends EvalTestCase {
     
     eval("f()");
   }
+ 
 
 }

@@ -1,10 +1,10 @@
+library(hamcrest)
 
-
-testMatrixProduct <- function() {
+test.MatrixProduct <- function() {
 	assertThat(1:3 %*% c(3,2,1), identicalTo(10));
 }
 
-testSvd <- function() {
+test.Svd <- function() {
 	hilbert <- function(n) { 
 		i <- 1:n
 		1 / outer(i - 1, i, '+') 
@@ -42,7 +42,7 @@ testSvd <- function() {
 							c(-0.1904420, -0.3831871,  0.5110654,  0.53856351,  0.44663632,  0.257248908)), 0.0000001));
 }
 
-testDimNamesOnMatrixMultiplication <- function() {
+test.DimNamesOnMatrixMultiplication <- function() {
 		
 	y <- diag(1:4)
 	dimnames(y) <- list(

@@ -38,9 +38,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.r-project.cran</groupId>
-			<artifactId>aspect</artifactId>
-			<version>1.0-0</version>
+			<groupId>org.renjin</groupId>
+			<artifactId>hamcrest</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.jtidy</groupId>
@@ -72,4 +73,22 @@
           <version>2.0.1</version>
         </dependency>
 	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.renjin</groupId>
+				<artifactId>renjin-maven-plugin</artifactId>
+				<version>${project.version}</version>
+				<executions>
+					<execution>
+						<id>test</id>	
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>test</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+  </build>
 </project>

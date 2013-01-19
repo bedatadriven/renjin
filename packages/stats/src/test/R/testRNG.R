@@ -67,8 +67,8 @@ test.rexp <- function() {
 
 
 test.rcauchy <- function() {
-	set.seed(12345, 'Mersenne-Twister','I')
-	assertThat(rcauchy(1,8,6), closeTo(0.789036, DELTA))
+	set.seed(1235, 'Mersenne-Twister','I')
+	assertThat(rcauchy(1,8,6), closeTo(7.122, DELTA))
 }
 
 

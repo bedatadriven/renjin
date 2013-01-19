@@ -1,12 +1,14 @@
 
+library(hamcrest)
+
 # general tests of correctness of evaluation
 
-testVectorsDoNotMaskFunctions <- function() {
+test.VectorsDoNotMaskFunctions <- function() {
 	c <- 1
 	assertThat( c(1,2,3), equalTo(1:3) )	
 }
 
-testMissingArgPropogatesToSubsequentCalls <- function() {
+test.MissingArgPropogatesToSubsequentCalls <- function() {
 	
 	f <- function(x) missing(x)
 	g <- function(x) f(x)
@@ -14,7 +16,7 @@ testMissingArgPropogatesToSubsequentCalls <- function() {
 	assertTrue(g())	
 }
 
-testMissingArgWithDefaultsDoNotPropogatesToSubsequentCalls <- function() {
+test.MissingArgWithDefaultsDoNotPropogatesToSubsequentCalls <- function() {
 	f <- function(x) missing(x)
 	g <- function(x=1) f(x)
 	

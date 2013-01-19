@@ -27,6 +27,10 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     this.topLevelContext = Context.newTopLevelContext();
     try {
       topLevelContext.init();
+      String[] defaultPackages = new String[] { "stats", "utils", "graphics", "grDevices", "datasets", "methods" };
+      for(String pkg : defaultPackages) {
+        topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(pkg)));        
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

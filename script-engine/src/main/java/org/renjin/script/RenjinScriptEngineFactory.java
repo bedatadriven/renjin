@@ -49,7 +49,6 @@ public class RenjinScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public List<String> getMimeTypes() {
-    // i don't know if this is correct...
     return Lists.newArrayList("text/x-R");
   }
 

@@ -1,20 +1,20 @@
+library(hamcrest)
 
-
-testCallReplacement <- function() {
+test.CallReplacement <- function() {
 	
 	call <- quote(sin(x))
 	call[[1]] <- "cos"
 	assertThat(typeof(call), equalTo("language"))	
 }
 
-testCallSubsetting <- function() {
+test.CallSubsetting <- function() {
 	call <- quote(sin(x,y,z))
 	call <- call[c(1L,2L)]
 	assertThat(typeof(call), equalTo("language"))	
 	
 }
 
-testRemoveFunctionFromFunctionCall <- function() {
+test.RemoveFunctionFromFunctionCall <- function() {
 	call <- quote(sin(x))
 	call[[1]] <- NULL
 	assertThat(typeof(call), equalTo("pairlist"))

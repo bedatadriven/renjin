@@ -80,6 +80,7 @@ public class PrimitivePtrVar extends Variable {
       case POINTER_PLUS_EXPR:
         assignPointerPlus(operands);
         break;
+      case VAR_DECL:
       case SSA_NAME:
       case ADDR_EXPR:
         assignAddress(operands);

@@ -857,7 +857,6 @@ cacheMetaData <-
     for(i in seq_along(generics)) {
         f <- generics[[i]]
         fpkg <- packages[[i]]
-		cat(c("f = ", deparse(f), ", fpkg = ", fpkg, "\n"))
         if(!identical(fpkg, pkg) && doCheck) {
             if(attach) {
                 env <- as.environment(where)

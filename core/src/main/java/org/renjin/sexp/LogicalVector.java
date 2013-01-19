@@ -263,6 +263,15 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
       return vector1.getElementAsRawLogical(index1) - vector2.getElementAsRawLogical(index2);
     }
+
+    @Override
+    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
+        int index2) {
+      if(vector1.isElementNA(index1) || vector2.isElementNA(index2)) {
+        return false;
+      }
+      return vector1.getElementAsRawLogical(index1) == vector2.getElementAsRawLogical(index2);
+    }
   }
 
 }

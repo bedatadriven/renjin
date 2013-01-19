@@ -70,7 +70,6 @@ public class MavenPackage implements Package {
       getEnvironmentUrl();
       return true;
     } catch(IllegalArgumentException e) {
-      e.printStackTrace();
       return false;
     }
   }

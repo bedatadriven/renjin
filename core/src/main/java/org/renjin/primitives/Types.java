@@ -962,6 +962,9 @@ public class Types {
       return false;
     }
     for(int i=0;i!=x.length();++i) {
+      if(x.isElementNA(i) && y.isElementNA(i)) {
+        continue;
+      }
       if(!vectorType.elementsEqual(x, i, y, i)) {
         return false;
       }

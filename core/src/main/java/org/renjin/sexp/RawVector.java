@@ -264,6 +264,13 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
       return vector1.getElementAsInt(index1) - vector2.getElementAsInt(index2);
     }
+
+    @Override
+    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
+        int index2) {
+      // raws cannot be NA
+      return vector1.getElementAsInt(index1) == vector2.getElementAsInt(index2);
+    }
   }  
 
   @Override

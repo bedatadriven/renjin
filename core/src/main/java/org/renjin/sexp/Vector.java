@@ -357,22 +357,22 @@ public interface Vector extends SEXP {
      * @param index1
      * @param vector2
      * @param index2
+     * @throws IllegalArgumentException if either of the two elements is NA or NaN
      * @return
      */
     public abstract int compareElements(Vector vector1, int index1, Vector vector2, int index2);
 
     
     /**
-     * Checks equality between the two elements, coercing types to this {@code Type}.
+     * Checks equality between the two elements, coercing types to this {@code Type}. If either
+     * of the two elements is NA, it will return false.
      * @param vector1
      * @param index1
      * @param vector2
      * @param index2
      * @return
      */    
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2) {
-      return compareElements(vector1, index1, vector2, index2) == 0;
-    }
+    public abstract boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2);
 
     public static Type widest(Type a, Type b) {
       if(b.isWiderThan(a)) {

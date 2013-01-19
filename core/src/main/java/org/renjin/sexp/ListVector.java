@@ -581,6 +581,13 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       // TODO: should compareElements be a method on some AtomicVectorType class??
       throw new UnsupportedOperationException();
     }
+  
+    @Override
+    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
+        int index2) {
+      // TODO: should compareElements be a method on some AtomicVectorType class??
+      throw new UnsupportedOperationException();
+    }
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {

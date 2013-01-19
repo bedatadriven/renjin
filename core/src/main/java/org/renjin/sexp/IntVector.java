@@ -1,10 +1,11 @@
 package org.renjin.sexp;
 
-import com.google.common.collect.UnmodifiableIterator;
+import java.util.Iterator;
+
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.ParseUtil;
 
-import java.util.Iterator;
+import com.google.common.collect.UnmodifiableIterator;
 
 
 public abstract class IntVector extends AbstractAtomicVector implements Iterable<Integer> {
@@ -257,8 +258,20 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
 
     @Override
     public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
+      assert !vector1.isElementNA(index1) && !vector2.isElementNA(index2);
       return vector1.getElementAsInt(index1) - vector2.getElementAsInt(index2);
     }
+
+    @Override
+    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
+        int index2) {
+      if(vector1.isElementNA(index1) || vector2.isElementNA(index2)) {
+        return false;
+      }
+      return vector1.getElementAsInt(index1) == vector2.getElementAsInt(index2);
+    }
+    
+    
   }
 
   private class ValueIterator extends UnmodifiableIterator<Integer> {

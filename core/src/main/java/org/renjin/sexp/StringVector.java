@@ -239,6 +239,19 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
       return vector1.getElementAsString(index1).compareTo(vector2.getElementAsString(index2));
     }
+
+    @Override
+    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
+        int index2) {
+      String s1 = vector1.getElementAsString(index1);
+      String s2 = vector2.getElementAsString(index2);
+      if(s1 == null || s2 == null) {
+        return false;
+      }
+      return s1.equals(s2);
+    }
+    
+    
   }
 
   public static class Builder extends AbstractAtomicBuilder {

@@ -182,8 +182,8 @@ class MatrixProduct {
 
   private Vector buildDimnames() {
     ListVector vector = dimnames.build();
-    if(vector.getElementAsSEXP(0) != null ||
-       vector.getElementAsSEXP(1) != null) {
+    if(vector.getElementAsSEXP(0) != Null.INSTANCE ||
+       vector.getElementAsSEXP(1) != Null.INSTANCE) {
       return vector;
     } else {
       return Null.INSTANCE;

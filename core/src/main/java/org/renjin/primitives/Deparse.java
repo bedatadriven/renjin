@@ -48,6 +48,7 @@ import org.renjin.sexp.SEXP;
 import org.renjin.sexp.SexpVisitor;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 
 import com.google.common.base.Strings;
@@ -93,7 +94,53 @@ public class Deparse {
 
     public DeparsingVisitor(Context context, SEXP exp) {
       this.context = context;
-      exp.accept(this);
+      deparse(exp);
+    }
+    
+    public void deparse(SEXP exp) {
+      if(requiresStructure(exp)) {
+        deparsed.append("structure(");
+        exp.accept(this);
+        deparseAttributes(exp);
+        deparsed.append(")");
+      } else {
+        exp.accept(this);
+      }
+    }
+
+    private void deparseAttributes(SEXP exp) {
+      for(Symbol name : exp.getAttributes().names()) {
+        SEXP value = exp.getAttributes().get(name);
+       // ".Dim", ".Dimnames", ".Names", ".Tsp" and ".Label"
+       // "dim", "dimnames", "names", "tsp" and "levels".
+        if(name == Symbols.DIM) {
+          appendAttribute(".Dim", value);
+        
+        } else if(name == Symbols.DIMNAMES) {
+          appendAttribute(".Dimnames", value);
+        
+        } else if(name == Symbols.NAMES) {
+          appendAttribute(".Names", value);
+        
+        } else if(name == Symbol.get("tsp")) {
+          appendAttribute(".Tsp", value);
+          
+        } else if(name == Symbols.LEVELS) {
+          appendAttribute(".Label", value);
+        
+        } else {
+          appendAttribute(name.getPrintName(), value);
+        }
+      }
+    }
+
+    private void appendAttribute(String name, SEXP value) {
+      deparsed.append(", ").append(name).append(" = ");
+      deparse(value);
+    }
+    
+    private boolean requiresStructure(SEXP exp) {
+      return !exp.getAttributes().empty();
     }
 
     @Override
@@ -172,7 +219,7 @@ public class Deparse {
 
     @Override
     public void visit(Promise promise) {
-      promise.force(context).accept(this);
+      deparse(promise.force(context));
     }
 
     @Override
@@ -206,7 +253,7 @@ public class Deparse {
         if(namedValue.hasName()) {
           deparsed.append(namedValue.getName()).append(" = ");
         }
-        namedValue.getValue().accept(this);
+        deparse(namedValue.getValue());
       }
       deparsed.append(")");
     }
@@ -251,7 +298,7 @@ public class Deparse {
     }
 
     private void deparseSubset(String name, PairList arguments) {
-      arguments.getElementAsSEXP(0).accept(this);
+      deparse(arguments.getElementAsSEXP(0));
       deparsed.append(name);
       deparseArgumentList(Iterables.skip(arguments.nodes(), 1));
       deparsed.append(closingParens(name));
@@ -269,29 +316,29 @@ public class Deparse {
 
     private void deparseUnaryOp(FunctionCall call) {
       deparsed.append(((Symbol)call.getFunction()).getPrintName());
-      call.getArgument(0).accept(this);
+      deparse(call.getArgument(0));
     }
 
     private void deparseBinaryOp(String name, PairList arguments) {
-      arguments.getElementAsSEXP(0).accept(this);
+      deparse(arguments.getElementAsSEXP(0));
       if(is(name, BINARY_OPS_WITHOUT_SPACE)) {
         deparsed.append(name);
       } else {
         deparsed.append(' ').append(name)
           .append(' ');
       }
-      arguments.getElementAsSEXP(1).accept(this);
+      deparse(arguments.getElementAsSEXP(1));
     }
 
     private void deparseBracket(FunctionCall call) {
       deparsed.append("{\n");
-      call.getArgument(0).accept(this);
+      deparse(call.getArgument(0));
       deparsed.append("\n}");
     }
     
     private void deparseParen(FunctionCall call) {
       deparsed.append("(");
-      call.getArgument(0).accept(this);
+      deparse(call.getArgument(0));
       deparsed.append(")");
     }
     
@@ -310,7 +357,7 @@ public class Deparse {
 
     private void deparseNormalCall(FunctionCall call) {
       if(call.getFunction() instanceof Symbol) {
-        call.getFunction().accept(this);
+        deparse(call.getFunction());
       } else {
         deparsed.append("FUN");
       }
@@ -331,40 +378,40 @@ public class Deparse {
           argument.getTag().accept(this);
           deparsed.append(" = ");
         }
-        argument.getValue().accept(this);
+        deparse(argument.getValue());
       }
     }
 
     private void deparseIf(FunctionCall call) {
       deparsed.append("if (");
-      call.getArgument(0).accept(this);
+      deparse(call.getArgument(0));
       deparsed.append(") ");
-      call.getArgument(1).accept(this);
+      deparse(call.getArgument(1));
       if(call.getArguments().length() == 3) {
         deparsed.append(" else ");
-        call.getArgument(2).accept(this);
+        deparse(call.getArgument(2));
       }
     }
     
     private void deparseRepeat(FunctionCall call) {
       deparsed.append("repeat ");
-      call.getArgument(0).accept(this);
+      deparse(call.getArgument(0));
     }
     
     private void deparseFor(FunctionCall call) {
       deparsed.append("for(");
-      call.getArgument(0).accept(this);
+      deparse(call.getArgument(0));
       deparsed.append(" in ");
-      call.getArgument(1).accept(this);
+      deparse(call.getArgument(1));
       deparsed.append(") ");
-      call.getArgument(2).accept(this);
+      deparse(call.getArgument(2));
     }
     
     private void deparseWhile(FunctionCall call) {
       deparsed.append("while (");
-      call.getArgument(0).accept(this);
+      deparse(call.getArgument(0));
       deparsed.append(") ");
-      call.getArgument(1).accept(this);
+      deparse(call.getArgument(1));
     }
     
     @Override
@@ -399,9 +446,6 @@ public class Deparse {
         for(int i=0; i!=vector.length();++i) {
           if(i > 0) {
             deparsed.append(", ");
-          }
-          if(!Strings.isNullOrEmpty(vector.getName(i))) {
-            deparsed.append(vector.getName(i)).append(" = ");
           }
           if(vector.isElementNA(i)) {
             deparsed.append(naLiteral);

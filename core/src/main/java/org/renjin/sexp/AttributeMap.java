@@ -175,6 +175,10 @@ public class AttributeMap {
     return names;
   }
 
+  public boolean empty() {
+    return this == EMPTY;
+  }
+  
   /**
    *
    * @return {@code true} if this map contains a <em>class</em> attribute.
@@ -578,8 +582,5 @@ public class AttributeMap {
   public String getPackage() {
     return getString(Symbols.PACKAGE);
   }
-
-
-
 
 }

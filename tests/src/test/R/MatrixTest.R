@@ -1,7 +1,13 @@
 library(hamcrest)
 
 test.MatrixProduct <- function() {
-	assertThat(1:3 %*% c(3,2,1), identicalTo(10));
+	assertThat(dim(matrix(10)), equalTo(c(1L,1L)))
+	
+	x <- 1:3 %*% c(3,2,1)
+	assertThat(typeof(x), equalTo("double"))
+	assertThat(x, equalTo(10))
+	assertThat(dim(x), equalTo(c(1L,1L)))
+	assertThat(x, identicalTo(matrix(10)))
 }
 
 test.Svd <- function() {

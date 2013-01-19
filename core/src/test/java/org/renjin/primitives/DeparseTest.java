@@ -23,12 +23,12 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(c(1L,3L,4L))"), equalTo(c("c(1L, 3L, 4L)")));
     assertThat(eval("deparse(c(1L,NA,4L))"), equalTo(c("c(1L, NA, 4L)")));
     assertThat(eval("deparse(c(99L))"), equalTo(c("99L")));
-    assertThat(eval("deparse(c(x=99L,y=45L))"), equalTo(c("c(x = 99L, y = 45L)")));
+    assertThat(eval("deparse(c(x=99L,y=45L))"), equalTo(c("structure(c(99L, 45L), .Names = c(\"x\", \"y\"))")));
     assertThat(eval("deparse(NA_real_)"), equalTo(c("NA_real_")));
     assertThat(eval("deparse(1:10)"), equalTo(c("1:10")));
     assertThat(eval("deparse(5:1)"), equalTo(c("5:1")));
     assertThat(eval("deparse(list(1,'s',3L))"), equalTo(c("list(1, \"s\", 3L)")));
-    assertThat(eval("deparse(list(a=1,b='foo'))"), equalTo(c("list(a = 1, b = \"foo\")")));
+    assertThat(eval("deparse(list(a=1,b='foo'))"), equalTo(c("structure(list(a = 1, b = \"foo\"), .Names = c(\"a\", \"b\"))")));
   } 
  
   
@@ -52,5 +52,16 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(quote(x[1,drop=TRUE]))"), equalTo(c("x[1, drop = TRUE]")));
     assertThat(eval("deparse(quote(x[[1]]))"), equalTo(c("x[[1]]")));
     assertThat(eval("deparse(quote(x$y))"), equalTo(c("x$y")));
+  }
+  
+  @Test
+  public void deparseWithAttribs() {
+    eval("x <- c(a=1,b=2)");
+    assertThat(eval("deparse(x)"), equalTo(c("structure(c(1, 2), .Names = c(\"a\", \"b\"))")));
+
+    eval("dim(x) <- c(1L, 2L)");
+    eval("attr(x, 'foo') <- 'bar'");
+   
+    assertThat(eval("deparse(x)"), equalTo(c("structure(c(1, 2), .Dim = 1:2, foo = \"bar\")")));
   }
 }

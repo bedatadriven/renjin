@@ -56,7 +56,12 @@ public class TestRunner {
   }
 
   private void loadLibrary(Context ctx, String namespaceName) {
-    ctx.evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
+    try {
+      ctx.evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
+    } catch(Exception e) {
+      System.err.println("Could not load this project's namespace (it may not have one)");
+      //e.printStackTrace();
+    }
   }
   
 

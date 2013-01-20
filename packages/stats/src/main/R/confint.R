@@ -61,4 +61,4 @@ confint.default <- function (object, parm, level = 0.95, ...)
     ses <- sqrt(diag(vcov(object)))[parm]
     ci[] <- cf[parm] + ses %o% fac
     ci
-}
+}	

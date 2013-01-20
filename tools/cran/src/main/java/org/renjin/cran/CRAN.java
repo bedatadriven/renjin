@@ -7,10 +7,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
@@ -25,7 +21,7 @@ import com.google.common.io.ByteStreams;
 
 public class CRAN {
 
-	public static final String CRAN_MIRROR = "http://ftp.yalwa.org/cran/";
+	public static final String CRAN_MIRROR = "http://cran.xl-mirror.nl/";
 
 	public static List<CranPackage> fetchPackageList() throws IOException {
 	  Document dom = fetchAsDom(

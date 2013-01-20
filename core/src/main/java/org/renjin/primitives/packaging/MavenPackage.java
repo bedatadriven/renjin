@@ -19,15 +19,9 @@ public class MavenPackage implements Package {
   private String groupId;
   private String artifactId;
 
-  public MavenPackage(String name) {
-    int dot = name.lastIndexOf('.');
-    if(dot == -1) {
-      this.groupId = "org.renjin";
-      this.artifactId = name;
-    } else {
-      this.groupId = name.substring(0, dot);
-      this.artifactId = name.substring(dot+1);
-    }
+  public MavenPackage(String groupId, String artifactId) {
+    this.groupId = groupId;
+    this.artifactId = artifactId;
   }
 
   @Override
@@ -51,6 +45,7 @@ public class MavenPackage implements Package {
   
   public URL getEnvironmentUrl() {
     String name = groupId.replace('.', '/') + "/" + artifactId + "/environment";
+    System.err.println("Looking for environment at " + name);
     return Resources.getResource(name);
   }
   

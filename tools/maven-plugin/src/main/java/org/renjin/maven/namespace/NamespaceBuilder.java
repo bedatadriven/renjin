@@ -3,6 +3,7 @@ package org.renjin.maven.namespace;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -46,8 +47,39 @@ public class NamespaceBuilder {
     Context context = initContext();
   
     Namespace namespace = context.getNamespaceRegistry().createNamespace(new NamespaceDef(), namespaceName);
+    maybeImportMethodsTo(context, namespace);
     evaluateSources(context, getRSources(), namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
+  }
+
+
+  private void maybeImportMethodsTo(Context context, Namespace namespace) {
+    // the environment into which the package sources are evaluated
+    // is not all together clear to me. Logically, what we 
+    // do here with Renjin is to create an empty namespace environment,
+    // import the defined symbols into it, and then evaluate the sources.
+    
+    // But it looks like R-2.x evaluates the sources into a namespace
+    // environment that has the default packages on the search path,
+    // giving them a sort of implicit import of methods.
+    // We'll replicate that here for the moment
+    if(isMethodsOnClasspath()) {
+      Namespace methods = context.getNamespaceRegistry().getNamespace("methods");
+      methods.copyExportsTo(namespace.getImportsEnvironment());
+    }
+    
+  }
+
+
+  private boolean isMethodsOnClasspath() {
+    InputStream in;
+    try {
+      in = getClass().getResourceAsStream("/org/renjin/methods/environment");
+      in.close();
+      return true;
+    } catch(Exception e) {
+    }
+    return false;
   }
 
 
@@ -129,3 +161,4 @@ public class NamespaceBuilder {
   }
 
 }
+  

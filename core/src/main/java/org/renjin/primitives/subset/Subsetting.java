@@ -21,11 +21,31 @@
 
 package org.renjin.primitives.subset;
 
-import com.google.common.base.Strings;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.*;
-import org.renjin.sexp.*;
+import org.renjin.methods.MethodDispatch;
+import org.renjin.primitives.annotations.ArgumentList;
+import org.renjin.primitives.annotations.Current;
+import org.renjin.primitives.annotations.DefaultValue;
+import org.renjin.primitives.annotations.Evaluate;
+import org.renjin.primitives.annotations.Generic;
+import org.renjin.primitives.annotations.NamedFlag;
+import org.renjin.primitives.annotations.Primitive;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.ListBuilder;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 import org.renjin.util.NamesBuilder;
+
+import com.google.common.base.Strings;
 
 public class Subsetting {
 
@@ -77,9 +97,9 @@ public class Subsetting {
   
 
   @Primitive("@")
-  public static SEXP getSlotValue(SEXP object, @Evaluate(false) Symbol slotName) {
+  public static SEXP getSlotValue(@Current Context context, @Current MethodDispatch methods, SEXP object, @Evaluate(false) Symbol slotName) {
     if(slotName.getPrintName().equals(".Data")) {
-      throw new EvalException("todo");
+      return context.evaluate(FunctionCall.newCall(Symbol.get("getDataPart"), object), methods.getMethodsNamespace());
     }
     
     SEXP value = object.getAttribute(slotName);

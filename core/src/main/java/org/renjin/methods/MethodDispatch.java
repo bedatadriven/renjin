@@ -7,6 +7,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Context.Type;
 import org.renjin.primitives.Evaluation;
+import org.renjin.primitives.annotations.SessionScoped;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Function;
@@ -25,6 +26,7 @@ import org.renjin.sexp.Symbols;
 
 import com.google.common.collect.Maps;
 
+@SessionScoped
 public class MethodDispatch {
   
 

@@ -88,24 +88,15 @@ public class NamespaceRegistry {
     
     // load the serialized functions/values from the classpath
     // and add them to our private namespace environment
-    Namespace namespace = createNamespace(pkg.getNamespaceDef(), name.getPrintName());
+    NamespaceDef namespaceDef = pkg.getNamespaceDef();
+    Namespace namespace = createNamespace(namespaceDef, name.getPrintName());
     for(NamedValue value : pkg.loadSymbols(context)) {
       namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
     }
     
     // import foreign symbols
     Environment importsEnv = namespace.getNamespaceEnvironment().getParent();
-    for(NamespaceDef.NamespaceImport importDef : pkg.getNamespaceDef().getImports() ) {
-      Namespace importedNamespace = getNamespace(importDef.getNamespace());
-      if(importDef.isImportAll()) {
-        importedNamespace.copyExportsTo(importsEnv);
-      } else {
-        for(Symbol importedSymbol : importDef.getSymbols()) {
-          SEXP importedExp = importedNamespace.getExport(importedSymbol);
-          importsEnv.setVariable(importedSymbol, importedExp);
-        }
-      }
-    }
+    setupImports(namespaceDef, importsEnv);
 
     Set<Symbol> groups = Sets.newHashSet(Symbol.get("Ops"));
     
@@ -144,6 +135,20 @@ public class NamespaceRegistry {
     }
     return namespace;
   }
+
+  private void setupImports(NamespaceDef namespaceDef, Environment importsEnv) {
+    for(NamespaceDef.NamespaceImport importDef : namespaceDef.getImports() ) {
+      Namespace importedNamespace = getNamespace(importDef.getNamespace());
+      if(importDef.isImportAll()) {
+        importedNamespace.copyExportsTo(importsEnv);
+      } else {
+        for(Symbol importedSymbol : importDef.getSymbols()) {
+          SEXP importedExp = importedNamespace.getExport(importedSymbol);
+          importsEnv.setVariable(importedSymbol, importedExp);
+        }
+      }
+    }
+  }
   
   private Environment getDefinitionEnv(SEXP genericFunction) {
     if(genericFunction instanceof Closure) {
@@ -175,6 +180,8 @@ public class NamespaceRegistry {
     // BASE-NS -> IMPORTS -> ENVIRONMENT
     
     Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(), "imports:" + namespaceName);
+    setupImports(namespaceDef, imports);
+    
     Environment namespaceEnv = Environment.createNamedEnvironment(imports, "namespace:" + namespaceName);
     Namespace namespace = new Namespace(namespaceDef, namespaceName, namespaceEnv);
     namespaces.put(Symbol.get(namespaceName), namespace);

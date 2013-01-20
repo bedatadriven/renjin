@@ -561,6 +561,4 @@ public class Methods {
     SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(MethodDispatch.dot_Generic);
     return value != Symbol.UNBOUND_VALUE;
   }
-
-
 }

@@ -12,7 +12,6 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
-import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 
 public class CranLocalExplorer {

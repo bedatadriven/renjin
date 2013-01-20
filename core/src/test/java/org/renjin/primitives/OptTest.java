@@ -106,4 +106,11 @@ public class OptTest extends EvalTestCase{
     assertThat(eval("!x"), equalTo((SEXP)LogicalVector.EMPTY));
   }
   
+  @Test
+  public void testFunctionCallEqual() {
+    eval("x <- ~0 + births");
+    assertThat(eval("x == x"), equalTo(c(true)));
+    
+  }
+  
 }

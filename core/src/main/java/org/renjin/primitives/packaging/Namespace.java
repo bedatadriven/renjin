@@ -39,6 +39,10 @@ public class Namespace {
     throw new EvalException("Namespace " + name + " has no exported symbol named '" + entry.getPrintName() + "'");
   }
 
+  public Environment getImportsEnvironment() {
+    return this.namespaceEnvironment.getParent();
+  }
+  
   /**
    *
    * @return the private environment for this namespace

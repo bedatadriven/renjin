@@ -19,6 +19,7 @@
 
   <modules>
     <module>stats</module>
+    <module>stats4</module>
 	<module>hamcrest</module>
 	<module>graphics</module>
 	<module>grDevices</module>

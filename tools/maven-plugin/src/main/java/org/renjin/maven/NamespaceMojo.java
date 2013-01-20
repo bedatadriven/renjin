@@ -77,6 +77,7 @@ public class NamespaceMojo extends AbstractMojo {
 	 * @required
 	 */
 	private File namespaceFile;
+	
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {

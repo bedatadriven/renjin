@@ -3,7 +3,6 @@ package org.renjin.cran;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.collections15.comparators.ComparatorChain;
 import org.renjin.cran.PackageDescription.PackageDependency;
 
 import com.google.common.base.Function;
@@ -11,7 +10,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
-import edu.uci.ics.jung.algorithms.scoring.EigenvectorCentrality;
 import edu.uci.ics.jung.algorithms.scoring.PageRank;
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;

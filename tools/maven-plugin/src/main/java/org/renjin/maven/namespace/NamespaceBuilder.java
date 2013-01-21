@@ -123,7 +123,10 @@ public class NamespaceBuilder {
 
   private void evaluateSources(Context context, List<File> sources, Environment namespaceEnvironment) {
     for(File sourceFile : sources) {
-      if(sourceFile.getName().toUpperCase().endsWith(".R")) {
+      String nameUpper = sourceFile.getName().toUpperCase();
+      if(nameUpper.endsWith(".R") ||
+         nameUpper.endsWith(".S") ||
+         nameUpper.endsWith(".Q")) {
         System.err.println("Evaluating '" + sourceFile + "'");
         try {
           FileReader reader = new FileReader(sourceFile);

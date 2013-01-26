@@ -207,6 +207,10 @@ public class PackageDescription {
 	public Iterable<PackageDependency> getDepends() {
 		return getPackageDependencyList("Depends");
 	}
+	
+	public Iterable<PackageDependency> getSuggests() {
+	  return getPackageDependencyList("Suggests");
+	}
 
 	private Iterable<PackageDependency> getPackageDependencyList(String property) {
 		String list = getFirstProperty(property);

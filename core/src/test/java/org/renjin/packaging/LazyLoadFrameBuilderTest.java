@@ -1,17 +1,16 @@
 package org.renjin.packaging;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.io.File;
 
 import org.junit.Test;
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.Namespace;
-import org.renjin.primitives.packaging.NamespaceDef;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Symbol;
-
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
 
 import com.google.common.io.Files;
 
@@ -21,7 +20,7 @@ public class LazyLoadFrameBuilderTest {
   public void test() throws Exception {
     
     Context tlContext = Context.newTopLevelContext();
-    Namespace ns = tlContext.getNamespaceRegistry().createNamespace(new NamespaceDef(), "testns");
+    Namespace ns = tlContext.getNamespaceRegistry().createNamespace(new TestPackage(), "testns");
     
     Context ctx = tlContext.beginEvalContext(ns.getNamespaceEnvironment());
     ctx.evaluate(RParser.parseSource("f <- function(x) x*x*42\n"));
@@ -35,7 +34,7 @@ public class LazyLoadFrameBuilderTest {
     
     // now reload into a new context
     tlContext = Context.newTopLevelContext();
-    tlContext.getNamespaceRegistry().createNamespace(new NamespaceDef(), "testns");
+    tlContext.getNamespaceRegistry().createNamespace(new TestPackage(), "testns");
     
     LazyLoadFrame loader = new LazyLoadFrame(tlContext, Files.newInputStreamSupplier(envFile));
     Closure f = (Closure)loader.get(Symbol.get("f"));
@@ -44,4 +43,7 @@ public class LazyLoadFrameBuilderTest {
     
   }
   
+  private static class TestPackage extends org.renjin.primitives.packaging.Package {
+   
+  }
 }

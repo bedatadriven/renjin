@@ -64,6 +64,11 @@
   						<goal>test</goal>
   					</goals>
   					<phase>test</phase>
+					<configuration>
+						<defaultPackages>
+							<package>methods</package>
+						</defaultPackages>
+					</configuration>
   				</execution>
   			</executions>
   		</plugin>

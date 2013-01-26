@@ -46,7 +46,7 @@ public class NamespaceBuilder {
     
     Context context = initContext();
   
-    Namespace namespace = context.getNamespaceRegistry().createNamespace(new NamespaceDef(), namespaceName);
+    Namespace namespace = context.getNamespaceRegistry().createNamespace(new InitializingPackage(), namespaceName);
     maybeImportMethodsTo(context, namespace);
     evaluateSources(context, getRSources(), namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);

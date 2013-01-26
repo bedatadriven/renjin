@@ -55,6 +55,14 @@ public class DeparseTest extends EvalTestCase {
   }
   
   @Test
+  public void noAttributesOnDeparsedCalls() {
+    eval("x <- quote(x+y)");
+    eval("attr(x,'foo') <- 'bar' ");
+    assertThat(eval("deparse(x)"), equalTo(c("x + y")));
+    
+  }
+  
+  @Test
   public void deparseWithAttribs() {
     eval("x <- c(a=1,b=2)");
     assertThat(eval("deparse(x)"), equalTo(c("structure(c(1, 2), .Names = c(\"a\", \"b\"))")));

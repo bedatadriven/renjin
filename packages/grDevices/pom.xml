@@ -54,6 +54,11 @@
   						<goal>test</goal>
   					</goals>
   					<phase>test</phase>
+					<configuration>
+						<defaultPackages>
+							<package>grDevices</package>
+						</defaultPackages>
+					</configuration>
   				</execution>
   			</executions>
   		</plugin>

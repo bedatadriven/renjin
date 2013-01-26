@@ -21,6 +21,8 @@
 
 package org.renjin.primitives.packaging;
 
+import java.io.IOException;
+
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
@@ -88,4 +90,10 @@ public class Namespaces {
       return false;
     }
   }
+  
+  @Primitive
+  public static SEXP getDataset(@Current NamespaceRegistry registry, String namespaceName, String datasetName) throws IOException {
+    return registry.getNamespace(namespaceName).getPackage().loadDataset(datasetName);
+  }
+  
 }

@@ -10,10 +10,12 @@ public class Namespace {
   private String name;
   private final NamespaceDef def;
   private final Environment namespaceEnvironment;
+  private Package pkg;
     
-  public Namespace(NamespaceDef namespaceDef, String name, Environment namespaceEnvironment) {
-    this.name = name;
-    this.def = namespaceDef;
+  public Namespace(Package pkg, String localName, Environment namespaceEnvironment) {
+    this.name = localName;
+    this.pkg = pkg;
+    this.def = pkg.getNamespaceDef();
     this.namespaceEnvironment = namespaceEnvironment;
   }
   
@@ -69,6 +71,10 @@ public class Namespace {
    */
   public NamespaceDef getDef() {
     return def;
+  }
+
+  public Package getPackage() {
+    return pkg;
   }
   
 }

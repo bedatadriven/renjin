@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.util.Properties;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
@@ -22,6 +23,7 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Repository;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.renjin.cran.PackageDescription.PackageDependency;
 import org.renjin.cran.PackageDescription.Person;
 
@@ -36,6 +38,8 @@ public class ProjectBuilder {
   private File baseDir;
   private File rSourcesDir;
   private File rTestsDir;
+  private File resourcesDir;
+  private Properties datasets = new Properties();
   
   private Set<String> corePackages = Sets.newHashSet("stats", "stats4", "graphics", "grDevices", "utils", "methods", "datasets", "splines");
 
@@ -44,6 +48,9 @@ public class ProjectBuilder {
     this.version = version;
     this.baseDir = new File(outputDir, pkg + "_" + version);
     this.rSourcesDir = new File(baseDir.getAbsolutePath() + File.separator + "src" + File.separator + "main" + File.separator + "R");
+    this.resourcesDir = new File(baseDir.getAbsolutePath() + File.separator + "src" + File.separator + "main" + File.separator + "resources" +
+          File.separator + ("org.renjin.cran." + pkgName).replace('.', File.separatorChar));
+
     this.rTestsDir = new File(baseDir.getAbsolutePath() + File.separator + "src" + File.separator + "test" + File.separator + "R");
 
     this.baseDir.mkdirs();
@@ -52,8 +59,8 @@ public class ProjectBuilder {
   public void build() throws IOException {
     File sourceArchive = downloadSourceArchive();
     unpackSources(sourceArchive);
-    Model pom = buildPom();
-    writePom(pom);
+    writeDatasetIndex();
+    writePom(buildPom());
   }
 
   public File downloadSourceArchive() throws IOException {
@@ -77,7 +84,7 @@ public class ProjectBuilder {
     FileInputStream in = new FileInputStream(sourceArchive);
     GZIPInputStream gzipIn = new GZIPInputStream(in);
     TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn);
-        
+           
     TarArchiveEntry entry;
     while((entry=tarIn.getNextTarEntry()) != null) {
       if(entry.getName().endsWith(".Rd")) {
@@ -97,19 +104,49 @@ public class ProjectBuilder {
       
       } else if(entry.getName().startsWith(pkg + "/tests/") && entry.getSize() != 0) {
         extractTo(entry, tarIn, rTestsDir);
+        
+      } else if(entry.getName().startsWith(pkg + "/data/") && entry.getSize() != 0) {
+        extractTo(entry, tarIn, resourcesDir);
+        addDataset(entry);
       }
     } 
   }
 
+  private void addDataset(TarArchiveEntry entry) {
+    String path = entry.getName();
+    int lastSlash = path.lastIndexOf('/');
+    String name = path.substring(lastSlash+1);
+    datasets.setProperty(stripExt(name), name);
+  }
+
+
+  private String stripExt(String name) {
+    int dot = name.lastIndexOf('.');
+    if(dot == -1) {
+      return name;
+    }
+    return name.substring(0, dot);
+  }
+
+  private void writeDatasetIndex() throws IOException {
+    if(!datasets.isEmpty()) {
+      FileOutputStream fos = new FileOutputStream(new File(resourcesDir, "datasets"));
+      datasets.store(fos, "");
+      fos.close();
+    }
+  }
+
+  
   private void extractTo(TarArchiveEntry entry, InputStream in, File targetDir) throws IOException {
     targetDir.mkdirs();
     int slash = entry.getName().lastIndexOf('/');
     String name = entry.getName().substring(slash+1);
-    FileOutputStream fos = new FileOutputStream(new File(targetDir, name));
+    File targetFile = new File(targetDir, name);
+    FileOutputStream fos = new FileOutputStream(targetFile);
     ByteStreams.copy(in, fos);
     fos.close();
   }
-  
+ 
 
   private Model buildPom() throws IOException {
     
@@ -145,6 +182,12 @@ public class ProjectBuilder {
       }
     }
     
+//    for(PackageDependency packageDep : description.getSuggests()) {
+//      Dependency dep = toMavenDependency(packageDep.getName());
+//      dep.setScope("optional");
+//      model.addDependency(dep);
+//    }
+    
     Plugin renjinPlugin = new Plugin();
     renjinPlugin.setGroupId("org.renjin");
     renjinPlugin.setArtifactId("renjin-maven-plugin");
@@ -159,6 +202,18 @@ public class ProjectBuilder {
     testExecution.setId("renjin-test");
     testExecution.addGoal("test");
     renjinPlugin.addExecution(testExecution);
+    
+    Xpp3Dom defaultPackages = new Xpp3Dom("defaultPackages");
+    for(String defaultPackage : new String[] { "methods" , "stats", "utils", "grDevices", "graphics" }) {
+      Xpp3Dom pkg = new Xpp3Dom("package");
+      pkg.setValue(defaultPackage);
+      defaultPackages.addChild(pkg);
+    }
+    
+    Xpp3Dom configuration = new Xpp3Dom("configuration");
+    configuration.addChild(defaultPackages);
+    
+    testExecution.setConfiguration(configuration);
     
     Build build = new Build();
     build.addPlugin(renjinPlugin);

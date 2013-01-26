@@ -7,7 +7,7 @@ import org.renjin.sexp.Symbol;
 public class BaseNamespace extends Namespace {
 
   public BaseNamespace(Environment baseNamespaceEnvironment) {
-    super(new NamespaceDef(), "base", baseNamespaceEnvironment);
+    super(new BasePackage(), "base", baseNamespaceEnvironment);
   }
 
   @Override

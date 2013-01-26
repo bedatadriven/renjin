@@ -65,6 +65,12 @@ public class TestMojo extends AbstractMojo {
    */
   private boolean skipTests;
   
+  
+  /**
+   * @parameter
+   */
+  private List defaultPackages;
+  
   /**
    * @parameter expression="${maven.test.failure.ignore}" default-value="false"
    */
@@ -82,8 +88,8 @@ public class TestMojo extends AbstractMojo {
     try {
       Object runner = classLoader.loadClass("org.renjin.maven.test.TestRunner").newInstance();
       boolean succeeded = (Boolean)runner.getClass()
-          .getMethod("run", File.class, File.class, String.class)
-          .invoke(runner, testSourceDirectory, reportsDirectory, namespaceName);
+          .getMethod("run", File.class, File.class, String.class, List.class)
+          .invoke(runner, testSourceDirectory, reportsDirectory, namespaceName, defaultPackages);
            
       if(!succeeded && !testFailureIgnore) {
         throw new MojoFailureException("There were R test failures");

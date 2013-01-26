@@ -140,6 +140,11 @@ public class Deparse {
     }
     
     private boolean requiresStructure(SEXP exp) {
+      // for perhaps arbitrary reasons, attributes of 
+      // function calls are not included in the deparse
+      if(exp instanceof FunctionCall) {
+         return false;
+      }
       return !exp.getAttributes().empty();
     }
 

@@ -1020,6 +1020,7 @@ public class Primitives {
     f("env.profile", /*envprofile*/ null, 0, 211, 1);
     f(":::", Namespaces.class, 0, 0, -1);
     f("::", Namespaces.class, 0, 0, -1);
+    f("getDataset", Namespaces.class, 0, 11, 1);
     
     f("write.table", /*writetable*/ null, 0, 111, 11);
     f("Encoding", Types.class, 0, 11, 1);

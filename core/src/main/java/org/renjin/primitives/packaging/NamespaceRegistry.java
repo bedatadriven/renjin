@@ -88,15 +88,14 @@ public class NamespaceRegistry {
     
     // load the serialized functions/values from the classpath
     // and add them to our private namespace environment
-    NamespaceDef namespaceDef = pkg.getNamespaceDef();
-    Namespace namespace = createNamespace(namespaceDef, name.getPrintName());
+    Namespace namespace = createNamespace(pkg, name.getPrintName());
     for(NamedValue value : pkg.loadSymbols(context)) {
       namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
     }
     
     // import foreign symbols
     Environment importsEnv = namespace.getNamespaceEnvironment().getParent();
-    setupImports(namespaceDef, importsEnv);
+    setupImports(pkg.getNamespaceDef(), importsEnv);
 
     Set<Symbol> groups = Sets.newHashSet(Symbol.get("Ops"));
     
@@ -105,7 +104,7 @@ public class NamespaceRegistry {
     for(S3Export export : namespace.getDef().getS3Exports()) {
       SEXP methodExp =  namespace.getNamespaceEnvironment().getVariable(export.getMethod());
       if(methodExp == Symbol.UNBOUND_VALUE) {
-        throw new EvalException("Missing export: " + export.getMethod());
+        throw new EvalException("Missing export: " + export.getMethod() + " from namespace " + name);
       }
       if(!(methodExp instanceof Function)) {
         throw new IllegalStateException(export.getMethod() + ": expected function but was " + methodExp.getClass().getName());
@@ -174,21 +173,21 @@ public class NamespaceRegistry {
    * @param namespaceName
    * @return
    */
-  public Namespace createNamespace(NamespaceDef namespaceDef, String namespaceName) {
+  public Namespace createNamespace(Package pkg, String localName) {
     // each namespace has environment which is the leaf in a hierarchy that
     // looks like this:
     // BASE-NS -> IMPORTS -> ENVIRONMENT
     
-    Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(), "imports:" + namespaceName);
-    setupImports(namespaceDef, imports);
+    Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(), "imports:" + localName);
+    setupImports(pkg.getNamespaceDef(), imports);
     
-    Environment namespaceEnv = Environment.createNamedEnvironment(imports, "namespace:" + namespaceName);
-    Namespace namespace = new Namespace(namespaceDef, namespaceName, namespaceEnv);
-    namespaces.put(Symbol.get(namespaceName), namespace);
+    Environment namespaceEnv = Environment.createNamedEnvironment(imports, "namespace:" + localName);
+    Namespace namespace = new Namespace(pkg, localName, namespaceEnv);
+    namespaces.put(Symbol.get(localName), namespace);
     envirMap.put(namespaceEnv, namespace);
     
     // save the name to the environment
-    namespaceEnv.setVariable(".packageName", StringVector.valueOf(namespaceName));
+    namespaceEnv.setVariable(".packageName", StringVector.valueOf(localName));
     return namespace;
   }
 

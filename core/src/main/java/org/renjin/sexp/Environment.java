@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.renjin.base.BaseFrame;
@@ -34,6 +35,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.UnmodifiableIterator;
 

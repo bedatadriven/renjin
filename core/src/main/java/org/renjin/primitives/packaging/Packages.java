@@ -27,7 +27,14 @@ public class Packages {
     packageEnv.setAttribute(Symbols.NAME, StringVector.valueOf("package:" + packageName));
     // Copy in the namespace's exports
     namespace.copyExportsTo(packageEnv);
-   
+    
+    
+  }
+  
+  @Primitive
+  public static void data(@Current Environment environment, String datasetName) {
+    
+    
   }
   
 }

@@ -1,5 +1,6 @@
 
 
-test.namespaceLoads() {
+test.namespaceLoads <- function() {
 	library(utils)
 }
+	

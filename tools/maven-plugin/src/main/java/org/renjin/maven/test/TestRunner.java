@@ -2,6 +2,7 @@ package org.renjin.maven.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
@@ -12,6 +13,7 @@ import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
 /**
@@ -23,8 +25,14 @@ public class TestRunner {
 
   private String namespace;
   private TestReporter reporter;
+  private List<String> defaultPackages;
 
-  public boolean run(File sourceDirectory, File reportsDirectory, String namespaceName) throws Exception {
+  public boolean run(File sourceDirectory, File reportsDirectory, String namespaceName, List<String> defaultPackages) throws Exception {
+    
+    this.defaultPackages = defaultPackages;
+    if(this.defaultPackages == null) {
+      this.defaultPackages = Lists.newArrayList();
+    }
     
     reporter = new TestReporter(reportsDirectory);
     reporter.start();
@@ -82,7 +90,9 @@ public class TestRunner {
 //    ctx.getSession().setStdOut(reporter.getStdOut());
 //    ctx.getSession().setStdErr(reporter.getStdOut());
     
-    loadLibrary(ctx, namespace);
+    for(String pkg : defaultPackages) {
+      loadLibrary(ctx, pkg);
+    }
     
     try {
       reporter.startFunction("root");

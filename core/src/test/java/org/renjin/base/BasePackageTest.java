@@ -547,7 +547,11 @@ public class BasePackageTest extends EvalTestCase {
     eval(" newf <- c(value, if(is.null(bd) || is.list(bd)) list(bd) else bd) ");
     eval(" print(newf) ");
     assertThat(eval("length(newf)"), equalTo(c_i(6)));
-    
-    
+  }
+  
+  @Test
+  public void isR() {
+    assumingBasePackagesLoad();
+    assertThat(eval("is.R()"), equalTo(c(true)));
   }
 }

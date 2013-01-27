@@ -116,6 +116,10 @@ public class NamespaceRegistry {
       } else {
         SEXP genericFunction = namespace.getNamespaceEnvironment().findFunction(context, export.getGenericFunction());
         if(genericFunction == null) {
+          System.err.println("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
+          for(Symbol sym : namespace.getNamespaceEnvironment().getParent().getSymbolNames()) {
+            System.err.println("imported: " + sym);
+          }
           throw new EvalException("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
         }
         definitionEnv = getDefinitionEnv( genericFunction );

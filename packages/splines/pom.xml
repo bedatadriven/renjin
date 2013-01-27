@@ -28,6 +28,16 @@
   <dependencies>
   	<dependency>
   		<groupId>org.renjin</groupId>
+  		<artifactId>graphics</artifactId>
+  		<version>${project.version}</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.renjin</groupId>
+  		<artifactId>stats</artifactId>
+  		<version>${project.version}</version>
+  	</dependency>
+    <dependency>
+  		<groupId>org.renjin</groupId>
   		<artifactId>hamcrest</artifactId>
   		<version>${project.version}</version>
   		<scope>test</scope>

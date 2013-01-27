@@ -71,6 +71,7 @@ public class System {
         .add("year", "2009")
         .add("month", "12")
         .add("day", "14")
+        .add("language", "R")
         .add("svn rev", "50720")
         .add("version.string", "R version " + RVersion.MAJOR + "." + RVersion.MINOR + "(2009-12-14)")
         .build();

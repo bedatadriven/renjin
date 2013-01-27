@@ -3,6 +3,7 @@ package org.renjin.primitives.packaging;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.zip.GZIPInputStream;
@@ -23,12 +24,12 @@ import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 
-public class MavenPackage extends Package {
+public class ClasspathPackage extends Package {
 
   private String groupId;
   private String artifactId;
 
-  public MavenPackage(String groupId, String artifactId) {
+  public ClasspathPackage(String groupId, String artifactId) {
     this.groupId = groupId;
     this.artifactId = artifactId;
   }
@@ -109,15 +110,18 @@ public class MavenPackage extends Package {
 
   @Override
   public SEXP loadDataset(String datasetName) throws IOException {
-    String resourceBase = "/" + groupId + "/" + artifactId + "/";
-
-    Properties datasets = readDatasetIndex(resourceBase);
+    Properties datasets = readDatasetIndex();
     String resourceName = datasets.getProperty(datasetName);
     if(Strings.isNullOrEmpty(resourceName)) {
       return Null.INSTANCE;
     } else {
-      return readDataset(resourceBase + resourceName);
+      return readDataset(getResourceBase() + resourceName);
     }
+  }
+
+  private String getResourceBase() {
+    String resourceBase = "/" + groupId + "/" + artifactId + "/";
+    return resourceBase;
   }
 
   private SEXP readDataset(String resourceName) throws IOException {
@@ -138,9 +142,9 @@ public class MavenPackage extends Package {
     }
   }
 
-  private Properties readDatasetIndex(String resourceBase) {
+  private Properties readDatasetIndex() {
     Properties datasets = new Properties();
-    InputStream in = getClass().getResourceAsStream(resourceBase + "datasets");
+    InputStream in = getClass().getResourceAsStream(getResourceBase() + "datasets");
     if(in != null) {
       try {
         datasets.load(in);
@@ -150,6 +154,10 @@ public class MavenPackage extends Package {
     }
     return datasets;
   }
-  
-  
+
+  @Override
+  public List<String> getDatasets() {
+    Properties index = readDatasetIndex();
+    return (List<String>) Collections.list(index.propertyNames());
+  }
 }

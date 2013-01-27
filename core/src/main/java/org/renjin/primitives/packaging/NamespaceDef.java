@@ -67,9 +67,6 @@ public class NamespaceDef {
     public boolean isImportAll() {
       return importAll;
     }
-    
-    
-    
   }
   
   private List<NamespaceImport> imports = Lists.newArrayList();
@@ -97,7 +94,7 @@ public class NamespaceDef {
         NamespaceImport nsImport = new NamespaceImport();
         nsImport.namespace = toSymbol( call.getArgument(0) );
         for(int i=1; i<call.getArguments().length();++i) {
-          nsImport.symbols.add( toSymbol( call.getArgument(1) ) );
+          nsImport.symbols.add( toSymbol( call.getArgument(i) ) );
         }
         imports.add(nsImport);
         

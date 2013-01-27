@@ -7,7 +7,6 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.HashFrame;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 import org.renjin.sexp.Symbols;
@@ -23,18 +22,12 @@ public class Packages {
     Namespace namespace = namespaceRegistry.getNamespace(packageName);
     
     // Create the package environment
-    Environment packageEnv = context.getGlobalEnvironment().insertAbove(new HashFrame());
+    Environment packageEnv = context.getGlobalEnvironment().insertAbove(new PackageFrame(namespace.getPackage()));
     packageEnv.setAttribute(Symbols.NAME, StringVector.valueOf("package:" + packageName));
     // Copy in the namespace's exports
     namespace.copyExportsTo(packageEnv);
     
-    
   }
   
-  @Primitive
-  public static void data(@Current Environment environment, String datasetName) {
-    
-    
-  }
   
 }

@@ -17,11 +17,11 @@ public class PackageLoader {
       "methods", "splines", "stats", "stats4", "utils");
   
   public Package load(String name) {
-    MavenPackage pkg;
+    ClasspathPackage pkg;
     if(CORE_PACKAGES.contains(name)) {
-      pkg = new MavenPackage("org.renjin", name);
+      pkg = new ClasspathPackage("org.renjin", name);
     } else {
-      pkg = new MavenPackage("org.renjin.cran", name);
+      pkg = new ClasspathPackage("org.renjin.cran", name);
     }
     if(!pkg.exists()) {
       throw new EvalException("Cannot find package " + name + " on the classpath");    

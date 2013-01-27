@@ -45,4 +45,7 @@ public abstract class Package {
     return Null.INSTANCE;
   }
 
+  public List<String> getDatasets() {
+    return Collections.emptyList();
+  }
 }

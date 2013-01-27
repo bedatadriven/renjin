@@ -34,7 +34,7 @@ public class HashFrame implements Frame{
   private IdentityHashMap<Symbol, SEXP> values = new IdentityHashMap<Symbol, SEXP>();
   
   /**
-   * Bloom filter keeping track of which functions have 
+   * Bloom-esque filter keeping track of which functions have 
    * been (potentially) set into this frame. 
    */
   private int functionFilter = 0;

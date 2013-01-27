@@ -418,9 +418,9 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
   
   public Environment insertAbove(Frame frame) {	
-	Environment newEnv = Environment.createChildEnvironment(parent, frame);
-	setParent(newEnv);
-	return newEnv; 
+  	Environment newEnv = Environment.createChildEnvironment(parent, frame);
+  	setParent(newEnv);
+  	return newEnv; 
   }
 
   private static class EmptyEnv extends Environment {

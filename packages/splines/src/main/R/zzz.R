@@ -1,4 +1,4 @@
-#  File src/library/tools/R/tools-deprecated.R
+#  File src/library/splines/R/zzz.R
 #  Part of the R package, http://www.R-project.org
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -14,6 +14,13 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-## <entry>
-## Deprecated in 2.1.0.
-## </entry>
+.noGenerics <- TRUE
+
+# RENJIN: disabled dynamic library loading
+#.onLoad <- function(libname, pkgname)
+#{
+#    library.dynam("splines", pkgname, libname)
+#}
+#
+#.onUnload <- function(libpath)
+#    library.dynam.unload("splines", libpath)

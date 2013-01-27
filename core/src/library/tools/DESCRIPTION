@@ -1,8 +1,0 @@
-Package: tools
-Version: 2.14.2
-Priority: base
-Title: Tools for Package Development
-Author: R Development Core Team
-Maintainer: R Core Team <R-core@r-project.org>
-Description: Tools for package development, administration and documentation
-License: Part of R 2.14.2

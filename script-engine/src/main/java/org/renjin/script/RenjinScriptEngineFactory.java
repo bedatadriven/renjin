@@ -114,11 +114,6 @@ public class RenjinScriptEngineFactory implements ScriptEngineFactory {
       context = Context.newTopLevelContext();
     }
     
-    public Builder withNoDefaultPackages() {
-      context.getSession().systemEnvironment.put("R_DEFAULT_PACKAGES", "NULL");
-      return this;
-    }
-    
     public RenjinScriptEngine get() throws IOException {
       context.init();
       return getScriptEngine(context);

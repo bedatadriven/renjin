@@ -1,7 +1,6 @@
-package org.renjin.cli;
+package org.renjin.repl;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
 import jline.UnsupportedTerminal;
@@ -9,6 +8,8 @@ import jline.console.ConsoleReader;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.parser.RParser.StatusResult;
 import org.renjin.primitives.Warning;
@@ -25,7 +26,7 @@ import com.google.common.base.Strings;
 public class JlineRepl {
   
   public static void main(String[] args) throws Exception {
-    new JlineRepl();    
+    new JlineRepl(SessionBuilder.buildDefault());    
   }
 
   private Context topLevelContext;
@@ -35,7 +36,7 @@ public class JlineRepl {
   private RParser parser;
   private JlineReader jlineReader;
   
-  public JlineRepl() throws Exception {
+  public JlineRepl(Session session) throws Exception {
     
     if(Strings.nullToEmpty(System.getProperty("os.name")).startsWith("Windows")) {
       // AnsiWindowsTerminal does not work properly in WIndows 7
@@ -49,10 +50,7 @@ public class JlineRepl {
 
     out = new PrintWriter(reader.getOutput());
     
-    this.topLevelContext = new StandaloneContextFactory().create();
-    this.topLevelContext.getSession().getConnectionTable().getStdout().setOutputStream(out);
-    this.topLevelContext.getSession().setSessionController(new JlineSessionController(reader));
-    this.topLevelContext.init();
+    this.topLevelContext = session.getTopLevelContext();
    
     parser = new RParser(new JlineReader(reader));
     

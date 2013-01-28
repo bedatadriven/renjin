@@ -53,7 +53,7 @@ public class System {
   
   
   public static String getRHome(@Current Context context) throws URISyntaxException {
-    return context.getSession().homeDirectory;
+    return context.getSession().getHomeDirectory();
   }
 
   public static ListVector Version() {
@@ -82,7 +82,7 @@ public class System {
   public static StringVector getEnvironment(@Current Context context, StringVector names, String unset) {
     StringVector.Builder result = new StringArrayVector.Builder();
 
-    Map<String, String> map = context.getSession().systemEnvironment;
+    Map<String, String> map = context.getSession().getSystemEnvironment();
     if(names.length() == 0) {
       for(Map.Entry<String,String> entry : map.entrySet()) {
         result.add(entry.getKey() + "=" + entry.getValue());
@@ -99,7 +99,7 @@ public class System {
   @Primitive("Sys.setenv")
   public static LogicalVector setEnvironment(@Current Context context, StringVector names, StringVector values) {
 
-    Map<String, String> map = context.getSession().systemEnvironment;
+    Map<String, String> map = context.getSession().getSystemEnvironment();
 
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     for(int i=0;i!=names.length();++i) {
@@ -113,7 +113,7 @@ public class System {
   @Visible(false)
   public static LogicalVector unsetEnvironment(@Current Context context, StringVector names) {
 
-    Map<String, String> map = context.getSession().systemEnvironment;
+    Map<String, String> map = context.getSession().getSystemEnvironment();
 
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     for(int i=0;i!=names.length();++i) {
@@ -421,7 +421,7 @@ public class System {
     List<String> args = parseArgs(command);
     ProcessBuilder builder = new ProcessBuilder(args);
     
-    FileObject workingDir = context.getSession().workingDirectory;
+    FileObject workingDir = context.getSession().getWorkingDirectory();
     if(workingDir instanceof LocalFile) {
       File localDir = new File(workingDir.getURL().getFile());
       builder.directory(localDir);

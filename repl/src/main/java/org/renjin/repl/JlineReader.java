@@ -1,4 +1,4 @@
-package org.renjin.cli;
+package org.renjin.repl;
 
 import jline.console.ConsoleReader;
 

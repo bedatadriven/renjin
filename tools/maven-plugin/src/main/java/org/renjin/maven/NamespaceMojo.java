@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -14,6 +15,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
 /**
@@ -148,8 +150,8 @@ public class NamespaceMojo extends AbstractMojo {
     }
   }
 
-  private List<Artifact> getDependencies() {
-    List<Artifact> artifacts = Lists.newArrayList();
+  private Set<Artifact> getDependencies() {
+    Set<Artifact> artifacts = Sets.newHashSet();
     artifacts.addAll(project.getCompileArtifacts());
     artifacts.addAll(pluginDependencies);
     return artifacts; 

@@ -64,12 +64,12 @@ public class BasePackageTest extends EvalTestCase {
     assertThat( eval( "x" ) , equalTo( c(42) ));
 
     // make sure that closures are enclosed by the base namspace
-    Closure closure = (Closure)getValue( topLevelContext.getSession().baseEnvironment, "backsolve" );
-    assertThat( closure.getEnclosingEnvironment(), equalTo(topLevelContext.getSession().baseNamespaceEnv ));
+    Closure closure = (Closure)getValue( topLevelContext.getSession().getBaseEnvironment(), "backsolve" );
+    assertThat( closure.getEnclosingEnvironment(), equalTo(topLevelContext.getSession().getBaseNamespaceEnv() ));
 
 
     // make sure that base scripts are populated in both the base environment and the base namespace
-    assertThat( getValue( topLevelContext.getSession().baseEnvironment, "letters" ).length(), equalTo( 26 ));
+    assertThat( getValue( topLevelContext.getSession().getBaseEnvironment(), "letters" ).length(), equalTo( 26 ));
   //  assertThat( getValue( topLevelContext.getSession().baseNamespaceEnv, "letters" ).length(), equalTo( 26 ));
 
   }

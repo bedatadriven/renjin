@@ -97,7 +97,7 @@ public class NamespaceRegistry {
     Environment importsEnv = namespace.getNamespaceEnvironment().getParent();
     setupImports(pkg.getNamespaceDef(), importsEnv);
 
-    Set<Symbol> groups = Sets.newHashSet(Symbol.get("Ops"));
+    Set<Symbol> groups = Sets.newHashSet(Symbol.get("Ops"), Symbol.get("Math"), Symbol.get("Summary"));
     
     // we need to export S3 methods to the namespaces to which
     // the generic functions were defined

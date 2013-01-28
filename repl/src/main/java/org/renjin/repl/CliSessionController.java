@@ -1,4 +1,6 @@
-package org.renjin.cli;
+package org.renjin.repl;
+
+import jline.Terminal;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.SessionController;
@@ -6,11 +8,11 @@ import org.renjin.sexp.StringVector;
 
 public class CliSessionController extends SessionController {
 
-  private Console console;
+  private Terminal terminal;
   
-  public CliSessionController(Console console) {
+  public CliSessionController(Terminal terminal) {
     super();
-    this.console = console;
+    this.terminal = terminal;
   }
 
   @Override
@@ -27,7 +29,7 @@ public class CliSessionController extends SessionController {
   @Override
   public int menu(StringVector choices) {
     for(int i=0;i!=choices.length();++i) {
-      console.println(i + ": " + choices.getElementAsString(i));
+      System.out.println(i + ": " + choices.getElementAsString(i));
     }
     return 0;
   }

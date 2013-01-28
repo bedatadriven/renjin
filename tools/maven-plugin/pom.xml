@@ -23,6 +23,11 @@
       <artifactId>renjin-core</artifactId>
       <version>${project.version}</version>
     </dependency>
+   <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-repl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
 	  <groupId>org.renjin</groupId>
 	  <artifactId>renjin-legacy-compiler</artifactId>

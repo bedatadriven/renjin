@@ -74,7 +74,7 @@ public class Par {
       if(!(exp instanceof Vector) || exp.length() < 1) {
         throw new EvalException("invalid rgb specification: " + exp.toString());
       }
-      return Color.fromExp(context.getSession().getColorPalette(),
+      return Color.fromExp(context.getSession().getSingleton(ColorPalette.class),
                            dd.getParameters().getBackground(),
                             (Vector)exp, 0);
     }

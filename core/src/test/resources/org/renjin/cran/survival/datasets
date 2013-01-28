@@ -1,0 +1,20 @@
+#
+#Sat Jan 26 19:45:22 CET 2013
+tobin.txt=tobin.txt.gz
+cancer=cancer.rda
+lung=lung.rda
+nwtco=nwtco.rda
+survexp=survexp.rda
+heart=heart.rda
+pbc=pbc.rda
+leukemia=leukemia.rda
+kidney=kidney.rda
+veteran=veteran.rda
+mgus=mgus.rda
+rats=rats.rda
+cgd=cgd.rda
+colon=colon.rda
+logan=logan.rda
+ovarian=ovarian.rda
+bladder=bladder.rda
+stanford2=stanford2.rda

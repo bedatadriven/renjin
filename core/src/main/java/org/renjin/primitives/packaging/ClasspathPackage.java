@@ -2,24 +2,31 @@ package org.renjin.primitives.packaging;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 import org.renjin.eval.Context;
 import org.renjin.packaging.LazyLoadFrame;
+import org.renjin.primitives.io.connections.GzFileConnection;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
+import org.tukaani.xz.LZMA2InputStream;
+import org.tukaani.xz.XZInputStream;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.PeekingIterator;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
@@ -120,8 +127,7 @@ public class ClasspathPackage extends Package {
   }
 
   private String getResourceBase() {
-    String resourceBase = "/" + groupId + "/" + artifactId + "/";
-    return resourceBase;
+    return "/" + groupId.replace('.', '/') + "/" + artifactId + "/";
   }
 
   private SEXP readDataset(String resourceName) throws IOException {
@@ -130,26 +136,48 @@ public class ClasspathPackage extends Package {
       throw new IOException("Can't find resource " + resourceName);
     }
     if(resourceName.endsWith(".rda")) {
-      GZIPInputStream gzin = new GZIPInputStream(in);
+      InputStream gzin = decompress(in);
       try {
-        RDataReader reader = new RDataReader(in);
+        RDataReader reader = new RDataReader(gzin);
         return reader.readFile();
       } finally {
         Closeables.closeQuietly(gzin);
       }
     } else {
-      throw new UnsupportedOperationException("Don't know how to read " + resourceName);
+      System.err.println("Don't know how to read " + resourceName + ", skipping for now...");
+      return Null.INSTANCE;
     }
+  }
+
+  private InputStream decompress(InputStream in) throws IOException {
+    
+    PushbackInputStream pushbackIn = new PushbackInputStream(in, 2);
+    int b1 = pushbackIn.read();
+    int b2 = pushbackIn.read();
+    pushbackIn.unread(b2);
+    pushbackIn.unread(b1);
+    
+    if(b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
+      return new GZIPInputStream(pushbackIn);
+
+    } else if(b1 == 0xFD && b2 == '7') {
+      return new XZInputStream(pushbackIn);  
+    }
+    return in;
   }
 
   private Properties readDatasetIndex() {
     Properties datasets = new Properties();
-    InputStream in = getClass().getResourceAsStream(getResourceBase() + "datasets");
+    String resourceName = getResourceBase() + "datasets";
+    System.out.println("Looking for dataset index in " + resourceName);
+    InputStream in = getClass().getResourceAsStream(resourceName);
     if(in != null) {
       try {
+        System.out.println("found index");
         datasets.load(in);
         in.close();
       } catch(IOException e) {
+        e.printStackTrace();
       }
     }
     return datasets;

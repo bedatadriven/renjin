@@ -1,17 +1,16 @@
 package org.renjin.base;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
 import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
-import org.renjin.primitives.packaging.Namespace;
-import org.renjin.primitives.packaging.NamespaceDef;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.NamedValue;
@@ -19,10 +18,8 @@ import org.renjin.sexp.PrimitiveFunction;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 
 /**
  * Bootstraps the packaging of the base R package
@@ -34,16 +31,18 @@ public class BasePackageCompiler {
  
     // Evaluate the base sources into the base namespace environment
   
-    Context context = Context.newTopLevelContext();
+    Session session = new SessionBuilder()
+    .withoutBasePackage()
+    .build();
+    
+    Context context = session.getTopLevelContext();
     Environment baseNamespaceEnv = context.getNamespaceRegistry().getBase().getNamespaceEnvironment();
     Context evalContext = context.beginEvalContext(baseNamespaceEnv);
     
     File baseSourceRoot = new File("src/main/R/base");
     evalSources(evalContext, baseSourceRoot);
     
-    evalContext.evaluate(FunctionCall.newCall(Symbol.get(".onLoad")));
-
-  
+    evalContext.evaluate(FunctionCall.newCall(Symbol.get(".onLoad")));  
     
     // now serialize them to a lazy-loadable frame
     
@@ -66,8 +65,6 @@ public class BasePackageCompiler {
     })
     .build(baseNamespaceEnv);
   }
-
-
 
   private static void evalSources(Context evalContext, File dir) throws IOException {
     List<File> sources = Lists.newArrayList();

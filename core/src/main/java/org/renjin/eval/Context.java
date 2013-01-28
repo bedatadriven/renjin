@@ -139,31 +139,14 @@ public class Context {
    * @see org.renjin.util.FileSystemUtils#homeDirectoryInCoreJar()
    */
   public static Context newTopLevelContext() {
-    try {
-      FileSystemManager fsm = FileSystemUtils.getMinimalFileSystemManager();
-      return newTopLevelContext(fsm,
-            FileSystemUtils.homeDirectoryInCoreJar(),
-            FileSystemUtils.workingDirectory(fsm));
-    } catch (FileSystemException e) {
-      throw new RuntimeException("Could not init FileSystemManger", e);
-    }
+    return SessionBuilder.buildDefault().getTopLevelContext();
   }
 
-  /**
-   *
-   * @param fileSystemManager the VFS file system manager which regulates access to the underlying
-   * filesystem
-   * @param homeDirectory  the R_HOME directory
-   * @return a new top level context that can be used to evaluate R expressions
-   */
-  public static Context newTopLevelContext(FileSystemManager fileSystemManager, String homeDirectory,
-                                           FileObject workingDirectory) {
-    Context context = new Context();
-    Session globals = new Session(context, fileSystemManager, homeDirectory, workingDirectory);
-    context.session = globals;
-    context.type = Type.TOP_LEVEL;
-    context.environment = globals.globalEnvironment;
-    return context;
+  
+  Context(Session session) {
+    this.session = session;
+    this.type = Type.TOP_LEVEL;
+    this.environment = session.getGlobalEnvironment();
   }
 
   public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
@@ -295,7 +278,7 @@ public class Context {
    * interact with the file system defer to this manager.
    */
   public FileSystemManager getFileSystemManager() {
-    return session.fileSystemManager;
+    return session.getFileSystemManager();
   }
 
   /**
@@ -312,7 +295,7 @@ public class Context {
    * @throws FileSystemException
    */
   public FileObject resolveFile(String uri) throws FileSystemException {
-    return getFileSystemManager().resolveFile(session.workingDirectory, uri);
+    return getFileSystemManager().resolveFile(session.getWorkingDirectory(), uri);
   }
 
   /**
@@ -324,7 +307,7 @@ public class Context {
   }
 
   public Environment getGlobalEnvironment() {
-    return session.globalEnvironment;
+    return session.getGlobalEnvironment();
   }
 
   public Closure getClosure() {
@@ -446,10 +429,10 @@ public class Context {
    *
    */
   public void init() throws IOException {
-    BaseFrame baseFrame = (BaseFrame) session.baseEnvironment.getFrame();
+    BaseFrame baseFrame = (BaseFrame) session.getBaseEnvironment().getFrame();
     baseFrame.load(this);
     
-    evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.baseNamespaceEnv);
+    evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
     
 //    evalBaseResource("/org/renjin/library/base/R/Rprofile");
 //    
@@ -458,7 +441,7 @@ public class Context {
   }
 
   protected void evalBaseResource(String resourceName) throws IOException {
-    Context evalContext = this.beginEvalContext(session.baseNamespaceEnv);
+    Context evalContext = this.beginEvalContext(session.getBaseNamespaceEnv());
     InputStream in = getClass().getResourceAsStream(resourceName);
     if(in == null) {
       throw new IOException("Could not load resource '" + resourceName + "'");
@@ -490,4 +473,6 @@ public class Context {
   public NamespaceRegistry getNamespaceRegistry() {
     return session.getNamespaceRegistry();
   }
+  
+  
 }

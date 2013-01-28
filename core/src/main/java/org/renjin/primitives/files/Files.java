@@ -434,7 +434,7 @@ public class Files {
    * @return an absolute filename representing the current working directory
    */
   public static String getwd(@Current Context context) {
-    return context.getSession().workingDirectory.getName().getURI();
+    return context.getSession().getWorkingDirectory().getName().getURI();
   }
   
   @Visible(false)
@@ -445,9 +445,9 @@ public class Files {
       throw new EvalException("cannot change working directory");
     }
    
-    String previous = context.getSession().workingDirectory.getName().getURI();
+    String previous = context.getSession().getWorkingDirectory().getName().getURI();
     
-    context.getSession().workingDirectory = newWorkingDirectory;
+    context.getSession().setWorkingDirectory(newWorkingDirectory);
     return previous;
   } 
 

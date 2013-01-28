@@ -84,10 +84,12 @@ public class NamespaceDef {
         addTo(call.getArguments(), exports);
         
       } else if(call.getFunction() == Symbol.get("import")) {
-        NamespaceImport nsImport = new NamespaceImport();
-        nsImport.namespace = toSymbol( call.getArgument(0) );
-        nsImport.importAll = true;
-        imports.add(nsImport);
+        for(int i=0; i<call.getArguments().length();++i) {
+          NamespaceImport nsImport = new NamespaceImport();
+          nsImport.namespace = toSymbol( call.getArgument(i) );
+          nsImport.importAll = true;
+          imports.add(nsImport);          
+        }
         
       } else if(call.getFunction() == Symbol.get("importFrom")) {
         

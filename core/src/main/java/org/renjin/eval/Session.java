@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.graphics.ColorPalette;
@@ -14,13 +13,11 @@ import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.primitives.random.RNG;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.Frame;
-import org.renjin.sexp.HashFrame;
-import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
+import org.renjin.util.FileSystemUtils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -39,29 +36,44 @@ public class Session {
   private final Context topLevelContext;
   
   /**
-   * This is the environment
+   * The map of environment variables exposed to 
+   * the R code. Initialized to System.getenv() but
+   * can be modified.
    */
-  public final Map<String, String> systemEnvironment;
+  private final Map<String, String> systemEnvironment;
 
-  public final NamespaceRegistry namespaceRegistry;
+  /***
+   * Registry containing all namespaces that have been loaded
+   * into this session
+   */
+  private final NamespaceRegistry namespaceRegistry;
 
   /**
    * The R_HOME path. This is the path from which the base package is loaded.
    */
-  public final String homeDirectory;
+  private final String homeDirectory;
 
-  public final Environment baseEnvironment;
-  public final Environment globalEnvironment;
-  public final Environment baseNamespaceEnv;
-
-  public final FileSystemManager fileSystemManager;
+  /**
+   * The base package environment
+   */
+  private final Environment baseEnvironment;
   
-  public SecurityManager securityManager;
+  /**
+   * This session's global environment
+   */
+  private final Environment globalEnvironment;
+  
+  /**
+   * This session's base namespace environment.
+   */
+  private final Environment baseNamespaceEnv;
+
+  private final FileSystemManager fileSystemManager;
+  
+  private SecurityManager securityManager;
   
   private Map<Class, Object> singletons = Maps.newHashMap();
   
-  private ColorPalette colorPalette = new ColorPalette();
-
   private final ConnectionTable connectionTable = new ConnectionTable();
 
   /**
@@ -72,8 +84,7 @@ public class Session {
         .weakValues()
         .build();
 
-  // can this be moved down to context so it's not global?
-  public FileObject workingDirectory;
+  private FileObject workingDirectory;
   
   private StringVector commandLineArguments = StringVector.valueOf("renjin");
   
@@ -87,25 +98,25 @@ public class Session {
    */
   boolean invisible;
 
-  Session(Context topLevelContext, FileSystemManager fileSystemManager, String homeDirectory,
-                  FileObject workingDirectory) {
-    this.topLevelContext = topLevelContext;
-    this.fileSystemManager = fileSystemManager;
-    this.homeDirectory = homeDirectory;
-    this.workingDirectory = workingDirectory;
+  Session(FileSystemManager fsm) {
+    this.fileSystemManager = fsm;
+    this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
+    this.workingDirectory = FileSystemUtils.workingDirectory(fsm);
+  
+    this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
+    this.globalEnvironment = Environment.createGlobalEnvironment();
+    this.baseEnvironment = globalEnvironment.getBaseEnvironment();
+    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
+    this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
+    this.topLevelContext = new Context(this);
 
-    systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
-    globalEnvironment = Environment.createGlobalEnvironment();
-    baseEnvironment = globalEnvironment.getBaseEnvironment();
-    baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
-    baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     namespaceRegistry = new NamespaceRegistry(new PackageLoader(),  topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager(); 
     
     // TODO(alex)
     // several packages rely on the presence of .Random.seed in the global
     // even though it's an implementation detail.
-    globalEnvironment.setVariable(".Random.seed", IntVector.valueOf(1));
+    globalEnvironment.setVariable(".Random.seed", IntVector.valueOf(1)); 
   }
 
   /** 
@@ -156,12 +167,20 @@ public class Session {
     this.sessionController = sessionController;
   }
   
+  public Environment getGlobalEnvironment() {
+    return globalEnvironment;
+  }
+
   public ConnectionTable getConnectionTable() {
     return connectionTable;
   }
 
-  public ColorPalette getColorPalette() {
-    return colorPalette;
+  public void setWorkingDirectory(FileObject dir) {
+    this.workingDirectory = dir;
+  }
+  
+  public FileObject getWorkingDirectory() {
+    return workingDirectory;
   }
 
   public Cache<String, RDatabase> getPackageDatabaseCache() {
@@ -176,10 +195,6 @@ public class Session {
     return commandLineArguments;
   }
 
-  public void setColorPalette(ColorPalette colorPalette) {
-    this.colorPalette = colorPalette;
-  }
-
   public boolean isInvisible() {
     return invisible;
   }
@@ -191,4 +206,36 @@ public class Session {
   public NamespaceRegistry getNamespaceRegistry() {
     return namespaceRegistry;
   }
+
+  public Context getTopLevelContext() {
+    return topLevelContext;
+  }
+
+  public FileSystemManager getFileSystemManager() {
+    return fileSystemManager;
+  }
+
+  public Environment getBaseEnvironment() {
+    return baseEnvironment;
+  }
+
+  public Environment getBaseNamespaceEnv() {
+    return baseNamespaceEnv;
+  }
+
+  public String getHomeDirectory() {
+    return homeDirectory;
+  }
+
+  public Map<String, String> getSystemEnvironment() {
+    return systemEnvironment;
+  }
+
+  public SecurityManager getSecurityManager() {
+    return securityManager;
+  }
+
+  public void setSecurityManager(SecurityManager securityManager) {
+    this.securityManager = securityManager;
+  } 
 }

@@ -30,6 +30,8 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.LocalFileProvider;
 import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.Context;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
 import org.renjin.eval.vfs.FastJarFileProvider;
 import org.renjin.script.RenjinScriptEngineFactory;
 import org.renjin.sexp.SEXP;
@@ -64,10 +66,13 @@ public class AppEngineContextFactory {
 
       // initialize our master context here; a fresh but shallow copy will
       // be forked on each incoming request
-      Context context = Context.newTopLevelContext(fileSystemManager,
-          findHomeDirectory(servletContext), fileSystemManager.resolveFile("file:///"));
-      context.init();
-      return context;
+      Session session = new SessionBuilder()
+      .withFileSystemManager(fileSystemManager)
+      .build();
+      
+      session.setWorkingDirectory(fileSystemManager.resolveFile("file:///"));
+      
+      return session.getTopLevelContext();
     } catch (IOException e) {
       LOG.log(Level.SEVERE, "Failed to initialize master context", e);
       throw new RuntimeException(e);

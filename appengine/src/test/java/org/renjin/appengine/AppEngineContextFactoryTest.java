@@ -26,6 +26,8 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
 import org.junit.Test;
 import org.renjin.eval.Context;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
 import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;
 
@@ -42,9 +44,13 @@ public class AppEngineContextFactoryTest {
     DefaultLocalFileProvider localFileProvider = new DefaultLocalFileProvider();
     FileSystemManager fsm = AppEngineContextFactory.createFileSystemManager(localFileProvider);
 
-    Context context = Context.newTopLevelContext(fsm, FileSystemUtils.homeDirectoryInCoreJar(),
-        FileSystemUtils.workingDirectory(fsm));
-    context.init();
+    Session session = new SessionBuilder()
+    .withFileSystemManager(fsm)
+    .build();
+    
+    session.setWorkingDirectory(FileSystemUtils.workingDirectory(fsm));
+   
+    Context context = session.getTopLevelContext();
 
     context.evaluate( Symbol.get("search") );
   }

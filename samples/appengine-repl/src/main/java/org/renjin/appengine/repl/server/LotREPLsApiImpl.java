@@ -66,13 +66,13 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements LotREPLsApi
     // disable creation of java objects for the moment
     // (otherwise any would could access the datastore and do something annoying with it)
     // figure out how to apply more narrow gain permissions later.
-    topLevelContext.getSession().securityManager = new SecurityManager() {
+    topLevelContext.getSession().setSecurityManager(new SecurityManager() {
 
       @Override
       public boolean allowNewInstance(Class clazz) {
         return false;
       }
-    };
+    });
     return topLevelContext;
   }
 

@@ -14,6 +14,7 @@ import org.renjin.parser.RParser;
 import org.renjin.parser.RParser.StatusResult;
 import org.renjin.primitives.Warning;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Promise;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
@@ -28,13 +29,12 @@ public class JlineRepl {
   public static void main(String[] args) throws Exception {
     new JlineRepl(SessionBuilder.buildDefault());    
   }
-
+  
   private Context topLevelContext;
   private ConsoleReader reader;
   private PrintWriter out;
   
   private RParser parser;
-  private JlineReader jlineReader;
   
   public JlineRepl(Session session) throws Exception {
     
@@ -66,9 +66,6 @@ public class JlineRepl {
     do {
       reader.setPrompt("> ");
       if(!parser.parse()) {
-        if(jlineReader.isEof()) {
-          return;
-        }
         System.err.println("result = " + parser.getResult() + ", status = " + parser.getResultStatus());
       }
 
@@ -78,7 +75,7 @@ public class JlineRepl {
       } else if(exp == null) {
         continue;
       }
-
+      
       // clean up last warnings from any previous run
       clearWarnings();
 
@@ -86,7 +83,7 @@ public class JlineRepl {
         SEXP result = topLevelContext.evaluate(exp, topLevelContext.getGlobalEnvironment());
 
         if(!topLevelContext.getSession().isInvisible()) {
-          topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));
+          topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));
         }
 
         printWarnings();

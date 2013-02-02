@@ -700,5 +700,21 @@ public class SubsettingTest extends EvalTestCase {
 
   }
 
+  @Test
+  public void subsetLang() {
+    eval("formula <- y ~ x");
+    assertThat(eval("print(formula[[2]])"), equalTo(symbol("y")));
+  }
+  
+  @Test
+  public void matrixColumn() {
+    eval("`[.foo` <- function(x,i,j) { class(x) <- 'matrix'; NextMethod('[') }");
+    
+    eval("x <- as.double(1:12)");
+    eval("dim(x) <- c(6,2)");
+    eval("class(x) <- 'foo'");
+    
+    assertThat(eval("x[,2]"), equalTo(c(7,8,9,10,11,12)));
+  }
   
 }

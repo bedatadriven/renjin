@@ -287,6 +287,8 @@ public class Deparse {
           deparseUnaryOp(call);
         } else if(isSubset(name)) {
           deparseSubset(name, call.getArguments());
+        } else if(name.equals("~")) {
+          deparseTilde(call.getArguments());
         } else {
           deparseNormalCall(call);
         }
@@ -294,6 +296,7 @@ public class Deparse {
         deparseNormalCall(call);
       }
     }
+
 
     /**
      * Deparses 'break' and 'next' statements.
@@ -307,6 +310,12 @@ public class Deparse {
       deparsed.append(name);
       deparseArgumentList(Iterables.skip(arguments.nodes(), 1));
       deparsed.append(closingParens(name));
+    }
+
+    private void deparseTilde(PairList arguments) {
+      deparse(arguments.getElementAsSEXP(0));
+      deparsed.append(" ~ ");
+      deparseArgumentList(Iterables.skip(arguments.nodes(), 1));
     }
     
     private String closingParens(String name) {
@@ -591,6 +600,4 @@ public class Deparse {
     
     abstract String deparseEmpty();
   }
-  
-  
 }

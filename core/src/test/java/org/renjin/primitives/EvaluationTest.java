@@ -36,7 +36,7 @@ import static org.renjin.ExpMatchers.logicalVectorOf;
 import static org.renjin.ExpMatchers.realVectorEqualTo;
 
 
-public class EvaluationTest extends EvalTestCase {
+public class EvaluationT  est extends EvalTestCase {
 
   @Test
   public void unaryFunction() throws IOException {
@@ -679,6 +679,23 @@ public class EvaluationTest extends EvalTestCase {
   public void doCallCall() {
     eval("x <- call('function.that.does.not.exist', 'foo')");
   }
- 
+  
+  @Test
+  public void evalWithNumericEnv() {
+    eval(" f <- function() eval(quote(x), envir=0L) ");
+    eval(" environment(f) <- new.env() ");
+    eval(" x <- 42" );
+    assertThat( eval("f()"), equalTo(c(42)));
+  }
+  
+  @Test
+  public void evalWithNumericNegEnv() {
+    eval(" f <- function() eval(quote(x), envir=-2L) ");
+    eval(" g <- function() { x<- 43; f() }");
+    assertThat( eval("g()"), equalTo(c(43)));
+    
+   
+    
+  }
 }
 

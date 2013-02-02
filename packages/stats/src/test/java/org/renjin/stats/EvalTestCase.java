@@ -7,7 +7,9 @@ import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 public class EvalTestCase {
 
@@ -19,6 +21,8 @@ public class EvalTestCase {
     
     context = Context.newTopLevelContext();
     context.init();
+    context.evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get("stats")));
+    
     
   }
   

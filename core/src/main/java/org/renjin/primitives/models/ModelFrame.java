@@ -25,7 +25,7 @@ public class ModelFrame {
     if(frame.length() == 0) {
       throw new EvalException("do not know how many cases");
     }
-    this.numRows = frame.getElementAsSEXP(0).length();
+    this.numRows = Models.nrows(frame.getElementAsSEXP(0));
     
     variables = Lists.newArrayList();
     for(int i=0; i!=frame.length(); ++i) {
@@ -57,7 +57,7 @@ public class ModelFrame {
     
     public Variable(String name, SEXP vector) {
       this.name = name;
-      if(vector.length() != numRows) {
+      if(Models.nrows(vector) != numRows) {
         throw new EvalException("variable lengths differ");
       }
       this.vector = (Vector)vector;

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.vfs2.FileObject;
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.Closure;
@@ -86,11 +87,18 @@ public class TestRunner {
   private void executeTestFile(File sourceFile) throws IOException {
     ExpressionVector source = RParser.parseSource(Files.newReaderSupplier(sourceFile, Charsets.UTF_8));
     Context ctx = createContext();
-    System.err.println("startign execution");
+    FileObject workingDir = ctx.resolveFile(sourceFile.getParent());
+    System.err.println("Working directory = " + workingDir);
+    ctx.getSession().setWorkingDirectory(workingDir);
 //    ctx.getSession().setStdOut(reporter.getStdOut());
 //    ctx.getSession().setStdErr(reporter.getStdOut());
     
+    if(defaultPackages.isEmpty()) {
+      System.err.println("No default packages specified");
+    }
+    
     for(String pkg : defaultPackages) {
+      System.err.println("Loading default package " + pkg);
       loadLibrary(ctx, pkg);
     }
     

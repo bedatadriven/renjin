@@ -252,6 +252,13 @@ public class Evaluation {
     Environment rho;
     if(environment instanceof Environment) {
       rho = (Environment) environment;
+    } else if(environment instanceof DoubleVector || environment instanceof IntVector) {
+      int which = ((AtomicVector)environment).getElementAsInt(0);
+      if(which < 0) {
+        which ++;
+      }
+      rho = Contexts.sysFrame(context, which);
+          
     } else {
       
       /*

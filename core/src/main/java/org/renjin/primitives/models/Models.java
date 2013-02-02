@@ -21,16 +21,32 @@
 
 package org.renjin.primitives.models;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Attributes;
+import org.renjin.primitives.Deparse;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import java.util.List;
+import com.google.common.collect.Lists;
 
 public class Models {
 
@@ -49,10 +65,6 @@ public class Models {
   @Primitive("terms.formula")
   public static SEXP termsFormula(@Current Context context, FunctionCall x, SEXP specials, SEXP data, boolean keepOrder,
                                   boolean allowDotAsName) {
-
-    if(specials != Null.INSTANCE) {
-      throw new EvalException("specials != NULL is not supported");
-    }
     
     Formula formula = new FormulaInterpreter().interpret(x);
     
@@ -68,9 +80,21 @@ public class Models {
     attributes.set(".Environment", context.getGlobalEnvironment() );
     attributes.set("class", new StringArrayVector("terms", "formula"));
     
+    if(specials != Null.INSTANCE) {
+      attributes.set("specials", buildSpecials((AtomicVector)specials));
+    }
+    
     // create an new Function Call
     FunctionCall copy = x.clone();
     return copy.setAttributes(attributes.build());
+  }
+
+  private static PairList buildSpecials(AtomicVector specials) {
+    PairList.Builder pairList = new PairList.Builder();
+    for(int i=0;i!=specials.length();++i) {
+      pairList.add(Symbol.get(specials.getElementAsString(i)), Null.INSTANCE);
+    }
+    return pairList.build();
   }
 
   /**
@@ -177,7 +201,7 @@ public class Models {
     nc = data.size();
     nr = 0;                     /* -Wall */
     if (nc > 0) {
-      nr = data.get(0).length();
+      nr = nrows(data.get(0));
       for(int i=0;i<nc;++i) {
         SEXP element = data.get(i);
         if(element instanceof AtomicVector) {
@@ -268,8 +292,7 @@ public class Models {
     return sexp == Null.INSTANCE || sexp instanceof ListVector;
   }
   
-  private static int nrows(SEXP s) {
-    SEXP t;
+  public static int nrows(SEXP s) {
     if (s instanceof Vector) {
         SEXP dim = s.getAttribute(Symbols.DIM);
         if(dim == Null.INSTANCE) {

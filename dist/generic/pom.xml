@@ -34,7 +34,7 @@
         </dependency>
         <dependency>
             <groupId>org.renjin</groupId>
-            <artifactId>renjin-shell</artifactId>
+            <artifactId>renjin-cli</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

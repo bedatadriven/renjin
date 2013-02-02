@@ -24,7 +24,6 @@
 
   <artifactId>renjin-ubuntu-package</artifactId>
   <name>Renjin</name>
-  <packaging>deb</packaging>
 
   <dependencies>
     <dependency>
@@ -65,7 +64,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/jars</outputDirectory>
+              <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
@@ -75,42 +74,46 @@
       </plugin>
 
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>unix-maven-plugin</artifactId>
-        <version>1.0-alpha-5</version>
-        <extensions>true</extensions>
-        <configuration>
-          <contact>Alex Bertram</contact>
-          <contactEmail>alex@bedatadriven.com</contactEmail>
-          <deb>
-            <section>devel</section>
-          </deb>
-         <packages>
-           <package>
-              <id>renjin</id>
-           </package>
-          </packages>
-          <assembly>
-            <copyDirectory>
-              <from>target/jars</from>
-              <to>/usr/lib/renjin/dependencies</to>
-            </copyDirectory>
-            <copyFile>
-              <path>src/main/scripts/renjin</path>
-              <toFile>/usr/bin/renjin</toFile>
-            </copyFile>
-            <extractArtifact>
-              <artifact>org.renjin:renjin-core:jar</artifact>
-              <to>/usr/lib/renjin/library</to>
-              <includes>
-                <include>/org/renjin/library/**</include>
-              </includes>
-              <pattern>/org/renjin/library/(.*)</pattern>
-              <replacement>$1</replacement>
-            </extractArtifact>
-          </assembly>
-        </configuration>
-      </plugin>
+		<artifactId>jdeb</artifactId>
+		<groupId>org.vafer</groupId>
+		<version>1.0</version>
+		<executions>
+			<execution>
+				<phase>package</phase>
+				<goals>
+					<goal>jdeb</goal>
+				</goals>
+				<configuration>
+					<dataSet>
+						<data>
+							<src>${project.build.directory}/dependencies</src>
+							<type>directory</type>
+							<mapper>
+								<type>perm</type>
+								<prefix>/usr/share/renjin/lib</prefix>
+							</mapper>
+						</data>
+						<data>
+							<src>${project.basedir}/src/deb/renjin.sh</src>
+							<type>file</type>
+							<mapper>
+								<type>perm</type>
+								<prefix>/usr/share/renjin</prefix>
+								<filemode>755</filemode>
+							</mapper>
+						</data>
+						<data>
+							<type>link</type>
+							<linkTarget>/usr/share/renjin/renjin.sh</linkTarget>
+							<linkName>/usr/bin/renjin</linkName>
+							<symlink>true</symlink>
+						</data>
+					</dataSet>
+				</configuration>
+			</execution>
+		</executions>
+		</plugin>
+
     </plugins>
   </build>
 </project>

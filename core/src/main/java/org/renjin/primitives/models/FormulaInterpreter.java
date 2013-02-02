@@ -8,7 +8,7 @@ import org.renjin.sexp.Vector;
 
 
 /**
- * Model formulas in R are defined with a Dynamic Specific Language (DSL)
+ * Model formulas in R are defined with a Domain Specific Language (DSL)
  * that describe a {@link Formula}. The DSL uses the same Abstract Syntax
  * Tree (AST) as R expressions, but certain functions are interpreted differently 
  * in this context.
@@ -16,7 +16,7 @@ import org.renjin.sexp.Vector;
  */
 public class FormulaInterpreter {
   
-  private Symbol response;
+  private SEXP response;
   private int intercept = 1;
   
   private static final Symbol tilde = Symbol.get("~");

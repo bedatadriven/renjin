@@ -79,6 +79,15 @@ public class Builder {
     dist.setRepository(repo);
     dist.setSnapshotRepository(snapshotRepo);
     model.setDistributionManagement(dist);
+
+
+    Repository bddRepo = new Repository();
+    bddRepo.setId("bedatadriven-public");
+    bddRepo.setUrl("http://nexus.bedatadriven.com/content/groups/public");
+    bddRepo.setName("bedatadriven Public Repo");
+    model.addRepository(bddRepo);
+    
+    model.addPluginRepository(bddRepo);
     
     File pomFile = new File(outputDir, "pom.xml");
     FileWriter fileWriter = new FileWriter(pomFile);

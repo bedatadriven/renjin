@@ -10,6 +10,9 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
+import org.renjin.parser.ParseOptions;
+import org.renjin.parser.ParseState;
+import org.renjin.parser.RLexer;
 import org.renjin.parser.RParser;
 import org.renjin.parser.RParser.StatusResult;
 import org.renjin.primitives.Warning;
@@ -34,8 +37,6 @@ public class JlineRepl {
   private ConsoleReader reader;
   private PrintWriter out;
   
-  private RParser parser;
-  
   public JlineRepl(Session session) throws Exception {
     
     if(Strings.nullToEmpty(System.getProperty("os.name")).startsWith("Windows")) {
@@ -51,9 +52,7 @@ public class JlineRepl {
     out = new PrintWriter(reader.getOutput());
     
     this.topLevelContext = session.getTopLevelContext();
-   
-    parser = new RParser(new JlineReader(reader));
-    
+       
     try {
       loop();
     } finally {
@@ -64,37 +63,49 @@ public class JlineRepl {
   private void loop() throws IOException {
 
     do {
-      reader.setPrompt("> ");
-      if(!parser.parse()) {
-        System.err.println("result = " + parser.getResult() + ", status = " + parser.getResultStatus());
-      }
-
-      SEXP exp = parser.getResult();
-      if(parser.getResultStatus() == StatusResult.EOF) {
-        return;
-      } else if(exp == null) {
-        continue;
-      }
-      
-      // clean up last warnings from any previous run
-      clearWarnings();
-
-      try {
-        SEXP result = topLevelContext.evaluate(exp, topLevelContext.getGlobalEnvironment());
-
-        if(!topLevelContext.getSession().isInvisible()) {
-          topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));
-        }
-
-        printWarnings();
-      } catch(EvalException e) {
-        reader.getOutput().append(e.getMessage());
-        reader.getOutput().append("\n");
-      } catch(Exception e) {
-        e.printStackTrace(new PrintWriter(reader.getOutput()));
-      }
+      readExpression();
 
     } while(true);
+  }
+
+  private void readExpression() throws IOException {
+    
+    reader.setPrompt("> ");
+    
+    ParseOptions options = new ParseOptions();
+    ParseState parseState = new ParseState();
+    RLexer lexer = new RLexer(options, parseState, new JlineReader(reader));
+    RParser parser = new RParser(options, parseState, lexer);
+    while(!parser.parse()) {
+      if(lexer.errorEncountered()) {
+        reader.getOutput().append("Syntax error at " + lexer.getErrorLocation() + ": " + lexer.getErrorMessage() + "\n");
+      }
+    }
+    
+    SEXP exp = parser.getResult();
+    if(parser.getResultStatus() == StatusResult.EOF) {
+      return;
+    } else if(exp == null) {
+      return;
+    }
+    
+    // clean up last warnings from any previous run
+    clearWarnings();
+
+    try {
+      SEXP result = topLevelContext.evaluate(exp, topLevelContext.getGlobalEnvironment());
+
+      if(!topLevelContext.getSession().isInvisible()) {
+        topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));
+      }
+
+      printWarnings();
+    } catch(EvalException e) {
+      reader.getOutput().append(e.getMessage());
+      reader.getOutput().append("\n");
+    } catch(Exception e) {
+      e.printStackTrace(new PrintWriter(reader.getOutput()));
+    }
   }
 
 

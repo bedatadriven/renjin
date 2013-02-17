@@ -24,6 +24,7 @@ package org.renjin.parser;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.renjin.parser.RParser.StatusResult;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -228,6 +229,13 @@ public class RParserTest {
    FunctionCall call = (FunctionCall)result.getElementAsSEXP(0);
    Symbol function = (Symbol) call.getFunction();
    assertThat(function.getPrintName(), equalTo("%*%")); 
+  }
+  
+  @Test
+  public void errorHandling() throws IOException {
+    RParser parser = new RParser(new StringReader("help sample\n"));
+    parser.parse();
+    assertThat(parser.getResultStatus(), equalTo(StatusResult.ERROR));
   }
   
 }

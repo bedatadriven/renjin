@@ -6,9 +6,7 @@ import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.graphics.ColorPalette;
 import org.renjin.primitives.io.connections.ConnectionTable;
-import org.renjin.primitives.io.serialization.RDatabase;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.primitives.random.RNG;
@@ -19,8 +17,6 @@ import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -76,14 +72,6 @@ public class Session {
   
   private final ConnectionTable connectionTable = new ConnectionTable();
 
-  /**
-   * Package database cache to speed up lazy loading of package
-   * members
-   */
-  private final Cache<String, RDatabase> packageDatabaseCache = CacheBuilder.newBuilder()
-        .weakValues()
-        .build();
-
   private FileObject workingDirectory;
   
   private StringVector commandLineArguments = StringVector.valueOf("renjin");
@@ -98,10 +86,10 @@ public class Session {
    */
   boolean invisible;
 
-  Session(FileSystemManager fsm) {
-    this.fileSystemManager = fsm;
+  Session(Map<Class, Object> bindings) {
+    this.fileSystemManager = (FileSystemManager) bindings.get(FileSystemManager.class);
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
-    this.workingDirectory = FileSystemUtils.workingDirectory(fsm);
+    this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
   
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
     this.globalEnvironment = Environment.createGlobalEnvironment();
@@ -110,7 +98,7 @@ public class Session {
     this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     this.topLevelContext = new Context(this);
 
-    namespaceRegistry = new NamespaceRegistry(new PackageLoader(),  topLevelContext, baseNamespaceEnv);
+    namespaceRegistry = new NamespaceRegistry((PackageLoader) bindings.get(PackageLoader.class),  topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager(); 
     
     // TODO(alex)
@@ -181,10 +169,6 @@ public class Session {
   
   public FileObject getWorkingDirectory() {
     return workingDirectory;
-  }
-
-  public Cache<String, RDatabase> getPackageDatabaseCache() {
-    return packageDatabaseCache;
   }
   
   public void setCommandLineArguments(String executableName, String... arguments) {

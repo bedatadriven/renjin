@@ -7,13 +7,16 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.model.Build;
+import org.apache.maven.model.DeploymentRepository;
 import org.apache.maven.model.Developer;
+import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Repository;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.netlib.blas.Snrm2;
 import org.renjin.cran.PackageDescription.Person;
 
 import com.google.common.base.Charsets;
@@ -55,13 +58,28 @@ public class Builder {
     model.setModelVersion("4.0.0");
     model.setArtifactId("cran-parent");
     model.setGroupId("org.renjin.cran");
-    model.setVersion("1.0");
+    model.setVersion("0.7.0-SNAPSHOT");
     model.setPackaging("pom");
     
     for(String module : modules) {
       model.addModule(module);
     }
    
+    DeploymentRepository repo = new DeploymentRepository();
+    repo.setId("bedatadriven-oss");
+    repo.setName("Bedatadriven Open-Source releases");
+    repo.setUrl("http://nexus.bedatadriven.com/content/repositories/oss-releases");
+    
+    DeploymentRepository snapshotRepo = new DeploymentRepository();
+    snapshotRepo.setId("bedatadriven-oss");
+    snapshotRepo.setName("Bedatadriven Open-Source snapshots");
+    snapshotRepo.setUrl("http://nexus.bedatadriven.com/content/repositories/oss-snapshots");
+
+    DistributionManagement dist = new DistributionManagement();
+    dist.setRepository(repo);
+    dist.setSnapshotRepository(snapshotRepo);
+    model.setDistributionManagement(dist);
+    
     File pomFile = new File(outputDir, "pom.xml");
     FileWriter fileWriter = new FileWriter(pomFile);
     MavenXpp3Writer writer = new MavenXpp3Writer();

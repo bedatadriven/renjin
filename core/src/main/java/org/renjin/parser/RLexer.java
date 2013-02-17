@@ -22,6 +22,7 @@
 package org.renjin.parser;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.parser.RParser.Location;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -111,6 +112,10 @@ public class RLexer implements RParser.Lexer {
       new Keyword("next", NEXT),
       new Keyword("break", BREAK),
       new Keyword("...", SYMBOL)};
+
+  private Location errorLocation;
+
+  private String errorMessage;
 
 
   public RLexer(ParseOptions options, ParseState state, Reader reader) {
@@ -585,7 +590,20 @@ an ANSI digit or not */
   }
 
   public void yyerror(RParser.Location loc, String s) {
-
+    this.errorLocation = loc;
+    this.errorMessage = s;
+  }
+  
+  public boolean errorEncountered() {
+    return errorLocation != null;
+  }
+  
+  public Location getErrorLocation() {
+    return errorLocation;
+  }
+  
+  public String getErrorMessage() {
+    return errorMessage;
   }
 
   private SEXP install(String symbolName) {

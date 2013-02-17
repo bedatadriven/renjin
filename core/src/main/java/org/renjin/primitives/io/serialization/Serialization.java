@@ -233,70 +233,7 @@ public class Serialization {
     }
   }
 
-  /**
-   * Retrieves a sequence of bytes as specified by a position/length key from a
-   * file, optionally decompresses, and unserializes the bytes. If the result is
-   * a promise, then the promise is forced.
-   * 
-   * @param key
-   *          c(offset, length)
-   * @param file
-   *          the path to the file from which to load the value
-   * @param compression
-   *          0=not compressed, 1=deflate, ...
-   * @param restoreFunction
-   *          a function called to load persisted objects from the serialized
-   *          stream
-   */
-  public static SEXP lazyLoadDBfetch(@Current final Context context,
-      @Current final Environment rho, IntVector key, final String file,
-      int compression, final SEXP restoreFunction) throws IOException,
-      DataFormatException {
-    
-    try {
-
-      byte buffer[] = readRawFromFile(context, file, key);
-
-      buffer = ByteArrayCompression.decompress(compression, buffer);
-
-      RDataReader reader = new RDataReader(context, rho,
-          new ByteArrayInputStream(buffer),
-          new RDataReader.PersistentRestorer() {
-  
-            @Override
-            public SEXP restore(StringVector values) {
-              FunctionCall call = FunctionCall.newCall(restoreFunction, values);
-              return context.evaluate(call, context.getGlobalEnvironment());
-            }
-          });
-  
-      return reader.readFile().force(context);
-    } catch(Exception e) {
-      throw new EvalException("Exception reading database entry at " + key + " in " +
-            file, e);
-    }
-  }
-  
-  public static byte[] readRawFromFile(@Current final Context context, final String file,
-      IntVector key) throws IOException, ExecutionException, DataFormatException {
-    if (key.length() != 2) {
-      throw new EvalException("bad offset/length argument");
-    }
-
-    int offset = key.getElementAsInt(0);
-    int length = key.getElementAsInt(1);
-
-    RDatabase database = context.getSession().getPackageDatabaseCache().get(file, new Callable<RDatabase>() {
-      @Override
-      public RDatabase call() throws Exception {
-        return new RDatabase(context.resolveFile(file));
-      }
-    });
-
-    return database.getBytes(offset, length);
-  }
-  
-
+   
   /**
    * Appends an SEXP to a rdb file, returning an IntVector in the form (offset, length)
    * of the compressed block.

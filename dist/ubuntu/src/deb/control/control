@@ -1,0 +1,9 @@
+Package: renjin
+Version: [[version]]
+Section: misc
+Priority: optional
+Architecture: all
+Depends: java6-runtime, java-wrappers
+Maintainer: Alex Bertram <alex@bedatadriven.com>
+Description: Zola command line
+Distribution: development

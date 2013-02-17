@@ -1,14 +1,25 @@
 package org.renjin.eval;
 
+import java.util.Map;
+
 import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.VFS;
+import org.renjin.primitives.packaging.ClasspathPackageLoader;
+import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.util.FileSystemUtils;
+
+import com.google.common.collect.Maps;
 
 public class SessionBuilder {
 
   private FileSystemManager fsm;
   private boolean loadBasePackage = true;
+  private Map<Class, Object> bindings = Maps.newHashMap();
  
+  public SessionBuilder() {
+    // set default bindings
+    bind(PackageLoader.class, new ClasspathPackageLoader());
+  }
+  
   public SessionBuilder withFileSystemManager(FileSystemManager fsm) {
     this.fsm = fsm;
     return this;
@@ -19,9 +30,24 @@ public class SessionBuilder {
     return this;
   }
   
+  /**
+   * Binds a Renjin interface to its implementation
+   * @param clazz
+   * @param instance
+   * @return
+   */
+  public <T> SessionBuilder bind(Class<T> clazz, T instance) {
+    bindings.put(clazz, instance);
+    return this;
+  }
+  
   public Session build() {
     try {
-      Session session = new Session(fsm == null ? FileSystemUtils.getMinimalFileSystemManager() : fsm);
+      if(!bindings.containsKey(FileSystemManager.class)) {
+        bindings.put(FileSystemManager.class, FileSystemUtils.getMinimalFileSystemManager());
+      }
+         
+      Session session = new Session(bindings);
       if(loadBasePackage) {
         session.getTopLevelContext().init();
       }

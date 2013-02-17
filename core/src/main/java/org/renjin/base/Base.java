@@ -673,16 +673,6 @@ public class Base {
   }
 
 
-  /* Serializes and, optionally, compresses a value and appends the
-   result to a file.  Returns the key position/length key for
-   retrieving the value */
-
-  public static SEXP R_lazyLoadDBinsertValue(@Current Context context,
-      SEXP value, String file, SEXP ascii,
-      Vector compress, SEXP hook) throws Exception
-  {
-    return Serialization.lazyLoadDbInsertValue(context, null, value, file, compress, hook);
-  }
 
   
   public static ListVector str_signif(Vector x, int n, String type, int width, int digits, String format, String flag, StringVector resultVector) {

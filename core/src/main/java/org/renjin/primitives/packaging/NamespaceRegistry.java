@@ -70,6 +70,9 @@ public class NamespaceRegistry {
 	  if(namespace == null) {
 	    try {
         namespace = load(name);
+        if(namespace == null) {
+          throw new EvalException("Could not find package " + name);
+        }
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -85,6 +88,9 @@ public class NamespaceRegistry {
   private Namespace load(Symbol name) throws IOException {
     
     Package pkg = loader.load(name.getPrintName());
+    if(pkg == null) {
+      throw new EvalException(name + " could not be found");
+    }
     
     // load the serialized functions/values from the classpath
     // and add them to our private namespace environment

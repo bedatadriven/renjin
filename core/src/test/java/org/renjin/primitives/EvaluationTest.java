@@ -36,7 +36,7 @@ import static org.renjin.ExpMatchers.logicalVectorOf;
 import static org.renjin.ExpMatchers.realVectorEqualTo;
 
 
-public class EvaluationT  est extends EvalTestCase {
+public class EvaluationTest extends EvalTestCase {
 
   @Test
   public void unaryFunction() throws IOException {

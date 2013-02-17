@@ -19,6 +19,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Parent;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Repository;
@@ -159,6 +160,12 @@ public class ProjectBuilder {
     model.setVersion(version + "-SNAPSHOT");
     model.setDescription(description.getDescription());
     model.setUrl(description.getUrl());
+    
+    Parent parent = new Parent();
+    parent.setGroupId("org.renjin.cran");
+    parent.setArtifactId("cran-parent");
+    parent.setVersion("0.7.0-SNAPSHOT");
+    model.setParent(parent);
     
     if(!Strings.isNullOrEmpty(description.getLicense())) {
       License license = new License();

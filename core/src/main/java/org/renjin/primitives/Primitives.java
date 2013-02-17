@@ -1025,7 +1025,7 @@ public class Primitives {
     f("write.table", /*writetable*/ null, 0, 111, 11);
     f("Encoding", Types.class, 0, 11, 1);
     f("setEncoding", Types.class, 0, 11, 2);
-    f("lazyLoadDBfetch", Serialization.class, 0, 1, 4);
+  // REMOVED: f("lazyLoadDBfetch", Serialization.class, 0, 1, 4);
     f("setTimeLimit", /*setTimeLimit*/ null, 0, 111, 3);
     f("setSessionTimeLimit", /*setSessionTimeLimit*/ null, 0, 111, 2);
     f("icuSetCollate", /*ICUset*/ null, 0, 111, -1, PP_FUNCALL, PREC_FN, 0) ;

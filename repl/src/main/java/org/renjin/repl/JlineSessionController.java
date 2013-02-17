@@ -6,11 +6,11 @@ import org.renjin.eval.Context;
 import org.renjin.eval.SessionController;
 import org.renjin.sexp.StringVector;
 
-public class CliSessionController extends SessionController {
+public class JlineSessionController extends SessionController {
 
   private Terminal terminal;
   
-  public CliSessionController(Terminal terminal) {
+  public JlineSessionController(Terminal terminal) {
     super();
     this.terminal = terminal;
   }
@@ -18,7 +18,7 @@ public class CliSessionController extends SessionController {
   @Override
   public void quit(Context context, SaveMode saveMode, int exitCode,
       boolean runLast) {
-    System.exit(exitCode);
+    throw new QuitException(exitCode);
   }
 
   @Override

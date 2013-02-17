@@ -45,7 +45,6 @@ import org.renjin.sexp.Promise;
 import org.renjin.sexp.PromisePairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
-import org.renjin.util.FileSystemUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -58,12 +57,6 @@ import com.google.common.collect.Maps;
  * (such as via traceback) and otherwise (the sys.xxx functions).
  */
 public class Context {
-
-  public final static boolean USE_IR = false;
-
-  public final static boolean PRINT_IR = false;
-
-
 
   public enum Type {
     /** toplevel context */
@@ -247,7 +240,6 @@ public class Context {
       return result;
     }
   }
-  
 
   private SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
@@ -320,7 +312,6 @@ public class Context {
     }
     return arguments;
   }
-
 
   public SEXP getFunctionName() {
     return call.getFunction();
@@ -400,7 +391,6 @@ public class Context {
     }
   }
 
-
   /**
    * Sets a function to handle a specific class of condition.
    * @see org.renjin.primitives.Conditions
@@ -416,7 +406,6 @@ public class Context {
   public SEXP getConditionHandler(String conditionClass) {
     return conditionHandlers.get(conditionClass);
   }
-
 
   /**
    * Executes the default the standard R initialization sequence:
@@ -473,6 +462,4 @@ public class Context {
   public NamespaceRegistry getNamespaceRegistry() {
     return session.getNamespaceRegistry();
   }
-  
-  
 }

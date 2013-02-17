@@ -50,25 +50,19 @@ public class JlineRepl {
     reader.getTerminal().init();
 
     out = new PrintWriter(reader.getOutput());
-    
+    session.setSessionController(new JlineSessionController(reader.getTerminal()));
     this.topLevelContext = session.getTopLevelContext();
        
     try {
-      loop();
+      while(readExpression()) { }
+      
     } finally {
       reader.getTerminal().restore();
     }
   }
 
-  private void loop() throws IOException {
 
-    do {
-      readExpression();
-
-    } while(true);
-  }
-
-  private void readExpression() throws IOException {
+  private boolean readExpression() throws IOException {
     
     reader.setPrompt("> ");
     
@@ -84,9 +78,9 @@ public class JlineRepl {
     
     SEXP exp = parser.getResult();
     if(parser.getResultStatus() == StatusResult.EOF) {
-      return;
+      return true;
     } else if(exp == null) {
-      return;
+      return true;
     }
     
     // clean up last warnings from any previous run
@@ -103,9 +97,12 @@ public class JlineRepl {
     } catch(EvalException e) {
       reader.getOutput().append(e.getMessage());
       reader.getOutput().append("\n");
+    } catch(QuitException e) {
+      return false;
     } catch(Exception e) {
       e.printStackTrace(new PrintWriter(reader.getOutput()));
     }
+    return true;
   }
 
 

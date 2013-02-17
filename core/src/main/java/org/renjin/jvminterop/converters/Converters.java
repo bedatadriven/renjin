@@ -26,9 +26,6 @@ public class Converters  {
     } else if(EnumConverter.accept(clazz)) {
       return new EnumConverter(clazz);
       
-    } else if(MapConverter.accept(clazz)) {
-      return new MapConverter();
-      
     } else if(CollectionConverter.accept(clazz)) {
       return new CollectionConverter();
       

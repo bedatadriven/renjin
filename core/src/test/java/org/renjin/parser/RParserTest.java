@@ -230,12 +230,4 @@ public class RParserTest {
    Symbol function = (Symbol) call.getFunction();
    assertThat(function.getPrintName(), equalTo("%*%")); 
   }
-  
-  @Test
-  public void errorHandling() throws IOException {
-    RParser parser = new RParser(new StringReader("help sample\n"));
-    parser.parse();
-    assertThat(parser.getResultStatus(), equalTo(StatusResult.ERROR));
-  }
-  
 }

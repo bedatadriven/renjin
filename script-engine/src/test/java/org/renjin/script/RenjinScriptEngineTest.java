@@ -3,6 +3,8 @@ package org.renjin.script;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.util.HashMap;
+
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -63,6 +65,20 @@ public class RenjinScriptEngineTest {
     Calculator calculator = invocableEngine.getInterface(Calculator.class);
     
     assertThat(calculator.calculate(64), equalTo(8d));
+  }
+  
+  @Test
+  public void putJavaObject() throws ScriptException {
+    // create a script engine manager
+    RenjinScriptEngineFactory factory = new RenjinScriptEngineFactory();
+
+    // create an R engine
+    ScriptEngine engine = factory.getScriptEngine();
+
+    HashMap<String, String> h = new HashMap<String, String>();
+    engine.put("h", h);
+    engine.eval("import(java.util.HashMap) \n"
+                    + " print(h$size())");
   }
   
 }

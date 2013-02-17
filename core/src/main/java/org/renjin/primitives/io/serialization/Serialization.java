@@ -1,21 +1,31 @@
 package org.renjin.primitives.io.serialization;
 
-import org.renjin.base.Base;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.io.ByteArrayCompression;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.OpenSpec;
 import org.renjin.primitives.io.serialization.RDataWriter.PersistenceHook;
-import org.renjin.sexp.*;
-
-import java.io.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.zip.DataFormatException;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.HasNamedValues;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
 
 
 public class Serialization {
@@ -234,35 +244,6 @@ public class Serialization {
   }
 
    
-  /**
-   * Appends an SEXP to a rdb file, returning an IntVector in the form (offset, length)
-   * of the compressed block.
-   * 
-   * <p>This method is actually called from {@link Base}
-   */
-  public static SEXP lazyLoadDbInsertValue(Context context, Environment rho, SEXP value,
-       String file, Vector compress, SEXP hook) throws IOException, Exception {
-
-    File rdb = new File(file);
-    
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    RDataWriter writer = new RDataWriter(context, createHook(context, hook), baos);
-    writer.save(value);
-    
-    byte[] bytes = ByteArrayCompression.compress(compress.getElementAsInt(0), baos.toByteArray());
-    
-    FileOutputStream fos = new FileOutputStream(file, true);
-    try { 
-      fos.write(bytes);
-    } finally {
-      fos.close();
-    }
-    
-    int offset = (int) (rdb.length() - bytes.length);
-    int length = bytes.length;
-    
-    return new IntArrayVector(offset, length);
-  }
 
   /**
    *

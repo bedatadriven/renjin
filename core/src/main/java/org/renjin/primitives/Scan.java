@@ -29,23 +29,32 @@ import com.google.common.base.Strings;
 
 package org.renjin.primitives;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.PushbackBufferedReader;
-import org.renjin.sexp.*;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalArrayVector.Builder;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public class Scan {
 
@@ -101,9 +110,9 @@ public class Scan {
 
     Splitter splitter;
     if(Strings.isNullOrEmpty(seperator)) {
-      splitter = new NullSplitter();
+      splitter = new WhitespaceSplitter(quote);
     } else {
-      splitter = new DelimitedSplitter(quote, seperator);
+      splitter = new CharSplitter(quote, seperator);
     }
     
     Scanner scanner;
@@ -128,9 +137,6 @@ public class Scan {
     return scanner.build();
   }
 
-  private static String toJavaEncoding(String encoding) {
-    return "UTF-8";
-  }
   
   interface Scanner {
     void read(String line);
@@ -153,10 +159,47 @@ public class Scan {
     }
   }
   
+  private static class DoubleReader implements Scanner {
+    private final DoubleArrayVector.Builder builder;
+    
+    private DoubleReader() {
+      this.builder = new DoubleArrayVector.Builder();
+    }
+
+    @Override
+    public void read(String line) {
+      builder.add( ParseUtil.parseDouble(line) );
+    }
+
+    @Override
+    public Vector build() {
+      return builder.build();
+    }
+  }
+  
+  private static class IntReader implements Scanner {
+    private final IntArrayVector.Builder builder = new IntArrayVector.Builder();
+
+    @Override
+    public void read(String line) {
+      builder.add( ParseUtil.parseInt( line ));
+    }
+
+    @Override
+    public Vector build() {
+      return builder.build();
+    }
+  }
+  
+  
   
   private static Scanner getAtomicScanner(SEXP exp) {
     if(exp instanceof StringVector) {
       return new StringReader();
+    } else if(exp instanceof DoubleVector) {
+      return new DoubleReader();
+    } else if(exp instanceof IntVector) {
+      return new IntReader();
     } else {
       throw new UnsupportedOperationException(
           String.format("column type '%s' not implemented", exp.getTypeName()));
@@ -219,27 +262,11 @@ public class Scan {
     }
   }
   
-  private abstract static class Splitter {
-    
-    public abstract List<String> split(String line);
-    
-  }
-  
-  private static class NullSplitter extends Splitter{
-
-    @Override
-    public List<String> split(String line) {
-      return Collections.singletonList(line);
-    }
-  }
-  
-  private static class DelimitedSplitter extends Splitter {
+  private static abstract class Splitter {
     private char quote;
-    private char sep;
     
-    public DelimitedSplitter(String quote, String seperator) {
-      this.quote = quote.charAt(0);
-      this.sep = seperator.charAt(0);
+    public Splitter(char quote) {
+      this.quote = quote;
     }
 
     public List<String> split(String line) {
@@ -250,7 +277,7 @@ public class Scan {
         char c = line.charAt(i);
         if(c == quote) {
           quoted = !quoted;
-        } else if(!quoted && c == sep) {
+        } else if(!quoted && isSeperator(c)) {
           fields.add(sb.toString());
           sb.setLength(0);
         } else {
@@ -260,8 +287,35 @@ public class Scan {
       fields.add(sb.toString());
       return fields;
     }
+
+    protected abstract boolean isSeperator(char c);
   }
   
+  private static class WhitespaceSplitter extends Splitter {
+
+    public WhitespaceSplitter(String quote) {
+      super(quote.charAt(0));
+    }
+
+    @Override
+    protected boolean isSeperator(char c) {
+      return Character.isWhitespace(c);
+    } 
+  }
+  
+  private static class CharSplitter extends Splitter {
+    private char sep;
+
+    public CharSplitter(String quote, String seperator) {
+      super(quote.charAt(0));
+      this.sep = seperator.charAt(0);
+    }
+
+    @Override
+    protected boolean isSeperator(char c) {
+      return c == sep;
+    }
+  }
   
   
   /**

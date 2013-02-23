@@ -103,7 +103,6 @@ public class Primitives {
   private IdentityHashMap<Symbol, Entry> builtinEntries = new IdentityHashMap<Symbol, Entry>();
   private IdentityHashMap<Symbol, Entry> internalEntries = new IdentityHashMap<Symbol, Entry>();
   
-  
   private static final Primitives INSTANCE = new Primitives();
   
   public static PrimitiveFunction getBuiltin(String name) {
@@ -338,7 +337,7 @@ public class Primitives {
     f("pmatch", Match.class, 0, 11, 4);
     f("charmatch", Match.class, 0, 11, 3);
     f("match.call", Match.class, 0, 11, 3);
-    f("complete.cases", /*compcases*/ null, 0, 11, 1);
+    f("complete.cases", CompleteCases.class, 0, 11, 1);
 
     f("attach", Types.class, 0, 111, 3);
     f("detach", Types.class, 0, 111, 1);

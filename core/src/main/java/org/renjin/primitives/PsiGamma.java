@@ -1,8 +1,8 @@
 package org.renjin.primitives;
 
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.random.SignRank;
 import org.renjin.sexp.DoubleVector;
+import org.renjin.stats.internals.distributions.SignRank;
 
 
 public class PsiGamma {

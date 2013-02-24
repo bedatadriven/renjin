@@ -9,12 +9,12 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
-import org.renjin.primitives.random.RNG;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
+import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
 
 import com.google.common.collect.Lists;

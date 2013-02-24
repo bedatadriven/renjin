@@ -22,7 +22,6 @@ import static org.renjin.primitives.PPprec.PREC_POWER;
 import static org.renjin.primitives.PPprec.PREC_PROD;
 import static org.renjin.primitives.PPprec.PREC_SUBSET;
 import static org.renjin.primitives.PPprec.PREC_SUM;
-import static org.renjin.primitives.PPprec.PREC_TILDE;
 import static org.renjin.util.CDefines.RelOpType.EQOP;
 import static org.renjin.util.CDefines.RelOpType.GEOP;
 import static org.renjin.util.CDefines.RelOpType.GTOP;
@@ -51,14 +50,8 @@ import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.match.Match;
 import org.renjin.primitives.matrix.Matrices;
-import org.renjin.primitives.models.Models;
-import org.renjin.primitives.optimize.Optimizations;
-import org.renjin.primitives.optimize.Roots;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.packaging.Packages;
-import org.renjin.primitives.random.Distributions;
-import org.renjin.primitives.random.RNG;
-import org.renjin.primitives.random.Sampling;
 import org.renjin.primitives.special.AssignFunction;
 import org.renjin.primitives.special.AssignLeftFunction;
 import org.renjin.primitives.special.BeginFunction;
@@ -78,6 +71,7 @@ import org.renjin.primitives.special.RestartFunction;
 import org.renjin.primitives.special.ReturnFunction;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.primitives.special.SwitchFunction;
+import org.renjin.primitives.special.TildeFunction;
 import org.renjin.primitives.special.WhileFunction;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.primitives.text.Text;
@@ -90,6 +84,15 @@ import org.renjin.sexp.PrimitiveFunction;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.SpecialFunction;
 import org.renjin.sexp.Symbol;
+import org.renjin.stats.internals.CompleteCases;
+import org.renjin.stats.internals.Covariance;
+import org.renjin.stats.internals.Distributions;
+import org.renjin.stats.internals.FFT;
+import org.renjin.stats.internals.distributions.RNG;
+import org.renjin.stats.internals.distributions.Sampling;
+import org.renjin.stats.internals.models.Models;
+import org.renjin.stats.internals.optimize.Optimizations;
+import org.renjin.stats.internals.optimize.Roots;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -275,8 +278,8 @@ public class Primitives {
     f("&&", Comparison.class, "and", 1, 0, 2, PP_BINARY, PREC_AND, 0);
     f("||", Comparison.class, "or", 2, 0, 2, PP_BINARY, PREC_OR, 0);
     f(":", Sequences.class, "colon", 0, 1, 2, PP_BINARY2, PREC_COLON, 0);
-    f("~", Models.class, 0, 0, 2, PP_BINARY, PREC_TILDE, 0);
 
+    add(new TildeFunction());
 
 /* Logic Related Functions */
 /* these are group generic and so need to eval args */
@@ -559,8 +562,8 @@ public class Primitives {
     f("max", Summary.class, 3, 1, -1);
     f("prod", Summary.class, 4, 1, -1);
     f("range", Summary.class, 0, 1, -1);
-    f("cov", Summary.class, 0, 11, 4);
-    f("cor", Summary.class, 1, 11, 4);
+    f("cov", Covariance.class, 0, 11, 4);
+    f("cor", Covariance.class, 1, 11, 4);
 
 /* Note that the number of arguments in this group only applies
    to the default method */

@@ -38,13 +38,12 @@ public class Builder {
   
   private void run() throws IOException {
     
-    // read in the list of packages to build, we'll keep it limited to few packages
-    // for the moment
-    Set<String> pkgs = readPkgList();
+    List<CranPackage> list = CRAN.fetchPackageList();
     
-    for(String pkg : pkgs) {
-      String version = CRAN.fetchCurrentVersion(pkg);
-      ProjectBuilder projectBuilder = new ProjectBuilder(pkg, version, outputDir);
+    for(CranPackage pkg : list) {
+      System.out.println(pkg.getName());
+      String version = CRAN.fetchCurrentVersion(pkg.getName());
+      ProjectBuilder projectBuilder = new ProjectBuilder(pkg.getName(), version, outputDir);
       projectBuilder.build();
       modules.add(pkg + "_" + version);
     } 

@@ -83,12 +83,21 @@ public class PackageDescription {
 
 		private Person(String spec) {
 			int bracketStart = spec.indexOf('<');
-			if(bracketStart == -1) {
+			if(bracketStart == -1) { 
 				this.name = spec.trim();
 			} else {
-				this.name = spec.substring(0, bracketStart).trim();
-				int bracketEnd = spec.indexOf('>', bracketStart);
-				this.email = spec.substring(bracketStart+1, bracketEnd);
+			  try {
+  				this.name = spec.substring(0, bracketStart).trim();
+  				int bracketEnd = spec.indexOf('>', bracketStart);
+  				if(bracketEnd == -1) {
+  				  System.err.println("WARNING: Person '" + spec + "' is missing final '>'");
+  				  this.email = spec.substring(bracketStart+1);
+  				} else {
+            this.email = spec.substring(bracketStart+1, bracketEnd);
+  				}
+			  } catch(Exception e) {
+			    throw new RuntimeException("Error parsing '" + spec + "'");
+			  }
 			}
 		}
 

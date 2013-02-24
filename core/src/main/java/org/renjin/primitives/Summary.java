@@ -532,27 +532,5 @@ public class Summary {
     abstract boolean predicate(Number x, Number y);
   }
 
-  public static DoubleVector cor(AtomicVector x, AtomicVector y, int naMethod, boolean kendall) {
-    
-    if(kendall) {
-      throw new EvalException("kendall=true nyi");
-    }
 
-    return new VarianceCalculator(x, y, naMethod)
-        .withPearsonCorrelation()
-        .calculate();
-  }
-  
-
-  @Primitive
-  public static Vector cov(AtomicVector x, AtomicVector y, int naMethod, boolean kendall) {
-    if(kendall) {
-      throw new EvalException("kendall=true nyi");
-    }
-
-    return new VarianceCalculator(x, y, naMethod)
-        .withCovarianceMethod()
-        .calculate();
-  }
-  
  }

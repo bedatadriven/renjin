@@ -11,7 +11,6 @@ import com.google.common.collect.Maps;
 
 public class SessionBuilder {
 
-  private FileSystemManager fsm;
   private boolean loadBasePackage = true;
   private Map<Class, Object> bindings = Maps.newHashMap();
  
@@ -21,7 +20,7 @@ public class SessionBuilder {
   }
   
   public SessionBuilder withFileSystemManager(FileSystemManager fsm) {
-    this.fsm = fsm;
+    bindings.put(FileSystemManager.class, fsm);
     return this;
   }
   

@@ -61,7 +61,8 @@ public class LotREPLsApiImpl extends RemoteServiceServlet implements LotREPLsApi
   private Context createSession() {
     // The default VFS manager uses a Softref file cache that
     // is not allowed on AppEngine
-    Context topLevelContext = AppEngineContextFactory.createTopLevelContext(config.getServletContext());
+    Context topLevelContext = AppEngineContextFactory.createSession(config.getServletContext())
+    		.getTopLevelContext();
 
     // disable creation of java objects for the moment
     // (otherwise any would could access the datastore and do something annoying with it)

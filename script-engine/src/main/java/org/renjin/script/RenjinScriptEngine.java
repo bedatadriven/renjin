@@ -21,27 +21,13 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   private final RenjinScriptEngineFactory factory;
   private final Context topLevelContext;
   
-  RenjinScriptEngine(RenjinScriptEngineFactory factory) {
+  RenjinScriptEngine(RenjinScriptEngineFactory factory, Session session) {
     super();
     this.factory = factory;
-    this.topLevelContext = Context.newTopLevelContext();
-    try {
-      topLevelContext.init();
-      String[] defaultPackages = new String[] { "stats", "utils", "graphics", "grDevices", "datasets", "methods" };
-      for(String pkg : defaultPackages) {
-        topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(pkg)));        
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    this.topLevelContext = session.getTopLevelContext();
   }
 
-  RenjinScriptEngine(RenjinScriptEngineFactory factory, Context context) {
-    this.factory = factory;
-    this.topLevelContext = context;
-  }
-
-  public Session getApartment() {
+  public Session getSession() {
     return topLevelContext.getSession();
   }
   

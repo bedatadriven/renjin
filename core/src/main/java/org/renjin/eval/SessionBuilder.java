@@ -1,18 +1,23 @@
 package org.renjin.eval;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class SessionBuilder {
 
   private boolean loadBasePackage = true;
   private Map<Class, Object> bindings = Maps.newHashMap();
+  private List<String> packagesToLoad = Lists.newArrayList();
  
   public SessionBuilder() {
     // set default bindings
@@ -24,9 +29,22 @@ public class SessionBuilder {
     return this;
   }
   
+  /**
+   * Disables loading of the R-Language portions of the base package:
+   * primitives will still be available but none of the functions in the base 
+   * package will be loaded. 
+   */
   public SessionBuilder withoutBasePackage() {
     this.loadBasePackage = false;
     return this;
+  }
+  
+  /**
+   * Loads the default packages for R 2.14.2 (stats, utils, graphics, grDevices, datasets, methods)
+   */
+  public SessionBuilder withDefaultPackages() {
+	  packagesToLoad = Lists.newArrayList("stats", "utils", "graphics", "grDevices", "datasets", "methods" );
+	  return this;
   }
   
   /**
@@ -50,6 +68,10 @@ public class SessionBuilder {
       if(loadBasePackage) {
         session.getTopLevelContext().init();
       }
+      for(String packageToLoad : packagesToLoad) {
+          session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), 
+        		  Symbol.get(packageToLoad)));
+      }
       return session;
     } catch(Exception e) {
       throw new RuntimeException(e);
@@ -59,5 +81,4 @@ public class SessionBuilder {
   public static Session buildDefault() {
     return new SessionBuilder().build();
   }
- 
 }

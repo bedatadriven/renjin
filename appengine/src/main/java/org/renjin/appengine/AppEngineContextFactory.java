@@ -21,7 +21,14 @@
 
 package org.renjin.appengine;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.script.ScriptEngine;
+import javax.servlet.ServletContext;
+
 import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -29,19 +36,12 @@ import org.apache.commons.vfs2.cache.NullFilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.LocalFileProvider;
 import org.apache.commons.vfs2.provider.url.UrlFileProvider;
-import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.eval.vfs.FastJarFileProvider;
 import org.renjin.script.RenjinScriptEngineFactory;
-import org.renjin.sexp.SEXP;
 
-import javax.script.ScriptEngine;
-import javax.servlet.ServletContext;
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.google.common.annotations.VisibleForTesting;
 
 //import r.scripting.RenjinScriptEngineFactory;
 
@@ -51,10 +51,10 @@ public class AppEngineContextFactory {
 
   public static ScriptEngine createScriptEngine(ServletContext servletContext) {
     RenjinScriptEngineFactory factory = new RenjinScriptEngineFactory();
-    return factory.getScriptEngine(createTopLevelContext(servletContext));
+    return factory.getScriptEngine(createSession(servletContext));
   }
 
-  public static Context createTopLevelContext(ServletContext servletContext) {
+  public static Session createSession(ServletContext servletContext) {
     FileSystemManager fileSystemManager;
     try {
       fileSystemManager = createFileSystemManager(servletContext);
@@ -68,20 +68,16 @@ public class AppEngineContextFactory {
       // be forked on each incoming request
       Session session = new SessionBuilder()
       .withFileSystemManager(fileSystemManager)
+      .withDefaultPackages()
       .build();
       
       session.setWorkingDirectory(fileSystemManager.resolveFile("file:///"));
       
-      return session.getTopLevelContext();
+      return session;
     } catch (IOException e) {
       LOG.log(Level.SEVERE, "Failed to initialize master context", e);
       throw new RuntimeException(e);
     }
-  }
-
-  private static String findHomeDirectory(ServletContext servletContext) throws IOException {
-    return findHomeDirectory(contextRoot(servletContext),
-        SEXP.class.getResource("/org/renjin/sexp/SEXP.class").getFile());
   }
 
   public static FileSystemManager createFileSystemManager(ServletContext context) throws FileSystemException {

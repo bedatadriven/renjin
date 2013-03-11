@@ -1,14 +1,13 @@
 package org.renjin.script;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 
 import org.renjin.RVersion;
-import org.renjin.eval.Context;
-
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
 
 import com.google.common.collect.Lists;
 
@@ -92,32 +91,10 @@ public class RenjinScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public RenjinScriptEngine getScriptEngine() {
-    return new RenjinScriptEngine(this);
+    return new RenjinScriptEngine(this, SessionBuilder.buildDefault());
   }
   
-  public RenjinScriptEngine getScriptEngine(Context context) {
-    return new RenjinScriptEngine(this, context);
-  }
-  
-  
-  public Builder withOptions() {
-    return new Builder();
-  }
-  
-  
-  
-  public class Builder {
-    
-    private final Context context;
-    
-    private Builder() {
-      context = Context.newTopLevelContext();
-    }
-    
-    public RenjinScriptEngine get() throws IOException {
-      context.init();
-      return getScriptEngine(context);
-    }
-    
+  public RenjinScriptEngine getScriptEngine(Session session) {
+    return new RenjinScriptEngine(this, session);
   }
 }

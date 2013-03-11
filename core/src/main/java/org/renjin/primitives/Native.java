@@ -1,9 +1,11 @@
 package org.renjin.primitives;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.sun.jna.NativeLibrary;
+import java.awt.Graphics;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+import java.util.List;
+
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -15,39 +17,22 @@ import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.SEXP;
 
-import java.awt.*;
-import java.lang.Class;
-import java.lang.ClassNotFoundException;
-import java.lang.Exception;
-import java.lang.Object;
-import java.lang.String;
-import java.lang.UnsupportedOperationException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.util.List;
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 public class Native {
 
   public static final boolean DEBUG = false;
 
-  @Primitive("dyn.load")
-  public static ListVector dynLoad(String libraryPath, SEXP local, SEXP now, SEXP dllPath) {
-
-    NativeLibrary library = NativeLibrary.getInstance(libraryPath);
-    
-    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
-
-    result.add("name", library.getName());
-    result.add("path", libraryPath);
-    result.add("dynamicLookup", LogicalVector.TRUE);
-    result.add("handle", new ExternalExp<NativeLibrary>(library));
-    result.add("info", "something here");
-    result.setAttribute(Symbols.CLASS, StringVector.valueOf("DLLInfo"));
-    return result.build();
-  }
 
   @Primitive(".C")
   public static SEXP dotC(@Current Context context,

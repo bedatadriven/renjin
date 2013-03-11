@@ -21,7 +21,7 @@
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
     <version>0.7.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>gcc-runtime</artifactId>

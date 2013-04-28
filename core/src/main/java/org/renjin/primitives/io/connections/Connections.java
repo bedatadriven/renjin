@@ -21,6 +21,7 @@
 package org.renjin.primitives.io.connections;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
@@ -124,6 +125,12 @@ public class Connections {
     return newConnection(context, open, new UrlConnection(new URL(description)));
   }
   
+  @Primitive
+  public static IntVector textConnection(@Current final Context context,
+      String objectName, StringVector text, String open, Environment env, String type) throws IOException {
+    
+    return newConnection(context, open, new TextConnection(objectName, Joiner.on('\n').join(text)));
+  }
   
   
   @Primitive

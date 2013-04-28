@@ -980,7 +980,7 @@ public class Primitives {
     f("pushBackLength", Connections.class, 0, 11, 1);
     f("rawConnection", /*rawconnection*/ null, 0, 11, 3);
     f("rawConnectionValue", /*rawconvalue*/ null, 0, 11, 1);
-    f("textConnection", /*textconnection*/ null, 0, 11, 5);
+    f("textConnection",  Connections.class, 0, 11, 5);
     f("textConnectionValue", /*textconvalue*/ null, 0, 11, 1);
     f("socketConnection", Connections.class, 0, 11, 6);
     f("sockSelect", /*sockselect*/ null, 0, 11, 3);

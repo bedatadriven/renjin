@@ -80,6 +80,13 @@ public class Ops  {
   @Primitive("-")
   @Recycle
   @PreserveAttributes(PreserveAttributeStyle.ALL)
+  public static Complex negative(Complex x) {
+    return new Complex(-x.getReal(), x.getImaginary());
+  }
+  
+  @Primitive("-")
+  @Recycle
+  @PreserveAttributes(PreserveAttributeStyle.ALL)
   public static Complex minus(Complex x, Complex y) {
     return x.subtract(y);
   }

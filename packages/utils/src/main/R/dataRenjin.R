@@ -18,7 +18,6 @@ data <-
 		function(..., list = character(), package = NULL, lib.loc = NULL,
 				verbose = getOption("verbose"), envir = .GlobalEnv)
 {
-	
 
 	names <- c(as.character(substitute(list(...))[-1L]), list)
 	
@@ -28,10 +27,12 @@ data <-
 	for(name in names) {
 		found <- FALSE
 		for(pkg in packages) {
-			dataset <- .Internal(getDataset(pkg, name))
-			if(!is.null(dataset)) {
+			datasets <- .Internal(getDataset(pkg, name))
+			if(length(datasets) > 0) {
 				found <- TRUE
-				envir[[name]] <- dataset
+				for(dataset.name in names(datasets)) {
+					envir[[dataset.name]] <- datasets[[dataset.name]]
+				}
 				break;
 			}
 		}
@@ -39,4 +40,5 @@ data <-
 			stop(paste("Could not find dataset '", name, "'", sep=""))
 		}
 	}
+	invisible(names)
 }

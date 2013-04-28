@@ -1,5 +1,6 @@
 package org.renjin.cli;
 
+import org.renjin.aether.AetherPackageLoader;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.primitives.packaging.PackageLoader;
@@ -17,6 +18,7 @@ public class Main {
 
   public static Session createSession() throws Exception {
     Session session = new SessionBuilder()
+    .bind(PackageLoader.class, new AetherPackageLoader())
     .build();
     Environment replEnv = session.getGlobalEnvironment().insertAbove(new HashFrame());
     loadDefaultPackages(session);

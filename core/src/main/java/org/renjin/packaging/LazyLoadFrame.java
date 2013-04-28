@@ -4,14 +4,17 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.renjin.eval.Context;
 import org.renjin.primitives.io.serialization.RDataReader;
+import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.InputSupplier;
 
@@ -71,5 +74,40 @@ public class LazyLoadFrame {
   
   public SEXP get(Symbol name) {
     return map.get(name).get();
+  }
+  
+  public static Iterable<NamedValue> load(Context context, InputSupplier<InputStream> input) throws IOException {
+    LazyLoadFrame frame = new LazyLoadFrame(context, input);
+    List<NamedValue> values = Lists.newArrayList();
+    for(Symbol name : frame.getNames()) {
+      values.add(new PackageValue(name, frame.get(name)));
+    }
+    return values;
+  }
+
+  private static class PackageValue implements NamedValue {
+    private Symbol name;
+    private SEXP value;
+    
+    public PackageValue(Symbol name, SEXP value) {
+      super();
+      this.name = name;
+      this.value = value;
+    }
+
+    @Override
+    public boolean hasName() {
+      return true;
+    }
+
+    @Override
+    public String getName() {
+      return name.getPrintName();
+    }
+
+    @Override
+    public SEXP getValue() {
+      return value;
+    } 
   }
 }

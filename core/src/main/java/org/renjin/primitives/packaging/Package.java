@@ -9,6 +9,7 @@ import org.renjin.eval.Context;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
 import com.google.common.io.InputSupplier;
@@ -41,7 +42,7 @@ public abstract class Package {
   }
 
 
-  public SEXP loadDataset(String datasetName) throws IOException {
+  public PairList loadDataset(String datasetName) throws IOException {
     return Null.INSTANCE;
   }
 

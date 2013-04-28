@@ -35,7 +35,6 @@ public class JlineRepl {
   
   private Context topLevelContext;
   private ConsoleReader reader;
-  private PrintWriter out;
   
   public JlineRepl(Session session) throws Exception {
     
@@ -49,7 +48,6 @@ public class JlineRepl {
     
     reader.getTerminal().init();
 
-    out = new PrintWriter(reader.getOutput());
     session.setSessionController(new JlineSessionController(reader.getTerminal()));
     this.topLevelContext = session.getTopLevelContext();
        

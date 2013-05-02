@@ -7,8 +7,11 @@ import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.Symbol;
 
 public class EvalTestCase {
@@ -28,11 +31,15 @@ public class EvalTestCase {
   
 
   protected SEXP c_i(int... i) {
-    throw new UnsupportedOperationException();
+    return new IntArrayVector(i);
   }
 
   protected SEXP c(double... values) {
-    throw new UnsupportedOperationException();
+    return new DoubleArrayVector(values);
+  }
+  
+  protected SEXP c(String... values) {
+    return new StringArrayVector(values);
   }
 
   protected SEXP eval(String source)  {

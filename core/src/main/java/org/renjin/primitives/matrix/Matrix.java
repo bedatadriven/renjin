@@ -43,14 +43,41 @@ public class Matrix {
   }
 
   public Vector getRowNames() {
+    return getDimNames(0);
+  }
+
+  public Vector getColNames() {
+    return getDimNames(1);
+  }
+  
+  public String getRowName(int rowIndex) {
+    Vector rowNames = getRowNames();
+    if(rowNames == Null.INSTANCE) {
+      return null;
+    } else {
+      return rowNames.getElementAsString(rowIndex);
+    }
+  }
+  
+  public String getColName(int colIndex) {
+    Vector rowNames = getColNames();
+    if(rowNames == Null.INSTANCE) {
+      return null;
+    } else {
+      return rowNames.getElementAsString(colIndex);
+    }
+  }
+  
+  private Vector getDimNames(int dimensionIndex) {
     Vector dimNames = (Vector)vector.getAttribute(Symbols.DIMNAMES);
     if(dimNames.length() != 2) {
       return Null.INSTANCE; 
     } else {
-      return (Vector)dimNames.getElementAsSEXP(0);
+      return (Vector)dimNames.getElementAsSEXP(dimensionIndex);
     }
   }
   
+
   private int computeIndex(int row, int col) {
     return Indexes.matrixIndexToVectorIndex(row, col, nrows, ncols);
   }
@@ -72,4 +99,5 @@ public class Matrix {
       throw new UnsupportedOperationException("unimplemented type " + vector.getTypeName());
     }
   }
+
 }

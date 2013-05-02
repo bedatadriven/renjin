@@ -29,6 +29,7 @@ import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Generic;
 import org.renjin.primitives.annotations.InvokeAsCharacter;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
 /**
@@ -37,9 +38,6 @@ import org.renjin.sexp.*;
  * R-language expressions.
  * 
  * Certain attributes have special meaning and their content is needs to be consistently enforced.
- * 
- * 
- * @author alex
  *
  */
 public class Attributes {
@@ -145,85 +143,22 @@ public class Attributes {
     
     
     // R uses a special "compact format" for row.names that are an integer sequence 1..n
-    // in the format c(NA, -n)
+    // in the format c(NA, -n).
     
-    } else if(rowNames instanceof DoubleVector && rowNames.length() == 2 && ((DoubleVector) rowNames).isElementNaN(0)) {
-      // this is the correct compact format, but we need to store as integer, not double
-      int n = -((DoubleVector)rowNames).getElementAsInt(1);
-      return Attributes.compactRowNames(n);
-    
-    } else if(rowNames instanceof IntVector) {
-      IntVector vector = (IntVector)rowNames;
-      
-      if(isCompactRowName(vector)) {
-        // this is the compact format, return as OK
-        return vector;
-        
-      } else if(isRowNameSequence(vector)){
-        // compact 
-        return compactRowNames(vector.length());
-        
-      } else {
-        // arbitrary integer vector is also ok
-        return vector;
-      }
-      
-    } else if(rowNames instanceof StringVector) {
-      return (StringVector)rowNames;
-    }
+    } else if(RowNamesVector.isOldCompactForm(rowNames)) {
+      return RowNamesVector.fromOldCompactForm(rowNames);
+   
+    } else if(rowNames instanceof Vector) {
+      return (Vector)rowNames;
+   
+    } 
     
     throw new EvalException("row names must be 'character' or 'integer', not '%s'", rowNames.getTypeName());
   }
 
   
   
-  /**
-   * Compact {@code row.names} values represent a row names vector of 1..n and takes the 
-   * internal storage form of {@code c(NA, -n)}.
-   *  
-   * @param vector the {@link IntArrayVector} to test
-   * @return true if the given vector is in the internal compact form of c(NA, -n) 
-   */
-  public static boolean isCompactRowName(IntVector vector) {
-    return vector.length() == 2 && vector.isElementNA(0);
-  }
   
-  /**
-   * Compact {@code row.names} values represent a row names vector of 1..n and takes the 
-   * internal storage form of {@code c(NA, -n)}.
-   *  
-   * @param exp the {@link IntArrayVector} to test
-   * @return true if the given vector is in the internal compact form of c(NA, -n) 
-   */  
-  public static boolean isCompactRowName(SEXP exp) {
-    return exp instanceof IntVector && isCompactRowName((IntVector)exp);
-  }
-
-  /**
-   * Determines whether a {@code row.names} vector can be internally stored
-   * in compact form.
-   * 
-   * @param vector the {@code row.names} vector to test.
-   * @return true if the {@code row.names} vector is in the form 1..n
-   */
-  public static boolean isRowNameSequence(IntVector vector) {
-    for(int i=0;i!=vector.length();++i) {
-      if(vector.getElementAsInt(i) != i+1) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Creates a compact internal form for {@code row.names} c(NA, -n)
-   * @param n the length of the row name vector
-   * @return an {@link IntArrayVector} in the form c(NA, -n)
-   */
-  public static IntVector compactRowNames(int n) {
-    return new IntArrayVector(IntVector.NA, -n);
-  }
-
   /**
    * Expands attributes for 'public' consumption. 
    * 
@@ -242,27 +177,7 @@ public class Attributes {
   }
   
   public static SEXP postProcessAttributeValue(Symbol name, SEXP value) {
-    if(name.equals(Symbols.ROW_NAMES)) {
-      return postProcessRowNames((Vector)value);
-    }
     return value;
-  }
-
-  private static SEXP postProcessRowNames(Vector names) {
-    if(isCompactRowName(names)) {
-      return expandCompactRowNames(names);
-    } else {
-      return names;
-    }
-  }
-
-  private static SEXP expandCompactRowNames(Vector names) {
-    int n = -names.getElementAsInt(1);
-    int result[] = new int[n];
-    for(int i=0;i!=n;++i) {
-      result[i] = i+1;
-    }
-    return new IntArrayVector(result);
   }
 
   @Generic

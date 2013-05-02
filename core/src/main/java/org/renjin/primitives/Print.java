@@ -28,6 +28,7 @@ import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -349,13 +350,21 @@ public class Print {
         
         SEXP dimnames = (Vector)attributes.get(Symbols.DIMNAMES);
         if(dimnames.length() == 2) {
-          rowNames = dimnames.getElementAsSEXP(0);
+          rowNames = unpackRowNames((Vector)dimnames.getElementAsSEXP(0));
           colNames = dimnames.getElementAsSEXP(1);
         }
         
         calcMaxRowHeaderWidth();
         calcColumnWidth();
         print();
+      }
+
+      private Vector unpackRowNames(Vector rowNames) {
+        if(RowNamesVector.isOldCompactForm(rowNames)) {
+          return RowNamesVector.fromOldCompactForm(rowNames);
+        } else { 
+          return rowNames;
+        }
       }
 
       private String colHeader(int col) {

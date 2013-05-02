@@ -26,10 +26,9 @@ import java.util.List;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Attributes;
-import org.renjin.primitives.Deparse;
 import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.PassThrough;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.Environment;
@@ -75,7 +74,7 @@ public class Models {
       attributes.set("specials", buildSpecials((AtomicVector)specials));
     }
     
-    // create an new Function Call
+    // create an new Function Call  
     FunctionCall copy = x.clone();
     return copy.setAttributes(attributes.build());
   }
@@ -216,16 +215,7 @@ public class Models {
     if (row_names.length() == nr) {
         attributes.set(Symbols.ROW_NAMES, row_names);
     } else {
-        attributes.set(Symbols.ROW_NAMES, new IntArrayVector(IntVector.NA, -nr));
-    
-        /*
-        PROTECT(row_names = allocVector(INTSXP, nr));
-        for (i = 0; i < nr; i++) INTEGER(row_names)[i] = i+1; */
-//        PROTECT(row_names = allocVector(INTSXP, 2));
-//        INTEGER(row_names)[0] = NA_INTEGER;
-//        INTEGER(row_names)[1] = nr;
-//        setAttrib(data, R_RowNamesSymbol, row_names);
-//        UNPROTECT(1);
+        attributes.set(Symbols.ROW_NAMES, new RowNamesVector(nr, AttributeMap.EMPTY));
     }
 
     /* Do the subsetting, if required. */
@@ -302,7 +292,7 @@ public class Models {
   @Primitive("model.matrix")
   public static Vector modelMatrix(@Current Context context, FunctionCall terms, ListVector modelFrame) {
    
-    return new ModelMatrixBuilder(context, terms, modelFrame).build();
+    return ModelMatrixBuilder.build(context, terms, modelFrame);
     
   }
   

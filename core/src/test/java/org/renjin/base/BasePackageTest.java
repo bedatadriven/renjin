@@ -111,16 +111,16 @@ public class BasePackageTest extends EvalTestCase {
   }
   
   @Test
-  public void rowNames() throws IOException {
+  public void oldRowNamesAreConverted() throws IOException {
     assumingBasePackagesLoad();
     
     eval(" xi <- list(c(55, 60, 30, 40, 11)) ");
     eval(" attr(xi, 'row.names') <- c(NA, -5) ");
     eval(" class(xi) <- 'data.frame' ");
     
-    assertThat( eval("attr(xi, 'row.names')"), equalTo(c_i(1,2,3,4,5)));
-    assertThat( eval("attributes(xi)$row.names"), equalTo(c_i(1,2,3,4,5)));
-    assertThat( eval("row.names(xi) "), equalTo(c("1", "2", "3", "4", "5")));
+    assertThat( eval(" identical(attr(xi, 'row.names'),  c('1','2','3','4','5') ) "), equalTo(c(true)));
+    assertThat( eval(" identical(attributes(xi)$row.names, c('1','2','3','4','5'))"), equalTo(c(true)));
+    assertThat( eval(" identical(row.names(xi), c('1','2','3','4','5')) "), equalTo(c(true)) );
   }
 
   @Test
@@ -239,17 +239,6 @@ public class BasePackageTest extends EvalTestCase {
     assertThat( eval("levels"), equalTo(c("1","2","3","4","5")));
   }
   
-  @Test
-  public void setRowNames() throws IOException {
-    assumingBasePackagesLoad();
-    
-    eval(" xi <- list(c(1:5))");
-    eval(" class(xi) <- 'data.frame'");
-    eval(" attr(xi, 'row.names') <- c(NA,-5)");
-   
-    assertThat( eval(" .row_names_info(xi) "), equalTo( c_i(-5)));
-  }
-
   @Test
   public void factorIssue10() throws IOException {
     assumingBasePackagesLoad();

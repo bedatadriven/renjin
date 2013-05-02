@@ -1,11 +1,16 @@
 package org.renjin.stats.internals.models;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Types;
-import org.renjin.sexp.*;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * Encapsulates a model frame object. 
@@ -29,9 +34,19 @@ public class ModelFrame {
     
     variables = Lists.newArrayList();
     for(int i=0; i!=frame.length(); ++i) {
-      variables.add(new Variable(
-          frame.getName(i),
-          frame.getElementAsSEXP(i)));
+      SEXP vector = frame.getElementAsSEXP(i);
+      if(Models.nrows(vector) != numRows) {
+        throw new EvalException("variable lengths differ");
+      }
+      variables.add(createVariable(frame.getName(i), vector));
+    }
+  }
+  
+  private Variable createVariable(String name, SEXP vector) {
+    if(Types.isFactor(vector)) {
+      return new FactorVariable(name, vector);
+    } else {
+      return new NumericVariable(name, vector);
     }
   }
 
@@ -45,71 +60,6 @@ public class ModelFrame {
   
   public Vector getRowNames() {
     return (Vector)frame.getAttribute(Symbols.ROW_NAMES);
-  }
-  
-  public class Variable {
-  
-    private String name;
-    private Vector vector;
-    private boolean ordered;
-    private int numLevels;
-    private int numColumns;
-    
-    public Variable(String name, SEXP vector) {
-      this.name = name;
-      if(Models.nrows(vector) != numRows) {
-        throw new EvalException("variable lengths differ");
-      }
-      this.vector = (Vector)vector;
-      this.ordered = isOrderedFactor(vector);
-      numColumns = ncols(vector);
-
-      if(Types.isFactor(vector)) {
-        numLevels = vector.getAttribute(Symbols.LEVELS).length();
-        if(numLevels < 1) {
-          throw new EvalException("variable has no levels");
-        }
-        
-      } else if(vector instanceof LogicalVector) {
-        numLevels = 2;
-        
-      } else if(Types.isNumeric(vector)) {
-        numLevels = 0;
-        vector = Types.asVector((Vector)vector, "double");
-      } 
-    }
-
-    public int getNumLevels() {
-      return numLevels;
-    }
-
-    public int getNumColumns() {
-      return numColumns;
-    }
-    
-    public boolean isFactor() {
-      return numLevels > 0;
-    }
-
-    public boolean isLogical() {
-      return vector instanceof LogicalVector;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public boolean isComplex() {
-      return false;
-    }
-
-    public Vector getVector() {
-      return vector;
-    }
-
-    public boolean isNumeric() {
-      return Types.isNumeric(vector);
-    }
   }
   
   public static int ncols(SEXP s)

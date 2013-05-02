@@ -18,32 +18,35 @@
 ## row.names() will always return character.
 ## attr(, "row.names") will return either character or integer.
 ##
-## Do not assume that the internal representation is either, since
-## 1L:n is stored as the integer vector c(NA, n) to save space (and
-## the C-level code to get/set the attribute makes the appropriate
-## translations.
-##
-## As from 2.5.0 c(NA, n > 0) indicates deliberately assigned row names,
-## and c(NA, n < 0) automatic row names.
+## RENJIN: internal representation of row.names as c(NA,-n)
+## has bee n removed because sequences can now be efficiently
+## represented as views of a sequence in Renjin
 
-.row_names_info <- function(x, type = 1L)
-    .Call("R_shortRowNames", x, type, PACKAGE = "base")
+.row_names_info <- function(x, type = 1L) {
+	if(type == 0) {
+		attr(x, 'row.names')
+	} else if( type == 1 || type == 2) {
+		length(attr(x, 'row.names'))
+	} else {
+		stop("invalid type argument")
+	}
+}
 
 row.names <- function(x) UseMethod("row.names")
 row.names.data.frame <- function(x) as.character(attr(x, "row.names"))
 row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
 
 .set_row_names <- function(n)
-    if(n > 0) c(NA_integer_, -n) else integer()
+    if(n > 0) as.character(1:n) else integer()
 
 `row.names<-` <- function(x, value) UseMethod("row.names<-")
 
 `row.names<-.data.frame` <- function(x, value)
 {
     if (!is.data.frame(x)) x <- as.data.frame(x)
-    n <- .row_names_info(x, 2L)
+    n <- length(attr(x, "row.names"))
     if(is.null(value)) { # set automatic row.names
-        attr(x, "row.names") <- .set_row_names(n)
+        attr(x, "row.names") <- 1:n
         return(x)
     }
     ## do this here, as e.g. POSIXlt changes length when coerced.

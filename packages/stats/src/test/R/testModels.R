@@ -49,4 +49,11 @@ test.modelMatrixSimple <- function() {
 	print(m)	
 }
 
+test.model.matrix.factors <- function() {
+	
+	x <- c('Good', 'Bad', 'Ugly', 'Good');
+	mm <- model.matrix(~x)
+	
+	print(mm)
+}
 

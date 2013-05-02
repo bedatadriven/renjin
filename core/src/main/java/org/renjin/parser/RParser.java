@@ -52,7 +52,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.renjin.sexp.AttributeMap;
@@ -67,6 +66,7 @@ import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 import org.renjin.sexp.Symbols;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
@@ -101,14 +101,14 @@ import com.google.common.io.InputSupplier;
 public class RParser {
 
   public static ExpressionVector parseSource(Reader reader) throws IOException {
-        
  
     ParseState parseState = new ParseState();
     ParseOptions parseOptions = ParseOptions.defaults();
-    Lexer lexer = new RLexer(parseOptions, parseState, reader);
+    RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
 
     return parser.parseAll();
+    
   }
 
   /**
@@ -119,8 +119,10 @@ public class RParser {
    */
   public static ExpressionVector parseAllSource(Reader reader) throws IOException {
     String source = CharStreams.toString(reader);
-    return parseSource(CharStreams.join(CharStreams.newReaderSupplier(source),
-        CharStreams.newReaderSupplier("\n")).getInput());
+    if(!source.endsWith("\n")) {
+      source = source + "\n";
+    }
+    return parseSource(source);
   }
   
 
@@ -132,10 +134,6 @@ public class RParser {
     } finally {
       Closeables.closeQuietly(reader);
     }
-    
-    
-    // TODO Auto-generated method stub
-    
   }
   
   public static ExpressionVector parseSource(String source) {
@@ -147,24 +145,37 @@ public class RParser {
   }
 
   private ExpressionVector parseAll() throws IOException {
-    List<SEXP> exprList = new ArrayList();
+    List<SEXP> exprList = Lists.newArrayList();
 
-    while (parse()) {
+    while (true) {
+      
+      // check to see if we are at the end of the file
+      if(yylexer.isEof()) {
+        return new ExpressionVector(exprList);
+      }
+
+      if (!parse()) {
+        if (yylexer.errorEncountered()) {
+          throw new ParseException("Syntax error at "
+              + yylexer.getErrorLocation() + ": " + yylexer.getErrorMessage()
+              + "\n");
+        }
+      }
+
       StatusResult status = getResultStatus();
       switch (status) {
-        case EMPTY:
-          break;
-        case INCOMPLETE:
-        case OK:
-          exprList.add(getResult());
-          break;
-        case ERROR:
-          throw new ParseException(getResultStatus().toString());
-        case EOF:
-          return new ExpressionVector( exprList );
+      case EMPTY:
+        break;
+      case INCOMPLETE:
+      case OK:
+        exprList.add(getResult());
+        break;
+      case ERROR:
+        throw new ParseException(getResultStatus().toString());
+      case EOF:
+        return new ExpressionVector(exprList);
       }
     }
-    return new ExpressionVector( exprList );
   }
 
   public enum StatusResult {
@@ -472,7 +483,7 @@ public class RParser {
   /**
    * The object doing lexical analysis for us.
    */
-  private Lexer yylexer;
+  private RLexer yylexer;
 
 
   /**
@@ -480,7 +491,7 @@ public class RParser {
    *
    * @param yylexer The scanner that will supply tokens to the parser.
    */
-  public RParser(ParseOptions options, ParseState state, Lexer yylexer) {
+  public RParser(ParseOptions options, ParseState state, RLexer yylexer) {
     this.yylexer = yylexer;
     this.options = options;
     this.state = state;

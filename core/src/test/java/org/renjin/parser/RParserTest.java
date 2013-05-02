@@ -47,8 +47,13 @@ public class RParserTest {
 
   @Test
   public void one() throws IOException {
-    SEXP r = parseSingle("1\n");
+    SEXP r = parseSingle("1\n\n");
     assertThat(r, CoreMatchers.instanceOf(DoubleArrayVector.class));
+  }
+  
+  @Test(expected = ParseException.class)
+  public void error() throws IOException {
+    parseSingle("switch(x, 1= 2= 'foo')");
   }
 
   @Test

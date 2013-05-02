@@ -1246,4 +1246,11 @@ an ANSI digit or not */
     }
     return 0;
   }
+
+
+  public boolean isEof() {
+    int c = xxgetc();
+    xxungetc(c);
+    return c == R_EOF;
+  }
 }

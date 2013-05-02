@@ -77,9 +77,14 @@ public class BasePackageCompiler {
     
     for(File source : sources) {
       FileReader reader = new FileReader(source);
-      SEXP expr = RParser.parseAllSource(reader);
-      reader.close();
-      evalContext.evaluate(expr);
+      try {
+        SEXP expr = RParser.parseAllSource(reader);
+        evalContext.evaluate(expr);
+      } catch(Exception e) {
+        throw new RuntimeException("Error evaluating " + source.getName() + ": " + e.getMessage(), e);
+      } finally {
+        reader.close();        
+      }
     }
   }  
   

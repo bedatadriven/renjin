@@ -1,6 +1,5 @@
 package org.renjin.gcc.jimple;
 
-
 public class JimpleStatement extends JimpleBodyElement {
 
   private String text;

@@ -21,4 +21,8 @@ public class DoublePtr implements Ptr {
   public String toString() {
     return offset + "+" + Arrays.toString(array);
   }
+
+  public double unwrap() {
+    return array[offset];
+  }
 }

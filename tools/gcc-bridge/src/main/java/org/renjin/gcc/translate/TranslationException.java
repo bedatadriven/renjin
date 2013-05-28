@@ -1,6 +1,5 @@
 package org.renjin.gcc.translate;
 
-
 public class TranslationException extends RuntimeException {
   public TranslationException() {
   }

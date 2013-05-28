@@ -10,6 +10,5 @@ public class VarUsage {
   public void setAddressed(boolean addressed) {
     this.addressed = addressed;
   }
-  
-  
+
 }

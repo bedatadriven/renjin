@@ -52,3 +52,8 @@ int greaterThanEqual(double x, double y) {
   }
   return i;
 }
+
+int truncate(double x) {
+  int y = (int)x;
+  return y;
+}

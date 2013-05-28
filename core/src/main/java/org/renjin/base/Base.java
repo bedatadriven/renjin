@@ -680,10 +680,7 @@ public class Base {
     result.add("result", StrSignIf.str_signif(x, width, digits, format, flag));
     return result.build();
   }
-  
-  public static SEXP dqrls() {
-    return Null.INSTANCE;
-  }
+
 
   public static SEXP R_serialize(@Current Context context, SEXP object, SEXP connection, boolean ascii,
       SEXP version, SEXP refhook) throws IOException {

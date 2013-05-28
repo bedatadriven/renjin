@@ -2,18 +2,18 @@ package org.renjin.gcc.gimple.expr;
 
 public class GimpleAddressOf extends GimpleExpr {
 
-  public GimpleExpr expr;
+  public GimpleExpr value;
 
-  public GimpleAddressOf(GimpleExpr expr) {
-    this.expr = expr;
+  public GimpleExpr getValue() {
+    return value;
   }
 
-  public GimpleExpr getExpr() {
-    return expr;
+  public void setValue(GimpleExpr value) {
+    this.value = value;
   }
 
   @Override
   public String toString() {
-    return "&" + expr;
+    return "&" + value;
   }
 }

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.renjin.gcc.gimple.CallingConvention;
+import org.renjin.gcc.gimple.CallingConventions;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleOutput;
@@ -20,13 +23,18 @@ import com.google.common.collect.Lists;
  * Compiles a set of Gimple functions to jvm class file
  * 
  */
-public class GimpleCompiler {
+public class GimpleCompiler  {
 
   private File jimpleOutputDirectory;
+
   private File outputDirectory;
+  
   private String packageName;
+
   private String className;
+
   private boolean verbose;
+
   private List<File> classPaths = Lists.newArrayList();
 
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
@@ -36,7 +44,7 @@ public class GimpleCompiler {
   public void setPackageName(String name) {
     this.packageName = name;
   }
-  
+
   public void setJimpleOutputDirectory(File directory) {
     this.jimpleOutputDirectory = directory;
   }
@@ -50,7 +58,7 @@ public class GimpleCompiler {
   }
 
   public MethodTable getMethodTable() {
-    return methodTable; 
+    return methodTable;
   }
 
   public void compile(List<GimpleFunction> functions) throws Exception {
@@ -72,14 +80,14 @@ public class GimpleCompiler {
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }
-  
+
   public void addSootClassPaths(List<File> classPaths) {
     this.classPaths.addAll(classPaths);
   }
 
   private void compileJimple(Set<String> classNames) throws IOException, InterruptedException {
     List<String> options = Lists.newArrayList();
-    if(verbose) {
+    if (verbose) {
       options.add("-v");
     }
     options.add("-pp");
@@ -95,20 +103,20 @@ public class GimpleCompiler {
     LOGGER.info("Running Soot " + Joiner.on(" ").join(options));
 
     soot.G.reset();
-    soot.Main.main(options.toArray(new String[0]));  }
+    soot.Main.main(options.toArray(new String[0]));
+  }
 
   private String sootClassPath() {
     StringBuilder paths = new StringBuilder();
     paths.append(jimpleOutputDirectory.getAbsolutePath());
-    for(File path : classPaths) {
+    for (File path : classPaths) {
       paths.append(File.pathSeparatorChar);
       paths.append(path.getAbsolutePath());
     }
     return paths.toString();
   }
 
-  protected JimpleOutput translate(List<GimpleFunction> functions)
-      throws IOException {
+  protected JimpleOutput translate(List<GimpleFunction> functions) throws IOException {
 
     JimpleOutput jimple = new JimpleOutput();
 
@@ -117,10 +125,11 @@ public class GimpleCompiler {
     mainClass.setPackageName(packageName);
 
     TranslationContext context = new TranslationContext(mainClass, methodTable, functions);
-    for(GimpleFunction function : functions) {
+    for (GimpleFunction function : functions) {
       FunctionTranslator translator = new FunctionTranslator(context);
       translator.translate(function);
     }
+
     return jimple;
   }
 
@@ -128,5 +137,22 @@ public class GimpleCompiler {
     return new File(outputDirectory, packageName.replace('.', File.separatorChar));
   }
 
+  public void compileSources(List<File> sources) throws Exception {
 
+    Gcc gcc = new Gcc();
+    List<GimpleFunction> functions = Lists.newArrayList();
+
+    for (File source : sources) {
+      GimpleCompilationUnit gimple = gcc.compileToGimple(source);
+
+      CallingConvention callingConvention = CallingConventions.fromFile(source);
+      for (GimpleFunction function : gimple.getFunctions()) {
+        function.setCallingConvention(callingConvention);
+      }
+
+      functions.addAll(gimple.getFunctions());
+    }
+
+    compile(functions);
+  }
 }

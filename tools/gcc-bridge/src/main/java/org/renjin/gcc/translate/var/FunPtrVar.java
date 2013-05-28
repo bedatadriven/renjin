@@ -1,94 +1,58 @@
 package org.renjin.gcc.translate.var;
 
-import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.expr.GimpleConstant;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleExternal;
-import org.renjin.gcc.gimple.type.FunctionPointerType;
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
-import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
-import org.renjin.gcc.translate.call.MethodRef;
-import org.renjin.gcc.translate.types.FunPtrJimpleType;
+import org.renjin.gcc.translate.expr.AbstractImExpr;
+import org.renjin.gcc.translate.expr.ImExpr;
+import org.renjin.gcc.translate.expr.ImFunctionPtrExpr;
+import org.renjin.gcc.translate.type.ImFunctionPtrType;
 
-import java.util.List;
-
-public class FunPtrVar extends Variable {
+/**
+ * A variable which holds a pointer to a function
+ */
+public class FunPtrVar extends AbstractImExpr implements Variable, ImFunctionPtrExpr {
 
   private String jimpleName;
-  private FunctionPointerType type;
-  private FunctionContext context;
-  private JimpleType jimpleType;
+  private ImFunctionPtrType type;
 
-  public FunPtrVar(FunctionContext context, String gimpleName, FunctionPointerType type) {
-    this.context = context;
-    this.jimpleName = Jimple.id(gimpleName);
+  public FunPtrVar(FunctionContext context, String gimpleName, ImFunctionPtrType type) {
     this.type = type;
-    this.jimpleType = new FunPtrJimpleType(context.getTranslationContext().getFunctionPointerInterfaceName(type));
+    this.jimpleName = Jimple.id(gimpleName);
 
-    context.getBuilder().addVarDecl(jimpleType, jimpleName);
+    context.getBuilder().addVarDecl(type.interfaceType(), jimpleName);
   }
 
   @Override
-  public void assign(GimpleOp op, List<GimpleExpr> operands) {
-    switch (op) {
-      case INTEGER_CST:
-        assignNull(operands.get(0));
-        break;
-
-      case NOP_EXPR:
-        assignPointer(operands.get(0));
-        break;
-
-      case ADDR_EXPR:
-        assignPointer(operands.get(0));
-        break;
-
-      default:
-        throw new UnsupportedOperationException(op + " " + operands);
-    }
+  public ImFunctionPtrType type() {
+    return type;
   }
 
-  private void assignPointer(GimpleExpr param) {
-    if(param instanceof GimpleExternal) {
-      assignNewInvoker((GimpleExternal) param);
+  @Override
+  public void writeAssignment(FunctionContext context, ImExpr rhs) {
+    if(rhs.isNull()) {
+      context.getBuilder().addStatement(Jimple.id(jimpleName) + " = null");
 
-//    } else if(param instanceof GimpleVar) {
-//      assignExistingPointer((GimpleVar) param);
-
-    } else {
-      throw new UnsupportedOperationException(param.toString());
+    } else if (rhs instanceof ImFunctionPtrExpr) {
+      context.getBuilder().addStatement(jimpleName + " = " +
+          ((ImFunctionPtrExpr) rhs).invokerReference(context));
     }
-  }
-
-
-  private void assignNewInvoker(GimpleExternal param) {
-    MethodRef method = context.getTranslationContext().resolveMethod(((GimpleExternal) param).getName());
-    JimpleType invokerType = context.getTranslationContext().getInvokerType(method);
-    String ptr = context.declareTemp(invokerType);
-    context.getBuilder().addStatement(ptr + " = new " + invokerType);
-    context.getBuilder().addStatement("specialinvoke " + ptr + ".<" + invokerType + ": void <init>()>()");
-    context.getBuilder().addStatement(jimpleName + " = " + ptr);
-  }
-
-  private void assignNull(GimpleExpr gimpleExpr) {
-    if(!(gimpleExpr instanceof GimpleConstant)) {
-      throw new UnsupportedOperationException("Expected GimpleConstant, got " + gimpleExpr);
-    }
-    Object value = ((GimpleConstant) gimpleExpr).getValue();
-    if(!(value instanceof Number) || ((Number) value).intValue() != 0) {
-      throw new UnsupportedOperationException("Can only assign 0 to function pointer");
-    }
-    context.getBuilder().addStatement(Jimple.id(jimpleName) + " = null");
   }
 
   public JimpleExpr getJimpleVariable() {
     return new JimpleExpr(jimpleName);
   }
-  
+
   @Override
-  public JimpleExpr returnExpr() {
+  public JimpleExpr invokerReference(FunctionContext context) {
     return new JimpleExpr(jimpleName);
+  }
+
+  @Override
+  public JimpleExpr translateToObjectReference(FunctionContext context, String className) {
+    if(className.equals(type.interfaceType().toString())) {
+      return invokerReference(context);
+    }
+    throw new UnsupportedOperationException(className);
   }
 }

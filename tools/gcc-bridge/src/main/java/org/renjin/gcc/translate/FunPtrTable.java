@@ -1,22 +1,26 @@
 package org.renjin.gcc.translate;
 
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.renjin.gcc.gimple.type.FunctionPointerType;
-import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.jimple.*;
-import org.renjin.gcc.translate.call.MethodRef;
-
 import java.util.List;
 import java.util.Set;
 
+import org.renjin.gcc.gimple.type.GimpleFunctionType;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleInterfaceBuilder;
+import org.renjin.gcc.jimple.JimpleMethodBuilder;
+import org.renjin.gcc.jimple.JimpleModifiers;
+import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.translate.call.MethodRef;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.renjin.gcc.translate.type.ImFunctionType;
 
 public class FunPtrTable {
 
   public static final String PACKAGE_NAME = "org.renjin.gcc.runtime";
 
-  private Set<FunSignature> interfaces = Sets.newHashSet();
+  private Set<ImFunctionType> interfaces = Sets.newHashSet();
   private Set<MethodRef> invokers = Sets.newHashSet();
 
   private TranslationContext context;
@@ -25,35 +29,35 @@ public class FunPtrTable {
     this.context = context;
   }
 
-  public FunSignature signature(FunctionPointerType type) {
+  public ImFunctionType resolveFunctionType(GimpleFunctionType type) {
     JimpleType returnType = context.resolveType(type.getReturnType()).returnType();
     List<JimpleType> paramTypes = Lists.newArrayList();
-    for(GimpleType paramType : type.getArguments()) {
+    for (GimpleType paramType : type.getArgumentTypes()) {
       paramTypes.add(context.resolveType(paramType).paramType());
     }
-    return new FunSignature(returnType, paramTypes);
+    return new ImFunctionType(returnType, paramTypes);
   }
 
-  private String getInterfaceName(FunSignature signature) {
-    if(!interfaces.contains(signature)) {
+  private String getInterfaceName(ImFunctionType signature) {
+    if (!interfaces.contains(signature)) {
       addInterface(signature);
     }
     return PACKAGE_NAME + "." + signature.interfaceName();
   }
 
   public String getInterfaceName(MethodRef ref) {
-    return getInterfaceName(new FunSignature(ref));
+    return getInterfaceName(new ImFunctionType(ref));
   }
 
-  public String getInterfaceName(FunctionPointerType type) {
-    return getInterfaceName(signature(type));
+  public String getInterfaceName(GimpleFunctionType type) {
+    return getInterfaceName(resolveFunctionType(type));
   }
 
-  public FunSignature methodRef(FunctionPointerType type) {
-    return signature(type);
+  public ImFunctionType methodRef(GimpleFunctionType type) {
+    return resolveFunctionType(type);
   }
 
-  private void addInterface(FunSignature signature) {
+  private void addInterface(ImFunctionType signature) {
     JimpleInterfaceBuilder iface = context.getJimpleOutput().newInterface();
     iface.setPackageName(PACKAGE_NAME);
     iface.setClassName(signature.interfaceName());
@@ -63,9 +67,9 @@ public class FunPtrTable {
     applyMethod.setReturnType(signature.getReturnType());
 
     int paramIndex = 0;
-    for(JimpleType paramType : signature.getParameterTypes()) {
+    for (JimpleType paramType : signature.getParameterTypes()) {
       applyMethod.addParameter(paramType, "p" + paramIndex);
-      paramIndex ++;
+      paramIndex++;
     }
 
     interfaces.add(signature);
@@ -74,7 +78,7 @@ public class FunPtrTable {
   public String getInvokerClassName(MethodRef method) {
     String invokerName = invokerName(method);
 
-    if(!invokers.contains(method)) {
+    if (!invokers.contains(method)) {
 
       JimpleClassBuilder invokerClass = context.getJimpleOutput().newClass();
       invokerClass.setClassName(invokerName);
@@ -86,24 +90,22 @@ public class FunPtrTable {
       applyMethod.setReturnType(method.getReturnType());
 
       int paramIndex = 0;
-      for(JimpleType type : method.getParameterTypes()) {
+      for (JimpleType type : method.getParameterTypes()) {
         applyMethod.addParameter(type, "p" + paramIndex);
         paramIndex++;
       }
 
       StringBuilder call = new StringBuilder();
-      call.append("staticinvoke ")
-          .append(method.signature())
-          .append("(");
-      for(paramIndex=0;paramIndex!=method.getParameterTypes().size();++paramIndex) {
-        if(paramIndex > 0) {
+      call.append("staticinvoke ").append(method.signature()).append("(");
+      for (paramIndex = 0; paramIndex != method.getParameterTypes().size(); ++paramIndex) {
+        if (paramIndex > 0) {
           call.append(", ");
         }
         call.append("p").append(paramIndex);
       }
       call.append(")");
 
-      if(method.getReturnType().toString().equals("void")) {
+      if (method.getReturnType().toString().equals("void")) {
         applyMethod.addStatement(call.toString());
         applyMethod.addStatement("return");
       } else {
@@ -116,6 +118,6 @@ public class FunPtrTable {
   }
 
   private String invokerName(MethodRef method) {
-    return method.getClassName() + "$" + method.getMethodName() + "$" + new FunSignature(method).interfaceName();
+    return method.getClassName() + "$" + method.getMethodName() + "$" + new ImFunctionType(method).interfaceName();
   }
 }

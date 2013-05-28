@@ -11,6 +11,10 @@ public class Builtins {
 			return Math.pow(base, (double)exponent);
 		}
 	}
+  
+  public static double __builtin_copysign__(double magnitude, double sign) {
+    return Math.copySign(magnitude, sign);
+  }
 
 	public static int __fpclassifyd(double x) {
 		// TODO: lookup the exact behavior of this function
@@ -27,5 +31,15 @@ public class Builtins {
 		}
 		return result;
 	}
+
+  public static int __isnan(double x) {
+    return Double.isNaN(x) ? 1: 0;
+  }
+
+
+  public static boolean unordered(double x, double y) {
+    return Double.isNaN(x) || Double.isNaN(y);
+  }
+
 
 }

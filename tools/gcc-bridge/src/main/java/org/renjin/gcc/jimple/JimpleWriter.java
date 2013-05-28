@@ -12,43 +12,43 @@ import java.io.PrintWriter;
  */
 public class JimpleWriter {
 
-	private PrintWriter writer;
-	private int indent = 0;
+  private PrintWriter writer;
+  private int indent = 0;
 
   public JimpleWriter(File source) throws FileNotFoundException {
     this.writer = new PrintWriter(source);
-	}
-	
-	public void println(String line) {
-    if(!line.endsWith(":")) {
-      for(int i=0;i!=indent;++i) {
+  }
+
+  public void println(String line) {
+    if (!line.endsWith(":")) {
+      for (int i = 0; i != indent; ++i) {
         writer.print("  ");
       }
     }
-		writer.println(line);
-	}
-	
-	public void println() {
-		writer.println();
-	}
+    writer.println(line);
+  }
+
+  public void println() {
+    writer.println();
+  }
 
   public void startBlock() {
     println("{");
     indent++;
   }
-	
-	public void closeBlock() {
-		indent--;
-		println("}");
-	}
+
+  public void closeBlock() {
+    indent--;
+    println("}");
+  }
 
   public void closeBlockWithSemicolon() {
-		indent--;
-		println("};");
-	}
+    indent--;
+    println("};");
+  }
 
   public void close() {
-		writer.close();
-	}
+    writer.close();
+  }
 
 }

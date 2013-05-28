@@ -47,7 +47,15 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   @Override
   public Bindings getBindings(int scope) {
-    throw new UnsupportedOperationException();
+    switch(scope) {
+      case ScriptContext.ENGINE_SCOPE:
+        return new RenjinBindings(topLevelContext.getEnvironment().getFrame());
+
+      default:
+      case ScriptContext.GLOBAL_SCOPE:
+        throw new UnsupportedOperationException();
+
+    }
   }
 
   @Override
@@ -227,8 +235,6 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   public FunctionCallBuilder invoke(String functionName) {
     return new FunctionCallBuilder(functionName);
   }
-  
-
 
   public void printWarnings() {
     SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);

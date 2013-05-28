@@ -215,15 +215,6 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
 
 
   @Override
-  public double[] toDoubleArray() {
-    double[] array = new double[length()];
-    for(int i=0;i!=array.length;++i) {
-      array[i] = getElementAsDouble(i);
-    }
-    return array;
-  }
-
-  @Override
   public final boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || !(o instanceof DoubleVector)) return false;

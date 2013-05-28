@@ -1,6 +1,5 @@
 package org.renjin.gcc.jimple;
 
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -31,7 +30,7 @@ public class JimpleOutput {
   public void write(File outputDir) throws IOException {
     outputDir.mkdirs();
 
-    for(AbstractClassBuilder clazz : classes) {
+    for (AbstractClassBuilder clazz : classes) {
       File jimpleSource = new File(outputDir, clazz.getFqcn() + ".jimple");
       LOGGER.info("Writing jimple source to " + jimpleSource);
 
@@ -43,7 +42,7 @@ public class JimpleOutput {
 
   public Set<String> getClassNames() {
     Set<String> classNames = Sets.newHashSet();
-    for(AbstractClassBuilder clazz : classes) {
+    for (AbstractClassBuilder clazz : classes) {
       classNames.add(clazz.getFqcn());
     }
     return classNames;

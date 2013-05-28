@@ -11,11 +11,10 @@
 
   <artifactId>renjin-appl</artifactId>
 
-
   <dependencies>
     <dependency>
       <groupId>org.renjin</groupId>
-      <artifactId>gcc-bridge</artifactId>
+      <artifactId>gcc-runtime</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -23,6 +22,54 @@
       <artifactId>netlib-java</artifactId>
       <version>0.9.3-renjin-patched-2</version>
     </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>gcc-bridge</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+    </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <phase>compile</phase>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath/>
+                <argument>org.renjin.gcc.Bridge</argument>
+                <argument>compile</argument>
+                <argument>--package-name</argument>
+                <argument>org.renjin.appl</argument>
+                <argument>--class-name</argument>
+                <argument>Appl</argument>
+                <argument>--compile-classpath</argument>
+                <classpath/>
+                <argument>--jimple-output-dir</argument>
+                <argument>${project.build.directory}/jimple</argument>
+                <argument>-o</argument>
+                <argument>${project.build.directory}/classes</argument>
+                <argument>-d</argument>
+                <argument>${project.basedir}/src/main/fortran</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

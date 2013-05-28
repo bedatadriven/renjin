@@ -3,7 +3,7 @@
 #include <math.h>
 
 
-double square(double x) {
+double Square(double x) {
   return x * x;
 }
 
@@ -24,7 +24,7 @@ double sum_x_array(double* values, int length, double (*fn)(double) ) {
 double sum_array(double *values, int length) {
   double (*fn)(double) = 0;
   if(length > 1) {
-    fn = &square;
+    fn = &Square;
   } else {
     fn = &cube;
   }

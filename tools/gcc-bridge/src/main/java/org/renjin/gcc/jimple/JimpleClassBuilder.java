@@ -8,13 +8,25 @@ public class JimpleClassBuilder extends AbstractClassBuilder {
 
   private final JimpleOutput output;
   private final List<String> interfaces = Lists.newArrayList();
+  
+  private final JimpleMethodBuilder staticInitializer;
 
   JimpleClassBuilder(JimpleOutput output) {
     this.output = output;
+  
+    staticInitializer = new JimpleMethodBuilder(this);
+    staticInitializer.setName("<clinit>");
+    staticInitializer.setModifiers(JimpleModifiers.STATIC);
+    staticInitializer.setReturnType(JimpleType.VOID);
   }
 
   public void addInterface(String interfaceName) {
     interfaces.add(interfaceName);
+
+  }
+
+  public JimpleMethodBuilder getStaticInitializer() {
+    return staticInitializer;
   }
 
   @Override
@@ -22,19 +34,14 @@ public class JimpleClassBuilder extends AbstractClassBuilder {
     w.println("public class " + getFqcn() + " extends java.lang.Object" + implementsText());
     w.startBlock();
 
-    for(JimpleFieldBuilder field : getFields()) {
+    for (JimpleFieldBuilder field : getFields()) {
       field.write(w);
     }
 
-    w.println("public void <init>()");
-    w.startBlock();
-    w.println(getFqcn() + " r0;");
-    w.println("r0 := @this: " + getFqcn() + ";");
-    w.println("specialinvoke r0.<java.lang.Object: void <init>()>();");
-    w.println("return;");
-    w.closeBlock();
+    writeConstructor(w);
+    writeStaticInitializer(w);
 
-    for(JimpleMethodBuilder method : getMethods()) {
+    for (JimpleMethodBuilder method : getMethods()) {
       w.println();
       method.write(w);
     }
@@ -42,14 +49,32 @@ public class JimpleClassBuilder extends AbstractClassBuilder {
     w.closeBlock();
   }
 
+  private void writeStaticInitializer(JimpleWriter w) {
+    if(staticInitializer.hasBody()) {
+      staticInitializer.addStatement("return");
+      staticInitializer.write(w);
+    }
+    
+  }
+
+  private void writeConstructor(JimpleWriter w) {
+    w.println("public void <init>()");
+    w.startBlock();
+    w.println(getFqcn() + " r0;");
+    w.println("r0 := @this: " + getFqcn() + ";");
+    w.println("specialinvoke r0.<java.lang.Object: void <init>()>();");
+    w.println("return;");
+    w.closeBlock();
+  }
+
   private String implementsText() {
-    if(interfaces.isEmpty()) {
+    if (interfaces.isEmpty()) {
       return "";
     } else {
       StringBuilder sb = new StringBuilder(" implements ");
       boolean needsComma = false;
-      for(String interfaceName : interfaces) {
-        if(needsComma) {
+      for (String interfaceName : interfaces) {
+        if (needsComma) {
           sb.append(", ");
         }
         sb.append(interfaceName);
@@ -61,6 +86,5 @@ public class JimpleClassBuilder extends AbstractClassBuilder {
   public JimpleOutput getOutput() {
     return output;
   }
-
 
 }

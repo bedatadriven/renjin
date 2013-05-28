@@ -78,8 +78,12 @@ public interface AtomicVector extends Vector {
    * @return a copy of the vector as an array of doubles
    */
   public double[] toDoubleArray();
-  
-  
+
+  /**
+   * @return a copy of the vector as an array of integers
+   */
+  int[] toIntArray();
+
   @Override
   Builder newBuilderWithInitialSize(int initialSize);
 

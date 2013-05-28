@@ -1,6 +1,5 @@
 package org.renjin.gcc.jimple;
 
-
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -36,10 +35,10 @@ public class JimpleFieldBuilder {
 
   public void write(JimpleWriter w) {
     StringBuilder sb = new StringBuilder();
-    if(modifiers.contains(JimpleModifiers.PUBLIC)) {
+    if (modifiers.contains(JimpleModifiers.PUBLIC)) {
       sb.append("public ");
     }
-    if(modifiers.contains(JimpleModifiers.STATIC)) {
+    if (modifiers.contains(JimpleModifiers.STATIC)) {
       sb.append("static ");
     }
     sb.append(type);

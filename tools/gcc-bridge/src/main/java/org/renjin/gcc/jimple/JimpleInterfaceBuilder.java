@@ -1,6 +1,5 @@
 package org.renjin.gcc.jimple;
 
-
 public class JimpleInterfaceBuilder extends AbstractClassBuilder {
 
   @Override
@@ -15,7 +14,7 @@ public class JimpleInterfaceBuilder extends AbstractClassBuilder {
     w.println("public interface " + getFqcn() + " extends java.lang.Object");
     w.startBlock();
 
-    for(JimpleMethodBuilder method : getMethods()) {
+    for (JimpleMethodBuilder method : getMethods()) {
       w.println();
       method.write(w);
     }

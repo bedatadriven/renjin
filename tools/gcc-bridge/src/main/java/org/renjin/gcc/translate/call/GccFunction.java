@@ -28,7 +28,6 @@ public class GccFunction extends MethodRef {
     return parameterTypes;
   }
 
-
   @Override
   public String getDeclaringClass() {
     return className;

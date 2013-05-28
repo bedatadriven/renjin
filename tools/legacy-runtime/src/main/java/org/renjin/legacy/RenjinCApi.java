@@ -23,8 +23,8 @@ public class RenjinCApi {
     throw new EvalException(text.asString());
   }
 
-  public static boolean R_finite(double x) {
-    return DoubleVector.isFinite(x);
+  public static int R_finite(double x) {
+    return DoubleVector.isFinite(x) ? 1 : 0;
   }
 
   public static double R_pow(double x, double y) {
@@ -55,8 +55,8 @@ public class RenjinCApi {
     throw new RuntimeException(text.asString());
   }
 
-  public static boolean R_IsNA(double x) {
-    return DoubleVector.isNA(x);
+  public static int R_IsNA(double x) {
+    return DoubleVector.isNA(x) ? 1 : 0;
   }
 
   public static void debugij(int i, int j) {

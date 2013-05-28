@@ -72,6 +72,24 @@ public class IntArrayVector extends IntVector {
     return values;
   }
 
+  /**
+   * Creates a new IntArrayVector from the given array, without copying.
+   * {@code array} MUST NOT be subsequently modified.
+   */
+  public static IntArrayVector unsafe(int[] array) {
+    return unsafe(array, AttributeMap.EMPTY);
+  }
+
+  /**
+   * Creates a new IntArrayVector from the given array, without copying.
+   * {@code array} MUST NOT be subsequently modified.
+   */
+  public static IntArrayVector unsafe(int[] array, AttributeMap attributes) {
+    IntArrayVector vector = new IntArrayVector(attributes);
+    vector.values = array;
+    return vector;
+  }
+
   public static class Builder extends AbstractAtomicBuilder {
     private static final int MIN_INITIAL_CAPACITY = 50;
     private int values[];

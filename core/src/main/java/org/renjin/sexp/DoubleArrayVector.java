@@ -65,7 +65,16 @@ public final class DoubleArrayVector extends DoubleVector {
    * MODIFIED.
    */
   public static DoubleArrayVector unsafe(double[] array) {
-    DoubleArrayVector vector = new DoubleArrayVector();
+    return unsafe(array, AttributeMap.EMPTY);
+  }
+
+  /**
+   * Creates a new DoubleArrayVector by wrapping an existing
+   * array, without copying. The array provided CAN NOT BE SUBSEQUENTLY
+   * MODIFIED.
+   */
+  public static DoubleArrayVector unsafe(double[] array, AttributeMap attributes) {
+    DoubleArrayVector vector = new DoubleArrayVector(attributes);
     vector.values = array;
     return vector;
   }
@@ -146,6 +155,12 @@ public final class DoubleArrayVector extends DoubleVector {
   public double[] toDoubleArrayUnsafe() {
     return values;
   }
+
+  @Override
+  public double[] toDoubleArray() {
+    return Arrays.copyOf(this.values, this.values.length);
+  }
+
 
   public static class Builder extends AbstractAtomicBuilder {
     private static final int MIN_INITIAL_CAPACITY = 50;

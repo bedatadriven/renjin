@@ -17,6 +17,10 @@ public class IntPtr implements Ptr {
     this.offset = 0;
   }
 
+  public int unwrap() {
+    return array[offset];
+  }
+
   @Override
   public String toString() {
     return offset + "+" + Arrays.toString(array);

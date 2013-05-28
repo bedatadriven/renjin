@@ -40,8 +40,7 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
   public boolean containsNA() {
     return indexOfNA() != -1;
   }
-  
-  
+
 
   @Override
   public boolean contains(Vector vector, int vectorIndex) {
@@ -93,6 +92,15 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
       d[i] = getElementAsDouble(i);
     }
     return d;
+  }
+
+  @Override
+  public int[] toIntArray() {
+    int[] array = new int[length()];
+    for(int i=0;i!=array.length;++i) {
+      array[i] = getElementAsInt(i);
+    }
+    return array;
   }
 
   @Override

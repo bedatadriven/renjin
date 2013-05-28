@@ -1,26 +1,31 @@
 package org.renjin.gcc.gimple.expr;
 
-public class GimpleConstant extends GimpleExpr {
-	private final Object value;
-	
-	public GimpleConstant(Object value) {
-		this.value = value;
-	}
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.translate.type.ImPrimitiveType;
 
-  public Object getValue() {
-    return value;
+public abstract class GimpleConstant extends GimpleExpr {
+  private GimpleType type;
+
+  public GimpleType getType() {
+    return type;
   }
 
+  public void setType(GimpleType type) {
+    this.type = type;
+  }
+
+  public abstract Object getValue();
+
   public Number getNumberValue() {
-    if(value instanceof  Number) {
-      return (Number) value;
+    if (getValue() instanceof Number) {
+      return (Number) getValue();
     } else {
-      throw new UnsupportedOperationException("Can't coerce constant to number: " + value);
+      throw new UnsupportedOperationException("Can't coerce constant to number: " + getValue());
     }
   }
 
   @Override
   public String toString() {
-    return value.toString();
+    return getValue().toString();
   }
 }

@@ -11,7 +11,7 @@ import com.google.common.collect.Lists;
 public class JvmMethodRef extends MethodRef {
 
   private final Method method;
-  
+
   public JvmMethodRef(Method method) {
     this.method = method;
   }
@@ -24,12 +24,11 @@ public class JvmMethodRef extends MethodRef {
   @Override
   public List<JimpleType> getParameterTypes() {
     List<JimpleType> types = Lists.newArrayList();
-    for(Class type : method.getParameterTypes()) {
+    for (Class type : method.getParameterTypes()) {
       types.add(new RealJimpleType(type));
     }
     return types;
   }
-
 
   @Override
   public String getDeclaringClass() {
@@ -45,6 +44,5 @@ public class JvmMethodRef extends MethodRef {
   public String getClassName() {
     return method.getDeclaringClass().getName();
   }
-  
-  
+
 }

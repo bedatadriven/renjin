@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.renjin.gcc.CallingConventions;
 import org.renjin.gcc.Gcc;
+import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.gimple.CallingConventions;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 
@@ -54,10 +56,6 @@ public class LegacySourcesCompiler {
     this.verbose = verbose;
   }
 
-  /**
-   * Adds sources from 
-   * @param libraryPath the package root. Native sources are expected to be in srcRoot/src
-   */
   public void addSources(File src) {
     if(src.exists() && src.listFiles() != null) {
       for(File file : src.listFiles()) {
@@ -67,7 +65,6 @@ public class LegacySourcesCompiler {
       }
     }
   }
-  
 
   public void addClassPaths(List<File> paths) {
     classPaths.addAll(paths);
@@ -85,17 +82,19 @@ public class LegacySourcesCompiler {
       List<GimpleFunction> functions = Lists.newArrayList();
 
       Gcc gcc = new Gcc();
+      gcc.extractPlugin();
       gcc.addIncludeDirectory(unpackIncludes());
 
       for(File sourceFile : sources) {
-        String gimple = gcc.compileToGimple(sourceFile);
-        if(verbose) {
-          System.out.println(gimple);
-        }
-        
-        GimpleParser parser = new GimpleParser(CallingConventions.fromFile(sourceFile));
+        GimpleCompilationUnit gimple;
         try {
-          functions.addAll(parser.parse(new StringReader(gimple)));
+        gimple = gcc.compileToGimple(sourceFile);
+        } catch(Exception e) {
+          throw new GccException("Error compiling " + sourceFile + "to gimple: " + e.getMessage(), e);
+        }
+
+        try {
+          functions.addAll(gimple.getFunctions());
         } catch(Exception e) {
           throw new RuntimeException("Exception parsing gimple output of " + sourceFile, e);
         }

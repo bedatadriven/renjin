@@ -1,6 +1,5 @@
 package org.renjin.gcc.gimple.expr;
 
-
 public class GimpleExternal extends GimpleExpr {
 
   private final String name;

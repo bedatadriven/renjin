@@ -1,40 +1,49 @@
 package org.renjin.gcc.gimple;
 
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.translate.type.ImPrimitiveType;
 
 public class GimpleVarDecl {
-	private final GimpleType type;
-	private final String name;
-  private final Object constantValue;
-	
-	public GimpleVarDecl(GimpleType type, String name) {
-		super();
-		this.type = type;
-		this.name = name;
-    constantValue = null;
-	}
+  private int id;
+  private GimpleType type;
+  private String name;
 
-  public GimpleVarDecl(GimpleType type, String name, Object constantValue) {
-		this.type = type;
-		this.name = name;
-    this.constantValue = constantValue;
+  public GimpleVarDecl() {
+
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
   }
 
   public GimpleType getType() {
-		return type;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-  public Object getConstantValue() {
-    return constantValue;
+    return type;
   }
 
+  public void setType(GimpleType type) {
+    this.type = type;
+  }
+
+  public String getName() {
+    if (name != null) {
+      return name;
+    } else {
+      return "T" + Math.abs(id);
+    }
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+
   @Override
-	public String toString() {
-		return type + " " + name;
-	}
-	
+  public String toString() {
+    return type + " " + (name == null ? "T" + Math.abs(id) : name);
+  }
+
 }

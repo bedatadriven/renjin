@@ -49,7 +49,7 @@ qr.default <- function(x, tol = 1e-07, LAPACK = FALSE, ...)
 	     qraux = double(p),
 	     pivot = as.integer(1L:p),
 	     double(2*p),
-	     PACKAGE="base")[c(1,6,7,8)]# c("qr", "rank", "qraux", "pivot")
+	     CLASS="org.renjin.appl.Appl")[c(1,6,7,8)]# c("qr", "rank", "qraux", "pivot")
     if(!is.null(cn <- colnames(x)))
         colnames(res$qr) <- cn[res$pivot]
     class(res) <- "qr"

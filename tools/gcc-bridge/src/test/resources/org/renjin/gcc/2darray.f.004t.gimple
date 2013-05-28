@@ -1,0 +1,61 @@
+test (real(kind=8)[0:D.1546] * restrict x, integer(kind=4) & restrict n)
+{
+  integer(kind=4) D.1549;
+  integer(kind=4) D.1550;
+  bit_size_type size.5;
+  <unnamed-unsigned:64> size.6;
+  integer(kind=8) D.1556;
+  integer(kind=8) D.1557;
+  integer(kind=4) i;
+  integer(kind=8) ubound.0;
+  integer(kind=8) ubound.1;
+  integer(kind=8) stride.2;
+  integer(kind=8) offset.3;
+  integer(kind=8) size.4;
+  integer(kind=8) D.1546;
+  bit_size_type D.1547;
+  <unnamed-unsigned:64> D.1548;
+
+  D.1549 = *n;
+  ubound.0 = (integer(kind=8)) D.1549;
+  stride.2 = ubound.0;
+  stride.2 = MAX_EXPR <stride.2, 0>;
+  D.1550 = *n;
+  ubound.1 = (integer(kind=8)) D.1550;
+  size.4 = stride.2 * ubound.1;
+  size.4 = MAX_EXPR <size.4, 0>;
+  D.1546 = size.4 + -1;
+  size.5 = (bit_size_type) size.4;
+  D.1547 = size.5 * 64;
+  size.6 = (<unnamed-unsigned:64>) size.4;
+  D.1548 = size.6 * 8;
+  offset.3 = ~stride.2;
+  {
+    integer(kind=4) D.1541;
+
+    D.1541 = *n;
+    i = 1;
+    if (i <= D.1541) goto <D.1553>; else goto <D.1554>;
+    <D.1553>:
+    <D.1555>:
+    {
+      logical(kind=4) D.1545;
+
+      D.1556 = stride.2 + 1;
+      D.1557 = D.1556 + offset.3;
+      *x[D.1557] = 3.0e+0;
+      __label_000100:
+      L.1:
+      D.1545 = i == D.1541;
+      i = i + 1;
+      if (D.1545 != 0) goto L.2; else goto <D.1558>;
+      <D.1558>:
+    }
+    goto <D.1555>;
+    <D.1554>:
+    L.2:
+  }
+  return;
+}
+
+

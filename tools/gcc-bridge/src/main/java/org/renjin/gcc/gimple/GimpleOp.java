@@ -1,12 +1,9 @@
 package org.renjin.gcc.gimple;
 
 public enum GimpleOp {
-  NOP_EXPR,
-	MULT_EXPR,
-  RDIV_EXPR,
+  NOP_EXPR, MULT_EXPR, RDIV_EXPR,
 
-  ABS_EXPR,
-  MAX_EXPR,
+  ABS_EXPR, MAX_EXPR,
 
   ADDR_EXPR,
 
@@ -25,49 +22,36 @@ public enum GimpleOp {
   /**
    * Real Constant
    */
-	REAL_CST,
+  REAL_CST,
 
   /**
    * Integer Constant
    */
   INTEGER_CST,
 
-  NE_EXPR,
-  EQ_EXPR,
-  LT_EXPR,
-  GT_EXPR,
-  LE_EXPR,
-  GE_EXPR,
+  NE_EXPR, EQ_EXPR, LT_EXPR, GT_EXPR, LE_EXPR, GE_EXPR,
 
-  TRUTH_NOT_EXPR,
-  TRUTH_OR_EXPR,
+  TRUTH_NOT_EXPR, TRUTH_OR_EXPR,
 
-  POINTER_PLUS_EXPR,
-  INDIRECT_REF,
-  PLUS_EXPR,
-  MINUS_EXPR,
-  SSA_NAME,
-  VAR_DECL,
+  POINTER_PLUS_EXPR, INDIRECT_REF, PLUS_EXPR, MINUS_EXPR, SSA_NAME, VAR_DECL,
 
-  COMPONENT_REF,
-  ARRAY_REF,
-  MEM_REF,
-  
+  COMPONENT_REF, ARRAY_REF, MEM_REF,
+
   BIT_NOT_EXPR,
 
   NEGATE_EXPR,
 
   /**
-   *  From GCC source code: Represents a re-association barrier for floating point expressions
-   *  like explicit parenthesis in fortran. (AB: Huh?)
+   * From GCC source code: Represents a re-association barrier for floating
+   * point expressions like explicit parenthesis in fortran. (AB: Huh?)
    */
   PAREN_EXPR,
 
   /**
-   * From GCC source code: Additional relational operators for floating point unordered.
+   * From GCC source code: Additional relational operators for floating point
+   * unordered.
    */
   UNORDERED_EXPR,
-  
-  CONVERT_EXPR,
-  TRUNC_MOD_EXPR
+
+  CONVERT_EXPR, TRUNC_MOD_EXPR
 }

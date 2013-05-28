@@ -1,32 +1,38 @@
 package org.renjin.gcc.gimple;
 
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.translate.type.ImPrimitiveType;
 
 public class GimpleParameter {
-	private final GimpleType type;
-	private final String name;
-	
-	
-	public GimpleParameter(GimpleType type, String name) {
-		super();
-		this.type = type;
-		this.name = name;
-	}
+  private GimpleType type;
+  private String name;
+  private int id;
 
-	public GimpleType getType() {
-		return type;
-	}
+  /**
+   * Compiler-assigned unique identifier for this parameter.
+   */
+  public int getId() {
+    return id;
+  }
 
+  public void setId(int id) {
+    this.id = id;
+  }
 
+  public GimpleType getType() {
+    return type;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
+  public String getName() {
+    return name;
+  }
 
-
-	@Override
-	public String toString() {
-		return type + " " + name;
-	}
+  @Override
+  public String toString() {
+    return type + " " + name;
+  }
 }

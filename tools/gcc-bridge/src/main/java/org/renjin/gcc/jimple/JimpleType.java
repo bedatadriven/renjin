@@ -1,6 +1,5 @@
 package org.renjin.gcc.jimple;
 
-
 public class JimpleType {
 
   public static final JimpleType INT = new RealJimpleType(int.class);
@@ -10,7 +9,6 @@ public class JimpleType {
   public static final JimpleType LONG = new RealJimpleType(long.class);
   public static final JimpleType VOID = new RealJimpleType(void.class);
   public static final JimpleType CHAR = new RealJimpleType(char.class);
-
 
   @Override
   public int hashCode() {
@@ -42,11 +40,15 @@ public class JimpleType {
   }
 
   public boolean isFunctionPointer() {
-    return false;
+    return toString().startsWith("org.renjin.gcc.runtime.FunPtr");
   }
 
   public boolean isAssignableFrom(Class otherClass) {
     return false;
+  }
+
+  public static JimpleType valueOf(Class clazz) {
+    return new RealJimpleType(clazz);
   }
 
 }

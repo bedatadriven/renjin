@@ -1,11 +1,8 @@
 package org.renjin.primitives;
 
-import java.awt.Graphics;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.util.List;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -17,17 +14,13 @@ import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import java.awt.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+import java.util.List;
 
 public class Native {
 
@@ -126,17 +119,92 @@ public class Native {
     return new IntPtr(array, 0);
   }
 
+  /**
+   * Invokes a method compiled to JVM byte code from Fortran, applying the correct calling
+   * conventions, etc. This method differs from the
+   *
+   * @param context
+   * @param rho
+   * @param methodName
+   * @param callArguments
+   * @param packageName
+   * @param naOk
+   * @param dup
+   * @param encoding
+   * @return
+   */
   @Primitive(".Fortran")
   public static SEXP dotFortran(@Current Context context,
                           @Current Environment rho,
                           String methodName,
                           @ArgumentList ListVector callArguments,
                           @NamedFlag("PACKAGE") String packageName,
+                          @NamedFlag("CLASS") String className,
                           @NamedFlag("NAOK") boolean naOk,
                           @NamedFlag("DUP") boolean dup,
                           @NamedFlag("ENCODING") boolean encoding) {
 
-    return dotC(context, rho, methodName, callArguments, packageName, naOk, dup, encoding);
+    // quick spike: fortran functions in the "base" package are all
+    // defined in libappl, so point us to that class.
+    // TODO: map package names to implementation classes
+    if("base".equals(packageName)) {
+      className = "org.renjin.appl.Appl";
+    }
+
+    Method method = findFortranMethod(className, methodName);
+    Class<?>[] fortranTypes = method.getParameterTypes();
+    if(fortranTypes.length != callArguments.length()) {
+      throw new EvalException("Invalid number of args");
+    }
+
+    Object[] fortranArgs = new Object[fortranTypes.length];
+    ListVector.NamedBuilder returnValues = ListVector.newNamedBuilder();
+
+    // For .Fortran() calls, we make a copy of the arguments, pass them by
+    // reference to the fortran subroutine, and then return the modified arguments
+    // as a ListVector.
+
+    for(int i=0;i!=callArguments.length();++i) {
+      AtomicVector vector = (AtomicVector) callArguments.get(i);
+      if(fortranTypes[i].equals(DoublePtr.class)) {
+        double[] array = vector.toDoubleArray();
+        fortranArgs[i] = new DoublePtr(array, 0);
+        returnValues.add(callArguments.getName(i), DoubleArrayVector.unsafe(array, vector.getAttributes()));
+
+      } else if(fortranTypes[i].equals(IntPtr.class)) {
+        int[] array = vector.toIntArray();
+        fortranArgs[i] = new IntPtr(array, 0);
+        returnValues.add(callArguments.getName(i), IntArrayVector.unsafe(array, vector.getAttributes()));
+      } else {
+        throw new UnsupportedOperationException("fortran type: " + fortranTypes[i]);
+      }
+    }
+
+    try {
+      method.invoke(null, fortranArgs);
+    } catch (Exception e) {
+      throw new EvalException("Exception thrown while executing " + methodName, e);
+    }
+
+    return returnValues.build();
+  }
+
+
+  private static Method findFortranMethod(String className, String methodName) {
+    Class<?> declaringClass = null;
+    try {
+      declaringClass = Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      throw new EvalException(String.format("Could not find class named %s", className), e);
+    }
+    for(Method method : declaringClass.getMethods()) {
+      if(method.getName().equals(methodName) &&
+          Modifier.isPublic(method.getModifiers()) &&
+          Modifier.isStatic(method.getModifiers())) {
+        return method;
+      }
+    }
+    throw new EvalException("Could not find method %s in class %s", methodName, className);
   }
 
   @Primitive(".Call")

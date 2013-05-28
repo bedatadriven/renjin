@@ -1,6 +1,5 @@
 package org.renjin.gcc.jimple;
 
-
 public class JimpleLabel extends JimpleBodyElement {
   private final String name;
 

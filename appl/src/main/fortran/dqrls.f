@@ -91,6 +91,7 @@ c
 c     reduce x.
 c
       call dqrdc2(x,n,n,p,tol,k,qraux,jpvt,work)
+
 c
 c     solve the truncated least squares problem for each rhs.
 c

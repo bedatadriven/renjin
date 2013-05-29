@@ -38,7 +38,7 @@ public abstract class AbstractGccTest {
     Gcc gcc = new Gcc();
     gcc.extractPlugin();
     gcc.setDebug(true);
-    gcc.setPluginLibrary(new File("../gcc-plugin/bridge.so"));
+    gcc.extractPlugin();
     gcc.setGimpleOutputDir(new File("target/gimple"));
 
     List<GimpleFunction> functions = Lists.newArrayList();

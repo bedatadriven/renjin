@@ -33,6 +33,7 @@
 
 #include "tree.h"
 #include "gimple.h"
+#include "diagnostic.h"
 #include "tree-flow.h"
 #include "tree-pass.h"
 #include "cfgloop.h"
@@ -50,6 +51,8 @@ int json_needs_comma = 0;
 
 #define JSON_ARRAY  1
 #define JSON_OBJECT  2
+
+#define TRACE(...) printf(__VA_ARGS__)
 
 typedef struct json_context {
   int needs_comma;
@@ -78,7 +81,7 @@ void json_context_pop() {
 
 void json_indent() {
   int i;
-  for(i=0;i!=json_context_head;++i) {
+  for(i=0;i<json_context_head;++i) {
     fprintf(json_f, "  ");
   }
 }
@@ -243,15 +246,20 @@ static void dump_function_type(tree type) {
 
 static void dump_record_type(tree type) {
   
+  TRACE("dump_record_type: entering\n");
   json_int_field("id", DEBUG_TEMP_UID (type));
   
-  if(TYPE_NAME(type)) {
-    json_string_field("name", IDENTIFIER_POINTER(TYPE_NAME(type)));
-  }
+ // if(TYPE_NAME(type) && IDENTIFIER_POINTER(TYPE_NAME(type))) {
+  //  TRACE("dump_record_type: printing name\n");
+  //  printf("id_p = %p\n", IDENTIFIER_POINTER(TYPE_NAME(type)));
+  //  json_string_field("name", IDENTIFIER_POINTER(TYPE_NAME(type)));
+  //    TRACE("dump_record_type: printed name\n");
+ // }
       
   tree field =  TYPE_FIELDS(type);
   json_array_field("fields");
   while(field) {
+    TRACE("dump_record_type: field code: %s\n", tree_code_name[TREE_CODE(TREE_TYPE(field))]);
     json_start_object();
     //json_string_field("code", tree_code_name[TREE_CODE(field)]);
     if(DECL_NAME(field)) {
@@ -265,11 +273,14 @@ static void dump_record_type(tree type) {
     field = TREE_CHAIN(field);
   }
   json_end_array();
+  TRACE("dump_record_type: exiting\n");
 
 }
 
 
 static void dump_type(tree type) {
+  printf("dump_type: entering\n");
+  printf("dump_type: code: %s\n", tree_code_name[TREE_CODE(type)]);
   json_start_object();
   json_string_field("type", tree_code_name[TREE_CODE(type)]);
     
@@ -318,7 +329,7 @@ static void dump_type(tree type) {
     
   }
   json_end_object();
-
+  printf("dump_type: exiting\n");
 }
 
 static void dump_op(tree op) {
@@ -418,6 +429,7 @@ static void dump_ops(gimple stmt) {
 }
 
 static void dump_assignment(gimple stmt) {
+  json_start_object();
   json_string_field("type", "assign");
 
   json_string_field("operator", tree_code_name[gimple_assign_rhs_code(stmt)]);
@@ -434,10 +446,11 @@ static void dump_assignment(gimple stmt) {
   if(rhs2) dump_op(rhs2);
   if(rhs3) dump_op(rhs3);
   json_end_array();
+  json_end_object();
 }
 
 static void dump_cond(basic_block bb, gimple stmt) {
-  
+  json_start_object();
   json_string_field("type", "conditional");
   json_string_field("operator", tree_code_name[gimple_assign_rhs_code(stmt)]);
   
@@ -448,16 +461,17 @@ static void dump_cond(basic_block bb, gimple stmt) {
   
   json_int_field("trueLabel", true_edge->dest->index);
   json_int_field("falseLabel", false_edge->dest->index);
-  
+  json_end_object();
 }
 
 static void dump_nop(gimple stmt) {
-  
+  json_start_object();
   json_string_field("type", "nop");
-  
+  json_end_object();
 }
 
 static void dump_return(gimple stmt) {
+  json_start_object();
   json_string_field("type", "return");
   
   tree retval = gimple_return_retval(stmt);
@@ -465,10 +479,11 @@ static void dump_return(gimple stmt) {
     json_field("value");
     dump_op(retval);
   }
+  json_end_object();
 }
 
-
 static void dump_call(gimple stmt) {
+  json_start_object();
   json_string_field("type", "call");
   
   json_field("lhs");
@@ -486,12 +501,64 @@ static void dump_call(gimple stmt) {
     }
     json_end_array();
   }
+  json_end_object();
 }
 
-
-static void dump_statement(basic_block bb, gimple stmt) {
+static void dump_switch(gimple stmt) {
 
   json_start_object();
+
+  int num_ops = gimple_num_ops(stmt);
+  
+  json_string_field("type", "switch");
+  
+  json_field("value");
+  dump_op(gimple_op(stmt, 0));
+  
+  json_array_field("cases");
+  
+  int default_case = -1;
+  
+  int i;
+  for(i=1;i<num_ops;++i) {
+    tree t = gimple_op(stmt, i);
+
+	  basic_block bb = label_to_block (CASE_LABEL (t));
+    
+    if(!CASE_LOW(t)) {
+      // this is the default case
+      default_case = bb->index;
+      
+    } else { 
+      // proper case
+      json_start_object();
+      
+      json_int_field("low",
+        TREE_INT_CST_LOW(CASE_LOW(t)));
+    
+      if (CASE_HIGH (t)) {
+        json_int_field("high",
+          TREE_INT_CST_LOW(CASE_HIGH(t)));
+	    } else {
+        json_int_field("high",
+          TREE_INT_CST_LOW(CASE_LOW(t)));	    
+	    }
+      json_int_field("basicBlockIndex", bb->index);
+	    json_end_object();
+    } 
+  }
+  json_end_array();  
+  
+  json_field("defaultCase");
+  json_start_object();
+  json_int_field("basicBlockIndex", default_case);
+  json_end_object();
+  
+  json_end_object();
+
+}
+
+static void dump_statement(basic_block bb, gimple stmt) {
   
   switch(gimple_code(stmt)) {
   case GIMPLE_ASSIGN:
@@ -509,9 +576,23 @@ static void dump_statement(basic_block bb, gimple stmt) {
   case GIMPLE_RETURN:
     dump_return(stmt);
     break;
+  case OFFSET_TYPE:
+    dump_switch(stmt);
+    break;
+  case BLOCK:
+    // this represents a label expression, usually generated
+    // in conjunction with a switch statement. We do the 
+    // label to basic block translation there, so we don't need
+    // these nodes
+    break;
+  default:
+    json_start_object();
+    json_string_field("type", 
+	tree_code_name[gimple_code(stmt)]);
+	  dump_ops(stmt);
+	  json_end_object();
   }
   
-  json_end_object();
 }
 
 
@@ -550,10 +631,12 @@ static void dump_local_decl(tree decl) {
   if(DECL_NAME(decl)) {
     json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(decl)));
   } 
+
   json_int_field("id", DEBUG_TEMP_UID (decl));
-  json_field("type");
-  dump_type(TREE_TYPE(decl));
-  
+  if(TREE_TYPE(decl)) {
+    json_field("type");
+    dump_type(TREE_TYPE(decl));
+  }
   if(DECL_INITIAL(decl)) {
     json_field("value");
     dump_op(DECL_INITIAL(decl));
@@ -567,11 +650,11 @@ static void dump_local_decls(struct function *fun) {
   tree var;
   
   json_array_field("variableDeclarations");
-  
+
   FOR_EACH_LOCAL_DECL (fun, ix, var)
-	  {
-	    dump_local_decl(var);
-	  }
+    {
+      dump_local_decl(var);
+    }
 	json_end_array();
 }
 
@@ -605,15 +688,18 @@ static void dump_basic_block(basic_block bb) {
 
 static unsigned int dump_function (void)
 {
+  if(errorcount > 0) {
+   return 0;
+  }
+  
   basic_block bb;
   
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID (cfun->decl));
   json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)));
-
   dump_arguments(cfun->decl);
   dump_local_decls(cfun);
-  
+    
   json_array_field("basicBlocks");
   FOR_EACH_BB (bb)
     {
@@ -684,7 +770,7 @@ plugin_init (struct plugin_name_args *plugin_info,
   struct register_pass_info pass_info;
   const char *plugin_name = plugin_info->base_name;
 
-  pass_info.pass = &dump_functions_pass;
+  pass_info.pass = (struct opt_pass*)(&dump_functions_pass);
   pass_info.reference_pass_name = "cfg";
   pass_info.ref_pass_instance_number = 1;
   pass_info.pos_op = PASS_POS_INSERT_AFTER;
@@ -695,12 +781,7 @@ plugin_init (struct plugin_name_args *plugin_info,
   
   int argi;
   for(argi=0;argi!=plugin_info->argc;++argi) {
-    printf("key=%s, value=%s", 
-      plugin_info->argv[argi].key,
-      plugin_info->argv[argi].value);
-      
     if(strcmp(plugin_info->argv[argi].key, "json-output-file") == 0) {
-      printf("Writing Gimple to %s\n", plugin_info->argv[argi].value);
       json_f = fopen(plugin_info->argv[argi].value, "w");
     } 
   }

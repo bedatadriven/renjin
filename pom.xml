@@ -130,6 +130,7 @@
       <plugin>
         <groupId>com.mycila.maven-license-plugin</groupId>
         <artifactId>maven-license-plugin</artifactId>
+        <version>1.9.0</version>
         <configuration>
           <header>src/etc/header.txt</header>
         </configuration>
@@ -303,6 +304,19 @@
           <family>unix</family>
           <name>linux</name>
           <arch>x86</arch>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>linux-x86</envClassifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-i386</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <name>linux</name>
+          <arch>i386</arch>
         </os>
       </activation>
       <properties>

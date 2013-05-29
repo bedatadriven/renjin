@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ~ R : A Computer Language for Statistical Data Analysis ~ Copyright 
+  (C) 1995, 1996 Robert Gentleman and Ross Ihaka ~ Copyright (C) 1997-2008 
+  The R Development Core Team ~ Copyright (C) 2003, 2004 The R Foundation ~ 
+  Copyright (C) 2010 bedatadriven ~ ~ This program is free software: you can 
+  redistribute it and/or modify ~ it under the terms of the GNU General Public 
+  License as published by ~ the Free Software Foundation, either version 3 
+  of the License, or ~ (at your option) any later version. ~ ~ This program 
+  is distributed in the hope that it will be useful, ~ but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+  PURPOSE. See the ~ GNU General Public License for more details. ~ ~ You should 
+  have received a copy of the GNU General Public License ~ along with this 
+  program. If not, see <http://www.gnu.org/licenses />. -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.renjin</groupId>
+    <artifactId>parent</artifactId>
+    <version>0.7.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>gcc-bridge-plugin</artifactId>
+  <name>GCC Bridge Plugin</name>
+  <description>GCC Plugin which provides GCC-Bridge with detailed Gimple Output</description>
+
+  <build>
+   <plugins>
+   
+     <!-- Build the GCC Plugin dynamic library and include it as 
+          a resource bundled in this jar -->
+     <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>shell-maven-plugin</artifactId>
+        <version>1.0-beta-1</version>
+        <executions>
+          <execution>
+            <id>stage-sources</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>shell</goal>
+            </goals>
+            <configuration>
+              <workDir>target/build</workDir>
+              <chmod>true</chmod>
+              <debug>true</debug>
+              <keepScriptFile>true</keepScriptFile>
+              <script>
+                GCCPLUGINS_DIR=`gcc -print-file-name=plugin`
+                OUTPUT_DIR=${basedir}/target/classes/org/renjin/gcc/
+                SRC_DIR=${basedir}/src/main/c
+                WORK_DIR=${basedir}/target/objs
+                mkdir -p $OUTPUT_DIR
+                mkdir -p $WORK_DIR
+                gcc -I$GCCPLUGINS_DIR/include -fPIC -c -o $WORK_DIR/plugin.o $SRC_DIR/plugin.c
+                gcc -shared $WORK_DIR/plugin.o -o $OUTPUT_DIR/gcc-bridge-${envClassifier}.so
+              </script>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <!-- Package it in a jar with os-arch as a classifier --> 
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.4</version>
+          <configuration>
+              <classifier>${envClassifier}</classifier>
+          </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>

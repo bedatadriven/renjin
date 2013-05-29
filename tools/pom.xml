@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -19,17 +19,10 @@
 
   <modules>
     <module>gcc-bridge</module>
-	<module>gcc-runtime</module>
-	<module>legacy-compiler</module>
-	<module>legacy-runtime</module>
-	<module>maven-plugin</module>
+    <module>gcc-bridge-plugin</module>
+    <module>gcc-runtime</module>
+    <module>legacy-compiler</module>
+    <module>legacy-runtime</module>
+    <module>maven-plugin</module>
   </modules>
-  
-  <dependencies>
-   
-  </dependencies>
-
-  <build>
-    
-  </build>
 </project>

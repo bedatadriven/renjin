@@ -343,7 +343,7 @@ public class Evaluation {
     // this seems quite expensive, perhaps there's a faster way?
     PairList rematched = Calls.matchArguments(
         Calls.stripDefaultValues(context.getClosure().getFormals()),
-        context.getCall().getArguments());
+        context.getCall().getArguments(), true);
     SEXP providedValue = rematched.findByTag(symbol);
 
     return providedValue == Symbol.MISSING_ARG;

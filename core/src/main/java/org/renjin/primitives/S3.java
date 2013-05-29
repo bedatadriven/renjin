@@ -1217,7 +1217,7 @@ public class S3 {
       /* get formals and actuals; attach the names of the formals to
          the actuals, expanding any ... that occurs */
       PairList formals = closure.getFormals();
-      actuals = Calls.matchArguments(formals, actuals);
+      actuals = Calls.matchArguments(formals, actuals, false);
    
       actuals = expandDotDotDot(actuals);
 
@@ -1225,15 +1225,15 @@ public class S3 {
       // strip out arguments with missing values. These named arguments may not
       // be defined in calls further down the chain and we don't want to "generate"
       // new arguments
-      if(function instanceof Closure) {
-        PairList.Builder noMissing = new PairList.Builder();
-        for(PairList.Node node : actuals.nodes()) {
-          if(node.getValue() != Symbol.MISSING_ARG) {
-            noMissing.add(node.getRawTag(), node.getValue());
-          }
-        }
-        actuals = noMissing.build();
-      }
+//      if(function instanceof Closure) {
+//        PairList.Builder noMissing = new PairList.Builder();
+//        for(PairList.Node node : actuals.nodes()) {
+//          if(node.getValue() != Symbol.MISSING_ARG) {
+//            noMissing.add(node.getRawTag(), node.getValue());
+//          }
+//        }
+//        actuals = noMissing.build();
+//      }
 
 //    /* we can't duplicate because it would force the promises */
 //    /* so we do our own duplication of the promargs */

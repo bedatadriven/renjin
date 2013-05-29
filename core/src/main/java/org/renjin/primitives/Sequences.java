@@ -178,7 +178,7 @@ public class Sequences {
     formals.add("length.out", Symbol.MISSING_ARG);
     formals.add("each", Symbol.MISSING_ARG);
     
-    PairList matched = Calls.matchArguments(formals.build(), evaled.build());
+    PairList matched = Calls.matchArguments(formals.build(), evaled.build(), true);
     
     SEXP x = matched.findByTag(Symbol.get("x"));
     SEXP times = matched.findByTag(Symbol.get("times"));
@@ -320,7 +320,7 @@ public class Sequences {
     formals.add("along.with", Symbol.MISSING_ARG);
 
     boolean One = (call.getArguments().length() == 1);
-    PairList matched = Calls.matchArguments(formals.build(), call.getArguments());
+    PairList matched = Calls.matchArguments(formals.build(), call.getArguments(), true);
     SEXP from = matched.findByTag(Symbol.get("from"));
     SEXP to = matched.findByTag(Symbol.get("to"));
     SEXP by = matched.findByTag(Symbol.get("by"));

@@ -219,7 +219,7 @@ public class Match {
       throw new EvalException("match.call cannot use definition of type '%s'", definition.getTypeName());
     }
     
-    PairList matched = Calls.matchArguments(closure.getFormals(), call.getArguments());
+    PairList matched = Calls.matchArguments(closure.getFormals(), call.getArguments(), true);
     
     PairList.Builder expandedArgs = new PairList.Builder();
     for(PairList.Node node : matched.nodes()) {

@@ -147,7 +147,7 @@ public class Calls {
 
   public static void matchArgumentsInto(PairList formals, PairList actuals, Context innerContext, Environment innerEnv) {
 
-    PairList matched = matchArguments(formals, actuals);
+    PairList matched = matchArguments(formals, actuals, true);
     for(PairList.Node node : matched.nodes()) {
       SEXP value = node.getValue();
       if(value == Symbol.MISSING_ARG) {
@@ -182,8 +182,9 @@ public class Calls {
    * If any arguments remain unmatched an error is declared.
    *
    * @param actuals the actual arguments supplied to the list
+   * @param populateMissing
    */
-  public static PairList matchArguments(PairList formals, PairList actuals) {
+  public static PairList matchArguments(PairList formals, PairList actuals, boolean populateMissing) {
 
     PairList.Builder result = new PairList.Builder();
 
@@ -198,7 +199,7 @@ public class Calls {
     for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
       PairList.Node formal = formalIt.next();
       if(formal.hasTag()) {
-        Symbol name = (Symbol) formal.getTag();
+        Symbol name = formal.getTag();
         Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
 
         if(matches.size() == 1) {
@@ -251,7 +252,7 @@ public class Calls {
       } else if( hasNextUnTagged(actualIt) ) {
         result.add(formal.getTag(), nextUnTagged(actualIt).getValue() );
 
-      } else {
+      } else if(populateMissing) {
         result.add(formal.getTag(), Symbol.MISSING_ARG);
       }
     }

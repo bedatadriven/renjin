@@ -91,7 +91,7 @@ public class RenjinScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public RenjinScriptEngine getScriptEngine() {
-    return new RenjinScriptEngine(this, SessionBuilder.buildDefault());
+    return new RenjinScriptEngine(this, new SessionBuilder().withDefaultPackages().build());
   }
   
   public RenjinScriptEngine getScriptEngine(Session session) {

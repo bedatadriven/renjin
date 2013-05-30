@@ -35,6 +35,11 @@ public class RenjinScriptEngineTest {
     // evaluate R code from String
     engine.eval("print('Hello, World')");
   }
+
+  @Test
+  public void statsPackageIsLoadedByDefault() throws ScriptException {
+    engine.eval("dnorm(0)");
+  }
   
   @Test
   public void invokeFunction() throws ScriptException, NoSuchMethodException {

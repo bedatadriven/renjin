@@ -79,9 +79,14 @@
       <artifactId>datasets</artifactId>
       <version>${project.version}</version>
     </dependency>
-    
-    
-    <!--  Aether  -->
+    <dependency>
+      <groupId>net.sf.jopt-simple</groupId>
+      <artifactId>jopt-simple</artifactId>
+      <version>4.4</version>
+    </dependency>
+
+
+      <!--  Aether  -->
     <dependency>
       <groupId>org.eclipse.aether</groupId>
       <artifactId>aether-api</artifactId>
@@ -160,6 +165,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+
     
     <!--  End Aether deps -->
         

@@ -30,15 +30,5 @@
             <outputDirectory>bin</outputDirectory>
         </file>
     </files>
-    
-    <fileSets>
-        <fileSet>
-            <includes>
-                <include>library/**</include>
-            </includes>
-            <directory>target/dependency/org/renjin</directory>
-            <outputDirectory></outputDirectory>
-        </fileSet>
-    </fileSets>
 
 </assembly>

@@ -11,8 +11,18 @@ public class JlineReader extends Reader {
   private int pos = 0;
   private boolean eof = false;
 
+  private boolean echo;
+
   public JlineReader(ConsoleReader reader) {
     this.reader = reader;
+  }
+
+  public boolean isEcho() {
+    return echo;
+  }
+
+  public void setEcho(boolean echo) {
+    this.echo = echo;
   }
 
   @Override
@@ -24,6 +34,11 @@ public class JlineReader extends Reader {
         return -1;
       }
       currentLine = line + "\n";
+
+      if(echo) {
+        System.out.print(currentLine);
+      }
+
       reader.setPrompt("+ ");
       pos = 0;
     }

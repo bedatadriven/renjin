@@ -28,14 +28,25 @@ import com.google.common.base.Strings;
  * reading lines
  */
 public class JlineRepl {
-  
+
+  /**
+   * Echo lines to standard out.
+   */
+  private boolean echo;
+
+  /**
+   * Whether to abort evaluation if an error is encountered
+   */
+  private boolean stopOnError;
+
   public static void main(String[] args) throws Exception {
-    new JlineRepl(SessionBuilder.buildDefault());    
+    JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
+    repl.run();
   }
   
   private Context topLevelContext;
   private ConsoleReader reader;
-  
+
   public JlineRepl(Session session) throws Exception {
     
     if(Strings.nullToEmpty(System.getProperty("os.name")).startsWith("Windows")) {
@@ -45,35 +56,69 @@ public class JlineRepl {
     } else {
       reader = new ConsoleReader();
     }
-    
-    reader.getTerminal().init();
 
     session.setSessionController(new JlineSessionController(reader.getTerminal()));
     this.topLevelContext = session.getTopLevelContext();
-       
+
+  }
+
+  public JlineRepl(Session session, ConsoleReader reader) throws IOException {
+    session.setSessionController(new JlineSessionController(reader.getTerminal()));
+    this.topLevelContext = session.getTopLevelContext();
+    this.reader = reader;
+  }
+
+
+  public void setEcho(boolean echo) {
+    this.echo = echo;
+  }
+
+  public boolean isEcho() {
+    return echo;
+  }
+
+  public boolean isStopOnError() {
+    return stopOnError;
+  }
+
+  public void setStopOnError(boolean stopOnError) {
+    this.stopOnError = stopOnError;
+  }
+
+  public void run() throws Exception {
+
+    reader.getTerminal().init();
     try {
       while(readExpression()) { }
-      
+
     } finally {
       reader.getTerminal().restore();
     }
   }
 
 
-  private boolean readExpression() throws IOException {
-    
+  private boolean readExpression() throws Exception {
+
     reader.setPrompt("> ");
-    
+
     ParseOptions options = new ParseOptions();
     ParseState parseState = new ParseState();
-    RLexer lexer = new RLexer(options, parseState, new JlineReader(reader));
+    JlineReader lineReader = new JlineReader(reader);
+    lineReader.setEcho(echo);
+
+    RLexer lexer = new RLexer(options, parseState, lineReader);
+    if(lexer.isEof()) {
+      return false;
+    }
+
     RParser parser = new RParser(options, parseState, lexer);
     while(!parser.parse()) {
       if(lexer.errorEncountered()) {
         reader.getOutput().append("Syntax error at " + lexer.getErrorLocation() + ": " + lexer.getErrorMessage() + "\n");
       }
     }
-    
+
+
     SEXP exp = parser.getResult();
     if(parser.getResultStatus() == StatusResult.EOF) {
       return true;
@@ -93,11 +138,17 @@ public class JlineRepl {
 
       printWarnings();
     } catch(EvalException e) {
+      if(stopOnError) {
+        throw e;
+      }
       reader.getOutput().append(e.getMessage());
       reader.getOutput().append("\n");
     } catch(QuitException e) {
       return false;
     } catch(Exception e) {
+      if(stopOnError) {
+        throw e;
+      }
       e.printStackTrace(new PrintWriter(reader.getOutput()));
     }
     return true;
@@ -115,4 +166,5 @@ public class JlineRepl {
   private void clearWarnings() {
     topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
+
 }

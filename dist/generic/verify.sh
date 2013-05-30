@@ -1,7 +1,7 @@
 #!/bin/sh
 
 FINAL_NAME=$1
-ZIP_FILE=$FINAL_NAME-renjin-standalone.zip
+ZIP_FILE=$FINAL_NAME.zip
 
 echo Verifying $ZIP_FILE
 

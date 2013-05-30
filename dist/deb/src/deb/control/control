@@ -1,9 +1,9 @@
-Package: renjin
-Version: [[version]]
+Package: Renjin
+Version: [[renjin.display.version]]
 Section: misc
 Priority: optional
 Architecture: all
 Depends: java6-runtime, java-wrappers
 Maintainer: Alex Bertram <alex@bedatadriven.com>
-Description: Zola command line
+Description: Renjin R Interpreter
 Distribution: development

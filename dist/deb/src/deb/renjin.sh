@@ -8,4 +8,6 @@ find_java_runtime openjdk sun
 
 export JAVA_CLASSPATH=$(echo /usr/share/renjin/lib/*.jar | tr ' ' ':')
 
+echo Java home = $JAVA_HOME
+
 run_java org.renjin.cli.Main "$@"

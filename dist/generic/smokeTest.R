@@ -1,5 +1,5 @@
 
-# Smoke test for generic build
+# Smoke test for generic distribution
 
 # ensure that stats package is loaded by default
 x <- rnorm(12)
@@ -12,5 +12,5 @@ invisible(qr(x))
 x <- 1:30
 y <- x*2
 m <- lm(y ~ x)
-stopifnot( (m$coefficients["x"]-2) < 0.0001 )
+stopifnot( abs(m$coefficients["x"]-2) < 0.0001 )
 

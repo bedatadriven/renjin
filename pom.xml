@@ -43,12 +43,14 @@
     <module>samples/swing-repl</module>
     <module>samples/appengine-repl</module>
     <module>dist/generic</module>
+    <module>dist/deb</module>
     <module>appl</module>
   </modules>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <renjin.version>${project.version}</renjin.version>
+    <renjin.display.version>${project.version}</renjin.display.version>
   </properties>
 
   <scm>
@@ -99,7 +101,7 @@
     </repository>
     <repository>
       <id>renjin</id>
-      <name>rejin package proxy</name>
+      <name>renjin package proxy</name>
       <url>http://repo.renjin.org/m2</url>
     </repository>
   </repositories>
@@ -264,11 +266,15 @@
   </dependencyManagement>
 
   <profiles>
+
     <profile>
-      <id>ubuntu</id>
-      <modules>
-        <module>dist/ubuntu</module>
-      </modules>
+      <id>ci</id>
+      <activation>
+        <property><name>BUILD_NUMBER</name></property>
+      </activation>
+      <properties>
+        <renjin.display.version>0.7-b${BUILD_NUMBER}</renjin.display.version>
+      </properties>
     </profile>
 
     <profile>

@@ -4,6 +4,7 @@ import org.renjin.gcc.gimple.expr.GimpleStringConstant;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.type.ImIndirectType;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
 import org.renjin.gcc.translate.type.ImType;
 
@@ -95,7 +96,7 @@ public class ImStringConstant extends AbstractImExpr {
     }
 
     @Override
-    public ImType type() {
+    public ImIndirectType type() {
       return ImPrimitiveType.CHAR.pointerType();
     }
 

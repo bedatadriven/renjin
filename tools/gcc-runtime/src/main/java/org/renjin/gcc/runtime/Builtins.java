@@ -41,5 +41,16 @@ public class Builtins {
     return Double.isNaN(x) || Double.isNaN(y);
   }
 
+  public static void _gfortran_set_args__(int argc, ObjectPtr argv) {
+    // TODO
+  }
+
+  public static void _gfortran_set_options__(int x, IntPtr y) {
+    // TODO
+  }
+
+  public static void _gfortran_stop_string__(int x, int y) {
+    // TODO
+  }
 
 }

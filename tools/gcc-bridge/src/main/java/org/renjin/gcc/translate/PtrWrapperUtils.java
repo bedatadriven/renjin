@@ -12,14 +12,13 @@ public class PtrWrapperUtils {
 
   public static JimpleExpr wrapPointer(FunctionContext context, ImIndirectExpr ptr) {
     ArrayRef ref = ptr.translateToArrayRef(context);
-    ImPrimitivePtrType ptrType = (ImPrimitivePtrType) ptr.type();
-    JimpleType wrapperType = ptrType.getWrapperJimpleType();
+    JimpleType wrapperType = ptr.type().getWrapperType();
 
     String tempWrapper = context.declareTemp(wrapperType);
     context.getBuilder().addStatement(tempWrapper + " = new " + wrapperType);
     context.getBuilder().addStatement(
         "specialinvoke " + tempWrapper + ".<" + wrapperType + ": void <init>("
-            + ptrType.getArrayType() + ", int)>(" + ref.getArrayExpr() + ", " + ref.getIndexExpr() + ")");
+            + ptr.type().getArrayType() + ", int)>(" + ref.getArrayExpr() + ", " + ref.getIndexExpr() + ")");
 
     return new JimpleExpr(tempWrapper);
   }

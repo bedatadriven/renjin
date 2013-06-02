@@ -104,27 +104,18 @@ public class TranslationContext {
       return funPtrTable.resolveFunctionType((GimpleFunctionType) type);
 
     } else if (type instanceof GimpleIndirectType) {
-      GimpleType baseType = type.getBaseType();
+      return resolveType(type.getBaseType()).pointerType();
 
-      // treat pointers to an array as simply pointers to the underlying type
-      if(baseType instanceof GimpleArrayType) {
-        baseType = ((GimpleArrayType) baseType).getComponentType();
-      }
-      return resolveType(baseType).pointerType();
+    } else if (type instanceof GimpleArrayType) {
+      GimpleArrayType arrayType = (GimpleArrayType) type;
+      return resolveType(arrayType.getComponentType()).arrayType(
+          arrayType.getLbound(), arrayType.getUbound());
     }
     throw new UnsupportedOperationException(type.toString());
   }
 
   public JimpleOutput getJimpleOutput() {
     return mainClass.getOutput();
-  }
-
-  public String getFunctionPointerInterfaceName(GimpleFunctionType type) {
-    return funPtrTable.getInterfaceName(type);
-  }
-
-  public ImFunctionType getFunctionPointerMethod(GimpleFunctionType type) {
-    return funPtrTable.methodRef(type);
   }
 
   public String getInvokerClass(MethodRef method) {

@@ -1,6 +1,7 @@
 package org.renjin.gcc.translate.expr;
 
 import org.renjin.gcc.jimple.JimpleExpr;
+import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
 import org.renjin.gcc.translate.type.PrimitiveType;
@@ -28,7 +29,7 @@ public abstract class AbstractImExpr implements ImExpr {
   }
 
   @Override
-  public JimpleExpr translateToObjectReference(FunctionContext context, String className) {
+  public JimpleExpr translateToObjectReference(FunctionContext context, JimpleType className) {
     throw new UnsupportedOperationException("Expression " + this + " (" + getClass().getSimpleName() + ") cannot " +
         "be expressed as an instance of " + className);
   }

@@ -1,4 +1,5 @@
 
+
       subroutine test(x,n)
       integer n
       double precision x(n,n)
@@ -20,3 +21,37 @@
       x = i*i
       return
       end
+
+      subroutine localarray(y)
+      double precision y
+      double precision x(10)
+      double precision sumarray
+      integer i
+
+      do 200 i=1,10
+        x(i) = i*2
+  200 continue
+
+      y = sumarray(x, 10)
+
+      return
+      end
+
+
+      double precision function sumarray(x, n)
+      integer n
+      double precision x(n)
+      double precision y
+      integer i
+
+      y = 0
+
+      do 210 i=1,n
+        y = y + x(i)
+  210 continue
+
+      sumarray = y
+
+      return
+      end
+

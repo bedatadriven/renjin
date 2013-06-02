@@ -5,6 +5,7 @@ import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.jimple.RealJimpleType;
 import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.type.ImIndirectType;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
 
 public class ImWrappedPtrExpr extends AbstractImExpr implements ImIndirectExpr {
@@ -28,6 +29,7 @@ public class ImWrappedPtrExpr extends AbstractImExpr implements ImIndirectExpr {
     return new ArrayRef(backingArray(), backingArrayIndex());
   }
 
+
   private JimpleExpr backingArray() {
     return new JimpleExpr(expr + ".<" + wrapperType + ": " + arrayType + " array>");
   }
@@ -37,7 +39,7 @@ public class ImWrappedPtrExpr extends AbstractImExpr implements ImIndirectExpr {
   }
 
   @Override
-  public ImPrimitiveType type() {
+  public ImIndirectType type() {
     throw new UnsupportedOperationException();
   }
 }

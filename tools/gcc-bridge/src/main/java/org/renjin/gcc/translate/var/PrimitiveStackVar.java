@@ -26,6 +26,9 @@ public class PrimitiveStackVar extends AbstractImExpr implements Variable, Primi
     this.type = type;
 
     context.getBuilder().addVarDecl(type.getPrimitiveClass(), jimpleName);
+
+    // we need to initialize otherwise jimple goes crazy
+    context.getBuilder().addAssignment(jimpleName, type.literalExpr(0));
   }
 
   @Override

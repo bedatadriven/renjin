@@ -12,6 +12,7 @@ import org.renjin.primitives.Primitives.Entry;
 import javax.tools.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -147,7 +148,14 @@ public class WrapperGenerator2 {
     DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
     StandardJavaFileManager jfm = compiler.getStandardFileManager(diagnostics, null, null);
     jfm.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singleton(outputDir));
-    JavaCompiler.CompilationTask task = compiler.getTask(null, jfm, diagnostics, Lists.<String>newArrayList("-g"), null, compilationUnits);
+    JavaCompiler.CompilationTask task = compiler.getTask(
+        null, // Writer out
+        jfm,
+        diagnostics,
+        Arrays.asList("-g", "-source", "1.6", "-target", "1.6"),
+        null, // Iterable<String> classes
+        compilationUnits);
+
     boolean success = task.call();
 
     if(!success) {

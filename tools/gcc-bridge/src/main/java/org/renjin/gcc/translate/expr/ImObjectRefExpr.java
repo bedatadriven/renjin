@@ -22,8 +22,8 @@ public class ImObjectRefExpr extends AbstractImExpr {
   }
 
   @Override
-  public JimpleExpr translateToObjectReference(FunctionContext context, String className) {
-    if(className.equals(type.toString())) {
+  public JimpleExpr translateToObjectReference(FunctionContext context, JimpleType className) {
+    if(className.equals(type)) {
       return expr;
     }
     return super.translateToObjectReference(context, className);

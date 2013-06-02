@@ -47,6 +47,7 @@ public class Comparison {
       }
       break;
     case INT:
+    case CHAR:
     case LONG:
     case BOOLEAN:
 

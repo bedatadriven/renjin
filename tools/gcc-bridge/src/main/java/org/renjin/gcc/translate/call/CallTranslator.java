@@ -72,7 +72,7 @@ public class CallTranslator {
   }
 
   private void writeCall(StringBuilder call, JimpleType returnType) {
-    if(returnType.equals(JimpleType.VOID)) {
+    if(returnType.equals(JimpleType.VOID) || this.call.getLhs() == null) {
       context.getBuilder().addStatement(call.toString());
     } else {
       ImLValue lvalue = (ImLValue) context.resolveExpr(this.call.getLhs());

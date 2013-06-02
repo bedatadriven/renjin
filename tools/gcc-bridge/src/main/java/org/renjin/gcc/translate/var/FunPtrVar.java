@@ -2,6 +2,7 @@ package org.renjin.gcc.translate.var;
 
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
+import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.expr.AbstractImExpr;
 import org.renjin.gcc.translate.expr.ImExpr;
@@ -49,10 +50,11 @@ public class FunPtrVar extends AbstractImExpr implements Variable, ImFunctionPtr
   }
 
   @Override
-  public JimpleExpr translateToObjectReference(FunctionContext context, String className) {
+  public JimpleExpr translateToObjectReference(FunctionContext context, JimpleType className) {
     if(className.equals(type.interfaceType().toString())) {
       return invokerReference(context);
     }
-    throw new UnsupportedOperationException(className);
+    throw new UnsupportedOperationException(className.toString()
+    );
   }
 }

@@ -47,6 +47,8 @@ public class PrimitivePtrVar extends AbstractImExpr implements Variable, ImIndir
       ArrayRef ptr = ((ImIndirectExpr) rhs).translateToArrayRef(context);
       context.getBuilder().addStatement(jimpleArrayName + " = " +  ptr.getArrayExpr());
       context.getBuilder().addStatement(jimpleOffsetName + " = " + ptr.getIndexExpr());
+    } else {
+      throw new UnsupportedOperationException(rhs.toString());
     }
   }
 
@@ -54,6 +56,7 @@ public class PrimitivePtrVar extends AbstractImExpr implements Variable, ImIndir
   public ArrayRef translateToArrayRef(FunctionContext context) {
     return new ArrayRef(jimpleArrayName, jimpleOffsetName);
   }
+
 
   @Override
   public ImExpr memref() {
@@ -92,7 +95,7 @@ public class PrimitivePtrVar extends AbstractImExpr implements Variable, ImIndir
     }
 
     @Override
-    public ImType type() {
+    public ImIndirectType type() {
       return PrimitivePtrVar.this.type();
     }
 

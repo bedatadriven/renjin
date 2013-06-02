@@ -1,6 +1,7 @@
 package org.renjin.gcc;
 
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
@@ -36,9 +37,12 @@ public abstract class AbstractGccTest {
   protected Class<?> compile(List<String> sources, String className) throws Exception {
 
     Gcc gcc = new Gcc();
-    gcc.extractPlugin();
+    if(Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
+      gcc.extractPlugin();
+    } else {
+      gcc.setPluginLibrary(new File(System.getProperty("gcc.bridge.plugin")));
+    }
     gcc.setDebug(true);
-    gcc.extractPlugin();
     gcc.setGimpleOutputDir(new File("target/gimple"));
 
     List<GimpleFunction> functions = Lists.newArrayList();

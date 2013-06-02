@@ -68,9 +68,16 @@ public class BasicTest extends AbstractGccTest {
     Class clazz = compile("lbound.f", "LBound");
 
     Method test = clazz.getMethod("test", DoublePtr.class, IntPtr.class);
-    DoublePtr x = new DoublePtr(0,0,0,0);
+    DoublePtr x = new DoublePtr( 0,0,0,0  );
     test.invoke(null, x, new IntPtr(4));
 
+    assertThat(x.array[0], equalTo(1d*3d));
+    assertThat(x.array[1], equalTo(2d*3d));
+    assertThat(x.array[2], equalTo(3d*3d));
+    assertThat(x.array[3], equalTo(4d*3d));
+
+
+    System.out.println(x);
   }
   
   @Test
@@ -175,15 +182,33 @@ public class BasicTest extends AbstractGccTest {
 
     Method method = clazz.getMethod("test", DoublePtr.class, IntPtr.class);
     
-    DoublePtr x = new DoublePtr(new double[9]);
-    
-    method.invoke(null, x, new IntPtr(3));
+    double[] x = new double[9];
+
+    method.invoke(null, new DoublePtr(x, 0), new IntPtr(3));
     
     System.out.println(x);
     
-    assertThat(x.array[0], equalTo(1d));
-    assertThat(x.array[4], equalTo(4d));
-    assertThat(x.array[8], equalTo(9d));
+    assertThat(x[0], equalTo(1d));
+    assertThat(x[4], equalTo(4d));
+    assertThat(x[8], equalTo(9d));
+
+    DoublePtr y = new DoublePtr(0);
+    method = clazz.getMethod("localarray", DoublePtr.class);
+    method.invoke(null, y);
+
+    assertThat(y.unwrap(), equalTo(110d));
+  }
+
+  @Test
+  public void arrayC() throws Exception {
+    Class clazz = compile("array.c", "ArrayCTest");
+
+    Method method = clazz.getMethod("test");
+
+    int result = (Integer) method.invoke(null);
+
+    assertThat(result, equalTo(342));
+
   }
 
   @Test

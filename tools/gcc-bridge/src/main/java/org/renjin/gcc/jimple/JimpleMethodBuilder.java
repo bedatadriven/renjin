@@ -134,4 +134,16 @@ public class JimpleMethodBuilder {
     addVarDecl(new RealJimpleType(clazz), name);
   }
 
+  public void addAssignment(JimpleExpr lhs, JimpleExpr rhs) {
+    addAssignment(lhs.toString(), rhs);
+  }
+
+  public void finish() {
+    // ensure there is a return statement
+    if(body.size() == 0) {
+      addStatement("return");
+    } else if(!body.get(body.size()-1).toString().startsWith("return")) {
+      addStatement("return");
+    }
+  }
 }

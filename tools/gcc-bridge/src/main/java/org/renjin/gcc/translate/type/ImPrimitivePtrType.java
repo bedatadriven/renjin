@@ -1,9 +1,5 @@
 package org.renjin.gcc.translate.type;
 
-import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.jimple.RealJimpleType;
 import org.renjin.gcc.runtime.CharPtr;
@@ -15,7 +11,7 @@ import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.var.PrimitivePtrVar;
 import org.renjin.gcc.translate.var.Variable;
 
-public class ImPrimitivePtrType implements ImType {
+public class ImPrimitivePtrType implements ImIndirectType {
 
   private ImPrimitiveType baseType;
 
@@ -25,31 +21,14 @@ public class ImPrimitivePtrType implements ImType {
 
   @Override
   public JimpleType returnType() {
-    return getWrapperJimpleType();
+    return baseType.getPointerWrapperType();
   }
 
   @Override
   public JimpleType paramType() {
-    return getWrapperJimpleType();
+    return baseType.getPointerWrapperType();
   }
 
-  public Class getWrapperClass() {
-    switch (baseType) {
-      case DOUBLE:
-        return DoublePtr.class;
-      case INT:
-        return IntPtr.class;
-      case LONG:
-        return LongPtr.class;
-      case CHAR:
-        return CharPtr.class;
-    }
-    throw new UnsupportedOperationException("not implemented: " + baseType);
-  }
-
-  public JimpleType getWrapperJimpleType() {
-    return new RealJimpleType(getWrapperClass());
-  }
 
   @Override
   public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage usage) {
@@ -58,7 +37,7 @@ public class ImPrimitivePtrType implements ImType {
 
   @Override
   public ImType pointerType() {
-    throw new UnsupportedOperationException("not implemented (Multiple levels of indirection not yet implemented");
+    return new ImPointerType(this);
   }
 
   public ImPrimitiveType getBaseType() {
@@ -69,7 +48,23 @@ public class ImPrimitivePtrType implements ImType {
     return baseType.getArrayClass();
   }
 
+  @Override
+  public JimpleType getWrapperType() {
+    return baseType.getPointerWrapperType();
+  }
+
+  @Override
   public JimpleType getArrayType() {
     return new RealJimpleType(getArrayClass());
+  }
+
+  @Override
+  public ImType arrayType(Integer lowerBound, Integer upperBound) {
+    throw new UnsupportedOperationException(this.toString());
+  }
+
+  @Override
+  public String toString() {
+    return baseType + "*";
   }
 }

@@ -20,4 +20,6 @@ public interface ImType {
       VarUsage varUsage);
 
   ImType pointerType();
+
+  ImType arrayType(Integer lowerBound, Integer upperBound);
 }

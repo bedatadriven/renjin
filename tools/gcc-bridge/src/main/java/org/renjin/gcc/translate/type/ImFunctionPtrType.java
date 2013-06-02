@@ -1,10 +1,7 @@
 package org.renjin.gcc.translate.type;
 
-import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.jimple.JimpleType;
-import org.renjin.gcc.jimple.SyntheticJimpleType;
 import org.renjin.gcc.translate.FunctionContext;
-import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.var.FunPtrVar;
 import org.renjin.gcc.translate.var.Variable;
@@ -34,6 +31,11 @@ public class ImFunctionPtrType implements ImType {
 
   @Override
   public ImType pointerType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ImType arrayType(Integer lowerBound, Integer upperBound) {
     throw new UnsupportedOperationException();
   }
 

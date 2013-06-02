@@ -1,6 +1,7 @@
 package org.renjin.gcc.translate.expr;
 
 import org.renjin.gcc.translate.FunctionContext;
+import org.renjin.gcc.translate.type.ImIndirectType;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
 import org.renjin.gcc.translate.type.ImType;
 
@@ -13,5 +14,5 @@ public interface ImIndirectExpr extends ImExpr {
   ArrayRef translateToArrayRef(FunctionContext context);
 
   @Override
-  ImType type();
+  ImIndirectType type();
 }

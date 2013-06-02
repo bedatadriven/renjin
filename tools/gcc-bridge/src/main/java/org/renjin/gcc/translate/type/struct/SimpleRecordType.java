@@ -65,6 +65,11 @@ public class SimpleRecordType extends ImRecordType {
   }
 
   @Override
+  public ImType arrayType(Integer lowerBound, Integer upperBound) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public JimpleType paramType() {
     return getJimpleType();
   }

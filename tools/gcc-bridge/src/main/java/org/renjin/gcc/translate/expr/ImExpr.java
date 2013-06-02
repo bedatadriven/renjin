@@ -1,6 +1,7 @@
 package org.renjin.gcc.translate.expr;
 
 import org.renjin.gcc.jimple.JimpleExpr;
+import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
 import org.renjin.gcc.translate.type.ImType;
@@ -35,7 +36,7 @@ public interface ImExpr {
    */
   JimpleExpr translateToPrimitive(FunctionContext context, ImPrimitiveType type);
 
-  JimpleExpr translateToObjectReference(FunctionContext context, String className);
+  JimpleExpr translateToObjectReference(FunctionContext context, JimpleType className);
 
   /**
    * 

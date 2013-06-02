@@ -16,7 +16,7 @@ public class Marshallers {
     } else if(type.isFunctionPointer()) {
       return new FunPtrMarshaller();
     } else {
-      return new ObjectMarshaller(type.toString());
+      return new ObjectMarshaller(type);
     }
   }
 

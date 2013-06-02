@@ -4,6 +4,7 @@ import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.jimple.RealJimpleType;
+import org.renjin.gcc.runtime.*;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.var.PrimitiveHeapVar;
@@ -19,6 +20,11 @@ public enum ImPrimitiveType implements ImType {
     @Override
     public Class getPrimitiveClass() {
       return double.class;
+    }
+
+    @Override
+    public Class getPointerWrapperClass() {
+      return DoublePtr.class;
     }
 
     @Override
@@ -38,6 +44,11 @@ public enum ImPrimitiveType implements ImType {
     }
 
     @Override
+    public Class getPointerWrapperClass() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public JimpleExpr literalExpr(Object value) {
       return JimpleExpr.floatConstant(((Number)value).floatValue());
     }
@@ -51,6 +62,11 @@ public enum ImPrimitiveType implements ImType {
     @Override
     public Class getPrimitiveClass() {
       return int.class;
+    }
+
+    @Override
+    public Class getPointerWrapperClass() {
+      return IntPtr.class;
     }
 
     @Override
@@ -70,6 +86,11 @@ public enum ImPrimitiveType implements ImType {
     }
 
     @Override
+    public Class getPointerWrapperClass() {
+      return LongPtr.class;
+    }
+
+    @Override
     public int getStorageSizeInBytes() {
       return 8;
     }
@@ -83,6 +104,11 @@ public enum ImPrimitiveType implements ImType {
     @Override
     public Class getPrimitiveClass() {
       return boolean.class;
+    }
+
+    @Override
+    public Class getPointerWrapperClass() {
+      return BooleanPtr.class;
     }
 
     @Override
@@ -106,8 +132,13 @@ public enum ImPrimitiveType implements ImType {
     }
 
     @Override
+    public Class getPointerWrapperClass() {
+      return CharPtr.class;
+    }
+
+    @Override
     public JimpleExpr literalExpr(Object value) {
-      return literalExpr( ((Number)value).intValue());
+      return JimpleExpr.integerConstant( ((Number)value).intValue());
     }
 
     @Override
@@ -132,13 +163,28 @@ public enum ImPrimitiveType implements ImType {
 
   public abstract Class getPrimitiveClass();
 
+  public abstract Class getPointerWrapperClass();
+
+  public JimpleType getPointerWrapperType() {
+    return new RealJimpleType(getPointerWrapperClass());
+  }
+
   public Class getArrayClass() {
     return Array.newInstance(getPrimitiveClass(), 0).getClass();
+  }
+
+  public JimpleType getArrayType() {
+    return new RealJimpleType(getArrayClass());
   }
 
   @Override
   public ImPrimitivePtrType pointerType() {
     return new ImPrimitivePtrType(this);
+  }
+
+  @Override
+  public ImType arrayType(Integer lowerBound, Integer upperBound) {
+    return new ImPrimitiveArrayType(this, lowerBound, upperBound);
   }
 
   public abstract JimpleExpr literalExpr(Object value);
@@ -188,7 +234,6 @@ public enum ImPrimitiveType implements ImType {
       return BOOLEAN;
     }
     throw new UnsupportedOperationException("type:" + type);
-
   }
 
   public static ImPrimitiveType valueOf(JimpleType type) {
@@ -209,6 +254,8 @@ public enum ImPrimitiveType implements ImType {
     }
     throw new UnsupportedOperationException(type.toString());
   }
+
+
 
   @Override
   public String toString() {

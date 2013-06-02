@@ -49,6 +49,8 @@ public class FunctionTranslator extends GimpleVisitor {
       context = new FunctionContext(translationContext, function, builder);
 
       function.visitIns(this);
+      builder.finish();
+
     } catch (Exception e) {
       throw new TranslationException("Exception translating function " + function.getName(), e);
     }

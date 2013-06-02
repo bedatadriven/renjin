@@ -14,8 +14,6 @@ import static org.junit.Assert.assertThat;
 
 public class Dqrdc2Test  extends AbstractGccTest {
 
-
-
   @Test
   public void dqrdc2() throws Exception {
     Class clazz = compile(Arrays.asList("dqrdc2.f", "ddot.f", "daxpy.f", "dscal.f", "dnrm2.f"), "Dqrdc2");

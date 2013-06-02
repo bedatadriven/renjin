@@ -122,6 +122,11 @@ public class ImFunctionType implements ImType {
     return new ImFunctionPtrType(this);
   }
 
+  @Override
+  public ImType arrayType(Integer lowerBound, Integer upperBound) {
+    throw new UnsupportedOperationException();
+  }
+
   public JimpleType interfaceType() {
     return new SyntheticJimpleType(FunPtrTable.PACKAGE_NAME + "." + interfaceName());
   }

@@ -30,10 +30,17 @@ public class PairListTest {
 
   @Test
   public void lang() {
-
     PairList list = PairList.Node.fromArray(new IntArrayVector(1), new IntArrayVector(2), new IntArrayVector(3));
-
     assertThat(list.length(), equalTo(3));
+  }
 
+  @Test
+  public void removeLastNode() {
+    PairList.Builder x = new PairList.Builder();
+    x.add("a", IntArrayVector.valueOf(1));
+    x.add("b", IntArrayVector.valueOf(2));
+    x.remove(1);
+
+    assertThat(x.length(), equalTo(1));
   }
 }

@@ -102,7 +102,7 @@ public interface PairList extends SEXP {
       this.tag = tag;
       this.value = value;
       if(nextNode instanceof Node) {
-       this.nextNode = (Node) nextNode;
+       this.nextNode = nextNode;
       }
     }
 
@@ -440,7 +440,7 @@ public interface PairList extends SEXP {
      */
     public static Iterable<Node> listNodes(PairList exp) {
       if(exp instanceof Node) {
-        return ((Node) exp).nodes();
+        return exp.nodes();
       } else {
         return Collections.emptySet();
       }
@@ -532,7 +532,7 @@ public interface PairList extends SEXP {
           i++;
         }
         Node removed = precedingNode.getNextNode();
-        precedingNode.setNextNode(removed.getNextNode());
+        precedingNode.nextNode = removed.nextNode;
         if(removed == tail) {
           tail = precedingNode;
         }         

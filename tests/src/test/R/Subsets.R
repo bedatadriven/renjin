@@ -29,3 +29,10 @@ test.DataFrameDollar <- function() {
     assertThat(df$y, equalTo(c(4,5,6)))
 }
 
+
+test.RemoveLastElementInPairList <- function() {
+    x <- pairlist(a=1,b=1)
+    x$b <- NULL
+
+    assertThat(length(x), equalTo(1))
+}

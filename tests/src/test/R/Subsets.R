@@ -20,3 +20,12 @@ test.RemoveFunctionFromFunctionCall <- function() {
 	assertThat(typeof(call), equalTo("pairlist"))
 	assertThat(length(call), equalTo(1))
 }
+
+test.DataFrameDollar <- function() {
+
+    df <- data.frame(x=1:3)
+    df$y <- 4:6
+
+    assertThat(df$y, equalTo(c(4,5,6)))
+}
+

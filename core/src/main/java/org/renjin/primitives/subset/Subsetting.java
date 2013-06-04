@@ -21,31 +21,13 @@
 
 package org.renjin.primitives.subset;
 
+import com.google.common.base.Strings;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.methods.MethodDispatch;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.DefaultValue;
-import org.renjin.primitives.annotations.Evaluate;
-import org.renjin.primitives.annotations.Generic;
-import org.renjin.primitives.annotations.NamedFlag;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.ListBuilder;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.primitives.annotations.*;
+import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
-
-import com.google.common.base.Strings;
 
 public class Subsetting {
 
@@ -54,7 +36,6 @@ public class Subsetting {
 
 
     
-  @Generic
   @Primitive("$")
   public static SEXP getElementByName(PairList list, @Evaluate(false) SEXP nameExp) {
     String name = asString(nameExp);
@@ -82,9 +63,6 @@ public class Subsetting {
     }
   }
 
-
-
-  @Generic
   @Primitive("$")
   public static SEXP getElementByName(Environment env, @Evaluate(false) SEXP nameExp) {
     String name = asString(nameExp);
@@ -110,7 +88,6 @@ public class Subsetting {
     }
   }
 
-  @Generic
   @Primitive("$")
   public static SEXP getElementByName(ListVector list,
       @Evaluate(false) SEXP nameExp) {
@@ -132,7 +109,6 @@ public class Subsetting {
     return matchCount == 1 ? match : Null.INSTANCE;
   }
 
-  @Generic
   @Primitive("$<-")
   public static SEXP setElementByName(ListVector list,
       @Evaluate(false) Symbol name, SEXP value) {
@@ -140,14 +116,12 @@ public class Subsetting {
 
   }
 
-  @Generic
   @Primitive("$<-")
   public static SEXP setElementByName(PairList.Node pairList,
       @Evaluate(false) Symbol name, SEXP value) {
     return setSingleElement(pairList.newCopyBuilder(), name.getPrintName(), value);
   }
 
-  @Generic
   @Primitive("$<-")
   public static SEXP setElementByName(Environment env,
       @Evaluate(false) Symbol name, SEXP value) {
@@ -171,13 +145,7 @@ public class Subsetting {
     }
     return getSubset(vector, arguments, drop);
   }
-//
-//  @Primitive(".subset")
-//  public static SEXP subset(PairList source, @ArgumentList ListVector arguments,
-//      @NamedFlag("drop") @DefaultValue(true) boolean drop) {
-//    return getSubset(source.toVector(), arguments, drop);
-//  }
-  
+
   @Generic
   @Primitive("[")
   public static SEXP getSubset(SEXP source, @ArgumentList ListVector subscripts,

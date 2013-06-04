@@ -222,11 +222,10 @@ public class Evaluation {
 
   @Primitive("do.call")
   public static SEXP doCall(@Current Context context, String what, ListVector arguments, Environment environment) {
-    SEXP function = environment
-            .findVariable(Symbol.get(what))
-            .force(context);
+    Function function = environment
+            .findFunction(context, Symbol.get(what));
 
-    return doCall(context, (Function) function, arguments, environment);
+    return doCall(context, function, arguments, environment);
   }
 
   @PassThrough

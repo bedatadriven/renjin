@@ -30,3 +30,10 @@ test.AttachList <- function() {
     attach(list(a=1,b=2,z=42))
     assertThat(z, equalTo(42))
 }
+
+test.DoCallFunctionLookup <- function() {
+
+    list <- 1:10
+    do.call("list", list(1,2,3))
+
+}

@@ -56,6 +56,18 @@ public class Match {
       incomparables = Null.INSTANCE;
     }
 
+    // We need to handle factors specially here -
+    // treat them as strings if one of the other arguments
+    // is a string
+    if(search instanceof StringVector || table instanceof StringVector) {
+      if(search.inherits("factor")) {
+        search = new FactorString(search);
+      }
+      if(table.inherits("factor")) {
+        table = new FactorString(table);
+      }
+    }
+
     int[] matches = new int[search.length()];
     for(int i=0;i!=search.length();++i) {
       if( incomparables.contains(search, i)) {
@@ -254,6 +266,37 @@ public class Match {
     }
     return indices.build();
   }
-  
+
+  private static class FactorString extends StringVector {
+
+    private final Vector factor;
+    private final Vector levels;
+
+    private FactorString(Vector factor) {
+      super(AttributeMap.EMPTY);
+      this.factor = factor;
+      this.levels = (Vector) factor.getAttribute(Symbols.LEVELS);
+    }
+
+    @Override
+    public int length() {
+      return factor.length();
+    }
+
+    @Override
+    protected StringVector cloneWithNewAttributes(AttributeMap attributes) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getElementAsString(int index) {
+      if(factor.isElementNA(index)) {
+        return StringVector.NA;
+      } else {
+        int level = factor.getElementAsInt(index);
+        return levels.getElementAsString(level-1);
+      }
+    }
+  }
 }
 

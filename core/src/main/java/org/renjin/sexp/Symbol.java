@@ -21,10 +21,10 @@
 
 package org.renjin.sexp;
 
-import java.util.HashMap;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+
+import java.util.HashMap;
 
 public final class Symbol extends AbstractSEXP {
 
@@ -204,8 +204,6 @@ public final class Symbol extends AbstractSEXP {
   
   /**
    * Maps this symbol to a single bit in 32-bit hash bitset.
-   * 
-   * @return
    */
   public int hashBit() {
     return hashBit;
@@ -259,5 +257,35 @@ public final class Symbol extends AbstractSEXP {
     } else {
       return getPrintName();
     }
+  }
+
+  /**
+   *
+   * @return true if this symbol is a variadic argument reference in the
+   * form ..n
+   */
+  public boolean isVarArgReference() {
+    if(printName.length() < 3) {
+      return false;
+    }
+    if(printName.charAt(0) != '.' ||
+       printName.charAt(1) != '.') {
+      return false;
+    }
+    for(int i=2;i!=printName.length();++i) {
+      if(!Character.isDigit(printName.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   *
+   * @return the 1-based variadic argument reference for symbols
+   * in the form ..n
+   */
+  public int getVarArgReferenceIndex() {
+    return Integer.parseInt(printName.substring(2));
   }
 }

@@ -82,7 +82,7 @@ public class Evaluation {
   }
 
   @Primitive
-  public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
+  public static void delayedAssign(String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
     assignEnv.setVariable(Symbol.get(x), Promise.repromise(evalEnv, expr));
   }
 
@@ -221,7 +221,7 @@ public class Evaluation {
   }
 
   @Primitive("do.call")
-  public static SEXP doCall(@Current Context context, @Current Environment rho, String what, ListVector arguments, Environment environment) {
+  public static SEXP doCall(@Current Context context, String what, ListVector arguments, Environment environment) {
     SEXP function = environment
             .findVariable(Symbol.get(what))
             .force(context);
@@ -326,6 +326,11 @@ public class Evaluation {
   
   @Primitive
   public static boolean missing(@Current Context context, @Current Environment rho, @Evaluate(false) Symbol symbol) {
+    
+    if(symbol.isVarArgReference()) {
+      return isVarArgMissing(rho, symbol.getVarArgReferenceIndex());
+    }
+    
     SEXP value = rho.findVariable(symbol);
     
     if(value == Symbol.UNBOUND_VALUE) {
@@ -349,6 +354,18 @@ public class Evaluation {
     return providedValue == Symbol.MISSING_ARG;
     //return false;
     
+  }
+
+  private static boolean isVarArgMissing(Environment rho, int varArgReferenceIndex) {
+    SEXP ellipses = rho.findVariable(Symbols.ELLIPSES);
+    if(ellipses == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("This function does not have a ... argument");
+    }
+    if(ellipses.length() < varArgReferenceIndex) {
+      return true;
+    }
+    SEXP value = ellipses.getElementAsSEXP(varArgReferenceIndex-1);
+    return value == Symbol.MISSING_ARG || isPromisedMissingArg(value);
   }
 
 

@@ -21,23 +21,14 @@
 
 package org.renjin.sexp;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
+import com.google.common.collect.UnmodifiableIterator;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.collect.UnmodifiableIterator;
+import java.util.*;
 
 /**
  * The Environment data type.
@@ -105,14 +96,14 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public static Environment createGlobalEnvironment() {
     Environment global = new Environment();
     global.name = GLOBAL_ENVIRONMENT_NAME;
-    global.baseEnvironment = createBaseEnvironment(global);
+    global.baseEnvironment = createBaseEnvironment();
     global.parent = global.baseEnvironment;
     global.frame = new HashFrame();
 
     return global;
   }
 
-  private static Environment createBaseEnvironment(Environment global) {
+  private static Environment createBaseEnvironment() {
     Environment base = new Environment();
     base.name = "base";
     base.baseEnvironment = base;
@@ -250,7 +241,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     SEXP value = frame.getVariable(symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       if(value instanceof Promise) {
-        value = ((Promise) value).force(context);
+        value = value.force(context);
       }
       if(predicate.apply(value)) {
         return value;
@@ -270,15 +261,28 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @return the bound value, or {@code Symbol.UNBOUND_VALUE} if not found
    */
   public SEXP findVariable(Symbol symbol) {
+    if(symbol.isVarArgReference()) {
+      return findVarArg(symbol.getVarArgReferenceIndex());
+    }
     SEXP value = frame.getVariable(symbol);
     if(value != Symbol.UNBOUND_VALUE) {
-    //  System.out.println("%%%HIT " + symbol.getPrintName());  
       return value;
     }
-  //  System.out.println("%%%MISS " + symbol.getPrintName());
     return parent.findVariable(symbol);
   }
-  
+
+  private SEXP findVarArg(int varArgReferenceIndex) {
+    SEXP ellipses = findVariable(Symbols.ELLIPSES);
+    if(ellipses == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("..%d used in an incorrect context, no ... to look in", varArgReferenceIndex);
+    }
+    PairList varArgs = (PairList) ellipses;
+    if(varArgs.length() < varArgReferenceIndex) {
+      throw new EvalException("The ... list does not contain %d items", varArgReferenceIndex);
+    }
+    return varArgs.getElementAsSEXP(varArgReferenceIndex - 1);
+  }
+
   public SEXP findVariableOrThrow(String name) {
     SEXP value = findVariable(Symbol.get(name));
     if(value == Symbol.UNBOUND_VALUE) {
@@ -308,7 +312,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   /**
    *
-   * @return
+   * @return true if this environment is locked. When locked, bindings cannot be added  or removed.
    */
   public boolean isLocked() {
     return locked;

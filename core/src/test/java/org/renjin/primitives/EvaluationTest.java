@@ -693,9 +693,19 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f <- function() eval(quote(x), envir=-2L) ");
     eval(" g <- function() { x<- 43; f() }");
     assertThat( eval("g()"), equalTo(c(43)));
-    
-   
-    
   }
+
+  @Test
+  public void varArgsRef() {
+    eval(" f <- function(...) ..1 ");
+    eval(" g <- function(...) missing(..1) ");
+
+    assertThat(eval("f(41,42,43)"), equalTo(c(41)));
+    assertThat(eval("g(1)"), equalTo(c(false)));
+    assertThat(eval("g()"), equalTo(c(true)));
+
+
+  }
+
 }
 

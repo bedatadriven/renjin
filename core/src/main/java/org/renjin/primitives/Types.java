@@ -20,11 +20,9 @@
  */
 package org.renjin.primitives;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.base.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
@@ -32,67 +30,21 @@ import org.renjin.eval.EvalException;
 import org.renjin.eval.Options;
 import org.renjin.jvminterop.ClassFrame;
 import org.renjin.jvminterop.ObjectFrame;
-import org.renjin.jvminterop.converters.BooleanArrayConverter;
-import org.renjin.jvminterop.converters.BooleanConverter;
-import org.renjin.jvminterop.converters.DoubleArrayConverter;
-import org.renjin.jvminterop.converters.DoubleConverter;
-import org.renjin.jvminterop.converters.IntegerArrayConverter;
-import org.renjin.jvminterop.converters.IntegerConverter;
-import org.renjin.jvminterop.converters.StringArrayConverter;
-import org.renjin.jvminterop.converters.StringConverter;
-import org.renjin.primitives.annotations.AllowNA;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Generic;
-import org.renjin.primitives.annotations.PassThrough;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
-import org.renjin.primitives.annotations.Visible;
+import org.renjin.jvminterop.converters.*;
+import org.renjin.primitives.annotations.*;
 import org.renjin.primitives.vector.ConstantDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.ExternalExp;
-import org.renjin.sexp.Frame;
+import org.renjin.sexp.*;
 import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalArrayVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.Raw;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.Recursive;
-import org.renjin.sexp.S4Object;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
 import org.renjin.sexp.Vector.Builder;
 import org.renjin.util.NamesBuilder;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Primitive type inspection and coercion functions
@@ -1288,13 +1240,17 @@ public class Types {
 
     newEnv.setAttribute(Symbols.NAME.getPrintName(), StringVector.valueOf(name));
 
-    // copy all values from the provided environment into the
+    // copy all values from the provided environment, list  into the
     // new environment
-    if (what instanceof Environment) {
-      Environment source = (Environment) what;
-      for (Symbol symbol : source.getSymbolNames()) {
-        newEnv.setVariable(symbol, source.getVariable(symbol));
+    if (what instanceof HasNamedValues) {
+      for(NamedValue namedValue : ((HasNamedValues)what).namedValues()) {
+        if(!namedValue.hasName()) {
+          throw new UnsupportedOperationException("all elements of a list must be named");
+        }
+        newEnv.setVariable(namedValue.getName(), namedValue.getValue());
       }
+    } else {
+      throw new EvalException("object of type '%s' cannot be attached", what.getTypeName());
     }
     return newEnv;
   }

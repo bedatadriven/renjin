@@ -326,7 +326,7 @@ public class Combine {
     for(int i=0;i!=arguments.length();++i) {
       Vector argument = EvalException.checkedCast(arguments.getElementAsSEXP(i));
       if(argument.length() != 0) {
-        bindArguments.add(new BindArgument(argument, true));
+        bindArguments.add(new BindArgument(null, argument, true));
       }
     }
 
@@ -415,10 +415,10 @@ public class Combine {
     }
     
     List<BindArgument> bindArguments = Lists.newArrayList();
-    for(SEXP arg : arguments) {
-      Vector argument = EvalException.checkedCast(arg);
+    for(NamedValue arg : arguments.namedValues()) {
+      Vector argument = EvalException.checkedCast(arg.getValue());
       if(argument.length() > 0) {
-        bindArguments.add(new BindArgument(argument, false));
+        bindArguments.add(new BindArgument(arg.getName(), argument, false));
       }
     }
 
@@ -493,6 +493,9 @@ public class Combine {
         for(int i=0; i!=argument.cols;++i) {
           colNames.add(argument.colNames.getElementAsString(i));
         }
+      } else if(argument.argName!=null && !argument.matrix) {
+        colNames.add(argument.argName);
+        hasColNames = true;
       } else {
         for(int i=0; i!=argument.cols;++i) {
           colNames.add("");
@@ -518,8 +521,10 @@ public class Combine {
      * True if the argument is an actual matrix
      */
     private final boolean matrix;
+    private String argName;
 
-    public BindArgument(Vector vector, boolean defaultToRows) {
+    public BindArgument(String argName, Vector vector, boolean defaultToRows) {
+      this.argName = argName;
       SEXP dim = vector.getAttributes().getDim();
       this.vector = vector;
       if(dim == Null.INSTANCE || dim.length() != 2) {
@@ -540,8 +545,8 @@ public class Combine {
         cols = dimVector.getElementAsInt(1);
         Vector dimNames = (Vector) this.vector.getAttribute(Symbols.DIMNAMES);
         if(dimNames instanceof ListVector && dimNames.length() == 2) {
-          rowNames = (AtomicVector) dimNames.getElementAsSEXP(0);
-          colNames = (AtomicVector) dimNames.getElementAsSEXP(1);
+          rowNames = dimNames.getElementAsSEXP(0);
+          colNames = dimNames.getElementAsSEXP(1);
         }
         
         matrix = true;

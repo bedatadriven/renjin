@@ -21,11 +21,11 @@
 
 package org.renjin;
 
-import java.io.IOException;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.sexp.Logical;
+
+import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -124,8 +124,15 @@ public class S3DispatchTest extends EvalTestCase {
     eval("`[.foo` <- function(...) NextMethod() ");
     
     assertThat( eval("x[9]"), equalTo(c_i(9)));
-    
-    
+  }
+
+  @Test
+  public void test() {
+    eval("`[.svyrep.design`<-function(x, i, j, drop=FALSE) missing(i) ");
+    eval(" x <- 1:3");
+    eval(" class(x) <- 'svyrep.design' ");
+    eval(" x[1,]");
+
   }
 
 }

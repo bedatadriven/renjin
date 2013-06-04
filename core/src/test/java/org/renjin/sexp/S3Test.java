@@ -24,6 +24,7 @@ package org.renjin.sexp;
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.primitives.S3;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -54,6 +55,33 @@ public class S3Test extends EvalTestCase {
     assertThat( eval( "inherits(x, \"a\", TRUE)"), equalTo( c_i(1) ));
     assertThat( eval( "inherits(x, c(\"a\", \"b\", \"c\"), TRUE) "), equalTo( c_i(1, 2, 0) ));
 
+  }
+
+  @Test
+  public void updateArguments() {
+    SEXP x = new IntArrayVector(1, 2, 3);
+    SEXP i = IntArrayVector.valueOf(1);
+    PairList actuals = PairList.Node.fromArray(x, i);
+    PairList formals = new PairList.Builder()
+        .add(Symbol.get("x"), Null.INSTANCE)
+        .add(Symbol.get("i"), Null.INSTANCE)
+        .add(Symbol.get("j"), Null.INSTANCE)
+        .add(Symbol.get("drop"), Null.INSTANCE)
+        .build();
+
+    Environment env = Environment.createGlobalEnvironment();
+    SEXP ni = new IntArrayVector(3);
+    env.setVariable("i", ni);
+    env.setVariable("x", x);
+
+    PairList updated = S3.updateArguments(actuals, formals, env);
+
+    assertThat(updated.length(), equalTo(2));
+    assertThat(updated.getElementAsSEXP(0), equalTo(x));
+    assertThat(updated.getElementAsSEXP(1), equalTo(ni));
+
+
+    System.out.println(updated);
   }
 
 }

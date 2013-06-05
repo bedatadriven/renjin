@@ -225,6 +225,10 @@ public class Evaluation {
     Function function = environment
             .findFunction(context, Symbol.get(what));
 
+    if(function == null) {
+      throw new EvalException("Could not find function '%s'", what);
+    }
+
     return doCall(context, function, arguments, environment);
   }
 

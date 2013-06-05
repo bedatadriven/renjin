@@ -1,0 +1,2159 @@
+{
+  "functions": [
+    {
+      "id": -1848,
+      "name": "localarray",
+      "parameters": [
+        {
+          "name": "y",
+          "id": -1850,
+          "type": {
+            "type": "reference_type",
+            "size": 32,
+            "baseType": {
+              "type": "real_type",
+              "size": 64,
+              "precision": 64
+            }
+          }
+        }
+      ],
+      "variableDeclarations": [
+        {
+          "id": -1857,
+          "type": {
+            "type": "boolean_type",
+            "size": 32
+          }
+        },
+        {
+          "name": "x",
+          "id": -1853,
+          "type": {
+            "type": "array_type",
+            "size": 640,
+            "componentType": {
+              "type": "real_type",
+              "size": 64,
+              "precision": 64
+            },
+            "lbound": 0,
+            "ubound": 9
+          }
+        },
+        {
+          "name": "i",
+          "id": -1851,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1866,
+          "type": {
+            "type": "real_type",
+            "size": 64,
+            "precision": 64
+          }
+        },
+        {
+          "id": -1864,
+          "type": {
+            "type": "real_type",
+            "size": 64,
+            "precision": 64
+          }
+        },
+        {
+          "id": -1863,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1862,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        }
+      ],
+      "basicBlocks": [
+        {
+          "index": 2,
+          "instructions": [
+            {
+              "type": "assign",
+              "operator": "integer_cst",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1851,
+                "name": "i"
+              },
+              "operands": [
+                {
+                  "type": "integer_cst",
+                  "value": 1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "conditional",
+              "operator": "le_expr",
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1851,
+                  "name": "i"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 10,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ],
+              "trueLabel": 3,
+              "falseLabel": 5
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "instructions": [
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1862
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1851,
+                  "name": "i"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": -1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mult_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1863
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1851,
+                  "name": "i"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 2,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "float_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1864
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1863
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "array_ref",
+                "array": {
+                  "type": "var_decl",
+                  "id": -1853,
+                  "name": "x"
+                },
+                "index": {
+                  "type": "var_decl",
+                  "id": -1862
+                }
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1864
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "eq_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1857
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1851,
+                  "name": "i"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 10,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1851,
+                "name": "i"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1851,
+                  "name": "i"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "conditional",
+              "operator": "ne_expr",
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1857
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 0,
+                  "type": {
+                    "type": "boolean_type",
+                    "size": 32
+                  }
+                }
+              ],
+              "trueLabel": 5,
+              "falseLabel": 4
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "instructions": [
+            {
+              "type": "goto",
+              "target": 3
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "instructions": [
+            {
+              "type": "call",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1866
+              },
+              "function": {
+                "type": "addr_expr",
+                "value": {
+                  "type": "function_decl",
+                  "id": -1806,
+                  "name": "sumarray"
+                }
+              },
+              "arguments": [
+                {
+                  "type": "addr_expr",
+                  "value": {
+                    "type": "var_decl",
+                    "id": -1853,
+                    "name": "x"
+                  }
+                },
+                {
+                  "type": "addr_expr",
+                  "value": {
+                    "type": "const_decl",
+                    "value": {
+                      "type": "integer_cst",
+                      "value": 10,
+                      "type": {
+                        "type": "integer_type",
+                        "size": 32,
+                        "precision": 32,
+                        "unsigned": false
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "mem_ref",
+                "pointer": {
+                  "type": "parm_decl",
+                  "id": -1850,
+                  "name": "y"
+                }
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1866
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "constructor",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1853,
+                "name": "x"
+              },
+              "operands": [
+                {
+                  "type": "constructor"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "instructions": [
+            {
+              "type": "return"
+            }
+          ]
+        }
+      ],
+      "returnType": {
+        "type": "void_type"
+      }
+    },
+    {
+      "id": -1829,
+      "name": "test",
+      "parameters": [
+        {
+          "name": "x",
+          "id": -1831,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "array_type",
+              "size": -1051336704,
+              "componentType": {
+                "type": "real_type",
+                "size": 64,
+                "precision": 64
+              },
+              "lbound": 0,
+              "ubound": -1052467456
+            }
+          }
+        },
+        {
+          "name": "n",
+          "id": -1832,
+          "type": {
+            "type": "reference_type",
+            "size": 32,
+            "baseType": {
+              "type": "integer_type",
+              "size": 32,
+              "precision": 32,
+              "unsigned": false
+            }
+          }
+        }
+      ],
+      "variableDeclarations": [
+        {
+          "id": -1844,
+          "type": {
+            "type": "boolean_type",
+            "size": 32
+          }
+        },
+        {
+          "id": -1840,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1847,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": true
+          }
+        },
+        {
+          "id": -1846,
+          "type": {
+            "type": "integer_type",
+            "size": 64,
+            "precision": 64,
+            "unsigned": true
+          }
+        },
+        {
+          "id": -1845,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "size.6",
+          "id": -1838,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "offset.5",
+          "id": -1837,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "stride.4",
+          "id": -1836,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "ubound.3",
+          "id": -1835,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "ubound.2",
+          "id": -1834,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "i",
+          "id": -1833,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "i.14",
+          "id": -1884,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "i.13",
+          "id": -1883,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "i.12",
+          "id": -1882,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1881,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "real_type",
+              "size": 64,
+              "precision": 64
+            }
+          }
+        },
+        {
+          "id": -1880,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "i.11",
+          "id": -1879,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1878,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1877,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "i.10",
+          "id": -1876,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "i.9",
+          "id": -1872,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "size.8",
+          "id": -1871,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": true
+          }
+        },
+        {
+          "id": -1870,
+          "type": {
+            "type": "integer_type",
+            "size": 64,
+            "precision": 64,
+            "unsigned": true
+          }
+        },
+        {
+          "name": "size.7",
+          "id": -1869,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": true
+          }
+        }
+      ],
+      "basicBlocks": [
+        {
+          "index": 2,
+          "instructions": [
+            {
+              "type": "assign",
+              "operator": "mem_ref",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1834,
+                "name": "ubound.2"
+              },
+              "operands": [
+                {
+                  "type": "mem_ref",
+                  "pointer": {
+                    "type": "parm_decl",
+                    "id": -1832,
+                    "name": "n"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1836,
+                "name": "stride.4"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1834,
+                  "name": "ubound.2"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "max_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1836,
+                "name": "stride.4"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1836,
+                  "name": "stride.4"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 0,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mem_ref",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1835,
+                "name": "ubound.3"
+              },
+              "operands": [
+                {
+                  "type": "mem_ref",
+                  "pointer": {
+                    "type": "parm_decl",
+                    "id": -1832,
+                    "name": "n"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mult_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1838,
+                "name": "size.6"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1836,
+                  "name": "stride.4"
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1835,
+                  "name": "ubound.3"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "max_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1838,
+                "name": "size.6"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1838,
+                  "name": "size.6"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 0,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1845
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1838,
+                  "name": "size.6"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": -1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "nop_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1869,
+                "name": "size.7"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1838,
+                  "name": "size.6"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "nop_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1870
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1869,
+                  "name": "size.7"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mult_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1846
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1870
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 64,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 64,
+                    "precision": 64,
+                    "unsigned": true
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "nop_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1871,
+                "name": "size.8"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1838,
+                  "name": "size.6"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mult_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1847
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1871,
+                  "name": "size.8"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 8,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": true
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "bit_not_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1837,
+                "name": "offset.5"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1836,
+                  "name": "stride.4"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mem_ref",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1840
+              },
+              "operands": [
+                {
+                  "type": "mem_ref",
+                  "pointer": {
+                    "type": "parm_decl",
+                    "id": -1832,
+                    "name": "n"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "integer_cst",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1833,
+                "name": "i"
+              },
+              "operands": [
+                {
+                  "type": "integer_cst",
+                  "value": 1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1872,
+                "name": "i.9"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1833,
+                  "name": "i"
+                }
+              ]
+            },
+            {
+              "type": "conditional",
+              "operator": "le_expr",
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1872,
+                  "name": "i.9"
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1840
+                }
+              ],
+              "trueLabel": 3,
+              "falseLabel": 5
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "instructions": [
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1876,
+                "name": "i.10"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1833,
+                  "name": "i"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mult_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1877
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1876,
+                  "name": "i.10"
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1836,
+                  "name": "stride.4"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1878
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1877
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1837,
+                  "name": "offset.5"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1879,
+                "name": "i.11"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1833,
+                  "name": "i"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1880
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1878
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1879,
+                  "name": "i.11"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "addr_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1881
+              },
+              "operands": [
+                {
+                  "type": "addr_expr",
+                  "value": {
+                    "type": "array_ref",
+                    "array": {
+                      "type": "mem_ref",
+                      "pointer": {
+                        "type": "parm_decl",
+                        "id": -1831,
+                        "name": "x"
+                      }
+                    },
+                    "index": {
+                      "type": "var_decl",
+                      "id": -1880
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "lhs": null,
+              "function": {
+                "type": "addr_expr",
+                "value": {
+                  "type": "function_decl",
+                  "id": -1825,
+                  "name": "square"
+                }
+              },
+              "arguments": [
+                {
+                  "type": "var_decl",
+                  "id": -1881
+                },
+                {
+                  "type": "addr_expr",
+                  "value": {
+                    "type": "var_decl",
+                    "id": -1833,
+                    "name": "i"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1882,
+                "name": "i.12"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1833,
+                  "name": "i"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "eq_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1844
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1882,
+                  "name": "i.12"
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1840
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1883,
+                "name": "i.13"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1833,
+                  "name": "i"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1884,
+                "name": "i.14"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1883,
+                  "name": "i.13"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1833,
+                "name": "i"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1884,
+                  "name": "i.14"
+                }
+              ]
+            },
+            {
+              "type": "conditional",
+              "operator": "ne_expr",
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1844
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 0,
+                  "type": {
+                    "type": "boolean_type",
+                    "size": 32
+                  }
+                }
+              ],
+              "trueLabel": 5,
+              "falseLabel": 4
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "instructions": [
+            {
+              "type": "goto",
+              "target": 3
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "instructions": [
+            {
+              "type": "assign",
+              "operator": "constructor",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1833,
+                "name": "i"
+              },
+              "operands": [
+                {
+                  "type": "constructor"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "instructions": [
+            {
+              "type": "return"
+            }
+          ]
+        }
+      ],
+      "returnType": {
+        "type": "void_type"
+      }
+    },
+    {
+      "id": -1825,
+      "name": "square",
+      "parameters": [
+        {
+          "name": "x",
+          "id": -1827,
+          "type": {
+            "type": "reference_type",
+            "size": 32,
+            "baseType": {
+              "type": "real_type",
+              "size": 64,
+              "precision": 64
+            }
+          }
+        },
+        {
+          "name": "i",
+          "id": -1828,
+          "type": {
+            "type": "reference_type",
+            "size": 32,
+            "baseType": {
+              "type": "integer_type",
+              "size": 32,
+              "precision": 32,
+              "unsigned": false
+            }
+          }
+        }
+      ],
+      "variableDeclarations": [
+        {
+          "id": -1891,
+          "type": {
+            "type": "real_type",
+            "size": 64,
+            "precision": 64
+          }
+        },
+        {
+          "id": -1890,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1889,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1888,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        }
+      ],
+      "basicBlocks": [
+        {
+          "index": 2,
+          "instructions": [
+            {
+              "type": "assign",
+              "operator": "mem_ref",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1888
+              },
+              "operands": [
+                {
+                  "type": "mem_ref",
+                  "pointer": {
+                    "type": "parm_decl",
+                    "id": -1828,
+                    "name": "i"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mem_ref",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1889
+              },
+              "operands": [
+                {
+                  "type": "mem_ref",
+                  "pointer": {
+                    "type": "parm_decl",
+                    "id": -1828,
+                    "name": "i"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mult_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1890
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1888
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1889
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "float_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1891
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1890
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "mem_ref",
+                "pointer": {
+                  "type": "parm_decl",
+                  "id": -1827,
+                  "name": "x"
+                }
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1891
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "instructions": [
+            {
+              "type": "return"
+            }
+          ]
+        }
+      ],
+      "returnType": {
+        "type": "void_type"
+      }
+    },
+    {
+      "id": -1806,
+      "name": "sumarray",
+      "parameters": [
+        {
+          "name": "x",
+          "id": -1809,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "array_type",
+              "size": -1052469376,
+              "componentType": {
+                "type": "real_type",
+                "size": 64,
+                "precision": 64
+              },
+              "lbound": 0,
+              "ubound": -1052469536
+            }
+          }
+        },
+        {
+          "name": "n",
+          "id": -1810,
+          "type": {
+            "type": "reference_type",
+            "size": 32,
+            "baseType": {
+              "type": "integer_type",
+              "size": 32,
+              "precision": 32,
+              "unsigned": false
+            }
+          }
+        }
+      ],
+      "variableDeclarations": [
+        {
+          "id": -1820,
+          "type": {
+            "type": "boolean_type",
+            "size": 32
+          }
+        },
+        {
+          "id": -1816,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1824,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": true
+          }
+        },
+        {
+          "id": -1823,
+          "type": {
+            "type": "integer_type",
+            "size": 64,
+            "precision": 64,
+            "unsigned": true
+          }
+        },
+        {
+          "id": -1822,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "__result_sumarray",
+          "id": -1821,
+          "type": {
+            "type": "real_type",
+            "size": 64,
+            "precision": 64
+          }
+        },
+        {
+          "name": "y",
+          "id": -1815,
+          "type": {
+            "type": "real_type",
+            "size": 64,
+            "precision": 64
+          }
+        },
+        {
+          "name": "size.1",
+          "id": -1813,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "ubound.0",
+          "id": -1812,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "i",
+          "id": -1811,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "id": -1902,
+          "type": {
+            "type": "real_type",
+            "size": 64,
+            "precision": 64
+          }
+        },
+        {
+          "id": -1900,
+          "type": {
+            "type": "real_type",
+            "size": 64,
+            "precision": 64
+          }
+        },
+        {
+          "id": -1899,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": false
+          }
+        },
+        {
+          "name": "size.16",
+          "id": -1895,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": true
+          }
+        },
+        {
+          "id": -1894,
+          "type": {
+            "type": "integer_type",
+            "size": 64,
+            "precision": 64,
+            "unsigned": true
+          }
+        },
+        {
+          "name": "size.15",
+          "id": -1893,
+          "type": {
+            "type": "integer_type",
+            "size": 32,
+            "precision": 32,
+            "unsigned": true
+          }
+        }
+      ],
+      "basicBlocks": [
+        {
+          "index": 2,
+          "instructions": [
+            {
+              "type": "assign",
+              "operator": "mem_ref",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1812,
+                "name": "ubound.0"
+              },
+              "operands": [
+                {
+                  "type": "mem_ref",
+                  "pointer": {
+                    "type": "parm_decl",
+                    "id": -1810,
+                    "name": "n"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1813,
+                "name": "size.1"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1812,
+                  "name": "ubound.0"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "max_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1813,
+                "name": "size.1"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1813,
+                  "name": "size.1"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 0,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1822
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1813,
+                  "name": "size.1"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": -1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "nop_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1893,
+                "name": "size.15"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1813,
+                  "name": "size.1"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "nop_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1894
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1893,
+                  "name": "size.15"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mult_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1823
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1894
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 64,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 64,
+                    "precision": 64,
+                    "unsigned": true
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "nop_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1895,
+                "name": "size.16"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1813,
+                  "name": "size.1"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mult_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1824
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1895,
+                  "name": "size.16"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 8,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": true
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "real_cst",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1815,
+                "name": "y"
+              },
+              "operands": [
+                {
+                  "type": "real_cst",
+                  "value": 0.0,
+                  "type": {
+                    "type": "real_type",
+                    "size": 64,
+                    "precision": 64
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "mem_ref",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1816
+              },
+              "operands": [
+                {
+                  "type": "mem_ref",
+                  "pointer": {
+                    "type": "parm_decl",
+                    "id": -1810,
+                    "name": "n"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "integer_cst",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1811,
+                "name": "i"
+              },
+              "operands": [
+                {
+                  "type": "integer_cst",
+                  "value": 1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "conditional",
+              "operator": "le_expr",
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1811,
+                  "name": "i"
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1816
+                }
+              ],
+              "trueLabel": 3,
+              "falseLabel": 5
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "instructions": [
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1899
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1811,
+                  "name": "i"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": -1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "array_ref",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1900
+              },
+              "operands": [
+                {
+                  "type": "array_ref",
+                  "array": {
+                    "type": "mem_ref",
+                    "pointer": {
+                      "type": "parm_decl",
+                      "id": -1809,
+                      "name": "x"
+                    }
+                  },
+                  "index": {
+                    "type": "var_decl",
+                    "id": -1899
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1815,
+                "name": "y"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1900
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1815,
+                  "name": "y"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "eq_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1820
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1811,
+                  "name": "i"
+                },
+                {
+                  "type": "var_decl",
+                  "id": -1816
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "plus_expr",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1811,
+                "name": "i"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1811,
+                  "name": "i"
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "precision": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "conditional",
+              "operator": "ne_expr",
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1820
+                },
+                {
+                  "type": "integer_cst",
+                  "value": 0,
+                  "type": {
+                    "type": "boolean_type",
+                    "size": 32
+                  }
+                }
+              ],
+              "trueLabel": 5,
+              "falseLabel": 4
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "instructions": [
+            {
+              "type": "goto",
+              "target": 3
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "instructions": [
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1821,
+                "name": "__result_sumarray"
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1815,
+                  "name": "y"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "var_decl",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1902
+              },
+              "operands": [
+                {
+                  "type": "var_decl",
+                  "id": -1821,
+                  "name": "__result_sumarray"
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "operator": "constructor",
+              "lhs": {
+                "type": "var_decl",
+                "id": -1821,
+                "name": "__result_sumarray"
+              },
+              "operands": [
+                {
+                  "type": "constructor"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "instructions": [
+            {
+              "type": "return",
+              "value": {
+                "type": "var_decl",
+                "id": -1902
+              }
+            }
+          ]
+        }
+      ],
+      "returnType": {
+        "type": "real_type",
+        "size": 64,
+        "precision": 64
+      }
+    }
+  ]
+}

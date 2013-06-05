@@ -1,20 +1,17 @@
 package org.renjin.gcc.translate;
 
-import java.util.List;
-
 import com.google.common.base.Preconditions;
-import org.renjin.gcc.gimple.ins.GimpleAssign;
+import com.google.common.collect.Lists;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.type.GimpleBooleanType;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
-import org.renjin.gcc.gimple.type.GimpleRealType;
+import org.renjin.gcc.gimple.ins.GimpleAssign;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.expr.ImLValue;
 import org.renjin.gcc.translate.expr.PrimitiveLValue;
-
-import com.google.common.collect.Lists;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
+
+import java.util.List;
 
 public class AssignmentTranslator {
   private FunctionContext context;
@@ -24,6 +21,11 @@ public class AssignmentTranslator {
   }
 
   public void translate(GimpleAssign assign) {
+
+    if(assign.getOperator() == GimpleOp.CONSTRUCTOR) {
+      return;
+    }
+
     ImExpr lhs = context.resolveExpr(assign.getLHS());
     List<ImExpr> operands = resolveOps(assign.getOperands());
 

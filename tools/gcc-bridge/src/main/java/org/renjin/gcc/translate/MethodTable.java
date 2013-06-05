@@ -1,18 +1,16 @@
 package org.renjin.gcc.translate;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.renjin.gcc.runtime.Builtins;
+import org.renjin.gcc.translate.call.JvmMethodRef;
+import org.renjin.gcc.translate.call.MethodRef;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
-
-import org.renjin.gcc.gimple.expr.GimpleExternal;
-import org.renjin.gcc.runtime.Builtins;
-import org.renjin.gcc.translate.call.JvmMethodRef;
-import org.renjin.gcc.translate.call.MethodRef;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
  * Maintains a list of methods/functions that are visible to the Gimple
@@ -105,7 +103,8 @@ public class MethodTable {
   public Field findGlobal(String name) {
     for (Class clazz : referenceClasses) {
       for (Field field : clazz.getDeclaredFields()) {
-        if (Modifier.isStatic(field.getModifiers()) && Modifier.isPublic(field.getModifiers())) {
+        if (Modifier.isStatic(field.getModifiers()) && Modifier.isPublic(field.getModifiers()) &&
+            field.getName().equals(name)) {
 
           return field;
 

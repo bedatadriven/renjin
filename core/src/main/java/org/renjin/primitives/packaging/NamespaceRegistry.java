@@ -1,26 +1,19 @@
 package org.renjin.primitives.packaging;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.annotations.SessionScoped;
 import org.renjin.primitives.packaging.NamespaceDef.S3Export;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Session-level registry of namespaces
@@ -104,7 +97,12 @@ public class NamespaceRegistry {
     setupImports(pkg.getNamespaceDef(), importsEnv);
 
     Set<Symbol> groups = Sets.newHashSet(Symbol.get("Ops"), Symbol.get("Math"), Symbol.get("Summary"));
-    
+
+    // import C/Fortran symbols
+    for(NamespaceDef.DynLib dynLib : namespace.getDef().getDynLibs()) {
+      setupForeignImports(namespace, dynLib, importsEnv);
+    }
+
     // we need to export S3 methods to the namespaces to which
     // the generic functions were defined
     for(S3Export export : namespace.getDef().getS3Exports()) {
@@ -158,7 +156,23 @@ public class NamespaceRegistry {
       }
     }
   }
-  
+
+  private void setupForeignImports(Namespace namespace, NamespaceDef.DynLib dynLib, Environment importsEnv) {
+
+    try {
+      Class clazz = namespace.getPackage().getClass(dynLib.getPackageName().getPrintName());
+
+      for(Method method : clazz.getMethods()) {
+        if(Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
+          importsEnv.setVariable(dynLib.getPrefix().getPrintName() + method.getName(),
+              new ExternalExp<Method>(method));
+        }
+      }
+    } catch(Exception e) {
+      throw new EvalException(e.getMessage(), e);
+    }
+  }
+
   private Environment getDefinitionEnv(SEXP genericFunction) {
     if(genericFunction instanceof Closure) {
       return ((Closure) genericFunction).getEnclosingEnvironment();
@@ -178,10 +192,7 @@ public class NamespaceRegistry {
   }
 
   /**
-   * Creates a new empty namespace 
-   * @param namespaceDef 
-   * @param namespaceName
-   * @return
+   * Creates a new empty namespace
    */
   public Namespace createNamespace(Package pkg, String localName) {
     // each namespace has environment which is the leaf in a hierarchy that

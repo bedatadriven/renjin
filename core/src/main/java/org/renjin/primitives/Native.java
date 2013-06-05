@@ -30,22 +30,31 @@ public class Native {
   @Primitive(".C")
   public static SEXP dotC(@Current Context context,
                           @Current Environment rho,
-                          String methodName,
+                          SEXP methodExp,
                           @ArgumentList ListVector callArguments,
                           @NamedFlag("PACKAGE") String packageName,
                           @NamedFlag("NAOK") boolean naOk,
                           @NamedFlag("DUP") boolean dup,
                           @NamedFlag("ENCODING") boolean encoding) {
 
-    if(DEBUG) {
-      dumpCall(methodName, packageName, callArguments);
-    }
+    Method method;
 
-    if(packageName.equals("base")) {
-      return delegateToJavaMethod(context, methodName, packageName, callArguments);
-    }
+    if(methodExp instanceof StringVector) {
+      String methodName = ((StringVector) methodExp).getElementAsString(0);
 
-    Method method = Iterables.getOnlyElement(findMethod(packageName, methodName));
+
+      if(packageName.equals("base")) {
+        return delegateToJavaMethod(context, methodName, packageName, callArguments);
+      }
+
+      method = Iterables.getOnlyElement(findMethod(packageName, methodName));
+
+    } else if(methodExp instanceof ExternalExp && ((ExternalExp) methodExp).getValue() instanceof Method) {
+      method = (Method) ((ExternalExp) methodExp).getValue();
+
+    } else {
+      throw new EvalException("Invalid method argument of type %s", methodExp.getTypeName());
+    }
 
     Object[] nativeArguments = new Object[method.getParameterTypes().length];
     for(int i=0;i!=nativeArguments.length;++i) {
@@ -56,7 +65,7 @@ public class Native {
         nativeArguments[i] = doublePtrFromVector(callArguments.get(i));
       } else {
          throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
-                 " to for C argument " +  type + " in call to " + methodName);
+                 " to for C argument " +  type + " in call to " + method.getName());
       }
     }
 
@@ -136,7 +145,7 @@ public class Native {
   @Primitive(".Fortran")
   public static SEXP dotFortran(@Current Context context,
                           @Current Environment rho,
-                          String methodName,
+                          SEXP methodExp,
                           @ArgumentList ListVector callArguments,
                           @NamedFlag("PACKAGE") String packageName,
                           @NamedFlag("CLASS") String className,
@@ -147,11 +156,22 @@ public class Native {
     // quick spike: fortran functions in the "base" package are all
     // defined in libappl, so point us to that class.
     // TODO: map package names to implementation classes
-    if("base".equals(packageName)) {
-      className = "org.renjin.appl.Appl";
+
+
+    Method method;
+    if(methodExp instanceof StringVector) {
+      if("base".equals(packageName)) {
+        className = "org.renjin.appl.Appl";
+      }
+      String methodName = ((StringVector) methodExp).getElementAsString(0);
+      method = findFortranMethod(className, methodName);
+
+    } else if(methodExp instanceof ExternalExp && ((ExternalExp) methodExp).getValue() instanceof Method) {
+      method = (Method) ((ExternalExp) methodExp).getValue();
+    } else {
+      throw new EvalException("Invalid argument type for method = %s", methodExp.getTypeName());
     }
 
-    Method method = findFortranMethod(className, methodName);
     Class<?>[] fortranTypes = method.getParameterTypes();
     if(fortranTypes.length != callArguments.length()) {
       throw new EvalException("Invalid number of args");
@@ -183,7 +203,7 @@ public class Native {
     try {
       method.invoke(null, fortranArgs);
     } catch (Exception e) {
-      throw new EvalException("Exception thrown while executing " + methodName, e);
+      throw new EvalException("Exception thrown while executing " + method.getName(), e);
     }
 
     return returnValues.build();
@@ -261,7 +281,7 @@ public class Native {
       packageClass = Graphics.class;
     } else {
       String packageClassName = "org.renjin." + packageName + "." +
-          packageName.substring(0, 1).toUpperCase() + packageName.substring(1);
+          packageName;
       try {
         packageClass = Class.forName(packageClassName);
       } catch (ClassNotFoundException e) {

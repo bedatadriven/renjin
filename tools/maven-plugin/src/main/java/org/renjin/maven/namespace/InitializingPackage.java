@@ -1,15 +1,14 @@
 package org.renjin.maven.namespace;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-
+import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
 import org.renjin.primitives.packaging.NamespaceDef;
 import org.renjin.primitives.packaging.Package;
 import org.renjin.sexp.NamedValue;
 
-import com.google.common.io.InputSupplier;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
 
 public class InitializingPackage extends Package {
 
@@ -25,6 +24,11 @@ public class InitializingPackage extends Package {
 
   @Override
   public InputSupplier<InputStream> getResource(String name) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class getClass(String name) {
     throw new UnsupportedOperationException();
   }
 

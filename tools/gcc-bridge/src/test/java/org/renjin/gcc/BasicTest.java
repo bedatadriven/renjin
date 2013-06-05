@@ -6,7 +6,6 @@ import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -226,7 +225,16 @@ public class BasicTest extends AbstractGccTest {
 
     Method magic_number = clazz.getMethod("magic_number");
     System.out.println(magic_number.invoke(null));
+  }
 
+  @Test
+  public void enums() throws Exception {
+    Class clazz = compile("enum.c", "EnumTest");
+
+    Method method = clazz.getMethod("test", int.class);
+
+    assertThat((Integer)method.invoke(null, 3), equalTo(1));
+    assertThat((Integer)method.invoke(null, -1), equalTo(0));
 
 
   }
@@ -237,6 +245,11 @@ public class BasicTest extends AbstractGccTest {
 
   }
 
+  @Test
+  public void kmeans() throws Exception {
+    Class clazz = compile("kmns.f", "KmeansFortran");
+
+  }
 
   @Test
   public void fpComparison() throws Exception {
@@ -277,6 +290,7 @@ public class BasicTest extends AbstractGccTest {
     assertThat(call(clazz, "truncate", 1.99), equalTo(1));
 
   }
+
 
 
 

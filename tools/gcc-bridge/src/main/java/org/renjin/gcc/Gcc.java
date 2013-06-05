@@ -1,6 +1,5 @@
 package org.renjin.gcc;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -13,9 +12,7 @@ import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -115,24 +112,27 @@ public class Gcc {
     command.addAll(arguments);
 
     Process gcc = new ProcessBuilder().command(command).directory(workingDirectory).redirectErrorStream(true).start();
-    
+
+    OutputCollector outputCollector = new OutputCollector(gcc);
+    Thread collectorThread = new Thread(outputCollector);
+    collectorThread.start();
+
     try {
       gcc.waitFor();
+      collectorThread.join();
     } catch (InterruptedException e) {
       throw new GccException("Compiler interrupted");
     }
 
-    String output = new String(ByteStreams.toByteArray(gcc.getInputStream()));
-
     if (gcc.exitValue() != 0) {
 
-      if(output.contains("error trying to exec 'f951': execvp: No such file or directory")) {
-        throw new GccException("Compilation failed: Fortran compiler is missing:\n" + output);
+      if(outputCollector.getOutput().contains("error trying to exec 'f951': execvp: No such file or directory")) {
+        throw new GccException("Compilation failed: Fortran compiler is missing:\n" + outputCollector.getOutput());
       }
 
-      throw new GccException("Compilation failed:\n" + output);
+      throw new GccException("Compilation failed:\n" + outputCollector.getOutput());
     }
-    return output;
+    return outputCollector.getOutput();
   }
 
   private void checkEnvironment() {
@@ -180,6 +180,29 @@ public class Gcc {
     } catch (IOException e) {
       throw new GccException("Failed to start GCC: " + e.getMessage() + ".\n" +
               "Make sure gcc 4.6.3 is installed." );
+    }
+  }
+
+  private static class OutputCollector implements Runnable {
+
+    private Process process;
+    private String output;
+
+    private OutputCollector(Process process) {
+      this.process = process;
+    }
+
+    @Override
+    public void run() {
+      try {
+        output = new String(ByteStreams.toByteArray(process.getInputStream()));
+      } catch (IOException e) {
+
+      }
+    }
+
+    private String getOutput() {
+      return output;
     }
   }
 

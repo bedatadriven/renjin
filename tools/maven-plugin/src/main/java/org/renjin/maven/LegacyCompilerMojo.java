@@ -1,15 +1,14 @@
 package org.renjin.maven;
 
-import java.io.File;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.renjin.legacy.LegacySourcesCompiler;
 
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.util.List;
 
 /**
  * Compiles legacy C/Fortran sources to a JVM class
@@ -59,20 +58,28 @@ public class LegacyCompilerMojo extends AbstractMojo {
    * @parameter expression="${project.build.directory}/jimple"
    * @required
    */
-  private File jimpleDirectory; 
-  
-  
-  
+  private File jimpleDirectory;
+
+  /**
+   * Directory to which the intermediate gimple files are written
+   * @parameter expression="${project.build.directory}/gimple"
+   * @required
+   */
+  private File gimpleDirectory;
+
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     LegacySourcesCompiler compiler = new LegacySourcesCompiler();
     compiler.addSources(sourceDir("c"));
+    compiler.addSources(sourceDir("fortran"));
     compiler.setVerbose(false);
     compiler.setPackageName(groupId + "." + artifactId);
-    compiler.setClassName(properCase(artifactId));
+    compiler.setClassName(artifactId);
     compiler.addClassPaths(pluginDependencies());
     compiler.setOutputDirectory(outputDirectory);
     compiler.setJimpleDirectory(jimpleDirectory);
+    compiler.setGimpleDirectory(gimpleDirectory);
     
     try {
       compiler.compile();
@@ -94,8 +101,5 @@ public class LegacyCompilerMojo extends AbstractMojo {
     return paths;
   }
 
-  private String properCase(String id) {
-    return id.substring(0,1).toUpperCase() + id.substring(1);
-  }
 
 }

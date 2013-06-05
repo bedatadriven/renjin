@@ -1,18 +1,15 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.io.InputSupplier;
+import org.renjin.eval.Context;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
-
-import org.renjin.eval.Context;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-
-import com.google.common.io.InputSupplier;
 
 public abstract class Package {
 
@@ -49,4 +46,6 @@ public abstract class Package {
   public List<String> getDatasets() {
     return Collections.emptyList();
   }
+
+  public abstract Class getClass(String name);
 }

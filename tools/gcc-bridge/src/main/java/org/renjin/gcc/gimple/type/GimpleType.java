@@ -14,7 +14,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = GimpleBooleanType.class, name = "boolean_type"),
     @Type(value = GimpleFunctionType.class, name = "function_type"),
     @Type(value = GimpleRecordType.class, name = "record_type"),
-    @Type(value = GimpleVoidType.class, name = "void_type") })
+    @Type(value = GimpleVoidType.class, name = "void_type"),
+    @Type(value = GimpleEnumeralType.class, name = "enumeral_type")
+  })
 public interface GimpleType {
 
   boolean isPointerTo(Class<? extends GimpleType> clazz);

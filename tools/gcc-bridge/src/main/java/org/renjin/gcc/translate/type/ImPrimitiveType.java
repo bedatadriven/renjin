@@ -1,6 +1,9 @@
 package org.renjin.gcc.translate.type;
 
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimpleBooleanType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimpleRealType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.jimple.RealJimpleType;
@@ -222,6 +225,9 @@ public enum ImPrimitiveType implements ImType {
       }
     } else if (type instanceof GimpleIntegerType) {
       int precision = ((GimpleIntegerType) type).getPrecision();
+      if(precision == 0) {
+        precision = ((GimpleIntegerType) type).getSize();
+      }
       switch(precision) {
         case 8:
           return CHAR;

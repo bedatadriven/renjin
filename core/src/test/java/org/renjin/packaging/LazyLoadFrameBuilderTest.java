@@ -1,10 +1,6 @@
 package org.renjin.packaging;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.File;
-
+import com.google.common.io.Files;
 import org.junit.Test;
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
@@ -12,7 +8,10 @@ import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Symbol;
 
-import com.google.common.io.Files;
+import java.io.File;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class LazyLoadFrameBuilderTest {
 
@@ -44,6 +43,10 @@ public class LazyLoadFrameBuilderTest {
   }
   
   private static class TestPackage extends org.renjin.primitives.packaging.Package {
-   
+
+    @Override
+    public Class getClass(String name) {
+      throw new UnsupportedOperationException();
+    }
   }
 }

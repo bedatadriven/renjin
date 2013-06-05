@@ -1,11 +1,7 @@
 package org.renjin.gcc;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -16,8 +12,11 @@ import org.renjin.gcc.translate.FunctionTranslator;
 import org.renjin.gcc.translate.MethodTable;
 import org.renjin.gcc.translate.TranslationContext;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Compiles a set of Gimple functions to jvm class file
@@ -26,6 +25,8 @@ import com.google.common.collect.Lists;
 public class GimpleCompiler  {
 
   private File jimpleOutputDirectory;
+
+  private File gimpleOutputDirectory;
 
   private File outputDirectory;
   
@@ -47,6 +48,10 @@ public class GimpleCompiler  {
 
   public void setJimpleOutputDirectory(File directory) {
     this.jimpleOutputDirectory = directory;
+  }
+
+  public void setGimpleOutputDirectory(File directory) {
+    this.gimpleOutputDirectory = directory;
   }
 
   public void setOutputDirectory(File directory) {
@@ -140,6 +145,7 @@ public class GimpleCompiler  {
   public void compileSources(List<File> sources) throws Exception {
 
     Gcc gcc = new Gcc();
+    gcc.setGimpleOutputDir(gimpleOutputDirectory);
     List<GimpleFunction> functions = Lists.newArrayList();
 
     for (File source : sources) {

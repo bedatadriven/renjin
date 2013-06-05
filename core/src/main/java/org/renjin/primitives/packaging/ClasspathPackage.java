@@ -1,11 +1,12 @@
 package org.renjin.primitives.packaging;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
+import org.renjin.eval.EvalException;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Provides access to a Renjin package that 
@@ -31,6 +32,15 @@ public class ClasspathPackage extends FileBasedPackage {
     String url = resourceUrl(name);
     return Resources.newInputStreamSupplier(
         Resources.getResource(url));
+  }
+
+  @Override
+  public Class getClass(String name) {
+    try {
+      return Class.forName(groupId + "." + artifactId + "." + name);
+    } catch (ClassNotFoundException e) {
+      throw new EvalException(e.getMessage(), e);
+    }
   }
 
   private String resourceUrl(String name) {

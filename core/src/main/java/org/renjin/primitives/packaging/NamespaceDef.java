@@ -1,5 +1,13 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.io.Closeables;
+import com.google.common.io.InputSupplier;
+import org.renjin.eval.EvalException;
+import org.renjin.parser.RParser;
+import org.renjin.sexp.*;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -7,20 +15,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.renjin.parser.RParser;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.io.Closeables;
-import com.google.common.io.InputSupplier;
-
 public class NamespaceDef {
+
+  public List<DynLib> getDynLibs() {
+    return dynLibs;
+  }
 
   public static class S3Export {
     private Symbol genericFunction;
@@ -53,6 +52,28 @@ public class NamespaceDef {
       return Symbol.get(genericFunction.getPrintName() + "." + className.getPrintName());
     }
   }
+
+  /**
+   * GNU-R-Style Dynamic library, which we map
+   * to a JVM class
+   */
+  public static class DynLib {
+    private Symbol packageName;
+    private Symbol prefix;
+
+    private DynLib(Symbol packageName, Symbol prefix) {
+      this.packageName = packageName;
+      this.prefix = prefix;
+    }
+
+    public Symbol getPackageName() {
+      return packageName;
+    }
+
+    public Symbol getPrefix() {
+      return prefix;
+    }
+  }
   
   public static class NamespaceImport {
     private Symbol namespace;
@@ -72,6 +93,7 @@ public class NamespaceDef {
   private List<NamespaceImport> imports = Lists.newArrayList();
   private Set<Symbol> exports = Sets.newHashSet();
   private List<S3Export> s3Exports = Lists.newArrayList();
+  private List<DynLib> dynLibs = Lists.newArrayList();
   
   public void parse(Reader reader) throws IOException {
     parse(RParser.parseAllSource(reader));
@@ -104,10 +126,16 @@ public class NamespaceDef {
         Symbol generic = toSymbol( call.getArgument(0) );
         Symbol klass = toSymbol( call.getArgument(1) );
         s3Exports.add(new S3Export(generic, klass));
+
+      } else if(call.getFunction() == Symbol.get("useDynLib")) {
+        Symbol packageName = toSymbol( call.getArgument(0) );
+        Symbol prefix = toSymbol( call.getArguments(), ".fixes");
+        dynLibs.add(new DynLib(packageName, prefix));
       }
     }
   }
-  
+
+
   private void addTo(PairList arguments, Collection<Symbol> list) {
     for(SEXP exp : arguments.values()) {
       list.add(toSymbol(exp));
@@ -122,6 +150,16 @@ public class NamespaceDef {
     } else {
       throw new IllegalArgumentException(exp.toString());
     }
+  }
+
+
+  private Symbol toSymbol(PairList arguments, String name) {
+    for(PairList.Node node : arguments.nodes()) {
+      if(node.hasTag() && node.getTag().getPrintName().equals(name)) {
+        return toSymbol(node.getValue());
+      }
+    }
+    throw new EvalException("no argument named '%s'", name);
   }
 
   public List<NamespaceImport> getImports() {

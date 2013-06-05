@@ -15,6 +15,10 @@ public class RenjinCApi {
 
   public static final double R_NaReal = DoubleVector.NA;
 
+  public static final double R_NaN = Double.NaN;
+
+  public static final double R_PosInf = Double.POSITIVE_INFINITY;
+
   public static void warning(CharPtr text) {
     java.lang.System.out.println(text.asString());
   }
@@ -62,6 +66,16 @@ public class RenjinCApi {
   public static void debugij(int i, int j) {
     System.out.println("i = " + i + ", j = " + j);
   }
+
+  public static void debugi(int i) {
+    System.out.println("i = " + i);
+  }
+
+  public static void debugiter(int i) {
+    System.out.println("iter = " + i);
+  }
+
+
 
   public static void debug(String str) {
     System.out.println(str);

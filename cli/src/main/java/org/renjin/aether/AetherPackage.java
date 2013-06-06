@@ -36,6 +36,15 @@ public class AetherPackage extends FileBasedPackage {
   }
 
   @Override
+  public Class getClass(String name) {
+    try {
+      return Class.forName(artifact.getGroupId() + "." + artifact.getArtifactId() + "." + name);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
   public boolean resourceExists(String name) {
     return entry(name) != null;
   }

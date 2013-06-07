@@ -58,13 +58,7 @@
       <groupId>org.renjin</groupId>
       <artifactId>gcc-bridge-plugin</artifactId>
       <version>${project.version}</version>
-      <classifier>linux-x86_64</classifier>
-    </dependency>
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>gcc-bridge-plugin</artifactId>
-      <version>${project.version}</version>
-      <classifier>linux-x86</classifier>
+      <classifier>${envClassifier}</classifier>
     </dependency>
   </dependencies>
 

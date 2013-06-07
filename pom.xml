@@ -59,14 +59,14 @@
 
   <distributionManagement>
     <repository>
-      <id>bedatadriven-oss</id>
-      <name>bedatadriven Open-Source releases</name>
-      <url>http://nexus.bedatadriven.com/content/repositories/oss-releases</url>
+      <id>renjin-release</id>
+      <name>Renjin Releases</name>
+      <url>http://nexus.bedatadriven.com/content/repositories/renjin-release/</url>
     </repository>
     <snapshotRepository>
-      <id>bedatadriven-oss</id>
-      <name>bedatadriven Open-Source snapshots</name>
-      <url>http://nexus.bedatadriven.com/content/repositories/oss-snapshots</url>
+      <id>renjin-latest</id>
+      <name>Renjin Latest Builds</name>
+      <url>http://nexus.bedatadriven.com/content/repositories/renjin-latest/</url>
     </snapshotRepository>
   </distributionManagement>
 

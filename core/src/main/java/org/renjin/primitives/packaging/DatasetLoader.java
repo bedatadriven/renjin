@@ -51,7 +51,10 @@ public class DatasetLoader {
       return new GZIPInputStream(pushbackIn);
   
     } else if(b1 == 0xFD && b2 == '7') {
-      return new XZInputStream(pushbackIn);  
+      // See http://tukaani.org/xz/xz-javadoc/org/tukaani/xz/XZInputStream.html
+      // Set a memory limit of 64mb, if this is not sufficient, it will throw
+      // an exception rather than an OutOfMemoryError, which will terminate the JVM
+      return new XZInputStream(pushbackIn, 64 * 1024 * 1024);
     }
     return in;
   }

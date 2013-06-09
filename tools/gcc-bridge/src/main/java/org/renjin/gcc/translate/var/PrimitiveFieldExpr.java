@@ -1,5 +1,6 @@
 package org.renjin.gcc.translate.var;
 
+import com.google.common.base.Preconditions;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.jimple.RealJimpleType;
@@ -16,10 +17,10 @@ import java.lang.reflect.Modifier;
  *
  */
 public class PrimitiveFieldExpr extends AbstractImExpr implements ImLValue {
-  private String instanceName;
-  private JimpleType declaringClass;
-  private String member;
-  private ImPrimitiveType memberType;
+  private final String instanceName;
+  private final JimpleType declaringClass;
+  private final String member;
+  private final ImPrimitiveType memberType;
 
   public PrimitiveFieldExpr(String instanceName, JimpleType declaringClass,
                             String member, ImPrimitiveType memberType) {
@@ -27,15 +28,21 @@ public class PrimitiveFieldExpr extends AbstractImExpr implements ImLValue {
     this.declaringClass = declaringClass;
     this.member = member;
     this.memberType = memberType;
+
+    Preconditions.checkNotNull("memberType", this.memberType);
   }
 
   public PrimitiveFieldExpr(Field field) {
     if(!Modifier.isStatic(field.getModifiers())) {
       throw new UnsupportedOperationException("field is not static, but no instance name provided");
     }
+    this.instanceName = null;
     this.declaringClass =  new RealJimpleType(field.getDeclaringClass());
     this.member = field.getName();
     this.memberType = ImPrimitiveType.valueOf(field.getType());
+
+    Preconditions.checkNotNull("memberType", memberType);
+
   }
 
   @Override
@@ -67,5 +74,10 @@ public class PrimitiveFieldExpr extends AbstractImExpr implements ImLValue {
       lhs = instanceName + "." + fieldSignature();
     }
     context.getBuilder().addAssignment(lhs, rhsExpr);
+  }
+
+  @Override
+  public String toString() {
+    return instanceName + "." + member;
   }
 }

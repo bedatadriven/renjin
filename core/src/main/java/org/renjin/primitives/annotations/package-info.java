@@ -1,5 +1,5 @@
 /**
- * Annotations used to describe primitive implementions and 
- * generate 
+ * Annotations used to describe primitive implementations and
+ * guide generation of R language wrappers.
  */
 package org.renjin.primitives.annotations;

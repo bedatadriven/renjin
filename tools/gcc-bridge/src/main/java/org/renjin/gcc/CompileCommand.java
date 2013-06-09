@@ -55,10 +55,9 @@ public class CompileCommand implements Runnable {
   @Override
   public void run() {
 
-    List<GimpleFunction> functions = Lists.newArrayList();
+    List<GimpleCompilationUnit> units = compileToGimple();
 
-    compileToGimple(functions);
-    if(functions.isEmpty()) {
+    if(units.isEmpty()) {
       System.err.println("Nothing to compile");
       return;
     }
@@ -85,13 +84,16 @@ public class CompileCommand implements Runnable {
     }
 
     try {
-      compiler.compile(functions);
+      compiler.compile(units);
     } catch (Exception e) {
       throw new RuntimeException("Failed to translate or compile gimple", e);
     }
   }
 
-  private void compileToGimple(List<GimpleFunction> functions) {
+  private List<GimpleCompilationUnit> compileToGimple() {
+
+    List<GimpleCompilationUnit> units = Lists.newArrayList();
+
     try {
       Gcc gcc = new Gcc();
 
@@ -114,8 +116,7 @@ public class CompileCommand implements Runnable {
         if(verbose) {
           System.out.println("Compiling " + sourceFile + " to gimple...");
         }
-        GimpleCompilationUnit gimpleCompilationUnit = gcc.compileToGimple(new File(sourceFile));
-        functions.addAll(gimpleCompilationUnit.getFunctions());
+        units.add( gcc.compileToGimple(new File(sourceFile)) );
       }
 
       for(String dirName : directories) {
@@ -132,14 +133,12 @@ public class CompileCommand implements Runnable {
               if(verbose) {
                 System.out.println("Compiling " + file.getAbsolutePath() + " to gimple...");
               }
-              GimpleCompilationUnit gimpleCompilationUnit = gcc.compileToGimple(file);
-              functions.addAll(gimpleCompilationUnit.getFunctions());
+              units.add( gcc.compileToGimple(file) );
             }
           }
         }
 
       }
-
     } catch(GccException e) {
       System.err.println("GCC Compilation FAILED:");
       System.err.println(e.getMessage());
@@ -147,5 +146,7 @@ public class CompileCommand implements Runnable {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    return units;
+
   }
 }

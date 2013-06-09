@@ -1036,6 +1036,7 @@ public class Primitives {
     f("import", Jvmi.class, 0, 0, -1);
     f("jload", Jvmi.class, 0, 0, -1);
     f("library", Packages.class, 0,0,-1);
+    f("require", Packages.class, 0,0,-1);
   }
 
   private void add(SpecialFunction fn) {

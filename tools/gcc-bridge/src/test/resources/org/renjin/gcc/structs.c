@@ -6,8 +6,11 @@
 struct account {
    int years_open;
    int plan_type;
-};
 
+   // not supported yet, but make sure we don't
+   // loop infinitely in the mean time
+   struct account * parent;
+};
 
 double account_value(struct account *pa) {
   if(pa->plan_type == 2) {

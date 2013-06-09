@@ -138,7 +138,16 @@ public class FunctionCall extends PairList.Node {
   public static Builder newBuilder() {
     return new Builder();
   }
-  
+
+  public SEXP getNamedArgument(String name) {
+    for(PairList.Node node : getArguments().nodes()) {
+      if(node.hasTag() && node.getTag().getPrintName().equals(name)) {
+        return node.getValue();
+      }
+    }
+    return Null.INSTANCE;
+  }
+
   public static class Builder extends PairList.Builder {
 
     public Builder add(SEXP tag, SEXP s) {

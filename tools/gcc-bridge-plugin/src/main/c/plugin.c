@@ -44,6 +44,11 @@
 
 int plugin_is_GPL_compatible;
 
+#define MAX_RECORD_TYPES 1000
+
+tree record_types[MAX_RECORD_TYPES];
+int record_type_count = 0;
+
 FILE *json_f;
 
 int json_indent_level = 0;
@@ -249,19 +254,40 @@ static void dump_record_type(tree type) {
   TRACE("dump_record_type: entering\n");
   json_int_field("id", DEBUG_TEMP_UID (type));
   
- // if(TYPE_NAME(type) && IDENTIFIER_POINTER(TYPE_NAME(type))) {
-  //  TRACE("dump_record_type: printing name\n");
-  //  printf("id_p = %p\n", IDENTIFIER_POINTER(TYPE_NAME(type)));
-  //  json_string_field("name", IDENTIFIER_POINTER(TYPE_NAME(type)));
-  //    TRACE("dump_record_type: printed name\n");
- // }
-      
+  //if(DECL_NAME(type)) {
+  //  json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(type)));
+  //}
+  
+  // have we already encountered this record type?
+  int i;
+  for(i=0;i<record_type_count;++i) {
+    if(record_types[i] == type) {
+      return;
+    }
+  }
+  
+  // nope, add it to the list
+  if(record_type_count < MAX_RECORD_TYPES) {
+    record_types[record_type_count] = type;
+    record_type_count++;
+  } else {
+    // TODO: throw error here
+  }
+}
+
+static void dump_record_type_decl(tree type) {
+
+  json_start_object();
+  json_int_field("id", DEBUG_TEMP_UID (type));
+  
+  //if(DECL_NAME(type)) {
+  //  json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(type)));
+  //}
+  
   tree field =  TYPE_FIELDS(type);
   json_array_field("fields");
   while(field) {
-    TRACE("dump_record_type: field code: %s\n", tree_code_name[TREE_CODE(TREE_TYPE(field))]);
     json_start_object();
-    //json_string_field("code", tree_code_name[TREE_CODE(field)]);
     if(DECL_NAME(field)) {
       json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
     }
@@ -273,10 +299,8 @@ static void dump_record_type(tree type) {
     field = TREE_CHAIN(field);
   }
   json_end_array();
-  TRACE("dump_record_type: exiting\n");
-
+  json_end_object();
 }
-
 
 static void dump_type(tree type) {
   printf("dump_type: entering\n");
@@ -737,7 +761,15 @@ static void start_unit_callback (void *gcc_data, void *user_data)
 
 static void finish_unit_callback (void *gcc_data, void *user_data)
 {
+  int i;
   json_end_array();
+
+  json_array_field("recordTypes");
+  for(i=0;i<record_type_count;++i) {
+    dump_record_type_decl(record_types[i]);
+  }
+  json_end_array();
+
   json_end_object();
 }
 

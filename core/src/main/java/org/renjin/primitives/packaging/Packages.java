@@ -6,6 +6,7 @@ import org.renjin.eval.Context;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.Evaluate;
 import org.renjin.primitives.annotations.Primitive;
+import org.renjin.primitives.annotations.Visible;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.HashFrame;
 import org.renjin.sexp.PairList;
@@ -17,6 +18,7 @@ import org.renjin.sexp.Symbols;
 public class Packages {
 
   @Primitive
+  @Visible(false)
   public static void library(
       @Current Context context,
       @Current NamespaceRegistry namespaceRegistry, 
@@ -45,8 +47,18 @@ public class Packages {
         System.out.println(dataset + " is not a pairlist, ignoring");
       }
     }
-    
   }
-  
+
+  @Primitive
+  @Visible(false)
+  public static boolean require(@Current Context context,
+                                @Current NamespaceRegistry registry, @Evaluate(false) Symbol name) {
+    try {
+      library(context, registry, name);
+      return true;
+    } catch(Exception e) {
+      return false;
+    }
+  }
   
 }

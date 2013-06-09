@@ -80,17 +80,7 @@ public class Namespaces {
   public static SEXP getExportedNamespaceValue(@Current NamespaceRegistry registry, @Evaluate(false) Symbol namespace, @Evaluate(false) Symbol entry) {
     return registry.getNamespace(namespace).getExport(entry);  
   }
-  
-  @Primitive
-  public static boolean require(@Current NamespaceRegistry registry, @Evaluate(false) Symbol name) {
-    try {
-      registry.getNamespace(name);
-      return true;
-    } catch(Exception e) {
-      return false;
-    }
-  }
-  
+
   @Primitive
   public static SEXP getDataset(@Current NamespaceRegistry registry, String namespaceName, String datasetName) throws IOException {
     return registry.getNamespace(namespaceName).getPackage().loadDataset(datasetName);

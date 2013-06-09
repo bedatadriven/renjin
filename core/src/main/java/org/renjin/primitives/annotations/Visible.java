@@ -22,7 +22,7 @@
 package org.renjin.primitives.annotations;
 
 /**
- * Indicates how the global visiblity flag should 
+ * Indicates how the global visibility flag should
  * be set after the call to this function finishes.
  *
  */

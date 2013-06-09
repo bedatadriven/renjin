@@ -43,6 +43,7 @@ public class PrimitiveStackVar extends AbstractImExpr implements Variable, Primi
 
   @Override
   public void writeAssignment(FunctionContext context, ImExpr rhs) {
+
     PrimitiveAssignment.assign(context, this, rhs);
   }
 

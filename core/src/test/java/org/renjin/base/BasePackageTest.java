@@ -543,4 +543,5 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
     assertThat(eval("is.R()"), equalTo(c(true)));
   }
+
 }

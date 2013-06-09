@@ -2,6 +2,10 @@ package org.renjin.primitives.io.connections;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.StringVector;
+
+import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -26,6 +30,18 @@ public class ConnectionsTest extends EvalTestCase {
     
     eval("lines <- .Internal(readLines(conn, 2, TRUE, FALSE, 'UTF-8'))");
     assertThat(eval("length(lines)"), equalTo(c_i(2)));
+  }
+
+  @Test
+  public void readTextGz() throws IOException {
+
+    String path = getClass().getResource("/org/renjin/tobin.txt.gz").getFile();
+
+    IntVector connHandle = Connections.file(topLevelContext, path, "rt", false, "UTF-8", false);
+
+    assertThat(Connections.readChar(topLevelContext, connHandle, "durable".length(), false),
+        equalTo("durable"));
+
   }
  
   @Test

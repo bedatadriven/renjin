@@ -2,8 +2,11 @@ package org.renjin.gcc.translate;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
+import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.CallingConvention;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.ins.GimpleCall;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -25,16 +28,21 @@ import com.google.common.collect.Lists;
 public class TranslationContext {
   private JimpleClassBuilder mainClass;
   private MethodTable methodTable;
-  private List<GimpleFunction> functions;
+  private List<GimpleFunction> functions = Lists.newArrayList();
   private FunPtrTable funPtrTable;
   private RecordTypeTable recordTypeTable;
+  private Map<Integer, GimpleRecordTypeDef> recordTypes = Maps.newHashMap();
 
-  public TranslationContext(JimpleClassBuilder mainClass, MethodTable methodTable, List<GimpleFunction> functions) {
+  public TranslationContext(JimpleClassBuilder mainClass, MethodTable methodTable, List<GimpleCompilationUnit> units) {
     this.mainClass = mainClass;
     this.methodTable = methodTable;
-    this.functions = functions;
     this.funPtrTable = new FunPtrTable(this);
-    this.recordTypeTable = new RecordTypeTable(this);
+
+    for(GimpleCompilationUnit unit : units) {
+      functions.addAll(unit.getFunctions());
+    }
+
+    this.recordTypeTable = new RecordTypeTable(units, this);
   }
 
   public JimpleClassBuilder getMainClass() {

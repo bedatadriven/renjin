@@ -45,25 +45,23 @@ public abstract class AbstractGccTest {
     gcc.setDebug(true);
     gcc.setGimpleOutputDir(new File("target/gimple"));
 
-    List<GimpleFunction> functions = Lists.newArrayList();
+    List<GimpleCompilationUnit> units = Lists.newArrayList();
 
     for (String sourceName : sources) {
       File source = new File(getClass().getResource(sourceName).getFile());
-      GimpleCompilationUnit gimple = gcc.compileToGimple(source);
-      System.out.println(gimple);
+      GimpleCompilationUnit unit = gcc.compileToGimple(source);
 
       CallingConvention callingConvention = CallingConventions.fromFile(source);
-      for (GimpleFunction function : gimple.getFunctions()) {
+      for (GimpleFunction function : unit.getFunctions()) {
         function.setCallingConvention(callingConvention);
       }
-
-      functions.addAll(gimple.getFunctions());
+      units.add(unit);
     }
 
-    return compileGimple(className, functions);
+    return compileGimple(className, units);
   }
 
-  protected Class<?> compileGimple(String className, List<GimpleFunction> functions) throws Exception {
+  protected Class<?> compileGimple(String className, List<GimpleCompilationUnit> units) throws Exception {
 
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setJimpleOutputDirectory(new File("target/test-jimple"));
@@ -72,7 +70,7 @@ public abstract class AbstractGccTest {
     compiler.setClassName(className);
     compiler.setVerbose(true);
     compiler.getMethodTable().addReferenceClass(RStubs.class);
-    compiler.compile(functions);
+    compiler.compile(units);
 
     return Class.forName("org.renjin.gcc." + className);
   }

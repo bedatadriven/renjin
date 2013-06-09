@@ -81,24 +81,24 @@ public class LegacySourcesCompiler {
         return;
       }
       
-      List<GimpleFunction> functions = Lists.newArrayList();
+      List<GimpleCompilationUnit> units = Lists.newArrayList();
 
       Gcc gcc = new Gcc();
       gcc.extractPlugin();
       gcc.addIncludeDirectory(unpackIncludes());
 
       for(File sourceFile : sources) {
-        GimpleCompilationUnit gimple;
+        GimpleCompilationUnit unit;
         try {
-        gimple = gcc.compileToGimple(sourceFile);
+          unit = gcc.compileToGimple(sourceFile);
         } catch(Exception e) {
           throw new GccException("Error compiling " + sourceFile + "to gimple: " + e.getMessage(), e);
         }
 
         try {
-          functions.addAll(gimple.getFunctions());
+          units.add(unit);
         } catch(Exception e) {
-          throw new RuntimeException("Exception parsing gimple output of " + sourceFile, e);
+          throw new RuntimeException("Exception parsing unit output of " + sourceFile, e);
         }
       }
       
@@ -114,7 +114,7 @@ public class LegacySourcesCompiler {
       compiler.addSootClassPaths(classPaths);
       compiler.setVerbose(verbose);
       compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
-      compiler.compile(functions);
+      compiler.compile(units);
     }
   }
 

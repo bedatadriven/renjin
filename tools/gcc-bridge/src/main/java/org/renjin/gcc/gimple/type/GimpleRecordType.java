@@ -8,8 +8,7 @@ public class GimpleRecordType extends AbstractGimpleType {
   private String name;
   private int id;
   
-  private List<GimpleField> fields = Lists.newArrayList();
-    
+
   public int getId() {
     return id;
   }
@@ -26,12 +25,9 @@ public class GimpleRecordType extends AbstractGimpleType {
   } 
   
 
-  public List<GimpleField> getFields() {
-    return fields;
-  }
 
   @Override
   public String toString() {
-    return "struct " + name;
+    return "struct " + getName();
   }
 }

@@ -66,12 +66,12 @@ public class GimpleCompiler  {
     return methodTable;
   }
 
-  public void compile(List<GimpleFunction> functions) throws Exception {
+  public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
     File packageFolder = getPackageFolder();
     packageFolder.mkdirs();
 
-    JimpleOutput output = translate(functions);
+    JimpleOutput output = translate(units);
 
     output.write(jimpleOutputDirectory);
 
@@ -121,7 +121,7 @@ public class GimpleCompiler  {
     return paths.toString();
   }
 
-  protected JimpleOutput translate(List<GimpleFunction> functions) throws IOException {
+  protected JimpleOutput translate(List<GimpleCompilationUnit> units) throws IOException {
 
     JimpleOutput jimple = new JimpleOutput();
 
@@ -129,10 +129,12 @@ public class GimpleCompiler  {
     mainClass.setClassName(className);
     mainClass.setPackageName(packageName);
 
-    TranslationContext context = new TranslationContext(mainClass, methodTable, functions);
-    for (GimpleFunction function : functions) {
-      FunctionTranslator translator = new FunctionTranslator(context);
-      translator.translate(function);
+    TranslationContext context = new TranslationContext(mainClass, methodTable, units);
+    for(GimpleCompilationUnit unit : units) {
+      for (GimpleFunction function : unit.getFunctions()) {
+        FunctionTranslator translator = new FunctionTranslator(context);
+        translator.translate(function);
+      }
     }
 
     return jimple;
@@ -146,19 +148,19 @@ public class GimpleCompiler  {
 
     Gcc gcc = new Gcc();
     gcc.setGimpleOutputDir(gimpleOutputDirectory);
-    List<GimpleFunction> functions = Lists.newArrayList();
+    List<GimpleCompilationUnit> units = Lists.newArrayList();
 
     for (File source : sources) {
-      GimpleCompilationUnit gimple = gcc.compileToGimple(source);
+      GimpleCompilationUnit unit = gcc.compileToGimple(source);
 
       CallingConvention callingConvention = CallingConventions.fromFile(source);
-      for (GimpleFunction function : gimple.getFunctions()) {
+      for (GimpleFunction function : unit.getFunctions()) {
         function.setCallingConvention(callingConvention);
       }
 
-      functions.addAll(gimple.getFunctions());
+      units.add(unit);
     }
 
-    compile(functions);
+    compile(units);
   }
 }

@@ -10,6 +10,7 @@ import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -25,7 +26,7 @@ public class Gcc472Test extends Dqrdc2Test {
       fn.setCallingConvention(new F77CallingConvention());
     }
 
-    Class clazz = compileGimple("org.renjin.gcc.ArrayTestGcc472", unit.getFunctions());
+    Class clazz = compileGimple("org.renjin.gcc.ArrayTestGcc472", Arrays.asList(unit));
 
 
     Method method = clazz.getMethod("test", DoublePtr.class, IntPtr.class);

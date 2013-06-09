@@ -23,6 +23,10 @@ public class SimpleRecordVar extends AbstractImExpr implements Variable {
     this.recordType = struct;
     this.jimpleName = Jimple.id(gimpleName);
 
+    if(struct.getMemberCount() == 0) {
+      throw new AssertionError();
+    }
+
     context.getBuilder().addVarDecl(struct.getJimpleType(), jimpleName);
     context.getBuilder().addStatement(jimpleName + " = new " + struct.getJimpleType());
     context.getBuilder().addStatement(

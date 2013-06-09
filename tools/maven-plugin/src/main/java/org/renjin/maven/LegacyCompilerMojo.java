@@ -67,12 +67,24 @@ public class LegacyCompilerMojo extends AbstractMojo {
    */
   private File gimpleDirectory;
 
+  /**
+   * Directories in which to look for C/Fortran sources
+   * @parameter
+   */
+  private List<File> sourceDirectories;
+
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+
+    if(sourceDirectories == null || sourceDirectories.isEmpty()) {
+      sourceDirectories = Lists.newArrayList(sourceDir("c"), sourceDir("fortran"));
+    }
+
     LegacySourcesCompiler compiler = new LegacySourcesCompiler();
-    compiler.addSources(sourceDir("c"));
-    compiler.addSources(sourceDir("fortran"));
+    for(File sourceDir : sourceDirectories) {
+      compiler.addSources(sourceDir);
+    }
     compiler.setVerbose(false);
     compiler.setPackageName(groupId + "." + artifactId);
     compiler.setClassName(artifactId);
@@ -100,6 +112,4 @@ public class LegacyCompilerMojo extends AbstractMojo {
     }
     return paths;
   }
-
-
 }

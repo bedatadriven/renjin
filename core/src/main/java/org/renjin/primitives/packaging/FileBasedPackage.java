@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Properties;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.packaging.LazyLoadFrame;
+import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.PairList;
@@ -24,12 +26,12 @@ import com.google.common.io.Closeables;
  */
 public abstract class FileBasedPackage extends Package {
 
-  
+
   @Override
   public Iterable<NamedValue> loadSymbols(Context context) throws IOException {
     return LazyLoadFrame.load(context, getResource("environment"));
   }
-  
+
   public abstract boolean resourceExists(String name);
 
   @Override
@@ -42,7 +44,7 @@ public abstract class FileBasedPackage extends Package {
       throw new RuntimeException("IOException while parsing NAMESPACE file");
     }
   }
-  
+
   private Properties readDatasetIndex() throws IOException {
     Properties datasets = new Properties();
     if(resourceExists("datasets")) {
@@ -55,7 +57,7 @@ public abstract class FileBasedPackage extends Package {
     }
     return datasets;
   }
-  
+
   @Override
   public List<String> getDatasets() {
     try {
@@ -65,22 +67,18 @@ public abstract class FileBasedPackage extends Package {
       throw new RuntimeException(e);
     }
   }
-  
+
   @Override
   public PairList loadDataset(String datasetName) throws IOException {
-    Properties datasets = readDatasetIndex();
-    String resourceName = datasets.getProperty(datasetName);
-    if(Strings.isNullOrEmpty(resourceName)) {
-      return Null.INSTANCE;
-    } else {
-      return readDataset(resourceName);
-    }
-  }
-
-  private PairList readDataset(String resourceName) throws IOException {
-    InputStream in = getResource(resourceName).getInput();
+    InputStream in = getResource(datasetName).getInput();
     try {
-      return DatasetLoader.loadDataset(resourceName, in);
+      RDataReader reader = new RDataReader(in);
+      SEXP exp = reader.readFile();
+      if(exp instanceof PairList) {
+        return (PairList)exp;
+      } else {
+        throw new EvalException("expected pairlist from " + datasetName + ", got " + exp.getTypeName());
+      }
     } finally {
       Closeables.closeQuietly(in);
     }

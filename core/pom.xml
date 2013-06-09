@@ -64,11 +64,11 @@
         <version>2.0</version>
     </dependency>
 
-	<dependency>
-		<groupId>org.apache.commons</groupId>
-		<artifactId>commons-compress</artifactId>
-		<version>1.4.1</version>
-	</dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.4.1</version>
+    </dependency>
 
     <dependency>
       <groupId>joda-time</groupId>
@@ -297,8 +297,6 @@
             </lifecycleMappingMetadata>
           </configuration>
         </plugin>
-
-
       </plugins>
     </pluginManagement>
   </build>

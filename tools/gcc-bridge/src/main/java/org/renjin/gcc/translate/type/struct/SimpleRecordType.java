@@ -2,7 +2,7 @@ package org.renjin.gcc.translate.type.struct;
 
 import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.type.GimpleField;
-import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.jimple.*;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.TranslationContext;
@@ -20,37 +20,30 @@ import java.util.Map;
  */
 public class SimpleRecordType extends ImRecordType {
   private TranslationContext context;
-  private GimpleRecordType gimpleType;
+  private GimpleRecordTypeDef recordTypeDef;
   private String name;
   private JimpleClassBuilder recordClass;
 
   private Map<String, ImType> types = Maps.newHashMap();
 
-  public SimpleRecordType(TranslationContext context, GimpleRecordType recordType) {
+  public SimpleRecordType(TranslationContext context, GimpleRecordTypeDef recordType) {
     this.context = context;
-    gimpleType = recordType;
+    this.recordTypeDef = recordType;
     this.name = recordType.getName();
     this.recordClass = context.getJimpleOutput().newClass();
     this.recordClass.setPackageName(context.getMainClass().getPackageName());
     this.recordClass.setClassName(context.getMainClass().getClassName() + "$" + name);
+  }
 
-
-    for (GimpleField member : recordType.getFields()) {
+  public void resolveFields() {
+    for (GimpleField member : recordTypeDef.getFields()) {
       ImType type = context.resolveType(member.getType());
       types.put(member.getName(), type);
 
       JimpleFieldBuilder field = recordClass.newField();
       field.setName(member.getName());
-      field.setType(jimpleType(type));
+      field.setType(type.returnType()); // TODO: probably need a fieldType()
       field.setModifiers(JimpleModifiers.PUBLIC);
-    }
-  }
-
-  private JimpleType jimpleType(ImType type) {
-    if(type instanceof ImPrimitiveType) {
-      return ((ImPrimitiveType) type).asJimple();
-    } else {
-      throw new UnsupportedOperationException(type.toString());
     }
   }
 
@@ -61,7 +54,7 @@ public class SimpleRecordType extends ImRecordType {
 
   @Override
   public ImType pointerType() {
-    return new SimpleRecordPtrType(context, gimpleType);
+    return new SimpleRecordPtrType(context, this);
   }
 
   @Override
@@ -84,7 +77,15 @@ public class SimpleRecordType extends ImRecordType {
     return new SimpleRecordVar(functionContext, gimpleName, this);
   }
 
+  public int getMemberCount() {
+    return types.size();
+  }
+
   public ImPrimitiveType getMemberType(String member) {
-    return (ImPrimitiveType) types.get(member);
+    ImType type = types.get(member);
+    if(type == null) {
+      throw new IllegalArgumentException("no member named '" + member + "'");
+    }
+    return (ImPrimitiveType) type;
   }
 }

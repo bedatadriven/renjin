@@ -8,6 +8,8 @@ import org.renjin.eval.EvalException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PushbackInputStream;
+import java.util.zip.GZIPInputStream;
 
 
 public class FileConnection extends AbstractConnection {
@@ -53,8 +55,20 @@ public class FileConnection extends AbstractConnection {
     return this.in;
   }
 
-  protected InputStream doOpenForInput() throws FileSystemException, IOException {
-    return file.getContent().getInputStream();
+  protected InputStream doOpenForInput() throws IOException {
+    // We want to automatically decompress if the underlying file is gzipped
+    int pushBackBufferSize = 2;
+    PushbackInputStream in = new PushbackInputStream(file.getContent().getInputStream(),
+        pushBackBufferSize);
+    int b1 = in.read();
+    int b2 = in.read();
+    in.unread(b2);
+    in.unread(b1);
+    if(b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
+      return new GZIPInputStream(in);
+    } else {
+      return in;
+    }
   }
   
   private OutputStream assureOpenForOutput() throws IOException {

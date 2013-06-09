@@ -100,7 +100,7 @@ public class NamespaceRegistry {
 
     // import C/Fortran symbols
     for(NamespaceDef.DynLib dynLib : namespace.getDef().getDynLibs()) {
-      setupForeignImports(namespace, dynLib, importsEnv);
+      setupDynLibImports(namespace, dynLib, importsEnv);
     }
 
     // we need to export S3 methods to the namespaces to which
@@ -143,6 +143,10 @@ public class NamespaceRegistry {
     return namespace;
   }
 
+  /**
+   * Imports the symbols into our internal symbol that are exported from the packages on which
+   * we depend
+   */
   private void setupImports(NamespaceDef namespaceDef, Environment importsEnv) {
     for(NamespaceDef.NamespaceImport importDef : namespaceDef.getImports() ) {
       Namespace importedNamespace = getNamespace(importDef.getNamespace());
@@ -157,19 +161,25 @@ public class NamespaceRegistry {
     }
   }
 
-  private void setupForeignImports(Namespace namespace, NamespaceDef.DynLib dynLib, Environment importsEnv) {
+  /**
+   * Copies methods from Legacy dynamic libraries (C/Fortran code) into this namespace
+   */
+  private void setupDynLibImports(Namespace namespace, NamespaceDef.DynLib dynLib, Environment importsEnv) {
 
     try {
       Class clazz = namespace.getPackage().getClass(dynLib.getPackageName().getPrintName());
 
       for(Method method : clazz.getMethods()) {
         if(Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
-          importsEnv.setVariable(dynLib.getPrefix().getPrintName() + method.getName(),
+          importsEnv.setVariable(dynLib.getPrefix() + method.getName(),
               new ExternalExp<Method>(method));
         }
       }
     } catch(Exception e) {
-      throw new EvalException(e.getMessage(), e);
+      // Allow the program to continue, there may be some packages whose legacy
+      // compilation failed but can still partially function.
+      System.err.println("ERROR: Failed to import dynLib entries for " + namespace.getName() + ", expect subsequent failures");
+      e.printStackTrace(System.err);
     }
   }
 

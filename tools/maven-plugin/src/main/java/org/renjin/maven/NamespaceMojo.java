@@ -1,7 +1,6 @@
 package org.renjin.maven;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -30,11 +29,18 @@ import com.google.common.io.Files;
 public class NamespaceMojo extends AbstractMojo {
 
 	/**
-	 * Name of the R package
+	 * Directory containing R sources
+   *
 	 * @parameter expression="src/main/R"
 	 * @required
 	 */
-	private File sourceDirectory;	
+	private File sourceDirectory;
+
+  /**
+   * Directory containing data files
+   * @parameter expression="src/main/data"
+   */
+  private File dataDirectory;
 
 	/**
 	 * Name of the R package
@@ -85,9 +91,11 @@ public class NamespaceMojo extends AbstractMojo {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 	  compileNamespaceEnvironment();
 		copyNamespace();
+    new DatasetsBuilder(getPackageRoot(), dataDirectory).build();
 	}
-	
-	private void compileNamespaceEnvironment() throws MojoExecutionException {
+
+
+  private void compileNamespaceEnvironment() throws MojoExecutionException {
 	  
     ClassLoader classLoader = getClassLoader();
     try {
@@ -116,7 +124,6 @@ public class NamespaceMojo extends AbstractMojo {
     return packageRoot;
   }
 
-
   private void copyNamespace() {
     try {
       if(!namespaceFile.exists()) {
@@ -128,8 +135,7 @@ public class NamespaceMojo extends AbstractMojo {
       throw new RuntimeException("Exception copying NAMESPACE file", e);
     }
   }
-  
-  
+
 
   private ClassLoader getClassLoader() throws MojoExecutionException  {
     try {

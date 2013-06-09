@@ -49,22 +49,6 @@ public class GzFileConnection extends FileConnection {
   }
 
   @Override
-  protected InputStream doOpenForInput() throws IOException {
-    InputStream in = super.doOpenForInput();
-    in.mark(2);
-    boolean isCompressed =
-        in.read() == GZIP_MAGIC_BYTE1 &&
-        in.read() == GZIP_MAGIC_BYTE2;
-    in.reset();
-
-    if(isCompressed) {
-      return new GZIPInputStream(in);
-    } else {
-      return in;
-    }
-  }
-  
-  @Override
   protected OutputStream doOpenForOutput() throws IOException {
     return new GZIPOutputStream(super.doOpenForOutput());
   }

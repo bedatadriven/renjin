@@ -59,18 +59,18 @@ public class NamespaceDef {
    */
   public static class DynLib {
     private Symbol packageName;
-    private Symbol prefix;
+    private String prefix;
 
-    private DynLib(Symbol packageName, Symbol prefix) {
+    public DynLib(Symbol packageName) {
       this.packageName = packageName;
-      this.prefix = prefix;
+      this.prefix = "";
     }
 
     public Symbol getPackageName() {
       return packageName;
     }
 
-    public Symbol getPrefix() {
+    public String getPrefix() {
       return prefix;
     }
   }
@@ -128,9 +128,12 @@ public class NamespaceDef {
         s3Exports.add(new S3Export(generic, klass));
 
       } else if(call.getFunction() == Symbol.get("useDynLib")) {
-        Symbol packageName = toSymbol( call.getArgument(0) );
-        Symbol prefix = toSymbol( call.getArguments(), ".fixes");
-        dynLibs.add(new DynLib(packageName, prefix));
+        DynLib dynLib = new DynLib( toSymbol( call.getArgument(0) ) );
+        SEXP prefix = call.getNamedArgument(".fixes");
+        if(prefix instanceof StringVector) {
+          dynLib.prefix = ((StringVector) prefix).getElementAsString(0);
+        }
+        dynLibs.add(dynLib);
       }
     }
   }

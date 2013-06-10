@@ -10,5 +10,7 @@ test.kMeans <- function() {
 
     cl <- kmeans(x, 2)
 
-    assertThat(cl$cluster, equalTo(c(2,2,2,2,2,1,1,1,1,1)))
+    clusterNumbers <- unique(cl$cluster)
+    assertThat(cl$cluster == clusterNumbers[1], equalTo(c(T,T,T,T,T,F,F,F,F,F)))
+    assertThat(cl$cluster == clusterNumbers[2], equalTo(c(F,F,F,F,F,T,T,T,T,T)))
 }

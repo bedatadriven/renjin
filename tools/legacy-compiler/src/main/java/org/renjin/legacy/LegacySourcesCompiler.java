@@ -31,7 +31,7 @@ public class LegacySourcesCompiler {
   private List<File> classPaths = Lists.newArrayList();
   private File jimpleDirectory = new File("target/jimple");
   private File gimpleDirectory = new File("target/gimple");
-
+  private File workDirectory;
   private File outputDirectory = new File("target/classes");
 
   public void setPackageName(String packageName) {
@@ -58,6 +58,10 @@ public class LegacySourcesCompiler {
     this.verbose = verbose;
   }
 
+  public void setWorkDirectory(File workDir) {
+    this.workDirectory = workDir;
+  }
+  
   public void addSources(File src) {
     if(src.exists() && src.listFiles() != null) {
       for(File file : src.listFiles()) {
@@ -83,9 +87,10 @@ public class LegacySourcesCompiler {
       
       List<GimpleCompilationUnit> units = Lists.newArrayList();
 
-      Gcc gcc = new Gcc();
+      Gcc gcc = new Gcc(getWorkDirectory());
       gcc.extractPlugin();
       gcc.addIncludeDirectory(unpackIncludes());
+      gcc.setGimpleOutputDir(gimpleDirectory);
 
       for(File sourceFile : sources) {
         GimpleCompilationUnit unit;
@@ -107,8 +112,8 @@ public class LegacySourcesCompiler {
 
       GimpleCompiler compiler = new GimpleCompiler();
       compiler.setJimpleOutputDirectory(jimpleDirectory);
-      compiler.setGimpleOutputDirectory(gimpleDirectory);
       compiler.setOutputDirectory(outputDirectory);
+    
       compiler.setPackageName(packageName);
       compiler.setClassName(className);
       compiler.addSootClassPaths(classPaths);
@@ -152,7 +157,7 @@ public class LegacySourcesCompiler {
     URL url = Resources.getResource("org/renjin/legacy/include/R.h");
     if(url.getProtocol().equals("file")) {
         return new File(url.getFile()).getParentFile();
-    } else if(url.getProtocol().equals("jar")){
+    } else if(url.getProtocol().equals("jar")) {
       
       // file = file:/C:/Users/Alex/.m2/repository/org/renjin/renjin-legacy-compiler/0.7.0-SNAPSHOT/renjin-legacy-compiler-0.7.0-SNAPSHOT.jar!/org/renjin/legacy/include/R.h
       if(url.getFile().startsWith("file:")) {
@@ -169,7 +174,7 @@ public class LegacySourcesCompiler {
   }
 
   private File extractToTemp(String jarPath, String includePath) throws IOException {
-    File tempDir = Files.createTempDir();
+    File tempDir = getWorkDirectory();
     JarFile jar = new JarFile(jarPath);
     Enumeration<JarEntry> entries = jar.entries();
     while(entries.hasMoreElements()) {
@@ -188,6 +193,13 @@ public class LegacySourcesCompiler {
       }
     }
     return tempDir;
+  }
+
+  private File getWorkDirectory() {
+    if(workDirectory == null) {
+      workDirectory = Files.createTempDir();
+    }
+    return workDirectory;
   }
 
 }

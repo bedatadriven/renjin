@@ -33,7 +33,11 @@ public class Gcc {
   public Gcc() {
     workingDirectory = Files.createTempDir();
     gimpleOutputDir = workingDirectory;
-
+  }
+  
+  public Gcc(File workingDirectory) {
+    this.workingDirectory = workingDirectory;
+    gimpleOutputDir = workingDirectory;
   }
 
   public void setPluginLibrary(File pluginLibrary) {

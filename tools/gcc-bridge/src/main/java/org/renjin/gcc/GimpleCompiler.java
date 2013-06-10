@@ -26,8 +26,6 @@ public class GimpleCompiler  {
 
   private File jimpleOutputDirectory;
 
-  private File gimpleOutputDirectory;
-
   private File outputDirectory;
   
   private String packageName;
@@ -48,10 +46,6 @@ public class GimpleCompiler  {
 
   public void setJimpleOutputDirectory(File directory) {
     this.jimpleOutputDirectory = directory;
-  }
-
-  public void setGimpleOutputDirectory(File directory) {
-    this.gimpleOutputDirectory = directory;
   }
 
   public void setOutputDirectory(File directory) {
@@ -144,23 +138,4 @@ public class GimpleCompiler  {
     return new File(outputDirectory, packageName.replace('.', File.separatorChar));
   }
 
-  public void compileSources(List<File> sources) throws Exception {
-
-    Gcc gcc = new Gcc();
-    gcc.setGimpleOutputDir(gimpleOutputDirectory);
-    List<GimpleCompilationUnit> units = Lists.newArrayList();
-
-    for (File source : sources) {
-      GimpleCompilationUnit unit = gcc.compileToGimple(source);
-
-      CallingConvention callingConvention = CallingConventions.fromFile(source);
-      for (GimpleFunction function : unit.getFunctions()) {
-        function.setCallingConvention(callingConvention);
-      }
-
-      units.add(unit);
-    }
-
-    compile(units);
-  }
 }

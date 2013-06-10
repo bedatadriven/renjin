@@ -73,6 +73,12 @@ public class LegacyCompilerMojo extends AbstractMojo {
    */
   private List<File> sourceDirectories;
 
+  /**
+   * Scratch directory for GCC output/files
+   * @parameter expression="${project.build.directory}/gcc-work
+   */
+  private File workDirectory;
+
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -85,10 +91,16 @@ public class LegacyCompilerMojo extends AbstractMojo {
     for(File sourceDir : sourceDirectories) {
       compiler.addSources(sourceDir);
     }
+
+    workDirectory.mkdirs();
+    gimpleDirectory.mkdirs();
+    outputDirectory.mkdirs();
+
     compiler.setVerbose(false);
     compiler.setPackageName(groupId + "." + artifactId);
     compiler.setClassName(artifactId);
     compiler.addClassPaths(pluginDependencies());
+    compiler.setWorkDirectory(workDirectory);
     compiler.setOutputDirectory(outputDirectory);
     compiler.setJimpleDirectory(jimpleDirectory);
     compiler.setGimpleDirectory(gimpleDirectory);

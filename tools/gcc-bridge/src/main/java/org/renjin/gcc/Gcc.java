@@ -29,7 +29,7 @@ public class Gcc {
 
   private boolean debug;
   private File gimpleOutputDir;
-
+  
   public Gcc() {
     workingDirectory = Files.createTempDir();
     gimpleOutputDir = workingDirectory;
@@ -57,7 +57,7 @@ public class Gcc {
     return gimpleOutputDir;
   }
 
-  public GimpleCompilationUnit compileToGimple(File source) throws IOException {
+  public GimpleCompilationUnit compileToGimple(File source, String... compilerFlags) throws IOException {
     
     checkEnvironment();
     
@@ -72,6 +72,7 @@ public class Gcc {
 
     arguments.add("-c"); // compile only, do not link
     arguments.add("-S"); // stop at assembly generation
+    arguments.addAll(Arrays.asList(compilerFlags));
     // command.add("-O9"); // highest optimization
 
     // Enable our plugin which dumps the Gimple as JSON

@@ -11,12 +11,32 @@ public class Builtins {
 			return Math.pow(base, (double)exponent);
 		}
 	}
+
+  public static float  __builtin_logf__(float x) {
+    return (float) Math.log(x);
+  }
   
   public static double __builtin_copysign__(double magnitude, double sign) {
     return Math.copySign(magnitude, sign);
   }
 
-	public static int __fpclassifyd(double x) {
+  public static double __builtin_exp__(double x) {
+    return Math.exp(x);
+  }
+  
+  public static float  __builtin_sqrtf__(double f) {
+    return (float) Math.sqrt(f);
+  }
+
+  public static float __builtin_cosf__(double f) {
+    return (float) Math.cos(f);
+  }
+  
+  public static float  __builtin_sinf__ (double x) {
+    return (float) Math.sin(x);
+  }
+
+  public static int __fpclassifyd(double x) {
 		// TODO: lookup the exact behavior of this function
 		return Double.isNaN(x) ? 0 : 1;
 	}

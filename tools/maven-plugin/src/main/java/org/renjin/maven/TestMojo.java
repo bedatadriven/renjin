@@ -1,18 +1,17 @@
 package org.renjin.maven;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.List;
 
 /**
  * Run R tests
@@ -91,8 +90,12 @@ public class TestMojo extends AbstractMojo {
           .getMethod("run", File.class, File.class, String.class, List.class)
           .invoke(runner, testSourceDirectory, reportsDirectory, namespaceName, defaultPackages);
            
-      if(!succeeded && !testFailureIgnore) {
-        throw new MojoFailureException("There were R test failures");
+      if(!succeeded) {
+        if(testFailureIgnore) {
+          System.err.println("There were R test failures.");
+        } else {
+          throw new MojoFailureException("There were R test failures");
+        }
       }
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);

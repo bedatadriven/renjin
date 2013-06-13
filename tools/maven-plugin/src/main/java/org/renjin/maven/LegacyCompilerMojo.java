@@ -74,6 +74,11 @@ public class LegacyCompilerMojo extends AbstractMojo {
   private List<File> sourceDirectories;
 
   /**
+   * @parameter expression="${ignore.legacy.compilation.failure}" default-value="false"
+   */
+  private boolean ignoreFailure;
+
+  /**
    * Scratch directory for GCC output/files
    * @parameter expression="${project.build.directory}/gcc-work
    */
@@ -108,7 +113,12 @@ public class LegacyCompilerMojo extends AbstractMojo {
     try {
       compiler.compile();
     } catch (Exception e) {
-      throw new MojoExecutionException("Compilation of legacy sources failed", e);
+      if(ignoreFailure) {
+        System.err.println("Compilation of legacy sources failed");
+        e.printStackTrace(System.err);
+      } else {
+        throw new MojoExecutionException("Compilation of legacy sources failed", e);
+      }
     }
   }
 

@@ -9,7 +9,6 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -95,7 +94,8 @@ public class LegacySourcesCompiler {
       for(File sourceFile : sources) {
         GimpleCompilationUnit unit;
         try {
-          unit = gcc.compileToGimple(sourceFile);
+
+          unit = gcc.compileToGimple(sourceFile, "-std=gnu99");
         } catch(Exception e) {
           throw new GccException("Error compiling " + sourceFile + "to gimple: " + e.getMessage(), e);
         }

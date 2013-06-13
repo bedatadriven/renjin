@@ -4,7 +4,6 @@ import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
-import org.renjin.gcc.translate.type.PrimitiveType;
 
 /**
  * Provides default implementations for the {@link ImExpr} interface
@@ -13,7 +12,7 @@ public abstract class AbstractImExpr implements ImExpr {
   
   @Override
   public ImExpr addressOf() {
-    throw new UnsupportedOperationException(this + " is not addressable");
+    throw new UnsupportedOperationException(this + " [" + this.getClass().getSimpleName() + "] is not addressable");
   }
 
   @Override

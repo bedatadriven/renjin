@@ -35,6 +35,7 @@ public class AssignmentTranslator {
     case ADDR_EXPR:
     case REAL_CST:
     case VAR_DECL:
+    case PARM_DECL:
     case FLOAT_EXPR:
     case NOP_EXPR:
     case ARRAY_REF:
@@ -105,8 +106,11 @@ public class AssignmentTranslator {
     case TRUTH_NOT_EXPR:
       assignTruthNot(lhs, operands.get(0));
       break;
-
     
+    case TRUTH_AND_EXPR:
+      assignTruthAnd(lhs, operands);
+      break;
+
     case TRUTH_OR_EXPR:
       assignTruthOr(lhs, operands);
       break;
@@ -199,6 +203,34 @@ public class AssignmentTranslator {
 
   }
   
+  private void assignTruthAnd(ImExpr lhs, List<ImExpr> ops) {
+    ImPrimitiveType type = TypeChecker.assertSamePrimitiveType(ops.get(0), ops.get(1));
+    if(type != ImPrimitiveType.BOOLEAN) {
+      throw new UnsupportedOperationException(type.toString());
+    }
+
+    JimpleExpr a = ops.get(0).translateToPrimitive(context, ImPrimitiveType.BOOLEAN);
+    JimpleExpr b = ops.get(1).translateToPrimitive(context, ImPrimitiveType.BOOLEAN);
+
+    String checkB = context.newLabel();
+    String noneIsTrue = context.newLabel();
+    String doneLabel = context.newLabel();
+
+
+    context.getBuilder().addStatement("if " + a + " != 0 goto " + checkB);
+    assignPrimitive(lhs, JimpleExpr.integerConstant(0));
+    context.getBuilder().addStatement("goto " + doneLabel);
+
+    context.getBuilder().addLabel(checkB);
+    context.getBuilder().addStatement("if " + b + " != 0 goto " + noneIsTrue);
+    assignPrimitive(lhs, JimpleExpr.integerConstant(1));
+    context.getBuilder().addStatement("goto " + doneLabel);
+
+    context.getBuilder().addLabel(noneIsTrue);
+    assignPrimitive(lhs, JimpleExpr.integerConstant(0));
+
+    context.getBuilder().addLabel(doneLabel);
+  }
 
   private void assignBoolean(ImExpr lhs, JimpleExpr booleanExpr) {
     assignIfElse(lhs, booleanExpr, JimpleExpr.integerConstant(1), JimpleExpr.integerConstant(0));

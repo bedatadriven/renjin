@@ -31,7 +31,6 @@ public class ParseState {
   public static final int MAXNEST = 256;
 
   boolean eatLines = false;
-  int EndOfFile = 1;
 
   private FunctionSourceBuffer functionSource = new FunctionSourceBuffer();
 
@@ -46,11 +45,6 @@ public class ParseState {
   public void setEatLines(boolean eatLines) {
     this.eatLines = eatLines;
   }
-
-  public void setEndOfFile(int endOfFile) {
-    this.EndOfFile = endOfFile;
-  }
-
 
   public boolean getEatLines() {
     return eatLines;

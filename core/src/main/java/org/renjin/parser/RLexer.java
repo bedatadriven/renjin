@@ -21,18 +21,60 @@
 
 package org.renjin.parser;
 
-import org.apache.commons.math.complex.Complex;
-import org.renjin.parser.RParser.Location;
-import org.renjin.sexp.*;
+import static java.lang.Character.isDigit;
+import static org.renjin.parser.RParser.AND;
+import static org.renjin.parser.RParser.AND2;
+import static org.renjin.parser.RParser.BREAK;
+import static org.renjin.parser.RParser.ELSE;
+import static org.renjin.parser.RParser.END_OF_INPUT;
+import static org.renjin.parser.RParser.EQ;
+import static org.renjin.parser.RParser.EQ_ASSIGN;
+import static org.renjin.parser.RParser.ERROR;
+import static org.renjin.parser.RParser.FOR;
+import static org.renjin.parser.RParser.FUNCTION;
+import static org.renjin.parser.RParser.GE;
+import static org.renjin.parser.RParser.GT;
+import static org.renjin.parser.RParser.IF;
+import static org.renjin.parser.RParser.IN;
+import static org.renjin.parser.RParser.LBB;
+import static org.renjin.parser.RParser.LE;
+import static org.renjin.parser.RParser.LEFT_ASSIGN;
+import static org.renjin.parser.RParser.LT;
+import static org.renjin.parser.RParser.NE;
+import static org.renjin.parser.RParser.NEXT;
+import static org.renjin.parser.RParser.NS_GET;
+import static org.renjin.parser.RParser.NS_GET_INT;
+import static org.renjin.parser.RParser.NULL_CONST;
+import static org.renjin.parser.RParser.NUM_CONST;
+import static org.renjin.parser.RParser.OR;
+import static org.renjin.parser.RParser.OR2;
+import static org.renjin.parser.RParser.REPEAT;
+import static org.renjin.parser.RParser.RIGHT_ASSIGN;
+import static org.renjin.parser.RParser.SPECIAL;
+import static org.renjin.parser.RParser.STR_CONST;
+import static org.renjin.parser.RParser.SYMBOL;
+import static org.renjin.parser.RParser.WHILE;
+import static org.renjin.parser.Tokens.LBRACE;
+import static org.renjin.parser.Tokens.RBRACE;
+import static org.renjin.parser.Tokens.R_EOF;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.logging.Logger;
 
-import static java.lang.Character.isDigit;
-import static org.renjin.parser.RParser.*;
-import static org.renjin.parser.Tokens.*;
-import static org.renjin.util.CDefines.R_NilValue;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.parser.RParser.Location;
+import org.renjin.sexp.ComplexVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalArrayVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
 
 public class RLexer implements RParser.Lexer {
@@ -60,23 +102,7 @@ public class RLexer implements RParser.Lexer {
   private Position tokenBegin = new Position();
   private Position tokenEnd = new Position();
 
-/* Private pushback, since file ungetc only guarantees one byte.
-   We need up to one MBCS-worth */
-
-  private static final int PUSHBACK_BUFSIZE = 16;
-  private int pushback[] = new int[PUSHBACK_BUFSIZE];
-  private int npush = 0;
-
-  private int prevpos = 0;
-  private int prevlines[] = new int[PUSHBACK_BUFSIZE];
-  private int prevcols[] = new int[PUSHBACK_BUFSIZE];
-  private int prevbytes[] = new int[PUSHBACK_BUFSIZE];
-
-
-  private Reader reader;
-  private int xxcharcount;
-  private int xxcharsave;
-
+  private RLexerReader reader;
 
   private final LexerContextStack contextStack = new LexerContextStack();
 
@@ -119,9 +145,10 @@ public class RLexer implements RParser.Lexer {
 
 
   public RLexer(ParseOptions options, ParseState state, Reader reader) {
-    this.reader = reader;
+    this.reader = new RLexerReader(reader);
     this.parseOptions = options;
     this.parseState = state;
+    this.srcRef.charIndex = -1;
   }
 
 
@@ -354,21 +381,21 @@ public class RLexer implements RParser.Lexer {
   }
 
 
-  /* Split the input stream into tokens. */
-/* This is the lowest of the parsing levels. */
-
+  /* Split the input stream into tokens.
+   * This is the lowest of the parsing levels. 
+   */
   private int consumeNextToken() {
     int c;
 
     if (savedToken != 0) {
       c = savedToken;
       yylval = savedLVal;
-      savedLVal = R_NilValue;
+      savedLVal = Null.INSTANCE;
       savedToken = 0;
       tokenBegin = savedTokenPos;
       return c;
     }
-    xxcharsave = xxcharcount; /* want to be able to go back one token */
+    //xxcharsave = xxcharcount; /* want to be able to go back one token */
 
     c = skipSpace();
     if (c == '\r') {
@@ -382,7 +409,7 @@ public class RLexer implements RParser.Lexer {
 
     tokenBegin.line = srcRef.xxlineno;
     tokenBegin.column = srcRef.xxcolno;
-    tokenBegin.byteIndex = srcRef.xxbyteno;
+    tokenBegin.charIndex = srcRef.charIndex;
 
     if (c == R_EOF) return END_OF_INPUT;
 
@@ -429,107 +456,107 @@ public class RLexer implements RParser.Lexer {
 
     switch (c) {
       case '<':
-        if (nextchar('=')) {
-          yylval = install("<=");
+        if (isNextChar('=')) {
+          yylval = Symbol.get("<=");
           return LE;
         }
-        if (nextchar('-')) {
-          yylval = install("<-");
+        if (isNextChar('-')) {
+          yylval = Symbol.get("<-");
           return LEFT_ASSIGN;
         }
-        if (nextchar('<')) {
-          if (nextchar('-')) {
-            yylval = install("<<-");
+        if (isNextChar('<')) {
+          if (isNextChar('-')) {
+            yylval = Symbol.get("<<-");
             return LEFT_ASSIGN;
           } else
             return ERROR;
         }
-        yylval = install("<");
+        yylval = Symbol.get("<");
         return LT;
       case '-':
-        if (nextchar('>')) {
-          if (nextchar('>')) {
-            yylval = install("<<-");
+        if (isNextChar('>')) {
+          if (isNextChar('>')) {
+            yylval = Symbol.get("<<-");
             return RIGHT_ASSIGN;
           } else {
-            yylval = install("<-");
+            yylval = Symbol.get("<-");
             return RIGHT_ASSIGN;
           }
         }
-        yylval = install("-");
+        yylval = Symbol.get("-");
         return '-';
       case '>':
-        if (nextchar('=')) {
-          yylval = install(">=");
+        if (isNextChar('=')) {
+          yylval = Symbol.get(">=");
           return GE;
         }
-        yylval = install(">");
+        yylval = Symbol.get(">");
         return GT;
       case '!':
-        if (nextchar('=')) {
-          yylval = install("!=");
+        if (isNextChar('=')) {
+          yylval = Symbol.get("!=");
           return NE;
         }
-        yylval = install("!");
+        yylval = Symbol.get("!");
         return '!';
       case '=':
-        if (nextchar('=')) {
-          yylval = install("==");
+        if (isNextChar('=')) {
+          yylval = Symbol.get("==");
           return EQ;
         }
-        yylval = install("=");
+        yylval = Symbol.get("=");
         return EQ_ASSIGN;
       case ':':
-        if (nextchar(':')) {
-          if (nextchar(':')) {
-            yylval = install(":::");
+        if (isNextChar(':')) {
+          if (isNextChar(':')) {
+            yylval = Symbol.get(":::");
             return NS_GET_INT;
           } else {
-            yylval = install("::");
+            yylval = Symbol.get("::");
             return NS_GET;
           }
         }
-        if (nextchar('=')) {
-          yylval = install(":=");
+        if (isNextChar('=')) {
+          yylval = Symbol.get(":=");
           return LEFT_ASSIGN;
         }
-        yylval = install(":");
+        yylval = Symbol.get(":");
         return ':';
       case '&':
-        if (nextchar('&')) {
-          yylval = install("&&");
+        if (isNextChar('&')) {
+          yylval = Symbol.get("&&");
           return AND2;
         }
-        yylval = install("&");
+        yylval = Symbol.get("&");
         return AND;
       case '|':
-        if (nextchar('|')) {
-          yylval = install("||");
+        if (isNextChar('|')) {
+          yylval = Symbol.get("||");
           return OR2;
         }
-        yylval = install("|");
+        yylval = Symbol.get("|");
         return OR;
       case LBRACE:
-        yylval = install("{");
+        yylval = Symbol.get("{");
         return c;
       case RBRACE:
         return c;
       case '(':
-        yylval = install("(");
+        yylval = Symbol.get("(");
         return c;
       case ')':
         return c;
       case '[':
-        if (nextchar('[')) {
-          yylval = install("[[");
+        if (isNextChar('[')) {
+          yylval = Symbol.get("[[");
           return LBB;
         }
-        yylval = install("[");
+        yylval = Symbol.get("[");
         return c;
       case ']':
         return c;
       case '?':
-        yylval = install("?");
+        yylval = Symbol.get("?");
         return c;
       case '*':
         /* Replace ** by ^.  This has been here since 1998, but is
@@ -537,10 +564,10 @@ public class RLexer implements RParser.Lexer {
          the index of the Blue Book with a reference to p. 431, the
          help for 'Deprecated'.  S-PLUS 6.2 still allowed this, so
          presumably it was for compatibility with S. */
-        if (nextchar('*')) {
+        if (isNextChar('*')) {
           c = '^';
         }
-        yylval = install(codePointToString(c));
+        yylval = Symbol.get(codePointToString(c));
         return c;
       case '+':
       case '/':
@@ -548,7 +575,7 @@ public class RLexer implements RParser.Lexer {
       case '~':
       case '$':
       case '@':
-        yylval = install(codePointToString(c));
+        yylval = Symbol.get(codePointToString(c));
         return c;
       default:
         return c;
@@ -556,10 +583,7 @@ public class RLexer implements RParser.Lexer {
   }
 
   private String codePointToString(int c) {
-    // TODO: this can't be the most efficient way to do this
-    StringBuilder sb = new StringBuilder(1);
-    sb.appendCodePoint(c);
-    return sb.toString();
+    return new String(new int[] { c }, 0, 1);
   }
 
 
@@ -579,7 +603,7 @@ an ANSI digit or not */
     return k;
   }
 
-  private boolean nextchar(int expect) {
+  private boolean isNextChar(int expect) {
     int c = xxgetc();
     if (c == expect) {
       return true;
@@ -606,10 +630,6 @@ an ANSI digit or not */
     return errorMessage;
   }
 
-  private SEXP install(String symbolName) {
-    return Symbol.get(symbolName);
-  }
-
   /*
   *  The fact that if statements need to parse differently
  *  depending on whether the statement is being interpreted or
@@ -623,7 +643,7 @@ an ANSI digit or not */
   void setlastloc() {
     tokenEnd.line = srcRef.xxlineno;
     tokenEnd.column = srcRef.xxcolno;
-    tokenEnd.byteIndex = srcRef.xxbyteno;
+    tokenEnd.charIndex = srcRef.charIndex;
   }
 
 
@@ -652,51 +672,24 @@ an ANSI digit or not */
     while (c != '\n' && c != R_EOF) {
       c = xxgetc();
     }
-    if (c == R_EOF) {
-      parseState.setEndOfFile(2);
-    }
     return c;
   }
 
 
   private int xxgetc() {
+ 
     int c;
-
-    if (npush != 0) {
-      c = pushback[--npush];
-    } else {
-      try {
-        c = reader.read();
-      } catch (IOException e) {
-        throw new RLexException("IOException while reading", e);
-      }
+    try {
+      c = reader.read();
+    } catch (IOException e) {
+      throw new RLexException(e);
     }
-
-    prevpos = (prevpos + 1) % PUSHBACK_BUFSIZE;
-    prevcols[prevpos] = srcRef.xxcolno;
-    prevbytes[prevpos] = srcRef.xxbyteno;
-    prevlines[prevpos] = srcRef.xxlineno;
-
+    
     if (c == -1) {
-      parseState.setEndOfFile(1);
       return R_EOF;
     }
     // R_ParseContextLast = (R_ParseContextLast + 1) % PARSE_CONTEXT_SIZE;
     // R_ParseContext[R_ParseContextLast] = c;
-
-    if (c == '\n') {
-      srcRef.xxlineno += 1;
-      srcRef.xxcolno = 0;
-      srcRef.xxbyteno = 0;
-    } else {
-      srcRef.xxcolno++;
-      srcRef.xxbyteno++;
-    }
-    /* only advance column for 1st byte in UTF-8 */
-    // if (0x80 <= (char)c && (char)c <= 0xBF && known_to_be_utf8)
-    //   ParseState.xxcolno--;
-
-    if (c == '\t') srcRef.xxcolno = ((srcRef.xxcolno + 7) & ~7);
 
     R_ParseContextLine = srcRef.xxlineno;
 
@@ -704,7 +697,6 @@ an ANSI digit or not */
       parseState.getFunctionSource().maybeAppendSourceCodePoint(c);
     }
 
-    xxcharcount++;
     return c;
   }
 
@@ -723,40 +715,25 @@ an ANSI digit or not */
         c = xxgetc();
       } while (c != '\n' && c != R_EOF);
     //ParseState.xxlineno = linenumber;
-    //R_ParseContext[R_ParseContextLast] = '\0';  /* Context report shouldn't show the directive */
+    //R_ParseContext[R_ParseContextLast] = '\0';  /* Context report shouldn't show the directive */s
     return (c);
   }
 
   private int xxungetc(int c) {
-    /* this assumes that c was the result of xxgetc; if not, some edits will be needed */
-    srcRef.xxlineno = prevlines[prevpos];
-    srcRef.xxbyteno = prevbytes[prevpos];
-    srcRef.xxcolno = prevcols[prevpos];
-    prevpos = (prevpos + PUSHBACK_BUFSIZE - 1) % PUSHBACK_BUFSIZE;
-
-    R_ParseContextLine = srcRef.xxlineno;
-    // if ( KeepSource && GenerateCode && FunctionLevel > 0 )
-    // SourcePtr--;
-    xxcharcount--;
-    //R_ParseContext[R_ParseContextLast] = '\0';
-    /* precaution as to how % is implemented for < 0 numbers */
-    //  R_ParseContextLast = (R_ParseContextLast + PARSE_CONTEXT_SIZE -1) % PARSE_CONTEXT_SIZE;
-    if (npush >= PUSHBACK_BUFSIZE) return EOF;
-    pushback[npush++] = c;
-    return c;
+    return reader.unread(c);
   }
 
   private void setParseFilename(SEXP newname) {
 // TODO
 //    if (isEnvironment(SrcRefState.SrcFile)) {
-//    	SEXP oldname = findVar(install("filename"), SrcRefState.SrcFile);
+//    	SEXP oldname = findVar(Symbol.get("filename"), SrcRefState.SrcFile);
 //    	if (isString(oldname) && length(oldname) > 0 &&
 //    	    strcmp(CHAR(STRING_ELT(oldname, 0)),
 //    	           CHAR(STRING_ELT(newname, 0))) == 0) return;
 //    }
-//    REPROTECT(SrcRefState.SrcFile = NewEnvironment(R_NilValue, R_NilValue, R_EmptyEnv), SrcRefState.SrcFileProt);
+//    REPROTECT(SrcRefState.SrcFile = NewEnvironment(Null.INSTANCE, Null.INSTANCE, R_EmptyEnv), SrcRefState.SrcFileProt);
 //
-//    defineVar(install("filename"), newname, SrcRefState.SrcFile);
+//    defineVar(Symbol.get("filename"), newname, SrcRefState.SrcFile);
 //    setAttrib(SrcRefState.SrcFile, R_ClassSymbol, mkString("srcfile"));
 //    UNPROTECT_PTR(newname);
   }
@@ -860,19 +837,19 @@ an ANSI digit or not */
     }
 
     if (c == 'i') {
-      yylval = parseOptions.isGenerateCode() ? mkComplex(buffer.toString()) : R_NilValue;
+      yylval = parseOptions.isGenerateCode() ? mkComplex(buffer.toString()) : Null.INSTANCE;
     } else if (c == 'L' && asNumeric == 0) {
       if (parseOptions.isGenerateCode() && seendot == 1 && !seenexp) {
         logger.warning(String.format("integer literal %sL contains unnecessary decimal point", buffer.toString()));
       }
       yylval = parseOptions.isGenerateCode() ? 
-          new IntArrayVector(ParseUtil.parseInt(buffer.toString())) : R_NilValue;
+          new IntArrayVector(ParseUtil.parseInt(buffer.toString())) : Null.INSTANCE;
     } else {
       if (c != 'L') {
         xxungetc(c);
       }
       yylval = parseOptions.isGenerateCode() ?
-          new DoubleArrayVector(ParseUtil.parseDouble(buffer.toString())) : R_NilValue;
+          new DoubleArrayVector(ParseUtil.parseDouble(buffer.toString())) : Null.INSTANCE;
     }
 
     return NUM_CONST;
@@ -911,6 +888,7 @@ an ANSI digit or not */
 
     public String toString() {
       return buffer.toString();
+      
     }
   }
 
@@ -1123,7 +1101,7 @@ an ANSI digit or not */
     }
 
     if (forSymbol) {
-      yylval = install(stext.toString());
+      yylval = Symbol.get(stext.toString());
       return SYMBOL;
     } else {
       yylval = StringVector.valueOf(stext.toString());
@@ -1152,7 +1130,7 @@ an ANSI digit or not */
     if (c == '%') {
       buffer.appendCodePoint(c);
     }
-    yylval = install(buffer.toString());
+    yylval = Symbol.get(buffer.toString());
     return SPECIAL;
   }
 
@@ -1175,7 +1153,7 @@ an ANSI digit or not */
       }
       return keyword;
     }
-    yylval = install(buffer.toString());
+    yylval = Symbol.get(buffer.toString());
     return SYMBOL;
   }
 
@@ -1188,7 +1166,7 @@ an ANSI digit or not */
       if (keywords[i].name.equals(s)) {
         switch (keywords[i].token) {
           case NULL_CONST:
-            yylval = R_NilValue;
+            yylval = Null.INSTANCE;
             break;
           case NUM_CONST:
             if (parseOptions.isGenerateCode()) {
@@ -1222,7 +1200,7 @@ an ANSI digit or not */
                   break;
               }
             } else {
-              yylval = R_NilValue;
+              yylval = Null.INSTANCE;
             }
             break;
           case FUNCTION:
@@ -1232,13 +1210,13 @@ an ANSI digit or not */
           case IF:
           case NEXT:
           case BREAK:
-            yylval = install(s);
+            yylval = Symbol.get(s);
             break;
           case IN:
           case ELSE:
             break;
           case SYMBOL:
-            yylval = install(s);
+            yylval = Symbol.get(s);
             break;
         }
         return keywords[i].token;
@@ -1252,5 +1230,13 @@ an ANSI digit or not */
     int c = xxgetc();
     xxungetc(c);
     return c == R_EOF;
+  }
+  
+  /**
+   * 
+   * @return the current character pos within the stream
+   */
+  public int getCharacterPos() {
+    return reader.getCharacterIndex();
   }
 }

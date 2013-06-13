@@ -37,6 +37,7 @@ import javax.swing.UIManager;
 
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.studio.console.Console;
 import org.renjin.studio.console.ConsoleFrame;
 import org.renjin.studio.console.Repl;
@@ -48,13 +49,18 @@ public class MainFrame extends JFrame {
   private DocumentPane documentTab;
   private WorkspacePane workspaceTab;
   private FilesPane filesTab;
+  private StudioSession session;
   
-  public MainFrame() {
+  public MainFrame(StudioSession session) {
     super("Renjin Studio");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+    this.session = new StudioSession();
+    
     console = new ConsoleFrame();
-    documentTab = new DocumentPane();
+    session.setStdOut(new PrintWriter(console.getOut()));
+    
+    documentTab = new DocumentPane(session);
     workspaceTab = new WorkspacePane();
     filesTab = new FilesPane();
     
@@ -86,14 +92,15 @@ public class MainFrame extends JFrame {
 
     loadNativeLookAndFeel();
 
-    MainFrame mainFrame = new MainFrame();
+    StudioSession session = new StudioSession();
     
-    Context topLevelContext = Context.newTopLevelContext();
-    topLevelContext.getSession().setStdOut(new PrintWriter(mainFrame.getConsole().getOut()));
-    //topLevelContext.getGlobals().setSessionController(new CliSessionController(mainFrame.));
+    MainFrame mainFrame = new MainFrame(session);
+    
 
-    Repl interpreter = new Repl( mainFrame.getConsole(), topLevelContext );
+    Repl interpreter = new Repl( mainFrame.getConsole(), session );
     new Thread ( interpreter ).start();
+
+  
   }
 
   private static void loadNativeLookAndFeel() {

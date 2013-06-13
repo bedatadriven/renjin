@@ -4,7 +4,7 @@ import javax.swing.JTabbedPane;
 
 public class DocumentPane extends JTabbedPane {
 
-  public DocumentPane() {
-    add("Test.R", new ScriptEditorFrame());
+  public DocumentPane(StudioSession session) {
+    add("Test.R", new ScriptEditorFrame(session));
   }
 }

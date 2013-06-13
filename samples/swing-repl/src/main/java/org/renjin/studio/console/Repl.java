@@ -1,4 +1,4 @@
-/*
+/*/
  * R : A Computer Language for Statistical Data Analysis
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  * Copyright (C) 1997--2008  The R Development Core Team
@@ -38,6 +38,7 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
+import org.renjin.studio.StudioSession;
 
 
 /**
@@ -46,16 +47,19 @@ import org.renjin.sexp.Symbol;
 public class Repl implements Runnable {
 
   private final Console console;
-  private Environment global;
+  private StudioSession session;
   private Context topLevelContext;
   
+  private Environment global;
   
-  public Repl(Console console, Context context) throws FileSystemException {
+  
+  public Repl(Console console, StudioSession session) throws FileSystemException {
     this.console = console;    
-    this.topLevelContext = context;
-
-    this.global = context.getEnvironment();
-
+    this.session = session;
+    this.topLevelContext = session.getTopLevelContext();
+    this.global = topLevelContext.getEnvironment();
+    
+    
     if(console instanceof RichConsole) {
       ((RichConsole) console).setNameCompletion(new SymbolCompletion(global));
     }
@@ -72,14 +76,6 @@ public class Repl implements Runnable {
     RParser parser = new RParser(options, state, lexer);
 
     printGreeting();
-
-    try {
-      topLevelContext.init();
-
-    } catch (IOException e) {
-      console.getOut().println("Error loading base package");
-    }
-
 
     while(true) {
 
@@ -100,8 +96,7 @@ public class Repl implements Runnable {
         SEXP result = topLevelContext.evaluate(exp, global);
 
         if(!topLevelContext.getSession().isInvisible()) {
-          topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));
-          
+          topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));  
         }
         
         printWarnings();

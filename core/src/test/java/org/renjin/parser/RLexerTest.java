@@ -129,7 +129,6 @@ public class RLexerTest {
     assertTokenSequence("\"\\u{41}\"", strVector("A"));
   }
 
-
   @Test
   public void numberWithWhitespace() {
     assertTokenSequence("   \t3.145  ", realVector(3.145));

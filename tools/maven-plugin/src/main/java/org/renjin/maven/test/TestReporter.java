@@ -1,10 +1,14 @@
 package org.renjin.maven.test;
 
 import java.io.File;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.List;
 
+import org.renjin.eval.EvalException;
+
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 
 public class TestReporter {
@@ -17,7 +21,8 @@ public class TestReporter {
   private TestCaseResult currentCase;
   private long currentCaseStarted;
   
-  private PrintWriter stdout;
+  private PrintStream stdout;
+  
   
   public TestReporter(File reportsDir) {
     this.reportsDir = reportsDir;
@@ -46,16 +51,16 @@ public class TestReporter {
     return name.substring(0, name.length() - ".R".length());
   }
 
-  private PrintWriter openOutput() {
+  private PrintStream openOutput() {
     try {
-      return new PrintWriter(new File(reportsDir, currentSuite.getClassName() + "-output.txt"));
+      return new PrintStream(new File(reportsDir, currentSuite.getClassName() + "-output.txt"));
     } catch(Exception e) {
       throw new RuntimeException(e);
     }
   }
   
 
-  public PrintWriter getStdOut() {
+  public PrintStream getStdOut() {
     return stdout;
   }
   
@@ -90,11 +95,6 @@ public class TestReporter {
     currentCase.setName(name);
     currentSuite.addCase(currentCase);
     currentCaseStarted = System.currentTimeMillis();
-    
-    stdout.println("---------------------------------------------------");
-    stdout.println("Running " + name + "()");
-    stdout.println("---------------------------------------------------");
-    
   }
   
   public void functionSucceeded() {
@@ -102,15 +102,20 @@ public class TestReporter {
     functionComplete();
   }
   
-  public void functionThrew(Exception e) {
+  public void functionThrew(Exception e)  {
     currentCase.setOutcome(TestOutcome.ERROR);
     currentCase.setException(e);
     System.err.println(String.format("%s() in %s failed: %s", 
         currentCase.getName(), 
         currentSuite.getScriptFile().getName(),
         e.getMessage()));
-    e.printStackTrace(stdout);
-    e.printStackTrace();
+    if(e instanceof EvalException) {
+      ((EvalException) e).printRStackTrace(stdout);
+      ((EvalException) e).printRStackTrace(System.err);
+    } else {
+      e.printStackTrace(stdout);
+      e.printStackTrace();
+    }
     functionComplete();
   }
 
@@ -125,5 +130,10 @@ public class TestReporter {
       }
     }
     return true;
+  }
+
+  public PrintWriter getStdOutWriter() {
+    OutputStreamWriter writer = new OutputStreamWriter(stdout, Charsets.UTF_8);
+    return new PrintWriter(writer, true);
   } 
 }

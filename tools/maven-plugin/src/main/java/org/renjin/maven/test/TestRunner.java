@@ -1,14 +1,24 @@
 package org.renjin.maven.test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.List;
 
-import org.apache.commons.vfs2.FileObject;
+import jline.UnsupportedTerminal;
+import jline.console.ConsoleReader;
+
 import org.renjin.eval.Context;
-import org.renjin.parser.RParser;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
+import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.Closure;
-import org.renjin.sexp.ExpressionVector;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -19,37 +29,28 @@ import com.google.common.io.Files;
 
 /**
  * Discovers and runs a set of R test scripts, usually from
- * src/test/R
+ * src/test/R or tests/ or man/
  * 
  */
 public class TestRunner {
 
-  private String namespace;
   private TestReporter reporter;
-  private List<String> defaultPackages;
-
-  public boolean run(File sourceDirectory, File reportsDirectory, String namespaceName, List<String> defaultPackages) throws Exception {
-    
+  private List<String> defaultPackages = Lists.newArrayList();
+  
+  public TestRunner(File reportsDirectory, List<String> defaultPackages) {
     this.defaultPackages = defaultPackages;
-    if(this.defaultPackages == null) {
-      this.defaultPackages = Lists.newArrayList();
-    }
     
     reporter = new TestReporter(reportsDirectory);
     reporter.start();
-    
-    this.namespace = namespaceName;
-    
+  }
+  
+  public boolean run(File sourceDirectory) throws Exception {
     if(sourceDirectory.isDirectory() && sourceDirectory.listFiles() != null) {
       for(File sourceFile : sourceDirectory.listFiles()) {
         if(sourceFile.getName().toUpperCase().endsWith(".R")) {
-          try {
-            reporter.startFile(sourceFile);
-            executeTestFile(sourceFile);
-            reporter.fileComplete();
-          } catch (IOException e) {
-            System.out.println("FAILURE: " + sourceFile.getName());
-          }
+          executeFile(sourceFile, Files.toString(sourceFile, Charsets.UTF_8));
+        } else if(sourceFile.getName().endsWith(".Rd")) {
+          executeFile(sourceFile, ExamplesParser.parseExamples(sourceFile));
         }
       }
     }
@@ -57,11 +58,35 @@ public class TestRunner {
     return reporter.allTestsSucceeded();
   }
 
-  private Context createContext() throws IOException  {
+  private void executeFile(File sourceFile, String source) {
+    try {
+      reporter.startFile(sourceFile);
+      executeTestFile(sourceFile, source);
+      reporter.fileComplete();
+    } catch (IOException e) {
+      System.out.println("FAILURE: " + sourceFile.getName());
+    }
+  }
+  
+  private Session createContext(File workingDir) throws IOException  {
 
-    Context ctx = Context.newTopLevelContext();
-    ctx.init();      
-    return ctx;
+    Session session = SessionBuilder.buildDefault();
+    session.setWorkingDirectory(
+        session.getFileSystemManager()
+          .resolveFile(workingDir.toURI().toString()));
+    
+    session.setStdErr(reporter.getStdOutWriter());
+    session.setStdOut(reporter.getStdOutWriter());
+    
+    if(defaultPackages.isEmpty()) {
+      System.err.println("No default packages specified");
+    }
+    
+    for(String pkg : defaultPackages) {
+      System.err.println("Loading default package " + pkg);
+      loadLibrary(session.getTopLevelContext(), pkg);
+    }
+    return session;
   }
 
   private void loadLibrary(Context ctx, String namespaceName) {
@@ -84,41 +109,42 @@ public class TestRunner {
     return false;
   }
 
-  private void executeTestFile(File sourceFile) throws IOException {
-    ExpressionVector source = RParser.parseSource(Files.newReaderSupplier(sourceFile, Charsets.UTF_8));
-    Context ctx = createContext();
-    FileObject workingDir = ctx.resolveFile(sourceFile.getParent());
-    System.err.println("Working directory = " + workingDir);
-    ctx.getSession().setWorkingDirectory(workingDir);
-//    ctx.getSession().setStdOut(reporter.getStdOut());
-//    ctx.getSession().setStdErr(reporter.getStdOut());
+  private void executeTestFile(File sourceFile, String sourceText) throws IOException {
     
-    if(defaultPackages.isEmpty()) {
-      System.err.println("No default packages specified");
-    }
+    reporter.startFunction("root");
     
-    for(String pkg : defaultPackages) {
-      System.err.println("Loading default package " + pkg);
-      loadLibrary(ctx, pkg);
-    }
+    Session session = createContext(sourceFile.getParentFile());
     
+    UnsupportedTerminal term = new UnsupportedTerminal();
+    InputStream in = new ByteArrayInputStream(sourceText.getBytes(Charsets.UTF_8));
+    ConsoleReader consoleReader = new ConsoleReader(in, reporter.getStdOut(), term);
+    JlineRepl repl = new JlineRepl(session, consoleReader);
+    repl.setEcho(true);
+    repl.setStopOnError(true);
+
     try {
-      reporter.startFunction("root");
-      ctx.evaluate(source);
+      repl.run();
       reporter.functionSucceeded();
+    
     } catch(Exception e) {
       reporter.functionThrew(e);
+      return;
     }
     
-    for(Symbol name : ctx.getGlobalEnvironment().getSymbolNames()) {
+    // look for "junit-style" test functions.
+    // This is renjin's own convention, but it's nice to be
+    // able to see the results of many tests rather than 
+    // topping at the first error
+    for(Symbol name : session.getGlobalEnvironment().getSymbolNames()) {
       if(name.getPrintName().startsWith("test.")) {
-        SEXP value = ctx.getGlobalEnvironment().getVariable(name);
+        SEXP value = session.getGlobalEnvironment().getVariable(name);
         if(isZeroArgFunction(value)) {
-          executeTestFunction(ctx, name);
+          executeTestFunction(session.getTopLevelContext(), name);
         }
       }
     }
   }
+
 
   private void executeTestFunction(Context context, Symbol name) {
     try {

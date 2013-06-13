@@ -1,18 +1,22 @@
 package org.renjin.repl;
 
-import jline.console.ConsoleReader;
-
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.Writer;
+
+import jline.console.ConsoleReader;
 
 public class JlineReader extends Reader {
   private ConsoleReader reader;
   private String currentLine = "";
   private int pos = 0;
   private boolean eof = false;
-
+  
   private boolean echo;
-
+  private Writer echoOut = new PrintWriter(System.out);
+  
   public JlineReader(ConsoleReader reader) {
     this.reader = reader;
   }
@@ -23,6 +27,10 @@ public class JlineReader extends Reader {
 
   public void setEcho(boolean echo) {
     this.echo = echo;
+  }
+  
+  public void setEchoOut(Writer echoOut) {
+    this.echoOut = echoOut;
   }
 
   @Override
@@ -36,7 +44,8 @@ public class JlineReader extends Reader {
       currentLine = line + "\n";
 
       if(echo) {
-        System.out.print(currentLine);
+        echoOut.append(currentLine);
+        echoOut.flush();
       }
 
       reader.setPrompt("+ ");

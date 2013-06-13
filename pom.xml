@@ -47,10 +47,11 @@
     <module>appl</module>
   </modules>
 
-  <properties>
+  <properties>	
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <renjin.version>${project.version}</renjin.version>
     <renjin.display.version>${project.version}</renjin.display.version>
+    <envClassifier>linux-x86</envClassifier>
   </properties>
 
   <scm>

@@ -21,9 +21,13 @@
 
 package org.renjin.eval;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.Writer;
+
 import org.renjin.eval.Context.Type;
 import org.renjin.sexp.ListVector;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.Symbols;
@@ -66,45 +70,25 @@ public class EvalException extends RuntimeException {
     }
   }
 
-  @Override
-  public String getMessage() {
-    if(context == null) {
-      return super.getMessage();
-    }
-    StringBuilder sb = new StringBuilder();
-    if(super.getMessage() != null) {
-      sb.append(super.getMessage());
-    }
+  public void printRStackTrace(Writer writer) {
+    
     Context context = this.context;
-    sb.append("\nR Stack Trace:");
+    
     while(!context.isTopLevel()) {
       if(context.getType() == Type.FUNCTION) {
-        sb.append("\n  at ").append(context.getFunctionName());
-        appendArguments(sb, context);
+        try {
+          writer.append("  at ").append(context.getFunctionName().toString()).append("()\n");
+        } catch(IOException e) { }
       }
       context = context.getParent();
     }
-    sb.append("\nJava Stack Trace:\n");
-    return sb.toString();
   }
-
-  private void appendArguments(StringBuilder sb, Context context) {
-    boolean needsComma=false;
-    sb.append("(");
-    for(PairList.Node node : context.getArguments().nodes()) {
-      if(needsComma) {
-        sb.append(",");
-      } else {
-        needsComma=true;
-      }
-      if(node.hasTag()) {
-        sb.append(node.getTag()).append("=");
-      }
-      sb.append(node.getValue());
-    }
-    sb.append(")");
+  
+  public void printRStackTrace(PrintStream stream) {
+    PrintWriter writer = new PrintWriter(stream);
+    printRStackTrace(writer);
+    writer.flush();
   }
-
 
   public static void check(boolean condition, String errorMessage, Object... args) {
     if(!condition) {

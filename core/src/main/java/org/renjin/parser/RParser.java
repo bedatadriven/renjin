@@ -127,7 +127,7 @@ public class RParser {
   
 
   public static ExpressionVector parseSource(
-      InputSupplier<InputStreamReader> source) throws IOException {
+      InputSupplier<? extends Reader> source) throws IOException {
     Reader reader = source.getInput();
     try {
       return parseAllSource(reader);

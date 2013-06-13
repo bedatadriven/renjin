@@ -105,6 +105,7 @@ public class JlineRepl {
     ParseState parseState = new ParseState();
     JlineReader lineReader = new JlineReader(reader);
     lineReader.setEcho(echo);
+    lineReader.setEchoOut(reader.getOutput());
 
     RLexer lexer = new RLexer(options, parseState, lineReader);
     if(lexer.isEof()) {
@@ -138,22 +139,35 @@ public class JlineRepl {
 
       printWarnings();
     } catch(EvalException e) {
+      printEvalException(e);
       if(stopOnError) {
         throw e;
       }
-      reader.getOutput().append(e.getMessage());
-      reader.getOutput().append("\n");
     } catch(QuitException e) {
       return false;
     } catch(Exception e) {
+      printException(e);
       if(stopOnError) {
         throw e;
       }
-      e.printStackTrace(new PrintWriter(reader.getOutput()));
     }
     return true;
   }
 
+
+  private void printException(Exception e) throws IOException {
+    reader.getOutput().append("ERROR: " + e.getMessage());
+    PrintWriter printWriter = new PrintWriter(reader.getOutput());
+    e.printStackTrace(printWriter); 
+    printWriter.flush();
+    reader.getOutput().flush();
+  }
+
+  private void printEvalException(EvalException e) throws IOException {
+    reader.getOutput().append("ERROR: ").append(e.getMessage()).append("\n");
+    e.printRStackTrace(reader.getOutput());    
+    reader.getOutput().flush();
+  }
 
   private void printWarnings() {
     SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);

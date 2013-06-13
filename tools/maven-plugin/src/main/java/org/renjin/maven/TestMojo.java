@@ -1,17 +1,20 @@
 package org.renjin.maven;
 
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.List;
+
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * Run R tests
@@ -54,6 +57,11 @@ public class TestMojo extends AbstractMojo {
   private File testSourceDirectory;
 
   /**
+   * @parameter default-value="${project.basedir}/man"
+   */
+  private File documentationDirectory;
+  
+  /**
    * @parameter default-value="${project.build.directory}/renjin-test-reports"
    * @required
    */
@@ -83,12 +91,26 @@ public class TestMojo extends AbstractMojo {
       return;
     }
     
+    if(defaultPackages == null) { 
+      defaultPackages = Lists.newArrayList();
+    }
+    
     ClassLoader classLoader = getClassLoader();
     try {
-      Object runner = classLoader.loadClass("org.renjin.maven.test.TestRunner").newInstance();
-      boolean succeeded = (Boolean)runner.getClass()
-          .getMethod("run", File.class, File.class, String.class, List.class)
-          .invoke(runner, testSourceDirectory, reportsDirectory, namespaceName, defaultPackages);
+      Constructor ctor = classLoader.loadClass("org.renjin.maven.test.TestRunner").getConstructor(File.class, List.class);
+      Object runner = ctor.newInstance(reportsDirectory, defaultPackages);
+      Method runMethod = runner.getClass()
+          .getMethod("run", File.class);
+      
+      System.out.println("Running tests in " + testSourceDirectory);
+      
+      boolean succeeded = true;
+      if(!((Boolean)runMethod.invoke(runner, testSourceDirectory))) {
+        succeeded = false;
+      }
+      if(!((Boolean)runMethod.invoke(runner, documentationDirectory))) {
+        succeeded = false;
+      }
            
       if(!succeeded) {
         if(testFailureIgnore) {

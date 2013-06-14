@@ -10,12 +10,10 @@ import org.renjin.eval.EvalException;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;

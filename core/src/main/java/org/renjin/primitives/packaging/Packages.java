@@ -34,13 +34,10 @@ public class Packages {
     
     // Load datasets
     for(String dataset : namespace.getPackage().getDatasets()) {
-      System.out.println(dataset + " loading");
       SEXP data = namespace.getPackage().loadDataset(dataset);
-      System.out.println(dataset + " => " + data.getTypeName());
       if(data instanceof PairList) {
         PairList list = (PairList)data;
         for(PairList.Node node : list.nodes()) {
-          System.out.println("found dataset " + node.getTag());
           packageEnv.setVariable(node.getTag(), node.getValue());
         }
       } else {

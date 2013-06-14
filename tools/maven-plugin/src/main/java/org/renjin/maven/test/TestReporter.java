@@ -40,15 +40,21 @@ public class TestReporter {
     
     currentSuite = new TestSuiteResult();
     currentSuite.setScriptFile(file);
-    currentSuite.setClassName(stripExt(file));
+    currentSuite.setClassName(suiteName(file));
     currentSuiteStarted = System.currentTimeMillis();
     suites.add(currentSuite);
     stdout = openOutput();
   }
 
-  private String stripExt(File file) {
+  private String suiteName(File file) {
     String name = file.getName();
-    return name.substring(0, name.length() - ".R".length());
+    if(name.endsWith(".R")) {
+      return name.substring(0, name.length() - ".R".length());
+    } else if(name.endsWith(".Rd")) {
+      return name.substring(0, name.length() - ".Rd".length()) + "-examples";
+    } else {
+      return name;
+    }
   }
 
   private PrintStream openOutput() {

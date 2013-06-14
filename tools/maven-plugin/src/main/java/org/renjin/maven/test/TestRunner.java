@@ -1,14 +1,9 @@
 package org.renjin.maven.test;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.List;
 
 import jline.UnsupportedTerminal;
@@ -36,8 +31,10 @@ public class TestRunner {
 
   private TestReporter reporter;
   private List<String> defaultPackages = Lists.newArrayList();
-  
-  public TestRunner(File reportsDirectory, List<String> defaultPackages) {
+  private String namespaceUnderTest;
+
+  public TestRunner(String namespaceUnderTest, File reportsDirectory, List<String> defaultPackages) {
+    this.namespaceUnderTest = namespaceUnderTest;
     this.defaultPackages = defaultPackages;
     
     reporter = new TestReporter(reportsDirectory);
@@ -68,7 +65,7 @@ public class TestRunner {
     }
   }
   
-  private Session createContext(File workingDir) throws IOException  {
+  private Session createSession(File workingDir) throws IOException  {
 
     Session session = SessionBuilder.buildDefault();
     session.setWorkingDirectory(
@@ -84,14 +81,14 @@ public class TestRunner {
     
     for(String pkg : defaultPackages) {
       System.err.println("Loading default package " + pkg);
-      loadLibrary(session.getTopLevelContext(), pkg);
+      loadLibrary(session, pkg);
     }
     return session;
   }
 
-  private void loadLibrary(Context ctx, String namespaceName) {
+  private void loadLibrary(Session session, String namespaceName) {
     try {
-      ctx.evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
+      session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
     } catch(Exception e) {
       System.err.println("Could not load this project's namespace (it may not have one)");
       //e.printStackTrace();
@@ -118,7 +115,12 @@ public class TestRunner {
     
     reporter.startFunction("root");
     
-    Session session = createContext(sourceFile.getParentFile());
+    Session session = createSession(sourceFile.getParentFile());
+
+    // Examples assume that the package is already on the search path
+    if(sourceFile.getName().endsWith(".Rd")) {
+      loadLibrary(session, namespaceUnderTest);
+    }
     
     UnsupportedTerminal term = new UnsupportedTerminal();
     InputStream in = new ByteArrayInputStream(sourceText.getBytes(Charsets.UTF_8));

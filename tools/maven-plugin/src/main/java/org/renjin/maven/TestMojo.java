@@ -97,8 +97,9 @@ public class TestMojo extends AbstractMojo {
     
     ClassLoader classLoader = getClassLoader();
     try {
-      Constructor ctor = classLoader.loadClass("org.renjin.maven.test.TestRunner").getConstructor(File.class, List.class);
-      Object runner = ctor.newInstance(reportsDirectory, defaultPackages);
+      Constructor ctor = classLoader.loadClass("org.renjin.maven.test.TestRunner")
+          .getConstructor(String.class, File.class, List.class);
+      Object runner = ctor.newInstance(namespaceName, reportsDirectory, defaultPackages);
       Method runMethod = runner.getClass()
           .getMethod("run", File.class);
       

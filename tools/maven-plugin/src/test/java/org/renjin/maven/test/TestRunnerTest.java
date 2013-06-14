@@ -8,7 +8,8 @@ import junit.framework.TestCase;
 public class TestRunnerTest extends TestCase {
 
   public void testExamples() throws Exception {
-    TestRunner runner = new TestRunner(new File("target/renjin-test-reports"), Collections.<String>emptyList());
+    TestRunner runner = new TestRunner("base", new File("target/renjin-test-reports"),
+        Collections.<String>emptyList());
     runner.run(new File("src/test/resources/man"));
   }
   

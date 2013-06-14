@@ -71,16 +71,18 @@ public class EvalException extends RuntimeException {
   }
 
   public void printRStackTrace(Writer writer) {
-    
-    Context context = this.context;
-    
-    while(!context.isTopLevel()) {
-      if(context.getType() == Type.FUNCTION) {
-        try {
-          writer.append("  at ").append(context.getFunctionName().toString()).append("()\n");
-        } catch(IOException e) { }
+
+    if(this.context != null) {
+      Context context = this.context;
+
+      while(!context.isTopLevel()) {
+        if(context.getType() == Type.FUNCTION) {
+          try {
+            writer.append("  at ").append(context.getFunctionName().toString()).append("()\n");
+          } catch(IOException e) { }
+        }
+        context = context.getParent();
       }
-      context = context.getParent();
     }
   }
   

@@ -4,6 +4,7 @@ import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import org.renjin.eval.EvalException;
+import org.renjin.sexp.PairList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +26,18 @@ public class ClasspathPackage extends FileBasedPackage {
   
   public boolean exists() {
     return resourceExists("environment");
+  }
+  
+  
+
+  @Override
+  public PairList loadDataset(String datasetName) throws IOException {
+    if(!resourceExists(datasetName)) {
+      throw new EvalException("Could not find dataset '%s' on the classpath. " +
+      		"(Looked for: %s)", datasetName, resourceUrl(datasetName));
+      		
+    }
+    return super.loadDataset(datasetName);
   }
 
   @Override

@@ -1,21 +1,35 @@
-package org.renjin.maven;
+package org.renjin.maven.namespace;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PushbackInputStream;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
+
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
+import org.renjin.parser.RParser;
+import org.renjin.primitives.io.connections.GzFileConnection;
+import org.renjin.primitives.io.serialization.RDataWriter;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.tukaani.xz.XZInputStream;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.renjin.eval.Session;
-import org.renjin.eval.SessionBuilder;
-import org.renjin.primitives.io.connections.GzFileConnection;
-import org.renjin.primitives.io.serialization.RDataWriter;
-import org.renjin.sexp.*;
-import org.tukaani.xz.XZInputStream;
-
-import java.io.*;
-import java.util.List;
-import java.util.zip.GZIPInputStream;
 
 /**
  * Prepares datasets, writes an index, and copies them into target/classes
@@ -37,7 +51,7 @@ public class DatasetsBuilder {
     this.dataDirectory = dataDirectory;
   }
 
-  public void build() throws MojoExecutionException {
+  public void build()  {
     if(dataDirectory.exists() && dataDirectory.listFiles()!=null) {
 
       for(File dataFile : dataDirectory.listFiles()) {
@@ -45,6 +59,7 @@ public class DatasetsBuilder {
           copyDataFile(dataFile);
         } catch(Exception e) {
           System.err.println("ERROR Processing data file " + dataFile);
+          e.printStackTrace();
         }
       }
     }
@@ -54,14 +69,14 @@ public class DatasetsBuilder {
     }
   }
 
-  private void writeIndex() throws MojoExecutionException {
+  private void writeIndex()  {
     File indexFile = new File(packageRoot, "datasets");
     String indexText = Joiner.on("\n").join(index);
 
     try {
       Files.write(indexText, indexFile, Charsets.UTF_8);
     } catch (IOException e) {
-      throw new MojoExecutionException("Failed to write dataset index to " + indexFile.getAbsolutePath(), e);
+      throw new RuntimeException("Failed to write dataset index to " + indexFile.getAbsolutePath(), e);
     }
   }
 
@@ -70,11 +85,20 @@ public class DatasetsBuilder {
       copyRdaFile(dataFile);
 
     } else if(dataFile.getName().endsWith(".txt.gz")) {
-      copyTextFile(dataFile, stripExtension(dataFile, ".txt.gz"));
+      copyTextFile(dataFile, stripExtension(dataFile, ".txt.gz"), "");
 
     } else if(dataFile.getName().endsWith(".txt")) {
-      copyTextFile(dataFile, stripExtension(dataFile, ".txt"));
-
+      copyTextFile(dataFile, stripExtension(dataFile, ".txt"), "");
+      
+    } else if(dataFile.getName().endsWith(".tab")) {
+      copyTextFile(dataFile, stripExtension(dataFile, ".tab"), "");
+      
+    } else if(dataFile.getName().toLowerCase().endsWith(".csv")) {
+      copyTextFile(dataFile, stripExtension(dataFile, ".csv"), ";");
+      
+    } else if(dataFile.getName().endsWith(".R")) {
+      copyRFile(dataFile, stripExtension(dataFile, ".R"));
+    
     } else {
       throw new RuntimeException("Don't know how to process datafile " + dataFile.getName());
     }
@@ -99,14 +123,15 @@ public class DatasetsBuilder {
     index.add(name);
   }
 
-  private void copyTextFile(File dataFile, String name) throws IOException {
+  private void copyTextFile(File dataFile, String name, String sep) throws IOException {
     // Read into a data frame using read.table()
     PairList.Builder args = new PairList.Builder();
     args.add(StringVector.valueOf(dataFile.getAbsolutePath()));
     args.add("header", LogicalVector.TRUE);
-    args.add("sep", StringVector.valueOf(";"));
+    args.add("sep", StringVector.valueOf(sep));
 
-    FunctionCall call = new FunctionCall(Symbol.get("read.table"), args.build());
+    FunctionCall readTable = FunctionCall.newCall(Symbol.get("::"), Symbol.get("utils"), Symbol.get("read.table"));
+    FunctionCall call = new FunctionCall(readTable, args.build());
 
     Session session = new SessionBuilder().build();
     SEXP dataFrame = session.getTopLevelContext().evaluate(call);
@@ -114,10 +139,33 @@ public class DatasetsBuilder {
     PairList.Builder pairList = new PairList.Builder();
     pairList.add(name, dataFrame);
 
+    writePairList(name, session, pairList.build());
+  }
+  
+  private void copyRFile(File scriptFile, String name) throws IOException {
+
+    Session session = new SessionBuilder().build();
+    FileReader reader = new FileReader(scriptFile);
+    ExpressionVector source = RParser.parseAllSource(reader);
+    reader.close();
+    
+    session.getTopLevelContext().evaluate(source);
+    
+    PairList.Builder pairList = new PairList.Builder();
+    for(Symbol symbol : session.getGlobalEnvironment().getSymbolNames()) {
+      pairList.add(symbol, session.getGlobalEnvironment().getVariable(symbol));
+    }   
+    
+    writePairList(name, session, pairList.build());
+  }
+  
+
+  private void writePairList(String name, Session session,
+      PairList pairList) throws FileNotFoundException, IOException {
     File targetFile = new File(packageRoot, name);
     FileOutputStream out = new FileOutputStream(targetFile);
     RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out);
-    writer.save(pairList.build());
+    writer.save(pairList);
     out.close();
   }
 

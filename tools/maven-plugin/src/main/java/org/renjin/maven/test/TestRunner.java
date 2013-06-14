@@ -111,6 +111,11 @@ public class TestRunner {
 
   private void executeTestFile(File sourceFile, String sourceText) throws IOException {
     
+    if(sourceText.trim().isEmpty()) {
+      // skip empty files or Rd docs with no examples
+      return;
+    }
+    
     reporter.startFunction("root");
     
     Session session = createContext(sourceFile.getParentFile());

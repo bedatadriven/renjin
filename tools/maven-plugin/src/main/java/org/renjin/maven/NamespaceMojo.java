@@ -1,6 +1,7 @@
 package org.renjin.maven;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -12,6 +13,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.renjin.maven.namespace.DatasetsBuilder;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -91,7 +93,7 @@ public class NamespaceMojo extends AbstractMojo {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 	  compileNamespaceEnvironment();
 		copyNamespace();
-    new DatasetsBuilder(getPackageRoot(), dataDirectory).build();
+		compileDatasets();
 	}
 
 
@@ -109,6 +111,19 @@ public class NamespaceMojo extends AbstractMojo {
     }    
   }
 	
+  private void compileDatasets() throws MojoExecutionException {
+    //     new DatasetsBuilder(getPackageRoot(), dataDirectory).build();
+
+    ClassLoader classLoader = getClassLoader();
+    try {
+      Constructor ctor = classLoader.loadClass("org.renjin.maven.namespace.DatasetsBuilder").getConstructor(File.class, File.class);
+      Object builder = ctor.newInstance(getPackageRoot(), dataDirectory);
+      builder.getClass().getMethod("build").invoke(builder);
+    } catch(Exception e) {
+      throw new MojoExecutionException("exception", e);
+    }    
+    
+  }
  
 	private File getEnvironmentFile() {
     return new File(getPackageRoot(), "environment");

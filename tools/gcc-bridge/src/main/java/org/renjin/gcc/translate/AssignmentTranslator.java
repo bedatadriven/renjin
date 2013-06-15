@@ -72,6 +72,7 @@ public class AssignmentTranslator {
 
     case RDIV_EXPR:
     case TRUNC_DIV_EXPR:
+    case EXACT_DIV_EXPR:
       assignDiv(lhs, operands);
       break;
       

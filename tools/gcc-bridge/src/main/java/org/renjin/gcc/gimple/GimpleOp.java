@@ -18,6 +18,14 @@ public enum GimpleOp {
    */
   FIX_TRUNC_EXPR,
 
+  /**
+   * The EXACT_DIV_EXPR code is used to represent integer divisions where the numerator is
+   *  known to be an exact multiple of the denominator. This allows the
+   *  backend to choose between the faster of TRUNC_DIV_EXPR, CEIL_DIV_EXPR and
+   *  FLOOR_DIV_EXPR for the current target
+   */
+  EXACT_DIV_EXPR,
+  
   TRUNC_DIV_EXPR,
 
   /**

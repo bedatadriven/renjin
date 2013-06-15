@@ -106,23 +106,25 @@ public class DatasetsBuilder {
   }
 
   private void processDataset(File dataFile) throws IOException {
-    if(dataFile.getName().endsWith(".rda")) {
+    if(dataFile.getName().endsWith("datalist")) {
+      return;
+    } else if(dataFile.getName().endsWith(".rda") || dataFile.getName().endsWith(".RData")) {
       processRDataFile(dataFile);
 
     } else if(dataFile.getName().endsWith(".txt.gz")) {
       processTextFile(dataFile, stripExtension(dataFile, ".txt.gz"), "");
 
     } else if(dataFile.getName().endsWith(".txt")) {
-      processTextFile(dataFile, stripExtension(dataFile, ".txt"), "");
+      processTextFile(dataFile, stripExtension(dataFile), "");
       
     } else if(dataFile.getName().endsWith(".tab")) {
-      processTextFile(dataFile, stripExtension(dataFile, ".tab"), "");
+      processTextFile(dataFile, stripExtension(dataFile), "");
       
     } else if(dataFile.getName().toLowerCase().endsWith(".csv")) {
-      processTextFile(dataFile, stripExtension(dataFile, ".csv"), ";");
+      processTextFile(dataFile, stripExtension(dataFile), ";");
       
     } else if(dataFile.getName().endsWith(".R")) {
-      processRScript(dataFile, stripExtension(dataFile, ".R"));
+      processRScript(dataFile, stripExtension(dataFile));
     
     } else {
       throw new RuntimeException("Don't know how to process datafile " + dataFile.getName());
@@ -148,9 +150,28 @@ public class DatasetsBuilder {
       throw new UnsupportedOperationException("Expected to find a pairlist in " + dataFile + ", found a " + exp.getTypeName());
     }
     
-    String logicalDatasetName = stripExtension(dataFile.getName(), ".rda");
+    String logicalDatasetName = stripExtension(dataFile.getName());
     Session session = new SessionBuilder().withoutBasePackage().build();
     writePairList(logicalDatasetName, session, (PairList)exp);
+  }
+
+  private String stripExtension(String name) {
+    int lastDot = name.lastIndexOf('.');
+    return name.substring(0, lastDot);
+  }
+  
+
+  private String stripExtension(File dataFile) {
+    return stripExtension(dataFile.getName());
+  }
+
+
+  private static String stripExtension(File file, String ext) {
+    return stripExtension(file.getName(), ext);
+  }
+
+  private static String stripExtension(String name, String ext) {
+    return name.substring(0, name.length() - ext.length());
   }
 
   /**
@@ -223,13 +244,6 @@ public class DatasetsBuilder {
     }
   }
 
-  private static String stripExtension(File file, String ext) {
-    return stripExtension(file.getName(), ext);
-  }
-
-  private static String stripExtension(String name, String ext) {
-    return name.substring(0, name.length() - ext.length());
-  }
 
   /**
    * Check the input stream for a compression header and wrap in a decompressing

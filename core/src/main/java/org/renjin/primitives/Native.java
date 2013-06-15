@@ -1,8 +1,11 @@
 package org.renjin.primitives;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import java.awt.Graphics;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+import java.util.List;
+
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -14,13 +17,19 @@ import org.renjin.primitives.annotations.ArgumentList;
 import org.renjin.primitives.annotations.Current;
 import org.renjin.primitives.annotations.NamedFlag;
 import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExternalExp;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
 
-import java.awt.*;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.util.List;
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 public class Native {
 
@@ -44,10 +53,10 @@ public class Native {
 
 
       if(packageName.equals("base")) {
-        return delegateToJavaMethod(context, methodName, packageName, callArguments);
+        return delegateToJavaMethod(context, Base.class, methodName, callArguments);
       }
 
-      method = Iterables.getOnlyElement(findMethod(packageName, methodName));
+      method = Iterables.getOnlyElement(findMethod(getPackageClass(packageName), methodName));
 
     } else if(methodExp instanceof ExternalExp && ((ExternalExp) methodExp).getValue() instanceof Method) {
       method = (Method) ((ExternalExp) methodExp).getValue();
@@ -232,35 +241,43 @@ public class Native {
                              @Current Environment rho,
                              String methodName,
                              @ArgumentList ListVector callArguments,
-                             @NamedFlag("PACKAGE") String packageName) {
+                             @NamedFlag("PACKAGE") String packageName,
+                             @NamedFlag("CLASS") String className) throws ClassNotFoundException {
 
-
-    return delegateToJavaMethod(context, methodName, packageName, callArguments);
+    Class clazz;
+    if(packageName != null) {
+      clazz = getPackageClass(packageName);
+    } else if(className != null) {
+      clazz = Class.forName(className);
+    } else {
+      throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
+    }
+    
+    return delegateToJavaMethod(context, clazz, methodName, callArguments);
   }
 
   /**
    * Dispatches what were originally calls to "native" libraries (C/Fortran/etc)
    * to a Java class. The Calling convention (.C/.Fortran/.Call) are ignored.
+   * @param className 
    *
    */
   public static SEXP delegateToJavaMethod(Context context,
+                                          Class clazz,
                                           String methodName,
-                                          String packageName,
                                           ListVector arguments) {
 
-    List<Method> overloads = findMethod(packageName, methodName);
+    List<Method> overloads = findMethod(clazz, methodName);
 
     if(overloads.isEmpty()) {
-      throw new EvalException("Method " + methodName + " not defined in " + packageName);
+      throw new EvalException("Method " + methodName + " not defined in " + clazz.getName());
     }
 
     FunctionBinding binding = new FunctionBinding(overloads);
     return binding.invoke(null, context, arguments);
   }
 
-  public static List<Method> findMethod(String packageName, String methodName) {
-    Class packageClass = getPackageClass(packageName);
-
+  public static List<Method> findMethod(Class packageClass, String methodName) {
     List<Method> overloads = Lists.newArrayList();
     for(Method method : packageClass.getMethods()) {
       if(method.getName().equals(methodName) &&
@@ -272,23 +289,21 @@ public class Native {
   }
 
   private static Class getPackageClass(String packageName) {
-    Class packageClass;
     if(packageName == null || packageName.equals("base")) {
-      packageClass = Base.class;
+      return Base.class;
     } else if(packageName.equals("methods")) {
-      packageClass = Methods.class;
+      return Methods.class;
     } else if(packageName.equals("grDevices")) {
-      packageClass = Graphics.class;
+      return Graphics.class;
     } else {
       String packageClassName = "org.renjin." + packageName + "." +
           packageName;
       try {
-        packageClass = Class.forName(packageClassName);
+        return Class.forName(packageClassName);
       } catch (ClassNotFoundException e) {
         throw new EvalException("Could not find class for 'native' methods for package '%s' (className='%s')",
             packageName, packageClassName);
       }
     }
-    return packageClass;
   }
 }

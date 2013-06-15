@@ -78,7 +78,7 @@ chol2inv <- function(x, size=NCOL(x), LINPACK=FALSE)
 {
     if(!is.numeric(x))
 	stop("non-numeric argument to 'chol2inv'")
-    if(!LINPACK) return(.Call("La_chol2inv", x, size, PACKAGE = "base"))
+    if(!LINPACK) return(.Call("chol2inv", x, size, CLASS="org.renjin.base.Lapack"))
 
     if(is.matrix(x)) {
 	nr <- nrow(x)

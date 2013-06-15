@@ -28,5 +28,4 @@ public class BasePackage extends Package {
   public Class getClass(String name) {
     throw new UnsupportedOperationException();
   }
-
 }

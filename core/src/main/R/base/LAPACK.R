@@ -77,8 +77,8 @@ La.svd <- function(x, nu = min(n, p), nv = min(n, p))
             v <- matrix(0, 1L, 1L)
         }
         jobv <- ""
-        res <- .Call("La_svd", jobu, jobv, x, double(min(n,p)), u, v,
-                     "dgsedd", PACKAGE = "base")
+        res <- .Call("svd", jobu, jobv, x, double(min(n,p)), u, v,
+                     "dgsedd", CLASS = "org.renjin.base.Lapack")
         res <- res[c("d", if(nu) "u", if(nv) "vt")]
         if(nu) res$u <- res$u[, 1L:min(n, nu), drop = FALSE]
         if(nv) res$vt <- res$vt[1L:min(p, nv), , drop = FALSE]

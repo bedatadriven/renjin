@@ -69,9 +69,9 @@ solve.default <-
 	return (if (is.matrix(b)) {
             if(ncol(a) != nrow(b)) stop("'b' must be compatible with 'a'")
 	    rownames(b) <- colnames(a)
-	    .Call("La_dgesv", a, b, tol, PACKAGE = "base")
+	    .Call("dgesv", a, b, tol, CLASS = "org.renjin.base.Lapack")
 	} else
-	    drop(.Call("La_dgesv", a, as.matrix(b), tol, PACKAGE = "base")))
+	    drop(.Call("dgesv", a, as.matrix(b), tol, CLASS = "org.renjin.base.Lapack")))
     }
     a <- qr(a, tol = tol)
     nc <- ncol(a$qr)

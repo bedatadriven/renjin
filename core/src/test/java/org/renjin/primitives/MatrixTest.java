@@ -170,6 +170,19 @@ public class MatrixTest extends EvalTestCase {
 
     assertThat(eval("dim(x)"), equalTo(c_i(2,2)));
   }
+  
+  @Test
+  public void testSolveNotSingular() {
+    eval("y <- c(2310,2333,2356,2379,2402,2425,2448,2471,2494,2517,2540)");
+    eval("z <- c(1,1,1,1,1,1,1,1,1,1,1)");
+    eval("x1 <- c(2,2,3,3,2,4,2,2,3,4,2)");
+    eval("x2 <- c(2,2,1.2,2,3,2,1.2,2,3,4,3)");
+    eval("x3 <- c(20,12,33,43,53,23,99,34,23,55,22)");
+    eval("x4 <- c(142000,144000,151000,150000,139000,169000,126000,142900,163000,169000,149000)");
+    eval(" X <- cbind(z,x1,x2,x3,x4)");
+    eval("MM <- t(X) %*% X");
+    eval("print(solve(MM))");
+  }
 
   @Test(expected = org.renjin.eval.EvalException.class)
   public void testSolveSingularity() throws IOException {

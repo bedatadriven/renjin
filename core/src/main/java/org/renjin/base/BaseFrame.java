@@ -27,9 +27,12 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 import org.renjin.eval.Context;
+import org.renjin.jvminterop.ClassBinding;
+import org.renjin.jvminterop.ClassFrame;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.Frame;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.ListVector;
@@ -194,10 +197,12 @@ public class BaseFrame implements Frame {
     // aliases
     addPrimitiveAlias("as.double", "as.numeric");
     addPrimitiveAlias("as.double", "as.real");
-    addPrimitiveAlias("is.symbol", "is.name"); 
+    addPrimitiveAlias("is.symbol", "is.name");
+    
   }
 
   private void addPrimitiveAlias(String primitiveName, String alias) {
     loaded.put(Symbol.get(alias), Primitives.getBuiltin(primitiveName));
   }
+  
 }

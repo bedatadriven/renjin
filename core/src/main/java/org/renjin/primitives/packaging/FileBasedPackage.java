@@ -2,15 +2,15 @@ package org.renjin.primitives.packaging;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
 import com.google.common.base.Charsets;
@@ -42,7 +42,7 @@ public abstract class FileBasedPackage extends Package {
       throw new RuntimeException("IOException while parsing NAMESPACE file");
     }
   }
-
+  
   private Properties readDatasetIndex() throws IOException {
     Properties datasets = new Properties();
     if(resourceExists("datasets")) {
@@ -57,28 +57,52 @@ public abstract class FileBasedPackage extends Package {
   }
 
   @Override
-  public List<String> getDatasets() {
+  public List<Dataset> getDatasets() {
     try {
       Properties index = readDatasetIndex();
-      return Lists.newArrayList(index.stringPropertyNames());
+      List<Dataset> datasets = Lists.newArrayList();
+      for(String logicalDatasetName : index.stringPropertyNames()) {
+        datasets.add(new FileBasedDataset(logicalDatasetName, 
+            index.getProperty(logicalDatasetName).split("\\s*,\\s*")));
+      }
+      return datasets;
     } catch(IOException e) {
       throw new RuntimeException(e);
     }
   }
+  
+  private class FileBasedDataset extends Dataset {
 
-  @Override
-  public PairList loadDataset(String datasetName) throws IOException {
-    InputStream in = getResource(datasetName).getInput();
-    try {
-      RDataReader reader = new RDataReader(in);
-      SEXP exp = reader.readFile();
-      if(exp instanceof PairList) {
-        return (PairList)exp;
-      } else {
-        throw new EvalException("expected pairlist from " + datasetName + ", got " + exp.getTypeName());
+    private String datasetName;
+    private List<String> objectNames;
+
+    public FileBasedDataset(String name, String[] objectNames) {
+      this.datasetName = name;
+      this.objectNames = Arrays.asList(objectNames);
+    }
+
+    @Override
+    public String getName() {
+      return datasetName;
+    }
+
+    @Override
+    public Collection<String> getObjectNames() {
+      return objectNames;
+    }
+
+    @Override
+    public SEXP loadObject(String name) throws IOException {
+      if(!objectNames.contains(name)) {
+        throw new IllegalArgumentException(name);
       }
-    } finally {
-      Closeables.closeQuietly(in);
+      InputStream in = getResource("data/" + name).getInput();
+      try {
+        RDataReader reader = new RDataReader(in);
+        return reader.readFile();
+      } finally {
+        Closeables.closeQuietly(in);
+      }
     }
   }
 }

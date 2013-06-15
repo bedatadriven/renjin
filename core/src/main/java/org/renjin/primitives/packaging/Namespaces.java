@@ -83,7 +83,7 @@ public class Namespaces {
 
   @Primitive
   public static SEXP getDataset(@Current NamespaceRegistry registry, String namespaceName, String datasetName) throws IOException {
-    return registry.getNamespace(namespaceName).getPackage().loadDataset(datasetName);
+    return registry.getNamespace(namespaceName).getPackage().getDataset(datasetName);
   }
   
 }

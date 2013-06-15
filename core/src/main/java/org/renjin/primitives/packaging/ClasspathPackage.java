@@ -27,18 +27,6 @@ public class ClasspathPackage extends FileBasedPackage {
   public boolean exists() {
     return resourceExists("environment");
   }
-  
-  
-
-  @Override
-  public PairList loadDataset(String datasetName) throws IOException {
-    if(!resourceExists(datasetName)) {
-      throw new EvalException("Could not find dataset '%s' on the classpath. " +
-      		"(Looked for: %s)", datasetName, resourceUrl(datasetName));
-      		
-    }
-    return super.loadDataset(datasetName);
-  }
 
   @Override
   public InputSupplier<InputStream> getResource(String name) throws IOException {

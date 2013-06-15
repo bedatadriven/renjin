@@ -137,7 +137,7 @@ public class RDataReader {
       case BINARY_FORMAT:
         return new BinaryReader(conn);
       default:
-        throw new IOException("could not read header");
+        throw new IOException("Unknown format");
     }
   }
 

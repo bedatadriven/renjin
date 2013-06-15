@@ -240,7 +240,7 @@ public class Attributes {
   }
 
   @Primitive("attr")
-  public static SEXP getAttribute(SEXP exp, String which) {
+  public static SEXP getAttribute(SEXP exp, String which, boolean exact) {
     SEXP partialMatch = null;
     int partialMatchCount = 0;
 
@@ -248,12 +248,17 @@ public class Attributes {
     for (Symbol name : attributes.names()) {
       if (name.getPrintName().equals(which)) {
         return postProcessAttributeValue(name, attributes.get(name));
-      } else if (name.getPrintName().startsWith(which)) {
+      } else if (!exact && name.getPrintName().startsWith(which)) {
         partialMatch = postProcessAttributeValue(name, attributes.get(name));
         partialMatchCount++;
       }
     }
     return partialMatchCount == 1 ? partialMatch : Null.INSTANCE;
+  }
+  
+  @Primitive("attr")
+  public static SEXP getAttribute(SEXP exp, String which) {
+    return getAttribute(exp, which, false);
   }
 
   @Primitive("attributes<-")

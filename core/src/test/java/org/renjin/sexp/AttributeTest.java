@@ -52,7 +52,19 @@ public class AttributeTest extends EvalTestCase {
     eval("dimnames(x)[[1]] <- c('a','b','c')");
     
     assertThat(eval("names(x)"), equalTo(c("a","b","c")));
-
   }
 
+  @Test
+  public void attrExact() {
+    eval("x <- c(1,2,3)");
+    eval("attr(x, 'foo') <- 'bar' ");
+    
+    assertThat(eval("attr(x, 'foo', exact=TRUE)"), equalTo(c("bar")));
+    assertThat(eval("attr(x, 'foo', exact=FALSE)"), equalTo(c("bar")));
+    assertThat(eval("attr(x, 'f', exact=FALSE)"), equalTo(c("bar")));
+    assertThat(eval("attr(x, 'f', exact=TRUE)"), equalTo(NULL));
+
+
+    
+  }
 }

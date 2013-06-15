@@ -2,7 +2,6 @@ package org.renjin.primitives.vector;
 
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
 
 public class ConvertingDoubleVector extends DoubleVector implements DeferredComputation {
@@ -24,8 +23,8 @@ public class ConvertingDoubleVector extends DoubleVector implements DeferredComp
   }
 
   @Override
-  protected StringVector cloneWithNewAttributes(AttributeMap attributes) {
-    return new ConvertingStringVector(operand, attributes);
+  protected DoubleVector cloneWithNewAttributes(AttributeMap attributes) {
+    return new ConvertingDoubleVector(operand, attributes);
   }
 
   @Override

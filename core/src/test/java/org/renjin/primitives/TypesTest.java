@@ -762,5 +762,9 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("f()");
   }
  
+  @Test
+  public void convertingDoubleVector() {
+    eval("as.numeric(as.character(1:10))");
+  }
 
 }

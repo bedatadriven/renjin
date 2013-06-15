@@ -23,6 +23,7 @@ package org.renjin.util;
 
 import com.google.common.base.Preconditions;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 import org.renjin.sexp.Vector.Builder;
 
@@ -384,7 +385,7 @@ public class CDefines {
 
 
   public static void error(String message, Object... args) {
-    throw new RuntimeException(String.format(message, args));
+    throw new EvalException(String.format(message, args));
   }
 
   public static String _(String s) {

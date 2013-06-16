@@ -108,7 +108,7 @@ public class TestRunner {
 
   private void executeTestFile(File sourceFile, String sourceText) throws IOException {
     
-    if(sourceText.trim().isEmpty()) {
+    if(isEmpty(sourceText)) {
       // skip empty files or Rd docs with no examples
       return;
     }
@@ -152,6 +152,15 @@ public class TestRunner {
     }
   }
 
+
+  private boolean isEmpty(String sourceText) {
+    for(int i=0;i!=sourceText.length();++i) {
+      if(!Character.isWhitespace(sourceText.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   private void executeTestFunction(Context context, Symbol name) {
     try {

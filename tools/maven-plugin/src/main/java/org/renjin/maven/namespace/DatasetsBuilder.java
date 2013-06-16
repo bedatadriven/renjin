@@ -11,6 +11,7 @@ import java.io.PushbackInputStream;
 import java.util.Properties;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -137,7 +138,7 @@ public class DatasetsBuilder {
    * @throws IOException
    */
   private void processRDataFile(File dataFile) throws IOException {
-    InputStream in = DatasetsBuilder.decompress(new FileInputStream(dataFile));
+    InputStream in = DatasetsBuilder.decompress(dataFile);
     SEXP exp;
     try { 
       RDataReader reader = new RDataReader(in);
@@ -249,23 +250,28 @@ public class DatasetsBuilder {
    * Check the input stream for a compression header and wrap in a decompressing
    * stream (gzip or xz) if necessary
    */
-  public static InputStream decompress(InputStream in) throws IOException {
+  public static InputStream decompress(File file) throws IOException {
 
-    PushbackInputStream pushBackIn = new PushbackInputStream(in, 2);
-    int b1 = pushBackIn.read();
-    int b2 = pushBackIn.read();
-    pushBackIn.unread(b2);
-    pushBackIn.unread(b1);
-
+    FileInputStream in = new FileInputStream(file);
+    int b1 = in.read();
+    int b2 = in.read();
+    int b3 = in.read();
+    in.close();
+    
     if(b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
-      return new GZIPInputStream(pushBackIn);
+      return new GZIPInputStream(new FileInputStream(file));
 
     } else if(b1 == 0xFD && b2 == '7') {
       // See http://tukaani.org/xz/xz-javadoc/org/tukaani/xz/XZInputStream.html
       // Set a memory limit of 64mb, if this is not sufficient, it will throw
       // an exception rather than an OutOfMemoryError, which will terminate the JVM
-      return new XZInputStream(pushBackIn, 64 * 1024 * 1024);
+      return new XZInputStream(new FileInputStream(file), 64 * 1024 * 1024);
+      
+    } else if (b1 == 'B' && b2 == 'Z' && b3 == 'h' ) {
+      return new BZip2CompressorInputStream(new FileInputStream(file));
+    
+    } else {
+      return new FileInputStream(file);
     }
-    return in;
   }
 }

@@ -518,7 +518,7 @@ public class Primitives {
     f("rbinom", RNG.class, 1, 11, 3);
     f("rcauchy",RNG.class, 2, 11, 3);
     f("rf", RNG.class, 3, 11, 3);
-    f("rgamma", Gamma.class, 4, 11, 3);
+    f("rgamma", RNG.class, 4, 11, 3);
     f("rlnorm", RNG.class, 5, 11, 3);
     f("rlogis", RNG.class, 6, 11, 3);
     f("rnbinom",RNG.class, 7, 11, 3);

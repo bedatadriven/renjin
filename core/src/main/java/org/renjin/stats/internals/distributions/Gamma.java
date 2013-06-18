@@ -48,8 +48,6 @@ public class Gamma {
   static double q0, b, si, c;/* no. 2 (step 4) */
 
 
-  @Internal
-  @DataParallel
   public static double rgamma(@Current Session context, double a, double scale) {
 
     double e, p, q, r, t, u, v, w, x, ret_val;

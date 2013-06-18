@@ -11,6 +11,7 @@ import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.DotCall;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
 import org.renjin.sexp.AttributeMap;
@@ -38,6 +39,7 @@ public class Lapack {
    * @param sz the number of columns of x containing the Choleski decomposition.
    * @return 
    */
+  @DotCall()
   public static DoubleVector chol2inv(DoubleVector a, int sz) {
 
     if(IntVector.isNA(sz) || sz < 1) {

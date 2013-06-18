@@ -35,9 +35,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.ParseUtil;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.PushbackBufferedReader;
 import org.renjin.sexp.DoubleArrayVector;
@@ -59,7 +60,7 @@ import com.google.common.collect.Maps;
 public class Scan {
 
 
-  @Primitive
+  @Internal
   public static StringVector readTableHead(@Current Context context,
      SEXP conn, int nLines, String commentChar, int blankLinesSkip, String quote, String sep) throws IOException {
     
@@ -73,7 +74,8 @@ public class Scan {
     }
     return head.build();
   }
-  
+
+  @Internal
   public static Vector scan(@Current Context context,
                             SEXP file,
                             Vector what,
@@ -343,7 +345,7 @@ public class Scan {
    * @param dec
    * @return
    */
-  @Primitive("type.convert")
+  @Internal("type.convert")
   public static Vector typeConvert(StringVector vector, StringVector naStrings, boolean asIs, String dec) {
     
     Converter<?> converter = getConverter(vector, naStrings);

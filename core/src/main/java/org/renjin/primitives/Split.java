@@ -1,7 +1,8 @@
 package org.renjin.primitives;
 
 import com.google.common.collect.Maps;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 import java.util.Map;
@@ -16,7 +17,7 @@ public class Split {
    * @param factors
    * @return
    */
-  @Primitive
+  @Internal
   public static ListVector split(Vector toSplit, IntVector factors) {
     assert toSplit.length() == factors.length();
     

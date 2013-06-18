@@ -23,8 +23,9 @@ package org.renjin.primitives;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.PassThrough;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.sexp.*;
 
 
@@ -40,17 +41,18 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
-  @PassThrough
-  @Primitive("||")
-  public static LogicalVector or(Context context, Environment rho, FunctionCall call) {
+  @Builtin("||")
+  public static LogicalVector or(@Current Context context, @Current Environment rho,
+                                 @Unevaluated SEXP xExp,
+                                 @Unevaluated SEXP yExp) {
 
-    Logical x = checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x || y'");
+    Logical x = checkedToLogical(context.evaluate(xExp, rho), "invalid 'x' type in 'x || y'");
 
     if(x == Logical.TRUE) {
       return LogicalVector.TRUE;
     }
 
-    Logical y = checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x || y'");
+    Logical y = checkedToLogical(context.evaluate(yExp, rho), "invalid 'y' type in 'x || y'");
     if(y == Logical.TRUE) {
       return LogicalVector.TRUE;
     }
@@ -69,17 +71,18 @@ public class Comparison {
    * Comparing doubles or booleans works as generally expected. Comparing two vectors
    * will only compare the first element in each vector.
    */
-  @PassThrough
-  @Primitive("&&")
-  public static LogicalVector and(Context context, Environment rho, FunctionCall call) {
+  @Builtin("&&")
+  public static LogicalVector and(@Current Context context, @Current Environment rho,
+                                  @Unevaluated SEXP xExp,
+                                  @Unevaluated SEXP yExp) {
 
-    Logical x = checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x && y'");
+    Logical x = checkedToLogical(context.evaluate(xExp, rho), "invalid 'x' type in 'x && y'");
 
     if(x == Logical.FALSE) {
       return LogicalVector.FALSE;
     }
 
-    Logical y = checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x && y'");
+    Logical y = checkedToLogical(context.evaluate(yExp, rho), "invalid 'y' type in 'x && y'");
 
     if(y == Logical.FALSE) {
       return LogicalVector.FALSE;

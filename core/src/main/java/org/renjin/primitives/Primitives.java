@@ -29,20 +29,22 @@ import static org.renjin.util.CDefines.RelOpType.LEOP;
 import static org.renjin.util.CDefines.RelOpType.LTOP;
 import static org.renjin.util.CDefines.RelOpType.NEOP;
 
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.math.distribution.Distribution;
+import org.renjin.base.internals.AllNamesVisitor;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.model.JvmMethod;
 import org.renjin.methods.Methods;
-import org.renjin.primitives.annotations.processor.WrapperGenerator2;
+import org.renjin.invoke.annotations.processor.WrapperGenerator2;
 import org.renjin.primitives.files.Files;
-import org.renjin.primitives.graphics.Graphics;
-import org.renjin.primitives.graphics.Par;
-import org.renjin.primitives.graphics.Plot;
-import org.renjin.primitives.graphics.RgbHsv;
+import org.renjin.graphics.internals.Graphics;
+import org.renjin.graphics.internals.Par;
+import org.renjin.graphics.internals.Plot;
+import org.renjin.graphics.internals.RgbHsv;
 import org.renjin.primitives.io.Cat;
 import org.renjin.primitives.io.DebianControlFiles;
 import org.renjin.primitives.io.connections.Connections;
@@ -52,27 +54,9 @@ import org.renjin.primitives.match.Match;
 import org.renjin.primitives.matrix.Matrices;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.packaging.Packages;
-import org.renjin.primitives.special.AssignFunction;
-import org.renjin.primitives.special.AssignLeftFunction;
-import org.renjin.primitives.special.BeginFunction;
-import org.renjin.primitives.special.BreakFunction;
-import org.renjin.primitives.special.ClosureFunction;
-import org.renjin.primitives.special.ForFunction;
-import org.renjin.primitives.special.IfFunction;
-import org.renjin.primitives.special.InternalFunction;
-import org.renjin.primitives.special.NextFunction;
-import org.renjin.primitives.special.OnExitFunction;
-import org.renjin.primitives.special.ParenFunction;
-import org.renjin.primitives.special.QuoteFunction;
-import org.renjin.primitives.special.ReassignLeftFunction;
-import org.renjin.primitives.special.RecallFunction;
-import org.renjin.primitives.special.RepeatFunction;
-import org.renjin.primitives.special.RestartFunction;
-import org.renjin.primitives.special.ReturnFunction;
-import org.renjin.primitives.special.SubstituteFunction;
-import org.renjin.primitives.special.SwitchFunction;
-import org.renjin.primitives.special.TildeFunction;
-import org.renjin.primitives.special.WhileFunction;
+import org.renjin.primitives.sequence.RepFunction;
+import org.renjin.primitives.sequence.Sequences;
+import org.renjin.primitives.special.*;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
@@ -88,8 +72,7 @@ import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Covariance;
 import org.renjin.stats.internals.Distributions;
 import org.renjin.stats.internals.FFT;
-import org.renjin.stats.internals.distributions.RNG;
-import org.renjin.stats.internals.distributions.Sampling;
+import org.renjin.stats.internals.distributions.*;
 import org.renjin.stats.internals.models.Models;
 import org.renjin.stats.internals.optimize.Optimizations;
 import org.renjin.stats.internals.optimize.Roots;
@@ -509,9 +492,9 @@ public class Primitives {
     f("phyper", Distributions.class, 2, 11, 4 + 2);
     f("qhyper", Distributions.class, 3, 11, 4 + 2);
 
-    f("dnbeta", Distributions.class, 4, 11, 4 + 1);
-    f("pnbeta", Distributions.class, 5, 11, 4 + 2);
-    f("qnbeta", Distributions.class, 6, 11, 4 + 2);
+    f("dnbeta", Beta.class, 4, 11, 4 + 1);
+    f("pnbeta", Beta.class, 5, 11, 4 + 2);
+    f("qnbeta", Beta.class, 6, 11, 4 + 2);
 
     f("dnf", Distributions.class , 7, 11, 4 + 1);
     f("pnf", Distributions.class, 8, 11, 4 + 2);
@@ -535,7 +518,7 @@ public class Primitives {
     f("rbinom", RNG.class, 1, 11, 3);
     f("rcauchy",RNG.class, 2, 11, 3);
     f("rf", RNG.class, 3, 11, 3);
-    f("rgamma", RNG.class, 4, 11, 3);
+    f("rgamma", Gamma.class, 4, 11, 3);
     f("rlnorm", RNG.class, 5, 11, 3);
     f("rlogis", RNG.class, 6, 11, 3);
     f("rnbinom",RNG.class, 7, 11, 3);
@@ -586,7 +569,7 @@ public class Primitives {
     f("format", Text.class, 0, 11, 8);
     f("format.info", /*formatinfo*/ null, 0, 11, 3);
     f("cat", Cat.class, 0, 111, 6);
-    f("call", Evaluation.class, 0, 0, -1);
+    add(new CallFunction());
     f("do.call", Evaluation.class, 0, 211, 3);
     f("as.call", Types.class, 0, 1, 1);
     f("type.convert", Scan.class, 1, 11, 4);
@@ -701,7 +684,7 @@ public class Primitives {
     f("gcinfo", /*gcinfo*/ null, 0, 11, 1);
     f("gctorture", /*gctorture*/ null, 0, 11, 1);
     f("memory.profile", /*memoryprofile*/ null, 0, 11, 0);
-    f("rep", Sequences.class, 0, 0, -1);
+    add(new RepFunction());
     f("rep.int", Sequences.class, 0, 11, 2);
     f("seq.int", Sequences.class, 0, 0, -1);
     f("seq_len", Sequences.class, 0, 1, 1);
@@ -723,7 +706,7 @@ public class Primitives {
     f("eval", Evaluation.class, 0, 211, 3);
     f("eval.with.vis",Evaluation.class, 1, 211, 3);
     f("withVisible", /*withVisible*/ null, 1, 10, 1);
-    f("expression", Types.class, 1, 0, -1);
+    add(new ExpressionFunction());
     f("sys.parent", Contexts.class, 1, 11, -1);
     f("sys.call", Contexts.class, 2, 11, -1);
     f("sys.frame", Contexts.class, 3, 11, -1);
@@ -1037,6 +1020,8 @@ public class Primitives {
     f("jload", Jvmi.class, 0, 0, -1);
     f("library", Packages.class, 0,0,-1);
     f("require", Packages.class, 0,0,-1);
+
+    
   }
 
   private void add(SpecialFunction fn) {

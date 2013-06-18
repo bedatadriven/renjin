@@ -25,9 +25,10 @@ import java.util.List;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Attributes;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.AttributeMap;
@@ -52,7 +53,7 @@ public class Models {
 
 
 
-  @Primitive("terms.formula")
+  @Internal("terms.formula")
   public static SEXP termsFormula(@Current Context context, FunctionCall x, SEXP specials, SEXP data, boolean keepOrder,
                                   boolean allowDotAsName) {
     
@@ -123,7 +124,7 @@ public class Models {
    * @param naAction
    * @return
    */
-  @Primitive("model.frame")
+  @Internal("model.frame")
   public static SEXP modelFrame(
       @Current Context context,
       @Current Environment rho,
@@ -289,7 +290,7 @@ public class Models {
     }
   }
   
-  @Primitive("model.matrix")
+  @Internal("model.matrix")
   public static Vector modelMatrix(@Current Context context, FunctionCall terms, ListVector modelFrame) {
    
     return ModelMatrixBuilder.build(context, terms, modelFrame);

@@ -24,8 +24,9 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Function;
@@ -48,7 +49,7 @@ public class Contexts {
    * @param context the current {@code Context}
    * @return the index of the current frame.
    */
-  @Primitive("sys.nframe")
+  @Internal("sys.nframe")
   public static int sysFrameCount(@Current Context context) {
     return findStartingContext(context).getFrameDepth();
   }
@@ -59,7 +60,7 @@ public class Contexts {
    * @return the Environment of the parent environment
    *
    */
-  @Primitive("parent.frame")
+  @Internal("parent.frame")
   public static Environment parentFrame(@Current Context context,  int n) {
     if(n < 1) {
       throw new EvalException("invalid 'n' value");
@@ -225,7 +226,7 @@ public class Contexts {
 
 
   
-  @Primitive("sys.parent")
+  @Internal("sys.parent")
   public static int sysParent(@Current Context context, int n) {
     
     Context cptr = findStartingContext(context);
@@ -256,17 +257,17 @@ public class Contexts {
   }
 
 
-  @Primitive("sys.frame")
+  @Internal("sys.frame")
   public static Environment sysFrame(@Current Context context, int which) {
     return R_sysframe(which, findStartingContext(context));
   }
 
-  @Primitive("sys.call")
+  @Internal("sys.call")
   public static FunctionCall sysCall(@Current Context context, int which) {
     return R_syscall(which, findStartingContext(context));
   }
 
-  @Primitive("sys.function")
+  @Internal("sys.function")
   public static Function sysFunction(@Current Context context, int which) {
     return R_sysfunction(which, findStartingContext(context));
   }

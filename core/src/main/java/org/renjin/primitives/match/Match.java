@@ -26,8 +26,9 @@ package org.renjin.primitives.match;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 
@@ -50,6 +51,7 @@ public class Match {
    *        For historical reasons, FALSE is equivalent to NULL.
    * @return
    */
+  @Internal
   public static int[] match(Vector search, Vector table, int noMatch, AtomicVector incomparables) {
     //For historical reasons, FALSE is equivalent to NULL.
     if(incomparables.equals( LogicalVector.FALSE ) ) {
@@ -120,12 +122,12 @@ public class Match {
    * @return An integer vector (possibly including NA if nomatch = NA) of the same length as x,
    * giving the indices of the elements in table which matched, or {@code nomatch}.
    */
-  @Primitive
+  @Internal
   public static IntVector pmatch(StringVector x, StringVector table, int noMatch, boolean duplicatesOk) {
     return commonStringMatch(x, table, noMatch, noMatch, duplicatesOk);
   }
   
-  @Primitive
+  @Internal
   public static IntVector charmatch(StringVector x, StringVector table, int noMatch) {
     // I don't really understand the difference between charmatch and pmatch:
     // it seems that for pmatch, if the search string partially matches more than one
@@ -216,7 +218,7 @@ public class Match {
     return vector.isElementNA(i) ? "NA" : vector.getElementAsString(i);
   }  
   
-  @Primitive("match.call")
+  @Internal("match.call")
   public static SEXP matchCall (@Current Context context, @Current Environment rho, SEXP definition, FunctionCall call, boolean expandDots){
     
     Closure closure;
@@ -256,7 +258,7 @@ public class Match {
    * array indices and names, this internal function simply returns
    * the indices
    */
-  @Primitive
+  @Internal
   public static IntVector which(Vector x) {
     IntArrayVector.Builder indices = new IntArrayVector.Builder();
     for(int i=0;i!=x.length();++i) {

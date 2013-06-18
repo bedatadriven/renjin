@@ -68,6 +68,11 @@
   						<goal>test</goal>
   					</goals>
   					<phase>test</phase>
+                    <configuration>
+                        <defaultPackages>
+                            <defaultPackage>stats</defaultPackage>
+                        </defaultPackages>
+                    </configuration>
   				</execution>
   			</executions>
   		</plugin>

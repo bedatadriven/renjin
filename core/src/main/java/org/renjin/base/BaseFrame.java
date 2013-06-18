@@ -27,12 +27,9 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 import org.renjin.eval.Context;
-import org.renjin.jvminterop.ClassBinding;
-import org.renjin.jvminterop.ClassFrame;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
 import org.renjin.sexp.Frame;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.ListVector;

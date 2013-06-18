@@ -26,7 +26,8 @@ import org.apache.commons.math.MaxIterationsExceededException;
 import org.apache.commons.math.analysis.solvers.BrentSolver;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Environment;
@@ -46,6 +47,7 @@ public class Roots {
    * This implementation wraps the Commons Math {@link BrentSolver}; there are however
    *
    */
+  @Internal
   public static DoubleVector zeroin2(@Current Context context, @Current Environment rho, Function fn,
                              double lower, double upper, double fLower, double fUpper,
 			     double tol, int maximumIterations) {

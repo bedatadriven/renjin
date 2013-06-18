@@ -9,7 +9,7 @@ import org.renjin.compiler.runtime.UnimplementedPrimitive;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Primitives;
-import org.renjin.primitives.annotations.processor.WrapperGenerator2;
+import org.renjin.invoke.annotations.processor.WrapperGenerator2;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.InvocationTargetException;

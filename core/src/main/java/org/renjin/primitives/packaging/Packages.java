@@ -3,10 +3,10 @@ package org.renjin.primitives.packaging;
 import java.io.IOException;
 
 import org.renjin.eval.Context;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Evaluate;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Visible;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Unevaluated;
+import org.renjin.invoke.annotations.Invisible;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.HashFrame;
 import org.renjin.sexp.StringVector;
@@ -15,12 +15,12 @@ import org.renjin.sexp.Symbols;
 
 public class Packages {
 
-  @Primitive
-  @Visible(false)
+  @Builtin
+  @Invisible
   public static void library(
       @Current Context context,
       @Current NamespaceRegistry namespaceRegistry, 
-      @Evaluate(false) Symbol packageName) throws IOException {
+      @Unevaluated Symbol packageName) throws IOException {
     
     Namespace namespace = namespaceRegistry.getNamespace(packageName);
     
@@ -39,10 +39,11 @@ public class Packages {
     }
   }
 
-  @Primitive
-  @Visible(false)
+  @Builtin
+  @Invisible
   public static boolean require(@Current Context context,
-                                @Current NamespaceRegistry registry, @Evaluate(false) Symbol name) {
+                                @Current NamespaceRegistry registry,
+                                @Unevaluated Symbol name) {
     try {
       library(context, registry, name);
       return true;

@@ -43,7 +43,7 @@ import java.util.Vector;
 
 /**
  * PrintfFormat allows the formatting of an array of
- * objects embedded within a string.  Primitive types
+ * objects embedded within a string.  Builtin types
  * must be passed using wrapper types.  The formatting
  * is controlled by a control string.
  *<p>

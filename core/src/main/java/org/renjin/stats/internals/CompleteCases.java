@@ -4,8 +4,9 @@ import java.util.BitSet;
 import java.util.List;
 
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.LogicalBitSetVector;
@@ -23,7 +24,7 @@ public class CompleteCases {
    *
    * @param args a sequence of vectors, matrices and data frames.
    */
-  @Primitive("complete.cases")
+  @Internal("complete.cases")
   public static LogicalVector completeCases(@ArgumentList ListVector args) {
     
     List<AtomicVector> vectors = collectVectors(args);

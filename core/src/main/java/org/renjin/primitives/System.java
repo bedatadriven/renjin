@@ -28,10 +28,7 @@ import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.renjin.RVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
-import org.renjin.primitives.annotations.Visible;
+import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
 
 import java.io.File;
@@ -51,11 +48,13 @@ public class System {
   
   private static final double MILLISECONDS_PER_SECOND = 1000d;
   
-  
+
+  @Internal
   public static String getRHome(@Current Context context) throws URISyntaxException {
     return context.getSession().getHomeDirectory();
   }
 
+  @Internal
   public static ListVector Version() {
     // this is just copied from my local R installation
     // we'll have to see later what makes the most sense to put here,
@@ -78,7 +77,7 @@ public class System {
 
   }
 
-  @Primitive("Sys.getenv")
+  @Internal("Sys.getenv")
   public static StringVector getEnvironment(@Current Context context, StringVector names, String unset) {
     StringVector.Builder result = new StringArrayVector.Builder();
 
@@ -96,7 +95,7 @@ public class System {
     return result.build();
   }
 
-  @Primitive("Sys.setenv")
+  @Internal("Sys.setenv")
   public static LogicalVector setEnvironment(@Current Context context, StringVector names, StringVector values) {
 
     Map<String, String> map = context.getSession().getSystemEnvironment();
@@ -108,9 +107,9 @@ public class System {
     }
     return result.build();
   }
-  
-  @Primitive("Sys.unsetenv")
-  @Visible(false)
+
+  @Invisible
+  @Internal("Sys.unsetenv")
   public static LogicalVector unsetEnvironment(@Current Context context, StringVector names) {
 
     Map<String, String> map = context.getSession().getSystemEnvironment();
@@ -139,7 +138,7 @@ public class System {
 
   private static final int LC_ALL = 1;
 
-  @Primitive("Sys.getlocale")
+  @Internal("Sys.getlocale")
   public static String getLocale(int categoryIndex) {
     if(categoryIndex == LC_ALL) {
       StringBuilder info = new StringBuilder();
@@ -159,13 +158,13 @@ public class System {
   }
 
 
-  @Primitive("Sys.setlocale")
+  @Internal("Sys.setlocale")
   public static String setLocale(int categoryIndex, String locale) {
     java.lang .System.out.println("locale = " + locale);
     return "";
   }
 
-  
+  @Internal
   public static StringVector commandArgs(@Current Context context) {
     return context.getSession().getCommandLineArguments();
   }
@@ -176,6 +175,7 @@ public class System {
    * @param what
    * @return
    */
+  @Internal
   public static LogicalVector capabilities(StringVector what) {
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     StringVector.Builder names = new StringVector.Builder();
@@ -190,6 +190,7 @@ public class System {
     return result.build();
   }
 
+  @Internal
   public static LogicalVector capabilities() {
 
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
@@ -203,7 +204,7 @@ public class System {
     return result.build();
   }
   
-  @Primitive
+  @Internal
   public static StringVector date() {
     // R Style Date Format
     // Example in R: Fri Sep  9 12:20:00 2011 
@@ -217,7 +218,7 @@ public class System {
     return (b.build());
   }
   
-  @Primitive("Sys.info")
+  @Internal("Sys.info")
   public static StringVector sysInfo() {
     StringVector.Builder sb = new StringVector.Builder();
     sb.add(java.lang.System.getProperty("os.name"));
@@ -244,25 +245,25 @@ public class System {
     return (sb.build());
   }
   
-  @Primitive("Sys.getpid")
-  public static IntVector SysGetPid(){
-    String name = null;
-    try{
+  @Internal("Sys.getpid")
+  public static int SysGetPid(){
+    String name;
+    try {
       name = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-    }catch (Exception e){
-      throw new EvalException("Can not catch the pid.");
+    } catch (Exception e) {
+      throw new EvalException("Can not catch the pid.", e);
     }
     int atIndex = name.indexOf("@");
     int result =  1;
     try{
       result = Integer.parseInt(name.substring(0,atIndex));
-    }catch (Exception e){
+    } catch (Exception e) {
       //Handled string wrong?
     }
-    return(new IntArrayVector(result));
+    return result;
   }
   
-  @Primitive("Sys.sleep")
+  @Internal("Sys.sleep")
   public static void SysSleep(double seconds){
     try{
       Thread.currentThread().sleep((long)(seconds * 1000));
@@ -271,7 +272,7 @@ public class System {
     }
   }
 
-  @Primitive
+  @Internal
   public static DoubleVector gc(boolean verbose, boolean reset) {
     try {
       java.lang.System.gc();
@@ -293,7 +294,7 @@ public class System {
    *  time charged for execution by the system on behalf of the calling
    *  process._
    */
-  @Primitive("proc.time")
+  @Builtin("proc.time")
   public static DoubleVector procTime() {
      
     try {
@@ -379,17 +380,17 @@ public class System {
     return result.build();
   }
 
-  @Primitive
+  @Internal
   public static String machine() {
     return "Unix";
   }
   
-  @Primitive
+  @Internal
   public static void dirchmod(StringVector dir ) {
     // not supported
   }
 
-  @Primitive("Sys.chmod")
+  @Internal("Sys.chmod")
   public static boolean sysChmod(@Recycle String path, int mode, boolean useUmask) {
     // Not supported on our "platform" 
     // There are many cases where a Sys.chmod call would fail, so I think this 
@@ -404,7 +405,7 @@ public class System {
    * For more details see your OS's documentation on the system call
    * ‘umask’, e.g. ‘man 2 umask’
    */
-  @Primitive("Sys.umask")
+  @Internal("Sys.umask")
   public static int sysChmod(int umask) {
     
     // Not supported on our "platform" 
@@ -413,7 +414,7 @@ public class System {
     return 0;
   }
   
-  @Primitive("system")
+  @Internal("system")
   public static SEXP system(@Current Context context, String command, int flag, SEXP stdin, SEXP stdout, SEXP stderr) throws IOException, InterruptedException {
     boolean invisible = (flag >= 20 && flag < 29);
     boolean minimized = (flag >= 10 && flag < 19);

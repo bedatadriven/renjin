@@ -5,8 +5,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.PushbackBufferedReader;
 import org.renjin.primitives.matrix.StringMatrixBuilder;
@@ -68,7 +69,7 @@ public class DebianControlFiles {
    * @return
    * @throws IOException
    */
-  @Primitive
+  @Internal
   public static SEXP readDCF(@Current Context context, SEXP conn, Vector requestedFields, boolean keepWhiteSpace) throws IOException {
     
     Map<Cell, String> cells = Maps.newHashMap();

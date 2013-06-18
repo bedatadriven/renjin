@@ -443,12 +443,12 @@ public class RDataReader {
   }
 
   private SEXP readExternalPointer(Flags flags) throws IOException {
-    ExternalExp ptr = new ExternalExp(null);
+    ExternalPtr ptr = new ExternalPtr(null);
     addReadRef(ptr);
     //R_SetExternalPtrAddr(s, NULL);
     readExp(); // protected (not used)
     readExp(); // tag (not used)
-    ptr = (ExternalExp) ptr.setAttributes(readAttributes(flags));
+    ptr = (ExternalPtr) ptr.setAttributes(readAttributes(flags));
     return ptr;
   }
 

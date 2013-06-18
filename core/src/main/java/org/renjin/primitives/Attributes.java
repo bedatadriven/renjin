@@ -25,10 +25,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Generic;
-import org.renjin.primitives.annotations.InvokeAsCharacter;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
@@ -181,13 +178,13 @@ public class Attributes {
   }
 
   @Generic
-  @Primitive("dim")
+  @Builtin("dim")
   public static SEXP getDimensions(SEXP sexp) {
     return sexp.getAttribute(Symbols.DIM);
   }
 
   @Generic
-  @Primitive("dim<-")
+  @Builtin("dim<-")
   public static SEXP setDimensions(SEXP exp, AtomicVector vector) {
     AttributeMap.Builder newAttributes = exp.getAttributes().copy();
     newAttributes.remove(Symbols.NAMES);
@@ -200,13 +197,13 @@ public class Attributes {
   }
 
   @Generic
-  @Primitive("dimnames")
+  @Builtin("dimnames")
   public static SEXP getDimensionNames(SEXP exp) {
     return exp.getAttribute(Symbols.DIMNAMES);
   }
 
   @Generic
-  @Primitive("dimnames<-")
+  @Builtin("dimnames<-")
   public static SEXP setDimensionNames(@Current Context context, SEXP exp, ListVector dimnames) {
     Vector dim = (Vector) exp.getAttribute(Symbols.DIM);
     if(dim.length() != dimnames.length()) {
@@ -225,12 +222,12 @@ public class Attributes {
   }
 
   @Generic
-  @Primitive("dimnames<-")
+  @Builtin("dimnames<-")
   public static SEXP setDimensionNames(@Current Context context, SEXP exp, Null nz) {
     return exp.setAttribute(Symbols.DIMNAMES, Null.INSTANCE);
   }
 
-  @Primitive
+  @Builtin
   public static PairList attributes(SEXP sexp) {
     PairList.Builder pairlist = new PairList.Builder();
     for(Symbol name : sexp.getAttributes().names()) {
@@ -239,7 +236,7 @@ public class Attributes {
     return pairlist.build();
   }
 
-  @Primitive("attr")
+  @Builtin("attr")
   public static SEXP getAttribute(SEXP exp, String which, boolean exact) {
     SEXP partialMatch = null;
     int partialMatchCount = 0;
@@ -256,17 +253,17 @@ public class Attributes {
     return partialMatchCount == 1 ? partialMatch : Null.INSTANCE;
   }
   
-  @Primitive("attr")
+  @Builtin("attr")
   public static SEXP getAttribute(SEXP exp, String which) {
     return getAttribute(exp, which, false);
   }
 
-  @Primitive("attributes<-")
+  @Builtin("attributes<-")
   public static SEXP setAttributes(SEXP exp, ListVector attributes) {
     return setAttributes(exp, attributes.namedValues());
   }
 
-  @Primitive("attributes<-")
+  @Builtin("attributes<-")
   public static SEXP setAttributes(SEXP exp, PairList list) {
     return setAttributes(exp, list.nodes());
   }
@@ -281,7 +278,7 @@ public class Attributes {
   }
 
   @Generic
-  @Primitive("names")
+  @Builtin("names")
   public static SEXP getNames(SEXP exp) {
     // if the vector is a 1-dimensional array,
     // then "names" are stored in the dimnames attribute
@@ -292,7 +289,7 @@ public class Attributes {
   }
 
   @Generic
-  @Primitive("names<-")
+  @Builtin("names<-")
   public static SEXP setNames(SEXP exp, @InvokeAsCharacter Vector names) {
     if(exp.getAttributes().getDim().length() == 1) {
       return exp.setAttributes(exp.getAttributes()
@@ -305,7 +302,7 @@ public class Attributes {
   }
 
   @Generic
-  @Primitive("levels<-")
+  @Builtin("levels<-")
   public static SEXP setLabels(SEXP exp, SEXP levels) {
     return exp.setAttribute(Symbols.LEVELS, levels);
   }
@@ -320,7 +317,7 @@ public class Attributes {
    * @param exp
    * @return
    */
-  @Primitive("class")
+  @Builtin("class")
   public static StringVector getClass(SEXP exp) {
 
     SEXP classAttribute = exp.getAttribute(Symbols.CLASS);
@@ -338,17 +335,17 @@ public class Attributes {
     return StringVector.valueOf(exp.getImplicitClass());
   }
 
-  @Primitive("comment")
+  @Internal("comment")
   public static SEXP getComment(SEXP exp) {
     return exp.getAttribute(Symbols.COMMENT);
   }
 
-  @Primitive("comment<-")
+  @Internal("comment<-")
   public static SEXP setComment(StringVector exp) {
     return exp.setAttribute(Symbols.COMMENT, exp);
   }
 
-  @Primitive("class<-")
+  @Builtin("class<-")
   public static SEXP setClass(SEXP exp, Vector classes) {
     return exp.setAttribute("class", classes);
 
@@ -435,7 +432,7 @@ public class Attributes {
 
   }
 
-  @Primitive("oldClass<-")
+  @Builtin("oldClass<-")
   public static SEXP setOldClass(SEXP exp, Vector classes) {
     /*
      * checkArity(op, args); if (NAMED(CAR(args)) == 2) SETCAR(args,
@@ -446,17 +443,17 @@ public class Attributes {
     return exp.setAttribute(Symbols.CLASS, classes);
   }
 
-  @Primitive
+  @Builtin
   public static SEXP unclass(SEXP exp) {
     return exp.setAttributes(exp.getAttributes().copy().remove(Symbols.CLASS).build());
   }
 
-  @Primitive("attr<-")
+  @Builtin("attr<-")
   public static SEXP setAttribute(SEXP exp, String which, SEXP value) {
     return exp.setAttribute(which, value);
   }
 
-  @Primitive
+  @Builtin
   public static SEXP oldClass(SEXP exp) {
     if (!exp.hasAttributes()) {
       return Null.INSTANCE;
@@ -464,7 +461,7 @@ public class Attributes {
     return exp.getAttribute(Symbols.CLASS);
   }
 
-  @Primitive
+  @Internal
   public static boolean inherits(SEXP exp, StringVector what) {
     StringVector classes = getClass(exp);
     for (String whatClass : what) {
@@ -475,12 +472,12 @@ public class Attributes {
     return false;
   }
 
-  @Primitive
+  @Internal
   public static boolean inherits(SEXP exp, String what) {
     return Iterables.contains(getClass(exp), what);
   }
 
-  @Primitive
+  @Internal
   public static SEXP inherits(SEXP exp, StringVector what, boolean which) {
     if (!which) {
       return new LogicalArrayVector(inherits(exp, what));

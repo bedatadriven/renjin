@@ -2,9 +2,7 @@ package org.renjin.primitives;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.jvminterop.ObjectFrame;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.ExternalPtr;
 
 import java.io.IOException;
 
@@ -96,10 +94,7 @@ public class JvmiTest extends EvalTestCase {
   
   @Test
   public void publicMethodCallOnPrivateObject() {
-    topLevelContext.getGlobalEnvironment().setVariable(
-        Symbol.get("obj"), Environment.createChildEnvironment(
-            Environment.EMPTY, new ObjectFrame(new MyPrivateImpl())));
-    
+    topLevelContext.getGlobalEnvironment().setVariable("obj", new ExternalPtr(new MyPrivateImpl()));
     eval("obj$doSomething()");
   }
   

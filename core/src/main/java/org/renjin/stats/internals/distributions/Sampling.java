@@ -2,8 +2,9 @@ package org.renjin.stats.internals.distributions;
 
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
@@ -72,7 +73,7 @@ public class Sampling {
     return (resultb.build());
   }
 
-  @Primitive("sample")
+  @Internal
   public static IntVector sample(@Current Session context, int x, int size, boolean replace, SEXP prob) {
     double[] probs = new double[x];
     int mysize = size;

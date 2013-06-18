@@ -22,28 +22,17 @@
 package org.renjin.base;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
-import org.apache.commons.math.complex.Complex;
-import org.netlib.lapack.LAPACK;
-import org.netlib.util.intW;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.methods.Methods;
-import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Evaluation;
-import org.renjin.primitives.annotations.Current;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.IntArrayVector;

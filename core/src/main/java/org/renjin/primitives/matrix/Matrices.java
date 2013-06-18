@@ -2,10 +2,11 @@ package org.renjin.primitives.matrix;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Indexes;
 import org.renjin.primitives.Warning;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ComputingIntVector;
 import org.renjin.primitives.vector.ConstantDoubleVector;
@@ -20,7 +21,7 @@ public class Matrices {
 
   private Matrices() {}
 
-  @Primitive("t.default")
+  @Internal("t.default")
   public static Vector transpose(Vector x) {
     // Actually allocate the memory and perform transposition
     Vector dimensions = x.getAttributes().getDim();
@@ -58,26 +59,26 @@ public class Matrices {
     }
   }
 
-  @Primitive("%*%")
+  @Builtin("%*%")
   public static SEXP matrixproduct(AtomicVector x, AtomicVector y) {
     return new MatrixProduct(MatrixProduct.PROD, x, y)
             .matprod();
   }
 
-  @Primitive("crossprod")
+  @Internal("crossprod")
   public static SEXP crossprod(AtomicVector x, AtomicVector y) {
     return new MatrixProduct(MatrixProduct.CROSSPROD, x, y)
             .crossprod();
   }
 
-  @Primitive("tcrossprod")
+  @Internal("tcrossprod")
   public static SEXP tcrossprod(AtomicVector x, AtomicVector y) {
     return new MatrixProduct(MatrixProduct.TCROSSPROD, x, y)
             .tcrossprod();
   }
 
 
-  @Primitive
+  @Internal
   public static DoubleVector rowSums(AtomicVector x, int numRows, int rowLength, boolean naRm) {
     double sums[] = new double[numRows];
     int sourceIndex = 0;
@@ -95,7 +96,7 @@ public class Matrices {
     return DoubleArrayVector.unsafe(sums);
   }
 
-  @Primitive
+  @Internal
   public static DoubleVector rowMeans(AtomicVector x,
                                       int numRows,
                                       int rowLength,
@@ -125,7 +126,7 @@ public class Matrices {
     return DoubleArrayVector.unsafe(sums);
   }
 
-  @Primitive
+  @Internal
   public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
 
     double sums[] = new double[numColumns];
@@ -150,6 +151,7 @@ public class Matrices {
     return new DoubleArrayVector(sums);
   }
 
+  @Internal
   public static DoubleVector colMeans(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
     DoubleVector sums = colSums(x, columnLength, numColumns, naRm);
     DoubleArrayVector.Builder dvb = new DoubleArrayVector.Builder();
@@ -171,6 +173,7 @@ public class Matrices {
    * object has the same dimensions as a, and the dimnames are dropped. In each case other attributes
    * are copied from a.
    */
+  @Internal
   public static SEXP aperm(Vector source, AtomicVector permutationVector, boolean resize) {
     if(!resize) throw new UnsupportedOperationException("resize=TRUE not yet implemented");
 
@@ -260,7 +263,7 @@ public class Matrices {
    * @param byRow If FALSE (the default) the matrix is filled by columns, otherwise the matrix is filled by rows.
    * @return
    */
-  @Primitive
+  @Internal
   public static Vector matrix(@Current Context context,
                               Vector data,
                               int nrow, int ncol,
@@ -350,7 +353,7 @@ public class Matrices {
     return result.build();
   }
 
-  @Primitive
+  @Internal
   public static IntVector row(IntVector dims){
     if(dims.length()!=2){
       throw new EvalException("a matrix-like object is required as argument to 'row/col'");
@@ -368,7 +371,7 @@ public class Matrices {
     return new ComputingIntVector(fn, rows * cols, AttributeMap.dim(rows, cols));
   }
 
-  @Primitive
+  @Internal
   public static IntVector col(IntVector dims) {
     if(dims.length()!=2){
       throw new EvalException("a matrix-like object is required as argument to 'row/col'");

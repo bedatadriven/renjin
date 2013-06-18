@@ -9,8 +9,9 @@ import org.apache.commons.math.random.MersenneTwister;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 
@@ -39,7 +40,7 @@ public class RNG {
     this.context = globals;
   }
 
-  @Primitive("RNGkind")
+  @Internal
   public static IntVector RNGkind(@Current Context context, SEXP kindExp, SEXP normalkindExp) {
     RNG rng = context.getSession().rng;  
     
@@ -66,7 +67,7 @@ public class RNG {
   /*
    * Primitives.
    */
-  @Primitive("set.seed")
+  @Internal("set.seed")
   public static void set_seed(@Current Context context, int seed, SEXP kind, SEXP normalkind) {
     RNG rng = context.getSession().rng;
     rng.randomseed = seed;
@@ -99,7 +100,7 @@ public class RNG {
     }
   }
 
-  @Primitive("runif")
+  @Internal
   public static DoubleVector runif(@Current Context context, int n, double a, double b) {
     RNG rng = context.getSession().rng;
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
@@ -109,7 +110,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rnorm")
+  @Internal
   public static DoubleVector rnorm(@Current Context context, int n, double mean, double sd) {
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
@@ -118,7 +119,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rgamma")
+  @Internal
   public static DoubleVector rgamma(@Current Context context, int n, double shape, double scale) {
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
@@ -127,7 +128,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rchisq")
+  @Internal
   public static DoubleVector rchisq(@Current Context context, int n, double df) {
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     for (int i = 0; i < n; i++) {
@@ -136,7 +137,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rnchisq")
+  @Internal
   public static DoubleVector rnchisq(@Current Context context, int n, double df, double ncp) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -145,7 +146,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rexp")
+  @Internal
   public static DoubleVector rexp(@Current Context context, int n, double invrate) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -154,7 +155,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rpois")
+  @Internal
   public static DoubleVector rpois(@Current Context context, int n, double mu) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -163,7 +164,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rsignrank")
+  @Internal
   public static DoubleVector rsignrank(@Current Context context, int nn, double n) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < nn; i++) {
@@ -172,7 +173,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rwilcox")
+  @Internal
   public static DoubleVector rwilcox(@Current Context context, int nn, double m, double n) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < nn; i++) {
@@ -181,7 +182,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rgeom")
+  @Internal
   public static DoubleVector rgeom(@Current Context context, int n, double p) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -190,7 +191,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rt")
+  @Internal
   public static DoubleVector rt(@Current Context context, int n, double df) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -199,7 +200,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rcauchy")
+  @Internal
   public static DoubleVector rcauchy(@Current Context context, int n, double location, double scale) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -208,7 +209,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rlnorm")
+  @Internal
   public static DoubleVector rlnorm(@Current Context context, int n, double meanlog, double sdlog) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -217,7 +218,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rlogis")
+  @Internal
   public static DoubleVector rlogis(@Current Context context, int n, double location, double scale) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -226,7 +227,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rweibull")
+  @Internal
   public static DoubleVector rweibull(@Current Context context, int n, double shape, double scale) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -235,7 +236,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rnbinom")
+  @Internal
   public static DoubleVector rnbinom(@Current Context context, int n, double size, double prob) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -244,7 +245,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rnbinom_mu")
+  @Internal
   public static DoubleVector rnbinom_mu(@Current Context context, int n, double size, double mu) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -253,7 +254,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rbinom")
+  @Internal
   public static DoubleVector rbinom(@Current Context context, int n, double size, double prob) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -263,7 +264,7 @@ public class RNG {
   }
 
 
-  @Primitive("rf")
+  @Internal
   public static DoubleVector rf(@Current Context context, int n, double df1, double df2) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -272,7 +273,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rbeta")
+  @Internal
   public static DoubleVector rbeta(@Current Context context, int n, double shape1, double shape2) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < n; i++) {
@@ -281,7 +282,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rhyper")
+  @Internal
   public static DoubleVector rhyper(@Current Context context, int nn, double m, double n, double k){
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < nn; i++) {
@@ -290,7 +291,7 @@ public class RNG {
     return (vb.build());
   }
 
-  @Primitive("rmultinom")
+  @Internal
   public static DoubleVector rmultinom(@Current Context context, int n, int size, DoubleVector prob){
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     int[] RN = new int[prob.length()];

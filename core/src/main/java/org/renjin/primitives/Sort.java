@@ -23,10 +23,7 @@ package org.renjin.primitives;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Generic;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
@@ -36,6 +33,7 @@ import java.util.List;
 
 public class Sort {
 
+  @Internal
   public static Vector sort(StringVector x, boolean decreasing) {
 
     if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
@@ -53,6 +51,7 @@ public class Sort {
     return new StringArrayVector(sorted, x.getAttributes());
   }
 
+  @Internal
   public static Vector sort(DoubleVector x, boolean decreasing) {
 
     if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
@@ -85,6 +84,7 @@ public class Sort {
     }
   }
 
+  @Internal
   public static Vector sort(IntVector x, boolean decreasing) {
 
     if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
@@ -102,7 +102,7 @@ public class Sort {
     return new IntArrayVector(sorted, x.getAttributes());
   }
 
-  @Primitive("is.unsorted")
+  @Internal("is.unsorted")
   public static boolean isUnsorted(AtomicVector x, boolean strictly) {
     for(int i=1;i<x.length();++i) {
       int z = x.compare(i-1, i);
@@ -115,12 +115,12 @@ public class Sort {
     return false;
   }
   
-  @Primitive("is.unsorted")
+  @Internal("is.unsorted")
   public static LogicalVector isUnsorted(ListVector x, boolean strictly) {
     return LogicalVector.NA_VECTOR;
   }
  
-  @Primitive("qsort")
+  @Internal
   public static DoubleVector qsort(DoubleVector x, LogicalVector returnIndexes) {
 
     if(returnIndexes.isElementTrue(0)) {
@@ -137,13 +137,13 @@ public class Sort {
             .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
   
-  @Primitive("psort")
+  @Internal
   public static DoubleVector psort(DoubleVector x, Vector indexes) {
     // stub implementation: we just do a full sort
     return qsort(x, LogicalVector.FALSE);
   }
 
-  @Primitive("qsort")
+  @Internal
   public static IntVector qsort(IntVector x, LogicalVector returnIndexes) {
 
     if(returnIndexes.isElementTrue(0)) {
@@ -160,7 +160,7 @@ public class Sort {
             .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
   
-  @Primitive("psort")
+  @Internal
   public static IntVector psort(IntVector x, Vector indexes) {
     return qsort(x, LogicalVector.FALSE);
   }
@@ -190,6 +190,7 @@ public class Sort {
    * @param columns
    * @return
    */
+  @Internal
   public static Vector order(boolean naLast, final boolean decreasing, @ArgumentList final ListVector columns) {
         
     if (columns.length() == 0) {
@@ -237,7 +238,7 @@ public class Sort {
     return result.build();
   }   
 
-  @Primitive("which.min")
+  @Internal("which.min")
   public static IntVector whichMin(Vector v) {
     if (v.length() == 0) {
       IntArrayVector.Builder b = new IntArrayVector.Builder();
@@ -255,7 +256,7 @@ public class Sort {
     return (new IntArrayVector(minIndex + 1));
   }
 
-  @Primitive("which.max")
+  @Internal("which.max")
   public static IntVector whichMax(Vector v) {
     if (v.length() == 0) {
       IntArrayVector.Builder b = new IntArrayVector.Builder();
@@ -272,7 +273,7 @@ public class Sort {
     return (new IntArrayVector(maxIndex + 1));
   }
   
-  @Primitive
+  @Builtin
   @Generic
   public static SEXP xtfrm(@Current Context context, SEXP x) {
     FunctionCall defaultCall = FunctionCall.newCall(Symbol.get("xtfrm.default"), x);

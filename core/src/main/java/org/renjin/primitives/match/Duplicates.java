@@ -3,6 +3,7 @@ package org.renjin.primitives.match;
 import java.util.HashMap;
 
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.match.DuplicateSearchAlgorithm.Action;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.Logical;
@@ -28,6 +29,7 @@ public class Duplicates {
    * @return logical indicating if duplication should be considered from the last, i.e., the last
    *       (or rightmost) of identical elements will be kept. This only matters for names or dimnames.
    */
+  @Internal
   public static Vector unique(Vector x, Vector incomparables, boolean fromLast) {
     
     return search(x, incomparables, fromLast, 
@@ -35,6 +37,7 @@ public class Duplicates {
  
   }
 
+  @Internal
   public static Vector duplicated(AtomicVector x, AtomicVector incomparables, boolean fromLast) {
     
     return search(x, incomparables, fromLast, 
@@ -53,6 +56,7 @@ public class Duplicates {
    *      the last (or rightmost) of identical elements would correspond to duplicated=FALSE.
    * @return a non-negative integer (of length one).
    */
+  @Internal
   public static int anyDuplicated(Vector x, AtomicVector incomparables, boolean fromLast) {
 
     return search(x, incomparables, fromLast,

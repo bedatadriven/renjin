@@ -22,7 +22,7 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.*;
+import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
@@ -35,7 +35,7 @@ public class Summary {
 
   private Summary() {}
 
-  @Primitive
+  @Builtin
   @GroupGeneric
   public static SEXP min(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
@@ -50,7 +50,7 @@ public class Summary {
     }
   }
 
-  @Primitive
+  @Builtin
   @GroupGeneric
   public static SEXP max(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
@@ -74,7 +74,7 @@ public class Summary {
    * @param removeNA indicating if NA's should be omitted.
    * @return a vector containing the minimum and maximum of all the given arguments.
    */
-  @Primitive
+  @Builtin
   @GroupGeneric
   public static Vector range(@ArgumentList ListVector arguments,
                              @NamedFlag("na.rm") boolean removeNA) {
@@ -203,7 +203,7 @@ public class Summary {
    * @param removeNA
    * @return
    */
-  @Primitive
+  @Builtin
   @GroupGeneric
   public static double prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
     double product = 1;
@@ -222,7 +222,7 @@ public class Summary {
     return product;
   }
 
-  @Primitive
+  @Builtin
   @GroupGeneric
   public static SEXP sum(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
     int intSum = 0;
@@ -275,7 +275,7 @@ public class Summary {
    * (including if there are no values). Otherwise the value is NA (which can only occur if na.rm = FALSE
    * and ... contains no TRUE values and at least one NA value).
    */
-  @Primitive
+  @Builtin
   @GroupGeneric
   public static Logical any(@ArgumentList ListVector arguments,
                             @NamedFlag("na.rm") boolean removeNA) {
@@ -307,7 +307,7 @@ public class Summary {
    * FALSE if at least one of the values in x is FALSE. Otherwise the value is NA (which can only occur if
    *  na.rm = FALSE and ... contains no FALSE values and at least one NA value).
    */
-  @Primitive
+  @Builtin
   @GroupGeneric
   public static Logical all(@ArgumentList ListVector arguments,
                             @NamedFlag("na.rm") boolean removeNA) {
@@ -329,7 +329,7 @@ public class Summary {
   
 
   @Deferrable
-  @Primitive
+  @Internal
   public static DoubleVector mean(Vector x) {
 
     if(x instanceof DeferredComputation) {
@@ -352,7 +352,7 @@ public class Summary {
     return new double[] { sum / x_array.length };
   }
   
-  @Primitive
+  @Builtin
   public static DoubleVector cumsum(Vector source) {
     DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     double sum = source.getElementAsDouble(0);
@@ -368,7 +368,7 @@ public class Summary {
     return (result.build());
   }
 
-  @Primitive
+  @Builtin
   public static DoubleVector cumprod(Vector source) {
     DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     double sum = source.getElementAsDouble(0);
@@ -384,7 +384,7 @@ public class Summary {
     return (result.build());
   }
 
-  @Primitive
+  @Builtin
   public static DoubleVector cummax(Vector source) {
     DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     double max = source.getElementAsDouble(0);
@@ -400,7 +400,7 @@ public class Summary {
     return (result.build());
   }
 
-  @Primitive
+  @Builtin
   public static DoubleVector cummin(Vector source) {
     DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     double min = source.getElementAsDouble(0);
@@ -416,7 +416,7 @@ public class Summary {
     return (result.build());
   }
 
-  @Primitive
+  @Internal
   public static Vector pmin(boolean naRm, @ArgumentList ListVector vectors) {
     ParallelProcessor processor = new ParallelProcessor(naRm, vectors) {
       @Override
@@ -427,7 +427,7 @@ public class Summary {
     return processor.compute();
   }
   
-  @Primitive
+  @Internal
   public static Vector pmax(boolean naRm, @ArgumentList ListVector vectors) {
     ParallelProcessor processor = new ParallelProcessor(naRm, vectors) {
       @Override

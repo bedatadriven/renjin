@@ -5,7 +5,7 @@ import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.S3;
-import org.renjin.primitives.annotations.SessionScoped;
+import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.primitives.packaging.NamespaceDef.S3Export;
 import org.renjin.sexp.*;
 
@@ -172,7 +172,7 @@ public class NamespaceRegistry {
       for(Method method : clazz.getMethods()) {
         if(Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
           importsEnv.setVariable(dynLib.getPrefix() + method.getName(),
-              new ExternalExp<Method>(method));
+              new ExternalPtr<Method>(method));
         }
       }
     } catch(Exception e) {

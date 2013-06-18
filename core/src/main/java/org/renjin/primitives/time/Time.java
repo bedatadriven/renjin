@@ -25,7 +25,8 @@ import com.google.common.base.Strings;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 import java.util.List;
@@ -52,6 +53,7 @@ public class Time {
    * @param tz
    * @return
    */
+  @Internal
   public static SEXP strptime(StringVector x, StringVector formats, String tz) {
     
     if(x.length() == 0 || formats.length() == 0) {
@@ -85,21 +87,21 @@ public class Time {
    * 
    * @param x a ListVector containing the fields above
    */
-  @Primitive("as.POSIXct")
+  @Internal("as.POSIXct")
   public static DoubleVector asPOSIXct(ListVector x, String tz) {
     return new PosixCtVector.Builder()
         .addAll(new PosixLtVector(x))
         .buildDoubleVector();
   }
   
-  @Primitive("as.POSIXlt") 
+  @Internal("as.POSIXlt")
   public static ListVector asPOSIXlt(DoubleVector x, String tz) {
     return new PosixLtVector.Builder()
       .addAll(new PosixCtVector(x))
       .buildListVector();
   }
   
-  @Primitive("Sys.time")
+  @Internal("Sys.time")
   public static DoubleVector sysTime() {
     return new PosixCtVector.Builder()
       .add(new DateTime())
@@ -113,7 +115,7 @@ public class Time {
    * @param useTz
    * @return
    */
-  @Primitive("format.POSIXlt")
+  @Internal("format.POSIXlt")
   public static StringVector formatPOSIXlt(ListVector x, StringVector patterns, boolean useTz) {
 
     

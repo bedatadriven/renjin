@@ -26,9 +26,10 @@ import com.google.common.base.Strings;
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.Recycle;
 import org.renjin.primitives.io.connections.Connection.Type;
 import org.renjin.sexp.*;
 
@@ -44,8 +45,9 @@ import java.net.UnknownHostException;
  * Functions which create and manipulates connection objects.
  * 
  * <p>
- * Connection objects are {@link ExternalExp}s that hold a reference to a class
- * implementing the {@link Connection} interface.
+ * Connection objects in GNU R are actually integer vectors which refer to an entry in a global
+ * connection table. Unfortunately, there seems to be at least some code out there in the wild
+ * that relies on this implementation detail
  * 
  */
 public class Connections {
@@ -72,6 +74,7 @@ public class Connections {
    *         "connection"
    * @throws IOException 
    */
+  @Internal
   public static IntVector gzfile(@Current final Context context,
       final String path, String open, String encoding, double compressionLevel)
       throws IOException {
@@ -101,6 +104,7 @@ public class Connections {
    *         "connection"
    * @throws IOException 
    */
+  @Internal
   public static IntVector file(@Current final Context context,
       final String path, String open, boolean blocking, String encoding,
       boolean raw) throws IOException {
@@ -118,14 +122,14 @@ public class Connections {
     }
   }
   
-  @Primitive
+  @Internal
   public static IntVector url(@Current final Context context,
       final String description, String open, boolean blocking, String encoding) throws IOException {
   
     return newConnection(context, open, new UrlConnection(new URL(description)));
   }
   
-  @Primitive
+  @Internal
   public static IntVector textConnection(@Current final Context context,
       String objectName, StringVector text, String open, Environment env, String type) throws IOException {
     
@@ -133,16 +137,17 @@ public class Connections {
   }
   
   
-  @Primitive
+  @Internal
   public static IntVector stdin(@Current final Context context) {
     return terminal(ConnectionTable.STDIN_HANDLE);
   }
 
-  @Primitive
+  @Internal
   public static IntVector stdout(@Current final Context context) {
     return terminal(ConnectionTable.STDOUT_HANDLE);
   }
 
+  @Internal
   public static IntVector stderr(@Current Context context) {
     return terminal(ConnectionTable.STDERR_HANDLE);
   }
@@ -155,7 +160,7 @@ public class Connections {
 
   }
   
-  @Primitive("summary.connection")
+  @Internal("summary.connection")
   public static ListVector summaryConnection(@Current Context context, SEXP connHandle) {
     ListVector.NamedBuilder result = new ListVector.NamedBuilder();
     Connection connection = getConnection(context, connHandle);
@@ -169,12 +174,13 @@ public class Connections {
     return result.build();
   }
 
-  @Primitive
+  @Internal
   public static void close(@Current Context context, SEXP conn, String type /* Unused */)
       throws IOException {
     getConnection(context, conn).close();
   }
 
+  @Internal
   public static String readChar(@Current Context context, SEXP connIndex, int nchars,
       @Recycle(false) boolean useBytes) throws IOException {
 
@@ -198,7 +204,7 @@ public class Connections {
     }
   }
 
-  @Primitive("readLines")
+  @Internal("readLines")
   public static StringVector readLines(@Current Context context, SEXP connection, int numLines, boolean ok, 
       boolean warn, String encoding) throws IOException {
     
@@ -220,7 +226,7 @@ public class Connections {
     return lines.build();
   }
   
-  @Primitive("writeLines")
+  @Internal("writeLines")
   public static void writeLines(@Current Context context, StringVector x, SEXP connIndex, String seperator, boolean useBytes) throws IOException {
     PrintWriter writer = getConnection(context, connIndex).getPrintWriter();
     for(String line : x) {
@@ -230,28 +236,28 @@ public class Connections {
   }
   
   //FIXME: port should be an int
-  @Primitive("socketConnection")
+  @Internal("socketConnection")
   public static IntVector socketConnection(@Current Context context, String host, double port) throws UnknownHostException, IOException{
     return newConnection(context, "", new SocketConnection(host, (int) port));
   }
   
-  @Primitive
+  @Internal
   public static void sink(SEXP file, SEXP closeOnExit, SEXP arg2, SEXP split) {
     // todo: implement
   }
   
-  @Primitive
+  @Internal
   public static void open(@Current Context context, SEXP conn, String open, boolean blocking) throws IOException {
     getConnection(context, conn).open(new OpenSpec(open));    
   }
   
-  @Primitive
+  @Internal
   public static boolean isOpen(@Current Context context, SEXP conn, String rw) {
     //TODO: handle rw parameter
     return getConnection(context, conn).isOpen();
   }
   
-  @Primitive
+  @Internal
   public static void pushBack(@Current Context context, Vector data, SEXP connection, boolean newLine) throws IOException {
     PushbackBufferedReader reader = getConnection(context, connection).getReader();
     String suffix = newLine ? "\n" : "";
@@ -264,7 +270,7 @@ public class Connections {
     }
   }
   
-  @Primitive
+  @Internal
   public static int pushBackLength(@Current Context context, SEXP connection) throws IOException {
     PushbackBufferedReader reader = getConnection(context, connection).getReader();
     return reader.countLinesPushedBack();

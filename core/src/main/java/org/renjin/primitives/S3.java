@@ -2,9 +2,10 @@ package org.renjin.primitives;
 
 import com.google.common.collect.Lists;
 import org.renjin.eval.*;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 import java.util.Collections;
@@ -18,6 +19,7 @@ public class S3 {
 
   public static Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
 
+  @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
     /*
      * When object is not provided, it defaults to the first argument
@@ -34,6 +36,7 @@ public class S3 {
     }
   }
 
+  @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName, SEXP object) {
 
 
@@ -44,8 +47,8 @@ public class S3 {
               .apply(context, context.getEnvironment());
   }
 
-  @Primitive
- public static SEXP NextMethod(@Current Context context, @Current Environment env,
+  @Internal
+  public static SEXP NextMethod(@Current Context context, @Current Environment env,
       SEXP generic, SEXP object, @ArgumentList ListVector extraArgs) {
 
     return Resolver

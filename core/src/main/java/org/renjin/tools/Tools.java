@@ -3,7 +3,7 @@ package org.renjin.tools;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
-import org.renjin.primitives.annotations.Current;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbols;
 import org.renjin.util.NamesBuilder;

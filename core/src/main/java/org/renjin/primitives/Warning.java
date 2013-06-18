@@ -23,8 +23,9 @@ package org.renjin.primitives;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.Options;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.ListVector;
@@ -45,7 +46,7 @@ public class Warning {
     emitWarning(context, call, false, String.format(message, args));
   }
 
-  @Primitive("warning")
+  @Internal
   public static void warning(@Current Context context, boolean call, boolean immediate, String message) throws IOException {
   
     if(call || !immediate) {
@@ -81,7 +82,7 @@ public class Warning {
     }
   }
   
-  @Primitive
+  @Internal
   public static void printDeferredWarnings(@Current Context context) {
     context.getSession().getConnectionTable().getStderr().getPrintWriter().println("In addition: (TODO)");
   }

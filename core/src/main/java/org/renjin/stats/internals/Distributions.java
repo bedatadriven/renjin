@@ -39,7 +39,9 @@ import org.apache.commons.math.distribution.PascalDistributionImpl;
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 import org.apache.commons.math.distribution.TDistributionImpl;
 import org.apache.commons.math.distribution.WeibullDistributionImpl;
-import org.renjin.primitives.annotations.Recycle;
+import org.renjin.invoke.annotations.DataParallel;
+import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.Recycle;
 import org.renjin.stats.internals.distributions.Beta;
 import org.renjin.stats.internals.distributions.Binom;
 import org.renjin.stats.internals.distributions.ChiSquare;
@@ -184,62 +186,78 @@ public class Distributions {
     return q;
   }
 
+  @Internal
+  @DataParallel
   public static double dnorm(@Recycle double x, @Recycle double mean, @Recycle double sd, boolean log) {
     return d(new NormalDistributionImpl(mean, sd), x, log);
   }
 
+  @DataParallel @Internal
   public static double pnorm(@Recycle double q, @Recycle double mean, @Recycle double sd, boolean lowerTail, boolean logP) {
     return p(new NormalDistributionImpl(mean, sd), q, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double plnorm(@Recycle double q, @Recycle double logmean, @Recycle double logsd, boolean lowerTail, boolean logP) {
     return p(new NormalDistributionImpl(logmean, logsd), Math.log(q), lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qnorm(@Recycle double p, @Recycle double mean, @Recycle double sd, boolean lowerTail, boolean logP) {
     return q(new NormalDistributionImpl(mean, sd), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qlnorm(@Recycle double p, @Recycle double meanlog, @Recycle double sdlog, boolean lowerTail, boolean logP) {
     return Math.exp(q(new NormalDistributionImpl(meanlog, sdlog), p, lowerTail, logP));
   }
 
+  @DataParallel @Internal
   public static double dlnorm(@Recycle double x, @Recycle double meanlog, @Recycle double sdlog, boolean logP) {
     return LNorm.dlnorm(x, meanlog, sdlog, logP);
   }
 
+  @DataParallel @Internal
   public static double dbeta(@Recycle double x, @Recycle double shape1, @Recycle double shape2, boolean log) {
     return d(new BetaDistributionImpl(shape1, shape2), x, log);
   }
 
+  @DataParallel @Internal
   public static double dnbeta(@Recycle double x, @Recycle double shape1, @Recycle double shape2, @Recycle double ncp, boolean log) {
     return Beta.dnbeta(x, shape1, shape2, ncp, log);
   }
 
+  @DataParallel @Internal
   public static double pbeta(@Recycle double q, @Recycle double shape1, @Recycle double shape2, boolean lowerTail, boolean logP) {
     return p(new BetaDistributionImpl(shape1, shape2), q, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double pnbeta(@Recycle double q, @Recycle double shape1, @Recycle double shape2, @Recycle double ncp, boolean lowerTail, boolean logP) {
     return Beta.pnbeta(q, shape1, shape2, ncp, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qbeta(@Recycle double p, @Recycle double shape1, @Recycle double shape2, boolean lowerTail, boolean logP) {
     return q(new BetaDistributionImpl(shape1, shape2), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qnbeta(@Recycle double p, @Recycle double shape1, @Recycle double shape2, @Recycle double ncp, boolean lowerTail, boolean logP) {
     return Beta.qnbeta(p, shape1, shape2, ncp, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dchisq(@Recycle double x, @Recycle double df, boolean log) {
     return d(new ChiSquaredDistributionImpl(df), x, log);
   }
 
+  @DataParallel @Internal
   public static double dnchisq(@Recycle double x, @Recycle double df, @Recycle double ncp, boolean log) {
     return ChiSquare.dnchisq(x, df, ncp, log);
   }
 
+  @DataParallel @Internal
   public static double pchisq(@Recycle double q, @Recycle double df, boolean lowerTail, boolean logP) {
     if(df == 0) {
       return p(new ChisquareZeroDfDistribution(), q, lowerTail, logP);
@@ -248,10 +266,12 @@ public class Distributions {
     }
   }
 
+  @DataParallel @Internal
   public static double pnchisq(@Recycle double q, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {
     return ChiSquare.pnchisq(q, df, ncp, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qchisq(@Recycle double p, @Recycle double df, boolean lowerTail, boolean logP) {
     if(df == 0) {
       return q(new ChisquareZeroDfDistribution(), p, lowerTail, logP);
@@ -260,50 +280,62 @@ public class Distributions {
     }
   }
 
+  @DataParallel @Internal
   public static double qnchisq(@Recycle double p, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {
     return ChiSquare.qnchisq(p, df, ncp, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dexp(@Recycle double x, @Recycle double mean, boolean log) {
     return d(new ExponentialDistributionImpl(mean), x, log);
   }
 
+  @DataParallel @Internal
   public static double pexp(@Recycle double q, @Recycle double mean, boolean lowerTail, boolean logP) {
     return p(new ExponentialDistributionImpl(mean), q, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qexp(@Recycle double p, @Recycle double mean, boolean lowerTail, boolean logP) {
     return q(new ExponentialDistributionImpl(mean), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dt(@Recycle double x, @Recycle double df, boolean log) {
     return d(new TDistributionImpl(df), x, log);
   }
 
+  @DataParallel @Internal
   public static double dnt(@Recycle double x, @Recycle double df, @Recycle double ncp, boolean log) {
     return StudentsT.dnt(x, df, ncp, log);
   }
 
+  @DataParallel @Internal
   public static double pt(@Recycle double q, @Recycle double df, boolean lowerTail, boolean logP) {
     return p(new TDistributionImpl(df), q, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double pnt(@Recycle double q, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {
     return StudentsT.pnt(q, df, ncp, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qt(@Recycle double p, @Recycle double df, boolean lowerTail, boolean logP) {
     return q(new TDistributionImpl(df), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qnt(@Recycle double p, @Recycle double df, @Recycle double ncp, boolean lowerTail, boolean logP) {
     return StudentsT.qnt(p, df, ncp, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dpois(@Recycle double x, @Recycle double lambda, boolean log) {
     return d(new PoissonDistributionImpl(lambda), x, log);
   }
 
+  @DataParallel @Internal
   public static double ppois(@Recycle double q, @Recycle double lambda, boolean lowerTail, boolean logP) {
     return p(new PoissonDistributionImpl(lambda), q, lowerTail, logP);
   }
@@ -311,26 +343,32 @@ public class Distributions {
 //  public static double qpois(double p, double lambda, boolean lowerTail, boolean logP)  {
 //    return q(new PoissonDistributionImpl(lambda), p, lowerTail, logP);
 //  }
+  @DataParallel @Internal
   public static double dbinom(@Recycle double x, @Recycle int size, @Recycle double prob, boolean log) {
     return d(new BinomialDistributionImpl(size, prob), x, log);
   }
 
+  @DataParallel @Internal
   public static double dnbinom(@Recycle double x, @Recycle int size, @Recycle double prob, boolean log) {
     return d(new PascalDistributionImpl(size, prob), x, log);
   }
 
+  @DataParallel @Internal
   public static double dnbinom_mu(@Recycle double x, @Recycle int size, @Recycle double mu, boolean log) {
     return Binom.dnbinom_mu(x, size, mu, log);
   }
 
+  @DataParallel @Internal
   public static double pbinom(@Recycle double x, @Recycle int size, @Recycle double prob, boolean lowerTail, boolean logP) {
     return p(new BinomialDistributionImpl(size, prob), x, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double pnbinom(@Recycle double x, @Recycle int size, @Recycle double prob, boolean lowerTail, boolean logP) {
     return p(new PascalDistributionImpl(size, prob), x, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double pnbinom_mu(@Recycle double x, @Recycle int size, @Recycle double mu, boolean lowerTail, boolean logP) {
     if (!logP) {
       return Binom.pnbinom_mu(x, size, mu, lowerTail ? false : true, logP);
@@ -339,66 +377,82 @@ public class Distributions {
     }
   }
 
+  @DataParallel @Internal
   public static double qbinom(@Recycle double p, @Recycle int size, @Recycle double prob, boolean lowerTail, boolean logP) {
     return q(new BinomialDistributionImpl(size, prob), p, lowerTail, logP) + 1;
   }
 
+  @DataParallel @Internal
   public static double qnbinom(@Recycle double p, @Recycle double size, @Recycle double prob, boolean lower_tail, boolean log_p) {
     return Binom.qnbinom(p, size, prob, lower_tail, log_p);
   }
 
+  @DataParallel @Internal
   public static double qnbinom_mu(@Recycle double p, @Recycle double size, @Recycle double mu, boolean lower_tail, boolean log_p) {
     return Binom.qnbinom_mu(p, size, mu, lower_tail, log_p);
   }
 
+  @DataParallel @Internal
   public static double dcauchy(@Recycle double x, @Recycle double location, @Recycle double scale, boolean log) {
     return d(new CauchyDistributionImpl(location, scale), x, log);
   }
 
+  @DataParallel @Internal
   public static double pcauchy(@Recycle double q, @Recycle double location, @Recycle double scale, boolean lowerTail, boolean logP) {
     return p(new CauchyDistributionImpl(location, scale), q, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qcauchy(@Recycle double p, @Recycle double location, @Recycle double scale, boolean lowerTail, boolean logP) {
     return q(new CauchyDistributionImpl(location, scale), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double df(@Recycle double x, @Recycle double df1, @Recycle double df2, boolean log) {
     return d(new FDistributionImpl(df1, df2), x, log);
   }
 
+  @DataParallel @Internal
   public static double dnf(@Recycle double x, @Recycle double df1, @Recycle double df2, @Recycle double ncp, boolean log) {
     return F.dnf(x, df1, df2, ncp, log);
   }
 
+  @DataParallel @Internal
   public static double pf(@Recycle double q, @Recycle double df1, @Recycle double df2, boolean lowerTail, boolean logP) {
     return p(new FDistributionImpl(df1, df2), q, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double pnf(@Recycle double q, @Recycle double df1, @Recycle double df2, @Recycle double ncp, boolean lowerTail, boolean logP) {
     return F.pnf(q, df1, df2, ncp, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qf(@Recycle double p, @Recycle double df1, @Recycle double df2, boolean lowerTail, boolean logP) {
     return q(new FDistributionImpl(df1, df2), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qnf(@Recycle double p, @Recycle double df1, @Recycle double df2, @Recycle double ncp, boolean lowerTail, boolean logP) {
     return F.qnf(p, df1, df2, ncp, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dgamma(@Recycle double x, @Recycle double shape, @Recycle double scale, boolean log) {
     return d(new GammaDistributionImpl(shape, scale), x, log);
   }
 
+  @DataParallel @Internal
   public static double pgamma(@Recycle double q, @Recycle double shape, @Recycle double scale, boolean lowerTail, boolean logP) {
     return p(new GammaDistributionImpl(shape, scale), q, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qgamma(@Recycle double p, @Recycle double shape, @Recycle double scale, boolean lowerTail, boolean logP) {
     return q(new GammaDistributionImpl(shape, scale), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dunif(@Recycle double x, @Recycle double min, @Recycle double max, boolean log) {
     double d = new UniformDistribution(min, max).density(x);
     if (log) {
@@ -407,30 +461,37 @@ public class Distributions {
     return d;
   }
 
+  @DataParallel @Internal
   public static double punif(@Recycle double q, @Recycle double min, @Recycle double max, boolean lowerTail, boolean logP) {
     return p(new UniformDistribution(min, max), q, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qunif(@Recycle double p, @Recycle double min, @Recycle double max, boolean lowerTail, boolean logP) {
     return q(new UniformDistribution(min, max), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dweibull(@Recycle double x, @Recycle double shape, @Recycle double scale, boolean log) {
     return d(new WeibullDistributionImpl(shape, scale), x, log);
   }
 
+  @DataParallel @Internal
   public static double pweibull(@Recycle double q, @Recycle double shape, @Recycle double scale, boolean lowerTail, boolean logP) {
     return p(new WeibullDistributionImpl(shape, scale), q, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qweibull(@Recycle double p, @Recycle double shape, @Recycle double scale, boolean lowerTail, boolean logP) {
     return q(new WeibullDistributionImpl(shape, scale), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dhyper(@Recycle double x, @Recycle double whiteBalls, @Recycle double blackBalls, @Recycle double sampleSize, boolean log) {
     return d(new HypergeometricDistributionImpl((int) (whiteBalls + blackBalls), (int) whiteBalls, (int) sampleSize), x, log);
   }
 
+  @DataParallel @Internal
   public static double phyper(@Recycle double q, @Recycle double x, @Recycle double whiteBalls, @Recycle double blackBalls, @Recycle double sampleSize, boolean lowerTail, boolean logP) {
     return p(new HypergeometricDistributionImpl((int) (whiteBalls + blackBalls), (int) whiteBalls, (int) sampleSize), q, lowerTail, logP);
   }
@@ -447,58 +508,72 @@ public class Distributions {
   }
   }
    */
+  @DataParallel @Internal
   public static double pgeom(@Recycle double q, @Recycle double prob, boolean lowerTail, boolean log) {
     return (Geometric.pgeom(q, prob, lowerTail, log));
   }
 
+  @DataParallel @Internal
   public static double dgeom(@Recycle double x, @Recycle double prob, boolean log) {
     return Geometric.dgeom(x, prob, log);
   }
 
+  @DataParallel @Internal
   public static double qgeom(@Recycle double p, @Recycle double prob, boolean lowerTail, boolean log) {
     return Geometric.qgeom(p, prob, lowerTail, log);
   }
 
+  @DataParallel @Internal
   public static double plogis(@Recycle double p, @Recycle double m, @Recycle double s, boolean lowerTail, boolean logP) {
     return p(new LogisticDistribution(m, s), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dlogis(@Recycle double x, @Recycle double location, @Recycle double scale, boolean log) {
     return d(new LogisticDistribution(location, scale), x, log);
   }
 
+  @DataParallel @Internal
   public static double qlogis(@Recycle double p, @Recycle double m, @Recycle double s, boolean lowerTail, boolean logP) {
     return q(new LogisticDistribution(m, s), p, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qsignrank(double p, double n, boolean lowerTail, boolean logP) {
     return SignRank.qsignrank(p, n, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double psignrank(double p, double n, boolean lowerTail, boolean logP) {
     return SignRank.psignrank(p, n, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double dsignrank(double x, double n, boolean logP) {
     return SignRank.dsignrank(x, n, logP);
   }
 
+  @DataParallel @Internal
   public static double dwilcox(double x, double m, double n, boolean logP) {
     return Wilcox.dwilcox(x, m, n, logP);
   }
 
+  @DataParallel @Internal
   public static double pwilcox(double q, double m, double n, boolean lowerTail, boolean logP) {
     return Wilcox.pwilcox(q, m, n, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double qwilcox(double p, double m, double n, boolean lowerTail, boolean logP) {
     return Wilcox.qwilcox(p, m, n, lowerTail, logP);
   }
 
+  @DataParallel @Internal
   public static double ptukey(@Recycle double q, @Recycle double nranges, @Recycle double nmeans, @Recycle double df, boolean lowerTail, boolean logP) {
     return (Tukey.ptukey(q, nranges, nmeans, df, lowerTail, logP));
   }
 
+  @DataParallel @Internal
   public static double qtukey(@Recycle double p, @Recycle double nranges, @Recycle double nmeans, @Recycle double df, boolean lowerTail, boolean logP) {
     return (Tukey.qtukey(p, nranges, nmeans, df, lowerTail, logP));
   }

@@ -1,7 +1,6 @@
 package org.renjin.primitives;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -9,14 +8,12 @@ import java.net.URLClassLoader;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.jvminterop.ClassBinding;
-import org.renjin.jvminterop.ClassFrame;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Evaluate;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExternalPtr;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 
 
@@ -31,9 +28,9 @@ public class Jvmi {
     
   }
   
-  @Primitive("import")
+  @Builtin("import")
   public static SEXP importClass(@Current Context context, @Current Environment rho, 
-        @Evaluate(false) Symbol className) {
+        @Unevaluated Symbol className) {
         
     //TODO to suport import(org.apache.hadoop.io.*)
     Class clazz;
@@ -48,14 +45,11 @@ public class Jvmi {
           className);
     }
 
-    Environment env = Environment.createChildEnvironment(Environment.EMPTY, 
-            new ClassFrame(ClassBinding.get(clazz)));
-    
-    rho.setVariable(Symbol.get(clazz.getSimpleName()), env);
-    
+    ExternalPtr ptr = new ExternalPtr(clazz);
+    rho.setVariable(Symbol.get(clazz.getSimpleName()), ptr);
     context.setInvisibleFlag();
-    
-    return env;
+
+    return ptr;
   }
   
 
@@ -79,7 +73,7 @@ public class Jvmi {
    * @param fileName
    * @return
    */
-  @Primitive("jload")
+  @Builtin("jload")
   public static void jloadClass(@Current Context context, @Current Environment rho, 
         String fileName){
     try{

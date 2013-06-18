@@ -2,8 +2,9 @@ package org.renjin.primitives.io;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.sexp.*;
 
@@ -13,7 +14,7 @@ import java.io.PrintWriter;
 
 public class Cat extends SexpVisitor<String> {
 
-  @Primitive
+  @Internal
   public static void cat(@Current Context context, ListVector list, SEXP connection, String sep,
       SEXP fill, SEXP labels, boolean append) throws IOException {
     

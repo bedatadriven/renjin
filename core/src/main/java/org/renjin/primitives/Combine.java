@@ -27,9 +27,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.NamedFlag;
+import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
 
 import java.util.List;
@@ -48,6 +46,7 @@ public class Combine {
    * @param recursive
    * @return
    */
+  @Builtin
   public static SEXP c(@ArgumentList ListVector arguments,
                        @NamedFlag("recursive") boolean recursive) {
 
@@ -62,10 +61,12 @@ public class Combine {
         .combine();
   }
 
+  @Internal
   public static AtomicVector unlist(AtomicVector vector, boolean recursive, boolean useNames) {
     return vector;
   }
 
+  @Internal
   public static Vector unlist(ListVector vector, boolean recursive, boolean useNames) {
     // Iterate over all the vectors in the argument
     // list to determine which vector type to use
@@ -314,6 +315,7 @@ public class Combine {
    * @return  a matrix combining the ... arguments column-wise or row-wise.
    * (Exception: if there are no inputs or all the inputs are NULL, the value is NULL.)
    */
+  @Internal
   public static SEXP rbind(@Current Context context, @Current Environment rho, 
       int deparseLevel, @ArgumentList ListVector arguments) {
 
@@ -406,6 +408,7 @@ public class Combine {
    * @param arguments  the expressions to combined
    * @return  a matrix combining the ... arguments column-wise or row-wise.
    */
+  @Internal
   public static SEXP cbind(@Current Context context, @Current Environment rho,
       int deparseLevel, @ArgumentList ListVector arguments) {
 

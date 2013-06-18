@@ -21,14 +21,12 @@
 
 package org.renjin.primitives;
 
-import org.apache.commons.math.MathException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.primitives.MathExt;
-import org.renjin.primitives.PsiGamma;
+import org.renjin.stats.internals.distributions.PsiGamma;
 
 
 public class MathTest extends EvalTestCase {

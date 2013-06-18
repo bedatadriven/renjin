@@ -23,7 +23,7 @@ package org.renjin.primitives.annotation.processor;
 
 import org.junit.Test;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.processor.JvmMethod;
+import org.renjin.invoke.model.JvmMethod;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.Null;
 

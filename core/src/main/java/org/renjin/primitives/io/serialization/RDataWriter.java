@@ -51,7 +51,7 @@ import org.renjin.sexp.Closure;
 import org.renjin.sexp.ComplexVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExternalExp;
+import org.renjin.sexp.ExternalPtr;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.ListVector;
@@ -178,8 +178,8 @@ public class RDataWriter {
       writePrimitive((PrimitiveFunction)exp);
     } else if(exp instanceof S4Object) {
       writeS4((S4Object)exp);
-    } else if(exp instanceof ExternalExp) {
-      writeExternalPtr((ExternalExp)exp);
+    } else if(exp instanceof ExternalPtr) {
+      writeExternalPtr((ExternalPtr)exp);
     } else {
       throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented: ["
          + exp.toString() + "]");
@@ -279,7 +279,7 @@ public class RDataWriter {
     writeAttributes(exp);
   }
 
-  private void writeExternalPtr(ExternalExp exp) throws IOException {
+  private void writeExternalPtr(ExternalPtr exp) throws IOException {
     addRef(exp);
     writeFlags(EXTPTRSXP, exp);
     writeExp(Null.INSTANCE); // protected value (not currently used)

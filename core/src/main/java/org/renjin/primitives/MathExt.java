@@ -23,9 +23,7 @@ package org.renjin.primitives;
 import org.apache.commons.math.special.Beta;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
-import org.renjin.primitives.annotations.Deferrable;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
+import org.renjin.invoke.annotations.*;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -41,19 +39,22 @@ public class MathExt {
   }
 
   @Deferrable
-  @Recycle
+  @Builtin
+  @DataParallel
   public static double gamma(double x) {
     return Math.exp(Gamma.logGamma(x));
   }
-  
+
   @Deferrable
-  @Recycle
+  @Builtin
+  @DataParallel
   public static double sign(double x) {
     return Math.signum(x);
   }
 
   @Deferrable
-  @Recycle
+  @Builtin
+  @DataParallel
   public static double log(double x, double base) {
 
     //Method cannot be called directly as R and Apache Commons Math argument order
@@ -62,79 +63,92 @@ public class MathExt {
   }
 
   @Deferrable
-  @Recycle
+  @Builtin
+  @DataParallel
   public static double log(double d) {
     return Math.log(d);
   }
 
   @Deferrable
-  @Recycle
+  @Builtin
+  @DataParallel
   public static double log2(double d) {
     return MathUtils.log(2, d);
   }
 
   @Deferrable
-  @Recycle
+  @Builtin
+  @DataParallel
   public static double abs(double x) {
     return Math.abs(x);
   }
 
   @Deferrable
-  @Primitive
+  @Builtin
+  @DataParallel
   public static double asinh(double val) {
     return (Math.log(val + Math.sqrt(val * val + 1)));
   }
 
   @Deferrable
-  @Primitive
+  @Builtin
+  @DataParallel
   public static double acosh(double val) {
     return (Math.log(val + Math.sqrt(val + 1) * Math.sqrt(val - 1)));
   }
 
   @Deferrable
-  @Primitive
+  @Builtin
+  @DataParallel
   public static double atanh(double val) {
     return (0.5 * Math.log((1 + val) / (1 - val)));
   }
 
   @Deferrable
-  @Primitive
+  @Internal
+  @DataParallel
   public static double atan2(double y, double x) {
     return (Math.atan2(y, x));
   }
 
   @Deferrable
-  @Primitive
-  public static double signif(@Recycle double x, @Recycle int digits) {
+  @Builtin
+  @DataParallel
+  public static double signif(double x, int digits) {
     return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
 
   @Deferrable
-  @Primitive
-  public static double expm1(@Recycle double x) {
-    return (Math.exp(x) - 1);
+  @Builtin
+  @DataParallel
+  public static double expm1(double x) {
+    return Math.expm1(x);
   }
 
   @Deferrable
-  @Primitive
-  public static double log1p(@Recycle double x) {
+  @Builtin
+  @DataParallel
+  public static double log1p(double x) {
     return Math.log1p(x);
   }
 
-  @Primitive
+  @Internal
   @Deferrable
-  public static double beta(@Recycle double a, @Recycle double b) {
+  @DataParallel
+  public static double beta(double a, double b) {
     return (Math.exp(Beta.logBeta(a, b)));
   }
 
-  @Primitive
+  @Internal
   @Deferrable
-  public static double lbeta(@Recycle double a, @Recycle double b) {
+  @DataParallel
+  public static double lbeta(double a, double b) {
     return (Beta.logBeta(a, b));
   }
 
-  @Primitive
-  public static double choose(@Recycle double n, @Recycle int k) {
+  @Internal
+  @DataParallel
+  public static double choose(double n, int k) {
     /*
      * Because gamma(a+1) = factorial(a)
      * we use gamma(n+1) /(gamma(n-k+1) * gamma(k+1)) instead of
@@ -152,34 +166,34 @@ public class MathExt {
     }
   }
 
-  @Primitive
-  public static double lchoose(@Recycle double n, @Recycle int k) {
+  @Internal
+  @DataParallel
+  public static double lchoose(double n, int k) {
     return (Math.log(choose(n, k)));
   }
   
   
   // our wrapper generator gets confused by the two double & float overloads
   // of Math.round
-  @Primitive
+  @Builtin
   @Deferrable
-  public static double round(@Recycle double x) {
+  @DataParallel
+  public static double round(double x) {
     return Math.round(x);
   }
   
-  @Primitive
+  @Builtin
   @Deferrable
-  public static double round(@Recycle double x, @Recycle int digits) {
+  @DataParallel
+  public static double round(double x, int digits) {
     double factor = Math.pow(10, digits);
     return Math.round(x * factor) / factor;
   }
   
-  /**
-   * TODO in R, trunc also works on Dates.
-   * @param x
-   * @return
-   */
-  @Primitive("trunc")
+  @Generic
   @Deferrable
+  @Builtin("trunc")
+  @DataParallel
   public static double truncate(double x){
     return Math.floor(x);
   }

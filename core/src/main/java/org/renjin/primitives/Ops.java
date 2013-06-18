@@ -22,19 +22,10 @@
 package org.renjin.primitives;
 
 import org.apache.commons.math.complex.Complex;
-import org.renjin.primitives.annotations.AllowNA;
-import org.renjin.primitives.annotations.Cast;
-import org.renjin.primitives.annotations.CastStyle;
-import org.renjin.primitives.annotations.CoerceLanguageToString;
-import org.renjin.primitives.annotations.Deferrable;
-import org.renjin.primitives.annotations.GroupGeneric;
-import org.renjin.primitives.annotations.PreserveAttributeStyle;
-import org.renjin.primitives.annotations.PreserveAttributes;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
+import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.annotations.DataParallel;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Logical;
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
 
@@ -47,200 +38,200 @@ public class Ops  {
   private Ops() {}
 
   @Deferrable
-  @Primitive("+")
-  @Recycle
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("+")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double plus(double x, double y) {
     return x + y;
   }
 
-  @Primitive("+")
-  @Recycle
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("+")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex plus(Complex x, Complex y) {
     return x.add(y);
   }
 
   @Deferrable
-  @Primitive("+")
-  @Recycle(false)
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("+")
   public static Vector plus(Vector x) {
     return x;
   }
 
-  @Primitive("-")
-  @Recycle
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
   @Deferrable
+  @Builtin("-")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double minus(double x, double y) {
     return x - y;
   }
   
-  @Primitive("-")
-  @Recycle
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("-")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex negative(Complex x) {
     return new Complex(-x.getReal(), x.getImaginary());
   }
   
-  @Primitive("-")
-  @Recycle
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("-")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex minus(Complex x, Complex y) {
     return x.subtract(y);
   }
 
   @Deferrable
-  @Primitive("-")
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("-")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double minus(@Cast(CastStyle.EXPLICIT) double x) {
     return -x;
   }
 
   @Deferrable
-  @Primitive("-")
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("-")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static int minus(@Cast(CastStyle.EXPLICIT) int x) {
     return -x;
   }
 
   @Deferrable
-  @Primitive("/")
-  @Recycle
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("/")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double divide(double x, double y) {
     return x / y;
   }
 
-  @Primitive("/")
-  @Recycle
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("/")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex divide(Complex x, Complex y) {
     return x.divide(y);
   }
 
   
   @Deferrable
-  @Primitive("*")
-  @Recycle
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("*")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double multiply(double x, double y) {
     return x * y;
   }
 
-  @Primitive("*")
-  @Recycle
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("*")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex multiply(Complex x, Complex y) {
     return x.multiply(y);
   }
 
 
   @Deferrable
-  @Primitive("==")
-  @Recycle
+  @Builtin("==")
+  @DataParallel
   public static boolean equalTo(double x, double y) {
     return x == y;
   }
   
-  @Recycle
   @Deferrable
-  @Primitive("==")
+  @Builtin("==")
+  @DataParallel
   public static boolean equalTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.equals(y);
   }
 
   @Deferrable
-  @Primitive("!=")
+  @Builtin("!=")
+  @DataParallel
   public static boolean notEqualTo(double x, double y) {
     return x != y;
   }
 
   @Deferrable
-  @Primitive("!=")
+  @Builtin("!=")
+  @DataParallel
   public static boolean notEqualTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return !x.equals(y);
   }
 
   @Deferrable
-  @Primitive("<")
+  @Builtin("<")
+  @DataParallel
   public static boolean lessThan(double x, double y) {
     return x < y;
   }
 
   @Deferrable
-  @Primitive("<")
+  @Builtin("<")
+  @DataParallel
   public static boolean lessThan(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.compareTo(y) < 0;
   }
 
   @Deferrable
-  @Primitive("<=")
+  @Builtin("<=")
+  @DataParallel
   public static boolean lessThanOrEqualTo(double x, double y) {
     return x <= y;
   }
 
   @Deferrable
-  @Primitive("<=")
+  @Builtin("<=")
+  @DataParallel
   public static boolean lessThanOrEqualTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.compareTo(y) <= 0;
   }
 
   @Deferrable
-  @Primitive(">")
+  @Builtin(">")
+  @DataParallel
   public static boolean greaterThan(double x, double y) {
     return x > y;
   }
 
   @Deferrable
-  @Primitive(">")
+  @Builtin(">")
+  @DataParallel
   public static boolean greaterThan(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.compareTo(y) > 0;
   }
 
   @Deferrable
-  @Primitive(">=")
+  @Builtin(">=")
+  @DataParallel
   public static boolean greaterThanOrEqual(double x, double y) {
     return x >= y;
   }
 
   @Deferrable
-  @Primitive(">=")
+  @Builtin(">=")
+  @DataParallel
   public static boolean greaterThanOrEqual(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.compareTo(y) >= 0;
   }
 
   @Deferrable
-  @Primitive("^")
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
+  @Builtin("^")
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double power(double x, double y) {
     return Math.pow(x, y);
   }
 
   @Deferrable
-  @Primitive("!")
+  @Builtin("!")
+  @DataParallel
   public static boolean not(boolean value) {
     return !value;
   }
 
   @Deferrable
-  @Primitive("%%")
-  @Recycle
+  @Builtin("%%")
+  @DataParallel
   public static double modulus(double x, double y) {
     return x % y;
   }
 
   @Deferrable
-  @Primitive("%/%")
-  @Recycle
+  @Builtin("%/%")
+  @DataParallel
   public static double integerDivision(double x, double y) {
     return Math.floor(x / y);
   }
 
   @Deferrable
-  @Primitive("&")
-  @AllowNA
+  @Builtin("&")
+  @DataParallel(passNA = true)
   public static Logical and(double x, double y) {
     if(x == 0 || y == 0) {
       return Logical.FALSE;
@@ -252,8 +243,8 @@ public class Ops  {
   }
 
   @Deferrable
-  @Primitive("|")
-  @AllowNA
+  @Builtin("|")
+  @DataParallel(passNA = true)
   public static Logical or(double x, double y) {
     if( (x != 0 && !DoubleVector.isNA(x)) ||
         (y != 0 && !DoubleVector.isNA(y))) {
@@ -264,6 +255,4 @@ public class Ops  {
       return Logical.NA;
     }
   }
-  
-
 }

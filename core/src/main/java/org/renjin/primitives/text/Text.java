@@ -26,8 +26,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Deparse;
-import org.renjin.primitives.annotations.*;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
@@ -45,7 +45,7 @@ public class Text {
 
   private Text() {}
 
-  @Primitive
+  @Internal
   public static StringVector paste(ListVector arguments, String separator, String collapse) {
 
     int resultLength = arguments.maxElementLength();
@@ -71,19 +71,19 @@ public class Text {
     }
   }
 
-  @Primitive("encodeString")
+  @Internal("encodeString")
   public static StringVector encodeString(StringVector x, int width, String quote, 
       int justify, boolean naEncode) {
     
     return x;
   }
   
-  @Primitive("file.path")
+  @Internal("file.path")
   public static StringVector filePath(ListVector components, String fileSeparator) {
     return paste(components, fileSeparator, null);
   }
 
-  @Primitive
+  @Internal
   public static StringVector sprintf(@Current Context context, @Current Environment rho, 
         StringVector format, @ArgumentList ListVector arguments) {
     
@@ -181,14 +181,13 @@ public class Text {
    * @param messages
    * @return
    */
-  @Primitive
+  @Internal
   public static StringVector gettext(String domain, StringVector messages) {
     // stub implementation; no translation
     return messages;
   }
 
-  @Recycle(false)
-  @Primitive
+  @Internal
   public static String ngettext(double n,
                                 String singularMessage,
                                 String pluralMessage,
@@ -197,7 +196,7 @@ public class Text {
     return n == 1 ? singularMessage : pluralMessage;
   }
 
-  @Primitive
+  @Internal
   public static void bindtextdomain(String domain, String dirname) {
     // translation not yet supported.
   }
@@ -210,7 +209,8 @@ public class Text {
    * @param x the string in which to search
    * @return the translated string
    */
-  @Primitive("chartr")
+  @Internal("chartr")
+  @DataParallel
   public static String chartr(String oldChars, String newChars, @Recycle String x) {
     StringBuilder translation = new StringBuilder(x.length());
     for(int i=0;i!=x.length();++i) {
@@ -225,12 +225,14 @@ public class Text {
     return translation.toString();
   }
 
-  @Primitive
+  @Internal
+  @DataParallel
   public static String tolower(String x) {
     return x.toLowerCase();
   }
 
-  @Primitive
+  @Internal
+  @DataParallel
   public static String toupper(String x) {
     return x.toUpperCase();
   }
@@ -242,8 +244,8 @@ public class Text {
    * @param allowNA
    * @return
    */
-  @AllowNA
-  @Primitive
+  @Internal
+  @DataParallel(passNA = true)
   public static int nchar(@Recycle String x, String type, boolean allowNA) {
     if(StringVector.isNA(x)) {
       return 2;
@@ -257,8 +259,8 @@ public class Text {
    * @param x the string to check
    * @return true if the string of non-zero length, false if the string is empty
    */
-  @AllowNA
-  @Primitive
+  @Builtin
+  @DataParallel(passNA = true)
   public static boolean nzchar(String x) {
     return StringVector.isNA(x) || x.length() != 0;
   }
@@ -270,14 +272,14 @@ public class Text {
    * denoted by \1, \2, ...\n
    * @param x The string in which to replace
    * @param ignoreCase  true to ignore case
-   * @param extended true to use extended regexps
    * @param perl true to use perl-compatible regexps
    * @param fixed true to use normal string replacement
    * @param useBytes true to perform matching on byte-level rather than character-level.
    * Not supported
    * @return  the string with replacements made
    */
-  @Primitive
+  @Internal
+  @DataParallel
   public static String sub(String pattern, String replacement,
                            @Recycle String x,
                            boolean ignoreCase,
@@ -297,14 +299,14 @@ public class Text {
    * denoted by \1, \2, ...\n
    * @param x The string in which to replace
    * @param ignoreCase  true to ignore case
-   * @param extended true to use extended regexps
    * @param perl true to use perl-compatible regexps
    * @param fixed true to use normal string replacement
    * @param useBytes true to perform matching on byte-level rather than character-level.
    * Not supported
    * @return  the string with replacements made
    */
-  @Primitive
+  @Internal
+  @DataParallel
   public static String gsub(String pattern, String replacement,
                             @Recycle String x,
                             boolean ignoreCase,
@@ -320,14 +322,14 @@ public class Text {
    * Substitute the all patterns in a string
    * @param split a regular expression pattern to look for
    * @param x The string in which to replace
-   * @param extended true to use extended regexps
    * @param perl true to use perl-compatible regexps
    * @param fixed true to use normal string replacement
    * @param useBytes true to perform matching on byte-level rather than character-level.
    * Not supported
    * @return  a {@code StringVector} containing the splits
    */
-  @Primitive
+  @Internal
+  @DataParallel
   public static StringVector strsplit(@Recycle String x, @Recycle String split,
                                       boolean fixed,
                                       boolean perl,
@@ -337,7 +339,7 @@ public class Text {
     return new StringArrayVector( re.split(x) );
   }
 
-  @Primitive
+  @Internal
   public static Vector grep(
       String pattern,
       StringVector x,
@@ -374,7 +376,6 @@ public class Text {
    * @param pattern
    * @param x
    * @param ignoreCase
-   * @param extended
    * @param value
    * @param perl
    * @param fixed
@@ -382,7 +383,7 @@ public class Text {
    * @param invert
    * @return a logical vector (match or not for each element of x).
    */
-  @Primitive
+  @Internal
   public static Vector grepl(
       String pattern,
       StringVector x,
@@ -401,7 +402,7 @@ public class Text {
     return result.build();
   }
   
-  @Primitive
+  @Internal
   public static Vector agrep(String pattern, StringVector x,  boolean ignoreCase, boolean value,
                               Vector costs, Vector bounds, boolean useBytes, boolean fixed) {
 
@@ -449,7 +450,7 @@ public class Text {
   }
 
 
-  @Primitive
+  @Internal
   public static IntVector regexpr(String pattern, StringVector vector, boolean ignoreCase, boolean perl,
       boolean fixed, boolean useBytes) {
     
@@ -474,7 +475,7 @@ public class Text {
     return position.build();
   }
 
-  @Primitive
+  @Internal
   public static StringVector substr(StringVector x, int start, int stop) {
     StringVector.Builder result = new StringVector.Builder();
     for(String s : x) {
@@ -499,12 +500,12 @@ public class Text {
    * The character "X" is prepended if necessary. All invalid characters are translated to ".".
    * A missing value is translated to "NA". Names which match R keywords have a dot appended to them.
    *
-   * @param names
+   * @param name
    * @param allow
    * @return
    */
-  @Primitive("make.names")
-  @AllowNA
+  @Internal("make.names")
+  @DataParallel(passNA = true)
   public static String makeNames(@Recycle String name, @Recycle(false) boolean allow) {
     if(StringVector.isNA(name)) {
       return "NA.";
@@ -548,7 +549,7 @@ public class Text {
    * @return  A character vector of same length as names with duplicates changed,
    *         in the current locale's encoding.
    */
-  @Primitive("make.unique")
+  @Internal("make.unique")
   public static StringVector makeUnique(StringVector names, String sep) {
     Set<String> set = new HashSet<String>();
     StringVector.Builder result = new StringVector.Builder();
@@ -575,8 +576,9 @@ public class Text {
   }
 
 
-  @Primitive("strtrim")
-  public static String strtrim(@Recycle String source, @Recycle int n) {
+  @Internal
+  @DataParallel
+  public static String strtrim(String source, int n) {
     int index;
     if (n > source.length()) {
       index = source.length();
@@ -619,6 +621,7 @@ public class Text {
 
    * @return
    */
+  @Internal
   public static StringVector format(StringVector x, boolean trim, SEXP digits, SEXP nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
@@ -629,6 +632,7 @@ public class Text {
     return buildFormatResult(x, elements);
   }
 
+  @Internal
   public static StringVector format(LogicalVector x, boolean trim, SEXP digits, SEXP nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
@@ -672,6 +676,7 @@ public class Text {
 
    * @return
    */
+  @Internal
   public static StringVector format(DoubleVector x, boolean trim, SEXP digits, int nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
@@ -685,6 +690,7 @@ public class Text {
     return buildFormatResult(x, elements);
   }
 
+  @Internal
   public static StringVector format(IntVector x, boolean trim, SEXP digits, int nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
@@ -807,6 +813,7 @@ public class Text {
    * @param x a single string
    * @return
    */
+  @Internal
   public static IntVector utf8ToInt(String x) {
     if(StringVector.isNA(x)) {
       return new IntArrayVector(IntVector.NA);
@@ -825,6 +832,7 @@ public class Text {
    * @param multiple
    * @return
    */
+  @Internal
   public static StringVector intToUtf8(AtomicVector x, boolean multiple) {
     if(multiple) {
       
@@ -865,7 +873,7 @@ public class Text {
     
   }
   
-  @Primitive("substr<-")
+  @Internal("substr<-")
   public static StringVector setSubstring(String s, int start, int stop,String replace) {
     StringArrayVector.Builder result = new StringArrayVector.Builder();
     result.add(s.substring(0, start-1)+replace+s.substring(Math.min(stop,start-1+replace.length())));
@@ -897,9 +905,9 @@ public class Text {
    * @param toRaw true if a ListVector of RawVectors should be returned instead of a StringVector
    * @return
    */
-  @Primitive
-  @PreserveAttributes(PreserveAttributeStyle.ALL)
-  public static Vector iconv(@InvokeAsCharacter Vector x, String from, String to, String sub, boolean mark, boolean toRaw) {
+  @Internal
+  public static Vector iconv(@InvokeAsCharacter Vector x, String from, String to, String sub,
+                             boolean mark, boolean toRaw) {
     if(toRaw) {
       Charset destCharSet = RCharsets.getByName(to);
       ListVector.Builder result = new ListVector.Builder();
@@ -914,8 +922,8 @@ public class Text {
     }
   }
 
-  @Primitive
-  @PreserveAttributes(PreserveAttributeStyle.NONE)
+  @Internal
+  @DataParallel(PreserveAttributeStyle.NONE)
   public static int strtoi(@Recycle String x, @Recycle(false) int base) {
     if(base == 0) {
       // For the default ‘base = 0L’, the base chosen from the string

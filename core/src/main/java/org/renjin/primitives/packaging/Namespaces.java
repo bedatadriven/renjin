@@ -23,9 +23,10 @@ package org.renjin.primitives.packaging;
 
 import java.io.IOException;
 
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Evaluate;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
@@ -34,7 +35,7 @@ import org.renjin.sexp.Symbol;
 
 public class Namespaces {
 
-  @Primitive
+  @Internal
   public static SEXP getRegisteredNamespace(@Current NamespaceRegistry registry, Symbol name) {
     if(registry.isRegistered(name)) {
       return registry.getNamespace(name).getNamespaceEnvironment();
@@ -43,17 +44,17 @@ public class Namespaces {
     }
   }
   
-  @Primitive
+  @Builtin
   public static SEXP getNamespace(@Current NamespaceRegistry registry, Symbol name) {
     return registry.getNamespace(name).getNamespaceEnvironment();
   }
 
-  @Primitive
+  @Builtin
   public static SEXP getNamespace(@Current NamespaceRegistry registry, String name) {
     return registry.getNamespace(name).getNamespaceEnvironment();
   }
   
-  @Primitive
+  @Builtin
   public static boolean isNamespace(@Current NamespaceRegistry registry, SEXP envExp) {
     if(envExp instanceof Environment) {
       return registry.isNamespaceEnv((Environment)envExp);
@@ -62,7 +63,7 @@ public class Namespaces {
     }
   }
   
-  @Primitive
+  @Builtin
   public static StringVector loadedNamespaces(@Current NamespaceRegistry registry) {
     StringVector.Builder result = new StringVector.Builder();
     for(Symbol name : registry.getLoadedNamespaces()) {
@@ -71,18 +72,23 @@ public class Namespaces {
     return result.build();
   }
 
-  @Primitive(":::")
-  public static SEXP getNamespaceValue(@Current NamespaceRegistry registry, @Evaluate(false) Symbol namespace, @Evaluate(false) Symbol entry) {
+  @Builtin(":::")
+  public static SEXP getNamespaceValue(@Current NamespaceRegistry registry, @Unevaluated Symbol namespace,
+                                       @Unevaluated Symbol entry) {
     return registry.getNamespace(namespace).getEntry(entry);  
   }
   
-  @Primitive("::")
-  public static SEXP getExportedNamespaceValue(@Current NamespaceRegistry registry, @Evaluate(false) Symbol namespace, @Evaluate(false) Symbol entry) {
+  @Builtin("::")
+  public static SEXP getExportedNamespaceValue(@Current NamespaceRegistry registry,
+                                               @Unevaluated Symbol namespace,
+                                               @Unevaluated Symbol entry) {
     return registry.getNamespace(namespace).getExport(entry);  
   }
 
-  @Primitive
-  public static SEXP getDataset(@Current NamespaceRegistry registry, String namespaceName, String datasetName) throws IOException {
+  @Internal
+  public static SEXP getDataset(@Current NamespaceRegistry registry,
+                                String namespaceName,
+                                String datasetName) throws IOException {
     return registry.getNamespace(namespaceName).getPackage().getDataset(datasetName);
   }
   

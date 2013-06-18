@@ -5,8 +5,10 @@ import java.io.IOException;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.DotCall;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.OpenSpec;
@@ -35,7 +37,7 @@ public class Serialization {
 
 
 
-  @Primitive
+  @Internal
   public static SEXP unserializeFromConn(@Current Context context,
       SEXP conn, Environment rho) throws IOException {
     
@@ -43,7 +45,7 @@ public class Serialization {
     return reader.readFile();
   }
 
-  @Primitive
+  @Internal
   public static SEXP unserializeFromConn(@Current Context context,
       SEXP conn, Null nz) throws IOException {
     
@@ -71,7 +73,7 @@ public class Serialization {
    strings in the STRSXP (attributes are ignored).  
    * @throws IOException
    */
-  @Primitive
+  @Internal
   public static void serializeToConn(@Current Context context, SEXP object, 
       SEXP con, boolean ascii, SEXP versionSexp, SEXP refhook) throws IOException {
     
@@ -103,7 +105,7 @@ public class Serialization {
    * @param evalPromises TRUE to force promises
    * @throws IOException
    */
-  @Primitive
+  @Internal
   public static void saveToConn(@Current Context context, 
       StringVector names, 
       SEXP connHandle, 
@@ -144,7 +146,7 @@ public class Serialization {
     }
   }
   
-  @Primitive
+  @Internal
   public static void save(SEXP list, SEXP file, SEXP ascii, SEXP version, SEXP environment, SEXP evalPromises) {
     throw new EvalException("Serialization version 1 not supported.");
   }
@@ -191,7 +193,7 @@ public class Serialization {
    * @return A character vector of the names of objects created, invisibly.
    * @throws IOException
    */
-  @Primitive
+  @Internal
   public static SEXP loadFromConn2(@Current Context context, SEXP conn,
       Environment env) throws IOException {
 
@@ -208,42 +210,7 @@ public class Serialization {
 
     return names.build();
   }
-  
-  /**
-   * Populates a target {@code Environment} with promises to serialized
-   * expressions.
-   * 
-   * @param names
-   *          the names of the symbols to be populated
-   * @param values
-   * @param expr
-   * @param eenv
-   * @param targetEnvironment
-   */
-  public static void makeLazy(@Current Context context, StringVector names,
-      ListVector values, FunctionCall expr, Environment eenv,
-      Environment targetEnvironment) {
 
-    for (int i = 0; i < names.length(); i++) {
-      // the name of the symbol
-      Symbol name = Symbol.get(names.getElementAsString(i));
-
-      // c(pos, length) of the serialized object
-      SEXP value = context.evaluate( values.get(i), (Environment) eenv);
-      // create a new call, replacing the first argument with the
-      // provided arg
-      PairList.Node.Builder newArgs = PairList.Node.newBuilder();
-      newArgs.add(value);
-      for (int j = 1; j < expr.getArguments().length(); ++j) {
-        newArgs.add(expr.<SEXP> getArgument(j));
-      }
-      FunctionCall newCall = new FunctionCall(expr.getFunction(),
-          newArgs.build());
-      targetEnvironment.setVariable(name, Promise.repromise(eenv, newCall));
-    }
-  }
-
-   
 
   /**
    *
@@ -260,6 +227,7 @@ public class Serialization {
    * @return a {@code RawVector}
    * @throws IOException
    */
+  @DotCall("R_serialize")
   public static SEXP serialize(@Current Context context, SEXP object, SEXP connection, boolean ascii,
       SEXP version, SEXP refhook) throws IOException {
     EvalException.check(!ascii, "ascii = TRUE has not been implemented");

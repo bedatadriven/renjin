@@ -30,9 +30,10 @@ import org.apache.commons.math.optimization.direct.NelderMead;
 import org.apache.commons.math.optimization.univariate.BrentOptimizer;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Types;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Builtin;
 import org.renjin.sexp.*;
 
 public class Optimizations {
@@ -52,6 +53,7 @@ public class Optimizations {
    * @param itnlim
    * @return
    */
+  @Internal
   public static SEXP nlm(@Current Context context, @Current Environment rho,
                          Function fn, DoubleVector p, boolean want_hessian,
                          DoubleVector typesize, double fscale, int msg, int ndigit,
@@ -215,8 +217,6 @@ public class Optimizations {
     // TODO
   }
 
-
-
   static double[] fixparam(AtomicVector p, int n) {
     if (!Types.isNumeric(p))
       throw new EvalException("numeric parameter expected");
@@ -259,6 +259,7 @@ public class Optimizations {
    * <p>
    * Brent, R. (1973) Algorithms for Minimization without Derivatives. Englewood Cliffs N.J.: Prentice-Hall.
    */
+  @Internal
   public static double fmin(@Current Context context, @Current Environment rho,
                           Function fn, double lower, double upper, double tol) {
 
@@ -287,7 +288,7 @@ public class Optimizations {
    * @param upper
    * @return
    */
-  @Primitive
+  @Internal
   public static ListVector optim(@Current Context context,
                              @Current Environment rho,
                              DoubleVector par,

@@ -9,7 +9,7 @@ import javax.script.Bindings;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
-import org.renjin.jvminterop.converters.Converters;
+import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.sexp.Frame;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;

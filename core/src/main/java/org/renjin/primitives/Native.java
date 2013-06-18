@@ -11,21 +11,14 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.jvminterop.FunctionBinding;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
-import org.renjin.primitives.annotations.ArgumentList;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.NamedFlag;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExternalExp;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.NamedFlag;
+import org.renjin.sexp.*;
+import org.renjin.sexp.ExternalPtr;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -36,7 +29,7 @@ public class Native {
   public static final boolean DEBUG = false;
 
 
-  @Primitive(".C")
+  @Builtin(".C")
   public static SEXP dotC(@Current Context context,
                           @Current Environment rho,
                           SEXP methodExp,
@@ -58,8 +51,8 @@ public class Native {
 
       method = Iterables.getOnlyElement(findMethod(getPackageClass(packageName), methodName));
 
-    } else if(methodExp instanceof ExternalExp && ((ExternalExp) methodExp).getValue() instanceof Method) {
-      method = (Method) ((ExternalExp) methodExp).getValue();
+    } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
+      method = (Method) ((ExternalPtr) methodExp).getInstance();
 
     } else {
       throw new EvalException("Invalid method argument of type %s", methodExp.getTypeName());
@@ -151,7 +144,7 @@ public class Native {
    * @param encoding
    * @return
    */
-  @Primitive(".Fortran")
+  @Builtin(".Fortran")
   public static SEXP dotFortran(@Current Context context,
                           @Current Environment rho,
                           SEXP methodExp,
@@ -175,8 +168,8 @@ public class Native {
       String methodName = ((StringVector) methodExp).getElementAsString(0);
       method = findFortranMethod(className, methodName);
 
-    } else if(methodExp instanceof ExternalExp && ((ExternalExp) methodExp).getValue() instanceof Method) {
-      method = (Method) ((ExternalExp) methodExp).getValue();
+    } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
+      method = (Method) ((ExternalPtr) methodExp).getInstance();
     } else {
       throw new EvalException("Invalid argument type for method = %s", methodExp.getTypeName());
     }
@@ -236,7 +229,7 @@ public class Native {
     throw new EvalException("Could not find method %s in class %s", methodName, className);
   }
 
-  @Primitive(".Call")
+  @Builtin(".Call")
   public static SEXP dotCall(@Current Context context,
                              @Current Environment rho,
                              String methodName,

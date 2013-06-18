@@ -21,5 +21,12 @@
 
 package org.renjin.primitives.special;
 
+/**
+ * Superclass of exceptions that are used to control flow
+ * during runtime, for example by breaking out of a loop
+ * with {@code break} or returning from a function with
+ * the {@code return} function.
+ *
+ */
 public class ControlFlowException extends RuntimeException {
 }

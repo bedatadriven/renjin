@@ -26,12 +26,8 @@ import com.google.common.io.ByteStreams;
 import org.apache.commons.vfs2.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.eval.Session;
+import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Warning;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
-import org.renjin.primitives.annotations.Recycle;
-import org.renjin.primitives.annotations.Visible;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.sexp.*;
@@ -61,7 +57,8 @@ public class Files {
    * @param path
    * @return the expanded path
    */
-  @Primitive("path.expand")
+  @DataParallel
+  @Internal("path.expand")
   public static String pathExpand(String path) {
     if(path.startsWith("~/")) {
       return java.lang.System.getProperty("user.home") + path.substring(2);
@@ -70,7 +67,7 @@ public class Files {
     }
   }
   
-  @Primitive("file.access")
+  @Internal("file.access")
   public static IntVector fileAccess(@Current Context context, StringVector names, int mode ) throws FileSystemException {
     IntArrayVector.Builder result = new IntArrayVector.Builder();
     for(String name : names) {
@@ -111,7 +108,7 @@ public class Files {
    * @return list column-oriented table of file information
    * @throws FileSystemException
    */
-  @Primitive("file.info")
+  @Internal("file.info")
   public static ListVector fileInfo(@Current Context context, StringVector paths) throws FileSystemException {
 
     DoubleArrayVector.Builder size = new DoubleArrayVector.Builder();
@@ -168,8 +165,10 @@ public class Files {
    * implementation will return the input.
    *
    */
-  @Primitive
-  public static String normalizePath(@Current Context context, @Recycle String path, String winSlash, SEXP mustWork) {
+  @Internal
+  @DataParallel
+  public static String normalizePath(@Current Context context,
+                                     @Recycle String path, String winSlash, SEXP mustWork) {
     try {
       return context.resolveFile(path).getName().getURI();
     } catch(FileSystemException e) {
@@ -210,7 +209,8 @@ public class Files {
    * @return true if the file exists
    * @throws FileSystemException
    */
-  @Primitive("file.exists")
+  @Internal("file.exists")
+  @DataParallel
   public static boolean fileExists(@Current Context context, String path) throws FileSystemException {
     return context.resolveFile(path).exists();
   }
@@ -226,6 +226,8 @@ public class Files {
    * @param path the file path
    * @return  removes all of the path up to and including the last path separator (if any).
    */
+  @Internal
+  @DataParallel
   public static String basename(String path) {
     for(int i=path.length()-1;i>=0;--i) {
       if(path.charAt(i) == '\\' || path.charAt(i) == '/') {
@@ -247,7 +249,7 @@ public class Files {
    * May not be supported on all platforms.
    * @return
    */
-  @Primitive("Sys.glob")
+  @Internal("Sys.glob")
   public static StringVector glob(@Current Context context, StringVector paths, boolean markDirectories) {
 
     List<String> matching = Lists.newArrayList();
@@ -271,6 +273,8 @@ public class Files {
    * @return  the part of the path up to but excluding the last path separator, or "."
    * if there is no path separator.
    */
+  @Internal
+  @DataParallel
   public static String dirname(String path) {
     for(int i=path.length()-1;i>=0;--i) {
       if(path.charAt(i) == '\\' || path.charAt(i) == '/') {
@@ -295,7 +299,7 @@ public class Files {
    *  returns false if the directory already exists
    * @throws FileSystemException
    */
-  @Primitive("dir.create")
+  @Internal("dir.create")
   public static SEXP dirCreate(@Current Context context, String path, boolean showWarnings, boolean recursive, int mode) throws FileSystemException {
     FileObject dir = context.resolveFile(path);
     dir.createFolder();
@@ -325,7 +329,7 @@ public class Files {
    *
    * @return
    */
-  @Primitive("list.files")
+  @Internal("list.files")
   public static StringVector listFiles(@Current final Context context,
                                        final StringVector paths,
                                        final String pattern,
@@ -405,6 +409,7 @@ public class Files {
    *
    * @return temporary sub directory
    */
+  @Internal
   public static String tempdir() {
     return java.lang.System.getProperty("java.io.tmpdir");
   }
@@ -418,6 +423,8 @@ public class Files {
    *
    * @return path that can be used as names for temporary files
    */
+  @Internal
+  @DataParallel
   public static String tempfile(String pattern, String tempdir, String fileExt) {
     return tempdir + "/" + pattern + fileExt;
   }
@@ -433,11 +440,13 @@ public class Files {
    * @param context the current call Context
    * @return an absolute filename representing the current working directory
    */
+  @Internal
   public static String getwd(@Current Context context) {
     return context.getSession().getWorkingDirectory().getName().getURI();
   }
   
-  @Visible(false)
+  @Invisible
+  @Internal
   public static String setwd(@Current Context context, String workingDirectoryName) throws FileSystemException {
     FileObject newWorkingDirectory = context.resolveFile(workingDirectoryName);
     if(!newWorkingDirectory.exists() ||
@@ -461,6 +470,7 @@ public class Files {
    * regarded as failures.
    * @throws FileSystemException
    */
+  @Internal
   public static IntVector unlink(@Current Context context, StringVector paths, boolean recursive, boolean force) throws FileSystemException {
     IntArrayVector.Builder result = new IntArrayVector.Builder();
     for(String path : paths) {
@@ -489,7 +499,7 @@ public class Files {
     }
   }
   
-  @Primitive("file.copy")
+  @Internal("file.copy")
   public static LogicalVector fileCopy(@Current Context context, StringVector fromFiles, String to, boolean overwrite, final boolean recursive) throws FileSystemException {
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     FileObject toFile = context.resolveFile(to);
@@ -529,6 +539,7 @@ public class Files {
       Otherwise, a character vector of the filepaths extracted to, invisibly.
    * @throws IOException
    */
+  @Internal
   public static SEXP unzip(@Current Context context, String zipFile, Vector files, String exdirUri,
                                  boolean list, boolean overwrite, boolean junkpaths) throws IOException {
 
@@ -593,7 +604,8 @@ public class Files {
     }
   }
   
-  @Primitive("file.create")
+  @Internal("file.create")
+  @DataParallel
   public static boolean fileCreate(@Current Context context, @Recycle String fileName, @Recycle(false) boolean showWarnings) throws IOException {
     try {
       FileObject file = context.resolveFile(fileName);
@@ -618,8 +630,9 @@ public class Files {
    * argument to those named by its first.  The R subscript recycling
    * rule is used to align names given in vectors of different lengths.
    */
-  @Primitive("file.append")
-  public static boolean fileAppend(@Current Context context, @Recycle String destFileName, @Recycle String sourceFileName) {
+  @Internal("file.append")
+  @DataParallel
+  public static boolean fileAppend(@Current Context context, String destFileName, String sourceFileName) {
     try {
       FileObject sourceFile = context.resolveFile(sourceFileName);
       if(!sourceFile.exists()) {

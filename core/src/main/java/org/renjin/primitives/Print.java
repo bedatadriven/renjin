@@ -25,9 +25,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.ParseUtil;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Builtin;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
@@ -38,7 +39,7 @@ public class Print {
 
   private Print() {}
 
-  @Primitive("print.default")
+  @Internal("print.default")
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
       SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) throws IOException {
 
@@ -65,7 +66,7 @@ public class Print {
     return visitor.getResult();
   }
 
-  @Primitive("print.function")
+  @Internal("print.function")
   public static void printFunction(@Current Context context, SEXP x, boolean useSource) throws IOException {
     context.getSession().getStdOut().println(x.toString());
     context.getSession().getStdOut().flush();
@@ -170,7 +171,7 @@ public class Print {
 
     @Override
     public void visitSpecial(SpecialFunction special) {
-      out.append(".Primitive(").append(ParseUtil.formatStringLiteral(special.getName(), "NA"));
+      out.append(".Builtin(").append(ParseUtil.formatStringLiteral(special.getName(), "NA"));
     }
 
     private <T> void printVector(Iterable<T> vector, Alignment align, Function<T, String> printer, String typeName) {

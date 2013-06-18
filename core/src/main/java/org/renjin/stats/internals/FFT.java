@@ -2,7 +2,8 @@ package org.renjin.stats.internals;
 
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 import org.apache.commons.math.complex.Complex;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.ComplexVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
@@ -10,17 +11,17 @@ import org.renjin.sexp.Vector;
 
 public class FFT {
 
-  @Primitive
+  @Internal
   public static ComplexVector fft(IntVector x, boolean inverse) {
     return realFFT(x, inverse);
   }
   
-  @Primitive
+  @Internal
   public static ComplexVector fft(DoubleVector x, boolean inverse) {
     return realFFT(x, inverse);
   }
 
-  @Primitive
+  @Internal
   public static ComplexVector fft(ComplexVector x, boolean inverse) {
     DoubleFFT_1D fft = new DoubleFFT_1D(x.length());
     

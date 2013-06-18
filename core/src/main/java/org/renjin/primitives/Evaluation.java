@@ -26,11 +26,11 @@ import com.google.common.collect.Lists;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.parser.RParser;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Evaluate;
-import org.renjin.primitives.annotations.PassThrough;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.special.ReturnException;
@@ -61,7 +61,7 @@ public class Evaluation {
    * Note that assignment to an attached list or data frame changes the attached copy
    *  and not the original object: see attach and with.
    */
-  @Primitive
+  @Internal
   public static SEXP assign(@Current Context context, String name, SEXP value, Environment environ, boolean inherits) {
 
     Symbol symbol = Symbol.get(name);
@@ -81,7 +81,7 @@ public class Evaluation {
     return value;
   }
 
-  @Primitive
+  @Internal
   public static void delayedAssign(String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
     assignEnv.setVariable(Symbol.get(x), Promise.repromise(evalEnv, expr));
   }
@@ -95,8 +95,8 @@ public class Evaluation {
    *
    */
 
-  @Primitive("on.exit")
-  public static void onExit( @Current Context context, @Evaluate(false) SEXP exp, boolean add ) {
+  @Builtin("on.exit")
+  public static void onExit( @Current Context context, @Unevaluated SEXP exp, boolean add ) {
     if(add) {
       context.addOnExit(exp);
     } else {
@@ -104,7 +104,7 @@ public class Evaluation {
     }
   }
 
-  @Primitive
+  @Internal
   public static ListVector lapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function) {
 
@@ -121,7 +121,7 @@ public class Evaluation {
     return builder.build();
   }
 
-  @Primitive
+  @Internal
   public static Vector vapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function, Vector funValue, boolean useNames) {
     
@@ -208,19 +208,19 @@ public class Evaluation {
   }
 
 
-  @Primitive("return")
+  @Builtin("return")
   public static SEXP doReturn(@Current Environment rho, SEXP value) {
     throw new ReturnException(rho, value);
   }
 
-  @Primitive("do.call")
+  @Internal("do.call")
   public static SEXP doCall(@Current Context context, Function what, ListVector arguments, Environment environment) {
     PairList argumentPairList = new PairList.Builder().addAll(arguments).build();
     FunctionCall call = new FunctionCall(what, argumentPairList);
     return context.evaluate(call, environment);
   }
 
-  @Primitive("do.call")
+  @Internal("do.call")
   public static SEXP doCall(@Current Context context, String what, ListVector arguments, Environment environment) {
     Function function = environment
             .findFunction(context, Symbol.get(what));
@@ -232,22 +232,8 @@ public class Evaluation {
     return doCall(context, function, arguments, environment);
   }
 
-  @PassThrough
-  @Primitive
-  public static SEXP call(@Current Context context, @Current Environment rho, FunctionCall call) {
-    if(call.length() < 1) {
-      throw new EvalException("first argument must be character string");
-    }
-    SEXP name = context.evaluate(call.getArgument(0), rho);
-    if(!(name instanceof StringVector) || name.length() != 1) {
-      throw new EvalException("first argument must be character string");
-    }
 
-    return new FunctionCall(Symbol.get(((StringVector) name).getElementAsString(0)),
-        ((PairList.Node)call.getArguments()).getNextNode());
-  }
-
-  @Primitive
+  @Internal
   public static SEXP eval(@Current Context context,
                                 SEXP expression, SEXP environment,
                                 SEXP enclosing) {
@@ -310,7 +296,7 @@ public class Evaluation {
    * Evaluates the expression and then packs it into a named ListVector
    * containing the value and the visibility flag
    */
-  @Primitive("eval.with.vis")
+  @Internal("eval.with.vis")
   public static SEXP evalWithVis(@Current Context context,
       SEXP expression, SEXP environment,
       SEXP enclosing) {
@@ -322,13 +308,14 @@ public class Evaluation {
     return list.build();
   }
 
-  @Primitive
-  public static SEXP quote(@Evaluate(false) SEXP exp) {
+  @Builtin
+  public static SEXP quote(@Unevaluated SEXP exp) {
     return exp;
   }
   
-  @Primitive
-  public static boolean missing(@Current Context context, @Current Environment rho, @Evaluate(false) Symbol symbol) {
+  @Builtin
+  public static boolean missing(@Current Context context, @Current Environment rho,
+                                @Unevaluated Symbol symbol) {
     
     if(symbol.isVarArgReference()) {
       return isVarArgMissing(rho, symbol.getVarArgReferenceIndex());
@@ -389,7 +376,7 @@ public class Evaluation {
   }
 
 
-  @Primitive
+  @Internal
   public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text,
                                        String prompt, SEXP sourceFile, String encoding) throws IOException {
     List<SEXP> expressions = Lists.newArrayList();
@@ -413,11 +400,12 @@ public class Evaluation {
     return new ExpressionVector(expressions);
   }
 
+  @Builtin
   public static int nargs(@Current Context context) {
     return context.getArguments().length();
   }
   
-  @Primitive(".Primitive")
+  @Builtin(".Primitive")
   public static PrimitiveFunction getPrimitive(String name) {
     PrimitiveFunction fn = Primitives.getBuiltin(Symbol.get(name));
     if(fn == null) {
@@ -426,7 +414,7 @@ public class Evaluation {
     return fn;
   }
 
-  @Primitive
+  @Internal
   public static void remove(StringVector names, Environment envir, boolean inherits) {
     if(inherits) {
       throw new EvalException("remove(inherits=TRUE) is not yet implemented");

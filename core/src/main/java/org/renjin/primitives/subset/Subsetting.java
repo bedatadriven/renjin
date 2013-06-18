@@ -24,20 +24,19 @@ package org.renjin.primitives.subset;
 import com.google.common.base.Strings;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.*;
 import org.renjin.methods.MethodDispatch;
-import org.renjin.primitives.annotations.*;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
 public class Subsetting {
 
   private Subsetting() {
+
   }
 
-
-    
-  @Primitive("$")
-  public static SEXP getElementByName(PairList list, @Evaluate(false) SEXP nameExp) {
+  @Builtin("$")
+  public static SEXP getElementByName(PairList list, @Unevaluated SEXP nameExp) {
     String name = asString(nameExp);
     SEXP match = null;
     int matchCount = 0;
@@ -53,6 +52,16 @@ public class Subsetting {
     return matchCount == 1 ? match : Null.INSTANCE;
   }
 
+  private static Symbol asSymbol(SEXP nameExp) {
+    if(nameExp instanceof Symbol) {
+      return (Symbol) nameExp;
+    } else if(nameExp instanceof StringVector && nameExp.length() == 1) {
+      return Symbol.get( ((StringVector) nameExp).getElementAsString(0) );
+    } else {
+      throw new EvalException("illegal argument: " + nameExp);
+    }
+  }
+
   private static String asString(SEXP nameExp) {
     if(nameExp instanceof Symbol) {
       return ((Symbol) nameExp).getPrintName();
@@ -63,8 +72,8 @@ public class Subsetting {
     }
   }
 
-  @Primitive("$")
-  public static SEXP getElementByName(Environment env, @Evaluate(false) SEXP nameExp) {
+  @Builtin("$")
+  public static SEXP getElementByName(Environment env, @Unevaluated SEXP nameExp) {
     String name = asString(nameExp);
     SEXP value = env.getVariable(name);
     if (value == Symbol.UNBOUND_VALUE) {
@@ -72,10 +81,21 @@ public class Subsetting {
     }
     return value;
   }
-  
 
-  @Primitive("@")
-  public static SEXP getSlotValue(@Current Context context, @Current MethodDispatch methods, SEXP object, @Evaluate(false) Symbol slotName) {
+  @Builtin("$")
+  public static SEXP getMemberByName(ExternalPtr<?> externalPtr, @Unevaluated SEXP nameExp) {
+    return externalPtr.getMember(asSymbol(nameExp));
+  }
+
+  @Builtin("$<-")
+  public static SEXP setElementByName(ExternalPtr<?> externalPtr, @Unevaluated SEXP nameExp, SEXP value) {
+    externalPtr.setMember(asSymbol(nameExp), value);
+    return externalPtr;
+  }
+
+  @Builtin("@")
+  public static SEXP getSlotValue(@Current Context context, @Current MethodDispatch methods, SEXP object,
+                                  @Unevaluated Symbol slotName) {
     if(slotName.getPrintName().equals(".Data")) {
       return context.evaluate(FunctionCall.newCall(Symbol.get("getDataPart"), object), methods.getMethodsNamespace());
     }
@@ -88,9 +108,9 @@ public class Subsetting {
     }
   }
 
-  @Primitive("$")
+  @Builtin("$")
   public static SEXP getElementByName(ListVector list,
-      @Evaluate(false) SEXP nameExp) {
+      @Unevaluated SEXP nameExp) {
     String name = asString(nameExp);
     SEXP match = null;
     int matchCount = 0;
@@ -109,22 +129,22 @@ public class Subsetting {
     return matchCount == 1 ? match : Null.INSTANCE;
   }
 
-  @Primitive("$<-")
+  @Builtin("$<-")
   public static SEXP setElementByName(ListVector list,
-      @Evaluate(false) Symbol name, SEXP value) {
+      @Unevaluated Symbol name, SEXP value) {
     return setSingleElement(list.newCopyNamedBuilder(), name.getPrintName(), value);
 
   }
 
-  @Primitive("$<-")
+  @Builtin("$<-")
   public static SEXP setElementByName(PairList.Node pairList,
-      @Evaluate(false) Symbol name, SEXP value) {
+      @Unevaluated Symbol name, SEXP value) {
     return setSingleElement(pairList.newCopyBuilder(), name.getPrintName(), value);
   }
 
-  @Primitive("$<-")
+  @Builtin("$<-")
   public static SEXP setElementByName(Environment env,
-      @Evaluate(false) Symbol name, SEXP value) {
+      @Unevaluated Symbol name, SEXP value) {
     env.setVariable(name, value);
     return env;
   }
@@ -132,7 +152,7 @@ public class Subsetting {
   /**
    * Same as "[" but not generic
    */
-  @Primitive(".subset")
+  @Builtin(".subset")
   public static SEXP subset(SEXP source, @ArgumentList ListVector arguments,
       @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     Vector vector;
@@ -147,7 +167,7 @@ public class Subsetting {
   }
 
   @Generic
-  @Primitive("[")
+  @Builtin("[")
   public static SEXP getSubset(SEXP source, @ArgumentList ListVector subscripts,
       @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
@@ -209,7 +229,7 @@ public class Subsetting {
 
   
   @Generic
-  @Primitive("[<-")
+  @Builtin("[<-")
   public static SEXP setSubset(SEXP source, @ArgumentList ListVector arguments) {
     
     SEXP replacement = arguments.getElementAsSEXP(arguments.length() - 1);
@@ -220,7 +240,7 @@ public class Subsetting {
   }
   
   @Generic
-  @Primitive("[[<-")
+  @Builtin("[[<-")
   public static SEXP setSingleElement(AtomicVector source, Vector index, Vector replacement) {
     // When applied to atomic vectors, [[<- works exactly like [<-
     // EXCEPT when the vector is zero-length, and then we create a new list
@@ -237,32 +257,32 @@ public class Subsetting {
     
   
   @Generic
-  @Primitive("[[<-")
+  @Builtin("[[<-")
   public static Environment setSingleElement(Environment environment, String name, SEXP replacement) {
      environment.setVariable(name, replacement);
      return environment; 
   }
   
   @Generic
-  @Primitive("[[<-")
+  @Builtin("[[<-")
   public static SEXP setSingleElement(PairList.Node pairList, int indexToReplace, SEXP replacement) {
     return setSingleElement(pairList.newCopyBuilder(), indexToReplace, replacement);
   }  
   
   @Generic
-  @Primitive("[[<-")
+  @Builtin("[[<-")
   public static SEXP setSingleElement(PairList.Node pairList, String nameToReplace, SEXP replacement) {
      return setSingleElement(pairList.newCopyBuilder(), nameToReplace, replacement);
   }
 
   @Generic
-  @Primitive("[[<-")
+  @Builtin("[[<-")
   public static SEXP setSingleElement(ListVector list, int indexToReplace, SEXP replacement) {
     return setSingleElement(list.newCopyNamedBuilder(), indexToReplace, replacement);
   }
   
   @Generic
-  @Primitive("[[<-")
+  @Builtin("[[<-")
   public static SEXP setSingleElement(ListVector list, String nameToReplace, SEXP replacement) {
     return setSingleElement(list.newCopyNamedBuilder(), nameToReplace, replacement);
   }
@@ -305,7 +325,7 @@ public class Subsetting {
   }
     
   @Generic
-  @Primitive("[[")
+  @Builtin("[[")
   public static SEXP getSingleElement(Vector vector, int index) {
     if (vector.length() == 0) {
       return Null.INSTANCE;
@@ -319,7 +339,7 @@ public class Subsetting {
   }
 
   @Generic
-  @Primitive("[[")
+  @Builtin("[[")
   public static SEXP getSingleElement(PairList.Node pairlist, int index) {
     if (index > pairlist.length()) {
       throw new EvalException("subscript out of bounds");
@@ -331,25 +351,25 @@ public class Subsetting {
   /**
    * Same as [[ but not marked as @Generic
    */
-  @Primitive(".subset2")
+  @Builtin(".subset2")
   public static SEXP getSingleElementDefault(Vector vector, int index) {
     return getSingleElement(vector, index);
   }
 
-  @Primitive(".subset2")
+  @Builtin(".subset2")
   public static SEXP getSingleElementDefault(Vector vector, int index, boolean exact) {
     return getSingleElement(vector, index);
   }
 
 
-  @Primitive(".subset2")
+  @Builtin(".subset2")
   public static SEXP getSingleElementDefaultByExactName(Vector vector,
       String name) {
     return getSingleElementByExactName(vector, name);
   }
 
 
-  @Primitive(".subset2")
+  @Builtin(".subset2")
   public static SEXP getSingleElementDefaultByExactName(Vector vector,
       String name, boolean exact) {
 
@@ -357,21 +377,21 @@ public class Subsetting {
   }
 
   @Generic
-  @Primitive("[[")
+  @Builtin("[[")
   public static SEXP getSingleElementByExactName(Vector vector, String subscript) {
     int index = vector.getIndexByName(subscript);
     return index == -1 ? Null.INSTANCE : vector.getElementAsSEXP(index);
   }
 
   @Generic
-  @Primitive("[[")
+  @Builtin("[[")
   public static SEXP getSingleElementByExactName(PairList.Node pairlist,
       String subscript) {
     return getSingleElementByExactName(pairlist.toVector(), subscript);
   }
 
   @Generic
-  @Primitive("[[")
+  @Builtin("[[")
   public static SEXP getSingleElementByExactName(Environment env,
       String subscript) {
     SEXP value = env.getVariable(subscript);
@@ -381,7 +401,7 @@ public class Subsetting {
   }
 
   @Generic
-  @Primitive("[[")
+  @Builtin("[[")
   public static SEXP getSingleElementByName(Vector vector, String subscript,
       boolean exact) {
     if (exact) {
@@ -402,7 +422,7 @@ public class Subsetting {
   }
 
   @Generic
-  @Primitive("[[")
+  @Builtin("[[")
   public static SEXP getSingleElementByName(PairList.Node pairlist,
       String subscript, boolean exact) {
     return getSingleElementByName(pairlist.toVector(), subscript, exact);

@@ -20,10 +20,11 @@
  */
 package org.renjin.stats.internals.distributions;
 
-import org.apache.commons.math.special.Gamma;
 import org.renjin.eval.Session;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.DataParallel;
+import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.Recycle;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.stats.internals.Distributions;
 
@@ -46,7 +47,8 @@ public class Beta {
   } else				\
   w = DBL_MAX
    */
-  @Primitive
+  @Internal
+  @DataParallel
   public static double rbeta(Session context, double aa, double bb) {
     double a, b, alpha;
     double r, s, t, u1, u2, v, w, y, z;
@@ -169,7 +171,7 @@ public class Beta {
     }
   }
 
-  @Primitive
+  @Internal
   public static double dnbeta(double x, double a, double b, double ncp, boolean give_log) {
     final double eps = 1.e-15;
 
@@ -332,7 +334,8 @@ public class Beta {
     }
   }
 
-  @Primitive
+  @Internal
+  @DataParallel
   public static double pnbeta(double x, double a, double b, double ncp, boolean lower_tail, boolean log_p) {
 
     if (DoubleVector.isNaN(x) || DoubleVector.isNaN(a) || DoubleVector.isNaN(b) || DoubleVector.isNaN(ncp)) {
@@ -350,9 +353,11 @@ public class Beta {
 
     return pnbeta2(x, 1 - x, a, b, ncp, lower_tail, log_p);
   }
-
+               
+  @Internal
+  @DataParallel
   public static double qnbeta(double p, double a, double b, double ncp,
-          boolean lower_tail, boolean log_p) {
+          @Recycle(false) boolean lower_tail, @Recycle(false) boolean log_p) {
     final double accu = 1e-15;
     final double Eps = 1e-14; /* must be > accu */
 

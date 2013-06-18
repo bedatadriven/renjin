@@ -1,6 +1,6 @@
 package org.renjin;
 
-import org.renjin.primitives.annotations.Operand;
+import org.renjin.invoke.annotations.Operand;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;

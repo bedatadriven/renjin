@@ -28,10 +28,8 @@ import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Options;
-import org.renjin.jvminterop.ClassFrame;
-import org.renjin.jvminterop.ObjectFrame;
-import org.renjin.jvminterop.converters.*;
-import org.renjin.primitives.annotations.*;
+import org.renjin.invoke.reflection.converters.*;
+import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.vector.ConstantDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
@@ -47,104 +45,104 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Primitive type inspection and coercion functions
+ * Builtin type inspection and coercion functions
  */
 public class Types {
 
-  @Primitive("is.null")
+  @Builtin("is.null")
   public static boolean isNull(SEXP exp) {
     return exp == Null.INSTANCE;
   }
 
-  @Primitive("is.logical")
+  @Builtin("is.logical")
   public static boolean isLogical(SEXP exp) {
     return exp instanceof LogicalVector;
   }
 
-  @Primitive("is.integer")
+  @Builtin("is.integer")
   public static boolean isInteger(SEXP exp) {
     return exp instanceof IntVector;
   }
 
-  @Primitive("is.real")
+  @Builtin("is.real")
   public static boolean isReal(SEXP exp) {
     return exp instanceof DoubleVector;
   }
 
-  @Primitive("is.double")
+  @Builtin("is.double")
   public static boolean isDouble(SEXP exp) {
     return exp instanceof DoubleVector;
   }
 
-  @Primitive("is.complex")
+  @Builtin("is.complex")
   public static boolean isComplex(SEXP exp) {
     return exp instanceof ComplexVector;
   }
 
   @Generic
-  @Primitive("is.character")
+  @Builtin("is.character")
   public static boolean isCharacter(SEXP exp) {
     return exp instanceof StringVector;
   }
 
-  @Primitive("is.symbol")
+  @Builtin("is.symbol")
   public static boolean isSymbol(SEXP exp) {
     return exp instanceof Symbol;
   } 
 
 
-  @Primitive("is.environment")
+  @Builtin("is.environment")
   public static boolean isEnvironment(SEXP exp) {
     return exp instanceof Environment;
   }
 
-  @Primitive("is.expression")
+  @Builtin("is.expression")
   public static boolean isExpression(SEXP exp) {
     return exp instanceof Environment;
   }
 
-  @Primitive("is.list")
+  @Builtin("is.list")
   public static boolean isList(SEXP exp) {
     return exp instanceof ListVector || exp.getClass() == PairList.Node.class;
   }
 
-  @Primitive("is.pairlist")
+  @Builtin("is.pairlist")
   public static boolean isPairList(SEXP exp) {
     // strange, but true: 
     return exp instanceof PairList &&
         !(exp instanceof FunctionCall);
   }
 
-  @Primitive("is.atomic")
+  @Builtin("is.atomic")
   public static boolean isAtomic(SEXP exp) {
     return exp instanceof AtomicVector;
   }
 
-  @Primitive("is.recursive")
+  @Builtin("is.recursive")
   public static boolean isRecursive(SEXP exp) {
     return exp instanceof Recursive;
   }
 
   @Generic
-  @Primitive("is.numeric")
+  @Builtin("is.numeric")
   public static boolean isNumeric(SEXP exp) {
     return (exp instanceof IntVector && !exp.inherits("factor"))
         || exp instanceof LogicalVector || exp instanceof DoubleVector;
   }
 
   @Generic
-  @Primitive("is.matrix")
+  @Builtin("is.matrix")
   public static boolean isMatrix(SEXP exp) {
     return exp.getAttribute(Symbols.DIM).length() == 2;
   }
 
   @Generic
-  @Primitive("is.array")
+  @Builtin("is.array")
   public static boolean isArray(SEXP exp) {
     return exp.getAttribute(Symbols.DIM).length() > 0;
   }
 
-  @Primitive("is.vector")
+  @Internal("is.vector")
   public static boolean isVector(SEXP exp, String mode) {
     // first check for any attribute besides names
     if(exp.getAttributes().hasAnyBesidesName()) {
@@ -171,29 +169,29 @@ public class Types {
     }
   }
 
-  @Primitive("is.object")
+  @Builtin("is.object")
   public static boolean isObject(SEXP exp) {
     return exp.isObject();
   }
 
-  @Primitive("is.call")
+  @Builtin("is.call")
   public static boolean isCall(SEXP exp) {
     return exp instanceof FunctionCall;
   }
 
-  @Primitive("is.language")
+  @Builtin("is.language")
   public static boolean isLanguage(SEXP exp) {
     return exp instanceof Symbol || exp instanceof FunctionCall
         || exp instanceof ExpressionVector;
 
   }
 
-  @Primitive("is.function")
+  @Builtin("is.function")
   public static boolean isFunction(SEXP exp) {
     return exp instanceof Function;
   }
 
-  @Primitive("is.single")
+  @Builtin("is.single")
   public static boolean isSingle(SEXP exp) {
     throw new EvalException("type \"single\" unimplemented in R");
   }
@@ -237,7 +235,7 @@ public class Types {
   }
   
   @Generic
-  @Primitive("is.na")
+  @Builtin("is.na")
   public static LogicalVector isNA(final Vector vector) {
     if(vector.length() > 100) {
       return new IsNaVector(vector);
@@ -256,22 +254,22 @@ public class Types {
   }
 
   @Generic
-  @Primitive("is.nan")
-  @AllowNA
-  public static boolean isNaN(@Recycle double value) {
+  @Builtin("is.nan")
+  @DataParallel(passNA = true)
+  public static boolean isNaN(double value) {
     return !DoubleVector.isNA(value) && DoubleVector.isNaN(value);
   }
 
   @Generic
-  @Primitive("is.finite")
-  @AllowNA
-  public static boolean isFinite(@Recycle double value) {
+  @Builtin("is.finite")
+  @DataParallel(passNA = true)
+  public static boolean isFinite(double value) {
     return !Double.isNaN(value) && !Double.isInfinite(value);
   }
 
   @Generic
-  @Primitive("is.infinite")
-  @AllowNA
+  @Builtin("is.infinite")
+  @DataParallel(passNA = true)
   public static boolean isInfinite(@Recycle double value) {
     return Double.isInfinite(value);
   }
@@ -285,7 +283,7 @@ public class Types {
    * @param envir the environment overwhich to close
    * @return a new Closure
    */
-  @Primitive("as.function.default")
+  @Internal("as.function.default")
   public static Closure asFunctionDefault(ListVector list, Environment envir) {
   
     PairList.Builder formals = new PairList.Builder();
@@ -302,7 +300,7 @@ public class Types {
   }
 
   @Generic
-  @Primitive("as.raw")
+  @Builtin("as.raw")
   public static RawVector asRaw(Vector source) {
     /*
      * Vector iv = (Vector) values; RawVector.Builder b = new
@@ -315,12 +313,12 @@ public class Types {
     return (RawVector) convertVector(new RawVector.Builder(), source);
   }
 
-  @Primitive("is.raw")
+  @Builtin("is.raw")
   public static SEXP isRaw(Vector v) {
     return (new LogicalArrayVector(v.getVectorType() == RawVector.VECTOR_TYPE));
   }
 
-  @Primitive
+  @Internal
   public static RawVector rawToBits(RawVector rv) {
     RawVector.Builder b = new RawVector.Builder();
     Raw[] raws;
@@ -333,7 +331,7 @@ public class Types {
     return (b.build());
   }
   
-  @Primitive
+  @Internal
   public static StringVector rawToChar(RawVector vector, boolean multiple) {
     byte[] bytes = vector.getAsByteArray();
     if(multiple) {
@@ -348,7 +346,7 @@ public class Types {
     }
   }
   
-  @Primitive
+  @Internal
   public static RawVector charToRaw(StringVector sv) {
     // the R lang docs inexplicably say that
     // this method converts a length-one character vector
@@ -375,7 +373,7 @@ public class Types {
     return b.build();
   }
 
-  @Primitive
+  @Internal
   public static RawVector rawShift(RawVector rv, int n) {
     if (n > Raw.NUM_BITS || n < (-1 * Raw.NUM_BITS)) {
       throw new EvalException("argument 'shift' must be a small integer");
@@ -397,7 +395,7 @@ public class Types {
    * !!Weird It is supposed to be an integer has four bytes! It is supposed to
    * be integer's byte order is big-endian!
    */
-  @Primitive
+  @Internal
   public static RawVector intToBits(Vector rv) {
     RawVector.Builder b = new RawVector.Builder();
     RawVector.Builder reverseb = new RawVector.Builder();
@@ -424,14 +422,14 @@ public class Types {
   }
 
   @Generic
-  @Primitive("as.character")
+  @Builtin("as.character")
   public static StringVector asCharacter(PairList.Node source) {
     return (StringVector) convertVector(new StringVector.Builder(), source.toVector());
   }
 
   
   @Generic
-  @Primitive("as.character")
+  @Builtin("as.character")
   public static StringVector asCharacter(Vector source) {
     if(source instanceof StringVector) {
       return (StringVector) source.setAttributes(AttributeMap.EMPTY);
@@ -443,104 +441,88 @@ public class Types {
   }
 
   @Generic
-  @Primitive("as.character")
+  @Builtin("as.character")
   public static StringVector asCharacter(Symbol symbol) {
     return StringVector.valueOf(symbol.getPrintName());
   }
 
   @Generic
-  @Primitive("as.character")
-  public static StringVector asCharacter(Environment env) {
-    Frame frame = env.getFrame();
-    if (frame instanceof ObjectFrame) {
-      ObjectFrame oframe = (ObjectFrame) frame;
-      Object instance = oframe.getInstance();
-      if (StringConverter.accept(instance.getClass())) {
-        return (StringVector) StringConverter.INSTANCE
-            .convertToR((String) instance);
-      } else if (StringArrayConverter.accept(instance.getClass())) {
-        return (StringVector) StringArrayConverter.INSTANCE
-            .convertToR(instance);
-      }
+  @Builtin("as.character")
+  public static StringVector asCharacter(ExternalPtr<?> ptr) {
+    Object instance = ptr.getInstance();
+    if (StringConverter.accept(instance.getClass())) {
+      return (StringVector) StringConverter.INSTANCE
+          .convertToR((String) instance);
+    } else if (StringArrayConverter.accept(instance.getClass())) {
+      return (StringVector) StringArrayConverter.INSTANCE
+          .convertToR(instance);
+    } else {
+      return StringArrayVector.valueOf(ptr.getInstance().toString());
     }
-    throw new EvalException(
-        "unsupported converter, only for environment with  String or String[] ObjectFrame");
   }
 
   @Generic
-  @Primitive("as.logical")
-  public static LogicalVector asLogical(Environment env) {
-    Frame frame = env.getFrame();
-    if (frame instanceof ObjectFrame) {
-      ObjectFrame oframe = (ObjectFrame) frame;
-      Object instance = oframe.getInstance();
-      Class clazz = instance.getClass();
-      if (BooleanConverter.accept(clazz)) {
-        return (LogicalVector) BooleanConverter.INSTANCE
-            .convertToR((Boolean) instance);
-      } else if (BooleanArrayConverter.accept(clazz)) {
-        return (LogicalVector) BooleanArrayConverter.INSTANCE
-            .convertToR((Boolean[]) instance);
-      }
+  @Builtin("as.logical")
+  public static LogicalVector asLogical(ExternalPtr ptr) {
+    Object instance = ptr.getInstance();
+    Class clazz = instance.getClass();
+    if (BooleanConverter.accept(clazz)) {
+      return BooleanConverter.INSTANCE
+          .convertToR((Boolean) instance);
+    } else if (BooleanArrayConverter.accept(clazz)) {
+      return BooleanArrayConverter.INSTANCE
+          .convertToR((Boolean[]) instance);
+    } else {
+      return new LogicalArrayVector(Logical.NA);
     }
-    throw new EvalException(
-        "unsurpported converter,only environment with boolean\\boolean[] or Boolean\\Boolean[] ObjectFrame is implemented");
   }
 
   @Generic
-  @Primitive("as.logical")
+  @Builtin("as.logical")
   public static LogicalVector asLogical(Vector vector) {
     return (LogicalVector) convertVector(new LogicalArrayVector.Builder(), vector);
   }
 
   @Generic
-  @Primitive("as.integer")
-  public static IntVector asInteger(Environment env) {
-    Frame frame = env.getFrame();
-    if (frame instanceof ObjectFrame) {
-      ObjectFrame oframe = (ObjectFrame) frame;
-      Object instance = oframe.getInstance();
-      Class clazz = instance.getClass();
-      if (IntegerConverter.accept(clazz)) {
-        return (IntVector) IntegerConverter.INSTANCE
-            .convertToR((Integer) instance);
-      } else if (IntegerArrayConverter.accept(clazz)) {
-        return (IntVector) IntegerArrayConverter.INSTANCE
-            .convertToR((Integer[]) instance);
-      }
+  @Builtin("as.integer")
+  public static IntVector asInteger(ExternalPtr ptr) {
+    Object instance = ptr.getInstance();
+    Class clazz = instance.getClass();
+    if (IntegerConverter.accept(clazz)) {
+      return (IntVector) IntegerConverter.INSTANCE
+          .convertToR((Number) instance);
+    } else if (IntegerArrayConverter.accept(clazz)) {
+      return (IntVector) IntegerArrayConverter.INSTANCE
+          .convertToR((Number[]) instance);
+    } else {
+      return IntVector.valueOf(IntVector.NA);
     }
-    throw new EvalException(
-        "unsurpported converter,only environment with one element or array of int\\short\\Integer\\Short ObjectFrame is implemented");
   }
 
   @Generic
-  @Primitive("as.integer")
+  @Builtin("as.integer")
   public static IntVector asInteger(Vector source) {
     return (IntVector) convertVector(new IntArrayVector.Builder(), source);
   }
 
   @Generic
-  @Primitive("as.double")
-  public static DoubleVector asDouble(Environment env) {
-    Frame frame = env.getFrame();
-    if (frame instanceof ObjectFrame) {
-      ObjectFrame oframe = (ObjectFrame) frame;
-      Object instance = oframe.getInstance();
-      Class clazz = instance.getClass();
-      if (DoubleConverter.accept(clazz)) {
-        return (DoubleVector) DoubleConverter.INSTANCE
-            .convertToR((Double) instance);
-      } else if (DoubleArrayConverter.accept(clazz)) {
-        return (DoubleVector)new DoubleArrayConverter(clazz)
-            .convertToR((Double[]) instance);
-      }
+  @Builtin("as.double")
+  public static DoubleVector asDouble(ExternalPtr ptr) {
+    Object instance = ptr.getInstance();
+    Class clazz = instance.getClass();
+    if (DoubleConverter.accept(clazz)) {
+      return (DoubleVector) DoubleConverter.INSTANCE
+          .convertToR(instance);
+    } else if (DoubleArrayConverter.accept(clazz)) {
+      return (DoubleVector)new DoubleArrayConverter(clazz)
+          .convertToR(instance);
+    } else {
+      return new DoubleArrayVector(DoubleVector.NA);
     }
-    throw new EvalException(
-        "unsurpported converter,only environment with double[] ObjectFrame is implemented");
   }
 
   @Generic
-  @Primitive("as.double")
+  @Builtin("as.double")
   public static DoubleVector asDouble(Vector source) {
     if(source instanceof DoubleVector) {
       return (DoubleVector) source.setAttributes(AttributeMap.EMPTY);
@@ -559,13 +541,14 @@ public class Types {
   }
 
   @Generic
-  @Primitive("as.complex")
+  @Builtin("as.complex")
+  @DataParallel
   public static Complex asComplex(@Recycle double x){
     return new Complex(x,0);
   }
   
   @Generic
-  @Primitive("as.vector")
+  @Internal("as.vector")
   public static SEXP asVector(Vector x, String mode) {
 
     if(mode.equals("any")) {
@@ -613,7 +596,7 @@ public class Types {
   }
 
   @Generic
-  @Primitive("as.vector")
+  @Internal("as.vector")
   public static SEXP asVector(PairList x, String mode) {
     Vector.Builder result;
     NamesBuilder names = NamesBuilder.withInitialCapacity(x.length());
@@ -660,7 +643,7 @@ public class Types {
    *          arguments
    * @return an unevaluated FunctionCall expression
    */
-  @Primitive("as.call")
+  @Builtin("as.call")
   public static FunctionCall asCall(ListVector list) {
     EvalException.check(list.length() > 0, "invalid length 0 argument");
 
@@ -671,11 +654,12 @@ public class Types {
     return new FunctionCall(list.getElementAsSEXP(0), arguments.build());
   }
 
+  @Builtin
   public static Environment asEnvironment(Environment arg) {
     return arg;
   }
 
-  @Primitive
+  @Internal
   public static ListVector env2list(Environment env, boolean allNames) {
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     for(Symbol name : env.getSymbolNames()) {
@@ -686,8 +670,7 @@ public class Types {
     return list.build();
   }
 
-  @Recycle
-  @Primitive("as.environment")
+  @Builtin("as.environment")
   public static Environment asEnvironment(@Current Context context, int pos) {
     Environment env;
     Context cptr;
@@ -719,7 +702,7 @@ public class Types {
     return env;
   }
  
-  @Primitive("as.environment")
+  @Builtin("as.environment")
   public static Environment asEnvironment(@Current Context context, String name) {
     
     if(name.equals(".GlobalEnv")) {
@@ -740,7 +723,7 @@ public class Types {
     throw new EvalException("no environment called '%s' on the search list", name); 
   }
   
-  @Primitive("as.environment")
+  @Builtin("as.environment")
   public static Environment asEnvironment(ListVector list) {
     Environment env = Environment.createChildEnvironment(Environment.EMPTY);
     for(NamedValue namedValue : list.namedValues()) {
@@ -749,7 +732,7 @@ public class Types {
     return env;
   }
   
-  @Primitive("as.environment")
+  @Builtin("as.environment")
   public static Environment asEnvironment(S4Object obj) {
     SEXP env = obj.getAttribute(Symbol.get(".xData"));
     if(env instanceof Environment) {
@@ -758,70 +741,61 @@ public class Types {
     throw new EvalException("object does not extend 'environment'");
   }
   
-  @Primitive
+  @Internal
   public static String environmentName(Environment env) {
     return env.getName();
   }
 
-  @Primitive("parent.env")
+  @Internal("parent.env")
   public static Environment getParentEnv(Environment environment) {
     return environment.getParent();
   }
 
-  @Primitive("parent.env<-")
+  @Internal("parent.env<-")
   public static Environment setParentEnv(Environment environment,
       Environment newParent) {
     environment.setParent(newParent);
     return environment;
   }
 
-  @Primitive
+  @Internal
   public static StringVector ls(Environment environment, boolean allNames) {
     StringVector.Builder names = new StringVector.Builder();
-    if (environment.getFrame() instanceof ClassFrame) {
-      ClassFrame of = (ClassFrame)environment.getFrame();
-      of.getSymbols();
-      for (Symbol name : of.getSymbols()) {
-        if (allNames || !name.getPrintName().startsWith(".")) {
-          names.add(name.getPrintName());
-        }
-      }
-    } else {
-      for (Symbol name : environment.getSymbolNames()) {
-        if (allNames || !name.getPrintName().startsWith(".")) {
-          names.add(name.getPrintName());
-        }
+
+    for (Symbol name : environment.getSymbolNames()) {
+      if (allNames || !name.getPrintName().startsWith(".")) {
+        names.add(name.getPrintName());
       }
     }
     return names.build();
   }
   
-  @Primitive
+  @Internal
   public static void lockEnvironment(Environment env, boolean bindings) {
     env.lock(bindings);
   }
 
-  @Primitive
+  @Internal
   public static void lockBinding(Symbol name, Environment env) {
     env.lockBinding(name);
   }
 
-  @Primitive
+  @Internal
   public static void unlockBinding(Symbol name, Environment env) {
     env.unlockBinding(name);
   }
   
-  @Primitive
+  @Internal
   public static boolean bindingIsLocked(Symbol name, Environment env) {
     return env.bindingIsLocked(name);
   }
 
-  @Primitive
+  @Internal
   public static boolean environmentIsLocked(Environment env) {
     return env.isLocked();
   }
 
-  @Primitive
+  @Internal
   public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual,
       boolean singleNA, boolean attributesAsSet, boolean ignoreByteCode) {
     if (!numericallyEqual || !singleNA || !attributesAsSet) {
@@ -877,11 +851,11 @@ public class Types {
     } else if(x instanceof S4Object) {
       return identicalAttributes(x, y);
 
-    } else if(x instanceof ExternalExp) {
-      if(!(y instanceof ExternalExp)) {
+    } else if(x instanceof ExternalPtr) {
+      if(!(y instanceof ExternalPtr)) {
         return false;
       }
-      return identicalPtrs((ExternalExp)x, (ExternalExp)y);
+      return identicalPtrs((ExternalPtr)x, (ExternalPtr)y);
       
     } else if(x instanceof Symbol || x instanceof Environment || x instanceof Function) {
       return x == y;
@@ -891,7 +865,7 @@ public class Types {
     }
   }
   
-  private static boolean identicalPtrs(ExternalExp x, ExternalExp y) {
+  private static boolean identicalPtrs(ExternalPtr x, ExternalPtr y) {
     return Objects.equal(x, y);
   }
 
@@ -974,7 +948,7 @@ public class Types {
   This routine can die if we automatically create a name space when
   loading a package.
    */
-  @Primitive("lib.fixup")
+  @Internal("lib.fixup")
   public static Environment libfixup(Environment loadEnv, Environment libEnv) {
     for (Symbol name : loadEnv.getSymbolNames()) {
       SEXP value = loadEnv.getVariable(name);
@@ -989,7 +963,7 @@ public class Types {
     return libEnv;
   }
 
-  @Primitive
+  @Internal
   public static SEXP drop(Vector x) {
     Vector dim = (Vector) x.getAttribute(Symbols.DIM);
     
@@ -1028,19 +1002,19 @@ public class Types {
     }
   }
 
-  @Primitive
+  @Builtin
   public static ListVector list(@ArgumentList ListVector arguments) {
     return arguments;
   }
 
-  @Primitive
+  @Internal
   public static Environment environment(@Current Context context) {
     // since this primitive is internal, we will be called by a wrapping closure,
     // so grab the parent context
     return context.getParent().getEnvironment();
   }
 
-  @Primitive
+  @Internal
   public static SEXP environment(@Current Context context, SEXP exp) {
     if (exp == Null.INSTANCE) {
       // if the user passes null, we return the current exp
@@ -1054,7 +1028,7 @@ public class Types {
     }
   }
 
-  @Primitive("environment<-")
+  @Builtin("environment<-")
   public static SEXP setEnvironment(SEXP exp, Environment newRho) {
     if (exp instanceof Closure) {
       return ((Closure) exp).setEnclosingEnvironment(newRho);
@@ -1063,49 +1037,50 @@ public class Types {
     }
   }
 
-  @Primitive
+  @Internal
   public static PairList formals(Closure closure) {
     return closure.getFormals();
   }
   
-  @Primitive
+  @Internal
   public static Null formals(PrimitiveFunction function) {
     return Null.INSTANCE;
   } 
 
-  @Primitive
+  @Internal
   public static SEXP body(Closure closure) {
     return closure.getBody();
   }
 
-  @Primitive("new.env")
+  @Internal("new.env")
   public static Environment newEnv(boolean hash, Environment parent, int size) {
     return Environment.createChildEnvironment(parent);
   }
 
-  @Primitive
+  @Builtin
   public static Environment baseenv(@Current Environment rho) {
     return rho.getBaseEnvironment();
   }
 
-  @Primitive
+  @Builtin
   public static Environment emptyenv(@Current Environment rho) {
     return rho.getBaseEnvironment().getParent();
   }
 
-  @Primitive
+  @Builtin
   public static Environment globalenv(@Current Context context) {
     return context.getGlobalEnvironment();
   }
 
-  @Primitive
-  public static boolean exists(@Current Context context, String x,
+  @Internal
+  @DataParallel
+  public static boolean exists(@Current Context context, @Recycle String x,
       Environment environment, String mode, boolean inherits) {
     return environment.findVariable(context, Symbol.get(x), Types.modePredicate(mode),
         inherits) != Symbol.UNBOUND_VALUE;
   }
 
-  @Primitive
+  @Internal
   public static SEXP get(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
     SEXP value = environment.findVariable(context, Symbol.get(x), Types.modePredicate(mode),
@@ -1117,12 +1092,12 @@ public class Types {
   }
 
   @Generic
-  @Primitive
+  @Builtin
   public static int length(SEXP exp) {
     return exp.length();
   }
 
-  @Primitive
+  @Internal
   public static SEXP vector(String mode, int length) {
     if ("logical".equals(mode)) {
       return new LogicalArrayVector(new int[length]);
@@ -1161,7 +1136,7 @@ public class Types {
     }
   }
 
-  @Primitive("storage.mode<-")
+  @Builtin("storage.mode<-")
   public static SEXP setStorageMode(Vector source, String newMode) {
     Vector.Builder builder;
     if (newMode.equals("logical")) {
@@ -1183,24 +1158,24 @@ public class Types {
     return builder.copyAttributesFrom(source).build();
   }
 
-  @Primitive
+  @Internal
   public static String typeof(SEXP exp) {
     return exp.getTypeName();
   }
 
-  @Primitive
+  @Builtin
   public static SEXP invisible(@Current Context context, SEXP value) {
     context.setInvisibleFlag();
     return value;
   }
 
-  @Primitive
+  @Builtin
   public static SEXP invisible(@Current Context context) {
     context.setInvisibleFlag();
     return Null.INSTANCE;
   }
 
-  @Primitive
+  @Internal
   public static StringVector search(@Current Context context) {
     List<String> names = Lists.newArrayList();
     Environment env = context.getGlobalEnvironment();
@@ -1215,7 +1190,8 @@ public class Types {
     return new StringArrayVector(names);
   }
 
-  @Visible(false)
+  @Invisible
+  @Internal
   public static Environment attach(@Current Context context, SEXP what,
       int pos, String name) {
 
@@ -1255,12 +1231,12 @@ public class Types {
     return newEnv;
   }
 
-  @Primitive
+  @Internal
   public static String Encoding(StringVector vector) {
     return "UTF-8";
   }
 
-  @Primitive
+  @Internal
   public static StringVector setEncoding(StringVector vector,
       String encodingName) {
     if (encodingName.equals("UTF-8") || encodingName.equals("unknown")) {
@@ -1271,7 +1247,7 @@ public class Types {
     }
   }
   
-  @Primitive
+  @Builtin
   public static boolean isFactor(SEXP exp) {
     return exp instanceof IntVector && exp.inherits("factor");
   }
@@ -1287,8 +1263,8 @@ public class Types {
     return true;
   }
 
-  @Primitive("islistfactor")
-  public static boolean isListFactor(SEXP exp, boolean recursive) {
+  @Internal
+  public static boolean islistfactor(SEXP exp, boolean recursive) {
 
     if (!(exp instanceof ListVector)) {
       return false;
@@ -1310,7 +1286,7 @@ public class Types {
     return true;
   }
 
-  @Primitive
+  @Internal
   public static ListVector options(@Current Context context,
       @ArgumentList ListVector arguments) {
     Options options = context.getSession().getSingleton(Options.class);
@@ -1356,29 +1332,8 @@ public class Types {
     }
     return results.build();
   }
-
-  /**
-   * returns a vector of type "expression" containing its arguments
-   * (unevaluated).
-   */
-  @Primitive
-  @PassThrough
-  public static ExpressionVector expression(Context context, Environment rho, FunctionCall call) {
-    NamesBuilder names = NamesBuilder.withInitialLength(0);
-    List<SEXP> expressions = Lists.newArrayList();
-    for(PairList.Node node : call.getArguments().nodes()) {
-      names.add(node.getName());
-      expressions.add(node.getValue());
-    }
-    AttributeMap.Builder attributes = AttributeMap.builder();
-    if(names.haveNames()) {
-      attributes.setNames((StringVector)names.build());
-    }
-    return new ExpressionVector(expressions, attributes.build());
-  }
   
-  
-  @Primitive("length<-")
+  @Builtin("length<-")
   public static Vector setLength(Vector source, int length) {
 
     Builder copy = source.newBuilderWithInitialSize(length);

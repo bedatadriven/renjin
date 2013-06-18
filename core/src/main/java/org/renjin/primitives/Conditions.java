@@ -23,8 +23,9 @@ package org.renjin.primitives;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 /**
@@ -130,7 +131,7 @@ public class Conditions {
    * @param calling
    * @return
    */
-  @Primitive(".addCondHands")
+  @Internal(".addCondHands")
   public static void addConditionHandlers(@Current Context context,
                                           StringVector classes,
                                           ListVector handlers,
@@ -150,13 +151,13 @@ public class Conditions {
     }
   }
 
-  @Primitive(".addRestart")
+  @Internal(".addRestart")
   public static void addRestart(SEXP restart) {
     // TODO : implement
   }
 
 
-  @Primitive(".signalCondition")
+  @Internal(".signalCondition")
   public static void signalCondition(@Current Context context, SEXP condition, String message, SEXP call) {
 
     StringVector conditionClasses = condition.getS3Class();
@@ -175,32 +176,32 @@ public class Conditions {
     }
   }
   
-  @Primitive(".dfltStop")
+  @Internal(".dfltStop")
   public static void defaultStop(@Current Context context, String message, FunctionCall call) {
     EvalException e = new EvalException(message);
     e.initContext(context);
     throw e;
   }
   
-  @Primitive(".dfltStop")
+  @Internal(".dfltStop")
   public static void defaultStop(@Current Context context, String message, Null nz) {
     EvalException e = new EvalException(message);
     e.initContext(context);
     throw e;
   }
   
-  @Primitive
+  @Internal
   public static void stop(@Current Context context, boolean call, String message) {
     throw new EvalException(message);
   }
   
-  @Primitive
+  @Internal
   public static String geterrmessage(@Current Context context) {
     ErrorMessage errorMessage = context.getSession().getSingleton(ErrorMessage.class);
     return errorMessage.getValue();
   }
   
-  @Primitive
+  @Internal
   public static void seterrmessage(@Current Context context, String message) {
     ErrorMessage errorMessage = context.getSession().getSingleton(ErrorMessage.class);
     errorMessage.setValue(message);

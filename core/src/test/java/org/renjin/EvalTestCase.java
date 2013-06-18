@@ -30,7 +30,7 @@ import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.internal.AssumptionViolatedException;
 import org.renjin.eval.Context;
-import org.renjin.jvminterop.converters.Converters;
+import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.parser.ParseOptions;
 import org.renjin.parser.ParseState;
 import org.renjin.parser.RLexer;

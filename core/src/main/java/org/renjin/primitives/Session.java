@@ -2,8 +2,9 @@ package org.renjin.primitives;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.SessionController.SaveMode;
-import org.renjin.primitives.annotations.Current;
-import org.renjin.primitives.annotations.Primitive;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.StringVector;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.io.IOException;
  */
 public class Session {
 
-  @Primitive
+  @Internal
   public static void quit(@Current Context context, String saveMode, int exitCode, boolean runLast) {
     context.getSession().getSessionController().quit(context, SaveMode.valueOf(saveMode.toUpperCase()), exitCode, runLast);
   }
@@ -23,12 +24,12 @@ public class Session {
   /**
    * @return  TRUE when R is being used interactively and FALSE otherwise.
    */
-  @Primitive
+  @Builtin
   public static boolean interactive(@Current Context context) {
     return context.getSession().getSessionController().isInteractive();
   }
   
-  @Primitive
+  @Internal
   public static int menu(@Current Context context, StringVector choices) throws IOException {
     return context.getSession().getSessionController().menu(choices);
   }

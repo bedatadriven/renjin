@@ -1,4 +1,4 @@
-package org.renjin.invoke.annotations.processor;
+package org.renjin.invoke.codegen;
 
 import com.sun.codemodel.*;
 import org.renjin.eval.EvalException;

@@ -1,4 +1,4 @@
-package org.renjin.invoke.annotations.processor.scalars;
+package org.renjin.invoke.codegen.scalars;
 
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;

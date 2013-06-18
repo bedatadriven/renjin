@@ -1,4 +1,4 @@
-package org.renjin.invoke.annotations.processor;
+package org.renjin.invoke.codegen;
 
 import org.renjin.eval.Context;
 import org.renjin.primitives.Deparse;

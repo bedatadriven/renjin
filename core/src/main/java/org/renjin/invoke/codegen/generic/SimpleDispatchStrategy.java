@@ -19,13 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.invoke.annotations.processor.generic;
+package org.renjin.invoke.codegen.generic;
 
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import org.renjin.primitives.S3;
-import org.renjin.invoke.annotations.processor.ApplyMethodContext;
+import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.sexp.SEXP;
 
 import static com.sun.codemodel.JExpr._null;

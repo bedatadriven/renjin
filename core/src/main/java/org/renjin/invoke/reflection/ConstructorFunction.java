@@ -3,7 +3,7 @@ package org.renjin.invoke.reflection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.processor.ArgumentIterator;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
 import java.util.List;

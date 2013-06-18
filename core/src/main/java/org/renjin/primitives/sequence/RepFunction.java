@@ -3,7 +3,7 @@ package org.renjin.primitives.sequence;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.processor.ArgumentIterator;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;

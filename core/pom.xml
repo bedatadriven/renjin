@@ -185,7 +185,7 @@
               <arguments>
                 <argument>-classpath</argument>
                 <classpath />
-                <argument>org.renjin.invoke.annotations.processor.WrapperGenerator2</argument>
+                <argument>org.renjin.invoke.codegen.WrapperGenerator2</argument>
               </arguments>
             </configuration>
           </execution>

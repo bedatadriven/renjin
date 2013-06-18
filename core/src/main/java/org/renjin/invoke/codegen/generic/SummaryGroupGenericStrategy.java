@@ -1,9 +1,9 @@
-package org.renjin.invoke.annotations.processor.generic;
+package org.renjin.invoke.codegen.generic;
 
 import com.sun.codemodel.*;
 import org.renjin.primitives.S3;
-import org.renjin.invoke.annotations.processor.ApplyMethodContext;
-import org.renjin.invoke.annotations.processor.VarArgParser;
+import org.renjin.invoke.codegen.ApplyMethodContext;
+import org.renjin.invoke.codegen.VarArgParser;
 import org.renjin.sexp.SEXP;
 
 import static com.sun.codemodel.JExpr.lit;

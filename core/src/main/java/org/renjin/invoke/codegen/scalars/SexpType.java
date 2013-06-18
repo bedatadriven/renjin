@@ -1,4 +1,4 @@
-package org.renjin.invoke.annotations.processor.scalars;
+package org.renjin.invoke.codegen.scalars;
 
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;

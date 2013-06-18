@@ -1,8 +1,8 @@
-package org.renjin.invoke.annotations.processor.generic;
+package org.renjin.invoke.codegen.generic;
 
 import com.sun.codemodel.*;
-import org.renjin.invoke.annotations.processor.ApplyMethodContext;
-import org.renjin.invoke.annotations.processor.VarArgParser;
+import org.renjin.invoke.codegen.ApplyMethodContext;
+import org.renjin.invoke.codegen.VarArgParser;
 import org.renjin.sexp.AbstractSEXP;
 
 import java.util.List;

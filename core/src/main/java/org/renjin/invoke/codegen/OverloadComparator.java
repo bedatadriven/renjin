@@ -1,7 +1,7 @@
-package org.renjin.invoke.annotations.processor;
+package org.renjin.invoke.codegen;
 
 import org.renjin.invoke.model.JvmMethod;
-import org.renjin.invoke.annotations.processor.scalars.ScalarTypes;
+import org.renjin.invoke.codegen.scalars.ScalarTypes;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;

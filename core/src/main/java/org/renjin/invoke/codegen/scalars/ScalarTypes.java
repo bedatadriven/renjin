@@ -1,9 +1,9 @@
-package org.renjin.invoke.annotations.processor.scalars;
+package org.renjin.invoke.codegen.scalars;
 
 import java.util.Map;
 
 import org.apache.commons.math.complex.Complex;
-import org.renjin.invoke.annotations.processor.GeneratorDefinitionException;
+import org.renjin.invoke.codegen.GeneratorDefinitionException;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.SEXP;
 

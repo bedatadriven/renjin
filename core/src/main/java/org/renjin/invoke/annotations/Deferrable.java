@@ -5,7 +5,7 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * Indicates that this function has no side effects and its evaluation
- * may be safely deferred until a later time.
+ * may be safely deferred until a later time.gi
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Deferrable {

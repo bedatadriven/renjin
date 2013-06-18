@@ -1,6 +1,6 @@
-package org.renjin.invoke.annotations.processor.args;
+package org.renjin.invoke.codegen.args;
 
-import org.renjin.invoke.annotations.processor.GeneratorDefinitionException;
+import org.renjin.invoke.codegen.GeneratorDefinitionException;
 import org.renjin.invoke.model.JvmMethod;
 
 

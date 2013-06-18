@@ -1,4 +1,4 @@
-package org.renjin.invoke.annotations.processor;
+package org.renjin.invoke.codegen;
 
 /**
  * Exception thrown when there is a problem in the way that

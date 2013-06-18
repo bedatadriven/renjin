@@ -1,9 +1,9 @@
-package org.renjin.invoke.annotations.processor.args;
+package org.renjin.invoke.codegen.args;
 
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
-import org.renjin.invoke.annotations.processor.ApplyMethodContext;
+import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.JvmMethod.Argument;
 

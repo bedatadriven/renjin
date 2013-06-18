@@ -1,13 +1,13 @@
-package org.renjin.invoke.annotations.processor.args;
+package org.renjin.invoke.codegen.args;
 
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
-import org.renjin.invoke.annotations.processor.ApplyMethodContext;
+import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.model.JvmMethod.Argument;
-import org.renjin.invoke.annotations.processor.WrapperRuntime;
-import org.renjin.invoke.annotations.processor.scalars.ScalarType;
-import org.renjin.invoke.annotations.processor.scalars.ScalarTypes;
+import org.renjin.invoke.codegen.WrapperRuntime;
+import org.renjin.invoke.codegen.scalars.ScalarType;
+import org.renjin.invoke.codegen.scalars.ScalarTypes;
 
 import static com.sun.codemodel.JExpr.lit;
 

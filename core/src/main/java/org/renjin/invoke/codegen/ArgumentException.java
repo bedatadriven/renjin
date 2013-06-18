@@ -1,4 +1,4 @@
-package org.renjin.invoke.annotations.processor;
+package org.renjin.invoke.codegen;
 
 public class ArgumentException extends RuntimeException {
 

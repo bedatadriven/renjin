@@ -1,8 +1,8 @@
-package org.renjin.invoke.annotations.processor;
+package org.renjin.invoke.codegen;
 
 import com.sun.codemodel.*;
 import org.renjin.invoke.model.JvmMethod;
-import org.renjin.invoke.annotations.processor.args.ArgConverterStrategies;
+import org.renjin.invoke.codegen.args.ArgConverterStrategies;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;

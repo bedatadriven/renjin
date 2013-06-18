@@ -1,14 +1,14 @@
-package org.renjin.invoke.annotations.processor;
+package org.renjin.invoke.codegen;
 
 
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.model.JvmMethod;
-import org.renjin.invoke.annotations.processor.generic.GenericDispatchStrategy;
-import org.renjin.invoke.annotations.processor.generic.OpsGroupGenericDispatchStrategy;
-import org.renjin.invoke.annotations.processor.generic.SimpleDispatchStrategy;
-import org.renjin.invoke.annotations.processor.generic.SummaryGroupGenericStrategy;
+import org.renjin.invoke.codegen.generic.GenericDispatchStrategy;
+import org.renjin.invoke.codegen.generic.OpsGroupGenericDispatchStrategy;
+import org.renjin.invoke.codegen.generic.SimpleDispatchStrategy;
+import org.renjin.invoke.codegen.generic.SummaryGroupGenericStrategy;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;

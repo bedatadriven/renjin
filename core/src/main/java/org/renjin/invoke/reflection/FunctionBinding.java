@@ -6,7 +6,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.reflection.converters.Converter;
 import org.renjin.invoke.reflection.converters.Converters;
-import org.renjin.invoke.annotations.processor.ArgumentIterator;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.PairList;

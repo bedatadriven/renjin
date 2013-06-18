@@ -39,7 +39,7 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.methods.Methods;
-import org.renjin.invoke.annotations.processor.WrapperGenerator2;
+import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.primitives.files.Files;
 import org.renjin.graphics.internals.Graphics;
 import org.renjin.graphics.internals.Par;

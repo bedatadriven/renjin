@@ -1,4 +1,4 @@
-package org.renjin.invoke.annotations.processor;
+package org.renjin.invoke.codegen;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -8,8 +8,8 @@ import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.annotations.SessionScoped;
-import org.renjin.invoke.annotations.processor.args.ArgConverterStrategies;
-import org.renjin.invoke.annotations.processor.args.ArgConverterStrategy;
+import org.renjin.invoke.codegen.args.ArgConverterStrategies;
+import org.renjin.invoke.codegen.args.ArgConverterStrategy;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;

@@ -1,4 +1,4 @@
-package org.renjin.invoke.annotations.processor;
+package org.renjin.invoke.codegen;
 
 
 import com.google.common.collect.Lists;
@@ -6,8 +6,8 @@ import com.google.common.collect.Maps;
 import com.sun.codemodel.*;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.annotations.PreserveAttributeStyle;
-import org.renjin.invoke.annotations.processor.scalars.ScalarType;
-import org.renjin.invoke.annotations.processor.scalars.ScalarTypes;
+import org.renjin.invoke.codegen.scalars.ScalarType;
+import org.renjin.invoke.codegen.scalars.ScalarTypes;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.Symbols;

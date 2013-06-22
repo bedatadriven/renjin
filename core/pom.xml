@@ -145,6 +145,12 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.jocl</groupId>
+      <artifactId>jocl</artifactId>
+      <version>0.1.9</version>
+    </dependency>
+
     <!-- This library is used during compile-time code generation but is
          not necessary when using renjin-->
     <dependency>

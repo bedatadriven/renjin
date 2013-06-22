@@ -2,6 +2,8 @@ package org.renjin.compiler.pipeline;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.renjin.compiler.pipeline.opencl.KernelComputation;
+import org.renjin.compiler.pipeline.opencl.RowMeanKernelWriter;
 
 /**
  * Maintains a cache of recently used JITted classes.
@@ -27,6 +29,12 @@ public class DeferredJitCache {
     if(computation != null) {
       return computation;
     }
+
+    if(node.getComputation().getComputationName().equals("rowMeans")) {
+      RowMeanKernelWriter kernelWriter = new RowMeanKernelWriter();
+      return kernelWriter.write(node);
+    }
+
     DeferredJitter jitter = new DeferredJitter();
     computation = jitter.compile(node);
     cache.put(key, computation);

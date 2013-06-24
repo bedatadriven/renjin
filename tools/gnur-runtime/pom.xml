@@ -24,7 +24,7 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>renjin-legacy-runtime</artifactId>
+  <artifactId>renjin-gnur-runtime</artifactId>
   <name>Renjin Legacy Runtime</name>
   <description>Emulated C/Fortran API</description>
 

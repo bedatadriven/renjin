@@ -5,19 +5,19 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.renjin.legacy.LegacySourcesCompiler;
+import org.renjin.gnur.GnurSourcesCompiler;
 
 import java.io.File;
 import java.util.List;
 
 /**
- * Compiles legacy C/Fortran sources to a JVM class
+ * Compiles gnur C/Fortran sources to a JVM class
  * 
- * @goal legacy-sources-compile
+ * @goal gnur-sources-compile
  * @phase compile
  * @requiresProject true
  */
-public class LegacyCompilerMojo extends AbstractMojo {
+public class GnurCompilerMojo extends AbstractMojo {
 
 
   /**
@@ -74,7 +74,7 @@ public class LegacyCompilerMojo extends AbstractMojo {
   private List<File> sourceDirectories;
 
   /**
-   * @parameter expression="${ignore.legacy.compilation.failure}" default-value="false"
+   * @parameter expression="${ignore.gnur.compilation.failure}" default-value="false"
    */
   private boolean ignoreFailure;
 
@@ -92,7 +92,7 @@ public class LegacyCompilerMojo extends AbstractMojo {
       sourceDirectories = Lists.newArrayList(sourceDir("c"), sourceDir("fortran"));
     }
 
-    LegacySourcesCompiler compiler = new LegacySourcesCompiler();
+    GnurSourcesCompiler compiler = new GnurSourcesCompiler();
     for(File sourceDir : sourceDirectories) {
       compiler.addSources(sourceDir);
     }
@@ -114,10 +114,10 @@ public class LegacyCompilerMojo extends AbstractMojo {
       compiler.compile();
     } catch (Exception e) {
       if(ignoreFailure) {
-        System.err.println("Compilation of legacy sources failed");
+        System.err.println("Compilation of GNU R sources failed");
         e.printStackTrace(System.err);
       } else {
-        throw new MojoExecutionException("Compilation of legacy sources failed", e);
+        throw new MojoExecutionException("Compilation of GNU R sources failed", e);
       }
     }
   }

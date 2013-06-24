@@ -1,4 +1,4 @@
-package org.renjin.legacy;
+package org.renjin.gnur;
 
 
 import com.google.common.collect.Lists;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class LegacySourcesCompiler {
+public class GnurSourcesCompiler {
 
   private String packageName;
   private String className;
@@ -125,7 +125,7 @@ public class LegacySourcesCompiler {
 
   private boolean checkUpToDate() {
     if(sourcesLastModified() < classLastModified()) {
-      System.out.println(packageName + "." + className + "  is up to date, skipping legacy compilation");
+      System.out.println(packageName + "." + className + "  is up to date, skipping GNU R sources compilation");
       return true;
     } else { 
       return false;
@@ -154,12 +154,12 @@ public class LegacySourcesCompiler {
 
   private File unpackIncludes() throws IOException {
     
-    URL url = Resources.getResource("org/renjin/legacy/include/R.h");
+    URL url = Resources.getResource("org/renjin/gnur/include/R.h");
     if(url.getProtocol().equals("file")) {
         return new File(url.getFile()).getParentFile();
     } else if(url.getProtocol().equals("jar")) {
       
-      // file = file:/C:/Users/Alex/.m2/repository/org/renjin/renjin-legacy-compiler/0.7.0-SNAPSHOT/renjin-legacy-compiler-0.7.0-SNAPSHOT.jar!/org/renjin/legacy/include/R.h
+      // file = file:/C:/Users/Alex/.m2/repository/org/renjin/renjin-gnur-compiler/0.7.0-SNAPSHOT/renjin-gnur-compiler-0.7.0-SNAPSHOT.jar!/org/renjin/gnur/include/R.h
       if(url.getFile().startsWith("file:")) {
           
         int fileStart = url.getFile().indexOf("!");

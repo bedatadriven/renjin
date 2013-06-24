@@ -176,7 +176,7 @@ public class NamespaceRegistry {
         }
       }
     } catch(Exception e) {
-      // Allow the program to continue, there may be some packages whose legacy
+      // Allow the program to continue, there may be some packages whose gnur
       // compilation failed but can still partially function.
       System.err.println("ERROR: Failed to import dynLib entries for " + namespace.getName() + ", expect subsequent failures");
       e.printStackTrace(System.err);

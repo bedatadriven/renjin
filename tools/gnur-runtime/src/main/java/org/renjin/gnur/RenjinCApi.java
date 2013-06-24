@@ -1,4 +1,4 @@
-package org.renjin.legacy;
+package org.renjin.gnur;
 
 
 import org.apache.commons.math.util.FastMath;

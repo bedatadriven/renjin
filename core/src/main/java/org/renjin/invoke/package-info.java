@@ -31,7 +31,7 @@
  * <ul>
  *   <li>.Internal(methodName) - see {@link org.renjin.primitives.special.InternalFunction}</li>
  *   <li>.Call(methodName, CLASS=XX, PACKAGE=XX) - See </li>
- *   <li>.C / .Fortran - provided by the legacy-runtime library</li>
+ *   <li>.C / .Fortran - provided by the gnur-runtime library</li>
  *   <li>rJava - TODO - write an rJava replacement for Renjin
  *   </li>
  * </ul>

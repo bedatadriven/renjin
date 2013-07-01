@@ -55,7 +55,9 @@
   </properties>
 
   <scm>
-    <developerConnection>scm:svn:https://renjin.googlecode.com/svn/trunk</developerConnection>
+    <connection>scm:git:git@github.com:bedatadriven/renjin.git</connection>
+    <url>scm:git:git@github.com:bedatadriven/renjin.git</url>
+    <developerConnection>scm:git:git@github.com:bedatadriven/renjin.git</developerConnection>
   </scm>
 
   <distributionManagement>

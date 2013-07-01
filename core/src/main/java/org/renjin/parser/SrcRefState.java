@@ -50,6 +50,6 @@ public class SrcRefState {
    */
   public int xxlineno;
   public int xxcolno;
-  public int xxbyteno;
+  public int charIndex;
 
 }

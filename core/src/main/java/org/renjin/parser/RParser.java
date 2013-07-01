@@ -2487,9 +2487,9 @@ public class RParser {
 
     int values[] = new int[6];
     values[0] = lloc.begin.line;
-    values[1] = lloc.begin.byteIndex;
+    values[1] = lloc.begin.charIndex;
     values[2] = lloc.end.line;
-    values[3] = lloc.end.byteIndex;
+    values[3] = lloc.end.charIndex;
     values[4] = lloc.begin.column;
     values[6] = lloc.end.column;
 

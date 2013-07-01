@@ -31,20 +31,20 @@ public class Position {
 
   public int line;
   public int column;
-  public int byteIndex;
+  public int charIndex;
 
   public Position() {
   }
 
-  public Position(int line, int column, int byteIndex) {
+  public Position(int line, int column, int charIndex) {
     this.line = line;
     this.column = column;
-    this.byteIndex = byteIndex;
+    this.charIndex = charIndex;
   }
 
   @Override
   public Position clone() {
-    return new Position(line, column, byteIndex);
+    return new Position(line, column, charIndex);
   }
 
   @Override
@@ -54,7 +54,7 @@ public class Position {
 
     Position position = (Position) o;
 
-    if (byteIndex != position.byteIndex) return false;
+    if (charIndex != position.charIndex) return false;
     if (column != position.column) return false;
     if (line != position.line) return false;
 
@@ -65,7 +65,7 @@ public class Position {
   public int hashCode() {
     int result = line;
     result = 31 * result + column;
-    result = 31 * result + byteIndex;
+    result = 31 * result + charIndex;
     return result;
   }
 

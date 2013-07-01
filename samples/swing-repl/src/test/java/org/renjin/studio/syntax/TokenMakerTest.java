@@ -5,8 +5,10 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.RenjinTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.modes.JavaScriptTokenMaker;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class TokenMakerTest {
 
   

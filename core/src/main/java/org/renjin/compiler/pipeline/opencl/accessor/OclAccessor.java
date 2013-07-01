@@ -1,24 +1,31 @@
-package org.renjin.compiler.pipeline.opencl.arg;
+package org.renjin.compiler.pipeline.opencl.accessor;
 
 
-public abstract class OclAccessor {
+import org.renjin.compiler.pipeline.opencl.OclKernelBody;
+
+public interface OclAccessor {
+
+  void init(OclKernelBody body);
+
   /**
    *
    * @return an OpenCL expression which evaluates to the scalar value of the node
    */
-  public abstract String value();
+  String value();
 
   /**
    *
    * @return an OpenCL expression which evaluates to the length of the buffer
    */
-  public abstract String length();
+  String length();
 
   /**
    *
+   *
+   * @param body
    * @param index an OpenCL expression which evaluates to the desired index
    * @return an OpenCL expression which evaluates to the buffer's value at the
    * given index.
    */
-  public abstract String valueAt(String index);
+  String valueAt(OclKernelBody body, String index);
 }

@@ -8,7 +8,7 @@ import org.renjin.sexp.Vector;
  * A vector which converts its operand to Strings on the fly, so
  * that extra memory to does not need to be allocated.
  */
-public class ConvertingStringVector extends StringVector implements DeferredComputation {
+public class ConvertingStringVector extends StringVector implements DeferredView {
 
   private final Vector operand;
 

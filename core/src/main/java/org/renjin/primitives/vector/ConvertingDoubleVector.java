@@ -4,7 +4,7 @@ import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Vector;
 
-public class ConvertingDoubleVector extends DoubleVector implements DeferredComputation {
+public class ConvertingDoubleVector extends DoubleVector implements DeferredView {
 
   private final Vector operand;
 

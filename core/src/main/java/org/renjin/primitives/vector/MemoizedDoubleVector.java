@@ -5,7 +5,7 @@ import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
-public abstract class MemoizedDoubleVector extends DoubleVector implements MemoizedComputation {
+public abstract class MemoizedDoubleVector extends DoubleVector implements DeferredTask {
 
   private final Vector[] operands;
   private final int length;

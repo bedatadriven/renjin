@@ -2,9 +2,10 @@ package org.renjin.primitives.sequence;
 
 
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.primitives.vector.DeferredView;
 import org.renjin.sexp.*;
 
-public class RepDoubleVector extends DoubleVector implements DeferredComputation {
+public class RepDoubleVector extends DoubleVector implements DeferredView {
 
   public static final int LENGTH_THRESHOLD = 100;
 

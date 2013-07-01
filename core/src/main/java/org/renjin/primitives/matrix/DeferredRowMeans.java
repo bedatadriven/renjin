@@ -2,10 +2,10 @@ package org.renjin.primitives.matrix;
 
 import org.renjin.compiler.pipeline.DeferredGraph;
 import org.renjin.primitives.vector.AttributeDecoratingVector;
-import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.primitives.vector.DeferredTask;
 import org.renjin.sexp.*;
 
-public class DeferredRowMeans extends DoubleVector implements MemoizedComputation {
+public class DeferredRowMeans extends DoubleVector implements DeferredTask {
 
   private final AtomicVector vector;
   private int numRows;

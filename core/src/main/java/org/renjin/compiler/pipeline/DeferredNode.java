@@ -5,7 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.primitives.vector.DeferredTask;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.Vector;
@@ -22,8 +22,8 @@ public class DeferredNode {
 
   public DeferredNode(int id, Vector vector) {
     this.id = id;
-    if(vector instanceof MemoizedComputation && ((MemoizedComputation) vector).isCalculated()) {
-      this.vector = ((MemoizedComputation)vector).forceResult();
+    if(vector instanceof DeferredTask && ((DeferredTask) vector).isCalculated()) {
+      this.vector = ((DeferredTask)vector).forceResult();
     } else {
       this.vector = vector;
     }
@@ -195,8 +195,6 @@ public class DeferredNode {
   public void replaceVector(Vector vector) {
     this.vector = vector;
   }
-
-
 
   public void replaceOperands(DeferredNode... operands) {
     this.operands = Lists.newArrayList(operands);

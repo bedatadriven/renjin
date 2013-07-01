@@ -8,7 +8,7 @@ import org.renjin.sexp.Vector;
  * its result is stored internally to avoid being computed again.
  *
  */
-public interface MemoizedComputation extends DeferredComputation {
+public interface DeferredTask extends DeferredComputation {
 
   /**
    *

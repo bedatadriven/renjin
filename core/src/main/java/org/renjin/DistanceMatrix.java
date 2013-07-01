@@ -2,13 +2,14 @@ package org.renjin;
 
 import org.renjin.invoke.annotations.Operand;
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.primitives.vector.DeferredView;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
 
-public class DistanceMatrix extends DoubleVector implements DeferredComputation {
+public class DistanceMatrix extends DoubleVector implements DeferredView {
 
   @Operand
   private Vector vector;

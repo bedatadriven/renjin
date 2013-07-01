@@ -2,9 +2,10 @@ package org.renjin.primitives.matrix;
 
 
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.primitives.vector.DeferredView;
 import org.renjin.sexp.*;
 
-public class TransposingMatrix extends DoubleVector implements DeferredComputation {
+public class TransposingMatrix extends DoubleVector implements DeferredView {
 
   public static final int LENGTH_THRESHOLD = 1000;
 

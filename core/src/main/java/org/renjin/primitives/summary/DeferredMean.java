@@ -2,10 +2,10 @@ package org.renjin.primitives.summary;
 
 import org.renjin.compiler.pipeline.DeferredGraph;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.primitives.vector.DeferredTask;
 import org.renjin.sexp.*;
 
-public class DeferredMean extends DoubleVector implements MemoizedComputation {
+public class DeferredMean extends DoubleVector implements DeferredTask {
   private final Vector vector;
   private double result;
   private boolean calculated = false;

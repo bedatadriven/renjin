@@ -31,12 +31,12 @@ public class RowMeanKernelWriterTest {
     checkStatus(status);
 
     int numDevices[] = new int[1];
-    CL.clGetDeviceIDs(platformID[0], CL.CL_DEVICE_TYPE_CPU, 0, null, numDevices);
+    CL.clGetDeviceIDs(platformID[0], CL.CL_DEVICE_TYPE_GPU, 0, null, numDevices);
 
     System.out.println("num devices = " + numDevices[0]);
 
     cl_device_id deviceIds[] = new cl_device_id[numDevices[0]];
-    status = CL.clGetDeviceIDs(platformID[0], CL.CL_DEVICE_TYPE_CPU, deviceIds.length, deviceIds, null);
+    status = CL.clGetDeviceIDs(platformID[0], CL.CL_DEVICE_TYPE_GPU, deviceIds.length, deviceIds, null);
 
     deviceId = deviceIds[0];
 
@@ -71,6 +71,7 @@ public class RowMeanKernelWriterTest {
 
     // each work group handles
 
+
     w.println("int row = get_global_id(0);");
     w.println("// sum over all the values in this row");
     w.println("float sum = 0;");
@@ -93,13 +94,14 @@ public class RowMeanKernelWriterTest {
   public void test() {
 
 
-    int numRows  = 100;
-    int numCols = 100000;
+    int numRows  = 64 * 100;
+    int numCols = 10000;
 
     for(int i=0;i!=10;++i) {
       time(numRows, numCols);
     }
   }
+
 
   private void time(int numRows, int numCols) {
     float inMatrix[] = new float[numRows * numCols];
@@ -134,7 +136,7 @@ public class RowMeanKernelWriterTest {
 
 
     long globalWorkSize[] = new long[] { numRows };
-    long localWorkSize[] = new long[] { 1 };
+    long localWorkSize[] = new long[] { 64  };
 
     CL.clEnqueueNDRangeKernel(queue, kernel, 1, null, globalWorkSize, localWorkSize,
         0, null, null);

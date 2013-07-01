@@ -4,16 +4,16 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.compiler.pipeline.optimize.Optimizers;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.primitives.vector.DeferredTask;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.Vector;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Directed, acyclic graph (DAG) of a deferred computation.
@@ -24,8 +24,10 @@ import java.util.ListIterator;
  */
 public class DeferredGraph {
 
-  public static boolean DEBUG = false;
+  public static boolean DEBUG = true;
   public static final int JIT_THRESHOLD = 1000;
+
+  public static AtomicInteger NEXT_GRAPH_ID = new AtomicInteger(1);
 
   private DeferredNode rootNode;
   private List<DeferredNode> nodes = Lists.newArrayList();
@@ -79,8 +81,19 @@ public class DeferredGraph {
       PrintWriter writer = new PrintWriter(tempFile);
       printGraph(writer);
       writer.close();
-      System.out.println("Dumping compute graph to " + tempFile.getAbsolutePath());
-    } catch (IOException e) {
+
+      String outputImage = "deferredGraph" + NEXT_GRAPH_ID.getAndIncrement() + ".png";
+
+      new ProcessBuilder().command("dot",
+          "-Tpng", tempFile.getAbsolutePath(),
+          "-o", outputImage)
+          .start();
+
+      tempFile.deleteOnExit();
+
+    } catch (Exception e) {
+
+
     }
   }
 
@@ -102,7 +115,11 @@ public class DeferredGraph {
 
   private void printNodes(PrintWriter writer) {
     for(DeferredNode node : nodes) {
-      writer.println(node.getDebugId() + " [ label=\"" + node.getDebugLabel() + "\"]");
+      String shape = "box";
+      if(node.isComputation() && node.getComputation() instanceof DeferredTask) {
+        shape = "ellipse";
+      }
+      writer.println(node.getDebugId() + " [ shape=\"" + shape + "\" label=\"" + node.getDebugLabel() + "\"]");
     }
   }
 
@@ -175,18 +192,20 @@ public class DeferredGraph {
 
           Vector result = DoubleArrayVector.unsafe(computer.compute(operands));
 
+          System.out.println("result = " + result);
+
           long time = System.nanoTime() - start;
           if(DEBUG) {
             System.out.println("compute: " + (time/1e6) + "ms");
           }
 
-          ((MemoizedComputation)node.getVector()).setResult(result);
+          ((DeferredTask)node.getVector()).setResult(result);
           node.setResult(result);
         } catch(Throwable e) {
           throw new RuntimeException("Exception compiling node " + node, e);
         }
-      } else if(node.getVector() instanceof MemoizedComputation) {
-        node.setResult(((MemoizedComputation) node.getVector()).forceResult());
+      } else if(node.getVector() instanceof DeferredTask) {
+        node.setResult(((DeferredTask) node.getVector()).forceResult());
       }
     }
     return node.getVector();

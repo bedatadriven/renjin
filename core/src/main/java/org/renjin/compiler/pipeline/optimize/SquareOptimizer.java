@@ -3,6 +3,7 @@ package org.renjin.compiler.pipeline.optimize;
 import org.renjin.compiler.pipeline.DeferredGraph;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.primitives.vector.DeferredView;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.SEXP;
@@ -32,7 +33,7 @@ public class SquareOptimizer implements Optimizer {
            node.getOperand(0) == node.getOperand(1);
   }
 
-  public static class Square extends DoubleVector implements DeferredComputation {
+  public static class Square extends DoubleVector implements DeferredView {
     private Vector vector;
 
     protected Square(Vector vector, AttributeMap attributes) {

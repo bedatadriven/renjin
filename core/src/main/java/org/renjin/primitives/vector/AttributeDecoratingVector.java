@@ -9,7 +9,7 @@ import org.renjin.sexp.Vector;
  * Decorates an existing vector with new attributes.
  *
  */
-public class AttributeDecoratingVector extends DoubleVector implements DeferredComputation {
+public class AttributeDecoratingVector extends DoubleVector implements DeferredView {
 
   private final Vector vector;
 

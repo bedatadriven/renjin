@@ -26,7 +26,7 @@
 
   <groupId>org.renjin</groupId>
   <artifactId>parent</artifactId>
-  <version>0.7.0-RC2-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Renjin Parent</name>
 
@@ -225,7 +225,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore />
+                    <ignore></ignore>
                   </action>
                 </pluginExecution>
               </pluginExecutions>

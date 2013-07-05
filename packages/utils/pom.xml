@@ -27,7 +27,7 @@
   	</dependency>
   	<dependency>
   		<groupId>org.renjin</groupId>
-  		<artifactId>renjin-legacy-runtime</artifactId>
+  		<artifactId>renjin-gnur-runtime</artifactId>
   		<version>${project.version}</version>
   	</dependency>
   	<dependency>

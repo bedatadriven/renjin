@@ -69,3 +69,11 @@ to get GCC to compile and load our GCC plugin.
 
 If anyone is able to get this working, share on the mailing list (see above), otherwise
 we'll have to wait until our tool can bootstrap a pure-java version of GCC :-)
+
+License
+=======
+
+Renjin is available under the GPLv3 license, see LICENSE.txt for the full text
+of the license. Renjin also includes code from R which is redistributed here.
+R uses [many different licenses](http://www.r-project.org/Licenses/) so check
+the file sources to see which license applies.

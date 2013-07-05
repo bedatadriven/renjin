@@ -1855,17 +1855,17 @@ public class RdParser
       {               
         (Current).begin.line   = YYRHSLOC (Rhs, 1).begin.line;  
         (Current).begin.column = YYRHSLOC (Rhs, 1).begin.column;  
-        (Current).begin.byteIndex   = YYRHSLOC (Rhs, 1).begin.byteIndex;  
+        (Current).begin.charIndex   = YYRHSLOC (Rhs, 1).begin.charIndex;  
         (Current).end.line    = YYRHSLOC (Rhs, N).end.line;   
         (Current).end.column  = YYRHSLOC (Rhs, N).end.column; 
-        (Current).end.byteIndex    = YYRHSLOC (Rhs, N).end.byteIndex;   
+        (Current).end.charIndex    = YYRHSLOC (Rhs, N).end.charIndex;   
       } else {               
         (Current).begin.line   = (Current).end.line   =    
             YYRHSLOC (Rhs, 0).end.line;        
         (Current).begin.column = (Current).end.column =    
             YYRHSLOC (Rhs, 0).end.column;        
-        (Current).begin.byteIndex   = (Current).end.byteIndex =    
-            YYRHSLOC (Rhs, 0).end.byteIndex;        
+        (Current).begin.charIndex   = (Current).end.charIndex =    
+            YYRHSLOC (Rhs, 0).end.charIndex;        
       }               
     } while (false);
 
@@ -2267,9 +2267,9 @@ public class RdParser
     if(lloc.begin != null && lloc.end != null) {
       IntArrayVector.Builder val = new IntArrayVector.Builder();
       val.add(lloc.begin.line);
-      val.add(lloc.begin.byteIndex);
+      val.add(lloc.begin.charIndex);
       val.add(lloc.end.line);
-      val.add(lloc.end.byteIndex);
+      val.add(lloc.end.charIndex);
       val.add(lloc.begin.column);
       val.add(lloc.end.column);
       val.setAttribute(Symbols.SRC_FILE, srcfile);
@@ -2596,13 +2596,13 @@ public class RdParser
   private void setfirstloc() {
     yylloc.begin.line = xxlineno;
     yylloc.begin.column = xxcolno;
-    yylloc.begin.byteIndex = xxbyteno;
+    yylloc.begin.charIndex = xxbyteno;
   }
 
   private void setlastloc() {
     yylloc.end.line = prevlines[prevpos];
     yylloc.end.column = prevcols[prevpos];
-    yylloc.end.byteIndex = prevbytes[prevpos];
+    yylloc.end.charIndex = prevbytes[prevpos];
   }
   public static final int INITBUFSIZE = 128;
 
@@ -2951,10 +2951,10 @@ public class RdParser
       if (xxinitvalue != 0) {
         yylloc.begin.line = 0;
         yylloc.begin.column = 0;
-        yylloc.begin.byteIndex = 0;
+        yylloc.begin.charIndex = 0;
         yylloc.end.line = 0;
         yylloc.end.column = 0;
-        yylloc.end.byteIndex = 0;
+        yylloc.end.charIndex = 0;
         PROTECT(yylval = new StringArrayVector(""));
         c = xxinitvalue;
         xxinitvalue = 0;

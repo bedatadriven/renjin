@@ -13,9 +13,7 @@ import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.SEXP;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 
 /**
@@ -32,17 +30,7 @@ public abstract class FileBasedPackage extends Package {
 
   public abstract boolean resourceExists(String name);
 
-  @Override
-  public NamespaceDef getNamespaceDef() {
-    try {
-      NamespaceDef def = new NamespaceDef();
-      def.parse(CharStreams.newReaderSupplier(getResource("NAMESPACE"), Charsets.UTF_8));
-      return def;
-    } catch(IOException e) {
-      throw new RuntimeException("IOException while parsing NAMESPACE file");
-    }
-  }
-  
+
   private Properties readDatasetIndex() throws IOException {
     Properties datasets = new Properties();
     if(resourceExists("datasets")) {
@@ -70,7 +58,8 @@ public abstract class FileBasedPackage extends Package {
       throw new RuntimeException(e);
     }
   }
-  
+
+
   private class FileBasedDataset extends Dataset {
 
     private String datasetName;

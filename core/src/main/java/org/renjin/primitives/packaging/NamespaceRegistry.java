@@ -1,19 +1,17 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.io.CharStreams;
+import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.S3;
 import org.renjin.invoke.annotations.SessionScoped;
-import org.renjin.primitives.packaging.NamespaceDef.S3Export;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.io.InputStream;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Session-level registry of namespaces
@@ -88,53 +86,14 @@ public class NamespaceRegistry {
     // load the serialized functions/values from the classpath
     // and add them to our private namespace environment
     Namespace namespace = createNamespace(pkg, name.getPrintName());
-    for(NamedValue value : pkg.loadSymbols(context)) {
-      namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
-    }
-    
-    // import foreign symbols
-    Environment importsEnv = namespace.getNamespaceEnvironment().getParent();
-    setupImports(pkg.getNamespaceDef(), importsEnv);
 
-    Set<Symbol> groups = Sets.newHashSet(Symbol.get("Ops"), Symbol.get("Math"), Symbol.get("Summary"));
+    // set up the namespace
+    populateNamespace(pkg, namespace);
 
-    // import C/Fortran symbols
-    for(NamespaceDef.DynLib dynLib : namespace.getDef().getDynLibs()) {
-      setupDynLibImports(namespace, dynLib, importsEnv);
-    }
+    // setup namespace from NAMESPACE file
+    setupImportsExports(pkg, namespace);
 
-    // we need to export S3 methods to the namespaces to which
-    // the generic functions were defined
-    for(S3Export export : namespace.getDef().getS3Exports()) {
-      SEXP methodExp =  namespace.getNamespaceEnvironment().getVariable(export.getMethod());
-      if(methodExp == Symbol.UNBOUND_VALUE) {
-        throw new EvalException("Missing export: " + export.getMethod() + " from namespace " + name);
-      }
-      if(!(methodExp instanceof Function)) {
-        throw new IllegalStateException(export.getMethod() + ": expected function but was " + methodExp.getClass().getName());
-      }
-      Function method = (Function) methodExp;
-      Environment definitionEnv;
-      if(groups.contains(export.getGenericFunction())) {
-        definitionEnv = getBaseNamespaceEnv();
-      } else {
-        SEXP genericFunction = namespace.getNamespaceEnvironment().findFunction(context, export.getGenericFunction());
-        if(genericFunction == null) {
-          System.err.println("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
-          for(Symbol sym : namespace.getNamespaceEnvironment().getParent().getSymbolNames()) {
-            System.err.println("imported: " + sym);
-          }
-          throw new EvalException("Cannot find S3 method definition '" + export.getGenericFunction() + "'");
-        }
-        definitionEnv = getDefinitionEnv( genericFunction );
-      }
-      if(!definitionEnv.hasVariable(S3.METHODS_TABLE)) {
-        definitionEnv.setVariable(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()));
-      }
-      Environment methodsTable = (Environment) definitionEnv.getVariable(S3.METHODS_TABLE);
-      methodsTable.setVariable(export.getMethod(), method);
-    }
-
+    // invoke the .onLoad hook
     if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
       StringVector nameArgument = StringVector.valueOf(name.getPrintName());
       context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument), 
@@ -144,54 +103,28 @@ public class NamespaceRegistry {
   }
 
   /**
-   * Imports the symbols into our internal symbol that are exported from the packages on which
-   * we depend
+   * Populates the namespace from the R-language functions and expressions defined
+   * in this namespace.
+   *
    */
-  private void setupImports(NamespaceDef namespaceDef, Environment importsEnv) {
-    for(NamespaceDef.NamespaceImport importDef : namespaceDef.getImports() ) {
-      Namespace importedNamespace = getNamespace(importDef.getNamespace());
-      if(importDef.isImportAll()) {
-        importedNamespace.copyExportsTo(importsEnv);
-      } else {
-        for(Symbol importedSymbol : importDef.getSymbols()) {
-          SEXP importedExp = importedNamespace.getExport(importedSymbol);
-          importsEnv.setVariable(importedSymbol, importedExp);
-        }
-      }
+  private void populateNamespace(Package pkg, Namespace namespace) throws IOException {
+    for(NamedValue value : pkg.loadSymbols(context)) {
+      namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
     }
   }
 
   /**
-   * Copies methods from Legacy dynamic libraries (C/Fortran code) into this namespace
+   * Sets up imports and exports defined in the NAMESPACE file.
+   *
    */
-  private void setupDynLibImports(Namespace namespace, NamespaceDef.DynLib dynLib, Environment importsEnv) {
+  private void setupImportsExports(Package pkg, Namespace namespace) throws IOException {
 
-    try {
-      Class clazz = namespace.getPackage().getClass(dynLib.getPackageName().getPrintName());
-
-      for(Method method : clazz.getMethods()) {
-        if(Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
-          importsEnv.setVariable(dynLib.getPrefix() + method.getName(),
-              new ExternalPtr<Method>(method));
-        }
-      }
-    } catch(Exception e) {
-      // Allow the program to continue, there may be some packages whose gnur
-      // compilation failed but can still partially function.
-      System.err.println("ERROR: Failed to import dynLib entries for " + namespace.getName() + ", expect subsequent failures");
-      e.printStackTrace(System.err);
-    }
+    InputSupplier<InputStream> namespaceFile = pkg.getResource("NAMESPACE");
+    NamespaceDirectiveParser.parse(
+        CharStreams.newReaderSupplier(namespaceFile, Charsets.UTF_8),
+        new NamespaceInitHandler(context, this, namespace));
   }
 
-  private Environment getDefinitionEnv(SEXP genericFunction) {
-    if(genericFunction instanceof Closure) {
-      return ((Closure) genericFunction).getEnclosingEnvironment();
-    } else if(genericFunction instanceof PrimitiveFunction) {
-      return getBaseNamespaceEnv();
-    } else {
-      throw new IllegalArgumentException(genericFunction.getClass().getName());
-    }
-  }
 
   public boolean isRegistered(Symbol name) {
     return namespaces.containsKey(name);
@@ -210,8 +143,7 @@ public class NamespaceRegistry {
     // BASE-NS -> IMPORTS -> ENVIRONMENT
     
     Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(), "imports:" + localName);
-    setupImports(pkg.getNamespaceDef(), imports);
-    
+
     Environment namespaceEnv = Environment.createNamedEnvironment(imports, "namespace:" + localName);
     Namespace namespace = new Namespace(pkg, localName, namespaceEnv);
     namespaces.put(Symbol.get(localName), namespace);

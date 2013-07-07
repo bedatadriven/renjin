@@ -12,7 +12,6 @@ import org.renjin.eval.Context;
 import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.Namespace;
-import org.renjin.primitives.packaging.NamespaceDef;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.PairList;

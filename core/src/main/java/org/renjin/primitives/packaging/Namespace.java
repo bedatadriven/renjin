@@ -1,21 +1,23 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.collect.Lists;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+import java.util.List;
+
 public class Namespace {
   
   private String name;
-  private final NamespaceDef def;
+  private List<Symbol> exports = Lists.newArrayList();
   private final Environment namespaceEnvironment;
   private Package pkg;
     
   public Namespace(Package pkg, String localName, Environment namespaceEnvironment) {
     this.name = localName;
     this.pkg = pkg;
-    this.def = pkg.getNamespaceDef();
     this.namespaceEnvironment = namespaceEnvironment;
   }
   
@@ -35,7 +37,7 @@ public class Namespace {
     if(name.equals("base")) {
       return getEntry(entry);
     }
-    if(def.getExports().contains(entry)) {
+    if(exports.contains(entry)) {
       return this.namespaceEnvironment.getVariable(entry);
     }
     throw new EvalException("Namespace " + name + " has no exported symbol named '" + entry.getPrintName() + "'");
@@ -60,17 +62,13 @@ public class Namespace {
    * @param packageEnv
    */
   public void copyExportsTo(Environment packageEnv) {
-    for(Symbol name : def.getExports()) {
+    for(Symbol name : exports) {
       packageEnv.setVariable(name, namespaceEnvironment.getVariable(name));
     }
   }
 
-  /**
-   * 
-   * @return the namespace definition (from the NAMESPACE file)
-   */
-  public NamespaceDef getDef() {
-    return def;
+  public void addExport(Symbol export) {
+    exports.add(export);
   }
 
   public Package getPackage() {

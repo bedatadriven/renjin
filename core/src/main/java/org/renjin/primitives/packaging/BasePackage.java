@@ -10,11 +10,6 @@ import java.io.InputStream;
 public class BasePackage extends Package {
 
   @Override
-  public NamespaceDef getNamespaceDef() {
-    return new NamespaceDef();
-  }
-
-  @Override
   public Iterable<NamedValue> loadSymbols(Context context) throws IOException {
     throw new UnsupportedOperationException();
   }

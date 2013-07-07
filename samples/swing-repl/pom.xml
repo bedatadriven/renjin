@@ -93,7 +93,7 @@
               </descriptorRefs>
               <archive>
                 <manifest>
-                  <mainClass>org.renjin.desktop.MainFrame</mainClass>
+                  <mainClass>org.renjin.studio.MainFrame</mainClass>
                 </manifest>
               </archive>
             </configuration>

@@ -1,6 +1,6 @@
 
-Building
-========
+Compiling from Source
+=====================
 
 Introduction
 ------------
@@ -9,7 +9,7 @@ In addition to the standard Java tools, Renjin relies on a GCC-based
 build chain to compile C/Fortran math routines to JVM byte code.
 These tools are in the early stages of development and are a bit
 sensitive to different versions of GCC. The current version of Renjin
-requires 4.6.x.
+requires GCC 4.6.x.
 
 If your platform is not listed below, you may need to experiment a
 bit or ask for help on the mailing list (renjin-dev@googlegroups.com).
@@ -41,6 +41,19 @@ limits array indices to 32-bits on all platforms)
 ### Fedora 17
 
 Fedora 17 comes with GCC 4.7 which is *NOT* yet working with Renjin.
+
+You will need to build GCC 4.6 from sources first:
+
+    # Install GCC's dependencies
+    sudo yum install gcc gmp-devel mpfr-devel libmpc-devel make glibc-devel.i686
+
+    # Download sources
+    wget ftp://ftp.nluug.nl/mirror/languages/gcc/releases/gcc-4.6.4/gcc-core-4.6.4.tar.bz2
+    wget ftp://ftp.nluug.nl/mirror/languages/gcc/releases/gcc-4.6.4/gcc-fortran-4.6.4.tar.bz2
+    tar -xjf gcc-core-4.6.4.tar.bz2
+    tar -xjf gcc-fortran-4.6.4.tar.bz2
+    cd gcc-4.6.4
+    ./configure --prefix=/opt/gcc-4.6.4 -- && make
 
     sudo yum install gcc gcc-plugin-devel gcc-gfortran
 

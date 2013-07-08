@@ -14,10 +14,14 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
+
+
 available.packages <-
-function(contriburl = contrib.url(getOption("repos"), type), method,
-         fields = NULL, type = getOption("pkgType"), filters = NULL)
-{
+function(...) {
+
+    cat("Renjin handles packages a bit differently than GNU R.\n")
+    cat("
+
     requiredFields <-
         c(tools:::.get_standard_repository_db_fields(), "File")
     if (is.null(fields))

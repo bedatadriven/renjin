@@ -24,7 +24,7 @@
       <groupId>org.renjin</groupId>
       <artifactId>gcc-bridge</artifactId>
       <version>${project.version}</version>
-      <type>jar</type>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -60,12 +60,10 @@
                 <argument>-d</argument>
                 <argument>${project.basedir}/src/main/fortran</argument>
               </arguments>
+              <classpathScope>compile</classpathScope>
             </configuration>
           </execution>
         </executions>
-        <dependencies>
-
-        </dependencies>
       </plugin>
     </plugins>
   </build>

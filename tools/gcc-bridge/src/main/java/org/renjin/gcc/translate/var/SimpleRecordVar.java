@@ -1,12 +1,12 @@
 package org.renjin.gcc.translate.var;
 
-import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.expr.AbstractImExpr;
 import org.renjin.gcc.translate.expr.ImExpr;
+import org.renjin.gcc.translate.field.PrimitiveFieldExpr;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
 import org.renjin.gcc.translate.type.ImType;
 import org.renjin.gcc.translate.type.struct.SimpleRecordType;
@@ -55,8 +55,15 @@ public class SimpleRecordVar extends AbstractImExpr implements Variable {
   }
 
   @Override
+  public String toString() {
+    return jimpleName + ":" + recordType;
+  }
+
+  @Override
   public JimpleExpr translateToObjectReference(FunctionContext context, JimpleType className) {
     if(className.equals(recordType.getJimpleType())) {
+      return new JimpleExpr(jimpleName);
+    } else if(className.is(Object.class)) {
       return new JimpleExpr(jimpleName);
     }
     return super.translateToObjectReference(context, className);
@@ -83,14 +90,11 @@ public class SimpleRecordVar extends AbstractImExpr implements Variable {
 
   private class PointerVariable extends Pointer implements Variable {
 
-
     @Override
     public void writeAssignment(FunctionContext context, ImExpr rhs) {
       context.getBuilder().addAssignment(jimpleName,
           rhs.translateToObjectReference(context,
               recordType.getJimpleType()));
     }
-
-
   }
 }

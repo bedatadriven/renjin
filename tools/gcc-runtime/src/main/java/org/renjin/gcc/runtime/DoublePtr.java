@@ -25,4 +25,13 @@ public class DoublePtr implements Ptr {
   public double unwrap() {
     return array[offset];
   }
+
+  public double get(int i) {
+    return array[offset+i];
+  }
+
+  public void set(int index, double value) {
+    array[offset+index] = value;
+
+  }
 }

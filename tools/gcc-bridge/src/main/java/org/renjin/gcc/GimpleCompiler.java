@@ -11,6 +11,8 @@ import org.renjin.gcc.jimple.JimpleOutput;
 import org.renjin.gcc.translate.FunctionTranslator;
 import org.renjin.gcc.translate.MethodTable;
 import org.renjin.gcc.translate.TranslationContext;
+import org.renjin.gcc.translate.xform.FunctionBodyTransformer;
+import org.renjin.gcc.translate.xform.VoidPointerTypeDeducer;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +41,12 @@ public class GimpleCompiler  {
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
 
   private MethodTable methodTable = new MethodTable();
+  
+  private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
+
+  public GimpleCompiler() {
+    functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
+  }
 
   public void setPackageName(String name) {
     this.packageName = name;
@@ -126,12 +134,27 @@ public class GimpleCompiler  {
     TranslationContext context = new TranslationContext(mainClass, methodTable, units);
     for(GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
+        
+        transformFunctionBody(unit, function);
+        
         FunctionTranslator translator = new FunctionTranslator(context);
         translator.translate(function);
       }
     }
 
     return jimple;
+  }
+
+  private void transformFunctionBody(GimpleCompilationUnit unit, GimpleFunction function) {
+    boolean updated;
+    do {
+      updated = false;
+      for(FunctionBodyTransformer transformer : functionBodyTransformers) {
+        if(transformer.transform(unit, function)) {
+          updated = true;
+        }
+      }
+    } while(updated);
   }
 
   private File getPackageFolder() {

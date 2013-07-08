@@ -1,4 +1,4 @@
-package org.renjin.gcc.translate.var;
+package org.renjin.gcc.translate.field;
 
 import com.google.common.base.Preconditions;
 import org.renjin.gcc.jimple.JimpleExpr;

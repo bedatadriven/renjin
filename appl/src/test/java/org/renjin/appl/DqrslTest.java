@@ -35,7 +35,7 @@ public class DqrslTest {
     IntPtr pivot = new IntPtr(1,2);
     DoublePtr work = new DoublePtr(0,0,0,0);
   //  rg.renjin.gcc.runtime.DoublePtr, org.renjin.gcc.runtime.IntPtr, org.renjin.gcc.runtime.IntPtr, org.renjin.gcc.runtime.DoublePtr, org.renjin.gcc.runtime.IntPtr, org.renjin.gcc.runtime.DoublePtr, org.renjin.gcc.runtime.DoublePtr, org.renjin.gcc.runtime.DoublePtr, org.renjin.gcc.runtime.DoublePtr, org.renjin.gcc.runtime.IntPtr, org.renjin.gcc.runtime.IntPtr, org.renjin.gcc.runtime.DoublePtr, org.renjin.gcc.runtime.DoublePtr
-    call("dqrls", x, n, p, y, ny, tol, coefficients, residuals, effects, rank, pivot, qraux, work);
+    call("dqrls_", x, n, p, y, ny, tol, coefficients, residuals, effects, rank, pivot, qraux, work);
 //
 //
 //

@@ -2,9 +2,11 @@ package org.renjin.gcc.translate.type;
 
 
 import org.renjin.gcc.jimple.Jimple;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
+import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.var.PrimitiveArrayPtrVar;
 import org.renjin.gcc.translate.var.Variable;
 
@@ -37,8 +39,18 @@ public class ImPrimitiveArrayPtrType implements ImIndirectType {
   }
 
   @Override
+  public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage varUsage) {
     return new PrimitiveArrayPtrVar(functionContext, Jimple.id(gimpleName), this);
+  }
+
+  @Override
+  public ImExpr createFieldExpr(String instanceExpr, JimpleType classType, String memberName) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -62,6 +74,6 @@ public class ImPrimitiveArrayPtrType implements ImIndirectType {
 
   @Override
   public JimpleType getArrayType() {
-    return baseType.componentType().getArrayType();
+    return baseType.componentType().jimpleArrayType();
   }
 }

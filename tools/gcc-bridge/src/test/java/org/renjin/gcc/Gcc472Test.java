@@ -29,7 +29,7 @@ public class Gcc472Test extends Dqrdc2Test {
     Class clazz = compileGimple("org.renjin.gcc.ArrayTestGcc472", Arrays.asList(unit));
 
 
-    Method method = clazz.getMethod("test", DoublePtr.class, IntPtr.class);
+    Method method = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
 
     double[] x = new double[9];
 
@@ -42,7 +42,7 @@ public class Gcc472Test extends Dqrdc2Test {
     assertThat(x[8], equalTo(9d));
 
     DoublePtr y = new DoublePtr(0);
-    method = clazz.getMethod("localarray", DoublePtr.class);
+    method = clazz.getMethod("localarray_", DoublePtr.class);
     method.invoke(null, y);
 
     assertThat(y.unwrap(), equalTo(110d));

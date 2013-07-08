@@ -121,7 +121,7 @@ lm.fit <- function (x, y, offset = NULL, method = "qr", tol = 1e-07,
 		  y = y, ny = ny,
 		  tol = as.double(tol),
 		  coefficients = mat.or.vec(p, ny),
-		  residuals = y, effects = y, rank = integer(1L),
+		  residuals = y, effects = y,rank = integer(1L),
 		  pivot = 1L:p, qraux = double(p), work = double(2*p),
                   PACKAGE="base")
     if(!singular.ok && z$rank < p) stop("singular fit encountered")

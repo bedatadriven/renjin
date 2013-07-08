@@ -1,5 +1,6 @@
 package org.renjin.gcc.jimple;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 
 import org.renjin.gcc.runtime.Ptr;
@@ -45,6 +46,16 @@ public class RealJimpleType extends JimpleType {
   @Override
   public boolean isAssignableFrom(Class otherClass) {
     return clazz.isAssignableFrom(otherClass);
+  }
+
+  @Override
+  public boolean is(Class clazz) {
+    return this.clazz.equals(clazz);
+  }
+
+  @Override
+  public JimpleType arrayType() {
+    return new RealJimpleType(Array.newInstance(clazz, 0).getClass());
   }
 
   @Override

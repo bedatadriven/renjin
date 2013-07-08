@@ -37,8 +37,12 @@ void	vmaxset(const void *);
 
 void	R_gc(void);
 
-char*	R_alloc(size_t, int);
-char*	S_alloc(long, int);
+// For renjin, we just treat this as malloc as malloc is handled
+// by the JVM's garbage collector anyway
+extern void *malloc (size_t __size);
+#define	R_alloc(numItems, sizeOfItem) malloc((numItems)*(sizeOfItem))
+#define S_alloc(numItems, sizeOfItem) malloc(numItems*sizeOfItem);
+
 char*	S_realloc(char *, long, long, int);
 
 #ifdef  __cplusplus

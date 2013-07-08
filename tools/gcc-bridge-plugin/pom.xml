@@ -56,6 +56,10 @@
                 mkdir -p $OUTPUT_DIR
                 mkdir -p $WORK_DIR
                 gcc -I$GCCPLUGINS_DIR/include -fPIC -c -o $WORK_DIR/plugin.o $SRC_DIR/plugin.c
+                RETVAL=$?
+                if [ $RETVAL -ne 0 ]; then
+                  exit $RETVAL
+                fi
                 gcc -shared $WORK_DIR/plugin.o -o $OUTPUT_DIR/gcc-bridge-${envClassifier}.so
               </script>
             </configuration>

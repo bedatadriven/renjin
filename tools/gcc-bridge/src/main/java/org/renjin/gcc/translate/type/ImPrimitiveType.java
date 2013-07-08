@@ -4,12 +4,12 @@ import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.jimple.JimpleExpr;
-import org.renjin.gcc.jimple.JimpleType;
-import org.renjin.gcc.jimple.RealJimpleType;
+import org.renjin.gcc.jimple.*;
 import org.renjin.gcc.runtime.*;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
+import org.renjin.gcc.translate.expr.ImExpr;
+import org.renjin.gcc.translate.field.PrimitiveFieldExpr;
 import org.renjin.gcc.translate.var.PrimitiveHeapVar;
 import org.renjin.gcc.translate.var.PrimitiveStackVar;
 import org.renjin.gcc.translate.var.Variable;
@@ -160,6 +160,14 @@ public enum ImPrimitiveType implements ImType {
     return asJimple();
   }
 
+  @Override
+  public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
+    JimpleFieldBuilder field = classBuilder.newField();
+    field.setName(memberName);
+    field.setType(asJimple());
+    field.setModifiers(JimpleModifiers.STATIC, JimpleModifiers.PUBLIC);
+  }
+
   public JimpleType asJimple() {
     return new RealJimpleType(getPrimitiveClass());
   }
@@ -176,7 +184,7 @@ public enum ImPrimitiveType implements ImType {
     return Array.newInstance(getPrimitiveClass(), 0).getClass();
   }
 
-  public JimpleType getArrayType() {
+  public JimpleType jimpleArrayType() {
     return new RealJimpleType(getArrayClass());
   }
 
@@ -199,6 +207,11 @@ public enum ImPrimitiveType implements ImType {
     } else {
       return new PrimitiveStackVar(functionContext, this, gimpleName);
     }
+  }
+
+  @Override
+  public ImExpr createFieldExpr(String instanceExpr, JimpleType classType, String memberName) {
+    return new PrimitiveFieldExpr(null, classType, memberName, this);
   }
 
   /**

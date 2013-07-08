@@ -18,7 +18,7 @@ public class Dqrdc2Test  extends AbstractGccTest {
   public void dqrdc2() throws Exception {
     Class clazz = compile(Arrays.asList("dqrdc2.f", "ddot.f", "daxpy.f", "dscal.f", "dnrm2.f"), "Dqrdc2");
 
-    Method dqrdc2 = clazz.getMethod("dqrdc2",
+    Method dqrdc2 = clazz.getMethod("dqrdc2_",
             DoublePtr.class,  // x (in/out)
             IntPtr.class,     // ldx - number of rows
             IntPtr.class,     // n - number of rows
@@ -29,7 +29,7 @@ public class Dqrdc2Test  extends AbstractGccTest {
             IntPtr.class,     // jpvt - out
             DoublePtr.class); // work - out
 
-    Method dnrm2 = clazz.getMethod("dnrm2", 
+    Method dnrm2 = clazz.getMethod("dnrm2_",
             IntPtr.class,     // n    
             DoublePtr.class,  // x
             IntPtr.class);    // incx
@@ -57,8 +57,6 @@ public class Dqrdc2Test  extends AbstractGccTest {
 
     assertThat(nrmxl, closeTo(0.99192755400699972, 1e-5));
 
-    
-
     dqrdc2.invoke(null, x, ldx, n, p, tol, k, qraux, jpvt, work);
 
     System.out.println(x);
@@ -78,8 +76,6 @@ public class Dqrdc2Test  extends AbstractGccTest {
     assertArraysEqual(qraux, expected_qraux);
 
     assertThat(k.unwrap(), equalTo(3));
-
-
   }
 
   private void assertArraysEqual(DoublePtr x, double[] expected_x) {
@@ -87,5 +83,4 @@ public class Dqrdc2Test  extends AbstractGccTest {
       assertThat("element " + i, x.array[i], closeTo(expected_x[i], 1e-5));
     }
   }
-
 }

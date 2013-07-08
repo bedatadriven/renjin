@@ -9,6 +9,7 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.translate.call.MallocCallTranslator;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -80,6 +81,10 @@ public class GnurSourcesCompiler {
 
     if(!sources.isEmpty()) {
 
+      workDirectory.mkdirs();
+      jimpleDirectory.mkdirs();
+      gimpleDirectory.mkdirs();
+
       if(checkUpToDate()) {
         return;
       }
@@ -97,7 +102,7 @@ public class GnurSourcesCompiler {
 
           unit = gcc.compileToGimple(sourceFile, "-std=gnu99");
         } catch(Exception e) {
-          throw new GccException("Error compiling " + sourceFile + "to gimple: " + e.getMessage(), e);
+          throw new GccException("Error compiling " + sourceFile + " to gimple: " + e.getMessage(), e);
         }
 
         try {
@@ -118,7 +123,16 @@ public class GnurSourcesCompiler {
       compiler.setClassName(className);
       compiler.addSootClassPaths(classPaths);
       compiler.setVerbose(verbose);
+
+      compiler.getMethodTable().addMathLibrary();
+
+      compiler.getMethodTable().addCallTranslator(new RallocTranslator());
+
+      compiler.getMethodTable().addReferenceClass(Class.forName("org.renjin.appl.Appl"));
+
       compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
+      compiler.getMethodTable().addReferenceClass(Sort.class);
+
       compiler.compile(units);
     }
   }

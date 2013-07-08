@@ -1,56 +1,53 @@
-package org.renjin.gcc.translate.type.struct;
+package org.renjin.gcc.translate.type;
+
 
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
-import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
-import org.renjin.gcc.translate.type.ImType;
-import org.renjin.gcc.translate.var.SimpleRecordVar;
 import org.renjin.gcc.translate.var.Variable;
 
-public class SimpleRecordPtrType implements ImType {
-
-  private final SimpleRecordType baseType;
-
-  public SimpleRecordPtrType(TranslationContext context, SimpleRecordType recordType) {
-    this.baseType = recordType;
+public class ImVoidType implements ImType {
+  
+  public static ImVoidType INSTANCE = new ImVoidType();
+  
+  private ImVoidType() {
+    
   }
 
   @Override
   public JimpleType paramType() {
-    return baseType.getJimpleType();
+    throw new UnsupportedOperationException("parameters cannot have void type");
   }
 
   @Override
   public JimpleType returnType() {
-    return baseType.getJimpleType();
+    return JimpleType.VOID;
   }
 
   @Override
   public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("fields cannot have void type");
   }
 
   @Override
   public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage varUsage) {
-    return new SimpleRecordVar(functionContext, gimpleName, baseType)
-        .asPtrVariable();
+    throw new UnsupportedOperationException("local variables cannot have void type");
   }
 
   @Override
   public ImExpr createFieldExpr(String instanceExpr, JimpleType classType, String memberName) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("fields cannot have void type");
   }
 
   @Override
   public ImType pointerType() {
-    throw new UnsupportedOperationException();
+    return ImVoidPtrType.INSTANCE;
   }
 
   @Override
   public ImType arrayType(Integer lowerBound, Integer upperBound) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("arrays cannot have void type");
   }
 }

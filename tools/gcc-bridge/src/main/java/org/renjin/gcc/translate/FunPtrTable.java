@@ -61,6 +61,7 @@ public class FunPtrTable {
     JimpleInterfaceBuilder iface = context.getJimpleOutput().newInterface();
     iface.setPackageName(PACKAGE_NAME);
     iface.setClassName(signature.interfaceName());
+    iface.extendsInterface("org.renjin.gcc.runtime.FunPtr");
 
     JimpleMethodBuilder applyMethod = iface.newMethod();
     applyMethod.setName("apply");

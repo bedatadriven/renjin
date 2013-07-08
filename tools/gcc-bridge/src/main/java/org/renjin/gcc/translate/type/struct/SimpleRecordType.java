@@ -7,6 +7,7 @@ import org.renjin.gcc.jimple.*;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.VarUsage;
+import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
 import org.renjin.gcc.translate.type.ImType;
 import org.renjin.gcc.translate.var.SimpleRecordVar;
@@ -40,6 +41,7 @@ public class SimpleRecordType extends ImRecordType {
       ImType type = context.resolveType(member.getType());
       types.put(member.getName(), type);
 
+
       JimpleFieldBuilder field = recordClass.newField();
       field.setName(member.getName());
       field.setType(type.returnType()); // TODO: probably need a fieldType()
@@ -59,7 +61,7 @@ public class SimpleRecordType extends ImRecordType {
 
   @Override
   public ImType arrayType(Integer lowerBound, Integer upperBound) {
-    throw new UnsupportedOperationException();
+    return new SimpleRecordArrayType(this, lowerBound, upperBound);
   }
 
   @Override
@@ -73,12 +75,27 @@ public class SimpleRecordType extends ImRecordType {
   }
 
   @Override
+  public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage varUsage) {
     return new SimpleRecordVar(functionContext, gimpleName, this);
   }
 
+  @Override
+  public ImExpr createFieldExpr(String instanceExpr, JimpleType classType, String memberName) {
+    throw new UnsupportedOperationException();
+  }
+
   public int getMemberCount() {
     return types.size();
+  }
+
+  @Override
+  public String toString() {
+    return "<struct: "  + name + ">";
   }
 
   public ImPrimitiveType getMemberType(String member) {

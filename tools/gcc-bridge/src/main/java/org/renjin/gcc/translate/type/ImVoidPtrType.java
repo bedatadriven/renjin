@@ -1,31 +1,37 @@
-package org.renjin.gcc.translate.type.struct;
+package org.renjin.gcc.translate.type;
+
 
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.jimple.RealJimpleType;
+import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.translate.FunctionContext;
-import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
-import org.renjin.gcc.translate.type.ImType;
-import org.renjin.gcc.translate.var.SimpleRecordVar;
 import org.renjin.gcc.translate.var.Variable;
+import org.renjin.gcc.translate.var.VoidPtrVar;
 
-public class SimpleRecordPtrType implements ImType {
+/**
+ * Placeholder for void*, but not currently implemented in any meaningful way
+ */
+public class ImVoidPtrType implements ImType {
 
-  private final SimpleRecordType baseType;
+  public static final ImVoidPtrType INSTANCE = new ImVoidPtrType();
 
-  public SimpleRecordPtrType(TranslationContext context, SimpleRecordType recordType) {
-    this.baseType = recordType;
+  private ImVoidPtrType() {
+
   }
+
 
   @Override
   public JimpleType paramType() {
-    return baseType.getJimpleType();
+    return new RealJimpleType(Object.class);
   }
 
   @Override
   public JimpleType returnType() {
-    return baseType.getJimpleType();
+    return new RealJimpleType(Ptr.class);
   }
 
   @Override
@@ -35,8 +41,7 @@ public class SimpleRecordPtrType implements ImType {
 
   @Override
   public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage varUsage) {
-    return new SimpleRecordVar(functionContext, gimpleName, baseType)
-        .asPtrVariable();
+    return new VoidPtrVar(functionContext, gimpleName);
   }
 
   @Override
@@ -53,4 +58,5 @@ public class SimpleRecordPtrType implements ImType {
   public ImType arrayType(Integer lowerBound, Integer upperBound) {
     throw new UnsupportedOperationException();
   }
+
 }

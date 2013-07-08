@@ -1,5 +1,6 @@
 package org.renjin.gcc.translate.type;
 
+import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.jimple.SyntheticJimpleType;
 import org.renjin.gcc.translate.FunPtrTable;
@@ -8,6 +9,7 @@ import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.call.CallParam;
 import org.renjin.gcc.translate.call.GccFunction;
 import org.renjin.gcc.translate.call.MethodRef;
+import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.var.Variable;
 
 import java.util.List;
@@ -70,6 +72,8 @@ public class ImFunctionType implements ImType {
       return "d";
     } else if (type.toString().equals("org.renjin.gcc.runtime.Ptr")) {
       return "v";
+    } else if (type.toString().equals("java.lang.Object")) {
+      return "O";
     } else {
       throw new UnsupportedOperationException(type.toString());
     }
@@ -112,9 +116,20 @@ public class ImFunctionType implements ImType {
   }
 
   @Override
+  public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
+    throw new UnsupportedOperationException("Function values cannot be field values, " +
+        "only function pointers.");
+  }
+
+  @Override
   public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage varUsage) {
     throw new UnsupportedOperationException("Function values cannot be local variables, " +
         "only function pointers.");
+  }
+
+  @Override
+  public ImExpr createFieldExpr(String instanceExpr, JimpleType classType, String memberName) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

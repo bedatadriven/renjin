@@ -1,11 +1,10 @@
 package org.renjin.gcc.translate.type;
 
 
-import org.renjin.gcc.jimple.Jimple;
-import org.renjin.gcc.jimple.JimpleType;
-import org.renjin.gcc.jimple.RealJimpleType;
+import org.renjin.gcc.jimple.*;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
+import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.var.PrimitiveArrayVar;
 import org.renjin.gcc.translate.var.Variable;
 
@@ -32,12 +31,22 @@ public class ImPrimitiveArrayType implements ImType {
 
   @Override
   public JimpleType returnType() {
-    return componentType().getArrayType();
+    return componentType().jimpleArrayType();
+  }
+
+  @Override
+  public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
+    throw new UnsupportedOperationException("arrays as field members not yet implemented");
   }
 
   @Override
   public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage varUsage) {
     return new PrimitiveArrayVar(functionContext, Jimple.id(gimpleName), this);
+  }
+
+  @Override
+  public ImExpr createFieldExpr(String instanceExpr, JimpleType classType, String memberName) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

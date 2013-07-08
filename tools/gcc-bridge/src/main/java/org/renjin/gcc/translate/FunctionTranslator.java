@@ -9,17 +9,12 @@ import org.renjin.gcc.gimple.ins.GimpleReturn;
 import org.renjin.gcc.gimple.ins.GimpleSwitch;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.ins.GimpleGoto;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.jimple.*;
 import org.renjin.gcc.translate.call.CallTranslator;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.marshall.Marshallers;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
-import org.renjin.gcc.translate.type.PrimitiveType;
-import org.renjin.gcc.translate.type.PrimitiveTypes;
 
 /**
  * Translates a GimpleFunction to a Jimple function
@@ -39,7 +34,7 @@ public class FunctionTranslator extends GimpleVisitor {
     try {
       this.builder = translationContext.getMainClass().newMethod();
       builder.setModifiers(JimpleModifiers.PUBLIC, JimpleModifiers.STATIC);
-      builder.setName(function.getName());
+      builder.setName(function.getMangledName());
       if(function.getReturnType() instanceof GimpleVoidType) {
         builder.setReturnType(JimpleType.VOID);
       } else {
@@ -109,11 +104,12 @@ public class FunctionTranslator extends GimpleVisitor {
   @Override
   public void visitCall(GimpleCall call) {
     try {
-    new CallTranslator(context, call).translate();
-      } catch(Exception e) {
-      throw new TranslationException("Exception thrown while translating call "
-      + call, e);
-      }
+      CallTranslator translator = context.getTranslationContext().getCallTranslator(call);
+      translator.writeCall(context, call);
+
+    } catch(Exception e) {
+      throw new TranslationException("Exception thrown while translating call " + call, e);
+    }
   }
 
   @Override

@@ -127,13 +127,17 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
         // add all methods from class file
         for(Method method : clazz.getMethods()) {
           if(isPublicStatic(method)) {
-            addGnurMethod(fixes, method);
+            addGnurMethod(fixes + method.getName(), method);
           }
         }
       } else {
         for(DynlibEntry entry : entries) {
           Method method = findGnurMethod(clazz, entry.getSymbolName());
-          addGnurMethod(fixes, method);
+          if(entry.getAlias() != null) {
+            addGnurMethod(fixes + entry.getAlias(), method);
+          } else {
+            addGnurMethod(fixes + entry.getSymbolName(), method);
+          }
         }
       }
     } catch(Exception e) {
@@ -144,8 +148,8 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
     }
   }
 
-  private void addGnurMethod(String fixes, Method method) {
-    namespace.getImportsEnvironment().setVariable(fixes + method.getName(),
+  private void addGnurMethod(String name, Method method) {
+    namespace.getImportsEnvironment().setVariable(name,
         new ExternalPtr<Method>(method));
   }
 

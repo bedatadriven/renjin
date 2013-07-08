@@ -40,8 +40,7 @@
     <module>repl</module>
     <module>packages</module>
     <module>tools</module>
-    <module>samples/swing-repl</module>
-    <module>samples/appengine-repl</module>
+    <module>studio</module>
     <module>dist/generic</module>
     <module>dist/deb</module>
     <module>appl</module>

@@ -23,5 +23,6 @@
     <module>gnur-compiler</module>
     <module>gnur-runtime</module>
     <module>maven-plugin</module>
+    <module>aether-package-loader</module>
   </modules>
 </project>

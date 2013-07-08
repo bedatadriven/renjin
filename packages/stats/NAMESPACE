@@ -2,7 +2,7 @@
 useDynLib(stats, .registration = TRUE, .fixes="C_",
     kmeans_Lloyd,
     kmeans_MacQueen,
-    kmns,
+    kmns = kmns_,
     R_approx,
     R_approxfun,
     R_approxtest,

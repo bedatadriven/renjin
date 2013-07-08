@@ -101,11 +101,6 @@
       <name>bedatadriven public repo</name>
       <url>http://nexus.bedatadriven.com/content/groups/public/</url>
     </repository>
-    <repository>
-      <id>renjin</id>
-      <name>renjin package proxy</name>
-      <url>http://repo.renjin.org/m2</url>
-    </repository>
   </repositories>
 
   <pluginRepositories>

@@ -116,7 +116,7 @@ public class Gcc {
    */
   private String callGcc(List<String> arguments) throws IOException {
     List<String> command = Lists.newArrayList();
-    command.add("gcc");
+    command.add("gcc-4.6");
     command.addAll(arguments);
 
     Process gcc = new ProcessBuilder().command(command).directory(workingDirectory).redirectErrorStream(true).start();

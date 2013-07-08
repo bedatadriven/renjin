@@ -9,66 +9,49 @@ that serves as a drop-in replacement for GNU-R, but is easier to
 integrate with other systems, offers better performance, and is
 more extensible.
 
+Maven Artifacts
+===============
+
+You can add Renjin to your Maven/Ivy/etc build by adding the following
+dependency and repository:
+
+```
+<dependencies>
+  <dependency>
+    <groupId>org.renjin</groupId>
+    <artifactId>renjin-script-engine</artifactId>
+    <version>0.7.0-RC2</version>
+  </dependency>
+</dependencies>
+<repositories>
+  <repository>
+    <id>bedatadriven</id>
+    <name>bedatadriven public repo</name>
+    <url>http://nexus.bedatadriven.com/content/groups/public/</url>
+  </repository>
+</repositories>
+```
+
 Downloads
 =========
+
+Standalone distributions of Renjin are available for ad-hoc analysis:
+
+[renjin-debian-package-0.7.0-RC2.deb](http://nexus.bedatadriven.com/content/groups/public/org/renjin/renjin-debian-package/0.7.0-RC2/renjin-debian-package-0.7.0-RC2.deb)
+[renjin-generic-package-0.7.0-RC2.zip](http://nexus.bedatadriven.com/content/groups/public/org/renjin/renjin-generic-package/0.7.0-RC2/renjin-generic-package-0.7.0-RC2.zip)
 
 Artifacts from the latest successful build are available from the build server at
 
 http://build.bedatadriven.com/job/renjin/lastSuccessfulBuild/
 
+Compiling from Source
+=====================
 
-Building
-========
+At this time, building Renjin completely is only supported on a Linux system
+with gcc-4.6 installed. The resulting java builds are fully platform-independent.
 
-Renjin's build is organized by Maven 3.x. Download and install
-Maven from:
+See [BUILDING](BUILDING.md) for more information.
 
-http://maven.apache.org/download.cgi 
-
-In addition to the standard Java tools, Renjin relies on a GCC-based
-build chain to compile C/Fortran math routines to JVM byte code. 
-These tools are in the early stages of development and are a bit
-sensitive to different versions of GCC and to OS. 
-
-If your platform is not listed below, you may need to experiment a 
-bit or ask for help on the mailing list (renjin-dev@googlegroups.com).
-
-Ubuntu 12+
-----------
-
-You can install GCC and friends through the APT package manager:
-
-    sudo apt-get install build-essential gcc-4.6-plugin-dev gfortran
-
-If you are using a 64-bit version of Ubuntu, you will need to
-install additional libraries in order to have GCC cross compile
-to 32-bits (Renjin uses JVM arrays to back pointers, and the JVM
-limits array indices to 32-bits on all platforms)
-
-    sudo apt-get install gcc-multilib
-  
-Fedora 17
----------
-
-Fedora 17 comes with GCC 4.7 which is *NOT* yet working with Renjin.
-
-    sudo yum install gcc gcc-plugin-devel gcc-gfortran
-  
-If you're running 64-bit Fedora, you will need the i686 libraries 
-for cross compiling:
-
-    sudo yum install  glibc.i686 glibc-devel.i686
-
-    
-Windows/Cygwin
---------------
-
-I've tried quite a bit to get the build chain running on Cygwin/Windows,
-but even after getting a [newer version of GCC running](http://cygwin.wikia.com/wiki/How_to_install_a_newer_version_of_GCC), I was unable 
-to get GCC to compile and load our GCC plugin.
-
-If anyone is able to get this working, share on the mailing list (see above), otherwise
-we'll have to wait until our tool can bootstrap a pure-java version of GCC :-)
 
 License
 =======

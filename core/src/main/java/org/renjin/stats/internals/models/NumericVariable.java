@@ -3,6 +3,8 @@ package org.renjin.stats.internals.models;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+import org.renjin.primitives.matrix.Matrix;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbols;
@@ -34,9 +36,11 @@ public class NumericVariable extends Variable {
     if(numColumns == 1) {
       return Collections.singletonList(new UnivariateColumn(name, vector));
     } else {
-      throw new UnsupportedOperationException();
+      List<ModelMatrixColumn> columns = Lists.newArrayList();
+      for(int i=0;i!=numColumns;++i) {
+        columns.add(new MultivariateColumn(name + "." + (i+1), new Matrix(vector, numColumns), i));
+      }
+      return columns;
     }
   }
-
-  
 }

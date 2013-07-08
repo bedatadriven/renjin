@@ -64,21 +64,23 @@ public class MainFrame extends JFrame {
     workspaceTab = new WorkspacePane();
     filesTab = new FilesPane();
     
-    JSplitPane westVertPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-        documentTab, console);
-    westVertPane.setResizeWeight(0.50);
+//    JSplitPane westVertPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+//        documentTab, console);
+//    westVertPane.setResizeWeight(0.50);
+//
+//    JSplitPane eastVertPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+//        workspaceTab, filesTab);
+//    eastVertPane.setResizeWeight(0.50);
+//
+//    JSplitPane horizPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+//        westVertPane, eastVertPane);
+//    horizPane.setResizeWeight(0.50);
+//
+//    add(horizPane, BorderLayout.CENTER);
     
-    JSplitPane eastVertPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-        workspaceTab, filesTab);
-    eastVertPane.setResizeWeight(0.50);
+    add(console, BorderLayout.CENTER);
     
-    JSplitPane horizPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, 
-        westVertPane, eastVertPane);
-    horizPane.setResizeWeight(0.50);  
-    
-    add(horizPane, BorderLayout.CENTER);
-    
-    setupMenu();
+    //setupMenu();
     
     setSize(650, 450);
     setVisible(true);

@@ -24,7 +24,7 @@
   </parent>
 
   <artifactId>renjin-legacy-compiler</artifactId>
-  <name>Renjin Legacy Sources Compiler</name>
+  <name>Renjin GNU R Native Sources Compiler</name>
   <description>Compiles legacy C/Fortran sources to JVM bytecode</description>
 
   <dependencies>

@@ -219,8 +219,11 @@ public class Native {
     } catch (ClassNotFoundException e) {
       throw new EvalException(String.format("Could not find class named %s", className), e);
     }
+
+    String mangledName = methodName.toLowerCase() + "_";
+
     for(Method method : declaringClass.getMethods()) {
-      if(method.getName().equals(methodName) &&
+      if(method.getName().equals(mangledName) &&
           Modifier.isPublic(method.getModifiers()) &&
           Modifier.isStatic(method.getModifiers())) {
         return method;

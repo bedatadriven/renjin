@@ -4,22 +4,18 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import org.renjin.gcc.gimple.CallingConvention;
-import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.ins.GimpleCall;
-import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.jimple.JimpleClassBuilder;
-import org.renjin.gcc.jimple.JimpleOutput;
-import org.renjin.gcc.jimple.JimpleType;
-import org.renjin.gcc.jimple.SyntheticJimpleType;
-import org.renjin.gcc.translate.call.GccFunction;
-import org.renjin.gcc.translate.call.MethodRef;
+import org.renjin.gcc.jimple.*;
+import org.renjin.gcc.translate.call.*;
+import org.renjin.gcc.translate.expr.ImExpr;
+import org.renjin.gcc.translate.field.PrimitiveFieldExpr;
 import org.renjin.gcc.translate.type.struct.ImRecordType;
 import org.renjin.gcc.translate.type.*;
 
@@ -32,17 +28,46 @@ public class TranslationContext {
   private FunPtrTable funPtrTable;
   private RecordTypeTable recordTypeTable;
   private Map<Integer, GimpleRecordTypeDef> recordTypes = Maps.newHashMap();
+  private Map<String, ImExpr> globalVariables = Maps.newHashMap();
+  
+  private List<CallTranslator> builtinCallTranslators = Lists.newArrayList();
 
-  public TranslationContext(JimpleClassBuilder mainClass, MethodTable methodTable, List<GimpleCompilationUnit> units) {
+  public TranslationContext(JimpleClassBuilder mainClass, MethodTable methodTable,
+                            List<GimpleCompilationUnit> units) {
     this.mainClass = mainClass;
     this.methodTable = methodTable;
     this.funPtrTable = new FunPtrTable(this);
 
+    this.recordTypeTable = new RecordTypeTable(units, this);
+
     for(GimpleCompilationUnit unit : units) {
       functions.addAll(unit.getFunctions());
+      for(GimpleVarDecl varDecl : unit.getGlobalVariables()) {
+        translateGlobalVarDecl(varDecl);
+      }
     }
+    
+    builtinCallTranslators.add(new MallocCallTranslator("malloc"));
+    builtinCallTranslators.add(FunPtrCallTranslator.INSTANCE);
+    builtinCallTranslators.add(StaticCallTranslator.INSTANCE);
 
-    this.recordTypeTable = new RecordTypeTable(units, this);
+  }
+
+  private void translateGlobalVarDecl(GimpleVarDecl varDecl) {
+   
+    try {
+      
+      ImType type = resolveType(varDecl.getType());
+  
+      type.defineField(mainClass, varDecl.getName(), false);
+
+      globalVariables.put(varDecl.getName(), type.createFieldExpr(
+          null, new SyntheticJimpleType(mainClass.getFqcn()),
+          varDecl.getName()));
+      
+    } catch(Exception e) {
+      throw new RuntimeException("Exception translating global variable '" + varDecl.getName() + "'", e);
+    }
   }
 
   public JimpleClassBuilder getMainClass() {
@@ -94,11 +119,18 @@ public class TranslationContext {
     for (GimpleParameter param : function.getParameters()) {
       paramTypes.add(resolveType(param.getType()).paramType());
     }
-    return new GccFunction(mainClass.getFqcn(), function.getName(), returnType, paramTypes);
+    return new GccFunction(mainClass.getFqcn(), function.getMangledName(), returnType, paramTypes);
   }
 
-  public Field findGlobal(String name) {
-    return methodTable.findGlobal(name);
+  public ImExpr findGlobal(String name) {
+    if(globalVariables.containsKey(name)) {
+      return globalVariables.get(name);
+    }
+    Field field = methodTable.findGlobal(name);
+    if(field != null) {
+      return new PrimitiveFieldExpr(field);
+    }
+    return null;
   }
 
   public ImType resolveType(GimpleType type) {
@@ -118,6 +150,9 @@ public class TranslationContext {
       GimpleArrayType arrayType = (GimpleArrayType) type;
       return resolveType(arrayType.getComponentType()).arrayType(
           arrayType.getLbound(), arrayType.getUbound());
+
+    } else if (type instanceof GimpleVoidType) {
+      return ImVoidType.INSTANCE;
     }
     throw new UnsupportedOperationException(type.toString());
   }
@@ -142,4 +177,14 @@ public class TranslationContext {
     return new SyntheticJimpleType(getInvokerClass(method));
   }
 
+  public CallTranslator getCallTranslator(GimpleCall call) {
+    for(CallTranslator translator : Iterables.concat(methodTable.getCallTranslators(), builtinCallTranslators)) {
+      if(translator.accept(call)) {
+        return translator;
+      }
+    }
+    throw new UnsupportedOperationException("No matching call translator");
+  }
+
+  
 }

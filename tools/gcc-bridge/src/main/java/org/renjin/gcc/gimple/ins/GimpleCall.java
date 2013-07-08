@@ -42,6 +42,8 @@ public class GimpleCall extends GimpleIns {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
+    sb.append(lhs);
+    sb.append(" = ");
     sb.append("gimple_call <").append(function).append(", ");
     Joiner.on(", ").appendTo(sb, arguments);
     sb.append(">");

@@ -1,6 +1,6 @@
 package org.renjin.gcc.jimple;
 
-public class JimpleType {
+public abstract class JimpleType {
 
   public static final JimpleType INT = new RealJimpleType(int.class);
   public static final JimpleType BOOLEAN = new RealJimpleType(boolean.class);
@@ -45,10 +45,13 @@ public class JimpleType {
 
   public boolean isAssignableFrom(Class otherClass) {
     return false;
-  }
+  }            
+  
+  public abstract boolean is(Class clazz);
 
   public static JimpleType valueOf(Class clazz) {
     return new RealJimpleType(clazz);
   }
 
+  public abstract JimpleType arrayType();
 }

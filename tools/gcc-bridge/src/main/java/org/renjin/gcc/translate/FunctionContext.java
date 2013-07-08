@@ -1,6 +1,5 @@
 package org.renjin.gcc.translate;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 
 import org.renjin.gcc.gimple.CallingConvention;
@@ -16,7 +15,6 @@ import org.renjin.gcc.jimple.RealJimpleType;
 import org.renjin.gcc.translate.call.MethodRef;
 import org.renjin.gcc.translate.expr.*;
 import org.renjin.gcc.translate.type.ImType;
-import org.renjin.gcc.translate.var.PrimitiveFieldExpr;
 import org.renjin.gcc.translate.var.Variable;
 
 import com.google.common.collect.Maps;
@@ -96,21 +94,18 @@ public class FunctionContext {
   public ImExpr lookupVar(GimpleExpr gimpleExpr) {
     if (gimpleExpr instanceof SymbolRef) {
       SymbolRef symbol = (SymbolRef) gimpleExpr;
-      Variable variable = symbolTable.get(symbol.getId());
+      ImExpr variable = symbolTable.get(symbol.getId());
 
       if(variable != null) {
         return variable;
       }
 
       if(symbol.getName() != null) {
-        Field field = translationContext.findGlobal(symbol.getName());
-        if(field != null) {
-          return new PrimitiveFieldExpr(field);
-        }
+        variable = translationContext.findGlobal(symbol.getName());
       }
 
       if (variable == null) {
-        throw new IllegalArgumentException("No such variable " + gimpleExpr + " (id=" + symbol.getId() + ")");
+        throw new IllegalArgumentException("No such variable '" + gimpleExpr + "' (id=" + symbol.getId() + ")");
       }
       return variable;
     } else {

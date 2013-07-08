@@ -44,6 +44,23 @@ public class BasicTest extends AbstractGccTest {
     fillMethod.invoke(null, ptr, ptr.array.length);
 
     System.out.println(Arrays.toString(ptr.array));
+    
+    
+    Method mallocMethod = clazz.getMethod("malloc_test");
+    result = (Double)mallocMethod.invoke(null);
+
+
+    System.out.println("malloc result = " + result);
+
+    assertThat(result, equalTo(7623d));
+    
+
+    // global_malloc_test()
+    clazz.getMethod("malloc_global_test").invoke(null);
+
+
+    result = (Double)clazz.getMethod("malloc_global_test2").invoke(null);
+    assertThat(result, equalTo(7623d));
   }
 
   @Test
@@ -66,7 +83,7 @@ public class BasicTest extends AbstractGccTest {
   public void arraysNonZeroLowerBound() throws Exception {
     Class clazz = compile("lbound.f", "LBound");
 
-    Method test = clazz.getMethod("test", DoublePtr.class, IntPtr.class);
+    Method test = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
     DoublePtr x = new DoublePtr( 0,0,0,0  );
     test.invoke(null, x, new IntPtr(4));
 
@@ -101,7 +118,7 @@ public class BasicTest extends AbstractGccTest {
   @Test
   public void logicalToInt() throws Exception {
     Class clazz = compile("bool2int.f", "LogicalInt");
-    Method method = clazz.getMethod("test", IntPtr.class, IntPtr.class);
+    Method method = clazz.getMethod("test_", IntPtr.class, IntPtr.class);
 
     IntPtr x = new IntPtr(43);
     IntPtr y = new IntPtr(0);
@@ -125,9 +142,9 @@ public class BasicTest extends AbstractGccTest {
   public void logicalMod() throws  Exception {
     Class clazz = compile("logical.f", "Logical");
 
-    clazz.getMethod("runtest").invoke(null);
+    clazz.getMethod("runtest_").invoke(null);
 
-    Method iftest = clazz.getMethod("iftest", IntPtr.class, IntPtr.class);
+    Method iftest = clazz.getMethod("iftest_", IntPtr.class, IntPtr.class);
     IntPtr x = new IntPtr(0);
 
     iftest.invoke(null, new IntPtr(12), x);
@@ -179,7 +196,7 @@ public class BasicTest extends AbstractGccTest {
   public void fortran2darrays() throws Exception {
     Class clazz = compile("2darray.f", "ArrayTest");
 
-    Method method = clazz.getMethod("test", DoublePtr.class, IntPtr.class);
+    Method method = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
     
     double[] x = new double[9];
 
@@ -192,7 +209,7 @@ public class BasicTest extends AbstractGccTest {
     assertThat(x[8], equalTo(9d));
 
     DoublePtr y = new DoublePtr(0);
-    method = clazz.getMethod("localarray", DoublePtr.class);
+    method = clazz.getMethod("localarray_", DoublePtr.class);
     method.invoke(null, y);
 
     assertThat(y.unwrap(), equalTo(110d));

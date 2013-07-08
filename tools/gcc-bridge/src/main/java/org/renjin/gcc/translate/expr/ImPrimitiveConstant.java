@@ -7,6 +7,7 @@ import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.jimple.JimpleExpr;
+import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.TypeChecker;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
@@ -71,5 +72,13 @@ public class ImPrimitiveConstant extends AbstractImExpr {
       return value.intValue() == 0;
     }
     return false;
+  }
+
+  @Override
+  public JimpleExpr translateToObjectReference(FunctionContext context, JimpleType className) {
+    if(isNull()) {
+      return new JimpleExpr("null");
+    }
+    return super.translateToObjectReference(context, className);
   }
 }

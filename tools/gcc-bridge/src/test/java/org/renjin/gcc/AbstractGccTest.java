@@ -36,7 +36,10 @@ public abstract class AbstractGccTest {
 
   protected Class<?> compile(List<String> sources, String className) throws Exception {
 
-    Gcc gcc = new Gcc();
+    File workingDir = new File("target/gcc-work");
+    workingDir.mkdirs();
+
+    Gcc gcc = new Gcc(workingDir);
     if(Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
       gcc.extractPlugin();
     } else {
@@ -44,6 +47,7 @@ public abstract class AbstractGccTest {
     }
     gcc.setDebug(true);
     gcc.setGimpleOutputDir(new File("target/gimple"));
+
 
     List<GimpleCompilationUnit> units = Lists.newArrayList();
 
@@ -65,7 +69,7 @@ public abstract class AbstractGccTest {
 
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setJimpleOutputDirectory(new File("target/test-jimple"));
-    compiler.setOutputDirectory(new File("target/test-classes"));
+    compiler.setOutputDirectory(new File("target/test-classes"));          
     compiler.setPackageName("org.renjin.gcc");
     compiler.setClassName(className);
     compiler.setVerbose(true);

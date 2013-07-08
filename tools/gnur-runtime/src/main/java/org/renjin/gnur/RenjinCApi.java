@@ -4,8 +4,13 @@ package org.renjin.gnur;
 import org.apache.commons.math.util.FastMath;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.FunPtr;
+import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.SEXP;
+
+import java.util.Random;
 
 /**
  * Emulation of the C API for code compiled via GCC
@@ -35,7 +40,7 @@ public class RenjinCApi {
     return FastMath.pow(x, y);
   }
 
-  public static void R_registerRoutines(Object dll, Object CEntries, Object callEntries, Object fortEntries, int count) {
+  public static void R_registerRoutines(Object dll, Object CEntries, Object callEntries, Object q, int count) {
 
   }
 
@@ -121,5 +126,27 @@ public class RenjinCApi {
     // TODO: we really need the R context here
     System.err.println(message.asString());
   }
+
+  public static void GetRNGstate() {
+
+  }
+
+  public static void PutRNGstate() {
+
+  }
+  
+  public static double unif_rand() {
+    // This is spike to get other things working, but to correctly implement, this
+    // needs to be tied somehow to the Random number generator in the calling context
+    return Math.random();
+  }
+  
+  public static void vmmin(int n0, DoublePtr b, DoublePtr fmin, FunPtr fminfn, FunPtr fmingr, int maxit, int trace,
+                          IntPtr mask, double abstol, double reltol, int nREPORT, Object ex, IntPtr fncount,
+                          IntPtr grcount, IntPtr fail) {
+    throw new UnsupportedOperationException("not implemented");
+  }
+
+
 }
 

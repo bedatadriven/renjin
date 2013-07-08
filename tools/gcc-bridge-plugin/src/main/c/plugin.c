@@ -49,6 +49,10 @@ int plugin_is_GPL_compatible;
 tree record_types[MAX_RECORD_TYPES];
 int record_type_count = 0;
 
+#define MAX_GLOBAL_VARS 1000
+tree global_vars[MAX_GLOBAL_VARS];
+int global_var_count = 0;
+
 FILE *json_f;
 
 int json_indent_level = 0;
@@ -214,6 +218,9 @@ void json_end_object() {
 static void dump_type(tree type);
 
 static void dump_function_type(tree type) {
+
+  TRACE("dump_function_type: dumping returnType\n");
+  
   json_field("returnType");
   dump_type(TREE_TYPE(type));
       
@@ -228,22 +235,32 @@ static void dump_function_type(tree type) {
   
   int variable_arguments;
 
-  tree last_arg = TYPE_ARG_TYPES(type);
-  tree next_arg = TREE_CHAIN(last_arg);
+  TRACE("dump_function_type: dumping argumentTypes\n");
 
-  json_array_field("argumentTypes");
-  while(next_arg != NULL_TREE) {
-    dump_type(TREE_VALUE(last_arg));
-    last_arg = next_arg;
-    next_arg = TREE_CHAIN(next_arg);
+  tree last_arg = TYPE_ARG_TYPES(type);
+  
+  if(last_arg != NULL_TREE) {
+    
+    tree next_arg = TREE_CHAIN(last_arg);
+
+
+    json_array_field("argumentTypes");
+    while(next_arg != NULL_TREE) {
+      dump_type(TREE_VALUE(last_arg));
+      last_arg = next_arg;
+      next_arg = TREE_CHAIN(next_arg);
+    }
+
+    TRACE("dump_function_type: dumping lastArg\n");
+    
+    if(TREE_CODE(TREE_VALUE(last_arg)) == VOID_TYPE) {
+      variable_arguments = 0;
+    } else {
+      variable_arguments = 1;
+      dump_type(TREE_VALUE(last_arg));
+    }
+    json_end_array();
   }
-  if(TREE_CODE(TREE_VALUE(last_arg)) == VOID_TYPE) {
-    variable_arguments = 0;
-  } else {
-    variable_arguments = 1;
-    dump_type(TREE_VALUE(last_arg));
-  }
-  json_end_array();
   
   json_bool_field("variableArguments", variable_arguments);
   
@@ -280,9 +297,13 @@ static void dump_record_type_decl(tree type) {
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID (type));
   
-  //if(DECL_NAME(type)) {
-  //  json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(type)));
-  //}
+//  if(DECL_NAME(type) && IDENTIFIER_POINTER(DECL_NAME(type))) {
+//    json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(type)));
+//  }
+
+  if(TYPE_NAME(type)) {
+    json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(TYPE_NAME(type))));
+  }
   
   tree field =  TYPE_FIELDS(type);
   json_array_field("fields");
@@ -303,8 +324,7 @@ static void dump_record_type_decl(tree type) {
 }
 
 static void dump_type(tree type) {
-  printf("dump_type: entering\n");
-  printf("dump_type: code: %s\n", tree_code_name[TREE_CODE(type)]);
+  printf("dump_type: entering: %s\n", tree_code_name[TREE_CODE(type)]);
   json_start_object();
   json_string_field("type", tree_code_name[TREE_CODE(type)]);
     
@@ -353,16 +373,34 @@ static void dump_type(tree type) {
     
   }
   json_end_object();
-  printf("dump_type: exiting\n");
+  printf("dump_type: exiting: %s\n", tree_code_name[TREE_CODE(type)]);
+}
+
+static void dump_global_var_ref(tree decl) {
+  int i;
+  for(i=0;i!=global_var_count;++i) {
+    if(global_vars[i] == decl) {
+      return;
+    }
+  }
+  global_vars[global_var_count] = decl;
+  global_var_count++;
 }
 
 static void dump_op(tree op) {
  	REAL_VALUE_TYPE d;
- 	 	
+
   if(op) {
+
+ 	  // keep track of global variable references
+    if(TREE_CODE(op) == VAR_DECL &&
+       (TREE_CODE(DECL_CONTEXT(op)) == NULL_TREE || TREE_CODE(DECL_CONTEXT(op)) != FUNCTION_DECL)) {
+      dump_global_var_ref(op);
+    }
+
     json_start_object();
     json_string_field("type", tree_code_name[TREE_CODE(op)]);
-    
+
    
     switch(TREE_CODE(op)) {
     case FUNCTION_DECL:
@@ -371,8 +409,8 @@ static void dump_op(tree op) {
       json_int_field("id", DEBUG_TEMP_UID (op));
       if(DECL_NAME(op)) {
         json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(op)));
-      } 
-      break;  
+      }
+      break;
 
     case CONST_DECL:
       json_field("value");
@@ -583,7 +621,14 @@ static void dump_switch(gimple stmt) {
 }
 
 static void dump_statement(basic_block bb, gimple stmt) {
-  
+
+  if(gimple_code(stmt) == VAR_DECL) {
+    // not exactly sure what this does, but GCC seems to dump
+    // this as:
+    // predicted unlikely by continue predictor
+    return;
+  }
+
   switch(gimple_code(stmt)) {
   case GIMPLE_ASSIGN:
     dump_assignment(stmt);
@@ -751,6 +796,22 @@ static void dump_type_decl (void *event_data, void *data)
   json_end_object();
 }
 
+static void dump_global_var(tree var) {
+  json_start_object();
+  json_int_field("id", DEBUG_TEMP_UID(var));
+  if(DECL_NAME(var)) {
+    json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(var)));
+  }
+  json_field("type");
+  dump_type(TREE_TYPE(var));
+
+  if(DECL_INITIAL(var)) {
+    json_field("value");
+    dump_op(DECL_INITIAL(var));
+  }
+  json_end_object();
+}
+
 
 static void start_unit_callback (void *gcc_data, void *user_data)
 {
@@ -767,6 +828,12 @@ static void finish_unit_callback (void *gcc_data, void *user_data)
   json_array_field("recordTypes");
   for(i=0;i<record_type_count;++i) {
     dump_record_type_decl(record_types[i]);
+  }
+  json_end_array();
+
+  json_array_field("globalVariables");
+  for(i=0;i<global_var_count;++i) {
+    dump_global_var(global_vars[i]);
   }
   json_end_array();
 

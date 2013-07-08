@@ -75,6 +75,9 @@ public class Gcc {
     arguments.addAll(Arrays.asList(compilerFlags));
     // command.add("-O9"); // highest optimization
 
+    arguments.add("-fdump-tree-gimple-verbose-raw-vops");
+    arguments.add("-save-temps");
+
     // Enable our plugin which dumps the Gimple as JSON
     // to standard out
 

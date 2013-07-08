@@ -28,7 +28,7 @@
 #include <math.h>
 #include <limits.h> */
 
-/*#include <R.h> */
+#include <R.h>
 #include <float.h>
 #include <R_ext/Linpack.h>
 #include <R_ext/Applic.h>	/* for the QR	  routines */

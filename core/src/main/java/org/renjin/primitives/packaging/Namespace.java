@@ -14,7 +14,7 @@ public class Namespace {
   private List<Symbol> exports = Lists.newArrayList();
   private final Environment namespaceEnvironment;
   private Package pkg;
-    
+
   public Namespace(Package pkg, String localName, Environment namespaceEnvironment) {
     this.name = localName;
     this.pkg = pkg;

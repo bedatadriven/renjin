@@ -3,6 +3,7 @@ package org.renjin.gcc.translate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.gcc.runtime.Builtins;
+import org.renjin.gcc.translate.call.CallTranslator;
 import org.renjin.gcc.translate.call.JvmMethodRef;
 import org.renjin.gcc.translate.call.MethodRef;
 
@@ -31,6 +32,8 @@ public class MethodTable {
 
   private final List<Class> referenceClasses = Lists.newArrayList();
   private final Map<String, MethodEntry> methods = Maps.newHashMap();
+  
+  private final List<CallTranslator> callTranslators = Lists.newArrayList();
 
   public MethodTable() {
     addDefaults();
@@ -64,6 +67,11 @@ public class MethodTable {
 
   public void addReferenceClass(Class clazz) {
     referenceClasses.add(clazz);
+  }
+  
+  public void addMathLibrary() {
+    methods.put("log", new MethodEntry(Math.class, "log"));
+    methods.put("exp", new MethodEntry(Math.class, "exp"));
   }
 
   public MethodRef resolve(String functionName) {
@@ -112,5 +120,13 @@ public class MethodTable {
       }
     }
     return null;
+  }
+  
+  public void addCallTranslator(CallTranslator translator) {
+    this.callTranslators.add(translator);
+  }
+  
+  public List<CallTranslator> getCallTranslators() {
+    return callTranslators;
   }
 }

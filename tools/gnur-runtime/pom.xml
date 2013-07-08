@@ -24,8 +24,8 @@
   </parent>
 
   <artifactId>renjin-gnur-runtime</artifactId>
-  <name>Renjin Legacy Runtime</name>
-  <description>Emulated C/Fortran API</description>
+  <name>Renjin GNU-R Runtime</name>
+  <description>Emulated C/Fortran API for compatibility with GNU R</description>
 
   <dependencies>
     <dependency>
@@ -40,6 +40,11 @@
     <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>gcc-runtime</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-appl</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

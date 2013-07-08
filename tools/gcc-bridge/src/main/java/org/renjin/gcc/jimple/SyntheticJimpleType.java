@@ -23,4 +23,13 @@ public class SyntheticJimpleType extends JimpleType {
     return fullyQualifiedClassName;
   }
 
+  @Override
+  public boolean is(Class clazz) {
+    return clazz.getName().equals(fullyQualifiedClassName);
+  }
+
+  @Override
+  public JimpleType arrayType() {
+    return new SyntheticJimpleType(fullyQualifiedClassName + "[]");
+  }
 }

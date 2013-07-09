@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.7.0-RC3-SNAPSHOT</version>
+    <version>0.7.0-RC3</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 

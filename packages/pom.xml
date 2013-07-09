@@ -4,7 +4,7 @@
   <parent>
     <artifactId>parent</artifactId>
     <groupId>org.renjin</groupId>
-    <version>0.7.0-RC4</version>
+    <version>0.7.0-RC5-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 

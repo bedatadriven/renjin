@@ -6,7 +6,11 @@ useDynLib(stats, .registration = TRUE, .fixes="C_",
     R_approx,
     R_approxfun,
     R_approxtest,
-    massdist)
+    massdist,
+    pkolmogorov2x,
+    psmirnov2x,
+    pkstwo
+    )
 
 # exportPattern("^[^\\.]")
 export(.checkMFClasses, .getXlevels, .MFclass)

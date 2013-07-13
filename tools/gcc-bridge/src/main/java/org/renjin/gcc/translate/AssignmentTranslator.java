@@ -87,6 +87,10 @@ public class AssignmentTranslator {
     case BIT_NOT_EXPR:
       assignBitNot(lhs, operands.get(0));
       break;
+
+    case BIT_AND_EXPR:
+      assignBinaryOp(lhs, "&", operands);
+      break;
       
     case NEGATE_EXPR:
       assignNegated(lhs, operands.get(0));

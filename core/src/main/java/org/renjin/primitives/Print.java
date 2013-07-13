@@ -26,9 +26,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.Materialize;
 import org.renjin.parser.ParseUtil;
 import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
@@ -40,6 +40,7 @@ public class Print {
   private Print() {}
 
   @Internal("print.default")
+  @Materialize
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
       SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) throws IOException {
 

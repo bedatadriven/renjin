@@ -93,6 +93,11 @@ public class LogicalArrayVector extends LogicalVector {
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new LogicalArrayVector(values, attributes);
   }

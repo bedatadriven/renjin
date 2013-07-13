@@ -3,9 +3,14 @@ package org.renjin.eval;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
+import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
+import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
+import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
@@ -80,6 +85,8 @@ public class Session {
    
   private SessionController sessionController = new SessionController();
   
+  private VectorPipeliner vectorPipeliner;
+
   /**
    * Whether the result of the evaluation should be "invisible" in a
    * REPL
@@ -101,6 +108,12 @@ public class Session {
     namespaceRegistry = new NamespaceRegistry((PackageLoader) bindings.get(PackageLoader.class),  topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager(); 
     
+    if(bindings.containsKey(VectorPipeliner.class)) {
+      vectorPipeliner = (VectorPipeliner) bindings.get(VectorPipeliner.class);
+    } else {
+      vectorPipeliner = new SimpleVectorPipeliner();
+    }
+
     // TODO(alex)
     // several packages rely on the presence of .Random.seed in the global
     // even though it's an implementation detail.
@@ -169,6 +182,10 @@ public class Session {
   
   public FileObject getWorkingDirectory() {
     return workingDirectory;
+  }
+  
+  public VectorPipeliner getVectorEngine() {
+    return vectorPipeliner;
   }
   
   public void setCommandLineArguments(String executableName, String... arguments) {

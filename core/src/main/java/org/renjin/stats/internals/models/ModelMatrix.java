@@ -41,6 +41,11 @@ public class ModelMatrix extends DoubleVector {
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public int length() {
     return numRows * columns.size();
   }

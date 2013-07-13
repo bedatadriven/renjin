@@ -90,6 +90,11 @@ public class IntArrayVector extends IntVector {
     return vector;
   }
 
+  @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
   public static class Builder extends AbstractAtomicBuilder {
     private static final int MIN_INITIAL_CAPACITY = 50;
     private int values[];

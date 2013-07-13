@@ -49,6 +49,11 @@ public class RepIntVector extends IntVector {
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public int length() {
     return length;
   }

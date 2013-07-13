@@ -26,7 +26,6 @@ public class DeferredVectorBuilder {
   private List<DeferredArgument> arguments = Lists.newArrayList();
   private JFieldVar lengthField;
 
-
   public DeferredVectorBuilder(JCodeModel codeModel, PrimitiveModel primitive, JvmMethod overload) {
     this.codeModel = codeModel;
     this.primitive = primitive;
@@ -67,10 +66,25 @@ public class DeferredVectorBuilder {
     implementGetOperands();
     implementGetComputationName();
     implementStaticApply();
+    implementIsConstantAccess();
 
     if(overload.isPassNA() && overload.getReturnType().equals(boolean.class)) {
       overrideIsNaWithConstantValue();
     }
+  }
+
+  private void implementIsConstantAccess() {
+    JMethod method = vectorClass.method(JMod.PUBLIC, boolean.class, "isConstantAccessTime");
+    JExpression condition = null;
+    for(DeferredArgument arg : arguments) {
+      JExpression operandIsConstant = arg.valueField.invoke("isConstantAccessTime");
+      if(condition == null) {
+        condition = operandIsConstant;
+      } else {
+        condition = condition.cand(operandIsConstant);
+      }
+    }
+    method.body()._return(condition);
   }
 
 

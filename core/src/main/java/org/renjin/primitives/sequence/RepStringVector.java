@@ -35,4 +35,9 @@ public class RepStringVector extends StringVector {
     sourceLength = source.length();
     return source.getElementAsString( (index / each) % sourceLength);
   }
+
+  @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
 }

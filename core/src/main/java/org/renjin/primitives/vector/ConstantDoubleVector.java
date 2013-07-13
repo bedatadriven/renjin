@@ -32,6 +32,11 @@ public class ConstantDoubleVector extends DoubleVector {
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public int length() {
     return length;
   }

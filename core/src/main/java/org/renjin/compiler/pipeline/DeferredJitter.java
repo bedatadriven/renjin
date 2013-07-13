@@ -3,9 +3,6 @@ package org.renjin.compiler.pipeline;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.util.TraceClassVisitor;
-
-import java.io.PrintWriter;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -73,7 +70,7 @@ public class DeferredJitter {
 
     long loadTime = System.nanoTime() - startTime - compileTime;
 
-    if(DeferredGraph.DEBUG) {
+    if(VectorPipeliner.DEBUG) {
       System.out.println("compile: " + (compileTime/1e6) + "ms");
       System.out.println("load: " + (loadTime/1e6) + "ms");
     }

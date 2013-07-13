@@ -196,8 +196,6 @@ public class DeferredNode {
     this.vector = vector;
   }
 
-
-
   public void replaceOperands(DeferredNode... operands) {
     this.operands = Lists.newArrayList(operands);
   }
@@ -230,5 +228,13 @@ public class DeferredNode {
 
   public boolean isUsed() {
     return !uses.isEmpty();
+  }
+
+  public boolean isMemoized() {
+    return isComputation() && getComputation() instanceof MemoizedComputation;
+  }
+
+  public boolean isComputed() {
+    return !(vector instanceof DeferredComputation);
   }
 }

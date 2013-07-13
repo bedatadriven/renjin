@@ -87,6 +87,11 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public double asReal() {
     if(values.length > 0 &&
         values[0] != null &&

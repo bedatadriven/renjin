@@ -45,4 +45,9 @@ public class ConvertingStringVector extends StringVector implements DeferredComp
   public String getComputationName() {
     return "as.character";
   }
+
+  @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
 }

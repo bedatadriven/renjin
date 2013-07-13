@@ -34,6 +34,11 @@ public class LogicalBitSetVector extends LogicalVector {
   }
   
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public Logical getElementAsLogical(int index) {
     return bitSet.get(index) ? Logical.TRUE : Logical.FALSE;
   }

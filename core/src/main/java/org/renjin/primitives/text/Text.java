@@ -84,6 +84,7 @@ public class Text {
   }
 
   @Internal
+  @Materialize
   public static StringVector sprintf(@Current Context context, @Current Environment rho, 
         StringVector format, @ArgumentList ListVector arguments) {
     

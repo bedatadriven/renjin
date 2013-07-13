@@ -33,6 +33,11 @@ public class DoubleSequence extends DoubleVector {
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return false;
+  }
+
+  @Override
   public int length() {
     return length;
   }

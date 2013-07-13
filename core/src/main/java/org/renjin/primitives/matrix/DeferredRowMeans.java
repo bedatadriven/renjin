@@ -1,6 +1,7 @@
 package org.renjin.primitives.matrix;
 
 import org.renjin.compiler.pipeline.DeferredGraph;
+import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.vector.AttributeDecoratingVector;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.*;
@@ -43,15 +44,19 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return false;
+  }
+
+  @Override
   public int length() {
     return numRows;
   }
 
   private void computeMeans() {
-    if(vector.length() >= DeferredGraph.JIT_THRESHOLD) {
-      DeferredGraph computeGraph = new DeferredGraph(this);
-      computeGraph.compute();
-    } else {
+    System.err.println("EEK! rowMeans.calculate() called directly");
+
+
       double means[] = new double[numRows];
       int row = 0;
       for(int i=0;i!=vector.length();++i) {
@@ -66,7 +71,6 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
       }
       this.means = means;
     }
-  }
 
   @Override
   public boolean isCalculated() {

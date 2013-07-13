@@ -1,6 +1,7 @@
 package org.renjin.primitives.summary;
 
 import org.renjin.compiler.pipeline.DeferredGraph;
+import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.*;
@@ -36,14 +37,14 @@ public class DeferredMean extends DoubleVector implements MemoizedComputation {
       throw new IllegalArgumentException("index: " + index);
     }
     if(!calculated) {
-      if(vector instanceof DeferredComputation && vector.length() >= DeferredGraph.JIT_THRESHOLD) {
-        DeferredGraph computeGraph = new DeferredGraph(this);
-        computeGraph.compute();
-      } else {
         calculate();
       }
-    }
     return result;
+  }
+
+  @Override
+  public boolean isConstantAccessTime() {
+    return false;
   }
 
   @Override
@@ -52,6 +53,7 @@ public class DeferredMean extends DoubleVector implements MemoizedComputation {
   }
 
   private void calculate() {
+    System.err.println("EEK! mean.calculate() called directly");
     double sum = 0;
     for(int i=0;i!=vector.length();++i) {
       sum += vector.getElementAsDouble(i);

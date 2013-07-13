@@ -34,17 +34,8 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.NamespaceRegistry;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.PromisePairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.sexp.*;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -95,7 +86,6 @@ public class Context {
 
   private List<SEXP> onExit = Lists.newArrayList();
 
-    
   private Context parent;
   private int evaluationDepth;
   private Type type;
@@ -168,6 +158,20 @@ public class Context {
   
   public SEXP evaluate(SEXP expression) {
     return evaluate(expression, environment);
+  }
+  
+  /**
+   * If the S-Expression is an {@code DeferredComputation}, then it is executed with the
+   * VectorPipeliner.
+   * @param sexp
+   * @return
+   */
+  public SEXP materialize(SEXP sexp) {
+    if(sexp instanceof DeferredComputation && !((DeferredComputation) sexp).isConstantAccessTime()) {
+      return session.getVectorEngine().materialize((DeferredComputation)sexp);
+    } else {
+      return sexp;
+    }
   }
   
   public SEXP evaluate(SEXP expression, Environment rho) {

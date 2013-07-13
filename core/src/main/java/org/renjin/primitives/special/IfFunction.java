@@ -39,6 +39,9 @@ public class IfFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP condition = context.evaluate( call.getArguments().getElementAsSEXP(0), rho);
 
+    // force any deferred operations
+    condition = context.materialize(condition);
+
     if (asLogicalNoNA(context, call, condition)) {
       return context.evaluate( call.getArguments().getElementAsSEXP(1), rho); /* true value */
 

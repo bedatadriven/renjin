@@ -24,9 +24,6 @@ import java.util.ListIterator;
  */
 public class DeferredGraph {
 
-  public static boolean DEBUG = false;
-  public static final int JIT_THRESHOLD = 1000;
-
   private DeferredNode rootNode;
   private List<DeferredNode> nodes = Lists.newArrayList();
   private int nextNodeId = 1;
@@ -73,7 +70,7 @@ public class DeferredGraph {
     return newNode;
   }
 
-  private void dumpGraph() {
+  public void dumpGraph() {
     try {
       File tempFile = File.createTempFile("deferred", ".dot");
       PrintWriter writer = new PrintWriter(tempFile);
@@ -102,7 +99,16 @@ public class DeferredGraph {
 
   private void printNodes(PrintWriter writer) {
     for(DeferredNode node : nodes) {
-      writer.println(node.getDebugId() + " [ label=\"" + node.getDebugLabel() + "\"]");
+      String shape = "box";
+      if(node.isComputation()) {
+        if(node.getComputation() instanceof  MemoizedComputation) {
+          shape = "ellipse";
+        } else {
+          shape = "parallelogram";
+        }
+      }
+      writer.println(node.getDebugId() + " [ label=\"" + node.getDebugLabel() + "\",  " +
+          "shape=\"" + shape + "\"]");
     }
   }
 
@@ -145,50 +151,4 @@ public class DeferredGraph {
     } while(removing);
   }
 
-  public Vector compute() {
-    if(DEBUG) {
-      dumpGraph();
-    }
-    return compute(rootNode);
-  }
-
-  private Vector compute(DeferredNode node) {
-    // depth first compute
-    for(DeferredNode operand : node.getOperands()) {
-      compute(operand);
-    }
-    if(node.isComputation()) {
-      // TODO: at the moment, we can compile only a small number of summary
-      // function, eventually we want to generate bytecode on the fly based
-      // on their implementations elsewhere.
-      if(node.getComputation().getComputationName().equals("mean") ||
-         node.getComputation().getComputationName().equals("rowMeans")) {
-        try {
-
-          if(DEBUG) {
-            System.out.println("Computing " + node);
-          }
-          Vector[] operands = node.flattenVectors();
-          JittedComputation computer = DeferredJitCache.INSTANCE.compile(node);
-
-          long start = System.nanoTime();
-
-          Vector result = DoubleArrayVector.unsafe(computer.compute(operands));
-
-          long time = System.nanoTime() - start;
-          if(DEBUG) {
-            System.out.println("compute: " + (time/1e6) + "ms");
-          }
-
-          ((MemoizedComputation)node.getVector()).setResult(result);
-          node.setResult(result);
-        } catch(Throwable e) {
-          throw new RuntimeException("Exception compiling node " + node, e);
-        }
-      } else if(node.getVector() instanceof MemoizedComputation) {
-        node.setResult(((MemoizedComputation) node.getVector()).forceResult());
-      }
-    }
-    return node.getVector();
-  }
 }

@@ -6,6 +6,7 @@ import com.sun.codemodel.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
+import org.renjin.invoke.annotations.Materialize;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.invoke.codegen.args.ArgConverterStrategies;
@@ -13,6 +14,7 @@ import org.renjin.invoke.codegen.args.ArgConverterStrategy;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector;
 
 import java.util.Collections;
 import java.util.List;
@@ -122,10 +124,22 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
           throw new UnsupportedOperationException(argument.getClazz().getName());
         }
       } else {
-        argumentMap.put(argument, convert(argument, arguments.get(argumentPos++)));
+        argumentMap.put(argument, convert(argument, materialize(overload, argument, arguments.get(argumentPos++))));
       }
     }
     return argumentMap;
+  }
+
+  private JExpression materialize(JvmMethod overload, JvmMethod.Argument formal, JVar argumentVar) {
+    // this is a little tricky.
+    // We need to decide when to materialize a deferred tasks. We only need to do this
+    // when the method is actually going to access the content of the vector rather than just attributes
+    // or length, etc.
+    if(overload.isAnnotatedWith(Materialize.class)) {
+      return context.invoke("materialize").arg(argumentVar);
+    } else {
+      return argumentVar;
+    }
   }
 
   private void invokeOverload(JvmMethod overload, JBlock block) {
@@ -154,7 +168,13 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
     CodeModelUtils.returnSexp(codeModel, block, overload, invocation);
   }
 
-  private JExpression convert(JvmMethod.Argument argument, JVar sexp) {
+  /**
+   *
+   * @param argument
+   * @param sexp
+   * @return
+   */
+  private JExpression convert(JvmMethod.Argument argument, JExpression sexp) {
     return ArgConverterStrategies.findArgConverterStrategy(argument)
             .convertArgument(this, sexp);
   }

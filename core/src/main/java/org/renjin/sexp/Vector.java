@@ -150,6 +150,13 @@ public interface Vector extends SEXP {
    */
   boolean isElementNA(int index);
 
+
+  /**
+   * @return true if elements of this vector can be accessed in time constant
+   * with regard to the length of the vector
+   */
+  boolean isConstantAccessTime();
+
   /**
    * Returns the element at index {@code index} of the vector as a native
    * JVM object, depending on the underlying R type:

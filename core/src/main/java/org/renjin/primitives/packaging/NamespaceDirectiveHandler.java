@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface NamespaceDirectiveHandler {
 
+
+
   public static class DynlibEntry {
     private String alias;
     private String symbolName;
@@ -30,7 +32,6 @@ public interface NamespaceDirectiveHandler {
     }
   }
 
-
   void export(List<Symbol> symbols);
 
   void exportPattern(String pattern);
@@ -38,6 +39,8 @@ public interface NamespaceDirectiveHandler {
   void import_(List<String> packageNames);
 
   void importFrom(String packageName, List<Symbol> symbols);
+
+  void importFromClass(String className, List<Symbol> methods);
 
   /**
    * Exports an S3 method

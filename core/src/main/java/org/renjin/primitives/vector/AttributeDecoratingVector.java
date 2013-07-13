@@ -29,6 +29,11 @@ public class AttributeDecoratingVector extends DoubleVector implements DeferredC
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return vector.isConstantAccessTime();
+  }
+
+  @Override
   public int length() {
     return vector.length();
   }

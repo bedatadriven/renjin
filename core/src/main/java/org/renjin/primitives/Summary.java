@@ -332,7 +332,7 @@ public class Summary {
   @Internal
   public static DoubleVector mean(Vector x) {
 
-    if(x instanceof DeferredComputation) {
+    if(x instanceof DeferredComputation || x.length() > 100000) {
       return new DeferredMean(x, AttributeMap.EMPTY);
     }
 

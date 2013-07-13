@@ -36,6 +36,11 @@ public class TransposingMatrix extends DoubleVector implements DeferredComputati
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public int length() {
     return source.length();
   }

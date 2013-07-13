@@ -299,6 +299,11 @@ public class Match {
         return levels.getElementAsString(level-1);
       }
     }
+
+    @Override
+    public boolean isConstantAccessTime() {
+      return true;
+    }
   }
 }
 

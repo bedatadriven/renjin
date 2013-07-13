@@ -34,6 +34,11 @@ public class ComputingIntVector extends IntVector {
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new ComputingIntVector(functor, length, attributes);
   }

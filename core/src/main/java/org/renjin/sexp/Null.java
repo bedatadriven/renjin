@@ -175,6 +175,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
   
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public Vector.Builder newBuilderWithInitialCapacity(int initialCapacity) {
     return NullBuilder.INSTANCE;
   }

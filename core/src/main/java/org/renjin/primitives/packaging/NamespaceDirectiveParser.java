@@ -53,8 +53,12 @@ public class NamespaceDirectiveParser {
     String directiveName = parseDirectiveName(call);
     if(directiveName.equals("import")) {
       parseImport(call, handler);
+    } else if(directiveName.equals("importClass")) {
+      parseImportClass(call, handler);
     } else if(directiveName.equals("importFrom")) {
       parseImportFrom(call, handler);
+    } else if(directiveName.equals("importFromClass")) {
+      parseImportFromClass(call, handler);
     } else if(directiveName.equals("S3method")) {
       parseS3Export(call, handler);
     } else if(directiveName.equals("export")) {
@@ -85,12 +89,21 @@ public class NamespaceDirectiveParser {
   }
 
   private static void parseImport(FunctionCall call, NamespaceDirectiveHandler handler) {
+    handler.import_(parseNameArguments(call));
+  }
+
+  private static void parseImportClass(FunctionCall call, NamespaceDirectiveHandler handler) {
+    handler.import_(parseNameArguments(call));
+  }
+
+  private static List<String> parseNameArguments(FunctionCall call) {
     List<String> names = Lists.newArrayList();
     for(SEXP argument : call.getArguments().values()) {
       names.add(parseStringArgument(argument));
     }
-    handler.import_(names);
+    return names;
   }
+
 
   private static void parseImportFrom(FunctionCall call, NamespaceDirectiveHandler handler) {
     if(call.getArguments().length() < 2) {
@@ -102,6 +115,18 @@ public class NamespaceDirectiveParser {
       symbols.add(parseSymbolArgument(call.getArgument(i)));
     }
     handler.importFrom(packageName, symbols);
+  }
+
+  private static void parseImportFromClass(FunctionCall call, NamespaceDirectiveHandler handler) {
+    if(call.getArguments().length() < 2) {
+      throw new EvalException("Expected at least two arguments to importFrom directive");
+    }
+    String className = parseStringArgument(call.getArgument(0));
+    List<Symbol> methods = Lists.newArrayList();
+    for(int i=1;i<call.getArguments().length();++i) {
+      methods.add(parseSymbolArgument(call.getArgument(i)));
+    }
+    handler.importFromClass(className, methods);
   }
 
   private static Symbol parseSymbolArgument(SEXP argument) {

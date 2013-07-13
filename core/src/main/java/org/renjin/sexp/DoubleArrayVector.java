@@ -108,6 +108,11 @@ public final class DoubleArrayVector extends DoubleVector {
   }
   
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public Builder newBuilderWithInitialCapacity(int initialCapacity) {
     return new Builder(0, initialCapacity);
   }

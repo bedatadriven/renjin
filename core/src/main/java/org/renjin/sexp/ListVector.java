@@ -246,6 +246,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
   }
 
+  @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
   /**
    * @return the length of the longest element
    */

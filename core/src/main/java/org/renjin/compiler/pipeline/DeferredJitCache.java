@@ -10,9 +10,7 @@ public class DeferredJitCache {
 
   public static final DeferredJitCache INSTANCE = new DeferredJitCache();
 
-
   private final Cache<JitKey, JittedComputation> cache;
-
 
   private DeferredJitCache() {
     cache = CacheBuilder.newBuilder()

@@ -61,6 +61,11 @@ public class SquareOptimizer implements Optimizer {
     }
 
     @Override
+    public boolean isConstantAccessTime() {
+      return true;
+    }
+
+    @Override
     public int length() {
       return vector.length();
     }

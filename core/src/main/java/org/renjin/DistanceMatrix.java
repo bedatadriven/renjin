@@ -45,6 +45,11 @@ public class DistanceMatrix extends DoubleVector implements DeferredComputation 
     }
   }
 
+  @Override
+  public boolean isConstantAccessTime() {
+    return false;
+  }
+
   public static double test(int index, int size) {
     return Math.sqrt(index % size);
   }

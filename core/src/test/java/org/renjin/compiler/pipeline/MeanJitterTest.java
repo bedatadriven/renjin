@@ -8,9 +8,7 @@ import org.renjin.primitives.R$primitive$$times$deferred_dd;
 import org.renjin.primitives.matrix.DeferredRowMeans;
 import org.renjin.primitives.matrix.TransposingMatrix;
 import org.renjin.primitives.summary.DeferredMean;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 public class MeanJitterTest {
 
@@ -40,8 +38,12 @@ public class MeanJitterTest {
     DeferredMean mean = new DeferredMean(matrix, AttributeMap.EMPTY);
     DeferredGraph graph = new DeferredGraph(mean);
 
-    graph.compute();
+    compute(graph);
 
+  }
+
+  private Vector compute(DeferredGraph graph) {
+    return Null.INSTANCE;
   }
 
   @Test
@@ -71,7 +73,7 @@ public class MeanJitterTest {
     DeferredMean mean = new DeferredMean(t, AttributeMap.EMPTY);
     DeferredGraph graph = new DeferredGraph(mean);
 
-    graph.compute();
+    compute(graph);
   } 
 
   @Test
@@ -84,7 +86,7 @@ public class MeanJitterTest {
     DeferredMean mean = new DeferredMean(times, AttributeMap.EMPTY);
     DeferredGraph graph = new DeferredGraph(mean);
 
-    Vector x = graph.compute();
+    Vector x = compute(graph);
     System.out.println(x);
   }
 
@@ -96,7 +98,7 @@ public class MeanJitterTest {
     DeferredRowMeans rowMeans = new DeferredRowMeans(a, 4, AttributeMap.EMPTY);
     DeferredGraph graph = new DeferredGraph(rowMeans);
 
-    Vector x = graph.compute();
+    Vector x = compute(graph);
     System.out.println(x);
   }
 }

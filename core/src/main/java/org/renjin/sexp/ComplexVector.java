@@ -206,6 +206,11 @@ public class ComplexVector extends AbstractAtomicVector implements Iterable<Comp
   }
   
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public String toString(){
     ArrayList<String> list = new ArrayList<String>();
     for(Complex z : values){

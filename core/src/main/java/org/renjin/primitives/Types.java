@@ -229,6 +229,11 @@ public class Types {
     }
 
     @Override
+    public boolean isConstantAccessTime() {
+      return vector.isConstantAccessTime();
+    }
+
+    @Override
     protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
       return new IsNaVector(attributes, vector);
     }

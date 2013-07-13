@@ -22,6 +22,11 @@ public class RowNamesVector extends StringVector {
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public int length() {
     return length;
   }

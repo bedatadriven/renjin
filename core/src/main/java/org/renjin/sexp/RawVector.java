@@ -146,6 +146,11 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   public Object getElementAsObject(int index) {
     return (values[index]);
   }

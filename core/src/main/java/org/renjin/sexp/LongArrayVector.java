@@ -51,6 +51,11 @@ public class LongArrayVector extends DoubleVector {
   }
 
   @Override
+  public boolean isConstantAccessTime() {
+    return true;
+  }
+
+  @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new LongArrayVector(this.values, attributes);
   }

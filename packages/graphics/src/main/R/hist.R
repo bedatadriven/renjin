@@ -14,7 +14,9 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-hist <- function(x, ...) UseMethod("hist")
+hist <- function(x, ...) {
+ cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+}
 
 hist.default <-
     function (x, breaks = "Sturges", freq = NULL,

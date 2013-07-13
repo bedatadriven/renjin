@@ -16,28 +16,16 @@
 
 ### xy.coords() is now in the imported 'grDevices' package
 
-plot <- function (x, y, ...)  UseMethod("plot")
+plot <- function (x, y, ...)  {
+ cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+}
 
 
 ## xlim = NULL (instead of "missing", since it will be passed to plot.default):
 plot.function <-
     function(x, y = 0, to = 1, from = y, xlim = NULL, ylab = NULL, ...)
 {
-    ## this is to allow things like plot(sin, 0, 2*pi)
-    if (!missing(y) && missing(from)) from <- y
-    if (is.null(xlim)) {
-	if(is.null(from)) from <- 0 # most likely from y = NULL
-    } else {
-	if(missing(from)) from <- xlim[1L]
-	if(missing(to))	to <- xlim[2L]
-    }
-    if (is.null(ylab)) {
-        xname <- list(...)[["xname"]]
-        if (is.null(xname)) xname <- "x"
-       ylab <- paste(substitute(x), "(", xname, ")", sep = "")
-    }
-    ## name args to avoid partial matches from ...
-    curve(expr = x, from = from, to = to, xlim = xlim, ylab = ylab, ...)
+ cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
 }
 
 plot.default <-
@@ -46,32 +34,7 @@ plot.default <-
              ann = par("ann"), axes = TRUE, frame.plot = axes,
              panel.first = NULL, panel.last = NULL, asp = NA, ...)
 {
-    ## These col, bg, pch, cex can be vectors, so exclude them
-    ## Also, axis and box accept some of these
-    localAxis <- function(..., col, bg, pch, cex, lty, lwd) Axis(...)
-    localBox <- function(..., col, bg, pch, cex, lty, lwd) box(...)
-    localWindow <- function(..., col, bg, pch, cex, lty, lwd) plot.window(...)
-    localTitle <- function(..., col, bg, pch, cex, lty, lwd) title(...)
-    xlabel <- if (!missing(x)) deparse(substitute(x))
-    ylabel <- if (!missing(y)) deparse(substitute(y))
-    xy <- xy.coords(x, y, xlabel, ylabel, log)
-    xlab <- if (is.null(xlab)) xy$xlab else xlab
-    ylab <- if (is.null(ylab)) xy$ylab else ylab
-    xlim <- if (is.null(xlim)) range(xy$x[is.finite(xy$x)]) else xlim
-    ylim <- if (is.null(ylim)) range(xy$y[is.finite(xy$y)]) else ylim
-    dev.hold(); on.exit(dev.flush())
-    plot.new()
-    localWindow(xlim, ylim, log, asp, ...)
-    panel.first
-    plot.xy(xy, type, ...)
-    panel.last
-    if (axes) {
-	localAxis(if(is.null(y)) xy$x else x, side = 1, ...)
-	localAxis(if(is.null(y))  x   else y, side = 2, ...)
-    }
-    if (frame.plot) localBox(...)
-    if (ann) localTitle(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
-    invisible()
+ cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
 }
 
 plot.factor <- function(x, y, legend.text = NULL, ...)
@@ -331,7 +294,9 @@ text.formula <- function(formula, data = parent.frame(), ..., subset)
 plot.xy <- function(xy, type, pch = par("pch"), lty = par("lty"),
                     col = par("col"), bg = NA, cex = 1, lwd = par("lwd"),
                     ...)
-    .Internal(plot.xy(xy, type, pch, lty, col, bg, cex, lwd, ...))
+{
+ cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+}
 
 
 plot.new <- function()

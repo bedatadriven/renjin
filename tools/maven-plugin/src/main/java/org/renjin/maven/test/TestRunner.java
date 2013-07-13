@@ -13,10 +13,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.repl.JlineRepl;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
@@ -83,7 +80,26 @@ public class TestRunner {
       System.err.println("Loading default package " + pkg);
       loadLibrary(session, pkg);
     }
+
+    // stub out certain methods for the time being.
+    Closure stubFn = newStubFunction();
+    if(session.getNamespaceRegistry().isRegistered(Symbol.get("graphics"))) {
+      session.getNamespaceRegistry()
+          .getNamespace("graphics")
+          .getNamespaceEnvironment()
+          .setVariable("plot", stubFn);
+    }
+
+
     return session;
+  }
+
+  private Closure newStubFunction() {
+
+    PairList.Builder formals = new PairList.Builder();
+    formals.add(Symbols.ELLIPSES, Symbol.MISSING_ARG);
+
+    return new Closure(Environment.EMPTY, formals.build(), Null.INSTANCE, AttributeMap.EMPTY);
   }
 
   private void loadLibrary(Session session, String namespaceName) {

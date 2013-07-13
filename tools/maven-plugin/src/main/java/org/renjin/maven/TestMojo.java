@@ -82,6 +82,7 @@ public class TestMojo extends AbstractMojo {
    * @parameter expression="${maven.test.failure.ignore}" default-value="false"
    */
   private boolean testFailureIgnore;
+
   
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {

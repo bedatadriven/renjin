@@ -1,9 +1,6 @@
 package org.renjin.maven.test;
 
-import java.io.File;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.List;
 
 import org.renjin.eval.EvalException;
@@ -43,7 +40,7 @@ public class TestReporter {
     currentSuite.setClassName(suiteName(file));
     currentSuiteStarted = System.currentTimeMillis();
     suites.add(currentSuite);
-    stdout = openOutput();
+    stdout = openTestOutput();
   }
 
   private String suiteName(File file) {
@@ -57,9 +54,11 @@ public class TestReporter {
     }
   }
 
-  private PrintStream openOutput() {
+  private PrintStream openTestOutput() {
     try {
-      return new PrintStream(new File(reportsDir, currentSuite.getClassName() + "-output.txt"));
+      return new PrintStream(
+          new CappedOutputStream(new FileOutputStream(
+           new File(reportsDir, currentSuite.getClassName() + "-output.txt"))));
     } catch(Exception e) {
       throw new RuntimeException(e);
     }

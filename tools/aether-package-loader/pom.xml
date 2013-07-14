@@ -3,7 +3,7 @@
   <parent>
     <artifactId>renjin-tools</artifactId>
     <groupId>org.renjin</groupId>
-    <version>0.7.0-RC5</version>
+    <version>0.7.0-RC6-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 

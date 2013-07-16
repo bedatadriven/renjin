@@ -26,7 +26,7 @@
 
   <groupId>org.renjin</groupId>
   <artifactId>parent</artifactId>
-  <version>0.7.0-RC5-SNAPSHOT</version>
+  <version>0.7.0-RC6-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Renjin Parent</name>
 

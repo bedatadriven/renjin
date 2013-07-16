@@ -26,7 +26,7 @@
   <artifactId>renjin-script-engine</artifactId>
   <name>Renjin Script Engine</name>
   <description>Renjin implementation of the javax.script API</description>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.renjin</groupId>
@@ -58,7 +58,7 @@
       <groupId>org.renjin</groupId>
       <artifactId>graphics</artifactId>
       <version>${project.version}</version>
-    </dependency>    
+    </dependency>
 
     <!-- unit test framework -->
     <dependency>
@@ -77,8 +77,26 @@
 
   <build>
     <plugins>
-    
-
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <descriptors>
+            <descriptor>src/main/assembly/assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>assembly</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>

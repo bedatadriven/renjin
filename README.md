@@ -9,6 +9,8 @@ that serves as a drop-in replacement for GNU-R, but is easier to
 integrate with other systems, offers better performance, and is
 more extensible.
 
+For more information, please visit http://www.renjin.org.
+
 Maven Artifacts
 ===============
 
@@ -35,23 +37,19 @@ dependency and repository:
 Downloads
 =========
 
-Standalone distributions of Renjin are available for ad-hoc analysis:
+Standalone distributions of Renjin are available for ad-hoc analysis. Downloads
+are available at [Renjin.org](http://www.renjin.org).
 
-[renjin-debian-package-0.7.0-RC2.deb](http://nexus.bedatadriven.com/content/groups/public/org/renjin/renjin-debian-package/0.7.0-RC2/renjin-debian-package-0.7.0-RC2.deb)
-[renjin-generic-package-0.7.0-RC2.zip](http://nexus.bedatadriven.com/content/groups/public/org/renjin/renjin-generic-package/0.7.0-RC2/renjin-generic-package-0.7.0-RC2.zip)
-
-Artifacts from the latest successful build are available from the build server at
-
-http://build.bedatadriven.com/job/renjin/lastSuccessfulBuild/
+Artifacts from the latest successful build are available from the build server
+at http://build.bedatadriven.com/job/renjin/lastSuccessfulBuild/.
 
 Compiling from Source
 =====================
 
 At this time, building Renjin completely is only supported on a Linux system
-with gcc-4.6 installed. The resulting java builds are fully platform-independent.
+with gcc-4.6 installed. The resulting Java builds are fully platform-independent.
 
 See [BUILDING](BUILDING.md) for more information.
-
 
 License
 =======

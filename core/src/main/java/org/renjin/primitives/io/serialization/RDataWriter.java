@@ -42,10 +42,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
-import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.sexp.BuiltinFunction;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.ComplexVector;
@@ -71,6 +71,7 @@ import com.google.common.collect.Maps;
 
 public class RDataWriter {
 
+
   /**
    * Interfaces that allows R developers and Renjin containers to provide
    * custom serialization for certain types of sexps, like Java objects that
@@ -87,21 +88,31 @@ public class RDataWriter {
     Vector apply(SEXP exp);
   }
   
-  private Context context;
+  private WriteContext context;
   private PersistenceHook hook;
   private DataOutputStream out;
 
   private Map<SEXP, Integer> references = Maps.newHashMap();
 
-  public RDataWriter(Context context, PersistenceHook hook, OutputStream out) throws IOException {
+  public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out) {
     this.context = context;
     this.hook = hook;
     this.out = new DataOutputStream(out);
   }
 
+  public RDataWriter(Context context, PersistenceHook hook, OutputStream out) throws IOException {
+    this(new SessionWriteContext(context.getSession()), hook, out);
+  }
+
   public RDataWriter(Context context, OutputStream out) throws IOException {
     this(context, null, out);
   }
+
+
+  public RDataWriter(WriteContext writeContext, OutputStream os) {
+    this(writeContext, null, os);
+  }
+
   
   /**
    * @deprecated Call save() explicitly
@@ -221,10 +232,10 @@ public class RDataWriter {
     if( exp == Environment.EMPTY) {
       return true;
     }
-    if( exp == context.getEnvironment().getBaseEnvironment() ) {
+    if( context.isBaseEnvironment((Environment) exp) ) {
       return true;
     }
-    if( Namespaces.isNamespace(context.getNamespaceRegistry(), exp)) {
+    if( context.isNamespaceEnvironment((Environment) exp)) {
       return true;
     }
     if( isPackageEnvironment(exp)) {
@@ -368,14 +379,14 @@ public class RDataWriter {
   private void writeEnvironment(Environment env) throws IOException {
     // add reference FIRST to avoid infinite loops
 
-    if(env == context.getGlobalEnvironment()) {
+    if(context.isGlobalEnvironment(env)) {
       out.writeInt(SerializationFormat.GLOBALENV_SXP);
-    } else if(env == context.getGlobalEnvironment().getBaseEnvironment()) {
+    } else if(context.isBaseEnvironment(env)) {
       out.writeInt(SerializationFormat.BASEENV_SXP);
     } else if(env == Environment.EMPTY) {
       out.writeInt(SerializationFormat.EMPTYENV_SXP);
     } else {      
-      if(Namespaces.isNamespace(context.getNamespaceRegistry(), env)) {
+      if(context.isNamespaceEnvironment(env)) {
         writeNamespace(env);
       } else {
         addRef(env);
@@ -401,7 +412,7 @@ public class RDataWriter {
   }
 
   private void writeNamespace(Environment ns) throws IOException {
-    if(ns == context.getSession().getNamespaceRegistry().getNamespace(Symbol.get("base")).getNamespaceEnvironment()) {
+    if(context.isBaseNamespaceEnvironment(ns)) {
       out.writeInt(SerializationFormat.BASENAMESPACE_SXP);
     } else {
       addRef(ns);
@@ -433,7 +444,7 @@ public class RDataWriter {
   }
 
   private StringVector getNamespaceName(Environment ns) {
-    return StringVector.valueOf(context.getNamespaceRegistry().getNamespace(ns).getName());
+    return StringVector.valueOf(context.getNamespaceName(ns));
   }
 
   private void writeSymbol(Symbol symbol) throws IOException {
@@ -490,4 +501,5 @@ public class RDataWriter {
   private void writeFlags(int type, SEXP exp) throws IOException {
     out.writeInt(Flags.computeFlags(exp, type));
   }
+
 }

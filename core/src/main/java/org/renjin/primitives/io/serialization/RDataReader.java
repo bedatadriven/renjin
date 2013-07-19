@@ -50,7 +50,7 @@ public class RDataReader {
   private ReadContext readContext;
 
   public RDataReader(Context context, InputStream conn) {
-    this.readContext = new DefaultContext(context);
+    this.readContext = new SessionReadContext(context.getSession());
     this.conn = conn;
   }
 
@@ -639,80 +639,4 @@ public class RDataReader {
     SEXP restore(StringVector values);
   }
 
-  public interface ReadContext {
-
-    SEXP getBaseEnvironment();
-
-    SEXP createPromise(SEXP expr, Environment environment);
-
-    SEXP findNamespace(Symbol symbol);
-
-    SEXP getBaseNamespaceEnvironment();
-
-    SEXP getGlobalEnvironment();    
-  }
-  
-  public static class DefaultContext implements ReadContext {
-
-    private Context context;
-    
-    public DefaultContext(Context context) {
-      this.context = context;
-    }
-
-    @Override
-    public SEXP getBaseEnvironment() {
-      return context.getSession().getBaseEnvironment();
-    }
-
-    @Override
-    public SEXP createPromise(SEXP expr, Environment env) {
-      return Promise.repromise(env, expr);
-    }
-
-    @Override
-    public SEXP findNamespace(Symbol symbol) {
-      return context.getSession().getNamespaceRegistry().getNamespace(symbol).getNamespaceEnvironment();
-    }
-
-    @Override
-    public SEXP getBaseNamespaceEnvironment() {
-      return context.getSession().getBaseNamespaceEnv();
-    }
-
-    @Override
-    public SEXP getGlobalEnvironment() {
-      return context.getGlobalEnvironment();
-    }
-  }
-  
-  public static class NullReadContext implements ReadContext {
-
-    @Override
-    public SEXP getBaseEnvironment() {
-      return Environment.EMPTY;
-    }
-
-    @Override
-    public SEXP createPromise(SEXP expr, Environment environment) {
-      return Promise.repromise(Null.INSTANCE);
-    }
-
-    @Override
-    public SEXP findNamespace(Symbol symbol) {
-      return Environment.EMPTY;
-    }
-
-    @Override
-    public SEXP getBaseNamespaceEnvironment() {
-      return Environment.EMPTY;
-    }
-
-    @Override
-    public SEXP getGlobalEnvironment() {
-      return Environment.EMPTY;
-    } 
-    
-  }
-  
 }

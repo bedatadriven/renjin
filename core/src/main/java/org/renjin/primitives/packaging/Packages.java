@@ -7,11 +7,7 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.invoke.annotations.Invisible;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.HashFrame;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
 public class Packages {
 
@@ -20,8 +16,17 @@ public class Packages {
   public static void library(
       @Current Context context,
       @Current NamespaceRegistry namespaceRegistry, 
-      @Unevaluated Symbol packageName) throws IOException {
-    
+      @Unevaluated SEXP packageNameExp) throws IOException {
+
+    String packageName;
+    if(packageNameExp instanceof Symbol) {
+      packageName = ((Symbol) packageNameExp).getPrintName();
+    } else if(packageNameExp instanceof StringVector && packageNameExp.length()==1) {
+      packageName = ((StringVector) packageNameExp).getElementAsString(0);
+    } else {
+      throw new UnsupportedOperationException("Unexpected package name argument: " + packageNameExp);
+    }
+
     Namespace namespace = namespaceRegistry.getNamespace(packageName);
     
     // Create the package environment

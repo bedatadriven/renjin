@@ -22,14 +22,9 @@
 package org.renjin.parser;
 
 import com.google.common.base.Function;
+import org.renjin.sexp.*;
 
 import java.text.NumberFormat;
-
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.Raw;
-import org.renjin.sexp.StringVector;
 
 public class ParseUtil {
   public static final NumberFormat INTEGER_FORMAT = createIntegerFormat();
@@ -40,6 +35,7 @@ public class ParseUtil {
     NumberFormat format = NumberFormat.getNumberInstance();
     format.setMinimumFractionDigits(0);
     format.setMaximumFractionDigits(14);
+    format.setGroupingUsed(false);
     return format;
   }
 

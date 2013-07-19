@@ -1,16 +1,15 @@
 package org.renjin.primitives.time;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import org.joda.time.DateTime;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.renjin.EvalTestCase;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class TimeTest extends EvalTestCase {
@@ -76,6 +75,15 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("is.na(t$sec)"), equalTo(c(true)));
     assertThat(eval("t$isdst"), equalTo(c_i(-1)));
   }
-  
+
+  @Test
+  public void asDate() {
+    assumingBasePackagesLoad();
+    eval("x <- paste(2004, rep(1:4, 4:1), seq(1,20,2), sep = \"-\")");
+    eval("print(x)");
+    eval("y <- as.Date(x)");
+    eval("print(y)");
+    assertThat(eval("y"), equalTo(c(12418d, 12420d, 12422d, 12424d, 12457, 12459, 12461, 12492, 12494, 12527)));
+  }
   
 }

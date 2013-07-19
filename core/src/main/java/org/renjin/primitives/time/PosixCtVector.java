@@ -34,8 +34,16 @@ public class PosixCtVector extends TimeVector {
   }  
   
   public static class Builder {
-    private final DoubleArrayVector.Builder vector = new DoubleArrayVector.Builder();
-    
+    private final DoubleArrayVector.Builder vector;
+
+    public Builder() {
+      vector = new DoubleArrayVector.Builder();
+    }
+
+    public Builder(int initialCapacity) {
+      vector = new DoubleArrayVector.Builder(0, initialCapacity);
+    }
+
     public Builder add(DateTime dateTime) {
       vector.add(dateTime.getMillis() / 1000);
       return this;

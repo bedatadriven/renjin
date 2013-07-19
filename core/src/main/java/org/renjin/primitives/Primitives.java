@@ -1,50 +1,18 @@
 package org.renjin.primitives;
 
-import static org.renjin.primitives.PPkind.PP_BINARY;
-import static org.renjin.primitives.PPkind.PP_BINARY2;
-import static org.renjin.primitives.PPkind.PP_DOLLAR;
-import static org.renjin.primitives.PPkind.PP_FOREIGN;
-import static org.renjin.primitives.PPkind.PP_FUNCALL;
-import static org.renjin.primitives.PPkind.PP_FUNCTION;
-import static org.renjin.primitives.PPkind.PP_SUBASS;
-import static org.renjin.primitives.PPkind.PP_SUBSET;
-import static org.renjin.primitives.PPkind.PP_UNARY;
-import static org.renjin.primitives.PPprec.PREC_AND;
-import static org.renjin.primitives.PPprec.PREC_COLON;
-import static org.renjin.primitives.PPprec.PREC_COMPARE;
-import static org.renjin.primitives.PPprec.PREC_DOLLAR;
-import static org.renjin.primitives.PPprec.PREC_FN;
-import static org.renjin.primitives.PPprec.PREC_LEFT;
-import static org.renjin.primitives.PPprec.PREC_NOT;
-import static org.renjin.primitives.PPprec.PREC_OR;
-import static org.renjin.primitives.PPprec.PREC_PERCENT;
-import static org.renjin.primitives.PPprec.PREC_POWER;
-import static org.renjin.primitives.PPprec.PREC_PROD;
-import static org.renjin.primitives.PPprec.PREC_SUBSET;
-import static org.renjin.primitives.PPprec.PREC_SUM;
-import static org.renjin.util.CDefines.RelOpType.EQOP;
-import static org.renjin.util.CDefines.RelOpType.GEOP;
-import static org.renjin.util.CDefines.RelOpType.GTOP;
-import static org.renjin.util.CDefines.RelOpType.LEOP;
-import static org.renjin.util.CDefines.RelOpType.LTOP;
-import static org.renjin.util.CDefines.RelOpType.NEOP;
-
-import java.util.*;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.math.distribution.Distribution;
 import org.renjin.base.internals.AllNamesVisitor;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.invoke.annotations.Internal;
-import org.renjin.invoke.model.JvmMethod;
-import org.renjin.methods.Methods;
-import org.renjin.invoke.codegen.WrapperGenerator2;
-import org.renjin.primitives.files.Files;
 import org.renjin.graphics.internals.Graphics;
 import org.renjin.graphics.internals.Par;
 import org.renjin.graphics.internals.Plot;
 import org.renjin.graphics.internals.RgbHsv;
+import org.renjin.invoke.codegen.WrapperGenerator2;
+import org.renjin.methods.Methods;
+import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
 import org.renjin.primitives.io.DebianControlFiles;
 import org.renjin.primitives.io.connections.Connections;
@@ -60,25 +28,26 @@ import org.renjin.primitives.special.*;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
-import org.renjin.sexp.BuiltinFunction;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SpecialFunction;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Covariance;
 import org.renjin.stats.internals.Distributions;
 import org.renjin.stats.internals.FFT;
-import org.renjin.stats.internals.distributions.*;
+import org.renjin.stats.internals.distributions.Beta;
+import org.renjin.stats.internals.distributions.PsiGamma;
+import org.renjin.stats.internals.distributions.RNG;
+import org.renjin.stats.internals.distributions.Sampling;
 import org.renjin.stats.internals.models.Models;
 import org.renjin.stats.internals.optimize.Optimizations;
 import org.renjin.stats.internals.optimize.Roots;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+
+import static org.renjin.primitives.PPkind.*;
+import static org.renjin.primitives.PPprec.*;
+import static org.renjin.util.CDefines.RelOpType.*;
 
 public class Primitives {
 
@@ -928,8 +897,8 @@ public class Primitives {
     f("as.POSIXlt", Time.class, 0, 11, 2);
     f("format.POSIXlt", Time.class, 0, 11, 3);
     f("strptime", Time.class,  0, 11, 3);
-    f("Date2POSIXlt", /*D2POSIXlt*/ null, 0, 11, 1);
-    f("POSIXlt2Date", /*POSIXlt2D*/ null, 0, 11, 1);
+    f("Date2POSIXlt", Time.class, 0, 11, 1);
+    f("POSIXlt2Date", Time.class, 0, 11, 1);
 
 
 /* Connections */

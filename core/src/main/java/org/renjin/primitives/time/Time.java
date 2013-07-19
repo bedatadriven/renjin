@@ -24,8 +24,8 @@ package org.renjin.primitives.time;
 import com.google.common.base.Strings;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
 import org.joda.time.format.DateTimeFormatter;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
@@ -35,22 +35,22 @@ import java.util.List;
  * Implementation of date time-related functions.
  * 
  * <p>
- * R has two primary representations of date/times:
+ * R has three representations of date/times:
  * 
  * <ul>
  * <li>POSIXct - which is a stored as DoubleVector with the number seconds since Jan 1st 1970, with 
  * classes "POSIXct" and "POSIXt"</li>
  * <li>POSIXlt - which is stored as ListVector containing calendar elements sec, min, mon, etc</li>
+ * <li>Date - which is stored as a DoubleVector with the number of days since Jan 1st 1970, where
+ * Jan 1st, 1970 is day zero.</li>
  * </ul>
  */
 public class Time {
 
+  public static DateTime EPOCH = new DateTime(1970, 1, 1, 0, 0, 0);
   
   /**
-   * Parses a string value into a date time value. 
-   * @param x
-   * @param format
-   * @param tz
+   * Parses a string value into a date time value.
    * @return
    */
   @Internal
@@ -100,7 +100,34 @@ public class Time {
       .addAll(new PosixCtVector(x))
       .buildListVector();
   }
-  
+
+
+  /**
+   * Converts a POSIXlt object (in calendar form) to a Date object,
+   * which stores dates as an offset from Jan 1, 1970.
+   */
+  @Internal
+  public static DoubleVector POSIXlt2Date(ListVector x) {
+    PosixLtVector ltVector = new PosixLtVector(x);
+    DoubleArrayVector.Builder dateVector = DoubleArrayVector.Builder.withInitialCapacity(ltVector.length());
+    for(int i=0;i!=ltVector.length();++i) {
+      DateTime date = ltVector.getElementAsDateTime(i);
+      dateVector.add(Days.daysBetween(EPOCH, date).getDays());
+    }
+    dateVector.setAttribute(Symbols.CLASS, StringVector.valueOf("Date"));
+    return dateVector.build();
+  }
+
+  @Internal
+  public static ListVector Date2POSIXlt(DoubleVector x) {
+    PosixLtVector.Builder ltVector = new PosixLtVector.Builder();
+    for(int i=0;i!=x.length();++i) {
+      int daysSinceEpoch = x.getElementAsInt(i);
+      ltVector.add(EPOCH.plusDays(daysSinceEpoch));
+    }
+    return ltVector.buildListVector();
+  }
+
   @Internal("Sys.time")
   public static DoubleVector sysTime() {
     return new PosixCtVector.Builder()
@@ -110,10 +137,6 @@ public class Time {
   
   /**
    * Formats a Posix-lt time as a string.
-   * @param x
-   * @param format
-   * @param useTz
-   * @return
    */
   @Internal("format.POSIXlt")
   public static StringVector formatPOSIXlt(ListVector x, StringVector patterns, boolean useTz) {

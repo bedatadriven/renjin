@@ -141,14 +141,14 @@ public class NamespaceRegistry {
     // each namespace has environment which is the leaf in a hierarchy that
     // looks like this:
     // BASE-NS -> IMPORTS -> ENVIRONMENT
-    
+
     Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(), "imports:" + localName);
 
-    Environment namespaceEnv = Environment.createNamedEnvironment(imports, "namespace:" + localName);
+    Environment namespaceEnv = Environment.createNamedEnvironment(imports, localName);
     Namespace namespace = new Namespace(pkg, localName, namespaceEnv);
     namespaces.put(Symbol.get(localName), namespace);
     envirMap.put(namespaceEnv, namespace);
-    
+
     // save the name to the environment
     namespaceEnv.setVariable(".packageName", StringVector.valueOf(localName));
     return namespace;

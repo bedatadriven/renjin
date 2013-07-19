@@ -1185,7 +1185,11 @@ public class Types {
     List<String> names = Lists.newArrayList();
     Environment env = context.getGlobalEnvironment();
     while (env != Environment.EMPTY) {
-      names.add(env.getName());
+      if(context.getNamespaceRegistry().isNamespaceEnv(env)) {
+        names.add("namespace:" + env.getName());
+      } else {
+        names.add(env.getName());
+      }
       env = env.getParent();
     }
     // special cased:

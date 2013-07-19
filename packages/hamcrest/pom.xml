@@ -40,7 +40,6 @@
 						</goals>
 						<phase>compile</phase>
 					</execution>
-					
 				</executions>
 			</plugin>
 		</plugins>

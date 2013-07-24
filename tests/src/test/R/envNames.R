@@ -1,4 +1,4 @@
-
+library(hamcrest)
 
 test.searchPath <- function() {
     assertThat(search(), equalTo(c(".GlobalEnv", "package:stats", "package:graphics",

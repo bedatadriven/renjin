@@ -16,6 +16,7 @@ public class DeferredVectorBuilder {
 
   public static final int LENGTH_THRESHOLD = 100;
 
+  private final JExpression contextArgument;
   private JCodeModel codeModel;
   private PrimitiveModel primitive;
   private JvmMethod overload;
@@ -26,11 +27,12 @@ public class DeferredVectorBuilder {
   private List<DeferredArgument> arguments = Lists.newArrayList();
   private JFieldVar lengthField;
 
-  public DeferredVectorBuilder(JCodeModel codeModel, PrimitiveModel primitive, JvmMethod overload) {
+  public DeferredVectorBuilder(JCodeModel codeModel, JExpression contextArgument, PrimitiveModel primitive, JvmMethod overload) {
     this.codeModel = codeModel;
     this.primitive = primitive;
     this.overload = overload;
     this.arity = overload.getPositionalFormals().size();
+    this.contextArgument = contextArgument;
 
     if(overload.getReturnType().equals(double.class)) {
       type = VectorType.DOUBLE;
@@ -67,11 +69,13 @@ public class DeferredVectorBuilder {
     implementGetComputationName();
     implementStaticApply();
     implementIsConstantAccess();
+    implementGetComputationDepth();
 
     if(overload.isPassNA() && overload.getReturnType().equals(boolean.class)) {
       overrideIsNaWithConstantValue();
     }
   }
+
 
   private void implementIsConstantAccess() {
     JMethod method = vectorClass.method(JMod.PUBLIC, boolean.class, "isConstantAccessTime");
@@ -87,6 +91,20 @@ public class DeferredVectorBuilder {
     method.body()._return(condition);
   }
 
+
+  private void implementGetComputationDepth() {
+    JMethod method = vectorClass.method(JMod.PUBLIC, int.class, "getComputationDepth");
+    JVar depth = method.body().decl(codeModel._ref(int.class), "depth",
+        arguments.get(0).valueField.invoke("getComputationDepth"));
+
+    for(int i=1;i<arguments.size();++i) {
+      method.body().assign(depth, codeModel.ref(Math.class).staticInvoke("max")
+          .arg(depth)
+          .arg(arguments.get(1).valueField.invoke("getComputationDepth")));
+    }
+
+    method.body()._return(depth.plus(JExpr.lit(1)));
+  }
 
   private void implementGetOperands() {
     JMethod method = vectorClass.method(JMod.PUBLIC, Vector[].class, "getOperands");
@@ -141,7 +159,7 @@ public class DeferredVectorBuilder {
     }
     newInvocation.arg(attributes);
 
-    ifBig._return(newInvocation);
+    ifBig._return(contextArgument.invoke("simplify").arg(newInvocation));
   }
 
   private JExpression copyAttributes(List<JExpression> arguments) {

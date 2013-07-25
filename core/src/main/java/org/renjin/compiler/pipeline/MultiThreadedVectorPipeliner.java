@@ -26,7 +26,6 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
   public Vector materialize(DeferredComputation root) {
     DeferredGraph graph = new DeferredGraph(root);
 
-    System.out.println("materialize");
     if(VectorPipeliner.DEBUG) {
       graph.dumpGraph();
     }
@@ -42,6 +41,18 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
 
     // return result
     return root;
+  }
+
+  @Override
+  public Vector simplify(DeferredComputation root) {
+    DeferredGraph graph = new DeferredGraph(root);
+
+    if(VectorPipeliner.DEBUG) {
+      System.err.println("simplify");
+      graph.dumpGraph();
+    }
+
+    return materialize(root);
   }
 
   private void forceMemoizedValues(DeferredGraph graph) throws InterruptedException, ExecutionException {

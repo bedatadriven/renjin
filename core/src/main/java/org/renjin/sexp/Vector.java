@@ -176,6 +176,8 @@ public interface Vector extends SEXP {
    */
   Object getElementAsObject(int index);
 
+  int getComputationDepth();
+
   /**
    * An interface to
    * @param <S>

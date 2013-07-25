@@ -24,6 +24,7 @@ package org.renjin.primitives;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.summary.DeferredMean;
+import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
@@ -228,6 +229,10 @@ public class Summary {
     int intSum = 0;
     double doubleSum = 0;
     boolean haveDouble = false;
+
+    if(arguments.length() == 1 && arguments.get(0) instanceof DoubleVector && !removeNA) {
+      return new DeferredSum((Vector) arguments.get(0), AttributeMap.EMPTY);
+    }
 
     for(SEXP argument : arguments) {
       if(argument instanceof IntVector || argument instanceof LogicalVector) {

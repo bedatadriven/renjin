@@ -32,6 +32,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
+import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.vector.DeferredComputation;
@@ -169,6 +170,15 @@ public class Context {
   public SEXP materialize(SEXP sexp) {
     if(sexp instanceof DeferredComputation && !((DeferredComputation) sexp).isConstantAccessTime()) {
       return session.getVectorEngine().materialize((DeferredComputation)sexp);
+    } else {
+      return sexp;
+    }
+  }
+
+  public SEXP simplify(SEXP sexp) {
+    if(sexp instanceof DeferredComputation &&
+        ((DeferredComputation) sexp).getComputationDepth() > VectorPipeliner.MAX_DEPTH) {
+      return session.getVectorEngine().simplify((DeferredComputation)sexp);
     } else {
       return sexp;
     }

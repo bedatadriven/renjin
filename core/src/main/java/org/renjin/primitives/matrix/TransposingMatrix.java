@@ -54,4 +54,9 @@ public class TransposingMatrix extends DoubleVector implements DeferredComputati
   public String getComputationName() {
     return "t";
   }
+
+  @Override
+  public int getComputationDepth() {
+    return source.getComputationDepth() + 1;
+  }
 }

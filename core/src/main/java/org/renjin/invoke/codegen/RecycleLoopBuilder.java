@@ -68,6 +68,7 @@ public class RecycleLoopBuilder {
    */
   private JvmMethod overload;
 
+  private final JExpression contextVar;
   private List<RecycledArgument> recycledArguments = Lists.newArrayList();
   private Map<JvmMethod.Argument, JExpression> argumentMap = Maps.newHashMap();
 
@@ -79,11 +80,12 @@ public class RecycleLoopBuilder {
 
   private JVar builder;
 
-  public RecycleLoopBuilder(JCodeModel codeModel, JBlock parent, PrimitiveModel primitive, JvmMethod overload,
+  public RecycleLoopBuilder(JCodeModel codeModel, JBlock parent, JExpression contextVar, PrimitiveModel primitive, JvmMethod overload,
                             Map<JvmMethod.Argument, JExpression> argumentMap) {
 
     this.codeModel = codeModel;
     this.parent = parent;
+    this.contextVar = contextVar;
     this.primitive = primitive;
     this.overload = overload;
     this.vectorType = codeModel.ref(Vector.class);
@@ -136,7 +138,7 @@ public class RecycleLoopBuilder {
     }
 
     if(overload.isDeferrable()) {
-      DeferredVectorBuilder deferred = new DeferredVectorBuilder(codeModel, primitive, overload);
+      DeferredVectorBuilder deferred = new DeferredVectorBuilder(codeModel, contextVar, primitive, overload);
       deferred.buildClass();
       deferred.maybeReturn(parent, cycleCount, deferredArgumentList());
     }

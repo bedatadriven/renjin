@@ -145,7 +145,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
   private void invokeOverload(JvmMethod overload, JBlock block) {
 
     if(overload.isDataParallel()) {
-      new RecycleLoopBuilder(codeModel, block, primitive, overload, mapArguments(overload))
+      new RecycleLoopBuilder(codeModel, block, context, primitive, overload, mapArguments(overload))
             .build();
     } else {
       invokeSimpleMethod(overload, block);

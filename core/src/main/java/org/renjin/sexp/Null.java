@@ -255,6 +255,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public int getComputationDepth() {
+    return 0;
+  }
+
+  @Override
   public SEXP getRawTag() {
     return Null.INSTANCE;
   }

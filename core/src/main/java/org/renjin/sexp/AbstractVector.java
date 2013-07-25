@@ -39,6 +39,9 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     return getElementAsRawLogical(index) == 1;
   }
 
+  public int getComputationDepth() {
+    return 0;
+  }
 
   abstract static class AbstractBuilder<S extends SEXP> implements Builder<S> {
     private final AttributeMap.Builder attributes = AttributeMap.builder();

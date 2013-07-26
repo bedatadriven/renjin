@@ -27,7 +27,7 @@ public class Euclidean1dDistanceTriangle extends DoubleVector implements Deferre
   public Vector getVector() {
     return vector;
   }
-
+  
   @Override
   public Vector[] getOperands() {
     return new Vector[0];  //To change body of implemented methods use File | Settings | File Templates.

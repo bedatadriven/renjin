@@ -1,6 +1,7 @@
 package org.renjin.primitives.subset;
 
 import com.google.common.collect.UnmodifiableIterator;
+import org.renjin.iterator.IntIterator;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
@@ -23,8 +24,8 @@ public class CompleteSelection extends Selection {
   }
   
   @Override
-  public Iterator<Integer> iterator() {
-    return new UnmodifiableIterator<Integer>() {
+  public IntIterator intIterator() {
+    return new IntIterator() {
       private int i=0;
       
       @Override
@@ -33,7 +34,7 @@ public class CompleteSelection extends Selection {
       }
 
       @Override
-      public Integer next() {
+      public int nextInt() {
         return i++;
       }
     };
@@ -76,25 +77,21 @@ public class CompleteSelection extends Selection {
   }
 
   @Override
-  public Iterable<Integer> getSelectionAlongDimension(int dimensionIndex) {
+  public IntIterator getSelectionAlongDimension(int dimensionIndex) {
     final int length = getDimensionLength(dimensionIndex);
-    return new Iterable<Integer>() {
-      
-      @Override
-      public Iterator<Integer> iterator() {
-        return new UnmodifiableIterator<Integer>() {
-          private int i = 0;
-          @Override
-          public boolean hasNext() {
-            return i < length;
-          }
 
-          @Override
-          public Integer next() {
-            return i++;
-          }
-        };
+    return new IntIterator() {
+      private int i = 0;
+      @Override
+      public boolean hasNext() {
+        return i < length;
+      }
+
+      @Override
+      public int nextInt() {
+        return i++;
       }
     };
+
   }
 }

@@ -407,6 +407,13 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     }
 
     @Override
+    public void setAttributes(AttributeMap attributes) {
+      if(!attributes.empty()) {
+        throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+      }
+    }
+
+    @Override
     public Null build() {
       return Null.INSTANCE;
     }

@@ -24,12 +24,20 @@ package org.renjin.primitives.subset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.renjin.eval.EvalException;
+import org.renjin.iterator.IntIterator;
+import org.renjin.primitives.subset.views.DoubleDenseMap;
+import org.renjin.primitives.subset.views.DoubleMap;
+import org.renjin.primitives.subset.views.DoubleReplace1;
+import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 public class SubscriptOperation {
+  
+  private static final int MAX_DENSE_MAP_LENGTH = 100;
 
   private Vector source;
 
@@ -120,7 +128,7 @@ public class SubscriptOperation {
       throw new EvalException("attempt to select less than one element");
     }
 
-    int index = selection.iterator().next();
+    int index = selection.intIterator().nextInt();
     if(index < 0 || index >= source.length()) {
       throw new EvalException("subscript out of bounds");
     }
@@ -133,68 +141,87 @@ public class SubscriptOperation {
     if(source == Null.INSTANCE) {
       return Null.INSTANCE;
 
+    } else if(source instanceof DoubleMap) {
+      return ((DoubleMap)source).select(selection, computeExtractedAttributes());
+
     } else {
 
-      StringArrayVector.Builder names = null;
-      if(source.getAttribute(Symbols.NAMES) != Null.INSTANCE) {
-        names = new StringArrayVector.Builder();
-      }
       Vector.Builder result = source.newBuilderWithInitialSize(selection.getElementCount());
       int count = 0;
 
-      for(Integer index : selection) {
+      IntIterator it = selection.intIterator();
+      while(it.hasNext()) {
+        int index = it.nextInt();
         if(!IntVector.isNA(index) && index < source.length()) {
           result.setFrom(count++, source, index);
-          if(names != null) {
-            names.add(source.getName(index));
-          }
         } else {
           result.setNA(count++);
-          if(names != null) {
-            names.addNA();
-          }
         }
       }
-      result.setAttribute(Symbols.DIM, extractionDimension());
-      
-      // COMPUTE NAMES:
-      // if only subscript is used, always draw names from the NAMES attribute
-      // of the source
-      if(subscripts.size() == 1 && !sourceIsSingleDimensionArray()) {        
-        // (no DIMs attribute)
-        if(names != null) {
-          result.setAttribute(Symbols.NAMES, names.build());
-        }
-      } else {
-        // otherwise treat as an array and use dimnames
-        IntArrayVector.Builder dim = new IntArrayVector.Builder();
-        ListVector.Builder dimNames = new ListVector.Builder();
-        boolean hasDimNames = false;
-        int[] selectedDim = selection.getSubscriptDimensions();
-        for(int d=0;d!=selectedDim.length;++d) {
-          if(selectedDim[d] > 1 || !drop) {
-            dim.add(selectedDim[d]);
-            
-            Vector dimNamesElement = selection.getDimensionNames(d);
-            hasDimNames |= (dimNamesElement != Null.INSTANCE);
-            dimNames.add(dimNamesElement);
-          }
-        }
-        if(dim.length() > 1 || !drop) {
-          result.setAttribute(Symbols.DIM, dim.build());
-          if(hasDimNames) {
-            result.setAttribute(Symbols.DIMNAMES, dimNames.build());
-          }
-        } else {
-          if(hasDimNames) {
-            result.setAttribute(Symbols.NAMES, dimNames.build().getElementAsSEXP(0));
-          }
-        }
-      }
+      result.setAttributes(computeExtractedAttributes());
+
       return result.build();
     }
   }
-  
+
+  private AttributeMap computeExtractedAttributes() {
+
+    AttributeMap.Builder attributes = AttributeMap.builder();
+
+    // COMPUTE DIM:
+    attributes.set(Symbols.DIM, extractionDimension());
+
+    // COMPUTE NAMES:
+    // if only subscript is used, always draw names from the NAMES attribute
+    // of the source
+    if(subscripts.size() == 1 && !sourceIsSingleDimensionArray()) {
+      // (no DIMs attribute)
+      if(source.getAttribute(Symbols.NAMES) != Null.INSTANCE) {
+        attributes.setNames(extractNames());
+      }
+    } else {
+      // otherwise treat as an array and use dimnames
+      IntArrayVector.Builder dim = new IntArrayVector.Builder();
+      ListVector.Builder dimNames = new ListVector.Builder();
+      boolean hasDimNames = false;
+      int[] selectedDim = selection.getSubscriptDimensions();
+      for(int d=0;d!=selectedDim.length;++d) {
+        if(selectedDim[d] > 1 || !drop) {
+          dim.add(selectedDim[d]);
+
+          Vector dimNamesElement = selection.getDimensionNames(d);
+          hasDimNames |= (dimNamesElement != Null.INSTANCE);
+          dimNames.add(dimNamesElement);
+        }
+      }
+      if(dim.length() > 1 || !drop) {
+        attributes.setDim(dim.build());
+        if(hasDimNames) {
+          attributes.set(Symbols.DIMNAMES, dimNames.build());
+        }
+      } else {
+        if(hasDimNames) {
+          attributes.setNames((StringVector)dimNames.build().getElementAsSEXP(0));
+        }
+      }
+    }
+    return attributes.build();
+  }
+
+  private StringVector extractNames() {
+    StringArrayVector.Builder names = new StringVector.Builder(0, selection.getElementCount());
+    IntIterator it = selection.intIterator();
+    while(it.hasNext()) {
+      int index = it.nextInt();
+      if(!IntVector.isNA(index) && index < source.length()) {
+        names.add(source.getName(index));
+      } else {
+        names.addNA();
+      }
+    }
+    return names.build();
+  }
+
   private boolean sourceIsSingleDimensionArray() {
     return source.getAttribute(Symbols.DIM).length() == 1;
   }
@@ -253,10 +280,31 @@ public class SubscriptOperation {
       throw new EvalException("replacement has zero length");
     }
 
-    Vector.Builder result = createReplacementBuilder(elements);
-    
+    Vector.Type replacementType = replacementResultType(elements);
+
+    // if either the source or the replacement values are deferred, try to avoid computation
+    if(elements instanceof  DeferredComputation || source instanceof DeferredComputation) {
+
+      if(replacementType == DoubleVector.VECTOR_TYPE) {
+        // try different strategies depending on the size / shape of data
+        if(DoubleMap.accept(source, selection, (Vector)elements)) {
+          return DoubleMap.replace(source, selection, (Vector)elements);
+        }
+        if(DoubleDenseMap.accept(source, selection, (Vector)elements)) {
+          return DoubleDenseMap.replace(source, selection, (Vector)elements);
+        }
+      }
+    }
+    return materializeReplacement(elements, replacementType);
+  }
+
+  private Vector materializeReplacement(SEXP elements, Vector.Type replacementType) {
+    Vector.Builder result = createReplacementBuilder(replacementType);
+
     int replacement = 0;
-    for(int index : selection) {
+    IntIterator it = selection.intIterator();
+    while(it.hasNext()) {
+      int index = it.nextInt();
       assert index < source.length() || selection.getSourceDimensions() == 1;
       if(!IntVector.isNA(index)) {
         result.setFrom(index, elements, replacement++);
@@ -268,9 +316,10 @@ public class SubscriptOperation {
     return result.build();
   }
 
+
   private Vector replaceByName(SEXP elements) {
     StringVector namesToReplace = (StringVector) subscripts.get(0);
-    Vector.Builder result = createReplacementBuilder(elements);
+    Vector.Builder result = createReplacementBuilder(replacementResultType(elements));
     StringArrayVector.Builder names = source.getNames() == Null.INSTANCE ? StringVector.newBuilder() :
         (StringArrayVector.Builder) source.getNames().newCopyBuilder();
 
@@ -297,7 +346,9 @@ public class SubscriptOperation {
   public Vector remove() {
     Set<Integer> indicesToRemove = Sets.newHashSet();
 
-    for(int index : selection) {
+    IntIterator it = selection.intIterator();
+    while(it.hasNext()) {
+      int index = it.nextInt();
       if(!IntVector.isNA(index)) {
         indicesToRemove.add(index);
       }
@@ -314,15 +365,8 @@ public class SubscriptOperation {
   }
 
 
-  private Vector.Builder createReplacementBuilder(SEXP elements) {
+  private Vector.Builder createReplacementBuilder(Vector.Type replacementType) {
     Vector.Builder result;
-
-    Vector.Type replacementType;
-    if(elements instanceof AtomicVector) {
-      replacementType = ((AtomicVector) elements).getVectorType();
-    } else {
-      replacementType = ListVector.VECTOR_TYPE;
-    }
 
     if(source.getVectorType().isWiderThanOrEqualTo(replacementType)) {
       result = source.newCopyBuilder();
@@ -334,5 +378,15 @@ public class SubscriptOperation {
       }
     }
     return result;
+  }
+
+  private Vector.Type replacementResultType(SEXP elements) {
+    Vector.Type replacementType;
+    if(elements instanceof AtomicVector) {
+      replacementType = ((AtomicVector) elements).getVectorType();
+    } else {
+      replacementType = ListVector.VECTOR_TYPE;
+    }
+    return replacementType;
   }
 }

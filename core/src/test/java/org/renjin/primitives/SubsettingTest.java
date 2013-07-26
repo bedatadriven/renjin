@@ -129,6 +129,15 @@ public class SubsettingTest extends EvalTestCase {
   }
 
   @Test
+  public void replacementRecycling() {
+    eval("x <- 1:10");
+    eval("y <- c(98,99)");
+    eval("x[3:6] <- y");
+    assertThat(eval("x"), equalTo(c( 1d, 2d, 98d, 99d, 98d, 99d, 7d, 8d, 9d, 10d )));
+  }
+  
+  
+  @Test
   public void negativeIndicesOnMatrix() {
     eval(" x<-1:8 ");
     eval(" dim(x) <- c(2,4)");

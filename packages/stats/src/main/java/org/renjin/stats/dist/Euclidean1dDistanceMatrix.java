@@ -39,8 +39,8 @@ public class Euclidean1dDistanceMatrix extends DoubleVector implements DeferredC
     if(row == col) {
       return 0;
     } else {
-      double x = vector.getElementAsDouble(row);
-      double y = vector.getElementAsDouble(col);
+      double x = getOperandElementAsDouble(row);
+      double y = getOperandElementAsDouble(col);
       return Math.abs(x - y);
     }
   }
@@ -52,6 +52,10 @@ public class Euclidean1dDistanceMatrix extends DoubleVector implements DeferredC
 
   public static double test(int index, int size) {
     return Math.sqrt(index % size);
+  }
+
+  private double getOperandElementAsDouble(int row) {
+    return vector.getElementAsDouble(row);
   }
 
   @Override

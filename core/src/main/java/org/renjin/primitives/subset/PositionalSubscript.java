@@ -23,6 +23,8 @@ package org.renjin.primitives.subset;
 
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
 
 
@@ -77,5 +79,14 @@ public class PositionalSubscript extends Subscript {
   @Override
   public int getAt(int i) {
     return indices[i];
+  }
+
+  @Override
+  public IntVector asIndexVector() {
+    if(indices.length == count) {
+      return IntArrayVector.unsafe(indices);
+    } else {
+      return new IntArrayVector(indices, count, AttributeMap.EMPTY);
+    }
   }
 }

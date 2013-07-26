@@ -1,6 +1,8 @@
 package org.renjin.primitives.subset;
 
 import org.renjin.eval.EvalException;
+import org.renjin.iterator.IntIterable;
+import org.renjin.iterator.IntIterator;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
@@ -9,7 +11,7 @@ import org.renjin.sexp.*;
  * Encapsulates a set of elements that have been selected by 
  * the arguments to the subset function.
  */
-public abstract class Selection implements Iterable<Integer> {
+public abstract class Selection implements IntIterable {
 
   private final SEXP source;
  
@@ -33,7 +35,7 @@ public abstract class Selection implements Iterable<Integer> {
   public abstract int getElementCount();
 
   
-  public abstract Iterable<Integer> getSelectionAlongDimension(int dimensionIndex);
+  public abstract IntIterator getSelectionAlongDimension(int dimensionIndex);
   
   /**
    * 
@@ -91,7 +93,9 @@ public abstract class Selection implements Iterable<Integer> {
       Vector sourceNames = RowNamesVector.purify(dimNames.getElementAsSEXP(dimIndex));
       if(sourceNames != Null.INSTANCE) {
         StringArrayVector.Builder names = new StringArrayVector.Builder();
-        for(Integer index : getSelectionAlongDimension(dimIndex)) {
+        IntIterator it = getSelectionAlongDimension(dimIndex);
+        while(it.hasNext()) {
+          int index = it.nextInt();
           if(index >= sourceNames.length()) {
             throw new EvalException("subscript out of bounds: ");
           }

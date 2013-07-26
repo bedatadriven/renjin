@@ -110,6 +110,8 @@ public class DeferredJitter {
       return new MeanJitter();
     } else if(node.getComputation().getComputationName().equals("rowMeans")) {
       return new RowMeanJitter();
+    } else if(node.getComputation().getComputationName().equals("sum")) {
+      return new SumJitter();
     } else {
       throw new UnsupportedOperationException(node.toString());
     }

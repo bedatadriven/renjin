@@ -81,6 +81,12 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
 
     @Override
+    public void setAttributes(AttributeMap attributes) {
+      this.attributes.addAllFrom(attributes);
+    }
+
+
+    @Override
     public Builder copyAttributesFrom(SEXP exp) {
       attributes.addAllFrom(exp.getAttributes());
       return this;

@@ -2,6 +2,7 @@ package org.renjin.primitives.subset;
 
 import com.google.common.collect.UnmodifiableIterator;
 import org.renjin.eval.EvalException;
+import org.renjin.iterator.IntIterator;
 import org.renjin.primitives.Indexes;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.sexp.*;
@@ -80,9 +81,9 @@ public class CoordinateMatrixSelection extends Selection {
   }
 
   @Override
-  public Iterator<Integer> iterator() {
+  public IntIterator intIterator() {
     
-    return new UnmodifiableIterator<Integer>() {
+    return new IntIterator() {
       private int row = 0;
       
       @Override
@@ -91,31 +92,26 @@ public class CoordinateMatrixSelection extends Selection {
       }
 
       @Override
-      public Integer next() {
+      public int nextInt() {
         return Indexes.arrayIndexToVectorIndex(getCoordinate(row++), sourceDim);
       }
     }; 
   }
 
   @Override
-  public Iterable<Integer> getSelectionAlongDimension(final int dimensionIndex) {
-    return new Iterable<Integer>() {
-      
-      @Override
-      public Iterator<Integer> iterator() {
-        return new UnmodifiableIterator<Integer>() {
-          int i=0;
-          
-          @Override
-          public boolean hasNext() {
-            return i < coordinateMatrix.getNumRows();
-          }
+  public IntIterator getSelectionAlongDimension(final int dimensionIndex) {
 
-          @Override
-          public Integer next() {
-            return coordinateMatrix.getElementAsInt(i++, dimensionIndex);
-          }
-        };
+    return new IntIterator() {
+      int i=0;
+
+      @Override
+      public boolean hasNext() {
+        return i < coordinateMatrix.getNumRows();
+      }
+
+      @Override
+      public int nextInt() {
+        return coordinateMatrix.getElementAsInt(i++, dimensionIndex);
       }
     };
   }

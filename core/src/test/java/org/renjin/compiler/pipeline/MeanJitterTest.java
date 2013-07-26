@@ -1,14 +1,14 @@
 package org.renjin.compiler.pipeline;
 
 import org.junit.Test;
-import org.renjin.DistanceMatrix;
-import org.renjin.primitives.Deparse;
-import org.renjin.primitives.R$primitive$$minus$deferred_d;
 import org.renjin.primitives.R$primitive$$times$deferred_dd;
 import org.renjin.primitives.matrix.DeferredRowMeans;
 import org.renjin.primitives.matrix.TransposingMatrix;
 import org.renjin.primitives.summary.DeferredMean;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Vector;
 
 public class MeanJitterTest {
 
@@ -29,39 +29,9 @@ public class MeanJitterTest {
   }
 
 
-  @Test
-  public void nestedDistance() {
-
-    DoubleArrayVector vector = new DoubleArrayVector(5,10,3,2,1);
-    DistanceMatrix matrix = new DistanceMatrix(vector);
-    System.out.println(Deparse.deparseExp(null, matrix));
-    DeferredMean mean = new DeferredMean(matrix, AttributeMap.EMPTY);
-    DeferredGraph graph = new DeferredGraph(mean);
-
-    compute(graph);
-
-  }
 
   private Vector compute(DeferredGraph graph) {
     return Null.INSTANCE;
-  }
-
-  @Test
-  public void nestedDistanceMatrixAndUnaryOp() {
-
-    DoubleArrayVector vector = new DoubleArrayVector(5,10,3,2,1);
-    DistanceMatrix matrix = new DistanceMatrix(vector);
-    System.out.println(Deparse.deparseExp(null, matrix));
-    Vector negative = new R$primitive$$minus$deferred_d(matrix, AttributeMap.EMPTY);
-    DeferredMean mean = new DeferredMean(negative, AttributeMap.EMPTY);
-    DeferredGraph graph = new DeferredGraph(mean);
-
-    DeferredJitter jitter = new DeferredJitter();
-    JittedComputation computation = jitter.compile(graph.getRoot());
-
-    double [] result = computation.compute(graph.getRoot().flattenVectors());
-
-    System.out.println(result[0]);
   }
 
   @Test

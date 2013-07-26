@@ -24,6 +24,7 @@ package org.renjin.primitives.subset;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.iterator.IntIterator;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.sexp.*;
 
@@ -298,7 +299,9 @@ public class Subsetting {
     FunctionCall.Builder call = FunctionCall.newBuilder();
     call.withAttributes(source.getAttributes());
 
-    for(Integer sourceIndex : selection) {
+    IntIterator it = selection.intIterator();
+    while(it.hasNext()) {
+      int sourceIndex = it.nextInt();
       call.addCopy(source.getNode(sourceIndex));
     }
     return call.build();

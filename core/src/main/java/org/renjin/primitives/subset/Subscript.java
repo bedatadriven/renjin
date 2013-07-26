@@ -21,6 +21,9 @@
 
 package org.renjin.primitives.subset;
 
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+
 /**
  * Base classes for R's rich set of different type subscripts.
  */
@@ -42,4 +45,12 @@ public abstract class Subscript {
    * @return the source index
    */
   public abstract int getAt(int i);
+  
+  public IntVector asIndexVector() {
+    IntArrayVector.Builder vector = IntArrayVector.Builder.withInitialCapacity(getCount());
+    for(int i=0;i!=getCount();++i) {
+      vector.add(getAt(i));
+    }
+    return vector.build();
+  }
 }

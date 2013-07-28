@@ -28,8 +28,7 @@ public class EnvironmentVariable implements Variable {
   public Symbol getName() {
     return name;
   }
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
+  private Object retrieveValue(Context context, Object[] temps) {
     SEXP value = context.getEnvironment().findVariable(name);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("object '" + name + "' not found");
@@ -88,13 +87,4 @@ public class EnvironmentVariable implements Variable {
     throw new IllegalArgumentException();
   }
 
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitEnvironmentVariable(this);
-  }
-
-  @Override
-  public SEXP getSExpression() {
-    return name;
-  }
 }

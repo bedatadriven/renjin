@@ -37,21 +37,6 @@ public class IRBody {
     return Lists.newArrayList(statements);
   }
 
-  public SEXP evaluate(Context context) {
-    int i=0;
-    while(i < statements.length) {
-      Object result = statements[i].interpret(context, temp);
-      if(result == null) {
-        i++;
-      } else if(result instanceof IRLabel) {
-        i = labels[ ((IRLabel)result).getIndex() ];
-      } else {
-        return (SEXP)result;
-      }
-    }
-    return null;
-  }
-
   public int getLabelInstructionIndex(IRLabel label) {
     return labels[label.getIndex()];
   }

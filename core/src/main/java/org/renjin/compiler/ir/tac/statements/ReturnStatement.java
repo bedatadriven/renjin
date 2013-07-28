@@ -7,7 +7,6 @@ import java.util.Set;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.eval.Context;
 
 
 public class ReturnStatement implements Statement {
@@ -28,11 +27,6 @@ public class ReturnStatement implements Statement {
     return "return " + value;
   }
 
-  @Override
-  public Object interpret(Context context, Object[] temps) {
-    return value.retrieveValue(context, temps);
-  }
-  
   @Override
   public Expression getRHS() {
     return value;

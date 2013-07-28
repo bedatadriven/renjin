@@ -1,6 +1,5 @@
 package org.renjin.compiler;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.parser.RParser;
@@ -14,7 +13,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
-@Ignore("obsolete")
 public class ClosureCompilerTest extends EvalTestCase {
 
   @Test

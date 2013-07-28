@@ -34,16 +34,6 @@ public class ForFunction extends SpecialFunction {
   
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
-
-//    IRFunctionTable functionTable = new IRFunctionTable();
-//    IRScopeBuilder builder = new IRScopeBuilder(functionTable);
-//    
-//    if(rho != context.getEnvironment()) {
-//      throw new AssertionError("context environment is different from rho");
-//    }
-//    
-//    IRScope scope = builder.build(call);
-//    scope.evaluate(context);
     
     PairList args = call.getArguments();
     Symbol symbol = args.getElementAsSEXP(0);

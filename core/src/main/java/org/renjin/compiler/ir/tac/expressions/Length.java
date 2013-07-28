@@ -28,21 +28,10 @@ public class Length implements SimpleExpression {
   public Expression getVector() {
     return vector;
   }
-  
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
-    SEXP exp = (SEXP) vector.retrieveValue(context, temps);
-    return exp.length();
-  }
 
   @Override
   public Set<Variable> variables() {
     return vector.variables();
-  }
-
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitLength(this);
   }
 
   @Override
@@ -65,8 +54,4 @@ public class Length implements SimpleExpression {
     return "length(" + vector + ")";
   }
 
-  @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
-  }
 }

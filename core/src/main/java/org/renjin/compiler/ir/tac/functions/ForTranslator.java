@@ -10,29 +10,17 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Increment;
 import org.renjin.compiler.ir.tac.expressions.Length;
 import org.renjin.compiler.ir.tac.expressions.LocalVariable;
-import org.renjin.compiler.ir.tac.expressions.PrimitiveCall;
 import org.renjin.compiler.ir.tac.expressions.Temp;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-
-
-import com.google.common.collect.Lists;
+import org.renjin.sexp.*;
 
 public class ForTranslator extends FunctionCallTranslator {
-  
-  @Override
-  public Symbol getName() {
-    return Symbol.get("for");
-  }
 
   @Override
-  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
     addForLoop(builder, context, call);
     
     return new Constant(Null.INSTANCE);
@@ -40,7 +28,7 @@ public class ForTranslator extends FunctionCallTranslator {
 
 
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
     addForLoop(builder, context, call);
   }
  

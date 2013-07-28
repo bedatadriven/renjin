@@ -4,10 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.ExpressionVisitor;
 import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 
 
 import com.google.common.base.Joiner;
@@ -30,11 +27,6 @@ public class PhiFunction implements Expression {
 
   public PhiFunction(List<Variable> arguments) {
     this.arguments = arguments;
-  }
-
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -76,15 +68,5 @@ public class PhiFunction implements Expression {
     arguments.set(childIndex, (Variable)child);
   }
 
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitPhiFunction(this);
-  }
 
-  @Override
-  public SEXP getSExpression() {
-    return arguments.get(0).getSExpression();
-  }
-  
-  
 } 

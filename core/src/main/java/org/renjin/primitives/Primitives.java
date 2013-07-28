@@ -98,6 +98,15 @@ public class Primitives {
     set.addAll(INSTANCE.builtinEntries.values());
     return set;
   }
+
+  public static Entry getBuiltinEntry(Symbol name) {
+    return INSTANCE.builtinEntries.get(name);
+  }
+
+  public static Entry getBuiltinEntry(String name) {
+    return getBuiltinEntry(Symbol.get(name));
+  }
+
   
   public static Set<Symbol> getBuiltinSymbols() {
     return Sets.union(INSTANCE.builtins.keySet(), INSTANCE.builtinEntries.keySet());
@@ -1044,6 +1053,7 @@ public class Primitives {
     e.gram = new PPinfo(PP_FUNCALL, PPprec.PREC_RIGHT, 0);
     add(e);
   }
+
 
 
   public static class PPinfo {

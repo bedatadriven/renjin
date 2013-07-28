@@ -10,9 +10,7 @@ import org.renjin.eval.Context;
 
 
 public interface Statement extends TreeNode {
- 
-  Object interpret(Context context, Object temp[]);
-  
+
   Iterable<IRLabel> possibleTargets();
   
   Set<Variable> variables();

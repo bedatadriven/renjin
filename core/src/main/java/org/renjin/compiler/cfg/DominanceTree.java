@@ -18,6 +18,7 @@ import com.google.common.collect.Sets;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import org.renjin.util.DebugGraph;
 
 public class DominanceTree {
 
@@ -201,5 +202,13 @@ public class DominanceTree {
   @Override
   public String toString() {
     return tree.toString();
+  }
+
+  public void dumpGraph() {
+    DebugGraph dump = new DebugGraph();
+    for(DominanceEdge edge : tree.getEdges()) {
+      dump.printEdge(tree.getSource(edge).getDebugId(), tree.getDest(edge).getDebugId());
+    }
+    dump.close();
   }
 }

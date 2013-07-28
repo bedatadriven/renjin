@@ -29,8 +29,7 @@ import org.apache.commons.math.complex.Complex;
 import org.apache.commons.math.special.Gamma;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

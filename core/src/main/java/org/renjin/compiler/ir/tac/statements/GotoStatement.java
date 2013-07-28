@@ -9,7 +9,6 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.NullExpression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.eval.Context;
 
 
 public class GotoStatement implements Statement, BasicBlockEndingStatement {
@@ -33,11 +32,6 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   @Override
   public String toString() {
     return "goto " + target;
-  }
-
-  @Override
-  public Object interpret(Context context, Object[] temp) {
-    return target;
   }
 
   @Override

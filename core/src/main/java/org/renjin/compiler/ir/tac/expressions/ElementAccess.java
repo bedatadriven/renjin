@@ -4,10 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
-
 import com.google.common.collect.Sets;
 
 
@@ -44,13 +40,6 @@ public class ElementAccess implements Expression {
   }
 
   @Override
-  public Object retrieveValue(Context context, Object[] temps) {
-    Vector vectorValue = (Vector) vector.retrieveValue(context, temps);
-    Integer indexValue = (Integer)index.retrieveValue(context, temps);
-    return vectorValue.getElementAsSEXP(indexValue);
-  }
-
-  @Override
   public Set<Variable> variables() {
     return Sets.union(vector.variables(), index.variables());
   }
@@ -78,13 +67,4 @@ public class ElementAccess implements Expression {
     }
   }
 
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitElementAccess(this);
-  }
-
-  @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
-  } 
 }

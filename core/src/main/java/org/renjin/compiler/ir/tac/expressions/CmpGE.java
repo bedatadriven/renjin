@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 
 
 import com.google.common.collect.Sets;
@@ -37,13 +36,6 @@ public class CmpGE implements SimpleExpression {
     return op2;
   }
 
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
-    Integer a = (Integer)op1.retrieveValue(context, temps);
-    Integer b = (Integer)op2.retrieveValue(context, temps);
-    
-    return a >= b;
-  }
 
   @Override
   public Set<Variable> variables() {
@@ -72,13 +64,4 @@ public class CmpGE implements SimpleExpression {
     }
   }
 
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitCmpGE(this);
-  }
-
-  @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
-  }
 }

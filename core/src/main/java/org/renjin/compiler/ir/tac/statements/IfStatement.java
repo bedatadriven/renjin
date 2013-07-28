@@ -4,7 +4,6 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
@@ -70,21 +69,6 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
     }
   }
 
-  @Override
-  public Object interpret(Context context, Object[] temp) {
-    Logical value = toLogical(condition.retrieveValue(context, temp));
-    switch(value) {
-    case TRUE:
-      return trueTarget;
-    case FALSE:
-      return falseTarget;
-    }
-    if(naTarget == null) {
-      throw new EvalException("missing value where TRUE/FALSE needed");
-    }
-    return naTarget;
-  }
-  
   @Override
   public Set<Variable> variables() {
     return condition.variables();

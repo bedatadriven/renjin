@@ -10,7 +10,6 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.eval.Context;
 
 
 import com.google.common.collect.Sets;
@@ -34,12 +33,6 @@ public class Assignment implements Statement {
     return rhs;
   }
 
-  @Override
-  public Object interpret(Context context, Object[] temp) {
-    lhs.setValue(context, temp, rhs.retrieveValue(context, temp));
-    return null;
-  }
-  
   @Override
   public Iterable<IRLabel> possibleTargets() {
     return Collections.emptySet();

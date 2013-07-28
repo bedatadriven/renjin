@@ -9,18 +9,7 @@ import org.renjin.sexp.SEXP;
 
 public interface Expression extends TreeNode {
 
-  /**
-   * Retrieves the value of this expression (during interpretation)
-   * 
-   * @param context
-   * @param temps
-   * @return
-   */
-  Object retrieveValue(Context context, Object temps[]);
-  
-  
-  SEXP getSExpression();
-  
+
   /**
    * 
    * @return the set of all {@code Variable}s referenced by this {@code Expression}
@@ -32,8 +21,6 @@ public interface Expression extends TreeNode {
    * {@code newVariable} in this {@code Expression}
    */
   Expression replaceVariable(Variable variable, Variable newVariable);
-  
-  
-  void accept(ExpressionVisitor visitor);
-  
+
+
 }

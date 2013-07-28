@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
 
 
 /**
@@ -28,24 +26,13 @@ public class Elipses implements SimpleExpression {
     
   }
   
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
+  private Object retrieveValue(Context context, Object[] temps) {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public SEXP getSExpression() {
-    return Symbols.ELLIPSES;
   }
 
   @Override
   public Set<Variable> variables() {
     return Collections.emptySet();
-  }
-
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-   
   }
 
   @Override

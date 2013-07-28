@@ -5,26 +5,23 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
+import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Null;
-import org.renjin.sexp.Symbol;
 
 
 public class RepeatTranslator extends FunctionCallTranslator {
 
   @Override
-  public Symbol getName() {
-    return Symbol.get("repeat");
-  }
-
-  @Override
-  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
-    addStatement(builder, context, call);
+  public Expression translateToExpression(IRBodyBuilder builder,
+                                          TranslationContext context,
+                                          Function resolvedFunction, FunctionCall call) {
+    addStatement(builder, context, resolvedFunction, call);
     return new Constant(Null.INSTANCE);
   }
 
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
     IRLabel beginLabel = builder.addLabel();
     IRLabel exitLabel = builder.newLabel();
     

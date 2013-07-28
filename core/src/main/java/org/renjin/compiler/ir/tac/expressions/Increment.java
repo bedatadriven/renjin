@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 
 
 /**
@@ -35,12 +34,6 @@ public class Increment implements Expression {
     return "increment counter " + counter;
   }
 
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
-    Integer counterValue = (Integer) counter.retrieveValue(context, temps);
-    return counterValue + 1;
-  }
-
   @Override  
   public Expression replaceVariable(Variable variable, Variable newVariable) {
     return new Increment( counter.replaceVariable(variable, newVariable));
@@ -60,13 +53,4 @@ public class Increment implements Expression {
     }
   }
 
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitIncrement(this);
-  }
-
-  @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
-  }
 }

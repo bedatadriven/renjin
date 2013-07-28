@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 
 
 /**
@@ -35,8 +34,7 @@ public class LocalVariable implements Variable {
     return this.equals(name) ? newName : this;
   }
 
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
+  private Object retrieveValue(Context context, Object[] temps) {
     return temps[offset];
   }
 
@@ -81,13 +79,4 @@ public class LocalVariable implements Variable {
     throw new IllegalArgumentException();
   }
 
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitLocalVariable(this);
-  }
-
-  @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
-  } 
 }

@@ -5,9 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.renjin.compiler.ir.IRUtils;
-import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 
 
 /**
@@ -27,8 +25,7 @@ public class Temp implements LValue {
     return index;
   }
   
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
+  private Object retrieveValue(Context context, Object[] temps) {
     return temps[index];
   }
   
@@ -81,13 +78,4 @@ public class Temp implements LValue {
     return Collections.emptyList();
   }
 
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitTemp(this);
-  }
-
-  @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
-  }
 }

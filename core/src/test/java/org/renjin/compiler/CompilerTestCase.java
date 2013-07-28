@@ -10,8 +10,6 @@ import org.hamcrest.TypeSafeMatcher;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.tac.IRBody;
-import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.IRFunctionTable;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.ExpressionVector;
 
@@ -21,11 +19,11 @@ import com.google.common.io.Resources;
 
 public class CompilerTestCase {
 
-  protected IRFunctionTable functionTable = new IRFunctionTable();
 
   protected IRBody buildScope(String rcode) {
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
-    return new IRBodyBuilder(functionTable).build(ast);
+ //   return new IRBodyBuilder(functionTable).build(ast);
+    throw new UnsupportedOperationException();
   }  
   
 

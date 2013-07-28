@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
+import org.renjin.util.DebugGraph;
 
 public class ControlFlowGraph {
 
@@ -176,5 +177,14 @@ public class ControlFlowGraph {
 
   public Collection<BasicBlock> getPredecessors(BasicBlock x) {
     return graph.getPredecessors(x);
+  }
+
+  public void dumpGraph() {
+    DebugGraph dump = new DebugGraph();
+    for(Edge edge : graph.getEdges()) {
+      dump.printEdge(graph.getSource(edge).getDebugId(), graph.getDest(edge).getDebugId());
+    }
+    dump.close();
+
   }
 }

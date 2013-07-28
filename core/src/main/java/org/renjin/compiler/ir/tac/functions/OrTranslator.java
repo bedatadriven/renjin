@@ -10,23 +10,18 @@ import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
+import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Symbol;
 
 
 public class OrTranslator extends FunctionCallTranslator {
 
-  @Override
-  public Symbol getName() {
-    return Symbol.get("||");
-  }
-  
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,
-      TranslationContext context, FunctionCall call) {
+                                          TranslationContext context, Function resolvedFunction, FunctionCall call) {
 
     Temp result = builder.newTemp();
     IRLabel firstFalse = builder.newLabel(); /* first is false, need to check second */
@@ -76,7 +71,7 @@ public class OrTranslator extends FunctionCallTranslator {
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context,
-      FunctionCall call) {
+                           Function resolvedFunction, FunctionCall call) {
     
     IRLabel test2Label = builder.newLabel();
     IRLabel finishLabel = builder.newLabel();

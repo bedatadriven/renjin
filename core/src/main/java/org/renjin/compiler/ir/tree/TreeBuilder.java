@@ -5,15 +5,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.ir.tac.expressions.DynamicCall;
-import org.renjin.compiler.ir.tac.expressions.ElementAccess;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.MakeClosure;
-import org.renjin.compiler.ir.tac.expressions.PrimitiveCall;
-import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
 import org.renjin.compiler.ir.tac.expressions.Temp;
-import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
 

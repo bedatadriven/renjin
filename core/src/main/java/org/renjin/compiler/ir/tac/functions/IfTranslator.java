@@ -10,20 +10,15 @@ import org.renjin.compiler.ir.tac.expressions.Temp;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
+import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Null;
-import org.renjin.sexp.Symbol;
 
 
 public class IfTranslator extends FunctionCallTranslator {
 
   @Override
-  public Symbol getName() {
-    return Symbol.get("if");
-  }
-
-  @Override
-  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
     SimpleExpression condition = builder.translateSimpleExpression(context, call.getArgument(0));
     
     // since "if" is being used in the context of an expression, we need
@@ -70,7 +65,7 @@ public class IfTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
 
     SimpleExpression condition = builder.translateSimpleExpression(context, call.getArgument(0));
     IRLabel trueLabel = builder.newLabel();

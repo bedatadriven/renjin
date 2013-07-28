@@ -120,4 +120,7 @@ public class BasicBlock {
     return debugId;
   }
 
+  public String getDebugId() {
+    return debugId;
+  }
 }

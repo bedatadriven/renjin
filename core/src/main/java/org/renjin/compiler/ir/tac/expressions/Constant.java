@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
 
@@ -35,8 +34,7 @@ public class Constant implements SimpleExpression {
     }
   }
 
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
+  private Object retrieveValue(Context context, Object[] temps) {
     return value;
   }
 
@@ -60,13 +58,4 @@ public class Constant implements SimpleExpression {
     throw new IllegalArgumentException();
   }
 
-  @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitConstant(this);
-  }
-
-  @Override
-  public SEXP getSExpression() {
-    return (SEXP)value;
-  }
 }

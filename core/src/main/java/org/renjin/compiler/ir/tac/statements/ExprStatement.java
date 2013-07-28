@@ -8,7 +8,6 @@ import java.util.Set;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.eval.Context;
 
 
 /**
@@ -23,13 +22,6 @@ public class ExprStatement implements Statement {
     this.operand = operand;
   }
 
-  @Override
-  public Object interpret(Context context, Object[] temp) {
-    // execute and discard result
-    operand.retrieveValue(context, temp);
-    return null;
-  }
-  
   @Override
   public Iterable<IRLabel> possibleTargets() {
     return Collections.emptySet();

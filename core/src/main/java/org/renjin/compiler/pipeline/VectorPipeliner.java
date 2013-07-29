@@ -1,12 +1,12 @@
 package org.renjin.compiler.pipeline;
 
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
 public interface VectorPipeliner {
 
-  public static boolean DEBUG = false;
+  public static boolean DEBUG = System.getProperty("renjin.vp.debug") != null;
+
   public static int MAX_DEPTH = 25;
 
   /**

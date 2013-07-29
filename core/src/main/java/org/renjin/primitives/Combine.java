@@ -28,6 +28,11 @@ import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.primitives.vector.CombinedDoubleVector;
+import org.renjin.primitives.vector.CombinedStringVector;
+import org.renjin.primitives.vector.ConstantStringVector;
+import org.renjin.primitives.vector.PrefixedStringVector;
 import org.renjin.sexp.*;
 
 import java.util.List;
@@ -37,6 +42,9 @@ import java.util.List;
  *  cbind(), rbind(), matrix(), and aperm()
  */
 public class Combine {
+
+  public static final int DEFERRED_THRESHOLD = 2000;
+  public static final int DEFERRED_ARGUMENT_LIMIT = 5;
 
   /**
    * combines its arguments to form a vector. All arguments are coerced to a common type which is the
@@ -55,10 +63,61 @@ public class Combine {
     Inspector inspector = new Inspector(recursive);
     inspector.acceptAll(Iterables.transform(arguments.namedValues(), VALUE_OF));
 
-    // Build a new vector with all the elements
+    if(!recursive && inspector.getCount() > DEFERRED_THRESHOLD && arguments.length() <= DEFERRED_ARGUMENT_LIMIT) {
+      // return a view over these combined arguments
+      if(inspector.getResult() == DoubleVector.VECTOR_TYPE) {
+        return newDoubleView(arguments);
+      }
+    }
+
+    // Allocate a new vector with all the elements
     return new Combiner(recursive, inspector.getResult())
         .add(arguments.namedValues())
         .combine();
+
+  }
+
+  private static SEXP newDoubleView(ListVector arguments) {
+    Vector[] vectors = new Vector[arguments.length()];
+    Vector[] nameVectors = new Vector[arguments.length()];
+
+    boolean hasNames = false;
+
+    for(int i=0;i!=vectors.length;++i) {
+      vectors[i] = (Vector) arguments.getElementAsSEXP(i);
+
+      String namePrefix = arguments.getName(i);
+      StringVector names =  vectors[i].getAttributes().getNames();
+
+      if(!Strings.isNullOrEmpty(namePrefix) || names != null) {
+        hasNames = true;
+      }
+      nameVectors[i] = nameVector(namePrefix, names, vectors[i].length());
+    }
+    AttributeMap.Builder attributes = new AttributeMap.Builder();
+    if(hasNames) {
+      attributes.setNames(CombinedStringVector.combine(nameVectors, AttributeMap.EMPTY));
+    }
+    return CombinedDoubleVector.combine(vectors, attributes.build());
+  }
+
+  private static Vector nameVector(String argumentName, StringVector names, int numElements) {
+    if(Strings.isNullOrEmpty(argumentName) && names == null) {
+      // both argument name and names() vector are absent
+      return new ConstantStringVector("", numElements);
+
+    } else if(Strings.isNullOrEmpty(argumentName)) {
+      // argument name is missing, but we have names() vector
+      return names;
+
+    } else if(names == null) {
+      // have argument name, but no names() vector, return a1, a2, a3...
+      return new PrefixedStringVector(argumentName, new IntSequence(1,1,numElements), AttributeMap.EMPTY);
+
+    } else {
+      // we have both argument name and names() vector, return a.x, a.y, a.z
+      return new PrefixedStringVector(argumentName + ".", names, AttributeMap.EMPTY);
+    }
   }
 
   @Internal
@@ -87,6 +146,7 @@ public class Combine {
     private boolean recursive = false;
     private int count = 0;
     private Vector.Type resultType = Null.VECTOR_TYPE;
+    private boolean hasNames;
 
     /**
      * Visits each element of {@code ListExp}
@@ -139,11 +199,6 @@ public class Combine {
         count += list.length();
       }
     }
-
-//    @Override
-//    public void visit(ExpressionVector vector) {
-//      visit((ListVector)vector);
-//    }
 
     @Override
     protected void unhandled(SEXP exp) {

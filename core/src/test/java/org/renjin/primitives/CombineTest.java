@@ -149,9 +149,24 @@ public class CombineTest extends EvalTestCase {
         eval("x <- .Internal(cbind(1, a, b))");
         assertThat(eval("length(dimnames(x)[[1]])"), equalTo(c_i(4)));
         assertThat(eval("length(dimnames(x)[[2]])"), equalTo(c_i(2)));
-        
     }
-    
+
+    @Test
+    public void deferredNames() {
+      eval("x <- as.double(1:10000)");
+      eval("y <- c(a=x)");
+      assertThat(eval("names(y)[1]"), equalTo(c("a1")));
+      assertThat(eval("names(y)[2]"), equalTo(c("a2")));
+
+      eval("x <- as.double(1:10000)");
+      eval("names(x) <- rep(c('x','y','z'), length=length(x))");
+      eval("y <- c(a=x)");
+      assertThat(eval("names(y)[1]"), equalTo(c("a.x")));
+      assertThat(eval("names(y)[2]"), equalTo(c("a.y")));
+      assertThat(eval("names(y)[3]"), equalTo(c("a.z")));
+      assertThat(eval("names(y)[4]"), equalTo(c("a.x")));
+    }
+
     @Test
     public void bindWithEmpty() {
         eval("x<-1:12");

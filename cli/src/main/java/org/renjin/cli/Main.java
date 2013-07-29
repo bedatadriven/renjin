@@ -6,15 +6,27 @@ import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.renjin.aether.AetherPackageLoader;
+import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
+import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repl.JlineRepl;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.HashFrame;
+import org.renjin.sexp.Symbol;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
+
+  private static ExecutorService threadPool;
 
   public static void main(String[] args) throws Exception {
     OptionParser parser = new OptionParser();
@@ -79,8 +91,11 @@ public class Main {
   }
 
   public static Session createSession() throws Exception {
+    threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
     Session session = new SessionBuilder()
         .bind(PackageLoader.class, new AetherPackageLoader())
+        .bind(VectorPipeliner.class, new MultiThreadedVectorPipeliner(threadPool))
         .build();
     Environment replEnv = session.getGlobalEnvironment().insertAbove(new HashFrame());
     loadDefaultPackages(session);

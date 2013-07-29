@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.PairList.Builder;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -37,7 +36,7 @@ public class AttributeMap {
     CATCH_DEFINED = true;
   }
 
-  public static AttributeMap EMPTY = new AttributeMap();
+  public static final AttributeMap EMPTY = new AttributeMap();
 
   private AttributeMap() {
   }

@@ -28,8 +28,8 @@ import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Options;
-import org.renjin.invoke.reflection.converters.*;
 import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.reflection.converters.*;
 import org.renjin.primitives.vector.ConstantDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
@@ -261,6 +261,7 @@ public class Types {
   @Generic
   @Builtin("is.nan")
   @DataParallel(passNA = true)
+  @Deferrable
   public static boolean isNaN(double value) {
     return !DoubleVector.isNA(value) && DoubleVector.isNaN(value);
   }
@@ -268,6 +269,7 @@ public class Types {
   @Generic
   @Builtin("is.finite")
   @DataParallel(passNA = true)
+  @Deferrable
   public static boolean isFinite(double value) {
     return !Double.isNaN(value) && !Double.isInfinite(value);
   }
@@ -275,6 +277,7 @@ public class Types {
   @Generic
   @Builtin("is.infinite")
   @DataParallel(passNA = true)
+  @Deferrable
   public static boolean isInfinite(@Recycle double value) {
     return Double.isInfinite(value);
   }

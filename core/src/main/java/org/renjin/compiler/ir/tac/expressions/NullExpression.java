@@ -27,6 +27,11 @@ public class NullExpression implements Expression {
   }
 
   @Override
+  public boolean isDefinitelyPure() {
+    return true;
+  }
+
+  @Override
   public List<Expression> getChildren() {
     return Collections.emptyList();
   }

@@ -87,9 +87,8 @@ public class Promise extends AbstractSEXP implements Recursive {
   }
 
   protected SEXP doEval(Context context) {
-    return context.evaluate(expression, environment);
+    return expression.evaluate(context, environment);
   }
-  
   
   public void setResult(SEXP exp) {
     this.result = exp;

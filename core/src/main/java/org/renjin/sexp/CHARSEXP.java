@@ -21,6 +21,8 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
+
 /**
  * This was the internal storage format for Strings in the
  * C-implementation; it doesn't appear that these are visible
@@ -59,5 +61,4 @@ public class CHARSEXP extends AbstractSEXP {
   public String toString() {
     return value;
   }
-
 }

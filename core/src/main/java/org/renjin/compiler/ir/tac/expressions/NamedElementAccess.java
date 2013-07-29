@@ -29,6 +29,11 @@ public class NamedElementAccess implements Expression {
   }
 
   @Override
+  public boolean isDefinitelyPure() {
+    return true;
+  }
+
+  @Override
   public List<Expression> getChildren() {
     return Collections.singletonList(listExpression);
   }

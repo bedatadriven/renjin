@@ -23,4 +23,9 @@ public interface Expression extends TreeNode {
   Expression replaceVariable(Variable variable, Variable newVariable);
 
 
+  /**
+   *
+   * @return true if we are absolutely certain this expression has no side effects
+   */
+  boolean isDefinitelyPure();
 }

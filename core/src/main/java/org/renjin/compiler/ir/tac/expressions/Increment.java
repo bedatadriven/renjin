@@ -40,6 +40,11 @@ public class Increment implements Expression {
   }
 
   @Override
+  public boolean isDefinitelyPure() {
+    return true;
+  }
+
+  @Override
   public List<Expression> getChildren() {
     return Arrays.asList((Expression)counter);
   }

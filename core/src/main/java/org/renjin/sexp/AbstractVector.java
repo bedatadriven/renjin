@@ -21,6 +21,8 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
+
 abstract class AbstractVector extends AbstractSEXP implements Vector {
 
   protected AbstractVector(SEXP tag, AttributeMap attributes) {
@@ -51,6 +53,11 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
 
   public int getComputationDepth() {
     return 0;
+  }
+
+  @Override
+  public SEXP evaluate(Context context, Environment rho) {
+    return this;
   }
 
   abstract static class AbstractBuilder<S extends SEXP> implements Builder<S> {

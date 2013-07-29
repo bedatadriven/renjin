@@ -64,6 +64,12 @@
     </dependency>
 
     <dependency>
+      <groupId>me.qmx.jitescript</groupId>
+      <artifactId>jitescript</artifactId>
+      <version>0.3.0</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
       <version>1.4.1</version>

@@ -57,6 +57,11 @@ public class Temp implements LValue {
   }
 
   @Override
+  public boolean isDefinitelyPure() {
+    return true;
+  }
+
+  @Override
   public int hashCode() {
     return index;
   }

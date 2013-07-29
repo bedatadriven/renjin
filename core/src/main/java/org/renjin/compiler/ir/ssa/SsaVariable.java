@@ -39,7 +39,19 @@ public class SsaVariable implements Variable {
   public Variable replaceVariable(Variable name, Variable newName) {
     return this.equals(name) ? newName : this;
   }
-  
+
+  @Override
+  public boolean isDefinitelyPure() {
+    if(version == 0) {
+      // version zero is fetched from the environment, which may force
+      // a promise with side effects, so we can't trust it.
+      return false;
+    } else {
+      // otherwise we know that we're not dealing with promises
+      return true;
+    }
+  }
+
   @Override
   public void setValue(Context context, Object[] temp, Object value) {
     inner.setValue(context, temp, value);

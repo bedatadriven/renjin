@@ -10,21 +10,33 @@ import org.hamcrest.TypeSafeMatcher;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.tac.IRBody;
+import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.ExpressionVector;
 
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import org.renjin.sexp.SEXP;
 
 public class CompilerTestCase {
 
 
   protected IRBody buildScope(String rcode) {
+    Session session = new SessionBuilder().build();
+
+    // we need a simple "print" function for testing
+    try {
+      session.getGlobalEnvironment().setVariable("print", (SEXP)Class.forName("org.renjin.primitives.R$primitive$cat").newInstance());
+    } catch(Exception e) {
+      throw new RuntimeException(e);
+    }
+
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
- //   return new IRBodyBuilder(functionTable).build(ast);
-    throw new UnsupportedOperationException();
-  }  
+    return new IRBodyBuilder(session.getTopLevelContext(), session.getGlobalEnvironment()).build(ast);
+  }
   
 
   protected final IRBody parseCytron() throws IOException {

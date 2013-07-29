@@ -8,10 +8,7 @@ import org.renjin.compiler.ir.tac.expressions.JvmMethodCall;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
+import org.renjin.sexp.*;
 
 import java.util.List;
 
@@ -25,10 +22,41 @@ public class BuiltinTranslator extends FunctionCallTranslator {
     if(entry == null) {
       throw new NotCompilableException(call);
     }
-    List<JvmMethod> methods = JvmMethod.findOverloads(entry);
+    List<JvmMethod> methods = JvmMethod.findOverloads(entry.functionClass, entry.name, entry.methodName);
     return new JvmMethodCall(entry.name,
         methods, argumentNames(call.getArguments()),
         builder.translateArgumentList(context, call.getArguments()));
+  }
+
+  @Override
+  public Expression translateToSetterExpression(IRBodyBuilder builder, TranslationContext context,
+                                                Function resolvedFunction, FunctionCall getterCall,
+                                                Expression rhs) {
+
+    Primitives.Entry entry = Primitives.getBuiltinEntry(((PrimitiveFunction) resolvedFunction).getName());
+    if(entry == null) {
+      throw new NotCompilableException(getterCall);
+    }
+    List<JvmMethod> methods = JvmMethod.findOverloads(entry.functionClass, entry.name, entry.methodName);
+
+    int numGetterArgs = getterCall.getArguments().length();
+    String[] argumentNames = new String[numGetterArgs+1];
+    int argIndex = 0;
+    for(PairList.Node argument : getterCall.getArguments().nodes()) {
+      if(argument.hasTag()) {
+        argumentNames[argIndex] = argument.getTag().getPrintName();
+      }
+      argIndex++;
+    }
+    // name of the RHS argument
+    argumentNames[argIndex] = "value";
+
+    List<Expression> arguments = builder.translateArgumentList(context, getterCall.getArguments());
+    arguments.add(rhs);
+
+    return new JvmMethodCall(entry.name,
+        methods, argumentNames,
+        builder.translateArgumentList(context, getterCall.getArguments()));
   }
 
   private String[] argumentNames(PairList arguments) {

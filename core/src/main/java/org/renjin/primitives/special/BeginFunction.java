@@ -43,7 +43,7 @@ public class BeginFunction extends SpecialFunction {
     } else {
       SEXP lastResult = Null.INSTANCE;
       for (SEXP sexp : call.getArguments().values()) {
-        lastResult = context.evaluate( sexp, rho);
+        lastResult = sexp.evaluate(context, rho);
       }
       return lastResult;
     }

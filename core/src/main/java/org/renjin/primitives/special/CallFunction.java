@@ -16,7 +16,7 @@ public class CallFunction extends SpecialFunction {
     if(call.length() < 1) {
       throw new EvalException("first argument must be character string");
     }
-    SEXP name = context.evaluate(call.getArgument(0), rho);
+    SEXP name = call.getArgument(0).evaluate(context, rho);
     if(!(name instanceof StringVector) || name.length() != 1) {
       throw new EvalException("first argument must be character string");
     }

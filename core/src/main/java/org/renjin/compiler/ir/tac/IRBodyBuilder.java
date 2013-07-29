@@ -105,19 +105,9 @@ public class IRBodyBuilder {
   public Expression translateSetterCall(TranslationContext context, FunctionCall getterCall, Expression rhs) {
     Symbol getter = (Symbol) getterCall.getFunction();
     PrimitiveFunction setter = resolveFunction(Symbol.get(getter.getPrintName() + "<-"));
-    
-    // normally this call is created at runtime, with the  value 
-    // of the rhs in the argument list. Since we don't have
-    // the value of the rhs yet
-    FunctionCall setterCall = new FunctionCall(
-        setter,
-        PairList.Node.newBuilder()
-          .addAll(getterCall.getArguments())
-          .add("value", new StringArrayVector("TODO: evaluated RHS here"))
-          .build());
-    
+
     FunctionCallTranslator translator = builders.get(setter);
-    return translator.translateToSetterExpression(this, context, setterCall, rhs);
+    return translator.translateToSetterExpression(this, context, setter, getterCall, rhs);
   }
 
   public Expression translateCallExpression(TranslationContext context, FunctionCall call) {
@@ -144,20 +134,12 @@ public class IRBodyBuilder {
     List<Expression> arguments = Lists.newArrayList();
     for(SEXP arg : argumentSexps.values()) {
       if(arg == Symbols.ELLIPSES) {
-        arguments.add( Elipses.INSTANCE );
+        throw new NotCompilableException(arg);
       } else {
         arguments.add( simplify( translateExpression(context, arg) ));
       }
     }
     return arguments;
-  }
-  
-  private List<SEXP> makeNameList(FunctionCall call) {
-    List<SEXP> names = Lists.newArrayList();
-    for(PairList.Node node : call.getArguments().nodes()) {
-      names.add(node.getRawTag());
-    }
-    return names;
   }
 
   public SimpleExpression simplify(Expression rvalue) {

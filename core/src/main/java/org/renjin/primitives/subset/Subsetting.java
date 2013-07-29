@@ -96,7 +96,7 @@ public class Subsetting {
   public static SEXP getSlotValue(@Current Context context, @Current MethodDispatch methods, SEXP object,
                                   @Unevaluated Symbol slotName) {
     if(slotName.getPrintName().equals(".Data")) {
-      return context.evaluate(FunctionCall.newCall(Symbol.get("getDataPart"), object), methods.getMethodsNamespace());
+      return FunctionCall.newCall(Symbol.get("getDataPart"), object).evaluate(context, methods.getMethodsNamespace());
     }
     
     SEXP value = object.getAttribute(slotName);

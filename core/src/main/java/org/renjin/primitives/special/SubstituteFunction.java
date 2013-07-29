@@ -51,7 +51,7 @@ public class SubstituteFunction extends SpecialFunction {
     checkArity(call, 2, 1);
     SEXP exp = call.getArgument(0);
     if(call.getArguments().length() == 2) {
-      SEXP envirSexp = context.evaluate(call.getArgument(1), rho);
+      SEXP envirSexp = call.getArgument(1).evaluate(context, rho);
       return substitute(exp, envirSexp);
     } else {
       return substitute(exp, new EnvironmentContext(rho));

@@ -1,5 +1,6 @@
 package org.renjin.compiler.ir.ssa;
 
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
@@ -9,6 +10,7 @@ import org.renjin.compiler.cfg.CfgPredicates;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
@@ -178,4 +180,32 @@ public class SsaTransformer {
     }
     throw new IllegalArgumentException("X is not a predecessor of Y");
   }
+
+  public void removePhiFunctions(VariableMap variableMap) {
+    for(BasicBlock bb : cfg.getBasicBlocks()) {
+      ListIterator<Statement> it = bb.getStatements().listIterator();
+      while(it.hasNext()) {
+        Statement statement = it.next();
+        if(statement instanceof Assignment && statement.getRHS() instanceof PhiFunction) {
+          insertAssignments(((Assignment) statement).getLHS(),
+              (PhiFunction) statement.getRHS(), variableMap);
+          it.remove();
+        }
+      }
+    }
+
+  }
+
+  private void insertAssignments(LValue lhs, PhiFunction phi, VariableMap variableMap) {
+    for(Variable rhs : phi.getArguments()) {
+      SsaVariable var = (SsaVariable)rhs;
+      if(var.getVersion() == 0) {
+        cfg.getEntry().addStatement(new Assignment(lhs, rhs));
+      } else {
+        BasicBlock bb = variableMap.getDefiningBlock(rhs);
+        bb.addStatement(new Assignment(lhs, rhs));
+      }
+    }
+  }
+
 }

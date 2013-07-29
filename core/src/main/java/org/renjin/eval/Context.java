@@ -50,6 +50,7 @@ import com.google.common.collect.Maps;
  */
 public class Context {
 
+
   public enum Type {
     /** toplevel context */
     TOP_LEVEL,
@@ -158,9 +159,14 @@ public class Context {
   }
   
   public SEXP evaluate(SEXP expression) {
-    return evaluate(expression, environment);
+    return expression.evaluate(this, getEnvironment());
   }
-  
+
+  public SEXP evaluate(SEXP sexp, Environment rho) {
+    return sexp.evaluate(this, rho);
+  }
+
+
   /**
    * If the S-Expression is an {@code DeferredComputation}, then it is executed with the
    * VectorPipeliner.
@@ -181,23 +187,6 @@ public class Context {
       return session.getVectorEngine().simplify((DeferredComputation)sexp);
     } else {
       return sexp;
-    }
-  }
-  
-  public SEXP evaluate(SEXP expression, Environment rho) {
-    if(expression instanceof Symbol) {
-      return evaluateSymbol((Symbol)expression, rho);
-    } else if(expression instanceof ExpressionVector) {
-      return evaluateExpressionVector((ExpressionVector) expression, rho);
-    } else if(expression instanceof FunctionCall) {
-      return evaluateCall((FunctionCall) expression, rho);
-    } else if(expression instanceof Promise) {
-      return expression.force(this);
-    } else if(expression != Null.INSTANCE && expression instanceof PromisePairList) {
-      throw new EvalException("'...' used in an incorrect context");
-    } else {
-      clearInvisibleFlag();
-      return expression;
     }
   }
 
@@ -224,59 +213,6 @@ public class Context {
     stateMap.put(clazz, instance);
   }
 
-  private SEXP evaluateSymbol(Symbol symbol, Environment rho) {
-    clearInvisibleFlag();
-
-    if(symbol == Symbol.MISSING_ARG) {
-      return symbol;
-    }
-    SEXP value = rho.findVariable(symbol);
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
-    } 
-    
-    if(value instanceof Promise) {
-      return evaluate(value, rho);
-    } else {
-      return value;
-    }
-  }
-  
-  private SEXP evaluateExpressionVector(ExpressionVector expressionVector, Environment rho) {
-    if(expressionVector.length() == 0) {
-      setInvisibleFlag();
-      return Null.INSTANCE;
-    } else {
-      SEXP result = Null.INSTANCE;
-      for(SEXP sexp : expressionVector) {
-        result = evaluate(sexp, rho);
-      }
-      return result;
-    }
-  }
-
-  private SEXP evaluateCall(FunctionCall call, Environment rho) {
-    clearInvisibleFlag();
-    Function functionExpr = evaluateFunction(call.getFunction(), rho);
-    return functionExpr.apply(this, rho, call, call.getArguments());
-  }
-
-  private Function evaluateFunction(SEXP functionExp, Environment rho) {
-    if(functionExp instanceof Symbol) {
-      Symbol symbol = (Symbol) functionExp;
-      Function fn = rho.findFunction(this, symbol);
-      if(fn == null) {
-        throw new EvalException("could not find function '%s'", symbol.getPrintName());      
-      }
-      return fn;
-    } else {
-      SEXP evaluated = evaluate(functionExp, rho).force(this);
-      if(!(evaluated instanceof Function)) {
-        throw new EvalException("'function' of lang expression is of unsupported type '%s'", evaluated.getTypeName());
-      }
-      return (Function)evaluated;
-    }
-  }
 
   /**
    *
@@ -401,7 +337,7 @@ public class Context {
    */
   public void exit() {
     for(SEXP exp : onExit) {
-      evaluate(exp, environment);
+      exp.evaluate(this, environment);
     }
   }
 
@@ -435,10 +371,10 @@ public class Context {
     BaseFrame baseFrame = (BaseFrame) session.getBaseEnvironment().getFrame();
     baseFrame.load(this);
     
-    evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
+    FunctionCall.newCall(Symbol.get(".onLoad")).evaluate(this, session.getBaseNamespaceEnv());
     
 //    evalBaseResource("/org/renjin/library/base/R/Rprofile");
-//    
+//                                                                                                    x
 //    // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
 //    evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
   }

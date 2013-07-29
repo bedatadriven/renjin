@@ -217,7 +217,7 @@ public class Attributes {
     ListVector.Builder dn = new ListVector.Builder();
     for(SEXP names : dimnames) {
       if(names != Null.INSTANCE && !(names instanceof StringVector)) {
-        names = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), names));
+        names = FunctionCall.newCall(Symbol.get("as.character"), names).evaluate(context, context.getEnvironment());
       }
       dn.add(names);
     }

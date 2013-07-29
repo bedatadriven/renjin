@@ -106,7 +106,7 @@ public class Text {
     for(int i=0;i!=formatArgs.length;++i) {
       SEXP argument = arguments.getElementAsSEXP(i);
       if(formatters[0].isFormattedString(i) && !(argument instanceof StringVector)) {
-        argument = context.evaluate( FunctionCall.newCall(Symbol.get("as.character"), argument), 
+        argument = FunctionCall.newCall(Symbol.get("as.character"), argument).evaluate( context,
             rho); 
       }
       if(!(argument instanceof AtomicVector)) {

@@ -29,6 +29,10 @@ public class PhiFunction implements Expression {
     this.arguments = arguments;
   }
 
+  public List<Variable> getArguments() {
+    return arguments;
+  }
+
   @Override
   public Set<Variable> variables() {
     return Sets.newHashSet(arguments);
@@ -47,7 +51,12 @@ public class PhiFunction implements Expression {
     }
     return new PhiFunction(newArguments);
   }
-  
+
+  @Override
+  public boolean isDefinitelyPure() {
+    return false; // not sure... have to think about this
+  }
+
   public PhiFunction replaceVariable(int j, int i) {
     List<Variable> newArguments = Lists.newArrayList(arguments);
     newArguments.set(j, new SsaVariable(newArguments.get(j), i));

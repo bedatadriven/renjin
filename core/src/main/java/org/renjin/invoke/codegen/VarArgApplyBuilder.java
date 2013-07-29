@@ -59,7 +59,7 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
 
     JConditional ifMissing = block._if(value.eq(classRef(Symbol.class).staticRef("MISSING_ARG")));
     ifMissing._then().assign(evaluated, value);
-    ifMissing._else().assign(evaluated, context.invoke("evaluate").arg(value).arg(environment));
+    ifMissing._else().assign(evaluated, context.invoke("evaluate").arg(value).arg(environment).invoke("force").arg(context));
 
     JConditional unnamed = block._if(node.invoke("hasName").not());
 

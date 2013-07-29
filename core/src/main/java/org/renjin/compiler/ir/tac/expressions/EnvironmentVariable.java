@@ -78,6 +78,11 @@ public class EnvironmentVariable implements Variable {
   }
 
   @Override
+  public boolean isDefinitelyPure() {
+    return false;
+  }
+
+  @Override
   public List<Expression> getChildren() {
     return Collections.emptyList();
   }

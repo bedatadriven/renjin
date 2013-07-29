@@ -11,7 +11,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 import org.renjin.EvalTestCase;
+import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.emit.BlockCompiler;
+import org.renjin.compiler.ir.ssa.SsaTransformer;
+import org.renjin.compiler.ir.ssa.VariableMap;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
@@ -66,6 +72,35 @@ public class IRBodyBuilderTest extends EvalTestCase {
   @Test
   public void forLoop() {
     dump("x<-1:4; y<-0; for(n in x) { y <- y + n }");
+  }
+
+  @Test
+  public void radford() {
+    String forLoop = "for (i in 1:m) {\n" +
+        "x = exp (tanh (a^2 * (b^2 + i/m)))\n" +
+        "r[i%%10+1] = r[i%%10+1] + sum(x)\n" +
+        "}";
+
+    IRBody loopBody = build(forLoop);
+
+    ControlFlowGraph cfg = new ControlFlowGraph(loopBody);
+    DominanceTree dTree = new DominanceTree(cfg);
+    SsaTransformer transformer = new SsaTransformer(cfg, dTree);
+    transformer.transform();
+
+    System.out.println(cfg);
+
+    transformer.removePhiFunctions(new VariableMap(cfg));
+
+    System.out.println("PHI REMOVED:");
+    System.out.println(cfg);
+
+
+//    BlockCompiler compiler = new BlockCompiler();
+//    CompiledBody compiledBody = compiler.compile(cfg);
+//
+//    System.out.println(compiledBody.evaluate(session.getTopLevelContext(), session.getGlobalEnvironment()));
+
   }
   
   @Test

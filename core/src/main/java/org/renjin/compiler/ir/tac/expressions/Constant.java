@@ -54,6 +54,11 @@ public class Constant implements SimpleExpression {
   }
 
   @Override
+  public boolean isDefinitelyPure() {
+    return true;
+  }
+
+  @Override
   public void setChild(int i, Expression expr) {
     throw new IllegalArgumentException();
   }

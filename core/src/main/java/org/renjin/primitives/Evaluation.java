@@ -143,7 +143,7 @@ public class Evaluation {
       FunctionCall call = new FunctionCall(function, args.build());
       
       // evaluate
-      SEXP x = context.evaluate(call);
+      SEXP x = call.evaluate(context, context.getEnvironment());
       
       // check the result
       if(!(x instanceof Vector) || 

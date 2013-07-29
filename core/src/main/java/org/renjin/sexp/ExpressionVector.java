@@ -22,6 +22,7 @@
 package org.renjin.sexp;
 
 import com.google.common.base.Joiner;
+import org.renjin.eval.Context;
 
 /**
  * A vector of {@link FunctionCall}s
@@ -60,6 +61,20 @@ public class ExpressionVector extends ListVector {
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public SEXP evaluate(Context context, Environment rho) {
+    if(length() == 0) {
+      context.setInvisibleFlag();
+      return Null.INSTANCE;
+    } else {
+      SEXP result = Null.INSTANCE;
+      for(SEXP sexp : this) {
+        result = sexp.evaluate(context, rho);
+      }
+      return result;
+    }
   }
 
   @Override

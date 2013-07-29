@@ -52,6 +52,11 @@ public class ElementAccess implements Expression {
   }
 
   @Override
+  public boolean isDefinitelyPure() {
+    return true;
+  }
+
+  @Override
   public List<Expression> getChildren() {
     return Arrays.asList(vector, index);
   }

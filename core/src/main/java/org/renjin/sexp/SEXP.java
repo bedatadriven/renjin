@@ -163,4 +163,6 @@ public interface SEXP {
   
   SEXP force(Context context);
 
+  SEXP evaluate(Context context, Environment rho);
+
 }

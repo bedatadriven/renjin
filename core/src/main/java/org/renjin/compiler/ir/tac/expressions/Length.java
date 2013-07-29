@@ -41,12 +41,23 @@ public class Length implements SimpleExpression {
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    throw new UnsupportedOperationException();
+    switch(childIndex) {
+      case 0:
+        vector = child;
+        break;
+      default:
+        throw new IllegalArgumentException("index: " + childIndex);
+    }
   }
 
   @Override
   public SimpleExpression replaceVariable(Variable name, Variable newName) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isDefinitelyPure() {
+    return true;
   }
 
   @Override

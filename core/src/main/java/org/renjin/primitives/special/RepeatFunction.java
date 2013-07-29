@@ -41,7 +41,7 @@ public class RepeatFunction extends SpecialFunction {
 
     while(true) {
       try {
-        context.evaluate( statement, rho);
+        statement.evaluate(context, rho);
       } catch(BreakException e) {
         break;
       } catch(NextException e) {

@@ -34,6 +34,11 @@ public class LocalVariable implements Variable {
     return this.equals(name) ? newName : this;
   }
 
+  @Override
+  public boolean isDefinitelyPure() {
+    return false;
+  }
+
   private Object retrieveValue(Context context, Object[] temps) {
     return temps[offset];
   }

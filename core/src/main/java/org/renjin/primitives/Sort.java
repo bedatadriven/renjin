@@ -276,7 +276,6 @@ public class Sort {
   @Builtin
   @Generic
   public static SEXP xtfrm(@Current Context context, SEXP x) {
-    FunctionCall defaultCall = FunctionCall.newCall(Symbol.get("xtfrm.default"), x);
-    return context.evaluate(defaultCall);
+    return FunctionCall.newCall(Symbol.get("xtfrm.default"), x).evaluate(context, context.getEnvironment());
   }
 }

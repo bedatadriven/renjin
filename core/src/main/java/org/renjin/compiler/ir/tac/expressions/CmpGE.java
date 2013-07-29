@@ -49,6 +49,11 @@ public class CmpGE implements SimpleExpression {
   }
 
   @Override
+  public boolean isDefinitelyPure() {
+    return true;
+  }
+
+  @Override
   public List<Expression> getChildren() {
     return Arrays.asList(op1, op2);
   }

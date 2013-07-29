@@ -35,13 +35,7 @@ public class JvmMethodCall implements CallExpression {
 
   @Override
   public String toString() {
-    String statement;
-    if(name.equals(">") || name.equals("<")) {
-      statement = "primitive< " + name + " >";
-    } else {
-      statement = "primitive<" + name + ">";
-    }
-    return statement + "(" + Joiner.on(", ").join(arguments) + ")";
+    return "(" + name + " " + Joiner.on(" ").join(arguments) + ")";
   }
 
   @Override
@@ -63,6 +57,16 @@ public class JvmMethodCall implements CallExpression {
   }
 
   @Override
+  public boolean isDefinitelyPure() {
+    for(JvmMethod overload : overloads) {
+      if(!overload.isDeferrable()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
   public List<Expression> getChildren() {
     return arguments;
   }
@@ -75,5 +79,4 @@ public class JvmMethodCall implements CallExpression {
   public List<String> getArgumentNames() {
     return Arrays.asList(argumentNames);
   }
-
 }

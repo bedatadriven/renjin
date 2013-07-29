@@ -85,6 +85,19 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
   }
 
   @Override
+  public void importClass(List<String> classNames) {
+    for(String className : classNames) {
+      try {
+        Class clazz = Class.forName(className);
+        namespace.getNamespaceEnvironment().setVariable(clazz.getSimpleName(),
+                new ExternalPtr(clazz));
+      } catch(Exception e) {
+        System.err.println("Could not load class " + className);
+      }   
+    }
+  }
+
+  @Override
   public void S3method(Symbol genericName, String className, Symbol methodName) {
 
     Function method = resolveS3Method(methodName);

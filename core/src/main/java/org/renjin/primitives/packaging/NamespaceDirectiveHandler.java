@@ -9,7 +9,6 @@ import java.util.List;
 public interface NamespaceDirectiveHandler {
 
 
-
   public static class DynlibEntry {
     private String alias;
     private String symbolName;
@@ -39,6 +38,8 @@ public interface NamespaceDirectiveHandler {
   void import_(List<String> packageNames);
 
   void importFrom(String packageName, List<Symbol> symbols);
+
+  void importClass(List<String> classNames);
 
   void importFromClass(String className, List<Symbol> methods);
 

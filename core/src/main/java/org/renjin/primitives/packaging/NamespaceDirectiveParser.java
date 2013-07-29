@@ -93,7 +93,7 @@ public class NamespaceDirectiveParser {
   }
 
   private static void parseImportClass(FunctionCall call, NamespaceDirectiveHandler handler) {
-    handler.import_(parseNameArguments(call));
+    handler.importClass(parseNameArguments(call));
   }
 
   private static List<String> parseNameArguments(FunctionCall call) {

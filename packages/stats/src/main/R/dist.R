@@ -29,15 +29,20 @@ dist <- function(x, method="euclidean", diag=FALSE, upper=FALSE, p=2)
 	stop("ambiguous distance method")
 
     N <- nrow(x <- as.matrix(x))
-    d <- .C("R_distance",
-	    x = as.double(x),
-	    nr = N,
-	    nc=  ncol(x),
-	    d = double(N*(N - 1)/2),
-	    diag  = as.integer(FALSE),
-	    method= as.integer(method),
-	    p = as.double(p),
-	    DUP = FALSE, NAOK=TRUE, PACKAGE="stats")$d
+
+    if(ncol(x) == 1 && method == 1) {
+      d <- Distance$euclideanDistance(x)
+    } else {
+      d <- .C("R_distance",
+        x = as.double(x),
+        nr = N,
+        nc=  ncol(x),
+        d = double(N*(N - 1)/2),
+        diag  = as.integer(FALSE),
+        method= as.integer(method),
+        p = as.double(p),
+        DUP = FALSE, NAOK=TRUE, PACKAGE="stats")$d
+    }
     attr(d, "Size") <- N
     attr(d, "Labels") <- dimnames(x)[[1L]]
     attr(d, "Diag") <- diag
@@ -54,9 +59,7 @@ format.dist <- function(x, ...) format(as.vector(x), ...)
 as.matrix.dist <- function(x, ...)
 {
     size <- attr(x, "Size")
-    df <- matrix(0, size, size)
-    df[row(df) > col(df)] <- x
-    df <- df + t(df)
+    df <- Distance$toMatrix(x)
     labels <- attr(x, "Labels")
     dimnames(df) <-
 	if(is.null(labels)) list(seq_len(size), seq_len(size)) else list(labels,labels)

@@ -560,3 +560,6 @@ S3method(weighted.mean, default)
 S3method(weighted.mean, difftime)
 S3method(weighted.mean, POSIXct)
 S3method(weighted.mean, POSIXlt)
+
+# Renjin specific
+importClass(org.renjin.stats.dist.Distance)

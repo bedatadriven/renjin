@@ -23,7 +23,6 @@ public class DeferredMean extends DeferredSummary {
   }
 
   protected double calculate() {
-    System.err.println("EEK! mean.calculate() called directly");
     double sum = 0;
     for(int i=0;i!=vector.length();++i) {
       sum += vector.getElementAsDouble(i);

@@ -16,7 +16,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>org.renjin</groupId>
-        <version>0.7.0-RC6</version>
+        <version>0.7.0-RC7-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>

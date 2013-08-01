@@ -1,13 +1,12 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.Variable;
 
 
 /**
@@ -38,18 +37,22 @@ public class ExprStatement implements Statement {
   }
 
   @Override
-  public Set<Variable> variables() {
-    return operand.variables();
+  public void setRHS(Expression newRHS) {
+    this.operand = newRHS;
   }
 
   @Override
-  public Statement withRHS(Expression newRHS) {
-    return new ExprStatement(newRHS);
+  public int getChildCount() {
+    return 1;
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Arrays.asList(operand);
+  public Expression childAt(int index) {
+    if(index == 0) {
+      return operand;
+    } else {
+      throw new IllegalArgumentException();
+    }
   }
 
   @Override
@@ -64,5 +67,13 @@ public class ExprStatement implements Statement {
   @Override
   public void accept(StatementVisitor visitor) {
     visitor.visitExprStatement(this);
+  }
+
+  @Override
+  public void emit(EmitContext emitContext, MethodVisitor mv) {
+    if(!operand.isDefinitelyPure()) {
+      operand.emitPush(emitContext, mv);
+      mv.visitInsn(Opcodes.POP);
+    }
   }
 }

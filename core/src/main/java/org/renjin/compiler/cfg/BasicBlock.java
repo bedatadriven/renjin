@@ -98,14 +98,7 @@ public class BasicBlock {
     }
     return sb.toString();
   }
-  
-  public Set<Variable> variables() {
-    Set<Variable> variables = Sets.newHashSet();
-    for(Statement statement : statements) {
-      variables.addAll(statement.variables());
-    }
-    return Collections.unmodifiableSet(variables);
-  }
+
   
   public Iterable<Assignment> assignments() {
     return (Iterable)Iterables.filter(statements, Predicates.instanceOf(Assignment.class));

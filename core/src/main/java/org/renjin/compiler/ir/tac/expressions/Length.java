@@ -2,10 +2,9 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 
 
 /**
@@ -16,53 +15,34 @@ import org.renjin.sexp.SEXP;
  * primitive is generic, but the for loop always uses the actual length of the
  * vector. (is this another sign we need to push 'fors' down into the IR level?)
  */
-public class Length implements SimpleExpression {
+public class Length extends SpecializedCallExpression implements SimpleExpression {
 
-  private Expression vector;
-  
   public Length(Expression vector) {
-    super();
-    this.vector = vector;
+    super(vector);
   }
 
   public Expression getVector() {
-    return vector;
+    return arguments[0];
   }
 
   @Override
-  public Set<Variable> variables() {
-    return vector.variables();
-  }
-
-  @Override
-  public List<Expression> getChildren() {
-    return Collections.singletonList(vector);
-  }
-
-  @Override
-  public void setChild(int childIndex, Expression child) {
-    switch(childIndex) {
-      case 0:
-        vector = child;
-        break;
-      default:
-        throw new IllegalArgumentException("index: " + childIndex);
-    }
-  }
-
-  @Override
-  public SimpleExpression replaceVariable(Variable name, Variable newName) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean isDefinitelyPure() {
+  public boolean isFunctionDefinitelyPure() {
     return true;
   }
 
   @Override
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class inferType() {
+    return int.class;
+  }
+
+  @Override
   public String toString() {
-    return "length(" + vector + ")";
+    return "length(" + getVector() + ")";
   }
 
 }

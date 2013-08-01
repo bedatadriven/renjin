@@ -27,7 +27,8 @@ public class VariableMap {
         if(statement instanceof Assignment) {
           addToMap(bb, (Assignment)statement);
         }
-        for(TreeNode uses : statement.getRHS().getChildren()) {
+        for(int i=0;i!=statement.getRHS().getChildCount();++i) {
+          TreeNode uses = statement.getRHS().childAt(i);
           if(uses instanceof LValue) {
             useByBlockMap.put((LValue)uses, bb);
           }

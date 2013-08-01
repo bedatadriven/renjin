@@ -1,8 +1,10 @@
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
+
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -17,27 +19,32 @@ public class NullExpression implements Expression {
   private NullExpression() { }
 
   @Override
-  public Set<Variable> variables() {
-    return Collections.emptySet();
-  }
-
-  @Override
-  public Expression replaceVariable(Variable name, Variable newName) {
-    return this;
-  }
-
-  @Override
   public boolean isDefinitelyPure() {
     return true;
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.emptyList();
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class inferType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void setChild(int i, Expression expr) {
+    throw new IllegalArgumentException();
+  }
+
+  @Override
+  public int getChildCount() {
+    return 0;
+  }
+
+  @Override
+  public Expression childAt(int index) {
     throw new IllegalArgumentException();
   }
 

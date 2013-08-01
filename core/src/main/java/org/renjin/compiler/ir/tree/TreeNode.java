@@ -7,9 +7,11 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 
 public interface TreeNode {
 
-  List<Expression> getChildren();
-
   void setChild(int childIndex, Expression child);
+  
+  int getChildCount();
+
+  Expression childAt(int index);
   
   
 }

@@ -1,14 +1,13 @@
 package org.renjin.compiler.ir.tac.statements;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.NullExpression;
-import org.renjin.compiler.ir.tac.expressions.Variable;
 
 
 public class GotoStatement implements Statement, BasicBlockEndingStatement {
@@ -34,10 +33,6 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
     return "goto " + target;
   }
 
-  @Override
-  public Set<Variable> variables() {
-    return Collections.emptySet();
-  }
 
   @Override
   public Expression getRHS() {
@@ -45,17 +40,12 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public Statement withRHS(Expression newRHS) {
+  public void setRHS(Expression newRHS) {
     if(newRHS != NullExpression.INSTANCE) {
       throw new IllegalArgumentException();
     }
-    return this;
   }
 
-  @Override
-  public List<Expression> getChildren() {
-    return Collections.emptyList();
-  }
 
   @Override
   public void setChild(int childIndex, Expression child) {
@@ -63,7 +53,22 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
+  public int getChildCount() {
+    return 0;
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    throw new IllegalArgumentException();
+  }
+
+  @Override
   public void accept(StatementVisitor visitor) {
     visitor.visitGoto(this);
+  }
+
+  @Override
+  public void emit(EmitContext emitContext, MethodVisitor mv) {
+    mv.visitJumpInsn(Opcodes.GOTO, emitContext.getAsmLabel(target));
   }
 }

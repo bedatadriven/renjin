@@ -1,14 +1,12 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.invoke.model.JvmMethod;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Expression which targets a set of JVM methods
@@ -39,24 +37,6 @@ public class JvmMethodCall implements CallExpression {
   }
 
   @Override
-  public Set<Variable> variables() {
-    Set<Variable> variables = Sets.newHashSet();
-    for(Expression operand : arguments) {
-      variables.addAll(operand.variables());
-    }
-    return Collections.unmodifiableSet(variables);
-  }
-
-  @Override
-  public JvmMethodCall replaceVariable(Variable name, Variable newName) {
-    List<Expression> newOps = Lists.newArrayListWithCapacity(arguments.size());
-    for(Expression argument : arguments) {
-      newOps.add(argument.replaceVariable(name, newName));
-    }
-    return new JvmMethodCall(this.name, overloads, argumentNames, newOps);
-  }
-
-  @Override
   public boolean isDefinitelyPure() {
     for(JvmMethod overload : overloads) {
       if(!overload.isDeferrable()) {
@@ -67,13 +47,28 @@ public class JvmMethodCall implements CallExpression {
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return arguments;
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setChild(int i, Expression expr) {
-    arguments.set(i, expr);
+  public Class inferType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    arguments.set(childIndex, child);
+  }
+
+  @Override
+  public int getChildCount() {
+    return arguments.size();
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    return arguments.get(index);
   }
 
   public List<String> getArgumentNames() {

@@ -1,15 +1,15 @@
 package org.renjin.compiler.ir.ssa;
 
 import java.util.List;
-import java.util.Set;
 
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 public class PhiFunction implements Expression {
 
@@ -34,22 +34,8 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public Set<Variable> variables() {
-    return Sets.newHashSet(arguments);
-  }
-
-  @Override
   public String toString() {
     return "\u03A6(" + Joiner.on(", ").join(arguments) + ")";
-  }
-
-  @Override
-  public Expression replaceVariable(Variable name, Variable newName) {
-    List<Variable> newArguments = Lists.newArrayList();
-    for(Variable arg : arguments) {
-      newArguments.add(arg.equals(name) ? newName : arg);
-    }
-    return new PhiFunction(newArguments);
   }
 
   @Override
@@ -57,10 +43,18 @@ public class PhiFunction implements Expression {
     return false; // not sure... have to think about this
   }
 
-  public PhiFunction replaceVariable(int j, int i) {
-    List<Variable> newArguments = Lists.newArrayList(arguments);
-    newArguments.set(j, new SsaVariable(newArguments.get(j), i));
-    return new PhiFunction(newArguments);
+  @Override
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class inferType() {
+    throw new UnsupportedOperationException();
+  }
+
+  public void setVersionNumber(int argumentIndex, int versionNumber) {
+    arguments.set(argumentIndex, new SsaVariable(arguments.get(argumentIndex), versionNumber));
   }
 
   public Variable getArgument(int j) {
@@ -68,14 +62,17 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return (List)arguments;
-  }
-
-  @Override
   public void setChild(int childIndex, Expression child) {
     arguments.set(childIndex, (Variable)child);
   }
 
+  @Override
+  public int getChildCount() {
+    return arguments.size();
+  }
 
-} 
+  @Override
+  public Expression childAt(int index) {
+    return arguments.get(index);
+  }
+}

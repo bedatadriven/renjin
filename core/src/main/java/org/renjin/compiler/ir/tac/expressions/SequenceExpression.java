@@ -3,19 +3,13 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
 
-/**
- * Checks whether op1 is greater than or equal to op2. 
- * Op1 and op2 must be integers. (Not sexps!)
- */
-public class CmpGE extends SpecializedCallExpression {
+import java.util.List;
 
-  public CmpGE(Expression op1, Expression op2) {
-    super(op1, op2);
-  }
+public class SequenceExpression extends SpecializedCallExpression {
+ 
 
-  @Override
-  public String toString() {
-    return arguments[0] + " >= " + arguments[1];
+  public SequenceExpression(Expression from, Expression to) {
+    super(from, to);
   }
 
   @Override
@@ -35,6 +29,6 @@ public class CmpGE extends SpecializedCallExpression {
 
   @Override
   public Class inferType() {
-    return boolean.class;
+    throw new UnsupportedOperationException();
   }
 }

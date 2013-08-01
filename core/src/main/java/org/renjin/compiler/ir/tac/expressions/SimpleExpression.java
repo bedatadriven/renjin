@@ -6,5 +6,4 @@ package org.renjin.compiler.ir.tac.expressions;
  */
 public interface SimpleExpression extends Expression {
 
-  SimpleExpression replaceVariable(Variable name, Variable newName);
 }

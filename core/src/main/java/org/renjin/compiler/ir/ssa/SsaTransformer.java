@@ -1,10 +1,8 @@
 package org.renjin.compiler.ir.ssa;
 
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Stack;
+import java.util.*;
 
+import com.google.common.collect.Sets;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.CfgPredicates;
 import org.renjin.compiler.cfg.ControlFlowGraph;
@@ -32,12 +30,13 @@ public class SsaTransformer {
 
   private Map<Variable, Integer> C = Maps.newHashMap();
   private Map<Variable, Stack<Integer>> S = Maps.newHashMap();
-
+  private Set<Variable> allVariables;
 
   public SsaTransformer(ControlFlowGraph cfg, DominanceTree dtree) {
     super();
     this.cfg = cfg;
     this.dtree = dtree;
+    this.allVariables = allVariables();
   }
   
   public void transform() {
@@ -65,7 +64,7 @@ public class SsaTransformer {
 
     Queue<BasicBlock> W = Lists.newLinkedList();
 
-    for(Variable V : cfg.variables()) {
+    for(Variable V : allVariables) {
       iterCount = iterCount + 1;
 
       for(BasicBlock X : Iterables.filter(cfg.getLiveBasicBlocks(), CfgPredicates.containsAssignmentTo(V))) {
@@ -95,7 +94,7 @@ public class SsaTransformer {
     // Figure 12 in
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
 
-    for(Variable V : cfg.variables()) {
+    for(Variable V : allVariables) {
 
       // in a deviation from Cytron, et. al,
       // V_0 represents the uninitialized value
@@ -110,16 +109,32 @@ public class SsaTransformer {
     search(cfg.getEntry());
   }
 
+  private Set<Variable> allVariables() {
+    Set<Variable> set = Sets.newHashSet();
+    for(BasicBlock bb : cfg.getBasicBlocks()) {
+      for(Statement statement : bb.getStatements()) {
+        collectVariables(set, statement.getRHS());
+        if(statement instanceof  Assignment) {
+          collectVariables(set, ((Assignment) statement).getLHS());
+        }
+      }
+    }
+    return set;
+  }
+
   private void search(BasicBlock X) {
     
     for(Statement stmt : X.getStatements()) {
       Expression rhs = stmt.getRHS();
       if(!(rhs instanceof PhiFunction)) {
-        for(Variable V : rhs.variables()) {
-          int i = Top(V);
-          rhs = rhs.replaceVariable(V, new SsaVariable(V, i));
+        for(int argumentIndex = 0; argumentIndex!=rhs.getChildCount();++argumentIndex) {
+          Expression argument = rhs.childAt(argumentIndex);
+          if(argument instanceof Variable) {
+            Variable V = (Variable)argument;
+            int i = Top(V);
+            rhs.setChild(argumentIndex, new SsaVariable(V, i));
+          }
         }
-        stmt = X.replaceStatement(stmt, stmt.withRHS(rhs));
       }
       
       if(stmt instanceof Assignment) {
@@ -127,7 +142,7 @@ public class SsaTransformer {
         if(assignment.getLHS() instanceof Variable) {
           Variable V = (Variable)assignment.getLHS();
           int i = C.get(V);
-          X.replaceStatement(assignment, assignment.withLHS(new SsaVariable(V, i)));
+          assignment.setLHS(new SsaVariable(V, i));
           S.get(V).push(i);
           C.put(V, i + 1);
         }
@@ -140,9 +155,8 @@ public class SsaTransformer {
         PhiFunction rhs = (PhiFunction) A.getRHS();
         Variable V = rhs.getArgument(j);
         int i = Top(V);
-        rhs = rhs.replaceVariable(j, i);
-        Y.replaceStatement(A, new Assignment(A.getLHS(), rhs));
         // replace the j-th operand V in RHS(F) by V_i where i = Top(S(V))
+        rhs.setVersionNumber(j, i);
       }
     }
     for(BasicBlock Y : dtree.getChildren(X)) {
@@ -152,6 +166,22 @@ public class SsaTransformer {
       if(A.getLHS() instanceof SsaVariable) {
         SsaVariable lhs = (SsaVariable) A.getLHS();
         S.get(lhs.getInner()).pop();
+      }
+    }
+  }
+
+  private Iterable<Variable> variables(Expression rhs) {
+    Set<Variable> set = Sets.newHashSet();
+    collectVariables(set, rhs);
+    return set;
+  }
+
+  private void collectVariables(Set<Variable> set, Expression rhs) {
+    if(rhs instanceof Variable) {
+      set.add((Variable)rhs);
+    } else {
+      for(int i=0;i!=rhs.getChildCount();++i) {
+        collectVariables(set, rhs.childAt(i));
       }
     }
   }

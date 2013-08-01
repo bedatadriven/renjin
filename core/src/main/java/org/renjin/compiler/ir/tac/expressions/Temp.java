@@ -2,8 +2,9 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.IRUtils;
 import org.renjin.eval.Context;
 
@@ -42,23 +43,33 @@ public class Temp implements LValue {
   }
 
   @Override
-  public Set<Variable> variables() {
-    return Collections.emptySet();
-  }
-
-  @Override
   public void setChild(int i, Expression expr) {
     throw new IllegalArgumentException();
   }
 
   @Override
-  public Temp replaceVariable(Variable name, Variable newName) {
-    return this;
+  public int getChildCount() {
+    return 0;
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    throw new IllegalArgumentException();
   }
 
   @Override
   public boolean isDefinitelyPure() {
     return true;
+  }
+
+  @Override
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class inferType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -76,11 +87,6 @@ public class Temp implements LValue {
       return false;
     Temp other = (Temp) obj;
     return index == other.index;
-  }
-  
-  @Override
-  public List<Expression> getChildren() {
-    return Collections.emptyList();
   }
 
 }

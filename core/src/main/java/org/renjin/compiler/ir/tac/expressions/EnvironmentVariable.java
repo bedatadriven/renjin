@@ -1,13 +1,13 @@
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -28,14 +28,7 @@ public class EnvironmentVariable implements Variable {
   public Symbol getName() {
     return name;
   }
-  private Object retrieveValue(Context context, Object[] temps) {
-    SEXP value = context.getEnvironment().findVariable(name);
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("object '" + name + "' not found");
-    }
-    return value.force(context);
-  }
-  
+
   @Override
   public void setValue(Context context, Object[] temp, Object value) {
     context.getEnvironment().setVariable(name, (SEXP)value); 
@@ -44,11 +37,6 @@ public class EnvironmentVariable implements Variable {
   @Override
   public String toString() {
     return name.toString();
-  }
-
-  @Override
-  public Set<Variable> variables() {
-    return Collections.<Variable>singleton(this);
   }
 
   @Override
@@ -69,26 +57,33 @@ public class EnvironmentVariable implements Variable {
   }
 
   @Override
-  public Variable replaceVariable(Variable name, Variable newName) {
-    if(this.equals(name)) {
-      return newName;
-    } else {
-      return this;
-    }
-  }
-
-  @Override
   public boolean isDefinitelyPure() {
     return false;
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.emptyList();
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
+  public Class inferType() {
+    throw new UnsupportedOperationException();
+  }
+
+
+  @Override
   public void setChild(int i, Expression expr) {
+    throw new IllegalArgumentException();
+  }
+
+  @Override
+  public int getChildCount() {
+    return 0;
+  }
+
+  @Override
+  public Expression childAt(int index) {
     throw new IllegalArgumentException();
   }
 

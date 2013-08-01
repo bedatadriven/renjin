@@ -9,8 +9,6 @@ public interface LValue extends SimpleExpression {
   
   void setValue(Context context, Object[] temp, Object value);
 
-  LValue replaceVariable(Variable name, Variable newName);
-
 
 }
 

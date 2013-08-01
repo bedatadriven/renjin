@@ -38,7 +38,7 @@ public class DebugGraph {
 
       File tempPng = File.createTempFile("graph", ".png");
 
-      Runtime.getRuntime().exec("dot", new String[] { "-T", "png", "-o", tempPng.getAbsolutePath(), tempFile.getAbsolutePath() });
+      Process process = Runtime.getRuntime().exec(new String[] { "dot", "-T", "png", "-o", tempPng.getAbsolutePath(), tempFile.getAbsolutePath() });
 
       System.out.println("Graph drawn to " + tempPng);
       //tempFile.delete();

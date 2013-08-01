@@ -1,29 +1,23 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
-import com.google.common.collect.Sets;
-
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
 
 
 /**
  * Extracts a single element from a vector.
  */
-public class ElementAccess implements Expression {
+public class ElementAccess extends SpecializedCallExpression {
 
-  private Expression vector;
-  private Expression index;
   
   public ElementAccess(Expression vector, Expression index) {
-    super();
-    this.vector = vector;
-    this.index = index;
+    super(vector, index);
   }
 
   public Expression getVector() {
-    return vector;
+    return arguments[0];
   }
 
   /**
@@ -31,44 +25,33 @@ public class ElementAccess implements Expression {
    * element to extract
    */
   public Expression getIndex() {
-    return index;
+    return arguments[1];
   }
 
   @Override
   public String toString() {
-    return vector + "[" + index + "]";
+    return getVector() + "[" + getIndex() + "]";
   }
 
   @Override
-  public Set<Variable> variables() {
-    return Sets.union(vector.variables(), index.variables());
-  }
-
-  @Override
-  public ElementAccess replaceVariable(Variable name, Variable newName) {
-    return new ElementAccess(
-        vector.replaceVariable(name, newName), 
-        index.replaceVariable(name, newName));
-  }
-
-  @Override
-  public boolean isDefinitelyPure() {
+  public boolean isFunctionDefinitelyPure() {
     return true;
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Arrays.asList(vector, index);
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setChild(int i, Expression expr) {
-    if(i==0) {
-      vector = expr;
-    } else if(i==1) {
-      index = expr;
+  public Class inferType() {
+    Class vectorType = getVector().inferType();
+    if(DoubleVector.class.isAssignableFrom(vectorType)) {
+      return double.class;
+    } else if(IntVector.class.isAssignableFrom(vectorType)) {
+      return int.class;
     } else {
-      throw new IllegalArgumentException();
+      throw new UnsupportedOperationException("can't figure out type of " + getVector());
     }
   }
 

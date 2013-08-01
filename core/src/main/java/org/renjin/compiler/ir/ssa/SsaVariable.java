@@ -2,8 +2,9 @@ package org.renjin.compiler.ir.ssa;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.IRUtils;
 import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.eval.Context;
@@ -31,16 +32,6 @@ public class SsaVariable implements Variable {
   }
 
   @Override
-  public Set<Variable> variables() {
-    return Collections.<Variable>singleton(this);
-  }
-  
-  @Override
-  public Variable replaceVariable(Variable name, Variable newName) {
-    return this.equals(name) ? newName : this;
-  }
-
-  @Override
   public boolean isDefinitelyPure() {
     if(version == 0) {
       // version zero is fetched from the environment, which may force
@@ -50,6 +41,16 @@ public class SsaVariable implements Variable {
       // otherwise we know that we're not dealing with promises
       return true;
     }
+  }
+
+  @Override
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class inferType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -89,8 +90,13 @@ public class SsaVariable implements Variable {
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.emptyList();
+  public int getChildCount() {
+    return 0;
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    throw new IllegalArgumentException();
   }
 
   @Override

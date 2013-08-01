@@ -1,12 +1,11 @@
 package org.renjin.compiler.ir.tac.statements;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.Variable;
 
 
 public class ReturnStatement implements Statement {
@@ -33,8 +32,8 @@ public class ReturnStatement implements Statement {
   }
   
   @Override
-  public ReturnStatement withRHS(Expression newRHS) {
-    return new ReturnStatement(newRHS);
+  public void setRHS(Expression newRHS) {
+    this.value = newRHS;
   }
 
   @Override
@@ -43,13 +42,17 @@ public class ReturnStatement implements Statement {
   }
 
   @Override
-  public Set<Variable> variables() {
-    return value.variables();
+  public int getChildCount() {
+    return 1;
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.singletonList(value);
+  public Expression childAt(int index) {
+    if(index == 0) {
+      return value;
+    } else {
+      throw new IllegalArgumentException();
+    }
   }
 
   @Override
@@ -64,5 +67,10 @@ public class ReturnStatement implements Statement {
   @Override
   public void accept(StatementVisitor visitor) {
     visitor.visitReturn(this);
+  }
+
+  @Override
+  public void emit(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
   }
 }

@@ -2,8 +2,9 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.eval.Context;
 import org.renjin.sexp.Symbol;
 
@@ -11,7 +12,6 @@ import org.renjin.sexp.Symbol;
 
 /**
  * A value known at compile time.
- *
  */
 public class Constant implements SimpleExpression {
 
@@ -34,23 +34,14 @@ public class Constant implements SimpleExpression {
     }
   }
 
-  private Object retrieveValue(Context context, Object[] temps) {
-    return value;
+  @Override
+  public int getChildCount() {
+    return 0;
   }
 
   @Override
-  public Set<Variable> variables() {
-    return Collections.emptySet();
-  }
-
-  @Override
-  public List<Expression> getChildren() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public Constant replaceVariable(Variable name, Variable newName) {
-    return this;
+  public Expression childAt(int index) {
+    throw new IllegalArgumentException();
   }
 
   @Override
@@ -59,8 +50,17 @@ public class Constant implements SimpleExpression {
   }
 
   @Override
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class inferType() {
+    return value.getClass();
+  }
+
+  @Override
   public void setChild(int i, Expression expr) {
     throw new IllegalArgumentException();
   }
-
 }

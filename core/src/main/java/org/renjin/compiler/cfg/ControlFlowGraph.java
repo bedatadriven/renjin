@@ -61,19 +61,7 @@ public class ControlFlowGraph {
   public List<BasicBlock> getLiveBasicBlocks() {
     return Collections.unmodifiableList(basicBlocks);
   }
-  
-  /**
-   *
-   * @return all variables used or assigned within this 
-   * control flow graph
-   */
-  public Set<Variable> variables() {
-    Set<Variable> variables = Sets.newHashSet();
-    for(BasicBlock bb : basicBlocks) {
-      variables.addAll(bb.variables());
-    }
-    return Collections.unmodifiableSet(variables);
-  }
+
 
   private BasicBlock addNewBasicBlock(IRBody body, int i) {
     BasicBlock bb = BasicBlock.createWithStartAt(body, i);

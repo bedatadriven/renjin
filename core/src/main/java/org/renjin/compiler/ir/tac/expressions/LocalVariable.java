@@ -2,8 +2,9 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.eval.Context;
 
 
@@ -30,22 +31,18 @@ public class LocalVariable implements Variable {
   }
 
   @Override
-  public Variable replaceVariable(Variable name, Variable newName) {
-    return this.equals(name) ? newName : this;
-  }
-
-  @Override
   public boolean isDefinitelyPure() {
     return false;
   }
 
-  private Object retrieveValue(Context context, Object[] temps) {
-    return temps[offset];
+  @Override
+  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public Set<Variable> variables() {
-    return Collections.<Variable>singleton(this);
+  public Class inferType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -75,8 +72,13 @@ public class LocalVariable implements Variable {
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.emptyList();
+  public int getChildCount() {
+    return 0;
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    throw new IllegalArgumentException();
   }
 
   @Override

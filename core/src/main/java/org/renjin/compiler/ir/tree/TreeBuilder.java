@@ -53,9 +53,8 @@ public class TreeBuilder {
   }
 
   private <T extends TreeNode> T buildUp(T parent, Map<LValue, Expression> definitions) {
-    List<Expression> children = parent.getChildren();
-    for(int i=0;i!=children.size();++i) {
-      if(definitions.containsKey(children.get(i))) {
+    for(int i=0;i!=parent.getChildCount();++i) {
+      if(definitions.containsKey(parent.childAt(i))) {
         parent.setChild(i, buildUp(definitions.get(i), definitions));
       }
     }

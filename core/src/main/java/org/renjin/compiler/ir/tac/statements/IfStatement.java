@@ -1,16 +1,14 @@
 package org.renjin.compiler.ir.tac.statements;
 
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
-import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {
@@ -70,16 +68,8 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public Set<Variable> variables() {
-    return condition.variables();
-  }
-  
-  @Override
-  public Statement withRHS(Expression newRHS) {
-    if(!(newRHS instanceof SimpleExpression)) {
-      throw new IllegalArgumentException("if statement requires simple rhs");
-    }
-    return new IfStatement((SimpleExpression) newRHS, trueTarget, falseTarget, naTarget);
+  public void setRHS(Expression newRHS) {
+    this.condition = newRHS;
   }
  
   private Logical toLogical(Object obj) {
@@ -108,11 +98,6 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.singletonList((Expression)condition);
-  }
-
-  @Override
   public void setChild(int childIndex, Expression child) {
     if(childIndex == 0) {
       condition = child;
@@ -122,7 +107,26 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
+  public int getChildCount() {
+    return 1;
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    if(index == 0) {
+      return condition;
+    } else {
+      throw new IllegalArgumentException();
+    }
+  }
+
+  @Override
   public void accept(StatementVisitor visitor) {
     visitor.visitIf(this);
+  }
+
+  @Override
+  public void emit(EmitContext emitContext, MethodVisitor mv) {
+    throw new UnsupportedOperationException();
   }
 }

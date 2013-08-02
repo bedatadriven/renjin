@@ -717,4 +717,23 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("x[,2]"), equalTo(c(7,8,9,10,11,12)));
   }
   
+  @Test
+  public void dollarAssignToNull() {
+    eval("x <- NULL");
+    eval("x$a <- 41");
+    
+    assertThat(eval("x"), equalTo(list(41d)));
+    assertThat(eval("names(x)"), equalTo(c("a")));
+
+  }
+  
+  @Test
+  public void dollarAssignToAtomicIsCoercedToList() {
+    eval("x <- c(a=91,b=92)");
+    eval("x$a <- 99");
+    assertThat(eval("x"), equalTo(list(99d,92d)));
+    assertThat(eval("names(x)"), equalTo(c("a","b")));
+
+  }
+  
 }

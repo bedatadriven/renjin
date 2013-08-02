@@ -133,9 +133,23 @@ public class Subsetting {
   public static SEXP setElementByName(ListVector list,
       @Unevaluated Symbol name, SEXP value) {
     return setSingleElement(list.newCopyNamedBuilder(), name.getPrintName(), value);
-
   }
 
+  @Builtin("$<-")
+  public static SEXP setElementByName(AtomicVector vector, @Unevaluated Symbol nameToReplace, SEXP value) {
+    // Coerce the atomic vector to a list first
+    ListVector.NamedBuilder copyBuilder = ListVector.newNamedBuilder();
+    StringVector namesVector = vector.getAttributes().getNames();
+    for(int i=0;i!=vector.length();++i) {
+      String elementName = null;
+      if(namesVector != null) {
+        elementName = namesVector.getElementAsString(i);
+      }
+      copyBuilder.add(elementName, vector.getElementAsSEXP(i));
+    }
+    return setSingleElement(copyBuilder, nameToReplace.getPrintName(), value);
+  }
+  
   @Builtin("$<-")
   public static SEXP setElementByName(PairList.Node pairList,
       @Unevaluated Symbol name, SEXP value) {

@@ -1,16 +1,18 @@
 package org.renjin.gnur;
 
 
+import com.google.common.collect.Sets;
 import org.apache.commons.math.util.FastMath;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.FunPtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gnur.sexp.GnuSEXP;
+import org.renjin.gnur.sexp.GnuSymbol;
 import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.SEXP;
 
-import java.util.Random;
+import java.util.Set;
 
 /**
  * Emulation of the C API for code compiled via GCC
@@ -23,6 +25,12 @@ public class RenjinCApi {
   public static final double R_NaN = Double.NaN;
 
   public static final double R_PosInf = Double.POSITIVE_INFINITY;
+
+  public static final GnuSymbol R_DimSymbol = new GnuSymbol("dim");
+
+
+
+  public static final Set<GnuSymbol> SYMBOL_TABLE = Sets.newHashSet();
 
   public static void warning(CharPtr text) {
     java.lang.System.out.println(text.asString());
@@ -38,6 +46,10 @@ public class RenjinCApi {
 
   public static double R_pow(double x, double y) {
     return FastMath.pow(x, y);
+  }
+  
+  public static int TYPEOF(GnuSEXP sexp) {
+    throw new UnsupportedOperationException();
   }
 
   public static void R_registerRoutines(Object dll, Object CEntries, Object callEntries, Object q, int count) {
@@ -91,20 +103,21 @@ public class RenjinCApi {
 
   }
   
-  public static int LENGTH(SEXP x) {
+  public static int LENGTH(GnuSEXP x) {
     throw new UnsupportedOperationException();
   }
   
-  public static double[] REAL(SEXP x) {
+ 
+  public static DoublePtr REAL(GnuSEXP x) {
     throw new UnsupportedOperationException();
   }
   
   
-  public static SEXP Rf_coerceVector(SEXP x, int type) {
+  public static GnuSEXP Rf_coerceVector(GnuSEXP x, int type) {
     throw new UnsupportedOperationException();
   }
   
-  public static SEXP Rf_protect(SEXP obj) {
+  public static GnuSEXP Rf_protect(GnuSEXP obj) {
     // NOOP
     return obj;
   }
@@ -113,7 +126,7 @@ public class RenjinCApi {
     // NOOP
   }
   
-  public static SEXP Rf_allocVector(int type, int size) {
+  public static GnuSEXP Rf_allocVector(int type, int size) {
     return null;
   }
   
@@ -147,6 +160,10 @@ public class RenjinCApi {
     throw new UnsupportedOperationException("not implemented");
   }
 
+  
+  public static int Rf_length(GnuSEXP sexp) {
+    throw new UnsupportedOperationException();
+  }
 
 }
 

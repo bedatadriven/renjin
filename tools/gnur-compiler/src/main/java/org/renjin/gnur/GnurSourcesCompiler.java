@@ -9,7 +9,9 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.translate.call.MallocCallTranslator;
+import org.renjin.gcc.jimple.RealJimpleType;
+import org.renjin.gcc.translate.type.struct.SimpleRecordType;
+import org.renjin.gnur.sexp.GnuSEXP;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,6 +35,7 @@ public class GnurSourcesCompiler {
   private File gimpleDirectory = new File("target/gimple");
   private File workDirectory;
   private File outputDirectory = new File("target/classes");
+  
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;
@@ -61,7 +64,7 @@ public class GnurSourcesCompiler {
   public void setWorkDirectory(File workDir) {
     this.workDirectory = workDir;
   }
-  
+
   public void addSources(File src) {
     if(src.exists() && src.listFiles() != null) {
       for(File file : src.listFiles()) {
@@ -99,7 +102,6 @@ public class GnurSourcesCompiler {
       for(File sourceFile : sources) {
         GimpleCompilationUnit unit;
         try {
-
           unit = gcc.compileToGimple(sourceFile, "-std=gnu99");
         } catch(Exception e) {
           throw new GccException("Error compiling " + sourceFile + " to gimple: " + e.getMessage(), e);
@@ -132,6 +134,8 @@ public class GnurSourcesCompiler {
 
       compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
       compiler.getMethodTable().addReferenceClass(Sort.class);
+
+      compiler.provideType("SEXP_T", new SimpleRecordType(new RealJimpleType(GnuSEXP.class)));
 
       compiler.compile(units);
     }

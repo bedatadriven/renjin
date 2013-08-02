@@ -7,6 +7,7 @@ import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.type.ImType;
+import org.renjin.gcc.translate.var.SimpleRecordPtrFieldExpr;
 import org.renjin.gcc.translate.var.SimpleRecordVar;
 import org.renjin.gcc.translate.var.Variable;
 
@@ -14,7 +15,7 @@ public class SimpleRecordPtrType implements ImType {
 
   private final SimpleRecordType baseType;
 
-  public SimpleRecordPtrType(TranslationContext context, SimpleRecordType recordType) {
+  public SimpleRecordPtrType(SimpleRecordType recordType) {
     this.baseType = recordType;
   }
 
@@ -30,7 +31,7 @@ public class SimpleRecordPtrType implements ImType {
 
   @Override
   public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
-    throw new UnsupportedOperationException();
+    baseType.defineField(classBuilder, memberName, isStatic);
   }
 
   @Override
@@ -41,7 +42,7 @@ public class SimpleRecordPtrType implements ImType {
 
   @Override
   public ImExpr createFieldExpr(String instanceExpr, JimpleType classType, String memberName) {
-    throw new UnsupportedOperationException();
+    return new SimpleRecordPtrFieldExpr(this);
   }
 
   @Override

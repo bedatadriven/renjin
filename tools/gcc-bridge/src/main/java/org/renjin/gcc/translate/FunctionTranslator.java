@@ -62,8 +62,12 @@ public class FunctionTranslator extends GimpleVisitor {
 
   @Override
   public void visitAssignment(GimpleAssign assignment) {
-    AssignmentTranslator translator = new AssignmentTranslator(context);
-    translator.translate(assignment);
+    try {
+      AssignmentTranslator translator = new AssignmentTranslator(context);
+      translator.translate(assignment);
+    } catch(Exception e) {
+      throw new RuntimeException("Exception translating " + assignment, e);
+    }
   }
 
   @Override

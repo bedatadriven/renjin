@@ -53,7 +53,9 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     fn.visitIns(finder);
     
     if(finder.possibleTypes.size() == 1) {
-      decl.setType(finder.possibleTypes.iterator().next());
+      GimpleType deducedType = finder.possibleTypes.iterator().next();
+      System.out.println("...resolved to " + deducedType);
+      decl.setType(deducedType);
       return true;
     } else {
       return false;
@@ -82,12 +84,20 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
       switch (assignment.getOperator()) {
       case VAR_DECL:
       case NOP_EXPR:
-        if(isReference(assignment.getOperands().get(0))) {
-          GimpleType type = inferTypeFromLHS(assignment.getLHS());
-          if(type != null) {
-            possibleTypes.add(type);
-          }
+        GimpleExpr rhs = assignment.getOperands().get(0);
+        if(isReference(rhs)) {
+          inferPossibleTypes(assignment.getLHS());
+
+        } else if(isReference(assignment.getLHS())) {
+          inferPossibleTypes(rhs);
         }
+      }
+    }
+
+    private void inferPossibleTypes(GimpleExpr expr) {
+      GimpleType type = inferTypeFromAssignment(expr);
+      if(type != null) {
+        possibleTypes.add(type);
       }
     }
 
@@ -102,11 +112,11 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     /**
      * Infers the type of the void pointer from the lhs to which it is assigned.
      */
-    private GimpleType inferTypeFromLHS(GimpleLValue lhs) {
-      if(lhs instanceof GimpleVariableRef) {
+    private GimpleType inferTypeFromAssignment(GimpleExpr expr) {
+      if(expr instanceof GimpleVariableRef) {
         // search local variables
         for(GimpleVarDecl decl : fn.getVariableDeclarations()) {
-          if(decl.getId() == ((GimpleVariableRef) lhs).getId()) {
+          if(decl.getId() == ((GimpleVariableRef) expr).getId()) {
             return decl.getType();
           }
         }

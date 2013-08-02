@@ -1,8 +1,6 @@
 package org.renjin.gcc.translate.type.struct;
 
 import com.google.common.collect.Maps;
-import org.renjin.gcc.gimple.type.GimpleField;
-import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.jimple.*;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.TranslationContext;
@@ -20,43 +18,21 @@ import java.util.Map;
  * each gimple field is mapped to a public JVM field.
  */
 public class SimpleRecordType extends ImRecordType {
-  private TranslationContext context;
-  private GimpleRecordTypeDef recordTypeDef;
-  private String name;
-  private JimpleClassBuilder recordClass;
+  private JimpleType jimpleType;
 
   private Map<String, ImType> types = Maps.newHashMap();
 
-  public SimpleRecordType(TranslationContext context, GimpleRecordTypeDef recordType) {
-    this.context = context;
-    this.recordTypeDef = recordType;
-    this.name = recordType.getName();
-    this.recordClass = context.getJimpleOutput().newClass();
-    this.recordClass.setPackageName(context.getMainClass().getPackageName());
-    this.recordClass.setClassName(context.getMainClass().getClassName() + "$" + name);
+  public SimpleRecordType(JimpleType jimpleType) {
+    this.jimpleType = jimpleType;
   }
-
-  public void resolveFields() {
-    for (GimpleField member : recordTypeDef.getFields()) {
-      ImType type = context.resolveType(member.getType());
-      types.put(member.getName(), type);
-
-
-      JimpleFieldBuilder field = recordClass.newField();
-      field.setName(member.getName());
-      field.setType(type.returnType()); // TODO: probably need a fieldType()
-      field.setModifiers(JimpleModifiers.PUBLIC);
-    }
-  }
-
   @Override
   public JimpleType getJimpleType() {
-    return new SyntheticJimpleType(recordClass.getFqcn());
+    return jimpleType;
   }
 
   @Override
   public ImType pointerType() {
-    return new SimpleRecordPtrType(context, this);
+    return new SimpleRecordPtrType(this);
   }
 
   @Override
@@ -76,7 +52,14 @@ public class SimpleRecordType extends ImRecordType {
 
   @Override
   public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
-    throw new UnsupportedOperationException();
+    JimpleFieldBuilder field = classBuilder.newField();
+    field.setName(memberName);
+    field.setType(getJimpleType());
+    if(isStatic) {
+      field.setModifiers(JimpleModifiers.PUBLIC, JimpleModifiers.STATIC);
+    } else {
+      field.setModifiers(JimpleModifiers.PUBLIC);
+    }
   }
 
   @Override
@@ -89,13 +72,17 @@ public class SimpleRecordType extends ImRecordType {
     throw new UnsupportedOperationException();
   }
 
+  public void addMember(String name, ImType type) {
+    types.put(name, type);
+  }
+
   public int getMemberCount() {
     return types.size();
   }
 
   @Override
   public String toString() {
-    return "<struct: "  + name + ">";
+    return "<struct: "  + jimpleType + ">";
   }
 
   public ImPrimitiveType getMemberType(String member) {
@@ -105,4 +92,5 @@ public class SimpleRecordType extends ImRecordType {
     }
     return (ImPrimitiveType) type;
   }
+
 }

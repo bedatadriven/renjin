@@ -18,6 +18,13 @@ public interface ImType {
 
   JimpleType returnType();
 
+  /**
+   * Define of a field of this type within the given classBuilder.
+   *
+   * @param classBuilder builder for the class to which we need to add the field
+   * @param memberName the name of the field member
+   * @param isStatic true if the field should be static
+   */
   void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic);
 
   Variable createLocalVariable(

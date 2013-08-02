@@ -27,18 +27,18 @@ public class TranslationContext {
   private List<GimpleFunction> functions = Lists.newArrayList();
   private FunPtrTable funPtrTable;
   private RecordTypeTable recordTypeTable;
-  private Map<Integer, GimpleRecordTypeDef> recordTypes = Maps.newHashMap();
   private Map<String, ImExpr> globalVariables = Maps.newHashMap();
   
   private List<CallTranslator> builtinCallTranslators = Lists.newArrayList();
 
   public TranslationContext(JimpleClassBuilder mainClass, MethodTable methodTable,
+                            Map<String, ImRecordType> providedRecordTypes,
                             List<GimpleCompilationUnit> units) {
     this.mainClass = mainClass;
     this.methodTable = methodTable;
     this.funPtrTable = new FunPtrTable(this);
 
-    this.recordTypeTable = new RecordTypeTable(units, this);
+    this.recordTypeTable = new RecordTypeTable(units, this, providedRecordTypes);
 
     for(GimpleCompilationUnit unit : units) {
       functions.addAll(unit.getFunctions());
@@ -51,6 +51,10 @@ public class TranslationContext {
     builtinCallTranslators.add(FunPtrCallTranslator.INSTANCE);
     builtinCallTranslators.add(StaticCallTranslator.INSTANCE);
 
+  }
+
+  public RecordTypeTable getRecordTypeTable() {
+    return recordTypeTable;
   }
 
   private void translateGlobalVarDecl(GimpleVarDecl varDecl) {

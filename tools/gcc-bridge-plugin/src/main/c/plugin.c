@@ -169,6 +169,11 @@ void json_int(int value) {
   fprintf(json_f, "%d", value);
 }
 
+void json_ptr(void *p) {
+  json_pre_value();
+  fprintf(json_f, "\"%p\"", p);
+}
+
 void json_int_field(const char *name, int value) {
   json_field(name);
   json_int(value);
@@ -266,19 +271,48 @@ static void dump_function_type(tree type) {
   
 }
 
+static const char* get_type_name(tree node) {
+
+  enum tree_code_class tclass = TREE_CODE_CLASS (TREE_CODE(node));
+
+  if(tclass == tcc_declaration) {
+    TRACE("get_type_name: tclass == tcc_declaration\n");
+    if (DECL_NAME (node)) {
+      return IDENTIFIER_POINTER(DECL_NAME (node));
+    }
+  } else if(tclass == tcc_type) {
+    TRACE("get_type_name: tclass == tcc_type\n");  
+    if (TYPE_NAME (node)) {
+      if (TREE_CODE (TYPE_NAME (node)) == IDENTIFIER_NODE)
+      {
+        return IDENTIFIER_POINTER (TYPE_NAME (node));
+
+      } else if (TREE_CODE (TYPE_NAME (node)) == TYPE_DECL
+                   && DECL_NAME (TYPE_NAME (node)))
+      {
+        return IDENTIFIER_POINTER (DECL_NAME (TYPE_NAME (node)));
+      }
+    }
+  }
+  return NULL;
+}
+
 static void dump_record_type(tree type) {
   
   TRACE("dump_record_type: entering\n");
-  json_int_field("id", DEBUG_TEMP_UID (type));
+
+  // the same type may have multiple AST nodes
+  // http://www.codesynthesis.com/~boris/blog/2010/05/17/parsing-cxx-with-gcc-plugin-part-3/
+  type = TYPE_MAIN_VARIANT(type);
   
-  //if(DECL_NAME(type)) {
-  //  json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(type)));
-  //}
+  json_field("id");
+  json_ptr(type);
   
   // have we already encountered this record type?
   int i;
   for(i=0;i<record_type_count;++i) {
     if(record_types[i] == type) {
+      TRACE("dump_record_type: already seen, exiting\n");
       return;
     }
   }
@@ -288,23 +322,28 @@ static void dump_record_type(tree type) {
     record_types[record_type_count] = type;
     record_type_count++;
   } else {
+    printf("TOO MANY RECORD TYPES!!!!");
     // TODO: throw error here
   }
+  TRACE("dump_record_type: added to the list, exiting\n");
 }
 
 static void dump_record_type_decl(tree type) {
 
+  TRACE("dump_record_type_decl: entering\n");
+    
   json_start_object();
-  json_int_field("id", DEBUG_TEMP_UID (type));
+  json_field("id");
+  json_ptr(type);
+    
+  TRACE("dump_record_type_decl: writing name\n");
+  const char *name = get_type_name(type);
+  if(name) {
+    json_string_field("name", name);
+    TRACE("dump_record_type_decl: name = %s\n", name);
+  } 
   
-//  if(DECL_NAME(type) && IDENTIFIER_POINTER(DECL_NAME(type))) {
-//    json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(type)));
-//  }
-
-  if(TYPE_NAME(type)) {
-    json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(TYPE_NAME(type))));
-  }
-  
+  TRACE("dump_record_type_decl: writing fields\n");
   tree field =  TYPE_FIELDS(type);
   json_array_field("fields");
   while(field) {
@@ -321,6 +360,8 @@ static void dump_record_type_decl(tree type) {
   }
   json_end_array();
   json_end_object();
+  
+  TRACE("dump_record_type_decl: exiting\n");
 }
 
 static void dump_type(tree type) {
@@ -389,6 +430,8 @@ static void dump_global_var_ref(tree decl) {
 
 static void dump_op(tree op) {
  	REAL_VALUE_TYPE d;
+ 	
+  TRACE("dump_op: entering\n");
 
   if(op) {
 
@@ -473,6 +516,7 @@ static void dump_op(tree op) {
   } else {
     json_null();
   }
+  TRACE("dump_op: exiting\n");
 }
 
 static void dump_ops(gimple stmt) {
@@ -512,6 +556,7 @@ static void dump_assignment(gimple stmt) {
 }
 
 static void dump_cond(basic_block bb, gimple stmt) {
+
   json_start_object();
   json_string_field("type", "conditional");
   json_string_field("operator", tree_code_name[gimple_assign_rhs_code(stmt)]);
@@ -524,7 +569,7 @@ static void dump_cond(basic_block bb, gimple stmt) {
   json_int_field("trueLabel", true_edge->dest->index);
   json_int_field("falseLabel", false_edge->dest->index);
   json_end_object();
-}
+ }
 
 static void dump_nop(gimple stmt) {
   json_start_object();
@@ -621,7 +666,8 @@ static void dump_switch(gimple stmt) {
 }
 
 static void dump_statement(basic_block bb, gimple stmt) {
-
+  TRACE("dump_statement: entering\n");
+  
   if(gimple_code(stmt) == VAR_DECL) {
     // not exactly sure what this does, but GCC seems to dump
     // this as:
@@ -662,6 +708,7 @@ static void dump_statement(basic_block bb, gimple stmt) {
 	  json_end_object();
   }
   
+  TRACE("dump_statement: exiting\n");
 }
 
 
@@ -777,7 +824,9 @@ static unsigned int dump_function (void)
   json_end_array();
   
   json_field("returnType");
+  TRACE("dump_function: dumping return type\n");
   dump_type(TREE_TYPE(DECL_RESULT(cfun->decl)));
+  TRACE("dump_function: finished dumping return type\n");
   
   json_end_object();
  

@@ -3,9 +3,14 @@ package org.renjin.gcc.translate;
 import com.google.common.collect.Maps;
 
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
-import org.renjin.gcc.translate.TranslationContext;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleFieldBuilder;
+import org.renjin.gcc.jimple.JimpleModifiers;
+import org.renjin.gcc.jimple.SyntheticJimpleType;
+import org.renjin.gcc.translate.type.ImType;
 import org.renjin.gcc.translate.type.struct.ImRecordType;
 import org.renjin.gcc.translate.type.struct.SimpleRecordType;
 
@@ -24,17 +29,31 @@ public class RecordTypeTable {
 
   private final TranslationContext context;
 
-  private final Map<Integer, ImRecordType> map = Maps.newHashMap();
+  private final Map<String, ImRecordType> map = Maps.newHashMap();
 
-  private final Map<Integer, GimpleRecordTypeDef> defs = Maps.newHashMap();
+  private final Map<String, GimpleRecordTypeDef> defs = Maps.newHashMap();
+  
+  private final Map<String, ImRecordType> providedTypes;
 
-  public RecordTypeTable(List<GimpleCompilationUnit> units, TranslationContext context) {
+  public RecordTypeTable(List<GimpleCompilationUnit> units, TranslationContext context,
+                         Map<String, ImRecordType> providedRecordTypes) {
     this.context = context;
+    this.providedTypes = providedRecordTypes;
     for(GimpleCompilationUnit unit : units) {
       for (GimpleRecordTypeDef recordType : unit.getRecordTypes()) {
         defs.put(recordType.getId(), recordType);
       }
     }
+  }
+
+  /**
+   * Map an external type definition to a named Gimple Type
+   * 
+   * @param typeName the name of the type, as defined in the C/Fortran code
+   * @param type
+   */
+  public void provideType(String typeName, ImRecordType type) {
+    providedTypes.put(typeName, type);
   }
 
   public ImRecordType resolveStruct(GimpleRecordType recordType) {
@@ -46,11 +65,39 @@ public class RecordTypeTable {
       if(def == null) {
         throw new RuntimeException("Can't find record type definition for " + recordType);
       }
+      
+      if(providedTypes.containsKey(def.getName())) {
+        ImRecordType providedType = providedTypes.get(def.getName());
+        map.put(recordType.getId(), providedType);
+        return providedType;
 
-      SimpleRecordType struct = new SimpleRecordType(context, def);
-      map.put(recordType.getId(), struct);
-      struct.resolveFields();
-      return struct;
+      } else {
+
+        // create a new JVM type to back this array
+        JimpleClassBuilder recordClass = context.getJimpleOutput().newClass();
+        recordClass.setPackageName(context.getMainClass().getPackageName());
+        recordClass.setClassName(context.getMainClass().getClassName() + "$" + def.getName());
+
+        SimpleRecordType struct = new SimpleRecordType(new SyntheticJimpleType(recordClass.getFqcn()));
+        map.put(recordType.getId(), struct);
+
+        buildFields(struct, recordClass, def);
+
+        return struct;
+      }
     }
+  }
+
+  private void buildFields(SimpleRecordType struct, JimpleClassBuilder recordClass, GimpleRecordTypeDef def) {
+    for (GimpleField member : def.getFields()) {
+      ImType type = context.resolveType(member.getType());
+      struct.addMember(member.getName(), type);
+
+      JimpleFieldBuilder field = recordClass.newField();
+      field.setName(member.getName());
+      field.setType(type.returnType()); // TODO: probably need a fieldType()
+      field.setModifiers(JimpleModifiers.PUBLIC);
+    }
+
   }
 }

@@ -70,6 +70,10 @@ public class Gcc {
       arguments.add("-m32");
     }
 
+    // for debugging preprocessor output
+//    arguments.add("-E");
+//    arguments.add("-P");
+
     arguments.add("-c"); // compile only, do not link
     arguments.add("-S"); // stop at assembly generation
     arguments.addAll(Arrays.asList(compilerFlags));
@@ -160,6 +164,17 @@ public class Gcc {
   }
   
   public void extractPlugin() throws IOException {
+    
+    if(!Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
+      pluginLibrary = new File(System.getProperty("gcc.bridge.plugin"));
+      if(pluginLibrary.exists()) {
+        System.err.println("Using bridge.so at " + pluginLibrary.getAbsolutePath());
+        return;
+      } else {
+        System.err.println("bridge.so does not exist at " + pluginLibrary.getAbsolutePath());
+      }
+    }
+    
     String libraryName = PlatformUtils.getPortableLibraryName("gcc-bridge");
     
     

@@ -2,6 +2,7 @@ package org.renjin.gcc;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -11,12 +12,14 @@ import org.renjin.gcc.jimple.JimpleOutput;
 import org.renjin.gcc.translate.FunctionTranslator;
 import org.renjin.gcc.translate.MethodTable;
 import org.renjin.gcc.translate.TranslationContext;
+import org.renjin.gcc.translate.type.struct.ImRecordType;
 import org.renjin.gcc.translate.xform.FunctionBodyTransformer;
 import org.renjin.gcc.translate.xform.VoidPointerTypeDeducer;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -41,8 +44,11 @@ public class GimpleCompiler  {
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
 
   private MethodTable methodTable = new MethodTable();
-  
+
+  private Map<String, ImRecordType> providedTypes = Maps.newHashMap();
+
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
+  
 
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
@@ -112,6 +118,10 @@ public class GimpleCompiler  {
     soot.G.reset();
     soot.Main.main(options.toArray(new String[0]));
   }
+  
+  public void provideType(String typeName, ImRecordType type) {
+    providedTypes.put(typeName, type);
+  }
 
   private String sootClassPath() {
     StringBuilder paths = new StringBuilder();
@@ -131,7 +141,7 @@ public class GimpleCompiler  {
     mainClass.setClassName(className);
     mainClass.setPackageName(packageName);
 
-    TranslationContext context = new TranslationContext(mainClass, methodTable, units);
+    TranslationContext context = new TranslationContext(mainClass, methodTable, providedTypes, units);
     for(GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
         

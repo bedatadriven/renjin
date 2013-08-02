@@ -31,6 +31,12 @@
 #include <math.h>
 #endif
 
+/* Renjin's definition */
+struct SEXP_T {
+  int c;
+};
+typedef struct SEXP_T* SEXP;
+
 #include <Rconfig.h>
 #include <R_ext/Arith.h>      /* R_FINITE, ISNAN, ... */
 #include <R_ext/Boolean.h>    /* Rboolean type */

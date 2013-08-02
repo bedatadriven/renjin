@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>renjin-packages</artifactId>
+    <groupId>org.renjin</groupId>
+    <version>0.7.0-RC7-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>grid</artifactId>
+  <description>A rewrite of the graphics layout capabilities, plus some support for interaction.</description>
+  <licenses>
+    <license>
+      <name>Part of R 2.14.2</name>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>R Development Core Team and contributors worldwide</name>
+    </developer>
+  </developers>
+  <dependencies>
+  	<dependency>
+  		<groupId>org.renjin</groupId>
+  		<artifactId>renjin-core</artifactId>
+  		<version>${project.version}</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.renjin</groupId>
+  		<artifactId>grDevices</artifactId>
+  		<version>${project.version}</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.renjin</groupId>
+  		<artifactId>hamcrest</artifactId>
+  		<version>${project.version}</version>
+  		<scope>test</scope>
+  	</dependency>
+  </dependencies>
+  <build>
+  	<plugins>
+  		<plugin>
+  			<groupId>org.renjin</groupId>
+  			<artifactId>renjin-maven-plugin</artifactId>
+  			<version>${project.version}</version>
+  			<executions>
+  				<execution>
+  					<id>build</id>	
+  					<goals>
+  						<goal>namespace-compile</goal>
+  					</goals>
+  					<phase>compile</phase>
+  				</execution>
+  				<execution>
+  					<id>test</id>	
+  					<goals>
+  						<goal>test</goal>
+  					</goals>
+  					<phase>test</phase>
+  				</execution>
+  			</executions>
+  		</plugin>
+  	</plugins>
+  </build>
+</project>

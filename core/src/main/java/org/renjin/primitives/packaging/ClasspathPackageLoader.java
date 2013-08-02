@@ -17,7 +17,7 @@ public class ClasspathPackageLoader implements PackageLoader {
    * org.renjin groupId.
    */
   private static final Set<String> CORE_PACKAGES = Sets.newHashSet("datasets", "graphics", "grDevices", "hamcrest", 
-      "methods", "splines", "stats", "stats4", "utils");
+      "methods", "splines", "stats", "stats4", "utils", "grid");
   
   /* (non-Javadoc)
    * @see org.renjin.primitives.packaging.IPackageLoader#load(java.lang.String)

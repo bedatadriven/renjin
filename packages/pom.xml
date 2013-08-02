@@ -19,13 +19,14 @@
   <modules>
     <module>stats</module>
     <module>stats4</module>
-	<module>hamcrest</module>
-	<module>graphics</module>
-	<module>grDevices</module>
-	<module>datasets</module>
-	<module>methods</module>
-	<module>splines</module>
-	<module>utils</module>
+	  <module>hamcrest</module>
+	  <module>graphics</module>
+	  <module>grDevices</module>
+	  <module>datasets</module>
+	  <module>methods</module>
+	  <module>splines</module>
+	  <module>utils</module>
+	  <module>grid</module>
   </modules>
   
   <dependencies>

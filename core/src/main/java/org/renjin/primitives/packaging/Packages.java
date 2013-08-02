@@ -18,14 +18,7 @@ public class Packages {
       @Current NamespaceRegistry namespaceRegistry, 
       @Unevaluated SEXP packageNameExp) throws IOException {
 
-    String packageName;
-    if(packageNameExp instanceof Symbol) {
-      packageName = ((Symbol) packageNameExp).getPrintName();
-    } else if(packageNameExp instanceof StringVector && packageNameExp.length()==1) {
-      packageName = ((StringVector) packageNameExp).getElementAsString(0);
-    } else {
-      throw new UnsupportedOperationException("Unexpected package name argument: " + packageNameExp);
-    }
+    String packageName = parsePackageName(packageNameExp);
 
     Namespace namespace = namespaceRegistry.getNamespace(packageName);
     
@@ -48,13 +41,26 @@ public class Packages {
   @Invisible
   public static boolean require(@Current Context context,
                                 @Current NamespaceRegistry registry,
-                                @Unevaluated Symbol name) {
+                                @Unevaluated SEXP packageNameExp) {
     try {
-      library(context, registry, name);
+      library(context, registry, packageNameExp);
       return true;
     } catch(Exception e) {
       return false;
     }
+  }
+
+
+  private static String parsePackageName(SEXP packageNameExp) {
+    String packageName;
+    if(packageNameExp instanceof Symbol) {
+      packageName = ((Symbol) packageNameExp).getPrintName();
+    } else if(packageNameExp instanceof StringVector && packageNameExp.length()==1) {
+      packageName = ((StringVector) packageNameExp).getElementAsString(0);
+    } else {
+      throw new UnsupportedOperationException("Unexpected package name argument: " + packageNameExp);
+    }
+    return packageName;
   }
   
 }

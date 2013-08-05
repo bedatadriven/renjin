@@ -81,16 +81,6 @@ public class TestRunner {
       loadLibrary(session, pkg);
     }
 
-    // stub out certain methods for the time being.
-    Closure stubFn = newStubFunction();
-    if(session.getNamespaceRegistry().isRegistered(Symbol.get("graphics"))) {
-      session.getNamespaceRegistry()
-          .getNamespace("graphics")
-          .getNamespaceEnvironment()
-          .setVariable("plot", stubFn);
-    }
-
-
     return session;
   }
 

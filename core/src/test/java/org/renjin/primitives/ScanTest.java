@@ -18,5 +18,12 @@ public class ScanTest extends EvalTestCase {
     assertThat( eval("length(x)"), equalTo(c_i(585)));
     
   }
-  
+
+  @Test
+  public void issueGitHub19() {
+    global.setVariable("file.name", StringVector.valueOf( getClass().getResource("/scantest.txt").getFile()) );
+    eval("x <- scan(file.name, skip=2)");
+    eval("print(x)" );
+    assertThat( eval("length(x)"), equalTo(c_i(555)));
+  }
 }

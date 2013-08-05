@@ -165,7 +165,7 @@ public class DateTimeFormat  {
       builder.appendLiteral(" ");
       builder.appendTimeZoneShortName();
     }
-    return builder.toFormatter(); 
+    return builder.toFormatter();
   }
   
 

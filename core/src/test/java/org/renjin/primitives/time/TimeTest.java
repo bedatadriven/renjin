@@ -67,6 +67,22 @@ public class TimeTest extends EvalTestCase {
     assertThat(stringWriter.toString(), equalTo("[1] \"2009-07-01 CEST\"\n"));
   }
 
+  @Test
+  public void timeZoneProvided() {
+    assumingBasePackagesLoad();
+    
+    eval("as.Date(as.POSIXct('2000-01-01 00:00:00 GMT', tz = 'GMT'))");
+    
+  }
+
+  @Test
+  public void strptimeExtra() {
+    eval("t <- .Internal(strptime('2000-01-01 00:00:00 GMT', '%Y-%m-%d %H:%M:%OS', ''))");
+    assertThat(eval("t$year"), equalTo(c_i(100)));
+
+
+  }
+  
   
   @Test
   public void strptimeBadInput() {

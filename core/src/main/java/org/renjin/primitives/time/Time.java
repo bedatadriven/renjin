@@ -22,14 +22,15 @@
 package org.renjin.primitives.time;
 
 import com.google.common.base.Strings;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Days;
+import org.joda.time.*;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeParser;
+import org.joda.time.format.DateTimeParserBucket;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Implementation of date time-related functions.
@@ -48,7 +49,7 @@ import java.util.List;
 public class Time {
 
   public static DateTime EPOCH = new DateTime(1970, 1, 1, 0, 0, 0);
-  
+
   /**
    * Parses a string value into a date time value.
    * @return
@@ -70,7 +71,7 @@ public class Time {
       DateTimeFormatter formatter = formatters.get(i % formatters.size());
       String string = x.getElementAsString(i % x.length());
       try {
-        result.add(formatter.parseDateTime(string));
+        result.add(parseIgnoreTrailingCharacters(formatter, string));
       } catch(IllegalArgumentException e) {
         result.addNA();
       }
@@ -80,7 +81,40 @@ public class Time {
     }
     return result.buildListVector();
   }
-  
+
+  private static DateTime parseIgnoreTrailingCharacters(DateTimeFormatter formatter, String text) {
+    // this is a modified version of DateTimeFormatter.parseDateTime() that does not
+    // throw an exception on trailing characters
+    
+    Chronology chronology = DateTimeUtils.getChronology(null);
+    DateTimeParser parser = formatter.getParser();
+    
+    Locale locale = null;
+    Integer pivotYear = null;
+    int defaultYear = 2000;
+    DateTimeZone timeZone = null;
+    
+    DateTimeParserBucket bucket = new DateTimeParserBucket(0, chronology, locale, pivotYear, defaultYear);
+    int newPos = parser.parseInto(bucket, text, 0);
+    if (newPos >= 0) {
+      long millis = bucket.computeMillis(true, text);
+      if (formatter.isOffsetParsed() && bucket.getOffsetInteger() != null) {
+        int parsedOffset = bucket.getOffsetInteger();
+        DateTimeZone parsedZone = DateTimeZone.forOffsetMillis(parsedOffset);
+        chronology = chronology.withZone(parsedZone);
+      } else if (bucket.getZone() != null) {
+        chronology = chronology.withZone(bucket.getZone());
+      }
+      DateTime dt = new DateTime(millis, chronology);
+      if (timeZone != null) {
+        dt = dt.withZone(timeZone);
+      }
+      return dt;
+    }
+    throw new IllegalArgumentException();
+  }
+
+
   /**
    * Converts a calendar-based representation of time (POSIXlt: see above) to 
    * a unix time value.

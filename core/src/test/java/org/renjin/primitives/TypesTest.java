@@ -33,6 +33,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.renjin.sexp.Logical.FALSE;
 import static org.renjin.sexp.Logical.TRUE;
 
@@ -492,7 +493,19 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("as.vector(1, 'character')"), equalTo( c("1" )));
     assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo( c(true, true, false)));
     assertThat( eval("as.vector(c(TRUE,FALSE,NA), mode='double')"), equalTo( c(1.0,0,DoubleVector.NA)));
-}
+  }
+
+  @Test
+  public void naSymbol() {
+    eval(" s <- .Internal(as.vector('NA', 'symbol'))");
+    assertTrue(global.getVariable("s").equals(Symbol.get("NA")));
+  }
+
+
+  @Test(expected = EvalException.class)
+  public void zeroLengthSymbol() {
+    eval(".Internal(as.vector('', 'symbol'))");
+  }
 
 
   @Test

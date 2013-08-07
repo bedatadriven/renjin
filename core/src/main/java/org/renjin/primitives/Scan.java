@@ -126,8 +126,13 @@ public class Scan {
     
     String line;
     int linesRead = 0;
-    while( (linesRead < nlines || nlines <= 0) && 
+    int linesSkipped = 0;
+    while( (linesRead < nlines || nlines <= 0) &&
             (line=lineReader.readLine())!=null) {
+      if (linesSkipped < skip) {
+        linesSkipped++;
+        continue;
+      }
       linesRead ++;
       if(!Strings.isNullOrEmpty(commentChar)) {
         if(line.startsWith(commentChar)) {
@@ -339,7 +344,7 @@ public class Scan {
      ‘Inf’ or ‘infinity’ (ignoring case) or values from ‘na.strings’
      are converted to numeric.
 
-   * @param x
+   * @param vector
    * @param naStrings
    * @param asIs
    * @param dec

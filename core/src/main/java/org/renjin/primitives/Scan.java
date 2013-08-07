@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.ParseUtil;
 import org.renjin.invoke.annotations.Current;
@@ -368,7 +367,7 @@ public class Scan {
       IntArrayVector.Builder factor = new IntArrayVector.Builder(vector.length());
       for(int i=0;i!=vector.length();++i) {
         String element = vector.getElementAsString(i);
-        if(naStrings.indexOf(element) == -1) {
+        if(!Strings.isNullOrEmpty(element) && naStrings.indexOf(element.toUpperCase()) == -1) {
           Integer code = codes.get(element);
           if(code == null) {
             code = codes.size()+1;
@@ -410,7 +409,7 @@ public class Scan {
     public boolean accept(StringVector vector, StringVector naStrings) {
       for(int i=0;i!=vector.length();++i) {
         String element = vector.getElementAsString(i);
-        if(naStrings.indexOf(element) == -1 && !accept(element)) {
+        if(!Strings.isNullOrEmpty(element) && naStrings.indexOf(element.toUpperCase()) == -1 && !accept(element)) {
           return false;
         }
       }
@@ -421,7 +420,7 @@ public class Scan {
       BuilderT builder = newBuilder(vector.length());
       for(int i=0;i!=vector.length();++i) {
         String element = vector.getElementAsString(i);
-        if(naStrings.indexOf(element) == -1) {
+        if(!Strings.isNullOrEmpty(element) && naStrings.indexOf(element.toUpperCase()) == -1) {
           set(builder, i, element);
         }
       }
@@ -433,11 +432,13 @@ public class Scan {
   private static class LogicalConverter extends Converter<LogicalArrayVector.Builder> {
     @Override
     public boolean accept(String string) {
-      return string.equals("T") || string.equals("F") || string.equals("TRUE") || string.equals("FALSE");
+    	String upper = string.toUpperCase();
+      return upper.equals("T") || upper.equals("F") || upper.equals("TRUE") || upper.equals("FALSE");
     }
     @Override
     public void set(LogicalArrayVector.Builder builder, int index, String string) {
-      if(string.equals("T") || string.equals("TRUE")) {
+    	String upper = string.toUpperCase();
+      if(upper.equals("T") || upper.equals("TRUE")) {
         builder.set(index, true);
       } else {
         builder.set(index, false);

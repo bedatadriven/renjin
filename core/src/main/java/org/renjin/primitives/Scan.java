@@ -30,12 +30,14 @@ import com.google.common.base.Strings;
 package org.renjin.primitives;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.ParseUtil;
 import org.renjin.invoke.annotations.Current;
@@ -352,23 +354,37 @@ public class Scan {
    */
   @Internal("type.convert")
   public static Vector typeConvert(StringVector vector, StringVector naStrings, boolean asIs, String dec) {
-    
-    Converter<?> converter = getConverter(vector, naStrings);
+
+    Set<String> naSet = createHashSet(naStrings);
+    Converter<?> converter = getConverter(vector, naSet);
     if(converter != null) {
-      return converter.build(vector, naStrings);
+      return converter.build(vector, naSet);
     } else if(asIs) {
       return vector;
     } else {
-      return buildFactor(vector, naStrings);
+      return buildFactor(vector, naSet);
     }
   }
-  
-  private static Vector buildFactor(StringVector vector, StringVector naStrings) {
+
+  private static Set<String> createHashSet(StringVector strings) {
+    java.util.HashSet<String> set = Sets.newHashSet();
+
+    for (int i = 0; i < strings.length(); i++)  {
+      String element = strings.getElementAsString(i);
+      if (!Strings.isNullOrEmpty(element)) {
+        set.add(element);
+      }
+    }
+
+    return set;
+  }
+
+  private static Vector buildFactor(StringVector vector, Set<String> naStrings) {
       Map<String, Integer> codes = Maps.newHashMap();
       IntArrayVector.Builder factor = new IntArrayVector.Builder(vector.length());
       for(int i=0;i!=vector.length();++i) {
         String element = vector.getElementAsString(i);
-        if(naStrings.indexOf(element) == -1) {
+        if(!isNa(element, naStrings)) {
           Integer code = codes.get(element);
           if(code == null) {
             code = codes.size()+1;
@@ -386,7 +402,11 @@ public class Scan {
       return factor.build();
   }
 
-  private static Converter<?> getConverter(StringVector vector, StringVector naStrings) {
+  private static boolean isNa(String string, Set<String> naStrings) {
+    return Strings.isNullOrEmpty(string) || naStrings.contains(string);
+  }
+
+  private static Converter<?> getConverter(StringVector vector, Set<String> naStrings) {
     Converter<?> converters[] = new Converter<?>[] {
         new LogicalConverter(),
         new IntConverter(),
@@ -407,21 +427,21 @@ public class Scan {
     abstract BuilderT newBuilder(int length);
     abstract void set(BuilderT builder, int index, String string);
     
-    public boolean accept(StringVector vector, StringVector naStrings) {
+    public boolean accept(StringVector vector, Set<String> naStrings) {
       for(int i=0;i!=vector.length();++i) {
         String element = vector.getElementAsString(i);
-        if(naStrings.indexOf(element) == -1 && !accept(element)) {
+        if(!isNa(element, naStrings) && !accept(element)) {
           return false;
         }
       }
       return true;
     }
     
-    public Vector build(StringVector vector, StringVector naStrings) {
+    public Vector build(StringVector vector, Set<String> naStrings) {
       BuilderT builder = newBuilder(vector.length());
       for(int i=0;i!=vector.length();++i) {
         String element = vector.getElementAsString(i);
-        if(naStrings.indexOf(element) == -1) {
+        if(!isNa(element, naStrings)) {
           set(builder, i, element);
         }
       }

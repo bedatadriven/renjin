@@ -57,6 +57,9 @@ public class JlineRepl {
       reader = new ConsoleReader();
     }
 
+    // disable events triggered by ! (this is valid R !!)
+    reader.setExpandEvents(false);
+
     session.setSessionController(new JlineSessionController(reader.getTerminal()));
     this.topLevelContext = session.getTopLevelContext();
 

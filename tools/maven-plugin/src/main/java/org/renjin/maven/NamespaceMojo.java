@@ -18,6 +18,7 @@ import org.renjin.maven.namespace.DatasetsBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import org.renjin.primitives.io.DebianControlFiles;
 
 /**
  * Compiles R sources into a serialized blob
@@ -87,12 +88,18 @@ public class NamespaceMojo extends AbstractMojo {
 	 * @required
 	 */
 	private File namespaceFile;
-	
+
+  /**
+   * @parameter expression="${project.basedir}/DESCRIPTION"
+   * @required
+   */
+  private File descriptionFile;
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 	  compileNamespaceEnvironment();
 		copyNamespace();
+    writeRequires();
 		compileDatasets();
 	}
 
@@ -151,6 +158,30 @@ public class NamespaceMojo extends AbstractMojo {
     }
   }
 
+  private void writeRequires() {
+    // save a list of packages that are to be loaded onto the
+    // global search path when this package is loaded
+
+    if(descriptionFile.exists()) {
+      PackageDescription description;
+      try {
+        description = PackageDescription.fromFile(descriptionFile);
+      } catch(IOException e) {
+        throw new RuntimeException("Exception reading DESCRIPTION file");
+      }
+      try {
+        PrintWriter requireWriter = new PrintWriter(new File(getPackageRoot(), "requires"));
+        for(PackageDescription.PackageDependency dep : description.getDepends()) {
+          if(!dep.getName().equals("R")) {
+            requireWriter.println(dep.getName());
+          }
+        }
+        requireWriter.close();
+      } catch (IOException e) {
+        throw new RuntimeException("Exception writing requires file", e);
+      }
+    }
+  }
 
   private ClassLoader getClassLoader() throws MojoExecutionException  {
     try {

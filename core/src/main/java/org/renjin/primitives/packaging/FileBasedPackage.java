@@ -2,11 +2,13 @@ package org.renjin.primitives.packaging;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
+import java.io.InputStreamReader;
+import java.util.*;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
+import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.io.serialization.RDataReader;
@@ -42,6 +44,18 @@ public abstract class FileBasedPackage extends Package {
       }
     }
     return datasets;
+  }
+
+  @Override
+  public Collection<String> getPackageDependencies() throws IOException {
+    if(resourceExists("requires")) {
+      InputSupplier<InputStreamReader> supplier = CharStreams.newReaderSupplier(
+              getResource("requires"), Charsets.UTF_8);
+      return CharStreams.readLines(supplier);
+      
+    } else {
+      return Collections.emptyList();
+    }
   }
 
   @Override

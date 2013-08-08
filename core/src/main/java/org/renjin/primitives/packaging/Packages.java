@@ -22,6 +22,13 @@ public class Packages {
 
     Namespace namespace = namespaceRegistry.getNamespace(packageName);
     
+    // Add "Depends" packages to the global search path
+    // (But not "Imports" !)
+    for(String dependencyName : namespace.getPackage().getPackageDependencies()) {
+      context.getSession().getStdOut().println("Loading required package: " + dependencyName);
+      library(context, namespaceRegistry, Symbol.get(dependencyName));
+    }
+    
     // Create the package environment
     Environment packageEnv = context.getGlobalEnvironment().insertAbove(new HashFrame());
     packageEnv.setAttribute(Symbols.NAME, StringVector.valueOf("package:" + packageName));

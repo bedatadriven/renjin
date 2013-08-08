@@ -2,6 +2,7 @@ package org.renjin.primitives.packaging;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,4 +51,13 @@ public abstract class Package {
   
   public abstract Class getClass(String name);
 
+
+  /**
+   * @return a list of packages that should be loaded into the global search
+   * path when this package is loaded. This mechanism predates the more recent
+   * NAMESPACE approach.
+   */
+  public Collection<String> getPackageDependencies() throws IOException {
+    return Collections.emptyList();
+  }
 }

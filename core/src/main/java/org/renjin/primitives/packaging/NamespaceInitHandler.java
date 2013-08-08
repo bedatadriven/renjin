@@ -103,6 +103,9 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
     Function method = resolveS3Method(methodName);
 
     Environment definitionEnv = resolveS3DefinitionEnvironment(genericName);
+    if(definitionEnv == null || definitionEnv == Environment.EMPTY) {
+      throw new EvalException("Could not find definition environment for " + genericName);
+    }
     if (!definitionEnv.hasVariable(S3.METHODS_TABLE)) {
       definitionEnv.setVariable(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()));
     }
@@ -174,8 +177,7 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
     } catch(Exception e) {
       // Allow the program to continue, there may be some packages whose gnur
       // compilation failed but can still partially function.
-      System.err.println("ERROR: Failed to import dynLib entries for " + namespace.getName() + ", expect subsequent failures");
-      e.printStackTrace(System.err);
+      System.err.println("WARNING: Failed to import dynLib entries for " + namespace.getName() + ", expect subsequent failures");
     }
   }
 

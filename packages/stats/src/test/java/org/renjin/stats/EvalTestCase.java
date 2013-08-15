@@ -13,10 +13,11 @@ import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.Symbol;
+import org.renjin.primitives.Warning;
 
 public class EvalTestCase {
 
-  private Context context;
+  protected Context context;
 
   @Before
   public void setupR() throws IOException {
@@ -51,17 +52,17 @@ public class EvalTestCase {
     }
     return context.evaluate(expr);
   }
-  
 
-  protected Matcher<Double> closeTo(double c, double d) {
-    throw new UnsupportedOperationException();
-  }
-  
-  
-  protected Matcher<SEXP> closeTo(SEXP c, double d) {
-    throw new UnsupportedOperationException();
 
+
+  protected final void printWarnings() {
+    SEXP warnings = context.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    if(warnings != Symbol.UNBOUND_VALUE) {
+      context.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+              context.getEnvironment().getBaseEnvironment());
+    }
   }
+
 
   
 }

@@ -27,8 +27,10 @@ import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 
+import org.hamcrest.Matcher;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.renjin.sexp.SEXP;
 
 @Ignore
 public class OptimizationsTest extends EvalTestCase {
@@ -60,6 +62,10 @@ public class OptimizationsTest extends EvalTestCase {
     assertThat(eval("x$minimum"), closeTo(c(0), 0.000001));
     assertThat(eval("x$code"), equalTo(c_i(1)));
     assertThat(eval("x$gradient"), closeTo(c(0,0), 0.00001));
+  }
+
+  private Matcher<SEXP> closeTo(SEXP c, double v) {
+    throw new UnsupportedOperationException();
   }
 
 

@@ -26,7 +26,7 @@
 numericDeriv <- function(expr, theta, rho = parent.frame(), dir=1.0)
 {
     dir <- rep(dir, length.out = length(theta))
-    val <- .Call(C_numeric_deriv, expr, theta, rho, dir)
+    val <- NonlinearLeastSquares$numericDerivative(expr, theta, rho, dir)
     valDim <- dim(val)
     if (!is.null(valDim)) {
         if (valDim[length(valDim)] == 1)
@@ -441,6 +441,9 @@ nls <-
             subset, weights, na.action, model = FALSE,
             lower = -Inf, upper = Inf, ...)
 {
+    # renjin workaround until we harmonize missing behavior
+    startMissing <- missing(start)
+
     ## canonicalize the arguments
     formula <- as.formula(formula)
     algorithm <- match.arg(algorithm)
@@ -462,7 +465,7 @@ nls <-
 
     ## get names of the parameters from the starting values or selfStart model
     pnames <-
-	if (missing(start)) {
+	if (startMissing) {
 	    if(!is.null(attr(data, "parameters"))) {
 		names(attr(data, "parameters"))
 	    } else { ## try selfStart - like object
@@ -504,6 +507,7 @@ nls <-
                         " to '1.'.\n",
                         "Consider specifying 'start' or using a selfStart model")
                 start <- as.list(rep(1., length(nnn)))
+                startMissing <- FALSE
                 names(start) <- nnn
                 varNames <- varNames[i <- is.na(match(varNames, nnn))]
                 n <- n[i]
@@ -531,39 +535,40 @@ nls <-
     respLength <- length(eval(formula[[2L]], data, env))
 
     if(length(n) > 0L) {
-	varIndex <- n %% respLength == 0
-	if(is.list(data) && diff(range(n[names(n) %in% names(data)])) > 0) {
-	    ## 'data' is a list that can not be coerced to a data.frame
-	    mf <- data
-            if(!missing(subset))
-                warning("argument 'subset' will be ignored")
-            if(!missing(na.action))
-                warning("argument 'na.action' will be ignored")
-	    if(missing(start))
-		start <- getInitial(formula, mf)
-	    startEnv <- new.env(hash = FALSE, parent = environment(formula)) # small
-	    for (i in names(start))
-		assign(i, start[[i]], envir = startEnv)
-	    rhs <- eval(formula[[3L]], data, startEnv)
-	    n <- NROW(rhs)
-            ## mimic what model.frame.default does
-            wts <- if (mWeights) rep(1, n) else
-                eval(substitute(weights), data, environment(formula))
-	}
-        else {
-            mf$formula <-  # replace by one-sided linear model formula
-                as.formula(paste("~", paste(varNames[varIndex], collapse = "+")),
-                           env = environment(formula))
-            mf$start <- mf$control <- mf$algorithm <- mf$trace <- mf$model <- NULL
-            mf$lower <- mf$upper <- NULL
-            mf[[1L]] <- as.name("model.frame")
-            mf <- eval.parent(mf)
-            n <- nrow(mf)
-            mf <- as.list(mf)
-            wts <- if (!mWeights) model.weights(mf) else rep(1, n)
-        }
-        if (any(wts < 0 | is.na(wts)))
-            stop("missing or negative weights not allowed")
+      varIndex <- n %% respLength == 0
+      if(is.list(data) && diff(range(n[names(n) %in% names(data)])) > 0) {
+          ## 'data' is a list that can not be coerced to a data.frame
+          mf <- data
+                if(!missing(subset))
+                    warning("argument 'subset' will be ignored")
+                if(!missing(na.action))
+                    warning("argument 'na.action' will be ignored")
+          if(startMissing) {
+            start <- getInitial(formula, mf)
+            startMissing <- FALSE
+          }
+          startEnv <- new.env(hash = FALSE, parent = environment(formula)) # small
+          for (i in names(start))
+            assign(i, start[[i]], envir = startEnv)
+              rhs <- eval(formula[[3L]], data, startEnv)
+              n <- NROW(rhs)
+                    ## mimic what model.frame.default does
+                    wts <- if (mWeights) rep(1, n) else
+                        eval(substitute(weights), data, environment(formula))
+      } else {
+          mf$formula <-  # replace by one-sided linear model formula
+              as.formula(paste("~", paste(varNames[varIndex], collapse = "+")),
+                         env = environment(formula))
+          mf$start <- mf$control <- mf$algorithm <- mf$trace <- mf$model <- NULL
+          mf$lower <- mf$upper <- NULL
+          mf[[1L]] <- as.name("model.frame")
+          mf <- eval.parent(mf)
+          n <- nrow(mf)
+          mf <- as.list(mf)
+          wts <- if (!mWeights) model.weights(mf) else rep(1, n)
+      }
+      if (any(wts < 0 | is.na(wts)))
+          stop("missing or negative weights not allowed")
     }
     else {
         ## length(n) == 0 : Some problems might have no official varNames
@@ -574,7 +579,7 @@ nls <-
     }
 
     ## set up iteration
-    if (missing(start)) start <- getInitial(formula, mf)
+    if (startMissing) start <- getInitial(formula, mf)
     for(var in varNames[!varIndex])
         mf[[var]] <- eval(as.name(var), data, env)
     varNamesRHS <- varNamesRHS[ varNamesRHS %in% varNames[varIndex] ]
@@ -587,51 +592,53 @@ nls <-
 
     ctrl <- nls.control()
     if(!missing(control)) {
-	control <- as.list(control)
-	ctrl[names(control)] <- control
+      control <- as.list(control)
+      ctrl[names(control)] <- control
     }
     ## Iterate
     if (algorithm != "port") {
-	if (!missing(lower) || !missing(upper))
-	    warning('Upper or lower bounds ignored unless algorithm = "port"')
-        convInfo <- .Call(C_nls_iter, m, ctrl, trace)
-	nls.out <- list(m = m, convInfo = convInfo,
-			data = substitute(data), call = match.call())
+	    if (!missing(lower) || !missing(upper))
+	      warning('Upper or lower bounds ignored unless algorithm = "port"')
+      convInfo <- NonlinearLeastSquares$iterate(m, ctrl, trace)
+
+	    nls.out <- list(m = m, convInfo = convInfo,
+			  data = substitute(data), call = match.call())
     }
     else { ## "port" i.e., PORT algorithm
-	pfit <- nls_port_fit(m, start, lower, upper, control, trace,
-			     give.v=TRUE)
-        iv <- pfit[["iv"]]
-	msg.nls <- port_msg(iv[1L])
-	conv <- (iv[1L] %in% 3:6)
-	if (!conv) {
-	    msg <- paste("Convergence failure:", msg.nls)
-	    if(ctrl$warnOnly) warning(msg) else stop(msg)
-	}
-	v. <- port_get_named_v(pfit[["v"]])
-	## return a 'convInfo' list compatible to the non-PORT case:
-	cInfo <- list(isConv = conv,
-		      finIter = iv[31L], # 31: NITER
-		      finTol  =	 v.[["NREDUC"]],
-		      nEval = c("function" = iv[6L], "gradient" = iv[30L]),
-		      stopCode = iv[1L],
-		      stopMessage = msg.nls)
-        cl <- match.call()
-        ## we need these (evaluated) for profiling
-	cl$lower <- lower
-	cl$upper <- upper
-	nls.out <- list(m = m, data = substitute(data),
-                        call = cl, convInfo = cInfo,
-	## UGLY: this is really a logical for  *NON*convergence:
-	## deprecate these two, as they are now part of convInfo
-			convergence = as.integer(!conv),
-			message = msg.nls)
+	    pfit <- nls_port_fit(m, start, lower, upper, control, trace, give.v=TRUE)
+      iv <- pfit[["iv"]]
+	    msg.nls <- port_msg(iv[1L])
+	    conv <- (iv[1L] %in% 3:6)
+	    if (!conv) {
+        msg <- paste("Convergence failure:", msg.nls)
+        if(ctrl$warnOnly) warning(msg) else stop(msg)
+      }
+
+	    v. <- port_get_named_v(pfit[["v"]])
+    ## return a 'convInfo' list compatible to the non-PORT case:
+    cInfo <- list(isConv = conv,
+            finIter = iv[31L], # 31: NITER
+            finTol  =	 v.[["NREDUC"]],
+            nEval = c("function" = iv[6L], "gradient" = iv[30L]),
+            stopCode = iv[1L],
+            stopMessage = msg.nls)
+          cl <- match.call()
+          ## we need these (evaluated) for profiling
+    cl$lower <- lower
+    cl$upper <- upper
+    nls.out <- list(m = m, data = substitute(data),
+                          call = cl, convInfo = cInfo,
+    ## UGLY: this is really a logical for  *NON*convergence:
+    ## deprecate these two, as they are now part of convInfo
+        convergence = as.integer(!conv),
+        message = msg.nls)
     }
 
     ## we need these (evaluated) for profiling
-    nls.out$call$algorithm <- algorithm
-    nls.out$call$control <- ctrl
-    nls.out$call$trace <- trace
+#   TODO(renjin): these trigger evaluation!
+#    nls.out$call$algorithm <- algorithm
+#    nls.out$call$control <- ctrl
+#    nls.out$call$trace <- trace
 
     nls.out$na.action <- attr(mf, "na.action")
     nls.out$dataClasses <-

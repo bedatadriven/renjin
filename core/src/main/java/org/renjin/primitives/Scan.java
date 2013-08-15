@@ -126,10 +126,6 @@ public class Scan {
       scanner = new ScalarReader(getAtomicScanner(what), splitter);
     }
 
-    // in order to be treated as a comment; the line must actually
-    // start with # plus with a space
-    String commentPrefix = commentChar + " ";
-
     String line;
     int linesRead = 0;
     int linesSkipped = 0;
@@ -141,7 +137,7 @@ public class Scan {
       }
       linesRead ++;
       if(!Strings.isNullOrEmpty(commentChar)) {
-        if(line.startsWith(commentPrefix)) {
+        if(line.startsWith(commentChar)) {
           continue;
         }
       }

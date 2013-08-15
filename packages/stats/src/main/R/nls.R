@@ -223,7 +223,6 @@ nlsModel.plinear <- function(form, data, start, wts)
 
 nlsModel <- function(form, data, start, wts, upper=NULL)
 {
-    cat("checkpoint 1\n");
     thisEnv <- environment()
     env <- new.env(hash = TRUE, parent = environment(form))
     for(i in names(data)) assign(i, data[[i]], envir = env)
@@ -240,8 +239,6 @@ nlsModel <- function(form, data, start, wts, upper=NULL)
         unlist(setNames(lapply(names(ind), get, envir = env), names(ind)))
     getPars <- getPars.noVarying
     internalPars <- getPars()
-
-    cat("checkpoint 2\n");
 
     if(!is.null(upper)) upper <- rep(upper, length.out = parLength)
     useParams <- rep(TRUE, parLength)

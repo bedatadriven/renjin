@@ -211,9 +211,11 @@ public class Connections {
     PushbackBufferedReader reader = getConnection(context, connection).getReader();
     StringVector.Builder lines = new StringVector.Builder();
     String line;
-    while((line=reader.readLine())!=null && 
-        (lines.length() != numLines)) {
+    while((line=reader.readLine())!=null) {
       lines.add(line);
+      if(numLines > 0 && lines.length() == numLines) {
+        break;
+      }
     }
     
     if(numLines > 0 && 

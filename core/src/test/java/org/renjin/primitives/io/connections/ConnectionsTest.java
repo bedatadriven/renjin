@@ -31,6 +31,19 @@ public class ConnectionsTest extends EvalTestCase {
     eval("lines <- .Internal(readLines(conn, 2, TRUE, FALSE, 'UTF-8'))");
     assertThat(eval("length(lines)"), equalTo(c_i(2)));
   }
+  
+  @Test
+  public void readLinesSequence() {
+    topLevelContext.getGlobalEnvironment().setVariable("conn", openResourceAsConn("lines.txt"));
+
+    eval("line1 <- .Internal(readLines(conn, 1, TRUE, FALSE, 'UTF-8'))");
+    eval("line2 <- .Internal(readLines(conn, 1, TRUE, FALSE, 'UTF-8'))");
+    
+    assertThat(eval("line1"), equalTo(c("This is the first line")));
+    assertThat(eval("line2"), equalTo(c("And the second")));
+
+
+  }
 
   @Test
   public void readTextGz() throws IOException {

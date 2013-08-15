@@ -14,6 +14,17 @@ test.simplest <- function() {
 	assertThat(environment(t), identicalTo(environment()))
 }
 
+test.predict <- function() {
+  x <- 1:10
+  df <- data.frame(x=x, y=2*x)
+  model <- lm(y~x, df)
+
+  y <- predict(model, data.frame(x=200))
+
+  assertThat(y, equalTo(400))
+}
+
+
 test.one.dep.var <- function() {
 	t <- terms(~births)
 	print(t)

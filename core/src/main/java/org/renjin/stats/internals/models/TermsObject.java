@@ -53,10 +53,10 @@ public class TermsObject {
   
   private int getIntAttribute(Symbol attributeName) {
     SEXP exp = object.getAttribute(attributeName);
-    if(!(exp instanceof IntVector) || exp.length() != 1) {
+    if(!(exp instanceof AtomicVector) || exp.length() != 1) {
       throw new EvalException("invalid attribute '" + attributeName + "'");
     }
-    return ((Vector)exp).getElementAsInt(0);
+    return ((AtomicVector)exp).getElementAsInt(0);
   }
 
   public int getIntercept() {

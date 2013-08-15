@@ -58,13 +58,18 @@ public class ExamplesParser extends SexpVisitor<String> {
    * @throws IOException
    */
   public static String parseExamples(File file) throws IOException {
-    FileReader reader = new FileReader(file);
-    RdParser parser = new RdParser();
-    SEXP rd = parser.R_ParseRd(reader, StringVector.valueOf(file.getName()), false);
-    
-    ExamplesParser examples = new ExamplesParser();
-    rd.accept(examples);
-     
-    return examples.code.toString();
+    try {
+      FileReader reader = new FileReader(file);
+      RdParser parser = new RdParser();
+      SEXP rd = parser.R_ParseRd(reader, StringVector.valueOf(file.getName()), false);
+
+      ExamplesParser examples = new ExamplesParser();
+      rd.accept(examples);
+
+      return examples.code.toString();
+    } catch(Exception e) {
+      System.err.println("WARNING: Failed to parse examples from " + file.getName() + ": " + e.getMessage());
+      return "";
+    }
   }
 }

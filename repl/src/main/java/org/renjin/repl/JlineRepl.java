@@ -118,7 +118,11 @@ public class JlineRepl {
     RParser parser = new RParser(options, parseState, lexer);
     while(!parser.parse()) {
       if(lexer.errorEncountered()) {
-        reader.getOutput().append("Syntax error at " + lexer.getErrorLocation() + ": " + lexer.getErrorMessage() + "\n");
+        String errorMessage = "Syntax error at " + lexer.getErrorLocation() + ": " + lexer.getErrorMessage();
+        reader.getOutput().append(errorMessage + "\n");
+        if(stopOnError) {
+          throw new RuntimeException(errorMessage);
+        }
       }
     }
 

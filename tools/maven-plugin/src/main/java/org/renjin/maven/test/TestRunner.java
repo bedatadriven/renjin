@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import com.google.common.annotations.VisibleForTesting;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 
@@ -52,7 +53,8 @@ public class TestRunner {
     return reporter.allTestsSucceeded();
   }
 
-  private void executeFile(File sourceFile, String source) {
+  @VisibleForTesting
+  void executeFile(File sourceFile, String source) {
     try {
       reporter.startFile(sourceFile);
       executeTestFile(sourceFile, source);

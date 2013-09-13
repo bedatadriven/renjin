@@ -51,7 +51,7 @@ public class BasePackageCompiler {
         ".Device", ".Devices", ".Machine", ".Options", ".Platform");
     
     new LazyLoadFrameBuilder(context)
-    .outputTo(new File("target/classes/org/renjin/baseNamespace"))
+    .outputTo(new File("target/classes/org/renjin/base"))
     .filter(new Predicate<NamedValue>() {
       public boolean apply(NamedValue namedValue) {
         if(omit.contains(namedValue.getName())) {

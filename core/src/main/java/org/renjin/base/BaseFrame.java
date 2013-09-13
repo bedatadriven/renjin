@@ -22,22 +22,16 @@
 package org.renjin.base;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.IdentityHashMap;
 import java.util.Set;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.Primitives;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Frame;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 import org.renjin.util.FileSystemUtils;
 
 import com.google.common.collect.Sets;
@@ -185,10 +179,20 @@ public class BaseFrame implements Frame {
   }
   
   public void load(Context context) throws IOException {
-    URL baseNamespace = Resources.getResource("org/renjin/baseNamespace");
-    LazyLoadFrame frame = new LazyLoadFrame(context, Resources.newInputStreamSupplier(baseNamespace));
-    for(Symbol name : frame.getNames()) {
-      loaded.put(name, frame.get(name));
+    Iterable<NamedValue> frame = LazyLoadFrame.load(context, new com.google.common.base.Function<String, InputStream>() {
+
+      @Override
+      public InputStream apply(String name) {
+        String resourcePath = "/org/renjin/base/" + name;
+        InputStream in = getClass().getResourceAsStream(resourcePath);
+        if(in == null) {
+          throw new RuntimeException("Could not open resource " + resourcePath);
+        }
+        return in;
+      }
+    });
+    for(NamedValue name : frame) {
+      loaded.put(Symbol.get(name.getName()), name.getValue());
     }
    
     // aliases

@@ -132,7 +132,7 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
   }
 
   private Function resolveS3Method(Symbol methodName) {
-    SEXP methodExp = namespace.getNamespaceEnvironment().getVariable(methodName);
+    SEXP methodExp = namespace.getNamespaceEnvironment().getVariable(methodName).force(context);
     if (methodExp == Symbol.UNBOUND_VALUE) {
       throw new EvalException("Missing export: " + methodName + " not found in " + namespace.getName());
     }

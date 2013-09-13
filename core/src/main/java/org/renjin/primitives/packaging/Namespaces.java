@@ -23,6 +23,7 @@ package org.renjin.primitives.packaging;
 
 import java.io.IOException;
 
+import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
@@ -73,16 +74,21 @@ public class Namespaces {
   }
 
   @Builtin(":::")
-  public static SEXP getNamespaceValue(@Current NamespaceRegistry registry, @Unevaluated Symbol namespace,
+  public static SEXP getNamespaceValue(@Current Context context,
+                                       @Current NamespaceRegistry registry,
+                                       @Unevaluated Symbol namespace,
                                        @Unevaluated Symbol entry) {
-    return registry.getNamespace(namespace).getEntry(entry);  
+
+    return registry.getNamespace(namespace).getEntry(entry).force(context);
   }
   
   @Builtin("::")
-  public static SEXP getExportedNamespaceValue(@Current NamespaceRegistry registry,
+  public static SEXP getExportedNamespaceValue(@Current Context context,
+                                               @Current NamespaceRegistry registry,
                                                @Unevaluated Symbol namespace,
                                                @Unevaluated Symbol entry) {
-    return registry.getNamespace(namespace).getExport(entry);  
+
+    return registry.getNamespace(namespace).getExport(entry).force(context);
   }
 
   @Internal

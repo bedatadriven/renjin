@@ -99,7 +99,7 @@ public class TestRunner {
       session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
     } catch(Exception e) {
       System.err.println("Could not load this project's namespace (it may not have one)");
-      //e.printStackTrace();
+      e.printStackTrace();
     }
   }
   

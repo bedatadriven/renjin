@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.util.*;
 
 import com.google.common.base.Charsets;
-import com.google.common.io.ByteStreams;
+import com.google.common.base.Function;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
@@ -27,7 +27,17 @@ public abstract class FileBasedPackage extends Package {
 
   @Override
   public Iterable<NamedValue> loadSymbols(Context context) throws IOException {
-    return LazyLoadFrame.load(context, getResource("environment"));
+    return LazyLoadFrame.load(context, new Function<String, InputStream>() {
+
+      @Override
+      public InputStream apply(String name) {
+        try {
+          return getResource(name).getInput();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
   }
 
   public abstract boolean resourceExists(String name);

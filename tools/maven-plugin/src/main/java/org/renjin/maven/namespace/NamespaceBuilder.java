@@ -91,7 +91,7 @@ public class NamespaceBuilder {
     }
     
     if(lastModified < environmentFile.lastModified()) {
-      System.out.println("namespaceEnvironment is up to date, skipping compiliation");
+      System.out.println("namespaceEnvironment is up to date, skipping compilation");
       return true;
     }
     
@@ -155,7 +155,7 @@ public class NamespaceBuilder {
     System.out.println("Writing namespace environment to " + environmentFile);
     try {
       LazyLoadFrameBuilder builder = new LazyLoadFrameBuilder(context);
-      builder.outputTo(environmentFile);
+      builder.outputTo(environmentFile.getParentFile());
       builder.build(namespaceEnv);
     } catch(IOException e) {
       throw new RuntimeException("Exception encountered serializing namespace environment", e);

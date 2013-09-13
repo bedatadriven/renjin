@@ -21,7 +21,7 @@ test.predict <- function() {
 
   y <- predict(model, data.frame(x=200))
 
-  assertThat(y, equalTo(400))
+  assertThat(y, closeTo(400,0.1))
 }
 
 

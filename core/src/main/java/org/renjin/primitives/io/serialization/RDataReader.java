@@ -143,8 +143,8 @@ public class RDataReader {
 
   public SEXP readExp() throws IOException {
 
-    Flags flags = new Flags(in.readInt());
-    switch(flags.type) {
+    int flags = in.readInt();
+    switch(Flags.getType(flags)) {
       case NILVALUE_SXP:
         return Null.INSTANCE;
       case EMPTYENV_SXP:
@@ -215,19 +215,20 @@ public class RDataReader {
       case S4SXP:
         return readS4XP(flags);
       default:
-        throw new IOException(String.format("ReadItem: unknown type %d, perhaps written by later version of R", flags.type));
+        throw new IOException(String.format("ReadItem: unknown type %d, perhaps written by later version of R",
+          Flags.getType(flags)));
     }
   }
 
 
-  private SEXP rawRawVector(Flags flags) throws IOException {
+  private SEXP rawRawVector(int flags) throws IOException {
     int length = in.readInt();
     byte[] bytes = in.readString(length);
     AttributeMap attributes = readAttributes(flags);
     return new RawVector(bytes, attributes);
   }
 
-  private SEXP readPromise(Flags flags) throws IOException {
+  private SEXP readPromise(int flags) throws IOException {
     AttributeMap attributes = readAttributes(flags);
     SEXP env = readTag(flags);
     SEXP value = readExp();
@@ -240,7 +241,7 @@ public class RDataReader {
     }
   }
 
-  private SEXP readClosure(Flags flags) throws IOException {
+  private SEXP readClosure(int flags) throws IOException {
     AttributeMap attributes = readAttributes(flags);
     Environment env = (Environment) readTag(flags);
     PairList formals = (PairList) readExp();
@@ -249,7 +250,7 @@ public class RDataReader {
     return new Closure(env, formals, body, attributes);
   }
 
-  private SEXP readLangExp(Flags flags) throws IOException {
+  private SEXP readLangExp(int flags) throws IOException {
     AttributeMap attributes = readAttributes(flags);
     SEXP tag = readTag(flags);
     SEXP function = readExp();
@@ -257,25 +258,40 @@ public class RDataReader {
     return new FunctionCall(function, arguments, attributes);
   }
 
-  private SEXP readDotExp(Flags flags) throws IOException {
+  private SEXP readDotExp(int flags) throws IOException {
     throw new IOException("readDotExp not impl");
   }
 
-  private PairList readPairList(Flags flags) throws IOException {
-    AttributeMap attributes = readAttributes(flags);
-    SEXP tag = readTag(flags);
-    SEXP value = readExp();
-    PairList nextNode = (PairList) readExp();
+  private PairList readPairList(int flags) throws IOException {
 
-    return new PairList.Node(tag, value, attributes, nextNode);
+    PairList.Node head = null;
+    PairList.Node tail = null;
+
+    while(Flags.getType(flags) != NILVALUE_SXP) {
+      AttributeMap attributes = readAttributes(flags);
+      SEXP tag = readTag(flags);
+      SEXP value = readExp();
+      PairList.Node node = new PairList.Node(tag, value, attributes, Null.INSTANCE);
+      if(head == null) {
+        head = node;
+        tail = node;
+      } else {
+        tail.setNextNode(node);
+        tail = node;
+      }
+
+      // read the next element in the list
+      flags = in.readInt();
+    }
+    return head == null ? Null.INSTANCE : head;
   }
 
-  private SEXP readTag(Flags flags) throws IOException {
-    return flags.hasTag ? readExp() : Null.INSTANCE;
+  private SEXP readTag(int flags) throws IOException {
+    return Flags.hasTag(flags) ? readExp() : Null.INSTANCE;
   }
 
-  private AttributeMap readAttributes(Flags flags) throws IOException {
-    if(flags.hasAttributes) {
+  private AttributeMap readAttributes(int flags) throws IOException {
+    if(Flags.hasAttributes(flags)) {
       SEXP pairList = readExp();
       return AttributeMap.fromPairList((PairList) pairList);
     } else {
@@ -287,13 +303,13 @@ public class RDataReader {
     throw new IOException("package");
   }
 
-  private SEXP readReference(Flags flags) throws IOException {
+  private SEXP readReference(int flags) throws IOException {
     int i = readReferenceIndex(flags);
     return referenceTable.get(i);
   }
 
-  private int readReferenceIndex(Flags flags) throws IOException {
-    int i = flags.unpackRefIndex();
+  private int readReferenceIndex(int flags) throws IOException {
+    int i = Flags.unpackRefIndex(flags);
     if (i == 0)
       return in.readInt() - 1;
     else
@@ -301,8 +317,20 @@ public class RDataReader {
   }
 
   private SEXP readSymbol() throws IOException {
-    CHARSEXP printName = (CHARSEXP) readExp();
-    return addReadRef(Symbol.get(printName.getValue()));
+
+    // always followed by a CHARSEXP
+    int flags = in.readInt();
+    if(Flags.getType(flags) != SerializationFormat.CHARSXP) {
+      throw new IllegalStateException("Expected a CHARSXP");
+    }
+    String name;
+    int length = in.readInt();
+    if(length < 0) {
+      name = "NA";
+    } else {
+      name = new String(in.readString(length));
+    }
+    return addReadRef(Symbol.get(name));
   }
 
   private SEXP addReadRef(SEXP value) {
@@ -319,7 +347,7 @@ public class RDataReader {
     return addReadRef( namespace );
   }
 
-  private SEXP readEnv(Flags flags) throws IOException {
+  private SEXP readEnv(int flags) throws IOException {
 
     Environment env = Environment.createChildEnvironment(Environment.EMPTY);
     addReadRef(env);
@@ -344,17 +372,17 @@ public class RDataReader {
     return env;
   }
 
-  private SEXP readS4XP(Flags flags) throws IOException {
+  private SEXP readS4XP(int flags) throws IOException {
     return new S4Object(readAttributes(flags));
   }
 
-  private SEXP readListExp(Flags flags) throws IOException {
+  private SEXP readListExp(int flags) throws IOException {
     SEXP[] values = readExpArray();
     AttributeMap attributes = readAttributes(flags);
     return new ListVector(values, attributes);
   }
 
-  private SEXP readExpExp(Flags flags) throws IOException {
+  private SEXP readExpExp(int flags) throws IOException {
     SEXP[] values = readExpArray();
     AttributeMap attributes = readAttributes(flags);
     return new ExpressionVector(values, attributes);
@@ -369,7 +397,7 @@ public class RDataReader {
     return values;
   }
 
-  private SEXP readStringVector(Flags flags) throws IOException {
+  private SEXP readStringVector(int flags) throws IOException {
     int length = in.readInt();
     String[] values = new String[length];
     for(int i=0;i!=length;++i) {
@@ -378,7 +406,7 @@ public class RDataReader {
     return new StringArrayVector(values, readAttributes(flags));
   }
 
-  private SEXP readComplexExp(Flags flags) throws IOException {
+  private SEXP readComplexExp(int flags) throws IOException {
     int length = in.readInt();
     Complex[] values = new Complex[length];
     for(int i=0;i!=length;++i) {
@@ -387,7 +415,7 @@ public class RDataReader {
     return new ComplexVector(values, readAttributes(flags));
   }
 
-  private SEXP readDoubleExp(Flags flags) throws IOException {
+  private SEXP readDoubleExp(int flags) throws IOException {
     int length = in.readInt();
     double[] values = new double[length];
     for(int i=0;i!=length;++i) {
@@ -396,7 +424,7 @@ public class RDataReader {
     return new DoubleArrayVector(values, readAttributes(flags));
   }
 
-  private SEXP readIntVector(Flags flags) throws IOException {
+  private SEXP readIntVector(int flags) throws IOException {
     int length = in.readInt();
     int[] values = new int[length];
     for(int i=0;i!=length;++i) {
@@ -406,7 +434,7 @@ public class RDataReader {
   }
 
 
-  private SEXP readLogical(Flags flags) throws IOException {
+  private SEXP readLogical(int flags) throws IOException {
     int length = in.readInt();
     int values[] = new int[length];
     for(int i=0;i!=length;++i) {
@@ -415,16 +443,16 @@ public class RDataReader {
     return new LogicalArrayVector(values, readAttributes(flags));
   }
 
-  private SEXP readCharExp(Flags flags) throws IOException {
+  private SEXP readCharExp(int flags) throws IOException {
     int length = in.readInt();
 
     if (length == -1) {
       return new CHARSEXP(StringVector.NA );
     } else  {
       byte buf[] = in.readString(length);
-      if(flags.isUTF8Encoded()) {
+      if(Flags.isUTF8Encoded(flags)) {
         return new CHARSEXP(new String(buf, "UTF8"));
-      } else if(flags.isLatin1Encoded()) {
+      } else if(Flags.isLatin1Encoded(flags)) {
         return new CHARSEXP(new String(buf, "Latin1"));
       } else {
         return new CHARSEXP(new String(buf));
@@ -432,17 +460,17 @@ public class RDataReader {
     }
   }
 
-  private SEXP readPrimitive(Flags flags) throws IOException {
+  private SEXP readPrimitive(int flags) throws IOException {
     int nameLength = in.readInt();
     String name = new String(in.readString(nameLength));
     return Primitives.getBuiltin(name);
   }
 
-  private SEXP readWeakReference(Flags flags) throws IOException {
+  private SEXP readWeakReference(int flags) throws IOException {
     throw new IOException("weakRef not yet impl");
   }
 
-  private SEXP readExternalPointer(Flags flags) throws IOException {
+  private SEXP readExternalPointer(int flags) throws IOException {
     ExternalPtr ptr = new ExternalPtr(null);
     addReadRef(ptr);
     //R_SetExternalPtrAddr(s, NULL);

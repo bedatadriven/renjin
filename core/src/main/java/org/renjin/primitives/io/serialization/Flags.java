@@ -32,44 +32,35 @@ class Flags {
   private final static int HAS_ATTR_BIT_MASK = (1 << 9);
   private final static int HAS_TAG_BIT_MASK = (1 << 10);
 
-  public final int type;
-  public final int levels;
-  public final boolean isObject;
-  public final boolean hasAttributes;
-  public final boolean hasTag;
-  private final int flags;
-
-  public Flags(int flags) {
-    this.flags = flags;
-    type = decodeType(flags);
-    levels = decodeLevels(flags);
-    isObject = (flags & IS_OBJECT_BIT_MASK) != 0;
-    hasAttributes = (flags & HAS_ATTR_BIT_MASK) != 0;
-    hasTag = (flags & HAS_TAG_BIT_MASK) != 0;
+  private Flags() {
   }
 
-  private int decodeType(int v) {
-    return ((v) & 255);
+  public static int getType(int flags) {
+    return ((flags) & 255);
   }
 
-  private int decodeLevels(int v) {
-    return ((v) >> 12);
+  public static int getLevels(int flags) {
+    return ((flags) >> 12);
   }
 
-  public boolean isUTF8Encoded() {
-    return (levels & SerializationFormat.UTF8_MASK) != 0;
+  public static boolean hasAttributes(int flags) {
+    return (flags & HAS_ATTR_BIT_MASK) == HAS_ATTR_BIT_MASK;
   }
 
-  public boolean isLatin1Encoded() {
-    return (levels & SerializationFormat.LATIN1_MASK) != 0;
+  public static boolean hasTag(int flags) {
+    return (flags & HAS_TAG_BIT_MASK) == HAS_TAG_BIT_MASK;
   }
 
-  public int unpackRefIndex() {
+  public static boolean isUTF8Encoded(int flags) {
+    return (getLevels(flags) & SerializationFormat.UTF8_MASK) == SerializationFormat.UTF8_MASK;
+  }
+
+  public static boolean isLatin1Encoded(int flags) {
+    return (getLevels(flags) & SerializationFormat.LATIN1_MASK) == SerializationFormat.LATIN1_MASK;
+  }
+
+  public static int unpackRefIndex(int flags) {
     return   ((flags) >> 8);
-  }
-
-  public static int nullFlags() {
-    return SerializationFormat.NILVALUE_SXP;
   }
 
   public static int computeFlags(SEXP exp, int type) {

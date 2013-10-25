@@ -65,31 +65,31 @@ public class Primitives {
   }
   
   public static PrimitiveFunction getBuiltin(Symbol symbol) {
-	  synchronized (INSTANCE) {
-    PrimitiveFunction fn = INSTANCE.builtins.get(symbol);
-    if(fn == null) {
-      Entry entry = INSTANCE.builtinEntries.get(symbol);
-      if(entry != null) {
-        fn = createFunction(entry);
-        INSTANCE.builtins.put(symbol, fn);
+	synchronized (INSTANCE) {
+      PrimitiveFunction fn = INSTANCE.builtins.get(symbol);
+      if(fn == null) {
+        Entry entry = INSTANCE.builtinEntries.get(symbol);
+        if(entry != null) {
+          fn = createFunction(entry);
+          INSTANCE.builtins.put(symbol, fn);
+        }
       }
-    }
-    return fn;
-	  }
+      return fn;
+	 }
   }
   
   public static PrimitiveFunction getInternal(Symbol symbol) {
-	  synchronized (INSTANCE) {
-    PrimitiveFunction fn = INSTANCE.internals.get(symbol);
-    if(fn == null) {
-      Entry entry = INSTANCE.internalEntries.get(symbol);
-      if(entry != null) {
-        fn = createFunction(entry);
-        INSTANCE.internals.put(symbol, fn);
+	synchronized (INSTANCE) {
+      PrimitiveFunction fn = INSTANCE.internals.get(symbol);
+      if(fn == null) {
+        Entry entry = INSTANCE.internalEntries.get(symbol);
+        if(entry != null) {
+          fn = createFunction(entry);
+          INSTANCE.internals.put(symbol, fn);
+        }
       }
-    }
-    return fn;
-	  }
+      return fn;
+	}
   }
   
   public static List<Entry> getEntries() {

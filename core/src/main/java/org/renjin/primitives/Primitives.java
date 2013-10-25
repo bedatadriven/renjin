@@ -12,6 +12,7 @@ import org.renjin.graphics.internals.Plot;
 import org.renjin.graphics.internals.RgbHsv;
 import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.methods.Methods;
+import org.renjin.primitives.Primitives;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
 import org.renjin.primitives.io.DebianControlFiles;
@@ -65,6 +66,7 @@ public class Primitives {
   }
   
   public static PrimitiveFunction getBuiltin(Symbol symbol) {
+	  synchronized (INSTANCE) {
     PrimitiveFunction fn = INSTANCE.builtins.get(symbol);
     if(fn == null) {
       Entry entry = INSTANCE.builtinEntries.get(symbol);
@@ -74,9 +76,11 @@ public class Primitives {
       }
     }
     return fn;
+	  }
   }
   
   public static PrimitiveFunction getInternal(Symbol symbol) {
+	  synchronized (INSTANCE) {
     PrimitiveFunction fn = INSTANCE.internals.get(symbol);
     if(fn == null) {
       Entry entry = INSTANCE.internalEntries.get(symbol);
@@ -86,6 +90,7 @@ public class Primitives {
       }
     }
     return fn;
+	  }
   }
   
   public static List<Entry> getEntries() {
@@ -990,7 +995,6 @@ public class Primitives {
     f("library", Packages.class, 0,0,-1);
     f("require", Packages.class, 0,0,-1);
 
-    
   }
 
   private void add(SpecialFunction fn) {

@@ -95,6 +95,12 @@ public class NamespaceMojo extends AbstractMojo {
    */
   private File descriptionFile;
 
+
+  /**
+   * @parameter
+   */
+  private List defaultPackages;
+
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 	  compileNamespaceEnvironment();
@@ -110,8 +116,8 @@ public class NamespaceMojo extends AbstractMojo {
     try {
       Object builder = classLoader.loadClass("org.renjin.maven.namespace.NamespaceBuilder").newInstance();
       builder.getClass()
-          .getMethod("build", String.class, File.class, File.class)
-          .invoke(builder, namespaceName, sourceDirectory, getEnvironmentFile());
+          .getMethod("build", String.class, File.class, File.class, List.class)
+          .invoke(builder, namespaceName, sourceDirectory, getEnvironmentFile(), defaultPackages);
      
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);

@@ -9,14 +9,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.SessionBuilder;
+import org.renjin.maven.PackageDescription;
 import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.Namespace;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import com.google.common.collect.Lists;
 
@@ -25,14 +23,16 @@ public class NamespaceBuilder {
   private String namespaceName;
   private File sourceDirectory;
   private File environmentFile;
+  private List<String> defaultPackages;
 
   public void build(String namespaceName, File sourceDirectory,
-      File environmentFile) {
+      File environmentFile, List<String> defaultPackages) throws IOException {
    
     this.namespaceName = namespaceName;
     this.sourceDirectory = sourceDirectory;
     this.environmentFile = environmentFile;
-    
+    this.defaultPackages = defaultPackages;
+
     compileNamespaceEnvironment();
   }
 
@@ -44,43 +44,11 @@ public class NamespaceBuilder {
     }
     
     Context context = initContext();
-  
+
     Namespace namespace = context.getNamespaceRegistry().createNamespace(new InitializingPackage(), namespaceName);
-    maybeImportMethodsTo(context, namespace);
     evaluateSources(context, getRSources(), namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
   }
-
-
-  private void maybeImportMethodsTo(Context context, Namespace namespace) {
-    // the environment into which the package sources are evaluated
-    // is not all together clear to me. Logically, what we 
-    // do here with Renjin is to create an empty namespace environment,
-    // import the defined symbols into it, and then evaluate the sources.
-    
-    // But it looks like R-2.x evaluates the sources into a namespace
-    // environment that has the default packages on the search path,
-    // giving them a sort of implicit import of methods.
-    // We'll replicate that here for the moment
-    if(isMethodsOnClasspath()) {
-      Namespace methods = context.getNamespaceRegistry().getNamespace("methods");
-      methods.copyExportsTo(namespace.getImportsEnvironment());
-    }
-    
-  }
-
-
-  private boolean isMethodsOnClasspath() {
-    InputStream in;
-    try {
-      in = getClass().getResourceAsStream("/org/renjin/methods/environment");
-      in.close();
-      return true;
-    } catch(Exception e) {
-    }
-    return false;
-  }
-
 
   private boolean isUpToDate(List<File> sources) {
     long lastModified = 0;
@@ -98,16 +66,15 @@ public class NamespaceBuilder {
     return false;
   }
 
-  
-
   private Context initContext()  {
-    try {
-      Context context = Context.newTopLevelContext();
-      context.init();
-      return context;
-    } catch(IOException e) {
-      throw new RuntimeException("Could not initialize R top level context", e);
+    SessionBuilder builder = new SessionBuilder();
+    Context context = builder.build().getTopLevelContext();
+    if(defaultPackages != null) {
+      for(String name : defaultPackages) {
+        context.evaluate(FunctionCall.newCall(Symbol.get("library"), StringVector.valueOf(name)));
+      }
     }
+    return context;
   }
 
   private List<File> getRSources() {

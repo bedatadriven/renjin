@@ -60,6 +60,12 @@
               <goal>namespace-compile</goal>
             </goals>
             <phase>compile</phase>
+            <configuration>
+              <defaultPackages>
+                <defaultPackage>methods</defaultPackage>
+                <defaultPackage>stats</defaultPackage>
+              </defaultPackages>
+            </configuration>
           </execution>
           <execution>
             <id>test</id>

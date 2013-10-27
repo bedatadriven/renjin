@@ -65,27 +65,31 @@ public class Primitives {
   }
   
   public static PrimitiveFunction getBuiltin(Symbol symbol) {
-    PrimitiveFunction fn = INSTANCE.builtins.get(symbol);
-    if(fn == null) {
-      Entry entry = INSTANCE.builtinEntries.get(symbol);
-      if(entry != null) {
-        fn = createFunction(entry);
-        INSTANCE.builtins.put(symbol, fn);
+	synchronized (INSTANCE) {
+      PrimitiveFunction fn = INSTANCE.builtins.get(symbol);
+      if(fn == null) {
+        Entry entry = INSTANCE.builtinEntries.get(symbol);
+        if(entry != null) {
+          fn = createFunction(entry);
+          INSTANCE.builtins.put(symbol, fn);
+        }
       }
-    }
-    return fn;
+      return fn;
+	 }
   }
   
   public static PrimitiveFunction getInternal(Symbol symbol) {
-    PrimitiveFunction fn = INSTANCE.internals.get(symbol);
-    if(fn == null) {
-      Entry entry = INSTANCE.internalEntries.get(symbol);
-      if(entry != null) {
-        fn = createFunction(entry);
-        INSTANCE.internals.put(symbol, fn);
+	synchronized (INSTANCE) {
+      PrimitiveFunction fn = INSTANCE.internals.get(symbol);
+      if(fn == null) {
+        Entry entry = INSTANCE.internalEntries.get(symbol);
+        if(entry != null) {
+          fn = createFunction(entry);
+          INSTANCE.internals.put(symbol, fn);
+        }
       }
-    }
-    return fn;
+      return fn;
+	}
   }
   
   public static List<Entry> getEntries() {
@@ -990,7 +994,6 @@ public class Primitives {
     f("library", Packages.class, 0,0,-1);
     f("require", Packages.class, 0,0,-1);
 
-    
   }
 
   private void add(SpecialFunction fn) {

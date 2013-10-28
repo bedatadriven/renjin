@@ -24,6 +24,7 @@ import org.apache.commons.math.special.Beta;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
 import org.renjin.invoke.annotations.*;
+import org.renjin.sexp.DoubleVector;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -34,6 +35,10 @@ import java.math.RoundingMode;
  * Math functions not found in java.Math or apache commons math
  */
 public class MathExt {
+
+  private static final int DBL_MAX_10_EXP = 308;
+  
+  private static final int MAX_DIGITS = DBL_MAX_10_EXP;
 
   private MathExt() {
   }
@@ -179,15 +184,53 @@ public class MathExt {
   @Deferrable
   @DataParallel
   public static double round(double x) {
-    return Math.round(x);
+    return Math.rint(x);
   }
   
   @Builtin
   @Deferrable
   @DataParallel
   public static double round(double x, int digits) {
-    double factor = Math.pow(10, digits);
-    return Math.round(x * factor) / factor;
+    // adapted from the nmath library, fround.c
+    /* = 308 (IEEE); was till R 0.99: (DBL_DIG - 1) */
+    /* Note that large digits make sense for very small numbers */
+    double sgn;
+    int dig;
+
+    if (Double.isNaN(x) || Double.isNaN(digits)) {
+      return x + digits;
+    }
+    if(!DoubleVector.isFinite(x)) {
+      return x;
+    }
+
+    if(digits == Double.POSITIVE_INFINITY) {
+      return x;
+    } else if(digits == Double.NEGATIVE_INFINITY) {
+      return 0.0;
+    }
+
+    if (digits > MAX_DIGITS) {
+      digits = MAX_DIGITS;
+    }
+    dig = (int)Math.floor(digits + 0.5);
+    
+    if(x < 0.) {
+      sgn = -1.;
+      x = -x;
+    } else {
+      sgn = 1.;
+    }
+    if (dig == 0) {
+      return sgn * Math.rint(x);
+    } else if (dig > 0) {
+      double pow10 = Math.pow(10., dig);
+      double intx = Math.floor(x);
+      return sgn * (intx + Math.rint((x-intx) * pow10) / pow10);
+    } else {
+      double pow10 = Math.pow(10., -dig);
+      return sgn * Math.rint(x/pow10) * pow10;
+    }
   }
   
   @Generic

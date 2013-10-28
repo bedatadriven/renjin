@@ -544,4 +544,15 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("is.R()"), equalTo(c(true)));
   }
 
+  @Test
+  public void cut() {
+
+    assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6))"), equalTo(c_i(1,1,2,2,2,2)));
+    assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6), right=F)"),
+            equalTo(c_i(1,2,2,2,2,IntVector.NA)));
+    assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6), right=F, include.lowest=T)"),
+            equalTo(c_i(1,2,2,2,2,2)));
+  }
+
+
 }

@@ -31,22 +31,8 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.S4Object;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.primitives.vector.BinCodeVector;
+import org.renjin.sexp.*;
 
 
 /**
@@ -264,5 +250,24 @@ public class Base {
   public static ListVector do_mapply(@Current Context context, Function fun, ListVector varyingArgs, Vector constantArgs, Environment rho) {
     return Evaluation.mapply(context, fun, varyingArgs, constantArgs, rho);
   }
-  
+
+  /* bincode  cuts up the data using half open intervals defined as [a,b)
+     (if right = FALSE) or (a, b] (if right = TRUE)
+  */
+  public static ListVector bincode(DoubleVector x, int n, DoubleVector breaks, int nb, IntVector code_,
+                             boolean right, boolean include_border, boolean naok) {
+
+    // if we NAs are not ok, we have to check and throw an error now, not later
+    if(!naok) {
+      if(x.indexOfNA() != -1) {
+        throw new EvalException("NA's in bincode(NAOK=FALSE)");
+      }
+    }
+    IntVector codedVector = new BinCodeVector(x, breaks.toDoubleArray(), !right, include_border, AttributeMap.EMPTY);
+
+    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
+    result.add("code", codedVector);
+    return result.build();
+  }
+
 }

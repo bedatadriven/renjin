@@ -34,6 +34,7 @@ import org.renjin.sexp.*;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadMXBean;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
@@ -303,18 +304,27 @@ public class System {
 
     long totalCPUTime;
     long userCPUTime;
+    long elapsedTime;
 
     // There doesn't seem to be any platform-independent way of accessing
     // CPU use for the whole JVM process, so we'll have to make do
     // with the timings for the thread we're running on.
+    //
+    // Additionally, the MX Beans may not be available in all environments,
+    // so we need to fallback to app
     try {
       ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
       totalCPUTime = threadMXBean.getCurrentThreadCpuTime();
       userCPUTime = threadMXBean.getCurrentThreadUserTime();
+
+      RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+      elapsedTime = runtimeMXBean.getUptime();
     } catch(Error e) {
-      // ThreadMXBean is not available in all environemnts
-      userCPUTime = java.lang.System.nanoTime();
-      totalCPUTime = java.lang.System.nanoTime();
+      // ThreadMXBean is not available in all environments
+      // Specifically, AppEngine will throw variously SecurityErrors or
+      // ClassNotFoundErrors if we try to access these classes
+      userCPUTime = totalCPUTime = java.lang.System.nanoTime();
+      elapsedTime = new Date().getTime();
     }
 
     // user.self
@@ -328,7 +338,7 @@ public class System {
     // elapsed
     // (wall clock time)
     names.add("elapsed");
-    result.add(ManagementFactory.getRuntimeMXBean().getUptime() / MILLISECONDS_PER_SECOND);
+    result.add(elapsedTime);
 
     // AFAIK, we don't have any platform independent way of accessing
     // this info.

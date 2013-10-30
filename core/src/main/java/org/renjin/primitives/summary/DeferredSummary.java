@@ -50,7 +50,7 @@ public abstract class DeferredSummary extends DoubleVector implements MemoizedCo
   @Override
   public final Vector forceResult() {
     if(!calculated) {
-      calculate();
+      result = calculate();
     }
     return new DoubleArrayVector(result);
   }

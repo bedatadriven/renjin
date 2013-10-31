@@ -1,6 +1,7 @@
 package org.renjin.appl;
 
-import org.netlib.blas.BLAS;
+import com.github.fommil.netlib.BLAS;
+import com.github.fommil.netlib.LAPACK;
 import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;

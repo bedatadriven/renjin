@@ -7,7 +7,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.math.complex.Complex;
-import org.netlib.lapack.LAPACK;
+import com.github.fommil.netlib.BLAS;
+import com.github.fommil.netlib.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 import org.renjin.eval.EvalException;

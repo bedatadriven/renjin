@@ -51,9 +51,10 @@
     </dependency>
 
     <dependency>
-      <groupId>org.netlib</groupId>
-      <artifactId>netlib-java</artifactId>
-      <version>0.9.3-renjin-patched-2</version>
+      <groupId>com.github.fommil.netlib</groupId>
+      <artifactId>all</artifactId>
+      <version>1.1.1</version>
+      <type>pom</type>
     </dependency>
 
     <!-- Abstraction on file system -->

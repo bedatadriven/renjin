@@ -3,10 +3,7 @@ package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.Constant;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
-import org.renjin.compiler.ir.tac.expressions.Temp;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
@@ -50,7 +47,7 @@ public class IfTranslator extends FunctionCallTranslator {
     if(hasElse(call)) {
       ifFalseResult = builder.translateSimpleExpression(context, call.getArgument(2));
     } else {
-      ifFalseResult = new Constant(Null.INSTANCE);
+      ifFalseResult = SexpConstant.NULL;
     }
     
     builder.addStatement(new Assignment(ifResult, ifFalseResult));

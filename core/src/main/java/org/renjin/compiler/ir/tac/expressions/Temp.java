@@ -22,14 +22,6 @@ public class Temp implements LValue {
     this.index = index;
   }
   
-  public int getIndex() {
-    return index;
-  }
-  
-  private Object retrieveValue(Context context, Object[] temps) {
-    return temps[index];
-  }
-  
   @Override
   public void setValue(Context context, Object[] temp, Object value) {
     temp[index] = value; 
@@ -64,7 +56,8 @@ public class Temp implements LValue {
 
   @Override
   public void emitPush(EmitContext emitContext, MethodVisitor mv) {
-    throw new UnsupportedOperationException();
+
+    mv.visitLdcInsn();
   }
 
   @Override

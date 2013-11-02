@@ -13,6 +13,7 @@ import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.compiler.ir.tree.TreeNode;
 
+import java.util.Collection;
 import java.util.Map;
 
 public class VariableMap {
@@ -35,6 +36,10 @@ public class VariableMap {
         }
       }
     }
+  }
+
+  public Collection<LValue> getVariables() {
+    return map.keySet();
   }
 
   private void addToMap(BasicBlock bb, Assignment statement) {

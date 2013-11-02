@@ -50,7 +50,7 @@ public class SsaVariable implements Variable {
 
   @Override
   public Class inferType() {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException(this.toString());
   }
 
   @Override

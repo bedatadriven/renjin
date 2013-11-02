@@ -2,6 +2,9 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import com.google.common.base.Joiner;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.invoke.model.JvmMethod;
 
@@ -48,12 +51,35 @@ public class JvmMethodCall implements CallExpression {
 
   @Override
   public void emitPush(EmitContext emitContext, MethodVisitor mv) {
-    throw new UnsupportedOperationException();
+
+    if(overloads.size() != 1) {
+      throw new UnsupportedOperationException();
+    }
+    JvmMethod method = overloads.get(0);
+
+    // push all the arguments onto the stack
+    for(Expression argument : arguments) {
+      argument.emitPush(emitContext, mv);
+    }
+
+    // now invoke the method
+    mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+      Type.getDescriptor(method.getDeclaringClass()),
+      method.getName(),
+      Type.getMethodDescriptor(method.getMethod()));
   }
 
   @Override
   public Class inferType() {
-    throw new UnsupportedOperationException();
+    Class returnType = overloads.get(0).getReturnType();
+
+    // make sure all overloads return the same
+    for(JvmMethod overload : overloads) {
+      if(!overload.getReturnType().equals(returnType)) {
+        throw new UnsupportedOperationException("return types are different: " + overloads);
+      }
+    }
+    return returnType;
   }
 
   @Override

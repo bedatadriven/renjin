@@ -28,6 +28,7 @@ public class MeanJitter implements FunctionJitter {
     // initial the sum variable
     int sumLocal = method.reserveLocal(2);
     mv.visitInsn(DCONST_0);
+
     mv.visitVarInsn(DSTORE, sumLocal);
 
     int counterLocal = method.reserveLocal(1);

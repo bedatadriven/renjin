@@ -107,12 +107,5 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     assertThat(cfg.getGraph().getSuccessors(bb.get(11)), itemsEqualTo(bb.get(12),bb.get(1)));
   }
 
-  @Test
-  public void dataframe() throws IOException {
-   IRBody body = buildScope(Resources.toString(
-       getClass().getResource("dataframe.test.R"), Charsets.UTF_8));
- 
-   ControlFlowGraph cfg = new ControlFlowGraph(body);
-  }
   
 }

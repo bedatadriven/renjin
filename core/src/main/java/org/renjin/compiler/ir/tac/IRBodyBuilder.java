@@ -76,7 +76,7 @@ public class IRBodyBuilder {
       return translateExpressionList(context, (ExpressionVector)exp);
     } else if(exp instanceof Symbol) {
       if(exp == Symbol.MISSING_ARG) {
-        return new Constant(exp);
+        return SexpConstant.valueOf(exp);
       } else {
         return new EnvironmentVariable((Symbol)exp);
       }
@@ -84,7 +84,7 @@ public class IRBodyBuilder {
         return translateCallExpression(context, (FunctionCall) exp);
     } else {
       // environments, pairlists, etc
-      return new Constant(exp);
+      return SexpConstant.valueOf(exp);
     }
   }
 
@@ -158,7 +158,7 @@ public class IRBodyBuilder {
   
   private Expression translateExpressionList(TranslationContext context, ExpressionVector vector) {
     if(vector.length() == 0) {
-      return new Constant(Null.INSTANCE);
+      return SexpConstant.valueOf(Null.INSTANCE);
     } else {
       for(int i=0;i+1<vector.length();++i) {
         translateStatements(context, vector.getElementAsSEXP(i));

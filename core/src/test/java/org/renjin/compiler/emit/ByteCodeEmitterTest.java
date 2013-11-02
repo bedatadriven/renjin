@@ -38,12 +38,14 @@ public class ByteCodeEmitterTest {
     SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
     ssaTransformer.transform();
     
-    System.out.println(cfg);
-    
+
     VariableMap variableMap = new VariableMap(cfg);
     
     ssaTransformer.removePhiFunctions(variableMap);
-    
+
+    System.out.println(cfg);
+
+
     ByteCodeEmitter emitter = new ByteCodeEmitter(cfg);
     CompiledBody compiledBody = emitter.compile().newInstance();
                               

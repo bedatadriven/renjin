@@ -6,6 +6,7 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.ir.ssa.VariableMap;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
@@ -17,6 +18,7 @@ public class ByteCodeEmitter implements Opcodes {
   private ClassVisitor cv;
   private ControlFlowGraph cfg;
   private String className;
+  private VariableMap variableMap;
 
   public ByteCodeEmitter(ControlFlowGraph cfg) {
     super();
@@ -33,6 +35,7 @@ public class ByteCodeEmitter implements Opcodes {
 
     return new MyClassLoader().defineClass(className.replace('/', '.'), cw.toByteArray());
   }
+
 
   private void startClass() {
 
@@ -62,6 +65,7 @@ public class ByteCodeEmitter implements Opcodes {
     mv.visitEnd();
   }
 
+
   private void writeImplementation() {
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "eval", "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;)Lorg/renjin/sexp/SEXP;", null, null);
     mv.visitCode();
@@ -74,7 +78,7 @@ public class ByteCodeEmitter implements Opcodes {
 
   private void writeBody(MethodVisitor mv) {
 
-    EmitContext emitContext = new EmitContext();
+    EmitContext emitContext = new EmitContext(variableMap);
 
     for(BasicBlock bb : cfg.getBasicBlocks()) {
       
@@ -83,7 +87,6 @@ public class ByteCodeEmitter implements Opcodes {
       }
 
       for(Statement stmt : bb.getStatements()) {
-
         stmt.emit(emitContext, mv);
       }
     }

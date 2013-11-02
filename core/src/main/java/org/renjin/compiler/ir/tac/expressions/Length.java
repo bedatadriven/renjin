@@ -3,7 +3,9 @@ package org.renjin.compiler.ir.tac.expressions;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.org.apache.bcel.internal.generic.INVOKEVIRTUAL;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
 
 
@@ -32,7 +34,8 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
 
   @Override
   public void emitPush(EmitContext emitContext, MethodVisitor mv) {
-    throw new UnsupportedOperationException();
+    getVector().emitPush(emitContext, mv);
+    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "org/renjin/sexp/SEXP", "length", "()I;");
   }
 
   @Override

@@ -2,8 +2,8 @@ package org.renjin.compiler.ir.tac.functions;
 
 
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.SexpConstant;
 import org.renjin.sexp.*;
 
 
@@ -12,7 +12,7 @@ public class BracketTranslator extends FunctionCallTranslator {
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
     if(call.getArguments().length() == 0) {
-      return new Constant(Null.INSTANCE);
+      return SexpConstant.valueOf(Null.INSTANCE);
     } else {
       for(PairList.Node arg : call.getArguments().nodes()) {
         if(arg.hasNextNode()) {

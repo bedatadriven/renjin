@@ -2,10 +2,7 @@ package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.Constant;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
-import org.renjin.compiler.ir.tac.expressions.Temp;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
@@ -39,13 +36,13 @@ public class AndTranslator extends FunctionCallTranslator {
     // first is true.
     // set the result to true and do the next test
     builder.addLabel(firstTrue);
-    builder.addStatement(new Assignment(result, new Constant(new LogicalArrayVector(true))));
+    builder.addStatement(new Assignment(result, LogicalScalarConstant.TRUE));
     builder.addStatement(new GotoStatement(test2Label));
     
     // first is NA
     // set the result to NA and do the next test
     builder.addLabel(firstNA);
-    builder.addStatement(new Assignment(result, new Constant(new LogicalArrayVector(LogicalVector.NA))));
+    builder.addStatement(new Assignment(result, LogicalScalarConstant.NA));
     builder.addStatement(new GotoStatement(test2Label));
     
     // check second condition
@@ -57,11 +54,11 @@ public class AndTranslator extends FunctionCallTranslator {
         naLabel));
 
     builder.addLabel(falseLabel);
-    builder.addStatement(new Assignment(result, new Constant(new LogicalArrayVector(false))));
+    builder.addStatement(new Assignment(result, LogicalScalarConstant.FALSE));
     builder.addStatement(new GotoStatement(finishLabel));
     
     builder.addLabel(naLabel);
-    builder.addStatement(new Assignment(result, new Constant(new LogicalArrayVector(LogicalVector.NA))));
+    builder.addStatement(new Assignment(result, LogicalScalarConstant.NA));
     
     builder.addLabel(finishLabel);
    

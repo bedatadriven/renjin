@@ -50,7 +50,7 @@ public abstract class DeferredSummary extends DoubleVector implements MemoizedCo
   @Override
   public final Vector forceResult() {
     if(!calculated) {
-      calculate();
+      result = calculate();
     }
     return new DoubleArrayVector(result);
   }
@@ -59,5 +59,14 @@ public abstract class DeferredSummary extends DoubleVector implements MemoizedCo
   public final void setResult(Vector result) {
     this.result = result.getElementAsDouble(0);
     this.calculated = true;
+  }
+
+  @Override
+  public String toString() {
+    if(calculated) {
+      return Double.toString(result);
+    } else {
+      return "<deferred " + getComputationName() + ">";
+    }
   }
 }

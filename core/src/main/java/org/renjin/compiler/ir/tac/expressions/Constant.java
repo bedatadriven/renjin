@@ -37,4 +37,14 @@ public abstract class Constant implements SimpleExpression {
   public final void setChild(int i, Expression expr) {
     throw new IllegalArgumentException();
   }
+
+  @Override
+  public void resolveType() {
+    // should be known already
+  }
+
+  @Override
+  public boolean isTypeResolved() {
+    return true;
+  }
 }

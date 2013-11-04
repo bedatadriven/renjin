@@ -10,7 +10,7 @@ import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.eval.Context;
 
 
-public class SsaVariable implements Variable {
+public class SsaVariable extends Variable {
   private final Variable inner;
   private final int version;
   
@@ -41,21 +41,6 @@ public class SsaVariable implements Variable {
       // otherwise we know that we're not dealing with promises
       return true;
     }
-  }
-
-  @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Class inferType() {
-    throw new UnsupportedOperationException(this.toString());
-  }
-
-  @Override
-  public void setValue(Context context, Object[] temp, Object value) {
-    inner.setValue(context, temp, value);
   }
   
   @Override
@@ -88,20 +73,4 @@ public class SsaVariable implements Variable {
     SsaVariable other = (SsaVariable) obj;
     return inner.equals(other.inner) && version == other.version;
   }
-
-  @Override
-  public int getChildCount() {
-    return 0;
-  }
-
-  @Override
-  public Expression childAt(int index) {
-    throw new IllegalArgumentException();
-  }
-
-  @Override
-  public void setChild(int childIndex, Expression child) {
-    throw new IllegalArgumentException();
-  }
-
 }

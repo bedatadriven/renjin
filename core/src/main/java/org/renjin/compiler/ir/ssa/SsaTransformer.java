@@ -17,6 +17,7 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.renjin.compiler.ir.tree.TreeNode;
 
 /**
  * Transforms three-address IR code into 
@@ -125,17 +126,8 @@ public class SsaTransformer {
   private void search(BasicBlock X) {
     
     for(Statement stmt : X.getStatements()) {
-      Expression rhs = stmt.getRHS();
-      if(!(rhs instanceof PhiFunction)) {
-        for(int argumentIndex = 0; argumentIndex!=rhs.getChildCount();++argumentIndex) {
-          Expression argument = rhs.childAt(argumentIndex);
-          if(argument instanceof Variable) {
-            Variable V = (Variable)argument;
-            int i = Top(V);
-            rhs.setChild(argumentIndex, new SsaVariable(V, i));
-          }
-        }
-      }
+      renameVariables(stmt);
+
       
       if(stmt instanceof Assignment) {
         Assignment assignment = (Assignment)stmt;
@@ -170,10 +162,21 @@ public class SsaTransformer {
     }
   }
 
-  private Iterable<Variable> variables(Expression rhs) {
-    Set<Variable> set = Sets.newHashSet();
-    collectVariables(set, rhs);
-    return set;
+  private void renameVariables(TreeNode node) {
+    if(node instanceof PhiFunction) {
+      return;
+    }
+
+    for(int childIndex = 0; childIndex!=node.getChildCount();++childIndex) {
+      Expression child = node.childAt(childIndex);
+      if(child instanceof Variable) {
+        Variable V = (Variable)child;
+        int i = Top(V);
+        node.setChild(childIndex, new SsaVariable(V, i));
+      } else if(child.getChildCount() > 0) {
+        renameVariables(child);
+      }
+    }
   }
 
   private void collectVariables(Set<Variable> set, Expression rhs) {
@@ -227,13 +230,18 @@ public class SsaTransformer {
   }
 
   private void insertAssignments(LValue lhs, PhiFunction phi, VariableMap variableMap) {
-    for(Variable rhs : phi.getArguments()) {
-      SsaVariable var = (SsaVariable)rhs;
-      if(var.getVersion() == 0) {
-        cfg.getEntry().addStatement(new Assignment(lhs, rhs));
-      } else {
-        BasicBlock bb = variableMap.getDefiningBlock(rhs);
-        bb.addStatement(new Assignment(lhs, rhs));
+
+    // double check that this value is actually used
+    // some never are
+    if(variableMap.isUsed(lhs)) {
+      for(Variable rhs : phi.getArguments()) {
+        SsaVariable var = (SsaVariable)rhs;
+        if(var.getVersion() == 0) {
+          cfg.getEntry().addStatement(new Assignment(lhs, rhs));
+        } else {
+          BasicBlock bb = variableMap.getDefiningBlock(rhs);
+          bb.addStatement(new Assignment(lhs, rhs));
+        }
       }
     }
   }

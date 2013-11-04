@@ -93,8 +93,8 @@ public class BasicBlock {
 
   public String statementsToString() {
     StringBuilder sb = new StringBuilder();
-    for(Statement statment : statements) {
-      sb.append(statment).append("\n");
+    for(Statement statement : statements) {
+      sb.append(statement).append("\n");
     }
     return sb.toString();
   }

@@ -29,8 +29,18 @@ public class NullExpression implements Expression {
   }
 
   @Override
-  public Class inferType() {
+  public Class getType() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void resolveType() {
+
+  }
+
+  @Override
+  public boolean isTypeResolved() {
+    return true;
   }
 
   @Override
@@ -47,5 +57,4 @@ public class NullExpression implements Expression {
   public Expression childAt(int index) {
     throw new IllegalArgumentException();
   }
-
 }

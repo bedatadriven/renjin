@@ -4,18 +4,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.BasicBlockEndingStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
@@ -42,6 +39,11 @@ public class ControlFlowGraph {
   }
 
   private void addBasicBlocks() {
+
+    entry = new BasicBlock(parent);
+    entry.setDebugId("entry");
+    basicBlocks.add(entry);
+
     BasicBlock current = null;
     for(int i=0;i<parent.getStatements().size();++i) {
       Statement stmt = parent.getStatements().get(i);
@@ -56,12 +58,15 @@ public class ControlFlowGraph {
         current = null;
       }
     }
+
+    exit = new BasicBlock(parent);
+    exit.setDebugId("exit");
+    basicBlocks.add(exit);
   }
   
   public List<BasicBlock> getLiveBasicBlocks() {
     return Collections.unmodifiableList(basicBlocks);
   }
-
 
   private BasicBlock addNewBasicBlock(IRBody body, int i) {
     BasicBlock bb = BasicBlock.createWithStartAt(body, i);
@@ -75,13 +80,9 @@ public class ControlFlowGraph {
   } 
   
   private void linkBasicBlocks() {
-    entry = new BasicBlock(parent);
-    entry.setDebugId("entry");
-    
-    exit = new BasicBlock(parent);
-    exit.setDebugId("exit");
-    
-    for(int i=0;i!=basicBlocks.size();++i) {
+
+    // loop over blocks, excluding entry / exit
+    for(int i=1;i<basicBlocks.size()-1;++i) {
       BasicBlock bb = basicBlocks.get(i);
       if(bb.fallsThrough()) {
         graph.addEdge(new Edge(false), bb, basicBlocks.get(i+1));
@@ -99,11 +100,8 @@ public class ControlFlowGraph {
         }
       }
     }
-    graph.addEdge(new Edge(false), entry, exit);
-    graph.addEdge(new Edge(false), entry, basicBlocks.get(0));
-
-    basicBlocks.add(entry);
-    basicBlocks.add(exit);
+//    graph.addEdge(new Edge(false), entry, exit);
+    graph.addEdge(new Edge(false), entry, basicBlocks.get(1));
   }
   
   private void removeDeadBlocks() {
@@ -168,7 +166,7 @@ public class ControlFlowGraph {
   }
 
   public void dumpGraph() {
-    DebugGraph dump = new DebugGraph();
+    DebugGraph dump = new DebugGraph("compute");
     for(Edge edge : graph.getEdges()) {
       dump.printEdge(graph.getSource(edge).getDebugId(), graph.getDest(edge).getDebugId());
     }

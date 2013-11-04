@@ -6,7 +6,7 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.compiler.ir.ssa.RegisterAllocation;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
@@ -18,7 +18,6 @@ public class ByteCodeEmitter implements Opcodes {
   private ClassVisitor cv;
   private ControlFlowGraph cfg;
   private String className;
-  private VariableMap variableMap;
 
   public ByteCodeEmitter(ControlFlowGraph cfg) {
     super();
@@ -70,24 +69,28 @@ public class ByteCodeEmitter implements Opcodes {
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "eval", "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;)Lorg/renjin/sexp/SEXP;", null, null);
     mv.visitCode();
     writeBody(mv);
-//    mv.visitInsn(ACONST_NULL);
-//    mv.visitInsn(ARETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
   }
 
   private void writeBody(MethodVisitor mv) {
 
-    EmitContext emitContext = new EmitContext(variableMap);
+    int nextSlot = 2; // this + context + environment
+    RegisterAllocation registerAllocation = new RegisterAllocation(cfg, nextSlot);
+
+    System.out.println(registerAllocation);
+
+    EmitContext emitContext = new EmitContext(cfg, registerAllocation);
 
     for(BasicBlock bb : cfg.getBasicBlocks()) {
-      
-      for(IRLabel label : bb.getLabels()) {
-        mv.visitLabel(emitContext.getAsmLabel(label));
-      }
+      if(bb != cfg.getEntry() && bb != cfg.getExit()) {
+        for(IRLabel label : bb.getLabels()) {
+          mv.visitLabel(emitContext.getAsmLabel(label));
+        }
 
-      for(Statement stmt : bb.getStatements()) {
-        stmt.emit(emitContext, mv);
+        for(Statement stmt : bb.getStatements()) {
+          stmt.emit(emitContext, mv);
+        }
       }
     }
   }
@@ -101,5 +104,4 @@ public class ByteCodeEmitter implements Opcodes {
       return defineClass(name, b, 0, b.length);
     }
   }
-
 }

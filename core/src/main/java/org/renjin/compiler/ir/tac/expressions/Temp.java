@@ -4,9 +4,11 @@ import java.util.Collections;
 import java.util.List;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.IRUtils;
 import org.renjin.eval.Context;
+import org.renjin.sexp.SEXP;
 
 
 /**
@@ -14,17 +16,12 @@ import org.renjin.eval.Context;
  * A temporary value can only be assigned once, so it is not
  * have to be processed by the SSA transformation
  */
-public class Temp implements LValue {
+public class Temp extends LValue {
   private static final String TAO = "\u03C4";
   private final int index;
   
   public Temp(int index) {
     this.index = index;
-  }
-  
-  @Override
-  public void setValue(Context context, Object[] temp, Object value) {
-    temp[index] = value; 
   }
 
   @Override 
@@ -35,34 +32,8 @@ public class Temp implements LValue {
   }
 
   @Override
-  public void setChild(int i, Expression expr) {
-    throw new IllegalArgumentException();
-  }
-
-  @Override
-  public int getChildCount() {
-    return 0;
-  }
-
-  @Override
-  public Expression childAt(int index) {
-    throw new IllegalArgumentException();
-  }
-
-  @Override
   public boolean isDefinitelyPure() {
     return true;
-  }
-
-  @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
-
-    mv.visitLdcInsn();
-  }
-
-  @Override
-  public Class inferType() {
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -81,5 +52,4 @@ public class Temp implements LValue {
     Temp other = (Temp) obj;
     return index == other.index;
   }
-
 }

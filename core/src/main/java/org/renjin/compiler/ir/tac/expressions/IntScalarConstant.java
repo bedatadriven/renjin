@@ -50,7 +50,12 @@ public class IntScalarConstant extends Constant {
   }
 
   @Override
-  public Class inferType() {
+  public Class getType() {
     return int.class;
+  }
+
+  @Override
+  public String toString() {
+    return Integer.toString(value);
   }
 }

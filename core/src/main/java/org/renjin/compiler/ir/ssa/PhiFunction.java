@@ -2,6 +2,7 @@ package org.renjin.compiler.ir.ssa;
 
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.expressions.Expression;
@@ -14,7 +15,8 @@ import com.google.common.collect.Lists;
 public class PhiFunction implements Expression {
 
   private List<Variable> arguments;
-  
+  private Class type;
+
   public PhiFunction(Variable variable, int count) {
     if(count < 2) {
       throw new IllegalArgumentException("variable=" + variable + ", count=" + count + " (count must be >= 2)");
@@ -49,8 +51,25 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public Class inferType() {
-    throw new UnsupportedOperationException();
+  public Class getType() {
+    Preconditions.checkNotNull(type, "type is not resolved yet");
+    return type;
+  }
+
+  @Override
+  public void resolveType() {
+    Class type = arguments.get(0).getType();
+    for(Expression argument : arguments) {
+      if(!argument.getType().equals(type)) {
+        throw new UnsupportedOperationException("polymorphic types not supported here");
+      }
+    }
+    this.type = type;
+  }
+
+  @Override
+  public boolean isTypeResolved() {
+    return type != null;
   }
 
   public void setVersionNumber(int argumentIndex, int versionNumber) {

@@ -8,8 +8,9 @@ import java.util.Map;
 
 public class FunctionCallTranslators {
 
-  private Map<String, FunctionCallTranslator> specials = Maps.newIdentityHashMap();
-  
+  private Map<String, FunctionCallTranslator> specials = Maps.newHashMap();
+  private Map<String, FunctionCallTranslator> builtins = Maps.newHashMap();
+
   public FunctionCallTranslators() {
     specials.put("if", new IfTranslator());
     specials.put("{", new BracketTranslator());
@@ -31,6 +32,7 @@ public class FunctionCallTranslators {
     specials.put("switch", new SwitchTranslator());
     specials.put("quote", new QuoteTranslator());
     specials.put("return", new ReturnTranslator());
+    specials.put(":", new SequenceTranslator());
   }
   
   public FunctionCallTranslator get(PrimitiveFunction function) {

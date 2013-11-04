@@ -30,7 +30,7 @@ public class LogicalScalarConstant extends Constant {
   }
 
   @Override
-  public Class inferType() {
+  public Class getType() {
     return boolean.class;
   }
 }

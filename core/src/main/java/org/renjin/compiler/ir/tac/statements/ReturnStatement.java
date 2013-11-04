@@ -3,12 +3,13 @@ package org.renjin.compiler.ir.tac.statements;
 import java.util.Collections;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 
 
-public class ReturnStatement implements Statement {
+public class ReturnStatement implements Statement, BasicBlockEndingStatement {
 
   private Expression value;
 
@@ -71,6 +72,14 @@ public class ReturnStatement implements Statement {
 
   @Override
   public void emit(EmitContext emitContext, MethodVisitor mv) {
-    throw new UnsupportedOperationException();
+
+    getRHS().emitPush(emitContext, mv);
+
+    Class type = getRHS().getType();
+    if(type.equals(double.class)) {
+      mv.visitInsn(Opcodes.DRETURN);
+    } else {
+      throw new UnsupportedOperationException();
+    }
   }
 }

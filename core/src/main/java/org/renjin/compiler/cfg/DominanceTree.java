@@ -121,7 +121,11 @@ public class DominanceTree {
    * By definition, every node dominates itself.
    */
   private boolean dominates(BasicBlock d, BasicBlock n) {
-    return Dom.containsEntry(n, d);
+    if(d == n) {
+      return true;
+    } else {
+      return Dom.containsEntry(n, d);
+    }
   }
   
   private Set<BasicBlock> dominators(BasicBlock n) {
@@ -205,7 +209,7 @@ public class DominanceTree {
   }
 
   public void dumpGraph() {
-    DebugGraph dump = new DebugGraph();
+    DebugGraph dump = new DebugGraph("dominance");
     for(DominanceEdge edge : tree.getEdges()) {
       dump.printEdge(tree.getSource(edge).getDebugId(), tree.getDest(edge).getDebugId());
     }

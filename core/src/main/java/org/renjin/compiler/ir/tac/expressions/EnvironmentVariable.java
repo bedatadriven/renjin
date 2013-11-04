@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * A {@code Variable} that is bound to the R {@code Environment}.
  */
-public class EnvironmentVariable implements Variable {
+public class EnvironmentVariable extends Variable {
 
   private final Symbol name;
   
@@ -27,11 +27,6 @@ public class EnvironmentVariable implements Variable {
   
   public Symbol getName() {
     return name;
-  }
-
-  @Override
-  public void setValue(Context context, Object[] temp, Object value) {
-    context.getEnvironment().setVariable(name, (SEXP)value); 
   }
 
   @Override
@@ -62,29 +57,7 @@ public class EnvironmentVariable implements Variable {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public Class getType() {
     throw new UnsupportedOperationException();
   }
-
-  @Override
-  public Class inferType() {
-    throw new UnsupportedOperationException();
-  }
-
-
-  @Override
-  public void setChild(int i, Expression expr) {
-    throw new IllegalArgumentException();
-  }
-
-  @Override
-  public int getChildCount() {
-    return 0;
-  }
-
-  @Override
-  public Expression childAt(int index) {
-    throw new IllegalArgumentException();
-  }
-
 }

@@ -25,12 +25,17 @@ public class DoubleScalarConstant extends Constant {
     } else if(value==1) {
       mv.visitInsn(Opcodes.DCONST_1);
     } else {
-      mv.visitLdcInsn(Double.valueOf(value));
+      mv.visitLdcInsn(value);
     }
   }
 
   @Override
-  public Class inferType() {
+  public Class getType() {
     return double.class;
+  }
+
+  @Override
+  public String toString() {
+    return value + "d";
   }
 }

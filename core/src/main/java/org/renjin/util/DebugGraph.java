@@ -12,15 +12,19 @@ public class DebugGraph {
   private final PrintWriter writer;
   private File tempFile;
 
-  public DebugGraph()  {
+  public DebugGraph(final String compute)  {
     try {
       tempFile = File.createTempFile("deferred", ".dot");
       writer = new PrintWriter(tempFile);
       writer.println("digraph G { ");
-      System.out.println("Dumping compute graph to " + tempFile.getAbsolutePath());
+      System.out.println("Dumping " + compute + " graph to " + tempFile.getAbsolutePath());
     } catch(Exception e) {
       throw new RuntimeException();
     }
+  }
+
+  public DebugGraph() {
+    this("compute");
   }
 
   public void printEdge(String fromId, String toId) {

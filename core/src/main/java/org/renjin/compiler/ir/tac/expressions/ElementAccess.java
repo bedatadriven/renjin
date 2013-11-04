@@ -1,7 +1,11 @@
 package org.renjin.compiler.ir.tac.expressions;
 
+import com.google.common.base.Preconditions;
+import com.sun.org.apache.bcel.internal.generic.INVOKESPECIAL;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 
@@ -11,6 +15,7 @@ import org.renjin.sexp.IntVector;
  */
 public class ElementAccess extends SpecializedCallExpression {
 
+  private Class type;
   
   public ElementAccess(Expression vector, Expression index) {
     super(vector, index);
@@ -40,19 +45,37 @@ public class ElementAccess extends SpecializedCallExpression {
 
   @Override
   public void emitPush(EmitContext emitContext, MethodVisitor mv) {
-    throw new UnsupportedOperationException();
-  }
 
-  @Override
-  public Class inferType() {
-    Class vectorType = getVector().inferType();
-    if(DoubleVector.class.isAssignableFrom(vectorType)) {
-      return double.class;
-    } else if(IntVector.class.isAssignableFrom(vectorType)) {
-      return int.class;
+    getVector().emitPush(emitContext, mv);
+
+    if(type.equals(double.class)) {
+      mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+        "org/renjin/sexp/Vector", "getElementAsDouble", "(I)D");
     } else {
-      throw new UnsupportedOperationException("can't figure out type of " + getVector());
+      throw new UnsupportedOperationException(type.toString());
     }
   }
 
+  @Override
+  public Class getType() {
+    Preconditions.checkNotNull(type, "type not resolved");
+    return type;
+  }
+
+  @Override
+  public boolean isTypeResolved() {
+    return type != null;
+  }
+
+  @Override
+  public void resolveType() {
+    Class vectorClass = getVector().getType();
+    if(IntVector.class.isAssignableFrom(vectorClass)) {
+      this.type = int.class;
+    } else if(AtomicVector.class.isAssignableFrom(vectorClass)) {
+      this.type = double.class;
+    } else {
+      throw new UnsupportedOperationException(getVector() + ":" + vectorClass.getName());
+    }
+  }
 }

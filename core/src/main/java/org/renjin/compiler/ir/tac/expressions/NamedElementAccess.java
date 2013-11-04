@@ -31,9 +31,15 @@ public class NamedElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public Class inferType() {
+  public Class getType() {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public boolean isTypeResolved() {
+    throw new UnsupportedOperationException();
+  }
+
   @Override
   public boolean isFunctionDefinitelyPure() {
     return true;

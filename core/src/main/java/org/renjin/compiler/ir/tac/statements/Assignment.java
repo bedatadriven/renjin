@@ -6,11 +6,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.IRUtils;
-import org.renjin.compiler.ir.ssa.SsaVariable;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.sexp.Vector;
 
 
@@ -78,15 +76,19 @@ public class Assignment implements Statement {
 
   @Override
   public void emit(EmitContext emitContext, MethodVisitor mv) {
+
     rhs.emitPush(emitContext, mv);
+    mv.visitVarInsn(storeOpcode(), emitContext.getRegister(lhs));
+  }
 
-    Class rhsType = rhs.inferType();
-
-    int localVariable = emitContext.getLocalVariableIndex(lhs, rhsType);
+  private int storeOpcode() {
+    Class rhsType = rhs.getType();
     if(rhsType.equals(double.class)) {
-      mv.visitVarInsn(Opcodes.DSTORE, localVariable);
+      return Opcodes.DSTORE;
+    } else if(rhsType.equals(int.class)) {
+      return Opcodes.ISTORE;
     } else if(Vector.class.isAssignableFrom(rhsType)) {
-      mv.visitVarInsn(Opcodes.ASTORE, localVariable);
+      return Opcodes.ASTORE;
     } else {
       throw new UnsupportedOperationException("don't know how to STORE " + rhsType);
     }

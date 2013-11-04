@@ -35,11 +35,11 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   @Override
   public void emitPush(EmitContext emitContext, MethodVisitor mv) {
     getVector().emitPush(emitContext, mv);
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "org/renjin/sexp/SEXP", "length", "()I;");
+    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "org/renjin/sexp/SEXP", "length", "()I");
   }
 
   @Override
-  public Class inferType() {
+  public Class getType() {
     return int.class;
   }
 
@@ -48,4 +48,12 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
     return "length(" + getVector() + ")";
   }
 
+  @Override
+  public void resolveType() {
+  }
+
+  @Override
+  public boolean isTypeResolved() {
+    return true;
+  }
 }

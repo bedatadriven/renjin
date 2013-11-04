@@ -34,7 +34,12 @@ public class CmpGE extends SpecializedCallExpression {
   }
 
   @Override
-  public Class inferType() {
+  public Class getType() {
     return boolean.class;
+  }
+
+  @Override
+  public boolean isTypeResolved() {
+    return true;
   }
 }

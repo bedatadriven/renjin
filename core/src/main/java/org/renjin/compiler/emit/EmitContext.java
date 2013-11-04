@@ -1,28 +1,45 @@
 package org.renjin.compiler.emit;
 
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.objectweb.asm.Label;
 import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.ir.ssa.RegisterAllocation;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
+import org.renjin.compiler.ir.tac.statements.Assignment;
+import org.renjin.compiler.ir.tac.statements.Statement;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 
 public class EmitContext {
 
-  private VariableMap variableMap;
-
   private Map<IRLabel, Label> labels = Maps.newHashMap();
-  private Map<LValue, Integer> localVariableIndexMap = Maps.newHashMap();
-  private int nextLocalVariable = 0;
+  private Multimap<LValue, Expression> definitionMap = HashMultimap.create();
+  private RegisterAllocation registerAllocation;
 
-  public EmitContext(VariableMap variableMap) {
-    this.variableMap = variableMap;
+  public EmitContext(ControlFlowGraph cfg, RegisterAllocation registerAllocation) {
+    this.registerAllocation = registerAllocation;
+    buildDefinitionMap(cfg);
   }
-  
+
+  private void buildDefinitionMap(ControlFlowGraph cfg) {
+    for(BasicBlock bb : cfg.getBasicBlocks()) {
+      for(Statement stmt : bb.getStatements()) {
+        if(stmt instanceof Assignment) {
+          Assignment assignment = (Assignment)stmt;
+          definitionMap.put(assignment.getLHS(), assignment.getRHS());
+        }
+      }
+    }
+  }
+
   public Label getAsmLabel(IRLabel irLabel) {
     Label asmLabel = labels.get(irLabel);
     if(asmLabel == null) {
@@ -32,23 +49,7 @@ public class EmitContext {
     return asmLabel;
   }
 
-  public void getType(Expression rhs) {
-
-  }
-
-  public int getLocalVariableIndex(LValue lhs, Class type) {
-    if(!localVariableIndexMap.containsKey(lhs)) {
-      localVariableIndexMap.put(lhs, nextLocalVariable);
-      nextLocalVariable += numSlots(type);
-    }
-    return localVariableIndexMap.get(lhs);
-  }
-
-  private int numSlots(Class type) {
-    if(type.equals(double.class) || type.equals(long.class)) {
-      return 2;
-    } else {
-      return 1;
-    }
+  public int getRegister(LValue lValue) {
+    return registerAllocation.getRegister(lValue);
   }
 }

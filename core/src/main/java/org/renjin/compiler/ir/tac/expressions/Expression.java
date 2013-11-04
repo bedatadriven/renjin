@@ -26,5 +26,22 @@ public interface Expression extends TreeNode {
    */
   void emitPush(EmitContext emitContext, MethodVisitor mv);
 
-  Class inferType();
+  /**
+   *
+   * @return the JVM type of this expression
+   * @throws IllegalStateException if the type has not yet been resolved
+   */
+  Class getType();
+
+  /**
+   * Resolves and stores the type of this Expression, based on it's
+   * child nodes
+   */
+  void resolveType();
+
+  /**
+   *
+   * @return true if this Expression's type has been fully resolved
+   */
+  boolean isTypeResolved();
 }

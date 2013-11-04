@@ -20,6 +20,7 @@ public class JvmMethodCall implements CallExpression {
   private final List<Expression> arguments;
   private List<JvmMethod> overloads;
   private String[] argumentNames;
+  private Class type;
 
   
   public JvmMethodCall(String name, List<JvmMethod> overloads, String[] argumentNames, List<Expression> arguments) {
@@ -64,22 +65,31 @@ public class JvmMethodCall implements CallExpression {
 
     // now invoke the method
     mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-      Type.getDescriptor(method.getDeclaringClass()),
+      Type.getInternalName(method.getDeclaringClass()),
       method.getName(),
       Type.getMethodDescriptor(method.getMethod()));
   }
 
   @Override
-  public Class inferType() {
-    Class returnType = overloads.get(0).getReturnType();
+  public Class getType() {
+    return type;
+  }
+
+  @Override
+  public void resolveType() {
+    type = overloads.get(0).getReturnType();
 
     // make sure all overloads return the same
     for(JvmMethod overload : overloads) {
-      if(!overload.getReturnType().equals(returnType)) {
+      if(!overload.getReturnType().equals(type)) {
         throw new UnsupportedOperationException("return types are different: " + overloads);
       }
     }
-    return returnType;
+  }
+
+  @Override
+  public boolean isTypeResolved() {
+    return type != null;
   }
 
   @Override

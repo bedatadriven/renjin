@@ -43,7 +43,12 @@ public class SexpConstant extends Constant {
   }
 
   @Override
-  public Class inferType() {
+  public Class getType() {
     return value.getClass();
+  }
+
+  @Override
+  public String toString() {
+    return value.toString();
   }
 }

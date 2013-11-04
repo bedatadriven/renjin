@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class VariableMap {
 
-  private Map<LValue, Expression> map = Maps.newHashMap();
+  private Map<LValue, Expression> definitionMap = Maps.newHashMap();
   private Multimap<LValue, BasicBlock> useByBlockMap = HashMultimap.create();
   private Map<LValue, BasicBlock> definedByBlockMap = Maps.newHashMap();
 
@@ -39,18 +39,18 @@ public class VariableMap {
   }
 
   public Collection<LValue> getVariables() {
-    return map.keySet();
+    return definitionMap.keySet();
   }
 
   private void addToMap(BasicBlock bb, Assignment statement) {
-    assert !map.containsKey(statement.getLHS()) : "cfg must be in SSA form";
+    assert !definitionMap.containsKey(statement.getLHS()) : "cfg must be in SSA form";
 
-    map.put(statement.getLHS(), statement.getRHS());
+    definitionMap.put(statement.getLHS(), statement.getRHS());
     definedByBlockMap.put(statement.getLHS(), bb);
   }
 
-  public Expression getDefinition(Variable variable) {
-    return map.get(variable);
+  public Expression getDefinition(LValue variable) {
+    return definitionMap.get(variable);
   }
 
   public boolean isUsedOutsideOf(LValue variable, BasicBlock aBlock) {
@@ -64,5 +64,9 @@ public class VariableMap {
 
   public BasicBlock getDefiningBlock(Variable rhs) {
     return definedByBlockMap.get(rhs);
+  }
+
+  public boolean isUsed(LValue lhs) {
+    return useByBlockMap.containsKey(lhs);
   }
 }

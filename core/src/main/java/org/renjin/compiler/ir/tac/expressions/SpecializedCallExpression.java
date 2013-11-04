@@ -41,4 +41,10 @@ public abstract class SpecializedCallExpression implements Expression {
     }
     return true;
   }
+
+  @Override
+  public void resolveType() {
+    throw new UnsupportedOperationException(getClass().getName());
+  }
+
 }

@@ -42,9 +42,8 @@ public class ForTranslator extends FunctionCallTranslator {
     IRLabel exitLabel = factory.newLabel();
        
     // initialize the counter
-    factory.addStatement(new Assignment(counter, SexpConstant.NULL));
-    factory.addStatement(new Assignment(length, 
-        new Length((Expression)vector)));
+    factory.addStatement(new Assignment(counter, new IntScalarConstant(0)));
+    factory.addStatement(new Assignment(length, new Length(vector)));
 
     // check the counter and potentially loop
     factory.addLabel(counterLabel);

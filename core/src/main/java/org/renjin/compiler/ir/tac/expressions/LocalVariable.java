@@ -14,7 +14,7 @@ import org.renjin.eval.Context;
  * in the temps array.
  * 
  */
-public class LocalVariable implements Variable {
+public class LocalVariable extends Variable {
   
   private final String name;
   private final int offset;
@@ -24,11 +24,6 @@ public class LocalVariable implements Variable {
     this.name = name;
     this.offset = offset;
   }
-  
-  @Override
-  public void setValue(Context context, Object[] temp, Object value) {
-    temp[offset] = value;
-  }
 
   @Override
   public boolean isDefinitelyPure() {
@@ -36,12 +31,7 @@ public class LocalVariable implements Variable {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Class inferType() {
+  public Class getType() {
     throw new UnsupportedOperationException();
   }
 
@@ -69,21 +59,6 @@ public class LocalVariable implements Variable {
   @Override
   public String toString() {
     return name;
-  }
-
-  @Override
-  public int getChildCount() {
-    return 0;
-  }
-
-  @Override
-  public Expression childAt(int index) {
-    throw new IllegalArgumentException();
-  }
-
-  @Override
-  public void setChild(int i, Expression expr) {
-    throw new IllegalArgumentException();
   }
 
 }

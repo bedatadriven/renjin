@@ -21,57 +21,18 @@
 
 package org.renjin.primitives.io.serialization;
 
-import org.renjin.primitives.io.serialization.Serialization.*;
-import static org.renjin.primitives.io.serialization.SerializationFormat.CHARSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.EXTPTRSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.INTSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.LGLSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.LISTSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.NILVALUE_SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.RAWSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.REALSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.S4SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.STRSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.SYMSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.UTF8_MASK;
-import static org.renjin.primitives.io.serialization.SerializationFormat.VECSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.VERSION2;
-import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_FORMAT;
-import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_MAGIC_HEADER;
-import static org.renjin.primitives.io.serialization.SerializationFormat.ASCII_FORMAT;
-import static org.renjin.primitives.io.serialization.SerializationFormat.ASCII_MAGIC_HEADER;
+import com.google.common.collect.Maps;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
+import org.renjin.primitives.io.serialization.Serialization.SERIALIZATION_TYPE;
+import org.renjin.sexp.*;
 
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
 
-import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.Context;
-import org.renjin.sexp.BuiltinFunction;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExternalPtr;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.S4Object;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
-
-import com.google.common.collect.Maps;
+import static org.renjin.primitives.io.serialization.SerializationFormat.*;
 
 public class RDataWriter {
 

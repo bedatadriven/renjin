@@ -20,6 +20,7 @@
  */
 package org.renjin.primitives;
 
+import org.apache.commons.math.complex.Complex;
 import org.apache.commons.math.special.Beta;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
@@ -192,9 +193,8 @@ public class MathExt {
   @DataParallel
   public static double round(double x, int digits) {
     // adapted from the nmath library, fround.c
-    /* = 308 (IEEE); was till R 0.99: (DBL_DIG - 1) */
-    /* Note that large digits make sense for very small numbers */
-    double sgn;
+
+    double sign;
     int dig;
 
     if (Double.isNaN(x) || Double.isNaN(digits)) {
@@ -214,25 +214,33 @@ public class MathExt {
       digits = MAX_DIGITS;
     }
     dig = (int)Math.floor(digits + 0.5);
-    
+
     if(x < 0.) {
-      sgn = -1.;
+      sign = -1.;
       x = -x;
     } else {
-      sgn = 1.;
+      sign = 1.;
     }
     if (dig == 0) {
-      return sgn * Math.rint(x);
+      return sign * Math.rint(x);
     } else if (dig > 0) {
-      double pow10 = Math.pow(10., dig);
-      double intx = Math.floor(x);
-      return sgn * (intx + Math.rint((x-intx) * pow10) / pow10);
+      // round to a specific number of decimal places
+      return sign * new BigDecimal(x).setScale(digits, RoundingMode.HALF_EVEN).doubleValue();
     } else {
+      // round to the nearest power of 10
       double pow10 = Math.pow(10., -dig);
-      return sgn * Math.rint(x/pow10) * pow10;
+      return sign * Math.rint(x/pow10) * pow10;
     }
   }
-  
+
+  @Builtin
+  @Deferrable
+  @DataParallel
+  public static Complex round(Complex x, int digits) {
+    return new Complex(round(x.getReal(), digits), round(x.getImaginary(), digits));
+  }
+
+
   @Generic
   @Deferrable
   @Builtin("trunc")

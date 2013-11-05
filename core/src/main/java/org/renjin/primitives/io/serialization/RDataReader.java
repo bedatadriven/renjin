@@ -413,7 +413,7 @@ public class RDataReader {
     for(int i=0;i!=length;++i) {
       values[i] = new Complex(in.readDouble(), in.readDouble());
     }
-    return new ComplexVector(values, readAttributes(flags));
+    return new ComplexArrayVector(values, readAttributes(flags));
   }
 
   private SEXP readDoubleExp(int flags) throws IOException {

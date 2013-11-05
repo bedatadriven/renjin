@@ -1,8 +1,6 @@
 package org.renjin.simple;
 
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.internal.AssumptionViolatedException;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.Identical;
@@ -101,7 +99,8 @@ public class SimpleTestBase {
     } catch(EvalException e) {
       // good boy!
     } catch(Exception e) {
-      throw new AssertionError("Expected EvalException, got " + e.getClass().getName(), e);
+      e.printStackTrace(System.err);
+      throw new AssertionError("Expected EvalException, got " + e.getClass().getName());
     }
     // TODO: check error message?
   }

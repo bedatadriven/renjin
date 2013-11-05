@@ -179,56 +179,56 @@ public class ArithmeticTest extends SimpleTestBase {
 
   @Test
   public void testVectors()  {
-    assertEval("x<-c(1,2,3);x", "1.0, 2.0, 3.0");
-    assertEval("x<-c(1,2,3);x*2", "2.0, 4.0, 6.0");
-    assertEval("x<-c(1,2,3);x+2", "3.0, 4.0, 5.0");
-    assertEval("x<-c(1,2,3);x+FALSE", "1.0, 2.0, 3.0");
-    assertEval("x<-c(1,2,3);x+TRUE", "2.0, 3.0, 4.0");
-    assertEval("x<-c(1,2,3);x*x+x", "2.0, 6.0, 12.0");
-    assertEval("x<-c(1,2);y<-c(3,4,5,6);x+y", "4.0, 6.0, 6.0, 8.0");
-    assertEval("x<-c(1,2);y<-c(3,4,5,6);x*y", "3.0, 8.0, 5.0, 12.0");
+    assertEval("x<-c(1,2,3);x", "c(1.0, 2.0, 3.0)");
+    assertEval("x<-c(1,2,3);x*2", "c(2.0, 4.0, 6.0)");
+    assertEval("x<-c(1,2,3);x+2", "c(3.0, 4.0, 5.0)");
+    assertEval("x<-c(1,2,3);x+FALSE", "c(1.0, 2.0, 3.0)");
+    assertEval("x<-c(1,2,3);x+TRUE", "c(2.0, 3.0, 4.0)");
+    assertEval("x<-c(1,2,3);x*x+x", "c(2.0, 6.0, 12.0)");
+    assertEval("x<-c(1,2);y<-c(3,4,5,6);x+y", "c(4.0, 6.0, 6.0, 8.0)");
+    assertEval("x<-c(1,2);y<-c(3,4,5,6);x*y", "c(3.0, 8.0, 5.0, 12.0)");
     assertEval("x<-c(1,2);z<-c();x==z", "logical(0)");
-    assertEval("x<-1+NA; c(1,2,3,4)+c(x,10)", "NA, 12.0, NA, 14.0");
-    assertEval("c(1L,2L,3L)+TRUE", "2L, 3L, 4L");
-    assertEval("c(1L,2L,3L)*c(10L)", "10L, 20L, 30L");
-    assertEval("c(1L,2L,3L)*c(10,11,12)", "10.0, 22.0, 36.0");
-    assertEval("c(1L,2L,3L,4L)-c(TRUE,FALSE)", "0L, 2L, 2L, 4L");
-    assertEval("ia<-c(1L,2L);ib<-c(3L,4L);d<-c(5,6);ia+ib+d", "9.0, 12.0");
+    assertEval("x<-1+NA; c(1,2,3,4)+c(x,10)", "c(NA, 12.0, NA, 14.0)");
+    assertEval("c(1L,2L,3L)+TRUE", "c(2L, 3L, 4L)");
+    assertEval("c(1L,2L,3L)*c(10L)", "c(10L, 20L, 30L)");
+    assertEval("c(1L,2L,3L)*c(10,11,12)", "c(10.0, 22.0, 36.0)");
+    assertEval("c(1L,2L,3L,4L)-c(TRUE,FALSE)", "c(0L, 2L, 2L, 4L)");
+    assertEval("ia<-c(1L,2L);ib<-c(3L,4L);d<-c(5,6);ia+ib+d", "c(9.0, 12.0)");
     assertEval("z <- c(-1.5-1i,10) ; (z * z)[1]", "1.25+3.0i");
 
-    assertEval("c(1,2,3+1i)^3", "1.0+0.0i, 8.0+0.0i, 18.0+26.0i");
-    assertEval("round( 3^c(1,2,3+1i), digits=5 )", "3.0+0.0i, 9.0+0.0i, 12.28048+24.04558i");
+    assertEval("c(1,2,3+1i)^3", "c(1.0+0.0i, 8.0+0.0i, 18.0+26.0i)");
+    assertEval("round( 3^c(1,2,3+1i), digits=5 )", "c(3.0+0.0i, 9.0+0.0i, 12.28048+24.04558i)");
 
-    assertEval("1L + 1:2", "2L, 3L");
-    assertEval("4:3 + 2L", "6L, 5L");
-    assertEval("1:2 + 3:4", "4L, 6L");
-    assertEval("1:2 + c(1L, 2L)", "2L, 4L");
-    assertEval("c(1L, 2L) + 1:4", "2L, 4L, 4L, 6L");
-    assertEval("1:4 + c(1L, 2L)", "2L, 4L, 4L, 6L");
-    assertEval("2L + 1:2", "3L, 4L");
-    assertEval("1:2 + 2L", "3L, 4L");
-    assertEval("c(1L, 2L) + 2L", "3L, 4L");
-    assertEval("2L + c(1L, 2L)", "3L, 4L");
-    assertEval("1 + 1:2", "2.0, 3.0");
-    assertEval("c(1,2) + 1:2", "2.0, 4.0");
-    assertEval("c(1,2,3,4) + 1:2", "2.0, 4.0, 4.0, 6.0");
-    assertEval("c(1,2,3,4) + c(1L,2L)", "2.0, 4.0, 4.0, 6.0");
-    assertEval("1:2 + 1", "2.0, 3.0");
-    assertEval("1:2 + c(1,2)", "2.0, 4.0");
-    assertEval("1:2 + c(1,2,3,4)", "2.0, 4.0, 4.0, 6.0");
-    assertEval("c(1L,2L) + c(1,2,3,4)", "2.0, 4.0, 4.0, 6.0");
-    assertEval("1L + c(1,2)", "2.0, 3.0");
+    assertEval("1L + 1:2", "c(2L, 3L)");
+    assertEval("4:3 + 2L", "c(6L, 5L)");
+    assertEval("1:2 + 3:4", "c(4L, 6L)");
+    assertEval("1:2 + c(1L, 2L)", "c(2L, 4L)");
+    assertEval("c(1L, 2L) + 1:4", "c(2L, 4L, 4L, 6L)");
+    assertEval("1:4 + c(1L, 2L)", "c(2L, 4L, 4L, 6L)");
+    assertEval("2L + 1:2", "c(3L, 4L)");
+    assertEval("1:2 + 2L", "c(3L, 4L)");
+    assertEval("c(1L, 2L) + 2L", "c(3L, 4L)");
+    assertEval("2L + c(1L, 2L)", "c(3L, 4L)");
+    assertEval("1 + 1:2", "c(2.0, 3.0)");
+    assertEval("c(1,2) + 1:2", "c(2.0, 4.0)");
+    assertEval("c(1,2,3,4) + 1:2", "c(2.0, 4.0, 4.0, 6.0)");
+    assertEval("c(1,2,3,4) + c(1L,2L)", "c(2.0, 4.0, 4.0, 6.0)");
+    assertEval("1:2 + 1", "c(2.0, 3.0)");
+    assertEval("1:2 + c(1,2)", "c(2.0, 4.0)");
+    assertEval("1:2 + c(1,2,3,4)", "c(2.0, 4.0, 4.0, 6.0)");
+    assertEval("c(1L,2L) + c(1,2,3,4)", "c(2.0, 4.0, 4.0, 6.0)");
+    assertEval("1L + c(1,2)", "c(2.0, 3.0)");
 
-    assertEval("a <- c(1,3) ; b <- c(2,4) ; a ^ b", "1.0, 81.0");
-    assertEval("a <- c(1,3) ; a ^ 3", "1.0, 27.0");
-    assertEval("a <- c(1+1i,3+2i) ; a - (4+3i)", "-3.0-2.0i, -1.0-1.0i");
-    assertEval("c(1,3) - 4", "-3.0, -1.0");
-    assertEval("c(1+1i,3+2i) * c(1,2)", "1.0+1.0i, 6.0+4.0i");
-    assertEval("z <- c(1+1i,3+2i) ; z * c(1,2)", "1.0+1.0i, 6.0+4.0i");
-    assertEval("round(c(1+1i,2+3i)^c(1+1i,3+4i), digits = 5)", "0.27396+0.5837i, -0.20455+0.89662i");
-    assertEval("c(1+1i,3+2i) / 2", "0.5+0.5i, 1.5+1.0i");
-    assertEval("c(1,3) / c(2,4)", "0.5, 0.75");
-    assertEval("c(1,3) %/% c(2,4)", "0.0, 0.0");
+    assertEval("a <- c(1,3) ; b <- c(2,4) ; a ^ b", "c(1.0, 81.0)");
+    assertEval("a <- c(1,3) ; a ^ 3", "c(1.0, 27.0)");
+    assertEval("a <- c(1+1i,3+2i) ; a - (4+3i)", "c(-3.0-2.0i, -1.0-1.0i)");
+    assertEval("c(1,3) - 4", "c(-3.0, -1.0)");
+    assertEval("c(1+1i,3+2i) * c(1,2)", "c(1.0+1.0i, 6.0+4.0i)");
+    assertEval("z <- c(1+1i,3+2i) ; z * c(1,2)", "c(1.0+1.0i, 6.0+4.0i)");
+    assertEval("round(c(1+1i,2+3i)^c(1+1i,3+4i), digits = 5)", "c(0.27396+0.5837i, -0.20455+0.89662i)");
+    assertEval("c(1+1i,3+2i) / 2", "c(0.5+0.5i, 1.5+1.0i)");
+    assertEval("c(1,3) / c(2,4)", "c(0.5, 0.75)");
+    assertEval("c(1,3) %/% c(2,4)", "c(0.0, 0.0)");
 
     assertEval("integer()+1", "numeric(0)");
     assertEval("1+integer()", "numeric(0)");
@@ -237,40 +237,47 @@ public class ArithmeticTest extends SimpleTestBase {
     assertEvalWarning("1:3+c(1,2+2i)", "2.0+0.0i, 4.0+2.0i, 4.0+0.0i", "longer object length is not a multiple of shorter object length");
     assertEvalWarning("c(1,2+2i)+1:3", "2.0+0.0i, 4.0+2.0i, 4.0+0.0i", "longer object length is not a multiple of shorter object length");
 
+    assertEval("NA+1:3", "c(NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("1:3+NA", "c(NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("NA+c(1L, 2L, 3L)", "c(NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(1L, 2L, 3L)+NA", "c(NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(NA,NA,NA)+1:3", "c(NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("1:3+c(NA, NA, NA)", "c(NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(NA,NA,NA)+c(1L,2L,3L)", "c(NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(1L,2L,3L)+c(NA, NA, NA)", "c(NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(NA,NA)+1:4", "c(NA_integer_, NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("1:4+c(NA, NA)", "c(NA_integer_, NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(NA,NA,NA,NA)+1:2", "c(NA_integer_, NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("1:2+c(NA,NA,NA,NA)", "c(NA_integer_, NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(NA,NA)+c(1L,2L,3L,4L)", "c(NA_integer_, NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(1L,2L,3L,4L)+c(NA, NA)", "c(NA_integer_, NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(NA,NA,NA,NA)+c(1L,2L)", "c(NA_integer_, NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(1L,2L)+c(NA,NA,NA,NA)", "c(NA_integer_, NA_integer_, NA_integer_, NA_integer_)");
+    assertEval("c(1L,NA)+1", "c(2.0, NA_real_)");
+    assertEval("c(1L,NA) + c(2,3)", "c(3.0, NA)");
+    assertEval("c(2,3) + c(1L,NA)", "c(3.0, NA)");
+    assertEval("1:4+c(1,2)", "c(2.0, 4.0, 4.0, 6.0)");
+    assertEval("c(1,2)+1:4", "c(2.0, 4.0, 4.0, 6.0)");
+    assertEval("1:4+c(1,2+2i)", "c(2.0+0.0i, 4.0+2.0i, 4.0+0.0i, 6.0+2.0i)");
+    assertEval("c(1,2+2i)+1:4", "c(2.0+0.0i, 4.0+2.0i, 4.0+0.0i, 6.0+2.0i)");
+
+    assertEval("c(3,4) %% 2", "c(1.0, 0.0)");
+    assertEval("c(3,4) %% c(2,5)", "c(1.0, 4.0)");
+    assertEval("c(3,4) %/% 2", "c(1.0, 2.0)");
+    assertEval("3L %/% 2L", "1L");
+    assertEval("3L %/% 0L", "NA_integer_");
+  }
+
+  @Test
+  public void dimsMustMatch() {
+    assertEvalError("m <- matrix(nrow=2, ncol=2, 1:4) ; m + 1:16", "dims [product 4] do not match the length of object [16]");
+  }
+
+
+  @Test
+  public void nonConformableArrays() {
     assertEvalError("x <- 1:2 ; dim(x) <- 1:2 ; y <- 2:3 ; dim(y) <- 2:1 ; x + y", "non-conformable arrays");
     assertEvalError("x <- 1:2 ; dim(x) <- 1:2 ; y <- 2:3 ; dim(y) <- c(1,1,2) ; x + y", "non-conformable arrays");
-
-    assertEval("NA+1:3", "NA, NA, NA");
-    assertEval("1:3+NA", "NA, NA, NA");
-    assertEval("NA+c(1L, 2L, 3L)", "NA, NA, NA");
-    assertEval("c(1L, 2L, 3L)+NA", "NA, NA, NA");
-    assertEval("c(NA,NA,NA)+1:3", "NA, NA, NA");
-    assertEval("1:3+c(NA, NA, NA)", "NA, NA, NA");
-    assertEval("c(NA,NA,NA)+c(1L,2L,3L)", "NA, NA, NA");
-    assertEval("c(1L,2L,3L)+c(NA, NA, NA)", "NA, NA, NA");
-    assertEval("c(NA,NA)+1:4", "NA, NA, NA, NA");
-    assertEval("1:4+c(NA, NA)", "NA, NA, NA, NA");
-    assertEval("c(NA,NA,NA,NA)+1:2", "NA, NA, NA, NA");
-    assertEval("1:2+c(NA,NA,NA,NA)", "NA, NA, NA, NA");
-    assertEval("c(NA,NA)+c(1L,2L,3L,4L)", "NA, NA, NA, NA");
-    assertEval("c(1L,2L,3L,4L)+c(NA, NA)", "NA, NA, NA, NA");
-    assertEval("c(NA,NA,NA,NA)+c(1L,2L)", "NA, NA, NA, NA");
-    assertEval("c(1L,2L)+c(NA,NA,NA,NA)", "NA, NA, NA, NA");
-    assertEval("c(1L,NA)+1", "2.0, NA");
-    assertEval("c(1L,NA) + c(2,3)", "3.0, NA");
-    assertEval("c(2,3) + c(1L,NA)", "3.0, NA");
-    assertEval("1:4+c(1,2)", "2.0, 4.0, 4.0, 6.0");
-    assertEval("c(1,2)+1:4", "2.0, 4.0, 4.0, 6.0");
-    assertEval("1:4+c(1,2+2i)", "2.0+0.0i, 4.0+2.0i, 4.0+0.0i, 6.0+2.0i");
-    assertEval("c(1,2+2i)+1:4", "2.0+0.0i, 4.0+2.0i, 4.0+0.0i, 6.0+2.0i");
-
-    assertEval("c(3,4) %% 2", "1.0, 0.0");
-    assertEval("c(3,4) %% c(2,5)", "1.0, 4.0");
-    assertEval("c(3,4) %/% 2", "1.0, 2.0");
-    assertEval("3L %/% 2L", "1L");
-    assertEval("3L %/% 0L", "NA");
-
-    assertEvalError("m <- matrix(nrow=2, ncol=2, 1:4) ; m + 1:16", "dims [product 4] do not match the length of object [16]");
   }
 
   @Test
@@ -434,11 +441,7 @@ public class ArithmeticTest extends SimpleTestBase {
     assertEval("x <- 1 ; f <- function(r) { x <<- 2; r } ; NA & f(NA) ; x", "2.0");
     assertEval("x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE & f(FALSE) ; x", "2.0");
 
-    assertEval("1:4 & c(FALSE,TRUE)", "FALSE, TRUE, FALSE, TRUE");
-
-    assertEval("a <- as.raw(200) ; b <- as.raw(255) ; a | b", "ff");
-    assertEval("a <- as.raw(200) ; b <- as.raw(1) ; a | b", "c9");
-    assertEval("a <- as.raw(201) ; b <- as.raw(1) ; a & b", "01");
+    assertEval("1:4 & c(FALSE,TRUE)", "c(FALSE, TRUE, FALSE, TRUE)");
 
     assertEval("1+2i | 0", "TRUE");
     assertEval("1+2i & 0", "FALSE");
@@ -461,6 +464,13 @@ public class ArithmeticTest extends SimpleTestBase {
     assertEvalError("f <- function(a,b) { a | b } ; f(as.raw(c(1,4)), 3)", "operations are possible only for numeric, logical or complex types");
     assertEvalError("f <- function(a,b) { a | b } ; f(3, as.raw(c(1,4)))", "operations are possible only for numeric, logical or complex types");
 
+  }
+
+  @Test
+  public void bitwiseRawOps() {
+    assertEval("a <- as.raw(200) ; b <- as.raw(255) ; a | b", "as.raw(0xff)");
+    assertEval("a <- as.raw(200) ; b <- as.raw(1) ; a | b", "as.raw(0xc9)");
+    assertEval("a <- as.raw(201) ; b <- as.raw(1) ; a & b", "as.raw(0x01)");
   }
 
   @Test

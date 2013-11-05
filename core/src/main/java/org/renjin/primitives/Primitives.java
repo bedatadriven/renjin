@@ -188,7 +188,7 @@ public class Primitives {
     f("delayedAssign", Evaluation.class, 0, 111, 4);
     f("makeLazy", Serialization.class, 0, 111, 5);
     f(".Primitive", Evaluation.class, 0, 1, 1);
-    f("identical",  Types.class, 0, 11, 5);
+    f("identical",  Identical.class, 0, 11, 5);
 
 
 /* Binary Operators */

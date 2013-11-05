@@ -22,7 +22,6 @@ package org.renjin.primitives;
 
 import com.google.common.base.*;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
@@ -40,9 +39,7 @@ import org.renjin.sexp.Vector.Builder;
 import org.renjin.util.NamesBuilder;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Builtin type inspection and coercion functions
@@ -573,7 +570,7 @@ public class Types {
     } else if ("numeric".equals(mode) || "double".equals(mode)) {
       result = new DoubleArrayVector.Builder(x.length());
     } else if ("complex".equals(mode)) {
-      result = new ComplexVector.Builder(x.length());
+      result = new ComplexArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
     } else if ("pairlist".equals(mode)) {
@@ -803,144 +800,6 @@ public class Types {
     return env.isLocked();
   }
 
-  @Internal
-  public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual,
-      boolean singleNA, boolean attributesAsSet, boolean ignoreByteCode) {
-    if (!numericallyEqual || !singleNA || !attributesAsSet) {
-      throw new EvalException(
-          "identical implementation only supports num.eq = TRUE, single.NA = TRUE, attrib.as.set = TRUE");
-    }
-
-    return identical(x,y);
-  }
-
-  private static boolean identical(SEXP x, SEXP y) {
-    if(x == y) {
-      return true;
-    }
-    if(x.length() != y.length()) {
-      return false;
-    }
-    if(x instanceof AtomicVector) {
-      if(!(y instanceof AtomicVector)) {
-        return false;
-      }
-      return identicalAttributes(x,y ) &&
-          identicalElements((AtomicVector)x, (AtomicVector)y);
-
-    } else if(x instanceof ExpressionVector) {
-      if(!(y instanceof ExpressionVector)) {
-        return false;
-      }
-      return identicalAttributes(x, y) &&
-          identicalElements((ListVector)x, (ListVector)y);      
-
-    } else if(x instanceof ListVector) {
-      if(!(y instanceof ListVector)) {
-        return false;
-      }
-      return identicalAttributes(x, y) &&
-          identicalElements((ListVector)x, (ListVector)y);
-
-    } else if(x instanceof FunctionCall) {
-      if(!(y instanceof FunctionCall)) {
-        return false;
-      }
-      return identicalAttributes(x, y) &&
-          identicalElements((PairList)x, (PairList)y);
-
-    } else if(x instanceof PairList.Node) {
-      if(!(y instanceof PairList.Node)) {
-        return false;
-      }
-      return identicalAttributes(x, y) &&
-          identicalElements((PairList)x, (PairList)y);
-
-    } else if(x instanceof S4Object) {
-      return identicalAttributes(x, y);
-
-    } else if(x instanceof ExternalPtr) {
-      if(!(y instanceof ExternalPtr)) {
-        return false;
-      }
-      return identicalPtrs((ExternalPtr)x, (ExternalPtr)y);
-      
-    } else if(x instanceof Symbol || x instanceof Environment || x instanceof Function) {
-      return x == y;
-
-    } else {
-      throw new UnsupportedOperationException("x = " + x.getClass() + ", y = " + y.getClass());
-    }
-  }
-  
-  private static boolean identicalPtrs(ExternalPtr x, ExternalPtr y) {
-    return Objects.equal(x, y);
-  }
-
-  private static boolean identicalElements(ListVector x, ListVector y) {
-    assert x.length() == y.length();
-
-    for(int i=0;i!=x.length();++i) {
-      if(!identical(x.getElementAsSEXP(i), y.getElementAsSEXP(i))) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private static boolean identicalElements(AtomicVector x, AtomicVector y) {
-    assert x.length() == y.length();
-    
-    Vector.Type vectorType = x.getVectorType();
-    if(y.getVectorType() != vectorType) {
-      return false;
-    }
-    for(int i=0;i!=x.length();++i) {
-      if(x.isElementNA(i) && y.isElementNA(i)) {
-        continue;
-      }
-      if(!vectorType.elementsEqual(x, i, y, i)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  
-  private static boolean identicalElements(PairList x, PairList y) {
-    assert x.length() == y.length();
-    
-    Iterator<PairList.Node> xi = x.nodes().iterator();
-    Iterator<PairList.Node> yi = y.nodes().iterator();
-    while(xi.hasNext()) {
-      PairList.Node xni = xi.next();
-      PairList.Node yni = yi.next();
-      if(xni.getRawTag() != yni.getRawTag() ||
-          !identical(xni.getValue(), yni.getValue())) {
-        return false;
-      }
-    }
-    return true;
-  }
-  
-  private static boolean identicalAttributes(SEXP x, SEXP y) {
-    AttributeMap xa = x.getAttributes();
-    AttributeMap ya = y.getAttributes();
-    if(xa==ya) {
-      return true;
-    }
-    Set<Symbol> xan = Sets.newHashSet(xa.names());
-    Set<Symbol> yan = Sets.newHashSet(ya.names());
-    if(xan.size() != yan.size()) {
-      return false;
-    }
-    for(Symbol name : xan) {
-      if(!identical(xa.get(name), ya.get(name))) {
-        return false;
-      }
-    }
-    return true;
-  }
-  
   /*----------------------------------------------------------------------
   
   do_libfixup

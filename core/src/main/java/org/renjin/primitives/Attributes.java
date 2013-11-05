@@ -82,6 +82,9 @@ public class Attributes {
     int prod = 1;
     for (int i = 0; i != vector.length(); ++i) {
       dim[i] = vector.getElementAsInt(i);
+      if(dim[i] < 0) {
+        throw new EvalException("the dims contain negative values");
+      }
       prod *= dim[i];
     }
 

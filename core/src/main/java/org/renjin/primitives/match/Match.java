@@ -26,10 +26,10 @@ package org.renjin.primitives.match;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
+import org.renjin.util.NamesBuilder;
 
 
 /**
@@ -261,12 +261,20 @@ public class Match {
   @Internal
   public static IntVector which(Vector x) {
     IntArrayVector.Builder indices = new IntArrayVector.Builder();
+    Vector xn = x.getNames();
+
+    NamesBuilder names = NamesBuilder.withInitialLength(0);
     for(int i=0;i!=x.length();++i) {
       if(x.isElementTrue(i)) {
         indices.add(i+1);
+        if(xn != Null.INSTANCE) {
+          names.add(xn.getElementAsString(i));
+        }
       }
     }
-    return indices.build();
+    return indices
+      .setAttribute(Symbols.NAMES, names.build())
+      .build();
   }
 
   private static class FactorString extends StringVector {

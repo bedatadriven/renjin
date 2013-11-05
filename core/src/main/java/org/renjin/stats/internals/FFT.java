@@ -2,12 +2,8 @@ package org.renjin.stats.internals;
 
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 import org.apache.commons.math.complex.Complex;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 public class FFT {
 
@@ -57,7 +53,7 @@ public class FFT {
 
   private static ComplexVector toComplex(double[] array) {
     int n = array.length / 2;
-    ComplexVector.Builder result = new ComplexVector.Builder(0, n);
+    ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(0, n);
     for(int i=0;i!=n;++i) {
       result.add(new Complex(array[i*2], array[i*2+1]));
     }

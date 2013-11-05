@@ -1,11 +1,6 @@
 package org.renjin.base;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.math.complex.Complex;
 import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
@@ -14,16 +9,12 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.DotCall;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * R Bindings for the LAPACK library, used
@@ -418,11 +409,11 @@ public class Lapack {
         }
         Collections.sort(complex);
         Complex[] eigenvalues = ComplexEntry.getEigenvalues(n, complex);
-        ComplexVector values = new ComplexVector(eigenvalues);
+        ComplexArrayVector values = new ComplexArrayVector(eigenvalues);
         
         ret.add("values",values);
 
-        ret.add("vectors", vectors ? ComplexVector.newMatrix(ComplexEntry.getEigenvectors(complex), n, n) : Null.INSTANCE);
+        ret.add("vectors", vectors ? ComplexArrayVector.newMatrix(ComplexEntry.getEigenvectors(complex), n, n) : Null.INSTANCE);
 //    
 //        val = allocVector(CPLXSXP, n);
 //          for (i = 0; i < n; i++) {
@@ -459,7 +450,7 @@ public class Lapack {
   
 
   public static ComplexVector c(double... d){
-    ComplexVector.Builder builder = new ComplexVector.Builder();  
+    ComplexArrayVector.Builder builder = new ComplexArrayVector.Builder();
     for(double di : d){
         builder.add(new Complex(di,0));
     }
@@ -479,7 +470,7 @@ public class Lapack {
   }
   
   protected static SEXP matrix(Complex[]... rows) {
-    ComplexVector.Builder matrix = new ComplexVector.Builder();
+    ComplexArrayVector.Builder matrix = new ComplexArrayVector.Builder();
     int nrows = rows.length;
     int ncols = rows[0].length;
     

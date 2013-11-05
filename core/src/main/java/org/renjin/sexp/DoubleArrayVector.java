@@ -192,7 +192,7 @@ public final class DoubleArrayVector extends DoubleVector {
     public Builder(int initialSize) {
       this(initialSize, initialSize);
     }
-    
+
     public static Builder withInitialSize(int size) {
       return new Builder(size, size);
     }

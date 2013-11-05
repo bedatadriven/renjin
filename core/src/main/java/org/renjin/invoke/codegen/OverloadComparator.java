@@ -1,10 +1,9 @@
 package org.renjin.invoke.codegen;
 
-import org.renjin.invoke.model.JvmMethod;
+import org.apache.commons.math.complex.Complex;
 import org.renjin.invoke.codegen.scalars.ScalarTypes;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.invoke.model.JvmMethod;
+import org.renjin.sexp.*;
 
 import java.util.Comparator;
 
@@ -54,7 +53,8 @@ class OverloadComparator implements Comparator<JvmMethod> {
    */
   private int group(Class clazz) {
 
-    if(clazz.isPrimitive() || AtomicVector.class.isAssignableFrom(clazz)) {
+    if(clazz.isPrimitive() || clazz.equals(Complex.class) || clazz.equals(String.class) ||
+        AtomicVector.class.isAssignableFrom(clazz)) {
       return ATOMIC_VECTOR_GROUP;
     } else if(Vector.class.isAssignableFrom(clazz)) {
       return VECTOR_GROUP;
@@ -96,6 +96,10 @@ class OverloadComparator implements Comparator<JvmMethod> {
   private Vector.Type vectorType(Class clazz) {
     if(clazz.isPrimitive()) {
       return ScalarTypes.get(clazz).getVectorTypeInstance();
+    } else if(clazz.equals(Complex.class)) {
+      return ComplexVector.VECTOR_TYPE;
+    } else if(clazz.equals(String.class)) {
+      return StringVector.VECTOR_TYPE;
     } else {
       try {
         return (Vector.Type) clazz.getField("VECTOR_TYPE").get(null);

@@ -117,7 +117,7 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP c(Complex... values) {
-    return new ComplexVector(values);
+    return new ComplexArrayVector(values);
   }
 
   protected SEXP c(boolean... values) {
@@ -228,7 +228,7 @@ public abstract class EvalTestCase {
     return matrix.build();
   }
   protected SEXP matrix(Complex[]... rows) {
-    ComplexVector.Builder matrix = new ComplexVector.Builder();
+    ComplexArrayVector.Builder matrix = new ComplexArrayVector.Builder();
     int nrows = rows.length;
     int ncols = rows[0].length;
 

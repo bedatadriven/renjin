@@ -89,11 +89,10 @@ public class RepFunction extends SpecialFunction {
       each = 1;
     }
     if(!IntVector.isNA(lengthOut)) {
+      if(lengthOut < 0) {
+        throw new EvalException("invalid 'length.out' argument");
+      }
       resultLength = lengthOut;
-    }
-
-    if(IntVector.isNA(lengthOut) || lengthOut < 0) {
-      throw new EvalException("invalid 'length.out' argument");
     }
 
     if(times.length() > 1 && each > 1) {

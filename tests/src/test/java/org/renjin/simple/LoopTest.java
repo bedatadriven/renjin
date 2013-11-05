@@ -44,7 +44,7 @@ public class LoopTest extends SimpleTestBase {
     assertEval("{ for(i in 1:4) { if (i == 1) { next } ; if (i==3) { break } ; x <- i ; if (i==4) { x <- 10 } } ; x }", "2L");
     assertEval("{ i <- 0L ; while(i < 3L) { i <- i + 1 ; if (i == 1) { next } ; if (i==3) { break } ; x <- i ; if (i==4) { x <- 10 } } ; x }", "2.0");
 
-    assertEval("{ i <- 1 ; r <- NULL ; for(v in list(NA,1)) { r[i] <- typeof(v) ; i <- i + 1 } ; r }", "\"logical\", \"double\"");
+    assertEval("{ i <- 1 ; r <- NULL ; for(v in list(NA,1)) { r[i] <- typeof(v) ; i <- i + 1 } ; r }", "c('logical', 'double')");
   }
 
   @Test

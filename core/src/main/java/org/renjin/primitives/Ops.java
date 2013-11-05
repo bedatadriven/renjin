@@ -104,6 +104,20 @@ public class Ops  {
   }
 
   @Deferrable
+  @Builtin("-")
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static int minus(@Cast(CastStyle.EXPLICIT) int a, @Cast(CastStyle.EXPLICIT) int b) {
+    int r = a - b;
+    if ((a < 0 == b < 0) || (a < 0 == r < 0)) {
+      return r;
+    } else {
+      return IntVector.NA;
+    }
+  }
+
+
+
+  @Deferrable
   @Builtin("/")
   @DataParallel(PreserveAttributeStyle.ALL)
   public static double divide(double x, double y) {
@@ -555,6 +569,7 @@ public class Ops  {
     }
   }
 
+  @Generic
   @Deferrable
   @Builtin("&")
   @DataParallel(passNA = true)
@@ -568,6 +583,7 @@ public class Ops  {
     }
   }
 
+  @Generic
   @Deferrable
   @Builtin("|")
   @DataParallel(passNA = true)

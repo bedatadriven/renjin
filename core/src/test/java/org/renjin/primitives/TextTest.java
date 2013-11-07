@@ -169,7 +169,15 @@ public class TextTest extends EvalTestCase {
     assertThat( eval("strsplit('abc','')"), equalTo( list( c("a","b","c") )));
 
     assertThat( eval("strsplit('|ab|cf|q||','|',fixed=TRUE)"), equalTo( list( c("", "ab","cf","q", "", "") )));
+  }
 
+  @Test
+  public void emptyFixedRe() {
+    eval("strsplit <- function (x, split, extended = TRUE, fixed = FALSE, perl = FALSE, useBytes = FALSE) " +
+      ".Internal(strsplit(x, as.character(split),  as.logical(fixed), " +
+      "as.logical(perl), as.logical(useBytes)))");
+
+    eval("strsplit( c('helloh',  'hi'), c('h',''), fixed=TRUE)");
   }
 
   @Test

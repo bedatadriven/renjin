@@ -266,6 +266,10 @@ public class SubscriptOperation {
       }
 
       result.setFrom(index, elements, replacementIndex++);
+
+      if(replacementIndex >= elements.length()) {
+        replacementIndex = 0;
+      }
     }
 
     result.setAttribute(Symbols.NAMES, names.build());

@@ -1,12 +1,11 @@
 package org.renjin.maven.test;
 
-import java.io.*;
-import java.util.List;
-
-import org.renjin.eval.EvalException;
-
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import org.renjin.eval.EvalException;
+
+import java.io.*;
+import java.util.List;
 
 public class TestReporter {
 
@@ -107,7 +106,7 @@ public class TestReporter {
     functionComplete();
   }
   
-  public void functionThrew(Exception e)  {
+  public void functionThrew(Throwable e)  {
     currentCase.setOutcome(TestOutcome.ERROR);
     currentCase.setException(e);
     System.err.println(String.format("%s() in %s failed: %s", 

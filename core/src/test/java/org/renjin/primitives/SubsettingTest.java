@@ -733,7 +733,11 @@ public class SubsettingTest extends EvalTestCase {
     eval("x$a <- 99");
     assertThat(eval("x"), equalTo(list(99d,92d)));
     assertThat(eval("names(x)"), equalTo(c("a","b")));
-
   }
-  
+
+  @Test
+  public void outOfBounds() {
+    eval("x <- c(X=1,a=2)");
+    eval("x[c('a','X','a','b')] <- list(3,TRUE,FALSE)");
+  }
 }

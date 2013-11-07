@@ -1,24 +1,25 @@
 package org.renjin.maven.test;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import jline.UnsupportedTerminal;
+import jline.console.ConsoleReader;
+import org.renjin.eval.Context;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
+import org.renjin.repl.JlineRepl;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
-import com.google.common.annotations.VisibleForTesting;
-import jline.UnsupportedTerminal;
-import jline.console.ConsoleReader;
-
-import org.renjin.eval.Context;
-import org.renjin.eval.Session;
-import org.renjin.eval.SessionBuilder;
-import org.renjin.repl.JlineRepl;
-import org.renjin.sexp.*;
-
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 
 /**
  * Discovers and runs a set of R test scripts, usually from
@@ -86,14 +87,6 @@ public class TestRunner {
     return session;
   }
 
-  private Closure newStubFunction() {
-
-    PairList.Builder formals = new PairList.Builder();
-    formals.add(Symbols.ELLIPSES, Symbol.MISSING_ARG);
-
-    return new Closure(Environment.EMPTY, formals.build(), Null.INSTANCE, AttributeMap.EMPTY);
-  }
-
   private void loadLibrary(Session session, String namespaceName) {
     try {
       session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
@@ -141,7 +134,7 @@ public class TestRunner {
       repl.run();
       reporter.functionSucceeded();
     
-    } catch(Exception e) {
+    } catch(Throwable e) {
       reporter.functionThrew(e);
       return;
     }
@@ -175,7 +168,7 @@ public class TestRunner {
       reporter.startFunction(name.getPrintName());
       context.evaluate(FunctionCall.newCall(name));
       reporter.functionSucceeded();
-    } catch(Exception e) {
+    } catch(Throwable e) {
       reporter.functionThrew(e);
     }
   }

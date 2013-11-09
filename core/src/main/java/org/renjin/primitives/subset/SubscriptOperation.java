@@ -182,13 +182,6 @@ public class SubscriptOperation {
       
       return Null.INSTANCE;
       
-    } else if(drop && selection.getElementCount() == 0) {
-      
-      // by default, we don't set a dim attribute for
-      // empty results (unless drop=false)
-      
-      return Null.INSTANCE;
-      
     } else {
       
       int[] selectedDim = selection.getSubscriptDimensions();
@@ -199,7 +192,7 @@ public class SubscriptOperation {
         
         // by default, we ignore dimensions with length 1 unless
         // drop has been explicitly set to false
-        if(!drop || selectedDim[i] > 1) {
+        if(!drop || selectedDim[i] != 1) {
           result.add(selectedDim[i]);
         }
       }

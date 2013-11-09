@@ -33,7 +33,7 @@ public class RInternalDSL {
     return new DoubleArrayVector(values);
   }
   
-  public static SEXP c(Raw... values){
+  public static SEXP c_raw(byte... values){
     return new RawVector(values);
   }
 }

@@ -39,6 +39,16 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     return getElementAsRawLogical(index) == 1;
   }
 
+  @Override
+  public byte getElementAsByte(int index) {
+    int value = getElementAsInt(index);
+    if(value < 0 || value > 255) {
+      return 0;
+    } else {
+      return (byte)value;
+    }
+  }
+
   public int getComputationDepth() {
     return 0;
   }

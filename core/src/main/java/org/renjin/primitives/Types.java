@@ -324,21 +324,25 @@ public class Types {
   }
 
   @Internal
-  public static RawVector rawToBits(RawVector rv) {
-    RawVector.Builder b = new RawVector.Builder();
-    Raw[] raws;
-    for (int i = 0; i < rv.length(); i++) {
-      raws = rv.getElement(i).getAsZerosAndOnes();
-      for (int j = 0; j < Raw.NUM_BITS; j++) {
-        b.add(raws[j]);
+  public static RawVector rawToBits(RawVector vector) {
+    RawVector.Builder bits = new RawVector.Builder();
+    for(int i=0;i!=vector.length();++i) {
+      int intValue = vector.getElementAsInt(i);
+      for(int bit=0;bit!=8;++bit) {
+        int mask = 1 << bit;
+        if( (intValue & mask) != 0) {
+          bits.add(1);
+        } else {
+          bits.add(0);
+        }
       }
     }
-    return (b.build());
+    return bits.build();
   }
   
   @Internal
   public static StringVector rawToChar(RawVector vector, boolean multiple) {
-    byte[] bytes = vector.getAsByteArray();
+    byte[] bytes = vector.toByteArray();
     if(multiple) {
       StringVector.Builder result = new StringVector.Builder(0, vector.length());
       for(int i=0;i!=vector.length();++i) {
@@ -369,61 +373,43 @@ public class Types {
       throw new EvalException(
           "argument should be a character vector of length 1");
     }
-    
-    RawVector.Builder b = new RawVector.Builder();
-    byte[] bytes = sv.getElementAsString(0).getBytes(Charsets.UTF_8);
-    for (int i = 0; i < bytes.length; i++) {
-      b.add(new Raw(bytes[i]));
-    }
-    return b.build();
+    return new RawVector(sv.getElementAsString(0).getBytes(Charsets.UTF_8));
   }
 
   @Internal
   public static RawVector rawShift(RawVector rv, int n) {
-    if (n > Raw.NUM_BITS || n < (-1 * Raw.NUM_BITS)) {
+    if (n > RawVector.NUM_BITS || n < (-1 * RawVector.NUM_BITS)) {
       throw new EvalException("argument 'shift' must be a small integer");
     }
     RawVector.Builder b = new RawVector.Builder();
-    Raw r;
+    int r;
     for (int i = 0; i < rv.length(); i++) {
       if (n >= 0) {
-        r = new Raw((byte) (rv.getElement(i).getAsByte() << Math.abs(n)));
+        r = rv.getElementAsByte(i) << Math.abs(n);
       } else {
-        r = new Raw((byte) (rv.getElement(i).getAsByte() >> Math.abs(n)));
+        r = rv.getElementAsByte(i) >> Math.abs(n);
       }
       b.add(r);
     }
     return (b.build());
   }
 
-  /*
-   * !!Weird It is supposed to be an integer has four bytes! It is supposed to
-   * be integer's byte order is big-endian!
-   */
   @Internal
-  public static RawVector intToBits(Vector rv) {
-    RawVector.Builder b = new RawVector.Builder();
-    RawVector.Builder reverseb = new RawVector.Builder();
-    byte[] intbytes = new byte[4];
-    int currvalue;
-    for (int i = 0; i < rv.length(); i++) {
-      currvalue = rv.getElementAsInt(i);
-      intbytes[0] = (byte) (currvalue >> 24);
-      intbytes[1] = (byte) ((currvalue << 8) >> 24);
-      intbytes[2] = (byte) ((currvalue << 16) >> 24);
-      intbytes[3] = (byte) ((currvalue << 24) >> 24);
-      for (int j = 0; j < 4; j++) {
-        Raw[] r = (new Raw(intbytes[j])).getAsZerosAndOnes();
-        for (int h = 0; h < r.length; h++) {
-          b.add(r[h]);
+  public static RawVector intToBits(Vector vector) {
+    RawVector.Builder bits = new RawVector.Builder();
+    for(int i=0;i!=vector.length();++i) {
+
+      int intValue = vector.getElementAsInt(i);
+      for(int bit=0;bit!=Integer.SIZE;++bit) {
+        int mask = 1 << bit;
+        if( (intValue & mask) != 0) {
+          bits.add(1);
+        } else {
+          bits.add(0);
         }
       }
     }
-    RawVector temp = b.build();
-    for (int i = 0; i < temp.length(); i++) {
-      reverseb.addFrom(temp, temp.length() - i - 1);
-    }
-    return (reverseb.build());
+    return bits.build();
   }
 
   @Generic
@@ -994,8 +980,7 @@ public class Types {
       return PairList.Node.fromArray(values);
 
     } else if ("raw".equals(mode)) {
-      Raw values[] = new Raw[length];
-      Arrays.fill(values, Null.INSTANCE);
+      byte values[] = new byte[length];
       return new RawVector(values);
     } else {
       throw new EvalException(String.format(

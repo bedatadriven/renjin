@@ -191,6 +191,12 @@ public class Combine {
     }
 
     @Override
+    public void visit(RawVector vector) {
+      resultType = Vector.Type.widest(resultType, vector);
+      count += vector.length();
+    }
+
+    @Override
     public void visit(ListVector list) {
       if(recursive) {
         acceptAll(list);

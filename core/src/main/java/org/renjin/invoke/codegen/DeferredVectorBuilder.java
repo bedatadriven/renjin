@@ -45,6 +45,8 @@ public class DeferredVectorBuilder {
       type = VectorType.INTEGER;
     } else if(overload.getReturnType().equals(Complex.class)) {
       type = VectorType.COMPLEX;
+    } else if(overload.getReturnType().equals(byte.class)) {
+      type = VectorType.RAW;
     } else {
       throw new UnsupportedOperationException(overload.getReturnType().toString());
     }
@@ -144,6 +146,8 @@ public class DeferredVectorBuilder {
       return "i";
     } else if(clazz.equals(Complex.class)) {
       return "z";
+    } else if(clazz.equals(byte.class)) {
+      return "r";
     } else {
       throw new UnsupportedOperationException(clazz.toString());
     }
@@ -284,7 +288,7 @@ public class DeferredVectorBuilder {
       JVar argValue = method.body().decl(arg.accessorType(), "arg" + arg.index + "_i", arg.invokeAccessor(elementIndex));
       argValues.add(arg.convert(argValue));
 
-      if(!overload.isPassNA()) {
+      if(!overload.isPassNA() && arg.type != ArgumentType.BYTE) {
         method.body()._if(arg.isNA(argValue))._then()._return(na());
       }
     }
@@ -376,6 +380,8 @@ public class DeferredVectorBuilder {
         this.type = ArgumentType.STRING;
       } else if(model.getClazz().equals(Complex.class)) {
         this.type = ArgumentType.COMPLEX;
+      } else if(model.getClazz().equals(byte.class)) {
+        this.type = ArgumentType.BYTE;
       } else {
         throw new UnsupportedOperationException(model.getClazz().toString());
       }
@@ -407,7 +413,8 @@ public class DeferredVectorBuilder {
     DOUBLE(DoubleVector.class, "getElementAsDouble", double.class),
     LOGICAL(LogicalVector.class, "getElementAsRawLogical", int.class),
     INTEGER(IntVector.class, "getElementAsInt", int.class),
-    COMPLEX(ComplexVector.class, "getElementAsComplex", Complex.class);
+    COMPLEX(ComplexVector.class, "getElementAsComplex", Complex.class),
+    RAW(RawVector.class, "getElementAsByte", byte.class);
 
     private Class baseClass;
     private String accessorName;
@@ -460,6 +467,11 @@ public class DeferredVectorBuilder {
       @Override
       public JExpression isNa(JCodeModel codeModel, JExpression expr) {
         return codeModel.ref(ComplexVector.class).staticInvoke("isNA").arg(expr);
+      }
+    }, BYTE(byte.class, "getElementAsByte" ) {
+      @Override
+      public JExpression isNa(JCodeModel codeModel, JExpression expr) {
+        return JExpr.lit(false);
       }
     };
 

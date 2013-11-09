@@ -575,53 +575,44 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void isRawAndAsRaw(){
-    Raw r1 = new Raw(1);
-    Raw r2 = new Raw(20);
-    Raw r3 = new Raw(30);
     assertThat( eval("is.raw(as.raw(c(123,124)))"), equalTo(c(Logical.TRUE)));
-    assertThat( eval("as.raw(c(1,20,30))"), equalTo(c(r1,r2,r3)));
+    assertThat( eval("as.raw(c(1,20,30))"), equalTo(c_raw(0x1, 0x14, 0x1e)));
   }
   
   @Test
   public void rawToBits(){
-    Raw r0 = new Raw(00);
-    Raw r1 = new Raw(01);
-    assertThat( eval(".Internal(rawToBits(as.raw(c(1,2))))"), equalTo(c(r0,r0,r0,r0,r0,r0,r0,r1,r0,r0,r0,r0,r0,r0,r1,r0)));
+    assertThat( eval(".Internal(rawToBits(as.raw(c(1,2))))"), equalTo(bits("1000000001000000")));
   }
   
   @Test
   public void charToRaw(){
-    Raw r1 = new Raw('A');
-    Raw r2 = new Raw('B');
-    Raw r3 = new Raw('C');
-    assertThat( eval(".Internal(charToRaw(\"ABC\"))"), equalTo(c(r1,r2,r3)));
+    assertThat( eval(".Internal(charToRaw(\"ABC\"))"), equalTo(c_raw(0x41, 0x42, 0x43)));
   }
   
   @Test
   public void multiByteCharToRaw(){
-    Raw r1 = new Raw(0xc2);
-    Raw r2 = new Raw(0xa0);
-    assertThat( eval(".Internal(charToRaw('\u00a0'))"), equalTo(c(r1,r2)));
+    assertThat( eval(".Internal(charToRaw('\u00a0'))"), equalTo(c_raw(0xc2, 0xa0)));
   }
   
   @Test
   public void rawShift() {
-    Raw r1 = new Raw(0x3a);Raw r2 = new Raw(0x3c);Raw r3 = new Raw(0x3e);
-    assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),1))"), equalTo(c(r1, r2, r3)));
-    
-    //r1 = new Raw(0x0e);r2 = new Raw(0x0f);r3 = new Raw(0x0f);
-    //assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),-1))"), equalTo(c(r1, r2, r3)));
+    assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),1))"), equalTo(c_raw(0x3a, 0x3c, 0x3e)));
   }
   
   @Test
-  public void intToBits(){
-    RawVector.Builder b = new RawVector.Builder();
-    b.add(new Raw(01));
-    for (int i=1;i<32;i++) {
-      b.add(new Raw(0));
+  public void intToBits() {
+    assertThat(eval(".Internal(intToBits(1))"), equalTo(bits("10000000000000000000000000000000")));
+    assertThat(eval(".Internal(intToBits(234234))"), equalTo(bits("01011111010010011100000000000000")));
+    assertThat(eval(".Internal(intToBits(NA))"), equalTo(bits("00000000000000000000000000000001")));
+
+  }
+
+  private SEXP bits(String bits) {
+    RawVector.Builder vector = new RawVector.Builder();
+    for(int i=0;i!=bits.length();++i) {
+      vector.add(bits.charAt(i) == '1' ? 1 : 0);
     }
-    RawVector rv = b.build();
-    assertThat(eval(".Internal(intToBits(1))"), equalTo(c(rv.getAsRawArray())));
+    return vector.build();
   }
 
   @Test

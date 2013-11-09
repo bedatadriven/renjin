@@ -276,7 +276,7 @@ public class RDataWriter {
   private void writeRawVector(RawVector vector) throws IOException {
     writeFlags(RAWSXP, vector);
     out.writeInt(vector.length());
-    out.write(vector.getAsByteArray());    
+    out.write(vector.toByteArray());
     writeAttributes(vector);
   }
   

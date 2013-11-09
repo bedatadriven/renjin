@@ -54,8 +54,20 @@ public class Ops  {
   @Deferrable
   @Builtin("+")
   @DataParallel(PreserveAttributeStyle.ALL)
-  public static int plus(@Cast(CastStyle.EXPLICIT) int x, @Cast(CastStyle.EXPLICIT) int y) {
-    return x + y;
+  public static int plus(@Cast(CastStyle.EXPLICIT) int a, @Cast(CastStyle.EXPLICIT) int b) {
+    // check for integer overflow
+    int r = a + b;
+    boolean bLTr = b < r;
+    if (a > 0) {
+      if (bLTr) {
+        return r;
+      }
+    } else {
+      if (!bLTr) {
+        return r;
+      }
+    }
+    return IntVector.NA;
   }
 
   @Builtin("+")

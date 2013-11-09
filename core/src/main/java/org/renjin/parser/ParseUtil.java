@@ -273,10 +273,10 @@ public class ParseUtil {
     }
   }
   
-  public static class RawPrinter implements Function<Raw, String> {
+  public static class RawPrinter implements Function<Byte, String> {
     @Override
-    public String apply(Raw raw) {
-      return raw.toString();
+    public String apply(Byte raw) {
+      return RawVector.toString(raw);
     }
   }
 

@@ -327,14 +327,13 @@ public class RDataWriter {
     writeFlags(RAWSXP, vector);
     out.writeInt(vector.length());
     if(ser_type == SERIALIZATION_TYPE.ASCII) {
-      byte[] bytes = vector.getAsByteArray();
+      byte[] bytes = vector.toByteArray();
       for(int i=0;i!=vector.length();++i) {
         conn.writeBytes(String.format("%02x\n", bytes[i]));
       }
     } else {
-      conn.write(vector.getAsByteArray()); 
+      out.writeString(vector.toByteArray());
     }
-       
     writeAttributes(vector);
   }
   

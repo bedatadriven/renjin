@@ -527,6 +527,12 @@ public class Ops  {
     return !value;
   }
 
+  @Builtin("!")
+  @DataParallel
+  public static byte not(byte value) {
+    return (byte)~value;
+  }
+
   @Deferrable
   @Builtin("%%")
   @DataParallel

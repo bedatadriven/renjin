@@ -1,56 +1,38 @@
 package org.renjin.sexp;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.UnmodifiableIterator;
+import com.google.common.primitives.UnsignedBytes;
 
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
+public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
 
   public static final String TYPE_NAME = "raw";
+
   public static final Vector.Type VECTOR_TYPE = new RawType();
-  public static int NA = IntVector.NA;
-  private Raw[] values;
 
-  public RawVector(Raw... values) {
-    this.values = new Raw[values.length];
+  public static final RawVector EMPTY = new RawVector();
+
+  public static int NUM_BITS = 8;
+
+  private byte[] values;
+
+  public RawVector(byte... values) {
+    this.values = new byte[values.length];
     this.values = Arrays.copyOf(values, values.length);
   }
-  
-  
-  public RawVector(Raw[] values, AttributeMap attributes) {
+
+  public RawVector(byte[] values, AttributeMap attributes) {
     super(attributes);
-    this.values = new Raw[values.length];
+    this.values = new byte[values.length];
     this.values = Arrays.copyOf(values, values.length);
   }
-  
-  public RawVector(byte[] bytes, AttributeMap attributes) {
-    super(attributes);
-    this.values = new Raw[bytes.length];
-    for(int i=0;i!=bytes.length;++i) {
-      this.values[i] = new Raw(bytes[i]);
-    }
-  }
 
-  public RawVector(byte[] bytes) {
-    this(bytes, AttributeMap.EMPTY);
-  }
-
-  public byte[] getAsByteArray(){
+  public byte[] toByteArray() {
     byte[] bytes = new byte[this.values.length];
-    for (int i=0;i<this.values.length;i++){
-      bytes[i] = this.values[i].getAsByte();
-    }
+    System.arraycopy(this.values, 0, bytes, 0, this.values.length);
     return(bytes);
-  }
-  
-  public Raw[] getAsRawArray() {
-    Raw[] raws = new Raw[this.values.length];
-    for (int i = 0; i < raws.length; i++) {
-      raws[i] = new Raw(this.values[i].getValue());
-    }
-    return (raws);
   }
 
   @Override
@@ -63,28 +45,36 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     visitor.visit(this);
   }
   
-  public Raw getElement(int index){
+  public byte getElementAsByte(int index){
     return(this.values[index]);
   }
 
   @Override
   public double getElementAsDouble(int index) {
-    return ((double) this.values[index].getValue());
+    return (double)getElementAsInt(index);
   }
 
   @Override
   public int getElementAsInt(int index) {
-    return (this.values[index].getValue());
+    return UnsignedBytes.toInt(this.values[index]);
   }
 
   @Override
   public String getElementAsString(int index) {
-    return (this.values[index].toString());
+    return toString(this.values[index]);
+  }
+
+  public static String toString(byte value) {
+    if(value <= 0xF) {
+      return "0" + Integer.toHexString(value);
+    } else {
+      return Integer.toHexString(value);
+    }
   }
 
   @Override
   public int getElementAsRawLogical(int index) {
-    return (Logical.valueOf(this.values[index].getValue()).getInternalValue());
+    return this.values[index] == 0 ? 0 : 1;
   }
   
   @Override
@@ -112,7 +102,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(this.getAsByteArray());
+    return Arrays.hashCode(this.toByteArray());
   }
   
   
@@ -142,7 +132,8 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
   @Override
   public boolean isElementNA(int index) {
-    return (values[index].getValue() == RawVector.NA);
+    // Raws have no NA value
+    return false;
   }
 
   @Override
@@ -162,11 +153,11 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
   @Override
   public int compare(int index1, int index2) {
-    return (values[index1].getValue() - values[index2].getValue());
+    return UnsignedBytes.compare(values[index1], values[index2]);
   }
 
   @Override
-  public Iterator<Raw> iterator() {
+  public Iterator<Byte> iterator() {
     return new ValueIterator();
   }
 
@@ -175,13 +166,10 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
    */
   public static class Builder extends AbstractAtomicBuilder {
 
-    private Raw[] values;
+    private byte[] values;
 
     public Builder(int initialSize) {
-      values = new Raw[initialSize];
-      for (int i = 0; i < initialSize; i++) {
-        values[i] = new Raw();
-      }
+      values = new byte[initialSize];
     }
 
     private Builder(RawVector exp) {
@@ -190,39 +178,37 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     }
 
     public Builder() {
-      this.values = new Raw[0];
+      this.values = new byte[0];
     }
 
     /*
      * ArrayList does the same work, we may change the code
      * as well as using the Java core library
      */
-    public Builder set(int index, Raw raw) {
+    public Builder set(int index, byte value) {
       if (values.length <= index) {
-        Raw copy[] = Arrays.copyOf(values, index + 1);
-        Arrays.fill(copy, values.length, copy.length, new Raw(0));
-        values = copy;
+        values = Arrays.copyOf(values, index + 1);
       }
-      values[index].setValue(raw.getValue());
+      values[index] = value;
       return this;
     }
 
-    public Builder add(Raw value) {
+    public Builder add(byte value) {
       return set(values.length, value);
     }
 
     public Builder add(Number value) {
-      return add(new Raw(value.intValue()));
+      return add(UnsignedBytes.checkedCast(value.longValue()));
     }
     
     @Override
     public Builder setNA(int index) {
-      return set(index, new Raw(RawVector.NA));
+      return set(index, (byte)0);
     }
 
     @Override
     public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      return set(destinationIndex, new Raw(source.getElementAsInt(sourceIndex)));
+      return set(destinationIndex, UnsignedBytes.checkedCast(source.getElementAsInt(sourceIndex)));
     }
 
     @Override
@@ -237,7 +223,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
   }
 
   /*
-   * RawType private class
+   * ByteType private class
    */
   private static class RawType extends Vector.Type {
 
@@ -262,35 +248,40 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
 
     @Override
     public Vector getElementAsVector(Vector vector, int index) {
-      return (new RawVector(new Raw(vector.getElementAsInt(index))));
+      return new RawVector(vector.getElementAsByte(index));
     }
 
     @Override
     public int compareElements(Vector vector1, int index1, Vector vector2, int index2) {
-      return vector1.getElementAsInt(index1) - vector2.getElementAsInt(index2);
+      return UnsignedBytes.compare(vector1.getElementAsByte(index1), vector2.getElementAsByte(index2));
     }
 
     @Override
     public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
         int index2) {
       // raws cannot be NA
-      return vector1.getElementAsInt(index1) == vector2.getElementAsInt(index2);
+      return vector1.getElementAsByte(index1) == vector2.getElementAsByte(index2);
     }
   }  
 
   @Override
   public String toString() {
     if (values.length == 1) {
-      return values[0].toString();
+      return getElementAsString(0);
     } else {
       StringBuilder sb = new StringBuilder();
       sb.append("c(");
-      Joiner.on(", ").appendTo(sb, this);
+      for(int i=0;i!=length();++i) {
+        if(i>0) {
+          sb.append(", ");
+        }
+        sb.append(getElementAsString(i));
+      }
       return sb.append(")").toString();
     }
   }
 
-  private class ValueIterator extends UnmodifiableIterator<Raw> {
+  private class ValueIterator extends UnmodifiableIterator<Byte> {
 
     private int i = 0;
 
@@ -300,7 +291,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Raw> {
     }
 
     @Override
-    public Raw next() {
+    public Byte next() {
       return values[i++];
     }
   }

@@ -72,6 +72,15 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
     }
   }
 
+  public static byte cast(int value) {
+    if(value < 0 || value > 255)  {
+      return 0;
+    } else {
+      return (byte)value;
+    }
+  }
+
+
   @Override
   public int getElementAsRawLogical(int index) {
     return this.values[index] == 0 ? 0 : 1;
@@ -104,9 +113,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   public int hashCode() {
     return Arrays.hashCode(this.toByteArray());
   }
-  
-  
-  
+
   @Override
   public Builder newBuilderWithInitialSize(int initialSize) {
     return (new RawVector.Builder(initialSize));
@@ -208,7 +215,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
 
     @Override
     public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      return set(destinationIndex, UnsignedBytes.checkedCast(source.getElementAsInt(sourceIndex)));
+      return set(destinationIndex, cast(source.getElementAsInt(sourceIndex)));
     }
 
     @Override

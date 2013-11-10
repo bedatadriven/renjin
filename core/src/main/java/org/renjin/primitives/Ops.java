@@ -598,7 +598,7 @@ public class Ops  {
   @Deferrable
   @Builtin("&")
   @DataParallel(passNA = true)
-  public static Logical and(double x, double y) {
+  public static Logical and(@DownCastComplex double x, @DownCastComplex double y) {
     if(x == 0 || y == 0) {
       return Logical.FALSE;
     } else if(DoubleVector.isNA(x) || DoubleVector.isNA(y)) {
@@ -612,7 +612,7 @@ public class Ops  {
   @Deferrable
   @Builtin("|")
   @DataParallel(passNA = true)
-  public static Logical or(double x, double y) {
+  public static Logical or(@DownCastComplex double x, @DownCastComplex double y) {
     if( (x != 0 && !DoubleVector.isNA(x)) ||
         (y != 0 && !DoubleVector.isNA(y))) {
       return Logical.TRUE;

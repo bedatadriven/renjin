@@ -97,7 +97,9 @@ public class Comparison {
   private static Logical checkedToLogical(SEXP exp, String errorMessage) {
     if(exp instanceof AtomicVector) {
       AtomicVector vector = (AtomicVector) exp;
-      if(vector.length() > 0) {
+      if(vector.length() == 0) {
+        return Logical.NA;
+      } else {
         return vector.getElementAsLogical(0);
       }
     }

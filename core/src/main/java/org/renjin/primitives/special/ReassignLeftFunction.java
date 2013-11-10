@@ -21,6 +21,7 @@
 
 package org.renjin.primitives.special;
 
+import org.renjin.eval.Context;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -32,17 +33,16 @@ public class ReassignLeftFunction extends AssignLeftFunction {
   }
   
   @Override
-  protected void assignResult(Environment rho, Symbol lhs, SEXP rhs) {
+  protected void assignResult(Context context, Environment rho, Symbol lhs, SEXP rhs) {
 
-    for(Environment env : rho.selfAndParents()) {
+    for(Environment env : rho.parents()) {
       if(env.hasVariable(lhs))  {
         env.setVariable(lhs, rhs);
         return;
       }
     }
 
-    // not defined anywhere we can see, define it anew in the current env
-    rho.setVariable(lhs, rhs);
-
+     // not defined anywhere we can see, define it anew in the global environment
+     context.getGlobalEnvironment().setVariable(lhs, rhs);
   }
 }

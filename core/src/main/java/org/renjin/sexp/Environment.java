@@ -368,11 +368,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     visitor.visit(this);
   }
 
-  public Iterable<Environment> selfAndParents() {
+  public Iterable<Environment> parents() {
     return new Iterable<Environment>() {
       @Override
       public Iterator<Environment> iterator() {
-        return new EnvIterator(Environment.this);
+        return new EnvIterator(Environment.this.getParent());
       }
     };
   }

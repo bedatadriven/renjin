@@ -103,6 +103,31 @@ public class SubscriptOperation {
     return this;
   }
 
+  public SEXP extractSingle() {
+
+    // this seems like an abritrary limitation,
+    // that is x[[TRUE]] happily takes the first item but
+    // x[[1:2]] will throw an error, may be we can
+    // just drop the distinction across the board?
+    if(selection instanceof VectorIndexSelection ||
+       selection instanceof CoordinateMatrixSelection) {
+      if(selection.getElementCount() > 1) {
+        throw new EvalException("attempt to select more than one element");
+      }
+    }
+
+    if(selection.getElementCount() < 1) {
+      throw new EvalException("attempt to select less than one element");
+    }
+
+    int index = selection.iterator().next();
+    if(index < 0 || index >= source.length()) {
+      throw new EvalException("subscript out of bounds");
+    }
+    return source.getElementAsSEXP(index);
+
+  }
+
   public Vector extract() {
 
     if(source == Null.INSTANCE) {

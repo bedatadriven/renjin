@@ -154,6 +154,7 @@ public class ComplexArrayVector extends ComplexVector {
         values[i] = toCopy.getElementAsComplex(i);
       }
       size = values.length;
+      copyAttributesFrom(toCopy);
     }
 
     public static Builder withInitialSize(int size) {

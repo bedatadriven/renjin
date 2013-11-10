@@ -1,10 +1,7 @@
 package org.renjin.primitives.sequence;
 
 
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 /**
  */
@@ -48,7 +45,9 @@ public class DoubleSequence extends DoubleVector {
   }
 
   public static Vector fromTo(double n1, double n2) {
-    if(n1 <= n2) {
+    if(n1 == n2) {
+      return new DoubleArrayVector(n1);
+    } else if(n1 <= n2) {
       return new DoubleSequence(n1, 1d, (int)Math.ceil(n2-n1));
     } else {
       return new DoubleSequence(n1, -1d, (int)(Math.floor(n1-n2)+1));

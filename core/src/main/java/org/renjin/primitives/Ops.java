@@ -92,7 +92,7 @@ public class Ops  {
   @Builtin("-")
   @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex negative(Complex x) {
-    return new Complex(-x.getReal(), x.getImaginary());
+    return new Complex(-x.getReal(), -x.getImaginary());
   }
   
   @Builtin("-")
@@ -276,6 +276,13 @@ public class Ops  {
   @DataParallel
   public static boolean equalTo(double x, double y) {
     return x == y;
+  }
+
+  @Deferrable
+  @Builtin("==")
+  @DataParallel
+  public static boolean equalTo(Complex x, Complex y) {
+    return x.equals(y);
   }
   
   @Deferrable
@@ -614,5 +621,19 @@ public class Ops  {
     } else {
       return Logical.NA;
     }
+  }
+
+  @Generic
+  @Builtin("|")
+  @DataParallel
+  public static byte or(byte x, byte y) {
+    return (byte)(x | y);
+  }
+
+  @Generic
+  @Builtin("&")
+  @DataParallel
+  public static byte and(byte x, byte y) {
+    return (byte)(x & y);
   }
 }

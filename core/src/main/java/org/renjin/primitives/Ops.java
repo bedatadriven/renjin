@@ -454,7 +454,7 @@ public class Ops  {
     if(y.getImaginary() == 0) {
       double yr = y.getReal();
       if(yr == 0) {
-        return new Complex(x.getReal(), 0);
+        return new Complex(1, 0);
       } else if (yr == 1) {
         return x;
       } else {

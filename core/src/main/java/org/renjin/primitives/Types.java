@@ -235,10 +235,29 @@ public class Types {
       return new IsNaVector(attributes, vector);
     }
   }
+
+  @Generic
+  @Builtin("is.na")
+  public static LogicalVector isNA(final ListVector vector) {
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder(vector.length());
+    for (int i = 0; i != vector.length(); ++i) {
+      SEXP element = vector.getElementAsSEXP(i);
+      if(element instanceof AtomicVector && element.length()==1) {
+        result.set(i, ((AtomicVector)element).isElementNA(0));
+      } else {
+        result.set(i, false);
+      }
+    }
+    result.setAttribute(Symbols.DIM, vector.getAttribute(Symbols.DIM));
+    result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
+    result.setAttribute(Symbols.DIMNAMES, vector.getAttribute(Symbols.DIMNAMES));
+
+    return result.build();
+  }
   
   @Generic
   @Builtin("is.na")
-  public static LogicalVector isNA(final Vector vector) {
+  public static LogicalVector isNA(final AtomicVector vector) {
     if(vector.length() > 100) {
       return new IsNaVector(vector);
 
@@ -315,7 +334,7 @@ public class Types {
      * EvalException("out-of-range values treated as 0 in coercion to raw"); }
      * raw = new Raw(iv.getElementAsInt(i)); b.add(raw); } return (b.build());
      */
-    return (RawVector) convertVector(new RawVector.Builder(), source);
+    return (RawVector) convertToAtomicVector(new RawVector.Builder(), source);
   }
 
   @Builtin("is.raw")
@@ -415,20 +434,39 @@ public class Types {
   @Generic
   @Builtin("as.character")
   public static StringVector asCharacter(PairList.Node source) {
-    return (StringVector) convertVector(new StringVector.Builder(), source.toVector());
+    return (StringVector) convertToStringVector(null, new StringVector.Builder(), source.toVector());
   }
 
-  
+
   @Generic
   @Builtin("as.character")
-  public static StringVector asCharacter(Vector source) {
+  public static StringVector asCharacter(@Current Context context, Vector source) {
     if(source instanceof StringVector) {
       return (StringVector) source.setAttributes(AttributeMap.EMPTY);
     } else if(source.length() < 100) {
-      return (StringVector) convertVector(new StringVector.Builder(), source);
+      return convertToStringVector(context, new StringVector.Builder(), source);
     } else {
       return new ConvertingStringVector(source);
     }
+  }
+
+
+  private static StringVector convertToStringVector(Context context, StringVector.Builder builder, Vector source) {
+    if(source instanceof ListVector) {
+      for (int i = 0; i != source.length(); ++i) {
+        SEXP value = ((ListVector) source).getElementAsSEXP(i);
+        if(value instanceof AtomicVector && value.length() == 1) {
+          builder.addFrom((AtomicVector)value, 0);
+        } else {
+          builder.add(Deparse.deparseExp(context, value));
+        }
+      }
+    } else {
+      for (int i = 0; i != source.length(); ++i) {
+        builder.addFrom(source, i);
+      }
+    }
+    return builder.build();
   }
 
   @Generic
@@ -469,9 +507,36 @@ public class Types {
   }
 
   @Generic
+  @DataParallel
   @Builtin("as.logical")
-  public static LogicalVector asLogical(Vector vector) {
-    return (LogicalVector) convertVector(new LogicalArrayVector.Builder(), vector);
+  public static boolean asLogical(@DownCastComplex boolean x) {
+    return x;
+  }
+
+  @Generic
+  @DataParallel
+  @Builtin("as.logical")
+  public static Logical asLogical(String x) {
+    String xLower = x.toLowerCase();
+    if(xLower.equals("true")) {
+      return Logical.TRUE;
+    } else if(xLower.equals("false")) {
+      return Logical.FALSE;
+    } else {
+      return Logical.NA;
+    }
+  }
+
+  @Generic
+  @Builtin("as.logical")
+  public static LogicalVector asLogical(ListVector vector) {
+    LogicalVector.Builder result = new LogicalArrayVector.Builder(0, vector.length());
+    for(int i=0;i!=vector.length();++i) {
+      SEXP element = vector.getElementAsSEXP(i);
+      if(element)
+    }
+
+    return (LogicalVector) convertToAtomicVector(new LogicalArrayVector.Builder(), vector);
   }
 
   @Generic
@@ -493,7 +558,7 @@ public class Types {
   @Generic
   @Builtin("as.integer")
   public static IntVector asInteger(Vector source) {
-    return (IntVector) convertVector(new IntArrayVector.Builder(), source);
+    return (IntVector) convertToAtomicVector(new IntArrayVector.Builder(), source);
   }
 
   @Generic
@@ -520,13 +585,24 @@ public class Types {
     } else if(source instanceof DeferredComputation || source.length() > 100) {
       return new ConvertingDoubleVector(source);
     } else {
-      return (DoubleVector) convertVector(new DoubleArrayVector.Builder(), source);
+      return (DoubleVector) convertToAtomicVector(new DoubleArrayVector.Builder(), source);
     }
   }
 
-  private static Vector convertVector(Vector.Builder builder, Vector source) {
-    for (int i = 0; i != source.length(); ++i) {
-      builder.addFrom(source, i);
+  private static Vector convertToAtomicVector(Vector.Builder builder, Vector source) {
+    if(source instanceof ListVector) {
+      for (int i = 0; i != source.length(); ++i) {
+        SEXP value = ((ListVector) source).getElementAsSEXP(i);
+        if(value instanceof AtomicVector && value.length() == 1) {
+          builder.addFrom(value, 0);
+        } else {
+          builder.addNA();
+        }
+      }
+    } else {
+      for (int i = 0; i != source.length(); ++i) {
+        builder.addFrom(source, i);
+      }
     }
     return builder.build();
   }
@@ -534,8 +610,15 @@ public class Types {
   @Generic
   @Builtin("as.complex")
   @DataParallel
-  public static Complex asComplex(@Recycle double x){
+  public static Complex asComplex(@Recycle double x) {
     return new Complex(x,0);
+  }
+
+  @Generic
+  @Builtin("as.complex")
+  @DataParallel
+  public static Complex asComplex(@Recycle Complex x) {
+    return x;
   }
   
   @Generic

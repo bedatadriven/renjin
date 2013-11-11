@@ -38,7 +38,7 @@ public class SymbolCompletion implements NameCompletion {
   @Override
   public String[] completeName(String part) {
     ArrayList<String> list = new ArrayList<String>();
-    for(Environment env : global.selfAndParents()) {
+    for(Environment env : global.parents()) {
       for(Symbol name : env.getSymbolNames()) {
         if(name.getPrintName().startsWith(part)) {
           list.add(name.getPrintName());

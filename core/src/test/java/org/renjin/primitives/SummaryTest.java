@@ -93,6 +93,7 @@ public class SummaryTest extends EvalTestCase {
     assertThat( eval("sum(1L, 2L, 3.4) "), equalTo(c(6.4)));
     assertThat( eval("sum(TRUE, TRUE, FALSE)"), equalTo(c_i(2)));
     assertThat( eval("sum(TRUE, TRUE, NA)"), equalTo(c_i(IntVector.NA)));
+    assertThat( eval("sum(1073741824L, 1073741824L)"), equalTo(c_i(IntVector.NA)));
   }
 
   @Test

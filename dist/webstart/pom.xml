@@ -50,6 +50,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>webstart-maven-plugin</artifactId>
+        <version>1.0-beta-4</version>
         <executions>
           <execution>
             <phase>process-resources</phase>
@@ -61,7 +62,7 @@
         <configuration>
           <codebase>http://www.renjin.org/webstart</codebase>
           <jnlp>
-            <inputTemplate>src/main/jnlp/studio.vm</inputTemplate>
+            <inputTemplate> studio.vm</inputTemplate>
             <outputFile>studio.jnlp</outputFile>
             <mainClass>org.renjin.studio.MainFrame</mainClass>
           </jnlp>

@@ -1,44 +1,24 @@
 package org.renjin.gcc.translate.call;
 
 
-import org.renjin.gcc.gimple.expr.GimpleAddressOf;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.ins.GimpleCall;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
-import org.renjin.gcc.translate.expr.*;
+import org.renjin.gcc.translate.expr.ImExpr;
+import org.renjin.gcc.translate.expr.ImLValue;
+import org.renjin.gcc.translate.expr.NewArrayExpr;
+import org.renjin.gcc.translate.type.ImPrimitiveArrayPtrType;
 import org.renjin.gcc.translate.type.ImPrimitivePtrType;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
 
 /**
  * Translates a call to malloc
  */
-public class MallocCallTranslator implements CallTranslator {
-  
-  private final String functionName;
+public class MallocCallTranslator extends NamedCallTranslator {
 
   public MallocCallTranslator(String functionName) {
-    this.functionName = functionName;
-  }
-
-
-  @Override
-  public boolean accept(GimpleCall call) {
-    GimpleExpr functionExpr = call.getFunction();
-    if(!(functionExpr instanceof GimpleAddressOf)) {
-      return false;
-    }
-    GimpleExpr value = ((GimpleAddressOf) functionExpr).getValue();
-    if (!(value instanceof GimpleFunctionRef)) {
-      return false;
-    }
-    if (!(value instanceof GimpleFunctionRef)) {
-      return false;
-    }
-    return ((GimpleFunctionRef) value).getName().equals(functionName);
-
+    super(functionName);
   }
 
   @Override
@@ -54,6 +34,9 @@ public class MallocCallTranslator implements CallTranslator {
     if(lhs.type() instanceof ImPrimitivePtrType) {
       writeNewPrimitiveArray(context, lhs, sizeArg);
 
+    } else if(lhs.type() instanceof ImPrimitiveArrayPtrType) {
+      writeNewPrimitiveArrayPtr(context, lhs, sizeArg);
+
     } else {
       throw new UnsupportedOperationException("type: " + lhs.type());
     }
@@ -63,6 +46,26 @@ public class MallocCallTranslator implements CallTranslator {
 
     ImPrimitivePtrType type = (ImPrimitivePtrType) lhs.type();
 
+    JimpleExpr elementCount = getNumElementsExpr(context, sizeArg, type.getBaseType());
+
+    // assign to our lhs
+    ((ImLValue)lhs).writeAssignment(context, new NewArrayExpr(type, elementCount));
+  }
+
+
+  private void writeNewPrimitiveArrayPtr(FunctionContext context, ImExpr lhs, ImExpr sizeArg) {
+
+    ImPrimitiveArrayPtrType type = (ImPrimitiveArrayPtrType) lhs.type();
+
+    JimpleExpr elementCount = getNumElementsExpr(context, sizeArg, type.baseType().componentType());
+
+    // assign to our lhs
+    ((ImLValue)lhs).writeAssignment(context, new NewArrayExpr(type.baseType().componentType().pointerType(),
+        elementCount));
+  }
+
+
+  private JimpleExpr getNumElementsExpr(FunctionContext context, ImExpr sizeArg, ImPrimitiveType type) {
     // malloc is given a size in bytes, we need to divide by the underlying storage
     // size to get the number of elements to allocate
 
@@ -72,11 +75,8 @@ public class MallocCallTranslator implements CallTranslator {
     // calculate number of elements
     JimpleExpr elementCount = new JimpleExpr(context.declareTemp(JimpleType.INT));
     context.getBuilder().addAssignment(elementCount, JimpleExpr.binaryInfix("/", byteSizeExpr,
-        JimpleExpr.integerConstant(type.baseType().getStorageSizeInBytes())));
-
-    // assign to our lhs
-    ((ImLValue)lhs).writeAssignment(context,
-      new NewArrayExpr(type, elementCount));
+      JimpleExpr.integerConstant(type.getStorageSizeInBytes())));
+    return elementCount;
   }
 
   protected ImExpr computeSize(FunctionContext context, GimpleCall call) {

@@ -76,4 +76,9 @@ public class ImPrimitiveArrayPtrType implements ImIndirectType {
   public JimpleType getArrayType() {
     return baseType.componentType().jimpleArrayType();
   }
+
+  @Override
+  public String toString() {
+    return "(" + baseType + ")*";
+  }
 }

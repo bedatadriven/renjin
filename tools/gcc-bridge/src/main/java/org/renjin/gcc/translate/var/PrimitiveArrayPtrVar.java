@@ -57,6 +57,11 @@ public class PrimitiveArrayPtrVar extends AbstractImExpr implements Variable,ImI
     return new ArrayValue();
   }
 
+  @Override
+  public String toString() {
+    return jimpleArrayName;
+  }
+
   private JimpleExpr computeIndex(ImExpr index) {
     JimpleExpr indexExpr = index.translateToPrimitive(context, ImPrimitiveType.INT);
     JimpleExpr finalIndex = context.declareTemp(JimpleType.INT,
@@ -137,4 +142,6 @@ public class PrimitiveArrayPtrVar extends AbstractImExpr implements Variable,ImI
       return type.baseType().componentType().pointerType();
     }
   }
+
+
 }

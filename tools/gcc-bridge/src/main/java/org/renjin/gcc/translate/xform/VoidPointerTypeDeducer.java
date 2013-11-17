@@ -1,9 +1,11 @@
 package org.renjin.gcc.translate.xform;
 
 import com.google.common.collect.Sets;
-import org.renjin.gcc.gimple.*;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.ins.GimpleAssign;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -29,7 +31,7 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     boolean updated = false;
 
     for(GimpleVarDecl decl : fn.getVariableDeclarations()) {
-      if(isVoidPtr(decl)) { 
+      if(isVoidPtr(decl.getType())) {
         System.out.println("Deducing type of " + decl + "...");
         if(tryToDeduceType(unit, fn, decl)) {
           updated = true;
@@ -39,9 +41,9 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     return updated;
   }
 
-  private boolean isVoidPtr(GimpleVarDecl decl) {
-    return decl.getType() instanceof GimplePointerType &&
-        decl.getType().getBaseType() instanceof GimpleVoidType;
+  private boolean isVoidPtr(GimpleType type) {
+    return type instanceof GimplePointerType &&
+        type.getBaseType() instanceof GimpleVoidType;
   }
 
 
@@ -96,7 +98,7 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
 
     private void inferPossibleTypes(GimpleExpr expr) {
       GimpleType type = inferTypeFromAssignment(expr);
-      if(type != null) {
+      if(type != null && !isVoidPtr(type)) {
         possibleTypes.add(type);
       }
     }

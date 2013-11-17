@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
@@ -226,7 +227,7 @@ public class PackageDescription {
 
 	private Iterable<PackageDependency> getPackageDependencyList(String property) {
 		String list = getFirstProperty(property);
-		if(list == null) {
+		if(Strings.isNullOrEmpty(list)) {
 			return Collections.emptySet();
 		} else {
 			return Iterables.transform(Arrays.asList(list.split("\\s*,\\s*")), new PackageDependencyParser());

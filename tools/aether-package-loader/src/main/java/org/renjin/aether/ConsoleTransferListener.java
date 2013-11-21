@@ -26,141 +26,117 @@ import org.eclipse.aether.transfer.TransferResource;
 /**
  * A simplistic transfer listener that logs uploads/downloads to the console.
  */
-public class ConsoleTransferListener
-    extends AbstractTransferListener
-{
+public class ConsoleTransferListener extends AbstractTransferListener {
 
-    private PrintStream out;
+  private PrintStream out;
 
-    private Map<TransferResource, Long> downloads = new ConcurrentHashMap<TransferResource, Long>();
+  private Map<TransferResource, Long> downloads = new ConcurrentHashMap<TransferResource, Long>();
 
-    private int lastLength;
+  private int lastLength;
 
-    public ConsoleTransferListener()
-    {
-        this( null );
+  public ConsoleTransferListener() {
+    this(null);
+  }
+
+  public ConsoleTransferListener(PrintStream out) {
+    this.out = (out != null) ? out : System.out;
+  }
+
+  @Override
+  public void transferInitiated(TransferEvent event) {
+    String message = event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploading" : "Downloading";
+
+    out.println(message + ": " + event.getResource().getRepositoryUrl() + event.getResource().getResourceName());
+  }
+
+  @Override
+  public void transferProgressed(TransferEvent event) {
+    TransferResource resource = event.getResource();
+    downloads.put(resource, Long.valueOf(event.getTransferredBytes()));
+
+    StringBuilder buffer = new StringBuilder(64);
+
+    for (Map.Entry<TransferResource, Long> entry : downloads.entrySet()) {
+      long total = entry.getKey().getContentLength();
+      long complete = entry.getValue().longValue();
+
+      buffer.append(getStatus(complete, total)).append("  ");
     }
 
-    public ConsoleTransferListener( PrintStream out )
-    {
-        this.out = ( out != null ) ? out : System.out;
+    int pad = lastLength - buffer.length();
+    lastLength = buffer.length();
+    pad(buffer, pad);
+    buffer.append('\r');
+
+    out.print(buffer);
+  }
+
+  private String getStatus(long complete, long total) {
+    if (total >= 1024) {
+      return toKB(complete) + "/" + toKB(total) + " KB ";
+    } else if (total >= 0) {
+      return complete + "/" + total + " B ";
+    } else if (complete >= 1024) {
+      return toKB(complete) + " KB ";
+    } else {
+      return complete + " B ";
     }
+  }
 
-    @Override
-    public void transferInitiated( TransferEvent event )
-    {
-        String message = event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploading" : "Downloading";
-
-        out.println( message + ": " + event.getResource().getRepositoryUrl() + event.getResource().getResourceName() );
+  private void pad(StringBuilder buffer, int spaces) {
+    String block = "                                        ";
+    while (spaces > 0) {
+      int n = Math.min(spaces, block.length());
+      buffer.append(block, 0, n);
+      spaces -= n;
     }
+  }
 
-    @Override
-    public void transferProgressed( TransferEvent event )
-    {
-        TransferResource resource = event.getResource();
-        downloads.put( resource, Long.valueOf( event.getTransferredBytes() ) );
+  @Override
+  public void transferSucceeded(TransferEvent event) {
+    transferCompleted(event);
 
-        StringBuilder buffer = new StringBuilder( 64 );
+    TransferResource resource = event.getResource();
+    long contentLength = event.getTransferredBytes();
+    if (contentLength >= 0) {
+      String type = (event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploaded" : "Downloaded");
+      String len = contentLength >= 1024 ? toKB(contentLength) + " KB" : contentLength + " B";
 
-        for ( Map.Entry<TransferResource, Long> entry : downloads.entrySet() )
-        {
-            long total = entry.getKey().getContentLength();
-            long complete = entry.getValue().longValue();
+      String throughput = "";
+      long duration = System.currentTimeMillis() - resource.getTransferStartTime();
+      if (duration > 0) {
+        DecimalFormat format = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.ENGLISH));
+        double kbPerSec = (contentLength / 1024.0) / (duration / 1000.0);
+        throughput = " at " + format.format(kbPerSec) + " KB/sec";
+      }
 
-            buffer.append( getStatus( complete, total ) ).append( "  " );
-        }
-
-        int pad = lastLength - buffer.length();
-        lastLength = buffer.length();
-        pad( buffer, pad );
-        buffer.append( '\r' );
-
-        out.print( buffer );
+      out.println(type + ": " + resource.getRepositoryUrl() + resource.getResourceName() + " (" + len
+              + throughput + ")");
     }
+  }
 
-    private String getStatus( long complete, long total )
-    {
-        if ( total >= 1024 )
-        {
-            return toKB( complete ) + "/" + toKB( total ) + " KB ";
-        }
-        else if ( total >= 0 )
-        {
-            return complete + "/" + total + " B ";
-        }
-        else if ( complete >= 1024 )
-        {
-            return toKB( complete ) + " KB ";
-        }
-        else
-        {
-            return complete + " B ";
-        }
-    }
+  @Override
+  public void transferFailed(TransferEvent event) {
+    transferCompleted(event);
 
-    private void pad( StringBuilder buffer, int spaces )
-    {
-        String block = "                                        ";
-        while ( spaces > 0 )
-        {
-            int n = Math.min( spaces, block.length() );
-            buffer.append( block, 0, n );
-            spaces -= n;
-        }
-    }
+    event.getException().printStackTrace(out);
+  }
 
-    @Override
-    public void transferSucceeded( TransferEvent event )
-    {
-        transferCompleted( event );
+  private void transferCompleted(TransferEvent event) {
+    downloads.remove(event.getResource());
 
-        TransferResource resource = event.getResource();
-        long contentLength = event.getTransferredBytes();
-        if ( contentLength >= 0 )
-        {
-            String type = ( event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploaded" : "Downloaded" );
-            String len = contentLength >= 1024 ? toKB( contentLength ) + " KB" : contentLength + " B";
+    StringBuilder buffer = new StringBuilder(64);
+    pad(buffer, lastLength);
+    buffer.append('\r');
+    out.print(buffer);
+  }
 
-            String throughput = "";
-            long duration = System.currentTimeMillis() - resource.getTransferStartTime();
-            if ( duration > 0 )
-            {
-                DecimalFormat format = new DecimalFormat( "0.0", new DecimalFormatSymbols( Locale.ENGLISH ) );
-                double kbPerSec = ( contentLength / 1024.0 ) / ( duration / 1000.0 );
-                throughput = " at " + format.format( kbPerSec ) + " KB/sec";
-            }
+  public void transferCorrupted(TransferEvent event) {
+    event.getException().printStackTrace(out);
+  }
 
-            out.println( type + ": " + resource.getRepositoryUrl() + resource.getResourceName() + " (" + len
-                + throughput + ")" );
-        }
-    }
-
-    @Override
-    public void transferFailed( TransferEvent event )
-    {
-        transferCompleted( event );
-
-        event.getException().printStackTrace( out );
-    }
-
-    private void transferCompleted( TransferEvent event )
-    {
-        downloads.remove( event.getResource() );
-
-        StringBuilder buffer = new StringBuilder( 64 );
-        pad( buffer, lastLength );
-        buffer.append( '\r' );
-        out.print( buffer );
-    }
-
-    public void transferCorrupted( TransferEvent event )
-    {
-        event.getException().printStackTrace( out );
-    }
-
-    protected long toKB( long bytes )
-    {
-        return ( bytes + 1023 ) / 1024;
-    }
+  protected long toKB(long bytes) {
+    return (bytes + 1023) / 1024;
+  }
 
 }

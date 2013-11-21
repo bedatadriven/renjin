@@ -19,10 +19,10 @@ public class AetherPackage extends FileBasedPackage {
     this.artifact = artifact;
     this.jarFile = new JarFile(artifact.getFile());
   }
-  
+
   private ZipEntry entry(String file) {
     return jarFile.getEntry(artifact.getGroupId().replace('.', '/') + "/"
-        + artifact.getArtifactId() + "/" + file);
+            + artifact.getArtifactId() + "/" + file);
   }
 
   @Override

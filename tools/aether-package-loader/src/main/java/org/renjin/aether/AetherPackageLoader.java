@@ -35,34 +35,34 @@ public class AetherPackageLoader implements PackageLoader {
   private final List<RemoteRepository> repositories = Lists.newArrayList();
   private final RepositorySystem system = newRepositorySystem();
   private final RepositorySystemSession session = newRepositorySystemSession(system);
-  
+
   public AetherPackageLoader() {
-    repositories.add( new RemoteRepository.Builder( "central", "default", "http://repo1.maven.org/maven2/" ).build() );
-    repositories.add( new RemoteRepository.Builder( "renjin", "default", "http://nexus.bedatadriven.com/content/groups/public/" ).build() ); 
+    repositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
+    repositories.add(new RemoteRepository.Builder("renjin", "default", "http://nexus.bedatadriven.com/content/groups/public/").build());
   }
-  
+
   @Override
   public Package load(String name) {
     ClasspathPackage pkg = classpathPackageLoader.load(name);
-    if(pkg != null) {
+    if (pkg != null) {
       return pkg;
     }
     try {
-        
+
       Artifact latestArtifact = resolveLatestArtifact(name);
-  
-      if(latestArtifact == null) {
+
+      if (latestArtifact == null) {
         return null;
       }
-      
+
       ArtifactRequest collectRequest = new ArtifactRequest();
-      collectRequest.setArtifact( latestArtifact);
+      collectRequest.setArtifact(latestArtifact);
       collectRequest.setRepositories(repositories);
-      
+
       ArtifactResult artifactResult = system.resolveArtifact(session, collectRequest);
-        
-      System.out.println( artifactResult.getArtifact() + " resolved to " + artifactResult.getArtifact().getFile() );
-      
+
+      System.out.println(artifactResult.getArtifact() + " resolved to " + artifactResult.getArtifact().getFile());
+
       return new AetherPackage(artifactResult.getArtifact());
 
     } catch (Exception e) {
@@ -71,10 +71,10 @@ public class AetherPackageLoader implements PackageLoader {
   }
 
   private Artifact resolveLatestArtifact(String name)
-      throws VersionRangeResolutionException {
-    Artifact artifact = new DefaultArtifact( "org.renjin.cran:" + name + ":[0,)");      
-    Version newestVersion = resolveLatestVersion(artifact);    
-    if(newestVersion == null) {
+          throws VersionRangeResolutionException {
+    Artifact artifact = new DefaultArtifact("org.renjin.cran:" + name + ":[0,)");
+    Version newestVersion = resolveLatestVersion(artifact);
+    if (newestVersion == null) {
       return null;
     }
     Artifact latestArtifact = artifact.setVersion(newestVersion.toString());
@@ -82,45 +82,45 @@ public class AetherPackageLoader implements PackageLoader {
   }
 
   private Version resolveLatestVersion(Artifact artifact)
-      throws VersionRangeResolutionException {
+          throws VersionRangeResolutionException {
     VersionRangeRequest rangeRequest = new VersionRangeRequest();
-    rangeRequest.setArtifact( artifact );
+    rangeRequest.setArtifact(artifact);
     rangeRequest.setRepositories(repositories);
-    
-    VersionRangeResult rangeResult = system.resolveVersionRange( session, rangeRequest );
+
+    VersionRangeResult rangeResult = system.resolveVersionRange(session, rangeRequest);
 
     Version newestVersion = rangeResult.getHighestVersion();
 
-    System.out.println( "Newest version " + newestVersion + " from repository "
-        + rangeResult.getRepository( newestVersion ) );
+    System.out.println("Newest version " + newestVersion + " from repository "
+            + rangeResult.getRepository(newestVersion));
     return newestVersion;
   }
 
-  public static RepositorySystem newRepositorySystem()  {
-      /*
-       * Aether's components implement org.eclipse.aether.spi.locator.Service to ease manual wiring and using the
-       * prepopulated DefaultServiceLocator, we only need to register the repository connector factories.
-       */
-      DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
-      locator.addService( RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class );
-      locator.addService( RepositoryConnectorFactory.class, WagonRepositoryConnectorFactory.class );
-      locator.setServices( WagonProvider.class, new ManualWagonProvider() );
+  public static RepositorySystem newRepositorySystem() {
+    /*
+    * Aether's components implement org.eclipse.aether.spi.locator.Service to ease manual wiring and using the
+    * prepopulated DefaultServiceLocator, we only need to register the repository connector factories.
+    */
+    DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+    locator.addService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class);
+    locator.addService(RepositoryConnectorFactory.class, WagonRepositoryConnectorFactory.class);
+    locator.setServices(WagonProvider.class, new ManualWagonProvider());
 
-      return locator.getService( RepositorySystem.class );
+    return locator.getService(RepositorySystem.class);
   }
 
-  public static DefaultRepositorySystemSession newRepositorySystemSession( RepositorySystem system ) {
-      DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
+  public static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system) {
+    DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
-      LocalRepository localRepo = new LocalRepository( "target/local-repo" );
-      session.setLocalRepositoryManager( system.newLocalRepositoryManager( session, localRepo ) );
+    LocalRepository localRepo = new LocalRepository("target/local-repo");
+    session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
-      session.setTransferListener( new ConsoleTransferListener() );
-      session.setRepositoryListener( new ConsoleRepositoryListener() );
+    session.setTransferListener(new ConsoleTransferListener());
+    session.setRepositoryListener(new ConsoleRepositoryListener());
 
-      // uncomment to generate dirty trees
-      // session.setDependencyGraphTransformer( null );
+    // uncomment to generate dirty trees
+    // session.setDependencyGraphTransformer( null );
 
-      return session;
+    return session;
   }
 }

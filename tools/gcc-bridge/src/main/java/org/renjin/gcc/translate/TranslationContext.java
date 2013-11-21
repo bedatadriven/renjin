@@ -1,25 +1,29 @@
 package org.renjin.gcc.translate;
 
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.ins.GimpleCall;
 import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
+import org.renjin.gcc.gimple.ins.GimpleCall;
 import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.jimple.*;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleOutput;
+import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.jimple.SyntheticJimpleType;
 import org.renjin.gcc.translate.call.*;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.field.PrimitiveFieldExpr;
+import org.renjin.gcc.translate.type.ImPrimitiveType;
+import org.renjin.gcc.translate.type.ImType;
+import org.renjin.gcc.translate.type.ImVoidType;
 import org.renjin.gcc.translate.type.struct.ImRecordType;
-import org.renjin.gcc.translate.type.*;
 
-import com.google.common.collect.Lists;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Map;
 
 public class TranslationContext {
   private JimpleClassBuilder mainClass;
@@ -48,6 +52,8 @@ public class TranslationContext {
     }
     
     builtinCallTranslators.add(new MallocCallTranslator("malloc"));
+    builtinCallTranslators.add(new MallocCallTranslator("__builtin_malloc"));
+    builtinCallTranslators.add(new NullCallTranslator("__builtin_free"));
     builtinCallTranslators.add(FunPtrCallTranslator.INSTANCE);
     builtinCallTranslators.add(StaticCallTranslator.INSTANCE);
 

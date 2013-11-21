@@ -7,6 +7,7 @@ import java.util.*;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
@@ -61,8 +62,16 @@ public abstract class FileBasedPackage extends Package {
     if(resourceExists("requires")) {
       InputSupplier<InputStreamReader> supplier = CharStreams.newReaderSupplier(
               getResource("requires"), Charsets.UTF_8);
-      return CharStreams.readLines(supplier);
-      
+
+      // exclude blank lines
+      List<String> dependencies = Lists.newArrayList();
+      for(String line : CharStreams.readLines(supplier)) {
+        if(!Strings.isNullOrEmpty(line)) {
+          dependencies.add(line);
+        }
+      }
+      return dependencies;
+
     } else {
       return Collections.emptyList();
     }

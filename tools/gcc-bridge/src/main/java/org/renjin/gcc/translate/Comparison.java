@@ -1,19 +1,18 @@
 package org.renjin.gcc.translate;
 
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.type.GimpleBooleanType;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
-import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.translate.expr.ArrayRef;
 import org.renjin.gcc.translate.expr.ImExpr;
+import org.renjin.gcc.translate.expr.ImIndirectExpr;
+import org.renjin.gcc.translate.expr.ImLiteralPrimitiveExpr;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
-import org.renjin.gcc.translate.type.PrimitiveType;
 
 public class Comparison {
   private GimpleOp op;
-  private ImExpr a;
-  private ImExpr b;
+  private ImExpr a, ap;
+  private ImExpr b, bp;
   private ImPrimitiveType type;
 
 
@@ -22,12 +21,30 @@ public class Comparison {
     this.op = op;
     this.a = a;
     this.b = b;
-    TypeChecker.assertSameType(a,b);
-    this.type = (ImPrimitiveType) a.type();
+  }
+
+  /**
+   * If pointers are being used in the comparison, than we
+   * need to interpret them as integers.
+   */
+  private ImExpr pointerToInteger(FunctionContext context, ImExpr a) {
+    if(a instanceof ImIndirectExpr) {
+      ArrayRef arrayRef = ((ImIndirectExpr) a).translateToArrayRef(context);
+      return new ImLiteralPrimitiveExpr(arrayRef.getIndexExpr(), ImPrimitiveType.INT);
+    } else {
+      return a;
+    }
   }
 
 
   public JimpleExpr toCondition(FunctionContext context) {
+
+    ap = pointerToInteger(context, this.a);
+    bp = pointerToInteger(context, this.b);
+    TypeChecker.assertSamePrimitiveType(ap, bp);
+    type = (ImPrimitiveType) ap.type();
+
+
     switch(type) {
     case FLOAT:
     case DOUBLE:
@@ -73,17 +90,17 @@ public class Comparison {
     String cmp = context.declareTemp(JimpleType.INT);
     context.getBuilder().addStatement(String.format("%s = %s %s %s",
         cmp, 
-        a.translateToPrimitive(context, type),
+        ap.translateToPrimitive(context, type),
         operator, 
-        b.translateToPrimitive(context, type)));
+        bp.translateToPrimitive(context, type)));
 
     return new JimpleExpr(cmp + " " + condition + " " + operand);
   }
   
   private JimpleExpr intComparison(FunctionContext context, String operator) {
     return JimpleExpr.binaryInfix(operator,
-        a.translateToPrimitive(context, type),
-        b.translateToPrimitive(context, type));
+        ap.translateToPrimitive(context, type),
+        bp.translateToPrimitive(context, type));
     
   }
 }

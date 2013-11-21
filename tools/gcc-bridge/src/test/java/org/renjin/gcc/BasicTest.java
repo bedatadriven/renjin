@@ -308,7 +308,8 @@ public class BasicTest extends AbstractGccTest {
 
   }
 
-
-
-
+  @Test
+  public void voidInference() throws Exception {
+    compile("lamix.f", "Lamix");
+  }
 }

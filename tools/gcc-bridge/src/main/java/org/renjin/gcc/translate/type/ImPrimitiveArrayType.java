@@ -1,7 +1,10 @@
 package org.renjin.gcc.translate.type;
 
 
-import org.renjin.gcc.jimple.*;
+import org.renjin.gcc.jimple.Jimple;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.jimple.RealJimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
@@ -69,5 +72,19 @@ public class ImPrimitiveArrayType implements ImType {
 
   public int getLowerBound() {
     return lowerBound;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder(componentType.toString()).append("[");
+    if(lowerBound != null) {
+      sb.append(lowerBound);
+    }
+    sb.append(",");
+    if(upperBound != null) {
+      sb.append(upperBound);
+    }
+    sb.append("]");
+    return sb.toString();
   }
 }

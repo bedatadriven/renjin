@@ -8,6 +8,7 @@ import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Strings;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -178,7 +179,7 @@ public class NamespaceMojo extends AbstractMojo {
       try {
         PrintWriter requireWriter = new PrintWriter(new File(getPackageRoot(), "requires"));
         for(PackageDescription.PackageDependency dep : description.getDepends()) {
-          if(!dep.getName().equals("R")) {
+          if(!dep.getName().equals("R") && !Strings.isNullOrEmpty(dep.getName())) {
             requireWriter.println(dep.getName());
           }
         }

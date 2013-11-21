@@ -20,21 +20,9 @@ public class RNG {
   public MersenneTwister mersenneTwisterAlg = null;
   public RNGtype RNG_kind = RNGtype.MERSENNE_TWISTER; //default
   public N01type N01_kind = N01type.INVERSION; //default
-  int[] dummy = new int[625];
-  DoubleVector seeds;
   int randomseed = 0;
-  static double i2_32m1 = 2.328306437080797e-10;/* = 1/(2^32 - 1) */
   public Session context;
 
-
-  RNGTAB[] RNG_Table = new RNGTAB[]{
-      new RNGTAB(RNGtype.WICHMANN_HILL, N01type.BUGGY_KINDERMAN_RAMAGE, "Wichmann-Hill"),
-      new RNGTAB(RNGtype.MARSAGLIA_MULTICARRY, N01type.BUGGY_KINDERMAN_RAMAGE, "Marsaglia-MultiCarry"),
-      new RNGTAB(RNGtype.SUPER_DUPER, N01type.BUGGY_KINDERMAN_RAMAGE, "Super-Duper"),
-      new RNGTAB(RNGtype.MERSENNE_TWISTER, N01type.BUGGY_KINDERMAN_RAMAGE, "Mersenne-Twister"),
-      new RNGTAB(RNGtype.KNUTH_TAOCP, N01type.BUGGY_KINDERMAN_RAMAGE, "Knuth-TAOCP"),
-      new RNGTAB(RNGtype.USER_UNIF, N01type.BUGGY_KINDERMAN_RAMAGE, "User-supplied"),
-      new RNGTAB(RNGtype.KNUTH_TAOCP2, N01type.BUGGY_KINDERMAN_RAMAGE, "Knuth-TAOCP-2002")};
 
   public RNG(Session globals){
     this.context = globals;

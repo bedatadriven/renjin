@@ -2,19 +2,19 @@
 
 assertTrue <- function(value) {
 	if(!value) {
-		stop(paste("\nExpected: !", deparse(substitute(value))))
+		stop("\nExpected: !", deparse(substitute(value)))
 	}
 }
 
 assertFalse <- function(value) {
 	if(value) {
-		stop(paste("\nExpected: !", deparse(substitute(value))))
+		stop("\nExpected: !", deparse(substitute(value)))
 	}
 }
 
 assertThat <- function(actual, matcher) {
 	if(!matcher(actual)) {
-		stop(paste("\nExpected:", deparse(substitute(matcher)), "\ngot: ", deparse(actual) ))
+		stop("\nExpected: ", deparse(substitute(matcher)), "\nGot: ", deparse(actual))
 	}
 }
 
@@ -36,4 +36,10 @@ equalTo <- function(expected) {
 		length(actual) == length(expected) &&
 				actual == expected
 	}
+}
+
+instanceOf <- function(expected) {
+    function(actual) {
+        inherits(actual, expected)
+    }
 }

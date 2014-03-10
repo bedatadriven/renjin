@@ -230,13 +230,20 @@ public class Serialization {
   @DotCall("R_serialize")
   public static SEXP serialize(@Current Context context, SEXP object, SEXP connection, boolean ascii,
       SEXP version, SEXP refhook) throws IOException {
-    EvalException.check(!ascii, "ascii = TRUE has not been implemented");
+    //EvalException.check(!ascii, "ascii = TRUE has not been implemented");
     EvalException.check(refhook == Null.INSTANCE, "refHook != NULL has not been implemented yet.");
     EvalException.check(connection == Null.INSTANCE, "Only connection = NULL has been implemented so far.");
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    RDataWriter writer = new RDataWriter(context, baos);
-    writer.serialize(object);
+    
+    if(ascii) {
+        RDataWriter writer = new RASCWriter(context, baos);
+        writer.serialize(object); 
+    } else {
+        RDataWriter writer = new RDataWriter(context, baos);
+        writer.serialize(object);
+    }  
+    
     return new RawVector(baos.toByteArray());
   }
 }

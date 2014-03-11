@@ -135,16 +135,16 @@ public class RASCWriter {
   }
 
   public void serialize(SEXP exp) throws IOException {
-    out.writeByte(XDR_FORMAT);
+    out.writeByte(SerializationFormat.ASCII_FORMAT);
     out.writeByte('\n');
     writeVersion();
     writeExp(exp);
   }
     
   private void writeVersion() throws IOException {
-    out.writeInt(VERSION2);
-    out.writeInt(Version.CURRENT.asPacked());
-    out.writeInt(new Version(2,3,0).asPacked());
+    out.writeBytes(VERSION2 + "\n");
+    out.writeBytes(Version.CURRENT.asPacked() + "\n");
+    out.writeBytes(new Version(2,3,0).asPacked() + "\n");
   }
 
   private void writeExp(SEXP exp) throws IOException {
@@ -250,35 +250,46 @@ public class RASCWriter {
   }
 
   private void writeNull() throws IOException {
-    out.writeInt(NILVALUE_SXP);
+    out.writeBytes(NILVALUE_SXP + "\n");
   }
 
   private void writeLogical(LogicalVector vector) throws IOException {
     writeFlags(LGLSXP, vector);
-    out.writeInt(vector.length());
+    out.writeBytes(vector.length() + "\n");
     for(int i=0;i!=vector.length();++i) {
-      out.writeInt(vector.getElementAsRawLogical(i));
+      out.writeBytes(vector.getElementAsRawLogical(i) + "\n");
     }
     writeAttributes(vector);
   }
 
   private void writeIntVector(IntVector vector) throws IOException {
     writeFlags(INTSXP, vector);
-    out.writeInt(vector.length());
+    out.writeBytes(vector.length() + "\n");
     for(int i=0;i!=vector.length();++i) {
-      out.writeInt(vector.getElementAsInt(i));
+      if(vector.isElementNA(i)) {
+        out.writeBytes("NA\n");
+      } else {
+        out.writeBytes(vector.getElementAsInt(i) + "\n");
+      }
     }
     writeAttributes(vector);
   }
 
   private void writeDoubleVector(DoubleVector vector) throws IOException {
     writeFlags(REALSXP, vector);
-    out.writeInt(vector.length());
+    out.writeBytes(vector.length() + "\n");
     for(int i=0;i!=vector.length();++i) {
-      if(vector.isElementNA(i)) {
-        out.writeLong(DoubleVector.NA_BITS);
+      double d = vector.getElementAsDouble(i);
+      if(!DoubleVector.isFinite(d)) {
+        if(DoubleVector.isNaN(d)) {
+          out.writeBytes("NA\n");
+        } else if (d < 0) {
+          out.writeBytes("-Inf\n");
+        } else {
+          out.writeBytes("Inf\n");
+        }
       } else {
-        out.writeDouble(vector.getElementAsDouble(i));
+        out.writeBytes(d + "\n");
       }
     }
     writeAttributes(vector);
@@ -318,7 +329,7 @@ public class RASCWriter {
   
   private void writeStringVector(StringVector vector) throws IOException {
     writeFlags(STRSXP, vector);
-    out.writeInt(vector.length());
+    out.writeBytes(vector.length() + "\n");
     for(int i=0;i!=vector.length();++i) {
       writeCharExp(vector.getElementAsString(i));
     }
@@ -461,13 +472,40 @@ public class RASCWriter {
 
 
   private void writeCharExp(String string) throws IOException {
-    out.writeInt( CHARSXP | UTF8_MASK );
+    out.writeBytes( (CHARSXP | UTF8_MASK) + "\n");
     if(StringVector.isNA(string)) {
-      out.writeInt(-1);
+      out.writeBytes(-1 + "\n");
     } else {
       byte[] bytes = string.getBytes("UTF8");
-      out.writeInt(bytes.length);
-      out.write(bytes);
+      out.writeBytes(bytes.length + "\n");
+      for(int i = 0; i < bytes.length; i++) {
+        String s;
+        switch(bytes[i]) {
+        case '\n': s = "\\n";  break;
+        case '\t': s = "\\t";  break;
+        case '\013': s = "\\v";  break;
+        case '\b': s = "\\b";  break;
+        case '\r': s = "\\r";  break;
+        case '\f': s = "\\f";  break;
+        case '\007': s = "\\a";  break;
+        case '\\': s = "\\\\"; break;
+        case '\177': s = "\\?";  break;
+        case '\'': s = "\\'";  break;
+        case '\"': s = "\\\""; break;
+        default  :
+        /* cannot print char in octal mode -> cast to unsigned
+           char first */
+        /* actually, since s is signed char and '\?' == 127
+           is handled above, s[i] > 126 can't happen, but
+           I'm superstitious...  -pd */
+        if (bytes[i] <= 32 || bytes[i] > 126)
+            s = String.format("\\%03o", bytes[i]);
+        else
+            s = new String(new byte[] {bytes[i]});
+        }
+        out.writeBytes(s);
+      }
+      out.writeBytes("\n");
     }
   }
 
@@ -499,7 +537,7 @@ public class RASCWriter {
 
   
   private void writeFlags(int type, SEXP exp) throws IOException {
-    out.writeInt(Flags.computeFlags(exp, type));
+    out.writeBytes(Flags.computeFlags(exp, type) + "\n");
   }
 
 }

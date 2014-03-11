@@ -237,7 +237,7 @@ public class Serialization {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     
     if(ascii) {
-        RDataWriter writer = new RASCWriter(context, baos);
+        RASCWriter writer = new RASCWriter(context, baos);
         writer.serialize(object); 
     } else {
         RDataWriter writer = new RDataWriter(context, baos);

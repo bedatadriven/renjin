@@ -218,8 +218,8 @@ public class RASCWriter {
 
   private void writePersistentNameVector(StringVector name) throws IOException {
     // place holder to allow names attribute
-    out.writeInt(0);
-    out.writeInt(name.length());
+    out.writeBytes(0 + "\n");
+    out.writeBytes(name.length() + "\n");
     for(int i=0;i!=name.length();++i) {
       writeCharExp(name.getElementAsString(i));
     }
@@ -311,19 +311,22 @@ public class RASCWriter {
 
   private void writeComplexVector(ComplexVector vector) throws IOException {
     writeFlags(SerializationFormat.CPLXSXP, vector);
-    out.writeInt(vector.length());
+    out.writeBytes(vector.length() + "\n");
     for(int i=0;i!=vector.length();++i) {
       Complex value = vector.getElementAsComplex(i);
-      out.writeDouble(value.getReal());
-      out.writeDouble(value.getImaginary());
+      out.writeBytes(value.getReal() + "\n");
+      out.writeBytes(value.getImaginary() + "\n");
     }
     writeAttributes(vector);
   }
 
   private void writeRawVector(RawVector vector) throws IOException {
     writeFlags(RAWSXP, vector);
-    out.writeInt(vector.length());
-    out.write(vector.getAsByteArray());    
+    out.writeBytes(vector.length() + "\n");
+    byte[] bytes = vector.getAsByteArray();
+    for(int i=0;i!=vector.length();++i) {
+        out.writeBytes(String.format("%02x\n", bytes[i]));
+    }
     writeAttributes(vector);
   }
   
@@ -338,7 +341,7 @@ public class RASCWriter {
 
   private void writeList(ListVector vector) throws IOException {
     writeFlags(VECSXP, vector);
-    out.writeInt(vector.length());
+    out.writeBytes(vector.length() + "\n");
     for(SEXP element : vector) {
       writeExp(element);
     }
@@ -346,7 +349,7 @@ public class RASCWriter {
   }
 
   private void writePromise(Promise exp) throws IOException {
-    out.writeInt(Flags.computePromiseFlags(exp));
+    out.writeBytes(Flags.computePromiseFlags(exp) + "\n");
     writeAttributes(exp);
     if(exp.getEnvironment() != null) {
       writeExp(exp.getEnvironment());
@@ -391,18 +394,19 @@ public class RASCWriter {
     // add reference FIRST to avoid infinite loops
 
     if(context.isGlobalEnvironment(env)) {
-      out.writeInt(SerializationFormat.GLOBALENV_SXP);
+      out.writeBytes(SerializationFormat.GLOBALENV_SXP + "\n");
     } else if(context.isBaseEnvironment(env)) {
-      out.writeInt(SerializationFormat.BASEENV_SXP);
+      out.writeBytes(SerializationFormat.BASEENV_SXP + "\n");
     } else if(env == Environment.EMPTY) {
-      out.writeInt(SerializationFormat.EMPTYENV_SXP);
+      out.writeBytes(SerializationFormat.EMPTYENV_SXP + "\n");
     } else {      
       if(context.isNamespaceEnvironment(env)) {
         writeNamespace(env);
       } else {
         addRef(env);
-        writeFlags(SerializationFormat.ENVSXP, env);
-        out.writeInt(env.isLocked() ? 1 : 0);
+        out.writeBytes(SerializationFormat.ENVSXP + "\n");
+        //writeFlags(SerializationFormat.ENVSXP, env);
+        out.writeBytes((env.isLocked() ? 1 : 0) + "\n");
         writeExp(env.getParent());
         writeFrame(env);
         writeExp(Null.INSTANCE); // hashtab (unused)
@@ -424,7 +428,7 @@ public class RASCWriter {
 
   private void writeNamespace(Environment ns) throws IOException {
     if(context.isBaseNamespaceEnvironment(ns)) {
-      out.writeInt(SerializationFormat.BASENAMESPACE_SXP);
+      out.writeBytes(SerializationFormat.BASENAMESPACE_SXP + "\n");
     } else {
       addRef(ns);
       writeFlags(SerializationFormat.NAMESPACESXP, ns);
@@ -443,10 +447,10 @@ public class RASCWriter {
 
   private void writeRefIndex(int index) throws IOException {
     if(index > Flags.MAX_PACKED_INDEX) {
-      out.writeInt(SerializationFormat.REFSXP);
-      out.writeInt(index);
+      out.writeBytes(SerializationFormat.REFSXP + "\n");
+      out.writeBytes(index + "\n");
     } else {
-      out.writeInt(SerializationFormat.REFSXP | (index << 8));
+      out.writeBytes((SerializationFormat.REFSXP | (index << 8)) + "\n");
     }
   }
  
@@ -460,9 +464,9 @@ public class RASCWriter {
 
   private void writeSymbol(Symbol symbol) throws IOException {
     if(symbol == Symbol.UNBOUND_VALUE) {
-      out.writeInt(SerializationFormat.UNBOUNDVALUE_SXP);
+      out.writeBytes(SerializationFormat.UNBOUNDVALUE_SXP + "\n");
     } else if(symbol == Symbol.MISSING_ARG) {
-      out.writeInt(SerializationFormat.MISSINGARG_SXP);
+      out.writeBytes(SerializationFormat.MISSINGARG_SXP + "\n");
     } else {
       addRef(symbol);
       writeFlags(SYMSXP, symbol);
@@ -527,11 +531,11 @@ public class RASCWriter {
 
   private void writePrimitive(PrimitiveFunction exp) throws IOException {
     if(exp instanceof BuiltinFunction) {
-      out.writeInt(SerializationFormat.BUILTINSXP);
+      out.writeBytes(SerializationFormat.BUILTINSXP + "\n");
     } else {
-      out.writeInt(SerializationFormat.SPECIALSXP);
+      out.writeBytes(SerializationFormat.SPECIALSXP + "\n");
     }
-    out.writeInt(exp.getName().length());
+    out.writeBytes(exp.getName().length() + "\n");
     out.writeBytes(exp.getName());
   }
 

@@ -1,5 +1,10 @@
 package org.renjin.primitives.io.serialization;
 
+import static org.renjin.util.CDefines.R_NilValue;
+import static org.renjin.util.CDefines._;
+import static org.renjin.util.CDefines.error;
+
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -258,6 +263,15 @@ public class Serialization {
   public static SEXP unserialize(@Current Context context, SEXP connection, SEXP refhook) throws IOException {
     EvalException.check(refhook == Null.INSTANCE, "refHook != NULL has not been implemented yet.");
     
-    return Null.INSTANCE;
+    if(connection instanceof StringVector) {
+        error(_("character vectors are no longer accepted by unserialize()"));
+        return R_NilValue/* -Wall */;
+    } else if(connection instanceof RawVector) {
+      RDataReader reader = new RDataReader(context, 
+              new ByteArrayInputStream(((RawVector)connection).getAsByteArray()));
+      return reader.readFile();
+    } else {
+      return unserializeFromConn(context, connection, Null.INSTANCE);
+    }
   }
 }

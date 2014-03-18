@@ -246,4 +246,18 @@ public class Serialization {
     
     return new RawVector(baos.toByteArray());
   }
+  
+  /**
+   * 
+   * @param connection a {@code RawVector}
+   * @param refhook a hook function for handling reference objects.
+   * @return a object
+   * @throws IOException
+   */
+  @DotCall("R_unserialize")
+  public static SEXP unserialize(@Current Context context, SEXP connection, SEXP refhook) throws IOException {
+    EvalException.check(refhook == Null.INSTANCE, "refHook != NULL has not been implemented yet.");
+    
+    return Null.INSTANCE;
+  }
 }

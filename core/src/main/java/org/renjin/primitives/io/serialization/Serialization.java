@@ -240,16 +240,9 @@ public class Serialization {
     EvalException.check(connection == Null.INSTANCE, "Only connection = NULL has been implemented so far.");
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    
-/*    if(ascii) {
-        RASCWriter writer = new RASCWriter(context, baos);
-        writer.serialize(object); 
-    } else {
-    */
-        RDataWriter writer = new RDataWriter(context, baos, ascii);
-        writer.serialize(object);
-    //}  
-    
+    RDataWriter writer = new RDataWriter(context, baos, ascii);
+    writer.serialize(object);
+   
     return new RawVector(baos.toByteArray());
   }
   

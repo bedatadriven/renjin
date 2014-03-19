@@ -1,7 +1,5 @@
 package org.renjin.primitives.io.serialization;
 
-import jline.internal.TestAccessible;
-
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 

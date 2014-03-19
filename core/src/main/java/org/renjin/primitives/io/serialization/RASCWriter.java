@@ -37,6 +37,8 @@ import static org.renjin.primitives.io.serialization.SerializationFormat.VECSXP;
 import static org.renjin.primitives.io.serialization.SerializationFormat.VERSION2;
 import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_FORMAT;
 import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_MAGIC_HEADER;
+import static org.renjin.primitives.io.serialization.SerializationFormat.ASCII_FORMAT;
+import static org.renjin.primitives.io.serialization.SerializationFormat.ASCII_MAGIC_HEADER;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -130,12 +132,12 @@ public class RASCWriter {
    * @throws IOException
    */
   public void save(SEXP sexp) throws IOException {
-    out.writeBytes(XDR_MAGIC_HEADER);
+    out.writeBytes(ASCII_MAGIC_HEADER);
     serialize(sexp);
   }
 
   public void serialize(SEXP exp) throws IOException {
-    out.writeByte(SerializationFormat.ASCII_FORMAT);
+    out.writeByte(ASCII_FORMAT);
     out.writeByte('\n');
     writeVersion();
     writeExp(exp);

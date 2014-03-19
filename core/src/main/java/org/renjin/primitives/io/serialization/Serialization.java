@@ -241,13 +241,14 @@ public class Serialization {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     
-    if(ascii) {
+/*    if(ascii) {
         RASCWriter writer = new RASCWriter(context, baos);
         writer.serialize(object); 
     } else {
-        RDataWriter writer = new RDataWriter(context, baos);
+    */
+        RDataWriter writer = new RDataWriter(context, baos, ascii);
         writer.serialize(object);
-    }  
+    //}  
     
     return new RawVector(baos.toByteArray());
   }

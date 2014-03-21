@@ -40,7 +40,7 @@ public class Serialization {
 
   private static final int DEFAULT_SERIALIZATION_VERSION = 0;
 
-
+  public enum SERIALIZATION_TYPE { ASCII, XDR, BINARY};
 
   @Internal
   public static SEXP unserializeFromConn(@Current Context context,
@@ -240,7 +240,8 @@ public class Serialization {
     EvalException.check(connection == Null.INSTANCE, "Only connection = NULL has been implemented so far.");
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    RDataWriter writer = new RDataWriter(context, baos, ascii);
+    RDataWriter writer = new RDataWriter(context, baos, 
+            ascii? SERIALIZATION_TYPE.ASCII: SERIALIZATION_TYPE.XDR);
     writer.serialize(object);
    
     return new RawVector(baos.toByteArray());

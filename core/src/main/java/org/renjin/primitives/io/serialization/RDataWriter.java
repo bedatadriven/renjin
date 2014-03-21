@@ -21,6 +21,7 @@
 
 package org.renjin.primitives.io.serialization;
 
+import org.renjin.primitives.io.serialization.Serialization.*;
 import static org.renjin.primitives.io.serialization.SerializationFormat.CHARSXP;
 import static org.renjin.primitives.io.serialization.SerializationFormat.EXTPTRSXP;
 import static org.renjin.primitives.io.serialization.SerializationFormat.INTSXP;
@@ -95,28 +96,28 @@ public class RDataWriter {
   private PersistenceHook hook;
   private DataOutputStream conn;
   private StreamWriter out;
-  private boolean isAscii;
+  private SERIALIZATION_TYPE ser_type;
 
   private Map<SEXP, Integer> references = Maps.newHashMap();
 
-  public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out, boolean ascii) {
+  public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out, 
+          SERIALIZATION_TYPE st) {
     this.context = context;
     this.hook = hook;
     this.conn = new DataOutputStream(out);
-    this.isAscii = ascii;
-    if(isAscii) {
-      this.out = new AsciiWriter(this.conn);
-    } else {
-      this.out = new XdrWriter(this.conn);
+    this.ser_type = st;
+    switch(this.ser_type) {
+    case ASCII: this.out = new AsciiWriter(this.conn); break;
+    default: this.out = new XdrWriter(this.conn); break;
     }
   }
   
   public RDataWriter(Context context, PersistenceHook hook, OutputStream out) throws IOException {
-    this(new SessionWriteContext(context.getSession()), hook, out, false);
+    this(new SessionWriteContext(context.getSession()), hook, out, SERIALIZATION_TYPE.XDR);
   }
 
-  public RDataWriter(Context context, OutputStream out, boolean ascii) throws IOException {
-    this(new SessionWriteContext(context.getSession()), null, out, ascii);
+  public RDataWriter(Context context, OutputStream out, SERIALIZATION_TYPE st) throws IOException {
+    this(new SessionWriteContext(context.getSession()), null, out, st);
   }
   
   public RDataWriter(Context context, OutputStream out) throws IOException {
@@ -124,7 +125,7 @@ public class RDataWriter {
   }
 
   public RDataWriter(WriteContext writeContext, OutputStream os) {
-    this(writeContext, null, os, false);
+    this(writeContext, null, os, SERIALIZATION_TYPE.XDR);
   }
 
   
@@ -144,7 +145,7 @@ public class RDataWriter {
    * @throws IOException
    */
   public void save(SEXP sexp) throws IOException {
-    if(isAscii) {
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
       conn.writeBytes(ASCII_MAGIC_HEADER);
     } else {
       conn.writeBytes(XDR_MAGIC_HEADER);
@@ -154,7 +155,7 @@ public class RDataWriter {
   }
 
   public void serialize(SEXP exp) throws IOException {
-    if(isAscii) {
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
       conn.writeByte(ASCII_FORMAT);
     } else {
       conn.writeByte(XDR_FORMAT);
@@ -289,7 +290,7 @@ public class RDataWriter {
   private void writeIntVector(IntVector vector) throws IOException {
     writeFlags(INTSXP, vector);
     out.writeInt(vector.length());
-    if(isAscii) {
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {
           conn.writeBytes("NA\n");
@@ -308,7 +309,7 @@ public class RDataWriter {
   private void writeDoubleVector(DoubleVector vector) throws IOException {
     writeFlags(REALSXP, vector);
     out.writeInt(vector.length());
-    if(isAscii) {
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
       for(int i=0;i!=vector.length();++i) {
         double d = vector.getElementAsDouble(i);
         if(!DoubleVector.isFinite(d)) {
@@ -364,7 +365,7 @@ public class RDataWriter {
   private void writeRawVector(RawVector vector) throws IOException {
     writeFlags(RAWSXP, vector);
     out.writeInt(vector.length());
-    if(isAscii) {
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
       byte[] bytes = vector.getAsByteArray();
       for(int i=0;i!=vector.length();++i) {
         conn.writeBytes(String.format("%02x\n", bytes[i]));

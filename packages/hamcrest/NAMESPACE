@@ -5,4 +5,5 @@ export(
 	assertThat,
 	closeTo,
 	identicalTo,
-	equalTo)
+	equalTo,
+	instanceOf)

@@ -58,6 +58,13 @@
         <groupId>org.renjin</groupId>
         <artifactId>renjin-maven-plugin</artifactId>
         <version>${project.version}</version>
+        <configuration>
+          <defaultPackages>
+              <!-- grDevices is required for some of the tests in the stats package -->
+              <package>grDevices</package>
+              <package>stats</package>
+          </defaultPackages>
+        </configuration>
         <executions>
           <execution>
             <id>build</id>
@@ -73,11 +80,6 @@
               <goal>test</goal>
             </goals>
             <phase>test</phase>
-            <configuration>
-              <defaultPackages>
-                <package>stats</package>
-              </defaultPackages>
-            </configuration>
           </execution>
         </executions>
       </plugin>

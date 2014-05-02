@@ -1,6 +1,8 @@
 
 
-testApprox <- function() {
+library(hamcrest)
+
+test.approx <- function() {
 	x <- c(2,2:4,4,4,5,5,7,7,7)
 	y <- c(1:6, 5:4, 3:1)
 	approx(x,y, xout=x)$y # warning
@@ -9,7 +11,7 @@ testApprox <- function() {
 	
 }
 
-testMassdist <- function() {
+test.massdist <- function() {
 	n <- 10L
 	y <- .C("massdist",
 			x = c(-0.44577826, -1.20585657,  0.04112631,  0.63938841, -0.78655436, -0.38548930,
@@ -29,7 +31,7 @@ testMassdist <- function() {
 		
 }
 
-testDensity <- function() {
+test.density <- function() {
   cat(c("testDensity Starting...\n"))
 	x <- c(-0.44577826, -1.20585657,  0.04112631,  0.63938841, -0.78655436, -0.38548930,
 		   -0.47586788,  0.71975069, -0.01850562, -1.37311776)

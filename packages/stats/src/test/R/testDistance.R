@@ -1,7 +1,7 @@
 
 library(hamcrest)
 
-testEuclidean <- function() {
+test.euclidean <- function() {
 
   x <- 1:10
   d <- dist(x)

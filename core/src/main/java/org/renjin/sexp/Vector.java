@@ -118,7 +118,7 @@ public interface Vector extends SEXP {
    * capacity for the given number of elements, but setting the initial size
    * to zero.
    * 
-   * @param intialCapacity
+   * @param initialCapacity
    * @return
    */
   Builder newBuilderWithInitialCapacity(int initialCapacity);

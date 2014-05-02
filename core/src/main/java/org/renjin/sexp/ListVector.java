@@ -166,6 +166,10 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     return (ListVector)getElementAsSEXP(getIndexByName(name));
   }
 
+  public Vector getElementAsVector(String name) {
+    return (Vector)getElementAsSEXP(getIndexByName(name));
+  }
+
   @Override
   public int getElementAsInt(int index) {
     SEXP value = values.get(index);

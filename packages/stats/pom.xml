@@ -73,6 +73,11 @@
               <goal>gnur-sources-compile</goal>
             </goals>
             <phase>compile</phase>
+            <configuration>
+               <defaultPackages>
+                 <package>grDevices</package>
+               </defaultPackages>
+            </configuration>
           </execution>
           <execution>
             <id>test</id>

@@ -21,7 +21,7 @@ public class Reassignment extends Assignment {
     SEXP rhs = (SEXP) getRHS().retrieveValue(context, temp);
     Environment rho = context.getEnvironment();
 
-    for(Environment env : context.getEnvironment().selfAndParents()) {
+    for(Environment env : context.getEnvironment().parents()) {
       if(env.hasVariable(target))  {
         env.setVariable(target, rhs);
         return null;

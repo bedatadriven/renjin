@@ -3,10 +3,10 @@ package org.renjin.primitives.matrix;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Indexes;
 import org.renjin.primitives.Warning;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ComputingIntVector;
 import org.renjin.primitives.vector.ConstantDoubleVector;
@@ -153,12 +153,35 @@ public class Matrices {
 
   @Internal
   public static DoubleVector colMeans(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
-    DoubleVector sums = colSums(x, columnLength, numColumns, naRm);
-    DoubleArrayVector.Builder dvb = new DoubleArrayVector.Builder();
-    for (int i = 0; i < numColumns; i++) {
-      dvb.add(sums.get(i) / columnLength);
+    double sums[] = new double[numColumns];
+    int counts[] = new int[numColumns];
+
+    for(int column=0;column < numColumns; column++) {
+      int sourceIndex = columnLength*column;
+
+      double sum = 0;
+      int count = 0;
+      for(int row=0;row < columnLength; ++row) {
+        double cellValue = x.getElementAsDouble(sourceIndex++);
+        if(Double.isNaN(cellValue)) {
+          if(!naRm) {
+            sum = DoubleVector.NA;
+            break;
+          }
+        } else {
+          sum += cellValue;
+          count++;
+        }
+      }
+      sums[column] = sum;
+      counts[column] = count;
     }
-    return (dvb.build());
+
+    for(int i=0;i!=sums.length;++i) {
+      sums[i] = sums[i] / (double)counts[i];
+    }
+
+    return new DoubleArrayVector(sums);
   }
 
   /**

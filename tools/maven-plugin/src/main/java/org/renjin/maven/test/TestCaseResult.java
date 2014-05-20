@@ -11,7 +11,7 @@ public class TestCaseResult {
   
   private String name;
   
-  private Exception exception;
+  private Throwable exception;
   
   private TestOutcome outcome;
 
@@ -39,11 +39,11 @@ public class TestCaseResult {
     this.name = name;
   }
 
-  public Exception getException() {
+  public Throwable getException() {
     return exception;
   }
 
-  public void setException(Exception exception) {
+  public void setException(Throwable exception) {
     this.exception = exception;
   }
 

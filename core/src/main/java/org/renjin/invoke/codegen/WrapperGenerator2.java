@@ -5,6 +5,7 @@ import com.google.common.io.Files;
 import com.sun.codemodel.CodeWriter;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JPackage;
+import org.renjin.invoke.annotations.CastStyle;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.primitives.Primitives;
@@ -83,6 +84,13 @@ public class WrapperGenerator2 {
           generate(codeModel, new PrimitiveModel(entry, overloads));
           implementedCount ++;
         }
+
+        for(JvmMethod method : overloads) {
+          if(implicitIntCasting(method)) {
+            System.out.println("IMPLICIT INT CASTING: " + method);
+          }
+        }
+
       }
     }
 
@@ -109,6 +117,15 @@ public class WrapperGenerator2 {
 
     System.out.println("Total primitives: " + entries.size());
     System.out.println("   % Implemented: " + ((double)implementedCount / entries.size() * 100d) + "%");
+  }
+
+  private boolean implicitIntCasting(JvmMethod method) {
+    for(JvmMethod.Argument arg : method.getFormals()) {
+      if(arg.getClazz().equals(int.class) && arg.getCastStyle() == CastStyle.IMPLICIT) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void generate(JCodeModel codeModel, PrimitiveModel primitive) throws IOException {

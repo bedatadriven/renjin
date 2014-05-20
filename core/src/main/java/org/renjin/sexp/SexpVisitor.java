@@ -99,8 +99,8 @@ public class SexpVisitor<R> {
     unhandled(closure);
   }
   
-  public void visit(RawVector closure){
-    unhandled(closure);
+  public void visit(RawVector vector) {
+    unhandled(vector);
   }
 
   public R getResult() {

@@ -21,12 +21,16 @@
 
 package org.renjin.primitives;
 
+import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
+
+import java.io.IOException;
 
 
 /**
@@ -225,10 +229,12 @@ public class Summary {
 
   @Builtin
   @GroupGeneric
-  public static SEXP sum(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
-    int intSum = 0;
-    double doubleSum = 0;
+  public static SEXP sum(@Current Context context, @ArgumentList ListVector arguments,
+                         @NamedFlag("na.rm") boolean removeNA) throws IOException {
+    double realSum = 0;
     boolean haveDouble = false;
+    double imaginarySum = 0;
+    boolean haveComplex = false;
 
     if(arguments.length() == 1 && arguments.get(0) instanceof DoubleVector && !removeNA) {
       return new DeferredSum((Vector) arguments.get(0), AttributeMap.EMPTY);
@@ -243,7 +249,8 @@ public class Summary {
               return haveDouble ? new DoubleArrayVector(DoubleVector.NA) : new IntArrayVector(IntVector.NA);
             }
           } else {
-            intSum += vector.getElementAsInt(i);
+            int element = vector.getElementAsInt(i);
+            realSum += element;
           }
         }
       } else if(argument instanceof DoubleVector) {
@@ -255,14 +262,41 @@ public class Summary {
               return new DoubleArrayVector(DoubleVector.NA);
             }
           } else {
-            doubleSum += vector.getElementAsDouble(i);
+            realSum += vector.getElementAsDouble(i);
           }
         }
+      } else if(argument instanceof ComplexVector) {
+        ComplexVector vector = (ComplexVector)argument;
+        haveComplex = true;
+        for(int i=0;i!=vector.length();++i) {
+          if(vector.isElementNA(i)) {
+            if(!removeNA) {
+              return new ComplexArrayVector(ComplexVector.NA);
+            }
+          } else {
+            Complex z = vector.getElementAsComplex(i);
+            realSum += z.getReal();
+            imaginarySum += z.getImaginary();
+          }
+        }
+
       } else {
         throw new EvalException("invalid 'type' (" + argument.getTypeName() + ") of argument");
       }
     }
-    return haveDouble ? new DoubleArrayVector(doubleSum + intSum) : new IntArrayVector(intSum);
+    if(haveComplex) {
+      return new ComplexArrayVector(new Complex(realSum, imaginarySum));
+
+    } else if(haveDouble) {
+      return new DoubleArrayVector(realSum);
+
+    } else {
+      if(realSum < Integer.MIN_VALUE || realSum > Integer.MAX_VALUE) {
+        Warning.warning(context, true, true, "Integer overflow - use sum(as.numeric(.))");
+        return new IntArrayVector(IntVector.NA);
+      }
+      return new IntArrayVector((int)realSum);
+    }
   }
 
   /**

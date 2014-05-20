@@ -1,14 +1,12 @@
 package org.renjin.invoke.codegen.scalars;
 
-import java.util.Map;
-
+import com.google.common.collect.Maps;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.invoke.codegen.GeneratorDefinitionException;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.SEXP;
 
-
-import com.google.common.collect.Maps;
+import java.util.Map;
 
 public class ScalarTypes {
 
@@ -26,6 +24,7 @@ public class ScalarTypes {
     types.put(Float.TYPE, new FloatType()); 
     types.put(Logical.class, new LogicalType());
     types.put(Complex.class, new ComplexType());
+    types.put(Byte.TYPE, new ByteType());
   }
   
   public static boolean has(Class clazz) {

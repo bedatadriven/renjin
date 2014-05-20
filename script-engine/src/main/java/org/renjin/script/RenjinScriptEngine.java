@@ -3,11 +3,14 @@ package org.renjin.script;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.invoke.reflection.converters.RuntimeConverter;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
+import org.renjin.primitives.special.BreakException;
+import org.renjin.primitives.special.NextException;
 import org.renjin.sexp.*;
 
 import javax.script.*;
@@ -128,7 +131,14 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   }
   
   private Object eval(Context context, SEXP source) {
-    return context.evaluate( source, context.getEnvironment());
+    try {
+      return context.evaluate( source, context.getEnvironment());
+    } catch(BreakException e) {
+      throw new EvalException("no loop for break");
+    } catch(NextException e) {
+      throw new EvalException("no loop for next");
+
+    }
   }
 
   public void eval(File file) throws IOException, ScriptException {

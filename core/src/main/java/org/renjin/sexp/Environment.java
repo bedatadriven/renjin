@@ -368,11 +368,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     visitor.visit(this);
   }
 
-  public Iterable<Environment> selfAndParents() {
+  public Iterable<Environment> parents() {
     return new Iterable<Environment>() {
       @Override
       public Iterator<Environment> iterator() {
-        return new EnvIterator(Environment.this);
+        return new EnvIterator(Environment.this.getParent());
       }
     };
   }
@@ -384,6 +384,27 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public SEXP getVariable(String symbolName) {
     return getVariable(Symbol.get(symbolName));
   }
+
+  /**
+   * Finds a variable by prefix, for example, "x" will
+   * match "xx" and "i" will match imaginary.
+   * @param prefix
+   * @return the first matching binding, or NULL if there
+   * are no matching bindings
+   */
+  public SEXP getVariableByPrefix(String prefix) {
+    SEXP value = null;
+    if(frame.getSymbols().contains(Symbol.get(prefix))) {
+      return frame.getVariable(Symbol.get(prefix));
+    }
+    for(Symbol name : frame.getSymbols()) {
+      if(name.getPrintName().startsWith(prefix)) {
+        return frame.getVariable(name);
+      }
+    }
+    return Null.INSTANCE;
+  }
+
 
   public boolean hasVariable(Symbol symbol) {
     return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE;

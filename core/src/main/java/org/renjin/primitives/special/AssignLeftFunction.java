@@ -90,14 +90,14 @@ public class AssignLeftFunction extends SpecialFunction {
     if(rhs instanceof Promise) {
       rhs = rhs.force(context);
     }
-    assignResult(rho, target, rhs);
+    assignResult(context, rho, target, rhs);
 
     context.setInvisibleFlag();
     
     return evaluatedValue;
   }
 
-  protected void assignResult(Environment rho, Symbol target, SEXP rhs) {
+  protected void assignResult(Context context, Environment rho, Symbol target, SEXP rhs) {
     rho.setVariable(target, rhs);
   }
 }

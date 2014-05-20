@@ -103,6 +103,31 @@ public class SubscriptOperation {
     return this;
   }
 
+  public SEXP extractSingle() {
+
+    // this seems like an abritrary limitation,
+    // that is x[[TRUE]] happily takes the first item but
+    // x[[1:2]] will throw an error, may be we can
+    // just drop the distinction across the board?
+    if(selection instanceof VectorIndexSelection ||
+       selection instanceof CoordinateMatrixSelection) {
+      if(selection.getElementCount() > 1) {
+        throw new EvalException("attempt to select more than one element");
+      }
+    }
+
+    if(selection.getElementCount() < 1) {
+      throw new EvalException("attempt to select less than one element");
+    }
+
+    int index = selection.iterator().next();
+    if(index < 0 || index >= source.length()) {
+      throw new EvalException("subscript out of bounds");
+    }
+    return source.getElementAsSEXP(index);
+
+  }
+
   public Vector extract() {
 
     if(source == Null.INSTANCE) {
@@ -182,13 +207,6 @@ public class SubscriptOperation {
       
       return Null.INSTANCE;
       
-    } else if(drop && selection.getElementCount() == 0) {
-      
-      // by default, we don't set a dim attribute for
-      // empty results (unless drop=false)
-      
-      return Null.INSTANCE;
-      
     } else {
       
       int[] selectedDim = selection.getSubscriptDimensions();
@@ -199,7 +217,7 @@ public class SubscriptOperation {
         
         // by default, we ignore dimensions with length 1 unless
         // drop has been explicitly set to false
-        if(!drop || selectedDim[i] > 1) {
+        if(!drop || selectedDim[i] != 1) {
           result.add(selectedDim[i]);
         }
       }
@@ -266,6 +284,10 @@ public class SubscriptOperation {
       }
 
       result.setFrom(index, elements, replacementIndex++);
+
+      if(replacementIndex >= elements.length()) {
+        replacementIndex = 0;
+      }
     }
 
     result.setAttribute(Symbols.NAMES, names.build());

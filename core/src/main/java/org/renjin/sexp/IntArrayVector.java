@@ -156,6 +156,11 @@ public class IntArrayVector extends IntVector {
     }
 
     @Override
+    public Builder setAttribute(Symbol name, SEXP value) {
+      return (Builder) super.setAttribute(name, value);
+    }
+
+    @Override
     public int length() {
       return size;
     }

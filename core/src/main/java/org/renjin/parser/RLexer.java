@@ -21,60 +21,17 @@
 
 package org.renjin.parser;
 
-import static java.lang.Character.isDigit;
-import static org.renjin.parser.RParser.AND;
-import static org.renjin.parser.RParser.AND2;
-import static org.renjin.parser.RParser.BREAK;
-import static org.renjin.parser.RParser.ELSE;
-import static org.renjin.parser.RParser.END_OF_INPUT;
-import static org.renjin.parser.RParser.EQ;
-import static org.renjin.parser.RParser.EQ_ASSIGN;
-import static org.renjin.parser.RParser.ERROR;
-import static org.renjin.parser.RParser.FOR;
-import static org.renjin.parser.RParser.FUNCTION;
-import static org.renjin.parser.RParser.GE;
-import static org.renjin.parser.RParser.GT;
-import static org.renjin.parser.RParser.IF;
-import static org.renjin.parser.RParser.IN;
-import static org.renjin.parser.RParser.LBB;
-import static org.renjin.parser.RParser.LE;
-import static org.renjin.parser.RParser.LEFT_ASSIGN;
-import static org.renjin.parser.RParser.LT;
-import static org.renjin.parser.RParser.NE;
-import static org.renjin.parser.RParser.NEXT;
-import static org.renjin.parser.RParser.NS_GET;
-import static org.renjin.parser.RParser.NS_GET_INT;
-import static org.renjin.parser.RParser.NULL_CONST;
-import static org.renjin.parser.RParser.NUM_CONST;
-import static org.renjin.parser.RParser.OR;
-import static org.renjin.parser.RParser.OR2;
-import static org.renjin.parser.RParser.REPEAT;
-import static org.renjin.parser.RParser.RIGHT_ASSIGN;
-import static org.renjin.parser.RParser.SPECIAL;
-import static org.renjin.parser.RParser.STR_CONST;
-import static org.renjin.parser.RParser.SYMBOL;
-import static org.renjin.parser.RParser.WHILE;
-import static org.renjin.parser.Tokens.LBRACE;
-import static org.renjin.parser.Tokens.RBRACE;
-import static org.renjin.parser.Tokens.R_EOF;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.parser.RParser.*;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.logging.Logger;
 
-import org.apache.commons.math.complex.Complex;
-import org.renjin.parser.RParser.Location;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalArrayVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import static java.lang.Character.isDigit;
+import static org.renjin.parser.RParser.*;
+import static org.renjin.parser.Tokens.*;
 
 
 public class RLexer implements RParser.Lexer {
@@ -868,7 +825,7 @@ an ANSI digit or not */
     double f = ParseUtil.parseDouble(s);
 
     if(parseOptions.isGenerateCode()) {
-      t = new ComplexVector(new Complex(0, f));
+      t = new ComplexArrayVector(new Complex(0, f));
     }
 
     return t;
@@ -1196,7 +1153,7 @@ an ANSI digit or not */
                   yylval = StringVector.valueOf(StringVector.NA);
                   break;
                 case 9:
-                  yylval = new ComplexVector(new Complex(DoubleVector.NA, DoubleVector.NA));
+                  yylval = new ComplexArrayVector(new Complex(DoubleVector.NA, DoubleVector.NA));
                   break;
               }
             } else {

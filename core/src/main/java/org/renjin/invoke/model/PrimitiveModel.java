@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.renjin.invoke.codegen.GeneratorDefinitionException;
+import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
 import org.renjin.invoke.annotations.ArgumentList;
@@ -86,6 +87,15 @@ public class PrimitiveModel {
   public String getName() {
     return entry.name;
   }
+
+  public String getJavaName() {
+    return WrapperGenerator2.toJavaName(getName());
+  }
+
+  public String getClassName() {
+    return "R$primitive$" + getJavaName();
+  }
+
 
   public boolean isSpecial() {
     return entry.isSpecial();

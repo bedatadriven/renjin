@@ -1,6 +1,7 @@
 package org.renjin.invoke.codegen.scalars;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.sexp.ComplexArrayVector;
 import org.renjin.sexp.ComplexVector;
 
 
@@ -28,8 +29,8 @@ public class ComplexType extends ScalarType{
   }
 
   @Override
-  public Class<ComplexVector.Builder> getBuilderClass() {
-    return ComplexVector.Builder.class;
+  public Class<ComplexArrayVector.Builder> getBuilderClass() {
+    return ComplexArrayVector.Builder.class;
   }
 
 }

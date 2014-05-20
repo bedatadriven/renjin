@@ -22,6 +22,7 @@
 package org.renjin;
 
 import com.google.common.collect.Lists;
+import com.google.common.primitives.UnsignedBytes;
 import org.apache.commons.math.complex.Complex;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -117,7 +118,7 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP c(Complex... values) {
-    return new ComplexVector(values);
+    return new ComplexArrayVector(values);
   }
 
   protected SEXP c(boolean... values) {
@@ -136,8 +137,12 @@ public abstract class EvalTestCase {
     return new DoubleArrayVector(values);
   }
 
-  protected SEXP c(Raw... values){
-    return new RawVector(values);
+  protected SEXP c_raw(int... values){
+    byte[] bytes = new byte[values.length];
+    for(int i=0;i!=values.length;++i) {
+      bytes[i] = UnsignedBytes.checkedCast(values[i]);
+    }
+    return new RawVector(bytes);
   }
 
   protected SEXP c_i(int... values) {
@@ -228,7 +233,7 @@ public abstract class EvalTestCase {
     return matrix.build();
   }
   protected SEXP matrix(Complex[]... rows) {
-    ComplexVector.Builder matrix = new ComplexVector.Builder();
+    ComplexArrayVector.Builder matrix = new ComplexArrayVector.Builder();
     int nrows = rows.length;
     int ncols = rows[0].length;
 

@@ -2,7 +2,6 @@ package org.renjin.primitives.io;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.io.connections.Connections;
@@ -86,10 +85,6 @@ public class Cat extends SexpVisitor<String> {
   @Override
   public void visit(RawVector vector) {
     catVector(vector);
-  }
-
-  public void visit(Raw raw) {
-    catVector(new RawVector(raw));
   }
 
   @Override

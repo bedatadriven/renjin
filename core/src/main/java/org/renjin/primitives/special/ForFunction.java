@@ -22,14 +22,8 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SpecialFunction;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.eval.EvalException;
+import org.renjin.sexp.*;
 
 
 public class ForFunction extends SpecialFunction {
@@ -52,8 +46,12 @@ public class ForFunction extends SpecialFunction {
 //    scope.evaluate(context);
     
     PairList args = call.getArguments();
-    Symbol symbol = (Symbol) args.getElementAsSEXP(0);
-    Vector elements = (Vector) context.evaluate( args.getElementAsSEXP(1), rho);
+    Symbol symbol = args.getElementAsSEXP(0);
+    SEXP elementsExp = context.evaluate(args.getElementAsSEXP(1), rho);
+    if(!(elementsExp instanceof Vector)) {
+      throw new EvalException("invalid for() loop sequence");
+    }
+    Vector elements = (Vector) elementsExp;
     SEXP statement = args.getElementAsSEXP(2);
     for(int i=0; i!=elements.length(); ++i) {
       try {

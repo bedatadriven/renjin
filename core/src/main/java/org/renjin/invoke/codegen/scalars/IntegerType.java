@@ -44,7 +44,8 @@ public class IntegerType extends ScalarType {
               .cor(sexpVariable._instanceof(codeModel.ref(DoubleVector.class)))
               .cor(sexpVariable._instanceof(codeModel.ref(LogicalVector.class)));
     } else {
-      return sexpVariable._instanceof(codeModel.ref(IntVector.class));
+      return sexpVariable._instanceof(codeModel.ref(IntVector.class))
+          .cor(sexpVariable._instanceof(codeModel.ref(LogicalVector.class)));
     }
   }
 }

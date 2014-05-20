@@ -217,6 +217,10 @@ public class Base {
       SEXP version, SEXP refhook) throws IOException {
     return Serialization.serialize(context, object, connection, ascii, version, refhook);
   }
+  
+  public static SEXP R_unserialize(@Current Context context, SEXP connection, SEXP refhook) throws IOException {
+      return Serialization.unserialize(context, connection, refhook);
+  }
 
   public static String crc64ToString(String value) {
     return Crc64.getCrc64(value);

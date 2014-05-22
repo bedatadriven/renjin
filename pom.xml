@@ -39,6 +39,7 @@
     <module>benchmarks</module>
     <module>repl</module>
     <module>packages</module>
+    <module>test-packages</module>
     <module>tools</module>
     <module>studio</module>
     <module>dist/generic</module>

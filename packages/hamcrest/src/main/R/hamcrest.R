@@ -14,6 +14,7 @@ assertThat <- function(actual, matcher) {
 # --------------------------------------
 
 closeTo <- function(expected, delta) {
+    stopifnot(is.numeric(expected) & is.numeric(delta) & length(delta) == 1L)
 	function(actual) {
 		length(expected) == length(actual) &&
 				all(abs(expected-actual)<delta)	

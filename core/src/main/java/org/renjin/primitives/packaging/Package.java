@@ -16,6 +16,15 @@ import com.google.common.io.InputSupplier;
 
 public abstract class Package {
 
+  private final FqPackageName name;
+
+  protected Package(FqPackageName name) {
+    this.name = name;
+  }
+
+  public final FqPackageName getName() {
+    return name;
+  }
 
   /**
    * Loads the R-language symbols that constitute this package's namespace.

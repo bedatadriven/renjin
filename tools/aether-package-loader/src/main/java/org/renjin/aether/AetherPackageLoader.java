@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.apache.maven.settings.Settings;
@@ -34,12 +35,10 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResult;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.version.Version;
-import org.renjin.primitives.packaging.ClasspathPackage;
-import org.renjin.primitives.packaging.ClasspathPackageLoader;
-import org.renjin.primitives.packaging.Package;
-import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.primitives.packaging.*;
 
 import com.google.common.collect.Lists;
+import org.renjin.primitives.packaging.Package;
 
 
 public class AetherPackageLoader implements PackageLoader {
@@ -62,9 +61,9 @@ public class AetherPackageLoader implements PackageLoader {
   }
 
   @Override
-  public Package load(String name) {
-    ClasspathPackage pkg = classpathPackageLoader.load(name);
-    if (pkg != null) {
+  public Optional<Package> load(FqPackageName name) {
+    Optional<Package> pkg = classpathPackageLoader.load(name);
+    if (pkg.isPresent()) {
       return pkg;
     }
     try {
@@ -72,7 +71,7 @@ public class AetherPackageLoader implements PackageLoader {
       Artifact latestArtifact = resolveLatestArtifact(name);
 
       if (latestArtifact == null) {
-        return null;
+        return Optional.absent();
       }
 
       ArtifactRequest collectRequest = new ArtifactRequest();
@@ -83,16 +82,16 @@ public class AetherPackageLoader implements PackageLoader {
 
       System.out.println(artifactResult.getArtifact() + " resolved to " + artifactResult.getArtifact().getFile());
 
-      return new AetherPackage(artifactResult.getArtifact());
+      return Optional.<Package>of(new AetherPackage(artifactResult.getArtifact()));
 
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  private Artifact resolveLatestArtifact(String name)
+  private Artifact resolveLatestArtifact(FqPackageName name)
           throws VersionRangeResolutionException {
-    Artifact artifact = new DefaultArtifact("org.renjin.cran:" + name + ":[0,)");
+    Artifact artifact = new DefaultArtifact(name.getGroupId(), name.getPackageName(), "jar", ":[0,)");
     Version newestVersion = resolveLatestVersion(artifact);
     if (newestVersion == null) {
       return null;

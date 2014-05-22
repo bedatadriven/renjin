@@ -26,6 +26,10 @@ import com.google.common.io.Closeables;
 public abstract class FileBasedPackage extends Package {
 
 
+  protected FileBasedPackage(FqPackageName name) {
+    super(name);
+  }
+
   @Override
   public Iterable<NamedValue> loadSymbols(Context context) throws IOException {
     return LazyLoadFrame.load(context, new Function<String, InputStream>() {

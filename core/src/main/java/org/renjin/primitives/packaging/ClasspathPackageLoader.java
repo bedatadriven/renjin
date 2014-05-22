@@ -2,6 +2,7 @@ package org.renjin.primitives.packaging;
 
 import java.util.Set;
 
+import com.google.common.base.Optional;
 import org.renjin.eval.EvalException;
 
 import com.google.common.collect.Sets;
@@ -11,28 +12,18 @@ import com.google.common.collect.Sets;
  */
 public class ClasspathPackageLoader implements PackageLoader {
 
-  
-  /**
-   * These packages are part of the R distribution and carry the 
-   * org.renjin groupId.
-   */
-  private static final Set<String> CORE_PACKAGES = Sets.newHashSet("datasets", "graphics", "grDevices", "hamcrest", 
-      "methods", "splines", "stats", "stats4", "utils", "grid");
-  
-  /* (non-Javadoc)
+
+  /* mjkallen.renjin.org(non-Javadoc)
    * @see org.renjin.primitives.packaging.IPackageLoader#load(java.lang.String)
    */
   @Override
-  public ClasspathPackage load(String name) {
-    ClasspathPackage pkg;
-    if(CORE_PACKAGES.contains(name)) {
-      pkg = new ClasspathPackage("org.renjin", name);
+  public Optional<Package> load(FqPackageName name) {
+    ClasspathPackage pkg = new ClasspathPackage(name);
+    if(pkg.resourceExists("environment")) {
+      return Optional.<Package>of(pkg);
     } else {
-      pkg = new ClasspathPackage("org.renjin.cran", name);
+      return Optional.absent();
     }
-    if(!pkg.exists()) {
-      return null;   
-    }
-    return pkg;
   }
+
 }

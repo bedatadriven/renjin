@@ -9,6 +9,7 @@ import org.eclipse.aether.artifact.Artifact;
 import org.renjin.primitives.packaging.FileBasedPackage;
 
 import com.google.common.io.InputSupplier;
+import org.renjin.primitives.packaging.FqPackageName;
 
 public class AetherPackage extends FileBasedPackage {
 
@@ -16,6 +17,7 @@ public class AetherPackage extends FileBasedPackage {
   private Artifact artifact;
 
   public AetherPackage(Artifact artifact) throws IOException {
+    super(new FqPackageName(artifact.getGroupId(), artifact.getArtifactId()));
     this.artifact = artifact;
     this.jarFile = new JarFile(artifact.getFile());
   }

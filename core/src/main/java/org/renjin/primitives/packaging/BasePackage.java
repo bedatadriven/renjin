@@ -9,6 +9,10 @@ import java.io.InputStream;
 
 public class BasePackage extends Package {
 
+  protected BasePackage() {
+    super(FqPackageName.BASE);
+  }
+
   @Override
   public Iterable<NamedValue> loadSymbols(Context context) throws IOException {
     throw new UnsupportedOperationException();

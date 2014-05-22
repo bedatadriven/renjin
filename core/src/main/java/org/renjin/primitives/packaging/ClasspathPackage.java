@@ -16,12 +16,9 @@ import java.io.InputStream;
  */
 public class ClasspathPackage extends FileBasedPackage {
 
-  private String groupId;
-  private String artifactId;
 
-  public ClasspathPackage(String groupId, String artifactId) {
-    this.groupId = groupId;
-    this.artifactId = artifactId;
+  public ClasspathPackage(FqPackageName name) {
+    super(name);
   }
   
   public boolean exists() {
@@ -38,7 +35,7 @@ public class ClasspathPackage extends FileBasedPackage {
   @Override
   public Class getClass(String name) {
     try {
-      return Class.forName(groupId + "." + artifactId + "." + name);
+      return Class.forName(getName().getGroupId() + "." + getName().getPackageName() + "." + name);
     } catch (ClassNotFoundException e) {
       throw new EvalException(e.getMessage(), e);
     }
@@ -46,9 +43,9 @@ public class ClasspathPackage extends FileBasedPackage {
 
   private String resourceUrl(String name) {
     return 
-        groupId.replace('.', '/') +
+        getName().getGroupId().replace('.', '/') +
         "/" +
-        artifactId.replace('.',  '/') + 
+        getName().getPackageName() +
         "/" +
         name;
   }

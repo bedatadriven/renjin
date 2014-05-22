@@ -78,6 +78,13 @@ public class NamespaceMojo extends AbstractMojo {
 	 */
 	private String packageName;
 
+  /**
+   * @parameter expression="${project.groupId}"
+   * @required
+   */
+  private String groupId;
+
+
 	/**
    * @parameter expression="${project.artifactId}"
    * @required
@@ -117,8 +124,8 @@ public class NamespaceMojo extends AbstractMojo {
     try {
       Object builder = classLoader.loadClass("org.renjin.maven.namespace.NamespaceBuilder").newInstance();
       builder.getClass()
-          .getMethod("build", String.class, File.class, File.class, List.class)
-          .invoke(builder, namespaceName, sourceDirectory, getEnvironmentFile(), defaultPackages);
+          .getMethod("build", String.class, String.class, File.class, File.class, List.class)
+          .invoke(builder, groupId, namespaceName, sourceDirectory, getEnvironmentFile(), defaultPackages);
      
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);

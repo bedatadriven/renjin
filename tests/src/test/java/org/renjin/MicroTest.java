@@ -1,6 +1,8 @@
 // Auto-generated from micro-tests.in
 package org.renjin;
 import org.junit.*;
+
+@Ignore
 public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2() {

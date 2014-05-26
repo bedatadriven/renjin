@@ -121,7 +121,11 @@ public class NamespaceMojo extends AbstractMojo {
   private void compileNamespaceEnvironment() throws MojoExecutionException {
 	  
     ClassLoader classLoader = getClassLoader();
+    ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
+
     try {
+      Thread.currentThread().setContextClassLoader(classLoader);
+
       Object builder = classLoader.loadClass("org.renjin.maven.namespace.NamespaceBuilder").newInstance();
       builder.getClass()
           .getMethod("build", String.class, String.class, File.class, File.class, List.class)
@@ -129,20 +133,26 @@ public class NamespaceMojo extends AbstractMojo {
      
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);
-    }    
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextLoader);
+    }
   }
 	
   private void compileDatasets() throws MojoExecutionException {
-    //     new DatasetsBuilder(getPackageRoot(), dataDirectory).build();
 
     ClassLoader classLoader = getClassLoader();
+    ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
     try {
-      Constructor ctor = classLoader.loadClass("org.renjin.maven.namespace.DatasetsBuilder").getConstructor(File.class, File.class);
+      Thread.currentThread().setContextClassLoader(classLoader);
+      Constructor ctor = classLoader.loadClass("org.renjin.maven.namespace.DatasetsBuilder")
+          .getConstructor(File.class, File.class);
       Object builder = ctor.newInstance(getPackageRoot(), dataDirectory);
       builder.getClass().getMethod("build").invoke(builder);
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);
-    }    
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextLoader);
+    }
     
   }
  

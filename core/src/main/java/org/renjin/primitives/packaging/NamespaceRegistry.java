@@ -6,17 +6,13 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
-import jasmin.sym;
+import com.google.common.io.ByteSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -200,9 +196,8 @@ public class NamespaceRegistry {
    */
   private void setupImportsExports(Package pkg, Namespace namespace) throws IOException {
 
-    InputSupplier<InputStream> namespaceFile = pkg.getResource("NAMESPACE");
-    NamespaceDirectiveParser.parse(
-        CharStreams.newReaderSupplier(namespaceFile, Charsets.UTF_8),
+    ByteSource namespaceFile = pkg.getResource("NAMESPACE");
+    NamespaceDirectiveParser.parse(namespaceFile.asCharSource(Charsets.UTF_8),
         new NamespaceInitHandler(context, this, namespace));
   }
 

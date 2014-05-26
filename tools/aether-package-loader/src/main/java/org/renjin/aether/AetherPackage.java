@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
+import com.google.common.io.ByteSource;
 import org.eclipse.aether.artifact.Artifact;
 import org.renjin.primitives.packaging.FileBasedPackage;
 
@@ -24,14 +25,14 @@ public class AetherPackage extends FileBasedPackage {
 
   private ZipEntry entry(String file) {
     return jarFile.getEntry(artifact.getGroupId().replace('.', '/') + "/"
-            + artifact.getArtifactId() + "/" + file);
+        + artifact.getArtifactId() + "/" + file);
   }
 
   @Override
-  public InputSupplier<InputStream> getResource(final String name) throws IOException {
-    return new InputSupplier<InputStream>() {
+  public ByteSource getResource(final String name) throws IOException {
+    return new ByteSource() {
       @Override
-      public InputStream getInput() throws IOException {
+      public InputStream openStream() throws IOException {
         return jarFile.getInputStream(entry(name));
       }
     };

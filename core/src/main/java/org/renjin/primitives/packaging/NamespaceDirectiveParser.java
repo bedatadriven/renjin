@@ -3,6 +3,7 @@ package org.renjin.primitives.packaging;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.io.CharSource;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
@@ -26,9 +27,8 @@ public class NamespaceDirectiveParser {
   private ExpressionVector source;
   private NamespaceDirectiveHandler handler;
 
-  public static void parse(InputSupplier<InputStreamReader> readerInputSupplier,
-                           NamespaceDirectiveHandler handler) throws IOException {
-    Reader reader = readerInputSupplier.getInput();
+  public static void parse(CharSource charSource, NamespaceDirectiveHandler handler) throws IOException {
+    Reader reader = charSource.openStream();
     ExpressionVector source;
     try {
       source = RParser.parseAllSource(reader);

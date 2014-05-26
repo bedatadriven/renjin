@@ -8,6 +8,7 @@ import java.util.*;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
@@ -64,12 +65,9 @@ public abstract class FileBasedPackage extends Package {
   @Override
   public Collection<String> getPackageDependencies() throws IOException {
     if(resourceExists("requires")) {
-      InputSupplier<InputStreamReader> supplier = CharStreams.newReaderSupplier(
-              getResource("requires"), Charsets.UTF_8);
-
-      // exclude blank lines
+      ImmutableList<String> lines = getResource("requires").asCharSource(Charsets.UTF_8).readLines();
       List<String> dependencies = Lists.newArrayList();
-      for(String line : CharStreams.readLines(supplier)) {
+      for(String line : lines) {
         if(!Strings.isNullOrEmpty(line)) {
           dependencies.add(line);
         }

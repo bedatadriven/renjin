@@ -1,5 +1,6 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.io.ByteSource;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
@@ -26,10 +27,14 @@ public class ClasspathPackage extends FileBasedPackage {
   }
 
   @Override
-  public InputSupplier<InputStream> getResource(String name) throws IOException {
+  public ByteSource getResource(String name) throws IOException {
     String url = resourceUrl(name);
-    return Resources.newInputStreamSupplier(
-        Resources.getResource(url));
+    try {
+      return Resources.asByteSource(Resources.getResource(url));
+    } catch(Exception e) {
+      throw new IOException("Could not load resource '" + name + "', " +
+          "url: " + url, e);
+    }
   }
 
   @Override
@@ -42,7 +47,7 @@ public class ClasspathPackage extends FileBasedPackage {
   }
 
   private String resourceUrl(String name) {
-    return 
+    return
         getName().getGroupId().replace('.', '/') +
         "/" +
         getName().getPackageName() +
@@ -52,12 +57,11 @@ public class ClasspathPackage extends FileBasedPackage {
 
   @Override
   public boolean resourceExists(String name) {
-    InputStream in = getClass().getResourceAsStream("/" + resourceUrl(name));
-    if(in == null) {
-      return false;
-    } else {
-      Closeables.closeQuietly(in);
+    try {
+      Resources.getResource(resourceUrl(name));
       return true;
+    } catch(IllegalArgumentException e) {
+      return false;
     }
   }
 }

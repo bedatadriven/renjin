@@ -97,7 +97,11 @@ public class TestMojo extends AbstractMojo {
     }
     
     ClassLoader classLoader = getClassLoader();
+    ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
     try {
+
+      Thread.currentThread().setContextClassLoader(classLoader);
+
       Constructor ctor = classLoader.loadClass("org.renjin.maven.test.TestRunner")
           .getConstructor(String.class, File.class, List.class);
       Object runner = ctor.newInstance(namespaceName, reportsDirectory, defaultPackages);
@@ -123,6 +127,8 @@ public class TestMojo extends AbstractMojo {
       }
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);
+    } finally {
+      Thread.currentThread().setContextClassLoader(previousContextLoader);
     }
   }
 

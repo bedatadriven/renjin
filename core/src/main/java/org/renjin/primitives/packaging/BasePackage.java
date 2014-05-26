@@ -1,5 +1,6 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.io.ByteSource;
 import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
 import org.renjin.sexp.NamedValue;
@@ -19,7 +20,7 @@ public class BasePackage extends Package {
   }
 
   @Override
-  public InputSupplier<InputStream> getResource(String name) throws IOException {
+  public ByteSource getResource(String name) throws IOException {
     throw new UnsupportedOperationException();
   }
 

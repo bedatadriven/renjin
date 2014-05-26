@@ -1,5 +1,6 @@
 package org.renjin.script;
 
+import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
@@ -138,10 +139,10 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     reader.close();
   }
   
-  private InputSupplier<Reader> newReaderSupplier(final Reader reader) {
-    return new InputSupplier<Reader>() {
+  private CharSource newReaderSupplier(final Reader reader) {
+    return new CharSource() {
       @Override
-      public Reader getInput() throws IOException {
+      public Reader openStream() throws IOException {
         return reader;
       }      
     };

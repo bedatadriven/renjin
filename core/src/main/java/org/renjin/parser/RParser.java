@@ -54,6 +54,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
 
+import com.google.common.io.CharSource;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.ExpressionVector;
 import org.renjin.sexp.FunctionCall;
@@ -126,9 +127,8 @@ public class RParser {
   }
   
 
-  public static ExpressionVector parseSource(
-      InputSupplier<? extends Reader> source) throws IOException {
-    Reader reader = source.getInput();
+  public static ExpressionVector parseSource(CharSource source) throws IOException {
+    Reader reader = source.openStream();
     try {
       return parseAllSource(reader);
     } finally {

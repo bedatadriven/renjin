@@ -12,10 +12,6 @@ import com.google.common.collect.Sets;
  */
 public class ClasspathPackageLoader implements PackageLoader {
 
-
-  /* mjkallen.renjin.org(non-Javadoc)
-   * @see org.renjin.primitives.packaging.IPackageLoader#load(java.lang.String)
-   */
   @Override
   public Optional<Package> load(FqPackageName name) {
     ClasspathPackage pkg = new ClasspathPackage(name);

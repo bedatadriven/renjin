@@ -1,13 +1,12 @@
 package org.renjin.maven.namespace;
 
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
 import org.renjin.eval.Context;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Package;
 import org.renjin.sexp.NamedValue;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 
 public class InitializingPackage extends Package {
@@ -22,7 +21,7 @@ public class InitializingPackage extends Package {
   }
 
   @Override
-  public InputSupplier<InputStream> getResource(String name) throws IOException {
+  public ByteSource getResource(String name) throws IOException {
     throw new UnsupportedOperationException();
   }
 

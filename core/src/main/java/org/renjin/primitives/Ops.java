@@ -480,7 +480,7 @@ public class Ops  {
     } else {
       Complex result = new Complex(1, 0);
       while(k > 0) {
-        result = result.multiply(x);
+        result = multiply(result, x);
         k--;
       }
       return result;
@@ -489,7 +489,8 @@ public class Ops  {
 
 
   private static Complex reciprocal(Complex value) {
-    // LICENSE: this code is derived from the division code, which is transcribed code from GCC, which is licensed under GPL
+    // LICENSE: this code is derived from the division code,
+    // which is transcribed code from GCC, which is licensed under GPL
 
     double c = value.getReal();
     double d = value.getImaginary();

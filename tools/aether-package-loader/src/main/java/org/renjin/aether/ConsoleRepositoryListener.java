@@ -10,16 +10,21 @@
  *******************************************************************************/
 package org.renjin.aether;
 
-import java.io.PrintStream;
-
 import org.eclipse.aether.AbstractRepositoryListener;
 import org.eclipse.aether.RepositoryEvent;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.repository.ArtifactRepository;
+
+import java.io.PrintStream;
+import java.util.logging.Logger;
 
 /**
  * A simplistic repository listener that logs events to the console.
  */
 public class ConsoleRepositoryListener
         extends AbstractRepositoryListener {
+
+  private static final Logger LOGGER = Logger.getLogger(ConsoleRepositoryListener.class.getName());
 
   private PrintStream out;
 
@@ -32,72 +37,94 @@ public class ConsoleRepositoryListener
   }
 
   public void artifactDeployed(RepositoryEvent event) {
-    out.println("Deployed " + event.getArtifact() + " to " + event.getRepository());
+    LOGGER.info("Deployed " + event.getArtifact() + " to " + event.getRepository());
   }
 
   public void artifactDeploying(RepositoryEvent event) {
-    out.println("Deploying " + event.getArtifact() + " to " + event.getRepository());
+    LOGGER.fine("Deploying " + event.getArtifact() + " to " + event.getRepository());
   }
 
   public void artifactDescriptorInvalid(RepositoryEvent event) {
-    out.println("Invalid artifact descriptor for " + event.getArtifact() + ": "
-            + event.getException().getMessage());
+    LOGGER.warning("Invalid artifact descriptor for " + event.getArtifact() + ": "
+        + event.getException().getMessage());
   }
 
   public void artifactDescriptorMissing(RepositoryEvent event) {
-    out.println("Missing artifact descriptor for " + event.getArtifact());
+    LOGGER.warning("Missing artifact descriptor for " + event.getArtifact());
   }
 
   public void artifactInstalled(RepositoryEvent event) {
-    out.println("Installed " + event.getArtifact() + " to " + event.getFile());
+    LOGGER.warning("Installed " + event.getArtifact() + " to " + event.getFile());
   }
 
   public void artifactInstalling(RepositoryEvent event) {
-    out.println("Installing " + event.getArtifact() + " to " + event.getFile());
+    LOGGER.warning("Installing " + event.getArtifact() + " to " + event.getFile());
   }
 
   public void artifactResolved(RepositoryEvent event) {
-    out.println("Resolved artifact " + event.getArtifact() + " from " + event.getRepository());
+    out.println("Resolved package " + toString(event.getArtifact()) + " from " + toString(event.getRepository()));
+  }
+
+  private String toString(ArtifactRepository repository) {
+    if(repository.getId().equals("renjin")) {
+      return "nexus.bedatadriven.com";
+    } else {
+      return repository.toString();
+    }
   }
 
   public void artifactDownloading(RepositoryEvent event) {
+    if(concernsPackage(event)) {
+      out.println("Trying to download package " +
+          toString(event.getArtifact()) + " from " + event.getRepository());
+    }
     out.println("Downloading artifact " + event.getArtifact() + " from " + event.getRepository());
+
+  }
+
+  private boolean concernsPackage(RepositoryEvent event) {
+    return event.getArtifact().getExtension().equals("jar");
+  }
+
+  private String toString(Artifact artifact) {
+    return artifact.getGroupId() + ":" + artifact.getArtifactId() + " (version " +
+        artifact.getVersion() + ")";
   }
 
   public void artifactDownloaded(RepositoryEvent event) {
-    out.println("Downloaded artifact " + event.getArtifact() + " from " + event.getRepository());
+    out.println("Downloaded package " + toString(event.getArtifact()) + " from " + event.getRepository());
   }
 
   public void artifactResolving(RepositoryEvent event) {
-    out.println("Resolving artifact " + event.getArtifact());
+    LOGGER.info("Resolving artifact " + event.getMetadata() + " to " + event.getRepository());
   }
 
   public void metadataDeployed(RepositoryEvent event) {
-    out.println("Deployed " + event.getMetadata() + " to " + event.getRepository());
+    LOGGER.info("Deployed " + event.getMetadata() + " to " + event.getRepository());
   }
 
   public void metadataDeploying(RepositoryEvent event) {
-    out.println("Deploying " + event.getMetadata() + " to " + event.getRepository());
+    LOGGER.fine("Deploying " + event.getMetadata() + " to " + event.getRepository());
   }
 
   public void metadataInstalled(RepositoryEvent event) {
-    out.println("Installed " + event.getMetadata() + " to " + event.getFile());
+    LOGGER.info("Installed " + event.getMetadata() + " to " + event.getFile());
   }
 
   public void metadataInstalling(RepositoryEvent event) {
-    out.println("Installing " + event.getMetadata() + " to " + event.getFile());
+    LOGGER.fine("Installing " + event.getMetadata() + " to " + event.getFile());
   }
 
   public void metadataInvalid(RepositoryEvent event) {
-    out.println("Invalid metadata " + event.getMetadata());
+    LOGGER.warning("Invalid metadata " + event.getMetadata());
   }
 
   public void metadataResolved(RepositoryEvent event) {
-    out.println("Resolved metadata " + event.getMetadata() + " from " + event.getRepository());
+    LOGGER.fine("Resolved metadata " + event.getMetadata() + " from " + event.getRepository());
   }
 
   public void metadataResolving(RepositoryEvent event) {
-    out.println("Resolving metadata " + event.getMetadata() + " from " + event.getRepository());
+    LOGGER.fine("Resolving metadata " + event.getMetadata() + " from " + event.getRepository());
   }
 
 }

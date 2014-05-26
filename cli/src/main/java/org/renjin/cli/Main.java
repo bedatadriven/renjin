@@ -23,6 +23,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
 
@@ -48,6 +50,8 @@ public class Main {
       return;
     }
 
+    configureLogging();
+
     try {
       Session session = createSession();
 
@@ -64,6 +68,10 @@ public class Main {
       e.printStackTrace();
       System.exit(-1);
     }
+  }
+
+  private static void configureLogging() {
+    Logger.getLogger("").setLevel(Level.OFF);
   }
 
   private static void evaluateFile(Session session, String fileName) throws Exception {

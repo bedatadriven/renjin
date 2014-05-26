@@ -1,16 +1,14 @@
 package org.renjin.aether;
 
+import com.google.common.io.ByteSource;
+import org.eclipse.aether.artifact.Artifact;
+import org.renjin.primitives.packaging.FileBasedPackage;
+import org.renjin.primitives.packaging.FqPackageName;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
-
-import com.google.common.io.ByteSource;
-import org.eclipse.aether.artifact.Artifact;
-import org.renjin.primitives.packaging.FileBasedPackage;
-
-import com.google.common.io.InputSupplier;
-import org.renjin.primitives.packaging.FqPackageName;
 
 public class AetherPackage extends FileBasedPackage {
 

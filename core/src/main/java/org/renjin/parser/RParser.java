@@ -21,56 +21,18 @@
 
 package org.renjin.parser;
 
-import static org.renjin.util.CDefines.CADR;
-import static org.renjin.util.CDefines.CAR;
-import static org.renjin.util.CDefines.CDR;
-import static org.renjin.util.CDefines.CHAR;
-import static org.renjin.util.CDefines.CONS;
-import static org.renjin.util.CDefines.LCONS;
-import static org.renjin.util.CDefines.PRINTNAME;
-import static org.renjin.util.CDefines.PROTECT;
-import static org.renjin.util.CDefines.R_MissingArg;
-import static org.renjin.util.CDefines.R_NilValue;
-import static org.renjin.util.CDefines.SETCAR;
-import static org.renjin.util.CDefines.SETCDR;
-import static org.renjin.util.CDefines.SET_TAG;
-import static org.renjin.util.CDefines.STRING_ELT;
-import static org.renjin.util.CDefines.TAG;
-import static org.renjin.util.CDefines.UNPROTECT;
-import static org.renjin.util.CDefines.UNPROTECT_PTR;
-import static org.renjin.util.CDefines._;
-import static org.renjin.util.CDefines.error;
-import static org.renjin.util.CDefines.isString;
-import static org.renjin.util.CDefines.lang1;
-import static org.renjin.util.CDefines.lang2;
-import static org.renjin.util.CDefines.lang3;
-import static org.renjin.util.CDefines.lang4;
-import static org.renjin.util.CDefines.length;
-import static org.renjin.util.CDefines.translateChar;
+import com.google.common.collect.Lists;
+import com.google.common.io.CharSource;
+import com.google.common.io.CharStreams;
+import com.google.common.io.Closeables;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
 
-import com.google.common.io.CharSource;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-
-import com.google.common.collect.Lists;
-import com.google.common.io.CharStreams;
-import com.google.common.io.Closeables;
-import com.google.common.io.InputSupplier;
+import static org.renjin.util.CDefines.*;
 
 
 /* A Bison parser, made by GNU Bison 2.4.2.  */

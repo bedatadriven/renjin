@@ -189,7 +189,7 @@ public class Gcc {
     
     pluginLibrary = new File(workingDirectory, "bridge" + PlatformUtils.getExtension());
     
-    Files.copy(Resources.newInputStreamSupplier(pluginResource), pluginLibrary);
+    Resources.asByteSource(pluginResource).copyTo(Files.asByteSink(pluginLibrary));
 
     pluginLibrary.deleteOnExit();
   }

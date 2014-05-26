@@ -1,14 +1,10 @@
 package org.renjin.primitives.packaging;
 
 import com.google.common.io.ByteSource;
-import com.google.common.io.Closeables;
-import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.PairList;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Provides access to a Renjin package that 

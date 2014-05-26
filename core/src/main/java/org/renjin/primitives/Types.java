@@ -507,35 +507,8 @@ public class Types {
   }
 
   @Generic
-  @DataParallel
   @Builtin("as.logical")
-  public static boolean asLogical(@DownCastComplex boolean x) {
-    return x;
-  }
-
-  @Generic
-  @DataParallel
-  @Builtin("as.logical")
-  public static Logical asLogical(String x) {
-    String xLower = x.toLowerCase();
-    if(xLower.equals("true")) {
-      return Logical.TRUE;
-    } else if(xLower.equals("false")) {
-      return Logical.FALSE;
-    } else {
-      return Logical.NA;
-    }
-  }
-
-  @Generic
-  @Builtin("as.logical")
-  public static LogicalVector asLogical(ListVector vector) {
-    LogicalVector.Builder result = new LogicalArrayVector.Builder(0, vector.length());
-    for(int i=0;i!=vector.length();++i) {
-      SEXP element = vector.getElementAsSEXP(i);
-      if(element)
-    }
-
+  public static LogicalVector asLogical(Vector vector) {
     return (LogicalVector) convertToAtomicVector(new LogicalArrayVector.Builder(), vector);
   }
 

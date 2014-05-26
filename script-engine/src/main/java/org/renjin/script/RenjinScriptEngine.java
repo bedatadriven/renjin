@@ -1,8 +1,6 @@
 package org.renjin.script;
 
 import com.google.common.io.CharSource;
-import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.invoke.reflection.converters.Converters;
@@ -118,10 +116,10 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     SEXP source;
     try {
       // terminate with '\n'
-      InputSupplier<Reader> terminated = CharStreams.join(
+      CharSource terminated = CharSource.concat(
           newReaderSupplier(reader),
-          CharStreams.newReaderSupplier("\n"));
-      source = RParser.parseSource(terminated.getInput());
+         CharSource.wrap("\n"));
+      source = RParser.parseSource(terminated);
     } catch (IOException e) {
       throw new ScriptException(e);
     }

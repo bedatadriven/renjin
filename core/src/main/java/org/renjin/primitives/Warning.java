@@ -23,7 +23,6 @@ package org.renjin.primitives;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.Options;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.Environment;
@@ -57,7 +56,7 @@ public class Warning {
     }
   }
 
-  private static void emitWarning(Context context, FunctionCall call,
+  public static void emitWarning(Context context, FunctionCall call,
       boolean immediate, String message)  {
     int warnMode = context.getSession().getSingleton(Options.class).getInt("warn", 0);
     if(warnMode == 1 || (warnMode <= 0 && immediate)) {

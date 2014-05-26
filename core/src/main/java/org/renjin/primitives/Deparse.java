@@ -531,13 +531,21 @@ public class Deparse {
       @Override
       String deparse(Vector vector, int index) {
         Complex complex = vector.getElementAsComplex(index);
-        StringBuilder sb = new StringBuilder();
-        sb.append(ParseUtil.toString(complex.getReal()));
-        if(complex.getImaginary() >= 0) {
-          sb.append("+");
+        double r = complex.getReal();
+        double i = complex.getImaginary();
+        if(DoubleVector.isFinite(r) && DoubleVector.isFinite(i)) {
+          StringBuilder sb = new StringBuilder();
+          sb.append(ParseUtil.toString(complex.getReal()));
+          if(complex.getImaginary() >= 0 || Double.isNaN(complex.getImaginary())) {
+            sb.append("+");
+          }
+          sb.append(ParseUtil.toString(complex.getImaginary())).append("i");
+          return sb.toString();
+        } else {
+          return String.format("complex(real=%s, i=%s)",
+              ParseUtil.formatRealLiteral(r, "NA"),
+              ParseUtil.formatRealLiteral(i, "NA"));
         }
-        sb.append(ParseUtil.toString(complex.getImaginary())).append("i");
-        return sb.toString();
       }
 
       @Override

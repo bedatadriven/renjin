@@ -292,7 +292,7 @@ public class Summary {
 
     } else {
       if(realSum < Integer.MIN_VALUE || realSum > Integer.MAX_VALUE) {
-        Warning.warning(context, true, true, "Integer overflow - use sum(as.numeric(.))");
+        Warning.emitWarning(context, context.getCall(), false, "Integer overflow - use sum(as.numeric(.))");
         return new IntArrayVector(IntVector.NA);
       }
       return new IntArrayVector((int)realSum);

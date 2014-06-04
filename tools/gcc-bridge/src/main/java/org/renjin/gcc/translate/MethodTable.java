@@ -72,7 +72,6 @@ public class MethodTable {
   public void addMathLibrary() {
     methods.put("log", new MethodEntry(Math.class, "log"));
     methods.put("exp", new MethodEntry(Math.class, "exp"));
-
   }
 
   public MethodRef resolve(String functionName) {

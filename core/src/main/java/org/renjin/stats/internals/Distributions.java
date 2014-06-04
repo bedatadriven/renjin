@@ -222,6 +222,7 @@ public class Distributions {
     return d(new BetaDistributionImpl(shape1, shape2), x, log);
   }
 
+
   @DataParallel @Internal
   public static double dnbeta(@Recycle double x, @Recycle double shape1, @Recycle double shape2, @Recycle double ncp, boolean log) {
     return Beta.dnbeta(x, shape1, shape2, ncp, log);

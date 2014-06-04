@@ -61,6 +61,11 @@ public class Builtins {
     return Double.isNaN(x) || Double.isNaN(y);
   }
 
+  public static double fmax(double x, double y) {
+     return Math.max(x,y);
+  }
+
+
   public static void _gfortran_set_args__(int argc, ObjectPtr argv) {
     // TODO
   }

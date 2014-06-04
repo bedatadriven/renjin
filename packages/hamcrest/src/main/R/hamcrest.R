@@ -1,16 +1,7 @@
 
-
-assertTrue <- function(value) {
-	if(!value) {
-		stop("\nExpected: !", deparse(substitute(value)))
-	}
-}
-
-assertFalse <- function(value) {
-	if(value) {
-		stop("\nExpected: !", deparse(substitute(value)))
-	}
-}
+# --------------------------------------
+# ASSERTION FUNCTION
+# --------------------------------------
 
 assertThat <- function(actual, matcher) {
 	if(!matcher(actual)) {
@@ -18,7 +9,12 @@ assertThat <- function(actual, matcher) {
 	}
 }
 
+# --------------------------------------
+# MATCHER FUNCTIONS
+# --------------------------------------
+
 closeTo <- function(expected, delta) {
+    stopifnot(is.numeric(expected) & is.numeric(delta) & length(delta) == 1L)
 	function(actual) {
 		length(expected) == length(actual) &&
 				all(abs(expected-actual)<delta)	
@@ -42,4 +38,28 @@ instanceOf <- function(expected) {
     function(actual) {
         inherits(actual, expected)
     }
+}
+
+isTrue <- function() {
+    function(actual) {
+        identical(TRUE, actual)
+    }
+}
+
+isFalse <- function() {
+    function(actual) {
+        identical(FALSE, actual)
+    }
+}
+
+# --------------------------------------
+# ABBREVIATIONS
+# --------------------------------------
+
+assertTrue <- function(value) {
+    assertThat(value, isTrue())
+}
+
+assertFalse <- function(value) {
+    assertThat(value, isFalse())
 }

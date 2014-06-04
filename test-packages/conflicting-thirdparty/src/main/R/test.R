@@ -1,0 +1,5 @@
+
+
+compute <- function() {
+  42
+}

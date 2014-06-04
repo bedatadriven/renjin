@@ -89,6 +89,11 @@ public class WrapperRuntime {
     Vector vector = checkedSubClassAndAssertScalar(exp);
     return vector.getElementAsDouble(0);
   }
+
+  public static double convertToRawPrimitive(SEXP exp) {
+    Vector vector = checkedSubClassAndAssertScalar(exp);
+    return vector.getElementAsByte(0);
+  }
   
   public static float convertToFloatPrimitive(SEXP exp) {
     Vector vector = checkedSubClassAndAssertScalar(exp);

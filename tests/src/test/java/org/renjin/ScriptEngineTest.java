@@ -39,6 +39,10 @@ public class ScriptEngineTest {
 	  LogicalVector result = (LogicalVector) engine.eval("model == expected");
 	  Assert.assertTrue(result.asLogical() == Logical.TRUE);
 	}
-	
+
+  @Test
+  public void userPackage() throws ScriptException {
+    engine.eval("library('org.renjin.test.thirdparty')");
+  }
 }
 

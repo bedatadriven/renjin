@@ -1,13 +1,15 @@
 package org.renjin.script;
 
-import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.CharSource;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.invoke.reflection.converters.RuntimeConverter;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
+import org.renjin.primitives.special.BreakException;
+import org.renjin.primitives.special.NextException;
 import org.renjin.sexp.*;
 
 import javax.script.*;
@@ -117,10 +119,10 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     SEXP source;
     try {
       // terminate with '\n'
-      InputSupplier<Reader> terminated = CharStreams.join(
+      CharSource terminated = CharSource.concat(
           newReaderSupplier(reader),
-          CharStreams.newReaderSupplier("\n"));
-      source = RParser.parseSource(terminated.getInput());
+         CharSource.wrap("\n"));
+      source = RParser.parseSource(terminated);
     } catch (IOException e) {
       throw new ScriptException(e);
     }
@@ -128,7 +130,14 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   }
   
   private Object eval(Context context, SEXP source) {
-    return context.evaluate( source, context.getEnvironment());
+    try {
+      return context.evaluate( source, context.getEnvironment());
+    } catch(BreakException e) {
+      throw new EvalException("no loop for break");
+    } catch(NextException e) {
+      throw new EvalException("no loop for next");
+
+    }
   }
 
   public void eval(File file) throws IOException, ScriptException {
@@ -138,10 +147,10 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     reader.close();
   }
   
-  private InputSupplier<Reader> newReaderSupplier(final Reader reader) {
-    return new InputSupplier<Reader>() {
+  private CharSource newReaderSupplier(final Reader reader) {
+    return new CharSource() {
       @Override
-      public Reader getInput() throws IOException {
+      public Reader openStream() throws IOException {
         return reader;
       }      
     };

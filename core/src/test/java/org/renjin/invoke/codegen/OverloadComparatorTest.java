@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Ops;
 import org.renjin.primitives.Types;
-import org.renjin.primitives.subset.Subsetting;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.Vector;
 
@@ -41,16 +40,5 @@ public class OverloadComparatorTest {
     OverloadComparator comparator = new OverloadComparator();
 
     assertThat(comparator.compare(vectorMethod, pairListMethod), lessThan(0));
-  }
-
-  @Test
-  public void subset2() throws Exception {
-     JvmMethod stringMethod = new JvmMethod(Subsetting.class.getMethod("getSingleElementDefaultByExactName", Vector.class, String.class));
-    JvmMethod intMethod = new JvmMethod(Subsetting.class.getMethod("getSingleElementDefault", Vector.class, int.class));
-
-    OverloadComparator comparator = new OverloadComparator();
-
-    assertThat(comparator.compare(intMethod, stringMethod), lessThan(0));
-
   }
 }

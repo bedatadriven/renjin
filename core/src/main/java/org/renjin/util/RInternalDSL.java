@@ -14,7 +14,7 @@ public class RInternalDSL {
   }
   
   public static SEXP c(Complex... values) {
-    return new ComplexVector(values);
+    return new ComplexArrayVector(values);
   }
 
   public static SEXP c(boolean... values) {
@@ -33,7 +33,7 @@ public class RInternalDSL {
     return new DoubleArrayVector(values);
   }
   
-  public static SEXP c(Raw... values){
+  public static SEXP c_raw(byte... values){
     return new RawVector(values);
   }
 }

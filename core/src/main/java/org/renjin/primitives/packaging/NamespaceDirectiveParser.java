@@ -2,20 +2,15 @@ package org.renjin.primitives.packaging;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.io.CharSource;
 import com.google.common.io.Closeables;
-import com.google.common.io.InputSupplier;
-import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Populates a namespace based on instructions
@@ -26,9 +21,8 @@ public class NamespaceDirectiveParser {
   private ExpressionVector source;
   private NamespaceDirectiveHandler handler;
 
-  public static void parse(InputSupplier<InputStreamReader> readerInputSupplier,
-                           NamespaceDirectiveHandler handler) throws IOException {
-    Reader reader = readerInputSupplier.getInput();
+  public static void parse(CharSource charSource, NamespaceDirectiveHandler handler) throws IOException {
+    Reader reader = charSource.openStream();
     ExpressionVector source;
     try {
       source = RParser.parseAllSource(reader);

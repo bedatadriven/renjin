@@ -11,6 +11,7 @@ import java.io.PushbackInputStream;
 import java.util.Properties;
 import java.util.zip.GZIPInputStream;
 
+import com.google.common.io.Closer;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -68,17 +69,19 @@ public class DatasetsBuilder {
   }
 
   public void build() throws FileNotFoundException  {
-    if(dataDirectory.exists() && dataDirectory.listFiles()!=null) {
-
-      for(File dataFile : dataDirectory.listFiles()) {
-        try {
-          processDataset(dataFile);
-        } catch(EvalException e) {
-          System.err.println("ERROR processing data file " + dataFile.getName() + ": " + e.getMessage());
-          e.printRStackTrace(System.err);
-        } catch(Exception e) {
-          System.err.println("Exception processing data file " + dataFile);
-          e.printStackTrace();
+    if(dataDirectory.exists()) {
+      File[] files = dataDirectory.listFiles();
+      if(files != null) {
+        for(File dataFile : files) {
+          try {
+            processDataset(dataFile);
+          } catch(EvalException e) {
+            System.err.println("ERROR processing data file " + dataFile.getName() + ": " + e.getMessage());
+            e.printRStackTrace(System.err);
+          } catch(Exception e) {
+            System.err.println("Exception processing data file " + dataFile);
+            e.printStackTrace();
+          }
         }
       }
     }
@@ -99,10 +102,9 @@ public class DatasetsBuilder {
     FileOutputStream out = new FileOutputStream(indexFile);
     try {
       index.store(out, "Datasets index");
+      out.close();
     } catch (IOException e) {
       throw new RuntimeException("Failed to write dataset index to " + indexFile.getAbsolutePath(), e);
-    } finally {
-      Closeables.closeQuietly(out);
     }
   }
 
@@ -138,13 +140,16 @@ public class DatasetsBuilder {
    * @throws IOException
    */
   private void processRDataFile(File dataFile) throws IOException {
-    InputStream in = DatasetsBuilder.decompress(dataFile);
+    Closer closer = Closer.create();
+    InputStream in = closer.register(DatasetsBuilder.decompress(dataFile));
     SEXP exp;
     try { 
       RDataReader reader = new RDataReader(in);
       exp = reader.readFile();
+    } catch(Throwable e) {
+      throw closer.rethrow(e);
     } finally {
-      Closeables.closeQuietly(in);
+      in.close();
     }
     
     if(!(exp instanceof PairList)) {

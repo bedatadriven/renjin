@@ -14,12 +14,12 @@ public class LogicalType extends ScalarType {
 
   @Override
   public String getConversionMethod() {
-    return "convertToLogical";
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public String getAccessorMethod() {
-    return "isElementAsLogical";
+    return "getElementAsLogical";
   }
 
   @Override

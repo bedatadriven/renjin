@@ -1,13 +1,15 @@
 package org.renjin.primitives.packaging;
 
 
+import com.google.common.base.Optional;
+
 public interface PackageLoader {
 
   /**
    * @param name the package name
-   * @return a set of resources implementing the Package interface or 
-   * null if the package could not be found
+   * @return a set of resources implementing the Package interface,
+   * if a package matching the name could be located
    */
-  Package load(String name);
+  Optional<Package> load(FqPackageName packageName);
 
 }

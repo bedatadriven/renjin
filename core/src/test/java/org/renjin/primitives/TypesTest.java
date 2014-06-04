@@ -110,7 +110,7 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void asLogicalFromList() {
-    assertThat( eval("as.logical(list(1, 99.4, 0, 0L, FALSE, 'TRUE', 'FOO', 'T', 'F', 'FALSE')) "),
+      assertThat( eval("as.logical(list(1, 99.4, 0, 0L, FALSE, 'TRUE', 'FOO', 'T', 'F', 'FALSE')) "),
         equalTo( c(TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, Logical.NA, TRUE, FALSE, FALSE) ));
   }
 
@@ -575,53 +575,44 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void isRawAndAsRaw(){
-    Raw r1 = new Raw(1);
-    Raw r2 = new Raw(20);
-    Raw r3 = new Raw(30);
     assertThat( eval("is.raw(as.raw(c(123,124)))"), equalTo(c(Logical.TRUE)));
-    assertThat( eval("as.raw(c(1,20,30))"), equalTo(c(r1,r2,r3)));
+    assertThat( eval("as.raw(c(1,20,30))"), equalTo(c_raw(0x1, 0x14, 0x1e)));
   }
   
   @Test
   public void rawToBits(){
-    Raw r0 = new Raw(00);
-    Raw r1 = new Raw(01);
-    assertThat( eval(".Internal(rawToBits(as.raw(c(1,2))))"), equalTo(c(r0,r0,r0,r0,r0,r0,r0,r1,r0,r0,r0,r0,r0,r0,r1,r0)));
+    assertThat( eval(".Internal(rawToBits(as.raw(c(1,2))))"), equalTo(bits("1000000001000000")));
   }
   
   @Test
   public void charToRaw(){
-    Raw r1 = new Raw('A');
-    Raw r2 = new Raw('B');
-    Raw r3 = new Raw('C');
-    assertThat( eval(".Internal(charToRaw(\"ABC\"))"), equalTo(c(r1,r2,r3)));
+    assertThat( eval(".Internal(charToRaw(\"ABC\"))"), equalTo(c_raw(0x41, 0x42, 0x43)));
   }
   
   @Test
   public void multiByteCharToRaw(){
-    Raw r1 = new Raw(0xc2);
-    Raw r2 = new Raw(0xa0);
-    assertThat( eval(".Internal(charToRaw('\u00a0'))"), equalTo(c(r1,r2)));
+    assertThat( eval(".Internal(charToRaw('\u00a0'))"), equalTo(c_raw(0xc2, 0xa0)));
   }
   
   @Test
   public void rawShift() {
-    Raw r1 = new Raw(0x3a);Raw r2 = new Raw(0x3c);Raw r3 = new Raw(0x3e);
-    assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),1))"), equalTo(c(r1, r2, r3)));
-    
-    //r1 = new Raw(0x0e);r2 = new Raw(0x0f);r3 = new Raw(0x0f);
-    //assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),-1))"), equalTo(c(r1, r2, r3)));
+    assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),1))"), equalTo(c_raw(0x3a, 0x3c, 0x3e)));
   }
   
   @Test
-  public void intToBits(){
-    RawVector.Builder b = new RawVector.Builder();
-    b.add(new Raw(01));
-    for (int i=1;i<32;i++) {
-      b.add(new Raw(0));
+  public void intToBits() {
+    assertThat(eval(".Internal(intToBits(1))"), equalTo(bits("10000000000000000000000000000000")));
+    assertThat(eval(".Internal(intToBits(234234))"), equalTo(bits("01011111010010011100000000000000")));
+    assertThat(eval(".Internal(intToBits(NA))"), equalTo(bits("00000000000000000000000000000001")));
+
+  }
+
+  private SEXP bits(String bits) {
+    RawVector.Builder vector = new RawVector.Builder();
+    for(int i=0;i!=bits.length();++i) {
+      vector.add(bits.charAt(i) == '1' ? 1 : 0);
     }
-    RawVector rv = b.build();
-    assertThat(eval(".Internal(intToBits(1))"), equalTo(c(rv.getAsRawArray())));
+    return vector.build();
   }
 
   @Test
@@ -657,58 +648,8 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat(eval("dimnames(y)[[1]]"), equalTo(c("r1", "r2", "r3")));
     assertThat(eval("dimnames(y)[[2]]"), equalTo(c("c1", "c2", "c3", "c4")));
   }
-  
-  @Test
-  public void identicalS4() {
-    topLevelContext.getGlobalEnvironment().setVariable("x", new S4Object());
-    topLevelContext.getGlobalEnvironment().setVariable("y", new S4Object());
-    eval("attr(x, 'foo') <- 'bar' ");
-    eval("attr(y, 'foo') <- 'baz' ");
-    
-    assertThat(eval(".Internal(identical(x,y,TRUE,TRUE,TRUE,TRUE))"), equalTo(c(false)));
 
-    eval("attr(y, 'foo') <- 'bar' ");
 
-    assertThat(eval(".Internal(identical(x,y,TRUE,TRUE,TRUE,TRUE))"), equalTo(c(true)));
-  }
-  
-  @Test
-  public void identical() {
-    eval("identical <- function(x,y) .Internal(identical(x,y,TRUE,TRUE,TRUE,TRUE)) ");
-    
-    assertThat(eval("identical(1,1)"), equalTo(c(true)));
-    assertThat(eval("identical(1,1L)"), equalTo(c(false)));
-    assertThat(eval("identical(1,NA)"), equalTo(c(false)));
-    assertThat(eval("identical(NA,NA)"), equalTo(c(true)));
-    assertThat(eval("identical(NA_real_,NA_real_)"), equalTo(c(true)));
-    assertThat(eval("identical(1:3,c(1L,2L,3L))"), equalTo(c(true)));
-    assertThat(eval("identical(quote(x), quote(y))"), equalTo(c(false)));
-    assertThat(eval("identical(quote(x), quote(x))"), equalTo(c(true)));
-    assertThat(eval("identical(NULL, NULL)"), equalTo(c(true)));
-    assertThat(eval("identical(NULL, 1)"), equalTo(c(false)));
-    assertThat(eval("identical(list(x=1,y='foo',NA), list(x=1,y='foo',NA))"), equalTo(c(true)));
-    assertThat(eval("identical(function(x) x, function(x) x)"), equalTo(c(false)));
-    assertThat(eval("identical(1+3i, 1+4i)"), equalTo(c(false)));
-    assertThat(eval("identical(1+3i, 2+3i)"), equalTo(c(false)));
-    assertThat(eval("identical(1+3i, 1+3i)"), equalTo(c(true)));
-    
-    
-    
-    eval("f<- function(x) x");
-    assertThat(eval("identical(f,f)"), equalTo(c(true)));
-
-    eval("y <- x <- 1:12");
-    eval("dim(x) <- c(6,2)");
-    eval("dim(y) <- c(3,4)");
-    assertThat(eval("identical(x,y)"), equalTo(c(false)));
-    
-    eval("dim(y) <- c(6,2)");
-    assertThat(eval("identical(x,y)"), equalTo(c(true)));
-    
-    eval("attr(x,'foo') <- 'bar'");
-    assertThat(eval("identical(x,y)"), equalTo(c(false)));
-    
-  }
   
   
   @Test

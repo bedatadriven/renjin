@@ -1,23 +1,20 @@
 package org.renjin.primitives.packaging;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.*;
-
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.io.Closeables;
 import org.renjin.eval.Context;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.SEXP;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Implements a standard package layout used by renjin's tools
@@ -26,6 +23,10 @@ import com.google.common.io.Closeables;
 public abstract class FileBasedPackage extends Package {
 
 
+  protected FileBasedPackage(FqPackageName name) {
+    super(name);
+  }
+
   @Override
   public Iterable<NamedValue> loadSymbols(Context context) throws IOException {
     return LazyLoadFrame.load(context, new Function<String, InputStream>() {
@@ -33,7 +34,7 @@ public abstract class FileBasedPackage extends Package {
       @Override
       public InputStream apply(String name) {
         try {
-          return getResource(name).getInput();
+          return getResource(name).openStream();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -47,7 +48,7 @@ public abstract class FileBasedPackage extends Package {
   private Properties readDatasetIndex() throws IOException {
     Properties datasets = new Properties();
     if(resourceExists("datasets")) {
-      InputStream in = getResource("datasets").getInput();
+      InputStream in = getResource("datasets").openStream();
       try {
         datasets.load(in);
       } finally {
@@ -60,12 +61,9 @@ public abstract class FileBasedPackage extends Package {
   @Override
   public Collection<String> getPackageDependencies() throws IOException {
     if(resourceExists("requires")) {
-      InputSupplier<InputStreamReader> supplier = CharStreams.newReaderSupplier(
-              getResource("requires"), Charsets.UTF_8);
-
-      // exclude blank lines
+      ImmutableList<String> lines = getResource("requires").asCharSource(Charsets.UTF_8).readLines();
       List<String> dependencies = Lists.newArrayList();
-      for(String line : CharStreams.readLines(supplier)) {
+      for(String line : lines) {
         if(!Strings.isNullOrEmpty(line)) {
           dependencies.add(line);
         }
@@ -118,7 +116,7 @@ public abstract class FileBasedPackage extends Package {
       if(!objectNames.contains(name)) {
         throw new IllegalArgumentException(name);
       }
-      InputStream in = getResource("data/" + name).getInput();
+      InputStream in = getResource("data/" + name).openStream();
       try {
         RDataReader reader = new RDataReader(in);
         return reader.readFile();

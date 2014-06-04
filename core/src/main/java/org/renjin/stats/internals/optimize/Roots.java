@@ -59,7 +59,7 @@ public class Roots {
     double estimatedPrecision = DoubleVector.EPSILON; // not exposed by commons math impl
 
     try {
-      root = solver.solve(new UnivariateRealClosure(context, rho, fn), lower, upper);
+      root = solver.solve(maximumIterations, new UnivariateRealClosure(context, rho, fn), lower, upper);
       iterations = 1; // the Commons math impl doesn't expose this
     } catch (MaxIterationsExceededException e) {
       root = DoubleVector.NA;

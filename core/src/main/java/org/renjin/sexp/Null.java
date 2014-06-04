@@ -208,7 +208,12 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   public boolean isElementTrue(int index) {
     throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
-  
+
+  @Override
+  public byte getElementAsByte(int index) {
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
+  }
+
   @Override
   public Complex getElementAsComplex(int index) {
     throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);

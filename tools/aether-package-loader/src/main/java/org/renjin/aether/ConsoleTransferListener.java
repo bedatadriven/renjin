@@ -12,21 +12,25 @@ package org.renjin.aether;
  *    Sonatype, Inc. - initial API and implementation
  *******************************************************************************/
 
+import org.eclipse.aether.transfer.AbstractTransferListener;
+import org.eclipse.aether.transfer.TransferEvent;
+import org.eclipse.aether.transfer.TransferResource;
+
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.eclipse.aether.transfer.AbstractTransferListener;
-import org.eclipse.aether.transfer.TransferEvent;
-import org.eclipse.aether.transfer.TransferResource;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A simplistic transfer listener that logs uploads/downloads to the console.
  */
 public class ConsoleTransferListener extends AbstractTransferListener {
+
+  private static final Logger LOGGER = Logger.getLogger(ConsoleRepositoryListener.class.getName());
 
   private PrintStream out;
 
@@ -45,8 +49,7 @@ public class ConsoleTransferListener extends AbstractTransferListener {
   @Override
   public void transferInitiated(TransferEvent event) {
     String message = event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploading" : "Downloading";
-
-    out.println(message + ": " + event.getResource().getRepositoryUrl() + event.getResource().getResourceName());
+    LOGGER.fine(message + ": " + event.getResource().getRepositoryUrl() + event.getResource().getResourceName());
   }
 
   @Override
@@ -119,7 +122,7 @@ public class ConsoleTransferListener extends AbstractTransferListener {
   public void transferFailed(TransferEvent event) {
     transferCompleted(event);
 
-    event.getException().printStackTrace(out);
+    LOGGER.log(Level.WARNING, "Transfer failed", event.getException());
   }
 
   private void transferCompleted(TransferEvent event) {
@@ -132,7 +135,8 @@ public class ConsoleTransferListener extends AbstractTransferListener {
   }
 
   public void transferCorrupted(TransferEvent event) {
-    event.getException().printStackTrace(out);
+    LOGGER.log(Level.WARNING, "Transfer corrupted", event.getException());
+    System.err.println("Transfer of " + event.getResource().getResourceName() + " was corrupted, failing.");
   }
 
   protected long toKB(long bytes) {

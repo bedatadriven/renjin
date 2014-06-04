@@ -72,6 +72,12 @@ public class SequenceTest extends EvalTestCase {
   }
 
 
+  @Test
+  public void singleReal() {
+    assertThat(colon(1.2, 1.2), elementsEqualTo(1.2));
+  }
+
+
   private SEXP colon(double n1, double n2) {
     Sequences fn = new Sequences();
     return fn.colonSequence(topLevelContext, new DoubleArrayVector(n1), new DoubleArrayVector(n2));

@@ -13,6 +13,7 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.maven.PackageDescription;
 import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
@@ -20,15 +21,15 @@ import com.google.common.collect.Lists;
 
 public class NamespaceBuilder {
 
-  private String namespaceName;
+  private FqPackageName name;
   private File sourceDirectory;
   private File environmentFile;
   private List<String> defaultPackages;
 
-  public void build(String namespaceName, File sourceDirectory,
+  public void build(String groupId, String namespaceName, File sourceDirectory,
       File environmentFile, List<String> defaultPackages) throws IOException {
-   
-    this.namespaceName = namespaceName;
+
+    this.name = new FqPackageName(groupId, namespaceName);
     this.sourceDirectory = sourceDirectory;
     this.environmentFile = environmentFile;
     this.defaultPackages = defaultPackages;
@@ -45,7 +46,7 @@ public class NamespaceBuilder {
     
     Context context = initContext();
 
-    Namespace namespace = context.getNamespaceRegistry().createNamespace(new InitializingPackage(), namespaceName);
+    Namespace namespace = context.getNamespaceRegistry().createNamespace(new InitializingPackage(name));
     evaluateSources(context, getRSources(), namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
   }

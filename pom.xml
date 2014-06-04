@@ -26,7 +26,7 @@
 
   <groupId>org.renjin</groupId>
   <artifactId>parent</artifactId>
-  <version>0.7.0-RC7-SNAPSHOT</version>
+  <version>0.7.0-RC8-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Renjin Parent</name>
 
@@ -39,6 +39,7 @@
     <module>benchmarks</module>
     <module>repl</module>
     <module>packages</module>
+    <module>test-packages</module>
     <module>tools</module>
     <module>studio</module>
     <module>dist/generic</module>
@@ -258,7 +259,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>13.0</version>
+        <version>17.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

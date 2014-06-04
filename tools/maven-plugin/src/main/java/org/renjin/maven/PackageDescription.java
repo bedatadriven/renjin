@@ -11,12 +11,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.io.CharStreams;
-import com.google.common.io.Closeables;
+import com.google.common.io.*;
 
 /**
  * Package DESCRIPTION file
@@ -159,22 +159,12 @@ public class PackageDescription {
 		return d;
 	}
 	
-	public static PackageDescription fromInputStream(InputStream in) throws IOException {
-		return fromString(CharStreams.toString(new InputStreamReader(in)));
+	public static PackageDescription fromInputStream(ByteSource in) throws IOException {
+		return fromString(in.asCharSource(Charsets.UTF_8).read());
 	}
-	
-	public static PackageDescription fromReader(Reader reader) throws IOException {
-	  return fromString(CharStreams.toString(reader));
-	}
-	
 
   public static PackageDescription fromFile(File file) throws IOException {
-    FileInputStream in = new FileInputStream(file);
-    try {
-      return fromInputStream(in);
-    } finally {
-      Closeables.closeQuietly(in);
-    }
+    return fromInputStream(Files.asByteSource(file));
   }
 
 	public String getFirstProperty(String key) {

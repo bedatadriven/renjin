@@ -4,11 +4,7 @@ import org.apache.commons.math.complex.Complex;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.DataParallel;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Null;
+import org.renjin.sexp.*;
 
 
 public class ComplexGroup {
@@ -49,7 +45,7 @@ public class ComplexGroup {
       lengthOut = imaginaryVector.length();
     }
     
-    ComplexVector.Builder result = new ComplexVector.Builder(0, lengthOut); 
+    ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(0, lengthOut);
     for(int i=0; i!=lengthOut;++i) {
       double real = 0;
       double imaginary = 0;

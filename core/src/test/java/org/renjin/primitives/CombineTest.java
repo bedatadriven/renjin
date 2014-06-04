@@ -92,6 +92,12 @@ public class CombineTest extends EvalTestCase {
     }
 
     @Test
+    public void unlistRaw() {
+      assertThat(eval("unlist(list(as.raw(0x1), as.raw(0x33)))"), equalTo(c_raw(0x1,0x33)));
+
+    }
+
+    @Test
     public void combineRecursively() {
         assertThat(eval("c( list(91,92,c(93,94,95)), 96, c(97,98), recursive=TRUE)"),
                 equalTo(c(91, 92, 93, 94, 95, 96, 97, 98)));

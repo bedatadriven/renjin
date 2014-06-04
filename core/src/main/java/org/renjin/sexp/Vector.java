@@ -75,6 +75,14 @@ public interface Vector extends SEXP {
    * @return true if the element at {@code index} is true.
    */
   boolean isElementTrue(int index);
+
+  /**
+   *
+   * @param index zero-based index
+   * @return the element at {@code index} as an unsigned byte. See {@link com.google.common.primitives.UnsignedBytes}
+   * for utilities for working with unsigned bytes.
+   */
+  byte getElementAsByte(int index);
   
   /**
   *

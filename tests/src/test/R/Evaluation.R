@@ -22,8 +22,8 @@ test.MissingArgWithDefaultsDoNotPropogatesToSubsequentCalls <- function() {
 	
 	wasEvaled <- 0
 	g(x = (wasEvaled <- 1) )
-	
-	assertFalse(wasEvaled)
+
+	assertThat(wasEvaled, equalTo(0))
 }
 
 test.AttachList <- function() {

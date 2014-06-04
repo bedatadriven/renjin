@@ -22,7 +22,8 @@
 package org.renjin.primitives.io.serialization;
 
 import com.google.common.collect.Lists;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Closeables;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
@@ -87,13 +88,13 @@ public class RDataReader {
     }
   }
   
-  public static boolean isRDataFile(InputSupplier<InputStream> inputSupplier) throws IOException {
-    InputStream in = inputSupplier.getInput();
+  public static boolean isRDataFile(ByteSource inputSupplier) throws IOException {
+    InputStream in = inputSupplier.openStream();
     try {
       byte streamType = readStreamType(in);
       return streamType != -1;
     } finally {
-      in.close();
+      Closeables.closeQuietly(in);
     }
   }
   
@@ -412,7 +413,7 @@ public class RDataReader {
     for(int i=0;i!=length;++i) {
       values[i] = new Complex(in.readDouble(), in.readDouble());
     }
-    return new ComplexVector(values, readAttributes(flags));
+    return new ComplexArrayVector(values, readAttributes(flags));
   }
 
   private SEXP readDoubleExp(int flags) throws IOException {
@@ -588,44 +589,55 @@ public class RDataReader {
 
     @Override
     public byte[] readString(int length) throws IOException {
-//if (length > 0) {
-//	    int c, d, i, j;
-//	    struct R_instring_stream_st iss;
-//
-//	    InitInStringStream  (&iss, stream);
-//	    while(isspace(c = GetChar(&iss)))
-//		;
-//	    UngetChar(&iss, c);
-//	    for (i = 0; i < length; i++) {
-//		if ((c =  GetChar(&iss)) == '\\') {
-//		    switch(c = GetChar(&iss)) {
-//		    case 'n' : buf[i] = '\n'; break;
-//		    case 't' : buf[i] = '\t'; break;
-//		    case 'v' : buf[i] = '\v'; break;
-//		    case 'b' : buf[i] = '\b'; break;
-//		    case 'r' : buf[i] = '\r'; break;
-//		    case 'f' : buf[i] = '\f'; break;
-//		    case 'a' : buf[i] = '\a'; break;
-//		    case '\\': buf[i] = '\\'; break;
-//		    case '?' : buf[i] = '\?'; break;
-//		    case '\'': buf[i] = '\''; break;
-//		    case '\"': buf[i] = '\"'; break; /* closing " for emacs */
-//		    case '0': case '1': case '2': case '3':
-//		    case '4': case '5': case '6': case '7':
-//			d = 0; j = 0;
-//			while('0' <= c && c < '8' && j < 3) {
-//			    d = d * 8 + (c - '0');
-//			    c = GetChar(&iss);
-//			    j++;
-//			}
-//			buf[i] = d;
-//			UngetChar(&iss, c);
-//			break;
-//		    default  : buf[i] = c;
-//		    }
-//		}
-//		else buf[i] = c;
-      throw new IOException("reading strings from ascii file not yet impl");
+      byte buf[] = null;
+      if(length > 0) {
+        buf = new byte[length];
+        int codePoint;
+        do {
+          codePoint = reader.read();
+          if(codePoint == -1) {
+            throw new EOFException();
+          }
+        } while(Character.isWhitespace(codePoint));
+        
+        for(int i = 0; i < length; i++) {
+          if(codePoint == '\\') {
+            codePoint = reader.read();
+            switch(codePoint) {
+            case 'n': buf[i] = '\n'; break;
+            case 't': buf[i] = '\t'; break;
+            case 'v': buf[i] = '\013'; break;
+            case 'b' : buf[i] = '\b'; break;
+            case 'r' : buf[i] = '\r'; break;
+            case 'f' : buf[i] = '\f'; break;
+            case 'a' : buf[i] = '\007'; break;
+            case '\\': buf[i] = '\\'; break;
+            case '?' : buf[i] = '\177'; break;
+            case '\'': buf[i] = '\''; break;
+            case '\"': buf[i] = '\"'; break; /* closing " for emacs */
+            case '0': case '1': case '2': case '3':
+            case '4': case '5': case '6': case '7':
+                int d = 0, j = 0;
+                while('0' <= codePoint && codePoint < '8' && j < 3) {
+                  d = d * 8 + (codePoint - '0');
+                  codePoint = reader.read();
+                  j++;
+                }
+                buf[i] = (byte)d;
+                continue;
+            default  : buf[i] = (byte)codePoint;
+            }
+          } else {
+            buf[i] = (byte)codePoint;
+          }
+          codePoint = reader.read();
+          if(codePoint == -1) {
+            throw new EOFException();
+          }
+        }
+      }
+      
+      return buf;
     }
   }
 

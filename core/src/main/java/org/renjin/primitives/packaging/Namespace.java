@@ -9,38 +9,42 @@ import org.renjin.sexp.Symbol;
 import java.util.List;
 
 public class Namespace {
-  
-  private String name;
+
   private List<Symbol> exports = Lists.newArrayList();
   private final Environment namespaceEnvironment;
   private Package pkg;
 
-  public Namespace(Package pkg, String localName, Environment namespaceEnvironment) {
-    this.name = localName;
+  public Namespace(Package pkg, Environment namespaceEnvironment) {
     this.pkg = pkg;
     this.namespaceEnvironment = namespaceEnvironment;
   }
   
   public String getName() {
-    return name;
+    return pkg.getName().getPackageName();
+  }
+
+  public FqPackageName getFullyQualifiedName() {
+    return pkg.getName();
   }
 
   public SEXP getEntry(Symbol entry) {
     SEXP value = namespaceEnvironment.getVariable(entry);
     if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("Namespace " + name + " has no symbol named '" + entry + "'");
+      throw new EvalException("Namespace " + pkg.getName() + " has no symbol named '" + entry + "'");
     }
     return value;
   }
 
   public SEXP getExport(Symbol entry) {
-    if(name.equals("base")) {
+    // the base package's namespace is treated specially for historical reasons:
+    // all symbols are considered to be exported.
+    if(FqPackageName.BASE.equals(pkg.getName())) {
       return getEntry(entry);
     }
     if(exports.contains(entry)) {
       return this.namespaceEnvironment.getVariable(entry);
     }
-    throw new EvalException("Namespace " + name + " has no exported symbol named '" + entry.getPrintName() + "'");
+    throw new EvalException("Namespace " + pkg.getName() + " has no exported symbol named '" + entry.getPrintName() + "'");
   }
 
   public Environment getImportsEnvironment() {

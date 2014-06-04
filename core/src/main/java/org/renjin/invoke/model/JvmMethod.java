@@ -29,7 +29,8 @@ import org.apache.commons.math.complex.Complex;
 import org.apache.commons.math.special.Gamma;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.Symbol;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -58,7 +59,9 @@ public class JvmMethod implements Comparable<JvmMethod> {
       Double.TYPE,
       Double.class,
       Complex.class,
-      String.class  };
+      String.class,
+      Byte.class,
+      Byte.TYPE };
 
   public JvmMethod(Method method) {
     this.method = method;

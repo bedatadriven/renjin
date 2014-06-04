@@ -58,12 +58,20 @@ public class FixedRE implements RE {
     List<String> splits = Lists.newArrayList();
     int i=0;
     int j;
-    while(i < s.length() && (j=s.indexOf(pattern,i))!=-1) {
+    while(i < s.length() && (j= nextMatch(s, i))!=-1) {
       splits.add(s.substring(i,j));
-      i = j+pattern.length();
+      if(pattern.isEmpty()) {
+        i = j + 1;
+      } else {
+        i = j+ pattern.length();
+      }
     }
     splits.add(s.substring(i));
     return splits.toArray(new String[splits.size()]);
+  }
+
+  private int nextMatch(String s, int startingIndex) {
+    return s.indexOf(pattern,startingIndex);
   }
 
   @Override

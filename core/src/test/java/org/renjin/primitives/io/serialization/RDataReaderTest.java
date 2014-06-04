@@ -21,7 +21,7 @@
 
 package org.renjin.primitives.io.serialization;
 
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.*;
@@ -60,18 +60,18 @@ public class RDataReaderTest extends EvalTestCase {
   
   @Test
   public void isRDataFile() throws IOException {
-    InputSupplier<InputStream> rdata = new InputSupplier<InputStream>() {
+    ByteSource rdata = new ByteSource() {
       
       @Override
-      public InputStream getInput() throws IOException {
+      public InputStream openStream() throws IOException {
         InputStream in = getClass().getResourceAsStream("/simple.RData");
         return new GZIPInputStream(in);
       }
     }; 
-    InputSupplier<InputStream> notRData = new InputSupplier<InputStream>() {
+    ByteSource notRData = new ByteSource() {
       
       @Override
-      public InputStream getInput() throws IOException {
+      public InputStream openStream() throws IOException {
         return getClass().getResourceAsStream("/jarfiletest.jar");
       }
     }; 

@@ -28,7 +28,7 @@ public class RenjinScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public List<String> getExtensions() {
-    return Lists.newArrayList(".R");
+    return Lists.newArrayList("R", "r", "S", "s");
   }
 
   @Override

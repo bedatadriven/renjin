@@ -2,8 +2,9 @@ package org.renjin.invoke.codegen;
 
 import com.google.common.collect.Lists;
 import com.sun.codemodel.*;
-import org.renjin.invoke.model.JvmMethod;
+import org.apache.commons.math.complex.Complex;
 import org.renjin.invoke.annotations.PreserveAttributeStyle;
+import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
@@ -42,6 +43,10 @@ public class DeferredVectorBuilder {
       type = VectorType.LOGICAL;
     } else if(overload.getReturnType().equals(int.class)) {
       type = VectorType.INTEGER;
+    } else if(overload.getReturnType().equals(Complex.class)) {
+      type = VectorType.COMPLEX;
+    } else if(overload.getReturnType().equals(byte.class)) {
+      type = VectorType.RAW;
     } else {
       throw new UnsupportedOperationException(overload.getReturnType().toString());
     }
@@ -139,6 +144,10 @@ public class DeferredVectorBuilder {
       return "s";
     } else if(clazz.equals(int.class)) {
       return "i";
+    } else if(clazz.equals(Complex.class)) {
+      return "z";
+    } else if(clazz.equals(byte.class)) {
+      return "r";
     } else {
       throw new UnsupportedOperationException(clazz.toString());
     }
@@ -279,7 +288,7 @@ public class DeferredVectorBuilder {
       JVar argValue = method.body().decl(arg.accessorType(), "arg" + arg.index + "_i", arg.invokeAccessor(elementIndex));
       argValues.add(arg.convert(argValue));
 
-      if(!overload.isPassNA()) {
+      if(!overload.isPassNA() && arg.type != ArgumentType.BYTE) {
         method.body()._if(arg.isNA(argValue))._then()._return(na());
       }
     }
@@ -306,6 +315,9 @@ public class DeferredVectorBuilder {
       case LOGICAL:
       case INTEGER:
         return codeModel.ref(IntVector.class).staticRef("NA");
+
+      case COMPLEX:
+        return codeModel.ref(ComplexArrayVector.class).staticRef("NA");
     }
     throw new UnsupportedOperationException(type.toString());
   }
@@ -366,6 +378,10 @@ public class DeferredVectorBuilder {
         this.type = ArgumentType.INTEGER;
       } else if(model.getClazz().equals(String.class)) {
         this.type = ArgumentType.STRING;
+      } else if(model.getClazz().equals(Complex.class)) {
+        this.type = ArgumentType.COMPLEX;
+      } else if(model.getClazz().equals(byte.class)) {
+        this.type = ArgumentType.BYTE;
       } else {
         throw new UnsupportedOperationException(model.getClazz().toString());
       }
@@ -396,7 +412,9 @@ public class DeferredVectorBuilder {
 
     DOUBLE(DoubleVector.class, "getElementAsDouble", double.class),
     LOGICAL(LogicalVector.class, "getElementAsRawLogical", int.class),
-    INTEGER(IntVector.class, "getElementAsInt", int.class);
+    INTEGER(IntVector.class, "getElementAsInt", int.class),
+    COMPLEX(ComplexVector.class, "getElementAsComplex", Complex.class),
+    RAW(RawVector.class, "getElementAsByte", byte.class);
 
     private Class baseClass;
     private String accessorName;
@@ -443,6 +461,17 @@ public class DeferredVectorBuilder {
       @Override
       public JExpression isNa(JCodeModel codeModel, JExpression expr) {
         return codeModel.ref(StringVector.class).staticInvoke("isNA").arg(expr);
+      }
+    },
+    COMPLEX(Complex.class, "getElementAsComplex" ) {
+      @Override
+      public JExpression isNa(JCodeModel codeModel, JExpression expr) {
+        return codeModel.ref(ComplexVector.class).staticInvoke("isNA").arg(expr);
+      }
+    }, BYTE(byte.class, "getElementAsByte" ) {
+      @Override
+      public JExpression isNa(JCodeModel codeModel, JExpression expr) {
+        return JExpr.lit(false);
       }
     };
 

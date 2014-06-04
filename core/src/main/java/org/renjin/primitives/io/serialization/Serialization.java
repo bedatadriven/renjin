@@ -1,11 +1,7 @@
 package org.renjin.primitives.io.serialization;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.DotCall;
 import org.renjin.invoke.annotations.Internal;
@@ -13,21 +9,13 @@ import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.OpenSpec;
 import org.renjin.primitives.io.serialization.RDataWriter.PersistenceHook;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.HasNamedValues;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import static org.renjin.util.CDefines.*;
 
 
 public class Serialization {
@@ -35,7 +23,7 @@ public class Serialization {
 
   private static final int DEFAULT_SERIALIZATION_VERSION = 0;
 
-
+  public enum SERIALIZATION_TYPE { ASCII, XDR, BINARY};
 
   @Internal
   public static SEXP unserializeFromConn(@Current Context context,
@@ -230,13 +218,38 @@ public class Serialization {
   @DotCall("R_serialize")
   public static SEXP serialize(@Current Context context, SEXP object, SEXP connection, boolean ascii,
       SEXP version, SEXP refhook) throws IOException {
-    EvalException.check(!ascii, "ascii = TRUE has not been implemented");
+    //EvalException.check(!ascii, "ascii = TRUE has not been implemented");
     EvalException.check(refhook == Null.INSTANCE, "refHook != NULL has not been implemented yet.");
     EvalException.check(connection == Null.INSTANCE, "Only connection = NULL has been implemented so far.");
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    RDataWriter writer = new RDataWriter(context, baos);
+    RDataWriter writer = new RDataWriter(context, baos, 
+            ascii? SERIALIZATION_TYPE.ASCII: SERIALIZATION_TYPE.XDR);
     writer.serialize(object);
+   
     return new RawVector(baos.toByteArray());
+  }
+  
+  /**
+   * 
+   * @param connection a {@code RawVector}
+   * @param refhook a hook function for handling reference objects.
+   * @return a object
+   * @throws IOException
+   */
+  @DotCall("R_unserialize")
+  public static SEXP unserialize(@Current Context context, SEXP connection, SEXP refhook) throws IOException {
+    EvalException.check(refhook == Null.INSTANCE, "refHook != NULL has not been implemented yet.");
+    
+    if(connection instanceof StringVector) {
+        error(_("character vectors are no longer accepted by unserialize()"));
+        return R_NilValue/* -Wall */;
+    } else if(connection instanceof RawVector) {
+      RDataReader reader = new RDataReader(context, 
+              new ByteArrayInputStream(((RawVector)connection).toByteArray()));
+      return reader.readFile();
+    } else {
+      return unserializeFromConn(context, connection, Null.INSTANCE);
+    }
   }
 }

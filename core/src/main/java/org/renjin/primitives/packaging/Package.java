@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.io.ByteSource;
 import org.renjin.eval.Context;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.NamedValue;
@@ -16,6 +17,15 @@ import com.google.common.io.InputSupplier;
 
 public abstract class Package {
 
+  private final FqPackageName name;
+
+  protected Package(FqPackageName name) {
+    this.name = name;
+  }
+
+  public final FqPackageName getName() {
+    return name;
+  }
 
   /**
    * Loads the R-language symbols that constitute this package's namespace.
@@ -29,7 +39,7 @@ public abstract class Package {
   }
 
 
-  public InputSupplier<InputStream> getResource(String name) throws IOException {
+  public ByteSource getResource(String name) throws IOException {
     throw new IOException();
   }
 

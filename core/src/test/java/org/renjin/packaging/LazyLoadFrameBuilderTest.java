@@ -5,6 +5,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.NamedValue;
@@ -22,7 +23,7 @@ public class LazyLoadFrameBuilderTest {
   public void test() throws Exception {
     
     Context tlContext = Context.newTopLevelContext();
-    Namespace ns = tlContext.getNamespaceRegistry().createNamespace(new TestPackage(), "testns");
+    Namespace ns = tlContext.getNamespaceRegistry().createNamespace(new TestPackage());
     
     Context ctx = tlContext.beginEvalContext(ns.getNamespaceEnvironment());
     ctx.evaluate(RParser.parseSource("f <- function(x) x*x*42\n"));
@@ -36,7 +37,7 @@ public class LazyLoadFrameBuilderTest {
     
     // now reload into a new context
     tlContext = Context.newTopLevelContext();
-    tlContext.getNamespaceRegistry().createNamespace(new TestPackage(), "testns");
+    tlContext.getNamespaceRegistry().createNamespace(new TestPackage());
     
     Iterable<NamedValue> namedValues = LazyLoadFrame.load(null, null);
     NamedValue namedValue = namedValues.iterator().next();
@@ -48,6 +49,10 @@ public class LazyLoadFrameBuilderTest {
   }
   
   private static class TestPackage extends org.renjin.primitives.packaging.Package {
+
+    protected TestPackage() {
+      super(FqPackageName.cranPackage("testns"));
+    }
 
     @Override
     public Class getClass(String name) {

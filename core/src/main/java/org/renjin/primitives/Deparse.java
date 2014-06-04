@@ -22,36 +22,13 @@
 package org.renjin.primitives;
 
 
+import com.google.common.collect.Iterables;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.ParseUtil;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.BuiltinFunction;
-import org.renjin.sexp.CHARSEXP;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SexpVisitor;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-import com.google.common.collect.Iterables;
+import org.renjin.sexp.*;
 
 public class Deparse {
 
@@ -554,13 +531,21 @@ public class Deparse {
       @Override
       String deparse(Vector vector, int index) {
         Complex complex = vector.getElementAsComplex(index);
-        StringBuilder sb = new StringBuilder();
-        sb.append(ParseUtil.toString(complex.getReal()));
-        if(complex.getImaginary() >= 0) {
-          sb.append("+");
+        double r = complex.getReal();
+        double i = complex.getImaginary();
+        if(DoubleVector.isFinite(r) && DoubleVector.isFinite(i)) {
+          StringBuilder sb = new StringBuilder();
+          sb.append(ParseUtil.toString(complex.getReal()));
+          if(complex.getImaginary() >= 0 || Double.isNaN(complex.getImaginary())) {
+            sb.append("+");
+          }
+          sb.append(ParseUtil.toString(complex.getImaginary())).append("i");
+          return sb.toString();
+        } else {
+          return String.format("complex(real=%s, i=%s)",
+              ParseUtil.formatRealLiteral(r, "NA"),
+              ParseUtil.formatRealLiteral(i, "NA"));
         }
-        sb.append(ParseUtil.toString(complex.getImaginary())).append("i");
-        return sb.toString();
       }
 
       @Override

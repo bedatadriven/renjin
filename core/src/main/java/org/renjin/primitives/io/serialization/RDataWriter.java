@@ -21,53 +21,18 @@
 
 package org.renjin.primitives.io.serialization;
 
-import static org.renjin.primitives.io.serialization.SerializationFormat.CHARSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.EXTPTRSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.INTSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.LGLSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.LISTSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.NILVALUE_SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.RAWSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.REALSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.S4SXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.STRSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.SYMSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.UTF8_MASK;
-import static org.renjin.primitives.io.serialization.SerializationFormat.VECSXP;
-import static org.renjin.primitives.io.serialization.SerializationFormat.VERSION2;
-import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_FORMAT;
-import static org.renjin.primitives.io.serialization.SerializationFormat.XDR_MAGIC_HEADER;
+import com.google.common.collect.Maps;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
+import org.renjin.primitives.io.serialization.Serialization.SERIALIZATION_TYPE;
+import org.renjin.sexp.*;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
 
-import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.Context;
-import org.renjin.sexp.BuiltinFunction;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.ComplexVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExternalPtr;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.S4Object;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
-
-import com.google.common.collect.Maps;
+import static org.renjin.primitives.io.serialization.SerializationFormat.*;
 
 public class RDataWriter {
 
@@ -90,27 +55,38 @@ public class RDataWriter {
   
   private WriteContext context;
   private PersistenceHook hook;
-  private DataOutputStream out;
+  private DataOutputStream conn;
+  private StreamWriter out;
+  private SERIALIZATION_TYPE ser_type;
 
   private Map<SEXP, Integer> references = Maps.newHashMap();
 
-  public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out) {
+  public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out, 
+          SERIALIZATION_TYPE st) {
     this.context = context;
     this.hook = hook;
-    this.out = new DataOutputStream(out);
+    this.conn = new DataOutputStream(out);
+    this.ser_type = st;
+    switch(this.ser_type) {
+    case ASCII: this.out = new AsciiWriter(this.conn); break;
+    default: this.out = new XdrWriter(this.conn); break;
+    }
   }
-
+  
   public RDataWriter(Context context, PersistenceHook hook, OutputStream out) throws IOException {
-    this(new SessionWriteContext(context.getSession()), hook, out);
+    this(new SessionWriteContext(context.getSession()), hook, out, SERIALIZATION_TYPE.XDR);
   }
 
+  public RDataWriter(Context context, OutputStream out, SERIALIZATION_TYPE st) throws IOException {
+    this(new SessionWriteContext(context.getSession()), null, out, st);
+  }
+  
   public RDataWriter(Context context, OutputStream out) throws IOException {
     this(context, null, out);
   }
 
-
   public RDataWriter(WriteContext writeContext, OutputStream os) {
-    this(writeContext, null, os);
+    this(writeContext, null, os, SERIALIZATION_TYPE.XDR);
   }
 
   
@@ -130,13 +106,23 @@ public class RDataWriter {
    * @throws IOException
    */
   public void save(SEXP sexp) throws IOException {
-    out.writeBytes(XDR_MAGIC_HEADER);
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+      conn.writeBytes(ASCII_MAGIC_HEADER);
+    } else {
+      conn.writeBytes(XDR_MAGIC_HEADER);
+    }
+    
     serialize(sexp);
   }
 
   public void serialize(SEXP exp) throws IOException {
-    out.writeByte(XDR_FORMAT);
-    out.writeByte('\n');
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+      conn.writeByte(ASCII_FORMAT);
+    } else {
+      conn.writeByte(XDR_FORMAT);
+    }
+    
+    conn.writeByte('\n');
     writeVersion();
     writeExp(exp);
   }
@@ -265,22 +251,50 @@ public class RDataWriter {
   private void writeIntVector(IntVector vector) throws IOException {
     writeFlags(INTSXP, vector);
     out.writeInt(vector.length());
-    for(int i=0;i!=vector.length();++i) {
-      out.writeInt(vector.getElementAsInt(i));
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+      for(int i=0;i!=vector.length();++i) {
+        if(vector.isElementNA(i)) {
+          conn.writeBytes("NA\n");
+        } else {
+          out.writeInt(vector.getElementAsInt(i));
+        }
+      }
+    } else {
+      for(int i=0;i!=vector.length();++i) 
+        out.writeInt(vector.getElementAsInt(i));
     }
+    
     writeAttributes(vector);
   }
 
   private void writeDoubleVector(DoubleVector vector) throws IOException {
     writeFlags(REALSXP, vector);
     out.writeInt(vector.length());
-    for(int i=0;i!=vector.length();++i) {
-      if(vector.isElementNA(i)) {
-        out.writeLong(DoubleVector.NA_BITS);
-      } else {
-        out.writeDouble(vector.getElementAsDouble(i));
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+      for(int i=0;i!=vector.length();++i) {
+        double d = vector.getElementAsDouble(i);
+        if(!DoubleVector.isFinite(d)) {
+          if(DoubleVector.isNaN(d)) {
+            conn.writeBytes("NA\n");
+          } else if (d < 0) {
+              conn.writeBytes("-Inf\n");
+          } else {
+              conn.writeBytes("Inf\n");
+          }
+        } else {
+          out.writeDouble(vector.getElementAsDouble(i));
+        }  
+      }
+    } else {
+      for(int i=0;i!=vector.length();++i) { 
+        if(vector.isElementNA(i)) {
+          out.writeLong(DoubleVector.NA_BITS);
+        } else {
+          out.writeDouble(vector.getElementAsDouble(i));
+        }
       }
     }
+    
     writeAttributes(vector);
   }
 
@@ -312,7 +326,14 @@ public class RDataWriter {
   private void writeRawVector(RawVector vector) throws IOException {
     writeFlags(RAWSXP, vector);
     out.writeInt(vector.length());
-    out.write(vector.getAsByteArray());    
+    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+      byte[] bytes = vector.toByteArray();
+      for(int i=0;i!=vector.length();++i) {
+        conn.writeBytes(String.format("%02x\n", bytes[i]));
+      }
+    } else {
+      out.writeString(vector.toByteArray());
+    }
     writeAttributes(vector);
   }
   
@@ -467,7 +488,7 @@ public class RDataWriter {
     } else {
       byte[] bytes = string.getBytes("UTF8");
       out.writeInt(bytes.length);
-      out.write(bytes);
+      out.writeString(bytes);
     }
   }
 
@@ -494,12 +515,93 @@ public class RDataWriter {
       out.writeInt(SerializationFormat.SPECIALSXP);
     }
     out.writeInt(exp.getName().length());
-    out.writeBytes(exp.getName());
+    conn.writeBytes(exp.getName());
   }
 
   
   private void writeFlags(int type, SEXP exp) throws IOException {
     out.writeInt(Flags.computeFlags(exp, type));
   }
+  
+  private interface StreamWriter {
+      void writeInt(int v) throws IOException;
+      void writeString(byte[] bytes) throws IOException;
+      void writeLong(long l) throws IOException;
+      void writeDouble(double d) throws IOException;
+  }
 
+  private static class AsciiWriter implements StreamWriter {
+    private DataOutputStream out;
+    
+    private AsciiWriter(DataOutputStream out) {
+      this.out = out;
+    }
+    
+    public void writeInt(int v) throws IOException {
+      out.writeBytes(v + "\n");
+    }
+    
+    public void writeDouble(double d) throws IOException {
+      out.writeBytes(d + "\n");
+    }
+    
+    public void writeLong(long l) throws IOException {
+      out.writeBytes(l + "\n");
+    }
+    
+    public void writeString(byte[] bytes) throws IOException {
+      for(int i = 0; i < bytes.length; i++) {
+        String s;
+        switch(bytes[i]) {
+        case '\n': s = "\\n";  break;
+        case '\t': s = "\\t";  break;
+        case '\013': s = "\\v";  break;
+        case '\b': s = "\\b";  break;
+        case '\r': s = "\\r";  break;
+        case '\f': s = "\\f";  break;
+        case '\007': s = "\\a";  break;
+        case '\\': s = "\\\\"; break;
+        case '\177': s = "\\?";  break;
+        case '\'': s = "\\'";  break;
+        case '\"': s = "\\\""; break;
+        default  :
+        /* cannot print char in octal mode -> cast to unsigned
+           char first */
+        /* actually, since s is signed char and '\?' == 127
+           is handled above, s[i] > 126 can't happen, but
+           I'm superstitious...  -pd */
+        if (bytes[i] <= 32 || bytes[i] > 126)
+            s = String.format("\\%03o", bytes[i]);
+        else
+            s = new String(new byte[] {bytes[i]});
+        }
+        out.writeBytes(s);
+      }
+      out.writeBytes("\n");
+    }
+  }
+  
+  private static class XdrWriter implements StreamWriter {
+    private DataOutputStream out;
+      
+    private XdrWriter(DataOutputStream out) {
+      this.out = out;
+    }
+      
+    public void writeInt(int v) throws IOException {
+      out.writeInt(v);
+    }
+      
+    public void writeDouble(double d) throws IOException {
+      out.writeDouble(d);
+    }
+      
+    public void writeLong(long l) throws IOException {
+      out.writeLong(l);
+    }
+      
+    public void writeString(byte[] bytes) throws IOException {
+      out.write(bytes);
+    }
+  }
 }

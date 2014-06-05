@@ -19,6 +19,8 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.NamedFlag;
 import org.renjin.sexp.*;
 import org.renjin.sexp.ExternalPtr;
+import org.renjin.primitives.packaging.NamespaceRegistry;
+import org.renjin.primitives.packaging.FqPackageName;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -297,8 +299,15 @@ public class Native {
     } else if(packageName.equals("grDevices")) {
       return Graphics.class;
     } else {
-      String packageClassName = "org.renjin." + packageName + "." +
-          packageName;
+      FqPackageName fqname;
+      if (NamespaceRegistry.getCorePackages().contains(packageName)) {
+         fqname = FqPackageName.corePackage(packageName);
+      } else {
+         // here we assume that packageName is not fully qualified. 
+         fqname = FqPackageName.cranPackage(packageName);
+      }
+      String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
+                                fqname.getPackageName();
       try {
         return Class.forName(packageClassName);
       } catch (ClassNotFoundException e) {

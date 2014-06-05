@@ -103,6 +103,7 @@ public class GnurCompilerMojo extends AbstractMojo {
 
     compiler.setVerbose(false);
     compiler.setPackageName(groupId + "." + artifactId);
+    System.err.println("!!groupId:"+groupId+" artifact:" + artifactId);
     compiler.setClassName(artifactId);
     compiler.addClassPaths(pluginDependencies());
     compiler.setWorkDirectory(workDirectory);

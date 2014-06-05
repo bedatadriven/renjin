@@ -117,6 +117,10 @@ public class NamespaceRegistry {
     }
 	}
 
+  public static Set<String>  getCorePackages()
+  {
+    return CORE_PACKAGES;
+  }
 
   public Namespace getNamespace(FqPackageName fqPackageName) {
     Optional<Namespace> namespace = tryGetNamespace(fqPackageName);

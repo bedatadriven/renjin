@@ -51,7 +51,7 @@ public class Native {
         return delegateToJavaMethod(context, Base.class, methodName, callArguments);
       }
 
-      List<Method> methods = findMethod(getPackageClass(packageName), methodName);
+      List<Method> methods = findMethod(getPackageClass(packageName, context), methodName);
       if (methods.isEmpty()) {
          throw new EvalException("Can't find method %s in package %s", methodName, packageName);
       } 
@@ -249,7 +249,7 @@ public class Native {
 
     Class clazz;
     if(packageName != null) {
-      clazz = getPackageClass(packageName);
+      clazz = getPackageClass(packageName, context);
     } else if(className != null) {
       clazz = Class.forName(className);
     } else {
@@ -291,7 +291,7 @@ public class Native {
     return overloads;
   }
 
-  private static Class getPackageClass(String packageName) {
+  private static Class getPackageClass(String packageName, Context context) {
     if(packageName == null || packageName.equals("base")) {
       return Base.class;
     } else if(packageName.equals("methods")) {
@@ -299,13 +299,7 @@ public class Native {
     } else if(packageName.equals("grDevices")) {
       return Graphics.class;
     } else {
-      FqPackageName fqname;
-      if (NamespaceRegistry.getCorePackages().contains(packageName)) {
-         fqname = FqPackageName.corePackage(packageName);
-      } else {
-         // here we assume that packageName is not fully qualified. 
-         fqname = FqPackageName.cranPackage(packageName);
-      }
+      FqPackageName fqname = context.getNamespaceRegistry().getNamespace(packageName).getFullyQualifiedName();
       String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
                                 fqname.getPackageName();
       try {

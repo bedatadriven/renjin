@@ -250,8 +250,6 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
       }
       return s1.equals(s2);
     }
-    
-    
   }
 
   public static class Builder extends AbstractAtomicBuilder {

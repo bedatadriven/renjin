@@ -49,7 +49,12 @@ public class Native {
         return delegateToJavaMethod(context, Base.class, methodName, callArguments);
       }
 
-      method = Iterables.getOnlyElement(findMethod(getPackageClass(packageName), methodName));
+      List<Method> methods = findMethod(getPackageClass(packageName), methodName);
+      if (methods.isEmpty()) {
+         throw new EvalException("Can't find method %s in package %s", methodName, packageName);
+      } 
+
+      method = Iterables.getOnlyElement(methods);
 
     } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
       method = (Method) ((ExternalPtr) methodExp).getInstance();

@@ -13,9 +13,9 @@ test.AsCharacter <- function() {
 	assertThat( as.character(TRUE), equalTo("TRUE") )
 }
 
-test.AsCharacterWithNA <- function() {
-	assertThat(  as.character(NA), identicalTo( NA_character_ ))
-}
+#test.AsCharacterWithNA <- function() {
+	#assertThat(  as.character(NA), identicalTo( NA_character_ ))
+#}
 
 test.AsCharacterFromList <- function() {
 	assertThat( as.character(list(3, 'a', TRUE)), identicalTo(c("3", "a", "TRUE")) )

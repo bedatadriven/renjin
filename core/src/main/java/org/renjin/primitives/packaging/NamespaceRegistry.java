@@ -145,7 +145,6 @@ public class NamespaceRegistry {
     Optional<Package> loadResult = loader.load(fqName);
     if(!loadResult.isPresent()) {
       return Optional.absent();
-
     } else {
       Package pkg = loadResult.get();
       try {

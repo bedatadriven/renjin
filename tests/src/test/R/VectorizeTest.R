@@ -1,6 +1,5 @@
 library(hamcrest)
 
-# Not yet running on renjin
 ignore.test.vectorize <- function() {
   foo <- function(a) return(a)
   bar <- Vectorize(foo,"a")

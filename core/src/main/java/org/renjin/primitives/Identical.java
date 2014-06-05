@@ -36,38 +36,26 @@ public class Identical {
     if(x.length() != y.length()) {
       return false;
     }
+    if(!x.getTypeName().equals(y.getTypeName())) {
+      return false;
+    }
     if(x instanceof AtomicVector) {
-      if(!(y instanceof AtomicVector)) {
-        return false;
-      }
       return identicalAttributes(x,y ) &&
              identicalElements((AtomicVector)x, (AtomicVector)y, bitwiseComparisonNumbers, bitwiseComparisonNaN);
 
     } else if(x instanceof ExpressionVector) {
-      if(!(y instanceof ExpressionVector)) {
-        return false;
-      }
       return identicalAttributes(x, y) &&
              identicalElements((ListVector)x, (ListVector)y, bitwiseComparisonNumbers, bitwiseComparisonNaN);
 
     } else if(x instanceof ListVector) {
-      if(!(y instanceof ListVector)) {
-        return false;
-      }
       return identicalAttributes(x, y) &&
           identicalElements((ListVector)x, (ListVector)y, bitwiseComparisonNumbers, bitwiseComparisonNaN);
 
     } else if(x instanceof FunctionCall) {
-      if(!(y instanceof FunctionCall)) {
-        return false;
-      }
       return identicalAttributes(x, y) &&
           identicalElements((PairList)x, (PairList)y);
 
     } else if(x instanceof PairList.Node) {
-      if(!(y instanceof PairList.Node)) {
-        return false;
-      }
       return identicalAttributes(x, y) &&
           identicalElements((PairList)x, (PairList)y);
 
@@ -75,10 +63,7 @@ public class Identical {
       return identicalAttributes(x, y);
 
     } else if(x instanceof ExternalPtr) {
-      if(!(y instanceof ExternalPtr)) {
-        return false;
-      }
-      return identicalPtrs((ExternalPtr)x, (ExternalPtr)y);
+      return identicalPointers((ExternalPtr) x, (ExternalPtr) y);
 
     } else if(x instanceof Symbol || x instanceof Environment || x instanceof Function) {
       return x == y;
@@ -88,7 +73,7 @@ public class Identical {
     }
   }
 
-  private static boolean identicalPtrs(ExternalPtr x, ExternalPtr y) {
+  private static boolean identicalPointers(ExternalPtr x, ExternalPtr y) {
     return Objects.equal(x, y);
   }
 
@@ -147,13 +132,7 @@ public class Identical {
     for(int i=0;i!=x.length();++i) {
       String sx = x.getElementAsString(i);
       String sy = y.getElementAsString(i);
-      if(sx == null) {
-        if(sy == null) {
-          return false;
-        }
-      } else if(sy == null) {
-          return false;
-      } else if(!sx.equals(sy)) {
+      if(!java.util.Objects.equals(sx, sy)) {
         return false;
       }
     }
@@ -239,8 +218,6 @@ public class Identical {
    *  Not Equal  (x, y)   <==>   x  "!="  y
    *  where the NA/NaN and "-0." / "+0." cases treatment depend on 'str'.
    *
-   * @param x
-   * @param y
    * @param bitwiseComparisonNumbers  if true, then (x != y) is used when both are not NA or NaN.
    *  If true, will differentiate between '+0.' and '-0.'.
    *
@@ -266,7 +243,7 @@ public class Identical {
       }
 
     } else {
-      // In the case of having both valid numbers, we can either comparise bitwise,
+      // In the case of having both valid numbers, we can either compare bitwise,
       // or by the number
 
       if(bitwiseComparisonNumbers) {

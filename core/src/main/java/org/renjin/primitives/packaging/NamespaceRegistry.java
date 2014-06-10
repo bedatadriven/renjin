@@ -117,6 +117,10 @@ public class NamespaceRegistry {
     }
 	}
 
+  public static Set<String>  getCorePackages()
+  {
+    return CORE_PACKAGES;
+  }
 
   public Namespace getNamespace(FqPackageName fqPackageName) {
     Optional<Namespace> namespace = tryGetNamespace(fqPackageName);
@@ -145,7 +149,6 @@ public class NamespaceRegistry {
     Optional<Package> loadResult = loader.load(fqName);
     if(!loadResult.isPresent()) {
       return Optional.absent();
-
     } else {
       Package pkg = loadResult.get();
       try {

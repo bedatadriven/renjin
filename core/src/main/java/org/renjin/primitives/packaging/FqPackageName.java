@@ -51,6 +51,10 @@ public final class FqPackageName {
     return new FqPackageName(CORE_GROUP_ID, name.getPrintName());
   }
 
+  public static FqPackageName corePackage(String name) {
+    return new FqPackageName(CORE_GROUP_ID, name);
+  }
+
   public String getGroupId() {
     return groupId;
   }

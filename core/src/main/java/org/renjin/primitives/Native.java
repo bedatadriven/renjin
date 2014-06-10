@@ -19,6 +19,8 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.NamedFlag;
 import org.renjin.sexp.*;
 import org.renjin.sexp.ExternalPtr;
+import org.renjin.primitives.packaging.NamespaceRegistry;
+import org.renjin.primitives.packaging.FqPackageName;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -49,7 +51,12 @@ public class Native {
         return delegateToJavaMethod(context, Base.class, methodName, callArguments);
       }
 
-      method = Iterables.getOnlyElement(findMethod(getPackageClass(packageName), methodName));
+      List<Method> methods = findMethod(getPackageClass(packageName, context), methodName);
+      if (methods.isEmpty()) {
+         throw new EvalException("Can't find method %s in package %s", methodName, packageName);
+      } 
+
+      method = Iterables.getOnlyElement(methods);
 
     } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
       method = (Method) ((ExternalPtr) methodExp).getInstance();
@@ -242,7 +249,7 @@ public class Native {
 
     Class clazz;
     if(packageName != null) {
-      clazz = getPackageClass(packageName);
+      clazz = getPackageClass(packageName, context);
     } else if(className != null) {
       clazz = Class.forName(className);
     } else {
@@ -284,7 +291,7 @@ public class Native {
     return overloads;
   }
 
-  private static Class getPackageClass(String packageName) {
+  private static Class getPackageClass(String packageName, Context context) {
     if(packageName == null || packageName.equals("base")) {
       return Base.class;
     } else if(packageName.equals("methods")) {
@@ -292,8 +299,9 @@ public class Native {
     } else if(packageName.equals("grDevices")) {
       return Graphics.class;
     } else {
-      String packageClassName = "org.renjin." + packageName + "." +
-          packageName;
+      FqPackageName fqname = context.getNamespaceRegistry().getNamespace(packageName).getFullyQualifiedName();
+      String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
+                                fqname.getPackageName();
       try {
         return Class.forName(packageClassName);
       } catch (ClassNotFoundException e) {

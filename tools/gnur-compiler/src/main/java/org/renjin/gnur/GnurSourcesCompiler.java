@@ -132,6 +132,11 @@ public class GnurSourcesCompiler {
 
       compiler.getMethodTable().addReferenceClass(Class.forName("org.renjin.appl.Appl"));
 
+      Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
+      compiler.getMethodTable().addReferenceClass(distributionsClass);
+      compiler.getMethodTable().addMethod("Rf_dbeta",distributionsClass,"dbeta");
+      compiler.getMethodTable().addMethod("Rf_pbeta",distributionsClass,"pbeta");
+
       compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
       compiler.getMethodTable().addReferenceClass(Sort.class);
 

@@ -172,7 +172,9 @@ public class JlineRepl {
 
   private void printEvalException(EvalException e) throws IOException {
     reader.getOutput().append("ERROR: ").append(e.getMessage()).append("\n");
-    e.printRStackTrace(reader.getOutput());    
+    PrintWriter printWriter = new PrintWriter(reader.getOutput());
+    e.printRStackTrace(printWriter);    
+    printWriter.flush();
     reader.getOutput().flush();
   }
 

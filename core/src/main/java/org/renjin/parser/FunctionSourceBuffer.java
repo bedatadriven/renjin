@@ -47,12 +47,14 @@ class FunctionSourceBuffer {
     startIndices.add(source.length() - 8);
   }
 
-  public void maybeAppendSourceCodePoint(int c) {
+  public void maybeAppendSourceCodePoint(String s) {
     if (level > 0) {
       if (source.length() > MAXFUNSIZE) {
+        // TODO: warnong instead ?
         throw new RLexException("function is too long to keep source");
       }
     }
+    source.append(s);
   }
 
   public void ascend() {

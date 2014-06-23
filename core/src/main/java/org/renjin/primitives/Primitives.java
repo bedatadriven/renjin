@@ -15,6 +15,7 @@ import org.renjin.methods.Methods;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
 import org.renjin.primitives.io.DebianControlFiles;
+import org.renjin.primitives.io.DebugOut;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.match.Duplicates;
@@ -106,13 +107,13 @@ public class Primitives {
   private static PrimitiveFunction createFunction(final Entry entry) {
    try {
       return (PrimitiveFunction) Class.forName(WrapperGenerator2.toFullJavaName(entry.name)).newInstance();
-    } catch(Exception e) {
+    } catch(final Exception e) {
       return new BuiltinFunction(entry.name) {
 
         @Override
         public SEXP apply(Context context, Environment rho,
             FunctionCall call, PairList args) {
-          throw new EvalException("Sorry! " + entry.name + " not yet implemented!");
+          throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);
         }
       };
     }
@@ -994,6 +995,10 @@ public class Primitives {
     f("library", Packages.class, 0,0,-1);
     f("require", Packages.class, 0,0,-1);
 
+    // renjin-specifiv debug entries
+    f("debug.stderr",DebugOut.class,0,1,1);
+    f("debug.filename",DebugLocation.class,0,1,1);
+    f("debug.lineno",DebugLocation.class,0,1,1);
   }
 
   private void add(SpecialFunction fn) {

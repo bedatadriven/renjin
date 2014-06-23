@@ -651,7 +651,7 @@ an ANSI digit or not */
     R_ParseContextLine = srcRef.xxlineno;
 
     if (parseOptions.isKeepSource() && parseOptions.isGenerateCode()) {
-      parseState.getFunctionSource().maybeAppendSourceCodePoint(c);
+      parseState.getFunctionSource().maybeAppendSourceCodePoint(codePointToString(c));
     }
 
     return c;

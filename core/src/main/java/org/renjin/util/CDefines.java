@@ -254,6 +254,11 @@ public class CDefines {
     /** NO OP -- JVM is handling memory alloc **/
   }
 
+  public static void REPROTECT(Object x, int i) {
+    /** NO OP -- JVM is handling memory alloc **/
+  }
+  
+
   /**
    * Creates a new linked list Lexp
    *
@@ -442,6 +447,8 @@ public class CDefines {
   }
   
   public static final Symbol R_NamesSymbol = Symbols.NAMES;
+  public static final Symbol R_SrcrefSymbol = Symbols.SRC_REF;
+  public static final Symbol R_SrcfileSymbol = Symbols.SRC_FILE;
   
   public static final CHARSEXP R_BlankString = new CHARSEXP("");
   
@@ -465,9 +472,18 @@ public class CDefines {
     builder.setAttribute(name, value);
   }
 
+  public static void setAttrib(SEXP exp, Symbol name, SEXP value) {
+     exp.setAttribute(name, value);
+  }
+
   public static void setAttrib(Builder builder, Symbol name, Builder valueBuilder) {
     builder.setAttribute(name, valueBuilder.build());
   }
+
+  public static void setAttrib(SEXP exp, Symbol name, Builder valueBuilder) {
+    exp.setAttribute(name, valueBuilder.build());
+  }
+
 
   public static SEXP ScalarInteger(int flag) {
     return new IntArrayVector(flag);

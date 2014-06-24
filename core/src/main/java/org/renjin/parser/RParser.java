@@ -150,6 +150,7 @@ public class RParser {
 
   private ParseState state;
   private ParseOptions options;
+  
 
   /**
    * Version number for the Bison executable that generated this parser.
@@ -169,7 +170,19 @@ public class RParser {
   private StatusResult extendedParseResult;
 
   private SEXP result;
+ 
+  /**
+   * list of srcRefs (analog of SrcRefs in original R code (src/main/gram.y)
+   * each element contains SrcRefState object. When parsing list of expressions, 
+   * src-refs of list element collected here, than attachSrcRef attach those 
+   * objects.
+   */
+  private SEXP srcRefs;
 
+  /**
+   * Unused, here is too keep 'REPROTECT(..)' calls the same, as in original R code (in C).
+   */
+  private int srindex = 0; 
 
   /**
    * A class defining a pair of positions.  Positions, defined by the
@@ -2463,19 +2476,24 @@ public class RParser {
     return new IntArrayVector(values, AttributeMap.fromPairList(attributes));
   }
 
-  static SEXP attachSrcrefs(SEXP val, SEXP srcfile) {
-//    SEXP t, srval;
-//    int n;
-//
-//    PROTECT(val);
-//    t = CDR(SrcRefs);
-//    srval = allocVector(VECSXP, length(t));
-//    for (n = 0 ; n < LENGTH(srval) ; n++, t = CDR(t))
-//      SET_VECTOR_ELT(srval, n, CAR(t));
-//    setAttrib(val, R_SrcrefSymbol, srval);
-//    setAttrib(val, R_SrcfileSymbol, srcfile);
-//    UNPROTECT(1);
-//    SrcRefs = NULL;
+  SEXP attachSrcrefs(SEXP val, SEXP srcfile) {
+    SEXP t;
+    Vector.Builder srval;
+    int n;
+
+    PROTECT(val);
+    t = CDR(srcRefs);
+    int tlen = length(t);
+    srval = allocVector(VECSXP, tlen);
+    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+       SET_VECTOR_ELT(srval, n, CAR(t));
+    }
+    //setAttrib(val, R_SrcrefSymbol, srval);
+    val.setAttribute(R_SrcrefSymbol, srval.build());
+    //setAttrib(val, R_SrcfileSymbol, srcfile);
+    val.setAttribute(R_SrcfileSymbol, srcfile);
+    UNPROTECT(1);
+    srcRefs = null;
     return val;
   }
 
@@ -2548,10 +2566,10 @@ public class RParser {
     if (options.isGenerateCode()) {
       PROTECT(ans = NewList());
       // TODO: srcrefs
-//      if (state.keepSrcRefs) {
-//        setAttrib(ans, R_SrcrefSymbol, SrcRefs);
-//        REPROTECT(SrcRefs = NewList(), srindex);
-//      }
+      if (state.keepSrcRefs) {
+        setAttrib(ans, R_SrcrefSymbol, srcRefs);
+        REPROTECT(srcRefs = NewList(), srindex);
+      }
     } else
       PROTECT(ans = R_NilValue);
     return ans;

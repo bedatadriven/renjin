@@ -32,6 +32,9 @@ public class ParseState {
 
   boolean eatLines = false;
 
+  // set line numbers into attributes.
+  boolean keepSrcRefs = true;
+
   private FunctionSourceBuffer functionSource = new FunctionSourceBuffer();
 
   public ParseState() {
@@ -49,5 +52,6 @@ public class ParseState {
   public boolean getEatLines() {
     return eatLines;
   }
+
 
 }

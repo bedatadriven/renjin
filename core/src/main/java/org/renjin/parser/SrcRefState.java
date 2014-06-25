@@ -38,18 +38,18 @@ public class SrcRefState {
   /**
    * The srcfile object currently being parsed
    */
-  public SEXP SrcFile;
+  public SEXP srcFile;
 
   /**
    * The SrcFile may change
    */
-  public int SrcFileProt;
+  public int srcFileProt;
 
   /**
    * Position information about the current parse
    */
-  public int xxlineno;
-  public int xxcolno;
-  public int charIndex;
+  //public int xxlineno;
+  //public int xxcolno;
+  //public int charIndex;
 
 }

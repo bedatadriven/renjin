@@ -173,7 +173,7 @@ public class RParser {
  
   /**
    * list of srcRefs (analog of SrcRefs in original R code (src/main/gram.y)
-   * each element contains SrcRefState object. When parsing list of expressions, 
+   * each element contains SrcRef SEXP. When parsing list of expressions, 
    * src-refs of list element collected here, than attachSrcRef attach those 
    * objects.
    */
@@ -2488,22 +2488,19 @@ public class RParser {
     for (n = 0 ; n < tlen; n++, t = CDR(t)) {
        SET_VECTOR_ELT(srval, n, CAR(t));
     }
-    //setAttrib(val, R_SrcrefSymbol, srval);
-    val.setAttribute(R_SrcrefSymbol, srval.build());
-    //setAttrib(val, R_SrcfileSymbol, srcfile);
-    val.setAttribute(R_SrcfileSymbol, srcfile);
+    setAttrib(val, R_SrcrefSymbol, srval);
+    setAttrib(val, R_SrcfileSymbol, srcfile);
     UNPROTECT(1);
-    srcRefs = null;
+    srcRefs = NewList();
     return val;
   }
 
   private int xxvalue(SEXP v, StatusResult result, Location lloc) {
-//    if (k > 2) {
-//      // TODO: srcrefs
-////      if (SrcRefState.keepSrcRefs)
-////        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
-//      UNPROTECT_PTR(v);
-//    }
+    if (result != StatusResult.EMPTY && result != StatusResult.OK) {
+       if (state.keepSrcRefs)
+          REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+       UNPROTECT_PTR(v);
+    }
     this.result = v;
     this.extendedParseResult = result;
     return YYACCEPT;

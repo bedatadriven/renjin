@@ -19,9 +19,9 @@ public class RLexerReader {
   private int prevlines[] = new int[PUSHBACK_BUFSIZE];
   private int prevcols[] = new int[PUSHBACK_BUFSIZE];
 
-  private int columnNumber;
-  private int lineNumber;
-  private int charIndex;
+  private int columnNumber = 0;
+  private int lineNumber = 1;
+  private int charIndex = 0;
 
   public RLexerReader(Reader reader) {
     super();
@@ -78,7 +78,19 @@ public class RLexerReader {
     return c;
   }
 
+  public int getLineNumber()
+  {
+    return lineNumber;
+  }
+
+  public int getColumnNumber()
+  {
+    return columnNumber;
+  }
+
   public int getCharacterIndex() {
     return charIndex;
   }
+
+
 }

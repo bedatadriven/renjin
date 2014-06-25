@@ -54,8 +54,6 @@ public class RLexer implements RParser.Lexer {
 
   private final ParseOptions parseOptions;
 
-  private SrcRefState srcRef = new SrcRefState();
-
   private Position tokenBegin = new Position();
   private Position tokenEnd = new Position();
 
@@ -105,7 +103,6 @@ public class RLexer implements RParser.Lexer {
     this.reader = new RLexerReader(reader);
     this.parseOptions = options;
     this.parseState = state;
-    this.srcRef.charIndex = -1;
   }
 
 
@@ -364,9 +361,9 @@ public class RLexer implements RParser.Lexer {
     }
     if (c == '#') c = skipComment();
 
-    tokenBegin.line = srcRef.xxlineno;
-    tokenBegin.column = srcRef.xxcolno;
-    tokenBegin.charIndex = srcRef.charIndex;
+    tokenBegin.line = reader.getLineNumber();
+    tokenBegin.column = reader.getColumnNumber();
+    tokenBegin.charIndex = reader.getCharacterIndex();
 
     if (c == R_EOF) return END_OF_INPUT;
 
@@ -598,9 +595,9 @@ an ANSI digit or not */
  */
 
   void setlastloc() {
-    tokenEnd.line = srcRef.xxlineno;
-    tokenEnd.column = srcRef.xxcolno;
-    tokenEnd.charIndex = srcRef.charIndex;
+    tokenEnd.line = reader.getLineNumber();
+    tokenEnd.column = reader.getColumnNumber();
+    tokenEnd.charIndex = reader.getCharacterIndex();
   }
 
 
@@ -612,7 +609,7 @@ an ANSI digit or not */
 
   private int skipComment() {
     int c = '#', i;
-    boolean maybeLine = (srcRef.xxcolno == 1);
+    boolean maybeLine = (reader.getColumnNumber() == 1);
     if (maybeLine) {
       String lineDirective = "#line";
       for (i = 1; i < 5; i++) {
@@ -648,7 +645,7 @@ an ANSI digit or not */
     // R_ParseContextLast = (R_ParseContextLast + 1) % PARSE_CONTEXT_SIZE;
     // R_ParseContext[R_ParseContextLast] = c;
 
-    R_ParseContextLine = srcRef.xxlineno;
+    R_ParseContextLine = reader.getLineNumber();
 
     if (parseOptions.isKeepSource() && parseOptions.isGenerateCode()) {
       parseState.getFunctionSource().maybeAppendSourceCodePoint(c);
@@ -925,7 +922,7 @@ an ANSI digit or not */
           boolean delim = false;
 
           if (forSymbol) {
-            throw new RLexException(String.format("\\uxxxx sequences not supported inside backticks (line %d)", srcRef.xxlineno));
+            throw new RLexException(String.format("\\uxxxx sequences not supported inside backticks (line %d)", reader.getColumnNumber()));
           }
           if ((c = xxgetc()) == '{') {
             delim = true;
@@ -959,7 +956,7 @@ an ANSI digit or not */
           if (delim) {
             if ((c = xxgetc()) != '}') {
               throw new RLexException(String.format("invalid \\u{xxxx} sequence (line %d)",
-                  srcRef.xxlineno));
+                  reader.getLineNumber()));
             } else {
               ctext.push(c);
             }
@@ -974,7 +971,7 @@ an ANSI digit or not */
           int ext;
           boolean delim = false;
           if (forSymbol) {
-            throw new RLexException(String.format("\\Uxxxxxxxx sequences not supported inside backticks (line %d)", srcRef.xxlineno));
+            throw new RLexException(String.format("\\Uxxxxxxxx sequences not supported inside backticks (line %d)", reader.getLineNumber()));
           }
           if ((c = xxgetc()) == '{') {
             delim = true;
@@ -1007,7 +1004,7 @@ an ANSI digit or not */
           }
           if (delim) {
             if ((c = xxgetc()) != '}') {
-              logger.severe(String.format("invalid \\U{xxxxxxxx} sequence (line %d)", srcRef.xxlineno));
+              logger.severe(String.format("invalid \\U{xxxxxxxx} sequence (line %d)", reader.getLineNumber()));
             } else {
               ctext.push(c);
             }

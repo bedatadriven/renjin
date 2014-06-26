@@ -54,6 +54,14 @@ public class MathExt {
   @Deferrable
   @Builtin
   @DataParallel
+  public static double lgamma(double x) {
+    return Gamma.logGamma(x);
+  }
+
+
+  @Deferrable
+  @Builtin
+  @DataParallel
   public static double sign(double x) {
     return Math.signum(x);
   }

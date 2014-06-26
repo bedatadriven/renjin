@@ -80,6 +80,12 @@ public class WrapperGenerator2 {
     for(Entry entry : entries) {
       if(singleFunction == null || singleFunction.equals(entry.name)) {
         List<JvmMethod> overloads = JvmMethod.findOverloads(entry.functionClass, entry.name, entry.methodName);
+
+        if(overloads.isEmpty() && entry.functionClass != null) {
+          System.err.println("WARNING: Can't find " + entry.functionClass.getName() + "." +
+              (entry.methodName == null ? entry.name : entry.methodName));
+        }
+
         if(!overloads.isEmpty()) {
           generate(codeModel, new PrimitiveModel(entry, overloads));
           implementedCount ++;
@@ -90,7 +96,6 @@ public class WrapperGenerator2 {
             System.out.println("IMPLICIT INT CASTING: " + method);
           }
         }
-
       }
     }
 

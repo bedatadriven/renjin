@@ -449,6 +449,7 @@ public class CDefines {
   public static final Symbol R_NamesSymbol = Symbols.NAMES;
   public static final Symbol R_SrcrefSymbol = Symbols.SRC_REF;
   public static final Symbol R_SrcfileSymbol = Symbols.SRC_FILE;
+  public static final Symbol R_ClassSymbol = Symbols.CLASS;
   
   public static final CHARSEXP R_BlankString = new CHARSEXP("");
   
@@ -493,6 +494,10 @@ public class CDefines {
     return exp == Null.INSTANCE;
   }
 
+  public static final CHARSEXP mkString(String s)
+  {
+     return new CHARSEXP(s);
+  }
   
   
   public enum ArithOpType {

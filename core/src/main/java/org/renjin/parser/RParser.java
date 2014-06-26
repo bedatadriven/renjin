@@ -17,6 +17,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * TODO: move 'edited y hand' parts in helpers and .y file.
+ *  Here is code not only generated, but added by hands. [need to be fixed]
  */
 
 package org.renjin.parser;
@@ -1126,7 +1129,7 @@ public class RParser {
 
 /* Line 354 of lalr1.java  */
 /* Line 300 of "gram.y"  */ {
-          yyval = xxdefun(((yystack.valueAt(6 - (1)))), ((yystack.valueAt(6 - (3)))), ((yystack.valueAt(6 - (6)))));
+          yyval = xxdefun(((yystack.valueAt(6 - (1)))), ((yystack.valueAt(6 - (3)))), ((yystack.valueAt(6 - (6)))),yystack.locationAt(0));
         }
         ;
         break;
@@ -2562,7 +2565,6 @@ public class RParser {
     SEXP ans;
     if (options.isGenerateCode()) {
       PROTECT(ans = NewList());
-      // TODO: srcrefs
       if (state.keepSrcRefs) {
         setAttrib(ans, R_SrcrefSymbol, srcRefs);
         REPROTECT(srcRefs = NewList(), srindex);
@@ -2576,11 +2578,11 @@ public class RParser {
     SEXP ans, tmp;
     if (options.isGenerateCode()) {
       PROTECT(tmp = NewList());
-//      if (state.ParseState.keepSrcRefs) {
-//        setAttrib(tmp, R_SrcrefSymbol, SrcRefs);
-//        REPROTECT(SrcRefs = NewList(), srindex);
-//        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
-//      }
+      if (state.keepSrcRefs) {
+        setAttrib(tmp, R_SrcrefSymbol, srcRefs);
+        REPROTECT(srcRefs = NewList(), srindex);
+        REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+      }
       PROTECT(ans = GrowList(tmp, expr));
       UNPROTECT_PTR(tmp);
     } else
@@ -2592,8 +2594,8 @@ public class RParser {
   private SEXP xxexprlist2(SEXP exprlist, SEXP expr, Location lloc) {
     SEXP ans;
     if (options.isGenerateCode()) {
-//      if (SrcRefState.keepSrcRefs)
-//        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
+      if (state.keepSrcRefs)
+          REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
       PROTECT(ans = GrowList(exprlist, expr));
     } else
       PROTECT(ans = R_NilValue);
@@ -2791,58 +2793,17 @@ public class RParser {
   }
 
 
-  private SEXP xxdefun(SEXP fname, SEXP formals, SEXP body) {
+  private SEXP xxdefun(SEXP fname, SEXP formals, SEXP body, Location loc) {
 
     SEXP ans;
     SEXP source;
 
     if (options.isGenerateCode()) {
-      //if (!state.KeepSource)
-      PROTECT(source = R_NilValue);
-//      else {
-//        unsigned char *p, *p0, *end;
-//        int lines = 0, nc;
-//
-//        /*  If the function ends with an endline comment,  e.g.
-//
-//        function()
-//            print("Hey") # This comment
-//
-//        we need some special handling to keep it from getting
-//        chopped off. Normally, we will have read one token too
-//        far, which is what xxcharcount and xxcharsave keeps
-//        track of.
-//
-//          */
-//        end = SourcePtr - (xxcharcount - xxcharsave);
-//        /* FIXME: this should be whitespace */
-//        for (p = end ; p < SourcePtr && (*p == ' ' || *p == '\t') ; p++)
-//        ;
-//        if (*p == '#') {
-//          while (p < SourcePtr && *p != '\n')
-//          p++;
-//          end = p;
-//        }
-//
-//        for (p = FunctionStart[FunctionLevel]; p < end ; p++)
-//          if (*p == '\n') lines++;
-//        if ( *(end - 1) != '\n' ) lines++;
-//        PROTECT(source = allocVector(STRSXP, lines));
-//        p0 = FunctionStart[FunctionLevel];
-//        lines = 0;
-//        for (p = FunctionStart[FunctionLevel]; p < end ; p++)
-//          if (*p == '\n' || p == end - 1) {
-//          cetype_t enc = CE_NATIVE;
-//          nc = p - p0;
-//          if (*p != '\n') nc++;
-//          if(known_to_be_latin1) enc = CE_LATIN1;
-//          else if(known_to_be_utf8) enc = CE_UTF8;
-//          SET_STRING_ELT(source, lines++,
-//              mkCharLenCE((char *)p0, nc, enc));
-//          p0 = p + 1;
-//        }
-//        /* PrintValue(source); */
-//      }
+      if (!state.keepSrcRefs) {
+         PROTECT(source = R_NilValue);
+      } else {
+         source = makeSrcref(loc,state.srcFile);
+      }
       if(formals == Null.INSTANCE) {
         ans = lang4(fname, Null.INSTANCE, body, source);
       } else {
@@ -2912,17 +2873,19 @@ public class RParser {
     if (options.isGenerateCode()) {
       a2 = FunctionCall.fromListExp((PairList.Node) a2);
       SETCAR(a2, a1);
-//      if (SrcRefState.keepSrcRefs) {
-//        PROTECT(prevSrcrefs = getAttrib(a2, R_SrcrefSymbol));
-//        REPROTECT(SrcRefs = Insert(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
-//        PROTECT(ans = attachSrcrefs(a2, SrcRefState.SrcFile));
-//        REPROTECT(SrcRefs = prevSrcrefs, srindex);
-//        /* SrcRefs got NAMED by being an attribute... */
-//        SET_NAMED(SrcRefs, 0);
-//        UNPROTECT_PTR(prevSrcrefs);
-//      }
-//      else
-      PROTECT(ans = a2);
+      if (state.keepSrcRefs) {
+        PROTECT(prevSrcrefs = getAttrib(a2, R_SrcrefSymbol));
+        REPROTECT(srcRefs = Insert(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+        PROTECT(ans = attachSrcrefs(a2, state.srcFile));
+        REPROTECT(srcRefs = prevSrcrefs, srindex);
+        /* SrcRefs got NAMED by being an attribute... */
+        //  this is related to memory managing in R, in java gc is work of jvm, so ignore
+        //  named flags.
+        //SET_NAMED(srcRefs, 0);
+        UNPROTECT_PTR(prevSrcrefs);
+      }
+      else
+        PROTECT(ans = a2);
     } else
       PROTECT(ans = R_NilValue);
     UNPROTECT_PTR(a2);

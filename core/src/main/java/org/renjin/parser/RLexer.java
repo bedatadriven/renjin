@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import static java.lang.Character.isDigit;
 import static org.renjin.parser.RParser.*;
 import static org.renjin.parser.Tokens.*;
-
+import static org.renjin.util.CDefines.*;
 
 public class RLexer implements RParser.Lexer {
 
@@ -659,17 +659,23 @@ an ANSI digit or not */
     c = skipSpace();
     if (!isDigit(c)) return (c);
     tok = consumeNumericValue(c);
-    // linenumber = Integer.parseInt(yytext);   // TODO: who is filling yytext?
+    if (parseOptions.isGenerateCode()) {
+       // TODO: can we receive incorrect value here ? need to rethink.
+       linenumber = (int)(yylval.asReal());
+    } else {
+       // ignored. 
+       linenumber = 0;
+    }
     c = skipSpace();
     if (c == '"')
       tok = consumeStringValue(c, false);
     if (tok == STR_CONST)
-      //  setParseFilename(yylval);
+      setParseFilename(yylval);
       do {
         c = xxgetc();
       } while (c != '\n' && c != R_EOF);
-    //ParseState.xxlineno = linenumber;
-    //R_ParseContext[R_ParseContextLast] = '\0';  /* Context report shouldn't show the directive */s
+      reader.setLineNumber(linenumber);
+      //R_ParseContext[R_ParseContextLast] = '\0';  /* Context report shouldn't show the directive */s
     return (c);
   }
 
@@ -678,18 +684,19 @@ an ANSI digit or not */
   }
 
   private void setParseFilename(SEXP newname) {
-// TODO
-//    if (isEnvironment(SrcRefState.SrcFile)) {
-//    	SEXP oldname = findVar(Symbol.get("filename"), SrcRefState.SrcFile);
-//    	if (isString(oldname) && length(oldname) > 0 &&
-//    	    strcmp(CHAR(STRING_ELT(oldname, 0)),
-//    	           CHAR(STRING_ELT(newname, 0))) == 0) return;
-//    }
-//    REPROTECT(SrcRefState.SrcFile = NewEnvironment(Null.INSTANCE, Null.INSTANCE, R_EmptyEnv), SrcRefState.SrcFileProt);
-//
-//    defineVar(Symbol.get("filename"), newname, SrcRefState.SrcFile);
-//    setAttrib(SrcRefState.SrcFile, R_ClassSymbol, mkString("srcfile"));
-//    UNPROTECT_PTR(newname);
+    if (isEnvironment(parseState.srcFile)) {
+        Environment env = (Environment)parseState.srcFile;
+    	SEXP oldname = env.findVariable(Symbol.get("filename"));
+    	if (isString(oldname) && oldname.length() > 0 &&
+            oldname.asString().equals(newname.asString())) return;
+        REPROTECT(parseState.srcFile = new Environment(), parseState.srcFileProt);
+        env.setVariable(Symbol.get("filename"), newname);
+        env.setVariable(Symbol.get("original"), oldname);
+        setAttrib(parseState.srcFile, R_ClassSymbol, mkString("srcfile"));
+    } else {
+        REPROTECT(parseState.srcFile = /*duplicate(*/newname/*)*/, parseState.srcFileProt);
+    }
+    UNPROTECT_PTR(newname);
   }
 
   private int consumeNumericValue(int c) {

@@ -180,7 +180,7 @@ public class RParser {
    * src-refs of list element collected here, than attachSrcRef attach those 
    * objects.
    */
-  private SEXP srcRefs;
+  private SEXP srcRefs = NewList();
 
   /**
    * Unused, here is too keep 'REPROTECT(..)' calls the same, as in original R code (in C).
@@ -406,10 +406,10 @@ public class RParser {
 
 
   private Location yylloc(YYStack rhs, int n) {
-    if (n > 0)
+    //if (n > 0)
       return new Location(rhs.locationAt(1).begin, rhs.locationAt(n).end);
-    else
-      return new Location(rhs.locationAt(0).end);
+    //else
+    //  return new Location(rhs.locationAt(0).end);
   }
 
   /**
@@ -581,10 +581,10 @@ public class RParser {
 
     public final void pop(int num) {
       // Avoid memory leaks... garbage collection is a white lie!
-      if (num > 0) {
-        java.util.Arrays.fill(valueStack, height - num + 1, height, null);
-        java.util.Arrays.fill(locStack, height - num + 1, height, null);
-      }
+      //if (num > 0) {
+      //  java.util.Arrays.fill(valueStack, height - num + 1, height, null);
+      //  java.util.Arrays.fill(locStack, height - num + 1, height, null);
+      //}
       height -= num;
     }
 
@@ -608,6 +608,7 @@ public class RParser {
       for (int i = 0; i < height; i++) {
         out.print(' ');
         out.print(stateStack[i]);
+        out.print( "("+locStack[i]+")");
       }
       out.println();
     }
@@ -1747,7 +1748,7 @@ public class RParser {
     Location yyerrloc = null;
 
     /// Location of the lookahead.
-    Location yylloc = new Location(null, null);
+    Location yylloc = new Location(new Position());
 
     /// @$.
     Location yyloc;
@@ -2469,7 +2470,11 @@ public class RParser {
     values[2] = lloc.end.line;
     values[3] = lloc.end.charIndex;
     values[4] = lloc.begin.column;
-    values[6] = lloc.end.column;
+    values[5] = lloc.end.column;
+
+    if (srcfile==null) {
+      // TODO: throw exception, th
+    }
 
     PairList attributes = PairList.Node.newBuilder()
         .add(Symbols.SRC_FILE, srcfile)
@@ -2479,7 +2484,7 @@ public class RParser {
     return new IntArrayVector(values, AttributeMap.fromPairList(attributes));
   }
 
-  SEXP attachSrcrefs(SEXP val, SEXP srcfile) {
+  SEXP attachSrcrefs(PairList.Node val, SEXP srcfile) {
     SEXP t;
     Vector.Builder srval;
     int n;
@@ -2491,8 +2496,14 @@ public class RParser {
     for (n = 0 ; n < tlen; n++, t = CDR(t)) {
        SET_VECTOR_ELT(srval, n, CAR(t));
     }
-    setAttrib(val, R_SrcrefSymbol, srval);
-    setAttrib(val, R_SrcfileSymbol, srcfile);
+    //setAttrib(val, R_SrcrefSymbol, srval);
+    //setAttrib(val, R_SrcfileSymbol, srcfile);
+    val._setAttributesInPlace(
+       AttributeMap.newBuilder().
+                       set(R_SrcrefSymbol,srval.build()).
+                       set(R_SrcfileSymbol, srcfile).
+                       build()
+    );
     UNPROTECT(1);
     srcRefs = NewList();
     return val;
@@ -2500,8 +2511,13 @@ public class RParser {
 
   private int xxvalue(SEXP v, StatusResult result, Location lloc) {
     if (result != StatusResult.EMPTY && result != StatusResult.OK) {
-       if (state.keepSrcRefs)
-          REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+       if (state.keepSrcRefs) {
+         if (lloc == null) {
+            lloc = new Location(yylexer.getStartPos(),yylexer.getEndPos());
+         }
+         SEXP srcRef = makeSrcref(lloc, state.srcFile);
+         REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
+       }
        UNPROTECT_PTR(v);
     }
     this.result = v;
@@ -2564,25 +2580,31 @@ public class RParser {
   private SEXP xxexprlist0() {
     SEXP ans;
     if (options.isGenerateCode()) {
-      PROTECT(ans = NewList());
       if (state.keepSrcRefs) {
-        setAttrib(ans, R_SrcrefSymbol, srcRefs);
-        REPROTECT(srcRefs = NewList(), srindex);
+        //setAttrib(ans, R_SrcrefSymbol, srcRefs);
+        PROTECT(ans = NewList(
+                          AttributeMap.newBuilder().set(R_SrcrefSymbol,srcRefs).build()
+               )      );
+      } else {
+        PROTECT(ans = NewList());
       }
-    } else
+      REPROTECT(srcRefs = NewList(), srindex);
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     return ans;
   }
 
   private SEXP xxexprlist1(SEXP expr, Location lloc) {
     SEXP ans, tmp;
     if (options.isGenerateCode()) {
-      PROTECT(tmp = NewList());
+      AttributeMap attrs = AttributeMap.EMPTY;
       if (state.keepSrcRefs) {
-        setAttrib(tmp, R_SrcrefSymbol, srcRefs);
-        REPROTECT(srcRefs = NewList(), srindex);
-        REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
-      }
+         attrs = AttributeMap.newBuilder().set(R_SrcrefSymbol, srcRefs).build();
+         REPROTECT(srcRefs = NewList(), srindex);
+         REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+      } 
+      PROTECT(tmp = NewList(attrs));
       PROTECT(ans = GrowList(tmp, expr));
       UNPROTECT_PTR(tmp);
     } else
@@ -2876,7 +2898,10 @@ public class RParser {
       if (state.keepSrcRefs) {
         PROTECT(prevSrcrefs = getAttrib(a2, R_SrcrefSymbol));
         REPROTECT(srcRefs = Insert(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
-        PROTECT(ans = attachSrcrefs(a2, state.srcFile));
+        PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile));
+        if (isNull(prevSrcrefs)) {
+           prevSrcrefs = NewList();
+        }
         REPROTECT(srcRefs = prevSrcrefs, srindex);
         /* SrcRefs got NAMED by being an attribute... */
         //  this is related to memory managing in R, in java gc is work of jvm, so ignore
@@ -2919,10 +2944,15 @@ public class RParser {
 /* Create a stretchy-list dotted pair */
 
   static SEXP NewList() {
-    SEXP s = CONS(R_NilValue, R_NilValue);
+    return NewList(AttributeMap.EMPTY);
+  }
+
+  static SEXP NewList(AttributeMap attributes) {
+    SEXP s = CONS(R_NilValue, R_NilValue, attributes);
     SETCAR(s, s);
     return s;
   }
+
 
 /* Add a new element at the end of a stretchy list */
 
@@ -2935,6 +2965,8 @@ public class RParser {
     SETCAR(l, tmp);
     return l;
   }
+
+
 
 /* Insert a new element at the head of a stretchy list */
 

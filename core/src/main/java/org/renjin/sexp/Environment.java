@@ -142,6 +142,10 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return child;
   }
   
+  public Environment() {}
+
+  public Environment(AttributeMap attributes) { super(attributes); }
+
   public void setVariables(PairList pairList) {
     for(PairList.Node node : pairList.nodes()) {
       if(!node.hasTag()) {

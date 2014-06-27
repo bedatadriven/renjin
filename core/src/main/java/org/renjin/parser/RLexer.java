@@ -689,10 +689,13 @@ an ANSI digit or not */
     	SEXP oldname = env.findVariable(Symbol.get("filename"));
     	if (isString(oldname) && oldname.length() > 0 &&
             oldname.asString().equals(newname.asString())) return;
-        REPROTECT(parseState.srcFile = new Environment(), parseState.srcFileProt);
+        REPROTECT(parseState.srcFile = new Environment(
+                                         AttributeMap.newBuilder().set(R_ClassSymbol,mkString("srcfile")).
+                                         build()
+                                       ), 
+                  parseState.srcFileProt);
         env.setVariable(Symbol.get("filename"), newname);
         env.setVariable(Symbol.get("original"), oldname);
-        setAttrib(parseState.srcFile, R_ClassSymbol, mkString("srcfile"));
     } else {
         REPROTECT(parseState.srcFile = /*duplicate(*/newname/*)*/, parseState.srcFileProt);
     }

@@ -4,6 +4,7 @@
  * Copyright (C) 1997-2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
+ * Copyright (C) 2014 Ruslan Shevchenko
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,49 +20,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.parser;
+package org.renjin.sexp;
 
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Null;
+import org.renjin.eval.Context;
 
 /**
- * ParseState contains the shared state of the
- * Lexer and Parser.
- * <p/>
- * These are values that were just simply all global in the C implementation.
+ * Base builder for SEXP.  
  */
-public class ParseState {
-  public static final int MAXNEST = 256;
-
-  boolean eatLines = false;
+public interface SEXPBuilder {
 
   /**
-   * Whether to attach srcrefs to objects as they are parsed
+   * build SEXP
    */
-  boolean keepSrcRefs = true;
+  SEXP build();
 
   /**
-   * The srcfile object currently being parsed
+   * return length of SEXP which is already build.
    */
-  SEXP srcFile = Null.INSTANCE;
+  int length();
 
   /**
-   * The SrcFile may change
+   * set attribute.
    */
-  int srcFileProt;
+  SEXPBuilder setAttribute(String attributeName, SEXP value);
 
-  private FunctionSourceBuffer functionSource = new FunctionSourceBuffer();
-
-  public FunctionSourceBuffer getFunctionSource() {
-    return functionSource;
-  }
-
-  public void setEatLines(boolean eatLines) {
-    this.eatLines = eatLines;
-  }
-
-  public boolean getEatLines() {
-    return eatLines;
-  }
-
+  /**
+   * set attibutr
+   */
+  SEXPBuilder setAttribute(Symbol attributeName, SEXP value);
+  
 }

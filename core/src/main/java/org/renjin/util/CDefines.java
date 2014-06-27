@@ -266,15 +266,19 @@ public class CDefines {
    * @param cdr the next node in the linked list. Either a ListExp or NilExp.INSTANCE
    * @return
    */
-  public static PairList.Node CONS(SEXP car, SEXP cdr) {
+  public static PairList.Node CONS(SEXP car, SEXP cdr, AttributeMap attributes) {
     Preconditions.checkNotNull(car);
     Preconditions.checkNotNull(cdr);
 
     if (cdr == R_NilValue) {
-      return new PairList.Node(car, null);
+      return new PairList.Node(Null.INSTANCE, car, attributes, null);
     } else {
-      return new PairList.Node(car, (PairList.Node) cdr);
+      return new PairList.Node(Null.INSTANCE, car, attributes, (PairList.Node) cdr);
     }
+  }
+
+  public static PairList.Node CONS(SEXP car, SEXP cdr) {
+     return CONS(car,cdr,AttributeMap.EMPTY);
   }
 
   public static PairList.Node list1(SEXP s) {
@@ -469,20 +473,12 @@ public class CDefines {
     ((ListVector.Builder)newnames).set(i,  tag);
   }
   
-  public static void setAttrib(Builder builder, Symbol name, SEXP value) {
+  public static void setAttrib(SEXPBuilder builder, Symbol name, SEXP value) {
     builder.setAttribute(name, value);
   }
 
-  public static void setAttrib(SEXP exp, Symbol name, SEXP value) {
-     exp.setAttribute(name, value);
-  }
-
-  public static void setAttrib(Builder builder, Symbol name, Builder valueBuilder) {
+  public static void setAttrib(SEXPBuilder builder, Symbol name, Builder valueBuilder) {
     builder.setAttribute(name, valueBuilder.build());
-  }
-
-  public static void setAttrib(SEXP exp, Symbol name, Builder valueBuilder) {
-    exp.setAttribute(name, valueBuilder.build());
   }
 
 

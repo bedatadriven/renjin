@@ -190,7 +190,7 @@ public interface Vector extends SEXP {
    * An interface to
    * @param <S>
    */
-  public static interface Builder<S extends SEXP> {
+  public static interface Builder<S extends SEXP>  extends SEXPBuilder {
 
     /**
      * Sets the element at index {@code index} to {@code NA}.

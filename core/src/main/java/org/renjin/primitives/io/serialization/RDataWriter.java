@@ -178,8 +178,9 @@ public class RDataWriter {
     } else if(exp instanceof ExternalPtr) {
       writeExternalPtr((ExternalPtr)exp);
     } else {
-      throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented: ["
-         + exp.toString() + "]");
+      throw new UnsupportedOperationException("serialization of " + exp+ " not implemented: ");
+     //  throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented: ["
+     //    + exp.toString() + "]");
     }
   }
 

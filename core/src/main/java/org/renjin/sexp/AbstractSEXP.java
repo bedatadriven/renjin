@@ -206,7 +206,7 @@ public abstract class AbstractSEXP implements SEXP {
   
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     if(attributes != AttributeMap.EMPTY) {
-      throw new EvalException("cannot change/set attributes on " + getClass().getSimpleName());
+      throw new EvalException("cannot change/set attributes on " + getClass().getName());
     }
     return this;
   }
@@ -228,4 +228,5 @@ public abstract class AbstractSEXP implements SEXP {
   public SEXP force(Context context) {
     return this;
   }
+
 }

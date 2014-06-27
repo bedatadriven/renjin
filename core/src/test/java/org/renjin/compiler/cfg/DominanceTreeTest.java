@@ -24,10 +24,10 @@ public class DominanceTreeTest extends CompilerTestCase {
     
     System.out.println(cfg);
     
-    BasicBlock bb0 = cfg.getBasicBlocks().get(0); // y <- 1; if q goto BB1 else BB2
-    BasicBlock bb1 = cfg.getBasicBlocks().get(1); // y <- y + 1
-    BasicBlock bb2 = cfg.getBasicBlocks().get(2); // y <- 4
-    BasicBlock bb3 = cfg.getBasicBlocks().get(3); // return y;
+    BasicBlock bb0 = cfg.getBasicBlocks().get(1); // y <- 1; if q goto BB1 else BB2
+    BasicBlock bb1 = cfg.getBasicBlocks().get(2); // y <- y + 1
+    BasicBlock bb2 = cfg.getBasicBlocks().get(3); // y <- 4
+    BasicBlock bb3 = cfg.getBasicBlocks().get(4); // return y;
     
     DominanceTree domTree = new DominanceTree(cfg);
     assertThat(domTree.getImmediateDominator(bb1), equalTo(bb0));
@@ -40,8 +40,12 @@ public class DominanceTreeTest extends CompilerTestCase {
   public void dominanceFrontier() throws IOException {
     IRBody block = parseCytron();
     ControlFlowGraph cfg = new ControlFlowGraph(block);
+    cfg.dumpGraph();
+
+
     List<BasicBlock> bb = cfg.getLiveBasicBlocks();
     DominanceTree dtree = new DominanceTree(cfg);
+    dtree.dumpGraph();
 
     // See Figure 9 in
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf

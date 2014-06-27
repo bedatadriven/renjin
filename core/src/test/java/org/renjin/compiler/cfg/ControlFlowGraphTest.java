@@ -89,6 +89,8 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     IRBody block = parseCytron();
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     List<BasicBlock> bb = cfg.getLiveBasicBlocks();
+
+    System.out.println(cfg);
     
     // see Figure 5 in 
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf

@@ -1,12 +1,9 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Collections;
-import java.util.List;
-
-import com.sun.org.apache.bcel.internal.generic.INVOKEVIRTUAL;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.ir.ssa.VariableMap;
 
 
 /**
@@ -33,9 +30,10 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
-    getVector().emitPush(emitContext, mv);
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "org/renjin/sexp/SEXP", "length", "()I");
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
+    int stackSizeIncrease = getVector().emitPush(emitContext, mv);
+    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "org/renjin/sexp/SEXP", "length", "()I");
+    return stackSizeIncrease;
   }
 
   @Override
@@ -49,11 +47,8 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   }
 
   @Override
-  public void resolveType() {
+  public Class resolveType(VariableMap variableMap) {
+    return int.class;
   }
 
-  @Override
-  public boolean isTypeResolved() {
-    return true;
-  }
 }

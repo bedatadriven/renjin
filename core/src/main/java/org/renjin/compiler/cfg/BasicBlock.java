@@ -116,4 +116,12 @@ public class BasicBlock {
   public String getDebugId() {
     return debugId;
   }
+
+  public void addStatementBeforeJump(Assignment assignment) {
+    int pos = getStatements().size();
+    if(!fallsThrough()) {
+      pos = pos - 1;
+    }
+    getStatements().add(pos, assignment);
+  }
 }

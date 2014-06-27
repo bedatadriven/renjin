@@ -134,7 +134,7 @@ public class SsaTransformer {
         if(assignment.getLHS() instanceof Variable) {
           Variable V = (Variable)assignment.getLHS();
           int i = C.get(V);
-          assignment.setLHS(new SsaVariable(V, i));
+          assignment.setLHS(V.getVersion(i));
           S.get(V).push(i);
           C.put(V, i + 1);
         }
@@ -172,7 +172,7 @@ public class SsaTransformer {
       if(child instanceof Variable) {
         Variable V = (Variable)child;
         int i = Top(V);
-        node.setChild(childIndex, new SsaVariable(V, i));
+        node.setChild(childIndex, V.getVersion(i));
       } else if(child.getChildCount() > 0) {
         renameVariables(child);
       }
@@ -240,7 +240,7 @@ public class SsaTransformer {
           cfg.getEntry().addStatement(new Assignment(lhs, rhs));
         } else {
           BasicBlock bb = variableMap.getDefiningBlock(rhs);
-          bb.addStatement(new Assignment(lhs, rhs));
+          bb.addStatementBeforeJump(new Assignment(lhs, rhs));
         }
       }
     }

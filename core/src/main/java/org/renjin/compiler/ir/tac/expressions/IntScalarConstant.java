@@ -3,6 +3,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.ir.ssa.VariableMap;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -20,7 +21,7 @@ public class IntScalarConstant extends Constant {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     switch(value) {
       case 0:
         mv.visitInsn(ICONST_0);
@@ -47,10 +48,11 @@ public class IntScalarConstant extends Constant {
           throw new UnsupportedOperationException("todo: " + value);
         }
     }
+    return 1;
   }
 
   @Override
-  public Class getType() {
+  public Class resolveType(VariableMap variableMap) {
     return int.class;
   }
 

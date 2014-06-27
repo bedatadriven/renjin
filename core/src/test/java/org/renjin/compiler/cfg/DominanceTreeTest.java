@@ -50,16 +50,16 @@ public class DominanceTreeTest extends CompilerTestCase {
     // See Figure 9 in
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
     
-    assertThat(dtree.getFrontier(bb.get(1)), itemsEqualTo(bb.get(1), cfg.getExit()));
-    assertThat(dtree.getFrontier(bb.get(2)), itemsEqualTo(bb.get(7)));
-    assertThat(dtree.getFrontier(bb.get(3)), itemsEqualTo(bb.get(5)));
-    assertThat(dtree.getFrontier(bb.get(4)), itemsEqualTo(bb.get(5)));
-    assertThat(dtree.getFrontier(bb.get(5)), itemsEqualTo(bb.get(7)));
-    assertThat(dtree.getFrontier(bb.get(6)), itemsEqualTo(bb.get(7)));
-    assertThat(dtree.getFrontier(bb.get(7)), itemsEqualTo(bb.get(1), cfg.getExit()));
-    assertThat(dtree.getFrontier(bb.get(8)), itemsEqualTo(bb.get(1), bb.get(8), cfg.getExit()));
-    assertThat(dtree.getFrontier(bb.get(9)), itemsEqualTo(bb.get(10)));
-    assertThat(dtree.getFrontier(bb.get(10)), itemsEqualTo(bb.get(1), bb.get(8), cfg.getExit()));
-    assertThat(dtree.getFrontier(bb.get(11)), itemsEqualTo(bb.get(1), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(2)), itemsEqualTo(bb.get(2), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(3)), itemsEqualTo(bb.get(8)));
+    assertThat(dtree.getFrontier(bb.get(4)), itemsEqualTo(bb.get(6)));
+    assertThat(dtree.getFrontier(bb.get(5)), itemsEqualTo(bb.get(6)));
+    assertThat(dtree.getFrontier(bb.get(6)), itemsEqualTo(bb.get(8)));
+    assertThat(dtree.getFrontier(bb.get(7)), itemsEqualTo(bb.get(8)));
+    assertThat(dtree.getFrontier(bb.get(8)), itemsEqualTo(bb.get(2), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(9)), itemsEqualTo(bb.get(2), bb.get(9), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(10)), itemsEqualTo(bb.get(11)));
+    assertThat(dtree.getFrontier(bb.get(11)), itemsEqualTo(bb.get(2), bb.get(9), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(12)), itemsEqualTo(bb.get(2), cfg.getExit()));
   } 
 }

@@ -167,7 +167,11 @@ public final class Symbol extends AbstractSEXP {
    * @return a global environment
    */
   public static Symbol get(String printName) {
-    Preconditions.checkNotNull(printName);
+    if(StringVector.isNA(printName)) {
+      return get("NA");
+    } else if(printName.length() == 0) {
+      throw new EvalException("attempt to use zero-length variable name");
+    }
 
     synchronized (TABLE) {
       Symbol symbol = TABLE.get(printName);

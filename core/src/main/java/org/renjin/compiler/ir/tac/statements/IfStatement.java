@@ -131,13 +131,16 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public void emit(EmitContext emitContext, MethodVisitor mv) {
+  public int emit(EmitContext emitContext, MethodVisitor mv) {
+
+    int stackSizeIncrease = 0;
 
     if(condition instanceof CmpGE) {
 
       CmpGE cmp = (CmpGE) getCondition();
-      cmp.childAt(0).emitPush(emitContext, mv);
-      cmp.childAt(1).emitPush(emitContext, mv);
+      stackSizeIncrease =
+          cmp.childAt(0).emitPush(emitContext, mv) +
+          cmp.childAt(1).emitPush(emitContext, mv);
 
       mv.visitJumpInsn(IF_ICMPLT, emitContext.getAsmLabel(falseTarget));
 
@@ -145,5 +148,7 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
       throw new UnsupportedOperationException(condition.toString());
     }
     mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
+
+    return stackSizeIncrease;
   }
 }

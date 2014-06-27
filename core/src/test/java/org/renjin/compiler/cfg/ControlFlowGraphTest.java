@@ -29,8 +29,8 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     System.out.println(cfg);
     
     List<BasicBlock> basicBlocks = cfg.getBasicBlocks();
-    assertThat(basicBlocks.size(), equalTo(3));  // 1 + exit + entry = 3
-    assertThat(basicBlocks.get(0).getStatements().size(), equalTo(block.getStatements().size()));
+    assertThat(basicBlocks.size(), equalTo(3));  // entry + 1 + exit = 3
+    assertThat(basicBlocks.get(1).getStatements().size(), equalTo(block.getStatements().size()));
   }
   
   @Test
@@ -81,32 +81,34 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     
     System.out.println(cfg);
-    
   }
-  
+
   @Test
   public void cytron() throws IOException {
     IRBody block = parseCytron();
+    System.out.println(block);
+
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     List<BasicBlock> bb = cfg.getLiveBasicBlocks();
 
     System.out.println(cfg);
+    cfg.dumpGraph();
     
     // see Figure 5 in 
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
     
-    assertThat(cfg.getGraph().getSuccessors(bb.get(0)), itemsEqualTo(bb.get(1)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(1)), itemsEqualTo(bb.get(2), bb.get(6)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(2)), itemsEqualTo(bb.get(3), bb.get(4)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(3)), itemsEqualTo(bb.get(5)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(4)), itemsEqualTo(bb.get(5)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(5)), itemsEqualTo(bb.get(7)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(6)), itemsEqualTo(bb.get(7)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(1)), itemsEqualTo(bb.get(2)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(2)), itemsEqualTo(bb.get(3), bb.get(7)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(3)), itemsEqualTo(bb.get(4), bb.get(5)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(4)), itemsEqualTo(bb.get(6)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(5)), itemsEqualTo(bb.get(6)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(6)), itemsEqualTo(bb.get(8)));
     assertThat(cfg.getGraph().getSuccessors(bb.get(7)), itemsEqualTo(bb.get(8)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(8)), itemsEqualTo(bb.get(9), bb.get(10)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(9)), itemsEqualTo(bb.get(10)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(10)), itemsEqualTo(bb.get(8),bb.get(11)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(11)), itemsEqualTo(bb.get(12),bb.get(1)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(8)), itemsEqualTo(bb.get(9)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(9)), itemsEqualTo(bb.get(10), bb.get(11)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(10)), itemsEqualTo(bb.get(11)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(11)), itemsEqualTo(bb.get(9),bb.get(12)));
+    assertThat(cfg.getGraph().getSuccessors(bb.get(12)), itemsEqualTo(bb.get(13),bb.get(2)));
   }
 
   

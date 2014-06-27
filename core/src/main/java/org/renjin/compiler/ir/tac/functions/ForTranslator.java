@@ -29,7 +29,7 @@ public class ForTranslator extends FunctionCallTranslator {
     LocalVariable counter = factory.newLocalVariable();
     Temp length = factory.newTemp();
     
-    Variable elementVariable = new EnvironmentVariable(symbol);
+    Variable elementVariable = factory.getEnvironmentVariable(symbol);
     
     Expression vector = 
         factory.translateSimpleExpression(context, call.getArgument(1));

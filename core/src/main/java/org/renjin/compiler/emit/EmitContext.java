@@ -8,6 +8,7 @@ import org.objectweb.asm.Label;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.ssa.RegisterAllocation;
+import org.renjin.compiler.ir.ssa.VariableMap;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;

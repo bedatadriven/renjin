@@ -4,9 +4,6 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Element access in the form x$name
  */
@@ -26,17 +23,12 @@ public class NamedElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public Class getType() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean isTypeResolved() {
     throw new UnsupportedOperationException();
   }
 

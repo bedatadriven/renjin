@@ -1,13 +1,6 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.compiler.emit.EmitContext;
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
-
-import java.util.Collections;
-import java.util.List;
 
 
 /**
@@ -56,7 +49,6 @@ public class EnvironmentVariable extends Variable {
     return false;
   }
 
-  @Override
   public Class getType() {
     throw new UnsupportedOperationException();
   }

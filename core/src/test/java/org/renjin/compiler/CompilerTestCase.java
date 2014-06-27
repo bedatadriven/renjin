@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
+import com.google.common.base.Joiner;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -19,9 +20,16 @@ import org.renjin.sexp.ExpressionVector;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import org.renjin.sexp.ExternalPtr;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 public class CompilerTestCase {
+
+
+  public static void print(int i, int j, int k, int l) {
+    System.out.println(Joiner.on(", ").join(Arrays.asList(i, j, k, l)));
+  }
 
 
   protected IRBody buildScope(String rcode) {
@@ -29,7 +37,8 @@ public class CompilerTestCase {
 
     // we need a simple "print" function for testing
     try {
-      session.getGlobalEnvironment().setVariable("print", (SEXP)Class.forName("org.renjin.primitives.R$primitive$cat").newInstance());
+      ExternalPtr testCase = new ExternalPtr(CompilerTestCase.class);
+      session.getGlobalEnvironment().setVariable("print", testCase.getMember(Symbol.get("print")));
     } catch(Exception e) {
       throw new RuntimeException(e);
     }

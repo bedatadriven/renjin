@@ -75,22 +75,22 @@ public class Assignment implements Statement {
   }
 
   @Override
-  public void emit(EmitContext emitContext, MethodVisitor mv) {
-
-    rhs.emitPush(emitContext, mv);
+  public int emit(EmitContext emitContext, MethodVisitor mv) {
+    int stackIncrease = rhs.emitPush(emitContext, mv);
     mv.visitVarInsn(storeOpcode(), emitContext.getRegister(lhs));
+    return stackIncrease;
   }
 
   private int storeOpcode() {
-    Class rhsType = rhs.getType();
-    if(rhsType.equals(double.class)) {
+    Class type = rhs.getType();
+    if(type.equals(double.class)) {
       return Opcodes.DSTORE;
-    } else if(rhsType.equals(int.class)) {
+    } else if(type.equals(int.class)) {
       return Opcodes.ISTORE;
-    } else if(Vector.class.isAssignableFrom(rhsType)) {
+    } else if(Vector.class.isAssignableFrom(type)) {
       return Opcodes.ASTORE;
     } else {
-      throw new UnsupportedOperationException("don't know how to STORE " + rhsType);
+      throw new UnsupportedOperationException("don't know how to STORE " + type);
     }
   }
 

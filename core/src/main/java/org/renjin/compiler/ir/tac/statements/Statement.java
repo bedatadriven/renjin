@@ -20,6 +20,13 @@ public interface Statement extends TreeNode {
   void setRHS(Expression newRHS);
 
   void accept(StatementVisitor visitor);
-  
-  void emit(EmitContext emitContext, MethodVisitor mv);
+
+  /**
+   * Emits the bytecode for this instruction
+   * @param emitContext
+   * @param mv
+   * @return the required increase to the stack
+   */
+  int emit(EmitContext emitContext, MethodVisitor mv);
+
 }

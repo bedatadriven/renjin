@@ -40,6 +40,10 @@ public class FunctionBinding {
     return Iterables.get(overloads, 0).getDeclaringClass();
   }
 
+  public List<Overload> getOverloads() {
+    return overloads;
+  }
+
   /**
    * @return the name of the JVM method
    */
@@ -102,6 +106,10 @@ public class FunctionBinding {
     @Override
     public String toString() {
       return method.toString();
+    }
+
+    public Method getMethod() {
+      return method;
     }
   }
 

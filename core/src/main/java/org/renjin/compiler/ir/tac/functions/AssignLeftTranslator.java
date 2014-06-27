@@ -54,9 +54,9 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
 
     LValue target;
     if( lhs instanceof Symbol) {
-      target = new EnvironmentVariable((Symbol) lhs);
+      target = builder.getEnvironmentVariable((Symbol)lhs);
     } else if(lhs instanceof StringVector) {
-      target =  new EnvironmentVariable( Symbol.get(((StringVector) lhs).getElementAsString(0)) );
+      target =  builder.getEnvironmentVariable( Symbol.get(((StringVector) lhs).getElementAsString(0)) );
     } else {
       throw new EvalException("cannot assign to value of type " + lhs.getTypeName());
     }

@@ -1,12 +1,11 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import com.google.common.base.Preconditions;
-import com.sun.org.apache.bcel.internal.generic.INVOKESPECIAL;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.ir.ssa.VariableMap;
 import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 
 
@@ -44,16 +43,20 @@ public class ElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
 
-    getVector().emitPush(emitContext, mv);
+    int stackIncrease =
+      getVector().emitPush(emitContext, mv) +
+      getIndex().emitPush(emitContext, mv);
 
     if(type.equals(double.class)) {
-      mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
         "org/renjin/sexp/Vector", "getElementAsDouble", "(I)D");
     } else {
       throw new UnsupportedOperationException(type.toString());
     }
+
+    return stackIncrease;
   }
 
   @Override
@@ -63,13 +66,8 @@ public class ElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public boolean isTypeResolved() {
-    return type != null;
-  }
-
-  @Override
-  public void resolveType() {
-    Class vectorClass = getVector().getType();
+  public Class resolveType(VariableMap variableMap) {
+    Class vectorClass = getVector().resolveType(variableMap);
     if(IntVector.class.isAssignableFrom(vectorClass)) {
       this.type = int.class;
     } else if(AtomicVector.class.isAssignableFrom(vectorClass)) {
@@ -77,5 +75,6 @@ public class ElementAccess extends SpecializedCallExpression {
     } else {
       throw new UnsupportedOperationException(getVector() + ":" + vectorClass.getName());
     }
+    return this.type;
   }
 }

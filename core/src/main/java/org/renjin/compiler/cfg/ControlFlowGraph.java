@@ -62,6 +62,9 @@ public class ControlFlowGraph {
     exit = new BasicBlock(parent);
     exit.setDebugId("exit");
     basicBlocks.add(exit);
+
+    // Cytron adds an edge from entry to exit??
+   graph.addEdge(new Edge(false), entry, exit);
   }
   
   public List<BasicBlock> getLiveBasicBlocks() {

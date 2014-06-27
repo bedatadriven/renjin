@@ -1,13 +1,12 @@
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.fest.assertions.Assert;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.sexp.AtomicVector;
-
-import java.util.List;
 
 public class SequenceExpression extends SpecializedCallExpression {
  
@@ -27,11 +26,22 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
-    childAt(0).emitPush(emitContext, mv);
-    childAt(1).emitPush(emitContext, mv);
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DoubleSequence.class), "fromTo",
-      "(DD)Lorg.renjin.primitives.sequence.DoubleSequence;" );
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
+    int stackSizeIncrease =
+      assertDouble(childAt(0)).emitPush(emitContext, mv) +
+      assertDouble(childAt(1)).emitPush(emitContext, mv);
+
+    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(DoubleSequence.class), "fromTo",
+        Type.getMethodDescriptor(Type.getType(AtomicVector.class), Type.DOUBLE_TYPE, Type.DOUBLE_TYPE));
+
+    return stackSizeIncrease;
+  }
+
+  private Expression assertDouble(Expression expression) {
+    if(!expression.getType().equals(double.class)) {
+      throw new AssertionError(expression + " has a type of " + expression.getType() + " expected double");
+    }
+    return expression;
   }
 
   @Override
@@ -40,7 +50,7 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   @Override
-  public boolean isTypeResolved() {
-    return true;
+  public String toString() {
+    return childAt(0) + ":" + childAt(1);
   }
 }

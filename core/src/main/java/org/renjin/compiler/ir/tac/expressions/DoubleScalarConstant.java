@@ -19,7 +19,7 @@ public class DoubleScalarConstant extends Constant {
 
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     if(value == 0) {
       mv.visitInsn(Opcodes.DCONST_0);
     } else if(value==1) {
@@ -27,6 +27,7 @@ public class DoubleScalarConstant extends Constant {
     } else {
       mv.visitLdcInsn(value);
     }
+    return 2;
   }
 
   @Override

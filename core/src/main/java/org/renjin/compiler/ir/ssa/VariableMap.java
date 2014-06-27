@@ -24,14 +24,21 @@ public class VariableMap {
 
   public VariableMap(ControlFlowGraph cfg) {
     for(BasicBlock bb : cfg.getBasicBlocks()) {
-      for(Statement statement : bb.getStatements()) {
-        if(statement instanceof Assignment) {
-          addToMap(bb, (Assignment)statement);
-        }
-        for(int i=0;i!=statement.getRHS().getChildCount();++i) {
-          TreeNode uses = statement.getRHS().childAt(i);
-          if(uses instanceof LValue) {
-            useByBlockMap.put((LValue)uses, bb);
+      if(bb != cfg.getExit()) {
+        for(Statement statement : bb.getStatements()) {
+          if(statement instanceof Assignment) {
+            addToMap(bb, (Assignment)statement);
+          }
+          Expression rhs = statement.getRHS();
+          if(rhs instanceof LValue) {
+            useByBlockMap.put((LValue)rhs, bb);
+          } else {
+            for(int i=0;i!= rhs.getChildCount();++i) {
+              TreeNode uses = rhs.childAt(i);
+              if(uses instanceof LValue) {
+                useByBlockMap.put((LValue)uses, bb);
+              }
+            }
           }
         }
       }
@@ -68,5 +75,9 @@ public class VariableMap {
 
   public boolean isUsed(LValue lhs) {
     return useByBlockMap.containsKey(lhs);
+  }
+
+  public boolean isDefined(LValue value) {
+    return definitionMap.containsKey(value);
   }
 }

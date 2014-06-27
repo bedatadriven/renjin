@@ -8,10 +8,13 @@ import org.renjin.sexp.SEXP;
 public class NotCompilableException extends RuntimeException {
   private SEXP sexp;
 
-
   public NotCompilableException(SEXP sexp) {
     super("unsupported expression: " + sexp);
     this.sexp = sexp;
+  }
 
+  public NotCompilableException(SEXP sexp, String message) {
+    super(message);
+    this.sexp = sexp;
   }
 }

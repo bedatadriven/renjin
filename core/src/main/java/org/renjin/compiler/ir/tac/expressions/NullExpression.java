@@ -2,9 +2,8 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-
-import java.util.Collections;
-import java.util.List;
+import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.sexp.Null;
 
 
 /**
@@ -24,23 +23,17 @@ public class NullExpression implements Expression {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     throw new UnsupportedOperationException();
   }
 
-  @Override
   public Class getType() {
-    throw new UnsupportedOperationException();
+    return Null.class;
   }
 
   @Override
-  public void resolveType() {
-
-  }
-
-  @Override
-  public boolean isTypeResolved() {
-    return true;
+  public Class resolveType(VariableMap variableMap) {
+    return Null.class;
   }
 
   @Override

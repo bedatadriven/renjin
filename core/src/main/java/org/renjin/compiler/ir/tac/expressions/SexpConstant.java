@@ -1,7 +1,6 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 
-import com.sun.org.apache.bcel.internal.generic.GETSTATIC;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
@@ -34,12 +33,13 @@ public class SexpConstant extends Constant {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     if(value == Null.INSTANCE) {
       mv.visitFieldInsn(Opcodes.GETSTATIC, "org/renjin/sexp/Null", "INSTANCE", "Lorg/renjin/sexp/Null;");
     } else {
       throw new UnsupportedOperationException("sexp: " + value);
     }
+    return 1;
   }
 
   @Override
@@ -51,4 +51,5 @@ public class SexpConstant extends Constant {
   public String toString() {
     return value.toString();
   }
+
 }

@@ -4,9 +4,12 @@ import java.util.Collections;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.SEXP;
 
 
 public class ReturnStatement implements Statement, BasicBlockEndingStatement {
@@ -71,15 +74,21 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public void emit(EmitContext emitContext, MethodVisitor mv) {
-
-    getRHS().emitPush(emitContext, mv);
-
+  public int emit(EmitContext emitContext, MethodVisitor mv) {
     Class type = getRHS().getType();
+    int stackSizeIncrease = 0;
     if(type.equals(double.class)) {
-      mv.visitInsn(Opcodes.DRETURN);
+      stackSizeIncrease = getRHS().emitPush(emitContext, mv);
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+          Type.getInternalName(DoubleArrayVector.class), "valueOf",
+          Type.getMethodDescriptor(Type.getType(DoubleArrayVector.class), Type.DOUBLE_TYPE));
+   //   mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(SEXP.class));
+
     } else {
       throw new UnsupportedOperationException();
     }
+
+    mv.visitInsn(Opcodes.ARETURN);
+    return stackSizeIncrease;
   }
 }

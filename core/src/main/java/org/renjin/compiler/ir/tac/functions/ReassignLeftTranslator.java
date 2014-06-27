@@ -1,23 +1,22 @@
 package org.renjin.compiler.ir.tac.functions;
 
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.statements.Reassignment;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
 
 
-public class ReassignLeftTranslator extends AssignLeftTranslator {
+public class ReassignLeftTranslator extends FunctionCallTranslator {
 
 
   @Override
-  protected void doAssignment(IRBodyBuilder builder, LValue target,
-      Expression rhs) {
- 
-    builder.addStatement(new Reassignment((EnvironmentVariable) target, rhs));
-    
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+    throw new NotCompilableException(call, "<<- is evil!");
   }
- 
 
-  
+  @Override
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+    throw new NotCompilableException(call, "<<- is evil!");
+  }
 }

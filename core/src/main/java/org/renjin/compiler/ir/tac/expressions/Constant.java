@@ -1,14 +1,6 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.renjin.compiler.emit.EmitContext;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
-
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Opcodes.ICONST_1;
+import org.renjin.compiler.ir.ssa.VariableMap;
 
 
 /**
@@ -39,12 +31,22 @@ public abstract class Constant implements SimpleExpression {
   }
 
   @Override
-  public void resolveType() {
-    // should be known already
+  public Class getType() {
+    return computeType();
   }
 
   @Override
-  public boolean isTypeResolved() {
-    return true;
+  public Class resolveType(VariableMap variableMap) {
+    return computeType();
+  }
+
+  private Class computeType() {
+    Class valueClass = getValue().getClass();
+    if(valueClass.equals(Double.class)) {
+      return double.class;
+    } else if(valueClass.equals(Integer.class)) {
+      return int.class;
+    }
+    return valueClass;
   }
 }

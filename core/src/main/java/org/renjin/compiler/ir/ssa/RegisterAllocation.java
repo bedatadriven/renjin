@@ -19,6 +19,7 @@ public class RegisterAllocation {
 
   private ControlFlowGraph cfg;
   private int nextSlot;
+  private int size = 0;
   private Map<LValue, Integer> registers = Maps.newHashMap();
 
   public RegisterAllocation(ControlFlowGraph cfg, int nextSlot) {
@@ -36,7 +37,9 @@ public class RegisterAllocation {
             LValue var = ((Assignment) stmt).getLHS();
             if(!registers.containsKey(var)) {
               registers.put(var, nextSlot);
-              nextSlot += numSlots(var);
+              int numSlots = numSlots(var);
+              nextSlot += numSlots;
+              size += numSlots;
             }
           }
         }
@@ -56,6 +59,10 @@ public class RegisterAllocation {
     } else {
       return 1;
     }
+  }
+
+  public int getSize() {
+    return size;
   }
 
   @Override

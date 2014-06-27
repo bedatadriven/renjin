@@ -24,7 +24,7 @@ public class BuiltinTranslator extends FunctionCallTranslator {
     }
     List<JvmMethod> methods = JvmMethod.findOverloads(entry.functionClass, entry.name, entry.methodName);
     return new JvmMethodCall(entry.name,
-        methods, argumentNames(call.getArguments()),
+        methods, ArgumentNames.toArray(call.getArguments()),
         builder.translateArgumentList(context, call.getArguments()));
   }
 
@@ -57,17 +57,6 @@ public class BuiltinTranslator extends FunctionCallTranslator {
     return new JvmMethodCall(entry.name,
         methods, argumentNames,
         builder.translateArgumentList(context, getterCall.getArguments()));
-  }
-
-  private String[] argumentNames(PairList arguments) {
-    String[] names = new String[arguments.length()];
-    int i=0;
-    for(PairList.Node node : arguments.nodes()) {
-      if(node.hasTag()) {
-        names[i] = node.getTag().getPrintName();
-      }
-    }
-    return names;
   }
 
   @Override

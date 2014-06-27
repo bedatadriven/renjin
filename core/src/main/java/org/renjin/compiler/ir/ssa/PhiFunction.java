@@ -1,8 +1,10 @@
 package org.renjin.compiler.ir.ssa;
 
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.expressions.Expression;
@@ -46,34 +48,33 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     throw new UnsupportedOperationException();
   }
 
   @Override
+  public Class resolveType(VariableMap variableMap) {
+    Set<Class> types = Sets.newHashSet();
+    for(Variable argument : arguments) {
+      if(variableMap.isDefined(argument)) {
+        types.add(argument.resolveType(variableMap));
+      }
+    }
+    if(types.size() != 1) {
+      throw new UnsupportedOperationException(this + " resolved to zero or multiple types: " + types);
+    }
+    return (type = types.iterator().next());
+  }
+
+  @Override
   public Class getType() {
-    Preconditions.checkNotNull(type, "type is not resolved yet");
+    Preconditions.checkNotNull(type);
+
     return type;
   }
 
-  @Override
-  public void resolveType() {
-    Class type = arguments.get(0).getType();
-    for(Expression argument : arguments) {
-      if(!argument.getType().equals(type)) {
-        throw new UnsupportedOperationException("polymorphic types not supported here");
-      }
-    }
-    this.type = type;
-  }
-
-  @Override
-  public boolean isTypeResolved() {
-    return type != null;
-  }
-
   public void setVersionNumber(int argumentIndex, int versionNumber) {
-    arguments.set(argumentIndex, new SsaVariable(arguments.get(argumentIndex), versionNumber));
+    arguments.set(argumentIndex, arguments.get(argumentIndex).getVersion(versionNumber));
   }
 
   public Variable getArgument(int j) {

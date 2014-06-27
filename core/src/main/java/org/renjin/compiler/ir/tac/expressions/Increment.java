@@ -1,11 +1,9 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.ir.ssa.VariableMap;
 
 
 /**
@@ -39,10 +37,11 @@ public class Increment extends SpecializedCallExpression {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     getCounter().emitPush(emitContext, mv);
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitInsn(Opcodes.IADD);
+    return 2;
   }
 
   @Override
@@ -51,7 +50,7 @@ public class Increment extends SpecializedCallExpression {
   }
 
   @Override
-  public boolean isTypeResolved() {
-    return true;
+  public Class resolveType(VariableMap variableMap) {
+    return int.class;
   }
 }

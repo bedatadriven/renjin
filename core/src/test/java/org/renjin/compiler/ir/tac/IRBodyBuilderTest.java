@@ -16,23 +16,31 @@ import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
+import org.renjin.invoke.ClassBindings;
+import org.renjin.invoke.reflection.MemberBinding;
 import org.renjin.parser.RParser;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 
 public class IRBodyBuilderTest extends EvalTestCase {
 
   private Session session;
 
+  public static void stop() {
+    throw new EvalException("stop!");
+  }
+
   @Before
   public void setUpSession() {
     session = new SessionBuilder().build();
+
+    // add some simplified functions for testing
+    MemberBinding stop = ClassBindings.getClassDefinitionBinding(IRBodyBuilderTest.class)
+        .getMemberBinding(Symbol.get("stop"));
+    session.getGlobalEnvironment().setVariable("stop", stop.getValue(null));
   }
 
   @Test
@@ -158,12 +166,6 @@ public class IRBodyBuilderTest extends EvalTestCase {
   public void lazyArgument() {
     assertThat(evalIR("x <- quote(y)"), equalTo((SEXP)Symbol.get("y")));
   }
-
-  
-  @Test
-  public void complexFunctionValue() {
-    assertThat(evalIR("x<-list(f=function() { 42 }); x$f();"), equalTo(c(42)));
-  }
   
   @Test
   public void missingArgs() {
@@ -183,18 +185,18 @@ public class IRBodyBuilderTest extends EvalTestCase {
   
   @Test
   public void shortCircuitAnd() {
-    assertThat(evalIR("FALSE && explode()"), equalTo(c(false)));
+    assertThat(evalIR("FALSE && stop()"), equalTo(c(false)));
     assertThat(evalIR("1 && 2"), equalTo(c(true)));
     assertThat(evalIR("NA && 1"), equalTo(c(Logical.NA)));
     assertThat(evalIR("NA && FALSE"), equalTo(c(false)));
     assertThat(evalIR("42 && 1"), equalTo(c(true)));
-    assertThat(evalIR("FALSE && rocket(); NULL "), equalTo(NULL));
+    assertThat(evalIR("FALSE && stop(); NULL "), equalTo(NULL));
   
   }
   
   @Test
   public void shortCircuitOr() {
-    assertThat(evalIR("TRUE || explode()"), equalTo(c(true)));
+    assertThat(evalIR("TRUE || stop()"), equalTo(c(true)));
     assertThat(evalIR("0 || 2"), equalTo(c(true)));
     assertThat(evalIR("1 || 2"), equalTo(c(true)));
     assertThat(evalIR("1 || NA"), equalTo(c(true)));
@@ -202,7 +204,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
     assertThat(evalIR("NA || 1"), equalTo(c(true)));
     assertThat(evalIR("0 || NA"), equalTo(c(Logical.NA)));
     assertThat(evalIR("1 || NA"), equalTo(c(true)));
-    assertThat(evalIR("1 || rocket(); NULL "), equalTo(NULL));
+    assertThat(evalIR("1 || stop(); NULL "), equalTo(NULL));
   }
  
   

@@ -2,15 +2,18 @@ package org.renjin.compiler.emit;
 
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.ssa.RegisterAllocation;
 import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
 import java.io.PrintWriter;
+import java.util.Map;
 
 public class ByteCodeEmitter implements Opcodes {
 
@@ -18,6 +21,9 @@ public class ByteCodeEmitter implements Opcodes {
   private ClassVisitor cv;
   private ControlFlowGraph cfg;
   private String className;
+
+  private static final int DO_NOT_COMPUTE_FRAMES = 0;
+
 
   public ByteCodeEmitter(ControlFlowGraph cfg) {
     super();
@@ -39,8 +45,8 @@ public class ByteCodeEmitter implements Opcodes {
   private void startClass() {
 
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-    cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-    //cv = new CheckClassAdapter(cv);
+    cv = new TraceClassVisitor(cw, new PrintWriter(System.out, true));
+    cv = new CheckClassAdapter(cv, true);
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
             "java/lang/Object", new String[] { "org/renjin/compiler/CompiledBody" });
   }
@@ -60,28 +66,30 @@ public class ByteCodeEmitter implements Opcodes {
     Label l1 = new Label();
     mv.visitLabel(l1);
     mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
-    mv.visitMaxs(1, 1);
+    mv.visitMaxs(2, 1);
     mv.visitEnd();
   }
 
 
   private void writeImplementation() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "eval", "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;)Lorg/renjin/sexp/SEXP;", null, null);
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;)Lorg/renjin/sexp/SEXP;", null, null);
     mv.visitCode();
     writeBody(mv);
-    mv.visitMaxs(1, 1);
     mv.visitEnd();
   }
 
   private void writeBody(MethodVisitor mv) {
 
-    int nextSlot = 2; // this + context + environment
+    int nextSlot = 3; // this + context + environment
     RegisterAllocation registerAllocation = new RegisterAllocation(cfg, nextSlot);
+
+    int numLocals = 3 + registerAllocation.getSize();
 
     System.out.println(registerAllocation);
 
     EmitContext emitContext = new EmitContext(cfg, registerAllocation);
 
+    int maxStackSize = 0;
     for(BasicBlock bb : cfg.getBasicBlocks()) {
       if(bb != cfg.getEntry() && bb != cfg.getExit()) {
         for(IRLabel label : bb.getLabels()) {
@@ -89,10 +97,15 @@ public class ByteCodeEmitter implements Opcodes {
         }
 
         for(Statement stmt : bb.getStatements()) {
-          stmt.emit(emitContext, mv);
+          int stackHeight = stmt.emit(emitContext, mv);
+          if(stackHeight > maxStackSize) {
+            maxStackSize = stackHeight;
+          }
         }
       }
     }
+
+    mv.visitMaxs(maxStackSize, numLocals);
   }
 
   private void writeClassEnd() {

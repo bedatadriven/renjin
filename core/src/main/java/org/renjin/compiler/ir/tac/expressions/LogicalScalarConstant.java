@@ -18,14 +18,13 @@ public class LogicalScalarConstant extends Constant {
     this.value = value;
   }
 
-
   @Override
   public Object getValue() {
     return value;
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     throw new UnsupportedOperationException();
   }
 
@@ -33,4 +32,5 @@ public class LogicalScalarConstant extends Constant {
   public Class getType() {
     return boolean.class;
   }
+
 }

@@ -1,9 +1,7 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.compiler.emit.EmitContext;
-
-import java.util.List;
+import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.sexp.AtomicVector;
 
 public abstract class SpecializedCallExpression implements Expression {
   protected final Expression[] arguments;
@@ -43,8 +41,8 @@ public abstract class SpecializedCallExpression implements Expression {
   }
 
   @Override
-  public void resolveType() {
-    throw new UnsupportedOperationException(getClass().getName());
+  public Class resolveType(VariableMap variableMap) {
+    return AtomicVector.class;
   }
 
 }

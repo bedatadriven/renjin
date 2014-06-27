@@ -70,10 +70,13 @@ public class ExprStatement implements Statement {
   }
 
   @Override
-  public void emit(EmitContext emitContext, MethodVisitor mv) {
+  public int emit(EmitContext emitContext, MethodVisitor mv) {
     if(!operand.isDefinitelyPure()) {
-      operand.emitPush(emitContext, mv);
+      int stackSizeIncrease = operand.emitPush(emitContext, mv);
       mv.visitInsn(Opcodes.POP);
+      return stackSizeIncrease;
+    } else {
+      return 0;
     }
   }
 }

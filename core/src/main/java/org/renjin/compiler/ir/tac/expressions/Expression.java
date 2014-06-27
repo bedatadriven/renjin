@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.ir.ssa.VariableMap;
 import org.renjin.compiler.ir.tree.TreeNode;
 import org.renjin.eval.Context;
 import org.renjin.sexp.SEXP;
@@ -23,25 +24,18 @@ public interface Expression extends TreeNode {
    *
    * @param emitContext
    * @param mv
+   * @return the number of items pushed onto the stack
    */
-  void emitPush(EmitContext emitContext, MethodVisitor mv);
+  int emitPush(EmitContext emitContext, MethodVisitor mv);
 
-  /**
-   *
-   * @return the JVM type of this expression
-   * @throws IllegalStateException if the type has not yet been resolved
-   */
+
   Class getType();
 
   /**
    * Resolves and stores the type of this Expression, based on it's
    * child nodes
+   * @param variableMap
    */
-  void resolveType();
+  Class resolveType(VariableMap variableMap);
 
-  /**
-   *
-   * @return true if this Expression's type has been fully resolved
-   */
-  boolean isTypeResolved();
 }

@@ -1,6 +1,9 @@
 package org.renjin.compiler.ir.tac.functions;
 
 import com.google.common.collect.Maps;
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.invoke.reflection.MethodFunction;
+import org.renjin.sexp.Function;
 import org.renjin.sexp.PrimitiveFunction;
 import org.renjin.sexp.SpecialFunction;
 
@@ -32,13 +35,23 @@ public class FunctionCallTranslators {
     specials.put("switch", new SwitchTranslator());
     specials.put("quote", new QuoteTranslator());
     specials.put("return", new ReturnTranslator());
+
     specials.put(":", new SequenceTranslator());
   }
   
-  public FunctionCallTranslator get(PrimitiveFunction function) {
-    if(function instanceof SpecialFunction && specials.containsKey(function.getName())) {
-      return specials.get(function.getName());
+  public FunctionCallTranslator get(Function function) {
+    if(function instanceof PrimitiveFunction) {
+      PrimitiveFunction primitiveFunction = (PrimitiveFunction)function;
+      if(specials.containsKey(primitiveFunction.getName())) {
+        return specials.get(primitiveFunction.getName());
+      } else {
+        return BuiltinTranslator.INSTANCE;
+      }
     }
-    return BuiltinTranslator.INSTANCE;
+
+    if(function instanceof MethodFunction) {
+      return StaticMethodTranslator.INSTANCE;
+    }
+    throw new NotCompilableException(function, "Can't handle functions of class " + function.getClass().getName());
   }
 }

@@ -1,12 +1,5 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.compiler.emit.EmitContext;
-import org.renjin.eval.Context;
-
 
 /**
  * Variable that is to be stored as a JVM local variable when 
@@ -17,12 +10,10 @@ import org.renjin.eval.Context;
 public class LocalVariable extends Variable {
   
   private final String name;
-  private final int offset;
- 
-  public LocalVariable(String name, int offset) {
+
+  public LocalVariable(String name) {
     super();
     this.name = name;
-    this.offset = offset;
   }
 
   @Override

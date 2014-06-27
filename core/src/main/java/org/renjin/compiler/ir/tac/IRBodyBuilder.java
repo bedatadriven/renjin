@@ -10,6 +10,8 @@ import org.renjin.compiler.ir.tac.functions.FunctionCallTranslators;
 import org.renjin.compiler.ir.tac.functions.TranslationContext;
 import org.renjin.compiler.ir.tac.statements.*;
 import org.renjin.eval.Context;
+import org.renjin.invoke.reflection.MethodFunction;
+import org.renjin.packaging.SerializedPromise;
 import org.renjin.sexp.*;
 
 import java.util.List;
@@ -36,6 +38,7 @@ public class IRBodyBuilder {
   private List<Statement> statements;
   private IRLabel currentLabel;
   private Map<IRLabel, Integer> labels;
+  private Map<Symbol, EnvironmentVariable> variables = Maps.newHashMap();
 
   private Context context;
   private Environment rho;
@@ -78,7 +81,7 @@ public class IRBodyBuilder {
       if(exp == Symbol.MISSING_ARG) {
         return SexpConstant.valueOf(exp);
       } else {
-        return new EnvironmentVariable((Symbol)exp);
+        return getEnvironmentVariable((Symbol) exp);
       }
     } else if(exp instanceof FunctionCall) {
         return translateCallExpression(context, (FunctionCall) exp);
@@ -88,10 +91,19 @@ public class IRBodyBuilder {
     }
   }
 
+  public EnvironmentVariable getEnvironmentVariable(Symbol name) {
+    EnvironmentVariable var = variables.get(name);
+    if(var == null) {
+      var = new EnvironmentVariable(name);
+      variables.put(name, var);
+    }
+    return var;
+  }
+
   public void translateStatements(TranslationContext context, SEXP sexp) {
     if(sexp instanceof FunctionCall) {
       FunctionCall call = (FunctionCall)sexp;
-      PrimitiveFunction function = resolveFunction(call.getFunction());
+      Function function = resolveFunction(call.getFunction());
       builders.get( function ).addStatement(this, context, function, call);
     } else {
       Expression expr = translateExpression(context, sexp);
@@ -101,10 +113,9 @@ public class IRBodyBuilder {
     }
   }
 
-
   public Expression translateSetterCall(TranslationContext context, FunctionCall getterCall, Expression rhs) {
     Symbol getter = (Symbol) getterCall.getFunction();
-    PrimitiveFunction setter = resolveFunction(Symbol.get(getter.getPrintName() + "<-"));
+    Function setter = resolveFunction(Symbol.get(getter.getPrintName() + "<-"));
 
     FunctionCallTranslator translator = builders.get(setter);
     return translator.translateToSetterExpression(this, context, setter, getterCall, rhs);
@@ -112,22 +123,69 @@ public class IRBodyBuilder {
 
   public Expression translateCallExpression(TranslationContext context, FunctionCall call) {
     SEXP functionName = call.getFunction();
-    PrimitiveFunction function = resolveFunction(functionName);
+    Function function = resolveFunction(functionName);
 
     FunctionCallTranslator translator = builders.get(function);
     return translator.translateToExpression(this, context, function, call);
   }
 
-  private PrimitiveFunction resolveFunction(SEXP functionName) {
+  private Function resolveFunction(SEXP functionName) {
     if( functionName instanceof PrimitiveFunction) {
       return (PrimitiveFunction) functionName;
     } else if (functionName instanceof Symbol) {
-      Function resolvedFunction = rho.findFunction(this.context, (Symbol) functionName);
+      Function resolvedFunction = resolveFunctionSymbol((Symbol) functionName);
+
       if(resolvedFunction instanceof PrimitiveFunction) {
-        return (PrimitiveFunction) resolvedFunction;
+        return resolvedFunction;
+      } else if(resolvedFunction instanceof MethodFunction) {
+        return resolvedFunction;
+      } else {
+        throw new NotCompilableException(functionName, "Cannot compile reference to function '" + functionName + "', " +
+            "resolves to function of class " + resolvedFunction.getClass().getName());
       }
     }
     throw new NotCompilableException(functionName);
+  }
+
+  private Function resolveFunctionSymbol(Symbol functionName) {
+    Environment environment = rho;
+    while(environment != Environment.EMPTY) {
+      Function f = isFunction(functionName, environment.getVariable(functionName));
+      if(f != null) {
+        return f;
+      }
+      environment = environment.getParent();
+    }
+    throw new NotCompilableException(functionName, "Could not find function " + functionName);
+  }
+
+  /**
+   * Tries to safely determine whether the expression is a function, without
+   * forcing any promises that might have side effects.
+   * @param exp
+   * @return null if the expr is definitely not a function, or {@code expr} if the
+   * value can be resolved to a Function without side effects
+   * @throws org.renjin.compiler.NotCompilableException if it is not possible to determine
+   * whether the value is a function without risking side effects.
+   */
+  private Function isFunction(Symbol functionName, SEXP exp) {
+    if(exp instanceof Function) {
+      return (Function)exp;
+
+    } else if(exp instanceof SerializedPromise) {
+      return isFunction(functionName, exp.force(this.context));
+
+    } else if(exp instanceof Promise) {
+      Promise promise = (Promise)exp;
+      if(promise.isEvaluated()) {
+        return isFunction(functionName, promise.getValue());
+      } else {
+        throw new NotCompilableException(functionName, "Symbol " + functionName + " cannot be resolved to a function " +
+            " an enclosing environment has a binding of the same name to an unevaluated promise");
+      }
+    } else {
+      return null;
+    }
   }
 
   public List<Expression> translateArgumentList(TranslationContext context, PairList argumentSexps) {
@@ -172,7 +230,7 @@ public class IRBodyBuilder {
   }
   
   public LocalVariable newLocalVariable() {
-    return new LocalVariable("Λ" + (nextLocalVariableIndex++), nextTemp++);
+    return new LocalVariable("Λ" + (nextLocalVariableIndex++));
   }
   
   public IRLabel newLabel() {

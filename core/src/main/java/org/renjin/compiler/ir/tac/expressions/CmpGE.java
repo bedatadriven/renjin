@@ -2,6 +2,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.ir.ssa.VariableMap;
 
 /**
  * Checks whether op1 is greater than or equal to op2. 
@@ -29,7 +30,7 @@ public class CmpGE extends SpecializedCallExpression {
   }
 
   @Override
-  public void emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     throw new UnsupportedOperationException();
   }
 
@@ -39,7 +40,7 @@ public class CmpGE extends SpecializedCallExpression {
   }
 
   @Override
-  public boolean isTypeResolved() {
-    return true;
+  public Class resolveType(VariableMap variableMap) {
+    return boolean.class;
   }
 }

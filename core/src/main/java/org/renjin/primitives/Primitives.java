@@ -991,9 +991,9 @@ public class Primitives {
     f("require", Packages.class, 0);
 
     // renjin-specifiv debug entries
-    f("debug.stderr",DebugOut.class,0,1,1);
-    f("debug.filename",DebugLocation.class,0,1,1);
-    f("debug.lineno",DebugLocation.class,0,1,1);
+    f("debug.stderr",DebugOut.class,0);
+    f("debug.filename",DebugLocation.class,0);
+    f("debug.lineno",DebugLocation.class,0);
   }
 
   private void add(SpecialFunction fn) {

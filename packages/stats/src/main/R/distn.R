@@ -14,7 +14,15 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-dexp <- function(x, rate=1, log = FALSE) .Internal(dexp(x, 1/rate, log))
+dexp <- function(x, rate=1, log = FALSE) {
+  d <- exp( -x * rate ) * rate
+  if(log) {
+    log(d)
+  } else {
+    d
+  }
+}
+
 pexp <- function(q, rate=1, lower.tail = TRUE, log.p = FALSE)
     .Internal(pexp(q, 1/rate, lower.tail, log.p))
 qexp <- function(p, rate=1, lower.tail = TRUE, log.p = FALSE)

@@ -41,6 +41,8 @@ import org.renjin.sexp.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import static org.renjin.util.CDefines.*;
+
 /**
  * Contexts are the internal mechanism used to keep track of where a
  * computation has got to (and from where),
@@ -451,7 +453,7 @@ public class Context {
     }
     Reader reader = new InputStreamReader(in);
     try {
-      evalContext.evaluate(RParser.parseSource(reader));
+      evalContext.evaluate(RParser.parseSource(reader, mkString(resourceName)));
     } finally {
       reader.close();
     }

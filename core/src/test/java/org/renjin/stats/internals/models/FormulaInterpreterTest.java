@@ -78,7 +78,7 @@ public class FormulaInterpreterTest {
   }
 
   private SEXP parse(String source) {
-    ExpressionVector tree = RParser.parseSource(source + "\n");
+    ExpressionVector tree = RParser.parseInlineSource(source + "\n");
     SEXP expr = tree.getElementAsSEXP(0);
     return expr;
   }

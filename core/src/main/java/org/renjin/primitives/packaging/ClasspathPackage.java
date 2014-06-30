@@ -3,6 +3,7 @@ package org.renjin.primitives.packaging;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import org.renjin.eval.EvalException;
+import org.renjin.util.NamedByteSource;
 
 import java.io.IOException;
 
@@ -23,10 +24,10 @@ public class ClasspathPackage extends FileBasedPackage {
   }
 
   @Override
-  public ByteSource getResource(String name) throws IOException {
+  public NamedByteSource getResource(String name) throws IOException {
     String url = resourceUrl(name);
     try {
-      return Resources.asByteSource(Resources.getResource(url));
+      return new NamedByteSource(url,Resources.asByteSource(Resources.getResource(url)));
     } catch(Exception e) {
       throw new IOException("Could not load resource '" + name + "', " +
           "url: " + url, e);

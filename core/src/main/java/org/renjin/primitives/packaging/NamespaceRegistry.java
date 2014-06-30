@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import org.renjin.util.*;
+import static org.renjin.util.CDefines.*;
+
 /**
  * Session-level registry of namespaces
  *
@@ -198,10 +201,9 @@ public class NamespaceRegistry {
    *
    */
   private void setupImportsExports(Package pkg, Namespace namespace) throws IOException {
-
-    ByteSource namespaceFile = pkg.getResource("NAMESPACE");
+    NamedByteSource namespaceFile = pkg.getResource("NAMESPACE");
     NamespaceDirectiveParser.parse(namespaceFile.asCharSource(Charsets.UTF_8),
-        new NamespaceInitHandler(context, this, namespace));
+        new NamespaceInitHandler(context, this, namespace), mkString(namespaceFile.getName()));
   }
 
 

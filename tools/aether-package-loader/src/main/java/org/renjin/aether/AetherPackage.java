@@ -4,6 +4,7 @@ import com.google.common.io.ByteSource;
 import org.eclipse.aether.artifact.Artifact;
 import org.renjin.primitives.packaging.FileBasedPackage;
 import org.renjin.primitives.packaging.FqPackageName;
+import org.renjin.util.NamedByteSource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,13 +28,16 @@ public class AetherPackage extends FileBasedPackage {
   }
 
   @Override
-  public ByteSource getResource(final String name) throws IOException {
-    return new ByteSource() {
-      @Override
-      public InputStream openStream() throws IOException {
-        return jarFile.getInputStream(entry(name));
+  public NamedByteSource getResource(final String name) throws IOException {
+    return new NamedByteSource(
+       "jar:"+jarFile.getName()+"/"+name,
+       new ByteSource() {
+         @Override
+         public InputStream openStream() throws IOException {
+             return jarFile.getInputStream(entry(name));
+         }
       }
-    };
+    );
   }
 
   @Override

@@ -94,13 +94,14 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   @Override
   public Object eval(String script) throws ScriptException {
-    return eval(topLevelContext, RParser.parseSource(script + "\n"));
+    return eval(topLevelContext, RParser.parseInlineSource(script + "\n"));
   }
   
   @Override
   public Object eval(String script, ScriptContext scriptContext)
       throws ScriptException {
-    SEXP source = RParser.parseSource(script + "\n");
+    //TODO: agreement to bind name.
+    SEXP source = RParser.parseInlineSource(script + "\n");
     return eval(unwrapContext(scriptContext), source);
   }
 
@@ -122,7 +123,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
       CharSource terminated = CharSource.concat(
           newReaderSupplier(reader),
          CharSource.wrap("\n"));
-      source = RParser.parseSource(terminated);
+      source = RParser.parseSource(terminated, new CHARSEXP("unknown") );
     } catch (IOException e) {
       throw new ScriptException(e);
     }

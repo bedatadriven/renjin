@@ -43,7 +43,7 @@ public class NonlinearLeastSquaresTest extends EvalTestCase{
     rho.setVariable("cc", new DoubleArrayVector(1));
 
     // f(x) = a*x^2 + b + cc
-    ExpressionVector modelExpr = RParser.parseAllSource(new StringReader("a*x^2 + b*x + cc"));
+    ExpressionVector modelExpr = RParser.parseAllSource(new StringReader("a*x^2 + b*x + cc"), "string");
 
     StringVector theta = new StringArrayVector("a","b","cc");
     DoubleArrayVector dir = new DoubleArrayVector(1,1,1);

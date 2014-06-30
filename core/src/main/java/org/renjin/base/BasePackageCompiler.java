@@ -16,6 +16,7 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.PrimitiveFunction;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.CHARSEXP;
 import org.renjin.sexp.Symbol;
 
 import com.google.common.base.Predicate;
@@ -78,7 +79,7 @@ public class BasePackageCompiler {
     for(File source : sources) {
       FileReader reader = new FileReader(source);
       try {
-        SEXP expr = RParser.parseAllSource(reader);
+        SEXP expr = RParser.parseAllSource(reader, new CHARSEXP(source.getName()));
         evalContext.evaluate(expr);
       } catch(Exception e) {
         throw new RuntimeException("Error evaluating " + source.getName() + ": " + e.getMessage(), e);

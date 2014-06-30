@@ -97,7 +97,7 @@ public class NamespaceBuilder {
         System.err.println("Evaluating '" + sourceFile + "'");
         try {
           FileReader reader = new FileReader(sourceFile);
-          SEXP expr = RParser.parseAllSource(reader);
+          SEXP expr = RParser.parseAllSource(reader, new CHARSEXP(sourceFile.getName()));
           reader.close();
           
           context.evaluate(expr, namespaceEnvironment);

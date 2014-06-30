@@ -17,6 +17,7 @@ import org.renjin.sexp.Closure;
 import org.renjin.sexp.ExpressionVector;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.CHARSEXP;
 import org.renjin.sexp.Symbol;
 
 
@@ -26,7 +27,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
   
   @Test
   public void simple() {
-    ExpressionVector ast = RParser.parseSource("x + sqrt(x * y)\n");
+    ExpressionVector ast = RParser.parseInlineSource("x + sqrt(x * y)\n");
     IRBodyBuilder factory = new IRBodyBuilder(functionTable); 
     IRBody ir = factory.build(ast);
     factory.dump( ast );
@@ -186,7 +187,10 @@ public class IRBodyBuilderTest extends EvalTestCase {
   public void closureBody() throws IOException {
     assumingBasePackagesLoad();
     topLevelContext.evaluate(
-    RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R"))));
+      RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R")),
+                          new CHARSEXP("/meanOnline.R")
+                         )
+    );
     
     Closure closure = (Closure) topLevelContext.getGlobalEnvironment().getVariable("mean.online");
     IRBodyBuilder factory = new IRBodyBuilder(functionTable);
@@ -194,7 +198,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
   }
   
   private void dump(String rcode) {
-    ExpressionVector ast = RParser.parseSource(rcode + "\n");
+    ExpressionVector ast = RParser.parseInlineSource(rcode + "\n");
     IRBodyBuilder factory = new IRBodyBuilder(functionTable);
     IRBody ir = factory.build(ast);
     
@@ -202,7 +206,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
   }
   
   private IRBody build(String rcode) {
-    ExpressionVector ast = RParser.parseSource(rcode + "\n");
+    ExpressionVector ast = RParser.parseInlineSource(rcode + "\n");
     IRBodyBuilder factory = new IRBodyBuilder(functionTable);
     return factory.build(ast);
   }

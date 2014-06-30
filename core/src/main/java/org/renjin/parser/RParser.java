@@ -66,9 +66,10 @@ import static org.renjin.util.CDefines.*;
  */
 public class RParser {
 
-  public static ExpressionVector parseSource(Reader reader) throws IOException {
+  public static ExpressionVector parseSource(Reader reader, SEXP srcFile) throws IOException {
  
     ParseState parseState = new ParseState();
+    parseState.srcFile = srcFile;
     ParseOptions parseOptions = ParseOptions.defaults();
     RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
@@ -83,30 +84,42 @@ public class RParser {
    * @return
    * @throws IOException
    */
-  public static ExpressionVector parseAllSource(Reader reader) throws IOException {
+  public static ExpressionVector parseAllSource(Reader reader, SEXP srcFile) throws IOException {
     String source = CharStreams.toString(reader);
     if(!source.endsWith("\n")) {
       source = source + "\n";
     }
-    return parseSource(source);
+    return parseSource(source, srcFile);
   }
   
+  public static ExpressionVector parseAllSource(Reader reader, String srcFile) throws IOException {
+    return parseAllSource(reader, new CHARSEXP(srcFile));
+  }
 
-  public static ExpressionVector parseSource(CharSource source) throws IOException {
+  public static ExpressionVector parseSource(CharSource source, SEXP srcFile) throws IOException {
     Reader reader = source.openStream();
     try {
-      return parseAllSource(reader);
+      return parseAllSource(reader, srcFile);
     } finally {
       Closeables.closeQuietly(reader);
     }
   }
   
-  public static ExpressionVector parseSource(String source) {
+  public static ExpressionVector parseSource(String source, SEXP srcFile) {
     try {
-      return parseSource(new StringReader(source));
+      return parseSource(new StringReader(source), srcFile);
     } catch (IOException e) {
       throw new RuntimeException(e); // shouldn't happen when reading from a string.
     }
+  }
+
+  public static ExpressionVector parseSource(String source, String srcFile) {
+     return parseSource(source, new CHARSEXP(srcFile));
+  }
+
+
+  public static ExpressionVector parseInlineSource(String source) {
+     return parseSource(source,mkString("iniline-string"));
   }
 
   private ExpressionVector parseAll() throws IOException {

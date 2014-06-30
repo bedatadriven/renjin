@@ -10,6 +10,7 @@ import org.renjin.compiler.ir.optimize.StaticOptimizer;
 import org.renjin.compiler.ir.tree.TreeBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.CHARSEXP;
 
 
 public class IRProgramTest {
@@ -17,8 +18,10 @@ public class IRProgramTest {
   @Test
   public void meanOnline() throws IOException {
     
+    String resourceName = "/meanVarOnline.R";
+
     SEXP programExpression = RParser.parseSource(new InputStreamReader(getClass()
-        .getResourceAsStream("/meanVarOnline.R")));
+        .getResourceAsStream(resourceName)), new CHARSEXP("class://"+resourceName));
     
     ProgramCompiler compiler = new ProgramCompiler();
     compiler.compile(programExpression);

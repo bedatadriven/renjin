@@ -16,6 +16,6 @@ public class PackageArtifactTest {
 	    Context context = Context.newTopLevelContext();
 	    context.init();
 	  
-	    context.evaluate(RParser.parseSource("library(aspect, verbose=TRUE)\n"));
+	    context.evaluate(RParser.parseInlineSource("library(aspect, verbose=TRUE)\n"));
 	}
 }

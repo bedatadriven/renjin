@@ -46,7 +46,7 @@ public class EvalTestCase {
   protected SEXP eval(String source)  {
     SEXP expr;
     try {
-      expr = RParser.parseAllSource(new StringReader(source));
+      expr = RParser.parseAllSource(new StringReader(source), "inline-string");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

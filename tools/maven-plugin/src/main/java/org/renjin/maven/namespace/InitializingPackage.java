@@ -5,6 +5,7 @@ import org.renjin.eval.Context;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Package;
 import org.renjin.sexp.NamedValue;
+import org.renjin.util.NamedByteSource;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -21,7 +22,7 @@ public class InitializingPackage extends Package {
   }
 
   @Override
-  public ByteSource getResource(String name) throws IOException {
+  public NamedByteSource getResource(String name) throws IOException {
     throw new UnsupportedOperationException();
   }
 

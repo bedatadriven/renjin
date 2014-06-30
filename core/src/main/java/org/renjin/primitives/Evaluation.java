@@ -384,7 +384,7 @@ public class Evaluation {
       for(int i=0;i!=text.length();++i) {
         String line = text.getElementAsString(i);
         try {
-          ExpressionVector result = RParser.parseSource(new StringReader(line + "\n"));
+          ExpressionVector result = RParser.parseSource(new StringReader(line + "\n"), sourceFile);
           Iterables.addAll(expressions, result);
         } catch (IOException e) {
           throw new EvalException("I/O Exception occurred during parse: " + e.getMessage());
@@ -393,7 +393,7 @@ public class Evaluation {
     } else if(file.inherits("connection")) {
       Connection conn = Connections.getConnection(context, file);
       Reader reader = new InputStreamReader(conn.getInputStream());
-      ExpressionVector result = RParser.parseSource(reader);
+      ExpressionVector result = RParser.parseSource(reader, file);
       Iterables.addAll(expressions, result);
     }
 

@@ -25,6 +25,7 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.CHARSEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 import org.tukaani.xz.XZInputStream;
@@ -212,7 +213,7 @@ public class DatasetsBuilder {
 
     Session session = new SessionBuilder().build();
     FileReader reader = new FileReader(scriptFile);
-    ExpressionVector source = RParser.parseAllSource(reader);
+    ExpressionVector source = RParser.parseAllSource(reader, new CHARSEXP(scriptFile.getName()));
     reader.close();
     
     session.getTopLevelContext().evaluate(source);

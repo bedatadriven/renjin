@@ -12,6 +12,7 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
+import org.renjin.util.*;
 
 import com.google.common.io.InputSupplier;
 
@@ -39,7 +40,7 @@ public abstract class Package {
   }
 
 
-  public ByteSource getResource(String name) throws IOException {
+  public NamedByteSource getResource(String name) throws IOException {
     throw new IOException();
   }
 

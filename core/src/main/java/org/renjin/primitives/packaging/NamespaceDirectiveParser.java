@@ -21,11 +21,11 @@ public class NamespaceDirectiveParser {
   private ExpressionVector source;
   private NamespaceDirectiveHandler handler;
 
-  public static void parse(CharSource charSource, NamespaceDirectiveHandler handler) throws IOException {
+  public static void parse(CharSource charSource, NamespaceDirectiveHandler handler, SEXP srcFile) throws IOException {
     Reader reader = charSource.openStream();
     ExpressionVector source;
     try {
-      source = RParser.parseAllSource(reader);
+      source = RParser.parseAllSource(reader, srcFile);
     } finally {
       Closeables.closeQuietly(reader);
     }

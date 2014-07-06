@@ -31,6 +31,8 @@ import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Vector;
 
 
 public class EvalException extends RuntimeException {
@@ -78,18 +80,16 @@ public class EvalException extends RuntimeException {
       while(!context.isTopLevel()) {
         if(context.getType() == Type.FUNCTION) {
             writer.append("  at ").append(context.getFunctionName().toString()).append("()");
-/*
             SEXP callFile = context.getParent().getSrcFile();
             SEXP callSrcref = context.getParent().getSrcRef();
             if (callFile != Null.INSTANCE) {
                writer.append(callFile.toString());
-               if (callSrcref != NULL.INSTANCE) {
-                 int lineNumber = ((Vector)callSrcref).getAsInt(0);
+               if (callSrcref != Null.INSTANCE) {
+                 int lineNumber = ((Vector)callSrcref).getElementAsInt(0);
                  writer.append("##").append(Integer.toString(lineNumber));
                }
                
             }
-*/
         }
         context = context.getParent();
       }

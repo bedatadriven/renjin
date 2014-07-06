@@ -67,6 +67,7 @@ public class ClosureDispatcher {
 
   private SEXP apply(Closure closure, PairList promisedArgs) {
 
+
     Context functionContext = callingContext.beginFunction(callingEnvironment, call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
 

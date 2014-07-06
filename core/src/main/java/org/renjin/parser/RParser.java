@@ -419,10 +419,10 @@ public class RParser {
 
 
   private Location yylloc(YYStack rhs, int n) {
-    //if (n > 0)
+    if (n > 0)
       return new Location(rhs.locationAt(1).begin, rhs.locationAt(n).end);
-    //else
-    //  return new Location(rhs.locationAt(0).end);
+    else
+      return new Location(rhs.locationAt(0).end);
   }
 
   /**
@@ -594,10 +594,10 @@ public class RParser {
 
     public final void pop(int num) {
       // Avoid memory leaks... garbage collection is a white lie!
-      //if (num > 0) {
-      //  java.util.Arrays.fill(valueStack, height - num + 1, height, null);
-      //  java.util.Arrays.fill(locStack, height - num + 1, height, null);
-      //}
+      if (num > 0) {
+        java.util.Arrays.fill(valueStack, height - num + 1, height, null);
+        java.util.Arrays.fill(locStack, height - num + 1, height, null);
+      }
       height -= num;
     }
 
@@ -2486,7 +2486,7 @@ public class RParser {
     values[5] = lloc.end.column;
 
     if (srcfile==null) {
-      // TODO: throw exception, th
+        srcfile=Null.INSTANCE;
     }
 
     PairList attributes = PairList.Node.newBuilder()
@@ -2598,10 +2598,10 @@ public class RParser {
         PROTECT(ans = NewList(
                           AttributeMap.newBuilder().set(R_SrcrefSymbol,srcRefs).build()
                )      );
+        REPROTECT(srcRefs = NewList(), srindex);
       } else {
         PROTECT(ans = NewList());
       }
-      REPROTECT(srcRefs = NewList(), srindex);
     } else {
       PROTECT(ans = R_NilValue);
     }
@@ -2906,10 +2906,11 @@ public class RParser {
 
     state.setEatLines(false);
     if (options.isGenerateCode()) {
+      SEXP prevA2 = a2;
       a2 = FunctionCall.fromListExp((PairList.Node) a2);
       SETCAR(a2, a1);
       if (state.keepSrcRefs) {
-        PROTECT(prevSrcrefs = getAttrib(a2, R_SrcrefSymbol));
+        PROTECT(prevSrcrefs = getAttrib(prevA2, R_SrcrefSymbol));
         REPROTECT(srcRefs = Insert(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
         PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile));
         if (isNull(prevSrcrefs)) {

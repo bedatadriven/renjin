@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
@@ -28,6 +27,9 @@ import org.renjin.sexp.Null;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.SpecialFunction;
+import org.renjin.sexp.ListVector;
+
+import static org.renjin.util.CDefines.*;
 
 public class BeginFunction extends SpecialFunction {
 
@@ -41,8 +43,25 @@ public class BeginFunction extends SpecialFunction {
       context.setInvisibleFlag();
       return Null.INSTANCE;
     } else {
+      SEXP srcRefs = call.getAttribute(R_SrcrefSymbol);
+      ListVector lsrcRefs = null;
+      int        lsrcRefsLen = 0;
+      if (srcRefs == Null.INSTANCE) {
+        context.setSrcRef(Null.INSTANCE);
+      } else {
+        lsrcRefs = (ListVector)srcRefs;
+        lsrcRefsLen = lsrcRefs.length();
+      }
+      context.setSrcFile(call.getAttribute(R_SrcfileSymbol));
+      int i = 0;
       SEXP lastResult = Null.INSTANCE;
       for (SEXP sexp : call.getArguments().values()) {
+        if (i < lsrcRefsLen) {
+           context.setSrcRef(lsrcRefs.get(i++));
+        } else if (lsrcRefsLen > 0) {
+           // i.e. we have
+           System.err.println("warning: too small srcRefs: file="+context.getSrcFile()+", srcRefs.lenght="+lsrcRefsLen+", srcref=" + lsrcRefs.get(0) );
+        }
         lastResult = context.evaluate( sexp, rho);
       }
       return lastResult;

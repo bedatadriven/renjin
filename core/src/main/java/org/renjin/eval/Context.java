@@ -96,6 +96,8 @@ public class Context {
   private Session session; 
   private FunctionCall call;
   private Closure closure;
+  private SEXP    srcRef = Null.INSTANCE;
+  private SEXP    srcFile = Null.INSTANCE;
   
   /**
    * The environment from which the closure was called
@@ -250,8 +252,20 @@ public class Context {
       return Null.INSTANCE;
     } else {
       SEXP result = Null.INSTANCE;
+      int i=0;
+      SEXP srcRefs = expressionVector.getAttribute(R_SrcrefSymbol);
+      //srcRef = Null.INSTANCE;
+      SEXP srcFile = expressionVector.getAttribute(R_SrcfileSymbol);
       for(SEXP sexp : expressionVector) {
+        if (srcRefs!=Null.INSTANCE) {
+           //srcRef = VECTOR_ELT(srcRefs, i);
+        } 
+        // DEBUG
+        // if (context.inDebugMode)) {
+        //    System.out.println("file:"+srcFile+", line:"+srcRef.asReal()+", exp:"+sexp);
+        // }
         result = evaluate(sexp, rho);
+        i++;
       }
       return result;
     }
@@ -259,6 +273,13 @@ public class Context {
 
   private SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
+    SEXP srcRefs = call.getAttribute(R_SrcrefSymbol);
+    SEXP srcFile = call.getAttribute(R_SrcfileSymbol);
+    if (srcRefs != Null.INSTANCE) {
+       //this.srcRef = VECTOR_ELT(srcRefs,0);
+       //this.srcFile = srcFile;
+    }
+    //System.out.println("FunctionCall: file:"+srcFile+", line:"+srcRefs /*+", call:"+call */);
     Function functionExpr = evaluateFunction(call.getFunction(), rho);
     return functionExpr.apply(this, rho, call, call.getArguments());
   }
@@ -478,4 +499,17 @@ public class Context {
   public NamespaceRegistry getNamespaceRegistry() {
     return session.getNamespaceRegistry();
   }
+
+  public SEXP getSrcRef()
+  { return srcRef; }
+
+  public void setSrcRef(SEXP srcRef)
+  { this.srcRef = srcRef; }
+
+  public SEXP getSrcFile()
+  { return srcFile; }
+
+  public void setSrcFile(SEXP srcFile)
+  { this.srcFile = srcFile; }
+
 }

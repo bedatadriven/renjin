@@ -60,6 +60,8 @@ public class BeginFunction extends SpecialFunction {
            context.setSrcRef(lsrcRefs.get(i++));
         } else if (lsrcRefsLen > 0) {
            // i.e. we have
+           //   (impossible)
+           // TODO: think about better reporting
            System.err.println("warning: too small srcRefs: file="+context.getSrcFile()+", srcRefs.lenght="+lsrcRefsLen+", srcref=" + lsrcRefs.get(0) );
         }
         lastResult = context.evaluate( sexp, rho);

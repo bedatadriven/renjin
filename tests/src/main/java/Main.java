@@ -17,8 +17,8 @@ public class Main {
 
     // create an R engine
     ScriptEngine engine = factory.getEngineByName("Renjin");
+    engine.getContext().setAttribute(ScriptEngine.FILENAME,file,ScriptContext.ENGINE_SCOPE);
     engine.eval(new FileReader("src/test/R/" + file));
-
     Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
     for(String name : bindings.keySet()) {
       if(name.startsWith("test.")) {

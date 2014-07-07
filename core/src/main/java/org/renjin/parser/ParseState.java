@@ -64,4 +64,11 @@ public class ParseState {
     return eatLines;
   }
 
+  public SEXP getSrcFile()
+  { return srcFile; }
+
+  public void setSrcFile(SEXP srcFile)
+  { this.srcFile = srcFile; }
+
+
 }

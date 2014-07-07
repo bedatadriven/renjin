@@ -67,13 +67,11 @@ import static org.renjin.util.CDefines.*;
 public class RParser {
 
   public static ExpressionVector parseSource(Reader reader, SEXP srcFile) throws IOException {
- 
     ParseState parseState = new ParseState();
     parseState.srcFile = srcFile;
     ParseOptions parseOptions = ParseOptions.defaults();
     RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
-
     return parser.parseAll();
     
   }
@@ -119,7 +117,7 @@ public class RParser {
 
 
   public static ExpressionVector parseInlineSource(String source) {
-     return parseSource(source,mkString("iniline-string"));
+     return parseSource(source,"iniline-string");
   }
 
   private ExpressionVector parseAll() throws IOException {

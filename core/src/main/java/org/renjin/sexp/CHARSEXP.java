@@ -60,4 +60,9 @@ public class CHARSEXP extends AbstractSEXP {
     return value;
   }
 
+  @Override
+  public String asString() {
+    return value;
+  }
+
 }

@@ -97,10 +97,10 @@ public abstract class EvalTestCase {
   private SEXP parse(String source)  {
     try {
       ParseState state = new ParseState();
+      state.setSrcFile(new CHARSEXP("inline-source"));
       ParseOptions options = ParseOptions.defaults();
       RLexer lexer = new RLexer(options, state, new StringReader(source));
       RParser parser = new RParser(options, state, lexer);
-
       assertThat("parser.parse succeeds", parser.parse(), equalTo(true));
       RParser.StatusResult status = parser.getResultStatus();
       return parser.getResult();

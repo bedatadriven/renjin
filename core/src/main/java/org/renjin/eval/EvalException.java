@@ -83,13 +83,14 @@ public class EvalException extends RuntimeException {
             SEXP callFile = context.getParent().getSrcFile();
             SEXP callSrcref = context.getParent().getSrcRef();
             if (callFile != Null.INSTANCE) {
+               writer.append("  ");
                writer.append(callFile.toString());
                if (callSrcref != Null.INSTANCE) {
                  int lineNumber = ((Vector)callSrcref).getElementAsInt(0);
                  writer.append("##").append(Integer.toString(lineNumber));
                }
-               
             }
+            writer.append("\n");
         }
         context = context.getParent();
       }

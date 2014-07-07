@@ -252,20 +252,8 @@ public class Context {
       return Null.INSTANCE;
     } else {
       SEXP result = Null.INSTANCE;
-      int i=0;
-      SEXP srcRefs = expressionVector.getAttribute(R_SrcrefSymbol);
-      //srcRef = Null.INSTANCE;
-      SEXP srcFile = expressionVector.getAttribute(R_SrcfileSymbol);
       for(SEXP sexp : expressionVector) {
-        if (srcRefs!=Null.INSTANCE) {
-           //srcRef = VECTOR_ELT(srcRefs, i);
-        } 
-        // DEBUG
-        // if (context.inDebugMode)) {
-        //    System.out.println("file:"+srcFile+", line:"+srcRef.asReal()+", exp:"+sexp);
-        // }
         result = evaluate(sexp, rho);
-        i++;
       }
       return result;
     }

@@ -273,13 +273,6 @@ public class Context {
 
   private SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
-    SEXP srcRefs = call.getAttribute(R_SrcrefSymbol);
-    SEXP srcFile = call.getAttribute(R_SrcfileSymbol);
-    if (srcRefs != Null.INSTANCE) {
-       //this.srcRef = VECTOR_ELT(srcRefs,0);
-       //this.srcFile = srcFile;
-    }
-    //System.out.println("FunctionCall: file:"+srcFile+", line:"+srcRefs /*+", call:"+call */);
     Function functionExpr = evaluateFunction(call.getFunction(), rho);
     return functionExpr.apply(this, rho, call, call.getArguments());
   }

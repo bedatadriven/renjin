@@ -80,8 +80,8 @@ public class EvalException extends RuntimeException {
       while(!context.isTopLevel()) {
         if(context.getType() == Type.FUNCTION) {
             writer.append("  at ").append(context.getFunctionName().toString()).append("()");
-            SEXP callFile = context.getParent().getSrcFile();
-            SEXP callSrcref = context.getParent().getSrcRef();
+            SEXP callFile = context.getSrcFile();
+            SEXP callSrcref = context.getSrcRef();
             if (callFile != Null.INSTANCE) {
                writer.append("  ");
                writer.append(callFile.toString());

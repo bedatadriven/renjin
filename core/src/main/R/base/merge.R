@@ -95,8 +95,15 @@ merge.data.frame <-
         bxy <- bx[comm > 0L]             # the keys which are in both
         xinds <- match(bx, bxy, 0L, incomparables)
         yinds <- match(by, bxy, 0L, incomparables)
-        if(nx > 0L && ny > 0L)
-            m <- .Internal(merge(xinds, yinds, all.x, all.y))
+        if(nx > 0L && ny > 0L) {
+            #m <- .Internal(merge(xinds, yinds, all.x, all.y))
+            # pure R replacement for internal merge function:
+            m <- list(xi = which(xinds > 0L),
+                      yi = seq_along(yinds)[which(yinds > 0L)][order(yinds[which(yinds > 0L)])],
+                      x.alone = NULL, y.alone = NULL)
+            if (all.x) m$x.alone <- which(xinds == 0L)
+            if (all.y) m$y.alone <- which(yinds == 0L)
+        }
         else
             m <- list(xi = integer(), yi = integer(),
                       x.alone = seq_len(nx), y.alone = seq_len(ny))

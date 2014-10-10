@@ -39,6 +39,7 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 import org.renjin.studio.StudioSession;
+import org.renjin.RenjinVersion;
 
 
 /**
@@ -128,9 +129,15 @@ public class Repl implements Runnable {
 
   private void printGreeting() {
     PrintStream out = console.getOut();
-    out.print("Renjin 0.0.1-SNAPSHOT\n");
+    try {
+      RenjinVersion renjin = new RenjinVersion();
+      out.print("Renjin " + renjin.getVersionName() + "\n");
+    } catch (IOException e) {
+      out.print("Renjin\n");
+    }
+
     out.print("Copyright (C) 2013 The R Foundation for Statistical Computing\n");
-    out.print("Copyright (C) 2013 BeDataDriven\n");
+    out.print("Copyright (C) 2014 BeDataDriven\n");
 
   }
 

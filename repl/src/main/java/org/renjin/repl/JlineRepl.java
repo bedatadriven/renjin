@@ -20,6 +20,7 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Promise;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
+import org.renjin.RenjinVersion;
 
 import com.google.common.base.Strings;
 
@@ -91,6 +92,9 @@ public class JlineRepl {
   public void run() throws Exception {
 
     reader.getTerminal().init();
+
+    printGreeting();
+
     try {
       while(readExpression()) { }
 
@@ -99,6 +103,19 @@ public class JlineRepl {
     }
   }
 
+  private void printGreeting() throws Exception {
+
+    try {
+      RenjinVersion renjin = new RenjinVersion();
+      reader.println("Renjin " + renjin.getVersionName());
+    } catch (IOException e) {
+      reader.println("Renjin");
+    }
+
+    reader.println("Copyright (C) 2013 The R Foundation for Statistical Computing");
+    reader.println("Copyright (C) 2014 BeDataDriven");
+
+  }
 
   private boolean readExpression() throws Exception {
 

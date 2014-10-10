@@ -272,7 +272,7 @@
         <property><name>BUILD_NUMBER</name></property>
       </activation>
       <properties>
-        <renjin.display.version>0.7-b${BUILD_NUMBER}</renjin.display.version>
+        <renjin.display.version>${project.version}-b${BUILD_NUMBER}</renjin.display.version>
       </properties>
     </profile>
 

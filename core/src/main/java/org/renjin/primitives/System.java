@@ -338,7 +338,7 @@ public class System {
     // elapsed
     // (wall clock time)
     names.add("elapsed");
-    result.add(elapsedTime);
+    result.add(elapsedTime / MILLISECONDS_PER_SECOND);
 
     // AFAIK, we don't have any platform independent way of accessing
     // this info.

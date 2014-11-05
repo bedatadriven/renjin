@@ -477,15 +477,26 @@ public class Text {
   }
 
   @Internal
-  public static StringVector substr(StringVector x, int start, int stop) {
+  public static StringVector substr(StringVector x, Vector start, Vector stop) {
     StringVector.Builder result = new StringVector.Builder();
-    for(String s : x) {
-      if(start > s.length()) {
+    int len = x.length();
+    int k = start.length();
+    int l = stop.length();
+    for (int i = 0; i < len; i++) {
+      int s = start.getElementAsInt(i % k);
+      int e = stop.getElementAsInt(i % l);
+      String el = x.getElementAsString(i);
+      if (StringVector.isNA(el)) {
+        result.add(StringVector.NA);
+      }
+      int slen = el.length();
+      if (s < 1) s = 1;
+      if(s > e || s > slen) {
         result.add("");
-      } else if(stop >= s.length()) {
-        result.add(s.substring(start-1));
+      } else if(e >= slen) {
+        result.add(el.substring(s - 1));
       } else {
-        result.add(s.substring(start-1, stop));
+        result.add(el.substring(s - 1, e));
       }
     }
     return result.build();

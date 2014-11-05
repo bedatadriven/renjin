@@ -491,9 +491,9 @@ public class Text {
       }
       int slen = el.length();
       if (s < 1) s = 1;
-      if(s > e || s > slen) {
+      if (s > e || s > slen) {
         result.add("");
-      } else if(e >= slen) {
+      } else if (e >= slen) {
         result.add(el.substring(s - 1));
       } else {
         result.add(el.substring(s - 1, e));

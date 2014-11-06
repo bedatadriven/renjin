@@ -22,7 +22,8 @@ dependency and repository:
   <dependency>
     <groupId>org.renjin</groupId>
     <artifactId>renjin-script-engine</artifactId>
-    <version>0.7.0-RC2</version>
+    <!-- check the public repository for the latest version! -->
+    <version>0.7.0-RC8-SNAPSHOT</version>
   </dependency>
 </dependencies>
 <repositories>
@@ -41,7 +42,7 @@ Standalone distributions of Renjin are available for ad-hoc analysis. Downloads
 are available at [Renjin.org](http://www.renjin.org).
 
 Artifacts from the latest successful build are available from the build server
-at http://build.bedatadriven.com/job/renjin/lastSuccessfulBuild/.
+at http://nexus.bedatadriven.com/content/groups/public/org/renjin/.
 
 Compiling from Source
 =====================

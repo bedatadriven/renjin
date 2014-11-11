@@ -23,6 +23,7 @@ package org.renjin.primitives.files;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
+
 import org.apache.commons.vfs2.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -417,6 +419,14 @@ public class Files {
   /**
    *
    * Returns a path that can be used as names for temporary files
+   * 
+   * <strong>According to the R docs:</strong>
+   * The names are very likely to be unique among calls to 'tempfile'
+   * in an R session and across simultaneous R sessions (unless
+   * 'tmpdir' is specified).  The filenames are guaranteed not to be
+   * currently in use. 
+   * 
+   * First sentence: yes, second sentence: not really. 
    *
    * @param pattern a non-empty character vector giving the initial part of the name
    * @param tempdir a non-empty character vector giving the directory name
@@ -426,8 +436,18 @@ public class Files {
   @Internal
   @DataParallel
   public static String tempfile(String pattern, String tempdir, String fileExt) {
-    return tempdir + "/" + pattern + fileExt;
+	  return tempdir + "/" + pattern + createRandomHexString(10) + fileExt;
   }
+  
+  /* used to make hopefully-random file names in tempfile() */
+  private static String createRandomHexString(int length) {
+	  Random randomService = new Random();
+	  String sb = "";
+	  while (sb.length() < length) {
+	      sb += Integer.toHexString(randomService.nextInt());
+	  }
+	  return sb;
+  } 
 
   /**
    * Returns an absolute filename representing the current working directory of the R process;

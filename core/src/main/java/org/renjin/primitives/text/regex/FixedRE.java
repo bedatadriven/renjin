@@ -45,12 +45,12 @@ public class FixedRE implements RE {
 
   @Override
   public String subst(String substituteIn, String substitution) {
-    throw new UnsupportedOperationException("subst not yet implemented for fixed RE");
+    return substituteIn.replace(pattern, substitution);
   }
 
   @Override
   public String subst(String substituteIn, String substitution, int flags) {
-    throw new UnsupportedOperationException("subst not yet implemented for fixed RE");
+    return substituteIn.replace(pattern, substitution);
   }
 
   @Override

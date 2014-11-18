@@ -4,8 +4,6 @@ package org.renjin.primitives.packaging;
 import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.ClassBinding;
-import org.renjin.invoke.ClassBindings;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.ExtendedRE;
@@ -80,7 +78,7 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
     ClassBindingImpl classBinding = ClassBindingImpl.get(clazz);
 
     for(Symbol method : methods) {
-      namespace.getNamespaceEnvironment().setVariable(method, classBinding.getStaticMember(method));
+      namespace.getNamespaceEnvironment().setVariable(method, classBinding.getStaticMember(method).getValue());
     }
   }
 

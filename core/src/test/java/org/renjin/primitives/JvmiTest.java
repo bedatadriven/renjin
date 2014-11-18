@@ -42,6 +42,12 @@ public class JvmiTest extends EvalTestCase {
   }
 
   @Test
+  public void staticFields() {
+    eval("import(java.lang.Integer)");
+    assertThat(eval("Integer$MAX_VALUE"), equalTo(c_i(Integer.MAX_VALUE)));
+  }
+
+  @Test
   public void javaUtilMap() {
     eval("import(java.util.HashMap)");
     eval("map <- HashMap$new()");

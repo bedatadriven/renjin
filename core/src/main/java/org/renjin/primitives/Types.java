@@ -20,18 +20,12 @@
  */
 package org.renjin.primitives;
 
-import com.google.common.base.*;
+import com.google.common.base.Strings;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Options;
 import org.renjin.invoke.annotations.*;
-import org.renjin.primitives.vector.ConstantDoubleVector;
 import org.renjin.sexp.*;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.Vector.Builder;
-import org.renjin.util.NamesBuilder;
-
-import java.util.Arrays;
 
 /**
  * Builtin type inspection and coercion functions
@@ -278,8 +272,16 @@ public class Types {
   @Builtin("is.finite")
   @DataParallel(passNA = true)
   @Deferrable
-  public static boolean isFinite(double value) {
+  public static boolean isFinite(@Recycle double value) {
     return !Double.isNaN(value) && !Double.isInfinite(value);
+  }
+
+  @Generic
+  @Builtin("is.finite")
+  @DataParallel(passNA = true)
+  @Deferrable
+  public static boolean isFinite(@Recycle String value) {
+    return false;
   }
 
   @Generic
@@ -289,7 +291,16 @@ public class Types {
   public static boolean isInfinite(@Recycle double value) {
     return Double.isInfinite(value);
   }
-  
+
+  @Generic
+  @Builtin("is.infinite")
+  @DataParallel(passNA = true)
+  @Deferrable
+  public static boolean isInfinite(@Recycle String value) {
+    return false;
+  }
+
+
   /**
    * Default implementation of as.function. Note that this is an
    * internal primitive called by the closure "as.function.default" in the

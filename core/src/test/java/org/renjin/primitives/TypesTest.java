@@ -206,6 +206,18 @@ public strictfp class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void finiteAtomicVectors() {
+    assertThat( eval("is.infinite('Inf')"), equalTo(c(false)));
+    assertThat( eval("is.finite('Inf')"), equalTo(c(false)));
+    assertThat( eval("is.finite(1L)"), equalTo(c(true)));
+    assertThat( eval("is.finite(TRUE)"), equalTo(c(true)));
+    assertThat( eval("is.finite(FALSE)"), equalTo(c(true)));
+    assertThat( eval("is.infinite(TRUE)"), equalTo(c(false)));
+    assertThat( eval("is.infinite(FALSE)"), equalTo(c(false)));
+    assertThat( eval("is.infinite(1L)"), equalTo(c(false)));
+  }
+
+  @Test
   public void isnan() {
     assertThat( eval("is.nan(1)"), equalTo(c(false)));
     assertThat( eval("is.nan(1/0)"), equalTo(c(false)));

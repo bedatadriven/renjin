@@ -25,11 +25,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.vector.CombinedDoubleVector;
+import org.renjin.primitives.vector.CombinedIntVector;
 import org.renjin.primitives.vector.CombinedStringVector;
 import org.renjin.primitives.vector.ConstantStringVector;
 import org.renjin.primitives.vector.PrefixedStringVector;
@@ -68,6 +70,10 @@ public class Combine {
       if(inspector.getResult() == DoubleVector.VECTOR_TYPE) {
         return newDoubleView(arguments);
       }
+      
+      if(inspector.getResult() == IntVector.VECTOR_TYPE) {
+          return newIntView(arguments);
+        }
     }
 
     // Allocate a new vector with all the elements
@@ -76,7 +82,33 @@ public class Combine {
         .combine();
 
   }
+  
+  /* copy of function newDoubleView */
+  private static SEXP newIntView(ListVector arguments) {
+    Vector[] vectors = new Vector[arguments.length()];
+    Vector[] nameVectors = new Vector[arguments.length()];
 
+    boolean hasNames = false;
+
+    for(int i=0;i!=vectors.length;++i) {
+      vectors[i] = (Vector) arguments.getElementAsSEXP(i);
+
+      String namePrefix = arguments.getName(i);
+      StringVector names =  vectors[i].getAttributes().getNames();
+
+      if(!Strings.isNullOrEmpty(namePrefix) || names != null) {
+        hasNames = true;
+      }
+      nameVectors[i] = nameVector(namePrefix, names, vectors[i].length());
+    }
+    AttributeMap.Builder attributes = new AttributeMap.Builder();
+    if(hasNames) {
+      attributes.setNames(CombinedStringVector.combine(nameVectors, AttributeMap.EMPTY));
+    }
+    return CombinedIntVector.combine(vectors, attributes.build());
+  }
+
+  
   private static SEXP newDoubleView(ListVector arguments) {
     Vector[] vectors = new Vector[arguments.length()];
     Vector[] nameVectors = new Vector[arguments.length()];
@@ -713,6 +745,4 @@ public class Combine {
           .build();
     }
   }
-
-
 }

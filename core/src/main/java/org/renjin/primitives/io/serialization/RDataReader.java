@@ -31,6 +31,12 @@ import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 
 import java.io.*;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 
 import static org.renjin.primitives.io.serialization.SerializationFormat.*;
@@ -132,11 +138,10 @@ public class RDataReader {
   private static StreamReader createStreamReader(byte type, InputStream conn) throws IOException {
     switch(type) {
       case XDR_FORMAT:
+      case BINARY_FORMAT:
         return new XdrReader(conn);
       case ASCII_FORMAT:
         return new AsciiReader(conn);
-      case BINARY_FORMAT:
-        return new BinaryReader(conn);
       default:
         throw new IOException("Unknown format");
     }
@@ -427,11 +432,8 @@ public class RDataReader {
 
   private SEXP readIntVector(int flags) throws IOException {
     int length = in.readInt();
-    int[] values = new int[length];
-    for(int i=0;i!=length;++i) {
-      values[i] = in.readInt();
-    }
-    return new IntArrayVector(values, readAttributes(flags));
+    IntBuffer buffer = in.readIntBuffer(length);
+    return new IntBufferVector(buffer, length, readAttributes(flags));
   }
 
 
@@ -502,36 +504,9 @@ public class RDataReader {
 
   private interface StreamReader {
     int readInt() throws IOException;
+    IntBuffer readIntBuffer(int size) throws IOException;
     byte[] readString(int length) throws IOException;
     double readDouble() throws IOException;
-  }
-
-  private static class BinaryReader implements StreamReader {
-
-    private final DataInput in;
-
-    private BinaryReader(DataInputStream in) throws IOException {
-      this.in = in;
-    }
-    private BinaryReader(InputStream in) throws IOException {
-      this(new DataInputStream(in));
-    }
-
-    public int readInt() throws IOException {
-      return in.readInt();
-    }
-
-    @Override
-    public byte[] readString(int length) throws IOException {
-      byte buf[] = new byte[length];
-      in.readFully(buf);
-      return buf;
-    }
-
-    @Override
-    public double readDouble() throws IOException {
-      return in.readDouble();
-    }
   }
 
   private static class AsciiReader implements StreamReader {
@@ -571,6 +546,15 @@ public class RDataReader {
       } else {
         return Integer.parseInt(word);
       }
+    }
+
+    @Override
+    public IntBuffer readIntBuffer(int size) throws IOException {
+      int[] array = new int[size];
+      for(int i=0;i!=size;++i) {
+        array[i] = readInt();
+      }
+      return IntBuffer.wrap(array);
     }
 
     @Override
@@ -655,6 +639,20 @@ public class RDataReader {
     @Override
     public int readInt() throws IOException {
       return in.readInt();
+    }
+
+    @Override
+    public IntBuffer readIntBuffer(int size) throws IOException {
+      ByteBuffer byteBuffer = ByteBuffer.allocateDirect(size * 4);
+      ReadableByteChannel channel = Channels.newChannel(in);
+      while(byteBuffer.hasRemaining()) {
+        channel.read(byteBuffer);
+      }
+      byteBuffer = (ByteBuffer)byteBuffer.rewind();
+      byteBuffer.order(ByteOrder.BIG_ENDIAN);
+      IntBuffer intBuffer = byteBuffer.asIntBuffer();
+      assert intBuffer.limit() == size;
+      return intBuffer;
     }
 
     @Override

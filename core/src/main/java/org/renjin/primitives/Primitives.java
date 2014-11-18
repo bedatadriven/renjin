@@ -543,7 +543,6 @@ public class Primitives {
     f("as.call", Types.class, 1);
     f("type.convert", Scan.class, 11);
     f("as.environment", Environments.class, "asEnvironment", 1);
-    f("storage.mode<-", Vectors.class, 1);
 
 
 /* String Manipulation */

@@ -284,31 +284,6 @@ public class Vectors {
     }
   }
 
-  @Builtin("storage.mode<-")
-  public static SEXP setStorageMode(Vector source, String newMode) {
-
-
-
-    Vector.Builder builder;
-    if (newMode.equals("logical")) {
-      builder = new LogicalArrayVector.Builder();
-    } else if (newMode.equals("double")) {
-      builder = new DoubleArrayVector.Builder();
-    } else if (newMode.equals("integer")) {
-      builder = new IntArrayVector.Builder();
-    } else if (newMode.equals("character")) {
-      builder = new StringVector.Builder();
-    } else {
-      throw new UnsupportedOperationException("storage.mode with new mode '"
-          + newMode + "' invalid or not implemented");
-    }
-
-    for (int i = 0; i != source.length(); ++i) {
-      builder.setFrom(i, source, i);
-    }
-    return builder.copyAttributesFrom(source).build();
-  }
-
   @Internal
   public static SEXP vector(String mode, int length) {
     if ("logical".equals(mode)) {

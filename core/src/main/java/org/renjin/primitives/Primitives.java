@@ -11,6 +11,7 @@ import org.renjin.graphics.internals.Plot;
 import org.renjin.graphics.internals.RgbHsv;
 import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.methods.Methods;
+import org.renjin.primitives.combine.Combine;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
 import org.renjin.primitives.io.DebianControlFiles;

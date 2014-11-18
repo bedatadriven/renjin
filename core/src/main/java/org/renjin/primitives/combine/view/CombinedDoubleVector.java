@@ -1,6 +1,7 @@
-package org.renjin.primitives.vector;
+package org.renjin.primitives.combine.view;
 
 
+import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.SEXP;

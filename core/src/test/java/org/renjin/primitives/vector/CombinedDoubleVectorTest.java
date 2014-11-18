@@ -2,6 +2,7 @@ package org.renjin.primitives.vector;
 
 
 import org.junit.Test;
+import org.renjin.primitives.combine.view.CombinedDoubleVector;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleArrayVector;

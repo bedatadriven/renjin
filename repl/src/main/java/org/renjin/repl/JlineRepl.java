@@ -1,11 +1,9 @@
 package org.renjin.repl;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
+import com.google.common.base.Strings;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
-
+import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -20,15 +18,16 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Promise;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
-import org.renjin.RenjinVersion;
 
-import com.google.common.base.Strings;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * A Read-Eval-Print Loop that uses Jline for 
  * reading lines
  */
 public class JlineRepl {
+
 
   /**
    * Echo lines to standard out.
@@ -44,12 +43,15 @@ public class JlineRepl {
     JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
     repl.run();
   }
-  
-  private Context topLevelContext;
+
+  private final Session session;
+  private final Context topLevelContext;
   private ConsoleReader reader;
 
   public JlineRepl(Session session) throws Exception {
-    
+    this.session = session;
+    this.topLevelContext = session.getTopLevelContext();
+
     if(Strings.nullToEmpty(System.getProperty("os.name")).startsWith("Windows")) {
       // AnsiWindowsTerminal does not work properly in WIndows 7
       // so disabling across the board for now
@@ -62,12 +64,12 @@ public class JlineRepl {
     reader.setExpandEvents(false);
 
     session.setSessionController(new JlineSessionController(reader.getTerminal()));
-    this.topLevelContext = session.getTopLevelContext();
 
   }
 
   public JlineRepl(Session session, ConsoleReader reader) throws IOException {
-    session.setSessionController(new JlineSessionController(reader.getTerminal()));
+    this.session = session;
+    this.session.setSessionController(new JlineSessionController(reader.getTerminal()));
     this.topLevelContext = session.getTopLevelContext();
     this.reader = reader;
   }
@@ -97,6 +99,9 @@ public class JlineRepl {
 
     try {
       while(readExpression()) { }
+
+      // run finalizers and shutdown
+      session.close();
 
     } finally {
       reader.getTerminal().restore();
@@ -143,7 +148,6 @@ public class JlineRepl {
       }
     }
 
-
     SEXP exp = parser.getResult();
     if(parser.getResultStatus() == StatusResult.EOF) {
       return true;
@@ -157,7 +161,7 @@ public class JlineRepl {
     try {
       SEXP result = topLevelContext.evaluate(exp, topLevelContext.getGlobalEnvironment());
 
-      if(!topLevelContext.getSession().isInvisible()) {
+      if(!session.isInvisible()) {
         topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));
       }
 

@@ -191,7 +191,6 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
         return Converters.get(method.getReturnType()).convertToJava(result);
       }
     });    
- 
   }
 
   @Override

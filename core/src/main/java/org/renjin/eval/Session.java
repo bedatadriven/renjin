@@ -1,29 +1,21 @@
 package org.renjin.eval;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
 import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Map;
 
 /**
  * Outermost context for R evaluation.
@@ -35,7 +27,9 @@ import com.google.common.collect.Maps;
 public class Session {
   
   private final Context topLevelContext;
-  
+
+  private FinalizerRegistry finalizers = null;
+
   /**
    * The map of environment variables exposed to 
    * the R code. Initialized to System.getenv() but
@@ -238,5 +232,36 @@ public class Session {
 
   public void setSecurityManager(SecurityManager securityManager) {
     this.securityManager = securityManager;
-  } 
+  }
+
+  public void registerFinalizer(Environment environment, Closure function, boolean onExit) {
+    if(finalizers == null) {
+      finalizers = new FinalizerRegistry();
+    }
+    finalizers.register(environment, function, onExit);
+  }
+
+  /**
+   * Invokes any registered finalizers for Environments that have been queued
+   * for garbage collection. This method, if invoked, must be called from this session's
+   * thread to avoid undefined effects resulting from executing the finalizers concurrently
+   * with other session evaluation.
+   */
+  public void runFinalizers() {
+    if(finalizers != null) {
+      finalizers.finalizeDisposedEnvironments(topLevelContext);
+    }
+  }
+
+
+  /**
+   * Invokes any on.exit() methods registered with the top level context and
+   * any finalizers registered with reg.finalizer(on.exit = TRUE)
+   */
+  public void close() {
+    topLevelContext.exit();
+    if(finalizers != null) {
+      finalizers.finalizeOnExit(topLevelContext);
+    }
+  }
 }

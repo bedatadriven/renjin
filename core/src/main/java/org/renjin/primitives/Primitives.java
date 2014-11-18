@@ -640,10 +640,10 @@ public class Primitives {
     f("dump", /*dump*/ null, 111);
     add(new SubstituteFunction());
     add(new QuoteFunction());// f("quote", Evaluation.class, 0, 0, 1);
-    f("quit", Session.class, 111);
-    f("interactive", Session.class, 0);
+    f("quit", Sessions.class, 111);
+    f("interactive", Sessions.class, 0);
     f("readline", /*readln*/ null, 11);
-    f("menu", Session.class, 11);
+    f("menu", Sessions.class, 11);
     f("print.default", Print.class, 111);
     f("print.function", Print.class, 111);
     f("prmatrix", /*prmatrix*/ null, 111);
@@ -718,7 +718,7 @@ public class Primitives {
     f("environment<-", Environments.class, 2);
     f("environmentName", Environments.class, 11);
     f("env2list", Environments.class, 11);
-    f("reg.finalizer", /*regFinaliz*/ null, 11);
+    f("reg.finalizer", Environments.class, 11);
     f("options", Types.class, 211);
     f("sink", Connections.class, 111);
     f("sink.number", /*sinknumber*/ null, 11);

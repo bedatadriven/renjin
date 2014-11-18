@@ -2,8 +2,8 @@ package org.renjin.primitives;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.SessionController.SaveMode;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.StringVector;
 
@@ -14,7 +14,10 @@ import java.io.IOException;
  * menu(), etc
  * 
  */
-public class Session {
+public class Sessions {
+
+  private Sessions() {}
+
 
   @Internal
   public static void quit(@Current Context context, String saveMode, int exitCode, boolean runLast) {
@@ -33,4 +36,5 @@ public class Session {
   public static int menu(@Current Context context, StringVector choices) throws IOException {
     return context.getSession().getSessionController().menu(choices);
   }
+
 }

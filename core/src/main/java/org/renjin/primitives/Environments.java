@@ -315,4 +315,20 @@ public final class Environments {
     }
     return newEnv;
   }
+
+
+  /**
+   * Registers an R function to be called upon garbage collection of
+   * object or (optionally) at the end of an R session.
+   *
+   * @param environment the environment
+   * @param function the function to call when the environment is garbage collected
+   * @param onExit true if the function should be called on the session's exit
+   */
+  @Internal("reg.finalizer")
+  public static void registerFinalizer(@Current org.renjin.eval.Session session,
+                                       Environment environment, Closure function, boolean onExit) {
+
+    session.registerFinalizer(environment, function, onExit);
+  }
 }

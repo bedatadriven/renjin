@@ -189,4 +189,14 @@ public class DimensionSelection extends Selection {
       }
     };
   }
+
+  @Override
+  protected Vector selectDimensionNames(int dimIndex, Vector sourceNames) {
+    Subscript subscript = subscripts[dimIndex];
+    if(subscript.definitelySelectsAllElements()) {
+      return sourceNames;
+    } else {
+      return super.selectDimensionNames(dimIndex, sourceNames);
+    }
+  }
 }

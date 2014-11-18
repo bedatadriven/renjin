@@ -42,4 +42,13 @@ public abstract class Subscript {
    * @return the source index
    */
   public abstract int getAt(int i);
+
+  /**
+   *
+   * @return true if this subscript <i>definitely</i> selects all elements, or
+   * false if it is not known
+   */
+  public boolean definitelySelectsAllElements() {
+    return false;
+  }
 }

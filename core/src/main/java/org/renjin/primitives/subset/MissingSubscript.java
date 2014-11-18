@@ -43,4 +43,9 @@ public class MissingSubscript extends Subscript {
   public int getAt(int i) {
     return i;
   }
+
+  @Override
+  public boolean definitelySelectsAllElements() {
+    return true;
+  }
 }

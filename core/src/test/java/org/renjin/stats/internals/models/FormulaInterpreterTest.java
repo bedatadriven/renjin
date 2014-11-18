@@ -71,7 +71,7 @@ public class FormulaInterpreterTest {
   public void invalidIntercept() {
     build("y ~ 6");
   }
-  
+
   private Formula build(String source) {
     SEXP expr = parse(source);
     return new FormulaInterpreter().interpret((FunctionCall) expr);

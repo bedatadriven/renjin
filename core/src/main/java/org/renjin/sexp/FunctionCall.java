@@ -31,7 +31,7 @@ package org.renjin.sexp;
 public class FunctionCall extends PairList.Node {
   public static final String TYPE_NAME = "language";
   public static final String IMPLICIT_CLASS = "call";
-  
+
   public FunctionCall(SEXP function, PairList arguments) {
     super(function, arguments);
   }
@@ -51,7 +51,7 @@ public class FunctionCall extends PairList.Node {
   public SEXP getFunction() {
     return value;
   }
- 
+
   public PairList getArguments() {
     return nextNode == null ? Null.INSTANCE : nextNode;
   }
@@ -59,7 +59,7 @@ public class FunctionCall extends PairList.Node {
   public <X extends SEXP> X getArgument(int index) {
     return getArguments().<X>getElementAsSEXP(index);
   }
-  
+
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
@@ -107,12 +107,12 @@ public class FunctionCall extends PairList.Node {
   public String getImplicitClass() {
     return IMPLICIT_CLASS;
   }
-  
+
   @Override
   public int hashCode() {
     return getFunction().hashCode();
   }
-  
+
   @Override
   public boolean equals(Object other) {
     if(other == null) {
@@ -128,11 +128,12 @@ public class FunctionCall extends PairList.Node {
 
   @Override
   public Builder newCopyBuilder() {
-      Builder builder = new Builder();
-      for(Node node : nodes()) {
-          builder.add(node.getRawTag(), node.getValue());
-      }
-      return builder;
+    Builder builder = new Builder();
+    builder.withAttributes(attributes);
+    for(Node node : nodes()) {
+      builder.add(node.getRawTag(), node.getValue());
+    }
+    return builder;
   }
 
   public static Builder newBuilder() {
@@ -163,5 +164,5 @@ public class FunctionCall extends PairList.Node {
     }
 
   }
-  
+
 }

@@ -14,7 +14,7 @@ public class ExamplesParserTest extends TestCase {
     File testFile = new File(getClass().getResource("/p.hboxp.Rd").getFile());
     String examples = ExamplesParser.parseExamples(testFile);
 
-    TestRunner runner = new TestRunner("foo", new File("targets/test-test-results"), Lists.<String>newArrayList());
+    TestRunner runner = new TestRunner("foo", new File("target/test-test-results"), Lists.<String>newArrayList());
     runner.executeFile(testFile, examples);
 
   }

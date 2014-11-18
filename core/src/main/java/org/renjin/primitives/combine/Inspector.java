@@ -9,7 +9,7 @@ import org.renjin.sexp.*;
 class Inspector extends SexpVisitor<Vector.Type> {
 
   public static final int DEFERRED_THRESHOLD = 2000;
-  public static final int DEFERRED_ARGUMENT_LIMIT = 5;
+  public static final int DEFERRED_ARGUMENT_LIMIT = 200;
 
   private boolean recursive = false;
 

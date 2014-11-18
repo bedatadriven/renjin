@@ -59,7 +59,7 @@ public class CombinedDoubleVector extends DoubleVector implements DeferredComput
     if(index < endIndex[3]) return vectors[3].getElementAsDouble(index - endIndex[2]);
     for(int i=4; i < vectors.length;++i) {
       if(index < endIndex[i]) {
-        return vectors[index].getElementAsDouble(index - endIndex[i]);
+        return vectors[i].getElementAsDouble(index - endIndex[i-1]);
       }
     }
     throw new IllegalArgumentException("index: " + index);

@@ -286,6 +286,9 @@ public class Vectors {
 
   @Builtin("storage.mode<-")
   public static SEXP setStorageMode(Vector source, String newMode) {
+
+
+
     Vector.Builder builder;
     if (newMode.equals("logical")) {
       builder = new LogicalArrayVector.Builder();

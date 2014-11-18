@@ -61,7 +61,7 @@ public class CombinedIntVector extends IntVector implements DeferredComputation 
 			return vectors[3].getElementAsInt(index - endIndex[2]);
 		for (int i = 4; i < vectors.length; ++i) {
 			if (index < endIndex[i]) {
-				return vectors[index].getElementAsInt(index - endIndex[i]);
+				return vectors[i].getElementAsInt(index - endIndex[i-1]);
 			}
 		}
 		throw new IllegalArgumentException("index: " + index);

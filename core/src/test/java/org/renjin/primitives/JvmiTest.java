@@ -32,7 +32,15 @@ public class JvmiTest extends EvalTestCase {
     //eval("x$children[[3]] <- 'Rick'");
     //assertThat(eval("x$children"), equalTo(list("Bob", "Sue", "Rick")));
   }
-  
+
+  @Test
+  public void classObject() {
+    eval("import(java.lang.Class)");
+    eval("implName <- 'java.util.HashMap'");
+    eval("m <- Class$forName(implName)$new()");
+    assertThat(eval("m$size()"), equalTo(c_i(0)));
+  }
+
   @Test
   public void javaUtilMap() {
     eval("import(java.util.HashMap)");

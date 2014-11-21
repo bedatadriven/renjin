@@ -5,7 +5,6 @@
 package org.renjin.stats.internals.distributions;
 
 
-import org.apache.commons.math.random.MersenneTwister;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;

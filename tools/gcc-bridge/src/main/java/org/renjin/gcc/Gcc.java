@@ -177,6 +177,7 @@ public class Gcc {
     
     String libraryName = PlatformUtils.getPortableLibraryName("gcc-bridge");
     
+
     
     URL pluginResource;
     try {
@@ -187,10 +188,12 @@ public class Gcc {
               "You will need to build it yourself and specify the path to the binary. ");
     }
     
-    pluginLibrary = new File(workingDirectory, "bridge" + PlatformUtils.getExtension());
+    /* .so because gcc only ever looks for .so files */
+    pluginLibrary = new File(workingDirectory, "bridge.so");
     
     Resources.asByteSource(pluginResource).copyTo(Files.asByteSink(pluginLibrary));
 
+    
     pluginLibrary.deleteOnExit();
   }
   

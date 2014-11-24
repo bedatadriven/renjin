@@ -63,12 +63,10 @@ public class Gcc {
     
     List<String> arguments = Lists.newArrayList();
     
-    // cross compile to i386 so that our pointers are 32-bits 
+    // Force compilation to i386 so that our pointers are 32-bits
     // rather than 64-bit. We use arrays to back pointers,
     // and java arrays can only be indexed by 32-bit integers
-    if(is64bit()) {
-      arguments.add("-m32");
-    }
+    arguments.add("-m32");
 
     // for debugging preprocessor output
 //    arguments.add("-E");
@@ -84,8 +82,6 @@ public class Gcc {
 
     // Enable our plugin which dumps the Gimple as JSON
     // to standard out
-
-
     arguments.add("-fplugin=" + pluginLibrary.getAbsolutePath());
 
     File gimpleFile = new File(gimpleOutputDir, source.getName() + ".gimple");
@@ -153,10 +149,6 @@ public class Gcc {
               "and linking the required gcc plugin. You can still compile on a *NIX platform and use the " +
               "resulting pure-Java class files on any platform.");
     }
-  }
-
-  private boolean is64bit() {
-    return Strings.nullToEmpty(System.getProperty("os.arch")).contains("64");
   }
 
   public void addIncludeDirectory(File path) {

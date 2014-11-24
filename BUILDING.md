@@ -11,14 +11,28 @@ These tools are in the early stages of development and are a bit
 sensitive to different versions of GCC. The current version of Renjin
 requires GCC 4.6.x.
 
-If your platform is not listed below, you may need to experiment a
-bit or ask for help on the mailing list (renjin-dev@googlegroups.com).
 
 Requirements
 ------------
 1. Oracle JDK 1.6 or 1.7
 2. Apache Maven 3+
 3. GCC 4.6.x
+
+### Vagrant
+
+Vagrant is tool that helps manage virtual development environments and
+will help you quickly setup a Virtual Box with all the tools needed
+for Renjin's C/Fortran compile step.
+
+Install Vagrant from https://www.vagrantup.com and then run the following
+from the root of the renjin git repository:
+
+    vagrant up
+    vagrant ssh -c "cd renjin && mvn clean install"
+
+Vagrant configures a shared directory on the VirtualBox guest machine
+that includes the renjin repository, so once the initial build
+is complete you can work normally from your IDE on your own (host) machine.
 
 ### Ubuntu 12+
 
@@ -37,30 +51,11 @@ limits array indices to 32-bits on all platforms)
 
     sudo apt-get install gcc-4.6.multilib
 
+Then build:
 
-### Fedora 17
+    mvn clean install
 
-Fedora 17 comes with GCC 4.7 which is *NOT* yet working with Renjin.
-
-You will need to build GCC 4.6 from sources first:
-
-    # Install GCC's dependencies
-    sudo yum install gcc gmp-devel mpfr-devel libmpc-devel make glibc-devel.i686
-
-    # Download sources
-    wget ftp://ftp.nluug.nl/mirror/languages/gcc/releases/gcc-4.6.4/gcc-core-4.6.4.tar.bz2
-    wget ftp://ftp.nluug.nl/mirror/languages/gcc/releases/gcc-4.6.4/gcc-fortran-4.6.4.tar.bz2
-    tar -xjf gcc-core-4.6.4.tar.bz2
-    tar -xjf gcc-fortran-4.6.4.tar.bz2
-    cd gcc-4.6.4
-    ./configure --prefix=/opt/gcc-4.6.4 -- && make
-
-    sudo yum install gcc gcc-plugin-devel gcc-gfortran
-
-If you're running 64-bit Fedora, you will need the i686 libraries
-for cross compiling:
-
-    sudo yum install glibc.i686 glibc-devel.i686
+From the root of the project.
 
 ### Windows/Cygwin
 
@@ -71,11 +66,8 @@ to get GCC to compile and load our GCC plugin.
 If anyone is able to get this working, share on the mailing list (see above), otherwise
 we'll have to wait until our tool can bootstrap a pure-java version of GCC :-)
 
-Building
---------
+### Other platforms
 
-Start the build by executing
+For other platforms, you may need to experiment a
+bit or ask for help on the mailing list (renjin-dev@googlegroups.com).
 
-    mvn clean install
-
-From the root of the project.

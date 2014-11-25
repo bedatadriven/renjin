@@ -1,11 +1,11 @@
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class DeparseTest extends EvalTestCase {
@@ -71,5 +71,16 @@ public class DeparseTest extends EvalTestCase {
     eval("attr(x, 'foo') <- 'bar'");
    
     assertThat(eval("deparse(x)"), equalTo(c("structure(c(1, 2), .Dim = 1:2, foo = \"bar\")")));
+  }
+
+  @Test
+  public void deparseMalformedFunctionCall() {
+    eval("x <- quote(c(1))");
+    eval("y <- x[-1]");
+
+    assertThat(eval("typeof(y)"), equalTo(c("language")));
+    assertThat(eval("length(y)"), equalTo(c_i(1)));
+    assertThat(eval("y[[1]]"), equalTo(c(1)));
+    assertThat(eval("deparse(y)"), equalTo(c("1()")));
   }
 }

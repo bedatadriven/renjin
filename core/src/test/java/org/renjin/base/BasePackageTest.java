@@ -21,27 +21,19 @@
 
 package org.renjin.base;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.hamcrest.Matchers;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.sexp.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import org.hamcrest.Matchers;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -393,7 +385,26 @@ public class BasePackageTest extends EvalTestCase {
     FunctionCall plusCall = (FunctionCall)tildeCall.getArgument(0);
     assertThat(plusCall.getFunction(), equalTo((SEXP)symbol("+")));    
   }
-  
+
+  @Test
+  public void bquoteInternal() throws IOException {
+
+    assumingBasePackagesLoad();
+
+    eval("tt <- 1");
+    eval("bq <- bquote( ~ 0 + . (tt) )");
+
+    assertThat(eval("bq[[1]]"), equalTo((SEXP)Symbol.get("~")));
+    assertThat(eval("bq[[2]][[1]]"), equalTo((SEXP)Symbol.get("+")));
+    assertThat(eval("bq[[2]][[2]]"), equalTo(c(0)));
+    assertThat(eval("bq[[2]][[3]]"), equalTo(c(1)));
+    //R outputs ~0 + 1, renjin 0 + 1 ~
+    // expected : ~0 + births
+
+
+  }
+
+
   @Test
   public void rowSums() throws IOException {
     assumingBasePackagesLoad();

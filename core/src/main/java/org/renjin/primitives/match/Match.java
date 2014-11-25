@@ -28,6 +28,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.primitives.Contexts;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
@@ -221,14 +222,23 @@ public class Match {
   @Internal("match.call")
   public static SEXP matchCall (@Current Context context, @Current Environment rho, SEXP definition, FunctionCall call, boolean expandDots){
     
-    Closure closure;
+    Closure closure = null;
     if(definition instanceof Closure) {
       closure = (Closure)definition;
     } else if(definition == Null.INSTANCE) {
-      if(context.getParent().getType() != Context.Type.FUNCTION) {
+
+      /* Get the env that the function containing */
+      /* matchcall was called from. */
+      Context parentContext = Contexts.findStartingContext(context);
+     // while(!parentContext.isTopLevel()) {
+        if(parentContext.getType() == Context.Type.FUNCTION) {
+          closure = parentContext.getClosure();
+        }
+      //  parentContext = parentContext.getParent();
+      //}
+      if(closure == null) {
         throw new EvalException("match.call() was called from outside a function");
-      } 
-      closure = context.getParent().getClosure();
+      }
     } else {
       throw new EvalException("match.call cannot use definition of type '%s'", definition.getTypeName());
     }

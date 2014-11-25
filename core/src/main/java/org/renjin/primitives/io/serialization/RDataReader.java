@@ -28,10 +28,10 @@ import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.ParseUtil;
 import org.renjin.primitives.Primitives;
+import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
 import java.io.*;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -277,6 +277,11 @@ public class RDataReader {
       AttributeMap attributes = readAttributes(flags);
       SEXP tag = readTag(flags);
       SEXP value = readExp();
+
+      if(tag == Symbols.ROW_NAMES && RowNamesVector.isOldCompactForm(value)) {
+        value = RowNamesVector.fromOldCompactForm(value);
+      }
+
       PairList.Node node = new PairList.Node(tag, value, attributes, Null.INSTANCE);
       if(head == null) {
         head = node;

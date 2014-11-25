@@ -83,4 +83,22 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("y[[1]]"), equalTo(c(1)));
     assertThat(eval("deparse(y)"), equalTo(c("1()")));
   }
+
+  @Test
+  public void deparseFormula() {
+    assertThat(eval("deparse(quote(~0+1))"), equalTo(c("~0 + 1")));
+    assertThat(eval("deparse(quote(x~y))"), equalTo(c("x ~ y")));
+    assertThat(eval("deparse(quote(`~`(1,2,3)))"), equalTo(c("`~`(1, 2, 3)")));
+    assertThat(eval("deparse(quote(`~`()))"), equalTo(c("`~`()")));
+  }
+
+
+  @Test
+  public void deparseSymbolsWithBackticks() {
+    assertThat(eval("deparse(quote(`1`(x,y)))"), equalTo(c("`1`(x, y)")));
+    assertThat(eval("deparse(quote(`.1`(x,y)))"), equalTo(c("`.1`(x, y)")));
+    assertThat(eval("deparse(quote(`_a`(x,y)))"), equalTo(c("`_a`(x, y)")));
+    assertThat(eval("deparse(quote(`a#$#2`(x,y)))"), equalTo(c("`a#$#2`(x, y)")));
+
+  }
 }

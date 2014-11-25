@@ -521,23 +521,13 @@ public class Text {
   public static String makeNames(@Recycle String name, @Recycle(false) boolean allow) {
     if(StringVector.isNA(name)) {
       return "NA.";
-    } else if(name.isEmpty() || !legalFirstCharacter(name)) {
+    } else if(name.isEmpty() || !Symbols.legalFirstCharacter(name)) {
       return "X" + replaceIllegalCharacters(name);
     } else if(ReservedWords.isReserved(name)) {
       return name + ".";
     } else {
       return replaceIllegalCharacters(name);
     }
-  }
-
-  private static boolean legalFirstCharacter(String name) {
-    char first = name.charAt(0);
-    return Character.isLetter(first) ||
-        (first == '.' && !secondCharacterIsDigit(name));
-  }
-
-  private static boolean secondCharacterIsDigit(String name) {
-    return name.length() >= 2 && Character.isDigit(name.codePointAt(1));
   }
 
   private static String replaceIllegalCharacters(String name) {

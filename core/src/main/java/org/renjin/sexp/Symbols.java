@@ -40,5 +40,35 @@ public class Symbols {
   public static final Symbol GENERIC = Symbol.get("generic");
   public static final Symbol SOURCE = Symbol.get("source");
 
-  
+
+  /**
+   * A syntactically valid name consists of letters, numbers and the dot or underline characters and starts with
+   * a letter or the dot not followed by a number. Names such as ".2way" are not valid,
+   * and neither are the reserved words.
+   *
+   * @param name
+   * @return true if {@code name} is syntatically valid
+   */
+  public static boolean isValid(String name) {
+    if(!legalFirstCharacter(name)) {
+      return false;
+    }
+    for(int i=1;i!=name.length();++i) {
+      char c = name.charAt(i);
+      if(!(Character.isLetter(c) || Character.isDigit(c) || c == '.' || c == '_')) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static boolean legalFirstCharacter(String name) {
+    char first = name.charAt(0);
+    return Character.isLetter(first) ||
+        (first == '.' && !secondCharacterIsDigit(name));
+  }
+
+  private static boolean secondCharacterIsDigit(String name) {
+    return name.length() >= 2 && Character.isDigit(name.codePointAt(1));
+  }
 }

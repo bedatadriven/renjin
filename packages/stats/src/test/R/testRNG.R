@@ -38,7 +38,7 @@ test.rwilcox <- function() {
 
 test.rhyper <- function() {
 	set.seed(12345, 'Mersenne-Twister','I')
-	assertThat(mean(rhyper(10000,17,16,13)), closeTo(6.6955, DELTA))
+	assertThat(mean(rhyper(10000,17,16,13)), closeTo(6.3045, DELTA))
 }
 
 
@@ -68,7 +68,7 @@ test.rexp <- function() {
 
 test.rcauchy <- function() {
 	set.seed(1235, 'Mersenne-Twister','I')
-	assertThat(rcauchy(1,8,6), closeTo(0.7890362, DELTA))
+	assertThat(rcauchy(1,8,6), closeTo(13.727041, DELTA))
 }
 
 
@@ -116,7 +116,7 @@ test.rt <- function() {
 
 test.rmultinom <- function() {
 	set.seed(1234, 'Mersenne-Twister','I')
-	assertThat(rmultinom(1,3,c(0.5,0.5)), equalTo(structure(c(2,1), .Dim = 2:1)))
+	assertThat(rmultinom(1,3,c(0.5,0.5)), equalTo(structure(c(0,3), .Dim = 2:1)))
 	assertThat(dim(rmultinom(20,3,c(0.5,0.3,0.2))), equalTo(c(3,20)))
 }
 

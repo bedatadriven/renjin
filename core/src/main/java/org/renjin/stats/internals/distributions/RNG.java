@@ -1,14 +1,9 @@
-/*
- * unif_rand() produces different random numbers when compared to R
- * whatever the seed is. I think we can pass it until this gets a higher priorty.
- */
 package org.renjin.stats.internals.distributions;
 
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
@@ -298,19 +293,7 @@ public class RNG {
    * 
    * Generated random numbers depend on the algorithm used.
    * As in original interpreter, the default algorithm is MERSENNE_TWISTER.
-   * 
-   * MERSENNE_TWISTER algorithm is imported from the apache commons math api.
-   * But there is a small problem with this. The original interpreter and the renjin
-   * produces different pseudo random numbers even the seed is same.
-   * 
-   * I am leaving this as is, I think it is not a real problem for now, somebody can 
-   * correct the mechanism underlying the uniform random number generation for consistency 
-   * with the original interpreter. 
-   * 
-   * Because I have not got the desired outputs, I can not test my generated random numbers. But one can 
-   * see that, for example a sample of 1000 random numbers from a Chisquare(15) distribution has an
-   * average of nearly 15. Similarly, a sample drawn from a Normal (0,1) distribution has a mean and variance
-   * nearly zero and one, respectively.
+   *
    * 
    * mhsatman
    */

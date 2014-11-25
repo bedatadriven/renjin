@@ -345,10 +345,10 @@ public class Deparse {
     }
 
     private void deparseNormalCall(FunctionCall call) {
-      if(call.getFunction() instanceof Symbol) {
-        deparse(call.getFunction());
-      } else {
+      if(call.getFunction() instanceof Function) {
         deparsed.append("FUN");
+      } else {
+        deparse(call.getFunction());
       }
       deparsed.append("(");
       deparseArgumentList(call.getArguments().nodes());

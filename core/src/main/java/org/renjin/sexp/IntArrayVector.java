@@ -181,6 +181,9 @@ public class IntArrayVector extends IntVector {
     @Override
     public IntVector build() {
       if(size == values.length) {
+    	if(Vector.DEBUG_ALLOC && values.length >= 5000) {
+          System.out.println("building IntVector = " + values.length);
+        }
         IntArrayVector vector = new IntArrayVector(buildAttributes());
         vector.values = values;
         // subsequent edits will throw error!

@@ -10,6 +10,7 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ComputingIntVector;
 import org.renjin.primitives.vector.ConstantDoubleVector;
+import org.renjin.primitives.vector.ConstantLogicalVector;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
@@ -349,28 +350,36 @@ public class Matrices {
   }
 
   private static Vector allocMatrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
-    Vector.Builder result = data.newBuilderWithInitialSize(nrow * ncol);
-    int dataLength = data.length();
-    int i = 0;
-
-    if(dataLength > 0) {
-      if (!byRow) {
-        for (int col = 0; col < ncol; ++col) {
-          for (int row = 0; row < nrow; ++row) {
-            int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol)
-                    % dataLength;
-            result.setFrom(i++, data, sourceIndex);
-          }
-        }
-      } else {
-        for (int row = 0; row < nrow; ++row) {
+	  Vector.Builder result = null;
+	  int dataLength = data.length();
+    
+    if (dataLength == 1 && data instanceof LogicalVector) {
+      /* If data has only one entry, we can get away with a constant. 
+       * This is true for the common case of matrix(nrow=42, ncol=42)  */
+      result = ConstantLogicalVector.newConstantBuilder(data.getElementAsRawLogical(0), nrow * ncol);
+    } else {
+      result = data.newBuilderWithInitialSize(nrow * ncol);
+      if(dataLength > 0) {
+        int i = 0;
+        if (!byRow) {
           for (int col = 0; col < ncol; ++col) {
-            result.setFrom(row + (col * nrow), data, i % dataLength);
-            i++;
+            for (int row = 0; row < nrow; ++row) {
+              int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol)
+                      % dataLength;
+              result.setFrom(i++, data, sourceIndex);
+            }
+          }
+        } else {
+          for (int row = 0; row < nrow; ++row) {
+            for (int col = 0; col < ncol; ++col) {
+              result.setFrom(row + (col * nrow), data, i % dataLength);
+              i++;
+            }
           }
         }
       }
     }
+    
     result.setDim(nrow, ncol);
     result.setAttribute(Symbols.DIMNAMES, dimnames);
     return result.build();

@@ -10,8 +10,6 @@ import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.util.HeapsortTandem;
 
-import java.util.Arrays;
-
 
 public class Sampling {
 
@@ -83,7 +81,6 @@ public class Sampling {
 
     // Sort descending
     HeapsortTandem.heapsortDescending(probs, x, n);
-    System.out.println(Arrays.toString(x));
 
     // Compute the sample
     totalmass = 1;

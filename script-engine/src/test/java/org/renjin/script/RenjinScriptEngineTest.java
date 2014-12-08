@@ -1,18 +1,19 @@
 package org.renjin.script;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.util.HashMap;
+import org.junit.Before;
+import org.junit.Test;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.util.HashMap;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.renjin.sexp.DoubleVector;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class RenjinScriptEngineTest {
@@ -84,6 +85,31 @@ public class RenjinScriptEngineTest {
     engine.put("h", h);
     engine.eval("import(java.util.HashMap) \n"
                     + " print(h$size())");
+  }
+
+  @Test
+  public void putPrimitiveIntegerArray() throws ScriptException {
+    int[] integers = new int[]{1,2,3,4,5};
+    engine.put("integers", integers);
+    IntArrayVector iav =  (IntArrayVector) engine.eval("as.integer(integers)");
+    System.out.println(iav);
+    assertThat(iav.length(), equalTo(5));
+  }
+
+  @Test
+  public void putPrimitiveLongArray() throws ScriptException {
+    long[] longs = new long[]{1,2,3,4,5};
+    engine.put("longs", longs);
+    IntArrayVector lav =  (IntArrayVector) engine.eval("as.integer(longs)");
+    assertThat(lav.length(), equalTo(5));
+  }
+
+  @Test
+  public void putPrimitiveDoubleArray() throws ScriptException {
+    double[] doubles = new double[]{1.0,2.0,3.0,4.0,5.0};
+    engine.put("doubles", doubles);
+    DoubleArrayVector dav =  (DoubleArrayVector) engine.eval("as.double(doubles)");
+    assertThat(dav.length(), equalTo(5));
   }
   
 }

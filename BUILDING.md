@@ -86,7 +86,7 @@ Install gettext from Homebrew by typing
 
 Since OSX also comes with a (shady) version of gettext, we need to set the include path:
 
-	export C_INCLUDE_PATH=`find /usr/local/Cellar/gettext -type d -name 'include'`
+	export C_INCLUDE_PATH=`find /usr/local/Cellar/gettext -type d -name 'include' | head -n 1`
 
 Finally, try
 

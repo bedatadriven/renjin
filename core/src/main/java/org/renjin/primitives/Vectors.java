@@ -327,7 +327,7 @@ public class Vectors {
       return new IntArrayVector(new int[length]);
 
     } else if ("numeric".equals(mode) || "double".equals(mode)) {
-      return new RepDoubleVector(0, length);
+      return RepDoubleVector.createConstantVector(0, length);
 
     } else if ("complex".equals(mode)) {
       throw new UnsupportedOperationException("implement me!");

@@ -511,6 +511,10 @@ model.matrix.default <- function(object, data = environment(object),
 	# now actually compute the contrast matrices (if they aren't already)
 	for(i in seq_along(data)) {
 		if(!is.null(defined.contrasts[[i]])) {
+			if (is.logical(data[[i]])) {
+				data[[i]] <- as.factor(data[[i]])
+				levels(data[[i]]) <- c(levels(data[[i]]), FALSE, TRUE)
+			}
 			attr(data[[i]], 'contrasts') <- contrasts(C(data[[i]], defined.contrasts[[i]]))
 		}
 	}

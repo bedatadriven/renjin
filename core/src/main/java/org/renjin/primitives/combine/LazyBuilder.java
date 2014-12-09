@@ -69,7 +69,7 @@ public class LazyBuilder implements CombinedBuilder {
 
     if(Strings.isNullOrEmpty(prefix) && names == null) {
       // both argument name and names() vector are absent
-      return new RepStringVector("", numElements);
+      return RepStringVector.createConstantVector("", numElements);
 
     } else if(Strings.isNullOrEmpty(prefix)) {
       // argument name is missing, but we have names() vector

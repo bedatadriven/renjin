@@ -2,6 +2,7 @@ package org.renjin.primitives.sequence;
 
 
 import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
 
@@ -12,20 +13,20 @@ public class RepStringVector extends StringVector {
   private int length;
   private int each;
 
-  public RepStringVector(String constant, int length) {
-    super(AttributeMap.EMPTY);
-    this.source = StringVector.valueOf(constant);
-    this.sourceLength = source.length();
-    this.length = length;
-    this.each = 1;
-  }
-  
   public RepStringVector(Vector source, int length, int each, AttributeMap attributes) {
     super(attributes);
     this.source = source;
     this.sourceLength = source.length();
     this.length = length;
     this.each = each;
+  }
+  
+  private RepStringVector(String constant, int length) {
+    super(AttributeMap.EMPTY);
+    this.source = StringVector.valueOf(constant);
+    this.sourceLength = source.length();
+    this.length = length;
+    this.each = 1;
   }
 
   @Override
@@ -47,5 +48,13 @@ public class RepStringVector extends StringVector {
   @Override
   public boolean isConstantAccessTime() {
     return true;
+  }
+  
+  public static StringVector createConstantVector(String constant,
+      int length) {
+    if (length <= 0) {
+      return StringVector.EMPTY;
+    }
+    return new RepStringVector(constant, length);
   }
 }

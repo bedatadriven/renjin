@@ -328,5 +328,19 @@
         <envClassifier>linux-x86</envClassifier>
       </properties>
     </profile>
+
+    <profile>
+      <id>apple-x86_64</id>
+      <activation>
+        <os>
+          <family>mac</family>
+          <arch>x86_64</arch>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>apple-x86_64</envClassifier>
+      </properties>
+    </profile>
+
   </profiles>
 </project>

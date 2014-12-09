@@ -3,6 +3,7 @@ package org.renjin.gcc;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -52,6 +53,15 @@ public class GimpleCompiler  {
 
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
+    /* add rt.jar to Soot's classpath. Fixes build on OSX. */
+    try {
+      String rtjarres = Object.class.getResource("Object.class").getPath();
+      File jarfile = new File(rtjarres.substring(0, rtjarres.lastIndexOf("!"))
+          .replaceFirst("^file:", ""));
+      this.classPaths.add(jarfile);
+    } catch (Exception e) {
+      LOGGER.warning("Failed to add rt.jar to Soot classpath. " + e.getMessage());
+    }
   }
 
   public void setPackageName(String name) {

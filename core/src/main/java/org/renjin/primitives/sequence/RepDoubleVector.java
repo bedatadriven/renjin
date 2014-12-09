@@ -2,7 +2,12 @@ package org.renjin.primitives.sequence;
 
 
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector;
 
 public class RepDoubleVector extends DoubleVector implements DeferredComputation {
 
@@ -12,6 +17,12 @@ public class RepDoubleVector extends DoubleVector implements DeferredComputation
   private int length;
   private int each;
 
+  public RepDoubleVector(double constant, int length) {
+    super(AttributeMap.EMPTY);
+    this.source = DoubleVector.valueOf(constant);
+    this.length = length;
+    this.each = 1;
+  }
   public RepDoubleVector(Vector source, int length, int each, AttributeMap attributes) {
     super(attributes);
     this.source = source;

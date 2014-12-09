@@ -12,6 +12,14 @@ public class RepStringVector extends StringVector {
   private int length;
   private int each;
 
+  public RepStringVector(String constant, int length) {
+    super(AttributeMap.EMPTY);
+    this.source = StringVector.valueOf(constant);
+    this.sourceLength = source.length();
+    this.length = length;
+    this.each = 1;
+  }
+  
   public RepStringVector(Vector source, int length, int each, AttributeMap attributes) {
     super(attributes);
     this.source = source;

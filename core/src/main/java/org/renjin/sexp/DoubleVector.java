@@ -1,6 +1,7 @@
 package org.renjin.sexp;
 
 import com.google.common.collect.UnmodifiableIterator;
+
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.ParseUtil;
 
@@ -274,6 +275,10 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
 
   public boolean isElementNaN(int index) {
     return isNaN(getElementAsDouble(index));
+  }
+  
+  public static DoubleVector valueOf(double value) {
+    return new DoubleArrayVector(value);
   }
 
   private static class DoubleType extends Type {

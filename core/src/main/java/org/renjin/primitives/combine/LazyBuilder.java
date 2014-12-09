@@ -1,17 +1,24 @@
 package org.renjin.primitives.combine;
 
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import java.util.List;
+
 import org.renjin.primitives.combine.view.CombinedDoubleVector;
 import org.renjin.primitives.combine.view.CombinedIntVector;
 import org.renjin.primitives.combine.view.CombinedStringVector;
 import org.renjin.primitives.sequence.IntSequence;
-import org.renjin.primitives.vector.ConstantStringVector;
+import org.renjin.primitives.sequence.RepStringVector;
 import org.renjin.primitives.vector.PrefixedStringVector;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector;
 
-import java.util.List;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 public class LazyBuilder implements CombinedBuilder {
 
@@ -62,7 +69,7 @@ public class LazyBuilder implements CombinedBuilder {
 
     if(Strings.isNullOrEmpty(prefix) && names == null) {
       // both argument name and names() vector are absent
-      return new ConstantStringVector("", numElements);
+      return new RepStringVector("", numElements);
 
     } else if(Strings.isNullOrEmpty(prefix)) {
       // argument name is missing, but we have names() vector

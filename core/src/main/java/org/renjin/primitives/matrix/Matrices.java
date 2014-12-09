@@ -8,11 +8,21 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Indexes;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.primitives.sequence.RepLogicalVector;
 import org.renjin.primitives.vector.ComputingIntVector;
-import org.renjin.primitives.vector.ConstantDoubleVector;
-import org.renjin.primitives.vector.ConstantLogicalVector;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
 
 /**
@@ -339,11 +349,7 @@ public class Matrices {
     int resultLength = (nrow * ncol);
     if(!byRow && resultLength > 500) {
       if(data instanceof DoubleVector) {
-        if(data.length() == 1) {
-          return new ConstantDoubleVector(data.getElementAsDouble(0), resultLength, attributes);
-        } else {
-          return new RepDoubleVector(data, resultLength, 1, attributes);
-        }
+        return new RepDoubleVector(data, resultLength, 1, attributes);
       }
     }
     return allocMatrix(data, nrow, ncol, byRow, dimnames);
@@ -356,7 +362,7 @@ public class Matrices {
     if (dataLength == 1 && data instanceof LogicalVector) {
       /* If data has only one entry, we can get away with a constant. 
        * This is true for the common case of matrix(nrow=42, ncol=42)  */
-      result = ConstantLogicalVector.newConstantBuilder(data.getElementAsRawLogical(0), nrow * ncol);
+      result = RepLogicalVector.newConstantBuilder(data.getElementAsLogical(0), nrow * ncol);
     } else {
       result = data.newBuilderWithInitialSize(nrow * ncol);
       if(dataLength > 0) {

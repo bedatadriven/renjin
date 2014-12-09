@@ -38,6 +38,10 @@ public class CombinedIntVector extends IntVector implements DeferredComputation 
 	public Vector[] getOperands() {
 		return vectors;
 	}
+	
+	public int[] getEndIndices() {
+	  return endIndex;
+	}
 
 	@Override
 	public String getComputationName() {

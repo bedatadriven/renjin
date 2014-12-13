@@ -63,9 +63,7 @@
                 if [ $RETVAL -ne 0 ]; then
                   exit $RETVAL
                 fi
-                #gcc-4.6 -shared $WORK_DIR/plugin.o -o $OUTPUT_DIR/gcc-bridge-${envClassifier}.dylib
-                # TODO: switch here depending on OS (uname=Darwin?)
-                gcc-4.6 ${gccLinkFlag} -o $OUTPUT_DIR/gcc-bridge-apple-x86_64.dylib $WORK_DIR/plugin.o
+                gcc-4.6 ${gccLinkFlag} -o $OUTPUT_DIR/gcc-bridge-${envClassifier}.so $WORK_DIR/plugin.o
               </script>
             </configuration>
           </execution>

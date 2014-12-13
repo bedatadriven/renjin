@@ -92,7 +92,7 @@ public final class PlatformUtils {
   public static String getExtension() {
     switch(OS) {
     case APPLE:
-      return ".dylib";
+      return ".so"; /* GCC plugins use .so on OSX, too*/
     case WINDOWS:
       return ".dll";
     case LINUX:

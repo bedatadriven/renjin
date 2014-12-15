@@ -122,9 +122,9 @@ public final class HeapsortTandem {
       }
 
       i = l;
-      j = (l << 1) + 1;
-      while (j < ir) {
-        if (j < ir && a1[j] > a1[j + 1]) ++j;
+      j = (l << 1);
+      while (j <= ir) {
+        if (j < ir && a1[j] > a1[j + 1] || i == j) ++j;
         if (ra > a1[j]) {
           a1[i] = a1[j];
           a2[i] = a2[j];

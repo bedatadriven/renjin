@@ -66,7 +66,7 @@ Download and install JDK 8 from the [Oracle Website](http://www.oracle.com/techn
 
 Set the `JAVA_HOME` environment variable to the proper value:
     
-    export JAVA_HOME=`/usr/libexec/java_home -v 1.8`
+    export JAVA_HOME=`/usr/libexec/java_home -v 1.7`
 
 You need to install the legacy GCC version 4.6 using Homebrew. We need an old formula for this:
 

@@ -93,7 +93,7 @@ public final class HeapsortTandem {
 
     if (n <= 1) return;
 
-    l = (n >> 1);
+    l = (n >> 1) + 1;
     ir = n-1;
 
     while(true) {

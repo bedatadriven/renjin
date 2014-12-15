@@ -47,4 +47,22 @@ public class HeapsortTandemTest {
     }
   }
 
+  @Test
+  public void testPresortedArrayDescending() {
+    int i = 0;
+    final double[] values = new double[]{0.2356849, 0.2163148, 0.1985367, 0.1822197, 0.1672438};
+    final int[] valuesOrder = new int[N];
+
+    for (; i < values.length; i++) {
+      valuesOrder[i] = i;
+    }
+
+    HeapsortTandem.heapsortDescending(values, valuesOrder, values.length);
+
+    // Ensure the values are in descending order
+    for (i = 0; i < values.length-1; i++) {
+      Assert.assertTrue(values[i] >= values[i + 1]);
+    }
+  }
+
 }

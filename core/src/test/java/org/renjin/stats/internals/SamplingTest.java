@@ -77,4 +77,11 @@ public class SamplingTest extends EvalTestCase {
     eval("set.seed(12345);");
     assertThat(eval("sample(c(20,30,40,38,27,29,32,100,24), 5)"), equalTo(c(32, 100, 29, 24, 40)));
   }
+
+  @Test
+  public void sampleWithPresortedProbs() throws  IOException {
+    assumingBasePackagesLoad();
+    eval("set.seed(12345)");
+    assertThat(eval("as.double(sample(0:4, size = 1, prob = c(0.2356849, 0.2163148, 0.1985367, 0.1822197, 0.1672438)))"), equalTo(c(3L)));
+  }
 }

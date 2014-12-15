@@ -19,7 +19,7 @@ public final class HeapsortTandem {
    * @param a2 The array to sort in tandem
    * @param n  The size of the arrays ( should be equal )
    */
-  public static void heapsort(double[] a1, int[] a2, int n) {
+  public static void heapsortAscending(double[] a1, int[] a2, int n) {
     int end = n - 1;
     heapify(a1, a2, n);
 

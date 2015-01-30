@@ -3,8 +3,6 @@ package org.renjin.primitives.combine;
 
 import java.util.List;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import org.renjin.primitives.combine.view.CombinedDoubleVector;
 import org.renjin.primitives.combine.view.CombinedIntVector;
 import org.renjin.primitives.combine.view.CombinedStringVector;
@@ -18,6 +16,9 @@ import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 public class LazyBuilder implements CombinedBuilder {
 

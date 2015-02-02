@@ -63,11 +63,11 @@ public class LazyBuilder implements CombinedBuilder {
     Vector names = vector.getNames();
     int numElements = vector.length();
 
-    if(!Strings.isNullOrEmpty(prefix) || names != null) {
+    if(!Strings.isNullOrEmpty(prefix) || names != Null.INSTANCE) {
       hasNames = true;
     }
 
-    if(Strings.isNullOrEmpty(prefix) && names == null) {
+    if(Strings.isNullOrEmpty(prefix) && names == Null.INSTANCE) {
       // both argument name and names() vector are absent
       return RepStringVector.createConstantVector("", numElements);
 
@@ -85,7 +85,8 @@ public class LazyBuilder implements CombinedBuilder {
     }
   }
 
-  public Vector build() {
+  @Override
+public Vector build() {
 
     Vector[] vectors = toArray(this.vectors);
     if(vectorType == IntVector.VECTOR_TYPE) {

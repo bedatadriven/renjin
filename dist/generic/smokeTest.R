@@ -14,3 +14,10 @@ y <- x*2
 m <- lm(y ~ x)
 stopifnot( abs(m$coefficients["x"]-2) < 0.0001 )
 
+
+# Also ensure that we can dynamically load packages 
+# and their dependencies
+
+library(org.renjin.test.alpha)
+stopifnot(identical(alphaVersion(), "2.5.1"))
+

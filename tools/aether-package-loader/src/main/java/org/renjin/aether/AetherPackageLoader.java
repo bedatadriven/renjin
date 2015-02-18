@@ -13,18 +13,23 @@ import org.apache.maven.settings.crypto.DefaultSettingsDecryptionRequest;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.settings.crypto.SettingsDecryptionResult;
 import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.connector.file.FileRepositoryConnectorFactory;
 import org.eclipse.aether.connector.wagon.WagonProvider;
 import org.eclipse.aether.connector.wagon.WagonRepositoryConnectorFactory;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.*;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.transfer.TransferListener;
+import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.version.Version;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.FqPackageName;
@@ -32,33 +37,52 @@ import org.renjin.primitives.packaging.Package;
 import org.renjin.primitives.packaging.PackageLoader;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 
 public class AetherPackageLoader implements PackageLoader {
-
-  private ClasspathPackageLoader classpathPackageLoader = new ClasspathPackageLoader();
-  private final List<RemoteRepository> repositories = Lists.newArrayList();
-  private final RepositorySystem system = newRepositorySystem();
-  private final RepositorySystemSession session = newRepositorySystemSession(system);
-  private static Settings settings;
-
+  
   private static final SettingsBuilder settingsBuilder = new DefaultSettingsBuilderFactory().newInstance();
 
   private static final SettingsDecrypter settingsDecrypter = new MavenSettingsDecrypter();
-  
+
   private static final Logger LOGGER = Logger.getLogger(AetherPackageLoader.class.getName());
 
+  private static Settings settings;
+  
+  private DynamicURLClassLoader classLoader;
+  private ClasspathPackageLoader classpathPackageLoader;
+  private final List<RemoteRepository> repositories = Lists.newArrayList();
+  private final RepositorySystem system = newRepositorySystem();
+  private final DefaultRepositorySystemSession session = newRepositorySystemSession(system);
+
+
+  /**
+   * Keeps track of already-loaded packages. Each entry should be in the form groupId:artifactId
+   */
+  private Set<String> loadedPackages = new HashSet<String>();
+
   public AetherPackageLoader() {
+    
+    // Create our own ClassLoader to which we can add additional packages at runtime
+    classLoader = new DynamicURLClassLoader(getClass().getClassLoader());
+    classpathPackageLoader = new ClasspathPackageLoader(classLoader);
+
     repositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
     repositories.add(new RemoteRepository.Builder("renjin", "default", "http://nexus.bedatadriven.com/content/groups/public/").build());
+    
+    loadedPackages.add("org.renjin:renjin-core");
   }
 
   @Override
   public Optional<Package> load(FqPackageName name) {
     Optional<Package> pkg = classpathPackageLoader.load(name);
     if (pkg.isPresent()) {
+      FqPackageName packageName = pkg.get().getName();
+      loadedPackages.add(packageName.getGroupId() + ":" + packageName.getPackageName());
       return pkg;
     }
     try {
@@ -69,21 +93,30 @@ public class AetherPackageLoader implements PackageLoader {
         return Optional.absent();
       }
 
-      ArtifactRequest collectRequest = new ArtifactRequest();
-      collectRequest.setArtifact(latestArtifact);
-      collectRequest.setRepositories(repositories);
+      CollectRequest collectRequest = new CollectRequest();
+      collectRequest.setRoot(new Dependency(latestArtifact, JavaScopes.RUNTIME));
+      
+      DependencyNode node = system.collectDependencies(session, collectRequest).getRoot();
+      DependencyRequest dependencyRequest = new DependencyRequest();
+      dependencyRequest.setRoot(node);
+      dependencyRequest.setFilter(new AetherExclusionFilter(loadedPackages));
+      
+      DependencyResult dependencyResult = system.resolveDependencies(session, dependencyRequest);
 
-      ArtifactResult artifactResult = system.resolveArtifact(session, collectRequest);
+      for (ArtifactResult dependency : dependencyResult.getArtifactResults()) { 
+        Artifact artifact = dependency.getArtifact();
+        loadedPackages.add(artifact.getGroupId() + ":" + artifact.getArtifactId());
+        classLoader.addArtifact(dependency);
+      }
 
-      return Optional.<Package>of(new AetherPackage(artifactResult.getArtifact()));
-
+      return classpathPackageLoader.load(name);
+      
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
-
-  private Artifact resolveLatestArtifact(FqPackageName name)
-          throws VersionRangeResolutionException {
+  
+  private Artifact resolveLatestArtifact(FqPackageName name) throws VersionRangeResolutionException {
     Artifact artifact = new DefaultArtifact(name.getGroupId(), name.getPackageName(), "jar", "[0,)");
     Version newestVersion = resolveLatestVersion(artifact);
     if (newestVersion == null) {
@@ -92,8 +125,7 @@ public class AetherPackageLoader implements PackageLoader {
     return artifact.setVersion(newestVersion.toString());
   }
 
-  private Version resolveLatestVersion(Artifact artifact)
-          throws VersionRangeResolutionException {
+  private Version resolveLatestVersion(Artifact artifact) throws VersionRangeResolutionException {
     VersionRangeRequest rangeRequest = new VersionRangeRequest();
     rangeRequest.setArtifact(artifact);
     rangeRequest.setRepositories(repositories);
@@ -121,22 +153,26 @@ public class AetherPackageLoader implements PackageLoader {
   }
 
   public static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system) {
+    
+    
     DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
     
     System.out.println("Using local repository: " + getLocalRepositoryDir());
     
     LocalRepository localRepo = new LocalRepository(getLocalRepositoryDir());
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
-
-    session.setTransferListener(new ConsoleTransferListener());
-    session.setRepositoryListener(new ConsoleRepositoryListener());
-
-    // uncomment to generate dirty trees
-    // session.setDependencyGraphTransformer( null );
-
+    
     return session;
   }
 
+  public void setTransferListener(TransferListener listener) {
+    session.setTransferListener(listener);
+  }
+  
+  public void setRepositoryListener(RepositoryListener listener) {
+    session.setRepositoryListener(listener);
+  }
+  
   private static File getLocalRepositoryDir() {
     Settings settings = getSettings();
     if ( settings.getLocalRepository() != null )
@@ -157,7 +193,7 @@ public class AetherPackageLoader implements PackageLoader {
   }
 
   private static File getUserHome() {
-    return new File( System.getProperty( "user.home" ) );
+    return new File( System.getProperty("user.home") );
   }
 
   private static File findGlobalSettings() {
@@ -210,5 +246,9 @@ public class AetherPackageLoader implements PackageLoader {
       settings.setProxies( result.getProxies() );
     }
     return settings;
+  }
+
+  public DynamicURLClassLoader getClassLoader() {
+    return classLoader;
   }
 }

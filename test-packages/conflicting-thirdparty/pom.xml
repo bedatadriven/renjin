@@ -9,7 +9,7 @@
 
   <groupId>org.renjin.test.conflict</groupId>
   <artifactId>thirdparty</artifactId>
-  <name>Third party package with conflicting name</name>
+  <name>Dummy third party package with conflicting name</name>
 
   <dependencies>
     <dependency>

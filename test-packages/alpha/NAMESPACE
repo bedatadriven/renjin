@@ -1,0 +1,7 @@
+
+
+importClass(com.fasterxml.jackson.databind.ObjectMapper)
+importClass(org.renjin.test.Alpha)
+export(parseAlpha)
+export(alphaVersion)
+export(alphaName)

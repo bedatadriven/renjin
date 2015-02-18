@@ -91,7 +91,6 @@ public class Session {
     this.fileSystemManager = (FileSystemManager) bindings.get(FileSystemManager.class);
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
-  
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
     this.globalEnvironment = Environment.createGlobalEnvironment();
     this.baseEnvironment = globalEnvironment.getBaseEnvironment();
@@ -232,6 +231,10 @@ public class Session {
 
   public void setSecurityManager(SecurityManager securityManager) {
     this.securityManager = securityManager;
+  }
+  
+  public ClassLoader getClassLoader() {
+    return getClass().getClassLoader();
   }
 
   public void registerFinalizer(Environment environment, Closure function, boolean onExit) {

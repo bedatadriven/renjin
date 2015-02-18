@@ -28,12 +28,11 @@ public class Jvmi {
   }
   
   @Builtin("import")
-  public static SEXP importClass(@Current Context context, @Current Environment rho,
-        @Unevaluated Symbol className) {
+  public static SEXP importClass(@Current Context context, @Current Environment rho, @Unevaluated Symbol className) {
         
     Class clazz;
     try {
-      clazz = Class.forName(className.getPrintName());
+      clazz = context.getSession().getClassLoader().loadClass(className.getPrintName());
     } catch (ClassNotFoundException e) {
       throw new EvalException("Cannot find class '%s'", className);
     }

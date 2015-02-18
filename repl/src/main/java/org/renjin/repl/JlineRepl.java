@@ -1,6 +1,7 @@
 package org.renjin.repl;
 
 import com.google.common.base.Strings;
+import jline.Terminal;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.RenjinVersion;
@@ -64,7 +65,6 @@ public class JlineRepl {
     reader.setExpandEvents(false);
 
     session.setSessionController(new JlineSessionController(reader.getTerminal()));
-
   }
 
   public JlineRepl(Session session, ConsoleReader reader) throws IOException {
@@ -209,4 +209,7 @@ public class JlineRepl {
     topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
 
+  public ConsoleReader getReader() {
+    return reader;
+  }
 }

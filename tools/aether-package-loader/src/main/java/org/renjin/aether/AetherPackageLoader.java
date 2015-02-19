@@ -29,7 +29,6 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.*;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.transfer.TransferListener;
-import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.version.Version;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.FqPackageName;
@@ -58,6 +57,8 @@ public class AetherPackageLoader implements PackageLoader {
   private final List<RemoteRepository> repositories = Lists.newArrayList();
   private final RepositorySystem system = newRepositorySystem();
   private final DefaultRepositorySystemSession session = newRepositorySystemSession(system);
+  
+  private PackageListener packageListener = null;
 
 
   /**
@@ -74,7 +75,17 @@ public class AetherPackageLoader implements PackageLoader {
     repositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
     repositories.add(new RemoteRepository.Builder("renjin", "default", "http://nexus.bedatadriven.com/content/groups/public/").build());
     
+    // Ensure that we don't load old versions of renjin onto the classpath
+    // that might conflict with the current version.
     loadedPackages.add("org.renjin:renjin-core");
+    loadedPackages.add("org.renjin:renjin-appl");
+    loadedPackages.add("org.renjin:renjin-gnur-runtime");
+    loadedPackages.add("org.renjin:stats");
+    loadedPackages.add("org.renjin:methods");
+    loadedPackages.add("org.renjin:utils");
+    loadedPackages.add("org.renjin:datasets");
+    loadedPackages.add("org.renjin:graphics");
+    loadedPackages.add("org.renjin:grDevices");
   }
 
   @Override
@@ -86,20 +97,32 @@ public class AetherPackageLoader implements PackageLoader {
       return pkg;
     }
     try {
+      
+      if(packageListener != null) {
+        packageListener.packageLoading(name);
+      }
 
       Artifact latestArtifact = resolveLatestArtifact(name);
 
       if (latestArtifact == null) {
+        packageListener.packageVersionResolutionFailed(name);
         return Optional.absent();
       }
 
+      if(packageListener != null) {
+        packageListener.packageResolved(name, latestArtifact.getVersion());
+      }
+      
       CollectRequest collectRequest = new CollectRequest();
-      collectRequest.setRoot(new Dependency(latestArtifact, JavaScopes.RUNTIME));
+      collectRequest.setRoot(new Dependency(latestArtifact, null));
+      collectRequest.setRepositories(repositories);
       
       DependencyNode node = system.collectDependencies(session, collectRequest).getRoot();
+      
       DependencyRequest dependencyRequest = new DependencyRequest();
       dependencyRequest.setRoot(node);
       dependencyRequest.setFilter(new AetherExclusionFilter(loadedPackages));
+      dependencyRequest.setCollectRequest(collectRequest);
       
       DependencyResult dependencyResult = system.resolveDependencies(session, dependencyRequest);
 
@@ -109,9 +132,20 @@ public class AetherPackageLoader implements PackageLoader {
         classLoader.addArtifact(dependency);
       }
 
+
+      if(packageListener != null) {
+        packageListener.packageLoadSucceeded(name, latestArtifact.getVersion());
+      }
+
+
       return classpathPackageLoader.load(name);
       
+    } catch (DependencyResolutionException e) {
+      packageListener.packageResolveFailed(e);
+      return Optional.absent();
+      
     } catch (Exception e) {
+      
       throw new RuntimeException(e);
     }
   }
@@ -132,11 +166,7 @@ public class AetherPackageLoader implements PackageLoader {
 
     VersionRangeResult rangeResult = system.resolveVersionRange(session, rangeRequest);
 
-    Version newestVersion = rangeResult.getHighestVersion();
-
-    System.out.println("Newest version " + newestVersion + " from repository "
-            + rangeResult.getRepository(newestVersion));
-    return newestVersion;
+    return rangeResult.getHighestVersion();
   }
 
   public static RepositorySystem newRepositorySystem() {
@@ -171,6 +201,10 @@ public class AetherPackageLoader implements PackageLoader {
   
   public void setRepositoryListener(RepositoryListener listener) {
     session.setRepositoryListener(listener);
+  }
+  
+  public void setPackageListener(PackageListener listener) {
+    this.packageListener = listener;
   }
   
   private static File getLocalRepositoryDir() {

@@ -3,7 +3,6 @@ package org.renjin.aether;
 import com.google.common.base.Joiner;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 import org.renjin.eval.Session;
@@ -21,7 +20,6 @@ import java.net.URL;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItemInArray;
 import static org.junit.Assert.assertThat;
 
@@ -49,6 +47,18 @@ public class AetherTest {
             "betaVersion()\n";
 
         assertThat(evaluate(script), equalTo("2.0.0"));
+    }
+    
+    @Test
+    public void remote() {
+        AetherPackageLoader loader = new AetherPackageLoader();
+        loader.setRepositoryListener(new ConsoleRepositoryListener());
+        loader.setTransferListener(new ConsoleTransferListener());
+        loader.load(new FqPackageName("org.renjin.cran", "ACD"));
+        
+        System.out.println(Joiner.on("\n").join(loader.getClassLoader().getURLs()));
+
+
     }
 
     @Test

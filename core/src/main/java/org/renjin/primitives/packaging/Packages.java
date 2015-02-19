@@ -1,18 +1,17 @@
 package org.renjin.primitives.packaging;
 
-import java.io.IOException;
-
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.invoke.annotations.Invisible;
+import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.sexp.*;
+
+import java.io.IOException;
 
 public class Packages {
 
   @Builtin
-  @Invisible
   public static void library(
       @Current Context context,
       @Current NamespaceRegistry namespaceRegistry, 
@@ -42,6 +41,8 @@ public class Packages {
         packageEnv.setVariable(objectName, new DatasetObjectPromise(dataset, objectName));
       }
     }
+    
+    context.setInvisibleFlag();
   }
 
   @Builtin

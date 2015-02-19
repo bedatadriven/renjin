@@ -10,8 +10,6 @@ import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.primitives.packaging.ClasspathPackage;
-import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.FunctionCall;
@@ -86,7 +84,9 @@ public class Main {
 
   private void startInteractive() throws Exception {
     JlineRepl repl = new JlineRepl(session);
-    packageLoader.setTransferListener(new JLineAetherListener(repl.getReader()));
+    JLineAetherListener listener = new JLineAetherListener(repl.getReader());
+    packageLoader.setTransferListener(listener);
+    packageLoader.setPackageListener(listener);
     repl.run();
   }
 

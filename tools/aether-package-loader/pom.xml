@@ -21,7 +21,7 @@
       <artifactId>renjin-core</artifactId>
       <version>${project.version}</version>
     </dependency>
-
+    
     <!--  Aether  -->
     <dependency>
       <groupId>org.eclipse.aether</groupId>
@@ -108,5 +108,33 @@
       </exclusions>
     </dependency>
   </dependencies>
+  
+  <build>
+    
+    
+    <!-- Workaround to force Maven to build and install our dummy packages 
+         prior to running this module's tests, but NOT including them on the 
+         classpath, as the very thing we want to test is whether it can
+         be loaded if NOT available on the classpath -->
+    
+    <plugins>
+      <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.3.2</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.renjin.test</groupId>
+            <artifactId>alpha</artifactId>
+            <version>${project.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.renjin.test</groupId>
+            <artifactId>beta</artifactId>
+            <version>${project.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

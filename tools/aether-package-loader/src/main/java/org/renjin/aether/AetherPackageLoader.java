@@ -105,7 +105,9 @@ public class AetherPackageLoader implements PackageLoader {
       Artifact latestArtifact = resolveLatestArtifact(name);
 
       if (latestArtifact == null) {
-        packageListener.packageVersionResolutionFailed(name);
+        if (packageListener != null) {
+          packageListener.packageVersionResolutionFailed(name);
+        }
         return Optional.absent();
       }
 

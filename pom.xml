@@ -290,17 +290,6 @@
   </dependencyManagement>
 
   <profiles>
-
-    <profile>
-      <id>ci</id>
-      <activation>
-        <property><name>BUILD_NUMBER</name></property>
-      </activation>
-      <properties>
-        <renjin.display.version>${project.version}-b${BUILD_NUMBER}</renjin.display.version>
-      </properties>
-    </profile>
-
     <profile>
       <id>linux-64</id>
       <activation>

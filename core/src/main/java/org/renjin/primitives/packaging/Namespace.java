@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Namespace {
 
-  private List<Symbol> exports = Lists.newArrayList();
+  List<Symbol> exports = Lists.newArrayList();
   private final Environment namespaceEnvironment;
   private Package pkg;
 

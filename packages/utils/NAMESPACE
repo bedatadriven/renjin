@@ -155,3 +155,7 @@ export(Rtangle, RtangleSetup, RweaveLatex, RweaveLatexSetup, Stangle,
 #       setInternet2, arrangeWindows)
 #S3method(close, winProgressBar)
 #}
+
+
+importClass(org.renjin.utils.table.TableReader)
+importClass(org.renjin.utils.table.TableOptions)

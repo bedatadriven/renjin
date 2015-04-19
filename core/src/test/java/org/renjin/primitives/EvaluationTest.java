@@ -536,6 +536,12 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("length(matched)"), equalTo(c_i(2)));
   }
   
+  @Test
+  public void noPartialMatchingWhenEllipsesArePresent() {
+    eval("f<-function(..., aardvark) names(list(...))");
+    assertThat(eval("f(a=1)"), equalTo(c("a")));
+  }
+  
   
   @Test
   public void matchCallDotsNotExpanded() throws IOException {

@@ -26,7 +26,7 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.Closeables;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
-import org.renjin.parser.ParseUtil;
+import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
@@ -572,7 +572,7 @@ public class RDataReader {
       } else if("-Inf".equals(word)){
         return Double.NEGATIVE_INFINITY;
       } else {
-        return ParseUtil.parseDouble(word);
+        return NumericLiterals.parseDouble(word);
       }
     }
 

@@ -1,11 +1,10 @@
 package org.renjin.sexp;
 
-import java.util.Iterator;
-
-import org.apache.commons.math.complex.Complex;
-import org.renjin.parser.ParseUtil;
-
 import com.google.common.collect.UnmodifiableIterator;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.parser.NumericLiterals;
+
+import java.util.Iterator;
 
 
 public abstract class IntVector extends AbstractAtomicVector implements Iterable<Integer> {
@@ -64,7 +63,7 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
 
   @Override
   public String getElementAsString(int index) {
-    return isElementNA(index) ? StringVector.NA : ParseUtil.toString(getElementAsInt(index));
+    return isElementNA(index) ? StringVector.NA : NumericLiterals.format(getElementAsInt(index));
   }
 
   @Override

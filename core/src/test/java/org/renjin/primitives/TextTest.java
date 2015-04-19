@@ -258,7 +258,7 @@ public class TextTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval("x<-\"aaaa\"");
     eval("substr(x,2,3) <- \"xx\"");
-    assertThat(eval("x").toString(),equalTo("\"axxa\""));
+    assertThat(eval("x"), equalTo(c("axxa")));
   }
 
   @Test
@@ -266,7 +266,7 @@ public class TextTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval("x<-\"aaaa\"");
     eval("substr(x,1,2) <- \"xx\"");
-    assertThat(eval("x").toString(),equalTo("\"xxaa\""));
+    assertThat(eval("x"), equalTo(c("xxaa")));
   }
   
   @Test
@@ -274,7 +274,7 @@ public class TextTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval("x<-\"aaaa\"");
     eval("substr(x,3,4) <- \"xx\"");
-    assertThat(eval("x").toString(),equalTo("\"aaxx\""));
+    assertThat(eval("x"), equalTo(c("aaxx")));
   }
   
   @Test
@@ -282,7 +282,7 @@ public class TextTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval("x<-\"aaaa\"");
     eval("substr(x,1,4) <- \"xx\"");
-    assertThat(eval("x").toString(),equalTo("\"xxaa\""));
+    assertThat(eval("x"), equalTo(c("xxaa")));
   }
 
   @Test 

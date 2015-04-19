@@ -27,7 +27,7 @@ import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.parser.ParseUtil;
+import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.text.ReservedWords;
 import org.renjin.sexp.*;
 
@@ -530,7 +530,7 @@ public class Deparse {
         } else if(Double.isInfinite(value)) {
           return "Inf";
         } else {
-          return ParseUtil.toString(value);
+          return NumericLiterals.toString(value);
         }
       }
 
@@ -552,16 +552,16 @@ public class Deparse {
         double i = complex.getImaginary();
         if(DoubleVector.isFinite(r) && DoubleVector.isFinite(i)) {
           StringBuilder sb = new StringBuilder();
-          sb.append(ParseUtil.toString(complex.getReal()));
+          sb.append(NumericLiterals.toString(complex.getReal()));
           if(complex.getImaginary() >= 0 || Double.isNaN(complex.getImaginary())) {
             sb.append("+");
           }
-          sb.append(ParseUtil.toString(complex.getImaginary())).append("i");
+          sb.append(NumericLiterals.toString(complex.getImaginary())).append("i");
           return sb.toString();
         } else {
           return String.format("complex(real=%s, i=%s)",
-              ParseUtil.formatRealLiteral(r, "NA"),
-              ParseUtil.formatRealLiteral(i, "NA"));
+              NumericLiterals.format(r, "NA"),
+              NumericLiterals.format(i, "NA"));
         }
       }
 

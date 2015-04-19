@@ -29,35 +29,24 @@ import com.google.common.base.Strings;
 
 package org.renjin.primitives;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
+import org.renjin.parser.NumericLiterals;
+import org.renjin.primitives.io.connections.Connections;
+import org.renjin.primitives.io.connections.PushbackBufferedReader;
+import org.renjin.sexp.*;
+import org.renjin.sexp.LogicalArrayVector.Builder;
+
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import com.google.common.collect.Sets;
-import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.Internal;
-import org.renjin.parser.ParseUtil;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.primitives.io.connections.Connections;
-import org.renjin.primitives.io.connections.PushbackBufferedReader;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalArrayVector;
-import org.renjin.sexp.LogicalArrayVector.Builder;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public class Scan {
 
@@ -177,7 +166,7 @@ public class Scan {
 
     @Override
     public void read(String line) {
-      builder.add( ParseUtil.parseDouble(line) );
+      builder.add( NumericLiterals.parseDouble(line) );
     }
 
     @Override
@@ -191,7 +180,7 @@ public class Scan {
 
     @Override
     public void read(String line) {
-      builder.add( ParseUtil.parseInt( line ));
+      builder.add( NumericLiterals.parseInt(line));
     }
 
     @Override
@@ -473,8 +462,10 @@ public class Scan {
     @Override
     public boolean accept(String string) {
       try {
-        ParseUtil.parseInt(string);
-        return true;
+        double doubleValue = NumericLiterals.parseDouble(string);
+        int intValue = (int)doubleValue;
+        return ((double)intValue) == doubleValue;
+
       } catch(Exception e) {
         return false;
       }
@@ -482,7 +473,7 @@ public class Scan {
     
     @Override
     public void set(IntArrayVector.Builder builder, int index, String string) {
-      builder.set(index, ParseUtil.parseInt(string));
+      builder.set(index, NumericLiterals.parseInt(string));
     }
 
     @Override
@@ -496,14 +487,14 @@ public class Scan {
     @Override
     public boolean accept(String string) {
       try {
-        return !DoubleVector.isNA(ParseUtil.parseDouble(string));
+        return !DoubleVector.isNA(NumericLiterals.parseDouble(string));
       } catch(Exception e) {
         return false;
       }
     }
     @Override
     public void set(DoubleArrayVector.Builder builder, int index, String string) {
-      builder.set(index, ParseUtil.parseDouble(string));
+      builder.set(index, NumericLiterals.parseDouble(string));
     }
     @Override
     DoubleArrayVector.Builder newBuilder(int length) {

@@ -1,11 +1,10 @@
 package org.renjin.primitives.vector;
 
+import com.google.common.base.Preconditions;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
-
-import com.google.common.base.Preconditions;
 
 public class RowNamesVector extends StringVector {
 
@@ -14,6 +13,10 @@ public class RowNamesVector extends StringVector {
   public RowNamesVector(int length, AttributeMap attributes) {
     super(attributes);
     this.length = length;
+  }
+
+  public RowNamesVector(int numRows) {
+    this(numRows, AttributeMap.EMPTY);
   }
 
   @Override

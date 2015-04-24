@@ -115,6 +115,10 @@ public class Main {
     } catch(Exception e) {
       e.printStackTrace(System.err);
       System.err.println("Execution halted");
+    } finally {
+      if (threadPool != null && !threadPool.isShutdown()) {
+        threadPool.shutdown();
+      }
     }
   }
 

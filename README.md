@@ -22,8 +22,7 @@ dependency and repository:
   <dependency>
     <groupId>org.renjin</groupId>
     <artifactId>renjin-script-engine</artifactId>
-    <!-- check the public repository for the latest version! -->
-    <version>0.7.0-RC8-SNAPSHOT</version>
+    <version>RELEASE</version>
   </dependency>
 </dependencies>
 <repositories>
@@ -55,7 +54,8 @@ See [BUILDING](BUILDING.md) for more information.
 License
 =======
 
-Renjin is available under the GPLv3 license, see LICENSE.txt for the full text
-of the license. Renjin also includes code from R which is redistributed here.
-R uses [many different licenses](http://www.r-project.org/Licenses/) so check
-the file sources to see which license applies.
+Renjin is available under the GPLv3 license, see [LICENSE](LICENSE.txt) for the
+full text of the license. Renjin also includes code from R which is
+redistributed here. R uses
+[many different licenses](http://www.r-project.org/Licenses/) so check the file
+sources to see which license applies.

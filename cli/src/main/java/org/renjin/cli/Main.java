@@ -1,10 +1,22 @@
 package org.renjin.cli;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+
 import org.renjin.aether.AetherPackageLoader;
 import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
@@ -14,15 +26,6 @@ import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Main {
 
@@ -42,7 +45,12 @@ public class Main {
     parser.accepts("f", "Take input from 'FILE'")
         .withRequiredArg()
         .describedAs("FILE");
-
+    
+    parser.accepts("args", "Arguments to be passed on to R")
+      .withRequiredArg()
+      .withValuesSeparatedBy(' ')
+      .describedAs("ARGUMENTS");
+    
     OptionSet options;
     try {
       options = parser.parse(args);
@@ -66,6 +74,14 @@ public class Main {
 
     try {
       initSession();
+      if(options.has("args")) {
+        List<String> rArgs = new ArrayList<String>();
+        rArgs.add("--args"); /* Due to the unique way... */
+        rArgs.add((String) options.valueOf("args"));
+        rArgs.addAll(options.nonOptionArguments());
+        this.session.setCommandLineArguments("renjin", 
+            rArgs.toArray(new String[0]));
+      }
 
       if(options.has("e")) {
         evaluateExpression((String) options.valueOf("e"));

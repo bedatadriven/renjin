@@ -30,11 +30,7 @@ import org.renjin.primitives.CollectionUtils;
 import org.renjin.primitives.special.ReturnException;
 import org.renjin.sexp.*;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
@@ -164,11 +160,16 @@ public class ClosureDispatcher {
 
     List<PairList.Node> unmatchedFormals = Lists.newArrayList(formals.nodes());
 
+    boolean hasEllipses = false;
+    
     // do exact matching
     for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
       PairList.Node formal = formalIt.next();
       if(formal.hasTag()) {
         Symbol name = (Symbol) formal.getTag();
+        if(name == Symbols.ELLIPSES) {
+          hasEllipses = true;
+        }
         Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
 
         if(matches.size() == 1) {
@@ -184,26 +185,28 @@ public class ClosureDispatcher {
     }
 
     // do partial matching
-    Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
-    for(Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
-      PairList.Node actual = actualIt.next();
-      if(actual.hasTag()) {
-        Collection<PairList.Node> matches = Collections2.filter(remainingNamedFormals,
-            PairList.Predicates.startsWith(actual.getTag()));
+    if(!hasEllipses) {
+      Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
+      for (Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
+        PairList.Node actual = actualIt.next();
+        if (actual.hasTag()) {
+          Collection<PairList.Node> matches = Collections2.filter(remainingNamedFormals,
+                  PairList.Predicates.startsWith(actual.getTag()));
 
-        if(matches.size() == 1) {
-          PairList.Node match = first(matches);
-          result.add(match.getTag(), actual.getValue());
-          actualIt.remove();
-          unmatchedFormals.remove(match);
+          if (matches.size() == 1) {
+            PairList.Node match = first(matches);
+            result.add(match.getTag(), actual.getValue());
+            actualIt.remove();
+            unmatchedFormals.remove(match);
 
-        } else if(matches.size() > 1) {
-          throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments: %s",
-              actual.getTag().getPrintName(), argumentTagList(matches)));
+          } else if (matches.size() > 1) {
+            throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments: %s",
+                    actual.getTag().getPrintName(), argumentTagList(matches)));
+          }
         }
       }
     }
-
+    
     // match any unnamed args positionally
 
     Iterator<PairList.Node> formalIt = unmatchedFormals.iterator();

@@ -23,7 +23,7 @@ package org.renjin.sexp;
 
 import com.google.common.collect.Iterables;
 import org.renjin.eval.EvalException;
-import org.renjin.parser.ParseUtil;
+import org.renjin.parser.NumericLiterals;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -97,7 +97,7 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
         values[0] != null &&
         values[0].length() > 0)
     {
-      return ParseUtil.parseDouble(values[0]);
+      return NumericLiterals.parseDouble(values[0]);
     } else {
       return DoubleVector.NA;
     }
@@ -106,7 +106,7 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
   @Override
   public String toString() {
     if (values.length == 1) {
-      return ParseUtil.formatStringLiteral(values[0], "NA_character_");
+      return isElementNA(0) ? "NA_character_" : getElementAsString(0);
     } else {
       StringBuilder sb = new StringBuilder();
       sb.append("c(");

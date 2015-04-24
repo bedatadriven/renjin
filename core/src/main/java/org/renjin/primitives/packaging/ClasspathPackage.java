@@ -5,15 +5,20 @@ import com.google.common.io.Resources;
 import org.renjin.eval.EvalException;
 
 import java.io.IOException;
+import java.net.URL;
 
 /**
- * Provides access to a Renjin package that 
- * is on the classpath.
- *
+ * Provides access to a Renjin package that is on the application's classpath.
  */
 public class ClasspathPackage extends FileBasedPackage {
 
+  private ClassLoader classLoader;
 
+  public ClasspathPackage(ClassLoader classLoader, FqPackageName name) {
+    super(name);
+    this.classLoader = classLoader;
+  }
+  
   public ClasspathPackage(FqPackageName name) {
     super(name);
   }
@@ -24,25 +29,28 @@ public class ClasspathPackage extends FileBasedPackage {
 
   @Override
   public ByteSource getResource(String name) throws IOException {
-    String url = resourceUrl(name);
+    String qualifiedName = qualifyResourceName(name);
+    URL url = classLoader.getResource(qualifiedName);
+    if(url == null) {
+      throw new IOException(String.format("Could not find %s (%s)", name, qualifiedName));
+    }
     try {
-      return Resources.asByteSource(Resources.getResource(url));
+      return Resources.asByteSource(url);
     } catch(Exception e) {
-      throw new IOException("Could not load resource '" + name + "', " +
-          "url: " + url, e);
+      throw new IOException(String.format("Could not load %s (%s)", name, url.toString()), e);
     }
   }
 
   @Override
-  public Class getClass(String name) {
+  public Class loadClass(String name) {
     try {
-      return Class.forName(getName().getGroupId() + "." + getName().getPackageName() + "." + name);
+      return classLoader.loadClass(name);
     } catch (ClassNotFoundException e) {
       throw new EvalException(e.getMessage(), e);
     }
   }
 
-  private String resourceUrl(String name) {
+  private String qualifyResourceName(String name) {
     return
         getName().getGroupId().replace('.', '/') +
         "/" +
@@ -53,11 +61,7 @@ public class ClasspathPackage extends FileBasedPackage {
 
   @Override
   public boolean resourceExists(String name) {
-    try {
-      Resources.getResource(resourceUrl(name));
-      return true;
-    } catch(IllegalArgumentException e) {
-      return false;
-    }
+      URL url = classLoader.getResource(qualifyResourceName(name));
+      return url != null;
   }
 }

@@ -27,6 +27,9 @@
   <name>GCC Bridge Plugin</name>
   <description>GCC Plugin which provides GCC-Bridge with detailed Gimple Output</description>
 
+  <properties>
+    <gccLinkFlag>-shared</gccLinkFlag>
+  </properties>
   <build>
    <plugins>
    
@@ -60,7 +63,7 @@
                 if [ $RETVAL -ne 0 ]; then
                   exit $RETVAL
                 fi
-                gcc -shared $WORK_DIR/plugin.o -o $OUTPUT_DIR/gcc-bridge-${envClassifier}.so
+                gcc-4.6 ${gccLinkFlag} -o $OUTPUT_DIR/gcc-bridge-${envClassifier}.so $WORK_DIR/plugin.o
               </script>
             </configuration>
           </execution>
@@ -78,5 +81,20 @@
       </plugin>
     </plugins>
   </build>
-  
+
+<profiles>
+  <profile>
+      <id>apple-x86_64</id>
+      <activation>
+        <os>
+          <family>mac</family>
+          <arch>x86_64</arch>
+        </os>
+      </activation>
+      <properties>
+        <gccLinkFlag>-dynamiclib -undefined dynamic_lookup</gccLinkFlag>
+      </properties>
+    </profile>
+</profiles>
+
 </project>

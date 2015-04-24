@@ -30,65 +30,75 @@ import java.util.List;
  */
 public class FixedRE implements RE {
 
-  private String pattern;
-  private int matchStart;
+	private String pattern;
+	private int matchStart;
 
-  public FixedRE(String pattern) {
-    this.pattern = pattern;
-  }
+	public FixedRE(String pattern) {
+		this.pattern = pattern;
+	}
 
-  @Override
-  public boolean match(String search) {
-    int matchStart = search.indexOf(pattern);
-    return matchStart != -1;
-  }
+	@Override
+	public boolean match(String search) {
+		int matchStart = search.indexOf(pattern);
+		return matchStart != -1;
+	}
 
-  @Override
-  public String subst(String substituteIn, String substitution) {
-    throw new UnsupportedOperationException("subst not yet implemented for fixed RE");
-  }
+	@Override
+	public String subst(String substituteIn, String substitution) {
+		return substituteIn.replace(pattern, substitution);
+	}
 
-  @Override
-  public String subst(String substituteIn, String substitution, int flags) {
-    throw new UnsupportedOperationException("subst not yet implemented for fixed RE");
-  }
+	@Override
+	public String subst(String substituteIn, String substitution, int flags) {
+		if ((flags & ExtendedRE.REPLACE_FIRSTONLY) != 0) {
+			int io = substituteIn.indexOf(pattern);
+			if (io < 0) {
+				return substituteIn;
+			}
+			return substituteIn.substring(0, io) + substitution
+					+ substituteIn.substring(io + pattern.length());
+		} else {
+			return substituteIn.replace(pattern, substitution);
+		}
+	}
 
-  @Override
-  public String[] split(String s) {
-    List<String> splits = Lists.newArrayList();
-    int i=0;
-    int j;
-    while(i < s.length() && (j= nextMatch(s, i))!=-1) {
-      splits.add(s.substring(i,j));
-      if(pattern.isEmpty()) {
-        i = j + 1;
-      } else {
-        i = j+ pattern.length();
-      }
-    }
-    splits.add(s.substring(i));
-    return splits.toArray(new String[splits.size()]);
-  }
+	@Override
+	public String[] split(String s) {
+		List<String> splits = Lists.newArrayList();
+		int i = 0;
+		int j;
+		while (i < s.length() && (j = nextMatch(s, i)) != -1) {
+			splits.add(s.substring(i, j));
+			if (pattern.isEmpty()) {
+				i = j + 1;
+			} else {
+				i = j + pattern.length();
+			}
+		}
+		splits.add(s.substring(i));
+		return splits.toArray(new String[splits.size()]);
+	}
 
-  private int nextMatch(String s, int startingIndex) {
-    return s.indexOf(pattern,startingIndex);
-  }
+	private int nextMatch(String s, int startingIndex) {
+		return s.indexOf(pattern, startingIndex);
+	}
 
-  @Override
-  public int getGroupStart(int groupIndex) {
-    if(groupIndex != 0) {
-      throw new IllegalArgumentException("groupIndex out of bounds: fixed REs have no sub groups.");
-    }
-    return matchStart;
-  }
+	@Override
+	public int getGroupStart(int groupIndex) {
+		if (groupIndex != 0) {
+			throw new IllegalArgumentException(
+					"groupIndex out of bounds: fixed REs have no sub groups.");
+		}
+		return matchStart;
+	}
 
-  @Override
-  public int getGroupEnd(int groupIndex) {
-    int start = getGroupStart(groupIndex);
-    if(start == -1) {
-      return -1;
-    } else {
-      return start + pattern.length();
-    }
-  }
+	@Override
+	public int getGroupEnd(int groupIndex) {
+		int start = getGroupStart(groupIndex);
+		if (start == -1) {
+			return -1;
+		} else {
+			return start + pattern.length();
+		}
+	}
 }

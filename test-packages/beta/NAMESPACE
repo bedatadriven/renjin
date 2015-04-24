@@ -1,0 +1,8 @@
+
+
+importClass(com.fasterxml.jackson.databind.ObjectMapper)
+importClass(org.renjin.test.Beta)
+
+export(parseBeta)
+export(betaVersion)
+export(betaName)

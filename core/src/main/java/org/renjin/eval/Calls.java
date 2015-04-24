@@ -195,11 +195,16 @@ public class Calls {
 
     List<PairList.Node> unmatchedFormals = Lists.newArrayList(formals.nodes());
 
+    boolean hasEllipses = false;
+    
     // do exact matching
     for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
       PairList.Node formal = formalIt.next();
       if(formal.hasTag()) {
         Symbol name = formal.getTag();
+        if(name == Symbols.ELLIPSES) {
+          hasEllipses = true;
+        }
         Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
 
         if(matches.size() == 1) {
@@ -214,23 +219,25 @@ public class Calls {
       }
     }
 
-    // do partial matching
-    Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
-    for(Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
-      PairList.Node actual = actualIt.next();
-      if(actual.hasTag()) {
-        Collection<PairList.Node> matches = Collections2.filter(remainingNamedFormals,
-            PairList.Predicates.startsWith(actual.getTag()));
+    // do partial matching, as long as there is no ellipses (...) argument
+    if(!hasEllipses) {
+      Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
+      for (Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
+        PairList.Node actual = actualIt.next();
+        if (actual.hasTag()) {
+          Collection<PairList.Node> matches = Collections2.filter(remainingNamedFormals,
+                  PairList.Predicates.startsWith(actual.getTag()));
 
-        if(matches.size() == 1) {
-          PairList.Node match = first(matches);
-          result.add(match.getTag(), actual.getValue());
-          actualIt.remove();
-          unmatchedFormals.remove(match);
+          if (matches.size() == 1) {
+            PairList.Node match = first(matches);
+            result.add(match.getTag(), actual.getValue());
+            actualIt.remove();
+            unmatchedFormals.remove(match);
 
-        } else if(matches.size() > 1) {
-          throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments: %s",
-              actual.getTag().getPrintName(), argumentTagList(matches)));
+          } else if (matches.size() > 1) {
+            throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments: %s",
+                    actual.getTag().getPrintName(), argumentTagList(matches)));
+          }
         }
       }
     }

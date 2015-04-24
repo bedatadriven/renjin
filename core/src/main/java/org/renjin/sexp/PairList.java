@@ -361,6 +361,11 @@ public interface PairList extends SEXP {
       return singleton(Symbol.get(tag), value);
     }
 
+    public static Node singleton(SEXP value) {
+      return new Node(Null.INSTANCE, value, Null.INSTANCE);
+    }
+
+
     /**
      * Iterator that iterators over the {@code ListExp}'s values
      */

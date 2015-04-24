@@ -55,7 +55,7 @@ public class LazyLoadFrameBuilderTest {
     }
 
     @Override
-    public Class getClass(String name) {
+    public Class loadClass(String name) {
       throw new UnsupportedOperationException();
     }
   }

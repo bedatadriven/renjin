@@ -274,12 +274,17 @@ public class System {
   }
 
   @Internal
-  public static DoubleVector gc(boolean verbose, boolean reset) {
-    try {
-      java.lang.System.gc();
-    } catch(Exception e) {
-      
-    }
+  public static DoubleVector gc(@Current Context context, boolean verbose, boolean reset) {
+    // Ask the JVM nicely to run garbage collection
+    java.lang.System.gc();
+
+    // Invoke any finalizers on environments that have been queued for
+    // garbage collection
+    context.getSession().runFinalizers();
+
+    // We don't have details comparable to the output of
+    // GNU R's method, but return something that hopefully
+    // won't break anything.
     return new DoubleArrayVector();
   }
   

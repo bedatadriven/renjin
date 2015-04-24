@@ -27,10 +27,10 @@ import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.parser.RParser;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.special.ReturnException;
@@ -423,5 +423,5 @@ public class Evaluation {
       envir.remove(Symbol.get(name));
     }
   }
-  
+
 }

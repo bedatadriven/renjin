@@ -1,11 +1,5 @@
 package org.renjin.primitives;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
@@ -16,6 +10,12 @@ import org.renjin.sexp.ExternalPtr;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+import java.io.File;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+
 
 /**
  * Renjin-specific JVM interface primitives for interacting with 
@@ -25,17 +25,14 @@ import org.renjin.sexp.Symbol;
 public class Jvmi {
 
   private Jvmi() {
-    
   }
   
   @Builtin("import")
-  public static SEXP importClass(@Current Context context, @Current Environment rho, 
-        @Unevaluated Symbol className) {
+  public static SEXP importClass(@Current Context context, @Current Environment rho, @Unevaluated Symbol className) {
         
-    //TODO to suport import(org.apache.hadoop.io.*)
     Class clazz;
     try {
-      clazz = Class.forName(className.getPrintName());
+      clazz = context.getSession().getClassLoader().loadClass(className.getPrintName());
     } catch (ClassNotFoundException e) {
       throw new EvalException("Cannot find class '%s'", className);
     }
@@ -51,7 +48,7 @@ public class Jvmi {
 
     return ptr;
   }
-  
+
 
   public static void addURL(URL u){
 //    URLClassLoader sysloader = (URLClassLoader) ClassLoader

@@ -1,21 +1,55 @@
 package org.renjin.primitives;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
+import java.util.Arrays;
+
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.*;
-import org.renjin.invoke.reflection.converters.*;
-import org.renjin.primitives.vector.ConstantDoubleVector;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.DataParallel;
+import org.renjin.invoke.annotations.Generic;
+import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.Recycle;
+import org.renjin.invoke.reflection.converters.BooleanArrayConverter;
+import org.renjin.invoke.reflection.converters.BooleanConverter;
+import org.renjin.invoke.reflection.converters.DoubleArrayConverter;
+import org.renjin.invoke.reflection.converters.DoubleConverter;
+import org.renjin.invoke.reflection.converters.IntegerArrayConverter;
+import org.renjin.invoke.reflection.converters.IntegerConverter;
+import org.renjin.invoke.reflection.converters.StringArrayConverter;
+import org.renjin.invoke.reflection.converters.StringConverter;
+import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.ComplexArrayVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.ExternalPtr;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalArrayVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.RawVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 import org.renjin.util.NamesBuilder;
 
-import java.util.Arrays;
+import com.google.common.base.Charsets;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 
 /**
  * Functions which operate on Vectors
@@ -284,28 +318,6 @@ public class Vectors {
     }
   }
 
-  @Builtin("storage.mode<-")
-  public static SEXP setStorageMode(Vector source, String newMode) {
-    Vector.Builder builder;
-    if (newMode.equals("logical")) {
-      builder = new LogicalArrayVector.Builder();
-    } else if (newMode.equals("double")) {
-      builder = new DoubleArrayVector.Builder();
-    } else if (newMode.equals("integer")) {
-      builder = new IntArrayVector.Builder();
-    } else if (newMode.equals("character")) {
-      builder = new StringVector.Builder();
-    } else {
-      throw new UnsupportedOperationException("storage.mode with new mode '"
-          + newMode + "' invalid or not implemented");
-    }
-
-    for (int i = 0; i != source.length(); ++i) {
-      builder.setFrom(i, source, i);
-    }
-    return builder.copyAttributesFrom(source).build();
-  }
-
   @Internal
   public static SEXP vector(String mode, int length) {
     if ("logical".equals(mode)) {
@@ -315,7 +327,7 @@ public class Vectors {
       return new IntArrayVector(new int[length]);
 
     } else if ("numeric".equals(mode) || "double".equals(mode)) {
-      return new ConstantDoubleVector(0, length);
+      return RepDoubleVector.createConstantVector(0, length);
 
     } else if ("complex".equals(mode)) {
       throw new UnsupportedOperationException("implement me!");

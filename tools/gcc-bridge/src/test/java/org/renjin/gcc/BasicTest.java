@@ -309,6 +309,18 @@ public class BasicTest extends AbstractGccTest {
   }
 
   @Test
+  public void bitwiseOperators() throws Exception {
+    Class clazz = compile("bitwiseops.c", "Bitwise");
+    
+    assertThat(call(clazz, "bitwise_lshift", 16, 2), equalTo(16 << 2));
+    assertThat(call(clazz, "bitwise_rshift", 16, 2), equalTo(16 >> 2));
+    assertThat(call(clazz, "bitwise_xor", 16, 1024), equalTo(16 ^ 1024));
+    assertThat(call(clazz, "bitwise_not", 4096), equalTo(~4096));
+
+
+  }
+  
+  @Test
   public void voidInference() throws Exception {
     compile("lamix.f", "Lamix");
   }

@@ -91,7 +91,23 @@ public class AssignmentTranslator {
     case BIT_AND_EXPR:
       assignBinaryOp(lhs, "&", operands);
       break;
-      
+
+    case BIT_IOR_EXPR:
+      assignBinaryOp(lhs, "|", operands);
+      break;
+
+    case BIT_XOR_EXPR:
+      assignBinaryOp(lhs, "^", operands);
+      break;
+    
+    case LSHIFT_EXPR:
+      assignBinaryOp(lhs, "<<", operands);
+      break;
+    
+    case RSHIFT_EXPR:
+      assignBinaryOp(lhs, ">>", operands);
+      break;
+    
     case NEGATE_EXPR:
       assignNegated(lhs, operands.get(0));
       break;
@@ -309,6 +325,8 @@ public class AssignmentTranslator {
         return "double abs(double)";
       case INT:
         return "int abs(int)";
+      case FLOAT:
+        return "float abs(float)";
     }
     throw new UnsupportedOperationException("abs on type " + type.toString());
   }

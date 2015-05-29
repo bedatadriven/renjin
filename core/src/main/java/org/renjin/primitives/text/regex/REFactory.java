@@ -21,7 +21,7 @@
 
 package org.renjin.primitives.text.regex;
 
-import org.renjin.eval.EvalException;
+import com.google.common.base.Predicate;
 
 /**
  * Compiles a regular expression based on the supplied options.
@@ -46,5 +46,14 @@ public class REFactory {
     } else {
       return new ExtendedRE(pattern, ignoreCase);
     } 
+  }
+  
+  public static Predicate<String> asPredicate(final RE re) {
+    return new Predicate<String>() {
+      @Override
+      public boolean apply(String input) {
+        return re.match(input);
+      }
+    };
   }
 }

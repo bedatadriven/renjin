@@ -1,14 +1,10 @@
 package org.renjin.stats.internals;
 
-import java.util.BitSet;
-
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.matrix.DoubleMatrixBuilder;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.util.BitSet;
 
 
 public class VarianceCalculator {
@@ -17,6 +13,7 @@ public class VarianceCalculator {
     private AtomicVector vector;
     private int variables; 
     private int observations;
+    private Vector names = Null.INSTANCE;
 
     public VariableSet(AtomicVector vector) {
       this.vector = vector;
@@ -30,6 +27,11 @@ public class VarianceCalculator {
         }
         this.observations = dim.getElementAsInt(0);
         this.variables = dim.getElementAsInt(1);
+
+        Vector dimNames = vector.getAttributes().getDimNames();
+        if(dimNames != Null.INSTANCE && dimNames.length() == 2) {
+          names = dimNames.getElementAsSEXP(1);
+        }
       }    
     }
     
@@ -273,6 +275,9 @@ public class VarianceCalculator {
   
   private DoubleVector selfCalculate() {
     result = new DoubleMatrixBuilder(this.x.variables, this.x.variables);
+    result.setRowNames(this.x.names);
+    result.setColNames(this.x.names);
+    
     int nVars = x.variables;
     for(int i=0;i!=nVars;++i) {
       result.set(i, i, method.calculate(x.getVariable(i)));

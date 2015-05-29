@@ -11,18 +11,7 @@ import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.sequence.RepLogicalVector;
 import org.renjin.primitives.vector.ComputingIntVector;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 
 /**
@@ -34,7 +23,6 @@ public class Matrices {
 
   @Internal("t.default")
   public static Vector transpose(Vector x) {
-    // Actually allocate the memory and perform transposition
     Vector dimensions = x.getAttributes().getDim();
     if(dimensions.length() == 0) {
       return (Vector)x.setAttributes(AttributeMap.dim(1, x.length()));
@@ -43,9 +31,24 @@ public class Matrices {
       int nrows = dimensions.getElementAsInt(0);
       int ncols = dimensions.getElementAsInt(1);
 
+      /*
+       * Transpose the attributes
+       */
+      AttributeMap.Builder attributes = new AttributeMap.Builder();
+      attributes.setDim(ncols, nrows);
+
+      if (!(x.getAttribute(Symbols.DIMNAMES) instanceof org.renjin.sexp.Null)) {
+        ListVector dimNames = (ListVector) x.getAttribute(Symbols.DIMNAMES);
+        ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
+        attributes.set(Symbols.DIMNAMES, newDimNames);
+      }
+
+      /*
+       * Transpose the values
+       */
       if(x.length() > TransposingMatrix.LENGTH_THRESHOLD) {
         // Just wrap the matrix
-        return new TransposingMatrix(x, AttributeMap.dim(ncols, nrows));
+        return new TransposingMatrix(x, attributes.build());
 
       } else {
         // actually allocate the memory
@@ -57,13 +60,7 @@ public class Matrices {
                     Indexes.matrixIndexToVectorIndex(i, j, nrows, ncols));
           }
         }
-        if (!(x.getAttribute(Symbols.DIMNAMES) instanceof org.renjin.sexp.Null)) {
-          ListVector dimNames = (ListVector) x.getAttribute(Symbols.DIMNAMES);
-          ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
-          builder.setAttribute(Symbols.DIMNAMES, newDimNames);
-        }
-        builder.setDim(ncols, nrows);
-        return builder.build();
+        return (Vector)builder.build().setAttributes(attributes.build());
       }
     } else {
       throw new EvalException("argument is not a matrix");

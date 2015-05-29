@@ -125,10 +125,12 @@ public class Scan {
         continue;
       }
       linesRead ++;
-      if(!Strings.isNullOrEmpty(commentChar)) {
-        if(line.startsWith(commentChar)) {
-          continue;
-        }
+
+      if(blankLinesSkip && line.isEmpty()) {
+        continue;
+      }
+      if(!Strings.isNullOrEmpty(commentChar) && line.startsWith(commentChar)) {
+        continue;
       }
       scanner.read(line);
     }

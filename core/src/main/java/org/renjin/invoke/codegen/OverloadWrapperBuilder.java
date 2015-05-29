@@ -7,14 +7,13 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.invoke.annotations.Materialize;
-import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.invoke.codegen.args.ArgConverterStrategies;
 import org.renjin.invoke.codegen.args.ArgConverterStrategy;
+import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
 
 import java.util.Collections;
 import java.util.List;
@@ -165,7 +164,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
     for(JvmMethod.Argument argument : overload.getAllArguments()) {
       invocation.arg(argumentMap.get(argument));
     }
-    CodeModelUtils.returnSexp(codeModel, block, overload, invocation);
+    CodeModelUtils.returnSexp(context, codeModel, block, overload, invocation);
   }
 
   /**

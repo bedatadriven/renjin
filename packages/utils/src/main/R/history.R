@@ -42,7 +42,9 @@ timestamp <- function(stamp = date(), prefix = "##------ ",
                       suffix = " ------##", quiet = FALSE)
 {
     stamp <- paste(prefix, stamp, suffix, sep = "")
-    .Internal(addhistory(stamp))
+   # GNU R helpfully adds a timestamp comment to your command line history as 
+   # a somewhat surprising side effect of this method. 
+   # .Internal(addhistory(stamp))
     if (!quiet) cat(stamp, sep = "\n")
     invisible(stamp)
 }

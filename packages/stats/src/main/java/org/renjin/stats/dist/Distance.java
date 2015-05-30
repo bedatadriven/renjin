@@ -2,6 +2,7 @@ package org.renjin.stats.dist;
 
 
 import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.Null;
 import org.renjin.sexp.Vector;
 
 public class Distance {
@@ -15,7 +16,7 @@ public class Distance {
     if(x instanceof Euclidean1dDistanceTriangle) {
       return new Euclidean1dDistanceMatrix ( ((Euclidean1dDistanceTriangle) x).getVector() );
     } else {
-      return new DistanceMatrix(x, AttributeMap.EMPTY);
+      return Null.INSTANCE;
     }
   }
 }

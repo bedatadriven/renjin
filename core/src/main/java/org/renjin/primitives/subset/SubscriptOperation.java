@@ -321,7 +321,7 @@ public class SubscriptOperation {
         return new ShadedRowMatrix((DoubleVector) source).setShadedRow(row, (DoubleVector)elements);
       }
     }
-//    System.out.println("NOT deferring replacement");
+//    System.out.println("NOT deferring replacement, n=" + source.length());
 //    System.out.println(subscripts.size() == 2);
 //    if (subscripts.size() > 1) {
 //      System.out.println(subscripts.get(1).equals(Symbol.MISSING_ARG));

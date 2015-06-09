@@ -1,17 +1,20 @@
 package org.renjin.compiler.pipeline;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.Vector;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
+
+import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.Vector;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 
 public class MultiThreadedVectorPipeliner implements VectorPipeliner {
@@ -29,6 +32,8 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
     if(VectorPipeliner.DEBUG) {
       graph.dumpGraph();
     }
+    
+    
 
     // force any memoized values in the graph
     try {
@@ -58,7 +63,7 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
   private void forceMemoizedValues(DeferredGraph graph) throws InterruptedException, ExecutionException {
     Multimap<DeferredNode, DeferredNode> dependencies = HashMultimap.create();
     findDependencies(graph.getRoot(), graph.getRoot(), dependencies);
-
+    
     // define set of nodes to be computed
     Set<DeferredNode> toCompute = Sets.newHashSet();
     for(DeferredNode node : graph.getNodes()) {
@@ -66,7 +71,7 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
         toCompute.add(node);
       }
     }
-
+    
     // execute in parallel
     ExecutorCompletionService<DeferredNode> service = new ExecutorCompletionService<DeferredNode>(executorService);
 

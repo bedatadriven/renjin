@@ -2,6 +2,7 @@ package org.renjin.compiler.pipeline;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.renjin.compiler.pipeline.optimize.Optimizers;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
@@ -36,6 +37,11 @@ public class DeferredGraph {
     addChildren(this.rootNode);
 
     Optimizers optimizers = new Optimizers();
+    if(VectorPipeliner.DEBUG) {
+      System.out.print("unopt");
+      this.dumpGraph();
+    }
+    
     optimizers.optimize(this);
     removeOrphans();
   }

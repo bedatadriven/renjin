@@ -46,6 +46,7 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
   public double getElementAsDouble(int index) {
     if(this.sums == null) {
       System.err.println("EEK! colSums.computeMeans() called through getElementAsDouble()");
+    // Thread.dumpStack();
       computeMeans();
     }
     return sums[index];

@@ -1,6 +1,7 @@
 package org.renjin.primitives.matrix;
 
 import org.renjin.primitives.vector.AttributeDecoratingVector;
+import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.AttributeMap;
@@ -44,6 +45,7 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
   @Override
   public double getElementAsDouble(int index) {
     if(this.sums == null) {
+      System.err.println("EEK! colSums.computeMeans() called through getElementAsDouble()");
       computeMeans();
     }
     return sums[index];
@@ -60,8 +62,6 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
   }
 
   private void computeMeans() {
-   // System.err.println("EEK! colSums.computeMeans() called directly");
-    //Thread.dumpStack();
     double sums[] = new double[numColumns];
     for(int column=0; column < numColumns; column++) {
       int sourceIndex = columnLength*column;

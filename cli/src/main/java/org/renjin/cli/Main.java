@@ -139,7 +139,8 @@ public class Main {
   }
 
   public void initSession() throws Exception {
-    threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    threadPool = Executors.newFixedThreadPool(Integer.parseInt(
+        System.getProperty("renjin.vp.threads", ""+Runtime.getRuntime().availableProcessors())));
 
     packageLoader = new AetherPackageLoader();
     this.session = new SessionBuilder()

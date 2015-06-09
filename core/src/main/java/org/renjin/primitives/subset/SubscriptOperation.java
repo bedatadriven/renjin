@@ -314,8 +314,6 @@ public class SubscriptOperation {
         elements instanceof DoubleVector && 
         selection.getSubscriptDimensions()[1] == elements.length()) {  
       // hooray for boobies
-      System.out.println("deferring replacement");
-
       int row = ((IntVector)subscripts.get(0)).getElementAsInt(0);
       if (source instanceof ShadedRowMatrix) {
         return ((ShadedRowMatrix) source).withShadedRow(row, (DoubleVector)elements);
@@ -323,18 +321,18 @@ public class SubscriptOperation {
         return new ShadedRowMatrix((DoubleVector) source).setShadedRow(row, (DoubleVector)elements);
       }
     }
-    System.out.println("NOT deferring replacement");
-    System.out.println(subscripts.size() == 2);
-    if (subscripts.size() > 1) {
-      System.out.println(subscripts.get(1).equals(Symbol.MISSING_ARG));
-      System.out.println(subscripts.get(0).length() == 1);
-      System.out.println(selection.getSubscriptDimensions()[1] == elements.length());
-    } else {
-      System.out.println("subscripts.size() != 2");
-    }
-    System.out.println(selection instanceof DimensionSelection);
-    System.out.println(source instanceof DoubleVector);
-    System.out.println(source.getClass().getName());
+//    System.out.println("NOT deferring replacement");
+//    System.out.println(subscripts.size() == 2);
+//    if (subscripts.size() > 1) {
+//      System.out.println(subscripts.get(1).equals(Symbol.MISSING_ARG));
+//      System.out.println(subscripts.get(0).length() == 1);
+//      System.out.println(selection.getSubscriptDimensions()[1] == elements.length());
+//    } else {
+//      System.out.println("subscripts.size() != 2");
+//    }
+//    System.out.println(selection instanceof DimensionSelection);
+//    System.out.println(source instanceof DoubleVector);
+//    System.out.println(source.getClass().getName());
 
     
     // TODO: this should be avoided if possible.

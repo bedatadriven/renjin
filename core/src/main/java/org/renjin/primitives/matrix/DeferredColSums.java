@@ -60,10 +60,10 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
   }
 
   private void computeMeans() {
-//    System.err.println("EEK! colSums.computeMeans() called directly");
-//    Thread.dumpStack();
+   // System.err.println("EEK! colSums.computeMeans() called directly");
+    //Thread.dumpStack();
     double sums[] = new double[numColumns];
-    for(int column=0;column < numColumns; column++) {
+    for(int column=0; column < numColumns; column++) {
       int sourceIndex = columnLength*column;
       double sum = 0;
       for(int row=0;row < columnLength; ++row) {

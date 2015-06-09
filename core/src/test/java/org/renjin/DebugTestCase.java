@@ -11,7 +11,7 @@ public class DebugTestCase extends EvalTestCase{
     eval("bar <- function(y, b) sum(y)*b");
     eval("z <- 1:100");
     eval("b <- 42");
-    eval("togglehorriddebug()");
+    //eval("togglehorriddebug()");
     eval("a <- bar(foo(z), b)");
   }
 }

@@ -26,9 +26,11 @@ import com.google.common.collect.Sets;
 
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.combine.view.CombinedIntVector;
+import org.renjin.primitives.subset.lazy.ShadedRowMatrix;
 import org.renjin.primitives.vector.AttributeDecoratingIntVector;
 import org.renjin.sexp.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -304,14 +306,36 @@ public class SubscriptOperation {
     }
 
     // row-wise matrix assignment
-    if (subscripts.size() == 2 && subscripts.get(1).equals(Symbol.MISSING_ARG)) {      
-      System.out.println(source.length());
-      System.out.println( selection.getSubscriptDimensions());
-      System.out.println(elements.length());
+    // we are fairly paranoid here and do not support e.g. recycling of values
+    // TODO: col-wise matrix assignment. eventually.
+    if (subscripts.size() == 2 && subscripts.get(1).equals(Symbol.MISSING_ARG) && 
+        subscripts.get(0).length() == 1 && 
+        selection instanceof DimensionSelection && source instanceof DoubleVector && 
+        elements instanceof DoubleVector && 
+        selection.getSubscriptDimensions()[1] == elements.length()) {  
+      // hooray for boobies
+      System.out.println("deferring replacement");
+
+      int row = ((IntVector)subscripts.get(0)).getElementAsInt(0);
+      if (source instanceof ShadedRowMatrix) {
+        return ((ShadedRowMatrix) source).withShadedRow(row, (DoubleVector)elements);
+      } else {
+        return new ShadedRowMatrix((DoubleVector) source).setShadedRow(row, (DoubleVector)elements);
+      }
     }
-    
-    // TODO: col-wise matrix assignment
-    
+    System.out.println("NOT deferring replacement");
+    System.out.println(subscripts.size() == 2);
+    if (subscripts.size() > 1) {
+      System.out.println(subscripts.get(1).equals(Symbol.MISSING_ARG));
+      System.out.println(subscripts.get(0).length() == 1);
+      System.out.println(selection.getSubscriptDimensions()[1] == elements.length());
+    } else {
+      System.out.println("subscripts.size() != 2");
+    }
+    System.out.println(selection instanceof DimensionSelection);
+    System.out.println(source instanceof DoubleVector);
+    System.out.println(source.getClass().getName());
+
     
     // TODO: this should be avoided if possible.
     Vector.Builder result = createReplacementBuilder(elements);

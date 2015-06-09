@@ -55,7 +55,7 @@ public class ShadedRowMatrix extends DoubleVector implements DeferredComputation
 
   @Override
   public double getElementAsDouble(int index) {
-    int col = Math.floorDiv(index, colheight);
+    int col = index / colheight;
     int row = (index % colheight)+1;
     if (fiftyShadesOfDoubles.containsKey(row)) {
       return fiftyShadesOfDoubles.get(row).get(col);

@@ -74,7 +74,7 @@ public class AetherPackageLoader implements PackageLoader {
 
     repositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
     repositories.add(new RemoteRepository.Builder("renjin", "default", "http://nexus.bedatadriven.com/content/groups/public/").build());
-    
+//    
     // Ensure that we don't load old versions of renjin onto the classpath
     // that might conflict with the current version.
     loadedPackages.add("org.renjin:renjin-core");

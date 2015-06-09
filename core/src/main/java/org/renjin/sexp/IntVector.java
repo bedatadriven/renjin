@@ -225,9 +225,29 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
     return sb.toString();
   }
 
+  private Boolean hasNA = null;
+  
   @Override
   public boolean isElementNA(int index) {
-    return isNA(getElementAsInt(index));
+    if (hasNA != null && hasNA == false) {
+      return false;
+    }
+    if (hasNA != null && hasNA == true) {
+      return isNA(getElementAsInt(index));
+    }
+    /* we do the synchronized block only if we need to determine the nasNA flag*/
+    synchronized (this) {
+      if (hasNA == null) {
+        hasNA = false;
+        for (int i = 0; i < this.length(); i++) {
+          if (isNA(getElementAsInt(i))) {
+            hasNA = true;
+            break;
+          }
+        }
+      }
+    }
+    return isElementNA(index);
   }
 
   private static class IntType extends Type {

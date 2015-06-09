@@ -46,7 +46,7 @@ public class Main {
         .withRequiredArg()
         .describedAs("FILE");
     
-    parser.accepts("args", "Arguments to be passed on to R")
+    parser.accepts("args", "Script arguments")
       .withRequiredArg()
       .withValuesSeparatedBy(' ')
       .describedAs("ARGUMENTS");

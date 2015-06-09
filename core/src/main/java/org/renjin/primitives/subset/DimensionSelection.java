@@ -94,6 +94,19 @@ public class DimensionSelection extends Selection {
   public int[] getSubscriptDimensions() {
     return dim;
   }
+  
+  public int getMinSourceIndex() {
+    return -1;
+  }
+  
+  public int getMaxSourceIndex() {
+    int sourceIndices[] = new int[sourceDim.length];
+    for(int i=0;i!=sourceDim.length;++i) {
+      sourceIndices[i] = subscripts[i].getAt(0);
+    }
+
+    return Indexes.arrayIndexToVectorIndex(sourceIndices, sourceDim);
+  }
 
   @Override
   public Iterator<Integer> iterator() {

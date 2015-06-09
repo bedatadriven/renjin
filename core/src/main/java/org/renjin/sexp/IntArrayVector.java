@@ -57,7 +57,7 @@ public class IntArrayVector extends IntVector {
   public int getElementAsInt(int i) {
     return values[i];
   }
-
+  
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     IntArrayVector clone = new IntArrayVector(attributes);

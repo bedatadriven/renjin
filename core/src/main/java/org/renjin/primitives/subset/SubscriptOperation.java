@@ -23,7 +23,10 @@ package org.renjin.primitives.subset;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.combine.view.CombinedIntVector;
+import org.renjin.primitives.vector.AttributeDecoratingIntVector;
 import org.renjin.sexp.*;
 
 import java.util.List;
@@ -105,7 +108,7 @@ public class SubscriptOperation {
 
   public SEXP extractSingle() {
 
-    // this seems like an abritrary limitation,
+    // this seems like an arbitrary limitation,
     // that is x[[TRUE]] happily takes the first item but
     // x[[1:2]] will throw an error, may be we can
     // just drop the distinction across the board?
@@ -127,7 +130,7 @@ public class SubscriptOperation {
     return source.getElementAsSEXP(index);
 
   }
-
+  
   public Vector extract() {
 
     if(source == Null.INSTANCE) {
@@ -139,22 +142,69 @@ public class SubscriptOperation {
       if(source.getAttribute(Symbols.NAMES) != Null.INSTANCE) {
         names = new StringArrayVector.Builder();
       }
-      Vector.Builder result = source.newBuilderWithInitialSize(selection.getElementCount());
-      int count = 0;
+      
+      /* special case, if vector was combined and the selection indices match the combination borders, do not copy */
+      // TODO: this only considers combined int vectors for now, it should consider others as well.
+      // TODO: handle higher- (or lower-) dimension selections as well
+      // TODO: this could also handle the case where the selection is not an exact match but maps to a subset of one of the parts
+      // TODO: deal with names?
+      Vector.Builder result = null;
+      if (selection instanceof DimensionSelection && source instanceof CombinedIntVector) {
+        CombinedIntVector civ = (CombinedIntVector) source;
+        DimensionSelection ds = (DimensionSelection) selection;
+        int[] endIndices = civ.getEndIndices();
+        int[] dim = ds.getSubscriptDimensions();
+        IntVector retVec = null;
 
-      for(Integer index : selection) {
-        if(!IntVector.isNA(index) && index < source.length()) {
-          result.setFrom(count++, source, index);
-          if(names != null) {
-            names.add(source.getName(index));
+        if (dim.length == 2 && dim[1] == 1) {
+          
+          // TODO: there must be a better way to get those without iterating over them
+          int minIndex = -1;
+          int maxIndex = -1;
+    
+          for(int index : ds) {
+            if (minIndex < 0) {
+              minIndex = index;
+            }
+            if (index > maxIndex) {
+              maxIndex = index;
+            }
           }
-        } else {
-          result.setNA(count++);
-          if(names != null) {
-            names.addNA();
+          
+          if (minIndex == 0 && endIndices[0] == maxIndex+1) {
+            retVec = (IntVector) civ.getOperands()[0];
+          }
+          for (int i = 0; i < endIndices.length - 1; i++) {
+            if (endIndices[i] == minIndex && endIndices[i+1] == maxIndex+1) {
+              retVec = (IntVector) civ.getOperands()[i];
+              break;
+            }
+          }
+          if (Vector.DEBUG_ALLOC) {
+            System.out.println("Not allocating int vector of length " + dim[0]);
+          }
+          result = AttributeDecoratingIntVector.newAttributeDecoratingIntBuilder(retVec);
+        }
+      }
+      if (result == null) { /* this is happening in most cases. copies unfortunately */
+        result = source.newBuilderWithInitialSize(selection.getElementCount());
+        int count = 0;
+
+        for(Integer index : selection) {
+          if(!IntVector.isNA(index) && index < source.length()) {
+            result.setFrom(count++, source, index);
+            if(names != null) {
+              names.add(source.getName(index));
+            }
+          } else {
+            result.setNA(count++);
+            if(names != null) {
+              names.addNA();
+            }
           }
         }
       }
+      
       result.setAttribute(Symbols.DIM, extractionDimension());
       
       // COMPUTE NAMES:
@@ -253,6 +303,17 @@ public class SubscriptOperation {
       throw new EvalException("replacement has zero length");
     }
 
+    // row-wise matrix assignment
+    if (subscripts.size() == 2 && subscripts.get(1).equals(Symbol.MISSING_ARG)) {      
+      System.out.println(source.length());
+      System.out.println( selection.getSubscriptDimensions());
+      System.out.println(elements.length());
+    }
+    
+    // TODO: col-wise matrix assignment
+    
+    
+    // TODO: this should be avoided if possible.
     Vector.Builder result = createReplacementBuilder(elements);
     
     int replacement = 0;
@@ -265,6 +326,8 @@ public class SubscriptOperation {
         }
       }
     }
+    // TODO: we could replace this builder wihth a view (if indices are continous and elements is a vector)
+    
     return result.build();
   }
 

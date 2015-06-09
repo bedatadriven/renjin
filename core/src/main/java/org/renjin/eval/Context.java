@@ -21,12 +21,19 @@
 
 package org.renjin.eval;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -36,17 +43,28 @@ import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.PromisePairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SexpVisitor;
+import org.renjin.sexp.Symbol;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
- * Contexts are the internal mechanism used to keep track of where a
- * computation has got to (and from where),
- * so that control-flow constructs can work and reasonable information
- * can be produced on error conditions,
- * (such as via traceback) and otherwise (the sys.xxx functions).
+ * Contexts are the internal mechanism used to keep track of where a computation
+ * has got to (and from where), so that control-flow constructs can work and
+ * reasonable information can be produced on error conditions, (such as via
+ * traceback) and otherwise (the sys.xxx functions).
  */
 public class Context {
 
@@ -91,21 +109,20 @@ public class Context {
   private int evaluationDepth;
   private Type type;
   private Environment environment;
-  private Session session; 
+  private Session session;
   private FunctionCall call;
   private Closure closure;
-  
+
   /**
    * The environment from which the closure was called
    */
   private Environment callingEnvironment;
-  
+
   private PairList arguments = Null.INSTANCE;
 
   /**
-   * Conditions are analogous to Exceptions.
-   * Handlers are R functions that are called immediately when
-   * conditions are signaled.
+   * Conditions are analogous to Exceptions. Handlers are R functions that are
+   * called immediately when conditions are signaled.
    */
   private Map<String, SEXP> conditionHandlers = Maps.newHashMap();
 
@@ -116,8 +133,8 @@ public class Context {
 
   /**
    *
-   * @return a new top level context using the default VFS FileSystemManager and the
-   * renjin-core jar as the R_HOME directory.
+   * @return a new top level context using the default VFS FileSystemManager and
+   *         the renjin-core jar as the R_HOME directory.
    *
    * @see org.apache.commons.vfs2.VFS#getManager()
    * @see org.renjin.util.FileSystemUtils#homeDirectoryInCoreJar()
@@ -126,74 +143,131 @@ public class Context {
     return SessionBuilder.buildDefault().getTopLevelContext();
   }
 
-  
   Context(Session session) {
     this.session = session;
     this.type = Type.TOP_LEVEL;
     this.environment = session.getGlobalEnvironment();
   }
 
-  public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
+  public Context beginFunction(Environment rho, FunctionCall call,
+      Closure closure, PairList arguments) {
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;
-    context.evaluationDepth = evaluationDepth+1;
+    context.evaluationDepth = evaluationDepth + 1;
     context.closure = closure;
-    context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
+    context.environment = Environment.createChildEnvironment(closure
+        .getEnclosingEnvironment());
     context.session = session;
     context.arguments = arguments;
-    context.call= call;
+    context.call = call;
     context.callingEnvironment = rho;
     return context;
   }
-  
+
   public Context beginEvalContext(Environment environment) {
     Context context = new Context();
     context.type = Type.RETURN;
     context.parent = this;
-    context.evaluationDepth = evaluationDepth+1;
+    context.evaluationDepth = evaluationDepth + 1;
     context.environment = environment;
     context.session = session;
     return context;
   }
-  
+
   public SEXP evaluate(SEXP expression) {
     return evaluate(expression, environment);
   }
-  
+
   /**
-   * If the S-Expression is an {@code DeferredComputation}, then it is executed with the
-   * VectorPipeliner.
+   * If the S-Expression is an {@code DeferredComputation}, then it is executed
+   * with the VectorPipeliner.
+   * 
    * @param sexp
    * @return
    */
   public SEXP materialize(SEXP sexp) {
-    if(sexp instanceof DeferredComputation && !((DeferredComputation) sexp).isConstantAccessTime()) {
-      return session.getVectorEngine().materialize((DeferredComputation)sexp);
+    if (sexp instanceof DeferredComputation
+        && !((DeferredComputation) sexp).isConstantAccessTime()) {
+      return session.getVectorEngine().materialize((DeferredComputation) sexp);
     } else {
       return sexp;
     }
   }
 
   public SEXP simplify(SEXP sexp) {
-    if(sexp instanceof DeferredComputation &&
-        ((DeferredComputation) sexp).getComputationDepth() > VectorPipeliner.MAX_DEPTH) {
-      return session.getVectorEngine().simplify((DeferredComputation)sexp);
+    if (sexp instanceof DeferredComputation
+        && ((DeferredComputation) sexp).getComputationDepth() > VectorPipeliner.MAX_DEPTH) {
+      return session.getVectorEngine().simplify((DeferredComputation) sexp);
     } else {
       return sexp;
     }
   }
-  
+
+  // Data structures for horrid debug
+  //private static Map<Integer, String> nameMap = new HashMap<Integer, String>();
+  //private static Map<Integer, Integer> idMap = new HashMap<Integer, Integer>();
+ // private static LinkedList<FunctionCall> callStack = new LinkedList<FunctionCall>();
+  //private static OutputStream dotout = null;
+
+  //private static int cid = 0;
+  //public static boolean horriddebug = false;
+/*
+  private int lf(FunctionCall e) {
+    int fc = System.identityHashCode(e);
+    if (!idMap.containsKey(fc)) {
+      cid++;
+      idMap.put(fc, cid);
+      nameMap.put(idMap.get(fc), e.getFunction().toString().replace("\"", ""));
+    }
+    return idMap.get(fc);
+  }*/
+
   public SEXP evaluate(SEXP expression, Environment rho) {
-    if(expression instanceof Symbol) {
-      return evaluateSymbol((Symbol)expression, rho);
-    } else if(expression instanceof ExpressionVector) {
+    // add interface for listening to these
+    // add cardinalities according to parameters!
+
+    if (expression instanceof Symbol) {
+      return evaluateSymbol((Symbol) expression, rho);
+    } else if (expression instanceof ExpressionVector) {
       return evaluateExpressionVector((ExpressionVector) expression, rho);
-    } else if(expression instanceof FunctionCall) {
-      return evaluateCall((FunctionCall) expression, rho);
-    } else if(expression instanceof Promise) {
+    } else if (expression instanceof FunctionCall) {
+/*      FunctionCall fc = (FunctionCall) expression;
+      if (fc.getFunction().toString().equals("togglehorriddebug")) {
+        horriddebug = !horriddebug;
+        return LogicalVector.NA_VECTOR;
+      }
+        if (horriddebug) {
+          try {
+            File dotfile = File.createTempFile("renjin-callgraph", ".dot");
+            dotout = new FileOutputStream(dotfile);
+            System.out.println("dot logging to " + dotfile.toString());
+            dotout.write("digraph renjin {\n".getBytes());
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        } else {
+          try {
+            System.out.println("stopping dot log");
+            dotout.write("}\n".getBytes());
+            dotout.close();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+        return LogicalVector.NA_VECTOR;
+      }*/
+      SEXP ret = evaluateCall((FunctionCall) expression, rho);
+  /*    if (horriddebug && fc.getFunction() instanceof Function
+          && callStack.size() > 0) {
+        callStack.pop();
+      }*/
+      return ret;
+
+    } else if (expression instanceof Promise) {
       return expression.force(this);
-    } else if(expression != Null.INSTANCE && expression instanceof PromisePairList) {
+    } else if (expression != Null.INSTANCE
+        && expression instanceof PromisePairList) {
       throw new EvalException("'...' used in an incorrect context");
     } else {
       clearInvisibleFlag();
@@ -202,8 +276,8 @@ public class Context {
   }
 
   public <T> T getState(Class<T> clazz) {
-    if(stateMap != null) {
-      return (T)stateMap.get(clazz);
+    if (stateMap != null) {
+      return (T) stateMap.get(clazz);
     } else {
       return null;
     }
@@ -214,11 +288,11 @@ public class Context {
   }
 
   public <T> void setState(T instance) {
-    this.<T>setState((Class<T>) instance.getClass(), instance);
+    this.<T> setState((Class<T>) instance.getClass(), instance);
   }
 
   public <T> void setState(Class<T> clazz, T instance) {
-    if(stateMap == null) {
+    if (stateMap == null) {
       stateMap = Maps.newHashMap();
     }
     stateMap.put(clazz, instance);
@@ -227,61 +301,160 @@ public class Context {
   private SEXP evaluateSymbol(Symbol symbol, Environment rho) {
     clearInvisibleFlag();
 
-    if(symbol == Symbol.MISSING_ARG) {
+    if (symbol == Symbol.MISSING_ARG) {
       return symbol;
     }
     SEXP value = rho.findVariable(symbol);
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
-    } 
-    
-    if(value instanceof Promise) {
+    if (value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException(String.format("object '%s' not found",
+          symbol.getPrintName()));
+    }
+
+    if (value instanceof Promise) {
       return evaluate(value, rho);
     } else {
       return value;
     }
   }
-  
-  private SEXP evaluateExpressionVector(ExpressionVector expressionVector, Environment rho) {
-    if(expressionVector.length() == 0) {
+
+  private SEXP evaluateExpressionVector(ExpressionVector expressionVector,
+      Environment rho) {
+    if (expressionVector.length() == 0) {
       setInvisibleFlag();
       return Null.INSTANCE;
     } else {
       SEXP result = Null.INSTANCE;
-      for(SEXP sexp : expressionVector) {
+      for (SEXP sexp : expressionVector) {
         result = evaluate(sexp, rho);
       }
       return result;
     }
   }
-
+/*
+  private static Set<String> seenLine = new HashSet<String>();
+  
+  private static int tp(int nodeid) {
+    try {
+      dotout
+          .write((cid + " [label=\"" + nameMap.get(cid) + "\", shape=\"box\"];\n")
+              .getBytes());
+    } catch (IOException e1) {
+      e1.printStackTrace();
+    }
+    return nodeid;
+  }
+*/
+  
+ // private static Map<String, Long> timing = new HashMap<String, Long>();
+  
   private SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
+
     Function functionExpr = evaluateFunction(call.getFunction(), rho);
-    return functionExpr.apply(this, rho, call, call.getArguments());
+//    long start = 0;
+   /* if (horriddebug && functionExpr instanceof Function) { //
+      
+      int maxlen = 0;
+      for (SEXP arg : call.getArguments().values()) {
+       if (arg instanceof Symbol) {
+          if (arg.length() > maxlen) {
+            maxlen = rho.getVariable((Symbol) arg).length();
+            
+          }
+        }
+      }
+
+      if (callStack.size() > 0 && maxlen > 100) {
+        try {
+          String outstr = callStack.peek() + " -> " + lf(call) + ";\n";
+          if (!seenLine.contains(outstr)) {
+            tp(callStack.peek());
+            tp(lf(call));
+            dotout.write(outstr.getBytes());
+            seenLine.add(outstr);
+          }
+
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+     // start = System.currentTimeMillis();
+      //callStack.push(call);
+    } */
+
+    SEXP ret = functionExpr.apply(this, rho, call, call.getArguments());
+    /*if (horriddebug && functionExpr instanceof Function) {
+     // long duration = System.currentTimeMillis() - start;
+      //if (duration > 2000) {
+       // System.out.print(duration);
+        /*for (FunctionCall fc : callStack) {
+          System.out.print(" > " + fc.getFunction().toString());
+        }
+        String fn = call.getFunction().toString();
+        if (fn.equals("colSums")) {
+          call.accept(new SexpVisitor<Object>() {
+            public void visit(PairList.Node pairList) {
+              System.out.println("PL" +pairList);
+             while(pairList.hasNextNode()) {
+               visit(pairList.getNextNode());
+             }
+            }
+            
+            public void visit(FunctionCall call) {
+              System.out.println("FC" +call);
+              while(call.hasNextNode()) {
+                visit(call.getNextNode());
+              }
+            }
+          });
+          
+ 
+        }
+//        if (!timing.containsKey(fn)) {
+//          timing.put(fn, duration);
+//        } else {
+//          timing.put(fn, duration + timing.get(fn));
+//        }
+//        //System.out.println("");
+//     // }
+//      //callStack.pop();
+//        System.out.println("####");
+//        for (Map.Entry<String, Long> e : timing.entrySet()) {
+//          if (e.getValue() > 1000) {
+//            System.out.println(e.getKey() + "\t" + e.getValue());
+//          }
+//        }
+    } */
+    return ret;
   }
 
   private Function evaluateFunction(SEXP functionExp, Environment rho) {
-    if(functionExp instanceof Symbol) {
+
+    if (functionExp instanceof Symbol) {
       Symbol symbol = (Symbol) functionExp;
       Function fn = rho.findFunction(this, symbol);
-      if(fn == null) {
-        throw new EvalException("could not find function '%s'", symbol.getPrintName());      
+      if (fn == null) {
+        throw new EvalException("could not find function '%s'",
+            symbol.getPrintName());
       }
       return fn;
     } else {
       SEXP evaluated = evaluate(functionExp, rho).force(this);
-      if(!(evaluated instanceof Function)) {
-        throw new EvalException("'function' of lang expression is of unsupported type '%s'", evaluated.getTypeName());
+      if (!(evaluated instanceof Function)) {
+        throw new EvalException(
+            "'function' of lang expression is of unsupported type '%s'",
+            evaluated.getTypeName());
       }
-      return (Function)evaluated;
+
+      return (Function) evaluated;
     }
   }
 
   /**
    *
-   * @return the {@link FileSystemManager} associated with this Context. All R primitives that
-   * interact with the file system defer to this manager.
+   * @return the {@link FileSystemManager} associated with this Context. All R
+   *         primitives that interact with the file system defer to this
+   *         manager.
    */
   public FileSystemManager getFileSystemManager() {
     return session.getFileSystemManager();
@@ -290,23 +463,25 @@ public class Context {
   /**
    * Translates a uri/path into a VFS {@code FileObject}.
    *
-   * @param uri uniform resource indicator. This could be, for example:
-   * <ul>
-   * <li>jar:file:///path/to/my/libray.jar!/mylib/R/mylib.R</li>
-   * <li>/usr/lib</li>
-   * <li>c:&#92;users&#92;owner&#92;data.txt</li>
-   * </ul>
+   * @param uri
+   *          uniform resource indicator. This could be, for example:
+   *          <ul>
+   *          <li>jar:file:///path/to/my/libray.jar!/mylib/R/mylib.R</li>
+   *          <li>/usr/lib</li>
+   *          <li>c:&#92;users&#92;owner&#92;data.txt</li>
+   *          </ul>
    *
    * @return
    * @throws FileSystemException
    */
   public FileObject resolveFile(String uri) throws FileSystemException {
-    return getFileSystemManager().resolveFile(session.getWorkingDirectory(), uri);
+    return getFileSystemManager().resolveFile(session.getWorkingDirectory(),
+        uri);
   }
 
   /**
    * @return the environment associated with this {@code Context}. This will be
-   * either the global environment for top-level contexts
+   *         either the global environment for top-level contexts
    */
   public Environment getEnvironment() {
     return environment;
@@ -321,8 +496,9 @@ public class Context {
   }
 
   public PairList getArguments() {
-    if(type != Type.FUNCTION) {
-      throw new IllegalStateException("Only Contexts of type FUNCTION contain a FunctionCall");
+    if (type != Type.FUNCTION) {
+      throw new IllegalStateException(
+          "Only Contexts of type FUNCTION contain a FunctionCall");
     }
     return arguments;
   }
@@ -338,12 +514,12 @@ public class Context {
   public int getEvaluationDepth() {
     return evaluationDepth;
   }
-  
+
   public int getFrameDepth() {
     int nframe = 0;
     Context cptr = this;
     while (!cptr.isTopLevel()) {
-      if (cptr.getType() == Type.FUNCTION )
+      if (cptr.getType() == Type.FUNCTION)
         nframe++;
       cptr = cptr.getParent();
     }
@@ -367,30 +543,34 @@ public class Context {
   }
 
   /**
-   * Sets an expression to evaluate upon exiting this context,
-   * removing any previously added exit expressions.
-   * "on.exit" expressions generally do things like close file connections
-   * or delete temporary files, often what might be found in a Java {@code finally} clause.
+   * Sets an expression to evaluate upon exiting this context, removing any
+   * previously added exit expressions. "on.exit" expressions generally do
+   * things like close file connections or delete temporary files, often what
+   * might be found in a Java {@code finally} clause.
    *
-   * @param exp the expression to evaluate upon exiting this context.
+   * @param exp
+   *          the expression to evaluate upon exiting this context.
    */
   public void setOnExit(SEXP exp) {
     onExit = Lists.newArrayList(exp);
   }
 
   /**
-   * Adds an expression to evaluate upon exiting this context.
-   *  "on.exit" expressions generally do things like close file connections
-   * or delete temporary files, often what might be found in a Java {@code finally} clause.
+   * Adds an expression to evaluate upon exiting this context. "on.exit"
+   * expressions generally do things like close file connections or delete
+   * temporary files, often what might be found in a Java {@code finally}
+   * clause.
    *
-   * @param exp the expression to evaluate upon exiting this context.
+   * @param exp
+   *          the expression to evaluate upon exiting this context.
    */
   public void addOnExit(SEXP exp) {
     onExit.add(exp);
   }
 
   /**
-   * Removes all previously added expressions to evaluate upon exiting this context.
+   * Removes all previously added expressions to evaluate upon exiting this
+   * context.
    */
   public void clearOnExits() {
     onExit = Lists.newArrayList();
@@ -400,18 +580,22 @@ public class Context {
    * Invokes any on.exit expressions that have been set.
    */
   public void exit() {
-    for(SEXP exp : onExit) {
+    for (SEXP exp : onExit) {
       evaluate(exp, environment);
     }
+    
   }
 
   /**
    * Sets a function to handle a specific class of condition.
+   * 
    * @see org.renjin.primitives.Conditions
    *
-   * @param conditionClass  the (S3) condition class to be handled by this handler.
-   * @param function an expression that evaluates to a function that accepts a signaled
-   * condition as an argument.
+   * @param conditionClass
+   *          the (S3) condition class to be handled by this handler.
+   * @param function
+   *          an expression that evaluates to a function that accepts a signaled
+   *          condition as an argument.
    */
   public void setConditionHandler(String conditionClass, SEXP function) {
     conditionHandlers.put(conditionClass, function);
@@ -424,29 +608,31 @@ public class Context {
   /**
    * Executes the default the standard R initialization sequence:
    * <ol>
-   *  <li>Load the base package (/org/renjin/library/base/R/base)</li>
-   *  <li>Execute the system profile (/org/renjin/library/base/R/Rprofile)</li>
-   *  <li>Evaluate .OptRequireMethods()</li>
-   *  <li>Evaluate .First.Sys()</li>
+   * <li>Load the base package (/org/renjin/library/base/R/base)</li>
+   * <li>Execute the system profile (/org/renjin/library/base/R/Rprofile)</li>
+   * <li>Evaluate .OptRequireMethods()</li>
+   * <li>Evaluate .First.Sys()</li>
    * </ol>
    *
    */
   public void init() throws IOException {
     BaseFrame baseFrame = (BaseFrame) session.getBaseEnvironment().getFrame();
     baseFrame.load(this);
-    
-    evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
-    
-//    evalBaseResource("/org/renjin/library/base/R/Rprofile");
-//    
-//    // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
-//    evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
+
+    evaluate(FunctionCall.newCall(Symbol.get(".onLoad")),
+        session.getBaseNamespaceEnv());
+
+    // evalBaseResource("/org/renjin/library/base/R/Rprofile");
+    //
+    // // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this,
+    // environment);
+    // evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
   }
 
   protected void evalBaseResource(String resourceName) throws IOException {
     Context evalContext = this.beginEvalContext(session.getBaseNamespaceEnv());
     InputStream in = getClass().getResourceAsStream(resourceName);
-    if(in == null) {
+    if (in == null) {
       throw new IOException("Could not load resource '" + resourceName + "'");
     }
     Reader reader = new InputStreamReader(in);
@@ -456,11 +642,11 @@ public class Context {
       reader.close();
     }
   }
-  
+
   public void setInvisibleFlag() {
     session.invisible = true;
   }
-  
+
   public void clearInvisibleFlag() {
     session.invisible = false;
   }

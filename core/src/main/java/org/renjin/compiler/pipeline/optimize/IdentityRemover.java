@@ -57,8 +57,16 @@ public class IdentityRemover implements Optimizer {
         return node.getOperand(0);
       }
     }
+    
+    if ("mean".equals(op) || "min".equals(op) || "max".equals(op)) {
+      if (node.getOperand(0).isComputation() && 
+          ((DeferredComputation) node.getOperand(0).getVector()).getComputationName().equals("rep")) {
+        if (DEBUG) System.out.println("Killed mean/max/min(rep(x))");
+        return node.getOperand(0).getOperand(0);
+      }
+    }
+    // TODO: sum(rep(100, 2)) == 100*2
     return null;
-
   }
 
   @Override

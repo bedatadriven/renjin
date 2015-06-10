@@ -27,6 +27,7 @@ import java.util.Set;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.combine.view.CombinedIntVector;
 import org.renjin.primitives.sequence.RepLogicalVector;
+import org.renjin.primitives.subset.lazy.ShadedColMatrix;
 import org.renjin.primitives.subset.lazy.ShadedRowMatrix;
 import org.renjin.primitives.vector.AttributeDecoratingIntVector;
 import org.renjin.sexp.AtomicVector;
@@ -319,7 +320,8 @@ public class SubscriptOperation {
 
     // row-wise matrix assignment
     // we are fairly paranoid here and do not support e.g. recycling of values
-    // TODO: col-wise matrix assignment. eventually.
+    // TODO: unify shaded matrix classes 
+    
     if (subscripts.size() == 2 && subscripts.get(1).equals(Symbol.MISSING_ARG) && 
         subscripts.get(0).length() == 1 && 
         selection instanceof DimensionSelection && 
@@ -334,11 +336,26 @@ public class SubscriptOperation {
         return new ShadedRowMatrix((DoubleVector) source).setShadedRow(row, (DoubleVector)elements);
       }
     }
+    
+    if (subscripts.size() == 2 && subscripts.get(0).equals(Symbol.MISSING_ARG) && 
+        subscripts.get(1).length() == 1 && 
+        selection instanceof DimensionSelection && 
+        (source instanceof DoubleVector) && 
+        elements instanceof DoubleVector && 
+        selection.getSubscriptDimensions()[0] == elements.length()) {  
+      int col = ((Vector)subscripts.get(1)).getElementAsInt(0);
+      if (source instanceof ShadedColMatrix) {
+        return ((ShadedColMatrix) source).withShadedCol(col, (DoubleVector)elements);
+      } else {
+        return new ShadedColMatrix((DoubleVector) source).setShadedCol(col, (DoubleVector)elements);
+      }
+    }
+//    
 //    System.out.println("NOT deferring replacement, n=" + source.length());
 //    System.out.println(subscripts.size() == 2);
 //    if (subscripts.size() > 1) {
-//      System.out.println(subscripts.get(1).equals(Symbol.MISSING_ARG));
-//      System.out.println(subscripts.get(0).length() == 1);
+//      System.out.println(subscripts.get(0).equals(Symbol.MISSING_ARG));
+//      System.out.println(subscripts.get(1).length() == 1);
 //      System.out.println(selection.getSubscriptDimensions()[1] == elements.length());
 //    } else {
 //      System.out.println("subscripts.size() != 2");

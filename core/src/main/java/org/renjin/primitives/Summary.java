@@ -236,7 +236,8 @@ public class Summary {
     double imaginarySum = 0;
     boolean haveComplex = false;
 
-    if(arguments.length() == 1 && arguments.get(0) instanceof DoubleVector && !removeNA) {
+    if(arguments.length() == 1 && !removeNA &&
+        (arguments.get(0) instanceof DoubleVector || arguments.get(0) instanceof DeferredComputation)) {
       return new DeferredSum((Vector) arguments.get(0), AttributeMap.EMPTY);
     }
 

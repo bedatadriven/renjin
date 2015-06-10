@@ -136,7 +136,9 @@ public class Matrices {
 
   @Internal
   public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
-    return new DeferredColSums(x, columnLength, numColumns, naRm, AttributeMap.EMPTY);
+    DeferredColSums dcs =  new DeferredColSums(x, columnLength, numColumns, naRm, AttributeMap.EMPTY);
+    if (System.getProperty("renjin.disable.colsums") != null) return (DoubleVector) dcs.forceResult();
+    return dcs;
   }
 
   @Internal

@@ -32,8 +32,6 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
     if(VectorPipeliner.DEBUG) {
       graph.dumpGraph();
     }
-    
-    
 
     // force any memoized values in the graph
     try {

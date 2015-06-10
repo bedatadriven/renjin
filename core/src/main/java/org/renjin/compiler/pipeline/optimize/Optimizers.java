@@ -1,6 +1,7 @@
 package org.renjin.compiler.pipeline.optimize;
 
 import com.google.common.collect.Lists;
+
 import org.renjin.compiler.pipeline.DeferredGraph;
 import org.renjin.compiler.pipeline.DeferredNode;
 
@@ -13,6 +14,8 @@ public class Optimizers {
     optimizers.add(new SquareOptimizer());
     optimizers.add(new IdentityRemover());
     optimizers.add(new AttributeRemover());
+   // optimizers.add(new CommonExpressionRemover());
+
   }
 
   public void optimize(DeferredGraph graph) {
@@ -22,6 +25,7 @@ public class Optimizers {
       List<DeferredNode> nodes = Lists.newArrayList(graph.getNodes());
       for(DeferredNode node : nodes) {
         for(Optimizer optimizer : optimizers) {
+          optimizer.newRound();
           changed |= optimizer.optimize(graph, node);
         }
       }

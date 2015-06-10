@@ -21,18 +21,30 @@
 
 package org.renjin.primitives.subset;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.List;
+import java.util.Set;
 
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.combine.view.CombinedIntVector;
+import org.renjin.primitives.sequence.RepLogicalVector;
 import org.renjin.primitives.subset.lazy.ShadedRowMatrix;
 import org.renjin.primitives.vector.AttributeDecoratingIntVector;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
+import org.renjin.sexp.Vector;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class SubscriptOperation {
 
@@ -310,11 +322,12 @@ public class SubscriptOperation {
     // TODO: col-wise matrix assignment. eventually.
     if (subscripts.size() == 2 && subscripts.get(1).equals(Symbol.MISSING_ARG) && 
         subscripts.get(0).length() == 1 && 
-        selection instanceof DimensionSelection && source instanceof DoubleVector && 
+        selection instanceof DimensionSelection && 
+        (source instanceof DoubleVector) && 
         elements instanceof DoubleVector && 
         selection.getSubscriptDimensions()[1] == elements.length()) {  
       // hooray for boobies
-      int row = ((IntVector)subscripts.get(0)).getElementAsInt(0);
+      int row = ((Vector)subscripts.get(0)).getElementAsInt(0);
       if (source instanceof ShadedRowMatrix) {
         return ((ShadedRowMatrix) source).withShadedRow(row, (DoubleVector)elements);
       } else {

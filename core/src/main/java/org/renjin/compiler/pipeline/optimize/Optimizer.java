@@ -5,4 +5,6 @@ import org.renjin.compiler.pipeline.DeferredNode;
 
 public interface Optimizer {
   boolean optimize(DeferredGraph graph, DeferredNode node);
+
+  void newRound();
 }

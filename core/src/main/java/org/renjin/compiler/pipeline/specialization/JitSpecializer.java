@@ -4,16 +4,11 @@ import com.google.common.io.Files;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.util.CheckMethodAdapter;
-import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.util.Collections;
-import java.util.HashMap;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -60,12 +55,12 @@ public class JitSpecializer {
     className = "Jit" + System.identityHashCode(this);
   }
 
-  public SpecializedComputation compile(DeferredNode node)  {
+  public SpecializedComputer compile(DeferredNode node)  {
     long startTime = System.nanoTime();
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = cw;
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object",
-            new String[]{"org/renjin/compiler/pipeline/specialization/SpecializedComputation"});
+            new String[]{"org/renjin/compiler/pipeline/specialization/SpecializedComputer"});
 
     writeConstructor();
     writeCompute(node);
@@ -95,7 +90,7 @@ public class JitSpecializer {
     }
 
     try {
-      return (SpecializedComputation) jitClass.newInstance();
+      return (SpecializedComputer) jitClass.newInstance();
     } catch (Exception e) {
       throw new RuntimeException("Could not invoke jitted computation", e);
     }

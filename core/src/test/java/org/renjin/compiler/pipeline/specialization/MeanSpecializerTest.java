@@ -3,8 +3,6 @@ package org.renjin.compiler.pipeline.specialization;
 import org.junit.Test;
 import org.renjin.DistanceMatrix;
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.specialization.JitSpecializer;
-import org.renjin.compiler.pipeline.specialization.SpecializedComputation;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.R$primitive$$minus$deferred_d;
 import org.renjin.primitives.R$primitive$$times$deferred_dd;
@@ -26,7 +24,7 @@ public class MeanSpecializerTest {
     DeferredGraph graph = new DeferredGraph(mean);
 
     JitSpecializer jitter = new JitSpecializer();
-    SpecializedComputation computation = jitter.compile(graph.getRoot());
+    SpecializedComputer computation = jitter.compile(graph.getRoot());
 
     double [] result = computation.compute(
             graph.getRoot().flattenVectors());
@@ -63,7 +61,7 @@ public class MeanSpecializerTest {
     DeferredGraph graph = new DeferredGraph(mean);
 
     JitSpecializer jitter = new JitSpecializer();
-    SpecializedComputation computation = jitter.compile(graph.getRoot());
+    SpecializedComputer computation = jitter.compile(graph.getRoot());
 
     double [] result = computation.compute(graph.getRoot().flattenVectors());
 

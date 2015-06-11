@@ -2,7 +2,7 @@ package org.renjin.compiler.pipeline;
 
 import org.renjin.compiler.pipeline.specialization.FunctionSpecializers;
 import org.renjin.compiler.pipeline.specialization.SpecializationCache;
-import org.renjin.compiler.pipeline.specialization.SpecializedComputation;
+import org.renjin.compiler.pipeline.specialization.SpecializedComputer;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.Vector;
@@ -27,7 +27,7 @@ public class DeferredNodeComputer implements Runnable {
     if(FunctionSpecializers.INSTANCE.supports(node)) {
       try {
         Vector[] operands = node.flattenVectors();
-        SpecializedComputation computer = SpecializationCache.INSTANCE.compile(node);
+        SpecializedComputer computer = SpecializationCache.INSTANCE.compile(node);
 
         long start = System.nanoTime();
 

@@ -2,7 +2,11 @@ package org.renjin.compiler.pipeline.specialization;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.SettableFuture;
 import org.renjin.compiler.pipeline.DeferredNode;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 /**
  * Maintains a cache of recently used JITted classes.
@@ -11,29 +15,36 @@ public class SpecializationCache {
 
   public static final SpecializationCache INSTANCE = new SpecializationCache();
 
-  private final Cache<SpecializationKey, SpecializedComputation> cache;
+  private final ConcurrentHashMap<SpecializationKey, Future<SpecializedComputer>> cache;
 
   private SpecializationCache() {
-    cache = CacheBuilder.newBuilder()
-            .softValues()
-            .maximumSize(100)
-            .build();
+    cache = new ConcurrentHashMap<SpecializationKey, Future<SpecializedComputer>>();
   }
 
-  public SpecializedComputation compile(DeferredNode node) {
+  public SpecializedComputer compile(DeferredNode node) {
     SpecializationKey key = node.jitKey();
     try {
-      SpecializedComputation computation = cache.getIfPresent(key);
-      if (computation != null) {
-        return computation;
-      }
-      JitSpecializer jitter = new JitSpecializer();
-      computation = jitter.compile(node);
-      cache.put(key, computation);
 
-      return computation;
+      Future<SpecializedComputer> existingSpecialization = cache.get(key);
+      if(existingSpecialization != null) {
+        return existingSpecialization.get();
+      }
+      // Immediately set the Future so that other threads that need this specialization
+      // wait for this compilation to finish before starting compilation on their own
+      SettableFuture<SpecializedComputer> newlyCompiledSpecialization = SettableFuture.create();
+      existingSpecialization = cache.putIfAbsent(key, newlyCompiledSpecialization);
+      if (existingSpecialization != null) {
+        return existingSpecialization.get();
+      }
+
+      //
+      JitSpecializer jitter = new JitSpecializer();
+      newlyCompiledSpecialization.set(jitter.compile(node));
+
+      return newlyCompiledSpecialization.get();
     } catch (Exception e) {
       throw new RuntimeException("Failed to compile " + key, e);
     }
   }
+
 }

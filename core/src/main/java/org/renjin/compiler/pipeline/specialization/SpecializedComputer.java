@@ -6,7 +6,7 @@ import org.renjin.sexp.Vector;
  * A Just-in-time compiled computation for a deferred
  * computation graph of specific types
  */
-public interface SpecializedComputation {
+public interface SpecializedComputer {
 
   /**
    *

@@ -69,6 +69,7 @@ public class ColSumSpecializer implements FunctionSpecializer {
     mv.visitVarInsn(ILOAD, sourceIndex);
     matrix.pushElementAsDouble(method, integerNaLabel);
 
+
     // load the current sum on the stack, add this value to it,
     // and then store back to the local variable slot
     mv.visitVarInsn(DLOAD, sum);

@@ -2,7 +2,6 @@ package org.renjin.compiler.pipeline.specialization;
 
 import org.junit.Test;
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.primitives.R$primitive$$times$deferred_dd;
 import org.renjin.primitives.R$primitive$$times$deferred_ii;
 import org.renjin.primitives.matrix.DeferredColSums;
 import org.renjin.primitives.sequence.IntSequence;
@@ -29,7 +28,7 @@ public class ColSumSpecializerTest {
     DeferredGraph graph = new DeferredGraph(colSums);
 
     JitSpecializer specializer = new JitSpecializer();
-    SpecializedComputation computation = specializer.compile(graph.getRoot());
+    SpecializedComputer computation = specializer.compile(graph.getRoot());
 
     double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
 
@@ -53,7 +52,7 @@ public class ColSumSpecializerTest {
     DeferredGraph graph = new DeferredGraph(colSums);
 
     JitSpecializer specializer = new JitSpecializer();
-    SpecializedComputation computation = specializer.compile(graph.getRoot());
+    SpecializedComputer computation = specializer.compile(graph.getRoot());
 
     double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
 
@@ -75,7 +74,7 @@ public class ColSumSpecializerTest {
     DeferredGraph graph = new DeferredGraph(colSums);
 
     JitSpecializer specializer = new JitSpecializer();
-    SpecializedComputation computation = specializer.compile(graph.getRoot());
+    SpecializedComputer computation = specializer.compile(graph.getRoot());
 
     double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
 

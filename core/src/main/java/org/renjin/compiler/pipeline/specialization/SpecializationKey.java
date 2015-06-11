@@ -28,4 +28,9 @@ public class SpecializationKey {
     SpecializationKey other = (SpecializationKey)obj;
     return Arrays.equals(classes, other.classes);
   }
+
+  @Override
+  public String toString() {
+    return "Specialization{" + Arrays.toString(classes) + "}";
+  }
 }

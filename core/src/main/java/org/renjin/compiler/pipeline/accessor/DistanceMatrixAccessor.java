@@ -1,5 +1,7 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import com.google.common.base.Optional;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
@@ -36,7 +38,12 @@ public class DistanceMatrixAccessor extends Accessor {
   }
 
   @Override
-  public void pushDouble(ComputeMethod method) {
+  public boolean mustCheckForIntegerNAs() {
+    return operandAccessor.mustCheckForIntegerNAs();
+  }
+
+  @Override
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
     MethodVisitor mv = method.getVisitor();
 
     mv.visitInsn(DUP);
@@ -57,11 +64,11 @@ public class DistanceMatrixAccessor extends Accessor {
 
     // push x[row]
     mv.visitVarInsn(ILOAD, rowTempLocal);
-    operandAccessor.pushDouble(method);
+    operandAccessor.pushElementAsDouble(method, integerNaLabel);
 
     // push x[col]
     mv.visitVarInsn(ILOAD, colTempLocal);
-    operandAccessor.pushDouble(method);
+    operandAccessor.pushElementAsDouble(method, integerNaLabel);
 
     // x[row] - x[col]
     mv.visitInsn(DSUB);

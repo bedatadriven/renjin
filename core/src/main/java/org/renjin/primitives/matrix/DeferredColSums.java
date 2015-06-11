@@ -14,22 +14,20 @@ import org.renjin.sexp.Vector;
 public class DeferredColSums extends DoubleVector implements MemoizedComputation {
 
   private final AtomicVector vector;
-  private int columnLength;
   private int numColumns;
   private boolean naRm;
   private double[] sums = null;
 
-  public DeferredColSums(AtomicVector vector, int columnLength, int numColumns, boolean naRm, AttributeMap attributes) {
+  public DeferredColSums(AtomicVector vector, int numColumns, boolean naRm, AttributeMap attributes) {
     super(attributes);
     this.vector = vector;
-    this.columnLength = columnLength;
     this.numColumns = numColumns;
     this.naRm = naRm;
   }
 
   @Override
   public Vector[] getOperands() {
-    return new Vector[] { vector, new IntArrayVector(numColumns) };
+    return new Vector[]{vector, new IntArrayVector(numColumns)};
   }
 
   @Override
@@ -64,22 +62,27 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
 
   private void computeMeans() {
     double sums[] = new double[numColumns];
-    for(int column=0; column < numColumns; column++) {
-      int sourceIndex = columnLength*column;
-      double sum = 0;
-      for(int row=0;row < columnLength; ++row) {
-        double cellValue = vector.getElementAsDouble(sourceIndex++);
-        if(Double.isNaN(cellValue)) {
-          if(!naRm) {
-            sum = DoubleVector.NA;
-            break;
-          }
-        } else {
-          sum += cellValue;
-        }
+    int sourceIndex = 0;
+    double sum = 0;
+
+    int numRows = vector.length() / numColumns;
+    int colIndex = 0;
+    int rowIndex = 0;
+
+    while (colIndex < numColumns) {
+      double cellValue = vector.getElementAsDouble(sourceIndex++);
+      if (!naRm || !Double.isNaN(cellValue)) {
+        sum += cellValue;
       }
-      sums[column] = sum;
+      rowIndex++;
+      if (rowIndex == numRows) {
+        rowIndex = 0;
+        sums[colIndex] = sum;
+        sum = 0;
+        colIndex++;
+      }
     }
+
     this.sums = sums;
   }
 

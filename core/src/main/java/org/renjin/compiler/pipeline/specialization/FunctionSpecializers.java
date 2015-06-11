@@ -17,6 +17,7 @@ public enum FunctionSpecializers {
         map.put("mean", new SumMeanSpecializer());
         map.put("sum", new SumMeanSpecializer());
         map.put("rowMeans", new RowMeanSpecializer());
+      //  map.put("colSums", new ColSumSpecializer());
     }
     
     public boolean supports(DeferredNode node) {

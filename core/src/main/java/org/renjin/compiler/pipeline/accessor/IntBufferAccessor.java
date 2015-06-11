@@ -1,5 +1,7 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import com.google.common.base.Optional;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 
@@ -32,7 +34,7 @@ public class IntBufferAccessor extends Accessor {
 
         MethodVisitor mv = method.getVisitor();
         mv.visitVarInsn(ALOAD, method.getOperandsLocalIndex());
-        pushOperandIndex(mv, operandIndex);
+        pushIntConstant(mv, operandIndex);
         mv.visitInsn(AALOAD);
         mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/IntBufferVector");
         mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/IntBufferVector", "toIntBufferUnsafe", "()Ljava/nio/IntBuffer;");
@@ -49,17 +51,31 @@ public class IntBufferAccessor extends Accessor {
     }
 
     @Override
-    public void pushDouble(ComputeMethod method) {
-        pushInt(method);
+    public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
+        // STACK: [ ..., index ]
+        pushElementAsInt(method, integerNaLabel);
+        // STACK: [ ..., ivalue ]
         MethodVisitor mv = method.getVisitor();
         mv.visitInsn(I2D);
+        // STACK: [ ..., dvalue, dvalue ]
     }
 
     @Override
-    public void pushInt(ComputeMethod method) {
+    public void pushElementAsInt(ComputeMethod method, Optional<Label> naLabel) {
         MethodVisitor mv = method.getVisitor();
+        // STACK: [ ..., index]
         mv.visitVarInsn(ALOAD, bufferLocal);
+        // STACK: [ ..., index, buffer ] 
         mv.visitInsn(SWAP);
+        // STACK: [ ..., buffer, index ] 
         mv.visitMethodInsn(INVOKEVIRTUAL, "java/nio/IntBuffer", "get", "(I)I");
+        // STACK: [ ..., value ] 
+        
+        doIntegerNaCheck(mv, naLabel);
+    }
+
+    @Override
+    public boolean mustCheckForIntegerNAs() {
+        return true;
     }
 }

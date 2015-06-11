@@ -3,9 +3,12 @@ package org.renjin.compiler.pipeline.accessor;
 import java.lang.reflect.Modifier;
 import java.util.logging.Logger;
 
+import com.google.common.base.Optional;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.Vector;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -21,11 +24,14 @@ public class VirtualAccessor extends Accessor {
   private int ptrLocalIndex;
   private String vectorClass;
   private int operandIndex;
+  private Vector.Type vectorType;
 
   public VirtualAccessor(Vector vector, int operandIndex) {
     if(VectorPipeliner.DEBUG) {
       System.out.println("VirtualAccessor for " + vector.getClass().getName());
     }
+    this.vectorType = vector.getVectorType();
+    
     // we really want to reference this class as specifically as possible
     if(!Modifier.isPublic(vector.getClass().getModifiers())) {
       LOGGER.warning("Vector class " + vector.getClass().getName() + " is not public: member access may not be fully inlined by JVM.");
@@ -49,7 +55,7 @@ public class VirtualAccessor extends Accessor {
 
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, method.getOperandsLocalIndex());
-    pushOperandIndex(mv, operandIndex);
+    pushIntConstant(mv, operandIndex);
     mv.visitInsn(AALOAD);
     mv.visitTypeInsn(CHECKCAST, vectorClass);
     mv.visitVarInsn(ASTORE, ptrLocalIndex);
@@ -63,7 +69,7 @@ public class VirtualAccessor extends Accessor {
   }
 
   @Override
-  public void pushDouble(ComputeMethod method) {
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, ptrLocalIndex);
     mv.visitInsn(SWAP);
@@ -71,10 +77,17 @@ public class VirtualAccessor extends Accessor {
   }
 
   @Override
-  public void pushInt(ComputeMethod method) {
+  public void pushElementAsInt(ComputeMethod method, Optional<Label> naLabel) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, ptrLocalIndex);
     mv.visitInsn(SWAP);
     mv.visitMethodInsn(INVOKEVIRTUAL, vectorClass, "getElementAsInt", "(I)I");
+    
+    doIntegerNaCheck(mv, naLabel);
+  }
+
+  @Override
+  public boolean mustCheckForIntegerNAs() {
+    return vectorType == IntVector.VECTOR_TYPE;
   }
 }

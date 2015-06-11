@@ -1,5 +1,7 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import com.google.common.base.Optional;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
@@ -30,9 +32,8 @@ public class TransposingAccessor extends Accessor {
     // local variables
     MethodVisitor mv = method.getVisitor();
     operandAccessor.pushLength(method);
-    mv.visitInsn(ICONST_0);
-    // stack => { length, rowCountVector, 0 }
-    sourceRowCountAccessor.pushInt(method);
+    // stack => { length, rowCountVector }
+    sourceRowCountAccessor.pushElementAsInt(method, 0);
     // stack => { length, nrows }
     mv.visitInsn(DUP);
     // stack => { length, nrows, nrows }
@@ -44,7 +45,7 @@ public class TransposingAccessor extends Accessor {
   }
 
   @Override
-  public void pushDouble(ComputeMethod method) {
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
     MethodVisitor mv = method.getVisitor();
     mv.visitInsn(DUP);
 
@@ -74,11 +75,16 @@ public class TransposingAccessor extends Accessor {
     // stack => { col, row*nrow }
     mv.visitInsn(IADD);
     // stack => { transposed index }
-    operandAccessor.pushDouble(method);
+    operandAccessor.pushElementAsDouble(method, integerNaLabel);
   }
 
   @Override
   public void pushLength(ComputeMethod method) {
     operandAccessor.pushLength(method);
+  }
+
+  @Override
+  public boolean mustCheckForIntegerNAs() {
+    return operandAccessor.mustCheckForIntegerNAs();
   }
 }

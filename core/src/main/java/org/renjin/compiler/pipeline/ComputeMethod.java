@@ -1,6 +1,9 @@
 package org.renjin.compiler.pipeline;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+import static org.objectweb.asm.Opcodes.*;
 
 public class ComputeMethod {
   private int localCount = 2; // includes instance pointer and argument
@@ -21,6 +24,19 @@ public class ComputeMethod {
     int pos = localCount;
     localCount += size;
     return pos;
+  }
+
+  /**
+   * Reserves a local variable slot for an integer counter and 
+   * initializes it to zero.
+   * 
+   * @return the local variable index
+   */
+  public int declareCounter() {
+    int localVar = reserveLocal(1);
+    visitor.visitInsn(ICONST_0);
+    visitor.visitVarInsn(ISTORE, localVar);
+    return localVar;
   }
 
   public void stack(int change) {

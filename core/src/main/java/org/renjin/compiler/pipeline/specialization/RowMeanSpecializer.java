@@ -29,8 +29,7 @@ public class RowMeanSpecializer implements FunctionSpecializer {
     int rowLocal = method.reserveLocal(1);
     int counterLocal = method.reserveLocal(1);
 
-    mv.visitInsn(ICONST_0);
-    numRows.pushInt(method);
+    numRows.pushElementAsInt(method, 0);
     mv.visitInsn(DUP);
     mv.visitVarInsn(ISTORE, numRowsLocal);
 
@@ -66,7 +65,7 @@ public class RowMeanSpecializer implements FunctionSpecializer {
 
     // load the next value onto the stack
     mv.visitVarInsn(ILOAD, counterLocal);
-    matrix.pushDouble(method);
+    matrix.pushElementAsDouble(method);
 
     // add to sum
     mv.visitInsn(DADD);

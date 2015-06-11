@@ -22,14 +22,18 @@ public class SpecializationCache {
 
   public SpecializedComputation compile(DeferredNode node) {
     SpecializationKey key = node.jitKey();
-    SpecializedComputation computation = cache.getIfPresent(key);
-    if(computation != null) {
-      return computation;
-    }
-    JitSpecializer jitter = new JitSpecializer();
-    computation = jitter.compile(node);
-    cache.put(key, computation);
+    try {
+      SpecializedComputation computation = cache.getIfPresent(key);
+      if (computation != null) {
+        return computation;
+      }
+      JitSpecializer jitter = new JitSpecializer();
+      computation = jitter.compile(node);
+      cache.put(key, computation);
 
-    return computation;
+      return computation;
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to compile " + key, e);
+    }
   }
 }

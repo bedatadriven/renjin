@@ -1,7 +1,8 @@
-package org.renjin.compiler.pipeline;
+package org.renjin.compiler.pipeline.specialization;
 
 import org.junit.Test;
 import org.renjin.DistanceMatrix;
+import org.renjin.compiler.pipeline.DeferredGraph;
 import org.renjin.compiler.pipeline.specialization.JitSpecializer;
 import org.renjin.compiler.pipeline.specialization.SpecializedComputation;
 import org.renjin.primitives.Deparse;
@@ -15,7 +16,7 @@ import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.Vector;
 
-public class MeanJitterTest {
+public class MeanSpecializerTest {
 
   @Test
   public void testSimpleArray() {

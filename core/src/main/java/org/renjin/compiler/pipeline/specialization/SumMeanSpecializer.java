@@ -50,7 +50,7 @@ public class SumMeanSpecializer implements FunctionSpecializer {
     // load the sum on to the stack, and the next value
     mv.visitVarInsn(DLOAD, sumLocal);
     mv.visitVarInsn(ILOAD, counterLocal);
-    accessor.pushDouble(method);
+    accessor.pushElementAsDouble(method);
 
     // add the two values and store back into sum
     mv.visitInsn(DADD);

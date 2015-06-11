@@ -1,5 +1,7 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import com.google.common.base.Optional;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.compiler.pipeline.ComputeMethod;
@@ -8,6 +10,7 @@ import org.renjin.sexp.Vector;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -19,12 +22,14 @@ public class BinaryVectorOpAccessor extends Accessor {
   private int lengthLocal2;
   private int lengthLocal;
   private Method applyMethod;
+  private Class argumentType;
 
   public BinaryVectorOpAccessor(DeferredNode node, InputGraph inputGraph) {
     this.operandAccessor1 = Accessors.create(node.getOperands().get(0), inputGraph);
     this.operandAccessor2 = Accessors.create(node.getOperands().get(1), inputGraph);
     applyMethod = findStaticApply(node.getVector());
     assert applyMethod != null;
+    argumentType = applyMethod.getParameterTypes()[0];
   }
 
   public static boolean accept(DeferredNode node) {
@@ -32,13 +37,18 @@ public class BinaryVectorOpAccessor extends Accessor {
   }
 
   private static Method findStaticApply(Vector vector) {
-    for(Method method : vector.getClass().getMethods()) {
-      if(method.getName().equals("compute") &&
+    for (Method method : vector.getClass().getMethods()) {
+      if (method.getName().equals("compute") &&
               Modifier.isPublic(method.getModifiers()) &&
-              Modifier.isStatic(method.getModifiers()) &&
-              method.getParameterTypes().length == 2) {
-        return method;
+              Modifier.isStatic(method.getModifiers())) {
+
+        if (Arrays.equals(method.getParameterTypes(), new Class[]{double.class, double.class}) ||
+                Arrays.equals(method.getParameterTypes(), new Class[]{int.class, int.class})) {
+
+          return method;
+        }
       }
+
     }
     return null;
   }
@@ -67,14 +77,72 @@ public class BinaryVectorOpAccessor extends Accessor {
   }
 
   @Override
-  public void pushDouble(ComputeMethod method) {
+  public void pushElementAsInt(ComputeMethod method, Optional<Label> integerNaLabel) {
+    if (argumentType.equals(double.class)) {
+      computeDouble(method, integerNaLabel);
+      method.getVisitor().visitInsn(D2I);
+    } else if(argumentType.equals(int.class)) {
+      computeInt(method, integerNaLabel);
+    } else {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  @Override
+  public boolean mustCheckForIntegerNAs() {
+    return operandAccessor1.mustCheckForIntegerNAs() || operandAccessor2.mustCheckForIntegerNAs();
+  }
+
+  @Override
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> naIntegerLabel) {
+    if (argumentType.equals(double.class)) {
+      computeDouble(method, naIntegerLabel);
+    } else if (argumentType.equals(int.class)) {
+      computeInt(method, naIntegerLabel);
+      method.getVisitor().visitInsn(I2D);
+    } else {
+      throw new UnsupportedOperationException(argumentType.getName());
+    }
+  }
+
+
+  private void computeInt(ComputeMethod method, Optional<Label> naLabel) {
+
     MethodVisitor mv = method.getVisitor();
     mv.visitInsn(DUP);
     mv.visitVarInsn(ILOAD, lengthLocal1);
     // stack => { index, index, length1 }
     mv.visitInsn(IREM);
     // stack => { index, index1 }
-    operandAccessor1.pushDouble(method);
+    
+    operandAccessor1.pushElementAsInt(method, naLabel);
+
+    // stack => { index, value1 }
+    mv.visitInsn(SWAP); 
+    // stack => { value1, index}
+    mv.visitVarInsn(ILOAD, lengthLocal2);
+    // stack => { value1, index, length2 }
+    mv.visitInsn(IREM);
+    // stack => { value1, index2 }
+
+    operandAccessor2.pushElementAsInt(method, naLabel);
+    // stack => { value1, value2}
+
+    mv.visitMethodInsn(INVOKESTATIC,
+            Type.getInternalName(applyMethod.getDeclaringClass()),
+            applyMethod.getName(),
+            Type.getMethodDescriptor(applyMethod));
+
+  }
+
+  private void computeDouble(ComputeMethod method, Optional<Label> naIntegerLabel) {
+    MethodVisitor mv = method.getVisitor();
+    mv.visitInsn(DUP);
+    mv.visitVarInsn(ILOAD, lengthLocal1);
+    // stack => { index, index, length1 }
+    mv.visitInsn(IREM);
+    // stack => { index, index1 }
+    operandAccessor1.pushElementAsDouble(method, naIntegerLabel);
     // stack => { index, [value1, value1] }
     mv.visitInsn(DUP2_X1); // next two instructions equivalent to swap
     mv.visitInsn(POP2);
@@ -83,13 +151,12 @@ public class BinaryVectorOpAccessor extends Accessor {
     // stack => { value1, index, length2 }
     mv.visitInsn(IREM);
     // stack => { value1, index2 }
-    operandAccessor2.pushDouble(method);
+    operandAccessor2.pushElementAsDouble(method, naIntegerLabel);
     // stack => { value1, value2}
 
     mv.visitMethodInsn(INVOKESTATIC,
             Type.getInternalName(applyMethod.getDeclaringClass()),
             applyMethod.getName(),
             Type.getMethodDescriptor(applyMethod));
-
- }
+  }
 }

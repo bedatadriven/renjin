@@ -1,5 +1,7 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import com.google.common.base.Optional;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.compiler.pipeline.ComputeMethod;
@@ -53,8 +55,13 @@ public class UnaryVectorOpAccessor extends Accessor {
   }
 
   @Override
-  public void pushDouble(ComputeMethod method) {
-    operandAccessor.pushDouble(method);
+  public boolean mustCheckForIntegerNAs() {
+    return operandAccessor.mustCheckForIntegerNAs();
+  }
+
+  @Override
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
+    operandAccessor.pushElementAsDouble(method, integerNaLabel);
     MethodVisitor mv = method.getVisitor();
     mv.visitMethodInsn(INVOKESTATIC,
             Type.getInternalName(applyMethod.getDeclaringClass()),

@@ -1,6 +1,5 @@
 package org.renjin.compiler.pipeline;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -9,13 +8,11 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.Vector;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
 
 public class MultiThreadedVectorPipeliner implements VectorPipeliner {
 

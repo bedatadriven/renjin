@@ -26,7 +26,6 @@ import java.util.Set;
 
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.combine.view.CombinedIntVector;
-import org.renjin.primitives.sequence.RepLogicalVector;
 import org.renjin.primitives.subset.lazy.ShadedColMatrix;
 import org.renjin.primitives.subset.lazy.ShadedRowMatrix;
 import org.renjin.primitives.vector.AttributeDecoratingIntVector;

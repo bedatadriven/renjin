@@ -75,8 +75,9 @@ public class Matrices {
 
   @Internal("crossprod")
   public static SEXP crossprod(AtomicVector x, AtomicVector y) {
-    return new MatrixProduct(MatrixProduct.CROSSPROD, x, y)
-            .crossprod();
+    DeferredCrossprod dcs =  new DeferredCrossprod(x, y, AttributeMap.EMPTY);
+    if (System.getProperty("renjin.disable.crossprod") != null) return (DoubleVector) dcs.forceResult();
+    return dcs;
   }
 
   @Internal("tcrossprod")

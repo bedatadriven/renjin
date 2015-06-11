@@ -6,7 +6,7 @@ import org.renjin.sexp.*;
 
 public class TransposingMatrix extends DoubleVector implements DeferredComputation {
 
-  public static final int LENGTH_THRESHOLD = 1000;
+  public static final int LENGTH_THRESHOLD = 10;
 
   private final Vector source;
   private int[] sourceDim;

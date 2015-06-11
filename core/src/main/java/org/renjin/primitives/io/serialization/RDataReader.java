@@ -24,10 +24,13 @@ package org.renjin.primitives.io.serialization;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Closeables;
+
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Primitives;
+import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
@@ -304,7 +307,25 @@ public class RDataReader {
   private AttributeMap readAttributes(int flags) throws IOException {
     if(Flags.hasAttributes(flags)) {
       SEXP pairList = readExp();
-      return AttributeMap.fromPairList((PairList) pairList);
+      AttributeMap am = AttributeMap.fromPairList((PairList) pairList);
+      SEXP rns = am.get(Symbols.ROW_NAMES);
+      /* 
+       * There is a special case when GNU R serializes a empty 
+       * row names vector, it uses an integer vector with two entries, 
+       * first is NA, the second is the number of rows.
+       */
+      if (rns instanceof IntVector) {
+        IntVector rniv = (IntVector)rns;
+        if (rniv.length() == 2 && rniv.isElementNA(0)) {
+          ConvertingStringVector csv = new ConvertingStringVector(
+              IntSequence.fromTo(1, rniv.getElementAsInt(1)), AttributeMap.EMPTY);
+          AttributeMap.Builder amb = new AttributeMap.Builder();
+          amb.addAllFrom(am);
+          amb.set(Symbols.ROW_NAMES, csv);
+          am = amb.build();
+        }
+      }
+      return am;
     } else {
       return AttributeMap.EMPTY;
     }

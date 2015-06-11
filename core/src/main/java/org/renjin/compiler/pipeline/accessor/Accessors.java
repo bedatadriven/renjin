@@ -5,6 +5,7 @@ import org.renjin.primitives.matrix.TransposingMatrix;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntBufferVector;
 
 public class Accessors {
 
@@ -14,6 +15,9 @@ public class Accessors {
     
     } else if(node.getVector() instanceof IntArrayVector) {
       return new IntArrayAccessor(inputGraph.getOperandIndex(node));
+
+    } else if(node.getVector() instanceof IntBufferVector) {
+      return new IntBufferAccessor(inputGraph.getOperandIndex(node));
       
     } else if(UnaryVectorOpAccessor.accept(node)) {
       return new UnaryVectorOpAccessor(node, inputGraph);

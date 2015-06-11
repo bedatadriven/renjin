@@ -1,8 +1,11 @@
-package org.renjin.compiler.pipeline;
+package org.renjin.compiler.pipeline.specialization;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.compiler.pipeline.VectorPipeliner;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -38,16 +41,16 @@ import static org.objectweb.asm.Opcodes.*;
  * <p>Because we totally inline getElementAsDouble,
  * we need a new Jitted class for each combination of operators and vector classes.</p>
  */
-public class DeferredJitter {
+public class JitSpecializer {
 
   private String className;
   private ClassVisitor cv;
 
-  public DeferredJitter() {
+  public JitSpecializer() {
     className = "Jit" + System.identityHashCode(this);
   }
 
-  public JittedComputation compile(DeferredNode node)  {
+  public SpecializedComputation compile(DeferredNode node)  {
     long startTime = System.nanoTime();
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = cw;
@@ -56,7 +59,7 @@ public class DeferredJitter {
 //    }
     //cv = new CheckClassAdapter(cv);
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object",
-            new String[]{"org/renjin/compiler/pipeline/JittedComputation"});
+            new String[]{"org/renjin/compiler/pipeline/specialization/SpecializedComputation"});
 
     writeConstructor();
     writeCompute(node);
@@ -76,7 +79,7 @@ public class DeferredJitter {
     }
 
     try {
-      return (JittedComputation) jitClass.newInstance();
+      return (SpecializedComputation) jitClass.newInstance();
     } catch (Exception e) {
       throw new RuntimeException("Could not invoke jitted computation", e);
     }
@@ -98,18 +101,18 @@ public class DeferredJitter {
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 
-    FunctionJitter function = getFunction(node);
+    FunctionSpecializer function = FunctionSpecializers.INSTANCE.get(node);
     function.compute(methodContext, node);
 
     mv.visitMaxs(1, methodContext.getMaxLocals());
     mv.visitEnd();
   }
 
-  private FunctionJitter getFunction(DeferredNode node) {
+  private FunctionSpecializer getFunction(DeferredNode node) {
     if(node.getComputation().getComputationName().equals("mean")) {
-      return new MeanJitter();
+      return new SumMeanSpecializer();
     } else if(node.getComputation().getComputationName().equals("rowMeans")) {
-      return new RowMeanJitter();
+      return new RowMeanSpecializer();
     } else {
       throw new UnsupportedOperationException(node.toString());
     }

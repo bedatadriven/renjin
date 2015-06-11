@@ -37,4 +37,12 @@ public class IntBufferVector extends IntVector {
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new IntBufferVector(buffer, length, attributes);
   }
+
+  /**
+   * Returns the underlying {@code IntBuffer} backing this vector. The 
+   * returned buffer <strong>absolutely should not be modified!</strong>
+   */
+  public IntBuffer toIntBufferUnsafe() {
+    return buffer;
+  }
 }

@@ -1,16 +1,16 @@
-package org.renjin.compiler.pipeline;
+package org.renjin.compiler.pipeline.specialization;
 
 import java.util.Arrays;
 
 /**
- * Uniquely identifies a Jitted computation subgraph.
+ * Uniquely identifies a function specialized by its the classes of its operands
  */
-public class JitKey {
+public class SpecializationKey {
 
   private Class[] classes;
   private int hash;
 
-  public JitKey(Class[] classes) {
+  public SpecializationKey(Class[] classes) {
     this.classes = classes;
     this.hash = Arrays.hashCode(classes);
   }
@@ -22,10 +22,10 @@ public class JitKey {
 
   @Override
   public boolean equals(Object obj) {
-    if(!(obj instanceof JitKey)) {
+    if(!(obj instanceof SpecializationKey)) {
       return false;
     }
-    JitKey other = (JitKey)obj;
+    SpecializationKey other = (SpecializationKey)obj;
     return Arrays.equals(classes, other.classes);
   }
 }

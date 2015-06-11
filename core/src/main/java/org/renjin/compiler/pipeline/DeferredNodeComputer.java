@@ -1,5 +1,8 @@
 package org.renjin.compiler.pipeline;
 
+import org.renjin.compiler.pipeline.specialization.FunctionSpecializers;
+import org.renjin.compiler.pipeline.specialization.SpecializationCache;
+import org.renjin.compiler.pipeline.specialization.SpecializedComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.Vector;
@@ -21,11 +24,10 @@ public class DeferredNodeComputer implements Runnable {
     // TODO: at the moment, we can compile only a small number of summary
     // function, eventually we want to generate bytecode on the fly based
     // on their implementations elsewhere.
-    if(node.getComputation().getComputationName().equals("mean") ||
-        node.getComputation().getComputationName().equals("rowMeans")) {
+    if(FunctionSpecializers.INSTANCE.supports(node)) {
       try {
         Vector[] operands = node.flattenVectors();
-        JittedComputation computer = DeferredJitCache.INSTANCE.compile(node);
+        SpecializedComputation computer = SpecializationCache.INSTANCE.compile(node);
 
         long start = System.nanoTime();
 

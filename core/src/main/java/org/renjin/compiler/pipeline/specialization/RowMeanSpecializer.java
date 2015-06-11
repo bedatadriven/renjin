@@ -1,14 +1,16 @@
-package org.renjin.compiler.pipeline;
+package org.renjin.compiler.pipeline.specialization;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.compiler.pipeline.accessor.Accessor;
 import org.renjin.compiler.pipeline.accessor.Accessors;
 import org.renjin.compiler.pipeline.accessor.InputGraph;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class RowMeanJitter implements FunctionJitter  {
+public class RowMeanSpecializer implements FunctionSpecializer {
 
   @Override
   public void compute(ComputeMethod method, DeferredNode node) {

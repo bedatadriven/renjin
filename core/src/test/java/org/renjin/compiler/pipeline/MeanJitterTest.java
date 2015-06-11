@@ -2,13 +2,18 @@ package org.renjin.compiler.pipeline;
 
 import org.junit.Test;
 import org.renjin.DistanceMatrix;
+import org.renjin.compiler.pipeline.specialization.JitSpecializer;
+import org.renjin.compiler.pipeline.specialization.SpecializedComputation;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.R$primitive$$minus$deferred_d;
 import org.renjin.primitives.R$primitive$$times$deferred_dd;
 import org.renjin.primitives.matrix.DeferredRowMeans;
 import org.renjin.primitives.matrix.TransposingMatrix;
 import org.renjin.primitives.summary.DeferredMean;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Vector;
 
 public class MeanJitterTest {
 
@@ -19,8 +24,8 @@ public class MeanJitterTest {
     DeferredMean mean = new DeferredMean(vector, AttributeMap.EMPTY);
     DeferredGraph graph = new DeferredGraph(mean);
 
-    DeferredJitter jitter = new DeferredJitter();
-    JittedComputation computation = jitter.compile(graph.getRoot());
+    JitSpecializer jitter = new JitSpecializer();
+    SpecializedComputation computation = jitter.compile(graph.getRoot());
 
     double [] result = computation.compute(
             graph.getRoot().flattenVectors());
@@ -56,8 +61,8 @@ public class MeanJitterTest {
     DeferredMean mean = new DeferredMean(negative, AttributeMap.EMPTY);
     DeferredGraph graph = new DeferredGraph(mean);
 
-    DeferredJitter jitter = new DeferredJitter();
-    JittedComputation computation = jitter.compile(graph.getRoot());
+    JitSpecializer jitter = new JitSpecializer();
+    SpecializedComputation computation = jitter.compile(graph.getRoot());
 
     double [] result = computation.compute(graph.getRoot().flattenVectors());
 

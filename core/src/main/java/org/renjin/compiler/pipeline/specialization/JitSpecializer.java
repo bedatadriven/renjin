@@ -1,11 +1,19 @@
 package org.renjin.compiler.pipeline.specialization;
 
+import com.google.common.io.Files;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.util.CheckMethodAdapter;
+import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.compiler.pipeline.VectorPipeliner;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.HashMap;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -43,6 +51,8 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class JitSpecializer {
 
+  public static final boolean DEBUG = System.getProperty("renjin.vp.jit.debug") != null;
+
   private String className;
   private ClassVisitor cv;
 
@@ -54,10 +64,6 @@ public class JitSpecializer {
     long startTime = System.nanoTime();
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = cw;
-//    if(DeferredGraph.DEBUG) {
-//      cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-//    }
-    //cv = new CheckClassAdapter(cv);
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object",
             new String[]{"org/renjin/compiler/pipeline/specialization/SpecializedComputation"});
 
@@ -74,8 +80,18 @@ public class JitSpecializer {
     long loadTime = System.nanoTime() - startTime - compileTime;
 
     if(VectorPipeliner.DEBUG) {
-      System.out.println("compile: " + (compileTime/1e6) + "ms");
-      System.out.println("load: " + (loadTime/1e6) + "ms");
+      System.out.println(className + ": " + node.jitKey());
+      System.out.println(className + ": compile: " + (compileTime/1e6) + "ms");
+      System.out.println(className + ": load: " + (loadTime / 1e6) + "ms");
+      if(DEBUG) {
+        try {
+          File classFile = File.createTempFile("Specialization", ".class");
+          Files.write(classBytes, classFile);
+          System.out.println("Wrote class file to " + classFile);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
     }
 
     try {
@@ -96,8 +112,12 @@ public class JitSpecializer {
   }
 
   private void writeCompute(DeferredNode node) {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "compute", "([Lorg/renjin/sexp/Vector;)[D", null, null);
-    mv.visitCode();
+    String typeDescriptor = "([Lorg/renjin/sexp/Vector;)[D";
+
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "compute", typeDescriptor, null, null);
+//
+//    mv = new CheckMethodAdapter(ACC_PUBLIC, "compute", typeDescriptor, mv, new HashMap());
+//    mv.visitCode();
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 

@@ -85,9 +85,13 @@ public abstract class Accessor {
    */
   protected final void doIntegerNaCheck(MethodVisitor mv, Optional<Label> naLabel) {
     if(naLabel.isPresent()) {
+      // stack => { ... , value }
       mv.visitInsn(DUP);
+      // stack => { ... , value, value }
       mv.visitFieldInsn(GETSTATIC, "org/renjin/sexp/IntVector", "NA", "I");
+      // stack => { ... , value, value, NA }
       mv.visitJumpInsn(IF_ICMPEQ, naLabel.get());
+      // stack => { ... , value }
     }
   }
 

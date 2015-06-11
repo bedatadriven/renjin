@@ -7,7 +7,9 @@ import org.objectweb.asm.Type;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.sexp.Vector;
+import soot.JastAddJ.Opt;
 
+import javax.swing.text.html.Option;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -108,6 +110,24 @@ public class BinaryVectorOpAccessor extends Accessor {
 
   private void computeInt(ComputeMethod method, Optional<Label> naLabel) {
 
+    // If we've been asked to handle NA checking, then we have to set up our
+    // internal NA handler block to handle the case that one of the arguments
+    // is NA so that we can clean up the stack before jumping to the outer naLabel.
+
+    // The Java bytecode verifier will not accept that multiple execution paths
+    // arrive at the same point with different types on the stack.
+
+    Optional<Label> argNaLabel = Optional.absent();
+    if(naLabel.isPresent() &&
+        (operandAccessor1.mustCheckForIntegerNAs() || operandAccessor2.mustCheckForIntegerNAs())) {
+      argNaLabel = Optional.of(new Label());
+    }
+
+    Optional<Label> done = Optional.absent();
+    if(argNaLabel.isPresent()) {
+      done = Optional.of(new Label());
+    }
+
     MethodVisitor mv = method.getVisitor();
     mv.visitInsn(DUP);
     mv.visitVarInsn(ILOAD, lengthLocal1);
@@ -115,7 +135,7 @@ public class BinaryVectorOpAccessor extends Accessor {
     mv.visitInsn(IREM);
     // stack => { index, index1 }
     
-    operandAccessor1.pushElementAsInt(method, naLabel);
+    operandAccessor1.pushElementAsInt(method, argNaLabel);
 
     // stack => { index, value1 }
     mv.visitInsn(SWAP); 
@@ -125,7 +145,7 @@ public class BinaryVectorOpAccessor extends Accessor {
     mv.visitInsn(IREM);
     // stack => { value1, index2 }
 
-    operandAccessor2.pushElementAsInt(method, naLabel);
+    operandAccessor2.pushElementAsInt(method, argNaLabel);
     // stack => { value1, value2}
 
     mv.visitMethodInsn(INVOKESTATIC,
@@ -133,6 +153,25 @@ public class BinaryVectorOpAccessor extends Accessor {
             applyMethod.getName(),
             Type.getMethodDescriptor(applyMethod));
 
+    if(done.isPresent()) {
+      mv.visitJumpInsn(GOTO, done.get());
+    }
+
+    if(argNaLabel.isPresent()) {
+      mv.visitLabel(argNaLabel.get());
+      // upon arriving here, the stack either contains
+      // { index, value1 } if is.na(arg1), or
+      // { value1, value2 } if !is.na(arg1) && is.na(arg2).
+      // in either case, we have to get rid of one of the ints
+      // so that we jump to the outer na block, there is exactly
+      // one extra int on the stack as expected.
+      mv.visitInsn(POP);
+      mv.visitJumpInsn(GOTO, naLabel.get());
+    }
+
+    if(done.isPresent()) {
+      mv.visitLabel(done.get());
+    }
   }
 
   private void computeDouble(ComputeMethod method, Optional<Label> naIntegerLabel) {

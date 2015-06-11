@@ -2,6 +2,8 @@ package org.renjin.compiler.pipeline;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.util.Textifier;
+import org.objectweb.asm.util.TraceMethodVisitor;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -57,4 +59,5 @@ public class ComputeMethod {
   public int getMaxLocals() {
     return localCount;
   }
+
 }

@@ -54,9 +54,9 @@ public class DeferredCrossprod extends DoubleVector implements
   @Override
   public double getElementAsDouble(int index) {
     if (this.crossproduct == null) {
-//      System.err
-//          .println("EEK! crossprod.computeCrossProduct() called through getElementAsDouble()");
-//      Thread.dumpStack();
+      System.err
+          .println("EEK! crossprod.computeCrossProduct() called through getElementAsDouble()");
+      //Thread.dumpStack();
       computeCrossProduct();
     }
     return crossproduct[index];

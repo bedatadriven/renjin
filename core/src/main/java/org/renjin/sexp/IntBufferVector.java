@@ -32,6 +32,11 @@ public class IntBufferVector extends IntVector {
   public boolean isConstantAccessTime() {
     return true;
   }
+  
+  @Override
+  public int hashCode() {
+    return buffer.hashCode();
+  }
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {

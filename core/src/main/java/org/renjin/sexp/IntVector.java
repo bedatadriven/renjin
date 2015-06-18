@@ -196,7 +196,7 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
   }
 
   @Override
-  public final int hashCode() {
+  public int hashCode() {
     int hash = 37;
     for(int i=0;i!=length();++i) {
       hash += getElementAsInt(i);

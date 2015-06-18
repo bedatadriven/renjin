@@ -11,10 +11,4 @@ public class RepeatRaiser implements Optimizer {
   public boolean optimize(DeferredGraph graph, DeferredNode node) {
     return false;
   }
-
-  @Override
-  public void newRound() {
-    // TODO Auto-generated method stub
-    
-  }
 }

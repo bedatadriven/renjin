@@ -211,7 +211,7 @@ public class Context {
   //private static OutputStream dotout = null;
 
   //private static int cid = 0;
-  //public static boolean horriddebug = false;
+  public static boolean horriddebug = false;
 /*
   private int lf(FunctionCall e) {
     int fc = System.identityHashCode(e);
@@ -232,11 +232,11 @@ public class Context {
     } else if (expression instanceof ExpressionVector) {
       return evaluateExpressionVector((ExpressionVector) expression, rho);
     } else if (expression instanceof FunctionCall) {
-/*      FunctionCall fc = (FunctionCall) expression;
+     FunctionCall fc = (FunctionCall) expression;
       if (fc.getFunction().toString().equals("togglehorriddebug")) {
         horriddebug = !horriddebug;
         return LogicalVector.NA_VECTOR;
-      }
+      }/* 
         if (horriddebug) {
           try {
             File dotfile = File.createTempFile("renjin-callgraph", ".dot");
@@ -257,6 +257,8 @@ public class Context {
         }
         return LogicalVector.NA_VECTOR;
       }*/
+     if (horriddebug) System.out.println(expression);
+
       SEXP ret = evaluateCall((FunctionCall) expression, rho);
   /*    if (horriddebug && fc.getFunction() instanceof Function
           && callStack.size() > 0) {
@@ -383,6 +385,10 @@ public class Context {
     } */
 
     SEXP ret = functionExpr.apply(this, rho, call, call.getArguments());
+//   if (System.getProperty("renjin.force.materialization") != null) {
+//     ret = materialize(ret);
+//   }
+
     /*if (horriddebug && functionExpr instanceof Function) {
      // long duration = System.currentTimeMillis() - start;
       //if (duration > 2000) {

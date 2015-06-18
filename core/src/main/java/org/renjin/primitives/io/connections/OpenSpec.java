@@ -39,6 +39,10 @@ public class OpenSpec {
     return spec.equals("r+") || spec.contains("w") || spec.contains("a");
   }
   
+  public boolean isAppend() {
+    return spec.startsWith("a");
+  }
+  
   public boolean isText() {
     return !spec.contains("b");
   }

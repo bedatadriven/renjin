@@ -33,7 +33,7 @@ public interface Vector extends SEXP {
    * Set to true at build time to get messages
    * when Renjin allocates/copies new big vectors
    */
-  public static final boolean DEBUG_ALLOC = false;
+  public static final boolean DEBUG_ALLOC = System.getProperty("renjin.debug.vector") != null;
 
   /**
    *

@@ -72,10 +72,4 @@ public class IdentityRemover implements Optimizer {
     // TODO: sum(rep(100, 2)) == 100*2
     return null;
   }
-
-  @Override
-  public void newRound() {
-    // TODO Auto-generated method stub
-    
-  }
 }

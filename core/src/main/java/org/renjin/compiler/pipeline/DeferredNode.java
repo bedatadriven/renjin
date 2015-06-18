@@ -3,6 +3,8 @@ package org.renjin.compiler.pipeline;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import org.renjin.compiler.pipeline.optimize.AggregationRecycler;
 import org.renjin.compiler.pipeline.specialization.SpecializationKey;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.DeferredComputation;
@@ -73,7 +75,7 @@ public class DeferredNode {
       if(vector.length() == 1) {
         return Integer.toString(vector.getElementAsInt(0));
       } else {
-        return "[" + vector.length() + "]";
+        return "[" + vector.length()  + "]";
       }
     } else if(vector instanceof DeferredComputation) {
       return getComputation().getComputationName();
@@ -134,7 +136,7 @@ public class DeferredNode {
       return false;
     }
   }
-
+  
   @Override
   public String toString() {
     if(operands.isEmpty()) {
@@ -176,6 +178,7 @@ public class DeferredNode {
   }
 
   public void setResult(Vector result) {
+    //System.out.println(this + " I got a result: " +    AggregationRecycler.isCached(this.toString()) + "/"+ this.isMemoized());
     this.vector = result;
     for(DeferredNode operand : operands) {
       operand.removeUse(this);

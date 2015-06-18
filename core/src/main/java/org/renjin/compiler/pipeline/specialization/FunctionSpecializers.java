@@ -14,10 +14,12 @@ public enum FunctionSpecializers {
     
     FunctionSpecializers() {
         map = new HashMap<String, FunctionSpecializer>();
-        map.put("mean", new SumMeanSpecializer());
-        map.put("sum", new SumMeanSpecializer());
-        map.put("rowMeans", new RowMeanSpecializer());
-        map.put("colSums", new ColSumSpecializer());
+        if (System.getProperty("renjin.vp.disablejit") == null) {
+          map.put("mean", new SumMeanSpecializer());
+          map.put("sum", new SumMeanSpecializer());
+          map.put("rowMeans", new RowMeanSpecializer());
+          map.put("colSums", new ColSumSpecializer());
+        }
     }
     
     public boolean supports(DeferredNode node) {

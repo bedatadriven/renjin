@@ -82,7 +82,7 @@ public class FileConnection extends AbstractConnection {
   }
 
   protected OutputStream doOpenForOutput() throws FileSystemException, IOException {
-    return file.getContent().getOutputStream();
+    return file.getContent().getOutputStream(openSpec.isAppend());
   }
   
   @Override

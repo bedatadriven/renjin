@@ -17,10 +17,4 @@ public class AttributeRemover implements Optimizer {
     }
     return false;
   }
-
-  @Override
-  public void newRound() {
-    // TODO Auto-generated method stub
-    
-  }
 }

@@ -51,6 +51,9 @@ public class DeferredGraph {
   }
 
   private void addChildren(DeferredNode parent) {
+    if (!parent.isComputation()) {
+      return;
+    }
     for(Vector operand : parent.getComputation().getOperands()) {
       DeferredNode node = nodeMap.get(operand);
       if(node == null) {

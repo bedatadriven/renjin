@@ -49,6 +49,11 @@ public class IntArrayVector extends IntVector {
   }
 
   @Override
+  public int hashCode() {
+    return values.hashCode();
+  }
+  
+  @Override
   public int length() {
     return values.length;
   }

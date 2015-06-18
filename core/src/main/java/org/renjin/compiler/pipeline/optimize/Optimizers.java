@@ -11,11 +11,14 @@ public class Optimizers {
   List<Optimizer> optimizers = Lists.newArrayList();
 
   public Optimizers() {
-    optimizers.add(new SquareOptimizer());
-    optimizers.add(new IdentityRemover());
-    optimizers.add(new AttributeRemover());
-   // optimizers.add(new CommonExpressionRemover());
-
+    if (System.getProperty("renjin.vp.disableopt") == null) {
+      optimizers.add(new SquareOptimizer());
+      optimizers.add(new IdentityRemover());
+      optimizers.add(new AttributeRemover());
+      optimizers.add(new AggregationRecycler());
+    } else {
+      System.err.println("Optimizers are disabled");
+    }
   }
 
   public void optimize(DeferredGraph graph) {
@@ -25,7 +28,6 @@ public class Optimizers {
       List<DeferredNode> nodes = Lists.newArrayList(graph.getNodes());
       for(DeferredNode node : nodes) {
         for(Optimizer optimizer : optimizers) {
-          optimizer.newRound();
           changed |= optimizer.optimize(graph, node);
         }
       }

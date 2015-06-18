@@ -74,11 +74,4 @@ public class SquareOptimizer implements Optimizer {
       return x * x;
     }
   }
-
-  @Override
-  public void newRound() {
-    // TODO Auto-generated method stub
-    
-  }
-
 }

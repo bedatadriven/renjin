@@ -139,8 +139,13 @@ public class Main {
   }
 
   public void initSession() throws Exception {
-    threadPool = Executors.newFixedThreadPool(Integer.parseInt(
-        System.getProperty("renjin.vp.threads", ""+Runtime.getRuntime().availableProcessors())));
+    int threads = Runtime.getRuntime().availableProcessors();
+    String override = System.getProperty("renjin.vp.threads");
+    if (override != null) {
+      threads = Integer.parseInt(override);
+      System.err.println("Using " + threads + " threads.");
+    }
+    threadPool = Executors.newFixedThreadPool(threads);
 
     packageLoader = new AetherPackageLoader();
     this.session = new SessionBuilder()

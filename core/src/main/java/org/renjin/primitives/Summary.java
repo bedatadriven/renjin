@@ -21,16 +21,37 @@
 
 package org.renjin.primitives;
 
+import java.io.IOException;
+
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Deferrable;
+import org.renjin.invoke.annotations.GroupGeneric;
+import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.NamedFlag;
+import org.renjin.primitives.summary.DeferredMax;
 import org.renjin.primitives.summary.DeferredMean;
+import org.renjin.primitives.summary.DeferredMin;
 import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.*;
-
-import java.io.IOException;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.ComplexArrayVector;
+import org.renjin.sexp.ComplexVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector;
 
 
 /**
@@ -45,6 +66,9 @@ public class Summary {
   public static SEXP min(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
+    if(arguments.length() == 1 && !removeNA) {
+      return new DeferredMin((Vector) arguments.get(0), AttributeMap.EMPTY);
+    }
     try {
       return new RangeCalculator()
         .setRemoveNA(removeNA)
@@ -59,7 +83,9 @@ public class Summary {
   @GroupGeneric
   public static SEXP max(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
-
+    if(arguments.length() == 1 && !removeNA) {
+      return new DeferredMax((Vector) arguments.get(0), AttributeMap.EMPTY);
+    }
     try {
       return new RangeCalculator()
         .setRemoveNA(removeNA)
@@ -105,7 +131,7 @@ public class Summary {
   
   private static class RangeContainsNA extends Exception {  }
   
-  private static class RangeCalculator {
+  public static class RangeCalculator {
     private boolean removeNA;
     private boolean recursive;
     private Vector minValue = null;

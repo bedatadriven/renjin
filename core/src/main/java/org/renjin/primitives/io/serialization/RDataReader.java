@@ -21,10 +21,10 @@
 
 package org.renjin.primitives.io.serialization;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Closeables;
-
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.NumericLiterals;
@@ -40,6 +40,7 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import static org.renjin.primitives.io.serialization.SerializationFormat.*;
@@ -431,11 +432,54 @@ public class RDataReader {
 
   private SEXP readStringVector(int flags) throws IOException {
     int length = in.readInt();
-    String[] values = new String[length];
-    for(int i=0;i!=length;++i) {
-      values[i] = ((CHARSEXP)readExp()).getValue();
+    if(length > 100) {
+      return readStringVectorAsByteArray(length, flags);
+    } else {
+      return readStringsAsArray(length, flags);
     }
-    return new StringArrayVector(values, readAttributes(flags));
+  }
+
+  private SEXP readStringsAsArray(int length, int flags) throws IOException {
+    StringArrayVector.Builder array = new StringArrayVector.Builder(0, length);
+    for (int i = 0; i < length; i++) {
+      // each element is encoded as a CHARSXP
+      int elementFlags = in.readInt();
+      assert Flags.getType(elementFlags) == CHARSXP;
+
+      // inlined version of readCharSexp
+      int elementLength = in.readInt();
+      if(elementLength < 0) {
+        array.addNA();
+      } else {
+        array.add(readString(flags, elementLength));
+      }
+    }
+    return array.build().setAttributes(readAttributes(flags));
+  }
+
+  private SEXP readStringVectorAsByteArray(int length, int flags) throws IOException {
+    StringByteArrayVector.Builder builder = new StringByteArrayVector.Builder(length);
+
+    int elementFlags = 0;
+    for(int i=0;i!=length;++i) {
+      // each element is encoded as a CHARSXP
+      elementFlags = in.readInt();
+      assert Flags.getType(elementFlags) == CHARSXP;
+      
+      // inlined version of readCharSexp
+      int elementLength = in.readInt();
+      builder.readFrom(in, elementLength);
+    }
+
+    // Assume encoding is the same for all elements
+    if(Flags.isUTF8Encoded(elementFlags)) {
+      builder.setCharset(Charsets.UTF_8);
+    } else if(Flags.isLatin1Encoded(flags)) {
+      builder.setCharset(Charset.forName("Latin1"));
+    }
+
+
+    return builder.build(readAttributes(flags));
   }
 
   private SEXP readComplexExp(int flags) throws IOException {
@@ -474,19 +518,25 @@ public class RDataReader {
 
   private SEXP readCharExp(int flags) throws IOException {
     int length = in.readInt();
-
     if (length == -1) {
       return new CHARSEXP(StringVector.NA );
     } else  {
-      byte buf[] = in.readString(length);
-      if(Flags.isUTF8Encoded(flags)) {
-        return new CHARSEXP(new String(buf, "UTF8"));
-      } else if(Flags.isLatin1Encoded(flags)) {
-        return new CHARSEXP(new String(buf, "Latin1"));
-      } else {
-        return new CHARSEXP(new String(buf));
-      }
+      String string = readString(flags, length);
+      return new CHARSEXP(string);
     }
+  }
+
+  private String readString(int flags, int length) throws IOException {
+    byte buf[] = in.readString(length);
+    String string;
+    if(Flags.isUTF8Encoded(flags)) {
+      string = new String(buf, "UTF8");
+    } else if(Flags.isLatin1Encoded(flags)) {
+      string = new String(buf, "Latin1");
+    } else {
+      string = new String(buf);
+    }
+    return string;
   }
 
   private SEXP readPrimitive(int flags) throws IOException {
@@ -513,7 +563,7 @@ public class RDataReader {
     if(restorer == null) {
       throw new IOException("no restore method available");
     }
-    return addReadRef( restorer.restore(readPersistentNamesVector()) );
+    return addReadRef(restorer.restore(readPersistentNamesVector()));
   }
 
   private StringVector readPersistentNamesVector() throws IOException {
@@ -528,10 +578,11 @@ public class RDataReader {
     return new StringArrayVector(values);
   }
 
-  private interface StreamReader {
+  public interface StreamReader {
     int readInt() throws IOException;
     IntBuffer readIntBuffer(int size) throws IOException;
     byte[] readString(int length) throws IOException;
+    void readFully(byte[] buffer, int offset, int length) throws IOException;
     double readDouble() throws IOException;
   }
 
@@ -649,6 +700,11 @@ public class RDataReader {
       
       return buf;
     }
+
+    @Override
+    public void readFully(byte[] buffer, int offset, int length) throws IOException {
+      System.arraycopy(readString(length), 0, buffer, offset, length);
+    }
   }
 
   private static class XdrReader implements StreamReader {
@@ -686,6 +742,11 @@ public class RDataReader {
       byte buf[] = new byte[length];
       in.readFully(buf);
       return buf;
+    }
+
+    @Override
+    public void readFully(byte[] buffer, int offset, int length) throws IOException {
+      in.readFully(buffer, offset, length);
     }
 
     @Override

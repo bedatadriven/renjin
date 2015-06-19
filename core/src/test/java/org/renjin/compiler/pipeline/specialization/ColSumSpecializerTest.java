@@ -2,6 +2,7 @@ package org.renjin.compiler.pipeline.specialization;
 
 import org.junit.Test;
 import org.renjin.compiler.pipeline.DeferredGraph;
+import org.renjin.primitives.R$primitive$$times$deferred_dd;
 import org.renjin.primitives.R$primitive$$times$deferred_ii;
 import org.renjin.primitives.matrix.DeferredColSums;
 import org.renjin.primitives.sequence.IntSequence;
@@ -81,5 +82,51 @@ public class ColSumSpecializerTest {
     System.out.println(Arrays.toString(resultArray));
 
     assertArrayEquals(new double[]{32d }, resultArray, 0.1);
+  }
+
+
+  @Test
+  public void intOperandsToDoubleBinaryFunction() throws Exception {
+
+    IntBufferVector x = new IntBufferVector(IntBuffer.wrap(new int[] { IntVector.NA, 2, 3 }), 3);
+    IntBufferVector y = new IntBufferVector(IntBuffer.wrap(new int[] { 4, 5, IntVector.NA }), 3);
+
+    //DoubleArrayVector y = new DoubleArrayVector(4d, 5d, 6d);
+    AtomicVector times = new R$primitive$$times$deferred_dd(x, y, AttributeMap.EMPTY);
+
+    DeferredColSums colSums = new DeferredColSums(times, 1, false, AttributeMap.EMPTY);
+
+    DeferredGraph graph = new DeferredGraph(colSums);
+
+    JitSpecializer specializer = new JitSpecializer();
+    SpecializedComputer computation = specializer.compile(graph.getRoot());
+
+    double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
+
+    System.out.println(Arrays.toString(resultArray));
+
+    assertArrayEquals(new double[]{10 }, resultArray, 0.1);
+  }
+
+  @Test
+  public void intDoubleOperandsToDoubleBinaryFunction() throws Exception {
+
+    IntBufferVector x = new IntBufferVector(IntBuffer.wrap(new int[] { IntVector.NA, 2, 3 }), 3);
+    DoubleArrayVector y = new DoubleArrayVector(4d, 5d, 0d);
+    
+    AtomicVector times = new R$primitive$$times$deferred_dd(x, y, AttributeMap.EMPTY);
+
+    DeferredColSums colSums = new DeferredColSums(times, 1, false, AttributeMap.EMPTY);
+
+    DeferredGraph graph = new DeferredGraph(colSums);
+
+    JitSpecializer specializer = new JitSpecializer();
+    SpecializedComputer computation = specializer.compile(graph.getRoot());
+
+    double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
+
+    System.out.println(Arrays.toString(resultArray));
+
+    assertArrayEquals(new double[]{10 }, resultArray, 0.1);
   }
 }

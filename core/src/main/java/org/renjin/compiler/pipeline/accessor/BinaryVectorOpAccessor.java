@@ -7,9 +7,7 @@ import org.objectweb.asm.Type;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.sexp.Vector;
-import soot.JastAddJ.Opt;
 
-import javax.swing.text.html.Option;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -119,7 +117,7 @@ public class BinaryVectorOpAccessor extends Accessor {
 
     Optional<Label> argNaLabel = Optional.absent();
     if(naLabel.isPresent() &&
-        (operandAccessor1.mustCheckForIntegerNAs() || operandAccessor2.mustCheckForIntegerNAs())) {
+            (operandAccessor1.mustCheckForIntegerNAs() || operandAccessor2.mustCheckForIntegerNAs())) {
       argNaLabel = Optional.of(new Label());
     }
 
@@ -134,11 +132,11 @@ public class BinaryVectorOpAccessor extends Accessor {
     // stack => { index, index, length1 }
     mv.visitInsn(IREM);
     // stack => { index, index1 }
-    
+
     operandAccessor1.pushElementAsInt(method, argNaLabel);
 
     // stack => { index, value1 }
-    mv.visitInsn(SWAP); 
+    mv.visitInsn(SWAP);
     // stack => { value1, index}
     mv.visitVarInsn(ILOAD, lengthLocal2);
     // stack => { value1, index, length2 }
@@ -174,28 +172,87 @@ public class BinaryVectorOpAccessor extends Accessor {
     }
   }
 
-  private void computeDouble(ComputeMethod method, Optional<Label> naIntegerLabel) {
+  private void computeDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
+
+
+    // If we've been asked to handle NA checking, then it gets even more complicated
+    // than above because the stack will look different depending on which argument is NA,
+    // because the double value of the first operand we push onto the stack requires
+    // two positions on the stack.
+
+
+    Optional<Label> argNaLabel1 = Optional.absent();
+    if(integerNaLabel.isPresent() && operandAccessor1.mustCheckForIntegerNAs()) {
+      argNaLabel1 = Optional.of(new Label());
+    }
+
+    Optional<Label> argNaLabel2 = Optional.absent();
+    if(integerNaLabel.isPresent() && operandAccessor2.mustCheckForIntegerNAs()) {
+      argNaLabel2 = Optional.of(new Label());
+    }
+
+    Optional<Label> done = Optional.absent();
+    if(argNaLabel1.isPresent() || argNaLabel2.isPresent()) {
+      done = Optional.of(new Label());
+    }
+
+
     MethodVisitor mv = method.getVisitor();
     mv.visitInsn(DUP);
     mv.visitVarInsn(ILOAD, lengthLocal1);
     // stack => { index, index, length1 }
     mv.visitInsn(IREM);
     // stack => { index, index1 }
-    operandAccessor1.pushElementAsDouble(method, naIntegerLabel);
+    operandAccessor1.pushElementAsDouble(method, argNaLabel1);
+
     // stack => { index, [value1, value1] }
     mv.visitInsn(DUP2_X1); // next two instructions equivalent to swap
     mv.visitInsn(POP2);
-    // stack => { value1, index}
+    // stack => { value1, value1, index}
     mv.visitVarInsn(ILOAD, lengthLocal2);
-    // stack => { value1, index, length2 }
+    // stack => { value1, value1, index, length2 }
     mv.visitInsn(IREM);
-    // stack => { value1, index2 }
-    operandAccessor2.pushElementAsDouble(method, naIntegerLabel);
+    // stack => { value1, value1, index2 }
+    operandAccessor2.pushElementAsDouble(method, argNaLabel2);
     // stack => { value1, value2}
+
 
     mv.visitMethodInsn(INVOKESTATIC,
             Type.getInternalName(applyMethod.getDeclaringClass()),
             applyMethod.getName(),
             Type.getMethodDescriptor(applyMethod));
+
+    if(done.isPresent()) {
+      mv.visitJumpInsn(GOTO, done.get());
+    }
+
+    if(argNaLabel1.isPresent()) {
+      mv.visitLabel(argNaLabel1.get());
+      // upon arriving here, the stack contains
+      // { index, value1::int } if is.na(arg1)
+      // get rid of one of the ints
+      // so that we jump to the outer na block, there is exactly
+      // one extra int on the stack as expected.
+      mv.visitInsn(POP);
+      mv.visitJumpInsn(GOTO, integerNaLabel.get());
+    }
+
+    if(argNaLabel2.isPresent()) {
+      mv.visitLabel(argNaLabel2.get());
+      
+      // upon arriving here, the stack contains
+      // {value1, value1}, value2::int if is.na(arg2)
+      // because the first value has already been converted to a double,
+      // which occupies two slots on the stack
+      mv.visitInsn(POP);
+      mv.visitInsn(POP2);
+      mv.visitInsn(ICONST_0);
+      mv.visitJumpInsn(GOTO, integerNaLabel.get());
+    }
+    
+
+    if(done.isPresent()) {
+      mv.visitLabel(done.get());
+    }
   }
 }

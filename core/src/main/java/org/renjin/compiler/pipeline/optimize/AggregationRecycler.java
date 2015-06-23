@@ -13,7 +13,7 @@ public class AggregationRecycler implements Optimizer {
   }
 
   private static LRUMap<String, DeferredNode> aggrCache = new LRUMap<String, DeferredNode>(
-      1000);
+          1000);
 
   // TODO: make map size dependent on number of vector entries, not number of
   // vectors
@@ -21,11 +21,12 @@ public class AggregationRecycler implements Optimizer {
   @Override
   public boolean optimize(DeferredGraph graph, DeferredNode node) {
     if (node.getVector() instanceof MemoizedComputation
-        && !(node.getVector() instanceof CachedResultNode)) {
+            && !(node.getVector() instanceof CachedResultNode)) {
       String op = ((DeferredComputation) node.getVector()).getComputationName();
       // TODO: support more diverse subtrees
       if (("sum".equals(op) || "mean".equals(op) || "min".equals(op) || "max"
-          .equals(op)) && node.getOperands().size() == 1) {
+              .equals(op)) && node.getOperands().size() == 1) {
+        
         String chc = node.toString();
         if (!aggrCache.containsKey(chc)) {
           aggrCache.put(chc, node);
@@ -33,8 +34,9 @@ public class AggregationRecycler implements Optimizer {
           // make sure this is indeed the same thing
           DeferredNode on = aggrCache.get(chc);
           if (!(on.getVector() instanceof DeferredComputation)) {
+            ((MemoizedComputation) node.getVector()).setResult(on.getVector());
             graph.replaceNode(node,
-                new CachedResultNode(node.getId(), on.getVector()));
+                    new CachedResultNode(node.getId(), on.getVector()));
             return true;
           }
         }
@@ -46,7 +48,7 @@ public class AggregationRecycler implements Optimizer {
   public static boolean isCached(String repr) {
     return aggrCache.containsKey(repr);
   }
-  
+
   public static void clear() {
     aggrCache.clear();
   }

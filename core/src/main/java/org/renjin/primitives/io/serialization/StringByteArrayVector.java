@@ -171,7 +171,7 @@ public class StringByteArrayVector extends StringVector {
             }
             buffer = Arrays.copyOf(buffer, newCapacity);
 
-            System.out.println("Grew from " + oldCapacity + " to " + buffer.length);
+//            System.out.println("Grew from " + oldCapacity + " to " + buffer.length);
 
         }
 
@@ -193,8 +193,8 @@ public class StringByteArrayVector extends StringVector {
             
             int excessCapacity = buffer.length - currentOffset;
             if(excessCapacity > 10 * 1024) {
-                System.out.println("Shrinking array from " + buffer.length + " to " + currentOffset + 
-                        " (Excess capacity = " + excessCapacity + ")");
+//                System.out.println("Shrinking array from " + buffer.length + " to " + currentOffset + 
+//                        " (Excess capacity = " + excessCapacity + ")");
                 buffer = Arrays.copyOf(buffer, currentOffset);
             }
             

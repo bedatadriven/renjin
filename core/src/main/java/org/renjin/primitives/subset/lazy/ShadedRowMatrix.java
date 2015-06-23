@@ -1,26 +1,21 @@
 package org.renjin.primitives.subset.lazy;
 
+import com.google.common.primitives.Ints;
+import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.sexp.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-import com.google.common.primitives.Ints;
-
-public class ShadedRowMatrix extends DoubleVector implements DeferredComputation {
+public class ShadedRowMatrix extends DoubleVector implements MemoizedComputation {
 
   private DoubleVector base = null;
-  private int colheight = 1;
-  private Map<Integer, DoubleVector> fiftyShadesOfDoubles = 
-      new HashMap<Integer, DoubleVector>();
+  private int columnLength = 1;
+  private Map<Integer, DoubleVector> rowMap = new HashMap<Integer, DoubleVector>();
+  
+  private double[] result;
   
   public ShadedRowMatrix(DoubleVector source)  {
     super(source.getAttributes());
@@ -29,7 +24,7 @@ public class ShadedRowMatrix extends DoubleVector implements DeferredComputation
     if (!(dimr instanceof IntArrayVector)) {
       throw new RuntimeException("non-integer dimensions? weird!");
     }
-    colheight = ((IntArrayVector)dimr).getElementAsInt(0);
+    columnLength = ((IntArrayVector)dimr).getElementAsInt(0);
   }
   
   public ShadedRowMatrix withShadedRow(int row, DoubleVector elements) {
@@ -37,7 +32,7 @@ public class ShadedRowMatrix extends DoubleVector implements DeferredComputation
   }
   
   public ShadedRowMatrix setShadedRow(int row, DoubleVector elements) {
-    fiftyShadesOfDoubles.put(row, elements);
+    rowMap.put(row, elements);
     return this;
   }
 
@@ -49,16 +44,16 @@ public class ShadedRowMatrix extends DoubleVector implements DeferredComputation
   @Override
   protected ShadedRowMatrix cloneWithNewAttributes(AttributeMap attributes) {    
     ShadedRowMatrix clone = new ShadedRowMatrix(this.base);
-    clone.fiftyShadesOfDoubles = new HashMap<Integer, DoubleVector>(fiftyShadesOfDoubles);
+    clone.rowMap = new HashMap<Integer, DoubleVector>(rowMap);
     return clone;
   }
 
   @Override
   public double getElementAsDouble(int index) {
-    int col = index / colheight;
-    int row = (index % colheight)+1;
-    if (fiftyShadesOfDoubles.containsKey(row)) {
-      return fiftyShadesOfDoubles.get(row).get(col);
+    int col = index / columnLength;
+    int row = (index % columnLength)+1;
+    if (rowMap.containsKey(row)) {
+      return rowMap.get(row).get(col);
     } else {
       return base.get(index);
     }
@@ -73,8 +68,8 @@ public class ShadedRowMatrix extends DoubleVector implements DeferredComputation
   public Vector[] getOperands() {
     List<Vector> ops = new ArrayList<Vector>();
     ops.add(base);
-    ops.add(new IntArrayVector(Ints.toArray(fiftyShadesOfDoubles.keySet())));
-    ops.addAll(fiftyShadesOfDoubles.values());
+    ops.add(new IntArrayVector(Ints.toArray(rowMap.keySet())));
+    ops.addAll(rowMap.values());
     return ops.toArray(new Vector[ops.size()]);
   }
 
@@ -83,4 +78,33 @@ public class ShadedRowMatrix extends DoubleVector implements DeferredComputation
     return "ShadedRowMatrix";
   }
 
+  @Override
+  public Vector forceResult() {
+
+    int rowLength = length() / columnLength;
+    double matrix[] = base.toDoubleArray();
+    for (Map.Entry<Integer, DoubleVector> entry : rowMap.entrySet()) {
+      DoubleVector vector = entry.getValue();
+      int rowIndex = entry.getKey()-1;
+      int index = rowIndex;
+
+      for (int i = 0; i < rowLength; ++i) {
+        matrix[index] = vector.getElementAsDouble(i);
+        index += columnLength;
+      }
+    }
+    
+    this.result = matrix;
+    return DoubleArrayVector.unsafe(matrix);
+  }
+
+  @Override
+  public void setResult(Vector result) {
+    this.result = ((DoubleArrayVector) result).toDoubleArrayUnsafe();
+  }
+
+  @Override
+  public boolean isCalculated() {
+    return result != null;
+  }
 }

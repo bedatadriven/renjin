@@ -1,26 +1,21 @@
 package org.renjin.primitives.subset.lazy;
 
+import com.google.common.primitives.Ints;
+import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.sexp.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
-
-import com.google.common.primitives.Ints;
-
-public class ShadedColMatrix extends DoubleVector implements DeferredComputation {
+public class ShadedColMatrix extends DoubleVector implements MemoizedComputation {
 
   private DoubleVector base = null;
   private int colheight = 1;
-  private Map<Integer, DoubleVector> fiftyShadesOfDoubles = 
-      new HashMap<Integer, DoubleVector>();
+  private Map<Integer, DoubleVector> columnMap = new HashMap<Integer, DoubleVector>();
+  
+  private double result[];
   
   public ShadedColMatrix(DoubleVector source)  {
     super(source.getAttributes());
@@ -37,7 +32,7 @@ public class ShadedColMatrix extends DoubleVector implements DeferredComputation
   }
   
   public ShadedColMatrix setShadedCol(int col, DoubleVector elements) {
-    fiftyShadesOfDoubles.put(col, elements);
+    columnMap.put(col, elements);
     return this;
   }
 
@@ -49,7 +44,7 @@ public class ShadedColMatrix extends DoubleVector implements DeferredComputation
   @Override
   protected ShadedColMatrix cloneWithNewAttributes(AttributeMap attributes) {    
     ShadedColMatrix clone = new ShadedColMatrix(this.base);
-    clone.fiftyShadesOfDoubles = new HashMap<Integer, DoubleVector>(fiftyShadesOfDoubles);
+    clone.columnMap = new HashMap<Integer, DoubleVector>(columnMap);
     return clone;
   }
 
@@ -57,8 +52,8 @@ public class ShadedColMatrix extends DoubleVector implements DeferredComputation
   public double getElementAsDouble(int index) {
     int col = index / colheight + 1;
     int row = (index % colheight);
-    if (fiftyShadesOfDoubles.containsKey(col)) {
-      return fiftyShadesOfDoubles.get(col).get(row);
+    if (columnMap.containsKey(col)) {
+      return columnMap.get(col).get(row);
     } else {
       return base.get(index);
     }
@@ -73,8 +68,8 @@ public class ShadedColMatrix extends DoubleVector implements DeferredComputation
   public Vector[] getOperands() {
     List<Vector> ops = new ArrayList<Vector>();
     ops.add(base);
-    ops.add(new IntArrayVector(Ints.toArray(fiftyShadesOfDoubles.keySet())));
-    ops.addAll(fiftyShadesOfDoubles.values());
+    ops.add(new IntArrayVector(Ints.toArray(columnMap.keySet())));
+    ops.addAll(columnMap.values());
     return ops.toArray(new Vector[ops.size()]);
   }
 
@@ -83,4 +78,37 @@ public class ShadedColMatrix extends DoubleVector implements DeferredComputation
     return "ShadedColMatrix";
   }
 
+  @Override
+  public Vector forceResult() {
+    int numColumns = length() / colheight;
+    // allocate a copy of the base array
+    double [] matrix = base.toDoubleArray();
+    int index = 0;
+    for(int col=0;col<numColumns;++col) {
+      DoubleVector column = columnMap.get(col+1);
+      if(column == null) {
+        // skip this column, use the base values
+        index += colheight;
+      
+      } else {
+        // read this column from the operand
+        for(int row=0;row<colheight;++row) {
+          matrix[index++] = column.getElementAsDouble(row);
+        }
+      }
+    }
+    this.result = matrix;
+    
+    return DoubleArrayVector.unsafe(this.result);
+  }
+
+  @Override
+  public void setResult(Vector result) {
+    this.result = ((DoubleArrayVector) result).toDoubleArrayUnsafe();
+  }
+
+  @Override
+  public boolean isCalculated() {
+    return result != null;
+  }
 }

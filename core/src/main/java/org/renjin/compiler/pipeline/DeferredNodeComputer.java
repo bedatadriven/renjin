@@ -21,6 +21,9 @@ public class DeferredNodeComputer implements Runnable {
 
   @Override
   public void run() {
+
+    long start = System.nanoTime();
+
     // TODO: at the moment, we can compile only a small number of summary
     // function, eventually we want to generate bytecode on the fly based
     // on their implementations elsewhere.
@@ -29,14 +32,7 @@ public class DeferredNodeComputer implements Runnable {
         Vector[] operands = node.flattenVectors();
         SpecializedComputer computer = SpecializationCache.INSTANCE.compile(node);
 
-        long start = System.nanoTime();
-
         Vector result = DoubleArrayVector.unsafe(computer.compute(operands));
-
-        long time = System.nanoTime() - start;
-        if(VectorPipeliner.DEBUG) {
-          System.out.println("compute: " + (time/1e6) + "ms");
-        }
 
         ((MemoizedComputation)node.getVector()).setResult(result);
         node.setResult(result);
@@ -44,7 +40,13 @@ public class DeferredNodeComputer implements Runnable {
         throw new RuntimeException("Exception compiling node " + node, e);
       }
     } else if(node.getVector() instanceof MemoizedComputation) {
+      
       node.setResult(((MemoizedComputation) node.getVector()).forceResult());
+    }
+    
+    if(VectorPipeliner.DEBUG) {
+      long time = System.nanoTime() - start;
+      System.out.println("Computed " + node + " in " + (time/1e6) + "ms");
     }
   }
 }

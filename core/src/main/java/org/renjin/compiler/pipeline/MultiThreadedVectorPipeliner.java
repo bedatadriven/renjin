@@ -1,18 +1,17 @@
 package org.renjin.compiler.pipeline;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.sexp.Vector;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
-
-import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.Vector;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 
 public class MultiThreadedVectorPipeliner implements VectorPipeliner {
 
@@ -89,7 +88,7 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
       DeferredNode computed = service.take().get();
       running --;
       if(VectorPipeliner.DEBUG) {
-        System.out.println("Completed " + computed);
+        //System.out.println("Completed " + computed);
       }
     }
   }

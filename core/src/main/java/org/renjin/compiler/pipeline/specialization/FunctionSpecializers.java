@@ -19,6 +19,8 @@ public enum FunctionSpecializers {
           map.put("sum", new SumMeanSpecializer());
           map.put("rowMeans", new RowMeanSpecializer());
           map.put("colSums", new ColSumSpecializer());
+        } else {
+          System.err.println("Specializers are disabled");
         }
     }
     

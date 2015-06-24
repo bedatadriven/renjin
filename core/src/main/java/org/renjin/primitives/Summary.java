@@ -178,6 +178,29 @@ public class Summary {
       if(vector.getVectorType().isWiderThan(resultType)) {
         resultType = vector.getVectorType();
       }
+      if (vector instanceof DoubleArrayVector) {
+        double maxDblValue = Double.NEGATIVE_INFINITY;
+        double minDblValue = Double.POSITIVE_INFINITY;
+        double[] values = ((DoubleArrayVector) vector).toDoubleArrayUnsafe();
+       for(int i=0;i<values.length;i++) {
+         if (DoubleVector.isNA(values[i])) {
+           if(!removeNA) {
+             naEncountered = true;
+           }
+          } else {
+           if (values[i] > maxDblValue) {
+             maxDblValue = values[i];
+           }
+           if (values[i] < minDblValue) {
+             minDblValue = values[i];
+           }
+         }
+       }
+       resultType = DoubleVector.VECTOR_TYPE;
+       maxValue = DoubleVector.valueOf(maxDblValue);
+       minValue = DoubleVector.valueOf(minDblValue);
+       return;
+      }
  
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {

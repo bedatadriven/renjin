@@ -26,7 +26,7 @@ public class DeferredMin extends DeferredSummary {
 
   @Override
   public String getComputationName() {
-    return "max";
+    return "min";
   }
 
   @Override

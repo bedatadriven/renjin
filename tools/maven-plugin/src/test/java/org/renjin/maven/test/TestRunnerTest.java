@@ -12,5 +12,4 @@ public class TestRunnerTest extends TestCase {
         Collections.<String>emptyList());
     runner.run(new File("src/test/resources/man"));
   }
-  
 }

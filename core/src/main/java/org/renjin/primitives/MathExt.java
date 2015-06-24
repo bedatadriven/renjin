@@ -129,6 +129,12 @@ public class MathExt {
   @Builtin
   @DataParallel
   public static double signif(double x, int digits) {
+    if(Double.isInfinite(x) || Double.isNaN(x)) {
+      return x;
+    }
+    if(digits <= 0) {
+      digits = 1;
+    }
     return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
 

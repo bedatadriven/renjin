@@ -129,8 +129,9 @@ public class Main {
     try {
       repl.run();
     } catch(Exception e) {
-      e.printStackTrace(System.err);
+      // Stack trace already printed by Repl
       System.err.println("Execution halted");
+      
     } finally {
       if (threadPool != null && !threadPool.isShutdown()) {
         threadPool.shutdown();

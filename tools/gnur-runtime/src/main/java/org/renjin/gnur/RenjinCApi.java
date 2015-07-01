@@ -11,6 +11,7 @@ import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gnur.sexp.GnuSEXP;
 import org.renjin.gnur.sexp.GnuSymbol;
 import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
 
 import java.util.Set;
 
@@ -47,7 +48,44 @@ public class RenjinCApi {
   public static double R_pow(double x, double y) {
     return FastMath.pow(x, y);
   }
-  
+
+  public static double R_pow_di(double x, int n)
+  {
+    double xn = 1.0;
+    
+    if(Double.isNaN(x)) {
+      return x;
+    }
+    if(IntVector.isNA(n)) {
+      return DoubleVector.NA;
+    }
+    if (n != 0) {
+      if (!DoubleVector.isFinite(x)) {
+        return R_pow(x, (double)n);
+      }
+      boolean isNegative = (n < 0);
+      if(isNegative) {
+        n = -n;
+      }
+      for(;;) {
+        if( (n & 01) != 0 ) {
+          xn *= x;
+        }
+        n >>= 1;
+        if( n != 0) {
+          x *= x;
+        } else {
+          break;
+        }
+      }
+      if(isNegative) {
+        xn = 1d / (double)xn;
+      }
+    }
+    return xn;
+  }
+
+
   public static int TYPEOF(GnuSEXP sexp) {
     throw new UnsupportedOperationException();
   }

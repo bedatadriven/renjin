@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 public class TestMojo extends AbstractMojo {
 
   /**
-   * @parameter expression="${project.artifactId}"
+   * @parameter expression="${project.groupId}.${project.artifactId}"
    * @required
    */
   private String namespaceName;

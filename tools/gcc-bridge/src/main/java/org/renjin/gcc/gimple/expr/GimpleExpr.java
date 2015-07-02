@@ -7,9 +7,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ 
     @Type(value = GimpleMemRef.class, name = "mem_ref"),
-    @Type(value = GimpleVariableRef.class, name = "var_decl"), 
+    @Type(value = GimpleVariableRef.class, name = "var_decl"),
+    @Type(value = GimpleFieldRef.class, name = "field_decl"),
     @Type(value = GimpleParamRef.class, name = "parm_decl"),
-    @Type(value = GimpleArrayRef.class, name = "array_ref"), 
+    @Type(value = GimpleArrayRef.class, name = "array_ref"),
+    @Type(value = GimpleObjectTypeRef.class, name = "obj_type_ref"),
     @Type(value = GimpleAddressOf.class, name = "addr_expr"),
     @Type(value = GimpleIntegerConstant.class, name = "integer_cst"),
     @Type(value = GimpleRealConstant.class, name = "real_cst"),

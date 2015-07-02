@@ -434,20 +434,31 @@ static void dump_op(tree op) {
   TRACE("dump_op: entering\n");
 
   if(op) {
-
+  
+    if(TREE_CODE(op)) {
+      TRACE("dump_op: type = %s\n", tree_code_name[TREE_CODE(op)]);
+    } else {
+      TRACE("dump_op: TREE_CODE(op) == NULL\n");
+    }
  	  // keep track of global variable references
     if(TREE_CODE(op) == VAR_DECL &&
+        DECL_CONTEXT(op) &&
        (TREE_CODE(DECL_CONTEXT(op)) == NULL_TREE || TREE_CODE(DECL_CONTEXT(op)) != FUNCTION_DECL)) {
+   
+
       dump_global_var_ref(op);
     }
 
     json_start_object();
     json_string_field("type", tree_code_name[TREE_CODE(op)]);
-
    
+
+    TRACE("dump_op: starting switch\n");
+
     switch(TREE_CODE(op)) {
     case FUNCTION_DECL:
     case PARM_DECL:
+    case FIELD_DECL:
     case VAR_DECL:
       json_int_field("id", DEBUG_TEMP_UID (op));
       if(DECL_NAME(op)) {
@@ -495,23 +506,27 @@ static void dump_op(tree op) {
       
     case ADDR_EXPR:
       json_field("value");
- 	    dump_op(TREE_OPERAND(op, 0));
+      dump_op(TREE_OPERAND(op, 0));
  	    
  	  //  json_field("offset");
  	 //   dump_op(TREE_OPERAND(op, 1));
       break;
     case COMPONENT_REF:
       json_field("value");
+      TRACE("dump_op: writing COMPONENT_REF value\n");
       dump_op(TREE_OPERAND(op, 0));
-      if(TREE_CODE(TREE_OPERAND(op, 1)) == FIELD_DECL) {
-        json_string_field("member",
-          IDENTIFIER_POINTER(DECL_NAME(TREE_OPERAND(op, 1))));
-      }
+
+      json_field("member");
+      TRACE("dump_op: writing COMPONENT_REF member\n");
+      dump_op(TREE_OPERAND(op, 1));
+//      
+//      if(TREE_CODE(TREE_OPERAND(op, 1)) == FIELD_DECL) {
+//        json_string_field("member",
+//          IDENTIFIER_POINTER(DECL_NAME(TREE_OPERAND(op, 1))));
+//      }
       break;
 	    
     }
-    
-        
     json_end_object();
   } else {
     json_null();
@@ -713,15 +728,25 @@ static void dump_statement(basic_block bb, gimple stmt) {
 
 
 static void dump_argument(tree arg) {
-  json_start_object();
+
+  TRACE("dump_argument: entering\n");
   
-  json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(arg)));
+  json_start_object();
+  if(DECL_NAME(arg)) {
+    TRACE("dump_argument: dumping name = '%s'\n", IDENTIFIER_POINTER(DECL_NAME(arg)));
+    json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(arg)));
+  }
+
+  TRACE("dump_argument: dumping id\n");
   json_int_field("id", DEBUG_TEMP_UID (arg));
   
+  TRACE("dump_argument: dumping type\n");
   json_field("type");
   dump_type(TREE_TYPE(arg));
   
   json_end_object();
+  
+  TRACE("dump_argument: exiting\n");
 
 }
 
@@ -733,12 +758,18 @@ static void dump_arguments(tree decl) {
     json_array_field("parameters");
     
     while(arg) {
+      TRACE("dump_arguments: about to call dump_argument\n");
       dump_argument(arg);
+      TRACE("dump_arguments: called dump_argument\n");
+
       arg = TREE_CHAIN(arg);
     }  
     
     json_end_array();
   }
+  
+  TRACE("dump_arguments: exiting\n");
+
 }
 
 static void dump_local_decl(tree decl) {
@@ -808,14 +839,22 @@ static unsigned int dump_function (void)
    return 0;
   }
   
+  TRACE("dump_function: entering %s\n", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)) );
+
+  
   basic_block bb;
   
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID (cfun->decl));
   json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)));
+  
+  TRACE("dump_function: dumping arguments...\n");
   dump_arguments(cfun->decl);
+  
+  TRACE("dump_function: dumping locals...\n");
   dump_local_decls(cfun);
     
+  TRACE("dump_function: dumping basic blocks...\n");
   json_array_field("basicBlocks");
   FOR_EACH_BB (bb)
     {
@@ -830,6 +869,7 @@ static unsigned int dump_function (void)
   
   json_end_object();
  
+  TRACE("dump_function: exiting %s\n", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)) );
   return 0;
 }
 
@@ -846,6 +886,9 @@ static void dump_type_decl (void *event_data, void *data)
 }
 
 static void dump_global_var(tree var) {
+
+  TRACE("dump_global_var: entering\n");
+
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID(var));
   if(DECL_NAME(var)) {
@@ -859,6 +902,9 @@ static void dump_global_var(tree var) {
     dump_op(DECL_INITIAL(var));
   }
   json_end_object();
+  
+  TRACE("dump_global_var: exiting\n");
+
 }
 
 

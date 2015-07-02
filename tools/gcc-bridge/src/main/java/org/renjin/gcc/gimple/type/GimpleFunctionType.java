@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple.type;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -43,5 +44,10 @@ public class GimpleFunctionType extends AbstractGimpleType {
   @Override
   public int sizeOf() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String toString() {
+    return returnType + " (*functionPtr)(" + Joiner.on(", ").join(argumentTypes) + ")";
   }
 }

@@ -2,12 +2,14 @@ package org.renjin.gcc;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.Double.NaN;
 import static org.hamcrest.Matchers.closeTo;
@@ -343,6 +345,32 @@ public class BasicTest extends AbstractGccTest {
     
     assertThat(dmin.unwrap(), equalTo(r.unwrap()));
 
+  }
+  
+  @Test
+  public void cpp() throws Exception {
+    Class clazz = compile("rect.cpp", "RectTest");
+
+    Method calc_area = clazz.getMethod("calc_area");
+
+    Integer result = (Integer) calc_area.invoke(null);
+
+    
+    assertThat(result, equalTo(12));
+  }
+
+  @Test
+  @Ignore
+  public void virtualCpp() throws Exception {
+
+    Class clazz = compile("shape.cpp", "RectTest");
+
+    Method calc_area = clazz.getMethod("calc_areas");
+
+    Integer result = (Integer) calc_area.invoke(null);
+
+
+    assertThat(result, equalTo(12));
   }
   
   @Test

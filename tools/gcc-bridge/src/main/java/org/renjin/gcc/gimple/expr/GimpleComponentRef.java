@@ -3,18 +3,25 @@ package org.renjin.gcc.gimple.expr;
 public class GimpleComponentRef extends GimpleLValue {
 
   private GimpleExpr value;
-  private String member;
+  private GimpleExpr member;
 
   public GimpleExpr getValue() {
     return value;
   }
   
-  public void setMember(String member) {
+  public void setMember(GimpleExpr member) {
     this.member = member;
   }
 
-  public String getMember() {
+  public GimpleExpr getMember() {
     return member;
+  }
+
+  public String memberName() {
+    if(member instanceof GimpleFieldRef) {
+      return ((GimpleFieldRef) member).getName();
+    }
+    throw new UnsupportedOperationException(member.getClass().getSimpleName());
   }
 
   @Override

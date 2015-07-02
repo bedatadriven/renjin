@@ -24,7 +24,7 @@
   </parent>
 
   <artifactId>gcc-bridge-plugin</artifactId>
-  <name>GCC Bridge Plugin</name>
+  <name>Renjin GCC Bridge Plugin</name>
   <description>GCC Plugin which provides GCC-Bridge with detailed Gimple Output</description>
 
   <properties>

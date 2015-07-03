@@ -60,7 +60,7 @@ public class ForkedTestController {
 
   public void executeTests(File testSourceDirectory) throws MojoExecutionException {
 
-    System.out.println("Running tests in " + testSourceDirectory);
+    System.out.println("Running tests in " + testSourceDirectory.getAbsolutePath());
 
     if(testSourceDirectory.isDirectory()) {
       File[] testFiles = testSourceDirectory.listFiles();

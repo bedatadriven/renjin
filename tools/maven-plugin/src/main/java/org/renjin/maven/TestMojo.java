@@ -109,6 +109,7 @@ public class TestMojo extends AbstractMojo {
     controller.setTestReportDirectory(reportsDirectory);
     
     controller.executeTests(testSourceDirectory);
+    controller.executeTest(documentationDirectory);
   }
 
 

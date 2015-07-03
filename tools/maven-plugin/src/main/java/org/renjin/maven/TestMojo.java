@@ -75,6 +75,8 @@ public class TestMojo extends AbstractMojo {
   /**
    * Kill the forked test process after a certain number of seconds. If set to 0, wait forever 
    * for the process, never timing out.
+   * 
+   * @parameter
    */
   private int timeoutInSeconds;
 

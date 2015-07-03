@@ -122,7 +122,7 @@ public class TestReporter {
   }
 
   private void functionComplete() {
-    currentSuite.setTime( (System.currentTimeMillis() - currentCaseStarted) / 1000d );
+    currentCase.setTime( (System.currentTimeMillis() - currentCaseStarted) / 1000d );
   }
 
   public boolean allTestsSucceeded() {

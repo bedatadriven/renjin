@@ -150,7 +150,7 @@ public class ForkedTestController {
   }
 
   public boolean allTestsSucceeded() {
-    return reporter != null && reporter.allTestsSucceeded();
+    return reporter == null || reporter.allTestsSucceeded();
   }
   
   public class ResultListener implements Runnable {

@@ -109,7 +109,16 @@ public class TestMojo extends AbstractMojo {
     controller.setTestReportDirectory(reportsDirectory);
     
     controller.executeTests(testSourceDirectory);
-    controller.executeTest(documentationDirectory);
+    controller.executeTests(documentationDirectory);
+    controller.shutdown();
+    
+    if(!controller.allTestsSucceeded()) {
+      if(testFailureIgnore) {
+        System.err.println("There were R test failures.");
+      } else {
+        throw new MojoFailureException("There were R test failures");
+      }
+    }
   }
 
 

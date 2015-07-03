@@ -20,9 +20,7 @@ public class ForkedTestController {
 
   public static final boolean DEBUG_FORKING = false;
   
-  private int failCount = 0;
   private long timeoutMillis = TimeUnit.MINUTES.toMillis(3);
-
 
   private Map<String, String> environmentVariables = new HashMap<String, String>();
 
@@ -50,10 +48,6 @@ public class ForkedTestController {
     }
   }
 
-  public int getTestFailureCount() {
-    return failCount;
-  }
-
   public void setTimeout(long timeout, TimeUnit timeUnit) {
     timeoutMillis = timeUnit.toMillis(timeout);
   }
@@ -74,7 +68,6 @@ public class ForkedTestController {
       }
     }
 
-    shutdown();
   }
 
   public void executeTest(File testFile) throws MojoExecutionException {
@@ -139,6 +132,9 @@ public class ForkedTestController {
         process.destroy();
       } catch (Exception e) {
         e.printStackTrace();
+      } finally {
+        process = null;
+        processChannel = null;
       }
     }
   }
@@ -153,12 +149,13 @@ public class ForkedTestController {
     processChannel = null;
   }
 
+  public boolean allTestsSucceeded() {
+    return reporter != null && reporter.allTestsSucceeded();
+  }
+  
   public class ResultListener implements Runnable {
 
     private final BufferedReader reader;
-
-    private int testCount;
-    private int failCount;
 
     private boolean processRunning = true;
 

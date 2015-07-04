@@ -1,6 +1,5 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.fest.assertions.Assert;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;

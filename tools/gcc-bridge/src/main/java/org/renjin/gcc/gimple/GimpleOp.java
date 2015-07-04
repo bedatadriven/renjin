@@ -52,7 +52,12 @@ public enum GimpleOp {
 
   BIT_NOT_EXPR,
   BIT_AND_EXPR,
-
+  
+  BIT_IOR_EXPR,
+  BIT_XOR_EXPR,
+  LSHIFT_EXPR,
+  RSHIFT_EXPR,
+  
   NEGATE_EXPR,
 
   /**

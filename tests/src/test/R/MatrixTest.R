@@ -67,3 +67,19 @@ test.DimNamesOnMatrixMultiplication <- function() {
 						 c("zc1", "zc2", "zc3"))))
 }
 
+test.lazyTranspose <- function() {
+
+	m <- matrix(1:10000, ncol=2)
+	colnames(m) <- c("a", "b")
+	rownames(m) <- paste("r", 1:nrow(m), sep="")
+	
+	tm <- t(m)
+	
+	assertThat(colnames(tm), identicalTo(rownames(m)))
+	assertThat(rownames(tm), identicalTo(colnames(m)))
+	
+	# Dropping dims shouldn't affect the transformation
+	dim(tm) <- NULL
+	assertThat(tm[1:6], identicalTo(c(1, 5001, 2, 5002, 3, 5003)))
+}
+

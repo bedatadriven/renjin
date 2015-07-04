@@ -9,7 +9,7 @@
 
   <groupId>org.renjin.cran</groupId>
   <artifactId>cran.dot.package</artifactId>
-  <name>CRAN package with periods in the name</name>
+  <name>Dummy CRAN package with periods in the name</name>
 
   <dependencies>
     <dependency>

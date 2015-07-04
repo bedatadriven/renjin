@@ -1,7 +1,9 @@
 package org.renjin.maven.test;
 
 public class TestCaseResult {
-    
+
+  public static final String ROOT_TEST_CASE = "(root)";
+  
   /**
    * Time in seconds
    */
@@ -11,10 +13,14 @@ public class TestCaseResult {
   
   private String name;
   
-  private Throwable exception;
+  private String errorMessage;
   
   private TestOutcome outcome;
 
+  public boolean isRootScript() {
+    return name.equals(ROOT_TEST_CASE);
+  }
+  
   public double getTime() {
     return time;
   }
@@ -39,12 +45,12 @@ public class TestCaseResult {
     this.name = name;
   }
 
-  public Throwable getException() {
-    return exception;
+  public String getErrorMessage() {
+    return errorMessage;
   }
 
-  public void setException(Throwable exception) {
-    this.exception = exception;
+  public void setErrorMessage(String errorMessage) {
+    this.errorMessage = errorMessage;
   }
 
   public TestOutcome getOutcome() {

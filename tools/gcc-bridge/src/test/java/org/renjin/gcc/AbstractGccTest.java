@@ -30,6 +30,26 @@ public abstract class AbstractGccTest {
   }
 
 
+  protected int call(Class clazz, String methodName, int x, int y) throws Exception {
+    Method method = clazz.getMethod(methodName, int.class, int.class);
+    return (Integer) method.invoke(null, x, y);
+  }
+
+  protected int call(Class clazz, String methodName, int x) throws Exception {
+    Method method = clazz.getMethod(methodName, int.class);
+    return (Integer) method.invoke(null, x);
+  }
+  
+  protected Method findMethod(Class<?> clazz, String name) {
+    for (Method method : clazz.getMethods()) {
+      if(method.getName().equals(name)) {
+        return method;
+      }
+    }
+    throw new IllegalArgumentException(name);
+  }
+
+
   protected Class<?> compile(String source, String className) throws Exception {
     return compile(Lists.newArrayList(source), className);
   }

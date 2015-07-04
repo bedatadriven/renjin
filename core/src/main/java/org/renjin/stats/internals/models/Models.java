@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Attributes;
 import org.renjin.invoke.annotations.Current;
@@ -138,7 +137,7 @@ public class Models {
       SEXP naAction) {
 
     int nr, nc;
-    int nvars, ndots, nactualdots;
+    int nvars, ndots;
     
     /* Argument Sanity Checks */
     nvars = variables.length();
@@ -157,13 +156,6 @@ public class Models {
 
     /*  check for NULL extra arguments -- moved from interpreted code */
 
-    nactualdots = 0;
-    for (int i = 0; i < ndots; i++) {
-        if (dots.getElementAsSEXP(i) != Null.INSTANCE) {
-          nactualdots++;
-        }
-    }
-
     /* Assemble the base data frame. */
     List<SEXP> data = Lists.newArrayList(); 
     List<String> names = Lists.newArrayList();
@@ -174,7 +166,7 @@ public class Models {
         data.add(variables.getElementAsSEXP(i));
         names.add(varnames.getElementAsString(i));
     }
-    for (int i = 0, j = 0; i < ndots; i++) {
+    for (int i = 0; i < ndots; i++) {
         String ss;
         if (dots.getElementAsSEXP(i) == Null.INSTANCE) {
           continue;
@@ -182,7 +174,6 @@ public class Models {
         ss = "(" + dotnames.getElementAsString(i) + ")";
         data.add(dots.getElementAsSEXP(i));
         names.add(ss);
-        j++;
     }
     attributes.setNames(new StringArrayVector(names));
 
@@ -267,13 +258,7 @@ public class Models {
       
   }
 
-  
-  
-  
-  private static boolean isNewList(SEXP sexp) {
-    return sexp == Null.INSTANCE || sexp instanceof ListVector;
-  }
-  
+
   public static int nrows(SEXP s) {
     if (s instanceof Vector) {
         SEXP dim = s.getAttribute(Symbols.DIM);

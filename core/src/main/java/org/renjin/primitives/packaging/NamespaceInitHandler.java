@@ -4,8 +4,6 @@ package org.renjin.primitives.packaging;
 import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.ClassBinding;
-import org.renjin.invoke.ClassBindings;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.ExtendedRE;
@@ -71,16 +69,11 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
 
   @Override
   public void importFromClass(String className, List<Symbol> methods) {
-    Class clazz;
-    try {
-      clazz = Class.forName(className);
-    } catch (ClassNotFoundException e) {
-      throw new EvalException("Can't find class '" + className + "'");
-    }
+    Class clazz = namespace.getPackage().loadClass(className);
     ClassBindingImpl classBinding = ClassBindingImpl.get(clazz);
 
     for(Symbol method : methods) {
-      namespace.getNamespaceEnvironment().setVariable(method, classBinding.getStaticMember(method));
+      namespace.getNamespaceEnvironment().setVariable(method, classBinding.getStaticMember(method).getValue());
     }
   }
 
@@ -88,11 +81,10 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
   public void importClass(List<String> classNames) {
     for(String className : classNames) {
       try {
-        Class clazz = Class.forName(className);
-        namespace.getNamespaceEnvironment().setVariable(clazz.getSimpleName(),
-                new ExternalPtr(clazz));
+        Class clazz = namespace.getPackage().loadClass(className);
+        namespace.getNamespaceEnvironment().setVariable(clazz.getSimpleName(), new ExternalPtr(clazz));
       } catch(Exception e) {
-        System.err.println("Could not load class " + className);
+        throw new EvalException("Could not load class " + className);
       }   
     }
   }
@@ -155,7 +147,9 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
   @Override
   public void useDynlib(String libraryName, List<DynlibEntry> entries, boolean register, String fixes) {
     try {
-      Class clazz = namespace.getPackage().getClass(libraryName);
+      FqPackageName packageName = namespace.getPackage().getName();
+      String className = packageName.getGroupId() + "." + packageName.getPackageName() + "." + libraryName;
+      Class clazz = namespace.getPackage().loadClass(className);
 
       if(entries.isEmpty()) {
         // add all methods from class file

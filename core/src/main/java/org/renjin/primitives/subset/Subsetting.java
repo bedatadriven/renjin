@@ -24,7 +24,6 @@ package org.renjin.primitives.subset;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.iterator.IntIterator;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.sexp.*;
 
@@ -96,7 +95,7 @@ public class Subsetting {
   public static SEXP getSlotValue(@Current Context context, @Current MethodDispatch methods, SEXP object,
                                   @Unevaluated Symbol slotName) {
     if(slotName.getPrintName().equals(".Data")) {
-      return FunctionCall.newCall(Symbol.get("getDataPart"), object).evaluate(context, methods.getMethodsNamespace());
+      return context.evaluate(FunctionCall.newCall(Symbol.get("getDataPart"), object), methods.getMethodsNamespace());
     }
     
     SEXP value = object.getAttribute(slotName);
@@ -299,9 +298,7 @@ public class Subsetting {
     FunctionCall.Builder call = FunctionCall.newBuilder();
     call.withAttributes(source.getAttributes());
 
-    IntIterator it = selection.intIterator();
-    while(it.hasNext()) {
-      int sourceIndex = it.nextInt();
+    for(Integer sourceIndex : selection) {
       call.addCopy(source.getNode(sourceIndex));
     }
     return call.build();

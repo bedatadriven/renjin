@@ -30,7 +30,7 @@ class AbstractMatrixBuilder<B extends Vector.Builder, V extends Vector>  {
     rowNames = new StringArrayVector(names);
   }
   
-  public void setColNames(StringVector names) {
+  public void setColNames(Vector names) {
     colNames = names;
   }
   

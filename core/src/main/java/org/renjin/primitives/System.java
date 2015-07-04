@@ -42,11 +42,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class System {
 
-  private static final double NANOSECONDS_PER_SECOND = 1000000000d;
-  
   private static final double MILLISECONDS_PER_SECOND = 1000d;
   
 
@@ -274,12 +273,17 @@ public class System {
   }
 
   @Internal
-  public static DoubleVector gc(boolean verbose, boolean reset) {
-    try {
-      java.lang.System.gc();
-    } catch(Exception e) {
-      
-    }
+  public static DoubleVector gc(@Current Context context, boolean verbose, boolean reset) {
+    // Ask the JVM nicely to run garbage collection
+    java.lang.System.gc();
+
+    // Invoke any finalizers on environments that have been queued for
+    // garbage collection
+    context.getSession().runFinalizers();
+
+    // We don't have details comparable to the output of
+    // GNU R's method, but return something that hopefully
+    // won't break anything.
     return new DoubleArrayVector();
   }
   
@@ -314,8 +318,8 @@ public class System {
     // so we need to fallback to app
     try {
       ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-      totalCPUTime = threadMXBean.getCurrentThreadCpuTime();
-      userCPUTime = threadMXBean.getCurrentThreadUserTime();
+      userCPUTime = TimeUnit.NANOSECONDS.toMillis(threadMXBean.getCurrentThreadUserTime());
+      totalCPUTime = TimeUnit.NANOSECONDS.toMillis(threadMXBean.getCurrentThreadCpuTime());
 
       RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
       elapsedTime = runtimeMXBean.getUptime();
@@ -323,22 +327,22 @@ public class System {
       // ThreadMXBean is not available in all environments
       // Specifically, AppEngine will throw variously SecurityErrors or
       // ClassNotFoundErrors if we try to access these classes
-      userCPUTime = totalCPUTime = java.lang.System.nanoTime();
-      elapsedTime = new Date().getTime();
+      userCPUTime = totalCPUTime = elapsedTime = java.lang.System.currentTimeMillis();
     }
 
     // user.self
     names.add("user.self");
-    result.add( userCPUTime / NANOSECONDS_PER_SECOND );
+    result.add( userCPUTime / MILLISECONDS_PER_SECOND );
 
+    
     // sys.self
     names.add("sys.self");
-    result.add( (totalCPUTime - userCPUTime) / NANOSECONDS_PER_SECOND );
+    result.add( (totalCPUTime - userCPUTime) / MILLISECONDS_PER_SECOND );
 
     // elapsed
     // (wall clock time)
     names.add("elapsed");
-    result.add(elapsedTime);
+    result.add(elapsedTime / MILLISECONDS_PER_SECOND);
 
     // AFAIK, we don't have any platform independent way of accessing
     // this info.

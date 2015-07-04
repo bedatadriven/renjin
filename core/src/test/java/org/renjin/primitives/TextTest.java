@@ -136,6 +136,12 @@ public class TextTest extends EvalTestCase {
 
     assertThat( eval(" .Internal(substr('lazy cat', 2, 4))" ), equalTo(c("azy")));
     assertThat( eval(" .Internal(substr('foo', 1, 99))" ), equalTo(c("foo")));
+    assertThat( eval("substr(c('ab', 'ab'), 1:2, 1:2)"), equalTo(c("a", "b")) );
+    assertThat( eval("substr(c('ab', 'ab'), 1:3, 1:3)"), equalTo(c("a", "b")) );
+    assertThat( eval("substr(c('ab', 'ab'), 1:2, 2:1)"), equalTo(c("ab", "")) );
+    assertThat( eval("substr(c('ab', 'ab'), 1, 1)"), equalTo(c("a", "a")) );
+    assertThat( eval("substring('abc', 1:3, 1:3)"), equalTo(c("a", "b", "c")));
+    assertThat( eval("substring('abcdef', 1:4, 4:5)"), equalTo(c("abcd", "bcde", "cd", "de")));
 
   }
 
@@ -252,7 +258,7 @@ public class TextTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval("x<-\"aaaa\"");
     eval("substr(x,2,3) <- \"xx\"");
-    assertThat(eval("x").toString(),equalTo("\"axxa\""));
+    assertThat(eval("x"), equalTo(c("axxa")));
   }
 
   @Test
@@ -260,7 +266,7 @@ public class TextTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval("x<-\"aaaa\"");
     eval("substr(x,1,2) <- \"xx\"");
-    assertThat(eval("x").toString(),equalTo("\"xxaa\""));
+    assertThat(eval("x"), equalTo(c("xxaa")));
   }
   
   @Test
@@ -268,7 +274,7 @@ public class TextTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval("x<-\"aaaa\"");
     eval("substr(x,3,4) <- \"xx\"");
-    assertThat(eval("x").toString(),equalTo("\"aaxx\""));
+    assertThat(eval("x"), equalTo(c("aaxx")));
   }
   
   @Test
@@ -276,7 +282,7 @@ public class TextTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval("x<-\"aaaa\"");
     eval("substr(x,1,4) <- \"xx\"");
-    assertThat(eval("x").toString(),equalTo("\"xxaa\""));
+    assertThat(eval("x"), equalTo(c("xxaa")));
   }
 
   @Test 

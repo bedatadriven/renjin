@@ -11,14 +11,28 @@ These tools are in the early stages of development and are a bit
 sensitive to different versions of GCC. The current version of Renjin
 requires GCC 4.6.x.
 
-If your platform is not listed below, you may need to experiment a
-bit or ask for help on the mailing list (renjin-dev@googlegroups.com).
 
 Requirements
 ------------
-1. Oracle JDK 1.6 or 1.7
+1. Oracle JDK 1.6+
 2. Apache Maven 3+
 3. GCC 4.6.x
+
+### Vagrant
+
+Vagrant is tool that helps manage virtual development environments and
+will help you quickly setup a Virtual Box with all the tools needed
+for Renjin's C/Fortran compile step.
+
+Install Vagrant from https://www.vagrantup.com and then run the following
+from the root of the renjin git repository:
+
+    vagrant up
+    vagrant ssh -c "cd renjin && mvn clean install"
+
+Vagrant configures a shared directory on the VirtualBox guest machine
+that includes the renjin repository, so once the initial build
+is complete you can work normally from your IDE on your own (host) machine.
 
 ### Ubuntu 12+
 
@@ -37,30 +51,47 @@ limits array indices to 32-bits on all platforms)
 
     sudo apt-get install gcc-4.6.multilib
 
+Then build:
 
-### Fedora 17
+    mvn clean install
 
-Fedora 17 comes with GCC 4.7 which is *NOT* yet working with Renjin.
+From the root of the project.
 
-You will need to build GCC 4.6 from sources first:
 
-    # Install GCC's dependencies
-    sudo yum install gcc gmp-devel mpfr-devel libmpc-devel make glibc-devel.i686
+### Mac OS X 10.10 (Yosemite)
 
-    # Download sources
-    wget ftp://ftp.nluug.nl/mirror/languages/gcc/releases/gcc-4.6.4/gcc-core-4.6.4.tar.bz2
-    wget ftp://ftp.nluug.nl/mirror/languages/gcc/releases/gcc-4.6.4/gcc-fortran-4.6.4.tar.bz2
-    tar -xjf gcc-core-4.6.4.tar.bz2
-    tar -xjf gcc-fortran-4.6.4.tar.bz2
-    cd gcc-4.6.4
-    ./configure --prefix=/opt/gcc-4.6.4 -- && make
+This setup uses [Homebrew](http://brew.sh/), so if you do not have it yet, please install it.
 
-    sudo yum install gcc gcc-plugin-devel gcc-gfortran
+Download and install JDK 8 from the [Oracle Website](http://www.oracle.com/technetwork/java/javase/downloads/index.html). 
 
-If you're running 64-bit Fedora, you will need the i686 libraries
-for cross compiling:
+Set the `JAVA_HOME` environment variable to the proper value:
+    
+    export JAVA_HOME=`/usr/libexec/java_home -v 1.7`
 
-    sudo yum install glibc.i686 glibc-devel.i686
+You need to install the legacy GCC version 4.6 using Homebrew. We need an old formula for this:
+
+    wget https://raw.githubusercontent.com/alexpennace/homebrew-versions/6f55c92c25f08bbc103196ac29e89de97ab36bdf/gcc46.rb -O /usr/local/Library/Formula/gcc46.rb
+
+You should now be able to install GCC using
+
+    brew install gcc46 --enable-fortran
+
+Finally, we need to link the file libiberty.h
+
+    ln /usr/local/Cellar/gcc46/4.6.4/lib/gcc/x86_64-apple-darwin14.0.0/4.6.4/plugin/include/libiberty-4.6.h /usr/local/Cellar/gcc46/4.6.4/lib/gcc/x86_64-apple-darwin14.0.0/4.6.4/plugin/include/libiberty.h
+
+Install gettext from Homebrew by typing
+
+    brew install gettext
+
+Since OSX also comes with a (shady) version of gettext, we need to set the include path:
+
+	export C_INCLUDE_PATH=`find /usr/local/Cellar/gettext -type d -name 'include' | head -n 1`
+
+Finally, try
+
+    mvn install
+
 
 ### Windows/Cygwin
 
@@ -71,11 +102,10 @@ to get GCC to compile and load our GCC plugin.
 If anyone is able to get this working, share on the mailing list (see above), otherwise
 we'll have to wait until our tool can bootstrap a pure-java version of GCC :-)
 
-Building
---------
+### Other platforms
 
-Start the build by executing
+For other platforms, you may need to experiment a
+bit or ask for help on the mailing list (renjin-dev@googlegroups.com).
 
-    mvn clean install
 
-From the root of the project.
+

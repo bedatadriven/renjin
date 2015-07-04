@@ -306,6 +306,10 @@ public class JvmMethod implements Comparable<JvmMethod> {
     return passNA;
   }
 
+  public boolean isInvisible() {
+    return isAnnotatedWith(Invisible.class);
+  }
+
   public class Argument {
     private int index;
     private Class clazz;

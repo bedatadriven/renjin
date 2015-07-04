@@ -67,7 +67,7 @@ public class MethodFunction extends AbstractSEXP implements Function {
   
   @Override
   public String toString() {
-    return instance.getClass().getName() + ":" + functionBinding.toString();
+    return functionBinding.getDeclaringClass().getName() + ":" + functionBinding.toString();
   }
 
 }

@@ -1,8 +1,7 @@
 package org.renjin.eval;
 
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
@@ -10,8 +9,8 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.List;
+import java.util.Map;
 
 public class SessionBuilder {
 

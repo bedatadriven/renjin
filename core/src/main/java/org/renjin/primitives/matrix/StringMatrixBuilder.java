@@ -1,6 +1,6 @@
 package org.renjin.primitives.matrix;
 
-import org.renjin.parser.ParseUtil;
+import org.renjin.parser.NumericLiterals;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.StringVector;
@@ -18,7 +18,7 @@ public class StringMatrixBuilder extends AbstractMatrixBuilder<StringVector.Buil
     if(DoubleVector.isNA(value)) {
       setValue(row, col, StringVector.NA);
     } else {
-      setValue(row, col, ParseUtil.toString(value));
+      setValue(row, col, NumericLiterals.toString(value));
     }
   }
 
@@ -27,7 +27,7 @@ public class StringMatrixBuilder extends AbstractMatrixBuilder<StringVector.Buil
     if(IntVector.isNA(value)) {
       setValue(row, col, StringVector.NA);
     } else {
-      setValue(row, col, ParseUtil.toString(value));
+      setValue(row, col, NumericLiterals.format(value));
     }
   }
   

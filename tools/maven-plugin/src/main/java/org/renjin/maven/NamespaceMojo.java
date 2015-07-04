@@ -73,7 +73,7 @@ public class NamespaceMojo extends AbstractMojo {
 	
 	
 	/**
-	 * @parameter expression="${project.groupId}.${project.artifactId}"
+	 * @parameter expression="${project.artifactId}"
 	 * @required
 	 */
 	private String packageName;
@@ -165,7 +165,8 @@ public class NamespaceMojo extends AbstractMojo {
   }
 
   private File getPackageRoot() {
-    File packageRoot = new File(outputDirectory.getAbsoluteFile() + File.separator + packageName.replace(".", File.separator));
+    File packageRoot = new File(outputDirectory.getAbsoluteFile() + File.separator + 
+    		groupId.replace(".", File.separator) + File.separator + packageName);
     packageRoot.mkdirs();
     return packageRoot;
   }

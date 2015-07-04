@@ -1,11 +1,10 @@
 package org.renjin.repl;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
+import com.google.common.base.Strings;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
-
+import jline.console.UserInterruptException;
+import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -21,13 +20,15 @@ import org.renjin.sexp.Promise;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-import com.google.common.base.Strings;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * A Read-Eval-Print Loop that uses Jline for 
  * reading lines
  */
 public class JlineRepl {
+
 
   /**
    * Echo lines to standard out.
@@ -43,12 +44,15 @@ public class JlineRepl {
     JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
     repl.run();
   }
-  
-  private Context topLevelContext;
+
+  private final Session session;
+  private final Context topLevelContext;
   private ConsoleReader reader;
 
   public JlineRepl(Session session) throws Exception {
-    
+    this.session = session;
+    this.topLevelContext = session.getTopLevelContext();
+
     if(Strings.nullToEmpty(System.getProperty("os.name")).startsWith("Windows")) {
       // AnsiWindowsTerminal does not work properly in WIndows 7
       // so disabling across the board for now
@@ -59,14 +63,13 @@ public class JlineRepl {
 
     // disable events triggered by ! (this is valid R !!)
     reader.setExpandEvents(false);
-
+    reader.setHandleUserInterrupt(true);
     session.setSessionController(new JlineSessionController(reader.getTerminal()));
-    this.topLevelContext = session.getTopLevelContext();
-
   }
 
   public JlineRepl(Session session, ConsoleReader reader) throws IOException {
-    session.setSessionController(new JlineSessionController(reader.getTerminal()));
+    this.session = session;
+    this.session.setSessionController(new JlineSessionController(reader.getTerminal()));
     this.topLevelContext = session.getTopLevelContext();
     this.reader = reader;
   }
@@ -91,14 +94,33 @@ public class JlineRepl {
   public void run() throws Exception {
 
     reader.getTerminal().init();
+
+    printGreeting();
+
     try {
       while(readExpression()) { }
+
+      // run finalizers and shutdown
+      session.close();
 
     } finally {
       reader.getTerminal().restore();
     }
   }
 
+  private void printGreeting() throws Exception {
+
+    try {
+      RenjinVersion renjin = new RenjinVersion();
+      reader.println("Renjin " + renjin.getVersionName());
+    } catch (IOException e) {
+      reader.println("Renjin");
+    }
+
+    reader.println("Copyright (C) 2013 The R Foundation for Statistical Computing");
+    reader.println("Copyright (C) 2014 BeDataDriven");
+
+  }
 
   private boolean readExpression() throws Exception {
 
@@ -110,37 +132,44 @@ public class JlineRepl {
     lineReader.setEcho(echo);
     lineReader.setEchoOut(reader.getOutput());
 
-    RLexer lexer = new RLexer(options, parseState, lineReader);
-    if(lexer.isEof()) {
-      return false;
-    }
+    SEXP exp;
+    try {
+      RLexer lexer = new RLexer(options, parseState, lineReader);
+      if (lexer.isEof()) {
+        return false;
+      }
 
-    RParser parser = new RParser(options, parseState, lexer);
-    while(!parser.parse()) {
-      if(lexer.errorEncountered()) {
-        String errorMessage = "Syntax error at " + lexer.getErrorLocation() + ": " + lexer.getErrorMessage();
-        reader.getOutput().append(errorMessage + "\n");
-        if(stopOnError) {
-          throw new RuntimeException(errorMessage);
+      RParser parser = new RParser(options, parseState, lexer);
+      while (!parser.parse()) {
+        if (lexer.errorEncountered()) {
+          String errorMessage = "Syntax error at " + lexer.getErrorLocation() + ": " + lexer.getErrorMessage();
+          reader.getOutput().append(errorMessage + "\n");
+          if (stopOnError) {
+            throw new RuntimeException(errorMessage);
+          }
         }
       }
-    }
 
 
-    SEXP exp = parser.getResult();
-    if(parser.getResultStatus() == StatusResult.EOF) {
-      return true;
-    } else if(exp == null) {
+      exp = parser.getResult();
+      if(parser.getResultStatus() == StatusResult.EOF) {
+        return true;
+      } else if(exp == null) {
+        return true;
+      }
+    } catch (UserInterruptException e) {
+      reader.resetPromptLine("> ", "", 0);
+      reader.println();
       return true;
     }
-    
+
     // clean up last warnings from any previous run
     clearWarnings();
 
     try {
       SEXP result = topLevelContext.evaluate(exp, topLevelContext.getGlobalEnvironment());
 
-      if(!topLevelContext.getSession().isInvisible()) {
+      if(!session.isInvisible()) {
         topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));
       }
 
@@ -165,14 +194,14 @@ public class JlineRepl {
   private void printException(Exception e) throws IOException {
     reader.getOutput().append("ERROR: " + e.getMessage());
     PrintWriter printWriter = new PrintWriter(reader.getOutput());
-    e.printStackTrace(printWriter); 
+    e.printStackTrace(printWriter);
     printWriter.flush();
     reader.getOutput().flush();
   }
 
   private void printEvalException(EvalException e) throws IOException {
     reader.getOutput().append("ERROR: ").append(e.getMessage()).append("\n");
-    e.printRStackTrace(reader.getOutput());    
+    e.printRStackTrace(reader.getOutput());
     reader.getOutput().flush();
   }
 
@@ -180,7 +209,7 @@ public class JlineRepl {
     SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-        topLevelContext.getEnvironment().getBaseEnvironment());
+              topLevelContext.getEnvironment().getBaseEnvironment());
     }
   }
 
@@ -188,4 +217,7 @@ public class JlineRepl {
     topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
 
+  public ConsoleReader getReader() {
+    return reader;
+  }
 }

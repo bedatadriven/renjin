@@ -25,10 +25,11 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Materialize;
-import org.renjin.parser.ParseUtil;
-import org.renjin.invoke.annotations.Current;
+import org.renjin.parser.StringLiterals;
+import org.renjin.primitives.print.*;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
@@ -142,27 +143,27 @@ public class Print {
 
     @Override
     public void visit(IntVector vector) {
-      printVector(vector, Alignment.RIGHT, new ParseUtil.IntPrinter(), "integer");
+      printVector(vector, Alignment.RIGHT, new IntPrinter(), "integer");
     }
 
     @Override
     public void visit(LogicalVector vector) {
-      printVector(vector, Alignment.RIGHT, new ParseUtil.LogicalPrinter(), "logical");
+      printVector(vector, Alignment.RIGHT, new LogicalPrinter(), "logical");
     }
 
     @Override
     public void visit(DoubleVector vector) {
-      printVector(vector, Alignment.RIGHT, new ParseUtil.RealPrinter(), "numeric");
+      printVector(vector, Alignment.RIGHT, new RealPrinter(), "numeric");
     }
 
     @Override
     public void visit(StringVector vector) {
-      printVector(vector, Alignment.LEFT, new ParseUtil.StringPrinter().withQuotes(quote), "character");
+      printVector(vector, Alignment.LEFT, new StringPrinter().withQuotes(quote), "character");
     }
 
     @Override
     public void visit(RawVector vector) {
-      printVector(vector, Alignment.RIGHT, new ParseUtil.RawPrinter(), "raw");
+      printVector(vector, Alignment.RIGHT, new RawPrinter(), "raw");
     }   
 
     @Override
@@ -172,7 +173,7 @@ public class Print {
 
     @Override
     public void visitSpecial(SpecialFunction special) {
-      out.append(".Builtin(").append(ParseUtil.formatStringLiteral(special.getName(), "NA"));
+      out.append(".Builtin(").append(StringLiterals.format(special.getName(), "NA"));
     }
 
     private <T> void printVector(Iterable<T> vector, Alignment align, Function<T, String> printer, String typeName) {
@@ -199,7 +200,7 @@ public class Print {
            !node.getTag().equals(Symbols.DIM) &&
            !node.getTag().equals(Symbols.DIMNAMES) &&
             node.getValue() != Null.INSTANCE) {
-          out.append("attr(," + new ParseUtil.StringPrinter().apply(node.getName()) + ")\n");
+          out.append("attr(," + new StringPrinter().apply(node.getName()) + ")\n");
           node.getValue().accept(this);
         }
       }
@@ -441,7 +442,6 @@ public class Print {
         }
         if(alignment == Alignment.RIGHT) {
           out.append(s);
-
         }
       }
     }

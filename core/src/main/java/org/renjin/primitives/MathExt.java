@@ -54,6 +54,14 @@ public class MathExt {
   @Deferrable
   @Builtin
   @DataParallel
+  public static double lgamma(double x) {
+    return Gamma.logGamma(x);
+  }
+
+
+  @Deferrable
+  @Builtin
+  @DataParallel
   public static double sign(double x) {
     return Math.signum(x);
   }
@@ -121,6 +129,12 @@ public class MathExt {
   @Builtin
   @DataParallel
   public static double signif(double x, int digits) {
+    if(Double.isInfinite(x) || Double.isNaN(x)) {
+      return x;
+    }
+    if(digits <= 0) {
+      digits = 1;
+    }
     return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
 

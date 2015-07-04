@@ -133,9 +133,22 @@ public class RDataReaderTest extends EvalTestCase {
     
     assertThat(x.isElementNA(2), equalTo(true));
   }
-  
+
+  @Test
+  public void loadDataFrameWithGnuRCompactRowNames() throws IOException {
+    InputStream in = getClass().getResourceAsStream("rownames.rds");
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+    SEXP df = reader.readFile();
+
+    assertThat(df.getS3Class().getElementAsString(0), equalTo("data.frame"));
+    assertThat(df.getAttribute(Symbol.get("row.names")).length(), equalTo(1000));
+
+  }
 
   protected Symbol symbol(String name){
     return Symbol.get(name);
   }
+
+
 }

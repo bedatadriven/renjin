@@ -309,6 +309,33 @@ public class BasicTest extends AbstractGccTest {
   }
 
   @Test
+  public void bitwiseOperators() throws Exception {
+    Class clazz = compile("bitwiseops.c", "Bitwise");
+    
+    assertThat(call(clazz, "bitwise_lshift", 16, 2), equalTo(16 << 2));
+    assertThat(call(clazz, "bitwise_rshift", 16, 2), equalTo(16 >> 2));
+    assertThat(call(clazz, "bitwise_xor", 16, 1024), equalTo(16 ^ 1024));
+    assertThat(call(clazz, "bitwise_not", 4096), equalTo(~4096));
+  }
+  
+  @Test
+  public void hclust() throws Exception {
+    Class clazz = compile("hclust.f", "HClust");
+
+//       SUBROUTINE HCLUST(R, DMIN)
+
+    Method hclust = clazz.getMethod("hclust_", DoublePtr.class, DoublePtr.class);
+    
+    DoublePtr r = new DoublePtr(43.4);
+    DoublePtr dmin = new DoublePtr(0);
+    
+    hclust.invoke(null, r, dmin);
+    
+    assertThat(dmin.unwrap(), equalTo(r.unwrap()));
+
+  }
+  
+  @Test
   public void voidInference() throws Exception {
     compile("lamix.f", "Lamix");
   }

@@ -21,8 +21,6 @@
 
 package org.renjin.sexp;
 
-import org.renjin.parser.ParseUtil;
-
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -147,25 +145,7 @@ public final class DoubleArrayVector extends DoubleVector {
 
   @Override
   public String toString() {
-    if (length() == 1) {
-      return Double.toString(getElementAsDouble(0));
-    } else {
-      StringBuilder sb = new StringBuilder("c(");
-      for (int i = 0; i != Math.min(5, length()); ++i) {
-        if (i > 0) {
-          sb.append(", ");
-        }
-        if (isNA(getElementAsDouble(i))) {
-          sb.append("NA");
-        } else {
-          sb.append(ParseUtil.toString(getElementAsDouble(i)));
-        }
-      }
-      if (length() > 5) {
-        sb.append(",... ").append(length()).append(" elements total");
-      }
-      return sb.append(")").toString();
-    }
+    return toString(this);
   }
 
   /**

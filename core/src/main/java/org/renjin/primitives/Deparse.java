@@ -27,10 +27,14 @@ import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.parser.ParseUtil;
+import org.renjin.parser.NumericLiterals;
+import org.renjin.primitives.text.ReservedWords;
 import org.renjin.sexp.*;
 
 public class Deparse {
+
+  private static final char BACK_TICK = '`';
+
 
   public static String[] BINARY_OPS = new String[] {
     "+", "-",  "/",  "*",
@@ -52,7 +56,7 @@ public class Deparse {
   };
   
   public static String[] CONTROL_STATEMENTS = new String[] { "break", "next" };
-  
+
   @Internal
   public static String deparse(@Current Context context, SEXP exp, int widthCutoff, boolean backTick, int options, int nlines) {
     return new DeparsingVisitor(context, exp).getResult();
@@ -263,7 +267,7 @@ public class Deparse {
         } else if(isSubset(name)) {
           deparseSubset(name, call.getArguments());
         } else if(name.equals("~")) {
-          deparseTilde(call.getArguments());
+          deparseTilde(call);
         } else {
           deparseNormalCall(call);
         }
@@ -287,10 +291,18 @@ public class Deparse {
       deparsed.append(closingParens(name));
     }
 
-    private void deparseTilde(PairList arguments) {
-      deparse(arguments.getElementAsSEXP(0));
-      deparsed.append(" ~ ");
-      deparseArgumentList(Iterables.skip(arguments.nodes(), 1));
+    private void deparseTilde(FunctionCall call) {
+      PairList arguments = call.getArguments();
+      if(arguments.length() == 1) {
+        deparsed.append("~");
+        deparse(arguments.getElementAsSEXP(0));
+      } else if(arguments.length() == 2) {
+        deparse(arguments.getElementAsSEXP(0));
+        deparsed.append(" ~ ");
+        deparse(arguments.getElementAsSEXP(1));
+      } else {
+        deparseNormalCall(call);
+      }
     }
     
     private String closingParens(String name) {
@@ -345,10 +357,10 @@ public class Deparse {
     }
 
     private void deparseNormalCall(FunctionCall call) {
-      if(call.getFunction() instanceof Symbol) {
-        deparse(call.getFunction());
-      } else {
+      if(call.getFunction() instanceof Function) {
         deparsed.append("FUN");
+      } else {
+        deparse(call.getFunction());
       }
       deparsed.append("(");
       deparseArgumentList(call.getArguments().nodes());
@@ -406,7 +418,12 @@ public class Deparse {
     @Override
     public void visit(Symbol symbol) {
       if(symbol != Symbol.MISSING_ARG) {
-        deparsed.append(symbol.getPrintName());
+        String name = symbol.getPrintName();
+        if(Symbols.isValid(name) && !ReservedWords.isReserved(name)) {
+          deparsed.append(name);
+        } else {
+          deparsed.append(BACK_TICK).append(name).append(BACK_TICK);
+        }
       }
     }
     
@@ -513,7 +530,7 @@ public class Deparse {
         } else if(Double.isInfinite(value)) {
           return "Inf";
         } else {
-          return ParseUtil.toString(value);
+          return NumericLiterals.toString(value);
         }
       }
 
@@ -535,16 +552,16 @@ public class Deparse {
         double i = complex.getImaginary();
         if(DoubleVector.isFinite(r) && DoubleVector.isFinite(i)) {
           StringBuilder sb = new StringBuilder();
-          sb.append(ParseUtil.toString(complex.getReal()));
+          sb.append(NumericLiterals.toString(complex.getReal()));
           if(complex.getImaginary() >= 0 || Double.isNaN(complex.getImaginary())) {
             sb.append("+");
           }
-          sb.append(ParseUtil.toString(complex.getImaginary())).append("i");
+          sb.append(NumericLiterals.toString(complex.getImaginary())).append("i");
           return sb.toString();
         } else {
           return String.format("complex(real=%s, i=%s)",
-              ParseUtil.formatRealLiteral(r, "NA"),
-              ParseUtil.formatRealLiteral(i, "NA"));
+              NumericLiterals.format(r, "NA"),
+              NumericLiterals.format(i, "NA"));
         }
       }
 

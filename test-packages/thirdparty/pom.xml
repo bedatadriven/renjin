@@ -9,7 +9,7 @@
 
   <groupId>org.renjin.test</groupId>
   <artifactId>thirdparty</artifactId>
-  <name>Third party package for testing purposes</name>
+  <name>Dummy third party package</name>
 
   <dependencies>
     <dependency>

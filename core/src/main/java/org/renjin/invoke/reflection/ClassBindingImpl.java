@@ -1,24 +1,19 @@
 package org.renjin.invoke.reflection;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.ClassBinding;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ClassBindingImpl implements ClassBinding {
   
@@ -39,7 +34,8 @@ public class ClassBindingImpl implements ClassBinding {
   
   private ConstructorBinding constructorBinding;
   private IdentityHashMap<Symbol, MemberBinding> members = Maps.newIdentityHashMap(); 
-  private IdentityHashMap<Symbol, SEXP> staticMembers = Maps.newIdentityHashMap();
+  private IdentityHashMap<Symbol, StaticBinding> staticMembers = Maps.newIdentityHashMap();
+
   
   private ClassBindingImpl(Class clazz) {
     this.clazz = clazz;
@@ -48,14 +44,15 @@ public class ClassBindingImpl implements ClassBinding {
     Multimap<Symbol, Method> setters = ArrayListMultimap.create();
     Multimap<Symbol, Method> methods = ArrayListMultimap.create();
     Multimap<Symbol, Method> staticMethods = ArrayListMultimap.create();
-    
+
     
     for(Method method : clazz.getMethods()) {
-      if((method.getModifiers() & Modifier.PUBLIC) != 0 && 
+      if((method.getModifiers() & Modifier.PUBLIC) != 0 &&
           method.getDeclaringClass() != Object.class) {
        
         if((method.getModifiers() & Modifier.STATIC) != 0 ) {
           staticMethods.put(Symbol.get(method.getName()), method);
+
         } else {
           String propertyName;
           if((propertyName=isGetter(method)) != null) {
@@ -89,14 +86,18 @@ public class ClassBindingImpl implements ClassBinding {
     }
     
     for(Symbol name : staticMethods.keySet()) {
-      this.staticMembers.put(name, new MethodFunction(null, 
-          new FunctionBinding(staticMethods.get(name))));
+      this.staticMembers.put(name, new StaticBinding(new MethodBinding(name, staticMethods.get(name))));
+    }
+
+    for(Field field : clazz.getFields()) {
+      if(Modifier.isPublic(field.getModifiers()) &&
+         Modifier.isStatic(field.getModifiers())) {
+        Symbol name = Symbol.get(field.getName());
+        staticMembers.put(name, new StaticBinding(new FieldBinding(field)));
+      }
     }
     
     this.constructorBinding = new ConstructorBinding(clazz.getConstructors());
-    if(!this.constructorBinding.isEmpty()) {
-      this.staticMembers.put(Symbol.get("new"), new ConstructorFunction(constructorBinding));
-    }
   }
 
   private String isGetter(Method method) {
@@ -153,11 +154,11 @@ public class ClassBindingImpl implements ClassBinding {
     return staticMembers.keySet();
   }
   
-  public SEXP getStaticMember(Symbol name) {
+  public StaticBinding getStaticMember(Symbol name) {
     return staticMembers.get(name);
   }
   
-  public SEXP getStaticMember(String name) {
+  public MemberBinding getStaticMember(String name) {
     return getStaticMember(Symbol.get(name));
   }
 

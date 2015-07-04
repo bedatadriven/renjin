@@ -58,8 +58,15 @@ public abstract class Package {
     }
     return Null.INSTANCE;
   }
-  
-  public abstract Class getClass(String name);
+
+  /**
+   * Loads a JVM class from the package during the construction of the 
+   * this package's namespace.
+   * 
+   * @param name the fully-qualified class name. For example, "java.lang.util.HashSet"
+   * @return the {@code Class}
+   */
+  public abstract Class loadClass(String name);
 
 
   /**

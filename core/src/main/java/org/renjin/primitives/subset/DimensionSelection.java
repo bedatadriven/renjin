@@ -4,8 +4,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
 import org.renjin.eval.EvalException;
-import org.renjin.iterator.IntIterator;
-import org.renjin.iterator.PrimitiveIterators;
 import org.renjin.primitives.Indexes;
 import org.renjin.sexp.*;
 
@@ -98,9 +96,9 @@ public class DimensionSelection extends Selection {
   }
 
   @Override
-  public IntIterator intIterator() {
+  public Iterator<Integer> iterator() {
     if(isEmpty()) {
-      return PrimitiveIterators.emptyIterator();
+      return Iterators.emptyIterator();
     } else {
       return new IndexIterator();
     }
@@ -110,7 +108,7 @@ public class DimensionSelection extends Selection {
   /**
    * Iterators over the indices selected by the subscripts
    */
-  private class IndexIterator implements IntIterator {
+  private class IndexIterator extends UnmodifiableIterator<Integer> {
 
     /**
      * Indices within the subscript matrix. 
@@ -140,7 +138,7 @@ public class DimensionSelection extends Selection {
     }
 
     @Override
-    public int nextInt() {
+    public Integer next() {
       // sourceIndices is the matrix coordinates of the 
       // the next value indicated by the subscripts
 
@@ -169,21 +167,36 @@ public class DimensionSelection extends Selection {
 
 
   @Override
-  public IntIterator getSelectionAlongDimension(int dimensionIndex) {
+  public Iterable<Integer> getSelectionAlongDimension(int dimensionIndex) {
     final Subscript subscript = subscripts[dimensionIndex];
     final int length = subscript.getCount();
-
-    return new IntIterator() {
-      int i = 0 ;
-      @Override
-      public boolean hasNext() {
-        return i < length;
-      }
+    return new Iterable<Integer>() {
 
       @Override
-      public int nextInt() {
-        return subscript.getAt(i++);
+      public Iterator<Integer> iterator() {
+        return new UnmodifiableIterator<Integer>() {
+          int i = 0 ;
+          @Override
+          public boolean hasNext() {
+            return i < length;
+          }
+
+          @Override
+          public Integer next() {
+            return subscript.getAt(i++);
+          }
+        };
       }
     };
+  }
+
+  @Override
+  protected Vector selectDimensionNames(int dimIndex, Vector sourceNames) {
+    Subscript subscript = subscripts[dimIndex];
+    if(subscript.definitelySelectsAllElements()) {
+      return sourceNames;
+    } else {
+      return super.selectDimensionNames(dimIndex, sourceNames);
+    }
   }
 }

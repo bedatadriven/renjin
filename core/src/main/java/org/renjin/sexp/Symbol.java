@@ -96,7 +96,6 @@ public final class Symbol extends AbstractSEXP {
         "is.null",
         "is.expression",
         "is.call",
-        "is.na",
         "is.numeric",
         "is.logical",
         "as.vector",

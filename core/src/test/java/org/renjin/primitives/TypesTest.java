@@ -48,7 +48,17 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("as.character(1.3333333333333333333333333333333333)"),
         equalTo(c("1.33333333333333")));
     assertThat( eval("as.character(TRUE)"), equalTo( c("TRUE") ));
-    assertThat( eval("as.character(1000)"), equalTo( c("1000") ));
+    assertThat( eval("as.character(1000)"), equalTo(c("1000")));
+  }
+  
+  @Test
+  public void coerceWithoutArgument() {
+    assertThat( eval("as.character()"), CoreMatchers.equalTo(c(new String[0])));
+    assertThat( eval("as.double()"), CoreMatchers.equalTo((SEXP)DoubleArrayVector.EMPTY));
+    assertThat( eval("as.logical()"), CoreMatchers.equalTo((SEXP)LogicalArrayVector.EMPTY));
+    assertThat( eval("as.integer()"), CoreMatchers.equalTo((SEXP)IntArrayVector.EMPTY));
+    assertThat( eval("as.complex()"), CoreMatchers.equalTo((SEXP)ComplexArrayVector.EMPTY));
+    // as.raw() requires at one argument!
   }
   
   @Test
@@ -203,6 +213,18 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("is.infinite(1/0)"), equalTo(c(true)));
     assertThat( eval("is.infinite(NA)"), equalTo(c(false)));
     assertThat( eval("is.infinite(NaN)"), equalTo(c(false)));
+  }
+
+  @Test
+  public void finiteAtomicVectors() {
+    assertThat( eval("is.infinite('Inf')"), equalTo(c(false)));
+    assertThat( eval("is.finite('Inf')"), equalTo(c(false)));
+    assertThat( eval("is.finite(1L)"), equalTo(c(true)));
+    assertThat( eval("is.finite(TRUE)"), equalTo(c(true)));
+    assertThat( eval("is.finite(FALSE)"), equalTo(c(true)));
+    assertThat( eval("is.infinite(TRUE)"), equalTo(c(false)));
+    assertThat( eval("is.infinite(FALSE)"), equalTo(c(false)));
+    assertThat( eval("is.infinite(1L)"), equalTo(c(false)));
   }
 
   @Test

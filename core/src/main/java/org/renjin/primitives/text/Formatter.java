@@ -370,7 +370,7 @@ import java.util.Vector;
  *</dl>
  *<p>
  * If a conversion specification does not match one of
- * the above forms, an IllegalArgumentException is
+ * the above forms, an EvalException is
  * thrown and the instance of PrintfFormat is not
  * created.</p>
  *<p>
@@ -457,12 +457,12 @@ public class Formatter {
    * percent signs designates a single percent sign in
    * the format.
    * @param fmtArg  Control string.
-   * @exception IllegalArgumentException if the control
+   * @exception EvalException if the control
    * string is null, zero length, or otherwise
    * malformed.
    */
   public Formatter(String fmtArg)
-      throws IllegalArgumentException {
+      throws EvalException {
     this(Locale.getDefault(),fmtArg);
   }
   /**
@@ -473,12 +473,12 @@ public class Formatter {
    * percent signs designates a single percent sign in
    * the format.
    * @param fmtArg  Control string.
-   * @exception IllegalArgumentException if the control
+   * @exception EvalException if the control
    * string is null, zero length, or otherwise
    * malformed.
    */
   public Formatter(Locale locale, String fmtArg)
-      throws IllegalArgumentException {
+      throws EvalException {
     dfs = new DecimalFormatSymbols(locale);
     int ePos=0;
     ConversionSpecification sFmt=null;
@@ -625,11 +625,11 @@ public class Formatter {
         if(vector.isElementNA(j)) {
           sb.append("NA");
         } else if(vector instanceof DoubleVector) {
-          sb.append(cs.internalsprintf(vector.getElementAsDouble(j)));
+          sb.append(cs.formatArgument(vector.getElementAsDouble(j)));
         } else if(vector instanceof IntVector) {
-          sb.append(cs.internalsprintf(vector.getElementAsInt(j)));
+          sb.append(cs.formatArgument(vector.getElementAsInt(j)));
         } else if(vector instanceof StringVector) {
-          sb.append(cs.internalsprintf(vector.getElementAsString(j)));
+          sb.append(cs.formatArgument(vector.getElementAsString(j)));
         } else {
           throw new EvalException("Cannot use '%s' as an sprintf argument", vector.getTypeName());
         }
@@ -696,16 +696,16 @@ public class Formatter {
      * conversion specification.
       * @param fmtArg  String specifying the
      *     conversion specification.
-      * @exception IllegalArgumentException if the
+      * @exception EvalException if the
      *     input string is null, zero length, or
      *     otherwise malformed.
      */
     ConversionSpecification(String fmtArg)
-        throws IllegalArgumentException {
+        throws EvalException {
       if (fmtArg==null)
         throw new NullPointerException();
       if (fmtArg.length()==0)
-        throw new IllegalArgumentException(
+        throw new EvalException(
         "Control strings must have positive"+
         " lengths.");
       if (fmtArg.charAt(0)=='%') {
@@ -731,17 +731,17 @@ public class Formatter {
             }
           }
           else
-            throw new IllegalArgumentException(
+            throw new EvalException(
             "Malformed conversion specification="+
             fmtArg);
         }
         else
-          throw new IllegalArgumentException(
+          throw new EvalException(
           "Malformed conversion specification="+
           fmtArg);
       }
       else
-        throw new IllegalArgumentException(
+        throw new EvalException(
         "Control strings must begin with %.");
     }
     /**
@@ -857,11 +857,11 @@ public class Formatter {
       * specification.
      * @param s the int to format.
      * @return the formatted String.
-     * @exception IllegalArgumentException if the
+     * @exception EvalException if the
      *     conversion character is f, e, E, g, or G.
      */
-    String internalsprintf(int s)
-        throws IllegalArgumentException {
+    String formatArgument(int s)
+        throws EvalException {
       String s2 = "";
       switch(conversionCharacter) {
       case 'd':
@@ -895,136 +895,65 @@ public class Formatter {
         s2 = printCFormat((char)s);
         break;
       default:
-        throw new IllegalArgumentException(
+        throw new EvalException(
           "Cannot format a int with a format using a "+
           conversionCharacter+
           " conversion character.");
       }
       return s2;
     }
-    /**
-     * Format a long argument using this conversion
-     * specification.
-     * @param s the long to format.
-     * @return the formatted String.
-     * @exception IllegalArgumentException if the
-     *     conversion character is f, e, E, g, or G.
-     */
-    String internalsprintf(long s)
-        throws IllegalArgumentException {
-      String s2 = "";
-      switch(conversionCharacter) {
-      case 'd':
-      case 'i':
-        if (optionalh)
-          s2 = printDFormat((short)s);
-        else if (optionall)
-          s2 = printDFormat(s);
-        else
-          s2 = printDFormat((int)s);
-        break;
-      case 'x':
-      case 'X':
-        if (optionalh)
-          s2 = printXFormat((short)s);
-        else if (optionall)
-          s2 = printXFormat(s);
-        else
-          s2 = printXFormat((int)s);
-        break;
-      case 'o':
-        if (optionalh)
-          s2 = printOFormat((short)s);
-        else if (optionall)
-          s2 = printOFormat(s);
-        else
-          s2 = printOFormat((int)s);
-        break;
-      case 'c':
-      case 'C':
-        s2 = printCFormat((char)s);
-        break;
-      default:
-        throw new IllegalArgumentException(
-        "Cannot format a long with a format using a "+
-        conversionCharacter+" conversion character.");
-      }
-      return s2;
-    }
+
     /**
      * Format a double argument using this conversion
      * specification.
-     * @param s the double to format.
+     * @param value the double to format.
      * @return the formatted String.
-     * @exception IllegalArgumentException if the
+     * @exception EvalException if the
      *     conversion character is c, C, s, S, i, d,
      *     x, X, or o.
      */
-    String internalsprintf(double s)
-        throws IllegalArgumentException {
-      String s2 = "";
+    String formatArgument(double value) {
       switch(conversionCharacter) {
-      case 'f':
-        s2 = printFFormat(s);
-        break;
-      case 'E':
-      case 'e':
-        s2 = printEFormat(s);
-        break;
-      case 'G':
-      case 'g':
-        s2 = printGFormat(s);
-        break;
-      case 'd':
-        s2 = printDFormat((long)s);
-        break;
-      default:
-        throw new IllegalArgumentException("Cannot "+
-        "format a double with a format using a "+
-        conversionCharacter+" conversion character.");
+        case 'i':
+          if (value == Math.round(value)) {
+            return formatArgument((int) value);
+          }
+          break;
+        case 'f':
+          return printFFormat(value);
+        case 'E':
+        case 'e':
+          return printEFormat(value);
+        case 'G':
+        case 'g':
+          return printGFormat(value);
+        case 'd':
+          return printDFormat((long) value);
       }
-      return s2;
+
+      throw new EvalException("invalid format '%" + conversionCharacter + "'; " +
+              "use format %f, %e, %g or %a for numeric objects");
     }
     /**
      * Format a String argument using this conversion
      * specification.
      * @param s the String to format.
      * @return the formatted String.
-     * @exception IllegalArgumentException if the
+     * @exception org.renjin.eval.EvalException if the
      *   conversion character is neither s nor S.
      */
-    String internalsprintf(String s)
-        throws IllegalArgumentException {
+    String formatArgument(String s) {
       String s2 = "";
       if(conversionCharacter=='s'
       || conversionCharacter=='S')
         s2 = printSFormat(s);
       else
-        throw new IllegalArgumentException("Cannot "+
+        throw new EvalException("Cannot "+
         "format a String with a format using a "+
         conversionCharacter+" conversion character.");
       return s2;
     }
-    /**
-     * Format an Object argument using this conversion
-     * specification.
-     * @param s the Object to format.
-     * @return the formatted String.
-     * @exception IllegalArgumentException if the
-     *     conversion character is neither s nor S.
-     */
-    String internalsprintf(Object s) {
-      String s2 = "";
-      if(conversionCharacter=='s'
-      || conversionCharacter=='S')
-        s2 = printSFormat(s.toString());
-      else
-        throw new IllegalArgumentException(
-          "Cannot format a String with a format using"+
-          " a "+conversionCharacter+
-          " conversion character.");
-      return s2;
-    }
+
     /**
      * For f format, the flag character '-', means that
      * the output should be left justified within the

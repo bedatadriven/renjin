@@ -21,5 +21,7 @@
     <module>thirdparty</module>
     <module>conflicting-thirdparty</module>
     <module>cran.dot.package</module>
+    <module>alpha</module>
+    <module>beta</module>
   </modules>
 </project>

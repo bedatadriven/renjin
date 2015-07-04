@@ -59,7 +59,7 @@ public final class ExternalPtr<T> extends AbstractSEXP {
 
   private MemberBinding getMemberBinding(Symbol name) {
     if(binding == null) {
-      throw new EvalException("ExternalPtr is NULL");
+      throw new EvalException("ExternalPtr is NULL for name "+name.getPrintName());
     }
     return binding.getMemberBinding(name);
   }

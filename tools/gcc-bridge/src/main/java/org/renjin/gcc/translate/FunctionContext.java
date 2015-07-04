@@ -1,13 +1,12 @@
 package org.renjin.gcc.translate;
 
-import java.util.Map;
-
+import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.CallingConvention;
-import org.renjin.gcc.gimple.ins.GimpleCall;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.*;
+import org.renjin.gcc.gimple.ins.GimpleCall;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleMethodBuilder;
 import org.renjin.gcc.jimple.JimpleType;
@@ -17,7 +16,7 @@ import org.renjin.gcc.translate.expr.*;
 import org.renjin.gcc.translate.type.ImType;
 import org.renjin.gcc.translate.var.Variable;
 
-import com.google.common.collect.Maps;
+import java.util.Map;
 
 public class FunctionContext {
 
@@ -37,9 +36,17 @@ public class FunctionContext {
     VarUsageInspector varUsage = new VarUsageInspector(gimpleFunction);
 
     for (GimpleVarDecl decl : gimpleFunction.getVariableDeclarations()) {
-      Variable localVariable = translationContext.resolveType(decl.getType())
-          .createLocalVariable(this, decl.getName(),
-              varUsage.getUsage(decl.getId()));
+      Variable localVariable = translationContext.resolveType(
+              decl.getType()).createLocalVariable(this, decl.getName(),
+          varUsage.getUsage(decl.getId()));
+      
+      if(decl.getValue() != null) {
+        if(decl.getValue() instanceof GimpleConstructor) {
+          // NOOP: Only relevant for arrays, and handled by createLocalVariable() above
+        } else {
+          localVariable.writeAssignment(this, resolveExpr(decl.getValue()));
+        }
+      }
 
       symbolTable.put(decl.getId(), localVariable);
     }
@@ -142,8 +149,11 @@ public class FunctionContext {
 
     } else if(gimpleExpr instanceof GimpleConstantRef) {
       return resolveExpr(((GimpleConstantRef) gimpleExpr).getValue());
-    }
+    
+    } 
+     
     throw new UnsupportedOperationException(gimpleExpr.toString());
   }
+  
 
 }

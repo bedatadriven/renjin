@@ -70,7 +70,7 @@ public class ObjectConverter implements Converter<Object> {
   }
 
   public static boolean accept(Class clazz) {
-    return clazz.equals(Object.class)||clazz.equals(Class.class);
+    return clazz.equals(Object.class);
   }
 
 }

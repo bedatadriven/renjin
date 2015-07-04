@@ -45,6 +45,10 @@ public interface SEXP {
   void accept(SexpVisitor visitor);
 
 
+  /**
+   * 
+   * @return true if this is a double vector, or an integer vector that is not a factor.
+   */
   boolean isNumeric();
 
 

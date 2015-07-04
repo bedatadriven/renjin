@@ -10,8 +10,10 @@ import org.renjin.sexp.*;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * Implements the identical() function
+ */
 public class Identical {
-
 
 
   @Internal

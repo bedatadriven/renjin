@@ -1,8 +1,6 @@
 package org.renjin.primitives.subset;
 
 import org.renjin.eval.EvalException;
-import org.renjin.iterator.IntIterable;
-import org.renjin.iterator.IntIterator;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
@@ -11,7 +9,7 @@ import org.renjin.sexp.*;
  * Encapsulates a set of elements that have been selected by 
  * the arguments to the subset function.
  */
-public abstract class Selection implements IntIterable {
+public abstract class Selection implements Iterable<Integer> {
 
   private final SEXP source;
  
@@ -35,7 +33,7 @@ public abstract class Selection implements IntIterable {
   public abstract int getElementCount();
 
   
-  public abstract IntIterator getSelectionAlongDimension(int dimensionIndex);
+  public abstract Iterable<Integer> getSelectionAlongDimension(int dimensionIndex);
   
   /**
    * 
@@ -92,19 +90,20 @@ public abstract class Selection implements IntIterable {
     if(dimNames != Null.INSTANCE) {
       Vector sourceNames = RowNamesVector.purify(dimNames.getElementAsSEXP(dimIndex));
       if(sourceNames != Null.INSTANCE) {
-        StringArrayVector.Builder names = new StringArrayVector.Builder();
-        IntIterator it = getSelectionAlongDimension(dimIndex);
-        while(it.hasNext()) {
-          int index = it.nextInt();
-          if(index >= sourceNames.length()) {
-            throw new EvalException("subscript out of bounds: ");
-          }
-          names.add( sourceNames.getElementAsString(index) );
-        }
-        return names.build();
+        return selectDimensionNames(dimIndex, sourceNames);
       }
     }
     return Null.INSTANCE;
   }
 
+  protected Vector selectDimensionNames(int dimIndex, Vector sourceNames) {
+    StringArrayVector.Builder names = new StringArrayVector.Builder();
+    for(Integer index : getSelectionAlongDimension(dimIndex)) {
+      if(index >= sourceNames.length()) {
+        throw new EvalException("subscript out of bounds: ");
+      }
+      names.add( sourceNames.getElementAsString(index) );
+    }
+    return names.build();
+  }
 }

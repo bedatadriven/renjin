@@ -1,5 +1,7 @@
 .classpath
 .project
+.vagrant
+**/.Rhistory
 **/.classpath
 **/.project
 target
@@ -10,3 +12,4 @@ target
 *~
 *.iml
 .idea
+atlassian-ide-plugin.xml

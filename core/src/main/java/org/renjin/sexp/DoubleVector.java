@@ -2,7 +2,7 @@ package org.renjin.sexp;
 
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
-import org.renjin.parser.ParseUtil;
+import org.renjin.parser.NumericLiterals;
 
 import java.util.Iterator;
 
@@ -122,7 +122,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     } else if (isNaN(value)) {
       return "NaN";
     } else {
-      return ParseUtil.toString(value);
+      return NumericLiterals.toString(value);
     }
   }
 
@@ -204,6 +204,28 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
       }
     };
   }
+  
+  protected static String toString(DoubleVector vector) {
+    if (vector.length() == 1) {
+      return Double.toString(vector.getElementAsDouble(0));
+    } else {
+      StringBuilder sb = new StringBuilder("c(");
+      for (int i = 0; i != Math.min(5, vector.length()); ++i) {
+        if (i > 0) {
+          sb.append(", ");
+        }
+        if (isNA(vector.getElementAsDouble(i))) {
+          sb.append("NA");
+        } else {
+          sb.append(NumericLiterals.toString(vector.getElementAsDouble(i)));
+        }
+      }
+      if (vector.length() > 5) {
+        sb.append(",... ").append(vector.length()).append(" elements total");
+      }
+      return sb.append(")").toString();
+    }
+  }
 
   public double asReal() {
     if (length() == 0) {
@@ -274,6 +296,10 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
 
   public boolean isElementNaN(int index) {
     return isNaN(getElementAsDouble(index));
+  }
+  
+  public static DoubleVector valueOf(double value) {
+    return new DoubleArrayVector(value);
   }
 
   private static class DoubleType extends Type {

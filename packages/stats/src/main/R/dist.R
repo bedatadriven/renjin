@@ -59,10 +59,20 @@ format.dist <- function(x, ...) format(as.vector(x), ...)
 as.matrix.dist <- function(x, ...)
 {
     size <- attr(x, "Size")
+    # Try first to simple unwrap the deferred calculation returned by
+    # dist()
     df <- Distance$toMatrix(x)
+    if(is.null(df)) {
+        df <- matrix(0, size, size)
+        df[row(df) > col(df)] <- x
+        df <- df + t(df)
+    }
     labels <- attr(x, "Labels")
-    dimnames(df) <-
-	if(is.null(labels)) list(seq_len(size), seq_len(size)) else list(labels,labels)
+    dimnames(df) <- if(is.null(labels)) {
+        list(seq_len(size), seq_len(size)) 
+    } else {
+        list(labels,labels)
+    }
     df
 }
 

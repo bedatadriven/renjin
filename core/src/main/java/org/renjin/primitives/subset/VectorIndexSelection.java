@@ -2,7 +2,6 @@ package org.renjin.primitives.subset;
 
 import java.util.Iterator;
 
-import org.renjin.iterator.IntIterator;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbols;
@@ -27,8 +26,8 @@ public class VectorIndexSelection extends Selection {
   }
 
   @Override
-  public IntIterator intIterator() {
-    return new IntIterator() {
+  public Iterator<Integer> iterator() {
+    return new UnmodifiableIterator<Integer>() {
       private int i = 0;
       
       @Override
@@ -37,7 +36,7 @@ public class VectorIndexSelection extends Selection {
       }
 
       @Override
-      public int nextInt() {
+      public Integer next() {
         return subscript.getAt(i++);
       }
     };
@@ -64,11 +63,11 @@ public class VectorIndexSelection extends Selection {
   }
 
   @Override
-  public IntIterator getSelectionAlongDimension(int dimensionIndex) {
+  public Iterable<Integer> getSelectionAlongDimension(int dimensionIndex) {
     if(dimensionIndex != 0) {
       throw new IllegalArgumentException("dimensionIndex: " + dimensionIndex);
     }
-    return this.intIterator();
+    return this;
   }
 
 }

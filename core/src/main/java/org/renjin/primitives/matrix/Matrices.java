@@ -355,11 +355,12 @@ public class Matrices {
   private static Vector allocMatrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
 	  Vector.Builder result = null;
 	  int dataLength = data.length();
+      int outLength = nrow * ncol;
     
-    if (dataLength == 1 && data instanceof LogicalVector) {
+    if (dataLength == 1 && outLength > 0 && data instanceof LogicalVector) {
       /* If data has only one entry, we can get away with a constant. 
        * This is true for the common case of matrix(nrow=42, ncol=42)  */
-      result = RepLogicalVector.newConstantBuilder(data.getElementAsLogical(0), nrow * ncol);
+      result = RepLogicalVector.newConstantBuilder(data.getElementAsLogical(0), outLength);
     } else {
       result = data.newBuilderWithInitialSize(nrow * ncol);
       if(dataLength > 0) {

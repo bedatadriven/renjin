@@ -224,7 +224,7 @@ public class NamespaceRegistry {
     Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(),
             "imports:" + pkg.getName().toString('.'));
 
-    Environment namespaceEnv = Environment.createNamedEnvironment(imports, pkg.getName().getPackageName());
+    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName());
     Namespace namespace = new Namespace(pkg, namespaceEnv);
     localNameMap.put(pkg.getName().getPackageSymbol(), namespace);
     namespaceMap.put(pkg.getName(), namespace);

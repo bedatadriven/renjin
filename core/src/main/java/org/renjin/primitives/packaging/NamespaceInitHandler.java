@@ -84,7 +84,7 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
         Class clazz = namespace.getPackage().loadClass(className);
         namespace.getNamespaceEnvironment().setVariable(clazz.getSimpleName(), new ExternalPtr(clazz));
       } catch(Exception e) {
-        System.err.println("Could not load class " + className);
+        throw new EvalException("Could not load class " + className);
       }   
     }
   }

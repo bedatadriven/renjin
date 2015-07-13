@@ -42,6 +42,12 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
+      <artifactId>datasets</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
       <artifactId>utils</artifactId>
       <version>${project.version}</version>
     </dependency>

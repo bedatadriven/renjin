@@ -30,6 +30,7 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Unevaluated;
+import org.renjin.parser.ParseException;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
@@ -379,25 +380,27 @@ public class Evaluation {
   @Internal
   public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text,
                                        String prompt, SEXP sourceFile, String encoding) throws IOException {
-    List<SEXP> expressions = Lists.newArrayList();
-    if(text != Null.INSTANCE) {
-      for(int i=0;i!=text.length();++i) {
-        String line = text.getElementAsString(i);
-        try {
+    try {
+      List<SEXP> expressions = Lists.newArrayList();
+      if(text != Null.INSTANCE) {
+        for(int i=0;i!=text.length();++i) {
+          String line = text.getElementAsString(i);
           ExpressionVector result = RParser.parseSource(new StringReader(line + "\n"));
           Iterables.addAll(expressions, result);
-        } catch (IOException e) {
-          throw new EvalException("I/O Exception occurred during parse: " + e.getMessage());
         }
+      } else if(file.inherits("connection")) {
+        Connection conn = Connections.getConnection(context, file);
+        Reader reader = new InputStreamReader(conn.getInputStream());
+        ExpressionVector result = RParser.parseSource(reader);
+        Iterables.addAll(expressions, result);
       }
-    } else if(file.inherits("connection")) {
-      Connection conn = Connections.getConnection(context, file);
-      Reader reader = new InputStreamReader(conn.getInputStream());
-      ExpressionVector result = RParser.parseSource(reader);
-      Iterables.addAll(expressions, result);
+      return new ExpressionVector(expressions);
+    } catch (ParseException e) {
+      throw new EvalException(e.getMessage(), e);
+    } catch (IOException e) {
+      throw new EvalException("I/O Exception occurred during parse: " + e.getMessage());
     }
 
-    return new ExpressionVector(expressions);
   }
 
   @Builtin

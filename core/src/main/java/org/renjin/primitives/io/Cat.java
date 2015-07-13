@@ -4,6 +4,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.Invisible;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.sexp.*;
 
@@ -14,6 +15,7 @@ import java.io.PrintWriter;
 public class Cat extends SexpVisitor<String> {
 
   @Internal
+  @Invisible
   public static void cat(@Current Context context, ListVector list, SEXP connection, String sep,
       SEXP fill, SEXP labels, boolean append) throws IOException {
     
@@ -21,6 +23,13 @@ public class Cat extends SexpVisitor<String> {
     Cat visitor = new Cat(printWriter, sep, 0);
     for (SEXP element : list) {
       element.accept(visitor);
+    }
+    
+    // The GNU R implementation appears to treat a newline separator as a special case:
+    // Any other string is only printed between elements, but if sep contains a newline character,
+    // a final, trailing, newline is also printed
+    if(sep.contains("\n")) {
+      printWriter.println();
     }
     printWriter.flush();
   }

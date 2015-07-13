@@ -21,21 +21,24 @@
 
 package org.renjin.primitives.files;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
-
 import org.apache.commons.vfs2.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.text.regex.ExtendedRE;
-import org.renjin.primitives.text.regex.RE;
+import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipEntry;
@@ -343,40 +346,66 @@ public class Files {
 
     return new Object() {
 
-      private final StringVector.Builder result = new StringVector.Builder();
-      private final RE filter = pattern == null ? null : new ExtendedRE(pattern).ignoreCase(ignoreCase);
+      private final List<String> result = new ArrayList<String>();
+      private Predicate<String> nameFilter;
+      
 
       public StringVector list() throws IOException {
+
+        if(pattern == null) {
+          nameFilter = Predicates.alwaysTrue();
+        } else {
+          nameFilter = REFactory.asPredicate(new ExtendedRE(pattern).ignoreCase(ignoreCase));
+        }
+
         for(String path : paths) {
           FileObject folder = context.resolveFile(path);
           if(folder.getType() == FileType.FOLDER) {
-            if(allFiles & !recursive) {
-              add(path, ".");
-              add(path, "..");
+            String rootPrefix;
+            if(fullNames) {
+              rootPrefix = folder.getName().getPath();
+            } else {
+              rootPrefix = "";
             }
-            for(FileObject child : folder.getChildren()) {
-              if(filter(child)) {
-                add(path, child);
-              }
-            }
+            list(rootPrefix, folder);
           }
         }
-        return result.build();
+        Collections.sort(result);
+        return new StringArrayVector(result);
       }
 
-      void add(String path, FileObject file) {
-        if(fullNames) {
-          result.add(path + "/" + file.getName().getBaseName());
-        } else {
-          result.add(file.getName().getBaseName());
+      private void list(String path, FileObject folder) throws FileSystemException {
+        if(allFiles & !recursive) {
+          if(nameFilter.apply(".")) {
+            add(path, ".");
+          }
+          if(nameFilter.apply("..")) {
+            add(path, "..");
+          }
         }
+        for(FileObject child : folder.getChildren()) {
+          if(filter(child)) {
+            add(path, child);
+          } 
+          if(recursive && child.getType() == FileType.FOLDER) {
+            list(qualify(path, child.getName().getBaseName()), child);
+          }
+        }
+      }
+
+      void add(String path, FileObject file) throws FileSystemException {
+        add(path, file.getName().getBaseName());
       }
 
       void add(String path, String name) throws FileSystemException {
-        if(fullNames) {
-          result.add(path + "/" + name);
+        result.add(qualify(path, name));
+      }
+      
+      private String qualify(String path, String filename) {
+        if(path.length() > 0) {
+          return path + "/" + filename;
         } else {
-          result.add(name);
+          return filename;
         }
       }
 
@@ -387,7 +416,7 @@ public class Files {
         if(recursive && !includeDirs && child.getType() == FileType.FOLDER) {
           return false;
         }
-        if(filter!=null && !filter.match(child.getName().getBaseName())) {
+        if(!nameFilter.apply(child.getName().getBaseName())) {
           return false;
         }
         return true;

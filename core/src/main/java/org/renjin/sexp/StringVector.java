@@ -4,7 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
-import org.renjin.parser.ParseUtil;
+import org.renjin.parser.NumericLiterals;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -45,7 +45,7 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     if(isElementNA(index)) {
       return IntVector.NA;
     } else {
-      return (int) ParseUtil.parseDouble(getElementAsString(index));
+      return (int) NumericLiterals.parseDouble(getElementAsString(index));
     }
   }
 
@@ -54,7 +54,7 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     if(isElementNA(index)) {
       return DoubleVector.NA;
     } else {
-      return ParseUtil.parseDouble(getElementAsString(index));
+      return NumericLiterals.parseDouble(getElementAsString(index));
     }
   }
 
@@ -300,7 +300,7 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
 
     @Override
     public Vector.Builder add(Number value) {
-      add(ParseUtil.toString(value.doubleValue()));
+      add(NumericLiterals.toString(value.doubleValue()));
       return this;
     }
 

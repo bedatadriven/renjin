@@ -11,7 +11,7 @@ import java.io.OutputStream;
  * process to a halt.
  */
 public class CappedOutputStream extends OutputStream {
-  private static final int MAX_BYTES = 50 * 1024;
+  public static final int MAX_BYTES = 50 * 1024;
 
   private final OutputStream out;
   private int bytesWritten = 0;
@@ -45,10 +45,12 @@ public class CappedOutputStream extends OutputStream {
   @Override
   public void write(byte[] bytes, int offset, int len) throws IOException {
     if(!capped) {
-      out.write(bytes, offset, len);
-      bytesWritten += len;
-      if(bytesWritten > MAX_BYTES) {
+      if(bytesWritten + len > MAX_BYTES) {
+        out.write(bytes, offset, MAX_BYTES - bytesWritten);
         cap();
+      } else {
+        out.write(bytes, offset, len);
+        bytesWritten += len;
       }
     }
   }

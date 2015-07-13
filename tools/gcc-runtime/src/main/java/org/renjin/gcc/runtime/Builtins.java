@@ -51,6 +51,18 @@ public class Builtins {
 		}
 		return result;
 	}
+  
+  public static float __builtin_powif__(float base, int exponent) {
+    if(exponent == 0) {
+      return 1;
+    } else if(exponent == 1) {
+      return base;
+    } else if(exponent == 2) {
+      return base*base;
+    } else {
+      return (float) Math.pow(base, exponent);
+    }
+  }
 
   public static int __isnan(double x) {
     return Double.isNaN(x) ? 1: 0;
@@ -65,7 +77,11 @@ public class Builtins {
      return Math.max(x,y);
   }
 
-
+  public static double hypot(double x, double y) {
+    return Math.hypot(x, y);
+  }
+  
+  
   public static void _gfortran_set_args__(int argc, ObjectPtr argv) {
     // TODO
   }

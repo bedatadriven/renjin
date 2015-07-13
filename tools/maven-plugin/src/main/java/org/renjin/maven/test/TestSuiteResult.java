@@ -1,10 +1,8 @@
 package org.renjin.maven.test;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.List;
-import java.util.Map.Entry;
+import com.google.common.collect.Lists;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -14,11 +12,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.util.List;
+import java.util.Map.Entry;
 
 public class TestSuiteResult {
 
@@ -120,22 +116,19 @@ public class TestSuiteResult {
     testsuite.appendChild(properties);
     
     for(TestCaseResult result : results) {
-      Element testcase = document.createElement("testcase");
-      testcase.setAttribute("time", Double.toString(result.getTime()));
-      testcase.setAttribute("classname", result.getClassName());
-      testcase.setAttribute("name", result.getName());
+      Element testCase = document.createElement("testcase");
+      testCase.setAttribute("time", Double.toString(result.getTime()));
+      testCase.setAttribute("classname", result.getClassName());
+      testCase.setAttribute("name", result.getName());
       
-      if(result.getException() != null) {
+      if(result.getOutcome() == TestOutcome.ERROR) {
         Element error = document.createElement("error");
-        error.setAttribute("message", result.getException().getMessage());
-        error.setAttribute("type", result.getException().getClass().getName());
-        
-        StringWriter stacktrace = new StringWriter();
-        result.getException().printStackTrace(new PrintWriter(stacktrace));
-        error.setTextContent(stacktrace.toString());
-        testcase.appendChild(error);
+        if(result.getErrorMessage() != null) {
+          error.setAttribute("message", result.getErrorMessage());
+        }
+        testCase.appendChild(error);
       }
-      testsuite.appendChild(testcase);
+      testsuite.appendChild(testCase);
     }
     document.appendChild(testsuite);
     

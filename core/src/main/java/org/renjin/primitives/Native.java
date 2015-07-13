@@ -1,30 +1,28 @@
 package org.renjin.primitives;
 
-import java.awt.Graphics;
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import org.renjin.base.Base;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.gcc.runtime.BooleanPtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.NamedFlag;
+import org.renjin.invoke.reflection.FunctionBinding;
+import org.renjin.methods.Methods;
+import org.renjin.primitives.packaging.FqPackageName;
+import org.renjin.sexp.*;
+
+import java.awt.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.List;
-
-import org.renjin.base.Base;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.invoke.reflection.FunctionBinding;
-import org.renjin.methods.Methods;
-import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.NamedFlag;
-import org.renjin.sexp.*;
-import org.renjin.sexp.ExternalPtr;
-import org.renjin.primitives.packaging.NamespaceRegistry;
-import org.renjin.primitives.packaging.FqPackageName;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 public class Native {
 
@@ -204,6 +202,12 @@ public class Native {
         int[] array = vector.toIntArray();
         fortranArgs[i] = new IntPtr(array, 0);
         returnValues.add(callArguments.getName(i), IntArrayVector.unsafe(array, vector.getAttributes()));
+
+      } else if(fortranTypes[i].equals(BooleanPtr.class)) {
+        boolean[] array = toBooleanArray(vector);
+        fortranArgs[i] = new BooleanPtr(array);
+        returnValues.add(callArguments.getName(i), BooleanArrayVector.unsafe(array));
+      
       } else {
         throw new UnsupportedOperationException("fortran type: " + fortranTypes[i]);
       }
@@ -216,6 +220,18 @@ public class Native {
     }
 
     return returnValues.build();
+  }
+
+  private static boolean[] toBooleanArray(AtomicVector vector) {
+    boolean array[] = new boolean[vector.length()];
+    for(int i=0;i<vector.length();++i) {
+      int element = vector.getElementAsRawLogical(i);
+      if(element == IntVector.NA) {
+        throw new EvalException("NAs cannot be passed to logical fortran argument");
+      }
+      array[i] = (element != 0);
+    }
+    return array;
   }
 
 

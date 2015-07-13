@@ -774,7 +774,7 @@ an ANSI digit or not */
 
     /* Make certain that things are okay. */
     if (c == 'L') {
-      double a = ParseUtil.parseDouble(buffer.toString());
+      double a = NumericLiterals.parseDouble(buffer.toString());
       int b = (int) a;
       /* We are asked to create an integer via the L, so we check that the
         double and int values are the same. If not, this is a problem and we
@@ -795,18 +795,21 @@ an ANSI digit or not */
 
     if (c == 'i') {
       yylval = parseOptions.isGenerateCode() ? mkComplex(buffer.toString()) : Null.INSTANCE;
+      
     } else if (c == 'L' && asNumeric == 0) {
       if (parseOptions.isGenerateCode() && seendot == 1 && !seenexp) {
         logger.warning(String.format("integer literal %sL contains unnecessary decimal point", buffer.toString()));
       }
-      yylval = parseOptions.isGenerateCode() ? 
-          new IntArrayVector(ParseUtil.parseInt(buffer.toString())) : Null.INSTANCE;
+      double a = NumericLiterals.parseDouble(buffer);
+      int b = (int) a;
+      yylval = parseOptions.isGenerateCode() ? new IntArrayVector(b) : Null.INSTANCE;
+      
     } else {
       if (c != 'L') {
         xxungetc(c);
       }
       yylval = parseOptions.isGenerateCode() ?
-          new DoubleArrayVector(ParseUtil.parseDouble(buffer.toString())) : Null.INSTANCE;
+          new DoubleArrayVector(NumericLiterals.parseDouble(buffer)) : Null.INSTANCE;
     }
 
     return NUM_CONST;
@@ -822,7 +825,7 @@ an ANSI digit or not */
 
   private SEXP mkComplex(String s) {
     SEXP t = Null.INSTANCE;
-    double f = ParseUtil.parseDouble(s);
+    double f = NumericLiterals.parseDouble(s);
 
     if(parseOptions.isGenerateCode()) {
       t = new ComplexArrayVector(new Complex(0, f));

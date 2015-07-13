@@ -27,11 +27,6 @@
   	</dependency>
   	<dependency>
   		<groupId>org.renjin</groupId>
-  		<artifactId>stats</artifactId>
-  		<version>${project.version}</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.renjin</groupId>
   		<artifactId>utils</artifactId>
   		<version>${project.version}</version>
   	</dependency>

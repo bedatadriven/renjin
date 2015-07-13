@@ -42,11 +42,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class System {
 
-  private static final double NANOSECONDS_PER_SECOND = 1000000000d;
-  
   private static final double MILLISECONDS_PER_SECOND = 1000d;
   
 
@@ -319,8 +318,8 @@ public class System {
     // so we need to fallback to app
     try {
       ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-      totalCPUTime = threadMXBean.getCurrentThreadCpuTime();
-      userCPUTime = threadMXBean.getCurrentThreadUserTime();
+      userCPUTime = TimeUnit.NANOSECONDS.toMillis(threadMXBean.getCurrentThreadUserTime());
+      totalCPUTime = TimeUnit.NANOSECONDS.toMillis(threadMXBean.getCurrentThreadCpuTime());
 
       RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
       elapsedTime = runtimeMXBean.getUptime();
@@ -328,17 +327,17 @@ public class System {
       // ThreadMXBean is not available in all environments
       // Specifically, AppEngine will throw variously SecurityErrors or
       // ClassNotFoundErrors if we try to access these classes
-      userCPUTime = totalCPUTime = java.lang.System.nanoTime();
-      elapsedTime = new Date().getTime();
+      userCPUTime = totalCPUTime = elapsedTime = java.lang.System.currentTimeMillis();
     }
 
     // user.self
     names.add("user.self");
-    result.add( userCPUTime / NANOSECONDS_PER_SECOND );
+    result.add( userCPUTime / MILLISECONDS_PER_SECOND );
 
+    
     // sys.self
     names.add("sys.self");
-    result.add( (totalCPUTime - userCPUTime) / NANOSECONDS_PER_SECOND );
+    result.add( (totalCPUTime - userCPUTime) / MILLISECONDS_PER_SECOND );
 
     // elapsed
     // (wall clock time)

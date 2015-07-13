@@ -1,8 +1,8 @@
 package org.renjin.invoke.codegen;
 
 import com.sun.codemodel.*;
-import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.codegen.args.ArgConverterStrategies;
+import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
@@ -36,7 +36,7 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
       invocation.arg(argument);
     }
 
-    CodeModelUtils.returnSexp(codeModel, parent,  overload, invocation);
+    CodeModelUtils.returnSexp(context, codeModel, parent,  overload, invocation);
   }
 
   private void convertArgs(JBlock parent) {

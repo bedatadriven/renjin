@@ -6,12 +6,14 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class Namespace {
 
-  List<Symbol> exports = Lists.newArrayList();
   private final Environment namespaceEnvironment;
+  private final List<Symbol> exports = Lists.newArrayList();
   private Package pkg;
 
   public Namespace(Package pkg, Environment namespaceEnvironment) {
@@ -25,6 +27,28 @@ public class Namespace {
 
   public FqPackageName getFullyQualifiedName() {
     return pkg.getName();
+  }
+
+  public String getCompatibleName() {
+    if (pkg.getName().getGroupId().equals(FqPackageName.CORE_GROUP_ID)) {
+      return pkg.getName().getPackageName();
+    } else {
+      return pkg.getName().toString(':');
+    }
+  }
+
+  /**
+   * 
+   * @return a collection of symbols exported by the package
+   */
+  public Collection<Symbol> getExports() {
+    if(FqPackageName.BASE.equals(pkg.getName())) {
+      // For historical reasons, all symbols are exported from the base package
+      return this.namespaceEnvironment.getSymbolNames();
+      
+    } else {
+      return Collections.unmodifiableCollection(exports);
+    }
   }
 
   public SEXP getEntry(Symbol entry) {

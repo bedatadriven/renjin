@@ -102,11 +102,11 @@ public class Namespaces {
   
   @Builtin
   public static StringVector getNamespaceName(@Current NamespaceRegistry registry, 
-                                              SEXP envExp) {
+                                              final SEXP envExp) {
     if (isNamespace(registry, envExp)) {
-      FqPackageName packageName = 
+      final FqPackageName packageName =
           registry.getNamespace((Environment)envExp).getFullyQualifiedName();
-      if(packageName.getGroupId().equals(FqPackageName.CORE_GROUP_ID)) {
+      if (packageName.getGroupId().equals(FqPackageName.CORE_GROUP_ID)) {
         return new StringArrayVector(packageName.getPackageName());
       } else {
         return new StringArrayVector(packageName.toString(':'));
@@ -118,11 +118,21 @@ public class Namespaces {
   
   @Builtin
   public static StringVector getNamespaceExports(@Current NamespaceRegistry registry, 
-                                                 SEXP envExp) {
-    if (isNamespace(registry, envExp)) {
+                                                 final SEXP envExp) {
+    if ((envExp instanceof Environment) && isNamespace(registry, envExp)) {
       StringVector.Builder result = new StringVector.Builder();
-      for(Symbol name : registry.getNamespace((Environment)envExp).exports) {
-        result.add(name.getPrintName());
+      final Environment env = (Environment) envExp;
+      final Namespace ns = registry.getNamespace(env);
+      if (FqPackageName.BASE.equals(ns.getPackage().getName())) {
+        // The base package's namespace is treated specially for historical reasons:
+        // all symbols are considered to be exported.
+        for (Symbol name : env.getSymbolNames()) {
+          result.add(name.getPrintName());
+        }
+      } else {
+        for (Symbol name : ns.exports) {
+          result.add(name.getPrintName());
+        }
       }
       return result.build();
     } else {
@@ -132,11 +142,11 @@ public class Namespaces {
   
   @Builtin
   public static StringVector getNamespaceImports(@Current NamespaceRegistry registry, 
-                                                 SEXP envExp) {
+                                                 final SEXP envExp) {
     if (isNamespace(registry, envExp)) {
       StringVector.Builder result = new StringVector.Builder();
-      Namespace ns = registry.getNamespace((Environment)envExp);
-      for(Symbol name : ns.getImportsEnvironment().getSymbolNames()) {
+      final Namespace ns = registry.getNamespace((Environment)envExp);
+      for (final Symbol name : ns.getImportsEnvironment().getSymbolNames()) {
         result.add(name.getPrintName());
       }
       return result.build();
@@ -144,5 +154,4 @@ public class Namespaces {
       throw new EvalException("Error in argument " + envExp.toString() + " : not a namespace");
     }
   }
-  
 }

@@ -139,17 +139,8 @@ public class Namespaces {
   }
 
   @Builtin
-  public static StringVector getNamespaceImports(@Current NamespaceRegistry registry, 
-                                                 final SEXP envExp) {
-    if (isNamespace(registry, envExp)) {
-      StringVector.Builder result = new StringVector.Builder();
-      final Namespace ns = registry.getNamespace((Environment)envExp);
-      for (final Symbol name : ns.getImportsEnvironment().getSymbolNames()) {
-        result.add(name.getPrintName());
-      }
-      return result.build();
-    } else {
-      throw new EvalException("Error in argument " + envExp.toString() + " : not a namespace");
-    }
+  public static StringVector getNamespaceImports(@Current NamespaceRegistry registry, final SEXP sexp) {
+    Namespace ns = resolveNamespace(registry, sexp);
+    throw new UnsupportedOperationException("TODO: implement getNamespaceImports!");
   }
 }

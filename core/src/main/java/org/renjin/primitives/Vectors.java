@@ -3,7 +3,6 @@ package org.renjin.primitives;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
@@ -232,22 +231,14 @@ public class Vectors {
 
   @Generic
   @Builtin("as.complex")
-  @DataParallel
-  public static Complex asComplex(@Recycle double x) {
-    return new Complex(x,0);
+  public static ComplexVector asComplex(Vector vector) {
+    return (ComplexVector) convertToAtomicVector(new ComplexArrayVector.Builder(), vector);
   }
 
   @Generic
   @Builtin("as.complex")
   public static ComplexVector asComplex() {
     return ComplexArrayVector.EMPTY;
-  }
-
-  @Generic
-  @Builtin("as.complex")
-  @DataParallel
-  public static Complex asComplex(@Recycle Complex x) {
-    return x;
   }
 
   @Generic

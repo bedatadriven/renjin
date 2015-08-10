@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
+import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.NumericLiterals;
 
 import java.util.ArrayList;
@@ -31,9 +32,9 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     String value = getElementAsString(index);
     if(isNA(value)) {
       return IntVector.NA;
-    } else if(value.equals("T") || value.equals("TRUE")) {
+    } else if(value.equals("T") || value.equals("TRUE") || value.equals("true")) {
       return 1;
-    } else if(value.equals("F") || value.equals("FALSE")) {
+    } else if(value.equals("F") || value.equals("FALSE") || value.equals("false")) {
       return 0;
     } else {
       return IntVector.NA;
@@ -58,6 +59,14 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     }
   }
 
+  @Override
+  public Complex getElementAsComplex(int index) {
+    if(isElementNA(index)) {
+      return ComplexVector.NA;
+    } else {
+      return NumericLiterals.parseComplex(getElementAsString(index));
+    }
+  }
 
   public static boolean isNA(String s) {
     // yes this is an identity comparison because NA_character_ is null

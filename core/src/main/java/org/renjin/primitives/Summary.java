@@ -118,6 +118,8 @@ public class Summary {
      * in the input, not just the ones before the first NA.
      */
     private boolean naEncountered = false;
+    
+    private boolean nanEncountered = false;
 
     public RangeCalculator setRemoveNA(boolean removeNA) {
       this.removeNA = removeNA;
@@ -155,8 +157,12 @@ public class Summary {
  
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {
-          if(!removeNA) {
+          if (!removeNA) {
             naEncountered = true;
+          }
+        } else if(isNaN(vector, i)) {
+          if( !removeNA) {
+            nanEncountered = true;
           }
         } else {
           resultType = Vector.Type.widest(resultType, vector.getVectorType());
@@ -171,10 +177,22 @@ public class Summary {
         }
       }
     }
-    
+
+    private boolean isNaN(AtomicVector vector, int i) {
+      if(vector instanceof DoubleVector) {
+        double x = vector.getElementAsDouble(i);
+        if(Double.isNaN(x)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     public Vector getRange() {
       if(maxValue == null) {
         return new DoubleArrayVector(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
+      } else if(nanEncountered) {
+        return new DoubleArrayVector(Double.NaN, Double.NaN);
       } else {
         Vector.Builder result = resultType.newBuilder();
         if(naEncountered) {

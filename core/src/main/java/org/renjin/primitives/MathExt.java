@@ -100,6 +100,13 @@ public class MathExt {
   @Deferrable
   @Builtin
   @DataParallel
+  public static double abs(Complex x) {
+    return x.abs();
+  }
+
+  @Deferrable
+  @Builtin
+  @DataParallel
   public static double asinh(double val) {
     return (Math.log(val + Math.sqrt(val * val + 1)));
   }

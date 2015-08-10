@@ -28,6 +28,7 @@
 	  <module>utils</module>
 	  <module>grid</module>
     <module>parallel</module>
+    <module>tools</module>
   </modules>
   
   <dependencies>

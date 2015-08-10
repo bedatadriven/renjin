@@ -7,8 +7,8 @@
     <version>0.7.0-RC8-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>parallel</artifactId>
-  <description>Support for explicit parallel computation in R</description>
+  <artifactId>tools</artifactId>
+  <description>Tools for package development</description>
   <dependencies>
     <dependency>
       <groupId>org.renjin</groupId>

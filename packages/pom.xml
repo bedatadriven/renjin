@@ -27,6 +27,7 @@
 	  <module>splines</module>
 	  <module>utils</module>
 	  <module>grid</module>
+    <module>parallel</module>
   </modules>
   
   <dependencies>

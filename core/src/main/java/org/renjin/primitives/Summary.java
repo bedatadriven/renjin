@@ -189,11 +189,23 @@ public class Summary {
     }
     
     public Vector getMinimum() {
-      return naEncountered ? buildNA() : minValue;
+      if(naEncountered) {
+        return buildNA();
+      } else if(minValue == null) {
+        return new DoubleArrayVector(Double.POSITIVE_INFINITY);
+      } else {
+        return minValue;
+      }
     }
     
     public Vector getMaximum() {
-      return naEncountered ? buildNA() : maxValue;
+      if(naEncountered) {
+        return buildNA();
+      } else if(maxValue == null) {
+        return new DoubleArrayVector(Double.NEGATIVE_INFINITY);
+      } else {
+        return maxValue;
+      }
     }
     
     private Vector buildNA() {

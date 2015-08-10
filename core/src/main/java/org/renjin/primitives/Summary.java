@@ -174,7 +174,7 @@ public class Summary {
     
     public Vector getRange() {
       if(maxValue == null) {
-        return new DoubleArrayVector(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+        return new DoubleArrayVector(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
       } else {
         Vector.Builder result = resultType.newBuilder();
         if(naEncountered) {
@@ -189,23 +189,11 @@ public class Summary {
     }
     
     public Vector getMinimum() {
-      if(naEncountered) {
-        return buildNA();
-      } else if(minValue == null) {
-        return new DoubleArrayVector(Double.POSITIVE_INFINITY);
-      } else {
-        return minValue;
-      }
+      return getRange().getElementAsSEXP(0);
     }
     
     public Vector getMaximum() {
-      if(naEncountered) {
-        return buildNA();
-      } else if(maxValue == null) {
-        return new DoubleArrayVector(Double.NEGATIVE_INFINITY);
-      } else {
-        return maxValue;
-      }
+      return getRange().getElementAsSEXP(1);
     }
     
     private Vector buildNA() {

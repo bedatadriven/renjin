@@ -231,12 +231,12 @@ public class Attributes {
   }
 
   @Builtin
-  public static PairList attributes(SEXP sexp) {
-    PairList.Builder pairlist = new PairList.Builder();
+  public static ListVector attributes(SEXP sexp) {
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     for(Symbol name : sexp.getAttributes().names()) {
-      pairlist.add(name, postProcessAttributeValue(name, sexp.getAttributes().get(name)));
+      list.add(name, postProcessAttributeValue(name, sexp.getAttributes().get(name)));
     }
-    return pairlist.build();
+    return list.build();
   }
 
   @Builtin("attr")

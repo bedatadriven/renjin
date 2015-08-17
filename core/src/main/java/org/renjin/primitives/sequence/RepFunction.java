@@ -139,8 +139,8 @@ public class RepFunction extends SpecialFunction {
         }
       }
     }
-    if(names.haveNames()) {
-      result.setAttribute(Symbols.NAMES, names.build(resultLength));
+    if(x.getAttributes().hasNames()) {
+      result.setAttribute(Symbols.NAMES, names.buildEvenIfEmpty(resultLength));
     }
 
     return result.build();

@@ -3,6 +3,7 @@ package org.renjin.util;
 import com.google.common.collect.Lists;
 import org.renjin.sexp.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -80,6 +81,20 @@ public final class NamesBuilder {
       }
       return new StringArrayVector(names);
     }
+  }
+
+  /**
+   * Builds a names StringVector of the given {@code length}, 
+   * even if the names vector is empty.
+   */
+  public Vector buildEvenIfEmpty(int length) {
+    if(names == null) {
+      names = new ArrayList<String>();
+    }
+    while(names.size() < length) {
+      names.add("");
+    }
+    return new StringArrayVector(names);
   }
   
   public Vector build() {

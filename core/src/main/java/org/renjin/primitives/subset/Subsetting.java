@@ -54,7 +54,7 @@ public class Subsetting {
     if(nameExp instanceof Symbol) {
       return (Symbol) nameExp;
     } else if(nameExp instanceof StringVector && nameExp.length() == 1) {
-      return Symbol.get( ((StringVector) nameExp).getElementAsString(0) );
+      return Symbol.get(((StringVector) nameExp).getElementAsString(0));
     } else {
       throw new EvalException("illegal argument: " + nameExp);
     }
@@ -207,10 +207,46 @@ public class Subsetting {
       source = ((PairList) source).toVector();
     }
 
-    return new SubscriptOperation()
-      .setSource(source, subscripts)
-      .setDrop(true)
-      .extractSingle();
+    // A single argument with a length greater than one, like c(1,2,3)
+    // are used to index the vector recursively
+    if(source instanceof ListVector && isRecursiveIndexingArgument(subscripts)) {
+      
+      return getSingleElementRecursively((ListVector) source, (AtomicVector) subscripts.getElementAsSEXP(0), exact, drop);
+      
+    } else {
+
+      return new SubscriptOperation()
+              .setSource(source, subscripts)
+              .setDrop(true)
+              .extractSingle();
+    }
+  }
+
+  private static boolean isRecursiveIndexingArgument(ListVector subscripts) {
+    if(subscripts.length() != 1) {
+      return false;
+    }
+    SEXP subscript = subscripts.getElementAsSEXP(0);
+    if(!(subscript instanceof AtomicVector)) {
+      return false;
+    }
+    return subscript.length() > 1;
+  }
+
+  private static SEXP getSingleElementRecursively(ListVector source, AtomicVector indexes, boolean exact, boolean drop) {
+    
+    assert indexes.length() > 0;
+    
+    SEXP result = source;
+    
+    for(int i=0; i < indexes.length(); ++i) {
+      
+      if(!(result instanceof ListVector)) {
+        throw new EvalException("Recursive indexing failed at level %d", i+1);
+      }
+      result = getSingleElement(result, new ListVector(indexes.getElementAsSEXP(i)), exact, drop);
+    }
+    return result;
   }
 
   private static String isSingleStringSubscript(ListVector subscripts) {

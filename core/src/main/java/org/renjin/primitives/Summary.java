@@ -21,6 +21,7 @@
 
 package org.renjin.primitives;
 
+import com.google.common.math.IntMath;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -47,9 +48,9 @@ public class Summary {
 
     try {
       return new RangeCalculator()
-        .setRemoveNA(removeNA)
-        .addList(arguments)
-        .getMinimum();
+              .setRemoveNA(removeNA)
+              .addList(arguments)
+              .getMinimum();
     } catch (RangeContainsNA e) {
       return new DoubleArrayVector(DoubleVector.NA);
     }
@@ -62,12 +63,12 @@ public class Summary {
 
     try {
       return new RangeCalculator()
-        .setRemoveNA(removeNA)
-        .addList(arguments)
-        .getMaximum();
+              .setRemoveNA(removeNA)
+              .addList(arguments)
+              .getMaximum();
     } catch (RangeContainsNA e) {
       return new DoubleArrayVector(DoubleVector.NA);
-    }  
+    }
   }
 
 
@@ -88,49 +89,49 @@ public class Summary {
     // function in the base library called "range.default". I don't think 
     // it's a good idea to create a circular dependency between the 
     // the primitives layer and the base library package, so we're implementing here.
-    
+
     // another oddity: the min() and max() functions do not accept lists or 
     // other recursive structures. The range() implementation does.
-    
+
     try {
       return new RangeCalculator()
-        .setRemoveNA(removeNA)
-        .setRecursive(true)
-        .addList(arguments)
-        .getRange();
+              .setRemoveNA(removeNA)
+              .setRecursive(true)
+              .addList(arguments)
+              .getRange();
     } catch (RangeContainsNA e) {
       return new DoubleArrayVector(DoubleVector.NA, DoubleVector.NA);
-    }  
+    }
   }
-  
+
   private static class RangeContainsNA extends Exception {  }
-  
+
   private static class RangeCalculator {
     private boolean removeNA;
     private boolean recursive;
     private Vector minValue = null;
     private Vector maxValue = null;
     private Vector.Type resultType = IntVector.VECTOR_TYPE;
-    
+
     /**
      * It is tempting to immediately return once the first NA is encountered,
      * but in the CR, the return type is determined by ALL the elements
      * in the input, not just the ones before the first NA.
      */
     private boolean naEncountered = false;
-    
+
     private boolean nanEncountered = false;
 
     public RangeCalculator setRemoveNA(boolean removeNA) {
       this.removeNA = removeNA;
       return this;
     }
-    
+
     public RangeCalculator setRecursive(boolean recursive) {
       this.recursive = recursive;
       return this;
     }
-    
+
     public RangeCalculator addList(ListVector list) throws RangeContainsNA {
       for(SEXP argument : list) {
         if(argument instanceof AtomicVector) {
@@ -146,15 +147,15 @@ public class Summary {
 
     private void addVector(SEXP argument) throws RangeContainsNA {
       AtomicVector vector = EvalException.checkedCast(argument);
- 
+
       if(vector instanceof ComplexVector) {
         throw new EvalException("invalid 'type' (complex) of argument");
       }
-      
+
       if(vector.getVectorType().isWiderThan(resultType)) {
         resultType = vector.getVectorType();
       }
- 
+
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {
           if (!removeNA) {
@@ -166,14 +167,14 @@ public class Summary {
           }
         } else {
           resultType = Vector.Type.widest(resultType, vector.getVectorType());
- 
+
           if(maxValue == null || resultType.compareElements(maxValue, 0, vector, i) < 0) {
             maxValue = resultType.getElementAsVector(vector, i);
           }
           if(minValue == null || resultType.compareElements(minValue, 0, vector, i) > 0) {
             minValue = resultType.getElementAsVector(vector, i);
           }
-          
+
         }
       }
     }
@@ -205,15 +206,15 @@ public class Summary {
         return result.build();
       }
     }
-    
+
     public Vector getMinimum() {
       return getRange().getElementAsSEXP(0);
     }
-    
+
     public Vector getMaximum() {
       return getRange().getElementAsSEXP(1);
     }
-    
+
     private Vector buildNA() {
       return resultType.newBuilder().addNA().build();
     }
@@ -383,7 +384,7 @@ public class Summary {
     }
     return Logical.TRUE;
   }
-  
+
 
   @Deferrable
   @Internal
@@ -408,19 +409,71 @@ public class Summary {
     }
     return new double[] { sum / x_array.length };
   }
-  
+
   @Builtin
-  public static DoubleVector cumsum(Vector source) {
-    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
-    double sum = source.getElementAsDouble(0);
-    result.add(sum);
-    for (int i = 1; i < source.length(); i++) {
+  public static DoubleVector cumsum(DoubleVector source) {
+    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder(source.length());
+    double sum = 0;
+    for (int i = 0; i < source.length(); i++) {
       sum += source.getElementAsDouble(i);
       if (Double.isNaN(sum)) {
-        result.addNA();
-      } else {
-        result.add(sum);
+        break;
+      } 
+      result.set(i, sum);
+    }
+    return result.build();
+  }
+  
+  @Builtin
+  public static DoubleVector cumsum(RawVector source) {
+    return cumsum(Vectors.asDouble(source));
+  }
+
+  @Builtin
+  public static IntVector cumsum(@Current Context context, IntVector source) {
+    return cumulativeSumIntegers(source);
+  }
+  
+  @Builtin
+  public static ComplexVector cumsum(ComplexVector source) {
+    ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(source.length());
+    Complex sum = new Complex(0, 0);
+    for (int i = 0; i < source.length(); i++) {
+      if(source.isElementNA(i)) {
+        break;
       }
+      sum = sum.add(source.getElementAsComplex(i));
+      result.set(i, sum);
+    }
+    return result.build();
+  }
+  
+  @Builtin
+  public static IntVector cumsum(@Current Context context, LogicalVector source) {
+    return cumulativeSumIntegers(source);
+  }
+  
+  @Builtin 
+  public static DoubleVector cumsum(StringVector source) {
+    return cumsum(Vectors.asDouble(source));
+  }
+
+  private static IntVector cumulativeSumIntegers(Vector source) {
+    IntArrayVector.Builder result = new IntArrayVector.Builder(source.length());
+    int sum = 0;
+    for (int i = 0; i < source.length(); i++) {
+      int x = source.getElementAsInt(i);
+      if(x == IntVector.NA) {
+        // remaining elements are initialized to NA
+        break;
+      }
+      try {
+        sum = IntMath.checkedAdd(sum, x);
+      } catch (ArithmeticException e) {
+//        context.warn("integer overflow in 'cumsum'; use 'cumsum(as.numeric(.))");
+        break;
+      }
+      result.set(i, sum);
     }
     return (result.build());
   }
@@ -483,7 +536,7 @@ public class Summary {
     };
     return processor.compute();
   }
-  
+
   @Internal
   public static Vector pmax(boolean naRm, @ArgumentList ListVector vectors) {
     ParallelProcessor processor = new ParallelProcessor(naRm, vectors) {
@@ -493,16 +546,16 @@ public class Summary {
       }
     };
     return processor.compute();
-  }  
-  
-  
+  }
+
+
   private abstract static class ParallelProcessor {
-    
+
     private ListVector arguments;
     private int resultLength;
     private boolean realResult;
     private boolean naRm;
-    
+
     public ParallelProcessor(boolean naRm, ListVector arguments) {
       this.arguments = arguments;
       this.naRm = naRm;
@@ -511,7 +564,7 @@ public class Summary {
       }
       this.resultLength = arguments.maxElementLength();
     }
-    
+
 
     private void validateArguments() {
       // validate arguments and determine result type
@@ -525,7 +578,7 @@ public class Summary {
         }
       }
     }
-    
+
     public Vector compute() {
       if(resultLength == 0) {
         return Null.INSTANCE;
@@ -553,13 +606,13 @@ public class Summary {
         } else if(result == null && value != null) {
           result = value;
         } else if(result != null && value != null &&
-               predicate(result, value)) {
+                predicate(result, value)) {
           result = value;
         }
       }
       return result;
     }
-    
+
     private Vector.Builder createBuilder() {
       if(realResult) {
         return new DoubleArrayVector.Builder();
@@ -567,11 +620,11 @@ public class Summary {
         return new IntArrayVector.Builder();
       }
     }
-    
+
     private Vector getVector(int index) {
       return (Vector)arguments.getElementAsSEXP(index);
     }
-    
+
     private Number getValue(int argument, int index) {
       Vector vector = getVector(argument);
       int vectorIndex = index % vector.length();
@@ -585,9 +638,9 @@ public class Summary {
         }
       }
     }
- 
+
     abstract boolean predicate(Number x, Number y);
   }
 
 
- }
+}

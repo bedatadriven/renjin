@@ -21,25 +21,25 @@
 
 package org.renjin.eval;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Contexts are the internal mechanism used to keep track of where a
@@ -49,6 +49,7 @@ import com.google.common.collect.Maps;
  * (such as via traceback) and otherwise (the sys.xxx functions).
  */
 public class Context {
+
 
   public enum Type {
     /** toplevel context */
@@ -178,7 +179,7 @@ public class Context {
   public SEXP simplify(SEXP sexp) {
     if(sexp instanceof DeferredComputation &&
         ((DeferredComputation) sexp).getComputationDepth() > VectorPipeliner.MAX_DEPTH) {
-      return session.getVectorEngine().simplify((DeferredComputation)sexp);
+      return session.getVectorEngine().simplify((DeferredComputation) sexp);
     } else {
       return sexp;
     }
@@ -186,7 +187,7 @@ public class Context {
   
   public SEXP evaluate(SEXP expression, Environment rho) {
     if(expression instanceof Symbol) {
-      return evaluateSymbol((Symbol)expression, rho);
+      return evaluateSymbol((Symbol) expression, rho);
     } else if(expression instanceof ExpressionVector) {
       return evaluateExpressionVector((ExpressionVector) expression, rho);
     } else if(expression instanceof FunctionCall) {
@@ -389,6 +390,15 @@ public class Context {
     onExit.add(exp);
   }
 
+
+  public void warn(String message) {
+    try {
+      Warning.warning(this, false, false, message);
+    } catch (IOException e) {
+      throw new EvalException(e);
+    }
+  }
+  
   /**
    * Removes all previously added expressions to evaluate upon exiting this context.
    */

@@ -122,11 +122,11 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void translateChars() {
-    assertThat( eval(".Internal(chartr('abc', 'xyz', 'abcdefabc'))"), equalTo( c("xyzdefxyz")));
-    assertThat( eval(".Internal(chartr('abc', 'xyz', c('abc', 'cba', 'ccc')))"),
-        equalTo( c("xyz", "zyx", "zzz")));
+    assertThat(eval(".Internal(chartr('abc', 'xyz', 'abcdefabc'))"), equalTo(c("xyzdefxyz")));
+    assertThat(eval(".Internal(chartr('abc', 'xyz', c('abc', 'cba', 'ccc')))"),
+            equalTo(c("xyz", "zyx", "zzz")));
 
-    assertThat( eval(".Internal(tolower('ABCdeFG 123'))"), equalTo( c("abcdefg 123")));
+    assertThat(eval(".Internal(tolower('ABCdeFG 123'))"), equalTo(c("abcdefg 123")));
     assertThat( eval(".Internal(toupper('ABCdeFG 123'))"), equalTo( c("ABCDEFG 123")));
 
   }
@@ -174,7 +174,13 @@ public class TextTest extends EvalTestCase {
 
     assertThat( eval("strsplit('abc','')"), equalTo( list( c("a","b","c") )));
 
-    assertThat( eval("strsplit('|ab|cf|q||','|',fixed=TRUE)"), equalTo( list( c("", "ab","cf","q", "", "") )));
+    assertThat( eval("strsplit('|ab|cf|q||','|',fixed=TRUE)"), equalTo( list(c("", "ab", "cf", "q", "", ""))));
+  }
+  
+  @Test
+  public void splitByEmptyFixedPattern() {
+    assertThat(eval("strsplit('hello', '', fixed=TRUE)"), equalTo(list(c("h", "e", "l", "l", "o"))));
+    assertThat(eval("strsplit('hello', '', fixed=FALSE)"), equalTo(list(c("h", "e", "l", "l", "o"))));
   }
 
   @Test

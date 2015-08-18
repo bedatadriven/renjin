@@ -42,7 +42,11 @@ public class REFactory {
   public static RE compile(String pattern, boolean ignoreCase, boolean perl, boolean fixed,
                            boolean useBytes) {
     if(fixed) {
-      return new FixedRE(pattern);
+      if(pattern.length() == 0) {
+        return new EmptyFixedRE();
+      } else {
+        return new FixedRE(pattern);
+      }
     } else {
       return new ExtendedRE(pattern, ignoreCase);
     } 

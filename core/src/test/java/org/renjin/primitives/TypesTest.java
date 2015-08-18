@@ -54,13 +54,20 @@ public strictfp class TypesTest extends EvalTestCase {
   @Test
   public void coerceWithoutArgument() {
     assertThat( eval("as.character()"), CoreMatchers.equalTo(c(new String[0])));
-    assertThat( eval("as.double()"), CoreMatchers.equalTo((SEXP)DoubleArrayVector.EMPTY));
-    assertThat( eval("as.logical()"), CoreMatchers.equalTo((SEXP)LogicalArrayVector.EMPTY));
-    assertThat( eval("as.integer()"), CoreMatchers.equalTo((SEXP)IntArrayVector.EMPTY));
-    assertThat( eval("as.complex()"), CoreMatchers.equalTo((SEXP)ComplexArrayVector.EMPTY));
+    assertThat( eval("as.double()"), CoreMatchers.equalTo((SEXP) DoubleArrayVector.EMPTY));
+    assertThat( eval("as.logical()"), CoreMatchers.equalTo((SEXP) LogicalArrayVector.EMPTY));
+    assertThat( eval("as.integer()"), CoreMatchers.equalTo((SEXP) IntArrayVector.EMPTY));
+    assertThat( eval("as.complex()"), CoreMatchers.equalTo((SEXP) ComplexArrayVector.EMPTY));
     // as.raw() requires at one argument!
   }
-  
+
+  @Test
+  public void doubleNaNToComplex() {
+    assertThat(eval("is.na(as.complex(NaN))"), equalTo(c(true)));
+    assertThat(eval("is.na(as.complex(0/0))"), equalTo(c(true)));
+    assertThat(eval("is.na(as.complex(NA))"), equalTo(c(true)));
+  }
+
   @Test
   public void asCharacterWithNA() {
     assertThat( eval("as.character(NA)"), equalTo( c( StringVector.NA )) );

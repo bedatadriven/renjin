@@ -100,6 +100,13 @@ public class MathExt {
   @Deferrable
   @Builtin
   @DataParallel
+  public static double abs(Complex x) {
+    return x.abs();
+  }
+
+  @Deferrable
+  @Builtin
+  @DataParallel
   public static double asinh(double val) {
     return (Math.log(val + Math.sqrt(val * val + 1)));
   }
@@ -129,6 +136,12 @@ public class MathExt {
   @Builtin
   @DataParallel
   public static double signif(double x, int digits) {
+    if(Double.isInfinite(x) || Double.isNaN(x)) {
+      return x;
+    }
+    if(digits <= 0) {
+      digits = 1;
+    }
     return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
 

@@ -1,4 +1,3 @@
-
 { (0+2i)^0 }
 { x<-c(1,2,3);x }
 { x<-c(1,2,3);x*2 }
@@ -282,7 +281,7 @@
 { NA || 0 }
 { 0 || NA }
 { x <- 1 ; f <- function(r) { x <<- 2; r } ; NA || f(NA) ; x }
-{ x <- 1 ; f <- function(r) { x <<- 2; r } ; TRUE || f(FALSE) ; x } }
+{ x <- 1 ; f <- function(r) { x <<- 2; r } ; TRUE || f(FALSE) ; x }
 { TRUE && FALSE }
 { FALSE && FALSE }
 { FALSE && TRUE }
@@ -292,8 +291,8 @@
 { NA && TRUE }
 { NA && FALSE }
 { NA && NA }
-{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA && f(NA) ; x } }
-{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE && f(FALSE) ; x } }
+{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA && f(NA) ; x }
+{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE && f(FALSE) ; x }
 { f <- function(a,b) { a || b } ; f(1,2) ; f(1,2) ; f(1L,2L) }
 { f <- function(a,b) { a || b } ; f(1L,2L) ; f(1L,2L) ; f(0,FALSE) }
 { f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), TRUE) }
@@ -310,7 +309,7 @@
 { c(TRUE,FALSE) | logical() }
 { logical() | c(TRUE,FALSE) }
 { as.raw(c(1,4)) | raw() }
-{ raw() | as.raw(c(1,4) }
+{ raw() | as.raw(c(1,4)) }
 { as.raw(c(1,4)) | as.raw(c(1,5,4)) }
 { as.raw(c(1,5,4)) | as.raw(c(1,4)) }
 { c(TRUE, FALSE, FALSE) & c(TRUE,TRUE) }
@@ -436,16 +435,16 @@
 { a = array(1,c(3,3,3)); a[1,,] = matrix(1:9,3,3); a[1,1,1] == 1 && a[1,3,1] == 3 && a[1,3,3] == 9; }
 { m <- array(1:3, dim=c(3,1,1)) ; f <- function(x,v) { x[1:2,1,1] <- v ; x } ; f(m,10L) ; f(m,10) ; f(m,c(11L,12L)); m[1,1,1] == 1L && m[2,1,1] == 2L && m[3,1,1] == 3L }
 { a = matrix(1,3,3); is.null(dim(a[1,])); }
-{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE)  m }
-{ m <- matrix(1:6, ncol=3, byrow=TRUE)  m }
-{ m <- matrix(1:6, nrow=2, byrow=TRUE)  m }
-{ m <- matrix()  m }
+{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE); m }
+{ m <- matrix(1:6, ncol=3, byrow=TRUE); m }
+{ m <- matrix(1:6, nrow=2, byrow=TRUE); m }
+{ m <- matrix(); m }
 { matrix( (1:6) * (1+3i), nrow=2 ) }
 { matrix( as.raw(101:106), nrow=2 ) }
 { x <- list("a",1,TRUE,NULL) ; dim(x) <- c(2,1,2) ; x }
-{ m <- matrix(c(1,2,3,4,5,6), nrow=3)  m[0] }
-{ m <- matrix(list(1,2,3,4,5,6), nrow=3)  m[0] }
-{ m <- matrix(1:6, nrow=2)  m[upper.tri(m)] }
+{ m <- matrix(c(1,2,3,4,5,6), nrow=3); m[0] }
+{ m <- matrix(list(1,2,3,4,5,6), nrow=3); m[0] }
+{ m <- matrix(1:6, nrow=2); m[upper.tri(m)] }
 { f <- function(b) { b[,0] } ; f(matrix(1:4,nrow=2)) }
 { m <- matrix(1:4,nrow=2) ; m[2,2,drop=TRUE] }
 { m <- matrix(1:4,nrow=2) ; m[2,2,drop=FALSE] }
@@ -485,14 +484,14 @@
 { x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,c(1,1,1,1),c(2,1)) }
 { x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,c(1,1e100,2,2e100),c(2,1)) }
 { x <- c(1,2,3,4) ; dim(x) <- c(2,1,2) ; f <- function(b,i,j) { b[j,1,i] } ; f(x,c(2,1,2,2),c(NA,2)) }
-{ m <- matrix(list(1,2,3,4,5,6), nrow=3)  m[[2]] <- list(100)  m }
-{ m <- matrix(list(1,2,3,4,5,6), nrow=3)  m[2] <- list(100)  m }
-{ m <- matrix(1:6, nrow=3)  m[2] <- list(100)  m }
-{ m <- matrix(list(1,2,3,4,5,6), nrow=3)  m[c(2,3,4,6)] <- NULL  m }
-{ m <- matrix(1,2,2) m[1,1] = 6 m }
-{ m <- matrix(1,2,2) m[,1] = 7 m }
-{ m <- matrix(1,2,2) m[1,] = 7 m }
-{ m <- matrix(1,2,2) m[,1] = c(10,11) m }
+{ m <- matrix(list(1,2,3,4,5,6), nrow=3);  m[[2]] <- list(100);  m }
+{ m <- matrix(list(1,2,3,4,5,6), nrow=3);  m[2] <- list(100);  m }
+{ m <- matrix(1:6, nrow=3);  m[2] <- list(100);  m }
+{ m <- matrix(list(1,2,3,4,5,6), nrow=3);  m[c(2,3,4,6)] <- NULL;  m }
+{ m <- matrix(1,2,2); m[1,1] = 6; m }
+{ m <- matrix(1,2,2); m[,1] = 7; m }
+{ m <- matrix(1,2,2); m[1,] = 7; m }
+{ m <- matrix(1,2,2); m[,1] = c(10,11); m }
 { m <- matrix(1:6, nrow=2) ; m[,2] <- 10:11 ; m }
 { m <- matrix(1:6, nrow=2) ; m[,2:3] <- 10:11 ; m }
 { m <- array(1:24, dim=c(2,3,4)) ; m[,,4] <- 10:15 ; m[,,4] }
@@ -929,7 +928,7 @@
 { x <- as.raw(11) ; names(x) <- c('X') ; rep(x, 3) }
 { x <- as.raw(c(11,12)) ; names(x) <- c('X','Y') ; rep(x, 2) }
 { x <- c(TRUE,NA) ; names(x) <- c('X',NA) ; rep(x, length.out=3) }
-{ x <- 1L ; names(x) <- c('X') ; rep(x, times=2) } }
+{ x <- 1L ; names(x) <- c('X') ; rep(x, times=2) }
 { x <- 1 ; names(x) <- c('X') ; rep(x, times=0) }
 { x <- 1+1i ; names(x) <- c('X') ; rep(x, times=2) }
 { x <- c(1+1i,1+2i) ; names(x) <- c('X') ; rep(x, times=2) }
@@ -971,7 +970,7 @@
 { sapply(1:3,function(x){x*2}) }
 { sapply(c(1,2,3),function(x){x*2}) }
 { sapply(list(1,2,3),function(x){x*2}) }
-{ sapply(1:3, function(x) { if (x==1) { 1 } else if (x==2) { integer() } else { TRUE } }) }
+{ sapply(1:3, function(x) { if (x==1) { 1 } else if (x==2) { integer() } else { TRUE } } ) }
 { f<-function(g) { sapply(1:3, g) } ; f(function(x) { x*2 }) }
 { f<-function(g) { sapply(1:3, g) } ; f(function(x) { x*2 }) ; f(function(x) { TRUE }) }
 { sapply(1:3, function(x) { if (x==1) { list(1) } else if (x==2) { list(NULL) } else { list(2) } }) }
@@ -982,7 +981,7 @@
 { sapply(1:3, `-`, 2) }
 { sapply(1:3, '-', 2) }
 { sapply(1:2, function(i) { if (i==1) { as.raw(0) } else { as.raw(10) } }) }
-{ sapply(1:2, function(i) { if (i==1) { as.raw(0) } else { 'hello' }} ) } }
+{ sapply(1:2, function(i) { if (i==1) { as.raw(0) } else { 'hello' }} ) }
 { sapply(1:2, function(i) { if (i==1) { as.raw(0) } else { 5+10i } }) }
 { sapply(1:3, function(i) { list(1,2) }) }
 { sapply(1:3, function(i) { if (i < 3) { list(1,2) } else { c(11,12) } }) }
@@ -1167,7 +1166,7 @@
 { order(c(0/0, -1/0, 2)) }
 { order(c(0/0, -1/0, 2), na.last=NA) }
 { order(c('a','z','Z','xxxz','zza','b')) }
-{ log(1) } }
+{ log(1) }
 { round( log(10,), digits = 5 ) }
 { round( log(10,2), digits = 5 ) }
 { round( log(10,10), digits = 5 ) }
@@ -1180,7 +1179,7 @@
 { abs((-0-1i)/(0+0i)) }
 { abs(NA+0.1) }
 { abs(0/0) }
-{ abs((1:2)[3] }
+{ abs(1:2)[3] }
 { abs(c(0/0,1i)) }
 { abs((0+0i)/0) }
 { exp(-abs((0+1i)/(0+0i))) }
@@ -1209,7 +1208,7 @@
 { sub('a','aa', 'prague alley') }
 { gsub('a','aa', 'prAgue alley') }
 { gsub('a','aa', 'prAgue alley', ignore.case=TRUE) }
-{ gsub('h','', c('hello', 'hi', 'bye') }
+{ gsub('h','', c('hello', 'hi', 'bye')) }
 { gsub('([a-e])','\\1\\1', 'prague alley') }
 { gregexpr('(a)[^a]\\1', c('andrea apart', 'amadeus', NA)) }
 { regexpr('(a)[^a]\\1', c('andrea apart', 'amadeus', NA)) }
@@ -1218,7 +1217,7 @@
 { x <- 1:2 ; z <- (length(x) <- 4) ; z }
 { length(c(z=1:4)) }
 { x <- 1 ; f <- function() { length(x) <<- 2 } ; f() ; x }
-{ x <- 1:2 ; names(x) <- c('hello', 'hi'); names(x) } }
+{ x <- 1:2 ; names(x) <- c('hello', 'hi'); names(x) }
 { x <- 1:2 ; names(x) <- c('hello'); names(x) }
 { x <- 1:2; names(x) <- c('hello', 'hi') ; x }
 { x <- c(1,9); names(x) <- c('hello','hi') ; sqrt(x) }
@@ -1535,7 +1534,7 @@
 { round( qr(matrix(1:6,nrow=2), LAPACK=FALSE)$qraux, digits=5 ) }
 { round( qr(matrix(c(3,2,-3,-4),nrow=2), LAPACK=FALSE)$qr, digits=5 ) }
 { x <- qr(t(cbind(1:10,2:11)), LAPACK=TRUE) ; qr.coef(x, 1:2) }
-{ x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; round( qr.coef(x, 1:10), digits=5 )
+{ x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; round( qr.coef(x, 1:10), digits=5 ) }
 { x <- qr(c(3,1,2), LAPACK=TRUE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }
 { x <- qr(t(cbind(1:10,2:11)), LAPACK=FALSE) ; qr.coef(x, 1:2) }
 { x <- qr(c(3,1,2), LAPACK=FALSE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }
@@ -1624,7 +1623,7 @@
 { g <- function(...) { max(...) } ; g(1,2) }
 { g <- function(...) { `-`(...) } ; g(1,2) }
 { f <- function(...) { list(a=1,...) } ; f(b=2,3) }
-{ f <- function(...) { substitute(...) } ; f(x + z) } }
+{ f <- function(...) { substitute(...) } ; f(x + z) }
 { f <- function(a, ...) { list(...) } ; f(1) }
 { f <- function(...) { args <- list(...) ; args$name } ; f(name = 42) }
 { p <- function(prefix, ...) { cat(prefix, ..., ' ') } ; p('INFO', 'msg:', 'Hello', 42) }

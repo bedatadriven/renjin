@@ -530,7 +530,7 @@ public class Primitives {
     f("as.integer", Vectors.class, "asInteger", 1);
     f("as.double", Vectors.class, "asDouble", 1);
     f("as.complex", Vectors.class, 1);
-    f("as.logical", Vectors.class, "asLogical", 1);
+    f("as.logical", Vectors.class, 1);
     f("as.raw", Vectors.class, 1);
     f("as.vector", Vectors.class, 11);
     f("paste", Text.class, 11);
@@ -967,6 +967,9 @@ public class Primitives {
     f("getNamespace", Namespaces.class, 0);
     f("getRegisteredNamespace",Namespaces.class, 11);
     f("loadedNamespaces", Namespaces.class, 0);
+    f("getNamespaceName", Namespaces.class, 0);
+    f("getNamespaceExports", Namespaces.class, 0);
+    f("getNamespaceImports", Namespaces.class, 0);
     
     //hiding: f("getNamespaceRegistry", Namespaces.class, 0, 11, 0);
    // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);

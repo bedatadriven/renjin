@@ -126,30 +126,34 @@ public class ClosureDispatcher {
     }
   }
 
-  /**
-   * Argument matching is done by a three-pass process:
-   * <ol>
-   * <li><strong>Exact matching on tags.</strong> For each named supplied argument the list of formal arguments
-   *  is searched for an item whose name matches exactly. It is an error to have the same formal
-   * argument match several actuals or vice versa.</li>
-   *
-   * <li><strong>Partial matching on tags.</strong> Each remaining named supplied argument is compared to the
-   * remaining formal arguments using partial matching. If the name of the supplied argument
-   * matches exactly with the first part of a formal argument then the two arguments are considered
-   * to be matched. It is an error to have multiple partial matches.
-   *  Notice that if f <- function(fumble, fooey) fbody, then f(f = 1, fo = 2) is illegal,
-   * even though the 2nd actual argument only matches fooey. f(f = 1, fooey = 2) is legal
-   * though since the second argument matches exactly and is removed from consideration for
-   * partial matching. If the formal arguments contain ‘...’ then partial matching is only applied to
-   * arguments that precede it.
-   *
-   * <li><strong>Positional matching.</strong> Any unmatched formal arguments are bound to unnamed supplied arguments,
-   * in order. If there is a ‘...’ argument, it will take up the remaining arguments, tagged or not.
-   * If any arguments remain unmatched an error is declared.
-   *
-   * @param actuals the actual arguments supplied to the list
-   */
   public static PairList matchArguments(PairList formals, PairList actuals) {
+    return matchArguments(formals, actuals, true);
+  }
+
+    /**
+     * Argument matching is done by a three-pass process:
+     * <ol>
+     * <li><strong>Exact matching on tags.</strong> For each named supplied argument the list of formal arguments
+     *  is searched for an item whose name matches exactly. It is an error to have the same formal
+     * argument match several actuals or vice versa.</li>
+     *
+     * <li><strong>Partial matching on tags.</strong> Each remaining named supplied argument is compared to the
+     * remaining formal arguments using partial matching. If the name of the supplied argument
+     * matches exactly with the first part of a formal argument then the two arguments are considered
+     * to be matched. It is an error to have multiple partial matches.
+     *  Notice that if f <- function(fumble, fooey) fbody, then f(f = 1, fo = 2) is illegal,
+     * even though the 2nd actual argument only matches fooey. f(f = 1, fooey = 2) is legal
+     * though since the second argument matches exactly and is removed from consideration for
+     * partial matching. If the formal arguments contain ‘...’ then partial matching is only applied to
+     * arguments that precede it.
+     *
+     * <li><strong>Positional matching.</strong> Any unmatched formal arguments are bound to unnamed supplied arguments,
+     * in order. If there is a ‘...’ argument, it will take up the remaining arguments, tagged or not.
+     * If any arguments remain unmatched an error is declared.
+     *
+     * @param actuals the actual arguments supplied to the list
+     */
+  public static PairList matchArguments(PairList formals, PairList actuals, boolean populateMissing) {
 
     PairList.Builder result = new PairList.Builder();
 
@@ -160,16 +164,12 @@ public class ClosureDispatcher {
 
     List<PairList.Node> unmatchedFormals = Lists.newArrayList(formals.nodes());
 
-    boolean hasEllipses = false;
-    
+
     // do exact matching
     for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
       PairList.Node formal = formalIt.next();
       if(formal.hasTag()) {
-        Symbol name = (Symbol) formal.getTag();
-        if(name == Symbols.ELLIPSES) {
-          hasEllipses = true;
-        }
+        Symbol name = formal.getTag();
         Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
 
         if(matches.size() == 1) {
@@ -184,29 +184,21 @@ public class ClosureDispatcher {
       }
     }
 
-    // do partial matching
-    if(!hasEllipses) {
-      Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
-      for (Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
-        PairList.Node actual = actualIt.next();
-        if (actual.hasTag()) {
-          Collection<PairList.Node> matches = Collections2.filter(remainingNamedFormals,
-                  PairList.Predicates.startsWith(actual.getTag()));
-
-          if (matches.size() == 1) {
-            PairList.Node match = first(matches);
-            result.add(match.getTag(), actual.getValue());
-            actualIt.remove();
-            unmatchedFormals.remove(match);
-
-          } else if (matches.size() > 1) {
-            throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments: %s",
-                    actual.getTag().getPrintName(), argumentTagList(matches)));
-          }
+    // Partial matching
+    Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
+    for (Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
+      PairList.Node actual = actualIt.next();
+      if (actual.hasTag()) {
+        PairList.Node partialMatch = matchPartial(actual.getTag().getPrintName(), remainingNamedFormals);
+        if (partialMatch != null) {
+          result.add(partialMatch.getTag(), actual.getValue());
+          actualIt.remove();
+          unmatchedFormals.remove(partialMatch);
         }
       }
     }
-    
+  
+
     // match any unnamed args positionally
 
     Iterator<PairList.Node> formalIt = unmatchedFormals.iterator();
@@ -224,15 +216,35 @@ public class ClosureDispatcher {
       } else if( hasNextUnTagged(actualIt) ) {
         result.add(formal.getTag(), nextUnTagged(actualIt).getValue() );
 
-      } else {
+      } else if(populateMissing) {
         result.add(formal.getTag(), Symbol.MISSING_ARG);
       }
     }
     if(actualIt.hasNext()) {
-      throw new EvalException(String.format("Unmatched positional arguments"));
+      throw new EvalException("Unmatched positional arguments");
     }
 
     return result.build();
+  }
+
+  private static PairList.Node matchPartial(String argumentName, Collection<PairList.Node> formals) {
+    PairList.Node partialMatch = null;
+            
+    for (PairList.Node formal : formals) {
+      // only partially match on formal arguments preceding ELIPSES
+      if(formal.getTag() == Symbols.ELLIPSES) {
+        break;
+      }
+      if(formal.getTag().getPrintName().startsWith(argumentName)) {
+        if(partialMatch == null) {
+          partialMatch = formal;
+        } else {
+          throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments",
+                  argumentName));
+        }
+      }
+    }
+    return partialMatch;
   }
 
 

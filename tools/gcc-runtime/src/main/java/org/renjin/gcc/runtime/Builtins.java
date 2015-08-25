@@ -77,7 +77,11 @@ public class Builtins {
      return Math.max(x,y);
   }
 
-
+  public static double hypot(double x, double y) {
+    return Math.hypot(x, y);
+  }
+  
+  
   public static void _gfortran_set_args__(int argc, ObjectPtr argv) {
     // TODO
   }

@@ -244,7 +244,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f<-function() { on.exit( .Internal(eval(quote(launchMissiles<-42), globalenv(), NULL))) }");
     eval(" f() ");
 
-    assertThat( eval(" launchMissiles "), equalTo( c(42) ) );
+    assertThat( eval(" launchMissiles "), equalTo(c(42)) );
   }
 
   @Test
@@ -263,7 +263,7 @@ public class EvaluationTest extends EvalTestCase {
         "}");
     eval("myf(3)");
 
-    assertThat( eval("Global.res"), equalTo( c(16) ));
+    assertThat(eval("Global.res"), equalTo(c(16)));
   }
 
   @Test
@@ -288,14 +288,14 @@ public class EvaluationTest extends EvalTestCase {
     eval( " x<- list(a = 1)");
     eval( " class(x$a) <- 'foo' ");
 
-    assertThat( eval(" x$a "), equalTo( c(1) ));
+    assertThat(eval(" x$a "), equalTo(c(1)));
     assertThat( eval(" class(x$a) "), equalTo( c("foo")));
   }
 
   @Test
   public void complexAssignmentWithSubset() {
-    eval( " x <- list( a = c(91,92,93) ) ");
-    eval( " x$a[3] <- 42");
+    eval(" x <- list( a = c(91,92,93) ) ");
+    eval(" x$a[3] <- 42");
   }
   
   @Test
@@ -315,12 +315,12 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat( eval("x"), equalTo(c(1)));
     assertThat( eval("y"), equalTo(c(1)));
-    assertThat( eval("z"), equalTo(c(1)));
+    assertThat(eval("z"), equalTo(c(1)));
 
     eval(" class(x) <- class(y) <- class(z) <- 'foo'");
 
-    assertThat( eval("class(x)"), equalTo(c("foo")));
-    assertThat( eval("class(y)"), equalTo(c("foo")));
+    assertThat(eval("class(x)"), equalTo(c("foo")));
+    assertThat(eval("class(y)"), equalTo(c("foo")));
     assertThat( eval("class(z)"), equalTo(c("foo")));
   }
 
@@ -350,7 +350,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" a <- 10  ");
 
     assertThat( eval(" f1(a) "), equalTo( c(11) ) );
-    assertThat( eval(" s1(a) "), equalTo( c(11) ) );
+    assertThat(eval(" s1(a) "), equalTo(c(11)));
     assertThat( eval(" s2(a) "), equalTo( symbol("a") ));
   }
   
@@ -421,7 +421,7 @@ public class EvaluationTest extends EvalTestCase {
   public void useMethod() {
     eval("fry <- function(what, howlong) UseMethod('fry') ");
     eval("fry.default <- function(what, howlong) list(desc='fried stuff',what=what,howlong=howlong) ");
-    eval("fry.numeric <- function(what, howlong) list(desc='fried numbers',number=what,howlong=howlong)" );
+    eval("fry.numeric <- function(what, howlong) list(desc='fried numbers',number=what,howlong=howlong)");
 
     eval("x<-33");
     eval("class(x) <- 'foo'");
@@ -466,8 +466,8 @@ public class EvaluationTest extends EvalTestCase {
   public void nargs() {
     eval("test <- function(a, b = 3, ...) {nargs()}");
 
-    assertThat( eval("test()"), equalTo( c_i(0)) );
-    assertThat( eval("test(clicketyclack)"), equalTo( c_i(1)));
+    assertThat(eval("test()"), equalTo(c_i(0)));
+    assertThat(eval("test(clicketyclack)"), equalTo(c_i(1)));
     assertThat( eval("test(c1, a2, rr3)"), equalTo( c_i(3)));
   }
 
@@ -502,7 +502,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" k <- list(1,2,3) ");
     eval(" k[[2]] <- onlyonce()");
 
-    assertThat( eval("k"), equalTo(list(1d,16d,3d)));
+    assertThat( eval("k"), equalTo(list(1d, 16d, 3d)));
 
   }
 
@@ -537,11 +537,17 @@ public class EvaluationTest extends EvalTestCase {
   }
   
   @Test
-  public void noPartialMatchingWhenEllipsesArePresent() {
+  public void noPartialMatchingOnArgumentsFollowingElipses() {
     eval("f<-function(..., aardvark) names(list(...))");
     assertThat(eval("f(a=1)"), equalTo(c("a")));
   }
   
+  @Test
+  public void partialMatchingOnArgumentsPrecedingElipses() {
+    eval("f<-function(aardvark=0, ... , aard) aardvark");
+    //assertThat(eval("f(aard=1)"), equalTo(c(0))); // match exactly to "aard"
+    assertThat(eval("f(aar=1)"), equalTo(c(1))); // match partially to arguments preceding elipses
+  }
   
   @Test
   public void matchCallDotsNotExpanded() throws IOException {

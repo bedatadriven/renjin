@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Logical;
 import org.renjin.sexp.Vector;
 import org.renjin.util.CommonsMath;
 
@@ -53,6 +54,13 @@ public class MatrixTest extends EvalTestCase {
     assertThat(eval("matrix(c(1,2,3,4),2,2,TRUE)"), equalTo(c(1, 3, 2, 4)));
     assertThat(eval("matrix(c(1,2,3,4),2,4,TRUE)"), equalTo(c(1, 1, 2, 2, 3, 3, 4, 4)));
     assertThat(eval("as.double(matrix(1:10,5,2,TRUE))"), equalTo(c(1,3,5,7,9,2,4,6,8,10)));
+  }
+  
+  @Test
+  public void matrixWithZeroLengthArg() {
+    eval("x <- matrix(nrow=0,ncol=0)");
+    assertThat(eval("dim(x)"), equalTo(c_i(0, 0)));
+    assertThat(eval("length(x)"), equalTo(c_i(0)));
   }
 
   @Test

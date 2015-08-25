@@ -1,55 +1,20 @@
 package org.renjin.primitives;
 
-import java.util.Arrays;
-
-import org.apache.commons.math.complex.Complex;
+import com.google.common.base.Charsets;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.DataParallel;
-import org.renjin.invoke.annotations.Generic;
-import org.renjin.invoke.annotations.Internal;
-import org.renjin.invoke.annotations.Recycle;
-import org.renjin.invoke.reflection.converters.BooleanArrayConverter;
-import org.renjin.invoke.reflection.converters.BooleanConverter;
-import org.renjin.invoke.reflection.converters.DoubleArrayConverter;
-import org.renjin.invoke.reflection.converters.DoubleConverter;
-import org.renjin.invoke.reflection.converters.IntegerArrayConverter;
-import org.renjin.invoke.reflection.converters.IntegerConverter;
-import org.renjin.invoke.reflection.converters.StringArrayConverter;
-import org.renjin.invoke.reflection.converters.StringConverter;
+import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.reflection.converters.*;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.ComplexArrayVector;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.ExternalPtr;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalArrayVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.RawVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
+import java.util.Arrays;
 
 /**
  * Functions which operate on Vectors
@@ -80,6 +45,12 @@ public class Vectors {
   @Builtin("as.character")
   public static StringVector asCharacter(PairList.Node source) {
     return (StringVector) convertToStringVector(null, new StringVector.Builder(), source.toVector());
+  }
+  
+  @Generic
+  @Builtin("as.character")
+  public static StringVector asCharacter() {
+    return StringArrayVector.EMPTY;
   }
 
   @Generic
@@ -156,6 +127,13 @@ public class Vectors {
   }
 
   @Generic
+  @Builtin("as.logical")
+  public static LogicalVector asLogical() {
+    return LogicalArrayVector.EMPTY;
+  }
+
+  
+  @Generic
   @Builtin("as.integer")
   public static IntVector asInteger(ExternalPtr ptr) {
     Object instance = ptr.getInstance();
@@ -176,6 +154,13 @@ public class Vectors {
   public static IntVector asInteger(Vector source) {
     return (IntVector) convertToAtomicVector(new IntArrayVector.Builder(), source);
   }
+
+  @Generic
+  @Builtin("as.integer")
+  public static IntVector asInteger() {
+    return IntArrayVector.EMPTY;
+  }
+
 
   @Generic
   @Builtin("as.double")
@@ -203,6 +188,12 @@ public class Vectors {
     } else {
       return (DoubleVector) convertToAtomicVector(new DoubleArrayVector.Builder(), source);
     }
+  }
+
+  @Generic
+  @Builtin("as.double")
+  public static DoubleVector asDouble() {
+    return DoubleArrayVector.EMPTY;
   }
 
 
@@ -240,16 +231,14 @@ public class Vectors {
 
   @Generic
   @Builtin("as.complex")
-  @DataParallel
-  public static Complex asComplex(@Recycle double x) {
-    return new Complex(x,0);
+  public static ComplexVector asComplex(Vector vector) {
+    return (ComplexVector) convertToAtomicVector(new ComplexArrayVector.Builder(), vector);
   }
 
   @Generic
   @Builtin("as.complex")
-  @DataParallel
-  public static Complex asComplex(@Recycle Complex x) {
-    return x;
+  public static ComplexVector asComplex() {
+    return ComplexArrayVector.EMPTY;
   }
 
   @Generic

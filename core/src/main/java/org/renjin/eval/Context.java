@@ -21,19 +21,12 @@
 
 package org.renjin.eval;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -41,6 +34,7 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.Closure;
@@ -48,17 +42,16 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.ExpressionVector;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.Promise;
 import org.renjin.sexp.PromisePairList;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SexpVisitor;
 import org.renjin.sexp.Symbol;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 
 /**
  * Contexts are the internal mechanism used to keep track of where a computation
@@ -67,6 +60,7 @@ import com.google.common.collect.Maps;
  * traceback) and otherwise (the sys.xxx functions).
  */
 public class Context {
+
 
   public enum Type {
     /** toplevel context */
@@ -204,68 +198,13 @@ public class Context {
     }
   }
 
-  // Data structures for horrid debug
-  //private static Map<Integer, String> nameMap = new HashMap<Integer, String>();
-  //private static Map<Integer, Integer> idMap = new HashMap<Integer, Integer>();
- // private static LinkedList<FunctionCall> callStack = new LinkedList<FunctionCall>();
-  //private static OutputStream dotout = null;
-
-  //private static int cid = 0;
-  public static boolean horriddebug = false;
-/*
-  private int lf(FunctionCall e) {
-    int fc = System.identityHashCode(e);
-    if (!idMap.containsKey(fc)) {
-      cid++;
-      idMap.put(fc, cid);
-      nameMap.put(idMap.get(fc), e.getFunction().toString().replace("\"", ""));
-    }
-    return idMap.get(fc);
-  }*/
-
   public SEXP evaluate(SEXP expression, Environment rho) {
-    // add interface for listening to these
-    // add cardinalities according to parameters!
-
-    if (expression instanceof Symbol) {
+    if(expression instanceof Symbol) {
       return evaluateSymbol((Symbol) expression, rho);
-    } else if (expression instanceof ExpressionVector) {
+    } else if(expression instanceof ExpressionVector) {
       return evaluateExpressionVector((ExpressionVector) expression, rho);
     } else if (expression instanceof FunctionCall) {
-     FunctionCall fc = (FunctionCall) expression;
-      if (fc.getFunction().toString().equals("togglehorriddebug")) {
-        horriddebug = !horriddebug;
-        return LogicalVector.NA_VECTOR;
-      }/* 
-        if (horriddebug) {
-          try {
-            File dotfile = File.createTempFile("renjin-callgraph", ".dot");
-            dotout = new FileOutputStream(dotfile);
-            System.out.println("dot logging to " + dotfile.toString());
-            dotout.write("digraph renjin {\n".getBytes());
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        } else {
-          try {
-            System.out.println("stopping dot log");
-            dotout.write("}\n".getBytes());
-            dotout.close();
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-        return LogicalVector.NA_VECTOR;
-      }*/
-     if (horriddebug) System.out.println(expression);
-
-      SEXP ret = evaluateCall((FunctionCall) expression, rho);
-  /*    if (horriddebug && fc.getFunction() instanceof Function
-          && callStack.size() > 0) {
-        callStack.pop();
-      }*/
-      return ret;
-
+      return evaluateCall((FunctionCall) expression, rho);
     } else if (expression instanceof Promise) {
       return expression.force(this);
     } else if (expression != Null.INSTANCE
@@ -332,106 +271,10 @@ public class Context {
       return result;
     }
   }
-/*
-  private static Set<String> seenLine = new HashSet<String>();
-  
-  private static int tp(int nodeid) {
-    try {
-      dotout
-          .write((cid + " [label=\"" + nameMap.get(cid) + "\", shape=\"box\"];\n")
-              .getBytes());
-    } catch (IOException e1) {
-      e1.printStackTrace();
-    }
-    return nodeid;
-  }
-*/
-  
- // private static Map<String, Long> timing = new HashMap<String, Long>();
-  
+
   private SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
-
-    Function functionExpr = evaluateFunction(call.getFunction(), rho);
-//    long start = 0;
-   /* if (horriddebug && functionExpr instanceof Function) { //
-      
-      int maxlen = 0;
-      for (SEXP arg : call.getArguments().values()) {
-       if (arg instanceof Symbol) {
-          if (arg.length() > maxlen) {
-            maxlen = rho.getVariable((Symbol) arg).length();
-            
-          }
-        }
-      }
-
-      if (callStack.size() > 0 && maxlen > 100) {
-        try {
-          String outstr = callStack.peek() + " -> " + lf(call) + ";\n";
-          if (!seenLine.contains(outstr)) {
-            tp(callStack.peek());
-            tp(lf(call));
-            dotout.write(outstr.getBytes());
-            seenLine.add(outstr);
-          }
-
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-     // start = System.currentTimeMillis();
-      //callStack.push(call);
-    } */
-
-    SEXP ret = functionExpr.apply(this, rho, call, call.getArguments());
-//   if (System.getProperty("renjin.force.materialization") != null) {
-//     ret = materialize(ret);
-//   }
-
-    /*if (horriddebug && functionExpr instanceof Function) {
-     // long duration = System.currentTimeMillis() - start;
-      //if (duration > 2000) {
-       // System.out.print(duration);
-        /*for (FunctionCall fc : callStack) {
-          System.out.print(" > " + fc.getFunction().toString());
-        }
-        String fn = call.getFunction().toString();
-        if (fn.equals("colSums")) {
-          call.accept(new SexpVisitor<Object>() {
-            public void visit(PairList.Node pairList) {
-              System.out.println("PL" +pairList);
-             while(pairList.hasNextNode()) {
-               visit(pairList.getNextNode());
-             }
-            }
-            
-            public void visit(FunctionCall call) {
-              System.out.println("FC" +call);
-              while(call.hasNextNode()) {
-                visit(call.getNextNode());
-              }
-            }
-          });
-          
- 
-        }
-//        if (!timing.containsKey(fn)) {
-//          timing.put(fn, duration);
-//        } else {
-//          timing.put(fn, duration + timing.get(fn));
-//        }
-//        //System.out.println("");
-//     // }
-//      //callStack.pop();
-//        System.out.println("####");
-//        for (Map.Entry<String, Long> e : timing.entrySet()) {
-//          if (e.getValue() > 1000) {
-//            System.out.println(e.getKey() + "\t" + e.getValue());
-//          }
-//        }
-    } */
-    return ret;
+    return evaluateFunction(call.getFunction(), rho).apply(this, rho, call, call.getArguments());
   }
 
   private Function evaluateFunction(SEXP functionExp, Environment rho) {
@@ -574,6 +417,15 @@ public class Context {
     onExit.add(exp);
   }
 
+
+  public void warn(String message) {
+    try {
+      Warning.warning(this, false, false, message);
+    } catch (IOException e) {
+      throw new EvalException(e);
+    }
+  }
+  
   /**
    * Removes all previously added expressions to evaluate upon exiting this
    * context.

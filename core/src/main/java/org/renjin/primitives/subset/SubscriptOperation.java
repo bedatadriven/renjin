@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
+import org.renjin.util.NamesBuilder;
 
 import java.util.List;
 import java.util.Set;
@@ -271,8 +272,7 @@ public class SubscriptOperation {
   private Vector replaceByName(SEXP elements) {
     StringVector namesToReplace = (StringVector) subscripts.get(0);
     Vector.Builder result = createReplacementBuilder(elements);
-    StringArrayVector.Builder names = source.getNames() == Null.INSTANCE ? StringVector.newBuilder() :
-        (StringArrayVector.Builder) source.getNames().newCopyBuilder();
+    NamesBuilder names = NamesBuilder.clonedFrom(source);
 
     int replacementIndex = 0;
 

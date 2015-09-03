@@ -23,5 +23,6 @@
     <module>cran.dot.package</module>
     <module>alpha</module>
     <module>beta</module>
+    <module>s4test</module>
   </modules>
 </project>

@@ -45,6 +45,18 @@ public class NamespaceInitHandler implements NamespaceDirectiveHandler {
   }
 
   @Override
+  public void exportClasses(List<String> classNames) {
+
+    PairList.Builder arguments = new PairList.Builder();
+    arguments.add(new StringArrayVector(namespace.getName()));
+    arguments.add(namespace.getNamespaceEnvironment());
+    arguments.add(new StringArrayVector(classNames));
+    
+    FunctionCall exportClassCall = new FunctionCall(Symbol.get("loadNamespaceMethods"), arguments.build());
+    context.evaluate(exportClassCall);
+  }
+
+  @Override
   public void import_(List<String> packageNames) {
     for(String packageName : packageNames) {
       Namespace importedNamespace = registry.getNamespace(packageName);

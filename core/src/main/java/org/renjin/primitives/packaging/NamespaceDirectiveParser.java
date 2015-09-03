@@ -10,6 +10,7 @@ import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -61,10 +62,13 @@ public class NamespaceDirectiveParser {
       parseExportPattern(call, handler);
     } else if(directiveName.equals("useDynLib")) {
       parseDynlib(call, handler);
+    } else if(directiveName.equals("exportClasses")) {
+      parseS4Export(call, handler);
     } else {
       throw new EvalException("Unknown NAMESPACE directive '" + directiveName + "'");
     }
   }
+
 
 
   private static void parseExportPattern(FunctionCall call, NamespaceDirectiveHandler handler) {
@@ -166,6 +170,15 @@ public class NamespaceDirectiveParser {
     }
   }
 
+
+  private static void parseS4Export(FunctionCall call, NamespaceDirectiveHandler handler) {
+    List<String> toExport = new ArrayList<String>();
+    for (PairList.Node node : call.getArguments().nodes()) {
+      toExport.add(parseStringArgument(node.getValue()));
+    }
+    handler.exportClasses(toExport);
+
+  }
 
   private static void parseDynlib(FunctionCall call, NamespaceDirectiveHandler handler) {
     if(call.getArguments().length() < 1) {

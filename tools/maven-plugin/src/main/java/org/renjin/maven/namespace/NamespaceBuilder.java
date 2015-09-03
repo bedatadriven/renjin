@@ -8,7 +8,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.maven.PackageDescription;
 import org.renjin.packaging.LazyLoadFrameBuilder;
@@ -27,7 +29,7 @@ public class NamespaceBuilder {
   private List<String> defaultPackages;
 
   public void build(String groupId, String namespaceName, File sourceDirectory,
-      File environmentFile, List<String> defaultPackages) throws IOException {
+      File environmentFile, List<String> defaultPackages) throws IOException, MojoExecutionException {
 
     this.name = new FqPackageName(groupId, namespaceName);
     this.sourceDirectory = sourceDirectory;
@@ -38,7 +40,7 @@ public class NamespaceBuilder {
   }
 
 
-  private void compileNamespaceEnvironment() {
+  private void compileNamespaceEnvironment() throws MojoExecutionException {
     List<File> sources = getRSources();
     if(isUpToDate(sources)) {
       return;
@@ -88,7 +90,7 @@ public class NamespaceBuilder {
   }
 
 
-  private void evaluateSources(Context context, List<File> sources, Environment namespaceEnvironment) {
+  private void evaluateSources(Context context, List<File> sources, Environment namespaceEnvironment) throws MojoExecutionException {
     for(File sourceFile : sources) {
       String nameUpper = sourceFile.getName().toUpperCase();
       if(nameUpper.endsWith(".R") ||
@@ -99,9 +101,13 @@ public class NamespaceBuilder {
           FileReader reader = new FileReader(sourceFile);
           SEXP expr = RParser.parseAllSource(reader);
           reader.close();
-          
+
           context.evaluate(expr, namespaceEnvironment);
-          
+        
+        } catch (EvalException e) {
+          System.out.println("ERROR: " + e.getMessage());
+          e.printRStackTrace(System.out);
+          throw new MojoExecutionException("Error evaluating package source: " + sourceFile.getName(), e);
         } catch (Exception e) {
           throw new RuntimeException("Exception evaluating " + sourceFile.getName(), e);
         }

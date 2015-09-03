@@ -7,7 +7,7 @@ import org.renjin.sexp.Symbol;
 import java.util.List;
 
 public interface NamespaceDirectiveHandler {
-
+  
 
   public static class DynlibEntry {
     private String alias;
@@ -34,6 +34,14 @@ public interface NamespaceDirectiveHandler {
   void export(List<Symbol> symbols);
 
   void exportPattern(String pattern);
+
+  /**
+   * Exports S4 classes from the package
+   *
+   * @param arguments list of classes to export
+   */
+  void exportClasses(List<String> arguments);
+
 
   void import_(List<String> packageNames);
 

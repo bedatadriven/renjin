@@ -1,16 +1,15 @@
 package org.renjin.packaging;
 
-import java.io.*;
-
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import org.renjin.eval.Context;
 import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.NamedValue;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
+import java.io.*;
 
 public class LazyLoadFrameBuilder {
 
@@ -61,7 +60,7 @@ public class LazyLoadFrameBuilder {
 
       if(bytes.length > 1024) {
         indexOut.writeInt(-1);
-        Files.write(bytes, new File(outputDir, namedValue.getName() + ".RData"));
+        Files.write(bytes, new File(outputDir, SerializedPromise.resourceName(namedValue.getName())));
       } else {
         indexOut.writeInt(bytes.length);
         indexOut.write(bytes);

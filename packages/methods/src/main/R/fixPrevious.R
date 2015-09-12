@@ -1,6 +1,8 @@
 #  File src/library/methods/R/fixPrevious.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2014 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -27,7 +29,9 @@ fixPre1.8 <- function(names, where = topenv(parent.frame())) {
     for(what in names) {
         objWhere <- methods:::.findAll(what, where)
         if(length(objWhere) == 0) {
-            warning(gettextf("object \"%s\" not found", what), domain = NA)
+            warning(gettextf("object %s not found",
+                             sQuote(what)),
+                    domain = NA)
             next
         }
         objWhere <- objWhere[[1L]]
@@ -47,8 +51,8 @@ fixPre1.8 <- function(names, where = topenv(parent.frame())) {
                     done <- c(done, what)
                 }
                 else
-                    warning(gettextf("object \"%s\" not changed (it is not consistent with the current definition of class %s from %s)",
-                                     what,
+                    warning(gettextf("object %s not changed (it is not consistent with the current definition of class %s from %s)",
+                                     sQuote(what),
                                      dQuote(Class),
                                      sQuote(ClassDef@package)),
                             domain = NA)
@@ -60,7 +64,9 @@ fixPre1.8 <- function(names, where = topenv(parent.frame())) {
                         domain = NA)
         }
         else
-            warning(gettextf("object \"%s\" not changed (it does not appear to be from a version of R earlier than 1.8.0)", what), domain = NA)
+            warning(gettextf("object %s not changed (it does not appear to be from a version of R earlier than 1.8.0)",
+                             sQuote(what)),
+                    domain = NA)
     }
     done
 }

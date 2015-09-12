@@ -1,6 +1,8 @@
 #  File src/library/methods/R/MethodsList.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -32,6 +34,7 @@ MethodsList <-
   ## methods and, in R, to emulate S4-style methods.
   function(.ArgName, ...)
 {
+    .MlistDeprecated("MethodsList()")
     value <- makeMethodsList(list(...))
     if(is.name(.ArgName)){}
     else if(is.character(.ArgName) && length(.ArgName) == 1)
@@ -43,6 +46,7 @@ MethodsList <-
 
 makeMethodsList <- function(object, level=1)
 {
+    .MlistDeprecated("makeMethodsList()")
     mnames <- allNames(object)
     if(.noMlists()) {
         keep <- mnames %in% c("", "ANY")
@@ -87,6 +91,7 @@ SignatureMethod <-
   ## the signatures.
   function(names, signature, definition)
 {
+    .MlistDeprecated("SignatureMethod()")
     n <- length(signature)
     if(n > length(names))
         stop("arguments 'names' and 'signature' must have the same length")
@@ -106,6 +111,7 @@ insertMethod <-
   ## the signature, and return the modified MethodsList.
   function(mlist, signature, args, def, cacheOnly = FALSE)
 {
+    .MlistDeprecated("insertMethod()")
     if(.noMlists() && !identical(unique(signature), "ANY"))
       return(mlist)
     ## Checks for assertions about valid calls.
@@ -199,6 +205,7 @@ MethodsListSelect <-
              resetAllowed = TRUE # FALSE when called from selectMethod, .findNextMethod
  )
 {
+    .MlistDeprecated("MethodsListSelect()")
     if(!resetAllowed) # ensure we restore the real methods for this function
 	resetMlist <- .getMethodsForDispatch(fdef)
     ## look for call from C dispatch code during another call to MethodsListSelect
@@ -351,11 +358,13 @@ MethodsListSelect <-
 }
 
 emptyMethodsList <- function(mlist, thisClass = "ANY", sublist = list()) {
+    .MlistDeprecated("emptyMethodsList()")
     sublist[thisClass] <- list(NULL)
     new("EmptyMethodsList", argument = mlist@argument, sublist = sublist)
 }
 
 insertMethodInEmptyList <- function(mlist, def) {
+    .MlistDeprecated("insertMethodInEmptyList()")
     value <- new("MethodsList", argument = mlist@argument)
     sublist <- mlist@sublist
     submethods <- sublist[[1L]]
@@ -377,14 +386,16 @@ finalDefaultMethod <-
   function(method)
 {
     repeat {
-        if(is.function(method) #somewhat liberal, but catches both methods and primitives
+        if(is.function(method) # <- somewhat liberal, but catches both methods and primitives
            || is.null(method))
           break
-        value <- NULL
-        if(is(method, "MethodsList"))
+        if(is(method, "MethodsList")) {
+	    .MlistDeprecated()
             method <-  elNamed(slot(method, "methods"), "ANY")
-        else
-          stop(gettextf("Default method must be a method definition, a primitive or NULL: got an object of class %s", dQuote(class(method))),
+        } else
+          stop(gettextf(
+	"default method must be a method definition, a primitive or NULL: got an object of class %s",
+			dQuote(class(method))),
                domain = NA)
     }
     method
@@ -401,6 +412,7 @@ inheritedSubMethodLists <-
   ## on which methods were previously used.  See the detailed discussion of methods.)
   function(object, thisClass, mlist, ev)
 {
+  .MlistDeprecated("inheritedSubMethodLists()")
   methods <- slot(mlist, "methods")## only direct methods
   defaultMethod <- elNamed(methods, "ANY")## maybe NULL
   classes <- names(methods)
@@ -466,7 +478,7 @@ matchSignature <-
         if(is.null(pkgs))
             pkgs <- character(length(signature))
         else if(length(pkgs) != length(signature))
-            stop("invalid \"package\" slot or attribute, wrong length")
+            stop("invalid 'package' slot or attribute, wrong length")
         sigClasses <- as.character(signature)
     }
     else if(is(signature, "list")) {
@@ -526,9 +538,8 @@ matchSignature <-
     if(is.null(names(signature))) {
         which <- seq_along(signature)
         if(length(which) > length(anames))
-          stop(gettextf("more elements in the method signature (%d) than in the generic  signature (%d)",
-               length(which),
-               length(anames)), domain = NA)
+          stop(gettextf("more elements in the method signature (%d) than in the generic signature (%d) for function %s",
+	       length(which), length(anames), sQuote(fun@generic)), domain = NA)
     }
     else {
     ## construct a function call with the same naming pattern  &
@@ -551,10 +562,12 @@ matchSignature <-
     ## Assertion:  match.call has permuted the args into the order of formal args,
     ## and carried along the values.  Get the supplied classes in that
     ## order, from the matched args in the call object.
-    if(any(is.na(which)))
-        stop(gettextf("in the method signature for function %s invalid argument names in the signature: %s",
-                      sQuote(fun@generic),
-                      paste(snames[is.na(which)], collapse = ", ")),
+    if(anyNA(which))
+        stop(sprintf(ngettext(sum(is.na(which)),
+                              "in the method signature for function %s invalid argument name in the signature: %s",
+                              "in the method signature for function %s invalid argument names in the signature: %s"),
+                     sQuote(fun@generic),
+                     paste(snames[is.na(which)], collapse = ", ")),
              domain = NA)
     smatch <- smatch[-1]
     for(i in seq_along(smatch)) {
@@ -590,6 +603,7 @@ showMlist <-
 function(mlist, includeDefs = TRUE, inherited = TRUE, classes = NULL, useArgNames = TRUE,
          printTo = stdout())
 {
+    .MlistDeprecated("showMlist()")
     if(identical(printTo, FALSE)) {
         tmp <- tempfile()
         con <- file(tmp, "w")
@@ -601,7 +615,7 @@ function(mlist, includeDefs = TRUE, inherited = TRUE, classes = NULL, useArgName
   signatures <- object@classes
   args <- object@arguments
   if(!is.null(classes) && length(signatures)>0) {
-    keep <- !sapply(signatures, function(x, y)all(is.na(match(x, y))), classes)
+    keep <- !vapply(signatures, function(x, y) all(is.na(match(x, y))), NA, classes)
     methods <- methods[keep]
     signatures <- signatures[keep]
     args <- args[keep]
@@ -661,13 +675,13 @@ promptMethods <- function(f, filename = NULL, methods)
     ## to.  If it 'FALSE', the methods skeleton is returned, to be
     ## included in other printing (typically, the output from 'prompt').
 
-    paste0 <- function(...) paste(..., sep = "")
     escape <- function(txt) gsub("%", "\\\\%", txt)
     packageString <- ""
 
     fdef <- getGeneric(f)
     if(!isGeneric(f, fdef=fdef))
-	stop(gettextf("No generic function found corresponding to \"%s\"", f),
+	stop(gettextf("no generic function found corresponding to %s",
+                      sQuote(f)),
 	     domain = NA)
     if(missing(methods)) {
 	methods <- findMethods(fdef)
@@ -748,8 +762,8 @@ linearizeMlist <-
         methods <- mlist@methods
         allMethods <- mlist@allMethods
         if(inherited && length(allMethods) >= length(methods)) {
-            anames <- names(allMethods)
-            inh <- is.na(match(anames, names(methods)))
+##            anames <- names(allMethods)
+##            inh <- is.na(match(anames, names(methods)))
             methods <- allMethods
         }
         preC <- function(y, x)c(x,y) # used with lapply below
@@ -766,6 +780,7 @@ linearizeMlist <-
                 arguments <- c(arguments, list(argname))
             }
             else if(is(mi, "MethodsList")) {
+		.MlistDeprecated()
                 mi <- Recall(mi, inherited)
                 value <- c(value, mi@methods)
                 classes <- c(classes, lapply(mi@classes, preC, cnames[[i]]))
@@ -815,6 +830,7 @@ listFromMlist <-
 
 .insertCachedMethods <- function(mlist, argName, Class, fromClass, def) {
     if(is(def, "MethodsList")) {
+        .MlistDeprecated()
         ## insert all the cached methods in def
         newArg <- c(argName, as.character(def@argument))
         newDefs <- def@allMethods
@@ -879,15 +895,34 @@ asMethodDefinition <- function(def, signature = list(.anyClassName), sealed = FA
         else
             assign(this, TRUE, envir = .MlistDepTable)
     }
-    if(missing(this))
-        msg <-"Use of the \"MethodsList\" meta data objects is deprecated."
-    else if(is.character(this))
-        msg <- gettextf("%s, along with other use of the \"MethodsList\" metadata objects, is deprecated.", dQuote(this))
+    msg <-
+        if(missing(this))
+            "Use of the \"MethodsList\" meta data objects is deprecated."
+        else if(is.character(this))
+            gettextf(
+	"%s, along with other use of the \"MethodsList\" metadata objects, is deprecated.",
+                 dQuote(this))
     else
-        msg <- gettextf("In %s: use of \"MethodsList\" metadata objects is deprecated.", deparse(this))
+        gettextf("in %s: use of \"MethodsList\" metadata objects is deprecated.",
+                 deparse(this))
     if(!missing(instead))
-      msg <- paste(msg, gettextf("Use %s instead.", dQuote(instead)))
-    msg <- paste(msg, "See ?MethodsList. (This warning is shown once per session.)")
+	msg <- paste(msg, gettextf("use %s instead.", dQuote(instead)))
+    msg <- paste(msg, "see ?MethodsList. (This warning is shown once per session.)")
     base::.Deprecated(msg = msg)
 }
 
+.MlistDefunct <- function(this = "<default>", instead) {
+    msg <-
+        if(missing(this))
+            "Use of the \"MethodsList\" meta data objects is defunct."
+        else if(is.character(this))
+            gettextf("%s, along with other use of the \"MethodsList\" metadata objects, is defunct.",
+                     dQuote(this))
+        else
+            gettextf("in %s: use of \"MethodsList\" metadata objects is defunct.",
+                     deparse(this))
+    if(!missing(instead))
+        msg <- paste(msg, gettextf("use %s instead.", dQuote(instead)))
+    msg <- paste(msg, "see ?MethodsList.")
+    base::.Defunct(msg = msg)
+}

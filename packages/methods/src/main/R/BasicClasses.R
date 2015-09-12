@@ -1,6 +1,8 @@
 #  File src/library/methods/R/BasicClasses.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -105,14 +107,15 @@
 
     setIs("array", "structure", where = envir)
     setIs("matrix", "array", where = envir)
-    setIs("array", "matrix", test = .gblEnv(function(object) length(dim(object)) == 2),
-          replace = .gblEnv(function(from, to, value) {
-              if(is(value, "matrix"))
-                  value
-              else
-                  stop("replacement value is not a matrix")
-          }),
-          where = envir)
+### Rather want a simple  setAs("array", "matrix", ..) method..
+    ## setIs("array", "matrix", test = .gblEnv(function(object) length(dim(object)) == 2),
+    ##       replace = .gblEnv(function(from, to, value) {
+    ##           if(is(value, "matrix"))
+    ##               value
+    ##           else
+    ##               stop("replacement value is not a matrix")
+    ##       }),
+    ##       where = envir)
 
     ## Some class definitions extending "language", delayed to here so
     ## setIs will work.
@@ -153,7 +156,7 @@
         if(is.list(el) && length(el) > 1)
             setOldClass(el[[1L]], prototype = el[[2L]],  where = envir)
         else
-            warning("OOPS: something wrong with line ",i, " in .OldClassesPrototypes")
+            warning(gettextf("OOPS: something wrong with line %d in '.OldClassesPrototypes'", i), domain = NA)
     }
     setGeneric("slotsFromS3", where = envir)
     ## the method for "oldClass" is really a constant, just hard to express that way
@@ -296,16 +299,37 @@
              representation(names = "character", row.names = "data.frameRowLabels"),
              contains = "list", prototype = unclass(data.frame()), where = envir) # the S4 version
     setOldClass("data.frame", S4Class = "data.frame", where = envir)
-    ## the S3 method for $<- does some stupid things to class()
+    ## the S3 methods for $<-, [[<- and [<- do some stupid things to class()
     ## This buffers the effect from S4 classes
     setMethod("$<-", "data.frame", where = envir,
               function(x, name, value) {
-                  x@.Data <- as.list(`$<-.data.frame`(structure(x@.Data, names = x@names,
-                         row.names = x@row.names, class = "data.frame"),
-                     name, value))
-                  ## Assert:  the only slot/attribute that can change
-                  ## in $<-.data.frame is "names", and the assignment
-                  ## of the .Data "slot" copies in the new names
+                  S3Part(x) <- `$<-.data.frame`(S3Part(x, TRUE), name, value)
+                  x
+              })
+    callBracketReplaceGeneric <- function() {
+        call <- sys.call(sys.parent())
+        which.ij <- if (length(call) > 4L) 3:4 else 3L
+        ij <- as.list(call[which.ij])
+        present <- logical(length(ij))
+        for (a in seq_along(ij)) {
+            arg <- ij[[a]]
+            present[a] <- !missing(arg)
+        }
+        ij[present] <- head(c(quote(i), quote(j)), length(ij))[present]
+        call <- as.call(c(call[[1L]], quote(x3), ij, quote(...),
+                          value=quote(value)))
+        eval(call, parent.frame())
+    }
+    setMethod("[<-", "data.frame", where = envir,
+              function (x, i, j, ..., value) {
+                  x3 <- S3Part(x, TRUE)
+                  S3Part(x) <- callBracketReplaceGeneric()
+                  x
+              })
+    setMethod("[[<-", "data.frame", where = envir,
+              function (x, i, j, ..., value) {
+                  x3 <- S3Part(x, TRUE)
+                  S3Part(x) <- callBracketReplaceGeneric()
                   x
               })
     ## methods to go from S4 to S3; first, using registered class; second, general S4 object
@@ -325,7 +349,7 @@
               {
                   switch(typeof(from),
                          S4 =
-                         stop(gettextf("Class %s does not have an S3 data part, and so is of type \"S4\"; no S3 equivalent",
+                         stop(gettextf("class %s does not have an S3 data part, and so is of type \"S4\"; no S3 equivalent",
                                        dQuote(class(from))),
                               domain = NA),
                          .notS4(from) )
@@ -340,7 +364,7 @@
                       cl <- .class1(from)
                       classDef <- getClass(cl)
                       if(identical(classDef@virtual, TRUE))
-                        stop(gettextf("Class %s is VIRTUAL; not meaningful to create an S4 object from this class",
+                        stop(gettextf("class %s is VIRTUAL; not meaningful to create an S4 object from this class",
                                       dQuote(cl)),
                              domain = NA)
                       pr <- classDef@prototype
@@ -349,7 +373,7 @@
                       if(match(".Data", names(slots), 0L) > 0L) {
                           data <- unclass(from)
                           if(!is(data, slots[[".Data"]]))
-                            stop(gettextf("Object must be a valid data part for class %s; not true of type %s", dQuote(cl), dQuote(class(data))),
+                            stop(gettextf("object must be a valid data part for class %s; not true of type %s", dQuote(cl), dQuote(class(data))),
                                  domain = NA)
                           value@.Data <- unclass(from)
                       }
@@ -413,7 +437,7 @@
                     .Object <- .mergeAttrs(as.matrix(dat), .Object, dots)
                 }
                 else
-                  stop("Cannot specify matrix() arguments when specifying .Data")
+                  stop("cannot specify matrix() arguments when specifying '.Data'")
             }
         }
         else if(is.matrix(data) && na == 2 + length(dots))
@@ -455,7 +479,7 @@
                     .Object <- .mergeAttrs(as.array(dat), .Object, dots)
                 }
                 else
-                  stop("Cannot specify array() arguments when specifying .Data")
+                  stop("cannot specify array() arguments when specifying '.Data'")
             }
         }
         else if(is.array(data) && na == 2 + length(dots))
@@ -549,11 +573,10 @@
 )
 
 .InitSpecialTypesAndClasses <- function(where) {
-    if(!exists(".S3MethodsClasses", envir = where, inherits = FALSE)) {
+    if(is.null(S3table <- where$.S3MethodsClasses)) {
       S3table <- new.env()
       assign(".S3MethodsClasses", S3table, envir = where)
     }
-    else S3table <- get(".S3MethodsClasses", envir = where)
     specialClasses <- .indirectAbnormalClasses
     specialTypes <- .AbnormalTypes # only part matching classes used
     for(i in seq_along(specialClasses)) {
@@ -594,13 +617,13 @@
                               i <- c(i, iii)
                       }
                       if(length(i)>1)
-                          stop("Can't have more than one unnamed argument as environment")
+                          stop("cannot have more than one unnamed argument as environment")
                       if(length(i) == 1) {
                           selfEnv <- args[[i]]
                           args <- args[-i]
                           objs <- objs[-i]
                           if(!is(selfEnv, "environment"))
-                              stop("Unnamed argument to new() must be an environment for the new object")
+                              stop("unnamed argument to new() must be an environment for the new object")
                           selfEnv <- as.environment(selfEnv)
                       }
                       ## else, no environment superclasses

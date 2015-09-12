@@ -1,6 +1,8 @@
 #  File src/library/methods/R/methods-deprecated.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2012 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -18,5 +20,15 @@
 ## <entry>
 ## Deprecated in 2.10.0
 ## Defunct in 2.11.0
-trySilent <- function(expr) .Defunct("try(silent=TRUE)")
+## Removed in 3.0.0
+## trySilent <- function(expr) .Defunct("try(silent = TRUE)")
+## </entry>
+
+## <entry>
+## Defunct in 3.0.0
+traceOn <- function(what, tracer = browseAll, exit = NULL) {
+    browseAll <- function() .Defunct()
+    .Defunct("trace")
+}
+traceOff <- function(whatL) .Defunct("untrace")
 ## </entry>

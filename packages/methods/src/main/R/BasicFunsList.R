@@ -1,6 +1,8 @@
 #  File src/library/methods/R/BasicFunsList.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2014 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -44,15 +46,22 @@ list(
 , "%*%" = function(x, y) standardGeneric("%*%")
 , "xtfrm" = function(x) standardGeneric("xtfrm")
 ### these have a different arglist from the primitives
-, "c" = function(x, ..., recursive = FALSE) standardGeneric("c")
-, "all" = function(x, ..., na.rm = FALSE) standardGeneric("all")
-, "any" = function(x, ..., na.rm = FALSE) standardGeneric("any")
-, "sum" = function(x, ..., na.rm = FALSE) standardGeneric("sum")
-, "prod" = function(x, ..., na.rm = FALSE) standardGeneric("prod")
-, "max" = function(x, ..., na.rm = FALSE) standardGeneric("max")
-, "min" = function(x, ..., na.rm = FALSE) standardGeneric("min")
-
-, "range" = function(x, ..., na.rm = FALSE) standardGeneric("range")
+, "c" = structure(function(x, ..., recursive = FALSE) standardGeneric("c"),
+                  signature="x")
+, "all" = structure(function(x, ..., na.rm = FALSE) standardGeneric("all"),
+                    signature="x")
+, "any" = structure(function(x, ..., na.rm = FALSE) standardGeneric("any"),
+                    signature="x")
+, "sum" = structure(function(x, ..., na.rm = FALSE) standardGeneric("sum"),
+                    signature="x")
+, "prod" = structure(function(x, ..., na.rm = FALSE) standardGeneric("prod"),
+                    signature="x")
+, "max" = structure(function(x, ..., na.rm = FALSE) standardGeneric("max"),
+                    signature="x")
+, "min" = structure(function(x, ..., na.rm = FALSE) standardGeneric("min"),
+                    signature="x")
+, "range" = structure(function(x, ..., na.rm = FALSE) standardGeneric("range"),
+                    signature="x")
 ## , "!" = function(e1) standardGeneric("!")
 )
 
@@ -113,24 +122,14 @@ list(
 
 ## temporary versions while primitives are still handled by a global table
 
-genericForPrimitive <- function(f, where = topenv(parent.frame())) {
-#    if(.matchBasic(f, .ExcludePrimitiveGenerics, FALSE))
-#        stop(gettextf("methods may not be defined for primitive function %s in this version of R", sQuote(f)), domain = NA)
-    env <- .findBasicFuns(where)
-    funs <- get(".BasicFunsList", envir = env)
-    ans <- elNamed(funs, f)
-    ## this element may not exist (yet, during loading), dom't test null
-    if(identical(ans, FALSE))
+genericForPrimitive <- function(f, where = topenv(parent.frame()),
+                                mustFind = TRUE)
+{
+    ans <- .BasicFunsList[[f]]
+    ## this element may not exist (yet, during loading), don't test null
+    if(mustFind && identical(ans, FALSE))
         stop(gettextf("methods may not be defined for primitive function %s in this version of R",
                       sQuote(f)),
              domain = NA)
     ans
-}
-
-.findBasicFuns <- function(where) {
-    allWhere <- .findAll(".BasicFunsList", where = where)
-    if(length(allWhere) == 0)
-        .methodsNamespace
-    else
-        as.environment(allWhere[[1L]])
 }

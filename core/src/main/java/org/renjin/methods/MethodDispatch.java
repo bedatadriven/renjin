@@ -95,11 +95,6 @@ public class MethodDispatch {
   private boolean tableDispatchEnabled = true;
   
   
-  
-  public void init(Environment environment) {
-    methodsNamespace = environment;
-  }
-  
   public boolean isEnabled() {
     return enabled;
   }

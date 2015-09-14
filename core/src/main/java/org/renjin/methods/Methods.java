@@ -37,13 +37,6 @@ import com.google.common.base.Strings;
 public class Methods {
 
 
-  public static SEXP R_initMethodDispatch(@Current Context context, SEXP environ) {
-    context.getSession().getSingleton(MethodDispatch.class)
-    .init(environ == Null.INSTANCE ? context.getGlobalEnvironment() : (Environment)environ);
-    return environ;
-  }
-
-
   public static boolean R_set_method_dispatch(@Current Context context, LogicalVector onOff) {
     MethodDispatch methodContext = context.getSession().getSingleton(MethodDispatch.class);
     boolean oldValue = methodContext.isEnabled();

@@ -645,7 +645,7 @@ newBasic <-
 ## the use of the S4 type as class prototype
 .useS4Prototype <- function(on = TRUE, where  = .methodsNamespace) {
     if(on)
-     pp <- .Call(C_Rf_allocS4Object)
+     pp <- .Call("Rf_allocS4Object",PACKAGE="methods")
     else
      pp <-  list()
     .assignOverBinding(".defaultPrototype", where=where, pp, FALSE)
@@ -1268,7 +1268,7 @@ methodsPackageMetaName <-
   ## a name mangling device to simulate the meta-data in S4
   function(prefix, name, package = "")
   ## paste(".", prefix, name, sep="__") # too slow
-    .Call(C_R_methodsPackageMetaName, prefix, name, package)
+    .Call("R_methodsPackageMetaName", prefix, name, package, PACKAGE="methods")
 
 ## a  non-exported regexp that matches  methods metanames
 ## This is quite general and matches all patterns that could be generated
@@ -1494,7 +1494,7 @@ setDataPart <- function(object, value, check = TRUE) {
 }
 
 .newExternalptr <- function()
-    .Call(C_R_externalptr_prototype_object)
+    .Call("R_externalptr_prototype_object", PACKAGE="methods")
 
 ## modify the list moreExts, currently from class `by', to represent
 ## extensions instead from an originating class; byExt is the extension
@@ -2048,7 +2048,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
 ## In principle, this could replace the checks on class(name) in getClassDef
 ## and new(), which don't work for subclasses of classRepresentation anyway.
 .getClassFromCache <- function(name, where) {
-	value <- .Call(C_R_getClassFromCache, name, .classTable)
+	value <- .Call("R_getClassFromCache", name, .classTable, PACKAGE="methods")
 	if(is.list(value)) { ## multiple classes with this name
 	    pkg <- packageSlot(name)
 	    if(is.null(pkg))

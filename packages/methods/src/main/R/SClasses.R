@@ -284,20 +284,20 @@ slot <-
   ## Because slots are stored as attributes, the validity check is not 100% guaranteed,
   ## but should be OK if nobody has "cheated" (e.g., by setting other attributes directly).
   function(object, name)
-    .Call(C_R_get_slot, object, name)
+    .Call("R_get_slot", object, name, PACKAGE="methods")
 
 "slot<-" <-
   ## Set the value of the named slot.  Must be one of the slots in the class's definition.
   function(object, name, check = TRUE, value) {
       if(check)
           value <- checkSlotAssignment(object, name, value)
-      .Call(C_R_set_slot, object, name, value)
+      .Call("R_set_slot", object, name, value, PACKAGE="methods")
       ## currently --> R_do_slot_assign() in ../../../main/attrib.c
   }
 
 ## ". - hidden" since one should typically rather use is(), extends() etc:
 .hasSlot <- function(object, name)
-    .Call(C_R_hasSlot, object, name)
+    .Call("R_has_slot", object, name, PACKAGE="methods")
 
 checkSlotAssignment <- function(obj, name, value)
 {
@@ -425,7 +425,7 @@ new <-
   function(Class, ...)
 {
     ClassDef <- getClass(Class, where = topenv(parent.frame()))
-    value <- .Call(C_new_object, ClassDef)
+    value <- .Call("R_do_new_object", ClassDef, PACKAGE="methods")
     initialize(value, ...)
 }
 

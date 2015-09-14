@@ -19,18 +19,15 @@
 ## utils::globalVariables("...onLoad")
 
 ## Initial version of .onLoad
-...onLoad  <-
+..First.lib  <-		
   ## Initialize the methods package.
-  function(libname, pkgname)
+  function(where)
 {
-    where <- environment(sys.function())  # the namespace
-    initMethodDispatch(where)
     ## temporary empty reference to the package's own namespace
     assign(".methodsNamespace", new.env(), envir = where)
-    .Call(C_R_set_method_dispatch, TRUE)
     cat("initializing class and method definitions ...")
     ## set up default prototype (uses .Call so has be at load time)
-    assign(".defaultPrototype", .Call(C_Rf_allocS4Object), envir = where)
+    assign(".defaultPrototype", .Call("Rf_allocS4Object",PACKAGE="methods"), envir = where)
     assign(".SealedClasses", character(), envir = where)
     .InitClassDefinition(where)
     assign("possibleExtends", .possibleExtends, envir = where)
@@ -60,7 +57,7 @@
     .InitS3Classes(where)
     .InitSpecialTypesAndClasses(where)
     .InitTraceFunctions(where)
-    .InitRefClasses(where)
+   # RENJIN TODO: .InitRefClasses(where)
     ## now seal the classes defined in the package
     for(cl in get(".SealedClasses", where))
         sealClass(cl, where)
@@ -90,11 +87,6 @@
 	   names(getClassDef("envRefClass")@refMethods), envir = where)
     assign(".onLoad", ..onLoad, envir = where)
     rm(...onLoad, ..onLoad, envir = where)
-    dbbase <- file.path(libname, pkgname, "R", pkgname)
-    ns <- asNamespace(pkgname)
-    ## we need to exclude the registration vars
-    vars <- grep("^C_", names(ns), invert = TRUE, value = TRUE)
-    tools:::makeLazyLoadDB(ns, dbbase, variables = vars)
 }
 
 ## avoid warnings from static analysis code by extra call
@@ -117,10 +109,6 @@
 
 .onUnload <- function(libpath)
 {
-    message("unloading 'methods' package ...") # see when this is called
-    .isMethodsDispatchOn(FALSE)
-    methods:::bind_activation(FALSE)
-    library.dynam.unload("methods", libpath)
 }
 
 

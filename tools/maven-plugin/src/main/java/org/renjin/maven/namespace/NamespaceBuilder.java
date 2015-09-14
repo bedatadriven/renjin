@@ -1,25 +1,21 @@
 package org.renjin.maven.namespace;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.maven.plugin.MojoExecutionException;
+import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.maven.PackageDescription;
 import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class NamespaceBuilder {
 
@@ -29,7 +25,7 @@ public class NamespaceBuilder {
   private List<String> defaultPackages;
 
   public void build(String groupId, String namespaceName, File sourceDirectory,
-      File environmentFile, List<String> defaultPackages) throws IOException, MojoExecutionException {
+      File environmentFile, List<String> defaultPackages) throws IOException {
 
     this.name = new FqPackageName(groupId, namespaceName);
     this.sourceDirectory = sourceDirectory;
@@ -40,7 +36,7 @@ public class NamespaceBuilder {
   }
 
 
-  private void compileNamespaceEnvironment() throws MojoExecutionException {
+  private void compileNamespaceEnvironment()  {
     List<File> sources = getRSources();
     if(isUpToDate(sources)) {
       return;
@@ -82,15 +78,16 @@ public class NamespaceBuilder {
 
   private List<File> getRSources() {
     List<File> list = Lists.newArrayList();
-    if(sourceDirectory.listFiles() != null) {
-      list.addAll(Arrays.asList(sourceDirectory.listFiles()));
+    File[] files = sourceDirectory.listFiles();
+    if(files != null) {
+      list.addAll(Arrays.asList(files));
     }
     Collections.sort(list);
     return list;
   }
 
 
-  private void evaluateSources(Context context, List<File> sources, Environment namespaceEnvironment) throws MojoExecutionException {
+  private void evaluateSources(Context context, List<File> sources, Environment namespaceEnvironment)  {
     for(File sourceFile : sources) {
       String nameUpper = sourceFile.getName().toUpperCase();
       if(nameUpper.endsWith(".R") ||
@@ -107,7 +104,7 @@ public class NamespaceBuilder {
         } catch (EvalException e) {
           System.out.println("ERROR: " + e.getMessage());
           e.printRStackTrace(System.out);
-          throw new MojoExecutionException("Error evaluating package source: " + sourceFile.getName(), e);
+          throw new RuntimeException("Error evaluating package source: " + sourceFile.getName(), e);
         } catch (Exception e) {
           throw new RuntimeException("Exception evaluating " + sourceFile.getName(), e);
         }
@@ -120,7 +117,12 @@ public class NamespaceBuilder {
       PairList.Builder args = new PairList.Builder();
       args.add("where", namespaceEnvironment);
       
-      context.evaluate(new FunctionCall(Symbol.get("..First.lib"), args.build()), namespaceEnvironment);
+      try {
+        context.evaluate(new FunctionCall(Symbol.get("..First.lib"), args.build()), namespaceEnvironment);
+
+      } catch (EvalException e) {
+        
+      }
     }
   }
   

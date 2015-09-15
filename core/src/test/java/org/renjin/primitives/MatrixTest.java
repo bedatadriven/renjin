@@ -308,6 +308,8 @@ public class MatrixTest extends EvalTestCase {
   @Test
   public void crossprod() {
     assertThat(eval(".Internal(crossprod(1:4, NULL))"), equalTo(c(30)));
+    assertThat(eval(".Internal(crossprod(as.matrix(1:4), NULL))"), equalTo(c(30)));
+
   }
 
   @Test

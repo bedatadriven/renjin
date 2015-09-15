@@ -24,8 +24,14 @@ public class DeferredCrossprod extends DoubleVector implements
     }
     AttributeMap.Builder ab = AttributeMap.builder();
     ab.addAllFrom(attributes);
-    ab.setDim(x.getAttributes().getDimArray()[1], 
-        y.getAttributes().getDimArray()[1]);
+    int nx = 1, ny = 1;
+    if (x.getAttributes().getDim() != Null.INSTANCE) {
+      nx = x.getAttributes().getDimArray()[1];
+    }
+    if (y.getAttributes().getDim() != Null.INSTANCE) {
+      ny = y.getAttributes().getDimArray()[1];
+    }
+    ab.setDim(nx, ny);
      return ab.build();
   }
 

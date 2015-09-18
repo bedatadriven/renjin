@@ -17,13 +17,6 @@
 paste <- function (..., sep = " ", collapse = NULL)
     .Internal(paste(list(...), sep, collapse))
 
-# Add a pure R version (http://stackoverflow.com/a/21230815) of the paste0
-# function which was introduced in R-2.15.0, see the release notes at
-# http://cran.r-project.org/src/base/NEWS.2
-paste0 <- function(..., collapse = NULL) {
-    paste(..., sep = "", collapse = collapse)
-}
-
 ##=== Could we consider a  .Primitive  *fast*
 ##  paste2 <- function(x,y)  paste(x,y, sep='')
 

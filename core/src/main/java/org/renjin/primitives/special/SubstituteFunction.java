@@ -21,24 +21,12 @@
 
 package org.renjin.primitives.special;
 
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.PromisePairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SexpVisitor;
-import org.renjin.sexp.SpecialFunction;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
 public class SubstituteFunction extends SpecialFunction {
 
@@ -100,7 +88,12 @@ public class SubstituteFunction extends SpecialFunction {
       PairList.Builder builder = PairList.Node.newBuilder();
       for(PairList.Node node : arguments.nodes()) {
         if(node.getValue().equals(Symbols.ELLIPSES)) {
-          builder.addAll(unpackPromiseList((PromisePairList)context.getVariable((Symbol)node.getValue())));
+          SEXP extraArguments = context.getVariable(Symbols.ELLIPSES);
+          if(extraArguments != Symbol.UNBOUND_VALUE) {
+            builder.addAll(unpackPromiseList((PromisePairList) extraArguments));
+          } else {
+            builder.add(Symbols.ELLIPSES);
+          }
         } else {
           builder.add(node.getRawTag(), substitute(node.getValue()));
         }

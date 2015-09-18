@@ -27,3 +27,12 @@ test.VapplyWithMatrixResult <- function() {
 	print(dim(res))
 	assertThat( res, identicalTo( matrix(c(FALSE,FALSE,TRUE,FALSE,FALSE,TRUE), nrow=3)) )
 }
+
+test.setLengthZero <- function() {
+	x <- NULL
+	length(x) <- 0
+	assertThat(x, identicalTo(NULL))
+	
+	length(x) <- 4999
+	assertThat(x, identicalTo(NULL))
+}

@@ -2,6 +2,7 @@ package org.renjin.methods;
 
 import java.util.HashMap;
 
+import com.google.common.base.Preconditions;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -95,6 +96,11 @@ public class MethodDispatch {
   private boolean tableDispatchEnabled = true;
   
   
+  
+  public void init(Environment environment) {
+    methodsNamespace = environment;
+  }
+  
   public boolean isEnabled() {
     return enabled;
   }
@@ -117,6 +123,7 @@ public class MethodDispatch {
   }
 
   public Environment getMethodsNamespace() {
+    Preconditions.checkState(methodsNamespace != null, "methods namespace is not loaded.");
     return methodsNamespace;
   }
 

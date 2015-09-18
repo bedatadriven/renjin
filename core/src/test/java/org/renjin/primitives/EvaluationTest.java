@@ -715,8 +715,14 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("f(41,42,43)"), equalTo(c(41)));
     assertThat(eval("g(1)"), equalTo(c(false)));
     assertThat(eval("g()"), equalTo(c(true)));
-
-
+  }
+  
+  @Test
+  public void unboundEnvironmentSubsetting() {
+    eval("e <- new.env()");
+    eval("x <- e[['noSuchSymbol']]");
+    
+    assertThat( eval("x"), instanceOf(Null.class));
   }
 
 }

@@ -1,56 +1,87 @@
+# adapted from https://github.com/wch/r-source/tree/trunk/src/library/methods/tests
+
 library(stats)
+library(hamcrest)
 
-## test (non-conditional) explicit inheritance
-setClass("xy", representation(x="numeric", y="numeric"))
+test.setClassInheritNonConditionalExplicit <- function(){
 
-setIs("xy", "complex",
-		coerce = function(from) complex(real = from@x, imaginary = from@y),
-		replace = function(from, value) {
-			from@x <- Re(value)
-			from@y <- Im(value)
-			from
-		})
+	## test (non-conditional) explicit inheritance
+    setClass("xy", representation(x="numeric", y="numeric"))
 
-set.seed(124)
-x1 <- rnorm(10)
-y1 <- rnorm(10)
-cc <- complex(real = x1, imaginary=y1)
-xyc <- new("xy", x = x1, y = y1)
-asxyc <- as(xyc, "complex")
+	setIs("xy", "complex",
+    		coerce = function(from) complex(real = from@x, imaginary = from@y),
+    		replace = function(from, value) {
+    			from@x <- Re(value)
+    			from@y <- Im(value)
+    			from
+    		})
 
-cat(c("typeof asxyc = ", typeof(asxyc), "\n"))
+	set.seed(124)
+    x1 <- rnorm(10)
+    y1 <- rnorm(10)
+    cc <- complex(real = y1, imaginary=x1)
+    xyc <- new("xy", x = x1, y = y1)
+    asxyc <- as(xyc, "complex")
 
-stopifnot(cc == as(xyc, "complex"))
+	assertFalse(
+		isS4(asxyc)
+		)
 
-stopifnot(identical(cc, as(xyc, "complex")))
+	assertTrue(
+		isS4(xyc)
+		)
 
-as(xyc, "complex") <- cc * 1i
+    assertThat(
+    	cc,
+    	equalTo(as(xyc, "complex"))
+    	)
 
-nxy <- new("xy", x = -y1, y = x1)
-stopifnot(nxy@x == xyc@x)
-stopifnot(nxy@y == xyc@y)
+    as(xyc, "complex") <- cc * 1i
+    nxy <- new("xy", x = -y1, y = x1)
 
-stopifnot(identical(attributes(xyc), attributes(nxy)))
+	assertTrue(
+		isS4(nxy)
+		)
+
+    assertThat(
+    	attributes(xyc),
+    	identicalTo(attributes(nxy))
+    	)
+
+    assertThat(
+    	nxy@x,
+    	identicalTo(xyc@x)
+    	)
+
+    assertThat(
+    	nxy@y,
+    	identicalTo(xyc@y)
+    	)
+
+    assertThat(
+    	xyc,
+    	identicalTo(new("xy", x = -y1, y = x1))
+    	)
+
+	setGeneric("size", function(x)standardGeneric("size"))
+
+	assertTrue(
+		is(size, "standardGeneric")
+		)
+
+	assertTrue(
+		is.null(selectMethod("size", "ANY",optional=TRUE))
+		)
+
+	setMethod("size", "vector", function(x)length(x))
 
 
-stopifnot(identical(xyc, new("xy", x = -y1, y = x1)))
+	m <- getMethod("size", "vector")
+    #cat(c("attributes(m) = ", deparse(attributes(m)), "\n"))
 
-setGeneric("size", function(x)standardGeneric("size"))
+    assertThat(
+    	size(xyc),
+    	identicalTo(length(x1))
+    	)
 
-## check that generic for size() was created w/o a default method
-stopifnot(is(size, "standardGeneric"),
-		is.null(selectMethod("size", "ANY",optional=TRUE)))
-
-
-setMethod("size", "vector", function(x)length(x))
-
-
-m <- getMethod("size", "vector")
-cat(c("attributes(m) = ", deparse(attributes(m)), "\n"))
-
-## class "xy" should inherit the vector method through complex
-stopifnot(identical(size(xyc), length(x1)))
-removeClass("xy")
-removeGeneric("size")
-
-cat("test complete!\n")
+}

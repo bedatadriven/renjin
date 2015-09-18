@@ -1,3 +1,4 @@
+# adapted from https://github.com/wch/r-source/tree/trunk/src/library/methods/tests
 
 library(hamcrest)
 
@@ -6,8 +7,8 @@ test.data.assign <- function() {
 	value <- new("MethodDefinition")
 	value@.Data <- function(x) length(x)
 	
-	assertThat(typeof(value), equalTo("closure"))
-	assertThat(attr(value, 'class'), equalTo("MethodDefinition"))
+	assertThat(typeof(value), identicalTo("closure"))            ########### PASSED! ###########
+	assertThat(attr(value, 'class'), identicalTo("MethodDefinition"))            ########### PASSED! ###########
 }
 
 test.data.assign.attribs.preserved <- function() {
@@ -18,8 +19,8 @@ test.data.assign.attribs.preserved <- function() {
 	object <- new("signature")
 	object@.Data <- data
 	
-	assertThat(names(object), equalTo("x"))
-	assertThat(attr(object, 'foo'), equalTo("bar"))
+	assertThat(names(object), identicalTo("x"))            ########### PASSED! ###########
+	assertThat(attr(object, 'foo'), identicalTo("bar"))            ########### PASSED! ###########
 	
 	
 }

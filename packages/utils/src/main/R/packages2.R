@@ -458,3 +458,22 @@ install.packages <-
 
     invisible()
 }
+
+# The following code is copied from https://github.com/wch/r-source/blob/88e0bb260a8bae389f62e3fc6ce2f235e1d4fc98/src/library/utils/R/packages2.R
+# and is meant to add dummies for globalVariables() and suppressForeignCheck(), both of which are
+# not relevant for Renjin, but are required by many R packages.
+
+## treat variables as global in a package, for codetools & check
+globalVariables <- function(names, package, add = TRUE)
+    registerNames(names, package, ".__global__", add)
+
+## suppress foreign function checks, for check
+suppressForeignCheck <- function(names, package, add = TRUE)
+    registerNames(names, package, ".__suppressForeign__", add)
+
+registerNames <- function(names, package, .listFile, add = TRUE) {
+    # the actual function in GNU R returns a character vector with the names of the
+    # global variables so here we simply return an empty character vector:
+    character()
+}
+

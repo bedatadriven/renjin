@@ -1,6 +1,8 @@
 #  File src/library/methods/R/ClassUnion.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2012 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -43,6 +45,11 @@ setClassUnion <- function(name, members = character(), where = topenv(parent.fra
     prev <- getClassDef(name, where = where)
     value <- setClass(name, def, where = where)
     failed <- character()
+    ## the prototype of the union will be from the first non-virtual
+    ## subclass, except that we prefer NULL if "NULL" is a subclass
+    hasNull <- match("NULL", members, 0)
+    if(hasNull)
+        members <- c("NULL", members[-hasNull])
     for(what in members) {
         if(is(try(setIs(what, name, where = where)), "try-error")) {
             if(!is.character(what))
@@ -58,7 +65,7 @@ setClassUnion <- function(name, members = character(), where = topenv(parent.fra
         stop(gettextf("unable to create union class:  could not set members %s",
                       paste(.dQ(failed), collapse=", ")), domain = NA)
     }
-    value
+    invisible(value)
 }
 
 isClassUnion <- function(Class) {

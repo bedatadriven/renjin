@@ -1,6 +1,8 @@
 #  File src/library/methods/R/show.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2014 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -32,7 +34,7 @@ showDefault <- function(object, oldMethods = TRUE)
         for(what in slots) {
             if(identical(what, ".Data"))
                 next ## should have been done above
-            cat("Slot \"",what, "\":\n", sep="")
+	    cat("Slot ", deparse(what), ":\n", sep="")
             print(slot(object, what))
             cat("\n")
         }
@@ -49,7 +51,7 @@ showDefault <- function(object, oldMethods = TRUE)
 ##             slots <- slots[! slots %in% names(slotsFromS3(object))]
 ##             if(!identical(cl, S3Class)) {
 ##                 if(length(S3Class) > 1)
-##                   cat("  (S3 class: c(", paste('"', S3Class, '"', sep="", collapse = ", "), "))\n", sep="")
+##                   cat("  (S3 class: c(", paste0('"', S3Class, '"', collapse = ", "), "))\n", sep="")
 ##                 else
 ##                   cat("  (S3 class: \"",S3Class, "\")\n", sep = "")
 ##             }
@@ -66,7 +68,7 @@ showDefault <- function(object, oldMethods = TRUE)
 ##         }
 ##     }
     else
-        ## NBB:  This relies on the delicate fact (as of version 1.7 at least)
+        ## NBB:  This relies on the delicate fact
         ## that print will NOT recursively call show if it gets more than one argument!
         print(object, useS4 = FALSE)
     invisible() # documented return for show().
@@ -78,7 +80,7 @@ showExtraSlots <- function(object, ignore) {
     if(is(ignore, "classRepresentation"))
       ignore <- slotNames(ignore)
     else if(!is(ignore, "character"))
-      stop(gettextf("invalid ignore= argument; should be a class definition or a character vector, got an object of class %s", dQuote(class(ignore))),
+      stop(gettextf("invalid 'ignore' argument; should be a class definition or a character vector, got an object of class %s", dQuote(class(ignore))),
            domain = NA)
     slots <- slotNames(class(object))
     for(s in slots[is.na(match(slots, ignore))]) {
@@ -99,10 +101,9 @@ show <- function(object)
     setMethod("show", "MethodDefinition",
               function(object) {
                   cl <- class(object)
-                  if(.identC(cl, "MethodDefinition"))
-                      nonStandard <- ""
-                  else
-                      nonStandard <-  paste(" (Class ", classLabel(cl),")", sep="")
+		  nonStandard <-
+		      if(.identC(cl, "MethodDefinition"))
+			  "" else paste0(" (Class ", classLabel(cl),")")
                   cat("Method Definition",nonStandard,":\n\n", sep = "")
                   show(object@.Data)
                   mm <- methodSignatureMatrix(object)
@@ -149,7 +150,8 @@ show <- function(object)
 
     ## a show() method for the signature class
     setMethod("show", "signature", function(object) {
-        message("An object of class \"", class(object), "\"")
+        message(gettextf("An object of class %s", dQuote(class(object))),
+                domain = NA)
         val <- object@.Data
         names(val) <- object@names
         callNextMethod(val)
@@ -161,7 +163,7 @@ show <- function(object)
     if(is.logical(opt <- getOption("showPackageForClass")))
         opt
     else
-        is.list(.Call("R_getClassFromCache", as.character(className), .classTable, PACKAGE = "methods"))
+        is.list(.Call(C_R_getClassFromCache, as.character(className), .classTable))
 }
 ## an informative string label for a class
 classLabel <- function(Class) {
@@ -179,12 +181,13 @@ classLabel <- function(Class) {
         else stop(gettextf("invalid call to 'classLabel': expected a name or a class definition, got an object of class %s", classLabel(class(Class))), domain = NA)
     }
     if(.showPackage(className)) {
-       if(identical(packageName, ".GlobalEnv"))
-           packageName <- " (from the global environment)"
-        else
-            packageName <- paste(" (from package \"", packageName, "\")", sep="")
-       paste('"', className, '"', packageName, sep = "")
+	packageName <-
+	    if(identical(packageName, ".GlobalEnv"))
+		" (from the global environment)"
+	    else
+		paste0(" (from package \"", packageName, "\")")
+       paste0('"', className, '"', packageName)
    }
    else
-       paste('"', className, '"', sep = "")
+       paste0('"', className, '"')
 }

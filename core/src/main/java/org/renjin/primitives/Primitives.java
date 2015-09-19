@@ -982,7 +982,8 @@ public class Primitives {
     f("getNamespaceExports", Namespaces.class, 0);
     f("getNamespaceImports", Namespaces.class, 0);
     
-    //hiding: f("getNamespaceRegistry", Namespaces.class, 0, 11, 0);
+    f("getNamespaceRegistry", Namespaces.class, 11);
+      
    // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);
     f("env.profile", /*envprofile*/ null, 211);
     f(":::", Namespaces.class, 0);

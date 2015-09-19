@@ -914,7 +914,7 @@ cacheGenericsMetaData <- function(f, fdef, attach = TRUE,
 
 setPrimitiveMethods <-
   function(f, fdef, code, generic, mlist = get(".Methods", envir = environment(generic)))
-    .Call("R_M_setPrimitiveMethods", f, fdef, code, generic, mlist, PACKAGE="Methods")
+    .Call("R_M_setPrimitiveMethods", f, fdef, code, generic, mlist, PACKAGE="methods")
 
 ### utility to turn ALL primitive methods on or off (to avoid possible inf. recursion)
 .allowPrimitiveMethods <- function(onOff) {

@@ -88,15 +88,16 @@ setupNamespace  <-
 
     assign("envRefMethodNames",
 	   names(getClassDef("envRefClass")@refMethods), envir = where)
-    assign(".onLoad", ..onLoad, envir = where)
-    rm(...onLoad, ..onLoad, envir = where)
+ #   assign(".onLoad", ..onLoad, envir = where)
+  
+  #  rm(...onLoad, ..onLoad, envir = where)
 }
 
 .onLoad <- function(libname, pkgname)
 {
     where <- environment(sys.function())  # the namespace
     initMethodDispatch(where)
-    .Call(C_R_set_method_dispatch, TRUE)
+    .Call("R_set_method_dispatch", TRUE, PACKAGE="methods")
     ## initialize generics cache more thoroughly:
     setPrimitiveMethods("$", `$`, code="reset", generic = getGeneric("$"), mlist = NULL)
     assign(".methodsNamespace", where, where)

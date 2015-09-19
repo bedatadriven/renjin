@@ -302,7 +302,10 @@ public class Types {
   
   @Builtin
   public static boolean isS4(SEXP object) {
-    return object instanceof S4Object;
+    if(object instanceof S4Object) {
+      return true;
+    }
+    return object.getAttribute(Symbols.S4_BIT) == LogicalVector.TRUE;
   }
 
   @Internal

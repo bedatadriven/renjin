@@ -207,6 +207,15 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     });
     return ordered;
   }
+  
+  @Override
+  public StringVector getNames() {
+    StringVector.Builder names = new StringVector.Builder();
+    for (Symbol name : getSymbolNames()) {
+      names.add(name.getPrintName());
+    }
+    return names.build();
+  }
 
   public boolean bindingIsLocked(Symbol symbol) {
     return lockedBindings != null && lockedBindings.contains(symbol);

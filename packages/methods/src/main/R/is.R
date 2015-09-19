@@ -16,7 +16,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-is4 <-
+is <-
   # With two arguments, tests whether `object' can be treated as from `class2'.
   #
   # With one argument, returns all the super-classes of this object's class.
@@ -42,39 +42,18 @@ function(object, class2)
     S3Case <- S3Case || (is.object(object) && !isS4(object)) # first requirement
     S3Case <- S3Case && (is.null(class2Def) || class2 %in% .BasicClasses ||
                          extends(class2Def, "oldClass"))
-                         
-  #   cat(sprintf("S3Case = %s, cl = %s, class2 = %s\n", deparse(S3Case), as.character(cl), deparse(class2)))
-    # GNU R: S3Case = FALSE, cl = "NULL", class2 = "genericFunction"
-    # Renjin : S3Case = FALSE, cl = "NULL", class2 = "genericFunction"
-
     if(S3Case)
         return(inherits(object, class2))
     if(.identC(cl, class2) || .identC(class2, "ANY"))
         return(TRUE)
     ext <- possibleExtends(cl, class2, class1Def, class2Def)
-    if(is.logical(ext)) {
-#           cat(sprintf("ext = %s\n", deparse(ext)))
-
+    if(is.logical(ext))
         ext
-    }
-    else {
- #       cat(sprintf("ext@simple = %s\n", deparse(ext@simple)))
-        if(ext@simple) 
-            TRUE
-        else
-           ext@test(object)
-   }
+    else if(ext@simple)
+        TRUE
+    else
+       ext@test(object)
 }
-
-is <- function(object, class2) {
-
-    r <- is4(object, class2)
-    cat(sprintf("is(%s, %s) = %s\n", class(object), class2, deparse(r)))
-    r
-}
-
-
-
 
 extends <-
   ## Does the first class extend the second class?

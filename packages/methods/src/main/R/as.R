@@ -147,39 +147,22 @@ as <-
   ## Typically, the object being modified extends the class of the right-hand side object,
   ## and contains the slots of that object. These slots (only) will then be replaced.
   function(object, Class, value) {
-    
-    cat(sprintf("as(%s, %s) <- %s\n", class(object), Class, class(value)))
-
     thisClass <- .class1(object)
     if(!.identC(.class1(value), Class))
         value <- as(value, Class, strict = FALSE)
     where <- .classEnv(class(object))
-    
     coerceFun <- getGeneric("coerce<-", where = where)
     coerceMethods <- getMethodsForDispatch(coerceFun)
     asMethod <- .quickCoerceSelect(thisClass, Class, coerceFun, coerceMethods, where)
-    
-    cat(sprintf("coerceFun = %s, coerceMethods = %s, asMethod = %s\n",
-     typeof(coerceFun), length(ls(coerceMethods)), typeof(asMethod)))
-    
     if(is.null(asMethod)) {
         sig <- c(from = thisClass, to = Class)
         canCache <- TRUE
         inherited <- FALSE
         asMethod <- selectMethod("coerce<-", sig, TRUE, FALSE, #optional, no inheritance
                                  fdef = coerceFun, mlist = coerceMethods)
-                                 
-        cat(sprintf("selectMethod = %s\n", typeof(asMethod)) )
-         
         if(is.null(asMethod)) {
-        
-        #    cat(sprintf("is(%s, %s) = %s\n", class(object), Class, deparse(is(object, Class))))
-        
             if(is(object, Class)) {
                 asMethod <- possibleExtends(thisClass, Class)
-                
-                cat(sprintf("possibleExtends = %s\n", typeof(asMethod)) )
-
                 if(identical(asMethod, TRUE)) {# trivial, probably identical classes
                     class(value) <- class(object)
                     return(value)

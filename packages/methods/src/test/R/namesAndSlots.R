@@ -52,7 +52,7 @@ test.setClassNamesContains <- function() {
     d <- new("D", 1)
     names(d) <- "A"
 
-    assetThat(            ########### PASSED! ###########
+    assertThat(            ########### PASSED! ###########
         d@names,
         identicalTo("A")
         )
@@ -74,7 +74,7 @@ test.setClassDotDataSlot <- function() {
 
     assertThat(
         sum(b),
-        identicalTo(55)
+        identicalTo(55L)
         )
 
 }

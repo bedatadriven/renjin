@@ -1,29 +1,15 @@
 package org.renjin.methods;
 
-import java.util.HashMap;
-
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Evaluation;
 import org.renjin.invoke.annotations.SessionScoped;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.HashFrame;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.primitives.Evaluation;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.Maps;
+import java.util.HashMap;
 
 @SessionScoped
 public class MethodDispatch {
@@ -230,7 +216,7 @@ public class MethodDispatch {
   /* C version of the standardGeneric R function. */
   public SEXP R_standardGeneric(Context context, Symbol fsym, Environment ev, SEXP fdef) {
     String fname = fsym.getPrintName();
-    Environment f_env = context.getGlobalEnvironment().getBaseEnvironment();
+    Environment f_env = context.getBaseEnvironment();
     SEXP mlist = Null.INSTANCE;
     SEXP f;
     SEXP val = Null.INSTANCE;

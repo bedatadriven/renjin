@@ -21,7 +21,6 @@
 
 package org.renjin.eval;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileObject;
@@ -481,7 +480,7 @@ public class Context {
   }
 
   public Environment getBaseEnvironment() {
-    return getGlobalEnvironment().getBaseEnvironment();
+    return session.getBaseEnvironment();
   }
 
   public NamespaceRegistry getNamespaceRegistry() {

@@ -61,7 +61,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   private String name = null;
   private Environment parent;
-  private Environment baseEnvironment;
   protected Frame frame;
 
   private boolean locked;
@@ -93,20 +92,18 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    *
    * @return the Global environment
    */
-  public static Environment createGlobalEnvironment() {
+  public static Environment createGlobalEnvironment(Environment baseEnvironment) {
     Environment global = new Environment();
     global.name = GLOBAL_ENVIRONMENT_NAME;
-    global.baseEnvironment = createBaseEnvironment();
-    global.parent = global.baseEnvironment;
+    global.parent = baseEnvironment;
     global.frame = new HashFrame();
 
     return global;
   }
 
-  private static Environment createBaseEnvironment() {
+  public static Environment createBaseEnvironment() {
     Environment base = new Environment();
     base.name = "base";
-    base.baseEnvironment = base;
     base.parent = EMPTY;
     base.frame = new BaseFrame();
     return base;
@@ -128,15 +125,14 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return ns;
   }
   
-  public static Environment createBaseNamespaceEnvironment(Environment globalEnv) {
-    Environment ns = createChildEnvironment(globalEnv, globalEnv.baseEnvironment.getFrame());
+  public static Environment createBaseNamespaceEnvironment(Environment globalEnv, Environment baseEnvironment) {
+    Environment ns = createChildEnvironment(globalEnv, baseEnvironment.getFrame());
     ns.name = "namespace:base";
     return ns;
   }
 
   public static Environment createChildEnvironment(Environment parent, Frame frame) {
     Environment child = new Environment();
-    child.baseEnvironment = parent.baseEnvironment;
     child.parent = parent;
     child.frame = frame;
     return child;
@@ -179,10 +175,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public void setParent(Environment parent) {
     this.parent = parent;
     modCount ++;
-  }
-
-  public Environment getBaseEnvironment() {
-    return baseEnvironment;
   }
 
   @Override

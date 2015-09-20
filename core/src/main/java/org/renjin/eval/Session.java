@@ -92,9 +92,9 @@ public class Session {
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
-    this.globalEnvironment = Environment.createGlobalEnvironment();
-    this.baseEnvironment = globalEnvironment.getBaseEnvironment();
-    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
+    this.baseEnvironment = Environment.createBaseEnvironment();
+    this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment);
+    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment);
     this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     this.topLevelContext = new Context(this);
 

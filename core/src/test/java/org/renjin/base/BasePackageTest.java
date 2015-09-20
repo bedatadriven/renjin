@@ -62,7 +62,7 @@ public class BasePackageTest extends EvalTestCase {
 
     // make sure that base scripts are populated in both the base environment and the base namespace
     assertThat( getValue( topLevelContext.getSession().getBaseEnvironment(), "letters" ).length(), equalTo( 26 ));
-  //  assertThat( getValue( topLevelContext.getSession().baseNamespaceEnv, "letters" ).length(), equalTo( 26 ));
+    assertThat( getValue( topLevelContext.getSession().getBaseNamespaceEnv(), "letters" ).length(), equalTo( 26 ));
 
   }
 

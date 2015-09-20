@@ -62,7 +62,7 @@ public abstract class EvalTestCase {
   public final void setUp() {
     topLevelContext = Context.newTopLevelContext();
     global = topLevelContext.getEnvironment();
-    base = global.getBaseEnvironment();
+    base = topLevelContext.getBaseEnvironment();
     GlobalEnv = global;
   }
 

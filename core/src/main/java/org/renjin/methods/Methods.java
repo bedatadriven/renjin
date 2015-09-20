@@ -21,18 +21,16 @@
 
 package org.renjin.methods;
 
+import com.google.common.base.Strings;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Contexts;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.sexp.*;
-import org.renjin.sexp.ExternalPtr;
-
-import com.google.common.base.Strings;
 
 public class Methods {
 
@@ -226,7 +224,7 @@ public class Methods {
     }
     /* look in base if either generic is missing */
     if(generic == Symbol.UNBOUND_VALUE) {
-      vl = env.getBaseEnvironment().getVariable(symbol);
+      vl = context.getBaseEnvironment().getVariable(symbol);
       if(IS_GENERIC(vl)) {
         generic = vl;
         if(vl.getAttributes().getPackage() != null) {

@@ -90,7 +90,7 @@ public final class Environments {
       if(Objects.equal(result.getName(), name)) {
         return result;
       }
-      if(name.equals("package:base") && result == result.getBaseEnvironment()) {
+      if(name.equals("package:base") && result == context.getBaseEnvironment()) {
         return result;
       }
       result = result.getParent();
@@ -237,13 +237,13 @@ public final class Environments {
   }
 
   @Builtin
-  public static Environment baseenv(@Current Environment rho) {
-    return rho.getBaseEnvironment();
+  public static Environment baseenv(@Current Context context) {
+    return context.getBaseEnvironment();
   }
 
   @Builtin
-  public static Environment emptyenv(@Current Environment rho) {
-    return rho.getBaseEnvironment().getParent();
+  public static Environment emptyenv() {
+    return Environment.EMPTY;
   }
 
   @Builtin

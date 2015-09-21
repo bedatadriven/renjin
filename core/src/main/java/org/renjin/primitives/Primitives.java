@@ -156,7 +156,9 @@ public class Primitives {
     add(new ReassignLeftFunction());
     add(new BeginFunction());
     add(new ParenFunction());
-
+      
+    add(new AssignSlotFunction());
+      
     f(".subset", Subsetting.class, 1);
     f(".subset2", Subsetting.class, 1);
     f("[",Subsetting.class, -1);
@@ -276,9 +278,11 @@ public class Primitives {
     f("comment<-", Attributes.class, 2);
     f("levels<-", Attributes.class, 2);
     f("get", Environments.class, 11);
-    f("mget", /*mget*/ null, 11);
+    f("get0", Environments.class, 11);
+    f("mget", Environments.class, 11);
     f("exists", Environments.class, 11);
     f("assign", Evaluation.class, 111);
+    f("list2env", Environments.class, 11);
     f("remove", Evaluation.class, 111);
     f("duplicated", Duplicates.class, 11);
     f("unique", Duplicates.class, 11);
@@ -294,7 +298,7 @@ public class Primitives {
     f("match.call", Match.class, 11);
     f("complete.cases", CompleteCases.class, 11);
 
-    f("attach", Environments.class, 111);
+    f("attach", Environments.class, 111);   
     f("detach", Environments.class, 111);
     f("search", Environments.class, 11);
 
@@ -339,6 +343,11 @@ public class Primitives {
     f("digamma", org.apache.commons.math.special.Gamma.class, 1);
     f("trigamma",org.apache.commons.math.special.Gamma.class, 1);
 /* see "psigamma" below !*/
+
+
+    f("cospi", null, 1);
+    f("sinpi", null, 1);
+    f("tanpi", null, 1);
 
 /* Mathematical Functions of Two Numeric (+ 1-2 int) Variables */
 
@@ -615,7 +624,9 @@ public class Primitives {
     f("is.nan", Types.class, 1);
     f("is.finite", Types.class, 1);
     f("is.infinite", Types.class, 1);
-
+      
+    f("isS4", Types.class, 1);
+    f("setS4Object", Types.class, 11);
 
 /* Miscellaneous */
 
@@ -863,7 +874,7 @@ public class Primitives {
     f("grconvertX", Graphics.class, 11);
     f("grconvertY", Graphics.class, 11);
 
-/* Objects */
+/* Objects */   
     f("inherits", Attributes.class, 11);
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
@@ -971,7 +982,8 @@ public class Primitives {
     f("getNamespaceExports", Namespaces.class, 0);
     f("getNamespaceImports", Namespaces.class, 0);
     
-    //hiding: f("getNamespaceRegistry", Namespaces.class, 0, 11, 0);
+    f("getNamespaceRegistry", Namespaces.class, 11);
+      
    // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);
     f("env.profile", /*envprofile*/ null, 211);
     f(":::", Namespaces.class, 0);

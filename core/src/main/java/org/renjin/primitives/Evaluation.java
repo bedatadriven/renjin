@@ -264,7 +264,7 @@ public class Evaluation {
        * (with enclosure enclos), and the temporary environment is used for evaluation. So if expr
        * changes any of the components named in the (pair)list, the changes are lost.
        */
-      Environment parent = enclosing == Null.INSTANCE ? context.getEnvironment().getBaseEnvironment() :
+      Environment parent = enclosing == Null.INSTANCE ? context.getBaseEnvironment() :
           EvalException.<Environment>checkedCast(enclosing);
 
       rho = Environment.createChildEnvironment(parent);

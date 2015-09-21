@@ -238,18 +238,6 @@ public class Base {
   public static SEXP R_do_new_object(S4Object classRepresentation) {
     return Methods.R_do_new_object(classRepresentation);
   }
-
-  public static SEXP R_setS4Object(SEXP object, boolean bool, int index) {
-    return R_setS4Object(object, bool, index != 0);
-  }
-
-  public static SEXP R_setS4Object(SEXP object, boolean bool, boolean index) {
-    if(object instanceof S4Object) {
-      return object;
-    } else {
-      return object.setAttribute(Symbols.S4_BIT, LogicalVector.TRUE);
-    }
-  }
   
   public static ListVector do_mapply(@Current Context context, Function fun, ListVector varyingArgs, Vector constantArgs, Environment rho) {
     return Evaluation.mapply(context, fun, varyingArgs, constantArgs, rho);

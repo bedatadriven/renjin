@@ -436,7 +436,7 @@ public class S3 {
     }
 
     public Resolver withBaseDefinitionEnvironment() {
-      this.definitionEnvironment = context.getEnvironment().getBaseEnvironment();
+      this.definitionEnvironment = context.getBaseEnvironment();
       return this;
     }
 

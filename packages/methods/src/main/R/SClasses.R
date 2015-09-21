@@ -652,8 +652,9 @@ initialize <- function(.Object, ...) {
                     .Object <- obj
                 else if(extends(Classi, Class))
                     .Object <- as(obj, Class, strict=FALSE)
-                else if(extends(Class, Classi))
+                else if(extends(Class, Classi)) {
                     as(.Object, Classi) <- obj
+                }
                 else if(extends(Classi, dataPart))
                     .Object@.Data <- obj
                 else {
@@ -685,14 +686,13 @@ initialize <- function(.Object, ...) {
                               paste(sQuote(snames[duplicated(snames)]),
                                     collapse = ", ")), domain = NA)
             which  <- match(snames, names(slotDefs))
-            if(anyNA(which))
+            if(any(is.na(which)))
                 stop(sprintf(ngettext(sum(is.na(which)),
                                       "invalid name for slot of class %s: %s",
                                       "invalid names for slots of class %s: %s"),
                               dQuote(Class),
                               paste(snames[is.na(which)], collapse=", ")),
                      domain = NA)
-            firstTime <- TRUE
             for(i in seq_along(snames)) {
                 slotName <- el(snames, i)
                 slotClass <- elNamed(slotDefs, slotName)
@@ -709,14 +709,9 @@ initialize <- function(.Object, ...) {
                                          valClassDef, slotClassDef), FALSE))
                         slotVal <- as(slotVal, slotClass, strict = FALSE)
                 }
-                if (firstTime) {
-                    ## force a copy of .Object
-                    slot(.Object, slotName, check = FALSE) <- slotVal
-                    firstTime <- FALSE
-                } else {
-                    ## XXX: do the assignment in-place
-                    "slot<-"(.Object, slotName, check = FALSE, slotVal)
-                }
+                # TODO(renjin): This should be written to set all the attributes in one go, rather than creating
+                # a new copy each time
+                slot(.Object, slotName, check = FALSE) <- slotVal
             }
         }
         validObject(.Object)

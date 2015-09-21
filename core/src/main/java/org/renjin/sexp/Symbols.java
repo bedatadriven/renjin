@@ -2,6 +2,7 @@ package org.renjin.sexp;
 
 public class Symbols {
 
+
   private Symbols() {}
 
   public static final Symbol NAMES = Symbol.get("names");
@@ -39,6 +40,9 @@ public class Symbols {
   
   public static final Symbol GENERIC = Symbol.get("generic");
   public static final Symbol SOURCE = Symbol.get("source");
+
+  public static final Symbol DOT_DATA = Symbol.get(".Data");
+
 
 
   /**

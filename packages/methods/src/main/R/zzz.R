@@ -18,11 +18,14 @@
 
 ## utils::globalVariables("...onLoad")
 
-## Initial version of .onLoad
-..First.lib  <-		
+## This method is invoked only when the namespace is constructed.
+## it is 
+setupNamespace  <-		
   ## Initialize the methods package.
   function(where)
 {
+    initMethodDispatch(where)
+
     ## temporary empty reference to the package's own namespace
     assign(".methodsNamespace", new.env(), envir = where)
     cat("initializing class and method definitions ...")
@@ -57,7 +60,7 @@
     .InitS3Classes(where)
     .InitSpecialTypesAndClasses(where)
     .InitTraceFunctions(where)
-   # RENJIN TODO: .InitRefClasses(where)
+    .InitRefClasses(where)
     ## now seal the classes defined in the package
     for(cl in get(".SealedClasses", where))
         sealClass(cl, where)
@@ -85,19 +88,16 @@
 
     assign("envRefMethodNames",
 	   names(getClassDef("envRefClass")@refMethods), envir = where)
-    assign(".onLoad", ..onLoad, envir = where)
-    rm(...onLoad, ..onLoad, envir = where)
+ #   assign(".onLoad", ..onLoad, envir = where)
+  
+  #  rm(...onLoad, ..onLoad, envir = where)
 }
 
-## avoid warnings from static analysis code by extra call
-.onLoad <- function(libname, pkgname) ...onLoad(libname, pkgname)
-
-##  .onLoad for routine use, installed by ...onLoad
-..onLoad <- function(libname, pkgname)
+.onLoad <- function(libname, pkgname)
 {
     where <- environment(sys.function())  # the namespace
     initMethodDispatch(where)
-    .Call(C_R_set_method_dispatch, TRUE)
+    .Call("R_set_method_dispatch", TRUE, PACKAGE="methods")
     ## initialize generics cache more thoroughly:
     setPrimitiveMethods("$", `$`, code="reset", generic = getGeneric("$"), mlist = NULL)
     assign(".methodsNamespace", where, where)
@@ -137,3 +137,6 @@
 
 ## want ASCII quotes, not fancy nor translated ones
 .dQ <- function (x) paste0('"', x, '"')
+
+
+setupNamespace(environment())

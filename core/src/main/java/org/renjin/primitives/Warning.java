@@ -71,7 +71,7 @@ public class Warning {
       
       ListVector.NamedBuilder lastWarning = new ListVector.NamedBuilder();
      
-      Environment baseEnv = context.getEnvironment().getBaseEnvironment();
+      Environment baseEnv = context.getBaseEnvironment();
       if(baseEnv.hasVariable(LAST_WARNING)) {
         lastWarning.addAll((ListVector)baseEnv.getVariable(LAST_WARNING).force(context));
       }

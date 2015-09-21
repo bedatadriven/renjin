@@ -480,7 +480,7 @@ public class Context {
   }
 
   public Environment getBaseEnvironment() {
-    return getGlobalEnvironment().getBaseEnvironment();
+    return session.getBaseEnvironment();
   }
 
   public NamespaceRegistry getNamespaceRegistry() {

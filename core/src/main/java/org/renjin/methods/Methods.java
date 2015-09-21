@@ -21,20 +21,25 @@
 
 package org.renjin.methods;
 
+import com.google.common.base.Strings;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Contexts;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.sexp.*;
-import org.renjin.sexp.ExternalPtr;
-
-import com.google.common.base.Strings;
 
 public class Methods {
+
+
+  public static SEXP R_initMethodDispatch(@Current Context context, SEXP environ) {
+    context.getSession().getSingleton(MethodDispatch.class)
+    .init(environ == Null.INSTANCE ? context.getGlobalEnvironment() : (Environment)environ);
+    return environ;
+  }
 
 
   public static boolean R_set_method_dispatch(@Current Context context, LogicalVector onOff) {
@@ -219,7 +224,7 @@ public class Methods {
     }
     /* look in base if either generic is missing */
     if(generic == Symbol.UNBOUND_VALUE) {
-      vl = env.getBaseEnvironment().getVariable(symbol);
+      vl = context.getBaseEnvironment().getVariable(symbol);
       if(IS_GENERIC(vl)) {
         generic = vl;
         if(vl.getAttributes().getPackage() != null) {
@@ -245,8 +250,7 @@ public class Methods {
   public static SEXP do_substitute_direct(SEXP f, SEXP env) {
     return SubstituteFunction.substitute(f, env);
   }
-
-
+  
   public static SEXP R_M_setPrimitiveMethods(@Current Context context, SEXP fname, SEXP op, String code_vec,
       SEXP fundef, SEXP mlist) {
 

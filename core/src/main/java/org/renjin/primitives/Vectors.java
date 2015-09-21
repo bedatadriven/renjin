@@ -23,6 +23,16 @@ public class Vectors {
 
   @Builtin("length<-")
   public static Vector setLength(Vector source, int length) {
+    
+    if(length < 0) {
+      throw new EvalException("%d : invalid value", length);
+    }
+    
+    // Strange but true... 
+    // if source is null, then length(source) <- x is null for all x >= 0
+    if(source == Null.INSTANCE) {
+      return Null.INSTANCE;
+    }
 
     Vector.Builder copy = source.newBuilderWithInitialSize(length);
     for(int i=0;i!=Math.min(length, source.length());++i) {

@@ -299,7 +299,23 @@ public class Types {
   public static boolean isInfinite(@Recycle String value) {
     return false;
   }
+  
+  @Builtin
+  public static boolean isS4(SEXP object) {
+    if(object instanceof S4Object) {
+      return true;
+    }
+    return object.getAttribute(Symbols.S4_BIT) == LogicalVector.TRUE;
+  }
 
+  @Internal
+  public static SEXP setS4Object(SEXP object, boolean bool, boolean complete) {
+    if(object instanceof S4Object) {
+      return object;
+    } else {
+      return object.setAttribute(Symbols.S4_BIT, LogicalVector.TRUE);
+    }
+  }
 
   /**
    * Default implementation of as.function. Note that this is an

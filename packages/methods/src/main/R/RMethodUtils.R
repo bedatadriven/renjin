@@ -490,7 +490,7 @@ getGeneric <-
             message("Empty function name in .getGeneric")
             dput(sys.calls())
         }
-        value <- .Call(C_R_getGeneric, f, FALSE, as.environment(where), package)
+        value <- .Call("R_getGeneric", f, FALSE, as.environment(where), package, PACKAGE = "methods")
         ## cache public generics (usually these will have been cached already
         ## and we get to this code for non-exported generics)
         if(!is.null(value) && !is.null(vv <- get0(f, .GlobalEnv)) &&
@@ -914,12 +914,12 @@ cacheGenericsMetaData <- function(f, fdef, attach = TRUE,
 
 setPrimitiveMethods <-
   function(f, fdef, code, generic, mlist = get(".Methods", envir = environment(generic)))
-    .Call(C_R_M_setPrimitiveMethods, f, fdef, code, generic, mlist)
+    .Call("R_M_setPrimitiveMethods", f, fdef, code, generic, mlist, PACKAGE="methods")
 
 ### utility to turn ALL primitive methods on or off (to avoid possible inf. recursion)
 .allowPrimitiveMethods <- function(onOff) {
     code <- if(onOff) "SET" else "CLEAR"
-    .Call(C_R_M_setPrimitiveMethods, "", NULL, code, NULL, NULL)
+    .Call("R_M_setPrimitiveMethods", "", NULL, code, NULL, NULL, PACKAGE="methods")
 }
 
 
@@ -1265,7 +1265,7 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
         vlist[[i]] <- do.call("substitute", list(vlist[[i]], slist))
     dnames <- names(dlist)
     whereNames <- match(old, dnames)
-    if(anyNA(whereNames))
+    if(any(is.na(whereNames)))
 	stop(gettextf("in changing formal arguments in %s, some of the old names are not in fact arguments: %s",
 		      msg, paste0("\"", old[is.na(match(old, names(dlist)))], "\"", collapse=", ")),
 	     domain = NA)
@@ -1385,7 +1385,7 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
 .identC <- function(c1 = NULL, c2 = NULL)
 {
     ## are the two objects identical class or genric function string names?
-    .Call(C_R_identC, c1, c2)
+    .Call("R_identC", c1, c2, PACKAGE="methods")
 }
 
 ## match default exprs in the method to those in the generic

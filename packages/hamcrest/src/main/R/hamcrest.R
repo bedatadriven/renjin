@@ -4,10 +4,38 @@
 # --------------------------------------
 
 assertThat <- function(actual, matcher) {
+	
+	call <- match.call()
+
 	if(!matcher(actual)) {
-		stop("\nExpected: ", deparse(substitute(matcher)), "\nGot: ", deparse(actual))
+		stop(sprintf("\nassertThat(%s, %s) failed\nGot: %s", 
+				deparse(call$actual), deparse(call$matcher), deparse(actual)))
 	}
 }
+
+
+assertTrue <- function(value) {
+
+	call <- match.call()
+
+	if(!identical(value, TRUE)) {
+		stop(sprintf("\nassertTrue(%s) failed\nGot: %s", 
+				deparse(call$value), deparse(value)))
+	}	
+}
+
+
+assertFalse <- function(value) {
+
+	call <- match.call()
+
+	if(!identical(value, FALSE)) {
+		stop(sprintf("\nassertFalse(%s) failed\nGot: %s", 
+				deparse(call$value), deparse(value)))
+	}	
+}
+
+
 
 # --------------------------------------
 # MATCHER FUNCTIONS
@@ -50,16 +78,4 @@ isFalse <- function() {
     function(actual) {
         identical(FALSE, actual)
     }
-}
-
-# --------------------------------------
-# ABBREVIATIONS
-# --------------------------------------
-
-assertTrue <- function(value) {
-    assertThat(value, isTrue())
-}
-
-assertFalse <- function(value) {
-    assertThat(value, isFalse())
 }

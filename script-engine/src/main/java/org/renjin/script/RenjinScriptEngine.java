@@ -245,13 +245,13 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   }
 
   public void printWarnings() {
-    SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-        topLevelContext.getEnvironment().getBaseEnvironment());
+        topLevelContext.getBaseEnvironment());
     }
 
-    topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
+    topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
   
   public class FunctionCallBuilder {

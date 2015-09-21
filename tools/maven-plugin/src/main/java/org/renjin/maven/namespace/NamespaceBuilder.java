@@ -110,20 +110,6 @@ public class NamespaceBuilder {
         }
       }
     }
-    
-    // some packages (methods) have a routine to do initialization 
-    // before serializing the environment
-    if(namespaceEnvironment.hasVariable(Symbol.get("..First.lib"))) {
-      PairList.Builder args = new PairList.Builder();
-      args.add("where", namespaceEnvironment);
-      
-      try {
-        context.evaluate(new FunctionCall(Symbol.get("..First.lib"), args.build()), namespaceEnvironment);
-
-      } catch (EvalException e) {
-        
-      }
-    }
   }
   
   private void serializeEnvironment(Context context, Environment namespaceEnv, File environmentFile) {

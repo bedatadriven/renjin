@@ -44,6 +44,7 @@ getNamespaceInfo <- function(ns, which) {
 
 isBaseNamespace <- function(ns) identical(ns, .BaseNamespaceEnv)
 
+.getNamespace <- function(what) getNamespace(what)
 
 loadNamespaceMethods <- function(package, ns, expClasses, expClassPatterns) {
   ## cache generics, classes in this namespace (but not methods itself,

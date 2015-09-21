@@ -66,6 +66,7 @@
             <configuration>
               <defaultPackages>
                 <package>methods</package>
+                <package>stats</package>
               </defaultPackages>
             </configuration>
           </execution>

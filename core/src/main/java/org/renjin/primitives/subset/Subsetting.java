@@ -298,10 +298,16 @@ public class Subsetting {
   }
 
   private static SEXP getSingleEnvironmentVariable(Environment source, String subscript, boolean exact) {
+    SEXP value;
     if(exact) {
-      return source.getVariable(subscript);
+      value = source.getVariable(subscript);
     } else {
-      return source.getVariableByPrefix(subscript);
+      value = source.getVariableByPrefix(subscript);
+    }
+    if(value == Symbol.UNBOUND_VALUE) {
+      return Null.INSTANCE;
+    } else {
+      return value;
     }
   }
 

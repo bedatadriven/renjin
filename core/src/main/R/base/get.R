@@ -18,6 +18,12 @@ get <-
     function (x, pos = -1, envir = as.environment(pos), mode = "any",
               inherits = TRUE)
     .Internal(get(x, envir, mode, inherits))
+    
+    
+get0 <- function (x, envir = pos.to.env(-1L), mode = "any", inherits = TRUE,
+                  ifnotfound = NULL)
+    .Internal(get0(x, envir, mode, inherits, ifnotfound))
+
 
 mget <- function(x, envir, mode = "any",
           ifnotfound= list(function(x)

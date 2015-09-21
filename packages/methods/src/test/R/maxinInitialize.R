@@ -21,7 +21,7 @@ test.setClassInheritRepresentationAndContains <- function() {
 			identicalTo(matrix(1:12, 3))
 			)
 
-		assertThat(            ########### PASSED! ###########
+		assertThat(
 			as(new("M", 1:12, ncol = 3, fuzz = f1), "matrix"),
 			identicalTo(matrix(1:12, ncol=3))
 			)
@@ -72,7 +72,7 @@ test.setClassValidateSlots <- function() {
               FALSE
         })
 
-		assertThat(            ########### PASSED! ###########
+		assertThat(
 			try(validObject(new("B", a= c(NA,3, -1, 2))),silent=TRUE),
 			instanceOf("try-error")
 			)
@@ -82,7 +82,7 @@ test.setClassValidateSlots <- function() {
 			instanceOf("try-error")
 			)
 
-		assertThat(            ########### PASSED! ###########
+		assertThat(
 			try(validObject(new("B", m1, a2)),silent=TRUE),
 			instanceOf("try-error")
 			)
@@ -98,27 +98,27 @@ test.setClassValidateSlots <- function() {
 		is(tryCatch(as(a3, "matrix"), error = function(e)e), "error")
 		)
 
-	assertTrue(            ########### PASSED! ###########
+	assertTrue(
 		is(as(a2 <- array(1:12, 3:4), "matrix"), "matrix")
 		)
 
-	assertTrue(            ########### PASSED! ###########
+	assertTrue(
 		is(a2, "matrix")
 		)
 
-	assertTrue(            ########### PASSED! ###########
+	assertTrue(
 		is(a2, "array")
 		)
 
-	assertTrue(            ########### PASSED! ###########
+	assertTrue(
 		is(a3, "array")
 		)
 
-	assertTrue(            ########### PASSED! ###########
+	assertTrue(
 		!is(a3, "matrix")
 		)
 
-	assertTrue(            ########### PASSED! ###########
+	assertTrue(
 		identical(a2, matrix(1:12, 3) )
 		)
 
@@ -126,15 +126,15 @@ test.setClassValidateSlots <- function() {
 
 test.setClassUnion <- function() {
 
-	assertFalse(            ########### PASSED! ###########
+	assertFalse(
 		is(tryCatch(setClassUnion("mn", c("matrix","numeric")), error = function(e)e), "error")
 		)
 
-	assertFalse(            ########### PASSED! ###########
+	assertFalse(
 		is(tryCatch(setClassUnion("an", c("array", "integer")), error = function(e)e), "error")
 		)
 
-	assertFalse(            ########### PASSED! ###########
+	assertFalse(
 		is(tryCatch(setClassUnion("AM", c("array", "matrix")), error = function(e)e), "error")
 		)
 
@@ -174,11 +174,11 @@ test.setClassMix <- function() {
 	f_out = f()
 	a2 <- new("BAR", 5L)
 
-	assertFalse(            ########### PASSED! ###########
+	assertFalse(
 		is(tryCatch(f(), error = function(e)e), "error")
 		)
 
-	assertThat(            ########### PASSED! ###########
+	assertThat(
 		f_out,
 		identicalTo("initialize")
 		)
@@ -223,15 +223,15 @@ test.setClassMix <- function() {
 		identicalTo(7L)
 		)
 
-	assertTrue(            ########### PASSED! ###########
+	assertTrue(
 		is(tryCatch(new("BAR3", 7), error = function(e)e), "error")
 		)
 
-	assertTrue(            ########### PASSED! ###########
+	assertTrue(
 		is(tryCatch(b@y <- 9, error = function(e)e), "error")
 		)
 
-	assertTrue(            ########### PASSED! ###########
+	assertTrue(
 		is(tryCatch(b@y <- "CHAR", error = function(e)e), "error")
 		)
 

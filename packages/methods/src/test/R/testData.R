@@ -7,8 +7,8 @@ test.data.assign <- function() {
 	value <- new("MethodDefinition")
 	value@.Data <- function(x) length(x)
 	
-	assertThat(typeof(value), identicalTo("closure"))            ########### PASSED! ###########
-	assertThat(attr(value, 'class'), identicalTo("MethodDefinition"))            ########### PASSED! ###########
+	assertThat(typeof(value), identicalTo("closure"))
+	assertThat(attr(value, 'class'), identicalTo("MethodDefinition"))
 }
 
 test.data.assign.attribs.preserved <- function() {
@@ -19,8 +19,8 @@ test.data.assign.attribs.preserved <- function() {
 	object <- new("signature")
 	object@.Data <- data
 	
-	assertThat(names(object), identicalTo("x"))            ########### PASSED! ###########
-	assertThat(attr(object, 'foo'), identicalTo("bar"))            ########### PASSED! ###########
+	assertThat(names(object), identicalTo("x"))
+	assertThat(attr(object, 'foo'), identicalTo("bar"))
 	
 	
 }

@@ -28,12 +28,12 @@ test.setClassSetGeneric <- function() {
 	setMethod("ff", "maybe", ffMaybe)
 	aa2 <- new("A", x = -1) # condition not TRUE
 
-	assertThat(            ########### PASSED! ###########
+	assertThat(
 		ff(aa),
 		identicalTo("default ff")
 		)
 
-	assertThat(            ########### PASSED! ###########
+	assertThat(
 		ff(aa2),
 		identicalTo("default ff")	# failed in R 2.11.0
 		)

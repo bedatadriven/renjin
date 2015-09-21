@@ -52,7 +52,7 @@ test.setClassNamesContains <- function() {
     d <- new("D", 1)
     names(d) <- "A"
 
-    assertThat(            ########### PASSED! ###########
+    assertThat(
         d@names,
         identicalTo("A")
         )

@@ -59,8 +59,12 @@ test.setClassNamesContains <- function() {
 }
 
 test.setClassDotDataSlot <- function() {
-    setClass("B", contains="numeric",representation(haha="numeric"))
-    b = new("B", 1:10, haha=2:5)
+    setClass("B", contains = "numeric", representation(haha = "numeric"))
+    b = new("B", 1:10, haha = 2:5)
+    x = c(1.1, 1.2, 1.3, 1.4, 1.5)
+    c = new("B", x, haha = 5:2)
+    d = b * c
+    e = x * 1:10
 
     assertThat(
         b@.Data,
@@ -74,7 +78,42 @@ test.setClassDotDataSlot <- function() {
 
     assertThat(
         sum(b),
-        identicalTo(55)
+        identicalTo(55L)
         )
+
+    assertTrue(
+        is(b@.Data, class(1:10))
+        )
+
+    assertTrue(
+        is(c@.Data, class(x))
+        )
+
+    assertTrue(
+        is(d@.Data, class(e))
+        )
+
+    assertThat(
+        d@.Data,
+        identicalTo(e)
+        )
+
+    assertThat(
+        d@haha,
+        identicalTo(b@haha)
+        )
+
+    assertTrue(
+        is(b, "B")
+        )
+
+    assertTrue(
+        is(c, "B")
+        )
+
+    assertTrue(
+        is(d, "B")
+        )
+
 
 }

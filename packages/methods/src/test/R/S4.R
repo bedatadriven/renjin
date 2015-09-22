@@ -2,7 +2,7 @@
 # S4 class tests
 library(hamcrest)
 library(methods)
-function testS4.class1 = function(){
+testS4.class1 = function(){
 
     # create S4 class "molecule"
     molecule <- setClass("Molecule",

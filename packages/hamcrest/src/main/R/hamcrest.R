@@ -79,3 +79,10 @@ isFalse <- function() {
         identical(FALSE, actual)
     }
 }
+
+throwsError <- function() {
+	function(actual) {
+		result <- tryCatch( force(actual), error = function(e) e )
+		return(inherits(result, "error")) 
+	}
+}

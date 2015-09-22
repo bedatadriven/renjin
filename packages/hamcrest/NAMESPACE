@@ -6,4 +6,5 @@ export(
 	closeTo,
 	identicalTo,
 	equalTo,
-	instanceOf)
+	instanceOf,
+	throwsError)

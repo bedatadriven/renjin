@@ -105,37 +105,47 @@ setMethod(f = "seqType",
         notPROTEIN = is.element("FALSE",is.element(strsplit(getSequence(seq),split="")[[1]],PROTEIN))
 
         if(notDNA == FALSE & notRNA == TRUE & notPROTEIN == FALSE){
-                    cat("notDNA: ",notDNA,"\n")
-                    cat("notRNA: ",notRNA,"\n")
-                    cat("notPROTEIN: ",notPROTEIN,"\n")
-                    cat("Set as: DNA\n")
-                    return(setType(seq,"DNA"))
+            #cat("notDNA: ",notDNA,"\n")
+            #cat("notRNA: ",notRNA,"\n")
+            #cat("notPROTEIN: ",notPROTEIN,"\n")
+            #cat("Set as: DNA\n")
+            return(setType(seq,"DNA"))
         } else if(notDNA == TRUE & notRNA == FALSE & notPROTEIN == TRUE){
-            cat("notDNA: ",notDNA,"\n")
-            cat("notRNA: ",notRNA,"\n")
-            cat("notPROTEIN: ",notPROTEIN,"\n")
-            cat("Set as: RNA\n")
+            #cat("notDNA: ",notDNA,"\n")
+            #cat("notRNA: ",notRNA,"\n")
+            #cat("notPROTEIN: ",notPROTEIN,"\n")
+            #cat("Set as: RNA\n")
             return(setType(seq,"RNA"))
         } else if(notDNA == TRUE & notRNA == TRUE & notPROTEIN == FALSE){
-                    cat("notDNA: ",notDNA,"\n")
-                    cat("notRNA: ",notRNA,"\n")
-                    cat("notPROTEIN: ",notPROTEIN,"\n")
-                    cat("Set as: protein\n")
-                    return(setType(seq,"protein"))
+            #cat("notDNA: ",notDNA,"\n")
+            #cat("notRNA: ",notRNA,"\n")
+            #cat("notPROTEIN: ",notPROTEIN,"\n")
+            #cat("Set as: protein\n")
+            return(setType(seq,"protein"))
         } else if(notDNA == FALSE & notRNA == FALSE & notPROTEIN == TRUE){
-            cat("Could not distinquish between DNA or RNA, no U/T present in sequence. Type set as DNA\n")
-            cat("notDNA: ",notDNA,"\n")
-            cat("notRNA: ",notRNA,"\n")
-            cat("notPROTEIN: ",notPROTEIN,"\n")
-            cat("Set as: DNA\n")
+            #cat("Could not distinquish between DNA or RNA, no U/T present in sequence. Type set as DNA\n")
+            #cat("notDNA: ",notDNA,"\n")
+            #cat("notRNA: ",notRNA,"\n")
+            #cat("notPROTEIN: ",notPROTEIN,"\n")
+            #cat("Set as: DNA\n")
             return(setType(seq,"DNA"))
         } else {
-            cat("The type of input sequence could not be determined and is defined as unknown\n")
-            cat("notDNA: ",notDNA,"\n")
-            cat("notRNA: ",notRNA,"\n")
-            cat("notPROTEIN: ",notPROTEIN,"\n")
-            cat("Set as: unknown\n")
+            #cat("The type of input sequence could not be determined and is defined as unknown\n")
+            #cat("notDNA: ",notDNA,"\n")
+            #cat("notRNA: ",notRNA,"\n")
+            #cat("notPROTEIN: ",notPROTEIN,"\n")
+            #cat("Set as: unknown\n")
             return(setType(seq,"unknown"))
         }
     }
+)
+
+mle_ext = setClass("mle_ext",
+    slots = c(
+        input_file = "character"
+    ),
+    prototype = c(
+        input_file = "INPUT_OBJECT"
+    ),
+    contains = "mle"
 )

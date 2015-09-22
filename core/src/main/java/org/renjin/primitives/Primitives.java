@@ -627,6 +627,7 @@ public class Primitives {
       
     f("isS4", Types.class, 1);
     f("setS4Object", Types.class, 11);
+    f(".isMethodsDispatchOn", Methods.class, 1);
 
 /* Miscellaneous */
 

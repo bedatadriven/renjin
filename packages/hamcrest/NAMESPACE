@@ -7,4 +7,6 @@ export(
 	identicalTo,
 	equalTo,
 	instanceOf,
-	throwsError)
+	throwsError,
+	emitsWarning,
+	not)

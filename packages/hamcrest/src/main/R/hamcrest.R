@@ -86,3 +86,16 @@ throwsError <- function() {
 		return(inherits(result, "error")) 
 	}
 }
+
+emitsWarning <- function() {
+	function(actual) {
+		result <- tryCatch( force(actual), warning = function(e) e )
+		return(inherits(result, "warning")) 
+	}
+}
+
+not <- function(matcher) {
+	function(actual) {
+		return(!matcher(actual))
+	}
+}

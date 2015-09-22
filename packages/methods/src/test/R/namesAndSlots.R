@@ -9,52 +9,48 @@ test.warnWhenAssignNamesAndThereIsNoNamesSlot <- function() {
     setClass("B", contains = "numeric")
     xx <- new("B", 1)
 
-    assertTrue(
-        is(tryCatch(names(xx) <- "A" , warning = function(e)e), "warning")
-        )
-
+    assertThat( names(xx) <- "A", emitsWarning())
+    
     # after this should not warn
     names(xx) <- "A"
-    assertTrue(
-        is(tryCatch(names(xx) <- "B" , warning = function(e)e), "character")
-        )
+    assertThat( names(xx) <- "A", not(emitsWarning()))
 }
 
-test.setClassNames2 <- function() {
-    setClass("A", representation(xx = "numeric"))
-    a <- new("A", xx = 1)
-
-    assertTrue(
-        is(tryCatch(names(a) <- "A" , error = function(e)e), "error")
-        )
-
+test.validateSlotAssignments <- function() {
+    setClass("A", representation(mySlot = "numeric"))
+    a <- new("A", mySlot = 1)
+    
     ## test the checks on @<- primitive assignment
-    assertTrue(
-        is(tryCatch(a@xx <- "A" , error = function(e)e), "error")
-        )
-
+    assertThat( a@mySlot <- "A", throwsError())
+    
     ## test the checks on @<- primitive assignment
-    assertTrue(
-        is(tryCatch(a@yy <- 1 , error = function(e)e), "error")
-        )
+    assertThat( a@nonExistantSlot <- 1, throwsError())
 }
 
-test.setClassNamesRepresentation <- function() {
-    setClass("C", representation(xx = "numeric", names= "character"))
-    c <- new("C", xx = 1, names = "A")
+test.namesAttributesMayNotBeSetOnS4Objects <- function() {
+    setClass("C", representation(aSlot = "numeric", names= "character"))
+    c <- new("C", aSlot = 1, names = "A")
     
     assertThat( { names(c) <- "B" }, throwsError())
 }
 
-test.namesAttributesMayBeSetOnS4ObjectsContainingVectors <- function() {
+test.namesAttributesMayBeSetOnVectorsWithNamesSlot <- function() {
     setClass("D", contains = "numeric", representation(names = "character"))
-    d <- new("D", 1)
+    d <- new("D", 1, names = "duck")
     
     names(d) <- "A"
-
     
     assertThat(d@names, identicalTo("A"))
 }
+
+
+test.namesAttributesMayBeSetOnVectorsWithoutNamesSlotButWithWarning <- function() {
+    setClass("D", contains = "numeric", representation(anotherSlot = "character"))
+    d <- new("D", 1, anotherSlot = "foo")
+    
+    assertThat( names(d) <- "A", emitsWarning())
+}
+
 
 test.setClassDotDataSlot <- function() {
     setClass("B", contains = "numeric", representation(haha = "numeric"))

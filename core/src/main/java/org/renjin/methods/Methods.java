@@ -41,6 +41,15 @@ public class Methods {
     return environ;
   }
 
+  @Builtin(".isMethodsDispatchOn")
+  public static boolean isMethodsDispatchOn(@Current MethodDispatch methodDispatch) {
+    return methodDispatch.isEnabled();
+  }
+
+  @Builtin(".isMethodsDispatchOn")
+  public static void setMethodsDispatchOn(@Current MethodDispatch methodDispatch, boolean enabled) {
+    methodDispatch.setEnabled(enabled);
+  }
 
   public static boolean R_set_method_dispatch(@Current Context context, LogicalVector onOff) {
     MethodDispatch methodContext = context.getSession().getSingleton(MethodDispatch.class);

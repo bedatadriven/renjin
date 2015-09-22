@@ -21,18 +21,18 @@
 
 package org.renjin.base;
 
-import java.io.IOException;
-
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.Evaluation;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
 import org.renjin.primitives.vector.BinCodeVector;
 import org.renjin.sexp.*;
+
+import java.io.IOException;
 
 
 /**
@@ -52,10 +52,7 @@ public class Base {
 
   private Base() { }
   
-  public static boolean R_isMethodsDispatchOn(SEXP onOff) {
-    return false;
-  }
-
+  
   public static ListVector R_getSymbolInfo(String sname, SEXP spackage, boolean withRegistrationInfo) {
 
     ListVector.Builder result = new ListVector.Builder();

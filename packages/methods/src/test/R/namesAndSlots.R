@@ -1,8 +1,11 @@
+
+# Test the interaction between the names attribute and slots on S4 objects
 # adapted from https://github.com/wch/r-source/tree/trunk/src/library/methods/tests
+
 
 library(hamcrest)
 
-test.setClassNames1 <- function() {
+test.warnWhenAssignNamesAndThereIsNoNamesSlot <- function() {
     setClass("B", contains = "numeric")
     xx <- new("B", 1)
 
@@ -39,23 +42,18 @@ test.setClassNames2 <- function() {
 test.setClassNamesRepresentation <- function() {
     setClass("C", representation(xx = "numeric", names= "character"))
     c <- new("C", xx = 1, names = "A")
-    c@names <- "B"
-
-    assertTrue(
-        is(tryCatch(names(c) <- "A" , error = function(e)e), "error")
-        )
+    
+    assertThat( { names(c) <- "B" }, throwsError())
 }
 
-
-test.setClassNamesContains <- function() {
+test.namesAttributesMayBeSetOnS4ObjectsContainingVectors <- function() {
     setClass("D", contains = "numeric", representation(names = "character"))
     d <- new("D", 1)
+    
     names(d) <- "A"
 
-    assertThat(
-        d@names,
-        identicalTo("A")
-        )
+    
+    assertThat(d@names, identicalTo("A"))
 }
 
 test.setClassDotDataSlot <- function() {

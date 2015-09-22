@@ -1,6 +1,8 @@
 #  File src/library/stats4/R/mle.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2012 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -47,7 +49,7 @@ mle <- function(minuslogl, start = formals(minuslogl), method = "BFGS",
     start <- sapply(start, eval.parent) # expressions are allowed
     nm <- names(start)
     oo <- match(nm, names(fullcoef))
-    if (any(is.na(oo)))
+    if (anyNA(oo))
         stop("some named arguments in 'start' are not arguments to the supplied log-likelihood")
     start <- start[order(oo)]
     nm <- names(start) ## reordered names needed
@@ -94,7 +96,7 @@ setMethod("summary", "mle", function(object, ...){
     cmat <- cbind(Estimate = object@coef,
                   `Std. Error` = sqrt(diag(object@vcov)))
     m2logL <- 2*object@min
-    new("summary.mle", call=object@call, coef=cmat, m2logL= m2logL)
+    new("summary.mle", call = object@call, coef = cmat, m2logL = m2logL)
 })
 
 setGeneric("profile")
@@ -197,14 +199,14 @@ function (x, levels, conf = c(99, 95, 90, 80, 50)/100, nseg = 50,
     confstr <- NULL
     if (missing(levels)) {
         levels <- sqrt(qchisq(pmax(0, pmin(1, conf)), 1))
-        confstr <- paste(format(100 * conf), "%", sep = "")
+        confstr <- paste0(format(100 * conf), "%")
     }
     if (any(levels <= 0)) {
         levels <- levels[levels > 0]
         warning("levels truncated to positive values only")
     }
     if (is.null(confstr)) {
-        confstr <- paste(format(100 * pchisq(levels^2, 1)), "%", sep = "")
+        confstr <- paste0(format(100 * pchisq(levels^2, 1)), "%")
     }
     mlev <- max(levels) * 1.05
     nm <- names(obj)
@@ -318,11 +320,9 @@ setMethod("nobs", "mle", function (object, ...)
     if("nobs" %in% slotNames(object)) object@nobs else NA_integer_)
 
 setGeneric("logLik")
-setMethod("logLik", "mle",
-function (object, ...)
-{
-    if(length(list(...)))
-        warning("extra arguments discarded")
+setMethod("logLik", "mle", function(object, ...) {
+    if(!missing(...))
+	warning("extra arguments discarded")
     val <- -object@min
     if ("nobs" %in% slotNames(object) && # introduced in 2.13.0
         !is.na(no <- object@nobs)) attr(val, "nobs") <- no

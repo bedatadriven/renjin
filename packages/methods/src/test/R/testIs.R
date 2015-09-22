@@ -19,7 +19,7 @@ test.setClassInheritNonConditionalExplicit <- function(){
 	set.seed(124)
     x1 <- rnorm(10)
     y1 <- rnorm(10)
-    cc <- complex(real = y1, imaginary=x1)
+    cc <- complex(real = x1, imaginary=y1)
     xyc <- new("xy", x = x1, y = y1)
     asxyc <- as(xyc, "complex")
 
@@ -34,7 +34,7 @@ test.setClassInheritNonConditionalExplicit <- function(){
     assertThat(
     	cc,
     	equalTo(as(xyc, "complex"))
-    	)
+   	)
 
     as(xyc, "complex") <- cc * 1i
     nxy <- new("xy", x = -y1, y = x1)
@@ -64,6 +64,11 @@ test.setClassInheritNonConditionalExplicit <- function(){
     	)
 
 	setGeneric("size", function(x)standardGeneric("size"))
+
+	assertThat(
+		selectMethod("size", "ANY",optional=TRUE),
+		is.null
+		)
 
 	assertTrue(
 		is(size, "standardGeneric")

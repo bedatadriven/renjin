@@ -1,6 +1,7 @@
 # adapted from https://github.com/wch/r-source/tree/trunk/src/library/methods/tests
 
 library(hamcrest)
+library(stats)
 
 test.setClassInheritRepresentationAndContains <- function() {
 		setClass("A", representation(a="numeric"))
@@ -26,7 +27,6 @@ test.setClassInheritRepresentationAndContains <- function() {
 			)
 
 }
-
 
 test.setClassCallSlots <- function() {
 		setClass("A", representation(a="numeric"))

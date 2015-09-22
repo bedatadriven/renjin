@@ -1,17 +1,22 @@
-
 setClass("seq",
     slots = c(
         name = "character",
-        sequence = "character"
+        sequence = "character",
         type = "character"
-        )
+        ),
+    prototype = c(
+        name = "SequenceName",
+        sequence = "A",
+        type = ""
+    )
 )
 
 setGeneric(name = "setType",
-    def = function(object){
+    def = function(object,type){
         standardGeneric("setType")
     }
 )
+
 setMethod(f = "setType",
     definition = function(object,type){
         object@type <- type
@@ -20,7 +25,7 @@ setMethod(f = "setType",
 )
 
 setGeneric(name = "getType",
-    def = function(object){
+    def = function(object,type){
         standardGeneric("getType")
     }
 )
@@ -32,7 +37,7 @@ setMethod(f = "getType",
 
 
 setGeneric(name = "setName",
-    def = function(object){
+    def = function(object,name){
         standardGeneric("setName")
     }
 )
@@ -44,7 +49,7 @@ setMethod(f = "setName",
 )
 
 setGeneric(name = "getName",
-    def = function(object){
+    def = function(object,name){
         standardGeneric("getName")
     }
 )
@@ -56,7 +61,7 @@ setMethod(f = "getName",
 
 
 setGeneric(name = "setSequence",
-    def = function(object){
+    def = function(object,sequence){
         standardGeneric("setSequence")
     }
 )
@@ -68,13 +73,19 @@ setMethod(f = "setSequence",
 )
 
 setGeneric(name = "getSequence",
-    def = function(object){
+    def = function(object,sequence){
         standardGeneric("getSequence")
     }
 )
 setMethod(f = "getSequence",
     definition = function(object,sequence){
         return(object@sequence)
+    }
+)
+
+setGeneric(name = "seqType",
+    def = function(seq){
+        standardGeneric("seqType")
     }
 )
 
@@ -93,17 +104,37 @@ setMethod(f = "seqType",
         notRNA = is.element("FALSE",is.element(strsplit(getSequence(seq),split="")[[1]],RNA))
         notPROTEIN = is.element("FALSE",is.element(strsplit(getSequence(seq),split="")[[1]],PROTEIN))
 
-        if(notDNA == TRUE & notRNA == TRUE & notPROTEIN == FALSE){
-            return(setType(seq,"protein"))
+        if(notDNA == FALSE & notRNA == TRUE & notPROTEIN == FALSE){
+                    cat("notDNA: ",notDNA,"\n")
+                    cat("notRNA: ",notRNA,"\n")
+                    cat("notPROTEIN: ",notPROTEIN,"\n")
+                    cat("Set as: DNA\n")
+                    return(setType(seq,"DNA"))
         } else if(notDNA == TRUE & notRNA == FALSE & notPROTEIN == TRUE){
+            cat("notDNA: ",notDNA,"\n")
+            cat("notRNA: ",notRNA,"\n")
+            cat("notPROTEIN: ",notPROTEIN,"\n")
+            cat("Set as: RNA\n")
             return(setType(seq,"RNA"))
-        } else if(notDNA == FALSE & notRNA == TRUE & notPROTEIN == TRUE){
-            return(setType(seq,"DNA"))
+        } else if(notDNA == TRUE & notRNA == TRUE & notPROTEIN == FALSE){
+                    cat("notDNA: ",notDNA,"\n")
+                    cat("notRNA: ",notRNA,"\n")
+                    cat("notPROTEIN: ",notPROTEIN,"\n")
+                    cat("Set as: protein\n")
+                    return(setType(seq,"protein"))
         } else if(notDNA == FALSE & notRNA == FALSE & notPROTEIN == TRUE){
-            cat("Could not distinquish between DNA or RNA, no U/T present in sequence. Type set as DNA")
+            cat("Could not distinquish between DNA or RNA, no U/T present in sequence. Type set as DNA\n")
+            cat("notDNA: ",notDNA,"\n")
+            cat("notRNA: ",notRNA,"\n")
+            cat("notPROTEIN: ",notPROTEIN,"\n")
+            cat("Set as: DNA\n")
             return(setType(seq,"DNA"))
         } else {
-            cat("The type of input sequence could not be determined and is defined as unknown")
+            cat("The type of input sequence could not be determined and is defined as unknown\n")
+            cat("notDNA: ",notDNA,"\n")
+            cat("notRNA: ",notRNA,"\n")
+            cat("notPROTEIN: ",notPROTEIN,"\n")
+            cat("Set as: unknown\n")
             return(setType(seq,"unknown"))
         }
     }

@@ -5,7 +5,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
-import polyglot.ast.Eval;
 
 
 public class AssignSlotFunction extends SpecialFunction {
@@ -47,7 +46,17 @@ public class AssignSlotFunction extends SpecialFunction {
 
         // Nope, we're going to use the default version so we need to evaluate the value
         SEXP rhs = context.evaluate(args.getElementAsSEXP(2));
+        
+        // verify that the slot assignment is permitted
+        SEXP valueClass = rhs.getS3Class();
+        SEXP objectClass = object.getS3Class();
+        
+        FunctionCall checkCall = FunctionCall.newCall(Symbol.get("checkAtAssignment"),
+                objectClass, new StringArrayVector(slotName), valueClass);
+        
+        context.evaluate(checkCall, rho);
 
+        // Good to go, make the assignment
         return Methods.R_set_slot(context, object, slotName, rhs);
     }
 

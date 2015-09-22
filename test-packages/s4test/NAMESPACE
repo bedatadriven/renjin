@@ -1,2 +1,1 @@
-
-exportClasses("MArray")
+exportClasses("s4test")

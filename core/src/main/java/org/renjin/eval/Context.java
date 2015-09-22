@@ -392,11 +392,7 @@ public class Context {
 
 
   public void warn(String message) {
-    try {
-      Warning.warning(this, false, false, message);
-    } catch (IOException e) {
-      throw new EvalException(e);
-    }
+    Warning.emitWarning(this, false, message);
   }
   
   /**

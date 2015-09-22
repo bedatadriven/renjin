@@ -706,7 +706,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f <- function() eval(quote(x), envir=0L) ");
     eval(" environment(f) <- new.env() ");
     eval(" x <- 42" );
-    assertThat( eval("f()"), equalTo(c(42)));
+    assertThat(eval("f()"), equalTo(c(42)));
   }
   
   @Test
@@ -734,5 +734,46 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("x"), instanceOf(Null.class));
   }
 
+  @Test
+  public void warningFromTopLevel() {
+    eval("warning('too much caffeine.')");
+  }
+  
+  @Test
+  public void catchErrors() {
+    eval("x <- tryCatch( stop('foo') , error = function(e) e)");
+    
+    assertThat(eval("class(x)"), equalTo(c("simpleError", "error", "condition")));
+  }
+
+  @Test
+  public void catchErrorsAndHandle() {
+    eval("x <- tryCatch( stop('foo') , error = function(e) 42)");
+
+    assertThat(eval("x"), equalTo(c(42)));
+  }
+  
+  @Test
+  public void signalErrorUnhandled() {
+    eval("x <- tryCatch( { signalCondition(simpleError('STOP')); 46 } )");
+    
+    assertThat(eval("x"), equalTo(c(46)));
+  }
+
+  @Test
+  public void signalErrorHandled() {
+    eval("x <- tryCatch( { signalCondition(simpleError('STOP')); 46 }, error = function(e) 42 )");
+
+    assertThat(eval("x"), equalTo(c(42)));
+  }
+  
+  @Test
+  public void caughtWarnings() {
+    eval("x <- tryCatch({ warning('foo'); 'not caught' }, warning = function(e) e)");
+    
+    assertThat(eval("class(x)"), equalTo(c("simpleWarning", "warning", "condition")));
+    assertThat(eval("x$message"), equalTo(c("foo")));
+    assertThat(eval("x$call[[1]]"), equalTo(symbol("doTryCatch")));
+  }
 }
 

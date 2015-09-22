@@ -25,10 +25,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.Options;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 
@@ -49,22 +46,65 @@ public class Warning {
   public static void warning(@Current Context context, boolean call, boolean immediate, String message) throws IOException {
   
     if(call || !immediate) {
-      emitWarning(context, Contexts.sysCall(context, 1), immediate, message);
+      FunctionCall currentCall = findCurrentCall(context, 1);
+      
+      emitWarning(context, currentCall, immediate, message);
+      
     } else {
       context.getSession().getStdOut().println("Warning message:");
       context.getSession().getStdOut().println(message);
     }
   }
 
-  public static void emitWarning(Context context, FunctionCall call,
-      boolean immediate, String message)  {
+  /**
+   * Finds the FunctionCall from which the warning was emitted, or null if 
+   * warning was invoked from a top level context.
+   */
+  private static FunctionCall findCurrentCall(Context context, int toSkip) {
+    while(!context.isTopLevel()) {
+      if(context.getCall() != null) {
+        if(toSkip == 0) {
+          return context.getCall();
+        }
+        toSkip --;
+      }
+      context = context.getParent();
+    }
+    // we were at the top level
+    return null;
+  }
+  
+  public static void emitWarning(Context context, boolean immediate, String message) {
+    emitWarning(context, findCurrentCall(context, 0), immediate, message);
+  }
+
+  public static void emitWarning(Context context, FunctionCall call,  boolean immediate, String message)  {
+    
+    // Create the condition object
+    ListVector.NamedBuilder condition = new ListVector.NamedBuilder();
+    condition.setAttribute(Symbols.CLASS, new StringArrayVector("simpleWarning", "warning", "condition"));
+    condition.add("message", message);
+    if(call != null) {
+      condition.add("call", call);
+    }
+    
+    // Try signaling the condition
+    Conditions.signalCondition(context, condition.build(), message, call);
+    
+    // If ConditionException is not thrown, then proceed with default behavior
+    uncaughtWarning(context, call, immediate, message);
+  }
+  
+  /**
+   * Handle a warning that is not caught by any condition handlers installed by the user
+   */
+  private static void uncaughtWarning(Context context, FunctionCall call, boolean immediate, String message) {
     int warnMode = context.getSession().getSingleton(Options.class).getInt("warn", 0);
     if(warnMode == 1 || (warnMode <= 0 && immediate)) {
       try {
         context.getSession().getStdOut().println("Warning in " + call.toString() + " :");
         context.getSession().getStdOut().println("  " + message);
-      } catch(IOException e) {
-        
+      } catch(IOException ignored) {
       }
     } else if(warnMode == 0) {
       // store warnings until end of evaluation
@@ -75,12 +115,15 @@ public class Warning {
       if(baseEnv.hasVariable(LAST_WARNING)) {
         lastWarning.addAll((ListVector)baseEnv.getVariable(LAST_WARNING).force(context));
       }
-      
-      lastWarning.add(message, call);
+      if(call != null) {
+        lastWarning.add(message, call);
+      } else {
+        lastWarning.add(message, Null.INSTANCE);
+      }
       baseEnv.setVariable(LAST_WARNING, lastWarning.build());
     }
   }
-  
+
   @Internal
   public static void printDeferredWarnings(@Current Context context) {
     context.getSession().getConnectionTable().getStderr().getPrintWriter().println("In addition: (TODO)");

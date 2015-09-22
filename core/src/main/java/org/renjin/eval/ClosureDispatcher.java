@@ -79,10 +79,18 @@ public class ClosureDispatcher {
 
       return result;
     } catch(ReturnException e) {
-      if(e.getEnvironment() != functionEnvironment) {
+      if (e.getEnvironment() != functionEnvironment) {
         throw e;
       }
       return e.getValue();
+
+
+    } catch(ConditionException e) {
+      if(e.getHandlerContext() == functionContext) {
+        return new ListVector(e.getCondition(), Null.INSTANCE, e.getHandler());
+      } else {
+        throw e;
+      }
 
     } catch(EvalException e) {
       e.initContext(functionContext);

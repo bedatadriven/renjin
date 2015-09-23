@@ -1,3 +1,4 @@
 importClassesFrom(stats4, mle)
 exportClasses("seq")
 exportClasses("mle_ext")
+exportMethods(seqType, setType)

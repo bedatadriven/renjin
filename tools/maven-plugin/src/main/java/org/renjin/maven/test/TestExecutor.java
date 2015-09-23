@@ -188,6 +188,7 @@ public class TestExecutor {
       // This is renjin's own convention, but it's nice to be
       // able to see the results of many tests rather than 
       // topping at the first error
+      testOutput.println();
       for (Symbol name : session.getGlobalEnvironment().getSymbolNames()) {
         if (name.getPrintName().startsWith("test.")) {
           SEXP value = session.getGlobalEnvironment().getVariable(name);

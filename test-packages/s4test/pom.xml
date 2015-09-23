@@ -19,6 +19,16 @@
       <artifactId>methods</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>stats4</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -44,6 +54,11 @@
               <goal>test</goal>
             </goals>
             <phase>test</phase>
+            <configuration>
+              <defaultPackages>
+                <defaultPackage>methods</defaultPackage>
+              </defaultPackages>
+            </configuration>
           </execution>
         </executions>
       </plugin>

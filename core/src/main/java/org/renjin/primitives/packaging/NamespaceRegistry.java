@@ -6,7 +6,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
@@ -200,9 +200,12 @@ public class NamespaceRegistry {
    */
   private void setupImportsExports(Package pkg, Namespace namespace) throws IOException {
 
-    ByteSource namespaceFile = pkg.getResource("NAMESPACE");
-    NamespaceDirectiveParser.parse(namespaceFile.asCharSource(Charsets.UTF_8),
-            new NamespaceInitHandler(context, this, namespace));
+    CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
+    NamespaceFile namespaceFile = new NamespaceFile(namespaceSource);
+    
+    namespace.initImports(this, namespaceFile);
+    namespace.initExports(namespaceFile);
+    namespace.registerS3Methods(context, namespaceFile);
   }
 
 

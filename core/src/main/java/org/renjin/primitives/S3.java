@@ -1,6 +1,7 @@
 package org.renjin.primitives;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.renjin.eval.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
@@ -11,13 +12,16 @@ import org.renjin.sexp.*;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Primitives used in the implementation of the S3 object system
  */
 public class S3 {
 
-  public static Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
+  public static final Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
+
+  public static final Set<String> GROUPS = Sets.newHashSet("Ops", "Math", "Summary");
 
   @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
@@ -232,7 +236,7 @@ public class S3 {
     }
 
     return method.doApply(context, rho,
-            reassembleAndEvaluateArgs(object, args, context, rho));
+        reassembleAndEvaluateArgs(object, args, context, rho));
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,

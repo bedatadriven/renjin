@@ -1,25 +1,24 @@
 package org.renjin.maven;
 
-import java.io.*;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Set;
-
-import com.google.common.base.Strings;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
-import org.renjin.maven.namespace.DatasetsBuilder;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.io.Files;
-import org.renjin.primitives.io.DebianControlFiles;
 
 /**
  * Compiles R sources into a serialized blob
@@ -128,8 +127,9 @@ public class NamespaceMojo extends AbstractMojo {
 
       Object builder = classLoader.loadClass("org.renjin.maven.namespace.NamespaceBuilder").newInstance();
       builder.getClass()
-          .getMethod("build", String.class, String.class, File.class, File.class, List.class)
-          .invoke(builder, groupId, namespaceName, sourceDirectory, getEnvironmentFile(), defaultPackages);
+          .getMethod("build", String.class, String.class, File.class, File.class, File.class, List.class)
+          .invoke(builder, groupId, namespaceName, namespaceFile, sourceDirectory, getEnvironmentFile(),
+                  defaultPackages);
      
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);

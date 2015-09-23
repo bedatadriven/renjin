@@ -1,6 +1,9 @@
 package org.renjin.maven.namespace;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import com.google.common.io.CharSource;
+import com.google.common.io.Files;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
@@ -8,6 +11,7 @@ import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.packaging.NamespaceFile;
 import org.renjin.sexp.*;
 
 import java.io.File;
@@ -20,14 +24,16 @@ import java.util.List;
 public class NamespaceBuilder {
 
   private FqPackageName name;
+  private File namespaceFile;
   private File sourceDirectory;
   private File environmentFile;
   private List<String> defaultPackages;
 
-  public void build(String groupId, String namespaceName, File sourceDirectory,
+  public void build(String groupId, String namespaceName, File namespaceFile, File sourceDirectory,
       File environmentFile, List<String> defaultPackages) throws IOException {
 
     this.name = new FqPackageName(groupId, namespaceName);
+    this.namespaceFile = namespaceFile;
     this.sourceDirectory = sourceDirectory;
     this.environmentFile = environmentFile;
     this.defaultPackages = defaultPackages;
@@ -36,7 +42,7 @@ public class NamespaceBuilder {
   }
 
 
-  private void compileNamespaceEnvironment()  {
+  private void compileNamespaceEnvironment() throws IOException {
     List<File> sources = getRSources();
     if(isUpToDate(sources)) {
       return;
@@ -45,8 +51,18 @@ public class NamespaceBuilder {
     Context context = initContext();
 
     Namespace namespace = context.getNamespaceRegistry().createNamespace(new InitializingPackage(name));
+    importDependencies(context, namespace);
     evaluateSources(context, getRSources(), namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
+  }
+
+  private void importDependencies(Context context, Namespace namespace) throws IOException {
+
+    CharSource namespaceSource = Files.asCharSource(namespaceFile, Charsets.UTF_8);
+    NamespaceFile namespaceFile = new NamespaceFile(namespaceSource);
+    
+    namespace.initImports(context.getNamespaceRegistry(), namespaceFile);
+  
   }
 
   private boolean isUpToDate(List<File> sources) {

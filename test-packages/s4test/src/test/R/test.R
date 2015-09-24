@@ -41,8 +41,7 @@ test.ExtendClassFromMethodAndExportToNamespace = function() {
   assertThat( class(a@coef), identicalTo("numeric") )
   
   assertThat( class(a@coef), identicalTo(class(b@coef)) )
-  
-  assertThat( show(a), throwsError() )
+
   
   
   setClass("new_ext_mle",

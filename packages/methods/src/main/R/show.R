@@ -163,7 +163,7 @@ show <- function(object)
     if(is.logical(opt <- getOption("showPackageForClass")))
         opt
     else
-        is.list(.Call(C_R_getClassFromCache, as.character(className), .classTable))
+        is.list(.Call("R_getClassFromCache", as.character(className), .classTable,PACKAGE="methods"))
 }
 ## an informative string label for a class
 classLabel <- function(Class) {

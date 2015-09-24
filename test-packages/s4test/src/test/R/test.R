@@ -14,17 +14,17 @@ test.seqType.ClassExport.ToNamespace = function(){
   p = findType(p)
   
   assertThat(
-    d2@type,
+    d@type,
     identicalTo("DNA")
   )
   
   assertThat(
-    r2@type,
+    r@type,
     identicalTo("RNA")
   )
   
   assertThat(
-    p2@type,
+    p@type,
     identicalTo("protein")
     )
 }

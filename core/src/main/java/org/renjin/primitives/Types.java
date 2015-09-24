@@ -305,7 +305,12 @@ public class Types {
     if(object instanceof S4Object) {
       return true;
     }
-    return object.getAttribute(Symbols.S4_BIT) == LogicalVector.TRUE;
+    SEXP bit = object.getAttribute(Symbols.S4_BIT);
+    if(bit instanceof LogicalVector && bit.length() == 1 && ((LogicalVector) bit).getElementAsLogical(0) == Logical.TRUE) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Internal

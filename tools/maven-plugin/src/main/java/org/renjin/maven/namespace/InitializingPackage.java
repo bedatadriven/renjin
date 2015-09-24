@@ -2,6 +2,7 @@ package org.renjin.maven.namespace;
 
 import com.google.common.io.ByteSource;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Package;
 import org.renjin.sexp.NamedValue;
@@ -26,8 +27,11 @@ public class InitializingPackage extends Package {
   }
 
   @Override
-  public Class loadClass(String name) {
-    throw new UnsupportedOperationException();
+  public Class loadClass(String className) {
+    try {
+      return getClass().getClassLoader().loadClass(className);
+    } catch (ClassNotFoundException e) {
+      throw new EvalException("Could not load class %s from package %s", className, getName());
+    }
   }
-
 }

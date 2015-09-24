@@ -22,20 +22,43 @@ import java.util.*;
  */
 public class NamespaceFile {
 
+  public static class DynLibEntry {
+    private String libraryName;
+    private String prefix = "";
+    private boolean registration;
 
-  public static class DynlibEntry {
+    private List<DynLibSymbol> symbols = new ArrayList<DynLibSymbol>();
+
+    public String getLibraryName() {
+      return libraryName;
+    }
+
+    public String getPrefix() {
+      return prefix;
+    }
+
+    public boolean isRegistration() {
+      return registration;
+    }
+
+    public List<DynLibSymbol> getSymbols() {
+      return symbols;
+    }
+  }
+
+  public static class DynLibSymbol {
     private String alias;
     private String symbolName;
     private String fixes;
 
-    private DynlibEntry(String alias, String symbolName, String fixes, boolean registration) {
+    private DynLibSymbol(String alias, String symbolName) {
       this.alias = alias;
       this.symbolName = symbolName;
-      this.fixes = fixes;
     }
 
-    DynlibEntry(String symbolName, String fixes, boolean registration) {
+    private DynLibSymbol(String symbolName) {
       this.symbolName = symbolName;
+      this.alias = symbolName;
     }
 
     public String getAlias() {
@@ -57,18 +80,33 @@ public class NamespaceFile {
       this.packageName = packageName;
     }
 
+    /**
+     * @return the name of the package whose namespace should be imported.
+     */
     public String getPackageName() {
       return packageName;
     }
 
+    /**
+     *
+     * @return true if all exported symbols from this package should be imported
+     */
     public boolean isAllSymbols() {
       return allSymbols;
     }
 
+    /**
+     *
+     * @return the list of exported symbols that should be imported from this package's namespace.
+     */
     public List<Symbol> getSymbols() {
       return symbols;
     }
 
+    /**
+     *
+     * @return the list of S4 classes that should be imported from this package's namespace.
+     */
     public List<String> getClasses() {
       return classes;
     }
@@ -79,18 +117,29 @@ public class NamespaceFile {
     private boolean classImported;
     private Set<String> methods = new HashSet<String>();
 
-    private JvmClassImportEntry(String className) {
+    public JvmClassImportEntry(String className) {
       this.className = className;
     }
 
+    /**
+     * @return the fully-qualified name of the JVM class that should be imported. For example, "java.util.HashMap"
+     */
     public String getClassName() {
       return className;
     }
 
+    /**
+     *
+     * @return true if the class itself should be imported as {@code Class.getSimpleName()}
+     */
     public boolean isClassImported() {
       return classImported;
     }
 
+    /**
+     *
+     * @return the set of static methods that should be imported as symbols from this class.
+     */
     public Set<String> getMethods() {
       return methods;
     }
@@ -114,7 +163,7 @@ public class NamespaceFile {
     }
 
     /**
-     * 
+     *
      * @return the name of the generic method (for example, "print" or "predict")
      */
     public String getGenericMethod() {
@@ -122,8 +171,8 @@ public class NamespaceFile {
     }
 
     /**
-     * 
-     * @return the S3 class to which this exported function applies
+     *
+     * @return the S3 class to which this exported function applies.
      */
     public String getClassName() {
       return className;
@@ -138,8 +187,8 @@ public class NamespaceFile {
   }
 
   private Map<String, PackageImportEntry> packageImports = Maps.newHashMap();
-  private Map<String, JvmClassImportEntry> classImports = Maps.newHashMap();
-  private List<DynlibEntry> dynLibEntries = Lists.newArrayList();
+  private Map<String, JvmClassImportEntry> jvmImports = Maps.newHashMap();
+  private List<DynLibEntry> dynLibEntries = Lists.newArrayList();
 
   private Set<String> exportedPatterns = Sets.newHashSet();
   private Set<Symbol> exportedSymbols = Sets.newHashSet();
@@ -171,11 +220,12 @@ public class NamespaceFile {
   private PackageImportEntry packageImport(SEXP argument) {
     return packageImport(parseStringArgument(argument));
   }
-  
+
   private JvmClassImportEntry classImport(String className) {
-    JvmClassImportEntry entry = classImports.get(className);
+    JvmClassImportEntry entry = jvmImports.get(className);
     if(entry == null) {
       entry = new JvmClassImportEntry(className);
+      jvmImports.put(className, entry);
     }
     return entry;
   }
@@ -222,6 +272,11 @@ public class NamespaceFile {
     }
   }
 
+  /**
+   * Parses the {@code exportPattern(pattern)} directive, where {@code pattern} is a 
+   * regular expression used to match symbols defined in the namespace environment that
+   * are to be exported.
+   */
   private void parseExportPattern(FunctionCall call) {
     if(call.getArguments().length() != 1) {
       throw new EvalException("Expected one argument to exportPattern() directive");
@@ -229,18 +284,33 @@ public class NamespaceFile {
     exportedPatterns.add(parseStringArgument(call.getArgument(0)));
   }
 
+  /**
+   * Parses the {@code export(symbol1, symbol2, ....)} directive, where each argument
+   * is a specific symbol to exported from the namespace environment.
+   */
   private void parseExport(FunctionCall call) {
     for(SEXP argument : call.getArguments().values()) {
       exportedSymbols.add(parseSymbolArgument(argument));
     }
   }
 
+  /**
+   * Parses the {@code import(packageName1, packageName2, ... )} directive, where each argument
+   * specifies a package from which all symbols should be imported.
+   *
+   */
   private void parseImport(FunctionCall call) {
     for (String packageName : parseNameArguments(call)) {
       packageImport(packageName).allSymbols = true;
     }
   }
 
+  /**
+   * Parses the {@code importFrom(packageName, symbol1, symbol2, ...)} directive, where 
+   * each of the {@code symbol} arguments specifies a symbol to be imported from {@code packageName}.
+   *
+   * <p>This allows only a specific needed symbols to be imported rather than an entire package namespace.</p>
+   */
   private void parseImportFrom(FunctionCall call) {
     if(call.getArguments().length() < 2) {
       throw new EvalException("Expected at least two arguments to importFrom directive");
@@ -252,6 +322,11 @@ public class NamespaceFile {
     }
   }
 
+  /**
+   * Parses the {@code importClassesFrom(packageName, class1, class2, ...)} directive, which
+   * imports each of the given S4 classes from the given {@code packageName}.
+   *
+   */
   private void parseImportS4ClassesFrom(FunctionCall call) {
     if(call.getArguments().length() < 2) {
       throw new EvalException("Expected at least two arguments to importClassesFrom directive");
@@ -264,12 +339,26 @@ public class NamespaceFile {
     }
   }
 
+  /**
+   * Parses the Renjin-specific {@code importClass(class1, calss2, class3)} directive, which imports each of the given
+   * JVM classes as symbols into the namespace's imports.
+   *
+   * <p>For example, {@code importClass(java.util.HashMap} will add the binding {@code HashMap} to the namespace's
+   * imports environment, so that a package function could invoke {@code HashMap$new()}</p>
+   */
   private void parseImportClass(FunctionCall call) {
     for (String className : parseNameArguments(call)) {
       classImport(className).classImported = true;
     }
   }
 
+  /**
+   * Parses the Renjin-specific {@code importFromClass(className, methodName1, methodName2, ...)}, which imports each
+   * of the static methods referenced by {@code methodName1}, {@code methodName2} from the JVM class {@code className}.
+   *
+   * <p>For example, {@code importFromClass(java.lang.System, nanoTime} will import the symbol {@code nanoTime}, so
+   * that a package function could invoke {@code x <- nanoTime()}</p>
+   */
   private void parseImportFromClass(FunctionCall call) {
     if(call.getArguments().length() < 2) {
       throw new EvalException("Expected at least two arguments to importFromClass directive");
@@ -352,35 +441,30 @@ public class NamespaceFile {
     if(call.getArguments().length() < 1) {
       throw new EvalException("Expected at least one argument to useDynlib");
     }
-    String libName = parseStringArgument(call.getArgument(0));
 
-    boolean registration = false;
-    String fixes = "";
+    DynLibEntry entry = new DynLibEntry();
+    entry.libraryName = parseStringArgument(call.getArgument(0));
 
     for(PairList.Node node : Iterables.skip(call.getArguments().nodes(),1)) {
       if(node.hasTag()) {
+
         if (node.getTag().getPrintName().equals(".registration")) {
-          registration = parseLogical(node.getValue());
+          entry.registration = parseLogical(node.getValue());
         } else if (node.getTag().getPrintName().equals(".fixes")) {
-          fixes = parseStringArgument(node.getValue());
-        }
-      }
-    }
+          entry.prefix = parseStringArgument(node.getValue());
+        } else {
 
-    for(PairList.Node node : Iterables.skip(call.getArguments().nodes(),1)) {
-      if(node.hasTag()) {
-        if(!node.getTag().getPrintName().equals(".registration") && 
-           !node.getTag().getPrintName().equals(".fixes")) {
-
-          dynLibEntries.add(new DynlibEntry(
-                  parseStringArgument(node.getTag()),
-                  parseStringArgument(node.getValue()), fixes, registration));
+          entry.symbols.add(new DynLibSymbol(
+              parseStringArgument(node.getTag()),
+              parseStringArgument(node.getValue())));
         }
+
       } else {
-        dynLibEntries.add(new DynlibEntry(
-                parseStringArgument(node.getValue()), fixes, registration));
+        entry.symbols.add(new DynLibSymbol(
+            parseStringArgument(node.getValue())));
       }
     }
+    dynLibEntries.add(entry);
   }
 
   private static boolean parseLogical(SEXP value) {
@@ -391,38 +475,82 @@ public class NamespaceFile {
     }
   }
 
+  /**
+   *
+   * @return the collection of packages from which this namespace imports.
+   */
   public Collection<PackageImportEntry> getPackageImports() {
     return packageImports.values();
   }
 
-  public Collection<JvmClassImportEntry> getClassImports() {
-    return classImports.values();
+  /**
+   *
+   * @return the collection of JVM classes from which this namespace imports.
+   */
+  public Collection<JvmClassImportEntry> getJvmImports() {
+    return jvmImports.values();
   }
 
-  public List<DynlibEntry> getDynLibEntries() {
+  /**
+   *
+   * Gets the list of dynamic libraries from which this namespace imports.
+   *
+   * <p>In GNU R, this directive refers to native libraries compiled from C/C++/Fortran. Renjin
+   * has a tool chain which will compile these sources to a JVM class. This directive is retained
+   * for compatability with GNU R packages.</p>
+   *
+   * @return the list of dynamic libraries from which this namespace imports. 
+   */
+  public List<DynLibEntry> getDynLibEntries() {
     return dynLibEntries;
   }
 
+  /**
+   *
+   * @return the set of patterns that are used to match symbols that should be exported from this namespace
+   */
   public Set<String> getExportedPatterns() {
     return exportedPatterns;
   }
 
+  /**
+   *
+   * @return the set of symbols that should be exported from this namespace
+   */
   public Set<Symbol> getExportedSymbols() {
     return exportedSymbols;
   }
 
+  /**
+   *
+   * @return the list of S3 methods in this namespace extending generic functions originally 
+   * defined in other namespaces.
+   */
   public List<S3MethodEntry> getExportedS3Methods() {
     return exportedS3Methods;
   }
 
+  /**
+   *
+   * @return the set of S4 classes to be exported from this namespace
+   */
   public Set<String> getExportedClasses() {
     return exportedClasses;
   }
 
+  /**
+   *
+   * @return the set of regular expressions patterns that match the class names which should be exported
+   * from this namespace.
+   */
   public Set<String> getExportedClassPatterns() {
     return exportedClassPatterns;
   }
 
+  /**
+   *
+   * @return the set of S4 methods which should be exported from this namespace.
+   */
   public List<String> getExportedS4Methods() {
     return exportedS4Methods;
   }

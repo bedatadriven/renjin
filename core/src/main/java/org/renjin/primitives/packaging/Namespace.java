@@ -15,7 +15,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Package namespace.
+ *
+ * <p>The pa</p>
+ */
 public class Namespace {
+
+  private final Package pkg;
 
   private final Environment namespaceEnvironment;
   private final Environment importsEnvironment;
@@ -23,7 +30,6 @@ public class Namespace {
 
   private final List<Symbol> exports = Lists.newArrayList();
 
-  private Package pkg;
 
   public Namespace(Package pkg, Environment namespaceEnvironment) {
     this.pkg = pkg;
@@ -82,6 +88,10 @@ public class Namespace {
     throw new EvalException("Namespace " + pkg.getName() + " has no exported symbol named '" + entry.getPrintName() + "'");
   }
 
+  /**
+   *
+   * @return the imports environemnt 
+   */
   public Environment getImportsEnvironment() {
     return importsEnvironment;
   }
@@ -98,7 +108,6 @@ public class Namespace {
    * Copies the exported (public) symbols from our namespace environment
    * to the given package environment
    *
-   * @param packageEnv
    */
   public void copyExportsTo(Environment packageEnv) {
     for(Symbol name : exports) {
@@ -135,11 +144,11 @@ public class Namespace {
     }
 
     // Import from JVM classes
-    for (NamespaceFile.JvmClassImportEntry entry : file.getClassImports()) {
+    for (NamespaceFile.JvmClassImportEntry entry : file.getJvmImports()) {
       Class importedClass = pkg.loadClass(entry.getClassName());
 
       if(entry.isClassImported()) {
-        importsEnvironment.setVariable(entry.getClassName(), new ExternalPtr(importedClass));
+        importsEnvironment.setVariable(importedClass.getSimpleName(), new ExternalPtr(importedClass));
       }
       if(!entry.getMethods().isEmpty()) {
         ClassBindingImpl importedClassBinding = ClassBindingImpl.get(importedClass);
@@ -150,34 +159,36 @@ public class Namespace {
     }
 
     // Import from transpiled classes
-//    try {
-//      FqPackageName packageName = pkg.getName();
-//      String className = packageName.getGroupId() + "." + packageName.getPackageName() + "." + libraryName;
-//      Class clazz = pkg.loadClass(className);
-//
-//      if(entries.isEmpty()) {
-//        // add all methods from class file
-//        for(Method method : clazz.getMethods()) {
-//          if(isPublicStatic(method)) {
-//            addGnurMethod(fixes + method.getName(), method);
-//          }
-//        }
-//      } else {
-//        for(NamespaceFile.DynlibEntry entry : entries) {
-//          Method method = findGnurMethod(clazz, entry.getSymbolName());
-//          if(entry.getAlias() != null) {
-//            addGnurMethod(fixes + entry.getAlias(), method);
-//          } else {
-//            addGnurMethod(fixes + entry.getSymbolName(), method);
-//          }
-//        }
-//      }
-//    } catch(Exception e) {
-//      // Allow the program to continue, there may be some packages whose gnur
-//      // compilation failed but can still partially function.
-//      System.err.println("WARNING: Failed to import dynLib entries for " + namespace.getName() + ", expect subsequent failures");
-//    }
+    for (NamespaceFile.DynLibEntry library : file.getDynLibEntries()) {
+      importDynamicLibrary(library);
+    }
 
+  }
+
+  private void importDynamicLibrary(NamespaceFile.DynLibEntry entry) {
+    try {
+      FqPackageName packageName = pkg.getName();
+      String className = packageName.getGroupId() + "." + packageName.getPackageName() + "." + entry.getLibraryName();
+      Class clazz = pkg.loadClass(className);
+
+      if(entry.getSymbols().isEmpty()) {
+        // add all methods from class file
+        for(Method method : clazz.getMethods()) {
+          if(isPublicStatic(method)) {
+            addGnurMethod(entry.getPrefix() + method.getName(), method);
+          }
+        }
+      } else {
+        for(NamespaceFile.DynLibSymbol symbol : entry.getSymbols()) {
+          Method method = findGnurMethod(clazz, symbol.getSymbolName());
+          addGnurMethod(entry.getPrefix() + symbol.getAlias(), method);
+        }
+      }
+    } catch(Exception e) {
+      // Allow the program to continue, there may be some packages whose gnur
+      // compilation failed but can still partially function.
+      System.err.println("WARNING: Failed to import dynLib entries for " + getName() + ", expect subsequent failures");
+    }
   }
 
 
@@ -219,7 +230,7 @@ public class Namespace {
     for (String className : file.getExportedClasses()) {
       exports.add(S4.classNameMetadata(className));
     }
-    
+
     // .. And the S4 methods and their classes
     for (String methodName : file.getExportedS4Methods()) {
       exports.add(Symbol.get(methodName));
@@ -251,7 +262,7 @@ public class Namespace {
     }
     Environment methodsTable = (Environment) definitionEnv.getVariable(S3.METHODS_TABLE);
     methodsTable.setVariable(entry.getGenericMethod() + "." + entry.getClassName(), method);
-    
+
   }
 
   private Function resolveFunction(Context context, String functionName) {

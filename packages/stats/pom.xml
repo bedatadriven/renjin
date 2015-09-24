@@ -66,12 +66,18 @@
         <version>${project.version}</version>
         <executions>
           <execution>
-            <id>build</id>
+            <id>compile-c-sources</id>
             <goals>
-              <goal>namespace-compile</goal>
               <goal>gnur-sources-compile</goal>
             </goals>
             <phase>compile</phase>
+          </execution>
+          <execution>
+            <id>build</id>
+            <goals>
+              <goal>namespace-compile</goal>
+            </goals>
+            <phase>process-classes</phase>
           </execution>
           <execution>
             <id>test</id>

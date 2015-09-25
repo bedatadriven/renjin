@@ -1,5 +1,5 @@
 library(stats4)
-library(s4test)
+library(org.renjin.test.s4test)
 library(hamcrest)
 
 

@@ -82,8 +82,18 @@ public class NamespaceRegistry {
   public Namespace getNamespace(Symbol symbol) {
     if(symbol.getPrintName().equals("base")) {
       return baseNamespace;
-
-    } else if(couldBeFullyQualified(symbol)) {
+    }
+    
+    // try to match name to currently loaded namespaces
+    for (FqPackageName fqPackageName : namespaceMap.keySet()) {
+      if(symbol.getPrintName().equals(fqPackageName.toString('.')) ||
+         symbol.getPrintName().equals(fqPackageName.getPackageName())) {
+        return namespaceMap.get(fqPackageName);
+      }
+    }
+    
+      
+    if(couldBeFullyQualified(symbol)) {
 
       // assume we've been provided with a nice, fully-qualified
       // org.myGroup.myPackageName

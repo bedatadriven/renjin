@@ -9,7 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.renjin.cran</groupId>
+  <groupId>org.renjin.test</groupId>
   <artifactId>s4test</artifactId>
   <name>Test S4 package</name>
 

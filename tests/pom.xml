@@ -42,16 +42,11 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
-    <dependency>
-      <groupId>org.renjin.test</groupId>
-      <artifactId>thirdparty</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
 		<dependency>
-			<groupId>org.renjin.cran</groupId>
-			<artifactId>s4test</artifactId>
+			<groupId>org.renjin.test</groupId>
+			<artifactId>thirdparty</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
@@ -62,7 +57,7 @@
 				<version>${project.version}</version>
 				<executions>
 					<execution>
-						<id>test</id>	
+						<id>test</id>
 						<goals>
 							<goal>test</goal>
 						</goals>
@@ -71,5 +66,5 @@
 				</executions>
 			</plugin>
 		</plugins>
-  </build>
+	</build>
 </project>

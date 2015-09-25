@@ -64,6 +64,7 @@
             </goals>
             <phase>test</phase>
             <configuration>
+              <skipTests>true</skipTests>
               <defaultPackages>
                 <package>methods</package>
                 <package>stats</package>

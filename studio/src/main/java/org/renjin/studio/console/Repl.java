@@ -21,25 +21,21 @@
 
 package org.renjin.studio.console;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.Reader;
-
 import org.apache.commons.vfs2.FileSystemException;
+import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.parser.ParseException;
-import org.renjin.parser.ParseOptions;
-import org.renjin.parser.ParseState;
-import org.renjin.parser.RLexer;
-import org.renjin.parser.RParser;
+import org.renjin.parser.*;
 import org.renjin.primitives.Warning;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 import org.renjin.studio.StudioSession;
-import org.renjin.RenjinVersion;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Reader;
 
 
 /**
@@ -116,15 +112,15 @@ public class Repl implements Runnable {
   }
 
   private void printWarnings() {
-    SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-        topLevelContext.getEnvironment().getBaseEnvironment());
+        topLevelContext.getBaseEnvironment());
     }
   }
 
   private void clearWarnings() {
-    topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
+    topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
 
   private void printGreeting() {

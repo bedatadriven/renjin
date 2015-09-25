@@ -1,6 +1,8 @@
 #  File src/library/methods/R/oldClass.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -33,7 +35,7 @@ setOldClass <- function(Classes, prototype = NULL,
                   removeClass(clName, where = where) # so Recall() will work
             }
             else
-              stop(gettextf("argument S4Class must be a class definition:  got an object of class %s",
+              stop(gettextf("argument 'S4Class' must be a class definition: got an object of class %s",
                             dQuote(class(S4Class))),
                    domain = NA)
         }
@@ -58,11 +60,10 @@ setOldClass <- function(Classes, prototype = NULL,
     ## to convert S4 objects in S3 method dispatch.
     ## TODO:  should provide an optional argument to setOldClass()
     ## to prevednt this conversion if it's not needed
-    if(!exists(".S3MethodsClasses", envir = where, inherits = FALSE)) {
+    if(is.null(S3table <- where$.S3MethodsClasses)) {
       S3table <- new.env()
       assign(".S3MethodsClasses", S3table, envir = where)
     }
-    else S3table <- get(".S3MethodsClasses", envir = where)
     dataPartClass <- NULL
     for(cl in rev(Classes)) {
        S3Class <- c(cl, S3Class)
@@ -72,7 +73,10 @@ setOldClass <- function(Classes, prototype = NULL,
                 ## maybe an object type or other valid data part
                 cl1 <- .validDataPartClass(cl, where, dataPartClass)
                 if(is.null(cl1))
-                  stop(gettextf("inconsistent old-style class information for \"%s\"; the class is defined but does not extend \"%s\" and is not valid as the data part", cl, prevClass), domain = NA)
+                  stop(gettextf("inconsistent old-style class information for %s; the class is defined but does not extend %s and is not valid as the data part",
+                                dQuote(cl),
+                                dQuote(prevClass)),
+                       domain = NA)
                 else dataPartClass <- cl1
               }
             else {
@@ -93,7 +97,7 @@ setOldClass <- function(Classes, prototype = NULL,
                 setClass(cl, contains = prevClass, prototype = prototype, where = where)
             else { #exceptionally, we allow an S3 object from the S3 class as prototype
                 if(.class1(prototype) != mainClass)
-                  stop(gettextf('The S3 class of the prototype, "%s", is undefined; only allowed when this is the S3 class being registered ("%s")', .class1(prototype), mainClass), domain = NA)
+                  stop(gettextf('the S3 class of the prototype, "%s", is undefined; only allowed when this is the S3 class being registered ("%s")', .class1(prototype), mainClass), domain = NA)
                 setClass(cl, contains = prevClass, where = where)
                 useP <- FALSE
             }
@@ -113,8 +117,7 @@ setOldClass <- function(Classes, prototype = NULL,
 
 .restoreClass <- function(def, where) {
     cl <- def@className
-    message(gettextf("Restoring definition of class %s",
-                     dQuote(cl)),
+    message(gettextf("restoring definition of class %s", dQuote(cl)),
             domain = NA)
     if(isClass(cl, where = where))
        removeClass(cl, where = where)
@@ -138,11 +141,19 @@ setOldClass <- function(Classes, prototype = NULL,
     def@slots <- c(def@slots, curDef@slots)
     ext <- c(def@contains, curDef@contains)
     ## correct ordering & duplicate resolution: copied from .walkClassGraph
-    distOrder <- sort.list(sapply(ext, function(x)x@distance))
+    distOrder <- sort.list(vapply(ext, function(x) x@distance, 1))
     ext <- ext[distOrder]
     if(anyDuplicated(names(ext)))
         ext <- .resolveSuperclasses(def, ext, where)
     def@contains <- ext
+    oldSupers <- setdiff(names(def@contains), names(curDef@contains))
+    addSubclass <- function(super) {
+      superDef <- getClassDef(super, where)
+      superWhere <- .findOrCopyClass(super, superDef, where, "subclass")
+      superDef@subclasses[[Class]] <- def@contains[[super]]
+      assignClassDef(super, superDef, superWhere, TRUE)
+    }
+    lapply(oldSupers, addSubclass)
     subcls <- curDef@subclasses
     if(length(subcls) > 0) {
       def@subclasses[names(subcls)]  <- subcls
@@ -174,8 +185,8 @@ setOldClass <- function(Classes, prototype = NULL,
         bad <- character()
         for(what in n2[match(n2, n1, 0) > 0])
           if(!extends(elNamed(slots1, what), elNamed(slots2, what))) {
-              message(gettextf("Slot \"%s\": class %s should extend class %s",
-                               what,
+              message(gettextf("slot %s: class %s should extend class %s",
+                               sQuote(what),
                                dQuote(elNamed(slots1, what)),
                                dQuote(elNamed(slots2, what))),
                       domain = NA)
@@ -184,7 +195,7 @@ setOldClass <- function(Classes, prototype = NULL,
         if(length(bad)>0)
           stop(
                gettextf("invalid S4 class corresponding to S3 class: slots in  S4 version must extend corresponding slots in S3 version: fails for %s",
-                        paste('"', bad, '"', sep="",  collapse = ", ")),
+                        paste0('"', bad, '"',  collapse = ", ")),
                domain = NA)
     }
     TRUE
@@ -194,6 +205,8 @@ setOldClass <- function(Classes, prototype = NULL,
 slotsFromS3 <- function(object) {
     list()
 }
+
+utils::globalVariables("CLASS")
 
 .oldTestFun <- function(object) CLASS %in% attr(object, "class")
 .oldCoerceFun <- function(from, strict = TRUE) {
@@ -217,7 +230,8 @@ slotsFromS3 <- function(object) {
     for(cl in Classes) {
         if(isClass(cl, where)) {
             if(!extends(cl, "oldClass"))
-                warning(gettextf("inconsistent old-style class information for \"%s\" (maybe mixing old and new classes?)", cl), domain = NA)
+                warning(gettextf("inconsistent old-style class information for %s (maybe mixing old and new classes?)",
+                                 dQuote(cl)), domain = NA)
         }
         else
             setClass(cl, representation("oldClass", "VIRTUAL"), where = where)
@@ -242,7 +256,10 @@ S3Class <- function(object) {
     if(is.null(value)) {
         if(isS4(object)) {
             if(is.na(match(".Data", names(getClass(class(object))@slots))))
-              stop("S3Class only defined for extensions of \"oldClass\" or classes with a data part:  not true of class \"", class(object), "\"")
+                stop(gettextf("'S3Class' only defined for extensions of %s or classes with a data part:  not true of class %s",
+                              dQuote("oldClass"),
+                              dQuote(class(object))),
+                     domain = NA)
             class(getDataPart(object))
         }
         else
@@ -269,7 +286,7 @@ S3Class <- function(object) {
         current <- attr(object, ".S3Class")
         if(is.null(current)) {
             if(is.na(match(value, .BasicClasses)))
-               stop(gettextf("S3Class can only be assigned to S4 objects that extend \"oldClass\"; not true of class %s",
+               stop(gettextf("'S3Class' can only assign to S4 objects that extend \"oldClass\"; not true of class %s",
                              dQuote(class(object))),
                     domain = NA)
             mode(object) <- value ## may still fail, a further check would be good
@@ -286,7 +303,7 @@ S3Class <- function(object) {
 ## name are added, other than the className slot and the super/sub class names
 ## in the contains, subclasses slots respectively.
 .renameClassDef <- function(def, className) {
-    oldName <- def@className
+##    oldName <- def@className
     validObject(def) # to catch any non-SClassExtension objects
     def@className <- className
     comp <- def@contains

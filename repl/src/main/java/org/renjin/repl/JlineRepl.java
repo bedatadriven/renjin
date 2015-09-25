@@ -206,15 +206,15 @@ public class JlineRepl {
   }
 
   private void printWarnings() {
-    SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-              topLevelContext.getEnvironment().getBaseEnvironment());
+              topLevelContext.getBaseEnvironment());
     }
   }
 
   private void clearWarnings() {
-    topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
+    topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
 
   public ConsoleReader getReader() {

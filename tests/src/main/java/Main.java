@@ -1,3 +1,5 @@
+import org.renjin.eval.EvalException;
+
 import javax.script.*;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -15,16 +17,22 @@ public class Main {
     // create a script engine manager
     ScriptEngineManager factory = new ScriptEngineManager();
 
-    // create an R engine
-    ScriptEngine engine = factory.getEngineByName("Renjin");
-    engine.eval(new FileReader("src/test/R/" + file));
+    try {
+      // create an R engine
+      ScriptEngine engine = factory.getEngineByName("Renjin");
+      engine.eval(new FileReader("src/test/R/" + file));
 
-    Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-    for(String name : bindings.keySet()) {
-      if(name.startsWith("test.")) {
-        Invocable invocable = (Invocable) engine;
-        invocable.invokeFunction(name);
+      Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+      for (String name : bindings.keySet()) {
+        if (name.startsWith("test.")) {
+          Invocable invocable = (Invocable) engine;
+          invocable.invokeFunction(name);
+        }
       }
+    } catch (EvalException e) {
+      System.out.println("ERROR: " + e.getMessage());
+      e.printRStackTrace(System.out);
+      throw e;
     }
   }
 }

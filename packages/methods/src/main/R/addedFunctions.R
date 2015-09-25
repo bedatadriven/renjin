@@ -1,6 +1,8 @@
 #  File src/library/methods/R/addedFunctions.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -49,10 +51,8 @@ getFunction <- function(name, generic = TRUE, mustFind = TRUE,
     lastEnv <- if(isNamespace(where)) function(where) isBaseNamespace(where) else
     function(where) identical(where, baseenv())
     repeat {
-        if(exists(name, envir = where, mode = "function", inherits = FALSE)) {
-            f <- get(name, envir = where)
+      if(!is.null(f <- get0(name, envir = where, mode = "function", inherits = FALSE)))
             found <- generic || !is(f, "genericFunction")
-        }
         if(found || lastEnv(where))
             break
         where <- parent.env(where)
@@ -84,7 +84,8 @@ elNamed <-
     i <- match(name, names(x))
     if(is.na(i)) {
         if(mustFind)
-            stop(gettextf("\"%s\" is not one of the element names", name),
+            stop(gettextf("%s is not one of the element names",
+                          sQuote(name)),
                  domain = NA)
         else NULL
     }
@@ -115,8 +116,7 @@ findFunction <-
     ok <- logical(length(allWhere))
     for(i in seq_along(allWhere)) {
 	wherei <- allWhere[[i]]
-	if(exists(f, wherei, inherits = FALSE)) {
-	    fdef <- get(f, wherei)
+	if(!is.null(fdef <- wherei[[f]])) {
 	    ok[i] <- is.function(fdef) && (generic || is.primitive(fdef) || !isGeneric(f, wherei, fdef))
 	}## else ok[i] <- FALSE
     }
@@ -131,7 +131,7 @@ Quote <- base::quote #was get("quote" , mode = "function")
 .message <- function(..., domain = NULL, appendLF = TRUE) {
     ## Output all the arguments, pasted together with no intervening spaces,
     ## wrapping long lines
-    text <- paste(..., collapse="", sep="")
+    text <- paste0(..., collapse="")
     lines <- strwrap(text, width = max(20, 7 * getOption("width") %/% 8))
     message(paste(lines, collapse="\n"), domain = domain, appendLF = appendLF)
 }

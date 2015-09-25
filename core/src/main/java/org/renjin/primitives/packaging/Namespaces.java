@@ -41,6 +41,11 @@ public class Namespaces {
       return Null.INSTANCE;
     }
   }
+  
+  @Internal
+  public static Environment getNamespaceRegistry(@Current NamespaceRegistry registry) {
+    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry));
+  }
 
   @Builtin
   public static SEXP getNamespace(@Current NamespaceRegistry registry, Symbol name) {

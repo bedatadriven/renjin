@@ -4,10 +4,38 @@
 # --------------------------------------
 
 assertThat <- function(actual, matcher) {
+	
+	call <- match.call()
+
 	if(!matcher(actual)) {
-		stop("\nExpected: ", deparse(substitute(matcher)), "\nGot: ", deparse(actual))
+		stop(sprintf("\nassertThat(%s, %s) failed\nGot: %s", 
+				deparse(call$actual), deparse(call$matcher), deparse(actual)))
 	}
 }
+
+
+assertTrue <- function(value) {
+
+	call <- match.call()
+
+	if(!identical(value, TRUE)) {
+		stop(sprintf("\nassertTrue(%s) failed\nGot: %s", 
+				deparse(call$value), deparse(value)))
+	}	
+}
+
+
+assertFalse <- function(value) {
+
+	call <- match.call()
+
+	if(!identical(value, FALSE)) {
+		stop(sprintf("\nassertFalse(%s) failed\nGot: %s", 
+				deparse(call$value), deparse(value)))
+	}	
+}
+
+
 
 # --------------------------------------
 # MATCHER FUNCTIONS
@@ -52,14 +80,22 @@ isFalse <- function() {
     }
 }
 
-# --------------------------------------
-# ABBREVIATIONS
-# --------------------------------------
-
-assertTrue <- function(value) {
-    assertThat(value, isTrue())
+throwsError <- function() {
+	function(actual) {
+		result <- tryCatch( force(actual), error = function(e) e )
+		return(inherits(result, "error")) 
+	}
 }
 
-assertFalse <- function(value) {
-    assertThat(value, isFalse())
+emitsWarning <- function() {
+	function(actual) {
+		result <- tryCatch( force(actual), warning = function(e) e )
+		return(inherits(result, "warning")) 
+	}
+}
+
+not <- function(matcher) {
+	function(actual) {
+		return(!matcher(actual))
+	}
 }

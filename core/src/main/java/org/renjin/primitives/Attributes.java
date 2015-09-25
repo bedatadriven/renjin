@@ -293,7 +293,30 @@ public class Attributes {
 
   @Generic
   @Builtin("names<-")
-  public static SEXP setNames(SEXP exp, @InvokeAsCharacter Vector names) {
+  public static SEXP setNames(@Current Context context, SEXP exp, @InvokeAsCharacter Vector names) {
+    
+    // Verify that setting the names on this object is legal
+    if(Types.isS4(exp)) {
+      String className = ((StringVector) exp.getAttribute(Symbols.CLASS)).getElementAsString(0);
+
+      if (exp instanceof S4Object) {
+        // The names() function can never be used to assign the names slot on a "real" S4 object
+        if (exp.getAttribute(Symbols.NAMES) == Null.INSTANCE) {
+          throw new EvalException("class '%s' has no 'names' slot", className);
+        } else {
+          throw new EvalException("invalid to use names()<- to set the 'names' slot in a non-vector class ('%s')",
+                  className);
+        }
+      } else {
+        // However, it IS legal to use names() to assign the slot on a vector that has been baptized as an S4 object
+        // We do warn if the class does not have a names slot
+        if (exp.getAttribute(Symbols.NAMES) == Null.INSTANCE) {
+          context.warn(String.format(
+                  "class '%s' has no 'names' slot; assigning a names attribute will create an invalid object", className));
+        }
+      }
+    }
+    
     if(exp.getAttributes().getDim().length() == 1) {
       return exp.setAttributes(exp.getAttributes()
           .copy()

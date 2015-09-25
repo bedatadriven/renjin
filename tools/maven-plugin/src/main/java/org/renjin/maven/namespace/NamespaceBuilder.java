@@ -1,35 +1,39 @@
 package org.renjin.maven.namespace;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.io.CharSource;
+import com.google.common.io.Files;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.maven.PackageDescription;
 import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.packaging.NamespaceFile;
 import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class NamespaceBuilder {
 
   private FqPackageName name;
+  private File namespaceFile;
   private File sourceDirectory;
   private File environmentFile;
   private List<String> defaultPackages;
 
-  public void build(String groupId, String namespaceName, File sourceDirectory,
+  public void build(String groupId, String namespaceName, File namespaceFile, File sourceDirectory,
       File environmentFile, List<String> defaultPackages) throws IOException {
 
     this.name = new FqPackageName(groupId, namespaceName);
+    this.namespaceFile = namespaceFile;
     this.sourceDirectory = sourceDirectory;
     this.environmentFile = environmentFile;
     this.defaultPackages = defaultPackages;
@@ -38,7 +42,7 @@ public class NamespaceBuilder {
   }
 
 
-  private void compileNamespaceEnvironment() {
+  private void compileNamespaceEnvironment() throws IOException {
     List<File> sources = getRSources();
     if(isUpToDate(sources)) {
       return;
@@ -47,8 +51,18 @@ public class NamespaceBuilder {
     Context context = initContext();
 
     Namespace namespace = context.getNamespaceRegistry().createNamespace(new InitializingPackage(name));
+    importDependencies(context, namespace);
     evaluateSources(context, getRSources(), namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
+  }
+
+  private void importDependencies(Context context, Namespace namespace) throws IOException {
+
+    CharSource namespaceSource = Files.asCharSource(namespaceFile, Charsets.UTF_8);
+    NamespaceFile namespaceFile = new NamespaceFile(namespaceSource);
+    
+    namespace.initImports(context.getNamespaceRegistry(), namespaceFile);
+  
   }
 
   private boolean isUpToDate(List<File> sources) {
@@ -80,15 +94,16 @@ public class NamespaceBuilder {
 
   private List<File> getRSources() {
     List<File> list = Lists.newArrayList();
-    if(sourceDirectory.listFiles() != null) {
-      list.addAll(Arrays.asList(sourceDirectory.listFiles()));
+    File[] files = sourceDirectory.listFiles();
+    if(files != null) {
+      list.addAll(Arrays.asList(files));
     }
     Collections.sort(list);
     return list;
   }
 
 
-  private void evaluateSources(Context context, List<File> sources, Environment namespaceEnvironment) {
+  private void evaluateSources(Context context, List<File> sources, Environment namespaceEnvironment)  {
     for(File sourceFile : sources) {
       String nameUpper = sourceFile.getName().toUpperCase();
       if(nameUpper.endsWith(".R") ||
@@ -99,22 +114,17 @@ public class NamespaceBuilder {
           FileReader reader = new FileReader(sourceFile);
           SEXP expr = RParser.parseAllSource(reader);
           reader.close();
-          
+
           context.evaluate(expr, namespaceEnvironment);
-          
+        
+        } catch (EvalException e) {
+          System.out.println("ERROR: " + e.getMessage());
+          e.printRStackTrace(System.out);
+          throw new RuntimeException("Error evaluating package source: " + sourceFile.getName(), e);
         } catch (Exception e) {
           throw new RuntimeException("Exception evaluating " + sourceFile.getName(), e);
         }
       }
-    }
-    
-    // some packages (methods) have a routine to do initialization 
-    // before serializing the environment
-    if(namespaceEnvironment.hasVariable(Symbol.get("..First.lib"))) {
-      PairList.Builder args = new PairList.Builder();
-      args.add("where", namespaceEnvironment);
-      
-      context.evaluate(new FunctionCall(Symbol.get("..First.lib"), args.build()), namespaceEnvironment);
     }
   }
   

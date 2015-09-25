@@ -25,6 +25,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.methods.MethodDispatch;
+import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
 
 public class Subsetting {
@@ -97,8 +98,31 @@ public class Subsetting {
     if(slotName.getPrintName().equals(".Data")) {
       return context.evaluate(FunctionCall.newCall(Symbol.get("getDataPart"), object), methods.getMethodsNamespace());
     }
-    
+    if(!Types.isS4(object)) {
+      SEXP className = object.getAttribute(Symbols.CLASS_NAME);
+      if(className.length() == 0) {
+        throw new EvalException("trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots",
+            slotName.getPrintName(),
+            object.getS3Class().getElementAsString(0));
+      } else {
+        throw new EvalException("trying to get slot \"%s\" from an object (class \"%s\") that is not an S4 object ",
+            slotName.getPrintName(),
+            className.getElementAsSEXP(0));
+      }
+    }
+
     SEXP value = object.getAttribute(slotName);
+    if(value == Null.INSTANCE) {
+      if (slotName == Symbol.get(".S3Class")) { /* defaults to class(obj) */
+        throw new EvalException("not implemented: .S3Class");
+        //return R_data_class(obj, FALSE);
+      } else if (slotName == Symbols.NAMES && object instanceof ListVector) {
+         /* needed for namedList class */
+        return value;
+      } else {
+        throw new EvalException("cannot get slot %s", slotName);
+      }
+    }
     if(value == Symbols.S4_NULL) {
       return Null.INSTANCE;
     } else {
@@ -298,10 +322,16 @@ public class Subsetting {
   }
 
   private static SEXP getSingleEnvironmentVariable(Environment source, String subscript, boolean exact) {
+    SEXP value;
     if(exact) {
-      return source.getVariable(subscript);
+      value = source.getVariable(subscript);
     } else {
-      return source.getVariableByPrefix(subscript);
+      value = source.getVariableByPrefix(subscript);
+    }
+    if(value == Symbol.UNBOUND_VALUE) {
+      return Null.INSTANCE;
+    } else {
+      return value;
     }
   }
 

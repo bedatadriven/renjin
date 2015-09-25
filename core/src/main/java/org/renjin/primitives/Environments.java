@@ -1,6 +1,7 @@
 package org.renjin.primitives;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -32,6 +33,19 @@ public final class Environments {
     return list.build();
   }
 
+  @Internal
+  public static Environment list2env(ListVector list, Environment env) {
+    AtomicVector names = list.getNames();
+    if(names.length() != list.length()) {
+      throw new EvalException("names(x) must be a character vector of the same length as x");
+    }
+    for (NamedValue namedValue : list.namedValues()) {
+      env.setVariable(namedValue.getName(), namedValue.getValue());
+    }
+    
+    return env;
+  }
+  
   @Builtin("as.environment")
   public static Environment asEnvironment(@Current Context context, int pos) {
     Environment env;
@@ -76,7 +90,7 @@ public final class Environments {
       if(Objects.equal(result.getName(), name)) {
         return result;
       }
-      if(name.equals("package:base") && result == result.getBaseEnvironment()) {
+      if(name.equals("package:base") && result == context.getBaseEnvironment()) {
         return result;
       }
       result = result.getParent();
@@ -223,13 +237,13 @@ public final class Environments {
   }
 
   @Builtin
-  public static Environment baseenv(@Current Environment rho) {
-    return rho.getBaseEnvironment();
+  public static Environment baseenv(@Current Context context) {
+    return context.getBaseEnvironment();
   }
 
   @Builtin
-  public static Environment emptyenv(@Current Environment rho) {
-    return rho.getBaseEnvironment().getParent();
+  public static Environment emptyenv() {
+    return Environment.EMPTY;
   }
 
   @Builtin
@@ -248,13 +262,43 @@ public final class Environments {
   @Internal
   public static SEXP get(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
-    SEXP value = environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode),
-        inherits);
+    SEXP value = environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode), inherits);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("Object '%s' not found", x);
     }
     return value;
   }
+
+  @Internal
+  public static SEXP mget(@Current Context context, StringVector x,
+                         Environment environment, String mode, SEXP defaultValue, boolean inherits) {
+
+    Predicate<SEXP> predicate = Vectors.modePredicate(mode);
+
+    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
+    for (String name : x) {
+      SEXP value = environment.findVariable(context, Symbol.get(name), predicate, inherits);
+      if(value == Symbol.UNBOUND_VALUE) {
+        result.add(name, defaultValue);
+      } else {
+        result.add(name, value);
+      }
+    }
+    return result.build();
+  }
+  
+  @Internal
+  public static SEXP get0(@Current Context context, String x,
+                         Environment environment, String mode, boolean inherits, SEXP ifnotfound) {
+    SEXP value = environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode), inherits);
+    if(value == Symbol.UNBOUND_VALUE) {
+      return ifnotfound;
+    } else {
+      return value;
+    }
+  }
+
+
 
   @Internal
   public static StringVector search(@Current Context context) {

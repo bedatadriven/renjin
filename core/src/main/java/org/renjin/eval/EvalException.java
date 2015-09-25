@@ -21,16 +21,16 @@
 
 package org.renjin.eval;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.Writer;
-
 import org.renjin.eval.Context.Type;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.Symbols;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.Writer;
 
 
 public class EvalException extends RuntimeException {
@@ -41,7 +41,7 @@ public class EvalException extends RuntimeException {
     super(message, t);
     ListVector.NamedBuilder condition = ListVector.newNamedBuilder();
     condition.add("message", this.getMessage());
-    condition.setAttribute(Symbols.CLASS, new StringArrayVector("condition", "error", "simpleError"));
+    condition.setAttribute(Symbols.CLASS, new StringArrayVector("simpleError",  "error", "condition"));
     this.condition = condition.build();
   }
   

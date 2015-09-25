@@ -21,18 +21,18 @@
 
 package org.renjin.base;
 
-import java.io.IOException;
-
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.Evaluation;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
 import org.renjin.primitives.vector.BinCodeVector;
 import org.renjin.sexp.*;
+
+import java.io.IOException;
 
 
 /**
@@ -52,10 +52,7 @@ public class Base {
 
   private Base() { }
   
-  public static boolean R_isMethodsDispatchOn(SEXP onOff) {
-    return false;
-  }
-
+  
   public static ListVector R_getSymbolInfo(String sname, SEXP spackage, boolean withRegistrationInfo) {
 
     ListVector.Builder result = new ListVector.Builder();
@@ -237,18 +234,6 @@ public class Base {
   
   public static SEXP R_do_new_object(S4Object classRepresentation) {
     return Methods.R_do_new_object(classRepresentation);
-  }
-
-  public static SEXP R_setS4Object(SEXP object, boolean bool, int index) {
-    return R_setS4Object(object, bool, index != 0);
-  }
-
-  public static SEXP R_setS4Object(SEXP object, boolean bool, boolean index) {
-    if(object instanceof S4Object) {
-      return object;
-    } else {
-      return object.setAttribute(Symbols.S4_BIT, LogicalVector.TRUE);
-    }
   }
   
   public static ListVector do_mapply(@Current Context context, Function fun, ListVector varyingArgs, Vector constantArgs, Environment rho) {

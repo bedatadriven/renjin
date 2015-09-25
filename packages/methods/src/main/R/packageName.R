@@ -1,6 +1,8 @@
 #  File src/library/methods/R/packageName.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2014 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -29,8 +31,7 @@ getPackageName <- function(where = topenv(parent.frame()), create = TRUE) {
         if(regexpr("package:", envName, fixed = TRUE) == 1L)
           pkg <- sub("package:","", envName, fixed = TRUE)
     }
-
-	if(!nzchar(pkg)) { ## is still ""
+    if(!nzchar(pkg)) { ## is still ""
         if(identical(env, .GlobalEnv))
             pkg <- ".GlobalEnv"
         else if(identical(env, .BaseNamespaceEnv))
@@ -61,6 +62,12 @@ getPackageName <- function(where = topenv(parent.frame()), create = TRUE) {
 #             ## to be self-identifying
 #              warning("The package name \"", pkg, "\" was inferred, but not found in that package")
 #         }
+    }
+    if (!nzchar(pkg)) {
+        top <- topenv(env)
+        if (!identical(top, env)) {
+            pkg <- getPackageName(top, create=create)
+        }
     }
     if(!nzchar(pkg) && create) {
         pkg <- as.character(Sys.time())

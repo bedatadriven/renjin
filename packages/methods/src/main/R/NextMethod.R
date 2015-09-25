@@ -1,6 +1,8 @@
 #  File src/library/methods/R/NextMethod.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -26,36 +28,42 @@ callNextMethod <- function(...) {
     if(is(maybeMethod, "MethodDefinition")) {
         callEnv <- methodEnv <- parent.frame(1)
         mcall <- sys.call(parent)
+        dotsenv <- parent.frame(2)
         i <- 1
     }
     else {
         callEnv <- parent.frame(1)
         methodEnv <- parent.frame(2)
         mcall <- sys.call(sys.parent(2))
+        dotsenv <- parent.frame(3)
         i <- 2
     }
     ## set up the nextMethod object, load it
     ## into the calling environment, and cache it
-    if(exists(".Method", envir = methodEnv, inherits = FALSE)) {
+    if(!is.null(method <- methodEnv$.Method)) {
         ## call to standardGeneric(f)
-        method <- get(".Method", envir = methodEnv, inherits = FALSE)
-        if(exists(".nextMethod", envir = callEnv, inherits = FALSE))
-            nextMethod <- get(".nextMethod", envir = callEnv)
-        f <- get(".Generic", envir = methodEnv)
+        nextMethod <- callEnv$.nextMethod
+        f <- methodEnv$.Generic
     }
     else if(identical(mcall[[1L]], dotNextMethod)) {
         ## a call from another callNextMethod()
         nextMethodEnv <- parent.frame(i+1)
-        nextMethod <- get(".nextMethod", nextMethodEnv)
-        f <- get(".Generic", envir = nextMethodEnv)
+        nextMethod <- nextMethodEnv$.nextMethod
+        f <- nextMethodEnv$.Generic
     }
     else {
         ## may be a method call for a primitive; not available as .Method
-        f <- as.character(mcall[[1L]])
+        if (is.primitive(mcall[[1L]])) {
+            f <- .primname(mcall[[1L]])
+        } else {
+            f <- as.character(mcall[[1L]])
+        }
         fdef <- genericForPrimitive(f)
         ## check that this could be a basic function with methods
         if(is.null(fdef))
-            stop(gettextf("a call to callNextMethod() appears in a call to \"%s\", but the call does not seem to come from either a generic function or another 'callNextMethod'", f), domain = NA)
+            stop(gettextf("a call to callNextMethod() appears in a call to %s, but the call does not seem to come from either a generic function or another 'callNextMethod'",
+                          sQuote(f)),
+                 domain = NA)
         f <- fdef@generic
         method <- maybeMethod
     }
@@ -90,6 +98,8 @@ callNextMethod <- function(...) {
     else
         stop(gettextf("bad object found as method (class %s)",
                       dQuote(class(method))), domain = NA)
+    if (is.null(nextMethod))
+        stop("No next method available")
     subsetCase <- !is.na(match(f, .BasicSubsetFunctions))
     if(nargs()>0) {
       call <- sys.call()
@@ -118,15 +128,14 @@ callNextMethod <- function(...) {
            }
         }
         else
-            call <- match.call(method, mcall, expand.dots = FALSE)
-        .Call("R_nextMethodCall",
-              call,
-              callEnv, PACKAGE="methods")
+            call <- match.call(maybeMethod, mcall, expand.dots = FALSE,
+                               envir = dotsenv)
+        .Call(C_R_nextMethodCall, call, callEnv)
     }
 }
 
-loadMethod <- function(method, fname, envir)
-    method
+## Skeleton for the generic in ./MethodsListClass.R :
+loadMethod <- function(method, fname, envir) method
 
 .doSubNextCall <- function(call, method) {
     idrop <- match("drop", names(call))

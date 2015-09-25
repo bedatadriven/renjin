@@ -158,7 +158,7 @@ public class ClassBindingImpl implements ClassBinding {
     return staticMembers.get(name);
   }
   
-  public MemberBinding getStaticMember(String name) {
+  public StaticBinding getStaticMember(String name) {
     return getStaticMember(Symbol.get(name));
   }
 

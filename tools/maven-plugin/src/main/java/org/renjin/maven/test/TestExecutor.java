@@ -8,6 +8,7 @@ import com.google.common.io.Files;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.repl.JlineRepl;
@@ -187,11 +188,12 @@ public class TestExecutor {
       // This is renjin's own convention, but it's nice to be
       // able to see the results of many tests rather than 
       // topping at the first error
+      testOutput.println();
       for (Symbol name : session.getGlobalEnvironment().getSymbolNames()) {
         if (name.getPrintName().startsWith("test.")) {
           SEXP value = session.getGlobalEnvironment().getVariable(name);
           if (isZeroArgFunction(value)) {
-            executeTestFunction(session.getTopLevelContext(), name);
+            executeTestFunction(session.getTopLevelContext(), name, testOutput);
           }
         }
       }
@@ -210,12 +212,35 @@ public class TestExecutor {
     return true;
   }
 
-  private void executeTestFunction(Context context, Symbol name) {
+  private void executeTestFunction(Context context, Symbol name, PrintStream testOutput) {
     try {
+      testOutput.print("Executing " + name.getPrintName() + "... ");
       sendMessage(START_MESSAGE, name.getPrintName());
       context.evaluate(FunctionCall.newCall(name));
       sendMessage(PASS_MESSAGE);
-    } catch(Throwable e) {
+      testOutput.println("PASSED");
+      
+    } catch (EvalException e) {
+      // Pretty-print R stack trace ONLY
+      testOutput.println("FAILED");
+      testOutput.println("ERROR: " + e.getMessage());
+      e.printRStackTrace(testOutput);
+      sendMessage(FAIL_MESSAGE);
+
+    } catch(Error e) {
+      // Oops, we crashed the VM...
+      testOutput.println("FAILED");
+      e.printStackTrace(testOutput);
+      sendMessage(FAIL_MESSAGE);
+
+      // Abort...
+      throw e;
+
+    } catch (Throwable e) {
+      // Uncaught exception: print Java stack trace
+      testOutput.println("FAILED");
+      testOutput.println("UNCAUGHT EXCEPTION: " + e.getMessage());
+      e.printStackTrace(testOutput);
       sendMessage(FAIL_MESSAGE);
     }
   }

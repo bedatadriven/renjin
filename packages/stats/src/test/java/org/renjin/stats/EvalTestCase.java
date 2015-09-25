@@ -1,19 +1,13 @@
 package org.renjin.stats;
 
-import java.io.IOException;
-import java.io.StringReader;
-
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.Symbol;
 import org.renjin.primitives.Warning;
+import org.renjin.sexp.*;
+
+import java.io.IOException;
+import java.io.StringReader;
 
 public class EvalTestCase {
 
@@ -56,10 +50,10 @@ public class EvalTestCase {
 
 
   protected final void printWarnings() {
-    SEXP warnings = context.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    SEXP warnings = context.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       context.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-              context.getEnvironment().getBaseEnvironment());
+              context.getBaseEnvironment());
     }
   }
 

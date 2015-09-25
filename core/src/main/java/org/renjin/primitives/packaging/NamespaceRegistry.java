@@ -6,7 +6,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
@@ -37,47 +37,48 @@ public class NamespaceRegistry {
   /**
    * Maps local names to namespaces
    */
-	private Multimap<Symbol, Namespace> localNameMap = HashMultimap.create();
+  private Multimap<Symbol, Namespace> localNameMap = HashMultimap.create();
   private Map<FqPackageName, Namespace> namespaceMap = Maps.newHashMap();
 
   private Map<Environment, Namespace> envirMap = Maps.newIdentityHashMap();
-	
+
   private Context context;
   private final Namespace baseNamespace;
 
   public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
-	  this.loader = loader;
-	  this.context = context;
+    this.loader = loader;
+    this.context = context;
 
     baseNamespace = new BaseNamespace(baseNamespaceEnv);
     localNameMap.put(BASE, baseNamespace);
-	  envirMap.put(baseNamespaceEnv, baseNamespace);
-	}
+    envirMap.put(baseNamespaceEnv, baseNamespace);
+  }
 
-	public Namespace getBaseNamespace() {
-	  return baseNamespace;
-	}
-	
-	public Environment getBaseNamespaceEnv() {
-	  return getBaseNamespace().getNamespaceEnvironment();
-	}
-	
-	public Namespace getNamespace(Environment envir) {
-	  Namespace ns = envirMap.get(envir);
-	  if(ns == null) {
-	    throw new IllegalArgumentException();
-	  }
-	  return ns;
-	}
-	
-	public Iterable<Symbol> getLoadedNamespaces() {
-	  return localNameMap.keySet();
-	}
+  public Namespace getBaseNamespace() {
+    return baseNamespace;
+  }
+
+  public Environment getBaseNamespaceEnv() {
+    return getBaseNamespace().getNamespaceEnvironment();
+  }
+
+  public Namespace getNamespace(Environment envir) {
+    Namespace ns = envirMap.get(envir);
+    if(ns == null) {
+      throw new IllegalArgumentException();
+    }
+    return ns;
+  }
+
+
+  public Iterable<Symbol> getLoadedNamespaces() {
+    return localNameMap.keySet();
+  }
 
   public Namespace getNamespace(String name) {
     return getNamespace(Symbol.get(name));
   }
-	
+
   public Namespace getNamespace(Symbol symbol) {
     if(symbol.getPrintName().equals("base")) {
       return baseNamespace;
@@ -115,7 +116,7 @@ public class NamespaceRegistry {
         return getNamespace(FqPackageName.cranPackage(symbol));
       }
     }
-	}
+  }
 
   public static Set<String>  getCorePackages()
   {
@@ -166,7 +167,7 @@ public class NamespaceRegistry {
         if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
           StringVector nameArgument = StringVector.valueOf(pkg.getName().getPackageName());
           context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument),
-              namespace.getNamespaceEnvironment());
+                  namespace.getNamespaceEnvironment());
         }
 
         return Optional.of(namespace);
@@ -199,16 +200,19 @@ public class NamespaceRegistry {
    */
   private void setupImportsExports(Package pkg, Namespace namespace) throws IOException {
 
-    ByteSource namespaceFile = pkg.getResource("NAMESPACE");
-    NamespaceDirectiveParser.parse(namespaceFile.asCharSource(Charsets.UTF_8),
-        new NamespaceInitHandler(context, this, namespace));
+    CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
+    NamespaceFile namespaceFile = new NamespaceFile(namespaceSource);
+    
+    namespace.initImports(this, namespaceFile);
+    namespace.initExports(namespaceFile);
+    namespace.registerS3Methods(context, namespaceFile);
   }
 
 
   public boolean isRegistered(Symbol name) {
     return localNameMap.containsKey(name);
   }
-  
+
   public Namespace getBase() {
     return baseNamespace;
   }

@@ -1,6 +1,7 @@
 package org.renjin.primitives.packaging;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
@@ -13,6 +14,8 @@ import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,7 +126,28 @@ public class NamespaceRegistry {
         return getNamespace(FqPackageName.corePackage(symbol));
 
       } else {
-        return getNamespace(FqPackageName.cranPackage(symbol));
+
+        // Try bioconductor first as some packages have moved from cran to bioconductor
+        List<FqPackageName> candidates = Arrays.asList(
+            new FqPackageName("org.renjin.bioconductor", symbol.getPrintName()),
+            new FqPackageName("org.renjin.cran", symbol.getPrintName()));
+        
+        
+        Optional<Namespace> namespace = Optional.absent();
+
+        for (FqPackageName candidate : candidates) {
+          namespace = tryGetNamespace(FqPackageName.cranPackage(symbol.getPrintName()));
+          if(namespace.isPresent()) {
+            break;
+          }
+        }
+        
+        if(!namespace.isPresent()) {
+          throw new EvalException("Could not load package " + symbol + "; tried " +
+              Joiner.on(", ").join(candidates));
+        }
+        
+        return namespace.get();
       }
     }
   }

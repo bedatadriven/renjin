@@ -309,8 +309,8 @@ public class NamespaceFile {
    * <p>This allows only a specific needed symbols to be imported rather than an entire package namespace.</p>
    */
   private void parseImportFrom(FunctionCall call) {
-    if(call.getArguments().length() < 2) {
-      throw new EvalException("Expected at least two arguments to importFrom directive");
+    if(call.getArguments().length() < 1) {
+      throw new EvalException("Expected at least one arguments to importFrom directive");
     }
     PackageImportEntry packageImport = packageImport(call.getArgument(0));
 

@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 
 public class NamespaceFileTest {
@@ -61,5 +62,22 @@ public class NamespaceFileTest {
         "exp_par",
         "exp_par_mult"));
     
+  }
+  
+  @Test
+  public void malformedImportsFrom() throws IOException {
+    
+    // The following actually has no effect, but is included in at least one
+    // CRAN package. The fact that it has no effect was balanced out in practice by
+    // listing survival also in the Depends clause of the DESCRIPTION file.
+    String NAMESPACE = 
+        "importFrom(survival)\n";
+
+    NamespaceFile file = new NamespaceFile(CharSource.wrap(NAMESPACE));
+
+    NamespaceFile.PackageImportEntry entry = Iterables.getOnlyElement(file.getPackageImports());
+    assertThat(entry.getPackageName(), equalTo("survival"));
+    assertTrue(entry.getSymbols().isEmpty());
+    assertTrue(entry.getClasses().isEmpty());
   }
 }

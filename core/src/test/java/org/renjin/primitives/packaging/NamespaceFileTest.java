@@ -2,6 +2,7 @@ package org.renjin.primitives.packaging;
 
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharSource;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class NamespaceFileTest {
         "    kmeans_Lloyd,\n" +
         "    kmeans_MacQueen,\n" +
         "    kmns = kmns_)\n";
-    
+      
     NamespaceFile file = new NamespaceFile(CharSource.wrap(NAMESPACE));
 
     NamespaceFile.DynLibEntry dynLib = Iterables.getOnlyElement(file.getDynLibEntries());
@@ -45,4 +46,20 @@ public class NamespaceFileTest {
     assertThat(kmns.getAlias(), equalTo("kmns"));
   }
   
+  @Test
+  public void exportPatterns() throws IOException {
+    String NAMESPACE = 
+        "exportPattern(cell_effect_mult_or,cell_effect_or,Cloglin,Cloglin_mult,exp_par,exp_par_mult)\n";
+
+    NamespaceFile file = new NamespaceFile(CharSource.wrap(NAMESPACE));
+
+    assertThat(file.getExportedPatterns(), Matchers.hasItems(
+        "cell_effect_mult_or",
+        "cell_effect_or",
+        "Cloglin",
+        "Cloglin_mult",
+        "exp_par",
+        "exp_par_mult"));
+    
+  }
 }

@@ -37,7 +37,7 @@ export(Hershey, adjustcolor, as.graphicsAnnot, as.raster, axisTicks, blues9,
 
 #RENJIN: we probably need to implement our own graphics devices
 ## devices common to all platforms
-#export(X11, x11, bitmap, bmp, jpeg, png, tiff)
+export(X11, x11, bitmap, bmp, jpeg, png, tiff)
 
 S3method(print, recordedplot)
 S3method(print, colorConverter)

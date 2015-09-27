@@ -273,15 +273,12 @@ public class NamespaceFile {
   }
 
   /**
-   * Parses the {@code exportPattern(pattern)} directive, where {@code pattern} is a 
+   * Parses the {@code exportPattern(pattern1, pattern2, ...)} directive, where {@code pattern} is a 
    * regular expression used to match symbols defined in the namespace environment that
    * are to be exported.
    */
   private void parseExportPattern(FunctionCall call) {
-    if(call.getArguments().length() != 1) {
-      throw new EvalException("Expected one argument to exportPattern() directive");
-    }
-    exportedPatterns.add(parseStringArgument(call.getArgument(0)));
+    exportedPatterns.addAll(parseNameArguments(call));
   }
 
   /**

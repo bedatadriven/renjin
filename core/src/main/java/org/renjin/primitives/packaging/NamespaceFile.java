@@ -263,7 +263,7 @@ public class NamespaceFile {
       parseDynlib(call);
     } else if(directiveName.equals("exportClasses")) {
       parseExportClasses(call);
-    } else if(directiveName.equals("exportClassPatterns")) {
+    } else if(directiveName.equals("exportClassPattern")) {
       parseExportClassPatterns(call);
     } else if(directiveName.equals("exportMethods")) {
       parseExportMethods(call);

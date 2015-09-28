@@ -245,7 +245,8 @@ public class NamespaceFile {
     String directiveName = parseDirectiveName(call);
     if(directiveName.equals("import")) {
       parseImport(call);
-    } else if(directiveName.equals("importClass")) {
+    } else if(directiveName.equals("importClass") ||
+              directiveName.equals("importClasses")) {
       parseImportClass(call);
     } else if(directiveName.equals("importFrom")) {
       parseImportFrom(call);
@@ -255,17 +256,22 @@ public class NamespaceFile {
       parseImportS4ClassesFrom(call);
     } else if(directiveName.equals("S3method")) {
       parseS3Export(call);
-    } else if(directiveName.equals("export")) {
+    } else if(directiveName.equals("export") ||
+              directiveName.equals("exports")) {
       parseExport(call);
-    } else if(directiveName.equals("exportPattern")) {
+    } else if(directiveName.equals("exportPattern") ||
+              directiveName.equals("exportPatterns")) {
       parseExportPattern(call);
     } else if(directiveName.equals("useDynLib")) {
       parseDynlib(call);
-    } else if(directiveName.equals("exportClasses")) {
+    } else if(directiveName.equals("exportClasses") ||
+              directiveName.equals("exportClass")) {
       parseExportClasses(call);
-    } else if(directiveName.equals("exportClassPattern")) {
+    } else if(directiveName.equals("exportClassPattern") ||
+              directiveName.equals("exportClassPatterns")) {
       parseExportClassPatterns(call);
-    } else if(directiveName.equals("exportMethods")) {
+    } else if(directiveName.equals("exportMethods") ||
+              directiveName.equals("exportMethod")) {
       parseExportMethods(call);
     } else {
       throw new EvalException("Unknown NAMESPACE directive '" + directiveName + "'");

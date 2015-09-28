@@ -1,1 +1,4 @@
-export(compute)
+
+# Test the if() directive
+if(getRversion() > "2.15.0")
+  export(compute)

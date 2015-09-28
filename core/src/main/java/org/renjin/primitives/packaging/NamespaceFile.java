@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
 import com.google.common.io.Closeables;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.*;
@@ -21,6 +22,8 @@ import java.util.*;
  * and handled specially.</p>
  */
 public class NamespaceFile {
+
+
 
   public static class DynLibEntry {
     private String libraryName;
@@ -197,7 +200,8 @@ public class NamespaceFile {
   private Set<String> exportedClasses = Sets.newHashSet();
   private Set<String> exportedClassPatterns = Sets.newHashSet();
 
-  public NamespaceFile(CharSource charSource) throws IOException {
+  public static NamespaceFile parse(Context context, CharSource charSource) throws IOException {
+    NamespaceFile file = new NamespaceFile();
     Reader reader = charSource.openStream();
     ExpressionVector source;
     try {
@@ -205,7 +209,11 @@ public class NamespaceFile {
     } finally {
       Closeables.closeQuietly(reader);
     }
-    parse(source);
+    file.parse(context, source);
+    return file;
+  }
+  
+  private NamespaceFile() {
   }
 
   private PackageImportEntry packageImport(String packageName) {
@@ -230,18 +238,27 @@ public class NamespaceFile {
     return entry;
   }
 
-  private void parse(ExpressionVector source) {
+  private void parse(Context context, ExpressionVector source) {
     for(SEXP exp : source) {
-      if(!(exp instanceof FunctionCall)) {
-        throw new EvalException("Unknown NAMESPACE directive: " + exp.toString());
-      }
-
-      FunctionCall call = (FunctionCall)exp;
-      parseCall(call);
+      parse(context, exp);
     }
   }
 
-  private void parseCall(FunctionCall call) {
+  private void parse(Context context, SEXP exp) {
+    
+    if(exp instanceof ExpressionVector) {
+      parse(context, (ExpressionVector) exp);
+    
+    } else if(exp instanceof FunctionCall) {
+      FunctionCall call = (FunctionCall)exp;
+      parseCall(context, call);
+      
+    } else {
+      throw new EvalException("Unknown NAMESPACE directive: " + exp.toString());
+    }
+  }
+
+  private void parseCall(Context context, FunctionCall call) {
     String directiveName = parseDirectiveName(call);
     if(directiveName.equals("import")) {
       parseImport(call);
@@ -273,9 +290,40 @@ public class NamespaceFile {
     } else if(directiveName.equals("exportMethods") ||
               directiveName.equals("exportMethod")) {
       parseExportMethods(call);
+    } else if(directiveName.equals("if")) {
+      parseIf(context, call);
     } else {
       throw new EvalException("Unknown NAMESPACE directive '" + directiveName + "'");
     }
+  }
+
+  private void parseIf(Context context, FunctionCall call) {
+    // evaluate if statements in the context of the base package
+    SEXP condition = call.getArgument(0);
+
+    SEXP evaluatedCondition = context.evaluate(condition, context.getBaseEnvironment());
+    
+    if(isTruthy(evaluatedCondition)) {
+      parse(context, call.getArgument(1));
+    } else {
+      if(call.getArguments().length() == 3) {
+        parse(context, call.getArgument(1));
+      }
+    }
+  }
+
+  private boolean isTruthy(SEXP s) {
+    if (s.length() == 0) {
+      throw new EvalException("argument is of length zero");
+    }
+
+    Logical logical = s.asLogical();
+    if (logical == Logical.NA) {
+      throw new EvalException("missing value where TRUE/FALSE needed");
+    }
+
+    return logical == Logical.TRUE;
+    
   }
 
   /**

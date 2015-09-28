@@ -59,7 +59,7 @@ public class NamespaceBuilder {
   private void importDependencies(Context context, Namespace namespace) throws IOException {
 
     CharSource namespaceSource = Files.asCharSource(namespaceFile, Charsets.UTF_8);
-    NamespaceFile namespaceFile = new NamespaceFile(namespaceSource);
+    NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
     
     namespace.initImports(context.getNamespaceRegistry(), namespaceFile);
   

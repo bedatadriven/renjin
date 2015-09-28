@@ -3,7 +3,12 @@ package org.renjin.primitives.packaging;
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharSource;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
+import org.renjin.eval.Context;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
+import org.renjin.sexp.Symbol;
 
 import java.io.IOException;
 
@@ -14,6 +19,14 @@ import static org.junit.Assert.assertTrue;
 
 public class NamespaceFileTest {
 
+
+  private Context context;
+
+  @Before
+  public void startSession() {
+    Session session = new SessionBuilder().build();
+    context = session.getTopLevelContext();
+  }
   
   @Test
   public void testJvmImports() throws IOException {
@@ -21,7 +34,7 @@ public class NamespaceFileTest {
     String NAMESPACE = 
         "importClass(org.renjin.stats.dist.Distance)\n";
     
-    NamespaceFile file = new NamespaceFile(CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
     
     NamespaceFile.JvmClassImportEntry entry = Iterables.getOnlyElement(file.getJvmImports());
     assertThat(entry.isClassImported(), equalTo(true));
@@ -36,7 +49,7 @@ public class NamespaceFileTest {
         "    kmeans_MacQueen,\n" +
         "    kmns = kmns_)\n";
       
-    NamespaceFile file = new NamespaceFile(CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
 
     NamespaceFile.DynLibEntry dynLib = Iterables.getOnlyElement(file.getDynLibEntries());
     assertThat(dynLib.getPrefix(), equalTo("C_"));
@@ -52,7 +65,7 @@ public class NamespaceFileTest {
     String NAMESPACE = 
         "exportPattern(cell_effect_mult_or,cell_effect_or,Cloglin,Cloglin_mult,exp_par,exp_par_mult)\n";
 
-    NamespaceFile file = new NamespaceFile(CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
 
     assertThat(file.getExportedPatterns(), Matchers.hasItems(
         "cell_effect_mult_or",
@@ -65,6 +78,25 @@ public class NamespaceFileTest {
   }
   
   @Test
+  public void s3MethodWithNull() {
+    String NAMESPACE = "S3method(design,NULL)";
+    
+    
+  }
+  
+  @Test
+  public void ifRVersion() throws IOException {
+    String NAMESPACE = 
+        "if(getRversion() > \"2.15.0\")\n" +
+            "    export(\".M.classEnv\")\n";
+
+
+    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+
+    assertThat(file.getExportedSymbols(), Matchers.hasItem(Symbol.get(".M.classEnv")));
+  }
+  
+  @Test
   public void malformedImportsFrom() throws IOException {
     
     // The following actually has no effect, but is included in at least one
@@ -73,11 +105,11 @@ public class NamespaceFileTest {
     String NAMESPACE = 
         "importFrom(survival)\n";
 
-    NamespaceFile file = new NamespaceFile(CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
 
     NamespaceFile.PackageImportEntry entry = Iterables.getOnlyElement(file.getPackageImports());
     assertThat(entry.getPackageName(), equalTo("survival"));
     assertTrue(entry.getSymbols().isEmpty());
     assertTrue(entry.getClasses().isEmpty());
   }
-}
+} 

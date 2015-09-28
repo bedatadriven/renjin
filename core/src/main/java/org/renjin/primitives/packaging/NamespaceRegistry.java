@@ -208,7 +208,7 @@ public class NamespaceRegistry {
   private void setupImportsExports(Package pkg, Namespace namespace) throws IOException {
 
     CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
-    NamespaceFile namespaceFile = new NamespaceFile(namespaceSource);
+    NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
 
     namespace.initImports(this, namespaceFile);
     namespace.initExports(namespaceFile);

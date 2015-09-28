@@ -13,6 +13,8 @@ import org.renjin.sexp.Symbol;
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -67,7 +69,7 @@ public class NamespaceFileTest {
 
     NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
 
-    assertThat(file.getExportedPatterns(), Matchers.hasItems(
+    assertThat(file.getExportedPatterns(), hasItems(
         "cell_effect_mult_or",
         "cell_effect_or",
         "Cloglin",
@@ -78,10 +80,33 @@ public class NamespaceFileTest {
   }
   
   @Test
-  public void s3MethodWithNull() {
-    String NAMESPACE = "S3method(design,NULL)";
+  public void ifWithBraces() throws IOException {
+    String NAMESPACE = "if (getRversion() >= \"2.13.0\") {\n" +
+        "    importFrom(\"stats\", \"nobs\")\n" +
+        "} else {\n" +
+        "    export(nobs)\n" +
+        "}\n";
+
+    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+
+    assertThat(file.getPackageImports().size(), equalTo(1));
+    NamespaceFile.PackageImportEntry statsImport = Iterables.getOnlyElement(file.getPackageImports());
+    assertThat(statsImport.getSymbols(), hasItems(Symbol.get("nobs")));
     
-    
+    assertTrue((file.getExportedSymbols().isEmpty()));
+  }
+
+  @Test
+  public void elseWithBraces() throws IOException {
+    String NAMESPACE = "if (getRversion() < \"2.13.0\") {\n" +
+        "    importFrom(\"stats\", \"nobs\")\n" +
+        "} else {\n" +
+        "    export(nobs)\n" +
+        "}\n";
+
+    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+
+    assertThat(file.getExportedSymbols(), hasItem(Symbol.get("nobs")));
   }
   
   @Test

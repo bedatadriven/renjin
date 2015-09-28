@@ -292,6 +292,11 @@ public class NamespaceFile {
       parseExportMethods(call);
     } else if(directiveName.equals("if")) {
       parseIf(context, call);
+
+    } else if(directiveName.equals("{")) {
+      for (SEXP sexp : call.getArguments().values()) {
+        parse(context, sexp);
+      }
     } else {
       throw new EvalException("Unknown NAMESPACE directive '" + directiveName + "'");
     }
@@ -307,7 +312,7 @@ public class NamespaceFile {
       parse(context, call.getArgument(1));
     } else {
       if(call.getArguments().length() == 3) {
-        parse(context, call.getArgument(1));
+        parse(context, call.getArgument(2));
       }
     }
   }

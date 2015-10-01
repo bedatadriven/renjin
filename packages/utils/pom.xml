@@ -58,6 +58,11 @@
   						<goal>test</goal>
   					</goals>
   					<phase>test</phase>
+					<configuration>
+						<defaultPackages>
+							<defaultPackage>utils</defaultPackage>
+						</defaultPackages>
+					</configuration>
   				</execution>
   			</executions>
   		</plugin>

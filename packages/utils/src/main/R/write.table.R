@@ -135,8 +135,8 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
         })
     }
 
-    .Internal(write.table(x, file, nrow(x), p, rnames, sep, eol, na, dec,
-                          as.integer(quote), qmethod != "double"))
+    WriteTable$write(x, file, nrow(x), p, rnames, sep, eol, na, dec,
+                          as.integer(quote), qmethod != "double")
 }
 
 write.csv <- function(...)

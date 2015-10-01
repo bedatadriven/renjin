@@ -26,7 +26,6 @@ import com.google.common.base.Strings;
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
@@ -235,6 +234,7 @@ public class Connections {
       writer.print(line);
       writer.print(seperator);
     }
+    writer.flush();
   }
   
   //FIXME: port should be an int

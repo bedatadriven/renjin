@@ -1,3 +1,7 @@
+
+importClass(org.renjin.utils.WriteTable)
+
+
 export("?", .DollarNames, CRAN.packages, Rprof, Rprofmem, RShowDoc,
        RSiteSearch, URLdecode, URLencode, View, adist, alarm, apropos,
        aregexec, argsAnywhere, assignInNamespace, as.roman, as.person,

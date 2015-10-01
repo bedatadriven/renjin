@@ -991,7 +991,6 @@ public class Primitives {
     f("::", Namespaces.class, 0);
     f("getDataset", Namespaces.class, 11);
     
-    f("write.table", /*writetable*/ null, 111);
     f("Encoding", Types.class, 11);
     f("setEncoding", Types.class, 11);
   // REMOVED: f("lazyLoadDBfetch", Serialization.class, 0, 1, 4);

@@ -54,6 +54,21 @@
       <version>0.4</version>
     </dependency>
     <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>5.0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-tree</artifactId>
+      <version>5.0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>5.0.4</version>
+    </dependency>
+    <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>gcc-bridge-plugin</artifactId>
       <version>${project.version}</version>

@@ -1,7 +1,6 @@
 package org.renjin.gcc.translate;
 
 import com.google.common.collect.Maps;
-
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
@@ -41,9 +40,18 @@ public class RecordTypeTable {
     this.providedTypes = providedRecordTypes;
     for(GimpleCompilationUnit unit : units) {
       for (GimpleRecordTypeDef recordType : unit.getRecordTypes()) {
-        defs.put(recordType.getId(), recordType);
+        addRecordType(recordType);
       }
     }
+  }
+
+  public RecordTypeTable(TranslationContext context, Map<String, ImRecordType> providedRecordTypes) {
+    this.context = context;
+    this.providedTypes = providedRecordTypes;
+  }
+  
+  public void addRecordType(GimpleRecordTypeDef recordType) {
+    defs.put(recordType.getId(), recordType);
   }
 
   /**

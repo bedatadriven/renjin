@@ -1,6 +1,10 @@
 package org.renjin.gcc.translate.type;
 
-import org.renjin.gcc.jimple.*;
+import org.objectweb.asm.Type;
+import org.renjin.gcc.jimple.Jimple;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleType;
+import org.renjin.gcc.jimple.RealJimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
@@ -34,6 +38,16 @@ public class ImPointerType implements ImIndirectType {
   }
 
   @Override
+  public Type jvmReturnType() {
+    return Type.getType(ObjectPtr.class);
+  }
+
+  @Override
+  public Type jvmParamType() {
+    return Type.getType(ObjectPtr.class);
+  }
+
+  @Override
   public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
     throw new UnsupportedOperationException();
   }
@@ -57,7 +71,7 @@ public class ImPointerType implements ImIndirectType {
   public ImType arrayType(Integer lowerBound, Integer upperBound) {
     throw new UnsupportedOperationException();
   }
-
+  
   @Override
   public JimpleType getWrapperType() {
     return new RealJimpleType(ObjectPtr.class);

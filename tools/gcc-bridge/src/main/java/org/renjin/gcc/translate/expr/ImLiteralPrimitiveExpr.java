@@ -1,14 +1,9 @@
 package org.renjin.gcc.translate.expr;
 
 
-import org.renjin.gcc.gimple.type.GimpleBooleanType;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
-import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.jimple.JimpleExpr;
-import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
-import org.renjin.gcc.translate.type.PrimitiveType;
 
 /**
  * Represents a primitive expression that has already been translated to Jimple

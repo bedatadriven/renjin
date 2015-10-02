@@ -2,6 +2,7 @@ package org.renjin.gcc;
 
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
@@ -9,7 +10,9 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class AbstractGccTest {
@@ -56,6 +59,17 @@ public abstract class AbstractGccTest {
 
   protected Class<?> compile(List<String> sources, String className) throws Exception {
 
+    List<GimpleCompilationUnit> units = compileToGimple(sources);
+
+    return compileGimple(className, units);
+  }
+  
+  public GimpleCompilationUnit compileToGimple(String source) throws IOException {
+    List<GimpleCompilationUnit> units = compileToGimple(Arrays.asList(source));
+    return Iterables.getOnlyElement(units);
+  }
+
+  public List<GimpleCompilationUnit> compileToGimple(List<String> sources) throws IOException {
     File workingDir = new File("target/gcc-work");
     workingDir.mkdirs();
 
@@ -72,7 +86,7 @@ public abstract class AbstractGccTest {
     List<GimpleCompilationUnit> units = Lists.newArrayList();
 
     for (String sourceName : sources) {
-      File source = new File(getClass().getResource(sourceName).getFile());
+      File source = new File(AbstractGccTest.class.getResource(sourceName).getFile());
       GimpleCompilationUnit unit = gcc.compileToGimple(source);
 
       CallingConvention callingConvention = CallingConventions.fromFile(source);
@@ -81,8 +95,7 @@ public abstract class AbstractGccTest {
       }
       units.add(unit);
     }
-
-    return compileGimple(className, units);
+    return units;
   }
 
   protected Class<?> compileGimple(String className, List<GimpleCompilationUnit> units) throws Exception {

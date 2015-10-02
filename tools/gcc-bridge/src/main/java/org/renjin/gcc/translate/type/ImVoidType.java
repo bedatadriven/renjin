@@ -1,6 +1,7 @@
 package org.renjin.gcc.translate.type;
 
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
@@ -24,6 +25,16 @@ public class ImVoidType implements ImType {
   @Override
   public JimpleType returnType() {
     return JimpleType.VOID;
+  }
+
+  @Override
+  public Type jvmReturnType() {
+    return Type.VOID_TYPE;
+  }
+
+  @Override
+  public Type jvmParamType() {
+    throw new UnsupportedOperationException("VOID is not a valid parameter type");
   }
 
   @Override

@@ -1,12 +1,14 @@
 package org.renjin.gcc.translate;
 
 import com.google.common.collect.Maps;
+import org.objectweb.asm.Label;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.ins.GimpleCall;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleMethodBuilder;
 import org.renjin.gcc.jimple.JimpleType;
@@ -24,7 +26,8 @@ public class FunctionContext {
   private GimpleFunction gimpleFunction;
   private JimpleMethodBuilder builder;
   private Map<Integer, Variable> symbolTable = Maps.newHashMap();
-
+  private Map<Integer, Label> labels = Maps.newHashMap();
+  
   private int nextLabelId = 1000;
 
   public FunctionContext(TranslationContext translationContext, GimpleFunction gimpleFunction,
@@ -98,6 +101,15 @@ public class FunctionContext {
     return "trlabel" + (nextLabelId++) + "__";
   }
 
+  public Label label(int index) {
+    Label label = labels.get(index);
+    if(label == null) {
+      label = new Label();
+      labels.put(index, label);
+    }
+    return label;
+  }
+  
   public ImExpr lookupVar(GimpleExpr gimpleExpr) {
     if (gimpleExpr instanceof SymbolRef) {
       SymbolRef symbol = (SymbolRef) gimpleExpr;
@@ -154,6 +166,9 @@ public class FunctionContext {
      
     throw new UnsupportedOperationException(gimpleExpr.toString());
   }
-  
 
+
+  public ImType resolveType(GimpleType gimpleType) {
+    return translationContext.resolveType(gimpleType);
+  }
 }

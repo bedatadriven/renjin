@@ -8,7 +8,6 @@ import org.renjin.gcc.translate.expr.AbstractImExpr;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.expr.PrimitiveLValue;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
-import org.renjin.gcc.translate.type.PrimitiveType;
 
 /**
  * Writes jimple instructions to store and retrieve a single primitive numeric

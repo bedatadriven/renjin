@@ -1,12 +1,9 @@
 package org.renjin.gcc.translate;
 
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.expr.ArrayRef;
 import org.renjin.gcc.translate.expr.ImIndirectExpr;
-import org.renjin.gcc.translate.type.ImPrimitivePtrType;
-import org.renjin.gcc.translate.type.PrimitiveTypes;
 
 public class PtrWrapperUtils {
 

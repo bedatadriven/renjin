@@ -1,9 +1,12 @@
 package org.renjin.gcc.translate.type.struct;
 
 import com.google.common.collect.Maps;
-import org.renjin.gcc.jimple.*;
+import org.objectweb.asm.Type;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleFieldBuilder;
+import org.renjin.gcc.jimple.JimpleModifiers;
+import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
-import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
@@ -48,6 +51,16 @@ public class SimpleRecordType extends ImRecordType {
   @Override
   public JimpleType returnType() {
     return getJimpleType();
+  }
+
+  @Override
+  public Type jvmReturnType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Type jvmParamType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

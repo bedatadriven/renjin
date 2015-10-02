@@ -1,5 +1,6 @@
 package org.renjin.gcc.translate.type;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.jimple.*;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
@@ -20,7 +21,17 @@ public class ImPrimitivePtrType implements ImIndirectType {
   public JimpleType returnType() {
     return baseType.getPointerWrapperType();
   }
-  
+
+  @Override
+  public Type jvmReturnType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Type jvmParamType() {
+    throw new UnsupportedOperationException();
+  }
+
   public ImPrimitiveType baseType() {
     return baseType;
   }

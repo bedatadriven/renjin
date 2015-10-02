@@ -1,5 +1,6 @@
 package org.renjin.gcc.translate.type;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
@@ -161,6 +162,16 @@ public enum ImPrimitiveType implements ImType {
   }
 
   @Override
+  public Type jvmReturnType() {
+    return Type.getType(getPrimitiveClass());
+  }
+
+  @Override
+  public Type jvmParamType() {
+    return Type.getType(getPrimitiveClass());
+  }
+
+  @Override
   public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
     JimpleFieldBuilder field = classBuilder.newField();
     field.setName(memberName);
@@ -176,6 +187,8 @@ public enum ImPrimitiveType implements ImType {
 
   public abstract Class getPointerWrapperClass();
 
+  
+  
   public JimpleType getPointerWrapperType() {
     return new RealJimpleType(getPointerWrapperClass());
   }

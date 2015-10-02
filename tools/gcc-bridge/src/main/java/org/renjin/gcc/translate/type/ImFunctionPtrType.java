@@ -1,5 +1,6 @@
 package org.renjin.gcc.translate.type;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
@@ -19,6 +20,16 @@ public class ImFunctionPtrType implements ImType {
   @Override
   public JimpleType returnType() {
     return baseType.interfaceType();
+  }
+
+  @Override
+  public Type jvmReturnType() {
+    throw new UnsupportedOperationException();
+  }
+  
+  @Override
+  public Type jvmParamType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -50,6 +61,7 @@ public class ImFunctionPtrType implements ImType {
   public ImType arrayType(Integer lowerBound, Integer upperBound) {
     throw new UnsupportedOperationException();
   }
+
 
   public JimpleType interfaceType() {
     return baseType.interfaceType();

@@ -1,6 +1,7 @@
 package org.renjin.gcc.translate.type;
 
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
@@ -35,6 +36,16 @@ public class ImPrimitiveArrayType implements ImType {
   @Override
   public JimpleType returnType() {
     return componentType().jimpleArrayType();
+  }
+
+  @Override
+  public Type jvmReturnType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Type jvmParamType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

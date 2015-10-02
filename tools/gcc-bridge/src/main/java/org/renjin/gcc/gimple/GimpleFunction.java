@@ -1,13 +1,13 @@
 package org.renjin.gcc.gimple;
 
-import java.util.List;
-
-import org.renjin.gcc.gimple.ins.GimpleIns;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.objectweb.asm.Type;
+import org.renjin.gcc.gimple.ins.GimpleIns;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.translate.type.ImPrimitiveType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GimpleFunction {
   private int id;
@@ -72,6 +72,16 @@ public class GimpleFunction {
     }
   }
 
+
+  public String jvmSignature() {
+    Type returnType = getReturnType().getResolvedType().jvmReturnType();
+    List<Type> parameterTypes = new ArrayList<Type>();
+    for (GimpleParameter parameter : parameters) {
+      parameterTypes.add(parameter.getType().getResolvedType().jvmParamType());
+    }
+    return Type.getMethodDescriptor(returnType, parameterTypes.toArray(new Type[0]));
+  }
+
   public List<GimpleBasicBlock> getBasicBlocks() {
     return basicBlocks;
   }
@@ -104,5 +114,5 @@ public class GimpleFunction {
     this.returnType = returnType;
   }
 
-  
+
 }

@@ -52,4 +52,9 @@ public abstract class AbstractImExpr implements ImExpr {
   public boolean isNull() {
     return false;
   }
+
+  @Override
+  public void writePush(FunctionContext context) {
+    throw new UnsupportedOperationException("todo: " + getClass().getSimpleName()); 
+  }
 }

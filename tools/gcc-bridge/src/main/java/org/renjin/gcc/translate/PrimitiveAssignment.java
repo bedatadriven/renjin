@@ -1,14 +1,9 @@
 package org.renjin.gcc.translate;
 
-import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.jimple.JimpleExpr;
-import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.expr.ImExpr;
-import org.renjin.gcc.translate.expr.ImLValue;
 import org.renjin.gcc.translate.expr.PrimitiveLValue;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
-import org.renjin.gcc.translate.type.PrimitiveTypes;
 
 public class PrimitiveAssignment {
 

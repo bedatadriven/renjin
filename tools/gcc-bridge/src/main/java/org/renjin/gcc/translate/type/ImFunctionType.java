@@ -1,5 +1,6 @@
 package org.renjin.gcc.translate.type;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.jimple.SyntheticJimpleType;
@@ -116,6 +117,16 @@ public class ImFunctionType implements ImType {
   }
 
   @Override
+  public Type jvmReturnType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Type jvmParamType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
     throw new UnsupportedOperationException("Function values cannot be field values, " +
         "only function pointers.");
@@ -141,7 +152,7 @@ public class ImFunctionType implements ImType {
   public ImType arrayType(Integer lowerBound, Integer upperBound) {
     throw new UnsupportedOperationException();
   }
-
+  
   public JimpleType interfaceType() {
     return new SyntheticJimpleType(FunPtrTable.PACKAGE_NAME + "." + interfaceName());
   }

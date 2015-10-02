@@ -3,14 +3,12 @@ package org.renjin.gcc;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import org.renjin.gcc.gimple.CallingConvention;
-import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleOutput;
 import org.renjin.gcc.translate.FunctionTranslator;
+import org.renjin.gcc.translate.FunctionTranslator2;
 import org.renjin.gcc.translate.MethodTable;
 import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.type.struct.ImRecordType;
@@ -95,6 +93,33 @@ public class GimpleCompiler  {
 
     compileJimple(output.getClassNames());
   }
+  
+  public byte[] compileToBytecode(List<GimpleCompilationUnit> units) {
+
+
+    /* TO REMOVE */
+    JimpleOutput jimple = new JimpleOutput();
+
+    JimpleClassBuilder mainClass = jimple.newClass();
+    mainClass.setClassName(className);
+    mainClass.setPackageName(packageName);
+    /* END TO REMOVE */
+    
+
+    TranslationContext context = new TranslationContext(mainClass, methodTable, providedTypes, units);
+    for(GimpleCompilationUnit unit : units) {
+      for (GimpleFunction function : unit.getFunctions()) {
+
+        transformFunctionBody(unit, function);
+
+        FunctionTranslator2 translator = new FunctionTranslator2(context);
+        translator.translate(function);
+      }
+    }
+
+    return mainClass.buildClass();
+    
+  }
 
   public boolean isVerbose() {
     return verbose;
@@ -164,6 +189,8 @@ public class GimpleCompiler  {
 
     return jimple;
   }
+  
+  
 
   private void transformFunctionBody(GimpleCompilationUnit unit, GimpleFunction function) {
     boolean updated;

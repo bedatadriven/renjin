@@ -1,9 +1,8 @@
 package org.renjin.gcc.translate.type;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
-import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
-import org.renjin.gcc.jimple.SyntheticJimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
@@ -17,6 +16,10 @@ public interface ImType {
   JimpleType paramType();
 
   JimpleType returnType();
+
+  Type jvmReturnType();
+  
+  Type jvmParamType();
 
   /**
    * Define of a field of this type within the given classBuilder.
@@ -37,5 +40,6 @@ public interface ImType {
   ImType pointerType();
 
   ImType arrayType(Integer lowerBound, Integer upperBound);
-
+  
 }
+

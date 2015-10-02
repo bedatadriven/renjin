@@ -1,9 +1,9 @@
 package org.renjin.gcc.translate.type.struct;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
-import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.type.ImType;
@@ -27,6 +27,16 @@ public class SimpleRecordPtrType implements ImType {
   @Override
   public JimpleType returnType() {
     return baseType.getJimpleType();
+  }
+
+  @Override
+  public Type jvmReturnType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Type jvmParamType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

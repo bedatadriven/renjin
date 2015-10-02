@@ -5,7 +5,6 @@ import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
 import org.renjin.gcc.translate.type.ImType;
-import org.renjin.gcc.translate.type.PrimitiveType;
 
 /**
  * An intermediate representation of an expression used during
@@ -68,4 +67,6 @@ public interface ImExpr {
    */
   boolean isNull();
 
+  void writePush(FunctionContext context);
+  
 }

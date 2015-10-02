@@ -1,17 +1,16 @@
 package org.renjin.gcc.translate.type.struct;
 
 
-import org.renjin.gcc.jimple.*;
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleFieldBuilder;
+import org.renjin.gcc.jimple.JimpleModifiers;
+import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.field.SimpleRecordArrayFieldExpr;
 import org.renjin.gcc.translate.type.ImType;
-import org.renjin.gcc.translate.type.struct.SimpleRecordType;
 import org.renjin.gcc.translate.var.Variable;
-
-import java.lang.reflect.Array;
-import java.lang.reflect.Type;
 
 public class SimpleRecordArrayType implements ImType {
 
@@ -31,6 +30,16 @@ public class SimpleRecordArrayType implements ImType {
 
   @Override
   public JimpleType returnType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public org.objectweb.asm.Type jvmReturnType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public org.objectweb.asm.Type jvmParamType() {
     throw new UnsupportedOperationException();
   }
 

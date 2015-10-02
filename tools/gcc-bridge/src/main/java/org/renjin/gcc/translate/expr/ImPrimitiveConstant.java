@@ -1,17 +1,11 @@
 package org.renjin.gcc.translate.expr;
 
 import org.renjin.gcc.gimple.expr.GimpleConstant;
-import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
-import org.renjin.gcc.gimple.expr.GimpleRealConstant;
-import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
-import org.renjin.gcc.translate.TypeChecker;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
-import org.renjin.gcc.translate.type.PrimitiveType;
 import org.renjin.gcc.translate.var.PrimitiveHeapVar;
 
 /**

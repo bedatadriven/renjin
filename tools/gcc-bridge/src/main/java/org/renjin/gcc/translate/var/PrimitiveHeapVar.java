@@ -1,6 +1,5 @@
 package org.renjin.gcc.translate.var;
 
-import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.jimple.Jimple;
 import org.renjin.gcc.jimple.JimpleExpr;
 import org.renjin.gcc.translate.FunctionContext;
@@ -8,7 +7,6 @@ import org.renjin.gcc.translate.PrimitiveAssignment;
 import org.renjin.gcc.translate.expr.*;
 import org.renjin.gcc.translate.type.ImPrimitivePtrType;
 import org.renjin.gcc.translate.type.ImPrimitiveType;
-import org.renjin.gcc.translate.type.PrimitiveType;
 
 /**
  * Writes jimple instructions to store and retrieve a single primitive numeric

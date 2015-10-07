@@ -9,6 +9,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.renjin.packaging.PackageDescription;
 
 import java.io.File;
 import java.io.IOException;
@@ -131,7 +132,7 @@ public class NamespaceMojo extends AbstractMojo {
     try {
       Thread.currentThread().setContextClassLoader(classLoader);
 
-      Object builder = classLoader.loadClass("org.renjin.maven.namespace.NamespaceBuilder").newInstance();
+      Object builder = classLoader.loadClass("org.renjin.packaging.NamespaceBuilder").newInstance();
       builder.getClass()
           .getMethod("build", String.class, String.class, File.class, File.class, List.class, File.class, List.class)
           .invoke(builder, groupId, namespaceName, namespaceFile, sourceDirectory, sourceFiles, getEnvironmentFile(),
@@ -150,7 +151,7 @@ public class NamespaceMojo extends AbstractMojo {
     ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(classLoader);
-      Constructor ctor = classLoader.loadClass("org.renjin.maven.namespace.DatasetsBuilder")
+      Constructor ctor = classLoader.loadClass("org.renjin.packaging.DatasetsBuilder")
           .getConstructor(File.class, File.class);
       Object builder = ctor.newInstance(getPackageRoot(), dataDirectory);
       builder.getClass().getMethod("build").invoke(builder);

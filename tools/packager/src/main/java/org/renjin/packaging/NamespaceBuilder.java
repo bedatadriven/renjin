@@ -1,4 +1,4 @@
-package org.renjin.maven.namespace;
+package org.renjin.packaging;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
@@ -7,7 +7,6 @@ import com.google.common.io.Files;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;

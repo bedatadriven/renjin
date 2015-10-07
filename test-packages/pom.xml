@@ -24,5 +24,6 @@
     <module>alpha</module>
     <module>beta</module>
     <module>s4test</module>
+    <module>collateTest</module>
   </modules>
 </project>

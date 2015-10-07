@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>renjin-test-packages</artifactId>
+        <groupId>org.renjin</groupId>
+        <version>0.7.0-RC8-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.renjin.test</groupId>
+    <artifactId>collateTest</artifactId>
+    <name>Dummy Renjin Package with Explict source order</name>
+    <description>Package depending on Jackson 2.5.1</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.renjin</groupId>
+            <artifactId>renjin-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.renjin</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.renjin</groupId>
+                <artifactId>renjin-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <id>build</id>
+                        <goals>
+                            <goal>namespace-compile</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <configuration>
+                            <sourceFiles>
+                                <sourceFile>z.R</sourceFile>
+                                <sourceFile>a.R</sourceFile>
+                            </sourceFiles>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

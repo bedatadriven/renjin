@@ -8,10 +8,10 @@ import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.FunPtr;
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gnur.sexp.GnuSEXP;
 import org.renjin.gnur.sexp.GnuSymbol;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
+import org.renjin.sexp.SEXP;
 
 import java.util.Set;
 
@@ -28,8 +28,6 @@ public class RenjinCApi {
   public static final double R_PosInf = Double.POSITIVE_INFINITY;
 
   public static final GnuSymbol R_DimSymbol = new GnuSymbol("dim");
-
-
 
   public static final Set<GnuSymbol> SYMBOL_TABLE = Sets.newHashSet();
 
@@ -86,7 +84,7 @@ public class RenjinCApi {
   }
 
 
-  public static int TYPEOF(GnuSEXP sexp) {
+  public static int TYPEOF(SEXP sexp) {
     throw new UnsupportedOperationException();
   }
 
@@ -141,21 +139,21 @@ public class RenjinCApi {
 
   }
   
-  public static int LENGTH(GnuSEXP x) {
+  public static int LENGTH(SEXP x) {
     throw new UnsupportedOperationException();
   }
   
  
-  public static DoublePtr REAL(GnuSEXP x) {
+  public static DoublePtr REAL(SEXP x) {
     throw new UnsupportedOperationException();
   }
   
   
-  public static GnuSEXP Rf_coerceVector(GnuSEXP x, int type) {
+  public static SEXP Rf_coerceVector(SEXP x, int type) {
     throw new UnsupportedOperationException();
   }
   
-  public static GnuSEXP Rf_protect(GnuSEXP obj) {
+  public static SEXP Rf_protect(SEXP obj) {
     // NOOP
     return obj;
   }
@@ -164,7 +162,7 @@ public class RenjinCApi {
     // NOOP
   }
   
-  public static GnuSEXP Rf_allocVector(int type, int size) {
+  public static SEXP Rf_allocVector(int type, int size) {
     return null;
   }
   
@@ -199,8 +197,8 @@ public class RenjinCApi {
   }
 
   
-  public static int Rf_length(GnuSEXP sexp) {
-    throw new UnsupportedOperationException();
+  public static int Rf_length(SEXP sexp) {
+    return sexp.length();
   }
 
 }

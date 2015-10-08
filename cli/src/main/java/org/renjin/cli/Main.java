@@ -1,23 +1,12 @@
 package org.renjin.cli;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-
 import org.renjin.aether.AetherPackageLoader;
+import org.renjin.cli.build.Builder;
 import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.eval.Session;
@@ -26,6 +15,18 @@ import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
 
@@ -37,6 +38,12 @@ public class Main {
 
 
   public static void main(String[] args) throws Exception {
+    
+    if(args.length >= 1 && args[0].equals("build")) {
+      Builder.execute(args[0], Arrays.copyOfRange(args, 1, args.length));
+      return;
+    }
+    
     OptionParser parser = new OptionParser();
     parser.accepts("e", "Evaluate 'EXPR' and exit")
         .withRequiredArg()

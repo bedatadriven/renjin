@@ -1,5 +1,6 @@
 package org.renjin.eval;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileObject;
@@ -15,6 +16,7 @@ import org.renjin.util.FileSystemUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,6 +27,9 @@ import java.util.Map;
  * live within a single JVM.
  */
 public class Session {
+
+  public static final List<String> DEFAULT_PACKAGES = ImmutableList.of(
+      "stats", "utils", "graphics", "grDevices", "datasets", "methods");
   
   private final Context topLevelContext;
 

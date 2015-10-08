@@ -34,7 +34,7 @@
     </dependency>
     <dependency>
 	  <groupId>org.renjin</groupId>
-	  <artifactId>renjin-legacy-compiler</artifactId>
+	  <artifactId>renjin-gnur-compiler</artifactId>
 	  <version>${project.version}</version>
     </dependency>
     <dependency>

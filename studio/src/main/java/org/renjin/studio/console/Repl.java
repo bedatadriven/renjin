@@ -33,7 +33,6 @@ import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 import org.renjin.studio.StudioSession;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
 
@@ -125,12 +124,7 @@ public class Repl implements Runnable {
 
   private void printGreeting() {
     PrintStream out = console.getOut();
-    try {
-      RenjinVersion renjin = new RenjinVersion();
-      out.print("Renjin " + renjin.getVersionName() + "\n");
-    } catch (IOException e) {
-      out.print("Renjin\n");
-    }
+    out.print("Renjin " + RenjinVersion.getVersionName() + "\n");
 
     out.print("Copyright (C) 2013 The R Foundation for Statistical Computing\n");
     out.print("Copyright (C) 2014 BeDataDriven\n");

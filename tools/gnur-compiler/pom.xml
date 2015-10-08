@@ -23,7 +23,7 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>renjin-legacy-compiler</artifactId>
+  <artifactId>renjin-gnur-compiler</artifactId>
   <name>Renjin GNU R Native Sources Compiler</name>
   <description>Compiles legacy C/Fortran sources to JVM bytecode</description>
 

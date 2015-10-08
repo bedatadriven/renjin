@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2007  The R Core Team
+ *  Copyright (C) 2014  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -17,35 +17,32 @@
  *  http://www.r-project.org/Licenses/
  *
  *
- * Memory Allocation (garbage collected) --- INCLUDING S compatibility ---
+ *  Definition of the R_allocator_t structure for custom allocators
+ *  to be used with allocVector3()
  */
 
-/* Included by R.h: API */
-
-#ifndef R_EXT_MEMORY_H_
-#define R_EXT_MEMORY_H_
+#ifndef R_EXT_RALLOCATORS_H_
+#define R_EXT_RALLOCATORS_H_
 
 #ifndef NO_C_HEADERS
 # include <stddef.h> /* for size_t */
 #endif
 
-#ifdef  __cplusplus
-extern "C" {
+/* R_allocator_t typedef is also declared in Rinternals.h 
+   so we guard against random inclusion order */
+#ifndef R_ALLOCATOR_TYPE
+#define R_ALLOCATOR_TYPE
+typedef struct R_allocator R_allocator_t;
 #endif
 
-void*	vmaxget(void);
-void	vmaxset(const void *);
+typedef void *(*custom_alloc_t)(R_allocator_t *allocator, size_t);
+typedef void  (*custom_free_t)(R_allocator_t *allocator, void *);
 
-void	R_gc(void);
-int	R_gc_running();
+struct R_allocator {
+    custom_alloc_t mem_alloc; /* malloc equivalent */
+    custom_free_t  mem_free;  /* free equivalent */
+    void *res;                /* reserved (maybe for copy) - must be NULL */
+    void *data;               /* custom data for the allocator implementation */
+};
 
-char*	R_alloc(size_t, int);
-long double *R_allocLD(size_t nelem);
-char*	S_alloc(long, int);
-char*	S_realloc(char *, long, long, int);
-
-#ifdef  __cplusplus
-}
-#endif
-
-#endif /* R_EXT_MEMORY_H_ */
+#endif /* R_EXT_RALLOCATORS_H_ */

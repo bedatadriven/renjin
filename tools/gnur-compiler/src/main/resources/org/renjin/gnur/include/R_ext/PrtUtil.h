@@ -1,7 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2009    Robert Gentleman, Ross Ihaka
- *                             and the R Development Core Team
+ *  Copyright (C) 1998-2014    The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -19,15 +18,13 @@
  */
 
 /*
- * Generally useful print utilities *NOT* relying on R internals (from Defn.h)
- *
- * (not useful anymore; use  R_print struct with SEXP) --> Print.h
+ *  These functions are not part of the API.
  */
 #ifndef PRTUTIL_H_
 #define PRTUTIL_H_
 
+#include <Rinternals.h> // for R_xlen_t
 #include <R_ext/Complex.h>
-#include <R_ext/Print.h>
 
 #define formatLogical      Rf_formatLogical
 #define formatInteger      Rf_formatInteger
@@ -36,39 +33,42 @@
 #define EncodeLogical      Rf_EncodeLogical
 #define EncodeInteger      Rf_EncodeInteger
 #define EncodeReal         Rf_EncodeReal
+#define EncodeReal0        Rf_EncodeReal0
 #define EncodeComplex      Rf_EncodeComplex
 #define VectorIndex        Rf_VectorIndex
 #define printIntegerVector Rf_printIntegerVector
 #define printRealVector    Rf_printRealVector
 #define printComplexVector Rf_printComplexVector
-/* #define dropTrailing0      Rf_dropTrailing0 */
 
 #ifdef  __cplusplus
 extern "C" {
 #endif
 
 /* Computation of printing formats */
-void formatLogical(int *, int, int *);
-void formatInteger(int *, int, int *);
-void formatReal(double *, int, int *, int *, int *, int);
-void formatComplex(Rcomplex *, int, int *, int *, int *, int *, int *, int *, int);
+void formatLogical(int *, R_xlen_t, int *);
+void formatInteger(int *, R_xlen_t, int *);
+void formatReal(double *, R_xlen_t, int *, int *, int *, int);
+void formatComplex(Rcomplex *, R_xlen_t, int *, int *, int *, int *, int *, int *, int);
 
 /* Formating of values */
 const char *EncodeLogical(int, int);
 const char *EncodeInteger(int, int);
+const char *EncodeReal0(double, int, int, int, const char *);
+const char *EncodeComplex(Rcomplex, int, int, int, int, int, int, const char *);
+
+/* Legacy, misused by packages RGtk2 and qtbase */
 const char *EncodeReal(double, int, int, int, char);
-const char *EncodeComplex(Rcomplex, int, int, int, int, int, int, char);
-/* const char* dropTrailing0(const char *, char); */
+
 
 /* Printing */
-void VectorIndex(int, int);
+int	IndexWidth(R_xlen_t);
+void VectorIndex(R_xlen_t, int);
 
-void printLogicalVector(int *, int, int);
-void printIntegerVector(int *, int, int);
-void printRealVector   (double *, int, int);
-void printComplexVector(Rcomplex *,int, int);
+//void printLogicalVector(int *, R_xlen_t, int);
+void printIntegerVector(int *, R_xlen_t, int);
+void printRealVector   (double *, R_xlen_t, int);
+void printComplexVector(Rcomplex *, R_xlen_t, int);
 
-/* char *Rsprintf(char*, ...); */
 #ifdef  __cplusplus
 }
 #endif

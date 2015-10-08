@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2010  The R Development Core Team
+ *  Copyright (C) 1999-2010  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,12 @@
  *  along with this program; if not, a copy is available at
  *  http://www.r-project.org/Licenses/
  */
+
+/*
+  C functions to be called from alternative front-ends.
+
+  Part of the API for such front-ends but not for packages.
+*/
 
 #ifndef R_EXT_RSTARTUP_H_
 #define R_EXT_RSTARTUP_H_
@@ -92,7 +98,7 @@ void R_common_command_line(int *, char **, Rstart);
 
 void R_set_command_line_arguments(int argc, char **argv);
 
-void setup_Rmainloop(void);
+void setup_Rmainloop(void); // also in Rembedded.h
 
 #ifdef __cplusplus
 }

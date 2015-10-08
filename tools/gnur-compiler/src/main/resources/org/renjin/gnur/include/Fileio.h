@@ -1,6 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2006 R Core Team
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+ *                2007 R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,31 +18,11 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* NOTE:
-   This file exports a part of the current internal parse interface.
-   It is subject to change at any minor (x.y.0) version of R.
- */
+#ifndef RFILEIO_H_
 
-#ifndef R_EXT_PARSE_H_
-#define R_EXT_PARSE_H_
+#define RFILEIO_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* PARSE_NULL will not be returned by R_ParseVector */
-typedef enum {
-    PARSE_NULL,
-    PARSE_OK,
-    PARSE_INCOMPLETE,
-    PARSE_ERROR,
-    PARSE_EOF
-} ParseStatus;
-
-SEXP R_ParseVector(SEXP, int, ParseStatus *, SEXP);
-
-#ifdef __cplusplus
-}
-#endif
+int	R_fgetc(FILE*);
+FILE *	R_fopen(const char *filename, const char *mode);
 
 #endif

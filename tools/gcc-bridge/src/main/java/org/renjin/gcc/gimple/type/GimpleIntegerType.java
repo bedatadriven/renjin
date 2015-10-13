@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.type;
 
+import org.objectweb.asm.Type;
+
 public class GimpleIntegerType extends GimplePrimitiveType {
   private int precision;
   private boolean unsigned;
@@ -66,5 +68,34 @@ public class GimpleIntegerType extends GimplePrimitiveType {
     if (unsigned != other.unsigned)
       return false;
     return true;
+  }
+
+  @Override
+  public int localVariableSlots() {
+    switch (precision) {
+      case 64:
+        return 2;
+      case 32:
+        return 1;
+      default:
+        throw new UnsupportedOperationException("Precision: " + precision);
+    }
+  }
+
+  @Override
+  public Type jvmType() {
+    switch (precision) {
+      case 64:
+        return Type.LONG_TYPE;
+      case 32:
+        return Type.INT_TYPE;
+      default:
+        throw new UnsupportedOperationException("Precision: " + precision);
+    }
+  }
+
+  @Override
+  public int sizeOf() {
+    return precision / 8;
   }
 }

@@ -1,9 +1,8 @@
 package org.renjin.gcc.gimple.type;
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
-import org.renjin.gcc.translate.type.ImPrimitiveType;
+
+import java.util.List;
 
 public class GimpleFunctionType extends AbstractGimpleType {
   private GimpleType returnType;
@@ -39,6 +38,10 @@ public class GimpleFunctionType extends AbstractGimpleType {
   public void setVariableArguments(boolean variableArguments) {
     this.variableArguments = variableArguments;
   }
-  
-  
+
+
+  @Override
+  public int sizeOf() {
+    throw new UnsupportedOperationException();
+  }
 }

@@ -34,4 +34,10 @@ public interface GimpleType {
   boolean isTypeResolved();
 
   void setResolvedType(ImType resolvedType);
+
+  /**
+   * 
+   * @return the size of this type, in bytes
+   */
+  int sizeOf();
 }

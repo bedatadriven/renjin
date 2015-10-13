@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.type;
 
+import org.objectweb.asm.Type;
+
 public class GimpleRealType extends GimplePrimitiveType {
   private int precision;
 
@@ -48,4 +50,29 @@ public class GimpleRealType extends GimplePrimitiveType {
     return precision == other.precision;
   }
 
+  @Override
+  public int localVariableSlots() {
+    if(precision == 64) {
+      return 2;
+    } else {
+      return 1;
+    }
+  }
+
+  @Override
+  public Type jvmType() {
+    switch (precision) {
+      case 32:
+        return Type.FLOAT_TYPE;
+      case 64:
+        return Type.DOUBLE_TYPE;
+      default:
+        throw new UnsupportedOperationException("Precision: " + precision);
+    }
+  }
+
+  @Override
+  public int sizeOf() {
+    return precision / 8;
+  }
 }

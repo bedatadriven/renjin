@@ -2,7 +2,9 @@ package org.renjin.gcc;
 
 
 import org.junit.Test;
+import org.renjin.gcc.codegen.ClassGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.translate.type.TypeResolver;
 
 import java.lang.reflect.Method;
@@ -19,15 +21,20 @@ public class CompilerTest extends AbstractGccTest {
     // Stage 0: Invoke GCC to compile to Gimple
     GimpleCompilationUnit unit = compileToGimple("sqr.c");
 
+    System.out.println(unit);
 
     // Stage 1: Resolve types to intermediate type models
     TypeResolver resolver = new TypeResolver();
     resolver.resolve(Collections.singletonList(unit));
 
-    GimpleCompiler compiler = new GimpleCompiler();
-    compiler.setClassName("Sqr");
-    compiler.setPackageName("org.renjin");
-    byte[] classFile = compiler.compileToBytecode(Collections.singletonList(unit));
+    ClassGenerator generator = new ClassGenerator("org/renjin/Sqr");
+    generator.emit();
+
+    for (GimpleFunction gimpleFunction : unit.getFunctions()) {
+      generator.emitFunction(gimpleFunction);
+    }
+    
+    byte[] classFile = generator.toByteArray();
 
     MyClassLoader classLoader = new MyClassLoader();
     Class<?> theClass = classLoader.defineClass("org.renjin.Sqr", classFile);

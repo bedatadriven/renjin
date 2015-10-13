@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.type;
 
+import org.objectweb.asm.Type;
+
 public class GimpleBooleanType extends GimplePrimitiveType {
 
   @Override
@@ -16,6 +18,20 @@ public class GimpleBooleanType extends GimplePrimitiveType {
   public int hashCode() {
     return 1;
   }
-  
-  
+
+
+  @Override
+  public int localVariableSlots() {
+    return 1;
+  }
+
+  @Override
+  public Type jvmType() {
+    return Type.BOOLEAN_TYPE;
+  }
+
+  @Override
+  public int sizeOf() {
+    return 1;
+  }
 }

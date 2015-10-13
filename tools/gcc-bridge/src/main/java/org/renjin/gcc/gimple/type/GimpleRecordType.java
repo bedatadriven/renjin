@@ -1,9 +1,5 @@
 package org.renjin.gcc.gimple.type;
 
-import java.util.List;
-
-import com.google.common.collect.Lists;
-
 public class GimpleRecordType extends AbstractGimpleType {
   private String name;
   private String id;
@@ -31,5 +27,10 @@ public class GimpleRecordType extends AbstractGimpleType {
   @Override
   public String toString() {
     return "struct " + getName();
+  }
+
+  @Override
+  public int sizeOf() {
+    throw new UnsupportedOperationException();
   }
 }

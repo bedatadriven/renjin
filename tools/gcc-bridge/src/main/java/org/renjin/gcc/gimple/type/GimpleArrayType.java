@@ -33,4 +33,9 @@ public class GimpleArrayType extends AbstractGimpleType {
   public String toString() {
     return componentType + "[]";
   }
+
+  @Override
+  public int sizeOf() {
+    throw new UnsupportedOperationException();
+  }
 }

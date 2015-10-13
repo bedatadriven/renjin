@@ -7,4 +7,8 @@ public class GimpleVoidType extends AbstractGimpleType {
     return "void";
   }
 
+  @Override
+  public int sizeOf() {
+    throw new UnsupportedOperationException();
+  }
 }

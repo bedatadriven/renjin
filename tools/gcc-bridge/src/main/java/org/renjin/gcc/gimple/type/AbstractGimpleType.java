@@ -2,7 +2,7 @@ package org.renjin.gcc.gimple.type;
 
 import org.renjin.gcc.translate.type.ImType;
 
-public class AbstractGimpleType implements GimpleType {
+public abstract class AbstractGimpleType implements GimpleType {
   private int size;
   private ImType resolvedType;
 

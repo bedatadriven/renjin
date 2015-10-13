@@ -15,7 +15,12 @@ public class GimpleReferenceType extends AbstractGimpleType implements GimpleInd
   public boolean isPointerTo(Class<? extends GimpleType> clazz) {
     return clazz.isAssignableFrom(baseType.getClass());
   }
-  
+
+  @Override
+  public int sizeOf() {
+    throw new UnsupportedOperationException();
+  }
+
   @Override
   public String toString() {
     return baseType + "&";

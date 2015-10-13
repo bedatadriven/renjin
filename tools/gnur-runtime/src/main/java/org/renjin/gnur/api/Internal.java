@@ -2,6 +2,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.sexp.SEXP;
+import org.renjin.gcc.runtime.*;
 
 @SuppressWarnings("unused")
 public final class Internal {

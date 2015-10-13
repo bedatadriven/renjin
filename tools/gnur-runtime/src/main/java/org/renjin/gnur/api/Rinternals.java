@@ -1,8 +1,8 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.*;
 import org.renjin.sexp.SEXP;
+import org.renjin.gcc.runtime.*;
 
 @SuppressWarnings("unused")
 public final class Rinternals {
@@ -1142,7 +1142,7 @@ public final class Rinternals {
   }
 
   public static boolean Rf_inherits(SEXP p0, CharPtr p1) {
-     throw new UnimplementedGnuApiMethod("Rf_inherits");
+    return p0.inherits(p1.asString());
   }
 
   public static boolean Rf_isArray(SEXP p0) {

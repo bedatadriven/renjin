@@ -11,7 +11,7 @@ import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.jimple.RealJimpleType;
 import org.renjin.gcc.translate.type.struct.SimpleRecordType;
-import org.renjin.gnur.sexp.GnuSEXP;
+import org.renjin.sexp.SEXP;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -103,6 +103,7 @@ public class GnurSourcesCompiler {
         GimpleCompilationUnit unit;
         try {
           unit = gcc.compileToGimple(sourceFile, "-std=gnu99");
+          unit.setSourceFile(sourceFile);
         } catch(Exception e) {
           throw new GccException("Error compiling " + sourceFile + " to gimple: " + e.getMessage(), e);
         }
@@ -140,7 +141,7 @@ public class GnurSourcesCompiler {
       compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
       compiler.getMethodTable().addReferenceClass(Sort.class);
 
-      compiler.provideType("SEXP_T", new SimpleRecordType(new RealJimpleType(GnuSEXP.class)));
+      compiler.provideType("SEXP_T", new SimpleRecordType(new RealJimpleType(SEXP.class)));
 
       compiler.compile(units);
     }

@@ -3,7 +3,6 @@ package org.renjin.gcc.translate.type.struct;
 import com.google.common.collect.Maps;
 import org.renjin.gcc.jimple.*;
 import org.renjin.gcc.translate.FunctionContext;
-import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.type.ImPrimitiveType;

@@ -1,43 +1,51 @@
 package org.renjin.gcc.translate.type;
 
-import org.renjin.gcc.jimple.*;
-import org.renjin.gcc.runtime.ObjectPtr;
+
+import org.renjin.gcc.jimple.JimpleClassBuilder;
+import org.renjin.gcc.jimple.JimpleFieldBuilder;
+import org.renjin.gcc.jimple.JimpleModifiers;
+import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
-import org.renjin.gcc.translate.var.PtrVar;
 import org.renjin.gcc.translate.var.Variable;
 
 /**
- * A pointer type for the general case, i.e. a pointer to an
- * arbitrary other type.
- *
- * <p>Specific cases, like pointers to primitives and primitive arrays
- * are handled by other classes</p>
+ * Provides implementation for 2-dimensional primitive pointers like double**
  */
-public class ImPointerType implements ImIndirectType {
+public class ImPrimitive2dPtrType implements ImIndirectType {
+  
+  private ImPrimitiveType baseType;
 
-  private final ImType baseType;
-
-  public ImPointerType(ImType baseType) {
+  public ImPrimitive2dPtrType(ImPrimitiveType baseType) {
     this.baseType = baseType;
   }
 
   @Override
+  public JimpleType getWrapperType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public JimpleType getArrayType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public JimpleType paramType() {
-    return new RealJimpleType(ObjectPtr.class);
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public JimpleType returnType() {
-    return new RealJimpleType(ObjectPtr.class);
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void defineField(JimpleClassBuilder classBuilder, String memberName, boolean isStatic) {
     JimpleFieldBuilder arrayField = classBuilder.newField();
     arrayField.setName(memberName);
-    arrayField.setType(new SyntheticJimpleType(baseType.paramType() + "[]"));
+    arrayField.setType(baseType.jimpleArrayType());
     if(isStatic) {
       arrayField.setModifiers(JimpleModifiers.PUBLIC);
     } else {
@@ -51,40 +59,26 @@ public class ImPointerType implements ImIndirectType {
       offsetField.setModifiers(JimpleModifiers.PUBLIC);
     } else {
       offsetField.setModifiers(JimpleModifiers.PUBLIC, JimpleModifiers.STATIC);
-    }  
-  }
-
-  public String indexMemberName(String memberName) {
-    return memberName + "_index";
+    }
   }
 
   @Override
   public Variable createLocalVariable(FunctionContext functionContext, String gimpleName, VarUsage varUsage) {
-    return new PtrVar(functionContext, Jimple.id(gimpleName), this);
+    return null;
   }
 
   @Override
   public ImExpr createFieldExpr(String instanceExpr, JimpleType classType, String memberName) {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public ImType pointerType() {
-    return new ImPointerType(this);
+    return null;
   }
 
   @Override
   public ImType arrayType(Integer lowerBound, Integer upperBound) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public JimpleType getWrapperType() {
-    return new RealJimpleType(ObjectPtr.class);
-  }
-
-  @Override
-  public JimpleType getArrayType() {
-    return new RealJimpleType(Object[].class);
+    return null;
   }
 }

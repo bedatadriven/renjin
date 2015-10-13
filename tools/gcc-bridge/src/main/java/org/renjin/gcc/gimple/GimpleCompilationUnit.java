@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple;
 
+import java.io.File;
 import java.util.List;
 
 import com.google.common.base.Joiner;
@@ -12,6 +13,7 @@ public class GimpleCompilationUnit {
   private final List<GimpleFunction> functions = Lists.newArrayList();
   private final List<GimpleRecordTypeDef> recordTypes = Lists.newArrayList();
   private final List<GimpleVarDecl> globalVariables = Lists.newArrayList();
+  private File sourceFile;
 
   public List<GimpleFunction> getFunctions() {
     return functions;
@@ -30,4 +32,11 @@ public class GimpleCompilationUnit {
     return Joiner.on("\n").join(functions);
   }
 
+  public void setSourceFile(File sourceFile) {
+    this.sourceFile = sourceFile;
+  }
+
+  public File getSourceFile() {
+    return sourceFile;
+  }
 }

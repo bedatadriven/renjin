@@ -4,7 +4,6 @@ package org.renjin.gcc.translate.type;
 import org.renjin.gcc.jimple.JimpleClassBuilder;
 import org.renjin.gcc.jimple.JimpleType;
 import org.renjin.gcc.jimple.RealJimpleType;
-import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.translate.FunctionContext;
 import org.renjin.gcc.translate.VarUsage;

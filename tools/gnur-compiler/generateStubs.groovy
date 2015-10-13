@@ -63,7 +63,7 @@ def writeStubs(xml) {
                 }
 
                 s.println("  public static ${returnType} ${functionName}(${parameterList}) {");
-                s.println("     throw new UnsupportedGnuApi(\"${functionName}\");")
+                s.println("    throw new UnimplementedGnuApiMethod(\"${functionName}\");")
                 s.println("  }");
 
             } catch (Exception) {
@@ -119,6 +119,7 @@ def translateType(String type) {
         case "SEXPTYPE":
         case "R_xlen_t":
         case "size_t":
+        case "R_size_t":
             return "/*${type}*/ int";
    
         case "PROTECT_INDEX *":

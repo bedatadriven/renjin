@@ -7,11 +7,7 @@ import org.renjin.gcc.translate.VarUsage;
 import org.renjin.gcc.translate.expr.ImExpr;
 import org.renjin.gcc.translate.field.SimpleRecordArrayFieldExpr;
 import org.renjin.gcc.translate.type.ImType;
-import org.renjin.gcc.translate.type.struct.SimpleRecordType;
 import org.renjin.gcc.translate.var.Variable;
-
-import java.lang.reflect.Array;
-import java.lang.reflect.Type;
 
 public class SimpleRecordArrayType implements ImType {
 

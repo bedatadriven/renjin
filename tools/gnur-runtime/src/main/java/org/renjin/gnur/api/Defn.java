@@ -1,11 +1,8 @@
 // Initial template generated from Defn.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.Ptr;
 import org.renjin.sexp.SEXP;
+import org.renjin.gcc.runtime.*;
 
 @SuppressWarnings("unused")
 public final class Defn {
@@ -720,17 +717,29 @@ public final class Defn {
      throw new UnimplementedGnuApiMethod("R_GetTraceback");
   }
 
-  // R_size_t R_GetMaxVSize (void)
+  public static /*R_size_t*/ int R_GetMaxVSize() {
+     throw new UnimplementedGnuApiMethod("R_GetMaxVSize");
+  }
 
-  // void R_SetMaxVSize (R_size_t)
+  public static void R_SetMaxVSize(/*R_size_t*/ int p0) {
+     throw new UnimplementedGnuApiMethod("R_SetMaxVSize");
+  }
 
-  // R_size_t R_GetMaxNSize (void)
+  public static /*R_size_t*/ int R_GetMaxNSize() {
+     throw new UnimplementedGnuApiMethod("R_GetMaxNSize");
+  }
 
-  // void R_SetMaxNSize (R_size_t)
+  public static void R_SetMaxNSize(/*R_size_t*/ int p0) {
+     throw new UnimplementedGnuApiMethod("R_SetMaxNSize");
+  }
 
-  // R_size_t R_Decode2Long (char *p, int *ierr)
+  public static /*R_size_t*/ int R_Decode2Long(CharPtr p, IntPtr ierr) {
+     throw new UnimplementedGnuApiMethod("R_Decode2Long");
+  }
 
-  // void R_SetPPSize (R_size_t)
+  public static void R_SetPPSize(/*R_size_t*/ int p0) {
+     throw new UnimplementedGnuApiMethod("R_SetPPSize");
+  }
 
   public static int Rstrlen(SEXP p0, int p1) {
      throw new UnimplementedGnuApiMethod("Rstrlen");

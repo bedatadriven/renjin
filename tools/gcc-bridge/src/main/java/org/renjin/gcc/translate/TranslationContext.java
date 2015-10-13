@@ -47,7 +47,7 @@ public class TranslationContext {
     for(GimpleCompilationUnit unit : units) {
       functions.addAll(unit.getFunctions());
       for(GimpleVarDecl varDecl : unit.getGlobalVariables()) {
-        translateGlobalVarDecl(varDecl);
+        translateGlobalVarDecl(unit, varDecl);
       }
     }
     
@@ -63,7 +63,11 @@ public class TranslationContext {
     return recordTypeTable;
   }
 
-  private void translateGlobalVarDecl(GimpleVarDecl varDecl) {
+  public FunPtrTable getFunPtrTable() {
+    return funPtrTable;
+  }
+
+  private void translateGlobalVarDecl(GimpleCompilationUnit unit, GimpleVarDecl varDecl) {
    
     try {
       
@@ -76,7 +80,8 @@ public class TranslationContext {
           varDecl.getName()));
       
     } catch(Exception e) {
-      throw new RuntimeException("Exception translating global variable '" + varDecl.getName() + "'", e);
+      throw new RuntimeException("Exception translating global variable '" + varDecl.getName() + "' " +
+          " declared in " + unit.getSourceFile().getName(), e);
     }
   }
 

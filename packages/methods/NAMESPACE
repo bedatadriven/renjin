@@ -1,4 +1,3 @@
-useDynLib(methods, .registration = TRUE, .fixes = "C_")
 
 importFrom(utils, find)
 

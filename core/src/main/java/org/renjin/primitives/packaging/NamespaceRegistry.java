@@ -28,7 +28,7 @@ public class NamespaceRegistry {
    * These packages are part of the R distribution and carry the
    * org.renjin groupId.
    */
-  private static final Set<String> CORE_PACKAGES = Sets.newHashSet("datasets", "graphics", "grDevices", "hamcrest",
+  public static final Set<String> CORE_PACKAGES = Sets.newHashSet("datasets", "graphics", "grDevices", "hamcrest",
       "methods", "splines", "stats", "stats4", "utils", "grid", "parallel", "tools");
 
   private PackageLoader loader;

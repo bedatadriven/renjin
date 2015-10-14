@@ -1,9 +1,9 @@
-package org.renjin.maven.namespace;
+package org.renjin.packaging;
+
+import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-
-import junit.framework.TestCase;
 
 public class DatasetsBuilderTest extends TestCase {
 

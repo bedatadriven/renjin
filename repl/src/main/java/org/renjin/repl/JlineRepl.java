@@ -111,8 +111,7 @@ public class JlineRepl {
   private void printGreeting() throws Exception {
 
     try {
-      RenjinVersion renjin = new RenjinVersion();
-      reader.println("Renjin " + renjin.getVersionName());
+      reader.println("Renjin " + RenjinVersion.getVersionName());
     } catch (IOException e) {
       reader.println("Renjin");
     }

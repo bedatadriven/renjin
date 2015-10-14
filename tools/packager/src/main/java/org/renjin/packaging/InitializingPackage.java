@@ -1,4 +1,4 @@
-package org.renjin.maven.namespace;
+package org.renjin.packaging;
 
 import com.google.common.io.ByteSource;
 import org.renjin.eval.Context;

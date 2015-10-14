@@ -10,7 +10,7 @@
   <artifactId>renjin-aether-package-loader</artifactId>
 
   <properties>
-    <aetherVersion>0.9.0.M2</aetherVersion>
+    <aetherVersion>1.0.2.v20150114</aetherVersion>
     <mavenVersion>3.1.0</mavenVersion>
     <wagonVersion>1.0</wagonVersion>
   </properties>
@@ -45,67 +45,28 @@
     </dependency>
     <dependency>
       <groupId>org.eclipse.aether</groupId>
-      <artifactId>aether-connector-file</artifactId>
+      <artifactId>aether-transport-file</artifactId>
       <version>${aetherVersion}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.aether</groupId>
-      <artifactId>aether-connector-wagon</artifactId>
+      <artifactId>aether-connector-basic</artifactId>
       <version>${aetherVersion}</version>
     </dependency>
     <dependency>
-      <groupId>io.tesla.maven</groupId>
+      <groupId>org.eclipse.aether</groupId>
+      <artifactId>aether-transport-http</artifactId>
+      <version>${aetherVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
       <artifactId>maven-aether-provider</artifactId>
       <version>${mavenVersion}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.maven.wagon</groupId>
-      <artifactId>wagon-provider-api</artifactId>
-      <version>${wagonVersion}</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-settings-builder</artifactId>
       <version>${mavenVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.maven</groupId>
-      <artifactId>wagon-ahc</artifactId>
-      <version>1.2.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.sisu</groupId>
-      <artifactId>org.eclipse.sisu.plexus</artifactId>
-      <version>0.0.0.M1</version>
-      <optional>true</optional>
-      <exclusions>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>asm</groupId>
-          <artifactId>asm</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.sonatype.sisu</groupId>
-          <artifactId>sisu-guice</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.sisu</groupId>
-      <artifactId>sisu-guice</artifactId>
-      <version>3.1.0</version>
-      <classifier>no_aop</classifier>
-      <optional>true</optional>
-      <exclusions>
-        <exclusion>
-          <groupId>aopalliance</groupId>
-          <artifactId>aopalliance</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
   

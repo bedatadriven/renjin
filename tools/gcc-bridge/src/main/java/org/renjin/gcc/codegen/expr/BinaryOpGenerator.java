@@ -30,12 +30,14 @@ public class BinaryOpGenerator implements PrimitiveGenerator {
         return Opcodes.IMUL;
       case PLUS_EXPR:
         return Opcodes.IADD;
-
+      
       case RDIV_EXPR:
       case TRUNC_DIV_EXPR:
       case EXACT_DIV_EXPR:
         return Opcodes.IDIV;
-      
+
+      case TRUNC_MOD_EXPR:
+        return Opcodes.IREM;
       
       case BIT_AND_EXPR:
         return Opcodes.IAND;

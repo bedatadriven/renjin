@@ -183,16 +183,12 @@ public class FunctionGenerator {
   }
 
   private void emitReturn(GimpleReturn ins) {
-    ExprGenerator valueGenerator = findGenerator(ins.getValue());
-    
-    if(valueGenerator instanceof PrimitiveGenerator) {
-      PrimitiveGenerator primitiveGenerator = (PrimitiveGenerator) valueGenerator;      
-      primitiveGenerator.emitPush(mv);
+    if(ins.getValue() == null) {
+      returnGenerator.emitVoidReturn(mv);
       
-      mv.visitInsn(primitiveGenerator.primitiveType().getOpcode(IRETURN));
-    
     } else {
-      throw new UnsupportedOperationException("Return: " + valueGenerator);
+      returnGenerator.emitReturn(mv, findGenerator(ins.getValue()));
+
     }
   }
 
@@ -200,7 +196,8 @@ public class FunctionGenerator {
     switch (op) {
       case PLUS_EXPR:
       case MULT_EXPR:
-      case EXACT_DIV_EXPR: 
+      case EXACT_DIV_EXPR:
+      case TRUNC_MOD_EXPR:
       case BIT_IOR_EXPR:
       case BIT_XOR_EXPR:
       case BIT_AND_EXPR:
@@ -235,6 +232,9 @@ public class FunctionGenerator {
       
       case NEGATE_EXPR:
         return new NegateGenerator(findGenerator(operands.get(0)));
+      
+      case TRUTH_NOT_EXPR:
+        return new LogicalNotGenerator(findGenerator(operands.get(0)));
       
       case EQ_EXPR:
       case LT_EXPR:

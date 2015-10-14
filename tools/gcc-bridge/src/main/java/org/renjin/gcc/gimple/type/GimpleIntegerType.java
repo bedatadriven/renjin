@@ -85,18 +85,15 @@ public class GimpleIntegerType extends GimplePrimitiveType {
 
   @Override
   public Type jvmType() {
-    switch (precision) {
-      case 64:
-        return Type.LONG_TYPE;
-      case 32:
-        return Type.INT_TYPE;
-      default:
-        throw new UnsupportedOperationException("Precision: " + precision);
+    if(precision == 64) {
+      return Type.LONG_TYPE;
+    } else {
+      return Type.INT_TYPE;
     }
   }
 
   @Override
   public int sizeOf() {
-    return precision / 8;
+    return Math.max(1, precision / 8);
   }
 }

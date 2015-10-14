@@ -7,6 +7,10 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.WrappedPtrParamGenerator;
+import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
+import org.renjin.gcc.codegen.ret.PtrReturnGenerator;
+import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
 import org.renjin.gcc.codegen.var.PrimitiveVarGenerator;
 import org.renjin.gcc.codegen.var.PtrVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
@@ -17,8 +21,7 @@ import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleMemRef;
 import org.renjin.gcc.gimple.expr.SymbolRef;
 import org.renjin.gcc.gimple.ins.*;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,7 @@ public class FunctionGenerator {
 
   private GimpleFunction function;
   private List<ParamGenerator> params = new ArrayList<ParamGenerator>();
+  private ReturnGenerator returnGenerator;
   private LocalVarAllocator localVarAllocator;
   
   private Labels labels = new Labels();
@@ -42,6 +46,7 @@ public class FunctionGenerator {
   public FunctionGenerator(VariableTable parent, GimpleFunction function) {
     this.function = function;
     this.params = findParamGenerators(function.getParameters());
+    this.returnGenerator = findReturnGenerator(function.getReturnType());
     this.localVarAllocator = new LocalVarAllocator(params);
   }
 
@@ -84,7 +89,7 @@ public class FunctionGenerator {
     if(gimpleParameter.getType() instanceof GimplePrimitiveType) {
       return new PrimitiveParamGenerator(gimpleParameter, index);
       
-    } else if(gimpleParameter.getType() instanceof GimplePointerType) {
+    } else if(gimpleParameter.getType() instanceof GimpleIndirectType) {
       return new WrappedPtrParamGenerator(gimpleParameter, index);
     }
     
@@ -109,12 +114,24 @@ public class FunctionGenerator {
       int index = localVarAllocator.reserve(primitiveType.localVariableSlots());
       return new PrimitiveVarGenerator(index, varDecl.getName(), primitiveType);
     
-    } else if(varDecl.getType() instanceof GimplePointerType) {
+    } else if(varDecl.getType() instanceof GimpleIndirectType) {
       GimplePointerType pointerType = (GimplePointerType) varDecl.getType();
       return new PtrVarGenerator(pointerType.getBaseType(), localVarAllocator);
       
     } else {
       throw new UnsupportedOperationException("var type: " + varDecl.getType());
+    }
+  }
+  
+  private ReturnGenerator findReturnGenerator(GimpleType returnType) {
+    if(returnType instanceof GimpleVoidType) {
+      return new VoidReturnGenerator();
+    } else if(returnType instanceof GimplePrimitiveType) {
+      return new PrimitiveReturnGenerator(returnType);
+    } else if(returnType instanceof GimpleIndirectType) {
+      return new PtrReturnGenerator(returnType);
+    } else {
+      throw new UnsupportedOperationException("Return type: " + returnType);
     }
   }
 
@@ -139,10 +156,14 @@ public class FunctionGenerator {
 
 
   private void emitAssignment(GimpleAssign ins) {
-    LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLHS());
-    ExprGenerator rhs = findGenerator(ins.getOperator(), ins.getOperands());
-    
-    lhs.emitStore(mv, rhs);
+    try {
+      LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLHS());
+      ExprGenerator rhs = findGenerator(ins.getOperator(), ins.getOperands());
+
+      lhs.emitStore(mv, rhs);
+    } catch (Exception e) {
+      throw new RuntimeException("Exception translating assignment " + ins, e);
+    }
   }
 
 
@@ -151,10 +172,8 @@ public class FunctionGenerator {
   }
 
   private void emitConditional(GimpleConditional ins) {
-    ConditionGenerator generator = new ComparisonGenerator(
-        ins.getOperator(), 
-        findGenerator(ins.getOperands().get(0)),
-        findGenerator(ins.getOperands().get(1)));
+    ConditionGenerator generator = (ConditionGenerator) findGenerator(ins.getOperator(), ins.getOperands());
+        
     
     // jump if true
     generator.emitJump(mv, labels.of(ins.getTrueLabel()));
@@ -181,6 +200,10 @@ public class FunctionGenerator {
     switch (op) {
       case PLUS_EXPR:
       case MULT_EXPR:
+      case EXACT_DIV_EXPR: 
+      case BIT_IOR_EXPR:
+      case BIT_XOR_EXPR:
+      case BIT_AND_EXPR:
         return new BinaryOpGenerator(op, 
             findGenerator(operands.get(0)), 
             findGenerator(operands.get(1)));
@@ -190,12 +213,38 @@ public class FunctionGenerator {
             findGenerator(operands.get(0)),
             findGenerator(operands.get(1)));
       
+      case BIT_NOT_EXPR:
+        return new BitwiseNotGenerator(findGenerator(operands.get(0)));
+
+      case LSHIFT_EXPR:
+      case RSHIFT_EXPR:
+        return new BitwiseShiftGenerator(
+            op,
+            findGenerator(operands.get(0)), 
+            findGenerator(operands.get(1)));
+      
       case VAR_DECL:
       case NOP_EXPR:
       case MEM_REF:
       case INTEGER_CST:
       case REAL_CST:
         return findGenerator(operands.get(0));
+
+      case FIX_TRUNC_EXPR:
+        return new TruncateExprGenerator(findGenerator(operands.get(0)));      
+      
+      case NEGATE_EXPR:
+        return new NegateGenerator(findGenerator(operands.get(0)));
+      
+      case EQ_EXPR:
+      case LT_EXPR:
+      case LE_EXPR:
+      case NE_EXPR:
+      case GT_EXPR:
+      case GE_EXPR:
+        return new ComparisonGenerator(op,
+            findGenerator(operands.get(0)),
+            findGenerator(operands.get(1)));
       
       default:
         throw new UnsupportedOperationException("op: " + op);
@@ -223,9 +272,6 @@ public class FunctionGenerator {
       parameterTypes.addAll(param.getParameterTypes());
     }
 
-    GimplePrimitiveType returnType = (GimplePrimitiveType) function.getReturnType();
-
-    return Type.getMethodDescriptor(returnType.jvmType(), 
-        parameterTypes.toArray(new Type[parameterTypes.size()]));
+    return Type.getMethodDescriptor(returnGenerator.type(), parameterTypes.toArray(new Type[parameterTypes.size()]));
   }
 }

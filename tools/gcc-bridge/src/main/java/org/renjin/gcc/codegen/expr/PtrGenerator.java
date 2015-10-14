@@ -29,4 +29,5 @@ public interface PtrGenerator extends ExprGenerator {
    * Pushes the integer offset backing this pointer onto the stack
    */
   void emitPushOffset(MethodVisitor mv);
+
 }

@@ -7,7 +7,7 @@ import org.renjin.gcc.codegen.PointerTypes;
 import org.renjin.gcc.codegen.var.PtrVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 import java.util.Collections;
@@ -39,7 +39,7 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
   public WrappedPtrParamGenerator(GimpleParameter parameter, int localVariableIndex) {
     this.parameter = parameter;
     this.localVariableIndex = localVariableIndex;
-    this.baseType = ((GimplePointerType)parameter.getType()).getBaseType();
+    this.baseType = ((GimpleIndirectType)parameter.getType()).getBaseType();
     this.wrapperType = PointerTypes.wrapperType(baseType.jvmType());
     this.wrapperArrayType = PointerTypes.wrapperArrayType(baseType.jvmType());
   }

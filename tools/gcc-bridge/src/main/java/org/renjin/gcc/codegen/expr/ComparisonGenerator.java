@@ -10,7 +10,7 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * Generates codes for binary comparisons
  */
-public class ComparisonGenerator implements ConditionGenerator {
+public class ComparisonGenerator implements ConditionGenerator, PrimitiveGenerator {
   
   private GimpleOp op;
   private PrimitiveGenerator x;
@@ -24,19 +24,35 @@ public class ComparisonGenerator implements ConditionGenerator {
 
   @Override
   public void emitJump(MethodVisitor mv, Label trueLabel) {
-    if (x.primitiveType().equals(Type.INT_TYPE) &&
-        y.primitiveType().equals(Type.INT_TYPE)) {
-      x.emitPush(mv);
-      y.emitPush(mv);
+
+    Type tx = x.primitiveType();
+    Type ty = y.primitiveType();
+    
+    if(!tx.equals(ty)) {
+      throw new UnsupportedOperationException("Type mismatch: " + tx + " != " + ty);
+    }
+    
+    // Push two operands on the stack
+    x.emitPush(mv);
+    y.emitPush(mv);
+    
+    if (tx.equals(Type.INT_TYPE) || tx.equals(Type.BOOLEAN_TYPE)) {
+      
       mv.visitJumpInsn(integerComparison(), trueLabel);
+
+    } else if(tx.equals(Type.DOUBLE_TYPE) ||
+              ty.equals(Type.FLOAT_TYPE)) {
+      
+      emitRealJump(mv, trueLabel);
+      
     } else {
       throw new UnsupportedOperationException(String.format(
           "Unsupported types: %s and %s",
-            x.primitiveType(),
-            y.primitiveType()));
+          tx,
+          ty));
     }
   }
-  
+
   private int integerComparison() {
     switch (op) {
       case LT_EXPR:
@@ -55,4 +71,95 @@ public class ComparisonGenerator implements ConditionGenerator {
     throw new UnsupportedOperationException("op: " + op);
   }
 
+
+  private void emitRealJump(MethodVisitor mv, Label trueLabel) {
+
+
+    // Branching on floating point comparisons requires two steps:
+    // First we have to do the actual comparison, using DCMPG/DCMPL/FCMPL/FCMPG,
+    // which compares the two operands and pushes -1, 0, or 1 onto the stack
+
+    // Then we can compare this value to zero and branch on the result.
+
+    // But because we have floating points, we need to be mindful of NaN values.
+
+    //            CMPG:     CMPL
+    // x <  y        1         1
+    // y == 0        0         0 
+    // x >  y       -1        -1
+    // NaN           1        -1
+
+    // So if we're interested in whether x is less than y, we need to use
+    // CMPL to make sure that our condition is false if either x or y is NaN
+    switch (op) {
+      case LT_EXPR:
+      case LE_EXPR:
+        mv.visitInsn(isDouble() ? DCMPG : FCMPG);
+        break;
+      default:
+        mv.visitInsn(isDouble() ? DCMPL : FCMPL);
+        break;
+    }
+
+    // Now we jump based on the comparison of the above result to zero
+    switch (op) {
+      case LT_EXPR:
+        // 1: x < y
+        mv.visitJumpInsn(IFLT, trueLabel);
+        break;
+      case LE_EXPR:
+        // 1 : x < y
+        // 0 : x == y
+        mv.visitJumpInsn(IFLE, trueLabel);
+        break;
+      case EQ_EXPR:
+        // 0 : x == y
+        mv.visitJumpInsn(IFEQ, trueLabel);
+        break;
+
+      case NE_EXPR:
+        mv.visitJumpInsn(IFNE, trueLabel);
+        break;
+
+      case GT_EXPR:
+        mv.visitJumpInsn(IFGT, trueLabel);
+        break;
+
+      case GE_EXPR:
+        mv.visitJumpInsn(IFGE, trueLabel);
+        break;
+    }
+  }
+
+  private boolean isDouble() {
+    return x.primitiveType().equals(Type.DOUBLE_TYPE);
+  }
+
+
+  @Override
+  public Type primitiveType() {
+    // has a type of boolean, but within method bodies this is treated as an integer
+    return Type.INT_TYPE;
+  }
+
+  @Override
+  public void emitPush(MethodVisitor mv) {
+    // Push this value as a boolean on the stack.
+    // Requires a jump
+    Label trueLabel = new Label();
+    Label exitLabel = new Label();
+    
+    emitJump(mv, trueLabel);
+    
+    // if false
+    mv.visitInsn(ICONST_0);
+    mv.visitJumpInsn(GOTO, exitLabel);
+    
+    // if true
+    mv.visitLabel(trueLabel);
+    mv.visitInsn(ICONST_1);
+    
+    // done
+    mv.visitLabel(exitLabel);
+  }
 }

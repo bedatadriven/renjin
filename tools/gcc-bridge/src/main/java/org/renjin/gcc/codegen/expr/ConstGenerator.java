@@ -29,7 +29,7 @@ public class ConstGenerator implements PrimitiveGenerator {
 
   @Override
   public void emitPush(MethodVisitor mv) {
-    if(type.equals(Type.INT_TYPE)) {
+    if(type.equals(Type.INT_TYPE) || type.equals(Type.BOOLEAN_TYPE)) {
       emitInt(mv, value.intValue());
     
     } else if(type.equals(Type.LONG_TYPE)) {
@@ -47,12 +47,14 @@ public class ConstGenerator implements PrimitiveGenerator {
   }
 
   private void emitInt(MethodVisitor mv, int value) {
-    if(value >= 0 && value <= 5) {
+    if(value == -1) {
+      mv.visitInsn(ICONST_M1);
+    } else if(value >= 0 && value <= 5) {
       mv.visitInsn(ICONST_0 + value);
     } else if(value >= -128 && value <= 127) {
       mv.visitIntInsn(BIPUSH, value); 
     } else {
-      throw new UnsupportedOperationException("integer: " + value);
+      mv.visitLdcInsn(value);
     }
   }
 
@@ -70,7 +72,7 @@ public class ConstGenerator implements PrimitiveGenerator {
     } else if(v == 1) {
       mv.visitInsn(DCONST_1);
     } else {
-      throw new UnsupportedOperationException("value: " + v);
+      mv.visitLdcInsn(v);
     }
   }
   

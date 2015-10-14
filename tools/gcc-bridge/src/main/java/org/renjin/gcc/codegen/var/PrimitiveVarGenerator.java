@@ -26,7 +26,7 @@ public class PrimitiveVarGenerator implements LValueGenerator, PrimitiveGenerato
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     PrimitiveGenerator primitiveGenerator = (PrimitiveGenerator) valueGenerator;
     
-    Preconditions.checkArgument(primitiveGenerator.primitiveType().equals(primitiveType()),
+    Preconditions.checkArgument(checkTypes(primitiveGenerator),
         "Type mismatch: Cannot assign %s of type %s to %s of type %s",
         primitiveGenerator,
         primitiveGenerator.primitiveType(),
@@ -36,6 +36,21 @@ public class PrimitiveVarGenerator implements LValueGenerator, PrimitiveGenerato
     primitiveGenerator.emitPush(mv);
     
     mv.visitVarInsn(primitiveType().getOpcode(ISTORE), index);
+  }
+
+  private boolean checkTypes(PrimitiveGenerator primitiveGenerator) {
+    Type varType = primitiveType();
+    Type valueType = primitiveGenerator.primitiveType();
+    
+    if(varType.equals(Type.INT_TYPE) || varType.equals(Type.BOOLEAN_TYPE) ) {
+      return valueType.equals(Type.INT_TYPE) ||
+             valueType.equals(Type.BOOLEAN_TYPE) ||
+             valueType.equals(Type.SHORT_TYPE);
+      
+    } else {
+      
+      return varType.equals(valueType);
+    }
   }
 
   @Override

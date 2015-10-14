@@ -1,6 +1,8 @@
 package org.renjin.gcc.codegen;
 
 import org.objectweb.asm.Type;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.*;
 
 
@@ -59,4 +61,30 @@ public class PointerTypes {
       return Type.getType(Object[].class);
     }
   }
+  
+  public static Type wrapperType(GimpleType baseType) {
+    if(baseType instanceof GimplePrimitiveType) {
+      return wrapperType(((GimplePrimitiveType) baseType).jvmType());
+    } else {
+      return Type.getType(ObjectPtr.class);
+    }
+  }
+
+  public static Type wrapperArrayType(GimpleType baseType) {
+    if(baseType instanceof GimplePrimitiveType) {
+      return wrapperArrayType(((GimplePrimitiveType) baseType).jvmType());
+    } else {
+      return Type.getType(Object[].class);
+    }
+  }
+
+
+  public static String getConstructorDescriptor(Type baseType) {
+    return Type.getMethodDescriptor(Type.VOID_TYPE, wrapperArrayType(baseType), Type.INT_TYPE);
+  }
+
+  public static String getConstructorDescriptor(GimpleType baseType) {
+    return Type.getMethodDescriptor(Type.VOID_TYPE, wrapperArrayType(baseType), Type.INT_TYPE);
+  }
+  
 }

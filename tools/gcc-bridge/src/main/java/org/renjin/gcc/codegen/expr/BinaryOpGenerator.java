@@ -25,14 +25,24 @@ public class BinaryOpGenerator implements PrimitiveGenerator {
 
   private static int opCodeFor(GimpleOp op) {
     switch (op) {
+
       case MULT_EXPR:
         return Opcodes.IMUL;
       case PLUS_EXPR:
         return Opcodes.IADD;
+
       case RDIV_EXPR:
       case TRUNC_DIV_EXPR:
       case EXACT_DIV_EXPR:
         return Opcodes.IDIV;
+      
+      
+      case BIT_AND_EXPR:
+        return Opcodes.IAND;
+      case BIT_IOR_EXPR:
+        return Opcodes.IOR;
+      case BIT_XOR_EXPR:
+        return Opcodes.IXOR;
     }
     return 0;
   }

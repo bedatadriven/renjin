@@ -7,7 +7,7 @@ import org.objectweb.asm.Type;
 /**
  * Writes the code to dereference a pointer expression
  */
-public class MemRefGenerator implements PrimitiveGenerator {
+public class MemRefGenerator implements PrimitiveGenerator, LValueGenerator {
   
   private PtrGenerator ptrGenerator;
 
@@ -26,5 +26,20 @@ public class MemRefGenerator implements PrimitiveGenerator {
     ptrGenerator.emitPushArray(mv);
     ptrGenerator.emitPushOffset(mv);
     mv.visitInsn(ptrGenerator.baseType().getOpcode(Opcodes.IALOAD));
+  }
+
+  @Override
+  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    
+    // XASTORE = arrayref, index, value
+    
+    ptrGenerator.emitPushArray(mv);
+    ptrGenerator.emitPushOffset(mv);
+    
+    // push the value to assign
+    PrimitiveGenerator primitiveGenerator = (PrimitiveGenerator) valueGenerator;
+    primitiveGenerator.emitPush(mv);
+    
+    mv.visitInsn(primitiveType().getOpcode(Opcodes.IASTORE));
   }
 }

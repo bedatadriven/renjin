@@ -75,6 +75,7 @@ public class GimpleIntegerType extends GimplePrimitiveType {
     switch (precision) {
       case 64:
         return 2;
+      case 8:
       case 32:
         return 1;
       default:

@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
+
 public class GimpleIntegerConstant extends GimpleConstant {
   private long value;
 
@@ -11,4 +13,8 @@ public class GimpleIntegerConstant extends GimpleConstant {
     this.value = value;
   }
 
+  @Override
+  public boolean isNull() {
+    return getType() instanceof GimpleIndirectType && value == 0;
+  }
 }

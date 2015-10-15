@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.MethodVisitor;
 
 /**
- * Code generator that can store values
+ * Generates the bytecode to store values to local variables, fields, arrays, etc
  */
 public interface LValueGenerator {
 

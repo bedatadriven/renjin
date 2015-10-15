@@ -7,17 +7,17 @@ import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class ConstGenerator implements PrimitiveGenerator {
+public class ConstValueGenerator implements PrimitiveGenerator {
 
   private Type type;
   private Number value;
 
-  public ConstGenerator(GimpleConstant constant) {
+  public ConstValueGenerator(GimpleConstant constant) {
     type = ((GimplePrimitiveType) constant.getType()).jvmType();
     value = constant.getNumberValue();
   }
 
-  public ConstGenerator(Type type, Number value) {
+  public ConstValueGenerator(Type type, Number value) {
     this.type = type;
     this.value = value;
   }
@@ -76,9 +76,9 @@ public class ConstGenerator implements PrimitiveGenerator {
     }
   }
   
-  public ConstGenerator divideBy(int divisor) {
+  public ConstValueGenerator divideBy(int divisor) {
     if (type.equals(Type.INT_TYPE)) {
-      return new ConstGenerator(type, value.intValue() / divisor);
+      return new ConstValueGenerator(type, value.intValue() / divisor);
     } else {
       throw new UnsupportedOperationException();
     }

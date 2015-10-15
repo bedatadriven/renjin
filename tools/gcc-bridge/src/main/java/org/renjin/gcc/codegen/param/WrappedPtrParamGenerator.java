@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.param;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
-import org.renjin.gcc.codegen.PointerTypes;
+import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.var.PtrVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -40,8 +40,8 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
     this.parameter = parameter;
     this.localVariableIndex = localVariableIndex;
     this.baseType = ((GimpleIndirectType)parameter.getType()).getBaseType();
-    this.wrapperType = PointerTypes.wrapperType(baseType.jvmType());
-    this.wrapperArrayType = PointerTypes.wrapperArrayType(baseType.jvmType());
+    this.wrapperType = WrapperType.wrapperType(baseType.jvmType());
+    this.wrapperArrayType = WrapperType.wrapperArrayType(baseType.jvmType());
   }
 
   @Override

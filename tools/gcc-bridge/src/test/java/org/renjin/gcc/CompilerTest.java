@@ -4,7 +4,6 @@ package org.renjin.gcc;
 import org.junit.Test;
 import org.renjin.gcc.codegen.ClassGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.translate.type.TypeResolver;
 
 import java.lang.reflect.Method;
@@ -28,11 +27,8 @@ public class CompilerTest extends AbstractGccTest {
     resolver.resolve(Collections.singletonList(unit));
 
     ClassGenerator generator = new ClassGenerator("org/renjin/Sqr");
-    generator.emit();
+    generator.emit(Collections.singletonList(unit));
 
-    for (GimpleFunction gimpleFunction : unit.getFunctions()) {
-      generator.emitFunction(gimpleFunction);
-    }
     
     byte[] classFile = generator.toByteArray();
 

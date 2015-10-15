@@ -4,7 +4,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-
+/**
+ * Generates the bytecode to negate a numeric value
+ */
 public class NegateGenerator implements PrimitiveGenerator {
   
   private PrimitiveGenerator operand;

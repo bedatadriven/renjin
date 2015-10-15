@@ -1,4 +1,4 @@
-package org.renjin.gcc.translate.xform;
+package org.renjin.gcc.analysis;
 
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;

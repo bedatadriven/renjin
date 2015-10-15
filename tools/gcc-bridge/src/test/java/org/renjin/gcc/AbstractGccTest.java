@@ -60,6 +60,8 @@ public abstract class AbstractGccTest {
   protected Class<?> compile(List<String> sources, String className) throws Exception {
 
     List<GimpleCompilationUnit> units = compileToGimple(sources);
+    
+    System.out.println(units);
 
     return compileGimple(className, units);
   }

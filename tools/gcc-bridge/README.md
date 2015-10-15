@@ -88,15 +88,15 @@ C:
 ```
 double **dmatrix(double *x, int ncol, int nrow) {
 
-    int i;
-    double **pointer;
+  int i;
+  double **pointer;
 
-    pointer = (double **) ALLOC(nrow, sizeof(double *));
-    for (i=0; i<nrow; i++) {
-        pointer[i] = x;
-        x += ncol;
-    }
-    return(pointer);
+  pointer = (double **) ALLOC(nrow, sizeof(double *));
+  for (i=0; i<nrow; i++) {
+      pointer[i] = x;
+      x += ncol;
+  }
+  return(pointer);
 }
 ```
 
@@ -105,19 +105,83 @@ Java:
 ```
 public static ObjectPtr dmatrix(DoublePtr x, int ncol, int nrow) {
 
-    double[] x_array = x.array
-    int x_offset = x.offset
-    
-    int i;
-    DoublePtr[] pointer_array;
-    int pointer_offset = 0;
+  double[] x_array = x.array
+  int x_offset = x.offset
+  
+  int i;
+  DoublePtr[] pointer_array;
+  int pointer_offset = 0;
 
-    pointer =  new DoublePtr[nrow];
-    for (i=0; i<nrow; i++) {
-        pointer_array[pointer_offset+i] = new DoublePtr(x_array, x_offset);
-        x_offset += ncol;
-    }
-    return(pointer);
+  pointer =  new DoublePtr[nrow];
+  for (i=0; i<nrow; i++) {
+      pointer_array[pointer_offset+i] = new DoublePtr(x_array, x_offset);
+      x_offset += ncol;
+  }
+  return(pointer);
 }
 ```
 
+### Global Variables
+
+Global variables are compiled as static public fields. 
+
+```
+int global_var;
+
+void main() {
+   global_var = 42;
+}
+```
+
+Java:
+
+```
+public static class MainClass {
+
+  public static int global_var;
+  
+  public static void main() {
+    global_var = 42;
+  }
+}
+```
+
+### Global Pointer Variables
+
+Global variables pointers are compiled as two static fields: one for the backing
+array, and one for the offset.
+
+```
+int *global_var;
+
+void main() {
+  global_var = malloc(sizeof(int));
+  init(global_var);
+}
+
+void init(int *x) {
+  *x = 42;
+}
+```
+
+```
+public static class Main {
+
+  public static int[] global_var;
+  public static int global_var$offset;
+  
+  public static void main() {
+    // global_var = malloc(sizeof(int))
+    global_var = new int[1];
+    global_var$offset = 0;
+  
+    // init(global_var)
+    init(new IntPtr(global_var, global_var$offset))
+  }
+  
+  public static void init(IntPtr x) {
+    // *x = 42
+    x.array[x.offset] = 42;  
+  }
+}
+```

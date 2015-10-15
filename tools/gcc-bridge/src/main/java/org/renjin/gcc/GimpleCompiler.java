@@ -3,6 +3,8 @@ package org.renjin.gcc;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+import org.renjin.gcc.analysis.FunctionBodyTransformer;
+import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
 import org.renjin.gcc.codegen.ClassGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -12,8 +14,6 @@ import org.renjin.gcc.translate.FunctionTranslator;
 import org.renjin.gcc.translate.MethodTable;
 import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.type.struct.ImRecordType;
-import org.renjin.gcc.translate.xform.FunctionBodyTransformer;
-import org.renjin.gcc.translate.xform.VoidPointerTypeDeducer;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,13 +74,8 @@ public class GimpleCompiler  {
     packageFolder.mkdirs();
 
     ClassGenerator generator = new ClassGenerator(getInternalClassName());
-    generator.emit();
+    generator.emit(units);
 
-    for (GimpleCompilationUnit unit : units) {
-      for (GimpleFunction gimpleFunction : unit.getFunctions()) {
-        generator.emitFunction(gimpleFunction);
-      }
-    }
 
     byte[] classFile = generator.toByteArray();
 

@@ -55,6 +55,4 @@ public class FunPtrCallTranslator implements CallTranslator {
     }
     return ((ImFunctionPtrType) type).baseType();
   }
-
-
 }

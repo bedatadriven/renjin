@@ -5,7 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 /**
- * Writes the code to dereference a pointer expression
+ * Generates the bytecode to dereference a pointer expression
  */
 public class MemRefGenerator implements PrimitiveGenerator, LValueGenerator {
   

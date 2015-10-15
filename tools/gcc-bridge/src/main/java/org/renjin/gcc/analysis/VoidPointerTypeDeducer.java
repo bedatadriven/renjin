@@ -1,4 +1,4 @@
-package org.renjin.gcc.translate.xform;
+package org.renjin.gcc.analysis;
 
 import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -45,7 +45,6 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     return type instanceof GimplePointerType &&
         type.getBaseType() instanceof GimpleVoidType;
   }
-
 
   /**
    * Tries to deduce the type of a given void pointer declaration

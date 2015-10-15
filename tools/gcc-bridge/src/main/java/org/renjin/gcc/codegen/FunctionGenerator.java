@@ -3,6 +3,8 @@ package org.renjin.gcc.codegen;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.call.CallGenerator;
+import org.renjin.gcc.codegen.call.FunctionTable;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
@@ -16,10 +18,7 @@ import org.renjin.gcc.codegen.var.PtrVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.codegen.var.VariableTable;
 import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.expr.GimpleConstant;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleMemRef;
-import org.renjin.gcc.gimple.expr.SymbolRef;
+import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.ins.*;
 import org.renjin.gcc.gimple.type.*;
 
@@ -39,15 +38,20 @@ public class FunctionGenerator {
   private LocalVarAllocator localVarAllocator;
   
   private Labels labels = new Labels();
-  private VariableTable localVariables = new VariableTable();
+  private VariableTable localVariables;
+  private FunctionTable functionTable;
   
   private MethodVisitor mv;
 
-  public FunctionGenerator(VariableTable parent, GimpleFunction function) {
+  public FunctionGenerator(GimpleFunction function) {
     this.function = function;
     this.params = findParamGenerators(function.getParameters());
     this.returnGenerator = findReturnGenerator(function.getReturnType());
     this.localVarAllocator = new LocalVarAllocator(params);
+  }
+  
+  public String getMangledName() {
+    return function.getMangledName();
   }
 
   private List<ParamGenerator> findParamGenerators(List<GimpleParameter> parameters) {
@@ -61,9 +65,12 @@ public class FunctionGenerator {
     return generators;
   }
   
-  public void emit(ClassVisitor cw) {
+  public void emit(ClassVisitor cw, VariableTable globalVars, FunctionTable functionTable) {
+    this.localVariables = new VariableTable(globalVars);
+    this.functionTable = functionTable;
+    
     mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
-        function.getName(), functionDescriptor(), null, null);
+        function.getMangledName(), functionDescriptor(), null, null);
     mv.visitCode();
     
     emitParamInitialization();
@@ -78,7 +85,6 @@ public class FunctionGenerator {
   }
 
   private void emitParamInitialization() {
-    int variableIndex = 0;
     for (ParamGenerator param : params) {
       VarGenerator variable = param.emitInitialization(mv, localVarAllocator);
       localVariables.add(param.getGimpleId(), variable);
@@ -146,23 +152,33 @@ public class FunctionGenerator {
       } else if(ins instanceof GimpleGoto) {
         emitGoto((GimpleGoto) ins);
       } else if(ins instanceof GimpleConditional) {
-        emitConditional((GimpleConditional)ins);
+        emitConditional((GimpleConditional) ins);
+      } else if(ins instanceof GimpleCall) {
+        emitCall((GimpleCall)ins);
       } else {
         throw new UnsupportedOperationException("ins: " + ins);
       }
     }
   }
 
-
-
   private void emitAssignment(GimpleAssign ins) {
     try {
       LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLHS());
-      ExprGenerator rhs = findGenerator(ins.getOperator(), ins.getOperands());
+      ExprGenerator rhs = findGenerator(lhs, ins.getOperator(), ins.getOperands());
 
       lhs.emitStore(mv, rhs);
     } catch (Exception e) {
       throw new RuntimeException("Exception translating assignment " + ins, e);
+    }
+  }
+
+  private ExprGenerator findGenerator(LValueGenerator lhs, GimpleOp operator, List<GimpleExpr> operands) {
+    if(operator == GimpleOp.CONVERT_EXPR) {
+      PrimitiveGenerator primitiveGenerator = (PrimitiveGenerator) lhs;
+      return new ConvertGenerator(findGenerator(operands.get(0)), primitiveGenerator.primitiveType());
+    
+    } else {
+      return findGenerator(operator, operands);
     }
   }
 
@@ -182,13 +198,25 @@ public class FunctionGenerator {
     mv.visitJumpInsn(GOTO, labels.of(ins.getFalseLabel()));
   }
 
+
+  private void emitCall(GimpleCall ins) {
+    List<ExprGenerator> arguments = new ArrayList<ExprGenerator>();
+    for (GimpleExpr argumentExpr : ins.getArguments()) {
+      arguments.add(findGenerator(argumentExpr));
+    }
+    
+    CallExprGenerator callGenerator = new CallExprGenerator(findCallGenerator(ins.getFunction()), arguments);
+    LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLhs());
+    
+    lhs.emitStore(mv, callGenerator);
+  }
+
   private void emitReturn(GimpleReturn ins) {
     if(ins.getValue() == null) {
       returnGenerator.emitVoidReturn(mv);
       
     } else {
       returnGenerator.emitReturn(mv, findGenerator(ins.getValue()));
-
     }
   }
 
@@ -256,7 +284,12 @@ public class FunctionGenerator {
       return localVariables.get((SymbolRef) expr);
       
     } else if(expr instanceof GimpleConstant) {
-      return new ConstGenerator((GimpleConstant) expr);
+      GimpleConstant constant = (GimpleConstant) expr;
+      if(constant.isNull()) {
+        return new NullPtrGenerator(constant.getType());
+      } else {
+        return new ConstValueGenerator(constant);
+      }
 
     } else if(expr instanceof GimpleMemRef) {
       return new MemRefGenerator(findGenerator(((GimpleMemRef) expr).getPointer()));
@@ -266,12 +299,33 @@ public class FunctionGenerator {
     }
   }
 
+  private CallGenerator findCallGenerator(GimpleExpr functionExpr) {
+    if(functionExpr instanceof GimpleAddressOf) {
+      GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
+      if(addressOf.getValue() instanceof GimpleFunctionRef) {
+        GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
+        return functionTable.find(ref);
+      }
+    }
+    GimpleAddressOf address = (GimpleAddressOf) functionExpr;
+    throw new UnsupportedOperationException("function: " + address.getValue() +
+        " [" + address.getValue().getClass().getSimpleName() + "]");
+  }
+  
+  
   private String functionDescriptor() {
+    return Type.getMethodDescriptor(returnGenerator.type(), parameterTypes());
+  }
+
+  public Type[] parameterTypes() {
     List<Type> parameterTypes = new ArrayList<Type>();
     for (ParamGenerator param : params) {
       parameterTypes.addAll(param.getParameterTypes());
     }
-
-    return Type.getMethodDescriptor(returnGenerator.type(), parameterTypes.toArray(new Type[parameterTypes.size()]));
+    return parameterTypes.toArray(new Type[parameterTypes.size()]);
+  }
+  
+  public Type returnType() {
+    return returnGenerator.type();
   }
 }

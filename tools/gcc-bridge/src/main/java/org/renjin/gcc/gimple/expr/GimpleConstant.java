@@ -1,7 +1,6 @@
 package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.translate.type.ImPrimitiveType;
 
 public abstract class GimpleConstant extends GimpleExpr {
   private GimpleType type;
@@ -15,6 +14,10 @@ public abstract class GimpleConstant extends GimpleExpr {
   }
 
   public abstract Object getValue();
+  
+  public boolean isNull() {
+    return false;
+  }
 
   public Number getNumberValue() {
     if (getValue() instanceof Number) {

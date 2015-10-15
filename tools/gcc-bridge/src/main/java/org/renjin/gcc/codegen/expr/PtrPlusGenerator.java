@@ -53,14 +53,14 @@ public class PtrPlusGenerator implements PtrGenerator {
     
     int sizeInBytes = ptr.gimpleBaseType().sizeOf();
     
-    if(offset instanceof ConstGenerator) {
+    if(offset instanceof ConstValueGenerator) {
       // If the pointer is incremented by a constant amount, we can calculate the offset now
-      ((ConstGenerator) offset).divideBy(sizeInBytes).emitPush(mv);
+      ((ConstValueGenerator) offset).divideBy(sizeInBytes).emitPush(mv);
       
     } else {
       // Otherwise we have to compute the offset at runtime
       offset.emitPush(mv);
-      new ConstGenerator(Type.INT_TYPE, sizeInBytes).emitPush(mv);
+      new ConstValueGenerator(Type.INT_TYPE, sizeInBytes).emitPush(mv);
       mv.visitInsn(IDIV);
     }
     

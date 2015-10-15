@@ -45,16 +45,7 @@ public class BitwiseShiftGenerator implements PrimitiveGenerator {
     x.emitPush(mv);
     y.emitPush(mv);
     
-    mv.visitInsn(x.primitiveType().getOpcode(opCode()));
+    mv.visitInsn(x.primitiveType().getOpcode(op == GimpleOp.LSHIFT_EXPR ? ISHL : ISHR));
   }
   
-  private int opCode() {
-    switch (op) {
-      case LSHIFT_EXPR:
-        return ISHL;
-      case RSHIFT_EXPR:
-        return ISHR;
-    }
-    throw new UnsupportedOperationException("not a bitwise op: " + op);
-  }
 }

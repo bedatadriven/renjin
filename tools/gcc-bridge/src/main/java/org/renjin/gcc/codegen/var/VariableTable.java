@@ -10,8 +10,17 @@ import java.util.Map;
  * 
  */
 public class VariableTable {
-  
+
+  private final VariableTable parent;
   private Map<Integer, VarGenerator> map = new HashMap<Integer, VarGenerator>();
+
+  public VariableTable() {
+    this.parent = null;
+  }
+
+  public VariableTable(VariableTable parent) {
+    this.parent = parent;
+  }
 
   public void add(Integer gimpleId, VarGenerator variable) {
     Preconditions.checkNotNull(variable);
@@ -19,10 +28,14 @@ public class VariableTable {
     map.put(gimpleId, variable);
   }
 
-  public VarGenerator get(SymbolRef lhs) {
-    VarGenerator variable = map.get(lhs.getId());
+  public VarGenerator get(SymbolRef ref) {
+    VarGenerator variable = map.get(ref.getId());
     if(variable == null) {
-      throw new IllegalStateException("No variable with " + lhs.getName() + " [id=" + lhs.getId() + "]");
+      if (parent == null) {
+        throw new IllegalStateException("No variable with " + ref.getName() + " [id=" + ref.getId() + "]");
+      } else {
+        return parent.get(ref);
+      }
     }
     return variable;
   }

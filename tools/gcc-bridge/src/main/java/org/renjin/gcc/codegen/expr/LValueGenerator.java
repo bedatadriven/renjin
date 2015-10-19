@@ -5,7 +5,7 @@ import org.objectweb.asm.MethodVisitor;
 /**
  * Generates the bytecode to store values to local variables, fields, arrays, etc
  */
-public interface LValueGenerator {
+public interface LValueGenerator extends ExprGenerator {
 
   /**
    * 

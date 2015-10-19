@@ -4,7 +4,7 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-public interface PrimitiveGenerator extends ExprGenerator {
+public interface ValueGenerator extends ExprGenerator {
 
   /**
    * 

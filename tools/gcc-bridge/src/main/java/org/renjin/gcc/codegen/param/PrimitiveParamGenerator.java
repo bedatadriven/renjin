@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.param;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
-import org.renjin.gcc.codegen.var.PrimitiveVarGenerator;
+import org.renjin.gcc.codegen.var.ValueVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -48,6 +48,6 @@ public class PrimitiveParamGenerator extends ParamGenerator {
   @Override
   public VarGenerator emitInitialization(MethodVisitor methodVisitor, LocalVarAllocator localVars) {
     // No initialization required, already set to the local variable
-    return new PrimitiveVarGenerator(localVariableIndex, param.getName(), type);
+    return new ValueVarGenerator(localVariableIndex, param.getName(), type);
   }
 }

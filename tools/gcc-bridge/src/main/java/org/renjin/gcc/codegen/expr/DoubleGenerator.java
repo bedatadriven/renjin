@@ -7,12 +7,12 @@ import org.objectweb.asm.Type;
 /**
  * Generates the code to cast an integer to a double value
  */
-public class DoubleGenerator implements PrimitiveGenerator {
+public class DoubleGenerator implements ValueGenerator {
   
-  private PrimitiveGenerator valueGenerator;
+  private ValueGenerator valueGenerator;
   
   public DoubleGenerator(ExprGenerator valueGenerator) {
-    this.valueGenerator = (PrimitiveGenerator) valueGenerator;
+    this.valueGenerator = (ValueGenerator) valueGenerator;
   }
 
   @Override

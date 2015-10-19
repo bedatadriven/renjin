@@ -13,11 +13,11 @@ import static org.objectweb.asm.Opcodes.IDIV;
 public class PtrPlusGenerator implements PtrGenerator {
   
   private PtrGenerator ptr;
-  private PrimitiveGenerator offset;
+  private ValueGenerator offset;
 
   public PtrPlusGenerator(ExprGenerator ptr, ExprGenerator offset) {
     this.ptr = (PtrGenerator) ptr;
-    this.offset = (PrimitiveGenerator) offset;
+    this.offset = (ValueGenerator) offset;
   }
 
   @Override

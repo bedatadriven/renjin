@@ -10,16 +10,16 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * Generates codes for binary comparisons
  */
-public class ComparisonGenerator implements ConditionGenerator, PrimitiveGenerator {
+public class ComparisonGenerator implements ConditionGenerator, ValueGenerator {
   
   private GimpleOp op;
-  private PrimitiveGenerator x;
-  private PrimitiveGenerator y;
+  private ValueGenerator x;
+  private ValueGenerator y;
 
   public ComparisonGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
     this.op = op;
-    this.x = (PrimitiveGenerator) x;
-    this.y = (PrimitiveGenerator) y;
+    this.x = (ValueGenerator) x;
+    this.y = (ValueGenerator) y;
   }
 
   @Override

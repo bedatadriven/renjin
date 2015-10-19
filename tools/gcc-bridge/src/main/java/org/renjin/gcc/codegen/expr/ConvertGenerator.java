@@ -6,13 +6,13 @@ import org.objectweb.asm.Type;
 /**
  * Generates the bytecode to cast a primitive value to a new type
  */
-public class ConvertGenerator implements PrimitiveGenerator {
+public class ConvertGenerator implements ValueGenerator {
   
-  private PrimitiveGenerator valueGenerator;
+  private ValueGenerator valueGenerator;
   private Type destinationType;
 
   public ConvertGenerator(ExprGenerator valueGenerator, Type destinationType) {
-    this.valueGenerator = (PrimitiveGenerator) valueGenerator;
+    this.valueGenerator = (ValueGenerator) valueGenerator;
     this.destinationType = destinationType;
   }
 

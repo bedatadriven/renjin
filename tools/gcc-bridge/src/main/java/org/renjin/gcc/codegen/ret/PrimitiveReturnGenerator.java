@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.ret;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PrimitiveGenerator;
+import org.renjin.gcc.codegen.expr.ValueGenerator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -27,7 +27,7 @@ public class PrimitiveReturnGenerator implements ReturnGenerator {
 
   @Override
   public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
-    PrimitiveGenerator primitiveGenerator = (PrimitiveGenerator) valueGenerator;
+    ValueGenerator primitiveGenerator = (ValueGenerator) valueGenerator;
     primitiveGenerator.emitPush(mv);
     mv.visitInsn(type.getOpcode(IRETURN));
   }

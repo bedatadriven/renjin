@@ -7,12 +7,12 @@ import org.objectweb.asm.Type;
 /**
  * Generates the bytecode to negate a numeric value
  */
-public class NegateGenerator implements PrimitiveGenerator {
+public class NegateGenerator implements ValueGenerator {
   
-  private PrimitiveGenerator operand;
+  private ValueGenerator operand;
 
   public NegateGenerator(ExprGenerator operand) {
-    this.operand = (PrimitiveGenerator) operand;
+    this.operand = (ValueGenerator) operand;
   }
 
   @Override

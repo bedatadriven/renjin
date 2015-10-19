@@ -5,12 +5,12 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-public class LogicalNotGenerator implements PrimitiveGenerator {
+public class LogicalNotGenerator implements ValueGenerator {
   
-  private PrimitiveGenerator operand;
+  private ValueGenerator operand;
 
   public LogicalNotGenerator(ExprGenerator operand) {
-    this.operand = (PrimitiveGenerator) operand;
+    this.operand = (ValueGenerator) operand;
   }
 
   @Override

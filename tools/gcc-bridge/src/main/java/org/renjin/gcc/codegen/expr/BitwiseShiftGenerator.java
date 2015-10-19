@@ -10,16 +10,16 @@ import static org.objectweb.asm.Opcodes.ISHR;
 /**
  * Generates bytecode for left and right bitwise shifts
  */
-public class BitwiseShiftGenerator implements PrimitiveGenerator {
+public class BitwiseShiftGenerator implements ValueGenerator {
   
   private final GimpleOp op;
-  private final PrimitiveGenerator x;
-  private final PrimitiveGenerator y;
+  private final ValueGenerator x;
+  private final ValueGenerator y;
 
   public BitwiseShiftGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
     this.op = op;
-    this.x = (PrimitiveGenerator) x;
-    this.y = (PrimitiveGenerator) y;
+    this.x = (ValueGenerator) x;
+    this.y = (ValueGenerator) y;
   
     if(!checkTypes()) {
       throw new UnsupportedOperationException("Shift operations require types (int, int) or (long, int), found: " +

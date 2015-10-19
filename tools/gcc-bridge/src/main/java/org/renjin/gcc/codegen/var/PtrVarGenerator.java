@@ -71,5 +71,9 @@ public class PtrVarGenerator implements PtrGenerator, VarGenerator, LValueGenera
     mv.visitVarInsn(Opcodes.ASTORE, arrayVariableIndex);
   }
 
+  @Override
+  public void emitDefaultInit(MethodVisitor mv) {
+    
+  }
 }
 

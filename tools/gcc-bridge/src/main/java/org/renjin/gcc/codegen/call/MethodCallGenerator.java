@@ -5,7 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PrimitiveGenerator;
+import org.renjin.gcc.codegen.expr.ValueGenerator;
 
 import java.util.List;
 
@@ -57,8 +57,8 @@ public class MethodCallGenerator implements CallGenerator {
   }
 
   private ParamConverter findConverter(ExprGenerator generator, Type paramType) {
-    if(generator instanceof PrimitiveGenerator) {
-      PrimitiveGenerator valueGenerator = (PrimitiveGenerator) generator;
+    if(generator instanceof ValueGenerator) {
+      ValueGenerator valueGenerator = (ValueGenerator) generator;
       if(valueGenerator.primitiveType().equals(paramType)) {
         return new ValueParamConverter(valueGenerator);
       }

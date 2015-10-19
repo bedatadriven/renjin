@@ -7,7 +7,7 @@ import org.objectweb.asm.Type;
 /**
  * Generates the bytecode to dereference a pointer expression
  */
-public class MemRefGenerator implements PrimitiveGenerator, LValueGenerator {
+public class MemRefGenerator implements ValueGenerator, LValueGenerator {
   
   private PtrGenerator ptrGenerator;
 
@@ -35,9 +35,10 @@ public class MemRefGenerator implements PrimitiveGenerator, LValueGenerator {
     ptrGenerator.emitPushArrayAndOffset(mv);
     
     // push the value to assign
-    PrimitiveGenerator primitiveGenerator = (PrimitiveGenerator) valueGenerator;
+    ValueGenerator primitiveGenerator = (ValueGenerator) valueGenerator;
     primitiveGenerator.emitPush(mv);
     
     mv.visitInsn(primitiveType().getOpcode(Opcodes.IASTORE));
   }
+
 }

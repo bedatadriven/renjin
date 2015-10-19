@@ -1,16 +1,16 @@
 package org.renjin.gcc.codegen.call;
 
 import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.expr.PrimitiveGenerator;
+import org.renjin.gcc.codegen.expr.ValueGenerator;
 
 /**
  * Generates the code to push a parameter as is 
  */
 public class ValueParamConverter implements ParamConverter {
   
-  private PrimitiveGenerator valueGenerator;
+  private ValueGenerator valueGenerator;
 
-  public ValueParamConverter(PrimitiveGenerator valueGenerator) {
+  public ValueParamConverter(ValueGenerator valueGenerator) {
     this.valueGenerator = valueGenerator;
   }
 

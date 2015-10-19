@@ -5,12 +5,12 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-public class BitwiseNotGenerator implements PrimitiveGenerator {
+public class BitwiseNotGenerator implements ValueGenerator {
 
-  private final PrimitiveGenerator valueGenerator;
+  private final ValueGenerator valueGenerator;
 
   public BitwiseNotGenerator(ExprGenerator valueGenerator) {
-    this.valueGenerator = (PrimitiveGenerator) valueGenerator;
+    this.valueGenerator = (ValueGenerator) valueGenerator;
   }
 
   @Override

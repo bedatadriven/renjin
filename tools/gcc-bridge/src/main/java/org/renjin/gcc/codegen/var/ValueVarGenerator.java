@@ -3,44 +3,45 @@ package org.renjin.gcc.codegen.var;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.ValueTypes;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.LValueGenerator;
-import org.renjin.gcc.codegen.expr.PrimitiveGenerator;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.codegen.expr.ValueGenerator;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.ISTORE;
 
-public class PrimitiveVarGenerator implements LValueGenerator, PrimitiveGenerator, VarGenerator {
+public class ValueVarGenerator implements LValueGenerator, ValueGenerator, VarGenerator {
   private int index;
   private String name;
-  private GimplePrimitiveType primitiveType;
+  private Type type;
 
-  public PrimitiveVarGenerator(int index, String name, GimplePrimitiveType primitiveType) {
+  public ValueVarGenerator(int index, String name, GimpleType type) {
     this.index = index;
     this.name = name;
-    this.primitiveType = primitiveType;
+    this.type = ValueTypes.typeOf(type);
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-    PrimitiveGenerator primitiveGenerator = (PrimitiveGenerator) valueGenerator;
+  public void emitStore(MethodVisitor mv, ExprGenerator exprGenerator) {
+    ValueGenerator valueGenerator = (ValueGenerator) exprGenerator;
     
-    Preconditions.checkArgument(checkTypes(primitiveGenerator),
+    Preconditions.checkArgument(checkTypes(valueGenerator),
         "Type mismatch: Cannot assign %s of type %s to %s of type %s",
-        primitiveGenerator,
-        primitiveGenerator.primitiveType(),
+        valueGenerator,
+        valueGenerator.primitiveType(),
         this,
         primitiveType());
     
-    primitiveGenerator.emitPush(mv);
+    valueGenerator.emitPush(mv);
     
     mv.visitVarInsn(primitiveType().getOpcode(ISTORE), index);
   }
 
-  private boolean checkTypes(PrimitiveGenerator primitiveGenerator) {
+  private boolean checkTypes(ValueGenerator valueGenerator) {
     Type varType = primitiveType();
-    Type valueType = primitiveGenerator.primitiveType();
+    Type valueType = valueGenerator.primitiveType();
  
     return (isIntType(varType) && isIntType(valueType)) ||
            varType.equals(valueType);
@@ -54,7 +55,7 @@ public class PrimitiveVarGenerator implements LValueGenerator, PrimitiveGenerato
   
   @Override
   public Type primitiveType() {
-    return primitiveType.jvmType();
+    return type;
   }
 
   @Override
@@ -65,5 +66,10 @@ public class PrimitiveVarGenerator implements LValueGenerator, PrimitiveGenerato
   @Override
   public String toString() {
     return name;
+  }
+
+  @Override
+  public void emitDefaultInit(MethodVisitor mv) {
+    
   }
 }

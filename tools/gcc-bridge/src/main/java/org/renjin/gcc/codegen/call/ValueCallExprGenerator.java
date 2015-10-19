@@ -3,14 +3,14 @@ package org.renjin.gcc.codegen.call;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PrimitiveGenerator;
+import org.renjin.gcc.codegen.expr.ValueGenerator;
 
 import java.util.List;
 
 /**
  * Generates the bytecode to invoke a function call
  */
-public class ValueCallExprGenerator implements PrimitiveGenerator {
+public class ValueCallExprGenerator implements ValueGenerator {
   
   private CallGenerator callGenerator;
   private List<ExprGenerator> argumentGenerators;

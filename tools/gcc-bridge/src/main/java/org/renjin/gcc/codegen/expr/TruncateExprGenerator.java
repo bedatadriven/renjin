@@ -4,13 +4,13 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-public class TruncateExprGenerator implements PrimitiveGenerator {
+public class TruncateExprGenerator implements ValueGenerator {
 
   
-  private final PrimitiveGenerator operandGenerator;
+  private final ValueGenerator operandGenerator;
 
   public TruncateExprGenerator(ExprGenerator operandGenerator) {
-    this.operandGenerator = (PrimitiveGenerator) operandGenerator;
+    this.operandGenerator = (ValueGenerator) operandGenerator;
   }
 
   @Override

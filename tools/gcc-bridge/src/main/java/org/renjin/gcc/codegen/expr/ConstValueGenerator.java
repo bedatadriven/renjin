@@ -7,7 +7,7 @@ import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class ConstValueGenerator implements PrimitiveGenerator {
+public class ConstValueGenerator implements ValueGenerator {
 
   private Type type;
   private Number value;

@@ -6,13 +6,13 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.GimpleOp;
 
-public class RealComparisonGenerator implements PrimitiveGenerator, ConditionGenerator {
+public class RealComparisonGenerator implements ValueGenerator, ConditionGenerator {
 
   private GimpleOp op;
-  private PrimitiveGenerator x;
-  private PrimitiveGenerator y;
+  private ValueGenerator x;
+  private ValueGenerator y;
 
-  public RealComparisonGenerator(GimpleOp op, PrimitiveGenerator x, PrimitiveGenerator y) {
+  public RealComparisonGenerator(GimpleOp op, ValueGenerator x, ValueGenerator y) {
     this.op = op;
     this.x = x;
     this.y = y;

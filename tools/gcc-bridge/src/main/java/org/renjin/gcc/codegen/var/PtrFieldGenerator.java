@@ -67,4 +67,9 @@ public class PtrFieldGenerator implements FieldGenerator, PtrGenerator, LValueGe
     mv.visitFieldInsn(Opcodes.PUTSTATIC, className, offsetFieldName, "I");
     mv.visitFieldInsn(Opcodes.PUTSTATIC, className, arrayFieldName, arrayTypeDescriptor());
   }
+
+  @Override
+  public void emitDefaultInit(MethodVisitor mv) {
+    
+  }
 }

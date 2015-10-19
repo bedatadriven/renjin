@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Preconditions;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.SymbolRef;
 
 import java.util.HashMap;
@@ -38,5 +39,13 @@ public class VariableTable {
       }
     }
     return variable;
+  }
+
+  public VarGenerator get(GimpleVarDecl decl) {
+    VarGenerator varGenerator = map.get(decl.getId());
+    if(varGenerator == null) {
+      throw new IllegalStateException("No variable named " + decl.getName() + " [id=" + decl.getId() + "]");
+    }
+    return varGenerator;
   }
 }

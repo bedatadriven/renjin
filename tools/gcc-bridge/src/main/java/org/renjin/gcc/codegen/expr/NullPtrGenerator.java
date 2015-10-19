@@ -1,10 +1,12 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
+
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.ICONST_0;
 
 public class NullPtrGenerator implements PtrGenerator {
 
@@ -29,17 +31,8 @@ public class NullPtrGenerator implements PtrGenerator {
   }
 
   @Override
-  public boolean isSameArray(PtrGenerator other) {
-    return false;
-  }
-
-  @Override
-  public void emitPushArray(MethodVisitor mv) {
-    mv.visitInsn(Opcodes.ACONST_NULL);
-  }
-
-  @Override
-  public void emitPushOffset(MethodVisitor mv) {
-    mv.visitInsn(Opcodes.ICONST_0);
+  public void emitPushArrayAndOffset(MethodVisitor mv) {
+    mv.visitInsn(ACONST_NULL);
+    mv.visitInsn(ICONST_0);
   }
 }

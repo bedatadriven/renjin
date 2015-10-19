@@ -31,28 +31,18 @@ public class PtrPlusGenerator implements PtrGenerator {
   }
 
   @Override
-  public boolean isSameArray(PtrGenerator other) {
-    return ptr.isSameArray(other);
+  public void emitPushArrayAndOffset(MethodVisitor mv) {
+    ptr.emitPushArrayAndOffset(mv);
+
+    // Now add the delta to the offset on the stack and add
+    // it to the current offset
+    pushDelta(mv);
+    mv.visitInsn(IADD);
   }
 
-  @Override
-  public void emitPushArray(MethodVisitor mv) {
-    ptr.emitPushArray(mv);
-  }
-
-  @Override
-  public void emitPushOffset(MethodVisitor mv) {
-    
-    // Push the original offset onto the stack
-    ptr.emitPushOffset(mv);
-    
-    // Push the offset change onto the stack:
-    
-    // Pointer arithmetic is done in bytes, we need to divide
-    // by the size of the base type to arrive at the offset difference
-    
+  private void pushDelta(MethodVisitor mv) {
     int sizeInBytes = ptr.gimpleBaseType().sizeOf();
-    
+
     if(offset instanceof ConstValueGenerator) {
       // If the pointer is incremented by a constant amount, we can calculate the offset now
       ((ConstValueGenerator) offset).divideBy(sizeInBytes).emitPush(mv);
@@ -63,8 +53,5 @@ public class PtrPlusGenerator implements PtrGenerator {
       new ConstValueGenerator(Type.INT_TYPE, sizeInBytes).emitPush(mv);
       mv.visitInsn(IDIV);
     }
-    
-    // Consume the original offset and the change and push the sum back onto the stack
-    mv.visitInsn(IADD);
   }
 }

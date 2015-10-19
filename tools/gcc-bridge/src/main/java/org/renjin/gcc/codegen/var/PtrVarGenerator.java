@@ -56,36 +56,20 @@ public class PtrVarGenerator implements PtrGenerator, VarGenerator, LValueGenera
   }
 
   @Override
-  public boolean isSameArray(PtrGenerator other) {
-    return this == other;
+  public void emitPushArrayAndOffset(MethodVisitor mv) {
+    mv.visitVarInsn(Opcodes.ALOAD, arrayVariableIndex);
+    mv.visitVarInsn(Opcodes.ILOAD, offsetVariableIndex);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     PtrGenerator ptrGenerator = (PtrGenerator) valueGenerator;
     
-    // Check types
-    // TODO
-    
-    // If we are only updating the pointer's offset, no need to update the 
-    // array part of the pointer 
-    if(!ptrGenerator.isSameArray(this)) {
-      ptrGenerator.emitPushArray(mv);
-      mv.visitVarInsn(Opcodes.ASTORE, arrayVariableIndex);
-    }
-    
-    ptrGenerator.emitPushOffset(mv);
+    ptrGenerator.emitPushArrayAndOffset(mv);
+
     mv.visitVarInsn(Opcodes.ISTORE, offsetVariableIndex);
+    mv.visitVarInsn(Opcodes.ASTORE, arrayVariableIndex);
   }
 
-  @Override
-  public void emitPushArray(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, arrayVariableIndex);
-  }
-
-  @Override
-  public void emitPushOffset(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ILOAD, offsetVariableIndex);
-  }
 }
 

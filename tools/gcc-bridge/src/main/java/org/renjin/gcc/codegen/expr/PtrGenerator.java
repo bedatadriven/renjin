@@ -13,21 +13,6 @@ public interface PtrGenerator extends ExprGenerator {
   GimpleType gimpleBaseType();
   
   Type baseType();
-
-  /**
-   * 
-   * @return true if this pointer is backed by the same array as the {@code other} pointer
-   */
-  boolean isSameArray(PtrGenerator other);
-
-  /**
-   * Pushes the array backing this pointer onto the stack
-   */
-  void emitPushArray(MethodVisitor mv);
-
-  /**
-   * Pushes the integer offset backing this pointer onto the stack
-   */
-  void emitPushOffset(MethodVisitor mv);
-
+  
+  void emitPushArrayAndOffset(MethodVisitor mv);
 }

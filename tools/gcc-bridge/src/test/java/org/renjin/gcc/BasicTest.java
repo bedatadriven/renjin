@@ -2,7 +2,7 @@ package org.renjin.gcc;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
@@ -158,9 +158,9 @@ public class BasicTest extends AbstractGccTest {
     Class clazz = compile("chars.c", "Chars");
 
     Method method = clazz.getMethod("circle_name");
-    CharPtr ptr = (CharPtr) method.invoke(null);
+    BytePtr ptr = (BytePtr) method.invoke(null);
 
-    assertThat(ptr.asString(), equalTo("Hello world"));
+    assertThat(ptr.getString(), equalTo("Hello world"));
 
     method = clazz.getMethod("test_first_char");
     Integer result = (Integer) method.invoke(null);

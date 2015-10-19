@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.runtime.Ptr;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,21 +28,16 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
   private final GimplePrimitiveType baseType;
 
   /**
-   * The {@link org.renjin.gcc.runtime.Ptr} subclass type
+   * The {@link Ptr} subclass type
    */
-  private final Type wrapperType;
-
-  /**
-   * The type of the array field in the wrapper class
-   */
-  private final Type wrapperArrayType;
+  private final WrapperType pointerType;
+  
 
   public WrappedPtrParamGenerator(GimpleParameter parameter, int localVariableIndex) {
     this.parameter = parameter;
     this.localVariableIndex = localVariableIndex;
     this.baseType = ((GimpleIndirectType)parameter.getType()).getBaseType();
-    this.wrapperType = WrapperType.wrapperType(baseType.jvmType());
-    this.wrapperArrayType = WrapperType.wrapperArrayType(baseType.jvmType());
+    this.pointerType = WrapperType.of(baseType.jvmType());
   }
 
   @Override
@@ -56,7 +52,7 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
 
   @Override
   public List<Type> getParameterTypes() {
-    return Collections.singletonList(wrapperType);
+    return Collections.singletonList(pointerType.getWrapperType());
   }
 
   @Override
@@ -67,15 +63,19 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
     
     // Load the parameter on the stack
     mv.visitVarInsn(ALOAD, localVariableIndex);
+
+    // duplicate the wrapper instance so we can call GETFIELD twice.
     mv.visitInsn(DUP);
-    
+
     // Consume the first reference to the wrapper type and push the array field on the stack
-    mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "array", wrapperArrayType.getDescriptor());
+    mv.visitFieldInsn(GETFIELD, pointerType.getWrapperType().getInternalName(), "array", pointerType.getArrayType().getDescriptor());
+
     // Store the array reference in the local variable
     mv.visitVarInsn(ASTORE, arrayVariable);
     
     // Consume the second reference 
-    mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "offset", "I");
+    mv.visitFieldInsn(GETFIELD, pointerType.getWrapperType().getInternalName(), "offset", "I");
+
     // Store the array reference in the local variable
     mv.visitVarInsn(ISTORE, offsetVariable);
     

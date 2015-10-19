@@ -24,7 +24,7 @@ public class PtrReturnGenerator implements ReturnGenerator {
 
   @Override
   public Type type() {
-    return wrapperType.getBaseType();
+    return wrapperType.getWrapperType();
   }
 
   @Override

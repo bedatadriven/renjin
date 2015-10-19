@@ -4,6 +4,8 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.LValueGenerator;
 import org.renjin.gcc.codegen.expr.PtrGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -13,7 +15,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * Generates two fields for a global pointer variable, one for an array, and the other for 
  * an offset into the array.
  */
-public class PtrFieldGenerator implements FieldGenerator, PtrGenerator {
+public class PtrFieldGenerator implements FieldGenerator, PtrGenerator, LValueGenerator {
 
   private String className;
   private String arrayFieldName;
@@ -50,17 +52,19 @@ public class PtrFieldGenerator implements FieldGenerator, PtrGenerator {
   }
 
   @Override
-  public boolean isSameArray(PtrGenerator other) {
-    return false;
-  }
-
-  @Override
-  public void emitPushArray(MethodVisitor mv) {
+  public void emitPushArrayAndOffset(MethodVisitor mv) {
     mv.visitFieldInsn(Opcodes.GETSTATIC, className, arrayFieldName, arrayTypeDescriptor());
+    mv.visitFieldInsn(Opcodes.GETSTATIC, className, offsetFieldName, "I");
   }
 
   @Override
-  public void emitPushOffset(MethodVisitor mv) {
-    mv.visitFieldInsn(Opcodes.GETSTATIC, className, offsetFieldName, "I");
+  public void emitStore(MethodVisitor mv, ExprGenerator exprGenerator) {
+    PtrGenerator ptr = (PtrGenerator) exprGenerator;
+    
+    // Store field
+    ptr.emitPushArrayAndOffset(mv);
+
+    mv.visitFieldInsn(Opcodes.PUTSTATIC, className, offsetFieldName, "I");
+    mv.visitFieldInsn(Opcodes.PUTSTATIC, className, arrayFieldName, arrayTypeDescriptor());
   }
 }

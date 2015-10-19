@@ -11,12 +11,13 @@ import org.renjin.gcc.runtime.*;
 
 import java.util.List;
 
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.*;
 
 
 public class WrapperType {
   
   private static final List<WrapperType> TYPES = ImmutableList.of(
+      new WrapperType(BytePtr.class),
       new WrapperType(IntPtr.class),
       new WrapperType(LongPtr.class),
       new WrapperType(BooleanPtr.class),
@@ -79,7 +80,7 @@ public class WrapperType {
       return Type.getType(CharPtr.class);
       
     } else if(type.equals(Type.BYTE_TYPE)) {
-      throw new UnsupportedOperationException("todo: BytePtr");
+      return Type.getType(BytePtr.class);
     
     } else {
       return Type.getType(ObjectPtr.class);
@@ -106,7 +107,7 @@ public class WrapperType {
       return new WrapperType(CharPtr.class);
 
     } else if(type.equals(Type.BYTE_TYPE)) {
-      throw new UnsupportedOperationException("todo: BytePtr");
+      return new WrapperType(BytePtr.class);
 
     } else {
       return new WrapperType(ObjectPtr.class);
@@ -171,21 +172,6 @@ public class WrapperType {
 
 
 
-  public void emitPushWrapper(MethodVisitor mv, PtrGenerator ptrGenerator) {
-
-    String wrapperClass = WrapperType.wrapperType(ptrGenerator.baseType()).getInternalName();
-
-    // Create a new instance of the wrapper
-    mv.visitTypeInsn(Opcodes.NEW, wrapperType.getInternalName());
-
-    // Initialize it with the array and offset
-    mv.visitInsn(Opcodes.DUP);
-    ptrGenerator.emitPushArray(mv);
-    ptrGenerator.emitPushOffset(mv);
-    mv.visitMethodInsn(INVOKESPECIAL, wrapperClass, "<init>", getConstructorDescriptor(), false);
-    
-  }
-
   public static boolean is(Type type) {
     for (WrapperType wrapperType : TYPES) {
       if (wrapperType.getWrapperType().equals(type)) {
@@ -204,4 +190,39 @@ public class WrapperType {
     }
     throw new IllegalArgumentException(type.toString());
   }
+
+  /**
+   * Emits the bytecode to consume a reference to a wrapper instance on the stack
+   * and push the array and offset onto the stack. ( wrapper pointer -> array, offset)
+   */
+  public void emitUnpackArrayAndOffset(MethodVisitor mv) {
+    
+    // duplicate the wrapper instance so we can call GETFIELD twice.
+    mv.visitInsn(DUP);
+
+    // Consume the first reference to the wrapper type and push the array field on the stack
+    mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "array", arrayType.getDescriptor());
+
+    // Consume the second reference 
+    mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "offset", "I");
+  }
+
+
+  /**
+   * Emits the bytecode to consume a reference to the array 
+   */
+  public void emitPushWrapper(MethodVisitor mv, PtrGenerator ptrGenerator) {
+
+    String wrapperClass = WrapperType.wrapperType(ptrGenerator.baseType()).getInternalName();
+
+    // Create a new instance of the wrapper
+    mv.visitTypeInsn(Opcodes.NEW, wrapperType.getInternalName());
+
+    // Initialize it with the array and offset
+    mv.visitInsn(Opcodes.DUP);
+    ptrGenerator.emitPushArrayAndOffset(mv);
+    mv.visitMethodInsn(INVOKESPECIAL, wrapperClass, "<init>", getConstructorDescriptor(), false);
+  }
+
+
 }

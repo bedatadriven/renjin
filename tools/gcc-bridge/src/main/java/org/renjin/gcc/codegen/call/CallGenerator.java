@@ -15,5 +15,7 @@ public interface CallGenerator  {
 
   Type returnType();
   
+  ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators);
+  
 }
 

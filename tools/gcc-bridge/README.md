@@ -185,3 +185,9 @@ public static class Main {
   }
 }
 ```
+
+### Strings and String Handling
+
+The C `char` type is actually a string of bytes under the hood, and so GCC-Bridge represents all C strings as 
+`byte` arrays under the hood. 
+

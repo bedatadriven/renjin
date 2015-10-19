@@ -41,18 +41,17 @@ public class PrimitiveVarGenerator implements LValueGenerator, PrimitiveGenerato
   private boolean checkTypes(PrimitiveGenerator primitiveGenerator) {
     Type varType = primitiveType();
     Type valueType = primitiveGenerator.primitiveType();
-    
-    if(varType.equals(Type.INT_TYPE) || varType.equals(Type.BOOLEAN_TYPE) ) {
-      return valueType.equals(Type.INT_TYPE) ||
-             valueType.equals(Type.BOOLEAN_TYPE) ||
-             valueType.equals(Type.SHORT_TYPE);
-      
-    } else {
-      
-      return varType.equals(valueType);
-    }
+ 
+    return (isIntType(varType) && isIntType(valueType)) ||
+           varType.equals(valueType);
   }
 
+  private boolean isIntType(Type type) {
+    return type.equals(Type.BOOLEAN_TYPE) ||
+           type.equals(Type.BYTE_TYPE) ||
+           type.equals(Type.INT_TYPE);
+  }
+  
   @Override
   public Type primitiveType() {
     return primitiveType.jvmType();

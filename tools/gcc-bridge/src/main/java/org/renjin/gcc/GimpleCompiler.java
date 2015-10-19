@@ -8,15 +8,10 @@ import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
 import org.renjin.gcc.codegen.ClassGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.jimple.JimpleClassBuilder;
-import org.renjin.gcc.jimple.JimpleOutput;
-import org.renjin.gcc.translate.FunctionTranslator;
 import org.renjin.gcc.translate.MethodTable;
-import org.renjin.gcc.translate.TranslationContext;
 import org.renjin.gcc.translate.type.struct.ImRecordType;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -70,6 +65,10 @@ public class GimpleCompiler  {
 
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
+    // First apply any transformations needed by the code generation process
+    transform(units);
+    
+    // Now emit byte code
     File packageFolder = getPackageFolder();
     packageFolder.mkdirs();
 
@@ -103,27 +102,13 @@ public class GimpleCompiler  {
     providedTypes.put(typeName, type);
   }
 
-  protected JimpleOutput translate(List<GimpleCompilationUnit> units) throws IOException {
-
-    JimpleOutput jimple = new JimpleOutput();
-
-    JimpleClassBuilder mainClass = jimple.newClass();
-    mainClass.setClassName(className);
-    mainClass.setPackageName(packageName);
-
-    TranslationContext context = new TranslationContext(mainClass, methodTable, providedTypes, units);
-    for(GimpleCompilationUnit unit : units) {
+  private void transform(List<GimpleCompilationUnit> units) {
+    for (GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
-        
         transformFunctionBody(unit, function);
-        
-        FunctionTranslator translator = new FunctionTranslator(context);
-        translator.translate(function);
       }
     }
-    return jimple;
   }
-  
 
   private void transformFunctionBody(GimpleCompilationUnit unit, GimpleFunction function) {
     boolean updated;

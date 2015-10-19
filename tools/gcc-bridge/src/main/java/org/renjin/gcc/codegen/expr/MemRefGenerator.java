@@ -23,8 +23,7 @@ public class MemRefGenerator implements PrimitiveGenerator, LValueGenerator {
   @Override
   public void emitPush(MethodVisitor mv) {
     // push array onto stack
-    ptrGenerator.emitPushArray(mv);
-    ptrGenerator.emitPushOffset(mv);
+    ptrGenerator.emitPushArrayAndOffset(mv);
     mv.visitInsn(ptrGenerator.baseType().getOpcode(Opcodes.IALOAD));
   }
 
@@ -33,8 +32,7 @@ public class MemRefGenerator implements PrimitiveGenerator, LValueGenerator {
     
     // XASTORE = arrayref, index, value
     
-    ptrGenerator.emitPushArray(mv);
-    ptrGenerator.emitPushOffset(mv);
+    ptrGenerator.emitPushArrayAndOffset(mv);
     
     // push the value to assign
     PrimitiveGenerator primitiveGenerator = (PrimitiveGenerator) valueGenerator;

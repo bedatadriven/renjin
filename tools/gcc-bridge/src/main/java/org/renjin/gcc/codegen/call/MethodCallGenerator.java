@@ -47,6 +47,15 @@ public class MethodCallGenerator implements CallGenerator {
     return returnType;
   }
 
+  @Override
+  public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
+    if(WrapperType.is(returnType)) {
+      return new PtrCallExprGenerator(WrapperType.valueOf(returnType), this, argumentGenerators);
+    } else {
+      return new ValueCallExprGenerator(this, argumentGenerators);
+    }
+  }
+
   private ParamConverter findConverter(ExprGenerator generator, Type paramType) {
     if(generator instanceof PrimitiveGenerator) {
       PrimitiveGenerator valueGenerator = (PrimitiveGenerator) generator;

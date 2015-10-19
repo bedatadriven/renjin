@@ -5,6 +5,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionTable;
+import org.renjin.gcc.codegen.call.MallocGenerator;
+import org.renjin.gcc.codegen.call.StringLiteralGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
@@ -74,8 +76,9 @@ public class FunctionGenerator {
     mv.visitCode();
     
     emitParamInitialization();
-    
     scheduleLocalVariables();
+    
+    emitLocalVarInitialization();
 
     for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
       emitBasicBlock(basicBlock);
@@ -84,10 +87,22 @@ public class FunctionGenerator {
     mv.visitEnd();
   }
 
+
   private void emitParamInitialization() {
     for (ParamGenerator param : params) {
       VarGenerator variable = param.emitInitialization(mv, localVarAllocator);
       localVariables.add(param.getGimpleId(), variable);
+    }
+  }
+
+
+  private void emitLocalVarInitialization() {
+    for (GimpleVarDecl decl : function.getVariableDeclarations()) {
+      if(decl.getValue() != null) {
+        LValueGenerator lhs = (LValueGenerator) localVariables.get(decl);
+        ExprGenerator rhs = findGenerator(decl.getValue());
+        lhs.emitStore(mv, rhs);
+      }
     }
   }
 
@@ -132,10 +147,13 @@ public class FunctionGenerator {
   private ReturnGenerator findReturnGenerator(GimpleType returnType) {
     if(returnType instanceof GimpleVoidType) {
       return new VoidReturnGenerator();
+      
     } else if(returnType instanceof GimplePrimitiveType) {
       return new PrimitiveReturnGenerator(returnType);
+    
     } else if(returnType instanceof GimpleIndirectType) {
       return new PtrReturnGenerator(returnType);
+    
     } else {
       throw new UnsupportedOperationException("Return type: " + returnType);
     }
@@ -200,15 +218,37 @@ public class FunctionGenerator {
 
 
   private void emitCall(GimpleCall ins) {
-    List<ExprGenerator> arguments = new ArrayList<ExprGenerator>();
-    for (GimpleExpr argumentExpr : ins.getArguments()) {
-      arguments.add(findGenerator(argumentExpr));
+
+    if(MallocGenerator.isMalloc(ins.getFunction())) {
+      emitMalloc(ins);
+      
+    } else {
+      List<ExprGenerator> arguments = new ArrayList<ExprGenerator>();
+      for (GimpleExpr argumentExpr : ins.getArguments()) {
+        arguments.add(findGenerator(argumentExpr));
+      }
+      
+      CallGenerator callGenerator = findCallGenerator(ins.getFunction());
+      
+      if(ins.getLhs() == null) {
+        // call the function for its side effects
+        callGenerator.emitCall(mv, arguments);
+        
+      } else {
+        LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLhs());
+        ExprGenerator callResult = callGenerator.expressionGenerator(arguments);
+        
+        lhs.emitStore(mv, callResult);
+      }
     }
-    
-    CallExprGenerator callGenerator = new CallExprGenerator(findCallGenerator(ins.getFunction()), arguments);
+  }
+
+  private void emitMalloc(GimpleCall ins) {
     LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLhs());
+    ExprGenerator size = findGenerator(ins.getArguments().get(0));
+    MallocGenerator mallocGenerator = new MallocGenerator(lhs, size);
     
-    lhs.emitStore(mv, callGenerator);
+    lhs.emitStore(mv, mallocGenerator);
   }
 
   private void emitReturn(GimpleReturn ins) {
@@ -253,10 +293,14 @@ public class FunctionGenerator {
       case MEM_REF:
       case INTEGER_CST:
       case REAL_CST:
+      case ADDR_EXPR:
         return findGenerator(operands.get(0));
 
       case FIX_TRUNC_EXPR:
         return new TruncateExprGenerator(findGenerator(operands.get(0)));      
+      
+      case FLOAT_EXPR:
+        return new DoubleGenerator(findGenerator(operands.get(0)));
       
       case NEGATE_EXPR:
         return new NegateGenerator(findGenerator(operands.get(0)));
@@ -285,12 +329,20 @@ public class FunctionGenerator {
       
     } else if(expr instanceof GimpleConstant) {
       GimpleConstant constant = (GimpleConstant) expr;
-      if(constant.isNull()) {
+      if (constant.isNull()) {
         return new NullPtrGenerator(constant.getType());
       } else {
         return new ConstValueGenerator(constant);
       }
 
+    } else if(expr instanceof GimpleAddressOf) {
+      GimpleAddressOf addressOf = (GimpleAddressOf) expr;
+      if(addressOf.getValue() instanceof GimpleStringConstant) {
+        return new StringLiteralGenerator(addressOf.getValue());        
+      }
+      throw new UnsupportedOperationException("address of " + addressOf.getValue() +
+          " [" + addressOf.getValue().getClass().getSimpleName() + "]");
+      
     } else if(expr instanceof GimpleMemRef) {
       return new MemRefGenerator(findGenerator(((GimpleMemRef) expr).getPointer()));
       

@@ -3,11 +3,12 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates the bytecode to dereference a pointer expression
  */
-public class MemRefGenerator implements ValueGenerator, LValueGenerator {
+public class MemRefGenerator extends AbstractExprGenerator implements ValueGenerator, LValueGenerator {
   
   private PtrGenerator ptrGenerator;
 
@@ -16,15 +17,16 @@ public class MemRefGenerator implements ValueGenerator, LValueGenerator {
   }
 
   @Override
-  public Type primitiveType() {
-    return ptrGenerator.baseType();
+  public Type getValueType() {
+    // not quite right probably...
+    return ptrGenerator.getPointerType().getBaseType();
   }
 
   @Override
-  public void emitPush(MethodVisitor mv) {
+  public void emitPushValue(MethodVisitor mv) {
     // push array onto stack
     ptrGenerator.emitPushArrayAndOffset(mv);
-    mv.visitInsn(ptrGenerator.baseType().getOpcode(Opcodes.IALOAD));
+    mv.visitInsn(typeOpcode(Opcodes.IALOAD));
   }
 
   @Override
@@ -33,12 +35,17 @@ public class MemRefGenerator implements ValueGenerator, LValueGenerator {
     // XASTORE = arrayref, index, value
     
     ptrGenerator.emitPushArrayAndOffset(mv);
-    
-    // push the value to assign
-    ValueGenerator primitiveGenerator = (ValueGenerator) valueGenerator;
-    primitiveGenerator.emitPush(mv);
-    
-    mv.visitInsn(primitiveType().getOpcode(Opcodes.IASTORE));
+    valueGenerator.emitPushValue(mv);
+    mv.visitInsn(typeOpcode(Opcodes.IASTORE));
   }
 
+  @Override
+  public GimpleType getGimpleType() {
+    return ptrGenerator.getGimpleType().getBaseType();
+  }
+
+  private int typeOpcode(int opcode) {
+    Type baseType = ptrGenerator.getPointerType().getBaseType();
+    return baseType.getOpcode(opcode);
+  }
 }

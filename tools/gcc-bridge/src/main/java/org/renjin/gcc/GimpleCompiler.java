@@ -3,6 +3,7 @@ package org.renjin.gcc;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+import org.renjin.gcc.analysis.AddressableFinder;
 import org.renjin.gcc.analysis.FunctionBodyTransformer;
 import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
 import org.renjin.gcc.codegen.ClassGenerator;
@@ -45,6 +46,7 @@ public class GimpleCompiler  {
 
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
+    functionBodyTransformers.add(AddressableFinder.INSTANCE);
   }
 
   public void setPackageName(String name) {

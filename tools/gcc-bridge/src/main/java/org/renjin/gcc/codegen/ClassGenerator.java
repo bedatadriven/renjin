@@ -79,6 +79,7 @@ public class ClassGenerator {
   private FieldGenerator findGlobalVarGenerator(GimpleVarDecl gimpleVarDecl) {
     if(gimpleVarDecl.getType() instanceof GimplePrimitiveType) {
       return new ValueFieldGenerator(gimpleVarDecl.getName(), className,
+          gimpleVarDecl.getType(),
           ((GimplePrimitiveType) gimpleVarDecl.getType()).jvmType());
     
     } else if(gimpleVarDecl.getType() instanceof GimpleIndirectType) {

@@ -1,15 +1,18 @@
 package org.renjin.gcc.gimple;
 
-import org.renjin.gcc.gimple.expr.GimpleConstant;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.translate.type.ImPrimitiveType;
 
 public class GimpleVarDecl {
   private int id;
   private GimpleType type;
   private String name;
   private GimpleExpr value;
+
+  /**
+   * True if this local variable is addressable
+   */
+  private boolean addressable;
 
   public GimpleVarDecl() {
 
@@ -49,6 +52,14 @@ public class GimpleVarDecl {
 
   public void setValue(GimpleExpr value) {
     this.value = value;
+  }
+
+  public boolean isAddressable() {
+    return addressable;
+  }
+
+  public void setAddressable(boolean addressable) {
+    this.addressable = addressable;
   }
 
   @Override

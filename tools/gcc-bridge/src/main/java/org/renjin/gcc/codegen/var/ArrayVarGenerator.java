@@ -14,7 +14,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 /**
  * Emits bytecode for generating a byte cod
  */
-public class ArrayVarGenerator implements ArrayValueGenerator, LValueGenerator, VarGenerator,
+public class ArrayVarGenerator extends  AbstractExprGenerator implements ArrayValueGenerator, LValueGenerator, VarGenerator,
     AddressableGenerator {
 
   /**
@@ -39,18 +39,23 @@ public class ArrayVarGenerator implements ArrayValueGenerator, LValueGenerator, 
   }
 
   @Override
-  public Type primitiveType() {
+  public Type getValueType() {
     return Type.getType("[" + componentType.getDescriptor());
   }
 
   @Override
-  public void emitPush(MethodVisitor mv) {
+  public void emitPushValue(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, index);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public GimpleArrayType getGimpleType() {
+    return gimpleType;
   }
 
   @Override

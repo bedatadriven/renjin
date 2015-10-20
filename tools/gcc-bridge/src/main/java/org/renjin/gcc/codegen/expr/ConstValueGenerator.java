@@ -4,31 +4,34 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.expr.GimpleConstant;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class ConstValueGenerator implements ValueGenerator {
+public class ConstValueGenerator extends AbstractExprGenerator implements ValueGenerator {
 
   private Type type;
+  private GimplePrimitiveType gimpleType;
   private Number value;
 
   public ConstValueGenerator(GimpleConstant constant) {
-    type = ((GimplePrimitiveType) constant.getType()).jvmType();
     value = constant.getNumberValue();
+    gimpleType = (GimplePrimitiveType) constant.getType();
   }
 
-  public ConstValueGenerator(Type type, Number value) {
-    this.type = type;
+  public ConstValueGenerator(GimplePrimitiveType gimpleType, Number value) {
+    this.gimpleType = gimpleType;
     this.value = value;
   }
 
   @Override
-  public Type primitiveType() {
-    return type;
+  public Type getValueType() {
+    return gimpleType.jvmType();
   }
 
   @Override
-  public void emitPush(MethodVisitor mv) {
+  public void emitPushValue(MethodVisitor mv) {
+    Type type = this.gimpleType.jvmType();
     if(type.equals(Type.INT_TYPE) || type.equals(Type.BOOLEAN_TYPE)) {
       emitInt(mv, value.intValue());
     
@@ -58,8 +61,14 @@ public class ConstValueGenerator implements ValueGenerator {
     }
   }
 
-  private void emitLong(MethodVisitor mv, long l) {
-    throw new UnsupportedOperationException();
+  private void emitLong(MethodVisitor mv, long value) {
+    if(value == 0) {
+      mv.visitInsn(LCONST_0);
+    } else if(value == 1) {
+      mv.visitInsn(LCONST_1);
+    } else {
+      mv.visitLdcInsn(value);
+    }
   }
 
   private void emitFloat(MethodVisitor mv, float value) {
@@ -77,10 +86,15 @@ public class ConstValueGenerator implements ValueGenerator {
   }
   
   public ConstValueGenerator divideBy(int divisor) {
-    if (type.equals(Type.INT_TYPE)) {
-      return new ConstValueGenerator(type, value.intValue() / divisor);
+    if (gimpleType.jvmType().equals(Type.INT_TYPE)) {
+      return new ConstValueGenerator(gimpleType, value.intValue() / divisor);
     } else {
       throw new UnsupportedOperationException();
     }
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return gimpleType;
   }
 }

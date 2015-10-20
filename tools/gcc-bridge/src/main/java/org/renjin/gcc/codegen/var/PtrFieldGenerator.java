@@ -4,6 +4,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.LValueGenerator;
 import org.renjin.gcc.codegen.expr.PtrGenerator;
@@ -15,19 +16,19 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * Generates two fields for a global pointer variable, one for an array, and the other for 
  * an offset into the array.
  */
-public class PtrFieldGenerator implements FieldGenerator, PtrGenerator, LValueGenerator {
+public class PtrFieldGenerator extends AbstractExprGenerator implements FieldGenerator, PtrGenerator, LValueGenerator {
 
   private String className;
   private String arrayFieldName;
   private String offsetFieldName;
-  private GimpleType gimpleBaseType;
+  private GimpleType gimpleType;
   private Type baseType;
   
   public PtrFieldGenerator(String className, GimpleVarDecl gimpleVarDecl) {
     this.className = className;
     this.arrayFieldName = gimpleVarDecl.getName();
     this.offsetFieldName = gimpleVarDecl.getName() + "$offset";
-    this.gimpleBaseType = gimpleVarDecl.getType();
+    this.gimpleType = gimpleVarDecl.getType();
     this.baseType = ((GimplePrimitiveType)gimpleVarDecl.getType().getBaseType()).jvmType();
   }
 
@@ -39,16 +40,6 @@ public class PtrFieldGenerator implements FieldGenerator, PtrGenerator, LValueGe
 
   private String arrayTypeDescriptor() {
     return "[" + baseType.getDescriptor();
-  }
-
-  @Override
-  public GimpleType gimpleBaseType() {
-    return gimpleBaseType;
-  }
-
-  @Override
-  public Type baseType() {
-    return baseType;
   }
 
   @Override
@@ -71,5 +62,10 @@ public class PtrFieldGenerator implements FieldGenerator, PtrGenerator, LValueGe
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
     
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return gimpleType;
   }
 }

@@ -62,6 +62,16 @@ public class BasicTest extends AbstractGccTest {
     result = (Double)clazz.getMethod("malloc_global_test2").invoke(null);
     assertThat(result, equalTo(7623d));
   }
+  
+  @Test
+  public void pointersToPointers() throws Exception {
+    Class clazz = compile("pointerpointer.c", "PointerPointers");
+    Method method = clazz.getMethod("test");
+
+    Double result = (Double) method.invoke(null);
+
+    assertThat(result, equalTo(45.0));
+  }
 
   @Test
   public void functionPointers() throws Exception {

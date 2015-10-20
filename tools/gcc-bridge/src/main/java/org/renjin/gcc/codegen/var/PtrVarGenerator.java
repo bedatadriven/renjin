@@ -4,18 +4,17 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.LValueGenerator;
-import org.renjin.gcc.codegen.expr.PtrGenerator;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates loads and stores from a pointer variable
  */
-public class PtrVarGenerator implements PtrGenerator, VarGenerator, LValueGenerator {
+public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerator, VarGenerator, LValueGenerator {
 
-  private GimpleType baseType;
+  private GimpleIndirectType type;
   
   /**
    * The local variable index storing the array backing the pointer
@@ -26,33 +25,27 @@ public class PtrVarGenerator implements PtrGenerator, VarGenerator, LValueGenera
    * The local varaible index storing the offset within the array
    */
   private int offsetVariableIndex;
-
-
-  public PtrVarGenerator(GimpleType baseType, int arrayVariableIndex, int offsetVariableIndex) {
-    this.baseType = baseType;
+  
+  public PtrVarGenerator(GimpleType type, int arrayVariableIndex, int offsetVariableIndex) {
+    this.type = (GimpleIndirectType) type;
     this.arrayVariableIndex = arrayVariableIndex;
     this.offsetVariableIndex = offsetVariableIndex;
   }
 
-  public PtrVarGenerator(GimpleType baseType, LocalVarAllocator localVarAllocator) {
-    this.baseType = baseType;
+  public PtrVarGenerator(GimpleType type, LocalVarAllocator localVarAllocator) {
+    this.type = (GimpleIndirectType) type;
     this.arrayVariableIndex = localVarAllocator.reserve(1);
     this.offsetVariableIndex = localVarAllocator.reserve(Type.INT_TYPE);
   }
 
-
   @Override
-  public GimpleType gimpleBaseType() {
-    return baseType;
+  public ExprGenerator valueOf() {
+    return new MemRefGenerator(this);
   }
 
   @Override
-  public Type baseType() {
-    if(baseType instanceof GimplePrimitiveType) {
-      return ((GimplePrimitiveType) baseType).jvmType();
-    } else {
-      throw new UnsupportedOperationException("baseType: " + baseType);
-    }
+  public GimpleType getGimpleType() {
+    return type;
   }
 
   @Override
@@ -72,8 +65,14 @@ public class PtrVarGenerator implements PtrGenerator, VarGenerator, LValueGenera
   }
 
   @Override
+  public WrapperType getPointerType() {
+    return WrapperType.forPointerType(this.type);
+  }
+
+  @Override
   public void emitDefaultInit(MethodVisitor mv) {
     
   }
+
 }
 

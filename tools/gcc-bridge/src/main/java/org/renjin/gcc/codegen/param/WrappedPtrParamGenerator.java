@@ -8,7 +8,6 @@ import org.renjin.gcc.codegen.var.PtrVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.runtime.Ptr;
 
 import java.util.Collections;
@@ -25,7 +24,7 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
 
   private GimpleParameter parameter;
   private int localVariableIndex;
-  private final GimplePrimitiveType baseType;
+  private final GimpleIndirectType type;
 
   /**
    * The {@link Ptr} subclass type
@@ -36,8 +35,8 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
   public WrappedPtrParamGenerator(GimpleParameter parameter, int localVariableIndex) {
     this.parameter = parameter;
     this.localVariableIndex = localVariableIndex;
-    this.baseType = ((GimpleIndirectType)parameter.getType()).getBaseType();
-    this.pointerType = WrapperType.of(baseType.jvmType());
+    this.type = (GimpleIndirectType) parameter.getType();
+    this.pointerType = WrapperType.forPointerType(type);
   }
 
   @Override
@@ -79,6 +78,6 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
     // Store the array reference in the local variable
     mv.visitVarInsn(ISTORE, offsetVariable);
     
-    return new PtrVarGenerator(baseType, arrayVariable, offsetVariable);
+    return new PtrVarGenerator(parameter.getType(), arrayVariable, offsetVariable);
   }
 }

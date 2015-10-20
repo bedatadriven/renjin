@@ -3,10 +3,8 @@ package org.renjin.gcc.codegen.call;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.LValueGenerator;
-import org.renjin.gcc.codegen.expr.PtrGenerator;
-import org.renjin.gcc.codegen.expr.ValueGenerator;
+import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -18,15 +16,14 @@ import static org.objectweb.asm.Opcodes.IDIV;
 /**
  * Generates a {@code malloc} call
  */
-public class MallocGenerator implements PtrGenerator {
+public class MallocGenerator extends AbstractExprGenerator implements PtrGenerator {
   private final GimpleType gimpleBaseType;
-  private final Type baseType;
   private final ValueGenerator sizeGenerator;
+  private final WrapperType pointerType;
 
   public MallocGenerator(LValueGenerator lhs, ExprGenerator sizeGenerator) {
-    PtrGenerator ptr = (PtrGenerator) lhs;
-    this.gimpleBaseType = ptr.gimpleBaseType();
-    this.baseType = ptr.baseType();
+    this.pointerType = lhs.getPointerType();
+    this.gimpleBaseType = lhs.getGimpleType().getBaseType();
     this.sizeGenerator = (ValueGenerator) sizeGenerator;
   }
 
@@ -42,23 +39,14 @@ public class MallocGenerator implements PtrGenerator {
   }
 
   @Override
-  public GimpleType gimpleBaseType() {
-    return gimpleBaseType;
-  }
-
-  @Override
-  public Type baseType() {
-    return baseType;
-  }
-
-  @Override
   public void emitPushArrayAndOffset(MethodVisitor mv) {
     // first calculate the size of the array from the argument,
     // which is in bytes
-    sizeGenerator.emitPush(mv);
+    sizeGenerator.emitPushValue(mv);
     mv.visitLdcInsn(gimpleBaseType.sizeOf());
     mv.visitInsn(IDIV);
 
+    Type baseType = pointerType.getBaseType();
     // now create the array
     if(baseType.equals(Type.INT_TYPE)) {
       mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_INT);
@@ -73,5 +61,10 @@ public class MallocGenerator implements PtrGenerator {
     }
 
     mv.visitInsn(ICONST_0);
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    throw new UnsupportedOperationException();
   }
 }

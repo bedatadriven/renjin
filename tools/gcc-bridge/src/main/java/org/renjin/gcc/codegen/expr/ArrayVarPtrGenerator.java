@@ -2,11 +2,12 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.var.ArrayVarGenerator;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-public class ArrayVarPtrGenerator implements PtrGenerator {
+public class ArrayVarPtrGenerator extends AbstractExprGenerator implements PtrGenerator {
   
   private ArrayVarGenerator arrayVar;
 
@@ -15,18 +16,18 @@ public class ArrayVarPtrGenerator implements PtrGenerator {
   }
 
   @Override
-  public GimpleType gimpleBaseType() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Type baseType() {
-    return arrayVar.getComponentType();
-  }
-
-  @Override
   public void emitPushArrayAndOffset(MethodVisitor mv) {
-    arrayVar.emitPush(mv);
+    arrayVar.emitPushValue(mv);
     mv.visitInsn(Opcodes.ICONST_0);
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return new GimplePointerType(arrayVar.getGimpleType());
+  }
+
+  @Override
+  public WrapperType getPointerType() {
+    return WrapperType.of(arrayVar.getComponentType());
   }
 }

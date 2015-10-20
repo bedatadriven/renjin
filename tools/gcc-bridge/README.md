@@ -13,7 +13,7 @@ GCC-Bridge uses GCC as a front end to generate Gimple, and then compile Gimple t
 C Functions are translated as public static methods. 
 
 
-### Pointer Local Variables
+### Pointers
 
 Within function bodies, pointer variables are mapped to two local variables: an array variable, and an offset 
 variable.
@@ -191,3 +191,43 @@ public static class Main {
 The C `char` type is actually a string of bytes under the hood, and so GCC-Bridge represents all C strings as 
 `byte` arrays under the hood. 
 
+
+### Addressable Pointer local variables
+
+Prior to code generation, we determine which local variables need to be "adressable.".
+
+C:
+
+```
+int main {
+  double *x;
+  init_vector(&x);  
+  return x[0] + x[1];
+}
+
+void init_vector(double **x) {
+  double *y = malloc(sizeof(double) * 2);
+  y[0] = 41;
+  y[1] = 42;
+  *x = y;
+}
+```
+
+Java:
+
+```
+public static int main() {
+  DoublePtr ptr = new DoublePtr(null, 0);
+  init_vector(ptr);
+  return ptr.get(0) + ptr.get(1);
+}
+
+public static void init_vector(DoublePtr ptr) {
+  double y[] = new double[2];
+  int y$offset = 0;
+  y[y$offset + 0] = 41;
+  y[y$offset + 1] = 42;
+  ptr.array = y;
+  ptr.offset = y$offset;
+} 
+```

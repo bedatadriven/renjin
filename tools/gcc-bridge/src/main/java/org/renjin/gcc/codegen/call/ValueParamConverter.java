@@ -16,6 +16,6 @@ public class ValueParamConverter implements ParamConverter {
 
   @Override
   public void emitPushParam(MethodVisitor mv) {
-    valueGenerator.emitPush(mv);
+    valueGenerator.emitPushValue(mv);
   }
 }

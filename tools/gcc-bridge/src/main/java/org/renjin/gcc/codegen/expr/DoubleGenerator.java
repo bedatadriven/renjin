@@ -3,11 +3,12 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates the code to cast an integer to a double value
  */
-public class DoubleGenerator implements ValueGenerator {
+public class DoubleGenerator extends AbstractExprGenerator implements ValueGenerator {
   
   private ValueGenerator valueGenerator;
   
@@ -16,18 +17,23 @@ public class DoubleGenerator implements ValueGenerator {
   }
 
   @Override
-  public Type primitiveType() {
+  public Type getValueType() {
     return Type.DOUBLE_TYPE;
   }
 
   @Override
-  public void emitPush(MethodVisitor mv) {
-    valueGenerator.emitPush(mv);
+  public void emitPushValue(MethodVisitor mv) {
+    valueGenerator.emitPushValue(mv);
     
-    if(valueGenerator.primitiveType().equals(Type.INT_TYPE)) {
+    if(valueGenerator.getValueType().equals(Type.INT_TYPE)) {
       mv.visitInsn(Opcodes.I2D);
     } else {
-      throw new UnsupportedOperationException("from type: " + valueGenerator.primitiveType());
+      throw new UnsupportedOperationException("from type: " + valueGenerator.getValueType());
     }
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    throw new UnsupportedOperationException();
   }
 }

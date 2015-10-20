@@ -6,6 +6,9 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.ValueGenerator;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimpleRealType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;
 
@@ -48,6 +51,21 @@ public class MethodCallGenerator implements CallGenerator {
   }
 
   @Override
+  public GimpleType getGimpleReturnType() {
+    if(returnType.equals(Type.INT_TYPE)) {
+      return new GimpleIntegerType(32);
+    } else if(returnType.equals(Type.LONG_TYPE)) {
+      return new GimpleIntegerType(64);
+    } else if(returnType.equals(Type.FLOAT_TYPE)) {
+      return new GimpleRealType(32);
+    } else if(returnType.equals(Type.DOUBLE_TYPE)) {
+      return new GimpleRealType(64);
+    } else {
+      throw new UnsupportedOperationException("returnType: " + returnType);
+    }
+  } 
+
+  @Override
   public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
     if(WrapperType.is(returnType)) {
       return new PtrCallExprGenerator(WrapperType.valueOf(returnType), this, argumentGenerators);
@@ -59,12 +77,12 @@ public class MethodCallGenerator implements CallGenerator {
   private ParamConverter findConverter(ExprGenerator generator, Type paramType) {
     if(generator instanceof ValueGenerator) {
       ValueGenerator valueGenerator = (ValueGenerator) generator;
-      if(valueGenerator.primitiveType().equals(paramType)) {
+      if(valueGenerator.getValueType().equals(paramType)) {
         return new ValueParamConverter(valueGenerator);
       }
     }
     if(WrapperType.is(paramType)) {
-      return new WrappedPtrConverter(WrapperType.valueOf(paramType), generator);
+      return new WrappedPtrConverter(generator);
     }
     throw new UnsupportedOperationException(String.format("Cannot convert from %s to %s", generator, paramType));
   }

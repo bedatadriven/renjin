@@ -4,7 +4,8 @@ import com.google.common.collect.ImmutableList;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.PtrGenerator;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.*;
@@ -58,6 +59,11 @@ public class WrapperType {
 
   public Type getBaseType() {
     return baseType;
+  }
+
+
+  public static WrapperType forPointerType(GimpleIndirectType type) {
+    return of(type.getBaseType());
   }
 
   public static Type wrapperType(Type type) {
@@ -203,6 +209,9 @@ public class WrapperType {
     // Consume the first reference to the wrapper type and push the array field on the stack
     mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "array", arrayType.getDescriptor());
 
+    // (wrapper, array) -> (array, wrapper)
+    mv.visitInsn(SWAP);
+    
     // Consume the second reference 
     mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "offset", "I");
   }
@@ -211,12 +220,12 @@ public class WrapperType {
   /**
    * Emits the bytecode to consume a reference to the array 
    */
-  public void emitPushWrapper(MethodVisitor mv, PtrGenerator ptrGenerator) {
+  public void emitPushNewWrapper(MethodVisitor mv, ExprGenerator ptrGenerator) {
 
-    String wrapperClass = WrapperType.wrapperType(ptrGenerator.baseType()).getInternalName();
+    String wrapperClass = wrapperType.getInternalName();
 
     // Create a new instance of the wrapper
-    mv.visitTypeInsn(Opcodes.NEW, wrapperType.getInternalName());
+    mv.visitTypeInsn(Opcodes.NEW, wrapperClass);
 
     // Initialize it with the array and offset
     mv.visitInsn(Opcodes.DUP);
@@ -224,5 +233,8 @@ public class WrapperType {
     mv.visitMethodInsn(INVOKESPECIAL, wrapperClass, "<init>", getConstructorDescriptor(), false);
   }
 
-
+  public void emitInvokeUpdate(MethodVisitor mv) {
+    mv.visitMethodInsn(INVOKEVIRTUAL, wrapperType.getInternalName(), "update", getConstructorDescriptor(), false);
+  }
+  
 }

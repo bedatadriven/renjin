@@ -31,7 +31,7 @@ public class PtrReturnGenerator implements ReturnGenerator {
   public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
     PtrGenerator ptrGenerator = (PtrGenerator) valueGenerator;
     
-    wrapperType.emitPushWrapper(mv, ptrGenerator);
+    wrapperType.emitPushNewWrapper(mv, ptrGenerator);
 
     // return
     mv.visitInsn(Opcodes.ARETURN);

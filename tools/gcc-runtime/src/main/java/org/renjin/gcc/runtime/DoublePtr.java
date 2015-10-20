@@ -4,8 +4,8 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class DoublePtr implements Ptr {
-  public final double[] array;
-  public final int offset;
+  public double[] array;
+  public int offset;
 
   public DoublePtr(double[] array, int offset) {
     this.array = array;
@@ -32,6 +32,10 @@ public class DoublePtr implements Ptr {
 
   public void set(int index, double value) {
     array[offset+index] = value;
-
+  }
+  
+  public void update(double[] array,  int offset) {
+    this.array = array;
+    this.offset = offset;
   }
 }

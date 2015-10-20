@@ -4,26 +4,30 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.ValueGenerator;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * 
  */
-public class ValueFieldGenerator implements FieldGenerator, ValueGenerator {
+public class ValueFieldGenerator extends AbstractExprGenerator implements FieldGenerator, ValueGenerator {
 
   private String fieldName;
   private String className;
+  private GimpleType gimpleType;
   private Type type;
 
-  public ValueFieldGenerator(String fieldName, String className, Type type) {
+  public ValueFieldGenerator(String fieldName, String className, GimpleType gimpleType, Type type) {
     this.fieldName = fieldName;
     this.className = className;
+    this.gimpleType = gimpleType;
     this.type = type;
   }
 
   @Override
-  public Type primitiveType() {
+  public Type getValueType() {
     return type;
   }
 
@@ -34,7 +38,7 @@ public class ValueFieldGenerator implements FieldGenerator, ValueGenerator {
   }
   
   @Override
-  public void emitPush(MethodVisitor mv) {
+  public void emitPushValue(MethodVisitor mv) {
     mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, type.getDescriptor());
   }
 
@@ -46,5 +50,10 @@ public class ValueFieldGenerator implements FieldGenerator, ValueGenerator {
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return gimpleType;
   }
 }

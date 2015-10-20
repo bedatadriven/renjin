@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.call;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.PtrGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -14,7 +14,7 @@ import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.SWAP;
 
 
-public class PtrCallExprGenerator implements PtrGenerator {
+public class PtrCallExprGenerator extends AbstractExprGenerator implements PtrGenerator {
  
   private final CallGenerator callGenerator;
   private List<ExprGenerator> arguments;
@@ -24,16 +24,6 @@ public class PtrCallExprGenerator implements PtrGenerator {
     this.wrapperType = wrapperType;
     this.callGenerator = callGenerator;
     this.arguments = arguments;
-  }
-
-  @Override
-  public GimpleType gimpleBaseType() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Type baseType() {
-    return wrapperType.getBaseType();
   }
 
   @Override
@@ -58,5 +48,10 @@ public class PtrCallExprGenerator implements PtrGenerator {
     
     // stack: [ array, offset ]
   
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    throw new UnsupportedOperationException();
   }
 }

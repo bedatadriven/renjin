@@ -5,11 +5,12 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.Printer;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates bytecode for a binary operation on primitives (IMUL, DMUL, IADD, etc)
  */
-public class BinaryOpGenerator implements ValueGenerator {
+public class BinaryOpGenerator extends AbstractExprGenerator implements ValueGenerator {
   
   private int opCode;
   private final ValueGenerator x;
@@ -50,8 +51,8 @@ public class BinaryOpGenerator implements ValueGenerator {
   }
 
   private void checkTypes() {
-    Type tx = x.primitiveType();
-    Type ty = y.primitiveType();
+    Type tx = x.getValueType();
+    Type ty = y.getValueType();
 
     if(!tx.equals(ty)) {
       throw new IllegalStateException(String.format(
@@ -60,10 +61,10 @@ public class BinaryOpGenerator implements ValueGenerator {
   }
 
   @Override
-  public void emitPush(MethodVisitor mv) {
-    x.emitPush(mv);
-    y.emitPush(mv);
-    mv.visitInsn(primitiveType().getOpcode(opCode));
+  public void emitPushValue(MethodVisitor mv) {
+    x.emitPushValue(mv);
+    y.emitPushValue(mv);
+    mv.visitInsn(getValueType().getOpcode(opCode));
   }
 
   @Override
@@ -72,7 +73,12 @@ public class BinaryOpGenerator implements ValueGenerator {
   }
 
   @Override
-  public Type primitiveType() {
-    return x.primitiveType();
+  public Type getValueType() {
+    return x.getValueType();
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return x.getGimpleType();
   }
 }

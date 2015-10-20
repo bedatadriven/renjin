@@ -4,13 +4,15 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleBooleanType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.*;
 
 /**
  * Generates codes for binary comparisons
  */
-public class ComparisonGenerator implements ConditionGenerator, ValueGenerator {
+public class ComparisonGenerator extends AbstractExprGenerator implements ConditionGenerator, ValueGenerator {
   
   private GimpleOp op;
   private ValueGenerator x;
@@ -25,16 +27,16 @@ public class ComparisonGenerator implements ConditionGenerator, ValueGenerator {
   @Override
   public void emitJump(MethodVisitor mv, Label trueLabel) {
 
-    Type tx = x.primitiveType();
-    Type ty = y.primitiveType();
+    Type tx = x.getValueType();
+    Type ty = y.getValueType();
     
     if(!tx.equals(ty)) {
       throw new UnsupportedOperationException("Type mismatch: " + tx + " != " + ty);
     }
     
     // Push two operands on the stack
-    x.emitPush(mv);
-    y.emitPush(mv);
+    x.emitPushValue(mv);
+    y.emitPushValue(mv);
     
     if (tx.equals(Type.INT_TYPE) || tx.equals(Type.BOOLEAN_TYPE)) {
       
@@ -132,18 +134,18 @@ public class ComparisonGenerator implements ConditionGenerator, ValueGenerator {
   }
 
   private boolean isDouble() {
-    return x.primitiveType().equals(Type.DOUBLE_TYPE);
+    return x.getValueType().equals(Type.DOUBLE_TYPE);
   }
 
 
   @Override
-  public Type primitiveType() {
+  public Type getValueType() {
     // has a type of boolean, but within method bodies this is treated as an integer
     return Type.INT_TYPE;
   }
 
   @Override
-  public void emitPush(MethodVisitor mv) {
+  public void emitPushValue(MethodVisitor mv) {
     // Push this value as a boolean on the stack.
     // Requires a jump
     Label trueLabel = new Label();
@@ -161,5 +163,10 @@ public class ComparisonGenerator implements ConditionGenerator, ValueGenerator {
     
     // done
     mv.visitLabel(exitLabel);
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return new GimpleBooleanType();
   }
 }

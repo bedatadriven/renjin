@@ -11,6 +11,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.WrappedPtrParamGenerator;
+import org.renjin.gcc.codegen.param.WrappedPtrPtrParamGenerator;
 import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
 import org.renjin.gcc.codegen.ret.PtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
@@ -110,7 +111,13 @@ public class FunctionGenerator {
       return new PrimitiveParamGenerator(gimpleParameter, index);
       
     } else if(gimpleParameter.getType() instanceof GimpleIndirectType) {
-      return new WrappedPtrParamGenerator(gimpleParameter, index);
+      // pointer to a pointer?
+      GimpleIndirectType pointerType = (GimpleIndirectType) gimpleParameter.getType();
+      if(pointerType.getBaseType() instanceof GimpleIndirectType) {
+        return new WrappedPtrPtrParamGenerator(gimpleParameter, index);
+      } else {
+        return new WrappedPtrParamGenerator(gimpleParameter, index);
+      }
     }
     
     throw new UnsupportedOperationException("Parameter: " + gimpleParameter);
@@ -135,13 +142,17 @@ public class FunctionGenerator {
       return new ValueVarGenerator(index, varDecl.getName(), primitiveType);
     
     } else if(varDecl.getType() instanceof GimpleIndirectType) {
-      GimplePointerType pointerType = (GimplePointerType) varDecl.getType();
-      return new PtrVarGenerator(pointerType.getBaseType(), localVarAllocator);
+      GimpleIndirectType pointerType = (GimplePointerType) varDecl.getType();
+      if(varDecl.isAddressable()) {
+        return new AddressablePtrVarGenerator(pointerType, localVarAllocator);
+      } else {
+        return new PtrVarGenerator(pointerType, localVarAllocator);
+      }
 
     } else if(varDecl.getType() instanceof GimpleArrayType) {
       GimpleArrayType arrayType = (GimpleArrayType) varDecl.getType();
       return new ArrayVarGenerator(arrayType, localVarAllocator);
-      
+
     } else {
       throw new UnsupportedOperationException("var type: " + varDecl.getType());
     }
@@ -189,14 +200,14 @@ public class FunctionGenerator {
 
       lhs.emitStore(mv, rhs);
     } catch (Exception e) {
-      throw new RuntimeException("Exception translating assignment " + ins, e);
+      throw new RuntimeException("Exception compiling assignment " + ins, e);
     }
   }
 
   private ExprGenerator findGenerator(LValueGenerator lhs, GimpleOp operator, List<GimpleExpr> operands) {
     if(operator == GimpleOp.CONVERT_EXPR) {
       ValueGenerator valueGenerator = (ValueGenerator) lhs;
-      return new ConvertGenerator(findGenerator(operands.get(0)), valueGenerator.primitiveType());
+      return new ConvertGenerator(findGenerator(operands.get(0)), valueGenerator.getValueType());
     
     } else {
       return findGenerator(operator, operands);
@@ -322,6 +333,11 @@ public class FunctionGenerator {
             findGenerator(operands.get(0)),
             findGenerator(operands.get(1)));
       
+      case MAX_EXPR:
+        return new MaxGenerator(
+            findGenerator(operands.get(0)), 
+            findGenerator(operands.get(1)));
+      
       default:
         throw new UnsupportedOperationException("op: " + op);
     }
@@ -344,12 +360,12 @@ public class FunctionGenerator {
       if(addressOf.getValue() instanceof GimpleStringConstant) {
         return new StringLiteralGenerator(addressOf.getValue());        
       } else {
-        AddressableGenerator value = (AddressableGenerator) findGenerator(addressOf.getValue());
+        ExprGenerator value = findGenerator(addressOf.getValue());
         return value.addressOf();
       }
 
     } else if(expr instanceof GimpleMemRef) {
-      return new MemRefGenerator(findGenerator(((GimpleMemRef) expr).getPointer()));
+      return findGenerator(((GimpleMemRef) expr).getPointer()).valueOf();
 
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
@@ -358,7 +374,7 @@ public class FunctionGenerator {
           findGenerator(arrayRef.getIndex()));
       
     } else {
-      throw new UnsupportedOperationException(expr.getClass().getSimpleName());
+      throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
     }
   }
 

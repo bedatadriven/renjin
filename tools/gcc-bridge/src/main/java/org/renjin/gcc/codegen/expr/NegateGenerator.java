@@ -3,11 +3,12 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates the bytecode to negate a numeric value
  */
-public class NegateGenerator implements ValueGenerator {
+public class NegateGenerator extends AbstractExprGenerator implements ValueGenerator {
   
   private ValueGenerator operand;
 
@@ -16,13 +17,18 @@ public class NegateGenerator implements ValueGenerator {
   }
 
   @Override
-  public Type primitiveType() {
-    return operand.primitiveType();
+  public Type getValueType() {
+    return operand.getValueType();
   }
 
   @Override
-  public void emitPush(MethodVisitor mv) {
-    operand.emitPush(mv);
-    mv.visitInsn(operand.primitiveType().getOpcode(Opcodes.INEG));
+  public void emitPushValue(MethodVisitor mv) {
+    operand.emitPushValue(mv);
+    mv.visitInsn(operand.getValueType().getOpcode(Opcodes.INEG));
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return operand.getGimpleType();
   }
 }

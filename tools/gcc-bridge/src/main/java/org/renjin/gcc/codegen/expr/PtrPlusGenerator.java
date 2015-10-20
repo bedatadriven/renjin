@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.IADD;
@@ -10,7 +10,7 @@ import static org.objectweb.asm.Opcodes.IDIV;
 /**
  * Generates code for pointer addition
  */
-public class PtrPlusGenerator implements PtrGenerator {
+public class PtrPlusGenerator extends AbstractExprGenerator implements PtrGenerator {
   
   private PtrGenerator ptr;
   private ValueGenerator offset;
@@ -18,16 +18,6 @@ public class PtrPlusGenerator implements PtrGenerator {
   public PtrPlusGenerator(ExprGenerator ptr, ExprGenerator offset) {
     this.ptr = (PtrGenerator) ptr;
     this.offset = (ValueGenerator) offset;
-  }
-
-  @Override
-  public GimpleType gimpleBaseType() {
-    return ptr.gimpleBaseType();
-  }
-
-  @Override
-  public Type baseType() {
-    return ptr.baseType();
   }
 
   @Override
@@ -41,17 +31,22 @@ public class PtrPlusGenerator implements PtrGenerator {
   }
 
   private void pushDelta(MethodVisitor mv) {
-    int sizeInBytes = ptr.gimpleBaseType().sizeOf();
+    int sizeInBytes = ptr.getGimpleType().getBaseType().sizeOf();
 
     if(offset instanceof ConstValueGenerator) {
       // If the pointer is incremented by a constant amount, we can calculate the offset now
-      ((ConstValueGenerator) offset).divideBy(sizeInBytes).emitPush(mv);
+      ((ConstValueGenerator) offset).divideBy(sizeInBytes).emitPushValue(mv);
       
     } else {
       // Otherwise we have to compute the offset at runtime
-      offset.emitPush(mv);
-      new ConstValueGenerator(Type.INT_TYPE, sizeInBytes).emitPush(mv);
+      offset.emitPushValue(mv);
+      new ConstValueGenerator(new GimpleIntegerType(32), sizeInBytes).emitPushValue(mv);
       mv.visitInsn(IDIV);
     }
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return ptr.getGimpleType();
   }
 }

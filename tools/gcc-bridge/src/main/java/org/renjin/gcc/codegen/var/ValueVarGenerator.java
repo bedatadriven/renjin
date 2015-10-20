@@ -27,14 +27,13 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator exprGenerator) {
-    ValueGenerator valueGenerator = (ValueGenerator) exprGenerator;
+  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushValue(mv);
 
-    if(Types.isInt(this) && Types.isLong(exprGenerator)) {
+    if(Types.isInt(this) && Types.isLong(valueGenerator)) {
       mv.visitInsn(Opcodes.L2I);
 
-    } else if(Types.isLong(this) && Types.isInt(exprGenerator)) {
+    } else if(Types.isLong(this) && Types.isInt(valueGenerator)) {
       mv.visitInsn(Opcodes.I2L);
       
     } else {
@@ -53,7 +52,7 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
 
   }
 
-  private boolean checkTypes(ValueGenerator valueGenerator) {
+  private boolean checkTypes(ExprGenerator valueGenerator) {
     Type varType = getValueType();
     Type valueType = valueGenerator.getValueType();
  

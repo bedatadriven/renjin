@@ -5,6 +5,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -23,7 +24,8 @@ public class WrapperType {
       new WrapperType(LongPtr.class),
       new WrapperType(BooleanPtr.class),
       new WrapperType(CharPtr.class),
-      new WrapperType(DoublePtr.class));
+      new WrapperType(DoublePtr.class),
+      new WrapperType(ObjectPtr.class));
   
 
   /**
@@ -123,6 +125,8 @@ public class WrapperType {
   public static WrapperType of(GimpleType baseType) {
     if(baseType instanceof GimplePrimitiveType) {
       return of(((GimplePrimitiveType) baseType).jvmType());
+    } else if(baseType instanceof GimpleArrayType) {
+      return of(((GimpleArrayType) baseType).getComponentType());
     } else {
       return new WrapperType(ObjectPtr.class);
     }

@@ -138,9 +138,14 @@ public class FunctionGenerator {
   private VarGenerator findGeneratorForVariable(GimpleVarDecl varDecl) {
     if(varDecl.getType() instanceof GimplePrimitiveType) {
       GimplePrimitiveType primitiveType = (GimplePrimitiveType) varDecl.getType();
-      int index = localVarAllocator.reserve(primitiveType.localVariableSlots());
-      return new ValueVarGenerator(index, varDecl.getName(), primitiveType);
-    
+      if(varDecl.isAddressable()) {
+        int index = localVarAllocator.reserve(1);
+        return new AddressableVarGenerator(index, varDecl.getName(), primitiveType);
+
+      } else {
+        int index = localVarAllocator.reserve(primitiveType.localVariableSlots());
+        return new ValueVarGenerator(index, varDecl.getName(), primitiveType);
+      }
     } else if(varDecl.getType() instanceof GimpleIndirectType) {
       GimpleIndirectType pointerType = (GimplePointerType) varDecl.getType();
       if(varDecl.isAddressable()) {
@@ -195,7 +200,7 @@ public class FunctionGenerator {
 
   private void emitAssignment(GimpleAssign ins) {
     try {
-      LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLHS());
+      ExprGenerator lhs = findGenerator(ins.getLHS());
       ExprGenerator rhs = findGenerator(lhs, ins.getOperator(), ins.getOperands());
 
       lhs.emitStore(mv, rhs);
@@ -204,10 +209,9 @@ public class FunctionGenerator {
     }
   }
 
-  private ExprGenerator findGenerator(LValueGenerator lhs, GimpleOp operator, List<GimpleExpr> operands) {
+  private ExprGenerator findGenerator(ExprGenerator lhs, GimpleOp operator, List<GimpleExpr> operands) {
     if(operator == GimpleOp.CONVERT_EXPR) {
-      ValueGenerator valueGenerator = (ValueGenerator) lhs;
-      return new ConvertGenerator(findGenerator(operands.get(0)), valueGenerator.getValueType());
+      return new ConvertGenerator(findGenerator(operands.get(0)), lhs.getValueType());
     
     } else {
       return findGenerator(operator, operands);
@@ -277,7 +281,10 @@ public class FunctionGenerator {
   private ExprGenerator findGenerator(GimpleOp op, List<GimpleExpr> operands) {
     switch (op) {
       case PLUS_EXPR:
+      case MINUS_EXPR:
       case MULT_EXPR:
+      case RDIV_EXPR:
+      case TRUNC_DIV_EXPR:
       case EXACT_DIV_EXPR:
       case TRUNC_MOD_EXPR:
       case BIT_IOR_EXPR:
@@ -302,6 +309,7 @@ public class FunctionGenerator {
             findGenerator(operands.get(0)), 
             findGenerator(operands.get(1)));
       
+      case PAREN_EXPR:
       case VAR_DECL:
       case NOP_EXPR:
       case MEM_REF:
@@ -369,9 +377,13 @@ public class FunctionGenerator {
 
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
-      return new ArrayRefGenerator(
-          findGenerator(arrayRef.getArray()), 
-          findGenerator(arrayRef.getIndex()));
+      ExprGenerator arrayGenerator = findGenerator(arrayRef.getArray());
+      ExprGenerator indexGenerator = findGenerator(arrayRef.getIndex());
+      return arrayGenerator.elementAt(indexGenerator);
+
+    } else if(expr instanceof GimpleConstantRef) {
+      GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
+      return findGenerator(constant);
       
     } else {
       throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");

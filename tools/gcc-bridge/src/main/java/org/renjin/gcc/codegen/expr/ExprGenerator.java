@@ -64,5 +64,12 @@ public interface ExprGenerator {
    */ 
   void emitPushPointerWrapper(MethodVisitor mv);
 
-  
+
+  /**
+   * 
+   * Emits a store instruction; to a variable, to an array value, field, etc
+   * 
+   * @param valueGenerator the generator which produces the value to be stored
+   */
+  void emitStore(MethodVisitor mv, ExprGenerator valueGenerator);
 }

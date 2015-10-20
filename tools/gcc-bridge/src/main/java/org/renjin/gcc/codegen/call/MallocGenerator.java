@@ -32,7 +32,8 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
       GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
-        return ref.getName().equals("malloc");
+        return ref.getName().equals("malloc") ||
+               ref.getName().equals("__builtin_malloc");
       }
     }
     return false;
@@ -46,21 +47,32 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
     mv.visitLdcInsn(gimpleBaseType.sizeOf());
     mv.visitInsn(IDIV);
 
-    Type baseType = pointerType.getBaseType();
     // now create the array
-    if(baseType.equals(Type.INT_TYPE)) {
-      mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_INT);
-    } else if(baseType.equals(Type.LONG_TYPE)) {
-      mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_LONG);
-    } else if(baseType.equals(Type.FLOAT_TYPE)) {
-      mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_FLOAT);
-    } else if(baseType.equals(Type.DOUBLE_TYPE)) {
-      mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_DOUBLE);
-    } else {
-      throw new UnsupportedOperationException("type: " + baseType);
-    }
+    emitNewArray(mv, pointerType.getBaseType());
 
     mv.visitInsn(ICONST_0);
+  }
+
+  public static void emitNewArray(MethodVisitor mv, Type componentType) {
+    switch (componentType.getSort()) {
+      case Type.BOOLEAN:
+        mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BOOLEAN);
+        break;
+      case Type.INT:
+        mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_INT);
+        break;
+      case Type.LONG:
+        mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_LONG);
+        break;
+      case Type.FLOAT:
+        mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_FLOAT);
+        break;
+      case Type.DOUBLE:
+        mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_DOUBLE);
+        break;
+      default:
+        throw new UnsupportedOperationException("type: " + componentType);
+    }
   }
 
   @Override

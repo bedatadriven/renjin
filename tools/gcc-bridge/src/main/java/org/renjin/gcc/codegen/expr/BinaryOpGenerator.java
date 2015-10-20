@@ -31,6 +31,8 @@ public class BinaryOpGenerator extends AbstractExprGenerator implements ValueGen
         return Opcodes.IMUL;
       case PLUS_EXPR:
         return Opcodes.IADD;
+      case MINUS_EXPR:
+        return Opcodes.ISUB;
       
       case RDIV_EXPR:
       case TRUNC_DIV_EXPR:

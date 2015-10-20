@@ -49,6 +49,12 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   }
 
   @Override
+  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    throw new UnsupportedOperationException(String.format("Cannot store value to %s [%s]",
+        toString(), getClass().getSimpleName())); 
+  }
+
+  @Override
   public Type getValueType() {
     throw new UnsupportedOperationException(String.format("%s [%s] is not a value type",
         toString(), getClass().getSimpleName()));

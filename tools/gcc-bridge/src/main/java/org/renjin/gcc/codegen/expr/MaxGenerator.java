@@ -30,6 +30,10 @@ public class MaxGenerator extends  AbstractExprGenerator implements ValueGenerat
 
   @Override
   public void emitPushValue(MethodVisitor mv) {
+    
+    x.emitPushValue(mv);
+    y.emitPushValue(mv);
+    
     if(Types.isInt(x) && Types.isInt(y)) {
       mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", "max", "(II)I", false);
    

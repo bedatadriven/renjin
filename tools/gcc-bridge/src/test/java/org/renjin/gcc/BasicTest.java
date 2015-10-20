@@ -212,7 +212,7 @@ public class BasicTest extends AbstractGccTest {
 
     method.invoke(null, new DoublePtr(x, 0), new IntPtr(3));
     
-    System.out.println(x);
+    System.out.println(Arrays.toString(x));
     
     assertThat(x[0], equalTo(1d));
     assertThat(x[4], equalTo(4d));

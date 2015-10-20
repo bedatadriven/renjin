@@ -36,6 +36,6 @@ public class GimpleArrayType extends AbstractGimpleType {
 
   @Override
   public int sizeOf() {
-    throw new UnsupportedOperationException();
+    return componentType.sizeOf() * (getUbound() - getLbound() + 1);
   }
 }

@@ -27,7 +27,7 @@ public class StringLiteralGenerator extends AbstractExprGenerator implements Ptr
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     
     mv.visitLdcInsn(constantExpr.getValue());
     

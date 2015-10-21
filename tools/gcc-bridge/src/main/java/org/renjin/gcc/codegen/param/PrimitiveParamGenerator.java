@@ -3,10 +3,10 @@ package org.renjin.gcc.codegen.param;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.ValueVarGenerator;
-import org.renjin.gcc.codegen.var.VarGenerator;
-import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,23 +16,14 @@ import java.util.List;
  */
 public class PrimitiveParamGenerator extends ParamGenerator {
 
-  private final GimpleParameter param;
   private GimplePrimitiveType type;
-  private int localVariableIndex;
 
-  public PrimitiveParamGenerator(GimpleParameter param, int localVariableIndex) {
-    this.param = param;
-    this.localVariableIndex = localVariableIndex;
-    this.type = (GimplePrimitiveType) param.getType();
+  public PrimitiveParamGenerator(GimpleType gimpleType) {
+    this.type = (GimplePrimitiveType) gimpleType;
   }
 
   public GimplePrimitiveType getType() {
     return type;
-  }
-
-  @Override
-  public int getGimpleId() {
-    return param.getId();
   }
 
   @Override
@@ -46,8 +37,13 @@ public class PrimitiveParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public VarGenerator emitInitialization(MethodVisitor methodVisitor, LocalVarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, int startIndex, LocalVarAllocator localVars) {
     // No initialization required, already set to the local variable
-    return new ValueVarGenerator(localVariableIndex, param.getName(), type);
+    return new ValueVarGenerator(type, startIndex);
+  }
+
+  @Override
+  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+    parameterValueGenerator.emitPushValue(mv);
   }
 }

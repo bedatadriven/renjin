@@ -43,7 +43,7 @@ public class PtrFieldGenerator extends AbstractExprGenerator implements FieldGen
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     mv.visitFieldInsn(Opcodes.GETSTATIC, className, arrayFieldName, arrayTypeDescriptor());
     mv.visitFieldInsn(Opcodes.GETSTATIC, className, offsetFieldName, "I");
   }
@@ -53,7 +53,7 @@ public class PtrFieldGenerator extends AbstractExprGenerator implements FieldGen
     PtrGenerator ptr = (PtrGenerator) exprGenerator;
     
     // Store field
-    ptr.emitPushArrayAndOffset(mv);
+    ptr.emitPushPtrArrayAndOffset(mv);
 
     mv.visitFieldInsn(Opcodes.PUTSTATIC, className, offsetFieldName, "I");
     mv.visitFieldInsn(Opcodes.PUTSTATIC, className, arrayFieldName, arrayTypeDescriptor());

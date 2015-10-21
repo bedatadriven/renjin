@@ -16,9 +16,14 @@ public class NullPtrGenerator extends AbstractExprGenerator implements PtrGenera
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     mv.visitInsn(ACONST_NULL);
     mv.visitInsn(ICONST_0);
+  }
+
+  @Override
+  public void emitPushMethodHandle(MethodVisitor mv) {
+    mv.visitInsn(ACONST_NULL);
   }
 
   @Override

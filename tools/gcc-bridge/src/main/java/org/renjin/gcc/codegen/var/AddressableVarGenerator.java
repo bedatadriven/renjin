@@ -80,7 +80,7 @@ public class AddressableVarGenerator extends AbstractExprGenerator implements Va
     }
 
     @Override
-    public void emitPushArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ALOAD, index);
       mv.visitInsn(Opcodes.ICONST_0);
     }

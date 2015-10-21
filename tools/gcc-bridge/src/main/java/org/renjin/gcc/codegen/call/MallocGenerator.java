@@ -40,7 +40,7 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     // first calculate the size of the array from the argument,
     // which is in bytes
     sizeGenerator.emitPushValue(mv);

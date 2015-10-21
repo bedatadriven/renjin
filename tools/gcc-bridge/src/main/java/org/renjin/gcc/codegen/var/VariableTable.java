@@ -1,6 +1,8 @@
 package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.SymbolRef;
 
@@ -13,7 +15,7 @@ import java.util.Map;
 public class VariableTable {
 
   private final VariableTable parent;
-  private Map<Integer, VarGenerator> map = new HashMap<Integer, VarGenerator>();
+  private Map<Integer, ExprGenerator> map = Maps.newHashMap();
 
   public VariableTable() {
     this.parent = null;
@@ -23,14 +25,14 @@ public class VariableTable {
     this.parent = parent;
   }
 
-  public void add(Integer gimpleId, VarGenerator variable) {
+  public void add(Integer gimpleId, ExprGenerator variable) {
     Preconditions.checkNotNull(variable);
 
     map.put(gimpleId, variable);
   }
 
-  public VarGenerator get(SymbolRef ref) {
-    VarGenerator variable = map.get(ref.getId());
+  public ExprGenerator get(SymbolRef ref) {
+    ExprGenerator variable = map.get(ref.getId());
     if(variable == null) {
       if (parent == null) {
         throw new IllegalStateException("No variable with " + ref.getName() + " [id=" + ref.getId() + "]");
@@ -41,8 +43,8 @@ public class VariableTable {
     return variable;
   }
 
-  public VarGenerator get(GimpleVarDecl decl) {
-    VarGenerator varGenerator = map.get(decl.getId());
+  public ExprGenerator get(GimpleVarDecl decl) {
+    ExprGenerator varGenerator = map.get(decl.getId());
     if(varGenerator == null) {
       throw new IllegalStateException("No variable named " + decl.getName() + " [id=" + decl.getId() + "]");
     }

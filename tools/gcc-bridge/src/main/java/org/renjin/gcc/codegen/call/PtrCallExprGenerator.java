@@ -27,7 +27,7 @@ public class PtrCallExprGenerator extends AbstractExprGenerator implements PtrGe
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     // emit the call, which will push the wrapper pointer value on the stack
     callGenerator.emitCall(mv, arguments);
     

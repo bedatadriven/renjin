@@ -99,7 +99,7 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
     }
 
     @Override
-    public void emitPushArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       mv.visitVarInsn(ALOAD, index);
       mv.visitInsn(ICONST_0);
     }

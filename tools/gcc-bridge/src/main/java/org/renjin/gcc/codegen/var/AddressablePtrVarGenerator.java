@@ -53,7 +53,7 @@ public class AddressablePtrVarGenerator extends AbstractExprGenerator implements
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, index);
     wrapperType.emitUnpackArrayAndOffset(mv);
   }
@@ -65,7 +65,7 @@ public class AddressablePtrVarGenerator extends AbstractExprGenerator implements
     mv.visitVarInsn(Opcodes.ALOAD, index);
     
     PtrGenerator ptr = (PtrGenerator) valueGenerator;
-    ptr.emitPushArrayAndOffset(mv);
+    ptr.emitPushPtrArrayAndOffset(mv);
   
     wrapperType.emitInvokeUpdate(mv);
   }
@@ -88,7 +88,7 @@ public class AddressablePtrVarGenerator extends AbstractExprGenerator implements
     }
 
     @Override
-    public void emitPushArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       throw new UnsupportedOperationException();
     }
 

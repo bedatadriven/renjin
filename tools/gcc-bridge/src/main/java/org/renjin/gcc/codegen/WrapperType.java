@@ -233,7 +233,7 @@ public class WrapperType {
 
     // Initialize it with the array and offset
     mv.visitInsn(Opcodes.DUP);
-    ptrGenerator.emitPushArrayAndOffset(mv);
+    ptrGenerator.emitPushPtrArrayAndOffset(mv);
     mv.visitMethodInsn(INVOKESPECIAL, wrapperClass, "<init>", getConstructorDescriptor(), false);
   }
 

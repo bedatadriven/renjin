@@ -151,6 +151,7 @@ public static class MainClass {
 Global variables pointers are compiled as two static fields: one for the backing
 array, and one for the offset.
 
+
 ```
 int *global_var;
 
@@ -286,3 +287,63 @@ public class Main{
 }
 
 ```
+
+### Function Pointers
+
+Pointers to functions are compiled as JVM [MethodHandle](https://docs.oracle.com/javase/7/docs/api/java/lang/invoke/MethodHandle.html)
+references, which is actually a pretty good fit for function pointers.
+
+
+C:
+
+```.c
+void transform_array(double *x, int length, double (*fn)(double) ) {
+  int i;
+  for(i=0;i<length;++i) {
+    x[i] = fn(x[i]);
+  }
+}
+
+double cube(x) {
+  return x * x * x;
+}
+
+void main() {
+  double x[2];
+  x[0] = 2;
+  x[1] = 3; 
+  transform_array(&x, 2, &cube);
+}
+```
+
+Java:
+```.java
+public class MainClass {
+
+  public static void transform_array(DoublePtr x, int length, MethodHandle fn) {
+    int i;
+    for(i=0;i<length;++i) {
+      x.array[x.offset + i] = fn.invokeExact(x.array[x.offset + i];
+    }
+  }
+  
+  public static double cube(double x) {
+    return x * x * x;
+  }
+  
+  public static void main() {
+    double x[2] = new double[2];
+    x[0] = 2;
+    x[1] = 3;
+    transform_array(x, 2, /*  MethodHandle invokestatic cube:(D)D */)
+  }
+}
+```
+
+Java the language doesn't actually have a way of passing a method directly as a `MethodHandle`, but 
+the JVM itself allows us to store a `MethodHandle` in the constant pool and push it onto the stack
+using the `LDC` instruction.
+
+
+
+

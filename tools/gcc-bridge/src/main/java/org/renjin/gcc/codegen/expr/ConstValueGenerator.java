@@ -127,7 +127,7 @@ public class ConstValueGenerator extends AbstractExprGenerator implements ValueG
     }
 
     @Override
-    public void emitPushArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       Type type = gimpleType.jvmType();
 
       // Allocate a new array of size 1 and push to the stack

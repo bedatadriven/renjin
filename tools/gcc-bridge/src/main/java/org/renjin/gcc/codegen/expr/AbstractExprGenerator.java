@@ -32,9 +32,15 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
-    throw new UnsupportedOperationException(String.format("%s [%s] is not a pointer type",
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    throw new UnsupportedOperationException(String.format("%s [%s] is not a [array-backed] pointer type",
         toString(), getClass().getSimpleName()));  
+  }
+
+  @Override
+  public void emitPushMethodHandle(MethodVisitor mv) {
+    throw new UnsupportedOperationException(String.format("%s [%s] is not a [reference-backed] pointer type",
+        toString(), getClass().getSimpleName()));
   }
 
   @Override

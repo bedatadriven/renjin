@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.call;
 
 import com.google.common.base.Preconditions;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -26,6 +27,11 @@ public class FunctionTable {
       throw new UnsupportedOperationException("Could not find function '" + ref.getName() + "'");
     }
     return generator;
+  }
+  
+  public Handle findHandle(GimpleFunctionRef ref) {
+    MethodCallGenerator methodCallGenerator = (MethodCallGenerator) find(ref);
+    return methodCallGenerator.getHandle();
   }
 
 

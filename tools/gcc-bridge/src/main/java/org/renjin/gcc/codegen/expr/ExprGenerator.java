@@ -56,7 +56,13 @@ public interface ExprGenerator {
    * Writes the code push the array and offset backing this pointer onto the stack
    * @throws UnsupportedOperationException if this is not a pointer expression
    */
-  void emitPushArrayAndOffset(MethodVisitor mv);
+  void emitPushPtrArrayAndOffset(MethodVisitor mv);
+
+  /**
+   * Writes the code to push the reference onto the stack
+   * @throws UnsupportedOperationException if this is not a pointer with a reference representation
+   */
+  void emitPushMethodHandle(MethodVisitor mv);
 
   /**
    * Writes the code to push a pointer wrapper instance onto the stack 
@@ -65,6 +71,7 @@ public interface ExprGenerator {
   void emitPushPointerWrapper(MethodVisitor mv);
 
 
+  
   /**
    * 
    * Emits a store instruction; to a variable, to an array value, field, etc

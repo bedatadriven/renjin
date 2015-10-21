@@ -46,7 +46,7 @@ public class MainClassGenerator {
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
+    cv.visit(V1_7, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
     
     emitDefaultConstructor();
     emitGlobalVariables(units);

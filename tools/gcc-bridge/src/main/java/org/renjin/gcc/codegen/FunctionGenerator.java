@@ -1,19 +1,11 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.collect.Maps;
 import org.objectweb.asm.*;
-import org.renjin.gcc.codegen.call.CallGenerator;
-import org.renjin.gcc.codegen.call.FunctionTable;
-import org.renjin.gcc.codegen.call.MallocGenerator;
-import org.renjin.gcc.codegen.call.StringLiteralGenerator;
+import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
-import org.renjin.gcc.codegen.param.WrappedPtrParamGenerator;
-import org.renjin.gcc.codegen.param.WrappedPtrPtrParamGenerator;
-import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
-import org.renjin.gcc.codegen.ret.PtrReturnGenerator;
+import org.renjin.gcc.codegen.param.*;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
-import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
 import org.renjin.gcc.codegen.var.*;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
@@ -22,6 +14,7 @@ import org.renjin.gcc.gimple.type.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -31,37 +24,36 @@ import static org.objectweb.asm.Opcodes.*;
 public class FunctionGenerator {
 
   private GimpleFunction function;
-  private List<ParamGenerator> params = new ArrayList<ParamGenerator>();
+  private Map<GimpleParameter, ParamGenerator> params = Maps.newHashMap();
   private ReturnGenerator returnGenerator;
   private LocalVarAllocator localVarAllocator;
   
   private Labels labels = new Labels();
   private VariableTable localVariables;
   private FunctionTable functionTable;
+  private GeneratorFactory generatorFactory = new GeneratorFactory();
   
   private MethodVisitor mv;
 
   public FunctionGenerator(GimpleFunction function) {
     this.function = function;
-    this.params = findParamGenerators(function.getParameters());
-    this.returnGenerator = findReturnGenerator(function.getReturnType());
-    this.localVarAllocator = new LocalVarAllocator(params);
+    this.params = generatorFactory.forParameters(function.getParameters());
+    this.returnGenerator = generatorFactory.findReturnGenerator(function.getReturnType());
+    this.localVarAllocator = new LocalVarAllocator();
   }
-  
+
+  private Map<Integer, ParamGenerator> buildParamMap() {
+    Map<Integer, ParamGenerator> map = Maps.newHashMap();
+    for (GimpleParameter gimpleParameter : function.getParameters()) {
+      map.put(gimpleParameter.getId(), generatorFactory.forParameter(gimpleParameter.getType()));
+    }
+    return map;
+  }
+
   public String getMangledName() {
     return function.getMangledName();
   }
-
-  private List<ParamGenerator> findParamGenerators(List<GimpleParameter> parameters) {
-    List<ParamGenerator> generators = new ArrayList<ParamGenerator>();
-    int paramIndex = 0;
-    for (GimpleParameter gimpleParameter : function.getParameters()) {
-      ParamGenerator param = findParamGenerator(gimpleParameter, paramIndex);
-      paramIndex += param.numSlots();
-      generators.add(param);
-    }
-    return generators;
-  }
+  
   
   public void emit(ClassVisitor cw, VariableTable globalVars, FunctionTable functionTable) {
     this.localVariables = new VariableTable(globalVars);
@@ -84,15 +76,28 @@ public class FunctionGenerator {
   }
 
   private void emitParamInitialization() {
-    for (ParamGenerator param : params) {
-      VarGenerator variable = param.emitInitialization(mv, localVarAllocator);
-      localVariables.add(param.getGimpleId(), variable);
+    // first we need to map the parameters to their indexes in the local variable table
+    int numParameters = function.getParameters().size();
+    int[] paramIndexes = new int[numParameters];
+
+    for (int i = 0; i < numParameters; i++) {
+      ParamGenerator generator = params.get(function.getParameters().get(i));
+      paramIndexes[i] = localVarAllocator.reserve(generator.numSlots());
     }
+
+    // Now do any required initialization
+    for (int i = 0; i < numParameters; i++) {
+      GimpleParameter param = function.getParameters().get(i);
+      ParamGenerator generator = params.get(param);
+      ExprGenerator exprGenerator = generator.emitInitialization(mv, paramIndexes[i], localVarAllocator);
+      localVariables.add(param.getId(), exprGenerator);
+    }
+    
   }
 
   private void emitLocalVarInitialization() {
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-      VarGenerator lhs = localVariables.get(decl);
+      VarGenerator lhs = (VarGenerator) localVariables.get(decl);
       if(decl.getValue() != null) {
         ExprGenerator rhs = findGenerator(decl.getValue());
         lhs.emitStore(mv, rhs);
@@ -100,23 +105,6 @@ public class FunctionGenerator {
         lhs.emitDefaultInit(mv);
       }
     }
-  }
-
-  private ParamGenerator findParamGenerator(GimpleParameter gimpleParameter, int index) {
-    if(gimpleParameter.getType() instanceof GimplePrimitiveType) {
-      return new PrimitiveParamGenerator(gimpleParameter, index);
-      
-    } else if(gimpleParameter.getType() instanceof GimpleIndirectType) {
-      // pointer to a pointer?
-      GimpleIndirectType pointerType = (GimpleIndirectType) gimpleParameter.getType();
-      if(pointerType.getBaseType() instanceof GimpleIndirectType) {
-        return new WrappedPtrPtrParamGenerator(gimpleParameter, index);
-      } else {
-        return new WrappedPtrParamGenerator(gimpleParameter, index);
-      }
-    }
-    
-    throw new UnsupportedOperationException("Parameter: " + gimpleParameter);
   }
 
   /**
@@ -140,38 +128,27 @@ public class FunctionGenerator {
 
       } else {
         int index = localVarAllocator.reserve(primitiveType.localVariableSlots());
-        return new ValueVarGenerator(index, varDecl.getName(), primitiveType);
+        return new ValueVarGenerator(primitiveType, index);
       }
     } else if(varDecl.getType() instanceof GimpleIndirectType) {
       GimpleIndirectType pointerType = (GimplePointerType) varDecl.getType();
-      if(varDecl.isAddressable()) {
-        return new AddressablePtrVarGenerator(pointerType, localVarAllocator);
-      } else {
-        return new PtrVarGenerator(pointerType, localVarAllocator);
+      if(pointerType.getBaseType() instanceof GimplePrimitiveType) {
+        if (varDecl.isAddressable()) {
+          return new AddressablePtrVarGenerator(pointerType, localVarAllocator);
+        } else {
+          return new PtrVarGenerator(pointerType, localVarAllocator);
+        }
+      } else if(pointerType.getBaseType() instanceof GimpleFunctionType) {
+        return new FunPtrVarGenerator((GimpleFunctionType) pointerType.getBaseType(), localVarAllocator.reserve(1));
       }
+      
 
     } else if(varDecl.getType() instanceof GimpleArrayType) {
       GimpleArrayType arrayType = (GimpleArrayType) varDecl.getType();
       return new ArrayVarGenerator(arrayType, localVarAllocator);
 
-    } else {
-      throw new UnsupportedOperationException("var type: " + varDecl.getType());
-    }
-  }
-  
-  private ReturnGenerator findReturnGenerator(GimpleType returnType) {
-    if(returnType instanceof GimpleVoidType) {
-      return new VoidReturnGenerator();
-      
-    } else if(returnType instanceof GimplePrimitiveType) {
-      return new PrimitiveReturnGenerator(returnType);
-    
-    } else if(returnType instanceof GimpleIndirectType) {
-      return new PtrReturnGenerator(returnType);
-    
-    } else {
-      throw new UnsupportedOperationException("Return type: " + returnType);
-    }
+    } 
+    throw new UnsupportedOperationException("var type: " + varDecl.getType());
   }
 
   private void emitBasicBlock(GimpleBasicBlock basicBlock) {
@@ -390,7 +367,10 @@ public class FunctionGenerator {
     } else if(expr instanceof GimpleAddressOf) {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
       if(addressOf.getValue() instanceof GimpleStringConstant) {
-        return new StringLiteralGenerator(addressOf.getValue());        
+        return new StringLiteralGenerator(addressOf.getValue());
+      } else if(addressOf.getValue() instanceof GimpleFunctionRef) {
+        GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
+        return new FunctionRefGenerator(functionTable.findHandle(functionRef));
       } else {
         ExprGenerator value = findGenerator(addressOf.getValue());
         return value.addressOf();
@@ -408,7 +388,7 @@ public class FunctionGenerator {
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
       return findGenerator(constant);
-      
+
     } else {
       throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
     }
@@ -417,14 +397,19 @@ public class FunctionGenerator {
   private CallGenerator findCallGenerator(GimpleExpr functionExpr) {
     if(functionExpr instanceof GimpleAddressOf) {
       GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
-      if(addressOf.getValue() instanceof GimpleFunctionRef) {
+      if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
         return functionTable.find(ref);
       }
+      GimpleAddressOf address = (GimpleAddressOf) functionExpr;
+      throw new UnsupportedOperationException("function ref: " + address.getValue() +
+          " [" + address.getValue().getClass().getSimpleName() + "]");
+      
+    } else if(functionExpr instanceof SymbolRef) {
+      ExprGenerator exprGenerator = findGenerator(functionExpr);
+      return new FunPtrCallGenerator(generatorFactory, exprGenerator);
     }
-    GimpleAddressOf address = (GimpleAddressOf) functionExpr;
-    throw new UnsupportedOperationException("function: " + address.getValue() +
-        " [" + address.getValue().getClass().getSimpleName() + "]");
+    throw new UnsupportedOperationException("function: " + functionExpr);
   }
   
   
@@ -434,8 +419,9 @@ public class FunctionGenerator {
 
   public Type[] parameterTypes() {
     List<Type> parameterTypes = new ArrayList<Type>();
-    for (ParamGenerator param : params) {
-      parameterTypes.addAll(param.getParameterTypes());
+    for (GimpleParameter parameter : function.getParameters()) {
+      ParamGenerator generator = params.get(parameter);
+      parameterTypes.addAll(generator.getParameterTypes());
     }
     return parameterTypes.toArray(new Type[parameterTypes.size()]);
   }

@@ -16,13 +16,11 @@ import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.ISTORE;
 
 public class ValueVarGenerator extends AbstractExprGenerator implements LValueGenerator, ValueGenerator, VarGenerator {
-  private int index;
-  private String name;
   private GimpleType type;
+  private int localVarIndex;
 
-  public ValueVarGenerator(int index, String name, GimpleType type) {
-    this.index = index;
-    this.name = name;
+  public ValueVarGenerator(GimpleType type, int localVarIndex) {
+    this.localVarIndex = localVarIndex;
     this.type = type;
   }
 
@@ -45,10 +43,9 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
           this,
           getValueType());
 
-
     }
 
-    mv.visitVarInsn(getValueType().getOpcode(ISTORE), index);
+    mv.visitVarInsn(getValueType().getOpcode(ISTORE), localVarIndex);
 
   }
 
@@ -76,12 +73,7 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
 
   @Override
   public void emitPushValue(MethodVisitor mv) {
-    mv.visitVarInsn(getValueType().getOpcode(ILOAD), index);
-  }
-
-  @Override
-  public String toString() {
-    return name;
+    mv.visitVarInsn(getValueType().getOpcode(ILOAD), localVarIndex);
   }
 
   @Override

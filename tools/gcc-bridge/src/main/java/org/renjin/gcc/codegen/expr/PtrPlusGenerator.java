@@ -21,8 +21,8 @@ public class PtrPlusGenerator extends AbstractExprGenerator implements PtrGenera
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
-    ptr.emitPushArrayAndOffset(mv);
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    ptr.emitPushPtrArrayAndOffset(mv);
 
     // Now add the delta to the offset on the stack and add
     // it to the current offset

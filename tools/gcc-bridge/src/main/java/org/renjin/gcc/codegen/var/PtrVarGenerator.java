@@ -55,7 +55,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     emitPushArray(mv);
     mv.visitVarInsn(ILOAD, offsetVariableIndex);
   }
@@ -66,7 +66,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator ptrGenerator) {
-    ptrGenerator.emitPushArrayAndOffset(mv);
+    ptrGenerator.emitPushPtrArrayAndOffset(mv);
 
     mv.visitVarInsn(Opcodes.ISTORE, offsetVariableIndex);
     mv.visitVarInsn(Opcodes.ASTORE, arrayVariableIndex);
@@ -179,7 +179,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
     }
 
     @Override
-    public void emitPushArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       emitPushArray(mv);
       element.pushComputeIndex(mv);
     }

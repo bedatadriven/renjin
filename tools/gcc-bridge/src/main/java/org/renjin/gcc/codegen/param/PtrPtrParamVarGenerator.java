@@ -12,7 +12,6 @@ import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates code for a pointer to a pointer passed as a parameter.
- *
  */
 public class PtrPtrParamVarGenerator extends AbstractExprGenerator implements VarGenerator, PtrGenerator {
   
@@ -53,7 +52,7 @@ public class PtrPtrParamVarGenerator extends AbstractExprGenerator implements Va
   }
 
   @Override
-  public void emitPushArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, index);
     pointerType.emitUnpackArrayAndOffset(mv);
   }
@@ -71,7 +70,7 @@ public class PtrPtrParamVarGenerator extends AbstractExprGenerator implements Va
       // DoublePtr x;
       // x.update(address, offset)
       mv.visitVarInsn(Opcodes.ALOAD, index);
-      valueGenerator.emitPushArrayAndOffset(mv);
+      valueGenerator.emitPushPtrArrayAndOffset(mv);
       pointerType.emitInvokeUpdate(mv);
     }
   }

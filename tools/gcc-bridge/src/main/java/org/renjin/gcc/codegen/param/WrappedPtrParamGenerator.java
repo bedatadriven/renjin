@@ -4,10 +4,12 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.PtrVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
 
 import java.util.Collections;
@@ -22,8 +24,6 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class WrappedPtrParamGenerator extends ParamGenerator {
 
-  private GimpleParameter parameter;
-  private int localVariableIndex;
   private final GimpleIndirectType type;
 
   /**
@@ -32,16 +32,9 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
   private final WrapperType pointerType;
   
 
-  public WrappedPtrParamGenerator(GimpleParameter parameter, int localVariableIndex) {
-    this.parameter = parameter;
-    this.localVariableIndex = localVariableIndex;
-    this.type = (GimpleIndirectType) parameter.getType();
-    this.pointerType = WrapperType.forPointerType(type);
-  }
-
-  @Override
-  public int getGimpleId() {
-    return parameter.getId();
+  public WrappedPtrParamGenerator(GimpleType type) {
+    this.type = (GimpleIndirectType) type;
+    this.pointerType = WrapperType.forPointerType(this.type);
   }
 
   @Override
@@ -55,7 +48,8 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public VarGenerator emitInitialization(MethodVisitor mv, LocalVarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodVisitor mv, int localVariableIndex, LocalVarAllocator localVars) {
+    
     // Unpack the wrapper into seperate array and offset fields
     int arrayVariable = localVars.reserve(1);
     int offsetVariable = localVars.reserve(1);
@@ -78,6 +72,11 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
     // Store the array reference in the local variable
     mv.visitVarInsn(ISTORE, offsetVariable);
     
-    return new PtrVarGenerator(parameter.getType(), arrayVariable, offsetVariable);
+    return new PtrVarGenerator(type, arrayVariable, offsetVariable);
+  }
+
+  @Override
+  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+    parameterValueGenerator.emitPushPointerWrapper(mv);
   }
 }

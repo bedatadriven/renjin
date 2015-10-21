@@ -29,9 +29,6 @@ static void adjust(int *nvar, double *x, double *y, double *z,
 		   int *config, double *d);
 static int *lvector(int n);
 
-/* Table of constant values */
-
-static int c__1 = 1;
 
 void loglin(int *nvar, int *dim, int *ncon, int *config, int *ntab,
 	    double *table, double *fit, int *locmar, int *nmar, double *marg,
@@ -39,7 +36,11 @@ void loglin(int *nvar, int *dim, int *ncon, int *config, int *ntab,
 	    double *dev, int *nlast, int *ifault)
 {
     int i, j, k, n, point, size, *icon, *check;
+    int c__1;
     double x, y, xmax;
+
+    // moved into function to workaround compiler shortcoming.
+    c__1 = 1;
 
     check = lvector(*nvar);
     icon = lvector(*nvar);

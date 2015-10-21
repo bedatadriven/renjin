@@ -103,7 +103,6 @@ public abstract class AbstractGccTest {
   protected Class<?> compileGimple(String className, List<GimpleCompilationUnit> units) throws Exception {
 
     GimpleCompiler compiler = new GimpleCompiler();
-    compiler.setJimpleOutputDirectory(new File("target/test-jimple"));
     compiler.setOutputDirectory(new File("target/test-classes"));          
     compiler.setPackageName("org.renjin.gcc");
     compiler.setClassName(className);

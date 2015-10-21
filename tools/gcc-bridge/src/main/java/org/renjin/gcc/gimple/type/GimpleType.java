@@ -3,7 +3,6 @@ package org.renjin.gcc.gimple.type;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.renjin.gcc.translate.type.ImType;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ 
@@ -28,12 +27,6 @@ public interface GimpleType {
    */
   <X extends GimpleType> X getBaseType();
 
-
-  ImType getResolvedType();
-
-  boolean isTypeResolved();
-
-  void setResolvedType(ImType resolvedType);
 
   /**
    * 

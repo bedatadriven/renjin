@@ -1,7 +1,6 @@
 package org.renjin.gcc;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.renjin.gcc.analysis.AddressableFinder;
 import org.renjin.gcc.analysis.FunctionBodyTransformer;
@@ -10,11 +9,9 @@ import org.renjin.gcc.codegen.ClassGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.translate.MethodTable;
-import org.renjin.gcc.translate.type.struct.ImRecordType;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -22,8 +19,6 @@ import java.util.logging.Logger;
  * 
  */
 public class GimpleCompiler  {
-
-  private File jimpleOutputDirectory;
 
   private File outputDirectory;
   
@@ -38,8 +33,6 @@ public class GimpleCompiler  {
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
 
   private MethodTable methodTable = new MethodTable();
-
-  private Map<String, ImRecordType> providedTypes = Maps.newHashMap();
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
   
@@ -100,10 +93,6 @@ public class GimpleCompiler  {
     this.classPaths.addAll(classPaths);
   }
 
-  public void provideType(String typeName, ImRecordType type) {
-    providedTypes.put(typeName, type);
-  }
-
   private void transform(List<GimpleCompilationUnit> units) {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
@@ -128,7 +117,4 @@ public class GimpleCompiler  {
     return new File(outputDirectory, packageName.replace('.', File.separatorChar));
   }
 
-  public void setJimpleOutputDirectory(File tempDir) {
-    // NOOP
-  }
 }

@@ -85,14 +85,12 @@ public class FunctionGenerator {
     mv.visitEnd();
   }
 
-
   private void emitParamInitialization() {
     for (ParamGenerator param : params) {
       VarGenerator variable = param.emitInitialization(mv, localVarAllocator);
       localVariables.add(param.getGimpleId(), variable);
     }
   }
-
 
   private void emitLocalVarInitialization() {
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {

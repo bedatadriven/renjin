@@ -1,10 +1,7 @@
 package org.renjin.gcc.gimple.type;
 
-import org.renjin.gcc.translate.type.ImType;
-
 public abstract class AbstractGimpleType implements GimpleType {
   private int size;
-  private ImType resolvedType;
 
   public int getSize() {
     return size;
@@ -24,21 +21,4 @@ public abstract class AbstractGimpleType implements GimpleType {
     throw new UnsupportedOperationException("this is not pointer type (" + getClass().getSimpleName() + ")");
   }
 
-  @Override
-  public ImType getResolvedType() {
-    if(resolvedType == null) {
-      throw new IllegalStateException("the gimple type " + this + " has not been resolved");
-    }
-    return resolvedType;
-  }
-  
-  @Override
-  public boolean isTypeResolved() {
-    return resolvedType != null;
-  }
-
-  @Override
-  public void setResolvedType(ImType resolvedType) {
-    this.resolvedType = resolvedType;
-  }
 }

@@ -1,7 +1,5 @@
 package org.renjin.gcc.gimple.type;
 
-import org.renjin.gcc.translate.type.ImPrimitiveType;
-
 public class GimpleField {
   private String name;
   private GimpleType type;

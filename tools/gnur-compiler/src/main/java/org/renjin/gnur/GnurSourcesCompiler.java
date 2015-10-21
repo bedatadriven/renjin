@@ -9,9 +9,6 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.jimple.RealJimpleType;
-import org.renjin.gcc.translate.type.struct.SimpleRecordType;
-import org.renjin.gnur.sexp.GnuSEXP;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -118,7 +115,6 @@ public class GnurSourcesCompiler {
       jimpleOutput.mkdirs();
 
       GimpleCompiler compiler = new GimpleCompiler();
-      compiler.setJimpleOutputDirectory(jimpleDirectory);
       compiler.setOutputDirectory(outputDirectory);
     
       compiler.setPackageName(packageName);
@@ -128,19 +124,15 @@ public class GnurSourcesCompiler {
 
       compiler.getMethodTable().addMathLibrary();
 
-      compiler.getMethodTable().addCallTranslator(new RallocTranslator());
-
       compiler.getMethodTable().addReferenceClass(Class.forName("org.renjin.appl.Appl"));
 
       Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
       compiler.getMethodTable().addReferenceClass(distributionsClass);
       compiler.getMethodTable().addMethod("Rf_dbeta",distributionsClass,"dbeta");
-      compiler.getMethodTable().addMethod("Rf_pbeta",distributionsClass,"pbeta");
+      compiler.getMethodTable().addMethod("Rf_pbeta", distributionsClass, "pbeta");
 
       compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
       compiler.getMethodTable().addReferenceClass(Sort.class);
-
-      compiler.provideType("SEXP_T", new SimpleRecordType(new RealJimpleType(GnuSEXP.class)));
 
       compiler.compile(units);
     }

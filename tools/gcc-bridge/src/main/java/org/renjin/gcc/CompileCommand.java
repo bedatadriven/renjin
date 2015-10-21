@@ -4,12 +4,10 @@ package org.renjin.gcc;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import io.airlift.command.Arguments;
 import io.airlift.command.Command;
 import io.airlift.command.Option;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,11 +61,6 @@ public class CompileCommand implements Runnable {
     }
     
     GimpleCompiler compiler = new GimpleCompiler();
-    if(jimpleOutputDirectory != null) {
-      compiler.setJimpleOutputDirectory(jimpleOutputDirectory);
-    } else {
-      compiler.setJimpleOutputDirectory(Files.createTempDir());
-    }
     compiler.setOutputDirectory(outputDirectory);
     compiler.setVerbose(verbose);
     compiler.setPackageName(packageName);

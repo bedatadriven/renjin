@@ -16,9 +16,9 @@ int R_distance(int *method, int x, int y)
     int dist = 0;
 
     switch(*method) {
-    case EUCLIDEAN:
-	dist = abs(x - y);
-	break;
+    //case EUCLIDEAN:
+	//dist = abs(x - y);
+	//break;
     case MAXIMUM:
 	dist = x - y;
 	break;

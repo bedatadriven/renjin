@@ -1,8 +1,6 @@
 package org.renjin.gcc.codegen;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionTable;
 import org.renjin.gcc.codegen.call.MallocGenerator;
@@ -190,10 +188,33 @@ public class FunctionGenerator {
         emitConditional((GimpleConditional) ins);
       } else if(ins instanceof GimpleCall) {
         emitCall((GimpleCall)ins);
+      } else if(ins instanceof GimpleSwitch){
+        emitSwitch((GimpleSwitch)ins);
       } else {
         throw new UnsupportedOperationException("ins: " + ins);
       }
     }
+  }
+
+  private void emitSwitch(GimpleSwitch ins) {
+    ExprGenerator valueGenerator = findGenerator(ins.getValue());
+    valueGenerator.emitPushValue(mv);
+    Label defaultLabel = labels.of(ins.getDefaultCase().getBasicBlockIndex());
+
+    int numCases = ins.getCases().size();
+    Label[] caseLabels = new Label[numCases];
+    int[] caseValues = new int[numCases];
+
+    for(int i=0;i < numCases; i++){
+      GimpleSwitch.Case aCase = ins.getCases().get(i);
+      caseLabels[i] = labels.of(aCase.getBasicBlockIndex());
+      caseValues[i] = aCase.getLow();
+      if(aCase.getLow() != aCase.getHigh()){
+        throw new UnsupportedOperationException("Tablelookup not yet supported.\n");
+      }
+    }
+    mv.visitLookupSwitchInsn(defaultLabel, caseValues, caseLabels);
+    
   }
 
   private void emitAssignment(GimpleAssign ins) {

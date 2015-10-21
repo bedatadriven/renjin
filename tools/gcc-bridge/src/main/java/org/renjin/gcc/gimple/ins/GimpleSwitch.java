@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple.ins;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleLabel;
 import org.renjin.gcc.gimple.GimpleVisitor;
@@ -42,6 +43,10 @@ public class GimpleSwitch extends GimpleIns {
     public void setBasicBlockIndex(int basicBlockIndex) {
       this.basicBlockIndex = basicBlockIndex;
     }
+
+    public String toString(){
+      return String.format("[ %d, %d]: %d",this.low,this.high,this.basicBlockIndex);
+    }
   }
 
   private GimpleExpr value;
@@ -70,5 +75,17 @@ public class GimpleSwitch extends GimpleIns {
   @Override
   public void visit(GimpleVisitor visitor) {
     visitor.visitSwitch(this);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("gimple_switch<").append(value).append("\n");
+
+    Joiner.on("\n").appendTo(sb, cases);
+    if(defaultCase!=null) {
+      sb.append(String.format("\nDefault: goto %d",defaultCase.basicBlockIndex));
+    }
+    return sb.toString();
   }
 }

@@ -107,7 +107,8 @@ public abstract class AbstractGccTest {
     compiler.setPackageName("org.renjin.gcc");
     compiler.setClassName(className);
     compiler.setVerbose(true);
-    compiler.getMethodTable().addReferenceClass(RStubs.class);
+    compiler.addReferenceClass(RStubs.class);
+    compiler.addMathLibrary();
     compiler.compile(units);
 
     return Class.forName("org.renjin.gcc." + className);

@@ -7,6 +7,7 @@ import org.renjin.gcc.analysis.FunctionBodyTransformer;
 import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
 import org.renjin.gcc.codegen.MainClassGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.call.FunctionTable;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -34,7 +35,7 @@ public class GimpleCompiler  {
 
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
 
-  private MethodTable methodTable = new MethodTable();
+  private FunctionTable functionTable;
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
   
@@ -42,6 +43,8 @@ public class GimpleCompiler  {
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
+    functionTable = new FunctionTable();
+    functionTable.addDefaults();
   }
 
   public void setPackageName(String name) {
@@ -56,8 +59,18 @@ public class GimpleCompiler  {
     this.className = className;
   }
 
+
+  public void addReferenceClass(Class<?> clazz) {
+    functionTable.addMethods(clazz);
+  }
+
+  public void addMathLibrary() {
+    functionTable.addMethod("log", Math.class);
+    functionTable.addMethod("exp", Math.class);
+  }
+  
   public MethodTable getMethodTable() {
-    return methodTable;
+    throw new UnsupportedOperationException();
   }
 
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
@@ -80,7 +93,7 @@ public class GimpleCompiler  {
     File packageFolder = getPackageFolder();
     packageFolder.mkdirs();
 
-    MainClassGenerator generator = new MainClassGenerator(getInternalClassName());
+    MainClassGenerator generator = new MainClassGenerator(functionTable, getInternalClassName());
     generator.emit(units);
 
 

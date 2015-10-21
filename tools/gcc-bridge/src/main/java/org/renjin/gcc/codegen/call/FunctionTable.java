@@ -53,11 +53,11 @@ public class FunctionTable {
     //addReferenceClass(Builtins.class);
   }
 
-  private void addMethod(String functionName, Class<Math> declaringClass) {
+  public void addMethod(String functionName, Class<Math> declaringClass) {
     add(functionName, findMethod(declaringClass, functionName));
   }
   
-  private void addMethod(String functionName, Class<Math> declaringClass, String methodName) {
+  public void addMethod(String functionName, Class<Math> declaringClass, String methodName) {
     add(functionName, findMethod(declaringClass, methodName));
   }
 
@@ -83,6 +83,7 @@ public class FunctionTable {
   }
 
 
+
   private Method findMethod(Class<Math> declaringClass, String methodName) {
     for (Method method : declaringClass.getMethods()) {
       if(method.getName().equals(methodName)) {
@@ -92,4 +93,11 @@ public class FunctionTable {
     throw new IllegalArgumentException(format("No method named '%s' in %s", methodName, declaringClass.getName()));
   }
 
+  public void addMethods(Class<?> clazz) {
+    for (Method method : clazz.getMethods()) {
+      if(Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
+        add(method.getName(), method);
+      }
+    }
+  }
 }

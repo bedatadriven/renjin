@@ -64,11 +64,11 @@ public class RStubs {
     }
   }
 
-  public static void asserttrue_(boolean x) {
+  public static void asserttrue(boolean x) {
     Assert.assertTrue(x);
   }
 
-  public static void assertfalse_(boolean x) {
+  public static void assertfalse(boolean x) {
     Assert.assertFalse(x);
   }
 

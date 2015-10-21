@@ -34,11 +34,9 @@ public class MainClassGenerator {
   private VariableTable globalVariables = new VariableTable();
   private FunctionTable functionTable;
   
-  public MainClassGenerator(String className) {
+  public MainClassGenerator(FunctionTable functionTable, String className) {
+    this.functionTable = functionTable;
     this.className = className;
-    
-    functionTable = new FunctionTable();
-    functionTable.addDefaults();
   }
   
   public void emit(List<GimpleCompilationUnit> units) {

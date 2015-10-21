@@ -5,9 +5,11 @@ import com.google.common.io.Files;
 import org.renjin.gcc.analysis.AddressableFinder;
 import org.renjin.gcc.analysis.FunctionBodyTransformer;
 import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
-import org.renjin.gcc.codegen.ClassGenerator;
+import org.renjin.gcc.codegen.MainClassGenerator;
+import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.translate.MethodTable;
 
 import java.io.File;
@@ -62,18 +64,31 @@ public class GimpleCompiler  {
 
     // First apply any transformations needed by the code generation process
     transform(units);
-    
+    int recordTypeIndex = 1;
+    for(int i=0;i<units.size();i++){
+      for (GimpleRecordTypeDef recordTypeDef : units.get(i).getRecordTypes()) {
+        System.out.println(recordTypeDef);
+        RecordClassGenerator recordType = new RecordClassGenerator(String.format("%s$record%d",className,recordTypeIndex++));
+        recordType.emit(recordTypeDef);
+        recordType.toByteArray();
+      }
+    }
+
+
+
     // Now emit byte code
     File packageFolder = getPackageFolder();
     packageFolder.mkdirs();
 
-    ClassGenerator generator = new ClassGenerator(getInternalClassName());
+    MainClassGenerator generator = new MainClassGenerator(getInternalClassName());
     generator.emit(units);
 
 
     byte[] classFile = generator.toByteArray();
 
     Files.write(classFile, new File(packageFolder, className + ".class"));
+
+
   }
 
   private String getInternalClassName() {

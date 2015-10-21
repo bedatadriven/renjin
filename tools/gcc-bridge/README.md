@@ -165,7 +165,7 @@ void init(int *x) {
 ```
 
 ```
-public static class Main {
+public class Main {
 
   public static int[] global_var;
   public static int global_var$offset;
@@ -230,4 +230,59 @@ public static void init_vector(DoublePtr ptr) {
   ptr.array = y;
   ptr.offset = y$offset;
 } 
+```
+
+### Structs:
+
+C:
+```
+typedef struct {
+   int years_open;
+   int plan_type;
+} account;
+
+double account_value(account * pa) {
+  if(pa->plan_type == 2) {
+    return pa->years_open * 2500;
+  } else {
+    return pa->years_open * 1500;
+  }
+}
+
+double test_account_value() {
+  account ac;
+  ac.years_open = 2;
+  ac.plan_type = 2;
+
+  return account_value(&ac);
+}
+```
+
+Java:
+```
+
+public class Main{
+
+  public static class account{
+    public int years_open;
+    public int plan_type;
+  }
+
+  public static int account_value(account pa){
+    if(pa.plan_type == 2){
+      return pa.years_open * 2500;
+    } else {
+      return pa.years_open * 1500;
+    }
+  }
+
+  public static int test_account_value(){
+    account ac = new account();
+    ac.years_open = 2;
+    ac.plan_type = 2;
+    return account_value(ac);
+  }
+
+}
+
 ```

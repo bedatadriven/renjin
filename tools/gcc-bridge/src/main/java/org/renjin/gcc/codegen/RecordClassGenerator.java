@@ -14,6 +14,7 @@ import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -23,7 +24,7 @@ import java.util.List;
 import static org.objectweb.asm.Opcodes.*;
 
 
-public class ClassGenerator {
+public class RecordClassGenerator {
 
   private ClassWriter cw;
   private ClassVisitor cv;
@@ -33,24 +34,22 @@ public class ClassGenerator {
 
   private VariableTable globalVariables = new VariableTable();
   private FunctionTable functionTable;
-  
-  public ClassGenerator(String className) {
+
+  public RecordClassGenerator(String className) {
     this.className = className;
-    
+
     functionTable = new FunctionTable();
     functionTable.addDefaults();
   }
   
-  public void emit(List<GimpleCompilationUnit> units) {
+  public void emit(GimpleRecordTypeDef record) {
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
-    
-    emitDefaultConstructor();
-    emitGlobalVariables(units);
-    emitFunctions(units);
+    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java / lang / Object", new String[0]);
+
+     emitDefaultConstructor();
   }
 
 

@@ -143,7 +143,7 @@ public class BasicTest extends AbstractGccTest {
 
     Method distance = clazz.getMethod("R_distance", IntPtr.class, int.class, int.class);
 
-   // assertThat((Integer)distance.invoke(null, new IntPtr(1), 13, 14), equalTo(1));
+    assertThat((Integer)distance.invoke(null, new IntPtr(1), 13, 14), equalTo(1));
     assertThat((Integer)distance.invoke(null, new IntPtr(2), 3, 4), equalTo(-1));
 
   }

@@ -364,6 +364,11 @@ public class FunctionGenerator {
         return new MaxGenerator(
             findGenerator(operands.get(0)), 
             findGenerator(operands.get(1)));
+
+      case ABS_EXPR:
+        return new AbsGenerator(
+                findGenerator(operands.get(0))
+        );
       
       default:
         throw new UnsupportedOperationException("op: " + op);

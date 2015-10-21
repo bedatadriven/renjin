@@ -12,7 +12,8 @@ useDynLib(stats, .registration = TRUE, .fixes="C_",
     massdist,
     pkolmogorov2x,
     psmirnov2x,
-    pkstwo
+    pkstwo,
+    loglin
     )
 
 # exportPattern("^[^\\.]")

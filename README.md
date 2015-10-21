@@ -46,7 +46,7 @@ at http://nexus.bedatadriven.com/content/groups/public/org/renjin/.
 Compiling from Source
 =====================
 
-At this time, building Renjin completely is only supported on a Linux system
+At this time, building Renjin completely is only supported on Linux and OS X systems
 with gcc-4.6 installed. The resulting Java builds are fully platform-independent.
 
 See [BUILDING](BUILDING.md) for more information.

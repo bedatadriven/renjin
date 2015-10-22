@@ -1,7 +1,10 @@
 package org.renjin.gcc.gimple;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.ins.GimpleIns;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -47,6 +50,35 @@ public class GimpleFunction {
 
   public List<GimpleVarDecl> getVariableDeclarations() {
     return variableDeclarations;
+  }
+  
+  public GimpleVarDecl addVarDecl(GimpleType type) {
+    // find unused id
+    int id = 1000;
+    while(isIdInUse(id)) {
+      id++;
+    }
+    
+    GimpleVarDecl decl = new GimpleVarDecl();
+    decl.setId(id);
+    decl.setType(type);
+    variableDeclarations.add(decl);
+    
+    return decl;
+  }
+  
+  private boolean isIdInUse(int varDeclId) {
+    for (GimpleVarDecl variableDeclaration : variableDeclarations) {
+      if(variableDeclaration.getId() == varDeclId) {
+        return true;
+      }
+    }
+    for (GimpleParameter gimpleParameter : getParameters()) {
+      if(gimpleParameter.getId() == varDeclId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public List<GimpleParameter> getParameters() {
@@ -99,9 +131,26 @@ public class GimpleFunction {
   public GimpleType getReturnType() {
     return returnType;
   }
+  
   public void setReturnType(GimpleType returnType) {
     this.returnType = returnType;
   }
 
 
+  public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
+    for (GimpleBasicBlock basicBlock : basicBlocks) {
+      for (GimpleIns ins : basicBlock.getInstructions()) {
+        if(ins.lhsMatches(predicate)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    for (GimpleBasicBlock basicBlock : basicBlocks) {
+      basicBlock.replaceAll(predicate, newExpr);
+    }  
+  }
 }

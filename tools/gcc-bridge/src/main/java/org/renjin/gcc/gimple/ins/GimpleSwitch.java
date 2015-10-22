@@ -1,8 +1,8 @@
 package org.renjin.gcc.gimple.ins;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-import org.renjin.gcc.gimple.GimpleLabel;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 
@@ -66,6 +66,17 @@ public class GimpleSwitch extends GimpleIns {
 
   public void setDefaultCase(Case defaultCase) {
     this.defaultCase = defaultCase;
+  }
+
+  public void setValue(GimpleExpr value) {
+    this.value = value;
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    if(predicate.apply(value)) {
+      value = newExpr;
+    }
   }
 
   public GimpleExpr getValue() {

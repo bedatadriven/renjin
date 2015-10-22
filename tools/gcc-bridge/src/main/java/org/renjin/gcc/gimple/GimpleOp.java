@@ -74,5 +74,30 @@ public enum GimpleOp {
 
   CONVERT_EXPR, TRUNC_MOD_EXPR,
 
-  CONSTRUCTOR
+  CONSTRUCTOR,
+
+  /**
+   * Extracts the real part of complex number expression
+   */
+  REALPART_EXPR,
+
+  /**
+   * Extracts the imaginary part of a complex number expression
+   */
+  IMAGPART_EXPR,
+
+
+  /**
+   * Complex number constant
+   */
+  COMPLEX_CST,
+
+  COMPLEX_EXPR,
+
+  /**
+   * Complex conjugate expression
+   */
+  CONJ_EXPR
+  
+  
 }

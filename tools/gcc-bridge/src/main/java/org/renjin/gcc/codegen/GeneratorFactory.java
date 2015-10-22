@@ -1,10 +1,7 @@
 package org.renjin.gcc.codegen;
 
 import org.renjin.gcc.codegen.param.*;
-import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
-import org.renjin.gcc.codegen.ret.PtrReturnGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
-import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
+import org.renjin.gcc.codegen.ret.*;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
 
@@ -33,8 +30,11 @@ public class GeneratorFactory {
       } else if(pointerType.getBaseType() instanceof GimpleIndirectType) {
         return new WrappedPtrPtrParamGenerator(parameterType);
       
-      } else {
+      } else if(pointerType.getBaseType() instanceof GimplePrimitiveType) {
         return new WrappedPtrParamGenerator(parameterType);
+        
+      } else if(pointerType.getBaseType() instanceof GimpleComplexType) {
+        return new ComplexPtrParamGenerator(parameterType);
       }
     }
     
@@ -50,7 +50,10 @@ public class GeneratorFactory {
     
     } else if(returnType instanceof GimpleIndirectType) {
       return new PtrReturnGenerator(returnType);
-    
+
+    } else if(returnType instanceof GimpleComplexType) {
+      return new ComplexReturnGenerator();
+      
     } else {
       throw new UnsupportedOperationException("Return type: " + returnType);
     }

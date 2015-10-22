@@ -483,6 +483,13 @@ static void dump_op(tree op) {
       dump_type(TREE_TYPE(op));
 	    break;
 	    
+    case COMPLEX_CST:
+      json_field("real");
+      dump_op(TREE_REALPART(op));
+      json_field("im");
+      dump_op(TREE_IMAGPART(op));
+      break;
+	    
 	  case STRING_CST:
 	    json_string_field2("value", 
 	      TREE_STRING_POINTER(op),
@@ -502,6 +509,12 @@ static void dump_op(tree op) {
  	    
  	    json_field("index");
  	    dump_op(TREE_OPERAND(op, 1));
+      break;
+      
+    case REALPART_EXPR:
+    case IMAGPART_EXPR:
+      json_field("complexValue");
+      dump_op(TREE_OPERAND(op, 0));
       break;
       
     case ADDR_EXPR:

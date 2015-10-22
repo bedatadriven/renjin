@@ -1,6 +1,7 @@
 package org.renjin.gcc;
 
 import org.junit.Assert;
+import org.renjin.gcc.runtime.BooleanPtr;
 import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
@@ -64,12 +65,12 @@ public class RStubs {
     }
   }
 
-  public static void asserttrue(boolean x) {
-    Assert.assertTrue(x);
+  public static void asserttrue(BooleanPtr x) {
+    Assert.assertTrue(x.unwrap());
   }
 
-  public static void assertfalse(boolean x) {
-    Assert.assertFalse(x);
+  public static void assertfalse(BooleanPtr x) {
+    Assert.assertFalse(x.unwrap());
   }
 
 }

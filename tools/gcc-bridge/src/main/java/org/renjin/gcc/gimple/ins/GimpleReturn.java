@@ -1,8 +1,8 @@
 package org.renjin.gcc.gimple.ins;
 
+import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.ins.GimpleIns;
 
 public class GimpleReturn extends GimpleIns {
   private GimpleExpr value;
@@ -23,5 +23,12 @@ public class GimpleReturn extends GimpleIns {
   @Override
   public void visit(GimpleVisitor visitor) {
     visitor.visitReturn(this);
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    if(predicate.apply(value)) {
+      value = newExpr;
+    }
   }
 }

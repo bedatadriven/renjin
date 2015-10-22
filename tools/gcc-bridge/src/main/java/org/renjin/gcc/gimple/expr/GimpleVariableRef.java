@@ -6,6 +6,13 @@ public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
   private int version;
   private int id;
 
+  public GimpleVariableRef() {
+  }
+
+  public GimpleVariableRef(int id) {
+    this.id = id;
+  }
+
   public int getId() {
     return id;
   }

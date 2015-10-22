@@ -3,7 +3,12 @@ package org.renjin.gcc.gimple.ins;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleVisitor;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleLValue;
+
+import java.util.List;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
@@ -20,5 +25,21 @@ import org.renjin.gcc.gimple.GimpleVisitor;
 public abstract class GimpleIns {
 
   public abstract void visit(GimpleVisitor visitor);
+    
+  public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
+    return false;
+  }
 
+
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    
+  }
+
+  protected final void replaceAll(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> operands, GimpleExpr newExpr) {
+    for (int i = 0; i < operands.size(); i++) {
+      if(predicate.apply(operands.get(i))) {
+        operands.set(i, newExpr);
+      }
+    }
+  }
 }

@@ -1,8 +1,8 @@
 package org.renjin.gcc.gimple.ins;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
@@ -41,6 +41,10 @@ public class GimpleAssign extends GimpleIns {
     return operands;
   }
 
+  public void setLhs(GimpleLValue lhs) {
+    this.lhs = lhs;
+  }
+
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("gimple_assign<").append(operator).append(", ").append(lhs).append(", ");
@@ -52,5 +56,18 @@ public class GimpleAssign extends GimpleIns {
   @Override
   public void visit(GimpleVisitor visitor) {
     visitor.visitAssignment(this);
+  }
+
+  @Override
+  public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
+    return predicate.apply(lhs);
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    if(predicate.apply(lhs)) {
+      lhs = (GimpleLValue) newExpr;
+    }
+    replaceAll(predicate, operands, newExpr);
   }
 }

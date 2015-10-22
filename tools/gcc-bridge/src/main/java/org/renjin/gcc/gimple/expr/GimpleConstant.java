@@ -13,22 +13,8 @@ public abstract class GimpleConstant extends GimpleExpr {
     this.type = type;
   }
 
-  public abstract Object getValue();
-  
   public boolean isNull() {
     return false;
   }
 
-  public Number getNumberValue() {
-    if (getValue() instanceof Number) {
-      return (Number) getValue();
-    } else {
-      throw new UnsupportedOperationException("Can't coerce constant to number: " + getValue());
-    }
-  }
-
-  @Override
-  public String toString() {
-    return getValue().toString();
-  }
 }

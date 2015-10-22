@@ -1,8 +1,10 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.call.MallocGenerator;
 
 public abstract class AbstractExprGenerator implements ExprGenerator {
 
@@ -17,6 +19,17 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
     throw new UnsupportedOperationException(String.format("%s [%s] is not addressable",
         toString(), getClass().getSimpleName()));
   }
+
+  @Override
+  public ExprGenerator realPart() {
+    throw new UnsupportedOperationException(String.format("%s [%s] is not a complex number value",
+        toString(), getClass().getSimpleName()));
+  }
+
+  @Override
+  public ExprGenerator imaginaryPart() {
+    throw new UnsupportedOperationException(String.format("%s [%s] is not a complex number value",
+        toString(), getClass().getSimpleName()));  }
 
   @Override
   public ExprGenerator elementAt(ExprGenerator indexGenerator) {
@@ -52,6 +65,20 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   @Override
   public void emitPushPointerWrapper(MethodVisitor mv) {
     getPointerType().emitPushNewWrapper(mv, this);
+  }
+
+  @Override
+  public void emitPushComplexAsDoubleArray(MethodVisitor mv) {
+    mv.visitInsn(Opcodes.ICONST_2);
+    MallocGenerator.emitNewArray(mv, Type.DOUBLE_TYPE);
+    mv.visitInsn(Opcodes.DUP);
+    mv.visitInsn(Opcodes.ICONST_0);
+    realPart().emitPushValue(mv);
+    mv.visitInsn(Opcodes.DASTORE);
+    mv.visitInsn(Opcodes.DUP);
+    mv.visitInsn(Opcodes.ICONST_1);
+    imaginaryPart().emitPushValue(mv);
+    mv.visitInsn(Opcodes.DASTORE);
   }
 
   @Override

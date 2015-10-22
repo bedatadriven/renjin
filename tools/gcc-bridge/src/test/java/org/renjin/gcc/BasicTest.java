@@ -2,14 +2,12 @@ package org.renjin.gcc;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
 
 import static java.lang.Double.NaN;
 import static org.hamcrest.Matchers.closeTo;
@@ -146,7 +144,7 @@ public class BasicTest extends AbstractGccTest {
     Method distance = clazz.getMethod("R_distance", IntPtr.class, int.class, int.class);
 
     assertThat((Integer)distance.invoke(null, new IntPtr(1), 13, 14), equalTo(1));
-    assertThat((Integer)distance.invoke(null, new IntPtr(2), 3, 4), equalTo(-1));
+    assertThat((Integer) distance.invoke(null, new IntPtr(2), 3, 4), equalTo(-1));
 
   }
 
@@ -263,7 +261,7 @@ public class BasicTest extends AbstractGccTest {
     Method method = clazz.getMethod("test", int.class);
 
     assertThat((Integer)method.invoke(null, 3), equalTo(1));
-    assertThat((Integer)method.invoke(null, -1), equalTo(0));
+    assertThat((Integer) method.invoke(null, -1), equalTo(0));
 
 
   }
@@ -375,6 +373,18 @@ public class BasicTest extends AbstractGccTest {
   
   @Test
   public void voidInference() throws Exception {
-    compile("lamix.f", "Lamix");
+      compile("lamix.f", "Lamix");
+  }
+  
+  @Test
+  public void complexNumbers() throws Exception {
+    Class clazz = compile("dcabs1.f", "Dcabs");
+
+    Method dcabs = clazz.getMethod("dcabs1_", double[].class, int.class);
+
+
+    assertThat((Double) dcabs.invoke(null, new double[]{-1, 1}, 0), equalTo(2.0));
+    assertThat((Double) dcabs.invoke(null, new double[]{1, 0}, 0), equalTo(1.0));
+    assertThat((Double) dcabs.invoke(null, new double[]{0, 3}, 0), equalTo(3.0));
   }
 }

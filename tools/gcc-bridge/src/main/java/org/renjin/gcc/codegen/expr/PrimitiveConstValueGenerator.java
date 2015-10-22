@@ -4,25 +4,25 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
-import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class ConstValueGenerator extends AbstractExprGenerator implements ValueGenerator {
+public class PrimitiveConstValueGenerator extends AbstractExprGenerator implements ValueGenerator {
 
   private Type type;
   private GimplePrimitiveType gimpleType;
   private Number value;
 
-  public ConstValueGenerator(GimpleConstant constant) {
-    value = constant.getNumberValue();
+  public PrimitiveConstValueGenerator(GimplePrimitiveConstant constant) {
+    value = constant.getValue();
     gimpleType = (GimplePrimitiveType) constant.getType();
   }
 
-  public ConstValueGenerator(GimplePrimitiveType gimpleType, Number value) {
+  public PrimitiveConstValueGenerator(GimplePrimitiveType gimpleType, Number value) {
     this.gimpleType = gimpleType;
     this.value = value;
   }
@@ -96,9 +96,9 @@ public class ConstValueGenerator extends AbstractExprGenerator implements ValueG
     }
   }
   
-  public ConstValueGenerator divideBy(int divisor) {
+  public PrimitiveConstValueGenerator divideBy(int divisor) {
     if (gimpleType.jvmType().equals(Type.INT_TYPE)) {
-      return new ConstValueGenerator(gimpleType, value.intValue() / divisor);
+      return new PrimitiveConstValueGenerator(gimpleType, value.intValue() / divisor);
     } else {
       throw new UnsupportedOperationException();
     }
@@ -138,7 +138,7 @@ public class ConstValueGenerator extends AbstractExprGenerator implements ValueG
       // IASTORE: (array, index, value) 
       mv.visitInsn(DUP);
       mv.visitInsn(ICONST_0);
-      ConstValueGenerator.this.emitPushValue(mv);
+      PrimitiveConstValueGenerator.this.emitPushValue(mv);
       mv.visitInsn(type.getOpcode(IASTORE));
       
       // should still have the array on the stack

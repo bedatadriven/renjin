@@ -1,16 +1,20 @@
 package org.renjin.gcc.codegen;
 
 import com.google.common.collect.Maps;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.param.*;
+import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.var.*;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.ins.*;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimpleComplexType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,14 +44,6 @@ public class FunctionGenerator {
     this.params = generatorFactory.forParameters(function.getParameters());
     this.returnGenerator = generatorFactory.findReturnGenerator(function.getReturnType());
     this.localVarAllocator = new LocalVarAllocator();
-  }
-
-  private Map<Integer, ParamGenerator> buildParamMap() {
-    Map<Integer, ParamGenerator> map = Maps.newHashMap();
-    for (GimpleParameter gimpleParameter : function.getParameters()) {
-      map.put(gimpleParameter.getId(), generatorFactory.forParameter(gimpleParameter.getType()));
-    }
-    return map;
   }
 
   public String getMangledName() {
@@ -122,7 +118,7 @@ public class FunctionGenerator {
   private VarGenerator findGeneratorForVariable(GimpleVarDecl varDecl) {
     if(varDecl.getType() instanceof GimplePrimitiveType) {
       GimplePrimitiveType primitiveType = (GimplePrimitiveType) varDecl.getType();
-      if(varDecl.isAddressable()) {
+      if (varDecl.isAddressable()) {
         int index = localVarAllocator.reserve(1);
         return new AddressableVarGenerator(index, varDecl.getName(), primitiveType);
 
@@ -130,6 +126,19 @@ public class FunctionGenerator {
         int index = localVarAllocator.reserve(primitiveType.localVariableSlots());
         return new ValueVarGenerator(primitiveType, index);
       }
+   
+    } else if(varDecl.getType() instanceof GimpleComplexType) {
+      GimpleComplexType complexType = (GimpleComplexType) varDecl.getType();
+      if(varDecl.isAddressable()) {
+        return new AddressableComplexVarGenerator(complexType, 
+            localVarAllocator.reserveArrayRef());
+   
+      } else {
+        return new ComplexVarGenerator(complexType,
+            localVarAllocator.reserve(Type.DOUBLE_TYPE),
+            localVarAllocator.reserve(Type.DOUBLE_TYPE));    
+      }
+      
     } else if(varDecl.getType() instanceof GimpleIndirectType) {
       GimpleIndirectType pointerType = (GimplePointerType) varDecl.getType();
       if(pointerType.getBaseType() instanceof GimplePrimitiveType) {
@@ -311,8 +320,12 @@ public class FunctionGenerator {
       case MEM_REF:
       case INTEGER_CST:
       case REAL_CST:
+      case COMPLEX_CST:
       case ADDR_EXPR:
       case ARRAY_REF:
+      case REALPART_EXPR:
+      case IMAGPART_EXPR:
+      case COMPLEX_EXPR:
         return findGenerator(operands.get(0));
 
       case FIX_TRUNC_EXPR:
@@ -344,8 +357,11 @@ public class FunctionGenerator {
 
       case ABS_EXPR:
         return new AbsGenerator(
-                findGenerator(operands.get(0))
-        );
+            findGenerator(operands.get(0)));
+      
+      case CONJ_EXPR:
+        return new ConjugateGenerator(
+            findGenerator(operands.get(0)));
       
       default:
         throw new UnsupportedOperationException("op: " + op);
@@ -360,8 +376,10 @@ public class FunctionGenerator {
       GimpleConstant constant = (GimpleConstant) expr;
       if (constant.isNull()) {
         return new NullPtrGenerator(constant.getType());
-      } else {
-        return new ConstValueGenerator(constant);
+      } else if(constant instanceof GimplePrimitiveConstant) {
+        return new PrimitiveConstValueGenerator((GimplePrimitiveConstant) constant);
+      } else if(constant instanceof GimpleComplexConstant) {
+        return new ComplexConstGenerator((GimpleComplexConstant) constant);
       }
 
     } else if(expr instanceof GimpleAddressOf) {
@@ -389,9 +407,17 @@ public class FunctionGenerator {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
       return findGenerator(constant);
 
-    } else {
-      throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
-    }
+    } else if(expr instanceof GimpleComplexPartExpr) {
+      GimpleExpr complexExpr = ((GimpleComplexPartExpr) expr).getComplexValue();
+      ExprGenerator complexGenerator = findGenerator(complexExpr);
+      if(expr instanceof GimpleRealPartExpr) {
+        return complexGenerator.realPart();
+      } else {
+        return complexGenerator.imaginaryPart();
+      }
+    } 
+
+    throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
   }
 
   private CallGenerator findCallGenerator(GimpleExpr functionExpr) {

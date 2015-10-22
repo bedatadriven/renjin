@@ -18,11 +18,26 @@ public interface ExprGenerator {
 
   /**
    * 
-   * @return 
+   * @return an ExprGenerator for the value to which this {@code ExpressionGenerator} points
    */
   ExprGenerator valueOf();
-  
+
+  /**
+   * @return an ExprGenerator for this value's address.
+   */
   ExprGenerator addressOf();
+
+  /**
+   * 
+   * @return an ExprGenerator for this complex value's real part
+   */
+  ExprGenerator realPart();
+
+  /**
+   * 
+   * @return an ExprGenerator for this complex value's imaginary part
+   */
+  ExprGenerator imaginaryPart();
 
   /**
    * 
@@ -71,6 +86,11 @@ public interface ExprGenerator {
   void emitPushPointerWrapper(MethodVisitor mv);
 
 
+  /**
+   * Writes the code to push this complex value onto the stack as a {@code double[]} of length 2
+   * @throws UnsupportedOperationException if this is not a complex number expression
+   */
+  void emitPushComplexAsDoubleArray(MethodVisitor mv);
   
   /**
    * 
@@ -79,4 +99,5 @@ public interface ExprGenerator {
    * @param valueGenerator the generator which produces the value to be stored
    */
   void emitStore(MethodVisitor mv, ExprGenerator valueGenerator);
+
 }

@@ -86,7 +86,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
       }
     } else if (type.getBaseType() instanceof GimplePrimitiveType) {
       return new PrimitiveValueType();
-    }
+    } 
 
     throw new UnsupportedOperationException("baseType: " + type.getBaseType());
   }

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.renjin.gcc.analysis.AddressableFinder;
 import org.renjin.gcc.analysis.FunctionBodyTransformer;
+import org.renjin.gcc.analysis.ResultDeclRewriter;
 import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
 import org.renjin.gcc.codegen.MainClassGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
@@ -39,10 +40,10 @@ public class GimpleCompiler  {
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
   
-
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
+    functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
     functionTable = new FunctionTable();
     functionTable.addDefaults();
   }
@@ -100,8 +101,6 @@ public class GimpleCompiler  {
     byte[] classFile = generator.toByteArray();
 
     Files.write(classFile, new File(packageFolder, className + ".class"));
-
-
   }
 
   private String getInternalClassName() {

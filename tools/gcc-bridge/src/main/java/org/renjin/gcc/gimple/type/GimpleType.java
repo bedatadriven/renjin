@@ -15,7 +15,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = GimpleFunctionType.class, name = "function_type"),
     @Type(value = GimpleRecordType.class, name = "record_type"),
     @Type(value = GimpleVoidType.class, name = "void_type"),
-    @Type(value = GimpleEnumeralType.class, name = "enumeral_type")
+    @Type(value = GimpleEnumeralType.class, name = "enumeral_type"),
+    @Type(value = GimpleComplexType.class, name = "complex_type")
   })
 public interface GimpleType {
 

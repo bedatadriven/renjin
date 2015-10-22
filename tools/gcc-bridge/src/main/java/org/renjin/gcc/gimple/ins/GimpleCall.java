@@ -1,8 +1,8 @@
 package org.renjin.gcc.gimple.ins;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
@@ -53,5 +53,22 @@ public class GimpleCall extends GimpleIns {
   @Override
   public void visit(GimpleVisitor visitor) {
     visitor.visitCall(this);
+  }
+
+  @Override
+  public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
+    if(lhs != null) {
+      return predicate.apply(lhs);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    if(predicate.apply(lhs)) {
+      lhs = (GimpleLValue) newExpr;
+    }
+    replaceAll(predicate, arguments, newExpr);
   }
 }

@@ -19,8 +19,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = GimpleFunctionRef.class, name = "function_decl"),
     @Type(value = GimpleConstantRef.class, name = "const_decl"),
     @Type(value = GimpleComponentRef.class, name = "component_ref"),
-    @Type(value = GimpleConstructor.class, name = "constructor")
-
+    @Type(value = GimpleConstructor.class, name = "constructor"),
+    @Type(value = GimpleRealPartExpr.class, name = "realpart_expr"),
+    @Type(value = GimpleImPartExpr.class, name = "imagpart_expr"),
+    @Type(value = GimpleComplexConstant.class, name = "complex_cst"),
+    @Type(value = GimpleResultDecl.class, name = "result_decl")
 })
 public abstract class GimpleExpr {
 

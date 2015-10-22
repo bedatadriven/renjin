@@ -2,7 +2,7 @@ package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 
-public class GimpleIntegerConstant extends GimpleConstant {
+public class GimpleIntegerConstant extends GimplePrimitiveConstant {
   private long value;
 
   public Long getValue() {

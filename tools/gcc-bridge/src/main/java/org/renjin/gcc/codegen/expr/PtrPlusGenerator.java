@@ -33,14 +33,14 @@ public class PtrPlusGenerator extends AbstractExprGenerator implements PtrGenera
   private void pushDelta(MethodVisitor mv) {
     int sizeInBytes = ptr.getGimpleType().getBaseType().sizeOf();
 
-    if(offset instanceof ConstValueGenerator) {
+    if(offset instanceof PrimitiveConstValueGenerator) {
       // If the pointer is incremented by a constant amount, we can calculate the offset now
-      ((ConstValueGenerator) offset).divideBy(sizeInBytes).emitPushValue(mv);
+      ((PrimitiveConstValueGenerator) offset).divideBy(sizeInBytes).emitPushValue(mv);
       
     } else {
       // Otherwise we have to compute the offset at runtime
       offset.emitPushValue(mv);
-      new ConstValueGenerator(new GimpleIntegerType(32), sizeInBytes).emitPushValue(mv);
+      new PrimitiveConstValueGenerator(new GimpleIntegerType(32), sizeInBytes).emitPushValue(mv);
       mv.visitInsn(IDIV);
     }
   }

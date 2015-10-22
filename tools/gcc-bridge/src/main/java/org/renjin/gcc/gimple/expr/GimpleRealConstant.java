@@ -1,6 +1,6 @@
 package org.renjin.gcc.gimple.expr;
 
-public class GimpleRealConstant extends GimpleConstant {
+public class GimpleRealConstant extends GimplePrimitiveConstant {
   private double value;
 
   @Override

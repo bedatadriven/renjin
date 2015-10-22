@@ -1,9 +1,6 @@
 package org.renjin.gcc.codegen;
 
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.param.ParamGenerator;
-
-import java.util.List;
 
 /**
  * Allocates local variable slots
@@ -21,5 +18,9 @@ public class LocalVarAllocator {
     int index = slots;
     slots += numSlots;
     return index;
+  }
+
+  public int reserveArrayRef() {
+    return reserve(1);
   }
 }

@@ -94,4 +94,9 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
     throw new UnsupportedOperationException(String.format("%s [%s] is not a value type",
         toString(), getClass().getSimpleName()));
   }
+
+  @Override
+  public boolean isConstantIntEqualTo(int value) {
+    return false;
+  }
 }

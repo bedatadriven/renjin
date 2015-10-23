@@ -13,7 +13,6 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class PrimitiveConstValueGenerator extends AbstractExprGenerator implements ValueGenerator {
 
-  private Type type;
   private GimplePrimitiveType gimpleType;
   private Number value;
 
@@ -103,7 +102,12 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
       throw new UnsupportedOperationException();
     }
   }
-  
+
+  @Override
+  public boolean isConstantIntEqualTo(int value) {
+    return gimpleType.jvmType().equals(Type.INT_TYPE) && this.value.intValue() == value;
+  }
+
   @Override
   public GimpleType getGimpleType() {
     return gimpleType;

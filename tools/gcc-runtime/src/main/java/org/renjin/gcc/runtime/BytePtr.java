@@ -23,7 +23,7 @@ public class BytePtr implements Ptr {
    * 
    * @return the length of the null-terminated string referenced by this pointer
    */
-  public int stringLength() {
+  public int nullTerminatedStringLength() {
     int i = offset;
     while(i < array.length) {
       if(array[i] == 0) {
@@ -33,8 +33,16 @@ public class BytePtr implements Ptr {
     }
     throw new IllegalStateException("String is not null-terminated.");
   }
+
+  /**
+   * @return the null-terminated string pointed to by this byte array as a Java String. 
+   * Asumes UTF-8 encoding. 
+   */
+  public String nullTerminatedString() {
+    return new String(array, offset, nullTerminatedStringLength(), StandardCharsets.UTF_8);
+  }
   
-  public String getString() {
-    return new String(array, offset, stringLength(), StandardCharsets.UTF_8);
+  public String toString(int length) {
+    return new String(array, offset, length, StandardCharsets.UTF_8);
   }
 }

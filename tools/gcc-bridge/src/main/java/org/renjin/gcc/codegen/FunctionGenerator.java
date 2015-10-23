@@ -382,19 +382,20 @@ public class FunctionGenerator {
       GimpleConstant constant = (GimpleConstant) expr;
       if (constant.isNull()) {
         return new NullPtrGenerator(constant.getType());
-      } else if(constant instanceof GimplePrimitiveConstant) {
+      } else if (constant instanceof GimplePrimitiveConstant) {
         return new PrimitiveConstValueGenerator((GimplePrimitiveConstant) constant);
-      } else if(constant instanceof GimpleComplexConstant) {
+      } else if (constant instanceof GimpleComplexConstant) {
         return new ComplexConstGenerator((GimpleComplexConstant) constant);
+      } else if (constant instanceof GimpleStringConstant) {
+        return new StringConstantGenerator(constant);
       }
-
+      
     } else if(expr instanceof GimpleAddressOf) {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
-      if(addressOf.getValue() instanceof GimpleStringConstant) {
-        return new StringLiteralGenerator(addressOf.getValue());
-      } else if(addressOf.getValue() instanceof GimpleFunctionRef) {
+      if(addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
         return new FunctionRefGenerator(functionTable.findHandle(functionRef));
+      
       } else {
         ExprGenerator value = findGenerator(addressOf.getValue());
         return value.addressOf();

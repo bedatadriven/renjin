@@ -53,6 +53,12 @@ public interface ExprGenerator {
    */
   Type getValueType();
 
+  /**
+   * 
+   * @return true if this is a {@code ConstantGenerator} for an int32 constant equal to {@code value}
+   */
+  boolean isConstantIntEqualTo(int value);
+
 
   /**
    * 

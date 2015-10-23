@@ -1,5 +1,6 @@
 package org.renjin.gcc;
 
+import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 
@@ -25,5 +26,9 @@ public class InternalCompilerException extends RuntimeException {
     super(String.format("Exception compiling function %s in unit %s", 
         function.getName(), 
         unit.getSourceFile().getName()), e);
+  }
+
+  public InternalCompilerException(FunctionGenerator functionGenerator, Exception e) {
+    super(String.format("Exception compiling function %s", functionGenerator.getMangledName()), e);
   }
 }

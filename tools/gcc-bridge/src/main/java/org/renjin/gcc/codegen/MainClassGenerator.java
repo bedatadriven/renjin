@@ -109,7 +109,11 @@ public class MainClassGenerator {
     
     // Now actually emit the function bodies
     for (FunctionGenerator functionGenerator : functions) {
-      functionGenerator.emit(cv, globalVariables, functionTable);
+      try {
+        functionGenerator.emit(cv, globalVariables, functionTable);
+      } catch (Exception e) {
+        throw new InternalCompilerException(functionGenerator, e);
+      }
     }
   }
   

@@ -6,6 +6,7 @@ import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -170,7 +171,7 @@ public class BasicTest extends AbstractGccTest {
     Method method = clazz.getMethod("circle_name");
     BytePtr ptr = (BytePtr) method.invoke(null);
 
-    assertThat(ptr.getString(), equalTo("Hello world"));
+    assertThat(ptr.nullTerminatedString(), equalTo("Hello world"));
 
     method = clazz.getMethod("test_first_char");
     Integer result = (Integer) method.invoke(null);
@@ -410,6 +411,19 @@ public class BasicTest extends AbstractGccTest {
 
     assertThat(last[0], equalTo(5f));
     assertThat(last[1], equalTo(6f));
+  }
+ 
+  @Test
+  public void fortranStrings() throws Exception {
+    Class clazz = compile("strings.f", "FortranStrings");
+    
+    try {
+      Method method = clazz.getMethod("call_xerbla__");
+      method.invoke(null);
+    } catch (InvocationTargetException wrapper) {
+      RuntimeException e = (RuntimeException) wrapper.getCause();
+      assertThat(e.getMessage(), equalTo("** On entry to ZGERC parameter number 1 had an illegal value"));
+    }
   }
   
 }

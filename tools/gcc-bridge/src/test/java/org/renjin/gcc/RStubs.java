@@ -1,10 +1,7 @@
 package org.renjin.gcc;
 
 import org.junit.Assert;
-import org.renjin.gcc.runtime.BooleanPtr;
-import org.renjin.gcc.runtime.CharPtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.*;
 
 public class RStubs {
 
@@ -73,4 +70,9 @@ public class RStubs {
     Assert.assertFalse(x.unwrap());
   }
 
+  public static void xerbla(BytePtr functionName, IntPtr code, int functionNameLength) {
+    throw new RuntimeException( "** On entry to " + 
+        functionName.toString(functionNameLength) +
+        " parameter number " + code.unwrap() + " had an illegal value");
+  }
 }

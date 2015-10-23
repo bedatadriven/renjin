@@ -22,12 +22,7 @@ public class FunPtrParamGenerator extends ParamGenerator {
   public FunPtrParamGenerator(GimpleType parameterType) {
     this.parameterType = parameterType;
   }
-
-  @Override
-  public int numSlots() {
-    return 1;
-  }
-
+  
   @Override
   public List<Type> getParameterTypes() {
     return Arrays.asList(Type.getType(MethodHandle.class));

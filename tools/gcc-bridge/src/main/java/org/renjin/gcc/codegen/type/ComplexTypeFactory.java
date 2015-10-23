@@ -3,14 +3,13 @@ package org.renjin.gcc.codegen.type;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.param.ComplexArrayPtrParamGenerator;
 import org.renjin.gcc.codegen.param.ComplexPtrParamGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ComplexReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
-import org.renjin.gcc.codegen.var.AddressableComplexVarGenerator;
-import org.renjin.gcc.codegen.var.ComplexPtrVarGenerator;
-import org.renjin.gcc.codegen.var.ComplexVarGenerator;
-import org.renjin.gcc.codegen.var.VarGenerator;
+import org.renjin.gcc.codegen.var.*;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 
@@ -24,7 +23,7 @@ import org.renjin.gcc.gimple.type.GimplePointerType;
  * values as two {@code double} values on the stack, which should be perfectly equivalent
  * to how GCC treats them.</p>
  * 
- * <p>If we need their address, then they need to be allocated on the heap as a double array.</p>
+ * <p>If we need their address, however, then they need to be allocated on the heap as a double array.</p>
  * 
  * <p>We also can't return double values, so we map functions return a complex value to one
  * returning a double array. This does require the extra step of allocating a double[] array in order
@@ -62,7 +61,11 @@ public class ComplexTypeFactory extends TypeFactory {
   public TypeFactory pointerTo() {
     return new Pointer();
   }
-  
+
+  @Override
+  public TypeFactory arrayOf(GimpleArrayType arrayType) {
+    return new Array(arrayType);
+  }
 
   private class Pointer extends TypeFactory {
 
@@ -79,4 +82,37 @@ public class ComplexTypeFactory extends TypeFactory {
     }
   }
   
+  private class Array extends TypeFactory {
+
+    private final GimpleArrayType arrayType;
+
+    public Array(GimpleArrayType arrayType) {
+      this.arrayType = arrayType;
+    }
+
+    @Override
+    public TypeFactory pointerTo() {
+      return new ArrayPtr(new GimplePointerType(arrayType));
+    }
+  }
+  
+  private class ArrayPtr extends TypeFactory {
+    private final GimplePointerType pointerType;
+
+    public ArrayPtr(GimplePointerType pointerType) {
+      this.pointerType = pointerType;
+    }
+
+    @Override
+    public ParamGenerator paramGenerator() {
+      return new ComplexArrayPtrParamGenerator(pointerType);
+    }
+
+    @Override
+    public VarGenerator varGenerator(LocalVarAllocator allocator) {
+      return new ComplexArrayPtrVarGenerator(pointerType,
+          allocator.reserveArrayRef(),
+          allocator.reserveInt());
+    }
+  }
 }

@@ -14,6 +14,9 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * 
  * <p>We use two slots for a complex pointer: one local variables slot for a double[] array
  * reference, and one for the int offset.</p>
+ * 
+ * <p>Note that the offset is the absolute index within the underlying double[] array: that is,
+ * if the offset is 4, that means the real part is at {@code array[4]}, not {@code array[4*2]}.</p>
  */
 public class ComplexPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
   
@@ -117,12 +120,16 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
     @Override
     public void emitPushValue(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+      pushIndex(mv);
+      mv.visitInsn(Opcodes.DALOAD);
+    }
+
+    private void pushIndex(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
       if(offset == IM_OFFSET) {
         mv.visitInsn(Opcodes.ICONST_1);
         mv.visitInsn(Opcodes.IADD);
       }
-      mv.visitInsn(Opcodes.DALOAD);
     }
   }
 }

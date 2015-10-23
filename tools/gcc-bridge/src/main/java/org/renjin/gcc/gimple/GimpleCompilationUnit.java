@@ -1,14 +1,16 @@
 package org.renjin.gcc.gimple;
 
-import java.util.List;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
-import org.renjin.gcc.gimple.type.GimpleType;
+
+import java.io.File;
+import java.util.List;
 
 public class GimpleCompilationUnit {
 
+  private File sourceFile;
+  
   private final List<GimpleFunction> functions = Lists.newArrayList();
   private final List<GimpleRecordTypeDef> recordTypes = Lists.newArrayList();
   private final List<GimpleVarDecl> globalVariables = Lists.newArrayList();
@@ -23,6 +25,14 @@ public class GimpleCompilationUnit {
 
   public List<GimpleVarDecl> getGlobalVariables() {
     return globalVariables;
+  }
+
+  public File getSourceFile() {
+    return sourceFile;
+  }
+
+  public void setSourceFile(File sourceFile) {
+    this.sourceFile = sourceFile;
   }
 
   @Override

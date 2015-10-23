@@ -31,11 +31,6 @@ public class ComplexPtrParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public int numSlots() {
-    return 2;
-  }
-
-  @Override
   public List<Type> getParameterTypes() {
     return Arrays.asList(Type.getType(double[].class), Type.getType(int.class));
   }

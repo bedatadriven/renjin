@@ -26,10 +26,6 @@ public class PrimitiveParamGenerator extends ParamGenerator {
     return type;
   }
 
-  @Override
-  public int numSlots() {
-    return type.localVariableSlots();
-  }
 
   @Override
   public List<Type> getParameterTypes() {

@@ -4,7 +4,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.var.VarGenerator;
 
 import java.util.List;
 
@@ -14,7 +13,13 @@ public abstract class ParamGenerator {
   /**
    * @return number of local variable slots occupied by this parameter
    */
-  public abstract int numSlots();
+  public final int numSlots() {
+    int size = 0;
+    for (Type type : getParameterTypes()) {
+      size += type.getSize();
+    }
+    return size;
+  }
 
   /**
    * 

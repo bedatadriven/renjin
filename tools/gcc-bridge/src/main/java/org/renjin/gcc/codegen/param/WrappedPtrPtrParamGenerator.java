@@ -6,8 +6,6 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.var.VarGenerator;
-import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
@@ -29,10 +27,6 @@ public class WrappedPtrPtrParamGenerator extends ParamGenerator {
     this.pointerType = WrapperType.forPointerType((GimpleIndirectType) type.getBaseType());
   }
 
-  @Override
-  public int numSlots() {
-    return 1;
-  }
 
   @Override
   public List<Type> getParameterTypes() {

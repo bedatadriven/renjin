@@ -4,6 +4,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.FunctionTable;
 import org.renjin.gcc.codegen.var.FieldGenerator;
 import org.renjin.gcc.codegen.var.PtrFieldGenerator;
@@ -91,13 +92,16 @@ public class MainClassGenerator {
   private void emitFunctions(List<GimpleCompilationUnit> units) {
 
     // First enumerate all functions as they may be reference from within each other
-    
     List<FunctionGenerator> functions = new ArrayList<FunctionGenerator>();
     
     for (GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
-        FunctionGenerator functionGenerator = new FunctionGenerator(function);
-        
+        FunctionGenerator functionGenerator;
+        try {
+          functionGenerator = new FunctionGenerator(function);
+        } catch (Exception e) {
+          throw new InternalCompilerException(unit, function, e);
+        }
         functions.add(functionGenerator);
         functionTable.add(className, function.getName(), functionGenerator);
       }

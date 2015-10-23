@@ -381,10 +381,16 @@ public class BasicTest extends AbstractGccTest {
     Class clazz = compile("dcabs1.f", "Dcabs");
 
     Method dcabs = clazz.getMethod("dcabs1_", double[].class, int.class);
-
-
     assertThat((Double) dcabs.invoke(null, new double[]{-1, 1}, 0), equalTo(2.0));
     assertThat((Double) dcabs.invoke(null, new double[]{1, 0}, 0), equalTo(1.0));
     assertThat((Double) dcabs.invoke(null, new double[]{0, 3}, 0), equalTo(3.0));
+    
+    Method clast = clazz.getMethod("clast_", double[].class, int.class, IntPtr.class);
+    double[] x = {1, 2, 3, 4, 5, 6};
+    IntPtr n = new IntPtr(3);
+    double[] last = (double[]) clast.invoke(null, x, 0, n);
+    
+    assertThat(last[0], equalTo(5.0));
+    assertThat(last[1], equalTo(6.0));
   }
 }

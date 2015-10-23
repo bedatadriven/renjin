@@ -16,3 +16,18 @@
       DCONST1 = DCONJG(TEMP)
       RETURN
       END
+
+*
+*     Return the last the element of a complex array
+*     Test complex array pointers
+*
+
+      DOUBLE COMPLEX FUNCTION CLAST(X, N)
+      INTEGER N
+      DOUBLE COMPLEX X(N)
+      
+      CLAST = X(N)
+      RETURN
+      END
+      
+      

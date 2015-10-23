@@ -36,11 +36,6 @@ public class PrimitivePtrParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public int numSlots() {
-    return 1;
-  }
-
-  @Override
   public List<Type> getParameterTypes() {
     return Collections.singletonList(pointerType.getWrapperType());
   }

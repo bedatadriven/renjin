@@ -2,12 +2,10 @@ package org.renjin.gcc.codegen.var;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimpleRealType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
 
 /**
  * Variable 
@@ -16,6 +14,8 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
   private final GimpleIndirectType pointerType;
   private final GimpleArrayType arrayType;
+  private final GimpleComplexType complexType;
+  private final Type partType;
   
   private int arrayIndex;
   private int offsetIndex;
@@ -23,6 +23,8 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
   public ComplexArrayPtrVarGenerator(GimpleIndirectType pointerType, int arrayIndex, int offsetIndex) {
     this.pointerType = pointerType;
     this.arrayType = pointerType.getBaseType();
+    this.complexType = (GimpleComplexType) arrayType.getComponentType();
+    this.partType = complexType.getJvmPartType();
     this.arrayIndex = arrayIndex;
     this.offsetIndex = offsetIndex;
   }
@@ -99,7 +101,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
     public void emitPushValue(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
       emitPushIndex(mv);
-      mv.visitInsn(Opcodes.DALOAD);
+      mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));
     }
 
     @Override
@@ -109,7 +111,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
       
       valueGenerator.emitPushValue(mv);
       
-      mv.visitInsn(Opcodes.DASTORE);
+      mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     }
 
     private void emitPushIndex(MethodVisitor mv) {

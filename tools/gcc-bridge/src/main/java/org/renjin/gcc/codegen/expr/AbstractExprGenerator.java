@@ -68,17 +68,19 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   }
 
   @Override
-  public void emitPushComplexAsDoubleArray(MethodVisitor mv) {
+  public void emitPushComplexAsArray(MethodVisitor mv) {
+    Type partType = realPart().getValueType();
+    
     mv.visitInsn(Opcodes.ICONST_2);
-    MallocGenerator.emitNewArray(mv, Type.DOUBLE_TYPE);
+    MallocGenerator.emitNewArray(mv, partType);
     mv.visitInsn(Opcodes.DUP);
     mv.visitInsn(Opcodes.ICONST_0);
     realPart().emitPushValue(mv);
-    mv.visitInsn(Opcodes.DASTORE);
+    mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     mv.visitInsn(Opcodes.DUP);
     mv.visitInsn(Opcodes.ICONST_1);
     imaginaryPart().emitPushValue(mv);
-    mv.visitInsn(Opcodes.DASTORE);
+    mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
   }
 
   @Override

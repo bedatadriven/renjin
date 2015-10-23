@@ -87,10 +87,10 @@ public interface ExprGenerator {
 
 
   /**
-   * Writes the code to push this complex value onto the stack as a {@code double[]} of length 2
+   * Writes the code to push this complex value onto the stack as a {@code double[]} or {@code float[]} of length 2
    * @throws UnsupportedOperationException if this is not a complex number expression
    */
-  void emitPushComplexAsDoubleArray(MethodVisitor mv);
+  void emitPushComplexAsArray(MethodVisitor mv);
   
   /**
    * 

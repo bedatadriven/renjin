@@ -8,7 +8,6 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -20,6 +19,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 public class AddressableComplexVarGenerator extends AbstractExprGenerator implements VarGenerator {
   
   private GimpleComplexType type;
+  private Type partType;
   
   /**
    * Local variable index of the backing double[] array
@@ -28,6 +28,7 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
 
   public AddressableComplexVarGenerator(GimpleComplexType type, int arrayIndex) {
     this.type = type;
+    this.partType = type.getJvmPartType();
     this.arrayIndex = arrayIndex;
   }
 
@@ -47,18 +48,18 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
     // store real part
     mv.visitInsn(Opcodes.ICONST_0);
     valueGenerator.realPart().emitPushValue(mv);
-    mv.visitInsn(Opcodes.DASTORE);
+    mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     
     // store imaginary part
     mv.visitInsn(Opcodes.ICONST_1);
     valueGenerator.imaginaryPart().emitPushValue(mv);
-    mv.visitInsn(Opcodes.DASTORE);
+    mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
   }
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
     mv.visitInsn(Opcodes.ICONST_2);
-    MallocGenerator.emitNewArray(mv, Type.DOUBLE_TYPE);
+    MallocGenerator.emitNewArray(mv, partType);
     mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);  
   }
 
@@ -87,19 +88,19 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
 
     @Override
     public GimpleType getGimpleType() {
-      return new GimpleRealType(64);
+      return type.getPartType();
     }
 
     @Override
     public Type getValueType() {
-      return Type.DOUBLE_TYPE;
+      return partType;
     }
 
     @Override
     public void emitPushValue(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
       mv.visitInsn(Opcodes.ICONST_0 + offset);
-      mv.visitInsn(Opcodes.DALOAD);
+      mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));
     }
   }
   
@@ -108,11 +109,6 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
     @Override
     public GimpleType getGimpleType() {
       return new GimplePointerType(type);
-    }
-
-    @Override
-    public void emitPushComplexAsDoubleArray(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
     }
 
     @Override

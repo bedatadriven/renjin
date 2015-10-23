@@ -5,16 +5,24 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.type.GimpleComplexType;
 
 public class ComplexReturnGenerator implements ReturnGenerator {
+  
+  private GimpleComplexType type;
+
+  public ComplexReturnGenerator(GimpleComplexType type) {
+    this.type = type;
+  }
+
   @Override
   public Type type() {
-    return Type.getType(double[].class);
+    return type.getJvmPartArrayType();
   }
 
   @Override
   public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
-    valueGenerator.emitPushComplexAsDoubleArray(mv);
+    valueGenerator.emitPushComplexAsArray(mv);
     mv.visitInsn(Opcodes.ARETURN);
   }
 

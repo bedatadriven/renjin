@@ -377,8 +377,8 @@ public class BasicTest extends AbstractGccTest {
   }
   
   @Test
-  public void complexNumbers() throws Exception {
-    Class clazz = compile("dcabs1.f", "Dcabs");
+  public void doubleComplex() throws Exception {
+    Class clazz = compile("double_complex.f", "DoubleComplex");
 
     Method dcabs = clazz.getMethod("dcabs1_", double[].class, int.class);
     assertThat((Double) dcabs.invoke(null, new double[]{-1, 1}, 0), equalTo(2.0));
@@ -393,4 +393,23 @@ public class BasicTest extends AbstractGccTest {
     assertThat(last[0], equalTo(5.0));
     assertThat(last[1], equalTo(6.0));
   }
+  
+  @Test
+  public void singleComplex() throws Exception {
+    Class clazz = compile("complex.f", "Complex");
+
+    Method dcabs = clazz.getMethod("dcabs1_", float[].class, int.class);
+    assertThat((Float) dcabs.invoke(null, new float[]{-1, 1}, 0), equalTo(2f));
+    assertThat((Float) dcabs.invoke(null, new float[]{1, 0}, 0), equalTo(1f));
+    assertThat((Float) dcabs.invoke(null, new float[]{0, 3}, 0), equalTo(3f));
+
+    Method clast = clazz.getMethod("clast_", float[].class, int.class, IntPtr.class);
+    float[] x = {1, 2, 3, 4, 5, 6};
+    IntPtr n = new IntPtr(3);
+    float[] last = (float[]) clast.invoke(null, x, 0, n);
+
+    assertThat(last[0], equalTo(5f));
+    assertThat(last[1], equalTo(6f));
+  }
+  
 }

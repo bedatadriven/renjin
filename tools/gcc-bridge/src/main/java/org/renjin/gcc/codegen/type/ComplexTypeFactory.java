@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type;
 
-import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.param.ComplexArrayPtrParamGenerator;
@@ -35,7 +34,6 @@ public class ComplexTypeFactory extends TypeFactory {
   private GimpleComplexType type;
 
   public ComplexTypeFactory(GimpleComplexType type) {
-    Preconditions.checkArgument(type.sizeOf() == 128, "Expected only double precision complex types.");
     this.type = type;
   }
 
@@ -54,7 +52,7 @@ public class ComplexTypeFactory extends TypeFactory {
 
   @Override
   public ReturnGenerator returnGenerator() {
-    return new ComplexReturnGenerator();
+    return new ComplexReturnGenerator(type);
   }
 
   @Override

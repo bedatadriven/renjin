@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.param;
 
-import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
@@ -20,19 +19,16 @@ import java.util.List;
 public class ComplexPtrParamGenerator extends ParamGenerator {
   
   private GimpleType type;
-
+  private GimpleComplexType baseType;
+  
   public ComplexPtrParamGenerator(GimpleType type) {
-    // as far as I know we're only dealing with 64-bit complex numbers
-    // make sure this assumptions is correct
-    Preconditions.checkArgument(type.getBaseType() instanceof GimpleComplexType);
-    Preconditions.checkArgument(type.getBaseType().sizeOf() == 128, "Expected only double precision complex numbers");
-    
     this.type = type;
+    this.baseType = type.getBaseType();
   }
 
   @Override
   public List<Type> getParameterTypes() {
-    return Arrays.asList(Type.getType(double[].class), Type.getType(int.class));
+    return Arrays.asList(baseType.getJvmPartArrayType(), Type.getType(int.class));
   }
 
   @Override

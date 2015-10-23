@@ -33,7 +33,7 @@ public class ConjugateGenerator extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushComplexAsDoubleArray(MethodVisitor mv) {
-    super.emitPushComplexAsDoubleArray(mv);
+  public void emitPushComplexAsArray(MethodVisitor mv) {
+    super.emitPushComplexAsArray(mv);
   }
 }

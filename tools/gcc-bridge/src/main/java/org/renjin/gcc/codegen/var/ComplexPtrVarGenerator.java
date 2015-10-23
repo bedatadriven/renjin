@@ -6,7 +6,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.gimple.type.GimpleRealType;
+import org.renjin.gcc.gimple.type.GimpleComplexType;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -23,12 +24,16 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
   private static final int REAL_OFFSET = 0;
   private static final int IM_OFFSET = 1;
   
-  private GimpleType type;
+  private GimpleIndirectType type;
+  private GimpleComplexType baseType;
+  private Type partType;
   private int arrayIndex;
   private int offsetIndex;
 
   public ComplexPtrVarGenerator(GimpleType type, int arrayIndex, int offsetIndex) {
-    this.type = type;
+    this.type = (GimpleIndirectType) type;
+    this.baseType = type.getBaseType();
+    this.partType = baseType.getJvmPartType();
     this.arrayIndex = arrayIndex;
     this.offsetIndex = offsetIndex;
   }
@@ -56,7 +61,7 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
   
   @Override
   public WrapperType getPointerType() {
-    return WrapperType.of(Type.DOUBLE_TYPE);
+    return WrapperType.of(partType);
   }
   
   private class Value extends AbstractExprGenerator {
@@ -87,14 +92,14 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
       // Store the real part first
       mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
       valueGenerator.realPart().emitPushValue(mv);
-      mv.visitInsn(Opcodes.DASTORE);
+      mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
 
       // Now store the complex part
       mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
       mv.visitInsn(Opcodes.ICONST_1);
       mv.visitInsn(Opcodes.IADD);
       valueGenerator.imaginaryPart().emitPushValue(mv);
-      mv.visitInsn(Opcodes.DASTORE);
+      mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     }
 
   }
@@ -109,20 +114,14 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
 
     @Override
     public GimpleType getGimpleType() {
-      return new GimpleRealType(64);
+      return baseType.getPartType();
     }
 
     @Override
     public Type getValueType() {
-      return Type.DOUBLE_TYPE;
+      return partType;
     }
 
-    @Override
-    public void emitPushValue(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
-      pushIndex(mv);
-      mv.visitInsn(Opcodes.DALOAD);
-    }
 
     private void pushIndex(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
@@ -131,5 +130,13 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
         mv.visitInsn(Opcodes.IADD);
       }
     }
+
+    @Override
+    public void emitPushValue(MethodVisitor mv) {
+      mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+      pushIndex(mv);
+      mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));
+    }
+
   }
 }

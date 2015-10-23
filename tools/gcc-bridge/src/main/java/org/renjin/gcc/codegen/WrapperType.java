@@ -25,6 +25,7 @@ public class WrapperType {
       new WrapperType(BooleanPtr.class),
       new WrapperType(CharPtr.class),
       new WrapperType(DoublePtr.class),
+      new WrapperType(FloatPtr.class),
       new WrapperType(ObjectPtr.class));
   
 
@@ -76,7 +77,7 @@ public class WrapperType {
       return Type.getType(DoublePtr.class);
 
     } else if(type.equals(Type.FLOAT_TYPE)) {
-      throw new UnsupportedOperationException("todo: FloatPtr");
+      return Type.getType(FloatPtr.class);
     
     } else if(type.equals(Type.INT_TYPE)) {
       return Type.getType(IntPtr.class);
@@ -103,7 +104,7 @@ public class WrapperType {
       return new WrapperType(DoublePtr.class);
 
     } else if(type.equals(Type.FLOAT_TYPE)) {
-      throw new UnsupportedOperationException("todo: FloatPtr");
+      return new WrapperType(FloatPtr.class);
 
     } else if(type.equals(Type.INT_TYPE)) {
       return new WrapperType(IntPtr.class);
@@ -139,8 +140,8 @@ public class WrapperType {
     } else if(baseType.equals(Type.DOUBLE_TYPE)) {
       return Type.getType(double[].class);
 
-    } else if(baseType.equals(Type.FLOAT_TYPE)) {
-      throw new UnsupportedOperationException("todo: FloatPtr");
+    } else if (baseType.equals(Type.FLOAT_TYPE)) {
+      return Type.getType(float[].class);
 
     } else if(baseType.equals(Type.INT_TYPE)) {
       return Type.getType(int[].class);

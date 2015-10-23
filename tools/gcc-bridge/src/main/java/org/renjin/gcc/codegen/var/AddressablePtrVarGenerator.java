@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.var;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -21,8 +20,8 @@ public class AddressablePtrVarGenerator extends AbstractExprGenerator implements
   private final WrapperType wrapperType;
   private int index;
 
-  public AddressablePtrVarGenerator(GimpleType type, LocalVarAllocator localVarAllocator) {
-    this.index = localVarAllocator.reserve(1);
+  public AddressablePtrVarGenerator(GimpleType type, int localVarIndex) {
+    this.index = localVarIndex;
     this.type = (GimpleIndirectType) type;
     this.wrapperType = WrapperType.forPointerType(this.type);
   }

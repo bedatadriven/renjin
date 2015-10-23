@@ -19,13 +19,11 @@ import org.renjin.gcc.gimple.type.GimpleType;
  */
 public class AddressableVarGenerator extends AbstractExprGenerator implements VarGenerator {
   private int index;
-  private String name;
   private GimpleType type;
   private Type componentType;
   
-  public AddressableVarGenerator(int index, String name, GimpleType type) {
+  public AddressableVarGenerator(GimpleType type, int index) {
     this.index = index;
-    this.name = name;
     this.type = type;
     componentType = ((GimplePrimitiveType) type).jvmType();
   }

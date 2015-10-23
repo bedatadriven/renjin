@@ -34,4 +34,10 @@ public interface GimpleType {
    * @return the size of this type, in bytes
    */
   int sizeOf();
+
+
+  /**
+   * @return a type that points to this type.
+   */
+  GimplePointerType pointerTo();
 }

@@ -23,4 +23,12 @@ public class LocalVarAllocator {
   public int reserveArrayRef() {
     return reserve(1);
   }
+
+  public int reserveObject() {
+    return reserve(1);
+  }
+
+  public int reserveInt() {
+    return reserve(Type.INT_TYPE);
+  }
 }

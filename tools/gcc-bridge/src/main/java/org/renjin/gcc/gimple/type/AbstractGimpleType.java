@@ -21,4 +21,9 @@ public abstract class AbstractGimpleType implements GimpleType {
     throw new UnsupportedOperationException("this is not pointer type (" + getClass().getSimpleName() + ")");
   }
 
+  @Override
+  public GimplePointerType pointerTo() {
+    return new GimplePointerType(this);
+  }
+
 }

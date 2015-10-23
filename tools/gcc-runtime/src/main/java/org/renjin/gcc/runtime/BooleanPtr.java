@@ -14,4 +14,8 @@ public class BooleanPtr implements Ptr {
     this.array = values;
     this.offset = 0;
   }
+
+  public boolean unwrap() {
+    return array[offset];
+  }
 }

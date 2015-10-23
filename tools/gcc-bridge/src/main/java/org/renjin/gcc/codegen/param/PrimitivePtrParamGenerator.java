@@ -6,8 +6,6 @@ import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.PtrVarGenerator;
-import org.renjin.gcc.codegen.var.VarGenerator;
-import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
@@ -22,7 +20,7 @@ import static org.objectweb.asm.Opcodes.*;
  * Parameter that is a pointer (e.g. {@code double*} and is mapped to a wrapped
  * Pointer type, such as DoublePtr or ObjectPtr.
  */
-public class WrappedPtrParamGenerator extends ParamGenerator {
+public class PrimitivePtrParamGenerator extends ParamGenerator {
 
   private final GimpleIndirectType type;
 
@@ -32,7 +30,7 @@ public class WrappedPtrParamGenerator extends ParamGenerator {
   private final WrapperType pointerType;
   
 
-  public WrappedPtrParamGenerator(GimpleType type) {
+  public PrimitivePtrParamGenerator(GimpleType type) {
     this.type = (GimpleIndirectType) type;
     this.pointerType = WrapperType.forPointerType(this.type);
   }

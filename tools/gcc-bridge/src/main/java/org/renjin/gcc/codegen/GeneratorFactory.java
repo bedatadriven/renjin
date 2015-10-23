@@ -1,7 +1,8 @@
 package org.renjin.gcc.codegen;
 
-import org.renjin.gcc.codegen.param.*;
-import org.renjin.gcc.codegen.ret.*;
+import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
 
@@ -15,48 +16,37 @@ import java.util.Map;
  */
 public class GeneratorFactory {
 
+  public TypeFactory forType(GimpleType type) {
+    if(type instanceof GimplePrimitiveType) {
+      return new PrimitiveTypeFactory((GimplePrimitiveType) type);
+
+    } else if(type instanceof GimpleComplexType) {
+      return new ComplexTypeFactory((GimpleComplexType) type);
+    
+    } else if(type instanceof GimpleFunctionType) {
+      return new FunTypeFactory((GimpleFunctionType) type);
+
+    } else if(type instanceof GimpleVoidType) {
+      return new VoidTypeFactory();
+      
+    } else if(type instanceof GimpleIndirectType) {
+      return forType(type.getBaseType()).pointerTo();
+    
+    } else if(type instanceof GimpleArrayType) {
+      GimpleArrayType arrayType = (GimpleArrayType) type;
+      return forType(arrayType.getComponentType()).arrayOf(arrayType);
+    
+    } else {
+      throw new UnsupportedOperationException("Unsupported type: " + type);
+    }
+  }
 
   public ParamGenerator forParameter(GimpleType parameterType) {
-    if(parameterType instanceof GimplePrimitiveType) {
-      return new PrimitiveParamGenerator(parameterType);
-      
-    } else if(parameterType instanceof GimpleIndirectType) {
-      // pointer to a pointer?
-      GimpleIndirectType pointerType = (GimpleIndirectType) parameterType;
-      
-      if(pointerType.getBaseType() instanceof GimpleFunctionType) {
-        return new FunPtrParamGenerator(parameterType);
-        
-      } else if(pointerType.getBaseType() instanceof GimpleIndirectType) {
-        return new WrappedPtrPtrParamGenerator(parameterType);
-      
-      } else if(pointerType.getBaseType() instanceof GimplePrimitiveType) {
-        return new WrappedPtrParamGenerator(parameterType);
-        
-      } else if(pointerType.getBaseType() instanceof GimpleComplexType) {
-        return new ComplexPtrParamGenerator(parameterType);
-      }
-    }
-    
-    throw new UnsupportedOperationException("Parameter type: " + parameterType);
+    return forType(parameterType).paramGenerator();
   }
 
   public ReturnGenerator findReturnGenerator(GimpleType returnType) {
-    if(returnType instanceof GimpleVoidType) {
-      return new VoidReturnGenerator();
-      
-    } else if(returnType instanceof GimplePrimitiveType) {
-      return new PrimitiveReturnGenerator(returnType);
-    
-    } else if(returnType instanceof GimpleIndirectType) {
-      return new PtrReturnGenerator(returnType);
-
-    } else if(returnType instanceof GimpleComplexType) {
-      return new ComplexReturnGenerator();
-      
-    } else {
-      throw new UnsupportedOperationException("Return type: " + returnType);
-    }
+    return forType(returnType).returnGenerator();
   }
 
   public List<ParamGenerator> forParameterTypes(List<GimpleType> parameterTypes) {
@@ -75,4 +65,5 @@ public class GeneratorFactory {
     }
     return map;
   }
+
 }

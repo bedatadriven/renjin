@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen.var;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -15,20 +14,21 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
- * Emits bytecode for loading / storing array variables
+ * Emits bytecode for loading / storing array variables.
+ * 
  */
 public class ArrayVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
   /**
    * The local variable index of the array
    */
-  private final int index;
+  private final int arrayIndex;
   private Type componentType;
   private GimpleArrayType gimpleType;
 
-  public ArrayVarGenerator(GimpleArrayType gimpleType, LocalVarAllocator localVarAllocator) {
+  public ArrayVarGenerator(GimpleArrayType gimpleType, int arrayIndex) {
     this.gimpleType = gimpleType;
-    index = localVarAllocator.reserve(1);
+    this.arrayIndex = arrayIndex;
 
     GimpleType componentType = gimpleType.getComponentType();
     if(componentType instanceof GimplePrimitiveType) {
@@ -57,13 +57,13 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
     } else {
       throw new UnsupportedOperationException("componentType: " + componentType);
     }
-    mv.visitVarInsn(Opcodes.ASTORE, index);
+    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
   }
 
 
   @Override
   public void emitPushValue(MethodVisitor mv) {
-    mv.visitVarInsn(ALOAD, index);
+    mv.visitVarInsn(ALOAD, arrayIndex);
   }
 
   @Override
@@ -100,7 +100,7 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(ALOAD, index);
+      mv.visitVarInsn(ALOAD, arrayIndex);
       mv.visitInsn(ICONST_0);
     }
 

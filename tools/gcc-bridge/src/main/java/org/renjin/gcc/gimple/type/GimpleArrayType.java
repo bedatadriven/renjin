@@ -5,6 +5,14 @@ public class GimpleArrayType extends AbstractGimpleType {
   private int lbound;
   private Integer ubound;
 
+  public GimpleArrayType() {
+  }
+
+  public GimpleArrayType(GimplePrimitiveType componentType) {
+    this.componentType = componentType;
+  }
+  
+
   public GimpleType getComponentType() {
     return componentType;
   }

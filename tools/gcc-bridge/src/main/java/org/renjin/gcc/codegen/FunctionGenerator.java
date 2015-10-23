@@ -9,12 +9,12 @@ import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
-import org.renjin.gcc.codegen.var.*;
+import org.renjin.gcc.codegen.type.TypeFactory;
+import org.renjin.gcc.codegen.var.VarGenerator;
+import org.renjin.gcc.codegen.var.VariableTable;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.ins.*;
-import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.gimple.type.GimpleComplexType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,55 +110,61 @@ public class FunctionGenerator {
 
     // Dumb scheduling: give every local variable it's own slot
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
-      VarGenerator generator = findGeneratorForVariable(varDecl);
+      VarGenerator generator;
+      TypeFactory factory = generatorFactory.forType(varDecl.getType());
+      if(varDecl.isAddressable()) {
+        generator = factory.addressableVarGenerator(localVarAllocator);
+      } else {
+        generator = factory.varGenerator(localVarAllocator);
+      }
+      
       localVariables.add(varDecl.getId(), generator);
     }
   }
 
-  private VarGenerator findGeneratorForVariable(GimpleVarDecl varDecl) {
-    if(varDecl.getType() instanceof GimplePrimitiveType) {
-      GimplePrimitiveType primitiveType = (GimplePrimitiveType) varDecl.getType();
-      if (varDecl.isAddressable()) {
-        int index = localVarAllocator.reserve(1);
-        return new AddressableVarGenerator(index, varDecl.getName(), primitiveType);
-
-      } else {
-        int index = localVarAllocator.reserve(primitiveType.localVariableSlots());
-        return new ValueVarGenerator(primitiveType, index);
-      }
-   
-    } else if(varDecl.getType() instanceof GimpleComplexType) {
-      GimpleComplexType complexType = (GimpleComplexType) varDecl.getType();
-      if(varDecl.isAddressable()) {
-        return new AddressableComplexVarGenerator(complexType, 
-            localVarAllocator.reserveArrayRef());
-   
-      } else {
-        return new ComplexVarGenerator(complexType,
-            localVarAllocator.reserve(Type.DOUBLE_TYPE),
-            localVarAllocator.reserve(Type.DOUBLE_TYPE));    
-      }
-      
-    } else if(varDecl.getType() instanceof GimpleIndirectType) {
-      GimpleIndirectType pointerType = (GimplePointerType) varDecl.getType();
-      if(pointerType.getBaseType() instanceof GimplePrimitiveType) {
-        if (varDecl.isAddressable()) {
-          return new AddressablePtrVarGenerator(pointerType, localVarAllocator);
-        } else {
-          return new PtrVarGenerator(pointerType, localVarAllocator);
-        }
-      } else if(pointerType.getBaseType() instanceof GimpleFunctionType) {
-        return new FunPtrVarGenerator((GimpleFunctionType) pointerType.getBaseType(), localVarAllocator.reserve(1));
-      }
-      
-
-    } else if(varDecl.getType() instanceof GimpleArrayType) {
-      GimpleArrayType arrayType = (GimpleArrayType) varDecl.getType();
-      return new ArrayVarGenerator(arrayType, localVarAllocator);
-
-    } 
-    throw new UnsupportedOperationException("var type: " + varDecl.getType());
-  }
+//  private VarGenerator findGeneratorForVariable(GimpleVarDecl varDecl) {
+//    if(varDecl.getType() instanceof GimplePrimitiveType) {
+//      GimplePrimitiveType primitiveType = (GimplePrimitiveType) varDecl.getType();
+//      if (varDecl.isAddressable()) {
+//        int index = localVarAllocator.reserve(1);
+//        return new AddressableVarGenerator(primitiveType, index);
+//
+//      } else {
+//        int index = localVarAllocator.reserve(primitiveType.localVariableSlots());
+//        return new ValueVarGenerator(primitiveType, index);
+//      }
+//   
+//    } else if(varDecl.getType() instanceof GimpleComplexType) {
+//      GimpleComplexType complexType = (GimpleComplexType) varDecl.getType();
+//      if(varDecl.isAddressable()) {
+//        return new AddressableComplexVarGenerator(complexType, 
+//            localVarAllocator.reserveArrayRef());
+//   
+//      } else {
+//        return new ComplexVarGenerator(complexType,
+//            localVarAllocator.reserve(Type.DOUBLE_TYPE),
+//            localVarAllocator.reserve(Type.DOUBLE_TYPE));    
+//      }
+//      
+//    } else if(varDecl.getType() instanceof GimpleIndirectType) {
+//      GimpleIndirectType pointerType = (GimplePointerType) varDecl.getType();
+//      if(pointerType.getBaseType() instanceof GimplePrimitiveType) {
+//        if (varDecl.isAddressable()) {
+//          return new AddressablePtrVarGenerator(pointerType, localVarAllocator);
+//        } else {
+//          return new PtrVarGenerator(pointerType, localVarAllocator);
+//        }
+//      } else if(pointerType.getBaseType() instanceof GimpleFunctionType) {
+//        return new FunPtrVarGenerator((GimpleFunctionType) pointerType.getBaseType(), localVarAllocator.reserve(1));
+//      }
+//
+//    } else if(varDecl.getType() instanceof GimpleArrayType) {
+//      GimpleArrayType arrayType = (GimpleArrayType) varDecl.getType();
+//      return new ArrayVarGenerator(arrayType, localVarAllocator.reserveArrayRef());
+//
+//    } 
+//    throw new UnsupportedOperationException("var type: " + varDecl.getType());
+//  }
 
   private void emitBasicBlock(GimpleBasicBlock basicBlock) {
     mv.visitLabel(labels.of(basicBlock));

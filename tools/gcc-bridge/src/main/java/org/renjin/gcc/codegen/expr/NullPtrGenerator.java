@@ -28,6 +28,6 @@ public class NullPtrGenerator extends AbstractExprGenerator implements PtrGenera
 
   @Override
   public GimpleType getGimpleType() {
-    return null;
+    return type;
   }
 }

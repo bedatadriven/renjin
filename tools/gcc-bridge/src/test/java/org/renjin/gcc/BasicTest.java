@@ -393,6 +393,52 @@ public class BasicTest extends AbstractGccTest {
     
     assertThat(last[0], equalTo(5.0));
     assertThat(last[1], equalTo(6.0));
+    
+    
+    // Check comparisons
+    double[] a = new double[] { 1, 4};
+    double[] b = new double[] { 5, 6};
+    
+    Method ceq = clazz.getMethod("ceq_", double[].class, int.class, double[].class, int.class);
+    Method cne = clazz.getMethod("cne_", double[].class, int.class, double[].class, int.class);
+
+    assertThat((Integer)ceq.invoke(null, a, 0, b, 0), equalTo(0));
+    assertThat((Integer)ceq.invoke(null, a, 0, a, 0), equalTo(1));
+    assertThat((Integer)ceq.invoke(null, b, 0, x, 4), equalTo(1));
+
+    assertThat((Integer)cne.invoke(null, a, 0, b, 0), equalTo(1));
+    assertThat((Integer)cne.invoke(null, a, 0, a, 0), equalTo(0));
+    assertThat((Integer)cne.invoke(null, b, 0, x, 4), equalTo(0));
+
+    // Check binary operations
+    Method cmult = clazz.getMethod("cmul_", double[].class, int.class, double[].class, int.class);
+
+    double product[] = (double[]) cmult.invoke(null, a, 0, b, 0);
+    assertThat(product[0], equalTo(-19d));
+    assertThat(product[1], equalTo(+26d));
+
+    Method cadd = clazz.getMethod("cadd_", double[].class, int.class, double[].class, int.class);
+
+    double sum[] = (double[]) cadd.invoke(null, a, 0, b, 0);
+    assertThat(sum[0], equalTo(6d));
+    assertThat(sum[1], equalTo(10d));
+  }
+  
+  @Test
+  public void updateComplexArrayPointer() throws Exception {
+    Class clazz = compile("complex_update.f", "ComplexUpdate");
+
+    double[] a = new double[]{ 1, 4, 3, -4, 5, -9};
+    double[] b = new double[]{-14, -13};
+
+    Method update = clazz.getMethod("update2_", double[].class, int.class, double[].class, int.class);
+    
+    update.invoke(null, a, 0, b, 0);
+    
+    assertThat(a[2], equalTo(b[0]));
+    assertThat(a[3], equalTo(b[1]));
+
+
   }
   
   @Test

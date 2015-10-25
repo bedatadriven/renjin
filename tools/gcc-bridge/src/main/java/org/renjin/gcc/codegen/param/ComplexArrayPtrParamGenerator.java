@@ -39,4 +39,5 @@ public class ComplexArrayPtrParamGenerator extends ParamGenerator {
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
     throw new UnsupportedOperationException();
   }
+  
 }

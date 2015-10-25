@@ -57,4 +57,5 @@ public class ComplexVarGenerator extends AbstractExprGenerator implements VarGen
     valueGenerator.imaginaryPart().emitPushValue(mv);
     mv.visitVarInsn(partType.getOpcode(Opcodes.ISTORE), imaginaryIndex);
   }
+
 }

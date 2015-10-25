@@ -15,6 +15,8 @@ import org.renjin.gcc.codegen.var.VariableTable;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.ins.*;
+import org.renjin.gcc.gimple.type.GimpleComplexType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -237,12 +239,7 @@ public class FunctionGenerator {
   private void emitConditional(GimpleConditional ins) {
     ConditionGenerator generator = (ConditionGenerator) findGenerator(ins.getOperator(), ins.getOperands());
         
-    
-    // jump if true
-    generator.emitJump(mv, labels.of(ins.getTrueLabel()));
-    
-    // if false...
-    mv.visitJumpInsn(GOTO, labels.of(ins.getFalseLabel()));
+    generator.emitJump(mv, labels.of(ins.getTrueLabel()), labels.of(ins.getFalseLabel()));
   }
 
 
@@ -301,10 +298,8 @@ public class FunctionGenerator {
       case BIT_IOR_EXPR:
       case BIT_XOR_EXPR:
       case BIT_AND_EXPR:
-        return new BinaryOpGenerator(op, 
-            findGenerator(operands.get(0)), 
-            findGenerator(operands.get(1)));
-      
+        return findBinOpGenerator(op, operands);
+
       case POINTER_PLUS_EXPR:
         return new PtrPlusGenerator(
             findGenerator(operands.get(0)),
@@ -331,8 +326,10 @@ public class FunctionGenerator {
       case ARRAY_REF:
       case REALPART_EXPR:
       case IMAGPART_EXPR:
-      case COMPLEX_EXPR:
         return findGenerator(operands.get(0));
+      
+      case COMPLEX_EXPR:
+        return new ComplexGenerator(findGenerator(operands.get(0)));
 
       case FIX_TRUNC_EXPR:
         return new TruncateExprGenerator(findGenerator(operands.get(0)));      
@@ -352,7 +349,7 @@ public class FunctionGenerator {
       case NE_EXPR:
       case GT_EXPR:
       case GE_EXPR:
-        return new ComparisonGenerator(op,
+        return findComparisonGenerator(op,
             findGenerator(operands.get(0)),
             findGenerator(operands.get(1)));
       
@@ -371,6 +368,39 @@ public class FunctionGenerator {
       
       default:
         throw new UnsupportedOperationException("op: " + op);
+    }
+  }
+
+  private ExprGenerator findBinOpGenerator(GimpleOp op, List<GimpleExpr> operands) {
+    ExprGenerator x = findGenerator(operands.get(0));
+    ExprGenerator y = findGenerator(operands.get(1));
+    
+    if(x.getGimpleType() instanceof GimpleComplexType &&
+       y.getGimpleType() instanceof GimpleComplexType) {
+      
+      return new ComplexBinOperator(op, x, y);
+   
+    } else if(x.getGimpleType() instanceof GimplePrimitiveType &&
+              y.getGimpleType() instanceof GimplePrimitiveType) {
+
+      return new PrimitiveBinOpGenerator(op, x, y);
+      
+    } 
+      
+    throw new UnsupportedOperationException(op.name() + ": " + x.getGimpleType() + ", " + y.getGimpleType());
+  }
+
+  private ExprGenerator findComparisonGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+
+    if(x.getGimpleType() instanceof org.renjin.gcc.gimple.type.GimpleComplexType) {
+      return new ComplexCmpGenerator(op, x, y);
+      
+    } else if(x.getGimpleType() instanceof GimplePrimitiveType) {
+      return new PrimitiveCmpGenerator(op, x, y);
+    
+    } else {
+      throw new UnsupportedOperationException("Unsupported comparison " + op + " between types " + 
+          x.getGimpleType() + " and " + y.getGimpleType());
     }
   }
 

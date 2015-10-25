@@ -12,20 +12,20 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * Generates codes for binary comparisons
  */
-public class ComparisonGenerator extends AbstractExprGenerator implements ConditionGenerator, ValueGenerator {
+public class PrimitiveCmpGenerator extends AbstractExprGenerator implements ConditionGenerator, ValueGenerator {
   
   private GimpleOp op;
-  private ValueGenerator x;
-  private ValueGenerator y;
+  private ExprGenerator x;
+  private ExprGenerator y;
 
-  public ComparisonGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+  public PrimitiveCmpGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
     this.op = op;
-    this.x = (ValueGenerator) x;
-    this.y = (ValueGenerator) y;
+    this.x = x;
+    this.y = y;
   }
 
   @Override
-  public void emitJump(MethodVisitor mv, Label trueLabel) {
+  public void emitJump(MethodVisitor mv, Label trueLabel, Label falseLabel) {
 
     Type tx = x.getValueType();
     Type ty = y.getValueType();
@@ -53,6 +53,8 @@ public class ComparisonGenerator extends AbstractExprGenerator implements Condit
           tx,
           ty));
     }
+    
+    mv.visitJumpInsn(GOTO, falseLabel);
   }
 
   private int integerComparison() {
@@ -149,11 +151,13 @@ public class ComparisonGenerator extends AbstractExprGenerator implements Condit
     // Push this value as a boolean on the stack.
     // Requires a jump
     Label trueLabel = new Label();
+    Label falseLabel = new Label();
     Label exitLabel = new Label();
     
-    emitJump(mv, trueLabel);
+    emitJump(mv, trueLabel, falseLabel);
     
     // if false
+    mv.visitLabel(falseLabel);
     mv.visitInsn(ICONST_0);
     mv.visitJumpInsn(GOTO, exitLabel);
     

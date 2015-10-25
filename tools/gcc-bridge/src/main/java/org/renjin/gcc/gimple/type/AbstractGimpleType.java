@@ -3,6 +3,10 @@ package org.renjin.gcc.gimple.type;
 public abstract class AbstractGimpleType implements GimpleType {
   private int size;
 
+  /**
+   * 
+   * @return the size of values of this type, in bits
+   */
   public int getSize() {
     return size;
   }

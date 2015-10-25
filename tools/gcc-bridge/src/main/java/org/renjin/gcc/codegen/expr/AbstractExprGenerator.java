@@ -99,4 +99,5 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   public boolean isConstantIntEqualTo(int value) {
     return false;
   }
+
 }

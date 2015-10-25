@@ -10,8 +10,8 @@ public class GimpleFunctionType extends AbstractGimpleType {
   private int size;
   private List<GimpleType> argumentTypes = Lists.newArrayList();
   private boolean variableArguments;
-  
-  
+
+
   public int getSize() {
     return size;
   }

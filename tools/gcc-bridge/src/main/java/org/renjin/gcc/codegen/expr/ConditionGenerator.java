@@ -9,5 +9,5 @@ import org.objectweb.asm.MethodVisitor;
  */
 public interface ConditionGenerator extends ExprGenerator {
   
-  void emitJump(MethodVisitor mv, Label trueLabel);
+  void emitJump(MethodVisitor mv, Label trueLabel, Label falseLabel);
 }

@@ -10,13 +10,13 @@ import org.renjin.gcc.gimple.type.GimpleType;
 /**
  * Generates bytecode for a binary operation on primitives (IMUL, DMUL, IADD, etc)
  */
-public class BinaryOpGenerator extends AbstractExprGenerator implements ValueGenerator {
+public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements ValueGenerator {
   
   private int opCode;
   private final ValueGenerator x;
   private final ValueGenerator y;
 
-  public BinaryOpGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+  public PrimitiveBinOpGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
     this.opCode = opCodeFor(op);
     this.x = (ValueGenerator) x;
     this.y = (ValueGenerator) y;

@@ -5,6 +5,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.condition.ComplexCmpGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
@@ -57,8 +58,11 @@ public class FunctionGenerator {
   public String getMangledName() {
     return function.getMangledName();
   }
-  
-  
+
+  public GimpleFunction getFunction() {
+    return function;
+  }
+
   public void emit(ClassVisitor cw, VariableTable globalVars, FunctionTable functionTable) {
     this.localVariables = new VariableTable(globalVars);
     this.functionTable = functionTable;
@@ -112,13 +116,16 @@ public class FunctionGenerator {
     }
   }
 
-  /**
+  /*
    * Assign symbols to local variable slots.
    */
   private void scheduleLocalVariables() {
 
     // Dumb scheduling: give every local variable it's own slot
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
+      
+      System.out.println(varDecl + ": " + localVarAllocator.size());
+      
       VarGenerator generator;
       TypeFactory factory = generatorFactory.forType(varDecl.getType());
       if(varDecl.isAddressable()) {
@@ -179,20 +186,24 @@ public class FunctionGenerator {
     mv.visitLabel(labels.of(basicBlock));
 
     for (GimpleIns ins : basicBlock.getInstructions()) {
-      if(ins instanceof GimpleAssign) {
-        emitAssignment((GimpleAssign)ins);
-      } else if(ins instanceof GimpleReturn) {
-        emitReturn((GimpleReturn) ins);
-      } else if(ins instanceof GimpleGoto) {
-        emitGoto((GimpleGoto) ins);
-      } else if(ins instanceof GimpleConditional) {
-        emitConditional((GimpleConditional) ins);
-      } else if(ins instanceof GimpleCall) {
-        emitCall((GimpleCall)ins);
-      } else if(ins instanceof GimpleSwitch){
-        emitSwitch((GimpleSwitch)ins);
-      } else {
-        throw new UnsupportedOperationException("ins: " + ins);
+      try {
+        if (ins instanceof GimpleAssign) {
+          emitAssignment((GimpleAssign) ins);
+        } else if (ins instanceof GimpleReturn) {
+          emitReturn((GimpleReturn) ins);
+        } else if (ins instanceof GimpleGoto) {
+          emitGoto((GimpleGoto) ins);
+        } else if (ins instanceof GimpleConditional) {
+          emitConditional((GimpleConditional) ins);
+        } else if (ins instanceof GimpleCall) {
+          emitCall((GimpleCall) ins);
+        } else if (ins instanceof GimpleSwitch) {
+          emitSwitch((GimpleSwitch) ins);
+        } else {
+          throw new UnsupportedOperationException("ins: " + ins);
+        }
+      } catch (Exception e) {
+        throw new InternalCompilerException("Exception compiling instruction " + ins, e);
       }
     }
   }

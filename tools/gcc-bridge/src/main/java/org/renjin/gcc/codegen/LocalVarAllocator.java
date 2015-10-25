@@ -31,4 +31,8 @@ public class LocalVarAllocator {
   public int reserveInt() {
     return reserve(Type.INT_TYPE);
   }
+  
+  public int size() {
+    return slots;
+  }
 }

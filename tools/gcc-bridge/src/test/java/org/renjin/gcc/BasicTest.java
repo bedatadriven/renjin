@@ -472,4 +472,9 @@ public class BasicTest extends AbstractGccTest {
     }
   }
   
+  @Test
+  public void cher() throws Exception {
+    Class clazz = compile("cher.f", "Cher");
+
+  }
 }

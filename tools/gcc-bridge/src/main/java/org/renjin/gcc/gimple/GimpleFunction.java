@@ -15,6 +15,7 @@ public class GimpleFunction {
   private String name;
   private CallingConvention callingConvention;
   private GimpleType returnType;
+  private GimpleCompilationUnit unit;
   private List<GimpleBasicBlock> basicBlocks = Lists.newArrayList();
   private List<GimpleParameter> parameters = Lists.newArrayList();
   private List<GimpleVarDecl> variableDeclarations = Lists.newArrayList();
@@ -51,7 +52,15 @@ public class GimpleFunction {
   public List<GimpleVarDecl> getVariableDeclarations() {
     return variableDeclarations;
   }
-  
+
+  public GimpleCompilationUnit getUnit() {
+    return unit;
+  }
+
+  public void setUnit(GimpleCompilationUnit unit) {
+    this.unit = unit;
+  }
+
   public GimpleVarDecl addVarDecl(GimpleType type) {
     // find unused id
     int id = 1000;

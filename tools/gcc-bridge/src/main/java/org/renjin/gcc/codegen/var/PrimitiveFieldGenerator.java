@@ -7,22 +7,23 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.ValueGenerator;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * 
  */
-public class ValueFieldGenerator extends AbstractExprGenerator implements FieldGenerator, ValueGenerator {
+public class PrimitiveFieldGenerator extends AbstractExprGenerator implements FieldGenerator, ValueGenerator {
 
   private String fieldName;
   private String className;
-  private GimpleType gimpleType;
+  private GimplePrimitiveType gimpleType;
   private Type type;
 
-  public ValueFieldGenerator(String fieldName, String className, GimpleType gimpleType, Type type) {
+  public PrimitiveFieldGenerator(String fieldName, String className, GimpleType gimpleType, Type type) {
     this.fieldName = fieldName;
     this.className = className;
-    this.gimpleType = gimpleType;
+    this.gimpleType = (GimplePrimitiveType) gimpleType;
     this.type = type;
   }
 
@@ -44,7 +45,7 @@ public class ValueFieldGenerator extends AbstractExprGenerator implements FieldG
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-    
+    mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, type.getDescriptor());
   }
 
   @Override

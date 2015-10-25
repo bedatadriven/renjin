@@ -4,7 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.var.ValueVarGenerator;
+import org.renjin.gcc.codegen.var.PrimitiveVarGenerator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -35,7 +35,7 @@ public class PrimitiveParamGenerator extends ParamGenerator {
   @Override
   public ExprGenerator emitInitialization(MethodVisitor methodVisitor, int startIndex, LocalVarAllocator localVars) {
     // No initialization required, already set to the local variable
-    return new ValueVarGenerator(type, startIndex);
+    return new PrimitiveVarGenerator(type, startIndex);
   }
 
   @Override

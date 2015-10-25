@@ -6,8 +6,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.codegen.call.FunctionTable;
 import org.renjin.gcc.codegen.var.FieldGenerator;
+import org.renjin.gcc.codegen.var.PrimitiveFieldGenerator;
 import org.renjin.gcc.codegen.var.PtrFieldGenerator;
-import org.renjin.gcc.codegen.var.ValueFieldGenerator;
 import org.renjin.gcc.codegen.var.VariableTable;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -77,7 +77,7 @@ public class RecordClassGenerator {
 
   private FieldGenerator findGlobalVarGenerator(GimpleVarDecl gimpleVarDecl) {
     if(gimpleVarDecl.getType() instanceof GimplePrimitiveType) {
-      return new ValueFieldGenerator(gimpleVarDecl.getName(), className,
+      return new PrimitiveFieldGenerator(gimpleVarDecl.getName(), className,
           gimpleVarDecl.getType(),
           ((GimplePrimitiveType) gimpleVarDecl.getType()).jvmType());
     

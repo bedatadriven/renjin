@@ -58,6 +58,15 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
     mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
     mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
   }
+
+  @Override
+  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    valueGenerator.emitPushPtrArrayAndOffset(mv);
+    
+    // stack: (array, index)
+    mv.visitVarInsn(Opcodes.ISTORE, offsetIndex);
+    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
+  }
   
   @Override
   public WrapperType getPointerType() {
@@ -131,6 +140,6 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
       pushIndex(mv);
       mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));
     }
-
   }
+
 }

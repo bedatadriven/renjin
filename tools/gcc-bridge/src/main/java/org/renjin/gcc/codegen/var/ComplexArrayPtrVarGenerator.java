@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.var;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.*;
@@ -16,7 +17,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
   private final GimpleArrayType arrayType;
   private final GimpleComplexType complexType;
   private final Type partType;
-  
+
   private int arrayIndex;
   private int offsetIndex;
 
@@ -37,18 +38,18 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    
+
   }
 
   private void emitPushArray(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
   }
-  
+
   @Override
   public ExprGenerator valueOf() {
     return new ArrayValue();
   }
-  
+
   private class ArrayValue extends AbstractExprGenerator {
 
     @Override
@@ -61,7 +62,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
       return new Element(indexGenerator);
     }
   }
-  
+
   private class Element extends AbstractExprGenerator {
 
     private ExprGenerator indexGenerator;
@@ -73,6 +74,11 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
     @Override
     public GimpleType getGimpleType() {
       return arrayType.getComponentType();
+    }
+
+    @Override
+    public ExprGenerator addressOf() {
+      return new ElementPointer(this);
     }
 
     @Override
@@ -102,38 +108,38 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
       mv.visitInsn(Opcodes.IADD);
     }
 
-      @Override
+    @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-        emitPushArray(mv);
-        mv.visitInsn(Opcodes.DUP);
-        // stack: (array, array)
-        
-        // now push the index onto the stack
-        emitPushIndex(mv);
-        // stack: (array, array, index)
+      emitPushArray(mv);
+      mv.visitInsn(Opcodes.DUP);
+      // stack: (array, array)
 
-        // DUP_X1: (word2, word1) ->  (word1, word2, word1)
-        //         (array, index) -> (index, array, index)
-        mv.visitInsn(Opcodes.DUP_X1);
-        
-        // stack: (array, index, array, index)
-        valueGenerator.realPart().emitPrimitiveValue(mv);
-        
-        // stack: (array, index, array, index, real value)
-        mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
+      // now push the index onto the stack
+      emitPushIndex(mv);
+      // stack: (array, array, index)
 
-        // stack: (array, index)
-        mv.visitInsn(Opcodes.ICONST_1);
-        mv.visitInsn(Opcodes.IADD);
-        
-        // stack: (array, index+ 1)
-        valueGenerator.imaginaryPart().emitPrimitiveValue(mv);
-        
-        // stack: (array, index+1, imaginary value)
-        mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
+      // DUP_X1: (word2, word1) ->  (word1, word2, word1)
+      //         (array, index) -> (index, array, index)
+      mv.visitInsn(Opcodes.DUP_X1);
+
+      // stack: (array, index, array, index)
+      valueGenerator.realPart().emitPrimitiveValue(mv);
+
+      // stack: (array, index, array, index, real value)
+      mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
+
+      // stack: (array, index)
+      mv.visitInsn(Opcodes.ICONST_1);
+      mv.visitInsn(Opcodes.IADD);
+
+      // stack: (array, index+ 1)
+      valueGenerator.imaginaryPart().emitPrimitiveValue(mv);
+
+      // stack: (array, index+1, imaginary value)
+      mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     }
   }
-  
+
   private class ElementPart extends AbstractExprGenerator {
     private final int part;
     private Element element;
@@ -145,7 +151,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
     @Override
     public GimpleType getGimpleType() {
-      return new GimpleRealType(64);
+      return complexType.getPartType();
     }
 
     @Override
@@ -159,22 +165,52 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
       emitPushArray(mv);
       emitPushIndex(mv);
-      
+
       valueGenerator.emitPrimitiveValue(mv);
-      
+
       mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     }
 
     private void emitPushIndex(MethodVisitor mv) {
       // push the array index of this element
       element.emitPushIndex(mv);
-      
+
       // If we want the imaginary part, than we need to add one more
       // to the index.
       if(part == 1) {
         mv.visitInsn(Opcodes.ICONST_1);
         mv.visitInsn(Opcodes.IADD);
       }
+    }
+  }
+
+  private class ElementPointer extends AbstractExprGenerator {
+
+    private Element element;
+
+    public ElementPointer(Element element) {
+      this.element = element;
+    }
+
+    @Override
+    public GimpleType getGimpleType() {
+      return new GimplePointerType(element.getGimpleType());
+    }
+
+    @Override
+    public ExprGenerator valueOf() {
+      return element;
+    }
+
+    @Override
+    public WrapperType getPointerType() {
+      return WrapperType.of(partType);
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+      element.emitPushIndex(mv);
     }
   }
 

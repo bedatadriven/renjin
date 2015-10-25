@@ -46,7 +46,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
   @Override
   public VarGenerator varGenerator(LocalVarAllocator allocator) {
-    return new ValueVarGenerator(type, allocator.reserve(type.jvmType()));
+    return new PrimitiveVarGenerator(type, allocator.reserve(type.jvmType()));
   }
 
   @Override

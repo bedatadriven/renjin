@@ -7,18 +7,18 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.LValueGenerator;
 import org.renjin.gcc.codegen.expr.ValueGenerator;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import static org.objectweb.asm.Opcodes.ILOAD;
-import static org.objectweb.asm.Opcodes.ISTORE;
+import static org.objectweb.asm.Opcodes.*;
 
-public class ValueVarGenerator extends AbstractExprGenerator implements LValueGenerator, ValueGenerator, VarGenerator {
-  private GimpleType type;
+public class PrimitiveVarGenerator extends AbstractExprGenerator implements LValueGenerator, ValueGenerator, VarGenerator {
+  private GimplePrimitiveType type;
   private int localVarIndex;
 
-  public ValueVarGenerator(GimpleType type, int localVarIndex) {
+  public PrimitiveVarGenerator(GimpleType type, int localVarIndex) {
     this.localVarIndex = localVarIndex;
-    this.type = type;
+    this.type = (GimplePrimitiveType) type;
   }
 
   @Override
@@ -57,7 +57,20 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    
+    // this is pretty annoying, but we have to initialize local variables here.
+    // GCC will compile without error if an uninitialized variable *could* used, but 
+    // the JVM will refuse to verify the code.
+    Type primitiveType = getJvmPrimitiveType();
+    if(primitiveType.equals(Type.FLOAT_TYPE)) {
+      mv.visitInsn(FCONST_0);
+    } else if(primitiveType.equals(Type.DOUBLE_TYPE)) {
+      mv.visitInsn(DCONST_0);
+    } else if(primitiveType.equals(Type.LONG_TYPE)) {
+      mv.visitInsn(LCONST_0);
+    } else {
+      mv.visitInsn(ICONST_0);
+    }
+    mv.visitVarInsn(primitiveType.getOpcode(ISTORE), localVarIndex);
   }
 
   @Override

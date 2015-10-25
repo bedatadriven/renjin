@@ -39,12 +39,12 @@ public class ComplexVarGenerator extends AbstractExprGenerator implements VarGen
 
   @Override
   public ExprGenerator realPart() {
-    return new ValueVarGenerator(type.getPartType(), realIndex);
+    return new PrimitiveVarGenerator(type.getPartType(), realIndex);
   }
 
   @Override
   public ExprGenerator imaginaryPart() {
-    return new ValueVarGenerator(type.getPartType(), imaginaryIndex);
+    return new PrimitiveVarGenerator(type.getPartType(), imaginaryIndex);
   }
 
   @Override

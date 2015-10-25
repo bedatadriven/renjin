@@ -44,14 +44,10 @@ public class AddressableVarGenerator extends AbstractExprGenerator implements Va
   public ExprGenerator addressOf() {
     return new AddressOf();
   }
+  
 
   @Override
-  public Type getValueType() {
-    return componentType;
-  }
-
-  @Override
-  public void emitPushValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, index);
     mv.visitInsn(Opcodes.ICONST_0);
     mv.visitInsn(componentType.getOpcode(Opcodes.IALOAD));
@@ -61,7 +57,7 @@ public class AddressableVarGenerator extends AbstractExprGenerator implements Va
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     mv.visitVarInsn(Opcodes.ALOAD, index);
     mv.visitInsn(Opcodes.ICONST_0);
-    valueGenerator.emitPushValue(mv);
+    valueGenerator.emitPrimitiveValue(mv);
     mv.visitInsn(componentType.getOpcode(Opcodes.IASTORE));
   }
 

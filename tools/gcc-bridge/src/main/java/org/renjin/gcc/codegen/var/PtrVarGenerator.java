@@ -118,14 +118,9 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
     public GimpleType getGimpleType() {
       return componentType;
     }
-
+    
     @Override
-    public Type getValueType() {
-      return componentType.jvmType();
-    }
-
-    @Override
-    public void emitPushValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodVisitor mv) {
       // IALOAD (array, offset) => (value)
       emitPushArray(mv);
       // compute index ( pointer offset + array index)
@@ -137,12 +132,12 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      Preconditions.checkState(valueGenerator.getValueType().equals(componentType.jvmType()));
+      Preconditions.checkState(valueGenerator.getJvmPrimitiveType().equals(componentType.jvmType()));
 
       // IALOAD (array, offset) => (value)
       emitPushArray(mv);
       pushComputeIndex(mv);
-      valueGenerator.emitPushValue(mv);
+      valueGenerator.emitPrimitiveValue(mv);
 
       // store to array
       mv.visitInsn(componentType.jvmType().getOpcode(IASTORE));
@@ -151,7 +146,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
     private void pushComputeIndex(MethodVisitor mv) {
       // original pointer offset + array index
       mv.visitVarInsn(ILOAD, offsetVariableIndex);
-      indexGenerator.emitPushValue(mv);
+      indexGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(IADD);
     }
 
@@ -175,7 +170,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
 
     @Override
     public WrapperType getPointerType() {
-      return WrapperType.of(element.getValueType());
+      return WrapperType.of(element.getJvmPrimitiveType());
     }
 
     @Override
@@ -196,29 +191,25 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
     public ExprGenerator addressOf() {
       return PtrVarGenerator.this;
     }
+    
 
     @Override
-    public Type getValueType() {
-      return getGimpleType().jvmType();
-    }
-
-    @Override
-    public void emitPushValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodVisitor mv) {
       // IALOAD : (array, offset) 
       emitPushArray(mv);
       mv.visitVarInsn(ILOAD, offsetVariableIndex);
-      mv.visitInsn(getValueType().getOpcode(IALOAD));
+      mv.visitInsn(getJvmPrimitiveType().getOpcode(IALOAD));
     }
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      Preconditions.checkState(valueGenerator.getValueType().equals(getValueType()));
+      Preconditions.checkState(valueGenerator.getJvmPrimitiveType().equals(getJvmPrimitiveType()));
 
       // IASTORE (array, offset, value)
       emitPushArray(mv);
       mv.visitVarInsn(ILOAD, offsetVariableIndex);
-      valueGenerator.emitPushValue(mv);
-      mv.visitInsn(getValueType().getOpcode(IASTORE));
+      valueGenerator.emitPrimitiveValue(mv);
+      mv.visitInsn(getJvmPrimitiveType().getOpcode(IASTORE));
     }
   }
 }

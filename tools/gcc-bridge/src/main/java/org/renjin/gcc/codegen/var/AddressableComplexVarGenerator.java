@@ -47,12 +47,12 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
     // stack (array, array)
     // store real part
     mv.visitInsn(Opcodes.ICONST_0);
-    valueGenerator.realPart().emitPushValue(mv);
+    valueGenerator.realPart().emitPrimitiveValue(mv);
     mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     
     // store imaginary part
     mv.visitInsn(Opcodes.ICONST_1);
-    valueGenerator.imaginaryPart().emitPushValue(mv);
+    valueGenerator.imaginaryPart().emitPrimitiveValue(mv);
     mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
   }
 
@@ -90,14 +90,10 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
     public GimpleType getGimpleType() {
       return type.getPartType();
     }
+    
 
     @Override
-    public Type getValueType() {
-      return partType;
-    }
-
-    @Override
-    public void emitPushValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
       mv.visitInsn(Opcodes.ICONST_0 + offset);
       mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));

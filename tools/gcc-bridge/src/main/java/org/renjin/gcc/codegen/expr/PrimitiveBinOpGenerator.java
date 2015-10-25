@@ -53,8 +53,8 @@ public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements Va
   }
 
   private void checkTypes() {
-    Type tx = x.getValueType();
-    Type ty = y.getValueType();
+    Type tx = x.getJvmPrimitiveType();
+    Type ty = y.getJvmPrimitiveType();
 
     if(!tx.equals(ty)) {
       throw new IllegalStateException(String.format(
@@ -63,20 +63,15 @@ public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements Va
   }
 
   @Override
-  public void emitPushValue(MethodVisitor mv) {
-    x.emitPushValue(mv);
-    y.emitPushValue(mv);
-    mv.visitInsn(getValueType().getOpcode(opCode));
+  public void emitPrimitiveValue(MethodVisitor mv) {
+    x.emitPrimitiveValue(mv);
+    y.emitPrimitiveValue(mv);
+    mv.visitInsn(getJvmPrimitiveType().getOpcode(opCode));
   }
 
   @Override
   public String toString() {
     return "(" + x + " " + Printer.OPCODES[opCode] + " " + y + ")";
-  }
-
-  @Override
-  public Type getValueType() {
-    return x.getValueType();
   }
 
   @Override

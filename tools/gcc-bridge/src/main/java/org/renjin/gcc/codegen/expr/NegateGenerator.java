@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -15,16 +14,12 @@ public class NegateGenerator extends AbstractExprGenerator implements ValueGener
   public NegateGenerator(ExprGenerator operand) {
     this.operand = (ValueGenerator) operand;
   }
+  
 
   @Override
-  public Type getValueType() {
-    return operand.getValueType();
-  }
-
-  @Override
-  public void emitPushValue(MethodVisitor mv) {
-    operand.emitPushValue(mv);
-    mv.visitInsn(operand.getValueType().getOpcode(Opcodes.INEG));
+  public void emitPrimitiveValue(MethodVisitor mv) {
+    operand.emitPrimitiveValue(mv);
+    mv.visitInsn(operand.getJvmPrimitiveType().getOpcode(Opcodes.INEG));
   }
 
   @Override

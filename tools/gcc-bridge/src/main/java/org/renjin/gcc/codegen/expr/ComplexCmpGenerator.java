@@ -48,8 +48,8 @@ public class ComplexCmpGenerator extends AbstractExprGenerator implements Condit
   private void emitJumpIfEqual(MethodVisitor mv, Label equalLabel, Label notEqualLabel) {
     
     // First check real part 
-    x.realPart().emitPushValue(mv);
-    y.realPart().emitPushValue(mv);
+    x.realPart().emitPrimitiveValue(mv);
+    y.realPart().emitPrimitiveValue(mv);
 
     // Compare the two real values.
     // If they are equal, ZERO is pushed onto the stack
@@ -60,8 +60,8 @@ public class ComplexCmpGenerator extends AbstractExprGenerator implements Condit
     mv.visitJumpInsn(Opcodes.IFNE, notEqualLabel);
 
     // Now check imaginary part
-    x.imaginaryPart().emitPushValue(mv);
-    y.imaginaryPart().emitPushValue(mv);
+    x.imaginaryPart().emitPrimitiveValue(mv);
+    y.imaginaryPart().emitPrimitiveValue(mv);
 
     // Compare the two imaginary values.
     // If they are equal, ZERO is pushed onto the stack

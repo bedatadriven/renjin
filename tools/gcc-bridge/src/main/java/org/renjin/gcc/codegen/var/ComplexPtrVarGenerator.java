@@ -91,14 +91,14 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
 
       // Store the real part first
       mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
-      valueGenerator.realPart().emitPushValue(mv);
+      valueGenerator.realPart().emitPrimitiveValue(mv);
       mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
 
       // Now store the complex part
       mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
       mv.visitInsn(Opcodes.ICONST_1);
       mv.visitInsn(Opcodes.IADD);
-      valueGenerator.imaginaryPart().emitPushValue(mv);
+      valueGenerator.imaginaryPart().emitPrimitiveValue(mv);
       mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     }
 
@@ -116,13 +116,7 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
     public GimpleType getGimpleType() {
       return baseType.getPartType();
     }
-
-    @Override
-    public Type getValueType() {
-      return partType;
-    }
-
-
+    
     private void pushIndex(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
       if(offset == IM_OFFSET) {
@@ -132,7 +126,7 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
     }
 
     @Override
-    public void emitPushValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
       pushIndex(mv);
       mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));

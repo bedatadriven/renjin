@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.Types;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -21,18 +20,12 @@ public class MaxGenerator extends  AbstractExprGenerator implements ValueGenerat
   public GimpleType getGimpleType() {
     return x.getGimpleType();
   }
-
-
+  
   @Override
-  public Type getValueType() {
-    return x.getValueType();
-  }
-
-  @Override
-  public void emitPushValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodVisitor mv) {
     
-    x.emitPushValue(mv);
-    y.emitPushValue(mv);
+    x.emitPrimitiveValue(mv);
+    y.emitPrimitiveValue(mv);
     
     if(Types.isInt(x) && Types.isInt(y)) {
       mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", "max", "(II)I", false);

@@ -27,16 +27,16 @@ public class PrimitiveCmpGenerator extends AbstractExprGenerator implements Cond
   @Override
   public void emitJump(MethodVisitor mv, Label trueLabel, Label falseLabel) {
 
-    Type tx = x.getValueType();
-    Type ty = y.getValueType();
+    Type tx = x.getJvmPrimitiveType();
+    Type ty = y.getJvmPrimitiveType();
     
     if(!tx.equals(ty)) {
       throw new UnsupportedOperationException("Type mismatch: " + tx + " != " + ty);
     }
     
     // Push two operands on the stack
-    x.emitPushValue(mv);
-    y.emitPushValue(mv);
+    x.emitPrimitiveValue(mv);
+    y.emitPrimitiveValue(mv);
     
     if (tx.equals(Type.INT_TYPE) || tx.equals(Type.BOOLEAN_TYPE)) {
       
@@ -136,18 +136,12 @@ public class PrimitiveCmpGenerator extends AbstractExprGenerator implements Cond
   }
 
   private boolean isDouble() {
-    return x.getValueType().equals(Type.DOUBLE_TYPE);
+    return x.getJvmPrimitiveType().equals(Type.DOUBLE_TYPE);
   }
-
+  
 
   @Override
-  public Type getValueType() {
-    // has a type of boolean, but within method bodies this is treated as an integer
-    return Type.INT_TYPE;
-  }
-
-  @Override
-  public void emitPushValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodVisitor mv) {
     // Push this value as a boolean on the stack.
     // Requires a jump
     Label trueLabel = new Label();

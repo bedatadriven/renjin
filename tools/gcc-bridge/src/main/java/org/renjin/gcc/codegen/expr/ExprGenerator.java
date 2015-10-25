@@ -51,7 +51,7 @@ public interface ExprGenerator {
    * @return the JVM type of the value pushed 
    * @throws UnsupportedOperationException if this is not a value expression
    */
-  Type getValueType();
+  Type getJvmPrimitiveType();
 
   /**
    * 
@@ -71,7 +71,7 @@ public interface ExprGenerator {
    * Writes the code to push this value on the stack.
    * @throws UnsupportedOperationException if this is not a value expression
    */
-  void emitPushValue(MethodVisitor mv);
+  void emitPrimitiveValue(MethodVisitor mv);
 
   /**
    * Writes the code push the array and offset backing this pointer onto the stack

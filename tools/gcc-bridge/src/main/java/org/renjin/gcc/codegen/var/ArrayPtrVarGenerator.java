@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.var;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -94,20 +93,15 @@ public class ArrayPtrVarGenerator extends AbstractExprGenerator implements VarGe
     public GimpleType getGimpleType() {
       return componentType;
     }
-
-    @Override
-    public Type getValueType() {
-      return componentType.jvmType();
-    }
-
+    
     private void emitPushIndex(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
-      indexGenerator.emitPushValue(mv);
+      indexGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(Opcodes.IADD);
     }
     
     @Override
-    public void emitPushValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodVisitor mv) {
       mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
       emitPushIndex(mv);
       mv.visitInsn(componentType.jvmType().getOpcode(Opcodes.IALOAD));
@@ -117,7 +111,7 @@ public class ArrayPtrVarGenerator extends AbstractExprGenerator implements VarGe
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
       mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
       emitPushIndex(mv);
-      valueGenerator.emitPushValue(mv);
+      valueGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(componentType.jvmType().getOpcode(Opcodes.IASTORE));
     }
   }

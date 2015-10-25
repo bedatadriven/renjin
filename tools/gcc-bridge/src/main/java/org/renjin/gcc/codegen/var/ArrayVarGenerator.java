@@ -41,11 +41,6 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
   }
 
   @Override
-  public Type getValueType() {
-    return Type.getType("[" + componentType.getDescriptor());
-  }
-
-  @Override
   public void emitDefaultInit(MethodVisitor mv) {
 
     mv.visitLdcInsn(gimpleType.getUbound() - gimpleType.getLbound() + 1);
@@ -62,7 +57,7 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
 
 
   @Override
-  public void emitPushValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodVisitor mv) {
     mv.visitVarInsn(ALOAD, arrayIndex);
   }
 
@@ -123,22 +118,17 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
     }
 
     @Override
-    public Type getValueType() {
-      return componentType;
-    }
-
-    @Override
-    public void emitPushValue(MethodVisitor mv) {
-      ArrayVarGenerator.this.emitPushValue(mv);
-      indexGenerator.emitPushValue(mv);
+    public void emitPrimitiveValue(MethodVisitor mv) {
+      ArrayVarGenerator.this.emitPrimitiveValue(mv);
+      indexGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(componentType.getOpcode(IALOAD));    
     }
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      ArrayVarGenerator.this.emitPushValue(mv);
-      indexGenerator.emitPushValue(mv);
-      valueGenerator.emitPushValue(mv);
+      ArrayVarGenerator.this.emitPrimitiveValue(mv);
+      indexGenerator.emitPrimitiveValue(mv);
+      valueGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(componentType.getOpcode(IASTORE));
     }
   }

@@ -24,29 +24,24 @@ public class BitwiseShiftGenerator extends AbstractExprGenerator implements Valu
   
     if(!checkTypes()) {
       throw new UnsupportedOperationException("Shift operations require types (int, int) or (long, int), found: " +
-          this.x.getValueType() + ", " + this.y.getValueType());
+          this.x.getJvmPrimitiveType() + ", " + this.y.getJvmPrimitiveType());
     }
   }
 
   private boolean checkTypes() {
-    Type tx = x.getValueType();
-    Type ty = y.getValueType();
+    Type tx = x.getJvmPrimitiveType();
+    Type ty = y.getJvmPrimitiveType();
     
     return (tx.equals(Type.INT_TYPE) || tx.equals(Type.LONG_TYPE)) &&
            ty.equals(Type.INT_TYPE);
   }
-  
-  @Override
-  public Type getValueType() {
-    return x.getValueType();
-  }
 
   @Override
-  public void emitPushValue(MethodVisitor mv) {
-    x.emitPushValue(mv);
-    y.emitPushValue(mv);
+  public void emitPrimitiveValue(MethodVisitor mv) {
+    x.emitPrimitiveValue(mv);
+    y.emitPrimitiveValue(mv);
     
-    mv.visitInsn(x.getValueType().getOpcode(op == GimpleOp.LSHIFT_EXPR ? ISHL : ISHR));
+    mv.visitInsn(x.getJvmPrimitiveType().getOpcode(op == GimpleOp.LSHIFT_EXPR ? ISHL : ISHR));
   }
 
   @Override

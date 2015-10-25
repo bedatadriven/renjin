@@ -35,12 +35,12 @@ public class PtrPlusGenerator extends AbstractExprGenerator implements PtrGenera
 
     if(offset instanceof PrimitiveConstValueGenerator) {
       // If the pointer is incremented by a constant amount, we can calculate the offset now
-      ((PrimitiveConstValueGenerator) offset).divideBy(sizeInBytes).emitPushValue(mv);
+      ((PrimitiveConstValueGenerator) offset).divideBy(sizeInBytes).emitPrimitiveValue(mv);
       
     } else {
       // Otherwise we have to compute the offset at runtime
-      offset.emitPushValue(mv);
-      new PrimitiveConstValueGenerator(new GimpleIntegerType(32), sizeInBytes).emitPushValue(mv);
+      offset.emitPrimitiveValue(mv);
+      new PrimitiveConstValueGenerator(new GimpleIntegerType(32), sizeInBytes).emitPrimitiveValue(mv);
       mv.visitInsn(IDIV);
     }
   }

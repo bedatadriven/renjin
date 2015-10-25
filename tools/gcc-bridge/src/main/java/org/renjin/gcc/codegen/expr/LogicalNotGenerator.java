@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 public class LogicalNotGenerator extends AbstractExprGenerator implements ValueGenerator {
@@ -15,16 +14,11 @@ public class LogicalNotGenerator extends AbstractExprGenerator implements ValueG
   }
 
   @Override
-  public Type getValueType() {
-    return Type.BOOLEAN_TYPE;
-  }
-
-  @Override
-  public void emitPushValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodVisitor mv) {
     Label trueLabel = new Label();
     Label exit = new Label();
     
-    operand.emitPushValue(mv);
+    operand.emitPrimitiveValue(mv);
     mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
     
     // operand is FALSE, push TRUE onto stack

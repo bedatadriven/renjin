@@ -5,6 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 public abstract class AbstractExprGenerator implements ExprGenerator {
 
@@ -37,8 +38,19 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
         toString(), getClass().getSimpleName()));
   }
 
+
   @Override
-  public void emitPushValue(MethodVisitor mv) {
+  public final Type getJvmPrimitiveType() {
+    if(getGimpleType() instanceof GimplePrimitiveType) {
+      return ((GimplePrimitiveType) getGimpleType()).jvmType();
+    } else {
+      throw new UnsupportedOperationException(String.format("%s [%s] is not a value of primitive type (%s)",
+          toString(), getClass().getSimpleName(), getGimpleType()));
+    }
+  }
+  
+  @Override
+  public void emitPrimitiveValue(MethodVisitor mv) {
     throw new UnsupportedOperationException(String.format("%s [%s] is not a value type",
         toString(), getClass().getSimpleName()));
   
@@ -69,17 +81,17 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
 
   @Override
   public void emitPushComplexAsArray(MethodVisitor mv) {
-    Type partType = realPart().getValueType();
+    Type partType = realPart().getJvmPrimitiveType();
     
     mv.visitInsn(Opcodes.ICONST_2);
     MallocGenerator.emitNewArray(mv, partType);
     mv.visitInsn(Opcodes.DUP);
     mv.visitInsn(Opcodes.ICONST_0);
-    realPart().emitPushValue(mv);
+    realPart().emitPrimitiveValue(mv);
     mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     mv.visitInsn(Opcodes.DUP);
     mv.visitInsn(Opcodes.ICONST_1);
-    imaginaryPart().emitPushValue(mv);
+    imaginaryPart().emitPrimitiveValue(mv);
     mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
   }
 
@@ -89,11 +101,6 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
         toString(), getClass().getSimpleName())); 
   }
 
-  @Override
-  public Type getValueType() {
-    throw new UnsupportedOperationException(String.format("%s [%s] is not a value type",
-        toString(), getClass().getSimpleName()));
-  }
 
   @Override
   public boolean isConstantIntEqualTo(int value) {

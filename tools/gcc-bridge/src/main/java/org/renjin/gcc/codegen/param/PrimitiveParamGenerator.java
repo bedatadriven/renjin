@@ -40,6 +40,6 @@ public class PrimitiveParamGenerator extends ParamGenerator {
 
   @Override
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
-    parameterValueGenerator.emitPushValue(mv);
+    parameterValueGenerator.emitPrimitiveValue(mv);
   }
 }

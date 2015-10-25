@@ -28,7 +28,7 @@ public class PrimitiveReturnGenerator implements ReturnGenerator {
   @Override
   public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
     ValueGenerator primitiveGenerator = (ValueGenerator) valueGenerator;
-    primitiveGenerator.emitPushValue(mv);
+    primitiveGenerator.emitPrimitiveValue(mv);
     mv.visitInsn(type.getOpcode(IRETURN));
   }
 

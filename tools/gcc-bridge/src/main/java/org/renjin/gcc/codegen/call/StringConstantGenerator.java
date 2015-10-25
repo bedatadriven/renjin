@@ -121,7 +121,7 @@ public class StringConstantGenerator extends AbstractExprGenerator  {
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       pushStringAsByteArray(mv);
-      indexGenerator.emitPushValue(mv);
+      indexGenerator.emitPrimitiveValue(mv);
     }
   }
 }

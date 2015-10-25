@@ -192,7 +192,7 @@ public class FunctionGenerator {
 
   private void emitSwitch(GimpleSwitch ins) {
     ExprGenerator valueGenerator = findGenerator(ins.getValue());
-    valueGenerator.emitPushValue(mv);
+    valueGenerator.emitPrimitiveValue(mv);
     Label defaultLabel = labels.of(ins.getDefaultCase().getBasicBlockIndex());
 
     int numCases = ins.getCases().size();
@@ -224,7 +224,7 @@ public class FunctionGenerator {
 
   private ExprGenerator findGenerator(ExprGenerator lhs, GimpleOp operator, List<GimpleExpr> operands) {
     if(operator == GimpleOp.CONVERT_EXPR) {
-      return new ConvertGenerator(findGenerator(operands.get(0)), lhs.getValueType());
+      return new ConvertGenerator(findGenerator(operands.get(0)), (GimplePrimitiveType) lhs.getGimpleType());
     
     } else {
       return findGenerator(operator, operands);

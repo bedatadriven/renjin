@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -16,24 +17,20 @@ public class DoubleGenerator extends AbstractExprGenerator implements ValueGener
     this.valueGenerator = (ValueGenerator) valueGenerator;
   }
 
-  @Override
-  public Type getValueType() {
-    return Type.DOUBLE_TYPE;
-  }
 
   @Override
-  public void emitPushValue(MethodVisitor mv) {
-    valueGenerator.emitPushValue(mv);
+  public void emitPrimitiveValue(MethodVisitor mv) {
+    valueGenerator.emitPrimitiveValue(mv);
     
-    if(valueGenerator.getValueType().equals(Type.INT_TYPE)) {
+    if(valueGenerator.getJvmPrimitiveType().equals(Type.INT_TYPE)) {
       mv.visitInsn(Opcodes.I2D);
     } else {
-      throw new UnsupportedOperationException("from type: " + valueGenerator.getValueType());
+      throw new UnsupportedOperationException("from type: " + valueGenerator.getJvmPrimitiveType());
     }
   }
 
   @Override
   public GimpleType getGimpleType() {
-    throw new UnsupportedOperationException();
+    return new GimpleRealType(64);
   }
 }

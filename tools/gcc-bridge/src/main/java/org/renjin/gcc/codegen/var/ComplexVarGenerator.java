@@ -50,11 +50,11 @@ public class ComplexVarGenerator extends AbstractExprGenerator implements VarGen
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     // store real part
-    valueGenerator.realPart().emitPushValue(mv);
+    valueGenerator.realPart().emitPrimitiveValue(mv);
     mv.visitVarInsn(partType.getOpcode(Opcodes.ISTORE), realIndex);
     
     // store imaginary part
-    valueGenerator.imaginaryPart().emitPushValue(mv);
+    valueGenerator.imaginaryPart().emitPrimitiveValue(mv);
     mv.visitVarInsn(partType.getOpcode(Opcodes.ISTORE), imaginaryIndex);
   }
 

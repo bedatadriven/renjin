@@ -8,6 +8,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.ValueGenerator;
+import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -68,6 +69,8 @@ public class MethodCallGenerator implements CallGenerator {
       return new GimpleRealType(32);
     } else if(returnType.equals(Type.DOUBLE_TYPE)) {
       return new GimpleRealType(64);
+    } else if(returnType.equals(Type.BOOLEAN_TYPE)) {
+      return new GimpleBooleanType();
     } else {
       throw new UnsupportedOperationException("returnType: " + returnType);
     }
@@ -89,7 +92,7 @@ public class MethodCallGenerator implements CallGenerator {
       
     } else if(generator instanceof ValueGenerator) {
       ValueGenerator valueGenerator = (ValueGenerator) generator;
-      if(valueGenerator.getValueType().equals(paramType)) {
+      if(valueGenerator.getJvmPrimitiveType().equals(paramType)) {
         return new ValueParamConverter(valueGenerator);
       }
     }

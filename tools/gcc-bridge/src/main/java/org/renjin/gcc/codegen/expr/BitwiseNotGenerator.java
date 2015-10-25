@@ -13,22 +13,18 @@ public class BitwiseNotGenerator extends AbstractExprGenerator implements ValueG
   public BitwiseNotGenerator(ExprGenerator valueGenerator) {
     this.valueGenerator = (ValueGenerator) valueGenerator;
   }
+  
 
   @Override
-  public Type getValueType() {
-    return Type.INT_TYPE;
-  }
-
-  @Override
-  public void emitPushValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodVisitor mv) {
     
-    if(!valueGenerator.getValueType().equals(Type.INT_TYPE)) {
+    if(!valueGenerator.getJvmPrimitiveType().equals(Type.INT_TYPE)) {
       throw new UnsupportedOperationException("Bitwise not only supported for int32 operands.");
     }
     
     // Unary bitwise complement operator is implemented
     // as an XOR operation with -1 (all bits set)
-    valueGenerator.emitPushValue(mv);
+    valueGenerator.emitPrimitiveValue(mv);
     mv.visitInsn(Opcodes.ICONST_M1);
     mv.visitInsn(Opcodes.IXOR);
   }

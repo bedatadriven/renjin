@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -10,25 +11,26 @@ import org.renjin.gcc.gimple.type.GimpleType;
 public class ConvertGenerator extends AbstractExprGenerator implements ValueGenerator {
   
   private ValueGenerator valueGenerator;
-  private Type destinationType;
+  private GimplePrimitiveType destinationType;
 
-  public ConvertGenerator(ExprGenerator valueGenerator, Type destinationType) {
+  public ConvertGenerator(ExprGenerator valueGenerator, GimplePrimitiveType destinationType) {
     this.valueGenerator = (ValueGenerator) valueGenerator;
     this.destinationType = destinationType;
   }
+  
 
   @Override
-  public Type getValueType() {
+  public GimpleType getGimpleType() {
     return destinationType;
   }
 
   @Override
-  public void emitPushValue(MethodVisitor mv) {
-    Type sourceType = valueGenerator.getValueType();
+  public void emitPrimitiveValue(MethodVisitor mv) {
+    Type sourceType = valueGenerator.getJvmPrimitiveType();
     
-    if(isIntType(sourceType) && isIntType(destinationType)) {
+    if(isIntType(sourceType) && isIntType(destinationType.jvmType())) {
       // no conversion necessary
-      valueGenerator.emitPushValue(mv);
+      valueGenerator.emitPrimitiveValue(mv);
     
     } else {
       throw new UnsupportedOperationException(String.format("Cannot convert from %s to %s",
@@ -43,8 +45,4 @@ public class ConvertGenerator extends AbstractExprGenerator implements ValueGene
            type.equals(Type.CHAR_TYPE);
   }
 
-  @Override
-  public GimpleType getGimpleType() {
-    throw new UnsupportedOperationException("todo");
-  }
 }

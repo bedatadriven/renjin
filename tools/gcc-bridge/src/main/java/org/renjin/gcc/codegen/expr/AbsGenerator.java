@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.Types;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
@@ -20,31 +19,26 @@ public class AbsGenerator extends  AbstractExprGenerator implements ValueGenerat
         return x.getGimpleType();
     }
 
-
+    
     @Override
-    public Type getValueType() {
-        return x.getValueType();
-    }
+    public void emitPrimitiveValue(MethodVisitor mv) {
 
-    @Override
-    public void emitPushValue(MethodVisitor mv) {
+        x.emitPrimitiveValue(mv);
 
-        x.emitPushValue(mv);
-
-        if(x.getValueType().equals(Type.INT_TYPE)) {
+        if(x.getJvmPrimitiveType().equals(Type.INT_TYPE)) {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", "abs", "(I)I", false);
 
-        } else if(x.getValueType().equals(Type.DOUBLE_TYPE)) {
+        } else if(x.getJvmPrimitiveType().equals(Type.DOUBLE_TYPE)) {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", "abs", "(D)D", false);
 
-        } else if(x.getValueType().equals(Type.FLOAT_TYPE)) {
+        } else if(x.getJvmPrimitiveType().equals(Type.FLOAT_TYPE)) {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", "abs", "(F)F", false);
 
-        } else if(x.getValueType().equals(Type.LONG_TYPE)) {
+        } else if(x.getJvmPrimitiveType().equals(Type.LONG_TYPE)) {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", "abs", "(J)J", false);
 
         } else {
-            throw new UnsupportedOperationException(String.format("abs (%s)", x.getValueType()));
+            throw new UnsupportedOperationException(String.format("abs (%s)", x.getJvmPrimitiveType()));
         }
     }
 }

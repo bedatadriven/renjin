@@ -43,7 +43,7 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     // first calculate the size of the array from the argument,
     // which is in bytes
-    sizeGenerator.emitPushValue(mv);
+    sizeGenerator.emitPrimitiveValue(mv);
     mv.visitLdcInsn(gimpleBaseType.sizeOf());
     mv.visitInsn(IDIV);
 

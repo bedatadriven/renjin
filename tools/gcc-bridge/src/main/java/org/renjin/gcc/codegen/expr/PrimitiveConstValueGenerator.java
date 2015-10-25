@@ -27,12 +27,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
   }
 
   @Override
-  public Type getValueType() {
-    return gimpleType.jvmType();
-  }
-
-  @Override
-  public void emitPushValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodVisitor mv) {
     Type type = this.gimpleType.jvmType();
     if(type.equals(Type.INT_TYPE) || type.equals(Type.BOOLEAN_TYPE)) {
       emitInt(mv, value.intValue());
@@ -142,7 +137,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
       // IASTORE: (array, index, value) 
       mv.visitInsn(DUP);
       mv.visitInsn(ICONST_0);
-      PrimitiveConstValueGenerator.this.emitPushValue(mv);
+      PrimitiveConstValueGenerator.this.emitPrimitiveValue(mv);
       mv.visitInsn(type.getOpcode(IASTORE));
       
       // should still have the array on the stack

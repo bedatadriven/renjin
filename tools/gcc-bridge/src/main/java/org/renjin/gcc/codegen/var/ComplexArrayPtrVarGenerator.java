@@ -93,7 +93,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
       // Now compute the index into the array, relative to the
       // base offset. Since each element requires two double elements,
       // we have to multiply by 2 in order to get the index
-      indexGenerator.emitPushValue(mv);
+      indexGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(Opcodes.ICONST_2);
       mv.visitInsn(Opcodes.IMUL);
 
@@ -117,7 +117,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
         mv.visitInsn(Opcodes.DUP_X1);
         
         // stack: (array, index, array, index)
-        valueGenerator.realPart().emitPushValue(mv);
+        valueGenerator.realPart().emitPrimitiveValue(mv);
         
         // stack: (array, index, array, index, real value)
         mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
@@ -127,7 +127,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
         mv.visitInsn(Opcodes.IADD);
         
         // stack: (array, index+ 1)
-        valueGenerator.imaginaryPart().emitPushValue(mv);
+        valueGenerator.imaginaryPart().emitPrimitiveValue(mv);
         
         // stack: (array, index+1, imaginary value)
         mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
@@ -149,7 +149,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
     }
 
     @Override
-    public void emitPushValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodVisitor mv) {
       emitPushArray(mv);
       emitPushIndex(mv);
       mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));
@@ -160,7 +160,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
       emitPushArray(mv);
       emitPushIndex(mv);
       
-      valueGenerator.emitPushValue(mv);
+      valueGenerator.emitPrimitiveValue(mv);
       
       mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     }

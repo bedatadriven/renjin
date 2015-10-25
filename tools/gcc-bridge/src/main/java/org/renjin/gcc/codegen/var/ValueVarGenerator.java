@@ -9,7 +9,6 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.LValueGenerator;
 import org.renjin.gcc.codegen.expr.ValueGenerator;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ILOAD;
@@ -26,7 +25,7 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-    valueGenerator.emitPushValue(mv);
+    valueGenerator.emitPrimitiveValue(mv);
 
     if(Types.isInt(this) && Types.isLong(valueGenerator)) {
       mv.visitInsn(Opcodes.L2I);
@@ -39,19 +38,19 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
       Preconditions.checkArgument(checkTypes(valueGenerator),
           "Type mismatch: Cannot assign %s of type %s to %s of type %s",
           valueGenerator,
-          valueGenerator.getValueType(),
+          valueGenerator.getJvmPrimitiveType(),
           this,
-          getValueType());
+          getJvmPrimitiveType());
 
     }
 
-    mv.visitVarInsn(getValueType().getOpcode(ISTORE), localVarIndex);
+    mv.visitVarInsn(getJvmPrimitiveType().getOpcode(ISTORE), localVarIndex);
 
   }
 
   private boolean checkTypes(ExprGenerator valueGenerator) {
-    Type varType = getValueType();
-    Type valueType = valueGenerator.getValueType();
+    Type varType = getJvmPrimitiveType();
+    Type valueType = valueGenerator.getJvmPrimitiveType();
  
     return (isIntType(varType) && isIntType(valueType)) ||
            varType.equals(valueType);
@@ -62,18 +61,10 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
            type.equals(Type.BYTE_TYPE) ||
            type.equals(Type.INT_TYPE);
   }
-  
-  @Override
-  public Type getValueType() {
-    if(type instanceof GimplePrimitiveType) {
-      return ((GimplePrimitiveType) type).jvmType();
-    }
-    throw new UnsupportedOperationException();
-  }
 
   @Override
-  public void emitPushValue(MethodVisitor mv) {
-    mv.visitVarInsn(getValueType().getOpcode(ILOAD), localVarIndex);
+  public void emitPrimitiveValue(MethodVisitor mv) {
+    mv.visitVarInsn(getJvmPrimitiveType().getOpcode(ILOAD), localVarIndex);
   }
 
   @Override

@@ -26,11 +26,6 @@ public class ValueFieldGenerator extends AbstractExprGenerator implements FieldG
     this.type = type;
   }
 
-  @Override
-  public Type getValueType() {
-    return type;
-  }
-
 
   @Override
   public void emitField(ClassVisitor cv) {
@@ -38,7 +33,7 @@ public class ValueFieldGenerator extends AbstractExprGenerator implements FieldG
   }
   
   @Override
-  public void emitPushValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodVisitor mv) {
     mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, type.getDescriptor());
   }
 

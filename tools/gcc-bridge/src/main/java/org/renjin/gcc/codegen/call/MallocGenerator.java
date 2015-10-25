@@ -39,6 +39,19 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
     return false;
   }
 
+
+  public static boolean isFree(GimpleExpr functionExpr) {
+    if (functionExpr instanceof GimpleAddressOf) {
+      GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
+      if (addressOf.getValue() instanceof GimpleFunctionRef) {
+        GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
+        return ref.getName().equals("__builtin_free");
+      }
+    }
+    return false;
+
+  }
+
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     // first calculate the size of the array from the argument,
@@ -79,4 +92,5 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
   public GimpleType getGimpleType() {
     throw new UnsupportedOperationException();
   }
+
 }

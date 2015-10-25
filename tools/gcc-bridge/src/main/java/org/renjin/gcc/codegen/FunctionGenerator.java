@@ -6,6 +6,10 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.call.*;
+import org.renjin.gcc.codegen.condition.ComplexCmpGenerator;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
+import org.renjin.gcc.codegen.condition.PointerCmpGenerator;
+import org.renjin.gcc.codegen.condition.PrimitiveCmpGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
@@ -16,7 +20,9 @@ import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.ins.*;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -203,7 +209,7 @@ public class FunctionGenerator {
       GimpleSwitch.Case aCase = ins.getCases().get(i);
       caseLabels[i] = labels.of(aCase.getBasicBlockIndex());
       caseValues[i] = aCase.getLow();
-      if(aCase.getLow() != aCase.getHigh()){
+      if(aCase.getLow() != aCase.getHigh()) {
         throw new UnsupportedOperationException("Tablelookup not yet supported.\n");
       }
     }
@@ -216,19 +222,33 @@ public class FunctionGenerator {
       ExprGenerator lhs = findGenerator(ins.getLHS());
       ExprGenerator rhs = findGenerator(lhs, ins.getOperator(), ins.getOperands());
 
-      lhs.emitStore(mv, rhs);
+      lhs.emitStore(mv, maybeCast(rhs, lhs.getGimpleType()));
     } catch (Exception e) {
       throw new RuntimeException("Exception compiling assignment " + ins, e);
     }
   }
 
-  private ExprGenerator findGenerator(ExprGenerator lhs, GimpleOp operator, List<GimpleExpr> operands) {
-    if(operator == GimpleOp.CONVERT_EXPR) {
-      return new ConvertGenerator(findGenerator(operands.get(0)), (GimplePrimitiveType) lhs.getGimpleType());
-    
-    } else {
-      return findGenerator(operator, operands);
+  private ExprGenerator maybeCast(ExprGenerator rhs, GimpleType lhsType) {
+    if(lhsType instanceof GimplePrimitiveType) {
+
+      if (rhs.getGimpleType() instanceof GimplePrimitiveType) {
+        if (!lhsType.equals(rhs.getGimpleType())) {
+          return new CastGenerator(rhs, (GimplePrimitiveType) lhsType);
+        }
+      }
     }
+    return rhs;
+  }
+
+  private ExprGenerator findGenerator(ExprGenerator lhs, GimpleOp operator, List<GimpleExpr> operands) {
+    if(operator == GimpleOp.CONVERT_EXPR ||
+       operator == GimpleOp.FLOAT_EXPR) {
+      
+      return new CastGenerator(findGenerator(operands.get(0)), (GimplePrimitiveType) lhs.getGimpleType());
+    
+    } 
+    return findGenerator(operator, operands);
+    
   }
 
 
@@ -237,7 +257,7 @@ public class FunctionGenerator {
   }
 
   private void emitConditional(GimpleConditional ins) {
-    ConditionGenerator generator = (ConditionGenerator) findGenerator(ins.getOperator(), ins.getOperands());
+    ConditionGenerator generator = findConditionGenerator(ins.getOperator(), ins.getOperands());
         
     generator.emitJump(mv, labels.of(ins.getTrueLabel()), labels.of(ins.getFalseLabel()));
   }
@@ -247,6 +267,10 @@ public class FunctionGenerator {
 
     if(MallocGenerator.isMalloc(ins.getFunction())) {
       emitMalloc(ins);
+
+    } else if(MallocGenerator.isFree(ins.getFunction())) {
+      // NO OP
+      // We have a garbage collector, muwahaha :-)
       
     } else {
       List<ExprGenerator> arguments = new ArrayList<ExprGenerator>();
@@ -334,9 +358,6 @@ public class FunctionGenerator {
       case FIX_TRUNC_EXPR:
         return new TruncateExprGenerator(findGenerator(operands.get(0)));      
       
-      case FLOAT_EXPR:
-        return new DoubleGenerator(findGenerator(operands.get(0)));
-      
       case NEGATE_EXPR:
         return new NegateGenerator(findGenerator(operands.get(0)));
       
@@ -349,9 +370,10 @@ public class FunctionGenerator {
       case NE_EXPR:
       case GT_EXPR:
       case GE_EXPR:
-        return findComparisonGenerator(op,
-            findGenerator(operands.get(0)),
-            findGenerator(operands.get(1)));
+        return new ConditionExprGenerator(
+          findComparisonGenerator(op,
+              findGenerator(operands.get(0)),
+              findGenerator(operands.get(1))));
       
       case MAX_EXPR:
         return new MaxGenerator(
@@ -389,15 +411,28 @@ public class FunctionGenerator {
       
     throw new UnsupportedOperationException(op.name() + ": " + x.getGimpleType() + ", " + y.getGimpleType());
   }
+  
+  private ConditionGenerator findConditionGenerator(GimpleOp op, List<GimpleExpr> operands) {
+    if(operands.size() == 2) {
+      return findComparisonGenerator(op, 
+          findGenerator(operands.get(0)), 
+          findGenerator(operands.get(1)));
+    } else {
+      throw new UnsupportedOperationException();
+    }
+  }
 
-  private ExprGenerator findComparisonGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+  private ConditionGenerator findComparisonGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
 
     if(x.getGimpleType() instanceof org.renjin.gcc.gimple.type.GimpleComplexType) {
       return new ComplexCmpGenerator(op, x, y);
       
     } else if(x.getGimpleType() instanceof GimplePrimitiveType) {
       return new PrimitiveCmpGenerator(op, x, y);
-    
+
+    } else if(x.getGimpleType() instanceof GimpleIndirectType) {
+      return new PointerCmpGenerator(op, x, y);
+      
     } else {
       throw new UnsupportedOperationException("Unsupported comparison " + op + " between types " + 
           x.getGimpleType() + " and " + y.getGimpleType());

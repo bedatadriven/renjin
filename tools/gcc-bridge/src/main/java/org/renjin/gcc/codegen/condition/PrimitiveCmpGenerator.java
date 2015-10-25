@@ -1,18 +1,17 @@
-package org.renjin.gcc.codegen.expr;
+package org.renjin.gcc.codegen.condition;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.type.GimpleBooleanType;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.*;
 
 /**
  * Generates codes for binary comparisons
  */
-public class PrimitiveCmpGenerator extends AbstractExprGenerator implements ConditionGenerator, ValueGenerator {
+public class PrimitiveCmpGenerator implements ConditionGenerator {
   
   private GimpleOp op;
   private ExprGenerator x;
@@ -137,34 +136,5 @@ public class PrimitiveCmpGenerator extends AbstractExprGenerator implements Cond
 
   private boolean isDouble() {
     return x.getJvmPrimitiveType().equals(Type.DOUBLE_TYPE);
-  }
-  
-
-  @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
-    // Push this value as a boolean on the stack.
-    // Requires a jump
-    Label trueLabel = new Label();
-    Label falseLabel = new Label();
-    Label exitLabel = new Label();
-    
-    emitJump(mv, trueLabel, falseLabel);
-    
-    // if false
-    mv.visitLabel(falseLabel);
-    mv.visitInsn(ICONST_0);
-    mv.visitJumpInsn(GOTO, exitLabel);
-    
-    // if true
-    mv.visitLabel(trueLabel);
-    mv.visitInsn(ICONST_1);
-    
-    // done
-    mv.visitLabel(exitLabel);
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return new GimpleBooleanType();
   }
 }

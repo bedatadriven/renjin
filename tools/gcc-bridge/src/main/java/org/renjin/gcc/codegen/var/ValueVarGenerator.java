@@ -2,9 +2,7 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.Types;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.LValueGenerator;
@@ -27,23 +25,14 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPrimitiveValue(mv);
 
-    if(Types.isInt(this) && Types.isLong(valueGenerator)) {
-      mv.visitInsn(Opcodes.L2I);
 
-    } else if(Types.isLong(this) && Types.isInt(valueGenerator)) {
-      mv.visitInsn(Opcodes.I2L);
-      
-    } else {
-
-      Preconditions.checkArgument(checkTypes(valueGenerator),
-          "Type mismatch: Cannot assign %s of type %s to %s of type %s",
-          valueGenerator,
-          valueGenerator.getJvmPrimitiveType(),
-          this,
-          getJvmPrimitiveType());
-
-    }
-
+    Preconditions.checkArgument(checkTypes(valueGenerator),
+        "Type mismatch: Cannot assign %s of type %s to %s of type %s",
+        valueGenerator,
+        valueGenerator.getJvmPrimitiveType(),
+        this,
+        getJvmPrimitiveType());
+    
     mv.visitVarInsn(getJvmPrimitiveType().getOpcode(ISTORE), localVarIndex);
 
   }

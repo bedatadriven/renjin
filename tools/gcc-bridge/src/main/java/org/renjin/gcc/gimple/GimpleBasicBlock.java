@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.ins.GimpleIns;
@@ -47,5 +48,9 @@ public class GimpleBasicBlock {
     for (GimpleIns instruction : instructions) {
       instruction.replaceAll(predicate, newExpr);
     }
+  }
+
+  public <T extends GimpleIns> Iterable<T> getInstructions(Class<T> insClass) {
+    return Iterables.filter(instructions, insClass);
   }
 }

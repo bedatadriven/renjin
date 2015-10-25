@@ -72,6 +72,7 @@ public interface ExprGenerator {
    * @throws UnsupportedOperationException if this is not a value expression
    */
   void emitPrimitiveValue(MethodVisitor mv);
+  
 
   /**
    * Writes the code push the array and offset backing this pointer onto the stack

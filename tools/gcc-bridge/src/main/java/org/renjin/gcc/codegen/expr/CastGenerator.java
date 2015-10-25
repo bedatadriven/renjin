@@ -51,7 +51,7 @@ public class CastGenerator extends AbstractExprGenerator implements ValueGenerat
         } else {
           cast(mv, from, Type.INT_TYPE);
         }
-      } else if (to.equals(Type.LONG_TYPE)) {
+      } else if (from.equals(Type.LONG_TYPE)) {
         /*
          * CONVERT FROM LONG 
          */
@@ -64,20 +64,23 @@ public class CastGenerator extends AbstractExprGenerator implements ValueGenerat
         } else {
           cast(mv, from, Type.INT_TYPE);
         }
-      } else if (to.equals(Type.FLOAT_TYPE)) {
+      } else if (from.equals(Type.FLOAT_TYPE)) {
         /*
          * CONVERT FROM FLOAT
          */
         if (to.equals(Type.DOUBLE_TYPE)) {
           mv.visitInsn(Opcodes.F2D);
+          
         } else if (to.equals(Type.LONG_TYPE)) {
           mv.visitInsn(Opcodes.F2L);
+        
         } else if (to.equals(Type.INT_TYPE)) {
           mv.visitInsn(Opcodes.F2I);
+        
         } else {
           cast(mv, from, Type.INT_TYPE);
         }
-      } else if (to.equals(Type.DOUBLE_TYPE)) {
+      } else if (from.equals(Type.DOUBLE_TYPE)) {
         /*
          * CONVERT FROM DOUBLE
          */
@@ -89,6 +92,7 @@ public class CastGenerator extends AbstractExprGenerator implements ValueGenerat
           
         } else if (to.equals(Type.INT_TYPE)) {
           mv.visitInsn(Opcodes.D2I);
+        
         } else {
           cast(mv, from, Type.INT_TYPE);
         }

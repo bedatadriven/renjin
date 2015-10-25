@@ -102,11 +102,12 @@ public class FunctionGenerator {
   private void emitLocalVarInitialization() {
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       VarGenerator lhs = (VarGenerator) localVariables.get(decl);
-      if(decl.getValue() != null) {
+      if(decl.getValue() == null || decl.getValue() instanceof GimpleConstructor) {
+        lhs.emitDefaultInit(mv);
+
+      } else {
         ExprGenerator rhs = findGenerator(decl.getValue());
         lhs.emitStore(mv, rhs);
-      } else {
-        lhs.emitDefaultInit(mv);
       }
     }
   }
@@ -242,7 +243,8 @@ public class FunctionGenerator {
 
   private ExprGenerator findGenerator(ExprGenerator lhs, GimpleOp operator, List<GimpleExpr> operands) {
     if(operator == GimpleOp.CONVERT_EXPR ||
-       operator == GimpleOp.FLOAT_EXPR) {
+       operator == GimpleOp.FLOAT_EXPR ||
+       operator == GimpleOp.FIX_TRUNC_EXPR) {
       
       return new CastGenerator(findGenerator(operands.get(0)), (GimplePrimitiveType) lhs.getGimpleType());
     
@@ -354,9 +356,6 @@ public class FunctionGenerator {
       
       case COMPLEX_EXPR:
         return new ComplexGenerator(findGenerator(operands.get(0)));
-
-      case FIX_TRUNC_EXPR:
-        return new TruncateExprGenerator(findGenerator(operands.get(0)));      
       
       case NEGATE_EXPR:
         return new NegateGenerator(findGenerator(operands.get(0)));

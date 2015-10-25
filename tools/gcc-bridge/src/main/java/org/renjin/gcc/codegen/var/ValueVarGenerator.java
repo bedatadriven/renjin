@@ -25,7 +25,6 @@ public class ValueVarGenerator extends AbstractExprGenerator implements LValueGe
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPrimitiveValue(mv);
 
-
     Preconditions.checkArgument(checkTypes(valueGenerator),
         "Type mismatch: Cannot assign %s of type %s to %s of type %s",
         valueGenerator,

@@ -82,9 +82,9 @@ public class Builtins {
   }
   
   
-  public static void _gfortran_set_args__(int argc, ObjectPtr argv) {
-    // TODO
-  }
+//  public static void _gfortran_set_args__(int argc, ObjectPtr argv) {
+//    // TODO
+//  }
 
   public static void _gfortran_set_options__(int x, IntPtr y) {
     // TODO

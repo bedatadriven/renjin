@@ -65,15 +65,15 @@ public class RStubs {
     }
   }
 
-  public static void asserttrue(BooleanPtr x) {
+  public static void asserttrue_(BooleanPtr x) {
     Assert.assertTrue(x.unwrap());
   }
 
-  public static void assertfalse(BooleanPtr x) {
+  public static void assertfalse_(BooleanPtr x) {
     Assert.assertFalse(x.unwrap());
   }
 
-  public static void xerbla(BytePtr functionName, IntPtr code, int functionNameLength) {
+  public static void xerbla_(BytePtr functionName, IntPtr code, int functionNameLength) {
     throw new RuntimeException( "** On entry to " + 
         functionName.toString(functionNameLength) +
         " parameter number " + code.unwrap() + " had an illegal value");

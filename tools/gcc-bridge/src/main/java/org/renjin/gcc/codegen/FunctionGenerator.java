@@ -330,6 +330,16 @@ public class FunctionGenerator {
       case TRUTH_NOT_EXPR:
         return new LogicalNotGenerator(findGenerator(operands.get(0)));
       
+      case TRUTH_AND_EXPR:
+        return new LogicalAndGenerator(
+            findGenerator(operands.get(0)),
+            findGenerator(operands.get(1)));
+      
+      case TRUTH_OR_EXPR:
+        return new LogicalOrGenerator(
+            findGenerator(operands.get(0)),
+            findGenerator(operands.get(1))); 
+      
       case EQ_EXPR:
       case LT_EXPR:
       case LE_EXPR:
@@ -349,6 +359,11 @@ public class FunctionGenerator {
       case ABS_EXPR:
         return new AbsGenerator(
             findGenerator(operands.get(0)));
+      
+      case UNORDERED_EXPR:
+        return new UnorderedExprGenerator(
+            findGenerator(operands.get(0)),
+            findGenerator(operands.get(1)));
       
       case CONJ_EXPR:
         return new ConjugateGenerator(
@@ -425,7 +440,7 @@ public class FunctionGenerator {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
       if(addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
-        return new FunctionRefGenerator(functionTable.findHandle(functionRef));
+        return new FunctionRefGenerator(functionTable.findHandle(functionRef, function.getCallingConvention()));
       
       } else {
         ExprGenerator value = findGenerator(addressOf.getValue());
@@ -463,7 +478,7 @@ public class FunctionGenerator {
       GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
-        return functionTable.find(ref);
+        return functionTable.find(ref, function.getCallingConvention());
       }
       GimpleAddressOf address = (GimpleAddressOf) functionExpr;
       throw new UnsupportedOperationException("function ref: " + address.getValue() +

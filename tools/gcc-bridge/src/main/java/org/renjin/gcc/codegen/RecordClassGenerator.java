@@ -100,7 +100,7 @@ public class RecordClassGenerator {
         FunctionGenerator functionGenerator = new FunctionGenerator(function);
         
         functions.add(functionGenerator);
-        functionTable.add(className, function.getName(), functionGenerator);
+        functionTable.add(className, functionGenerator);
       }
     }
     

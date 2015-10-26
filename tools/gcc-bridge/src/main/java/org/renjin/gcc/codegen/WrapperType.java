@@ -5,10 +5,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.*;
 
 import java.util.List;
@@ -65,6 +62,10 @@ public class WrapperType {
   }
 
 
+  public GimpleType getGimpleType() {
+    return new GimplePointerType(GimplePrimitiveType.fromJvmType(baseType));
+  }
+  
   public static WrapperType forPointerType(GimpleIndirectType type) {
     return of(type.getBaseType());
   }
@@ -192,6 +193,9 @@ public class WrapperType {
     return false;
   }
 
+  public static boolean is(Class<?> aClass) {
+    return is(Type.getType(aClass));
+  }
 
   public static WrapperType valueOf(Type type) {
     for (WrapperType wrapperType : TYPES) {
@@ -200,6 +204,10 @@ public class WrapperType {
       }
     }
     throw new IllegalArgumentException(type.toString());
+  }
+
+  public static WrapperType valueOf(Class<?> wrapperClass) {
+    return valueOf(Type.getType(wrapperClass));
   }
 
   /**
@@ -241,5 +249,5 @@ public class WrapperType {
   public void emitInvokeUpdate(MethodVisitor mv) {
     mv.visitMethodInsn(INVOKEVIRTUAL, wrapperType.getInternalName(), "update", getConstructorDescriptor(), false);
   }
-  
+
 }

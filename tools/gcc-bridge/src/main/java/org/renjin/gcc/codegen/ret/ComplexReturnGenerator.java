@@ -16,7 +16,7 @@ public class ComplexReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public Type type() {
+  public Type getType() {
     return type.getJvmPartArrayType();
   }
 

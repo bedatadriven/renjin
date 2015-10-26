@@ -21,7 +21,7 @@ public class PrimitiveReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public Type type() {
+  public Type getType() {
     return type;
   }
 

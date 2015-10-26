@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ParamGenerator {
@@ -40,4 +41,13 @@ public abstract class ParamGenerator {
   public abstract ExprGenerator emitInitialization(MethodVisitor methodVisitor, int startIndex, LocalVarAllocator localVars);
 
   public abstract void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator);
+  
+  public static Type[] parameterTypes(Iterable<ParamGenerator> paramGenerators) {
+    List<Type> types = new ArrayList<Type>();
+    for (ParamGenerator generator : paramGenerators) {
+      types.addAll(generator.getParameterTypes());
+    }
+    return types.toArray(new Type[types.size()]);
+  }
+  
 }

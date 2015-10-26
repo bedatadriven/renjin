@@ -64,7 +64,7 @@ public class FunPtrCallGenerator implements CallGenerator {
   
   @Override
   public Type returnType() {
-    return returnGenerator.type();
+    return returnGenerator.getType();
   }
 
   @Override

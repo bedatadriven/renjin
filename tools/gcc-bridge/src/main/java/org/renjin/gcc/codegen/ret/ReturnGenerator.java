@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 
 public interface ReturnGenerator {
   
-  Type type();
+  Type getType();
 
   void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator);
   

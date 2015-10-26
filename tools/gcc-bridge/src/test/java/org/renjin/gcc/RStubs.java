@@ -1,7 +1,10 @@
 package org.renjin.gcc;
 
 import org.junit.Assert;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.BooleanPtr;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
 
 public class RStubs {
 
@@ -17,10 +20,10 @@ public class RStubs {
     return false;
   }
 
-  public static void error(CharPtr message) {
-    throw new RuntimeException(message.asString());
+  public static void error(BytePtr message) {
+    throw new RuntimeException(message.nullTerminatedString());
   }
-
+  
   public static void Rf_error(String msg) {
     throw new RuntimeException(msg);
   }
@@ -54,7 +57,7 @@ public class RStubs {
     System.out.println(String.format("n=%s, x=%s, incx=%s", n, x, incx));
   }
   
-  public static double magicnumber_(CharPtr x, int ldx) {
+  public static double magicnumber_(BytePtr x, int ldx) {
     if(x.array[x.offset] == 'Z') {
       return 42;
     } else {

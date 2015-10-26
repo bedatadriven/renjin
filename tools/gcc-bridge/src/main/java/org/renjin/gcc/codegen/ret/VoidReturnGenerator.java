@@ -8,7 +8,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 public class VoidReturnGenerator implements ReturnGenerator {
 
   @Override
-  public Type type() {
+  public Type getType() {
     return Type.VOID_TYPE;
   }
 

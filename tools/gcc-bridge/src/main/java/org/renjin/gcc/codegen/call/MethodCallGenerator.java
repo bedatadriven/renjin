@@ -1,19 +1,18 @@
 package org.renjin.gcc.codegen.call;
 
-import com.google.common.base.Preconditions;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.ValueGenerator;
+import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import java.lang.invoke.MethodHandle;
 import java.util.List;
 
 /**
@@ -21,41 +20,40 @@ import java.util.List;
  */
 public class MethodCallGenerator implements CallGenerator {
   
-  private Handle handle;
+  private String className;
+  private String methodName;
+  private List<ParamGenerator> paramGenerators;
+  private ReturnGenerator returnGenerator;
 
-  public MethodCallGenerator(Handle handle) {
-    Preconditions.checkArgument(handle.getTag() == Opcodes.H_INVOKESTATIC);
 
-    this.handle = handle;
-  }
-
-  public MethodCallGenerator(String className, String methodName, Type[] parameterTypes, Type returnType) {
-    this(new Handle(Opcodes.H_INVOKESTATIC, className, methodName, Type.getMethodDescriptor(returnType, parameterTypes)));
+  public MethodCallGenerator(String className, String methodName, 
+                             List<ParamGenerator> paramGenerators, 
+                             ReturnGenerator returnGenerator) {
+    this.className = className;
+    this.methodName = methodName;
+    this.paramGenerators = paramGenerators;
+    this.returnGenerator = returnGenerator;
   }
 
   public Handle getHandle() {
-    return handle;
+    return new Handle(Opcodes.H_INVOKESTATIC, className, methodName, descriptor());
   }
 
   @Override
   public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
 
     // Push all parameters on the stack
-    Type[] parameterTypes = Type.getArgumentTypes(handle.getDesc());
-    for (int i = 0; i < parameterTypes.length; i++) {
-      Type paramType = parameterTypes[i];
-      ExprGenerator generator = argumentGenerators.get(i);
-      
-      ParamConverter converter = findConverter(generator, paramType);
-      converter.emitPushParam(mv);
+    for (int i = 0; i < paramGenerators.size(); i++) {
+      ParamGenerator paramGenerator = paramGenerators.get(i);
+      paramGenerator.emitPushParameter(mv, argumentGenerators.get(i));
     }
     
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, handle.getOwner(), handle.getName(), handle.getDesc(), false);
+    mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, methodName, descriptor(), false);
   }
 
   @Override
   public Type returnType() {
-    return  Type.getReturnType(handle.getDesc());
+    return returnGenerator.getType();
   }
 
   @Override
@@ -78,27 +76,14 @@ public class MethodCallGenerator implements CallGenerator {
 
   @Override
   public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
-    
     if(WrapperType.is(returnType())) {
       return new PtrCallExprGenerator(WrapperType.valueOf(returnType()), this, argumentGenerators);
     } else {
       return new ValueCallExprGenerator(this, argumentGenerators);
     }
   }
-
-  private ParamConverter findConverter(ExprGenerator generator, Type paramType) {
-    if(paramType.equals(Type.getType(MethodHandle.class))) {
-      return new FunPtrToMethodHandleConverter(generator);
-      
-    } else if(generator instanceof ValueGenerator) {
-      ValueGenerator valueGenerator = (ValueGenerator) generator;
-      if(valueGenerator.getJvmPrimitiveType().equals(paramType)) {
-        return new ValueParamConverter(valueGenerator);
-      }
-    }
-    if(WrapperType.is(paramType)) {
-      return new WrappedPtrConverter(generator);
-    }
-    throw new UnsupportedOperationException(String.format("Cannot convert from %s to %s", generator, paramType));
+  
+  private String descriptor() {
+    return Type.getMethodDescriptor(returnType(), ParamGenerator.parameterTypes(paramGenerators));
   }
 }

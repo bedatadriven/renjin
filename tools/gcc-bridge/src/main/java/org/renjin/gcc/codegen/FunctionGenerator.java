@@ -6,7 +6,10 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.call.*;
+import org.renjin.gcc.codegen.call.CallGenerator;
+import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
+import org.renjin.gcc.codegen.call.FunctionTable;
+import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.condition.ComplexCmpGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.PointerCmpGenerator;
@@ -100,7 +103,6 @@ public class FunctionGenerator {
       ExprGenerator exprGenerator = generator.emitInitialization(mv, paramIndexes[i], localVarAllocator);
       localVariables.add(param.getId(), exprGenerator);
     }
-    
   }
 
   private void emitLocalVarInitialization() {
@@ -137,50 +139,6 @@ public class FunctionGenerator {
       localVariables.add(varDecl.getId(), generator);
     }
   }
-
-//  private VarGenerator findGeneratorForVariable(GimpleVarDecl varDecl) {
-//    if(varDecl.getType() instanceof GimplePrimitiveType) {
-//      GimplePrimitiveType primitiveType = (GimplePrimitiveType) varDecl.getType();
-//      if (varDecl.isAddressable()) {
-//        int index = localVarAllocator.reserve(1);
-//        return new AddressableVarGenerator(primitiveType, index);
-//
-//      } else {
-//        int index = localVarAllocator.reserve(primitiveType.localVariableSlots());
-//        return new ValueVarGenerator(primitiveType, index);
-//      }
-//   
-//    } else if(varDecl.getType() instanceof GimpleComplexType) {
-//      GimpleComplexType complexType = (GimpleComplexType) varDecl.getType();
-//      if(varDecl.isAddressable()) {
-//        return new AddressableComplexVarGenerator(complexType, 
-//            localVarAllocator.reserveArrayRef());
-//   
-//      } else {
-//        return new ComplexVarGenerator(complexType,
-//            localVarAllocator.reserve(Type.DOUBLE_TYPE),
-//            localVarAllocator.reserve(Type.DOUBLE_TYPE));    
-//      }
-//      
-//    } else if(varDecl.getType() instanceof GimpleIndirectType) {
-//      GimpleIndirectType pointerType = (GimplePointerType) varDecl.getType();
-//      if(pointerType.getBaseType() instanceof GimplePrimitiveType) {
-//        if (varDecl.isAddressable()) {
-//          return new AddressablePtrVarGenerator(pointerType, localVarAllocator);
-//        } else {
-//          return new PtrVarGenerator(pointerType, localVarAllocator);
-//        }
-//      } else if(pointerType.getBaseType() instanceof GimpleFunctionType) {
-//        return new FunPtrVarGenerator((GimpleFunctionType) pointerType.getBaseType(), localVarAllocator.reserve(1));
-//      }
-//
-//    } else if(varDecl.getType() instanceof GimpleArrayType) {
-//      GimpleArrayType arrayType = (GimpleArrayType) varDecl.getType();
-//      return new ArrayVarGenerator(arrayType, localVarAllocator.reserveArrayRef());
-//
-//    } 
-//    throw new UnsupportedOperationException("var type: " + varDecl.getType());
-//  }
 
   private void emitBasicBlock(GimpleBasicBlock basicBlock) {
     mv.visitLabel(labels.of(basicBlock));
@@ -261,9 +219,7 @@ public class FunctionGenerator {
     
     } 
     return findGenerator(operator, operands);
-    
   }
-
 
   private void emitGoto(GimpleGoto ins) {
     mv.visitJumpInsn(GOTO, labels.of(ins.getTarget()));
@@ -522,19 +478,27 @@ public class FunctionGenerator {
   
   
   private String functionDescriptor() {
-    return Type.getMethodDescriptor(returnGenerator.type(), parameterTypes());
+    return Type.getMethodDescriptor(returnGenerator.getType(), parameterTypes());
   }
 
-  public Type[] parameterTypes() {
-    List<Type> parameterTypes = new ArrayList<Type>();
+  public List<ParamGenerator> getParamGenerators() {
+    List<ParamGenerator> parameterTypes = new ArrayList<ParamGenerator>();
     for (GimpleParameter parameter : function.getParameters()) {
       ParamGenerator generator = params.get(parameter);
-      parameterTypes.addAll(generator.getParameterTypes());
+      parameterTypes.add(generator);
     }
-    return parameterTypes.toArray(new Type[parameterTypes.size()]);
+    return parameterTypes;
+  }
+  
+  public Type[] parameterTypes() {
+    return ParamGenerator.parameterTypes(getParamGenerators());
   }
   
   public Type returnType() {
-    return returnGenerator.type();
+    return returnGenerator.getType();
+  }
+
+  public ReturnGenerator getReturnGenerator() {
+    return returnGenerator;
   }
 }

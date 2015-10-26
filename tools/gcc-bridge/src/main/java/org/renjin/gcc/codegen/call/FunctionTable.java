@@ -4,11 +4,23 @@ import com.google.common.base.Preconditions;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.FunctionGenerator;
+import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
+import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
+import org.renjin.gcc.codegen.param.StringParamGenerator;
+import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
+import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.runtime.CharPtr;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -64,8 +76,8 @@ public class FunctionTable {
   public void add(String className, String functionName, FunctionGenerator function) {
     MethodCallGenerator generator = new MethodCallGenerator(className, 
         function.getMangledName(),
-        function.parameterTypes(),
-        function.returnType());
+        function.getParamGenerators(),
+        function.getReturnGenerator());
 
     functions.put(functionName, generator);
   }
@@ -76,13 +88,68 @@ public class FunctionTable {
     MethodCallGenerator generator = new MethodCallGenerator(
         Type.getInternalName(method.getDeclaringClass()),
         method.getName(),
-        Type.getArgumentTypes(method),
-        Type.getReturnType(method));
+        createParamGenerators(method),
+        createReturnGenerator(method));
     
     functions.put(functionName, generator);
   }
 
 
+
+  /**
+   * Creates a list of {@code ParamGenerators} from an existing JVM method.
+   * 
+   * <p>Note that there is not a one-to-one relationship between JVM method parameters and
+   * our {@code ParamGenerators}; a complex pointer is represented as a {@code double[]} and an 
+   * {@code int} offset, for example.</p>
+   */
+  private List<ParamGenerator> createParamGenerators(Method method) {
+
+    List<ParamGenerator> generators = new ArrayList<ParamGenerator>();
+
+    int index = 0;
+    while(index < method.getParameterTypes().length) {
+      Class<?> paramClass = method.getParameterTypes()[index];
+      if(WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
+        WrapperType wrapperType = WrapperType.valueOf(paramClass);
+        generators.add(new PrimitivePtrParamGenerator(wrapperType.getGimpleType()));
+        index++;
+        
+      } else if(paramClass.isPrimitive()) {
+        generators.add(new PrimitiveParamGenerator(GimplePrimitiveType.fromJvmType(paramClass)));
+        index++;
+        
+      } else if(paramClass.equals(String.class)) {
+        generators.add(new StringParamGenerator());
+        index++;
+        
+      } else {
+        throw new UnsupportedOperationException(String.format(
+            "Unsupported parameter %d of type %s in method %s.%s", 
+              index, 
+              paramClass, 
+              method.getDeclaringClass().getName(), method.getName()));
+      }
+    }
+    return generators;
+  }
+
+  private ReturnGenerator createReturnGenerator(Method method) {
+
+    Class<?> returnType = method.getReturnType();
+    if(returnType.equals(void.class)) {
+      return new VoidReturnGenerator();
+    
+    } else if(returnType.isPrimitive()) {
+      return new PrimitiveReturnGenerator(GimplePrimitiveType.fromJvmType(returnType));
+  
+    } else {
+      throw new UnsupportedOperationException(String.format(
+          "Unsupported return type %s in method %s.%s",
+          returnType.getName(),
+          method.getDeclaringClass().getName(), method.getName()));
+    }
+  }
 
   private Method findMethod(Class<Math> declaringClass, String methodName) {
     for (Method method : declaringClass.getMethods()) {

@@ -15,4 +15,36 @@ public abstract class GimplePrimitiveType extends AbstractGimpleType {
    * @return the equivalent JVM type
    */
   public abstract Type jvmType();
+  
+  
+  public static GimplePrimitiveType fromJvmType(Type type) {
+      if(type.equals(Type.BOOLEAN_TYPE)) {
+        return new GimpleBooleanType();
+
+      } else if(type.equals(Type.DOUBLE_TYPE)) {
+        return new GimpleRealType(64);
+
+      } else if(type.equals(Type.FLOAT_TYPE)) {
+        return new GimpleRealType(32);
+
+      } else if(type.equals(Type.INT_TYPE)) {
+        return new GimpleIntegerType(32);
+
+      } else if(type.equals(Type.LONG_TYPE)) {
+        return new GimpleIntegerType(64);
+
+      } else if(type.equals(Type.CHAR_TYPE)) {
+        throw new UnsupportedOperationException("???");
+
+      } else if(type.equals(Type.BYTE_TYPE)) {
+        return new GimpleIntegerType(8);
+
+      } else {
+        throw new UnsupportedOperationException("type: " + type);
+      }
+  }
+
+  public static GimpleType fromJvmType(Class<?> primitiveClass) {
+    return fromJvmType(Type.getType(primitiveClass));
+  }
 }

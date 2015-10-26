@@ -36,22 +36,16 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     // Push two operands on the stack
     x.emitPrimitiveValue(mv);
     y.emitPrimitiveValue(mv);
-    
-    if (tx.equals(Type.INT_TYPE) || tx.equals(Type.BOOLEAN_TYPE)) {
+
+    if(tx.equals(Type.DOUBLE_TYPE) ||
+        ty.equals(Type.FLOAT_TYPE)) {
+
+      emitRealJump(mv, trueLabel);
+
+    } else {
       
       mv.visitJumpInsn(integerComparison(), trueLabel);
-
-    } else if(tx.equals(Type.DOUBLE_TYPE) ||
-              ty.equals(Type.FLOAT_TYPE)) {
-      
-      emitRealJump(mv, trueLabel);
-      
-    } else {
-      throw new UnsupportedOperationException(String.format(
-          "Unsupported types: %s and %s",
-          tx,
-          ty));
-    }
+    } 
     
     mv.visitJumpInsn(GOTO, falseLabel);
   }

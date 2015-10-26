@@ -20,11 +20,15 @@ public class Builtins {
     return Math.copySign(magnitude, sign);
   }
 
+  public static float __builtin_copysignf__(float magnitude, float sign) {
+    return Math.copySign(magnitude, sign);
+  }
+
   public static double __builtin_exp__(double x) {
     return Math.exp(x);
   }
   
-  public static float  __builtin_sqrtf__(double f) {
+  public static float  __builtin_sqrtf__(float f) {
     return (float) Math.sqrt(f);
   }
 

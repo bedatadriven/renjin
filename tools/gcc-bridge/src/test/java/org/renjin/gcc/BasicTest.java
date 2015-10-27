@@ -492,4 +492,11 @@ public class BasicTest extends AbstractGccTest {
     Class clazz = compile("scnrm2.f", "Scnrm2");
 
   }
+  
+  @Test
+  public void fortranEquivalence() throws Exception {
+    Class clazz = compile("equivalence.f", "Equivalence");
+    Method testMethod = clazz.getMethod("test_");
+    testMethod.invoke(null);
+  }
 }

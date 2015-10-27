@@ -276,7 +276,7 @@ static const char* get_type_name(tree node) {
   enum tree_code_class tclass = TREE_CODE_CLASS (TREE_CODE(node));
 
   if(tclass == tcc_declaration) {
-    TRACE("get_type_name: tclass == tcc_declaration\n");
+    TRACE("get_type_name: tclass == tc/c_declaration\n");
     if (DECL_NAME (node)) {
       return IDENTIFIER_POINTER(DECL_NAME (node));
     }
@@ -335,6 +335,9 @@ static void dump_record_type_decl(tree type) {
   json_start_object();
   json_field("id");
   json_ptr(type);
+  
+  json_bool_field("union", (TREE_CODE(type) == UNION_TYPE));
+    
     
   TRACE("dump_record_type_decl: writing name\n");
   const char *name = get_type_name(type);
@@ -408,6 +411,7 @@ static void dump_type(tree type) {
     dump_function_type(type);
     break;
     
+  case UNION_TYPE:
   case RECORD_TYPE:
     dump_record_type(type);
     break;

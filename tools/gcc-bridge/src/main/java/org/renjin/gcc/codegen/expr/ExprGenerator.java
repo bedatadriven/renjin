@@ -109,4 +109,7 @@ public interface ExprGenerator {
    */
   void emitStore(MethodVisitor mv, ExprGenerator valueGenerator);
 
+  ExprGenerator memberOf(String memberName);
+
+  void emitPushRecordRef(MethodVisitor mv);
 }

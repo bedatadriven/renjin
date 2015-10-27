@@ -113,4 +113,15 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
     return false;
   }
 
+  @Override
+  public ExprGenerator memberOf(String memberName) {
+    throw new UnsupportedOperationException(String.format("%s [%s] is not a record type",
+            toString(), getClass().getSimpleName()));
+  }
+
+  @Override
+  public void emitPushRecordRef(MethodVisitor mv) {
+    throw new UnsupportedOperationException(String.format("%s [%s] is not a record type",
+            toString(), getClass().getSimpleName()));
+  }
 }

@@ -29,6 +29,8 @@ public class GeneratorFactory {
     } else if(type instanceof GimpleVoidType) {
       return new VoidTypeFactory();
       
+    } else if (type instanceof GimpleRecordType){
+      return new RecordTypeFactory((GimpleRecordType) type);
     } else if(type instanceof GimpleIndirectType) {
       return forType(type.getBaseType()).pointerTo();
     

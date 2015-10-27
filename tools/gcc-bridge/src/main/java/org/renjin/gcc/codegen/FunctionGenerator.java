@@ -317,6 +317,7 @@ public class FunctionGenerator {
       case COMPLEX_CST:
       case ADDR_EXPR:
       case ARRAY_REF:
+      case COMPONENT_REF:
       case REALPART_EXPR:
       case IMAGPART_EXPR:
         return findGenerator(operands.get(0));
@@ -468,7 +469,12 @@ public class FunctionGenerator {
       } else {
         return complexGenerator.imaginaryPart();
       }
-    } 
+    } else if (expr instanceof GimpleComponentRef) {
+      GimpleComponentRef componentRef = (GimpleComponentRef) expr;
+      GimpleExpr valueExpr = componentRef.getValue();
+      ExprGenerator valueExprGenerator = findGenerator(valueExpr);
+      return valueExprGenerator.memberOf(componentRef.memberName());
+    }
 
     throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
   }

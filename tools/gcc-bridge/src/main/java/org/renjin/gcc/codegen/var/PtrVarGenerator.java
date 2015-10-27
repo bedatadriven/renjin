@@ -3,8 +3,6 @@ package org.renjin.gcc.codegen.var;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -35,12 +33,6 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
     this.type = (GimpleIndirectType) type;
     this.arrayVariableIndex = arrayVariableIndex;
     this.offsetVariableIndex = offsetVariableIndex;
-  }
-
-  public PtrVarGenerator(GimpleType type, LocalVarAllocator localVarAllocator) {
-    this.type = (GimpleIndirectType) type;
-    this.arrayVariableIndex = localVarAllocator.reserve(1);
-    this.offsetVariableIndex = localVarAllocator.reserve(Type.INT_TYPE);
   }
 
 
@@ -82,7 +74,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
     if (type.getBaseType() instanceof GimpleArrayType) {
       GimpleArrayType arrayType = type.getBaseType();
       if (arrayType.getComponentType() instanceof GimplePrimitiveType) {
-        return new PrimitiveArray();
+        return new PrimitiveArray(arrayType);
       }
     } else if (type.getBaseType() instanceof GimplePrimitiveType) {
       return new PrimitiveValueType();
@@ -92,6 +84,11 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
   }
 
   private class PrimitiveArray extends AbstractExprGenerator {
+    private final GimpleArrayType arrayType;
+
+    public PrimitiveArray(GimpleArrayType arrayType) {
+      this.arrayType = arrayType;
+    }
 
     @Override
     public GimpleArrayType getGimpleType() {
@@ -100,7 +97,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
 
     @Override
     public ExprGenerator elementAt(ExprGenerator indexGenerator) {
-      return new PrimitiveArrayElement(getGimpleType().getComponentType(), indexGenerator);
+      return new PrimitiveArrayElement(getGimpleType().getComponentType(), arrayType.getLbound(), indexGenerator);
     }
   }
 
@@ -108,8 +105,10 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
 
     private final GimplePrimitiveType componentType;
     private ExprGenerator indexGenerator;
+    private int lowerBound;
 
-    public PrimitiveArrayElement(GimpleType componentType, ExprGenerator indexGenerator) {
+    public PrimitiveArrayElement(GimpleType componentType, int lowerBound, ExprGenerator indexGenerator) {
+      this.lowerBound = lowerBound;
       this.componentType = (GimplePrimitiveType) componentType;
       this.indexGenerator = indexGenerator;
     }
@@ -148,6 +147,13 @@ public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerat
       mv.visitVarInsn(ILOAD, offsetVariableIndex);
       indexGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(IADD);
+      if(lowerBound != 0) {
+        if(lowerBound != 1) {
+          throw new UnsupportedOperationException("lbound: " + lowerBound);
+        }
+        mv.visitInsn(ICONST_1);
+        mv.visitInsn(ISUB);
+      }
     }
 
     @Override

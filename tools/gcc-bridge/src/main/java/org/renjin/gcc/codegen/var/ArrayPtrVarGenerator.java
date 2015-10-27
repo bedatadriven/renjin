@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
@@ -16,13 +17,17 @@ import org.renjin.gcc.gimple.type.GimpleType;
 public class ArrayPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
   
   private GimpleIndirectType gimpleType;
+  private GimpleArrayType arrayType;
   private int arrayIndex;
   private int offsetIndex;
 
   public ArrayPtrVarGenerator(GimpleIndirectType gimpleType, int arrayIndex, int offsetIndex) {
     this.gimpleType = gimpleType;
+    this.arrayType = gimpleType.getBaseType();
     this.arrayIndex = arrayIndex;
     this.offsetIndex = offsetIndex;
+
+    Preconditions.checkArgument(arrayType.getLbound() == 0);
   }
 
   @Override

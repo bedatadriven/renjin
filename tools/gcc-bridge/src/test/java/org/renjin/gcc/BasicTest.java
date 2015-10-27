@@ -473,8 +473,30 @@ public class BasicTest extends AbstractGccTest {
   }
   
   @Test
+  public void lsame() throws Exception {
+    Class clazz = compile("lsame.f", "Lsame");
+    Method lsame = clazz.getMethod("lsame_", BytePtr.class, BytePtr.class, int.class, int.class);
+    
+    lsame.invoke(null, BytePtr.asciiString("A"), BytePtr.asciiString("a"), 1, 1);
+    
+  }
+  
+  @Test
   public void cher() throws Exception {
     Class clazz = compile("cher.f", "Cher");
 
+  }
+
+  @Test
+  public void scnrm2() throws Exception {
+    Class clazz = compile("scnrm2.f", "Scnrm2");
+
+  }
+  
+  @Test
+  public void fortranEquivalence() throws Exception {
+    Class clazz = compile("equivalence.f", "Equivalence");
+    Method testMethod = clazz.getMethod("test_");
+    testMethod.invoke(null);
   }
 }

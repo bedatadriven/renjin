@@ -103,7 +103,7 @@ public class MainClassGenerator {
           throw new InternalCompilerException(function, e);
         }
         functions.add(functionGenerator);
-        functionTable.add(className, function.getName(), functionGenerator);
+        functionTable.add(className, functionGenerator);
       }
     }
     

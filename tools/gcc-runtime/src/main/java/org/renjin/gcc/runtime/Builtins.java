@@ -20,11 +20,15 @@ public class Builtins {
     return Math.copySign(magnitude, sign);
   }
 
+  public static float __builtin_copysignf__(float magnitude, float sign) {
+    return Math.copySign(magnitude, sign);
+  }
+
   public static double __builtin_exp__(double x) {
     return Math.exp(x);
   }
   
-  public static float  __builtin_sqrtf__(double f) {
+  public static float  __builtin_sqrtf__(float f) {
     return (float) Math.sqrt(f);
   }
 
@@ -82,9 +86,9 @@ public class Builtins {
   }
   
   
-  public static void _gfortran_set_args__(int argc, ObjectPtr argv) {
-    // TODO
-  }
+//  public static void _gfortran_set_args__(int argc, ObjectPtr argv) {
+//    // TODO
+//  }
 
   public static void _gfortran_set_options__(int x, IntPtr y) {
     // TODO

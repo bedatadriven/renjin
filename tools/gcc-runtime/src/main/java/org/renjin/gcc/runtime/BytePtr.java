@@ -19,6 +19,10 @@ public class BytePtr implements Ptr {
     return constant.getBytes(StandardCharsets.UTF_8);
   }
 
+  public static BytePtr asciiString(String string) {
+    return new BytePtr(string.getBytes(StandardCharsets.US_ASCII), 0);
+  }
+  
   /**
    * 
    * @return the length of the null-terminated string referenced by this pointer

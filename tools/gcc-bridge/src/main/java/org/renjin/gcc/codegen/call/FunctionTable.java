@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.call;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.param.ParamGenerator;
@@ -12,8 +13,10 @@ import org.renjin.gcc.codegen.param.StringParamGenerator;
 import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
+import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.runtime.Builtins;
 import org.renjin.gcc.runtime.CharPtr;
 
 import java.lang.reflect.Method;
@@ -33,16 +36,17 @@ public class FunctionTable {
   private Map<String, MethodCallGenerator> functions = new HashMap<String, MethodCallGenerator>();
 
 
-  public CallGenerator find(GimpleFunctionRef ref) {
-    MethodCallGenerator generator = functions.get(ref.getName());
+  public CallGenerator find(GimpleFunctionRef ref, CallingConvention callingConvention) {
+    String mangledName = callingConvention.mangleFunctionName(ref.getName());
+    MethodCallGenerator generator = functions.get(mangledName);
     if(generator == null) {
-      throw new UnsupportedOperationException("Could not find function '" + ref.getName() + "'");
+      throw new UnsupportedOperationException("Could not find function '" + mangledName + "'");
     }
     return generator;
   }
   
-  public Handle findHandle(GimpleFunctionRef ref) {
-    MethodCallGenerator methodCallGenerator = (MethodCallGenerator) find(ref);
+  public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
+    MethodCallGenerator methodCallGenerator = (MethodCallGenerator) find(ref, callingConvention);
     return methodCallGenerator.getHandle();
   }
 
@@ -62,7 +66,7 @@ public class FunctionTable {
     addMethod("sqrt", Math.class);
     addMethod("floor", Math.class);
 
-    //addReferenceClass(Builtins.class);
+    addMethods(Builtins.class);
   }
 
   public void addMethod(String functionName, Class<Math> declaringClass) {
@@ -73,13 +77,13 @@ public class FunctionTable {
     add(functionName, findMethod(declaringClass, methodName));
   }
 
-  public void add(String className, String functionName, FunctionGenerator function) {
+  public void add(String className, FunctionGenerator function) {
     MethodCallGenerator generator = new MethodCallGenerator(className, 
         function.getMangledName(),
         function.getParamGenerators(),
         function.getReturnGenerator());
 
-    functions.put(functionName, generator);
+    functions.put(function.getMangledName(), generator);
   }
   
   public void add(String functionName, Method method) {
@@ -92,6 +96,14 @@ public class FunctionTable {
         createReturnGenerator(method));
     
     functions.put(functionName, generator);
+  }
+
+  public void addMethods(Class<?> clazz) {
+    for (Method method : clazz.getMethods()) {
+      if(Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
+        add(method.getName(), method);
+      }
+    }
   }
 
 
@@ -110,25 +122,33 @@ public class FunctionTable {
     int index = 0;
     while(index < method.getParameterTypes().length) {
       Class<?> paramClass = method.getParameterTypes()[index];
-      if(WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
-        WrapperType wrapperType = WrapperType.valueOf(paramClass);
-        generators.add(new PrimitivePtrParamGenerator(wrapperType.getGimpleType()));
-        index++;
-        
-      } else if(paramClass.isPrimitive()) {
-        generators.add(new PrimitiveParamGenerator(GimplePrimitiveType.fromJvmType(paramClass)));
-        index++;
-        
-      } else if(paramClass.equals(String.class)) {
-        generators.add(new StringParamGenerator());
-        index++;
-        
-      } else {
-        throw new UnsupportedOperationException(String.format(
-            "Unsupported parameter %d of type %s in method %s.%s", 
-              index, 
-              paramClass, 
+      try {
+        if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
+          WrapperType wrapperType = WrapperType.valueOf(paramClass);
+          generators.add(new PrimitivePtrParamGenerator(wrapperType.getGimpleType()));
+          index++;
+
+        } else if (paramClass.isPrimitive()) {
+          generators.add(new PrimitiveParamGenerator(GimplePrimitiveType.fromJvmType(paramClass)));
+          index++;
+
+        } else if (paramClass.equals(String.class)) {
+          generators.add(new StringParamGenerator());
+          index++;
+
+        } else {
+          throw new UnsupportedOperationException(String.format(
+              "Unsupported parameter %d of type %s in method %s.%s",
+              index,
+              paramClass,
               method.getDeclaringClass().getName(), method.getName()));
+        }
+      } catch (Exception e) {
+        throw new InternalCompilerException(String.format(
+            "Exception creating ParamGenerator for parameter %d of type %s in method %s.%s",
+            index,
+            paramClass,
+            method.getDeclaringClass().getName(), method.getName()));      
       }
     }
     return generators;
@@ -160,11 +180,4 @@ public class FunctionTable {
     throw new IllegalArgumentException(format("No method named '%s' in %s", methodName, declaringClass.getName()));
   }
 
-  public void addMethods(Class<?> clazz) {
-    for (Method method : clazz.getMethods()) {
-      if(Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
-        add(method.getName(), method);
-      }
-    }
-  }
 }

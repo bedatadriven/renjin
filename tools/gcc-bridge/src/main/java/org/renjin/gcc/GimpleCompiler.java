@@ -78,25 +78,25 @@ public class GimpleCompiler  {
 
     // First apply any transformations needed by the code generation process
     transform(units);
-    int recordTypeIndex = 1;
-    for(int i=0;i<units.size();i++){
-      for (GimpleRecordTypeDef recordTypeDef : units.get(i).getRecordTypes()) {
-        System.out.println(recordTypeDef);
-        RecordClassGenerator recordType = new RecordClassGenerator(String.format("%s$record%d",className,recordTypeIndex++));
-        recordType.emit(recordTypeDef);
-        recordType.toByteArray();
-      }
-    }
-
-
 
     // Now emit byte code
     File packageFolder = getPackageFolder();
     packageFolder.mkdirs();
 
+    int recordTypeIndex = 1;
+    for(int i=0;i<units.size();i++){
+      for (GimpleRecordTypeDef recordTypeDef : units.get(i).getRecordTypes()) {
+        String recordClassName = String.format("%s$record%d",className,recordTypeIndex++);
+        System.out.println(recordTypeDef);
+        RecordClassGenerator recordType = new RecordClassGenerator(recordClassName);
+        recordType.emit(recordTypeDef);
+
+        Files.write(recordType.toByteArray(), new File(packageFolder, recordClassName + ".class"));
+      }
+    }
+
     MainClassGenerator generator = new MainClassGenerator(functionTable, getInternalClassName());
     generator.emit(units);
-
 
     byte[] classFile = generator.toByteArray();
 

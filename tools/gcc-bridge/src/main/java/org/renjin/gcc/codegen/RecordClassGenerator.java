@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.codegen.call.FunctionTable;
@@ -12,6 +13,7 @@ import org.renjin.gcc.codegen.var.VariableTable;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -47,9 +49,18 @@ public class RecordClassGenerator {
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java / lang / Object", new String[0]);
+    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
 
      emitDefaultConstructor();
+     emitFields(record);
+    cv.visitEnd();
+  }
+
+  private void emitFields(GimpleRecordTypeDef record){
+    for (GimpleField gimpleField : record.getFields()) {
+      FieldVisitor fv = cv.visitField(ACC_PUBLIC, gimpleField.getName(), "I", null, null);
+      fv.visitEnd();
+    }
   }
 
 

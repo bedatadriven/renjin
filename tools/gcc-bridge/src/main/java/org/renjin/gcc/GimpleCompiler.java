@@ -84,14 +84,14 @@ public class GimpleCompiler  {
     packageFolder.mkdirs();
 
     int recordTypeIndex = 1;
-    for(int i=0;i<units.size();i++){
-      for (GimpleRecordTypeDef recordTypeDef : units.get(i).getRecordTypes()) {
-        String recordClassName = String.format("%s$record%d",className,recordTypeIndex++);
+    for (GimpleCompilationUnit unit : units) {
+      for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
+        String recordClassName = String.format("%s$record%d", className, recordTypeIndex++);
         System.out.println(recordTypeDef);
-        RecordClassGenerator recordType = new RecordClassGenerator(recordClassName);
+        RecordClassGenerator recordType = new RecordClassGenerator(packageName.replace('.', '/') + "/" + recordClassName);
         recordType.emit(recordTypeDef);
-
-        Files.write(recordType.toByteArray(), new File(packageFolder, recordClassName + ".class"));
+        byte[] recordTypeClass = recordType.toByteArray();
+        Files.write(recordTypeClass, new File(packageFolder, recordClassName + ".class"));
       }
     }
 

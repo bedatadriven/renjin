@@ -10,9 +10,6 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by parham on 10/27/15.
- */
 public class RecordPtrParamGenerator extends ParamGenerator {
 
     private GimpleType type;

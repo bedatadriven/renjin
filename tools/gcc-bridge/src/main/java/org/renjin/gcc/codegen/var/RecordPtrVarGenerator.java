@@ -18,7 +18,7 @@ public class RecordPtrVarGenerator extends AbstractExprGenerator implements Expr
     public RecordPtrVarGenerator(GimpleType type, int varIndex) {
         this.type = type;
         this.varIndex = varIndex;
-        recordClassName = "Structs$record1";
+        recordClassName = "org/renjin/gcc/Structs$record1";
     }
 
 

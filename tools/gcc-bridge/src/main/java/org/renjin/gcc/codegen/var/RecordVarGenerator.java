@@ -9,9 +9,6 @@ import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import static org.objectweb.asm.Opcodes.*;
 
-/**
- * Created by parham on 10/27/15.
- */
 public class RecordVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
     private final String recordClassName;
@@ -22,7 +19,7 @@ public class RecordVarGenerator extends AbstractExprGenerator implements VarGene
         this.type = type;
 
         this.varIndex = varIndex;
-        recordClassName = "Structs$record1";
+        recordClassName = "org/renjin/gcc/Structs$record1";
     }
 
     @Override

@@ -20,7 +20,7 @@ public class RecordPtrParamGenerator extends ParamGenerator {
 
     @Override
     public List<Type> getParameterTypes() {
-        return Collections.singletonList(Type.getType("LStructs$record1;"));
+        return Collections.singletonList(Type.getType("Lorg/renjin/gcc/Structs$record1;"));
     }
 
     @Override

@@ -88,7 +88,7 @@ public class GimpleCompiler  {
       for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
         String recordClassName = String.format("%s$record%d", className, recordTypeIndex++);
         System.out.println(recordTypeDef);
-        RecordClassGenerator recordType = new RecordClassGenerator(packageName.replace('.', '/') + "/" + recordClassName);
+        RecordClassGenerator recordType = new RecordClassGenerator(new StringBuilder().append(packageName.replace('.', '/')).append("/").append(recordClassName).toString());
         recordType.emit(recordTypeDef);
         byte[] recordTypeClass = recordType.toByteArray();
         Files.write(recordTypeClass, new File(packageFolder, recordClassName + ".class"));

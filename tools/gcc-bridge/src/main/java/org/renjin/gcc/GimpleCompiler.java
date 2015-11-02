@@ -6,6 +6,7 @@ import org.renjin.gcc.analysis.AddressableFinder;
 import org.renjin.gcc.analysis.FunctionBodyTransformer;
 import org.renjin.gcc.analysis.ResultDeclRewriter;
 import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
+import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.MainClassGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.call.FunctionTable;
@@ -95,7 +96,7 @@ public class GimpleCompiler  {
       }
     }
 
-    MainClassGenerator generator = new MainClassGenerator(functionTable, getInternalClassName());
+    MainClassGenerator generator = new MainClassGenerator(new GeneratorFactory(), functionTable, getInternalClassName());
     generator.emit(units);
 
     byte[] classFile = generator.toByteArray();

@@ -47,14 +47,15 @@ public class FunctionGenerator {
   private Labels labels = new Labels();
   private VariableTable localVariables;
   private FunctionTable functionTable;
-  private GeneratorFactory generatorFactory = new GeneratorFactory();
+  private GeneratorFactory generatorFactory;
   
   private MethodVisitor mv;
 
-  public FunctionGenerator(GimpleFunction function) {
+  public FunctionGenerator(GeneratorFactory generatorFactory, GimpleFunction function) {
     this.function = function;
-    this.params = generatorFactory.forParameters(function.getParameters());
-    this.returnGenerator = generatorFactory.findReturnGenerator(function.getReturnType());
+    this.generatorFactory = generatorFactory;
+    this.params = this.generatorFactory.forParameters(function.getParameters());
+    this.returnGenerator = this.generatorFactory.findReturnGenerator(function.getReturnType());
     this.localVarAllocator = new LocalVarAllocator();
   }
 
@@ -310,6 +311,7 @@ public class FunctionGenerator {
       
       case PAREN_EXPR:
       case VAR_DECL:
+      case PARM_DECL:
       case NOP_EXPR:
       case MEM_REF:
       case INTEGER_CST:

@@ -5,23 +5,11 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
-import org.renjin.gcc.codegen.call.FunctionTable;
-import org.renjin.gcc.codegen.var.FieldGenerator;
-import org.renjin.gcc.codegen.var.PrimitiveFieldGenerator;
-import org.renjin.gcc.codegen.var.PtrFieldGenerator;
-import org.renjin.gcc.codegen.var.VariableTable;
-import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleField;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -34,14 +22,8 @@ public class RecordClassGenerator {
   private PrintWriter pw;
   private String className;
 
-  private VariableTable globalVariables = new VariableTable();
-  private FunctionTable functionTable;
-
   public RecordClassGenerator(String className) {
     this.className = className;
-
-    functionTable = new FunctionTable();
-    functionTable.addDefaults();
   }
   
   public void emit(GimpleRecordTypeDef record) {
@@ -74,54 +56,6 @@ public class RecordClassGenerator {
     mv.visitEnd();
   }
 
-  private void emitGlobalVariables(List<GimpleCompilationUnit> units) {
-    for (GimpleCompilationUnit unit : units) {
-      for (GimpleVarDecl gimpleVarDecl : unit.getGlobalVariables()) {
-        
-        FieldGenerator field = findGlobalVarGenerator(gimpleVarDecl);
-        field.emitField(cv);
-        
-        globalVariables.add(gimpleVarDecl.getId(), field);
-      }
-    }
-  }
-
-  private FieldGenerator findGlobalVarGenerator(GimpleVarDecl gimpleVarDecl) {
-    if(gimpleVarDecl.getType() instanceof GimplePrimitiveType) {
-      return new PrimitiveFieldGenerator(gimpleVarDecl.getName(), className,
-          gimpleVarDecl.getType(),
-          ((GimplePrimitiveType) gimpleVarDecl.getType()).jvmType());
-    
-    } else if(gimpleVarDecl.getType() instanceof GimpleIndirectType) {
-      return new PtrFieldGenerator(className, gimpleVarDecl);
-    
-    } else {
-      throw new UnsupportedOperationException(gimpleVarDecl.toString());
-    }
-  }
-
-  private void emitFunctions(List<GimpleCompilationUnit> units) {
-
-    // First enumerate all functions as they may be reference from within each other
-    
-    List<FunctionGenerator> functions = new ArrayList<FunctionGenerator>();
-    
-    for (GimpleCompilationUnit unit : units) {
-      for (GimpleFunction function : unit.getFunctions()) {
-        FunctionGenerator functionGenerator = new FunctionGenerator(function);
-        
-        functions.add(functionGenerator);
-        functionTable.add(className, functionGenerator);
-      }
-    }
-    
-    // Now actually emit the function bodies
-    for (FunctionGenerator functionGenerator : functions) {
-      functionGenerator.emit(cv, globalVariables, functionTable);
-    }
-  }
-  
-  
   public byte[] toByteArray() {
     cv.visitEnd();
     return cw.toByteArray();

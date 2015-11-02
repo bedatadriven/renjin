@@ -1,4 +1,4 @@
-package org.renjin.gcc.codegen.var;
+package org.renjin.gcc.codegen.field;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -8,7 +8,6 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.LValueGenerator;
 import org.renjin.gcc.codegen.expr.PtrGenerator;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -16,7 +15,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * Generates two fields for a global pointer variable, one for an array, and the other for 
  * an offset into the array.
  */
-public class PtrFieldGenerator extends AbstractExprGenerator implements FieldGenerator, PtrGenerator, LValueGenerator {
+public class PrimitivePtrFieldGenerator extends AbstractExprGenerator implements FieldGenerator, PtrGenerator, LValueGenerator {
 
   private String className;
   private String arrayFieldName;
@@ -24,12 +23,12 @@ public class PtrFieldGenerator extends AbstractExprGenerator implements FieldGen
   private GimpleType gimpleType;
   private Type baseType;
   
-  public PtrFieldGenerator(String className, GimpleVarDecl gimpleVarDecl) {
+  public PrimitivePtrFieldGenerator(String className, String fieldName, GimpleType type) {
     this.className = className;
-    this.arrayFieldName = gimpleVarDecl.getName();
-    this.offsetFieldName = gimpleVarDecl.getName() + "$offset";
-    this.gimpleType = gimpleVarDecl.getType();
-    this.baseType = ((GimplePrimitiveType)gimpleVarDecl.getType().getBaseType()).jvmType();
+    this.arrayFieldName = fieldName;
+    this.offsetFieldName = fieldName + "$offset";
+    this.gimpleType = type;
+    this.baseType = ((GimplePrimitiveType)type.getBaseType()).jvmType();
   }
 
   @Override

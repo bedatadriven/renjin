@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
@@ -44,9 +45,18 @@ public abstract class TypeFactory {
   public TypeFactory pointerTo() {
     throw new UnsupportedOperationException("unimplemented [" + getClass().getName() + "]");
   }
-  
+
   public TypeFactory arrayOf(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("unimplemented [" + getClass().getName() + "]");
   }
-  
+
+  /**
+   * Creates a new FieldGenerator for fields of this type.
+   * 
+   * @param className the full internal name of the class, for example, "org/renjin/gcc/Record$1"
+   * @param fieldName the name of the field
+   */
+  public FieldGenerator fieldGenerator(String className, String fieldName) {
+    throw new UnsupportedOperationException("unimplemented [" + getClass().getName() + "]");
+  }
 }

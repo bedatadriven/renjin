@@ -1,6 +1,7 @@
-package org.renjin.gcc.codegen.var;
+package org.renjin.gcc.codegen.field;
 
 import org.objectweb.asm.ClassVisitor;
+import org.renjin.gcc.codegen.var.VarGenerator;
 
 /**
  * Generates field definitions, loads and stores for global variables

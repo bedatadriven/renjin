@@ -2,6 +2,9 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.field.FieldGenerator;
+import org.renjin.gcc.codegen.field.PrimitiveFieldGenerator;
+import org.renjin.gcc.codegen.field.PrimitivePtrFieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
@@ -37,6 +40,12 @@ public class PrimitiveTypeFactory extends TypeFactory {
   @Override
   public ReturnGenerator returnGenerator() {
     return new PrimitiveReturnGenerator(type);
+  }
+
+
+  @Override
+  public FieldGenerator fieldGenerator(String className, String fieldName) {
+    return new PrimitiveFieldGenerator(className, fieldName, type, type.jvmType());
   }
 
   @Override
@@ -89,6 +98,11 @@ public class PrimitiveTypeFactory extends TypeFactory {
     @Override
     public TypeFactory pointerTo() {
       return new PointerPointer(new GimplePointerType(pointerType));
+    }
+
+    @Override
+    public FieldGenerator fieldGenerator(String className, String fieldName) {
+      return new PrimitivePtrFieldGenerator(className, fieldName, pointerType);
     }
   }
 

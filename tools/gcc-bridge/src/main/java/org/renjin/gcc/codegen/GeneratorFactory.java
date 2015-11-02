@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen;
 
+import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.type.*;
@@ -47,6 +48,17 @@ public class GeneratorFactory {
     return forType(parameterType).paramGenerator();
   }
 
+  /**
+   * Creates a new FieldGenerator for a given field type.
+   * 
+   * @param className the full internal name of the class in which the field is declared (for example, "org/renjin/gcc/Struct")
+   * @param fieldName the name of the field
+   * @param type the GimpleType of the field
+   */
+  public FieldGenerator forField(String className, String fieldName, GimpleType type) {
+    return forType(type).fieldGenerator(className, fieldName); 
+  }
+  
   public ReturnGenerator findReturnGenerator(GimpleType returnType) {
     return forType(returnType).returnGenerator();
   }
@@ -68,4 +80,5 @@ public class GeneratorFactory {
     return map;
   }
 
+ 
 }

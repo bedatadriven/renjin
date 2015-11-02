@@ -1,4 +1,4 @@
-package org.renjin.gcc.codegen.var;
+package org.renjin.gcc.codegen.field;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -10,9 +10,7 @@ import org.renjin.gcc.codegen.expr.ValueGenerator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-/**
- * 
- */
+
 public class PrimitiveFieldGenerator extends AbstractExprGenerator implements FieldGenerator, ValueGenerator {
 
   private String fieldName;
@@ -20,7 +18,7 @@ public class PrimitiveFieldGenerator extends AbstractExprGenerator implements Fi
   private GimplePrimitiveType gimpleType;
   private Type type;
 
-  public PrimitiveFieldGenerator(String fieldName, String className, GimpleType gimpleType, Type type) {
+  public PrimitiveFieldGenerator(String className, String fieldName, GimpleType gimpleType, Type type) {
     this.fieldName = fieldName;
     this.className = className;
     this.gimpleType = (GimplePrimitiveType) gimpleType;

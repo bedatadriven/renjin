@@ -41,6 +41,8 @@ public class GimpleCompiler  {
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
   
+  private GeneratorFactory generatorFactory = new GeneratorFactory();
+  
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
@@ -87,16 +89,17 @@ public class GimpleCompiler  {
     int recordTypeIndex = 1;
     for (GimpleCompilationUnit unit : units) {
       for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
-        String recordClassName = String.format("%s$record%d", className, recordTypeIndex++);
+        String recordClassName = String.format("%s$Record%d", className, recordTypeIndex++);
         System.out.println(recordTypeDef);
-        RecordClassGenerator recordType = new RecordClassGenerator(new StringBuilder().append(packageName.replace('.', '/')).append("/").append(recordClassName).toString());
-        recordType.emit(recordTypeDef);
-        byte[] recordTypeClass = recordType.toByteArray();
-        Files.write(recordTypeClass, new File(packageFolder, recordClassName + ".class"));
+        RecordClassGenerator recordGenerator = new RecordClassGenerator(packageName, recordClassName, recordTypeDef);
+        recordGenerator.emitRecordClass(recordTypeDef);
+        Files.write(recordGenerator.toByteArray(), new File(packageFolder, recordClassName + ".class"));
+
+        generatorFactory.addRecordType(recordTypeDef, recordGenerator);
       }
     }
 
-    MainClassGenerator generator = new MainClassGenerator(new GeneratorFactory(), functionTable, getInternalClassName());
+    MainClassGenerator generator = new MainClassGenerator(generatorFactory, functionTable, getInternalClassName());
     generator.emit(units);
 
     byte[] classFile = generator.toByteArray();
@@ -106,7 +109,6 @@ public class GimpleCompiler  {
 
   private String getInternalClassName() {
     return (packageName + "." + className).replace('.', '/');
-    
   }
 
   public boolean isVerbose() {

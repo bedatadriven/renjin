@@ -6,12 +6,14 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.ValueGenerator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
 
-public class PrimitiveFieldGenerator extends AbstractExprGenerator implements FieldGenerator, ValueGenerator {
+
+public class PrimitiveFieldGenerator implements FieldGenerator {
 
   private String fieldName;
   private String className;
@@ -27,27 +29,74 @@ public class PrimitiveFieldGenerator extends AbstractExprGenerator implements Fi
 
 
   @Override
-  public void emitField(ClassVisitor cv) {
-    cv.visitField(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, fieldName, type.getDescriptor(), null, null).visitEnd();
+  public void emitStaticField(ClassVisitor cv) {
+    emitField(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, cv);
   }
-  
+
+
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
-    mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, type.getDescriptor());
+  public void emitInstanceField(ClassVisitor cv) {
+    emitField(Opcodes.ACC_PUBLIC, cv);
+  }
+
+  private void emitField(int access, ClassVisitor cv) {
+    cv.visitField(access, fieldName, type.getDescriptor(), null, null).visitEnd();
+  }
+
+
+  @Override
+  public ExprGenerator staticExprGenerator() {
+    return new StaticMemberExpr();
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
-    
+  public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
+    return new MemberExpr(instanceGenerator);
   }
 
-  @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-    mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, type.getDescriptor());
+  private class StaticMemberExpr extends AbstractExprGenerator {
+
+    @Override
+    public GimpleType getGimpleType() {
+      return gimpleType;
+    }
+
+    @Override
+    public void emitPrimitiveValue(MethodVisitor mv) {
+      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, type.getDescriptor());
+    }
+
+    @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, type.getDescriptor());
+    }
   }
 
-  @Override
-  public GimpleType getGimpleType() {
-    return gimpleType;
+  public class MemberExpr extends AbstractExprGenerator{
+
+    private ExprGenerator instance;
+
+    public MemberExpr(ExprGenerator instance) {
+      this.instance = instance;
+    }
+
+    @Override
+    public GimpleType getGimpleType() {
+      return gimpleType;
+    }
+
+    @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      instance.emitPushRecordRef(mv);
+      valueGenerator.emitPrimitiveValue(mv);
+      mv.visitFieldInsn(PUTFIELD, className, fieldName, type.getDescriptor());
+    }
+
+
+    @Override
+    public void emitPrimitiveValue(MethodVisitor mv) {
+      instance.emitPushRecordRef(mv);
+      mv.visitFieldInsn(GETFIELD, className, fieldName, type.getDescriptor());
+    }
   }
 }

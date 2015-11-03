@@ -4,7 +4,7 @@
 
 
 typedef struct {
-   int years_open;
+   double years_open;
    int plan_type;
 } account;
 
@@ -13,9 +13,9 @@ typedef struct {
 
 double account_value(account * pa) {
   if(pa->plan_type == 2) {
-    return pa->years_open * 2500;
+    return pa->years_open * 2500.0;
   } else {
-    return pa->years_open * 1500;
+    return pa->years_open * 1500.0;
   }
 }
 

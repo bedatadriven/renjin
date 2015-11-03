@@ -1,5 +1,7 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.collect.Maps;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
@@ -17,6 +19,13 @@ import java.util.Map;
  */
 public class GeneratorFactory {
 
+  private final Map<String, RecordClassGenerator> recordTypes = Maps.newHashMap();
+  
+  public void addRecordType(GimpleRecordTypeDef type, RecordClassGenerator generator) {
+    recordTypes.put(type.getId(), generator);
+  }
+  
+  
   public TypeFactory forType(GimpleType type) {
     if(type instanceof GimplePrimitiveType) {
       return new PrimitiveTypeFactory((GimplePrimitiveType) type);
@@ -30,8 +39,15 @@ public class GeneratorFactory {
     } else if(type instanceof GimpleVoidType) {
       return new VoidTypeFactory();
       
-    } else if (type instanceof GimpleRecordType){
-      return new RecordTypeFactory((GimpleRecordType) type);
+    } else if (type instanceof GimpleRecordType) {
+      GimpleRecordType recordType = (GimpleRecordType) type;
+      RecordClassGenerator recordGenerator = recordTypes.get(recordType.getId());
+      if(recordGenerator == null) {
+        throw new InternalCompilerException(String.format(
+            "No record type for GimpleRecordType[name: %s, id: %s]", recordType.getName(), recordType.getId()));
+      }
+      return new RecordTypeFactory(recordGenerator);
+      
     } else if(type instanceof GimpleIndirectType) {
       return forType(type.getBaseType()).pointerTo();
     

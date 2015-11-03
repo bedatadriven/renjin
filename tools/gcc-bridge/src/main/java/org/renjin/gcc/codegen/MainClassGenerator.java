@@ -68,9 +68,9 @@ public class MainClassGenerator {
       for (GimpleVarDecl gimpleVarDecl : unit.getGlobalVariables()) {
         
         FieldGenerator field = generatorFactory.forField(className, gimpleVarDecl.getName(), gimpleVarDecl.getType());
-        field.emitField(cv);
+        field.emitStaticField(cv);
         
-        globalVariables.add(gimpleVarDecl.getId(), field);
+        globalVariables.add(gimpleVarDecl.getId(), field.staticExprGenerator());
       }
     }
   }

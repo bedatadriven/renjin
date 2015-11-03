@@ -1,71 +1,56 @@
 package org.renjin.gcc.codegen.var;
 
 import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.param.RecordPtrParamGenerator;
-import org.renjin.gcc.codegen.type.TypeFactory;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
-import static org.objectweb.asm.Opcodes.*;
+
+import static org.objectweb.asm.Opcodes.ALOAD;
 
 public class RecordPtrVarGenerator extends AbstractExprGenerator implements ExprGenerator {
-    private GimpleType type;
-    private int varIndex;
-    private final String recordClassName;
+  private int varIndex;
+  private RecordClassGenerator recordGenerator;
+  private GimpleType pointerType;
 
-    public RecordPtrVarGenerator(GimpleType type, int varIndex) {
-        this.type = type;
-        this.varIndex = varIndex;
-        recordClassName = "org/renjin/gcc/Structs$record1";
-    }
+  public RecordPtrVarGenerator(RecordClassGenerator recordGenerator, int varIndex) {
+    this.recordGenerator = recordGenerator;
+    this.varIndex = varIndex;
+    this.pointerType = new GimplePointerType(recordGenerator.getGimpleType());
+  }
+  
+  @Override
+  public GimpleType getGimpleType() {
+    return pointerType;
+  }
 
+  @Override
+  public ExprGenerator valueOf() {
+    return new ValueOf();
+  }
+
+
+  @Override
+  public void emitPushRecordRef(MethodVisitor mv) {
+    mv.visitVarInsn(ALOAD, varIndex);
+  }
+
+  private class ValueOf extends AbstractExprGenerator {
 
     @Override
     public GimpleType getGimpleType() {
-        throw new UnsupportedOperationException();
+      return pointerType.getBaseType();
     }
 
     @Override
-    public ExprGenerator valueOf() {
-        return new ValueOf();
+    public ExprGenerator addressOf() {
+      return RecordPtrVarGenerator.this;
     }
 
-    private class ValueOf extends AbstractExprGenerator {
-
-        @Override
-        public GimpleType getGimpleType() {
-            return type.getBaseType();
-        }
-
-        @Override
-        public ExprGenerator memberOf(String memberName) {
-            return new Member(memberName);
-        }
+    @Override
+    public ExprGenerator memberOf(String memberName) {
+      return recordGenerator.getFieldGenerator(memberName).memberExprGenerator(RecordPtrVarGenerator.this);
     }
-
-    private class Member extends AbstractExprGenerator {
-
-        private String memberName;
-
-        public Member(String memberName) {
-            this.memberName = memberName;
-        }
-
-        public GimpleType getGimpleType() {
-            return new GimpleIntegerType();
-        }
-
-        @Override
-        public void emitPrimitiveValue(MethodVisitor mv) {
-            if (this.getGimpleType() instanceof GimpleIntegerType) {
-                mv.visitVarInsn(ALOAD, varIndex);
-                mv.visitFieldInsn(GETFIELD, recordClassName, memberName, "I");
-            } else {
-                throw new UnsupportedOperationException(String.format("%s [%s] is not a value type",
-                        toString(), getClass().getSimpleName()));
-            }
-        }
-    }
+  }
 }

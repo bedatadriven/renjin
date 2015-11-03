@@ -13,6 +13,7 @@ import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;
@@ -30,18 +31,16 @@ public class RecordClassGenerator {
 
   private final GimpleRecordTypeDef recordType;
   private final Map<String, FieldGenerator> fields = Maps.newHashMap();
+  private GeneratorFactory factory;
 
-  public RecordClassGenerator(String packageName, String className, GimpleRecordTypeDef recordType) {
-    this.className = packageName.replace('.', '/') + "/" + className;
+  public RecordClassGenerator(GeneratorFactory factory, String className, GimpleRecordTypeDef recordType) {
+    this.factory = factory;
+    this.className = className;
     this.recordType = recordType;
-    
-    GeneratorFactory factory = new GeneratorFactory();
-    for (GimpleField gimpleField : recordType.getFields()) {
-      fields.put(gimpleField.getName(), factory.forField(this.className, gimpleField.getName(), gimpleField.getType()));
-    }
   }
 
-  public void emitRecordClass(GimpleRecordTypeDef record) {
+  public byte[] generateClassFile() throws IOException {
+    
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
@@ -51,11 +50,16 @@ public class RecordClassGenerator {
     emitDefaultConstructor();
     emitFields();
     cv.visitEnd();
+    
+    return cw.toByteArray();
   }
 
   private void emitFields() {
-    for (FieldGenerator fieldGenerator : fields.values()) {
+
+    for (GimpleField gimpleField : recordType.getFields()) {
+      FieldGenerator fieldGenerator = factory.forField(this.className, gimpleField.getName(), gimpleField.getType());
       fieldGenerator.emitInstanceField(cv);
+      fields.put(gimpleField.getName(), fieldGenerator);
     }
   }
 
@@ -67,11 +71,6 @@ public class RecordClassGenerator {
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
-  }
-
-  public byte[] toByteArray() {
-    cv.visitEnd();
-    return cw.toByteArray();
   }
 
   public GimpleType getGimpleType() {
@@ -109,4 +108,5 @@ public class RecordClassGenerator {
     }
     return fieldGenerator;
   }
+
 }

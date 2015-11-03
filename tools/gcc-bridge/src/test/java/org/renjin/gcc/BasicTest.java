@@ -494,6 +494,7 @@ public class BasicTest extends AbstractGccTest {
   }
   
   @Test
+  @Ignore("todo: unions")
   public void fortranEquivalence() throws Exception {
     Class clazz = compile("equivalence.f", "Equivalence");
     Method testMethod = clazz.getMethod("test_");

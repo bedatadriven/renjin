@@ -51,6 +51,8 @@ public class MainClassGenerator {
     emitDefaultConstructor();
     emitGlobalVariables(units);
     emitFunctions(units);
+    
+    cv.visitEnd();
   }
 
   private void emitDefaultConstructor() {

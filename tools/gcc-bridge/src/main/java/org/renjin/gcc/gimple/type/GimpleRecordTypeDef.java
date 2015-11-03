@@ -3,7 +3,6 @@ package org.renjin.gcc.gimple.type;
 
 import com.google.common.collect.Lists;
 
-import java.io.IOException;
 import java.util.List;
 
 public class GimpleRecordTypeDef {
@@ -47,11 +46,13 @@ public class GimpleRecordTypeDef {
     return fields;
   }
 
-  public void prettyPrintTo(Appendable out) throws IOException {
+  public String toString() {
+    StringBuilder out = new StringBuilder();
     out.append("struct ").append(name).append(" {\n");
     for (GimpleField field : fields) {
       out.append(String.format("    %s %s\n", field.getType(), field.getName()));
     }
-    out.append("}\n\n");
+    out.append("}");
+    return out.toString();
   }
 }

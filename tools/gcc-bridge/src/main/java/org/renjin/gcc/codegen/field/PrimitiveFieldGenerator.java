@@ -92,7 +92,6 @@ public class PrimitiveFieldGenerator implements FieldGenerator {
       mv.visitFieldInsn(PUTFIELD, className, fieldName, type.getDescriptor());
     }
 
-
     @Override
     public void emitPrimitiveValue(MethodVisitor mv) {
       instance.emitPushRecordRef(mv);

@@ -16,6 +16,7 @@ import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.translate.MethodTable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -81,33 +82,45 @@ public class GimpleCompiler  {
 
     // First apply any transformations needed by the code generation process
     transform(units);
-
-    // Now emit byte code
-    File packageFolder = getPackageFolder();
-    packageFolder.mkdirs();
-
-    int recordTypeIndex = 1;
-    for (GimpleCompilationUnit unit : units) {
-      for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
-        String recordClassName = String.format("%s$Record%d", className, recordTypeIndex++);
-        System.out.println(recordTypeDef);
-        RecordClassGenerator recordGenerator = new RecordClassGenerator(packageName, recordClassName, recordTypeDef);
-        recordGenerator.emitRecordClass(recordTypeDef);
-        Files.write(recordGenerator.toByteArray(), new File(packageFolder, recordClassName + ".class"));
-
-        generatorFactory.addRecordType(recordTypeDef, recordGenerator);
-      }
-    }
+    compileRecords(units);
 
     MainClassGenerator generator = new MainClassGenerator(generatorFactory, functionTable, getInternalClassName());
     generator.emit(units);
+    writeClass(getInternalClassName(), generator.toByteArray());
+  }
 
-    byte[] classFile = generator.toByteArray();
+  private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
+    
+    // Enumerate record types before writing, so that records can reference each other
+    List<RecordClassGenerator> recordsToWrite = Lists.newArrayList();
+    for (GimpleCompilationUnit unit : units) {
+      for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
+        System.out.println(recordTypeDef);
+        
+        String recordClassName;
+        if(recordTypeDef.getName() != null) {
+          recordClassName = recordTypeDef.getName();
+        } else {
+          recordClassName = String.format("%s$Record%d", className, recordsToWrite.size());
+        }
+        RecordClassGenerator recordGenerator = new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
+        
+        generatorFactory.addRecordType(recordTypeDef, recordGenerator);
+        recordsToWrite.add(recordGenerator);
+      }
+    }
 
-    Files.write(classFile, new File(packageFolder, className + ".class"));
+    // Now write out the class files
+    for (RecordClassGenerator recordClassGenerator : recordsToWrite) {
+      writeClass(recordClassGenerator.getClassName(), recordClassGenerator.generateClassFile());
+    }
   }
 
   private String getInternalClassName() {
+    return getInternalClassName(className);
+  }
+
+  private String getInternalClassName(String className) {
     return (packageName + "." + className).replace('.', '/');
   }
 
@@ -142,9 +155,16 @@ public class GimpleCompiler  {
       }
     } while(updated);
   }
-
-  private File getPackageFolder() {
-    return new File(outputDirectory, packageName.replace('.', File.separatorChar));
+  
+  private void writeClass(String internalName, byte[] classByteArray) throws IOException {
+    File classFile = new File(outputDirectory.getAbsolutePath() + File.separator + internalName + ".class");
+    if(!classFile.getParentFile().exists()) {
+      boolean created = classFile.getParentFile().mkdirs();
+      if(!created) {
+        throw new IOException("Failed to create directory for class file: " + classFile.getParentFile());
+      }
+    }
+    Files.write(classByteArray, classFile);
   }
 
 }

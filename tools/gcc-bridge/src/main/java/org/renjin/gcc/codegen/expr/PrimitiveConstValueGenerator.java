@@ -29,7 +29,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
   @Override
   public void emitPrimitiveValue(MethodVisitor mv) {
     Type type = this.gimpleType.jvmType();
-    if(type.equals(Type.INT_TYPE) || type.equals(Type.BOOLEAN_TYPE)) {
+    if(type.equals(Type.INT_TYPE) || type.equals(Type.BOOLEAN_TYPE) || type.equals(Type.BYTE_TYPE)) {
       emitInt(mv, value.intValue());
     
     } else if(type.equals(Type.LONG_TYPE)) {

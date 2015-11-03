@@ -2,6 +2,8 @@ package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.field.FieldGenerator;
+import org.renjin.gcc.codegen.field.RecordFieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.RecordPtrParamGenerator;
 import org.renjin.gcc.codegen.var.RecordVarGenerator;
@@ -26,6 +28,11 @@ public class RecordTypeFactory extends TypeFactory {
     @Override
     public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
         return new RecordVarGenerator(generator, allocator.reserveObject());
+    }
+
+    @Override
+    public FieldGenerator fieldGenerator(String className, String fieldName) {
+        return new RecordFieldGenerator(className, fieldName, generator);
     }
 
     public class Pointer extends TypeFactory {

@@ -29,8 +29,9 @@ public class GimpleRecordType extends AbstractGimpleType {
     return "struct " + getName();
   }
 
+  
   @Override
   public int sizeOf() {
-    throw new UnsupportedOperationException();
+    return getSize() / 8;
   }
 }

@@ -126,7 +126,8 @@ public class GnurSourcesCompiler {
       compiler.addMethod("Rf_pbeta", distributionsClass, "pbeta");
       compiler.addReferenceClass(RenjinCApi.class);
       compiler.addReferenceClass(Sort.class);
-      compiler.addRecordClass("SEXP", SEXP.class);
+      compiler.addRecordClass("SEXPREC", SEXP.class);
+      compiler.addRecordClass("_DllInfo", DllInfo.class);
       compiler.compile(units);
     }
   }

@@ -1,6 +1,8 @@
 package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.field.FieldGenerator;
+import org.renjin.gcc.codegen.field.FunPtrFieldGenerator;
 import org.renjin.gcc.codegen.param.FunPtrParamGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.var.FunPtrVarGenerator;
@@ -37,6 +39,11 @@ public class FunTypeFactory extends TypeFactory {
     @Override
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
       return new FunPtrVarGenerator(type, allocator.reserveObject());
+    }
+
+    @Override
+    public FieldGenerator fieldGenerator(String className, String fieldName) {
+      return new FunPtrFieldGenerator(className, fieldName, type);
     }
   }
 }

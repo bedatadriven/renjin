@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.field.PrimitiveFieldGenerator;
 import org.renjin.gcc.codegen.field.PrimitivePtrFieldGenerator;
+import org.renjin.gcc.codegen.field.PrimitivePtrPtrFieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
@@ -120,6 +121,11 @@ public class PrimitiveTypeFactory extends TypeFactory {
     @Override
     public ParamGenerator paramGenerator() {
       return new WrappedPtrPtrParamGenerator(pointerType);
+    }
+
+    @Override
+    public FieldGenerator fieldGenerator(String className, String fieldName) {
+      return new PrimitivePtrPtrFieldGenerator(className, fieldName, pointerType);
     }
   }
 

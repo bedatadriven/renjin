@@ -68,11 +68,16 @@ public class MainClassGenerator {
   private void emitGlobalVariables(List<GimpleCompilationUnit> units) {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleVarDecl gimpleVarDecl : unit.getGlobalVariables()) {
-        
-        FieldGenerator field = generatorFactory.forField(className, gimpleVarDecl.getName(), gimpleVarDecl.getType());
-        field.emitStaticField(cv);
-        
-        globalVariables.add(gimpleVarDecl.getId(), field.staticExprGenerator());
+
+        try {
+          FieldGenerator field = generatorFactory.forField(className, gimpleVarDecl.getName(), gimpleVarDecl.getType());
+          field.emitStaticField(cv);
+          globalVariables.add(gimpleVarDecl.getId(), field.staticExprGenerator());
+
+        } catch (Exception e) {
+          throw new InternalCompilerException("Exception writing static variable " + gimpleVarDecl.getName() + 
+              " defined in " + unit.getSourceFile().getName(), e);
+        }
       }
     }
   }

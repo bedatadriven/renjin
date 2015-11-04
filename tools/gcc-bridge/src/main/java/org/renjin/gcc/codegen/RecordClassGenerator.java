@@ -36,6 +36,10 @@ public class RecordClassGenerator {
     this.factory = factory;
     this.className = className;
     this.recordType = recordType;
+    
+    if(recordType.isUnion()) {
+      throw new UnsupportedOperationException("union types not yet implemented.");
+    }
   }
 
   public byte[] generateClassFile() throws IOException {

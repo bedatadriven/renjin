@@ -16,7 +16,6 @@ public class RecordTypeFactory extends TypeFactory {
     private final RecordClassGenerator generator;
 
     public RecordTypeFactory(RecordClassGenerator generator) {
-        super();
         this.generator = generator;
     }
 

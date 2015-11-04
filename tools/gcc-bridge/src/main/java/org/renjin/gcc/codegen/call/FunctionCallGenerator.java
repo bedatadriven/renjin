@@ -4,7 +4,6 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
@@ -76,11 +75,7 @@ public class FunctionCallGenerator implements CallGenerator {
 
   @Override
   public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
-    if(WrapperType.is(returnType())) {
-      return new PtrCallExprGenerator(WrapperType.valueOf(returnType()), this, argumentGenerators);
-    } else {
-      return new ValueCallExprGenerator(this, argumentGenerators);
-    }
+    return returnGenerator.callExpression(this, argumentGenerators);
   }
   
   private String descriptor() {

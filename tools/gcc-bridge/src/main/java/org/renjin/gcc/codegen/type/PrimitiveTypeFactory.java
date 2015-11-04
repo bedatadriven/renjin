@@ -9,8 +9,8 @@ import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
 import org.renjin.gcc.codegen.param.WrappedPtrPtrParamGenerator;
+import org.renjin.gcc.codegen.ret.PrimitivePtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
-import org.renjin.gcc.codegen.ret.PtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.var.*;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -79,7 +79,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public ReturnGenerator returnGenerator() {
-      return new PtrReturnGenerator(new GimplePointerType(type));
+      return new PrimitivePtrReturnGenerator(new GimplePointerType(type));
     }
 
     @Override

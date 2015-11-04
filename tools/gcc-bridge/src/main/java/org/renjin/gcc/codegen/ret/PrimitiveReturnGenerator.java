@@ -3,10 +3,14 @@ package org.renjin.gcc.codegen.ret;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.call.CallGenerator;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.ValueGenerator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
+
+import java.util.List;
 
 import static org.objectweb.asm.Opcodes.IRETURN;
 
@@ -42,5 +46,31 @@ public class PrimitiveReturnGenerator implements ReturnGenerator {
   @Override
   public void emitVoidReturn(MethodVisitor mv) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments) {
+    return new CallExpr(callGenerator, arguments);
+  }
+  
+  private class CallExpr extends AbstractExprGenerator {
+    private CallGenerator callGenerator;
+    private List<ExprGenerator> argumentGenerators;
+
+    public CallExpr(CallGenerator callGenerator, List<ExprGenerator> argumentGenerators) {
+      this.callGenerator = callGenerator;
+      this.argumentGenerators = argumentGenerators;
+    }
+
+
+    @Override
+    public GimpleType getGimpleType() {
+      return gimpleType;
+    }
+
+    @Override
+    public void emitPrimitiveValue(MethodVisitor mv) {
+      callGenerator.emitCall(mv, argumentGenerators);
+    }
   }
 }

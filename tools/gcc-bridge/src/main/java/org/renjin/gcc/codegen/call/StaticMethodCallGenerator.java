@@ -71,6 +71,6 @@ public class StaticMethodCallGenerator implements CallGenerator {
 
   @Override
   public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
-    return new ValueCallExprGenerator(this, argumentGenerators);
+    return returnGenerator().callExpression(this, argumentGenerators);
   }
 }

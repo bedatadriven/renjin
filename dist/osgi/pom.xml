@@ -13,48 +13,48 @@
   program. If not, see <http://www.gnu.org/licenses />. -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>parent</artifactId>
-        <groupId>org.renjin</groupId>
-        <version>0.7.0-RC8-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>parent</artifactId>
+    <groupId>org.renjin</groupId>
+    <version>0.7.0-RC8-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>renjin-osgi-bundle</artifactId>
-    <name>Renjin OSGI Bundle</name>
-    <packaging>bundle</packaging>
+  <artifactId>renjin-osgi-bundle</artifactId>
+  <name>Renjin OSGI Bundle</name>
+  <packaging>bundle</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.renjin</groupId>
-            <artifactId>renjin-script-engine</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-script-engine</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>core</artifactId>
-            <version>4.3.0</version>
-        </dependency>
-    </dependencies>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>core</artifactId>
+      <version>4.3.0</version>
+    </dependency>
+  </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <version>1.4.0</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${pom.groupId}.${pom.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Name>${pom.artifactId}</Bundle-Name>
-                        <Bundle-Version>${pom.version}</Bundle-Version>
-                        <!--<Bundle-Activator>org.wso2.mbp.helloworld.Activator</Bundle-Activator>-->
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.3.7</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-Vendor>Renjin authors</Bundle-Vendor>
+            <Embed-Dependency>*</Embed-Dependency>
+            <Embed-Transitive>true</Embed-Transitive>
+            <Export-Package>org.renjin.script</Export-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

@@ -1,7 +1,9 @@
 package org.renjin.gcc;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.analysis.AddressableFinder;
 import org.renjin.gcc.analysis.FunctionBodyTransformer;
 import org.renjin.gcc.analysis.ResultDeclRewriter;
@@ -18,6 +20,7 @@ import org.renjin.gcc.translate.MethodTable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -34,21 +37,22 @@ public class GimpleCompiler  {
 
   private boolean verbose;
 
-  private List<File> classPaths = Lists.newArrayList();
-
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
 
   private FunctionTable functionTable;
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
   
-  private GeneratorFactory generatorFactory = new GeneratorFactory();
+  private final GeneratorFactory generatorFactory = new GeneratorFactory();
+  
+  private final Map<String, Class> providedRecordTypes = Maps.newHashMap();
+  
   
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
-    functionTable = new FunctionTable();
+    functionTable = new FunctionTable(generatorFactory);
     functionTable.addDefaults();
   }
 
@@ -73,9 +77,13 @@ public class GimpleCompiler  {
     functionTable.addMethod("log", Math.class);
     functionTable.addMethod("exp", Math.class);
   }
+
+  public void addMethod(String functionName, Class declaringClass, String methodName) {
+    functionTable.addMethod(functionName, declaringClass, methodName);
+  }
   
-  public MethodTable getMethodTable() {
-    throw new UnsupportedOperationException();
+  public void addRecordClass(String typeName, Class recordClass) {
+    providedRecordTypes.put(typeName, recordClass);
   }
 
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
@@ -97,22 +105,43 @@ public class GimpleCompiler  {
       for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
         System.out.println(recordTypeDef);
         
-        String recordClassName;
-        if(recordTypeDef.getName() != null) {
-          recordClassName = recordTypeDef.getName();
+        if(isProvided(recordTypeDef)) {
+          
+          // Map this record type to an existing JVM class
+          Class existingClass = providedRecordTypes.get(recordTypeDef.getName());
+          
+          generatorFactory.addRecordType(recordTypeDef, 
+              new RecordClassGenerator(generatorFactory, Type.getInternalName(existingClass), recordTypeDef));
+          
         } else {
-          recordClassName = String.format("%s$Record%d", className, recordsToWrite.size());
+          // Create a new JVM class for this record type
+          
+          String recordClassName;
+          if (recordTypeDef.getName() != null) {
+            recordClassName = recordTypeDef.getName();
+          } else {
+            recordClassName = String.format("%s$Record%d", className, recordsToWrite.size());
+          }
+          RecordClassGenerator recordGenerator =
+              new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
+
+          generatorFactory.addRecordType(recordTypeDef, recordGenerator);
+          recordsToWrite.add(recordGenerator);
         }
-        RecordClassGenerator recordGenerator = new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
-        
-        generatorFactory.addRecordType(recordTypeDef, recordGenerator);
-        recordsToWrite.add(recordGenerator);
       }
     }
 
-    // Now write out the class files
+    // Now write out the record class files
     for (RecordClassGenerator recordClassGenerator : recordsToWrite) {
       writeClass(recordClassGenerator.getClassName(), recordClassGenerator.generateClassFile());
+    }
+  }
+
+  private boolean isProvided(GimpleRecordTypeDef recordTypeDef) {
+    if(recordTypeDef.getName() == null) {
+      return false;
+    } else {
+      return providedRecordTypes.containsKey(recordTypeDef.getName());
     }
   }
 
@@ -130,10 +159,6 @@ public class GimpleCompiler  {
 
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
-  }
-
-  public void addSootClassPaths(List<File> classPaths) {
-    this.classPaths.addAll(classPaths);
   }
 
   private void transform(List<GimpleCompilationUnit> units) {

@@ -17,9 +17,6 @@ import java.util.List;
 @Command(name = "compile", description = "Compile C/Fortran files to a JVM class file")
 public class CompileCommand implements Runnable {
 
-  @Option(name = "--jimple-output-dir", description = "Set the directory where intermediate jimple files are written")
-  public File jimpleOutputDirectory;
-
   @Option(name = "-o", description = "Output directory for class files", required = true)
   public File outputDirectory;
 
@@ -42,9 +39,6 @@ public class CompileCommand implements Runnable {
   @Option(name = "-d", description = "Compile all sources in the given directory")
   public List<String> directories = Lists.newArrayList();
   
-  @Option(name = "--compile-classpath", description = "Classpath to use when compiling")
-  public String classpath = "";
-  
   @Arguments(description = "Sources files to compile")
   public List<String> sourceFiles = Lists.newArrayList();
   
@@ -66,16 +60,6 @@ public class CompileCommand implements Runnable {
     compiler.setPackageName(packageName);
     compiler.setClassName(className);
     
-    if(!Strings.isNullOrEmpty(classpath)) {
-      String paths[] = classpath.split(File.pathSeparator);
-      if(verbose) {
-        System.out.println("Compilation classpath:\n" + Joiner.on("\n").join(paths));
-      }
-      for(String path : paths) {
-        compiler.addSootClassPaths(Arrays.asList(new File(path)));
-      }
-    }
-
     try {
       compiler.compile(units);
     } catch (Exception e) {

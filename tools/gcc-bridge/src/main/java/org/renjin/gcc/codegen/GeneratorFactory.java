@@ -4,11 +4,14 @@ import com.google.common.collect.Maps;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,6 +82,22 @@ public class GeneratorFactory {
     return forType(returnType).returnGenerator();
   }
 
+  public ReturnGenerator forReturnValue(Method method) {
+    Class<?> returnType = method.getReturnType();
+    if(returnType.equals(void.class)) {
+      return new VoidReturnGenerator();
+
+    } else if(returnType.isPrimitive()) {
+      return new PrimitiveReturnGenerator(GimplePrimitiveType.fromJvmType(returnType));
+
+    } else {
+      throw new UnsupportedOperationException(String.format(
+          "Unsupported return type %s in method %s.%s",
+          returnType.getName(),
+          method.getDeclaringClass().getName(), method.getName()));
+    }
+  }
+  
   public List<ParamGenerator> forParameterTypes(List<GimpleType> parameterTypes) {
     List<ParamGenerator> generators = new ArrayList<ParamGenerator>();
     for (GimpleType parameterType : parameterTypes) {

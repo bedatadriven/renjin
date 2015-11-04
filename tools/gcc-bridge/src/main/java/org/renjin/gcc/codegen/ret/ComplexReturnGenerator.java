@@ -6,6 +6,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 public class ComplexReturnGenerator implements ReturnGenerator {
   
@@ -18,6 +19,11 @@ public class ComplexReturnGenerator implements ReturnGenerator {
   @Override
   public Type getType() {
     return type.getJvmPartArrayType();
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return type;
   }
 
   @Override

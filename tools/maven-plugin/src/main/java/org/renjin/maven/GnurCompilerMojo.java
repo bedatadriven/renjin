@@ -107,7 +107,6 @@ public class GnurCompilerMojo extends AbstractMojo {
     compiler.addClassPaths(pluginDependencies());
     compiler.setWorkDirectory(workDirectory);
     compiler.setOutputDirectory(outputDirectory);
-    compiler.setJimpleDirectory(jimpleDirectory);
     compiler.setGimpleDirectory(gimpleDirectory);
     
     try {

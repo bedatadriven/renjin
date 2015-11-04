@@ -122,7 +122,6 @@ public class PackageBuild {
     compiler.setPackageName(source.getJavaPackageName());
     compiler.setClassName(source.getName());
     compiler.setWorkDirectory(gccWorkDir("work"));
-    compiler.setJimpleDirectory(gccWorkDir("jimple"));
     compiler.setGimpleDirectory(gccWorkDir("gimple"));
     compiler.setOutputDirectory(stagingDir);
 

@@ -1,10 +1,12 @@
 package org.renjin.gcc.codegen.call;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
+import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
@@ -33,12 +35,16 @@ import static java.lang.String.format;
  */
 public class FunctionTable {
   
-  private Map<String, MethodCallGenerator> functions = new HashMap<String, MethodCallGenerator>();
+  private GeneratorFactory generators;
+  private Map<String, CallGenerator> functions = Maps.newHashMap();
 
+  public FunctionTable(GeneratorFactory generators) {
+    this.generators = generators;
+  }
 
   public CallGenerator find(GimpleFunctionRef ref, CallingConvention callingConvention) {
     String mangledName = callingConvention.mangleFunctionName(ref.getName());
-    MethodCallGenerator generator = functions.get(mangledName);
+    CallGenerator generator = functions.get(mangledName);
     if(generator == null) {
       throw new UnsupportedOperationException("Could not find function '" + mangledName + "'");
     }
@@ -88,14 +94,14 @@ public class FunctionTable {
   
   public void add(String functionName, Method method) {
     Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method '%s' must be static", method);
-
-    MethodCallGenerator generator = new MethodCallGenerator(
-        Type.getInternalName(method.getDeclaringClass()),
-        method.getName(),
-        createParamGenerators(method),
-        createReturnGenerator(method));
-    
-    functions.put(functionName, generator);
+//
+//    MethodCallGenerator generator = new MethodCallGenerator(
+//        Type.getInternalName(method.getDeclaringClass()),
+//        method.getName(),
+//        createParamGenerators(method),
+//        createReturnGenerator(method));
+//    
+    functions.put(functionName, new StaticCallGenerator(generators, method));
   }
 
   public void addMethods(Class<?> clazz) {
@@ -105,7 +111,6 @@ public class FunctionTable {
       }
     }
   }
-
 
 
   /**
@@ -148,27 +153,10 @@ public class FunctionTable {
             "Exception creating ParamGenerator for parameter %d of type %s in method %s.%s",
             index,
             paramClass,
-            method.getDeclaringClass().getName(), method.getName()));      
+            method.getDeclaringClass().getName(), method.getName()), e);      
       }
     }
     return generators;
-  }
-
-  private ReturnGenerator createReturnGenerator(Method method) {
-
-    Class<?> returnType = method.getReturnType();
-    if(returnType.equals(void.class)) {
-      return new VoidReturnGenerator();
-    
-    } else if(returnType.isPrimitive()) {
-      return new PrimitiveReturnGenerator(GimplePrimitiveType.fromJvmType(returnType));
-  
-    } else {
-      throw new UnsupportedOperationException(String.format(
-          "Unsupported return type %s in method %s.%s",
-          returnType.getName(),
-          method.getDeclaringClass().getName(), method.getName()));
-    }
   }
 
   private Method findMethod(Class<Math> declaringClass, String methodName) {
@@ -179,5 +167,4 @@ public class FunctionTable {
     }
     throw new IllegalArgumentException(format("No method named '%s' in %s", methodName, declaringClass.getName()));
   }
-
 }

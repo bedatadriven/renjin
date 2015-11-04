@@ -26,6 +26,11 @@ public class PrimitiveReturnGenerator implements ReturnGenerator {
   }
 
   @Override
+  public GimpleType getGimpleType() {
+    return gimpleType;
+  }
+
+  @Override
   public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
     ValueGenerator primitiveGenerator = (ValueGenerator) valueGenerator;
     primitiveGenerator.emitPrimitiveValue(mv);

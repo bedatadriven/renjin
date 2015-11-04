@@ -9,6 +9,7 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.sexp.SEXP;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,7 +29,6 @@ public class GnurSourcesCompiler {
   private boolean verbose = true;
   private List<File> sources = Lists.newArrayList();
   private List<File> classPaths = Lists.newArrayList();
-  private File jimpleDirectory = new File("target/jimple");
   private File gimpleDirectory = new File("target/gimple");
   private File workDirectory;
   private File outputDirectory = new File("target/classes");
@@ -40,10 +40,6 @@ public class GnurSourcesCompiler {
   
   public void setClassName(String className) {
     this.className = className;
-  }
- 
-  public void setJimpleDirectory(File jimpleOutputDirectory) {
-    this.jimpleDirectory = jimpleOutputDirectory;
   }
 
   public void setGimpleDirectory(File gimpleDirectory) {
@@ -82,7 +78,6 @@ public class GnurSourcesCompiler {
     if(!sources.isEmpty()) {
 
       workDirectory.mkdirs();
-      jimpleDirectory.mkdirs();
       gimpleDirectory.mkdirs();
 
       if(checkUpToDate()) {
@@ -119,21 +114,19 @@ public class GnurSourcesCompiler {
     
       compiler.setPackageName(packageName);
       compiler.setClassName(className);
-      compiler.addSootClassPaths(classPaths);
       compiler.setVerbose(verbose);
 
-      compiler.getMethodTable().addMathLibrary();
+      compiler.addMathLibrary();
 
-      compiler.getMethodTable().addReferenceClass(Class.forName("org.renjin.appl.Appl"));
+      compiler.addReferenceClass(Class.forName("org.renjin.appl.Appl"));
 
       Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
-      compiler.getMethodTable().addReferenceClass(distributionsClass);
-      compiler.getMethodTable().addMethod("Rf_dbeta",distributionsClass,"dbeta");
-      compiler.getMethodTable().addMethod("Rf_pbeta", distributionsClass, "pbeta");
-
-      compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
-      compiler.getMethodTable().addReferenceClass(Sort.class);
-
+      compiler.addReferenceClass(distributionsClass);
+      compiler.addMethod("Rf_dbeta", distributionsClass, "dbeta");
+      compiler.addMethod("Rf_pbeta", distributionsClass, "pbeta");
+      compiler.addReferenceClass(RenjinCApi.class);
+      compiler.addReferenceClass(Sort.class);
+      compiler.addRecordClass("SEXP", SEXP.class);
       compiler.compile(units);
     }
   }

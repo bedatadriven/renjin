@@ -28,6 +28,11 @@ public class PtrReturnGenerator implements ReturnGenerator {
   }
 
   @Override
+  public GimpleType getGimpleType() {
+    return type;
+  }
+
+  @Override
   public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
     PtrGenerator ptrGenerator = (PtrGenerator) valueGenerator;
     

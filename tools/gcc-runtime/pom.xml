@@ -26,5 +26,8 @@
   <artifactId>gcc-runtime</artifactId>
   <name>Renjin GCC Runtime</name>
   <description>Runtime classes for code translated from GCC</description>
-
+  
+  <properties>
+    <osgi>true</osgi>
+  </properties>
 </project>

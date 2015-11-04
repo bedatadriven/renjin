@@ -27,6 +27,10 @@
   <name>Renjin GCC Bridge</name>
   <description>Utility to bridge GCC compilation results and the JVM</description>
 
+  <properties>
+    <osgi>true</osgi>
+  </properties>
+  
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>

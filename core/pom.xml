@@ -27,6 +27,8 @@
   <name>Renjin Core</name>
   <description>Java-based implementation of the R language for
     statistical computing</description>
+  
+  <packaging>bundle</packaging>
 
   <dependencies>
 
@@ -235,6 +237,25 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <instructions>
+            <Export-Package>org.renjin</Export-Package>
+          </instructions>
         </configuration>
       </plugin>
       <plugin>

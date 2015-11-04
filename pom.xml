@@ -49,11 +49,13 @@
     <module>dist/osgi</module>
   </modules>
 
-  <properties>	
+  <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <renjin.version>${project.version}</renjin.version>
     <renjin.display.version>${project.version}</renjin.display.version>
     <envClassifier>linux-x86</envClassifier>
+    <osgi-core-version>4.3.1</osgi-core-version>
+    <org.osgi.compendium-version>4.3.1</org.osgi.compendium-version>
   </properties>
 
   <scm>
@@ -130,8 +132,8 @@
                 <requireJavaVersion>
                   <version>[1.7.0, 1.8)</version>
                   <message>
-                    Compiling C/Fortran sources uses the Soot framework, which is currently unable 
-                    to process the newer bytecodes included in a Java 1.8 runtime. 
+                    Compiling C/Fortran sources uses the Soot framework, which is currently unable
+                    to process the newer bytecodes included in a Java 1.8 runtime.
                     Please build using a Java 1.7 JDK.
                   </message>
                 </requireJavaVersion>
@@ -224,25 +226,30 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-            <configuration>
-              <outputEncoding>UTF-8</outputEncoding>
-              <inputEncoding>UTF-8</inputEncoding>
-            </configuration>
-          </plugin>
-
-          <plugin>
-            <groupId>org.eclipse.m2e</groupId>
-            <artifactId>lifecycle-mapping</artifactId>
-            <version>1.0.0</version>
-            <configuration>
-              <lifecycleMappingMetadata>
-                <pluginExecutions>
-                  <pluginExecution>
-                    <pluginExecutionFilter>
-                      <groupId>org.codehaus.mojo</groupId>
-                      <artifactId>exec-maven-plugin</artifactId>
-                      <versionRange>[1.2,)</versionRange>
-                      <goals>
+          <configuration>
+            <outputEncoding>UTF-8</outputEncoding>
+            <inputEncoding>UTF-8</inputEncoding>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>2.3.7</version>
+          <extensions>true</extensions>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <versionRange>[1.2,)</versionRange>
+                    <goals>
                       <goal>exec</goal>
                     </goals>
                   </pluginExecutionFilter>
@@ -356,6 +363,5 @@
         <envClassifier>apple-x86_64</envClassifier>
       </properties>
     </profile>
-
   </profiles>
 </project>

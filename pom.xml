@@ -48,7 +48,7 @@
     <module>dist/webstart</module>
   </modules>
 
-  <properties>	
+  <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <renjin.version>${project.version}</renjin.version>
     <renjin.display.version>${project.version}</renjin.display.version>
@@ -65,12 +65,12 @@
     <repository>
       <id>renjin-release</id>
       <name>Renjin Releases</name>
-      <url>http://nexus.bedatadriven.com/content/repositories/renjin-release/</url>
+      <url>https://nexus.bedatadriven.com/content/repositories/renjin-release/</url>
     </repository>
     <snapshotRepository>
       <id>renjin-latest</id>
       <name>Renjin Latest Builds</name>
-      <url>http://nexus.bedatadriven.com/content/repositories/renjin-latest/</url>
+      <url>https://nexus.bedatadriven.com/content/repositories/renjin-latest/</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -78,39 +78,11 @@
 
     <!-- We go to mvnsearch.org after latest GAE SDK artifacts -->
     <repository>
-      <id>mvnsearch.org</id>
-      <name>MVN Search</name>
-      <url>
-        http://www.mvnsearch.org/maven2
-      </url>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>maven2-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/2/</url>
-      <layout>default</layout>
-    </repository>
-    <repository>
       <id>bedatadriven</id>
       <name>bedatadriven public repo</name>
-      <url>http://nexus.bedatadriven.com/content/groups/public/</url>
+      <url>https://nexus.bedatadriven.com/content/groups/public/</url>
     </repository>
   </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>mvnsearch</id>
-      <url>http://www.mvnsearch.org/maven2</url>
-    </pluginRepository>
-  </pluginRepositories>
 
   <build>
     <plugins>
@@ -129,8 +101,8 @@
                 <requireJavaVersion>
                   <version>[1.7.0, 1.8)</version>
                   <message>
-                    Compiling C/Fortran sources uses the Soot framework, which is currently unable 
-                    to process the newer bytecodes included in a Java 1.8 runtime. 
+                    Compiling C/Fortran sources uses the Soot framework, which is currently unable
+                    to process the newer bytecodes included in a Java 1.8 runtime.
                     Please build using a Java 1.7 JDK.
                   </message>
                 </requireJavaVersion>

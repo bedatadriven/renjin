@@ -39,7 +39,8 @@ void	vmaxset(const void *);
 void	R_gc(void);
 int	R_gc_running();
 
-char*	R_alloc(size_t, int);
+#define	R_alloc(numItems, sizeOfItem) malloc((numItems)*(sizeOfItem))
+
 long double *R_allocLD(size_t nelem);
 char*	S_alloc(long, int);
 char*	S_realloc(char *, long, long, int);

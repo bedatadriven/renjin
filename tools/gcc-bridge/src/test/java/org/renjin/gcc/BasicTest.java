@@ -108,6 +108,14 @@ public class BasicTest extends AbstractGccTest {
   }
   
   @Test
+  public void variadic() throws Exception {
+
+    Class clazz = compile("variadic.c", "Variadic");
+    
+  }
+  
+  
+  @Test
   public void calls() throws Exception {
 
     Class clazz = compile("calls.c", "Calls");

@@ -10,6 +10,7 @@ import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.RecordPtrParamGenerator;
 import org.renjin.gcc.codegen.ret.RecordPtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.var.RecordPtrVarGenerator;
 import org.renjin.gcc.codegen.var.RecordVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -73,6 +74,11 @@ public class RecordTypeFactory extends TypeFactory {
         @Override
         public ReturnGenerator returnGenerator() {
             return new RecordPtrReturnGenerator(generator);
+        }
+
+        @Override
+        public VarGenerator varGenerator(LocalVarAllocator allocator) {
+            return new RecordPtrVarGenerator(generator, allocator.reserveObject());
         }
     }
 }

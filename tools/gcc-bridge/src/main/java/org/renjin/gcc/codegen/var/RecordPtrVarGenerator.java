@@ -8,8 +8,9 @@ import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ASTORE;
 
-public class RecordPtrVarGenerator extends AbstractExprGenerator implements ExprGenerator {
+public class RecordPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
   private int varIndex;
   private RecordClassGenerator recordGenerator;
   private GimpleType pointerType;
@@ -34,6 +35,17 @@ public class RecordPtrVarGenerator extends AbstractExprGenerator implements Expr
   @Override
   public void emitPushRecordRef(MethodVisitor mv) {
     mv.visitVarInsn(ALOAD, varIndex);
+  }
+
+  @Override
+  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    valueGenerator.emitPushRecordRef(mv);
+    mv.visitVarInsn(ASTORE, varIndex);
+  }
+
+  @Override
+  public void emitDefaultInit(MethodVisitor mv) {
+    
   }
 
   private class ValueOf extends AbstractExprGenerator {

@@ -44,8 +44,11 @@ public class StaticMethodCallGenerator implements CallGenerator {
     }
     
     if(paramGenerators.size() != argumentGenerators.size()) {
-      throw new InternalCompilerException("Arity mismatch: " + 
-          paramGenerators.size() + " != " + argumentGenerators.size());
+      throw new InternalCompilerException(String.format(
+        "Arity mismatch: expected %d args to method '%s', called with %d" ,
+          paramGenerators.size(),
+          method.getName(), 
+          argumentGenerators.size()));
     }
 
     // Push all parameters on the stack

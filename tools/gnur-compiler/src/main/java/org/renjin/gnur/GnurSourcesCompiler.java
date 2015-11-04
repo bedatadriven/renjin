@@ -9,6 +9,7 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gnur.api.Rinternals;
 import org.renjin.sexp.SEXP;
 
 import java.io.File;
@@ -126,6 +127,7 @@ public class GnurSourcesCompiler {
       compiler.addMethod("Rf_pbeta", distributionsClass, "pbeta");
       compiler.addReferenceClass(RenjinCApi.class);
       compiler.addReferenceClass(Sort.class);
+      compiler.addReferenceClass(Rinternals.class);
       compiler.addRecordClass("SEXPREC", SEXP.class);
       compiler.addRecordClass("_DllInfo", DllInfo.class);
       compiler.compile(units);

@@ -8,10 +8,7 @@ import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
 import org.renjin.gcc.codegen.param.StringParamGenerator;
-import org.renjin.gcc.codegen.ret.PrimitivePtrReturnGenerator;
-import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
-import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
+import org.renjin.gcc.codegen.ret.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
@@ -105,7 +102,11 @@ public class GeneratorFactory {
     } else if(WrapperType.is(returnType)) {
       WrapperType wrapperType = WrapperType.valueOf(returnType);
       return new PrimitivePtrReturnGenerator(wrapperType.getGimpleType());
-      
+
+    } else if(classTypes.containsKey(Type.getInternalName(returnType))) {
+      GimpleRecordType recordType = classTypes.get(Type.getInternalName(returnType));
+      return new RecordPtrReturnGenerator(recordTypes.get(recordType.getId()));
+
     } else {
       throw new UnsupportedOperationException(String.format(
           "Unsupported return type %s in method %s.%s",

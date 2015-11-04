@@ -3,6 +3,7 @@ package org.renjin.invoke.codegen;
 import com.google.common.collect.Lists;
 import com.sun.codemodel.*;
 import org.apache.commons.math.complex.Complex;
+import org.renjin.invoke.Naming;
 import org.renjin.invoke.annotations.PreserveAttributeStyle;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
@@ -54,7 +55,7 @@ public class DeferredVectorBuilder {
 
   public void buildClass()  {
     try {
-      vectorClass = codeModel._class(  WrapperGenerator2.toFullJavaName(primitive.getName()) + "$deferred_" + typeSuffix() );
+      vectorClass = codeModel._class(  Naming.toFullJavaName(primitive.getName()) + "$deferred_" + typeSuffix() );
     } catch (JClassAlreadyExistsException e) {
       throw new RuntimeException(e);
     }

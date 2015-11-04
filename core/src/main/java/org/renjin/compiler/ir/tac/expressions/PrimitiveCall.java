@@ -8,8 +8,8 @@ import org.renjin.compiler.runtime.CompiledRuntime;
 import org.renjin.compiler.runtime.UnimplementedPrimitive;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.Naming;
 import org.renjin.primitives.Primitives;
-import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -73,7 +73,7 @@ public class PrimitiveCall implements CallExpression {
     }
     Class wrapperClass = null;
     try {
-      wrapperClass = Class.forName(WrapperGenerator2.toFullJavaName(fn.getName()));
+      wrapperClass = Class.forName(Naming.toFullJavaName(fn.getName()));
     } catch (ClassNotFoundException e) {
       throw new RuntimeException(e);
     }

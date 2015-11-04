@@ -9,7 +9,7 @@ import org.renjin.graphics.internals.Graphics;
 import org.renjin.graphics.internals.Par;
 import org.renjin.graphics.internals.Plot;
 import org.renjin.graphics.internals.RgbHsv;
-import org.renjin.invoke.codegen.WrapperGenerator2;
+import org.renjin.invoke.Naming;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.combine.Combine;
 import org.renjin.primitives.files.Files;
@@ -101,7 +101,7 @@ public class Primitives {
   
   private static PrimitiveFunction createFunction(final Entry entry) {
    try {
-      return (PrimitiveFunction) Class.forName(WrapperGenerator2.toFullJavaName(entry.name)).newInstance();
+      return (PrimitiveFunction) Class.forName(Naming.toFullJavaName(entry.name)).newInstance();
     } catch(Exception e) {
       return new BuiltinFunction(entry.name) {
 

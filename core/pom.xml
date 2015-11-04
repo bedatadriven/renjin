@@ -152,6 +152,7 @@
       <groupId>com.sun.codemodel</groupId>
       <artifactId>codemodel</artifactId>
       <version>2.6</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -212,24 +213,6 @@
               </arguments>
             </configuration>
           </execution>
-          <execution>
-            <id>compile-base-package</id>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <!--  <phase>process-classes</phase> -->
-            <configuration>
-              <executable>java</executable>
-              <skip>true</skip>
-              <arguments>
-                <argument>-classpath</argument>
-                <classpath />
-                <argument>r.compiler.PackageCompiler</argument>
-                <argument>src/main/r/base</argument>
-                <argument>target/classes</argument>
-              </arguments>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -255,6 +238,7 @@
         <configuration>
           <instructions>
             <Export-Package>org.renjin</Export-Package>
+            <Import-Package>!com.sun.codemodel;*</Import-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -277,8 +261,6 @@
           </execution>
         </executions>
       </plugin>
-
-
     </plugins>
     <pluginManagement>
       <plugins>

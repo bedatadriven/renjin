@@ -3,6 +3,7 @@ package org.renjin.invoke.codegen;
 
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
+import org.renjin.invoke.Naming;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.*;
 
@@ -17,7 +18,7 @@ public class InvokerGenerator {
   }
 
   public final void generate(PrimitiveModel model) throws JClassAlreadyExistsException, IOException {
-    JDefinedClass invoker = codeModel._class(  WrapperGenerator2.toFullJavaName(model.getName()) ); //Creates a new class
+    JDefinedClass invoker = codeModel._class(  Naming.toFullJavaName(model.getName()) ); //Creates a new class
     if(model.isSpecial()) {
       invoker._extends(SpecialFunction.class);
     } else {

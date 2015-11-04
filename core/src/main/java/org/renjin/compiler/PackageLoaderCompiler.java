@@ -3,7 +3,7 @@ package org.renjin.compiler;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.invoke.codegen.WrapperGenerator2;
+import org.renjin.invoke.Naming;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
@@ -85,6 +85,6 @@ public class PackageLoaderCompiler implements Opcodes {
   }
   
   private static String functionClassName(String packageName, Symbol symbol) {
-    return packageName.replace('/', '.') + "." + WrapperGenerator2.toJavaName("", symbol.getPrintName());
+    return packageName.replace('/', '.') + "." + Naming.toJavaName("", symbol.getPrintName());
   }
 }

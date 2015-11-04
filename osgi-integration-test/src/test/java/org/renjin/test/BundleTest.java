@@ -71,6 +71,7 @@ public class BundleTest {
         getBundle("org.osgi.compendium"),
         getBundle("guava"),
         getBundle("gcc-runtime"),
+        getBundle("jtransforms"),
         getBundle("renjin-core"),
         getBundle("renjin-appl"),
         getBundle("renjin-script-engine"),

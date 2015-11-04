@@ -33,7 +33,7 @@
               <stripVersion>true</stripVersion>
               <includeScope>provided</includeScope>
               <!-- Jar that are not compatible with OSGi -->
-              <excludeGroupIds>org.slf4j, log4j, com.vividsolutions</excludeGroupIds>
+              <excludeGroupIds>org.slf4j, log4j, com.vividsolutions, com.sun.codemodel</excludeGroupIds>
             </configuration>
           </execution>
         </executions>

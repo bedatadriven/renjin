@@ -38,6 +38,7 @@
     <module>tests</module>
     <module>benchmarks</module>
     <module>test-packages</module>
+    <module>osgi-integration-test</module>
     <module>repl</module>
     <module>packages</module>
     <module>tools</module>
@@ -46,7 +47,6 @@
     <module>dist/deb</module>
     <module>appl</module>
     <module>dist/webstart</module>
-    <module>dist/osgi</module>
   </modules>
 
   <properties>

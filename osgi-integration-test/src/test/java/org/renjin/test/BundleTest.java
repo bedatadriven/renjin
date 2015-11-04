@@ -39,13 +39,10 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
-import org.renjin.script.RenjinScriptEngine;
-import org.renjin.script.RenjinScriptEngineFactory;
 
 import javax.inject.Inject;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
-import javax.script.ScriptException;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.sql.SQLException;
@@ -72,6 +69,10 @@ public class BundleTest {
     List<Option> options = new ArrayList<Option>();
     options.addAll(Arrays.asList(systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("WARN"),
         getBundle("org.osgi.compendium"),
+        getBundle("guava"),
+        getBundle("gcc-runtime"),
+        getBundle("renjin-core"),
+        getBundle("renjin-appl"),
         getBundle("renjin-script-engine"),
         junitBundles()));
     //options.addAll(getBundles());

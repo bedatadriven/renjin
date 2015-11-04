@@ -29,7 +29,7 @@ dependency and repository:
   <repository>
     <id>bedatadriven</id>
     <name>bedatadriven public repo</name>
-    <url>http://nexus.bedatadriven.com/content/groups/public/</url>
+    <url>https://nexus.bedatadriven.com/content/groups/public/</url>
   </repository>
 </repositories>
 ```
@@ -41,7 +41,7 @@ Standalone distributions of Renjin are available for ad-hoc analysis. Downloads
 are available at [Renjin.org](http://www.renjin.org).
 
 Artifacts from the latest successful build are available from the build server
-at http://nexus.bedatadriven.com/content/groups/public/org/renjin/.
+at https://nexus.bedatadriven.com/content/groups/public/org/renjin/.
 
 Compiling from Source
 =====================

@@ -141,6 +141,6 @@ public class AetherFactory {
   }
 
   static RemoteRepository renjinRepo() {
-    return new RemoteRepository.Builder("renjin", "default", "http://nexus.bedatadriven.com/content/groups/public/").build();
+    return new RemoteRepository.Builder("renjin", "default", "https://nexus.bedatadriven.com/content/groups/public/").build();
   }
 }

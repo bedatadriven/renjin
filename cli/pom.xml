@@ -59,6 +59,11 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
+      <artifactId>grid</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
       <artifactId>graphics</artifactId>
       <version>${project.version}</version>
     </dependency>

@@ -39,7 +39,7 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     
-    if(args.length >= 1 && args[0].equals("build")) {
+    if(args.length >= 1 && (args[0].equals("build") || args[0].equals("install")) ) {
       Builder.execute(args[0], Arrays.copyOfRange(args, 1, args.length));
       return;
     }

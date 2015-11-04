@@ -149,6 +149,8 @@ public class PackageBuild {
           source.getSourceFiles(),
           environmentFile,
           Session.DEFAULT_PACKAGES);
+      
+      Files.copy(source.getNamespaceFile(), new File(outputDir, "NAMESPACE"));
 
     } catch (IOException e) {
       throw new BuildException("Exception building namespace: " + e.getMessage(), e);

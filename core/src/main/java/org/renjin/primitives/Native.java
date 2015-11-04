@@ -16,9 +16,11 @@ import org.renjin.invoke.annotations.NamedFlag;
 import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.packaging.FqPackageName;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -78,6 +80,9 @@ public class Native {
 
     try {
       method.invoke(null, nativeArguments);
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+      throw new EvalException(e.getCause().getMessage(), e.getCause());
     } catch (Exception e) {
       throw new EvalException(e);
     }
@@ -315,15 +320,11 @@ public class Native {
     } else if(packageName.equals("grDevices")) {
       return Graphics.class;
     } else {
-      FqPackageName fqname = context.getNamespaceRegistry().getNamespace(packageName).getFullyQualifiedName();
+      Namespace namespace = context.getNamespaceRegistry().getNamespace(packageName);
+      FqPackageName fqname = namespace.getFullyQualifiedName();
       String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
                                 fqname.getPackageName();
-      try {
-        return Class.forName(packageClassName);
-      } catch (ClassNotFoundException e) {
-        throw new EvalException("Could not find class for 'native' methods for package '%s' (className='%s')",
-            packageName, packageClassName);
-      }
+      return namespace.getPackage().loadClass(packageClassName);
     }
   }
 }

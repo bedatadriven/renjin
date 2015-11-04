@@ -1,7 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2005   Robert Gentleman, Ross Ihaka 
- *                            and the R Development Core Team
+ *  Copyright (C) 1998-2005   The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +17,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* Included by R.h: API */
+
 #ifndef R_ERROR_H_
 #define R_ERROR_H_
 
@@ -25,10 +26,17 @@
 extern "C" {
 #endif
 
-void	Rf_error(const char *, ...);
+#if defined(__GNUC__) && __GNUC__ >= 3
+#define NORET __attribute__((noreturn))
+#else
+#define NORET
+#endif
+
+void NORET Rf_error(const char *, ...);
+void NORET UNIMPLEMENTED(const char *);
+void NORET WrongArgCount(const char *);
+
 void	Rf_warning(const char *, ...);
-void	WrongArgCount(const char *);
-void	UNIMPLEMENTED(const char *);
 void 	R_ShowMessage(const char *s);
     
 

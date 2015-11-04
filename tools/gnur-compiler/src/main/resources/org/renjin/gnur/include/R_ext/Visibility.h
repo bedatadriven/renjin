@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2008    the R Development Core Team
+ *  Copyright (C) 2008    the R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,12 @@
  *  along with this program; if not, a copy is available at
  *  http://www.r-project.org/Licenses/
  */
+
+/*
+  Definitions controlling visibility on some platforms.
+
+  Part of the API.
+*/
 
 #ifndef R_EXT_VISIBILITY_H_
 #define R_EXT_VISIBILITY_H_

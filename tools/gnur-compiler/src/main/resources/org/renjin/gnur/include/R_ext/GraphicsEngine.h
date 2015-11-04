@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-11 The R Development Core Team.
+ *  Copyright (C) 2001-11 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -55,9 +55,11 @@ extern "C" {
  * Version 8:  Add dev_Path() (R 2.12.0)
  * Version 9:  Add dev_HoldFlush(), haveTrans*, haveRaster,
  *             haveCapture, haveLocator.  (R 2.14.0)
+ * Version 10: For R 3.0.0.  Typedef and use 'rcolor',
+ *             Remove name2col (R_GE_str2col does the job).
  */
 
-#define R_GE_version 9
+#define R_GE_version 10
 
 int R_GE_getVersion(void);
 
@@ -266,6 +268,7 @@ int GEdeviceNumber(pGEDevDesc);
 pGEDevDesc GEgetDevice(int);
 void GEaddDevice(pGEDevDesc);
 void GEaddDevice2(pGEDevDesc, const char *);
+void GEaddDevice2f(pGEDevDesc, const char *, const char *);
 void GEkillDevice(pGEDevDesc);
 pGEDevDesc GEcreateDevDesc(pDevDesc dev);
 
@@ -301,25 +304,25 @@ double toDeviceHeight(double value, GEUnit from, pGEDevDesc dd);
  *  From colors.c, used in par.c, grid/src/gpar.c
  */
 
+typedef unsigned int rcolor;
+
 #define RGBpar			Rf_RGBpar
 #define RGBpar3			Rf_RGBpar3
 #define col2name                Rf_col2name
-#define name2col		Rf_name2col
 
 /* Convert an element of a R colour specification (which might be a
    number or a string) into an internal colour specification. */
-unsigned int RGBpar(SEXP, int);
-unsigned int RGBpar3(SEXP, int, unsigned int);
+rcolor RGBpar(SEXP, int);
+rcolor RGBpar3(SEXP, int, rcolor);
 
 /* Convert an internal colour specification to/from a colour name */
-const char *col2name(unsigned int col); /* used in par.c, grid */
-unsigned int name2col(const char *);    /* used by plotmath.c */
+const char *col2name(rcolor col); /* used in par.c, grid */
 
 /* Convert either a name or a #RRGGBB[AA] string to internal.
    Because people were using it, it also converts "1", "2" ...
    to a colour in the palette, and "0" to transparent white.
 */
-unsigned int R_GE_str2col(const char *s);
+rcolor R_GE_str2col(const char *s);
 
 
 
@@ -409,6 +412,9 @@ double GEStrWidth(const char *str, cetype_t enc,
 		  const pGEcontext gc, pGEDevDesc dd);
 double GEStrHeight(const char *str, cetype_t enc,
 		  const pGEcontext gc, pGEDevDesc dd);
+void GEStrMetric(const char *str, cetype_t enc, const pGEcontext gc,
+                 double *ascent, double *descent, double *width,
+                 pGEDevDesc dd);
 int GEstring_to_pch(SEXP pch);
 
 /*-------------------------------------------------------------------
@@ -447,6 +453,9 @@ double GEExpressionWidth(SEXP expr,
 			 const pGEcontext gc, pGEDevDesc dd);
 double GEExpressionHeight(SEXP expr,
 			  const pGEcontext gc, pGEDevDesc dd);
+void GEExpressionMetric(SEXP expr, const pGEcontext gc,
+                        double *ascent, double *descent, double *width,
+                        pGEDevDesc dd);
 void GEMathText(double x, double y, SEXP expr,
 		double xc, double yc, double rot,
 		const pGEcontext gc, pGEDevDesc dd);
@@ -494,10 +503,10 @@ void GEonExit(void);
 void GEnullDevice(void);
 
 
-// From ../../main/plot.c, used by ../../library/grid/src/grid.c :
+/* From ../../main/plot.c, used by ../../library/grid/src/grid.c : */
 #define CreateAtVector		Rf_CreateAtVector
 SEXP CreateAtVector(double*, double*, int, Rboolean);
-// From ../../main/graphics.c, used by ../../library/grDevices/src/axis_scales.c :
+/* From ../../main/graphics.c, used by ../../library/grDevices/src/axis_scales.c : */
 #define GAxisPars 		Rf_GAxisPars
 void GAxisPars(double *min, double *max, int *n, Rboolean log, int axis);
 

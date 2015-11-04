@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2007   The R Development Core Team.
+ *  Copyright (C) 1998-2012   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,12 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* Included by R.h: API */
+
 #ifndef R_EXT_CONSTANTS_H_
 #define R_EXT_CONSTANTS_H_
 
-/* usually in math.h, but in case not ... */
+/* usually in math.h, but not with strict C99 compliance */
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502884197169399375
 #endif

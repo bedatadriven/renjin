@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2003-5 The R Development Core Team.
+ *  Copyright (C) 2003-12 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -17,10 +17,19 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/*
+   C declarations of BLAS Fortran subroutines always available in R.
+
+   Part of the API.
+
+   R packages that use these should have PKG_LIBS in src/Makevars include 
+   $(BLAS_LIBS) $(FLIBS)
+ */
+
+/* Part of the API */
+
 #ifndef R_BLAS_H
 #define R_BLAS_H
-/* C declarations of BLAS routines.  R packages that use these should have */
-/* src/Makevars declare PKG_LIBS = $(BLAS_LIBS) $(FLIBS) */
 
 #include <R_ext/RS.h>		/* for F77_... */
 #include <R_ext/Complex.h>	/* for Rcomplex */
@@ -29,6 +38,7 @@
 extern "C" {
 #endif
 
+// never defined in R itself.
 #ifndef BLAS_extern
 #define BLAS_extern extern
 #endif
@@ -244,12 +254,19 @@ F77_NAME(dsyr2k)(const char *uplo, const char *trans,
     BLAS_extern void
     F77_NAME(zcopy)(int *n, Rcomplex *zx, int *incx,
 		    Rcomplex *zy, int *incy);
+
+    /* WARNING!  The next two return a value that may not be
+       compatible between C and Fortran, and even if it is, this might
+       not be the right translation to C.  Only use after
+       configure-testing with your compilers.
+     */
     BLAS_extern Rcomplex
-    F77_NAME(zdotc)(Rcomplex * ret_val, int *n,
+    F77_NAME(zdotc)(int *n,
 		    Rcomplex *zx, int *incx, Rcomplex *zy, int *incy);
     BLAS_extern Rcomplex
-    F77_NAME(zdotu)(Rcomplex * ret_val, int *n,
+    F77_NAME(zdotu)(int *n,
 		    Rcomplex *zx, int *incx, Rcomplex *zy, int *incy);
+
     BLAS_extern void
     F77_NAME(zdrot)(int *n, Rcomplex *zx, int *incx, Rcomplex *zy,
 		int *incy, double *c, double *s);

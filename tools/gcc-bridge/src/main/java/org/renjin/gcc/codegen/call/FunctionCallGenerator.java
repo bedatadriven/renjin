@@ -16,9 +16,9 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import java.util.List;
 
 /**
- * Generates a call to a static JVM method
+ * Generates a call to a soon-to-be compiled Gimple function
  */
-public class MethodCallGenerator implements CallGenerator {
+public class FunctionCallGenerator implements CallGenerator {
   
   private String className;
   private String methodName;
@@ -26,9 +26,9 @@ public class MethodCallGenerator implements CallGenerator {
   private ReturnGenerator returnGenerator;
 
 
-  public MethodCallGenerator(String className, String methodName, 
-                             List<ParamGenerator> paramGenerators, 
-                             ReturnGenerator returnGenerator) {
+  public FunctionCallGenerator(String className, String methodName,
+                               List<ParamGenerator> paramGenerators,
+                               ReturnGenerator returnGenerator) {
     this.className = className;
     this.methodName = methodName;
     this.paramGenerators = paramGenerators;

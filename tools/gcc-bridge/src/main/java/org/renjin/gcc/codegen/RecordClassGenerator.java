@@ -11,7 +11,6 @@ import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -73,7 +72,7 @@ public class RecordClassGenerator {
     mv.visitEnd();
   }
 
-  public GimpleType getGimpleType() {
+  public GimpleRecordType getGimpleType() {
     GimpleRecordType recordType = new GimpleRecordType();
     recordType.setId(this.recordType.getId());
     recordType.setName(this.recordType.getName());

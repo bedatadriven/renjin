@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.ret;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -16,6 +17,7 @@ public class PrimitiveReturnGenerator implements ReturnGenerator {
   private Type type;
   
   public PrimitiveReturnGenerator(GimpleType gimpleType) {
+    Preconditions.checkNotNull(gimpleType);
     this.gimpleType = (GimplePrimitiveType) gimpleType;
     this.type = ((GimplePrimitiveType) gimpleType).jvmType();
   }

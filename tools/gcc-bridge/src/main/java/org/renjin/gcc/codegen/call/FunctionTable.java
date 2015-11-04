@@ -3,29 +3,14 @@ package org.renjin.gcc.codegen.call;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Handle;
-import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.GeneratorFactory;
-import org.renjin.gcc.codegen.WrapperType;
-import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
-import org.renjin.gcc.codegen.param.StringParamGenerator;
-import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
-import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.runtime.Builtins;
-import org.renjin.gcc.runtime.CharPtr;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -52,8 +37,8 @@ public class FunctionTable {
   }
   
   public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
-    MethodCallGenerator methodCallGenerator = (MethodCallGenerator) find(ref, callingConvention);
-    return methodCallGenerator.getHandle();
+    FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) find(ref, callingConvention);
+    return functionCallGenerator.getHandle();
   }
 
 
@@ -84,7 +69,7 @@ public class FunctionTable {
   }
 
   public void add(String className, FunctionGenerator function) {
-    MethodCallGenerator generator = new MethodCallGenerator(className, 
+    FunctionCallGenerator generator = new FunctionCallGenerator(className, 
         function.getMangledName(),
         function.getParamGenerators(),
         function.getReturnGenerator());
@@ -101,7 +86,7 @@ public class FunctionTable {
 //        createParamGenerators(method),
 //        createReturnGenerator(method));
 //    
-    functions.put(functionName, new StaticCallGenerator(generators, method));
+    functions.put(functionName, new StaticMethodCallGenerator(generators, method));
   }
 
   public void addMethods(Class<?> clazz) {
@@ -112,52 +97,6 @@ public class FunctionTable {
     }
   }
 
-
-  /**
-   * Creates a list of {@code ParamGenerators} from an existing JVM method.
-   * 
-   * <p>Note that there is not a one-to-one relationship between JVM method parameters and
-   * our {@code ParamGenerators}; a complex pointer is represented as a {@code double[]} and an 
-   * {@code int} offset, for example.</p>
-   */
-  private List<ParamGenerator> createParamGenerators(Method method) {
-
-    List<ParamGenerator> generators = new ArrayList<ParamGenerator>();
-
-    int index = 0;
-    while(index < method.getParameterTypes().length) {
-      Class<?> paramClass = method.getParameterTypes()[index];
-      try {
-        if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
-          WrapperType wrapperType = WrapperType.valueOf(paramClass);
-          generators.add(new PrimitivePtrParamGenerator(wrapperType.getGimpleType()));
-          index++;
-
-        } else if (paramClass.isPrimitive()) {
-          generators.add(new PrimitiveParamGenerator(GimplePrimitiveType.fromJvmType(paramClass)));
-          index++;
-
-        } else if (paramClass.equals(String.class)) {
-          generators.add(new StringParamGenerator());
-          index++;
-
-        } else {
-          throw new UnsupportedOperationException(String.format(
-              "Unsupported parameter %d of type %s in method %s.%s",
-              index,
-              paramClass,
-              method.getDeclaringClass().getName(), method.getName()));
-        }
-      } catch (Exception e) {
-        throw new InternalCompilerException(String.format(
-            "Exception creating ParamGenerator for parameter %d of type %s in method %s.%s",
-            index,
-            paramClass,
-            method.getDeclaringClass().getName(), method.getName()), e);      
-      }
-    }
-    return generators;
-  }
 
   private Method findMethod(Class<Math> declaringClass, String methodName) {
     for (Method method : declaringClass.getMethods()) {

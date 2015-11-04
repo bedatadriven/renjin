@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.call;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.GeneratorFactory;
@@ -15,7 +16,7 @@ import java.util.List;
 /**
  * Generates a call to an existing JVM method.
  */
-public class StaticCallGenerator implements CallGenerator {
+public class StaticMethodCallGenerator implements CallGenerator {
   
   private GeneratorFactory factory;
   private Method method;
@@ -23,8 +24,7 @@ public class StaticCallGenerator implements CallGenerator {
   private List<ParamGenerator> paramGenerators = null;
   private ReturnGenerator returnGenerator = null;
   
-  
-  public StaticCallGenerator(GeneratorFactory factory, Method method) {
+  public StaticMethodCallGenerator(GeneratorFactory factory, Method method) {
     this.factory = factory;
     this.method = method;
   }
@@ -37,9 +37,27 @@ public class StaticCallGenerator implements CallGenerator {
   }
 
   @Override
-  public void emitCall(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
-    throw new InternalCompilerException("todo");
+  public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+    
+    if(paramGenerators == null) {
+      paramGenerators = factory.forParameterTypes(method.getParameterTypes());
+    }
+    
+    if(paramGenerators.size() != argumentGenerators.size()) {
+      throw new InternalCompilerException("Arity mismatch: " + 
+          paramGenerators.size() + " != " + argumentGenerators.size());
+    }
+
+    // Push all parameters on the stack
+    for (int i = 0; i < paramGenerators.size(); i++) {
+      ParamGenerator paramGenerator = paramGenerators.get(i);
+      paramGenerator.emitPushParameter(mv, argumentGenerators.get(i));
+    }
+
+    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(method.getDeclaringClass()),
+        method.getName(), Type.getMethodDescriptor(method), false);
   }
+
 
   @Override
   public Type returnType() {
@@ -48,7 +66,7 @@ public class StaticCallGenerator implements CallGenerator {
 
   @Override
   public GimpleType getGimpleReturnType() {
-    return returnGenerator.getGimpleType();
+    return returnGenerator().getGimpleType();
   }
 
   @Override

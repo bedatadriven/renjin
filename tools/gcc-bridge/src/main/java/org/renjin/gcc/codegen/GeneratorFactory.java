@@ -1,15 +1,20 @@
 package org.renjin.gcc.codegen;
 
 import com.google.common.collect.Maps;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
+import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
+import org.renjin.gcc.codegen.param.StringParamGenerator;
 import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.CharPtr;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -23,11 +28,16 @@ import java.util.Map;
 public class GeneratorFactory {
 
   private final Map<String, RecordClassGenerator> recordTypes = Maps.newHashMap();
+
+  /**
+   * Map from internal JVM class name to a GimpleType
+   */
+  private final Map<String, GimpleRecordType> classTypes = Maps.newHashMap();
   
   public void addRecordType(GimpleRecordTypeDef type, RecordClassGenerator generator) {
     recordTypes.put(type.getId(), generator);
+    classTypes.put(generator.getClassName(), generator.getGimpleType());
   }
-  
   
   public TypeFactory forType(GimpleType type) {
     if(type instanceof GimplePrimitiveType) {
@@ -62,6 +72,7 @@ public class GeneratorFactory {
       throw new UnsupportedOperationException("Unsupported type: " + type);
     }
   }
+  
 
   public ParamGenerator forParameter(GimpleType parameterType) {
     return forType(parameterType).paramGenerator();
@@ -107,6 +118,49 @@ public class GeneratorFactory {
     return generators;
   }
 
+
+  /**
+   * Creates a list of {@code ParamGenerators} from an existing JVM method.
+   *
+   * <p>Note that there is not a one-to-one relationship between JVM method parameters and
+   * our {@code ParamGenerators}; a complex pointer is represented as a {@code double[]} and an 
+   * {@code int} offset, for example.</p>
+   */
+  public List<ParamGenerator> forParameterTypes(Class[] parameterTypes) {
+
+    List<ParamGenerator> generators = new ArrayList<ParamGenerator>();
+
+    int index = 0;
+    while(index < parameterTypes.length) {
+      Class<?> paramClass = parameterTypes[index];
+      if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
+        WrapperType wrapperType = WrapperType.valueOf(paramClass);
+        generators.add(new PrimitivePtrParamGenerator(wrapperType.getGimpleType()));
+        index++;
+
+      } else if (paramClass.isPrimitive()) {
+        generators.add(new PrimitiveParamGenerator(GimplePrimitiveType.fromJvmType(paramClass)));
+        index++;
+
+      } else if (paramClass.equals(String.class)) {
+        generators.add(new StringParamGenerator());
+        index++;
+
+      } else if (classTypes.containsKey(Type.getInternalName(paramClass))) {
+        GimpleRecordType mappedType = classTypes.get(Type.getInternalName(paramClass));
+        generators.add(forType(mappedType).pointerTo().paramGenerator());
+        index++;
+        
+      } else {
+        throw new UnsupportedOperationException(String.format(
+            "Unsupported parameter %d of type %s", 
+            index,
+            paramClass.getName()));
+      } 
+    }
+    return generators;
+  }
+
   public Map<GimpleParameter, ParamGenerator> forParameters(List<GimpleParameter> parameters) {
     Map<GimpleParameter, ParamGenerator> map = new HashMap<GimpleParameter, ParamGenerator>();
     for (GimpleParameter parameter : parameters) {
@@ -114,6 +168,4 @@ public class GeneratorFactory {
     }
     return map;
   }
-
- 
 }

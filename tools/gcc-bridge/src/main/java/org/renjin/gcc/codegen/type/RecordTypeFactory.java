@@ -36,6 +36,11 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
+    public VarGenerator varGenerator(LocalVarAllocator allocator) {
+        return new RecordVarGenerator(generator, allocator.reserveObject());
+    }
+
+    @Override
     public TypeFactory arrayOf(GimpleArrayType arrayType) {
         return new Array(arrayType);
     }

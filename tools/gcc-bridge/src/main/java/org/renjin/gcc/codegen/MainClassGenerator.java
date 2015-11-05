@@ -71,7 +71,7 @@ public class MainClassGenerator {
 
         try {
           FieldGenerator field = generatorFactory.forField(className, gimpleVarDecl.getName(), gimpleVarDecl.getType());
-          field.emitStaticField(cv);
+          field.emitStaticField(cv, gimpleVarDecl);
           globalVariables.add(gimpleVarDecl.getId(), field.staticExprGenerator());
 
         } catch (Exception e) {

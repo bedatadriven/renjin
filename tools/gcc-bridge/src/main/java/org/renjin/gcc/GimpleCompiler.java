@@ -15,7 +15,6 @@ import org.renjin.gcc.codegen.call.FunctionTable;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
-import org.renjin.gcc.translate.MethodTable;
 
 import java.io.File;
 import java.io.IOException;

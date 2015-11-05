@@ -5,13 +5,14 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates fields that are pointers to pointers
  */
-public class PrimitivePtrPtrFieldGenerator implements FieldGenerator {
+public class PrimitivePtrPtrFieldGenerator extends FieldGenerator {
   
   private String className;
   private String fieldName;
@@ -28,7 +29,9 @@ public class PrimitivePtrPtrFieldGenerator implements FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv) {
+  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
+    assertNoInitialValue(decl);
+
     emitField(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, cv);
   }
 

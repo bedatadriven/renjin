@@ -6,6 +6,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -15,7 +16,7 @@ import java.lang.invoke.MethodHandle;
 /**
  * Generates 
  */
-public class FunPtrFieldGenerator implements FieldGenerator{
+public class FunPtrFieldGenerator extends FieldGenerator {
 
   private final String className;
   private final String fieldName;
@@ -28,7 +29,9 @@ public class FunPtrFieldGenerator implements FieldGenerator{
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv) {
+  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
+    assertNoInitialValue(decl);
+    
     emitField(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, cv);
   }
 

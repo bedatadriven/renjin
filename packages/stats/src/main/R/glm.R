@@ -201,7 +201,6 @@ glm.fit <-
                 }
             else family$linkfun(mustart)
         mu <- linkinv(eta)
-        cat(sprintf("mu = %f, eta = %f\n", mu, eta))
         if (!(validmu(mu) && valideta(eta)))
             stop("cannot find valid starting values: please specify some", call. = FALSE)
         ## calculate initial deviance and coefficient

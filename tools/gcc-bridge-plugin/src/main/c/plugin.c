@@ -913,6 +913,8 @@ static void dump_global_var(tree var) {
   }
   json_field("type");
   dump_type(TREE_TYPE(var));
+  
+  json_bool_field("const", DECL_INITIAL(var) && TREE_CONSTANT(DECL_INITIAL(var)));
 
   if(DECL_INITIAL(var)) {
     json_field("value");

@@ -6,14 +6,17 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
+import org.renjin.gcc.gimple.expr.GimpleRealConstant;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.PUTFIELD;
+import static org.objectweb.asm.Opcodes.*;
 
 
-public class PrimitiveFieldGenerator implements FieldGenerator {
+public class PrimitiveFieldGenerator extends FieldGenerator {
 
   private String fieldName;
   private String className;
@@ -29,20 +32,42 @@ public class PrimitiveFieldGenerator implements FieldGenerator {
 
 
   @Override
-  public void emitStaticField(ClassVisitor cv) {
-    emitField(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, cv);
+  public void emitStaticField(ClassVisitor cv, GimpleVarDecl varDecl) {
+    cv.visitField(ACC_STATIC | ACC_PUBLIC | isFinal(varDecl), fieldName, type.getDescriptor(), null, initialValue(varDecl)).visitEnd();
   }
 
 
   @Override
   public void emitInstanceField(ClassVisitor cv) {
-    emitField(Opcodes.ACC_PUBLIC, cv);
+    cv.visitField(ACC_PUBLIC, fieldName, type.getDescriptor(), null, null).visitEnd();
   }
 
-  private void emitField(int access, ClassVisitor cv) {
-    cv.visitField(access, fieldName, type.getDescriptor(), null, null).visitEnd();
+
+  private int isFinal(GimpleVarDecl varDecl) {
+    if(varDecl.isConstant()) {
+      return ACC_FINAL;
+    } else {
+      return 0;
+    }
   }
 
+
+  private Object initialValue(GimpleVarDecl varDecl) {
+    GimpleExpr initialValue = varDecl.getValue();
+    if(initialValue == null) {
+      return null;
+    } else if(type.equals(Type.INT_TYPE)) {
+      return ((GimpleIntegerConstant) initialValue).getNumberValue().intValue();
+    } else if(type.equals(Type.DOUBLE_TYPE)) {
+      return ((GimpleRealConstant) initialValue).getNumberValue().doubleValue();
+    } else if(type.equals(Type.LONG_TYPE)) {
+      return ((GimpleIntegerConstant) initialValue).getNumberValue().longValue();
+    } else if(type.equals(Type.FLOAT_TYPE)) {
+      return ((GimpleRealConstant) initialValue).getNumberValue().floatValue();
+    } else {
+      throw new UnsupportedOperationException("initial value: " + initialValue);
+    }
+  }
 
   @Override
   public ExprGenerator staticExprGenerator() {

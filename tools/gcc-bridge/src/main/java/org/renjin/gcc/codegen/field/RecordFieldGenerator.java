@@ -4,6 +4,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
@@ -11,7 +12,7 @@ import static org.objectweb.asm.Opcodes.ACC_STATIC;
 /**
  * Generates a field with a record type
  */
-public class RecordFieldGenerator implements FieldGenerator {
+public class RecordFieldGenerator extends FieldGenerator {
   private String className;
   private String fieldName;
   private RecordClassGenerator recordGenerator;
@@ -23,7 +24,9 @@ public class RecordFieldGenerator implements FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv) {
+  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
+    assertNoInitialValue(decl);
+
     emitField(ACC_PUBLIC | ACC_STATIC, cv);
   }
 

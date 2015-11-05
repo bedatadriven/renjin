@@ -4,13 +4,14 @@ import org.objectweb.asm.ClassVisitor;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
-public class RecordArrayFieldGenerator implements FieldGenerator {
+public class RecordArrayFieldGenerator extends FieldGenerator {
 
   private GimpleArrayType arrayType;
   private String className;
@@ -25,7 +26,9 @@ public class RecordArrayFieldGenerator implements FieldGenerator {
     this.arrayType = arrayType;
   }
   @Override
-  public void emitStaticField(ClassVisitor cv) {
+  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
+    assertNoInitialValue(decl);
+
     emitField(ACC_PUBLIC | ACC_STATIC, cv);
   }
 

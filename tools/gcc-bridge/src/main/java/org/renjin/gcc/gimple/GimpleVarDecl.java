@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -8,6 +9,9 @@ public class GimpleVarDecl {
   private GimpleType type;
   private String name;
   private GimpleExpr value;
+  
+  @JsonProperty("const")
+  private boolean constant;
 
   /**
    * True if this local variable is addressable
@@ -40,6 +44,14 @@ public class GimpleVarDecl {
     } else {
       return "T" + Math.abs(id);
     }
+  }
+
+  public boolean isConstant() {
+    return constant;
+  }
+
+  public void setConstant(boolean constant) {
+    this.constant = constant;
   }
 
   public void setName(String name) {

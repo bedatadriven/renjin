@@ -260,7 +260,10 @@ public class BasicTest extends AbstractGccTest {
     Class clazz = compile("globals.c", "Globals");
 
     Method magic_number = clazz.getMethod("magic_number");
-    System.out.println(magic_number.invoke(null));
+    Integer result = (Integer) magic_number.invoke(null);
+    
+    assertThat(result, equalTo(42));
+    
   }
 
   @Test

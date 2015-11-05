@@ -91,6 +91,14 @@ public class BasicTest extends AbstractGccTest {
   }
 
   @Test
+  public void stateTest() throws Exception {
+    Class clazz = compile("rng_state.c", "rng_state");
+    Method method = clazz.getMethod("Init");
+    Double result = (Double) method.invoke(null);
+    assertThat(result, equalTo(41d));
+  }
+
+  @Test
   public void arraysNonZeroLowerBound() throws Exception {
     Class clazz = compile("lbound.f", "LBound");
 

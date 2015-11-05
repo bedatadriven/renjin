@@ -12,4 +12,13 @@ public class VoidTypeFactory extends TypeFactory {
   public ReturnGenerator returnGenerator() {
     return new VoidReturnGenerator();
   }
+
+  @Override
+  public TypeFactory pointerTo() {
+    return new Pointer();
+  }
+
+  private class Pointer extends TypeFactory {
+    
+  }
 }

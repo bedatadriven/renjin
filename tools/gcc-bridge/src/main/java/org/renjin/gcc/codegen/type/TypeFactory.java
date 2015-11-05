@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.field.PrimitiveArrayFieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
@@ -19,7 +20,7 @@ public abstract class TypeFactory {
    * @return a new {@code ParamGenerator} for this type.
    */
   public ParamGenerator paramGenerator() {
-    throw new UnsupportedOperationException(getClass().getSimpleName() + " parameters are not implemented.");
+    throw new UnimplementedException(getClass(), "paramGenerator");
   }
 
   /**
@@ -27,28 +28,25 @@ public abstract class TypeFactory {
    * @return a new {@code ReturnGenerator} for this type.
    */
   public ReturnGenerator returnGenerator() {
-    throw new UnsupportedOperationException(
-        "returning types of " + getClass().getName() + " is not implemented.");
+    throw new UnimplementedException(getClass(), "returnGenerator");
   }
 
 
   public VarGenerator varGenerator(LocalVarAllocator allocator) {
-    throw new UnsupportedOperationException(
-        "local variables of type  " + getClass().getName() + " is not implemented.");
+    throw new UnimplementedException(getClass(), "varGenerator");
   }
 
   public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-    throw new UnsupportedOperationException(
-        "local variables of type  " + getClass().getName() + " is not implemented.");
+    throw new UnimplementedException(getClass(), "addressableVarGenerator");
   }
 
 
   public TypeFactory pointerTo() {
-    throw new UnsupportedOperationException("unimplemented [" + getClass().getName() + "]");
+    throw new UnimplementedException(getClass(), "pointerTo");
   }
 
   public TypeFactory arrayOf(GimpleArrayType arrayType) {
-    throw new UnsupportedOperationException("unimplemented [" + getClass().getName() + "]");
+    throw new UnimplementedException(getClass(), "arrayOf");
   }
 
   /**

@@ -27,8 +27,6 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
   }
   @Override
   public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    assertNoInitialValue(decl);
-
     emitField(ACC_PUBLIC | ACC_STATIC, cv);
   }
 

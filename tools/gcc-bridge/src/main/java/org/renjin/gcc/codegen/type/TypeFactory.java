@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
+import org.renjin.gcc.codegen.field.PrimitiveArrayFieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
@@ -57,6 +58,6 @@ public abstract class TypeFactory {
    * @param fieldName the name of the field
    */
   public FieldGenerator fieldGenerator(String className, String fieldName) {
-    throw new UnsupportedOperationException("unimplemented [" + getClass().getName() + "]");
+    return new PrimitiveArrayFieldGenerator(className, fieldName);
   }
 }

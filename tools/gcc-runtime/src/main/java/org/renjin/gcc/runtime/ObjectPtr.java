@@ -13,4 +13,13 @@ public class ObjectPtr implements Ptr {
     this.array = array;
     this.offset = offset;
   }
+  
+  public <T> T get() {
+    return get(0);
+  }
+  
+  @SuppressWarnings("unchecked")
+  public <T> T get(int index) {
+    return (T)array[offset+index];
+  }
 }

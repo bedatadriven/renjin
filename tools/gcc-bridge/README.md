@@ -346,4 +346,34 @@ using the `LDC` instruction.
 
 
 
+### Pointers to Pointers
+
+```.c
+// allocate a 10x100 matrix
+double** cmatrix() {
+  double ** m = malloc(10 * sizeof(double*))
+  int row;
+  for(row=0;row<10;++i) {
+    m[i] = malloc(100 * sizeof(double)))
+  }
+  return m;
+}
+```
+
+```.java
+// allocate a 10x100 matrix
+cmatrix() {
+  double [][] m;
+  int m$offset;
+  int[] m$$offsets;
+  
+  m = new double[][10];
+  m$offset = 0;
+  
+  for(int row=0;row<10;++row) {
+    m[row] = new double[100];
+    m$$offsets[row] = 0;
+  }
+}
+```
 

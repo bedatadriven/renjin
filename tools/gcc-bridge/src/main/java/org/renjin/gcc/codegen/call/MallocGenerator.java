@@ -83,6 +83,10 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
       case Type.DOUBLE:
         mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_DOUBLE);
         break;
+      case Type.OBJECT:
+        mv.visitTypeInsn(Opcodes.ANEWARRAY, componentType.getDescriptor());
+        break;
+      
       default:
         throw new UnsupportedOperationException("type: " + componentType);
     }

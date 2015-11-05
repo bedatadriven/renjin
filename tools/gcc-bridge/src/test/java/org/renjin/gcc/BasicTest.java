@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -72,6 +73,18 @@ public class BasicTest extends AbstractGccTest {
     Double result = (Double) method.invoke(null);
 
     assertThat(result, equalTo(45.0));
+  }
+  
+  @Test
+  public void returningPointersToPointers() throws Exception {
+    Class clazz = compile("cmatrix.c", "CMatrix");
+    Method method = clazz.getMethod("cmatrix", DoublePtr.class, int.class, int.class);
+    ObjectPtr matrix = (ObjectPtr) method.invoke(null, new DoublePtr(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 5, 2);
+    DoublePtr row0 = (DoublePtr) matrix.array[matrix.offset];
+    DoublePtr row1 = (DoublePtr) matrix.array[matrix.offset+1];
+
+    assertThat(row0.get(0), equalTo(1d));
+    assertThat(row1.get(0), equalTo(6d));
   }
 
   @Test

@@ -1,10 +1,9 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 @SuppressWarnings("unused")
 public final class Rinternals {
@@ -26,23 +25,23 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isLogical(SEXP s) {
-    throw new UnimplementedGnuApiMethod("Rf_isLogical");
+    return s instanceof LogicalVector;
   }
 
   public static boolean Rf_isReal(SEXP s) {
-    throw new UnimplementedGnuApiMethod("Rf_isReal");
+    return s instanceof DoubleVector;
   }
 
   public static boolean Rf_isComplex(SEXP s) {
-    throw new UnimplementedGnuApiMethod("Rf_isComplex");
+    return s instanceof ComplexVector;
   }
 
   public static boolean Rf_isExpression(SEXP s) {
-    throw new UnimplementedGnuApiMethod("Rf_isExpression");
+    return s instanceof ExpressionVector;
   }
 
   public static boolean Rf_isEnvironment(SEXP s) {
-    throw new UnimplementedGnuApiMethod("Rf_isEnvironment");
+    return s instanceof Environment;
   }
 
   public static boolean Rf_isString(SEXP s) {
@@ -69,8 +68,20 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("TYPEOF");
   }
 
-  public static int NAMED(SEXP x) {
-    throw new UnimplementedGnuApiMethod("NAMED");
+  /**
+   * @param sexp
+   * @return the value of the {@code SEXP}'s named bit. 
+   */
+  public static int NAMED(SEXP sexp) {
+    // Renjin's contract for AtomicVector is that a vector's contents can never be changed
+    // GNU R's contract for AtomicVector is that a vector's contents can ONLY be changed if NAMED(sexp) = 0
+    // To "trick" code written for GNU R into observing Renjin's contract, we can simply always return a non-zero 
+    // value here.
+    return 2;
+  }
+
+  public static void SET_NAMED(SEXP sexp, int value) {
+    // NOOP
   }
 
   public static int REFCNT(SEXP x) {
@@ -85,9 +96,6 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SET_TYPEOF");
   }
 
-  public static void SET_NAMED(SEXP x, int v) {
-    throw new UnimplementedGnuApiMethod("SET_NAMED");
-  }
 
   public static void SET_ATTRIB(SEXP x, SEXP v) {
     throw new UnimplementedGnuApiMethod("SET_ATTRIB");
@@ -158,7 +166,20 @@ public final class Rinternals {
   }
 
   public static DoublePtr REAL(SEXP x) {
-    throw new UnimplementedGnuApiMethod("REAL");
+    if(x instanceof DoubleArrayVector) {
+      // Return the array backing the double vector
+      // This is inherently unsafe because the calling code can modify the contents of the array
+      // and potentially break the contract of immutability of DoubleVector, but the GNU R API
+      // imposes essentially the same contract. We are, however, at the mercy of the C code observing
+      // this contract.
+      return new DoublePtr(((DoubleArrayVector) x).toDoubleArrayUnsafe());
+    } else if(x instanceof DoubleVector) {
+      // Return a copy of this vector as an array.
+      // TODO: Cache arrays for the case of frequent REAL() calls?
+      return new DoublePtr(((DoubleVector) x).toDoubleArray());
+    } else {
+      throw new EvalException("REAL(): expected numeric vector, found %s", x.getTypeName());
+    }
   }
 
   // Rcomplex*() COMPLEX (SEXP x)
@@ -585,7 +606,10 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_DropDims");
   }
 
-  public static SEXP Rf_duplicate(SEXP p0) {
+  public static SEXP Rf_duplicate(SEXP sexp) {
+    if(sexp instanceof DoubleArrayVector) {
+      return new DoubleArrayVector((DoubleVector)sexp);
+    }
     throw new UnimplementedGnuApiMethod("Rf_duplicate");
   }
 
@@ -1328,19 +1352,21 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_protect(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_protect");
+    // NOOP
+    System.out.println(p0);
+    return p0;
   }
 
   public static void Rf_unprotect(int p0) {
-    throw new UnimplementedGnuApiMethod("Rf_unprotect");
+    // NOOP
   }
 
   public static void R_ProtectWithIndex(SEXP p0, /*PROTECT_INDEX **/ IntPtr p1) {
-    throw new UnimplementedGnuApiMethod("R_ProtectWithIndex");
+    // NOOP
   }
 
   public static void R_Reprotect(SEXP p0, /*PROTECT_INDEX*/ int p1) {
-    throw new UnimplementedGnuApiMethod("R_Reprotect");
+    // NOOP
   }
 
   public static SEXP R_FixupRHS(SEXP x, SEXP y) {

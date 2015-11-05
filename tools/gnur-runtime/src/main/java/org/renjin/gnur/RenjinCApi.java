@@ -4,7 +4,10 @@ package org.renjin.gnur;
 import com.google.common.collect.Sets;
 import org.apache.commons.math.util.FastMath;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.FunPtr;
+import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gnur.sexp.GnuSymbol;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
@@ -188,10 +191,7 @@ public class RenjinCApi {
     throw new UnsupportedOperationException("not implemented");
   }
 
-  
-  public static int Rf_length(SEXP sexp) {
-    throw new UnsupportedOperationException();
-  }
+
 
 }
 

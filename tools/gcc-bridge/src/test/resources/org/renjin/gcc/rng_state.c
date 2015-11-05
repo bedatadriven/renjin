@@ -6,7 +6,7 @@ typedef struct rng_state {
 
 int Init() {
   rng_state s;
-	update(&s->i);
+	update(&s.i);
 	return  s.i;
 }
 

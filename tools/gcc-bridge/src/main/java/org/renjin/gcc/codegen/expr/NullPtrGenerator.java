@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -29,5 +30,15 @@ public class NullPtrGenerator extends AbstractExprGenerator implements PtrGenera
   @Override
   public GimpleType getGimpleType() {
     return type;
+  }
+
+  @Override
+  public void emitPushPointerWrapper(MethodVisitor mv) {
+    mv.visitInsn(ACONST_NULL);
+  }
+
+  @Override
+  public void emitPushRecordRef(MethodVisitor mv) {
+    mv.visitInsn(ACONST_NULL);
   }
 }

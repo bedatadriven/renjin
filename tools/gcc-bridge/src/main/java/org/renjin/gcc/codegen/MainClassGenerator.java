@@ -44,7 +44,7 @@ public class MainClassGenerator {
   public void emit(List<GimpleCompilationUnit> units) {
     sw = new StringWriter();
     pw = new PrintWriter(sw);
-    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+    cw = new ClassWriter(0);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
     cv.visit(V1_7, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
     

@@ -14,6 +14,9 @@ import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates a pointer variable whose address read and written to.
+ * 
+ * <p>For a pointer variable like {@code double *x}, for example, we compile this as
+ * a local variable of type DoublePtr[] x = new DoublePtr[1]</p>
  *
  */
 public class AddressablePtrVarGenerator extends AbstractExprGenerator implements PtrGenerator, VarGenerator {
@@ -40,35 +43,46 @@ public class AddressablePtrVarGenerator extends AbstractExprGenerator implements
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    // initialize with a null pointer
-    // DoublePtr x = new DoublePtr(null, 0);
-    mv.visitTypeInsn(Opcodes.NEW, wrapperType.getWrapperType().getInternalName());
-    mv.visitInsn(Opcodes.DUP);
     
-    mv.visitInsn(Opcodes.ACONST_NULL);
-    mv.visitInsn(Opcodes.ICONST_0);
-    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, wrapperType.getWrapperType().getInternalName(), "<init>",
-        wrapperType.getConstructorDescriptor(), false);
+    mv.visitInsn(Opcodes.ICONST_1);
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, wrapperType.getWrapperType().getInternalName());
+    
+//    // initialize with a null pointer
+//    // DoublePtr x = new DoublePtr(null, 0);
+//    mv.visitTypeInsn(Opcodes.NEW, wrapperType.getWrapperType().getInternalName());
+//    mv.visitInsn(Opcodes.DUP);
+//    
+//    mv.visitInsn(Opcodes.ACONST_NULL);
+//    mv.visitInsn(Opcodes.ICONST_0);
+//    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, wrapperType.getWrapperType().getInternalName(), "<init>",
+//        wrapperType.getConstructorDescriptor(), false);
     
     mv.visitVarInsn(Opcodes.ASTORE, index);
   }
 
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    // Push reference to DoublePtr[0].array and DoublePtr[0].offset
+    // first push DoublePtr[0]
     mv.visitVarInsn(Opcodes.ALOAD, index);
+    mv.visitInsn(Opcodes.ICONST_0);
+    mv.visitInsn(Opcodes.AALOAD);
+  
+    // then unpack
     wrapperType.emitUnpackArrayAndOffset(mv);
+
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    // Store reference to DoublePtr at array index 0
     
-    // call x.update(array, offset) to change this pointer's address
     mv.visitVarInsn(Opcodes.ALOAD, index);
+    mv.visitInsn(Opcodes.ICONST_0);
     
-    PtrGenerator ptr = (PtrGenerator) valueGenerator;
-    ptr.emitPushPtrArrayAndOffset(mv);
+    valueGenerator.emitPushPointerWrapper(mv);
   
-    wrapperType.emitInvokeUpdate(mv);
+    mv.visitInsn(Opcodes.AASTORE);
   }
 
   @Override
@@ -93,23 +107,9 @@ public class AddressablePtrVarGenerator extends AbstractExprGenerator implements
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      // push this as a new array of (DoublePtr)
-      mv.visitInsn(Opcodes.ICONST_1);
-      mv.visitTypeInsn(Opcodes.ANEWARRAY, wrapperType.getWrapperType().getDescriptor());
-      mv.visitInsn(Opcodes.DUP);
-
-      // stack: { DoublePtr[], DoublePtr[]  }
-
-      mv.visitInsn(Opcodes.ICONST_0);
+      // push Object[] and offset
       mv.visitVarInsn(Opcodes.ALOAD, index);
-      mv.visitInsn(Opcodes.AASTORE);
-
-      // stack: { DoublePtr[] }
-
       mv.visitInsn(Opcodes.ICONST_0);
-
-      // stack: { DoublePtr[], 0 }
-
     }
   }
 }

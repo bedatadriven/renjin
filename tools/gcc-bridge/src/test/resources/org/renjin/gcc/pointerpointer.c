@@ -20,7 +20,32 @@ double sum_array(double* values, int length) {
 
 
 double test() {
-  double *x = 0;
-  init_array(&x);
-  return sum_array(x, 10);
+  double *x;                    //    ICONST_1
+                                //    ANEWARRAY org/renjin/gcc/runtime/DoublePtr
+                                //    ASTORE 0
+
+  x = 0;                        //    ALOAD 0
+                                //    ICONST_0
+                                //    ACONST_NULL
+                                //    AASTORE
+
+              
+                                //   NEW org/renjin/gcc/runtime/ObjectPtr
+                                //   DUP
+                                //   ALOAD 0 (DoublePtr[1] )
+                                //   ICONST_0 
+                                //   INVOKESPECIAL org/renjin/gcc/runtime/ObjectPtr.<init> ([Ljava/lang/Object;I)V
+  init_array(&x);               //   INVOKESTATIC org/renjin/gcc/PointerPointers.init_array (Lorg/renjin/gcc/runtime/ObjectPtr;)V
+
+
+  // double *x.0 = x            //  ALOAD 0
+                                //  ICONST_0
+                                // AALOAD
+                                // ICONST_0
+                                // stack :: DoublePtr, int
+                                
+
+  return sum_array(x, 10);      //  ALOAD 0
+                                //  ICONST_0
+                                //  AALOAD  -> Loads DoublePtr[1] onto the stack
 }

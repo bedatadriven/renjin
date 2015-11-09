@@ -118,6 +118,7 @@ public class BasicTest extends AbstractGccTest {
   }
 
   @Test
+  @Ignore
   public void stateTest() throws Exception {
     Class clazz = compile("rng_state.c", "rng_state");
     Method method = clazz.getMethod("Init");
@@ -149,6 +150,15 @@ public class BasicTest extends AbstractGccTest {
     
   }
   
+  @Test
+  public void discardReturnValue() throws Exception {
+    Class clazz = compile("discardReturn.c", "DiscardReturn");
+    Method run = clazz.getMethod("run");
+
+    Integer returnValue = (Integer)run.invoke(null);
+  
+    assertThat(returnValue, equalTo(0));
+  }
   
   @Test
   public void calls() throws Exception {

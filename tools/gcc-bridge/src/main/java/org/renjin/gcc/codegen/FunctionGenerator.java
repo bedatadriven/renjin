@@ -1,10 +1,7 @@
 package org.renjin.gcc.codegen;
 
 import com.google.common.collect.Maps;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
@@ -257,12 +254,26 @@ public class FunctionGenerator {
       if(ins.getLhs() == null) {
         // call the function for its side effects
         callGenerator.emitCall(mv, arguments);
+        discardReturnValue(mv, callGenerator.returnType());
         
       } else {
         LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLhs());
         ExprGenerator callResult = callGenerator.expressionGenerator(arguments);
         
         lhs.emitStore(mv, callResult);
+      }
+    }
+  }
+
+  private void discardReturnValue(MethodVisitor mv, Type type) {
+    if(!type.equals(Type.VOID_TYPE)) {
+      int stackSize = type.getSize();
+      if(stackSize == 1) {
+        mv.visitInsn(Opcodes.POP);
+      } else if(stackSize == 2) {
+        mv.visitInsn(Opcodes.POP2);
+      } else {
+        throw new InternalCompilerException("Unexpected size: " + stackSize);
       }
     }
   }

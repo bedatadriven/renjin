@@ -68,7 +68,7 @@ public class FunctionGenerator {
     this.localVariables = new VariableTable(globalVars);
     this.functionTable = functionTable;
     
-    //System.out.println(function);
+    System.out.println(function);
     
     mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
         function.getMangledName(), functionDescriptor(), null, null);

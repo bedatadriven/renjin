@@ -229,5 +229,10 @@ public class PrimitiveTypeFactory extends TypeFactory {
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
       return new PrimitivePtrArrayVar(arrayType, allocator.reserveObject());
     }
+
+    @Override
+    public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
+      return varGenerator(allocator);
+    }
   }
 }

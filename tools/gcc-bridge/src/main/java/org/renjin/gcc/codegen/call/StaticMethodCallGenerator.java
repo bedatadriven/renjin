@@ -40,7 +40,7 @@ public class StaticMethodCallGenerator implements CallGenerator {
   public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
     
     if(paramGenerators == null) {
-      paramGenerators = factory.forParameterTypes(method.getParameterTypes());
+      paramGenerators = factory.forParameterTypesOf(method);
     }
     
     if(paramGenerators.size() != argumentGenerators.size()) {

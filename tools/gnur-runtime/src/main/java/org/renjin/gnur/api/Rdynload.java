@@ -1,9 +1,6 @@
 // Initial template generated from Rdynload.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.sexp.SEXP;
-import org.renjin.gcc.runtime.*;
-
 @SuppressWarnings("unused")
 public final class Rdynload {
 
@@ -11,7 +8,7 @@ public final class Rdynload {
 
 
 
-  // int R_registerRoutines (DllInfo *info, const R_CMethodDef *const croutines, const R_CallMethodDef *const callRoutines, const R_FortranMethodDef *const fortranRoutines, const R_ExternalMethodDef *const externalRoutines)
+  //int R_registerRoutines (DllInfo *info, const R_CMethodDef *const croutines, const R_CallMethodDef *const callRoutines, const R_FortranMethodDef *const fortranRoutines, const R_ExternalMethodDef *const externalRoutines)
 
   // Rboolean R_useDynamicSymbols (DllInfo *info, Rboolean value)
 

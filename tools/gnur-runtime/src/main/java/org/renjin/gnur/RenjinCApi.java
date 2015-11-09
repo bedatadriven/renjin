@@ -88,14 +88,7 @@ public class RenjinCApi {
     throw new UnsupportedOperationException();
   }
 
-  public static void R_registerRoutines(Object dll, Object CEntries, Object callEntries, Object q, int count) {
-
-  }
-
-  public static void R_useDynamicSymbols(Object dll, int count) {
-
-  }
-
+  
   public static void Rf_warning(BytePtr text) {
     System.err.println(text.nullTerminatedString());
   }

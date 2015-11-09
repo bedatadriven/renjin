@@ -1315,7 +1315,9 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_listAppend");
   }
 
-  // SEXP Rf_mkNamed (SEXPTYPE, const char **)
+  public static SEXP Rf_mkNamed (int sexpType, ObjectPtr<BytePtr> names) {
+    throw new UnimplementedGnuApiMethod("Rf_mkNamed");
+  }
 
   public static SEXP Rf_mkString(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_mkString");

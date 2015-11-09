@@ -72,6 +72,12 @@ public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
     }
 
     @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      valueGenerator.emitPushPointerWrapper(mv);
+      mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+    }
+
+    @Override
     public ExprGenerator valueOf() {
       return new PtrExpr(varIndex);
     }

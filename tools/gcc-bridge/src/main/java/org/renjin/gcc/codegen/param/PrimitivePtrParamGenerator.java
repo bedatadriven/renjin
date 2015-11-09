@@ -72,4 +72,5 @@ public class PrimitivePtrParamGenerator extends ParamGenerator {
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
     parameterValueGenerator.emitPushPointerWrapper(mv);
   }
+  
 }

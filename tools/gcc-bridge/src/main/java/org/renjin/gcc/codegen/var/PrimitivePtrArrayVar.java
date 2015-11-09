@@ -2,12 +2,12 @@ package org.renjin.gcc.codegen.var;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -39,6 +39,12 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
   @Override
   public ExprGenerator elementAt(ExprGenerator indexGenerator) {
     return new PtrElement(indexGenerator);  
+  }
+
+
+  @Override
+  public ExprGenerator addressOf() {
+    return new AddressOf();
   }
 
   private class PtrElement extends AbstractExprGenerator {
@@ -76,6 +82,24 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       emitPushPointerWrapper(mv);
       wrapperType.emitUnpackArrayAndOffset(mv);
+    }
+  }
+  
+  private class AddressOf extends AbstractExprGenerator {
+    @Override
+    public GimpleType getGimpleType() {
+      return new GimplePointerType(arrayType);
+    }
+
+    @Override
+    public WrapperType getPointerType() {
+      return wrapperType;
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+      mv.visitInsn(Opcodes.ICONST_0);
     }
   }
 }

@@ -93,6 +93,7 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      valueGenerator.emitPrimitiveValue(mv);
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, type.getDescriptor());
     }
   }

@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -41,7 +42,7 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
 
   @Override
   public ExprGenerator staticExprGenerator() {
-    return new StaticArrayExpr();
+    return new StaticArrayValue();
   }
 
   @Override
@@ -49,12 +50,26 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
     throw new UnsupportedOperationException();
   }
   
-  private class StaticArrayExpr extends AbstractExprGenerator {
+  
+  private class StaticArrayValue extends AbstractExprGenerator {
 
     @Override
     public GimpleType getGimpleType() {
       return arrayType;
     }
+
+    @Override
+    public ExprGenerator addressOf() {
+      return new StaticArrayPtr();
+    }
+  }
+  
+  private class StaticArrayPtr extends AbstractExprGenerator {
+    @Override
+    public GimpleType getGimpleType() {
+      return new GimplePointerType(arrayType);
+    }
+    
     
   }
   

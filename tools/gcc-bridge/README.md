@@ -85,7 +85,10 @@ Beyond one level of indirection we don't specialize:
 
 C:
 
-```
+```.c
+
+static double** global_matrix;
+
 double **dmatrix(double *x, int ncol, int nrow) {
 
   int i;
@@ -98,11 +101,21 @@ double **dmatrix(double *x, int ncol, int nrow) {
   }
   return(pointer);
 }
+
+void init_matrix() {
+  double data[] = {1, 2, 3, 4};
+  global_matrix = cmatrix(data, 2, 2);
+}
+
 ```
 
 Java:
 
-```
+```.java
+
+public static DoublePtr[] global_matrix;
+public static int global_matrix$offset;
+
 public static ObjectPtr dmatrix(DoublePtr x, int ncol, int nrow) {
 
   double[] x_array = x.array
@@ -117,9 +130,20 @@ public static ObjectPtr dmatrix(DoublePtr x, int ncol, int nrow) {
       pointer_array[pointer_offset+i] = new DoublePtr(x_array, x_offset);
       x_offset += ncol;
   }
-  return(pointer);
+  
+  return new ObjectPtr(pointer_array, pointer_offset);
 }
+
+public static void init_matrix() {
+  double data[] = {1,2,3,4};
+  ObjectPtr tmp = cmatrix(data, 2, 2);
+  global_matrix = (DoublePtr[])tmp.array;
+  global_matrix$offset = tmp.index;
+}
+
 ```
+
+
 
 ### Global Variables
 

@@ -6,7 +6,6 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.SymbolRef;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,6 +26,7 @@ public class VariableTable {
 
   public void add(Integer gimpleId, ExprGenerator variable) {
     Preconditions.checkNotNull(variable);
+    Preconditions.checkState(!map.containsKey(gimpleId), "variable already registered with id " + gimpleId);
 
     map.put(gimpleId, variable);
   }

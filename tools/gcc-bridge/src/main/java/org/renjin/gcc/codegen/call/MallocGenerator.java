@@ -17,14 +17,20 @@ import static org.objectweb.asm.Opcodes.IDIV;
  * Generates a {@code malloc} call
  */
 public class MallocGenerator extends AbstractExprGenerator implements PtrGenerator {
-  private final GimpleType gimpleBaseType;
-  private final ValueGenerator sizeGenerator;
-  private final WrapperType pointerType;
+  private Type elementType;
+  private int elementSize;
+  private final ValueGenerator totalSizeGenerator;
 
-  public MallocGenerator(LValueGenerator lhs, ExprGenerator sizeGenerator) {
-    this.pointerType = lhs.getPointerType();
-    this.gimpleBaseType = lhs.getGimpleType().getBaseType();
-    this.sizeGenerator = (ValueGenerator) sizeGenerator;
+  /**
+   * 
+   * @param baseType the JVM type to be allocated
+   * @param baseTypeSize the size, in bytes of the original Gimple base type
+   * @param sizeGenerator an expression generator for the total number of bytes to allocate
+   */
+  public MallocGenerator(Type baseType, int baseTypeSize, ExprGenerator sizeGenerator) {
+    this.elementType = baseType;
+    this.elementSize = baseTypeSize;
+    this.totalSizeGenerator = (ValueGenerator) sizeGenerator;
   }
 
   public static boolean isMalloc(GimpleExpr functionExpr) {
@@ -56,12 +62,12 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     // first calculate the size of the array from the argument,
     // which is in bytes
-    sizeGenerator.emitPrimitiveValue(mv);
-    mv.visitLdcInsn(gimpleBaseType.sizeOf());
+    totalSizeGenerator.emitPrimitiveValue(mv);
+    PrimitiveConstValueGenerator.emitInt(mv, elementSize);
     mv.visitInsn(IDIV);
 
     // now create the array
-    emitNewArray(mv, pointerType.getBaseType());
+    emitNewArray(mv, elementType);
 
     mv.visitInsn(ICONST_0);
   }
@@ -84,12 +90,17 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
         mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_DOUBLE);
         break;
       case Type.OBJECT:
-        mv.visitTypeInsn(Opcodes.ANEWARRAY, componentType.getDescriptor());
+        mv.visitTypeInsn(Opcodes.ANEWARRAY, componentType.getInternalName());
         break;
       
       default:
         throw new UnsupportedOperationException("type: " + componentType);
     }
+  }
+
+  @Override
+  public WrapperType getPointerType() {
+    return super.getPointerType();
   }
 
   @Override

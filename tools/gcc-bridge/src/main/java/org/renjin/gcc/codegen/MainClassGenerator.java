@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.collect.Maps;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -16,6 +17,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -31,7 +33,7 @@ public class MainClassGenerator {
   private PrintWriter pw;
   private String className;
 
-  private VariableTable globalVariables = new VariableTable();
+  private Map<GimpleCompilationUnit, VariableTable> globalVariables = Maps.newHashMap();
   private FunctionTable functionTable;
   private GeneratorFactory generatorFactory;
 
@@ -44,7 +46,7 @@ public class MainClassGenerator {
   public void emit(List<GimpleCompilationUnit> units) {
     sw = new StringWriter();
     pw = new PrintWriter(sw);
-    cw = new ClassWriter(0);
+    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
     cv.visit(V1_7, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
     
@@ -67,18 +69,19 @@ public class MainClassGenerator {
 
   private void emitGlobalVariables(List<GimpleCompilationUnit> units) {
     for (GimpleCompilationUnit unit : units) {
+      VariableTable variableTable = new VariableTable();
       for (GimpleVarDecl gimpleVarDecl : unit.getGlobalVariables()) {
-
         try {
           FieldGenerator field = generatorFactory.forField(className, gimpleVarDecl.getName(), gimpleVarDecl.getType());
           field.emitStaticField(cv, gimpleVarDecl);
-          globalVariables.add(gimpleVarDecl.getId(), field.staticExprGenerator());
+          variableTable.add(gimpleVarDecl.getId(), field.staticExprGenerator());
 
         } catch (Exception e) {
           throw new InternalCompilerException("Exception writing static variable " + gimpleVarDecl.getName() + 
               " defined in " + unit.getSourceFile().getName(), e);
         }
       }
+      globalVariables.put(unit, variableTable);
     }
   }
 
@@ -103,7 +106,7 @@ public class MainClassGenerator {
     // Now actually emit the function bodies
     for (FunctionGenerator functionGenerator : functions) {
       try {
-        functionGenerator.emit(cv, globalVariables, functionTable);
+        functionGenerator.emit(cv, globalVariables.get(functionGenerator.getCompilationUnit()), functionTable);
       } catch (Exception e) {
         throw new InternalCompilerException(functionGenerator, e);
       }

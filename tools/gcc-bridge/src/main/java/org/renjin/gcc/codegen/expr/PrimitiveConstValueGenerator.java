@@ -46,7 +46,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
 
-  private void emitInt(MethodVisitor mv, int value) {
+  public static void emitInt(MethodVisitor mv, int value) {
     if(value == -1) {
       mv.visitInsn(ICONST_M1);
     } else if(value >= 0 && value <= 5) {
@@ -58,7 +58,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
 
-  private void emitLong(MethodVisitor mv, long value) {
+  public static void emitLong(MethodVisitor mv, long value) {
     if(value == 0) {
       mv.visitInsn(LCONST_0);
     } else if(value == 1) {
@@ -68,7 +68,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
 
-  private void emitFloat(MethodVisitor mv, float value) {
+  public static void emitFloat(MethodVisitor mv, float value) {
     if(value == 0) {
       mv.visitInsn(FCONST_0);
     } else if(value == 1) {
@@ -80,7 +80,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
 
-  private void emitDouble(MethodVisitor mv, double v) {
+  public static void emitDouble(MethodVisitor mv, double v) {
     if(v == 0) {
       mv.visitInsn(DCONST_0);
     } else if(v == 1) {

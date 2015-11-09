@@ -2,21 +2,24 @@ package org.renjin.gcc.codegen.var;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 
-import java.sql.Wrapper;
-
 
 /**
  * Pointer to a pointer to a primitive, for example {@code double**}
+ * 
+ * <p>Given a Gimple local variable of type {@code double**}, we reserve local variable slots
+ * for</p>
+ * <pre>
+ *   DoublePtr[] x;
+ *   int x$offset = 0;
+ * </pre>
  */
 public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
@@ -57,6 +60,11 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
   }
 
   @Override
+  public void emitPushPointerWrapper(MethodVisitor mv) {
+    super.emitPushPointerWrapper(mv);
+  }
+
+  @Override
   public void emitPushPtrArray(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, arrayVarIndex);
   }
@@ -71,6 +79,8 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
   public ExprGenerator valueOf() {
     return new PointerValue();
   }
+  
+  
   
   private class PointerValue extends AbstractExprGenerator {
 
@@ -95,7 +105,7 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
       mv.visitInsn(Opcodes.AALOAD);
       
       // Cast Object -> (Double)Ptr
-      mv.visitTypeInsn(Opcodes.CHECKCAST, wrapperType.getWrapperType().getDescriptor());
+      mv.visitTypeInsn(Opcodes.CHECKCAST, wrapperType.getWrapperType().getInternalName());
       
       // Unpack the array and offset fields
       wrapperType.emitUnpackArrayAndOffset(mv);

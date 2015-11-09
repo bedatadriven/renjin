@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.UnimplementedException;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.field.PrimitiveArrayFieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
@@ -57,5 +58,9 @@ public abstract class TypeFactory {
    */
   public FieldGenerator fieldGenerator(String className, String fieldName) {
     return new PrimitiveArrayFieldGenerator(className, fieldName);
+  }
+
+  public ExprGenerator mallocExpression(ExprGenerator size) {
+    throw new UnsupportedOperationException("TODO: implement mallocExpression() in " + getClass().getName());
   }
 }

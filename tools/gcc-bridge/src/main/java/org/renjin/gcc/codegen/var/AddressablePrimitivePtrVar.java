@@ -1,9 +1,7 @@
 package org.renjin.gcc.codegen.var;
 
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ObjectType;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -19,13 +17,13 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * a local variable of type DoublePtr[] x = new DoublePtr[1]</p>
  *
  */
-public class AddressablePtrVarGenerator extends AbstractExprGenerator implements PtrGenerator, VarGenerator {
+public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements PtrGenerator, VarGenerator {
   
   private final GimpleIndirectType type;
   private final WrapperType wrapperType;
   private int index;
 
-  public AddressablePtrVarGenerator(GimpleType type, int localVarIndex) {
+  public AddressablePrimitivePtrVar(GimpleType type, int localVarIndex) {
     this.index = localVarIndex;
     this.type = (GimpleIndirectType) type;
     this.wrapperType = WrapperType.forPointerType(this.type);

@@ -52,8 +52,6 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   @Override
   public void emitPrimitiveValue(MethodVisitor mv) {
     throw new UnimplementedException(getClass(), "emitPrimitiveValue");
-
-  
   }
   
   @Override

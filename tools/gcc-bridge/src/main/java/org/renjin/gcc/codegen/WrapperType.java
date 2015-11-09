@@ -1,9 +1,11 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.*;
@@ -217,13 +219,17 @@ public class WrapperType {
    * Emits the bytecode to consume a reference to a wrapper instance on the stack
    * and push the array and offset onto the stack. ( wrapper pointer -> array, offset)
    */
-  public void emitUnpackArrayAndOffset(MethodVisitor mv) {
+  public void emitUnpackArrayAndOffset(MethodVisitor mv, Optional<Type> castTo) {
     
     // duplicate the wrapper instance so we can call GETFIELD twice.
     mv.visitInsn(DUP);
 
     // Consume the first reference to the wrapper type and push the array field on the stack
     mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "array", arrayType.getDescriptor());
+    
+    if(castTo.isPresent()) {
+      mv.visitTypeInsn(Opcodes.CHECKCAST, castTo.get().getInternalName());
+    }
 
     // (wrapper, array) -> (array, wrapper)
     mv.visitInsn(SWAP);
@@ -232,12 +238,22 @@ public class WrapperType {
     mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "offset", "I");
   }
 
+  public void emitUnpackArrayAndOffset(MethodVisitor mv) {
+    emitUnpackArrayAndOffset(mv, Optional.<Type>absent());
+  }
 
-  /**
-   * Emits the bytecode to consume a reference to the array 
-   */
+    /**
+     * Emits the bytecode to consume a reference to the array 
+     */
   public void emitPushNewWrapper(MethodVisitor mv, ExprGenerator ptrGenerator) {
 
+    // sanity check type we're trying to create here
+    if(!ptrGenerator.getPointerType().equals(this)) {
+        throw new InternalCompilerException(String.format(
+            "Type mismatch: cannot create FatPtr (%s) from pointer of type %s [%s]", 
+            wrapperType, ptrGenerator.getGimpleType(), ptrGenerator.getPointerType()));
+    }
+    
     String wrapperClass = wrapperType.getInternalName();
 
     // Create a new instance of the wrapper
@@ -253,4 +269,23 @@ public class WrapperType {
     mv.visitMethodInsn(INVOKEVIRTUAL, wrapperType.getInternalName(), "update", getConstructorDescriptor(), false);
   }
 
+  @Override
+  public String toString() {
+    return wrapperType.getInternalName();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    WrapperType that = (WrapperType) o;
+
+    return wrapperType.equals(that.wrapperType);
+  }
+
+  @Override
+  public int hashCode() {
+    return wrapperType.hashCode();
+  }
 }

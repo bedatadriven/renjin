@@ -68,6 +68,8 @@ public class FunctionGenerator {
     this.localVariables = new VariableTable(globalVars);
     this.functionTable = functionTable;
     
+    //System.out.println(function);
+    
     mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
         function.getMangledName(), functionDescriptor(), null, null);
     mv.visitCode();
@@ -123,8 +125,6 @@ public class FunctionGenerator {
 
     // Dumb scheduling: give every local variable it's own slot
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
-      
-      System.out.println(varDecl + ": " + localVarAllocator.size());
       
       try {
         VarGenerator generator;
@@ -281,9 +281,8 @@ public class FunctionGenerator {
   private void emitMalloc(GimpleCall ins) {
     LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLhs());
     ExprGenerator size = findGenerator(ins.getArguments().get(0));
-    MallocGenerator mallocGenerator = new MallocGenerator(lhs, size);
     
-    lhs.emitStore(mv, mallocGenerator);
+    lhs.emitStore(mv, generatorFactory.forType(lhs.getGimpleType()).mallocExpression(size) );
   }
 
   private void emitReturn(GimpleReturn ins) {
@@ -538,5 +537,9 @@ public class FunctionGenerator {
 
   public ReturnGenerator getReturnGenerator() {
     return returnGenerator;
+  }
+
+  public GimpleCompilationUnit getCompilationUnit() {
+    return function.getUnit();
   }
 }

@@ -2,6 +2,9 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.call.MallocGenerator;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.field.PrimitiveFieldGenerator;
 import org.renjin.gcc.codegen.field.PrimitivePtrFieldGenerator;
@@ -93,7 +96,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-      return new AddressablePtrVarGenerator(pointerType,
+      return new AddressablePrimitivePtrVar(pointerType,
           allocator.reserveObject());
     }
 
@@ -110,6 +113,11 @@ public class PrimitiveTypeFactory extends TypeFactory {
     @Override
     public FieldGenerator fieldGenerator(String className, String fieldName) {
       return new PrimitivePtrFieldGenerator(className, fieldName, pointerType);
+    }
+
+    @Override
+    public ExprGenerator mallocExpression(ExprGenerator size) {
+      return new MallocGenerator(type.jvmType(), pointerType.sizeOf(), size);
     }
   }
 
@@ -142,6 +150,11 @@ public class PrimitiveTypeFactory extends TypeFactory {
     @Override
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
       return new PrimitivePtrPtrVarGenerator(pointerType, allocator.reserveObject(), allocator.reserveInt());
+    }
+
+    @Override
+    public ExprGenerator mallocExpression(ExprGenerator size) {
+      return new MallocGenerator(WrapperType.of(type).getWrapperType(), pointerType.getBaseType().sizeOf(), size);
     }
   }
 
@@ -197,6 +210,11 @@ public class PrimitiveTypeFactory extends TypeFactory {
       return new ArrayPtrVarGenerator(arrayPtrType, 
           allocator.reserveArrayRef(), 
           allocator.reserveInt());
+    }
+
+    @Override
+    public ExprGenerator mallocExpression(ExprGenerator size) {
+      return new MallocGenerator(type.jvmType(), type.sizeOf(), size);
     }
   }
 

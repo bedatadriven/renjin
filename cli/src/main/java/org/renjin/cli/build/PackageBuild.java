@@ -26,6 +26,7 @@ public class PackageBuild {
   private BuildReporter reporter;
 
   private final PackageSource source;
+  private final String buildVersion;
 
   /**
    * The directory to write files to be included in the jar 
@@ -48,9 +49,10 @@ public class PackageBuild {
 
   private final File environmentFile;
 
-  public PackageBuild(BuildReporter reporter, PackageSource source) {
+  public PackageBuild(BuildReporter reporter, PackageSource source, String buildSuffix) {
     this.reporter = reporter;
     this.source = source;
+    this.buildVersion = source.getVersion() + buildSuffix;
     this.stagingDir = Files.createTempDir();
     this.gccWorkDir = Files.createTempDir();
     this.outputDir = new File(
@@ -94,7 +96,7 @@ public class PackageBuild {
   }
 
   public File getJarFile() {
-    return new File(source.getPackageDir().getParentFile(), source.getName() + "-" + source.getVersion() + ".jar");
+    return new File(source.getPackageDir().getParentFile(), source.getName() + "-" + buildVersion + ".jar");
   }
 
   public File getPomFile() {
@@ -158,7 +160,7 @@ public class PackageBuild {
   }
   
   private void writePomFile() {
-    PomBuilder builder = new PomBuilder(source);
+    PomBuilder builder = new PomBuilder(source, buildVersion);
     try {
       Files.write(builder.getXml(), getPomFile(), Charsets.UTF_8);
     } catch (IOException e) {
@@ -168,9 +170,9 @@ public class PackageBuild {
   
   private void writePomProperties() {
     Properties properties = new Properties();
-    properties.setProperty("version", source.getVersion());
     properties.setProperty("groupId", source.getGroupId());
     properties.setProperty("artifactId", source.getName());
+    properties.setProperty("version", buildVersion);
 
     try {
       OutputStream out = new FileOutputStream(getPomPropertiesFile());
@@ -195,7 +197,7 @@ public class PackageBuild {
     RepositorySystem system = AetherFactory.newRepositorySystem();
     RepositorySystemSession session = AetherFactory.newRepositorySystemSession(system);
 
-    Artifact jarArtifact = new DefaultArtifact( source.getGroupId(), source.getName(), "jar", source.getVersion());
+    Artifact jarArtifact = new DefaultArtifact( source.getGroupId(), source.getName(), "jar", buildVersion);
     jarArtifact = jarArtifact.setFile(getJarFile());
 
     Artifact pomArtifact = new SubArtifact( jarArtifact, "", "pom" );

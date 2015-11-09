@@ -74,17 +74,31 @@ public class BasicTest extends AbstractGccTest {
 
     assertThat(result, equalTo(45.0));
   }
-  
+    
   @Test
   public void returningPointersToPointers() throws Exception {
     Class clazz = compile("cmatrix.c", "CMatrix");
-    Method method = clazz.getMethod("cmatrix", DoublePtr.class, int.class, int.class);
-    ObjectPtr matrix = (ObjectPtr) method.invoke(null, new DoublePtr(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 5, 2);
+    Method cmatrix = clazz.getMethod("cmatrix", DoublePtr.class, int.class, int.class);
+    DoublePtr array = new DoublePtr(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    ObjectPtr matrix = (ObjectPtr) cmatrix.invoke(null, array, 2, 5);
     DoublePtr row0 = (DoublePtr) matrix.array[matrix.offset];
     DoublePtr row1 = (DoublePtr) matrix.array[matrix.offset+1];
 
     assertThat(row0.get(0), equalTo(1d));
+    assertThat(row0.get(1), equalTo(2d));
+    
     assertThat(row1.get(0), equalTo(6d));
+    assertThat(row1.get(1), equalTo(7d));
+
+    Method get_at = clazz.getMethod("get_at", ObjectPtr.class, int.class, int.class);
+
+    DoublePtr prow0 = (DoublePtr) get_at.invoke(null, matrix, 0, 0);
+
+    Method sum_second_col = clazz.getMethod("sum_second_col", DoublePtr.class, int.class, int.class);
+    double sum = (Double)sum_second_col.invoke(null, array, 2, 5);
+    
+    assertThat(sum, equalTo(9d));
+    
   }
 
   @Test

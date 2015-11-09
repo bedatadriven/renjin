@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import org.apache.commons.math.special.Erf;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
@@ -126,6 +127,8 @@ public class GnurSourcesCompiler {
       compiler.addReferenceClass(distributionsClass);
       compiler.addMethod("Rf_dbeta", distributionsClass, "dbeta");
       compiler.addMethod("Rf_pbeta", distributionsClass, "pbeta");
+      compiler.addMethod("erf", Erf.class, "erf");
+      compiler.addMethod("erfc", Erf.class, "erfc");
       compiler.addReferenceClass(RenjinCApi.class);
       compiler.addReferenceClass(Sort.class);
       compiler.addReferenceClass(Rinternals.class);

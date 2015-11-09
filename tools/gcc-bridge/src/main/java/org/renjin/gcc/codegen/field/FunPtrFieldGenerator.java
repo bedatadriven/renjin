@@ -79,12 +79,26 @@ public class FunPtrFieldGenerator extends FieldGenerator {
       mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, Type.getDescriptor(MethodHandle.class));
     }
   }
-  
+
+  /**
+   * ExprGenerator for a static field's value
+   */
   private class StaticExpr extends AbstractExprGenerator {
 
     @Override
     public GimpleType getGimpleType() {
       return new GimplePointerType(functionType);
+    }
+
+    @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      valueGenerator.emitPushMethodHandle(mv);
+      mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, Type.getDescriptor(MethodHandle.class));
+    }
+
+    @Override
+    public void emitPushMethodHandle(MethodVisitor mv) {
+      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, Type.getDescriptor(MethodHandle.class));
     }
   }
 }

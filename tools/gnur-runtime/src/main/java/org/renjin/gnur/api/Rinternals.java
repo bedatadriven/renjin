@@ -12,7 +12,7 @@ public final class Rinternals {
 
 
 
-  public static CharPtr R_CHAR(SEXP x) {
+  public static BytePtr R_CHAR(SEXP x) {
     throw new UnimplementedGnuApiMethod("R_CHAR");
   }
 
@@ -490,7 +490,7 @@ public final class Rinternals {
 
   // Rcomplex Rf_asComplex (SEXP x)
 
-  public static CharPtr Rf_acopy_string(CharPtr p0) {
+  public static BytePtr Rf_acopy_string(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_acopy_string");
   }
 
@@ -687,7 +687,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_gsetVar");
   }
 
-  public static SEXP Rf_install(CharPtr p0) {
+  public static SEXP Rf_install(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_install");
   }
 
@@ -699,7 +699,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_installDDVAL");
   }
 
-  public static SEXP Rf_installS3Signature(CharPtr p0, CharPtr p1) {
+  public static SEXP Rf_installS3Signature(BytePtr p0, BytePtr p1) {
     throw new UnimplementedGnuApiMethod("Rf_installS3Signature");
   }
 
@@ -745,11 +745,11 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_namesgets");
   }
 
-  public static SEXP Rf_mkChar(CharPtr p0) {
+  public static SEXP Rf_mkChar(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_mkChar");
   }
 
-  public static SEXP Rf_mkCharLen(CharPtr p0, int p1) {
+  public static SEXP Rf_mkCharLen(BytePtr p0, int p1) {
     throw new UnimplementedGnuApiMethod("Rf_mkCharLen");
   }
 
@@ -775,7 +775,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_pmatch");
   }
 
-  public static boolean Rf_psmatch(CharPtr p0, CharPtr p1, boolean p2) {
+  public static boolean Rf_psmatch(BytePtr p0, BytePtr p1, boolean p2) {
     throw new UnimplementedGnuApiMethod("Rf_psmatch");
   }
 
@@ -799,7 +799,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_stringSuffix");
   }
 
-  public static /*SEXPTYPE*/ int Rf_str2type(CharPtr p0) {
+  public static /*SEXPTYPE*/ int Rf_str2type(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_str2type");
   }
 
@@ -811,19 +811,19 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_substitute");
   }
 
-  public static CharPtr Rf_translateChar(SEXP p0) {
+  public static BytePtr Rf_translateChar(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_translateChar");
   }
 
-  public static CharPtr Rf_translateChar0(SEXP p0) {
+  public static BytePtr Rf_translateChar0(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_translateChar0");
   }
 
-  public static CharPtr Rf_translateCharUTF8(SEXP p0) {
+  public static BytePtr Rf_translateCharUTF8(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_translateCharUTF8");
   }
 
-  public static CharPtr Rf_type2char(/*SEXPTYPE*/ int p0) {
+  public static BytePtr Rf_type2char(/*SEXPTYPE*/ int p0) {
     throw new UnimplementedGnuApiMethod("Rf_type2char");
   }
 
@@ -863,7 +863,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_tryEvalSilent");
   }
 
-  public static CharPtr R_curErrorBuf() {
+  public static BytePtr R_curErrorBuf() {
     throw new UnimplementedGnuApiMethod("R_curErrorBuf");
   }
 
@@ -879,7 +879,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_S3Class");
   }
 
-  public static int Rf_isBasicClass(CharPtr p0) {
+  public static int Rf_isBasicClass(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_isBasicClass");
   }
 
@@ -1095,11 +1095,11 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_has_slot");
   }
 
-  public static SEXP R_do_MAKE_CLASS(CharPtr what) {
+  public static SEXP R_do_MAKE_CLASS(BytePtr what) {
     throw new UnimplementedGnuApiMethod("R_do_MAKE_CLASS");
   }
 
-  public static SEXP R_getClassDef(CharPtr what) {
+  public static SEXP R_getClassDef(BytePtr what) {
     throw new UnimplementedGnuApiMethod("R_getClassDef");
   }
 
@@ -1143,7 +1143,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_RunExitFinalizers");
   }
 
-  public static int R_system(CharPtr p0) {
+  public static int R_system(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_system");
   }
 
@@ -1167,8 +1167,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_elt");
   }
 
-  public static boolean Rf_inherits(SEXP p0, CharPtr p1) {
-    return p0.inherits(p1.asString());
+  public static boolean Rf_inherits(SEXP p0, BytePtr p1) {
+    return p0.inherits(p1.nullTerminatedString());
   }
 
   public static boolean Rf_isArray(SEXP p0) {
@@ -1287,7 +1287,9 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_lcons");
   }
 
-  // R_len_t Rf_length (SEXP)
+  public static int Rf_length (SEXP sexp) {
+    return sexp.length();
+  }
 
   public static SEXP Rf_list1(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_list1");
@@ -1315,7 +1317,7 @@ public final class Rinternals {
 
   // SEXP Rf_mkNamed (SEXPTYPE, const char **)
 
-  public static SEXP Rf_mkString(CharPtr p0) {
+  public static SEXP Rf_mkString(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_mkString");
   }
 
@@ -1323,7 +1325,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_nlevels");
   }
 
-  public static int Rf_stringPositionTr(SEXP p0, CharPtr p1) {
+  public static int Rf_stringPositionTr(SEXP p0, BytePtr p1) {
     throw new UnimplementedGnuApiMethod("Rf_stringPositionTr");
   }
 

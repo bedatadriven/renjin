@@ -1,7 +1,9 @@
 package org.renjin.gcc.codegen.var;
 
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ObjectType;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -74,6 +76,9 @@ public class AddressablePtrVarGenerator extends AbstractExprGenerator implements
     return new AddressOf();
   }
 
+  /**
+   * The pointer's address,
+   */
   private class AddressOf extends AbstractExprGenerator implements PtrGenerator {
 
     @Override
@@ -83,17 +88,28 @@ public class AddressablePtrVarGenerator extends AbstractExprGenerator implements
 
     @Override
     public WrapperType getPointerType() {
-      return wrapperType;
+      return WrapperType.OBJECT_PTR;
     }
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      throw new UnsupportedOperationException();
-    }
+      // push this as a new array of (DoublePtr)
+      mv.visitInsn(Opcodes.ICONST_1);
+      mv.visitTypeInsn(Opcodes.ANEWARRAY, wrapperType.getWrapperType().getDescriptor());
+      mv.visitInsn(Opcodes.DUP);
 
-    @Override
-    public void emitPushPointerWrapper(MethodVisitor mv) {
+      // stack: { DoublePtr[], DoublePtr[]  }
+
+      mv.visitInsn(Opcodes.ICONST_0);
       mv.visitVarInsn(Opcodes.ALOAD, index);
+      mv.visitInsn(Opcodes.AASTORE);
+
+      // stack: { DoublePtr[] }
+
+      mv.visitInsn(Opcodes.ICONST_0);
+
+      // stack: { DoublePtr[], 0 }
+
     }
   }
 }

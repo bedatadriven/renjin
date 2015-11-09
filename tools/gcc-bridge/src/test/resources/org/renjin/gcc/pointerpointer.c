@@ -1,12 +1,12 @@
 
 
-void init_array(double **x) {
-  double *y = malloc(sizeof(double)*10);
+void init_array(double **x) {  // ObjectPtr x
+  double *y = malloc(sizeof(double)*10);  // double y[] = new double[10];
   int i;
   for(i=0;i<10;++i) {
     y[i] = i;
   }
-  *x = y;
+  *x = y;  // x w
 }
 
 double sum_array(double* values, int length) {

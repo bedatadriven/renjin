@@ -129,15 +129,19 @@ public class FunctionGenerator {
       
       System.out.println(varDecl + ": " + localVarAllocator.size());
       
-      VarGenerator generator;
-      TypeFactory factory = generatorFactory.forType(varDecl.getType());
-      if(varDecl.isAddressable()) {
-        generator = factory.addressableVarGenerator(localVarAllocator);
-      } else {
-        generator = factory.varGenerator(localVarAllocator);
+      try {
+        VarGenerator generator;
+        TypeFactory factory = generatorFactory.forType(varDecl.getType());
+        if (varDecl.isAddressable()) {
+          generator = factory.addressableVarGenerator(localVarAllocator);
+        } else {
+          generator = factory.varGenerator(localVarAllocator);
+        }
+
+        localVariables.add(varDecl.getId(), generator);
+      } catch (Exception e) {
+        throw new InternalCompilerException("Exception generating local variable " + varDecl, e);
       }
-      
-      localVariables.add(varDecl.getId(), generator);
     }
   }
 

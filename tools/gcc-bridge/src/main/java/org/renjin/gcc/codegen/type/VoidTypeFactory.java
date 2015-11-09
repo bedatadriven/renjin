@@ -1,5 +1,7 @@
 package org.renjin.gcc.codegen.type;
 
+import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.VoidPtrParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
 
@@ -19,6 +21,9 @@ public class VoidTypeFactory extends TypeFactory {
   }
 
   private class Pointer extends TypeFactory {
-    
+    @Override
+    public ParamGenerator paramGenerator() {
+      return new VoidPtrParamGenerator();
+    }
   }
 }

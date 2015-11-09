@@ -3,7 +3,9 @@ package org.renjin.gcc.codegen.ret;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.CallGenerator;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
@@ -11,11 +13,11 @@ import org.renjin.gcc.runtime.ObjectPtr;
 import java.util.List;
 
 
-public class PrimitivePtrPtrGenerator implements ReturnGenerator {
+public class PrimitivePtrPtrReturnGenerator implements ReturnGenerator {
   
   private GimpleType pointerPointerType;
 
-  public PrimitivePtrPtrGenerator(GimpleType pointerPointerType) {
+  public PrimitivePtrPtrReturnGenerator(GimpleType pointerPointerType) {
     this.pointerPointerType = pointerPointerType;
   }
 
@@ -42,6 +44,29 @@ public class PrimitivePtrPtrGenerator implements ReturnGenerator {
 
   @Override
   public ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments) {
-    throw new UnsupportedOperationException();
+    return new CallExpr(callGenerator, arguments);
+  }
+  
+  private class CallExpr extends AbstractExprGenerator {
+
+    private final CallGenerator callGenerator;
+    private final List<ExprGenerator> arguments;
+
+    public CallExpr(CallGenerator callGenerator, List<ExprGenerator> arguments) {
+      this.callGenerator = callGenerator;
+      this.arguments = arguments;
+    }
+
+    @Override
+    public GimpleType getGimpleType() {
+      return pointerPointerType;
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      // Invoke the method, which will push the ObjectPtr wrapper onto the stack
+      callGenerator.emitCall(mv, arguments);
+      WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv);
+    }
   }
 }

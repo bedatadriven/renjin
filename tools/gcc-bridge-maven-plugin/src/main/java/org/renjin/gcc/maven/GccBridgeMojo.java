@@ -33,6 +33,9 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter( defaultValue = "src/main/fortran")
   private File fortranSourceDirectory;
   
+  @Parameter( defaultValue = "src/main/c")
+  private File cSourceDirectory;
+  
   @Parameter( defaultValue = "${project.build.outputDirectory}")
   private File outputDirectory;
   
@@ -65,6 +68,17 @@ public class GccBridgeMojo extends AbstractMojo {
       if(files != null) {
         for (File file : files) {
           if(isFortranSource(file)) {
+            sourceFiles.add(file);
+          }
+        }
+      }
+    }
+    
+    if(cSourceDirectory.exists()) {
+      File[] files = cSourceDirectory.listFiles();
+      if(files != null) {
+        for (File file : files) {
+          if(isCSource(file)) {
             sourceFiles.add(file);
           }
         }
@@ -115,6 +129,10 @@ public class GccBridgeMojo extends AbstractMojo {
 
   private boolean isFortranSource(File file) {
     return file.getName().toLowerCase().endsWith(".f") || file.getName().toLowerCase().endsWith(".f77");
+  }
+  
+  private boolean isCSource(File file) {
+    return file.getName().toLowerCase().endsWith(".c");
   }
 
   private void compile(List<GimpleCompilationUnit> units) throws MojoExecutionException {

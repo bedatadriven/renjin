@@ -9,8 +9,8 @@ import org.renjin.gcc.codegen.field.PrimitivePtrPtrFieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
-import org.renjin.gcc.codegen.param.WrappedPtrPtrParamGenerator;
-import org.renjin.gcc.codegen.ret.PrimitivePtrPtrGenerator;
+import org.renjin.gcc.codegen.param.PrimitivePtrPtrParamGenerator;
+import org.renjin.gcc.codegen.ret.PrimitivePtrPtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.PrimitivePtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
@@ -103,6 +103,11 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
+    public TypeFactory arrayOf(GimpleArrayType arrayType) {
+      return new PointerArray(arrayType);
+    }
+
+    @Override
     public FieldGenerator fieldGenerator(String className, String fieldName) {
       return new PrimitivePtrFieldGenerator(className, fieldName, pointerType);
     }
@@ -121,7 +126,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public ParamGenerator paramGenerator() {
-      return new WrappedPtrPtrParamGenerator(pointerType);
+      return new PrimitivePtrPtrParamGenerator(pointerType);
     }
 
     @Override
@@ -131,7 +136,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public ReturnGenerator returnGenerator() {
-      return new PrimitivePtrPtrGenerator(pointerType);
+      return new PrimitivePtrPtrReturnGenerator(pointerType);
     }
 
     @Override
@@ -192,6 +197,19 @@ public class PrimitiveTypeFactory extends TypeFactory {
       return new ArrayPtrVarGenerator(arrayPtrType, 
           allocator.reserveArrayRef(), 
           allocator.reserveInt());
+    }
+  }
+
+  private class PointerArray extends TypeFactory {
+    private GimpleArrayType arrayType;
+
+    public PointerArray(GimpleArrayType arrayType) {
+      this.arrayType = arrayType;
+    }
+
+    @Override
+    public VarGenerator varGenerator(LocalVarAllocator allocator) {
+      return new PrimitivePtrArrayVar(arrayType, allocator.reserveObject());
     }
   }
 }

@@ -35,7 +35,7 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
 
   @Override
   public ExprGenerator elementAt(ExprGenerator indexGenerator) {
-    throw new UnimplementedException(getClass(), "indexGenerator");
+    throw new UnimplementedException(getClass(), "elementAt");
   }
 
 

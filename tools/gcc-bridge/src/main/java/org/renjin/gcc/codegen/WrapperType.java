@@ -14,7 +14,9 @@ import static org.objectweb.asm.Opcodes.*;
 
 
 public class WrapperType {
-  
+
+  public static final WrapperType OBJECT_PTR = new WrapperType(ObjectPtr.class);
+
   private static final List<WrapperType> TYPES = ImmutableList.of(
       new WrapperType(BytePtr.class),
       new WrapperType(IntPtr.class),
@@ -25,6 +27,7 @@ public class WrapperType {
       new WrapperType(FloatPtr.class),
       new WrapperType(ObjectPtr.class));
   
+
 
   /**
    * The internal class name of the {@code Ptr} class

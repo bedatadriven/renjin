@@ -59,7 +59,6 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
   @Override
   public void emitPushPtrArray(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, arrayVarIndex);
-    mv.visitVarInsn(Opcodes.ILOAD, offsetVarIndex);
   }
 
   @Override
@@ -86,6 +85,20 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
       mv.visitVarInsn(Opcodes.ILOAD, offsetVarIndex);
       valueGenerator.emitPushPointerWrapper(mv);
       mv.visitInsn(Opcodes.AASTORE);
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      // extract the DoublePtr from the array of DoublePtr[]
+      mv.visitVarInsn(Opcodes.ALOAD, arrayVarIndex);
+      mv.visitVarInsn(Opcodes.ILOAD, offsetVarIndex);
+      mv.visitInsn(Opcodes.AALOAD);
+      
+      // Cast Object -> (Double)Ptr
+      mv.visitTypeInsn(Opcodes.CHECKCAST, wrapperType.getWrapperType().getDescriptor());
+      
+      // Unpack the array and offset fields
+      wrapperType.emitUnpackArrayAndOffset(mv);
     }
   }
   

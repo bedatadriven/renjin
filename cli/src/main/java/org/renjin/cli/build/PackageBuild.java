@@ -12,12 +12,10 @@ import org.eclipse.aether.util.artifact.SubArtifact;
 import org.renjin.aether.AetherFactory;
 import org.renjin.eval.Session;
 import org.renjin.gnur.GnurSourcesCompiler;
+import org.renjin.packaging.DatasetsBuilder;
 import org.renjin.packaging.NamespaceBuilder;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Properties;
 
 
@@ -111,12 +109,23 @@ public class PackageBuild {
     if(source.needsCompilation()) {
       compileNativeSources();
     }
+    compileDatasets();
     compileNamespace();
+    runTests();
     writePomFile();
     writePomProperties();
     archivePackage();
   }
 
+  private void compileDatasets() {
+    DatasetsBuilder datasetsBuilder = new DatasetsBuilder(source.getDataDir(), outputDir);
+    try {
+      datasetsBuilder.build();
+    } catch (FileNotFoundException e) {
+      throw new BuildException("Exception compiling datasets", e);
+    }
+  }
+  
   private void compileNativeSources() {
     GnurSourcesCompiler compiler = new GnurSourcesCompiler();
     compiler.addSources(source.getNativeSourceDir());
@@ -157,6 +166,11 @@ public class PackageBuild {
     } catch (IOException e) {
       throw new BuildException("Exception building namespace: " + e.getMessage(), e);
     }
+  }
+  
+  private void runTests() {
+    TestRun run = new TestRun(stagingDir, source.getTestsDir());
+    run.execute();
   }
   
   private void writePomFile() {

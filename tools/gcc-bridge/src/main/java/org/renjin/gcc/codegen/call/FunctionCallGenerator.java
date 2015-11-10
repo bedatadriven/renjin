@@ -4,6 +4,7 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
@@ -32,6 +33,13 @@ public class FunctionCallGenerator implements CallGenerator {
     this.methodName = methodName;
     this.paramGenerators = paramGenerators;
     this.returnGenerator = returnGenerator;
+  }
+
+  public FunctionCallGenerator(FunctionGenerator functionGenerator) {
+    this.className = functionGenerator.getClassName();
+    this.methodName = functionGenerator.getMangledName();
+    this.paramGenerators = functionGenerator.getParamGenerators();
+    this.returnGenerator = functionGenerator.getReturnGenerator();
   }
 
   public Handle getHandle() {

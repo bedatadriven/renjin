@@ -61,15 +61,16 @@ public abstract class AbstractGccTest {
    */
   protected final Class<?> compile(String source) throws Exception {
     List<GimpleCompilationUnit> units = compileToGimple(Lists.newArrayList(source));
-    compileGimple(null, units);
+    compileGimple(units);
     
     String className = Files.getNameWithoutExtension(source);
     
     return Class.forName(PACKAGE_NAME + "." + className);
   }
 
-  protected Class<?> compile(List<String> sources, String className) throws Exception {
-    throw new UnsupportedOperationException();
+  protected void compile(List<String> sources) throws Exception {
+    List<GimpleCompilationUnit> units = compileToGimple(sources);
+    compileGimple(units);
   }
   
   public GimpleCompilationUnit compileToGimple(String source) throws IOException {
@@ -106,12 +107,10 @@ public abstract class AbstractGccTest {
     return units;
   }
 
-  protected void compileGimple(String className, List<GimpleCompilationUnit> units) throws Exception {
-
+  protected void compileGimple(List<GimpleCompilationUnit> units) throws Exception {
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setOutputDirectory(new File("target/test-classes"));          
     compiler.setPackageName(PACKAGE_NAME);
-    compiler.setClassName(className);
     compiler.setVerbose(true);
     compiler.addReferenceClass(RStubs.class);
     compiler.addMathLibrary();

@@ -555,4 +555,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Method testMethod = clazz.getMethod("test_");
     testMethod.invoke(null);
   }
+  
+  @Test
+  public void linking() throws Exception {
+    compile(Arrays.asList("link1.c", "link2.c"));
+    
+    Integer test1 = (Integer)Class.forName("org.renjin.gcc.link1").getMethod("test").invoke(null);
+    assertThat(test1, equalTo(3));
+
+    Integer test2 = (Integer)Class.forName("org.renjin.gcc.link2").getMethod("test").invoke(null);
+    assertThat(test2, equalTo(2));    
+  }
 }

@@ -870,6 +870,7 @@ static unsigned int dump_function (void)
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID (cfun->decl));
   json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)));
+  json_bool_field("extern", TREE_PUBLIC(cfun->decl));
   
   TRACE("dump_function: dumping arguments...\n");
   dump_arguments(cfun->decl);
@@ -917,6 +918,7 @@ static void dump_global_var(tree var) {
   if(DECL_NAME(var)) {
     json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(var)));
   }
+  json_bool_field("extern", TREE_PUBLIC(var));
   json_field("type");
   dump_type(TREE_TYPE(var));
   

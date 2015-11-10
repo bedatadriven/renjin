@@ -5,7 +5,6 @@ import org.objectweb.asm.*;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
-import org.renjin.gcc.codegen.call.FunctionTable;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.condition.ComplexCmpGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
@@ -16,7 +15,6 @@ import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.type.TypeFactory;
 import org.renjin.gcc.codegen.var.VarGenerator;
-import org.renjin.gcc.codegen.var.VariableTable;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.ins.*;
@@ -24,6 +22,8 @@ import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.symbols.LocalVariableTable;
+import org.renjin.gcc.symbols.UnitSymbolTable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,26 +36,28 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class FunctionGenerator {
 
+  private String className;
   private GimpleFunction function;
   private Map<GimpleParameter, ParamGenerator> params = Maps.newHashMap();
   private ReturnGenerator returnGenerator;
   private LocalVarAllocator localVarAllocator;
   
   private Labels labels = new Labels();
-  private VariableTable localVariables;
-  private FunctionTable functionTable;
   private GeneratorFactory generatorFactory;
+  private LocalVariableTable symbolTable;
   
   private Label beginLabel = new Label();
   private Label endLabel = new Label();
   
   private MethodVisitor mv;
 
-  public FunctionGenerator(GeneratorFactory generatorFactory, GimpleFunction function) {
+  public FunctionGenerator(String className, GimpleFunction function, GeneratorFactory generatorFactory, UnitSymbolTable symbolTable) {
+    this.className = className;
     this.function = function;
     this.generatorFactory = generatorFactory;
     this.params = this.generatorFactory.forParameters(function.getParameters());
     this.returnGenerator = this.generatorFactory.findReturnGenerator(function.getReturnType());
+    this.symbolTable = new LocalVariableTable(symbolTable);
     this.localVarAllocator = new LocalVarAllocator();
   }
 
@@ -67,10 +69,7 @@ public class FunctionGenerator {
     return function;
   }
 
-  public void emit(ClassVisitor cw, VariableTable globalVars, FunctionTable functionTable) {
-    this.localVariables = new VariableTable(globalVars);
-    this.functionTable = functionTable;
-    
+  public void emit(ClassVisitor cw) {
     System.out.println(function);
     
     mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
@@ -109,13 +108,13 @@ public class FunctionGenerator {
       GimpleParameter param = function.getParameters().get(i);
       ParamGenerator generator = params.get(param);
       ExprGenerator exprGenerator = generator.emitInitialization(mv, paramIndexes[i], localVarAllocator);
-      localVariables.add(param.getId(), exprGenerator);
+      symbolTable.addVariable(param.getId(), exprGenerator);
     }
   }
 
   private void emitLocalVarInitialization() {
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-      VarGenerator lhs = (VarGenerator) localVariables.get(decl);
+      VarGenerator lhs = (VarGenerator) symbolTable.get(decl);
       if(decl.getValue() == null || decl.getValue() instanceof GimpleConstructor) {
         lhs.emitDefaultInit(mv);
 
@@ -143,7 +142,7 @@ public class FunctionGenerator {
           generator = factory.varGenerator(localVarAllocator);
         }
 
-        localVariables.add(varDecl.getId(), generator);
+        symbolTable.addVariable(varDecl.getId(), generator);
       } catch (Exception e) {
         throw new InternalCompilerException("Exception generating local variable " + varDecl, e);
       }
@@ -454,7 +453,7 @@ public class FunctionGenerator {
 
   private ExprGenerator findGenerator(GimpleExpr expr) {
     if(expr instanceof SymbolRef) {
-      return localVariables.get((SymbolRef) expr);
+      return symbolTable.get((SymbolRef) expr);
       
     } else if(expr instanceof GimpleConstant) {
       GimpleConstant constant = (GimpleConstant) expr;
@@ -472,7 +471,7 @@ public class FunctionGenerator {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
       if(addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
-        return new FunctionRefGenerator(functionTable.findHandle(functionRef, function.getCallingConvention()));
+        return new FunctionRefGenerator(symbolTable.findHandle(functionRef, function.getCallingConvention()));
       
       } else {
         ExprGenerator value = findGenerator(addressOf.getValue());
@@ -515,7 +514,7 @@ public class FunctionGenerator {
       GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
-        return functionTable.find(ref, function.getCallingConvention());
+        return symbolTable.findCallGenerator(ref, function.getCallingConvention());
       }
       GimpleAddressOf address = (GimpleAddressOf) functionExpr;
       throw new UnsupportedOperationException("function ref: " + address.getValue() +
@@ -562,11 +561,20 @@ public class FunctionGenerator {
   private void emitVariableDebugging() {
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       if(decl.isNamed()) {
-        ExprGenerator generator = localVariables.get(decl);
+        ExprGenerator generator = symbolTable.get(decl);
         if (generator instanceof VarGenerator) {
           ((VarGenerator) generator).emitDebugging(mv, decl.getName(), beginLabel, endLabel);
         }
       }
     }
+  }
+
+  public Handle getMethodHandle() {
+    return new Handle(H_INVOKESTATIC, className, function.getMangledName(), functionDescriptor());
+  }
+
+
+  public String getClassName() {
+    return className;
   }
 }

@@ -1,6 +1,5 @@
 package org.renjin.gcc;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -12,10 +11,10 @@ import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
 import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.UnitClassGenerator;
-import org.renjin.gcc.codegen.call.FunctionTable;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.gcc.symbols.GlobalSymbolTable;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +36,7 @@ public class GimpleCompiler  {
 
   private static Logger LOGGER = Logger.getLogger(GimpleCompiler.class.getName());
 
-  private FunctionTable functionTable;
+  private GlobalSymbolTable globalSymbolTable;
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
   
@@ -50,8 +49,8 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
-    functionTable = new FunctionTable(generatorFactory);
-    functionTable.addDefaults();
+    globalSymbolTable = new GlobalSymbolTable(generatorFactory);
+    globalSymbolTable.addDefaults();
   }
 
   public void setPackageName(String name) {
@@ -65,18 +64,17 @@ public class GimpleCompiler  {
   public void setClassName(String className) {
   }
 
-
   public void addReferenceClass(Class<?> clazz) {
-    functionTable.addMethods(clazz);
+    globalSymbolTable.addMethods(clazz);
   }
 
   public void addMathLibrary() {
-    functionTable.addMethod("log", Math.class);
-    functionTable.addMethod("exp", Math.class);
+    globalSymbolTable.addMethod("log", Math.class);
+    globalSymbolTable.addMethod("exp", Math.class);
   }
 
   public void addMethod(String functionName, Class declaringClass, String methodName) {
-    functionTable.addMethod(functionName, declaringClass, methodName);
+    globalSymbolTable.addMethod(functionName, declaringClass, methodName);
   }
   
   public void addRecordClass(String typeName, Class recordClass) {
@@ -89,11 +87,21 @@ public class GimpleCompiler  {
     transform(units);
     compileRecords(units);
 
+    // Next, do a round of compilation units to make sure all externally visible functions and 
+    // symbols are added to the global symbol table.
+    // This allows us to effectively do linking at the same time as code generation
+    
+    List<UnitClassGenerator> unitClassGenerators = Lists.newArrayList();
     for (GimpleCompilationUnit unit : units) {
       String className = getInternalClassName(unit.getName());
-      UnitClassGenerator generator = new UnitClassGenerator(generatorFactory, functionTable, className);
-      generator.emit(Iterables.getOnlyElement(units));
-      writeClass(className, generator.toByteArray());
+      UnitClassGenerator generator = new UnitClassGenerator(generatorFactory, globalSymbolTable, unit, className);
+      unitClassGenerators.add(generator);
+    }
+
+    // Finally, run code generation
+    for (UnitClassGenerator generator : unitClassGenerators) {
+      generator.emit();
+      writeClass(generator.getClassName(), generator.toByteArray());
     }
   }
 

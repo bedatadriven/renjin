@@ -12,6 +12,8 @@ public class GimpleVarDecl {
   
   @JsonProperty("const")
   private boolean constant;
+  
+  private boolean extern;
 
   /**
    * True if this local variable is addressable
@@ -83,4 +85,16 @@ public class GimpleVarDecl {
     return type + " " + (name == null ? "T" + Math.abs(id) : name);
   }
 
+  /**
+   * 
+   * @return true f this variable declaration has external linkage, that is, it is visible outside
+   * of the compilation unit.
+   */
+  public boolean isExtern() {
+    return extern;
+  }
+
+  public void setExtern(boolean extern) {
+    this.extern = extern;
+  }
 }

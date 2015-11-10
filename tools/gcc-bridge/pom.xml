@@ -74,7 +74,4 @@
       <classifier>${envClassifier}</classifier>
     </dependency>
   </dependencies>
-
-  <build>
-  </build>
 </project>

@@ -8,9 +8,9 @@ import org.renjin.gcc.analysis.AddressableFinder;
 import org.renjin.gcc.analysis.FunctionBodyTransformer;
 import org.renjin.gcc.analysis.ResultDeclRewriter;
 import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
-import org.renjin.gcc.codegen.GeneratorFactory;
-import org.renjin.gcc.codegen.RecordClassGenerator;
-import org.renjin.gcc.codegen.UnitClassGenerator;
+import org.renjin.gcc.codegen.*;
+import org.renjin.gcc.codegen.call.CallGenerator;
+import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -44,7 +44,9 @@ public class GimpleCompiler  {
   
   private final Map<String, Class> providedRecordTypes = Maps.newHashMap();
   
-  
+  private String trampolineClassName;
+
+
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
@@ -62,6 +64,7 @@ public class GimpleCompiler  {
   }
 
   public void setClassName(String className) {
+    this.trampolineClassName = className;
   }
 
   public void addReferenceClass(Class<?> clazz) {
@@ -85,12 +88,13 @@ public class GimpleCompiler  {
 
     // First apply any transformations needed by the code generation process
     transform(units);
+    
+    // Compile the record types so they are available to functions and variables
     compileRecords(units);
 
     // Next, do a round of compilation units to make sure all externally visible functions and 
     // symbols are added to the global symbol table.
     // This allows us to effectively do linking at the same time as code generation
-    
     List<UnitClassGenerator> unitClassGenerators = Lists.newArrayList();
     for (GimpleCompilationUnit unit : units) {
       String className = getInternalClassName(unit.getName());
@@ -102,6 +106,11 @@ public class GimpleCompiler  {
     for (UnitClassGenerator generator : unitClassGenerators) {
       generator.emit();
       writeClass(generator.getClassName(), generator.toByteArray());
+    }
+    
+    // Also store an index to symbols in this library
+    if(trampolineClassName != null) {
+      writeTrampolineClass();
     }
   }
 
@@ -184,7 +193,29 @@ public class GimpleCompiler  {
       }
     } while(updated);
   }
-  
+
+
+  /**
+   * Write a "trampoline class" that contains references to all the exported methods
+   */
+  private void writeTrampolineClass() throws IOException {
+
+    TrampolineClassGenerator classGenerator = 
+        new TrampolineClassGenerator(getInternalClassName(trampolineClassName));
+    
+    for (Map.Entry<String, CallGenerator> entry : globalSymbolTable.getFunctions()) {
+      if(entry.getValue() instanceof FunctionCallGenerator) {
+        FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) entry.getValue();
+        FunctionGenerator functionGenerator = functionCallGenerator.getFunctionGenerator();
+        
+        classGenerator.emitTrampolineMethod(functionGenerator);
+      }
+    }
+    
+    writeClass(getInternalClassName(trampolineClassName), classGenerator.generateClassFile());
+  }
+
+
   private void writeClass(String internalName, byte[] classByteArray) throws IOException {
     File classFile = new File(outputDirectory.getAbsolutePath() + File.separator + internalName + ".class");
     if(!classFile.getParentFile().exists()) {
@@ -195,5 +226,4 @@ public class GimpleCompiler  {
     }
     Files.write(classByteArray, classFile);
   }
-
 }

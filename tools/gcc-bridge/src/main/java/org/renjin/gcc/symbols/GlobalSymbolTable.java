@@ -16,6 +16,7 @@ import org.renjin.gcc.runtime.Builtins;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
+import java.util.Set;
 
 import static java.lang.String.format;
 
@@ -68,11 +69,11 @@ public class GlobalSymbolTable {
     addMethods(Builtins.class);
   }
 
-  public void addMethod(String functionName, Class<Math> declaringClass) {
+  public void addMethod(String functionName, Class<?> declaringClass) {
     addFunction(functionName, findMethod(declaringClass, functionName));
   }
   
-  public void addMethod(String functionName, Class<Math> declaringClass, String methodName) {
+  public void addMethod(String functionName, Class<?> declaringClass, String methodName) {
     addFunction(functionName, findMethod(declaringClass, methodName));
   }
 
@@ -93,7 +94,7 @@ public class GlobalSymbolTable {
     }
   }
 
-  private Method findMethod(Class<Math> declaringClass, String methodName) {
+  private Method findMethod(Class<?> declaringClass, String methodName) {
     for (Method method : declaringClass.getMethods()) {
       if(method.getName().equals(methodName)) {
         return method;
@@ -108,5 +109,9 @@ public class GlobalSymbolTable {
   
   public void addVariable(String name, ExprGenerator exprGenerator) {
     globalVariables.put(name, exprGenerator);
+  }
+  
+  public Set<Map.Entry<String, CallGenerator>> getFunctions() {
+    return functions.entrySet();
   }
 }

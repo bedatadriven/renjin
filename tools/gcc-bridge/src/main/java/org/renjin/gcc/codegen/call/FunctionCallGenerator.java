@@ -7,7 +7,6 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
@@ -19,48 +18,40 @@ import java.util.List;
  * Generates a call to a soon-to-be compiled Gimple function
  */
 public class FunctionCallGenerator implements CallGenerator {
-  
-  private String className;
-  private String methodName;
-  private List<ParamGenerator> paramGenerators;
-  private ReturnGenerator returnGenerator;
 
+  private final FunctionGenerator functionGenerator;
 
-  public FunctionCallGenerator(String className, String methodName,
-                               List<ParamGenerator> paramGenerators,
-                               ReturnGenerator returnGenerator) {
-    this.className = className;
-    this.methodName = methodName;
-    this.paramGenerators = paramGenerators;
-    this.returnGenerator = returnGenerator;
-  }
 
   public FunctionCallGenerator(FunctionGenerator functionGenerator) {
-    this.className = functionGenerator.getClassName();
-    this.methodName = functionGenerator.getMangledName();
-    this.paramGenerators = functionGenerator.getParamGenerators();
-    this.returnGenerator = functionGenerator.getReturnGenerator();
+    this.functionGenerator = functionGenerator;
+  }
+
+  public FunctionGenerator getFunctionGenerator() {
+    return functionGenerator;
   }
 
   public Handle getHandle() {
-    return new Handle(Opcodes.H_INVOKESTATIC, className, methodName, descriptor());
+    return functionGenerator.getMethodHandle();
   }
 
   @Override
   public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
 
     // Push all parameters on the stack
+    List<ParamGenerator> paramGenerators = functionGenerator.getParamGenerators();
     for (int i = 0; i < paramGenerators.size(); i++) {
       ParamGenerator paramGenerator = paramGenerators.get(i);
       paramGenerator.emitPushParameter(mv, argumentGenerators.get(i));
     }
     
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, methodName, descriptor(), false);
+    mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
+        functionGenerator.getClassName(), 
+        functionGenerator.getMangledName(), descriptor(), false);
   }
 
   @Override
   public Type returnType() {
-    return returnGenerator.getType();
+    return functionGenerator.getReturnGenerator().getType();
   }
 
   @Override
@@ -83,10 +74,14 @@ public class FunctionCallGenerator implements CallGenerator {
 
   @Override
   public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
-    return returnGenerator.callExpression(this, argumentGenerators);
+    return functionGenerator.getReturnGenerator().callExpression(this, argumentGenerators);
   }
-  
+
+  public String getClassName() {
+    return functionGenerator.getClassName();
+  }
+
   private String descriptor() {
-    return Type.getMethodDescriptor(returnType(), ParamGenerator.parameterTypes(paramGenerators));
+    return functionGenerator.getFunctionDescriptor();
   }
 }

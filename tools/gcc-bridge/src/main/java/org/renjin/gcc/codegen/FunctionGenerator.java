@@ -73,7 +73,7 @@ public class FunctionGenerator {
     System.out.println(function);
     
     mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
-        function.getMangledName(), functionDescriptor(), null, null);
+        function.getMangledName(), getFunctionDescriptor(), null, null);
     mv.visitCode();
     mv.visitLabel(beginLabel);
     
@@ -86,12 +86,11 @@ public class FunctionGenerator {
       emitBasicBlock(basicBlock);
     }
     mv.visitLabel(endLabel);
-    emitVariableDebugging();
+    //emitVariableDebugging();
     
     mv.visitMaxs(1, 1);
     mv.visitEnd();
   }
-
 
   private void emitParamInitialization() {
     // first we need to map the parameters to their indexes in the local variable table
@@ -528,7 +527,7 @@ public class FunctionGenerator {
   }
   
   
-  private String functionDescriptor() {
+  public String getFunctionDescriptor() {
     return Type.getMethodDescriptor(returnGenerator.getType(), parameterTypes());
   }
 
@@ -570,7 +569,7 @@ public class FunctionGenerator {
   }
 
   public Handle getMethodHandle() {
-    return new Handle(H_INVOKESTATIC, className, function.getMangledName(), functionDescriptor());
+    return new Handle(H_INVOKESTATIC, className, function.getMangledName(), getFunctionDescriptor());
   }
 
 

@@ -63,6 +63,12 @@ public class GimpleAssign extends GimpleIns {
     return predicate.apply(lhs);
   }
 
+
+  @Override
+  public Integer getLineNumber() {
+    return lhs.getLine();
+  }
+
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     if(predicate.apply(lhs)) {

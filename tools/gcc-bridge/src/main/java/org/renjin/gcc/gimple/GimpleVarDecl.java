@@ -45,6 +45,10 @@ public class GimpleVarDecl {
       return "T" + Math.abs(id);
     }
   }
+  
+  public boolean isNamed() {
+    return name != null;
+  }
 
   public boolean isConstant() {
     return constant;

@@ -19,7 +19,7 @@ public class PackageTest extends AbstractGccTest {
   
   @Test
   public void ash() throws Exception {
-    Class clazz = compile("ash.f", "Ash");
+    Class clazz = compile("ash.f");
 
     // This is a test case extracted from the R call
     // described in the ash package help:

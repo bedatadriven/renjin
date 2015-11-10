@@ -11,7 +11,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class PrimitiveConstValueGenerator extends AbstractExprGenerator implements ValueGenerator {
+public class PrimitiveConstValueGenerator extends AbstractExprGenerator implements ExprGenerator {
 
   private GimplePrimitiveType gimpleType;
   private Number value;

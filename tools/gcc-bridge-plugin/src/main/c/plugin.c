@@ -45,6 +45,8 @@
 int plugin_is_GPL_compatible;
 
 #define MAX_RECORD_TYPES 1000
+#define MAX_LINE_NUMBER 16000
+
 
 tree record_types[MAX_RECORD_TYPES];
 int record_type_count = 0;
@@ -456,6 +458,10 @@ static void dump_op(tree op) {
     json_start_object();
     json_string_field("type", tree_code_name[TREE_CODE(op)]);
    
+    if(EXPR_LINENO(op) < MAX_LINE_NUMBER) {
+      json_int_field("line", EXPR_LINENO(op));
+    }
+
 
     TRACE("dump_op: starting switch\n");
 

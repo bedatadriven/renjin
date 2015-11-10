@@ -5,7 +5,6 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PtrGenerator;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -17,7 +16,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * a local variable of type DoublePtr[] x = new DoublePtr[1]</p>
  *
  */
-public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements PtrGenerator, VarGenerator {
+public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements VarGenerator, ExprGenerator {
   
   private final GimpleIndirectType type;
   private final WrapperType wrapperType;
@@ -91,7 +90,7 @@ public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements
   /**
    * The pointer's address,
    */
-  private class AddressOf extends AbstractExprGenerator implements PtrGenerator {
+  private class AddressOf extends AbstractExprGenerator implements ExprGenerator {
 
     @Override
     public GimpleType getGimpleType() {

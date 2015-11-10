@@ -46,6 +46,9 @@ public class FunctionGenerator {
   private FunctionTable functionTable;
   private GeneratorFactory generatorFactory;
   
+  private Label beginLabel = new Label();
+  private Label endLabel = new Label();
+  
   private MethodVisitor mv;
 
   public FunctionGenerator(GeneratorFactory generatorFactory, GimpleFunction function) {
@@ -73,6 +76,7 @@ public class FunctionGenerator {
     mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
         function.getMangledName(), functionDescriptor(), null, null);
     mv.visitCode();
+    mv.visitLabel(beginLabel);
     
     emitParamInitialization();
     scheduleLocalVariables();
@@ -82,9 +86,13 @@ public class FunctionGenerator {
     for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
       emitBasicBlock(basicBlock);
     }
+    mv.visitLabel(endLabel);
+    emitVariableDebugging();
+    
     mv.visitMaxs(1, 1);
     mv.visitEnd();
   }
+
 
   private void emitParamInitialization() {
     // first we need to map the parameters to their indexes in the local variable table
@@ -146,6 +154,9 @@ public class FunctionGenerator {
     mv.visitLabel(labels.of(basicBlock));
 
     for (GimpleIns ins : basicBlock.getInstructions()) {
+      Label insLabel = new Label();
+      mv.visitLabel(insLabel);
+      
       try {
         if (ins instanceof GimpleAssign) {
           emitAssignment((GimpleAssign) ins);
@@ -164,6 +175,10 @@ public class FunctionGenerator {
         }
       } catch (Exception e) {
         throw new InternalCompilerException("Exception compiling instruction " + ins, e);
+      }
+      
+      if(ins.getLineNumber() != null) {
+        mv.visitLineNumber(ins.getLineNumber(), insLabel);
       }
     }
   }
@@ -257,7 +272,7 @@ public class FunctionGenerator {
         discardReturnValue(mv, callGenerator.returnType());
         
       } else {
-        LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLhs());
+        ExprGenerator lhs = findGenerator(ins.getLhs());
         ExprGenerator callResult = callGenerator.expressionGenerator(arguments);
         
         lhs.emitStore(mv, callResult);
@@ -279,7 +294,7 @@ public class FunctionGenerator {
   }
 
   private void emitMalloc(GimpleCall ins) {
-    LValueGenerator lhs = (LValueGenerator) findGenerator(ins.getLhs());
+    ExprGenerator lhs = findGenerator(ins.getLhs());
     ExprGenerator size = findGenerator(ins.getArguments().get(0));
     
     lhs.emitStore(mv, generatorFactory.forType(lhs.getGimpleType()).mallocExpression(size) );
@@ -541,5 +556,17 @@ public class FunctionGenerator {
 
   public GimpleCompilationUnit getCompilationUnit() {
     return function.getUnit();
+  }
+
+
+  private void emitVariableDebugging() {
+    for (GimpleVarDecl decl : function.getVariableDeclarations()) {
+      if(decl.isNamed()) {
+        ExprGenerator generator = localVariables.get(decl);
+        if (generator instanceof VarGenerator) {
+          ((VarGenerator) generator).emitDebugging(mv, decl.getName(), beginLabel, endLabel);
+        }
+      }
+    }
   }
 }

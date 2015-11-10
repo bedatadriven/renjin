@@ -7,12 +7,12 @@ import org.renjin.gcc.gimple.type.GimpleType;
 /**
  * Generates the bytecode to negate a numeric value
  */
-public class NegateGenerator extends AbstractExprGenerator implements ValueGenerator {
+public class NegateGenerator extends AbstractExprGenerator implements ExprGenerator {
   
-  private ValueGenerator operand;
+  private ExprGenerator operand;
 
   public NegateGenerator(ExprGenerator operand) {
-    this.operand = (ValueGenerator) operand;
+    this.operand = operand;
   }
   
 

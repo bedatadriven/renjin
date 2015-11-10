@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.collect.Maps;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -17,15 +16,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
 
 
 /**
- * Generates a main JVM class in which all Gimple functions are declared as public static methods.
+ * Generates a JVM class for a given Gimple compilation unit
  */
-public class MainClassGenerator {
+public class UnitClassGenerator {
 
   private ClassWriter cw;
   private ClassVisitor cv;
@@ -33,27 +31,26 @@ public class MainClassGenerator {
   private PrintWriter pw;
   private String className;
 
-  private Map<GimpleCompilationUnit, VariableTable> globalVariables = Maps.newHashMap();
+  private VariableTable globalVariables = new VariableTable();
   private FunctionTable functionTable;
   private GeneratorFactory generatorFactory;
 
-  public MainClassGenerator(GeneratorFactory generatorFactory, FunctionTable functionTable, String className) {
+  public UnitClassGenerator(GeneratorFactory generatorFactory, FunctionTable functionTable, String className) {
     this.functionTable = functionTable;
     this.className = className;
     this.generatorFactory = generatorFactory;
   }
   
-  public void emit(List<GimpleCompilationUnit> units) {
+  public void emit(GimpleCompilationUnit unit) {
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
     cv.visit(V1_7, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
-    
+    cv.visitSource(unit.getSourceName(), null);
     emitDefaultConstructor();
-    emitGlobalVariables(units);
-    emitFunctions(units);
-    
+    emitGlobalVariables(unit);
+    emitFunctions(unit);
     cv.visitEnd();
   }
 
@@ -67,46 +64,40 @@ public class MainClassGenerator {
     mv.visitEnd();
   }
 
-  private void emitGlobalVariables(List<GimpleCompilationUnit> units) {
-    for (GimpleCompilationUnit unit : units) {
-      VariableTable variableTable = new VariableTable();
-      for (GimpleVarDecl gimpleVarDecl : unit.getGlobalVariables()) {
-        try {
-          FieldGenerator field = generatorFactory.forField(className, gimpleVarDecl.getName(), gimpleVarDecl.getType());
-          field.emitStaticField(cv, gimpleVarDecl);
-          variableTable.add(gimpleVarDecl.getId(), field.staticExprGenerator());
+  private void emitGlobalVariables(GimpleCompilationUnit unit) {
+    for (GimpleVarDecl gimpleVarDecl : unit.getGlobalVariables()) {
+      try {
+        FieldGenerator field = generatorFactory.forField(className, gimpleVarDecl.getName(), gimpleVarDecl.getType());
+        field.emitStaticField(cv, gimpleVarDecl);
+        globalVariables.add(gimpleVarDecl.getId(), field.staticExprGenerator());
 
-        } catch (Exception e) {
-          throw new InternalCompilerException("Exception writing static variable " + gimpleVarDecl.getName() + 
-              " defined in " + unit.getSourceFile().getName(), e);
-        }
+      } catch (Exception e) {
+        throw new InternalCompilerException("Exception writing static variable " + gimpleVarDecl.getName() + 
+            " defined in " + unit.getSourceFile().getName(), e);
       }
-      globalVariables.put(unit, variableTable);
     }
   }
 
-  private void emitFunctions(List<GimpleCompilationUnit> units) {
+  private void emitFunctions(GimpleCompilationUnit unit) {
 
     // First enumerate all functions as they may be reference from within each other
     List<FunctionGenerator> functions = new ArrayList<FunctionGenerator>();
 
-    for (GimpleCompilationUnit unit : units) {
-      for (GimpleFunction function : unit.getFunctions()) {
-        FunctionGenerator functionGenerator;
-        try {
-          functionGenerator = new FunctionGenerator(generatorFactory, function);
-        } catch (Exception e) {
-          throw new InternalCompilerException(function, e);
-        }
-        functions.add(functionGenerator);
-        functionTable.add(className, functionGenerator);
+    for (GimpleFunction function : unit.getFunctions()) {
+      FunctionGenerator functionGenerator;
+      try {
+        functionGenerator = new FunctionGenerator(generatorFactory, function);
+      } catch (Exception e) {
+        throw new InternalCompilerException(function, e);
       }
+      functions.add(functionGenerator);
+      functionTable.add(className, functionGenerator);
     }
 
     // Now actually emit the function bodies
     for (FunctionGenerator functionGenerator : functions) {
       try {
-        functionGenerator.emit(cv, globalVariables.get(functionGenerator.getCompilationUnit()), functionTable);
+        functionGenerator.emit(cv, globalVariables, functionTable);
       } catch (Exception e) {
         throw new InternalCompilerException(functionGenerator, e);
       }

@@ -43,6 +43,10 @@ public class VariableTable {
     return variable;
   }
 
+  public ExprGenerator getIfPresent(GimpleVarDecl decl) {
+    return map.get(decl.getId());
+  }
+  
   public ExprGenerator get(GimpleVarDecl decl) {
     ExprGenerator varGenerator = map.get(decl.getId());
     if(varGenerator == null) {

@@ -10,7 +10,7 @@ import static org.objectweb.asm.Opcodes.IDIV;
 /**
  * Generates code for pointer addition
  */
-public class PtrPlusGenerator extends AbstractExprGenerator implements PtrGenerator {
+public class PtrPlusGenerator extends AbstractExprGenerator implements ExprGenerator {
   
   private ExprGenerator ptr;
   private ExprGenerator offset;

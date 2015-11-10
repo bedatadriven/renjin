@@ -5,13 +5,13 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-public class TruncateExprGenerator extends AbstractExprGenerator implements ValueGenerator {
+public class TruncateExprGenerator extends AbstractExprGenerator implements ExprGenerator {
 
   
-  private final ValueGenerator operandGenerator;
+  private final ExprGenerator operandGenerator;
 
   public TruncateExprGenerator(ExprGenerator operandGenerator) {
-    this.operandGenerator = (ValueGenerator) operandGenerator;
+    this.operandGenerator = operandGenerator;
   }
   
 

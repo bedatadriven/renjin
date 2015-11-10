@@ -34,6 +34,10 @@ public abstract class GimpleIns {
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     
   }
+  
+  public Integer getLineNumber() {
+    return null;
+  }
 
   protected final void replaceAll(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> operands, GimpleExpr newExpr) {
     for (int i = 0; i < operands.size(); i++) {

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.expr;
 
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -120,4 +121,10 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   public void emitPushRecordRef(MethodVisitor mv) {
     throw new UnimplementedException(getClass(), "emitPushRecordRef");
   }
+
+  public void emitDebugging(MethodVisitor mv, String name, Label start, Label end) {
+    
+  }
+
+
 }

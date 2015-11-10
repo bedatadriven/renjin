@@ -1,18 +1,17 @@
 package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Preconditions;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.LValueGenerator;
-import org.renjin.gcc.codegen.expr.ValueGenerator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class PrimitiveVarGenerator extends AbstractExprGenerator implements LValueGenerator, ValueGenerator, VarGenerator {
+public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarGenerator {
   private GimplePrimitiveType type;
   private int localVarIndex;
 
@@ -71,6 +70,11 @@ public class PrimitiveVarGenerator extends AbstractExprGenerator implements LVal
       mv.visitInsn(ICONST_0);
     }
     mv.visitVarInsn(primitiveType.getOpcode(ISTORE), localVarIndex);
+  }
+
+  @Override
+  public void emitDebugging(MethodVisitor mv, String name, Label start, Label end) {
+    mv.visitLocalVariable(name, type.jvmType().getDescriptor(), null, start, end, localVarIndex);
   }
 
   @Override

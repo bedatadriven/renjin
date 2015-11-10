@@ -116,7 +116,6 @@ public class GnurSourcesCompiler {
       compiler.setOutputDirectory(outputDirectory);
     
       compiler.setPackageName(packageName);
-      compiler.setClassName(className);
       compiler.setVerbose(verbose);
 
       compiler.addMathLibrary();

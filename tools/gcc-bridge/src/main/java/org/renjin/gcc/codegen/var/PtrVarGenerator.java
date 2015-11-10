@@ -6,8 +6,6 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.LValueGenerator;
-import org.renjin.gcc.codegen.expr.PtrGenerator;
 import org.renjin.gcc.gimple.type.*;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -15,7 +13,7 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * Generates loads and stores from a pointer variable
  */
-public class PtrVarGenerator extends AbstractExprGenerator implements PtrGenerator, VarGenerator, LValueGenerator {
+public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerator, ExprGenerator {
 
   private GimpleIndirectType type;
 

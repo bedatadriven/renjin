@@ -7,7 +7,6 @@ import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PtrGenerator;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -41,9 +40,7 @@ public class PrimitivePtrReturnGenerator implements ReturnGenerator {
 
   @Override
   public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
-    PtrGenerator ptrGenerator = (PtrGenerator) valueGenerator;
-    
-    wrapperType.emitPushNewWrapper(mv, ptrGenerator);
+    wrapperType.emitPushNewWrapper(mv, valueGenerator);
 
     // return
     mv.visitInsn(Opcodes.ARETURN);

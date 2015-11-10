@@ -1,5 +1,6 @@
 package org.renjin.gcc;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -9,8 +10,8 @@ import org.renjin.gcc.analysis.FunctionBodyTransformer;
 import org.renjin.gcc.analysis.ResultDeclRewriter;
 import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
 import org.renjin.gcc.codegen.GeneratorFactory;
-import org.renjin.gcc.codegen.MainClassGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.UnitClassGenerator;
 import org.renjin.gcc.codegen.call.FunctionTable;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -31,8 +32,6 @@ public class GimpleCompiler  {
   private File outputDirectory;
   
   private String packageName;
-
-  private String className;
 
   private boolean verbose;
 
@@ -64,7 +63,6 @@ public class GimpleCompiler  {
   }
 
   public void setClassName(String className) {
-    this.className = className;
   }
 
 
@@ -91,9 +89,12 @@ public class GimpleCompiler  {
     transform(units);
     compileRecords(units);
 
-    MainClassGenerator generator = new MainClassGenerator(generatorFactory, functionTable, getInternalClassName());
-    generator.emit(units);
-    writeClass(getInternalClassName(), generator.toByteArray());
+    for (GimpleCompilationUnit unit : units) {
+      String className = getInternalClassName(unit.getName());
+      UnitClassGenerator generator = new UnitClassGenerator(generatorFactory, functionTable, className);
+      generator.emit(Iterables.getOnlyElement(units));
+      writeClass(className, generator.toByteArray());
+    }
   }
 
   private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
@@ -119,7 +120,7 @@ public class GimpleCompiler  {
           if (recordTypeDef.getName() != null) {
             recordClassName = recordTypeDef.getName();
           } else {
-            recordClassName = String.format("%s$Record%d", className, recordsToWrite.size());
+            recordClassName = String.format("%s$Record%d", "record", recordsToWrite.size());
           }
           RecordClassGenerator recordGenerator =
               new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
@@ -142,10 +143,6 @@ public class GimpleCompiler  {
     } else {
       return providedRecordTypes.containsKey(recordTypeDef.getName());
     }
-  }
-
-  private String getInternalClassName() {
-    return getInternalClassName(className);
   }
 
   private String getInternalClassName(String className) {

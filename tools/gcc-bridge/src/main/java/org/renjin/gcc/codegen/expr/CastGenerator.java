@@ -9,7 +9,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 /**
  * Generates the bytecode to cast a primitive value to a new type
  */
-public class CastGenerator extends AbstractExprGenerator implements ValueGenerator {
+public class CastGenerator extends AbstractExprGenerator implements ExprGenerator {
   
   private ExprGenerator valueGenerator;
   private GimplePrimitiveType destinationType;

@@ -6,12 +6,12 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
-public class AbsGenerator extends  AbstractExprGenerator implements ValueGenerator {
+public class AbsGenerator extends  AbstractExprGenerator implements ExprGenerator {
 
-  private ValueGenerator x;
+  private ExprGenerator x;
 
   public AbsGenerator(ExprGenerator x) {
-    this.x = (ValueGenerator) x;
+    this.x = x;
   }
 
   @Override

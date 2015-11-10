@@ -28,4 +28,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 })
 public abstract class GimpleExpr {
 
+    private Integer line;
+
+    public void setLine(Integer line) {
+        this.line = line;
+    }
+
+    public Integer getLine() {
+        return line;
+    }
 }

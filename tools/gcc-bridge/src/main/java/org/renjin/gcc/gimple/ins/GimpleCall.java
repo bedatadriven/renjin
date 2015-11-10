@@ -40,6 +40,15 @@ public class GimpleCall extends GimpleIns {
   }
 
   @Override
+  public Integer getLineNumber() {
+    if(lhs == null) {
+      return null;
+    } else {
+      return lhs.getLine();
+    }
+  }
+
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(lhs);

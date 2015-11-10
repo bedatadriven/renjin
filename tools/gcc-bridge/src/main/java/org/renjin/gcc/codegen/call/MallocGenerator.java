@@ -4,7 +4,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
 import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -16,10 +18,10 @@ import static org.objectweb.asm.Opcodes.IDIV;
 /**
  * Generates a {@code malloc} call
  */
-public class MallocGenerator extends AbstractExprGenerator implements PtrGenerator {
+public class MallocGenerator extends AbstractExprGenerator implements ExprGenerator {
   private Type elementType;
   private int elementSize;
-  private final ValueGenerator totalSizeGenerator;
+  private final ExprGenerator totalSizeGenerator;
 
   /**
    * 
@@ -30,7 +32,7 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
   public MallocGenerator(Type baseType, int baseTypeSize, ExprGenerator sizeGenerator) {
     this.elementType = baseType;
     this.elementSize = baseTypeSize;
-    this.totalSizeGenerator = (ValueGenerator) sizeGenerator;
+    this.totalSizeGenerator = sizeGenerator;
   }
 
   public static boolean isMalloc(GimpleExpr functionExpr) {

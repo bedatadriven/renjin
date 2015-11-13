@@ -11,8 +11,8 @@ public class DatasetsBuilderTest extends TestCase {
   public void testDatasets() throws FileNotFoundException {
     
     DatasetsBuilder builder = new DatasetsBuilder(
-        new File("target/test-classes"),
-        new File("src/test/resources/data"));
+        new File("src/test/resources/data"),
+        new File("target/test-classes"));
     builder.build();
   }
 }

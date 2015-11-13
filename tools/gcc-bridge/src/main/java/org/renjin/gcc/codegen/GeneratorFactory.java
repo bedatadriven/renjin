@@ -4,10 +4,7 @@ import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.field.FieldGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
-import org.renjin.gcc.codegen.param.StringParamGenerator;
+import org.renjin.gcc.codegen.param.*;
 import org.renjin.gcc.codegen.ret.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -145,7 +142,7 @@ public class GeneratorFactory {
     while(index < numParams) {
       Class<?> paramClass = method.getParameterTypes()[index];
       if(paramClass.equals(ObjectPtr.class)) {
-        generators.add(forPointerPointerParameter(method.getGenericParameterTypes()[index]));
+        generators.add(forObjectPtrParam(method.getGenericParameterTypes()[index]));
         index++;
         
       } else if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
@@ -176,7 +173,7 @@ public class GeneratorFactory {
     return generators;
   }
   
-  private ParamGenerator forPointerPointerParameter(java.lang.reflect.Type type) {
+  private ParamGenerator forObjectPtrParam(java.lang.reflect.Type type) {
     if(!(type instanceof ParameterizedType)) {
       throw new InternalCompilerException(ObjectPtr.class.getSimpleName() + " parameters must be parameterized");
     }
@@ -186,8 +183,14 @@ public class GeneratorFactory {
     if(baseType.equals(BytePtr.class)) {
       return forType(new GimpleIntegerType(8)).pointerTo().pointerTo().paramGenerator();
     } else {
-      throw new UnsupportedOperationException("TODO: baseType = " + baseType);
+      String baseTypeInternalName = Type.getInternalName((Class)baseType);
+      if(classTypes.containsKey(baseTypeInternalName)) {
+        GimpleRecordType mappedType = classTypes.get(baseTypeInternalName);
+        RecordClassGenerator recordClassGenerator = recordTypes.get(mappedType.getId());
+        return new WrappedRecordPtrParamGenerator(recordClassGenerator);
+      }
     }
+    throw new UnsupportedOperationException("TODO: baseType = " + baseType);
   }
 
   public Map<GimpleParameter, ParamGenerator> forParameters(List<GimpleParameter> parameters) {

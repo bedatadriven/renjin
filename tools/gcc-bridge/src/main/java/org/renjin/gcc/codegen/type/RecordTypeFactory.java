@@ -10,6 +10,7 @@ import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.RecordPtrParamGenerator;
 import org.renjin.gcc.codegen.ret.RecordPtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.var.RecordArrayVarGenerator;
 import org.renjin.gcc.codegen.var.RecordPtrVarGenerator;
 import org.renjin.gcc.codegen.var.RecordVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
@@ -56,6 +57,16 @@ public class RecordTypeFactory extends TypeFactory {
         @Override
         public FieldGenerator fieldGenerator(String className, String fieldName) {
             return new RecordArrayFieldGenerator(className, fieldName, generator, arrayType);
+        }
+
+        @Override
+        public VarGenerator varGenerator(LocalVarAllocator allocator) {
+            return new RecordArrayVarGenerator(arrayType, generator, allocator.reserveObject());
+        }
+
+        @Override
+        public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
+            return varGenerator(allocator);
         }
     }
 

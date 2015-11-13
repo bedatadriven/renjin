@@ -10,8 +10,7 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gnur.api.RenjinDebug;
-import org.renjin.gnur.api.Rinternals;
+import org.renjin.gnur.api.*;
 import org.renjin.sexp.SEXP;
 
 import java.io.File;
@@ -133,8 +132,13 @@ public class GnurSourcesCompiler {
       compiler.addReferenceClass(Sort.class);
       compiler.addReferenceClass(Rinternals.class);
       compiler.addReferenceClass(RenjinDebug.class);
+      
       compiler.addRecordClass("SEXPREC", SEXP.class);
+      
+      
+      compiler.addReferenceClass(Rdynload.class);
       compiler.addRecordClass("_DllInfo", DllInfo.class);
+      compiler.addRecordClass("__MethodDef", MethodDef.class);
       compiler.compile(units);
     }
   }

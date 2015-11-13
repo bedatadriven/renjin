@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
@@ -79,6 +80,8 @@ public class UnitClassGenerator {
   }
 
   private void emitGlobalVariables(GimpleCompilationUnit unit) {
+    
+    // write the field declarations
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
       try {
 
@@ -89,6 +92,24 @@ public class UnitClassGenerator {
             " defined in " + unit.getSourceFile().getName(), e);
       }
     }
+    
+    // and any static initialization that is required
+    MethodVisitor mv = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+    mv.visitCode();
+
+    for (GimpleVarDecl decl : unit.getGlobalVariables()) {
+      try {
+        FieldGenerator generator = symbolTable.getVariable(decl);
+        generator.emitStaticInitializer(mv, (GimpleConstructor) decl.getValue());
+      } catch (Exception e) {
+        throw new InternalCompilerException("Exception writing static variable initializer " + decl.getName() +
+            " defined in " + unit.getSourceFile().getName(), e);
+      }
+    }
+    mv.visitInsn(RETURN);
+    mv.visitMaxs(1, 1);
+    mv.visitEnd();
+
   }
 
   private void emitFunctions(GimpleCompilationUnit unit) {

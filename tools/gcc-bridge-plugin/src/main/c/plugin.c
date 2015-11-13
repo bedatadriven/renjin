@@ -224,6 +224,9 @@ void json_end_object() {
 
 static void dump_type(tree type);
 
+static void dump_op(tree op);
+
+
 static void dump_function_type(tree type) {
 
   TRACE("dump_function_type: dumping returnType\n");
@@ -367,6 +370,36 @@ static void dump_record_type_decl(tree type) {
   json_end_object();
   
   TRACE("dump_record_type_decl: exiting\n");
+}
+
+static void dump_constructor(tree node) {
+  unsigned HOST_WIDE_INT ix;
+  tree field, val;
+  bool is_struct_init = FALSE;
+  
+ json_array_field("elements");
+
+  if (TREE_CODE (TREE_TYPE (node)) == RECORD_TYPE
+      || TREE_CODE (TREE_TYPE (node)) == UNION_TYPE)
+       is_struct_init = TRUE;
+
+  FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (node), ix, field, val)
+  {
+    json_start_object();
+  
+    if (field && is_struct_init)
+      {
+        json_field("field");
+        dump_op(field);
+      }
+    
+    json_field("value");
+    dump_op(val);
+    
+    json_end_object();
+  }
+  
+  json_end_array();
 }
 
 static void dump_type(tree type) {
@@ -534,6 +567,11 @@ static void dump_op(tree op) {
  	  //  json_field("offset");
  	 //   dump_op(TREE_OPERAND(op, 1));
       break;
+      
+    case CONSTRUCTOR:
+      dump_constructor(op);
+      break;
+      
     case COMPONENT_REF:
       json_field("value");
       TRACE("dump_op: writing COMPONENT_REF value\n");

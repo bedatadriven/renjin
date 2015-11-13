@@ -1,4 +1,4 @@
-package org.renjin.gnur;
+package org.renjin.gnur.api;
 
 /**
  * 

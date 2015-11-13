@@ -44,6 +44,10 @@ public class GimpleArrayType extends AbstractGimpleType {
 
   @Override
   public int sizeOf() {
-    return componentType.sizeOf() * (getUbound() - getLbound() + 1);
+    return componentType.sizeOf() * getElementCount();
+  }
+
+  public int getElementCount() {
+    return getUbound() - getLbound() + 1;
   }
 }

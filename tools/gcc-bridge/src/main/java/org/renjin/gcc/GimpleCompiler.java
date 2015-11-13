@@ -126,9 +126,10 @@ public class GimpleCompiler  {
           
           // Map this record type to an existing JVM class
           Class existingClass = providedRecordTypes.get(recordTypeDef.getName());
+          RecordClassGenerator recordGenerator =
+              new RecordClassGenerator(generatorFactory, Type.getInternalName(existingClass), recordTypeDef);
           
-          generatorFactory.addRecordType(recordTypeDef, 
-              new RecordClassGenerator(generatorFactory, Type.getInternalName(existingClass), recordTypeDef));
+          generatorFactory.addRecordType(recordTypeDef, recordGenerator);
           
         } else {
           // Create a new JVM class for this record type

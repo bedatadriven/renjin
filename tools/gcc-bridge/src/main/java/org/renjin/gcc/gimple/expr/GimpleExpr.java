@@ -4,6 +4,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+/**
+ * A Gimple Expression node. 
+ * 
+ * @see <a href="https://gcc.gnu.org/onlinedocs/gccint/Expression-trees.html#Expression-trees">Expression trees</a>
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ 
     @Type(value = GimpleMemRef.class, name = "mem_ref"),
@@ -37,4 +42,6 @@ public abstract class GimpleExpr {
     public Integer getLine() {
         return line;
     }
+
+    
 }

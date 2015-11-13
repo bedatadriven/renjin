@@ -12,6 +12,10 @@ import org.renjin.repl.JlineRepl;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Runs package tests
@@ -30,28 +34,40 @@ public class TestRun {
   }
 
   public void execute() {
+    for (File testFile : findTestSources(testDir)) {
+      count++;
+      System.out.print("Running test " + testFile.getName() + "... ");
+      System.out.flush();
+      boolean passed = executeTest(testFile);
+      if(passed) {
+        System.out.println("OK");
+        passedCount++;
+      } else {
+        System.out.println("ERROR");
+      }
+    }
 
+    System.out.println();
+    System.out.println(String.format("TEST RESULTS: %d/%d passed.", passedCount, count));
+  }
 
-    File[] testFiles = testDir.listFiles();
-    if(testFiles != null) {
-      for (File testFile : testFiles) {
-        if(testFile.getName().toUpperCase().endsWith(".R")) {
-          count++;
-          System.out.print("Running test " + testFile.getName() + "... ");
-          System.out.flush();
-          boolean passed = executeTest(testFile);
-          if(passed) {
-            System.out.println("OK");
-            passedCount++;
-          } else {
-            System.out.println("ERROR");
-          }
+  private List<File> findTestSources(File dir) {
+    List<File> testFiles = new ArrayList<File>();
+    File[] files = testDir.listFiles();
+    if(files != null) {
+      for (File file : files) {
+        if (file.getName().toUpperCase().endsWith(".R")) {
+          testFiles.add(file);
         }
       }
     }
-    
-    System.out.println();
-    System.out.println(String.format("TEST RESULTS: %d/%d passed.", passedCount, count));
+    Collections.sort(testFiles, new Comparator<File>() {
+      @Override
+      public int compare(File o1, File o2) {
+        return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+      }
+    });
+    return testFiles;
   }
 
   private Session newSession() {

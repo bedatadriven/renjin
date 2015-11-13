@@ -10,6 +10,12 @@ import org.renjin.gcc.gimple.expr.GimpleLValue;
 
 import java.util.List;
 
+/**
+ * Gimple statement
+ * 
+ * @see <a href="https://gcc.gnu.org/onlinedocs/gccint/Basic-Statements.html#Basic-Statements">Basic Statements</a> in
+ * the GCC Internals Manual
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
     @Type(value = GimpleAssign.class, name = "assign"),

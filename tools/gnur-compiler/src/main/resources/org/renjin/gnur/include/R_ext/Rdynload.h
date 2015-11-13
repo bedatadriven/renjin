@@ -72,7 +72,7 @@ typedef R_CMethodDef R_FortranMethodDef;
 
 
 
-typedef struct {
+typedef struct __MethodDef {
     const char *name;
     DL_FUNC     fun;
     int         numArgs;

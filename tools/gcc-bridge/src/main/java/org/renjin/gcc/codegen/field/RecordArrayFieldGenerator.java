@@ -34,7 +34,12 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
     this.arrayType = arrayType;
     fieldDescriptor = "[" + recordGenerator.getDescriptor();
   }
-  
+
+  @Override
+  public GimpleType getType() {
+    return arrayType;
+  }
+
   @Override
   public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
     emitField(ACC_PUBLIC | ACC_STATIC, cv);
@@ -78,6 +83,7 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
       mv.visitInsn(Opcodes.AASTORE);
     }
     
+    // store the newly created field to the field
     mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, fieldDescriptor);
     
     mv.visitEnd();
@@ -94,6 +100,17 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
     @Override
     public ExprGenerator addressOf() {
       return new StaticArrayPtr();
+    }
+
+    @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      valueGenerator.emitPushArray(mv);
+      mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, fieldDescriptor);
+    }
+
+    @Override
+    public void emitPushArray(MethodVisitor mv) {
+      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, fieldDescriptor);
     }
   }
   

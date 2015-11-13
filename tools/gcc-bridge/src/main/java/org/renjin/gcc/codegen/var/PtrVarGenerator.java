@@ -45,13 +45,14 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-    emitPushArray(mv);
-    mv.visitVarInsn(ILOAD, offsetVariableIndex);
-  }
-
-  private void emitPushArray(MethodVisitor mv) {
+  public void emitPushPtrArray(MethodVisitor mv) {
     mv.visitVarInsn(ALOAD, arrayVariableIndex);
+  }
+  
+  @Override
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    emitPushPtrArray(mv);
+    mv.visitVarInsn(ILOAD, offsetVariableIndex);
   }
 
   @Override
@@ -179,7 +180,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      emitPushArray(mv);
+      emitPushPtrArray(mv);
       element.pushComputeIndex(mv);
     }
   }
@@ -200,7 +201,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
     @Override
     public void emitPrimitiveValue(MethodVisitor mv) {
       // IALOAD : (array, offset) 
-      emitPushArray(mv);
+      PtrVarGenerator.this.emitPushPtrArray(mv);
       mv.visitVarInsn(ILOAD, offsetVariableIndex);
       mv.visitInsn(getJvmPrimitiveType().getOpcode(IALOAD));
     }
@@ -210,7 +211,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
       Preconditions.checkState(valueGenerator.getJvmPrimitiveType().equals(getJvmPrimitiveType()));
 
       // IASTORE (array, offset, value)
-      emitPushArray(mv);
+      PtrVarGenerator.this.emitPushPtrArray(mv);
       mv.visitVarInsn(ILOAD, offsetVariableIndex);
       valueGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(getJvmPrimitiveType().getOpcode(IASTORE));

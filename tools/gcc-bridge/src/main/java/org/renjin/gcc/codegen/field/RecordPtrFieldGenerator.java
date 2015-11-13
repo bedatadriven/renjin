@@ -25,6 +25,11 @@ public class RecordPtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
+  public GimpleType getType() {
+    return new GimplePointerType(recordGenerator.getGimpleType());
+  }
+
+  @Override
   public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
     assertNoInitialValue(decl);
 

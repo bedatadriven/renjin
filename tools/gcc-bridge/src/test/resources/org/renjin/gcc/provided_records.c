@@ -16,11 +16,12 @@ int test(struct jvm_rect *p) {
 }
 
 int test_multiple() {
-  struct jvm_rect rects[2];
+  struct jvm_rect rects[3];
   rects[0].width = 10;
   rects[0].height = 15;
   rects[1].width = 20;
   rects[1].height = 35;
+  rects[2].width = 0;
   
   return jvm_areas(rects);
   

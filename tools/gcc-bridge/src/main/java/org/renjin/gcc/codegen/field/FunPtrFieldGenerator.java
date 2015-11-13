@@ -29,6 +29,11 @@ public class FunPtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
+  public GimpleType getType() {
+    return functionType;
+  }
+
+  @Override
   public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
     assertNoInitialValue(decl);
     
@@ -42,6 +47,11 @@ public class FunPtrFieldGenerator extends FieldGenerator {
 
   private void emitField(int access, ClassVisitor cv) {
     cv.visitField(access, fieldName, Type.getDescriptor(MethodHandle.class), null, null).visitEnd();
+  }
+  
+  public void emitStoreMember(MethodVisitor mv, ExprGenerator valueGenerator) {
+    valueGenerator.emitPushMethodHandle(mv);
+    mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, Type.getDescriptor(MethodHandle.class));
   }
   
   @Override
@@ -75,9 +85,9 @@ public class FunPtrFieldGenerator extends FieldGenerator {
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
       instanceGenerator.emitPushRecordRef(mv);
-      valueGenerator.emitPushMethodHandle(mv);
-      mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, Type.getDescriptor(MethodHandle.class));
+      emitStoreMember(mv, valueGenerator);
     }
+
   }
 
   /**

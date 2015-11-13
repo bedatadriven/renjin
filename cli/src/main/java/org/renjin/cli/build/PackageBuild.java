@@ -139,7 +139,8 @@ public class PackageBuild {
     try {
       compiler.compile();
     } catch (Exception e) {
-      reporter.warn("Compilation of GNU R sources failed", e);
+      throw new RuntimeException(e);
+      //reporter.warn("Compilation of GNU R sources failed", e);
     }
   }
 

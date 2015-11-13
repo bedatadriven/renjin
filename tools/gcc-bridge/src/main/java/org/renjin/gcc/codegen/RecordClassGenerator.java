@@ -120,6 +120,10 @@ public class RecordClassGenerator {
   
   public void emitConstructor(MethodVisitor mv, GimpleConstructor recordConstructor) {
     emitConstructor(mv);
+
+    for (GimpleConstructor.Element element : recordConstructor.getElements()) {
+      FieldGenerator fieldGenerator = getFieldGenerator(element.getFieldName());
+    }
     // TODO
   }
 }

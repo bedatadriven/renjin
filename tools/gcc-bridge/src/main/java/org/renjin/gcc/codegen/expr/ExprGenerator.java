@@ -82,6 +82,8 @@ public interface ExprGenerator {
 
   void emitPushPtrArray(MethodVisitor mv);
   
+  void emitPushArray(MethodVisitor mv);
+  
   /**
    * Writes the code to push the reference onto the stack
    * @throws UnsupportedOperationException if this is not a pointer with a reference representation

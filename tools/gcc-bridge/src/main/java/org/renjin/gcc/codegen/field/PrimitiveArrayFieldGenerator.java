@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.field;
 import org.objectweb.asm.ClassVisitor;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 
 public class PrimitiveArrayFieldGenerator extends FieldGenerator {
@@ -12,6 +13,11 @@ public class PrimitiveArrayFieldGenerator extends FieldGenerator {
   public PrimitiveArrayFieldGenerator(String className, String fieldName) {
     this.className = className;
     this.fieldName = fieldName;
+  }
+
+  @Override
+  public GimpleType getType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

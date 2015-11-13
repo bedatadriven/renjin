@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type;
 
+import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -8,6 +9,7 @@ import org.renjin.gcc.codegen.field.PrimitiveArrayFieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
 /**
@@ -62,5 +64,9 @@ public abstract class TypeFactory {
 
   public ExprGenerator mallocExpression(ExprGenerator size) {
     throw new UnsupportedOperationException("TODO: implement mallocExpression() in " + getClass().getName());
+  }
+
+  public ExprGenerator constructorExpr(GeneratorFactory generatorFactory, GimpleConstructor value) {
+    throw new UnsupportedOperationException("TODO: implement constructorExpr() in " + getClass().getName());
   }
 }

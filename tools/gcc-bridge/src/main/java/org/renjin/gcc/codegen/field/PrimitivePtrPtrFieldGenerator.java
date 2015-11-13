@@ -43,6 +43,11 @@ public class PrimitivePtrPtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
+  public GimpleType getType() {
+    return pointerType;
+  }
+
+  @Override
   public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
     assertNoInitialValue(decl);
 

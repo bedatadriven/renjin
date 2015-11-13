@@ -24,8 +24,11 @@ public class JvmRect {
   
   public static int areas(ObjectPtr<JvmRect> rects) {
     int area = 0;
-    for(int i=0;i<2;++i) {
+    int i = 0;
+    // end of array is marked by rect with zero width
+    while(rects.get(i).width != 0) {
       area += area(rects.get(i));
+      i++;
     }
     return area;
   }

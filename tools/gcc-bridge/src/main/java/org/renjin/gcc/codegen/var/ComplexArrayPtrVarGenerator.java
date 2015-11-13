@@ -41,7 +41,8 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
   }
 
-  private void emitPushArray(MethodVisitor mv) {
+  @Override
+  public void emitPushPtrArray(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
   }
 

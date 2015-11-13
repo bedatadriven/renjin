@@ -307,6 +307,7 @@ public class FunctionGenerator {
     }
   }
 
+  
   private ExprGenerator findGenerator(GimpleOp op, List<GimpleExpr> operands) {
     switch (op) {
       case PLUS_EXPR:
@@ -455,16 +456,7 @@ public class FunctionGenerator {
       return symbolTable.get((SymbolRef) expr);
       
     } else if(expr instanceof GimpleConstant) {
-      GimpleConstant constant = (GimpleConstant) expr;
-      if (constant.isNull()) {
-        return new NullPtrGenerator(constant.getType());
-      } else if (constant instanceof GimplePrimitiveConstant) {
-        return new PrimitiveConstValueGenerator((GimplePrimitiveConstant) constant);
-      } else if (constant instanceof GimpleComplexConstant) {
-        return new ComplexConstGenerator((GimpleComplexConstant) constant);
-      } else if (constant instanceof GimpleStringConstant) {
-        return new StringConstantGenerator(constant);
-      }
+      return GeneratorFactory.forConstant((GimpleConstant) expr);
       
     } else if(expr instanceof GimpleAddressOf) {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;

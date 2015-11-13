@@ -31,6 +31,11 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
+  public GimpleType getType() {
+    return gimpleType;
+  }
+
+  @Override
   public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
     assertNoInitialValue(decl);
 
@@ -45,6 +50,29 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
   private void emitField(int access, ClassVisitor cv) {
     cv.visitField(access, arrayFieldName, arrayTypeDescriptor(), null, null).visitEnd();
     cv.visitField(access, offsetFieldName, "I", null, 0).visitEnd();
+  }
+
+  @Override
+  public void emitStoreMember(MethodVisitor mv, ExprGenerator ptr) {
+    
+    // Need two copies of the instance on the stack for the store stores
+    mv.visitInsn(Opcodes.DUP);
+    
+    // Push array and offset onto the stack
+    ptr.emitPushPtrArrayAndOffset(mv);
+
+    // DUP_X2 + POP
+    //             value3,  value2, value1 →            value1,   value3,  value2,  value1
+    // instance, instance,   array, offset → instance,  offset, instance ,  array,  offset
+    //                                     → instance,  offset, instance ,  array            
+    mv.visitInsn(Opcodes.DUP_X2);
+    mv.visitInsn(Opcodes.POP);
+
+    // Consume [instance, array] -> 
+    mv.visitFieldInsn(Opcodes.PUTFIELD, className, arrayFieldName, arrayTypeDescriptor());
+    
+    // Consume [instance, offset] 
+    mv.visitFieldInsn(Opcodes.PUTFIELD, className, offsetFieldName, "I");
   }
 
   private String arrayTypeDescriptor() {
@@ -62,7 +90,6 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
   }
 
   private class StaticMemberExpr extends AbstractExprGenerator {
-
 
     @Override
     public GimpleType getGimpleType() {
@@ -97,6 +124,11 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     public GimpleType getGimpleType() {
       return gimpleType;
     }
-    
+
+    @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      instance.emitPushRecordRef(mv);
+      emitStoreMember(mv, valueGenerator);
+    }
   }
 }

@@ -17,6 +17,10 @@ public class GimpleConstructor extends GimpleExpr {
     public GimpleExpr getField() {
       return field;
     }
+    
+    public String getFieldName() {
+      return ((GimpleFieldRef) field).getName();
+    }
 
     public void setField(GimpleExpr field) {
       this.field = field;

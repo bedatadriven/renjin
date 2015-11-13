@@ -5,11 +5,11 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
@@ -28,7 +28,7 @@ public class UnitClassGenerator {
   private String className;
 
   private UnitSymbolTable symbolTable;
-  private final Object generatorFactory;
+  private final GeneratorFactory generatorFactory;
 
   private ClassWriter cw;
   private ClassVisitor cv;
@@ -98,12 +98,16 @@ public class UnitClassGenerator {
     mv.visitCode();
 
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
-      try {
-        FieldGenerator generator = symbolTable.getVariable(decl);
-        generator.emitStaticInitializer(mv, (GimpleConstructor) decl.getValue());
-      } catch (Exception e) {
-        throw new InternalCompilerException("Exception writing static variable initializer " + decl.getName() +
-            " defined in " + unit.getSourceFile().getName(), e);
+      if(decl.getValue() != null) {
+        try {
+          ExprGenerator globalVariable = symbolTable.getVariable(decl).staticExprGenerator();
+          ExprGenerator value = generatorFactory.forExpression(decl.getType(), decl.getValue());
+          globalVariable.emitStore(mv, value);
+
+        } catch (Exception e) {
+          throw new InternalCompilerException("Exception writing static variable initializer " + decl.getName() +
+              " defined in " + unit.getSourceFile().getName(), e);
+        }
       }
     }
     mv.visitInsn(RETURN);

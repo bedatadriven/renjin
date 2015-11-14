@@ -19,6 +19,14 @@ static const struct method_t CMethods[] = {
   {0, 0, 0}
 };
 
+
+
 const char * test_name() {
   return CMethods[1].name;
+}
+
+const char * test_array() {
+  static const char *outnames[]={"coef", "u", "imat", "loglik", "means", "sctest", "flag", "iter", ""};
+
+  return outnames[3];
 }

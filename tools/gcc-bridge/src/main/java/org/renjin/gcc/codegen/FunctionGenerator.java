@@ -14,7 +14,6 @@ import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.type.TypeFactory;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.ins.*;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -85,7 +84,7 @@ public class FunctionGenerator {
       emitBasicBlock(basicBlock);
     }
     mv.visitLabel(endLabel);
-    //emitVariableDebugging();
+    emitVariableDebugging();
     
     mv.visitMaxs(1, 1);
     mv.visitEnd();
@@ -113,7 +112,7 @@ public class FunctionGenerator {
   private void emitLocalVarInitialization() {
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       VarGenerator lhs = (VarGenerator) symbolTable.getVariable(decl);
-      if(decl.getValue() == null || decl.getValue() instanceof GimpleConstructor) {
+      if(decl.getValue() == null) {
         lhs.emitDefaultInit(mv);
 
       } else {
@@ -330,10 +329,14 @@ public class FunctionGenerator {
       if(decl.isNamed()) {
         ExprGenerator generator = symbolTable.getVariable(decl);
         if (generator instanceof VarGenerator) {
-          ((VarGenerator) generator).emitDebugging(mv, decl.getName(), beginLabel, endLabel);
+          ((VarGenerator) generator).emitDebugging(mv, toJavaSafeName(decl.getName()), beginLabel, endLabel);
         }
       }
     }
+  }
+
+  private String toJavaSafeName(String name) {
+    return name.replace('.', '$');
   }
 
   public Handle getMethodHandle() {

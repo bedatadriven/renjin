@@ -4,11 +4,9 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
+import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.field.FieldGenerator;
-import org.renjin.gcc.codegen.field.PrimitiveFieldGenerator;
-import org.renjin.gcc.codegen.field.PrimitivePtrFieldGenerator;
-import org.renjin.gcc.codegen.field.PrimitivePtrPtrFieldGenerator;
+import org.renjin.gcc.codegen.field.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
@@ -18,10 +16,14 @@ import org.renjin.gcc.codegen.ret.PrimitivePtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.var.*;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Creates {@code Generators} for {@code GimplePrimitiveType}.
@@ -233,6 +235,21 @@ public class PrimitiveTypeFactory extends TypeFactory {
     @Override
     public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
       return varGenerator(allocator);
+    }
+
+    @Override
+    public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+      
+      List<ExprGenerator> elements = new ArrayList<>();
+      for (GimpleConstructor.Element element : value.getElements()) {
+        elements.add(exprFactory.findGenerator(element.getValue()));
+      }
+      return new PrimitivePtrArrayConstructor(arrayType, elements);
+    }
+
+    @Override
+    public FieldGenerator fieldGenerator(String className, String fieldName) {
+      return new PrimitivePtrArrayField(className, fieldName, arrayType);
     }
   }
 }

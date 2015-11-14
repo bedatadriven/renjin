@@ -120,10 +120,14 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void static_init() throws Exception {
     Class clazz = compile("static_init.c");
-    Method method = clazz.getMethod("test_name");
     
-    BytePtr name = (BytePtr) method.invoke(null);
+    Method testName = clazz.getMethod("test_name");
+    BytePtr name = (BytePtr) testName.invoke(null);
     assertThat(name.nullTerminatedString(), equalTo("square"));
+
+    Method testArray = clazz.getMethod("test_array");
+    BytePtr element = (BytePtr) testArray.invoke(null);
+    assertThat(element.nullTerminatedString(), equalTo("loglik"));
   }
 
   @Test

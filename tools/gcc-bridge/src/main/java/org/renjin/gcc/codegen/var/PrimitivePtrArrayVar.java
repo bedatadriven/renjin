@@ -38,6 +38,12 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
   }
 
   @Override
+  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    valueGenerator.emitPushArray(mv);
+    mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+  }
+
+  @Override
   public ExprGenerator elementAt(ExprGenerator indexGenerator) {
     return new PtrElement(indexGenerator);  
   }

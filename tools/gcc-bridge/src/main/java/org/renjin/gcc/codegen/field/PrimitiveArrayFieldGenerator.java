@@ -39,4 +39,8 @@ public class PrimitiveArrayFieldGenerator extends FieldGenerator {
   public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
     return null;
   }
+  
+  
+  
+  
 }

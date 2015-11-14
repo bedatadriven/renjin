@@ -5,6 +5,8 @@ import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
 import org.renjin.sexp.*;
 
+import java.util.Arrays;
+
 @SuppressWarnings("unused")
 public final class Rinternals {
 
@@ -226,15 +228,21 @@ public final class Rinternals {
   }
 
   public static SEXP VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i) {
-    throw new UnimplementedGnuApiMethod("VECTOR_ELT");
+    return ((ListVector) x).getElementAsSEXP(i);
   }
 
-  public static void SET_STRING_ELT(SEXP x, /*R_xlen_t*/ int i, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_STRING_ELT");
+  public static void SET_STRING_ELT(SEXP x, /*R_xlen_t*/ int index, SEXP value) {
+    GnuStringVector stringVector = (GnuStringVector) x;
+    GnuCharSexp charValue = (GnuCharSexp) value;
+    
+    stringVector.set(index, charValue);
   }
 
-  public static SEXP SET_VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_VECTOR_ELT");
+  public static SEXP SET_VECTOR_ELT(SEXP x, /*R_xlen_t*/ int index, SEXP value) {
+    ListVector listVector = (ListVector) x;
+    SEXP[] elements = listVector.toArrayUnsafe();
+    elements[index] = value;
+    return value;
   }
 
   // SEXP*() STRING_PTR (SEXP x)
@@ -816,8 +824,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_namesgets");
   }
 
-  public static SEXP Rf_mkChar(BytePtr p0) {
-    throw new UnimplementedGnuApiMethod("Rf_mkChar");
+  public static SEXP Rf_mkChar(BytePtr string) {
+    return new GnuCharSexp(string);
   }
 
   public static SEXP Rf_mkCharLen(BytePtr p0, int p1) {
@@ -882,8 +890,14 @@ public final class Rinternals {
 
   // void Rf_readS3VarsFromFrame (SEXP, SEXP *, SEXP *, SEXP *, SEXP *, SEXP *, SEXP *)
 
-  public static SEXP Rf_setAttrib(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_setAttrib");
+  public static SEXP Rf_setAttrib(SEXP sexp, SEXP attributeName, SEXP newValue) {
+    if(attributeName == null) {
+      throw new IllegalArgumentException("attributeName is NULL");
+    }
+    Symbol attributeSymbol = (Symbol) attributeName;
+    AbstractSEXP abstractSEXP = (AbstractSEXP) sexp;
+    abstractSEXP.unsafeSetAttributes(sexp.getAttributes().copy().set(attributeSymbol, newValue).build());
+    return sexp;
   }
 
   // void Rf_setSVector (SEXP *, int, SEXP)
@@ -1260,6 +1274,12 @@ public final class Rinternals {
         return new DoubleArrayVector(new double[length]);
       case SexpType.LGLSXP:
         return new LogicalArrayVector(new int[length]);
+      case SexpType.VECSXP:
+        SEXP[] elements = new SEXP[length];
+        Arrays.fill(elements, Null.INSTANCE);
+        return new ListVector(elements);
+      case SexpType.STRSXP:
+        return new GnuStringVector(new BytePtr[length]);
     }
     throw new UnimplementedGnuApiMethod("Rf_allocVector: type = " + type);
   }

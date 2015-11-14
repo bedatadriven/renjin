@@ -228,6 +228,18 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(x.unwrap(), equalTo(1));
 
   }
+  
+  @Test
+  public void logicalAnd() throws Exception {
+    Class clazz = compile("and.c");
+    Method testMethod = clazz.getMethod("test", int.class, double.class);
+
+    assertThat((Integer)testMethod.invoke(null, 1, 0d), equalTo(0));
+    assertThat((Integer)testMethod.invoke(null, 1, 3d), equalTo(41));
+    assertThat((Integer)testMethod.invoke(null, -1, 3d), equalTo(0));
+
+
+  }
 
   @Test
   public void chars() throws Exception {

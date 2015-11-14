@@ -1477,7 +1477,6 @@ public final class Rinternals {
 
   public static SEXP Rf_protect(SEXP p0) {
     // NOOP
-    System.out.println(p0);
     return p0;
   }
 

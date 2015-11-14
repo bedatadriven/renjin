@@ -4,6 +4,7 @@ package org.renjin.gcc.codegen.param;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
@@ -43,6 +44,9 @@ public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
 
   @Override
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+    if(!parameterValueGenerator.getPointerType().equals(WrapperType.OBJECT_PTR)) {
+      throw new InternalCompilerException("Type mismatch: " + parameterValueGenerator.getClass().getName());
+    }
     parameterValueGenerator.emitPushPointerWrapper(mv);
   }
   

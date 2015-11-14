@@ -94,7 +94,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
 
     @Override
     public WrapperType getPointerType() {
-      return wrapperType;
+      return WrapperType.OBJECT_PTR;
     }
 
     @Override

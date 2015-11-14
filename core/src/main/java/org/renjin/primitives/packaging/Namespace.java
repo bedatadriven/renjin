@@ -169,10 +169,10 @@ public class Namespace {
   }
 
   private void importDynamicLibrary(NamespaceFile.DynLibEntry entry) {
-    
-    
+
+
     try {
-      DllInfo info = new DllInfo();
+      DllInfo info = new DllInfo(entry.getLibraryName());
 
       FqPackageName packageName = pkg.getName();
       String className = packageName.getGroupId() + "." + packageName.getPackageName() + "." + entry.getLibraryName();
@@ -187,16 +187,18 @@ public class Namespace {
           throw new EvalException("Exception initializing compiled GNU R library " + entry.getLibraryName(), e.getCause());
         }
       }
-      
-      if(entry.getSymbols().isEmpty()) {
-        // add all methods from class file
-        for(Method method : clazz.getMethods()) {
-          if(isPublicStatic(method)) {
-            addGnurMethod(entry.getPrefix() + method.getName(), method);
-          }
+
+      if(entry.isRegistration()) {
+
+        // Use the symbols registered by the R_init_xxx() function
+        for (DllSymbol symbol : info.getSymbols()) {
+          getImportsEnvironment().setVariable(symbol.getName(), symbol.createObject());
         }
+
       } else {
-        for(NamespaceFile.DynLibSymbol symbol : entry.getSymbols()) {
+
+        // Use the symbol list explicitly declared in the useDynLib directive
+        for (NamespaceFile.DynLibSymbol symbol : entry.getSymbols()) {
           Method method = findGnurMethod(clazz, symbol.getSymbolName());
           addGnurMethod(entry.getPrefix() + symbol.getAlias(), method);
         }
@@ -214,7 +216,7 @@ public class Namespace {
    * This can be used, for example, to register native routines with R's dynamic symbol mechanism, initialize some data 
    * in the native code, or initialize a third party library. On loading a DLL, R will look for a routine within that
    * DLL named R_init_lib where lib is the name of the DLL file with the extension removed.
-   * 
+   *
    * @param libraryName the name of the library to load
    * @param clazz the JVM class containing the compiled routines
    * @return the method handle if it exists

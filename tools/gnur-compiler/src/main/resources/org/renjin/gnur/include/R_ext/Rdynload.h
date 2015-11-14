@@ -58,7 +58,7 @@ typedef enum {R_ARG_IN, R_ARG_OUT, R_ARG_IN_OUT, R_IRRELEVANT} R_NativeArgStyle;
  some computations on the internal versions that are derived from
  these definitions.
 */
-typedef struct {
+typedef struct __MethodDef {
     const char *name;
     DL_FUNC     fun;
     int         numArgs;
@@ -68,20 +68,11 @@ typedef struct {
     
 } R_CMethodDef;
 
+
+
+typedef R_CMethodDef R_CallMethodDef;
+typedef R_CMethodDef R_ExternalMethodDef;
 typedef R_CMethodDef R_FortranMethodDef;
-
-
-
-typedef struct __MethodDef {
-    const char *name;
-    DL_FUNC     fun;
-    int         numArgs;
-/* In the future, we will put types in here for the different arguments.
-   We need a richer type system to do this effectively so that one
-   can specify types for new classes.
-*/
-} R_CallMethodDef;
-typedef R_CallMethodDef R_ExternalMethodDef;
 
 
 typedef struct _DllInfo DllInfo;

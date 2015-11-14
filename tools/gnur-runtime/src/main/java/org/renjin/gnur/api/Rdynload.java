@@ -3,12 +3,12 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.primitives.packaging.DllInfo;
+import org.renjin.primitives.packaging.DllSymbol;
 
 @SuppressWarnings("unused")
 public final class Rdynload {
 
   private Rdynload() { }
-
 
 
   public static int R_registerRoutines (DllInfo info, 
@@ -17,9 +17,31 @@ public final class Rdynload {
                                         ObjectPtr<MethodDef> fortranRoutines,
                                         ObjectPtr<MethodDef> externalRoutines) {
     
-    return 0;
+    addTo(info, DllSymbol.Convention.C, croutines);
+    addTo(info, DllSymbol.Convention.CALL, callRoutines);
+    addTo(info, DllSymbol.Convention.FORTRAN, fortranRoutines);
+    addTo(info, DllSymbol.Convention.EXTERNAL, externalRoutines);
     
+    return 0;
   }
+  
+  private static void addTo(DllInfo library, DllSymbol.Convention convention, ObjectPtr<MethodDef> methods) {
+    
+    if(methods != null) {
+      for(int i=0; ; i++) {
+        MethodDef def = methods.get(i);
+        if (def.fun == null) {
+          break;
+        }
+        DllSymbol symbol = new DllSymbol(library);
+        symbol.setMethodHandle(def.fun);
+        symbol.setConvention(convention);
+        symbol.setName(def.getName());
+        library.addSymbol(symbol);
+      }
+    }
+  }
+  
 //
 //   Rboolean R_useDynamicSymbols (DllInfo *info, Rboolean value)
 //

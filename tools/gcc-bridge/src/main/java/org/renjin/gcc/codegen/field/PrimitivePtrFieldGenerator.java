@@ -4,6 +4,8 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -104,12 +106,21 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator ptr) {
-
+      
+      if(!ptr.getPointerType().equals(getPointerType())) {
+        throw new InternalCompilerException("Type mismatch");
+      }
+      
       // Store field
       ptr.emitPushPtrArrayAndOffset(mv);
 
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, offsetFieldName, "I");
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, arrayFieldName, arrayTypeDescriptor());
+    }
+
+    @Override
+    public WrapperType getPointerType() {
+      return WrapperType.of(baseType);
     }
   }
 
@@ -123,6 +134,14 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     @Override
     public GimpleType getGimpleType() {
       return gimpleType;
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      instance.emitPushRecordRef(mv);
+      mv.visitFieldInsn(Opcodes.GETFIELD, className, arrayFieldName, arrayTypeDescriptor());
+      instance.emitPushRecordRef(mv);
+      mv.visitFieldInsn(Opcodes.GETFIELD, className, offsetFieldName, "I");
     }
 
     @Override

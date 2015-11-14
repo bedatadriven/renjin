@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.var;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -45,7 +46,8 @@ public class RecordPtrVarGenerator extends AbstractExprGenerator implements VarG
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    
+    mv.visitInsn(Opcodes.ACONST_NULL);
+    mv.visitVarInsn(ASTORE, varIndex);
   }
 
   private class ValueOf extends AbstractExprGenerator {

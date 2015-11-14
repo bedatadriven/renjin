@@ -33,7 +33,8 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    
+    mv.visitInsn(Opcodes.ACONST_NULL);
+    mv.visitVarInsn(Opcodes.ASTORE, varIndex);
   }
 
   @Override

@@ -2,6 +2,7 @@ package org.renjin.cli.build;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
@@ -31,6 +32,7 @@ public class PackageBuild {
    */
   private final File stagingDir;
 
+  private final File buildDir;
 
   /**
    * Directory for GCC work
@@ -51,8 +53,9 @@ public class PackageBuild {
     this.reporter = reporter;
     this.source = source;
     this.buildVersion = source.getVersion() + buildSuffix;
-    this.stagingDir = Files.createTempDir();
-    this.gccWorkDir = Files.createTempDir();
+    this.buildDir = createCleanBuildDir(source.getPackageDir());
+    this.stagingDir = new File(buildDir, "classes");
+    this.gccWorkDir = new File(buildDir, "gcc-work");
     this.outputDir = new File(
             stagingDir + File.separator + 
             source.getGroupId().replace('.', File.separatorChar) + File.separator + 
@@ -70,6 +73,22 @@ public class PackageBuild {
     mkdirs(mavenMetaDir);
     
     environmentFile = new File(outputDir, "environment");  
+  }
+
+  private static File createCleanBuildDir(File packageDir) {
+    File buildDir = new File(packageDir, "build");
+    if(buildDir.exists()) {
+      try {
+        FileUtils.deleteDirectory(buildDir);
+      } catch (IOException e) {
+        throw new BuildException("Failed to delete build dir", e);
+      }
+    }
+    boolean created = buildDir.mkdirs();
+    if(!created) {
+      throw new BuildException("Failed to create build dir");
+    }
+    return buildDir;
   }
 
   private void mkdirs(File dir) {

@@ -1,7 +1,9 @@
 package org.renjin.gcc.gimple;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.SymbolRef;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 public class GimpleVarDecl {
@@ -96,5 +98,15 @@ public class GimpleVarDecl {
 
   public void setExtern(boolean extern) {
     this.extern = extern;
+  }
+  
+  public Predicate<GimpleExpr> isReference() {
+    return new Predicate<GimpleExpr>() {
+      @Override
+      public boolean apply(GimpleExpr input) {
+        return input instanceof SymbolRef && 
+            ((SymbolRef) input).getId() == id;
+      }
+    };
   }
 }

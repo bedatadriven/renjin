@@ -30,7 +30,7 @@ public class FunPtrFieldGenerator extends FieldGenerator {
 
   @Override
   public GimpleType getType() {
-    return functionType;
+    return new GimplePointerType(functionType);
   }
 
   @Override

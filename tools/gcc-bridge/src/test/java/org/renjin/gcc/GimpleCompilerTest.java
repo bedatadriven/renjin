@@ -116,6 +116,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Double result = (Double) method.invoke(null);
     assertThat(result, equalTo(5000d));
   }
+  
+  @Test
+  public void static_init() throws Exception {
+    Class clazz = compile("static_init.c");
+    Method method = clazz.getMethod("test_name");
+    
+    BytePtr name = (BytePtr) method.invoke(null);
+    assertThat(name.nullTerminatedString(), equalTo("square"));
+  }
 
   @Test
   @Ignore
@@ -402,6 +411,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  @Ignore
   public void cpp() throws Exception {
     Class clazz = compile("rect.cpp");
 

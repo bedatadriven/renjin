@@ -13,6 +13,7 @@ public class GimpleCompilationUnit {
   private final List<GimpleFunction> functions = Lists.newArrayList();
   private final List<GimpleRecordTypeDef> recordTypes = Lists.newArrayList();
   private final List<GimpleVarDecl> globalVariables = Lists.newArrayList();
+  private CallingConvention callingConvention;
   private File sourceFile;
 
   /**
@@ -29,6 +30,14 @@ public class GimpleCompilationUnit {
       throw new IllegalStateException("Expected file name ending in .xx.gimple");
     }
     return filename.substring(0, firstDot);
+  }
+
+  public CallingConvention getCallingConvention() {
+    return callingConvention;
+  }
+
+  public void setCallingConvention(CallingConvention callingConvention) {
+    this.callingConvention = callingConvention;
   }
 
   /**

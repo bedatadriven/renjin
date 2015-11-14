@@ -5,6 +5,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -94,6 +95,7 @@ public class UnitClassGenerator {
     }
     
     // and any static initialization that is required
+    ExprFactory exprFactory = new ExprFactory(generatorFactory, symbolTable, unit.getCallingConvention());
     MethodVisitor mv = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
     mv.visitCode();
 
@@ -101,7 +103,7 @@ public class UnitClassGenerator {
       if(decl.getValue() != null) {
         try {
           ExprGenerator globalVariable = symbolTable.getVariable(decl).staticExprGenerator();
-          ExprGenerator value = generatorFactory.forExpression(decl.getType(), decl.getValue());
+          ExprGenerator value = exprFactory.findGenerator(decl.getValue());
           globalVariable.emitStore(mv, value);
 
         } catch (Exception e) {

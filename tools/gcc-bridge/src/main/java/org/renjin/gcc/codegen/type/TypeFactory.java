@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type;
 
-import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.UnimplementedException;
+import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.field.PrimitiveArrayFieldGenerator;
@@ -66,7 +66,7 @@ public abstract class TypeFactory {
     throw new UnsupportedOperationException("TODO: implement mallocExpression() in " + getClass().getName());
   }
 
-  public ExprGenerator constructorExpr(GeneratorFactory generatorFactory, GimpleConstructor value) {
+  public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO: implement constructorExpr() in " + getClass().getName());
   }
 }

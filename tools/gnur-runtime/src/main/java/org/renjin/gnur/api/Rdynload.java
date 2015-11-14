@@ -2,6 +2,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.primitives.packaging.DllInfo;
 
 @SuppressWarnings("unused")
 public final class Rdynload {

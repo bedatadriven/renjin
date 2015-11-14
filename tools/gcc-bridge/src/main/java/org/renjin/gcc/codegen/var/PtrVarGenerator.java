@@ -41,7 +41,10 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    // NOOP
+    mv.visitInsn(Opcodes.ACONST_NULL);
+    mv.visitVarInsn(ASTORE, arrayVariableIndex);
+    mv.visitInsn(Opcodes.ICONST_0);
+    mv.visitVarInsn(ISTORE, offsetVariableIndex);
   }
 
   @Override
@@ -120,7 +123,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
     @Override
     public void emitPrimitiveValue(MethodVisitor mv) {
       // IALOAD (array, offset) => (value)
-      emitPushArray(mv);
+      PtrVarGenerator.this.emitPushPtrArray(mv);
       // compute index ( pointer offset + array index)
       pushComputeIndex(mv);
 
@@ -133,7 +136,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
       Preconditions.checkState(valueGenerator.getJvmPrimitiveType().equals(componentType.jvmType()));
 
       // IALOAD (array, offset) => (value)
-      emitPushArray(mv);
+      PtrVarGenerator.this.emitPushPtrArray(mv);
       pushComputeIndex(mv);
       valueGenerator.emitPrimitiveValue(mv);
 
@@ -180,7 +183,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      emitPushPtrArray(mv);
+      PtrVarGenerator.this.emitPushPtrArray(mv);
       element.pushComputeIndex(mv);
     }
   }

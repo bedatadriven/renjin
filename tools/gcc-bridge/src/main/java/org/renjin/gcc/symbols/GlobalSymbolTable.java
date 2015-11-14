@@ -11,6 +11,7 @@ import org.renjin.gcc.codegen.call.StaticMethodCallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
+import org.renjin.gcc.gimple.expr.SymbolRef;
 import org.renjin.gcc.runtime.Builtins;
 
 import java.lang.reflect.Method;
@@ -26,7 +27,7 @@ import static java.lang.String.format;
  * <p>This includes built-in symbols, externally provided methods or variables, and 
  * functions and global variables with external linkage.</p>
  */
-public class GlobalSymbolTable {
+public class GlobalSymbolTable implements SymbolTable {
 
   private GeneratorFactory generators;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
@@ -36,7 +37,8 @@ public class GlobalSymbolTable {
     this.generators = generators;
   }
 
-  public CallGenerator getCallGenerator(GimpleFunctionRef ref, CallingConvention callingConvention) {
+  @Override
+  public CallGenerator findCallGenerator(GimpleFunctionRef ref, CallingConvention callingConvention) {
     String mangledName = callingConvention.mangleFunctionName(ref.getName());
     CallGenerator generator = functions.get(mangledName);
     if(generator == null) {
@@ -45,8 +47,9 @@ public class GlobalSymbolTable {
     return generator;
   }
   
+  @Override
   public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
-    FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) getCallGenerator(ref, callingConvention);
+    FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) findCallGenerator(ref, callingConvention);
     return functionCallGenerator.getHandle();
   }
 
@@ -103,8 +106,14 @@ public class GlobalSymbolTable {
     throw new IllegalArgumentException(format("No method named '%s' in %s", methodName, declaringClass.getName()));
   }
 
-  public ExprGenerator getVariable(String name) {
-    return globalVariables.get(name);
+  @Override
+  public ExprGenerator getVariable(SymbolRef ref) {
+    // Global variables are only resolved by name...
+    if(ref.getName() == null) {
+      return null;
+    } else {
+      return globalVariables.get(ref.getName());
+    }
   }
   
   public void addVariable(String name, ExprGenerator exprGenerator) {

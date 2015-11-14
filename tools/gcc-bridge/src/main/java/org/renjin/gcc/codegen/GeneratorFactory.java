@@ -3,13 +3,11 @@ package org.renjin.gcc.codegen;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.param.*;
 import org.renjin.gcc.codegen.ret.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.CharPtr;
@@ -201,28 +199,5 @@ public class GeneratorFactory {
       map.put(parameter, forParameter(parameter.getType()));
     }
     return map;
-  }
-
-  public static ExprGenerator forConstant(GimpleConstant constant) {
-    if (constant.isNull()) {
-      return new NullPtrGenerator(constant.getType());
-    } else if (constant instanceof GimplePrimitiveConstant) {
-      return new PrimitiveConstValueGenerator((GimplePrimitiveConstant) constant);
-    } else if (constant instanceof GimpleComplexConstant) {
-      return new ComplexConstGenerator((GimpleComplexConstant) constant);
-    } else if (constant instanceof GimpleStringConstant) {
-      return new StringConstantGenerator(constant);
-    } else {
-      throw new UnsupportedOperationException("constant: " + constant);
-    }
-  }
-
-  public ExprGenerator forExpression(GimpleType type, GimpleExpr value) {
-    if(value instanceof GimpleConstructor) {
-      return forType(type).constructorExpr(this, (GimpleConstructor)value);
-    } else if(value instanceof GimpleConstant) {
-      return forConstant((GimpleConstant) value);
-    }
-    throw new UnsupportedOperationException("Expression: " + value);
   }
 }

@@ -10,6 +10,8 @@ import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 
+import static org.objectweb.asm.Opcodes.ASTORE;
+
 
 /**
  * Pointer to a pointer to a primitive, for example {@code double**}
@@ -39,7 +41,10 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    
+    mv.visitInsn(Opcodes.ACONST_NULL);
+    mv.visitVarInsn(ASTORE, arrayVarIndex);
+    mv.visitInsn(Opcodes.ICONST_0);
+    mv.visitVarInsn(Opcodes.ISTORE, offsetVarIndex);
   }
 
   @Override

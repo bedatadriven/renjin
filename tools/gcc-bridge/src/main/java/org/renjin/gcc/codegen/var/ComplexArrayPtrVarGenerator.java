@@ -111,7 +111,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      emitPushArray(mv);
+      ComplexArrayPtrVarGenerator.this.emitPushPtrArray(mv);
       mv.visitInsn(Opcodes.DUP);
       // stack: (array, array)
 
@@ -157,14 +157,14 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
     @Override
     public void emitPrimitiveValue(MethodVisitor mv) {
-      emitPushArray(mv);
+      ComplexArrayPtrVarGenerator.this.emitPushPtrArray(mv);
       emitPushIndex(mv);
       mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));
     }
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      emitPushArray(mv);
+      ComplexArrayPtrVarGenerator.this.emitPushPtrArray(mv);
       emitPushIndex(mv);
 
       valueGenerator.emitPrimitiveValue(mv);

@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.field;
 
-import com.google.common.base.Preconditions;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -8,9 +7,7 @@ import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -64,32 +61,6 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
     throw new UnsupportedOperationException();
   }
 
-  @Override
-  public void emitStaticInitializer(MethodVisitor mv, GimpleConstructor expr) {
-    Preconditions.checkArgument(arrayType.getElementCount() >= 0);
-    
-    PrimitiveConstValueGenerator.emitInt(mv, arrayType.getElementCount());
-    mv.visitTypeInsn(Opcodes.ANEWARRAY, recordGenerator.getClassName());
-    
-    for(int i=0;i<arrayType.getElementCount();++i) {
-      // duplicate the array to keep it on the stack
-      mv.visitInsn(Opcodes.DUP);
-
-      // array index
-      PrimitiveConstValueGenerator.emitInt(mv, i);
-      
-      recordGenerator.emitConstructor(mv, expr.<GimpleConstructor>getElement(i));
-      
-      mv.visitInsn(Opcodes.AASTORE);
-    }
-    
-    // store the newly created field to the field
-    mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, fieldDescriptor);
-    
-    mv.visitEnd();
-    
-  }
-
   private class StaticArrayValue extends AbstractExprGenerator {
 
     @Override
@@ -112,6 +83,11 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
     public void emitPushArray(MethodVisitor mv) {
       mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, fieldDescriptor);
     }
+
+    @Override
+    public ExprGenerator elementAt(ExprGenerator indexGenerator) {
+      return new StaticArrayElement(indexGenerator);
+    }
   }
   
   private class StaticArrayPtr extends AbstractExprGenerator {
@@ -129,6 +105,32 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, fieldDescriptor);
       mv.visitInsn(Opcodes.ICONST_0);
+    }
+  }
+  
+  private class StaticArrayElement extends AbstractExprGenerator {
+    
+    private ExprGenerator indexGenerator;
+
+    public StaticArrayElement(ExprGenerator indexGenerator) {
+      this.indexGenerator = indexGenerator;
+    }
+
+    @Override
+    public GimpleType getGimpleType() {
+      return recordGenerator.getGimpleType();
+    }
+
+    @Override
+    public void emitPushRecordRef(MethodVisitor mv) {
+      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, fieldDescriptor);
+      indexGenerator.emitPrimitiveValue(mv);
+      mv.visitInsn(Opcodes.AALOAD);
+    }
+
+    @Override
+    public ExprGenerator memberOf(String memberName) {
+      return recordGenerator.getFieldGenerator(memberName).memberExprGenerator(this);
     }
   }
   

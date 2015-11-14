@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * 
  */
-public class LocalVariableTable {
+public class LocalVariableTable implements SymbolTable {
 
   private final UnitSymbolTable parent;
   private Map<Integer, ExprGenerator> variableMap = Maps.newHashMap();
@@ -31,7 +31,8 @@ public class LocalVariableTable {
     variableMap.put(gimpleId, variable);
   }
 
-  public ExprGenerator get(SymbolRef ref) {
+  @Override
+  public ExprGenerator getVariable(SymbolRef ref) {
     ExprGenerator variable = variableMap.get(ref.getId());
     if(variable == null) {
       if (parent == null) {
@@ -43,7 +44,7 @@ public class LocalVariableTable {
     return variable;
   }
 
-  public ExprGenerator get(GimpleVarDecl decl) {
+  public ExprGenerator getVariable(GimpleVarDecl decl) {
     ExprGenerator varGenerator = variableMap.get(decl.getId());
     if(varGenerator == null) {
       throw new IllegalStateException("No variable named " + decl.getName() + " [id=" + decl.getId() + "]");

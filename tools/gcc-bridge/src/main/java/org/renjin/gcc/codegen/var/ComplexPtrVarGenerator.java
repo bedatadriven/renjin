@@ -10,6 +10,9 @@ import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+import static org.objectweb.asm.Opcodes.ASTORE;
+import static org.objectweb.asm.Opcodes.ISTORE;
+
 /**
  * Generates load/store instructions and more for a variable of type {@code complex *}
  * 
@@ -40,7 +43,10 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    
+    mv.visitInsn(Opcodes.ACONST_NULL);
+    mv.visitVarInsn(ASTORE, arrayIndex);
+    mv.visitInsn(Opcodes.ICONST_0);
+    mv.visitVarInsn(ISTORE, offsetIndex);
   }
 
   @Override

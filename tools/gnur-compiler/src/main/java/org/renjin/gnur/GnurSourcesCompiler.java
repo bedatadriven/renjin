@@ -10,7 +10,11 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gnur.api.*;
+import org.renjin.gnur.api.MethodDef;
+import org.renjin.gnur.api.Rdynload;
+import org.renjin.gnur.api.RenjinDebug;
+import org.renjin.gnur.api.Rinternals;
+import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.sexp.SEXP;
 
 import java.io.File;

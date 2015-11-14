@@ -102,6 +102,7 @@ public class Gcc {
     GimpleParser parser = new GimpleParser();
     GimpleCompilationUnit unit = parser.parse(gimpleFile);
     unit.setSourceFile(gimpleFile);
+    unit.setCallingConvention(CallingConventions.fromFile(source));
     for(GimpleFunction fn: unit.getFunctions()) {
       fn.setCallingConvention(CallingConventions.fromFile(source));
     }

@@ -29,6 +29,8 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
   public boolean transform(GimpleCompilationUnit unit, GimpleFunction fn) {
 
     boolean updated = false;
+    
+    System.out.println(fn);
 
     for(GimpleVarDecl decl : fn.getVariableDeclarations()) {
       if(isVoidPtr(decl.getType())) {
@@ -57,10 +59,15 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
       GimpleType deducedType = finder.possibleTypes.iterator().next();
       System.out.println("...resolved to " + deducedType);
       decl.setType(deducedType);
+      updateVarRefTypes(fn, decl);
       return true;
     } else {
       return false;
     }
+  }
+
+  private void updateVarRefTypes(GimpleFunction fn, GimpleVarDecl decl) {
+    fn.replaceAll(decl.isReference(), new GimpleVariableRef(decl.getId(), decl.getType()));
   }
 
   /**
@@ -96,9 +103,8 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     }
 
     private void inferPossibleTypes(GimpleExpr expr) {
-      GimpleType type = inferTypeFromAssignment(expr);
-      if(type != null && !isVoidPtr(type)) {
-        possibleTypes.add(type);
+      if(expr.getType() != null && !isVoidPtr(expr.getType())) {
+        possibleTypes.add(expr.getType());
       }
     }
 
@@ -108,27 +114,6 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     private boolean isReference(GimpleExpr expr) {
       return expr instanceof GimpleVariableRef &&
           ((GimpleVariableRef) expr).getId() == decl.getId();
-    }
-
-    /**
-     * Infers the type of the void pointer from the lhs to which it is assigned.
-     */
-    private GimpleType inferTypeFromAssignment(GimpleExpr expr) {
-      if(expr instanceof GimpleVariableRef) {
-        // search local variables
-        for(GimpleVarDecl decl : fn.getVariableDeclarations()) {
-          if(decl.getId() == ((GimpleVariableRef) expr).getId()) {
-            return decl.getType();
-          }
-        }
-        // search global variables
-        for(GimpleVarDecl decl : unit.getGlobalVariables()) {
-          if(decl.getName().equals(decl.getName())) {
-            return decl.getType();
-          }
-        }
-      }
-      return null;
     }
   }
 }

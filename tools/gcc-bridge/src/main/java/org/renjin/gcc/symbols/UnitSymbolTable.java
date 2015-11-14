@@ -22,7 +22,7 @@ import java.util.Map;
  * 
  * <p>This is includes functions defined within the compilation unit.</p>
  */
-public class UnitSymbolTable {
+public class UnitSymbolTable implements SymbolTable {
   
   private final GlobalSymbolTable globalSymbolTable;
   private String className;
@@ -40,7 +40,7 @@ public class UnitSymbolTable {
       return fieldGenerator.staticExprGenerator();
     }
     
-    return globalSymbolTable.getVariable(ref.getName());
+    return globalSymbolTable.getVariable(ref);
   }
 
   public FieldGenerator getVariable(GimpleVarDecl decl) {
@@ -85,7 +85,7 @@ public class UnitSymbolTable {
       FunctionGenerator functionGenerator = functions.get(ref.getName());
       return new FunctionCallGenerator(functionGenerator);
     }
-    return globalSymbolTable.getCallGenerator(ref, callingConvention);
+    return globalSymbolTable.findCallGenerator(ref, callingConvention);
   }
 
 

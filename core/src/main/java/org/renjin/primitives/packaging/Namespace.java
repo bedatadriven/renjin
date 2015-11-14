@@ -169,8 +169,6 @@ public class Namespace {
   }
 
   private void importDynamicLibrary(NamespaceFile.DynLibEntry entry) {
-
-
     try {
       DllInfo info = new DllInfo(entry.getLibraryName());
 

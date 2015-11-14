@@ -20,6 +20,7 @@ import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
 import java.awt.*;
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -143,16 +144,6 @@ public class Native {
   /**
    * Invokes a method compiled to JVM byte code from Fortran, applying the correct calling
    * conventions, etc. This method differs from the
-   *
-   * @param context
-   * @param rho
-   * @param methodName
-   * @param callArguments
-   * @param packageName
-   * @param naOk
-   * @param dup
-   * @param encoding
-   * @return
    */
   @Builtin(".Fortran")
   public static SEXP dotFortran(@Current Context context,
@@ -259,31 +250,69 @@ public class Native {
     }
     throw new EvalException("Could not find method %s in class %s", methodName, className);
   }
-
+  
   @Builtin(".Call")
   public static SEXP dotCall(@Current Context context,
                              @Current Environment rho,
-                             String methodName,
+                             SEXP methodExp,
                              @ArgumentList ListVector callArguments,
                              @NamedFlag("PACKAGE") String packageName,
                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
 
-    Class clazz;
-    if(packageName != null) {
-      clazz = getPackageClass(packageName, context);
-    } else if(className != null) {
-      clazz = Class.forName(className);
+    if(methodExp.inherits("NativeSymbolInfo")) {
+     
+      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+      MethodHandle methodHandle = address.getInstance();
+      if(methodHandle.type().parameterCount() != callArguments.length()) {
+        throw new EvalException("Expected %d arguments, found %d", 
+            methodHandle.type().parameterCount(),
+            callArguments.length());
+      }
+      MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
+      SEXP[] arguments = toSexpArray(callArguments);
+      try {
+        if (methodHandle.type().returnType().equals(void.class)) {
+          transformedHandle.invokeExact(arguments);
+          return Null.INSTANCE;
+        } else {
+          return (SEXP) transformedHandle.invokeExact(arguments);
+        }
+      } catch (Error e) {
+        throw e;
+      } catch (Throwable e) {
+        throw new EvalException("Exception calling " + methodExp, e);
+      }
+      
+    } else if(methodExp instanceof StringVector) {
+
+      String methodName = ((StringVector) methodExp).getElementAsString(0);
+      
+      Class clazz;
+      if (packageName != null) {
+        clazz = getPackageClass(packageName, context);
+      } else if (className != null) {
+        clazz = Class.forName(className);
+      } else {
+        throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
+      }
+
+      return delegateToJavaMethod(context, clazz, methodName, callArguments);
     } else {
-      throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
+      throw new EvalException("Invalid method argument: " + methodExp);
     }
-    
-    return delegateToJavaMethod(context, clazz, methodName, callArguments);
+  }
+
+  private static SEXP[] toSexpArray(ListVector callArguments) {
+    SEXP args[] = new SEXP[callArguments.length()];
+    for (int i = 0; i < callArguments.length(); i++) {
+      args[i] = callArguments.get(i);
+    }
+    return args;
   }
 
   /**
    * Dispatches what were originally calls to "native" libraries (C/Fortran/etc)
    * to a Java class. The Calling convention (.C/.Fortran/.Call) are ignored.
-   * @param className 
    *
    */
   public static SEXP delegateToJavaMethod(Context context,

@@ -24,7 +24,6 @@ package org.renjin.primitives.io.serialization;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Closeables;
-
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.NumericLiterals;
@@ -168,60 +167,60 @@ public class RDataReader {
         return Symbol.MISSING_ARG;
       case BASENAMESPACE_SXP:
         return readContext.getBaseNamespaceEnvironment();
-      case REFSXP:
+      case SexpType.REFSXP:
         return readReference(flags);
       case PERSISTSXP:
         return readPersistentExp();
-      case SYMSXP:
+      case SexpType.SYMSXP:
         return readSymbol();
       case PACKAGESXP:
         return readPackage();
       case NAMESPACESXP:
         return readNamespace();
-      case ENVSXP:
+      case SexpType.ENVSXP:
         return readEnv(flags);
-      case LISTSXP:
+      case SexpType.LISTSXP:
         return readPairList(flags);
-      case LANGSXP:
+      case SexpType.LANGSXP:
         return readLangExp(flags);
-      case CLOSXP:
+      case SexpType.CLOSXP:
         return readClosure(flags);
-      case PROMSXP:
+      case SexpType.PROMSXP:
         return readPromise(flags);
-      case DOTSXP:
+      case SexpType.DOTSXP:
         return readDotExp(flags);
-      case EXTPTRSXP:
+      case SexpType.EXTPTRSXP:
         return readExternalPointer(flags);
       case WEAKREFSXP:
         return readWeakReference(flags);
-      case SPECIALSXP:
-      case BUILTINSXP:
+      case SexpType.SPECIALSXP:
+      case SexpType.BUILTINSXP:
         return readPrimitive(flags);
-      case CHARSXP:
+      case SexpType.CHARSXP:
         return readCharExp(flags);
-      case LGLSXP:
+      case SexpType.LGLSXP:
         return readLogical(flags);
-      case INTSXP:
+      case SexpType.INTSXP:
         return readIntVector(flags);
-      case REALSXP:
+      case SexpType.REALSXP:
         return readDoubleExp(flags);
-      case CPLXSXP:
+      case SexpType.CPLXSXP:
         return readComplexExp(flags);
-      case STRSXP:
+      case SexpType.STRSXP:
         return readStringVector(flags);
-      case VECSXP:
+      case SexpType.VECSXP:
         return readListExp(flags);
-      case EXPRSXP:
+      case SexpType.EXPRSXP:
         return readExpExp(flags);
-      case BCODESXP:
+      case SexpType.BCODESXP:
         throw new IOException("Byte code expressions are not supported.");
       case CLASSREFSXP:
         throw new IOException("this version of R cannot read class references");
       case GENERICREFSXP:
         throw new IOException("this version of R cannot read generic function references");
-      case RAWSXP:
+      case SexpType.RAWSXP:
         return rawRawVector(flags);
-      case S4SXP:
+      case SexpType.S4SXP:
         return readS4XP(flags);
       default:
         throw new IOException(String.format("ReadItem: unknown type %d, perhaps written by later version of R",
@@ -352,7 +351,7 @@ public class RDataReader {
 
     // always followed by a CHARSEXP
     int flags = in.readInt();
-    if(Flags.getType(flags) != SerializationFormat.CHARSXP) {
+    if(Flags.getType(flags) != SexpType.CHARSXP) {
       throw new IllegalStateException("Expected a CHARSXP");
     }
     String name;

@@ -82,7 +82,7 @@ class Flags {
   }
   
   public static int computePromiseFlags(Promise promise) {
-    int flags = SerializationFormat.PROMSXP;
+    int flags = SexpType.PROMSXP;
 
     if(promise.getAttributes() != AttributeMap.EMPTY) {
       flags |= HAS_ATTR_BIT_MASK;

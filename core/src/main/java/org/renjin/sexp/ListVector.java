@@ -628,6 +628,4 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       return value;
     }
   }
-
-
 }

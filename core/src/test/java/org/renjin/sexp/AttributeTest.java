@@ -38,6 +38,11 @@ public class AttributeTest extends EvalTestCase {
   }
   
   @Test
+  public void noAttributesIsNull() {
+    assertThat( eval("attributes(1)"), equalTo((SEXP)Null.INSTANCE));
+  }
+  
+  @Test
   public void arrayNamesDropsNames() {
     eval("x <- c(a=1,b=2,c=3)");
     eval("dim(x) <- 3L");
@@ -63,8 +68,5 @@ public class AttributeTest extends EvalTestCase {
     assertThat(eval("attr(x, 'foo', exact=FALSE)"), equalTo(c("bar")));
     assertThat(eval("attr(x, 'f', exact=FALSE)"), equalTo(c("bar")));
     assertThat(eval("attr(x, 'f', exact=TRUE)"), equalTo(NULL));
-
-
-    
   }
 }

@@ -348,7 +348,7 @@ offset <- function(object) object
 		# need to transfer _all but tsp and dim_ attributes, possibly lost
     # by subsetting in na.action.
 		updatedDf <- list()
-		for(i in seq_along(originalData)) {
+		for(i in seq_along(cleanedDf)) {
 			updatedDf[[i]] <- .copyMostAttributesNoTs(cleanedDf[[i]], originalData[[i]])
 		}
 		attributes(updatedDf) <- attributes(cleanedDf)
@@ -449,8 +449,12 @@ model.frame.default <-
   ## Construct the actual data frame 
   ## This part used to be in models.c
   
+ # cat(sprintf("variables = %s, extras = %s\n", deparse(variables), deparse(extras)))
+  
   # First make a list of all variables that need to go into the data.frame
-  data <- c(variables, extras)
+  # Include only those extras that are not NULL
+  nullExtras <- sapply(extras, is.null)
+  data <- c(variables, extras[!nullExtras])
   
   # Apply names, decorating extra variables with parentheses 
   names(data) <- c(varnames, sapply(extranames, function(n) sprintf("(%s)", n)))

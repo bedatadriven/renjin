@@ -2,6 +2,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.gcc.runtime.*;
 
@@ -10,6 +11,11 @@ public final class Arith {
 
   private Arith() { }
 
+  public static final double R_NaN = Double.NaN;		/* IEEE NaN */
+  public static final double R_PosInf = Double.POSITIVE_INFINITY;	/* IEEE Inf */
+  public static final double R_NegInf = Double.NEGATIVE_INFINITY;	/* IEEE -Inf */
+  public static final double R_NaReal = DoubleVector.NA;	/* NA_REAL: IEEE */
+  public static final int	 R_NaInt = IntVector.NA;	/* NA_INTEGER:= INT_MIN currently */
 
   public static int R_IsNA(double p0) {
     return DoubleVector.isNA(p0) ? 1 : 0;

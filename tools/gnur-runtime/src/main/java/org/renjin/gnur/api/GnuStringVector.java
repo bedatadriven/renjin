@@ -1,5 +1,6 @@
 package org.renjin.gnur.api;
 
+import com.google.common.base.Charsets;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.StringVector;
@@ -11,6 +12,10 @@ public class GnuStringVector extends StringVector {
   
   private BytePtr[] values;
 
+  public GnuStringVector(String string) {
+    this(new BytePtr[] { BytePtr.nullTerminatedString(string, Charsets.UTF_8) });
+  }
+  
   public GnuStringVector(BytePtr[] values) {
     this(values, AttributeMap.EMPTY);
   }

@@ -20,13 +20,11 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   @Override
   public ExprGenerator addressOf() {
     throw new UnimplementedException(getClass(), "addressOf");
-
   }
 
   @Override
   public ExprGenerator realPart() {
     throw new UnimplementedException(getClass(), "realPart");
-
   }
 
   @Override
@@ -38,7 +36,6 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   public ExprGenerator elementAt(ExprGenerator indexGenerator) {
     throw new UnimplementedException(getClass(), "elementAt");
   }
-
 
   @Override
   public final Type getJvmPrimitiveType() {

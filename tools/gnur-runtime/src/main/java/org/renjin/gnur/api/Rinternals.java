@@ -1,6 +1,7 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import com.google.common.base.Charsets;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
 import org.renjin.sexp.*;
@@ -12,6 +13,65 @@ public final class Rinternals {
 
   private Rinternals() { }
 
+  /* Evaluation Environment */
+  public static SEXP	R_GlobalEnv;	    /* The "global" environment */
+
+  public static SEXP  R_EmptyEnv;	    /* An empty environment at the root of the
+				    	environment tree */
+  public static SEXP  R_BaseEnv;	    /* The base environment; formerly R_NilValue */
+  public static SEXP	R_BaseNamespace;    /* The (fake) namespace for base */
+  public static SEXP	R_NamespaceRegistry;/* Registry for registered namespaces */
+
+  public static SEXP	R_Srcref;           /* Current srcref, for debuggers */
+
+  /* Special Values */
+  public static SEXP	R_NilValue = Null.INSTANCE;	    /* The nil object */
+  public static  SEXP	R_UnboundValue = Symbol.UNBOUND_VALUE;	    /* Unbound marker */
+  public static  SEXP	R_MissingArg = Symbol.MISSING_ARG;	    /* Missing argument marker */
+
+  public static SEXP	R_RestartToken;     /* Marker for restarted function calls */
+
+  /* Symbol Table Shortcuts */
+  public static  SEXP	R_baseSymbol = Symbol.get("base"); // <-- backcompatible version of:
+  public static  SEXP	R_BaseSymbol = Symbol.get("base");	// "base"
+  public static  SEXP	R_BraceSymbol = Symbol.get("{");	    /* "{" */
+  public static  SEXP	R_Bracket2Symbol = Symbol.get("[[");   /* "[[" */
+  public static  SEXP	R_BracketSymbol = Symbol.get("[");    /* "[" */
+  public static  SEXP	R_ClassSymbol = Symbol.get("class");	    /* "class" */
+  public static  SEXP	R_DeviceSymbol = Symbol.get(".Device");	    /* ".Device" */
+  public static  SEXP	R_DimNamesSymbol = Symbol.get("dimnames");   /* "dimnames" */
+  public static  SEXP	R_DimSymbol = Symbol.get("dim");	    /* "dim" */
+  public static  SEXP	R_DollarSymbol = Symbol.get("$");	    /* "$" */
+  public static  SEXP	R_DotsSymbol = Symbol.get("...");	    /* "..." */
+  public static  SEXP	R_DoubleColonSymbol = Symbol.get("::"); // "::"
+  public static  SEXP	R_DropSymbol = Symbol.get("drop");	    /* "drop" */
+  public static  SEXP	R_LastvalueSymbol = Symbol.get(".Last.value");  /* ".Last.value" */
+  public static  SEXP	R_LevelsSymbol = Symbol.get("level");	    /* "levels" */
+  public static  SEXP	R_ModeSymbol = Symbol.get("mode");	    /* "mode" */
+  public static  SEXP	R_NaRmSymbol = Symbol.get("na.rm");	    /* "na.rm" */
+  public static  SEXP	R_NameSymbol = Symbol.get("name");	    /* "name" */
+  public static  SEXP	R_NamesSymbol = Symbol.get("names");	    /* "names" */
+  public static  SEXP	R_NamespaceEnvSymbol = Symbol.get(".__NAMESPACE__.");// ".__NAMESPACE__."
+  public static  SEXP	R_PackageSymbol = Symbol.get("package");    /* "package" */
+  public static  SEXP	R_PreviousSymbol = Symbol.get("previous");   /* "previous" */
+  public static  SEXP	R_QuoteSymbol = Symbol.get("quote");	    /* "quote" */
+  public static  SEXP	R_RowNamesSymbol = Symbol.get("row.names");   /* "row.names" */
+  public static  SEXP	R_SeedsSymbol = Symbol.get(".Random.seed");	    /* ".Random.seed" */
+  public static  SEXP	R_SortListSymbol = Symbol.get("sort.list");   /* "sort.list" */
+  public static  SEXP	R_SourceSymbol = Symbol.get("source");	    /* "source" */
+  public static  SEXP	R_SpecSymbol = Symbol.get("spec");	// "spec"
+  public static  SEXP	R_TripleColonSymbol = Symbol.get(":::");// ":::"
+  public static  SEXP	R_TspSymbol = Symbol.get("tsp");	    /* "tsp" */
+
+  public static  SEXP  R_dot_defined = Symbol.get(".defined");      /* ".defined" */
+  public static  SEXP  R_dot_Method = Symbol.get(".Method");       /* ".Method" */
+  public static  SEXP	R_dot_packageName = Symbol.get(".packageName");// ".packageName"
+  public static  SEXP  R_dot_target = Symbol.get(".target");       /* ".target" */
+
+/* Missing Values - others from Arith.h */
+  public static  SEXP	R_NaString = null;	    /* NA_STRING as a CHARSXP */
+  public static  SEXP	R_BlankString = new GnuCharSexp("");	    /* "" as a CHARSXP */
+  public static  SEXP	R_BlankScalarString = new GnuStringVector("");	    /* "" as a STRSXP */
 
 
   public static BytePtr R_CHAR(SEXP x) {
@@ -234,7 +294,7 @@ public final class Rinternals {
   public static void SET_STRING_ELT(SEXP x, /*R_xlen_t*/ int index, SEXP value) {
     GnuStringVector stringVector = (GnuStringVector) x;
     GnuCharSexp charValue = (GnuCharSexp) value;
-    
+
     stringVector.set(index, charValue);
   }
 
@@ -558,7 +618,7 @@ public final class Rinternals {
 //      CoercionWarning(warn);
 //      return res;
     }
-    return DoubleVector.NA;  
+    return DoubleVector.NA;
   }
 
 
@@ -844,10 +904,10 @@ public final class Rinternals {
       } else {
         return 1;
       }
-    
+
     } else if (Rf_isFrame(s)) {
       return Rf_length(s);
-      
+
     } else {
       throw new EvalException("object is not a matrix");
     }
@@ -1462,7 +1522,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_mkString");
   }
 
-  
+
   public static int Rf_nlevels(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_nlevels");
   }

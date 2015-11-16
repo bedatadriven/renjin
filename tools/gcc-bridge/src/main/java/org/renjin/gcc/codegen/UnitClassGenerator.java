@@ -1,8 +1,10 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.collect.Lists;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.ExprFactory;
@@ -16,6 +18,9 @@ import org.renjin.gcc.symbols.UnitSymbolTable;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -30,6 +35,8 @@ public class UnitClassGenerator {
 
   private UnitSymbolTable symbolTable;
   private final GeneratorFactory generatorFactory;
+  
+  private List<GimpleVarDecl> varToGenerate = Lists.newArrayList();
 
   private ClassWriter cw;
   private ClassVisitor cv;
@@ -37,20 +44,37 @@ public class UnitClassGenerator {
   private PrintWriter pw;
 
 
-  public UnitClassGenerator(GeneratorFactory generatorFactory, GlobalSymbolTable functionTable, GimpleCompilationUnit unit, String className) {
+  public UnitClassGenerator(GeneratorFactory generatorFactory,
+                            GlobalSymbolTable functionTable,
+                            Map<String, Field> providedVariables, GimpleCompilationUnit unit,
+                            String className) {
     this.unit = unit;
     this.className = className;
     this.generatorFactory = generatorFactory;
     this.symbolTable = new UnitSymbolTable(functionTable, className);
 
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
-      symbolTable.addGlobalVariable(decl, generatorFactory.forField(className, decl.getName(), decl.getType()));
+      if(isProvided(providedVariables, decl)) {
+        // TODO: this requires the jvm field to use the same representation as we would
+        // use when compiling. Should check and perhaps provide an adaptation
+        Field providedField = providedVariables.get(decl.getName());
+        symbolTable.addGlobalVariable(decl, generatorFactory.forField(
+            Type.getInternalName(providedField.getDeclaringClass()), 
+            providedField.getName(), decl.getType()));
+      } else {
+        symbolTable.addGlobalVariable(decl, generatorFactory.forField(className, decl.getName(), decl.getType()));
+        varToGenerate.add(decl);
+      }
     }
 
     for (GimpleFunction function : unit.getFunctions()) {
       symbolTable.addFunction(className, function,
           new FunctionGenerator(className, function, generatorFactory, symbolTable));
     }
+  }
+
+  private boolean isProvided(Map<String, Field> providedVariables, GimpleVarDecl decl) {
+    return decl.isExtern() && providedVariables.containsKey(decl.getName());
   }
 
   public String getClassName() {
@@ -65,7 +89,7 @@ public class UnitClassGenerator {
     cv.visit(V1_7, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
     cv.visitSource(unit.getSourceName(), null);
     emitDefaultConstructor();
-    emitGlobalVariables(unit);
+    emitGlobalVariables();
     emitFunctions(unit);
     cv.visitEnd();
   }
@@ -80,12 +104,11 @@ public class UnitClassGenerator {
     mv.visitEnd();
   }
 
-  private void emitGlobalVariables(GimpleCompilationUnit unit) {
+  private void emitGlobalVariables() {
     
     // write the field declarations
-    for (GimpleVarDecl decl : unit.getGlobalVariables()) {
+    for (GimpleVarDecl decl : varToGenerate) {
       try {
-
         FieldGenerator generator = symbolTable.getVariable(decl);
         generator.emitStaticField(cv, decl);
       } catch (Exception e) {
@@ -99,7 +122,7 @@ public class UnitClassGenerator {
     MethodVisitor mv = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
     mv.visitCode();
 
-    for (GimpleVarDecl decl : unit.getGlobalVariables()) {
+    for (GimpleVarDecl decl : varToGenerate) {
       if(decl.getValue() != null) {
         try {
           ExprGenerator globalVariable = symbolTable.getVariable(decl).staticExprGenerator();
@@ -115,7 +138,6 @@ public class UnitClassGenerator {
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
-
   }
 
   private void emitFunctions(GimpleCompilationUnit unit) {

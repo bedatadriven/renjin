@@ -30,7 +30,8 @@ import org.renjin.gcc.gimple.type.GimpleType;
     @Type(value = GimpleImPartExpr.class, name = "imagpart_expr"),
     @Type(value = GimpleComplexConstant.class, name = "complex_cst"),
     @Type(value = GimpleResultDecl.class, name = "result_decl"),
-    @Type(value = GimpleNopExpr.class, name = "nop_expr")
+    @Type(value = GimpleNopExpr.class, name = "nop_expr"),
+    @Type(value = GimpleSsaName.class, name = "ssa_name")
 })
 public abstract class GimpleExpr {
 

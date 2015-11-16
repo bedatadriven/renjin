@@ -4,9 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-/**
- * Created by alex on 5-11-15.
- */
+
 public class BitwiseLRotateGenerator extends AbstractExprGenerator {
   
   private ExprGenerator bits;

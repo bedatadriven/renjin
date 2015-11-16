@@ -11,6 +11,7 @@ import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
 import org.renjin.gcc.codegen.*;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -18,6 +19,8 @@ import org.renjin.gcc.symbols.GlobalSymbolTable;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -43,6 +46,7 @@ public class GimpleCompiler  {
   private final GeneratorFactory generatorFactory = new GeneratorFactory();
   
   private final Map<String, Class> providedRecordTypes = Maps.newHashMap();
+  private final Map<String, Field> providedVariables = Maps.newHashMap();
   
   private String trampolineClassName;
 
@@ -69,6 +73,12 @@ public class GimpleCompiler  {
 
   public void addReferenceClass(Class<?> clazz) {
     globalSymbolTable.addMethods(clazz);
+
+    for (Field field : clazz.getFields()) {
+      if(Modifier.isStatic(field.getModifiers()) && Modifier.isStatic(field.getModifiers())) {
+        addVariable(field.getName(), field);
+      }
+    }
   }
 
   public void addMathLibrary() {
@@ -98,7 +108,11 @@ public class GimpleCompiler  {
     List<UnitClassGenerator> unitClassGenerators = Lists.newArrayList();
     for (GimpleCompilationUnit unit : units) {
       String className = getInternalClassName(unit.getName());
-      UnitClassGenerator generator = new UnitClassGenerator(generatorFactory, globalSymbolTable, unit, className);
+      UnitClassGenerator generator = new UnitClassGenerator(
+          generatorFactory, 
+          globalSymbolTable, 
+          providedVariables,
+          unit, className);
       unitClassGenerators.add(generator);
     }
 
@@ -226,5 +240,18 @@ public class GimpleCompiler  {
       }
     }
     Files.write(classByteArray, classFile);
+  }
+
+  public void addVariable(String globalVariableName, Class<?> declaringClass, String fieldName) {
+    try {
+      addVariable(globalVariableName, declaringClass.getField(fieldName));
+    } catch (NoSuchFieldException e) {
+      throw new InternalCompilerException("Cannot find field", e);
+    }
+  }
+
+  public void addVariable(String name, Field field) {
+    providedVariables.put(name, field);
+    
   }
 }

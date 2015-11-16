@@ -1,8 +1,10 @@
 // Initial template generated from Utils.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.sexp.SEXP;
-import org.renjin.gcc.runtime.*;
+import org.renjin.eval.EvalException;
+import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
 
 @SuppressWarnings("unused")
 public final class Utils {
@@ -94,7 +96,9 @@ public final class Utils {
   }
 
   public static void R_CheckUserInterrupt() {
-     throw new UnimplementedGnuApiMethod("R_CheckUserInterrupt");
+     if(Thread.interrupted()) {
+       throw new EvalException("Interrupted.");
+     }
   }
 
   public static void R_CheckStack() {

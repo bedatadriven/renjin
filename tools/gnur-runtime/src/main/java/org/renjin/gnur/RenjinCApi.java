@@ -16,8 +16,14 @@ import org.renjin.sexp.SEXP;
 import java.util.Set;
 
 /**
- * Emulation of the C API for code compiled via GCC
+ * Emulation of the C API for code compiled via GCC.
+ * 
+ * <p>Packages compiled with previous versions of the compiler may still reference this class
+ * so it shouldn't be removed.</p>
+ * 
+ * @deprecated Used by compiler version 0.7.xxx. See classes in org.renjin.gnur.api.
  */
+@Deprecated
 public class RenjinCApi {
 
 

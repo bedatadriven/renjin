@@ -718,7 +718,7 @@ public class Primitives {
     f("edit", /*edit*/ null, 11);
     f("dataentry", /*dataentry*/ null, 11);
     f("dataviewer", /*dataviewer*/ null, 111);
-    f("args", /*args*/ null, 11);
+    f("args", Args.class, 11);
     f("formals", Types.class, 11);
     f("body", Types.class, 11);
     f("bodyCode", /*bodyCode*/ null, 11);

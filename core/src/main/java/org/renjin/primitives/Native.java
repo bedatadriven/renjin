@@ -97,7 +97,9 @@ public class Native {
       if(DEBUG) {
         java.lang.System.out.println(callArguments.getName(i) + " = " + nativeArguments[i].toString());
       }
-      builder.add(callArguments.getName(i), sexpFromPointer(nativeArguments[i]));
+      builder.add(callArguments.getName(i), sexpFromPointer(
+              nativeArguments[i],
+              callArguments.get(i).getAttributes()));
     }
     return builder.build();
   }
@@ -113,14 +115,14 @@ public class Native {
     java.lang.System.out.println("PACKAGE = '" + packageName + "')");
   }
 
-  public static SEXP sexpFromPointer(Object ptr) {
+  public static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
     // Currently, our GCC bridge doesn't support storing values
     // to fields, so we can be confident that no other references
     // to these pointers exist
     if(ptr instanceof DoublePtr) {
-      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array);
+      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array, attributes);
     } else if(ptr instanceof IntPtr) {
-      return new IntArrayVector(((IntPtr) ptr).array);
+      return new IntArrayVector(((IntPtr) ptr).array, attributes);
     } else {
       throw new UnsupportedOperationException(ptr.toString());
     }

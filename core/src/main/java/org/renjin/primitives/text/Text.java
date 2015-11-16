@@ -256,17 +256,6 @@ public class Text {
   }
 
   /**
-   * Check for non-zero length string
-   * @param x the string to check
-   * @return true if the string of non-zero length, false if the string is empty
-   */
-  @Builtin
-  @DataParallel(passNA = true)
-  public static boolean nzchar(String x) {
-    return StringVector.isNA(x) || x.length() != 0;
-  }
-
-  /**
    * Substitute the first pattern in a string
    * @param pattern a regular expression pattern to look for
    * @param replacement the string with which to replace matches. Can contain backreferences

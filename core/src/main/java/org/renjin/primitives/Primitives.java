@@ -557,7 +557,6 @@ public class Primitives {
 /* String Manipulation */
 
     f("nchar", Text.class, 11);
-    f("nzchar", Text.class, 1);
     f("substr", Text.class, 11);
     f("substr<-", Text.class, 11);
     f("strsplit", Text.class, 11);

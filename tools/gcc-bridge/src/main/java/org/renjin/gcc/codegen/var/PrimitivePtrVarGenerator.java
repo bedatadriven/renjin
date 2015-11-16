@@ -13,7 +13,7 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * Generates loads and stores from a pointer variable
  */
-public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerator, ExprGenerator {
+public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements VarGenerator, ExprGenerator {
 
   private GimpleIndirectType type;
 
@@ -27,13 +27,12 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
    */
   private int offsetVariableIndex;
 
-  public PtrVarGenerator(GimpleType type, int arrayVariableIndex, int offsetVariableIndex) {
+  public PrimitivePtrVarGenerator(GimpleType type, int arrayVariableIndex, int offsetVariableIndex) {
     this.type = (GimpleIndirectType) type;
     this.arrayVariableIndex = arrayVariableIndex;
     this.offsetVariableIndex = offsetVariableIndex;
   }
-
-
+  
   @Override
   public GimpleType getGimpleType() {
     return type;
@@ -85,6 +84,11 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
     throw new UnsupportedOperationException("baseType: " + type.getBaseType());
   }
 
+  @Override
+  public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+    return new PointerOffset(offsetInBytes);
+  }
+
   private class PrimitiveArray extends AbstractExprGenerator {
     private final GimpleArrayType arrayType;
 
@@ -100,6 +104,61 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
     @Override
     public ExprGenerator elementAt(ExprGenerator indexGenerator) {
       return new PrimitiveArrayElement(getGimpleType().getComponentType(), arrayType.getLbound(), indexGenerator);
+    }
+  }
+  
+  private class PointerOffset extends AbstractExprGenerator {
+    private ExprGenerator offsetInBytes;
+
+    public PointerOffset(ExprGenerator offsetInBytes) {
+      this.offsetInBytes = offsetInBytes;
+    }
+
+    @Override
+    public GimpleType getGimpleType() {
+      return type;
+    }
+
+    @Override
+    public ExprGenerator valueOf() {
+      return new ValueOffset(this);
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      mv.visitVarInsn(Opcodes.ALOAD, arrayVariableIndex);
+      mv.visitVarInsn(Opcodes.ILOAD, offsetVariableIndex);
+      offsetInBytes.divideBy(type.getBaseType().sizeOf()).emitPrimitiveValue(mv);
+      mv.visitInsn(Opcodes.IADD);
+    }
+  }
+  
+  private class ValueOffset extends AbstractExprGenerator {
+
+    private final PointerOffset pointerOffset;
+    private final GimplePrimitiveType valueType;
+
+    public ValueOffset(PointerOffset pointerOffset) {
+      this.pointerOffset = pointerOffset;
+      this.valueType = type.getBaseType(); 
+    }
+
+    @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      pointerOffset.emitPushPtrArrayAndOffset(mv);
+      valueGenerator.emitPrimitiveValue(mv);
+      mv.visitInsn(valueType.jvmType().getOpcode(Opcodes.IASTORE));
+    }
+
+    @Override
+    public void emitPrimitiveValue(MethodVisitor mv) {
+      pointerOffset.emitPushPtrArrayAndOffset(mv);
+      mv.visitInsn(valueType.jvmType().getOpcode(Opcodes.IALOAD));
+    }
+
+    @Override
+    public GimpleType getGimpleType() {
+      return type.getBaseType();
     }
   }
 
@@ -123,7 +182,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
     @Override
     public void emitPrimitiveValue(MethodVisitor mv) {
       // IALOAD (array, offset) => (value)
-      PtrVarGenerator.this.emitPushPtrArray(mv);
+      PrimitivePtrVarGenerator.this.emitPushPtrArray(mv);
       // compute index ( pointer offset + array index)
       pushComputeIndex(mv);
 
@@ -136,7 +195,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
       Preconditions.checkState(valueGenerator.getJvmPrimitiveType().equals(componentType.jvmType()));
 
       // IALOAD (array, offset) => (value)
-      PtrVarGenerator.this.emitPushPtrArray(mv);
+      PrimitivePtrVarGenerator.this.emitPushPtrArray(mv);
       pushComputeIndex(mv);
       valueGenerator.emitPrimitiveValue(mv);
 
@@ -183,7 +242,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      PtrVarGenerator.this.emitPushPtrArray(mv);
+      PrimitivePtrVarGenerator.this.emitPushPtrArray(mv);
       element.pushComputeIndex(mv);
     }
   }
@@ -197,14 +256,14 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
 
     @Override
     public ExprGenerator addressOf() {
-      return PtrVarGenerator.this;
+      return PrimitivePtrVarGenerator.this;
     }
     
 
     @Override
     public void emitPrimitiveValue(MethodVisitor mv) {
       // IALOAD : (array, offset) 
-      PtrVarGenerator.this.emitPushPtrArray(mv);
+      PrimitivePtrVarGenerator.this.emitPushPtrArray(mv);
       mv.visitVarInsn(ILOAD, offsetVariableIndex);
       mv.visitInsn(getJvmPrimitiveType().getOpcode(IALOAD));
     }
@@ -214,7 +273,7 @@ public class PtrVarGenerator extends AbstractExprGenerator implements VarGenerat
       Preconditions.checkState(valueGenerator.getJvmPrimitiveType().equals(getJvmPrimitiveType()));
 
       // IASTORE (array, offset, value)
-      PtrVarGenerator.this.emitPushPtrArray(mv);
+      PrimitivePtrVarGenerator.this.emitPushPtrArray(mv);
       mv.visitVarInsn(ILOAD, offsetVariableIndex);
       valueGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(getJvmPrimitiveType().getOpcode(IASTORE));

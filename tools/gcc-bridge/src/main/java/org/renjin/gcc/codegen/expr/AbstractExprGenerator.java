@@ -7,6 +7,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
+import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 public abstract class AbstractExprGenerator implements ExprGenerator {
@@ -46,7 +48,12 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
           toString(), getClass().getSimpleName(), getGimpleType()));
     }
   }
-  
+
+  @Override
+  public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+    return new PtrPlusGenerator(this, offsetInBytes);
+  }
+
   @Override
   public void emitPrimitiveValue(MethodVisitor mv) {
     throw new UnimplementedException(getClass(), "emitPrimitiveValue");
@@ -122,6 +129,12 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   @Override
   public void emitPushRecordRef(MethodVisitor mv) {
     throw new UnimplementedException(getClass(), "emitPushRecordRef");
+  }
+
+  @Override
+  public ExprGenerator divideBy(int divisor) {
+    return new PrimitiveBinOpGenerator(GimpleOp.EXACT_DIV_EXPR, this,
+        new PrimitiveConstValueGenerator((GimpleIntegerType)getGimpleType(), divisor));
   }
 
   public void emitDebugging(MethodVisitor mv, String name, Label start, Label end) {

@@ -46,3 +46,4 @@ double* zero_array() {
   }
   return global_var;
 }
+

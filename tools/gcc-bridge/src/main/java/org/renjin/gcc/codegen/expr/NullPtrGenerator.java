@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -19,6 +20,16 @@ public class NullPtrGenerator extends AbstractExprGenerator implements ExprGener
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     mv.visitInsn(ACONST_NULL);
     mv.visitInsn(ICONST_0);
+  }
+
+  @Override
+  public ExprGenerator divideBy(int divisor) {
+    return this;
+  }
+
+  @Override
+  public void emitPrimitiveValue(MethodVisitor mv) {
+    mv.visitInsn(Opcodes.ICONST_0);
   }
 
   @Override

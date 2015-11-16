@@ -547,6 +547,8 @@ static void dump_op(tree op) {
 	  case MEM_REF:
 	    json_field("pointer");
 	    dump_op(TREE_OPERAND(op, 0));
+	    json_field("offset");
+	    dump_op(TREE_OPERAND(op, 1));
 	    break;
 	    
 	  case NOP_EXPR:

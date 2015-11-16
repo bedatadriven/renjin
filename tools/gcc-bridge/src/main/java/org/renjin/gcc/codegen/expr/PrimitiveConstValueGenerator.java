@@ -5,9 +5,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -18,7 +16,11 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
 
   public PrimitiveConstValueGenerator(GimplePrimitiveConstant constant) {
     value = constant.getValue();
-    gimpleType = (GimplePrimitiveType) constant.getType();
+    if(constant.getType() instanceof GimpleIndirectType) {
+      gimpleType = new GimpleIntegerType(32);
+    } else {
+      gimpleType = (GimplePrimitiveType) constant.getType();
+    }
   }
 
   public PrimitiveConstValueGenerator(GimplePrimitiveType gimpleType, Number value) {
@@ -90,6 +92,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
   
+  @Override
   public PrimitiveConstValueGenerator divideBy(int divisor) {
     if (gimpleType.jvmType().equals(Type.INT_TYPE)) {
       return new PrimitiveConstValueGenerator(gimpleType, value.intValue() / divisor);

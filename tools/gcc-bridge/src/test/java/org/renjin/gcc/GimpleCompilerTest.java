@@ -63,6 +63,20 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     result = (Double)clazz.getMethod("malloc_global_test2").invoke(null);
     assertThat(result, equalTo(7623d));
+
+    
+
+    
+  }
+  
+  @Test
+  public void loglik() throws Exception {
+    Class clazz = compile("loglik.c");
+
+    DoublePtr loglik = (DoublePtr) clazz.getMethod("loglik_test").invoke(null);
+    assertThat(loglik.array.length, equalTo(2));
+    assertThat(loglik.get(1), equalTo(34d));
+    assertThat(loglik.get(0), equalTo(34d));
   }
   
   @Test

@@ -86,7 +86,6 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
   }
   
   
-  
   private class PointerValue extends AbstractExprGenerator {
 
     @Override

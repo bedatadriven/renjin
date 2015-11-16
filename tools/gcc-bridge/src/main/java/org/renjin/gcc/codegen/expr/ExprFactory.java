@@ -69,8 +69,13 @@ public class ExprFactory {
       }
 
     } else if(expr instanceof GimpleMemRef) {
-      return findGenerator(((GimpleMemRef) expr).getPointer()).valueOf();
-
+      ExprGenerator pointerExpr = findGenerator(((GimpleMemRef) expr).getPointer());
+      ExprGenerator offsetExpr = findGenerator(((GimpleMemRef) expr).getOffset());
+      if(offsetExpr.isConstantIntEqualTo(0) || offsetExpr instanceof NullPtrGenerator) {
+        return pointerExpr.valueOf();
+      } else {
+        return pointerExpr.pointerPlus(offsetExpr).valueOf();
+      }
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
       ExprGenerator arrayGenerator = findGenerator(arrayRef.getArray());

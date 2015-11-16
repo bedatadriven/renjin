@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -46,7 +47,34 @@ public class PtrPlusGenerator extends AbstractExprGenerator implements ExprGener
   }
 
   @Override
+  public ExprGenerator valueOf() {
+    return super.valueOf();
+  }
+
+  @Override
   public GimpleType getGimpleType() {
     return ptr.getGimpleType();
   }
+  
+  private class ValueOf extends AbstractExprGenerator {
+
+    @Override
+    public GimpleType getGimpleType() {
+      return ptr.getGimpleType().getBaseType();
+    }
+
+    @Override
+    public void emitPrimitiveValue(MethodVisitor mv) {
+      // push the array + offset onto the stack
+      ptr.emitPushPtrArrayAndOffset(mv);
+      
+      // now consume the original offset and add the difference.
+      pushDelta(mv);
+      mv.visitInsn(Opcodes.IADD);
+
+      // push the raw
+      
+    }
+  }
+  
 }

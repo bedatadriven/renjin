@@ -91,7 +91,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new PtrVarGenerator(pointerType,
+      return new PrimitivePtrVarGenerator(pointerType,
           allocator.reserveArrayRef(),
           allocator.reserve(Type.INT_TYPE));
     }
@@ -119,7 +119,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public ExprGenerator mallocExpression(ExprGenerator size) {
-      return new MallocGenerator(type.jvmType(), pointerType.sizeOf(), size);
+      return new MallocGenerator(type.jvmType(), pointerType.getBaseType().sizeOf(), size);
     }
   }
 

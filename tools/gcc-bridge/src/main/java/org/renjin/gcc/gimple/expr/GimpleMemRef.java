@@ -3,6 +3,7 @@ package org.renjin.gcc.gimple.expr;
 public class GimpleMemRef extends GimpleLValue {
 
   private GimpleExpr pointer;
+  private GimpleExpr offset;
 
   public GimpleExpr getPointer() {
     return pointer;
@@ -12,8 +13,24 @@ public class GimpleMemRef extends GimpleLValue {
     this.pointer = pointer;
   }
 
-  public String toString() {
-    return "*" + pointer;
+  public GimpleExpr getOffset() {
+    return offset;
   }
 
+  public void setOffset(GimpleExpr offset) {
+    this.offset = offset;
+  }
+
+  public String toString() {
+    if(isOffsetZero()) {
+      return "*" + pointer;
+    } else {
+      return "*(" + pointer + "+" + offset + ")";
+    }
+  }
+
+  public boolean isOffsetZero() {
+    return offset instanceof GimpleIntegerConstant && 
+        ((GimpleIntegerConstant) offset).getNumberValue().intValue() == 0;
+  }
 }

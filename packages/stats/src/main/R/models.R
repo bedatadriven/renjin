@@ -482,10 +482,6 @@ model.frame.default <-
 	# Usually, this will be na.omit
 	data <- .applyNaAction(data, na.action)
 
-  cat("data:\n")
-  str(data)
-  
-    
 	## fix up the levels
 	if(length(xlev)) {
 		for(nm in names(xlev))

@@ -891,7 +891,6 @@ public class Primitives {
     f("optimhess", /*optimhess*/ null, 11);
     f("terms.formula", Models.class, 11);
     f("update.formula", /*updateform*/ null, 11);
-    f("model.frame", Models.class, 11);
     f("model.matrix", Models.class, 11);
 
     f("D", /*D*/ null, 11);

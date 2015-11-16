@@ -306,11 +306,13 @@ public class Subsetting {
       SEXP partialMatch = Null.INSTANCE;
       int matchCount = 0;
       for(int i=0;i!=names.length();++i) {
-        if(names.getElementAsString(i).equals(subscript)) {
-          return source.getElementAsSEXP(i);
-        } else if(!exact && names.getElementAsString(i).startsWith(subscript)) {
-          matchCount++;
-          partialMatch = source.getElementAsSEXP(i);
+        if(!names.isElementNA(i)) {
+          if (names.getElementAsString(i).equals(subscript)) {
+            return source.getElementAsSEXP(i);
+          } else if (!exact && names.getElementAsString(i).startsWith(subscript)) {
+            matchCount++;
+            partialMatch = source.getElementAsSEXP(i);
+          }
         }
       }
       if(matchCount == 1) {

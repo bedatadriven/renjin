@@ -126,6 +126,27 @@ test.model.frame.with.na.omit <- function() {
   assertThat(nrow(mf), equalTo(2))
 }
 
+test.models.with.extras <- function() {
+  X <- c(1, 1, 0, 0)
+  Y <- c(1, 0, 1, 0)
+  W <- c(1, 2, 3, 4)
+  
+  mf <- model.frame(X ~ Y, weights = W)
+  
+  assertThat(names(mf), identicalTo(c("X", "Y", "(weights)")))
+  assertThat(mf[["(weights)"]], identicalTo(W))
+}
+
+test.models.with.null.extras <- function() {
+  X <- c(1, 1, 0, 0)
+  Y <- c(1, 0, 1, 0)
+  
+  mf <- model.frame(X ~ Y, weights = NULL)
+  
+  assertThat(names(mf), identicalTo(c("X", "Y")))
+}
+
+
 
 #  @Test
 #  public void modelMatrixFactors() {

@@ -442,7 +442,7 @@ model.frame.default <-
 		attr(formula, "predvars") <- predvars
 	}
 	extras <- substitute(list(...))
-	extranames <- names(extras[-1L])
+	
 	extras <- eval(extras, data, env)
 	subset <- eval(substitute(subset), data, env)
   
@@ -457,7 +457,7 @@ model.frame.default <-
   data <- c(variables, extras[!nullExtras])
   
   # Apply names, decorating extra variables with parentheses 
-  names(data) <- c(varnames, sapply(extranames, function(n) sprintf("(%s)", n)))
+  names(data) <- c(varnames, sapply(names(extras[!nullExtras]), function(n) sprintf("(%s)", n)))
   
   # Verify that all variables have the same number of rows
   stopifnot(length(data) > 0)

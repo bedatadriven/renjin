@@ -255,8 +255,16 @@ public class Vectors {
   @Internal("as.vector")
   public static SEXP asVector(Vector x, String mode) {
 
+    // Annoyingly, this function behaves a bit erraticaly
+    // When "mode" 
+    
     if(mode.equals("any")) {
-      return x.setAttributes(x.getAttributes().copyNames());
+      //  if the result is atomic all attributes are removed.
+      if(x instanceof AtomicVector) {
+        return x.setAttributes(AttributeMap.EMPTY);
+      } else {
+        return x;
+      }
     }
 
     Vector.Builder result;
@@ -271,7 +279,10 @@ public class Vectors {
     } else if ("complex".equals(mode)) {
       result = new ComplexArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
+      // Since "list" is not atomic, copy attributes
       result = new ListVector.Builder();
+      result.copyAttributesFrom(x);
+      
     } else if ("pairlist".equals(mode)) {
       // a pairlist is actually not a vector, so bail from here
       // as a special case
@@ -283,6 +294,7 @@ public class Vectors {
             "invalid type/length (symbol/0) in vector allocation");
       }
       return Symbol.get(x.getElementAsString(0));
+    
     } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
     } else {
@@ -291,10 +303,6 @@ public class Vectors {
 
     for (int i = 0; i != x.length(); ++i) {
       result.setFrom(i, x, i);
-    }
-    SEXP names = x.getNames();
-    if (names.length() > 0) {
-      result.setAttribute(Symbols.NAMES, names);
     }
     return result.build();
   }

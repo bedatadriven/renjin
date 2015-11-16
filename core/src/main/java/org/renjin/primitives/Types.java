@@ -507,6 +507,7 @@ public class Types {
           throw new EvalException("invalid argument");
         }
       }
+      context.setInvisibleFlag();
     }
     return results.build();
   }

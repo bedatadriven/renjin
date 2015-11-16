@@ -29,15 +29,16 @@ dput <-
     ## Fails e.g. if an S3 list-like object has S4 components
     if(isS4(x)) {
         clx <- class(x)
-	cat('new("', clx,'"\n', file = file, sep = '')
-	for(n in .slotNames(clx)) {
-	    cat("    ,", n, "= ", file = file)
-	    dput(slot(x, n), file = file, control = control)
-	}
-	cat(")\n", file = file)
-	invisible()
+        cat('new("', clx,'"\n', file = file, sep = '')
+	      for(n in .slotNames(clx)) {
+	          cat("    ,", n, "= ", file = file)
+	          dput(slot(x, n), file = file, control = control)
+	      }
+	      cat(")\n", file = file)
+	      invisible()
+    } else {
+        cat(deparse(x), file = file, sep = '')
     }
-    else .Internal(dput(x, file, opts))
 }
 
 dget <- function(file)

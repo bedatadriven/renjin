@@ -647,7 +647,6 @@ public class Primitives {
     f("unserializeFromConn", Serialization.class, 111);
     f("deparse", Deparse.class, 11);
     f("deparseRd", /*deparseRd*/ null, 11);
-    f("dput", /*dput*/ null, 111);
     f("dump", /*dump*/ null, 111);
     add(new SubstituteFunction());
     add(new QuoteFunction());// f("quote", Evaluation.class, 0, 0, 1);

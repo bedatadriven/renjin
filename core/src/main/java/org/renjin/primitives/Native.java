@@ -21,7 +21,7 @@ import org.renjin.sexp.*;
 
 import java.awt.*;
 import java.lang.invoke.MethodHandle;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -40,9 +40,9 @@ public class Native {
                           @NamedFlag("PACKAGE") String packageName,
                           @NamedFlag("NAOK") boolean naOk,
                           @NamedFlag("DUP") boolean dup,
-                          @NamedFlag("ENCODING") boolean encoding) {
+                          @NamedFlag("ENCODING") boolean encoding) throws IllegalAccessException {
 
-    Method method;
+    MethodHandle method;
 
     if(methodExp instanceof StringVector) {
       String methodName = ((StringVector) methodExp).getElementAsString(0);
@@ -57,36 +57,40 @@ public class Native {
          throw new EvalException("Can't find method %s in package %s", methodName, packageName);
       } 
 
-      method = Iterables.getOnlyElement(methods);
+      method = MethodHandles.publicLookup().unreflect(Iterables.getOnlyElement(methods));
 
     } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
-      method = (Method) ((ExternalPtr) methodExp).getInstance();
+      method = MethodHandles.publicLookup().unreflect((Method) ((ExternalPtr) methodExp).getInstance());
 
+    } else if(methodExp instanceof ListVector) {
+      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+      method = address.getInstance();
+      
     } else {
       throw new EvalException("Invalid method argument of type %s", methodExp.getTypeName());
     }
 
-    Object[] nativeArguments = new Object[method.getParameterTypes().length];
+    Object[] nativeArguments = new Object[method.type().parameterCount()];
     for(int i=0;i!=nativeArguments.length;++i) {
-      Type type = method.getParameterTypes()[i];
+      Type type = method.type().parameterType(i);
       if(type.equals(IntPtr.class)) {
         nativeArguments[i] = intPtrFromVector(callArguments.get(i));
       } else if(type.equals(DoublePtr.class)) {
         nativeArguments[i] = doublePtrFromVector(callArguments.get(i));
       } else {
          throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
-                 " to for C argument " +  type + " in call to " + method.getName());
+                 " to for C argument " +  type + " in call to " + method);
       }
     }
 
     try {
-      method.invoke(null, nativeArguments);
-    } catch (InvocationTargetException e) {
+      method.invokeWithArguments(nativeArguments);
+    } catch (EvalException e) {
+      throw e;
+    } catch (Throwable e) {
       e.printStackTrace();
-      throw new EvalException(e.getCause().getMessage(), e.getCause());
-    } catch (Exception e) {
-      throw new EvalException(e);
-    }
+      throw new EvalException(e.getCause().getMessage(), e);
+    } 
 
     ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
     for(int i=0;i!=nativeArguments.length;++i) {

@@ -3,7 +3,8 @@ package org.renjin.gcc.gimple;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.SymbolRef;
+import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
+import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 public class GimpleVarDecl {
@@ -23,7 +24,6 @@ public class GimpleVarDecl {
   private boolean addressable;
 
   public GimpleVarDecl() {
-
   }
 
   public int getId() {
@@ -104,9 +104,13 @@ public class GimpleVarDecl {
     return new Predicate<GimpleExpr>() {
       @Override
       public boolean apply(GimpleExpr input) {
-        return input instanceof SymbolRef && 
-            ((SymbolRef) input).getId() == id;
+        return input instanceof GimpleSymbolRef && 
+            ((GimpleSymbolRef) input).getId() == id;
       }
     };
+  }
+
+  public GimpleVariableRef newRef() {
+    return new GimpleVariableRef(id, type);
   }
 }

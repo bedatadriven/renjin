@@ -1,16 +1,18 @@
 package org.renjin.gcc.gimple;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.ins.GimpleIns;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 public class GimpleFunction {
@@ -111,8 +113,13 @@ public class GimpleFunction {
     return parameters;
   }
 
+  @JsonSetter
   public void setBasicBlocks(List<GimpleBasicBlock> basicBlocks) {
     this.basicBlocks = basicBlocks;
+  }
+  
+  public void setBasicBlocks(GimpleBasicBlock... blocks) {
+    setBasicBlocks(Arrays.asList(blocks));
   }
 
   public void setParameters(List<GimpleParameter> parameters) {
@@ -178,5 +185,16 @@ public class GimpleFunction {
     for (GimpleBasicBlock basicBlock : basicBlocks) {
       basicBlock.replaceAll(predicate, newExpr);
     }  
+  }
+
+  public void removeVariable(GimpleVariableRef ref) {
+    Iterator<GimpleVarDecl> it = variableDeclarations.iterator();
+    while(it.hasNext()) {
+      if(it.next().getId() == ref.getId()) {
+        it.remove();
+        return;
+      }
+    }
+    throw new InternalCompilerException("No such variable: " + ref);
   }
 }

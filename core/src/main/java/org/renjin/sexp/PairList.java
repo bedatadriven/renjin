@@ -121,7 +121,7 @@ public interface PairList extends SEXP {
      */
     public Node getNextNode() {
       if(!(nextNode instanceof PairList.Node)) {
-        throw new IllegalStateException("no next node. call hasNextNode() first or use getNext()");
+        throw new IllegalStateException("no next node. call hasNextNode() first or use getSuccessor()");
       }
       return (PairList.Node)nextNode;
     }

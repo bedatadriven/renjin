@@ -1,5 +1,9 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.base.Predicate;
+
+import java.util.Set;
+
 /**
  * Gimple Single-Static Assignment (SSA) Variable name
  */
@@ -42,8 +46,8 @@ public class GimpleSsaName extends GimpleLValue {
   }
 
   @Override
-  public Iterable<? extends SymbolRef> getSymbolRefs() {
-    return var.getSymbolRefs();
+  public void find(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+    findOrDescend(var, predicate, results);
   }
 
   @Override

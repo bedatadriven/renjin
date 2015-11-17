@@ -2,14 +2,11 @@ package org.renjin.gcc.gimple.ins;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
-import org.renjin.gcc.gimple.expr.SymbolRef;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -52,16 +49,30 @@ public class GimpleCall extends GimpleIns {
     }
   }
 
-
   @Override
-  public Set<SymbolRef> getUsedExpressions() {
-    Set<SymbolRef> used = new HashSet<>();
-    for (GimpleExpr operand : arguments) {
-      Iterables.addAll(used, operand.getSymbolRefs());
+  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
+    if(predicate.apply(function)) {
+      function = replacement;
+      return true;
     }
-    return used;
+    for (int i = 0; i < arguments.size(); i++) {
+      if(predicate.apply(arguments.get(i))) {
+        arguments.set(i, replacement);
+        return true;
+      } else if(arguments.get(i).replace(predicate, replacement)) {
+        return true;
+      }
+    }
+    return false;
   }
 
+  @Override
+  protected void findUses(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+    function.findOrDescend(predicate, results);
+    for (GimpleExpr argument : arguments) {
+      argument.findOrDescend(predicate, results);
+    }
+  }
 
   @Override
   public String toString() {

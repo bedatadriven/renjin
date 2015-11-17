@@ -8,7 +8,7 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleComponentRef;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.SymbolRef;
+import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.ins.GimpleAssign;
 import org.renjin.gcc.gimple.ins.GimpleCall;
 import org.renjin.gcc.gimple.ins.GimpleIns;
@@ -83,8 +83,8 @@ public class AddressableFinder implements FunctionBodyTransformer {
           }
         }
 
-        if(addressOf.getValue() instanceof SymbolRef) {
-          SymbolRef ref = (SymbolRef) addressOf.getValue();
+        if(addressOf.getValue() instanceof GimpleSymbolRef) {
+          GimpleSymbolRef ref = (GimpleSymbolRef) addressOf.getValue();
           GimpleVarDecl decl = variables.get(ref.getId());
           if(decl != null && !decl.isAddressable()) {
             decl.setAddressable(true);

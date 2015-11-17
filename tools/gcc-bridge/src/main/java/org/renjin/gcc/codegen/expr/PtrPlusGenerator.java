@@ -48,7 +48,7 @@ public class PtrPlusGenerator extends AbstractExprGenerator implements ExprGener
 
   @Override
   public ExprGenerator valueOf() {
-    return super.valueOf();
+    return new ValueOf();
   }
 
   @Override

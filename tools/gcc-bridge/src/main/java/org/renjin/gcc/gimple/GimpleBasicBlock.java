@@ -3,15 +3,12 @@ package org.renjin.gcc.gimple;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.ins.GimpleGoto;
 import org.renjin.gcc.gimple.ins.GimpleIns;
 import org.renjin.gcc.gimple.ins.GimpleReturn;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
 
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -19,6 +16,13 @@ public class GimpleBasicBlock {
 
   private int index;
   private List<GimpleIns> instructions = Lists.newArrayList();
+
+  public GimpleBasicBlock() {
+  }
+  
+  public GimpleBasicBlock(GimpleIns... statements) {
+    this.instructions.addAll(Arrays.asList(statements));
+  }
 
   public int getIndex() {
     return index;
@@ -49,6 +53,10 @@ public class GimpleBasicBlock {
 
   public List<GimpleIns> getInstructions() {
     return instructions;
+  }
+
+  public void setInstructions(List<GimpleIns> instructions) {
+    this.instructions = instructions;
   }
 
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {

@@ -12,7 +12,7 @@ import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
-import org.renjin.gcc.gimple.expr.SymbolRef;
+import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
 import java.util.Collection;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class UnitSymbolTable implements SymbolTable {
     this.className = className;
   }
   
-  public ExprGenerator getVariable(SymbolRef ref) {
+  public ExprGenerator getVariable(GimpleSymbolRef ref) {
     FieldGenerator fieldGenerator = variableMap.get(ref.getId());
     if(fieldGenerator != null) {
       return fieldGenerator.staticExprGenerator();

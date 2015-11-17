@@ -1,5 +1,9 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.base.Predicate;
+
+import java.util.Set;
+
 public class GimpleAddressOf extends GimpleExpr {
 
   public GimpleExpr value;
@@ -13,8 +17,18 @@ public class GimpleAddressOf extends GimpleExpr {
   }
 
   @Override
-  public Iterable<? extends SymbolRef> getSymbolRefs() {
-    return value.getSymbolRefs();
+  public void find(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+    findOrDescend(value, predicate, results);
+  }
+
+  @Override
+  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
+    if(predicate.apply(value)) {
+      value = replacement;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override

@@ -8,7 +8,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
-import org.renjin.gcc.gimple.expr.SymbolRef;
+import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
 import java.util.Map;
 
@@ -32,7 +32,7 @@ public class LocalVariableTable implements SymbolTable {
   }
 
   @Override
-  public ExprGenerator getVariable(SymbolRef ref) {
+  public ExprGenerator getVariable(GimpleSymbolRef ref) {
     ExprGenerator variable = variableMap.get(ref.getId());
     if(variable == null) {
       if (parent == null) {

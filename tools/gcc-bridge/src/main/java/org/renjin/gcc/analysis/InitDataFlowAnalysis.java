@@ -98,7 +98,7 @@ public class InitDataFlowAnalysis {
       // uses before definition
       for (GimpleIns statement : node.getBasicBlock().getInstructions()) {
 
-        for (SymbolRef symbolRef : statement.getUsedExpressions()) {
+        for (GimpleSymbolRef symbolRef : statement.findVariableUses()) {
           if(localVariables.containsKey(symbolRef.getId())) {
             // we're using a local variable. Are we sure it's been initialized?
             if(!initialized.contains(symbolRef.getId())) {

@@ -1,14 +1,10 @@
 package org.renjin.gcc.gimple.expr;
 
-import com.google.common.base.Objects;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import java.util.Collections;
-
-public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
+public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
 
   private String name;
-  private int version;
   private int id;
 
   public GimpleVariableRef() {
@@ -31,42 +27,26 @@ public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
     this.name = name;
   }
 
-  public void setVersion(int version) {
-    this.version = version;
-  }
-
   public String getName() {
     return name;
   }
 
-  public int getVersion() {
-    return version;
-  }
-
   @Override
-  public Iterable<? extends SymbolRef> getSymbolRefs() {
-    return Collections.singleton(this);
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    GimpleVariableRef that = (GimpleVariableRef) o;
+
+    if (id != that.id) return false;
+    return !(name != null ? !name.equals(that.name) : that.name != null);
   }
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    result = prime * result + version;
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + id;
     return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    GimpleVariableRef other = (GimpleVariableRef) obj;
-    return Objects.equal(name, other.name) && version == other.version;
   }
 
   @Override
@@ -77,7 +57,4 @@ public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
       return "T" + Math.abs(id);
     }
   }
-  
-  
-
 }

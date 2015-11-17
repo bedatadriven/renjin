@@ -11,7 +11,7 @@ import org.renjin.gcc.codegen.call.StaticMethodCallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
-import org.renjin.gcc.gimple.expr.SymbolRef;
+import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.runtime.Builtins;
 
 import java.lang.reflect.Method;
@@ -107,7 +107,7 @@ public class GlobalSymbolTable implements SymbolTable {
   }
 
   @Override
-  public ExprGenerator getVariable(SymbolRef ref) {
+  public ExprGenerator getVariable(GimpleSymbolRef ref) {
     // Global variables are only resolved by name...
     if(ref.getName() == null) {
       return null;

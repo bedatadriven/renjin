@@ -3,10 +3,10 @@ package org.renjin.gcc.gimple.expr;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Set;
 
 /**
  * A Gimple Expression node. 
@@ -43,11 +43,11 @@ public abstract class GimpleExpr {
   private GimpleType type;
 
 
-  public void setLine(Integer line) {
+  public final void setLine(Integer line) {
     this.line = line;
   }
 
-  public Integer getLine() {
+  public final Integer getLine() {
     return line;
   }
 
@@ -59,7 +59,36 @@ public abstract class GimpleExpr {
     this.type = type;
   }
 
-  public Iterable<? extends SymbolRef> getSymbolRefs() {
-    return Collections.emptySet();
+  public void find(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
   }
+  
+  public final void findOrDescend(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+    findOrDescend(this, predicate, results);
+  }
+  
+  protected final void findOrDescend(GimpleExpr child, Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+    if(predicate.apply(child)) {
+      results.add(child);
+    } else {
+      child.find(predicate, results);
+    }
+  }
+
+  protected final void findOrDescend(Iterable<GimpleExpr> children, Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+    for (GimpleExpr child : children) {
+      findOrDescend(child, predicate, results);
+    }
+  }
+
+  /**
+   * Replaces the first nested expression that matches the given predicate 
+   * @param predicate predicate that identifies nodes to replace
+   * @param replacement replacement node
+   * @return true if a replacement was made
+   */
+  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
+    return false;
+  }
+
+  
 }

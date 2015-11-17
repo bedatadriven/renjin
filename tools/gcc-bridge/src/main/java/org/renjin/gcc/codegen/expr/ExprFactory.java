@@ -45,8 +45,8 @@ public class ExprFactory {
   }
 
   public ExprGenerator findGenerator(GimpleExpr expr) {
-    if(expr instanceof SymbolRef) {
-      return symbolTable.getVariable((SymbolRef) expr);
+    if(expr instanceof GimpleSymbolRef) {
+      return symbolTable.getVariable((GimpleSymbolRef) expr);
 
     } else if(expr instanceof GimpleConstant) {
       return forConstant((GimpleConstant) expr);
@@ -59,7 +59,7 @@ public class ExprFactory {
       
     } else if(expr instanceof GimpleAddressOf) {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
-      if(addressOf.getValue() instanceof GimpleFunctionRef) {
+      if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
         return new FunctionRefGenerator(symbolTable.findHandle(functionRef, callingConvention));
 
@@ -67,6 +67,12 @@ public class ExprFactory {
         ExprGenerator value = findGenerator(addressOf.getValue());
         return value.addressOf();
       }
+
+    } else if(expr instanceof GimpleOpExpr) {
+      // This is an artificial node we introduce during analysis to produce
+      // code better suited to a stack-based interpreter
+      GimpleOpExpr opExpr = (GimpleOpExpr) expr;
+      return findGenerator(opExpr.getOp(), opExpr.getOperands());
 
     } else if(expr instanceof GimpleMemRef) {
       ExprGenerator pointerExpr = findGenerator(((GimpleMemRef) expr).getPointer());
@@ -100,7 +106,6 @@ public class ExprFactory {
       ExprGenerator valueExprGenerator = findGenerator(valueExpr);
       return valueExprGenerator.memberOf(componentRef.memberName());
     }
-
     throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
   }
 
@@ -119,7 +124,7 @@ public class ExprFactory {
       throw new UnsupportedOperationException("function ref: " + address.getValue() +
           " [" + address.getValue().getClass().getSimpleName() + "]");
 
-    } else if(functionExpr instanceof SymbolRef) {
+    } else if(functionExpr instanceof GimpleSymbolRef) {
       ExprGenerator exprGenerator = findGenerator(functionExpr);
       return new FunPtrCallGenerator(generatorFactory, exprGenerator);
     }

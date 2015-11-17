@@ -4,13 +4,15 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
-import org.renjin.gcc.gimple.expr.SymbolRef;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -43,12 +45,33 @@ public abstract class GimpleIns {
   /**
    * @return the set of {@code SymbolRef}s that are read by this statement
    */
-  public Iterable<? extends SymbolRef> getUsedExpressions() {
+  public Iterable<? extends GimpleSymbolRef> getUsedExpressions() {
     return Collections.emptySet();
   }
-
-  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+  
+  public final Set<GimpleExpr> findUses(Predicate<? super GimpleExpr> predicate) {
+    Set<GimpleExpr> set = new HashSet<>();
+    findUses(predicate, set);
+    return set;
+  }
+  
+  @SuppressWarnings("unchecked")
+  public final <T extends GimpleExpr> Set<T> findUses(Class<T> exprClass) {
+    return (Set<T>)findUses(Predicates.instanceOf(exprClass));
+  }
+  
+  public final Set<GimpleVariableRef> findVariableUses() {
+    return findUses(GimpleVariableRef.class);
+  }
+  
+  protected void findUses(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
     
+  }
+  
+  protected final void findUses(List<GimpleExpr> operands, Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+    for (GimpleExpr operand : operands) {
+      operand.findOrDescend(predicate, results);
+    }
   }
   
   public Integer getLineNumber() {
@@ -59,9 +82,24 @@ public abstract class GimpleIns {
     for (int i = 0; i < operands.size(); i++) {
       if(predicate.apply(operands.get(i))) {
         operands.set(i, newExpr);
-      }
+      } 
     }
   }
+
+  /**
+   * Replaces the first {@code GimpleExpr} that matches the provided predicate.
+   * @param predicate the predicate that determines whether a node is replaced
+   * @param replacement the replacement {@code GimpleExpr}
+   * @return true if a match was found and replaced
+   */
+  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
+    return false;
+  }
+
+
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+  }
+
 
   /**
    * 

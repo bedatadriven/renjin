@@ -1,6 +1,8 @@
 package org.renjin.gcc.gimple.expr;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Predicate;
+
+import java.util.Set;
 
 public class GimpleMemRef extends GimpleLValue {
 
@@ -32,8 +34,22 @@ public class GimpleMemRef extends GimpleLValue {
   }
 
   @Override
-  public Iterable<? extends SymbolRef> getSymbolRefs() {
-    return Iterables.concat(pointer.getSymbolRefs(), offset.getSymbolRefs());
+  public void find(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+    findOrDescend(pointer, predicate, results);
+    findOrDescend(offset, predicate, results);
+  }
+
+  @Override
+  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
+    if(predicate.apply(pointer)) {
+      pointer = replacement;
+      return true;
+    } else if(predicate.apply(offset)) {
+      offset = replacement;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public boolean isOffsetZero() {

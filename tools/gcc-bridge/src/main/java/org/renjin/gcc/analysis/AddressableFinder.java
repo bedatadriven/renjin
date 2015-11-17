@@ -30,6 +30,10 @@ public class AddressableFinder implements FunctionBodyTransformer {
       variables.put(varDecl.getId(), varDecl);
     }
 
+    for (GimpleVarDecl varDecl : unit.getGlobalVariables()){
+      variables.put(varDecl.getId(),varDecl);
+    }
+
     boolean updated = false;
     
     for (GimpleBasicBlock basicBlock : fn.getBasicBlocks()) {
@@ -66,4 +70,8 @@ public class AddressableFinder implements FunctionBodyTransformer {
     }
     return updated;
   }
+
+
+
+
 }

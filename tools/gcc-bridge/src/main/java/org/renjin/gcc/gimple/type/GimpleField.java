@@ -3,6 +3,16 @@ package org.renjin.gcc.gimple.type;
 public class GimpleField {
   private String name;
   private GimpleType type;
+  private boolean addressed;
+
+  public boolean isAddressed() {
+    return addressed;
+  }
+
+  public void setAddressed(boolean addressed) {
+    this.addressed = addressed;
+  }
+
   
   public String getName() {
     return name;

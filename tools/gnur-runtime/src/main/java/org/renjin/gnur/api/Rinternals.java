@@ -1,7 +1,6 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import com.google.common.base.Charsets;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
 import org.renjin.sexp.*;
@@ -748,8 +747,10 @@ public final class Rinternals {
   public static SEXP Rf_duplicate(SEXP sexp) {
     if(sexp instanceof DoubleArrayVector) {
       return new DoubleArrayVector((DoubleVector)sexp);
+    } else if(sexp instanceof IntVector) {
+      return new IntArrayVector((IntVector)sexp);
     }
-    throw new UnimplementedGnuApiMethod("Rf_duplicate");
+    throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
   }
 
   public static SEXP Rf_shallow_duplicate(SEXP p0) {

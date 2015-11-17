@@ -11,7 +11,6 @@ import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
 import org.renjin.gcc.codegen.*;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -30,6 +29,8 @@ import java.util.logging.Logger;
  * 
  */
 public class GimpleCompiler  {
+  
+  public static boolean TRACE = false;
 
   private File outputDirectory;
   
@@ -134,8 +135,9 @@ public class GimpleCompiler  {
     List<RecordClassGenerator> recordsToWrite = Lists.newArrayList();
     for (GimpleCompilationUnit unit : units) {
       for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
-        System.out.println(recordTypeDef);
-        
+        if(GimpleCompiler.TRACE) {
+          System.out.println(recordTypeDef);
+        }
         if(isProvided(recordTypeDef)) {
           
           // Map this record type to an existing JVM class

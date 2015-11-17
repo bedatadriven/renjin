@@ -4,7 +4,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -107,9 +106,6 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator ptr) {
       
-      if(!ptr.getPointerType().equals(getPointerType())) {
-        throw new InternalCompilerException("Type mismatch");
-      }
       
       // Store field
       ptr.emitPushPtrArrayAndOffset(mv);

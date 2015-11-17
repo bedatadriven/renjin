@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen;
 
 import com.google.common.collect.Maps;
 import org.objectweb.asm.*;
+import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.MallocGenerator;
@@ -68,7 +69,10 @@ public class FunctionGenerator {
   }
 
   public void emit(ClassVisitor cw) {
-    System.out.println(function);
+    
+    if(GimpleCompiler.TRACE) {
+      System.out.println(function);
+    }
     
     mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
         function.getMangledName(), getFunctionDescriptor(), null, null);

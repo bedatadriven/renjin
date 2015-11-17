@@ -6,6 +6,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
+import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -85,7 +86,11 @@ public class UnitClassGenerator {
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-    cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+    if(GimpleCompiler.TRACE) {
+      cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+    } else {
+      cv = cw;
+    }
     cv.visit(V1_7, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
     cv.visitSource(unit.getSourceName(), null);
     emitDefaultConstructor();

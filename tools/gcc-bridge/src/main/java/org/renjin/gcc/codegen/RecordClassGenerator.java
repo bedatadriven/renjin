@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.TraceClassVisitor;
+import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -50,7 +51,11 @@ public class RecordClassGenerator {
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-    cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+    if(GimpleCompiler.TRACE) {
+      cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+    } else {
+      cv = cw;
+    }
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
 
     emitDefaultConstructor();

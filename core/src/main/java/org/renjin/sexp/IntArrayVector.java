@@ -34,6 +34,11 @@ public class IntArrayVector extends IntVector {
   public IntArrayVector(int... values) {
     this.values = Arrays.copyOf(values, values.length);
   }
+  
+  public IntArrayVector(IntVector vector) {
+    super(vector.attributes);
+    this.values = vector.toIntArray();
+  }
 
   public IntArrayVector(int[] values, int length, AttributeMap attributes) {
     super(attributes);

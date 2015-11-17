@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,12 +17,12 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class BasicTest extends AbstractGccTest {
+public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void simpleTest() throws Exception {
 
-    Class clazz = compile("area.c", "Area");
+    Class clazz = compile("area.c");
 
     // try to load class
     Method method = clazz.getMethod("circle_area", double.class);
@@ -33,8 +34,8 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void pointers() throws Exception {
-    Class clazz = compile("pointers.c", "Pointers");
-
+    Class clazz = compile("pointers.c");
+ 
     Method method = clazz.getMethod("sum_array", DoublePtr.class, int.class);
     Double result = (Double) method.invoke(null, new DoublePtr(15, 20, 300), 3);
 
@@ -62,21 +63,61 @@ public class BasicTest extends AbstractGccTest {
 
     result = (Double)clazz.getMethod("malloc_global_test2").invoke(null);
     assertThat(result, equalTo(7623d));
+
+    
+
+    
+  }
+  
+  @Test
+  public void loglik() throws Exception {
+    Class clazz = compile("loglik.c");
+
+    DoublePtr loglik = (DoublePtr) clazz.getMethod("loglik_test").invoke(null);
+    assertThat(loglik.array.length, equalTo(2));
+    assertThat(loglik.get(1), equalTo(34d));
+    assertThat(loglik.get(0), equalTo(34d));
   }
   
   @Test
   public void pointersToPointers() throws Exception {
-    Class clazz = compile("pointerpointer.c", "PointerPointers");
+    Class clazz = compile("pointerpointer.c");
     Method method = clazz.getMethod("test");
 
     Double result = (Double) method.invoke(null);
 
     assertThat(result, equalTo(45.0));
   }
+    
+  @Test
+  public void returningPointersToPointers() throws Exception {
+    Class clazz = compile("cmatrix.c");
+    Method cmatrix = clazz.getMethod("cmatrix", DoublePtr.class, int.class, int.class);
+    DoublePtr array = new DoublePtr(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    ObjectPtr matrix = (ObjectPtr) cmatrix.invoke(null, array, 2, 5);
+    DoublePtr row0 = (DoublePtr) matrix.array[matrix.offset];
+    DoublePtr row1 = (DoublePtr) matrix.array[matrix.offset+1];
+
+    assertThat(row0.get(0), equalTo(1d));
+    assertThat(row0.get(1), equalTo(2d));
+    
+    assertThat(row1.get(0), equalTo(6d));
+    assertThat(row1.get(1), equalTo(7d));
+
+    Method get_at = clazz.getMethod("get_at", ObjectPtr.class, int.class, int.class);
+
+    DoublePtr prow0 = (DoublePtr) get_at.invoke(null, matrix, 0, 0);
+
+    Method sum_second_col = clazz.getMethod("sum_second_col", DoublePtr.class, int.class, int.class);
+    double sum = (Double)sum_second_col.invoke(null, array, 2, 5);
+    
+    assertThat(sum, equalTo(9d));
+    
+  }
 
   @Test
   public void functionPointers() throws Exception {
-    Class clazz = compile("funptr.c", "FunPtr");
+    Class clazz = compile("funptr.c");
     Method method = clazz.getMethod("sum_array", DoublePtr.class, int.class);
     Double result = (Double) method.invoke(null, new DoublePtr(1, 4, 16), 3);
     assertThat(result, equalTo(273d));
@@ -84,15 +125,29 @@ public class BasicTest extends AbstractGccTest {
   
   @Test
   public void structTest() throws Exception {
-    Class clazz = compile("structs.c", "Structs");
+    Class clazz = compile("structs.c");
     Method method = clazz.getMethod("test_account_value");
     Double result = (Double) method.invoke(null);
     assertThat(result, equalTo(5000d));
   }
+  
+  @Test
+  public void static_init() throws Exception {
+    Class clazz = compile("static_init.c");
+    
+    Method testName = clazz.getMethod("test_name");
+    BytePtr name = (BytePtr) testName.invoke(null);
+    assertThat(name.nullTerminatedString(), equalTo("square"));
+
+    Method testArray = clazz.getMethod("test_array");
+    BytePtr element = (BytePtr) testArray.invoke(null);
+    assertThat(element.nullTerminatedString(), equalTo("loglik"));
+  }
 
   @Test
+  @Ignore
   public void stateTest() throws Exception {
-    Class clazz = compile("rng_state.c", "rng_state");
+    Class clazz = compile("rng_state.c");
     Method method = clazz.getMethod("Init");
     Double result = (Double) method.invoke(null);
     assertThat(result, equalTo(41d));
@@ -100,7 +155,7 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void arraysNonZeroLowerBound() throws Exception {
-    Class clazz = compile("lbound.f", "LBound");
+    Class clazz = compile("lbound.f");
 
     Method test = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
     DoublePtr x = new DoublePtr( 0,0,0,0  );
@@ -118,15 +173,24 @@ public class BasicTest extends AbstractGccTest {
   @Test
   public void variadic() throws Exception {
 
-    Class clazz = compile("variadic.c", "Variadic");
+    Class clazz = compile("variadic.c");
     
   }
   
+  @Test
+  public void discardReturnValue() throws Exception {
+    Class clazz = compile("discardReturn.c");
+    Method run = clazz.getMethod("run");
+
+    Integer returnValue = (Integer)run.invoke(null);
+  
+    assertThat(returnValue, equalTo(0));
+  }
   
   @Test
   public void calls() throws Exception {
 
-    Class clazz = compile("calls.c", "Calls");
+    Class clazz = compile("calls.c");
     Method sqrtMethod = clazz.getMethod("testsqrt", double.class);
     assertThat((Double) sqrtMethod.invoke(null, 4d), equalTo(3d));
 
@@ -134,7 +198,7 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void boolToInt() throws Exception {
-    Class clazz = compile("bool2int.c", "BoolInt");
+    Class clazz = compile("cbool2int.c");
 
     Method method = clazz.getMethod("test", int.class);
     int result = (Integer) method.invoke(null, 0);
@@ -144,7 +208,7 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void logicalToInt() throws Exception {
-    Class clazz = compile("bool2int.f", "LogicalInt");
+    Class clazz = compile("bool2int.f");
     Method method = clazz.getMethod("test_", IntPtr.class, IntPtr.class);
 
     IntPtr x = new IntPtr(43);
@@ -156,18 +220,17 @@ public class BasicTest extends AbstractGccTest {
 
   @Test  
   public void switchStatement() throws Exception {
-    Class clazz = compile("switch.c", "SwitchTest");
+    Class clazz = compile("switch.c");
 
     Method distance = clazz.getMethod("R_distance", IntPtr.class, int.class, int.class);
 
     assertThat((Integer)distance.invoke(null, new IntPtr(1), 13, 14), equalTo(1));
     assertThat((Integer) distance.invoke(null, new IntPtr(2), 3, 4), equalTo(-1));
-
   }
 
   @Test
   public void logicalMod() throws  Exception {
-    Class clazz = compile("logical.f", "Logical");
+    Class clazz = compile("logical.f");
 
     clazz.getMethod("runtest_").invoke(null);
 
@@ -179,10 +242,22 @@ public class BasicTest extends AbstractGccTest {
     assertThat(x.unwrap(), equalTo(1));
 
   }
+  
+  @Test
+  public void logicalAnd() throws Exception {
+    Class clazz = compile("and.c");
+    Method testMethod = clazz.getMethod("test", int.class, double.class);
+
+    assertThat((Integer)testMethod.invoke(null, 1, 0d), equalTo(0));
+    assertThat((Integer)testMethod.invoke(null, 1, 3d), equalTo(41));
+    assertThat((Integer)testMethod.invoke(null, -1, 3d), equalTo(0));
+
+
+  }
 
   @Test
   public void chars() throws Exception {
-    Class clazz = compile("chars.c", "Chars");
+    Class clazz = compile("chars.c");
 
     Method method = clazz.getMethod("circle_name");
     BytePtr ptr = (BytePtr) method.invoke(null);
@@ -203,7 +278,7 @@ public class BasicTest extends AbstractGccTest {
   @Test
   @Ignore("not clear what correct behavior is for NaN values")
   public void fortranDoubleMax() throws Exception {
-    Class clazz = compile("max.f", "MaxTest");
+    Class clazz = compile("max.f");
     Method method = clazz.getMethod("testmax", DoublePtr.class);
     
     DoublePtr x = new DoublePtr(-1);
@@ -221,7 +296,7 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void fortran2darrays() throws Exception {
-    Class clazz = compile("2darray.f", "ArrayTest");
+    Class clazz = compile("2darray.f");
 
     Method method = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
     
@@ -244,7 +319,7 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void arrayC() throws Exception {
-    Class clazz = compile("array.c", "ArrayCTest");
+    Class clazz = compile("array.c");
 
     Method method = clazz.getMethod("test");
 
@@ -256,7 +331,7 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void negate() throws Exception {
-    Class clazz = compile("negate.c", "Negate");
+    Class clazz = compile("negate.c");
 
     Method method = clazz.getMethod("negate", double.class);
     assertThat((Double) method.invoke(null, 1.5), equalTo(-1.5));
@@ -265,7 +340,7 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void globals() throws Exception {
-    Class clazz = compile("globals.c", "Globals");
+    Class clazz = compile("globals.c");
 
     Method magic_number = clazz.getMethod("magic_number");
     Integer result = (Integer) magic_number.invoke(null);
@@ -276,7 +351,7 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void enums() throws Exception {
-    Class clazz = compile("enum.c", "EnumTest");
+    Class clazz = compile("enum.c");
 
     Method method = clazz.getMethod("test", int.class);
 
@@ -288,19 +363,19 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void approx() throws Exception {
-    Class clazz = compile("approx.c", "Approx");
+    Class clazz = compile("approx.c");
 
   }
 
   @Test
   public void kmeans() throws Exception {
-    Class clazz = compile("kmns.f", "KmeansFortran");
+    Class clazz = compile("kmns.f");
 
   }
 
   @Test
   public void fpComparison() throws Exception {
-    Class clazz = compile("fpcmp.c", "FpCmp");
+    Class clazz = compile("fpcmp.c");
 
     assertThat(call(clazz, "lessThan", -2.4, -2.3), equalTo(1));
     assertThat(call(clazz, "lessThan", -2.4, -2.4), equalTo(0));
@@ -340,7 +415,7 @@ public class BasicTest extends AbstractGccTest {
 
   @Test
   public void bitwiseOperators() throws Exception {
-    Class clazz = compile("bitwiseops.c", "Bitwise");
+    Class clazz = compile("bitwiseops.c");
     
     assertThat(call(clazz, "bitwise_lshift", 16, 2), equalTo(16 << 2));
     assertThat(call(clazz, "bitwise_rshift", 16, 2), equalTo(16 >> 2));
@@ -350,7 +425,7 @@ public class BasicTest extends AbstractGccTest {
   
   @Test
   public void hclust() throws Exception {
-    Class clazz = compile("hclust.f", "HClust");
+    Class clazz = compile("hclust.f");
 
 //       SUBROUTINE HCLUST(R, DMIN)
 
@@ -366,8 +441,9 @@ public class BasicTest extends AbstractGccTest {
   }
   
   @Test
+  @Ignore
   public void cpp() throws Exception {
-    Class clazz = compile("rect.cpp", "RectTest");
+    Class clazz = compile("rect.cpp");
 
     Method calc_area = clazz.getMethod("calc_area");
 
@@ -381,7 +457,7 @@ public class BasicTest extends AbstractGccTest {
   @Ignore
   public void virtualCpp() throws Exception {
 
-    Class clazz = compile("shape.cpp", "RectTest");
+    Class clazz = compile("shape.cpp");
 
     Method calc_area = clazz.getMethod("calc_areas");
 
@@ -393,12 +469,12 @@ public class BasicTest extends AbstractGccTest {
   
   @Test
   public void voidInference() throws Exception {
-      compile("lamix.f", "Lamix");
+      compile("lamix.f");
   }
   
   @Test
   public void doubleComplex() throws Exception {
-    Class clazz = compile("double_complex.f", "DoubleComplex");
+    Class clazz = compile("double_complex.f");
 
     Method dcabs = clazz.getMethod("dcabs1_", double[].class, int.class);
     assertThat((Double) dcabs.invoke(null, new double[]{-1, 1}, 0), equalTo(2.0));
@@ -445,7 +521,7 @@ public class BasicTest extends AbstractGccTest {
   
   @Test
   public void updateComplexArrayPointer() throws Exception {
-    Class clazz = compile("complex_update.f", "ComplexUpdate");
+    Class clazz = compile("complex_update.f");
 
     double[] a = new double[]{ 1, 4, 3, -4, 5, -9};
     double[] b = new double[]{-14, -13};
@@ -462,7 +538,7 @@ public class BasicTest extends AbstractGccTest {
   
   @Test
   public void singleComplex() throws Exception {
-    Class clazz = compile("complex.f", "Complex");
+    Class clazz = compile("complex.f");
 
     Method dcabs = clazz.getMethod("dcabs1_", float[].class, int.class);
     assertThat((Float) dcabs.invoke(null, new float[]{-1, 1}, 0), equalTo(2f));
@@ -480,7 +556,7 @@ public class BasicTest extends AbstractGccTest {
  
   @Test
   public void fortranStrings() throws Exception {
-    Class clazz = compile("strings.f", "FortranStrings");
+    Class clazz = compile("strings.f");
     
     try {
       Method method = clazz.getMethod("call_xerbla__");
@@ -493,7 +569,7 @@ public class BasicTest extends AbstractGccTest {
   
   @Test
   public void lsame() throws Exception {
-    Class clazz = compile("lsame.f", "Lsame");
+    Class clazz = compile("lsame.f");
     Method lsame = clazz.getMethod("lsame_", BytePtr.class, BytePtr.class, int.class, int.class);
     
     lsame.invoke(null, BytePtr.asciiString("A"), BytePtr.asciiString("a"), 1, 1);
@@ -502,21 +578,32 @@ public class BasicTest extends AbstractGccTest {
   
   @Test
   public void cher() throws Exception {
-    Class clazz = compile("cher.f", "Cher");
+    Class clazz = compile("cher.f");
 
   }
 
   @Test
   public void scnrm2() throws Exception {
-    Class clazz = compile("scnrm2.f", "Scnrm2");
+    Class clazz = compile("scnrm2.f");
 
   }
   
   @Test
   @Ignore("todo: unions")
   public void fortranEquivalence() throws Exception {
-    Class clazz = compile("equivalence.f", "Equivalence");
+    Class clazz = compile("equivalence.f");
     Method testMethod = clazz.getMethod("test_");
     testMethod.invoke(null);
+  }
+  
+  @Test
+  public void linking() throws Exception {
+    compile(Arrays.asList("link1.c", "link2.c"));
+    
+    Integer test1 = (Integer)Class.forName("org.renjin.gcc.link1").getMethod("test").invoke(null);
+    assertThat(test1, equalTo(3));
+
+    Integer test2 = (Integer)Class.forName("org.renjin.gcc.link2").getMethod("test").invoke(null);
+    assertThat(test2, equalTo(2));    
   }
 }

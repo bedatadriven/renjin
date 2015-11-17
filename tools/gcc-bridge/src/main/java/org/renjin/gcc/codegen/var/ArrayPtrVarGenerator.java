@@ -32,7 +32,10 @@ public class ArrayPtrVarGenerator extends AbstractExprGenerator implements VarGe
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    
+    mv.visitInsn(Opcodes.ACONST_NULL);
+    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
+    mv.visitInsn(Opcodes.ICONST_0);
+    mv.visitVarInsn(Opcodes.ISTORE, offsetIndex);
   }
 
   @Override

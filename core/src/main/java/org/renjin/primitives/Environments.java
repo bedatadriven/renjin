@@ -264,7 +264,7 @@ public final class Environments {
       Environment environment, String mode, boolean inherits) {
     SEXP value = environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode), inherits);
     if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("Object '%s' not found", x);
+      throw new EvalException("Object '%s' not found", StringVector.isNA(x) ? "NA" : x);
     }
     return value;
   }

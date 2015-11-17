@@ -2,22 +2,28 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
-import org.renjin.gcc.codegen.field.FieldGenerator;
-import org.renjin.gcc.codegen.field.PrimitiveFieldGenerator;
-import org.renjin.gcc.codegen.field.PrimitivePtrFieldGenerator;
-import org.renjin.gcc.codegen.field.PrimitivePtrPtrFieldGenerator;
+import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.call.MallocGenerator;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.field.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
-import org.renjin.gcc.codegen.param.WrappedPtrPtrParamGenerator;
+import org.renjin.gcc.codegen.param.PrimitivePtrPtrParamGenerator;
+import org.renjin.gcc.codegen.ret.PrimitivePtrPtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.PrimitivePtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.var.*;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Creates {@code Generators} for {@code GimplePrimitiveType}.
@@ -85,14 +91,14 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new PtrVarGenerator(pointerType,
+      return new PrimitivePtrVarGenerator(pointerType,
           allocator.reserveArrayRef(),
           allocator.reserve(Type.INT_TYPE));
     }
 
     @Override
     public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-      return new AddressablePtrVarGenerator(pointerType,
+      return new AddressablePrimitivePtrVar(pointerType,
           allocator.reserveObject());
     }
 
@@ -102,8 +108,18 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
+    public TypeFactory arrayOf(GimpleArrayType arrayType) {
+      return new PointerArray(arrayType);
+    }
+
+    @Override
     public FieldGenerator fieldGenerator(String className, String fieldName) {
       return new PrimitivePtrFieldGenerator(className, fieldName, pointerType);
+    }
+
+    @Override
+    public ExprGenerator mallocExpression(ExprGenerator size) {
+      return new MallocGenerator(type.jvmType(), pointerType.getBaseType().sizeOf(), size);
     }
   }
 
@@ -120,12 +136,27 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public ParamGenerator paramGenerator() {
-      return new WrappedPtrPtrParamGenerator(pointerType);
+      return new PrimitivePtrPtrParamGenerator(pointerType);
     }
 
     @Override
     public FieldGenerator fieldGenerator(String className, String fieldName) {
       return new PrimitivePtrPtrFieldGenerator(className, fieldName, pointerType);
+    }
+
+    @Override
+    public ReturnGenerator returnGenerator() {
+      return new PrimitivePtrPtrReturnGenerator(pointerType);
+    }
+
+    @Override
+    public VarGenerator varGenerator(LocalVarAllocator allocator) {
+      return new PrimitivePtrPtrVarGenerator(pointerType, allocator.reserveObject(), allocator.reserveInt());
+    }
+
+    @Override
+    public ExprGenerator mallocExpression(ExprGenerator size) {
+      return new MallocGenerator(WrapperType.of(type).getWrapperType(), pointerType.getBaseType().sizeOf(), size);
     }
   }
 
@@ -181,6 +212,44 @@ public class PrimitiveTypeFactory extends TypeFactory {
       return new ArrayPtrVarGenerator(arrayPtrType, 
           allocator.reserveArrayRef(), 
           allocator.reserveInt());
+    }
+
+    @Override
+    public ExprGenerator mallocExpression(ExprGenerator size) {
+      return new MallocGenerator(type.jvmType(), type.sizeOf(), size);
+    }
+  }
+
+  private class PointerArray extends TypeFactory {
+    private GimpleArrayType arrayType;
+
+    public PointerArray(GimpleArrayType arrayType) {
+      this.arrayType = arrayType;
+    }
+
+    @Override
+    public VarGenerator varGenerator(LocalVarAllocator allocator) {
+      return new PrimitivePtrArrayVar(arrayType, allocator.reserveObject());
+    }
+
+    @Override
+    public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
+      return varGenerator(allocator);
+    }
+
+    @Override
+    public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+      
+      List<ExprGenerator> elements = new ArrayList<>();
+      for (GimpleConstructor.Element element : value.getElements()) {
+        elements.add(exprFactory.findGenerator(element.getValue()));
+      }
+      return new PrimitivePtrArrayConstructor(arrayType, elements);
+    }
+
+    @Override
+    public FieldGenerator fieldGenerator(String className, String fieldName) {
+      return new PrimitivePtrArrayField(className, fieldName, arrayType);
     }
   }
 }

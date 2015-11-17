@@ -1,8 +1,11 @@
 // Initial template generated from Rmath.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.sexp.SEXP;
-import org.renjin.gcc.runtime.*;
+import org.apache.commons.math.util.FastMath;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
 
 @SuppressWarnings("unused")
 public final class Rmath {
@@ -10,13 +13,44 @@ public final class Rmath {
   private Rmath() { }
 
 
-
   public static double R_pow(double x, double y) {
-     throw new UnimplementedGnuApiMethod("R_pow");
+    return FastMath.pow(x, y);
   }
 
-  public static double R_pow_di(double p0, int p1) {
-     throw new UnimplementedGnuApiMethod("R_pow_di");
+  public static double R_pow_di(double x, int n)
+  {
+    double xn = 1.0;
+
+    if(Double.isNaN(x)) {
+      return x;
+    }
+    if(IntVector.isNA(n)) {
+      return DoubleVector.NA;
+    }
+    if (n != 0) {
+      if (!DoubleVector.isFinite(x)) {
+        return R_pow(x, (double)n);
+      }
+      boolean isNegative = (n < 0);
+      if(isNegative) {
+        n = -n;
+      }
+      for(;;) {
+        if( (n & 01) != 0 ) {
+          xn *= x;
+        }
+        n >>= 1;
+        if( n != 0) {
+          x *= x;
+        } else {
+          break;
+        }
+      }
+      if(isNegative) {
+        xn = 1d / (double)xn;
+      }
+    }
+    return xn;
   }
 
   public static double norm_rand() {

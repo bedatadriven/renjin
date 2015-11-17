@@ -36,3 +36,14 @@ void malloc_global_test() {
 double malloc_global_test2() {
  return sum_array(global_var, 100);
 }
+
+double* zero_array() {
+  int need = 10;
+  global_var = malloc(need * sizeof(double));
+  int i;
+  for(i=0;i<need;++i) {
+    global_var[i] = 0.0;
+  }
+  return global_var;
+}
+

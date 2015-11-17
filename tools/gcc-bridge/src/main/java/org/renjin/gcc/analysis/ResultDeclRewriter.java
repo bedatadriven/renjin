@@ -26,7 +26,7 @@ public class ResultDeclRewriter implements FunctionBodyTransformer {
     if(returnDecl) {
       // if so, replace it with a local variable
       GimpleVarDecl returnVar = fn.addVarDecl(fn.getReturnType());
-      GimpleVariableRef ref = new GimpleVariableRef(returnVar.getId());
+      GimpleVariableRef ref = new GimpleVariableRef(returnVar.getId(), fn.getReturnType());
       
       fn.replaceAll(Predicates.instanceOf(GimpleResultDecl.class), ref);
       return true;

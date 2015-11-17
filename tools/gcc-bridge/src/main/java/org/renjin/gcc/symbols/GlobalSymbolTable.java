@@ -1,33 +1,45 @@
-package org.renjin.gcc.codegen.call;
+package org.renjin.gcc.symbols;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.GeneratorFactory;
+import org.renjin.gcc.codegen.call.CallGenerator;
+import org.renjin.gcc.codegen.call.FunctionCallGenerator;
+import org.renjin.gcc.codegen.call.StaticMethodCallGenerator;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
+import org.renjin.gcc.gimple.expr.SymbolRef;
 import org.renjin.gcc.runtime.Builtins;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
+import java.util.Set;
 
 import static java.lang.String.format;
 
 /**
- * Provides a mapping from function names to {@code CallGenerator}s
+ * Provides mapping of function and variable symbols that are globally visible. 
+ * 
+ * <p>This includes built-in symbols, externally provided methods or variables, and 
+ * functions and global variables with external linkage.</p>
  */
-public class FunctionTable {
-  
+public class GlobalSymbolTable implements SymbolTable {
+
   private GeneratorFactory generators;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
+  private Map<String, ExprGenerator> globalVariables = Maps.newHashMap();
 
-  public FunctionTable(GeneratorFactory generators) {
+  public GlobalSymbolTable(GeneratorFactory generators) {
     this.generators = generators;
   }
 
-  public CallGenerator find(GimpleFunctionRef ref, CallingConvention callingConvention) {
+  @Override
+  public CallGenerator findCallGenerator(GimpleFunctionRef ref, CallingConvention callingConvention) {
     String mangledName = callingConvention.mangleFunctionName(ref.getName());
     CallGenerator generator = functions.get(mangledName);
     if(generator == null) {
@@ -36,8 +48,9 @@ public class FunctionTable {
     return generator;
   }
   
+  @Override
   public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
-    FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) find(ref, callingConvention);
+    FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) findCallGenerator(ref, callingConvention);
     return functionCallGenerator.getHandle();
   }
 
@@ -60,50 +73,55 @@ public class FunctionTable {
     addMethods(Builtins.class);
   }
 
-  public void addMethod(String functionName, Class<Math> declaringClass) {
-    add(functionName, findMethod(declaringClass, functionName));
+  public void addMethod(String functionName, Class<?> declaringClass) {
+    addFunction(functionName, findMethod(declaringClass, functionName));
   }
   
-  public void addMethod(String functionName, Class<Math> declaringClass, String methodName) {
-    add(functionName, findMethod(declaringClass, methodName));
+  public void addMethod(String functionName, Class<?> declaringClass, String methodName) {
+    addFunction(functionName, findMethod(declaringClass, methodName));
   }
 
-  public void add(String className, FunctionGenerator function) {
-    FunctionCallGenerator generator = new FunctionCallGenerator(className, 
-        function.getMangledName(),
-        function.getParamGenerators(),
-        function.getReturnGenerator());
-
-    functions.put(function.getMangledName(), generator);
+  public void addFunction(String className, FunctionGenerator function) {
+    functions.put(function.getMangledName(), new FunctionCallGenerator(function));
   }
   
-  public void add(String functionName, Method method) {
+  public void addFunction(String functionName, Method method) {
     Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method '%s' must be static", method);
-//
-//    MethodCallGenerator generator = new MethodCallGenerator(
-//        Type.getInternalName(method.getDeclaringClass()),
-//        method.getName(),
-//        createParamGenerators(method),
-//        createReturnGenerator(method));
-//    
     functions.put(functionName, new StaticMethodCallGenerator(generators, method));
   }
 
   public void addMethods(Class<?> clazz) {
     for (Method method : clazz.getMethods()) {
       if(Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
-        add(method.getName(), method);
+        addFunction(method.getName(), method);
       }
     }
   }
 
-
-  private Method findMethod(Class<Math> declaringClass, String methodName) {
+  private Method findMethod(Class<?> declaringClass, String methodName) {
     for (Method method : declaringClass.getMethods()) {
       if(method.getName().equals(methodName)) {
         return method;
       }
     }
     throw new IllegalArgumentException(format("No method named '%s' in %s", methodName, declaringClass.getName()));
+  }
+
+  @Override
+  public ExprGenerator getVariable(SymbolRef ref) {
+    // Global variables are only resolved by name...
+    if(ref.getName() == null) {
+      return null;
+    } else {
+      return globalVariables.get(ref.getName());
+    }
+  }
+  
+  public void addVariable(String name, ExprGenerator exprGenerator) {
+    globalVariables.put(name, exprGenerator);
+  }
+  
+  public Set<Map.Entry<String, CallGenerator>> getFunctions() {
+    return functions.entrySet();
   }
 }

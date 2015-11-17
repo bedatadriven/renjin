@@ -54,6 +54,12 @@ public interface ExprGenerator {
   Type getJvmPrimitiveType();
 
   /**
+   * @param offsetInBytes
+   * @return an ExprGenerator that points to this value plus the offset in bytes
+   */
+  ExprGenerator pointerPlus(ExprGenerator offsetInBytes);
+
+  /**
    * 
    * @return true if this is a {@code ConstantGenerator} for an int32 constant equal to {@code value}
    */
@@ -81,6 +87,8 @@ public interface ExprGenerator {
   void emitPushPtrArrayAndOffset(MethodVisitor mv);
 
   void emitPushPtrArray(MethodVisitor mv);
+  
+  void emitPushArray(MethodVisitor mv);
   
   /**
    * Writes the code to push the reference onto the stack
@@ -112,4 +120,10 @@ public interface ExprGenerator {
   ExprGenerator memberOf(String memberName);
 
   void emitPushRecordRef(MethodVisitor mv);
+
+
+  /**
+   * @return a new ExprGenerator that divides this value by the constant divisor
+   */
+  ExprGenerator divideBy(int divisor);
 }

@@ -23,6 +23,8 @@ package org.renjin.sexp;
 
 import com.google.common.base.Joiner;
 
+import java.util.List;
+
 /**
  * A vector of {@link FunctionCall}s
  *
@@ -39,11 +41,11 @@ public class ExpressionVector extends ListVector {
     super(functionCalls);
   }
 
-  public ExpressionVector(Iterable<SEXP> expressions, AttributeMap attributes) {
+  public ExpressionVector(List<SEXP> expressions, AttributeMap attributes) {
     super(expressions, attributes);
   }
 
-  public ExpressionVector(Iterable<SEXP> expressions){
+  public ExpressionVector(List<SEXP> expressions){
     super(expressions);
   }
 

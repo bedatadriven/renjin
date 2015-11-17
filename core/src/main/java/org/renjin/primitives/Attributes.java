@@ -231,12 +231,17 @@ public class Attributes {
   }
 
   @Builtin
-  public static ListVector attributes(SEXP sexp) {
-    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
-    for(Symbol name : sexp.getAttributes().names()) {
-      list.add(name, postProcessAttributeValue(name, sexp.getAttributes().get(name)));
+  public static Vector attributes(SEXP sexp) {
+    AttributeMap attributes = sexp.getAttributes();
+    if(attributes == AttributeMap.EMPTY) {
+      return Null.INSTANCE;
+    } else {
+      ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+      for (Symbol name : attributes.names()) {
+        list.add(name, postProcessAttributeValue(name, attributes.get(name)));
+      }
+      return list.build();
     }
-    return list.build();
   }
 
   @Builtin("attr")

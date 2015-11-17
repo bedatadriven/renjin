@@ -19,6 +19,7 @@ public class GimpleFunction {
   private List<GimpleBasicBlock> basicBlocks = Lists.newArrayList();
   private List<GimpleParameter> parameters = Lists.newArrayList();
   private List<GimpleVarDecl> variableDeclarations = Lists.newArrayList();
+  private boolean extern;
 
   public GimpleFunction() {
 
@@ -88,6 +89,19 @@ public class GimpleFunction {
       }
     }
     return false;
+  }
+
+  /**
+   * 
+   * @return true if this function has external linkage, that is, it is visible 
+   * from outside of the compilation unit.
+   */
+  public boolean isExtern() {
+    return extern;
+  }
+
+  public void setExtern(boolean extern) {
+    this.extern = extern;
   }
 
   public List<GimpleParameter> getParameters() {

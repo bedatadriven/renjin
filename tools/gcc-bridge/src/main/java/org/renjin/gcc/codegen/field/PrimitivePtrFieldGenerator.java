@@ -4,6 +4,8 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -31,6 +33,11 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
+  public GimpleType getType() {
+    return gimpleType;
+  }
+
+  @Override
   public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
     assertNoInitialValue(decl);
 
@@ -45,6 +52,29 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
   private void emitField(int access, ClassVisitor cv) {
     cv.visitField(access, arrayFieldName, arrayTypeDescriptor(), null, null).visitEnd();
     cv.visitField(access, offsetFieldName, "I", null, 0).visitEnd();
+  }
+
+  @Override
+  public void emitStoreMember(MethodVisitor mv, ExprGenerator ptr) {
+    
+    // Need two copies of the instance on the stack for the store stores
+    mv.visitInsn(Opcodes.DUP);
+    
+    // Push array and offset onto the stack
+    ptr.emitPushPtrArrayAndOffset(mv);
+
+    // DUP_X2 + POP
+    //             value3,  value2, value1 →            value1,   value3,  value2,  value1
+    // instance, instance,   array, offset → instance,  offset, instance ,  array,  offset
+    //                                     → instance,  offset, instance ,  array            
+    mv.visitInsn(Opcodes.DUP_X2);
+    mv.visitInsn(Opcodes.POP);
+
+    // Consume [instance, array] -> 
+    mv.visitFieldInsn(Opcodes.PUTFIELD, className, arrayFieldName, arrayTypeDescriptor());
+    
+    // Consume [instance, offset] 
+    mv.visitFieldInsn(Opcodes.PUTFIELD, className, offsetFieldName, "I");
   }
 
   private String arrayTypeDescriptor() {
@@ -63,7 +93,6 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
 
   private class StaticMemberExpr extends AbstractExprGenerator {
 
-
     @Override
     public GimpleType getGimpleType() {
       return gimpleType;
@@ -77,12 +106,21 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator ptr) {
-
+      
+      if(!ptr.getPointerType().equals(getPointerType())) {
+        throw new InternalCompilerException("Type mismatch");
+      }
+      
       // Store field
       ptr.emitPushPtrArrayAndOffset(mv);
 
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, offsetFieldName, "I");
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, arrayFieldName, arrayTypeDescriptor());
+    }
+
+    @Override
+    public WrapperType getPointerType() {
+      return WrapperType.of(baseType);
     }
   }
 
@@ -97,6 +135,19 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     public GimpleType getGimpleType() {
       return gimpleType;
     }
-    
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      instance.emitPushRecordRef(mv);
+      mv.visitFieldInsn(Opcodes.GETFIELD, className, arrayFieldName, arrayTypeDescriptor());
+      instance.emitPushRecordRef(mv);
+      mv.visitFieldInsn(Opcodes.GETFIELD, className, offsetFieldName, "I");
+    }
+
+    @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      instance.emitPushRecordRef(mv);
+      emitStoreMember(mv, valueGenerator);
+    }
   }
 }

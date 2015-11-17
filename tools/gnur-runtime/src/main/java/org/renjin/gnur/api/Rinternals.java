@@ -1,18 +1,80 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import com.google.common.base.Charsets;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
 import org.renjin.sexp.*;
+
+import java.util.Arrays;
 
 @SuppressWarnings("unused")
 public final class Rinternals {
 
   private Rinternals() { }
 
+  /* Evaluation Environment */
+  public static SEXP	R_GlobalEnv;	    /* The "global" environment */
+
+  public static SEXP  R_EmptyEnv;	    /* An empty environment at the root of the
+				    	environment tree */
+  public static SEXP  R_BaseEnv;	    /* The base environment; formerly R_NilValue */
+  public static SEXP	R_BaseNamespace;    /* The (fake) namespace for base */
+  public static SEXP	R_NamespaceRegistry;/* Registry for registered namespaces */
+
+  public static SEXP	R_Srcref;           /* Current srcref, for debuggers */
+
+  /* Special Values */
+  public static SEXP	R_NilValue = Null.INSTANCE;	    /* The nil object */
+  public static  SEXP	R_UnboundValue = Symbol.UNBOUND_VALUE;	    /* Unbound marker */
+  public static  SEXP	R_MissingArg = Symbol.MISSING_ARG;	    /* Missing argument marker */
+
+  public static SEXP	R_RestartToken;     /* Marker for restarted function calls */
+
+  /* Symbol Table Shortcuts */
+  public static  SEXP	R_baseSymbol = Symbol.get("base"); // <-- backcompatible version of:
+  public static  SEXP	R_BaseSymbol = Symbol.get("base");	// "base"
+  public static  SEXP	R_BraceSymbol = Symbol.get("{");	    /* "{" */
+  public static  SEXP	R_Bracket2Symbol = Symbol.get("[[");   /* "[[" */
+  public static  SEXP	R_BracketSymbol = Symbol.get("[");    /* "[" */
+  public static  SEXP	R_ClassSymbol = Symbol.get("class");	    /* "class" */
+  public static  SEXP	R_DeviceSymbol = Symbol.get(".Device");	    /* ".Device" */
+  public static  SEXP	R_DimNamesSymbol = Symbol.get("dimnames");   /* "dimnames" */
+  public static  SEXP	R_DimSymbol = Symbol.get("dim");	    /* "dim" */
+  public static  SEXP	R_DollarSymbol = Symbol.get("$");	    /* "$" */
+  public static  SEXP	R_DotsSymbol = Symbol.get("...");	    /* "..." */
+  public static  SEXP	R_DoubleColonSymbol = Symbol.get("::"); // "::"
+  public static  SEXP	R_DropSymbol = Symbol.get("drop");	    /* "drop" */
+  public static  SEXP	R_LastvalueSymbol = Symbol.get(".Last.value");  /* ".Last.value" */
+  public static  SEXP	R_LevelsSymbol = Symbol.get("level");	    /* "levels" */
+  public static  SEXP	R_ModeSymbol = Symbol.get("mode");	    /* "mode" */
+  public static  SEXP	R_NaRmSymbol = Symbol.get("na.rm");	    /* "na.rm" */
+  public static  SEXP	R_NameSymbol = Symbol.get("name");	    /* "name" */
+  public static  SEXP	R_NamesSymbol = Symbol.get("names");	    /* "names" */
+  public static  SEXP	R_NamespaceEnvSymbol = Symbol.get(".__NAMESPACE__.");// ".__NAMESPACE__."
+  public static  SEXP	R_PackageSymbol = Symbol.get("package");    /* "package" */
+  public static  SEXP	R_PreviousSymbol = Symbol.get("previous");   /* "previous" */
+  public static  SEXP	R_QuoteSymbol = Symbol.get("quote");	    /* "quote" */
+  public static  SEXP	R_RowNamesSymbol = Symbol.get("row.names");   /* "row.names" */
+  public static  SEXP	R_SeedsSymbol = Symbol.get(".Random.seed");	    /* ".Random.seed" */
+  public static  SEXP	R_SortListSymbol = Symbol.get("sort.list");   /* "sort.list" */
+  public static  SEXP	R_SourceSymbol = Symbol.get("source");	    /* "source" */
+  public static  SEXP	R_SpecSymbol = Symbol.get("spec");	// "spec"
+  public static  SEXP	R_TripleColonSymbol = Symbol.get(":::");// ":::"
+  public static  SEXP	R_TspSymbol = Symbol.get("tsp");	    /* "tsp" */
+
+  public static  SEXP  R_dot_defined = Symbol.get(".defined");      /* ".defined" */
+  public static  SEXP  R_dot_Method = Symbol.get(".Method");       /* ".Method" */
+  public static  SEXP	R_dot_packageName = Symbol.get(".packageName");// ".packageName"
+  public static  SEXP  R_dot_target = Symbol.get(".target");       /* ".target" */
+
+/* Missing Values - others from Arith.h */
+  public static  SEXP	R_NaString = null;	    /* NA_STRING as a CHARSXP */
+  public static  SEXP	R_BlankString = new GnuCharSexp("");	    /* "" as a CHARSXP */
+  public static  SEXP	R_BlankScalarString = new GnuStringVector("");	    /* "" as a STRSXP */
 
 
-  public static CharPtr R_CHAR(SEXP x) {
+  public static BytePtr R_CHAR(SEXP x) {
     throw new UnimplementedGnuApiMethod("R_CHAR");
   }
 
@@ -53,19 +115,49 @@ public final class Rinternals {
   }
 
   public static SEXP ATTRIB(SEXP x) {
-    throw new UnimplementedGnuApiMethod("ATTRIB");
+    return x.getAttributes().asPairList();
   }
 
-  public static int OBJECT(SEXP x) {
-    throw new UnimplementedGnuApiMethod("OBJECT");
+  public static boolean OBJECT(SEXP x) {
+    return x.isObject();
   }
 
   public static int MARK(SEXP x) {
     throw new UnimplementedGnuApiMethod("MARK");
   }
 
-  public static int TYPEOF(SEXP x) {
-    throw new UnimplementedGnuApiMethod("TYPEOF");
+  public static int TYPEOF(SEXP s) {
+    if(s == Null.INSTANCE) {
+      return SexpType.NILSXP;
+    } else if(s instanceof ExpressionVector) {
+      return SexpType.EXPRSXP;
+    } else if(s instanceof ListVector) {
+      return SexpType.VECSXP;
+    } else if(s instanceof StringVector) {
+      return SexpType.STRSXP;
+    } else if(s instanceof DoubleVector) {
+      return SexpType.REALSXP;
+    } else if(s instanceof IntVector) {
+      return SexpType.INTSXP;
+    } else if(s instanceof LogicalVector) {
+      return SexpType.LGLSXP;
+    } else if(s instanceof RawVector) {
+      return SexpType.RAWSXP;
+    } else if(s instanceof Environment) {
+      return SexpType.ENVSXP;
+    } else if(s instanceof ComplexVector) {
+      return SexpType.CPLXSXP;
+    } else if(s instanceof Closure) {
+      return SexpType.CLOSXP;
+    } else if(s instanceof FunctionCall) {
+      return SexpType.LANGSXP;
+    } else if(s instanceof PairList) {
+      return SexpType.LISTSXP;
+    } else if(s instanceof S4Object) {
+      return SexpType.S4SXP;
+    } else {
+      throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
+    }
   }
 
   /**
@@ -134,7 +226,7 @@ public final class Rinternals {
   }
 
   public static /*R_xlen_t*/ int XLENGTH(SEXP x) {
-    throw new UnimplementedGnuApiMethod("XLENGTH");
+    return x.length();
   }
 
   public static /*R_xlen_t*/ int XTRUELENGTH(SEXP x) {
@@ -158,7 +250,14 @@ public final class Rinternals {
   }
 
   public static IntPtr INTEGER(SEXP x) {
-    throw new UnimplementedGnuApiMethod("INTEGER");
+    if(x instanceof IntArrayVector) {
+      return new IntPtr(((IntArrayVector) x).toIntArrayUnsafe());
+    } else if(x instanceof IntVector) {
+      // TODO: cache arrays for the case of repeated INTEGER() calls?
+      return new IntPtr(((IntVector) x).toIntArray());
+    } else {
+      throw new EvalException("INTEGER(): expected integer vector, found %s", x.getTypeName());
+    }
   }
 
   public static BytePtr RAW(SEXP x) {
@@ -189,15 +288,21 @@ public final class Rinternals {
   }
 
   public static SEXP VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i) {
-    throw new UnimplementedGnuApiMethod("VECTOR_ELT");
+    return ((ListVector) x).getElementAsSEXP(i);
   }
 
-  public static void SET_STRING_ELT(SEXP x, /*R_xlen_t*/ int i, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_STRING_ELT");
+  public static void SET_STRING_ELT(SEXP x, /*R_xlen_t*/ int index, SEXP value) {
+    GnuStringVector stringVector = (GnuStringVector) x;
+    GnuCharSexp charValue = (GnuCharSexp) value;
+
+    stringVector.set(index, charValue);
   }
 
-  public static SEXP SET_VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_VECTOR_ELT");
+  public static SEXP SET_VECTOR_ELT(SEXP x, /*R_xlen_t*/ int index, SEXP value) {
+    ListVector listVector = (ListVector) x;
+    SEXP[] elements = listVector.toArrayUnsafe();
+    elements[index] = value;
+    return value;
   }
 
   // SEXP*() STRING_PTR (SEXP x)
@@ -481,16 +586,50 @@ public final class Rinternals {
   }
 
   public static int Rf_asInteger(SEXP x) {
-    throw new UnimplementedGnuApiMethod("Rf_asInteger");
+    int warn = 0, res;
+
+    if (Rf_isVectorAtomic(x) && XLENGTH(x) >= 1) {
+      if(x instanceof AtomicVector) {
+        return ((AtomicVector) x).getElementAsInt(0);
+      } else {
+        throw UNIMPLEMENTED_TYPE("asInteger", x);
+      }
+    } else if(x instanceof CHARSEXP) {
+      throw new UnsupportedOperationException();
+//      res = IntegerFromString(x, &warn);
+//      CoercionWarning(warn);
+//      return res;
+    }
+    return IntVector.NA;
   }
 
   public static double Rf_asReal(SEXP x) {
-    throw new UnimplementedGnuApiMethod("Rf_asReal");
+    int warn = 0, res;
+
+    if (Rf_isVectorAtomic(x) && XLENGTH(x) >= 1) {
+      if(x instanceof AtomicVector) {
+        return ((AtomicVector) x).getElementAsDouble(0);
+      } else {
+        throw UNIMPLEMENTED_TYPE("asReal", x);
+      }
+    } else if(x instanceof CHARSEXP) {
+      throw new UnsupportedOperationException();
+//      res = IntegerFromString(x, &warn);
+//      CoercionWarning(warn);
+//      return res;
+    }
+    return DoubleVector.NA;
   }
+
+
+  private static EvalException UNIMPLEMENTED_TYPE(String s, SEXP t) {
+    return new EvalException("unimplemented type '%s' in '%s'\n", t.getTypeName(), s);
+  }
+
 
   // Rcomplex Rf_asComplex (SEXP x)
 
-  public static CharPtr Rf_acopy_string(CharPtr p0) {
+  public static BytePtr Rf_acopy_string(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_acopy_string");
   }
 
@@ -687,7 +826,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_gsetVar");
   }
 
-  public static SEXP Rf_install(CharPtr p0) {
+  public static SEXP Rf_install(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_install");
   }
 
@@ -699,7 +838,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_installDDVAL");
   }
 
-  public static SEXP Rf_installS3Signature(CharPtr p0, CharPtr p1) {
+  public static SEXP Rf_installS3Signature(BytePtr p0, BytePtr p1) {
     throw new UnimplementedGnuApiMethod("Rf_installS3Signature");
   }
 
@@ -745,11 +884,11 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_namesgets");
   }
 
-  public static SEXP Rf_mkChar(CharPtr p0) {
-    throw new UnimplementedGnuApiMethod("Rf_mkChar");
+  public static SEXP Rf_mkChar(BytePtr string) {
+    return new GnuCharSexp(string);
   }
 
-  public static SEXP Rf_mkCharLen(CharPtr p0, int p1) {
+  public static SEXP Rf_mkCharLen(BytePtr p0, int p1) {
     throw new UnimplementedGnuApiMethod("Rf_mkCharLen");
   }
 
@@ -757,12 +896,38 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_NonNullStringMatch");
   }
 
-  public static int Rf_ncols(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_ncols");
+  public static int Rf_ncols(SEXP s) {
+    if (Rf_isVector(s) || Rf_isList(s)) {
+      Vector dim = s.getAttributes().getDim();
+      if(dim.length() >= 2) {
+        return dim.getElementAsInt(1);
+      } else {
+        return 1;
+      }
+
+    } else if (Rf_isFrame(s)) {
+      return Rf_length(s);
+
+    } else {
+      throw new EvalException("object is not a matrix");
+    }
   }
 
-  public static int Rf_nrows(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_nrows");
+  public static int Rf_nrows(SEXP s) {
+    if (Rf_isVector(s) || Rf_isList(s)) {
+      Vector dim = s.getAttributes().getDim();
+      if(dim.length() >= 1) {
+        return dim.getElementAsInt(0);
+      } else {
+        return 1;
+      }
+
+    } else if (Rf_isFrame(s)) {
+      return Rf_nrows(s.getElementAsSEXP(0));
+
+    } else {
+      throw new EvalException("object is not a matrix");
+    }
   }
 
   public static SEXP Rf_nthcdr(SEXP p0, int p1) {
@@ -775,7 +940,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_pmatch");
   }
 
-  public static boolean Rf_psmatch(CharPtr p0, CharPtr p1, boolean p2) {
+  public static boolean Rf_psmatch(BytePtr p0, BytePtr p1, boolean p2) {
     throw new UnimplementedGnuApiMethod("Rf_psmatch");
   }
 
@@ -785,8 +950,14 @@ public final class Rinternals {
 
   // void Rf_readS3VarsFromFrame (SEXP, SEXP *, SEXP *, SEXP *, SEXP *, SEXP *, SEXP *)
 
-  public static SEXP Rf_setAttrib(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_setAttrib");
+  public static SEXP Rf_setAttrib(SEXP sexp, SEXP attributeName, SEXP newValue) {
+    if(attributeName == null) {
+      throw new IllegalArgumentException("attributeName is NULL");
+    }
+    Symbol attributeSymbol = (Symbol) attributeName;
+    AbstractSEXP abstractSEXP = (AbstractSEXP) sexp;
+    abstractSEXP.unsafeSetAttributes(sexp.getAttributes().copy().set(attributeSymbol, newValue).build());
+    return sexp;
   }
 
   // void Rf_setSVector (SEXP *, int, SEXP)
@@ -799,7 +970,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_stringSuffix");
   }
 
-  public static /*SEXPTYPE*/ int Rf_str2type(CharPtr p0) {
+  public static /*SEXPTYPE*/ int Rf_str2type(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_str2type");
   }
 
@@ -811,19 +982,19 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_substitute");
   }
 
-  public static CharPtr Rf_translateChar(SEXP p0) {
+  public static BytePtr Rf_translateChar(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_translateChar");
   }
 
-  public static CharPtr Rf_translateChar0(SEXP p0) {
+  public static BytePtr Rf_translateChar0(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_translateChar0");
   }
 
-  public static CharPtr Rf_translateCharUTF8(SEXP p0) {
+  public static BytePtr Rf_translateCharUTF8(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_translateCharUTF8");
   }
 
-  public static CharPtr Rf_type2char(/*SEXPTYPE*/ int p0) {
+  public static BytePtr Rf_type2char(/*SEXPTYPE*/ int p0) {
     throw new UnimplementedGnuApiMethod("Rf_type2char");
   }
 
@@ -863,7 +1034,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_tryEvalSilent");
   }
 
-  public static CharPtr R_curErrorBuf() {
+  public static BytePtr R_curErrorBuf() {
     throw new UnimplementedGnuApiMethod("R_curErrorBuf");
   }
 
@@ -879,7 +1050,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_S3Class");
   }
 
-  public static int Rf_isBasicClass(CharPtr p0) {
+  public static int Rf_isBasicClass(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_isBasicClass");
   }
 
@@ -1095,11 +1266,11 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_has_slot");
   }
 
-  public static SEXP R_do_MAKE_CLASS(CharPtr what) {
+  public static SEXP R_do_MAKE_CLASS(BytePtr what) {
     throw new UnimplementedGnuApiMethod("R_do_MAKE_CLASS");
   }
 
-  public static SEXP R_getClassDef(CharPtr what) {
+  public static SEXP R_getClassDef(BytePtr what) {
     throw new UnimplementedGnuApiMethod("R_getClassDef");
   }
 
@@ -1143,7 +1314,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_RunExitFinalizers");
   }
 
-  public static int R_system(CharPtr p0) {
+  public static int R_system(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_system");
   }
 
@@ -1155,8 +1326,22 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_orderVector");
   }
 
-  public static SEXP Rf_allocVector(/*SEXPTYPE*/ int p0, /*R_xlen_t*/ int p1) {
-    throw new UnimplementedGnuApiMethod("Rf_allocVector");
+  public static SEXP Rf_allocVector(/*SEXPTYPE*/ int type, /*R_xlen_t*/ int length) {
+    switch (type) {
+      case SexpType.INTSXP:
+        return new IntArrayVector(new int[length]);
+      case SexpType.REALSXP:
+        return new DoubleArrayVector(new double[length]);
+      case SexpType.LGLSXP:
+        return new LogicalArrayVector(new int[length]);
+      case SexpType.VECSXP:
+        SEXP[] elements = new SEXP[length];
+        Arrays.fill(elements, Null.INSTANCE);
+        return new ListVector(elements);
+      case SexpType.STRSXP:
+        return new GnuStringVector(new BytePtr[length]);
+    }
+    throw new UnimplementedGnuApiMethod("Rf_allocVector: type = " + type);
   }
 
   public static boolean Rf_conformable(SEXP p0, SEXP p1) {
@@ -1167,8 +1352,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_elt");
   }
 
-  public static boolean Rf_inherits(SEXP p0, CharPtr p1) {
-    return p0.inherits(p1.asString());
+  public static boolean Rf_inherits(SEXP p0, BytePtr p1) {
+    return p0.inherits(p1.nullTerminatedString());
   }
 
   public static boolean Rf_isArray(SEXP p0) {
@@ -1179,8 +1364,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_isFactor");
   }
 
-  public static boolean Rf_isFrame(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isFrame");
+  public static boolean Rf_isFrame(SEXP s) {
+    return s.inherits("data.frame");
   }
 
   public static boolean Rf_isFunction(SEXP p0) {
@@ -1195,8 +1380,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_isLanguage");
   }
 
-  public static boolean Rf_isList(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isList");
+  public static boolean Rf_isList(SEXP s) {
+    return (s == Null.INSTANCE || s instanceof PairList.Node);
   }
 
   public static boolean Rf_isMatrix(SEXP p0) {
@@ -1239,16 +1424,16 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_isValidStringF");
   }
 
-  public static boolean Rf_isVector(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isVector");
+  public static boolean Rf_isVector(SEXP s) {
+    return s instanceof Vector;
   }
 
-  public static boolean Rf_isVectorAtomic(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isVectorAtomic");
+  public static boolean Rf_isVectorAtomic(SEXP s) {
+    return s instanceof AtomicVector;
   }
 
-  public static boolean Rf_isVectorList(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isVectorList");
+  public static boolean Rf_isVectorList(SEXP s) {
+    return s instanceof ListVector;
   }
 
   public static boolean Rf_isVectorizable(SEXP p0) {
@@ -1287,7 +1472,9 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_lcons");
   }
 
-  // R_len_t Rf_length (SEXP)
+  public static int Rf_length (SEXP sexp) {
+    return sexp.length();
+  }
 
   public static SEXP Rf_list1(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_list1");
@@ -1313,17 +1500,34 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_listAppend");
   }
 
-  // SEXP Rf_mkNamed (SEXPTYPE, const char **)
+  public static SEXP Rf_mkNamed (int sexpType, ObjectPtr<BytePtr> names) {
+    if(sexpType == SexpType.VECSXP) {
+      ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+      int i = 0;
+      while(true) {
+        String name = names.get(i).nullTerminatedString();
+        if(name.isEmpty()) {
+          break;
+        }
+        list.add(name, Null.INSTANCE);
+        i++;
+      }
+      return list.build();
+    } else {
+      throw new UnsupportedOperationException("mkNamed: type = " + sexpType);
+    }
+  }
 
-  public static SEXP Rf_mkString(CharPtr p0) {
+  public static SEXP Rf_mkString(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_mkString");
   }
+
 
   public static int Rf_nlevels(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_nlevels");
   }
 
-  public static int Rf_stringPositionTr(SEXP p0, CharPtr p1) {
+  public static int Rf_stringPositionTr(SEXP p0, BytePtr p1) {
     throw new UnimplementedGnuApiMethod("Rf_stringPositionTr");
   }
 
@@ -1353,7 +1557,6 @@ public final class Rinternals {
 
   public static SEXP Rf_protect(SEXP p0) {
     // NOOP
-    System.out.println(p0);
     return p0;
   }
 

@@ -25,7 +25,8 @@ public class FunPtrVarGenerator extends AbstractExprGenerator implements VarGene
 
   @Override
   public void emitDefaultInit(MethodVisitor mv) {
-    
+    mv.visitInsn(Opcodes.ACONST_NULL);
+    mv.visitVarInsn(Opcodes.ASTORE, index);
   }
 
   @Override

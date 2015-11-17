@@ -3,9 +3,15 @@ package org.renjin.gcc.gimple.expr;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.renjin.gcc.gimple.type.GimpleType;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({ 
+/**
+ * A Gimple Expression node. 
+ *
+ * @see <a href="https://gcc.gnu.org/onlinedocs/gccint/Expression-trees.html#Expression-trees">Expression trees</a>
+ */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "code")
+@JsonSubTypes({
     @Type(value = GimpleMemRef.class, name = "mem_ref"),
     @Type(value = GimpleVariableRef.class, name = "var_decl"),
     @Type(value = GimpleFieldRef.class, name = "field_decl"),
@@ -23,8 +29,30 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = GimpleRealPartExpr.class, name = "realpart_expr"),
     @Type(value = GimpleImPartExpr.class, name = "imagpart_expr"),
     @Type(value = GimpleComplexConstant.class, name = "complex_cst"),
-    @Type(value = GimpleResultDecl.class, name = "result_decl")
+    @Type(value = GimpleResultDecl.class, name = "result_decl"),
+    @Type(value = GimpleNopExpr.class, name = "nop_expr"),
+    @Type(value = GimpleSsaName.class, name = "ssa_name")
 })
 public abstract class GimpleExpr {
 
+  private Integer line;
+
+  private GimpleType type;
+
+
+  public void setLine(Integer line) {
+    this.line = line;
+  }
+
+  public Integer getLine() {
+    return line;
+  }
+
+  public GimpleType getType() {
+    return type;
+  }
+
+  public void setType(GimpleType type) {
+    this.type = type;
+  }
 }

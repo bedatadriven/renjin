@@ -4,7 +4,7 @@
   <parent>
     <artifactId>renjin-packages</artifactId>
     <groupId>org.renjin</groupId>
-    <version>0.7.0-RC8-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>methods</artifactId>

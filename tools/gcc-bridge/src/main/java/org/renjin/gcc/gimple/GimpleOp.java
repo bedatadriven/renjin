@@ -57,6 +57,7 @@ public enum GimpleOp {
   BIT_XOR_EXPR,
   LSHIFT_EXPR,
   RSHIFT_EXPR,
+  LROTATE_EXPR,
   
   NEGATE_EXPR,
 

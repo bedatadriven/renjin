@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
+import org.renjin.gcc.gimple.type.GimpleType;
+
 public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
 
   private String name;
@@ -9,8 +11,9 @@ public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
   public GimpleVariableRef() {
   }
 
-  public GimpleVariableRef(int id) {
+  public GimpleVariableRef(int id, GimpleType type) {
     this.id = id;
+    this.setType(type);
   }
 
   public int getId() {

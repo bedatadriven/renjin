@@ -20,7 +20,8 @@ import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
 import java.awt.*;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -39,9 +40,9 @@ public class Native {
                           @NamedFlag("PACKAGE") String packageName,
                           @NamedFlag("NAOK") boolean naOk,
                           @NamedFlag("DUP") boolean dup,
-                          @NamedFlag("ENCODING") boolean encoding) {
+                          @NamedFlag("ENCODING") boolean encoding) throws IllegalAccessException {
 
-    Method method;
+    MethodHandle method;
 
     if(methodExp instanceof StringVector) {
       String methodName = ((StringVector) methodExp).getElementAsString(0);
@@ -56,43 +57,49 @@ public class Native {
          throw new EvalException("Can't find method %s in package %s", methodName, packageName);
       } 
 
-      method = Iterables.getOnlyElement(methods);
+      method = MethodHandles.publicLookup().unreflect(Iterables.getOnlyElement(methods));
 
     } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
-      method = (Method) ((ExternalPtr) methodExp).getInstance();
+      method = MethodHandles.publicLookup().unreflect((Method) ((ExternalPtr) methodExp).getInstance());
 
+    } else if(methodExp instanceof ListVector) {
+      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+      method = address.getInstance();
+      
     } else {
       throw new EvalException("Invalid method argument of type %s", methodExp.getTypeName());
     }
 
-    Object[] nativeArguments = new Object[method.getParameterTypes().length];
+    Object[] nativeArguments = new Object[method.type().parameterCount()];
     for(int i=0;i!=nativeArguments.length;++i) {
-      Type type = method.getParameterTypes()[i];
+      Type type = method.type().parameterType(i);
       if(type.equals(IntPtr.class)) {
         nativeArguments[i] = intPtrFromVector(callArguments.get(i));
       } else if(type.equals(DoublePtr.class)) {
         nativeArguments[i] = doublePtrFromVector(callArguments.get(i));
       } else {
          throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
-                 " to for C argument " +  type + " in call to " + method.getName());
+                 " to for C argument " +  type + " in call to " + method);
       }
     }
 
     try {
-      method.invoke(null, nativeArguments);
-    } catch (InvocationTargetException e) {
+      method.invokeWithArguments(nativeArguments);
+    } catch (EvalException e) {
+      throw e;
+    } catch (Throwable e) {
       e.printStackTrace();
-      throw new EvalException(e.getCause().getMessage(), e.getCause());
-    } catch (Exception e) {
-      throw new EvalException(e);
-    }
+      throw new EvalException(e.getCause().getMessage(), e);
+    } 
 
     ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
     for(int i=0;i!=nativeArguments.length;++i) {
       if(DEBUG) {
         java.lang.System.out.println(callArguments.getName(i) + " = " + nativeArguments[i].toString());
       }
-      builder.add(callArguments.getName(i), sexpFromPointer(nativeArguments[i]));
+      builder.add(callArguments.getName(i), sexpFromPointer(
+              nativeArguments[i],
+              callArguments.get(i).getAttributes()));
     }
     return builder.build();
   }
@@ -108,14 +115,14 @@ public class Native {
     java.lang.System.out.println("PACKAGE = '" + packageName + "')");
   }
 
-  public static SEXP sexpFromPointer(Object ptr) {
+  public static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
     // Currently, our GCC bridge doesn't support storing values
     // to fields, so we can be confident that no other references
     // to these pointers exist
     if(ptr instanceof DoublePtr) {
-      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array);
+      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array, attributes);
     } else if(ptr instanceof IntPtr) {
-      return new IntArrayVector(((IntPtr) ptr).array);
+      return new IntArrayVector(((IntPtr) ptr).array, attributes);
     } else {
       throw new UnsupportedOperationException(ptr.toString());
     }
@@ -143,16 +150,6 @@ public class Native {
   /**
    * Invokes a method compiled to JVM byte code from Fortran, applying the correct calling
    * conventions, etc. This method differs from the
-   *
-   * @param context
-   * @param rho
-   * @param methodName
-   * @param callArguments
-   * @param packageName
-   * @param naOk
-   * @param dup
-   * @param encoding
-   * @return
    */
   @Builtin(".Fortran")
   public static SEXP dotFortran(@Current Context context,
@@ -259,31 +256,69 @@ public class Native {
     }
     throw new EvalException("Could not find method %s in class %s", methodName, className);
   }
-
+  
   @Builtin(".Call")
   public static SEXP dotCall(@Current Context context,
                              @Current Environment rho,
-                             String methodName,
+                             SEXP methodExp,
                              @ArgumentList ListVector callArguments,
                              @NamedFlag("PACKAGE") String packageName,
                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
 
-    Class clazz;
-    if(packageName != null) {
-      clazz = getPackageClass(packageName, context);
-    } else if(className != null) {
-      clazz = Class.forName(className);
+    if(methodExp.inherits("NativeSymbolInfo")) {
+     
+      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+      MethodHandle methodHandle = address.getInstance();
+      if(methodHandle.type().parameterCount() != callArguments.length()) {
+        throw new EvalException("Expected %d arguments, found %d", 
+            methodHandle.type().parameterCount(),
+            callArguments.length());
+      }
+      MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
+      SEXP[] arguments = toSexpArray(callArguments);
+      try {
+        if (methodHandle.type().returnType().equals(void.class)) {
+          transformedHandle.invokeExact(arguments);
+          return Null.INSTANCE;
+        } else {
+          return (SEXP) transformedHandle.invokeExact(arguments);
+        }
+      } catch (Error e) {
+        throw e;
+      } catch (Throwable e) {
+        throw new EvalException("Exception calling " + methodExp, e);
+      }
+      
+    } else if(methodExp instanceof StringVector) {
+
+      String methodName = ((StringVector) methodExp).getElementAsString(0);
+      
+      Class clazz;
+      if (packageName != null) {
+        clazz = getPackageClass(packageName, context);
+      } else if (className != null) {
+        clazz = Class.forName(className);
+      } else {
+        throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
+      }
+
+      return delegateToJavaMethod(context, clazz, methodName, callArguments);
     } else {
-      throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
+      throw new EvalException("Invalid method argument: " + methodExp);
     }
-    
-    return delegateToJavaMethod(context, clazz, methodName, callArguments);
+  }
+
+  private static SEXP[] toSexpArray(ListVector callArguments) {
+    SEXP args[] = new SEXP[callArguments.length()];
+    for (int i = 0; i < callArguments.length(); i++) {
+      args[i] = callArguments.get(i);
+    }
+    return args;
   }
 
   /**
    * Dispatches what were originally calls to "native" libraries (C/Fortran/etc)
    * to a Java class. The Calling convention (.C/.Fortran/.Call) are ignored.
-   * @param className 
    *
    */
   public static SEXP delegateToJavaMethod(Context context,

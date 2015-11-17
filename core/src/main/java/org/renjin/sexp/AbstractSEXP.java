@@ -228,4 +228,16 @@ public abstract class AbstractSEXP implements SEXP {
   public SEXP force(Context context) {
     return this;
   }
+
+  /**
+   * Modifies this SEXP's attributes in place. Some {@code SEXP}s
+   * MAY be shared between multiple threads and so are assumed immutable. Modifications to the
+   * array should ONLY be undertaken very carefully and when assured no references to this {@code SEXP}
+   * are being held elsewhere.
+   *
+   * @param attributeMap the new attribute map
+   */
+  public void unsafeSetAttributes(AttributeMap attributeMap) {
+    this.attributes = attributeMap;
+  }
 }

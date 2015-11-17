@@ -6,14 +6,14 @@ import org.renjin.gcc.codegen.Types;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
-public class MaxGenerator extends  AbstractExprGenerator implements ValueGenerator {
+public class MaxGenerator extends  AbstractExprGenerator implements ExprGenerator {
   
-  private ValueGenerator x;
-  private ValueGenerator y;
+  private ExprGenerator x;
+  private ExprGenerator y;
 
   public MaxGenerator(ExprGenerator x, ExprGenerator y) {
-    this.x = (ValueGenerator) x;
-    this.y = (ValueGenerator) y;
+    this.x = x;
+    this.y = y;
   }
 
   @Override

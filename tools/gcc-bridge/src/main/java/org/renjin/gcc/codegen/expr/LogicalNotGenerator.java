@@ -5,12 +5,12 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-public class LogicalNotGenerator extends AbstractExprGenerator implements ValueGenerator {
+public class LogicalNotGenerator extends AbstractExprGenerator implements ExprGenerator {
   
-  private ValueGenerator operand;
+  private ExprGenerator operand;
 
   public LogicalNotGenerator(ExprGenerator operand) {
-    this.operand = (ValueGenerator) operand;
+    this.operand = operand;
   }
 
   @Override

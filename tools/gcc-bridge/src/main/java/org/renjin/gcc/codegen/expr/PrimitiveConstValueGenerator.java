@@ -5,20 +5,22 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class PrimitiveConstValueGenerator extends AbstractExprGenerator implements ValueGenerator {
+public class PrimitiveConstValueGenerator extends AbstractExprGenerator implements ExprGenerator {
 
   private GimplePrimitiveType gimpleType;
   private Number value;
 
   public PrimitiveConstValueGenerator(GimplePrimitiveConstant constant) {
     value = constant.getValue();
-    gimpleType = (GimplePrimitiveType) constant.getType();
+    if(constant.getType() instanceof GimpleIndirectType) {
+      gimpleType = new GimpleIntegerType(32);
+    } else {
+      gimpleType = (GimplePrimitiveType) constant.getType();
+    }
   }
 
   public PrimitiveConstValueGenerator(GimplePrimitiveType gimpleType, Number value) {
@@ -46,7 +48,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
 
-  private void emitInt(MethodVisitor mv, int value) {
+  public static void emitInt(MethodVisitor mv, int value) {
     if(value == -1) {
       mv.visitInsn(ICONST_M1);
     } else if(value >= 0 && value <= 5) {
@@ -58,7 +60,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
 
-  private void emitLong(MethodVisitor mv, long value) {
+  public static void emitLong(MethodVisitor mv, long value) {
     if(value == 0) {
       mv.visitInsn(LCONST_0);
     } else if(value == 1) {
@@ -68,7 +70,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
 
-  private void emitFloat(MethodVisitor mv, float value) {
+  public static void emitFloat(MethodVisitor mv, float value) {
     if(value == 0) {
       mv.visitInsn(FCONST_0);
     } else if(value == 1) {
@@ -80,7 +82,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
 
-  private void emitDouble(MethodVisitor mv, double v) {
+  public static void emitDouble(MethodVisitor mv, double v) {
     if(v == 0) {
       mv.visitInsn(DCONST_0);
     } else if(v == 1) {
@@ -90,6 +92,7 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
     }
   }
   
+  @Override
   public PrimitiveConstValueGenerator divideBy(int divisor) {
     if (gimpleType.jvmType().equals(Type.INT_TYPE)) {
       return new PrimitiveConstValueGenerator(gimpleType, value.intValue() / divisor);

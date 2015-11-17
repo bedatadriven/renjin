@@ -45,7 +45,7 @@ public class ComplexReturnGenerator implements ReturnGenerator {
   public ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments) {
     return new CallExpr(callGenerator, arguments);
   }
-  
+
   private class CallExpr extends AbstractExprGenerator {
     private CallGenerator callGenerator;
     private List<ExprGenerator> argumentGenerators;

@@ -1,5 +1,6 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -9,8 +10,10 @@ import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.sexp.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -167,19 +170,33 @@ public class Namespace {
 
   private void importDynamicLibrary(NamespaceFile.DynLibEntry entry) {
     try {
+      DllInfo info = new DllInfo(entry.getLibraryName());
+
       FqPackageName packageName = pkg.getName();
       String className = packageName.getGroupId() + "." + packageName.getPackageName() + "." + entry.getLibraryName();
       Class clazz = pkg.loadClass(className);
 
-      if(entry.getSymbols().isEmpty()) {
-        // add all methods from class file
-        for(Method method : clazz.getMethods()) {
-          if(isPublicStatic(method)) {
-            addGnurMethod(entry.getPrefix() + method.getName(), method);
-          }
+      // Call the initialization routine
+      Optional<Method> initMethod = findInitRoutine(entry.getLibraryName(), clazz);
+      if(initMethod.isPresent()) {
+        try {
+          initMethod.get().invoke(null, info);
+        } catch (InvocationTargetException e) {
+          throw new EvalException("Exception initializing compiled GNU R library " + entry.getLibraryName(), e.getCause());
         }
+      }
+
+      if(entry.isRegistration()) {
+
+        // Use the symbols registered by the R_init_xxx() function
+        for (DllSymbol symbol : info.getSymbols()) {
+          getImportsEnvironment().setVariable(symbol.getName(), symbol.createObject());
+        }
+
       } else {
-        for(NamespaceFile.DynLibSymbol symbol : entry.getSymbols()) {
+
+        // Use the symbol list explicitly declared in the useDynLib directive
+        for (NamespaceFile.DynLibSymbol symbol : entry.getSymbols()) {
           Method method = findGnurMethod(clazz, symbol.getSymbolName());
           addGnurMethod(entry.getPrefix() + symbol.getAlias(), method);
         }
@@ -187,8 +204,38 @@ public class Namespace {
     } catch(Exception e) {
       // Allow the program to continue, there may be some packages whose gnur
       // compilation failed but can still partially function.
+      e.printStackTrace();
       System.err.println("WARNING: Failed to import dynLib entries for " + getName() + ", expect subsequent failures");
     }
+  }
+
+  /**
+   * GNU R provides a way of executing some code automatically when a object/DLL is either loaded or unloaded. 
+   * This can be used, for example, to register native routines with R's dynamic symbol mechanism, initialize some data 
+   * in the native code, or initialize a third party library. On loading a DLL, R will look for a routine within that
+   * DLL named R_init_lib where lib is the name of the DLL file with the extension removed.
+   *
+   * @param libraryName the name of the library to load
+   * @param clazz the JVM class containing the compiled routines
+   * @return the method handle if it exists
+   */
+  private Optional<Method> findInitRoutine(String libraryName, Class clazz) {
+    String initName = "R_init_" + libraryName;
+    Class[] expectedParameterTypes = new Class[] { DllInfo.class };
+
+    for (Method method : clazz.getMethods()) {
+      if(method.getName().equals(initName)) {
+        if(!Arrays.equals(method.getParameterTypes(), expectedParameterTypes)) {
+          throw new EvalException(String.format("%s.%s has invalid signature: %s. Expected %s(DllInfo info)",
+              clazz.getName(),
+              initName,
+              method.toString(),
+              initName));
+        }
+        return Optional.of(method);
+      }
+    }
+    return Optional.absent();
   }
 
 

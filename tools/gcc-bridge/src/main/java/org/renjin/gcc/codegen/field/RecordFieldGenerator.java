@@ -5,6 +5,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
@@ -21,6 +22,11 @@ public class RecordFieldGenerator extends FieldGenerator {
     this.className = className;
     this.fieldName = fieldName;
     this.recordGenerator = recordGenerator;
+  }
+
+  @Override
+  public GimpleType getType() {
+    return recordGenerator.getGimpleType();
   }
 
   @Override

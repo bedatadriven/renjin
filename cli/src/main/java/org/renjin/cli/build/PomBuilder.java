@@ -24,10 +24,12 @@ public class PomBuilder {
   private static final Set<String> IGNORED_PACKAGES = Sets.newHashSet("R", "base");
 
   private final PackageSource source;
+  private String buildVersion;
   private final PackageDescription description;
 
-  public PomBuilder(PackageSource source) {
+  public PomBuilder(PackageSource source, String buildVersion) {
     this.source = source;
+    this.buildVersion = buildVersion;
     this.description = source.getDescription();
   }
 
@@ -37,7 +39,7 @@ public class PomBuilder {
     model.setModelVersion("4.0.0");
     model.setArtifactId(description.getPackage());
     model.setGroupId(source.getGroupId());
-    model.setVersion(source.getVersion());
+    model.setVersion(buildVersion);
     model.setDescription(description.getDescription());
     model.setUrl(description.getUrl());
 

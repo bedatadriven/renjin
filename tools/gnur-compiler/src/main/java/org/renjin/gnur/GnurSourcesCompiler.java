@@ -5,12 +5,14 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import org.apache.commons.math.special.Erf;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gnur.api.RenjinDebug;
-import org.renjin.gnur.api.Rinternals;
+import org.renjin.gnur.api.*;
+import org.renjin.gnur.api.Error;
+import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.sexp.SEXP;
 
 import java.io.File;
@@ -126,12 +128,26 @@ public class GnurSourcesCompiler {
       compiler.addReferenceClass(distributionsClass);
       compiler.addMethod("Rf_dbeta", distributionsClass, "dbeta");
       compiler.addMethod("Rf_pbeta", distributionsClass, "pbeta");
-      compiler.addReferenceClass(RenjinCApi.class);
+      compiler.addMethod("erf", Erf.class, "erf");
+      compiler.addMethod("erfc", Erf.class, "erfc");
+     //compiler.addReferenceClass(RenjinCApi.class);
       compiler.addReferenceClass(Sort.class);
+      compiler.addReferenceClass(GetText.class);
       compiler.addReferenceClass(Rinternals.class);
+      compiler.addReferenceClass(Arith.class);
       compiler.addReferenceClass(RenjinDebug.class);
+      compiler.addReferenceClass(Error.class);
+      compiler.addReferenceClass(Utils.class);
+      compiler.addReferenceClass(Rmath.class);
+      
       compiler.addRecordClass("SEXPREC", SEXP.class);
+      
+      compiler.addReferenceClass(Rdynload.class);
       compiler.addRecordClass("_DllInfo", DllInfo.class);
+      compiler.addRecordClass("__MethodDef", MethodDef.class);
+      
+      
+      
       compiler.compile(units);
     }
   }

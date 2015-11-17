@@ -32,6 +32,11 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
 
 
   @Override
+  public GimpleType getType() {
+    return gimpleType;
+  }
+
+  @Override
   public void emitStaticField(ClassVisitor cv, GimpleVarDecl varDecl) {
     cv.visitField(ACC_STATIC | ACC_PUBLIC | isFinal(varDecl), fieldName, type.getDescriptor(), null, initialValue(varDecl)).visitEnd();
   }
@@ -42,6 +47,11 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
     cv.visitField(ACC_PUBLIC, fieldName, type.getDescriptor(), null, null).visitEnd();
   }
 
+  @Override
+  public void emitStoreMember(MethodVisitor mv, ExprGenerator valueGenerator) {
+    valueGenerator.emitPrimitiveValue(mv);
+    mv.visitFieldInsn(PUTFIELD, className, fieldName, type.getDescriptor());
+  }
 
   private int isFinal(GimpleVarDecl varDecl) {
     if(varDecl.isConstant()) {
@@ -93,6 +103,7 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      valueGenerator.emitPrimitiveValue(mv);
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, type.getDescriptor());
     }
   }
@@ -113,9 +124,9 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
       instance.emitPushRecordRef(mv);
-      valueGenerator.emitPrimitiveValue(mv);
-      mv.visitFieldInsn(PUTFIELD, className, fieldName, type.getDescriptor());
+      emitStoreMember(mv, valueGenerator);
     }
+
 
     @Override
     public void emitPrimitiveValue(MethodVisitor mv) {

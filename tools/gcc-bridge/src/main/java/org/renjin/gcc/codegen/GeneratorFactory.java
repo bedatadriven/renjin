@@ -4,17 +4,17 @@ import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.field.FieldGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
-import org.renjin.gcc.codegen.param.StringParamGenerator;
+import org.renjin.gcc.codegen.param.*;
 import org.renjin.gcc.codegen.ret.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +31,7 @@ public class GeneratorFactory {
    * Map from internal JVM class name to a GimpleType
    */
   private final Map<String, GimpleRecordType> classTypes = Maps.newHashMap();
-  
+
   public void addRecordType(GimpleRecordTypeDef type, RecordClassGenerator generator) {
     recordTypes.put(type.getId(), generator);
     classTypes.put(generator.getClassName(), generator.getGimpleType());
@@ -132,14 +132,20 @@ public class GeneratorFactory {
    * our {@code ParamGenerators}; a complex pointer is represented as a {@code double[]} and an 
    * {@code int} offset, for example.</p>
    */
-  public List<ParamGenerator> forParameterTypes(Class[] parameterTypes) {
+  public List<ParamGenerator> forParameterTypesOf(Method method) {
 
     List<ParamGenerator> generators = new ArrayList<ParamGenerator>();
 
+    int numParams = method.getParameterTypes().length;
+    
     int index = 0;
-    while(index < parameterTypes.length) {
-      Class<?> paramClass = parameterTypes[index];
-      if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
+    while(index < numParams) {
+      Class<?> paramClass = method.getParameterTypes()[index];
+      if(paramClass.equals(ObjectPtr.class)) {
+        generators.add(forObjectPtrParam(method.getGenericParameterTypes()[index]));
+        index++;
+        
+      } else if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
         WrapperType wrapperType = WrapperType.valueOf(paramClass);
         generators.add(new PrimitivePtrParamGenerator(wrapperType.getGimpleType()));
         index++;
@@ -165,6 +171,26 @@ public class GeneratorFactory {
       } 
     }
     return generators;
+  }
+  
+  private ParamGenerator forObjectPtrParam(java.lang.reflect.Type type) {
+    if(!(type instanceof ParameterizedType)) {
+      throw new InternalCompilerException(ObjectPtr.class.getSimpleName() + " parameters must be parameterized");
+    }
+    ParameterizedType parameterizedType = (ParameterizedType) type;
+    java.lang.reflect.Type baseType = parameterizedType.getActualTypeArguments()[0];
+    
+    if(baseType.equals(BytePtr.class)) {
+      return forType(new GimpleIntegerType(8)).pointerTo().pointerTo().paramGenerator();
+    } else {
+      String baseTypeInternalName = Type.getInternalName((Class)baseType);
+      if(classTypes.containsKey(baseTypeInternalName)) {
+        GimpleRecordType mappedType = classTypes.get(baseTypeInternalName);
+        RecordClassGenerator recordClassGenerator = recordTypes.get(mappedType.getId());
+        return new WrappedRecordPtrParamGenerator(recordClassGenerator);
+      }
+    }
+    throw new UnsupportedOperationException("TODO: baseType = " + baseType);
   }
 
   public Map<GimpleParameter, ParamGenerator> forParameters(List<GimpleParameter> parameters) {

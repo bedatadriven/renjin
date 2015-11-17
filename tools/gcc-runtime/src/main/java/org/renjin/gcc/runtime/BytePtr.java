@@ -1,6 +1,8 @@
 package org.renjin.gcc.runtime;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class BytePtr implements Ptr {
   
@@ -21,6 +23,12 @@ public class BytePtr implements Ptr {
 
   public static BytePtr asciiString(String string) {
     return new BytePtr(string.getBytes(StandardCharsets.US_ASCII), 0);
+  }
+  
+  public static BytePtr nullTerminatedString(String string, Charset charset) {
+    byte[] bytes = string.getBytes(charset);
+    byte[] nullTerminatedBytes = Arrays.copyOf(bytes, bytes.length+1);
+    return new BytePtr(nullTerminatedBytes, 0);
   }
   
   /**

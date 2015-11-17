@@ -240,7 +240,7 @@ public class RDataWriter {
   }
 
   private void writeLogical(LogicalVector vector) throws IOException {
-    writeFlags(LGLSXP, vector);
+    writeFlags(SexpType.LGLSXP, vector);
     out.writeInt(vector.length());
     for(int i=0;i!=vector.length();++i) {
       out.writeInt(vector.getElementAsRawLogical(i));
@@ -249,7 +249,7 @@ public class RDataWriter {
   }
 
   private void writeIntVector(IntVector vector) throws IOException {
-    writeFlags(INTSXP, vector);
+    writeFlags(SexpType.INTSXP, vector);
     out.writeInt(vector.length());
     if(ser_type == SERIALIZATION_TYPE.ASCII) {
       for(int i=0;i!=vector.length();++i) {
@@ -268,7 +268,7 @@ public class RDataWriter {
   }
 
   private void writeDoubleVector(DoubleVector vector) throws IOException {
-    writeFlags(REALSXP, vector);
+    writeFlags(SexpType.REALSXP, vector);
     out.writeInt(vector.length());
     if(ser_type == SERIALIZATION_TYPE.ASCII) {
       for(int i=0;i!=vector.length();++i) {
@@ -300,20 +300,20 @@ public class RDataWriter {
 
 
   private void writeS4(S4Object exp) throws IOException {
-    writeFlags(S4SXP, exp);
+    writeFlags(SexpType.S4SXP, exp);
     writeAttributes(exp);
   }
 
   private void writeExternalPtr(ExternalPtr exp) throws IOException {
     addRef(exp);
-    writeFlags(EXTPTRSXP, exp);
+    writeFlags(SexpType.EXTPTRSXP, exp);
     writeExp(Null.INSTANCE); // protected value (not currently used)
     writeExp(Null.INSTANCE); // tag (not currently used)
     writeAttributes(exp);
   }
 
   private void writeComplexVector(ComplexVector vector) throws IOException {
-    writeFlags(SerializationFormat.CPLXSXP, vector);
+    writeFlags(SexpType.CPLXSXP, vector);
     out.writeInt(vector.length());
     for(int i=0;i!=vector.length();++i) {
       Complex value = vector.getElementAsComplex(i);
@@ -324,7 +324,7 @@ public class RDataWriter {
   }
 
   private void writeRawVector(RawVector vector) throws IOException {
-    writeFlags(RAWSXP, vector);
+    writeFlags(SexpType.RAWSXP, vector);
     out.writeInt(vector.length());
     if(ser_type == SERIALIZATION_TYPE.ASCII) {
       byte[] bytes = vector.toByteArray();
@@ -338,7 +338,7 @@ public class RDataWriter {
   }
   
   private void writeStringVector(StringVector vector) throws IOException {
-    writeFlags(STRSXP, vector);
+    writeFlags(SexpType.STRSXP, vector);
     out.writeInt(vector.length());
     for(int i=0;i!=vector.length();++i) {
       writeCharExp(vector.getElementAsString(i));
@@ -347,7 +347,7 @@ public class RDataWriter {
   }
 
   private void writeList(ListVector vector) throws IOException {
-    writeFlags(VECSXP, vector);
+    writeFlags(SexpType.VECSXP, vector);
     out.writeInt(vector.length());
     for(SEXP element : vector) {
       writeExp(element);
@@ -366,7 +366,7 @@ public class RDataWriter {
   }
 
   private void writePairList(PairList.Node node) throws IOException {
-    writeFlags(LISTSXP, node);
+    writeFlags(SexpType.LISTSXP, node);
     writeAttributes(node);
     writeTag(node);
     writeExp(node.getValue());
@@ -378,7 +378,7 @@ public class RDataWriter {
   }
 
   private void writeFunctionCall(FunctionCall exp) throws IOException {
-    writeFlags(SerializationFormat.LANGSXP, exp);
+    writeFlags(SexpType.LANGSXP, exp);
     writeAttributes(exp);
     writeTag(exp);
     writeExp(exp.getValue());
@@ -390,7 +390,7 @@ public class RDataWriter {
   }
 
   private void writeClosure(Closure exp) throws IOException {
-    writeFlags(SerializationFormat.CLOSXP, exp);
+    writeFlags(SexpType.CLOSXP, exp);
     writeAttributes(exp);
     writeExp(exp.getEnclosingEnvironment());
     writeExp(exp.getFormals());
@@ -411,7 +411,7 @@ public class RDataWriter {
         writeNamespace(env);
       } else {
         addRef(env);
-        writeFlags(SerializationFormat.ENVSXP, env);
+        writeFlags(SexpType.ENVSXP, env);
         out.writeInt(env.isLocked() ? 1 : 0);
         writeExp(env.getParent());
         writeFrame(env);
@@ -453,10 +453,10 @@ public class RDataWriter {
 
   private void writeRefIndex(int index) throws IOException {
     if(index > Flags.MAX_PACKED_INDEX) {
-      out.writeInt(SerializationFormat.REFSXP);
+      out.writeInt(SexpType.REFSXP);
       out.writeInt(index);
     } else {
-      out.writeInt(SerializationFormat.REFSXP | (index << 8));
+      out.writeInt(SexpType.REFSXP | (index << 8));
     }
   }
  
@@ -475,14 +475,14 @@ public class RDataWriter {
       out.writeInt(SerializationFormat.MISSINGARG_SXP);
     } else {
       addRef(symbol);
-      writeFlags(SYMSXP, symbol);
+      writeFlags(SexpType.SYMSXP, symbol);
       writeCharExp(symbol.getPrintName());
     }
   }
 
 
   private void writeCharExp(String string) throws IOException {
-    out.writeInt( CHARSXP | UTF8_MASK );
+    out.writeInt( SexpType.CHARSXP | UTF8_MASK );
     if(StringVector.isNA(string)) {
       out.writeInt(-1);
     } else {
@@ -510,9 +510,9 @@ public class RDataWriter {
 
   private void writePrimitive(PrimitiveFunction exp) throws IOException {
     if(exp instanceof BuiltinFunction) {
-      out.writeInt(SerializationFormat.BUILTINSXP);
+      out.writeInt(SexpType.BUILTINSXP);
     } else {
-      out.writeInt(SerializationFormat.SPECIALSXP);
+      out.writeInt(SexpType.SPECIALSXP);
     }
     out.writeInt(exp.getName().length());
     conn.writeBytes(exp.getName());

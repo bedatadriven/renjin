@@ -1,13 +1,11 @@
 package org.renjin.gcc.codegen;
 
 import com.google.common.collect.Maps;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.field.FieldGenerator;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -40,6 +38,11 @@ public class RecordClassGenerator {
     if(recordType.isUnion()) {
       throw new UnsupportedOperationException("union types not yet implemented.");
     }
+
+    for (GimpleField gimpleField : recordType.getFields()) {
+      FieldGenerator fieldGenerator = factory.forField(this.className, gimpleField.getName(), gimpleField.getType());
+      fields.put(gimpleField.getName(), fieldGenerator);
+    }
   }
 
   public byte[] generateClassFile() throws IOException {
@@ -58,11 +61,8 @@ public class RecordClassGenerator {
   }
 
   private void emitFields() {
-
-    for (GimpleField gimpleField : recordType.getFields()) {
-      FieldGenerator fieldGenerator = factory.forField(this.className, gimpleField.getName(), gimpleField.getType());
+    for (FieldGenerator fieldGenerator : fields.values()) {
       fieldGenerator.emitInstanceField(cv);
-      fields.put(gimpleField.getName(), fieldGenerator);
     }
   }
 
@@ -112,4 +112,18 @@ public class RecordClassGenerator {
     return fieldGenerator;
   }
 
+  public void emitConstructor(MethodVisitor mv) {
+    mv.visitTypeInsn(Opcodes.NEW, className);
+    mv.visitInsn(Opcodes.DUP);
+    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", "()V", false);
+  }
+  
+  public void emitConstructor(MethodVisitor mv, GimpleConstructor recordConstructor) {
+    emitConstructor(mv);
+
+    for (GimpleConstructor.Element element : recordConstructor.getElements()) {
+      FieldGenerator fieldGenerator = getFieldGenerator(element.getFieldName());
+    }
+    // TODO
+  }
 }

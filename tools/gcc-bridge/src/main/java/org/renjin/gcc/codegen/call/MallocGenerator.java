@@ -4,7 +4,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
 import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -16,15 +18,21 @@ import static org.objectweb.asm.Opcodes.IDIV;
 /**
  * Generates a {@code malloc} call
  */
-public class MallocGenerator extends AbstractExprGenerator implements PtrGenerator {
-  private final GimpleType gimpleBaseType;
-  private final ValueGenerator sizeGenerator;
-  private final WrapperType pointerType;
+public class MallocGenerator extends AbstractExprGenerator implements ExprGenerator {
+  private Type elementType;
+  private int elementSize;
+  private final ExprGenerator totalSizeGenerator;
 
-  public MallocGenerator(LValueGenerator lhs, ExprGenerator sizeGenerator) {
-    this.pointerType = lhs.getPointerType();
-    this.gimpleBaseType = lhs.getGimpleType().getBaseType();
-    this.sizeGenerator = (ValueGenerator) sizeGenerator;
+  /**
+   * 
+   * @param baseType the JVM type to be allocated
+   * @param baseTypeSize the size, in bytes of the original Gimple base type
+   * @param sizeGenerator an expression generator for the total number of bytes to allocate
+   */
+  public MallocGenerator(Type baseType, int baseTypeSize, ExprGenerator sizeGenerator) {
+    this.elementType = baseType;
+    this.elementSize = baseTypeSize;
+    this.totalSizeGenerator = sizeGenerator;
   }
 
   public static boolean isMalloc(GimpleExpr functionExpr) {
@@ -56,12 +64,12 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     // first calculate the size of the array from the argument,
     // which is in bytes
-    sizeGenerator.emitPrimitiveValue(mv);
-    mv.visitLdcInsn(gimpleBaseType.sizeOf());
+    totalSizeGenerator.emitPrimitiveValue(mv);
+    PrimitiveConstValueGenerator.emitInt(mv, elementSize);
     mv.visitInsn(IDIV);
 
     // now create the array
-    emitNewArray(mv, pointerType.getBaseType());
+    emitNewArray(mv, elementType);
 
     mv.visitInsn(ICONST_0);
   }
@@ -83,9 +91,18 @@ public class MallocGenerator extends AbstractExprGenerator implements PtrGenerat
       case Type.DOUBLE:
         mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_DOUBLE);
         break;
+      case Type.OBJECT:
+        mv.visitTypeInsn(Opcodes.ANEWARRAY, componentType.getInternalName());
+        break;
+      
       default:
         throw new UnsupportedOperationException("type: " + componentType);
     }
+  }
+
+  @Override
+  public WrapperType getPointerType() {
+    return super.getPointerType();
   }
 
   @Override

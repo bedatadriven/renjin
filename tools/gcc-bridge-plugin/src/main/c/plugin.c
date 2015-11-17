@@ -45,6 +45,8 @@
 int plugin_is_GPL_compatible;
 
 #define MAX_RECORD_TYPES 1000
+#define MAX_LINE_NUMBER 16000
+
 
 tree record_types[MAX_RECORD_TYPES];
 int record_type_count = 0;
@@ -222,6 +224,9 @@ void json_end_object() {
 
 static void dump_type(tree type);
 
+static void dump_op(tree op);
+
+
 static void dump_function_type(tree type) {
 
   TRACE("dump_function_type: dumping returnType\n");
@@ -367,6 +372,36 @@ static void dump_record_type_decl(tree type) {
   TRACE("dump_record_type_decl: exiting\n");
 }
 
+static void dump_constructor(tree node) {
+  unsigned HOST_WIDE_INT ix;
+  tree field, val;
+  bool is_struct_init = FALSE;
+  
+ json_array_field("elements");
+
+  if (TREE_CODE (TREE_TYPE (node)) == RECORD_TYPE
+      || TREE_CODE (TREE_TYPE (node)) == UNION_TYPE)
+       is_struct_init = TRUE;
+
+  FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (node), ix, field, val)
+  {
+    json_start_object();
+  
+    if (field && is_struct_init)
+      {
+        json_field("field");
+        dump_op(field);
+      }
+    
+    json_field("value");
+    dump_op(val);
+    
+    json_end_object();
+  }
+  
+  json_end_array();
+}
+
 static void dump_type(tree type) {
   printf("dump_type: entering: %s\n", tree_code_name[TREE_CODE(type)]);
   json_start_object();
@@ -440,7 +475,7 @@ static void dump_op(tree op) {
   if(op) {
   
     if(TREE_CODE(op)) {
-      TRACE("dump_op: type = %s\n", tree_code_name[TREE_CODE(op)]);
+      TRACE("dump_op: code = %s\n", tree_code_name[TREE_CODE(op)]);
     } else {
       TRACE("dump_op: TREE_CODE(op) == NULL\n");
     }
@@ -454,8 +489,15 @@ static void dump_op(tree op) {
     }
 
     json_start_object();
-    json_string_field("type", tree_code_name[TREE_CODE(op)]);
+    json_string_field("code", tree_code_name[TREE_CODE(op)]);
    
+    if(EXPR_LINENO(op) < MAX_LINE_NUMBER) {
+      json_int_field("line", EXPR_LINENO(op));
+    }
+    
+    json_field("type");
+    dump_type(TREE_TYPE(op));
+
 
     TRACE("dump_op: starting switch\n");
 
@@ -505,6 +547,13 @@ static void dump_op(tree op) {
 	  case MEM_REF:
 	    json_field("pointer");
 	    dump_op(TREE_OPERAND(op, 0));
+	    json_field("offset");
+	    dump_op(TREE_OPERAND(op, 1));
+	    break;
+	    
+	  case NOP_EXPR:
+	    json_field("value");
+	    dump_op(TREE_OPERAND(op, 0));
 	    break;
 	    
 	  case ARRAY_REF:
@@ -528,6 +577,11 @@ static void dump_op(tree op) {
  	  //  json_field("offset");
  	 //   dump_op(TREE_OPERAND(op, 1));
       break;
+      
+    case CONSTRUCTOR:
+      dump_constructor(op);
+      break;
+      
     case COMPONENT_REF:
       json_field("value");
       TRACE("dump_op: writing COMPONENT_REF value\n");
@@ -864,6 +918,7 @@ static unsigned int dump_function (void)
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID (cfun->decl));
   json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)));
+  json_bool_field("extern", TREE_PUBLIC(cfun->decl));
   
   TRACE("dump_function: dumping arguments...\n");
   dump_arguments(cfun->decl);
@@ -911,6 +966,7 @@ static void dump_global_var(tree var) {
   if(DECL_NAME(var)) {
     json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(var)));
   }
+  json_bool_field("extern", TREE_PUBLIC(var));
   json_field("type");
   dump_type(TREE_TYPE(var));
   
@@ -939,17 +995,18 @@ static void finish_unit_callback (void *gcc_data, void *user_data)
   int i;
   json_end_array();
 
+  json_array_field("globalVariables");
+  for(i=0;i<global_var_count;++i) {
+    dump_global_var(global_vars[i]);
+  }
+  json_end_array();
+
   json_array_field("recordTypes");
   for(i=0;i<record_type_count;++i) {
     dump_record_type_decl(record_types[i]);
   }
   json_end_array();
 
-  json_array_field("globalVariables");
-  for(i=0;i<global_var_count;++i) {
-    dump_global_var(global_vars[i]);
-  }
-  json_end_array();
 
   json_end_object();
 }

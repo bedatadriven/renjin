@@ -1,6 +1,6 @@
 package org.renjin.gcc.runtime;
 
-public class ObjectPtr implements Ptr {
+public class ObjectPtr<T> implements Ptr {
   public Object[] array;
   public int offset;
 
@@ -13,4 +13,19 @@ public class ObjectPtr implements Ptr {
     this.array = array;
     this.offset = offset;
   }
+  
+  public T get() {
+    return get(0);
+  }
+  
+  public void set(T value) {
+    this.array[offset] = value;
+  }
+  
+  @SuppressWarnings("unchecked")
+  public T get(int index) {
+    return (T)array[offset+index];
+  }
+  
+  
 }

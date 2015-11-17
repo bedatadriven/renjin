@@ -1,8 +1,9 @@
 package org.renjin.stats;
 
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class ModelFrameTest extends EvalTestCase {
 

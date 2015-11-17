@@ -6,12 +6,12 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-public class BitwiseNotGenerator extends AbstractExprGenerator implements ValueGenerator {
+public class BitwiseNotGenerator extends AbstractExprGenerator implements ExprGenerator {
 
-  private final ValueGenerator valueGenerator;
+  private final ExprGenerator valueGenerator;
 
   public BitwiseNotGenerator(ExprGenerator valueGenerator) {
-    this.valueGenerator = (ValueGenerator) valueGenerator;
+    this.valueGenerator = valueGenerator;
   }
   
 

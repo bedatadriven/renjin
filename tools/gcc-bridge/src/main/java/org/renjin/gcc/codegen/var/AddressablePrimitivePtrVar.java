@@ -1,10 +1,12 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.NullPtrGenerator;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -39,22 +41,20 @@ public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
-    
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+
+    // Create the unit array to hold the value
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitTypeInsn(Opcodes.ANEWARRAY, wrapperType.getWrapperType().getInternalName());
-    
-//    // initialize with a null pointer
-//    // DoublePtr x = new DoublePtr(null, 0);
-//    mv.visitTypeInsn(Opcodes.NEW, wrapperType.getWrapperType().getInternalName());
-//    mv.visitInsn(Opcodes.DUP);
-//    
-//    mv.visitInsn(Opcodes.ACONST_NULL);
-//    mv.visitInsn(Opcodes.ICONST_0);
-//    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, wrapperType.getWrapperType().getInternalName(), "<init>",
-//        wrapperType.getConstructorDescriptor(), false);
-    
     mv.visitVarInsn(Opcodes.ASTORE, index);
+    
+    if(initialValue.isPresent() && !isDefaultValue(initialValue.get())) {
+      emitStore(mv, initialValue.get());
+    }
+  }
+
+  private boolean isDefaultValue(ExprGenerator exprGenerator) {
+    return exprGenerator instanceof NullPtrGenerator;
   }
 
   @Override

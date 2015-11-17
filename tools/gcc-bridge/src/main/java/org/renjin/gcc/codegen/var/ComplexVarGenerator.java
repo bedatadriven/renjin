@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -27,8 +28,10 @@ public class ComplexVarGenerator extends AbstractExprGenerator implements VarGen
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
-    
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+    if(initialValue.isPresent()) {
+      emitStore(mv, initialValue.get());
+    }
   }
 
   @Override

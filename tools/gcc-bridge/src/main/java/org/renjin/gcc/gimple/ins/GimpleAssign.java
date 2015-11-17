@@ -2,13 +2,17 @@ package org.renjin.gcc.gimple.ins;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.gimple.expr.SymbolRef;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GimpleAssign extends GimpleIns {
   private GimpleOp operator;
@@ -43,6 +47,15 @@ public class GimpleAssign extends GimpleIns {
 
   public void setLhs(GimpleLValue lhs) {
     this.lhs = lhs;
+  }
+
+  @Override
+  public Iterable<? extends SymbolRef> getUsedExpressions() {
+    Set<SymbolRef> used = new HashSet<>();
+    for (GimpleExpr operand : operands) {
+      Iterables.addAll(used, operand.getSymbolRefs());
+    }
+    return used;
   }
 
   public String toString() {

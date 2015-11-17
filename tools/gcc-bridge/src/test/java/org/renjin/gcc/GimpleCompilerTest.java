@@ -1,15 +1,23 @@
 package org.renjin.gcc;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.renjin.gcc.analysis.ControlFlowGraph;
+import org.renjin.gcc.analysis.InitDataFlowAnalysis;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.Double.NaN;
 import static org.hamcrest.Matchers.closeTo;
@@ -249,7 +257,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Method testMethod = clazz.getMethod("test", int.class, double.class);
 
     assertThat((Integer)testMethod.invoke(null, 1, 0d), equalTo(0));
-    assertThat((Integer)testMethod.invoke(null, 1, 3d), equalTo(41));
+    assertThat((Integer) testMethod.invoke(null, 1, 3d), equalTo(41));
     assertThat((Integer)testMethod.invoke(null, -1, 3d), equalTo(0));
 
 
@@ -605,5 +613,25 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     Integer test2 = (Integer)Class.forName("org.renjin.gcc.link2").getMethod("test").invoke(null);
     assertThat(test2, equalTo(2));    
+  }
+  
+  @Test
+  public void uninitializedVariables() throws Exception {
+//
+//    GimpleCompilationUnit unit = Iterables.getOnlyElement(compileToGimple(Lists.newArrayList("uninit.c")));
+//    GimpleFunction function = Iterables.getOnlyElement(unit.getFunctions());
+//
+//    ControlFlowGraph cfg = new ControlFlowGraph(function);
+//    cfg.dumpGraph(new File("/tmp/uninit.dot"));
+//
+//    InitDataFlowAnalysis analysis = new InitDataFlowAnalysis(function, cfg);
+//    analysis.solve();
+//    analysis.dump();
+//    
+//    System.out.println("Variables requiring initialization: " + analysis.getVariablesUsedWithoutInitialization());
+
+    Class<?> clazz = compile("uninit.c");
+    Method testMethod = clazz.getMethod("test_uninitialized");
+    testMethod.invoke(null);
   }
 }

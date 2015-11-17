@@ -5,8 +5,11 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.SymbolRef;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GimpleSwitch extends GimpleIns {
 
@@ -77,6 +80,23 @@ public class GimpleSwitch extends GimpleIns {
     if(predicate.apply(value)) {
       value = newExpr;
     }
+  }
+
+  @Override
+  public Set<Integer> getJumpTargets() {
+    Set<Integer> targets = new HashSet<>();
+    for (Case aCase : cases) {
+      targets.add(aCase.getBasicBlockIndex());
+    }
+    if(defaultCase != null) {
+      targets.add(defaultCase.getBasicBlockIndex());
+    }
+    return targets;
+  }
+
+  @Override
+  public Iterable<? extends SymbolRef> getUsedExpressions() {
+    return value.getSymbolRefs();
   }
 
   public GimpleExpr getValue() {

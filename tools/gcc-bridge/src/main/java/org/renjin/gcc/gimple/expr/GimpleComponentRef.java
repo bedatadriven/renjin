@@ -25,6 +25,11 @@ public class GimpleComponentRef extends GimpleLValue {
   }
 
   @Override
+  public Iterable<? extends SymbolRef> getSymbolRefs() {
+    return value.getSymbolRefs();
+  }
+
+  @Override
   public String toString() {
     return value + "." + member;
   }

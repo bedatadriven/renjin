@@ -7,8 +7,12 @@ import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.gcc.gimple.expr.SymbolRef;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Gimple statement
@@ -36,6 +40,12 @@ public abstract class GimpleIns {
     return false;
   }
 
+  /**
+   * @return the set of {@code SymbolRef}s that are read by this statement
+   */
+  public Iterable<? extends SymbolRef> getUsedExpressions() {
+    return Collections.emptySet();
+  }
 
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     
@@ -51,5 +61,13 @@ public abstract class GimpleIns {
         operands.set(i, newExpr);
       }
     }
+  }
+
+  /**
+   * 
+   * @return the basic block indices to which this statement can jump
+   */
+  public Set<Integer> getJumpTargets() {
+    return Collections.emptySet();
   }
 }

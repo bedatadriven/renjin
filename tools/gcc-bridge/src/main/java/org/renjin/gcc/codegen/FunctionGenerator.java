@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.*;
 import org.renjin.gcc.GimpleCompiler;
@@ -22,6 +23,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -116,13 +118,17 @@ public class FunctionGenerator {
   private void emitLocalVarInitialization() {
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       VarGenerator lhs = (VarGenerator) symbolTable.getVariable(decl);
+      Optional<ExprGenerator> initialValue;
       if(decl.getValue() == null) {
-        lhs.emitDefaultInit(mv);
-
+        initialValue = Optional.absent();
       } else {
-        ExprGenerator rhs = exprFactory.findGenerator(decl.getValue());
-        lhs.emitStore(mv, rhs);
+        initialValue = Optional.of(exprFactory.findGenerator(decl.getValue()));
       }
+      
+      System.out.println(getCompilationUnit().getName() + ": " + decl + " = " + initialValue + 
+            " [" + lhs.getClass().getName() + "]");
+      
+      lhs.emitDefaultInit(mv, initialValue);
     }
   }
 

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
@@ -32,9 +33,15 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
 
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
-    mv.visitInsn(Opcodes.ACONST_NULL);
-    mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+
+    if(initialValue.isPresent()) {
+      emitStore(mv, initialValue.get());
+    } else {
+      mv.visitInsn(arrayType.getElementCount());
+      mv.visitTypeInsn(Opcodes.ANEWARRAY, wrapperType.getWrapperType().getInternalName());
+      mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+    }
   }
 
   @Override

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -17,12 +18,12 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * can be addressed and passed by reference to other methods.
  *
  */
-public class AddressableVarGenerator extends AbstractExprGenerator implements VarGenerator {
+public class AddressablePrimitiveVarGenerator extends AbstractExprGenerator implements VarGenerator {
   private int index;
   private GimpleType type;
   private Type componentType;
   
-  public AddressableVarGenerator(GimpleType type, int index) {
+  public AddressablePrimitiveVarGenerator(GimpleType type, int index) {
     this.index = index;
     this.type = type;
     componentType = ((GimplePrimitiveType) type).jvmType();
@@ -34,10 +35,19 @@ public class AddressableVarGenerator extends AbstractExprGenerator implements Va
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ICONST_1);
     MallocGenerator.emitNewArray(mv, componentType);
     mv.visitVarInsn(Opcodes.ASTORE, index);
+    
+    if(initialValue.isPresent() && !defaultValue(initialValue.get())) {
+      emitStore(mv, initialValue.get());
+    }
+  }
+
+  private boolean defaultValue(ExprGenerator exprGenerator) {
+    // TODO: check for zero: array is already initialized to zero
+    return false;
   }
 
   @Override
@@ -81,7 +91,7 @@ public class AddressableVarGenerator extends AbstractExprGenerator implements Va
 
     @Override
     public ExprGenerator valueOf() {
-      return AddressableVarGenerator.this;
+      return AddressablePrimitiveVarGenerator.this;
     }
   }
 }

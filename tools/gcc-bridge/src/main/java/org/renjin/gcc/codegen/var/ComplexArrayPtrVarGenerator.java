@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -9,7 +10,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.*;
 
 /**
- * Variable 
+ * Variable storing a pointer to an array of complex values 
  */
 public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
@@ -37,8 +38,8 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
-
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

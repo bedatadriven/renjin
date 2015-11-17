@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import org.junit.Before;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -18,6 +19,11 @@ import java.util.List;
 
 public abstract class AbstractGccTest {
 
+  @Before
+  public void turnOnTracing() {
+    GimpleCompiler.TRACE = true;
+  }
+  
   public static final String PACKAGE_NAME = "org.renjin.gcc";
 
   protected Integer call(Class clazz, String methodName, double x) throws Exception {

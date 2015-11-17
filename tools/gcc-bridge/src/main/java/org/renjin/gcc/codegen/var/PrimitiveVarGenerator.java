@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -55,21 +56,10 @@ public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarG
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
-    // this is pretty annoying, but we have to initialize local variables here.
-    // GCC will compile without error if an uninitialized variable *could* used, but 
-    // the JVM will refuse to verify the code.
-    Type primitiveType = getJvmPrimitiveType();
-    if(primitiveType.equals(Type.FLOAT_TYPE)) {
-      mv.visitInsn(FCONST_0);
-    } else if(primitiveType.equals(Type.DOUBLE_TYPE)) {
-      mv.visitInsn(DCONST_0);
-    } else if(primitiveType.equals(Type.LONG_TYPE)) {
-      mv.visitInsn(LCONST_0);
-    } else {
-      mv.visitInsn(ICONST_0);
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+    if(initialValue.isPresent()) {
+      emitStore(mv, initialValue.get());
     }
-    mv.visitVarInsn(primitiveType.getOpcode(ISTORE), localVarIndex);
   }
 
   @Override

@@ -13,6 +13,11 @@ public class GimpleAddressOf extends GimpleExpr {
   }
 
   @Override
+  public Iterable<? extends SymbolRef> getSymbolRefs() {
+    return value.getSymbolRefs();
+  }
+
+  @Override
   public String toString() {
     return "&" + value;
   }

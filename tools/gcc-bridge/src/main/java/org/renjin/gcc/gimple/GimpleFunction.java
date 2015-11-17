@@ -8,6 +8,9 @@ import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.ins.GimpleIns;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.List;
 
 public class GimpleFunction {

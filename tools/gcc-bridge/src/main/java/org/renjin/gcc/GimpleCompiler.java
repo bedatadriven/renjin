@@ -4,10 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.analysis.AddressableFinder;
-import org.renjin.gcc.analysis.FunctionBodyTransformer;
-import org.renjin.gcc.analysis.ResultDeclRewriter;
-import org.renjin.gcc.analysis.VoidPointerTypeDeducer;
+import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.codegen.*;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
@@ -56,6 +53,7 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
+    functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
     globalSymbolTable = new GlobalSymbolTable(generatorFactory);
     globalSymbolTable.addDefaults();
   }

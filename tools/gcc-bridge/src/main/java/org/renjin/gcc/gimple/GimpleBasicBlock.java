@@ -3,10 +3,17 @@ package org.renjin.gcc.gimple;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.ins.GimpleGoto;
 import org.renjin.gcc.gimple.ins.GimpleIns;
+import org.renjin.gcc.gimple.ins.GimpleReturn;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GimpleBasicBlock {
 
@@ -52,5 +59,33 @@ public class GimpleBasicBlock {
 
   public <T extends GimpleIns> Iterable<T> getInstructions(Class<T> insClass) {
     return Iterables.filter(instructions, insClass);
+  }
+
+  public GimpleIns getLast() {
+    return instructions.get(instructions.size() - 1);
+  }
+
+  /**
+   * 
+   * @return true if this basic block ends with a return statement.
+   */
+  public boolean isReturning() {
+    if(instructions.isEmpty()) {
+      return false;
+    } else {
+      return getLast() instanceof GimpleReturn;
+    }
+  }
+
+  /**
+   * 
+   * @return the set of basic block indexes to which this statement might jump
+   */
+  public Set<Integer> getJumpTargets() {
+    if(instructions.isEmpty()) {
+      return Collections.emptySet();
+    } else {
+      return getLast().getJumpTargets();
+    }
   }
 }

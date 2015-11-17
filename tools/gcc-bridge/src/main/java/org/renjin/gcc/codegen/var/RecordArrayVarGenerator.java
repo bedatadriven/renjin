@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -30,7 +31,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
     PrimitiveConstValueGenerator.emitInt(mv, arrayType.getElementCount());
     mv.visitTypeInsn(Opcodes.ANEWARRAY, generator.getType().getInternalName());
     for(int i=0;i<arrayType.getElementCount();++i) {
@@ -49,6 +50,10 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
     
     // Store the array to the local variable
     mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+    
+    if(initialValue.isPresent()) {
+      emitStore(mv, initialValue.get());
+    }
   }
 
   @Override

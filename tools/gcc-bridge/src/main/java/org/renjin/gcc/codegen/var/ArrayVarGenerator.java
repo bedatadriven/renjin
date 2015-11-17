@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -41,20 +42,25 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
 
     mv.visitLdcInsn(gimpleType.getUbound() - gimpleType.getLbound() + 1);
 
     if(componentType.equals(Type.DOUBLE_TYPE)) {
       mv.visitIntInsn(NEWARRAY, Opcodes.T_DOUBLE);
+      
     } else if(componentType.equals(Type.INT_TYPE)) {
       mv.visitIntInsn(NEWARRAY, Opcodes.T_INT);
+    
     } else {
       throw new UnsupportedOperationException("componentType: " + componentType);
     }
     mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
+   
+    if(initialValue.isPresent()) {
+      emitStore(mv, initialValue.get());
+    }
   }
-
 
   @Override
   public void emitPrimitiveValue(MethodVisitor mv) {

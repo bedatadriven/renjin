@@ -67,7 +67,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
   @Override
   public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-    return new AddressableVarGenerator(type, allocator.reserveArrayRef());
+    return new AddressablePrimitiveVarGenerator(type, allocator.reserveArrayRef());
   }
 
   @Override

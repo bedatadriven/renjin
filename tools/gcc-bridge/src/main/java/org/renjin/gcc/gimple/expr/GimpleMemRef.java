@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.collect.Iterables;
+
 public class GimpleMemRef extends GimpleLValue {
 
   private GimpleExpr pointer;
@@ -27,6 +29,11 @@ public class GimpleMemRef extends GimpleLValue {
     } else {
       return "*(" + pointer + "+" + offset + ")";
     }
+  }
+
+  @Override
+  public Iterable<? extends SymbolRef> getSymbolRefs() {
+    return Iterables.concat(pointer.getSymbolRefs(), offset.getSymbolRefs());
   }
 
   public boolean isOffsetZero() {

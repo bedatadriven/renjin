@@ -1,11 +1,13 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.NullPtrGenerator;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -31,11 +33,19 @@ public class ArrayPtrVarGenerator extends AbstractExprGenerator implements VarGe
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ACONST_NULL);
     mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
     mv.visitInsn(Opcodes.ICONST_0);
     mv.visitVarInsn(Opcodes.ISTORE, offsetIndex);
+    
+    if(initialValue.isPresent() && !isDefaultValue(initialValue.get())) {
+      emitStore(mv, initialValue.get());
+    }
+  }
+
+  private boolean isDefaultValue(ExprGenerator exprGenerator) {
+    return exprGenerator instanceof NullPtrGenerator;
   }
 
   @Override

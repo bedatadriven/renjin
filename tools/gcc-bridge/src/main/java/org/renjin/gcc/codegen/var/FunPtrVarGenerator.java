@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
@@ -24,9 +25,10 @@ public class FunPtrVarGenerator extends AbstractExprGenerator implements VarGene
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv) {
-    mv.visitInsn(Opcodes.ACONST_NULL);
-    mv.visitVarInsn(Opcodes.ASTORE, index);
+  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+    if(initialValue.isPresent()) {
+      emitStore(mv, initialValue.get());
+    }
   }
 
   @Override

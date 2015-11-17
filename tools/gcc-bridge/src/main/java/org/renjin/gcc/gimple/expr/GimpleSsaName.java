@@ -42,6 +42,11 @@ public class GimpleSsaName extends GimpleLValue {
   }
 
   @Override
+  public Iterable<? extends SymbolRef> getSymbolRefs() {
+    return var.getSymbolRefs();
+  }
+
+  @Override
   public String toString() {
     if(defaultDefinition) {
       return var + toSubscript(0);

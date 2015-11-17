@@ -1,6 +1,9 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.base.Objects;
 import org.renjin.gcc.gimple.type.GimpleType;
+
+import java.util.Collections;
 
 public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
 
@@ -41,6 +44,11 @@ public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
   }
 
   @Override
+  public Iterable<? extends SymbolRef> getSymbolRefs() {
+    return Collections.singleton(this);
+  }
+
+  @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -58,7 +66,7 @@ public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
     if (getClass() != obj.getClass())
       return false;
     GimpleVariableRef other = (GimpleVariableRef) obj;
-    return name.equals(other.name) && version == other.version;
+    return Objects.equal(name, other.name) && version == other.version;
   }
 
   @Override
@@ -69,5 +77,7 @@ public class GimpleVariableRef extends GimpleLValue implements SymbolRef {
       return "T" + Math.abs(id);
     }
   }
+  
+  
 
 }

@@ -12,4 +12,9 @@ public abstract class GimpleComplexPartExpr extends GimpleExpr {
   public void setComplexValue(GimpleExpr complexValue) {
     this.complexValue = complexValue;
   }
+
+  @Override
+  public Iterable<? extends SymbolRef> getSymbolRefs() {
+    return complexValue.getSymbolRefs();
+  }
 }

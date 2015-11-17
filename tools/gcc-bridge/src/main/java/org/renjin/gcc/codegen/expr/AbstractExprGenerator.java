@@ -111,9 +111,7 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     throw new UnimplementedException(getClass(), "emitStore");
-
   }
-
 
   @Override
   public boolean isConstantIntEqualTo(int value) {

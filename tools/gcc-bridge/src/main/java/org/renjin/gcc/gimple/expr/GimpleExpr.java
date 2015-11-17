@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * A Gimple Expression node. 
  *
@@ -54,5 +57,9 @@ public abstract class GimpleExpr {
 
   public void setType(GimpleType type) {
     this.type = type;
+  }
+
+  public Iterable<? extends SymbolRef> getSymbolRefs() {
+    return Collections.emptySet();
   }
 }

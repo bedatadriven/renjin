@@ -1,12 +1,14 @@
 package org.renjin.gcc.gimple.ins;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.ins.GimpleIns;
 
 import java.util.List;
+import java.util.Set;
 
 public class GimpleConditional extends GimpleIns {
   // gimple_cond <ne_expr, i_4, j_6, NULL, NULL>
@@ -64,6 +66,11 @@ public class GimpleConditional extends GimpleIns {
     sb.append("> goto <").append("BB").append(trueLabel).append("> else goto <").append("BB").append(falseLabel)
         .append(">");
     return sb.toString();
+  }
+
+  @Override
+  public Set<Integer> getJumpTargets() {
+    return Sets.newHashSet(trueLabel, falseLabel);
   }
 
   @Override

@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.collect.Iterables;
+
 public class GimpleArrayRef extends GimpleLValue {
   private GimpleExpr array;
   private GimpleExpr index;
@@ -18,6 +20,11 @@ public class GimpleArrayRef extends GimpleLValue {
 
   public GimpleExpr getIndex() {
     return index;
+  }
+
+  @Override
+  public Iterable<? extends SymbolRef> getSymbolRefs() {
+    return Iterables.concat(array.getSymbolRefs(), index.getSymbolRefs());
   }
 
   @Override

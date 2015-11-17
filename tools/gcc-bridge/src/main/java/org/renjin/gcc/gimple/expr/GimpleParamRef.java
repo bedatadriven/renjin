@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
+import java.util.Collections;
+
 public class GimpleParamRef extends GimpleLValue implements SymbolRef {
 
   private int id;
@@ -19,6 +21,11 @@ public class GimpleParamRef extends GimpleLValue implements SymbolRef {
 
   public void setId(int id) {
     this.id = id;
+  }
+
+  @Override
+  public Iterable<? extends SymbolRef> getSymbolRefs() {
+    return Collections.singleton(this);
   }
 
   @Override

@@ -38,6 +38,11 @@ public class RecordTypeFactory extends TypeFactory {
   }
 
   @Override
+  public VarGenerator varGenerator(LocalVarAllocator allocator) {
+    return new RecordVarGenerator(generator, allocator.reserveObject());
+  }
+
+  @Override
   public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
     return new RecordVarGenerator(generator, allocator.reserveObject());
   }
@@ -90,7 +95,7 @@ public class RecordTypeFactory extends TypeFactory {
 
       if(arrayType.getElementCount() != value.getElements().size()) {
         throw new InternalCompilerException(String.format(
-            "array type defined as size of %d, only % constructors provided",
+            "array type defined as size of %d, only %d constructors provided",
               arrayType.getElementCount(), value.getElements().size()));
       }
 

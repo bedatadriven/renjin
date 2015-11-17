@@ -146,7 +146,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   @Ignore
-  public void stateTest() throws Exception {
+  public void addressableFieldTest() throws Exception {
     Class clazz = compile("rng_state.c");
     Method method = clazz.getMethod("Init");
     Double result = (Double) method.invoke(null);

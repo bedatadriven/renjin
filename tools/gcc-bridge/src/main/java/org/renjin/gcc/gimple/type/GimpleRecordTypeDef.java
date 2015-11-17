@@ -8,7 +8,7 @@ import java.util.List;
 public class GimpleRecordTypeDef {
   private String id;
   private String name;
-  
+  private boolean addressable;
   private boolean union;
   
   private List<GimpleField> fields = Lists.newArrayList();
@@ -54,5 +54,13 @@ public class GimpleRecordTypeDef {
     }
     out.append("}");
     return out.toString();
+  }
+
+  public boolean isAddressable() {
+    return addressable;
+  }
+
+  public void setAddressable(boolean addressable) {
+    this.addressable = addressable;
   }
 }

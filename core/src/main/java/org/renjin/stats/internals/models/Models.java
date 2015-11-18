@@ -45,7 +45,7 @@ public class Models {
     attributes.set("variables", formula.buildVariablesAttribute());
     attributes.set("factors", formula.buildFactorsMatrix());
     attributes.set("term.labels", formula.buildTermLabels());
-    attributes.set("order", new IntArrayVector());
+    attributes.set("order", formula.buildInteractionOrderAttribute());
     attributes.set("intercept", formula.buildInterceptAttribute());
     attributes.set("response",  formula.buildResponseAttribute());
     attributes.set(".Environment", context.getGlobalEnvironment() );

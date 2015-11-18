@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.var.ComplexArrayPtrVarGenerator;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,5 +40,9 @@ public class ComplexArrayPtrParamGenerator extends ParamGenerator {
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
     throw new UnsupportedOperationException();
   }
-  
+
+  @Override
+  public GimpleType getGimpleType() {
+    return type;
+  }
 }

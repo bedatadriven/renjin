@@ -16,7 +16,12 @@ public abstract class FieldGenerator {
 
   public abstract void emitStaticField(ClassVisitor cv, GimpleVarDecl decl);
 
+  public void emitStaticInit(MethodVisitor mv) {
+    
+  }
+
   public abstract void emitInstanceField(ClassVisitor cv);
+  
 
   /**
    *

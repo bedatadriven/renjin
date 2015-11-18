@@ -37,6 +37,14 @@ public class GeneratorFactory {
     classTypes.put(generator.getClassName(), generator.getGimpleType());
   }
   
+  public Type typeForRecord(GimpleRecordType type) {
+    RecordClassGenerator recordClassGenerator = recordTypes.get(type.getId());
+    if(recordClassGenerator == null) {
+      throw new InternalCompilerException("No such record type: " + type);
+    }
+    return recordClassGenerator.getType();
+  }
+  
   public TypeFactory forType(GimpleType type) {
     if(type instanceof GimplePrimitiveType) {
       return new PrimitiveTypeFactory((GimplePrimitiveType) type);
@@ -85,6 +93,10 @@ public class GeneratorFactory {
    */
   public FieldGenerator forField(String className, String fieldName, GimpleType type) {
     return forType(type).fieldGenerator(className, fieldName); 
+  }
+  
+  public FieldGenerator forAddressableField(String className, String fieldName, GimpleType type) {
+    return forType(type).addressableFieldGenerator(className, fieldName);
   }
   
   public ReturnGenerator findReturnGenerator(GimpleType returnType) {

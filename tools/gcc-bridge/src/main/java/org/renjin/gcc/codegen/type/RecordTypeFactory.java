@@ -81,10 +81,16 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
+    public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+      return fieldGenerator(className, fieldName);
+    }
+
+    @Override
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
       return new RecordArrayVarGenerator(arrayType, generator, allocator.reserveObject());
     }
 
+    
     @Override
     public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
       return varGenerator(allocator);

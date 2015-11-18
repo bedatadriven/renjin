@@ -34,6 +34,11 @@ public class FunPtrParamGenerator extends ParamGenerator {
   }
 
   @Override
+  public GimpleType getGimpleType() {
+    return parameterType;
+  }
+
+  @Override
   public void emitPushParameter(MethodVisitor mv, ExprGenerator generator) {
     generator.emitPushMethodHandle(mv);
   }

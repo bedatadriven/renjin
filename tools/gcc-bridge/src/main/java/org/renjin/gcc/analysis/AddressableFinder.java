@@ -34,7 +34,7 @@ public class AddressableFinder implements FunctionBodyTransformer {
     }
 
     for (GimpleVarDecl unitGlobalVar : unit.getGlobalVariables()){
-      variables.put(unitGlobalVar.getId(),unitGlobalVar);
+      variables.put(unitGlobalVar.getId(), unitGlobalVar);
     }
 
     Map<String, GimpleRecordTypeDef> recordTypeDefs = Maps.newHashMap();

@@ -33,6 +33,10 @@ public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
     this.pointerType = WrapperType.forPointerType((GimpleIndirectType) type.getBaseType());
   }
 
+  @Override
+  public GimpleType getGimpleType() {
+    return type;
+  }
 
   @Override
   public List<Type> getParameterTypes() {

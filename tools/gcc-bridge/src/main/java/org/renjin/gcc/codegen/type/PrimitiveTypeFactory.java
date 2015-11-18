@@ -49,6 +49,10 @@ public class PrimitiveTypeFactory extends TypeFactory {
     return new PrimitiveReturnGenerator(type);
   }
 
+  @Override
+  public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+    return new AddressablePrimitiveField(className, fieldName, type, type.jvmType());
+  }
 
   @Override
   public FieldGenerator fieldGenerator(String className, String fieldName) {

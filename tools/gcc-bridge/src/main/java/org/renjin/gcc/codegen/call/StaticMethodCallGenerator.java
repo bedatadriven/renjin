@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.call;
 
+import com.google.common.collect.Lists;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -38,12 +39,10 @@ public class StaticMethodCallGenerator implements CallGenerator {
 
   @Override
   public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
-    
-    if(paramGenerators == null) {
-      paramGenerators = factory.forParameterTypesOf(method);
-    }
-    
-    if(paramGenerators.size() != argumentGenerators.size()) {
+
+    getParamGenerators();
+
+    if(getParamGenerators().size() != argumentGenerators.size()) {
       throw new InternalCompilerException(String.format(
         "Arity mismatch: expected %d args to method '%s', called with %d" ,
           paramGenerators.size(),
@@ -52,8 +51,8 @@ public class StaticMethodCallGenerator implements CallGenerator {
     }
 
     // Push all parameters on the stack
-    for (int i = 0; i < paramGenerators.size(); i++) {
-      ParamGenerator paramGenerator = paramGenerators.get(i);
+    for (int i = 0; i < getParamGenerators().size(); i++) {
+      ParamGenerator paramGenerator = getParamGenerators().get(i);
       paramGenerator.emitPushParameter(mv, argumentGenerators.get(i));
     }
 
@@ -61,6 +60,12 @@ public class StaticMethodCallGenerator implements CallGenerator {
         method.getName(), Type.getMethodDescriptor(method), false);
   }
 
+  private List<ParamGenerator> getParamGenerators() {
+    if(paramGenerators == null) {
+      paramGenerators = factory.forParameterTypesOf(method);
+    }
+    return paramGenerators;
+  }
 
   @Override
   public Type returnType() {
@@ -70,6 +75,15 @@ public class StaticMethodCallGenerator implements CallGenerator {
   @Override
   public GimpleType getGimpleReturnType() {
     return returnGenerator().getGimpleType();
+  }
+
+  @Override
+  public List<GimpleType> getGimpleParameterTypes() {
+    List<GimpleType> types = Lists.newArrayList();
+    for (ParamGenerator generator : getParamGenerators()) {
+      types.add(generator.getGimpleType());
+    }
+    return types;
   }
 
   @Override

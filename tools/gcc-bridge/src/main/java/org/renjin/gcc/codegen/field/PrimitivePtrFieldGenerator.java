@@ -7,6 +7,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.DereferencedPrimitiveValue;
 import org.renjin.gcc.codegen.pointers.PrimitivePtrPlus;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -127,6 +128,11 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
       return new PrimitivePtrPlus(this, offsetInBytes);
     }
+
+    @Override
+    public ExprGenerator valueOf() {
+      return new DereferencedPrimitiveValue(this);
+    }
   }
 
   private class MemberPtrExpr extends AbstractExprGenerator {
@@ -158,6 +164,11 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
       instance.emitPushRecordRef(mv);
       emitStoreMember(mv, valueGenerator);
+    }
+    
+    @Override
+    public ExprGenerator valueOf() {
+      return new DereferencedPrimitiveValue(this);
     }
 
     @Override

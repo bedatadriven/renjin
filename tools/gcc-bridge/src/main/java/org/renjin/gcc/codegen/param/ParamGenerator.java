@@ -4,6 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,5 +50,7 @@ public abstract class ParamGenerator {
     }
     return types.toArray(new Type[types.size()]);
   }
+ 
+  public abstract GimpleType getGimpleType();
   
 }

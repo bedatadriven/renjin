@@ -27,6 +27,11 @@ public class ComplexPtrParamGenerator extends ParamGenerator {
   }
 
   @Override
+  public GimpleType getGimpleType() {
+    return type;
+  }
+
+  @Override
   public List<Type> getParameterTypes() {
     return Arrays.asList(baseType.getJvmPartArrayType(), Type.getType(int.class));
   }

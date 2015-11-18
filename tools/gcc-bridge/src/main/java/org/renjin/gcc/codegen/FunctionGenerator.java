@@ -121,8 +121,8 @@ public class FunctionGenerator {
         initialValue = Optional.of(exprFactory.findGenerator(decl.getValue()));
       }
       
-      System.out.println(getCompilationUnit().getName() + ": " + decl + " = " + initialValue + 
-            " [" + lhs.getClass().getName() + "]");
+      System.out.println(getCompilationUnit().getName() + ": " + decl + " = " + initialValue +
+          " [" + lhs.getClass().getName() + "]");
       
       lhs.emitDefaultInit(mv, initialValue);
     }
@@ -235,7 +235,7 @@ public class FunctionGenerator {
     } else if(MallocGenerator.isFree(ins.getFunction())) {
       // NO OP
       // We have a garbage collector, muwahaha :-)
-      
+
     } else {
       List<ExprGenerator> arguments = new ArrayList<ExprGenerator>();
       for (GimpleExpr argumentExpr : ins.getArguments()) {

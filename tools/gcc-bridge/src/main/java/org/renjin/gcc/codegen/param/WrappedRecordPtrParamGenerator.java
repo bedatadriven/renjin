@@ -5,6 +5,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.util.Collections;
@@ -32,5 +34,10 @@ public class WrappedRecordPtrParamGenerator extends ParamGenerator {
   @Override
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
     parameterValueGenerator.emitPushPointerWrapper(mv);
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return new GimplePointerType(recordClassGenerator.getGimpleType());
   }
 }

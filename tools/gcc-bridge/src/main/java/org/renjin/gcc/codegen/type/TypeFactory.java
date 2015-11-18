@@ -68,4 +68,8 @@ public abstract class TypeFactory {
   public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO: implement constructorExpr() in " + getClass().getName());
   }
+
+  public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+    throw new UnimplementedException(getClass(), "addressableFieldGenerator");
+  }
 }

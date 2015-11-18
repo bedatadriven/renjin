@@ -63,7 +63,11 @@ public class UnitClassGenerator {
             Type.getInternalName(providedField.getDeclaringClass()), 
             providedField.getName(), decl.getType()));
       } else {
-        symbolTable.addGlobalVariable(decl, generatorFactory.forField(className, decl.getName(), decl.getType()));
+        if(decl.isAddressable()) {
+          symbolTable.addGlobalVariable(decl, generatorFactory.forAddressableField(className, decl.getName(), decl.getType()));
+        } else {
+          symbolTable.addGlobalVariable(decl, generatorFactory.forField(className, decl.getName(), decl.getType()));
+        }
         varToGenerate.add(decl);
       }
     }
@@ -86,6 +90,8 @@ public class UnitClassGenerator {
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+   // cw = new ClassWriter(0);
+
     if(GimpleCompiler.TRACE) {
       cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
     } else {
@@ -130,7 +136,10 @@ public class UnitClassGenerator {
     for (GimpleVarDecl decl : varToGenerate) {
       if(decl.getValue() != null) {
         try {
-          ExprGenerator globalVariable = symbolTable.getVariable(decl).staticExprGenerator();
+          FieldGenerator field = symbolTable.getVariable(decl);
+          field.emitStaticInit(mv);
+          
+          ExprGenerator globalVariable = field.staticExprGenerator();
           ExprGenerator value = exprFactory.findGenerator(decl.getValue());
           globalVariable.emitStore(mv, value);
 

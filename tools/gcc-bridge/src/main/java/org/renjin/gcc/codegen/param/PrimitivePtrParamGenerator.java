@@ -36,6 +36,11 @@ public class PrimitivePtrParamGenerator extends ParamGenerator {
   }
 
   @Override
+  public GimpleType getGimpleType() {
+    return type;
+  }
+
+  @Override
   public List<Type> getParameterTypes() {
     return Collections.singletonList(pointerType.getWrapperType());
   }

@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.param;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
@@ -27,9 +28,14 @@ public class VoidPtrParamGenerator extends ParamGenerator {
 
   @Override
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
-    throw new UnsupportedOperationException();
+    parameterValueGenerator.emitPushRecordRef(mv);
   }
-  
+
+  @Override
+  public GimpleType getGimpleType() {
+    return new GimplePointerType(new GimpleVoidType());
+  }
+
   private class Expr extends AbstractExprGenerator {
     private int varIndex;
 
@@ -40,6 +46,12 @@ public class VoidPtrParamGenerator extends ParamGenerator {
     @Override
     public GimpleType getGimpleType() {
       return new GimplePointerType(new GimpleVoidType());
+    }
+
+
+    @Override
+    public void emitPushRecordRef(MethodVisitor mv) {
+      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
     }
   }
 }

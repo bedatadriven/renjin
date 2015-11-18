@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.call;
 
+import com.google.common.collect.Lists;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -10,46 +11,58 @@ import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Emits the bytecode to invoke a function pointer (MethodHandle)
  */
 public class FunPtrCallGenerator implements CallGenerator {
-  
+
+  private GeneratorFactory factory;
   private ExprGenerator funPtrGenerator;
   private final List<ParamGenerator> parameters;
   private final ReturnGenerator returnGenerator;
   private final GimpleFunctionType functionType;
 
   public FunPtrCallGenerator(GeneratorFactory factory, ExprGenerator funPtrGenerator) {
+    this.factory = factory;
     this.funPtrGenerator = funPtrGenerator;
     functionType = funPtrGenerator.getGimpleType().getBaseType();
     parameters = factory.forParameterTypes(functionType.getArgumentTypes());
     returnGenerator = factory.findReturnGenerator(functionType.getReturnType());
-    
   }
 
+  @Override
+  public List<GimpleType> getGimpleParameterTypes() {
+    return functionType.getArgumentTypes();
+  }
+
+  /**
+   * Write the bytecode for invoking a call to a function pointer, which we represent
+   * as a MethodHandle in the compiled code. Since GCC permits casting function pointer 
+   * signatures willy-nill, we need to infer the actual types from the call.
+   *
+   * @see <a href="http://stackoverflow.com/questions/559581/casting-a-function-pointer-to-another-type">Stack Overflow discussion</a>
+   */
   @Override
   public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
 
     funPtrGenerator.emitPushMethodHandle(mv);
-
-    // Push all parameters on the stack
-    for (int i = 0; i < parameters.size(); i++) {
-      parameters.get(i).emitPushParameter(mv, argumentGenerators.get(i));
+    
+    // Infer the parameters types from the arguments provided
+    List<Type> types = Lists.newArrayList();
+    for (ExprGenerator argumentGenerator : argumentGenerators) {
+      ParamGenerator paramGenerator = factory.forParameter(argumentGenerator.getGimpleType());
+      paramGenerator.emitPushParameter(mv, argumentGenerator);
+      types.addAll(paramGenerator.getParameterTypes());
     }
     
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invokeExact", signature(), false);
+    // Use invoke() rather than invokeExact() to smooth over any type differences
+    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", signature(types), false);
   }
 
-  private String signature() {
-    List<Type> parameterTypes = new ArrayList<Type>();
-    for (ParamGenerator parameter : parameters) {
-      parameterTypes.addAll(parameter.getParameterTypes());
-    }
-    return Type.getMethodDescriptor(returnType(), parameterTypes.toArray(new Type[0]));
+  private String signature(List<Type> types) {
+    return Type.getMethodDescriptor(returnType(), types.toArray(new Type[types.size()]));
   }
 
   @Override

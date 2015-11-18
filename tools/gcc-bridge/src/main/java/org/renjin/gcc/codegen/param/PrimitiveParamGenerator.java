@@ -26,6 +26,10 @@ public class PrimitiveParamGenerator extends ParamGenerator {
     return type;
   }
 
+  @Override
+  public GimpleType getGimpleType() {
+    return type;
+  }
 
   @Override
   public List<Type> getParameterTypes() {

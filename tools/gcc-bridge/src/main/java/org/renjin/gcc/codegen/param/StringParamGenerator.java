@@ -4,6 +4,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,5 +28,10 @@ public class StringParamGenerator extends ParamGenerator {
   @Override
   public void emitPushParameter(MethodVisitor mv, ExprGenerator valueGenerator) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return new GimplePointerType(new GimpleIntegerType(8));
   }
 }

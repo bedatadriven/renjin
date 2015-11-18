@@ -8,13 +8,11 @@ import org.renjin.gcc.codegen.condition.ComplexCmpGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.PointerCmpGenerator;
 import org.renjin.gcc.codegen.condition.PrimitiveCmpGenerator;
+import org.renjin.gcc.codegen.pointers.VoidCastExprGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
-import org.renjin.gcc.gimple.type.GimpleComplexType;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.symbols.SymbolTable;
 
 import java.util.List;
@@ -51,6 +49,12 @@ public class ExprFactory {
           return new CastGenerator(rhs, (GimplePrimitiveType) lhsType);
         }
       }
+    } else if(
+        lhsType.isPointerTo(GimpleRecordType.class) && 
+        rhs.getGimpleType().isPointerTo(GimpleVoidType.class)) {
+
+      GimpleRecordType recordType = lhsType.getBaseType();
+      return new VoidCastExprGenerator(rhs, lhsType, generatorFactory.typeForRecord(recordType));
     }
     return rhs;
   }

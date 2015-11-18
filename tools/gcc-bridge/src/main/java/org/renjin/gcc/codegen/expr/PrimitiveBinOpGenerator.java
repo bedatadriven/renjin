@@ -4,6 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.Printer;
+import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveValue;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -11,17 +12,31 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * Generates bytecode for a binary operation on primitives (IMUL, DMUL, IADD, etc)
  */
 public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements ExprGenerator {
-  
+
+  private GimpleOp op;
   private int opCode;
   private final ExprGenerator x;
   private final ExprGenerator y;
 
   public PrimitiveBinOpGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+    this.op = op;
     this.opCode = opCodeFor(op);
     this.x = x;
     this.y = y;
 
     checkTypes();
+  }
+
+  public ExprGenerator getX() {
+    return x;
+  }
+
+  public ExprGenerator getY() {
+    return y;
+  }
+
+  public GimpleOp getOp() {
+    return op;
   }
 
   private static int opCodeFor(GimpleOp op) {
@@ -60,6 +75,11 @@ public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements Ex
       throw new IllegalStateException(String.format(
           "Incompatible types for %s: %s != %s", Printer.OPCODES[opCode], tx, ty));
     }
+  }
+
+  @Override
+  public ExprGenerator addressOf() {
+    return new AddressOfPrimitiveValue(this);
   }
 
   @Override

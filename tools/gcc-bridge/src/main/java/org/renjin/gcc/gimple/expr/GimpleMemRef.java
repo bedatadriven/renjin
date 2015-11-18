@@ -2,12 +2,21 @@ package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
 
-import java.util.Set;
+import java.util.List;
 
 public class GimpleMemRef extends GimpleLValue {
 
   private GimpleExpr pointer;
   private GimpleExpr offset;
+
+  public GimpleMemRef() {
+  }
+
+  public GimpleMemRef(GimpleExpr pointer) {
+    this.pointer = pointer;
+    this.offset = new GimpleIntegerConstant();
+    this.offset.setType(pointer.getType());
+  }
 
   public GimpleExpr getPointer() {
     return pointer;
@@ -34,7 +43,7 @@ public class GimpleMemRef extends GimpleLValue {
   }
 
   @Override
-  public void find(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  public void find(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     findOrDescend(pointer, predicate, results);
     findOrDescend(offset, predicate, results);
   }

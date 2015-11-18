@@ -6,12 +6,11 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.DereferencedPrimitivePtr;
+import org.renjin.gcc.codegen.pointers.PrimitivePtrPtrPlus;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
-
-import static org.objectweb.asm.Opcodes.ASTORE;
 
 
 /**
@@ -27,22 +26,18 @@ import static org.objectweb.asm.Opcodes.ASTORE;
 public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
   private final GimpleIndirectType pointerType;
-  private final GimplePrimitiveType primitiveType;
   private final int arrayVarIndex;
   private final int offsetVarIndex;
-  private final WrapperType wrapperType;
-  
+
   public PrimitivePtrPtrVarGenerator(GimpleIndirectType pointerType, int arrayVarIndex, int offsetVarIndex) {
     this.pointerType = pointerType;
-    this.primitiveType = pointerType.getBaseType().getBaseType();
     this.arrayVarIndex = arrayVarIndex;
     this.offsetVarIndex = offsetVarIndex;
-    this.wrapperType = WrapperType.of(primitiveType);
   }
 
   @Override
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
-    if(initialValue.isPresent()) {
+    if (initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
     }
   }
@@ -82,38 +77,12 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
 
   @Override
   public ExprGenerator valueOf() {
-    return new PointerValue();
+    return new DereferencedPrimitivePtr(this);
   }
-  
-  
-  private class PointerValue extends AbstractExprGenerator {
 
-    @Override
-    public GimpleType getGimpleType() {
-      return pointerType.getBaseType();
-    }
 
-    @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      mv.visitVarInsn(Opcodes.ALOAD, arrayVarIndex);
-      mv.visitVarInsn(Opcodes.ILOAD, offsetVarIndex);
-      valueGenerator.emitPushPointerWrapper(mv);
-      mv.visitInsn(Opcodes.AASTORE);
-    }
-
-    @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      // extract the DoublePtr from the array of DoublePtr[]
-      mv.visitVarInsn(Opcodes.ALOAD, arrayVarIndex);
-      mv.visitVarInsn(Opcodes.ILOAD, offsetVarIndex);
-      mv.visitInsn(Opcodes.AALOAD);
-      
-      // Cast Object -> (Double)Ptr
-      mv.visitTypeInsn(Opcodes.CHECKCAST, wrapperType.getWrapperType().getInternalName());
-      
-      // Unpack the array and offset fields
-      wrapperType.emitUnpackArrayAndOffset(mv);
-    }
+  @Override
+  public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+    return new PrimitivePtrPtrPlus(this, offsetInBytes);
   }
-  
 }

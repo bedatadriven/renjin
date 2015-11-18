@@ -7,6 +7,8 @@ import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.NullPtrGenerator;
+import org.renjin.gcc.codegen.pointers.DereferencedPrimitivePtr;
+import org.renjin.gcc.codegen.pointers.PrimitivePtrPlus;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -67,7 +69,16 @@ public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements
   
     // then unpack
     wrapperType.emitUnpackArrayAndOffset(mv);
+  }
 
+  @Override
+  public ExprGenerator valueOf() {
+    return new DereferencedPrimitivePtr(this);
+  }
+
+  @Override
+  public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+    return new PrimitivePtrPlus(this, offsetInBytes);
   }
 
   @Override

@@ -49,7 +49,7 @@ public class PrimitivePtrParamGenerator extends ParamGenerator {
     
     // Load the parameter on the stack
     mv.visitVarInsn(ALOAD, localVariableIndex);
-
+    
     // duplicate the wrapper instance so we can call GETFIELD twice.
     mv.visitInsn(DUP);
 

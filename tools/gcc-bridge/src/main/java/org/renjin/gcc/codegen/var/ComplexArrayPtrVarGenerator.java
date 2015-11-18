@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -29,6 +30,10 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
     this.partType = complexType.getJvmPartType();
     this.arrayIndex = arrayIndex;
     this.offsetIndex = offsetIndex;
+
+    if (!complexType.hasValidSize()) {
+      throw new InternalCompilerException("Invalid complex size: " + complexType.getSize());
+    }
   }
 
   @Override

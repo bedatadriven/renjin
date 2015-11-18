@@ -7,6 +7,7 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.PrimitivePtrPlus;
 import org.renjin.gcc.gimple.type.*;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -91,7 +92,7 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
 
   @Override
   public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
-    return new PointerOffset(offsetInBytes);
+    return new PrimitivePtrPlus(this, offsetInBytes);
   }
 
   private class PrimitiveArray extends AbstractExprGenerator {
@@ -112,60 +113,6 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
     }
   }
   
-  private class PointerOffset extends AbstractExprGenerator {
-    private ExprGenerator offsetInBytes;
-
-    public PointerOffset(ExprGenerator offsetInBytes) {
-      this.offsetInBytes = offsetInBytes;
-    }
-
-    @Override
-    public GimpleType getGimpleType() {
-      return type;
-    }
-
-    @Override
-    public ExprGenerator valueOf() {
-      return new ValueOffset(this);
-    }
-
-    @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, arrayVariableIndex);
-      mv.visitVarInsn(Opcodes.ILOAD, offsetVariableIndex);
-      offsetInBytes.divideBy(type.getBaseType().sizeOf()).emitPrimitiveValue(mv);
-      mv.visitInsn(Opcodes.IADD);
-    }
-  }
-  
-  private class ValueOffset extends AbstractExprGenerator {
-
-    private final PointerOffset pointerOffset;
-    private final GimplePrimitiveType valueType;
-
-    public ValueOffset(PointerOffset pointerOffset) {
-      this.pointerOffset = pointerOffset;
-      this.valueType = type.getBaseType(); 
-    }
-
-    @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      pointerOffset.emitPushPtrArrayAndOffset(mv);
-      valueGenerator.emitPrimitiveValue(mv);
-      mv.visitInsn(valueType.jvmType().getOpcode(Opcodes.IASTORE));
-    }
-
-    @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
-      pointerOffset.emitPushPtrArrayAndOffset(mv);
-      mv.visitInsn(valueType.jvmType().getOpcode(Opcodes.IALOAD));
-    }
-
-    @Override
-    public GimpleType getGimpleType() {
-      return type.getBaseType();
-    }
-  }
 
   private class PrimitiveArrayElement extends AbstractExprGenerator {
 

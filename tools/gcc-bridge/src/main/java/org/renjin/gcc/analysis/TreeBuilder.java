@@ -32,35 +32,37 @@ public class TreeBuilder implements FunctionBodyTransformer {
   @VisibleForTesting
   void buildTrees(GimpleFunction function, GimpleBasicBlock basicBlock) {
 
-    Set<Integer> variablesToNest = findSingleUseVariables(function);
-    
-    StatementNode head = StatementNode.createLinkedList(basicBlock);
-    StatementNode current = head.nextDefinition();
+    if(!basicBlock.isEmpty()) {
+      Set<Integer> variablesToNest = findSingleUseVariables(function);
 
-    while(current != null) {
-      GimpleVariableRef var = current.getLhs();
-      if(var != null && variablesToNest.contains(var.getId())) {
-        if (current.hasSuccessor()) {
-          // if the immediately following statement contains a reference
-          // to this definition, then eliminate this variable and nest
-          // its value into the following statement
-          StatementNode successor = current.getSuccessor();
-          if (successor.replace(var, current.nested())) {
+      StatementNode head = StatementNode.createLinkedList(basicBlock);
+      StatementNode current = head.firstDefinition();
 
-            // remove the variable from the function
-            function.removeVariable(var);
+      while (current != null) {
+        GimpleVariableRef var = current.getLhs();
+        if (var != null && variablesToNest.contains(var.getId())) {
+          if (current.hasSuccessor()) {
+            // if the immediately following statement contains a reference
+            // to this definition, then eliminate this variable and nest
+            // its value into the following statement
+            StatementNode successor = current.getSuccessor();
+            if (successor.replace(var, current.nested())) {
 
-            // remove the definition from the basic block
-            basicBlock.getInstructions().remove(current.getStatement());
+              // remove the variable from the function
+              function.removeVariable(var);
 
-            // remove this node and back up to the predecessor
-            current = current.remove();
-            continue;
+              // remove the definition from the basic block
+              basicBlock.getInstructions().remove(current.getStatement());
+
+              // remove this node and back up to the predecessor
+              current = current.remove();
+              continue;
+            }
           }
         }
+        // if we can't merge, move onto the next definition
+        current = current.nextDefinition();
       }
-      // if we can't merge, move onto the next definition
-      current = current.nextDefinition();
     }
   }
 

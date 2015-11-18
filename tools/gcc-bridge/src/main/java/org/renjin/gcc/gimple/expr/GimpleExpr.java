@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * A Gimple Expression node. 
@@ -59,14 +59,14 @@ public abstract class GimpleExpr {
     this.type = type;
   }
 
-  public void find(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  public void find(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
   }
   
-  public final void findOrDescend(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  public final void findOrDescend(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     findOrDescend(this, predicate, results);
   }
   
-  protected final void findOrDescend(GimpleExpr child, Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  protected final void findOrDescend(GimpleExpr child, Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     if(predicate.apply(child)) {
       results.add(child);
     } else {
@@ -74,7 +74,7 @@ public abstract class GimpleExpr {
     }
   }
 
-  protected final void findOrDescend(Iterable<GimpleExpr> children, Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  protected final void findOrDescend(Iterable<GimpleExpr> children, Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     for (GimpleExpr child : children) {
       findOrDescend(child, predicate, results);
     }

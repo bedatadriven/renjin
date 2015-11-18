@@ -3,6 +3,7 @@ package org.renjin.gcc.symbols;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Handle;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.call.CallGenerator;
@@ -112,7 +113,11 @@ public class GlobalSymbolTable implements SymbolTable {
     if(ref.getName() == null) {
       return null;
     } else {
-      return globalVariables.get(ref.getName());
+      ExprGenerator exprGenerator = globalVariables.get(ref.getName());
+      if(exprGenerator == null) {
+        throw new InternalCompilerException("No such variable: " + ref);
+      }
+      return exprGenerator;
     }
   }
   

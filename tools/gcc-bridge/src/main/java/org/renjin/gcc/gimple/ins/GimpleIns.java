@@ -11,8 +11,8 @@ import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -49,26 +49,26 @@ public abstract class GimpleIns {
     return Collections.emptySet();
   }
   
-  public final Set<GimpleExpr> findUses(Predicate<? super GimpleExpr> predicate) {
-    Set<GimpleExpr> set = new HashSet<>();
+  public final List<GimpleExpr> findUses(Predicate<? super GimpleExpr> predicate) {
+    List<GimpleExpr> set = new ArrayList<>();
     findUses(predicate, set);
     return set;
   }
   
   @SuppressWarnings("unchecked")
-  public final <T extends GimpleExpr> Set<T> findUses(Class<T> exprClass) {
-    return (Set<T>)findUses(Predicates.instanceOf(exprClass));
+  public final <T extends GimpleExpr> List<T> findUses(Class<T> exprClass) {
+    return (List<T>)findUses(Predicates.instanceOf(exprClass));
   }
   
-  public final Set<GimpleVariableRef> findVariableUses() {
+  public final List<GimpleVariableRef> findVariableUses() {
     return findUses(GimpleVariableRef.class);
   }
   
-  protected void findUses(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     
   }
   
-  protected final void findUses(List<GimpleExpr> operands, Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  protected final void findUses(List<GimpleExpr> operands, Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     for (GimpleExpr operand : operands) {
       operand.findOrDescend(predicate, results);
     }

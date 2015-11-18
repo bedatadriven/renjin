@@ -6,13 +6,19 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.PrimitivePtrPlus;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
- * An array of pointers to primitives. Stored as an array of Ptrs, for example DoublePtr[]
+ * An array of pointers to primitives, such as {@code double* x[]} 
+ * 
+ * <p>Arrays in gimple have a fixed size, and are allocated on the stack.</p>
+ *
+ * <p>We compile this to a local array variable of type {@code DoublePtr[]}, allocated at the start of the method 
+ * on the heap. 
  */
 public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGenerator {
   
@@ -30,7 +36,6 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
   public GimpleType getGimpleType() {
     return arrayType;
   }
-
 
   @Override
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
@@ -61,6 +66,33 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     return new AddressOf();
   }
 
+  /**
+   * Generates the address of this array, {@code &x}, which would be of type {@code double**}
+   */
+  private class AddressOf extends AbstractExprGenerator {
+    @Override
+    public GimpleType getGimpleType() {
+      return new GimplePointerType(arrayType);
+    }
+
+    @Override
+    public WrapperType getPointerType() {
+      return WrapperType.OBJECT_PTR;
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+      mv.visitInsn(Opcodes.ICONST_0);
+    }
+  }
+
+  /**
+   * Generates the pointer found at a given index within this array of pointers. 
+   * 
+   * <p>This expression's type is the type of the array's component. So if we are variable
+   * {@code double * x[]}, then this is {@code x[i]}, of type {@code double*}
+   */
   private class PtrElement extends AbstractExprGenerator {
     private ExprGenerator indexGenerator;
 
@@ -71,6 +103,11 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     @Override
     public GimpleType getGimpleType() {
       return arrayType.getComponentType();
+    }
+
+    @Override
+    public WrapperType getPointerType() {
+      return wrapperType;
     }
 
     @Override
@@ -97,23 +134,10 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
       emitPushPointerWrapper(mv);
       wrapperType.emitUnpackArrayAndOffset(mv);
     }
-  }
-  
-  private class AddressOf extends AbstractExprGenerator {
-    @Override
-    public GimpleType getGimpleType() {
-      return new GimplePointerType(arrayType);
-    }
 
     @Override
-    public WrapperType getPointerType() {
-      return WrapperType.OBJECT_PTR;
-    }
-
-    @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
-      mv.visitInsn(Opcodes.ICONST_0);
+    public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+      return new PrimitivePtrPlus(this, offsetInBytes);
     }
   }
 }

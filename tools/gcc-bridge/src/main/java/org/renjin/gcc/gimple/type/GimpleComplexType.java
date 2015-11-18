@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple.type;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 
 /**
@@ -23,7 +24,12 @@ public class GimpleComplexType extends AbstractGimpleType {
   public String toString() {
     return "complex";
   }
-  
+
+  @Override
+  public void setSize(int size) {
+    Preconditions.checkArgument(size == 64 || size == 128, "Invalid size: " + size);
+    super.setSize(size);
+  }
 
   /**
    * 
@@ -40,5 +46,9 @@ public class GimpleComplexType extends AbstractGimpleType {
   
   public GimpleRealType getPartType() {
     return new GimpleRealType(getSize() / 2);
+  }
+
+  public boolean hasValidSize() {
+    return getSize() == 64 || getSize() == 128;
   }
 }

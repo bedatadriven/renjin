@@ -5,7 +5,6 @@ import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleOp;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Nested expression introduced by the tree building phase
@@ -25,7 +24,7 @@ public class GimpleOpExpr extends GimpleExpr {
   }
 
   @Override
-  public void find(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  public void find(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     findOrDescend(operands, predicate, results);
   }
 

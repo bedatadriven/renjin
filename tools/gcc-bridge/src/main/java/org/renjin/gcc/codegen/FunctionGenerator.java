@@ -8,7 +8,6 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.CastGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
@@ -18,12 +17,9 @@ import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.ins.*;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
-import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -213,26 +209,12 @@ public class FunctionGenerator {
   private void emitAssignment(GimpleAssign ins) {
     try {
       ExprGenerator lhs = exprFactory.findGenerator(ins.getLHS());
-      ExprGenerator rhs = exprFactory.findGenerator(lhs, ins.getOperator(), ins.getOperands());
-
-      lhs.emitStore(mv, maybeCast(rhs, lhs.getGimpleType()));
+      ExprGenerator rhs = exprFactory.findGenerator(ins.getOperator(), ins.getOperands(), lhs.getGimpleType());
+      lhs.emitStore(mv, rhs);
     } catch (Exception e) {
       throw new RuntimeException("Exception compiling assignment " + ins, e);
     }
   }
-
-  private ExprGenerator maybeCast(ExprGenerator rhs, GimpleType lhsType) {
-    if(lhsType instanceof GimplePrimitiveType) {
-
-      if (rhs.getGimpleType() instanceof GimplePrimitiveType) {
-        if (!lhsType.equals(rhs.getGimpleType())) {
-          return new CastGenerator(rhs, (GimplePrimitiveType) lhsType);
-        }
-      }
-    }
-    return rhs;
-  }
-
 
   private void emitGoto(GimpleGoto ins) {
     mv.visitJumpInsn(GOTO, labels.of(ins.getTarget()));
@@ -301,7 +283,7 @@ public class FunctionGenerator {
       returnGenerator.emitVoidReturn(mv);
       
     } else {
-      returnGenerator.emitReturn(mv, exprFactory.findGenerator(ins.getValue()));
+      returnGenerator.emitReturn(mv, exprFactory.findGenerator(ins.getValue(), function.getReturnType()));
     }
   }
 

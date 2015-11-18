@@ -7,6 +7,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.PrimitivePtrPlus;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -22,13 +23,15 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
   private String offsetFieldName;
   private GimpleType gimpleType;
   private Type baseType;
-  
+  private WrapperType wrapperType;
+
   public PrimitivePtrFieldGenerator(String className, String fieldName, GimpleType type) {
     this.className = className;
     this.arrayFieldName = fieldName;
     this.offsetFieldName = fieldName + "$offset";
     this.gimpleType = type;
     this.baseType = ((GimplePrimitiveType)type.getBaseType()).jvmType();
+    wrapperType = WrapperType.of(baseType);
   }
 
   @Override
@@ -53,6 +56,8 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     cv.visitField(access, offsetFieldName, "I", null, 0).visitEnd();
   }
 
+  
+  
   @Override
   public void emitStoreMember(MethodVisitor mv, ExprGenerator ptr) {
     
@@ -106,7 +111,6 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator ptr) {
       
-      
       // Store field
       ptr.emitPushPtrArrayAndOffset(mv);
 
@@ -116,7 +120,12 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
 
     @Override
     public WrapperType getPointerType() {
-      return WrapperType.of(baseType);
+      return wrapperType;
+    }
+
+    @Override
+    public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+      return new PrimitivePtrPlus(this, offsetInBytes);
     }
   }
 
@@ -133,6 +142,11 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     }
 
     @Override
+    public WrapperType getPointerType() {
+      return wrapperType;
+    }
+
+    @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       instance.emitPushRecordRef(mv);
       mv.visitFieldInsn(Opcodes.GETFIELD, className, arrayFieldName, arrayTypeDescriptor());
@@ -145,5 +159,11 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
       instance.emitPushRecordRef(mv);
       emitStoreMember(mv, valueGenerator);
     }
+
+    @Override
+    public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+      return new PrimitivePtrPlus(this, offsetInBytes);
+    }
   }
+
 }

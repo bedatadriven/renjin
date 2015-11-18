@@ -2,7 +2,7 @@ package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
 
-import java.util.Set;
+import java.util.List;
 
 public class GimpleArrayRef extends GimpleLValue {
   private GimpleExpr array;
@@ -25,7 +25,7 @@ public class GimpleArrayRef extends GimpleLValue {
   }
 
   @Override
-  public void find(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  public void find(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     findOrDescend(array, predicate, results);
     findOrDescend(index, predicate, results);
   }

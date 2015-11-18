@@ -6,9 +6,9 @@ import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
 import java.util.List;
-import java.util.Set;
 
 public class GimpleCall extends GimpleIns {
 
@@ -67,10 +67,20 @@ public class GimpleCall extends GimpleIns {
   }
 
   @Override
-  protected void findUses(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     function.findOrDescend(predicate, results);
     for (GimpleExpr argument : arguments) {
       argument.findOrDescend(predicate, results);
+    }
+    // if the lhs is a compound expression, such as
+    //    *x  = f() or
+    //    x.i = f() or
+    // Re(x)  = f()
+    // 
+    // then we consider this a USE of x rather than a definition
+
+    if(lhs != null && !(lhs instanceof GimpleSymbolRef)) {
+      lhs.find(predicate, results);
     }
   }
 

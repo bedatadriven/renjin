@@ -1,7 +1,6 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.gimple.expr.GimpleComplexConstant;
-import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
@@ -15,7 +14,7 @@ public class ComplexConstGenerator extends AbstractExprGenerator {
 
   @Override
   public GimpleType getGimpleType() {
-    return new GimpleComplexType();
+    return constant.getType();
   }
 
   @Override

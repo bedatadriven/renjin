@@ -2,10 +2,11 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.WrapperType;
-import org.renjin.gcc.codegen.call.MallocGenerator;
+import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveValue;
 import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -26,6 +27,10 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
   public PrimitiveConstValueGenerator(GimplePrimitiveType gimpleType, Number value) {
     this.gimpleType = gimpleType;
     this.value = value;
+  }
+
+  public Number getValue() {
+    return value;
   }
 
   @Override
@@ -107,46 +112,13 @@ public class PrimitiveConstValueGenerator extends AbstractExprGenerator implemen
   }
 
   @Override
-  public GimpleType getGimpleType() {
+  public GimplePrimitiveType getGimpleType() {
     return gimpleType;
   }
 
   @Override
   public ExprGenerator addressOf() {
-    return new AddressOf();
+    return new AddressOfPrimitiveValue(this);
   }
 
-  private class AddressOf extends AbstractExprGenerator {
-
-    @Override
-    public GimpleType getGimpleType() {
-      return new GimplePointerType(gimpleType);
-    }
-
-    @Override
-    public WrapperType getPointerType() {
-      return WrapperType.of(gimpleType.jvmType());
-    }
-
-    @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      Type type = gimpleType.jvmType();
-
-      // Allocate a new array of size 1 and push to the stack
-      mv.visitInsn(ICONST_1);
-      MallocGenerator.emitNewArray(mv, type);
-      
-      // Initialize first and only element
-      // IASTORE: (array, index, value) 
-      mv.visitInsn(DUP);
-      mv.visitInsn(ICONST_0);
-      PrimitiveConstValueGenerator.this.emitPrimitiveValue(mv);
-      mv.visitInsn(type.getOpcode(IASTORE));
-      
-      // should still have the array on the stack
-      
-      // now push the offset
-      mv.visitInsn(ICONST_0);
-    }
-  }
 }

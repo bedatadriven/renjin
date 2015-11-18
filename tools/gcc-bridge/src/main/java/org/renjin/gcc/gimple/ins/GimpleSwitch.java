@@ -75,7 +75,7 @@ public class GimpleSwitch extends GimpleIns {
   }
 
   @Override
-  protected void findUses(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     value.findOrDescend(predicate, results);
   }
   

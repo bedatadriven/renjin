@@ -9,6 +9,8 @@ import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.DereferencedPrimitivePtr;
+import org.renjin.gcc.codegen.pointers.PrimitivePtrPtrPlus;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
@@ -25,7 +27,7 @@ public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
    * The {@link Ptr} subclass type
    */
   private final WrapperType pointerType;
-
+  
   public PrimitivePtrPtrParamGenerator(GimpleType type) {
     this.type = (GimpleIndirectType) type;
     this.pointerType = WrapperType.forPointerType((GimpleIndirectType) type.getBaseType());
@@ -53,7 +55,7 @@ public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
   private class PtrPtrExpr extends AbstractExprGenerator {
 
     private int varIndex;
-
+    
     public PtrPtrExpr(int varIndex) {
       this.varIndex = varIndex;
     }
@@ -72,7 +74,7 @@ public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       emitPushPointerWrapper(mv);
-      WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv);
+      WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv, pointerType);
     }
 
     @Override
@@ -83,28 +85,12 @@ public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
 
     @Override
     public ExprGenerator valueOf() {
-      return new PtrExpr(varIndex);
-    }
-  }
-  
-  private class PtrExpr extends AbstractExprGenerator {
-
-    private int varIndex;
-
-    public PtrExpr(int varIndex) {
-      this.varIndex = varIndex;
+      return new DereferencedPrimitivePtr(this);
     }
 
     @Override
-    public GimpleType getGimpleType() {
-      return type.getBaseType();
-    }
-
-    @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
-      valueGenerator.emitPushPointerWrapper(mv);
-      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getDescriptor(ObjectPtr.class), "set", "(Ljava/lang/Object;)V", false);
+    public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+      return new PrimitivePtrPtrPlus(this, offsetInBytes);
     }
   }
   

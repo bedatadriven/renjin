@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.ret;
 
-import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -73,9 +72,8 @@ public class PrimitivePtrPtrReturnGenerator implements ReturnGenerator {
       // casting the array to the right primitive 
       GimpleIndirectType baseType = pointerPointerType.getBaseType();
       WrapperType baseWrapperType = WrapperType.forPointerType(baseType);
-      Type wrapperArray = Type.getType("[" + baseWrapperType.getWrapperType().getDescriptor());
 
-      WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv, Optional.of(wrapperArray));
+      WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv, baseWrapperType);
     }
   }
 }

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.expr;
 
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
@@ -13,6 +14,7 @@ import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.symbols.SymbolTable;
 
 import java.util.List;
@@ -33,20 +35,33 @@ public class ExprFactory {
   }
 
 
-  public ExprGenerator findGenerator(ExprGenerator lhs, GimpleOp operator, List<GimpleExpr> operands) {
-    if(operator == GimpleOp.CONVERT_EXPR ||
-        operator == GimpleOp.FLOAT_EXPR ||
-        operator == GimpleOp.FIX_TRUNC_EXPR) {
+  public ExprGenerator findGenerator(GimpleOp operator, List<GimpleExpr> operands, GimpleType expectedType) {
+    return maybeCast(findGenerator(operator, operands), expectedType);
+  }
 
-      return new CastGenerator(findGenerator(operands.get(0)), (GimplePrimitiveType) lhs.getGimpleType());
+  public ExprGenerator findGenerator(GimpleExpr expr, GimpleType expectedType) {
+    return maybeCast(findGenerator(expr), expectedType);
+  }
 
+  private ExprGenerator maybeCast(ExprGenerator rhs, GimpleType lhsType) {
+    if(lhsType instanceof GimplePrimitiveType) {
+
+      if (rhs.getGimpleType() instanceof GimplePrimitiveType) {
+        if (!lhsType.equals(rhs.getGimpleType())) {
+          return new CastGenerator(rhs, (GimplePrimitiveType) lhsType);
+        }
+      }
     }
-    return findGenerator(operator, operands);
+    return rhs;
   }
 
   public ExprGenerator findGenerator(GimpleExpr expr) {
     if(expr instanceof GimpleSymbolRef) {
-      return symbolTable.getVariable((GimpleSymbolRef) expr);
+      ExprGenerator variable = symbolTable.getVariable((GimpleSymbolRef) expr);
+      if(variable == null) {
+        throw new InternalCompilerException("No such variable: " + expr);
+      }
+      return variable;
 
     } else if(expr instanceof GimpleConstant) {
       return forConstant((GimpleConstant) expr);
@@ -55,7 +70,7 @@ public class ExprFactory {
       return forConstructor((GimpleConstructor) expr);
 
     } else if(expr instanceof GimpleNopExpr) {
-      return findGenerator(((GimpleNopExpr) expr).getValue());
+      return findGenerator(((GimpleNopExpr) expr).getValue(), expr.getType());
       
     } else if(expr instanceof GimpleAddressOf) {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
@@ -72,7 +87,7 @@ public class ExprFactory {
       // This is an artificial node we introduce during analysis to produce
       // code better suited to a stack-based interpreter
       GimpleOpExpr opExpr = (GimpleOpExpr) expr;
-      return findGenerator(opExpr.getOp(), opExpr.getOperands());
+      return findGenerator(opExpr.getOp(), opExpr.getOperands(), opExpr.getType());
 
     } else if(expr instanceof GimpleMemRef) {
       ExprGenerator pointerExpr = findGenerator(((GimpleMemRef) expr).getPointer());
@@ -127,6 +142,12 @@ public class ExprFactory {
     } else if(functionExpr instanceof GimpleSymbolRef) {
       ExprGenerator exprGenerator = findGenerator(functionExpr);
       return new FunPtrCallGenerator(generatorFactory, exprGenerator);
+    } else if(functionExpr instanceof GimpleOpExpr) {
+      GimpleOp op = ((GimpleOpExpr) functionExpr).getOp();
+      if(op == GimpleOp.VAR_DECL) {
+        return findCallGenerator(((GimpleOpExpr) functionExpr).getOperands().get(0));
+      }
+      
     }
     throw new UnsupportedOperationException("function: " + functionExpr);
   }
@@ -173,9 +194,9 @@ public class ExprFactory {
         return findBinOpGenerator(op, operands);
 
       case POINTER_PLUS_EXPR:
-        return new PtrPlusGenerator(
-            findGenerator(operands.get(0)),
-            findGenerator(operands.get(1)));
+        return findGenerator(operands.get(0))
+                .pointerPlus(
+                    findGenerator(operands.get(1)));
 
       case BIT_NOT_EXPR:
         return new BitwiseNotGenerator(findGenerator(operands.get(0)));
@@ -187,6 +208,9 @@ public class ExprFactory {
             findGenerator(operands.get(0)),
             findGenerator(operands.get(1)));
 
+      case CONVERT_EXPR:
+      case FIX_TRUNC_EXPR:
+      case FLOAT_EXPR:
       case PAREN_EXPR:
       case VAR_DECL:
       case PARM_DECL:

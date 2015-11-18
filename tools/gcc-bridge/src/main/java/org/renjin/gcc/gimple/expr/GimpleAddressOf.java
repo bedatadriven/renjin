@@ -2,7 +2,7 @@ package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
 
-import java.util.Set;
+import java.util.List;
 
 public class GimpleAddressOf extends GimpleExpr {
 
@@ -17,7 +17,7 @@ public class GimpleAddressOf extends GimpleExpr {
   }
 
   @Override
-  public void find(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  public void find(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     findOrDescend(value, predicate, results);
   }
 

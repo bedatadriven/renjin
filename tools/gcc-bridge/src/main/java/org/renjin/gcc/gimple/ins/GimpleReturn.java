@@ -4,7 +4,7 @@ import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 
-import java.util.Set;
+import java.util.List;
 
 public class GimpleReturn extends GimpleIns {
   private GimpleExpr value;
@@ -35,7 +35,7 @@ public class GimpleReturn extends GimpleIns {
   }
 
   @Override
-  protected void findUses(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     if(value != null) {
       value.findOrDescend(predicate, results);
     }

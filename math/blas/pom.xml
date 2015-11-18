@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.7.0-RC8-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -59,16 +59,16 @@
             </goals>
             <phase>compile</phase>
           </execution>
-          <execution>
-            <id>test-fortran-compile</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <phase>test-compile</phase>
-            <configuration>
-              <fortranSourceDirectory>src/test/fortran</fortranSourceDirectory>
-            </configuration>
-          </execution>
+          <!--<execution>-->
+            <!--<id>test-fortran-compile</id>-->
+            <!--<goals>-->
+              <!--<goal>compile</goal>-->
+            <!--</goals>-->
+            <!--<phase>test-compile</phase>-->
+            <!--<configuration>-->
+              <!--<fortranSourceDirectory>src/test/fortran</fortranSourceDirectory>-->
+            <!--</configuration>-->
+          <!--</execution>-->
         </executions>
       </plugin>
     </plugins>

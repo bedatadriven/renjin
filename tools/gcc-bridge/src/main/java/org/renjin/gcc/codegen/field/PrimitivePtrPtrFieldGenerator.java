@@ -6,6 +6,8 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.DereferencedPrimitivePtr;
+import org.renjin.gcc.codegen.pointers.PrimitivePtrPtrPlus;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -74,6 +76,7 @@ public class PrimitivePtrPtrFieldGenerator extends FieldGenerator {
     throw new UnsupportedOperationException("todo");
   }
   
+  
   private class StaticFieldPtrPtr extends AbstractExprGenerator {
 
     @Override
@@ -92,6 +95,16 @@ public class PrimitivePtrPtrFieldGenerator extends FieldGenerator {
       valueGenerator.emitPushPtrArrayAndOffset(mv);
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName + "$offset", "I");
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, arrayFieldDescriptor);
+    }
+
+    @Override
+    public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+      return new PrimitivePtrPtrPlus(this, offsetInBytes);
+    }
+
+    @Override
+    public ExprGenerator valueOf() {
+      return new DereferencedPrimitivePtr(this);
     }
   }
   

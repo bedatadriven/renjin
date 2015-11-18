@@ -96,4 +96,8 @@ public class GimpleBasicBlock {
       return getLast().getJumpTargets();
     }
   }
+
+  public boolean isEmpty() {
+    return instructions.isEmpty();
+  }
 }

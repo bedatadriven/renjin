@@ -7,10 +7,10 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 public class GimpleAssign extends GimpleIns {
   private GimpleOp operator;
@@ -71,8 +71,19 @@ public class GimpleAssign extends GimpleIns {
   }
 
   @Override
-  protected void findUses(Predicate<? super GimpleExpr> predicate, Set<GimpleExpr> results) {
+  protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     findUses(operands, predicate, results);
+    
+    // if the lhs is a compound expression, such as
+    //    *x  = y or
+    //    x.i = y or
+    // Re(x)  = y
+    // 
+    // then we consider this a USE of x rather than a definition
+    
+    if(!(lhs instanceof GimpleSymbolRef)) {
+      lhs.find(predicate, results);
+    }
   }
 
   @Override

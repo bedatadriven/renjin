@@ -86,6 +86,18 @@ public class StatementNode {
     return node;
   }
 
+  /**
+   * 
+   * @return this node if it is a definition, otherwise {@code nextDefinition()}
+   */
+  public StatementNode firstDefinition() {
+    if(def != null) {
+      return this;
+    } else {
+      return nextDefinition();
+    }
+  }
+
   public GimpleVariableRef getLhs() {
     return def;
   }
@@ -93,9 +105,24 @@ public class StatementNode {
   public GimpleExpr nested() {
     if(statement instanceof GimpleAssign) {
       GimpleAssign assignment = (GimpleAssign) statement;
-      GimpleOpExpr expr = new GimpleOpExpr(assignment.getOperator(), assignment.getOperands());
-      expr.setType(assignment.getLHS().getType());
-      return expr;
+      switch (assignment.getOperator()) {
+        // many of these operators have no effect, and we can just unwrap their
+        // operand
+        case VAR_DECL:
+        case NOP_EXPR:
+        case PARM_DECL:
+        case MEM_REF:
+        case ADDR_EXPR:
+          // Can only unwrap if casting is not required
+          if(assignment.getOperands().get(0).getType().equals(assignment.getLHS().getType())) {
+            return assignment.getOperands().get(0);
+          }
+        
+        default:
+          GimpleOpExpr expr = new GimpleOpExpr(assignment.getOperator(), assignment.getOperands());
+          expr.setType(assignment.getLHS().getType());
+          return expr;        
+      }
     } else {
       throw new InternalCompilerException();
     }
@@ -128,4 +155,5 @@ public class StatementNode {
   public String toString() {
     return statement.toString();
   }
+
 }

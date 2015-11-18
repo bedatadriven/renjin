@@ -1,27 +1,18 @@
 package org.renjin.gcc;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.renjin.gcc.analysis.ControlFlowGraph;
-import org.renjin.gcc.analysis.InitDataFlowAnalysis;
-import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
 
 import static java.lang.Double.NaN;
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -115,6 +106,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Method get_at = clazz.getMethod("get_at", ObjectPtr.class, int.class, int.class);
 
     DoublePtr prow0 = (DoublePtr) get_at.invoke(null, matrix, 0, 0);
+    assertThat(prow0.array, is(prow0.array));
+    assertThat(prow0.offset, equalTo(0));
 
     Method sum_second_col = clazz.getMethod("sum_second_col", DoublePtr.class, int.class, int.class);
     double sum = (Double)sum_second_col.invoke(null, array, 2, 5);

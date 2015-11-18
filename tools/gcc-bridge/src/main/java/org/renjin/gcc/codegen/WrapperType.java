@@ -238,6 +238,11 @@ public class WrapperType {
     mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "offset", "I");
   }
 
+  public void emitUnpackArrayAndOffset(MethodVisitor mv, WrapperType castTo) {
+    Type wrapperArray = Type.getType("[" + castTo.getWrapperType().getDescriptor());
+    emitUnpackArrayAndOffset(mv, Optional.of(wrapperArray));
+  }
+  
   public void emitUnpackArrayAndOffset(MethodVisitor mv) {
     emitUnpackArrayAndOffset(mv, Optional.<Type>absent());
   }

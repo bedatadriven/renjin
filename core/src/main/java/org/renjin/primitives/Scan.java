@@ -262,22 +262,28 @@ public class Scan {
     }
   }
   
-  private static abstract class Splitter {
+  interface Splitter {
+    List<String> split(String line);
+  }
+  
+  static class CharSplitter implements Splitter {
     private char quote;
-    
-    public Splitter(char quote) {
-      this.quote = quote;
+    private char separator;
+
+    public CharSplitter(String quote, String separator) {
+      this.quote = quote.charAt(0);
+      this.separator = separator.charAt(0);
     }
 
     public List<String> split(String line) {
       StringBuilder sb = new StringBuilder();
       List<String> fields = Lists.newArrayList();
       boolean quoted = false;
-      for(int i=0;i!=line.length();++i) {
+      for (int i = 0; i != line.length(); ++i) {
         char c = line.charAt(i);
-        if(c == quote) {
+        if (c == quote) {
           quoted = !quoted;
-        } else if(!quoted && isSeperator(c)) {
+        } else if (!quoted && c == separator) {
           fields.add(sb.toString());
           sb.setLength(0);
         } else {
@@ -287,33 +293,37 @@ public class Scan {
       fields.add(sb.toString());
       return fields;
     }
-
-    protected abstract boolean isSeperator(char c);
   }
   
-  private static class WhitespaceSplitter extends Splitter {
+  static class WhitespaceSplitter implements Splitter {
+    private final char quote;
 
     public WhitespaceSplitter(String quote) {
-      super(quote.charAt(0));
+      this.quote = quote.charAt(0);
     }
 
     @Override
-    protected boolean isSeperator(char c) {
-      return Character.isWhitespace(c);
-    } 
-  }
-  
-  private static class CharSplitter extends Splitter {
-    private char sep;
-
-    public CharSplitter(String quote, String seperator) {
-      super(quote.charAt(0));
-      this.sep = seperator.charAt(0);
-    }
-
-    @Override
-    protected boolean isSeperator(char c) {
-      return c == sep;
+    public List<String> split(String line) {
+      StringBuilder sb = new StringBuilder();
+      List<String> fields = Lists.newArrayList();
+      boolean quoted = false;
+      for (int i = 0; i != line.length(); ++i) {
+        char c = line.charAt(i);
+        if (c == quote) {
+          quoted = !quoted;
+        } else if (!quoted && Character.isWhitespace(c)) {
+          if(sb.length() > 0) {
+            fields.add(sb.toString());
+            sb.setLength(0);
+          }
+        } else {
+          sb.append(c);
+        }
+      }
+      if(sb.length() > 0) {
+        fields.add(sb.toString());
+      }
+      return fields;    
     }
   }
   

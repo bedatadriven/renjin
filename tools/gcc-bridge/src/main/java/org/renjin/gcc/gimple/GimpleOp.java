@@ -4,7 +4,10 @@ public enum GimpleOp {
   NOP_EXPR, MULT_EXPR, RDIV_EXPR,
 
 
-  ABS_EXPR, MAX_EXPR,
+  ABS_EXPR, 
+  
+  MIN_EXPR,
+  MAX_EXPR,
 
   ADDR_EXPR,
 
@@ -38,6 +41,8 @@ public enum GimpleOp {
    */
   INTEGER_CST,
 
+  STRING_CST,
+  
   NE_EXPR, EQ_EXPR, LT_EXPR, GT_EXPR, LE_EXPR, GE_EXPR,
 
   TRUTH_NOT_EXPR, TRUTH_OR_EXPR, TRUTH_AND_EXPR,
@@ -98,7 +103,9 @@ public enum GimpleOp {
   /**
    * Complex conjugate expression
    */
-  CONJ_EXPR
+  CONJ_EXPR,
+  
+  BIT_FIELD_REF
   
   
 }

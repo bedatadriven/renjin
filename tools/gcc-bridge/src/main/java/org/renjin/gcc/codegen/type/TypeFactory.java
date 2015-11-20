@@ -72,4 +72,6 @@ public abstract class TypeFactory {
   public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
     throw new UnimplementedException(getClass(), "addressableFieldGenerator");
   }
+  
+  
 }

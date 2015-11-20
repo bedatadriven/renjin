@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.*;
@@ -136,6 +137,11 @@ public class RecordTypeFactory extends TypeFactory {
     @Override
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
       return new RecordPtrVarGenerator(generator, allocator.reserveObject());
+    }
+
+    @Override
+    public ExprGenerator mallocExpression(ExprGenerator size) {
+      return new MallocGenerator(generator.getType(), generator.getType().getSize(), size);
     }
   }
 }

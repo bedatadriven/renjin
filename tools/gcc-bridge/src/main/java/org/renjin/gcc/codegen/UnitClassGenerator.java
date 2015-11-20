@@ -73,8 +73,16 @@ public class UnitClassGenerator {
     }
 
     for (GimpleFunction function : unit.getFunctions()) {
-      symbolTable.addFunction(className, function,
-          new FunctionGenerator(className, function, generatorFactory, symbolTable));
+      try {
+        symbolTable.addFunction(className, function,
+            new FunctionGenerator(className, function, generatorFactory, symbolTable));
+      } catch (Exception e) {
+        throw new InternalCompilerException(String.format("Exception creating %s for %s in %s: %s",
+            FunctionGenerator.class.getSimpleName(),
+            function.getName(),
+            unit.getSourceName(),
+            e.getMessage()), e);
+      }
     }
   }
 

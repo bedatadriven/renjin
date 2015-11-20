@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.collect.Maps;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
@@ -14,6 +13,7 @@ import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -28,7 +28,8 @@ public class RecordClassGenerator {
   private String className;
 
   private final GimpleRecordTypeDef recordType;
-  private final Map<String, FieldGenerator> fields = Maps.newHashMap();
+
+  private Map<String, FieldGenerator> fields = null;
   private GeneratorFactory factory;
 
   public RecordClassGenerator(GeneratorFactory factory, String className, GimpleRecordTypeDef recordType) {
@@ -39,7 +40,15 @@ public class RecordClassGenerator {
     if(recordType.isUnion()) {
       throw new UnsupportedOperationException("union types not yet implemented.");
     }
+  }
+  
+  public GimpleRecordTypeDef getTypeDef() {
+    return recordType;
+  }
 
+
+  public void linkFields() {
+    fields = new HashMap<>();
     for (GimpleField gimpleField : recordType.getFields()) {
       FieldGenerator fieldGenerator = factory.forField(this.className, gimpleField.getName(), gimpleField.getType());
       fields.put(gimpleField.getName(), fieldGenerator);
@@ -70,6 +79,7 @@ public class RecordClassGenerator {
       fieldGenerator.emitInstanceField(cv);
     }
   }
+
 
   private void emitDefaultConstructor() {
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
@@ -110,6 +120,9 @@ public class RecordClassGenerator {
   }
 
   public FieldGenerator getFieldGenerator(String name) {
+    if(fields == null) {
+      throw new IllegalStateException("Fields map is not yet initialized.");
+    }
     FieldGenerator fieldGenerator = fields.get(name);
     if(fieldGenerator == null) {
       throw new InternalCompilerException(String.format("No field named '%s' in record type '%s'", name, className));

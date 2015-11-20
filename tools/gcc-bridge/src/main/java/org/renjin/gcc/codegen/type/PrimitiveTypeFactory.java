@@ -147,7 +147,6 @@ public class PrimitiveTypeFactory extends TypeFactory {
     public FieldGenerator fieldGenerator(String className, String fieldName) {
       return new PrimitivePtrPtrFieldGenerator(className, fieldName, pointerType);
     }
-
     @Override
     public ReturnGenerator returnGenerator() {
       return new PrimitivePtrPtrReturnGenerator(pointerType);
@@ -184,6 +183,17 @@ public class PrimitiveTypeFactory extends TypeFactory {
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
       return new ArrayVarGenerator(arrayType, allocator.reserveArrayRef());
     }
+
+    @Override
+    public FieldGenerator fieldGenerator(String className, String fieldName) {
+      return new PrimitiveArrayFieldGenerator(className, fieldName, arrayType);
+    }
+    
+    @Override
+    public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+      return fieldGenerator(className, fieldName);
+    }
+
 
     @Override
     public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {

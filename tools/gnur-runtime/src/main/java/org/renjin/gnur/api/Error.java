@@ -30,4 +30,10 @@ public final class Error {
   public static void R_ShowMessage(BytePtr s) {
      throw new UnimplementedGnuApiMethod("R_ShowMessage");
   }
+  
+  public static void rwarn_(BytePtr message, int messageLen) {
+    // TODO: hook into warnings
+    System.err.println(message.toString(messageLen));
+  }
+  
 }

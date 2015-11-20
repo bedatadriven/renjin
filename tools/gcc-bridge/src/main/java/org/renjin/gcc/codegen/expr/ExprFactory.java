@@ -222,6 +222,7 @@ public class ExprFactory {
       case MEM_REF:
       case INTEGER_CST:
       case REAL_CST:
+      case STRING_CST:
       case COMPLEX_CST:
       case ADDR_EXPR:
       case ARRAY_REF:
@@ -261,7 +262,7 @@ public class ExprFactory {
                 findGenerator(operands.get(1))));
 
       case MAX_EXPR:
-        return new MaxGenerator(
+        return new MinMaxGenerator(op, 
             findGenerator(operands.get(0)),
             findGenerator(operands.get(1)));
 

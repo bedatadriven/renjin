@@ -1,8 +1,11 @@
 package org.renjin.gcc.codegen.field;
 
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -47,11 +50,31 @@ public class RecordFieldGenerator extends FieldGenerator {
   
   @Override
   public ExprGenerator staticExprGenerator() {
-    throw new InternalCompilerException("todo");
+    return new StaticExpr();
   }
 
   @Override
   public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
     throw new InternalCompilerException("todo");
   }
+  
+  private class StaticExpr extends AbstractExprGenerator {
+
+    @Override
+    public GimpleType getGimpleType() {
+      return recordGenerator.getGimpleType();
+    }
+
+    @Override
+    public void emitPushRecordRef(MethodVisitor mv) {
+      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, recordGenerator.getDescriptor());
+    }
+
+    @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      valueGenerator.emitPushRecordRef(mv);
+      mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, recordGenerator.getDescriptor());
+    }
+  }
+  
 }

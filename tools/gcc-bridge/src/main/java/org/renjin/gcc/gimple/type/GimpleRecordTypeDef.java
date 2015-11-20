@@ -2,6 +2,7 @@ package org.renjin.gcc.gimple.type;
 
 
 import com.google.common.collect.Lists;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ public class GimpleRecordTypeDef {
   private String name;
   private boolean addressable;
   private boolean union;
+  private GimpleCompilationUnit unit;
   
   private List<GimpleField> fields = Lists.newArrayList();
 
@@ -24,6 +26,14 @@ public class GimpleRecordTypeDef {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public GimpleCompilationUnit getUnit() {
+    return unit;
+  }
+
+  public void setUnit(GimpleCompilationUnit unit) {
+    this.unit = unit;
   }
 
   public String getName() {

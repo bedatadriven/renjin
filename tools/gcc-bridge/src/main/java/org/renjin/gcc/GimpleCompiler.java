@@ -129,42 +129,71 @@ public class GimpleCompiler  {
   }
 
   private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
-    
-    // Enumerate record types before writing, so that records can reference each other
+
     List<RecordClassGenerator> recordsToWrite = Lists.newArrayList();
+    List<RecordClassGenerator> recordsToLink = Lists.newArrayList();
+
+
+    // Enumerate record types before writing, so that records can reference each other
     for (GimpleCompilationUnit unit : units) {
       for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
-        if(GimpleCompiler.TRACE) {
-          System.out.println(recordTypeDef);
-        }
-        if(isProvided(recordTypeDef)) {
-          
-          // Map this record type to an existing JVM class
-          Class existingClass = providedRecordTypes.get(recordTypeDef.getName());
-          RecordClassGenerator recordGenerator =
-              new RecordClassGenerator(generatorFactory, Type.getInternalName(existingClass), recordTypeDef);
-          
-          generatorFactory.addRecordType(recordTypeDef, recordGenerator);
-          
-        } else {
-          // Create a new JVM class for this record type
-          
-          String recordClassName;
-          if (recordTypeDef.getName() != null) {
-            recordClassName = recordTypeDef.getName();
-          } else {
-            recordClassName = String.format("%s$Record%d", "record", recordsToWrite.size());
-          }
-          RecordClassGenerator recordGenerator =
-              new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
+        
+        // annotate with unit for diagnostics
+        recordTypeDef.setUnit(unit);
+        
+        try {
 
-          generatorFactory.addRecordType(recordTypeDef, recordGenerator);
-          recordsToWrite.add(recordGenerator);
+          if (GimpleCompiler.TRACE) {
+            System.out.println(recordTypeDef);
+          }
+          if (isProvided(recordTypeDef)) {
+
+            // Map this record type to an existing JVM class
+            Class existingClass = providedRecordTypes.get(recordTypeDef.getName());
+            RecordClassGenerator recordGenerator =
+                new RecordClassGenerator(generatorFactory, Type.getInternalName(existingClass), recordTypeDef);
+
+            recordsToLink.add(recordGenerator);
+            generatorFactory.addRecordType(recordTypeDef, recordGenerator);
+
+          } else {
+            // Create a new JVM class for this record type
+
+            String recordClassName;
+            if (recordTypeDef.getName() != null) {
+              recordClassName = recordTypeDef.getName();
+            } else {
+              recordClassName = String.format("%s$Record%d", "record", recordsToWrite.size());
+            }
+            RecordClassGenerator recordGenerator =
+                new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
+
+            generatorFactory.addRecordType(recordTypeDef, recordGenerator);
+            recordsToLink.add(recordGenerator);
+            recordsToWrite.add(recordGenerator);
+          }
+        } catch (Exception e) {
+          throw new InternalCompilerException("Exception compiling record " + recordTypeDef.getName() + " in " + 
+              unit.getSourceName(), e);
         }
       }
     }
 
-    // Now write out the record class files
+    // Now that the record types are all registered, we can link the fields to their
+    // FieldGenerators
+    for (RecordClassGenerator recordClassGenerator : recordsToLink) {
+      try {
+        recordClassGenerator.linkFields();
+      } catch (Exception e) {
+        throw new InternalCompilerException(String.format("Exception linking record %s in %s: %s",
+            recordClassGenerator.getTypeDef().getName(),
+            recordClassGenerator.getTypeDef().getUnit().getSourceName(),
+            e.getMessage()), e);
+      }
+    }
+    
+    
+    // Finally write out the record class files for those records which are  not provided
     for (RecordClassGenerator recordClassGenerator : recordsToWrite) {
       writeClass(recordClassGenerator.getClassName(), recordClassGenerator.generateClassFile());
     }

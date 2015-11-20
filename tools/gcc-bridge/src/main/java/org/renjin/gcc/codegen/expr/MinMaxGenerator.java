@@ -2,16 +2,20 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.Types;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
-public class MaxGenerator extends  AbstractExprGenerator implements ExprGenerator {
-  
+public class MinMaxGenerator extends  AbstractExprGenerator implements ExprGenerator {
+
+  private GimpleOp op;
   private ExprGenerator x;
   private ExprGenerator y;
 
-  public MaxGenerator(ExprGenerator x, ExprGenerator y) {
+  public MinMaxGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+    this.op = op;
     this.x = x;
     this.y = y;
   }
@@ -28,13 +32,24 @@ public class MaxGenerator extends  AbstractExprGenerator implements ExprGenerato
     y.emitPrimitiveValue(mv);
     
     if(Types.isInt(x) && Types.isInt(y)) {
-      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", "max", "(II)I", false);
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(II)I", false);
    
     } else if(Types.isLong(x) && Types.isLong(y)) {
-      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", "max", "(JJ)J", false);
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(JJ)J", false);
    
     } else {
       throw new UnsupportedOperationException(String.format("max (%s, %s)", x.getGimpleType(), y.getGimpleType()));
+    }
+  }
+
+  private String methodName() {
+    switch (op) {
+      case MAX_EXPR:
+        return "max";
+      case MINUS_EXPR:
+        return "min";
+      default:
+        throw new InternalCompilerException("op: " + op);
     }
   }
 }

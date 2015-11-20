@@ -64,16 +64,16 @@ typedef int R_len_t;
 # define LONG_VECTOR_SUPPORT
 #endif
 
-#ifdef LONG_VECTOR_SUPPORT
-    typedef ptrdiff_t R_xlen_t;
-    typedef struct { R_xlen_t lv_length, lv_truelength; } R_long_vec_hdr_t;
-# define R_XLEN_T_MAX 4503599627370496
-# define R_SHORT_LEN_MAX 2147483647
+//#ifdef LONG_VECTOR_SUPPORT
+//    typedef ptrdiff_t R_xlen_t;
+//    typedef struct { R_xlen_t lv_length, lv_truelength; } R_long_vec_hdr_t;
+//# define R_XLEN_T_MAX 4503599627370496
+//# define R_SHORT_LEN_MAX 2147483647
 # define R_LONG_VEC_TOKEN -1
-#else
+//#else
     typedef int R_xlen_t;
 # define R_XLEN_T_MAX R_LEN_T_MAX
-#endif
+//#endif
 
 #ifndef TESTING_WRITE_BARRIER
 # define INLINE_PROTECT
@@ -176,6 +176,7 @@ typedef enum {
 #define MAX_NUM_SEXPTYPE (1<<TYPE_BITS)
 
 // ======================= USE_RINTERNALS section
+#undef USE_RINTERNALS // renjin
 #ifdef USE_RINTERNALS
 /* This is intended for use only within R itself.
  * It defines internal structures that are otherwise only accessible
@@ -1267,10 +1268,8 @@ void R_orderVector(int *indx, int n, SEXP arglist, Rboolean nalast, Rboolean dec
 
 #endif
 
-#if defined(CALLED_FROM_DEFN_H) && !defined(__MAIN__) && (defined(COMPILING_R) || ( __GNUC__ && !defined(__INTEL_COMPILER) ))
-#include "Rinlinedfuns.h"
-#else
-/* need remapped names here for use with R_NO_REMAP */
+// Code compiled for Renjin can *never* use the inlined functions:
+// we need C code to go through our emulation layer
 
 /*
    These are the inlinable functions that are provided in Rinlinedfuns.h
@@ -1328,14 +1327,11 @@ SEXP	 Rf_ScalarRaw(Rbyte);
 SEXP	 Rf_ScalarReal(double);
 SEXP	 Rf_ScalarString(SEXP);
 R_xlen_t  Rf_xlength(SEXP);
-# ifdef INLINE_PROTECT
 SEXP Rf_protect(SEXP);
 void Rf_unprotect(int);
 void R_ProtectWithIndex(SEXP, PROTECT_INDEX *);
 void R_Reprotect(SEXP, PROTECT_INDEX);
-# endif
 SEXP R_FixupRHS(SEXP x, SEXP y);
-#endif
 
 #ifdef USE_RINTERNALS
 
@@ -1360,15 +1356,9 @@ SEXP R_FixupRHS(SEXP x, SEXP y);
 #define isObject(s)	(OBJECT(s) != 0)
 
 /* macro version of R_CheckStack */
-#define R_CheckStack() do {						\
-	void NORET R_SignalCStackOverflow(intptr_t);				\
-	int dummy;							\
-	intptr_t usage = R_CStackDir * (R_CStackStart - (uintptr_t)&dummy); \
-	if(R_CStackLimit != -1 && usage > ((intptr_t) R_CStackLimit))	\
-	    R_SignalCStackOverflow(usage);				\
-    } while (FALSE)
-#endif
+void R_CheckStack(void);
 
+#endif
 
 #ifdef __cplusplus
 }

@@ -130,6 +130,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Method method = clazz.getMethod("test_account_value");
     Double result = (Double) method.invoke(null);
     assertThat(result, equalTo(5000d));
+    
+    Method testMalloc = clazz.getMethod("test_malloc");
+    result = (Double)testMalloc.invoke(null);
+    assertThat(result, equalTo(5000d));
   }
   
   @Test

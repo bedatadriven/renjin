@@ -86,5 +86,13 @@ public class RecordPtrFieldGenerator extends FieldGenerator {
       instanceGenerator.emitPushRecordRef(mv);
       mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, recordGenerator.getDescriptor());
     }
+
+    @Override
+    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+      instanceGenerator.emitPushRecordRef(mv);
+      valueGenerator.emitPushRecordRef(mv);
+      mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, recordGenerator.getDescriptor());
+
+    }
   }
 }

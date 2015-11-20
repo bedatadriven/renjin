@@ -51,7 +51,10 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
       
     } else if(componentType.equals(Type.INT_TYPE)) {
       mv.visitIntInsn(NEWARRAY, Opcodes.T_INT);
-    
+
+    } else if(componentType.equals(Type.BYTE_TYPE)) {
+      mv.visitIntInsn(NEWARRAY, Opcodes.T_BYTE);
+      
     } else {
       throw new UnsupportedOperationException("componentType: " + componentType);
     }

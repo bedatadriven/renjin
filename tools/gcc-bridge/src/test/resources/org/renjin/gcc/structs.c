@@ -27,3 +27,9 @@ double test_account_value() {
   return account_value(&ac);
 }
 
+double test_malloc() {
+  account *ac = malloc(1 * sizeof(account));
+  ac->years_open = 2;
+  ac->plan_type = 2;
+  return account_value(ac);
+}

@@ -52,6 +52,13 @@ public class RecordPtrVarGenerator extends AbstractExprGenerator implements VarG
     }
   }
 
+  @Override
+  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    mv.visitInsn(Opcodes.ICONST_1);
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, recordGenerator.getType().getInternalName());
+    mv.visitInsn(Opcodes.ICONST_0);
+  }
+
   private class ValueOf extends AbstractExprGenerator {
 
     @Override

@@ -11,6 +11,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.RecordPtrParamGenerator;
+import org.renjin.gcc.codegen.param.RecordPtrPtrParamGenerator;
 import org.renjin.gcc.codegen.ret.RecordPtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.var.RecordArrayVarGenerator;
@@ -135,13 +136,33 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
+    public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
+      return new AddressableRecordPtrVarGenerator(generator, allocator.reserveObject());
+    }
+
+    @Override
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
       return new RecordPtrVarGenerator(generator, allocator.reserveObject());
+    }
+
+    @Override
+    public TypeFactory pointerTo() {
+      return new PointerPointer();
     }
 
     @Override
     public ExprGenerator mallocExpression(ExprGenerator size) {
       return new RecordMallocGenerator(generator, size);
     }
+  }
+  
+  public class PointerPointer extends TypeFactory {
+
+    @Override
+    public ParamGenerator paramGenerator() {
+      return new RecordPtrPtrParamGenerator(generator);
+    }
+    
+    
   }
 }

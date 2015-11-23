@@ -71,15 +71,15 @@ void *(*amd_calloc) (size_t, size_t) = NULL ;
  * can then be enabled at run-time by setting amd_printf to a non-NULL function.
  */
 
-#ifndef NPRINT
-#ifdef MATLAB_MEX_FILE
-int (*amd_printf) (const char *, ...) = mexPrintf ;
-#else
-#include <stdio.h>
-// For use with R package 'Matrix':
-#include <R_ext/Print.h>
-void (*amd_printf) (const char *, ...) = Rprintf ;
-#endif
-#else
+//#ifndef NPRINT
+//#ifdef MATLAB_MEX_FILE
+//int (*amd_printf) (const char *, ...) = mexPrintf ;
+//#else
+//#include <stdio.h>
+//// For use with R package 'Matrix':
+//#include <R_ext/Print.h>
+//void (*amd_printf) (const char *, ...) = Rprintf ;
+//#endif
+//#else
 int (*amd_printf) (const char *, ...) = NULL ;
-#endif
+//#endif

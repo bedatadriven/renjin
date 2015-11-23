@@ -675,7 +675,8 @@ static void change_simplicial_numeric
 )
 {
     double grow0, grow1, xlen, xlnz ;
-    void *newLi, *newLx, *newLz ;
+    Int *newLi;
+    double *newLx, *newLz ;
     double *Lx, *Lz ;
     Int *Lp, *Li, *Lnz ;
     Int make_monotonic, grow2, n, j, lnz, len, grow, ok, make_ll, make_ldl ;

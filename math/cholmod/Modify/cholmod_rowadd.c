@@ -572,7 +572,8 @@ int CHOLMOD(rowadd_mark)
 #endif
 
     /* sort Ci */
-    qsort (Ci, lnz, sizeof (Int), (int (*) (const void *, const void *)) icomp);
+   	// TODO!!!!
+   // qsort (Ci, lnz, sizeof (Int), (int (*) (const void *, const void *)) icomp);
 
     /* store the kth column of L */
     DEBUG (lastrow = k) ;

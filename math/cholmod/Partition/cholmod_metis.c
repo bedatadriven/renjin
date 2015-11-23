@@ -145,7 +145,7 @@ static int metis_memory_ok
 )
 {
     double s ;
-    void *p ;
+    idxtype *p ;
     size_t metis_guard ;
 
     if (Common->metis_memory <= 0)

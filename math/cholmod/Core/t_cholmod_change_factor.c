@@ -636,11 +636,12 @@ static void TEMPLATE (ll_super_to_simplicial_numeric)
 	ASSERT (Lp [n] == lnz) ;
 	ASSERT (lnz <= (Int) (L->xsize)) ;
 	/* reduce size of L->x to match L->i.  This cannot fail. */
-	L->x = CHOLMOD(realloc) (lnz, 
+	L->x = realloc (L->x, lnz *
 #ifdef COMPLEX
 		2 *
 #endif
-		sizeof (double), L->x, &(L->xsize), Common) ;
+		sizeof (double));
+	L->xsize = lnz;
 	ASSERT (lnz == (Int) (L->xsize)) ;
 	Common->status = CHOLMOD_OK ;
     }

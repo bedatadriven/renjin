@@ -314,11 +314,15 @@ SuiteSparse_long amd_l_valid
 #define EXTERN extern
 #endif
 
-EXTERN void *(*amd_malloc) (size_t) ;                     /* pointer to malloc */
-EXTERN void (*amd_free) (void *) ;               /* pointer to free */
-EXTERN void *(*amd_realloc) (void *, size_t) ;            /* pointer to realloc */
-EXTERN void *(*amd_calloc) (size_t, size_t) ;             /* pointer to calloc */
-EXTERN int (*amd_printf) (const char *, ...) ;            /* pointer to printf */
+//EXTERN void *(*amd_malloc) (size_t) ;                     /* pointer to malloc */
+//EXTERN void (*amd_free) (void *) ;               /* pointer to free */
+//EXTERN void *(*amd_realloc) (void *, size_t) ;            /* pointer to realloc */
+//EXTERN void *(*amd_calloc) (size_t, size_t) ;             /* pointer to calloc */
+//EXTERN int (*amd_printf) (const char *, ...) ;            /* pointer to printf */
+
+#define amd_malloc malloc
+#define amd_free __builtin_free
+
 
 /* ------------------------------------------------------------------------- */
 /* AMD Control and Info arrays */

@@ -149,8 +149,8 @@ static int change_complexity
     int xtype1,		/* xtype_out must be in the range [xtype1 .. xtype2] */
     int xtype2,
     /* ---- in/out --- */
-    void **XX,		/* old X on input, new X on output */
-    void **ZZ,		/* old Z on input, new Z on output */
+    double **XX,		/* old X on input, new X on output */
+    double **ZZ,		/* old Z on input, new Z on output */
     /* --------------- */
     cholmod_common *Common
 )
@@ -331,8 +331,8 @@ static int change_complexity
 		    }
 		    /* shrink X in half (this cannot fail) */
 		    nz2 = 2*nz ;
-		    *XX = CHOLMOD(realloc) (nz, sizeof (double), *XX, &nz2,
-			    Common) ;
+		    *XX = realloc(*XX, nz * sizeof (double));
+		    nz2 = nz * sizeof(double);
 		    break ;
 
 		/* ---------------------------------------------------------- */

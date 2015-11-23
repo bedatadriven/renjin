@@ -90,6 +90,7 @@ int CHOLMOD(start)
     /* The user can replace cholmod's memory management routines by redefining
      * these function pointers. */
 
+#ifndef RENJIN
 #ifndef NMALLOC
     /* stand-alone ANSI C program */
     Common->malloc_memory  = malloc ;
@@ -102,6 +103,7 @@ int CHOLMOD(start)
     Common->free_memory    = NULL ;
     Common->realloc_memory = NULL ;
     Common->calloc_memory  = NULL ;
+#endif
 #endif
 
     /* ---------------------------------------------------------------------- */
@@ -181,7 +183,7 @@ int CHOLMOD(start)
     for (k = 0 ; k < 6  ; k++) Common->other2 [k] = 0 ;
     for (k = 0 ; k < 10 ; k++) Common->other3 [k] = 0 ;
     for (k = 0 ; k < 16 ; k++) Common->other4 [k] = 0 ;
-    for (k = 0 ; k < 16 ; k++) Common->other5 [k] = (void *) NULL ;
+  //  for (k = 0 ; k < 16 ; k++) Common->other5 [k] = (void *) NULL ;
 
     Common->SPQR_grain = 1 ;    /* no Intel TBB multitasking, by default */
     Common->SPQR_small = 1e6 ;  /* target min task size for TBB */

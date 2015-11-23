@@ -254,6 +254,9 @@
 #define CHOLMOD_VERSION \
     CHOLMOD_VER_CODE(CHOLMOD_MAIN_VERSION,CHOLMOD_SUB_VERSION)
 
+#define RENJIN
+#define NPRINT
+#define NTIMER
 
 /* ========================================================================== */
 /* === non-CHOLMOD include files ============================================ */
@@ -842,13 +845,13 @@ typedef struct cholmod_common_struct
 			 * 2*nrow*sizeof(double) otherwise */
 
     /* initialized workspace: contents needed between calls to CHOLMOD */
-    void *Flag ;	/* size nrow, an integer array.  Kept cleared between
+   int *Flag ;	/* size nrow, an integer array.  Kept cleared between
 			 * calls to cholmod rouines (Flag [i] < mark) */
 
-    void *Head ;	/* size nrow+1, an integer array. Kept cleared between
+    int *Head ;	/* size nrow+1, an integer array. Kept cleared between
 			 * calls to cholmod routines (Head [i] = EMPTY) */
 
-    void *Xwork ; 	/* a double array.  Its size varies.  It is nrow for
+    double *Xwork ; 	/* a double array.  Its size varies.  It is nrow for
 			 * most routines (cholmod_rowfac, cholmod_add,
 	* cholmod_aat, cholmod_norm, cholmod_ssmult) for the real case, twice
 	* that when the input matrices are complex or zomplex.  It is of size
@@ -857,7 +860,7 @@ typedef struct cholmod_common_struct
 	* between calls to cholmod (set to zero). */
 
     /* uninitialized workspace, contents not needed between calls to CHOLMOD */
-    void *Iwork ;	/* size iworksize, 2*nrow+ncol for most routines,
+    Int *Iwork ;	/* size iworksize, 2*nrow+ncol for most routines,
 			 * up to 6*nrow+ncol for cholmod_analyze. */
 
     int itype ;		/* If CHOLMOD_LONG, Flag, Head, and Iwork are
@@ -958,7 +961,7 @@ typedef struct cholmod_common_struct
                                 unused (for future expansion) */
 
     /* ---------------------------------------------------------------------- */
-    void   *other5 [16] ;    /* unused (for future expansion) */
+    //void   *other5 [16] ;    /* unused (for future expansion) */
 
     /* ---------------------------------------------------------------------- */
     /* GPU configuration */
@@ -1176,11 +1179,11 @@ typedef struct cholmod_sparse_struct
     size_t nzmax ;	/* maximum number of entries in the matrix */
 
     /* pointers to int or SuiteSparse_long: */
-    void *p ;		/* p [0..ncol], the column pointers */
-    void *i ;		/* i [0..nzmax-1], the row indices */
+    Int *p ;		/* p [0..ncol], the column pointers */
+    Int *i ;		/* i [0..nzmax-1], the row indices */
 
     /* for unpacked matrices only: */
-    void *nz ;		/* nz [0..ncol-1], the # of nonzeros in each col.  In
+    Int *nz ;		/* nz [0..ncol-1], the # of nonzeros in each col.  In
 			 * packed form, the nonzero pattern of column j is in
 	* A->i [A->p [j] ... A->p [j+1]-1].  In unpacked form, column j is in
 	* A->i [A->p [j] ... A->p [j]+A->nz[j]-1] instead.  In both cases, the
@@ -1188,8 +1191,8 @@ typedef struct cholmod_sparse_struct
 	* the array x (or z if A->xtype is CHOLMOD_ZOMPLEX). */
 
     /* pointers to double or float: */
-    void *x ;		/* size nzmax or 2*nzmax, if present */
-    void *z ;		/* size nzmax, if present */
+    double *x ;		/* size nzmax or 2*nzmax, if present */
+    double *z ;		/* size nzmax, if present */
 
     int stype ;		/* Describes what parts of the matrix are considered:
 			 *
@@ -1569,10 +1572,10 @@ typedef struct cholmod_factor_struct
     /* symbolic ordering and analysis */
     /* ---------------------------------------------------------------------- */
 
-    void *Perm ;	/* size n, permutation used */
-    void *ColCount ;	/* size n, column counts for simplicial L */
+    Int *Perm ;	/* size n, permutation used */
+    Int *ColCount ;	/* size n, column counts for simplicial L */
 
-    void *IPerm ;       /* size n, inverse permutation.  Only created by
+    Int *IPerm ;       /* size n, inverse permutation.  Only created by
                          * cholmod_solve2 if Bset is used. */
 
     /* ---------------------------------------------------------------------- */
@@ -1581,17 +1584,17 @@ typedef struct cholmod_factor_struct
 
     size_t nzmax ;	/* size of i and x */
 
-    void *p ;		/* p [0..ncol], the column pointers */
-    void *i ;		/* i [0..nzmax-1], the row indices */
-    void *x ;		/* x [0..nzmax-1], the numerical values */
-    void *z ;
-    void *nz ;		/* nz [0..ncol-1], the # of nonzeros in each column.
+    int *p ;		/* p [0..ncol], the column pointers */
+    int *i ;		/* i [0..nzmax-1], the row indices */
+    double *x ;		/* x [0..nzmax-1], the numerical values */
+    double *z ;
+    Int *nz ;		/* nz [0..ncol-1], the # of nonzeros in each column.
 			 * i [p [j] ... p [j]+nz[j]-1] contains the row indices,
 			 * and the numerical values are in the same locatins
 			 * in x. The value of i [p [k]] is always k. */
 
-    void *next ;	/* size ncol+2. next [j] is the next column in i/x */
-    void *prev ;	/* size ncol+2. prev [j] is the prior column in i/x.
+    Int *next ;	/* size ncol+2. next [j] is the next column in i/x */
+    Int *prev ;	/* size ncol+2. prev [j] is the prior column in i/x.
 			 * head of the list is ncol+1, and the tail is ncol. */
 
     /* ---------------------------------------------------------------------- */
@@ -1608,10 +1611,10 @@ typedef struct cholmod_factor_struct
     size_t maxcsize ;	/* size of largest update matrix */
     size_t maxesize ;	/* max # of rows in supernodes, excl. triangular part */
 
-    void *super ;	/* size nsuper+1, first col in each supernode */
-    void *pi ;		/* size nsuper+1, pointers to integer patterns */
-    void *px ;		/* size nsuper+1, pointers to real parts */
-    void *s ;		/* size ssize, integer part of supernodes */
+    Int *super ;	/* size nsuper+1, first col in each supernode */
+    Int *pi ;		/* size nsuper+1, pointers to integer patterns */
+    Int *px ;		/* size nsuper+1, pointers to real parts */
+    Int *s ;		/* size ssize, integer part of supernodes */
 
     /* ---------------------------------------------------------------------- */
     /* factorization type */
@@ -1840,8 +1843,8 @@ typedef struct cholmod_dense_struct
     size_t ncol ;
     size_t nzmax ;	/* maximum number of entries in the matrix */
     size_t d ;		/* leading dimension (d >= nrow must hold) */
-    void *x ;		/* size nzmax or 2*nzmax, if present */
-    void *z ;		/* size nzmax, if present */
+    double *x ;		/* size nzmax or 2*nzmax, if present */
+    double *z ;		/* size nzmax, if present */
     int xtype ;		/* pattern, real, complex, or zomplex */
     int dtype ;		/* x and z double or float */
 
@@ -2038,10 +2041,10 @@ typedef struct cholmod_triplet_struct
     size_t nzmax ;	/* maximum number of entries in the matrix */
     size_t nnz ;	/* number of nonzeros in the matrix */
 
-    void *i ;		/* i [0..nzmax-1], the row indices */
-    void *j ;		/* j [0..nzmax-1], the column indices */
-    void *x ;		/* size nzmax or 2*nzmax, if present */
-    void *z ;		/* size nzmax, if present */
+    Int *i ;		/* i [0..nzmax-1], the row indices */
+    Int *j ;		/* j [0..nzmax-1], the column indices */
+    double *x ;		/* size nzmax or 2*nzmax, if present */
+    double *z ;		/* size nzmax, if present */
 
     int stype ;		/* Describes what parts of the matrix are considered:
 			 *
@@ -2224,56 +2227,64 @@ int cholmod_l_triplet_xtype (int, cholmod_triplet *, cholmod_common *) ;
  * size, the only consequence is that the memory usage statistics will be
  * corrupted.
  */
+ 
+// Renjin Modifications:
+// Gcc-bridge needs to see the unwrapped malloc calls in order to detect the type
+// of the memory allocated
+ 
+#define cholmod_malloc(n, size, Common) malloc(n*size)
+#define cholmod_calloc(n, size, Common) malloc(n*size)
+#define cholmod_free(n,size, p, Common) (NULL)
+//
+//void *cholmod_malloc	/* returns pointer to the newly malloc'd block */
+//(
+//    /* ---- input ---- */
+//    size_t n,		/* number of items */
+//    size_t size,	/* size of each item */
+//    /* --------------- */
+//    cholmod_common *Common
+//) ;
 
-void *cholmod_malloc	/* returns pointer to the newly malloc'd block */
-(
-    /* ---- input ---- */
-    size_t n,		/* number of items */
-    size_t size,	/* size of each item */
-    /* --------------- */
-    cholmod_common *Common
-) ;
+//void *cholmod_l_malloc (size_t, size_t, cholmod_common *) ;
+//
+//void *cholmod_calloc	/* returns pointer to the newly calloc'd block */
+//(
+//    /* ---- input ---- */
+//    size_t n,		/* number of items */
+//    size_t size,	/* size of each item */
+//    /* --------------- */
+//    cholmod_common *Common
+////) ;
+//
+//void *cholmod_l_calloc (size_t, size_t, cholmod_common *) ;
 
-void *cholmod_l_malloc (size_t, size_t, cholmod_common *) ;
+//void *cholmod_free	/* always returns NULL */
+//(
+//    /* ---- input ---- */
+//    size_t n,		/* number of items */
+//    size_t size,	/* size of each item */
+//    /* ---- in/out --- */
+//    void *p,		/* block of memory to free */
+//    /* --------------- */
+//    cholmod_common *Common
+//) ;
+//
+//void *cholmod_l_free (size_t, size_t, void *, cholmod_common *) ;
 
-void *cholmod_calloc	/* returns pointer to the newly calloc'd block */
-(
-    /* ---- input ---- */
-    size_t n,		/* number of items */
-    size_t size,	/* size of each item */
-    /* --------------- */
-    cholmod_common *Common
-) ;
+//void *cholmod_realloc	/* returns pointer to reallocated block */
+//(
+//    /* ---- input ---- */
+//    size_t nnew,	/* requested # of items in reallocated block */
+//    size_t size,	/* size of each item */
+//    /* ---- in/out --- */
+//    void *p,		/* block of memory to realloc */
+//    size_t *n,		/* current size on input, nnew on output if successful*/
+//    /* --------------- */
+//    cholmod_common *Common
+//) ;
 
-void *cholmod_l_calloc (size_t, size_t, cholmod_common *) ;
-
-void *cholmod_free	/* always returns NULL */
-(
-    /* ---- input ---- */
-    size_t n,		/* number of items */
-    size_t size,	/* size of each item */
-    /* ---- in/out --- */
-    void *p,		/* block of memory to free */
-    /* --------------- */
-    cholmod_common *Common
-) ;
-
-void *cholmod_l_free (size_t, size_t, void *, cholmod_common *) ;
-
-void *cholmod_realloc	/* returns pointer to reallocated block */
-(
-    /* ---- input ---- */
-    size_t nnew,	/* requested # of items in reallocated block */
-    size_t size,	/* size of each item */
-    /* ---- in/out --- */
-    void *p,		/* block of memory to realloc */
-    size_t *n,		/* current size on input, nnew on output if successful*/
-    /* --------------- */
-    cholmod_common *Common
-) ;
-
-void *cholmod_l_realloc (size_t, size_t, void *, size_t *, cholmod_common *) ;
-
+//void *cholmod_l_realloc (size_t, size_t, void *, size_t *, cholmod_common *) ;
+//
 int cholmod_realloc_multiple
 (
     /* ---- input ---- */
@@ -2281,18 +2292,18 @@ int cholmod_realloc_multiple
     int nint,		/* number of int/SuiteSparse_long blocks */
     int xtype,		/* CHOLMOD_PATTERN, _REAL, _COMPLEX, or _ZOMPLEX */
     /* ---- in/out --- */
-    void **Iblock,	/* int or SuiteSparse_long block */
-    void **Jblock,	/* int or SuiteSparse_long block */
-    void **Xblock,	/* complex, double, or float block */
-    void **Zblock,	/* zomplex case only: double or float block */
+    Int **Iblock,	/* int or SuiteSparse_long block */
+    Int **Jblock,	/* int or SuiteSparse_long block */
+    double **Xblock,	/* complex, double, or float block */
+    double **Zblock,	/* zomplex case only: double or float block */
     size_t *n,		/* current size of the I,J,X,Z blocks on input,
 			 * nnew on output if successful */
     /* --------------- */
     cholmod_common *Common
 ) ;
 
-int cholmod_l_realloc_multiple (size_t, int, int, void **, void **, void **,
-    void **, size_t *, cholmod_common *) ;
+int cholmod_l_realloc_multiple (size_t, int, int, int **, int **, double **,
+    double **, size_t *, cholmod_common *) ;
 
 /* ========================================================================== */
 /* === version control ====================================================== */

@@ -278,7 +278,7 @@ void BLAS_ZTRSM (char *side, char *uplo, char *transa, char *diag, BLAS_INT *m,
 
 void BLAS_DGEMM (char *transa, char *transb, BLAS_INT *m, BLAS_INT *n,
 	BLAS_INT *k, double *alpha, double *A, BLAS_INT *lda, double *B,
-	BLAS_INT *ldb, double *beta, double *C, BLAS_INT *ldc) ;
+	BLAS_INT *ldb, double *beta, double *C, BLAS_INT *ldc, int transa_nchar, int transb_nchar) ;
 
 #define BLAS_dgemm(transa,transb,m,n,k,alpha,A,lda,B,ldb,beta,C,ldc) \
 { \
@@ -291,7 +291,7 @@ void BLAS_DGEMM (char *transa, char *transb, BLAS_INT *m, BLAS_INT *n,
     if (!CHECK_BLAS_INT || BLAS_OK) \
     { \
 	BLAS_DGEMM (transa, transb, &M, &N, &K, alpha, A, &LDA, B, &LDB, beta, \
-	    C, &LDC) ; \
+	    C, &LDC, 1, 1) ; \
     } \
 }
 
@@ -316,7 +316,7 @@ void BLAS_ZGEMM (char *transa, char *transb, BLAS_INT *m, BLAS_INT *n,
 
 void BLAS_DSYRK (char *uplo, char *trans, BLAS_INT *n, BLAS_INT *k,
 	double *alpha, double *A, BLAS_INT *lda, double *beta, double *C,
-	BLAS_INT *ldc) ;
+	BLAS_INT *ldc, int uplo_nchar, int trans_nchar) ;
 
 #define BLAS_dsyrk(uplo,trans,n,k,alpha,A,lda,beta,C,ldc) \
 { \
@@ -328,7 +328,7 @@ void BLAS_DSYRK (char *uplo, char *trans, BLAS_INT *n, BLAS_INT *k,
     } \
     if (!CHECK_BLAS_INT || BLAS_OK) \
     { \
-	BLAS_DSYRK (uplo, trans, &N, &K, alpha, A, &LDA, beta, C, &LDC) ; \
+	BLAS_DSYRK (uplo, trans, &N, &K, alpha, A, &LDA, beta, C, &LDC, 1, 1) ; \
     } \
 } \
 

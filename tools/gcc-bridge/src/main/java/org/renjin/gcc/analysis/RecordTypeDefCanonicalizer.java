@@ -66,11 +66,6 @@ public class RecordTypeDefCanonicalizer {
           // duplicate of already seen structure, map it's id to the canonical version
           idToCanonicalMap.put(recordTypeDef.getId(), canonical);
           
-          // if we have a chance to restore a missing name, take it
-          if(canonical.getName() == null && recordTypeDef.getName() != null) {
-            canonical.setName(recordTypeDef.getName());
-          }
-          
           changing = true;
         }
       }
@@ -89,9 +84,11 @@ public class RecordTypeDefCanonicalizer {
   }
 
 
-  
   private String key(GimpleRecordTypeDef typeDef) {
     StringBuilder key = new StringBuilder();
+    if(typeDef.getName() != null) {
+      key.append(typeDef.getName());
+    }
     appendKeyTo(typeDef, key);
     return key.toString();
   }
@@ -172,6 +169,10 @@ public class RecordTypeDefCanonicalizer {
         if (canonicalDef != null) {
           unit.getRecordTypes().set(i, canonicalDef);
         }
+      }
+
+      for (GimpleVarDecl decl : unit.getGlobalVariables()) {
+        updateType(decl.getType());
       }
       
       for (GimpleFunction function : unit.getFunctions()) {

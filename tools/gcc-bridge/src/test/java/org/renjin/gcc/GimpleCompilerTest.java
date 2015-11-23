@@ -62,6 +62,13 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     result = (Double)clazz.getMethod("malloc_global_test2").invoke(null);
     assertThat(result, equalTo(7623d));
+    
+    
+    Method reallocTest = clazz.getMethod("realloc_test");
+    Double reallocResult = (Double)reallocTest.invoke(null);
+    
+    assertThat(reallocResult, equalTo(41d+42d+43d+44d));
+    
   }
   
   @Test

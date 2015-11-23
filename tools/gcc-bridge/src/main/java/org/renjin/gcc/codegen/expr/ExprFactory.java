@@ -41,7 +41,7 @@ public class ExprFactory {
     return maybeCast(findGenerator(expr), expectedType);
   }
 
-  private ExprGenerator maybeCast(ExprGenerator rhs, GimpleType lhsType) {
+  public ExprGenerator maybeCast(ExprGenerator rhs, GimpleType lhsType) {
     if(lhsType instanceof GimplePrimitiveType) {
 
       if (rhs.getGimpleType() instanceof GimplePrimitiveType) {

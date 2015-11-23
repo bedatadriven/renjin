@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.field.VoidPtrField;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.VoidPtrParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.VoidPtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
 import org.renjin.gcc.codegen.var.AddressableVoidPtrVar;
 import org.renjin.gcc.codegen.var.VarGenerator;
@@ -51,6 +52,11 @@ public class VoidTypeFactory extends TypeFactory {
     @Override
     public ExprGenerator mallocExpression(ExprGenerator size) {
       throw new InternalCompilerException("Cannot allocate void* type");
+    }
+
+    @Override
+    public ReturnGenerator returnGenerator() {
+      return new VoidPtrReturnGenerator();
     }
 
     @Override

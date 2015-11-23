@@ -1,5 +1,5 @@
 
-
+#include <stdlib.h>
 #include <math.h>
 
 
@@ -47,3 +47,14 @@ double* zero_array() {
   return global_var;
 }
 
+
+double realloc_test() {
+  double *x = malloc(2 * sizeof(double));
+  x[0] = 41;
+  x[1] = 42;
+  double *y = realloc(x, 4 * sizeof(double));
+  y[2] = 43;
+  y[3] = 44;
+  
+  return sum_array(y, 4);
+}

@@ -36,28 +36,28 @@ public class MallocGenerator extends AbstractExprGenerator implements ExprGenera
   }
 
   public static boolean isMalloc(GimpleExpr functionExpr) {
-    if (functionExpr instanceof GimpleAddressOf) {
-      GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
-      if (addressOf.getValue() instanceof GimpleFunctionRef) {
-        GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
-        return ref.getName().equals("malloc") ||
-               ref.getName().equals("__builtin_malloc");
-      }
-    }
-    return false;
+    return isFunctionNamed(functionExpr, "malloc")  ||
+           isFunctionNamed(functionExpr, "__builtin_malloc");
   }
 
 
   public static boolean isFree(GimpleExpr functionExpr) {
+    return isFunctionNamed(functionExpr, "__builtin_free");
+  }
+  
+  public static boolean isRealloc(GimpleExpr functionExpr) {
+    return isFunctionNamed(functionExpr, "realloc");
+  }
+
+  private static boolean isFunctionNamed(GimpleExpr functionExpr, String name) {
     if (functionExpr instanceof GimpleAddressOf) {
       GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
-        return ref.getName().equals("__builtin_free");
+        return ref.getName().equals(name);
       }
     }
     return false;
-
   }
 
   @Override

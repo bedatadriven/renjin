@@ -10,6 +10,7 @@ import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.ReallocExpr;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.type.TypeFactory;
@@ -232,6 +233,9 @@ public class FunctionGenerator {
     if(MallocGenerator.isMalloc(ins.getFunction())) {
       emitMalloc(ins);
 
+    } else if(MallocGenerator.isRealloc(ins.getFunction())) {
+      emitRealloc(ins);
+      
     } else if(MallocGenerator.isFree(ins.getFunction())) {
       // NO OP
       // We have a garbage collector, muwahaha :-)
@@ -251,12 +255,13 @@ public class FunctionGenerator {
         
       } else {
         ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
-        ExprGenerator callResult = callGenerator.expressionGenerator(arguments);
+        ExprGenerator callResult =  callGenerator.expressionGenerator(arguments);
         
-        lhs.emitStore(mv, callResult);
+        lhs.emitStore(mv, exprFactory.maybeCast(callResult, lhs.getGimpleType()));
       }
     }
   }
+
 
   private void discardReturnValue(MethodVisitor mv, Type type) {
     if(!type.equals(Type.VOID_TYPE)) {
@@ -276,6 +281,15 @@ public class FunctionGenerator {
     ExprGenerator size = exprFactory.findGenerator(ins.getArguments().get(0));
     
     lhs.emitStore(mv, generatorFactory.forType(lhs.getGimpleType()).mallocExpression(size) );
+  }
+
+
+  private void emitRealloc(GimpleCall ins) {
+    ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
+    ExprGenerator ptr = exprFactory.findGenerator(ins.getArguments().get(0));
+    ExprGenerator size = exprFactory.findGenerator(ins.getArguments().get(1));
+
+    lhs.emitStore(mv, new ReallocExpr(ptr, size));
   }
 
   private void emitReturn(GimpleReturn ins) {

@@ -6,6 +6,7 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.DereferencedPrimitivePtr;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -61,32 +62,13 @@ public class AddressablePrimitivePtrField extends FieldGenerator {
 
   @Override
   public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
-    return new MemberExpr(instanceGenerator);
-  }
-  
-  private class MemberExpr extends AbstractExprGenerator {
-
-    private ExprGenerator instanceGenerator;
-
-    public MemberExpr(ExprGenerator instanceGenerator) {
-      this.instanceGenerator = instanceGenerator;
-    }
-
-    @Override
-    public ExprGenerator addressOf() {
-      return new AddressOf(instanceGenerator);
-    }
-
-    @Override
-    public GimpleType getGimpleType() {
-      return pointerType;
-    }
+    return new DereferencedPrimitivePtr(new MemberAddressExpr(instanceGenerator));
   }
 
-  private class AddressOf extends AbstractExprGenerator {
+  private class MemberAddressExpr extends AbstractExprGenerator {
     private ExprGenerator instanceGenerator;
 
-    public AddressOf(ExprGenerator instanceGenerator) {
+    public MemberAddressExpr(ExprGenerator instanceGenerator) {
       this.instanceGenerator = instanceGenerator;
     }
 

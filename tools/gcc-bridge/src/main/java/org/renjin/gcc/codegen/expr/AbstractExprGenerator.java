@@ -153,7 +153,7 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
    * @param elementSize
    * @return
    */
-  private ExprGenerator offsetToElements(ExprGenerator exprGenerator, int elementSize) {
+  protected final ExprGenerator offsetToElements(ExprGenerator exprGenerator, int elementSize) {
     if(exprGenerator instanceof PrimitiveBinOpGenerator) {
       PrimitiveBinOpGenerator op = (PrimitiveBinOpGenerator) exprGenerator;
       if(op.getOp() == GimpleOp.MULT_EXPR) {

@@ -46,7 +46,7 @@ public class MinMaxGenerator extends  AbstractExprGenerator implements ExprGener
     switch (op) {
       case MAX_EXPR:
         return "max";
-      case MINUS_EXPR:
+      case MIN_EXPR:
         return "min";
       default:
         throw new InternalCompilerException("op: " + op);

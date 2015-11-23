@@ -262,6 +262,7 @@ public class ExprFactory {
                 findGenerator(operands.get(1))));
 
       case MAX_EXPR:
+      case MIN_EXPR:
         return new MinMaxGenerator(op, 
             findGenerator(operands.get(0)),
             findGenerator(operands.get(1)));

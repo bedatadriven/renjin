@@ -50,7 +50,7 @@ public class RecordClassGenerator {
   public void linkFields() {
     fields = new HashMap<>();
     for (GimpleField gimpleField : recordType.getFields()) {
-      FieldGenerator fieldGenerator = factory.forField(this.className, gimpleField.getName(), gimpleField.getType());
+      FieldGenerator fieldGenerator = factory.forField(this.className, gimpleField);
       fields.put(gimpleField.getName(), fieldGenerator);
     }
   }
@@ -79,7 +79,6 @@ public class RecordClassGenerator {
       fieldGenerator.emitInstanceField(cv);
     }
   }
-
 
   private void emitDefaultConstructor() {
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);

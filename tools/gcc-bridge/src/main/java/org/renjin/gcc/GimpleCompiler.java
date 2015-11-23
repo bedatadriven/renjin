@@ -17,20 +17,21 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 /**
  * Compiles a set of Gimple functions to jvm class file
- * 
+ *
  */
 public class GimpleCompiler  {
-  
+
   public static boolean TRACE = false;
 
   private File outputDirectory;
-  
+
   private String packageName;
 
   private boolean verbose;
@@ -39,13 +40,16 @@ public class GimpleCompiler  {
 
   private GlobalSymbolTable globalSymbolTable;
 
+  private Collection<GimpleRecordTypeDef> recordTypeDefs;
+
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
-  
+
   private final GeneratorFactory generatorFactory = new GeneratorFactory();
-  
+
   private final Map<String, Class> providedRecordTypes = Maps.newHashMap();
   private final Map<String, Field> providedVariables = Maps.newHashMap();
-  
+
+
   private String trampolineClassName;
 
 
@@ -89,16 +93,20 @@ public class GimpleCompiler  {
   public void addMethod(String functionName, Class declaringClass, String methodName) {
     globalSymbolTable.addMethod(functionName, declaringClass, methodName);
   }
-  
+
   public void addRecordClass(String typeName, Class recordClass) {
     providedRecordTypes.put(typeName, recordClass);
   }
 
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
+    // create the mapping from the compilation unit's version of the record types
+    // to the canonical version shared by all compilation units
+    recordTypeDefs = RecordTypeDefCanonicalizer.canonicalize(units);
+
     // First apply any transformations needed by the code generation process
     transform(units);
-    
+
     // Compile the record types so they are available to functions and variables
     compileRecords(units);
 
@@ -109,8 +117,8 @@ public class GimpleCompiler  {
     for (GimpleCompilationUnit unit : units) {
       String className = getInternalClassName(unit.getName());
       UnitClassGenerator generator = new UnitClassGenerator(
-          generatorFactory, 
-          globalSymbolTable, 
+          generatorFactory,
+          globalSymbolTable,
           providedVariables,
           unit, className);
       unitClassGenerators.add(generator);
@@ -121,7 +129,7 @@ public class GimpleCompiler  {
       generator.emit();
       writeClass(generator.getClassName(), generator.toByteArray());
     }
-    
+
     // Also store an index to symbols in this library
     if(trampolineClassName != null) {
       writeTrampolineClass();
@@ -135,49 +143,44 @@ public class GimpleCompiler  {
 
 
     // Enumerate record types before writing, so that records can reference each other
-    for (GimpleCompilationUnit unit : units) {
-      for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
-        
-        // annotate with unit for diagnostics
-        recordTypeDef.setUnit(unit);
-        
-        try {
+    for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
+      
+      try {
+        RecordClassGenerator recordGenerator;
 
-          if (GimpleCompiler.TRACE) {
-            System.out.println(recordTypeDef);
-          }
-          if (isProvided(recordTypeDef)) {
-
-            // Map this record type to an existing JVM class
-            Class existingClass = providedRecordTypes.get(recordTypeDef.getName());
-            RecordClassGenerator recordGenerator =
-                new RecordClassGenerator(generatorFactory, Type.getInternalName(existingClass), recordTypeDef);
-
-            recordsToLink.add(recordGenerator);
-            generatorFactory.addRecordType(recordTypeDef, recordGenerator);
-
-          } else {
-            // Create a new JVM class for this record type
-
-            String recordClassName;
-            if (recordTypeDef.getName() != null) {
-              recordClassName = recordTypeDef.getName();
-            } else {
-              recordClassName = String.format("%s$Record%d", "record", recordsToWrite.size());
-            }
-            RecordClassGenerator recordGenerator =
-                new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
-
-            generatorFactory.addRecordType(recordTypeDef, recordGenerator);
-            recordsToLink.add(recordGenerator);
-            recordsToWrite.add(recordGenerator);
-          }
-        } catch (Exception e) {
-          throw new InternalCompilerException("Exception compiling record " + recordTypeDef.getName() + " in " + 
-              unit.getSourceName(), e);
+        if (GimpleCompiler.TRACE) {
+          System.out.println(recordTypeDef);
         }
+        if (isProvided(recordTypeDef)) {
+
+          // Map this record type to an existing JVM class
+          Class existingClass = providedRecordTypes.get(recordTypeDef.getName());
+          recordGenerator = new RecordClassGenerator(generatorFactory, Type.getInternalName(existingClass), recordTypeDef);
+
+        } else {
+          // Create a new JVM class for this record type
+
+          String recordClassName;
+          if (recordTypeDef.getName() != null) {
+            recordClassName = recordTypeDef.getName();
+          } else {
+            recordClassName = String.format("%s$Record%d", "record", recordsToWrite.size());
+          }
+          recordGenerator =
+              new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
+          
+          recordsToWrite.add(recordGenerator);
+        }
+
+        generatorFactory.addRecordType(recordTypeDef, recordGenerator);
+        recordsToLink.add(recordGenerator);
+        
+        
+      } catch (Exception e) {
+        throw new InternalCompilerException("Exception compiling record " + recordTypeDef.getName());
       }
     }
+
 
     // Now that the record types are all registered, we can link the fields to their
     // FieldGenerators
@@ -191,8 +194,8 @@ public class GimpleCompiler  {
             e.getMessage()), e);
       }
     }
-    
-    
+
+
     // Finally write out the record class files for those records which are  not provided
     for (RecordClassGenerator recordClassGenerator : recordsToWrite) {
       writeClass(recordClassGenerator.getClassName(), recordClassGenerator.generateClassFile());
@@ -245,18 +248,18 @@ public class GimpleCompiler  {
    */
   private void writeTrampolineClass() throws IOException {
 
-    TrampolineClassGenerator classGenerator = 
+    TrampolineClassGenerator classGenerator =
         new TrampolineClassGenerator(getInternalClassName(trampolineClassName));
-    
+
     for (Map.Entry<String, CallGenerator> entry : globalSymbolTable.getFunctions()) {
       if(entry.getValue() instanceof FunctionCallGenerator) {
         FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) entry.getValue();
         FunctionGenerator functionGenerator = functionCallGenerator.getFunctionGenerator();
-        
+
         classGenerator.emitTrampolineMethod(functionGenerator);
       }
     }
-    
+
     writeClass(getInternalClassName(trampolineClassName), classGenerator.generateClassFile());
   }
 
@@ -282,6 +285,6 @@ public class GimpleCompiler  {
 
   public void addVariable(String name, Field field) {
     providedVariables.put(name, field);
-    
+
   }
 }

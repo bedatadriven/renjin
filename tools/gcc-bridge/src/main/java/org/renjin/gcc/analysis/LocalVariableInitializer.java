@@ -1,6 +1,5 @@
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;

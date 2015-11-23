@@ -4,7 +4,7 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 
 /**
- * A transformer which updates the gimple function body prior to translation
+ * A transformer which updates the gimple function body prior to code generation
  */
 public interface FunctionBodyTransformer {
 

@@ -66,11 +66,12 @@ public class GimpleRecordTypeDef {
     return out.toString();
   }
 
-  public boolean isAddressable() {
-    return addressable;
-  }
-
-  public void setAddressable(boolean addressable) {
-    this.addressable = addressable;
+  public GimpleField getField(String fieldName) {
+    for (GimpleField field : fields) {
+      if(field.getName().equals(fieldName)) {
+        return field;
+      }
+    }
+    throw new IllegalArgumentException("No such field: " + fieldName);
   }
 }

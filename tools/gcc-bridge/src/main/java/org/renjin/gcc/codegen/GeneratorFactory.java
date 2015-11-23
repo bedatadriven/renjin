@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.param.*;
 import org.renjin.gcc.codegen.ret.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.gimple.GimpleParameter;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.CharPtr;
@@ -88,17 +89,26 @@ public class GeneratorFactory {
    * Creates a new FieldGenerator for a given field type.
    * 
    * @param className the full internal name of the class in which the field is declared (for example, "org/renjin/gcc/Struct")
-   * @param fieldName the name of the field
-   * @param type the GimpleType of the field
+   * @param field the gimple field
    */
-  public FieldGenerator forField(String className, String fieldName, GimpleType type) {
-    return forType(type).fieldGenerator(className, fieldName); 
+  public FieldGenerator forField(String className, GimpleField field) {
+    TypeFactory type = forType(field.getType());
+    if(field.isAddressed()) {
+      return type.addressableFieldGenerator(className, field.getName());
+    } else {
+      return type.fieldGenerator(className, field.getName());
+    }
   }
   
-  public FieldGenerator forAddressableField(String className, String fieldName, GimpleType type) {
-    return forType(type).addressableFieldGenerator(className, fieldName);
+  public FieldGenerator forGlobalVariable(String className, GimpleVarDecl decl) {
+    TypeFactory type = forType(decl.getType());
+    if(decl.isAddressable()) {
+      return type.addressableFieldGenerator(className, decl.getName());
+    } else {
+      return type.fieldGenerator(className, decl.getName());
+    }
   }
-  
+
   public ReturnGenerator findReturnGenerator(GimpleType returnType) {
     return forType(returnType).returnGenerator();
   }

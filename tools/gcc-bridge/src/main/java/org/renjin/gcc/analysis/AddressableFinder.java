@@ -12,6 +12,7 @@ import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.ins.GimpleAssign;
 import org.renjin.gcc.gimple.ins.GimpleCall;
 import org.renjin.gcc.gimple.ins.GimpleIns;
+import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
@@ -47,11 +48,11 @@ public class AddressableFinder implements FunctionBodyTransformer {
     for (GimpleBasicBlock basicBlock : fn.getBasicBlocks()) {
       for (GimpleIns gimpleIns : basicBlock.getInstructions()) {
         if(gimpleIns instanceof GimpleCall) {
-          if(mark(variables, ((GimpleCall) gimpleIns).getArguments(),recordTypeDefs)) {
+          if(mark(recordTypeDefs, variables, ((GimpleCall) gimpleIns).getArguments())) {
             updated = true;
           }
         } else if(gimpleIns instanceof GimpleAssign) {
-          if (mark(variables, ((GimpleAssign) gimpleIns).getOperands(),recordTypeDefs)) {
+          if (mark(recordTypeDefs, variables, ((GimpleAssign) gimpleIns).getOperands())) {
             updated = true;
           }
         }
@@ -61,7 +62,7 @@ public class AddressableFinder implements FunctionBodyTransformer {
     return updated;
   }
 
-  private boolean mark(Map<Integer, GimpleVarDecl> variables, List<GimpleExpr> arguments, Map<String, GimpleRecordTypeDef> recordTypeDefs) {
+  private boolean mark(Map<String, GimpleRecordTypeDef> recordTypeDefs, Map<Integer, GimpleVarDecl> variables, List<GimpleExpr> arguments) {
     boolean updated = false;
     for (GimpleExpr expr : arguments) {
       if(expr instanceof GimpleAddressOf) {
@@ -72,13 +73,13 @@ public class AddressableFinder implements FunctionBodyTransformer {
           GimpleComponentRef ref = (GimpleComponentRef) addressOf.getValue();
           GimpleRecordType recordType = (GimpleRecordType) ref.getValue().getType();
           GimpleRecordTypeDef recordTypeDef = recordTypeDefs.get(recordType.getId());
-
-          if (recordTypeDef == null){
-            throw new IllegalStateException("Program in reached an undefined state, recordTypeDef = null");
+          if(recordTypeDef == null) {
+            throw new IllegalStateException("Record def not found: " + recordType);
           }
 
-          if(!recordTypeDef.isAddressable()) {
-            recordTypeDef.setAddressable(true);
+          GimpleField field = recordTypeDef.getField(ref.memberName());
+          if(!field.isAddressed()) {
+            field.setAddressed(true);
             updated = true;
           }
         }

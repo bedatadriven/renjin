@@ -1,4 +1,6 @@
 
+#include "link.h"
+
 extern int magic_number1;
 
 
@@ -18,4 +20,11 @@ extern int shared_triple(int x) {
 
 static int test_global_var() {
   return magic_number1;
+}
+
+extern double test_points() {
+  point a, b;
+  a.x = 40;
+  b.x = 1;
+  return sum_x(&a, &b);
 }

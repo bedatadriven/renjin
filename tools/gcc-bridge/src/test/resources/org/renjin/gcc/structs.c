@@ -1,5 +1,5 @@
 
-
+#include <stdlib.h>
 #include <stdio.h>
 
 
@@ -9,14 +9,19 @@ typedef struct {
 } account;
 
 
-
-
 double account_value(account * pa) {
   if(pa->plan_type == 2) {
     return pa->years_open * 2500.0;
   } else {
     return pa->years_open * 1500.0;
   }
+}
+
+void init_account(account **ppa) {
+  account *pa = malloc(1 * sizeof(account));
+  pa->years_open = 10;
+  pa->plan_type = 1;
+  *ppa = pa;
 }
 
 double test_account_value() {
@@ -28,8 +33,9 @@ double test_account_value() {
 }
 
 double test_malloc() {
-  account *ac = malloc(1 * sizeof(account));
-  ac->years_open = 2;
-  ac->plan_type = 2;
-  return account_value(ac);
+  account *pa;
+  init_account(&pa);
+  return account_value(pa);
 }
+
+

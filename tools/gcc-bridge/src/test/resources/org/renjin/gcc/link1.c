@@ -1,4 +1,6 @@
 
+#include "link.h"
+
 int magic_number1 = 41;
 
 extern int shared_triple(int x);
@@ -11,4 +13,8 @@ static int get_unit_number() {
 
 static int test() {
   return shared_triple(get_unit_number());
+}
+
+double sum_x(point *p1, point *p2) {
+  return p1->x + p2->x;
 }

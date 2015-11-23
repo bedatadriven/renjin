@@ -59,15 +59,10 @@ public class UnitClassGenerator {
         // TODO: this requires the jvm field to use the same representation as we would
         // use when compiling. Should check and perhaps provide an adaptation
         Field providedField = providedVariables.get(decl.getName());
-        symbolTable.addGlobalVariable(decl, generatorFactory.forField(
-            Type.getInternalName(providedField.getDeclaringClass()), 
-            providedField.getName(), decl.getType()));
+        symbolTable.addGlobalVariable(decl, generatorFactory.forType(decl.getType())
+            .fieldGenerator(Type.getInternalName(providedField.getDeclaringClass()), providedField.getName()));
       } else {
-        if(decl.isAddressable()) {
-          symbolTable.addGlobalVariable(decl, generatorFactory.forAddressableField(className, decl.getName(), decl.getType()));
-        } else {
-          symbolTable.addGlobalVariable(decl, generatorFactory.forField(className, decl.getName(), decl.getType()));
-        }
+        symbolTable.addGlobalVariable(decl, generatorFactory.forGlobalVariable(className, decl));
         varToGenerate.add(decl);
       }
     }

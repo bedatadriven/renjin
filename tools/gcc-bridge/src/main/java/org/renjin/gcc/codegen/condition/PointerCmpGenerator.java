@@ -28,7 +28,17 @@ public class PointerCmpGenerator implements ConditionGenerator {
     } else if(y instanceof NullPtrGenerator) {
       emitJumpOnNullCondition(mv, x, trueLabel, falseLabel);
     } else {
-      emitJumpOnPointerComparison(mv, trueLabel, falseLabel);
+      switch (op) {
+        case EQ_EXPR:
+          emitJumpOnPointerComparison(mv, trueLabel, falseLabel);
+          break;
+        case NE_EXPR:
+          emitJumpOnPointerComparison(mv, falseLabel, trueLabel);
+          break;
+        default:
+          throw new UnsupportedOperationException("op: " + op);
+      }
+      
     }
   }
 
@@ -54,8 +64,25 @@ public class PointerCmpGenerator implements ConditionGenerator {
     }
   }
 
-  private void emitJumpOnPointerComparison(MethodVisitor mv, Label trueLabel, Label falseLabel) {
-    throw new UnsupportedOperationException();
+  private void emitJumpOnPointerComparison(MethodVisitor mv, Label equalLabel, Label notEqualLabel) {
+
+
+    x.emitPushPtrArrayAndOffset(mv);
+    y.emitPushPtrArrayAndOffset(mv);
+
+    // first compare offsets, which are on top of the stack
+    Label offsetsEqual = new Label();
+    mv.visitJumpInsn(Opcodes.IF_ICMPEQ, offsetsEqual);
+
+    // in the case the offsets are unequal, we need to pop the arrays off the stack
+    // before jumping to equalLabel
+    mv.visitInsn(Opcodes.POP2);
+    mv.visitJumpInsn(Opcodes.GOTO, notEqualLabel);
+
+    // if the offsets are equal, we need to compare the pointers, which
+    // are the next two words on the stack
+    mv.visitJumpInsn(Opcodes.IF_ACMPEQ, equalLabel);
+    mv.visitJumpInsn(Opcodes.GOTO, notEqualLabel);
   }
   
 }

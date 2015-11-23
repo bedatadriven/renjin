@@ -3,7 +3,13 @@ package org.renjin.gcc.gimple.type;
 public class GimpleRecordType extends AbstractGimpleType {
   private String name;
   private String id;
-  
+
+  public GimpleRecordType() {
+  }
+
+  public GimpleRecordType(String id) {
+    this.id = id;
+  }
 
   public String getId() {
     return id;

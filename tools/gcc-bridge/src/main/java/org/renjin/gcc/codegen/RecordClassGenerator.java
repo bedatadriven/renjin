@@ -85,6 +85,11 @@ public class RecordClassGenerator {
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
     mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+
+    for (FieldGenerator fieldGenerator : fields.values()) {
+      fieldGenerator.emitInstanceInit(mv);
+    }
+    
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();

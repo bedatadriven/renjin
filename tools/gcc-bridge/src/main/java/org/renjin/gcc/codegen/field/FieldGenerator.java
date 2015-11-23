@@ -19,6 +19,10 @@ public abstract class FieldGenerator {
   public void emitStaticInit(MethodVisitor mv) {
     
   }
+  
+  public void emitInstanceInit(MethodVisitor mv) {
+    
+  }
 
   public abstract void emitInstanceField(ClassVisitor cv);
   

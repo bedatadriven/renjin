@@ -4,24 +4,32 @@
 #define CHOLMOD_COMPLEX 2	/* a complex matrix (ANSI C99 compatible) */
 #define CHOLMOD_ZOMPLEX 3	/* a complex matrix (MATLAB compatible) */
 
+#define TRUE 1
+#define FALSE 0
 
+typedef int size_t;
 
 typedef struct {
-  void * p;
-  void * i;
-  void * j;
-  void * x;
-  void * z;
+  int * p;
+  int * i;
+  int * j;
+  double * x;
+  double * z;
   int n;
 } sparse_matrix;
 
 
-test_int() {
-  
-  sparse_matrix m;
-  m.p = 
 
+double * malloc_double(int count) {
+  return malloc(count * sizeof(double));
 }
+
+int * malloc_int(int count) {
+  return malloc(count * sizeof(int));
+}
+
+
+
 
 int realloc_multiple(
     /* ---- input ---- */
@@ -29,23 +37,17 @@ int realloc_multiple(
     int nint,		/* number of int/SuiteSparse_long blocks */
     int xtype,		/* CHOLMOD_PATTERN, _REAL, _COMPLEX, or _ZOMPLEX */
     /* ---- in/out --- */
-    void **Iblock,	/* int or SuiteSparse_long block */
-    void **Jblock,	/* int or SuiteSparse_long block */
-    void **Xblock,	/* complex or double block */
-    void **Zblock,	/* zomplex case only: double block */
-    size_t *nold_p,	/* current size of the I,J,X,Z blocks on input,
+    int **Iblock,	/* int or SuiteSparse_long block */
+    int **Jblock,	/* int or SuiteSparse_long block */
+    double **Xblock,	/* complex or double block */
+    double **Zblock,	/* zomplex case only: double block */
+    size_t *nold_p	/* current size of the I,J,X,Z blocks on input,
 			              /* nnew on output if successful */
 )
 {
     double *xx, *zz ;
     size_t i, j, x, z, nold ;
 
-
-    if (xtype < CHOLMOD_PATTERN || xtype > CHOLMOD_ZOMPLEX)
-    {
-	ERROR (CHOLMOD_INVALID, "invalid xtype") ;
-	return (FALSE) ;
-    }
 
     nold = *nold_p ;
 

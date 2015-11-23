@@ -43,10 +43,17 @@ public class GimpleCall extends GimpleIns {
   @Override
   public Integer getLineNumber() {
     if(lhs == null) {
-      return null;
+      Integer max = null;
+      for (GimpleExpr argument : arguments) {
+        if(argument.getLine() != null) {
+          return argument.getLine();
+        }
+      }
+      return max;
     } else {
       return lhs.getLine();
     }
+    
   }
 
   @Override

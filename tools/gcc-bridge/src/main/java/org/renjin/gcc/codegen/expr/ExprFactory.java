@@ -146,9 +146,10 @@ public class ExprFactory {
     } else if(functionExpr instanceof GimpleSymbolRef) {
       ExprGenerator exprGenerator = findGenerator(functionExpr);
       return new FunPtrCallGenerator(generatorFactory, exprGenerator);
+      
     } else if(functionExpr instanceof GimpleOpExpr) {
       GimpleOp op = ((GimpleOpExpr) functionExpr).getOp();
-      if(op == GimpleOp.VAR_DECL) {
+      if(op == GimpleOp.VAR_DECL || op == GimpleOp.NOP_EXPR) {
         return findCallGenerator(((GimpleOpExpr) functionExpr).getOperands().get(0));
       }
       

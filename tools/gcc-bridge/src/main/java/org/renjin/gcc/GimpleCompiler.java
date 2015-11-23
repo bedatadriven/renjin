@@ -51,6 +51,7 @@ public class GimpleCompiler  {
 
 
   private String trampolineClassName;
+  private String recordClassPrefix = "record";
 
 
   public GimpleCompiler() {
@@ -164,7 +165,7 @@ public class GimpleCompiler  {
           if (recordTypeDef.getName() != null) {
             recordClassName = recordTypeDef.getName();
           } else {
-            recordClassName = String.format("%s$Record%d", "record", recordsToWrite.size());
+            recordClassName = String.format("%s$Record%d", recordClassPrefix, recordsToWrite.size());
           }
           recordGenerator =
               new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
@@ -188,9 +189,8 @@ public class GimpleCompiler  {
       try {
         recordClassGenerator.linkFields();
       } catch (Exception e) {
-        throw new InternalCompilerException(String.format("Exception linking record %s in %s: %s",
+        throw new InternalCompilerException(String.format("Exception linking record %s: %s",
             recordClassGenerator.getTypeDef().getName(),
-            recordClassGenerator.getTypeDef().getUnit().getSourceName(),
             e.getMessage()), e);
       }
     }
@@ -286,5 +286,13 @@ public class GimpleCompiler  {
   public void addVariable(String name, Field field) {
     providedVariables.put(name, field);
 
+  }
+
+  public String getRecordClassPrefix() {
+    return recordClassPrefix;
+  }
+
+  public void setRecordClassPrefix(String recordClassPrefix) {
+    this.recordClassPrefix = recordClassPrefix;
   }
 }

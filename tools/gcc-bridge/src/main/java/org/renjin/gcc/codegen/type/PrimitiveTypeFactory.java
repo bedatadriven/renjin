@@ -120,7 +120,12 @@ public class PrimitiveTypeFactory extends TypeFactory {
     public FieldGenerator fieldGenerator(String className, String fieldName) {
       return new PrimitivePtrFieldGenerator(className, fieldName, pointerType);
     }
-    
+
+    @Override
+    public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+      return new AddressablePrimitivePtrField(className, fieldName, pointerType);
+    }
+
     @Override
     public ExprGenerator mallocExpression(ExprGenerator size) {
       return new MallocGenerator(type.jvmType(), pointerType.getBaseType().sizeOf(), size);

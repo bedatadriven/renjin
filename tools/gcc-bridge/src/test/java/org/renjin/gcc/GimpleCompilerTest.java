@@ -146,15 +146,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
-  @Ignore
-  public void addressableFieldTest() throws Exception {
-    Class clazz = compile("rng_state.c");
-    Method method = clazz.getMethod("Init");
-    Double result = (Double) method.invoke(null);
-    assertThat(result, equalTo(41d));
-  }
-
-  @Test
   public void arraysNonZeroLowerBound() throws Exception {
     Class clazz = compile("lbound.f");
 
@@ -612,6 +603,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     Double result = (Double) link2.getMethod("test_points").invoke(null);
     assertThat(result, equalTo(41d));
+  }
+  
+  @Test
+  public void addressableFields() throws Exception {
+    Class clazz = compile("field_address.c");
+
+    Method testMethod = clazz.getMethod("test");
+    Object result = testMethod.invoke(null);
+    
   }
   
   @Test

@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.ret;
 
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
@@ -43,7 +44,18 @@ public class PrimitiveReturnGenerator implements ReturnGenerator {
 
   @Override
   public void emitVoidReturn(MethodVisitor mv) {
-    throw new UnsupportedOperationException();
+    // GCC allows not returning a value from a method.
+    // we need to return the default for this type to satifisfy the JVM
+    if(type.equals(Type.DOUBLE_TYPE)) {
+      mv.visitInsn(Opcodes.DCONST_0);
+    } else if(type.equals(Type.FLOAT_TYPE)) {
+      mv.visitInsn(Opcodes.FCONST_0);
+    } else if(type.equals(Type.LONG_TYPE)) {
+      mv.visitInsn(Opcodes.LCONST_0);
+    } else {
+      mv.visitInsn(Opcodes.ICONST_0);
+    }
+    mv.visitInsn(type.getOpcode(IRETURN));
   }
 
   @Override

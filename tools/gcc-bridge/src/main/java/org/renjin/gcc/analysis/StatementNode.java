@@ -121,6 +121,7 @@ public class StatementNode {
         default:
           GimpleOpExpr expr = new GimpleOpExpr(assignment.getOperator(), assignment.getOperands());
           expr.setType(assignment.getLHS().getType());
+          expr.setLine(getLhs().getLine());
           return expr;        
       }
     } else {

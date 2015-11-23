@@ -49,7 +49,6 @@ public class RecordTypeDefCanonicalizer {
       distinct.addAll(unit.getRecordTypes());
     }
 
-
     boolean changing;
     do {
 
@@ -66,6 +65,12 @@ public class RecordTypeDefCanonicalizer {
         } else {
           // duplicate of already seen structure, map it's id to the canonical version
           idToCanonicalMap.put(recordTypeDef.getId(), canonical);
+          
+          // if we have a chance to restore a missing name, take it
+          if(canonical.getName() == null && recordTypeDef.getName() != null) {
+            canonical.setName(recordTypeDef.getName());
+          }
+          
           changing = true;
         }
       }
@@ -79,7 +84,6 @@ public class RecordTypeDefCanonicalizer {
         updateFieldTypes(recordTypeDef);
       }
     } while(changing);
-    
     
     this.canonical = distinct;
   }

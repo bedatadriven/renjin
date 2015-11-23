@@ -4,7 +4,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -57,6 +56,14 @@ public class AddressablePrimitiveField extends FieldGenerator {
   }
 
   @Override
+  public void emitInstanceInit(MethodVisitor mv) {
+    mv.visitVarInsn(Opcodes.ALOAD, 0);
+    mv.visitInsn(ICONST_1);
+    MallocGenerator.emitNewArray(mv, type);
+    mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, fieldDescriptor);
+  }
+
+  @Override
   public void emitInstanceField(ClassVisitor cv) {
     cv.visitField(ACC_PUBLIC, fieldName, fieldDescriptor, null, null).visitEnd();
   }
@@ -97,15 +104,15 @@ public class AddressablePrimitiveField extends FieldGenerator {
 
   @Override
   public ExprGenerator staticExprGenerator() {
-    return new StaticMemberPtr().valueOf();
+    return new StaticAddressOf().valueOf();
   }
 
   @Override
   public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
-    throw new UnimplementedException(getClass(), "memberExprGenerator");
+    return new DereferencedPrimitiveValue(new MemberAddressOf(instanceGenerator));
   }
-  
-  private class StaticMemberPtr extends AbstractExprGenerator {
+
+  private class StaticAddressOf extends AbstractExprGenerator {
 
     @Override
     public GimpleType getGimpleType() {
@@ -121,6 +128,26 @@ public class AddressablePrimitiveField extends FieldGenerator {
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, fieldDescriptor);
       mv.visitInsn(Opcodes.ICONST_0);
+    }
+  }
+
+  private class MemberAddressOf extends AbstractExprGenerator {
+    private ExprGenerator instanceGenerator;
+
+    public MemberAddressOf(ExprGenerator instanceGenerator) {
+      this.instanceGenerator = instanceGenerator;
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      instanceGenerator.emitPushRecordRef(mv);
+      mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, fieldDescriptor);
+      mv.visitInsn(Opcodes.ICONST_0);
+    }
+
+    @Override
+    public GimpleType getGimpleType() {
+      return new GimplePointerType(gimpleType);
     }
   }
 }

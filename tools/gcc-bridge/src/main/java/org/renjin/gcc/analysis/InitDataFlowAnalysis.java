@@ -97,7 +97,6 @@ public class InitDataFlowAnalysis {
       // Now go statement-by-statement to see if there are any possible
       // uses before definition
       for (GimpleIns statement : node.getBasicBlock().getInstructions()) {
-
         for (GimpleSymbolRef symbolRef : statement.findVariableUses()) {
           if(localVariables.containsKey(symbolRef.getId())) {
             // we're using a local variable. Are we sure it's been initialized?
@@ -109,10 +108,8 @@ public class InitDataFlowAnalysis {
         
         // update our set of definitely defined variables 
         updateInitializedSet(statement, initialized);
-      
       }
     }
-    
     return result;
   }
 

@@ -96,7 +96,7 @@ public class Gcc {
 
     arguments.add(source.getAbsolutePath());
 
-    LOGGER.info("Executing " + Joiner.on(" ").join(arguments));
+    LOGGER.fine("Executing " + Joiner.on(" ").join(arguments));
 
     callGcc(arguments);
 

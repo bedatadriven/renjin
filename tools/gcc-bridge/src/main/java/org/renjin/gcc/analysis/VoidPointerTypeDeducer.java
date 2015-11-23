@@ -30,8 +30,6 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
 
     boolean updated = false;
     
-    System.out.println(fn);
-
     for(GimpleVarDecl decl : fn.getVariableDeclarations()) {
       if(isVoidPtr(decl.getType())) {
         System.out.println("Deducing type of " + decl + "...");

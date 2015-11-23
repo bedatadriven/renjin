@@ -122,8 +122,10 @@ public class FunctionGenerator {
         initialValue = Optional.of(exprFactory.findGenerator(decl.getValue()));
       }
       
-      System.out.println(getCompilationUnit().getName() + ": " + decl + " = " + initialValue +
-          " [" + lhs.getClass().getName() + "]");
+      if(GimpleCompiler.TRACE) {
+        System.out.println(getCompilationUnit().getName() + ": " + decl + " = " + initialValue +
+            " [" + lhs.getClass().getName() + "]");
+      }
       
       lhs.emitDefaultInit(mv, initialValue);
     }

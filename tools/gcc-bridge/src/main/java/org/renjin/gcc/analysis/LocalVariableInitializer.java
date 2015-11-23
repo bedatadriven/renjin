@@ -1,5 +1,6 @@
 package org.renjin.gcc.analysis;
 
+import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -28,14 +29,18 @@ public class LocalVariableInitializer implements FunctionBodyTransformer {
     InitDataFlowAnalysis flowAnalysis = new InitDataFlowAnalysis(fn, cfg);
     
     flowAnalysis.solve();
-    flowAnalysis.dump();
+    if(GimpleCompiler.TRACE) {
+      flowAnalysis.dump();
+    }
 
     Set<GimpleVarDecl> toInitialize = flowAnalysis.getVariablesUsedWithoutInitialization();
 
     for (GimpleVarDecl decl : toInitialize) {
       GimpleExpr defaultValue = defaultValue(decl.getType());
       decl.setValue(defaultValue);
-      System.out.println("INITIALIZING " + decl + " = " + defaultValue);
+      if(GimpleCompiler.TRACE) {
+        System.out.println("INITIALIZING " + decl + " = " + defaultValue);
+      }
     }
     
     // one pass is always enough

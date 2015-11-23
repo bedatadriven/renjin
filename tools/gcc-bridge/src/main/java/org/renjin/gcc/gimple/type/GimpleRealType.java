@@ -1,39 +1,38 @@
 package org.renjin.gcc.gimple.type;
 
+import com.google.common.base.Preconditions;
+import org.objectweb.asm.Type;
+
 public class GimpleRealType extends GimplePrimitiveType {
-  private int precision;
 
   public GimpleRealType() {
   }
 
   public GimpleRealType(int precision) {
-    this.precision = precision;
+    setSize(precision);
   }
-
 
   /**
    * 
    * @return The number of bits of precision
    */
   public int getPrecision() {
-    return precision;
+    return getSize();
   }
 
   public void setPrecision(int precision) {
-    this.precision = precision;
+    Preconditions.checkArgument(precision == 32 || precision == 64);
+    setSize(precision);
   }
 
   @Override
   public String toString() {
-    return "real" + precision;
+    return "real" + getPrecision();
   }
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + precision;
-    return result;
+    return getSize();
   }
 
   @Override
@@ -45,7 +44,32 @@ public class GimpleRealType extends GimplePrimitiveType {
     if (getClass() != obj.getClass())
       return false;
     GimpleRealType other = (GimpleRealType) obj;
-    return precision == other.precision;
+    return getSize() == other.getSize();
   }
 
+  @Override
+  public int localVariableSlots() {
+    if(getPrecision() == 64) {
+      return 2;
+    } else {
+      return 1;
+    }
+  }
+
+  @Override
+  public Type jvmType() {
+    switch (getPrecision()) {
+      case 32:
+        return Type.FLOAT_TYPE;
+      case 64:
+        return Type.DOUBLE_TYPE;
+      default:
+        throw new UnsupportedOperationException("Precision: " + getSize());
+    }
+  }
+
+  @Override
+  public int sizeOf() {
+    return getSize() / 8;
+  }
 }

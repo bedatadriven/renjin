@@ -96,4 +96,12 @@ public class PackageSource {
   public PackageDescription getDescription() {
     return description;
   }
+
+  public File getDataDir() {
+    return new File(packageDir, "data");
+  }
+
+  public File getTestsDir() {
+    return new File(packageDir, "tests");
+  }
 }

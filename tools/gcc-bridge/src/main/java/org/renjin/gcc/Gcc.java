@@ -1,6 +1,7 @@
 package org.renjin.gcc;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
@@ -95,12 +96,14 @@ public class Gcc {
 
     arguments.add(source.getAbsolutePath());
 
-    LOGGER.info("Executing " + Joiner.on(" ").join(arguments));
+    LOGGER.fine("Executing " + Joiner.on(" ").join(arguments));
 
     callGcc(arguments);
 
     GimpleParser parser = new GimpleParser();
     GimpleCompilationUnit unit = parser.parse(gimpleFile);
+    unit.setSourceFile(gimpleFile);
+    unit.setCallingConvention(CallingConventions.fromFile(source));
     for(GimpleFunction fn: unit.getFunctions()) {
       fn.setCallingConvention(CallingConventions.fromFile(source));
     }
@@ -167,9 +170,20 @@ public class Gcc {
       }
     }
     
-    String libraryName = PlatformUtils.getPortableLibraryName("gcc-bridge");
     
+    
+    /* .so because gcc only ever looks for .so files */
+    pluginLibrary = new File(workingDirectory, "bridge.so");
 
+    extractPluginTo(pluginLibrary);
+    
+    pluginLibrary.deleteOnExit();
+  }
+
+  public static void extractPluginTo(File pluginLibrary) throws IOException {
+    Preconditions.checkArgument(pluginLibrary.getName().endsWith(".so"), "plugin name must end in .so");
+
+    String libraryName = PlatformUtils.getPortableLibraryName("gcc-bridge");
     
     URL pluginResource;
     try {
@@ -179,16 +193,10 @@ public class Gcc {
               "(Was expecting: /org/renjin/gcc/" +  libraryName + " on the classpath.)\n" +
               "You will need to build it yourself and specify the path to the binary. ");
     }
-    
-    /* .so because gcc only ever looks for .so files */
-    pluginLibrary = new File(workingDirectory, "bridge.so");
-    
-    Resources.asByteSource(pluginResource).copyTo(Files.asByteSink(pluginLibrary));
 
-    
-    pluginLibrary.deleteOnExit();
+    Resources.asByteSource(pluginResource).copyTo(Files.asByteSink(pluginLibrary));
   }
-  
+
   public void checkVersion() {
     try {
       String versionOutput = callGcc(Arrays.asList("--version"));

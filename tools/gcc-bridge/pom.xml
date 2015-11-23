@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.7.0-RC8-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -38,12 +38,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>soot</groupId>
-      <artifactId>soot</artifactId>
-      <version>2.5.0</version>
-      <classifier>all-deps</classifier>
-    </dependency>
-    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.2.0</version>
@@ -54,13 +48,41 @@
       <version>0.4</version>
     </dependency>
     <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>${asm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-tree</artifactId>
+      <version>${asm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>${asm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>${asm.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>gcc-bridge-plugin</artifactId>
       <version>${project.version}</version>
       <classifier>${envClassifier}</classifier>
     </dependency>
   </dependencies>
-
+  
   <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>

@@ -4,6 +4,9 @@ import org.renjin.gcc.gimple.GimpleLabel;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.ins.GimpleIns;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class GimpleGoto extends GimpleIns {
   private int target;
 
@@ -28,5 +31,10 @@ public class GimpleGoto extends GimpleIns {
   public void visit(GimpleVisitor visitor) {
     visitor.visitGoto(this);
 
+  }
+
+  @Override
+  public Set<Integer> getJumpTargets() {
+    return Collections.singleton(target);
   }
 }

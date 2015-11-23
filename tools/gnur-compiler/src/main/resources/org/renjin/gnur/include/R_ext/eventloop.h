@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-2007 The R Development Core Team.
+ *  Copyright (C) 2000-2007 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,6 +15,13 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with this program; if not, a copy is available at
  *  http://www.r-project.org/Licenses/
+ */
+
+/* 
+   For use by alternative front-ends and packages which need to share
+   the R event loop (on all platforms).
+
+   Not part of the API and subject to change without notice.
  */
 
 #ifndef R_EXT_EVENTLOOP_H

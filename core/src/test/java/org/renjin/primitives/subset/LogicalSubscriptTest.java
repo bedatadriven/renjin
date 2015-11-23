@@ -7,24 +7,24 @@ public class LogicalSubscriptTest {
 //
 //    LogicalSubscript subscript = new LogicalSubscript(5, new LogicalArrayVector(true, false, false, true, false));
 //    IndexIterator it = subscript.indexIterator();
-//    assertTrue(it.hasNext());
+//    assertTrue(it.hasSuccessor());
 //    assertThat(it.nextInt(), equalTo(0));
-//    assertTrue(it.hasNext());
+//    assertTrue(it.hasSuccessor());
 //    assertThat(it.nextInt(), equalTo(3));
-//    assertFalse(it.hasNext());
+//    assertFalse(it.hasSuccessor());
 //  }
 //
 //  @Test
 //  public void repeating() {
 //    LogicalSubscript subscript = new LogicalSubscript(3, new LogicalArrayVector(true));
 //    IndexIterator it = subscript.indexIterator();
-//    assertTrue(it.hasNext());
+//    assertTrue(it.hasSuccessor());
 //    assertThat(it.nextInt(), equalTo(0));
-//    assertTrue(it.hasNext());
+//    assertTrue(it.hasSuccessor());
 //    assertThat(it.nextInt(), equalTo(1));
-//    assertTrue(it.hasNext());
+//    assertTrue(it.hasSuccessor());
 //    assertThat(it.nextInt(), equalTo(2));
-//    assertFalse(it.hasNext());
+//    assertFalse(it.hasSuccessor());
 //  }
 //  @Test
 //  public void test() {

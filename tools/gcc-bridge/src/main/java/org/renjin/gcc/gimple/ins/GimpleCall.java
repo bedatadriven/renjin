@@ -1,11 +1,12 @@
 package org.renjin.gcc.gimple.ins;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
 import java.util.List;
 
@@ -40,6 +41,57 @@ public class GimpleCall extends GimpleIns {
   }
 
   @Override
+  public Integer getLineNumber() {
+    if(lhs == null) {
+      Integer max = null;
+      for (GimpleExpr argument : arguments) {
+        if(argument.getLine() != null) {
+          return argument.getLine();
+        }
+      }
+      return max;
+    } else {
+      return lhs.getLine();
+    }
+    
+  }
+
+  @Override
+  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
+    if(predicate.apply(function)) {
+      function = replacement;
+      return true;
+    }
+    for (int i = 0; i < arguments.size(); i++) {
+      if(predicate.apply(arguments.get(i))) {
+        arguments.set(i, replacement);
+        return true;
+      } else if(arguments.get(i).replace(predicate, replacement)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
+    function.findOrDescend(predicate, results);
+    for (GimpleExpr argument : arguments) {
+      argument.findOrDescend(predicate, results);
+    }
+    // if the lhs is a compound expression, such as
+    //    *x  = f() or
+    //    x.i = f() or
+    // Re(x)  = f()
+    // 
+    // then we consider this a USE of x rather than a definition
+
+    if(lhs != null && !(lhs instanceof GimpleSymbolRef)) {
+      lhs.find(predicate, results);
+    }
+  }
+
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(lhs);
@@ -53,5 +105,22 @@ public class GimpleCall extends GimpleIns {
   @Override
   public void visit(GimpleVisitor visitor) {
     visitor.visitCall(this);
+  }
+
+  @Override
+  public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
+    if(lhs != null) {
+      return predicate.apply(lhs);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    if(predicate.apply(lhs)) {
+      lhs = (GimpleLValue) newExpr;
+    }
+    replaceAll(predicate, arguments, newExpr);
   }
 }

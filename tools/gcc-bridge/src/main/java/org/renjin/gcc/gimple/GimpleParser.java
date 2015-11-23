@@ -1,14 +1,12 @@
 package org.renjin.gcc.gimple;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.net.URL;
-
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.google.common.base.Charsets;
+
+import java.io.*;
+import java.net.URL;
 
 /**
  * Invokes Jackson to parse the JSON-encoded Gimple emitted from our
@@ -29,15 +27,28 @@ public class GimpleParser {
   }
 
   public GimpleCompilationUnit parse(Reader reader) throws IOException {
-    return mapper.readValue(reader, GimpleCompilationUnit.class);
+    GimpleCompilationUnit unit = mapper.readValue(reader, GimpleCompilationUnit.class);
+    for (GimpleFunction function : unit.getFunctions()) {
+      function.setUnit(unit);
+    }
+    return unit;
   }
 
   public GimpleCompilationUnit parse(File file) throws IOException {
-    return mapper.readValue(file, GimpleCompilationUnit.class);
+    FileReader reader = new FileReader(file);
+    try {
+      return parse(reader);
+    } finally {
+      reader.close();
+    }
   }
 
   public GimpleCompilationUnit parse(URL resource) throws IOException {
-    return mapper.readValue(resource, GimpleCompilationUnit.class);
+    InputStreamReader reader = new InputStreamReader(resource.openStream(), Charsets.UTF_8);
+    try {
+      return parse(reader);
+    } finally {
+      reader.close();
+    }
   }
-
 }

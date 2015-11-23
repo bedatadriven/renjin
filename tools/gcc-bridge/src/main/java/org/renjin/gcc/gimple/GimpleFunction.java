@@ -1,22 +1,30 @@
 package org.renjin.gcc.gimple;
 
-import java.util.List;
-
-import org.renjin.gcc.gimple.ins.GimpleIns;
-
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.gcc.gimple.ins.GimpleIns;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.translate.type.ImPrimitiveType;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 public class GimpleFunction {
   private int id;
   private String name;
   private CallingConvention callingConvention;
   private GimpleType returnType;
+  private GimpleCompilationUnit unit;
   private List<GimpleBasicBlock> basicBlocks = Lists.newArrayList();
   private List<GimpleParameter> parameters = Lists.newArrayList();
   private List<GimpleVarDecl> variableDeclarations = Lists.newArrayList();
+  private boolean extern;
 
   public GimpleFunction() {
 
@@ -51,12 +59,67 @@ public class GimpleFunction {
     return variableDeclarations;
   }
 
+  public GimpleCompilationUnit getUnit() {
+    return unit;
+  }
+
+  public void setUnit(GimpleCompilationUnit unit) {
+    this.unit = unit;
+  }
+
+  public GimpleVarDecl addVarDecl(GimpleType type) {
+    // find unused id
+    int id = 1000;
+    while(isIdInUse(id)) {
+      id++;
+    }
+    
+    GimpleVarDecl decl = new GimpleVarDecl();
+    decl.setId(id);
+    decl.setType(type);
+    variableDeclarations.add(decl);
+    
+    return decl;
+  }
+  
+  private boolean isIdInUse(int varDeclId) {
+    for (GimpleVarDecl variableDeclaration : variableDeclarations) {
+      if(variableDeclaration.getId() == varDeclId) {
+        return true;
+      }
+    }
+    for (GimpleParameter gimpleParameter : getParameters()) {
+      if(gimpleParameter.getId() == varDeclId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * 
+   * @return true if this function has external linkage, that is, it is visible 
+   * from outside of the compilation unit.
+   */
+  public boolean isExtern() {
+    return extern;
+  }
+
+  public void setExtern(boolean extern) {
+    this.extern = extern;
+  }
+
   public List<GimpleParameter> getParameters() {
     return parameters;
   }
 
+  @JsonSetter
   public void setBasicBlocks(List<GimpleBasicBlock> basicBlocks) {
     this.basicBlocks = basicBlocks;
+  }
+  
+  public void setBasicBlocks(GimpleBasicBlock... blocks) {
+    setBasicBlocks(Arrays.asList(blocks));
   }
 
   public void setParameters(List<GimpleParameter> parameters) {
@@ -71,6 +134,7 @@ public class GimpleFunction {
       }
     }
   }
+
 
   public List<GimpleBasicBlock> getBasicBlocks() {
     return basicBlocks;
@@ -100,9 +164,37 @@ public class GimpleFunction {
   public GimpleType getReturnType() {
     return returnType;
   }
+  
   public void setReturnType(GimpleType returnType) {
     this.returnType = returnType;
   }
 
-  
+
+  public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
+    for (GimpleBasicBlock basicBlock : basicBlocks) {
+      for (GimpleIns ins : basicBlock.getInstructions()) {
+        if(ins.lhsMatches(predicate)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    for (GimpleBasicBlock basicBlock : basicBlocks) {
+      basicBlock.replaceAll(predicate, newExpr);
+    }  
+  }
+
+  public void removeVariable(GimpleVariableRef ref) {
+    Iterator<GimpleVarDecl> it = variableDeclarations.iterator();
+    while(it.hasNext()) {
+      if(it.next().getId() == ref.getId()) {
+        it.remove();
+        return;
+      }
+    }
+    throw new InternalCompilerException("No such variable: " + ref);
+  }
 }

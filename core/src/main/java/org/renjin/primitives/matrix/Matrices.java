@@ -302,6 +302,10 @@ public class Matrices {
                               Vector dimnames,
                               boolean nrowMissing, boolean ncolMissing) {
 
+    if(data == Null.INSTANCE) {
+      throw new EvalException("'data' must be of vector type, was 'NULL'");
+    }
+    
     int dataLength = data.length();
 
     if (nrowMissing && ncolMissing) {

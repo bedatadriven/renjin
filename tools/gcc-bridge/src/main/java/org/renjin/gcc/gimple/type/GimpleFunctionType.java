@@ -1,17 +1,17 @@
 package org.renjin.gcc.gimple.type;
 
-import java.util.List;
-
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.renjin.gcc.translate.type.ImPrimitiveType;
+
+import java.util.List;
 
 public class GimpleFunctionType extends AbstractGimpleType {
   private GimpleType returnType;
   private int size;
   private List<GimpleType> argumentTypes = Lists.newArrayList();
   private boolean variableArguments;
-  
-  
+
+
   public int getSize() {
     return size;
   }
@@ -39,6 +39,15 @@ public class GimpleFunctionType extends AbstractGimpleType {
   public void setVariableArguments(boolean variableArguments) {
     this.variableArguments = variableArguments;
   }
-  
-  
+
+
+  @Override
+  public int sizeOf() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String toString() {
+    return returnType + " (*functionPtr)(" + Joiner.on(", ").join(argumentTypes) + ")";
+  }
 }

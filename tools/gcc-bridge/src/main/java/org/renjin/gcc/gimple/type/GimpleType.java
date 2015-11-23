@@ -15,7 +15,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = GimpleFunctionType.class, name = "function_type"),
     @Type(value = GimpleRecordType.class, name = "record_type"),
     @Type(value = GimpleVoidType.class, name = "void_type"),
-    @Type(value = GimpleEnumeralType.class, name = "enumeral_type")
+    @Type(value = GimpleEnumeralType.class, name = "enumeral_type"),
+    @Type(value = GimpleComplexType.class, name = "complex_type"),
+    @Type(value = GimpleUnionType.class, name = "union_type"),
+    @Type(value = GimpleMethodType.class, name = "method_type")
   })
 public interface GimpleType {
 
@@ -26,4 +29,17 @@ public interface GimpleType {
    * @throws UnsupportedOperationException if this is not a pointer type
    */
   <X extends GimpleType> X getBaseType();
+
+
+  /**
+   * 
+   * @return the size of this type, in bytes
+   */
+  int sizeOf();
+
+
+  /**
+   * @return a type that points to this type.
+   */
+  GimplePointerType pointerTo();
 }

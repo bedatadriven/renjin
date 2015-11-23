@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001, 2004  The R Development Core Team.
+ *  Copyright (C) 2001, 2004  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* Included by R.h: API on Windows */
+
 /* don't disallow including this one more than once */
 
 /* This is intended to be called from other header files, so not callable
@@ -28,7 +30,7 @@
 
 /* Don't try to include CYGWIN here: decorating some symbols breaks
    the auto-export that it relies on, even if R_DLL_BUILD were set. */
-#ifdef WIN32 /* WIN32 as does not depend on config.h */
+#ifdef _WIN32 /* _WIN32 as does not depend on config.h */
 #define LibImport __declspec(dllimport)
 #define LibExport __declspec(dllexport)
 #else

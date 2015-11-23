@@ -144,6 +144,15 @@ public class Formula {
     }
     return labels.build();
   }
+
+
+  public SEXP buildInteractionOrderAttribute() {
+    IntArrayVector.Builder order = new IntArrayVector.Builder();
+    for (Term term : terms) {
+      order.add(term.getOrder());
+    }
+    return order.build();
+  }
   
   /**
    * @return Either 0, indicating no intercept is to be fit, or 1
@@ -194,4 +203,5 @@ public class Formula {
   public String toString() {
     return response + " ~ " + intercept + " + " + terms.toString();
   }
+
 }

@@ -1,5 +1,6 @@
 package org.renjin.cli.build;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import org.renjin.RenjinVersion;
 
@@ -53,6 +54,17 @@ public class JarArchiver implements AutoCloseable {
       }
     }
   }
+  
+  public void addFile(File source, String fileNameInJar) throws IOException {
+    Preconditions.checkArgument(source.isFile());
+    
+    JarEntry entry = new JarEntry(fileNameInJar);
+    entry.setTime(source.lastModified());
+
+    output.putNextEntry(entry);
+    
+    Files.copy(source, output);
+  }
 
   private String relative(File relativeTo, File source) {
     String rootPath = relativeTo.getAbsolutePath().replace('\\', '/');
@@ -61,6 +73,9 @@ public class JarArchiver implements AutoCloseable {
       throw new IllegalStateException(String.format("'%s' is not a child of '%s'", nestedPath, rootPath));
     }
     String path = nestedPath.substring(rootPath.length());
+    while(path.startsWith("/")) {
+      path = path.substring(1);
+    }
     if(source.isDirectory() && !path.endsWith("/")) {
       path += "/";
     }

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-11 The R Development Core Team.
+ *  Copyright (C) 2001-11 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -771,8 +771,6 @@ struct _DevDesc {
 /* Properly declared version of devNumber */
 int ndevNumber(pDevDesc );
 
-/* Formerly in Rdevices.h */
-
 /* How many devices exist ? (>= 1) */
 int NumDevices(void);
 
@@ -852,7 +850,7 @@ LibExtern Rboolean mbcslocale;
 #endif
 
 /* Useful for devices: translates Adobe symbol encoding to UTF-8 */
-extern void *AdobeSymbol2utf8(char*out, const char *in, int nwork);
+extern void *AdobeSymbol2utf8(char*out, const char *in, size_t nwork);
 /* Translates Unicode point to UTF-8 */
 extern size_t Rf_ucstoutf8(char *s, const unsigned int c);
 

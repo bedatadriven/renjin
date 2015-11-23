@@ -1,7 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2007    Robert Gentleman, Ross Ihaka 
- *                             and the R Development Core Team
+ *  Copyright (C) 1998-2007  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +20,8 @@
  * Memory Allocation (garbage collected) --- INCLUDING S compatibility ---
  */
 
+/* Included by R.h: API */
+
 #ifndef R_EXT_MEMORY_H_
 #define R_EXT_MEMORY_H_
 
@@ -36,13 +37,12 @@ void*	vmaxget(void);
 void	vmaxset(const void *);
 
 void	R_gc(void);
+int	R_gc_running();
 
-// For renjin, we just treat this as malloc as malloc is handled
-// by the JVM's garbage collector anyway
-extern void *malloc (size_t __size);
 #define	R_alloc(numItems, sizeOfItem) malloc((numItems)*(sizeOfItem))
-#define S_alloc(numItems, sizeOfItem) malloc(numItems*sizeOfItem);
 
+long double *R_allocLD(size_t nelem);
+char*	S_alloc(long, int);
 char*	S_realloc(char *, long, long, int);
 
 #ifdef  __cplusplus

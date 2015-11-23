@@ -45,6 +45,8 @@
 int plugin_is_GPL_compatible;
 
 #define MAX_RECORD_TYPES 1000
+#define MAX_LINE_NUMBER 16000
+
 
 tree record_types[MAX_RECORD_TYPES];
 int record_type_count = 0;
@@ -61,7 +63,9 @@ int json_needs_comma = 0;
 #define JSON_ARRAY  1
 #define JSON_OBJECT  2
 
-#define TRACE(...) printf(__VA_ARGS__)
+
+//#define TRACE(...) printf(__VA_ARGS__)
+#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
 
 typedef struct json_context {
   int needs_comma;
@@ -222,6 +226,9 @@ void json_end_object() {
 
 static void dump_type(tree type);
 
+static void dump_op(tree op);
+
+
 static void dump_function_type(tree type) {
 
   TRACE("dump_function_type: dumping returnType\n");
@@ -276,7 +283,7 @@ static const char* get_type_name(tree node) {
   enum tree_code_class tclass = TREE_CODE_CLASS (TREE_CODE(node));
 
   if(tclass == tcc_declaration) {
-    TRACE("get_type_name: tclass == tcc_declaration\n");
+    TRACE("get_type_name: tclass == tc/c_declaration\n");
     if (DECL_NAME (node)) {
       return IDENTIFIER_POINTER(DECL_NAME (node));
     }
@@ -335,6 +342,9 @@ static void dump_record_type_decl(tree type) {
   json_start_object();
   json_field("id");
   json_ptr(type);
+  
+  json_bool_field("union", (TREE_CODE(type) == UNION_TYPE));
+    
     
   TRACE("dump_record_type_decl: writing name\n");
   const char *name = get_type_name(type);
@@ -364,8 +374,38 @@ static void dump_record_type_decl(tree type) {
   TRACE("dump_record_type_decl: exiting\n");
 }
 
+static void dump_constructor(tree node) {
+  unsigned HOST_WIDE_INT ix;
+  tree field, val;
+  bool is_struct_init = FALSE;
+  
+ json_array_field("elements");
+
+  if (TREE_CODE (TREE_TYPE (node)) == RECORD_TYPE
+      || TREE_CODE (TREE_TYPE (node)) == UNION_TYPE)
+       is_struct_init = TRUE;
+
+  FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (node), ix, field, val)
+  {
+    json_start_object();
+  
+    if (field && is_struct_init)
+      {
+        json_field("field");
+        dump_op(field);
+      }
+    
+    json_field("value");
+    dump_op(val);
+    
+    json_end_object();
+  }
+  
+  json_end_array();
+}
+
 static void dump_type(tree type) {
-  printf("dump_type: entering: %s\n", tree_code_name[TREE_CODE(type)]);
+  TRACE("dump_type: entering: %s\n", tree_code_name[TREE_CODE(type)]);
   json_start_object();
   json_string_field("type", tree_code_name[TREE_CODE(type)]);
     
@@ -408,13 +448,14 @@ static void dump_type(tree type) {
     dump_function_type(type);
     break;
     
+  case UNION_TYPE:
   case RECORD_TYPE:
     dump_record_type(type);
     break;
     
   }
   json_end_object();
-  printf("dump_type: exiting: %s\n", tree_code_name[TREE_CODE(type)]);
+  TRACE("dump_type: exiting: %s\n", tree_code_name[TREE_CODE(type)]);
 }
 
 static void dump_global_var_ref(tree decl) {
@@ -434,20 +475,38 @@ static void dump_op(tree op) {
   TRACE("dump_op: entering\n");
 
   if(op) {
-
+  
+    if(TREE_CODE(op)) {
+      TRACE("dump_op: code = %s\n", tree_code_name[TREE_CODE(op)]);
+    } else {
+      TRACE("dump_op: TREE_CODE(op) == NULL\n");
+    }
  	  // keep track of global variable references
     if(TREE_CODE(op) == VAR_DECL &&
+        DECL_CONTEXT(op) &&
        (TREE_CODE(DECL_CONTEXT(op)) == NULL_TREE || TREE_CODE(DECL_CONTEXT(op)) != FUNCTION_DECL)) {
+   
+
       dump_global_var_ref(op);
     }
 
     json_start_object();
-    json_string_field("type", tree_code_name[TREE_CODE(op)]);
-
+    json_string_field("code", tree_code_name[TREE_CODE(op)]);
    
+    if(EXPR_LINENO(op) < MAX_LINE_NUMBER) {
+      json_int_field("line", EXPR_LINENO(op));
+    }
+    
+    json_field("type");
+    dump_type(TREE_TYPE(op));
+
+
+    TRACE("dump_op: starting switch\n");
+
     switch(TREE_CODE(op)) {
     case FUNCTION_DECL:
     case PARM_DECL:
+    case FIELD_DECL:
     case VAR_DECL:
       json_int_field("id", DEBUG_TEMP_UID (op));
       if(DECL_NAME(op)) {
@@ -472,6 +531,13 @@ static void dump_op(tree op) {
       dump_type(TREE_TYPE(op));
 	    break;
 	    
+    case COMPLEX_CST:
+      json_field("real");
+      dump_op(TREE_REALPART(op));
+      json_field("im");
+      dump_op(TREE_IMAGPART(op));
+      break;
+	    
 	  case STRING_CST:
 	    json_string_field2("value", 
 	      TREE_STRING_POINTER(op),
@@ -483,6 +549,13 @@ static void dump_op(tree op) {
 	  case MEM_REF:
 	    json_field("pointer");
 	    dump_op(TREE_OPERAND(op, 0));
+	    json_field("offset");
+	    dump_op(TREE_OPERAND(op, 1));
+	    break;
+	    
+	  case NOP_EXPR:
+	    json_field("value");
+	    dump_op(TREE_OPERAND(op, 0));
 	    break;
 	    
 	  case ARRAY_REF:
@@ -493,25 +566,40 @@ static void dump_op(tree op) {
  	    dump_op(TREE_OPERAND(op, 1));
       break;
       
+    case REALPART_EXPR:
+    case IMAGPART_EXPR:
+      json_field("complexValue");
+      dump_op(TREE_OPERAND(op, 0));
+      break;
+      
     case ADDR_EXPR:
       json_field("value");
- 	    dump_op(TREE_OPERAND(op, 0));
+      dump_op(TREE_OPERAND(op, 0));
  	    
  	  //  json_field("offset");
  	 //   dump_op(TREE_OPERAND(op, 1));
       break;
+      
+    case CONSTRUCTOR:
+      dump_constructor(op);
+      break;
+      
     case COMPONENT_REF:
       json_field("value");
+      TRACE("dump_op: writing COMPONENT_REF value\n");
       dump_op(TREE_OPERAND(op, 0));
-      if(TREE_CODE(TREE_OPERAND(op, 1)) == FIELD_DECL) {
-        json_string_field("member",
-          IDENTIFIER_POINTER(DECL_NAME(TREE_OPERAND(op, 1))));
-      }
+
+      json_field("member");
+      TRACE("dump_op: writing COMPONENT_REF member\n");
+      dump_op(TREE_OPERAND(op, 1));
+//      
+//      if(TREE_CODE(TREE_OPERAND(op, 1)) == FIELD_DECL) {
+//        json_string_field("member",
+//          IDENTIFIER_POINTER(DECL_NAME(TREE_OPERAND(op, 1))));
+//      }
       break;
 	    
     }
-    
-        
     json_end_object();
   } else {
     json_null();
@@ -713,15 +801,25 @@ static void dump_statement(basic_block bb, gimple stmt) {
 
 
 static void dump_argument(tree arg) {
-  json_start_object();
+
+  TRACE("dump_argument: entering\n");
   
-  json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(arg)));
+  json_start_object();
+  if(DECL_NAME(arg)) {
+    TRACE("dump_argument: dumping name = '%s'\n", IDENTIFIER_POINTER(DECL_NAME(arg)));
+    json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(arg)));
+  }
+
+  TRACE("dump_argument: dumping id\n");
   json_int_field("id", DEBUG_TEMP_UID (arg));
   
+  TRACE("dump_argument: dumping type\n");
   json_field("type");
   dump_type(TREE_TYPE(arg));
   
   json_end_object();
+  
+  TRACE("dump_argument: exiting\n");
 
 }
 
@@ -733,12 +831,18 @@ static void dump_arguments(tree decl) {
     json_array_field("parameters");
     
     while(arg) {
+      TRACE("dump_arguments: about to call dump_argument\n");
       dump_argument(arg);
+      TRACE("dump_arguments: called dump_argument\n");
+
       arg = TREE_CHAIN(arg);
     }  
     
     json_end_array();
   }
+  
+  TRACE("dump_arguments: exiting\n");
+
 }
 
 static void dump_local_decl(tree decl) {
@@ -808,14 +912,23 @@ static unsigned int dump_function (void)
    return 0;
   }
   
+  TRACE("dump_function: entering %s\n", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)) );
+
+  
   basic_block bb;
   
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID (cfun->decl));
   json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)));
+  json_bool_field("extern", TREE_PUBLIC(cfun->decl));
+  
+  TRACE("dump_function: dumping arguments...\n");
   dump_arguments(cfun->decl);
+  
+  TRACE("dump_function: dumping locals...\n");
   dump_local_decls(cfun);
     
+  TRACE("dump_function: dumping basic blocks...\n");
   json_array_field("basicBlocks");
   FOR_EACH_BB (bb)
     {
@@ -830,6 +943,7 @@ static unsigned int dump_function (void)
   
   json_end_object();
  
+  TRACE("dump_function: exiting %s\n", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)) );
   return 0;
 }
 
@@ -846,24 +960,34 @@ static void dump_type_decl (void *event_data, void *data)
 }
 
 static void dump_global_var(tree var) {
+
+  TRACE("dump_global_var: entering\n");
+
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID(var));
   if(DECL_NAME(var)) {
     json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(var)));
   }
+  json_bool_field("extern", TREE_PUBLIC(var));
   json_field("type");
   dump_type(TREE_TYPE(var));
+  
+  json_bool_field("const", DECL_INITIAL(var) && TREE_CONSTANT(DECL_INITIAL(var)));
 
   if(DECL_INITIAL(var)) {
     json_field("value");
     dump_op(DECL_INITIAL(var));
   }
   json_end_object();
+  
+  TRACE("dump_global_var: exiting\n");
+
 }
 
 
 static void start_unit_callback (void *gcc_data, void *user_data)
 {
+
   json_start_object();
   json_array_field("functions");
   
@@ -874,17 +998,18 @@ static void finish_unit_callback (void *gcc_data, void *user_data)
   int i;
   json_end_array();
 
+  json_array_field("globalVariables");
+  for(i=0;i<global_var_count;++i) {
+    dump_global_var(global_vars[i]);
+  }
+  json_end_array();
+
   json_array_field("recordTypes");
   for(i=0;i<record_type_count;++i) {
     dump_record_type_decl(record_types[i]);
   }
   json_end_array();
 
-  json_array_field("globalVariables");
-  for(i=0;i<global_var_count;++i) {
-    dump_global_var(global_vars[i]);
-  }
-  json_end_array();
 
   json_end_object();
 }
@@ -925,7 +1050,7 @@ plugin_init (struct plugin_name_args *plugin_info,
   
   /* find the output file */
   
-  json_f = stdout;
+  json_f = NULL;
   
   int argi;
   for(argi=0;argi!=plugin_info->argc;++argi) {
@@ -934,6 +1059,12 @@ plugin_init (struct plugin_name_args *plugin_info,
     } 
   }
 
+  if(!json_f) {
+    char jsonfile[1024];
+    sprintf(jsonfile, "%s.gimple", main_input_filename);
+    printf("Writing gimple to %s...\n", jsonfile);
+    json_f = fopen(jsonfile, "w");
+  }
 
   /* Register this new pass with GCC */
   register_callback (plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,

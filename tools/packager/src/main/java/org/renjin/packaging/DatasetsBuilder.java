@@ -35,7 +35,7 @@ import java.util.zip.GZIPInputStream;
  */
 public class DatasetsBuilder {
 
-  private File packageRoot;
+  private File packageOutputDir;
   private File dataObjectDirectory;
   private File dataDirectory;
   
@@ -44,10 +44,15 @@ public class DatasetsBuilder {
    */
   private Multimap<String, String> indexMap = HashMultimap.create();
 
-  public DatasetsBuilder(File packageRoot, File dataDirectory) {
-    this.packageRoot = packageRoot;
+  /**
+   *
+   * @param dataDirectory the source directory containing the package's data files
+   * @param packageOutputDir the dir to write output files
+   */
+  public DatasetsBuilder(File dataDirectory, File packageOutputDir) {
+    this.packageOutputDir = packageOutputDir;
     
-    this.dataObjectDirectory = new File(packageRoot, "data");
+    this.dataObjectDirectory = new File(packageOutputDir, "data");
     this.dataObjectDirectory.mkdirs();
     
     this.dataDirectory = dataDirectory;
@@ -83,7 +88,7 @@ public class DatasetsBuilder {
       index.put(logicalDatasetName, Joiner.on(",").join(indexMap.get(logicalDatasetName)));
     }
     
-    File indexFile = new File(packageRoot, "datasets");
+    File indexFile = new File(packageOutputDir, "datasets");
     FileOutputStream out = new FileOutputStream(indexFile);
     try {
       index.store(out, "Datasets index");

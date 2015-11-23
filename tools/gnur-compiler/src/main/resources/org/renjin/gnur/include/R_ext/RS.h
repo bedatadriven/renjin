@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2007 The R Development Core Team.
+ *  Copyright (C) 1999-2007 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -17,11 +17,13 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* Included by R.h: API */
+
 #ifndef R_RS_H
 #define R_RS_H
 
 #ifndef NO_C_HEADERS
-# include <string.h>		/* for memcpy */
+# include <string.h>		/* for memcpy, memset */
 #endif
 
 #include <Rconfig.h>		/* for F77_APPEND_UNDERSCORE */
@@ -50,13 +52,12 @@ extern "C" {
 #endif
 
 /* S Like Memory Management */
-// For renjin, we just treat this as malloc as malloc is handled
-// by the JVM's garbage collector anyway
+
+// RENJIN: Dummy mappings
 extern void *malloc (size_t __size);
 #define	R_chk_calloc(numItems, sizeOfItem) malloc((numItems)*(sizeOfItem))
 extern void *R_chk_realloc(void *, size_t);
 #define R_chk_free(x) ((void)0)
-
 
 #ifndef STRICT_R_HEADERS
 /* S-PLUS 3.x but not 5.x NULLs the pointer in the following */
@@ -68,7 +69,10 @@ extern void *R_chk_realloc(void *, size_t);
 #define R_Realloc(p,n,t) (t *) R_chk_realloc( (void *)(p), (size_t)((n) * sizeof(t)) )
 #define R_Free(p)      (R_chk_free( (void *)(p) ), (p) = NULL)
 
-#define Memcpy(p,q,n)  memcpy( p, q, (size_t)( (n) * sizeof(*p) ) )
+#define Memcpy(p,q,n)  memcpy( p, q, (size_t)(n) * sizeof(*p) )
+
+/* added for 3.0.0 */
+#define Memzero(p,n)  memset(p, 0, (size_t)(n) * sizeof(*p))
 
 #define CallocCharBuf(n) (char *) R_chk_calloc((size_t) ((n)+1), sizeof(char))
 
@@ -86,7 +90,9 @@ extern void *R_chk_realloc(void *, size_t);
 #define F77_COM(x)     F77_CALL(x)
 #define F77_COMDECL(x) F77_CALL(x)
 
+#ifndef NO_CALL_R
 void	call_R(char*, long, void**, char**, long*, char**, long, char**);
+#endif
 
 #ifdef  __cplusplus
 }

@@ -58,6 +58,14 @@ public final class DoubleArrayVector extends DoubleVector {
   }
 
   /**
+   * Creates a new DoubleArrayVector that is a copy of the given {@code vector}
+   */
+  public DoubleArrayVector(DoubleVector vector) {
+    super(vector.getAttributes());
+    this.values = vector.toDoubleArray();
+  }
+
+  /**
    * Creates a new DoubleArrayVector by wrapping an existing
    * array, without copying. The array provided CAN NOT BE SUBSEQUENTLY
    * MODIFIED.

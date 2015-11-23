@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000, 2001 The R Development Core Team.
+ *  Copyright (C) 2000, 2001 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,8 @@
  *  along with this program; if not, a copy is available at
  *  http://www.r-project.org/Licenses/
  */
+
+/* Included by R.h: API */
 
 #ifndef R_EXT_BOOLEAN_H_
 #define R_EXT_BOOLEAN_H_

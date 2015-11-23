@@ -16,9 +16,9 @@ public class Dqrdc2Test  extends AbstractGccTest {
 
   @Test
   public void dqrdc2() throws Exception {
-    Class clazz = compile(Arrays.asList("dqrdc2.f", "ddot.f", "daxpy.f", "dscal.f", "dnrm2.f"), "Dqrdc2");
+    compile(Arrays.asList("dqrdc2.f", "ddot.f", "daxpy.f", "dscal.f", "dnrm2.f"));
 
-    Method dqrdc2 = clazz.getMethod("dqrdc2_",
+    Method dqrdc2 = Class.forName("org.renjin.gcc.dqrdc2").getMethod("dqrdc2_",
             DoublePtr.class,  // x (in/out)
             IntPtr.class,     // ldx - number of rows
             IntPtr.class,     // n - number of rows
@@ -29,7 +29,7 @@ public class Dqrdc2Test  extends AbstractGccTest {
             IntPtr.class,     // jpvt - out
             DoublePtr.class); // work - out
 
-    Method dnrm2 = clazz.getMethod("dnrm2_",
+    Method dnrm2 = Class.forName("org.renjin.gcc.dnrm2").getMethod("dnrm2_",
             IntPtr.class,     // n    
             DoublePtr.class,  // x
             IntPtr.class);    // incx

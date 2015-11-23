@@ -557,7 +557,6 @@ public class Primitives {
 /* String Manipulation */
 
     f("nchar", Text.class, 11);
-    f("nzchar", Text.class, 1);
     f("substr", Text.class, 11);
     f("substr<-", Text.class, 11);
     f("strsplit", Text.class, 11);
@@ -648,7 +647,6 @@ public class Primitives {
     f("unserializeFromConn", Serialization.class, 111);
     f("deparse", Deparse.class, 11);
     f("deparseRd", /*deparseRd*/ null, 11);
-    f("dput", /*dput*/ null, 111);
     f("dump", /*dump*/ null, 111);
     add(new SubstituteFunction());
     add(new QuoteFunction());// f("quote", Evaluation.class, 0, 0, 1);
@@ -719,7 +717,7 @@ public class Primitives {
     f("edit", /*edit*/ null, 11);
     f("dataentry", /*dataentry*/ null, 11);
     f("dataviewer", /*dataviewer*/ null, 111);
-    f("args", /*args*/ null, 11);
+    f("args", Args.class, 11);
     f("formals", Types.class, 11);
     f("body", Types.class, 11);
     f("bodyCode", /*bodyCode*/ null, 11);
@@ -891,7 +889,6 @@ public class Primitives {
     f("optimhess", /*optimhess*/ null, 11);
     f("terms.formula", Models.class, 11);
     f("update.formula", /*updateform*/ null, 11);
-    f("model.frame", Models.class, 11);
     f("model.matrix", Models.class, 11);
 
     f("D", /*D*/ null, 11);

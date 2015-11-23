@@ -5,6 +5,14 @@ public class GimpleArrayType extends AbstractGimpleType {
   private int lbound;
   private Integer ubound;
 
+  public GimpleArrayType() {
+  }
+
+  public GimpleArrayType(GimplePrimitiveType componentType) {
+    this.componentType = componentType;
+  }
+  
+
   public GimpleType getComponentType() {
     return componentType;
   }
@@ -32,5 +40,14 @@ public class GimpleArrayType extends AbstractGimpleType {
   @Override
   public String toString() {
     return componentType + "[]";
+  }
+
+  @Override
+  public int sizeOf() {
+    return componentType.sizeOf() * getElementCount();
+  }
+
+  public int getElementCount() {
+    return getUbound() - getLbound() + 1;
   }
 }

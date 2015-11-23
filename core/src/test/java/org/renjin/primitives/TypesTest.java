@@ -523,7 +523,30 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo( c(true, true, false)));
     assertThat( eval("as.vector(c(TRUE,FALSE,NA), mode='double')"), equalTo( c(1.0,0,DoubleVector.NA)));
   }
+  
+  @Test
+  public void asVectorDropsNames() {
+    eval("x <- c(Intercept=1, x=2)");
+    eval("attr(x, 'foo') <- 'bar'");
+    eval("y <- as.vector(x)");
+    
+    assertThat( eval("attributes(y)"), equalTo((SEXP)Null.INSTANCE));
+  }
 
+  @Test
+  public void asVectorPreservesAttributesForLists() {
+    eval("x <- c(a=1, b=2, c=3)");
+    eval("attr(x, 'foo') <- 'bar'");
+    
+    eval("y <- as.vector(x, 'list') ");
+
+    // Names are preserved
+    assertThat(eval("names(y)"), equalTo(c("a", "b", "c")));
+    
+    // all other attributes are saved
+    assertThat(eval("attr(y, 'foo')"), equalTo(c("bar")));
+  }
+  
   @Test
   public void naSymbol() {
     eval(" s <- .Internal(as.vector('NA', 'symbol'))");

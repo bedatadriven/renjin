@@ -68,3 +68,111 @@ test.model.matrix.factors <- function() {
 	print(mm)
 }
 
+test.model.frame <- function() {
+
+	x <- 1:5
+	y <- 5:1
+	z <- c(0.4, -0.2, -1.2, -0.03, 1.6)
+
+
+
+#  @Test
+#  public void simpleModelMatrix() {
+#    eval("x <- 1:10 ");
+#    eval("y <- 10:1 ");
+#    eval("z <- rnorm(10) ");
+#    
+#    eval("print(mm <- model.matrix(~x+y+z))");
+#    assertThat(eval("attr(mm, 'assign')"), equalTo(c_i(0, 1, 2, 3)));
+#  }
+
+}
+
+test.model.frame.including.functions <- function() {
+	f <- function(x) 2 * x
+	x <- 1:5
+	y <- 1:5
+	
+	formula <- f(y) ~ x
+	
+	mf <- model.frame(formula)
+
+	
+	assertThat(names(mf), identicalTo(c("f(y)", "x")))
+	assertThat(mf[[1]], identicalTo(c(2, 4, 6, 8, 10)))
+  assertThat(mf[[2]], identicalTo(1:5))
+  assertThat(row.names(mf), identicalTo(as.character(1:5)))
+  
+}
+
+test.model.frame.with.matrices <- function() {
+  
+  Conversions <- matrix(c(23, 100, 21, 100, 17, 100, 15, 100), nrow=4, ncol=2)
+  X <- c(1, 1, 0, 0)
+  Y <- c(1, 0, 1, 0)
+  
+  mf <- model.frame(Conversions ~ X + Y)
+
+  assertThat(names(mf), identicalTo(c("Conversions", "X", "Y")))
+}
+
+test.model.frame.with.na.omit <- function() {
+
+  X <- c(1,  NA, 3, 4)
+  Y <- c(NA,  1, 2, 5)
+  
+  mf <- model.frame(X ~ Y, na.action = na.omit)
+  
+  assertThat(nrow(mf), equalTo(2))
+}
+
+test.models.with.extras <- function() {
+  X <- c(1, 1, 0, 0)
+  Y <- c(1, 0, 1, 0)
+  W <- c(1, 2, 3, 4)
+  
+  mf <- model.frame(X ~ Y, weights = W)
+  
+  assertThat(names(mf), identicalTo(c("X", "Y", "(weights)")))
+  assertThat(mf[["(weights)"]], identicalTo(W))
+}
+
+test.models.with.null.extras <- function() {
+  X <- c(1, 1, 0, 0)
+  Y <- c(1, 0, 1, 0)
+  
+  mf <- model.frame(X ~ Y, weights = NULL)
+  
+  assertThat(names(mf), identicalTo(c("X", "Y")))
+}
+
+
+
+#  @Test
+#  public void modelMatrixFactors() {
+#    eval("x <- c('Good', 'Bad', 'Ugly', 'Good') ");
+#    
+#    eval("print(mm <- model.matrix(~x))");
+#    
+#    assertThat(eval("mm[,2]"), equalTo(c(1,0,0,1)));
+#    assertThat(eval("mm[,3]"), equalTo(c(0,0,1,0)));
+#    assertThat(eval("colnames(mm)"), equalTo(c("(Intercept)", "xGood", "xUgly")));
+#    assertThat(eval("attr(mm, 'contrasts')$x"), equalTo(c("contr.treatment")));
+#  }
+#  
+#  @Test
+#  public void simpleInteraction() {
+#    eval("x <- 1:10 ");
+#    eval("y <- 10:1 ");
+#    
+#    eval("print(mm <- model.matrix(~x*y))"); 
+#  }
+# 
+#  
+#  @Test
+#  public void interactionWithFactors() {
+#    eval("x <- 1:10 ");
+#    eval("y <- rep(c('Good', 'Bad', 'Ugly'), length=10) ");
+#    
+#    eval("print(mm <- model.matrix(~x*y))"); 
+#  }

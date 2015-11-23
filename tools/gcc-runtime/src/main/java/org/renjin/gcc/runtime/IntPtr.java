@@ -4,8 +4,8 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class IntPtr implements Ptr {
-  public final int[] array;
-  public final int offset;
+  public int[] array;
+  public int offset;
 
   public IntPtr(int[] array, int offset) {
     this.array = array;
@@ -19,6 +19,11 @@ public class IntPtr implements Ptr {
 
   public int unwrap() {
     return array[offset];
+  }
+  
+  public void update(int[] array, int offset) {
+    this.array = array;
+    this.offset = offset;
   }
 
   @Override

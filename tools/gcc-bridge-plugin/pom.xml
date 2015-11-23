@@ -19,12 +19,12 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.7.0-RC8-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>gcc-bridge-plugin</artifactId>
-  <name>GCC Bridge Plugin</name>
+  <name>Renjin GCC Bridge Plugin</name>
   <description>GCC Plugin which provides GCC-Bridge with detailed Gimple Output</description>
 
   <properties>

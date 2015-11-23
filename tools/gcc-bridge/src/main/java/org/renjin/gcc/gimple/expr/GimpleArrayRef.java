@@ -1,5 +1,9 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.base.Predicate;
+
+import java.util.List;
+
 public class GimpleArrayRef extends GimpleLValue {
   private GimpleExpr array;
   private GimpleExpr index;
@@ -18,6 +22,25 @@ public class GimpleArrayRef extends GimpleLValue {
 
   public GimpleExpr getIndex() {
     return index;
+  }
+
+  @Override
+  public void find(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
+    findOrDescend(array, predicate, results);
+    findOrDescend(index, predicate, results);
+  }
+
+  @Override
+  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
+    if(predicate.apply(array)) {
+      array = replacement;
+      return true;
+    } else if(predicate.apply(index)) {
+      index = replacement;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override

@@ -22,7 +22,7 @@
 package org.renjin.sexp;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
@@ -31,7 +31,7 @@ import org.renjin.primitives.Deparse;
 import org.renjin.util.NamesBuilder;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -44,22 +44,24 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   public static final ListVector EMPTY = new ListVector();
   public static final Vector.Type VECTOR_TYPE = new ListType();
 
-  private final ArrayList<SEXP> values;
+  private final SEXP[] values;
 
-  public ListVector(Iterable<? extends SEXP> values,  AttributeMap attributes) {
+  public ListVector(List<? extends SEXP> values,  AttributeMap attributes) {
     super(Null.INSTANCE, attributes);
-    this.values = new ArrayList<SEXP>();
-    Iterables.addAll(this.values, values);
+    this.values = toArray(values);
+  }
+  
+  private SEXP[] toArray(List<? extends SEXP> list) {
+    return list.toArray(new SEXP[list.size()]);
   }
 
-  public ListVector(Iterable<? extends SEXP> values) {
+  public ListVector(List<? extends SEXP> values) {
     this(values, AttributeMap.EMPTY);
   }
 
   public ListVector(SEXP[] values, SEXP tag, AttributeMap attributes) {
     super(tag, attributes);
-    this.values = new ArrayList<SEXP>();
-    Collections.addAll(this.values, values);
+    this.values = Arrays.copyOf(values, values.length);
 
     assert checkDims() : "dim do not match length of object";
   }
@@ -91,18 +93,18 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public Iterator<SEXP> iterator() {
-    return values.iterator();
+    return Iterators.forArray(values);
   }
 
   @Override
   public int length() {
-    return values.size();
+    return values.length;
   }
  
   @Override
   public int indexOf(Vector vector, int vectorIndex, int startIndex) {
-    for(int i=0;i!=values.size();++i) {
-      SEXP element = values.get(i); 
+    for(int i=0;i!=values.length;++i) {
+      SEXP element = values[i]; 
       if(element instanceof AtomicVector && element.length() == 1) {
         if(((AtomicVector)element).indexOf(vector, vectorIndex, 0) != -1) {
           return i;
@@ -128,7 +130,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
 
   public SEXP get(int index) {
-    return values.get(index);
+    return values[index];
   }
 
   public SEXP get(String name) {
@@ -136,7 +138,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     if(index == -1) {
       return Null.INSTANCE;
     }
-    return values.get(index);
+    return values[index];
   }
 
   @Override
@@ -146,12 +148,12 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public SEXP getElementAsSEXP(int index) {
-    return values.get(index);
+    return values[index];
   }
 
   @Override
   public double getElementAsDouble(int index) {
-    SEXP value = values.get(index);
+    SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsDouble(0);
     }
@@ -172,7 +174,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public int getElementAsInt(int index) {
-    SEXP value = values.get(index);
+    SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsInt(0);
     }
@@ -185,7 +187,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public String getElementAsString(int index) {
-    SEXP value = values.get(index);
+    SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsString(0);
     }
@@ -194,7 +196,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public Object getElementAsObject(int index) {
-    SEXP value = values.get(index);
+    SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsObject(0);
     }
@@ -203,7 +205,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public Logical getElementAsLogical(int index) {
-    SEXP value = values.get(index);
+    SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsLogical(0);
     }
@@ -212,7 +214,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public int getElementAsRawLogical(int index) {
-  SEXP value = values.get(index);
+  SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsRawLogical(0);
     }
@@ -221,19 +223,30 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public Complex getElementAsComplex(int index) {
-    SEXP value = values.get(index);
+    SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsComplex(0);
     }
     throw new EvalException("(list) object cannot be coerced to type 'complex'");
   }
 
+  /**
+   * Returns an "unsafe" reference to the array backing this ListVector. {@code ListVectors}
+   * MAY be shared between multiple threads and so are assumed immutable. Modifications to the
+   * array should ONLY be undertaken very carefully and when assured no references to this ListVector
+   * are being held elsewhere.
+   * 
+   * @return a reference to the array backing this ListVector. 
+   */
+  public SEXP[] toArrayUnsafe() {
+    return values;
+  }
   
   @Override
   public boolean contains(Vector vector, int vectorIndex) {
     SEXP match = vector.getElementAsSEXP(vectorIndex);
     for(int i=0;i!=this.length();++i) {
-      if(values.get(i).equals(match)) {
+      if(values[i].equals(match)) {
         return true;
       }
     }
@@ -242,7 +255,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public boolean isElementNA(int index) {
-    SEXP value = values.get(index);
+    SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).isElementNA(0);
     } else {
@@ -308,7 +321,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
     ListVector listExp = (ListVector) o;
 
-    if (!values.equals(listExp.values)) return false;
+    if (!Arrays.equals(values, listExp.values)) return false;
 
     return true;
   }
@@ -628,6 +641,4 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       return value;
     }
   }
-
-
 }

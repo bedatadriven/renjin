@@ -153,7 +153,7 @@ public class NamespaceMojo extends AbstractMojo {
       Thread.currentThread().setContextClassLoader(classLoader);
       Constructor ctor = classLoader.loadClass("org.renjin.packaging.DatasetsBuilder")
           .getConstructor(File.class, File.class);
-      Object builder = ctor.newInstance(getPackageRoot(), dataDirectory);
+      Object builder = ctor.newInstance(dataDirectory, getPackageRoot());
       builder.getClass().getMethod("build").invoke(builder);
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);

@@ -16,6 +16,12 @@ public class GimplePointerType extends AbstractGimpleType implements GimpleIndir
     return (X) baseType;
   }
 
+  @Override
+  public int sizeOf() {
+    // We require the generated gimple to be compiled for 32-bit platforms so we get 32 bit pointers.
+    return 4;
+  }
+
   public void setBaseType(GimpleType baseType) {
     this.baseType = baseType;
   }

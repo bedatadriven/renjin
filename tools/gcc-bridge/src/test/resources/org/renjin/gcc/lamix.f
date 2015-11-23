@@ -1,5 +1,5 @@
       subroutine lamix(ns,p,x,s,lambda,dismin,temps)
-      integer ns,p
+      integer ns,p,ik
       double precision lambda,x(p),s(ns,p),dismin,temps(p)
       double precision v(2,p),d1sqr,d2sqr,d12,dsqr, d1,w
       real lam,lammin

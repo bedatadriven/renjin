@@ -1,12 +1,14 @@
 package org.renjin.gcc.gimple.ins;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.ins.GimpleIns;
 
 import java.util.List;
+import java.util.Set;
 
 public class GimpleConditional extends GimpleIns {
   // gimple_cond <ne_expr, i_4, j_6, NULL, NULL>
@@ -20,7 +22,6 @@ public class GimpleConditional extends GimpleIns {
   private int falseLabel;
 
   GimpleConditional() {
-
   }
 
   void setOperator(GimpleOp op) {
@@ -56,6 +57,24 @@ public class GimpleConditional extends GimpleIns {
   }
 
   @Override
+  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
+    for (int i = 0; i < operands.size(); i++) {
+      if (predicate.apply(operands.get(i))) {
+        operands.set(i, replacement);
+        return true;
+      } else if(operands.get(i).replace(predicate, replacement)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
+    findUses(operands, predicate, results);
+  }
+
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("gimple_cond<").append(operator).append(",");
@@ -64,6 +83,11 @@ public class GimpleConditional extends GimpleIns {
     sb.append("> goto <").append("BB").append(trueLabel).append("> else goto <").append("BB").append(falseLabel)
         .append(">");
     return sb.toString();
+  }
+
+  @Override
+  public Set<Integer> getJumpTargets() {
+    return Sets.newHashSet(trueLabel, falseLabel);
   }
 
   @Override

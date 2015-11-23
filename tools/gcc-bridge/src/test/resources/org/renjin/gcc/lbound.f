@@ -1,10 +1,7 @@
 
-      program testprogram
+      subroutine testprogram
       double precision x(4)
       call test(x, 4)
-
-
-      stop
       end
 
 

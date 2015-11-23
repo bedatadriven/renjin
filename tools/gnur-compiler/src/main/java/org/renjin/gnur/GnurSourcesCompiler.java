@@ -5,13 +5,15 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import org.apache.commons.math.special.Erf;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.jimple.RealJimpleType;
-import org.renjin.gcc.translate.type.struct.SimpleRecordType;
-import org.renjin.gnur.sexp.GnuSEXP;
+import org.renjin.gnur.api.*;
+import org.renjin.gnur.api.Error;
+import org.renjin.primitives.packaging.DllInfo;
+import org.renjin.sexp.SEXP;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,7 +33,6 @@ public class GnurSourcesCompiler {
   private boolean verbose = true;
   private List<File> sources = Lists.newArrayList();
   private List<File> classPaths = Lists.newArrayList();
-  private File jimpleDirectory = new File("target/jimple");
   private File gimpleDirectory = new File("target/gimple");
   private File workDirectory;
   private File outputDirectory = new File("target/classes");
@@ -43,10 +44,6 @@ public class GnurSourcesCompiler {
   
   public void setClassName(String className) {
     this.className = className;
-  }
- 
-  public void setJimpleDirectory(File jimpleOutputDirectory) {
-    this.jimpleDirectory = jimpleOutputDirectory;
   }
 
   public void setGimpleDirectory(File gimpleDirectory) {
@@ -85,7 +82,6 @@ public class GnurSourcesCompiler {
     if(!sources.isEmpty()) {
 
       workDirectory.mkdirs();
-      jimpleDirectory.mkdirs();
       gimpleDirectory.mkdirs();
 
       if(checkUpToDate()) {
@@ -118,30 +114,40 @@ public class GnurSourcesCompiler {
       jimpleOutput.mkdirs();
 
       GimpleCompiler compiler = new GimpleCompiler();
-      compiler.setJimpleOutputDirectory(jimpleDirectory);
       compiler.setOutputDirectory(outputDirectory);
     
       compiler.setPackageName(packageName);
       compiler.setClassName(className);
-      compiler.addSootClassPaths(classPaths);
       compiler.setVerbose(verbose);
 
-      compiler.getMethodTable().addMathLibrary();
+      compiler.addMathLibrary();
 
-      compiler.getMethodTable().addCallTranslator(new RallocTranslator());
-
-      compiler.getMethodTable().addReferenceClass(Class.forName("org.renjin.appl.Appl"));
+      compiler.addReferenceClass(Class.forName("org.renjin.appl.Appl"));
 
       Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
-      compiler.getMethodTable().addReferenceClass(distributionsClass);
-      compiler.getMethodTable().addMethod("Rf_dbeta",distributionsClass,"dbeta");
-      compiler.getMethodTable().addMethod("Rf_pbeta",distributionsClass,"pbeta");
-
-      compiler.getMethodTable().addReferenceClass(RenjinCApi.class);
-      compiler.getMethodTable().addReferenceClass(Sort.class);
-
-      compiler.provideType("SEXP_T", new SimpleRecordType(new RealJimpleType(GnuSEXP.class)));
-
+      compiler.addReferenceClass(distributionsClass);
+      compiler.addMethod("Rf_dbeta", distributionsClass, "dbeta");
+      compiler.addMethod("Rf_pbeta", distributionsClass, "pbeta");
+      compiler.addMethod("erf", Erf.class, "erf");
+      compiler.addMethod("erfc", Erf.class, "erfc");
+     //compiler.addReferenceClass(RenjinCApi.class);
+      compiler.addReferenceClass(Sort.class);
+      compiler.addReferenceClass(GetText.class);
+      compiler.addReferenceClass(Rinternals.class);
+      compiler.addReferenceClass(Arith.class);
+      compiler.addReferenceClass(RenjinDebug.class);
+      compiler.addReferenceClass(Error.class);
+      compiler.addReferenceClass(Utils.class);
+      compiler.addReferenceClass(Rmath.class);
+      
+      compiler.addRecordClass("SEXPREC", SEXP.class);
+      
+      compiler.addReferenceClass(Rdynload.class);
+      compiler.addRecordClass("_DllInfo", DllInfo.class);
+      compiler.addRecordClass("__MethodDef", MethodDef.class);
+      
+      
+      
       compiler.compile(units);
     }
   }
@@ -225,4 +231,7 @@ public class GnurSourcesCompiler {
     return workDirectory;
   }
 
+  public void addIncludeDir(File includeDirectory) {
+    
+  }
 }

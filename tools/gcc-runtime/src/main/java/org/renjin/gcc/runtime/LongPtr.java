@@ -4,8 +4,8 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class LongPtr implements Ptr {
-  public final long[] array;
-  public final int offset;
+  public long[] array;
+  public int offset;
 
   public LongPtr(long[] array, int offset) {
     this.array = array;
@@ -21,6 +21,11 @@ public class LongPtr implements Ptr {
     return array[offset];
   }
 
+  public void update(long[] array, int offset) {
+    this.array = array;
+    this.offset = offset;
+  }
+  
   @Override
   public String toString() {
     return offset + "+" + Arrays.toString(array);

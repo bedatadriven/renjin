@@ -4,7 +4,7 @@
   <parent>
     <artifactId>parent</artifactId>
     <groupId>org.renjin</groupId>
-    <version>0.7.0-RC8-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -19,6 +19,7 @@
   <modules>
     <module>gcc-bridge</module>
     <module>gcc-bridge-plugin</module>
+    <module>gcc-bridge-maven-plugin</module>
     <module>gcc-runtime</module>
     <module>gnur-compiler</module>
     <module>gnur-runtime</module>

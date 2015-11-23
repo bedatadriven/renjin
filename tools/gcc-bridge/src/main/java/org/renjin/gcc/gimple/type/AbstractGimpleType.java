@@ -1,8 +1,12 @@
 package org.renjin.gcc.gimple.type;
 
-public class AbstractGimpleType implements GimpleType {
+public abstract class AbstractGimpleType implements GimpleType {
   private int size;
 
+  /**
+   * 
+   * @return the size of values of this type, in bits
+   */
   public int getSize() {
     return size;
   }
@@ -20,4 +24,10 @@ public class AbstractGimpleType implements GimpleType {
   public <X extends GimpleType> X getBaseType() {
     throw new UnsupportedOperationException("this is not pointer type (" + getClass().getSimpleName() + ")");
   }
+
+  @Override
+  public GimplePointerType pointerTo() {
+    return new GimplePointerType(this);
+  }
+
 }

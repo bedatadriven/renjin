@@ -1,7 +1,6 @@
 package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.translate.type.ImPrimitiveType;
 
 public abstract class GimpleConstant extends GimpleExpr {
   private GimpleType type;
@@ -14,18 +13,8 @@ public abstract class GimpleConstant extends GimpleExpr {
     this.type = type;
   }
 
-  public abstract Object getValue();
-
-  public Number getNumberValue() {
-    if (getValue() instanceof Number) {
-      return (Number) getValue();
-    } else {
-      throw new UnsupportedOperationException("Can't coerce constant to number: " + getValue());
-    }
+  public boolean isNull() {
+    return false;
   }
 
-  @Override
-  public String toString() {
-    return getValue().toString();
-  }
 }

@@ -1,7 +1,7 @@
 package org.renjin.gnur.sexp;
 
 
-public class GnuSymbol extends GnuSEXP {
+public class GnuSymbol {
   private String name;
 
   public GnuSymbol(String name) {

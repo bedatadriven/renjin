@@ -2,17 +2,29 @@ package org.renjin.gcc;
 
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import org.junit.Before;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractGccTest {
+
+  @Before
+  public void turnOnTracing() {
+    GimpleCompiler.TRACE = true;
+  }
+  
+  public static final String PACKAGE_NAME = "org.renjin.gcc";
 
   protected Integer call(Class clazz, String methodName, double x) throws Exception {
     Method method = clazz.getMethod(methodName, double.class);
@@ -50,12 +62,29 @@ public abstract class AbstractGccTest {
   }
 
 
-  protected Class<?> compile(String source, String className) throws Exception {
-    return compile(Lists.newArrayList(source), className);
+  /**
+   * Compiles a single source file and loads the resulting class file
+   */
+  protected final Class<?> compile(String source) throws Exception {
+    List<GimpleCompilationUnit> units = compileToGimple(Lists.newArrayList(source));
+    compileGimple(units);
+    
+    String className = Files.getNameWithoutExtension(source);
+    
+    return Class.forName(PACKAGE_NAME + "." + className);
   }
 
-  protected Class<?> compile(List<String> sources, String className) throws Exception {
+  protected void compile(List<String> sources) throws Exception {
+    List<GimpleCompilationUnit> units = compileToGimple(sources);
+    compileGimple(units);
+  }
+  
+  public GimpleCompilationUnit compileToGimple(String source) throws IOException {
+    List<GimpleCompilationUnit> units = compileToGimple(Collections.singletonList(source));
+    return Iterables.getOnlyElement(units);
+  }
 
+  public List<GimpleCompilationUnit> compileToGimple(List<String> sources) throws IOException {
     File workingDir = new File("target/gcc-work");
     workingDir.mkdirs();
 
@@ -72,7 +101,7 @@ public abstract class AbstractGccTest {
     List<GimpleCompilationUnit> units = Lists.newArrayList();
 
     for (String sourceName : sources) {
-      File source = new File(getClass().getResource(sourceName).getFile());
+      File source = new File(AbstractGccTest.class.getResource(sourceName).getFile());
       GimpleCompilationUnit unit = gcc.compileToGimple(source);
 
       CallingConvention callingConvention = CallingConventions.fromFile(source);
@@ -81,21 +110,17 @@ public abstract class AbstractGccTest {
       }
       units.add(unit);
     }
-
-    return compileGimple(className, units);
+    return units;
   }
 
-  protected Class<?> compileGimple(String className, List<GimpleCompilationUnit> units) throws Exception {
-
+  protected void compileGimple(List<GimpleCompilationUnit> units) throws Exception {
     GimpleCompiler compiler = new GimpleCompiler();
-    compiler.setJimpleOutputDirectory(new File("target/test-jimple"));
     compiler.setOutputDirectory(new File("target/test-classes"));          
-    compiler.setPackageName("org.renjin.gcc");
-    compiler.setClassName(className);
+    compiler.setRecordClassPrefix(units.get(0).getName());
+    compiler.setPackageName(PACKAGE_NAME);
     compiler.setVerbose(true);
-    compiler.getMethodTable().addReferenceClass(RStubs.class);
+    compiler.addReferenceClass(RStubs.class);
+    compiler.addMathLibrary();
     compiler.compile(units);
-
-    return Class.forName("org.renjin.gcc." + className);
   }
 }

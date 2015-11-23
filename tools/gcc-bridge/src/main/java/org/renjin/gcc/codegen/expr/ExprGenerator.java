@@ -87,7 +87,9 @@ public interface ExprGenerator {
   void emitPushPtrArrayAndOffset(MethodVisitor mv);
 
   void emitPushPtrArray(MethodVisitor mv);
-  
+
+  void emitPushPtrRefForNullComparison(MethodVisitor mv);
+
   void emitPushArray(MethodVisitor mv);
   
   /**

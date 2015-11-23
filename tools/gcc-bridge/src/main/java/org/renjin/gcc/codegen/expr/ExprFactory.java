@@ -143,18 +143,16 @@ public class ExprFactory {
       throw new UnsupportedOperationException("function ref: " + address.getValue() +
           " [" + address.getValue().getClass().getSimpleName() + "]");
 
-    } else if(functionExpr instanceof GimpleSymbolRef) {
-      ExprGenerator exprGenerator = findGenerator(functionExpr);
-      return new FunPtrCallGenerator(generatorFactory, exprGenerator);
-      
     } else if(functionExpr instanceof GimpleOpExpr) {
       GimpleOp op = ((GimpleOpExpr) functionExpr).getOp();
       if(op == GimpleOp.VAR_DECL || op == GimpleOp.NOP_EXPR) {
         return findCallGenerator(((GimpleOpExpr) functionExpr).getOperands().get(0));
       }
-      
-    }
-    throw new UnsupportedOperationException("function: " + functionExpr);
+    } 
+    
+    // Assume this is a funciton ptr expression  
+    ExprGenerator exprGenerator = findGenerator(functionExpr);
+    return new FunPtrCallGenerator(generatorFactory, exprGenerator);
   }
 
   public ConditionGenerator findConditionGenerator(GimpleOp op, List<GimpleExpr> operands) {

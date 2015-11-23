@@ -5,20 +5,23 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.arrays.PrimitiveArrayElement;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveArray;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.NEWARRAY;
 
 /**
  * Emits bytecode for loading / storing array variables.
  * 
  */
-public class ArrayVarGenerator extends AbstractExprGenerator implements VarGenerator {
+public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGenerator {
 
   /**
    * The local variable index of the array
@@ -27,7 +30,7 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
   private Type componentType;
   private GimpleArrayType gimpleType;
 
-  public ArrayVarGenerator(GimpleArrayType gimpleType, int arrayIndex) {
+  public PrimitiveArrayVar(GimpleArrayType gimpleType, int arrayIndex) {
     this.gimpleType = gimpleType;
     this.arrayIndex = arrayIndex;
 
@@ -66,7 +69,7 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPushArray(MethodVisitor mv) {
     mv.visitVarInsn(ALOAD, arrayIndex);
   }
 
@@ -82,63 +85,12 @@ public class ArrayVarGenerator extends AbstractExprGenerator implements VarGener
   
   @Override
   public ExprGenerator addressOf() {
-    return new AddressOf();
+    return new AddressOfPrimitiveArray(this);
   }
 
   @Override
   public ExprGenerator elementAt(ExprGenerator indexGenerator) {
-    return new ElementAt(indexGenerator);
+    return new PrimitiveArrayElement(this, indexGenerator);
   }
 
-  private class AddressOf extends AbstractExprGenerator {
-
-    @Override
-    public GimpleType getGimpleType() {
-      return new GimplePointerType(gimpleType);
-    }
-
-    @Override
-    public WrapperType getPointerType() {
-      return WrapperType.of(componentType);
-    }
-
-    @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(ALOAD, arrayIndex);
-      mv.visitInsn(ICONST_0);
-    }
-
-    @Override
-    public ExprGenerator valueOf() {
-      return ArrayVarGenerator.this;
-    }
-  }
-  
-  private class ElementAt extends AbstractExprGenerator {
-    private ExprGenerator indexGenerator;
-
-    public ElementAt(ExprGenerator indexGenerator) {
-      this.indexGenerator = indexGenerator;
-    }
-
-    @Override
-    public GimpleType getGimpleType() {
-      return gimpleType.getComponentType();
-    }
-
-    @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
-      ArrayVarGenerator.this.emitPrimitiveValue(mv);
-      indexGenerator.emitPrimitiveValue(mv);
-      mv.visitInsn(componentType.getOpcode(IALOAD));    
-    }
-
-    @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      ArrayVarGenerator.this.emitPrimitiveValue(mv);
-      indexGenerator.emitPrimitiveValue(mv);
-      valueGenerator.emitPrimitiveValue(mv);
-      mv.visitInsn(componentType.getOpcode(IASTORE));
-    }
-  }
 }

@@ -88,6 +88,10 @@ public class FunPtrFieldGenerator extends FieldGenerator {
       emitStoreMember(mv, valueGenerator);
     }
 
+    @Override
+    public void emitPushPtrRefForNullComparison(MethodVisitor mv) {
+      emitPushMethodHandle(mv);
+    }
   }
 
   /**

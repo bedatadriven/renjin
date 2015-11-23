@@ -1,8 +1,11 @@
 package org.renjin.gcc.codegen.type;
 
+import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.arrays.PrimitiveArrayConstructor;
+import org.renjin.gcc.codegen.arrays.PrimitivePtrArrayConstructor;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -186,7 +189,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new ArrayVarGenerator(arrayType, allocator.reserveArrayRef());
+      return new PrimitiveArrayVar(arrayType, allocator.reserveArrayRef());
     }
 
     @Override
@@ -198,11 +201,19 @@ public class PrimitiveTypeFactory extends TypeFactory {
     public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
       return fieldGenerator(className, fieldName);
     }
-
-
     @Override
     public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
       return varGenerator(allocator);
+    }
+
+    @Override
+    public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+      List<ExprGenerator> elements = Lists.newArrayList();
+      for (GimpleConstructor.Element element : value.getElements()) {
+        elements.add(exprFactory.findGenerator(element.getValue()));
+      }
+      
+      return new PrimitiveArrayConstructor(arrayType, elements);
     }
   }
   

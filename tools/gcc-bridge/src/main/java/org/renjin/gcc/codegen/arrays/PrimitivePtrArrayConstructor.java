@@ -1,4 +1,4 @@
-package org.renjin.gcc.codegen.field;
+package org.renjin.gcc.codegen.arrays;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;

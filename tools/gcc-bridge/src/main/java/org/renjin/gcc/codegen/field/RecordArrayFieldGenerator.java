@@ -4,12 +4,12 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.RecordClassGenerator;
-import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.arrays.RecordArrayElement;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.AddressOfRecordArray;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -57,8 +57,16 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
   }
 
   @Override
+  public void emitInstanceInit(MethodVisitor mv) {
+    mv.visitVarInsn(Opcodes.ALOAD, 0); // this;
+    mv.visitInsn(arrayType.getElementCount());
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, recordGenerator.getType().getInternalName());
+    mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, fieldDescriptor);
+  }
+
+  @Override
   public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
-    throw new UnsupportedOperationException();
+    return new MemberValue(instanceGenerator);
   }
 
   private class StaticArrayValue extends AbstractExprGenerator {
@@ -70,7 +78,7 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
 
     @Override
     public ExprGenerator addressOf() {
-      return new StaticArrayPtr();
+      return new AddressOfRecordArray(this);
     }
 
     @Override
@@ -86,52 +94,37 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
 
     @Override
     public ExprGenerator elementAt(ExprGenerator indexGenerator) {
-      return new StaticArrayElement(indexGenerator);
+      return new RecordArrayElement(recordGenerator, this, indexGenerator);
     }
   }
   
-  private class StaticArrayPtr extends AbstractExprGenerator {
-    @Override
-    public GimpleType getGimpleType() {
-      return new GimplePointerType(arrayType);
-    }
+  private class MemberValue extends AbstractExprGenerator {
 
-    @Override
-    public WrapperType getPointerType() {
-      return WrapperType.OBJECT_PTR;
-    }
+    private ExprGenerator instanceGenerator;
 
-    @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, fieldDescriptor);
-      mv.visitInsn(Opcodes.ICONST_0);
-    }
-  }
-  
-  private class StaticArrayElement extends AbstractExprGenerator {
-    
-    private ExprGenerator indexGenerator;
-
-    public StaticArrayElement(ExprGenerator indexGenerator) {
-      this.indexGenerator = indexGenerator;
+    public MemberValue(ExprGenerator instanceGenerator) {
+      this.instanceGenerator = instanceGenerator;
     }
 
     @Override
     public GimpleType getGimpleType() {
-      return recordGenerator.getGimpleType();
+      return arrayType;
     }
 
     @Override
-    public void emitPushRecordRef(MethodVisitor mv) {
-      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, fieldDescriptor);
-      indexGenerator.emitPrimitiveValue(mv);
-      mv.visitInsn(Opcodes.AALOAD);
+    public void emitPushArray(MethodVisitor mv) {
+      instanceGenerator.emitPushRecordRef(mv);
+      mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, fieldDescriptor);
     }
 
     @Override
-    public ExprGenerator memberOf(String memberName) {
-      return recordGenerator.getFieldGenerator(memberName).memberExprGenerator(this);
+    public ExprGenerator addressOf() {
+      return new AddressOfRecordArray(this);
+    }
+
+    @Override
+    public ExprGenerator elementAt(ExprGenerator indexGenerator) {
+      return new RecordArrayElement(recordGenerator, this, indexGenerator);
     }
   }
-  
 }

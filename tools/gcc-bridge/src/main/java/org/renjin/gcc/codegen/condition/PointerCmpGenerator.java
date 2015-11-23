@@ -44,7 +44,7 @@ public class PointerCmpGenerator implements ConditionGenerator {
 
   private void emitJumpOnNullCondition(MethodVisitor mv, ExprGenerator ptr, Label trueLabel, Label falseLabel) {
     
-    ptr.emitPushPtrArray(mv);
+    ptr.emitPushPtrRefForNullComparison(mv);
     
     switch (op) {
       case NE_EXPR:

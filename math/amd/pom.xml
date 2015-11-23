@@ -23,34 +23,17 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>renjin-math-benchmarks</artifactId>
-  <name>Renjin Math Micro Benchmarks</name>
+  <artifactId>renjin-amd</artifactId>
 
-  <properties>
-    <jmh.version>1.11.1</jmh.version>
-    <uberjar.name>benchmarks</uberjar.name>
-  </properties>
-  
   <dependencies>
     <dependency>
-      <groupId>org.openjdk.jmh</groupId>
-      <artifactId>jmh-core</artifactId>
-      <version>${jmh.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.openjdk.jmh</groupId>
-      <artifactId>jmh-generator-annprocess</artifactId>
-      <version>${jmh.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.netlib</groupId>
-      <artifactId>netlib-java</artifactId>
-      <version>0.9.3-renjin-patched-2</version>
+      <groupId>org.renjin</groupId>
+      <artifactId>gcc-runtime</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
-      <artifactId>renjin-blas</artifactId>
+      <artifactId>renjin-math-common</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -58,33 +41,25 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.14.1</version>
+        <groupId>org.renjin</groupId>
+        <artifactId>gcc-bridge-maven-plugin</artifactId>
+        <version>${project.version}</version>
         <configuration>
-          <forkMode>always</forkMode>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <packageName>org.renjin.math</packageName>
+          <mainClass>Cholmod</mainClass>
+          <cSourceDirectory>${basedir}/Source</cSourceDirectory>
+          <includeDirectories>
+            <includeDirectory>${basedir}/Include</includeDirectory>
+            <includeDirectory>../suite-sparse</includeDirectory>
+          </includeDirectories>
+          
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.0</version>
         <executions>
           <execution>
-            <phase>package</phase>
             <goals>
-              <goal>shade</goal>
+              <goal>compile</goal>
             </goals>
-            <configuration>
-              <finalName>${uberjar.name}</finalName>
-              <transformers>
-                <transformer
-                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>org.openjdk.jmh.Main</mainClass>
-                </transformer>
-              </transformers>
-            </configuration>
+            <phase>compile</phase>
           </execution>
         </executions>
       </plugin>

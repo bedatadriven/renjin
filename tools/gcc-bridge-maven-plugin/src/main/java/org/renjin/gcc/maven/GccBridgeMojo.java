@@ -57,35 +57,44 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.compileArtifacts}", readonly = true)
   private List<Artifact> compileDependencies;
 
-
+  @Parameter
+  private List<File> sourceFiles;
+  
+  @Parameter
+  private List<File> includeDirectories;
 
   public void execute() throws MojoExecutionException {
 
-    List<File> sourceFiles = new ArrayList<File>();
-    
-    if(fortranSourceDirectory.exists()) {
-      File[] files = fortranSourceDirectory.listFiles();
-      if(files != null) {
-        for (File file : files) {
-          if(isFortranSource(file)) {
-            sourceFiles.add(file);
+    List<GimpleCompilationUnit> units;
+
+    if(this.sourceFiles == null) {
+      List<File> sourceFiles = new ArrayList<File>();
+
+      if (fortranSourceDirectory.exists()) {
+        File[] files = fortranSourceDirectory.listFiles();
+        if (files != null) {
+          for (File file : files) {
+            if (isFortranSource(file)) {
+              sourceFiles.add(file);
+            }
           }
         }
       }
-    }
-    
-    if(cSourceDirectory.exists()) {
-      File[] files = cSourceDirectory.listFiles();
-      if(files != null) {
-        for (File file : files) {
-          if(isCSource(file)) {
-            sourceFiles.add(file);
+
+      if (cSourceDirectory.exists()) {
+        File[] files = cSourceDirectory.listFiles();
+        if (files != null) {
+          for (File file : files) {
+            if (isCSource(file)) {
+              sourceFiles.add(file);
+            }
           }
         }
       }
+      units = compileToGimple(sourceFiles);
+    } else {
+      units = compileToGimple(this.sourceFiles);
     }
-    
-    List<GimpleCompilationUnit> units = compileToGimple(sourceFiles);
     
     compile(units);
   }
@@ -106,6 +115,12 @@ public class GccBridgeMojo extends AbstractMojo {
     }
     gcc.setDebug(true);
     gcc.setGimpleOutputDir(gimpleOutputDirectory);
+    
+    if(includeDirectories != null) {
+      for (File includeDirectory : includeDirectories) {
+        gcc.addIncludeDirectory(includeDirectory);
+      }
+    }
 
     List<GimpleCompilationUnit> units = Lists.newArrayList();
 

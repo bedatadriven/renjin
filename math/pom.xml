@@ -8,7 +8,8 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>renjin-math</artifactId>
+  <groupId>org.renjin.math</groupId>
+  <artifactId>renjin-math-parent</artifactId>
   <packaging>pom</packaging>
   <name>Renjin Math Parent</name>
 
@@ -20,5 +21,7 @@
     <module>common</module>
     <module>blas</module>
     <module>benchmarks</module>
+    <module>cholmod</module>
+    <module>amd</module>
   </modules>
 </project>

@@ -63,7 +63,9 @@ int json_needs_comma = 0;
 #define JSON_ARRAY  1
 #define JSON_OBJECT  2
 
-#define TRACE(...) printf(__VA_ARGS__)
+
+//#define TRACE(...) printf(__VA_ARGS__)
+#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
 
 typedef struct json_context {
   int needs_comma;
@@ -403,7 +405,7 @@ static void dump_constructor(tree node) {
 }
 
 static void dump_type(tree type) {
-  printf("dump_type: entering: %s\n", tree_code_name[TREE_CODE(type)]);
+  TRACE("dump_type: entering: %s\n", tree_code_name[TREE_CODE(type)]);
   json_start_object();
   json_string_field("type", tree_code_name[TREE_CODE(type)]);
     
@@ -453,7 +455,7 @@ static void dump_type(tree type) {
     
   }
   json_end_object();
-  printf("dump_type: exiting: %s\n", tree_code_name[TREE_CODE(type)]);
+  TRACE("dump_type: exiting: %s\n", tree_code_name[TREE_CODE(type)]);
 }
 
 static void dump_global_var_ref(tree decl) {
@@ -985,6 +987,7 @@ static void dump_global_var(tree var) {
 
 static void start_unit_callback (void *gcc_data, void *user_data)
 {
+
   json_start_object();
   json_array_field("functions");
   
@@ -1047,7 +1050,7 @@ plugin_init (struct plugin_name_args *plugin_info,
   
   /* find the output file */
   
-  json_f = stdout;
+  json_f = NULL;
   
   int argi;
   for(argi=0;argi!=plugin_info->argc;++argi) {
@@ -1056,6 +1059,12 @@ plugin_init (struct plugin_name_args *plugin_info,
     } 
   }
 
+  if(!json_f) {
+    char jsonfile[1024];
+    sprintf(jsonfile, "%s.gimple", main_input_filename);
+    printf("Writing gimple to %s...\n", jsonfile);
+    json_f = fopen(jsonfile, "w");
+  }
 
   /* Register this new pass with GCC */
   register_callback (plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,

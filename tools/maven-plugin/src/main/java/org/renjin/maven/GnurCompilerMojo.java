@@ -83,6 +83,8 @@ public class GnurCompilerMojo extends AbstractMojo {
    * @parameter expression="${project.build.directory}/gcc-work
    */
   private File workDirectory;
+  
+  private List<File> includeDirectories;
 
 
   @Override
@@ -108,6 +110,12 @@ public class GnurCompilerMojo extends AbstractMojo {
     compiler.setWorkDirectory(workDirectory);
     compiler.setOutputDirectory(outputDirectory);
     compiler.setGimpleDirectory(gimpleDirectory);
+    
+    if(includeDirectories != null) {
+      for (File includeDirectory : includeDirectories) {
+        compiler.addIncludeDir(includeDirectory);
+      }
+    }
     
     try {
       compiler.compile();

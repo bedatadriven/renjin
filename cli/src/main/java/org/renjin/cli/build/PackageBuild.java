@@ -12,7 +12,7 @@ import org.eclipse.aether.installation.InstallationException;
 import org.eclipse.aether.util.artifact.SubArtifact;
 import org.renjin.aether.AetherFactory;
 import org.renjin.eval.Session;
-import org.renjin.gnur.GnurSourcesCompiler;
+import org.renjin.gnur.GnurShlibCompiler;
 import org.renjin.packaging.DatasetsBuilder;
 import org.renjin.packaging.NamespaceBuilder;
 
@@ -146,21 +146,28 @@ public class PackageBuild {
   }
   
   private void compileNativeSources() {
-    GnurSourcesCompiler compiler = new GnurSourcesCompiler();
-    compiler.addSources(source.getNativeSourceDir());
-    compiler.setVerbose(false);
-    compiler.setPackageName(source.getJavaPackageName());
-    compiler.setClassName(source.getName());
-    compiler.setWorkDirectory(gccWorkDir("work"));
-    compiler.setGimpleDirectory(gccWorkDir("gimple"));
-    compiler.setOutputDirectory(stagingDir);
-
+    GnurShlibCompiler compiler = new GnurShlibCompiler(source.getNativeSourceDir());
     try {
-      compiler.compile();
+      compiler.execute();
     } catch (Exception e) {
-      throw new RuntimeException(e);
-      //reporter.warn("Compilation of GNU R sources failed", e);
+      throw new BuildException("Failed to compile shared library", e);
     }
+//    
+//    GnurSourcesCompiler compiler = new GnurSourcesCompiler();
+//    compiler.addSources(source.getNativeSourceDir());
+//    compiler.setVerbose(false);
+//    compiler.setPackageName(source.getJavaPackageName());
+//    compiler.setClassName(source.getName());
+//    compiler.setWorkDirectory(gccWorkDir("work"));
+//    compiler.setGimpleDirectory(gccWorkDir("gimple"));
+//    compiler.setOutputDirectory(stagingDir);
+//
+//    try {
+//      compiler.compile();
+//    } catch (Exception e) {
+//      throw new RuntimeException(e);
+//      //reporter.warn("Compilation of GNU R sources failed", e);
+//    }
   }
 
   private File gccWorkDir(String subDir) {

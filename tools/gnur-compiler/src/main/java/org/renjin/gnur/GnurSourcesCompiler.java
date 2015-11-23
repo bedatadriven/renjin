@@ -231,4 +231,7 @@ public class GnurSourcesCompiler {
     return workDirectory;
   }
 
+  public void addIncludeDir(File includeDirectory) {
+    
+  }
 }

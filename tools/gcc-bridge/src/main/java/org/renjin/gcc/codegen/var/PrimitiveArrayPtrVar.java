@@ -5,7 +5,7 @@ import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
-import org.renjin.gcc.codegen.arrays.PrimitiveArrayElement;
+import org.renjin.gcc.codegen.arrays.PrimitiveArrayPtrElement;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.NullPtrGenerator;
@@ -93,7 +93,7 @@ public class PrimitiveArrayPtrVar extends AbstractExprGenerator implements VarGe
 
     @Override
     public ExprGenerator elementAt(ExprGenerator indexGenerator) {
-      return new PrimitiveArrayElement(this, indexGenerator);
+      return new PrimitiveArrayPtrElement(addressOf(), indexGenerator);
     }
   }
 

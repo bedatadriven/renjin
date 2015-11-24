@@ -6,8 +6,10 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.arrays.PrimitiveArrayElement;
+import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
 import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveArray;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -15,7 +17,6 @@ import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.NEWARRAY;
 
 /**
  * Emits bytecode for loading / storing array variables.
@@ -47,25 +48,16 @@ public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGener
   @Override
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
 
-    mv.visitLdcInsn(gimpleType.getUbound() - gimpleType.getLbound() + 1);
-
-    if(componentType.equals(Type.DOUBLE_TYPE)) {
-      mv.visitIntInsn(NEWARRAY, Opcodes.T_DOUBLE);
-      
-    } else if(componentType.equals(Type.INT_TYPE)) {
-      mv.visitIntInsn(NEWARRAY, Opcodes.T_INT);
-
-    } else if(componentType.equals(Type.BYTE_TYPE)) {
-      mv.visitIntInsn(NEWARRAY, Opcodes.T_BYTE);
-      
+    if(initialValue.isPresent()) {
+      // provided an initial value for this array
+      initialValue.get().emitPushArray(mv);
     } else {
-      throw new UnsupportedOperationException("componentType: " + componentType);
+      // allocate a new, empty array
+      PrimitiveConstValueGenerator.emitInt(mv, gimpleType.getElementCount());
+      MallocGenerator.emitNewArray(mv, componentType);
+
     }
     mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
-   
-    if(initialValue.isPresent()) {
-      emitStore(mv, initialValue.get());
-    }
   }
 
   @Override
@@ -75,7 +67,8 @@ public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGener
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-    throw new UnsupportedOperationException();
+    valueGenerator.emitPushArray(mv);
+    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
   }
 
   @Override

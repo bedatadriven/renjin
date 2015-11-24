@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -43,5 +44,29 @@ public class PrimitiveArrayElement extends AbstractExprGenerator {
     indexGenerator.emitPrimitiveValue(mv);
     valueGenerator.emitPrimitiveValue(mv);
     mv.visitInsn(componentType.getOpcode(IASTORE));
+  }
+
+  @Override
+  public ExprGenerator addressOf() {
+    return new AddressOf();
+  }
+  
+  private class AddressOf extends AbstractExprGenerator {
+
+    @Override
+    public GimpleType getGimpleType() {
+      return new GimplePointerType(arrayType.getComponentType());
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      arrayGenerator.emitPushArray(mv);
+      indexGenerator.emitPrimitiveValue(mv);
+    }
+
+    @Override
+    public ExprGenerator valueOf() {
+      return PrimitiveArrayElement.this;
+    }
   }
 }

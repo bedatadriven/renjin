@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.PrimitivePtrVarGenerator;
+import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
@@ -46,7 +47,7 @@ public class PrimitivePtrParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor mv, int localVariableIndex, LocalVarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, int localVariableIndex, LocalVarAllocator localVars) {
     
     // Unpack the wrapper into seperate array and offset fields
     int arrayVariable = localVars.reserve(1);

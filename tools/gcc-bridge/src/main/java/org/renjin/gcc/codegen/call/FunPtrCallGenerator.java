@@ -32,11 +32,6 @@ public class FunPtrCallGenerator implements CallGenerator {
     returnGenerator = factory.findReturnGenerator(functionType.getReturnType());
   }
 
-  @Override
-  public List<GimpleType> getGimpleParameterTypes() {
-    return functionType.getArgumentTypes();
-  }
-
   /**
    * Write the bytecode for invoking a call to a function pointer, which we represent
    * as a MethodHandle in the compiled code. Since GCC permits casting function pointer 

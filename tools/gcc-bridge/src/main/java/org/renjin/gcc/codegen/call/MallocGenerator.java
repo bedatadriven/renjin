@@ -79,6 +79,9 @@ public class MallocGenerator extends AbstractExprGenerator implements ExprGenera
       case Type.BOOLEAN:
         mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BOOLEAN);
         break;
+      case Type.BYTE:
+        mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BYTE);
+        break;
       case Type.INT:
         mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_INT);
         break;
@@ -94,7 +97,7 @@ public class MallocGenerator extends AbstractExprGenerator implements ExprGenera
       case Type.OBJECT:
         mv.visitTypeInsn(Opcodes.ANEWARRAY, componentType.getInternalName());
         break;
-      
+        
       default:
         throw new UnsupportedOperationException("type: " + componentType);
     }

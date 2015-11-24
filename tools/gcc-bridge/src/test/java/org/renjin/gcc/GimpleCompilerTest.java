@@ -1,5 +1,6 @@
 package org.renjin.gcc;
 
+import com.google.common.base.Charsets;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.runtime.BytePtr;
@@ -69,6 +70,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
     
     assertThat(reallocResult, equalTo(41d+42d+43d+44d));
     
+    // pointer comparison
+    Method testCmp = clazz.getMethod("test_cmp");
+    Integer cmpResult = (Integer) testCmp.invoke(null);
+
+    assertThat(cmpResult, equalTo(1));
   }
   
   @Test
@@ -167,13 +173,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
 
     System.out.println(x);
-  }
-  
-  @Test
-  public void variadic() throws Exception {
-
-    Class clazz = compile("variadic.c");
-    
   }
   
   @Test
@@ -644,5 +643,26 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Class<?> clazz = compile("uninit.c");
     Method testMethod = clazz.getMethod("test_uninitialized");
     testMethod.invoke(null);
+  }
+  
+  @Test
+  public void memcpy() throws Exception {
+    Class clazz = compile("memcpy.c");
+    
+    Method test = clazz.getMethod("test_memcpy", null);
+    Integer result = (Integer) test.invoke(null);
+    
+    assertThat(result, equalTo(1));
+  }
+  
+  @Test
+  public void varArgsCalls() throws Exception {
+    Class clazz = compile("varargs.c");
+    
+    Method test = clazz.getMethod("test_sprintf", BytePtr.class, int.class);
+
+    BytePtr message = (BytePtr) test.invoke(null, BytePtr.nullTerminatedString("Bob", Charsets.US_ASCII), 99);
+
+    assertThat(message.nullTerminatedString(), equalTo("Hello Bob, you have 99 messages"));
   }
 }

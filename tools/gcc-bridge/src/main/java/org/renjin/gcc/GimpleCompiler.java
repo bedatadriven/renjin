@@ -11,6 +11,7 @@ import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 
 import java.io.File;
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
  */
 public class GimpleCompiler  {
 
-  public static boolean TRACE = false;
+  public static boolean TRACE = true;
 
   private File outputDirectory;
 
@@ -62,6 +63,7 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(TreeBuilder.INSTANCE);
     globalSymbolTable = new GlobalSymbolTable(generatorFactory);
     globalSymbolTable.addDefaults();
+    globalSymbolTable.addMethods(Stdlib.class);
   }
 
   public void setPackageName(String name) {

@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
+import org.renjin.gcc.codegen.call.MemCopyCallGenerator;
 import org.renjin.gcc.codegen.call.StaticMethodCallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
@@ -56,6 +57,9 @@ public class GlobalSymbolTable implements SymbolTable {
 
 
   public void addDefaults() {
+    
+    addFunction("__builtin_memcpy", new MemCopyCallGenerator());
+    addFunction("memcpy", new MemCopyCallGenerator());
 
     // G77 builtins
     addMethod("__builtin_sin__", Math.class, "sin");
@@ -69,6 +73,7 @@ public class GlobalSymbolTable implements SymbolTable {
 
     addMethod("sqrt", Math.class);
     addMethod("floor", Math.class);
+    addMethod("log10", Math.class);
 
     addMethods(Builtins.class);
   }
@@ -81,6 +86,10 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction(functionName, findMethod(declaringClass, methodName));
   }
 
+  public void addFunction(String name, CallGenerator callGenerator) {
+    functions.put(name, callGenerator);
+  }
+  
   public void addFunction(String className, FunctionGenerator function) {
     functions.put(function.getMangledName(), new FunctionCallGenerator(function));
   }

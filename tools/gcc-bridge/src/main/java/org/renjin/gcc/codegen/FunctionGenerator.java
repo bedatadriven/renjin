@@ -107,7 +107,7 @@ public class FunctionGenerator {
     for (int i = 0; i < numParameters; i++) {
       GimpleParameter param = function.getParameters().get(i);
       ParamGenerator generator = params.get(param);
-      ExprGenerator exprGenerator = generator.emitInitialization(mv, paramIndexes[i], localVarAllocator);
+      ExprGenerator exprGenerator = generator.emitInitialization(mv, param, paramIndexes[i], localVarAllocator);
       symbolTable.addVariable(param.getId(), exprGenerator);
     }
   }

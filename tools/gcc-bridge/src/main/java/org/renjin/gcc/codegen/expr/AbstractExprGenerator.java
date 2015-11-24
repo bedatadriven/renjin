@@ -60,7 +60,33 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   public void emitPrimitiveValue(MethodVisitor mv) {
     throw new UnimplementedException(getClass(), "emitPrimitiveValue");
   }
-  
+
+  @Override
+  public final void emitPushBoxedPrimitiveValue(MethodVisitor mv) {
+    emitPrimitiveValue(mv);
+    
+    Type type = ((GimplePrimitiveType) getGimpleType()).jvmType();
+    if(type.equals(Type.INT_TYPE)) {
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Integer.class),
+          "valueOf", "(I)Ljava/lang/Integer;", false);
+    
+    } else if(type.equals(Type.DOUBLE_TYPE)) {
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Double.class),
+          "valueOf", "(D)Ljava/lang/Double;", false);
+
+    } else if(type.equals(Type.FLOAT_TYPE)) {
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Float.class),
+          "valueOf", "(F)Ljava/lang/Float;", false);
+
+    } else if (type.equals(Type.BYTE_TYPE)) {
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Byte.class),
+          "valueOf", "(B)Ljava/lang/Byte", false);
+    
+    } else {
+      throw new UnsupportedOperationException("type: " + type);
+    }
+  }
+
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     throw new UnimplementedException(getClass(), "emitPushPtrArrayAndOffset");

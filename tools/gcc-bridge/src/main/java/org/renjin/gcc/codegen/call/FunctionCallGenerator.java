@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.call;
 
-import com.google.common.collect.Lists;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -8,7 +7,6 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
@@ -34,15 +32,6 @@ public class FunctionCallGenerator implements CallGenerator {
 
   public Handle getHandle() {
     return functionGenerator.getMethodHandle();
-  }
-
-  @Override
-  public List<GimpleType> getGimpleParameterTypes() {
-    List<GimpleType> types = Lists.newArrayList();
-    for (GimpleParameter gimpleParameter : functionGenerator.getFunction().getParameters()) {
-      types.add(gimpleParameter.getType());
-    }
-    return types;
   }
 
   @Override

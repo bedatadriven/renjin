@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.ComplexArrayPtrVarGenerator;
+import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -32,7 +33,7 @@ public class ComplexArrayPtrParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, int startIndex, LocalVarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars) {
     return new ComplexArrayPtrVarGenerator(type, startIndex, startIndex+1);
   }
 

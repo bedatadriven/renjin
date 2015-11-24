@@ -6,6 +6,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
@@ -22,7 +23,7 @@ public class VoidPtrParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, int startIndex, LocalVarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars) {
     return new Expr(startIndex);
   }
 

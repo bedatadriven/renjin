@@ -41,7 +41,8 @@ public class StringConstantGenerator extends AbstractExprGenerator  {
     return new ElementAt(indexGenerator);
   }
 
-  private void pushStringAsByteArray(MethodVisitor mv) {
+  @Override
+  public void emitPushArray(MethodVisitor mv) {
     mv.visitLdcInsn(constantExpr.getValue());
 
     // consume the string constant and push the array reference
@@ -80,7 +81,7 @@ public class StringConstantGenerator extends AbstractExprGenerator  {
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
 
       // push the string as an array
-      pushStringAsByteArray(mv);
+      StringConstantGenerator.this.emitPushArray(mv);
 
       // push the offset
       mv.visitInsn(Opcodes.ICONST_0);
@@ -95,8 +96,12 @@ public class StringConstantGenerator extends AbstractExprGenerator  {
     public WrapperType getPointerType() {
       return WrapperType.of(Type.BYTE_TYPE);
     }
-  }
 
+    @Override
+    public ExprGenerator valueOf() {
+      return StringConstantGenerator.this;
+    }
+  }
 
   private class AddressOffset extends AbstractExprGenerator {
 
@@ -118,9 +123,11 @@ public class StringConstantGenerator extends AbstractExprGenerator  {
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      pushStringAsByteArray(mv);
+      StringConstantGenerator.this.emitPushArray(mv);
       indexGenerator.emitPrimitiveValue(mv);
     }
+
+
   }
 }
 

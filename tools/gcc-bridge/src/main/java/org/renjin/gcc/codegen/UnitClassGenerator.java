@@ -93,7 +93,7 @@ public class UnitClassGenerator {
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-   // cw = new ClassWriter(0);
+    //cw = new ClassWriter(0);
 
     if(GimpleCompiler.TRACE) {
       cv = new TraceClassVisitor(cw, new PrintWriter(System.out));

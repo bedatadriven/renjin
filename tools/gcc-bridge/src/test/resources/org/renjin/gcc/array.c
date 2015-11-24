@@ -29,3 +29,14 @@ int sum10(int values[10]) {
   values[0] = 342;
   return sum;
 }
+
+
+int test_pointer() {
+  int x[10];
+  x[4] = 41;
+  x[5] = 42;
+  
+  int *y = &x[4];
+  y = y + 1;
+  return *y;
+}

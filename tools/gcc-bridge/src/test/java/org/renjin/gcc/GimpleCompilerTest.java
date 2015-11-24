@@ -325,6 +325,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
     int result = (Integer) method.invoke(null);
 
     assertThat(result, equalTo(342));
+    
+    Method testPointer = clazz.getMethod("test_pointer");
+    result = (Integer) testPointer.invoke(null);
+    
+    assertThat(result, equalTo(42));
 
   }
 

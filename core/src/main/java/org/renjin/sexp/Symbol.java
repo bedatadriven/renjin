@@ -21,8 +21,6 @@
 
 package org.renjin.sexp;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import org.renjin.eval.EvalException;
 
@@ -206,7 +204,12 @@ public final class Symbol extends AbstractSEXP {
   public boolean isReservedWord() {
     return hashBit == 1;
   }
-  
+
+  @Override
+  public String asString() {
+    return printName;
+  }
+
   /**
    * Maps this symbol to a single bit in 32-bit hash bitset.
    */

@@ -21,7 +21,5 @@
     <module>common</module>
     <module>blas</module>
     <module>benchmarks</module>
-    <module>cholmod</module>
-    <module>amd</module>
   </modules>
 </project>

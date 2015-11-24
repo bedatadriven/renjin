@@ -42,10 +42,15 @@ public final class Rdynload {
     }
   }
   
-//
-//   Rboolean R_useDynamicSymbols (DllInfo *info, Rboolean value)
-//
-//   Rboolean R_forceSymbols (DllInfo *info, Rboolean value)
+  public static boolean R_useDynamicSymbols(DllInfo info, boolean value) {
+    // unclear what this function does
+    return true;
+  }
+
+  public static boolean R_forceSymbols(DllInfo info, boolean value) {
+    return true;
+  }
+
 //
 //   DllInfo* R_getDllInfo (const char *name)
 //

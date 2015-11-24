@@ -42,8 +42,9 @@ int	R_gc_running();
 #define	R_alloc(numItems, sizeOfItem) malloc((numItems)*(sizeOfItem))
 
 long double *R_allocLD(size_t nelem);
-char*	S_alloc(long, int);
-char*	S_realloc(char *, long, long, int);
+
+#define S_alloc(numItems, sizeOfItem) malloc((numItems)*(sizeOfItem))
+#define S_realloc(p, newCount, oldCount, sizeOfItem) realloc(p, (newCount)*(sizeOfItem))
 
 #ifdef  __cplusplus
 }

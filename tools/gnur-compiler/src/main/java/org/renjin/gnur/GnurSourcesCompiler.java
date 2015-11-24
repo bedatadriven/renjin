@@ -130,7 +130,6 @@ public class GnurSourcesCompiler {
       compiler.addMethod("Rf_pbeta", distributionsClass, "pbeta");
       compiler.addMethod("erf", Erf.class, "erf");
       compiler.addMethod("erfc", Erf.class, "erfc");
-     //compiler.addReferenceClass(RenjinCApi.class);
       compiler.addReferenceClass(Sort.class);
       compiler.addReferenceClass(GetText.class);
       compiler.addReferenceClass(Rinternals.class);
@@ -139,6 +138,7 @@ public class GnurSourcesCompiler {
       compiler.addReferenceClass(Error.class);
       compiler.addReferenceClass(Utils.class);
       compiler.addReferenceClass(Rmath.class);
+      compiler.addReferenceClass(Memory.class);
       
       compiler.addRecordClass("SEXPREC", SEXP.class);
       

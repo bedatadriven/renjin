@@ -32,8 +32,6 @@ public class TreeBuilder implements FunctionBodyTransformer {
   @VisibleForTesting
   void buildTrees(GimpleFunction function, GimpleBasicBlock basicBlock) {
 
-    System.out.println(function);
-    
     if(!basicBlock.isEmpty()) {
       Set<Integer> variablesToNest = findUnnamedSingleUseVariable(function);
 
@@ -50,8 +48,6 @@ public class TreeBuilder implements FunctionBodyTransformer {
             StatementNode successor = current.getSuccessor();
             if (successor.replace(var, current.nested())) {
               
-              System.out.println("Removing variable: " + var.getName());
-
               // remove the variable from the function
               function.removeVariable(var);
 
@@ -79,7 +75,7 @@ public class TreeBuilder implements FunctionBodyTransformer {
     Set<Integer> usedOnce = new HashSet<>();
 
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-      if(decl.getName() == null) {
+      if(!decl.isNamed()) {
         localVariables.add(decl.getId());
       }
     }

@@ -119,9 +119,10 @@ public class GnurCompilerMojo extends AbstractMojo {
     
     try {
       compiler.compile();
+      getLog().info("Compilation of GNU R sources succeeded.");
     } catch (Exception e) {
       if(ignoreFailure) {
-        System.err.println("Compilation of GNU R sources failed");
+        getLog().error("Compilation of GNU R sources failed.");
         e.printStackTrace(System.err);
       } else {
         throw new MojoExecutionException("Compilation of GNU R sources failed", e);
